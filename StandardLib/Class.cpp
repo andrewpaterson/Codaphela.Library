@@ -470,7 +470,7 @@ CField* CClass::AddField(size uiFieldSize, const char* szName)
 	size	uiNameLength;
 	CField* pcField;
 
-	uiNameLength = strlen(szName) + 1;
+	uiNameLength = StrLen(szName) + 1;
 	pcField = (CField*)macFields.Add(uiFieldSize + uiNameLength);
 	return pcField;
 }

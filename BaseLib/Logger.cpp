@@ -432,10 +432,10 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 		return;
 	}
 
-	iLength = strlen(szText);
+	iLength = StrLen(szText);
 	if (szErrorLevel)
 	{
-		iLength += strlen(szErrorLevel);
+		iLength += StrLen(szErrorLevel);
 	}
 
 	if (iLength > (1 KB - 80))

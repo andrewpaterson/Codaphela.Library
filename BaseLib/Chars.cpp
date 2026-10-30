@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "ArrayChars.h"
 #include "StringHelper.h"
+#include "ErrorHandler.h"
 #include "Newline.h"
 #include "FileWriter.h"
 #include "FileReader.h"

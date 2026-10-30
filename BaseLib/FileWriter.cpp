@@ -42,7 +42,7 @@ bool CFileWriter::WriteData(const void* pvData, lsize iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteString(const char* szString)
 {
-	size	iStrLen;
+	lsize	iStrLen;
 
 	iStrLen = strlen(szString)+1;
 	WriteSize(iStrLen);

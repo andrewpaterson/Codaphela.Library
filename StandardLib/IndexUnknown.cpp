@@ -91,7 +91,7 @@ bool CIndexUnknown::Put(uint8* pvKey, size iKeySize, CUnknown* pcValue)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Put(const char* szKey, CUnknown* pcValue)
 {
-	return Put((uint8*)szKey, strlen(szKey), pcValue);
+	return Put((uint8*)szKey, StrLen(szKey), pcValue);
 }
 
 
@@ -135,7 +135,7 @@ CUnknown* CIndexUnknown::Get(const char* szKey)
 {
 	size	uiLength;
 
-	uiLength = strlen(szKey);
+	uiLength = StrLen(szKey);
 	return Get((uint8*)szKey, uiLength);
 }
 
@@ -148,7 +148,7 @@ bool CIndexUnknown::Remove(const char* szKey)
 {
 	size	uiLength;
 
-	uiLength = strlen(szKey);
+	uiLength = StrLen(szKey);
 	return Remove((uint8*)szKey, uiLength);
 }
 

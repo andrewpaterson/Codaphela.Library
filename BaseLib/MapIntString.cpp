@@ -86,7 +86,7 @@ bool CMapIntString::Put(int iKey, const char* szValue)
 	char*	szData;
 	size	uiLength;
 
-	uiLength = strlen(szValue) + 1;
+	uiLength = StrLen(szValue) + 1;
 	if (mbOverwrite)
 	{
 		szData = Get(iKey);

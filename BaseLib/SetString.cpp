@@ -51,7 +51,7 @@ char* CSetString::Get(const char* szKey)
 		return NULL;
 	}
 
-	iStrLen = strlen(szKey) + 1;
+	iStrLen = StrLen(szKey) + 1;
 	sz = (char*)CSetBlock::Get((void*)szKey, iStrLen);
 	return sz;
 }
@@ -71,7 +71,7 @@ const char* CSetString::Put(const char* szKey)
 		return NULL;
 	}
 
-	iStrLen = strlen(szKey) + 1;
+	iStrLen = StrLen(szKey) + 1;
 	sz = (char*)CSetBlock::Put(szKey, iStrLen);
 	return sz;
 }
@@ -89,7 +89,7 @@ bool CSetString::Remove(const char* szKey)
 		return false;
 	}
 
-	iStrLen = strlen(szKey) + 1;
+	iStrLen = StrLen(szKey) + 1;
 	return CSetBlock::Remove(szKey, iStrLen);
 }
 //////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ bool CSetString::Has(const char* szKey)
 		return false;
 	}
 
-	iStrLen = strlen(szKey) + 1;
+	iStrLen = StrLen(szKey) + 1;
 	return CSetBlock::Has(szKey, iStrLen);
 }
 

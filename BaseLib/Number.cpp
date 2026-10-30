@@ -277,7 +277,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 
 	if (iLen == 0)
 	{
-		iLen = strlen(szNumber);
+		iLen = StrLen(szNumber);
 	}
 	if (iLen >= MAX_INT16)
 	{

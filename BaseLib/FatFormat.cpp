@@ -22,6 +22,7 @@
 #include "FileDrive.h"
 #include "FatFile.h"
 #include "FatTime.h"
+#include "StringHelper.h"
 #include "FatFormat.h"
 
 
@@ -148,7 +149,7 @@ void SetFatVolumeLabel(char* szDestination, const char* szVolumeLabel)
 	size	c;
 	uint8	i;
 
-	c = strlen(szVolumeLabel);
+	c = StrLen(szVolumeLabel);
 	if (c)
 	{
 		for (i = 0; i < 11; i++)

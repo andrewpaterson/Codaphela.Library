@@ -55,13 +55,13 @@ void CAssertStatistics::PrintTest(CChars* psz)
 	if (miTestsRun > 0)
 	{
 		psz->Append("Tests Run: ");
-		psz->Append(miTestsRun);
+		psz->Append((uint64)miTestsRun);
 		psz->AppendNewLine();
 		psz->Append("Passed: ");
-		psz->Append(miTestsPassed);
+		psz->Append((uint64)miTestsPassed);
 		psz->AppendNewLine();
 		psz->Append("Failed: ");
-		psz->Append(miTestsFailed);
+		psz->Append((uint64)miTestsFailed);
 	}
 	else
 	{
@@ -100,13 +100,13 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 	if (miTotalTestsRun > 0)
 	{
 		psz->Append("Total Tests Run: ");
-		psz->Append(miTotalTestsRun);
+		psz->Append((uint64)miTotalTestsRun);
 		psz->AppendNewLine();
 		psz->Append("Total Passed: ");
-		psz->Append(miTotalTestsPassed);
+		psz->Append((uint64)miTotalTestsPassed);
 		psz->AppendNewLine();
 		psz->Append("Total Failed: ");
-		psz->Append(miTotalTestsFailed);
+		psz->Append((uint64)miTotalTestsFailed);
 		psz->AppendNewLine();
 		psz->AppendNewLine();
 		psz->Append("Total Time:   ");

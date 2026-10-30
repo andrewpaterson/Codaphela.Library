@@ -325,7 +325,7 @@ void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 	if (pszDebug)
 	{
 		sz = pcUnknown->ClassName();
-		iLen = strlen(sz);
+		iLen = StrLen(sz);
 		if (iLen >= 5)
 		{
 			szDebug[0] = sz[1];

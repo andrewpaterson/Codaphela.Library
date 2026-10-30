@@ -48,7 +48,7 @@ size CListCharsMinimal::IndexOf(char* szString)
 //////////////////////////////////////////////////////////////////////////
 void CListCharsMinimal::Add(char* sz)
 {
-	Add(sz, strlen(sz));
+	Add(sz, StrLen(sz));
 }
 
 

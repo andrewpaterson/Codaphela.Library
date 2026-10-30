@@ -48,7 +48,7 @@ void CCharsImmutable::Init(const char* sz, CMallocator* pcMalloc)
 {
 	size	uiLength;
 
-	uiLength = strlen(sz);
+	uiLength = StrLen(sz);
 
 	if (uiLength >= MAX_EMBEDDED_CHARS)
 	{
@@ -190,7 +190,7 @@ size CCharsImmutable::Length(void)
 	}
 	else
 	{
-		return strlen(muString.sz);
+		return StrLen(muString.sz);
 	}
 }
 
@@ -369,7 +369,7 @@ bool CCharsImmutable::EndsWith(const char* szString)
 		return false;
 	}
 
-	uiLen = strlen(szString);
+	uiLen = StrLen(szString);
 	if (uiLen > Length())
 	{
 		return false;
@@ -412,13 +412,13 @@ bool CCharsImmutable::EndsWithIgnoreCase(const char* szString)
 		return false;
 	}
 
-	uiLen = strlen(szString);
+	uiLen = StrLen(szString);
 	if (uiLen > Length())
 	{
 		return false;
 	}
 
-	return SubStringEqualsIgnoreCase(Length() - strlen(szString), szString);
+	return SubStringEqualsIgnoreCase(Length() - StrLen(szString), szString);
 }
 
 
@@ -479,7 +479,7 @@ size CCharsImmutable::FindFromEnd(const char* szString)
 {
 	size iOtherLen;
 
-	iOtherLen = strlen(szString);
+	iOtherLen = StrLen(szString);
 	return FindFromEnd(Length() - iOtherLen, szString);
 }
 
@@ -578,7 +578,7 @@ size CCharsImmutable::Find(size iIndex, const char* szString)
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	iOtherLen = strlen(szString);
+	iOtherLen = StrLen(szString);
 	if (iOtherLen > uiLen - iIndex)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
@@ -705,7 +705,7 @@ bool CCharsImmutable::SubStringEquals(size iStart, const char* szString)
 	uiLen = Length();
 	if (uiLen == 0)
 	{
-		iSubLen = strlen(szString);
+		iSubLen = StrLen(szString);
 		if (iSubLen != 0)
 		{
 			return false;

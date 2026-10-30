@@ -69,7 +69,7 @@ bool CNamedIndexes::Add(const char* szName, OIndex oi)
 
 	if (szName != NULL)
 	{
-		iKeySize = strlen(szName);
+		iKeySize = StrLen(szName);
 		return Add(szName, iKeySize, oi);
 	}
 	else
@@ -136,7 +136,7 @@ bool CNamedIndexes::Set(const char* szName, OIndex oi)
 
 	if (!StrEmpty(szName))
 	{
-		iKeySize = strlen(szName);
+		iKeySize = StrLen(szName);
 		bExists = mcIndexTree.HasKey((uint8*)szName, iKeySize);
 		if (bExists)
 		{
@@ -185,7 +185,7 @@ bool CNamedIndexes::Put(const char* szName, OIndex oi)
 
 	if (!StrEmpty(szName))
 	{
-		iKeySize = strlen(szName);
+		iKeySize = StrLen(szName);
 		return mcIndexTree.Put((uint8*)szName, iKeySize, &oi, sizeof(OIndex));
 	}
 	else
@@ -224,7 +224,7 @@ OIndex CNamedIndexes::Get(const char* szName)
 
 	if (!StrEmpty(szName))
 	{
-		iKeySize = strlen(szName);
+		iKeySize = StrLen(szName);
 		bExists = mcIndexTree.Get((uint8*)szName, iKeySize, &iResult, NULL, sizeof(OIndex));
 		if (bExists)
 		{
@@ -267,7 +267,7 @@ bool CNamedIndexes::Remove(const char* szName)
 
 	if (szName)
 	{
-		iKeySize = strlen(szName);
+		iKeySize = StrLen(szName);
 		return mcIndexTree.Remove((uint8*)szName, iKeySize);
 	}
 	return false;

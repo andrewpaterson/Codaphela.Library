@@ -77,7 +77,7 @@ size StrDataSize(const char* pszData)
 	{
 		return 0;
 	}
-	uiDataSize = strlen(pszData) + 1;
+	uiDataSize = StrLen(pszData) + 1;
 	return uiDataSize;
 }
 
@@ -95,6 +95,6 @@ size StrKeySize(const char* pszKey)
 		return 0;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = StrLen(pszKey);
 	return iKeySize;
 }
