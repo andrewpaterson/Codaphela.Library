@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChannelsHelper.h"
 
 
-#define CHANNEL_NON_ALIGNED_BYTES		SIZE_MAX
+#define CHANNEL_NON_ALIGNED_BYTES		MAX_SIZE
 
 
 class CChannel : public SChannel

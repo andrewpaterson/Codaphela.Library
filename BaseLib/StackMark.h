@@ -27,10 +27,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SStackMark
 {
-	size	miUsedMemory;
+	lsize	miUsedMemory;
 	size	miElements;
 
-	void Init(size iUsedMemory, size iElements);
+	void Init(lsize iUsedMemory, size iElements);
 };
 
 

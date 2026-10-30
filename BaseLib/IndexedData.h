@@ -72,8 +72,8 @@ public:
 	bool			FlushKey(OIndex oi);
 
 	CDurableFileController* GetDurableFileControl(void);
-	size			GetIndiciesSystemMemorySize(void);
-	size			GetDataSystemMemorySize(void);
+	lsize			GetIndiciesSystemMemorySize(void);
+	lsize			GetDataSystemMemorySize(void);
 	size			GetRootFlags(void);
 
 	void			DumpIndex(void);
@@ -86,16 +86,16 @@ public:
 
 	bool			TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
-	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
+	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
 
 protected:
 	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize);
+	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize);
 	bool			RemoveDescriptor(OIndex oi);
 
-	bool			DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize);
+	bool			DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize);
 };
 
 

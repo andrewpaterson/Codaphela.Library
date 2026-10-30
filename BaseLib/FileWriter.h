@@ -87,7 +87,7 @@ public:
 						bool	WritePrimitive(M c);
 
 protected:
-	virtual				size	Write(const void* pvSource, lsize iSize, lsize iCount) =0;
+	virtual				lsize	Write(const void* pvSource, lsize iSize, lsize iCount) =0;
 };
 
 

@@ -199,7 +199,7 @@ CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 		AddBinaryOne(e);
 		for (iCount = 0; iCount < 23; iCount++)
 		{
-			iBitMask = 1 << (22-iCount);
+			iBitMask = (int32)1 << (22-iCount);
 			if (f & iBitMask)
 			{
 				AddBinaryOne(e - iCount - 1);
@@ -235,12 +235,12 @@ CNumber* CNumber::BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16
 
 	if ((iBinaryExponent < 32) && (iBinaryExponent >= 0))
 	{
-		iNumber = 1 << iBinaryExponent;
+		iNumber = (int32)1 << iBinaryExponent;
 		Init(iNumber, cMaxWholeNumbers, cMaxDecimals);
 	}
 	else if ((iBinaryExponent < 0) && (iBinaryExponent > -32))
 	{
-		iNumber = 1 << (-iBinaryExponent);
+		iNumber = (int32)1 << (-iBinaryExponent);
 		Init(iNumber, cMaxWholeNumbers, cMaxDecimals);
 		Inverse();
 	}
@@ -2186,7 +2186,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNumber::PrivateGetIndex(int16 iDigit)
+int32 CNumber::PrivateGetIndex(int16 iDigit)
 {
 	//Assumes iDigit != 0.
 	if (iDigit > 0)
@@ -3029,7 +3029,7 @@ CNumber* CNumber::Power(CNumber* pcExponentIn)
 		return this;
 	}
 
-	iDecimals = mcMaxDecimals*2;
+	iDecimals = (int32)mcMaxDecimals*2;
 	pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcExponent = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcExponent->Copy(pcExponentIn, mcMaxWholeNumbers, iDecimals);
@@ -3061,7 +3061,7 @@ CNumber* CNumber::Root(CNumber* pcRootIn)
 		return this;
 	}
 
-	iDecimals = mcMaxDecimals*2;
+	iDecimals = (int32)mcMaxDecimals*2;
 	pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcRoot = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 
@@ -3246,7 +3246,7 @@ CNumber* CNumber::Logarithm(CNumber* pcBase)
 	iDecimals = mcMaxDecimals;
 
 	pcOne = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
-	pcOne->One(mcMaxDecimals, iDecimals);
+	pcOne->One(mcMaxWholeNumbers, iDecimals);
 	pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcResult->Copy(this, mcMaxWholeNumbers, iDecimals);
 

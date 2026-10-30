@@ -98,7 +98,7 @@ protected:
 	ARGB32				msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
 	size				muiCaret;
-	size				muiAnchor;  //Where the selection started, SIZE_MAX for no selection.
+	size				muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
 	bool				mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
 	int32				miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
 	int32				miTabWidth;  //In spaces.

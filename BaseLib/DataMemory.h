@@ -55,14 +55,14 @@ public:
 	void					ReInit(void);
 	void					Compact(void);
 
-	void*					Add(size iSize);
+	void*					Add(lsize iSize);
 	bool					Remove(void* pv);
 	bool					RemoveMultiple(CArrayVoidPtr* pav);
-	size					GetSize(void* pv);
+	lsize					GetSize(void* pv);
 	CFreeList*				GetFreeList(size iElementSize);
-	void*					Grow(void* pvInitial, size iSize);
+	void*					Grow(void* pvInitial, lsize iSize);
 	size					NumElements(void);
-	size					ByteSize(void);
+	lsize					ByteSize(void);
 	CMemoryFreeListParams*	GetFreeListParams(void);
 
 	SMemory					StartIteration(SMemoryIterator* psIterator);
@@ -84,9 +84,9 @@ private:
 	void*					AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize);
 	bool					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
-	void*					AllocateInLargeList(size uiSize);
+	void*					AllocateInLargeList(lsize uiSize);
 	bool					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
-	void					CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize);
+	void					CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSize, lsize uiSourceSize);
 };
 
 

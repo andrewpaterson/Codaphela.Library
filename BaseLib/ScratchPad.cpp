@@ -40,7 +40,7 @@ void CScratchPad::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CScratchPad::Init(size uiChunkSize)
+void CScratchPad::Init(lsize uiChunkSize)
 {
 	mcScratchPad.Init(uiChunkSize);
 	miSourceChunkSize = uiChunkSize;
@@ -61,7 +61,7 @@ void CScratchPad::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CScratchPad::Add(size uiSize)
+void* CScratchPad::Add(lsize uiSize)
 {
 	SSPNode*	psNode;
 	void*		pvData;
@@ -88,7 +88,7 @@ void CScratchPad::Reset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CScratchPad::GetMemorySize(void)
+lsize CScratchPad::GetMemorySize(void)
 {
 	return mcScratchPad.GetTotalMemory();
 }
@@ -98,7 +98,7 @@ size CScratchPad::GetMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CScratchPad::GetUsedSize(void)
+lsize CScratchPad::GetUsedSize(void)
 {
 	return mcScratchPad.GetUsedMemory();
 }

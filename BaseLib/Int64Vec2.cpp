@@ -210,7 +210,7 @@ void Int64Vec2MinMax(SInt64Vec2* psMin, SInt64Vec2* psMax, SInt64Vec2* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SInt64Vec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

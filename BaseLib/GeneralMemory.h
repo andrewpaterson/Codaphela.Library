@@ -51,19 +51,19 @@ public:
 	void					Init(uint16 iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void					Kill(void);
 	void					Compact(void);
-	void*					Add(size iSize);
-	void*					Add(size iSize, uint16 iAlignment, int16 iOffset = 0);
+	void*					Add(lsize iSize);
+	void*					Add(lsize iSize, uint16 iAlignment, int16 iOffset = 0);
 	bool					Remove(void* pv);
 	size					RemoveMultiple(CArrayVoidPtr* pav);
-	size					GetSize(void* pv);
+	lsize					GetSize(void* pv);
 	SFNode*					GetNode(void* pv);
 	CFreeList*				GetFreeList(size iElementSize, uint16 iAlignment, int16 iOffset);
 	CFreeList*				GetFreeList(size iElementSize);
-	void*					Grow(void* pvInitial, size iSize);
+	void*					Grow(void* pvInitial, lsize iSize);
 	void					SetDebugName(void* pv, char (*pszDebug)[4]);
 	void					BreakOnAdd(size uiAllocCount);
 	size					NumElements(void);
-	size					ByteSize(void);
+	lsize					ByteSize(void);
 	CMemoryFreeListParams*	GetFreeListParams(void);
 	size					GetDefaultAlignment(void);
 
@@ -86,9 +86,9 @@ private:
 	void*					AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize);
 	bool					DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
-	void*					AllocateInLargeList(size uiSize, uint16 iAlignment, int16 iOffset);
+	void*					AllocateInLargeList(lsize uiSize, uint16 iAlignment, int16 iOffset);
 	bool					DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc);
-	void					CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize);
+	void					CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSize, lsize uiSourceSize);
 };
 
 

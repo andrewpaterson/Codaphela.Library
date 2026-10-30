@@ -104,12 +104,12 @@ public:
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
-	void			PeepholeBranches(CChars* pszDest, size uiStart);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	CArrayChars*	GetRuntime(void);
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
+	static void		PeepholeBranches(CChars* pszDest, size uiStart);
 
 protected:
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
@@ -148,7 +148,7 @@ protected:
 	SIRReference	FoldedIndex(SIRReference sValue);
 	bool			IsFolded(SIRInstruction* psInstruction);
 	void			FoldIndices(CArrayTemplate<int32>* paiUses);
-	void			LoadY(SIRReference sPointer, int32 iOffset);
+	bool			LoadY(SIRReference sPointer, int32 iOffset);
 
 	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
 	void			Arithmetic(SIRInstruction* psInstruction);

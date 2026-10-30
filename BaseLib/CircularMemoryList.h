@@ -7,7 +7,7 @@
 
 struct SCircularMemoryList
 {
-	size						muiCacheSize;
+	lsize						muiCacheSize;
 
 	SMemoryCacheDescriptor*		mpsTail;
 	SMemoryCacheDescriptor*		mpsHead;
@@ -21,22 +21,22 @@ protected:
 	SCircularMemoryList*		mpsDetail;
 	SMemoryCacheDescriptor*		mpvCache;
 
-	size						miDescriptorSize;
+	lsize						miDescriptorSize;
 
 public:
-	void						Init(void* pvCache, size uiByteSize, size iDescriptorSize = sizeof(SMemoryCacheDescriptor));
-	void						InitExisting(void* pvCache, size uiByteSize, size iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						InitExisting(void* pvCache, lsize uiByteSize, lsize iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
 	//These methods need to be renamed to something sane.
-	void						Remap(void* pvNewCache, size uiByteSize);
-	void						Remap(SCircularMemoryList* pvNewCache, size uiByteSize);
+	void						Remap(void* pvNewCache, lsize uiByteSize);
+	void						Remap(SCircularMemoryList* pvNewCache, lsize uiByteSize);
 
 	void						Clear(void);
 
-	size						GetSize(void* pvData);
+	lsize						GetSize(void* pvData);
 	size						NumElements(void);
-	size						NumElements(size iSize);
+	size						NumElements(lsize iSize);
 	bool						IsEmpty(void);
 
 	void*						StartIteration(void);
@@ -47,12 +47,12 @@ public:
 	void*						GetNext(void* psCurrent);
 	void*						GetPrev(void* psCurrent);
 
-	size						GetDescriptorSize(void);
+	lsize						GetDescriptorSize(void);
 
 	void						Deallocate(void* pvData);
 
-	size						GetCacheSize(void);
-	size						GetAllocatedSize(void);
+	lsize						GetCacheSize(void);
+	lsize						GetAllocatedSize(void);
 
 	bool						ValidateCache(void);
 	bool						ValidateEnds(void);
@@ -61,13 +61,13 @@ public:
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
 	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	bool						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size uiNewSize, SMemoryCacheDescriptor* psExisting);
+	bool						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, lsize uiNewSize, SMemoryCacheDescriptor* psExisting);
 
-	size						RemainingAfterTail(void);
-	size						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	lsize						RemainingAfterTail(void);
+	lsize						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
-	void						RemapDifferentMemory(void* pvNewCache, size uiCacheSize);
-	void						RemapSameMemory(size uiCacheSize);
+	void						RemapDifferentMemory(void* pvNewCache, lsize uiCacheSize);
+	void						RemapSameMemory(lsize uiCacheSize);
 
 	SMemoryCacheDescriptor*		StartDescriptorIteration(void);
 	SMemoryCacheDescriptor*		IterateDescriptor(SMemoryCacheDescriptor* psCacheBasedDescriptor);
@@ -80,7 +80,7 @@ protected:
 	void*						GetData(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 	SMemoryCacheDescriptor*		GetDescriptorNoRemap(void* pvData);
 	SMemoryCacheDescriptor*		GetCache(void);
-	bool						CanCache(size uiDataSize);
+	bool						CanCache(lsize uiDataSize);
 
 	void						Deallocate(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
@@ -95,7 +95,7 @@ protected:
 	bool						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
 protected:
-	size						FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	size						FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, lsize uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 };
 
 

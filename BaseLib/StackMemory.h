@@ -18,7 +18,7 @@ private:
 
 public:
 	void*	Init(void);
-	void*	Init(size iSize);
+	void*	Init(lsize iSize);
 	void	Kill(void);
 	size	GetStackSize(void);
 	void*	GetStackData(void);
@@ -43,7 +43,7 @@ void* CStackMemory<I>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<size I>
-void* CStackMemory<I>::Init(size iSize)
+void* CStackMemory<I>::Init(lsize iSize)
 {
 	if (iSize > I)
 	{

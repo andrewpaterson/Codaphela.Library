@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, size uiDataSize, uint32 uiFileNum)
+bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, lsize uiDataSize, uint32 uiFileNum)
 {
 	muiFileIndex = uiFileIndex;
 	muiDataSize = uiDataSize;
@@ -131,7 +131,7 @@ filePos CIndexedFile::Write(const void* pvData, size uiCount)
 		return INDEXED_FILE_WRITE_ERROR;
 	}
 
-	uiWritten = mcFile.Write(EFSO_END, 0, pvData, muiDataSize, uiCount);
+	uiWritten = (size)mcFile.Write(EFSO_END, 0, pvData, muiDataSize, uiCount);
 	if (uiWritten != uiCount)
 	{
 		return INDEXED_FILE_WRITE_ERROR;
@@ -164,7 +164,7 @@ bool CIndexedFile::Write(filePos iIndex, const void* pvData, size uiCount)
 	}
 
 	iPosition = iIndex * muiDataSize;
-	uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	uiWritten = (size)mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	if (uiWritten != uiCount)
 	{
 		return false;
@@ -208,7 +208,7 @@ bool CIndexedFile::Read(filePos iIndex, void* pvData, size uiCount)
 	}
 
 	iPosition = iIndex * muiDataSize;
-	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	iRead = (size)mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	return iRead == uiCount;
 }
 
@@ -233,7 +233,7 @@ bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 	filePos				iPosition;
 	void*				pvData;
 	CStackMemory<2 KB>	cTemp;
-	size				uiSize;
+	lsize				uiSize;
 
 	if (uiCount == 0)
 	{
@@ -242,7 +242,7 @@ bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 
 	if (iIndex + (filePos)uiCount > miNumDatas)
 	{
-		//This is wrong.  You need to loop multiple times if miNumDatas - iIndex is > than SIZE_MAX
+		//This is wrong.  You need to loop multiple times if miNumDatas - iIndex is > than MAX_SIZE
 		if (miNumDatas <= iIndex)
 		{
 			return true;
@@ -255,7 +255,7 @@ bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 
 	pvData = cTemp.Init(uiSize);
 	memset(pvData, INDEX_FILE_EMPTY_CHAR, uiSize);
-	uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	uiWritten = (size)mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	cTemp.Kill();
 
 	return uiWritten == uiCount;
@@ -316,7 +316,7 @@ void CIndexedFile::Dump(void)
 	uiReadSize = 80;
 	if (muiDataSize < uiReadSize)
 	{
-		uiReadSize = muiDataSize;
+		uiReadSize = (size)muiDataSize;
 	}
 
 	iPos = mcFile.Tell();
@@ -387,7 +387,7 @@ uint32 CIndexedFile::GetFileNumber(void) { return muiFileNumber; }
 bool CIndexedFile::IsFileIndex(size uiFileIndex) { return muiFileIndex == uiFileIndex; }
 const char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
-size CIndexedFile::GetDataSize(void) { return muiDataSize; }
+lsize CIndexedFile::GetDataSize(void) { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
 

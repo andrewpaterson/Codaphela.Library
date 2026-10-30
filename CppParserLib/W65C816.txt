@@ -364,11 +364,16 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  (PeepholeBranches): an lda of a direct page word or a constant goes
 	  when what runs next, through labels and bras, sets A before reading A
 	  or the flags; a tax goes when X is written before it is read in the
-	  straight line code after it (IR816SetsXFirst; 20.04M).  Peephole: txa after
+	  straight line code after it (IR816SetsXFirst; 20.04M).  x * 0 and
+	  x & 0 fold to 0 (IsIdentity), so ReduceMultiplies's 0 * w for a counter
+	  from 0 goes.  Peephole: txa after
 	  tax (or the other way) with clc or sec between goes; cmp 0 after what
 	  set N and Z from A goes when labels come before the branch too
 	  (IR816SkipLabels).  Tide/Video 20.21M -> 20.17M, the sprite test 5.98M
 	  -> 5.78M.
+	- Word 0 through a pointer with no folded index is [[D + p]:24], not
+	  ldy 0 and [[D + p]:24 + Y] (LoadY; the same cycles less the ldy).
+	  Tide/Video 20.04M -> 19.63M, the sprite test 5.78M -> 5.59M.
 	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
 	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
 	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.

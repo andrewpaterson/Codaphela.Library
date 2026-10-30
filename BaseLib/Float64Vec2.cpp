@@ -272,8 +272,8 @@ void Float64Vec2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, (lsize)i * iOutStride);
+		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 		Float64Vec2TransformCoord(psOut, psIn, psMat);
 	}
 }
@@ -291,8 +291,8 @@ void Float64Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Ve
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, (lsize)i * iOutStride);
+		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 		Float64Vec2TransformNormal(psOut, psIn, psMat);
 	}
 }
@@ -329,7 +329,7 @@ void Float64Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* a
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

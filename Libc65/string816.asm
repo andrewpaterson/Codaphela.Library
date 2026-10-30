@@ -5,6 +5,7 @@
 ; source's or the destination's bank and the next goes on from there.  memset stores the
 ; first byte and moves the rest up from one byte below, so each byte copies the one before
 ; it.  string.cpp has the other string functions (and these, for the 65C64's reference).
+; string816_16.asm has memcpy16 and the like, with 16 bit counts, for BaseLib's natural arrays.
 ; The code changes itself, so it isn't reentrant: an interrupt handler mustn't call these.
 ; The calling convention is the compiler's (IR816Backend.h): arguments are pushed last first
 ; (pointers and size_t 4 bytes, int 2), A and X are 16 bits wide on the way in and out, the
@@ -981,8 +982,8 @@ MoreNone:
 		.section text.MemSwp816
 		.global _MemSwp__FPvPvj
 
-; void MemSwp(const void* pv1, const void* pv2, size uiLength) (BaseLib's StringHelper.cpp, left
-; out for the W65C816): a word at a time, then the byte left, Y running up from both pointers
+; void MemSwp(const void* pv1, const void* pv2, lsize uiLength) (BaseLib's StringHelper.cpp, left
+; out for the W65C816; string816_16.asm has MemSwp16, with a size length): a word at a time, then the byte left, Y running up from both pointers
 ; (carrying into the next bank), 64KB at a time.  D points at the stack: the pointers are at
 ; D + 6 and D + 10, the length at D + 14.
 _MemSwp__FPvPvj:

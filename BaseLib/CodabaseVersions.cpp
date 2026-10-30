@@ -57,7 +57,7 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 	CVersion*			pcTail;
 	CVersion*			pcVersion;
 	CChars				szName;
-	size				uiDataSize;
+	lsize				uiDataSize;
 	bool				bExists;
 	CStackMemory<2 KB>	cStack;
 	void*				pvData;

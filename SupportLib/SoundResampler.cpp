@@ -103,7 +103,7 @@ size CSoundResampler::GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRat
 		return 0;
 	}
 	ulli = ((uint64)uiNumFrames * (uint64)uiDestRate + (uint64)uiSourceRate - 1) / (uint64)uiSourceRate;
-	if (ulli > SIZE_MAX)
+	if (ulli > MAX_SIZE)
 	{
 		return 0;
 	}

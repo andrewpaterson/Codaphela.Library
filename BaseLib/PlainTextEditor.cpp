@@ -45,10 +45,10 @@ void CPlainTextEditor::Init(const char* szText)
 	miEditPos = 0;
 	miPageLength = 25;
 
-	miSelectionAnchor = SIZE_MAX;
-	miSelectionFloating = SIZE_MAX;
+	miSelectionAnchor = MAX_SIZE;
+	miSelectionFloating = MAX_SIZE;
 	miTabWidth = 4;
-	miUpDownCharCount = SIZE_MAX;
+	miUpDownCharCount = MAX_SIZE;
 }
 
 
@@ -1151,7 +1151,7 @@ size CPlainTextEditor::FindWordRight(size iPos)
 bool CPlainTextEditor::IsSelected(void)
 {
 	//I think this should be an || not an && but I haven't read the code around miSelectionFloating.
-	if ((miSelectionAnchor == SIZE_MAX) && (miSelectionFloating == SIZE_MAX))
+	if ((miSelectionAnchor == MAX_SIZE) && (miSelectionFloating == MAX_SIZE))
 	{
 		return false;
 	}
@@ -1429,7 +1429,7 @@ size CPlainTextEditor::CountChar(size iCharCount, char c)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::ResetUpDown(void)
 {
-	miUpDownCharCount = SIZE_MAX;
+	miUpDownCharCount = MAX_SIZE;
 }
 
 
@@ -1439,7 +1439,7 @@ void CPlainTextEditor::ResetUpDown(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::UpdateUpDown(size iPos)
 {
-	if (miUpDownCharCount == SIZE_MAX)
+	if (miUpDownCharCount == MAX_SIZE)
 	{
 		miUpDownCharCount = GetCharCountAlongLine(iPos);
 	}
@@ -1465,8 +1465,8 @@ void CPlainTextEditor::SelectAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::ClearSelection(void)
 {
-	miSelectionAnchor = SIZE_MAX;
-	miSelectionFloating = SIZE_MAX;
+	miSelectionAnchor = MAX_SIZE;
+	miSelectionFloating = MAX_SIZE;
 }
 
 

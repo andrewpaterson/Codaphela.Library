@@ -202,7 +202,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 	OIndex			oiNew;
 	OIndex			oiOld;
 	CMemoryFile		cMemoryFile;
-	size			uiLength;
+	lsize			uiLength;
 
 	oiOld = pcSerialised->GetIndex();
 

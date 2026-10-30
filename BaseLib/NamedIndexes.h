@@ -70,8 +70,8 @@ public:
 	bool	IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize);
 	bool	IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize);
 
-	size	GetSystemMemorySize(void);
-	size	GetUserMemorySize(void);
+	lsize	GetSystemMemorySize(void);
+	lsize	GetUserMemorySize(void);
 	size	GetRootFlags(void);
 
 

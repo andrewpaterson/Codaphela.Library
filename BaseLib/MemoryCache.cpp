@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
+void CMemoryCache::Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
 	//A cache that can't be allocated has no memory (rather than clearing memory from address 0).
 	mpvCache = malloc(uiCacheSize + sizeof(SCircularMemoryList));
@@ -55,7 +55,7 @@ void CMemoryCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Resize(size uiNewCacheSize)
+void CMemoryCache::Resize(lsize uiNewCacheSize)
 {
 	SCircularMemoryList*	pvNewDetail;
 
@@ -80,10 +80,10 @@ void CMemoryCache::Resize(size uiNewCacheSize)
 bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
-	size						iCachedSize;
-	size						iRemainingAfterLast;
+	lsize						iCachedSize;
+	lsize						iRemainingAfterLast;
 	SMemoryCacheDescriptor*		psTail;
-	size						iDescriptorSize;
+	lsize						iDescriptorSize;
 
 	iDescriptorSize = mcMemoryList.GetDescriptorSize();
 	iCachedSize = iDescriptorSize + pcPreAllocationResult->muiSize;
@@ -166,7 +166,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::Allocate(size uiDataSize)
+void* CMemoryCache::Allocate(lsize uiDataSize)
 {
 	CMemoryCacheAllocation	cPreAllocation;
 	bool					bResult;
@@ -207,7 +207,7 @@ void* CMemoryCache::Allocate(size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::GetSize(void* pvData)
+lsize CMemoryCache::GetSize(void* pvData)
 {
 	return mcMemoryList.GetSize(pvData);
 }
@@ -307,7 +307,7 @@ size CMemoryCache::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::NumElements(size iSize)
+size CMemoryCache::NumElements(lsize iSize)
 {
 	return mcMemoryList.NumElements(iSize);
 }
@@ -317,7 +317,7 @@ size CMemoryCache::NumElements(size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::GetDescriptorSize(void)
+lsize CMemoryCache::GetDescriptorSize(void)
 {
 	return mcMemoryList.GetDescriptorSize();
 }
@@ -327,7 +327,7 @@ size CMemoryCache::GetDescriptorSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::GetCacheSize(void)
+lsize CMemoryCache::GetCacheSize(void)
 {
 	return mcMemoryList.GetCacheSize();
 }
@@ -347,7 +347,7 @@ void* CMemoryCache::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::GetAllocatedSize(void)
+lsize CMemoryCache::GetAllocatedSize(void)
 {
 	return mcMemoryList.GetAllocatedSize();
 }
@@ -357,7 +357,7 @@ size CMemoryCache::GetAllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryCache::CanCache(size uiDataSize)
+bool CMemoryCache::CanCache(lsize uiDataSize)
 {
 	return mcMemoryList.CanCache(uiDataSize);
 }

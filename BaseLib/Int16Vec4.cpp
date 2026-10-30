@@ -206,7 +206,7 @@ void Int16Vec4MinMax(SInt16Vec4* psMin, SInt16Vec4* psMax, SInt16Vec4* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt16Vec4*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SInt16Vec4*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

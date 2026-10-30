@@ -20,8 +20,8 @@ protected:
 	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;
 
 public:
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	void			Kill(void);
 
 	bool			Remove(OIndex oi);
@@ -29,7 +29,7 @@ public:
 	bool			Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction);
 	bool			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	bool			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction);
-	bool			SetCache(void* pvCache, size uiDataSize, OIndex oi);
+	bool			SetCache(void* pvCache, lsize uiDataSize, OIndex oi);
 	bool			Flush(void);
 
 	int64			NumElements(void);
@@ -53,7 +53,7 @@ public:
 
 	bool			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
-	size			GetSystemMemorySize(void);
+	lsize			GetSystemMemorySize(void);
 	size			GetRootFlags(void);
 
 	void			Dump(void);

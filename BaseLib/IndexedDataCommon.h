@@ -23,17 +23,17 @@ public:
 			bool			IsWriteThrough(void);
 			bool			IsFlushed(void);
 	
-			bool			Add(OIndex oi, void* pvData, size uiDataSize);
+			bool			Add(OIndex oi, void* pvData, lsize uiDataSize);
 
 			bool			Set(OIndex oi, void* pvData);
-			bool			Set(OIndex oi, void* pvData, size uiDataSize);
+			bool			Set(OIndex oi, void* pvData, lsize uiDataSize);
 
-			bool			Put(OIndex oi, const void* pvData, size uiDataSize);
+			bool			Put(OIndex oi, const void* pvData, lsize uiDataSize);
 
-			bool			Get(OIndex oi, void* pvData, size uiMaxSize = 0);
-			bool			Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxSize);
+			bool			Get(OIndex oi, void* pvData, lsize uiMaxSize = 0);
+			bool			Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxSize);
 
-			size	Size(OIndex oi);
+			lsize	Size(OIndex oi);
 			bool			Contains(OIndex oi);
 
 			int64			NumElements(void);
@@ -44,7 +44,7 @@ public:
 			size			NumDataCached(void);
 			size			NumDataCached(size iSize);
 			size			NumFiles(void);
-			int64			NumDatas(size uiDataSize);
+			int64			NumDatas(lsize uiDataSize);
 
 			bool			Remove(OIndex oi);
 
@@ -52,17 +52,17 @@ public:
 
 	virtual bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 
-			size	TestGetCachedObjectSize(OIndex oi);
+			lsize	TestGetCachedObjectSize(OIndex oi);
 
 protected:
 	virtual bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
 	virtual bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
-	virtual bool			UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize) =0;
+	virtual bool			UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize) =0;
 	virtual bool			RemoveDescriptor(OIndex oi) =0;
 
 	virtual bool			Flush(bool bClearCache) =0;
 
-			bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size* puiDataSize, void* pvData, size uiMaxSize);
+			bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, lsize* puiDataSize, void* pvData, lsize uiMaxSize);
 };
 
 

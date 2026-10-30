@@ -138,8 +138,12 @@ enum EPrimitiveType
 
 
 
-//This doesn't work for size == 2 bytes.
-#define SIZE_IN_BITS		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
+//If GetSize returns a size with this flag set then the size is in bits, not bytes.  A 16 bit size uses its top bit.
+#ifdef SIZE_16
+#define SIZE_IN_BITS		0x8000
+#else
+#define SIZE_IN_BITS		0x80000000
+#endif // SIZE_16
 
 
 EPrimitiveType IntPrimitive(void);

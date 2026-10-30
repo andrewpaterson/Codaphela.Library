@@ -60,7 +60,7 @@ public:
 	void	Kill(void);
 	void	Copy(CTreeTemplate* pcTreeSrc);
 	size	NumElements(void);
-	size	ByteSize(void);
+	lsize	ByteSize(void);
 
 	//Create the root node
 	M*		InsertRoot();
@@ -829,9 +829,9 @@ size CTreeTemplate<M>::GetPathTo(size* auiPath, M* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CTreeTemplate<M>::ByteSize()
+lsize CTreeTemplate<M>::ByteSize()
 {
-	return (sizeof(M) + sizeof(STNode)) * miNumElements;
+	return (lsize)(sizeof(M) + sizeof(STNode)) * miNumElements;
 }
 
 

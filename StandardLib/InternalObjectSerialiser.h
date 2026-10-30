@@ -36,7 +36,7 @@ public:
 	bool	Write(CBaseObject* pcObject);
 
 protected:
-	bool	Put(CSerialisedObject* pcSerialised, size iSize);
+	bool	Put(CSerialisedObject* pcSerialised, lsize iSize);
 };
 
 

@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SAlignedData
 {
-	size	uiSize;
+	lsize	uiSize;
 	void*	pvAlloc;  //This is the original allocation pointer.
 	uint8	iAlignment;
 	int8	iOffset;
@@ -37,11 +37,11 @@ struct SAlignedData
 
 struct SAlignedDataDesc
 {
-	size	uiSize;
+	lsize	uiSize;
 	uint8	iAlignment;
 	int8	iOffset;
 
-	void	Init(size uiSize, uint8 iAlignment, int8 iOffset);
+	void	Init(lsize uiSize, uint8 iAlignment, int8 iOffset);
 	bool	Write(CFileWriter* pcFileWriter);
 	bool	Read(CFileReader* pcFileReader);
 };
@@ -62,18 +62,18 @@ public:
 	void				Init(CMallocator* pcMalloc);
 	void				Kill(void);
 
-	void*				InsertAfterTail(size uiSize, uint16 iAlignment, int16 iOffset);
-	void*				InsertBeforeHead(size uiSize, uint16 iAlignment, int16 iOffset);
-	void*				InsertBeforeNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset);
-	void*				InsertAfterNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset); 
-	void*				Add(size uiSize, uint16 iAlignment);
+	void*				InsertAfterTail(lsize uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertBeforeHead(lsize uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertBeforeNode(void* psPos, lsize uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertAfterNode(void* psPos, lsize uiSize, uint16 iAlignment, int16 iOffset); 
+	void*				Add(lsize uiSize, uint16 iAlignment);
 
-	SLLAlignedNode*		AllocateDetached(size uiSize, uint16 iAlignment, int16 iOffset);
+	SLLAlignedNode*		AllocateDetached(lsize uiSize, uint16 iAlignment, int16 iOffset);
 	void				Remove(void* pvData);
 	bool				SafeRemove(void* pvData);
 	void				FreeDetached(void* psNodeData);
 	void				FreeNode(SLLAlignedNode* psNode);
-	void*				Grow(void* pvData, size uiNewSize);
+	void*				Grow(void* pvData, lsize uiNewSize);
 
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
@@ -81,10 +81,10 @@ public:
 	SLLAlignedNode*		CalculateActualStart(void* pvMem, uint16 iAlignment, int16 iOffset);
 	SLLAlignedNode*		GetNode(void* pvMem);
 
-	size				ByteSize(void);
+	lsize				ByteSize(void);
 
 protected:	
-	size				GetNodeSize(void* pvMem);
+	lsize				GetNodeSize(void* pvMem);
 
 	bool				WriteHeader(CFileWriter* pcFileWriter);
 	bool				WriteData(CFileWriter* pcFileWriter);

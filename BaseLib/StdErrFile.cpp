@@ -82,7 +82,7 @@ bool CStdErrFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 lsize CStdErrFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size	iWritten;
+	lsize	iWritten;
 
 	iWritten = fwrite(pvBuffer, iSize, iCount, stderr);
 	miPos += iWritten * iSize;

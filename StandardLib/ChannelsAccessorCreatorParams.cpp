@@ -43,8 +43,8 @@ void CChannelsAccessorCreatorParams::Init(CChannels* pcChannels)
 	mbSourceTypesSame = false;
 	mbChannelByteAligned = false;
 	mbAccessByteAligned = false;
-	muiBitSize = SIZE_MAX;
-	muiByteSize = SIZE_MAX;
+	muiBitSize = MAX_SIZE;
+	muiByteSize = MAX_SIZE;
 }
 
 
@@ -100,7 +100,7 @@ bool CChannelsAccessorCreatorParams::CreateAccessorParams(void)
 			iBitSize = gcTypeNames.GetBitSize(eAccessType);
 			if (iByteSize == 0)
 			{
-				iByteSize = SIZE_MAX;
+				iByteSize = MAX_SIZE;
 			}
 
 			pcAccessor->Init(iByteSize, iBitSize, eAccessType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
@@ -119,7 +119,7 @@ bool CChannelsAccessorCreatorParams::CreateAccessorParams(void)
 	}
 	else
 	{
-		muiByteSize = SIZE_MAX;
+		muiByteSize = MAX_SIZE;
 	}
 
 	return true;
@@ -252,7 +252,7 @@ bool CChannelsAccessorCreatorParams::CalculateAccessByteAligned(void)
 	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
-		if (pcAccessor->miAccessByteSize == SIZE_MAX)
+		if (pcAccessor->miAccessByteSize == MAX_SIZE)
 		{
 			return false;
 		}

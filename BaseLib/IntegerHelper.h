@@ -69,7 +69,7 @@ void	SwapSize(size* pui1, size* pui2);
 void	SwapBit(uint8* puiByte, size uiBit1, size uiBit2);
 void	SwapBit(uint16* puiByte, size uiBit1, size uiBit2);
 size 	FindFirstInt(int32* piIntArray, int32 iSearch, size iMaxLength);
-size	FindFirstByte(uint8* pcCharArray, uint8 uiSearch, size iMaxLength);
+lsize	FindFirstByte(uint8* pcCharArray, uint8 uiSearch, lsize iMaxLength);  //ARRAY_LARGE_ELEMENT_NOT_FOUND if it isn't there.
 uint8	GetHighNybble(uint8 c);
 uint8	GetLowNybble(uint8 c);
 uint8	GetLowByte(uint16 uiValue);
@@ -82,6 +82,7 @@ int 	CompareShort(const void* arg1, const void* arg2);
 int		CompareShortReverse(const void* arg1, const void* arg2);
 int 	CompareInt(const void* arg1, const void* arg2);
 int		CompareIntReverse(const void* arg1, const void* arg2);
+int 	CompareSize(const void* arg1, const void* arg2);
 int 	CompareLong(const void* arg1, const void* arg2);
 int		CompareLongReverse(const void* arg1, const void* arg2);
 uint8	GetCrumb(size iCrumb, void* pvArray);  //return 11, 10, 01 or 00.

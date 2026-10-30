@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::Init(void* pvCache, size uiByteSize, size iDescriptorSize)
+void CCircularMemoryList::Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize)
 {
 	miDescriptorSize = iDescriptorSize;
 
@@ -58,7 +58,7 @@ void CCircularMemoryList::Init(void* pvCache, size uiByteSize, size iDescriptorS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::InitExisting(void* pvCache, size uiByteSize, size iDescriptorSize)
+void CCircularMemoryList::InitExisting(void* pvCache, lsize uiByteSize, lsize iDescriptorSize)
 {
 	miDescriptorSize = iDescriptorSize;
 	mpsDetail = (SCircularMemoryList*)pvCache;
@@ -81,7 +81,7 @@ void CCircularMemoryList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::Remap(void* pvNewCache, size uiByteSize)
+void CCircularMemoryList::Remap(void* pvNewCache, lsize uiByteSize)
 {
 	if (pvNewCache != mpsDetail)
 	{
@@ -98,7 +98,7 @@ void CCircularMemoryList::Remap(void* pvNewCache, size uiByteSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size uiByteSize)
+void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, lsize uiByteSize)
 {
 	if (pvNewCache)
 	{
@@ -121,10 +121,10 @@ void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size uiByteSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSize)
+void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, lsize uiCacheSize)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
-	size						uiSize;
+	lsize						uiSize;
 	SMemoryCacheDescriptor*		psNewPrev;
 	SMemoryCacheDescriptor*		psNew;
 
@@ -181,13 +181,13 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
+void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	SMemoryCacheDescriptor*		psLargest;
 	SMemoryCacheDescriptor*		psNew;
-	size						uiSize;
-	size						uiRemaining;
+	lsize						uiSize;
+	lsize						uiRemaining;
 	
 	mpsDetail->muiCacheSize = uiCacheSize;
 	if (mpvCache == GetFirst() || mpsDetail->mpsHead == NULL)
@@ -315,7 +315,7 @@ void CCircularMemoryList::Deallocate(SMemoryCacheDescriptor* psCacheBasedDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::GetCacheSize(void)
+lsize CCircularMemoryList::GetCacheSize(void)
 {
 	return mpsDetail->muiCacheSize;
 }
@@ -325,10 +325,10 @@ size CCircularMemoryList::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::GetAllocatedSize(void)
+lsize CCircularMemoryList::GetAllocatedSize(void)
 {
 	SMemoryCacheDescriptor* psIter;
-	size					uiSize;
+	lsize					uiSize;
 
 	uiSize = 0;
 	psIter = StartDescriptorIteration();
@@ -395,7 +395,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetLastDescriptor(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::GetSize(void* pvCacheBasedData)
+lsize CCircularMemoryList::GetSize(void* pvCacheBasedData)
 {
 	SMemoryCacheDescriptor* psDescriptor;
 
@@ -411,7 +411,7 @@ size CCircularMemoryList::GetSize(void* pvCacheBasedData)
 size CCircularMemoryList::NumElements(void)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
-	size							iNum;
+	lsize							iNum;
 
 	if (IsEmpty())
 	{
@@ -433,7 +433,7 @@ size CCircularMemoryList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::GetDescriptorSize(void)
+lsize CCircularMemoryList::GetDescriptorSize(void)
 {
 	return miDescriptorSize;
 }
@@ -481,7 +481,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircularMemoryList::CanCache(size uiDataSize)
+bool CCircularMemoryList::CanCache(lsize uiDataSize)
 {
 	return (miDescriptorSize + uiDataSize) <= mpsDetail->muiCacheSize;
 }
@@ -491,10 +491,10 @@ bool CCircularMemoryList::CanCache(size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::NumElements(size iSize)
+size CCircularMemoryList::NumElements(lsize iSize)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
-	size						iNum;
+	lsize						iNum;
 
 	if (IsEmpty())
 	{
@@ -567,7 +567,7 @@ void CCircularMemoryList::Dump(void)
 	SMemoryCacheDescriptor*		psDescriptor;
 	CChars						sz;
 	char*						pvData;
-	size						iLen;
+	lsize						iLen;
 	SMemoryCacheDescriptor*		psCurrent;
 	SMemoryCacheDescriptor*		psNext;
 	SMemoryCacheDescriptor*		psPrev;
@@ -665,7 +665,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size uiNewSize, SMemoryCacheDescriptor* psCacheBasedExisting)
+bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, lsize uiNewSize, SMemoryCacheDescriptor* psCacheBasedExisting)
 {
 	ptr		uiNewStart;
 	ptr		uiNewEnd;  //Inclusive
@@ -704,7 +704,7 @@ bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::RemainingAfterTail(void)
+lsize CCircularMemoryList::RemainingAfterTail(void)
 {
 	if (IsEmpty())
 	{
@@ -721,11 +721,11 @@ size CCircularMemoryList::RemainingAfterTail(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor)
+lsize CCircularMemoryList::RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 {
-	size		iAllocated;
+	lsize		iAllocated;
 
-	iAllocated = (size)((ptr)psCacheBasedDescriptor - (ptr)mpvCache);
+	iAllocated = (lsize)((ptr)psCacheBasedDescriptor - (ptr)mpvCache);
 	iAllocated += (psCacheBasedDescriptor->GetSize() + miDescriptorSize);
 	if (iAllocated < mpsDetail->muiCacheSize)
 	{
@@ -786,7 +786,7 @@ bool CCircularMemoryList::ValidateEnds(void)
 bool CCircularMemoryList::ValidateCache(void)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
-	size						iCount;
+	lsize						iCount;
 	void*						pvLastCacheByte;
 	void*						pvEndDesc;
 
@@ -958,10 +958,10 @@ bool CCircularMemoryList::IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
+size CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, lsize uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psCacheBasedNext;
-	size					iCount;
+	lsize					iCount;
 
 	iCount = 0;
 	psCacheBasedNext = GetFirstDescriptor();

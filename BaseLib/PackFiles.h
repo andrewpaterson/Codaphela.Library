@@ -78,13 +78,13 @@ protected:
 	bool					EndRead(void);
 	bool					EndWrite(void);
 	bool					Close(CPackFile* pcPackFile);
-	size					Read(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount);
+	lsize					Read(CPackFileNode* psPackFile, void* pvBuffer, lsize iSize, lsize iCount);
 	bool					Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	size					Write(CPackFileNode* psPackFile, const void* pvBuffer, size iSize, size iCount);
+	lsize					Write(CPackFileNode* psPackFile, const void* pvBuffer, lsize iSize, lsize iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
 	bool					Flush(void);
 	CFileNodePackFileNode*	AddFile(const char* szFullName);
-	size					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount);
+	lsize					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, lsize iSize, lsize iCount);
 	bool					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	bool					ChangeReadFiles(CPackFileNode* psPackFile);
 	const char*				ClassName(void);

@@ -18,18 +18,18 @@ friend class CIndexTreeEvictingAccess;
 friend class CNamedIndexes;
 private:
 	CIndexTreeFile						mcIndexTree;
-	size								muiCutoff;
+	lsize								muiCutoff;
 
 	CIndexTreeEvictionCallback*			mpcIndexTreeEvictionCallback;
 	CLife<CIndexTreeEvictionStrategy>	mcEvictionStrategy;
 	CIndexTreeEvictionStrategy*			mpcEvictionStrategy;
 	
 public:
-	bool					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse);
-	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
-	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
-	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	bool					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse);
+	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 
 	void					Kill(void);
 
@@ -79,8 +79,8 @@ protected:
 	size					GetNodeKey(CIndexTreeNodeFile* pcNode, uint8* pvDestKey, size iDestKeySize);
 	size					GetNodeKeySize(CIndexTreeNodeFile* pcNode);
 
-	size					GetSystemMemorySize(void);
-	size					GetUserMemorySize(void);
+	lsize					GetSystemMemorySize(void);
+	lsize					GetUserMemorySize(void);
 	size					GetRootFlags(void);
 
 	size					PotentiallyEvict(uint8* pvKey, size iKeySize);

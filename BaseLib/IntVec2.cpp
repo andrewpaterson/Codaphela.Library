@@ -210,7 +210,7 @@ void IntVec2MinMax(SIntVec2* psMin, SIntVec2* psMax, SIntVec2* asIn, int iInStri
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SIntVec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SIntVec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

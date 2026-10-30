@@ -132,7 +132,7 @@ public:
 			bool					IsNamed(const char* szName);
 
 			char*					GetName(void) override;
-			size					SerialisedSize(void);
+			lsize					SerialisedSize(void);
 	virtual char*					PrintIdentifier(CChars* psz);
 			void					PrintState(CChars* psz);
 			void					PrintFlagsShorthand(CChars* psz);

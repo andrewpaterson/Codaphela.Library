@@ -47,10 +47,10 @@ class CLogFileCommandWrite : public CLogFileCommand
 {
 public:
 	filePos		iPosition;
-	size		iSize;
+	lsize		iSize;
 
-	void	Init(filePos iPosition, size iSize);
-	void	Init(filePos iPosition, void* pvSource, size iSize);
+	void	Init(filePos iPosition, lsize iSize);
+	void	Init(filePos iPosition, void* pvSource, lsize iSize);
 
 	bool	Write(CAbstractFile* pcFile);
 	void*	GetData(void);

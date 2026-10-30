@@ -131,10 +131,10 @@ bool CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount)
+lsize CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size		iRemaining;
-	size		iSizeToRead;
+	lsize		iRemaining;
+	lsize		iSizeToRead;
 	filePos		iFilePos;
 
 	iFilePos = psPackFile->FilePos() + psPackFile->Size() - miPosition;
@@ -143,7 +143,7 @@ size CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSi
 		return 0;
 	}
 
-	iRemaining = (size)iFilePos;
+	iRemaining = (lsize)iFilePos;
 	iSizeToRead = iSize * iCount;
 
 	if (iSizeToRead <= iRemaining)
@@ -169,7 +169,7 @@ size CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount)
+lsize CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, lsize iSize, lsize iCount)
 {
 	if (meMode == PFM_Read)
 	{
@@ -266,9 +266,9 @@ bool CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, size iSize, size iCount)
+lsize CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size	iWritten;
+	lsize	iWritten;
 
 	if (meMode == PFM_Write)
 	{
@@ -280,7 +280,7 @@ size CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, size iSi
 			}
 
 			iWritten = mcFile.Write(pvBuffer, iSize, iCount);
-			psPackFile->IncreaseSize(iWritten * iSize);
+			psPackFile->IncreaseSize((filePos)iWritten * iSize);
 			miPosition += iWritten * iSize;
 			return iWritten;
 		}

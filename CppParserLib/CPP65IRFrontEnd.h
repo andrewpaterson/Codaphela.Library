@@ -157,6 +157,7 @@ public:
 protected:
 	void			BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
+	void			OptimiserWarnings(CChars* pszWarnings);
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode);
 	bool			Unsupported(int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);

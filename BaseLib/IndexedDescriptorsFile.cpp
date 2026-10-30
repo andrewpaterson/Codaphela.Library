@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy)
 {
 	Init(mpcIndexedData, pcDurableFileController, szSubDirectory, uiIndexCacheSize, eWriteThrough, cEvictionStrategy, NULL, LifeNull<CIndexTreeDataOrderer>());
 }
@@ -17,7 +17,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, const char* szSubDirectory, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	CIndexTreeEvictionCallback*	pcCallback;
 
@@ -114,7 +114,7 @@ bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDescriptorsFile::SetCache(void* pvCache, size uiDataSize, OIndex oi)
+bool CIndexedDescriptorsFile::SetCache(void* pvCache, lsize uiDataSize, OIndex oi)
 {
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;
@@ -273,7 +273,7 @@ bool CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, size iKeySize, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDescriptorsFile::GetSystemMemorySize(void)
+lsize CIndexedDescriptorsFile::GetSystemMemorySize(void)
 {
 	return mcIndexTree.GetSystemMemorySize();
 }

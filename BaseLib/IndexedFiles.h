@@ -46,24 +46,24 @@ public:
 
 	bool			ReadIndexedFileDescriptors(void);
 	bool			WriteIndexedFileDescriptors(void);
-	bool			DataFilename(char* szFile1, char* szFile2, size iDataSize, uint32 iFileNum);
+	bool			DataFilename(char* szFile1, char* szFile2, lsize iDataSize, uint32 iFileNum);
 
-	CIndexedFile* 	GetOrCreateFile(size uiDataSize);
-	CIndexedFile* 	GetFile(size uiDataSize, uint32 iFileNum);
+	CIndexedFile* 	GetOrCreateFile(lsize uiDataSize);
+	CIndexedFile* 	GetFile(lsize uiDataSize, uint32 iFileNum);
 	CIndexedFile* 	GetFile(uint32 uiFileIndex);
-	uint32			GetUniqueFileNumber(size iDataSize);
+	uint32			GetUniqueFileNumber(lsize iDataSize);
 	void			GetFiles(CArrayIndexedFilePtr* pac);
-	size			GetFileDataSize(uint32 uiFileIndex);
+	lsize			GetFileDataSize(uint32 uiFileIndex);
 
 	int64			NumDatas(void);
-	int64			NumDatas(size iDataSize);
-	size			NumFiles(size iDataSize);
+	int64			NumDatas(lsize iDataSize);
+	size			NumFiles(lsize iDataSize);
 	size			NumFiles(void);
 
 	bool			Read(CFileDataIndex* pcDataIndex, void* pvData);
 	bool			Delete(CFileDataIndex* pcDataIndex);
-	CFileDataIndex	WriteNew(const void* pvData, size iDataSize);
-	bool			WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, size iDataSize);
+	CFileDataIndex	WriteNew(const void* pvData, lsize iDataSize);
+	bool			WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, lsize iDataSize);
 
 	bool			IsDurable(void);
 	

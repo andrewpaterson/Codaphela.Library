@@ -973,13 +973,13 @@ void* CMapBlock::GetKey(SMNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapBlock::ByteSize(void)
+lsize CMapBlock::ByteSize(void)
 {
 	SMapIterator	sIter;
 	size				iKeySize;
 	size				iDataSize;
 	bool			bExists;
-	size			uiByteSize;
+	lsize			uiByteSize;
 
 	uiByteSize = 0;
 	bExists = StartIteration(&sIter, NULL, &iKeySize, NULL, &iDataSize);

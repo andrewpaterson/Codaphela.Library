@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedCacheDescriptor : public SMemoryCacheDescriptor
 {
-	size	iFlags;
+	lsize	iFlags;
 	OIndex	oi;
 };
 
@@ -43,11 +43,11 @@ protected:
 	CMemoryCache				mcCache;
 
 public:
-	void						Init(size iCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback);
+	void						Init(lsize iCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback);
 	void						Zero(void);
 	void						Kill(void);
 
-	CIndexedCacheResult			Allocate(OIndex oi, size uiDataSize);
+	CIndexedCacheResult			Allocate(OIndex oi, lsize uiDataSize);
 	void						Clear(void);
 	void						Invalidate(void* pcCache);
 	void						SetDirty(void* pvCache);
@@ -57,12 +57,12 @@ public:
 	void*						StartIteration(void);
 	void*						Iterate(void* psCurrent);
 	size						NumCached(void);
-	size						NumCached(size iSize);
+	size						NumCached(lsize iSize);
 
-	size						GetIndexCacheDescritorSize(void);
-	size						GetCacheSize(void);
-	size						GetAllocatedSize(void);
-	bool						CanCache(size uiDataSize);
+	lsize						GetIndexCacheDescritorSize(void);
+	lsize						GetCacheSize(void);
+	lsize						GetAllocatedSize(void);
+	bool						CanCache(lsize uiDataSize);
 
 	bool						ValidateCache(void);
 

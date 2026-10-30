@@ -66,6 +66,7 @@ bool PrivateAssertFloat3(SFloat32Vec3 fExpected, SFloat32Vec3* pfActual, int iDe
 bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertLongDouble(float128 fExpected, float128 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertLSize(lsize iExpected, lsize iActual, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertString(const char* szExpected, const uint8* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertString(const uint8* szExpected, const uint8* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
@@ -108,6 +109,7 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 #define AssertDouble(e, a, t)				Validate(PrivateAssertDouble(e, a, t, NULL, __LINE__, __FILE__))
 #define AssertLongDouble(e, a, t)			Validate(PrivateAssertLongDouble(e, a, t, NULL, __LINE__, __FILE__))
 #define AssertSize(e, a)		    		Validate(PrivateAssertSize(e, a, NULL, __LINE__, __FILE__))
+#define AssertLSize(e, a)		    		Validate(PrivateAssertLSize(e, a, NULL, __LINE__, __FILE__))
 #define AssertMemory(e, a, s)				Validate(PrivateAssertMemory(e, a, s, NULL, __LINE__, __FILE__))
 #define AssertZero(a, s)					Validate(PrivateAssertZero(a, s, NULL, __LINE__, __FILE__))
 #define AssertNegative(a)					Validate(PrivateAssertNegative(a, NULL, __LINE__, __FILE__))

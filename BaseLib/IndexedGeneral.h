@@ -26,7 +26,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 typedef int64 OIndex;
-typedef CArrayTemplatePrimitive<OIndex>	CArrayOIndex;
+//Lists of indices (all the objects in a codabase, a transaction's changes) can pass 64KB with a 16 bit size.
+typedef CArrayLargeTemplatePrimitive<OIndex>	CArrayOIndex;
 
 
 #define INVALID_O_INDEX	((OIndex)-1)

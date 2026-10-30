@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size MinDataSize(size uiDataSize, size uiMaxDataSize)
+lsize MinDataSize(lsize uiDataSize, lsize uiMaxDataSize)
 {
 	if (uiMaxDataSize == 0)
 	{

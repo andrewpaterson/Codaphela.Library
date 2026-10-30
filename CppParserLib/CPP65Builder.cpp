@@ -523,6 +523,10 @@ bool CCPP65Builder::LinkObjects(void)
 	mcLinker.SetAddress(ASK65_Text, CPP65_PROGRAM_ADDRESS);
 	mcLinker.SetLimit(muiLimit);
 	mcLinker.SetBankSize(GetCPPTarget(meTarget)->uiBankSize);
+	if (meTarget == CPPT_W65C816)
+	{
+		mcLinker.SetStubOpcode(0xDB);  //stp
+	}
 	bResult = mcLinker.Link();
 	mszErrors.Append(mcLinker.GetErrors());
 	return bResult;

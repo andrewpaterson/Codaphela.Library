@@ -398,7 +398,7 @@ bool CFileReader::ReadBits(void* pvData, size iByteLength)
 //////////////////////////////////////////////////////////////////////////
 bool CFileReader::ReadIntArray(int32* pai, size iLength)
 {
-	CheckRead(pai, iLength * sizeof(int32));
+	CheckRead(pai, (lsize)iLength * sizeof(int32));
 	return true;
 }
 

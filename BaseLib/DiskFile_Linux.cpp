@@ -239,7 +239,7 @@ lsize CDiskFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 		iReadLength = read(GetDescriptor(this), pvBuffer, iSize * iCount);
 		if (iReadLength >= 0)
 		{
-			return (size)iReadLength / iSize;
+			return (lsize)iReadLength / iSize;
 		}
 		else
 		{
@@ -301,7 +301,7 @@ lsize CDiskFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 		iWritten = write(GetDescriptor(this), pvBuffer, iSize * iCount);
 		if (iWritten >= 0)
 		{
-			return (size)iWritten / iSize;
+			return (lsize)iWritten / iSize;
 		}
 		return 0;
 	}

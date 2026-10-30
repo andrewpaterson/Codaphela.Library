@@ -30,7 +30,7 @@ void CTemporaryMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTemporaryMemory::Size(size uiSize)
+void* CTemporaryMemory::Size(lsize uiSize)
 {
 	if (uiSize > muiTempSize)
 	{

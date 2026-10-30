@@ -31,8 +31,8 @@ public:
 	EFatCode	Open(const char* szFilename, uint8 uiAccessFlags);
 	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	EFatCode	Close(void);
-	EFatCode	Write(uint8* pvSource, size uiLength);
-	EFatCode	Read(uint8* puiDestination, size length, size* puiBytesRead);
+	EFatCode	Write(uint8* pvSource, lsize uiLength);
+	EFatCode	Read(uint8* puiDestination, lsize length, lsize* puiBytesRead);
 	EFatCode	Seek(uint32 uiOffset, EFatSeek eMode);
 	EFatCode	Flush(void);
 	EFatCode	Truncate(void);
@@ -51,7 +51,7 @@ protected:
 	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
 	bool		IsFat32Volume(void);
-	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, size* puiBytesRead, uint8* puiDestination);
+	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 

@@ -59,7 +59,7 @@ CBaseObject* CObjectReader::Read(void)
 	bool			bResult;
 	filePos			iLength;
 	filePos			iStart;
-	size			iExpectedLength;
+	lsize			iExpectedLength;
 	CObjectHeader	sHeader;
 	int32			iMagic;
 	CBaseObject*	pcObject;
@@ -118,7 +118,7 @@ CBaseObject* CObjectReader::Read(void)
 	sHeader.Kill();
 
 	iLength = mcFile.GetFilePos();
-	bResult = (size)(iLength - iStart) == iExpectedLength;
+	bResult = (lsize)(iLength - iStart) == iExpectedLength;
 	if (!bResult)
 	{
 		CChars	sz;
@@ -156,7 +156,7 @@ if (!result) \
 bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;
-	size			iExpectedLength;
+	lsize			iExpectedLength;
 	filePos			iLength;
 	bool			bResult;
 	int32			iMagic;
@@ -179,8 +179,8 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not LoadHeadFroms() object [", sz.Text(), "] 'froms'.", NULL);
 
 	iLength = mcFile.GetFilePos();
-	bResult = (size)(iLength - iStart) == iExpectedLength;
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", SizeToString(iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
+	bResult = (lsize)(iLength - iStart) == iExpectedLength;
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongToString((uint64)iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
 
 	return true;
 }

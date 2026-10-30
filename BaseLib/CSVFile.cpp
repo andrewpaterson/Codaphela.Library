@@ -153,7 +153,7 @@ bool CCSVFile::ReadLine(char* szBuffer, size iMaxLength)
 //////////////////////////////////////////////////////////////////////////
 size CCSVFile::ReadLine(char* sBuffer)
 {
-	size		iNewLinePosition;
+	lsize		iNewLinePosition;
 	size		iBytesRead;
 	filePos		iPosition;
 
@@ -164,7 +164,7 @@ size CCSVFile::ReadLine(char* sBuffer)
 		return 0;
 	}
 	iNewLinePosition = FindFirstByte((uint8*)sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
-	if (iNewLinePosition != ARRAY_ELEMENT_NOT_FOUND)
+	if (iNewLinePosition != ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
 		if (sBuffer[iNewLinePosition-1] == '\r')
 		{
@@ -175,7 +175,7 @@ size CCSVFile::ReadLine(char* sBuffer)
 		{
 			mcFile.Seek(iPosition + iNewLinePosition + 1, EFSO_SET);
 		}
-		return iNewLinePosition;
+		return (size)iNewLinePosition;
 	}
 	else
 	{

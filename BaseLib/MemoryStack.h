@@ -29,26 +29,26 @@ class CMemoryStack
 {
 protected:
 	void*	mpvMemory;
-	size	miMemorySize;
-	size	miUsedMemory;
+	lsize	miMemorySize;
+	lsize	miUsedMemory;
 	size	miElements;
 
 public:
-	void		Init(size iSize);
-	void*		Allocate(size iSize);  //Same as Init, but immediately allocates memory.
+	void		Init(lsize iSize);
+	void*		Allocate(lsize iSize);  //Same as Init, but immediately allocates memory.
 	void		Clear(void);
 	void		Kill(void);
 
-	void*		Add(size iSize);
+	void*		Add(lsize iSize);
 	void		Remove(void);
 	void		Remove(size iNumToRemove);  //This is the number of elements to remove, not the amount of memory to remove.
 
 	SStackMark	Mark(void);
 	void		Rollback(SStackMark* psMark);
 
-	size		GetTotalMemory(void);
-	size		GetUsedMemory(void);
-	size		GetRemainingMemory(void);
+	lsize		GetTotalMemory(void);
+	lsize		GetUsedMemory(void);
+	lsize		GetRemainingMemory(void);
 	void*		GetData(void);
 	size		NumElements(void);
 };

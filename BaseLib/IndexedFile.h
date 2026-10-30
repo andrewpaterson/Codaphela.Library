@@ -44,12 +44,12 @@ private:
 
 	CDurableFile	mcFile;
 
-	size			muiDataSize;
+	lsize			muiDataSize;
 	filePos			miNumDatas;
 	uint32			muiFileNumber;  //There may be more than one file of the same size.
 
 public:
-	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, size uiDataSize, uint32 uiFileNum);
+	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, lsize uiDataSize, uint32 uiFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	bool			IsFull(void);
@@ -71,7 +71,7 @@ public:
 	const char*			GetFilename(void);
 	uint32			GetFileNumber(void);
 	char*			GetRewriteName(void);
-	size			GetDataSize(void);
+	lsize			GetDataSize(void);
 	filePos			NumDatas(void);
 	filePos			GetUsedDataIndices(CArrayBit* pab);
 

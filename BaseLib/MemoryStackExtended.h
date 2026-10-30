@@ -34,22 +34,22 @@ class CMemoryStackExtended
 {
 protected:
 	CArrayMemoryStack	mcStacks;
-	size				muiChunkSize;
+	lsize				muiChunkSize;
 	size				muiElements;
 
 public:
-	void			Init(size iChunkSize);
+	void			Init(lsize iChunkSize);
 	void			Clear(void);
 	void			Kill(void);
 
-	void*			Add(size iSize);
+	void*			Add(lsize iSize);
 	void			Remove(void);
 	void			Remove(size iNumToRemove);  //This is the number of elements to remove, not the amount of memory to remove.
 	void			Mark(CStackMarkExtended* psMark);
 	void			Rollback(CStackMarkExtended* psMark);
 
-	size			GetTotalMemory(void);
-	size			GetUsedMemory(void);
+	lsize			GetTotalMemory(void);
+	lsize			GetUsedMemory(void);
 	CMemoryStack*	GetStack(size iIndex);
 	size			NumStacks(void);
 	size			NumElements(void);

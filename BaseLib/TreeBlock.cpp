@@ -206,10 +206,10 @@ void CTreeBlock::FreeDetached(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTreeBlock::ByteSize(void)
+lsize CTreeBlock::ByteSize(void)
 {
 	void*	pvNode;
-	size		iSize;
+	lsize	iSize;
 
 	iSize = 0;
 	pvNode = StartTraversal();

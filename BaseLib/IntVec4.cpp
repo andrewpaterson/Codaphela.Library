@@ -206,7 +206,7 @@ void IntVec4MinMax(SIntVec4* psMin, SIntVec4* psMax, SIntVec4* asIn, int iInStri
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SIntVec4*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SIntVec4*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

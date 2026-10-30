@@ -34,7 +34,7 @@ void SSizeVec2::Print(CChars* psx, size iWholeNumbers)
 	CChars		szzz;
 	size			iWidth;
 
-	if (iWholeNumbers == SIZE_MAX)
+	if (iWholeNumbers == MAX_SIZE)
 	{
 		iWholeNumbers = WholeNumbers();
 		iWholeNumbers++;
@@ -190,7 +190,7 @@ void SizeVec2MinMax(SSizeVec2* psMin, SSizeVec2* psMax, SSizeVec2* asIn, size iI
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SSizeVec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SSizeVec2*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

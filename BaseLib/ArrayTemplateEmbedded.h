@@ -205,10 +205,10 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(size iUsedElements)
 {
 	M	am[I];  //Problem because slow and potentially calls constructors.
 
-	memcpy(am, mam, miUsedElements * sizeof(M));
+	memcpy(am, mam, (size)(miUsedElements * sizeof(M)));
 	mcArray.Init();
 	mcArray.AddNum(iUsedElements);
-	memcpy(mcArray.GetData(), am, miUsedElements * sizeof(M));
+	memcpy(mcArray.GetData(), am, (size)(miUsedElements * sizeof(M)));
 	miUsedElements = ARRAY_EMBEDDED_SIZE_UNUSED;
 
 	SetFlagByte(&muiFlags, ARRAY_EMBEDDED_FLAG_ARRAY, true);
@@ -225,10 +225,10 @@ void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(size iUsedElements)
 {
 	M	am[I];  //Problem.  Why problem?
 
-	memcpy(am, mcArray.GetData(), iUsedElements * sizeof(M));
+	memcpy(am, mcArray.GetData(), (size)(iUsedElements * sizeof(M)));
 	mcArray.Kill();
 
-	memcpy(mam, am, iUsedElements * sizeof(M));
+	memcpy(mam, am, (size)(iUsedElements * sizeof(M)));
 	miUsedElements = (uint8)iUsedElements;
 
 	SetFlagByte(&muiFlags, ARRAY_EMBEDDED_FLAG_EMBEDDED, true);
@@ -542,7 +542,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(size iIndex)
 
 			pSource = mcArray.Get(iIndex);
 			pDest = RemapSinglePointer(pSource, sizeof(M));
-			memmove(pDest, pSource, sizeof(M) * (iOldUsedElements - iIndex));
+			memmove(pDest, pSource, (size)(sizeof(M) * (iOldUsedElements - iIndex)));
 			pv = (M*)pSource;
 		}
 		else
@@ -550,7 +550,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(size iIndex)
 			miUsedElements++;
 			pSource = &mam[iIndex];
 			pDest = RemapSinglePointer(pSource, sizeof(M));
-			memmove(pDest, pSource, sizeof(M) * (iOldUsedElements - iIndex));
+			memmove(pDest, pSource, (size)(sizeof(M) * (iOldUsedElements - iIndex)));
 			pv = (M*)pSource;
 		}
 	}
@@ -666,7 +666,7 @@ void CArrayTemplateEmbedded<M, I>::RemoveAt(size iIndex, bool bPreserveOrder)
 			iMove = (size)miUsedElements - iIndex;
 			if (iMove > 0)
 			{
-				memmove(pvDest, pvSource, sizeof(M) * iMove);
+				memmove(pvDest, pvSource, (size)(sizeof(M) * iMove));
 			}
 		}
 	}

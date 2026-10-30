@@ -1557,7 +1557,7 @@ bool CIndexTreeMemory::ValidateIndexTree(void)
 void CIndexTreeMemory::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CChars				sz;
-	size				uiSize;
+	lsize				uiSize;
 
 	sz.Init();
 	sz.Append("= [IndexTreeMemory]");
@@ -1619,7 +1619,7 @@ void AppendIndexTreeMemoryNodeDescrition(CChars* psz, CIndexTreeNodeMemory* pcCu
 	bool	bHasChildren;
 	bool	bHasObject;
 
-	if (uIndexFromParent == SIZE_MAX)
+	if (uIndexFromParent == MAX_SIZE)
 	{
 		psz->Append("  root -> ");
 	}
@@ -1877,7 +1877,7 @@ size CIndexTreeMemory::RecurseSize(CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemory::ByteSize(void)
+lsize CIndexTreeMemory::ByteSize(void)
 {
 	return RecurseByteSize(mpcRoot);
 }
@@ -1887,11 +1887,11 @@ size CIndexTreeMemory::ByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
+lsize CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 {
 	size					i;
 	CIndexTreeNodeMemory*	pcChild;
-	size					uiSize;
+	lsize					uiSize;
 	size					uiNumIndexes;
 
 	uiSize = 0;

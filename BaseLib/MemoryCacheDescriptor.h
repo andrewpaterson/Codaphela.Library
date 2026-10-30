@@ -8,22 +8,22 @@ class SMemoryCacheDescriptor
 private:
 	SMemoryCacheDescriptor*		mpsNext;
 	SMemoryCacheDescriptor*		mpsPrev;
-	size						miSize;  //Not including the sizeof this.
+	lsize						miSize;  //Not including the sizeof this.
 
 public:
 	void						SetNext(SMemoryCacheDescriptor* psNext);
 	void						SetPrev(SMemoryCacheDescriptor* psPrev);
-	void						SetSize(size iSize);
+	void						SetSize(lsize iSize);
 
 	void						Clear(void);
 	void						ClearNext(void);
 	void						ClearPrev(void);
 
-	size						GetSize(void);
+	lsize						GetSize(void);
 	SMemoryCacheDescriptor*		GetNext(void);
 	SMemoryCacheDescriptor*		GetPrev(void);
 
-	bool						IsSize(size iSize);
+	bool						IsSize(lsize iSize);
 	bool						IsNext(SMemoryCacheDescriptor* psDesc);
 	bool						IsPrev(SMemoryCacheDescriptor* psDesc);
 };

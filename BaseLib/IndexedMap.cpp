@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iDataCacheSize, EIndexWriteThrough eWriteThrough)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iDataCacheSize, EIndexWriteThrough eWriteThrough)
 {
 	Init(pcDurableFileControl, szSubDirectory, szDataExtension, szDescriptorName, szDescriptorRewrite, iDataCacheSize, eWriteThrough, NULL);
 }
@@ -16,7 +16,7 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSub
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iDataCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iDataCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
@@ -107,7 +107,7 @@ void CIndexedMap::NullCachedDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize)
+bool CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize)
 {
 	if (mpcIndexedDataEvictionCallback)
 	{
@@ -175,7 +175,7 @@ bool CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize)
+bool CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize)
 {
 	CIndexedDataDescriptor* pcDescriptor;
 

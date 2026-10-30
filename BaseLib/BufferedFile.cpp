@@ -42,7 +42,7 @@ void CBufferedFile::Init(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBufferedFile::Init(CAbstractFile* pcFile, size iBufferSize)
+void CBufferedFile::Init(CAbstractFile* pcFile, lsize iBufferSize)
 {
 	CAbstractFile::Init();
 	mpcFile = pcFile;
@@ -113,11 +113,11 @@ bool CBufferedFile::Close(void)
 //////////////////////////////////////////////////////////////////////////
 lsize CBufferedFile::Read(void* pvDest, lsize iSize, lsize iCount)
 {
-	size		iRemainingBuffer;
-	size		iByteSize;
-	size		iBytesRemaining;
-	size		iBytesCopied;
-	size		iResult;
+	lsize		iRemainingBuffer;
+	lsize		iByteSize;
+	lsize		iBytesRemaining;
+	lsize		iBytesCopied;
+	lsize		iResult;
 
 	WriteUnwritten();
 
@@ -190,11 +190,11 @@ lsize CBufferedFile::Read(void* pvDest, lsize iSize, lsize iCount)
 //////////////////////////////////////////////////////////////////////////
 lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
-	size		iRemainingBuffer;
-	size		iByteSize;
-	size		iResult;
+	lsize		iRemainingBuffer;
+	lsize		iByteSize;
+	lsize		iResult;
 	bool		bResult;
-	size		iSourceRemaining;
+	lsize		iSourceRemaining;
 
 	if (meLastOp == BLO_Read)
 	{
@@ -400,7 +400,7 @@ void CBufferedFile::MatchFilePosToCurrentPos(void)
 //////////////////////////////////////////////////////////////////////////
 void CBufferedFile::BufferSourceFileRead(void)
 {
-	size	iResult;
+	lsize	iResult;
 
 	MatchFilePosToCurrentPos();
 	iResult = mpcFile->Read(mpvMem, 1, miAllocatedSize);
@@ -416,7 +416,7 @@ void CBufferedFile::BufferSourceFileRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBufferedFile::CopyFromBuffer(void* pvDest, size iByteSize, size iDestOffset)
+void CBufferedFile::CopyFromBuffer(void* pvDest, lsize iByteSize, lsize iDestOffset)
 {
 	if (iByteSize > 0)
 	{
@@ -433,7 +433,7 @@ void CBufferedFile::CopyFromBuffer(void* pvDest, size iByteSize, size iDestOffse
 //////////////////////////////////////////////////////////////////////////
 bool CBufferedFile::WriteUnwritten(void)
 {
-	size	iResult;
+	lsize	iResult;
 
 	if (meType == BT_Write)
 	{
@@ -468,7 +468,7 @@ CBufferedFile* BufferedFile(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBufferedFile* BufferedFile(CAbstractFile* pcFile, size iBufferSize)
+CBufferedFile* BufferedFile(CAbstractFile* pcFile, lsize iBufferSize)
 {
 	CBufferedFile* pCBufferedFile;
 

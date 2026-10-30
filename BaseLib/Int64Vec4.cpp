@@ -206,7 +206,7 @@ void Int64Vec4MinMax(SInt64Vec4* psMin, SInt64Vec4* psMax, SInt64Vec4* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt64Vec4*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SInt64Vec4*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

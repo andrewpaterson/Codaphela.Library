@@ -10,7 +10,7 @@
 
 struct SDataMemoryAllocation
 {
-	size		uiSize;
+	lsize		uiSize;
 	SFNode*		psFreeListNode;
 };
 
@@ -18,8 +18,8 @@ struct SDataMemoryAllocation
 //General memory free lists are made of slabs so the free list node is found from the allocation's address, see CFreeList::GetSlabNode.
 struct SGeneralMemoryAllocation
 {
-	size	uiSize;
-	size	uiAllocCount;
+	lsize	uiSize;
+	lsize	uiAllocCount;
 	char	szDebug[4];
 #ifndef BUILD_64
 	uint32	uiUnused;	//Keeps the header a multiple of 8 bytes so 8 byte aligned elements have 8 byte aligned data.
@@ -65,8 +65,8 @@ struct SMemory
 {
 	bool	bValid;
 	void*	pvMem;
-	size	uiAllocCount;
-	size	uiSize;
+	lsize	uiAllocCount;
+	lsize	uiSize;
 
 	void Init(void);
 	void Set(SGeneralMemoryAllocation* psAllocation);

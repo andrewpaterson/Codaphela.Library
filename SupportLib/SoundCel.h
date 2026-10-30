@@ -25,7 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Sound.h"
 
 
-#define SOUND_CEL_NO_LOOP		SIZE_MAX
+#define SOUND_CEL_NO_LOOP		MAX_SIZE
 
 
 //A run of frames in a source sound, so many logical sounds can share one sound (like an image cel in an image).  This is

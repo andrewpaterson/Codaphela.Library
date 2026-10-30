@@ -104,7 +104,7 @@ bool CFileWriter::WriteSize(lsize ui)
 	uint32	ui32;
 
 	//Sizes are written as four bytes so files are the same in 32 and 64 bit builds.  ReadSize sign extends them so a
-	//size that has wrapped below zero (such as SIZE_MAX) reads back the same in a 64 bit build.  A 64 bit build cannot
+	//size that has wrapped below zero (such as MAX_SIZE) reads back the same in a 64 bit build.  A 64 bit build cannot
 	//write a size that would not read back.
 	ui32 = (uint32)ui;
 	if ((lsize)(ptrdiff)(int32)ui32 != ui)
@@ -333,7 +333,7 @@ bool CFileWriter::WriteBits(void* pvData, size iByteLength)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteIntArray(int32* pai, size iLength)
 {
-	CheckWrite(pai, iLength * sizeof(int32));
+	CheckWrite(pai, (lsize)iLength * sizeof(int32));
 	return true;
 }
 

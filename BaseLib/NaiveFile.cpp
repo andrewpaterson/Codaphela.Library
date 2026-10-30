@@ -121,11 +121,11 @@ bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 			//The file must fit in memory and be read completely.
 			miSize = cFile.Size();
 			mpvMem = NULL;
-			bResult = (miSize >= 0) && ((filePos)(size)miSize == miSize);
+			bResult = (miSize >= 0) && ((filePos)(lsize)miSize == miSize);
 			if (bResult && (miSize != 0))
 			{
-				mpvMem = malloc((size)miSize);
-				bResult = (mpvMem != NULL) && cFile.ReadData(mpvMem, (size)miSize);
+				mpvMem = malloc((lsize)miSize);
+				bResult = (mpvMem != NULL) && cFile.ReadData(mpvMem, (lsize)miSize);
 			}
 			cFile.Close();
 			cFile.Kill();
@@ -199,7 +199,7 @@ void CNaiveFile::Set(void* pvMem, size iSize)
 	SafeFree(mpvMem);
 	mpvMem = malloc(iSize);
 	miSize = iSize;
-	memcpy(mpvMem, pvMem, (size)miSize);
+	memcpy(mpvMem, pvMem, (lsize)miSize);
 }
 
 

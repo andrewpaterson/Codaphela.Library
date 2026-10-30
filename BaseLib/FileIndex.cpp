@@ -170,7 +170,7 @@ bool CFileDataIndex::Equals(CFileDataIndex* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CFileDataIndex::ToFilePosIndex(size muiDataSize)
+CFilePosIndex CFileDataIndex::ToFilePosIndex(lsize muiDataSize)
 {
 	CFilePosIndex	cPosIndex;
 

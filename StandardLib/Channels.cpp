@@ -476,7 +476,7 @@ bool CChannels::IsChannelRemoved(size iChannel)
 {
 	if (IsChanging())
 	{
-		return (mpsChangingDesc->asRemovedChannels.FindWithIntKey((int)iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
+		return (mpsChangingDesc->asRemovedChannels.FindWithSizeKey(iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
 	}
 	return false;
 }
@@ -490,7 +490,7 @@ bool CChannels::IsChannelAdded(size iChannel)
 {
 	if (IsChanging())
 	{
-		return (mpsChangingDesc->asAddedChannels.FindWithIntKey((int)iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
+		return (mpsChangingDesc->asAddedChannels.FindWithSizeKey(iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
 	}
 	return false;
 }
@@ -775,7 +775,7 @@ size CChannels::CalculateByteStride(size iBitStride)
 	{
 		return iBitStride / 8;
 	}
-	return SIZE_MAX;
+	return MAX_SIZE;
 }
 
 
@@ -791,7 +791,7 @@ size CChannels::CalculateByteSize(size iBitStride, size iSize)
 	//The size in bits overflows 32 bits at only 512MB of data so it is calculated in 64 bits.
 	ulliBitSize = (uint64)iBitStride * (uint64)iSize;
 	ulliByteSize = (ulliBitSize + 7) / 8;
-	if (ulliByteSize > SIZE_MAX)
+	if (ulliByteSize > MAX_SIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Channels need [", LongToString(ulliByteSize), "] bytes, which is more than can be addressed.", NULL);
 		return 0;
@@ -1032,7 +1032,7 @@ size CChannels::GetIndexOfChannel(CChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 size CChannels::GetIndexOfChannel(size iChannel)
 {
-	return masChannelOffsets.FindWithIntKey((int)iChannel, 0);
+	return masChannelOffsets.FindWithSizeKey(iChannel, 0);
 }
 
 
@@ -1044,7 +1044,7 @@ CChannel* CChannels::GetChannel(size iChannel)
 {
 	size	iIndex;
 
-	iIndex = masChannelOffsets.FindWithIntKey((int)iChannel, 0);
+	iIndex = masChannelOffsets.FindWithSizeKey(iChannel, 0);
 	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return NULL;
@@ -1294,7 +1294,7 @@ void CChannels::CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDe
 //////////////////////////////////////////////////////////////////////////
 bool CChannels::IsValid(size iPos)
 {
-	if ((iPos >= miSize) || (iPos == SIZE_MAX))
+	if ((iPos >= miSize) || (iPos == MAX_SIZE))
 	{
 		return false;
 	}
@@ -1649,13 +1649,13 @@ EPrimitiveType CChannels::GetLargestPrimitiveType(void)
 	//This (correctly) doesn't handle embedded structs.  An external channel should only contain primitive types.
 
 	eLargeType = PT_Undefined;
-	iLargeSize = SIZE_MAX;
+	iLargeSize = MAX_SIZE;
 	uiOffsets = masChannelOffsets.NumElements();
 	for (i = 0; i < uiOffsets; i++)
 	{
 		pcChannel = masChannelOffsets.Get(i);
 		iSize = pcChannel->miByteSize;
-		if (((iSize > iLargeSize) || (iLargeSize == SIZE_MAX)) && (iSize != CHANNEL_NON_ALIGNED_BYTES))
+		if (((iSize > iLargeSize) || (iLargeSize == MAX_SIZE)) && (iSize != CHANNEL_NON_ALIGNED_BYTES))
 		{
 			iLargeSize = iSize;
 			eLargeType = pcChannel->eType;

@@ -554,7 +554,7 @@ bool __CEnumeratorTemplate<M>::GetWithID(size iID, M** ppvData, char** ppszName)
 {
 	SENode*		psNode;
 
-	if (iID == SIZE_MAX)
+	if (iID == MAX_SIZE)
 	{
 		psNode = NULL;
 	}

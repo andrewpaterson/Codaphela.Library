@@ -694,9 +694,10 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 			}
 		}
 
-		//The argument's size: int unless l l (or j) says long long.  h and hh narrow it after it is read.
+		//The argument's size: int unless l says long, l l (or j) long long and z or t size_t (an int is 16 bits on
+		//the W65C816).  h and hh narrow it after it is read.
 		iLength = 0;
-		iBytes = 4;
+		iBytes = (int)sizeof(int);
 		for (;;)
 		{
 			c = *szFormat;
@@ -706,11 +707,11 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 			}
 			else if (c == 'l')
 			{
-				iBytes = (iLength == 'l') ? 8 : 4;
+				iBytes = (iLength == 'l') ? (int)sizeof(long long) : (int)sizeof(long);
 				iLength = 'l';
 			}
 			else if ((c == 'j') || (c == 'q'))	iBytes = 8;
-			else if ((c == 'z') || (c == 't'))	iBytes = 4;
+			else if ((c == 'z') || (c == 't'))	iBytes = (int)sizeof(size_t);
 			else if (c == 'L')					iLength = 'L';
 			else if ((c == 'I') && (szFormat[1] == '6') && (szFormat[2] == '4'))
 			{
@@ -731,7 +732,18 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 		{
 		case 'd':
 		case 'i':
-			llValue = (iBytes == 8) ? va_arg(vaArguments, long long) : (long long)va_arg(vaArguments, int);
+			if (iBytes == (int)sizeof(long long))
+			{
+				llValue = va_arg(vaArguments, long long);
+			}
+			else if (iBytes == (int)sizeof(int))
+			{
+				llValue = va_arg(vaArguments, int);
+			}
+			else
+			{
+				llValue = va_arg(vaArguments, long);
+			}
 			if (iLength == 'h')
 			{
 				llValue = (short)llValue;
@@ -749,7 +761,18 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 		case 'X':
 		case 'o':
 		case 'b':
-			ullValue = (iBytes == 8) ? va_arg(vaArguments, unsigned long long) : (unsigned long long)va_arg(vaArguments, unsigned int);
+			if (iBytes == (int)sizeof(long long))
+			{
+				ullValue = va_arg(vaArguments, unsigned long long);
+			}
+			else if (iBytes == (int)sizeof(int))
+			{
+				ullValue = va_arg(vaArguments, unsigned int);
+			}
+			else
+			{
+				ullValue = va_arg(vaArguments, unsigned long);
+			}
 			if (iLength == 'h')
 			{
 				ullValue = (unsigned short)ullValue;

@@ -27,7 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CRandom;
-typedef CArrayTemplate<CChars>	__CArrayChars;
+//The strings are counted with size, but together they can pass 64KB (CChars are 20 bytes on the W65C816).
+typedef CArrayLargeTemplate<CChars>	__CArrayChars;
 class CArrayChars
 {
 public:

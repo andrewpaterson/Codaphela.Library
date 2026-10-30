@@ -34,7 +34,7 @@ public:
 
 	char*	GetName(void);
 	OIndex	GetIndex(void);
-	size	GetLength(void);
+	lsize	GetLength(void);
 	void	SetLength(size iLength);
 };
 #pragma pack(pop)

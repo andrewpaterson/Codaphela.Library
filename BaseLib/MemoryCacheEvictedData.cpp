@@ -46,7 +46,7 @@ int CMemoryCacheEvictedData::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCacheEvictedData::Get(int iIndex, size* puiDataSize)
+void* CMemoryCacheEvictedData::Get(int iIndex, lsize* puiDataSize)
 {
 	return mcEvictedData.Get(iIndex, puiDataSize);
 }

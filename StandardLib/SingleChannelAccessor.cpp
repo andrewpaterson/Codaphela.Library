@@ -64,7 +64,7 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 	CChannelAccessor::Init(pcChannel->miByteSize, pcChannel->miBitSize, pcChannel->eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
 	memset(auc, 0, sizeof(auc));
-	if ((miChannelByteOffset != SIZE_MAX) && (miChannelByteSize != SIZE_MAX))
+	if ((miChannelByteOffset != MAX_SIZE) && (miChannelByteSize != MAX_SIZE))
 	{
 		CChannelAccessor::GetNative(mpcChannels->GetData(), auc);
 		if (mbChannelReverse)
@@ -127,7 +127,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 		iBitSize = gcTypeNames.GetBitSize(eType);
 		if (iByteSize == 0)
 		{
-			iByteSize = SIZE_MAX;
+			iByteSize = MAX_SIZE;
 			bSub = true;
 		}
 		else
@@ -137,8 +137,8 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 
 		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
-		bSub |= miChannelByteOffset == SIZE_MAX;
-		bSub |= miChannelByteSize == SIZE_MAX;
+		bSub |= miChannelByteOffset == MAX_SIZE;
+		bSub |= miChannelByteSize == MAX_SIZE;
 
 		if (!bSub)
 		{

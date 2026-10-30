@@ -816,12 +816,12 @@ void* CSetBlock::GetData(SSNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSetBlock::ByteSize(void)
+lsize CSetBlock::ByteSize(void)
 {
 	SSetIterator	sIter;
 	size			iDataSize;
 	bool			bExists;
-	size			uiByteSize;
+	lsize			uiByteSize;
 
 	uiByteSize = 0;
 	bExists = StartIteration(&sIter, NULL, &iDataSize);

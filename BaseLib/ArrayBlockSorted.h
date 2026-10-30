@@ -48,7 +48,7 @@ public:
 	void*			Iterate(SArraySortedIterator* psIter);
 	void*			GetIterated(SArraySortedIterator* psIter);
 
-	size			ByteSize(void);
+	lsize			ByteSize(void);
 
 	bool			WriteHeader(CFileWriter* pcFileWriter);
 	bool			WriteHeader(CFileWriter* pcFileWriter, size uiFileElementSize);

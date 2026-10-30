@@ -465,7 +465,7 @@ void CHARS::SetNonNull(const char* szString, ASIZE uiLen)
 		Unfake();
 		mcText.Resize(uiLen);
 	}
-	memcpy(mcText.GetData(), szString, uiLen);
+	ARRAY_MEMCPY(mcText.GetData(), szString, uiLen);
 }
 
 
@@ -509,7 +509,7 @@ CHARS* CHARS::Append(const char* szString)
 	{
 		uiLen = strlen(szString);
 		pcPosition = PrivateGrow(uiLen);
-		memcpy(pcPosition, szString, uiLen);
+		ARRAY_MEMCPY(pcPosition, szString, uiLen);
 		pcPosition[uiLen] = '\0';
 	}
 
@@ -528,7 +528,7 @@ CHARS* CHARS::Append(CExternalString* pcString)
 	if (pcString && pcString->miLen > 0)
 	{
 		pcPosition = PrivateGrow(pcString->miLen);
-		memcpy(pcPosition, pcString->msz, pcString->miLen);
+		ARRAY_MEMCPY(pcPosition, pcString->msz, pcString->miLen);
 		pcPosition[pcString->miLen] = '\0';
 	}
 
@@ -548,7 +548,7 @@ CHARS* CHARS::Append(const char* szString, ASIZE uiLen)
 	if (szString && uiLen > 0)
 	{
 		pcPosition = PrivateGrow(uiLen);
-		memcpy(pcPosition, szString, uiLen);
+		ARRAY_MEMCPY(pcPosition, szString, uiLen);
 		pcZero = mcText.Tail();
 		*pcZero = '\0';
 	}
@@ -986,7 +986,7 @@ void CHARS::Insert(ASIZE iPos, const char* szString)
 	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
 	if (pcNew)
 	{
-		memcpy(pcNew, szString, uiInsertLen);
+		ARRAY_MEMCPY(pcNew, szString, uiInsertLen);
 	}
 }
 
@@ -1010,7 +1010,7 @@ void CHARS::Insert(ASIZE iPos, CHARS* pszString)
 	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
 	if (pcNew)
 	{
-		memcpy(pcNew, pszString->Text(), uiInsertLen);
+		ARRAY_MEMCPY(pcNew, pszString->Text(), uiInsertLen);
 	}
 }
 
@@ -1148,7 +1148,7 @@ CHARS* CHARS::Append(char cPadCharacter, ASIZE iNumber)
 	if ((iNumber != 0) && (iNumber != ARRAY_NOT_FOUND))
 	{
 		pcPosition = PrivateGrow(iNumber);
-		memset(pcPosition, cPadCharacter, iNumber);
+		ARRAY_MEMSET(pcPosition, cPadCharacter, iNumber);
 		pcPosition = mcText.Tail();
 		*pcPosition = '\0';
 	}
@@ -1277,8 +1277,8 @@ void CHARS::RightAlign(char cPadCharacter, ASIZE uiWidth)
 		iOldWidth = Length();
 		PrivateGrow(iLength);
 		pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
-		memmove(pcDest, mcText.GetData(), iOldWidth);
-		memset(mcText.GetData(), cPadCharacter, iLength);
+		ARRAY_MEMMOVE(pcDest, mcText.GetData(), iOldWidth);
+		ARRAY_MEMSET(mcText.GetData(), cPadCharacter, iLength);
 		(*mcText.Tail()) = '\0';
 	}
 }
@@ -1295,7 +1295,7 @@ CHARS* CHARS::AppendSubString(const char* szString, ASIZE iLength)
 	if ((szString) && (iLength != 0))
 	{
 		pcPosition = PrivateGrow(iLength);
-		memcpy(pcPosition, szString, iLength);
+		ARRAY_MEMCPY(pcPosition, szString, iLength);
 		(*mcText.Tail()) = '\0';
 	}
 
@@ -1473,7 +1473,7 @@ void CHARS::RemoveCharacter(ASIZE iPos)
 //////////////////////////////////////////////////////////////////////////
 void CHARS::Split(CArrayChars* aszDest, char cSplitter)
 {
-	ASIZE	iPos;
+	lsize	iPos;
 	char*	pszPos;
 	ASIZE	iMax;
 
@@ -1481,17 +1481,18 @@ void CHARS::Split(CArrayChars* aszDest, char cSplitter)
 	iMax = Length();
 	for (;;)
 	{
+		//FindFirstByte counts with lsize whatever the size type.  Each part is a CChars.
 		iPos = FindFirstByte((uint8*)pszPos, cSplitter, iMax);
-		if (iPos != ARRAY_NOT_FOUND)
+		if (iPos != ARRAY_LARGE_ELEMENT_NOT_FOUND)
 		{
-			aszDest->Add(pszPos, 0, iPos);
+			aszDest->Add(pszPos, 0, (size)iPos);
 			iPos++;
 			pszPos = (char*)RemapSinglePointer((void*)pszPos, iPos);
-			iMax -= iPos;
+			iMax -= (ASIZE)iPos;
 		}
 		else
 		{
-			aszDest->Add(pszPos, 0, iMax);
+			aszDest->Add(pszPos, 0, (size)iMax);
 			break;
 		}
 	}
@@ -1534,7 +1535,7 @@ bool CHARS::Equals(const char* szString, ASIZE uiLen)
 {
 	if (uiLen == Length())
 	{
-		if (memcmp(Text(), szString, uiLen) == 0)
+		if (ARRAY_MEMCMP(Text(), szString, uiLen) == 0)
 		{
 			return true;
 		}
@@ -2408,7 +2409,7 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 		{
 			if (iCount != 0)
 			{
-				memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
+				ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
 			}
 			Overwrite(iIndex - (iCount * iDifference), szReplace);
 		}
@@ -2416,7 +2417,7 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 		{
 			if (iCount != 0)
 			{
-				memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+				ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 			}
 		}
 		iCount++;
@@ -2432,7 +2433,7 @@ ASIZE CHARS::ReplaceWithShorter(const char* szFind, const char* szReplace, ASIZE
 			{
 				if (iCount != 0)
 				{
-					memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+					ARRAY_MEMMOVE(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 				}
 			}
 			break;
@@ -2474,7 +2475,7 @@ ASIZE CHARS::ReplaceWithLonger(const char* szFind, const char* szReplace, ASIZE 
 		i--;
 		iOldIndex = iIndex;
 		iIndex = FindFromEnd(iIndex, szFind);
-		memmove(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
+		ARRAY_MEMMOVE(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
 		Overwrite(iIndex + (iDifference * i), szReplace);
 		iIndex -= iFindLen;
 	}
@@ -2804,12 +2805,13 @@ void CHARS::ReplaceNonTabsWithSpace(void)
 //////////////////////////////////////////////////////////////////////////
 void CHARS::PassifyNewlines(void)
 {
-	ASIZE	iNewLen;
+	lsize	iNewLen;
 
+	//::PassifyNewlines counts with lsize whatever the array's size type.
 	iNewLen = ::PassifyNewlines(mcText.GetData());
-	if (iNewLen != ARRAY_SIZE_MAX)
+	if (iNewLen != MAX_LSIZE)
 	{
-		mcText.Resize(iNewLen + 1);
+		mcText.Resize((ASIZE)iNewLen + 1);
 	}
 }
 
@@ -3058,11 +3060,11 @@ char* CHARS::CopyIntoBuffer(char* szDest, ASIZE iDestLength)
 		iLength = Length();
 		if (iLength < iDestLength)
 		{
-			memcpy(szDest, Text(), iLength + 1);
+			ARRAY_MEMCPY(szDest, Text(), iLength + 1);
 		}
 		else
 		{
-			memcpy(szDest, Text(), iDestLength - 2);
+			ARRAY_MEMCPY(szDest, Text(), iDestLength - 2);
 			szDest[iDestLength - 1] = '\0';
 		}
 		return szDest;

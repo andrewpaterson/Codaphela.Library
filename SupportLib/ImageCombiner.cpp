@@ -336,7 +336,7 @@ void CImageCombiner::UpdateChannels(CArrayChannel* pasSource)
 	{
 		psSource = pasSource->Get(i);
 
-		iIndex = masChannels.FindWithIntKey((int)psSource->iChannel, 0);
+		iIndex = masChannels.FindWithSizeKey(psSource->iChannel, 0);
 		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			psDest = masChannels.Get(iIndex);

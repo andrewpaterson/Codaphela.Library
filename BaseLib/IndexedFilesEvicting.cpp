@@ -11,7 +11,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
+void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
 {
 	meWriteThrough = eWriteThrough;
 	mpcEvictionCallback = pcEvictionCallback;
@@ -55,12 +55,12 @@ void CIndexedFilesEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData, size uiMaxDataSize)
+bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData, lsize uiMaxDataSize)
 {
 	bool					bResult;
 	void*					pvCache;
 	CIndexedCacheResult		cResult;
-	size			uiDataSize;
+	lsize			uiDataSize;
 	CFileDataIndex			cDataIndex;
 
 	//The descriptor has always been set prior to calling this.
@@ -251,7 +251,7 @@ int64 CIndexedFilesEvicting::NumDatas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFilesEvicting::NumDatas(size iDataSize)
+int64 CIndexedFilesEvicting::NumDatas(lsize iDataSize)
 {
 	return mcDataFiles.NumDatas(iDataSize);
 }
@@ -311,13 +311,13 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
+bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize)
 {
 	bool					bResult;
 	void*					pvNewCache;
 	CIndexedDataDescriptor	cResultDescriptor;
 	CFilePosIndex			cPosIndex;
-	size					uiFileDataSize;
+	lsize					uiFileDataSize;
 	
 	if (mbCaching && mcDataCache.CanCache(uiDataSize))
 	{
@@ -377,7 +377,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
+void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize)
 {
 	void*					pvExistingCache;
 	void*					pvNewCache;
@@ -434,7 +434,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
+CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize)
 {
 	CFileDataIndex			cDataIndex;
 	CFileDataIndex			cNewDataIndex;
@@ -501,7 +501,7 @@ bool CIndexedFilesEvicting::CacheDataEvicted(void* pvData, SMemoryCacheDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, size uiDataSize)
+CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, lsize uiDataSize)
 {
 	CIndexedCacheResult		cResult;
 
@@ -518,7 +518,7 @@ bool CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 {
 	void*			pvData;
 	bool			bResult;
-	size	uiDataSize;
+	lsize	uiDataSize;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
@@ -618,7 +618,7 @@ bool CIndexedFilesEvicting::WriteEvictedData2(CIndexedDataDescriptor* pcDescript
 {
 	CFilePosIndex			cFilePosIndex;
 	CIndexedDataDescriptor	cResultDescriptor;
-	size			uiDataSize;
+	lsize			uiDataSize;
 
 	uiDataSize = pcDescriptor->GetCacheDataSize();
 	if (uiDataSize == 0)
@@ -655,7 +655,7 @@ bool CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 {
 	//This function tells the disk whether it must update itself because the cached value has changed.
 	//It also timestamps the descriptor of the changed data.
-	size				uiDataSize;
+	lsize				uiDataSize;
 	void*				pvTemp;
 	CStackMemory<2 KB>	cStack;
 	bool				bResult;
@@ -693,7 +693,7 @@ bool CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
+lsize CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDescriptor;
 	void*						pvData;
@@ -712,7 +712,7 @@ size CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFilesEvicting::GetSystemMemorySize(void)
+lsize CIndexedFilesEvicting::GetSystemMemorySize(void)
 {
 	return mcDataCache.GetAllocatedSize();
 }

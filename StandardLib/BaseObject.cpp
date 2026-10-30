@@ -1125,11 +1125,11 @@ void CBaseObject::StopDestructor(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::SerialisedSize(void)
+lsize CBaseObject::SerialisedSize(void)
 {
 	//This method should only be used for testing.  It should be a helper somewhere else.
 	CObjectWriter	cWriter;
-	size			iLength;
+	lsize			iLength;
 	CMemoryFile		cMemory;
 
 	cMemory.Init();

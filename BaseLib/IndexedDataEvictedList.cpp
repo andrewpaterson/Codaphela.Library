@@ -27,7 +27,7 @@ void CIndexedDataEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, size iDataSize)
+bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, lsize iDataSize)
 {
 	mcKeys.Add(oi);
 	mcDatas.Add(pvData, iDataSize);
@@ -59,7 +59,7 @@ OIndex CIndexedDataEvictedList::GetKey(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedDataEvictedList::GetData(size iIndex, size* piDataSize)
+void* CIndexedDataEvictedList::GetData(size iIndex, lsize* piDataSize)
 {
 	if (piDataSize)
 	{

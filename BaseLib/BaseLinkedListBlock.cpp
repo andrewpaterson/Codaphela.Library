@@ -255,7 +255,7 @@ SLLNode* CBaseLinkedListBlock::DataGetNode(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertAfterTail(size uiDataSize)
+void* CBaseLinkedListBlock::InsertAfterTail(lsize uiDataSize)
 {
 	SLLNode*	psNode;
 
@@ -268,7 +268,7 @@ void* CBaseLinkedListBlock::InsertAfterTail(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertBeforeHead(size uiDataSize)
+void* CBaseLinkedListBlock::InsertBeforeHead(lsize uiDataSize)
 {
 	SLLNode*	psNode;
 
@@ -281,7 +281,7 @@ void* CBaseLinkedListBlock::InsertBeforeHead(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertBeforeNode(size uiDataSize, void* psPos)
+void* CBaseLinkedListBlock::InsertBeforeNode(lsize uiDataSize, void* psPos)
 {
 	SLLNode*	psNode;
 	SLLNode*	psNodePos;
@@ -296,7 +296,7 @@ void* CBaseLinkedListBlock::InsertBeforeNode(size uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertAfterNode(size uiDataSize, void* psPos)
+void* CBaseLinkedListBlock::InsertAfterNode(lsize uiDataSize, void* psPos)
 {
 	SLLNode* psNode;
 	SLLNode* psNodePos;
@@ -334,7 +334,7 @@ void CBaseLinkedListBlock::Detach(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLNode* CBaseLinkedListBlock::AllocateDetached(size uiDataSize)
+SLLNode* CBaseLinkedListBlock::AllocateDetached(lsize uiDataSize)
 {
 	SLLNode* psNode;
 
@@ -473,7 +473,7 @@ bool SLinkedListBlockDesc::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SLinkedListTemplateDesc::Init(size iNumElements, size uiNodeSize, size uiDataSize)
+void SLinkedListTemplateDesc::Init(size iNumElements, size uiNodeSize, lsize uiDataSize)
 {
 	this->iNumElements = iNumElements;
 	this->uiNodeSize = uiNodeSize;

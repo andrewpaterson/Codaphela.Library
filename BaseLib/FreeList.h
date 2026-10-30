@@ -111,7 +111,7 @@ public:
 	uint8		GetAlignment(void);
 	void*		GetBitArray(SFNode* psNode);
 	SFNode* 	FindNode(void* pvData, bool bIsAllocated = true);
-	size		ByteSize(void);
+	lsize		ByteSize(void);
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);
 	void		RemoveNode(SFNode* psNode);
@@ -132,7 +132,7 @@ protected:
 	size		CalculateStride(void);
 	uint8		CalculateOffset(int16 iOffset);
 	size		CalculateBitArraySize(size uiChunkSize);
-	size		CalculateNodeSize(size uiChunkSize);
+	lsize		CalculateNodeSize(size uiChunkSize);
 	size		CalculateSlabChunkSize(void);
 	uint8		CalculateOffset(SFNode* psNode);
 	void*		GetElementInNode(SFNode* psNode, size iPosition);

@@ -484,7 +484,7 @@ bool CNamedIndexes::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNamedIndexes::GetSystemMemorySize(void)
+lsize CNamedIndexes::GetSystemMemorySize(void)
 {
 	return mcIndexTree.GetSystemMemorySize();
 }
@@ -494,7 +494,7 @@ size CNamedIndexes::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNamedIndexes::GetUserMemorySize(void)
+lsize CNamedIndexes::GetUserMemorySize(void)
 {
 	return mcIndexTree.GetUserMemorySize();
 }

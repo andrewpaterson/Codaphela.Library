@@ -41,7 +41,7 @@ void CInternalObjectDeserialiser::Kill(void)
 CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
-	size					uiDataSize;
+	lsize					uiDataSize;
 	CStackMemory<2 KB>			cTemp;
 	bool					bExists;
 	CBaseObject*			pcBaseObject;
@@ -78,7 +78,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 CBaseObject* CInternalObjectDeserialiser::Read(const char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
-	size				uiDataSize;
+	lsize				uiDataSize;
 	CStackMemory<2 KB>	cTemp;
 	bool				bExists;
 	CBaseObject*		pcBaseObject;
@@ -112,7 +112,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(const char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, size iSize)
+CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, lsize iSize)
 {
 	CObjectReader	cReader;
 	CBaseObject*	pcBaseObject;

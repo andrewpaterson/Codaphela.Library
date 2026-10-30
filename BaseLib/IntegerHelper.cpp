@@ -39,7 +39,7 @@ uint32 TruncateLowBits(uint32 i)
 	{
 		return 0;
 	}
-	return 1 << GetLogBase2(i);
+	return (uint32)1 << GetLogBase2(i);
 }
 
 
@@ -1164,9 +1164,9 @@ size FindFirstInt(int32* piIntArray, int32 iSearch, size iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindFirstByte(uint8* pcCharArray, uint8 uiSearch, size iMaxLength)
+lsize FindFirstByte(uint8* pcCharArray, uint8 uiSearch, lsize iMaxLength)
 {
-	size	i;
+	lsize	i;
 
 	for (i = 0; i < iMaxLength; i++)
 	{
@@ -1175,7 +1175,7 @@ size FindFirstByte(uint8* pcCharArray, uint8 uiSearch, size iMaxLength)
 			return i;
 		}
 	}
-	return ARRAY_ELEMENT_NOT_FOUND;
+	return ARRAY_LARGE_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1296,6 +1296,25 @@ int CompareInt(const void* arg1, const void* arg2)
 		return -1;
 	}
 	if ((*((int*)arg1)) > (*((int*)arg2)))
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// size keys: not the same width as an int everywhere.					//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CompareSize(const void* arg1, const void* arg2)
+{
+	if ((*((size*)arg1)) < (*((size*)arg2)))
+	{
+		return -1;
+	}
+	if ((*((size*)arg1)) > (*((size*)arg2)))
 	{
 		return 1;
 	}

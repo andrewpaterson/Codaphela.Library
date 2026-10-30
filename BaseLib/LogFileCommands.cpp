@@ -126,7 +126,7 @@ bool CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFileCommandWrite::Init(filePos iPosition, size iSize)
+void CLogFileCommandWrite::Init(filePos iPosition, lsize iSize)
 {
 	CLogFileCommand::Init(LFC_Write);
 	this->iPosition = iPosition;
@@ -138,7 +138,7 @@ void CLogFileCommandWrite::Init(filePos iPosition, size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, size iSize)
+void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, lsize iSize)
 {
 	void*	pvData;
 

@@ -84,7 +84,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	msCaretColour = JEWEL_ICON;
 	mauiStopStarts.Init();
 	muiCaret = 0;
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;
 	miTabWidth = 4;
@@ -191,7 +191,7 @@ void CTextArea::SetText(const char* szText)
 	mszText.Init(szText);
 	masSpans.ReInit();
 	muiCaret = 0;
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;
 	ReadText();
@@ -959,7 +959,7 @@ void CTextArea::SelectWholeWord(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearSelection(void)
 {
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	UpdateMarks();
 }
 
@@ -1092,7 +1092,7 @@ void CTextArea::HomeEnter(void)
 		return;
 	}
 
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	uiLineStart = FindLineStart(muiCaret);
 	InsertText(uiLineStart, "\n");
 	muiCaret = uiLineStart;
@@ -1112,7 +1112,7 @@ void CTextArea::EndEnter(void)
 		return;
 	}
 
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	muiCaret = FindLineEnd(muiCaret);
 	InsertText(muiCaret, "\n");
 	TextChanged();
@@ -1376,7 +1376,7 @@ void CTextArea::DeleteLine(void)
 		uiStart = PreviousPosition(uiStart);
 	}
 
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	RemoveText(uiStart, uiEnd);
 	muiCaret = FindColumn(FindLineStart(uiStart), uiColumn);
 	TextChanged();
@@ -2245,7 +2245,7 @@ int32 CTextArea::GetNewLineWidth(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::IsSelected(void)
 {
-	return (muiAnchor != SIZE_MAX) && (muiAnchor != muiCaret);
+	return (muiAnchor != MAX_SIZE) && (muiAnchor != muiCaret);
 }
 
 
@@ -2259,14 +2259,14 @@ void CTextArea::MoveCaret(size uiPosition, bool bSelect, bool bRowEnd, bool bKee
 {
 	if (bSelect)
 	{
-		if (muiAnchor == SIZE_MAX)
+		if (muiAnchor == MAX_SIZE)
 		{
 			muiAnchor = muiCaret;
 		}
 	}
 	else
 	{
-		muiAnchor = SIZE_MAX;
+		muiAnchor = MAX_SIZE;
 	}
 
 	muiCaret = uiPosition;
@@ -2441,7 +2441,7 @@ void CTextArea::InsertText(size uiPosition, const char* szText)
 	{
 		muiCaret += uiLength;
 	}
-	if ((muiAnchor != SIZE_MAX) && (muiAnchor >= uiPosition))
+	if ((muiAnchor != MAX_SIZE) && (muiAnchor >= uiPosition))
 	{
 		muiAnchor += uiLength;
 	}
@@ -2497,7 +2497,7 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 	{
 		muiCaret = uiStart;
 	}
-	if (muiAnchor != SIZE_MAX)
+	if (muiAnchor != MAX_SIZE)
 	{
 		if (muiAnchor >= uiEnd)
 		{
@@ -2520,7 +2520,7 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 void CTextArea::ReplaceSelection(const char* szText)
 {
 	DeleteSelection();
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	InsertText(muiCaret, szText);
 }
 
@@ -2539,7 +2539,7 @@ bool CTextArea::DeleteSelection(void)
 	{
 		return false;
 	}
-	muiAnchor = SIZE_MAX;
+	muiAnchor = MAX_SIZE;
 	RemoveText(uiStart, uiEnd);
 	return true;
 }
@@ -2581,7 +2581,7 @@ void CTextArea::IndentLines(size uiStart, size uiEnd)
 
 	szSpaces.Init();
 	szSpaces.Append(' ', miTabWidth);
-	bAnchorFirst = (muiAnchor != SIZE_MAX) && (muiAnchor < muiCaret);
+	bAnchorFirst = (muiAnchor != MAX_SIZE) && (muiAnchor < muiCaret);
 	i = auiLineStarts.NumElements();
 	while (i > 0)
 	{
@@ -2597,7 +2597,7 @@ void CTextArea::IndentLines(size uiStart, size uiEnd)
 		{
 			muiAnchor = uiStart;
 		}
-		else if (muiAnchor != SIZE_MAX)
+		else if (muiAnchor != MAX_SIZE)
 		{
 			muiCaret = uiStart;
 		}

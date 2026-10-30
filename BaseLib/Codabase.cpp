@@ -457,7 +457,7 @@ void CCodabase::ReleaseNames(CArrayChars* paszNames, int64 iTransaction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::StoredGet(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CCodabase::StoredGet(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -541,7 +541,7 @@ OIndex CCodabase::StoredGetIndex(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::SnapshotGet(int64 iSnapshot, OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize, bool bAllData)
+bool CCodabase::SnapshotGet(int64 iSnapshot, OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize, bool bAllData)
 {
 	bool	bResult;
 
@@ -619,7 +619,7 @@ void CCodabase::SnapshotIndices(int64 iSnapshot, CArrayOIndex* paoi)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
-	size					iDataSize;
+	lsize					iDataSize;
 	CArrayOIndex			aoiVersioned;
 	size					i;
 
@@ -683,10 +683,10 @@ void CCodabase::SnapshotNames(int64 iSnapshot, CArrayChars* paszNames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::SnapshotGetLocked(int64 iSnapshot, OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize, bool bAllData)
+bool CCodabase::SnapshotGetLocked(int64 iSnapshot, OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize, bool bAllData)
 {
 	CVersion*	pcVersion;
-	size		uiCopySize;
+	lsize		uiCopySize;
 
 	//mcMutex must be locked.  A version means the object changed after the snapshot.  Without one the store still has
 	//it as it was.
@@ -934,7 +934,7 @@ void CCodabase::StoredIndices(CArrayOIndex* paoi)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
-	size					iDataSize;
+	lsize					iDataSize;
 
 	mcMutex.Lock();
 	oi = mcNamedIndexedData.StartIndexIteration(&sIter, NULL, &iDataSize, 0);
@@ -1020,7 +1020,7 @@ bool CCodabase::ValidateIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Add(OIndex oi, void* pvData, size uiDataSize)
+bool CCodabase::Add(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1042,7 +1042,7 @@ bool CCodabase::Add(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Add(OIndex oi, const char* szName, void* pvData, size uiDataSize)
+bool CCodabase::Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1064,7 +1064,7 @@ bool CCodabase::Add(OIndex oi, const char* szName, void* pvData, size uiDataSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
+bool CCodabase::Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1108,7 +1108,7 @@ bool CCodabase::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Set(OIndex oi, void* pvData, size uiDataSize)
+bool CCodabase::Set(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1152,7 +1152,7 @@ bool CCodabase::Set(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Set(const char* szName, void* pvData, size uiDataSize)
+bool CCodabase::Set(const char* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1196,7 +1196,7 @@ bool CCodabase::Set(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Set(CChars* szName, void* pvData, size uiDataSize)
+bool CCodabase::Set(CChars* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1218,7 +1218,7 @@ bool CCodabase::Set(CChars* szName, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Put(OIndex oi, void* pvData, size uiDataSize)
+bool CCodabase::Put(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1240,7 +1240,7 @@ bool CCodabase::Put(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Put(OIndex oi, const char* szName, void* pvData, size uiDataSize)
+bool CCodabase::Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1262,7 +1262,7 @@ bool CCodabase::Put(OIndex oi, const char* szName, void* pvData, size uiDataSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
+bool CCodabase::Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bResult;
 
@@ -1309,7 +1309,7 @@ bool CCodabase::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CCodabase::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -1359,7 +1359,7 @@ bool CCodabase::Get(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CCodabase::Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -1409,7 +1409,7 @@ bool CCodabase::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CCodabase::Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -1908,7 +1908,7 @@ void CCodabase::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	OIndex	oiResult;
 
@@ -1933,7 +1933,7 @@ OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	OIndex	oiResult;
 

@@ -411,8 +411,8 @@ SSparseNode* __CArraySparseTemplate<M>::RotateRight(SSparseNode* psNode)
 template<class M>
 void __CArraySparseTemplate<M>::RecurseRebalance(SSparseNode* psNode)
 {
-	size	iLeftDepth;
-	size	iRightDepth;
+	int		iLeftDepth;  //-1 when there is no child.
+	int		iRightDepth;
 	int		iDiff;
 
 	if (!psNode)
@@ -422,7 +422,7 @@ void __CArraySparseTemplate<M>::RecurseRebalance(SSparseNode* psNode)
 
 	if (psNode->psLeft)
 	{
-		iLeftDepth = psNode->psLeft->iLeafDepth;
+		iLeftDepth = (int)psNode->psLeft->iLeafDepth;
 	}
 	else
 	{
@@ -431,14 +431,14 @@ void __CArraySparseTemplate<M>::RecurseRebalance(SSparseNode* psNode)
 
 	if (psNode->psRight)
 	{
-		iRightDepth = psNode->psRight->iLeafDepth;
+		iRightDepth = (int)psNode->psRight->iLeafDepth;
 	}
 	else
 	{
 		iRightDepth = -1;
 	}
 
-	iDiff = (int)iLeftDepth - (int)iRightDepth;
+	iDiff = iLeftDepth - iRightDepth;
 	if ((iDiff >= -1) && (iDiff <= 1))
 	{
 		return RecurseRebalance(psNode->psParent);

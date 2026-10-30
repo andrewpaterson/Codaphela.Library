@@ -273,8 +273,8 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 		return false;
 	}
 
-	abFoundFirst = (bool*)malloc(sizeof(bool) * iLength);
-	memset(abFoundFirst, 0, sizeof(bool) * iLength);
+	abFoundFirst = (bool*)malloc((lsize)sizeof(bool) * iLength);
+	memset(abFoundFirst, 0, (lsize)sizeof(bool) * iLength);
 
 	for (iDepth = 0;;)
 	{
@@ -294,7 +294,7 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 			abFoundFirst[iDepth] = false;
 			iDepth--;
 
-			if (iDepth == SIZE_MAX)
+			if (iDepth == MAX_SIZE)
 			{
 				ReadChunkEnd();
 				aszChunkNames.Kill();

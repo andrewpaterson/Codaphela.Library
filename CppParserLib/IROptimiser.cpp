@@ -41,6 +41,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
+	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;
 	msLibraryInt = IRType(IRTK_None);
@@ -105,6 +106,21 @@ void CIROptimiser::SetLibraryInt(SIRType sInt)
 void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
 {
 	mbIndexedAddresses = bIndexedAddresses;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the comparisons found always true or always false because one side
+// is zero extended from a type that can't hold the constant on the other are
+// described (ComparisonRange), a line each.  The front end can only see the
+// types: x != 0xFFFFFFFF with a 32 bit x assigned a 16 bit value is seen
+// here, once the values are followed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetWarnings(CChars* pszWarnings)
+{
+	mpszWarnings = pszWarnings;
 }
 
 
@@ -2010,7 +2026,7 @@ bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* 
 //
 // True if psInstruction gives back an operand (*psValue): x + 0, x - 0,
 // x | 0, x ^ 0, a shift by 0, x * 1, x / 1, x & all ones, ptradd x, 0 (and 0 + x
-// and the like for a commutative op).
+// and the like for a commutative op), or the constant: x * 0, x & 0.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue)
@@ -2049,15 +2065,21 @@ bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psVal
 		}
 		break;
 	case IRO_Mul:
-	case IRO_UDiv:
-	case IRO_SDiv:
-		if (ulliBits != 1)
+	case IRO_And:
+		if (ulliBits == 0)
+		{
+			//x * 0 and x & 0 are the 0.
+			*psValue = sConstant;
+			return true;
+		}
+		if (ulliBits != ((psInstruction->uiOpcode == IRO_Mul) ? 1 : IRTruncate(psInstruction->sType, (uint64)-1)))
 		{
 			return false;
 		}
 		break;
-	case IRO_And:
-		if (ulliBits != IRTruncate(psInstruction->sType, (uint64)-1))
+	case IRO_UDiv:
+	case IRO_SDiv:
+		if (ulliBits != 1)
 		{
 			return false;
 		}
@@ -3156,6 +3178,7 @@ bool CIROptimiser::NarrowComparison(SIRInstruction* psInstruction)
 		}
 		if (uiExtension == IRO_ZExt)
 		{
+			ComparisonRange(psInstruction);
 			return false;
 		}
 	}
@@ -3168,6 +3191,64 @@ bool CIROptimiser::NarrowComparison(SIRInstruction* psInstruction)
 		psInstruction->uiOpcode += IRO_ULt - IRO_SLt;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Describes (SetWarnings) a comparison of a value zero extended from a narrow
+// type with a constant that type can't hold: its result never changes.  A
+// 16 bit "not found" (MAX_SIZE) widened and compared with the 32 bit one
+// (MAX_LSIZE) is never equal.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::ComparisonRange(SIRInstruction* psInstruction)
+{
+	SIRType		sNarrow;
+	int			iConstant;
+	uint64		ulliConstant;
+	bool		bTrue;
+	CChars		szLine;
+
+	if (!mpszWarnings)
+	{
+		return;
+	}
+	for (iConstant = 0; iConstant < 2; iConstant++)
+	{
+		sNarrow = IRType(IRTK_None);
+		if (psInstruction->asArguments[iConstant].IsConstant() && !Unextended(psInstruction->asArguments[1 - iConstant], IRO_ZExt, &sNarrow).IsNone() &&
+			!Extended(psInstruction->asArguments[iConstant], sNarrow.IntegerBits(), false, 0))
+		{
+			break;
+		}
+	}
+	if (iConstant == 2)
+	{
+		return;
+	}
+
+	//Out of the narrow type's range: bigger than all its values (a negative constant is too, as unsigned).
+	ulliConstant = mpcFunction->GetConstant(psInstruction->asArguments[iConstant])->ulliBits;
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Eq:	bTrue = false;	break;
+	case IRO_Ne:	bTrue = true;	break;
+	case IRO_ULt:
+	case IRO_ULe:	bTrue = (iConstant == 1);	break;
+	case IRO_UGt:
+	case IRO_UGe:	bTrue = (iConstant == 0);	break;
+	default:		return;
+	}
+
+	szLine.Init("Comparison is always ");
+	szLine.Append(bTrue ? "true" : "false")->Append(": a ")->Append(sNarrow.IntegerBits())->Append(" bit value, zero extended, is compared with ");
+	szLine.Append((uint64)IRTruncate(psInstruction->sType, ulliConstant))->Append(".\n");
+	if (!strstr(mpszWarnings->Text(), szLine.Text()))
+	{
+		mpszWarnings->Append(szLine);
+	}
+	szLine.Kill();
 }
 
 
@@ -4613,6 +4694,7 @@ bool CIROptimiser::ReduceMultiplies(void)
 	SIRReference	sCounter;
 	SIRReference	sFactor;
 	SIRReference	sValue;
+	SIRReference	sResult;
 	SIRReference	sProduct;
 	SIRType			sType;
 	bool			bWeb;
@@ -4637,6 +4719,7 @@ bool CIROptimiser::ReduceMultiplies(void)
 					continue;
 				}
 				sType = psMul->sType;
+				sResult = psMul->sResult;		//psMul moves when instructions are put in its block.
 
 				//mul i, w (either way round): i in the loop, w not changed by it.
 				for (iArgument = 0; iArgument < 2; iArgument++)
@@ -4753,7 +4836,7 @@ bool CIROptimiser::ReduceMultiplies(void)
 					}
 				}
 				ClearReplacements();
-				Replace(psMul->sResult, asProducts[0]);
+				Replace(sResult, asProducts[0]);
 				ApplyReplacements();
 				FindDefinitions();
 				return true;

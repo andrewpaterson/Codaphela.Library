@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 SFloat32Vec3* GetPosition(SFloat32Vec3* psPoints, size iStride, size iPoint)
 {
-	return (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride * iPoint);
+	return (SFloat32Vec3*)RemapSinglePointer(psPoints, (lsize)iStride * iPoint);
 }
 
 
@@ -43,7 +43,7 @@ SFloat32Vec3* GetPosition(SFloat32Vec3* psPoints, size iStride, size iPoint)
 //////////////////////////////////////////////////////////////////////////
 SFloat32Vec3* GetNormal(SFloat32Vec3* psNormals, size iStride, size iNormal)
 {
-	return (SFloat32Vec3*)RemapSinglePointer(psNormals, iStride * iNormal);
+	return (SFloat32Vec3*)RemapSinglePointer(psNormals, (lsize)iStride * iNormal);
 }
 
 

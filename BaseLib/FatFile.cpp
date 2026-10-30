@@ -470,7 +470,7 @@ EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Write(uint8* pvSource, size uiLength)
+EFatCode CFatFile::Write(uint8* pvSource, lsize uiLength)
 {
 	EFatCode	eResult;
 
@@ -578,7 +578,7 @@ EFatCode CFatFile::ValidateCanRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Read(uint8* puiDestination, size uiLength, size* puiBytesRead)
+EFatCode CFatFile::Read(uint8* puiDestination, lsize uiLength, lsize* puiBytesRead)
 {
 	EFatCode	eResult;
 
@@ -598,7 +598,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, size uiLength, size* puiBytesRead
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, size* puiBytesRead, uint8* puiDestination)
+EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination)
 {
 	EFatCode	eResult;
 	bool		bSuccess;
@@ -608,7 +608,7 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, size* puiBytesRead,
 	uint16		uiReadOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
 	uint32		uiBytesRead;
-	size		uiTotalBytesRead;
+	lsize		uiTotalBytesRead;
 
 	if (msFile.uiFileSize == 0 || msFile.uiFilePositionCluster == 0)
 	{

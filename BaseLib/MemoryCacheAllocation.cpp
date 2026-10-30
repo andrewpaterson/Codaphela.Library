@@ -75,7 +75,7 @@ void CMemoryCacheAllocation::Dump(size iDescriptorSize)
 	SMemoryCacheDescriptor*		psCacheDesc;
 	CChars						sz;
 	char*						pvData;
-	size						iLen;
+	lsize						iLen;  //Shown as 4 bytes.
 	size						i;
 	size						iNumElements;
 	SMemoryCacheDescriptor*		psNext;

@@ -211,7 +211,7 @@ void CSafeArrayBlock::Copy(CSafeArrayBlock* pcTemplateArray)
 	m.Lock();
 	c.Resize(iNumElements);
 
-	memcpy(c.GetData(), cTemp.GetStackData(), iNumElements * c.ElementSize());
+	memcpy(c.GetData(), cTemp.GetStackData(), (size)(iNumElements * c.ElementSize()));
 	m.Unlock();
 }
 
