@@ -73,7 +73,7 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	size					Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, size uiMaxSteps, CAsm65LineTable* pcLines = NULL);
+	uint64					Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, uint64 uiMaxSteps, CAsm65LineTable* pcLines = NULL);
 
 	bool					Read(const char* szFilename);
 	bool					Write(const char* szFilename);

@@ -45,10 +45,10 @@ void SImageColour::Full(void)
 //////////////////////////////////////////////////////////////////////////
 void SImageColour::Zero(void)
 {
-	*(int*)(&c[0]) = 0;
-	*(int*)(&c[4]) = 0;
-	*(int*)(&c[8]) = 0;
-	*(int*)(&c[12]) = 0;
+	*(int32*)(&c[0]) = 0;
+	*(int32*)(&c[4]) = 0;
+	*(int32*)(&c[8]) = 0;
+	*(int32*)(&c[12]) = 0;
 }
 
 
@@ -64,11 +64,11 @@ bool SImageColour::IsZero(size iDataSize)
 	}
 	if (iDataSize == 2)
 	{
-		return *(short*)(&c[0]) == 0;
+		return *(int16*)(&c[0]) == 0;
 	}
 	if (iDataSize == 3)
 	{
-		if (*(short*)(&c[0]) == 0)
+		if (*(int16*)(&c[0]) == 0)
 		{
 			return c[2] == 0;
 		}
@@ -89,11 +89,11 @@ bool SImageColour::IsZero(size iDataSize)
 	}
 	if (iDataSize == 4)
 	{
-		return *(int*)(&c[0]) == 0;
+		return *(int32*)(&c[0]) == 0;
 	}
 	if (iDataSize == 5)
 	{
-		if (*(int*)(&c[0]) == 0)
+		if (*(int32*)(&c[0]) == 0)
 		{
 			return c[4] == 0;
 		}
@@ -101,17 +101,17 @@ bool SImageColour::IsZero(size iDataSize)
 	}
 	if (iDataSize == 6)
 	{
-		if (*(int*)(&c[0]) == 0)
+		if (*(int32*)(&c[0]) == 0)
 		{
-			return *(short*)(&c[4]) == 0;
+			return *(int16*)(&c[4]) == 0;
 		}
 		return false;
 	}
 	if (iDataSize == 7)
 	{
-		if (*(int*)(&c[0]) == 0)
+		if (*(int32*)(&c[0]) == 0)
 		{
-			if (*(short*)(&c[4]) == 0)
+			if (*(int16*)(&c[4]) == 0)
 			{
 				return c[6] == 0;
 			}
@@ -121,9 +121,9 @@ bool SImageColour::IsZero(size iDataSize)
 	}
 	if (iDataSize == 8)
 	{
-		if (*(int*)(&c[0]) == 0)
+		if (*(int32*)(&c[0]) == 0)
 		{
-			return *(int*)(&c[4]) == 0;
+			return *(int32*)(&c[4]) == 0;
 		}
 		return false;
 	}

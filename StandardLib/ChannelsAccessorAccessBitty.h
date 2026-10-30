@@ -27,8 +27,8 @@ class CChannelsAccessorAccessBitty : public CChannelsAccessor
 {
 CONSTRUCTABLE(CChannelsAccessorAccessBitty)
 public:
-	void*	Get(size iPos) override;
-	void	Set(size iPos, void* pvData) override;
+	void*	Get(lsize iPos) override;
+	void	Set(lsize iPos, void* pvData) override;
 };
 
 

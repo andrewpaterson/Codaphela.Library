@@ -355,7 +355,7 @@ Ptr<CSound> CSoundCel::ToSound(void)
 	}
 
 	pcSound = OMalloc<CSound>(mpSourceSound->GetSampleRate(), muiNumFrames, mpSourceSound);
-	pfSamples = (float64*)malloc(sizeof(float64) * (muiNumFrames + 1));
+	pfSamples = (float64*)malloc((lsize)sizeof(float64) * (muiNumFrames + 1));
 	for (uiChannel = 0; uiChannel < mpSourceSound->NumChannels(); uiChannel++)
 	{
 		GetSamples(uiChannel, 0, muiNumFrames, pfSamples);

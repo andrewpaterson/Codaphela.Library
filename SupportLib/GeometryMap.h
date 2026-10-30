@@ -78,7 +78,7 @@ struct SGeometryPixels
 	CImageAccessor*		pcAccessor;		//NULL when the pixels are blended in place.
 	uint8*				puiData;
 	size				uiPixelStride;
-	size				uiRowStride;
+	lsize				uiRowStride;
 	size				uiRed;			//Byte offsets in a pixel.
 	size				uiGreen;
 	size				uiBlue;

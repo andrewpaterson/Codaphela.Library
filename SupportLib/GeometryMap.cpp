@@ -356,7 +356,7 @@ void CGeometryMap::AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psComm
 	fHalf = psCommand->fThickness / 2;
 	asSource = masPoints.Get(psCommand->uiFirstPoint);
 
-	asPoints = (SFloat64Vec2*)malloc(sizeof(SFloat64Vec2) * psCommand->uiNumPoints);
+	asPoints = (SFloat64Vec2*)malloc((lsize)sizeof(SFloat64Vec2) * psCommand->uiNumPoints);
 	uiNumPoints = 0;
 	for (i = 0; i < psCommand->uiNumPoints; i++)
 	{
@@ -701,10 +701,10 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 	{
 		for (x = 0; x < pcRasteriser->GetWidth(); x++)
 		{
-			uiCoverage = puiCoverage[(size)y * pcRasteriser->GetWidth() + x];
+			uiCoverage = puiCoverage[(lsize)y * pcRasteriser->GetWidth() + x];
 			if (uiCoverage > 0)
 			{
-				BlendPixel(psPixels, pcRasteriser->GetLeft() + x, pcRasteriser->GetTop() + y, psCommand->sColour, (uint32)DivideRound(uiAlpha * uiCoverage, 255));
+				BlendPixel(psPixels, pcRasteriser->GetLeft() + x, pcRasteriser->GetTop() + y, psCommand->sColour, (uint32)DivideRound((uint64)uiAlpha * uiCoverage, 255));
 			}
 		}
 	}
@@ -816,7 +816,7 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 	uiRed = Get8BitRedColour(sColour);
 	uiGreen = Get8BitGreenColour(sColour);
 	uiBlue = Get8BitBlueColour(sColour);
-	puiRow = psPixels->puiData + (size)iTop * psPixels->uiRowStride + (size)iLeft * psPixels->uiPixelStride;
+	puiRow = psPixels->puiData + (lsize)iTop * psPixels->uiRowStride + (size)iLeft * psPixels->uiPixelStride;
 	for (y = iTop; y < iBottom; y++)
 	{
 		puiPixel = puiRow;
@@ -849,7 +849,7 @@ void CGeometryMap::BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB3
 
 	if (psPixels->pcAccessor == NULL)
 	{
-		puiPixel = psPixels->puiData + (size)y * psPixels->uiRowStride + (size)x * psPixels->uiPixelStride;
+		puiPixel = psPixels->puiData + (lsize)y * psPixels->uiRowStride + (size)x * psPixels->uiPixelStride;
 		puiPixel[psPixels->uiRed] = BlendLerpByte(puiPixel[psPixels->uiRed], Get8BitRedColour(sColour), uiAlpha);
 		puiPixel[psPixels->uiGreen] = BlendLerpByte(puiPixel[psPixels->uiGreen], Get8BitGreenColour(sColour), uiAlpha);
 		puiPixel[psPixels->uiBlue] = BlendLerpByte(puiPixel[psPixels->uiBlue], Get8BitBlueColour(sColour), uiAlpha);

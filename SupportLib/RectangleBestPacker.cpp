@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangleBestPacker::Init(int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CRectangleBestPacker::Init(int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth)
 {
 	masSourceRectangles.Init();
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
@@ -143,13 +143,13 @@ void CRectangleBestPacker::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
+int32 CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
 {
 	size					i;
 	CPackSourceRectangle*	pcRect;
-	int						iWidth;
-	int						iHeight;
-	int						iTotalWidth;
+	int32					iWidth;
+	int32					iHeight;
+	int32					iTotalWidth;
 	size					uiNumElements;
 
 	//The width of every rectangle in a single row.
@@ -166,7 +166,7 @@ int CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
 		pcRect->GetSize(eRotation, &iWidth, &iHeight);
 		iTotalWidth += iWidth;
 	}
-	iTotalWidth += ((int)masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth;
+	iTotalWidth += ((int32)masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth;
 
 	return iTotalWidth;
 }
@@ -176,7 +176,7 @@ int CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleBestPacker::GetSourcesMaxWidth(void)
+int32 CRectangleBestPacker::GetSourcesMaxWidth(void)
 {
 	return GetSourcesMaxWidth(PR_AsGiven);
 }
@@ -186,7 +186,7 @@ int CRectangleBestPacker::GetSourcesMaxWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleBestPacker::GetSourcesMinWidth(void)
+int32 CRectangleBestPacker::GetSourcesMinWidth(void)
 {
 	return GetSourcesMinWidth(PR_AsGiven, false);
 }
@@ -196,13 +196,13 @@ int CRectangleBestPacker::GetSourcesMinWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleBestPacker::GetSourcesMinWidth(EPackRotation eRotation, bool bRotateToFit)
+int32 CRectangleBestPacker::GetSourcesMinWidth(EPackRotation eRotation, bool bRotateToFit)
 {
 	size					i;
 	CPackSourceRectangle*	pcRect;
-	int						iMaxWidth;
-	int						iWidth;
-	int						iHeight;
+	int32					iMaxWidth;
+	int32					iWidth;
+	int32					iHeight;
 	size					uiNumElements;
 
 	//The narrowest attempt that can hold every rectangle is as wide as the widest rectangle.  Turning to fit lets a rectangle use its shorter side.
@@ -229,7 +229,7 @@ int CRectangleBestPacker::GetSourcesMinWidth(EPackRotation eRotation, bool bRota
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangleBestPacker::AddAttempt(int iMaxWidth, EPackRotation eRotation, bool bRotateToFit)
+void CRectangleBestPacker::AddAttempt(int32 iMaxWidth, EPackRotation eRotation, bool bRotateToFit)
 {
 	CPackAttempt*	pcAttempt;
 
@@ -267,8 +267,8 @@ void CRectangleBestPacker::AddSquareAttempt(void)
 	size					i;
 	CPackSourceRectangle*	pcRect;
 	float32					fArea;
-	int						iMaxWidth;
-	int						iMinWidth;
+	int32					iMaxWidth;
+	int32					iMinWidth;
 	size					uiNumElements;
 
 	//Aim for a square: the side of a square with the area of the rectangles and the gaps after them.
@@ -279,7 +279,7 @@ void CRectangleBestPacker::AddSquareAttempt(void)
 		pcRect = masSourceRectangles.Get(i);
 		fArea += (float32)(pcRect->miWidth + miInnerEdgeWidth) * (float32)(pcRect->miHeight + miInnerEdgeWidth);
 	}
-	iMaxWidth = (int)ceilf(sqrtf(fArea)) - miInnerEdgeWidth;
+	iMaxWidth = (int32)ceilf(sqrtf(fArea)) - miInnerEdgeWidth;
 
 	iMinWidth = GetSourcesMinWidth();
 	if (iMaxWidth < iMinWidth)
@@ -307,11 +307,11 @@ void CRectangleBestPacker::AddDefaultAttempts(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::AddWidthAttempts(EPackRotation eRotation, bool bRotateToFit)
 {
-	int						i;
+	int32					i;
 	float32					fStartWidth;
 	float32					fEndWidth;
-	int						iLastWidth;
-	int						iWidth;
+	int32					iLastWidth;
+	int32					iWidth;
 	float32					fDest;
 	float32					fPos;
 
@@ -325,7 +325,7 @@ void CRectangleBestPacker::AddWidthAttempts(EPackRotation eRotation, bool bRotat
 	{
 		fPos = i/24.0f;
 		InterpolateFloat(&fDest, fStartWidth, fEndWidth, fPos);
-		iWidth = (int)(fDest + 0.5f);
+		iWidth = (int32)(fDest + 0.5f);
 		if (iWidth != iLastWidth)
 		{
 			AddAttempt(iWidth, eRotation, bRotateToFit);
@@ -419,8 +419,8 @@ SInt32Vec2 CRectangleBestPacker::GetPackedImageSize(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayPackSourceRectangle* CRectangleBestPacker::GetSourceRectangles(void) {return &masSourceRectangles;}
-int CRectangleBestPacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
-int CRectangleBestPacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
+int32 CRectangleBestPacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
+int32 CRectangleBestPacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
 CArrayPackAttempt* CRectangleBestPacker::GetPackAttempts(void) {return &macPackAttempts;}
 int64 CRectangleBestPacker::GetSourceArea(void) {return miSourceArea;}
 

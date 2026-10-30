@@ -25,13 +25,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorChannelBitty::Get(size iPos)
+void* CChannelsAccessorChannelBitty::Get(lsize iPos)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
 	void*				pvSource;
-	size				iSourceBitPos;
+	lsize				iSourceBitPos;
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
@@ -52,12 +52,12 @@ void* CChannelsAccessorChannelBitty::Get(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorChannelBitty::Set(size iPos, void* pvSource)
+void CChannelsAccessorChannelBitty::Set(lsize iPos, void* pvSource)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	size				iDestBitPos;
+	lsize				iDestBitPos;
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();

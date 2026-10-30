@@ -48,7 +48,7 @@ void CMFRet::PackOverflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges)
+void CMFRet::Pack(int32 iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges)
 {
 	miFirstFace = iFirstFace;
 	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);
@@ -61,7 +61,7 @@ void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges)
+void CMFRet::Pack(int32 iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges)
 {
 	miFirstFace = iFirstFace;
 	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);

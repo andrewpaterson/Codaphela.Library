@@ -68,7 +68,7 @@ void CChannels::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
+void CChannels::Init(lsize iSize, EPrimitiveType eType, size iFirst, ...)
 {
 	Init();
 
@@ -85,7 +85,7 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 	{
 		AddChannel(i, eType);
 		iCount++;
-		i = va_arg(vaMarker, size);
+		i = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -98,7 +98,7 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...)
+void CChannels::Init(lsize iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...)
 {
 	Init();
 
@@ -115,7 +115,7 @@ void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iF
 	{
 		AddChannel(i, eType);
 		iCount++;
-		i = va_arg(vaMarker, size);
+		i = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -157,13 +157,13 @@ void CChannels::Init(CChannels* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Class(void)
 {
-	U_Size(miSize);
+	U_LSize(miSize);
 	U_Size(miByteStride);
 	U_Size(miBitStride);
 	U_Bool(mbOnlyBasicTypes);
 
 	U_Unknown(CArrayChannelOffset, masChannelOffsets);
-	U_Unknown(CArrayChar, mabData);
+	U_Unknown(CArrayLargeChar, mabData);
 	U_Pointer(mpvUserData);
 	U_Pointer(mpsChangingDesc);
 	U_Pointer(mpvDataCache);
@@ -255,7 +255,7 @@ void CChannels::BeginChange(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::SetSize(size iSize)
+void CChannels::SetSize(lsize iSize)
 {
 	if (IsChanging())
 	{
@@ -518,6 +518,7 @@ bool CChannels::EndChange(void)
 	CChannel*		pcChannel;
 	size			iSize;
 	size			iOffset;
+	lsize			uiByteSize;
 	bool			bAnyAdded;
 	size			iOldBitStride;
 	size			iAddedBitStride;
@@ -610,7 +611,7 @@ bool CChannels::EndChange(void)
 					{
 						iOffset = iOldByteStride;
 						iSize = iAddedBitStride / 8;
-						mabData.InsertBatch(iOffset, iSize, (int32)miSize, iOldByteStride);
+						mabData.InsertBatch(iOffset, iSize, miSize, iOldByteStride);
 					}
 					else
 					{
@@ -623,8 +624,8 @@ bool CChannels::EndChange(void)
 			if (mpsChangingDesc->iSize != miSize)
 			{
 				miSize = mpsChangingDesc->iSize;
-				iSize = CalculateByteSize(miBitStride, miSize);
-				mabData.Resize(iSize);
+				uiByteSize = CalculateByteSize(miBitStride, miSize);
+				mabData.Resize(uiByteSize);
 			}
 		}
 		else  //Using user allocated memory.
@@ -783,7 +784,7 @@ size CChannels::CalculateByteStride(size iBitStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::CalculateByteSize(size iBitStride, size iSize)
+lsize CChannels::CalculateByteSize(size iBitStride, lsize iSize)
 {
 	uint64	ulliBitSize;
 	uint64	ulliByteSize;
@@ -791,12 +792,12 @@ size CChannels::CalculateByteSize(size iBitStride, size iSize)
 	//The size in bits overflows 32 bits at only 512MB of data so it is calculated in 64 bits.
 	ulliBitSize = (uint64)iBitStride * (uint64)iSize;
 	ulliByteSize = (ulliBitSize + 7) / 8;
-	if (ulliByteSize > MAX_SIZE)
+	if (ulliByteSize > MAX_LSIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Channels need [", LongToString(ulliByteSize), "] bytes, which is more than can be addressed.", NULL);
 		return 0;
 	}
-	return (size)ulliByteSize;
+	return (lsize)ulliByteSize;
 }
 
 
@@ -897,7 +898,7 @@ char* CChannels::GetData(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::AllocateData(void)
 {
-	size	iSize;
+	lsize	iSize;
 
 	iSize = CalculateByteSize(miBitStride, miSize);
 	FreeData();
@@ -945,10 +946,10 @@ CChannel* CChannels::GetChannelAtIndex(size iIndex)
 // byte swapped (or bit reversed if it is bit sized).
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::GetNative(size iPos, CChannel* pcChannel, void* pvDest)
+void CChannels::GetNative(lsize iPos, CChannel* pcChannel, void* pvDest)
 {
 	size	uiByteSize;
-	size	uiBitPos;
+	lsize	uiBitPos;
 	size	uiNumBits;
 
 	uiByteSize = pcChannel->miByteSize < sizeof(uint64) ? pcChannel->miByteSize : sizeof(uint64);
@@ -981,11 +982,11 @@ void CChannels::GetNative(size iPos, CChannel* pcChannel, void* pvDest)
 // The reverse of GetNative.  The other channels are left alone.
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::SetNative(size iPos, CChannel* pcChannel, void* pvSource)
+void CChannels::SetNative(lsize iPos, CChannel* pcChannel, void* pvSource)
 {
 	uint64	ulliSwapped;
 	size	uiByteSize;
-	size	uiBitPos;
+	lsize	uiBitPos;
 	size	uiNumBits;
 
 	uiByteSize = pcChannel->miByteSize < sizeof(uint64) ? pcChannel->miByteSize : sizeof(uint64);
@@ -1116,7 +1117,7 @@ bool CChannels::HasChannels(size iFirst, ...)
 	while (eIC != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		bResult &= HasChannel(eIC);
-		eIC = va_arg(vaMarker, size);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -1292,9 +1293,9 @@ void CChannels::CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannels::IsValid(size iPos)
+bool CChannels::IsValid(lsize iPos)
 {
-	if ((iPos >= miSize) || (iPos == MAX_SIZE))
+	if ((iPos >= miSize) || (iPos == MAX_LSIZE))
 	{
 		return false;
 	}
@@ -1306,7 +1307,7 @@ bool CChannels::IsValid(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::GetSize(void)
+lsize CChannels::GetSize(void)
 {
 	return miSize;
 }
@@ -1316,7 +1317,7 @@ size CChannels::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::GetByteSize(void)
+lsize CChannels::GetByteSize(void)
 {
 	if (!IsUserAllocated())
 	{
@@ -1567,16 +1568,17 @@ void CChannels::SetBitStrideFromByteStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Dump(size iLineLength)
+void CChannels::Dump(lsize iLineLength)
 {
 	size		i;
+	lsize		uiLine;
 	CChannel*	psChannel;
 	char*		szTypeName;
 	CChars		c;
-	size		iRemain;
-	size		uiData;
+	lsize		iRemain;
+	lsize		uiData;
 	size		uiOffsets;
-	size		uiNum;
+	lsize		uiNum;
 
 	uiOffsets = masChannelOffsets.NumElements();
 
@@ -1614,17 +1616,17 @@ void CChannels::Dump(size iLineLength)
 	{
 		uiData = mabData.NumElements();
 		uiNum = uiData / iLineLength;
-		for (i = 0; i <= uiNum; i++)
+		for (uiLine = 0; uiLine <= uiNum; uiLine++)
 		{
-			if ((uiData - (iLineLength * i)) < iLineLength)
+			if ((uiData - (iLineLength * uiLine)) < iLineLength)
 			{
-				iRemain = uiData - iLineLength * i;
+				iRemain = uiData - iLineLength * uiLine;
 			}
 			else
 			{
 				iRemain = iLineLength;
 			}
-			c.AppendHexLoHi(mabData.Get(i * iLineLength), iRemain);
+			c.AppendHexLoHi(mabData.Get(uiLine * iLineLength), (size)iRemain);
 			c.AppendNewLine();
 		}
 	}

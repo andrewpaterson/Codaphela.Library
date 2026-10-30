@@ -27,8 +27,8 @@ class CChannelsAccessorTypeConverter : public CChannelsAccessor  //Does type con
 {
 CONSTRUCTABLE(CChannelsAccessorTypeConverter)
 public:
-	void*	Get(size iPos) override;
-	void	Set(size iPos, void* pvData) override;
+	void*	Get(lsize iPos) override;
+	void	Set(lsize iPos, void* pvData) override;
 };
 
 

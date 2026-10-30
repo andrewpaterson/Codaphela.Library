@@ -180,7 +180,7 @@ static uint32 Asm816ProfileFind(CArrayTemplate<SAsm816ProfileFunction>* pasFunct
 // its profile).  Returns the steps run.
 //
 //////////////////////////////////////////////////////////////////////////
-size CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, size uiMaxSteps, CAsm65LineTable* pcLines)
+uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, uint64 uiMaxSteps, CAsm65LineTable* pcLines)
 {
 	CArrayTemplate<SAsm816ProfileFunction>	asFunctions;
 	CArrayTemplate<SAsm816ProfileCall>		asCalls;
@@ -201,7 +201,7 @@ size CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char
 	uint16									uiS;
 	uint8									uiOpcode;
 	uint8									uiPreviousOpcode;
-	size									uiSteps;
+	uint64									uiSteps;
 	size									ui;
 	CArrayChars								aszLabels;		//Per function in asFunctions.
 	uint32*									apuiBanks[ASM816_PROFILE_BANKS];	//Per address in a bank with lines: its line, or ASM816_PROFILE_NO_LINE.

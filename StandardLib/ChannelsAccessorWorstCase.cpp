@@ -26,13 +26,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorWorstCase::Get(size iPos)
+void* CChannelsAccessorWorstCase::Get(lsize iPos)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvSource;
-	size				iSourceBitPos;
-	size				iDestBitPos;
+	lsize				iSourceBitPos;
+	lsize				iDestBitPos;
 	char				c[16];
 	size				uiNumAccessors;
 	uint8*				pvBuffer;
@@ -59,13 +59,13 @@ void* CChannelsAccessorWorstCase::Get(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorWorstCase::Set(size iPos, void* pvSource)
+void CChannelsAccessorWorstCase::Set(lsize iPos, void* pvSource)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	size				iDestBitPos;
-	size				iSourceBitPos;
+	lsize				iDestBitPos;
+	lsize				iSourceBitPos;
 	char				c[16 + 1];
 	size				uiNumAccessors;
 

@@ -520,6 +520,7 @@ protected:
 	void					Warning(CCPPSyntax* pcNode, const char* szMessage);
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 	bool					ErrorAt(int iToken, const char* szMessage);
+	void					AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage);
 	void					BeginQuiet(void);
 	bool					EndQuiet(void);
 	CChars*					Line(const char* szText);
@@ -844,6 +845,7 @@ protected:
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
+	void					ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits);
 	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
 	void					LoopCounterWidth(CCPPSyntaxForStatement* pcFor);
 	void					LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters);

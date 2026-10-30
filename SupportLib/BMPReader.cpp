@@ -46,15 +46,15 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SBMPInfo
 {
-	int		iWidth;
-	int		iHeight;
+	int32	iWidth;
+	int32	iHeight;
 	bool	bTopDown;
 	int		iBitsPerPixel;
 	uint32	uiCompression;
 	uint32	auiMasks[4];			//Red, green, blue, alpha.
 	int		iNumColours;
 	uint8	aauiPalette[256][3];	//Red, green, blue.
-	size	uiPixelOffset;
+	lsize	uiPixelOffset;
 };
 
 
@@ -102,7 +102,7 @@ uint8 BMPExtractChannel(uint32 uiPixel, uint32 uiMask)
 // palette.  Any read past the end of the file fails.
 //
 //////////////////////////////////////////////////////////////////////////
-bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
+bool BMPReadInfo(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo)
 {
 	uint8	auiSignature[2];
 	uint32	uiPixelOffset;
@@ -112,8 +112,8 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 	uint16	uiBitsPerPixel;
 	int32	iWidth;
 	int32	iHeight;
-	size	uiPaletteOffset;
-	size	uiPaletteEntrySize;
+	lsize	uiPaletteOffset;
+	lsize	uiPaletteEntrySize;
 	uint32	uiColoursUsed;
 	int		i;
 	uint8	auiEntry[4];
@@ -410,12 +410,12 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 	CRLEBitmapDecoder	cDecoder;
 	bool				bResult;
 
-	puiIndices = (uint8*)malloc(psInfo->iWidth * psInfo->iHeight);
+	puiIndices = (uint8*)malloc((lsize)psInfo->iWidth * psInfo->iHeight);
 	if (puiIndices == NULL)
 	{
 		return false;
 	}
-	memset(puiIndices, 0, psInfo->iWidth * psInfo->iHeight);
+	memset(puiIndices, 0, (lsize)psInfo->iWidth * psInfo->iHeight);
 
 	cDecoder.Init(psInfo->iWidth, psInfo->iHeight, psInfo->uiCompression == BMP_RLE4);
 	bResult = pcFile->Seek(psInfo->uiPixelOffset) && cDecoder.Decode(pcFile, puiIndices);
@@ -442,9 +442,9 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 // Decodes the pixels into puiRGBA (4 bytes per pixel, top row first).
 //
 //////////////////////////////////////////////////////////////////////////
-bool BMPDecodePixels(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
+bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
 {
-	size	uiStride;
+	lsize	uiStride;
 	int		y;
 	int		iFileRow;
 
@@ -453,7 +453,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo, uint
 		return BMPDecodeRLEPixels(pcFile, psInfo, puiRGBA);
 	}
 
-	uiStride = ((psInfo->iWidth * psInfo->iBitsPerPixel + 31) / 32) * 4;
+	uiStride = (((lsize)psInfo->iWidth * psInfo->iBitsPerPixel + 31) / 32) * 4;
 	if (uiStride * psInfo->iHeight > uiFileSize - psInfo->uiPixelOffset)
 	{
 		return false;
@@ -477,7 +477,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo, uint
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 {
-	size			uiFileSize;
+	lsize			uiFileSize;
 	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
 	CFileBasic		cFile;
@@ -498,7 +498,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 	pvFile = (uint8*)cNaiveFile.Get();
-	uiFileSize = (size)cNaiveFile.Size();
+	uiFileSize = (lsize)cNaiveFile.Size();
 
 	puiRGBA = NULL;
 	bDecoded = false;
@@ -509,7 +509,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		bValid = BMPReadInfo(&cFile, uiFileSize, &sInfo);
 		if (bValid)
 		{
-			puiRGBA = (uint8*)malloc(sInfo.iWidth * sInfo.iHeight * 4);
+			puiRGBA = (uint8*)malloc((lsize)sInfo.iWidth * sInfo.iHeight * 4);
 			bDecoded = (puiRGBA != NULL) && BMPDecodePixels(&cFile, uiFileSize, &sInfo, puiRGBA);
 		}
 		cFile.Close();

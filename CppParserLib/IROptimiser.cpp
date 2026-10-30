@@ -42,6 +42,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
 	mbConstantDivisions = false;
+	mbNarrowCounters = false;
 	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;
@@ -151,6 +152,18 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether NarrowCounters runs (for a target whose 32 bit arithmetic takes
+// more instructions than 16 bit: the W65C816's).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetNarrowCounters(bool bNarrowCounters)
+{
+	mbNarrowCounters = bNarrowCounters;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs the passes until none changes the function.  Returns true if any did.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -180,6 +193,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= RotateLoops();
 		bChanged |= LessLoopTests();
 		bChanged |= ReplaceLoopCounters();
+		bChanged |= mbNarrowCounters && NarrowCounters();
 		bChanged |= ReduceMultiplies();
 		bChanged |= ReplaceExitValues();
 		bChanged |= DeleteDeadLoops();
@@ -3810,6 +3824,422 @@ bool CIROptimiser::StepsByOne(SIRReference sStepped, SIRReference sValue)
 // compare, the way it holds.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// LoopGuarded of a compare in the form it looks for (a > b as b < a).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowGuardedAs(size uiLoop, uint16 uiOpcode, SIRReference sA, SIRReference sB)
+{
+	if (IsIRSwappedComparison(uiOpcode))
+	{
+		return LoopGuarded(uiLoop, IRSwappedComparison(uiOpcode), sB, sA);
+	}
+	return LoopGuarded(uiLoop, uiOpcode, sA, sB);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the stepped counter sStepped is used only by the counter's phi,
+// the compare, and phis after the loop on the way out of pcBlock (the
+// block that tests it), which are added to papsExits.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::SteppedExitUses(size uiLoop, CIRBlock* pcBlock, SIRPhi* psCounter, SIRInstruction* psCompare, SIRReference sStepped, CArrayIRExitArguments* papsExits)
+{
+	CIRBlock*		pcUser;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	size			ui;
+	size			uiIndex;
+	size			uiArgument;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcUser = mpcFunction->GetBlock(ui);
+		for (uiIndex = 0; uiIndex < pcUser->masInstructions.NumElements(); uiIndex++)
+		{
+			psInstruction = pcUser->masInstructions.Get(uiIndex);
+			if ((psInstruction != psCompare) && (psInstruction->asArguments[0].Equals(sStepped) || psInstruction->asArguments[1].Equals(sStepped)))
+			{
+				return false;
+			}
+		}
+		if ((pcUser != pcBlock) && pcUser->msJump.sArgument.Equals(sStepped))
+		{
+			return false;
+		}
+		for (uiIndex = 0; uiIndex < pcUser->masPhis.NumElements(); uiIndex++)
+		{
+			psPhi = pcUser->masPhis.Get(uiIndex);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				psArgument = psPhi->asArguments.Get(uiArgument);
+				if (!psArgument->sValue.Equals(sStepped) || (psPhi == psCounter))
+				{
+					continue;
+				}
+				if (mcLoops.Contains(uiLoop, pcUser) || (psArgument->pcBlock != pcBlock))
+				{
+					return false;
+				}
+				papsExits->Add(psArgument);
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 32 bit loop counters that stay in 16 bits count in 16 bits
+// (NarrowCounter, for each block of each loop that leaves or goes round on
+// a compare).
+//
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the loop is only entered when sInitial uiOpcode sBound
+// (LoopGuarded), or the same of the narrower values they extend (the
+// guard compares those once FoldConstants narrows it; a constant is the
+// same constant narrow).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowLoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound)
+{
+	SIRInstruction*	psInitial;
+	SIRInstruction*	psBound;
+	SIRType			sNarrow;
+	SIRReference	sNarrowInitial;
+	SIRReference	sNarrowBound;
+
+	if (NarrowGuardedAs(uiLoop, uiOpcode, sInitial, sBound))
+	{
+		return true;
+	}
+	psInitial = sInitial.IsTemporary() ? mcDefinitions.Instruction(sInitial) : NULL;
+	psBound = sBound.IsTemporary() ? mcDefinitions.Instruction(sBound) : NULL;
+	if (psInitial && (psInitial->uiOpcode == IRO_SExt))
+	{
+		sNarrow = mpcFunction->TypeOf(psInitial->asArguments[0]);
+	}
+	else if (psBound && (psBound->uiOpcode == IRO_SExt))
+	{
+		sNarrow = mpcFunction->TypeOf(psBound->asArguments[0]);
+	}
+	else
+	{
+		return false;
+	}
+
+	if (psInitial && (psInitial->uiOpcode == IRO_SExt) && mpcFunction->TypeOf(psInitial->asArguments[0]).Equals(sNarrow))
+	{
+		sNarrowInitial = psInitial->asArguments[0];
+	}
+	else if (sInitial.IsConstant())
+	{
+		sNarrowInitial = mpcFunction->AddInteger(sNarrow, mpcFunction->GetSigned(sInitial));
+	}
+	else
+	{
+		return false;
+	}
+	if (psBound && (psBound->uiOpcode == IRO_SExt) && mpcFunction->TypeOf(psBound->asArguments[0]).Equals(sNarrow))
+	{
+		sNarrowBound = psBound->asArguments[0];
+	}
+	else if (sBound.IsConstant())
+	{
+		sNarrowBound = mpcFunction->AddInteger(sNarrow, mpcFunction->GetSigned(sBound));
+	}
+	else
+	{
+		return false;
+	}
+	return NarrowGuardedAs(uiLoop, uiOpcode, sNarrowInitial, sNarrowBound);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowCounters(void)
+{
+	size		uiLoop;
+	size		uiBlock;
+	bool		bChanged;
+
+	ComputeLoops();
+	bChanged = false;
+	for (uiLoop = 0; uiLoop < mcLoops.NumLoops(); uiLoop++)
+	{
+		for (uiBlock = 0; uiBlock < mcLoops.NumBlocks(uiLoop); uiBlock++)
+		{
+			if (NarrowCounter(uiLoop, mcLoops.GetBlock(uiLoop, uiBlock)))
+			{
+				//The loops and definitions are found again for the next.
+				ComputeLoops();
+				bChanged = true;
+				break;
+			}
+		}
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcBlock (in the loop) branches round the loop or out of it on a signed
+// compare of a counter c (a 32 bit phi of the loop's head from c0 outside
+// and c + 1 or c - 1 from inside, or that c + 1 or c - 1) with a bound N
+// the loop doesn't change, going round while c moves towards N (up while
+// < or <=, down while > or >=).  When c0 and N are known to fit 16 bits
+// (SignedRange), with one to spare past c0 in the way it goes (unless the
+// loop is only entered while c0 is towards N: NarrowLoopGuarded) and past
+// N for <= and >=, c can't leave 16 bits: it stops at N (one past it for
+// <= and >=), or one step past c0 when it starts past N.  So it counts in
+// a 16 bit phi; the compare is of 16 bits, and other uses get it sign
+// extended.  The 32 bit phi and step go (RemoveDeadCode).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
+{
+	CIRBlock*		pcHead;
+	CIRBlock*		pcOutside;
+	CIRBlock*		pcStepBlock;
+	SIRInstruction*	psCompare;
+	SIRInstruction*	psStep;
+	SIRPhi*			psCounter;
+	SIRPhi*			psNarrow;
+	SIRReference	sCompared;
+	SIRReference	sBound;
+	SIRReference	sCounter;
+	SIRReference	sStepped;
+	SIRReference	sInitial;
+	SIRReference	sNarrowCounter;
+	SIRReference	sNarrowStepped;
+	SIRReference	sNarrowInitial;
+	SIRReference	sNarrowBound;
+	SIRReference	sWideCounter;
+	SIRReference	sWideStepped;
+	SIRType			sWide;
+	SIRType			sNarrowType;
+	uint16			uiOpcode;
+	size			uiPhi;
+	size			uiOutside;
+	size			uiStep;
+	int64			lliStep;
+	int64			lliMin;
+	int64			lliMax;
+	int64			lliBoundMin;
+	int64			lliBoundMax;
+	bool			bRoundOnTrue;
+	bool			bUp;
+	bool			bBoundFirst;
+	bool			bInclusive;
+	bool			bStartSpare;
+	bool			bRewritten;
+	CArrayIRExitArguments	asExits;		//The phi arguments after the loop that take c +/- 1 leaving through the test.
+	SIRReference	sExitValue;
+	size			uiExit;
+	SIRReference	sCounterBound;
+	SIRInstruction*	psBound;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Branch) || !pcBlock->msJump.sArgument.IsTemporary() || (mcDefinitions.NumUses(pcBlock->msJump.sArgument) != 1))
+	{
+		return false;
+	}
+	psCompare = mcDefinitions.Instruction(pcBlock->msJump.sArgument);
+	if ((psCompare == NULL) || (mcDefinitions.Block(psCompare->sResult) != pcBlock) || !psCompare->sType.Is(IRTK_I32))
+	{
+		return false;
+	}
+	uiOpcode = psCompare->uiOpcode;
+	if ((uiOpcode != IRO_SLt) && (uiOpcode != IRO_SLe) && (uiOpcode != IRO_SGt) && (uiOpcode != IRO_SGe))
+	{
+		return false;
+	}
+	bRoundOnTrue = mcLoops.Contains(uiLoop, pcBlock->msJump.pcThen);
+	if (bRoundOnTrue == mcLoops.Contains(uiLoop, pcBlock->msJump.pcElse))
+	{
+		return false;
+	}
+
+	//Which operand is the counter: the bound is the one the loop doesn't change.
+	bBoundFirst = mcLoops.IsInvariant(uiLoop, psCompare->asArguments[0], &mcDefinitions);
+	sCompared = psCompare->asArguments[bBoundFirst ? 1 : 0];
+	sBound = psCompare->asArguments[bBoundFirst ? 0 : 1];
+	if (!sCompared.IsTemporary() || !mcLoops.IsInvariant(uiLoop, sBound, &mcDefinitions) || mcLoops.IsInvariant(uiLoop, sCompared, &mcDefinitions))
+	{
+		return false;
+	}
+
+	//c: a phi of the head with c0 from outside and c +/- 1 from inside (sStepped); the compare is of c or c +/- 1.
+	pcHead = mcLoops.GetBlock(uiLoop, 0);
+	psCounter = NULL;
+	psStep = NULL;
+	uiOutside = 0;
+	for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
+	{
+		psCounter = pcHead->masPhis.Get(uiPhi);
+		if (!psCounter->sType.Is(IRTK_I32) || (psCounter->asArguments.NumElements() != 2))
+		{
+			psCounter = NULL;
+			continue;
+		}
+		uiOutside = mcLoops.Contains(uiLoop, psCounter->asArguments.Get(0)->pcBlock) ? 1 : 0;
+		sStepped = psCounter->asArguments.Get(1 - uiOutside)->sValue;
+		psStep = sStepped.IsTemporary() ? mcDefinitions.Instruction(sStepped) : NULL;
+		if (!mcLoops.Contains(uiLoop, psCounter->asArguments.Get(1 - uiOutside)->pcBlock) || mcLoops.Contains(uiLoop, psCounter->asArguments.Get(uiOutside)->pcBlock) ||
+			(psStep == NULL) || ((psStep->uiOpcode != IRO_Add) && (psStep->uiOpcode != IRO_Sub)) || !psStep->asArguments[0].Equals(psCounter->sResult) ||
+			!psStep->asArguments[1].IsConstant() || (!sCompared.Equals(psCounter->sResult) && !sCompared.Equals(sStepped)))
+		{
+			psCounter = NULL;
+			continue;
+		}
+		break;
+	}
+	if (psCounter == NULL)
+	{
+		return false;
+	}
+	sCounter = psCounter->sResult;
+	lliStep = mpcFunction->GetSigned(psStep->asArguments[1]);
+	if (psStep->uiOpcode == IRO_Sub)
+	{
+		lliStep = -lliStep;
+	}
+	if ((lliStep != 1) && (lliStep != -1))
+	{
+		return false;
+	}
+
+	//Going round while it moves towards the bound: up while c < N or c <= N, down while c > N or c >= N.
+	if (!bRoundOnTrue)
+	{
+		uiOpcode = (uiOpcode == IRO_SLt) ? IRO_SGe : ((uiOpcode == IRO_SLe) ? IRO_SGt : ((uiOpcode == IRO_SGt) ? IRO_SLe : IRO_SLt));
+	}
+	if (bBoundFirst)
+	{
+		uiOpcode = (uiOpcode == IRO_SLt) ? IRO_SGt : ((uiOpcode == IRO_SLe) ? IRO_SGe : ((uiOpcode == IRO_SGt) ? IRO_SLt : IRO_SLe));
+	}
+	bUp = (uiOpcode == IRO_SLt) || (uiOpcode == IRO_SLe);
+	if (bUp != (lliStep == 1))
+	{
+		return false;
+	}
+
+	//A test of c +/- 1 that the phi only otherwise uses is a test of c, so the last step (past N) is never seen:
+	//c + 1 <= N is c < N and c + 1 < N + 1 is c < N (down, c - 1 >= N is c > N and c - 1 > N - 1 is c > N).  Leaving
+	//through the test, c +/- 1 is N +/- 1 when the loop is only entered with c0 <= N (or >=), so a phi after the loop
+	//that takes it on that way out takes N +/- 1 worked out before the loop instead.
+	bRewritten = false;
+	asExits.Init();
+	if (!sCompared.Equals(sCounter) && SteppedExitUses(uiLoop, pcBlock, psCounter, psCompare, sStepped, &asExits))
+	{
+		sCounterBound = IRNone();
+		if ((uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe))
+		{
+			sCounterBound = sBound;
+		}
+		else
+		{
+			psBound = sBound.IsTemporary() ? mcDefinitions.Instruction(sBound) : NULL;
+			if (psBound && psBound->asArguments[1].IsConstant() &&
+				(((psBound->uiOpcode == IRO_Add) && (mpcFunction->GetSigned(psBound->asArguments[1]) == lliStep)) ||
+				 ((psBound->uiOpcode == IRO_Sub) && (mpcFunction->GetSigned(psBound->asArguments[1]) == -lliStep))))
+			{
+				sCounterBound = psBound->asArguments[0];
+			}
+		}
+		if (!sCounterBound.IsNone() && ((asExits.NumElements() == 0) || NarrowLoopGuarded(uiLoop, bUp ? IRO_SLe : IRO_SGe, psCounter->asArguments.Get(uiOutside)->sValue, sCounterBound)))
+		{
+			sBound = sCounterBound;
+			sCompared = sCounter;
+			uiOpcode = bUp ? IRO_SLt : IRO_SGt;
+			bRewritten = true;
+		}
+	}
+	if (!bRewritten)
+	{
+		asExits.Kill();
+		asExits.Init();
+	}
+
+	//c0 and N fit 16 bits.  The values seen stay between them, with one to spare for a step past one: past N for <=
+	//and >= (< and > stop at N), and past c0 (when it starts past N) in the way it goes, when the stepped value is seen
+	//past the test (tested, or used after it) and the loop isn't only entered towards N.
+	sInitial = psCounter->asArguments.Get(uiOutside)->sValue;
+	if (!SignedRange(sInitial, &lliMin, &lliMax) || !SignedRange(sBound, &lliBoundMin, &lliBoundMax))
+	{
+		return false;
+	}
+	bInclusive = (uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
+	bStartSpare = (!sCompared.Equals(sCounter) || (mcDefinitions.NumUses(sStepped) > (bRewritten ? 2u + asExits.NumElements() : 1u))) && !NarrowLoopGuarded(uiLoop, uiOpcode, sInitial, sBound);
+	if ((lliMin < -32768) || (lliMax > 32767) || (lliBoundMin < -32768) || (lliBoundMax > 32767) ||
+		(bUp && ((bStartSpare && (lliMax > 32766)) || (bInclusive && (lliBoundMax > 32766)))) ||
+		(!bUp && ((bStartSpare && (lliMin < -32767)) || (bInclusive && (lliBoundMin < -32767)))))
+	{
+		asExits.Kill();
+		return false;
+	}
+
+	//The 16 bit counter: c0 and N narrowed outside, c' +/- 1 after the step.
+	sWide = IRType(IRTK_I32);
+	sNarrowType = IRType(IRTK_I16);
+	pcOutside = psCounter->asArguments.Get(uiOutside)->pcBlock;
+	sNarrowInitial = sInitial.IsConstant() ? mpcFunction->AddInteger(sNarrowType, mpcFunction->GetSigned(sInitial)) : mpcFunction->Add(pcOutside, IRO_Trunc, sNarrowType, sInitial, IRNone());
+	sNarrowBound = sBound.IsConstant() ? mpcFunction->AddInteger(sNarrowType, mpcFunction->GetSigned(sBound)) : mpcFunction->Add(pcOutside, IRO_Trunc, sNarrowType, sBound, IRNone());
+	if (asExits.NumElements() > 0)
+	{
+		//N +/- 1, what c +/- 1 is leaving through the test.
+		sExitValue = mpcFunction->Add(pcOutside, IRO_Add, sWide, sBound, mpcFunction->AddInteger(sWide, lliStep));
+		for (uiExit = 0; uiExit < asExits.NumElements(); uiExit++)
+		{
+			asExits.GetPtr(uiExit)->sValue = sExitValue;
+		}
+	}
+	asExits.Kill();
+	sNarrowCounter = mpcFunction->AddTemporary(sNarrowType);
+	psNarrow = pcHead->AddPhi(sNarrowType, sNarrowCounter);
+	pcStepBlock = mcDefinitions.Block(sStepped);
+	for (uiStep = 0; (uiStep < pcStepBlock->masInstructions.NumElements()) && !pcStepBlock->masInstructions.Get(uiStep)->sResult.Equals(sStepped); uiStep++)
+	{
+	}
+	sNarrowStepped = InsertInstruction(pcStepBlock, uiStep + 1, IRO_Add, sNarrowType, sNarrowCounter, mpcFunction->AddInteger(sNarrowType, lliStep));
+	sWideStepped = InsertInstruction(pcStepBlock, uiStep + 2, IRO_SExt, sWide, sNarrowStepped, IRNone());
+	pcHead->AddPhiArgument(psNarrow, pcOutside, sNarrowInitial);
+	pcHead->AddPhiArgument(psNarrow, psCounter->asArguments.Get(1 - uiOutside)->pcBlock, sNarrowStepped);
+	sWideCounter = InsertInstruction(pcHead, 0, IRO_SExt, sWide, sNarrowCounter, IRNone());
+
+	//The compare is of the 16 bit values.
+	FindDefinitions();
+	psCompare = mcDefinitions.Instruction(pcBlock->msJump.sArgument);
+	psCompare->sType = sNarrowType;
+	if (bRewritten)
+	{
+		//c < N (or c > N) going round, its inverse leaving.
+		psCompare->uiOpcode = bRoundOnTrue ? uiOpcode : IRInvertedComparison(uiOpcode);
+		psCompare->asArguments[0] = sNarrowCounter;
+		psCompare->asArguments[1] = sNarrowBound;
+	}
+	else
+	{
+		psCompare->asArguments[bBoundFirst ? 0 : 1] = sNarrowBound;
+		psCompare->asArguments[bBoundFirst ? 1 : 0] = sCompared.Equals(sCounter) ? sNarrowCounter : sNarrowStepped;
+	}
+
+	//Everything else that used c or c +/- 1 has them sign extended.
+	ClearReplacements();
+	Replace(sCounter, sWideCounter);
+	Replace(sStepped, sWideStepped);
+	ApplyReplacements();
+	FindDefinitions();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 #define IR_GUARD_DEPTH	16
 bool CIROptimiser::LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound)
 {
@@ -4959,13 +5389,38 @@ bool CIROptimiser::SinkLoads(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The counter sCounter if sValue is it (bExtended false) or it sign
+// extended (bExtended true), for ReduceStrength; IRNone otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended)
+{
+	SIRInstruction*	psExtend;
+
+	if (!bExtended)
+	{
+		return sValue.Equals(sCounter) ? sCounter : IRNone();
+	}
+	psExtend = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+	if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->sType.Is(IRTK_I32) || !psExtend->asArguments[0].Equals(sCounter))
+	{
+		return IRNone();
+	}
+	return sCounter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Strength reduction: in a loop with one block going round to its head and
 // a counter i (a phi of init, then i + c or i - c), an address p + i (when
 // the target's loads and stores don't add it for nothing),
 // p + (i << s) or p + i * k with p not changed by the loop becomes a
 // pointer of its own: p + init * k before the loop, stepped by c * k going
 // round.  The shift or multiply and the add each time round become one
-// add.
+// add.  A counter narrower than 32 bits is the target's int (msLibraryInt,
+// the W65C816's 16 bits) sign extended in the index: an int stepped past
+// its end is undefined, so its extension steps with it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ReduceStrength(void)
@@ -4992,10 +5447,12 @@ bool CIROptimiser::ReduceStrength(void)
 	SIRReference			sStart;
 	SIRReference			sPointer;
 	SIRReference			sStepped;
+	SIRReference			sIndex;
 	SIRType					sType;
 	int64					lliStep;
 	int64					lliScale;
 	bool					bChanged;
+	bool					bExtended;
 
 	ComputeLoops();
 	ClearReplacements();
@@ -5016,7 +5473,8 @@ bool CIROptimiser::ReduceStrength(void)
 			//The counter: i = phi [entering, init], [latch, i + c].
 			psPhi = pcHead->masPhis.Get(uiPhi);
 			sCounter = psPhi->sResult;
-			if (!psPhi->sType.Is(IRTK_I32) || (psPhi->asArguments.NumElements() != 2))
+			bExtended = !psPhi->sType.Is(IRTK_I32);
+			if ((bExtended && !psPhi->sType.Equals(msLibraryInt)) || (psPhi->asArguments.NumElements() != 2))
 			{
 				continue;
 			}
@@ -5043,9 +5501,9 @@ bool CIROptimiser::ReduceStrength(void)
 			{
 				lliStep = -lliStep;
 			}
-			sType = psPhi->sType;
+			sType = IRType(IRTK_I32);
 
-			//Addresses p + (i << s) or p + i * k in the loop.
+			//Addresses p + (i << s) or p + i * k in the loop (i sign extended when narrower).
 			for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 			{
 				pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -5061,7 +5519,8 @@ bool CIROptimiser::ReduceStrength(void)
 						continue;
 					}
 					psScaled = mcDefinitions.Instruction(psAddress->asArguments[1]);
-					if (psAddress->asArguments[1].Equals(sCounter))
+					sIndex = ExtendedCounter(psAddress->asArguments[1], sCounter, bExtended);
+					if (sIndex.Equals(sCounter))
 					{
 						//p + i, unless loads and stores add it for nothing.
 						if (mbIndexedAddresses)
@@ -5070,7 +5529,7 @@ bool CIROptimiser::ReduceStrength(void)
 						}
 						lliScale = 1;
 					}
-					else if ((psScaled == NULL) || !psScaled->asArguments[0].Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
+					else if ((psScaled == NULL) || (psScaled->uiOpcode == IRO_SExt) || !ExtendedCounter(psScaled->asArguments[0], sCounter, bExtended).Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
 					{
 						continue;
 					}
@@ -5102,7 +5561,8 @@ bool CIROptimiser::ReduceStrength(void)
 					}
 					else
 					{
-						sStart = (lliScale == 1) ? sInit : mpcFunction->Add(pcEntering, IRO_Mul, sType, sInit, mpcFunction->AddInteger(sType, lliScale));
+						sStart = bExtended ? mpcFunction->Add(pcEntering, IRO_SExt, sType, sInit) : sInit;
+						sStart = (lliScale == 1) ? sStart : mpcFunction->Add(pcEntering, IRO_Mul, sType, sStart, mpcFunction->AddInteger(sType, lliScale));
 					}
 					if (!sStart.IsConstant() || (mpcFunction->GetSigned(sStart) != 0))
 					{
@@ -6001,18 +6461,25 @@ bool CIROptimiser::BoundDivisions(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The signed range of sValue as an integer of its type: a constant's; a
-// sext's or zext's of the narrower value's; else from 0 to UpperBound when
-// that is below the type's sign bit.  False if nothing narrower than the
+// sext's of the narrower value's; x + c's and x - c's moved by c (when it
+// can't wrap); a phi's of all its values (up to iDepth definitions back);
+// else from 0 to UpperBound when that is below the type's sign bit (a
+// zext, an and).  False if nothing narrower than the
 // type is known.  mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax)
+bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth)
 {
 	SIRInstruction*	psInstruction;
 	SIRType			sType;
 	SIRType			sNarrow;
 	int				iBits;
 	uint64			ulliBound;
+	int64			lliConstant;
+	int64			lliArgumentMin;
+	int64			lliArgumentMax;
+	SIRPhi*			psPhi;
+	size			ui;
 
 	sType = mpcFunction->TypeOf(sValue);
 	if (!sType.IsInteger() || (sType.IntegerBits() > 32))
@@ -6027,12 +6494,42 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 		return true;
 	}
 	psInstruction = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+	if (psInstruction && ((psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) && psInstruction->asArguments[1].IsConstant())
+	{
+		//x + c, x - c: x's range moved, when it can't wrap.
+		lliConstant = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+		if ((lliConstant > -65536) && (lliConstant < 65536) && (iDepth > 0) && SignedRange(psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
+		{
+			if (psInstruction->uiOpcode == IRO_Sub)
+			{
+				lliConstant = -lliConstant;
+			}
+			*plliMin += lliConstant;
+			*plliMax += lliConstant;
+			return (*plliMin >= -((int64)1 << (iBits - 1))) && (*plliMax < ((int64)1 << (iBits - 1)));
+		}
+	}
+	psPhi = sValue.IsTemporary() ? mcDefinitions.Phi(sValue) : NULL;
+	if (psPhi && (iDepth > 0))
+	{
+		//A phi: the range of all its values.
+		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+		{
+			if (!SignedRange(psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1))
+			{
+				return false;
+			}
+			*plliMin = ((ui == 0) || (lliArgumentMin < *plliMin)) ? lliArgumentMin : *plliMin;
+			*plliMax = ((ui == 0) || (lliArgumentMax > *plliMax)) ? lliArgumentMax : *plliMax;
+		}
+		return psPhi->asArguments.NumElements() > 0;
+	}
 	if (psInstruction && (psInstruction->uiOpcode == IRO_SExt))
 	{
 		sNarrow = mpcFunction->TypeOf(psInstruction->asArguments[0]);
 		if (sNarrow.IsInteger() && (sNarrow.IntegerBits() < iBits))
 		{
-			if (!SignedRange(psInstruction->asArguments[0], plliMin, plliMax))
+			if ((iDepth == 0) || !SignedRange(psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
 			{
 				*plliMin = -((int64)1 << (sNarrow.IntegerBits() - 1));
 				*plliMax = ((int64)1 << (sNarrow.IntegerBits() - 1)) - 1;

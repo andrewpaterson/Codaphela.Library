@@ -54,15 +54,15 @@ struct STGAInfo
 	int		iColourMapFirst;
 	int		iColourMapLength;
 	int		iColourMapEntryBits;
-	int		iWidth;
-	int		iHeight;
+	int32	iWidth;
+	int32	iHeight;
 	int		iPixelBits;
 	int		iPixelBytes;
 	int		iAlphaBits;
 	bool	bTopToBottom;
 	bool	bRightToLeft;
-	size	uiColourMapOffset;
-	size	uiPixelOffset;
+	lsize	uiColourMapOffset;
+	lsize	uiPixelOffset;
 	uint8*	puiColourMap;	//Red, green, blue, alpha per entry.
 };
 
@@ -162,7 +162,7 @@ bool TGAReadHeader(CFileBasic* pcFile, STGAInfo* psInfo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool TGAReadInfo(CFileBasic* pcFile, size uiFileSize, STGAInfo* psInfo)
+bool TGAReadInfo(CFileBasic* pcFile, lsize uiFileSize, STGAInfo* psInfo)
 {
 	int		iEntryBytes;
 	int		i;
@@ -223,7 +223,7 @@ bool TGAReadInfo(CFileBasic* pcFile, size uiFileSize, STGAInfo* psInfo)
 			return false;
 		}
 		iEntryBytes = (psInfo->iColourMapEntryBits + 7) / 8;
-		psInfo->uiPixelOffset += (size)psInfo->iColourMapLength * iEntryBytes;
+		psInfo->uiPixelOffset += (lsize)psInfo->iColourMapLength * iEntryBytes;
 		if (psInfo->uiPixelOffset > uiFileSize)
 		{
 			return false;
@@ -235,7 +235,7 @@ bool TGAReadInfo(CFileBasic* pcFile, size uiFileSize, STGAInfo* psInfo)
 			{
 				return false;
 			}
-			psInfo->puiColourMap = (uint8*)malloc(psInfo->iColourMapLength * 4);
+			psInfo->puiColourMap = (uint8*)malloc((lsize)psInfo->iColourMapLength * 4);
 			if (psInfo->puiColourMap == NULL)
 			{
 				return false;
@@ -406,7 +406,7 @@ bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 {
-	size			uiFileSize;
+	lsize			uiFileSize;
 	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
 	CFileBasic		cFile;
@@ -427,7 +427,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 	pvFile = (uint8*)cNaiveFile.Get();
-	uiFileSize = (size)cNaiveFile.Size();
+	uiFileSize = (lsize)cNaiveFile.Size();
 
 	sInfo.puiColourMap = NULL;
 	puiRGBA = NULL;
@@ -439,7 +439,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 		bValid = TGAReadInfo(&cFile, uiFileSize, &sInfo);
 		if (bValid)
 		{
-			puiRGBA = (uint8*)malloc(sInfo.iWidth * sInfo.iHeight * 4);
+			puiRGBA = (uint8*)malloc((lsize)sInfo.iWidth * sInfo.iHeight * 4);
 			bDecoded = (puiRGBA != NULL) && TGADecodePixels(&cFile, &sInfo, puiRGBA);
 		}
 		cFile.Close();

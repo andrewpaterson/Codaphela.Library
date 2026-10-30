@@ -40,8 +40,8 @@ struct SWAVInfo
 	uint16	uiBitsPerSample;	//The container size.
 	uint32	uiChannelMask;
 	bool	bHasMask;
-	size	uiDataPos;
-	size	uiDataSize;
+	lsize	uiDataPos;
+	lsize	uiDataSize;
 };
 
 
@@ -70,7 +70,7 @@ uint32 WAVGetUInt32(uint8* pui)
 // Reads the fmt chunk.  Returns false if the format can't be read.
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVReadFormat(CFileBasic* pcFile, size uiChunkSize, SWAVInfo* psInfo)
+bool WAVReadFormat(CFileBasic* pcFile, lsize uiChunkSize, SWAVInfo* psInfo)
 {
 	uint32	uiBytesPerSecond;
 	uint16	uiCBSize;
@@ -137,11 +137,11 @@ bool WAVReadFormat(CFileBasic* pcFile, size uiChunkSize, SWAVInfo* psInfo)
 // Finds the fmt and data chunks.  Chunks are padded to an even size.
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVReadInfo(CFileBasic* pcFile, size uiFileSize, SWAVInfo* psInfo)
+bool WAVReadInfo(CFileBasic* pcFile, lsize uiFileSize, SWAVInfo* psInfo)
 {
 	uint8	auiID[4];
 	uint32	uiRIFFSize;
-	size	uiPos;
+	lsize	uiPos;
 	uint32	uiChunkSize;
 	bool	bFormat;
 	bool	bData;
@@ -299,7 +299,7 @@ void WAVCopySample(uint8* puiSource, uint8* puiDest, uint16 uiBitsPerSample)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize)
+Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 {
 	SWAVInfo		sInfo;
 	EChannel		aeChannels[WAV_MAX_CHANNELS];
@@ -309,7 +309,7 @@ Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize)
 	size			uiFrame;
 	size			uiChannel;
 	size			uiBytesPerSample;
-	size			uiStride;
+	lsize			uiStride;
 	size			auiOffsets[WAV_MAX_CHANNELS];
 	uint8*			puiSource;
 	uint8*			puiDest;
@@ -329,9 +329,15 @@ Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize)
 		return NULL;
 	}
 
+	//A sound's frames are counted in a size (16 bits on the W65C816).
+	if (sInfo.uiDataSize / sInfo.uiBlockAlign > MAX_SIZE)
+	{
+		return NULL;
+	}
+
 	WAVGetChannels(&sInfo, aeChannels);
 	eType = WAVGetSampleType(&sInfo);
-	uiNumFrames = sInfo.uiDataSize / sInfo.uiBlockAlign;
+	uiNumFrames = (size)(sInfo.uiDataSize / sInfo.uiBlockAlign);
 
 	pcSound = OMalloc<CSound>();
 	pcSound->BeginChange();
@@ -385,7 +391,7 @@ Ptr<CSound> LoadWAV(char* szFilename)
 		return NULL;
 	}
 
-	pcSound = LoadWAV(cNaiveFile.Get(), (size)cNaiveFile.Size());
+	pcSound = LoadWAV(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
 	cNaiveFile.Kill();
 
 	if (pcSound.IsNull())

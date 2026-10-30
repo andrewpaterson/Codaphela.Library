@@ -472,7 +472,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 {
 	int					iCornerSmall;
 	int					iCornerLarger;
-	int					iIndex;
+	size				uiIndex;
 	CMeshEdge*			pcEdge;
 	int					iEdgeIndex;
 	CMeshCorner*		pcCornerSmall;
@@ -489,8 +489,8 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 
 	iAddedEdges = 0;
 	pcCornerEdgesMap = mcCornerEdgesMap.Get(iCornerSmall);
-	iIndex = (int)pcCornerEdgesMap->maiLargerCornerIndex.Find(iCornerLarger);
-	if (iIndex == -1)
+	uiIndex = pcCornerEdgesMap->maiLargerCornerIndex.Find(iCornerLarger);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		pcCornerEdgesMap->maiLargerCornerIndex.Add(iCornerLarger);
 		iEdgeIndex = (int)mcEdges.NumElements();
@@ -500,7 +500,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	}
 	else
 	{
-		iEdgeIndex = pcCornerEdgesMap->maiEdgeIndex.GetValue(iIndex);
+		iEdgeIndex = pcCornerEdgesMap->maiEdgeIndex.GetValue(uiIndex);
 		pcEdge = GetEdge(iEdgeIndex);
 	}
 

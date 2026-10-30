@@ -92,7 +92,6 @@ size CIRInliner::NumInstructions(CIRFunction* pcFunction)
 bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock, size uiCall, size uiHotLimit)
 {
 	size			ui;
-	size			uiInstruction;
 	size			uiLimit;
 	CIRBlock*		pcBlock;
 	bool			bReturns;

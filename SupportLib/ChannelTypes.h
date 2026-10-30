@@ -55,7 +55,7 @@ enum EChannelType  //1 byte for type
 typedef size EChannel;
 
 
-#define CHANNEL(purpose, type)		((EChannel)((purpose * NUM_CHANNEL_TYPES) + type + 1))
+#define CHANNEL(purpose, type)		((EChannel)(((size)(purpose) * NUM_CHANNEL_TYPES) + (type) + 1))
 #define CHANNEL_PURPOSE(channel)	(size)(channel / NUM_CHANNEL_TYPES)
 #define CHANNEL_TYPE(channel)		(EChannelType)((channel % NUM_CHANNEL_TYPES) - 1)
 

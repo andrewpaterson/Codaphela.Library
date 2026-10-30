@@ -338,6 +338,27 @@ bool CFileWriter::WriteIntArray(int32* pai, size iLength)
 }
 
 
+#ifdef __W65C816__
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteIntArray(int16* pai, size iLength)
+{
+	size	i;
+
+	for (i = 0; i < iLength; i++)
+	{
+		if (!WriteInt32(pai[i]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+#endif // __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

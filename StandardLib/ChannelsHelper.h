@@ -43,7 +43,7 @@ struct SChannelsChangingDesc
 {
 	CArrayChannel	asAddedChannels;
 	CArrayChannel	asRemovedChannels;
-	size			iSize;
+	lsize			iSize;
 	void*			pvUserData;
 
 	void Init();

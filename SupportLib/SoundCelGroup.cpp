@@ -152,7 +152,7 @@ size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, size uiLoopFrame)
 	}
 
 	bResult = true;
-	pfSamples = (float64*)malloc(sizeof(float64) * (uiNumFrames + 1));
+	pfSamples = (float64*)malloc((lsize)sizeof(float64) * (uiNumFrames + 1));
 	for (uiChannel = 0; uiChannel < pcSound->NumChannels(); uiChannel++)
 	{
 		bResult &= pcSound->GetSamples(uiChannel, 0, uiNumFrames, pfSamples);

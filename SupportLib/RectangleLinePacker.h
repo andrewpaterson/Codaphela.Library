@@ -31,14 +31,14 @@ class CRectangleLinePacker : public CRectanglePacker
 CONSTRUCTABLE(CRectangleLinePacker);
 protected:
 	CArrayPackedRectangle	macRectangles;
-	int						miOutsideEdgeWidth;
-	int						miInnerEdgeWidth;
+	int32					miOutsideEdgeWidth;
+	int32					miInnerEdgeWidth;
 	bool					mbLeftToRight;
 	SInt32Vec2					miSize;
 	bool					mbPow2;
 
 public:
-	void					Init(bool bLeftToRight = true, bool bPow2 = false, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
+	void					Init(bool bLeftToRight = true, bool bPow2 = false, int32 iOutsideEdgeWidth = 0, int32 iInnerEdgeWidth = 0);
 	void					Kill(void);
 
 	void					Pack(void);
@@ -50,14 +50,14 @@ public:
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt32Vec2					GetPackedImageSize(void);
 
-	int						GetWidestRect(void);
-	int						GetHighestRect(void);
-	int						PackLeftToRight(void);
-	int						PackTopToBottom(void);
+	int32					GetWidestRect(void);
+	int32					GetHighestRect(void);
+	int32					PackLeftToRight(void);
+	int32					PackTopToBottom(void);
 
 	CArrayPackedRectangle*	GetRectangles(void);
-	int						GetOutsideEdgeWidth(void);
-	int						GetInnerEdgeWidth(void);
+	int32					GetOutsideEdgeWidth(void);
+	int32					GetInnerEdgeWidth(void);
 	bool					IsLeftToRight(void);
 	SInt32Vec2					GetSize(void);
 	bool					IsPow2(void);

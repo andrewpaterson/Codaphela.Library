@@ -116,9 +116,9 @@ public:
 
 	void					SetData(void* pvData);
 	void*					GetData(void);
-	size					GetByteSize(void);
+	lsize					GetByteSize(void);
 	CChannels*				GetChannels(void);
-	size					GetPixelSize(void);
+	lsize					GetPixelSize(void);
 	size					GetPixelByteStride(void);
 	size					GetPixelBitStride(void);
 	SSizeVec2				GetDimension(void);

@@ -48,8 +48,8 @@ void CModSong::Init(size uiNumChannels, size uiNumSamples, size uiNumPatterns)
 	memset(mauiOrders, 0, sizeof(mauiOrders));
 	muiNumPatterns = uiNumPatterns;
 	uiNumNotes = uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels;
-	mpsNotes = (SModNote*)malloc(sizeof(SModNote) * (uiNumNotes + 1));
-	memset(mpsNotes, 0, sizeof(SModNote) * (uiNumNotes + 1));
+	mpsNotes = (SModNote*)malloc((lsize)sizeof(SModNote) * (uiNumNotes + 1));
+	memset(mpsNotes, 0, (lsize)sizeof(SModNote) * (uiNumNotes + 1));
 	mpSamples = NULL;
 
 	PostInit();

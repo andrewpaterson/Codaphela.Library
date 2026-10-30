@@ -10,6 +10,6 @@ void CImageRowBlitterContiguous::Copy(CImageBlitterContext* pcContext, void* pvS
 {
 	pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride);
 	pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride);
-	memcpy(pvDest, pvSource, (iSourceXRight - iSourceXLeft) * pcContext->miSourcePixelStride);
+	memcpy(pvDest, pvSource, (lsize)(iSourceXRight - iSourceXLeft) * pcContext->miSourcePixelStride);
 }
 

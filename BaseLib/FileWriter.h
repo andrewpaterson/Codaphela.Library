@@ -70,6 +70,9 @@ public:
 						bool	WriteBits(void* pvData, lsize iByteLength);
 
 						bool	WriteIntArray(int32* pai, size iLength);
+#ifdef __W65C816__
+						bool	WriteIntArray(int16* pai, size iLength);  //Each int written as 32 bits, as WriteInt32(int16).
+#endif // __W65C816__
 
 	//Least significant byte first, whatever the platform's byte order.
 						bool	WriteLittleEndianInt16(int16 i);

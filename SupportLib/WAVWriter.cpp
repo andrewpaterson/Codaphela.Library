@@ -98,7 +98,7 @@ size WAVGetChannelOrder(Ptr<CSound> pcSound, size* puiOrder, uint32* puiMask)
 	uint32		uiBit;
 
 	uiNumChannels = pcSound->NumChannels();
-	puiKeys = (size*)malloc(sizeof(size) * (uiNumChannels + 1));
+	puiKeys = (size*)malloc((lsize)sizeof(size) * (uiNumChannels + 1));
 	uiNumWritten = 0;
 	*puiMask = 0;
 	for (uiIndex = 0; uiIndex < uiNumChannels; uiIndex++)
@@ -194,7 +194,7 @@ void WAVPutSample(uint8* puiDest, EWAVSampleFormat eFormat, float64 fSample)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels, uint32 uiMask, EWAVSampleFormat eFormat, uint16 uiBitsPerSample, size uiDataSize)
+bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels, uint32 uiMask, EWAVSampleFormat eFormat, uint16 uiBitsPerSample, lsize uiDataSize)
 {
 	bool		bFloat;
 	bool		bExtensible;
@@ -270,7 +270,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 	size		uiBlockAlign;
 	size		uiNumFrames;
 	uint64		ulliDataSize;
-	size		uiDataSize;
+	lsize		uiDataSize;
 	uint8*		puiData;
 	float64*	pfBlock;
 	size		uiFirst;
@@ -293,7 +293,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 		return false;
 	}
 
-	puiOrder = (size*)malloc(sizeof(size) * (pcSound->NumChannels() + 1));
+	puiOrder = (size*)malloc((lsize)sizeof(size) * (pcSound->NumChannels() + 1));
 	uiNumChannels = WAVGetChannelOrder(pcSound, puiOrder, &uiMask);
 	if ((uiNumChannels == 0) || (uiNumChannels > 0xFFFF))
 	{
@@ -335,7 +335,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 		gcLogger.Error2(__METHOD__, " Sound is too big for a WAVE file.  Cannot write [", szPathName, "].", NULL);
 		return false;
 	}
-	uiDataSize = (size)ulliDataSize;
+	uiDataSize = (lsize)ulliDataSize;
 
 	puiData = (uint8*)malloc(uiDataSize + 1);
 	pfBlock = (float64*)malloc(sizeof(float64) * WAV_WRITE_BLOCK_FRAMES);
@@ -349,7 +349,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 		for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 		{
 			pcSound->GetSamples(puiOrder[uiChannel], uiFirst, uiCount, pfBlock);
-			puiDest = &puiData[uiFirst * uiBlockAlign + uiChannel * uiBytesPerSample];
+			puiDest = &puiData[(lsize)uiFirst * uiBlockAlign + uiChannel * uiBytesPerSample];
 			for (uiFrame = 0; uiFrame < uiCount; uiFrame++)
 			{
 				WAVPutSample(puiDest, eFormat, pfBlock[uiFrame]);

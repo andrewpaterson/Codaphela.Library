@@ -194,7 +194,7 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageResampler::GetPowerOf2Size(EPow2Style eStyle, int iSourceWidth, int iSourceHeight, int* piDestWidth, int* piDestHeight)
+void CImageResampler::GetPowerOf2Size(EPow2Style eStyle, int32 iSourceWidth, int32 iSourceHeight, int32* piDestWidth, int32* piDestHeight)
 {
 	if (eStyle == RS_Up)
 	{

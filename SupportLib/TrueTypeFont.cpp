@@ -129,7 +129,7 @@ bool CTrueTypeFont::Load(char* szFilename)
 		return false;
 	}
 
-	bResult = Load(cNaiveFile.Get(), (size)cNaiveFile.Size());
+	bResult = Load(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
 	cNaiveFile.Kill();
 	if (!bResult)
 	{
@@ -144,7 +144,7 @@ bool CTrueTypeFont::Load(char* szFilename)
 // The data is copied.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::Load(void* pvData, size uiSize)
+bool CTrueTypeFont::Load(void* pvData, lsize uiSize)
 {
 	Kill();
 	Init();
@@ -175,7 +175,7 @@ bool CTrueTypeFont::Load(void* pvData, size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::IsInFile(size uiOffset, size uiLength)
+bool CTrueTypeFont::IsInFile(lsize uiOffset, lsize uiLength)
 {
 	return (uiOffset <= muiSize) && (uiLength <= muiSize - uiOffset);
 }
@@ -185,7 +185,7 @@ bool CTrueTypeFont::IsInFile(size uiOffset, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadUint8(size uiOffset, uint8* pui)
+bool CTrueTypeFont::ReadUint8(lsize uiOffset, uint8* pui)
 {
 	if (!IsInFile(uiOffset, 1))
 	{
@@ -201,7 +201,7 @@ bool CTrueTypeFont::ReadUint8(size uiOffset, uint8* pui)
 // TrueType fonts are big endian.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadUint16(size uiOffset, uint16* pui)
+bool CTrueTypeFont::ReadUint16(lsize uiOffset, uint16* pui)
 {
 	if (!IsInFile(uiOffset, 2))
 	{
@@ -216,7 +216,7 @@ bool CTrueTypeFont::ReadUint16(size uiOffset, uint16* pui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadInt16(size uiOffset, int16* pi)
+bool CTrueTypeFont::ReadInt16(lsize uiOffset, int16* pi)
 {
 	uint16	ui;
 
@@ -233,7 +233,7 @@ bool CTrueTypeFont::ReadInt16(size uiOffset, int16* pi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadUint32(size uiOffset, uint32* pui)
+bool CTrueTypeFont::ReadUint32(lsize uiOffset, uint32* pui)
 {
 	if (!IsInFile(uiOffset, 4))
 	{
@@ -250,11 +250,11 @@ bool CTrueTypeFont::ReadUint32(size uiOffset, uint32* pui)
 // file.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::FindTable(const char* szTag, size* puiOffset, size* puiLength)
+bool CTrueTypeFont::FindTable(const char* szTag, lsize* puiOffset, lsize* puiLength)
 {
 	uint16	uiNumTables;
 	uint16	i;
-	size	uiRecord;
+	lsize	uiRecord;
 	uint32	uiOffset;
 	uint32	uiLength;
 
@@ -265,7 +265,7 @@ bool CTrueTypeFont::FindTable(const char* szTag, size* puiOffset, size* puiLengt
 
 	for (i = 0; i < uiNumTables; i++)
 	{
-		uiRecord = 12 + (size)i * 16;
+		uiRecord = 12 + (lsize)i * 16;
 		if (!IsInFile(uiRecord, 16))
 		{
 			return false;
@@ -305,13 +305,13 @@ bool CTrueTypeFont::Parse(void)
 	int16	iDescender;
 	int16	iLineGap;
 	uint16	uiNumHMetrics;
-	size	uiHeadLength;
-	size	uiMaxpOffset;
-	size	uiMaxpLength;
-	size	uiHheaOffset;
-	size	uiHheaLength;
-	size	uiCmapOffset;
-	size	uiCmapLength;
+	lsize	uiHeadLength;
+	lsize	uiMaxpOffset;
+	lsize	uiMaxpLength;
+	lsize	uiHheaOffset;
+	lsize	uiHheaLength;
+	lsize	uiCmapOffset;
+	lsize	uiCmapLength;
 
 	//0x00010000 for TrueType outlines, 'true' for old Apple fonts.  'OTTO' (CFF outlines) isn't supported.
 	if (!ReadUint32(0, &uiVersion) || ((uiVersion != 0x00010000) && (uiVersion != 0x74727565)))
@@ -364,12 +364,12 @@ bool CTrueTypeFont::Parse(void)
 	miNumHMetrics = uiNumHMetrics;
 
 	//Every glyph needs a loca entry, and one more to give the length of the last glyph.
-	if (muiLocaLength < ((size)miNumGlyphs + 1) * (mbLongLoca ? 4 : 2))
+	if (muiLocaLength < ((lsize)miNumGlyphs + 1) * (mbLongLoca ? 4 : 2))
 	{
 		return false;
 	}
 	//Every glyph needs a left side bearing; the first ones have an advance width too.
-	if (muiHmtxLength < (size)miNumHMetrics * 4 + ((size)miNumGlyphs - miNumHMetrics) * 2)
+	if (muiHmtxLength < (lsize)miNumHMetrics * 4 + ((lsize)miNumGlyphs - miNumHMetrics) * 2)
 	{
 		return false;
 	}
@@ -393,11 +393,11 @@ bool CTrueTypeFont::Parse(void)
 // preferred to a Basic Multilingual Plane format 4 map.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ChooseCmap(size uiCmapOffset, size uiCmapLength)
+bool CTrueTypeFont::ChooseCmap(lsize uiCmapOffset, lsize uiCmapLength)
 {
 	uint16	uiNumTables;
 	uint16	i;
-	size	uiRecord;
+	lsize	uiRecord;
 	uint16	uiPlatform;
 	uint16	uiEncoding;
 	uint32	uiSubtableOffset;
@@ -406,8 +406,8 @@ bool CTrueTypeFont::ChooseCmap(size uiCmapOffset, size uiCmapLength)
 	uint32	uiLength32;
 	bool	bUnicode;
 	bool	bFullUnicode;
-	size	uiSubtable;
-	size	uiSubtableLength;
+	lsize	uiSubtable;
+	lsize	uiSubtableLength;
 
 	if (!ReadUint16(uiCmapOffset + 2, &uiNumTables))
 	{
@@ -416,7 +416,7 @@ bool CTrueTypeFont::ChooseCmap(size uiCmapOffset, size uiCmapLength)
 
 	for (i = 0; i < uiNumTables; i++)
 	{
-		uiRecord = uiCmapOffset + 4 + (size)i * 8;
+		uiRecord = uiCmapOffset + 4 + (lsize)i * 8;
 		if (!ReadUint16(uiRecord, &uiPlatform) || !ReadUint16(uiRecord + 2, &uiEncoding) || !ReadUint32(uiRecord + 4, &uiSubtableOffset))
 		{
 			return false;
@@ -528,8 +528,8 @@ int CTrueTypeFont::GetLineGap(void)
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeFont::ParsePost(void)
 {
-	size	uiOffset;
-	size	uiLength;
+	lsize	uiOffset;
+	lsize	uiLength;
 	int16	iPosition;
 	int16	iThickness;
 
@@ -554,10 +554,10 @@ void CTrueTypeFont::ParsePost(void)
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeFont::ParseOS2(void)
 {
-	size	uiOffset;
-	size	uiLength;
+	lsize	uiOffset;
+	lsize	uiLength;
 	int16	aiValues[10];
-	size	i;
+	lsize	i;
 
 	mbHasOS2 = false;
 	if (FindTable("OS/2", &uiOffset, &uiLength) && (uiLength >= 30))
@@ -619,7 +619,7 @@ bool CTrueTypeFont::GetName(int iNameID, CChars* psz)
 	uint16	uiCount;
 	uint16	uiStringOffset;
 	uint16	i;
-	size	uiRecord;
+	lsize	uiRecord;
 	uint16	uiPlatform;
 	uint16	uiEncoding;
 	uint16	uiLanguage;
@@ -628,10 +628,10 @@ bool CTrueTypeFont::GetName(int iNameID, CChars* psz)
 	uint16	uiOffset;
 	int		iScore;
 	int		iBestScore;
-	size	uiBestRecord;
+	lsize	uiBestRecord;
 	bool	bUTF16;
-	size	uiString;
-	size	j;
+	lsize	uiString;
+	lsize	j;
 	uint16	uiChar;
 
 	if ((muiNameLength < 6) || !ReadUint16(muiNameOffset + 2, &uiCount) || !ReadUint16(muiNameOffset + 4, &uiStringOffset))
@@ -643,7 +643,7 @@ bool CTrueTypeFont::GetName(int iNameID, CChars* psz)
 	uiBestRecord = 0;
 	for (i = 0; i < uiCount; i++)
 	{
-		uiRecord = muiNameOffset + 6 + (size)i * 12;
+		uiRecord = muiNameOffset + 6 + (lsize)i * 12;
 		if (!ReadUint16(uiRecord, &uiPlatform) || !ReadUint16(uiRecord + 2, &uiEncoding) || !ReadUint16(uiRecord + 4, &uiLanguage) || !ReadUint16(uiRecord + 6, &uiNameID))
 		{
 			return false;
@@ -765,20 +765,20 @@ int CTrueTypeFont::GetGlyphIndex(uint32 uiCodePoint)
 int CTrueTypeFont::GetGlyphIndexFormat4(uint32 uiCodePoint)
 {
 	uint16	uiSegCountX2;
-	size	uiSegCount;
-	size	uiEndCodes;
-	size	uiStartCodes;
-	size	uiDeltas;
-	size	uiRangeOffsets;
-	size	uiLow;
-	size	uiHigh;
-	size	uiMiddle;
+	lsize	uiSegCount;
+	lsize	uiEndCodes;
+	lsize	uiStartCodes;
+	lsize	uiDeltas;
+	lsize	uiRangeOffsets;
+	lsize	uiLow;
+	lsize	uiHigh;
+	lsize	uiMiddle;
 	uint16	uiEnd;
 	uint16	uiStart;
 	int16	iDelta;
 	uint16	uiRangeOffset;
 	uint16	uiGlyph;
-	size	uiGlyphAddress;
+	lsize	uiGlyphAddress;
 
 	if ((uiCodePoint > 0xFFFF) || !ReadUint16(muiCmapOffset + 6, &uiSegCountX2))
 	{
@@ -790,7 +790,7 @@ int CTrueTypeFont::GetGlyphIndexFormat4(uint32 uiCodePoint)
 	uiStartCodes = uiEndCodes + uiSegCountX2 + 2;
 	uiDeltas = uiStartCodes + uiSegCountX2;
 	uiRangeOffsets = uiDeltas + uiSegCountX2;
-	if (!IsInFile(uiEndCodes, (size)uiSegCountX2 * 4 + 2))
+	if (!IsInFile(uiEndCodes, (lsize)uiSegCountX2 * 4 + 2))
 	{
 		return 0;
 	}
@@ -851,10 +851,10 @@ int CTrueTypeFont::GetGlyphIndexFormat4(uint32 uiCodePoint)
 int CTrueTypeFont::GetGlyphIndexFormat12(uint32 uiCodePoint)
 {
 	uint32	uiNumGroups;
-	size	uiGroups;
-	size	uiLow;
-	size	uiHigh;
-	size	uiMiddle;
+	lsize	uiGroups;
+	lsize	uiLow;
+	lsize	uiHigh;
+	lsize	uiMiddle;
 	uint32	uiStart;
 	uint32	uiEnd;
 	uint32	uiStartGlyph;
@@ -864,7 +864,7 @@ int CTrueTypeFont::GetGlyphIndexFormat12(uint32 uiCodePoint)
 		return 0;
 	}
 	uiGroups = muiCmapOffset + 16;
-	if ((uiNumGroups > muiSize / 12) || !IsInFile(uiGroups, (size)uiNumGroups * 12))
+	if ((uiNumGroups > muiSize / 12) || !IsInFile(uiGroups, (lsize)uiNumGroups * 12))
 	{
 		return 0;
 	}
@@ -908,8 +908,8 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 {
 	uint16	uiAdvance;
 	int16	iLeftSideBearing;
-	size	uiOffset;
-	size	uiLength;
+	lsize	uiOffset;
+	lsize	uiLength;
 	int16	iXMin;
 	int16	iYMin;
 	int16	iXMax;
@@ -924,13 +924,13 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 	//Glyphs past the last long metric share its advance width.
 	if (iGlyph < miNumHMetrics)
 	{
-		bRead = ReadUint16(muiHmtxOffset + (size)iGlyph * 4, &uiAdvance) &&
-				ReadInt16(muiHmtxOffset + (size)iGlyph * 4 + 2, &iLeftSideBearing);
+		bRead = ReadUint16(muiHmtxOffset + (lsize)iGlyph * 4, &uiAdvance) &&
+				ReadInt16(muiHmtxOffset + (lsize)iGlyph * 4 + 2, &iLeftSideBearing);
 	}
 	else
 	{
-		bRead = ReadUint16(muiHmtxOffset + ((size)miNumHMetrics - 1) * 4, &uiAdvance) &&
-				ReadInt16(muiHmtxOffset + (size)miNumHMetrics * 4 + ((size)iGlyph - miNumHMetrics) * 2, &iLeftSideBearing);
+		bRead = ReadUint16(muiHmtxOffset + ((lsize)miNumHMetrics - 1) * 4, &uiAdvance) &&
+				ReadInt16(muiHmtxOffset + (lsize)miNumHMetrics * 4 + ((lsize)iGlyph - miNumHMetrics) * 2, &iLeftSideBearing);
 	}
 	if (!bRead)
 	{
@@ -969,7 +969,7 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 // without an outline.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::GetGlyphData(int iGlyph, size* puiOffset, size* puiLength)
+bool CTrueTypeFont::GetGlyphData(int iGlyph, lsize* puiOffset, lsize* puiLength)
 {
 	uint16	uiStart16;
 	uint16	uiEnd16;
@@ -983,7 +983,7 @@ bool CTrueTypeFont::GetGlyphData(int iGlyph, size* puiOffset, size* puiLength)
 
 	if (mbLongLoca)
 	{
-		if (!ReadUint32(muiLocaOffset + (size)iGlyph * 4, &uiStart) || !ReadUint32(muiLocaOffset + (size)iGlyph * 4 + 4, &uiEnd))
+		if (!ReadUint32(muiLocaOffset + (lsize)iGlyph * 4, &uiStart) || !ReadUint32(muiLocaOffset + (lsize)iGlyph * 4 + 4, &uiEnd))
 		{
 			return false;
 		}
@@ -991,7 +991,7 @@ bool CTrueTypeFont::GetGlyphData(int iGlyph, size* puiOffset, size* puiLength)
 	else
 	{
 		//Short offsets are stored halved.
-		if (!ReadUint16(muiLocaOffset + (size)iGlyph * 2, &uiStart16) || !ReadUint16(muiLocaOffset + (size)iGlyph * 2 + 2, &uiEnd16))
+		if (!ReadUint16(muiLocaOffset + (lsize)iGlyph * 2, &uiStart16) || !ReadUint16(muiLocaOffset + (lsize)iGlyph * 2 + 2, &uiEnd16))
 		{
 			return false;
 		}
@@ -1032,8 +1032,8 @@ bool CTrueTypeFont::GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline)
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeFont::ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth)
 {
-	size	uiOffset;
-	size	uiLength;
+	lsize	uiOffset;
+	lsize	uiLength;
 	int16	iNumContours;
 
 	if (iDepth > TRUE_TYPE_MAX_COMPOSITE_DEPTH)
@@ -1072,17 +1072,17 @@ bool CTrueTypeFont::ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDept
 // repeat and coordinates are deltas from the previous point.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContours, CTrueTypeOutline* pcOutline)
+bool CTrueTypeFont::ReadSimpleGlyph(lsize uiOffset, lsize uiLength, int iNumContours, CTrueTypeOutline* pcOutline)
 {
-	size			uiEnd;
-	size			uiFirstPoint;
+	lsize			uiEnd;
+	lsize			uiFirstPoint;
 	int				i;
 	uint16			uiContourEnd;
 	int				iLastContourEnd;
-	size			uiNumPoints;
+	lsize			uiNumPoints;
 	uint16			uiInstructionLength;
-	size			uiPos;
-	size			uiPoint;
+	lsize			uiPos;
+	lsize			uiPoint;
 	uint8			uiFlag;
 	uint8			uiRepeat;
 	uint8			uiDelta8;
@@ -1092,7 +1092,7 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 	uint8*			puiFlags;
 
 	uiEnd = uiOffset + uiLength;
-	if (!IsInFile(uiOffset, uiLength) || ((size)iNumContours * 2 + 2 > uiLength))
+	if (!IsInFile(uiOffset, uiLength) || ((lsize)iNumContours * 2 + 2 > uiLength))
 	{
 		return false;
 	}
@@ -1105,7 +1105,7 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 	iLastContourEnd = -1;
 	for (i = 0; i < iNumContours; i++)
 	{
-		if (!ReadUint16(uiOffset + (size)i * 2, &uiContourEnd))
+		if (!ReadUint16(uiOffset + (lsize)i * 2, &uiContourEnd))
 		{
 			return false;
 		}
@@ -1121,9 +1121,9 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 		iLastContourEnd = uiContourEnd;
 		pcOutline->maiContourEnds.Add((int)(uiFirstPoint + uiContourEnd));
 	}
-	uiNumPoints = (size)iLastContourEnd + 1;
+	uiNumPoints = (lsize)iLastContourEnd + 1;
 
-	uiPos = uiOffset + (size)iNumContours * 2;
+	uiPos = uiOffset + (lsize)iNumContours * 2;
 	if (!ReadUint16(uiPos, &uiInstructionLength))
 	{
 		return false;
@@ -1238,11 +1238,11 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 // placed so that one of its points lies on a point already in the glyph.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOutline* pcOutline, int iDepth)
+bool CTrueTypeFont::ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueTypeOutline* pcOutline, int iDepth)
 {
-	size				uiEnd;
-	size				uiPos;
-	size				uiFirstPoint;
+	lsize				uiEnd;
+	lsize				uiPos;
+	lsize				uiFirstPoint;
 	uint16				uiFlags;
 	uint16				uiGlyph;
 	int					iArg1;
@@ -1261,10 +1261,10 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 	int32				x;
 	int32				y;
 	CTrueTypeOutline	cComponent;
-	size				i;
+	lsize				i;
 	STrueTypePoint*		psSource;
 	STrueTypePoint*		psDest;
-	size				uiNumComponentPoints;
+	lsize				uiNumComponentPoints;
 
 	uiEnd = uiOffset + uiLength;
 	uiPos = uiOffset;
@@ -1398,7 +1398,7 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 		}
 		else
 		{
-			if (((size)iArg1 >= pcOutline->NumPoints() - uiFirstPoint) || ((size)iArg2 >= uiNumComponentPoints))
+			if (((lsize)iArg1 >= pcOutline->NumPoints() - uiFirstPoint) || ((lsize)iArg2 >= uiNumComponentPoints))
 			{
 				cComponent.Kill();
 				return false;

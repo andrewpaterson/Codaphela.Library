@@ -60,7 +60,7 @@ uint8 PNGPaethPredictor(uint8 uiLeft, uint8 uiUp, uint8 uiUpLeft)
 // The CRC covers the chunk type and data but not the length.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 PNGChunkCRC(uint8* puiType, uint8* puiData, size uiLength)
+uint32 PNGChunkCRC(uint8* puiType, uint8* puiData, lsize uiLength)
 {
 	CCRC32	cCRC;
 
@@ -77,7 +77,7 @@ uint32 PNGChunkCRC(uint8* puiType, uint8* puiData, size uiLength)
 // the CRC.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PNGWriteChunk(CFileWriter* pcFile, const char* szType, uint8* puiData, size uiLength)
+bool PNGWriteChunk(CFileWriter* pcFile, const char* szType, uint8* puiData, lsize uiLength)
 {
 	return	pcFile->WriteBigEndianInt32((uint32)uiLength) &&
 			pcFile->WriteData(szType, 4) &&

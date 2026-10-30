@@ -31,7 +31,7 @@ class CImageResampleChannel
 protected:
 	CChannels*		mpcChannels;
 	CChannel*		mpcChannel;
-	size			muiNumPixels;
+	lsize			muiNumPixels;
 	float64			mfMinimum;
 	float64			mfMaximum;
 	bool			mbFloat;
@@ -44,7 +44,7 @@ public:
 	bool			IsFloat(void);
 	float64			GetMinimum(void);
 	float64			GetMaximum(void);
-	size			NumPixels(void);
+	lsize			NumPixels(void);
 
 	void			GetIntegers(int32* paiDest);
 	void			SetIntegers(int32* paiSource);

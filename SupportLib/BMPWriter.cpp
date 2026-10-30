@@ -154,7 +154,7 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	}
 
 	uiNumChannels = (bGrey ? 1 : 3) + (bAlpha ? 1 : 0);
-	pvPixels = (uint8*)malloc(iWidth * iHeight * uiNumChannels);
+	pvPixels = (uint8*)malloc((lsize)iWidth * iHeight * uiNumChannels);
 	if (bGrey && bAlpha)
 	{
 		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, CHANNEL_STOP);

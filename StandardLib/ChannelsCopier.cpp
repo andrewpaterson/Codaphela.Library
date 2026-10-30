@@ -60,12 +60,12 @@ void CChannelsCopier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsCopier::Copy(size uiSourcePos, size uiDestPos, size uiLength)
+void CChannelsCopier::Copy(lsize uiSourcePos, lsize uiDestPos, lsize uiLength)
 {
-	size		i;
+	lsize		i;
 	void*		pvData;
-	size		uiSourceSize;
-	size		uiDestSize;
+	lsize		uiSourceSize;
+	lsize		uiDestSize;
 
 	uiSourceSize = mpcSourceAccessor->GetChannels()->GetSize();
 	if (uiSourcePos + uiLength > uiSourceSize)

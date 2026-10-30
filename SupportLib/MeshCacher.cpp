@@ -131,7 +131,7 @@ bool CMeshCacher::Index(void)
 		mpcMesh->mcFaceTypes.GetFacesForType(psFaceType, &aiFaces);
 
 		iStride = (int)GetIndexSize(psFaceType);
-		pvIndices = malloc(iStride * 3 * aiFaces.NumElements());
+		pvIndices = malloc((lsize)iStride * 3 * aiFaces.NumElements());
 		if (!pvIndices)
 		{
 			aiFaces.Kill();

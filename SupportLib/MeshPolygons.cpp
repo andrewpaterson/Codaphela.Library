@@ -283,8 +283,8 @@ bool CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshP
 
 	iNumFaces = (int)psPolygon->maiFaces.NumElements();
 
-	memset(aiTouched, 0, sizeof(int)*iNumFaces);
-	memset(aiStack, -1, sizeof(int)*iNumFaces);
+	memset(aiTouched, 0, (lsize)sizeof(int)*iNumFaces);
+	memset(aiStack, -1, (lsize)sizeof(int)*iNumFaces);
 
 	iPolygonFaceIndex = 0;
 
@@ -362,8 +362,8 @@ bool CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
 		{
 			return false;
 		}
-		aiStack = (int*)malloc(iNumFaces*sizeof(int)*2);
-		aiTouched = (int*)RemapSinglePointer(aiStack, iNumFaces*sizeof(int));
+		aiStack = (int*)malloc((lsize)iNumFaces*sizeof(int)*2);
+		aiTouched = (int*)RemapSinglePointer(aiStack, (lsize)iNumFaces*sizeof(int));
 
 		bResult = PrivateIsPolygonContiguous(pcConn, psPolygon, aiStack, aiTouched);
 

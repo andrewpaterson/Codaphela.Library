@@ -33,7 +33,7 @@ protected:
 	CRectangleBestPacker	mcPacker;
 
 public:
-	void	Init(int iOutsideEdgeWidth, int iInnerEdgeWidth);
+	void	Init(int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth);
 	void	Kill(void);
 
 	void	Pack(void);

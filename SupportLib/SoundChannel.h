@@ -24,10 +24,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChannelTypes.h"
 
 
-//Sound purposes start well above the image purposes so a sound channel never has the same number as an image channel.
+//Sound purposes start well above the image purposes so a sound channel never has the same number as an image channel,
+//and below 0x100 so every channel fits 16 bits (EChannel is a size, 16 bits on the W65C816).
 enum ESoundPurpose
 {
-	SP_Speaker = 0x100,		//The channel feeds a speaker position (ESoundSpeaker).
+	SP_Speaker = 0xF0,		//The channel feeds a speaker position (ESoundSpeaker).
 	SP_Discrete,			//A numbered channel with no speaker position.
 	SP_Ignored,				//Padding in the frame.
 };

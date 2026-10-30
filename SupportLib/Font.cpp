@@ -276,7 +276,7 @@ bool CFont::HasPixels(SGlyphDescription* psDescription)
 void CFont::EnsurePixels(SGlyphDescription* psDescription)
 {
 	Ptr<CGlyphRasteriser>	pRasteriser;
-	size					uiNumBits;
+	lsize					uiNumBits;
 
 	if (HasPixels(psDescription))
 	{

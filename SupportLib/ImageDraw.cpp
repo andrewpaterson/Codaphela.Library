@@ -198,7 +198,7 @@ void CImageDraw::DrawHorizontalLine(int x0, int x1, int y)
 
 	if (x0 > x1)
 	{
-		SwapInt32(&x0, &x1);
+		SwapInt(&x0, &x1);
 	}
 
 	for (x = x0; x <= x1; x++)
@@ -218,7 +218,7 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 
 	if (y0 > y1)
 	{
-		SwapInt32(&y0, &y1);
+		SwapInt(&y0, &y1);
 	}
 
 	for (y = y0; y <= y1; y++)
@@ -528,11 +528,11 @@ bool CImageDraw::BlendCoverage(void)
 	{
 		for (x = 0; x < iWidth; x++)
 		{
-			iCoverage = puiCoverage[(size)y * iWidth + x];
+			iCoverage = puiCoverage[(lsize)y * iWidth + x];
 			if (iCoverage > 0)
 			{
 				//Coverage is in 255ths and the blend takes 256ths.
-				iCoverage = (int)DivideRound(iCoverage * 256, 255);
+				iCoverage = (int)DivideRound((int64)iCoverage * 256, 255);
 				puiDest = (uint8*)pcAccessor->Get(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y);
 				BlendStraightOverPixel(puiDest, auiSource, iCoverage);
 				pcAccessor->Set(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y, puiDest);

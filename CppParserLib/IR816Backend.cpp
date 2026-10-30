@@ -28,6 +28,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define IR816_KEEP_IN_A	" ;A"		//Ends a store Peephole may leave the value in A for (Store).
 #define IR816_ROUND		" ;R"		//Ends a bra round a loop (JumpTo), for PeepholeBranches.
+#define IR816_SHIFT_STEPS	7			//The one bit steps a variable shift jumps into, after its byte and word moves.
+#define IR816_SHIFT_LOOP_BELOW	5		//Variable shifts by fewer bits loop a bit at a time instead.
 
 
 //The runtime routines, as IR for each width: $T is the type, $N its bits, $M its bits - 1 and $NAME the routine
@@ -5523,40 +5525,129 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A shift by a count in X a bit at a time with a word in A: the value's
+// A shift by a count known when it runs, with a word in A: the value's
 // word, or for 32 bits the word the bits leave from, the other rolled in
-// memory (after a whole word is moved when the count is 16 or more).
+// memory.  Counts below IR816_SHIFT_LOOP_BELOW loop a bit at a time (the
+// cheapest for so few).  Larger counts past the width fill the value
+// (ShiftConstant); a whole word (32 bits) and then a byte are moved as
+// ShiftConstant moves them; the 0 to 7 bits left jump (jmp [table + X])
+// into an unrolled run of seven one bit steps.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
 {
+	int32	iSmall;
+	int32	iSmallLoop;
+	int32	iUnder;
 	int32	iBits;
+	int32	iDone;
+	int32	aiSteps[IR816_SHIFT_STEPS];
 	int32	iInA;
 	int32	iOther;
-
-	Operand("lda", sAmount, 0);
-	Line("and 63");
-	Line("tax");
-	Branch("beq", iEnd);
-	if (iWords == 2)
-	{
-		iBits = NewLabel();
-		Line("cpx 16");
-		Branch("bcc", iBits);
-		ShiftConstant(uiOpcode, iResult, 2, 16);
-		Line("txa");
-		Line("sec");
-		Line("sbc 16");
-		Line("tax");
-		Branch("beq", iEnd);
-		Label(iBits);
-	}
+	int		i;
+	CChars	sz;
 
 	//Left shifts carry from the low word up, right shifts from the high word down.
 	iInA = (uiOpcode == IRO_Shl) ? iResult : iResult + 2 * (iWords - 1);
 	iOther = (uiOpcode == IRO_Shl) ? iResult + 2 : iResult;
+
+	//The count is tested in A; it waits in X while a word or byte move uses A.
+	iSmall = NewLabel();
+	Operand("lda", sAmount, 0);
+	Line("and 63");
+	Branch("beq", iEnd);
+	sz.Init("cmp ");
+	sz.Append(IR816_SHIFT_LOOP_BELOW);
+	Line(sz.Text());
+	sz.Kill();
+	Branch("bcc", iSmall);
+
+	//The whole value shifted out.
+	iUnder = NewLabel();
+	Line((iWords == 2) ? "cmp 32" : "cmp 16");
+	Branch("bcc", iUnder);
+	ShiftConstant(uiOpcode, iResult, iWords, 16 * iWords);
+	Branch("bra", iEnd);
+	Label(iUnder);
+
+	if (iWords == 2)
+	{
+		iBits = NewLabel();
+		Line("cmp 16");
+		Branch("bcc", iBits);
+		Line("tax");
+		ShiftConstant(uiOpcode, iResult, 2, 16);
+		Line("txa");
+		Line("and 15");
+		Branch("beq", iEnd);
+		Label(iBits);
+	}
+
+	iBits = NewLabel();
+	Line("cmp 8");
+	Branch("bcc", iBits);
+	Line("tax");
+	ShiftConstant(uiOpcode, iResult, iWords, 8);
+	Line("txa");
+	Line("and 7");
+	Branch("beq", iEnd);
+	Label(iBits);
+
+	iDone = NewLabel();
+	for (i = 0; i < IR816_SHIFT_STEPS; i++)
+	{
+		aiSteps[i] = NewLabel();
+	}
+	Line("asl A");
+	Line("tax");
 	Frame("lda", iInA);
+	sz.Init("jmp [L");
+	sz.Append(iLoop);
+	sz.Append(" + X]");
+	Line(sz.Text());
+	sz.Kill();
+
+	//Entry n runs the last n steps.
 	Label(iLoop);
+	for (i = 0; i <= IR816_SHIFT_STEPS; i++)
+	{
+		sz.Init(".word L");
+		sz.Append((i == 0) ? iDone : aiSteps[IR816_SHIFT_STEPS - i]);
+		sz.Append(" & $FFFF");
+		Line(sz.Text());
+		sz.Kill();
+	}
+	for (i = 0; i < IR816_SHIFT_STEPS; i++)
+	{
+		Label(aiSteps[i]);
+		ShiftStepInA(uiOpcode, iWords, iOther);
+	}
+	Label(iDone);
+	Frame("sta", iInA);
+	Branch("bra", iEnd);
+
+	//A few bits: one a time, counted down in X.
+	Label(iSmall);
+	iSmallLoop = NewLabel();
+	Line("tax");
+	Frame("lda", iInA);
+	Label(iSmallLoop);
+	ShiftStepInA(uiOpcode, iWords, iOther);
+	Line("dex");
+	Branch("bne", iSmallLoop);
+	Frame("sta", iInA);
+	Label(iEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One bit of a shift with a word in A (the other word, for 32 bits, rolled
+// in memory at iOther).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
+{
 	if (uiOpcode == IRO_Shl)
 	{
 		Line("asl A");
@@ -5574,27 +5665,23 @@ void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRRefe
 	{
 		Frame((uiOpcode == IRO_Shl) ? "rol" : "ror", iOther);
 	}
-	Line("dex");
-	Branch("bne", iLoop);
-	Frame("sta", iInA);
-	Label(iEnd);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A shift by a count in the scratch word a bit at a time in memory.
-//
-//////////////////////////////////////////////////////////////////////////
-//
 // The 16 bit word in A shifted iAmount bits: 8 of them at once by
-// swapping its bytes (xba, then the byte shifted in made 0 or the sign),
-// an ashr by 15 or more the sign (asl puts it in the carry; 0 + $FFFF and
-// the carry is 0 or $FFFF, the sign inverted), the rest a bit at a time.
+// swapping its bytes (xba, then the byte shifted in made 0), the rest a
+// bit at a time.  An ashr by 15 or more is the sign (asl puts it in the
+// carry; 0 + $FFFF and the carry is 0 or $FFFF, inverted); one by 3 or more
+// is the lsr then the sign bit, now at bit 15 - iAmount, extended (x ^ m) -
+// m (IR816SignExtend); by 1 or 2 a ror with the sign in the carry.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 {
+	int		iBits;
+
 	if ((uiOpcode == IRO_AShr) && (iAmount >= 15))
 	{
 		Line("asl A");
@@ -5608,42 +5695,52 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 		Line("lda 0");
 		return;
 	}
-	if (iAmount >= 8)
+	if ((uiOpcode == IRO_AShr) && (iAmount < 3))
 	{
-		Line("xba");
-		if (uiOpcode == IRO_Shl)
-		{
-			Line("and $FF00");
-		}
-		else
-		{
-			Line("and $FF");
-			if (uiOpcode == IRO_AShr)
-			{
-				Line("eor $80");
-				Line("sec");
-				Line("sbc $80");
-			}
-		}
-		iAmount -= 8;
-	}
-	for (; iAmount > 0; iAmount--)
-	{
-		if (uiOpcode == IRO_Shl)
-		{
-			Line("asl A");
-		}
-		else if (uiOpcode == IRO_LShr)
-		{
-			Line("lsr A");
-		}
-		else
+		for (iBits = 0; iBits < iAmount; iBits++)
 		{
 			Line("cmp $8000");
 			Line("ror A");
 		}
+		return;
+	}
+
+	iBits = iAmount;
+	if (iBits >= 8)
+	{
+		Line("xba");
+		Line((uiOpcode == IRO_Shl) ? "and $FF00" : "and $FF");
+		iBits -= 8;
+	}
+	for (; iBits > 0; iBits--)
+	{
+		Line((uiOpcode == IRO_Shl) ? "asl A" : "lsr A");
+	}
+	if ((uiOpcode == IRO_AShr) && (iAmount > 0))
+	{
+		SignExtendInA(15 - iAmount);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The word in A (0 above bit iSignBit) with that bit copied up through bit
+// 15: (x ^ m) - m with m the sign bit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SignExtendInA(int iSignBit)
+{
+	char	szLine[32];
+
+	snprintf(szLine, sizeof(szLine), "eor $%X", 1u << iSignBit);
+	Line(szLine);
+	Line("sec");
+	snprintf(szLine, sizeof(szLine), "sbc $%X", 1u << iSignBit);
+	Line(szLine);
+}
+
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -5701,7 +5798,8 @@ void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SI
 // The value at iResult (iWords words) shifted iAmount bits where it is: whole
 // words are moved first (the words shifted in are 0, or the sign for ashr),
 // then a byte when 8 or more bits are left, then the bits left a bit at a
-// time without a count.
+// time without a count: one word in A, two with the low one in A, more in
+// memory; ashr's bits as lshr's, then the top word's sign extended.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount)
@@ -5710,6 +5808,8 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 	int		iBits;
 	int		i;
 	int		j;
+	int32	iLow;
+	int		iRemaining;
 
 	if (iWords == 1)
 	{
@@ -5773,10 +5873,11 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 		}
 	}
 
-	if ((iBits >= 8) && (uiOpcode != IRO_AShr || (iWordShift == 0)))
+	if (iBits >= 8)
 	{
 		//A byte is moved a word at a time: a word read a byte along is the bytes shifted 8 bits.  The byte past the
-		//value's end (or before its start) is 0, or the sign for ashr, except at the value's own ends.
+		//value's end (or before its start) is 0, or the sign for ashr (the words moved in are), except at the value's
+		//own ends.
 		if (uiOpcode == IRO_Shl)
 		{
 			for (i = iWords - 1; i >= iWordShift; i--)
@@ -5810,58 +5911,74 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 		iBits -= 8;
 	}
 
-	if ((iWords - iWordShift == 1) && (iBits >= 2))
+	if (iBits == 0)
 	{
-		//The one word left, shifted in A.
-		i = (uiOpcode == IRO_Shl) ? iWords - 1 : 0;
-		Frame("lda", iResult + 2 * i);
+		return;
+	}
+	iLow = (uiOpcode == IRO_Shl) ? iResult + 2 * iWordShift : iResult;
+	iRemaining = iWords - iWordShift;
+	if (iRemaining == 1)
+	{
+		//The one word left, shifted in A (a bit of shl or lshr in memory).
+		if ((iBits == 1) && (uiOpcode != IRO_AShr))
+		{
+			Frame((uiOpcode == IRO_Shl) ? "asl" : "lsr", iLow);
+			return;
+		}
+		Frame("lda", iLow);
+		ShiftWordInA(uiOpcode, iBits);
+		Frame("sta", iLow);
+		return;
+	}
+	if (iRemaining == 2)
+	{
+		//Two words left: the low one in A, the bit between them carried through memory's high word.
+		Frame("lda", iLow);
 		for (j = 0; j < iBits; j++)
 		{
 			if (uiOpcode == IRO_Shl)
 			{
 				Line("asl A");
-			}
-			else if (uiOpcode == IRO_LShr)
-			{
-				Line("lsr A");
+				Frame("rol", iLow + 2);
 			}
 			else
 			{
-				Line("cmp $8000");
+				Frame("lsr", iLow + 2);
 				Line("ror A");
 			}
 		}
-		Frame("sta", iResult + 2 * i);
-		return;
+		Frame("sta", iLow);
 	}
-	for (j = 0; j < iBits; j++)
+	else
 	{
-		if (uiOpcode == IRO_Shl)
+		//More words, a bit at a time in memory.
+		for (j = 0; j < iBits; j++)
 		{
-			Frame("asl", iResult + 2 * iWordShift);
-			for (i = iWordShift + 1; i < iWords; i++)
+			if (uiOpcode == IRO_Shl)
 			{
-				Frame("rol", iResult + 2 * i);
-			}
-		}
-		else
-		{
-			if (uiOpcode == IRO_LShr)
-			{
-				Frame("lsr", iResult + 2 * (iWords - 1 - iWordShift));
+				Frame("asl", iLow);
+				for (i = 1; i < iRemaining; i++)
+				{
+					Frame("rol", iLow + 2 * i);
+				}
 			}
 			else
 			{
-				Frame("lda", iResult + 2 * (iWords - 1));
-				Line("cmp $8000");
-				Line("ror A");
-				Frame("sta", iResult + 2 * (iWords - 1));
-			}
-			for (i = ((uiOpcode == IRO_LShr) ? iWords - 2 - iWordShift : iWords - 2); i >= 0; i--)
-			{
-				Frame("ror", iResult + 2 * i);
+				Frame("lsr", iLow + 2 * (iRemaining - 1));
+				for (i = iRemaining - 2; i >= 0; i--)
+				{
+					Frame("ror", iLow + 2 * i);
+				}
 			}
 		}
+	}
+
+	//ashr was shifted as lshr: the top word left gets its sign bit, now at 15 - iBits, extended.
+	if (uiOpcode == IRO_AShr)
+	{
+		Frame("lda", iLow + 2 * (iRemaining - 1));
+		SignExtendInA(15 - iBits);
+		Frame("sta", iLow + 2 * (iRemaining - 1));
 	}
 }
 

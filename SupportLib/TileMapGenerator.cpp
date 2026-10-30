@@ -639,7 +639,7 @@ Ptr<CTileLayer> CTileMapGenerator::AddTileLayer(CPointer pTileMap, const char* s
 	Ptr<CTileLayer>		pTileLayer;
 	SSizeVec2			sMapSize;
 	SSizeVec2			sCelSize;
-	SIntVec2			sOffset(0, 0);
+	SInt32Vec2			sOffset(0, 0);
 
 	pTileLayer = mpMap->GetTileLayer(iIdentifier);
 	if (pTileLayer.IsNotNull())

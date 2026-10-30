@@ -197,9 +197,11 @@ protected:
 	void			Logic(SIRInstruction* psInstruction);
 	void			Shift(SIRInstruction* psInstruction);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
+	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount);
 	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
+	void			SignExtendInA(int iSignBit);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
 	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);

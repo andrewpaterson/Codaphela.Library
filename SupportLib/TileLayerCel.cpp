@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition)
+void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
 {
 	PreInit();
 
@@ -199,7 +199,7 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
 			{
-				bResult = pBlitter->Blit((int32)(x * msCelSize.x), (int32)(y * msCelSize.y));
+				bResult = pBlitter->Blit((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y);
 				if (!bResult)
 				{
 					mpViewport = pOldViewport;
@@ -377,12 +377,12 @@ bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 					pcSubImage = pCel->GetSubImage();
 					if (bFirst)
 					{
-						pcSubImage->GetImageDestBounds((int32)(x * msCelSize.x), (int32)(y * msCelSize.y), &cBounding);
+						pcSubImage->GetImageDestBounds((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y, &cBounding);
 						bFirst = false;
 					}
 					else
 					{
-						pcSubImage->GetImageDestBounds((int32)(x * msCelSize.x), (int32)(y * msCelSize.y), &cCelRect);
+						pcSubImage->GetImageDestBounds((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y, &cCelRect);
 						cBounding.GrowToContain(&cCelRect);
 					}
 				}
@@ -403,7 +403,7 @@ bool CTileLayerCel::GetFullDestBounds(CInt32Rect* pcRect)
 {
 	if ((msMapSize.x > 0) && (msCelSize.x > 0) && (msMapSize.y > 0) && (msCelSize.y > 0))
 	{
-		pcRect->Init((int32)(msMapSize.x * msCelSize.x), (int32)(msMapSize.y * msCelSize.y));
+		pcRect->Init((int32)msMapSize.x * (int32)msCelSize.x, (int32)msMapSize.y * (int32)msCelSize.y);
 		return true;
 	}
 	else

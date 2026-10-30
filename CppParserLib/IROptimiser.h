@@ -167,6 +167,7 @@ struct SIRIdiomAddress
 
 
 #define IR_AVAILABLE_LIMIT	64
+#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions).
 #define IR_BASE_VALUES		16		//How many phis and their arguments PointerBase looks through.
 #define IR_KNOWN_DEPTH		8		//How many single predecessors back KnownCondition and ImpliedComparison look for a branch.
 
@@ -185,6 +186,9 @@ struct SIRIdiomAddress
 //						values as an earlier phi of its block is that phi
 //	narrowing			trunc of add, sub, mul, and, or, xor or shl by a constant that only it uses, with an
 //						extended or constant operand, is the operation done narrow (C's char promotions)
+//	narrow counters		a 32 bit loop counter stepped by 1 towards a bound it is compared with, both it and its
+//						start known to fit 16 bits, counts in 16 bits (NarrowCounters, for a target whose 32 bit
+//						arithmetic takes more instructions)
 //	constant divisions	x / c and x % c (c not a power of 2) with x's range known (ConstantDivisions, for a target
 //						whose divides are calls) are a multiply by a reciprocal and a shift, checked exact for
 //						every x in the range
@@ -220,6 +224,9 @@ struct SIRIdiomAddress
 //	sunk comparisons	an integer comparison only its block's brif uses moves to the block's end
 
 
+typedef CArrayTemplatePtr<SIRPhiArgument>	CArrayIRExitArguments;
+
+
 class CIROptimiser
 {
 protected:
@@ -229,6 +236,7 @@ protected:
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
+	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
@@ -254,6 +262,7 @@ public:
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
+	void			SetNarrowCounters(bool bNarrowCounters);
 	void			SetWarnings(CChars* pszWarnings);
 	void			SetLibraryInt(SIRType sInt);
 
@@ -279,6 +288,7 @@ public:
 	bool			StepsByOne(SIRReference sStepped, SIRReference sValue);
 	bool			LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);
 	bool			ReduceStrength(void);
+	SIRReference	ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended);
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);
 	bool			NarrowTruncations(void);
@@ -290,7 +300,12 @@ public:
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
 	bool			ConstantDivisions(void);
-	bool			SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax);
+	bool			NarrowCounters(void);
+	bool			NarrowCounter(size uiLoop, CIRBlock* pcBlock);
+	bool			NarrowLoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);
+	bool			SteppedExitUses(size uiLoop, CIRBlock* pcBlock, SIRPhi* psCounter, SIRInstruction* psCompare, SIRReference sStepped, CArrayIRExitArguments* papsExits);
+	bool			NarrowGuardedAs(size uiLoop, uint16 uiOpcode, SIRReference sA, SIRReference sB);
+	bool			SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth = IR_SIGNED_RANGE_DEPTH);
 	bool			DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift);
 	bool			SignedPowerDivisions(void);
 	bool			ReplaceLoopIdioms(void);

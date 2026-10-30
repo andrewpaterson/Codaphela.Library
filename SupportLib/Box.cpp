@@ -258,7 +258,7 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 		CopyPoints(&asPositions, psPoints, iStride, iNumPoints);
 	}
 
-	asTransformedPoints = (SFloat32Vec3*)malloc(sizeof(SFloat32Vec3) * asPositions.NumElements());
+	asTransformedPoints = (SFloat32Vec3*)malloc((lsize)sizeof(SFloat32Vec3) * asPositions.NumElements());
 
 
 	fMinDist = LARGE_NUMBER;

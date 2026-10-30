@@ -107,7 +107,7 @@ void ResampleBilinearIntegers(int32* paiSource, uint32 uiSourceWidth, int32* pai
 		paiTop = &paiSource[(size)psY->paiFirst[y] * uiSourceWidth];
 		paiBottom = &paiSource[(size)psY->paiSecond[y] * uiSourceWidth];
 		lliFractionY = psY->paiFraction[y];
-		paiRow = &paiDest[(size)y * uiDestWidth];
+		paiRow = &paiDest[(lsize)y * uiDestWidth];
 
 		for (x = 0; x < uiDestWidth; x++)
 		{
@@ -149,7 +149,7 @@ void ResampleBilinearFloats(float64* pafSource, uint32 uiSourceWidth, float64* p
 		pafTop = &pafSource[(size)psY->paiFirst[y] * uiSourceWidth];
 		pafBottom = &pafSource[(size)psY->paiSecond[y] * uiSourceWidth];
 		fFractionY = (float64)psY->paiFraction[y] / BILINEAR_ONE;
-		pafRow = &pafDest[(size)y * uiDestWidth];
+		pafRow = &pafDest[(lsize)y * uiDestWidth];
 
 		for (x = 0; x < uiDestWidth; x++)
 		{

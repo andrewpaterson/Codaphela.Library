@@ -37,7 +37,7 @@ size CTextUTF16Short::NumChars(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextUTF16Short::Copy(uint16* puiData)
 {
-	memcpy(GetChars(), puiData, muiNumChars * sizeof(uint16));
+	memcpy(GetChars(), puiData, (lsize)muiNumChars * sizeof(uint16));
 }
 
 

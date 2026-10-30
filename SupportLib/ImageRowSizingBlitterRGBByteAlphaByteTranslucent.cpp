@@ -12,7 +12,7 @@ void CImageRowSizingBlitterRGBByteAlphaByteTranslucent::Copy(CImageBlitterContex
 	size	x;
 	void*	pvSourcePixel;
 
-	pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride);
+	pvSource = RemapSinglePointer(pvSource, (lsize)iSourceY * pcContext->miSourceRowStride);
 	pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestXLeft * pcContext->miDestPixelStride);
 
 	for (x = iDestXLeft; x < iDestXRight; x++)
@@ -35,7 +35,7 @@ void CImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha::Copy(CImageBlit
 	size	x;
 	void*	pvSourcePixel;
 
-	pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride);
+	pvSource = RemapSinglePointer(pvSource, (lsize)iSourceY * pcContext->miSourceRowStride);
 	pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestXLeft * pcContext->miDestPixelStride);
 
 	for (x = iDestXLeft; x < iDestXRight; x++)

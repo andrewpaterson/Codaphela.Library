@@ -40,8 +40,8 @@ public:
 			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
 	virtual void					Kill(void);
 
-	virtual void*					Get(size iPos) =0;
-	virtual void					Set(size iPos, void* pvData) =0;
+	virtual void*					Get(lsize iPos) =0;
+	virtual void					Set(lsize iPos, void* pvData) =0;
 
 	virtual bool					IsContiguous(void);
 

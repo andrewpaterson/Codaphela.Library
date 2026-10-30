@@ -42,6 +42,11 @@
 #define U_SUIntArray(name, length)		UnmanagedSUInt(name, length, #name)
 #define U_Size(name)					UnmanagedSize(&name, #name)
 #define U_SizeArray(name, length)		UnmanagedSize(name, length, #name)
+#ifdef SIZE_IS_LSIZE
+#define U_LSize(name)					UnmanagedSize(&name, #name)
+#else
+#define U_LSize(name)					UnmanagedUInt32(&name, #name)
+#endif // SIZE_IS_LSIZE
 #define U_Float32(name)					UnmanagedFloat(&name, #name)
 #define U_Float32Array(name, length)	UnmanagedFloat(name, length, #name)
 #define U_Float64(name)					UnmanagedFloat(&name, #name)

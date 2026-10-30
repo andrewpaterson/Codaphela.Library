@@ -81,7 +81,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	bool				bGrey;
 	bool				bAlpha;
 	int					iPixelBytes;
-	size				uiRowBytes;
+	lsize				uiRowBytes;
 	size				uiMaxDataSize;
 	size				uiDataSize;
 	uint8*				pvPixels;
@@ -128,7 +128,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	iPixelBytes = (bGrey ? 1 : 3) + (bAlpha ? 1 : 0);
 
 	//Export in Targa's byte order: blue, green, red, alpha or grey, alpha.
-	pvPixels = (uint8*)malloc((size)iWidth * iHeight * iPixelBytes);
+	pvPixels = (uint8*)malloc((lsize)iWidth * iHeight * iPixelBytes);
 	if (pvPixels == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Could not allocate memory to write [", szPathName, "].", NULL);
@@ -156,7 +156,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	cImageExport.Kill();
 
 	cEncoder.Init(iPixelBytes);
-	uiRowBytes = (size)iWidth * iPixelBytes;
+	uiRowBytes = (lsize)iWidth * iPixelBytes;
 	uiMaxDataSize = bRLE ? cEncoder.GetMaxEncodedSize(iWidth) * iHeight : uiRowBytes * iHeight;
 	pvData = (uint8*)malloc(uiMaxDataSize);
 	if (pvData == NULL)

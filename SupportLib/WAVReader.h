@@ -28,7 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //Channels are named from the channel mask; without one, mono is SOUND_MONO and other counts use the usual speaker layouts.
 //A data chunk that runs past the end of the file is cut to the whole frames that are there.
 Ptr<CSound> LoadWAV(char* szFilename);
-Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize);
+Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize);
 
 
 #endif // __WAV_READER_H__

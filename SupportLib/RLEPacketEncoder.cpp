@@ -96,7 +96,7 @@ size CRLEPacketEncoder::Encode(uint8* puiSource, int iNumElements, uint8* puiDes
 				iRaw++;
 			}
 			puiDest[uiPos] = (uint8)(iRaw - 1);
-			memcpy(&puiDest[uiPos + 1], &puiSource[x * muiElementSize], iRaw * muiElementSize);
+			memcpy(&puiDest[uiPos + 1], &puiSource[(lsize)x * muiElementSize], (lsize)iRaw * muiElementSize);
 			uiPos += 1 + iRaw * muiElementSize;
 			x += iRaw;
 		}

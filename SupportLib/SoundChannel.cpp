@@ -107,7 +107,7 @@ uint32 GetSoundSpeakerMask(EChannel eChannel)
 	{
 		return 0;
 	}
-	return 1 << (eSpeaker - SS_FrontLeft);
+	return (uint32)1 << (eSpeaker - SS_FrontLeft);
 }
 
 
