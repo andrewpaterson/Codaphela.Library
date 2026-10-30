@@ -261,7 +261,7 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 			{
 				for (x = pcSourcePixelRect->GetLeft(); x < uiRight; x++)
 				{
-					fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
+					fAlpha = *((float32*)pcOpacityAccessor->Get(x + (lsize)y * uiImageWidth));
 					if (fAlpha == 1.0f)
 					{
 					}

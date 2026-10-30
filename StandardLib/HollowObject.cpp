@@ -375,7 +375,7 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(size iIndex)
 {
 	CEmbeddedObject*	pcEmbedded;
 
-	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CHollowObject) + (sizeof(CHollowEmbeddedObject) * (iIndex - 1)));
+	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CHollowObject) + ((lsize)sizeof(CHollowEmbeddedObject) * (iIndex - 1)));
 	return pcEmbedded;
 }
 

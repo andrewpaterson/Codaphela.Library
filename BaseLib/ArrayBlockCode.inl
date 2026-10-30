@@ -953,7 +953,7 @@ ASIZE ARRAY_BLOCK::FindWithIntKey(int iKey, ASIZE iKeyOffset)
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		pIndex = RemapSinglePointer(mpvArray, i * miElementSize + iKeyOffset);
+		pIndex = RemapSinglePointer(mpvArray, (ASIZE)(i * miElementSize + iKeyOffset));
 		if (*((int*)pIndex) == iKey)
 		{
 			return i;
@@ -1589,7 +1589,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 1);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 1);
 			}
 			while (i != 0);
 		}
@@ -1602,7 +1602,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 2);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 2);
 			}
 			while (i != 0);
 		}
@@ -1615,7 +1615,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 4);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 4);
 			}
 			while (i != 0);
 		}
@@ -1628,7 +1628,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 8);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 8);
 			}
 			while (i != 0);
 		}
@@ -1641,7 +1641,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 12);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 12);
 			}
 			while (i != 0);
 		}
@@ -1654,7 +1654,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), iStride);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, (ASIZE)(iTotalStride * (i + 1) - iStride)), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), iStride);
 			}
 			while (i != 0);
 		}

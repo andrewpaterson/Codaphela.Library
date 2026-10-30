@@ -565,7 +565,7 @@ void CDeflater::WriteBlock(bool bLast)
 		iNumCodeLengths--;
 	}
 
-	uiDynamicBits = 3 + 5 + 5 + 4 + 3 * iNumCodeLengths;
+	uiDynamicBits = 3 + 5 + 5 + 4 + 3 * (lsize)iNumCodeLengths;
 	for (i = 0; i < uiNumCodeLengthSymbols; i++)
 	{
 		uiSymbol = auiCodeLengthSymbols[i];
