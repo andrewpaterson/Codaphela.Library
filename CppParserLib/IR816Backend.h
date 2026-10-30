@@ -153,6 +153,7 @@ public:
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
+	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
 
 protected:
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);

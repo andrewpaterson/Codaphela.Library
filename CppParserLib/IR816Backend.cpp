@@ -3286,6 +3286,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	Peephole(mpszOut, uiStart);
 	PeepholeMasks(mpszOut, uiStart);
 	PeepholeStores(mpszOut, uiStart);
+	PeepholeTransfers(mpszOut, uiStart);
 	PeepholeBranches(mpszOut, uiStart);
 }
 
@@ -4225,6 +4226,69 @@ static bool IR816LineIs(const char* szLine, const char* szMnemonic, const char* 
 }
 
 
+static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c);
+static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction reads or writes Y: a transfer, load, store, step,
+// compare, push or pull of it, a block move, or a Y indexed operand.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816UsesY(const char* szMnemonic, const char* szOperand, size uiOperand)
+{
+	static const char*	aszY[] = { "tay", "tya", "tyx", "txy", "ldy", "sty", "iny", "dey", "cpy", "phy", "ply", "mvn", "mvp", "jsl", "jsr", NULL };
+	size				ui;
+
+	for (ui = 0; aszY[ui]; ui++)
+	{
+		if (strcmp(szMnemonic, aszY[ui]) == 0)
+		{
+			return true;
+		}
+	}
+	return IR816IndexedBy(szOperand, uiOperand, 'Y');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line "ldy w" after szLine (not the next line), when the lines from
+// szLine to it are straight line code that neither uses Y nor names a byte
+// near w; else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816LoadYLater(const char* szLine, const char* szWord, size uiWord)
+{
+	char		szMnemonic[8];
+	const char*	szOperand;
+	size		uiOperand;
+	const char*	szFirst;
+
+	szFirst = szLine;
+	for (; szLine && *szLine; szLine = IR816NextLine(szLine))
+	{
+		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.') || !strchr(szLine, '\n'))
+		{
+			return NULL;
+		}
+		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
+		if ((strcmp(szMnemonic, "ldy") == 0) && (uiOperand == uiWord) && (strncmp(szOperand, szWord, uiWord) == 0))
+		{
+			return (szLine == szFirst) ? NULL : szLine;
+		}
+		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "brk") == 0) ||
+			(strcmp(szMnemonic, "cop") == 0) || (strcmp(szMnemonic, "pld") == 0) || (strcmp(szMnemonic, "tcd") == 0) ||
+			IR816UsesY(szMnemonic, szOperand, uiOperand) || IR816MentionsNear(szOperand, uiOperand, atoi(szWord + 5)))
+		{
+			return NULL;
+		}
+	}
+	return NULL;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Stores of A to a direct page word w that the next lines read back,
@@ -4284,6 +4348,28 @@ void CIR816Backend::PeepholeStores(CChars* pszDest, size uiStart)
 			}
 			continue;
 		}
+		szAfter = szNext ? IR816LoadYLater(szNext, szOperand, uiOperand) : NULL;
+		if (szAfter && !IR816ZNReadAfter(szLine) && !IR816ZNReadAfter(szAfter))
+		{
+			//sta w ... ldy w (Y and w untouched between): tay at once.
+			if (!IR816NextLine(szAfter) || !IR816DeadStore(IR816NextLine(szAfter), szOperand, uiOperand))
+			{
+				szOut.Append(szLine, (size)(szEnd - szLine));
+				szOut.AppendNewLine();
+			}
+			szOut.Append("\t\ttay\n");
+			for (szNext = IR816NextLine(szLine); szNext != szAfter; szNext = IR816NextLine(szNext))
+			{
+				szOut.Append(szNext, (size)(strchr(szNext, '\n') - szNext));
+				szOut.AppendNewLine();
+			}
+			szEnd = strchr(szAfter, '\n');
+			if (!szEnd)
+			{
+				szEnd = szAfter + strlen(szAfter);
+			}
+			continue;
+		}
 		if (szNext && (IR816LineIs(szNext, "ldy", szOperand, uiOperand) || IR816LineIs(szNext, "ldx", szOperand, uiOperand)))
 		{
 			szAfter = IR816NextLine(szNext);
@@ -4299,6 +4385,175 @@ void CIR816Backend::PeepholeStores(CChars* pszDest, size uiStart)
 				szEnd = szNext + strlen(szNext);
 			}
 			continue;
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the operand is indexed by c ('X' or 'Y': "+ X" or ", X").
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c)
+{
+	size	ui;
+
+	for (ui = 0; ui + 2 < uiOperand; ui++)
+	{
+		if (((szOperand[ui] == '+') || (szOperand[ui] == ',')) && (szOperand[ui + 1] == ' ') && (szOperand[ui + 2] == c))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction reads X: a transfer, store, step, compare or push
+// of it, or an X indexed operand.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816ReadsX(const char* szMnemonic, const char* szOperand, size uiOperand)
+{
+	static const char*	aszReadsX[] = { "txa", "txy", "stx", "inx", "dex", "cpx", "phx", "txs", "mvn", "mvp", NULL };
+	size				ui;
+
+	for (ui = 0; aszReadsX[ui]; ui++)
+	{
+		if (strcmp(szMnemonic, aszReadsX[ui]) == 0)
+		{
+			return true;
+		}
+	}
+	return IR816IndexedBy(szOperand, uiOperand, 'X');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction reads or writes X or Y.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816UsesXOrY(const char* szMnemonic, const char* szOperand, size uiOperand)
+{
+	static const char*	aszXY[] = { "tax", "tyx", "tay", "tya", "ldx", "ldy", "sty", "iny", "dey", "cpy", "phy", "plx", "ply", "tsx", NULL };
+	size				ui;
+
+	for (ui = 0; aszXY[ui]; ui++)
+	{
+		if (strcmp(szMnemonic, aszXY[ui]) == 0)
+		{
+			return true;
+		}
+	}
+	return IR816ReadsX(szMnemonic, szOperand, uiOperand) || IR816IndexedBy(szOperand, uiOperand, 'Y');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether X is written before it is read after the line at szLine (tax,
+// ldx or plx first, in straight line code).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816XDeadAfter(const char* szLine)
+{
+	char		szMnemonic[8];
+	const char*	szOperand;
+	size		uiOperand;
+
+	for (szLine = IR816NextLine(szLine); szLine && *szLine; szLine = IR816NextLine(szLine))
+	{
+		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		{
+			return false;
+		}
+		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
+		if (IR816ReadsX(szMnemonic, szOperand, uiOperand))
+		{
+			return false;
+		}
+		if ((strcmp(szMnemonic, "tax") == 0) || (strcmp(szMnemonic, "ldx") == 0) || (strcmp(szMnemonic, "plx") == 0) || (strcmp(szMnemonic, "tyx") == 0))
+		{
+			return true;
+		}
+		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "brk") == 0) || (strcmp(szMnemonic, "cop") == 0))
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// tax ... txy is tay ... when the instructions between don't use X or Y,
+// X is written again before it is read after the txy (IR816XDeadAfter)
+// and nothing reads the N and Z the txy set (IR816ZNReadAfter).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+	const char*	szScan;
+	const char*	szTransfer;
+	const char*	szOperand;
+	char		szMnemonic[8];
+	size		uiOperand;
+
+	szOut.Init();
+	szTransfer = NULL;
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = strchr(szLine, '\n');
+		if (!szEnd)
+		{
+			szEnd = szLine + strlen(szLine);
+		}
+		if (szLine == szTransfer)
+		{
+			//The txy that the tay before made.
+			szTransfer = NULL;
+			continue;
+		}
+		if (!szTransfer && ((size)(szEnd - szLine) == 5) && (strncmp(szLine, "\t\ttax", 5) == 0) && (*szEnd == '\n'))
+		{
+			for (szScan = IR816NextLine(szLine); szScan && *szScan; szScan = IR816NextLine(szScan))
+			{
+				if ((szScan[0] != '\t') || (szScan[1] != '\t') || (szScan[2] == '.'))
+				{
+					break;
+				}
+				IR816SplitLine(szScan, szMnemonic, &szOperand, &uiOperand);
+				if (strcmp(szMnemonic, "txy") == 0)
+				{
+					if (IR816XDeadAfter(szScan) && !IR816ZNReadAfter(szScan))
+					{
+						szTransfer = szScan;
+					}
+					break;
+				}
+				if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || IR816UsesXOrY(szMnemonic, szOperand, uiOperand))
+				{
+					break;
+				}
+			}
+			if (szTransfer)
+			{
+				szOut.Append("\t\ttay\n");
+				continue;
+			}
 		}
 		szOut.Append(szLine, (size)(szEnd - szLine));
 		szOut.AppendNewLine();
@@ -4431,8 +4686,8 @@ static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffs
 //
 // Whether a store to the direct page word szWord (as "[D + 12]") by the line
 // before szLine is never read: in straight line code (no label, jump, call
-// or width change) the next instruction that names a byte near it stores a
-// word to it.
+// or width change) the next instruction that names a byte near it, other
+// than a store to another direct page word, stores a word to it.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
@@ -4441,6 +4696,7 @@ static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
 	const char*	szOperand;
 	size		uiOperand;
 	int32		iOffset;
+	bool		bStore;
 
 	iOffset = atoi(szWord + 5);
 	for (; szLine; szLine = IR816NextLine(szLine))
@@ -4458,8 +4714,17 @@ static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
 		}
 		if (IR816MentionsNear(szOperand, uiOperand, iOffset))
 		{
-			return ((strcmp(szMnemonic, "sta") == 0) || (strcmp(szMnemonic, "stz") == 0) || (strcmp(szMnemonic, "stx") == 0) || (strcmp(szMnemonic, "sty") == 0)) &&
-				   (uiOperand == uiWord) && (strncmp(szOperand, szWord, uiWord) == 0);
+			bStore = (strcmp(szMnemonic, "sta") == 0) || (strcmp(szMnemonic, "stz") == 0) || (strcmp(szMnemonic, "stx") == 0) || (strcmp(szMnemonic, "sty") == 0);
+			if (bStore && (uiOperand == uiWord) && (strncmp(szOperand, szWord, uiWord) == 0))
+			{
+				return true;
+			}
+			if (bStore && (strncmp(szOperand, "[D + ", 5) == 0) && (szOperand[uiOperand - 1] == ']') && !memchr(szOperand, ':', uiOperand))
+			{
+				//A store to another direct page word reads nothing.
+				continue;
+			}
+			return false;
 		}
 	}
 	return false;

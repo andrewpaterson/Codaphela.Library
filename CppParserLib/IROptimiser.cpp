@@ -211,6 +211,206 @@ void CIROptimiser::SetBiasedIndices(bool bBiasedIndices)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Per temporary: its uses as the address of a load or store of at most 2
+// bytes (not volatile, and not the value a store writes).  mauiUses must be
+// counted; pauiAddressUses must be initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::CountAddressUses(CArrayTemplate<uint32>* pauiAddressUses)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sPointer;
+	size			ui;
+	size			uj;
+	uint32			uiZero;
+
+	uiZero = 0;
+	for (ui = 0; ui < mauiUses.NumElements(); ui++)
+	{
+		pauiAddressUses->Add(&uiZero);
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if ((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store))
+			{
+				continue;
+			}
+			sPointer = psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1];
+			if (sPointer.IsTemporary() && (sPointer.Index() < pauiAddressUses->NumElements()) && !(psInstruction->uiFlags & IRF_Volatile) &&
+				psInstruction->sType.IsInteger() && (psInstruction->sType.IntegerBits() <= 16) &&
+				((psInstruction->uiOpcode == IRO_Load) || !psInstruction->asArguments[0].Equals(sPointer)))
+			{
+				(*pauiAddressUses->Get(sPointer.Index()))++;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The i16 index psValue (a phi's value) adds to sBase: x when it is
+// ptradd sBase, sext(x) with x an i16, or c when it is ptradd sBase, c
+// with c fitting 16 bits.  IRNone if neither.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::AddressPhiIndex(SIRReference sValue, SIRReference sBase)
+{
+	SIRInstruction*	psAdd;
+	SIRInstruction*	psExtend;
+	int64			lliOffset;
+
+	psAdd = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+	if ((psAdd == NULL) || (psAdd->uiOpcode != IRO_PtrAdd) || !psAdd->asArguments[0].Equals(sBase))
+	{
+		return IRNone();
+	}
+	if (psAdd->asArguments[1].IsConstant())
+	{
+		lliOffset = mpcFunction->GetSigned(psAdd->asArguments[1]);
+		return ((lliOffset >= -32768) && (lliOffset <= 32767)) ? mpcFunction->AddInteger(IRType(IRTK_I16), lliOffset) : IRNone();
+	}
+	psExtend = psAdd->asArguments[1].IsTemporary() ? mcDefinitions.Instruction(psAdd->asArguments[1]) : NULL;
+	if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !mpcFunction->TypeOf(psExtend->asArguments[0]).Is(IRTK_I16))
+	{
+		return IRNone();
+	}
+	return psExtend->asArguments[0];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A phi of pointers that are one base plus i16 indices (AddressPhiIndex),
+// used only as the addresses of loads and stores of at most 2 bytes, is the
+// base plus a phi of the indices: p = phi(b + sext(x), b + sext(y)) is
+// b + sext(phi(x, y)), so BiasSignedIndices can put the index in Y.  A
+// null value (the pointer can't be used where it is null) gives the index
+// phi 0.  The base must be worked out before the phi's block.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::MergeAddressPhis(void)
+{
+	CArrayTemplate<uint32>	auiAddressUses;
+	CArrayIRReferences		asIndices;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcBaseBlock;
+	SIRPhi*					psPhi;
+	SIRPhi*					psIndexPhi;
+	SIRInstruction*			psAdd;
+	SIRReference			sBase;
+	SIRReference			sValue;
+	SIRReference			sIndex;
+	SIRReference			sPhi;
+	SIRReference			sOffset;
+	SIRReference			sAddress;
+	SIRReference			sResult;
+	SIRType					sOffsetType;
+	size					ui;
+	size					uj;
+	size					uk;
+	bool					bChanged;
+	bool					bAll;
+
+	mpcFunction->Renumber();
+	mpcFunction->ComputePredecessors();
+	mcDominators.Compute(mpcFunction);
+	mpcFunction->CountUses(&mauiUses);
+	FindDefinitions();
+	auiAddressUses.Init();
+	CountAddressUses(&auiAddressUses);
+	asIndices.Init();
+	ClearReplacements();
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
+		{
+			psPhi = pcBlock->masPhis.Get(uj);
+			sResult = psPhi->sResult;
+			if (!psPhi->sType.Is(IRTK_Pointer) || (psPhi->asArguments.NumElements() < 2) || (sResult.Index() >= auiAddressUses.NumElements()) ||
+				(*mauiUses.Get(sResult.Index()) == 0) || (*mauiUses.Get(sResult.Index()) != *auiAddressUses.Get(sResult.Index())))
+			{
+				continue;
+			}
+
+			//The base: the first value's that isn't null.
+			sBase = IRNone();
+			sOffsetType = IRType(IRTK_None);
+			for (uk = 0; uk < psPhi->asArguments.NumElements(); uk++)
+			{
+				sValue = psPhi->asArguments.Get(uk)->sValue;
+				psAdd = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+				if (psAdd && (psAdd->uiOpcode == IRO_PtrAdd))
+				{
+					sBase = psAdd->asArguments[0];
+					sOffsetType = mpcFunction->TypeOf(psAdd->asArguments[1]);
+					break;
+				}
+			}
+			pcBaseBlock = sBase.IsTemporary() ? mcDefinitions.Block(sBase) : NULL;
+			if (sBase.IsNone() || (pcBaseBlock && ((pcBaseBlock == pcBlock) || !mcDominators.Dominates(pcBaseBlock, pcBlock))) || !sOffsetType.IsInteger())
+			{
+				continue;
+			}
+
+			bAll = true;
+			asIndices.ReInit();
+			for (uk = 0; bAll && (uk < psPhi->asArguments.NumElements()); uk++)
+			{
+				sValue = psPhi->asArguments.Get(uk)->sValue;
+				if (sValue.IsConstant() && (mpcFunction->GetConstant(sValue)->ulliBits == 0))
+				{
+					sIndex = mpcFunction->AddInteger(IRType(IRTK_I16), 0);
+				}
+				else
+				{
+					sIndex = AddressPhiIndex(sValue, sBase);
+					psAdd = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+					bAll = !sIndex.IsNone() && psAdd && mpcFunction->TypeOf(psAdd->asArguments[1]).Equals(sOffsetType);
+				}
+				asIndices.Add(&sIndex);
+			}
+			if (!bAll)
+			{
+				continue;
+			}
+
+			//The index phi (AddPhi may move the phis), then b + sext(it) at the top of the block.
+			sPhi = mpcFunction->AddTemporary(IRType(IRTK_I16));
+			psIndexPhi = pcBlock->AddPhi(IRType(IRTK_I16), sPhi);
+			psPhi = pcBlock->masPhis.Get(uj);
+			for (uk = 0; uk < psPhi->asArguments.NumElements(); uk++)
+			{
+				pcBlock->AddPhiArgument(psIndexPhi, psPhi->asArguments.Get(uk)->pcBlock, *asIndices.Get(uk));
+				psPhi = pcBlock->masPhis.Get(uj);
+				psIndexPhi = pcBlock->masPhis.Get(pcBlock->masPhis.NumElements() - 1);
+			}
+			sOffset = InsertInstruction(pcBlock, 0, IRO_SExt, sOffsetType, sPhi, IRNone());
+			sAddress = InsertInstruction(pcBlock, 1, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, sOffset);
+			Replace(sResult, sAddress);
+			bChanged = true;
+		}
+	}
+	asIndices.Kill();
+	auiAddressUses.Kill();
+	if (bChanged)
+	{
+		ApplyReplacements();
+		FindDefinitions();
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // p + sext(x), x an i16, used only as the address of loads and stores of
 // at most 2 bytes, is (p - 32768) + zext(x ^ 32768): the target adds the
 // zero extended index in a register as it loads (CIR816Backend::
@@ -224,43 +424,18 @@ bool CIROptimiser::BiasSignedIndices(void)
 	CIRBlock*				pcBlock;
 	SIRInstruction*			psInstruction;
 	SIRInstruction*			psExtend;
-	SIRReference			sPointer;
 	SIRReference			sIndex;
 	SIRReference			sBase;
 	SIRReference			sBiased;
 	SIRType					sOffsetType;
 	size					ui;
 	size					uj;
-	uint32					uiZero;
 	bool					bChanged;
 
 	mpcFunction->CountUses(&mauiUses);
 	FindDefinitions();
 	auiAddressUses.Init();
-	uiZero = 0;
-	for (ui = 0; ui < mauiUses.NumElements(); ui++)
-	{
-		auiAddressUses.Add(&uiZero);
-	}
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uj);
-			if ((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store))
-			{
-				continue;
-			}
-			sPointer = psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1];
-			if (sPointer.IsTemporary() && (sPointer.Index() < auiAddressUses.NumElements()) && !(psInstruction->uiFlags & IRF_Volatile) &&
-				psInstruction->sType.IsInteger() && (psInstruction->sType.IntegerBits() <= 16) &&
-				((psInstruction->uiOpcode == IRO_Load) || !psInstruction->asArguments[0].Equals(sPointer)))
-			{
-				(*auiAddressUses.Get(sPointer.Index()))++;
-			}
-		}
-	}
+	CountAddressUses(&auiAddressUses);
 
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -330,6 +505,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= mbConstantDivisions && ConstantDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
+		bChanged |= mbBiasedIndices && MergeAddressPhis();
 		bChanged |= RotateLoops();
 		bChanged |= LessLoopTests();
 		bChanged |= ReplaceLoopCounters();
