@@ -7,6 +7,7 @@
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
 #define FAT_MAX_FILENAME				255
+#define FAT_MAX_LFN_ENTRIES				20  //(FAT_MAX_FILENAME + 12) / 13
 #define FAT_MAX_SECTOR_QUERY_LOCKS		32
 #define FAT_MAX_DIRECTORY_ENTRIES		0xFFFF
 #define FAT_LONG_NAME_END_WCHAR			0xFFFF
@@ -272,10 +273,12 @@ struct SFatQueryState
 
 	SFatCache				sBuffer;
 	uint32					uiLockedSectors[FAT_MAX_SECTOR_QUERY_LOCKS];
+	SFatRawDirectoryEntry	sEndEntry;  //All zeros: the entry a query ends on, past the directory's last sector.
 
 	void	Init(void);
 	bool	Kill(CFatInfoSectorCache* pcCache);
 	bool	Lock(uint32 uiSector);
+	bool	Unlock(uint32 uiSector, CFatInfoSectorCache* pcCache);
 };
 
 

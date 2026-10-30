@@ -4390,6 +4390,7 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 	bool							bResult;
 	ECPP65Elide						eElide;
 	int								iElideDepth;
+	bool							bValueInitialise;
 
 	psType = psPlace->psType;
 	apcArguments.Init();
@@ -4411,6 +4412,7 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 		return bResult;
 	}
 
+	bValueInitialise = false;
 	if (pcInitialiser)
 	{
 		switch (pcInitialiser->GetKind())
@@ -4418,10 +4420,12 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 		case CPPS_ParenthesisedInitializer:
 			papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
 			pcInitialiser = NULL;
+			bValueInitialise = papcArguments->NumElements() == 0;
 			break;
 		case CPPS_InitializerList:
 			papcArguments = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
 			pcInitialiser = NULL;
+			bValueInitialise = papcArguments->NumElements() == 0;
 			break;
 		default:
 			break;
@@ -4554,9 +4558,63 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 		papcArguments = &apcArguments;
 	}
 
+	//() and {} value initialise: an object without a constructor of its own is zeroed first.
+	if (bValueInitialise && !psClass->bConstructors)
+	{
+		ZeroObject(psPlace, psType->iBytes);
+	}
 	bResult = ConstructClass(psPlace, psClass, papcArguments, pcNode);
 	apcArguments.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Zeroes iBytes at a place (an Address place's address stays in A): small
+// objects in place, bigger ones with memset.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ZeroObject(SCPP65Place* psPlace, int iBytes)
+{
+	int		iDepth;
+	int		iOffset;
+	int		iChunk;
+
+	if (psPlace->eKind != CPP65PK_Address)
+	{
+		LoadAddress(psPlace);
+	}
+	Push("A");
+	iDepth = miDepth;
+	if (iBytes <= CPP65_INLINE_ZERO)
+	{
+		Line("cpy Y, 0")->AppendNewLine();
+		for (iOffset = 0; iOffset < iBytes; iOffset += iChunk)
+		{
+			iChunk = (iBytes - iOffset >= 4) ? 4 : ((iBytes - iOffset >= 2) ? 2 : 1);
+			if (iChunk < 4)
+			{
+				Line("wth Y, ")->Append(8 * iChunk)->AppendNewLine();
+			}
+			Line("cpy [")->Append(iOffset)->Append(" + A], Y")->AppendNewLine();
+			if (iChunk < 4)
+			{
+				Line("wth Y, 32")->AppendNewLine();
+			}
+		}
+	}
+	else
+	{
+		Line("cpy A, ")->Append(iBytes)->AppendNewLine();
+		Push("A");
+		Line("cpy A, 0")->AppendNewLine();
+		Push("A");
+		Line("cpy A, [")->Append(1 + miDepth - iDepth)->Append(" + S]")->AppendNewLine();
+		Push("A");
+		CallRuntime("memset", 12);
+	}
+	Pull("A");
 }
 
 

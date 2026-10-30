@@ -284,6 +284,7 @@ public:
 	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
+	bool			SignedPowerDivisions(void);
 	bool			ReplaceLoopIdioms(void);
 	bool			RemoveDeadCode(void);
 	bool			SinkComparisons(void);

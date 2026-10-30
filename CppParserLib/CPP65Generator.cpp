@@ -131,6 +131,18 @@ void CCPP65Generator::SetImports(CIRImports* pcImports)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A profile of the program's functions: the W65C816 back end gives those it
+// measured worth it page aligned frames (CIR816Backend::AlignFrame).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetFrameProfile(CAsm816Profile* pcProfile)
+{
+	mpcFrameProfile = pcProfile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -170,6 +182,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpszOut = &mszCode;
 	mpcIRFrontEnd = NULL;
 	mpcImports = NULL;
+	mpcFrameProfile = NULL;
 	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
 	mcWarnings.Init();

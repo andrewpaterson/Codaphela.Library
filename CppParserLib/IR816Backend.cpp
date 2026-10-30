@@ -745,6 +745,7 @@ void CIR816Backend::Layout(void)
 	int32				iNext;
 	int32				iNone;
 	int32				iArgument;
+	int32				iRest;
 	CIRBlock*			pcBlock;
 	SIRPhi*				psPhi;
 	SIRInstruction*		psInstruction;
@@ -766,6 +767,30 @@ void CIR816Backend::Layout(void)
 	//slots, each a place of its own.
 	FoldPointers();
 	iNext = PackTemporaries();
+
+	//A frame (with its arguments) past the page keeps S, as it was when aligned (AlignFrame), in two bytes in the page.
+	iRest = IR816_LINK_BYTES + (IsHiddenResult(mpcFunction->msReturnType) ? 4 : 0);
+	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		iRest += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+	}
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			iRest += (ValueBytes(pcBlock->masPhis.Get(ui)->sType) + 1) & ~1;
+		}
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (psInstruction->uiOpcode == IRO_Slot)
+			{
+				iRest += ((int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits + 1) & ~1;
+			}
+		}
+	}
+	miSavedS = ((iNext + iRest > 256) && (iNext + 2 <= 256)) ? Allocate(&iNext, 2) : -1;
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -807,6 +832,7 @@ void CIR816Backend::Layout(void)
 		*maiOffsets.Get(sParameter.Index()) = iArgument;
 		iArgument += ValueBytes(mpcFunction->GetTemporaryType(sParameter));
 	}
+	miArgumentBytes = iArgument - (miFrameBytes + 1 + IR816_LINK_BYTES);
 
 	//Frame reaches past the direct page through X, so nothing is kept in X then.
 	if (iArgument > 255)
@@ -2741,6 +2767,164 @@ void CIR816Backend::DropFrame(size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Gives the function in pszCode (as GenerateFunction wrote it, psFrame from
+// GetFrame) D on a page, where its direct page accesses cost a cycle less,
+// when it's worth it: estimated, or measured by pcProfile (IR816Backend.h).
+// Never when it may recurse (bRecursive: in a cycle of calls the unit can
+// see; or calling itself), nor when variadic (its arguments are walked past
+// the named ones).  D (and S) go down to the page below the frame, the
+// arguments and the link bytes; the arguments are copied up to the frame
+// (from X, S as it was) where they were, and S as it was is kept where the
+// caller's D was (at D + frame size + 1) for the epilogue.  A frame past
+// the page (its far bytes are reached through X) has its arguments pushed
+// into place and S kept in psFrame->iSavedS (in the page).  Returns true if
+// it was aligned.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm816Profile* pcProfile)
+{
+	CChars					sz;
+	CChars					szPrologue;
+	CChars					szEpilogue;
+	CChars					szAligned;
+	CChars					szAlignedEpilogue;
+	CChars					szCall;
+	const char*				szCode;
+	int32					iTop;
+	int32					iWords;
+	int32					iSavedS;
+	int32					i;
+	uint64					ulliCost;
+	SAsm816FunctionProfile*	psProfile;
+	bool					bBig;
+	bool					bWorth;
+
+	iTop = psFrame->iFrameBytes + IR816_LINK_BYTES + psFrame->iArgumentBytes;
+	iWords = (psFrame->iArgumentBytes + 1) / 2;
+	szCode = pszCode->Text();
+	bBig = iTop > 255;
+	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
+	{
+		return false;
+	}
+
+	//A call of itself is recursion.
+	szCall.Init("jsl ");
+	szCall.Append(szLabel);
+	szCall.AppendNewLine();
+	bRecursive = strstr(szCode, szCall.Text()) != NULL;
+	szCall.Kill();
+	if (bRecursive)
+	{
+		return false;
+	}
+
+	ulliCost = (uint64)(IR816_ALIGN_CYCLES + IR816_ALIGN_WORD_CYCLES * iWords + (bBig ? IR816_ALIGN_BIG_CYCLES : 0));
+	if (pcProfile)
+	{
+		//Measured: never seen recursing, and the accesses well past the cost of its calls.
+		psProfile = pcProfile->Get(szLabel);
+		bWorth = psProfile && !psProfile->bRecursive && (psProfile->ulliCalls > 0) &&
+				 (psProfile->ulliDirectPage >= IR816_ALIGN_GAIN * ulliCost * psProfile->ulliCalls) &&
+				 (psProfile->ulliDirectPage - ulliCost * psProfile->ulliCalls >= pcProfile->NumCycles() / IR816_ALIGN_SHARE);
+	}
+	else
+	{
+		//Estimated: loops, whose accesses are well past the cost of a call.
+		bWorth = psFrame->bLoops && ((uint64)psFrame->iDirectPageWeight >= IR816_ALIGN_GAIN * ulliCost);
+	}
+	if (!bWorth)
+	{
+		return false;
+	}
+
+	iSavedS = bBig ? psFrame->iSavedS : psFrame->iFrameBytes + 1;
+	szPrologue.Init("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
+	szPrologue.Append(psFrame->iFrameBytes);
+	szPrologue.Append("\n\t\ttcs\n\t\ttcd\n");
+	szEpilogue.Init("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
+	szEpilogue.Append(psFrame->iFrameBytes);
+	szEpilogue.Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	if (strstr(szCode, szPrologue.Text()) == NULL)
+	{
+		szPrologue.Kill();
+		szEpilogue.Kill();
+		return false;
+	}
+
+	//S goes down before anything is written below where it was (an interrupt pushes there).
+	szAligned.Init("\t\tphd\n\t\ttsc\n\t\ttax\n\t\tsec\n\t\tsbc ");
+	szAligned.Append(iTop);
+	szAligned.Append("\n\t\tand $FF00\n");
+	if (!bBig)
+	{
+		szAligned.Append("\t\ttcs\n\t\ttcd\n");
+		for (i = 0; i < iWords; i++)
+		{
+			szAligned.Append("\t\tlda [");
+			szAligned.Append(1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append(" + X]:24\n\t\tsta [D + ");
+			szAligned.Append(psFrame->iFrameBytes + 1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append("]\n");
+		}
+	}
+	else if (iWords == 0)
+	{
+		szAligned.Append("\t\ttcs\n\t\ttcd\n");
+	}
+	else
+	{
+		//Past the page the arguments are pushed into place, last first, from S at their top; then S is D.
+		szAligned.Append("\t\ttcd\n\t\tclc\n\t\tadc ");
+		szAligned.Append(iTop);
+		szAligned.Append("\n\t\ttcs\n");
+		for (i = iWords - 1; i >= 0; i--)
+		{
+			szAligned.Append("\t\tlda [");
+			szAligned.Append(1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append(" + X]:24\n\t\tpha\n");
+		}
+		szAligned.Append("\t\ttdc\n\t\ttcs\n");
+	}
+	szAligned.Append("\t\tstx [D + ");
+	szAligned.Append(iSavedS);
+	szAligned.Append("]\n");
+	szAlignedEpilogue.Init("\t\ttay\n\t\tlda [D + ");
+	szAlignedEpilogue.Append(iSavedS);
+	szAlignedEpilogue.Append("]\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+
+	sz.Init();
+	while (*szCode)
+	{
+		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)
+		{
+			sz.Append(szAligned);
+			szCode += szPrologue.Length();
+		}
+		else if (strncmp(szCode, szEpilogue.Text(), szEpilogue.Length()) == 0)
+		{
+			sz.Append(szAlignedEpilogue);
+			szCode += szEpilogue.Length();
+		}
+		else
+		{
+			sz.Append(*szCode);
+			szCode++;
+		}
+	}
+	pszCode->Kill();
+	pszCode->Init(sz);
+	sz.Kill();
+	szAligned.Kill();
+	szAlignedEpilogue.Kill();
+	szPrologue.Kill();
+	szEpilogue.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
@@ -2770,6 +2954,22 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	DropFrame(uiStart);
 	pszDest->AppendNewLine();
 	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What AlignFrame needs of the function GenerateFunction just wrote.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::GetFrame(SIR816Frame* psFrame)
+{
+	psFrame->iFrameBytes = miFrameBytes;
+	psFrame->iArgumentBytes = miArgumentBytes;
+	psFrame->iSavedS = miSavedS;
+	psFrame->iDirectPageWeight = miDirectPageWeight;
+	psFrame->bLoops = mbLoops;
+	psFrame->bVariadic = (mpcFunction->muiAttributes & IRA_Variadic) != 0;
 }
 
 
@@ -2941,6 +3141,24 @@ SIRReference CIR816Backend::InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The direct page operands ([D + n]) in szCode.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 IR816CountDirectPage(const char* szCode)
+{
+	int32	iCount;
+
+	iCount = 0;
+	for (szCode = strstr(szCode, "D + "); szCode; szCode = strstr(szCode + 4, "D + "))
+	{
+		iCount++;
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's code after Layout: the prologue, each block's
 // instructions (those CanFuse finds read by the next as it goes) and jump,
 // then Peephole from uiStart.
@@ -2954,6 +3172,10 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	CIRBlock*		pcNext;
 	int32			iLabel;
 	CIRDominators	cDominators;
+	CIRLoops		cLoops;
+	size			uiBlockStart;
+	int32			iWeight;
+	int32			iDepth;
 
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -2967,12 +3189,17 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	cDominators.Init();
 	cDominators.Compute(mpcFunction);
 	mpcDominators = &cDominators;
+	cLoops.Init();
+	cLoops.Compute(mpcFunction, &cDominators);
+	miDirectPageWeight = 0;
+	mbLoops = false;
 	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
 		pcNext = (ui + 1 < mpcFunction->NumBlocks()) ? mpcFunction->GetBlock(ui + 1) : NULL;
 		miBlock = (int32)ui;
+		uiBlockStart = mpszOut->Length();
 		Label(*maiBlockLabels.Get(ui));
 		PhiCopies(pcBlock);
 		maiPendingArguments.FakeSetUsedElements(0);
@@ -2995,7 +3222,17 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		}
 		Jump(pcBlock, pcNext);
 		miFused = 0;
+
+		//The block's direct page accesses, weighted by its loops (AlignFrame's estimate).
+		iWeight = 1;
+		for (iDepth = cLoops.Depth(pcBlock); iDepth > 0; iDepth--)
+		{
+			mbLoops = true;
+			iWeight *= (iDepth <= IR816_ALIGN_MAX_DEPTH) ? IR816_ALIGN_LOOP_WEIGHT : 1;
+		}
+		miDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
 	}
+	cLoops.Kill();
 	miBlock = -1;
 	mpcDominators = NULL;
 	cDominators.Kill();

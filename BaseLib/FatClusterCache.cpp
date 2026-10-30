@@ -191,7 +191,8 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 
 	if (uiFirstSectorIndex <= uiPreviousMaximumSector)
 	{
-		if ((uiOffset % muiSectorSize != 0) && (!IsCached(uiFirstSectorIndex)))
+		//The first sector keeps what the write does not cover: before it, and after it when it ends in the same sector.
+		if (((uiOffset % muiSectorSize != 0) || ((uiFirstSectorIndex == uiLastSectorIndexInclusive) && ((uiOffset + uiLength) % muiSectorSize != 0))) && (!IsCached(uiFirstSectorIndex)))
 		{
 			bResult = CacheSector(&msCluster, uiFirstSectorIndex);
 			if (!bResult)
@@ -232,7 +233,6 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 	{
 		if (uiLastSectorIndexInclusive <= uiPreviousMaximumSector)
 		{
-			//This is wrong.
 			if (((uiOffset + uiLength) % muiSectorSize != 0) && (!IsCached(uiLastSectorIndexInclusive)))
 			{
 				bResult = CacheSector(&msCluster, uiLastSectorIndexInclusive);
@@ -355,7 +355,7 @@ bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorInde
 {
 	bool	bResult;
 
-	bResult = mpcDrive->Read(psCluster->uiClusterFirstSector + uiSectorIndex, psCluster->pvCache);
+	bResult = mpcDrive->Read(psCluster->uiClusterFirstSector + uiSectorIndex, &psCluster->pvCache[uiSectorIndex * muiSectorSize]);
 	if (!bResult)
 	{
 		return false;

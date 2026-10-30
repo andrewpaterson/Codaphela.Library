@@ -149,7 +149,8 @@ protected:
 	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
 	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);
 	EFatCode				FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
-	EFatCode				RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiLastDirectoryCluster, uint32 uiSector);
+	EFatCode				RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiSector, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiFirstDirectoryCluster);
+	EFatCode				FindPreviousCluster(fatEntry uiFirstCluster, fatEntry uiCluster, fatEntry* puiPreviousCluster);
 
 	EFatCode				FindBiosParameterBlock(SFatCache sMBRSector);
 	bool					CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
@@ -161,6 +162,7 @@ protected:
 	void					SetQueryLongFilenamePart(SFatQueryState* psQuery, int8 iLongOffset, uint8* puiChars, int8 iRawOffset);
 	void					SetQueryLongFilenamePart(SFatQueryState* psQuery);
 	EFatCode				FindNextRawDirectoryEntry(SFatQueryState* psQuery);
+	EFatCode				EndQuery(SFatQueryState* psQuery);
 
 	uint16					LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex);
 	void					GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex);
@@ -187,9 +189,8 @@ protected:
 	EFatCode				IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster);
 	EFatCode				CreateDirectory(const char* szDirectory, SFatDirectoryEntry* psEntry);
 
-	EFatCode				Delete(SFatDirectoryEntry* psEntry, const char* szNamePart, char* szPathPart, uint8 uiChecksum);
+	EFatCode				DeleteLongNameEntries(const char* szParentPath, uint32 uiSectorAddress, uint16 uiSectorOffset, uint8 uiChecksum);
 	void					CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectoryEntry* psNewEntry);
-	EFatCode				Rename(const char* szOriginalParent, uint8 uiChecksum);
 };
 
 

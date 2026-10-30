@@ -214,6 +214,27 @@ bool SFatQueryState::Kill(CFatInfoSectorCache* pcCache)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Unlocks a sector the query locked (the query has moved past it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SFatQueryState::Unlock(uint32 uiSector, CFatInfoSectorCache* pcCache)
+{
+	int		i;
+
+	for (i = 0; i < FAT_MAX_SECTOR_QUERY_LOCKS; i++)
+	{
+		if (uiLockedSectors[i] == uiSector)
+		{
+			uiLockedSectors[i] = 0xffffffff;
+			return pcCache->Unlock(uiSector);
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool SFatQueryState::Lock(uint32 uiSector)

@@ -471,6 +471,24 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	IR side: loop rotation (with a preheader joining several ways in), strength reduction
 	of p + i, loop idioms (memset, memmove, strlen, memcmp, memchr, strchr), narrowing,
 	and unsigned divides by constants of bounded values as compares.
+	2026-10-30 (FAT32 as the real world measure: TestFatBench, a private test that
+	formats, writes, reads, seeks, renames and deletes): signed / and % by a power of 2
+	as shifts and an add (and signed ones of values never negative as unsigned);
+	Libc65's mktime and gmtime without a loop over the years; and frames on a page
+	(AlignFrame) only where really worth it (the user: keep the stack), and never for
+	a function that may recurse (in a cycle of calls its unit can see, or calling
+	itself).  By default estimated: a function with loops whose direct page accesses,
+	weighted 8 for each loop they are in, are more than 3 times what aligning costs a
+	call.  Optionally measured (profile guided): CAsm816Profile runs the programs and
+	counts each function's direct page accesses (on its D, so its runtime routines'
+	too), calls and whether it was entered again while running;
+	CCPP65Builder::SetFrameProfile gives that to the back end, which then aligns a
+	function never seen recursing whose accesses are more than 3 times what aligning
+	costs its calls and save at least a 10000th of the profiled cycles.  The decision is
+	made in CCPP65IRFrontEnd::FinishUnit, when the unit's calls are known.  D and S go
+	down to the page below the frame, the arguments and the link bytes, the arguments
+	are copied up to where they were (pushed when the frame passes the page) and S as
+	it was is kept in the frame for the epilogue: up to 255 more bytes of stack each.
 
 8.	The real machine: a memory map description (ROM and RAM regions, load and run
 	addresses, the bank swap), a ROM image as the link output, a start up in the

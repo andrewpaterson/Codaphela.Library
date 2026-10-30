@@ -28,11 +28,32 @@ static bool IsLeapYear(int iYear)
 }
 
 
-static int DaysInMonth(int iYear, int iMonth)
-{
-	static const int	aiDays[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+//The days in the year before each month (February's 28).
+static const int	gaiDaysBeforeMonth[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
 
-	return ((iMonth == 1) && IsLeapYear(iYear)) ? 29 : aiDays[iMonth];
+
+//a / b rounded down (b more than 0).
+static int FloorDivide(int a, int b)
+{
+	return (a >= 0) ? a / b : -((b - 1 - a) / b);
+}
+
+
+//The days from 1970-01-01 to the first day of iYear (less than 0 before 1970): 365 a year and one for each leap year
+//between, without a loop over them (1969 has 477 leap years before it, from year 1).
+static long DaysBeforeYear(int iYear)
+{
+	int	iYears;
+
+	iYears = iYear - 1;
+	return ((long)iYear - 1970) * 365 + (FloorDivide(iYears, 4) - FloorDivide(iYears, 100) + FloorDivide(iYears, 400) - 477);
+}
+
+
+//The days in the year before the first of iMonth (0 to 11).
+static int DaysBeforeMonth(int iYear, int iMonth)
+{
+	return gaiDaysBeforeMonth[iMonth] + (((iMonth > 1) && IsLeapYear(iYear)) ? 1 : 0);
 }
 
 
@@ -42,7 +63,7 @@ struct tm* gmtime(const time_t* ptTime)
 	long	lSeconds;
 	int		iYear;
 	int		iMonth;
-	int		iYearDays;
+	int		iYearDay;
 
 	lDays = *ptTime / 86400;
 	lSeconds = *ptTime % 86400;
@@ -62,33 +83,24 @@ struct tm* gmtime(const time_t* ptTime)
 		gsTime.tm_wday += 7;
 	}
 
-	iYear = 1970;
-	for (;;)
+	//365 days a year is near enough to start from; the leap days move it a year at most.
+	iYear = (int)(1970 + ((lDays >= 0) ? lDays / 365 : -((364 - lDays) / 365)));
+	while (DaysBeforeYear(iYear) > lDays)
 	{
-		iYearDays = IsLeapYear(iYear) ? 366 : 365;
-		if (lDays < 0)
-		{
-			iYear--;
-			lDays += IsLeapYear(iYear) ? 366 : 365;
-		}
-		else if (lDays >= iYearDays)
-		{
-			lDays -= iYearDays;
-			iYear++;
-		}
-		else
-		{
-			break;
-		}
+		iYear--;
 	}
-	gsTime.tm_year = iYear - 1900;
-	gsTime.tm_yday = (int)lDays;
-	for (iMonth = 0; lDays >= DaysInMonth(iYear, iMonth); iMonth++)
+	while (DaysBeforeYear(iYear + 1) <= lDays)
 	{
-		lDays -= DaysInMonth(iYear, iMonth);
+		iYear++;
+	}
+	iYearDay = (int)(lDays - DaysBeforeYear(iYear));
+	gsTime.tm_year = iYear - 1900;
+	gsTime.tm_yday = iYearDay;
+	for (iMonth = 11; DaysBeforeMonth(iYear, iMonth) > iYearDay; iMonth--)
+	{
 	}
 	gsTime.tm_mon = iMonth;
-	gsTime.tm_mday = (int)lDays + 1;
+	gsTime.tm_mday = iYearDay - DaysBeforeMonth(iYear, iMonth) + 1;
 	gsTime.tm_isdst = 0;
 	return &gsTime;
 }
@@ -106,7 +118,6 @@ time_t mktime(struct tm* psTime)
 {
 	long	lDays;
 	int		iYear;
-	int		iMonth;
 	int		iMonths;
 	time_t	tTime;
 
@@ -118,26 +129,7 @@ time_t mktime(struct tm* psTime)
 		iYear--;
 	}
 
-	lDays = 0;
-	if (iYear >= 1970)
-	{
-		for (int i = 1970; i < iYear; i++)
-		{
-			lDays += IsLeapYear(i) ? 366 : 365;
-		}
-	}
-	else
-	{
-		for (int i = iYear; i < 1970; i++)
-		{
-			lDays -= IsLeapYear(i) ? 366 : 365;
-		}
-	}
-	for (iMonth = 0; iMonth < iMonths; iMonth++)
-	{
-		lDays += DaysInMonth(iYear, iMonth);
-	}
-	lDays += psTime->tm_mday - 1;
+	lDays = DaysBeforeYear(iYear) + DaysBeforeMonth(iYear, iMonths) + psTime->tm_mday - 1;
 	tTime = ((lDays * 24 + psTime->tm_hour) * 60 + psTime->tm_min) * 60 + psTime->tm_sec;
 	*psTime = *gmtime(&tTime);
 	return tTime;
