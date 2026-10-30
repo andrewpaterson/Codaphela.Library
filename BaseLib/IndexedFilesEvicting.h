@@ -39,8 +39,8 @@ public:
 	bool			IsCaching(void);
 	bool			IsWriteThrough(void);
 
-	size			NumCached(void);
-	size			NumCached(size iSize);
+	lsize			NumCached(void);
+	lsize			NumCached(lsize iSize);
 	size			NumFiles(void);
 	int64			NumDatas(void);
 	int64			NumDatas(lsize iDataSize);

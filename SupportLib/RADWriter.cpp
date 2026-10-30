@@ -43,6 +43,7 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	CChars		szRawName;
 	CFileUtil	cFileUtil;
 	bool		bResult;
+	size			uiNumChannels;
 
 	cTextFile.Init();
 	szText = &cTextFile.mcText;
@@ -55,7 +56,8 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 
 	cTypeNames.Init();
 
-	for (j = 0; j < pcImage->GetChannels()->GetChannelOffsets()->NumElements(); j++)
+	uiNumChannels = pcImage->GetChannels()->GetChannelOffsets()->NumElements();
+	for (j = 0; j < uiNumChannels; j++)
 	{
 		psChannel = pcImage->GetChannels()->GetChannelOffsets()->Get(j);
 

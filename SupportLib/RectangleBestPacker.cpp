@@ -50,8 +50,10 @@ void CRectangleBestPacker::Kill(void)
 {
 	size			i;
 	CPackAttempt*	pcAttempt;
+	size			uiNumElements;
 
-	for (i = 0; i < macPackAttempts.NumElements(); i++)
+	uiNumElements = macPackAttempts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcAttempt = macPackAttempts.Get(i);
 		pcAttempt->Kill();
@@ -113,6 +115,7 @@ void CRectangleBestPacker::Pack(void)
 {
 	size			i;
 	CPackAttempt*	pcAttempt;
+	size			uiNumElements;
 
 	if (masSourceRectangles.NumElements() == 0)
 	{
@@ -124,7 +127,8 @@ void CRectangleBestPacker::Pack(void)
 		AddDefaultAttempts();
 	}
 
-	for (i = 0; i < macPackAttempts.NumElements(); i++)
+	uiNumElements = macPackAttempts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcAttempt = macPackAttempts.Get(i);
 		pcAttempt->Pack();
@@ -146,6 +150,7 @@ int CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
 	int						iWidth;
 	int						iHeight;
 	int						iTotalWidth;
+	size					uiNumElements;
 
 	//The width of every rectangle in a single row.
 	if (masSourceRectangles.NumElements() == 0)
@@ -154,7 +159,8 @@ int CRectangleBestPacker::GetSourcesMaxWidth(EPackRotation eRotation)
 	}
 
 	iTotalWidth = 0;
-	for (i = 0; i < masSourceRectangles.NumElements(); i++)
+	uiNumElements = masSourceRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = masSourceRectangles.Get(i);
 		pcRect->GetSize(eRotation, &iWidth, &iHeight);
@@ -197,10 +203,12 @@ int CRectangleBestPacker::GetSourcesMinWidth(EPackRotation eRotation, bool bRota
 	int						iMaxWidth;
 	int						iWidth;
 	int						iHeight;
+	size					uiNumElements;
 
 	//The narrowest attempt that can hold every rectangle is as wide as the widest rectangle.  Turning to fit lets a rectangle use its shorter side.
 	iMaxWidth = 0;
-	for (i = 0; i < masSourceRectangles.NumElements(); i++)
+	uiNumElements = masSourceRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = masSourceRectangles.Get(i);
 		pcRect->GetSize(eRotation, &iWidth, &iHeight);
@@ -261,10 +269,12 @@ void CRectangleBestPacker::AddSquareAttempt(void)
 	float32					fArea;
 	int						iMaxWidth;
 	int						iMinWidth;
+	size					uiNumElements;
 
 	//Aim for a square: the side of a square with the area of the rectangles and the gaps after them.
 	fArea = 0.0f;
-	for (i = 0; i < masSourceRectangles.NumElements(); i++)
+	uiNumElements = masSourceRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = masSourceRectangles.Get(i);
 		fArea += (float32)(pcRect->miWidth + miInnerEdgeWidth) * (float32)(pcRect->miHeight + miInnerEdgeWidth);

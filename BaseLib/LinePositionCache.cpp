@@ -97,8 +97,10 @@ void CLinePositionCache::Kill(void)
 void CLinePositionCache::KillRows(CArrayLineRow* pacRows)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < pacRows->NumElements(); i++)
+	uiNumElements = pacRows->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pacRows->Get(i)->Kill();
 	}
@@ -182,12 +184,14 @@ CLine* CLinePositionCache::GetLine(CArrayLineRow* pacRows, CMapIntTemplate<size>
 	CArrayLine*	pacLines;
 	CLine*		pcLine;
 	size		i;
+	size		uiNumElements;
 
 	puiIndex = pcIndices->Get(iKey);
 	if (puiIndex != NULL)
 	{
 		pacLines = pacRows->Get(*puiIndex)->GetLines();
-		for (i = 0; i < pacLines->NumElements(); i++)
+		uiNumElements = pacLines->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcLine = pacLines->Get(i);
 			if (pcLine->IsPositionOn(x, y))
@@ -287,8 +291,10 @@ void CLinePositionCache::GetLines(CArrayLine* pacLines)
 	size		i;
 	size		j;
 	CArrayLine*	pacRowLines;
+	size		uiNumElements;
 
-	for (i = 0; i < macHorizontalRows.NumElements(); i++)
+	uiNumElements = macHorizontalRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pacRowLines = macHorizontalRows.Get(i)->GetLines();
 		for (j = 0; j < pacRowLines->NumElements(); j++)
@@ -296,7 +302,8 @@ void CLinePositionCache::GetLines(CArrayLine* pacLines)
 			pacLines->Add(pacRowLines->Get(j));
 		}
 	}
-	for (i = 0; i < macVerticalRows.NumElements(); i++)
+	uiNumElements = macVerticalRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pacRowLines = macVerticalRows.Get(i)->GetLines();
 		for (j = 0; j < pacRowLines->NumElements(); j++)

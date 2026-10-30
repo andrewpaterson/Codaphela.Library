@@ -196,12 +196,14 @@ bool CMeshUVCoords::Save(CObjectWriter* pcFile)
 {
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
+	size			uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
 	ReturnOnFalse(pcFile->WriteSInt((int)mcLayers.NumElements()));
 
-	for (i = 0; i < mcLayers.NumElements(); i++)
+	uiNumElements = mcLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcUVLayer = mcLayers.Get(i);
 		ReturnOnFalse(pcUVLayer->Save(pcFile));
@@ -218,13 +220,15 @@ int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 {
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
+	size			uiNumFaces;
 
 	if (mbInUse)
 	{
 		pcUVLayer = mcLayers.Add();
 		pcUVLayer->Init();
 
-		for (i = 0; i < pcConn->mcFaces.NumElements(); i++)
+		uiNumFaces = pcConn->mcFaces.NumElements();
+		for (i = 0; i < uiNumFaces; i++)
 		{
 			pcUVLayer->AddFace(-1, -1, -1);
 		}
@@ -273,10 +277,12 @@ void CMeshUVCoords::AddFace(void)
 {	
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
+	size			uiNumElements;
 
 	if (mbInUse)
 	{
-		for (i = 0; i < mcLayers.NumElements(); i++)
+		uiNumElements = mcLayers.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcUVLayer = mcLayers.Get(i);
 			pcUVLayer->AddFace(-1, -1, -1);
@@ -296,8 +302,10 @@ void CMeshUVCoords::IndexFaceCorners(int* paiDest, ptrdiff iStride, CArrayInt* p
 	SMeshUVFace*		psFaceUV;
 	size				j;
 	CMeshUVLayer*		pcUVLayer;
+	size				uiNumElements;
 
-	for (i = 0; i < paiSourceFaces->NumElements(); i++)
+	uiNumElements = paiSourceFaces->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iFaceIndex = paiSourceFaces->GetValue(i);
 		for (j = 0; j < iNumLayers; j++)
@@ -340,11 +348,13 @@ int CMeshUVCoords::NumUVs(void)
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
 	size			iNumUVs;
+	size			uiNumElements;
 
 	if (mbInUse)
 	{
 		iNumUVs = 0;
-		for (i = 0; i < mcLayers.NumElements(); i++)
+		uiNumElements = mcLayers.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcUVLayer = mcLayers.Get(i);
 			iNumUVs += pcUVLayer->mcUVs.NumElements();

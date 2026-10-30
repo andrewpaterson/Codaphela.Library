@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayBit : public CMalloc
 {
 protected:
-	size	miNumBits;
+	lsize	miNumBits;
 
 	union
 	{
@@ -50,24 +50,24 @@ public:
 	void	Kill(void);
 	void	Zero(void);
 	void	ReInit(void);
-	void	GrowBy(size iNumBits);
-	void	GrowTo(size iNumBits);
+	void	GrowBy(lsize iNumBits);
+	void	GrowTo(lsize iNumBits);
 
-	bool	Get(size iBit);  //return 0 or not 0 (not necessarily 1).
-	void	Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits);
+	bool	Get(lsize iBit);  //return 0 or not 0 (not necessarily 1).
+	void	Get(void* pvDest, lsize iDestOffset, lsize iOffset, lsize iNumBits);
 
 	void	Add(bool bBit);
-	void	Add(void* pvSource, size iSourceOffset, size iNumBits);
+	void	Add(void* pvSource, lsize iSourceOffset, lsize iNumBits);
 
-	void	Set(size iBit, bool bBit);  //bBit can only take 1 or 0.
-	void	Set(size iOffset, void* pvSource, size iSourceOffset, size iNumBits);
+	void	Set(lsize iBit, bool bBit);  //bBit can only take 1 or 0.
+	void	Set(lsize iOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits);
 
 	bool	Read(CFileReader* pcFileReader);
 	bool	Write(CFileWriter* pcFileWriter);
 
-	size	NumElements(void);
+	lsize	NumElements(void);
 	void*	GetData(void);
-	size	ByteSize(size iNumBits);
+	lsize	ByteSize(lsize iNumBits);
 
 	bool	IsLarge(void);
 

@@ -211,9 +211,9 @@ OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* 
 
 	while (mcIteration.NextIndex(&oi))
 	{
-		if (Get(oi, &uiDataSize, pvData, (size)iMaxDataSize))
+		if (Get(oi, &uiDataSize, pvData, iMaxDataSize))
 		{
-			SafeAssign(piDataSize, (size)uiDataSize);
+			SafeAssign(piDataSize, uiDataSize);
 			return oi;
 		}
 	}

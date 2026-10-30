@@ -38,10 +38,12 @@ void CImageCelBlitterCache::Free(void)
 {
 	size			i;
 	CImageCel*		pcCel;
+	size			uiNumElements;
 
 	//maBlitters has already been freed so only the cels are touched.  A cel still listed has not been freed yet,
 	//because a freed cel sets its entry to NULL.
-	for (i = 0; i < mapcCels.NumElements(); i++)
+	uiNumElements = mapcCels.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCel = *mapcCels.Get(i);
 		if (pcCel)

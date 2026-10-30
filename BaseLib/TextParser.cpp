@@ -39,7 +39,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText)
 {
-	return Init(szText, StrLen(szText));
+	return Init(szText, (lsize)strlen(szText));
 }
 
 
@@ -59,7 +59,7 @@ bool CTextParser::Init(CChars* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(void)
 {
-	return Init(NULL, (size)0);
+	return Init(NULL, (lsize)0);
 }
 
 
@@ -67,7 +67,7 @@ bool CTextParser::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(const char* szText, size iTextLen)
+bool CTextParser::Init(const char* szText, lsize iTextLen)
 {
 	STextParserConfig	sConfig;
 		
@@ -83,7 +83,7 @@ bool CTextParser::Init(const char* szText, size iTextLen)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText, STextParserConfig* psConfig)
 {
-	return Init(szText, StrLen(szText), psConfig);
+	return Init(szText, (lsize)strlen(szText), psConfig);
 }
 
 
@@ -91,7 +91,7 @@ bool CTextParser::Init(const char* szText, STextParserConfig* psConfig)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(const char* szText, size iTextLen, STextParserConfig* psConfig)
+bool CTextParser::Init(const char* szText, lsize iTextLen, STextParserConfig* psConfig)
 {
 	//This assumes that szText has already been passified.
 
@@ -2609,7 +2609,7 @@ void CTextParser::SetPosition(STextPosition* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextParser::Line(void)
+lsize CTextParser::Line(void)
 {
 	return miLine;
 }
@@ -2619,7 +2619,7 @@ size CTextParser::Line(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextParser::Column(void)
+lsize CTextParser::Column(void)
 {
 	return miColumn;
 }
@@ -2629,9 +2629,9 @@ size CTextParser::Column(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextParser::Length(void)
+lsize CTextParser::Length(void)
 {
-	return (size)(mszEndOfText - mszStartOfText) + 1;
+	return (lsize)(mszEndOfText - mszStartOfText) + 1;
 }
 
 
@@ -2639,9 +2639,9 @@ size CTextParser::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextParser::RemainingLength(void)
+lsize CTextParser::RemainingLength(void)
 {
-	return (size)(mszEndOfText - mszParserPos) + 1;
+	return (lsize)(mszEndOfText - mszParserPos) + 1;
 }
 
 
@@ -2649,9 +2649,20 @@ size CTextParser::RemainingLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextParser::UsedLength(void)
+lsize CTextParser::UsedLength(void)
 {
-	return (size)(mszParserPos - mszStartOfText);
+	return (lsize)(mszParserPos - mszStartOfText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextParser::SearchLength(void)
+{
+	//Line feeds are only looked for before the last character.
+	return (Length() > 0) ? Length() - 1 : 0;
 }
 
 
@@ -2702,9 +2713,9 @@ void CTextParser::AppendError(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::GetText(CExternalString* pcDest)
+const char* CTextParser::Text(void)
 {
-	pcDest->Init(mszStartOfText, mszEndOfText);
+	return mszStartOfText;
 }
 
 
@@ -2714,16 +2725,16 @@ void CTextParser::GetText(CExternalString* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::PrintPosition(CChars* pszDest)
 {
-	CChars	szParserText;
-	size	iPreviousLineEnd;
-	size	iLineEnd;
+	lsize	iSearchLength;
+	lsize	iPreviousLineEnd;
+	lsize	iLineEnd;
 
-	szParserText.Fake(mszStartOfText, 0, Length() - 1);
-	iPreviousLineEnd = szParserText.FindFromEnd(UsedLength() - 1, "\n");
+	iSearchLength = SearchLength();
+	iPreviousLineEnd = FindLineFeedBefore(mszStartOfText, iSearchLength, UsedLength());
 
-	iLineEnd = szParserText.Find(UsedLength(), "\n");
+	iLineEnd = FindLineFeedFrom(mszStartOfText, iSearchLength, UsedLength());
 
-	if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND && iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+	if (iPreviousLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND && iLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
 		PrintPositionSingleLineParser(pszDest);
 	}
@@ -2740,15 +2751,12 @@ void CTextParser::PrintPosition(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::PrintPositionSingleLineParser(CChars* pszDest)
 {
-	CExternalString		pac;
-	size				iBefore;
+	lsize				iBefore;
 
-	pac.Init(mszStartOfText, mszEndOfText);
-
-	pszDest->Append(&pac);
-	iBefore = mszParserPos - mszStartOfText;
+	pszDest->Append(mszStartOfText, (size)Length());
+	iBefore = UsedLength();
 	pszDest->AppendNewLine();
-	pszDest->Append(' ', iBefore);
+	pszDest->Append(' ', (size)iBefore);
 	pszDest->Append('^');
 	pszDest->AppendNewLine();
 }
@@ -2761,32 +2769,29 @@ void CTextParser::PrintPositionSingleLineParser(CChars* pszDest)
 void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 {
 	CChars				szParserLine;
-	CExternalString		pac;
-	CChars				szParserText;
-	size				iPreviousLineEnd;
-	size				iLineEnd;
-	size				iParserPos;
+	lsize				iSearchLength;
+	lsize				iPreviousLineEnd;
+	lsize				iLineEnd;
+	lsize				iParserPos;
 	CChars				szLine;
 
-	szParserText.Fake(mszStartOfText, 0, Length() - 1);
-	iPreviousLineEnd = szParserText.FindFromEnd(UsedLength() - 1, "\n");
+	iSearchLength = SearchLength();
+	iPreviousLineEnd = FindLineFeedBefore(mszStartOfText, iSearchLength, UsedLength());
 
-	iLineEnd = szParserText.Find(UsedLength(), "\n");
+	iLineEnd = FindLineFeedFrom(mszStartOfText, iSearchLength, UsedLength());
 
-	if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+	if (iPreviousLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
 		iPreviousLineEnd = 0;
 	}
-	if (iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+	if (iLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
 		iLineEnd = Length();
 	}
 
-	pac.Init(&mszStartOfText[iPreviousLineEnd], &mszStartOfText[iLineEnd]);
+	iParserPos = UsedLength();
 
-	iParserPos = mszParserPos - mszStartOfText;
-
-	szParserLine.Init(&pac);
+	szParserLine.Init(&mszStartOfText[iPreviousLineEnd], 0, (size)(iLineEnd + 1 - iPreviousLineEnd));
 	szParserLine.Replace("\n", " ");
 	szParserLine.Replace("\r", "");
 
@@ -2799,7 +2804,7 @@ void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 	pszDest->Append(szParserLine);
 	pszDest->AppendNewLine();
 	pszDest->Append(' ', szLine.Length());
-	pszDest->Append(' ', iParserPos - iPreviousLineEnd);
+	pszDest->Append(' ', (size)(iParserPos - iPreviousLineEnd));
 	pszDest->Append('^');
 	pszDest->AppendNewLine();
 

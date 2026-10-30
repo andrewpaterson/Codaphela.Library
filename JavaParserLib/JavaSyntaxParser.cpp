@@ -22,7 +22,8 @@ void CJavaSyntaxParser::Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pc
 	PushPosition();
 
 	mszFilename.Init(pcTokenParser->GetFilename());
-	pcTokenParser->GetText(&mcText);
+	mszText = pcTokenParser->GetText();
+	miTextLength = pcTokenParser->GetTextLength();
 
 	mcSyntaxTree.Init();
 	mcError.Init(&mcSyntaxTree, NULL);
@@ -1961,11 +1962,11 @@ void CJavaSyntaxParser::PrivateError(char* szError)
 	}
 	else
 	{
-		sPos.Init(mcText.msz, mcText.miLen, &(mcText.msz[mcText.miLen]));
+		sPos.Init(mszText, miTextLength, &mszText[miTextLength]);
 		psPos = &sPos;
 	}
 
-	cPrinter.Init(&mcText, psPos, mszFilename.Text());
+	cPrinter.Init(mszText, miTextLength, psPos, mszFilename.Text());
 	sz.Init(szError);
 	sz.AppendNewLine();
 	cPrinter.PrintPosition(&sz);

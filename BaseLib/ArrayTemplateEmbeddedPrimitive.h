@@ -188,8 +188,10 @@ template<class M, int8 I>
 void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iValue)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < this->NumElements(); i++)
+	uiNumElements = this->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		this->GetData()[i] = iValue;
 	}
@@ -204,8 +206,10 @@ template<class M, int8 I>
 void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iStartValue, M iIncrement)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < this->NumElements(); i++)
+	uiNumElements = this->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		this->GetData()[i] = iStartValue;
 		iStartValue += iIncrement;
@@ -243,8 +247,10 @@ template<class M, int8 I>
 size CArrayTemplateEmbeddedPrimitive<M, I>::Find(M iValue)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < this->NumElements(); i++)
+	uiNumElements = this->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (this->GetData()[i] == iValue)
 		{
@@ -360,13 +366,15 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveDuplicatesFromSorted(void)
 	M		iCurrent;
 	bool	bAnyRemoved;
 	size  iWrite;
+	size	uiNumElements;
 
 	bAnyRemoved = false;
     if (this->NumElements() > 0)
     {
         iCurrent = GetValue(0);
         iWrite = 1;
-        for (i = 1; i < this->NumElements(); i++)
+        uiNumElements = this->NumElements();
+        for (i = 1; i < uiNumElements; i++)
         {
             iValue = GetValue(i);
             if (iValue != iCurrent)
@@ -443,12 +451,14 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::IsSorted(void)
 	size	i;
 	M		iValue;
 	M		iLast;
+	size	uiNumElements;
 
 	if (this->NumElements() > 1)
 	{
 		iLast = GetValue(0);
 
-		for (i = 1; i < this->NumElements(); i++)
+		uiNumElements = this->NumElements();
+		for (i = 1; i < uiNumElements; i++)
 		{
 			iValue = GetValue(i);
 			if (i != 0)
@@ -479,13 +489,15 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::FindFinalContiguousInSorted(void)
 {
 	size	i;
 	M		iValue;
+	size	uiNumElements;
 
 	if (this->NumElements() == 0)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	for (i = 0; i < this->NumElements(); i++)
+	uiNumElements = this->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iValue = GetValue(i);
 		if ((M)i != iValue)

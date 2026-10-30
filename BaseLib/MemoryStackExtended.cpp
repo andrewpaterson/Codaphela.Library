@@ -190,6 +190,8 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 	size			i;
 	CMemoryStack*	pcStack;
 	SStackMark*		psMark;
+	size			uiNumElements;
+	size			uiNumMarks;
 
 	if (pcMark->muiElements == 0)
 	{
@@ -197,7 +199,8 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 	}
 	else
 	{
-		for (i = 0; i < pcMark->mcMarks.NumElements(); i++)
+		uiNumMarks = pcMark->mcMarks.NumElements();
+		for (i = 0; i < uiNumMarks; i++)
 		{
 			psMark = pcMark->mcMarks.Get(i);
 
@@ -205,7 +208,8 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 			pcStack->Rollback(psMark);
 		}
 
-		for (; i < mcStacks.NumElements(); i++)
+		uiNumElements = mcStacks.NumElements();
+		for (; i < uiNumElements; i++)
 		{
 			pcStack = mcStacks.Get(i);
 			pcStack->Clear();

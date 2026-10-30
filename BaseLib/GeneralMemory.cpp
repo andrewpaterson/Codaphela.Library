@@ -484,8 +484,10 @@ bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 {
 	size	iIndex;
+	size	uiNumElements;
 
-	for (iIndex = 0; iIndex < mcDefaultFreeLists.NumElements(); iIndex++)
+	uiNumElements = mcDefaultFreeLists.NumElements();
+	for (iIndex = 0; iIndex < uiNumElements; iIndex++)
 	{
 		if (*mcDefaultFreeLists.Get(iIndex) == pcFreeList)
 		{
@@ -494,7 +496,8 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 	}
 
 	//Found by pointer because the order key can't be rebuilt from the free list when the header size is not a multiple of the alignment.
-	for (iIndex = 0; iIndex < mcOrder.NumElements(); iIndex++)
+	uiNumElements = mcOrder.NumElements();
+	for (iIndex = 0; iIndex < uiNumElements; iIndex++)
 	{
 		if (mcOrder.Get(iIndex)->pcFreeList == pcFreeList)
 		{

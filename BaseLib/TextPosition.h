@@ -8,12 +8,12 @@
 struct STextPosition
 {
 	const char*	szPos;
-	size	iLine;
-	size	iColumn;
+	lsize	iLine;
+	lsize	iColumn;
 
 	void	Init(void);
-	void	Init(const char* szPos, size iLine, size iColumn);
-	void	Init(const char* szStartOfText, size iLength, const char* szPosition);
+	void	Init(const char* szPos, lsize iLine, lsize iColumn);
+	void	Init(const char* szStartOfText, lsize iLength, const char* szPosition);
 	void	Clear(void);
 };
 
@@ -23,11 +23,13 @@ class CTextPositionPrinter
 {
 protected:
 	STextPosition		mcTextPosition;
-	CExternalString		mcText;
+	const char*			mszText;
+	lsize				miTextLength;
 	const char*			mszFilename;
 
 public:
 	void	Init(CExternalString* pcText, STextPosition* pcTextPosition, const char* szFilename = NULL);
+	void	Init(const char* szText, lsize iTextLength, STextPosition* pcTextPosition, const char* szFilename = NULL);
 	void	Kill(void);
 
 	void	PrintPosition(CChars* pszDest);
@@ -35,8 +37,13 @@ public:
 protected:
 	void	PrintPositionSingleLineParser(CChars* pszDest);
 	void	PrintPositionMultilineParser(CChars* pszDest);
-	size	UsedLength(void);
+	lsize	UsedLength(void);
+	lsize	SearchLength(void);
 };
+
+
+lsize FindLineFeedBefore(const char* szText, lsize iSearchLength, lsize iIndex);
+lsize FindLineFeedFrom(const char* szText, lsize iSearchLength, lsize iIndex);
 
 
 #endif // __TEXT_POSITION_H__

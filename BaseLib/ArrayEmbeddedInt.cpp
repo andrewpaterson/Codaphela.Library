@@ -62,10 +62,12 @@ void CArrayEmbeddedInt::Dump(void)
 	size	iIndex;
 	int	iValue;
 	char	sz[32];
+	size	uiNumElements;
 
 
 	EngineOutput("[");
-	for (iIndex = 0; iIndex < NumElements(); iIndex++)
+	uiNumElements = NumElements();
+	for (iIndex = 0; iIndex < uiNumElements; iIndex++)
 	{
 		iValue = GetValue(iIndex);
 		IntToString(sz, 32, iValue, 10);

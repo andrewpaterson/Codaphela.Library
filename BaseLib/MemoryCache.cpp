@@ -297,7 +297,7 @@ void CMemoryCache::Deallocate(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::NumElements(void)
+lsize CMemoryCache::NumElements(void)
 {
 	return mcMemoryList.NumElements();
 }
@@ -307,7 +307,7 @@ size CMemoryCache::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCache::NumElements(lsize iSize)
+lsize CMemoryCache::NumElements(lsize iSize)
 {
 	return mcMemoryList.NumElements(iSize);
 }

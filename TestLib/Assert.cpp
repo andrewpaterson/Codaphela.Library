@@ -879,6 +879,11 @@ bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, cha
 	uint8	uiExpected;
 	uint8	uiActual;
 
+	//memcmp finds them the same fastest; only when they differ is the first different byte looked for.
+	if (memcmp(pvExpected, pvActual, iSize) == 0)
+	{
+		return Pass();
+	}
 	for (i = 0; i < iSize; i++)
 	{
 		if (((uint8*)pvExpected)[i] != ((uint8*)pvActual)[i])

@@ -147,10 +147,12 @@ void CPackedLine::Done(void)
 	size					i;
 	CPackRectangleAttempt*	pcRect;
 	int						iTemp;
+	size					uiNumElements;
 
 	miWidth = 0;
 	miHeight = 0;
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 
@@ -177,8 +179,10 @@ CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;
+	size					uiNumElements;
 
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 
@@ -202,8 +206,10 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 	CPackedRectangle*		pcPackedRect;
 	int						iLeft;
 	int						iTop;
+	size					uiNumElements;
 
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 		pcPackedRect = pacPackedRectangles->Add();
@@ -227,8 +233,10 @@ void CPackedLine::Print(CChars* psz)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;
+	size					uiNumElements;
 
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 		

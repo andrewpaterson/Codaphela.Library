@@ -494,8 +494,10 @@ bool CArrayBlockSorted::RemoveFromHoldingArrays(void* pv)
 	size			iIndex;
 	CArrayBlock*	paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		bFound = paHoldingArray->FindInSorted(pv, mfCompare, &iIndex);
@@ -812,9 +814,11 @@ size CArrayBlockSorted::GetHoldingSize(void)
 	size			iSize;
 	CArrayBlock*	paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
 	iSize = 0;
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 
@@ -861,9 +865,11 @@ lsize CArrayBlockSorted::ByteSize(void)
 	lsize			uiSize;
 	CArrayBlock*	paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
 	uiSize = 0;
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 
@@ -884,8 +890,10 @@ void CArrayBlockSorted::Print(CChars* psz)
 {
 	CArrayBlock*	paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 
@@ -919,8 +927,10 @@ size CArrayBlockSorted::Sort(void)
 
 	CArrayBlock*	paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		paHoldingArray->QuickSort(mfCompare);
@@ -943,8 +953,10 @@ bool CArrayBlockSorted::IsSorted(void)
 
 	CArrayBlock* paHoldingArray;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	uiNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		if (!paHoldingArray->IsSorted(mfCompare))

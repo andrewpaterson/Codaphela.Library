@@ -75,11 +75,13 @@ size CChunkIndex::FindFirstChunkWithName(chunkName iName)
 {
 	size		i;
 	chunkName	iTestName;
+	size		uiNumElements;
 
 	miCurrChunkNum = 0;
 	miSearchName = iName;
 
-	for (i = 0; i < mcChunkIndices.NumElements(); i++)
+	uiNumElements = mcChunkIndices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iTestName = mcChunkIndices.Get(i)->miName;
 		if (iTestName == iName)
@@ -99,8 +101,10 @@ size CChunkIndex::FindFirstChunkWithName(chunkName iName)
 size CChunkIndex::FindNextChunkWithName(void)
 {
 	size i;
+	size	uiNumElements;
 
-	for (i = miCurrChunkNum; i < mcChunkIndices.NumElements(); i++)
+	uiNumElements = mcChunkIndices.NumElements();
+	for (i = miCurrChunkNum; i < uiNumElements; i++)
 	{
 		if (mcChunkIndices.Get(i)->miName == miSearchName)
 		{
@@ -120,10 +124,12 @@ size CChunkIndex::GetNumChunksWithName(chunkName iName)
 {
 	size	i;
 	size	iNumWithName;
+	size	uiNumElements;
 
 	iNumWithName = 0;
 
-	for (i = 0; i < mcChunkIndices.NumElements(); i++)
+	uiNumElements = mcChunkIndices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (mcChunkIndices.Get(i)->miName == iName)
 		{

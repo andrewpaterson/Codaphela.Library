@@ -513,6 +513,7 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	int32					iBottom;
 	int32					iViewportRight;
 	int32					iViewportBottom;
+	size					uiNumElements;
 
 	if (mpViewport.IsNull() || (masCommands.NumElements() == 0))
 	{
@@ -535,7 +536,8 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	cRasteriser.Init();
 
 	bResult = true;
-	for (i = 0; i < masCommands.NumElements(); i++)
+	uiNumElements = masCommands.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCommand = masCommands.Get(i);
 		iLeft = (psCommand->cBounds.msTopLeft.x > pcViewportRect->msTopLeft.x) ? psCommand->cBounds.msTopLeft.x : pcViewportRect->msTopLeft.x;

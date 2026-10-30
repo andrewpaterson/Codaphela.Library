@@ -77,6 +77,7 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 	int						iSpaceWidth;
 	int						iLineHeight;
 	int						iTopOffset;
+	size					uiNumElements;
 
 	macCharacters.ReInit();
 	if (!AddCharacters(szUTF8Characters) || !Pack(iImageWidth, &iImageHeight))
@@ -88,7 +89,8 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 	iLineHeight = miAscent + miDescent;
 	pDescription = OMalloc<CFontDescription>(szName, (int16)iSpaceWidth, (int16)miAscent, (int16)miDescent, iImageWidth, iImageHeight);
 
-	for (i = 0; i < macCharacters.NumElements(); i++)
+	uiNumElements = macCharacters.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCharacter = macCharacters.Get(i);
 		if ((psCharacter->iImageWidth > 0) && (meTurn == FT_Clockwise))
@@ -370,8 +372,10 @@ bool CTrueTypeFontFactory::AddCharacters(char* szUTF8Characters)
 bool CTrueTypeFontFactory::HasCharacter(uint32 uiCodePoint)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < macCharacters.NumElements(); i++)
+	uiNumElements = macCharacters.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (macCharacters.Get(i)->uiCodePoint == uiCodePoint)
 		{
@@ -397,11 +401,13 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 	int						iRowHeight;
 	int						iWidth;
 	int						iHeight;
+	size					uiNumElements;
 
 	x = 0;
 	y = 0;
 	iRowHeight = 0;
-	for (i = 0; i < macCharacters.NumElements(); i++)
+	uiNumElements = macCharacters.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCharacter = macCharacters.Get(i);
 		if (psCharacter->iImageWidth == 0)

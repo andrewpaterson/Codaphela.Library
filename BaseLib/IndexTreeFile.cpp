@@ -1636,7 +1636,7 @@ uint32 CIndexTreeFile::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::NumMemoryElements(void)
+lsize CIndexTreeFile::NumMemoryElements(void)
 {
 	return RecurseNumMemoryElements(mpcRoot);
 }
@@ -1646,7 +1646,7 @@ size CIndexTreeFile::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::NumMemoryElements(size iSize)
+lsize CIndexTreeFile::NumMemoryElements(size iSize)
 {
 	return RecurseNumMemoryElements(mpcRoot, iSize);
 }
@@ -2475,12 +2475,12 @@ uint32 CIndexTreeFile::RecurseNumElements(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
+lsize CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 {
 	size					i;
 	CIndexTreeNodeFile*		pcChild;
 	size					iLastIndex;
-	size					count;
+	lsize					count;
 
 	count = 0;
 	if (pcNode != NULL)
@@ -2505,12 +2505,12 @@ size CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize)
+lsize CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize)
 {
 	size					i;
 	CIndexTreeNodeFile*		pcChild;
 	size					iLastIndex;
-	size					count;
+	lsize					count;
 
 	count = 0;
 	if (pcNode != NULL)
@@ -3046,7 +3046,7 @@ size CIndexTreeFile::GetDataSize(uint8* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::CountListSize(void)
+lsize CIndexTreeFile::CountListSize(void)
 {
 	return RecurseCountListSize(mpcRoot);
 }
@@ -3056,12 +3056,12 @@ size CIndexTreeFile::CountListSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
+lsize CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 {
 	size					i;
 	CIndexTreeNodeFile*		pcChild;
 	size					uiLastIndex;
-	size					count;
+	lsize					count;
 
 	if (pcNode != NULL)
 	{
@@ -3408,10 +3408,10 @@ uint32 CIndexTreeFile::RecurseNumNodes(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::NumMemoryNodes(void)
+lsize CIndexTreeFile::NumMemoryNodes(void)
 {
 	CIndexTreeRecursor	cCursor;
-	size					iResult;
+	lsize					iResult;
 
 	cCursor.Init(mpcRoot);
 	iResult = RecurseNumMemoryNodes(&cCursor);
@@ -3425,12 +3425,12 @@ size CIndexTreeFile::NumMemoryNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeFile::RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor)
+lsize CIndexTreeFile::RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeFile*		pcNode;
 	size					i;
 	CIndexTreeNodeFile*		pcChild;
-	size					iCount;
+	lsize					iCount;
 	size					uiFirstIndex;
 	size					uiLastIndex;
 

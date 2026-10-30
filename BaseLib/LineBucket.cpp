@@ -54,8 +54,10 @@ void CLineBucket::Kill(void)
 void CLineBucket::Merge(CLineBucket* pcOther)
 {
 	size	i;
+	size	uiNumLines;
 
-	for (i = 0; i < pcOther->macLines.NumElements(); i++)
+	uiNumLines = pcOther->macLines.NumElements();
+	for (i = 0; i < uiNumLines; i++)
 	{
 		macLines.Add(pcOther->macLines.Get(i));
 	}

@@ -294,6 +294,7 @@ void CMeshFaceTypes::GenerateFromUVCoords(CMeshUVCoords* pcUVs)
 	SMeshUVFace*		psFaceUVs;
 	size				iNumFaces;
 	size				iNumUVs;
+	size				uiNumLayers;
 
 	if (pcUVs->InUse())
 	{
@@ -303,7 +304,8 @@ void CMeshFaceTypes::GenerateFromUVCoords(CMeshUVCoords* pcUVs)
 			psType = mcFaces.Get(i);
 
 			iNumUVs = 0;
-			for (j = 0; j < pcUVs->mcLayers.NumElements(); j++)
+			uiNumLayers = pcUVs->mcLayers.NumElements();
+			for (j = 0; j < uiNumLayers; j++)
 			{
 				pcUVLayer = pcUVs->mcLayers.Get(j);
 				psFaceUVs = pcUVLayer->mcFaces.Get(i);
@@ -390,9 +392,11 @@ void CMeshFaceTypes::UpdateUniquesSkin(void)
 	size			iMaxMatricies;
 	size			j;
 	size			iNumFaces;
+	size			uiNumElements;
 
 	iNumFaces = mcFaces.NumElements();
-	for (i = 0; i < mcUniqueTypes.NumElements(); i++)
+	uiNumElements = mcUniqueTypes.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psUniqueType = mcUniqueTypes.Get(i);
 		iMaxMatricies = 0;
@@ -463,8 +467,10 @@ void CMeshFaceTypes::GetFacesForType(SMeshFaceType* psFaceType, CArrayInt* paiFa
 {
 	size			iFaceNum;
 	SMeshFaceType*	psThisFaceType;
+	size			uiNumElements;
 
-	for (iFaceNum = 0; iFaceNum < mcFaces.NumElements(); iFaceNum++)
+	uiNumElements = mcFaces.NumElements();
+	for (iFaceNum = 0; iFaceNum < uiNumElements; iFaceNum++)
 	{
 		psThisFaceType = mcFaces.Get(iFaceNum);
 

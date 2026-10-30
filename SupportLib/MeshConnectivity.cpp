@@ -126,8 +126,10 @@ void CMeshConnectivity::KillCorners(void)
 {
 	size			i;
 	CMeshCorner*	psCorner;
+	size			uiNumElements;
 
-	for (i = 0; i < mcCorners.NumElements(); i++)
+	uiNumElements = mcCorners.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCorner = mcCorners.Get(i);
 		psCorner->Kill();
@@ -145,8 +147,10 @@ void CMeshConnectivity::KillCornerEdgesMap(void)
 {
 	size				i;
 	CCornerEdgesMap*	pcCornerEdgeMap;
+	size				uiNumElements;
 
-	for (i = 0; i < mcCornerEdgesMap.NumElements(); i++)
+	uiNumElements = mcCornerEdgesMap.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCornerEdgeMap = mcCornerEdgesMap.Get(i);
 		pcCornerEdgeMap->Kill();
@@ -296,6 +300,7 @@ bool CMeshConnectivity::Load(CObjectReader* pcFile)
 {
 	size			i;
 	CMeshCorner*	pcCorner;
+	size			uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Load(pcFile));
 
@@ -306,7 +311,8 @@ bool CMeshConnectivity::Load(CObjectReader* pcFile)
 	}
 
 	//Read in each corner... they contain arrays themselves.
-	for (i = 0; i < mcCorners.NumElements(); i++)
+	uiNumElements = mcCorners.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCorner = mcCorners.Get(i);
 		if (!pcCorner->Load(pcFile))
@@ -343,12 +349,14 @@ bool CMeshConnectivity::Save(CObjectWriter* pcFile)
 {
 	size			i;
 	CMeshCorner*	pcCorner;
+	size			uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
 	ReturnOnFalse(mcCorners.WriteAllocatorAndHeader(pcFile));
 
-	for (i = 0; i < mcCorners.NumElements(); i++)
+	uiNumElements = mcCorners.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCorner = mcCorners.Get(i);
 		if (!pcCorner->Save(pcFile))
@@ -522,8 +530,10 @@ void CMeshConnectivity::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* p
 	size		i;
 	int			iFaceIndex;
 	CMeshFace*	pcFace;
+	size		uiNumElements;
 
-	for (i = 0; i < paiSourceFaces->NumElements(); i++)
+	uiNumElements = paiSourceFaces->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iFaceIndex = paiSourceFaces->GetValue(i);
 		pcFace = mcFaces.Get(iFaceIndex);

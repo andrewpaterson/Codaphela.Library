@@ -76,8 +76,10 @@ void CCSVFileImmutable::Kill(void)
 {
 	size				i;
 	SCSVRowImmutable*	psCSVRow;
+	size				uiNumElements;
 
-	for (i = 0; i < mapsCSVRows.NumElements(); i++)
+	uiNumElements = mapsCSVRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCSVRow = (SCSVRowImmutable*)mapsCSVRows.GetPtr(i);
 		FreeRow(psCSVRow);
@@ -247,8 +249,10 @@ void CCSVFileImmutable::Dump(void)
 {
 	size				i;
 	SCSVRowImmutable*	psCSVRow;
+	size				uiNumElements;
 
-	for (i = 0; i < mapsCSVRows.NumElements(); i++)
+	uiNumElements = mapsCSVRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCSVRow = (SCSVRowImmutable*)mapsCSVRows.GetPtr(i);
 		psCSVRow->Dump();

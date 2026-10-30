@@ -125,7 +125,7 @@ public:
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
-	void	CountChanges(SWriteCounts* psCounts, size iCachedSize);
+	void	CountChanges(SWriteCounts* psCounts, lsize iCachedSize);
 
 protected:
 	bool			CheckActive(void);

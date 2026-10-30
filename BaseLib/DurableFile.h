@@ -37,8 +37,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SDurableFileCommandWrite
 {
-	size	iPosition;
-	size	iSize;
+	filePos	iPosition;
+	lsize	iSize;
 };
 
 

@@ -48,10 +48,12 @@ void CFiles::Kill(void)
 {
 	uint32				i;
 	CPackFileOffset*	pcPackFiles;
+	size				uiNumElements;
 	
 	mszPackFilesExtension.Kill();
 
-	for (i = 0; i < mcPackFilesArray.NumElements(); i++)
+	uiNumElements = mcPackFilesArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPackFiles = mcPackFilesArray.Get(i);
 		pcPackFiles->Kill();
@@ -108,13 +110,15 @@ bool CFiles::AddPackFiles(void)
 	uint32						i;
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
 	bool						bResult;
+	size						uiNumElements;
 
 	mcPackFilesArray.Init();
 
 	aFileNodePtrs.Init();
 	mcFileSystem.GetFiles(&aFileNodePtrs, mszPackFilesExtension.Text());
 	
-	for (i = 0; i < aFileNodePtrs.NumElements(); i++)
+	uiNumElements = aFileNodePtrs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcFileNodeSystemFile = (*aFileNodePtrs.Get(i))->File();
 		bResult = AddPackFile(pcFileNodeSystemFile);
@@ -231,9 +235,11 @@ CPackFile* CFiles::GetPackFile(const char* szFullName)
 	CChars				sz;
 	bool				bResult;
 	CPackFile*			pcPackFile;
+	size				uiNumElements;
 
 	sz.Fake(szFullName);
-	for (i = 0; i < mcPackFilesArray.NumElements(); i++)
+	uiNumElements = mcPackFilesArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPackFiles = mcPackFilesArray.Get(i);
 		bResult = sz.StartsWith(pcPackFiles->mszOffset.Text());

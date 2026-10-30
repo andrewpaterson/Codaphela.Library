@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SBaseParserString::Init(size uiColumn, size uiLine)
+void SBaseParserString::Init(lsize uiColumn, lsize uiLine)
 {
 	this->uiColumn = uiColumn;
 	this->uiLine = uiLine;

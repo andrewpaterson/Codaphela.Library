@@ -93,6 +93,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	SMeshNormalFace*	psFaceNormal;
 	SFloat32Vec3*			pcNormal;
 	CMeshNormals*		pcNormals;
+	size				uiNumFaces;
 
 	if (!pcMesh->mcNormals.InUse())
 	{
@@ -115,7 +116,8 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 		cNormal.Init(0, 0, 0);
 
 		//Step over every face at this vertex
-		for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)
+		uiNumFaces = psCorners[i].aiFace.NumElements();
+		for (j = 0; j < uiNumFaces; j++)
 		{
 			psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 
@@ -133,7 +135,8 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 		iNewNormalIndex = (int)pcNormals->mcNormals.NumElements()-1;
 
 		//Step over every face at this vertex
-		for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)
+		uiNumFaces = psCorners[i].aiFace.NumElements();
+		for (j = 0; j < uiNumFaces; j++)
 		{
 			//Then set the face point normal reference to the newly added normal
 			for (l = 0; l < 3; l++)

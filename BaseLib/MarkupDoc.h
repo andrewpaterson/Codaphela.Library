@@ -50,7 +50,7 @@ public:
 	CMarkupTag*		GetRootTag(void);
 	CMarkupTag*		SetRootTag(char* szTagName);
 
-	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, char* szTagName, size iLine, size iColumn);
+	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, char* szTagName, lsize iLine, lsize iColumn);
 
 	bool			Is(const char* szName);
 	void			AddReference(CMarkupReference* pcRef);

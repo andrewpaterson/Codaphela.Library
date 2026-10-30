@@ -764,13 +764,15 @@ void CImage::RemovePurpose(EImagePurpose ePurpose)
 	EChannel		eChannel;
 	size			i;
 	EImagePurpose	eCurrent;
+	size			uiNumElements;
 
 	if (IsChanging())
 	{
 		mai.Init();
 		GetAllChannels(&mai);
 
-		for (i = 0; i < mai.NumElements(); i++)
+		uiNumElements = mai.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			eChannel = mai.GetValue(i);
 			eCurrent = IMAGE_PURPOSE(eChannel);
@@ -1475,6 +1477,7 @@ void CImage::Print(CChars* psz)
 	uint32				y;
 	CChannelsAccessor*	apcAccessors[8];
 	uint				ui;
+	size				uiNumElements;
 
 	psz->Append("Object[");
 	PrintIdentifier(psz);
@@ -1484,7 +1487,8 @@ void CImage::Print(CChars* psz)
 	aiChannels.Init();
 	pcChannels->GetAllChannels(&aiChannels);
 
-	for (i = 0; i < aiChannels.NumElements(); i++)
+	uiNumElements = aiChannels.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		uiChannel = aiChannels.GetValue(i);
 		pcChannel = GetChannel(uiChannel);
@@ -1514,7 +1518,8 @@ void CImage::Print(CChars* psz)
 
 	for (x = 0; x < msSize.x; x++)
 	{
-		for (i = 0; i < aiChannels.NumElements(); i++)
+		uiNumElements = aiChannels.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			uiChannel = aiChannels.GetValue(i);
 			pcChannel = GetChannel(uiChannel);
@@ -1531,7 +1536,8 @@ void CImage::Print(CChars* psz)
 	{
 		for (x = 0; x < msSize.x; x++)
 		{
-			for (i = 0; i < aiChannels.NumElements(); i++)
+			uiNumElements = aiChannels.NumElements();
+			for (i = 0; i < uiNumElements; i++)
 			{
 				ui = *((uint*)apcAccessors[i]->Get(x + y * msSize.x));
 				psz->Append(" ");

@@ -2555,9 +2555,21 @@ void CHARS::Overwrite(ASIZE iIndex, const char* szReplace)
 //////////////////////////////////////////////////////////////////////////
 void CHARS::Reverse(void)
 {
-	if (!Empty())
+	char*	szText;
+	ASIZE	i;
+	ASIZE	j;
+	char	c;
+
+	//StrRev in this string's size (a CLargeChars can be longer than a size counts), leaving the zero at the end.
+	if (Length() > 1)
 	{
-		StrRev(mcText.GetData(), mcText.NumElements());
+		szText = mcText.GetData();
+		for (i = 0, j = Length() - 1; i < j; i++, j--)
+		{
+			c = szText[j];
+			szText[j] = szText[i];
+			szText[i] = c;
+		}
 	}
 }
 
@@ -2694,7 +2706,16 @@ bool CHARS::AppendData2(const char* szData, ASIZE iDataLength)
 		return false;
 	}
 
-	iPrintable = StrPrintable(szData, iDataLength);
+	//StrPrintable in this string's size.
+	iPrintable = 0;
+	for (i = 0; i < iDataLength; i++)
+	{
+		c = szData[i];
+		if ((c >= 32) && (c <= 126))
+		{
+			iPrintable++;
+		}
+	}
 	fPrintable = (float)iPrintable / (float)iDataLength;
 
 	if (fPrintable >= 0.9f)

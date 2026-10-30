@@ -583,6 +583,38 @@ char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 
 ////////////////////////////////////////////////////////////////////////////////////
 //
+// MemICmp for more bytes than a size counts, a natural run at a time.
+//
+////////////////////////////////////////////////////////////////////////////////////
+int MemICmpLarge(const void* pv1, const void* pv2, lsize iLength)
+{
+	size	iRun;
+	int		iResult;
+
+	if ((pv1 == NULL) || (pv2 == NULL))
+	{
+		return MemICmp(pv1, pv2, 0);
+	}
+
+	do
+	{
+		iRun = (iLength > 0x8000) ? 0x8000 : (size)iLength;
+		iResult = MemICmp(pv1, pv2, iRun);
+		if (iResult != 0)
+		{
+			return iResult;
+		}
+		pv1 = &((const uint8*)pv1)[iRun];
+		pv2 = &((const uint8*)pv2)[iRun];
+		iLength -= iRun;
+	}
+	while (iLength != 0);
+	return 0;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
 //
 ////////////////////////////////////////////////////////////////////////////////////
 char* StrRev(char* szString, size iLength)
@@ -654,7 +686,7 @@ char* StrIStr(char* ps1, const char* ps2)
 
     for (i = 0; i <= iSearchCount; i++)
     {
-        if (MemICmp(ps2, &ps1[i], iS2Len) == 0)
+        if (MemICmpLarge(ps2, &ps1[i], iS2Len) == 0)
         {
             return &ps1[i];
         }

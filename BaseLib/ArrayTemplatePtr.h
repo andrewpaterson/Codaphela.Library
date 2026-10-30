@@ -274,9 +274,11 @@ size CArrayTemplatePtr<M>::Find(M* pv)
 {
 	size	i;
 	M**		pvData;
+	size	uiNumElements;
 
 	pvData = this->GetData();
-	for (i = 0; i < this->NumElements(); i++)
+	uiNumElements = this->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (pvData[i] == pv)
 		{

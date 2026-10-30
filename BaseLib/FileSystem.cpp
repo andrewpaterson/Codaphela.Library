@@ -62,11 +62,13 @@ void CFileSystem::ReadDirectory(void)
 	CChars*				pszFilename;
 	CSystemFileNode*	pcNode;
 	CChars				szName;
+	size				uiNumElements;
 
 	aszFilenames.Init();
 	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFilenames, true, false);
 
-	for (i = 0; i < aszFilenames.NumElements(); i++)
+	uiNumElements = aszFilenames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszFilename = aszFilenames.Get(i);
 		cFileUtil.MakeNameFromDirectory(&szName, pszFilename, &mszDirectory);

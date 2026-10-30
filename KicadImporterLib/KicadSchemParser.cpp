@@ -28,7 +28,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemParser::Init(char* szText, size iTextLen, char* szFileName, CKicadSchemExpressions* pcExpressions)
+bool CKicadSchemParser::Init(char* szText, lsize iTextLen, char* szFileName, CKicadSchemExpressions* pcExpressions)
 {
 	STextParserConfig	sConfig;
 	bool				bResult;

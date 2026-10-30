@@ -160,7 +160,7 @@ bool GetBit(size iBit, void* pvBitArray)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-bool GetBitReverseHiLo(size iBit, void* pvBitArray)
+bool GetBitReverseHiLo(lsize iBit, void* pvBitArray)
 {
 	//This can be optimised
 
@@ -178,6 +178,35 @@ void SetBit(size iBit, void* pvBitArray, bool bBit)
 {
 	//This can be optimised
 
+	if (bBit)
+	{
+		((uint8*)pvBitArray)[iBit / 8] |= (1 << (iBit % 8));
+	}
+	else
+	{
+		((uint8*)pvBitArray)[iBit / 8] &= ~(1 << (iBit % 8));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	GetBit for a bit position past what a natural size counts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool GetBitLarge(lsize iBit, void* pvBitArray)
+{
+	return ((uint8*)pvBitArray)[iBit / 8] & (1 << (iBit % 8));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	SetBit for a bit position past what a natural size counts.
+//
+//////////////////////////////////////////////////////////////////////////
+void SetBitLarge(lsize iBit, void* pvBitArray, bool bBit)
+{
 	if (bBit)
 	{
 		((uint8*)pvBitArray)[iBit / 8] |= (1 << (iBit % 8));
@@ -425,6 +454,7 @@ void SetBits(size iStart, void* pvBitArray, bool bBit, size iLength)
 }
 
 
+#ifndef __W65C816__
 //////////////////////////////////////////////////////////////////////////
 //
 //	iArray size is in bits
@@ -631,8 +661,6 @@ size FindFirstClearBit(uint32 uiBits)
 
 	_BitScanForward(&uiIndex, ~uiBits);
 	return uiIndex;
-#elif defined(__W65C816__)
-	return __builtin_ctzl(~uiBits);		//An int is 16 bits.
 #else
 	return __builtin_ctz(~uiBits);
 #endif // _MSC_VER
@@ -664,6 +692,7 @@ size FindFirstSetBit(uint64 uiBits)
 	return __builtin_ctzll(uiBits);
 #endif // _MSC_VER
 }
+#endif // __W65C816__ (Libc65's string816_16.asm has them)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -784,6 +813,7 @@ size FindNextClearBit(void* pvArray, size iArraySize, size iStartBit)
 }
 
 
+#ifndef __W65C816__
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -837,6 +867,204 @@ size FindLastSetBit(void* pvArray, size iArraySize)
 	}
 
 	return ARRAY_ELEMENT_NOT_FOUND;
+}
+#endif // __W65C816__ (Libc65's string816_16.asm has them)
+
+
+#ifndef __W65C816__
+//////////////////////////////////////////////////////////////////////////
+//
+//	The lowest bit of the first iArraySize bits of pvArray that is set
+//	after the bytes are xored with uiInvert.
+//
+//////////////////////////////////////////////////////////////////////////
+static lsize FindFirstBitLarge(void* pvArray, lsize iArraySize, uint8 uiInvert)
+{
+	lsize	iBytes;
+	lsize	i;
+	uint8	c;
+	uint8	uiRemainder;
+
+	iBytes = iArraySize / 8;
+	for (i = 0; i < iBytes; i++)
+	{
+		c = (uint8)(((uint8*)pvArray)[i] ^ uiInvert);
+		if (c != 0)
+		{
+			return i * 8 + FindFirstSetBit((uint64)c);
+		}
+	}
+
+	uiRemainder = (uint8)(iArraySize % 8);
+	if (uiRemainder != 0)
+	{
+		c = (uint8)((((uint8*)pvArray)[i] ^ uiInvert) & ((1 << uiRemainder) - 1));
+		if (c != 0)
+		{
+			return i * 8 + FindFirstSetBit((uint64)c);
+		}
+	}
+	return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	The highest bit of the first iArraySize bits of pvArray that is set
+//	after the bytes are xored with uiInvert.
+//
+//////////////////////////////////////////////////////////////////////////
+static lsize FindLastBitLarge(void* pvArray, lsize iArraySize, uint8 uiInvert)
+{
+	lsize	i;
+	uint8	c;
+	uint8	uiRemainder;
+	uint8	uiBit;
+
+	i = iArraySize / 8;
+	uiRemainder = (uint8)(iArraySize % 8);
+	if (uiRemainder != 0)
+	{
+		c = (uint8)((((uint8*)pvArray)[i] ^ uiInvert) & ((1 << uiRemainder) - 1));
+	}
+	else
+	{
+		c = 0;
+	}
+
+	for (;;)
+	{
+		if (c != 0)
+		{
+			uiBit = 7;
+			while ((c & (1 << uiBit)) == 0)
+			{
+				uiBit--;
+			}
+			return i * 8 + uiBit;
+		}
+		if (i == 0)
+		{
+			return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+		}
+		i--;
+		c = (uint8)(((uint8*)pvArray)[i] ^ uiInvert);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindFirstSetBitLarge(void* pvArray, lsize iArraySize)
+{
+	return FindFirstBitLarge(pvArray, iArraySize, 0x00);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindFirstClearBitLarge(void* pvArray, lsize iArraySize)
+{
+	return FindFirstBitLarge(pvArray, iArraySize, 0xff);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindLastSetBitLarge(void* pvArray, lsize iArraySize)
+{
+	return FindLastBitLarge(pvArray, iArraySize, 0x00);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindLastClearBitLarge(void* pvArray, lsize iArraySize)
+{
+	return FindLastBitLarge(pvArray, iArraySize, 0xff);
+}
+#endif // __W65C816__ (Libc65's string816.asm has them)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindNextSetBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit)
+{
+	lsize	iResult;
+
+	if (iStartBit >= iArraySize)
+	{
+		return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	}
+	while ((iStartBit % 8) != 0)
+	{
+		if (GetBitLarge(iStartBit, pvArray))
+		{
+			return iStartBit;
+		}
+		iStartBit++;
+		if (iStartBit == iArraySize)
+		{
+			return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+		}
+	}
+
+	iResult = FindFirstSetBitLarge(&((uint8*)pvArray)[iStartBit / 8], iArraySize - iStartBit);
+	if (iResult != ARRAY_LARGE_ELEMENT_NOT_FOUND)
+	{
+		return iResult + iStartBit;
+	}
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindNextClearBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit)
+{
+	lsize	iResult;
+
+	if (iStartBit >= iArraySize)
+	{
+		return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	}
+	while ((iStartBit % 8) != 0)
+	{
+		if (!GetBitLarge(iStartBit, pvArray))
+		{
+			return iStartBit;
+		}
+		iStartBit++;
+		if (iStartBit == iArraySize)
+		{
+			return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+		}
+	}
+
+	iResult = FindFirstClearBitLarge(&((uint8*)pvArray)[iStartBit / 8], iArraySize - iStartBit);
+	if (iResult != ARRAY_LARGE_ELEMENT_NOT_FOUND)
+	{
+		return iResult + iStartBit;
+	}
+	return iResult;
 }
 
 
@@ -1412,18 +1640,18 @@ uint8 GetNybble(size iNybble, void* pvArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CopyBits(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset, size iNumBits, bool bClear)
+void CopyBits(void* pvDest, lsize iDestOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits, bool bClear)
 {
-	size	i;
+	lsize	i;
 	bool	bBit;
-	size	iRemaining;
-	size	iLast;
+	lsize	iRemaining;
+	lsize	iLast;
 
 	//Optimise this later...  Use bit shifting and friends.
 	for (i = 0; i < iNumBits; i++)
 	{
-		bBit = GetBit(iSourceOffset + i, pvSource);
-		SetBit(iDestOffset + i, pvDest, bBit);
+		bBit = GetBitLarge(iSourceOffset + i, pvSource);
+		SetBitLarge(iDestOffset + i, pvDest, bBit);
 	}
 
 	if (bClear)
@@ -1434,7 +1662,7 @@ void CopyBits(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset
 		iRemaining = (8 - ((iDestOffset + iNumBits) % 8)) % 8;
 		for (i = 0; i < iRemaining; i++)
 		{
-			SetBit(iDestOffset + iLast + i, pvDest, 0);
+			SetBitLarge(iDestOffset + iLast + i, pvDest, 0);
 		}
 	}
 }
@@ -1444,12 +1672,12 @@ void CopyBits(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CopyBitsReverseHiLo(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset, size iNumBits, bool bClear)
+void CopyBitsReverseHiLo(void* pvDest, lsize iDestOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits, bool bClear)
 {
-	size	i;
+	lsize	i;
 	bool	bBit;
-	size	iRemaining;
-	size	iLast;
+	lsize	iRemaining;
+	lsize	iLast;
 
 	//This reverses bits in a byte.  Not the whole bitstream.  That's a much more difficult problem to solve.
 	//This function is useless if it is not fully 8bits aligned.
@@ -1458,7 +1686,7 @@ void CopyBitsReverseHiLo(void* pvDest, size iDestOffset, void* pvSource, size iS
 	for (i = 0; i < iNumBits; i++)
 	{
 		bBit = GetBitReverseHiLo(iSourceOffset + i, pvSource);
-		SetBit(iDestOffset + i, pvDest, bBit);
+		SetBitLarge(iDestOffset + i, pvDest, bBit);
 	}
 
 	if (bClear)
@@ -1469,7 +1697,7 @@ void CopyBitsReverseHiLo(void* pvDest, size iDestOffset, void* pvSource, size iS
 		iRemaining = (8 - ((iDestOffset + iNumBits) % 8)) % 8;
 		for (i = 0; i < iRemaining; i++)
 		{
-			SetBit(iDestOffset + iLast + i, pvDest, 0);
+			SetBitLarge(iDestOffset + iLast + i, pvDest, 0);
 		}
 	}
 }

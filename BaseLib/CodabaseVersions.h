@@ -55,7 +55,7 @@ public:
 
 	void			GetIndices(CArrayOIndex* paoi);
 	void			GetNames(CArrayChars* paszNames);
-	size			NumVersions(void);
+	lsize			NumVersions(void);
 };
 
 

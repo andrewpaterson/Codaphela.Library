@@ -128,6 +128,9 @@ void CAsm65Object::Init(const char* szName)
 	mcSymbols.Init();
 	mcSymbolIndices.Init(true, true);
 	mcRelocations.Init();
+	maszSourceFiles.Init();
+	mcSourceLines.Init();
+	mcFingerprints.Init();
 }
 
 
@@ -140,6 +143,13 @@ void CAsm65Object::Kill(void)
 	size			i;
 	SAsm65Section*	psSection;
 
+	for (i = 0; i < mcFingerprints.NumElements(); i++)
+	{
+		mcFingerprints.Get(i)->szLabel.Kill();
+	}
+	mcFingerprints.Kill();
+	mcSourceLines.Kill();
+	maszSourceFiles.Kill();
 	mcRelocations.Kill();
 	mcSymbolIndices.Kill();
 	for (i = 0; i < mcSymbols.NumElements(); i++)
@@ -331,6 +341,102 @@ size CAsm65Object::NumRelocations(void)
 SAsm65Relocation* CAsm65Object::GetRelocation(size uiIndex)
 {
 	return mcRelocations.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code at uiOffset in the section is for line uiLine (1 based) of
+// szFile.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Object::AddSourceLine(uint32 uiSection, uint32 uiOffset, const char* szFile, uint32 uiLine)
+{
+	SAsm65SourceLine*	psSourceLine;
+	size				uiFile;
+
+	for (uiFile = maszSourceFiles.NumElements(); uiFile > 0; uiFile--)
+	{
+		if (maszSourceFiles.Get(uiFile - 1)->Equals(szFile))
+		{
+			break;
+		}
+	}
+	if (uiFile == 0)
+	{
+		maszSourceFiles.Add(szFile);
+		uiFile = maszSourceFiles.NumElements();
+	}
+	psSourceLine = mcSourceLines.Add();
+	psSourceLine->uiSection = uiSection;
+	psSourceLine->uiOffset = uiOffset;
+	psSourceLine->uiFile = (uint32)(uiFile - 1);
+	psSourceLine->uiLine = uiLine;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Object::NumSourceLines(void)
+{
+	return mcSourceLines.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SAsm65SourceLine* CAsm65Object::GetSourceLine(size uiIndex)
+{
+	return mcSourceLines.SafeGet(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CAsm65Object::GetSourceFile(size uiIndex)
+{
+	return (uiIndex < maszSourceFiles.NumElements()) ? maszSourceFiles.Get(uiIndex)->Text() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Object::AddFingerprint(const char* szLabel, uint32 uiHash, int64 iTime)
+{
+	SAsm65Fingerprint*	psFingerprint;
+
+	psFingerprint = mcFingerprints.Add();
+	psFingerprint->szLabel.Init(szLabel);
+	psFingerprint->uiHash = uiHash;
+	psFingerprint->iTime = iTime;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Object::NumFingerprints(void)
+{
+	return mcFingerprints.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SAsm65Fingerprint* CAsm65Object::GetFingerprint(size uiIndex)
+{
+	return mcFingerprints.SafeGet(uiIndex);
 }
 
 
@@ -564,6 +670,8 @@ bool CAsm65Object::WriteChunks(CChunkFile* pcChunkFile)
 	SAsm65Section*		psSection;
 	SAsm65ObjectSymbol*	psSymbol;
 	SAsm65Relocation*	psRelocation;
+	SAsm65SourceLine*	psSourceLine;
+	SAsm65Fingerprint*	psFingerprint;
 	bool				bResult;
 
 	bResult = pcChunkFile->WriteChunkBegin();
@@ -624,6 +732,31 @@ bool CAsm65Object::WriteChunks(CChunkFile* pcChunkFile)
 		bResult &= pcChunkFile->WriteInt32(psRelocation->uiColumn);
 	}
 	bResult &= pcChunkFile->WriteChunkEnd("Relocations");
+
+	bResult &= pcChunkFile->WriteChunkBegin();
+	bResult &= pcChunkFile->WriteInt32((uint32)maszSourceFiles.NumElements());
+	for (i = 0; i < maszSourceFiles.NumElements(); i++)
+	{
+		bResult &= maszSourceFiles.Get(i)->WriteString(pcChunkFile);
+	}
+	bResult &= pcChunkFile->WriteInt32((uint32)mcSourceLines.NumElements());
+	for (i = 0; i < mcSourceLines.NumElements(); i++)
+	{
+		psSourceLine = mcSourceLines.Get(i);
+		bResult &= pcChunkFile->WriteInt32(psSourceLine->uiSection);
+		bResult &= pcChunkFile->WriteInt32(psSourceLine->uiOffset);
+		bResult &= pcChunkFile->WriteInt32(psSourceLine->uiFile);
+		bResult &= pcChunkFile->WriteInt32(psSourceLine->uiLine);
+	}
+	bResult &= pcChunkFile->WriteInt32((uint32)mcFingerprints.NumElements());
+	for (i = 0; i < mcFingerprints.NumElements(); i++)
+	{
+		psFingerprint = mcFingerprints.Get(i);
+		bResult &= psFingerprint->szLabel.WriteString(pcChunkFile);
+		bResult &= pcChunkFile->WriteInt32(psFingerprint->uiHash);
+		bResult &= pcChunkFile->WriteInt64(psFingerprint->iTime);
+	}
+	bResult &= pcChunkFile->WriteChunkEnd("Sources");
 	return bResult;
 }
 
@@ -659,7 +792,7 @@ bool CAsm65Object::ReadChunks(CChunkFile* pcChunkFile)
 	{
 		return false;
 	}
-	return ReadHeader(pcChunkFile) && ReadSections(pcChunkFile) && ReadSymbols(pcChunkFile) && ReadRelocations(pcChunkFile);
+	return ReadHeader(pcChunkFile) && ReadSections(pcChunkFile) && ReadSymbols(pcChunkFile) && ReadRelocations(pcChunkFile) && ReadSources(pcChunkFile);
 }
 
 
@@ -806,6 +939,67 @@ bool CAsm65Object::ReadRelocations(CChunkFile* pcChunkFile)
 			}
 		}
 		else if ((psRelocation->iTargetSection < 0) || (psRelocation->iTargetSection >= (int32)mcSections.NumElements()))
+		{
+			return false;
+		}
+	}
+	return pcChunkFile->ReadChunkEnd();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Object::ReadSources(CChunkFile* pcChunkFile)
+{
+	uint32				uiCount;
+	uint32				i;
+	SAsm65SourceLine*	psSourceLine;
+	SAsm65Fingerprint*	psFingerprint;
+	CChars				szFile;
+
+	if (!pcChunkFile->ReadChunkBegin("Sources") || !pcChunkFile->ReadInt32(&uiCount))
+	{
+		return false;
+	}
+	for (i = 0; i < uiCount; i++)
+	{
+		szFile.Init();
+		if (!Asm65ReadText(pcChunkFile, &szFile))
+		{
+			szFile.Kill();
+			return false;
+		}
+		maszSourceFiles.Add(szFile.Text());
+		szFile.Kill();
+	}
+	if (!pcChunkFile->ReadInt32(&uiCount))
+	{
+		return false;
+	}
+	for (i = 0; i < uiCount; i++)
+	{
+		psSourceLine = mcSourceLines.Add();
+		if (!pcChunkFile->ReadInt32(&psSourceLine->uiSection) || !pcChunkFile->ReadInt32(&psSourceLine->uiOffset) ||
+			!pcChunkFile->ReadInt32(&psSourceLine->uiFile) || !pcChunkFile->ReadInt32(&psSourceLine->uiLine))
+		{
+			return false;
+		}
+		if ((psSourceLine->uiSection >= mcSections.NumElements()) || (psSourceLine->uiFile >= maszSourceFiles.NumElements()))
+		{
+			return false;
+		}
+	}
+	if (!pcChunkFile->ReadInt32(&uiCount))
+	{
+		return false;
+	}
+	for (i = 0; i < uiCount; i++)
+	{
+		psFingerprint = mcFingerprints.Add();
+		psFingerprint->szLabel.Init();
+		if (!Asm65ReadText(pcChunkFile, &psFingerprint->szLabel) || !pcChunkFile->ReadInt32(&psFingerprint->uiHash) || !pcChunkFile->ReadInt64(&psFingerprint->iTime))
 		{
 			return false;
 		}

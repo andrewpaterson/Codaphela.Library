@@ -56,8 +56,8 @@ public:
 	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);
 	void*						StartIteration(void);
 	void*						Iterate(void* psCurrent);
-	size						NumCached(void);
-	size						NumCached(lsize iSize);
+	lsize						NumCached(void);
+	lsize						NumCached(lsize iSize);
 
 	lsize						GetIndexCacheDescritorSize(void);
 	lsize						GetCacheSize(void);

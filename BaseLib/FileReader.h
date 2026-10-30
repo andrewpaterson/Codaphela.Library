@@ -69,7 +69,7 @@ public:
 						bool	ReadChar(char8* pc);
 						bool	ReadWChar(char16* pc);
 						bool	ReadBool(bool* pb);
-						bool	ReadBits(void* pvData, size iByteLength);
+						bool	ReadBits(void* pvData, lsize iByteLength);
 						bool	ReadIntArray(int32* pai, size iLength);
 
 	//Least significant byte first, whatever the platform's byte order.

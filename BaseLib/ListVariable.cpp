@@ -341,8 +341,10 @@ size CListVariable::IndexOf(void* pvElement)
 {
 	size				i;
 	SPointerAndSize*	psPtr;
+	size				uiNumElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiNumElements = mcArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psPtr = mcArray.Get(i);
 		if (psPtr->pvData == pvElement)

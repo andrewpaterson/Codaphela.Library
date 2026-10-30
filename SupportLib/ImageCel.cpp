@@ -87,10 +87,12 @@ void CImageCel::Free(void)
 {
 	size					i;
 	CImageCelBlitterCache*	pcCache;
+	size					uiNumElements;
 
 	//A blitter does not keep its cel alive, so every cache holding a blitter for this cel must forget it now.
 	//A cache that is freed first takes itself off this list, so every cache still listed has not been freed.
-	for (i = 0; i < mapcBlitterCaches.NumElements(); i++)
+	uiNumElements = mapcBlitterCaches.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCache = *mapcBlitterCaches.Get(i);
 		pcCache->RemoveCelDuringFree(this);

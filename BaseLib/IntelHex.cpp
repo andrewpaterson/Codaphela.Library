@@ -62,8 +62,10 @@ void CIntelHex::Kill(void)
 void CIntelHex::Clear(void)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < macSegments.NumElements(); i++)
+	uiNumElements = macSegments.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		macSegments.Get(i)->cBytes.Kill();
 	}
@@ -277,7 +279,7 @@ bool CIntelHex::ParseRecord(const char* szLine, size uiLength, uint32 uiLine, ui
 void CIntelHex::Write(uint32 uiAddress, uint8* puiBytes, size uiLength)
 {
 	SIntelHexSegment*	psSegment;
-	size				uiOld;
+	lsize				uiOld;
 
 	if (uiLength == 0)
 	{
@@ -454,8 +456,10 @@ bool CIntelHex::Get(uint32 uiAddress, uint8* puiByte)
 {
 	size				i;
 	SIntelHexSegment*	psSegment;
+	size				uiNumElements;
 
-	for (i = 0; i < macSegments.NumElements(); i++)
+	uiNumElements = macSegments.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSegment = macSegments.Get(i);
 		if ((uiAddress >= psSegment->uiAddress) && ((uint64)uiAddress < (uint64)psSegment->uiAddress + psSegment->cBytes.NumElements()))
@@ -480,10 +484,12 @@ void CIntelHex::Fill(uint32 uiAddress, uint32 uiLength, uint8 uiFill, uint8* pui
 	uint64				ulliStart;
 	uint64				ulliEnd;
 	uint64				ulliSegmentEnd;
+	size				uiNumElements;
 
 	memset(puiDest, uiFill, uiLength);
 	ulliEnd = (uint64)uiAddress + uiLength;
-	for (i = 0; i < macSegments.NumElements(); i++)
+	uiNumElements = macSegments.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSegment = macSegments.Get(i);
 		ulliSegmentEnd = (uint64)psSegment->uiAddress + psSegment->cBytes.NumElements();
@@ -494,7 +500,7 @@ void CIntelHex::Fill(uint32 uiAddress, uint32 uiLength, uint8 uiFill, uint8* pui
 		}
 		if (ulliStart < ulliSegmentEnd)
 		{
-			memcpy(&puiDest[ulliStart - uiAddress], psSegment->cBytes.Get((size)(ulliStart - psSegment->uiAddress)), (size)(ulliSegmentEnd - ulliStart));
+			memcpy(&puiDest[ulliStart - uiAddress], psSegment->cBytes.Get((lsize)(ulliStart - psSegment->uiAddress)), (lsize)(ulliSegmentEnd - ulliStart));
 		}
 	}
 }

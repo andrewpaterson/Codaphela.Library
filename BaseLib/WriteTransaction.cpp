@@ -713,9 +713,9 @@ OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 
 	while (mbActive && mcIteration.NextIndex(&oi))
 	{
-		if (Get(oi, &uiDataSize, pvData, (size)iMaxDataSize))
+		if (Get(oi, &uiDataSize, pvData, iMaxDataSize))
 		{
-			SafeAssign(piDataSize, (size)uiDataSize);
+			SafeAssign(piDataSize, uiDataSize);
 			return oi;
 		}
 	}
@@ -793,7 +793,7 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteTransaction::CountChanges(SWriteCounts* psCounts, size iCachedSize)
+void CWriteTransaction::CountChanges(SWriteCounts* psCounts, lsize iCachedSize)
 {
 	SMapIterator	sIter;
 	void*			pvKey;

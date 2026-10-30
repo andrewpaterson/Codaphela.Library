@@ -182,12 +182,14 @@ void CLockManager::ReleaseAll(int64 iTransaction)
 //////////////////////////////////////////////////////////////////////////
 void CLockManager::Release(int64 iTransaction, CArrayOIndex* paoiLocked)
 {
-	size		i;
+	lsize		i;
 	OIndex		oi;
 	CLockEntry*	pcEntry;
+	lsize		uiNumElements;
 
 	mcMutex.Lock();
-	for (i = 0; i < paoiLocked->NumElements(); i++)
+	uiNumElements = paoiLocked->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		oi = paoiLocked->GetValue(i);
 		pcEntry = GetEntry(oi, false);
@@ -308,8 +310,10 @@ void CLockManager::RemoveEntryIfUnused(OIndex oi, CLockEntry* pcEntry)
 size CLockManager::FindRequest(CArrayLockRequest* pasRequests, int64 iTransaction)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < pasRequests->NumElements(); i++)
+	uiNumElements = pasRequests->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (pasRequests->Get(i)->iTransaction == iTransaction)
 		{
@@ -329,11 +333,13 @@ bool CLockManager::FindConflicts(CLockEntry* pcEntry, int64 iTransaction, ELockM
 	size			i;
 	SLockRequest*	psRequest;
 	bool			bConflict;
+	size			uiNumHolders;
 
 	//The conflicts are the other holders and the waiters ahead of this request that cannot share with it.
 	bConflict = false;
 	*pbOlderThanAll = true;
-	for (i = 0; i < pcEntry->masHolders.NumElements(); i++)
+	uiNumHolders = pcEntry->masHolders.NumElements();
+	for (i = 0; i < uiNumHolders; i++)
 	{
 		psRequest = pcEntry->masHolders.Get(i);
 		if ((psRequest->iTransaction != iTransaction) && !IsCompatible(psRequest->eMode, eMode))
@@ -387,9 +393,11 @@ void CLockManager::ReleaseFromEntry(OIndex oi, CLockEntry* pcEntry, int64 iTrans
 void CLockManager::WakeWaiters(CLockEntry* pcEntry)
 {
 	size	i;
+	size	uiNumWaiters;
 
 	//mcMutex must be locked.  Each waiter checks again whether it can have the lock.
-	for (i = 0; i < pcEntry->masWaiters.NumElements(); i++)
+	uiNumWaiters = pcEntry->masWaiters.NumElements();
+	for (i = 0; i < uiNumWaiters; i++)
 	{
 		pcEntry->masWaiters.Get(i)->pcWake->WakeOne();
 	}

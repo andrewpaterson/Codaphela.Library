@@ -67,6 +67,9 @@ void CAssertStatistics::PrintTest(CChars* psz)
 	{
 		psz->Append("No Tests Run!");
 	}
+#if !defined(__LIBC65__)
+	//The 65 targets' programs leave it out: CNumber prints a float for a hundred million cycles or so on a simulator
+	//that counts cycles anyway.
 	if (gbNumberControl)
 	{
 		psz->AppendNewLine();
@@ -74,6 +77,9 @@ void CAssertStatistics::PrintTest(CChars* psz)
 		psz->Append(fTotalTime, 2);
 		psz->Append("s");
 	}
+#else
+	(void)fTotalTime;
+#endif
 	psz->AppendNewLine();
 	psz->AppendNewLine();
 }
@@ -108,11 +114,15 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 		psz->Append("Total Failed: ");
 		psz->Append((uint64)miTotalTestsFailed);
 		psz->AppendNewLine();
+#if !defined(__LIBC65__)
 		psz->AppendNewLine();
 		psz->Append("Total Time:   ");
 		psz->Append(fTotalTime, 2);
 		psz->Append("s");
 		psz->AppendNewLine();
+#else
+		(void)fTotalTime;
+#endif
 		psz->AppendNewLine();
 	}
 }

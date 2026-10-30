@@ -114,10 +114,10 @@ bool CIndexedFile::Write(filePos iIndex, const void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedFile::Write(const void* pvData, size uiCount)
+filePos CIndexedFile::Write(const void* pvData, lsize uiCount)
 {
 	filePos		iFilePos;
-	size		uiWritten;
+	lsize		uiWritten;
 	filePos		iDataIndex;
 
 	if (uiCount == 0)
@@ -131,7 +131,7 @@ filePos CIndexedFile::Write(const void* pvData, size uiCount)
 		return INDEXED_FILE_WRITE_ERROR;
 	}
 
-	uiWritten = (size)mcFile.Write(EFSO_END, 0, pvData, muiDataSize, uiCount);
+	uiWritten = mcFile.Write(EFSO_END, 0, pvData, muiDataSize, uiCount);
 	if (uiWritten != uiCount)
 	{
 		return INDEXED_FILE_WRITE_ERROR;
@@ -152,9 +152,9 @@ filePos CIndexedFile::Write(const void* pvData, size uiCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Write(filePos iIndex, const void* pvData, size uiCount)
+bool CIndexedFile::Write(filePos iIndex, const void* pvData, lsize uiCount)
 {
-	size		uiWritten;
+	lsize		uiWritten;
 	filePos		iFileLengh;
 	filePos		iPosition;
 
@@ -164,7 +164,7 @@ bool CIndexedFile::Write(filePos iIndex, const void* pvData, size uiCount)
 	}
 
 	iPosition = iIndex * muiDataSize;
-	uiWritten = (size)mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	if (uiWritten != uiCount)
 	{
 		return false;
@@ -193,9 +193,9 @@ bool CIndexedFile::Read(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Read(filePos iIndex, void* pvData, size uiCount)
+bool CIndexedFile::Read(filePos iIndex, void* pvData, lsize uiCount)
 {
-	size		iRead;
+	lsize		iRead;
 	filePos		iPosition;
 
 	if (uiCount == 0)
@@ -208,7 +208,7 @@ bool CIndexedFile::Read(filePos iIndex, void* pvData, size uiCount)
 	}
 
 	iPosition = iIndex * muiDataSize;
-	iRead = (size)mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	return iRead == uiCount;
 }
 
@@ -227,13 +227,14 @@ bool CIndexedFile::Delete(filePos iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Delete(filePos iIndex, size uiCount)
+bool CIndexedFile::Delete(filePos iIndex, lsize uiCount)
 {
-	size				uiWritten;
+	lsize				uiWritten;
 	filePos				iPosition;
 	void*				pvData;
 	CStackMemory<2 KB>	cTemp;
-	lsize				uiSize;
+	lsize				uiChunkCount;
+	lsize				uiChunk;
 
 	if (uiCount == 0)
 	{
@@ -242,23 +243,41 @@ bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 
 	if (iIndex + (filePos)uiCount > miNumDatas)
 	{
-		//This is wrong.  You need to loop multiple times if miNumDatas - iIndex is > than MAX_SIZE
 		if (miNumDatas <= iIndex)
 		{
 			return true;
 		}
-		uiCount = (size)(miNumDatas - iIndex);
+		uiCount = (lsize)(miNumDatas - iIndex);
 	}
 
-	uiSize = uiCount * muiDataSize;
+	//The datas are blanked a stack buffer's worth (at least one data) at a time.
+	uiChunkCount = (lsize)(2 KB) / muiDataSize;
+	if (uiChunkCount == 0)
+	{
+		uiChunkCount = 1;
+	}
+	if (uiChunkCount > uiCount)
+	{
+		uiChunkCount = uiCount;
+	}
+
+	pvData = cTemp.Init(uiChunkCount * muiDataSize);
+	memset(pvData, INDEX_FILE_EMPTY_CHAR, uiChunkCount * muiDataSize);
 	iPosition = iIndex * muiDataSize;
-
-	pvData = cTemp.Init(uiSize);
-	memset(pvData, INDEX_FILE_EMPTY_CHAR, uiSize);
-	uiWritten = (size)mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	while (uiCount > 0)
+	{
+		uiChunk = (uiCount < uiChunkCount) ? uiCount : uiChunkCount;
+		uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiChunk);
+		if (uiWritten != uiChunk)
+		{
+			cTemp.Kill();
+			return false;
+		}
+		iPosition += (filePos)(uiChunk * muiDataSize);
+		uiCount -= uiChunk;
+	}
 	cTemp.Kill();
-
-	return uiWritten == uiCount;
+	return true;
 }
 
 

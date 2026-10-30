@@ -37,9 +37,14 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mapcCopies.Init();
 	masReturns.Init();
 	mabInLoop.Init();
+	maiArgumentOffsets.Init();
+	masArguments.Init();
+	msArguments = IRNone();
 	mpcImports = NULL;
 	mpaszMissing = NULL;
 	mpcCalleeModule = NULL;
+	mpcProfile = NULL;
+	muiHotInstructions = 0;
 }
 
 
@@ -49,6 +54,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::Kill(void)
 {
+	masArguments.Kill();
+	maiArgumentOffsets.Kill();
 	mabInLoop.Kill();
 	masReturns.Kill();
 	mapcCopies.Kill();
@@ -82,7 +89,7 @@ size CIRInliner::NumInstructions(CIRFunction* pcFunction)
 // again, as those comparisons fold.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock, size uiCall)
+bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock, size uiCall, size uiHotLimit)
 {
 	size			ui;
 	size			uiInstruction;
@@ -95,6 +102,10 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 		return false;
 	}
 	uiLimit = bInLoop ? muiMaxLoopInstructions : muiMaxInstructions;
+	if (uiHotLimit > uiLimit)
+	{
+		uiLimit = uiHotLimit;
+	}
 	if (pcCallBlock)
 	{
 		uiLimit += IR_INLINE_CONSTANT_BONUS * NumComparedConstants(pcCallee, pcCallBlock, uiCall);
@@ -108,13 +119,6 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	{
 		pcBlock = pcCallee->GetBlock(ui);
 		bReturns |= pcBlock->msJump.uiKind == IRJ_Return;
-		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
-		{
-			if (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_ArgAddress)
-			{
-				return false;
-			}
-		}
 	}
 	return bReturns;
 }
@@ -179,6 +183,123 @@ size CIRInliner::NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlo
 // calls the copies make).  Returns true if any were.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// With a profile: inlines the call that was made most (of those that can
+// be, a hot one's callee up to muiHotInstructions; calls the profile
+// doesn't know last, in order).  False if none can be.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::InlineHottest(void)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	size			uiBlocks;
+	size			uiBestBlock;
+	size			uiBestInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	CIRFunction*	pcCallee;
+	CIRFunction*	pcBest;
+	CIRModule*		pcBestModule;
+	uint64			ulliCount;
+	uint64			ulliBest;
+	bool			bInLoop;
+	bool			bFound;
+
+	bFound = false;
+	ulliBest = 0;
+	uiBestBlock = 0;
+	uiBestInstruction = 0;
+	pcBest = NULL;
+	pcBestModule = NULL;
+	for (uiBlock = 0; uiBlock < mpcCaller->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcCaller->GetBlock(uiBlock);
+		bInLoop = *mabInLoop.Get(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode != IRO_Call) || !psInstruction->asArguments[0].IsSymbol())
+			{
+				continue;
+			}
+			ulliCount = mpcProfile->CallCount(mpcCaller, psInstruction);
+			if (bFound && ((ulliCount == IR_INLINE_UNKNOWN) || ((ulliBest != IR_INLINE_UNKNOWN) && (ulliCount <= ulliBest))))
+			{
+				continue;
+			}
+			pcCallee = Callee(psInstruction->asArguments[0], true);
+			mpcCalleeModule = (pcCallee && (pcCallee != mpcModule->FindFunction(psInstruction->asArguments[0].Index()))) ? mpcImports->GetModule() : NULL;
+			if (!CanInline(pcCallee, bInLoop, pcBlock, uiInstruction, HotLimit(ulliCount)))
+			{
+				continue;
+			}
+			bFound = true;
+			ulliBest = ulliCount;
+			uiBestBlock = uiBlock;
+			uiBestInstruction = uiInstruction;
+			pcBest = pcCallee;
+			pcBestModule = mpcCalleeModule;
+		}
+	}
+	if (!bFound)
+	{
+		return false;
+	}
+
+	//The rest of the block was moved to a new block; the new blocks are in the block's loop.
+	mpcCalleeModule = pcBestModule;
+	bInLoop = *mabInLoop.Get(uiBestBlock);
+	uiBlocks = mpcCaller->NumBlocks();
+	if (!InlineCall(mpcCaller->GetBlock(uiBestBlock), uiBestInstruction, pcBest))
+	{
+		return false;
+	}
+	for (; uiBlocks < mpcCaller->NumBlocks(); uiBlocks++)
+	{
+		mabInLoop.Add(&bInLoop);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How big a callee a call made ulliCount times in the profiled run may
+// inline: muiHotInstructions when it is hot (inlining it saves
+// IR_INLINE_HOT_SAVING cycles each time, and together that is at least
+// 1/IR_INLINE_HOT_SHARE of the run), else 0 (or not known).
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRInliner::HotLimit(uint64 ulliCount)
+{
+	if ((ulliCount == IR_INLINE_UNKNOWN) || (mpcProfile->ProfileCycles() == 0))
+	{
+		return 0;
+	}
+	if (ulliCount * IR_INLINE_HOT_SAVING * IR_INLINE_HOT_SHARE >= mpcProfile->ProfileCycles())
+	{
+		return muiHotInstructions;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A profile of the program: the hottest calls are inlined first, and a hot
+// one's callee may have up to uiHotInstructions instructions.  NULL for
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions)
+{
+	mpcProfile = pcProfile;
+	muiHotInstructions = uiHotInstructions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 {
 	size			uiBlock;
@@ -193,6 +314,15 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 	mpcCaller = pcCaller;
 	FindLoops();
 	uiInlines = 0;
+	if (mpcProfile)
+	{
+		while ((uiInlines < muiMaxInlines) && InlineHottest())
+		{
+			uiInlines++;
+		}
+		mpcCaller = NULL;
+		return uiInlines > 0;
+	}
 	for (uiBlock = 0; (uiBlock < pcCaller->NumBlocks()) && (uiInlines < muiMaxInlines); uiBlock++)
 	{
 		pcBlock = pcCaller->GetBlock(uiBlock);
@@ -386,6 +516,92 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 // don't match its parameters.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// Whether the callee takes a parameter's address (argaddr).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::TakesArgumentAddress(CIRFunction* pcCallee)
+{
+	size		ui;
+	size		uiInstruction;
+	CIRBlock*	pcBlock;
+
+	for (ui = 0; ui < pcCallee->NumBlocks(); ui++)
+	{
+		pcBlock = pcCallee->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			if (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_ArgAddress)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes a value of the type takes as a parameter.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRInliner::TypeBytes(SIRType sType)
+{
+	if (sType.IsPointer())
+	{
+		return mpcModule->GetPointerSize(sType.uiSpace);
+	}
+	return (sType.Bits() + 7) / 8;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For a callee that takes its parameters' addresses: a slot in the
+// caller's entry block laid out as the parameters (each at its own size,
+// one after another, as they are pushed: an object passed by value as
+// pieces is its bytes), and the arguments (masArguments) stored to it at
+// the end of pcBlock.  msArguments is the slot, IRNone for a callee that
+// takes no parameter's address.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee)
+{
+	size			ui;
+	int32			iOffset;
+	SIRType			sType;
+	SIRReference	sArgument;
+	SIRReference	sAddress;
+
+	msArguments = IRNone();
+	maiArgumentOffsets.FakeSetUsedElements(0);
+	if (!TakesArgumentAddress(pcCallee))
+	{
+		return;
+	}
+	iOffset = 0;
+	for (ui = 0; ui < pcCallee->masParameters.NumElements(); ui++)
+	{
+		maiArgumentOffsets.Add(&iOffset);
+		iOffset += TypeBytes(pcCallee->GetTemporaryType(*pcCallee->masParameters.Get(ui)));
+	}
+	msArguments = mpcCaller->Slot(mpcCaller->GetEntry(), IRType(IRTK_Pointer), (uint32)iOffset, 4);
+	for (ui = 0; ui < pcCallee->masParameters.NumElements(); ui++)
+	{
+		sType = pcCallee->GetTemporaryType(*pcCallee->masParameters.Get(ui));
+		sArgument = *masArguments.Get(ui);
+		sAddress = msArguments;
+		if (*maiArgumentOffsets.Get(ui) != 0)
+		{
+			sAddress = mpcCaller->Add(pcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), msArguments, mpcCaller->AddInteger(IRIntegerType(mpcModule->GetPointerSize(0)), *maiArgumentOffsets.Get(ui)));
+		}
+		mpcCaller->Store(pcBlock, sType, sArgument, sAddress);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee)
 {
 	size					uiFirst;
@@ -413,9 +629,11 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	//The parameters are the arguments; the callee's other temporaries get copies when they are first met.
 	masMap.FakeSetUsedElements(0);
 	masMap.GrowToAtLeastNumElements(pcCallee->NumTemporaries(), true, 0);
+	masArguments.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcCallee->masParameters.NumElements(); ui++)
 	{
-		*masMap.Get(pcCallee->masParameters.Get(ui)->Index()) = pcBlock->masInstructions.Get(uiFirst + ui)->asArguments[0];
+		masArguments.Add(&pcBlock->masInstructions.Get(uiFirst + ui)->asArguments[0]);
+		*masMap.Get(pcCallee->masParameters.Get(ui)->Index()) = *masArguments.Get(ui);
 	}
 
 	//The rest of the block, after the call, goes to a block of its own with the block's jump.
@@ -438,6 +656,7 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 		}
 	}
 	pcBlock->masInstructions.FakeSetUsedElements(uiFirst);
+	StoreArguments(pcBlock, pcCallee);
 
 	//The copies of the callee's blocks, made first so jumps can name them.
 	mapcCopies.FakeSetUsedElements(0);
@@ -501,6 +720,16 @@ void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pc
 	{
 		psInstruction = pcFrom->masInstructions.Get(ui);
 		sCopy = *psInstruction;
+		if ((psInstruction->uiOpcode == IRO_ArgAddress) && !msArguments.IsNone())
+		{
+			//A parameter's address is its place in the arguments' slot.
+			sCopy.uiOpcode = IRO_PtrAdd;
+			sCopy.asArguments[0] = msArguments;
+			sCopy.asArguments[1] = mpcCaller->AddInteger(IRIntegerType(mpcModule->GetPointerSize(0)), *maiArgumentOffsets.Get((size)pcCallee->GetConstant(psInstruction->asArguments[0])->ulliBits));
+			sCopy.sResult = Map(psInstruction->sResult, pcCallee);
+			pcCopy->masInstructions.Add(&sCopy);
+			continue;
+		}
 		sCopy.asArguments[0] = Map(psInstruction->asArguments[0], pcCallee);
 		sCopy.asArguments[1] = Map(psInstruction->asArguments[1], pcCallee);
 		sCopy.sResult = Map(psInstruction->sResult, pcCallee);

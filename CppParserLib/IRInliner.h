@@ -37,6 +37,18 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 
 
 #define IR_INLINE_CONSTANT_BONUS	8		//More instructions inlined for each constant argument the callee compares.
+#define IR_INLINE_HOT_SAVING		30		//About the cycles a call costs that inlining it saves (a W65C816's jsl, frame and rtl)...
+#define IR_INLINE_HOT_SHARE			2000	//...a call site is hot when that, times the calls, is 1/IR_INLINE_HOT_SHARE of the profiled run.
+#define IR_INLINE_UNKNOWN			((uint64)-1)
+
+
+//How often calls were made, from a profile of the program (CAsm816Profile): what a profile guided inliner asks.
+class CIRInlineProfile
+{
+public:
+	virtual uint64	CallCount(CIRFunction* pcCaller, SIRInstruction* psCall) =0;	//IR_INLINE_UNKNOWN if the profile doesn't say.
+	virtual uint64	ProfileCycles(void) =0;
+};
 
 
 //Inlining (IR.txt Passes): a call of a small function of the same module is replaced by a copy of the function's
@@ -44,9 +56,12 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 //jump to the rest of the block, and the call's result is a phi there of the values returned.  A function is
 //small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop, and
 //IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on); variadic
-//functions, functions that take their parameters' addresses (argaddr) and calls of the function itself aren't
-//inlined.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
-//again afterwards.  A callee with no body in the module may be another unit's, from SetImports' CIRImports.
+//functions and calls of the function itself aren't inlined.  A callee that takes its parameters' addresses (argaddr:
+//an object passed by value as pieces) gets a slot in the caller laid out as its parameters, with the arguments
+//stored to it.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
+//again afterwards.  A callee with no body in the module may be another unit's, from SetImports' CIRImports.  With a
+//profile (SetProfile) the hottest calls are inlined first, and a hot call (IR_INLINE_HOT_SHARE) may inline a callee
+//of up to muiHotInstructions.
 class CIRInliner
 {
 protected:
@@ -62,24 +77,35 @@ protected:
 	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
 	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
+	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
+	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
+	CArrayIRReferences		masArguments;				//The call's arguments, in order.
+	CIRInlineProfile*		mpcProfile;					//NULL for none.
+	size					muiHotInstructions;
 
 public:
 	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);
 	void			Kill(void);
 
 	static size		NumInstructions(CIRFunction* pcFunction);
-	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0);
+	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0, size uiHotLimit = 0);
 	bool			InlineCalls(CIRFunction* pcCaller);
 	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing);
+	void			SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions);
 
 protected:
 	void			FindLoops(void);
 	CIRFunction*	Callee(SIRReference sSymbol, bool bMissing);
 	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
 	bool			HasLoopCandidate(void);
+	bool			InlineHottest(void);
+	size			HotLimit(uint64 ulliCount);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
 	void			CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest);
+	bool			TakesArgumentAddress(CIRFunction* pcCallee);
+	void			StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee);
+	int32			TypeBytes(SIRType sType);
 };
 
 

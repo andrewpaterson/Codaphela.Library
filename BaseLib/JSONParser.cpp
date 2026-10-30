@@ -55,7 +55,7 @@ void CJSONParser::Init(const char* szText, const char* szFileName, CMarkupDoc* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CJSONParser::Init(char* szText, lsize iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, iTextLen, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -65,7 +65,7 @@ void CJSONParser::Init(char* szText, size iTextLen, const char* szFileName, CMar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CJSONParser::Init(char* szText, lsize iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, iTextLen, szFileName, pcLogger, SkipJSONWhitespace, ParseJSONString, ParseJSONExactIdentifier, ParseJSONIdentifier);
 

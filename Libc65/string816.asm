@@ -6,6 +6,7 @@
 ; first byte and moves the rest up from one byte below, so each byte copies the one before
 ; it.  string.cpp has the other string functions (and these, for the 65C64's reference).
 ; string816_16.asm has memcpy16 and the like, with 16 bit counts, for BaseLib's natural arrays.
+; The bit array finders (with lsize counts) and the tables they share with string816_16.asm's are at the end.
 ; The code changes itself, so it isn't reentrant: an interrupt handler mustn't call these.
 ; The calling convention is the compiler's (IR816Backend.h): arguments are pushed last first
 ; (pointers and size_t 4 bytes, int 2), A and X are 16 bits wide on the way in and out, the
@@ -1044,3 +1045,339 @@ MemSwpWords:
 		dex
 		bne MemSwpWords
 		rts
+
+
+; The bit array functions (BaseLib's IntegerHelper.h) with lsize (32 bit) counts and results:
+; FindFirstSetBitLarge, FindFirstClearBitLarge, FindLastSetBitLarge and FindLastClearBitLarge
+; (FindNextSetBitLarge and FindNextClearBitLarge are C++ on them).  string816_16.asm has the
+; ones with size counts, and the uint32 and uint64 FindFirstClearBit and FindFirstSetBit.  Bit
+; n is bit n % 8 of byte n / 8, so a word read from the array has its bits in order.  The
+; arrays are read a word at a time (xored with Invert, 0 or $FFFF: set or clear bits),
+; through their 24 bit pointer + Y; the pointer's bank moves on when Y wraps.  The last
+; word's bits past the count are masked off (BitsMasks16); its other byte is read even when
+; it is past the array's end.  BitsCtz16 and BitsLog2_16 (also string816_16.asm's) find the
+; lowest and the highest set bit of a word through a table of a byte's.  ARRAY_LARGE_ELEMENT_NOT_FOUND
+; ($FFFFFFFF) when there is none.  Each pushes 6 bytes of locals and D, and points D at the
+; stack:
+;	D + 1		the caller's D
+;	D + 3		BitInvert: 0 or $FFFF
+;	D + 5		BitHi: the words' count's high word (X is its low word)
+;	D + 7		BitExtra: the 64KB banks passed (first), or the moved pointer's low word (last)
+;	D + 9		the return address
+;	D + 12		the arguments: the array, then the count of bits at D + 16
+
+BitInvert	= 3
+BitHi		= 5
+BitExtra	= 7
+BitArray	= 12
+BitBits		= 16
+
+
+		.section text.Bits816
+		.relax
+		.global BitsCtz16, BitsLog2_16
+		.global _FindFirstSetBitLarge__FPvj, _FindFirstClearBitLarge__FPvj
+		.global _FindLastSetBitLarge__FPvj, _FindLastClearBitLarge__FPvj
+
+; lsize FindFirstSetBitLarge(void* pvArray, lsize iArraySize)
+_FindFirstSetBitLarge__FPvj:
+		.width (A, X), 16
+		pea 0
+		pea 0
+		pea 0
+		bra FindFirstLarge
+
+; lsize FindFirstClearBitLarge(void* pvArray, lsize iArraySize)
+_FindFirstClearBitLarge__FPvj:
+		.width (A, X), 16
+		pea 0
+		pea 0
+		pea $FFFF
+FindFirstLarge:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		jsr BitWords
+		ldy 0
+FindFirstLargeWords:
+		.width (A, X), 16
+		txa
+		bne FindFirstLargeWord
+		lda [D + BitHi]
+		beq FindFirstLargePart
+		dec [D + BitHi]
+FindFirstLargeWord:
+		.width (A, X), 16
+		dex
+		lda [[D + BitArray]:24 + Y]
+		eor [D + BitInvert]
+		bne FindFirstLargeFound
+		iny
+		iny
+		bne FindFirstLargeWords
+		inc [D + BitArray + 2]
+		inc [D + BitExtra]
+		bra FindFirstLargeWords
+FindFirstLargePart:
+		.width (A, X), 16
+		lda [D + BitBits]
+		and 15
+		beq FindFirstLargeNone
+		asl A
+		tax
+		lda [[D + BitArray]:24 + Y]
+		eor [D + BitInvert]
+		and [BitsMasks16 + X]:24
+		bne FindFirstLargeFound
+FindFirstLargeNone:
+		.width (A, X), 16
+		lda $FFFF
+		tax
+		bra BitsLargeReturn
+FindFirstLargeFound:
+		.width (A, X), 16
+		jsl BitsCtz16
+		sta [D + BitInvert]
+		tya
+		xba
+		and $00FF
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		sta [D + BitHi]
+		lda [D + BitExtra]
+		asl A
+		asl A
+		asl A
+		clc
+		adc [D + BitHi]
+		sta [D + BitHi]
+		tya
+		asl A
+		asl A
+		asl A
+		clc
+		adc [D + BitInvert]
+		tay
+		lda [D + BitHi]
+		adc 0
+		tax
+		tya
+BitsLargeReturn:
+		.width (A, X), 16
+		pld
+		ply
+		ply
+		ply
+		rtl
+
+; lsize FindLastSetBitLarge(void* pvArray, lsize iArraySize)
+_FindLastSetBitLarge__FPvj:
+		.width (A, X), 16
+		pea 0
+		pea 0
+		pea 0
+		bra FindLastLarge
+
+; lsize FindLastClearBitLarge(void* pvArray, lsize iArraySize): the pointer is moved on to
+; the last (partial) word, then Y runs down from it; the word's index is the count left.
+_FindLastClearBitLarge__FPvj:
+		.width (A, X), 16
+		pea 0
+		pea 0
+		pea $FFFF
+FindLastLarge:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		jsr BitWords
+		txa
+		asl A
+		sta [D + BitExtra]
+		lda [D + BitHi]
+		rol A
+		tay
+		clc
+		lda [D + BitArray]
+		adc [D + BitExtra]
+		sta [D + BitArray]
+		tya
+		adc [D + BitArray + 2]
+		sta [D + BitArray + 2]
+		ldy 0
+		lda [D + BitBits]
+		and 15
+		beq FindLastLargeWords
+		asl A
+		phx
+		tax
+		lda [[D + BitArray]:24 + Y]
+		eor [D + BitInvert]
+		and [BitsMasks16 + X]:24
+		sta [D + BitExtra]
+		plx
+		lda [D + BitExtra]
+		bne FindLastLargeFound
+FindLastLargeWords:
+		.width (A, X), 16
+		txa
+		bne FindLastLargeWord
+		lda [D + BitHi]
+		beq FindLastLargeNone
+		dec [D + BitHi]
+FindLastLargeWord:
+		.width (A, X), 16
+		dex
+		cpy 0
+		bne FindLastLargeRead
+		dec [D + BitArray + 2]
+FindLastLargeRead:
+		.width (A, X), 16
+		dey
+		dey
+		lda [[D + BitArray]:24 + Y]
+		eor [D + BitInvert]
+		beq FindLastLargeWords
+FindLastLargeFound:
+		.width (A, X), 16
+		phx
+		jsl BitsLog2_16
+		plx
+		sta [D + BitExtra]
+		txa
+		xba
+		and $00FF
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		sta [D + BitInvert]
+		lda [D + BitHi]
+		asl A
+		asl A
+		asl A
+		asl A
+		ora [D + BitInvert]
+		pha
+		txa
+		asl A
+		asl A
+		asl A
+		asl A
+		ora [D + BitExtra]
+		plx
+		bra BitsLargeReturn
+FindLastLargeNone:
+		.width (A, X), 16
+		lda $FFFF
+		tax
+		bra BitsLargeReturn
+
+; The count of words: the count of bits >> 4, the low word in X and the high in BitHi.
+BitWords:
+		.width (A, X), 16
+		lda [D + BitBits + 2]
+		sta [D + BitHi]
+		lda [D + BitBits]
+		ldx 4
+BitWordsShift:
+		.width (A, X), 16
+		lsr [D + BitHi]
+		ror A
+		dex
+		bne BitWordsShift
+		tax
+		rts
+
+; BitsCtz16: the index of A's lowest set bit (A isn't 0); X changes, Y is kept.
+BitsCtz16:
+		.width (A, X), 16
+		bit $00FF
+		beq BitsCtz16High
+		and $00FF
+		tax
+		lda [BitsCtz8 + X]:24
+		and $00FF
+		rtl
+BitsCtz16High:
+		.width (A, X), 16
+		xba
+		and $00FF
+		tax
+		lda [BitsCtz8 + X]:24
+		and $00FF
+		clc
+		adc 8
+		rtl
+
+; BitsLog2_16: the index of A's highest set bit (A isn't 0); X changes, Y is kept.
+BitsLog2_16:
+		.width (A, X), 16
+		bit $FF00
+		beq BitsLog2_16Low
+		xba
+		and $00FF
+		tax
+		lda [BitsLog2_8 + X]:24
+		and $00FF
+		clc
+		adc 8
+		rtl
+BitsLog2_16Low:
+		.width (A, X), 16
+		tax
+		lda [BitsLog2_8 + X]:24
+		and $00FF
+		rtl
+
+
+		.section rodata.Bits816
+		.global BitsMasks16
+
+; BitsMasks16: the low n bits set, for n from 0 to 15 (indexed by n * 2).
+BitsMasks16:
+		.word $0000, $0001, $0003, $0007, $000F, $001F, $003F, $007F, $00FF, $01FF, $03FF, $07FF, $0FFF, $1FFF, $3FFF, $7FFF
+
+; A byte's lowest set bit (8 for 0), and a pad byte for the 16 bit read of the last.
+BitsCtz8:
+		.byte 8, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 7, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 6, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 5, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0
+		.byte 0
+
+; A byte's highest set bit (0 for 0), and a pad byte.
+BitsLog2_8:
+		.byte 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3
+		.byte 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+		.byte 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+		.byte 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+		.byte 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+		.byte 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+		.byte 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+		.byte 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+		.byte 0

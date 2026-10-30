@@ -228,8 +228,10 @@ void CMeshLeaves::Free(void)
 {
 	CMeshLeaf*	pcLeaf;
 	size		i;
+	size		uiNumElements;
 
-	for (i = 0; i < mcLeaves.NumElements(); i++)
+	uiNumElements = mcLeaves.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLeaf = mcLeaves.Get(i);
 		pcLeaf->Kill();
@@ -257,11 +259,13 @@ bool CMeshLeaves::Save(CObjectWriter* pcFile)
 {
 	size		i;
 	CMeshLeaf*	pcLeaf;
+	size		uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
 	ReturnOnFalse(mcLeaves.WriteAllocatorAndHeader(pcFile));
-	for (i = 0; i < mcLeaves.NumElements(); i++)
+	uiNumElements = mcLeaves.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLeaf = mcLeaves.Get(i);
 		ReturnOnFalse(pcLeaf->Save(pcFile));
@@ -278,11 +282,13 @@ bool CMeshLeaves::Load(CObjectReader* pcFile)
 {
 	size		i;
 	CMeshLeaf*	pcLeaf;
+	size		uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Load(pcFile));
 
 	ReturnOnFalse(mcLeaves.ReadAllocatorAndHeader(pcFile));
-	for (i = 0; i < mcLeaves.NumElements(); i++)
+	uiNumElements = mcLeaves.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLeaf = mcLeaves.Get(i);
 		ReturnOnFalse(pcLeaf->Load(pcFile));

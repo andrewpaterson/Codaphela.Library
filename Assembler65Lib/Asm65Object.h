@@ -22,6 +22,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define __ASM65_OBJECT_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/AbstractFile.h"
@@ -35,9 +36,9 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //A relocation that targets a symbol instead of a section.
 #define ASM65_TARGET_SYMBOL		-1
 
-//The object file: a ChunkFile with Header, Sections, Symbols and Relocations chunks.
+//The object file: a ChunkFile with Header, Sections, Symbols, Relocations and Sources chunks.
 #define ASM65_OBJECT_MAGIC		"Asm65Object"
-#define ASM65_OBJECT_VERSION	4
+#define ASM65_OBJECT_VERSION	5
 
 
 //The kind of a section comes from its name: "text", "text.anything", "rodata.x" ...
@@ -124,9 +125,31 @@ struct SAsm65Relocation
 };
 
 
+//Where the code for a line of a source file starts (.line): the linker makes them its output's line table.
+struct SAsm65SourceLine
+{
+	uint32	uiSection;
+	uint32	uiOffset;
+	uint32	uiFile;			//In the object's source files.
+	uint32	uiLine;			//1 based.
+};
+
+
+//A function's fingerprint (.fingerprint): a hash of what it was compiled from and when its unit was compiled (seconds
+//since 1970), which say if a profile of it is still about the same code.
+struct SAsm65Fingerprint
+{
+	CChars	szLabel;
+	uint32	uiHash;
+	int64	iTime;
+};
+
+
 typedef CArrayTemplate<SAsm65Section>		CArrayAsm65Sections;
 typedef CArrayTemplate<SAsm65ObjectSymbol>	CArrayAsm65ObjectSymbols;
 typedef CArrayTemplate<SAsm65Relocation>	CArrayAsm65Relocations;
+typedef CArrayTemplate<SAsm65SourceLine>	CArrayAsm65SourceLines;
+typedef CArrayTemplate<SAsm65Fingerprint>	CArrayAsm65Fingerprints;
 
 
 //An assembled translation unit: sections, symbols and relocations.
@@ -138,6 +161,9 @@ protected:
 	CArrayAsm65ObjectSymbols	mcSymbols;
 	CMapStringTemplate<uint32>	mcSymbolIndices;
 	CArrayAsm65Relocations		mcRelocations;
+	CArrayChars					maszSourceFiles;
+	CArrayAsm65SourceLines		mcSourceLines;
+	CArrayAsm65Fingerprints		mcFingerprints;
 
 public:
 	void				Init(const char* szName);
@@ -159,6 +185,14 @@ public:
 	size				NumRelocations(void);
 	SAsm65Relocation*	GetRelocation(size uiIndex);
 
+	void				AddSourceLine(uint32 uiSection, uint32 uiOffset, const char* szFile, uint32 uiLine);
+	size				NumSourceLines(void);
+	SAsm65SourceLine*	GetSourceLine(size uiIndex);
+	char*				GetSourceFile(size uiIndex);
+	void				AddFingerprint(const char* szLabel, uint32 uiHash, int64 iTime);
+	size				NumFingerprints(void);
+	SAsm65Fingerprint*	GetFingerprint(size uiIndex);
+
 	void				Dump(CChars* psz);
 
 	bool				Write(CAbstractFile* pcFile);
@@ -171,6 +205,7 @@ protected:
 	bool				ReadSections(CChunkFile* pcChunkFile);
 	bool				ReadSymbols(CChunkFile* pcChunkFile);
 	bool				ReadRelocations(CChunkFile* pcChunkFile);
+	bool				ReadSources(CChunkFile* pcChunkFile);
 };
 
 

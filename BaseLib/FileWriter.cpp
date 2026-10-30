@@ -320,7 +320,7 @@ bool CFileWriter::WriteInt64(uint64 ulli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteBits(void* pvData, size iByteLength)
+bool CFileWriter::WriteBits(void* pvData, lsize iByteLength)
 {
 	CheckWrite(pvData, iByteLength);
 	return true;

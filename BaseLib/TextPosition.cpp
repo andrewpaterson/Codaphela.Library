@@ -17,7 +17,7 @@ void STextPosition::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(const char* szPos, size iLine, size iColumn)
+void STextPosition::Init(const char* szPos, lsize iLine, lsize iColumn)
 {
 	this->szPos = szPos;
 	this->iLine = iLine;
@@ -29,18 +29,35 @@ void STextPosition::Init(const char* szPos, size iLine, size iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(const char* szStartOfText, size iLength, const char* szPosition)
+void STextPosition::Init(const char* szStartOfText, lsize iLength, const char* szPosition)
 {
-	CChars	sz;
-	char*	szLineStart;
-	size	iLineNumber;
-	size	iColumnNumber;
-		
-	sz.Fake(szStartOfText, 0, iLength);
-	szLineStart = sz.FindLineContaining(szPosition, &iLineNumber);
-	
-	iColumnNumber = szPosition - szLineStart;
-	Init(szPosition, iLineNumber, iColumnNumber);
+	const char*	szLineStart;
+	const char*	szCurrent;
+	const char*	szEnd;
+	lsize		iLineNumber;
+
+	iLineNumber = 0;
+	szLineStart = szStartOfText;
+	szEnd = &szStartOfText[iLength];
+	for (szCurrent = szStartOfText; szCurrent < szEnd; szCurrent++)
+	{
+		if (*szCurrent == '\n')
+		{
+			szLineStart = szCurrent + 1;
+		}
+
+		if (szCurrent == szPosition)
+		{
+			break;
+		}
+
+		if (*szCurrent == '\n')
+		{
+			iLineNumber++;
+		}
+	}
+
+	Init(szPosition, iLineNumber, (lsize)(szPosition - szLineStart));
 }
 
 
@@ -62,8 +79,19 @@ void STextPosition::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPosition, const char* szFilename)
 {
+	Init(pcText->msz, pcText->miLen, pcTextPosition, szFilename);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextPositionPrinter::Init(const char* szText, lsize iTextLength, STextPosition* pcTextPosition, const char* szFilename)
+{
 	mcTextPosition = *pcTextPosition;
-	mcText = *pcText;
+	mszText = szText;
+	miTextLength = iTextLength;
 	mszFilename = szFilename;
 }
 
@@ -75,7 +103,8 @@ void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPo
 void CTextPositionPrinter::Kill(void)
 {
 	mcTextPosition.Clear();
-	mcText.Clear();
+	mszText = NULL;
+	miTextLength = 0;
 	mszFilename = NULL;
 }
 
@@ -86,20 +115,20 @@ void CTextPositionPrinter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 {
-	CChars	szParserText;
-	size	iPreviousLineEnd;
-	size	iLineEnd;
-	size	iUsedLength;
+	lsize	iSearchLength;
+	lsize	iPreviousLineEnd;
+	lsize	iLineEnd;
+	lsize	iUsedLength;
 
-	szParserText.Fake(mcText.msz, 0, mcText.miLen - 1);
+	iSearchLength = SearchLength();
 
 	iUsedLength = UsedLength();
-	if (iUsedLength <= mcText.miLen)
+	if (iUsedLength <= miTextLength)
 	{
-		iPreviousLineEnd = szParserText.FindFromEnd(iUsedLength - 1, "\n");
-		iLineEnd = szParserText.Find(iUsedLength, "\n");
+		iPreviousLineEnd = FindLineFeedBefore(mszText, iSearchLength, iUsedLength);
+		iLineEnd = FindLineFeedFrom(mszText, iSearchLength, iUsedLength);
 
-		if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND && iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+		if (iPreviousLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND && iLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 		{
 			PrintPositionSingleLineParser(pszDest);
 		}
@@ -110,12 +139,12 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 	}
 	else
 	{
-		iLineEnd = szParserText.Find(0, "\n");
-		if (iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+		iLineEnd = FindLineFeedFrom(mszText, iSearchLength, 0);
+		if (iLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 		{
-			iLineEnd = mcText.miLen;
+			iLineEnd = miTextLength;
 		}
-		pszDest->Append(mcText.msz, iLineEnd);
+		pszDest->Append(mszText, (size)iLineEnd);
 		pszDest->Append(" [^ OUT OF BOUNDS]");
 	}
 }
@@ -126,12 +155,12 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextPositionPrinter::PrintPositionSingleLineParser(CChars* pszDest)
 {
-	size		iBefore;
+	lsize		iBefore;
 
-	pszDest->Append(&mcText);
-	iBefore = mcTextPosition.szPos - mcText.msz;
+	pszDest->Append(mszText, (size)miTextLength);
+	iBefore = UsedLength();
 	pszDest->AppendNewLine();
-	pszDest->Append(' ', iBefore);
+	pszDest->Append(' ', (size)iBefore);
 	pszDest->Append('^');
 	pszDest->AppendNewLine();
 }
@@ -144,35 +173,32 @@ void CTextPositionPrinter::PrintPositionSingleLineParser(CChars* pszDest)
 void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 {
 	CChars				szParserLine;
-	CExternalString		pac;
-	CChars				szParserText;
-	size				iPreviousLineEnd;
-	size				iLineEnd;
-	size				iParserPos;
+	lsize				iSearchLength;
+	lsize				iPreviousLineEnd;
+	lsize				iLineEnd;
+	lsize				iParserPos;
 	CChars				szLine;
-	size				iUsedLength;
+	lsize				iUsedLength;
 
-	szParserText.Fake(mcText.msz, 0, mcText.miLen - 1);
+	iSearchLength = SearchLength();
 
 	iUsedLength = UsedLength();
-	iPreviousLineEnd = szParserText.FindFromEnd(iUsedLength - 1, "\n");
+	iPreviousLineEnd = FindLineFeedBefore(mszText, iSearchLength, iUsedLength);
 
-	iLineEnd = szParserText.Find(iUsedLength, "\n");
+	iLineEnd = FindLineFeedFrom(mszText, iSearchLength, iUsedLength);
 
-	if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+	if (iPreviousLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
 		iPreviousLineEnd = 0;
 	}
-	if (iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
+	if (iLineEnd == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
-		iLineEnd = mcText.miLen;
+		iLineEnd = miTextLength;
 	}
 
-	pac.Init(&mcText.msz[iPreviousLineEnd], &mcText.msz[iLineEnd]);
+	iParserPos = iUsedLength;
 
-	iParserPos = mcTextPosition.szPos - mcText.msz;
-
-	szParserLine.Init(&pac);
+	szParserLine.Init(&mszText[iPreviousLineEnd], 0, (size)(iLineEnd + 1 - iPreviousLineEnd));
 	szParserLine.Replace("\n", " ");
 	szParserLine.Replace("\r", " ");
 
@@ -190,7 +216,7 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 	pszDest->Append(szParserLine);
 	pszDest->AppendNewLine();
 	pszDest->Append(' ', szLine.Length());
-	pszDest->Append(' ', iParserPos - iPreviousLineEnd);
+	pszDest->Append(' ', (size)(iParserPos - iPreviousLineEnd));
 	pszDest->Append('^');
 	pszDest->AppendNewLine();
 
@@ -203,8 +229,64 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextPositionPrinter::UsedLength(void)
+lsize CTextPositionPrinter::UsedLength(void)
 {
-	return (size)(mcTextPosition.szPos - mcText.msz);
+	return (lsize)(mcTextPosition.szPos - mszText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextPositionPrinter::SearchLength(void)
+{
+	//Line feeds are only looked for before the last character.
+	return (miTextLength > 0) ? miTextLength - 1 : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindLineFeedBefore(const char* szText, lsize iSearchLength, lsize iIndex)
+{
+	lsize	i;
+
+	if ((iIndex == 0) || (iIndex - 1 > iSearchLength))
+	{
+		return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	}
+
+	i = (iIndex < iSearchLength) ? iIndex : iSearchLength;
+	while (i > 0)
+	{
+		i--;
+		if (szText[i] == '\n')
+		{
+			return i;
+		}
+	}
+	return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize FindLineFeedFrom(const char* szText, lsize iSearchLength, lsize iIndex)
+{
+	lsize	i;
+
+	for (i = iIndex; i < iSearchLength; i++)
+	{
+		if (szText[i] == '\n')
+		{
+			return i;
+		}
+	}
+	return ARRAY_LARGE_ELEMENT_NOT_FOUND;
 }
 

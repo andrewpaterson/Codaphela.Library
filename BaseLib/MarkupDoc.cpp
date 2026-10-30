@@ -97,7 +97,7 @@ CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, char* szTagName, size iLine, size iColumn)
+CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, char* szTagName, lsize iLine, lsize iColumn)
 {
 	if (!pcCurrent)
 	{

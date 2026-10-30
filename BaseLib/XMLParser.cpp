@@ -58,7 +58,7 @@ void CXMLParser::Init(const char* szText, const char* szFileName, CMarkupDoc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, lsize iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, iTextLen, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -68,7 +68,7 @@ void CXMLParser::Init(char* szText, size iTextLen, const char* szFileName, CMark
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, lsize iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, iTextLen, szFileName, pcLogger, SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
 
@@ -89,12 +89,14 @@ void CXMLParser::Kill(void)
 {
 	size			i;
 	CXMLEntity*		pcEntity;
+	size			uiNumElements;
 
 	CBaseParser::Kill();
 
 	mpcDoc = NULL;
 
-	for (i = 0; i < macEntities.NumElements(); i++)
+	uiNumElements = macEntities.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcEntity = macEntities.Get(i);
 		pcEntity->Kill();
@@ -557,8 +559,8 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 	TRISTATE	tResult;
 	TRISTATE	tEmpty;
 	TRISTATE	tClosing;
-	size		iLine;
-	size		iColumn;
+	lsize		iLine;
+	lsize		iColumn;
 
 	mcParser.PushPosition();
 

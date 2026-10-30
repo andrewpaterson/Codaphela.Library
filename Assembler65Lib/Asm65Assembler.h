@@ -220,6 +220,8 @@ protected:
 	bool			SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt);
 	void			Associate(void);
 	bool			SymbolBinding(SAsm65Token* psDirective);
+	bool			SourceLine(SAsm65Token* psDirective);
+	bool			Fingerprint(SAsm65Token* psDirective);
 	void			SwitchSection(uint32 uiSection);
 	bool			InBss(SAsm65Token* psToken);
 	void			MarkExternals(void);

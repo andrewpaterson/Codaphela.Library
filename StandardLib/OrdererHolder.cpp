@@ -100,9 +100,11 @@ bool COrdererHolder::Load(CObjectReader* pcFile)
 bool COrdererHolder::SaveNames(CObjectWriter* pcFile, CArrayChars* paszNames)
 {
 	size	i;
+	size	uiNumElements;
 
 	ReturnOnFalse(pcFile->WriteSize(paszNames->NumElements()));
-	for (i = 0; i < paszNames->NumElements(); i++)
+	uiNumElements = paszNames->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		ReturnOnFalse(paszNames->Get(i)->WriteString(pcFile));
 	}

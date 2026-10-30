@@ -65,13 +65,15 @@ bool CIndexedFiles::Kill(void)
 {
 	size			i; 
 	CIndexedFile*	pcIndexedFile;
+	size			uiNumElements;
 
 	if (mpcDurableFileControl->IsBegun())
 	{
 		return gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Kill.", NULL);
 	}
 
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		pcIndexedFile->Kill();
@@ -176,11 +178,13 @@ bool CIndexedFiles::WriteIndexedFileDescriptors(void)
 	void*						pvFileDescriptors;
 	bool						bResult;
 	size						iResult;
+	size						uiNumElements;
 
 	pvFileDescriptors = malloc((lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
 	bResult = true;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		psFileDescriptor = (SIndexedFileDescriptor*)RemapSinglePointer(pvFileDescriptors, (lsize)sizeof(SIndexedFileDescriptor) * i);
@@ -308,8 +312,10 @@ CIndexedFile* CIndexedFiles::GetFile(lsize uiDataSize, uint32 iFileNum)
 {
 	size			i;
 	CIndexedFile*	pcIndexedFile;
+	size			uiNumElements;
 
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		if (pcIndexedFile->GetDataSize() == uiDataSize)
@@ -358,9 +364,11 @@ uint32 CIndexedFiles::GetUniqueFileNumber(lsize uiDataSize)
 	size			i;
 	CIndexedFile*	pcIndexedFile;
 	uint32			iFileNumber;
+	size			uiNumElements;
 
 	iFileNumber = INDEXED_FILE_NOT_FOUND;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		if (pcIndexedFile->GetDataSize() == uiDataSize)
@@ -389,8 +397,10 @@ void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
 
 	size			i;
 	CIndexedFile*	pcIndexedFile;
+	size			uiNumElements;
 
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		papc->Add(pcIndexedFile);
@@ -427,9 +437,11 @@ int64 CIndexedFiles::NumDatas(void)
 	size			i;
 	CIndexedFile*	pcIndexedFile;
 	int64			iTotal;
+	size			uiNumElements;
 
 	iTotal = 0;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		iTotal += pcIndexedFile->NumDatas();
@@ -447,9 +459,11 @@ int64 CIndexedFiles::NumDatas(lsize uiDataSize)
 	size			i;
 	CIndexedFile*	pcIndexedFile;
 	int64			iTotal;
+	size			uiNumElements;
 
 	iTotal = 0;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		if (pcIndexedFile->GetDataSize() == uiDataSize)
@@ -470,9 +484,11 @@ size CIndexedFiles::NumFiles(lsize uiDataSize)
 	size			i;
 	CIndexedFile*	pcIndexedFile;
 	size			iTotal;
+	size			uiNumElements;
 
 	iTotal = 0;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		if (pcIndexedFile->GetDataSize() == uiDataSize)
@@ -613,8 +629,10 @@ void CIndexedFiles::Dump(void)
 {
 	size			i;
 	CIndexedFile*	pcIndexedFile;
+	size			uiNumElements;
 
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	uiNumElements = mcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		pcIndexedFile->Dump();

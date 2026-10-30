@@ -30,8 +30,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //A run of bytes at consecutive addresses.
 struct SIntelHexSegment
 {
-	uint32		uiAddress;
-	CArrayUint8	cBytes;
+	uint32				uiAddress;
+	CArrayLargeUint8	cBytes;
 };
 
 

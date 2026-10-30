@@ -114,9 +114,11 @@ int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 	size	i;
 	size	iCount;
 	bool	bCurrent;
+	lsize	uiNumElements;
 
 	iCount = 0;
-	for (i = 0; i < mcFaces.NumElements(); i++)
+	uiNumElements = mcFaces.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		bCurrent = FixBool(mcFaces.Get(i));
 		if (bCurrent == bSelected)
@@ -135,8 +137,10 @@ int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 void CMeshSelections::SetFaceSelectionTo(bool bSelected)
 {
 	size	i;
+	lsize	uiNumElements;
 
-	for (i = 0; i < mcFaces.NumElements(); i++)
+	uiNumElements = mcFaces.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		mcFaces.Set(i, bSelected);
 	}
@@ -162,9 +166,11 @@ int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 	size	i;
 	size	iCount;
 	bool	bCurrent;
+	lsize	uiNumElements;
 
 	iCount = 0;
-	for (i = 0; i < mcVerts.NumElements(); i++)
+	uiNumElements = mcVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		bCurrent = FixBool(mcVerts.Get(i));
 		if (bCurrent == bSelected)
@@ -183,8 +189,10 @@ int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 void CMeshSelections::SetCornerSelectionTo(bool bSelected)
 {
 	size	i;
+	lsize	uiNumElements;
 
-	for (i = 0; i < mcVerts.NumElements(); i++)
+	uiNumElements = mcVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		mcVerts.Set(i, bSelected);
 	}
@@ -210,9 +218,11 @@ int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 	size	i;
 	size	iCount;
 	bool	bCurrent;
+	lsize	uiNumElements;
 
 	iCount = 0;
-	for (i = 0; i < mcEdges.NumElements(); i++)
+	uiNumElements = mcEdges.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		bCurrent = FixBool(mcEdges.Get(i));
 		if (bCurrent == bSelected)
@@ -231,8 +241,10 @@ int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 void CMeshSelections::SetEdgeSelectionTo(bool bSelected)
 {
 	size	i;
+	lsize	uiNumElements;
 
-	for (i = 0; i < mcEdges.NumElements(); i++)
+	uiNumElements = mcEdges.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		mcEdges.Set(i, bSelected);
 	}

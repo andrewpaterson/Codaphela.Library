@@ -486,6 +486,8 @@ protected:
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	CAsm816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
+	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
+	int64					miCompileTime;		//When the unit was compiled (seconds since 1970), for .fingerprint.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -509,6 +511,7 @@ public:
 	void					SetImports(CIRImports* pcImports);
 	void					SetFrameProfile(CAsm816Profile* pcProfile);
 	void					SetListing(bool bListing);
+	void					SetLineTable(bool bLineTable, int64 iCompileTime);
 	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:
@@ -842,6 +845,10 @@ protected:
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
 	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
+	void					LoopCounterWidth(CCPPSyntaxForStatement* pcFor);
+	void					LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters);
+	void					LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters);
+	CCPPSymbol*				LoopCounterSymbol(CCPPSyntax* pcExpression);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);

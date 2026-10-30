@@ -28,6 +28,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "Asm65Object.h"
 #include "Asm65Library.h"
 #include "Asm65Output.h"
+#include "Asm65LineTable.h"
 #include "Asm65Errors.h"
 
 
@@ -164,6 +165,7 @@ protected:
 
 	CAsm65Output							mcOutput;
 	CChars									mszMap;
+	CAsm65LineTable							mcLineTable;
 
 public:
 	void				Init(void);
@@ -183,6 +185,7 @@ public:
 	bool				Link(void);
 
 	CAsm65Output*		GetOutput(void);
+	CAsm65LineTable*	GetLineTable(void);
 	char*				GetMap(void);
 	char*				GetErrors(void);
 	size				NumErrors(void);
@@ -217,6 +220,7 @@ protected:
 	bool				Target(size uiObject, SAsm65Relocation* psRelocation, int64* piValue);
 	void				Relocate(void);
 	void				WriteMap(void);
+	void				BuildLineTable(void);
 	void				AppendMapSections(const char* szTitle, bool bRemoved);
 	void				AppendMapSection(size uiObject, size uiSection, bool bPlaced);
 	size				ObjectOfSection(size uiSection);

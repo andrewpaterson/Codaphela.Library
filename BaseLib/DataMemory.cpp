@@ -432,8 +432,10 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 	SFreeListDesc	sDesc;
 	size			iIndex;
 	size			iStride;
+	size			uiNumElements;
 
-	for (iIndex = 0; iIndex < mcFreeListsByParams.NumElements(); iIndex++)
+	uiNumElements = mcFreeListsByParams.NumElements();
+	for (iIndex = 0; iIndex < uiNumElements; iIndex++)
 	{
 		if (*mcFreeListsByParams.Get(iIndex) == pcFreeList)
 		{

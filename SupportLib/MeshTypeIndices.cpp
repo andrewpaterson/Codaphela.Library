@@ -233,8 +233,10 @@ int CMeshTypeIndices::FindExistingVert(int* piFaceVertIndex)
 	//Optimise this by creating an array of size mcPosition.NumElements of index into an array of ArrayInt (per position) indexing into maVerts.
 	size	i;
 	int*	piVert;
+	size	uiNumElements;
 
-	for (i = 0; i < maVerts.NumElements(); i++)
+	uiNumElements = maVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		piVert = (int*)maVerts.Get(i);
 

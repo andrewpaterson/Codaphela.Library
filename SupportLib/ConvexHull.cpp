@@ -63,10 +63,12 @@ int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 	float32		fDist;
 	float32		fMaxDist;
 	int			iIndex;
+	size			uiNumElements;
 
 	fMaxDist = 0.0f;
 	iFarIndex = -1;
-	for (i = 0; i < maiVisible.NumElements(); i++)
+	uiNumElements = maiVisible.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iIndex = maiVisible.GetValue(i);
 		psOther = GetPosition(psPoints, iStride, iIndex);
@@ -188,8 +190,10 @@ void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, 
 	size				j;
 	int					iIndex;
 	SFloat32Vec3*			psPosition;
+	size					uiNumElements;
 
-	for (i = 0; i < papcTriangles->NumElements(); i++)
+	uiNumElements = papcTriangles->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcOther = *papcTriangles->Get(i);
 		for (j = 0; j < pcOther->maiVisible.NumElements(); j++)
@@ -234,6 +238,7 @@ bool CConvexHullGenerator::Generate(void)
 	size						iTriangle;
 	float32						fMinX;
 	float32						fMaxX;
+	size							uiNumElements;
 
 	iMaxXIndex = FindMaxX(&fMinX);
 	iMinXIndex = FindMinX(&fMaxX);
@@ -306,7 +311,8 @@ bool CConvexHullGenerator::Generate(void)
 			}
 		}
 
-		for (j = 0; j < cDeleted.NumElements(); j++)
+		uiNumElements = cDeleted.NumElements();
+		for (j = 0; j < uiNumElements; j++)
 		{
 			pcDeleted = *cDeleted.Get(j);
 			pcDeleted->Kill();
@@ -603,8 +609,10 @@ bool CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTri
 {
 	size				i;
 	CExtremeTriangle*	pcTriangle;
+	size				uiNumElements;
 
-	for (i = 0; i < papcDeletedTriangles->NumElements(); i++)
+	uiNumElements = papcDeletedTriangles->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcTriangle = *papcDeletedTriangles->Get(i);
 		if (pcTriangle != pcTriangleWithEdges)
@@ -776,8 +784,10 @@ void CConvexHull::Kill(void)
 {
 	size		i;
 	CPolygon*	pcPolygon;
+	size		uiNumElements;
 
-	for (i = 0; i < mcPolygons.NumElements(); i++)
+	uiNumElements = mcPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPolygon = mcPolygons.Get(i);
 		pcPolygon->Kill();
@@ -944,12 +954,16 @@ void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat32Vec3* psPoints, int 
 	size		j;
 	SFloat32Vec3*	psPosition;
 	int			iIndex;
+	size			uiNumElements;
+	size			uiNumPositions;
 
 
-	for (i = 0; i < mcPolygons.NumElements(); i++)
+	uiNumElements = mcPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPolygon = mcPolygons.Get(i);
-		for (j = 0; j < pcPolygon->mapsPositions.NumElements(); j++)
+		uiNumPositions = pcPolygon->mapsPositions.NumElements();
+		for (j = 0; j < uiNumPositions; j++)
 		{
 			psPosition = *((SFloat32Vec3**)(pcPolygon->mapsPositions.Get(j)));
 			iIndex = GetIndex(psPoints, iStride, psPosition);
@@ -972,11 +986,13 @@ void CConvexHull::GetVertices(CArrayBlock* pasPositions, SFloat32Vec3* psPoints,
 	size			i;
 	int			iIndex;
 	SFloat32Vec3*	psPosition;
+	size			uiNumElements;
 
 	aiIndices.Init();
 	GetIndices(&aiIndices, psPoints, iStride);
 
-	for (i = 0; i < aiIndices.NumElements(); i++)
+	uiNumElements = aiIndices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iIndex = aiIndices.GetValue(i);
 		psPosition = GetPosition(psPoints, iStride, iIndex);

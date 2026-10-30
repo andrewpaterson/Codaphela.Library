@@ -98,11 +98,13 @@ void CPackFilePacker::List(CPackFiles* pcPackFiles, CChars* pszDest)
 	CChars					szSize;
 	CPackFileNode*			pcPackFileNode;
 	filePos					iSize;
+	size					uiNumElements;
 
 	acFileNodes.Init();
 	pcPackFiles->GetFiles(&acFileNodes);
 
-	for (i = 0; i < acFileNodes.NumElements(); i++)
+	uiNumElements = acFileNodes.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcFileNode = *acFileNodes.Get(i);
 		pcPackFileNode = pcFileNode->File();

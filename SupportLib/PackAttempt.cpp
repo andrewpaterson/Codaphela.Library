@@ -104,8 +104,10 @@ void CPackAttempt::Kill(void)
 {
 	size			i;
 	CPackedLine*	pcLine;
+	size			uiNumElements;
 
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->Kill();
@@ -148,9 +150,11 @@ void CPackAttempt::Pack(void)
 {
 	size			i;
 	CPackedLine*	pcLine;
+	size			uiNumElements;
 
 	//The rectangles are taken from the packer here rather than in Init so that an attempt can be added before its rectangles.
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->Kill();
@@ -187,6 +191,7 @@ void CPackAttempt::Done(void)
 {
 	size			i;
 	CPackedLine*	pcLine;
+	size			uiNumElements;
 
 	if (macRectangles.NumElements() > 0)
 	{
@@ -200,7 +205,8 @@ void CPackAttempt::Done(void)
 		return;
 	}
 
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->Done();
@@ -212,7 +218,8 @@ void CPackAttempt::Done(void)
 	miWidth = pcLine->miWidth;
 
 	miHeight = 0;
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->miy = miHeight;
@@ -304,8 +311,10 @@ void CPackAttempt::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangle
 {
 	size			i;
 	CPackedLine*	pcLine;
+	size			uiNumElements;
 
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->GetPackedRectangles(pacPackedRectangles, mpcRectanglePacker->GetOutsideEdgeWidth());
@@ -334,6 +343,7 @@ void CPackAttempt::Print(CChars* psz)
 {
 	size			i;
 	CPackedLine*	pcLine;
+	size			uiNumElements;
 
 	psz->Append("Lines[");
 	psz->Append(macLines.NumElements());
@@ -343,7 +353,8 @@ void CPackAttempt::Print(CChars* psz)
 	psz->Append(miHeight);
 	psz->Append("]\n");
 
-	for (i = 0; i < macLines.NumElements(); i++)
+	uiNumElements = macLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = macLines.Get(i);
 		pcLine->Print(psz);

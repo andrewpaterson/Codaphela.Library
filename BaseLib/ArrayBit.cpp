@@ -71,7 +71,7 @@ void CArrayBit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Zero(void)
 {
-	size	iAllocatedBytes;
+	lsize	iAllocatedBytes;
 	
 	iAllocatedBytes = ByteSize(miNumBits);
 	memset(GetData(), 0, iAllocatedBytes);
@@ -97,11 +97,11 @@ void CArrayBit::ReInit(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::GrowBy(size iNumBits)
+void CArrayBit::GrowBy(lsize iNumBits)
 {
-	size	uiOldByteSize;
-	size	uiNewByteSize;
-	size	uiTransitionSize;
+	lsize	uiOldByteSize;
+	lsize	uiNewByteSize;
+	lsize	uiTransitionSize;
 	void*	pvData;
 
 	uiOldByteSize = ByteSize(miNumBits);
@@ -134,10 +134,10 @@ void CArrayBit::GrowBy(size iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::GrowTo(size iNumBits)
+void CArrayBit::GrowTo(lsize iNumBits)
 {
-	size	uiSize;
-	size	uiDiff;
+	lsize	uiSize;
+	lsize	uiDiff;
 
 	uiSize = NumElements();
 	if (iNumBits <= uiSize)
@@ -154,9 +154,9 @@ void CArrayBit::GrowTo(size iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBit::Get(size iBit)
+bool CArrayBit::Get(lsize iBit)
 {
-	return GetBit(iBit, GetData());
+	return GetBitLarge(iBit, GetData());
 }
 
 
@@ -164,9 +164,9 @@ bool CArrayBit::Get(size iBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Set(size iBit, bool bBit)
+void CArrayBit::Set(lsize iBit, bool bBit)
 {
-	SetBit(iBit, GetData(), bBit);
+	SetBitLarge(iBit, GetData(), bBit);
 }
 
 
@@ -185,7 +185,7 @@ void CArrayBit::Add(bool bBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits)
+void CArrayBit::Get(void* pvDest, lsize iDestOffset, lsize iOffset, lsize iNumBits)
 {
 	CopyBits(pvDest, iDestOffset, GetData(), iOffset, iNumBits, 1);
 }
@@ -195,7 +195,7 @@ void CArrayBit::Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Set(size iOffset, void* pvSource, size iSourceOffset, size iNumBits)
+void CArrayBit::Set(lsize iOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits)
 {
 	CopyBits(GetData(), iOffset, pvSource, iSourceOffset, iNumBits, 0);
 }
@@ -205,9 +205,9 @@ void CArrayBit::Set(size iOffset, void* pvSource, size iSourceOffset, size iNumB
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Add(void* pvSource, size iSourceOffset, size iNumBits)
+void CArrayBit::Add(void* pvSource, lsize iSourceOffset, lsize iNumBits)
 {
-	size		iOldNumBits;
+	lsize		iOldNumBits;
 
 	iOldNumBits = miNumBits;
 	GrowBy(iNumBits);
@@ -223,7 +223,7 @@ bool CArrayBit::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	size			iNumBits;
+	lsize			iNumBits;
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
@@ -273,7 +273,7 @@ bool CArrayBit::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayBit::NumElements(void)
+lsize CArrayBit::NumElements(void)
 {
 	return miNumBits;
 }
@@ -310,7 +310,7 @@ void* CArrayBit::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayBit::ByteSize(size iNumBits)
+lsize CArrayBit::ByteSize(lsize iNumBits)
 {
 	return (iNumBits + 7) / 8;
 }
@@ -322,8 +322,8 @@ size CArrayBit::ByteSize(size iNumBits)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Print(CChars* psz)
 {
-	size	ui;
-	size	uiNumElements;
+	lsize	ui;
+	lsize	uiNumElements;
 	bool	bBit;
 
 	uiNumElements = NumElements();

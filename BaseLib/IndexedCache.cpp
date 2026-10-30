@@ -133,7 +133,7 @@ void CIndexedCache::SetDirty(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::NumCached(void)
+lsize CIndexedCache::NumCached(void)
 {
 	return mcCache.NumElements();
 }
@@ -143,7 +143,7 @@ size CIndexedCache::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::NumCached(lsize iSize)
+lsize CIndexedCache::NumCached(lsize iSize)
 {
 	return mcCache.NumElements(iSize);
 }

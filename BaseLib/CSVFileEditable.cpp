@@ -55,9 +55,11 @@ void SCSVRowEditable::Dump(void)
 	CChars		szString;
 	CChars		szLeft;
 	CChars*		pszString;
+	size		uiNumElements;
 
 	szString.Init();
-	for (i = 0; i < aszData.NumElements(); i++)
+	uiNumElements = aszData.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszString = aszData.Get(i);
 		szLeft.Init();
@@ -83,8 +85,10 @@ size SCSVRowEditable::IndexOf(char* szString)
 {
 	size	i;
 	CChars*	pcString;
+	size	uiNumElements;
 
-	for (i = 0; i < aszData.NumElements(); i++)
+	uiNumElements = aszData.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcString = aszData.Get(i);
 		if (pcString->Equals(szString))
@@ -134,8 +138,10 @@ void CCSVFileEditable::Kill(void)
 {
 	size				i;
 	SCSVRowEditable*	psCSVRow;
+	size				uiNumElements;
 
-	for (i = 0; i < masCSVRows.NumElements(); i++)
+	uiNumElements = masCSVRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCSVRow = masCSVRows.Get(i);
 		psCSVRow->Kill();
@@ -230,8 +236,10 @@ void CCSVFileEditable::Dump(void)
 {
 	size				i;
 	SCSVRowEditable*	psCSVRow;
+	size				uiNumElements;
 
-	for (i = 0; i < masCSVRows.NumElements(); i++)
+	uiNumElements = masCSVRows.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCSVRow = masCSVRows.Get(i);
 		psCSVRow->Dump();

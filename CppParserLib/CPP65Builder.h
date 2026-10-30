@@ -113,6 +113,8 @@ protected:
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
 	CAsm816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
+	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
+	int64							miCompileTime;		//When SetLineTable was called (seconds since 1970).
 
 public:
 	void			Init(void);
@@ -120,6 +122,8 @@ public:
 	void			SetTarget(ECPPTarget eTarget);
 	void			SetFrameProfile(CAsm816Profile* pcProfile);
 	void			SetListingDirectory(const char* szDirectory);
+	void			SetLineTable(bool bLineTable);
+	CAsm65LineTable*	GetLineTable(void);
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
@@ -148,7 +152,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* piValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm816Profile* pcFrameProfile = NULL, bool bListing = false);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

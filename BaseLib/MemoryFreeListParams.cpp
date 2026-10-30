@@ -323,6 +323,7 @@ bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 {
 	SMemoryFreeListParams*	psBlockParams;
 	size					i;
+	size					uiNumElements;
 
 	if (!pcFileWriter->WriteSize(miHeaderSize))
 	{
@@ -337,7 +338,8 @@ bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 		return false;
 	}
 
-	for (i = 0; i < mcParams.NumElements(); i++)
+	uiNumElements = mcParams.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psBlockParams = GetFreeListParams(i);
 		if (!psBlockParams->Write(pcFileWriter))

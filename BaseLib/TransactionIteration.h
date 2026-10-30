@@ -11,7 +11,7 @@ class CTransactionIteration
 {
 protected:
 	CArrayOIndex	maoiIndices;
-	size			miIndexPosition;
+	lsize			miIndexPosition;
 	CArrayChars		maszNames;
 	size			miNamePosition;
 
