@@ -277,7 +277,7 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 	bool		bPrimary;
 	bool		bBackup;
 	filePos		iRemaining;
-	size		iChunk;
+	lsize		iChunk;
 	void*		pvPrimary;
 	void*		pvBackup;
 	bool		bResult;
@@ -302,7 +302,7 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 			pvBackup = malloc(FILE_BLOCK_SIZE);
 			while (bResult && (iRemaining > 0))
 			{
-				iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (size)iRemaining;
+				iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (lsize)iRemaining;
 				bResult = cPrimary.ReadData(pvPrimary, iChunk) && cBackup.ReadData(pvBackup, iChunk);
 				bResult = bResult && (memcmp(pvPrimary, pvBackup, iChunk) == 0);
 				iRemaining -= iChunk;
@@ -335,7 +335,7 @@ bool CFileUtil::Copy(const char* szSource, const char* szDest)
 	CFileBasic	cSource;
 	CFileBasic	cDest;
 	filePos		iRemaining;
-	size		iChunk;
+	lsize		iChunk;
 	void*		pvData;
 	bool		bResult;
 
@@ -362,7 +362,7 @@ bool CFileUtil::Copy(const char* szSource, const char* szDest)
 	iRemaining = cSource.GetFileLength();
 	while (bResult && (iRemaining > 0))
 	{
-		iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (size)iRemaining;
+		iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (lsize)iRemaining;
 		bResult = cSource.ReadData(pvData, iChunk) && cDest.WriteData(pvData, iChunk);
 		iRemaining -= iChunk;
 	}

@@ -6,7 +6,7 @@
 
 struct SCountingMemoryAllocation
 {
-	size			uiSize;
+	lsize			uiSize;
 };
 
 
@@ -14,15 +14,15 @@ class CCountingAllocator : public CMallocator
 {
 protected:
 	CMallocator*	mpcAlloc;
-	size			mtUserSize;
-	size			mtSystemSize;
+	lsize			mtUserSize;
+	lsize			mtSystemSize;
 
 public:
 	void			Init(CMallocator* pcAlloc);
 	void			Kill(void);
 
-	size			AllocatedUserSize(void);
-	size			AllocatedSystemSize(void);
+	lsize			AllocatedUserSize(void);
+	lsize			AllocatedSystemSize(void);
 
 	void*			Malloc(lsize uiSize);
 	void*			Realloc(void* pv, lsize uiSize);

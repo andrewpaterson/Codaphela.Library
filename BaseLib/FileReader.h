@@ -59,7 +59,7 @@ public:
 						bool	ReadInt64(uint64* plli);
 						bool	ReadSInt(int* pi);
 						bool	ReadSInt(uint* pi);
-						bool	ReadSize(lsize* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is SIZE_MAX.
+						bool	ReadSize(lsize* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is MAX_SIZE.
 #ifndef SIZE_IS_LSIZE
 						bool	ReadSize(size* pui);  //The same four bytes; fails if the value does not fit (all ones reads as MAX_SIZE).
 #endif // SIZE_IS_LSIZE
@@ -88,7 +88,7 @@ public:
 						bool	ReadPrimitive(M* pc);
 
 protected:
-	virtual				size	Read(void* pvDest, lsize iSize, lsize iCount) =0;
+	virtual				lsize	Read(void* pvDest, lsize iSize, lsize iCount) =0;
 };
 
 

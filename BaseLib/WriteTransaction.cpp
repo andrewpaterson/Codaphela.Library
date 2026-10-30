@@ -24,7 +24,17 @@ char* CWriteRecord::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 void* CWriteRecord::GetData(void)
 {
-	return RemapSinglePointer(this, sizeof(CWriteRecord) + iNameLength + 1);
+	return mpvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWriteRecord::FreeData(void)
+{
+	SafeFree(mpvData);
 }
 
 
@@ -60,6 +70,7 @@ void CWriteTransaction::Kill(void)
 	mcLocked.Kill();
 	maszReserved.Kill();
 	mcNames.Kill();
+	FreeRecords();
 	mcRecords.Kill();
 	mpcCodabase = NULL;
 }
@@ -176,7 +187,7 @@ bool CWriteTransaction::Lock(OIndex oi, ELockMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, void* pvData, size uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	return Add(oi, (const char*)NULL, pvData, uiDataSize);
 }
@@ -186,7 +197,7 @@ bool CWriteTransaction::Add(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -212,7 +223,7 @@ bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, size ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize)
 {
 	return Add(oi, szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -232,7 +243,7 @@ bool CWriteTransaction::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(OIndex oi, void* pvData, size uiDataSize)
+bool CWriteTransaction::Set(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -260,7 +271,7 @@ bool CWriteTransaction::Set(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(const char* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Set(const char* szName, void* pvData, lsize uiDataSize)
 {
 	OIndex	oi;
 
@@ -294,7 +305,7 @@ bool CWriteTransaction::Set(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(CChars* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Set(CChars* szName, void* pvData, lsize uiDataSize)
 {
 	return Set(szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -304,7 +315,7 @@ bool CWriteTransaction::Set(CChars* szName, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, void* pvData, size uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -330,7 +341,7 @@ bool CWriteTransaction::Put(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize)
 {
 	OIndex	oiExisting;
 	bool	bExists;
@@ -382,7 +393,7 @@ bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, size ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize)
 {
 	return Put(oi, szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -419,7 +430,7 @@ bool CWriteTransaction::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CWriteTransaction::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	CWriteRecord*	pcRecord;
 
@@ -466,7 +477,7 @@ bool CWriteTransaction::Get(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CWriteTransaction::Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -492,7 +503,7 @@ bool CWriteTransaction::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CWriteTransaction::Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	return Get(szName ? szName->Text() : NULL, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -665,7 +676,7 @@ bool CWriteTransaction::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	CArrayOIndex*	paoi;
 	SMapIterator	sIter;
@@ -695,10 +706,10 @@ OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	OIndex	oi;
-	size	uiDataSize;
+	lsize	uiDataSize;
 
 	while (mbActive && mcIteration.NextIndex(&oi))
 	{
@@ -926,6 +937,7 @@ void CWriteTransaction::Die(void)
 {
 	//Wait-die: a younger transaction never waits for an older one.  Everything it did is thrown away.
 	ReleaseResources();
+	FreeRecords();
 	mcRecords.Kill();
 	mcRecords.Init(true);
 	mcNames.Kill();
@@ -1006,19 +1018,73 @@ CWriteRecord* CWriteTransaction::GetRecord(OIndex oi)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Removes oi's record and frees its data.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::RemoveRecord(OIndex oi)
+{
+	CWriteRecord*	pcRecord;
+
+	pcRecord = GetRecord(oi);
+	if (pcRecord)
+	{
+		pcRecord->FreeData();
+	}
+	return mcRecords.Remove(&oi, sizeof(OIndex));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees every record's data (before the records are killed).
+//
+//////////////////////////////////////////////////////////////////////////
+void CWriteTransaction::FreeRecords(void)
+{
+	SMapIterator	sIter;
+	void*			pvKey;
+	void*			pvData;
+	size			iKeySize;
+	size			iDataSize;
+	bool			bExists;
+
+	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		((CWriteRecord*)pvData)->FreeData();
+		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, lsize uiDataSize)
 {
 	CWriteRecord*	pcRecord;
 	int32			iNameLength;
+	void*			pvCopy;
 
-	//szName and pvData must not point into the record being replaced.
+	//szName and pvData may point into the record being replaced, so the data is copied before it is removed.
+	pvCopy = NULL;
+	if (uiDataSize > 0)
+	{
+		pvCopy = malloc(uiDataSize);
+		if (pvCopy == NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Could not allocate the change to Index [", IndexToString(oi), "].", NULL);
+		}
+		memcpy(pvCopy, pvData, uiDataSize);
+	}
+
 	iNameLength = szName ? (int32)strlen(szName) : 0;
-	mcRecords.Remove(&oi, sizeof(OIndex));
-	pcRecord = (CWriteRecord*)mcRecords.Put(&oi, sizeof(OIndex), sizeof(CWriteRecord) + iNameLength + 1 + uiDataSize);
+	RemoveRecord(oi);
+	pcRecord = (CWriteRecord*)mcRecords.Put(&oi, sizeof(OIndex), (size)(sizeof(CWriteRecord) + iNameLength + 1));
 	if (pcRecord == NULL)
 	{
+		SafeFree(pvCopy);
 		return gcLogger.Error2(__METHOD__, " Could not store the change to Index [", IndexToString(oi), "].", NULL);
 	}
 
@@ -1026,11 +1092,8 @@ bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored
 	pcRecord->bReplacesStored = bReplacesStored;
 	pcRecord->iNameLength = iNameLength;
 	pcRecord->uiDataSize = uiDataSize;
+	pcRecord->mpvData = pvCopy;
 	memcpy(pcRecord->GetName(), szName ? szName : "", iNameLength + 1);
-	if (uiDataSize > 0)
-	{
-		memcpy(pcRecord->GetData(), pvData, uiDataSize);
-	}
 	return true;
 }
 
@@ -1101,7 +1164,7 @@ bool CWriteTransaction::GetCurrentName(OIndex oi, CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::GetDataSize(OIndex oi, size* puiDataSize)
+bool CWriteTransaction::GetDataSize(OIndex oi, lsize* puiDataSize)
 {
 	CWriteRecord*	pcRecord;
 
@@ -1119,7 +1182,7 @@ bool CWriteTransaction::GetDataSize(OIndex oi, size* puiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::SetData(OIndex oi, void* pvData, size uiDataSize)
+bool CWriteTransaction::SetData(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	CChars			szName;
 	CWriteRecord*	pcRecord;
@@ -1141,7 +1204,7 @@ bool CWriteTransaction::SetData(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, size uiDataSize)
+bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, lsize uiDataSize)
 {
 	bool	bReplacesStored;
 
@@ -1180,7 +1243,7 @@ bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::SetLocked(OIndex oi, void* pvData, size uiDataSize)
+bool CWriteTransaction::SetLocked(OIndex oi, void* pvData, lsize uiDataSize)
 {
 	//The object is locked exclusively.
 	if (!Exists(oi))
@@ -1235,7 +1298,7 @@ bool CWriteTransaction::RemoveLocked(OIndex oi)
 	else
 	{
 		//The object was only ever added by this transaction.
-		return mcRecords.Remove(&oi, sizeof(OIndex));
+		return RemoveRecord(oi);
 	}
 }
 

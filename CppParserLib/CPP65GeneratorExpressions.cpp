@@ -2463,7 +2463,11 @@ SCPP65Type* CCPP65Generator::DiscardedType(CCPPSyntax* pcExpression, bool bPlace
 	size			uiErrors;
 	size			uiStrings;
 	int				iLabels;
+	bool			bKeepErrors;
 
+	//ReportTypeOf keeps this expression's errors, not those of the expressions it looks at.
+	bKeepErrors = mbKeepTypeErrors;
+	mbKeepTypeErrors = false;
 	pszOut = mpszOut;
 	iDepth = miDepth;
 	iTemporaries = miTemporaries;
@@ -2494,7 +2498,10 @@ SCPP65Type* CCPP65Generator::DiscardedType(CCPPSyntax* pcExpression, bool bPlace
 	miDepth = iDepth;
 	miTemporaries = iTemporaries;
 	mbThisInX = bThisInX;
-	mcErrors.Truncate(uiErrors);
+	if (!bKeepErrors)
+	{
+		mcErrors.Truncate(uiErrors);
+	}
 	while (maszStrings.NumElements() > uiStrings)
 	{
 		maszStrings.Tail()->Kill();
@@ -4327,7 +4334,8 @@ void CCPP65Generator::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue,
 // to an unsigned type and 0xFFFF to a 16 bit signed one are bit patterns, not
 // warned about).  89037124 passed to an int parameter is.  With
 // SetWarnNarrowing a non constant integer converted to a narrower type is
-// warned about too: a 32 bit index stored in a 16 bit one.
+// warned about too: a 32 bit index stored in a 16 bit one.  A multiply or
+// left shift converted to a wider type is warned about (WideningArithmetic).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
@@ -4339,7 +4347,7 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	bool		bQuietFailed;
 	CChars		szMessage;
 
-	if (!psTo || !psTo->IsInteger() || (psTo->iBytes >= 8) || (psTo->eKind == CPP65TK_Bool) || (miWarningChecks > 0))
+	if (!psTo || !psTo->IsInteger() || (psTo->eKind == CPP65TK_Bool) || (miWarningChecks > 0))
 	{
 		return;
 	}
@@ -4359,6 +4367,7 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	mbQuietFailed = bQuietFailed;
 	if (!bConstant)
 	{
+		WideningArithmetic(pcExpression, psFrom, psTo);
 		if (mbWarnNarrowing && (psFrom->eKind == CPP65TK_Integer) && (psFrom->iBytes > psTo->iBytes))
 		{
 			szMessage.Init("Integer conversion narrows: a ");
@@ -4366,6 +4375,10 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 			Warning(pcExpression, szMessage.Text());
 			szMessage.Kill();
 		}
+		return;
+	}
+	if (psTo->iBytes >= 8)
+	{
 		return;
 	}
 
@@ -4377,6 +4390,45 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 
 	szMessage.Init("Integer conversion overflow: the constant ");
 	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(iBits)->Append(" bit type it is converted to and is truncated.");
+	Warning(pcExpression, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Warns if pcExpression (of type psFrom) is a multiply or a left shift done
+// in an integer type narrower than psTo, which it is implicitly converted
+// to: the result may have wrapped before it was widened.  iKey = ui * 0x39e7
+// with a 16 bit ui and a 64 bit iKey multiplies in 16 bits.  Converting an
+// operand first ((int64)ui * 0x39e7) does the arithmetic in the wider type;
+// converting the result ((int64)(ui * 0x39e7)) says the wrap is wanted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	CCPPSyntax*					pcInner;
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CChars						szMessage;
+
+	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes))
+	{
+		return;
+	}
+	pcInner = SkipParentheses(pcExpression);
+	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
+	{
+		return;
+	}
+	pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
+	if ((pcBinary->meOperator != CT_Multiply) && (pcBinary->meOperator != CT_LeftShift))
+	{
+		return;
+	}
+
+	szMessage.Init("Integer arithmetic widened after it may have wrapped: the ");
+	szMessage.Append(psFrom->iBytes * 8)->Append(" bit result of '")->Append((pcBinary->meOperator == CT_Multiply) ? "*" : "<<");
+	szMessage.Append("' is converted to the ")->Append(psTo->iBytes * 8)->Append(" bit type.  Convert an operand first to do it in ")->Append(psTo->iBytes * 8)->Append(" bits.");
 	Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }

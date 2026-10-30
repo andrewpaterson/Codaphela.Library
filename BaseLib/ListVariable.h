@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SPointerAndSize
 {
 	void*	pvData;
-	size	iSize;
+	lsize	iSize;
 };
 
 typedef CArrayTemplate<SPointerAndSize> CArrayTypedPointerAndSize;
@@ -48,26 +48,26 @@ public:
 	void	Init(void);
 	void	ReInit(void);
 	void	Kill(void);
-	void*	Add(size iElementSize);
-	void*	Add(void* pvElement, size iElementSize);
+	void*	Add(lsize iElementSize);
+	void*	Add(void* pvElement, lsize iElementSize);
 	bool	Get(size iIndex, void** pvData);
 	void*	Get(size iIndex);
-	void*	Get(size iIndex, size* puiElementSize);
-	void	Set(size iIndex, void* pvData, size iElementSize);
-	void*	Resize(size iIndex, size iElementSize = 0);
-	void*	Grow(size iIndex, size iElementSize);
+	void*	Get(size iIndex, lsize* puiElementSize);
+	void	Set(size iIndex, void* pvData, lsize iElementSize);
+	void*	Resize(size iIndex, lsize iElementSize = 0);
+	void*	Grow(size iIndex, lsize iElementSize);
 	void	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	size	IndexOf(void* pvElement);
 	bool	Remove(void* pvElement);
 	size	NumElements(void);
 	bool	FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex);
-	void*	InsertAt(size iIndex, size iElementSize);
-	size	InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, size iElementSize);
-	size	GetSize(size iIndex);
+	void*	InsertAt(size iIndex, lsize iElementSize);
+	size	InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, lsize iElementSize);
+	lsize	GetSize(size iIndex);
 
 private:
 	void	PrivateFree(SPointerAndSize* psType);
-	void*	PrivateMalloc(size iElementSize);
+	void*	PrivateMalloc(lsize iElementSize);
 };
 
 

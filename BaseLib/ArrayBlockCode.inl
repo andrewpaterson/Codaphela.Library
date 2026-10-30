@@ -80,7 +80,7 @@ void ARRAY_BLOCK::Init(CMallocator* pcMalloc, ASIZE iElementSize, void* pvData, 
 {
 	Init(pcMalloc, iElementSize);
 	Resize(uiNumData);
-	memcpy(mpvArray, pvData, iElementSize * uiNumData);
+	ARRAY_MEMCPY(mpvArray, pvData, iElementSize * uiNumData);
 }
 
 
@@ -151,7 +151,7 @@ bool ARRAY_BLOCK::SafeSet(ASIZE iIndex, void* pvData)
 	{
 		iOldLength = NumElements();
 		SetUsedElements(iIndex+1);
-		memset(Get(iOldLength), 0, (iIndex-iOldLength) * miElementSize);
+		ARRAY_MEMSET(Get(iOldLength), 0, (iIndex-iOldLength) * miElementSize);
 		Set(iIndex, pvData);
 		return true;
 	}
@@ -251,7 +251,7 @@ void ARRAY_BLOCK::SetArraySize(ASIZE iNeededElements)
 
 		if (miNumElements != iNumElements)
 		{
-			pv = (void*)Realloc(mpvArray, miElementSize * iNumElements);
+			pv = (void*)Realloc(mpvArray, (ASIZE)(miElementSize * iNumElements));
 			mpvArray = pv;
 			if (mpvArray == NULL)
 			{
@@ -352,7 +352,7 @@ ASIZE ARRAY_BLOCK::AddExistingGetIndex(void* pvData)
 	void* pv;
 
 	pv = Add();
-	memcpy(pv, pvData, miElementSize);
+	ARRAY_MEMCPY(pv, pvData, miElementSize);
 	return miUsedElements - 1;
 }
 
@@ -366,7 +366,7 @@ void* ARRAY_BLOCK::Add(void* pvData)
 	void* pv;
 
 	pv = Add();
-	memcpy(pv, pvData, miElementSize);
+	ARRAY_MEMCPY(pv, pvData, miElementSize);
 	return pv;
 }
 
@@ -380,7 +380,7 @@ void ARRAY_BLOCK::Set(ASIZE iIndex, void* pvData)
 	void*	pvTemp;
 
 	pvTemp = Get(iIndex);
-	memcpy(pvTemp, pvData, miElementSize);
+	ARRAY_MEMCPY(pvTemp, pvData, miElementSize);
 }
 
 
@@ -415,7 +415,7 @@ void* ARRAY_BLOCK::InsertAt(ASIZE iIndex)
 	pSource = Get(iIndex);
 	pDest = RemapSinglePointer(pSource, miElementSize);
 
-	memmove(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
+	ARRAY_MEMMOVE(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
 	return (void*)pSource;
 }
 
@@ -431,7 +431,7 @@ void* ARRAY_BLOCK::InsertAt(void* pvData, ASIZE iIndex)
 	pv = InsertAt(iIndex);
 	if (pv)
 	{
-		memcpy(pv, pvData, miElementSize);
+		ARRAY_MEMCPY(pv, pvData, miElementSize);
 	}
 	return pv;
 }
@@ -473,19 +473,19 @@ ASIZE ARRAY_BLOCK::RemoveAtNoDeallocate(ASIZE iIndex, bool bPreserveOrder, ASIZE
 		return iUsedElements;
 	}
 
-	pSource = RemapSinglePointer(mpvArray, iIndex * iDataSize);
+	pSource = RemapSinglePointer(mpvArray, (ASIZE)(iIndex * iDataSize));
 
 	if (bPreserveOrder)
 	{
 		//If the order of elements is to be preserved then move all the elements back one.
 		pDest = (void*)RemapSinglePointer(pSource, iDataSize);
-		memmove(pSource, pDest, iDataSize * (iUsedElements - iIndex));
+		ARRAY_MEMMOVE(pSource, pDest, iDataSize * (iUsedElements - iIndex));
 	}
 	else
 	{
 		//If the order is unimportant then just move the last element to the empty.
-		pEnd = (void*)RemapSinglePointer(mpvArray, iUsedElements * iDataSize);
-		memcpy(pSource, pEnd, iDataSize);
+		pEnd = (void*)RemapSinglePointer(mpvArray, (ASIZE)(iUsedElements * iDataSize));
+		ARRAY_MEMCPY(pSource, pEnd, iDataSize);
 	}
 	return iUsedElements;
 }
@@ -530,12 +530,12 @@ void ARRAY_BLOCK::PrivateRemoveRange(ASIZE iStartIndex, ASIZE iEndIndexExclusive
 		if ((bPreserveOrder) || (iNumToRemove >= iNumTrailing))
 		{
 			pvEnd = Get(iEndIndexExclusive);
-			memmove(pvStart, pvEnd, iNumTrailing*iDataSize);
+			ARRAY_MEMMOVE(pvStart, pvEnd, iNumTrailing*iDataSize);
 		}
 		else
 		{
 			pv = Get(miUsedElements - iNumToRemove);
-			memmove(pvStart, pv, iNumToRemove*iDataSize);
+			ARRAY_MEMMOVE(pvStart, pv, iNumToRemove*iDataSize);
 		}
 		SetUsedElements(miUsedElements-iNumToRemove);
 	}
@@ -600,7 +600,7 @@ void ARRAY_BLOCK::RemoveAt(ASIZE* paiElementsToDelete, ASIZE iNumElementsToDelet
 				if (iIndex == iNumElementsToDelete)
 				{
 					iMoved = miUsedElements - iFirstElementToMove;
-					memmove(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+					ARRAY_MEMMOVE(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 					SetUsedElements(miUsedElements - iNumElementsToDelete);
 					return;
 				}
@@ -614,7 +614,7 @@ void ARRAY_BLOCK::RemoveAt(ASIZE* paiElementsToDelete, ASIZE iNumElementsToDelet
 			//iFirstElementToMove is the first element to move
 			//iEndElementToMove is the last element to move exclusive.
 			iMoved = iEndElementToMove - iFirstElementToMove;
-			memmove(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+			ARRAY_MEMMOVE(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 
 			iDestOffset += iNumDeleted;
 
@@ -707,7 +707,7 @@ void ARRAY_BLOCK::Zero(void)
 {
 	if (miUsedElements != 0)
 	{
-		memset(mpvArray, 0, miUsedElements * miElementSize);
+		ARRAY_MEMSET(mpvArray, 0, miUsedElements * miElementSize);
 	}
 }
 
@@ -720,7 +720,7 @@ void ARRAY_BLOCK::One(void)
 {
 	if (miUsedElements != 0)
 	{
-		memset(mpvArray, 0xff, miUsedElements * miElementSize);
+		ARRAY_MEMSET(mpvArray, 0xff, miUsedElements * miElementSize);
 	}
 }
 
@@ -757,7 +757,7 @@ void* ARRAY_BLOCK::PushCopy(void)
 	{
 		pDest = Add();
 		pSource = Get(miUsedElements-2);
-		memcpy(pDest, pSource, miElementSize);
+		ARRAY_MEMCPY(pDest, pSource, miElementSize);
 		return pDest;
 	}
 	else
@@ -775,7 +775,7 @@ void ARRAY_BLOCK::Push(void* pvData)
 {
 	void* pv;
 	pv = Add();
-	memcpy(pv, pvData, miElementSize);
+	ARRAY_MEMCPY(pv, pvData, miElementSize);
 }
 
 
@@ -790,13 +790,13 @@ bool ARRAY_BLOCK::Pop(void* pvDest)
 	if (miUsedElements != 0)
 	{
 		pvSource = Get(miUsedElements - 1);
-		memcpy(pvDest, pvSource, miElementSize);
+		ARRAY_MEMCPY(pvDest, pvSource, miElementSize);
 		RemoveAt(miUsedElements - 1);
 		return true;
 	}
 	else
 	{
-		memset(pvDest, 0, miElementSize);
+		ARRAY_MEMSET(pvDest, 0, miElementSize);
 		return false;
 	}
 }
@@ -813,13 +813,13 @@ bool ARRAY_BLOCK::PopFirst(void* pvDest)
 	if (miUsedElements != 0)
 	{
 		pvSource = Get(0);
-		memcpy(pvDest, pvSource, miElementSize);
+		ARRAY_MEMCPY(pvDest, pvSource, miElementSize);
 		RemoveAt(0);
 		return true;
 	}
 	else
 	{
-		memset(pvDest, 0, miElementSize);
+		ARRAY_MEMSET(pvDest, 0, miElementSize);
 		return false;
 	}
 }
@@ -869,7 +869,7 @@ ASIZE ARRAY_BLOCK::Find(void* pvData)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pv = Get(i);
-		if (memcmp(pv, pvData, miElementSize) == 0)
+		if (ARRAY_MEMCMP(pv, pvData, miElementSize) == 0)
 		{
 			return i;
 		}
@@ -911,7 +911,7 @@ ASIZE ARRAY_BLOCK::FindWithKey(void* pvData, ASIZE iKeyOffset, ASIZE iKeySize)
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		if (memcmp(pIndex, pTest, iKeySize) == 0)
+		if (ARRAY_MEMCMP(pIndex, pTest, iKeySize) == 0)
 		{
 			return i;
 		}
@@ -965,6 +965,28 @@ ASIZE ARRAY_BLOCK::FindWithIntKey(int iKey, ASIZE iKeyOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// A size key (a channel number): not an int's width everywhere.		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+ASIZE ARRAY_BLOCK::FindWithSizeKey(size iKey, ASIZE iKeyOffset)
+{
+	ASIZE	i;
+	void*	pIndex;
+
+	for (i = 0; i < miUsedElements; i++)
+	{
+		pIndex = RemapSinglePointer(mpvArray, (ASIZE)(i * miElementSize) + iKeyOffset);
+		if (*((size*)pIndex) == iKey)
+		{
+			return i;
+		}
+	}
+	return ARRAY_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 ASIZE ARRAY_BLOCK::Resize(ASIZE iNumElements)
@@ -995,7 +1017,7 @@ void* ARRAY_BLOCK::GrowToAtLeastNumElements(ASIZE iNumElements, bool bClear, uin
 			if (iOldUsedElements < iNumElements)
 			{
 				pvStart = Get(iOldUsedElements);
-				memset(pvStart, iClear, (iNumElements - iOldUsedElements) * miElementSize);
+				ARRAY_MEMSET(pvStart, iClear, (iNumElements - iOldUsedElements) * miElementSize);
 			}
 		}
 		return Get(iNumElements - 1);
@@ -1015,7 +1037,7 @@ bool ARRAY_BLOCK::Equals(ARRAY_BLOCK* pcOtherArray)
 {
 	if (pcOtherArray->miUsedElements == miUsedElements)
 	{
-		if (memcmp(pcOtherArray->mpvArray, mpvArray, ByteSize()) == 0)
+		if (ARRAY_MEMCMP(pcOtherArray->mpvArray, mpvArray, ByteSize()) == 0)
 		{
 			return true;
 		}
@@ -1036,7 +1058,7 @@ void ARRAY_BLOCK::Swap(ASIZE iIndex1, ASIZE iIndex2)
 	pElement1 = Get(iIndex1);
 	pElement2 = Get(iIndex2);
 
-	MemSwp(pElement1, pElement2, miElementSize);
+	ARRAY_MEMSWP(pElement1, pElement2, miElementSize);
 }
 
 
@@ -1204,7 +1226,7 @@ void* ARRAY_BLOCK::CopyArrayInto(ARRAY_BLOCK* pcOtherArray, ASIZE iIndex)
 	//The array is always set large enough.
 
 	pv = Get(iIndex);
-	memcpy(pv, pcOtherArray->mpvArray, miElementSize * pcOtherArray->miUsedElements);
+	ARRAY_MEMCPY(pv, pcOtherArray->mpvArray, miElementSize * pcOtherArray->miUsedElements);
 	return pv;
 }
 
@@ -1218,7 +1240,7 @@ void* ARRAY_BLOCK::CopyBlockInto(void* paElements, ASIZE iLength, ASIZE iIndex)
 	void*	pv;
 
 	pv = Get(iIndex);
-	memcpy(pv, paElements, miElementSize * iLength);
+	ARRAY_MEMCPY(pv, paElements, miElementSize * iLength);
 	return pv;
 }
 
@@ -1278,7 +1300,7 @@ void* ARRAY_BLOCK::InsertNumAt(ASIZE iNumElements, ASIZE iIndex)
 
 	pvFrom = (void*)Get(iIndex);
 	pvTo = (void*)Get(iIndex + iNumElements);
-	memmove(pvTo, pvFrom, iNumToMove * miElementSize);
+	ARRAY_MEMMOVE(pvTo, pvFrom, iNumToMove * miElementSize);
 	return (void*)pvFrom;
 }
 
@@ -1324,7 +1346,7 @@ void* ARRAY_BLOCK::InsertBlockAt(void* paElements, ASIZE iLength, ASIZE iIndex)
 //////////////////////////////////////////////////////////////////////////
 void* ARRAY_BLOCK::Get(ASIZE iIndex)
 {
-	return (void*)RemapSinglePointer(mpvArray, miElementSize * iIndex);
+	return (void*)RemapSinglePointer(mpvArray, (ASIZE)(miElementSize * iIndex));
 }
 
 
@@ -1348,28 +1370,27 @@ ASIZE ARRAY_BLOCK::GetAdjustedIndex(ASIZE iIndex)
 //////////////////////////////////////////////////////////////////////////
 ASIZE ARRAY_BLOCK::GetIndex(void* pvData)
 {
-	ASIZE tIndex;
-	ASIZE tBase;
-	ASIZE tDifference;
+	ptr		tDifference;
+	ASIZE	iDifference;
 
-	tBase = (ASIZE) mpvArray;
-	tIndex = (ASIZE) pvData;
-	tDifference = tIndex - tBase;
+	//Make sure the element lies within the array (whole pointers: a 16 bit size would wrap).
+	if ((ptr)pvData < (ptr)mpvArray)
+	{
+		return ARRAY_NOT_FOUND;
+	}
+	tDifference = (ptr)pvData - (ptr)mpvArray;
+	if (tDifference >= (ptr)miUsedElements * miElementSize)
+	{
+		return ARRAY_NOT_FOUND;
+	}
 
 	//Make sure the element is correctly aligned.
-	if (tDifference % miElementSize != 0)
+	iDifference = (ASIZE)tDifference;
+	if (iDifference % miElementSize != 0)
 	{
 		return ARRAY_NOT_FOUND;
 	}
-	
-	//Make sure the element lies within the array.
-	tIndex = tDifference / miElementSize;
-	if (tIndex >= (ASIZE)miUsedElements)
-	{
-		return ARRAY_NOT_FOUND;
-	}
-
-	return (ASIZE)tIndex;
+	return iDifference / miElementSize;
 }
 
 
@@ -1400,7 +1421,7 @@ void ARRAY_BLOCK::RemoveBatch(ASIZE uiFirstElementPos, ASIZE uiNumInBatch, ASIZE
 			pcDest = Get(uiDest);
 			pcSource = Get(uiSource);
 
-			memmove(pcDest, pcSource, uiCopyWidth);
+			ARRAY_MEMMOVE(pcDest, pcSource, uiCopyWidth);
 		}
 	}
 
@@ -1412,7 +1433,7 @@ void ARRAY_BLOCK::RemoveBatch(ASIZE uiFirstElementPos, ASIZE uiNumInBatch, ASIZE
 		pcSource = Get(uiSource);
 
 		uiCopyWidth = (miUsedElements - uiSource) * miElementSize;
-		memmove(pcDest, pcSource, uiCopyWidth);
+		ARRAY_MEMMOVE(pcDest, pcSource, uiCopyWidth);
 
 		uiNewNumElements = miUsedElements - (uiNumInBatch * uiNumBatches);
 		SetArraySize(uiNewNumElements);
@@ -1545,15 +1566,15 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 
 	iDest = (iNumInBatch + iSkip) * (i + 1) - iSkip;
 	iSource = iSkip * i;
-	pcDest = RemapSinglePointer(pcFirst, iDest * miElementSize);
-	pcSource = RemapSinglePointer(pcFirst, iSource * miElementSize);
+	pcDest = RemapSinglePointer(pcFirst, (ASIZE)(iDest * miElementSize));
+	pcSource = RemapSinglePointer(pcFirst, (ASIZE)(iSource * miElementSize));
 
 	if (iOldNumElements > iSource)
 	{
 		if ((iOldNumElements - iSource) > iFirstElementPos)
 		{
 			iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
-			memmove(pcDest, pcSource, iRemaining * miElementSize);
+			ARRAY_MEMMOVE(pcDest, pcSource, iRemaining * miElementSize);
 		}
 	}
 
@@ -1567,7 +1588,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 1);
+				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 1);
 			}
 			while (i != 0);
 		}
@@ -1580,7 +1601,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 2);
+				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 2);
 			}
 			while (i != 0);
 		}
@@ -1593,7 +1614,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 4);
+				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 4);
 			}
 			while (i != 0);
 		}
@@ -1606,7 +1627,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 8);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 8);
 			}
 			while (i != 0);
 		}
@@ -1619,7 +1640,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 12);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 12);
 			}
 			while (i != 0);
 		}
@@ -1632,7 +1653,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), iStride);
 			}
 			while (i != 0);
 		}
@@ -1760,7 +1781,7 @@ bool ARRAY_BLOCK::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  SIZE_MAX for
+//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  MAX_SIZE for
 //both uses the element size in the file.
 bool ARRAY_BLOCK::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, ASIZE uiFileElementSize, ASIZE uiElementSize)
 {

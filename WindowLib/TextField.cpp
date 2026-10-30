@@ -452,7 +452,7 @@ void CTextField::TextEdited(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextField::GetSelection(size* puiStart, size* puiEnd)
 {
-	if ((mcEditor.miSelectionAnchor == SIZE_MAX) || (mcEditor.miSelectionFloating == SIZE_MAX))
+	if ((mcEditor.miSelectionAnchor == MAX_SIZE) || (mcEditor.miSelectionFloating == MAX_SIZE))
 	{
 		*puiStart = mcEditor.miEditPos;
 		*puiEnd = mcEditor.miEditPos;

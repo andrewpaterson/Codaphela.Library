@@ -583,7 +583,7 @@ void CImage::SetSize(uint32 uiWidth, uint32 uiHeight)
 
 		//The number of pixels is calculated in 64 bits because width * height can overflow 32 bits.
 		ulliNumPixels = (uint64)uiWidth * (uint64)uiHeight;
-		if (ulliNumPixels > SIZE_MAX)
+		if (ulliNumPixels > MAX_SIZE)
 		{
 			gcLogger.Error2(__METHOD__, " Image [", IntToString(uiWidth), " x ", IntToString(uiHeight), "] has more pixels than can be addressed.", NULL);
 			uiWidth = 0;

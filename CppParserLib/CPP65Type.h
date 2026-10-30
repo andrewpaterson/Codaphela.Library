@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_P_P_65_TYPE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/Chars.h"
 
 
 enum ECPP65TypeKind
@@ -75,6 +76,7 @@ struct SCPP65Type
 	bool	Is64(void);
 	bool	Equals(SCPP65Type* psOther);
 	int		GetElementBytes(void);
+	void	Append(CChars* psz);
 };
 
 

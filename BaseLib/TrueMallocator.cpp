@@ -73,11 +73,11 @@ static int TrueMallocatorLowestBit(uint32 ui)
 // block and a used block of no size that ends it.  Returns false if there is too little memory for a block.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueMallocator::Init(void* pvMemory, size uiBytes)
+bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 {
-	size					uiStart;
-	size					uiEnd;
-	size					uiSize;
+	lsize					uiStart;
+	lsize					uiEnd;
+	lsize					uiSize;
 	STrueMallocatorBlock*	psBlock;
 	int						i;
 	int						j;
@@ -96,8 +96,8 @@ bool CTrueMallocator::Init(void* pvMemory, size uiBytes)
 	mpuiStart = NULL;
 	mpsEnd = NULL;
 
-	uiStart = ((size)pvMemory + TRUE_MALLOCATOR_ALIGNMENT - 1) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
-	uiEnd = ((size)pvMemory + uiBytes) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
+	uiStart = ((lsize)pvMemory + TRUE_MALLOCATOR_ALIGNMENT - 1) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
+	uiEnd = ((lsize)pvMemory + uiBytes) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
 	if ((uiEnd <= uiStart) || (uiEnd - uiStart < TRUE_MALLOCATOR_MIN_BLOCK + TRUE_MALLOCATOR_HEADER))
 	{
 		return false;
@@ -112,7 +112,7 @@ bool CTrueMallocator::Init(void* pvMemory, size uiBytes)
 	mpsEnd->uiPreviousSize = 0;
 	mpsEnd->uiSize = 0;
 
-	uiSize = (size)((uint8*)mpsEnd - mpuiStart);
+	uiSize = (lsize)((uint8*)mpsEnd - mpuiStart);
 	psBlock = (STrueMallocatorBlock*)mpuiStart;
 	psBlock->uiPreviousSize = 0;
 	psBlock->uiSize = 0;
@@ -145,7 +145,7 @@ void CTrueMallocator::Kill(void)
 void* CTrueMallocator::Malloc(lsize uiBytes)
 {
 	STrueMallocatorBlock*	psBlock;
-	size					uiSize;
+	lsize					uiSize;
 
 	uiSize = BlockSize(uiBytes);
 	if (uiSize == 0)
@@ -159,12 +159,12 @@ void* CTrueMallocator::Malloc(lsize uiBytes)
 	}
 
 	RemoveFree(psBlock);
-	psBlock->uiSize &= ~(size)TRUE_MALLOCATOR_FREE;
-	Next(psBlock)->uiSize &= ~(size)TRUE_MALLOCATOR_PREVIOUS_FREE;
+	psBlock->uiSize &= ~(lsize)TRUE_MALLOCATOR_FREE;
+	Next(psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE;
 	Split(psBlock, uiSize);
 
 	muiNumAllocations++;
-	muiAllocatedBytes += psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+	muiAllocatedBytes += psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	return (uint8*)psBlock + TRUE_MALLOCATOR_HEADER;
 }
 
@@ -180,8 +180,8 @@ void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 {
 	STrueMallocatorBlock*	psBlock;
 	STrueMallocatorBlock*	psNext;
-	size					uiSize;
-	size					uiCurrent;
+	lsize					uiSize;
+	lsize					uiCurrent;
 	void*					pvNew;
 
 	if (!pv)
@@ -195,22 +195,22 @@ void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 	}
 
 	psBlock = (STrueMallocatorBlock*)((uint8*)pv - TRUE_MALLOCATOR_HEADER);
-	uiCurrent = psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+	uiCurrent = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	if (uiSize <= uiCurrent)
 	{
 		Split(psBlock, uiSize);
-		muiAllocatedBytes -= uiCurrent - (psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS);
+		muiAllocatedBytes -= uiCurrent - (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS);
 		return pv;
 	}
 
 	psNext = Next(psBlock);
-	if ((psNext->uiSize & TRUE_MALLOCATOR_FREE) && (uiCurrent + (psNext->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS) >= uiSize))
+	if ((psNext->uiSize & TRUE_MALLOCATOR_FREE) && (uiCurrent + (psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) >= uiSize))
 	{
 		RemoveFree(psNext);
-		psBlock->uiSize += psNext->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
-		Next(psBlock)->uiSize &= ~(size)TRUE_MALLOCATOR_PREVIOUS_FREE;
+		psBlock->uiSize += psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
+		Next(psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE;
 		Split(psBlock, uiSize);
-		muiAllocatedBytes += (psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS) - uiCurrent;
+		muiAllocatedBytes += (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - uiCurrent;
 		return pv;
 	}
 
@@ -235,14 +235,14 @@ void CTrueMallocator::Free(void* pv)
 	STrueMallocatorBlock*	psBlock;
 	STrueMallocatorBlock*	psNext;
 	STrueMallocatorBlock*	psPrevious;
-	size					uiSize;
+	lsize					uiSize;
 
 	if (!pv)
 	{
 		return;
 	}
 	psBlock = (STrueMallocatorBlock*)((uint8*)pv - TRUE_MALLOCATOR_HEADER);
-	uiSize = psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+	uiSize = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	muiNumAllocations--;
 	muiAllocatedBytes -= uiSize;
 
@@ -250,13 +250,13 @@ void CTrueMallocator::Free(void* pv)
 	if (psNext->uiSize & TRUE_MALLOCATOR_FREE)
 	{
 		RemoveFree(psNext);
-		uiSize += psNext->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+		uiSize += psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	}
 	if (psBlock->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE)
 	{
 		psPrevious = (STrueMallocatorBlock*)((uint8*)psBlock - psBlock->uiPreviousSize);
 		RemoveFree(psPrevious);
-		uiSize += psPrevious->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+		uiSize += psPrevious->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 		psBlock = psPrevious;
 	}
 	MarkFree(psBlock, uiSize);
@@ -269,12 +269,12 @@ void CTrueMallocator::Free(void* pv)
 // The bytes pv's memory can hold: what it was asked for, rounded up.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueMallocator::Size(void* pv)
+lsize CTrueMallocator::Size(void* pv)
 {
 	STrueMallocatorBlock*	psBlock;
 
 	psBlock = (STrueMallocatorBlock*)((uint8*)pv - TRUE_MALLOCATOR_HEADER);
-	return (psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS) - TRUE_MALLOCATOR_HEADER;
+	return (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - TRUE_MALLOCATOR_HEADER;
 }
 
 
@@ -282,7 +282,7 @@ size CTrueMallocator::Size(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueMallocator::NumAllocations(void)
+lsize CTrueMallocator::NumAllocations(void)
 {
 	return muiNumAllocations;
 }
@@ -293,7 +293,7 @@ size CTrueMallocator::NumAllocations(void)
 // The bytes the used blocks take, with their headers.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueMallocator::AllocatedBytes(void)
+lsize CTrueMallocator::AllocatedBytes(void)
 {
 	return muiAllocatedBytes;
 }
@@ -304,11 +304,11 @@ size CTrueMallocator::AllocatedBytes(void)
 // The most bytes one Malloc could get now.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueMallocator::LargestFree(void)
+lsize CTrueMallocator::LargestFree(void)
 {
 	STrueMallocatorBlock*	psBlock;
-	size					uiLargest;
-	size					uiSize;
+	lsize					uiLargest;
+	lsize					uiSize;
 	int						iFirst;
 	int						iSecond;
 
@@ -321,7 +321,7 @@ size CTrueMallocator::LargestFree(void)
 	uiLargest = 0;
 	for (psBlock = mapsFree[iFirst][iSecond]; psBlock; psBlock = psBlock->psNextFree)
 	{
-		uiSize = psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+		uiSize = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 		uiLargest = (uiSize > uiLargest) ? uiSize : uiLargest;
 	}
 	return uiLargest - TRUE_MALLOCATOR_HEADER;
@@ -351,11 +351,11 @@ bool CTrueMallocator::IsValid(void)
 	STrueMallocatorBlock*	psBlock;
 	STrueMallocatorBlock*	psNext;
 	STrueMallocatorBlock*	psListed;
-	size					uiSize;
-	size					uiNumUsed;
-	size					uiUsedBytes;
-	size					uiNumFree;
-	size					uiNumListed;
+	lsize					uiSize;
+	lsize					uiNumUsed;
+	lsize					uiUsedBytes;
+	lsize					uiNumFree;
+	lsize					uiNumListed;
 	bool					bPreviousFree;
 	int						iFirst;
 	int						iSecond;
@@ -372,8 +372,8 @@ bool CTrueMallocator::IsValid(void)
 	bPreviousFree = false;
 	for (psBlock = (STrueMallocatorBlock*)mpuiStart; psBlock != mpsEnd; psBlock = psNext)
 	{
-		uiSize = psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
-		if ((uiSize < TRUE_MALLOCATOR_MIN_BLOCK) || (uiSize & (TRUE_MALLOCATOR_ALIGNMENT - 1)) || (uiSize > (size)((uint8*)mpsEnd - (uint8*)psBlock)))
+		uiSize = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
+		if ((uiSize < TRUE_MALLOCATOR_MIN_BLOCK) || (uiSize & (TRUE_MALLOCATOR_ALIGNMENT - 1)) || (uiSize > (lsize)((uint8*)mpsEnd - (uint8*)psBlock)))
 		{
 			return false;
 		}
@@ -406,7 +406,7 @@ bool CTrueMallocator::IsValid(void)
 			bPreviousFree = false;
 		}
 	}
-	if ((((mpsEnd->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE) != 0) != bPreviousFree) || (mpsEnd->uiSize & ~(size)TRUE_MALLOCATOR_PREVIOUS_FREE))
+	if ((((mpsEnd->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE) != 0) != bPreviousFree) || (mpsEnd->uiSize & ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE))
 	{
 		return false;
 	}
@@ -447,9 +447,9 @@ bool CTrueMallocator::IsValid(void)
 // The size of a block for uiBytes of data, or 0 if it would be too big.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueMallocator::BlockSize(size uiBytes)
+lsize CTrueMallocator::BlockSize(lsize uiBytes)
 {
-	size	uiSize;
+	lsize	uiSize;
 
 	if (uiBytes > TRUE_MALLOCATOR_MAX_SIZE - TRUE_MALLOCATOR_HEADER - TRUE_MALLOCATOR_ALIGNMENT)
 	{
@@ -467,7 +467,7 @@ size CTrueMallocator::BlockSize(size uiBytes)
 // list for each size.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueMallocator::Mapping(size uiSize, int* piFirst, int* piSecond)
+void CTrueMallocator::Mapping(lsize uiSize, int* piFirst, int* piSecond)
 {
 	int		iHighest;
 
@@ -492,18 +492,18 @@ void CTrueMallocator::Mapping(size uiSize, int* piFirst, int* piSecond)
 // are looked through for one that is big enough.
 //
 //////////////////////////////////////////////////////////////////////////
-STrueMallocatorBlock* CTrueMallocator::FindFree(size uiSize)
+STrueMallocatorBlock* CTrueMallocator::FindFree(lsize uiSize)
 {
 	STrueMallocatorBlock*	psBlock;
 	uint32					uiMap;
-	size					uiRounded;
+	lsize					uiRounded;
 	int						iFirst;
 	int						iSecond;
 
 	uiRounded = uiSize;
 	if (uiSize >= TRUE_MALLOCATOR_SMALL_BLOCK)
 	{
-		uiRounded += ((size)1 << (TrueMallocatorHighestBit((uint32)uiSize) - TRUE_MALLOCATOR_SECOND_LOG2)) - 1;
+		uiRounded += ((lsize)1 << (TrueMallocatorHighestBit((uint32)uiSize) - TRUE_MALLOCATOR_SECOND_LOG2)) - 1;
 	}
 	Mapping(uiRounded, &iFirst, &iSecond);
 	if (iFirst < TRUE_MALLOCATOR_FIRST_LEVELS)
@@ -528,7 +528,7 @@ STrueMallocatorBlock* CTrueMallocator::FindFree(size uiSize)
 	Mapping(uiSize, &iFirst, &iSecond);
 	for (psBlock = mapsFree[iFirst][iSecond]; psBlock; psBlock = psBlock->psNextFree)
 	{
-		if ((psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS) >= uiSize)
+		if ((psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) >= uiSize)
 		{
 			return psBlock;
 		}
@@ -547,7 +547,7 @@ void CTrueMallocator::InsertFree(STrueMallocatorBlock* psBlock)
 	int						iFirst;
 	int						iSecond;
 
-	Mapping(psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
+	Mapping(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
 	psHead = mapsFree[iFirst][iSecond];
 	psBlock->psNextFree = psHead;
 	psBlock->psPreviousFree = NULL;
@@ -570,7 +570,7 @@ void CTrueMallocator::RemoveFree(STrueMallocatorBlock* psBlock)
 	int		iFirst;
 	int		iSecond;
 
-	Mapping(psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
+	Mapping(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
 	if (psBlock->psNextFree)
 	{
 		psBlock->psNextFree->psPreviousFree = psBlock->psPreviousFree;
@@ -601,7 +601,7 @@ void CTrueMallocator::RemoveFree(STrueMallocatorBlock* psBlock)
 //////////////////////////////////////////////////////////////////////////
 STrueMallocatorBlock* CTrueMallocator::Next(STrueMallocatorBlock* psBlock)
 {
-	return (STrueMallocatorBlock*)((uint8*)psBlock + (psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS));
+	return (STrueMallocatorBlock*)((uint8*)psBlock + (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS));
 }
 
 
@@ -611,7 +611,7 @@ STrueMallocatorBlock* CTrueMallocator::Next(STrueMallocatorBlock* psBlock)
 // It is not put on a free list.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueMallocator::MarkFree(STrueMallocatorBlock* psBlock, size uiSize)
+void CTrueMallocator::MarkFree(STrueMallocatorBlock* psBlock, lsize uiSize)
 {
 	STrueMallocatorBlock*	psNext;
 
@@ -628,14 +628,14 @@ void CTrueMallocator::MarkFree(STrueMallocatorBlock* psBlock, size uiSize)
 // rest is freed (joined to the block after it if that is free).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueMallocator::Split(STrueMallocatorBlock* psBlock, size uiSize)
+void CTrueMallocator::Split(STrueMallocatorBlock* psBlock, lsize uiSize)
 {
 	STrueMallocatorBlock*	psRest;
 	STrueMallocatorBlock*	psNext;
-	size					uiTotal;
-	size					uiRest;
+	lsize					uiTotal;
+	lsize					uiRest;
 
-	uiTotal = psBlock->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+	uiTotal = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	if (uiTotal - uiSize < TRUE_MALLOCATOR_MIN_BLOCK)
 	{
 		return;
@@ -648,7 +648,7 @@ void CTrueMallocator::Split(STrueMallocatorBlock* psBlock, size uiSize)
 	if (psNext->uiSize & TRUE_MALLOCATOR_FREE)
 	{
 		RemoveFree(psNext);
-		uiRest += psNext->uiSize & ~(size)TRUE_MALLOCATOR_FLAGS;
+		uiRest += psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 	}
 	MarkFree(psRest, uiRest);
 	InsertFree(psRest);

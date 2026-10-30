@@ -36,13 +36,13 @@ protected:
 	void*							mpvCache;
 
 public:
-	void	Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void	Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void	Kill(void);
-	void	Resize(size uiNewCacheSize);
+	void	Resize(lsize uiNewCacheSize);
 
-	void*	Allocate(size uiDataSize);
+	void*	Allocate(lsize uiDataSize);
 
-	size	GetSize(void* pvData);
+	lsize	GetSize(void* pvData);
 
 	void*	StartIteration(void);
 	void*	Iterate(void* psCurrent);
@@ -55,12 +55,12 @@ public:
 	void	Clear(void);
 	void	Deallocate(void* pvCache);
 	size	NumElements(void);
-	size	NumElements(size iSize);
-	size	GetDescriptorSize(void);
-	size	GetCacheSize(void);
+	size	NumElements(lsize iSize);
+	lsize	GetDescriptorSize(void);
+	lsize	GetCacheSize(void);
 	void*	GetCache(void);
-	size	GetAllocatedSize(void);
-	bool	CanCache(size uiDataSize);
+	lsize	GetAllocatedSize(void);
+	bool	CanCache(lsize uiDataSize);
 	bool	ValidateCache(void);
 	void	Dump(void);
 

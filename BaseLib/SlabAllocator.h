@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //Every slab is SLAB_SIZE bytes and starts on a SLAB_SIZE boundary so the slab holding a pointer is found by masking the pointer.
 //64KB is the Windows allocation granularity so VirtualAlloc returns slabs with no wasted address space.
-#define SLAB_SIZE	((size)0x10000)
+#define SLAB_SIZE	((lsize)0x10000)
 
 
 class CSlabAllocator : public CMallocator

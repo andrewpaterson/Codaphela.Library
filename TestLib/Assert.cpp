@@ -384,6 +384,28 @@ bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertLSize(lsize iExpected, lsize iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToLongString((uint64)iExpected, szExpected, 32);
+		ToLongString((uint64)iActual, szActual, 32);
+		return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertIntHex(int32 iExpected, uint32 iActual, char* szPrefix, size iLine, const char* szFile)
 {
 	return PrivateAssertIntHex(iExpected, (int32)iActual, szPrefix, iLine, szFile);

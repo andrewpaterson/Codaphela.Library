@@ -126,6 +126,7 @@ public:
 	bool	FindInSorted(void* pvData, DataCompare fCompare, ASIZE* piIndex);
 	ASIZE	FindWithIntKey(int iKey);
 	ASIZE	FindWithIntKey(int iKey, ASIZE iKeyOffset);
+	ASIZE	FindWithSizeKey(size iKey, ASIZE iKeyOffset);
 	ASIZE 	FindWithKey(void* pvData, ASIZE iKeyOffset, ASIZE iKeySize);
 
 	void 	RemoveAt(ASIZE iIndex, bool bPreserveOrder = true);

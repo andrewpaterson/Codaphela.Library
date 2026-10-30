@@ -28,11 +28,11 @@ protected:
 	CIndexedFilesEvictionCallback*	mpcEvictionCallback;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
+	void			Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
-	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiMaxDataSize);
-	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
+	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, lsize uiMaxDataSize);
+	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize);
 
 	bool			Flush(bool bClearCache);
 	bool			IsFlushed(void);
@@ -43,22 +43,22 @@ public:
 	size			NumCached(size iSize);
 	size			NumFiles(void);
 	int64			NumDatas(void);
-	int64			NumDatas(size iDataSize);
+	int64			NumDatas(lsize iDataSize);
 
 	bool			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
-	size			GetSystemMemorySize(void);
+	lsize			GetSystemMemorySize(void);
 
 	bool			ValidateCache(void);
 
-	size			TestGetCachedObjectSize(OIndex oi);
+	lsize			TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
-	CIndexedCacheResult	CacheAllocate(OIndex oi, size uiDataSize);
+	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize);
+	CIndexedCacheResult	CacheAllocate(OIndex oi, lsize uiDataSize);
 
-	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
+	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, lsize uiDataSize);
 	bool				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, void* pvData, EClearCache eClearCache, bool bNoEviction);
 	bool				EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
 	bool				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, bool bNoEviction);

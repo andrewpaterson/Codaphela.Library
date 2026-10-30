@@ -111,7 +111,7 @@ bool CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize)
+bool CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize)
 {
 	return mcIndices.SetCache(pvCache, uiDataSize, oi);
 }
@@ -218,7 +218,7 @@ bool CIndexedData::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize)
+bool CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize)
 {
 	bool						bResult;
 
@@ -343,7 +343,7 @@ bool CIndexedData::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedData::StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CIndexedData::StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	OIndex					oi;
@@ -367,7 +367,7 @@ OIndex CIndexedData::StartIteration(SIndexTreeFileIterator* psIterator, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	OIndex					oi;
@@ -395,7 +395,7 @@ size CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached();
 size CIndexedData::NumIndicesCached(size iSize) { return mcIndices.NumIndicesCached(iSize); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
 bool CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
-size CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
-size CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
+lsize CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
+lsize CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
 size CIndexedData::GetRootFlags(void) { return mcIndices.GetRootFlags();  }
 

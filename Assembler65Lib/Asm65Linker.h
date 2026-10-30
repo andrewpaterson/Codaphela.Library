@@ -159,6 +159,7 @@ protected:
 	uint32									muiLimit;
 	uint32									muiBankSize;
 	bool									mbStubMissing;
+	int										miStubOpcode;	//The stub's one byte stp (SetStubOpcode); -1: the 65C64's stp.
 	bool									mbRemoveUnused;
 
 	CAsm65Output							mcOutput;
@@ -175,6 +176,7 @@ public:
 	void				SetLimit(uint32 uiLimit);
 	void				SetBankSize(uint32 uiBankSize);
 	void				SetStubMissing(bool bStubMissing);
+	void				SetStubOpcode(uint8 uiOpcode);
 	void				SetRemoveUnused(bool bRemoveUnused);
 	void				SetLazy(uint32 uiCodeEnd, uint32 uiSectorSize, uint32 uiFirstSector);
 

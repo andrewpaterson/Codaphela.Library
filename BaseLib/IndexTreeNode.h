@@ -44,7 +44,7 @@ protected:
 	uint8				msFlags;
 
 public:
-	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, size iClearValue, size uiIndexInParent);
+	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, uint8 iClearValue, size uiIndexInParent);
 	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiIndexInParent);
 
 	void				SetData(const void* pvObject, size uiSize);
@@ -87,11 +87,11 @@ public:
 	void				SetDirtyPath(bool bDirty);
 	void				SetDeletedPath(bool bDirty);
 
-	void				Contain(size uiIndex, size iClearValue);
-	void				ClearOnlyNode(size uiIndex, size iClearValue);
+	void				Contain(size uiIndex, uint8 iClearValue);
+	void				ClearOnlyNode(size uiIndex, uint8 iClearValue);
 	void				MoveNodesLeft(size uiNextFirstIndex);
-	void				MoveNodesRight(size uiNewFirstIndex, size iClearValue);
-	void				ClearLastNodes(size uiNewLastIndex, size iClearValue);
+	void				MoveNodesRight(size uiNewFirstIndex, uint8 iClearValue);
+	void				ClearLastNodes(size uiNewLastIndex, uint8 iClearValue);
 
 	size				SizeofNodeAndData(void);  //Rename to SizeofNode.
 	size				SizeofNode(void);  //Remove this.

@@ -3158,6 +3158,62 @@ SCPP65Variable* CCPP65Generator::FindStatic(SCPP65Class* psClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The error for a call no function of the name matches: the arguments' types
+// and, when there is only one function of the name, its parameters'.  An
+// unsigned short* passed for an unsigned long* (a 16 bit size where a 32 bit
+// lsize is wanted) says so.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode)
+{
+	SCPP65Function*		psFunction;
+	SCPP65Function*		psOnly;
+	CChars				szMessage;
+	size				i;
+	size				uiCandidates;
+
+	psOnly = NULL;
+	uiCandidates = 0;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction->lliName == lliName) && (psFunction->eKind == eKind) && !psFunction->psTemplate && IsOverloadOf(psClass, psFunction, lliName))
+		{
+			psOnly = psFunction;
+			uiCandidates++;
+		}
+	}
+
+	szMessage.Init("No function matches the arguments (");
+	for (i = 0; i < uiArguments; i++)
+	{
+		if (i != 0)
+		{
+			szMessage.Append(", ");
+		}
+		apsArguments[i]->Append(&szMessage);
+	}
+	szMessage.Append(")");
+	if (uiCandidates == 1)
+	{
+		szMessage.Append(": it takes (");
+		for (i = 0; i < psOnly->mapsParameters.NumElements(); i++)
+		{
+			if (i != 0)
+			{
+				szMessage.Append(", ");
+			}
+			psOnly->mapsParameters.GetPtr(i)->Append(&szMessage);
+		}
+		szMessage.Append(psOnly->bVariadic ? ", ...)" : ")");
+	}
+	Error(pcNode, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Overload resolution: of the functions of the name (in the class, then its bases if
 // bBases) that take the number of arguments (default arguments make the rest), the
 // one whose every argument converts at least as well as for any other, and one
@@ -3247,7 +3303,7 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	}
 	if (bFound)
 	{
-		Error(pcNode, "No function matches the arguments");
+		NoFunctionMatches(psClass, lliName, eKind, apsArguments, uiArguments, pcNode);
 		return NULL;
 	}
 	if (bBases && psClass)

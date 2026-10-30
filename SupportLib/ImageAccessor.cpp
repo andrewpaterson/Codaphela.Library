@@ -173,7 +173,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	bValid = true;
 	pvData = psDest;
 
-	if (mpcAccessor->GetByteSize() == SIZE_MAX)
+	if (mpcAccessor->GetByteSize() == MAX_SIZE)
 	{
 		return false;
 	}
@@ -184,7 +184,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 		pcAccessor = pacAccessors->Get(i);
 		fValue = pcColour->GetValue(pcAccessor->miChannel);
 		iSize = pcAccessor->miAccessByteSize;
-		if (iSize == SIZE_MAX)
+		if (iSize == MAX_SIZE)
 		{
 			iSize = 1;
 		}

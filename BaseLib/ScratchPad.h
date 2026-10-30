@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SSPNode
 {
 public:
-	size			iSize;
+	lsize			iSize;
 	bool			bUsed;
 };
 
@@ -50,18 +50,18 @@ class CScratchPad
 {
 protected:
 	CMemoryStackExtended	mcScratchPad;
-	size					miSourceChunkSize;
+	lsize					miSourceChunkSize;
 
 public:
 	void	Init(void);
-	void	Init(size uiChunkSize);
+	void	Init(lsize uiChunkSize);
 	void	Kill(void);
 
-	void*	Add(size uiSize);
+	void*	Add(lsize uiSize);
 	void	Reset(void);
 
-	size	GetMemorySize(void);
-	size	GetUsedSize(void);
+	lsize	GetMemorySize(void);
+	lsize	GetUsedSize(void);
 
 	void	GetParams(SScratchPadParams* psParams);
 };

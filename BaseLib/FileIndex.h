@@ -41,7 +41,7 @@ public:
 
 	bool			Equals(CFileDataIndex* pcOther);
 
-	CFilePosIndex	ToFilePosIndex(size muiDataSize);
+	CFilePosIndex	ToFilePosIndex(lsize muiDataSize);
 };
 
 

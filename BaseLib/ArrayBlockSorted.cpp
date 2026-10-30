@@ -64,7 +64,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, size iElementSize, size iHol
 			paHoldingArray = maaHoldingArrays.Get(i);
 			paHoldingArray->Init(pcMalloc, miElementSize);
 		}
-		mapiInsertionIndices = (size*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(size));
+		mapiInsertionIndices = (size*)mpcMalloc->Malloc((lsize)miHoldingBufferSize * iHoldingBuffers * sizeof(size));
 	}
 	else
 	{
@@ -335,7 +335,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size 
 			length = nextSortedIndex - sortedIndex;
 			startIndex = indexIndex;
 			nextSortedIndex = nextSortedIndex - length;
-			memmove(RemapSinglePointer(pvSortedArrayElementData, (destIndex + 1) * miElementSize), RemapSinglePointer(pvSortedArrayElementData, sortedIndex * miElementSize), length * miElementSize);
+			memmove(RemapSinglePointer(pvSortedArrayElementData, (size)((destIndex + 1) * miElementSize)), RemapSinglePointer(pvSortedArrayElementData, (size)(sortedIndex * miElementSize)), (size)(length * miElementSize));
 		}
 		else
 		{
@@ -660,7 +660,7 @@ bool CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare)
 {
-	return ReadHeader(pcMalloc, pcFileReader, fCompare, SIZE_MAX, SIZE_MAX);
+	return ReadHeader(pcMalloc, pcFileReader, fCompare, MAX_SIZE, MAX_SIZE);
 }
 
 
@@ -668,7 +668,7 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  SIZE_MAX for
+//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  MAX_SIZE for
 //both uses the element size in the file.
 bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare, size uiFileElementSize, size uiElementSize)
 {
@@ -685,7 +685,7 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	ReturnOnFalse(pcFileReader->ReadSize(&iHoldingBuffers));
 	ReturnOnFalse(pcFileReader->ReadBool(&bOverwrite));
 
-	if (uiFileElementSize != SIZE_MAX)
+	if (uiFileElementSize != MAX_SIZE)
 	{
 		if (iElementSize != uiFileElementSize)
 		{
@@ -707,7 +707,7 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 		paHoldingArray->Init(mpcMalloc, miElementSize);
 	}
 
-	mapiInsertionIndices = (size*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(size));
+	mapiInsertionIndices = (size*)mpcMalloc->Malloc((lsize)miHoldingBufferSize * iHoldingBuffers * sizeof(size));
 	return true;
 }
 
@@ -856,9 +856,9 @@ void* CArrayBlockSorted::GetInHolding(size iArray, size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CArrayBlockSorted::ByteSize(void)
+lsize CArrayBlockSorted::ByteSize(void)
 {
-	size			uiSize;
+	lsize			uiSize;
 	CArrayBlock*	paHoldingArray;
 	size			i;
 

@@ -227,6 +227,7 @@ protected:
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
+	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
 	CIRLoops				mcLoops;			//The loops (ComputeLoops).
@@ -248,6 +249,7 @@ public:
 	bool			Optimise(CIRFunction* pcFunction);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
+	void			SetWarnings(CChars* pszWarnings);
 	void			SetLibraryInt(SIRType sInt);
 
 	bool			SimplifyCFG(void);
@@ -338,6 +340,7 @@ protected:
 	void			AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
+	void			ComparisonRange(SIRInstruction* psInstruction);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
 	CIRBlock*		AddPreheader(size uiLoop);
 	CIRBlock*		AddMergedPreheader(size uiLoop);

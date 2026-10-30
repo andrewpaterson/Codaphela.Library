@@ -106,7 +106,7 @@ void CGeneralMemory::Compact(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Add(size iSize)
+void* CGeneralMemory::Add(lsize iSize)
 {
 	return Add(iSize, miDefaultAlignment);
 }
@@ -139,7 +139,7 @@ bool CGeneralMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGeneralMemory::GetSize(void* pv)
+lsize CGeneralMemory::GetSize(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
@@ -326,7 +326,7 @@ size CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Add(size uiSize, uint16 iAlignment, int16 iOffset)
+void* CGeneralMemory::Add(lsize uiSize, uint16 iAlignment, int16 iOffset)
 {
 	CFreeList*	pcFreeList;
 	void*		pv;
@@ -370,7 +370,7 @@ void* CGeneralMemory::Add(size uiSize, uint16 iAlignment, int16 iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Grow(void* pvInitial, size uiSize)
+void* CGeneralMemory::Grow(void* pvInitial, lsize uiSize)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -421,9 +421,9 @@ void* CGeneralMemory::Grow(void* pvInitial, size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize)
+void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSize, lsize uiSourceSize)
 {
-	size	uiSize;
+	lsize	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
 	memcpy(pvDest, pvSource, uiSize);
@@ -511,7 +511,7 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::AllocateInLargeList(size uiSize, uint16 iAlignment, int16 iOffset)
+void* CGeneralMemory::AllocateInLargeList(lsize uiSize, uint16 iAlignment, int16 iOffset)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 
@@ -698,9 +698,9 @@ size CGeneralMemory::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CGeneralMemory::ByteSize(void)
+lsize CGeneralMemory::ByteSize(void)
 {
-	size			iSize;
+	lsize			iSize;
 	CFreeList*		pcFreeList;
 
 	iSize = 0;

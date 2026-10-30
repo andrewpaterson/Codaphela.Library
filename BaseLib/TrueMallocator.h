@@ -36,13 +36,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #else
 #define TRUE_MALLOCATOR_ALIGNMENT_LOG2		3
 #endif // BUILD_64
-#define TRUE_MALLOCATOR_ALIGNMENT			((size)1 << TRUE_MALLOCATOR_ALIGNMENT_LOG2)	//Two sizes: blocks and the data in them start on these boundaries.
+#define TRUE_MALLOCATOR_ALIGNMENT			((lsize)1 << TRUE_MALLOCATOR_ALIGNMENT_LOG2)	//Two sizes: blocks and the data in them start on these boundaries.
 #define TRUE_MALLOCATOR_SECOND_LOG2			4
 #define TRUE_MALLOCATOR_SECOND_LEVELS		(1 << TRUE_MALLOCATOR_SECOND_LOG2)
 #define TRUE_MALLOCATOR_FIRST_SHIFT			(TRUE_MALLOCATOR_SECOND_LOG2 + TRUE_MALLOCATOR_ALIGNMENT_LOG2)
-#define TRUE_MALLOCATOR_SMALL_BLOCK			((size)1 << TRUE_MALLOCATOR_FIRST_SHIFT)	//Smaller blocks are all in the first level, a list for each size.
+#define TRUE_MALLOCATOR_SMALL_BLOCK			((lsize)1 << TRUE_MALLOCATOR_FIRST_SHIFT)	//Smaller blocks are all in the first level, a list for each size.
 #define TRUE_MALLOCATOR_FIRST_LEVELS		(32 - TRUE_MALLOCATOR_FIRST_SHIFT + 1)
-#define TRUE_MALLOCATOR_MAX_SIZE			((size)0x40000000)		//The biggest block, so sizes and their rounding fit in 32 bits.
+#define TRUE_MALLOCATOR_MAX_SIZE			((lsize)0x40000000)		//The biggest block, so sizes and their rounding fit in 32 bits.
 
 //A block's flags, in the low bits of its size.
 #define TRUE_MALLOCATOR_FREE				1
@@ -55,14 +55,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //after it.
 struct STrueMallocatorBlock
 {
-	size					uiPreviousSize;		//The size of the block before, while that block is free.
-	size					uiSize;				//This block's size, with its header, and its flags.
+	lsize					uiPreviousSize;		//The size of the block before, while that block is free.
+	lsize					uiSize;				//This block's size, with its header, and its flags.
 	STrueMallocatorBlock*	psNextFree;			//A used block's data starts here.
 	STrueMallocatorBlock*	psPreviousFree;
 };
 
 
-#define TRUE_MALLOCATOR_HEADER				(2 * sizeof(size))
+#define TRUE_MALLOCATOR_HEADER				(2 * sizeof(lsize))
 #define TRUE_MALLOCATOR_MIN_BLOCK			(sizeof(STrueMallocatorBlock))
 
 
@@ -74,33 +74,33 @@ protected:
 	uint32					muiFirstBitmap;		//A bit for each first level with a free block.
 	uint32					mauiSecondBitmaps[TRUE_MALLOCATOR_FIRST_LEVELS];
 	STrueMallocatorBlock*	mapsFree[TRUE_MALLOCATOR_FIRST_LEVELS][TRUE_MALLOCATOR_SECOND_LEVELS];
-	size					muiNumAllocations;
-	size					muiAllocatedBytes;	//The used blocks' sizes, with their headers.
+	lsize					muiNumAllocations;
+	lsize					muiAllocatedBytes;	//The used blocks' sizes, with their headers.
 
 public:
-	bool					Init(void* pvMemory, size uiBytes);
+	bool					Init(void* pvMemory, lsize uiBytes);
 	void					Kill(void);
 
 	void*					Malloc(lsize uiBytes);
 	void*					Realloc(void* pv, lsize uiBytes);
 	void					Free(void* pv);
-	size					Size(void* pv);
+	lsize					Size(void* pv);
 
-	size					NumAllocations(void);
-	size					AllocatedBytes(void);
-	size					LargestFree(void);
+	lsize					NumAllocations(void);
+	lsize					AllocatedBytes(void);
+	lsize					LargestFree(void);
 	bool					Contains(void* pv);
 	bool					IsValid(void);
 
 protected:
-	size					BlockSize(size uiBytes);
-	void					Mapping(size uiSize, int* piFirst, int* piSecond);
-	STrueMallocatorBlock*	FindFree(size uiSize);
+	lsize					BlockSize(lsize uiBytes);
+	void					Mapping(lsize uiSize, int* piFirst, int* piSecond);
+	STrueMallocatorBlock*	FindFree(lsize uiSize);
 	void					InsertFree(STrueMallocatorBlock* psBlock);
 	void					RemoveFree(STrueMallocatorBlock* psBlock);
 	STrueMallocatorBlock*	Next(STrueMallocatorBlock* psBlock);
-	void					MarkFree(STrueMallocatorBlock* psBlock, size uiSize);
-	void					Split(STrueMallocatorBlock* psBlock, size uiSize);
+	void					MarkFree(STrueMallocatorBlock* psBlock, lsize uiSize);
+	void					Split(STrueMallocatorBlock* psBlock, lsize uiSize);
 };
 
 

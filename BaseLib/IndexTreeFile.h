@@ -123,9 +123,9 @@ protected:
 	bool					ValidateKey(uint8* pvKey, size iKeySize);
 	bool					ValidateKey(char* pszKey);
 
-	size					ByteSize(void);
-	size					GetUserMemorySize(void);
-	size					GetSystemMemorySize(void);
+	lsize					ByteSize(void);
+	lsize					GetUserMemorySize(void);
+	lsize					GetSystemMemorySize(void);
 
 	CIndexedFiles*			GetIndexFiles(void);
 	void					GetFiles(CArrayIndexedFilePtr* pac);
@@ -180,7 +180,7 @@ protected:
 	size					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize);
 	size					CountListSize(void);
 	size					RecurseCountListSize(CIndexTreeNodeFile* pcNode);
-	size					RecurseByteSize(CIndexTreeNodeFile* pcNode);
+	lsize					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, uint8 uiFollowFlags, uint8 uiAddFlags, CArrayVoidPtr* papNodes);
 	uint32					RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	size					RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);

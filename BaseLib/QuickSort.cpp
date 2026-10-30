@@ -3,7 +3,7 @@
 #include "BubbleSort.h"
 
 
-void _quicksort(void* const pbase, lsize total_elems, lsize lsize, DataCompare cmp);
+void _quicksort(void* const pbase, lsize total_elems, lsize uiSize, DataCompare cmp);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ void QuickSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumE
 }
 
 
-/* Discontinue quicksort algorithm when partition gets below this lsize.
+/* Discontinue quicksort algorithm when partition gets below this size.
    This particular magic number was chosen to work best on a Sun 4/260. */
 #define MAX_THRESH 4
 
@@ -31,21 +31,21 @@ typedef struct
 
 /* The next 4 #defines implement a very fast in-line stack abstraction. */
 /* The stack needs log (total_elements) entries (we could even subtract
-   log(MAX_THRESH)).  Since total_elements has type lsize, we get as
+   log(MAX_THRESH)).  Since total_elements has type size, we get as
    upper bound for log (total_elements):
-   bits per byte (CHAR_BIT) * sizeof(lsize).  */
+   bits per byte (CHAR_BIT) * sizeof(size).  */
 #define         STACK_SIZE        ((sizeof(char) * 8) * sizeof (lsize))
 #define         PUSH(low, high)   ((void) ((top->lo = (low)), (top->hi = (high)), ++top))
 #define         POP(low, high)     ((void) (--top, (low = top->lo), (high = top->hi)))
 #define         STACK_NOT_EMPTY    (stack < top)
 
 
-/* Order lsize using quicksort.  This implementation incorporates
+/* Order size using quicksort.  This implementation incorporates
     four optimizations discussed in Sedgewick:
     1. Non-recursive, using an explicit stack of pointer that store the
         next array partition to sort.  To save time, this maximum amount
         of space required to store an array of SIZE_MAX is allocated on the
-        stack.  Assuming a 32-bit (64 bit) integer for lsize, this needs
+        stack.  Assuming a 32-bit (64 bit) integer for size, this needs
         only 32 * sizeof(stack_node) == 256 bytes (for 64 bit: 1024 bytes).
         Pretty cheap, actually.
     2. Chose the pivot element using a median-of-three decision tree.
@@ -58,7 +58,7 @@ typedef struct
     4. The larger of the two sub-partitions is always pushed onto the
         stack first, with the algorithm then concentrating on the
         smaller partition.  This *guarantees* no more than log (total_elems)
-        stack lsize is needed (actually O(1) in this case)!  */
+        stack size is needed (actually O(1) in this case)!  */
 
 void _quicksort(void* const pbase, lsize total_elems, lsize uiSize, DataCompare cmp)
 {

@@ -27,16 +27,21 @@ void CLogToMemory::Start(bool bSetSilent)
 void CLogToMemory::Stop(char* szOutput, size uiOutputSize)
 {
 	CFileBasic	cFileBasic;
+	filePos		iFileSize;
 	size		uiFileSize;
 
 	gcLogger.RemoveOutput(&mcMemoryFile);
 	mcMemoryFile.Open(EFM_Read);
 	cFileBasic.Init(&mcMemoryFile);
 	memset(szOutput, 0, uiOutputSize);
-	uiFileSize = (size)cFileBasic.Size();
-	if (uiFileSize + 1 > uiOutputSize)
+	iFileSize = cFileBasic.Size();
+	if (iFileSize + 1 > uiOutputSize)
 	{
 		uiFileSize = uiOutputSize - 1;
+	}
+	else
+	{
+		uiFileSize = (size)iFileSize;
 	}
 	cFileBasic.ReadStringChars(szOutput, uiFileSize);
 	mcMemoryFile.Close();

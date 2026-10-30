@@ -1096,20 +1096,26 @@ bool CIR816Backend::IsFolded(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 //
 // Y for word iOffset / 2 of a load or store through sPointer: the folded
-// index (a 1 word access, so iOffset is 0), else the constant.
+// index (a 1 word access, so iOffset is 0), else the constant.  Word 0 with
+// no index needs no Y ([[D + p]:24]): returns whether Y was loaded.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
+bool CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
 {
 	SIRReference	sIndex;
 
 	sIndex = FoldedIndex(sPointer);
 	if (sIndex.IsNone())
 	{
+		if (iOffset == 0)
+		{
+			return false;
+		}
 		Line("ldy ", iOffset);
-		return;
+		return true;
 	}
 	Operand("ldy", sIndex, 0);
+	return true;
 }
 
 
@@ -3001,7 +3007,8 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 //
 // The temporaries used once, by an instruction or a jump (not a phi): the
-// block of that use (maiUseBlock).
+// block of that use (maiUseBlock).  A folded load's or store's index counts
+// as a use.
 //
 //////////////////////////////////////////////////////////////////////////
 static void IR816UseIn(CArrayTemplate<int32>* paiUseBlock, CArrayTemplate<int32>* paiCount, SIRReference sValue, int32 iBlock)
@@ -3051,6 +3058,16 @@ void CIR816Backend::FindSingleUses(void)
 			psInstruction = pcBlock->masInstructions.Get(uiIndex);
 			IR816UseIn(&maiUseBlock, &aiCount, psInstruction->asArguments[0], (int32)ui);
 			IR816UseIn(&maiUseBlock, &aiCount, psInstruction->asArguments[1], (int32)ui);
+
+			//A folded index (FoldIndices) is read by the load or store too (ldy), not only by its zext.
+			if (psInstruction->uiOpcode == IRO_Load)
+			{
+				IR816UseIn(&maiUseBlock, &aiCount, FoldedIndex(psInstruction->asArguments[0]), (int32)ui);
+			}
+			else if (psInstruction->uiOpcode == IRO_Store)
+			{
+				IR816UseIn(&maiUseBlock, &aiCount, FoldedIndex(psInstruction->asArguments[1]), (int32)ui);
+			}
 		}
 		IR816UseIn(&maiUseBlock, &aiCount, pcBlock->msJump.sArgument, (int32)ui);
 	}
@@ -6409,10 +6426,9 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 		}
 		else
 		{
-			LoadY(sFirst, iOffset + 2 * iWord);
 			sz.Append("lda [[D + ");
 			sz.Append(iPlace);
-			sz.Append("]:24 + Y]");
+			sz.Append(LoadY(sFirst, iOffset + 2 * iWord) ? "]:24 + Y]" : "]:24]");
 		}
 		Line(sz.Text());
 		sz.Kill();
@@ -6488,14 +6504,13 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 		{
 			sz.Append("sta [[D + ");
 			sz.Append(iPlace);
-			sz.Append("]:24 + Y]");
 		}
 
 		//The value first: a fused load sets Y.
 		Operand("lda", psInstruction->asArguments[0], i);
 		if (!szSymbol)
 		{
-			LoadY(psInstruction->asArguments[1], iOffset + 2 * i);
+			sz.Append(LoadY(psInstruction->asArguments[1], iOffset + 2 * i) ? "]:24 + Y]" : "]:24]");
 		}
 		Line(sz.Text());
 	}

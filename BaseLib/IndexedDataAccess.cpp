@@ -1,3 +1,6 @@
+#include "Logger.h"
+#include "LogString.h"
+#include "IndexedGeneral.h"
 #include "IndexedDataAccess.h"
 
 
@@ -92,11 +95,20 @@ bool CIndexedDataAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, si
 bool CIndexedDataAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	OIndex	oi;
+	lsize	uiDataSize;
+	bool	bResult;
 
 	if (iKeySize == sizeof(OIndex))
 	{
 		oi = *((OIndex*)pvKey);
-		return mpcIndexData->Get(oi, piDataSize, pvData, uiMaxDataSize);
+		bResult = mpcIndexData->Get(oi, &uiDataSize, pvData, uiMaxDataSize);
+		if (bResult && (uiDataSize > MAX_SIZE))
+		{
+			//Index accesses measure data with size.
+			return gcLogger.Error2(__METHOD__, " Data of Index [", IndexToString(oi), "] is too big [", LongToString((uint64)uiDataSize), "].", NULL);
+		}
+		SafeAssign(piDataSize, (size)uiDataSize);
+		return bResult;
 	}
 	else
 	{
@@ -112,14 +124,14 @@ bool CIndexedDataAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* pi
 size CIndexedDataAccess::DataSize(uint8* pvKey, size iKeySize)
 {
 	OIndex			oi;
-	size	uiDataSize;
+	lsize			uiDataSize;
 
 	if (iKeySize == sizeof(OIndex))
 	{
 		oi = *((OIndex*)pvKey);
-		if (mpcIndexData->Get(oi, &uiDataSize, NULL, 0))
+		if (mpcIndexData->Get(oi, &uiDataSize, NULL, 0) && (uiDataSize <= MAX_SIZE))
 		{
-			return uiDataSize;
+			return (size)uiDataSize;
 		}
 		else
 		{

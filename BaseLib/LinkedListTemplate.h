@@ -52,7 +52,7 @@ public:
 	void			Remove(M* pvData);
 	bool			SafeRemove(M* pvData);
 
-	size			ByteSize(void);
+	lsize			ByteSize(void);
 
 	bool			Write(CFileWriter* pcFileWriter);
 	bool			Read(CFileReader* pcFileReader);
@@ -174,9 +174,9 @@ bool CLinkedListTemplate<M>::SafeRemove(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CLinkedListTemplate<M>::ByteSize(void)
+lsize CLinkedListTemplate<M>::ByteSize(void)
 {
-	size	iSize;
+	lsize	iSize;
 	M*		pvNode;
 
 	iSize = 0;

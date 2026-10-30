@@ -186,7 +186,7 @@ public:
 	void		PrivateInit(size cWholeNumbers, size cMaxDecimals);
 	void		PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	bool		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
-	size		PrivateGetIndex(int16 iDigit);
+	int32		PrivateGetIndex(int16 iDigit);  //-1 when the digit is before the first.
 
 	//Mathematical
 	CNumber*	Add(CNumber* pcNumber);

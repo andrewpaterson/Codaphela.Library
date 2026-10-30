@@ -201,6 +201,82 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type as C++ for messages.  Integers are named by their size, not as
+// declared (a 2 byte int is "short", a 4 byte one "long"), so the widths
+// that differ between targets show.  Classes and enums aren't named.
+//
+//////////////////////////////////////////////////////////////////////////
+void SCPP65Type::Append(CChars* psz)
+{
+	size	i;
+
+	switch (eKind)
+	{
+	case CPP65TK_Void:
+		psz->Append("void");
+		break;
+	case CPP65TK_Bool:
+		psz->Append("bool");
+		break;
+	case CPP65TK_Integer:
+		if (pcEnum)
+		{
+			psz->Append("enum");
+			break;
+		}
+		if (!bSigned)
+		{
+			psz->Append("unsigned ");
+		}
+		switch (iBytes)
+		{
+		case 1:		psz->Append("char");		break;
+		case 2:		psz->Append("short");		break;
+		case 4:		psz->Append("long");		break;
+		default:	psz->Append("long long");	break;
+		}
+		break;
+	case CPP65TK_Float:
+		psz->Append(bLongDouble ? "long double" : ((iBytes == 4) ? "float" : "double"));
+		break;
+	case CPP65TK_Pointer:
+		psBase->Append(psz);
+		psz->Append("*");
+		break;
+	case CPP65TK_Reference:
+		psBase->Append(psz);
+		psz->Append("&");
+		break;
+	case CPP65TK_Array:
+		psBase->Append(psz);
+		psz->Append("[")->Append(iCount)->Append("]");
+		break;
+	case CPP65TK_Function:
+		psBase->Append(psz);
+		psz->Append("(");
+		for (i = 0; i < papsParameters->NumElements(); i++)
+		{
+			if (i != 0)
+			{
+				psz->Append(", ");
+			}
+			papsParameters->GetPtr(i)->Append(psz);
+		}
+		psz->Append(bVariadic ? ", ...)" : ")");
+		break;
+	case CPP65TK_Class:
+		psz->Append("class");
+		break;
+	case CPP65TK_MemberPointer:
+		psBase->Append(psz);
+		psz->Append(" class::*");
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The size of what a pointer points to, for pointer arithmetic.  void* steps in bytes
 // (a GNU extension).
 //

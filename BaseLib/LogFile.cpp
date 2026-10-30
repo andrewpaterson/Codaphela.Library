@@ -519,7 +519,7 @@ lsize CLogFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	CArrayIntAndPointer		apvOverlapping;
 	bool					bAny;
-	size					iByteLength;
+	lsize					iByteLength;
 	CLogFileCommandWrite*	pcWrite;
 
 	if (IsFileModeWritable(meFileMode))
@@ -562,7 +562,7 @@ lsize CLogFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, void* pvSource, size iByteLength)
+CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, void* pvSource, lsize iByteLength)
 {
 	CLogFileCommandWrite*	psCommand;
 
@@ -581,7 +581,7 @@ CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, void* pvSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, size iByteLength)
+CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, lsize iByteLength)
 {
 	CLogFileCommandWrite*	psCommand;
 
@@ -604,13 +604,13 @@ CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, size iByteLen
 // last in the list, covering both.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength)
+bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, lsize iLength)
 {
 	CLogFileCommandWrite*	psWrite;
 	uint					iIndex;
-	size					uiNewSize;
-	size					uiNeeded;
-	size					uiAllocated;
+	lsize					uiNewSize;
+	lsize					uiNeeded;
+	lsize					uiAllocated;
 	void*					pvDest;
 
 	if (papvOverlapping->NumElements() != 1)
@@ -624,7 +624,7 @@ bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void*
 		return false;
 	}
 
-	uiNewSize = (size)(iPosition - psWrite->iPosition) + iLength;
+	uiNewSize = (lsize)(iPosition - psWrite->iPosition) + iLength;
 	if (uiNewSize < psWrite->iSize)
 	{
 		uiNewSize = psWrite->iSize;
@@ -657,14 +657,14 @@ bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength)
+bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, lsize iLength)
 {
 	filePos					iStart;
 	filePos					iEnd;  //Inclusive;
 	size					i;
 	CLogFileCommandWrite*	psWrite;
 	uint					iIndex;
-	size					iIndeedSize;
+	lsize					iIndeedSize;
 	CLogFileCommandWrite*	psCommand;
 	void*					pvData;
 	void*					pvDest;
@@ -690,7 +690,7 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 		}
 	}
 
-	iIndeedSize = (size)(iEnd - iStart + 1);
+	iIndeedSize = (lsize)(iEnd - iStart + 1);
 
 	//Allocate enough memory for the new chunk.
 	psCommand = AddWriteCommand(iStart, iIndeedSize);
@@ -738,9 +738,9 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 //////////////////////////////////////////////////////////////////////////
 lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 {
-	size	uiBytesRead;
+	lsize	uiBytesRead;
 	size	uiWriteIndex;
-	size	uiByteSize;
+	lsize	uiByteSize;
 
 	uiByteSize = iSize * iCount;
 
@@ -785,7 +785,7 @@ lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 		}
 		else if ((miPosition + (filePos)uiByteSize) > miLength)
 		{
-			uiBytesRead = (size)(miLength - miPosition) / iSize;
+			uiBytesRead = (lsize)(miLength - miPosition) / iSize;
 			miPosition += uiBytesRead * iSize;
 		}
 		else
@@ -807,9 +807,9 @@ lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::ReadWithNoTouchingWrites(void* pvDest, size iSize, size iCount)
+lsize CLogFile::ReadWithNoTouchingWrites(void* pvDest, lsize iSize, lsize iCount)
 {
-	size		iBytesReadFromFile;
+	lsize		iBytesReadFromFile;
 
 	iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
 	return iBytesReadFromFile;
@@ -820,12 +820,12 @@ size CLogFile::ReadWithNoTouchingWrites(void* pvDest, size iSize, size iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSize, size iCount)
+lsize CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, lsize iSize, lsize iCount)
 {
 	CArrayIntAndPointer	apvOverlapping;
 	bool			bAny;
 	bool			bHoles;
-	size			iByteSize;
+	lsize			iByteSize;
 
 	iByteSize = iSize * iCount;
 	bAny = FindTouchingWriteCommands(uiWriteIndex, &apvOverlapping, miPosition, iByteSize, true);
@@ -860,11 +860,11 @@ size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::ReadNextTouchingWrites(size uiWriteIndex, void* pvDest, size iSize, size iCount)
+lsize CLogFile::ReadNextTouchingWrites(size uiWriteIndex, void* pvDest, lsize iSize, lsize iCount)
 {
 	CArrayIntAndPointer		apvOverlapping;
 	bool					bAny;
-	size					iByteSize;
+	lsize					iByteSize;
 
 	iByteSize = iSize * iCount;
 	bAny = FindTouchingWriteCommands(uiWriteIndex, &apvOverlapping, miPosition, iByteSize, true);
@@ -881,18 +881,18 @@ size CLogFile::ReadNextTouchingWrites(size uiWriteIndex, void* pvDest, size iSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByteSize, void* pvDest)
+void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, lsize iByteSize, void* pvDest)
 {
 	size					i;
 	size					iNumWrites;
 	CLogFileCommandWrite*	psWrite;
 	uint					iIndex;
 	void*					pvData;
-	size					iDestOffset;
-	size					iSourceOffset;
+	lsize					iDestOffset;
+	lsize					iSourceOffset;
 	void*					pvSource;
 	void*					pvNewDest;
-	size					iLength;
+	lsize					iLength;
 	filePos					iWriteEnd;
 	filePos					iPositionEnd;
 
@@ -908,14 +908,14 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByte
 		iPositionEnd = miPosition + iByteSize;
 		if (iWriteEnd > iPositionEnd)
 		{
-			iLength -= (size)(iWriteEnd - iPositionEnd);
+			iLength -= (lsize)(iWriteEnd - iPositionEnd);
 		}
 
 		iSourceOffset = 0;
-		iDestOffset = (size)(psWrite->iPosition - miPosition);
+		iDestOffset = (lsize)(psWrite->iPosition - miPosition);
 		if (psWrite->iPosition < miPosition)
 		{
-			iSourceOffset = (size)(miPosition - psWrite->iPosition);
+			iSourceOffset = (lsize)(miPosition - psWrite->iPosition);
 			iDestOffset = 0;
 		}
 
@@ -975,10 +975,10 @@ size CLogFile::FindNextWriteCommand(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::ReadFromBackingFile(void* pvDest, size iSize, size iCount)
+lsize CLogFile::ReadFromBackingFile(void* pvDest, lsize iSize, lsize iCount)
 {
-	size		iByteSize;
-	size		iRead;
+	lsize		iByteSize;
+	lsize		iRead;
 	filePos		iLongByteSize;
 
 	iLongByteSize = miBackingFileLength - miPosition;
@@ -988,9 +988,9 @@ size CLogFile::ReadFromBackingFile(void* pvDest, size iSize, size iCount)
 	}
 
 	iByteSize = iSize * iCount;
-	if (iByteSize > (size)iLongByteSize)
+	if (iByteSize > (lsize)iLongByteSize)
 	{
-		iByteSize = (size)iLongByteSize;
+		iByteSize = (lsize)iLongByteSize;
 	}
 
 	mpcBackingFile->Seek(miPosition, EFSO_SET);
@@ -1036,7 +1036,7 @@ int CompareLogFileWrite(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::TestFindHoles(size uiWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength)
+bool CLogFile::TestFindHoles(size uiWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength)
 {
 	bool	bAny;
 
@@ -1083,7 +1083,7 @@ void CLogFile::SetSync(bool bSync)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength)
+bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength)
 {
 	CArrayIntAndPointer		apvOverlappingSorted;  //Should be an CArraySizeAndPointer
 	size					i;
@@ -1148,7 +1148,7 @@ bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength, bool bMustOverlap)
+bool CLogFile::FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength, bool bMustOverlap)
 {
 	size					iIndex;
 	CLogFileCommandWrite*	psWrite;
@@ -1191,7 +1191,7 @@ bool CLogFile::FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::Overlaps(filePos iPosition, size iLength, CLogFileCommandWrite* psWrite)
+bool CLogFile::Overlaps(filePos iPosition, lsize iLength, CLogFileCommandWrite* psWrite)
 {
 	filePos		iNewStart;
 	filePos		iNewEnd;  //Inclusive
@@ -1262,7 +1262,7 @@ bool CLogFile::Truncate(filePos iSize)
 	size						i;
 	CLogFileCommand*			psCommand;
 	CLogFileCommandWrite*		psWrite;
-	size						uiGrowth;
+	lsize						uiGrowth;
 
 	if (!IsFileModeWritable(meFileMode) || (iSize < 0))
 	{
@@ -1273,7 +1273,7 @@ bool CLogFile::Truncate(filePos iSize)
 	if (iSize > miLength)
 	{
 		//Growing fills with zeros, as a disk file does.
-		uiGrowth = (size)(iSize - miLength);
+		uiGrowth = (lsize)(iSize - miLength);
 		psWrite = AddWriteCommand(miLength, uiGrowth);
 		if (!psWrite)
 		{
@@ -1299,7 +1299,7 @@ bool CLogFile::Truncate(filePos iSize)
 				}
 				else if ((psWrite->iPosition + (filePos)psWrite->iSize) > iSize)
 				{
-					psWrite->iSize = (size)(iSize - psWrite->iPosition);
+					psWrite->iSize = (lsize)(iSize - psWrite->iPosition);
 				}
 			}
 		}
@@ -1457,7 +1457,7 @@ CLogFileCommandWrite* CLogFile::GetWriteData(size iWrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::GetWriteSize(size iIndex)
+lsize CLogFile::GetWriteSize(size iIndex)
 {
 	size					i;
 	CLogFileCommand*		psCommand;

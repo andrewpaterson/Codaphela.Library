@@ -34,7 +34,7 @@ bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 	bool				bResult;
 	CSerialisedObject*	pcSerialised;
 	CMemoryFile			cMemory;
-	size				iSize;
+	lsize				iSize;
 
 	cMemory.Init();
 	cMemory.Open(EFM_ReadWrite_Create);
@@ -64,7 +64,7 @@ bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, size iSize)
+bool CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, lsize iSize)
 {
 	OIndex	oi;
 	bool	bResult;

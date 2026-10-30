@@ -32,7 +32,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ARRAY_SIZE_MAX				MAX_SIZE
 #define ARRAY_NOT_FOUND				ARRAY_ELEMENT_NOT_FOUND
 
-//On 16 bit targets a natural array holds at most MAX_SIZE bytes.  Past that it fails as if out of memory.
+//At most MAX_SIZE bytes are moved, so on 16 bit targets the moves take 16 bit counts (Libc65's string816_16.asm).
 #if defined(__W65C816__)
-#define ARRAY_CHECK_SIZE
+#define ARRAY_MEMCPY				memcpy16
+#define ARRAY_MEMMOVE				memmove16
+#define ARRAY_MEMSET				memset16
+#define ARRAY_MEMCMP				memcmp16
+#define ARRAY_MEMSWP				MemSwp16
+#else
+#define ARRAY_MEMCPY				memcpy
+#define ARRAY_MEMMOVE				memmove
+#define ARRAY_MEMSET				memset
+#define ARRAY_MEMCMP				memcmp
+#define ARRAY_MEMSWP				MemSwp
 #endif // __W65C816__
+
+//With a 16 bit size a natural array holds at most MAX_SIZE bytes.  Past that it fails as if out of memory.
+#if defined(SIZE_16)
+#define ARRAY_CHECK_SIZE
+#endif // SIZE_16

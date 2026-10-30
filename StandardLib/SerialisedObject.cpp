@@ -83,7 +83,7 @@ OIndex CSerialisedObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSerialisedObject::GetLength(void)
+lsize CSerialisedObject::GetLength(void)
 {
 	return miLength;
 }

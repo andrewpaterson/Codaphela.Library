@@ -6,7 +6,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryQueue::Init(void* pvMemory, size uiByteSize)
+void CMemoryQueue::Init(void* pvMemory, lsize uiByteSize)
 {
 	CCircularMemoryList::Init(pvMemory, uiByteSize);
 }
@@ -26,7 +26,7 @@ void CMemoryQueue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size uiNewSize)
+bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, lsize uiNewSize)
 {
 	SMemoryCacheDescriptor* psNext;
 
@@ -51,11 +51,11 @@ bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryQueue::Push(size uiDataSize)
+void* CMemoryQueue::Push(lsize uiDataSize)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
-	size						uiRemainingAfterLast;
-	size						uiTotalSize;
+	lsize						uiRemainingAfterLast;
+	lsize						uiTotalSize;
 	bool						bOverlaps;
 	SMemoryCacheDescriptor*		psCacheBasedTail;
 
@@ -99,7 +99,7 @@ void* CMemoryQueue::Push(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryQueue::Peek(size* puiDataSize)
+void* CMemoryQueue::Peek(lsize* puiDataSize)
 {
 	void*						pv;
 	SMemoryCacheDescriptor*		psCacheBasedHead;
@@ -146,7 +146,7 @@ bool CMemoryQueue::Drop(void* pvCacheBasedHead)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryQueue::Pop(void)
 {
-	size	uiDataSize;
+	lsize	uiDataSize;
 	void*	pvData;
 
 	pvData = Peek(&uiDataSize);

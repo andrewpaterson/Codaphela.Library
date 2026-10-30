@@ -119,7 +119,7 @@ bool CTextParser::Init(const char* szText, size iTextLen, STextParserConfig* psC
 		miColumn = 0;
 		mszStartOfText = szText;
 		mszParserPos = szText;
-		mszEndOfText = &mszStartOfText[iTextLen - 1];
+		mszEndOfText = &mszStartOfText[iTextLen] - 1;  //Before the start when the text is empty.
 		miTextLen = iTextLen;
 		mbCaseSensitive = true;
 		mbAnnotated = false;

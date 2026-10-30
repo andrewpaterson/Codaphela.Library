@@ -199,7 +199,7 @@ void Int32Vec3MinMax(SIntVec3* psMin, SIntVec3* psMax, SIntVec3* asIn, int iInSt
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SIntVec3*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SIntVec3*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

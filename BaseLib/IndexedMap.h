@@ -15,12 +15,12 @@ protected:
 	CDurableFile								mcDescriptorsFile;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough);
-	void	Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough);
+	void	Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
 	void	Kill(void);
 
 	bool	CanKill(void);
-	bool	DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize);
+	bool	DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize);
 	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
@@ -37,7 +37,7 @@ protected:
 
 	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize);
+	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize);
 	bool	RemoveDescriptor(OIndex oi);
 };
 

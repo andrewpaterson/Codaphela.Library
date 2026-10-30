@@ -31,4 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #undef ASIZE
 #undef ARRAY_SIZE_MAX
 #undef ARRAY_NOT_FOUND
+#undef ARRAY_MEMCPY
+#undef ARRAY_MEMMOVE
+#undef ARRAY_MEMSET
+#undef ARRAY_MEMCMP
+#undef ARRAY_MEMSWP
 #undef ARRAY_CHECK_SIZE

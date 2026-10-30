@@ -70,7 +70,7 @@ public:
 	bool				WriteMapBlockElements(CFileWriter* pcFileWriter);
 	bool				ReadMapBlockElements(CFileReader* pcFileReader);
 
-	size				ByteSize(void);
+	lsize				ByteSize(void);
 	void				Dump(void);
 	void				Pack(void);
 

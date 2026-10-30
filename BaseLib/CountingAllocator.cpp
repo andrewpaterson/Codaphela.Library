@@ -30,7 +30,7 @@ void CCountingAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCountingAllocator::AllocatedUserSize(void)
+lsize CCountingAllocator::AllocatedUserSize(void)
 {
 	return mtUserSize;
 }
@@ -40,7 +40,7 @@ size CCountingAllocator::AllocatedUserSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCountingAllocator::AllocatedSystemSize(void)
+lsize CCountingAllocator::AllocatedSystemSize(void)
 {
 	return mtSystemSize;
 }
@@ -54,9 +54,9 @@ void* CCountingAllocator::Malloc(lsize uiSize)
 {
 	SCountingMemoryAllocation*	ps;
 	void*						pv;
-	size						tOffset;
-	size						tAllocSize;
-	size						tSystemSize;
+	lsize						tOffset;
+	lsize						tAllocSize;
+	lsize						tSystemSize;
 	
 	tOffset = mpcAlloc->SizeOffset();
 	if (tOffset == 0)
@@ -95,9 +95,9 @@ void* CCountingAllocator::Malloc(lsize uiSize)
 void* CCountingAllocator::Realloc(void* pv, lsize uiSize)
 {
 	SCountingMemoryAllocation*	ps;
-	size						tOffset;
-	size						tAllocSize;
-	size						tSystemSize;
+	lsize						tOffset;
+	lsize						tAllocSize;
+	lsize						tSystemSize;
 
 	tOffset = mpcAlloc->SizeOffset();
 	if (tOffset == 0)
@@ -160,7 +160,7 @@ void* CCountingAllocator::Realloc(void* pv, lsize uiSize)
 bool CCountingAllocator::Free(void* pv)
 {
 	SCountingMemoryAllocation*	ps;
-	size						tOffset;
+	lsize						tOffset;
 
 	tOffset = mpcAlloc->SizeOffset();
 	if (pv)

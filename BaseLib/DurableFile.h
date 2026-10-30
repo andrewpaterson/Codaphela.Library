@@ -76,12 +76,12 @@ public:
 	bool		IsSync(void);
 	bool		IsBegun(void);
 
-	size		Write(filePos iDistance, const void* pvSource, size iSize, size iCount);
-	size		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, size iSize, size iCount);
+	lsize		Write(filePos iDistance, const void* pvSource, lsize iSize, lsize iCount);
+	lsize		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, lsize iSize, lsize iCount);
 	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
 
-	size		Read(filePos iDistance, void* pvDest, size iSize, size iCount);
-	size		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, size iSize, size iCount);
+	lsize		Read(filePos iDistance, void* pvDest, lsize iSize, lsize iCount);
+	lsize		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, lsize iSize, lsize iCount);
 	lsize		Read(void* pvDest, lsize iSize, lsize iCount);
 
 	bool		Create(void);
@@ -89,7 +89,7 @@ public:
 
 	filePos		Tell(void);
 	filePos		Size(void);
-	bool		Truncate(size iSize);
+	bool		Truncate(lsize iSize);
 
 	size		GetNumWrites(void);
 	void*		GetWriteData(size iWrite);

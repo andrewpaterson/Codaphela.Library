@@ -34,7 +34,7 @@ void SMemoryCacheDescriptor::SetPrev(SMemoryCacheDescriptor* psPrev)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SMemoryCacheDescriptor::SetSize(size iSize)
+void SMemoryCacheDescriptor::SetSize(lsize iSize)
 {
 	if (iSize == 0)
 	{
@@ -81,7 +81,7 @@ void SMemoryCacheDescriptor::ClearPrev(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size SMemoryCacheDescriptor::GetSize(void)
+lsize SMemoryCacheDescriptor::GetSize(void)
 {
 	return miSize;
 }
@@ -91,7 +91,7 @@ size SMemoryCacheDescriptor::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SMemoryCacheDescriptor::IsSize(size iSize)
+bool SMemoryCacheDescriptor::IsSize(lsize iSize)
 {
 	return miSize == iSize;
 }

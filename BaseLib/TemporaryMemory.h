@@ -7,13 +7,13 @@ class CTemporaryMemory
 {
 protected:
 	void*	mpvTemp;
-	size	muiTempSize;
+	lsize	muiTempSize;
 
 public:
 	void	Init(void);
 	void	Kill(void);
 
-	void*	Size(size uiSize);
+	void*	Size(lsize uiSize);
 	void*	Get(void);
 };
 

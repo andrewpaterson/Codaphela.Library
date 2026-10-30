@@ -145,7 +145,7 @@ bool CDataMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDataMemory::GetSize(void* pv)
+lsize CDataMemory::GetSize(void* pv)
 {
 	SDataMemoryAllocation*	psAlloc;
 
@@ -298,7 +298,7 @@ size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Add(size uiSize)
+void* CDataMemory::Add(lsize uiSize)
 {
 	CFreeList*	pcFreeList;
 	void*		pv;
@@ -321,7 +321,7 @@ void* CDataMemory::Add(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Grow(void* pvInitial, size uiSize)
+void* CDataMemory::Grow(void* pvInitial, lsize uiSize)
 {
 	SDataMemoryAllocation*	psAlloc;
 	CFreeList*				pcList;
@@ -371,9 +371,9 @@ void* CDataMemory::Grow(void* pvInitial, size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize)
+void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSize, lsize uiSourceSize)
 {
-	size	uiSize;
+	lsize	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
 	memcpy(pvDest, pvSource, uiSize);
@@ -457,7 +457,7 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::AllocateInLargeList(size uiSize)
+void* CDataMemory::AllocateInLargeList(lsize uiSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
 
@@ -588,9 +588,9 @@ size CDataMemory::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CDataMemory::ByteSize(void)
+lsize CDataMemory::ByteSize(void)
 {
-	size		iSize;
+	lsize		iSize;
 	CFreeList*	pcFreeList;
 
 	iSize = 0;

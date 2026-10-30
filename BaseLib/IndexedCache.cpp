@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback)
+void CIndexedCache::Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback)
 {
 	mcCache.Init(uiCacheSize, pcEvictionCallback, sizeof(SIndexedCacheDescriptor));
 }
@@ -62,7 +62,7 @@ void CIndexedCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, size uiDataSize)
+CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, lsize uiDataSize)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
@@ -143,7 +143,7 @@ size CIndexedCache::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::NumCached(size iSize)
+size CIndexedCache::NumCached(lsize iSize)
 {
 	return mcCache.NumElements(iSize);
 }
@@ -193,7 +193,7 @@ void* CIndexedCache::Iterate(void* psCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::GetIndexCacheDescritorSize(void)
+lsize CIndexedCache::GetIndexCacheDescritorSize(void)
 {
 	return mcCache.GetDescriptorSize();
 }
@@ -203,7 +203,7 @@ size CIndexedCache::GetIndexCacheDescritorSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::GetCacheSize(void)
+lsize CIndexedCache::GetCacheSize(void)
 {
 	return mcCache.GetCacheSize();
 }
@@ -213,7 +213,7 @@ size CIndexedCache::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedCache::GetAllocatedSize(void)
+lsize CIndexedCache::GetAllocatedSize(void)
 {
 	return mcCache.GetAllocatedSize();
 }
@@ -223,7 +223,7 @@ size CIndexedCache::GetAllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedCache::CanCache(size uiDataSize)
+bool CIndexedCache::CanCache(lsize uiDataSize)
 {
 	return mcCache.CanCache(uiDataSize);
 }

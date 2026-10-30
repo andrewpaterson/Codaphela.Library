@@ -67,27 +67,27 @@ public:
 	bool	ValidateConfigKilled(void);
 	bool	ValidateIdentifiers(void);
 
-	bool	Add(OIndex oi, void* pvData, size uiDataSize);
-	bool	Add(OIndex oi, const char* szName, void* pvData, size uiDataSize);
-	bool	Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
+	bool	Add(OIndex oi, void* pvData, lsize uiDataSize);
+	bool	Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
+	bool	Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
 
 	bool	Set(OIndex oi, void* pvData);
-	bool	Set(OIndex oi, void* pvData, size uiDataSize);
+	bool	Set(OIndex oi, void* pvData, lsize uiDataSize);
 	bool	Set(const char* szName, void* pvData);
-	bool	Set(const char* szName, void* pvData, size uiDataSize);
+	bool	Set(const char* szName, void* pvData, lsize uiDataSize);
 	bool	Set(CChars* szName, void* pvData);
-	bool	Set(CChars* szName, void* pvData, size uiDataSize);
+	bool	Set(CChars* szName, void* pvData, lsize uiDataSize);
 
-	bool	Put(OIndex oi, void* pvData, size uiDataSize);
-	bool	Put(OIndex oi, const char* szName, void* pvData, size uiDataSize);
-	bool	Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
+	bool	Put(OIndex oi, void* pvData, lsize uiDataSize);
+	bool	Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
+	bool	Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
 
 	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 
 	bool	GetName(OIndex oi, CChars* szName);
 	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
@@ -118,14 +118,14 @@ public:
 	void	Dump(void);
 
 	//Each iteration call is locked, but an iteration may miss or see changes other threads make between its calls.
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
-	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 protected:
 	//Used by the transactions.  Each takes the locks it needs.
-	bool		StoredGet(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool		StoredGet(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool		StoredGet(OIndex oi, void* pvData);
 	bool		StoredContains(OIndex oi);
 	bool		StoredGetName(OIndex oi, CChars* pszName);
@@ -133,7 +133,7 @@ protected:
 	void		StoredIndices(CArrayOIndex* paoi);
 	void		StoredNames(CArrayChars* paszNames);
 
-	bool		SnapshotGet(int64 iSnapshot, OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize, bool bAllData);
+	bool		SnapshotGet(int64 iSnapshot, OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize, bool bAllData);
 	bool		SnapshotContains(int64 iSnapshot, OIndex oi);
 	bool		SnapshotGetName(int64 iSnapshot, OIndex oi, CChars* pszName);
 	OIndex		SnapshotGetIndex(int64 iSnapshot, const char* szName);
@@ -153,7 +153,7 @@ protected:
 	bool		NeedsSession(const char* szMethod);
 	bool		HasWriterOnThisThread(void);
 	void		RemoveOldVersions(void);
-	bool		SnapshotGetLocked(int64 iSnapshot, OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize, bool bAllData);
+	bool		SnapshotGetLocked(int64 iSnapshot, OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize, bool bAllData);
 	bool		SnapshotContainsLocked(int64 iSnapshot, OIndex oi);
 	OIndex		SnapshotGetIndexLocked(int64 iSnapshot, const char* szName);
 };

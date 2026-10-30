@@ -51,10 +51,10 @@ public:
 	CAbstractFile*			mpcFile;
 
 	void*					mpvMem;
-	size					miAllocatedSize;
+	lsize					miAllocatedSize;
 
-	size					miBufferSizeRead;
-	size					miBufferPos;
+	lsize					miBufferSizeRead;
+	lsize					miBufferPos;
 	EBufferType				meType;
 	filePos					mulliFilePos;
 	filePos					mulliCurrentPos;
@@ -62,7 +62,7 @@ public:
 	EBufferLastOperation	meLastOp;
 
 	void		Init(CAbstractFile* pcFile);
-	void		Init(CAbstractFile* pcFile, size iBufferSize);
+	void		Init(CAbstractFile* pcFile, lsize iBufferSize);
 	void		Kill(void);
 
 	bool		Open(EFileMode eFileMode);
@@ -80,14 +80,14 @@ public:
 
 	void		MatchFilePosToCurrentPos(void);
 	void		BufferSourceFileRead(void);
-	void		CopyFromBuffer(void* pvDest, size iByteSize, size iDestOffset);
+	void		CopyFromBuffer(void* pvDest, lsize iByteSize, lsize iDestOffset);
 	bool		WriteUnwritten(void);
 };
 
 
 //Helper function to make creating basic files easier.
 CBufferedFile* BufferedFile(CAbstractFile* pcFile);
-CBufferedFile* BufferedFile(CAbstractFile* pcFile, size iBufferSize);
+CBufferedFile* BufferedFile(CAbstractFile* pcFile, lsize iBufferSize);
 
 
 #endif // __BUFFERED_FILE_H__

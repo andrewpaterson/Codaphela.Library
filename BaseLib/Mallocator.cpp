@@ -48,14 +48,14 @@ size CMallocator::FreeMultiple(CArrayVoidPtr* pav)
 }
 
 
-size guiMaxDebugAllocatorSize = SIZE_MAX;
+lsize guiMaxDebugAllocatorSize = MAX_LSIZE;
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void InitAllocatorDebug(size uiMaxDebugAllocatorSize)
+void InitAllocatorDebug(lsize uiMaxDebugAllocatorSize)
 {
 	guiMaxDebugAllocatorSize = uiMaxDebugAllocatorSize;
 }
@@ -67,7 +67,7 @@ void InitAllocatorDebug(size uiMaxDebugAllocatorSize)
 //////////////////////////////////////////////////////////////////////////
 void KillAllocatorDebug(void)
 {
-	guiMaxDebugAllocatorSize = SIZE_MAX;
+	guiMaxDebugAllocatorSize = MAX_LSIZE;
 }
 
 

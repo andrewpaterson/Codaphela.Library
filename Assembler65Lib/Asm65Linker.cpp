@@ -111,6 +111,7 @@ void CAsm65Linker::Init(void)
 	muiLimit = 0;
 	muiBankSize = 0;
 	mbStubMissing = false;
+	miStubOpcode = -1;
 	mbRemoveUnused = false;
 
 	mcOutput.Init();
@@ -235,6 +236,18 @@ void CAsm65Linker::SetBankSize(uint32 uiBankSize)
 void CAsm65Linker::SetStubMissing(bool bStubMissing)
 {
 	mbStubMissing = bStubMissing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stub's stp for another processor (the W65C816's is $DB): the 65C64's
+// stp is different bytes, which a W65C816 runs as something else.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::SetStubOpcode(uint8 uiOpcode)
+{
+	miStubOpcode = uiOpcode;
 }
 
 
@@ -814,14 +827,21 @@ void CAsm65Linker::AddStubs(void)
 		return;
 	}
 
-	cAssembler.Init();
-	cAssembler.Assemble("stp");
-	psSegment = cAssembler.GetOutput()->GetSegment(0);
 	psSection = mcStubs.GetSection(mcStubs.AddSection("text", "", ASK65_Text));
-	psSection->cBytes.Copy(&psSegment->cBytes);
+	if (miStubOpcode >= 0)
+	{
+		psSection->cBytes.Add((uint8)miStubOpcode);
+	}
+	else
+	{
+		cAssembler.Init();
+		cAssembler.Assemble("stp");
+		psSegment = cAssembler.GetOutput()->GetSegment(0);
+		psSection->cBytes.Copy(&psSegment->cBytes);
+		cAssembler.Kill();
+	}
 	psSection->uiSize = (uint32)psSection->cBytes.NumElements();
 	psSection->uiAlignment = 2;
-	cAssembler.Kill();
 
 	for (i = 0; i < maszMissing.NumElements(); i++)
 	{

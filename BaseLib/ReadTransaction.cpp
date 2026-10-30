@@ -58,7 +58,7 @@ bool CReadTransaction::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CReadTransaction::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	return mpcCodabase->SnapshotGet(miSnapshot, oi, puiDataSize, pvData, uiMaxDataSize, false);
 }
@@ -81,7 +81,7 @@ bool CReadTransaction::Get(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CReadTransaction::Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -104,7 +104,7 @@ bool CReadTransaction::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
+bool CReadTransaction::Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize)
 {
 	return Get(szName ? szName->Text() : NULL, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -190,7 +190,7 @@ bool CReadTransaction::Contains(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	//The transaction iterates its own snapshot; the iterator is only made safe to Kill.
 	psIterator->Init();
@@ -204,10 +204,10 @@ OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
+OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	OIndex	oi;
-	size	uiDataSize;
+	lsize	uiDataSize;
 
 	while (mcIteration.NextIndex(&oi))
 	{

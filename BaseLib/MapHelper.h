@@ -12,7 +12,7 @@
 #endif // __W65C816__
 
 
-size	MinDataSize(size uiDataSize, size uiMaxDataSize);
+lsize	MinDataSize(lsize uiDataSize, lsize uiMaxDataSize);
 bool	CopyString(char* pvDest, char* pvSource, size iSourceLength, size iMaxDestLength);
 void	CopyData(void* pvDest, void* pvSource, size iSourceLength, size iMaxDestLength);
 

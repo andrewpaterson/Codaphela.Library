@@ -361,7 +361,7 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 	CChars		szTemp;
 	char		c;
 	bool		bResult;
-	size		iIndex;
+	lsize		iIndex;
 
 	c = szLastCharInclusive[1];
 	szLastCharInclusive[1] = 0;
@@ -391,7 +391,7 @@ CChars* CArrayChars::InsertIntoSorted(CChars* psz)
 {
 	CChars*		pcChars2;
 	bool		bResult;
-	size		iIndex;
+	lsize		iIndex;
 
 	bResult = mcArray.FindInSorted(psz, CompareChars, &iIndex);
 	if (bResult)
@@ -641,7 +641,7 @@ size CArrayChars::FindInSorted(const char* szString, bool bCaseSensitive)
 size CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 {
 	DataCompare		fCompare;
-	size			iIndex;
+	lsize			iIndex;
 	bool			bResult;
 
 	if (bCaseSensitive)
@@ -659,7 +659,7 @@ size CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 	}
 	else
 	{
-		return iIndex;
+		return (size)iIndex;
 	}
 }
 

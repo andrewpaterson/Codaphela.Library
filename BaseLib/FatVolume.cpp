@@ -96,7 +96,7 @@ bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SF
 	muiNoOfSectorsPerCluster = psBPB->uiSectorsPerCluster;
 	muiNoOfFatTables = psBPB->uiNumFileAllocationTables;
 	muiFileSystemInfoSector = psBPB->uFatEx.sFat32.uiFileSystemInformation;
-	muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
+	muiBytesPerCluster = (uint32)muiBytesPerSector * muiNoOfSectorsPerCluster;
 
 	// read the volume label from the boot sector.
 	if (meFileSystem == FAT_FS_TYPE_FAT16)

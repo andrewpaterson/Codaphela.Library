@@ -30,10 +30,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountCarriageReturns(const char* szString, size uiLen)
+lsize CountCarriageReturns(const char* szString, lsize uiLen)
 {
-	size	i;
-	size	uiNumCarriageReturns;
+	lsize	i;
+	lsize	uiNumCarriageReturns;
 
 	uiNumCarriageReturns = 0;
 	for (i = 0; i < uiLen; i++)
@@ -51,10 +51,10 @@ size CountCarriageReturns(const char* szString, size uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountLineFeeds(char* szString, size uiLen)
+lsize CountLineFeeds(char* szString, lsize uiLen)
 {
-	size	i;
-	size	iNumLineFeeds;
+	lsize	i;
+	lsize	iNumLineFeeds;
 
 	iNumLineFeeds = 0;
 	for (i = 0; i < uiLen; i++)
@@ -72,10 +72,10 @@ size CountLineFeeds(char* szString, size uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountNewLines(char* szString, size uiLen)
+lsize CountNewLines(char* szString, lsize uiLen)
 {
-	size iCarriageReturns;
-	size iLineFeeds;
+	lsize iCarriageReturns;
+	lsize iLineFeeds;
 
 	iCarriageReturns = CountCarriageReturns(szString, uiLen);
 	iLineFeeds = CountLineFeeds(szString, uiLen);
@@ -92,7 +92,7 @@ size CountNewLines(char* szString, size uiLen)
 	if (iLineFeeds != iCarriageReturns)
 	{
 		//There is no file format where /r and /n are not balanced.
-		return SIZE_MAX;
+		return MAX_LSIZE;
 	}
 	return iCarriageReturns;
 }
@@ -102,20 +102,20 @@ size CountNewLines(char* szString, size uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size PassifyNewlines(char *szString)
+lsize PassifyNewlines(char *szString)
 {
-	size	uiLen;
-	size	i;
-	size	uiNumCarriageReturns;
+	lsize	uiLen;
+	lsize	i;
+	lsize	uiNumCarriageReturns;
 	char*	szNewString;  //Should use StackMemory.
-	size	uiPos;
+	lsize	uiPos;
 
 	uiLen = strlen(szString);
 	uiNumCarriageReturns = CountCarriageReturns(szString, uiLen);
 
 	if (uiNumCarriageReturns == 0)
 	{
-		return SIZE_MAX;
+		return MAX_LSIZE;
 	}
 
 	szNewString	= (char*)malloc(uiLen-uiNumCarriageReturns+1);

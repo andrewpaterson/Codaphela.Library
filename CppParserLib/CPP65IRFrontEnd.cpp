@@ -207,6 +207,35 @@ void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLa
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Warns of what the optimiser found (SetWarnings: a line each) at the function's definition.  The IR has no lines,
+// so the warning is the function's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::OptimiserWarnings(CChars* pszWarnings)
+{
+	CChars	szMessage;
+
+	if (pszWarnings->Empty() || !mpsFunction || !mpsFunction->pcDefinition)
+	{
+		return;
+	}
+
+	//A comparison the generator already warned about in the function (a 16 bit variable compared with 0xFFFFFFFF) is
+	//the same one, seen before the values were followed.
+	if (mpcGenerator->HasWarning(mpsFunction->pcDefinition, "Comparison is always"))
+	{
+		return;
+	}
+	pszWarnings->RemoveLastCharacter();
+	szMessage.Init("In this function, once the values are followed: ");
+	szMessage.Append(pszWarnings);
+	mpcGenerator->Warning(mpsFunction->pcDefinition, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Finishes the function BeginWriting started (bResult false if writing it failed): verifies, optimises and generates
 // it, and leaves a marker where its code goes in the generator's code (FinishUnit).  False, with nothing changed,
 // if it didn't verify or generate.
@@ -218,6 +247,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	CIRVerifier				cVerifier;
 	CIROptimiser			cOptimiser;
 	CChars					szCode;
+	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
 	size					ui;
 	size					uiStart;
@@ -234,8 +264,12 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+			szWarnings.Init();
+			cOptimiser.SetWarnings(&szWarnings);
 			cOptimiser.Optimise(mpcFunction);
 			cOptimiser.Kill();
+			OptimiserWarnings(&szWarnings);
+			szWarnings.Kill();
 		}
 		cErrors.Init();
 		cVerifier.Init(&mcModule, &cErrors);
@@ -2045,7 +2079,13 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		return Unsupported(__LINE__);
 	}
 	psType = mpcGenerator->TypeOf(pcExpression);
-	if (!psType || (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass()))
+	if (!psType)
+	{
+		//Usually C++ that is wrong (a call no function matches, or more than one): the generator says what.
+		mpcGenerator->ReportTypeOf(pcExpression);
+		return Unsupported(__LINE__);
+	}
+	if (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass())
 	{
 		return Unsupported(__LINE__);
 	}

@@ -8,8 +8,8 @@ private:
 	int miNameLength;
 
 public:
-	void	Init(void* pvData, size uiDataSize);
-	void	Init(const char* szName, int iNameLength, void* pvData, size uiDataSize);
+	void	Init(void* pvData, lsize uiDataSize);
+	void	Init(const char* szName, int iNameLength, void* pvData, lsize uiDataSize);
 	char*	GetName(void);
 	void*	GetData(void);
 	int		GetNameLength(void);
@@ -18,9 +18,9 @@ public:
 };
 
 
-size NamedIndexedHeaderSize(char* szName, size uiDataSize);
-size NamedIndexedHeaderSize(size uiDataSize);
-size NamedIndexedHeaderSize(int iNameLength, size uiDataSize);
+lsize NamedIndexedHeaderSize(char* szName, lsize uiDataSize);
+lsize NamedIndexedHeaderSize(lsize uiDataSize);
+lsize NamedIndexedHeaderSize(int iNameLength, lsize uiDataSize);
 
 
 #endif // __NAMED_INDEXED_HEADER_H__

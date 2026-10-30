@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryStack::Init(size iSize)
+void CMemoryStack::Init(lsize iSize)
 {
 	mpvMemory = NULL;
 	miMemorySize = iSize;
@@ -43,7 +43,7 @@ void CMemoryStack::Init(size iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStack::Allocate(size iSize)
+void* CMemoryStack::Allocate(lsize iSize)
 {
 	Init(iSize);
 	mpvMemory = malloc(miMemorySize);
@@ -77,7 +77,7 @@ void CMemoryStack::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStack::Add(size iSize)
+void* CMemoryStack::Add(lsize iSize)
 {
 	void*	pvCurrent;
 
@@ -159,7 +159,7 @@ void CMemoryStack::Rollback(SStackMark* psMark)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStack::GetTotalMemory(void)
+lsize CMemoryStack::GetTotalMemory(void)
 {
 	return miMemorySize;
 }
@@ -169,7 +169,7 @@ size CMemoryStack::GetTotalMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStack::GetUsedMemory(void)
+lsize CMemoryStack::GetUsedMemory(void)
 {
 	return miUsedMemory;
 }
@@ -179,7 +179,7 @@ size CMemoryStack::GetUsedMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStack::GetRemainingMemory(void)
+lsize CMemoryStack::GetRemainingMemory(void)
 {
 	return miMemorySize - miUsedMemory;
 }

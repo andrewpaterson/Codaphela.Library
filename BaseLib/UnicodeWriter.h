@@ -43,7 +43,7 @@ public:
 	bool	ReadBOM(void);
 
 	bool	WriteBOM(void);
-	int		WriteCharacters(size uiMaxToWrite = SIZE_MAX);
+	int		WriteCharacters(size uiMaxToWrite = MAX_SIZE);
 
 protected:
 	size	WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);

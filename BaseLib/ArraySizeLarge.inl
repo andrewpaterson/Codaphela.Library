@@ -32,3 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ASIZE						lsize
 #define ARRAY_SIZE_MAX				MAX_LSIZE
 #define ARRAY_NOT_FOUND				ARRAY_LARGE_ELEMENT_NOT_FOUND
+#define ARRAY_MEMCPY				memcpy
+#define ARRAY_MEMMOVE				memmove
+#define ARRAY_MEMSET				memset
+#define ARRAY_MEMCMP				memcmp
+#define ARRAY_MEMSWP				MemSwp

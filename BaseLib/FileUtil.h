@@ -28,11 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define FILE_BLOCK_SIZE		(1 MB)
-#ifdef __W65C816__
+#ifdef SIZE_16
 #define MAX_DIRECTORY_LENGTH 260	//FAT32's longest path.  The W65C816's stack, where these buffers usually are, is in bank 0.
 #else
 #define MAX_DIRECTORY_LENGTH 65536
-#endif // __W65C816__
+#endif // SIZE_16
 
 
 class CFileUtil

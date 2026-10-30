@@ -152,7 +152,7 @@ size CFreeList::CalculateBitArraySize(size uiChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CFreeList::CalculateNodeSize(size uiChunkSize)
+lsize CFreeList::CalculateNodeSize(size uiChunkSize)
 {
 	size	iBitArraySize;
 
@@ -162,11 +162,11 @@ size CFreeList::CalculateNodeSize(size uiChunkSize)
 
 	if (muiAlignment != 1)
 	{
-		return sizeof(SFNode) + iBitArraySize + (muiStride * (uiChunkSize + 1)) - 1;
+		return sizeof(SFNode) + iBitArraySize + ((lsize)muiStride * (uiChunkSize + 1)) - 1;
 	}
 	else
 	{
-		return sizeof(SFNode) + iBitArraySize + (muiElementSize * uiChunkSize);
+		return sizeof(SFNode) + iBitArraySize + ((lsize)muiElementSize * uiChunkSize);
 	}
 }
 
@@ -177,12 +177,12 @@ size CFreeList::CalculateNodeSize(size uiChunkSize)
 //////////////////////////////////////////////////////////////////////////
 size CFreeList::CalculateSlabChunkSize(void)
 {
-	size	uiAvailable;
+	lsize	uiAvailable;
 	size	uiChunkSize;
 
 	//The most elements that fit in a slab after the linked list and free list node headers.
 	uiAvailable = SLAB_SIZE - sizeof(SLLBlockNode);
-	uiChunkSize = (uiAvailable - sizeof(SFNode)) / muiStride;
+	uiChunkSize = (size)((uiAvailable - sizeof(SFNode)) / muiStride);
 	while (CalculateNodeSize(uiChunkSize) > uiAvailable)
 	{
 		uiChunkSize--;
@@ -891,13 +891,13 @@ SFNode* CFreeList::FindNode(void* pvData, bool bIsAllocated)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CFreeList::ByteSize(void)
+lsize CFreeList::ByteSize(void)
 {
 	//This returns just the size of the allocated memory allocated blocks.  It does not include the free list 'header' or the link list 'header. 
 	//Slabs are always allocated whole.
 	if (mbSlabs)
 	{
-		return mcList.NumElements() * SLAB_SIZE;
+		return (lsize)mcList.NumElements() * SLAB_SIZE;
 	}
 	return mcList.ByteSize();
 }

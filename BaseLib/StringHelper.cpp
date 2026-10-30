@@ -202,14 +202,14 @@ int MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2)
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #ifndef __W65C816__
-void MemSwp(const void* pv1, const void* pv2, size uiLength)
+void MemSwp(const void* pv1, const void* pv2, lsize uiLength)
 {
-	size	i;
-	size	iIntLength;
+	lsize	i;
+	lsize	iIntLength;
 	int		iTemp;
-	size	iRemainder;
+	lsize	iRemainder;
 	char	cTemp;
-	size	iCharIndex;
+	lsize	iCharIndex;
 	
 	iIntLength = uiLength / sizeof(int);
 	iRemainder = uiLength % sizeof(int);
@@ -228,7 +228,7 @@ void MemSwp(const void* pv1, const void* pv2, size uiLength)
 		((char*)pv2)[iCharIndex + i] = cTemp;
 	}
 }
-#endif // __W65C816__ (Libc65's string816.asm has it)
+#endif // __W65C816__ (Libc65's string816.asm and string816_16.asm have it)
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -1102,7 +1102,7 @@ size GetCharHex(char cHexChar)
 	}
 	else
 	{
-		return SIZE_MAX;
+		return MAX_SIZE;
 	}
 }
 

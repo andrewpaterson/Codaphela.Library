@@ -418,7 +418,7 @@ bool CDurableFile::OpenPrimaryForRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Write(filePos iDistance, const void* pvSource, size iSize, size iCount)
+lsize CDurableFile::Write(filePos iDistance, const void* pvSource, lsize iSize, lsize iCount)
 {
 	return Write(EFSO_SET, iDistance, pvSource, iSize, iCount);
 }
@@ -428,7 +428,7 @@ size CDurableFile::Write(filePos iDistance, const void* pvSource, size iSize, si
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, size iSize, size iCount)
+lsize CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, lsize iSize, lsize iCount)
 {
 	bool bResult;
 
@@ -477,7 +477,7 @@ lsize CDurableFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Read(filePos iDistance, void* pvDest, size iSize, size iCount)
+lsize CDurableFile::Read(filePos iDistance, void* pvDest, lsize iSize, lsize iCount)
 {
 	return Read(EFSO_SET, iDistance, pvDest, iSize, iCount);
 }
@@ -487,7 +487,7 @@ size CDurableFile::Read(filePos iDistance, void* pvDest, size iSize, size iCount
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, size iSize, size iCount)
+lsize CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, lsize iSize, lsize iCount)
 {
 	bool	bResult;
 
@@ -613,7 +613,7 @@ filePos CDurableFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::Truncate(size iSize)
+bool CDurableFile::Truncate(lsize iSize)
 {
 	if (!IsBegun())
 	{

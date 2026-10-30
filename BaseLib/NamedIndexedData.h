@@ -36,28 +36,28 @@ public:
 	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	void 			Kill(void);
 
-	bool			Add(OIndex oi, void* pvData, size uiDataSize);
-	bool			Add(OIndex oi, const char* szName, void* pvData, size uiDataSize);
-	bool			Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
+	bool			Add(OIndex oi, void* pvData, lsize uiDataSize);
+	bool			Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
+	bool			Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
 
 	bool			Set(OIndex oi, void* pvData);
-	bool			Set(OIndex oi, void* pvData, size uiDataSize);
+	bool			Set(OIndex oi, void* pvData, lsize uiDataSize);
 	bool			Set(const char* szName, void* pvData);
-	bool			Set(const char* szName, void* pvData, size uiDataSize);
+	bool			Set(const char* szName, void* pvData, lsize uiDataSize);
 	bool			Set(CChars* szName, void* pvData);
-	bool			Set(CChars* szName, void* pvData, size uiDataSize);
+	bool			Set(CChars* szName, void* pvData, lsize uiDataSize);
 
-	bool			Put(OIndex oi, void* pvData, size uiDataSize);
-	bool			Put(OIndex oi, const char* szName, void* pvData, size uiDataSize);
-	bool			Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
+	bool			Put(OIndex oi, void* pvData, lsize uiDataSize);
+	bool			Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
+	bool			Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
 
 	bool			Get(OIndex oi, void* pvData);
-	bool			Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
-	bool			GetWithName(OIndex oi, CChars* pszName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool			Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
+	bool			GetWithName(OIndex oi, CChars* pszName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool			Get(const char* szName, void* pvData);
-	bool			Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool			Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool			Get(CChars* szName, void* pvData);
-	bool			Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool			Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 
 	bool			GetName(OIndex oi, CChars* szName);
 	bool			GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
@@ -71,13 +71,13 @@ public:
 	bool			Remove(OIndex oi);
 	bool			Remove(const char* szName);
 	bool			Remove(CChars* szName);
-	size	Size(OIndex oi);
+	lsize	Size(OIndex oi);
 
 	bool			Flush(void);
 	bool			Flush(bool bClearCache);
 
-	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
-	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
 	bool			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
@@ -100,16 +100,16 @@ public:
 
 	bool			ValidateCache(void);
 
-	size			GetIndiciesSystemMemorySize(void);
-	size			GetDataSystemMemorySize(void);
-	size			GetNamesSystemMemorySize(void);
+	lsize			GetIndiciesSystemMemorySize(void);
+	lsize			GetDataSystemMemorySize(void);
+	lsize			GetNamesSystemMemorySize(void);
 
 	void			Dump(void);
 
 private:
-	bool			Add(OIndex oi, const char* szName, int iNameLength, void* pvData, size uiDataSize);
-	bool			Set(OIndex oi, const char* szName, int iNameLength, void* pvData, size uiDataSize);
-	bool			Put(OIndex oi, const char* szName, int iNameLength, void* pvData, size uiDataSize);
+	bool			Add(OIndex oi, const char* szName, int iNameLength, void* pvData, lsize uiDataSize);
+	bool			Set(OIndex oi, const char* szName, int iNameLength, void* pvData, lsize uiDataSize);
+	bool			Put(OIndex oi, const char* szName, int iNameLength, void* pvData, lsize uiDataSize);
 
 	size	MinNameSize(size uiNameSize, size uiMaxNameSize);
 };

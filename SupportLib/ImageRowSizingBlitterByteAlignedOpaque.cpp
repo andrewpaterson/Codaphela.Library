@@ -26,7 +26,7 @@ void CImageRowSizingBlitterByteAlignedOpaque::Copy(CImageBlitterContext* pcConte
 		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
 	}
 
-	if (pcContext->muiDestAlphaOffset != SIZE_MAX)
+	if (pcContext->muiDestAlphaOffset != MAX_SIZE)
 	{
 		pvDest = RemapSinglePointer(pvAlphaDest, iDestY * pcContext->miDestRowStride + iDestXLeft * pcContext->miDestPixelStride + pcContext->muiDestAlphaOffset);
 

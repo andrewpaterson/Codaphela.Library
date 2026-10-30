@@ -549,7 +549,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::AddRemap(size iElementPos, M iRemapN
 	}
 	else
 	{
-		iMinusOne = SIZE_MAX;
+		iMinusOne = MAX_SIZE;
 		iNumToAdd = (iElementPos - this->NumElements());
 
 		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)

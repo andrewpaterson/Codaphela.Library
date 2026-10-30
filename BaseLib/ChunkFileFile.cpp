@@ -77,15 +77,15 @@ bool CChunkFileFile::Close(void)
 //////////////////////////////////////////////////////////////////////////
 lsize CChunkFileFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size	iRemain;
-	size	iReadSize;
+	lsize	iRemain;
+	lsize	iReadSize;
 
 	if (!mbReadMode)
 	{
 		return 0;
 	}
 
-	iRemain = (size)(miChunkSize - Tell());
+	iRemain = (lsize)(miChunkSize - Tell());
 
 	iReadSize = iSize * iCount;
 

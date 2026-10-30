@@ -26,10 +26,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-size PassifyNewlines(char *szString);
-size CountNewLines(char* szString, size iLen);
-size CountCarriageReturns(const char* szString, size iLen);
-size CountLineFeeds(char* szString, size iLen);
+lsize PassifyNewlines(char *szString);
+lsize CountNewLines(char* szString, lsize iLen);
+lsize CountCarriageReturns(const char* szString, lsize iLen);
+lsize CountLineFeeds(char* szString, lsize iLen);
 
 
 #endif // __NEW_LINE_H__

@@ -450,6 +450,7 @@ protected:
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	bool					mbWarnNarrowing;	//Implicit conversions of non constant integers to a narrower type are warned about.
+	bool					mbKeepTypeErrors;	//DiscardedType keeps its errors (ReportTypeOf).
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
 	CChars					mszInitialise;		//Works out the global being defined (its R_Initialise).
@@ -779,6 +780,9 @@ protected:
 	SCPP65Type*				CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				SizeofExpression(CCPPSyntax* pcSizeof);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
+	void					ReportTypeOf(CCPPSyntax* pcExpression);
+	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
+	void					NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				DiscardedType(CCPPSyntax* pcExpression, bool bPlace);
 	SCPP65Type*				Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Right* psRight);
@@ -828,6 +832,7 @@ protected:
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
 	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);

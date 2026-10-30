@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, size iClearValue, size uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, uint8 iClearValue, size uiIndexInParent)
 {
 	size	uiSize;
 
@@ -267,7 +267,7 @@ size CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Contain(size uiIndex, size iClearValue)
+void CIndexTreeNode::Contain(size uiIndex, uint8 iClearValue)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 	if (!HasNodes())
@@ -292,7 +292,7 @@ void CIndexTreeNode::Contain(size uiIndex, size iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearOnlyNode(size uiIndex, size iClearValue)
+void CIndexTreeNode::ClearOnlyNode(size uiIndex, uint8 iClearValue)
 {
 	size	uiSize;
 	void*	pvNodes;
@@ -321,7 +321,7 @@ void CIndexTreeNode::MoveNodesLeft(size uiNextFirstIndex)
 	iNewNumIndexes = NumIndexes(uiNextFirstIndex, muiLastIndex);
 	uiSize = (uiNextFirstIndex - muiFirstIndex) * SizeofNodePtr();
 	pvSource = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiSize);
-	memmove(pvNodes, pvSource, iNewNumIndexes * SizeofNodePtr());
+	memmove(pvNodes, pvSource, (size)(iNewNumIndexes * SizeofNodePtr()));
 	muiFirstIndex = (uint8)uiNextFirstIndex;
 }
 
@@ -330,7 +330,7 @@ void CIndexTreeNode::MoveNodesLeft(size uiNextFirstIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, size iClearValue)
+void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, uint8 iClearValue)
 {
 	size		uiSize;
 	void*		pvNodes;
@@ -342,7 +342,7 @@ void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, size iClearValue)
 
 	uiSize = (muiFirstIndex - uiNewFirstIndex) * SizeofNodePtr();
 	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiSize);
-	memmove(pvDest, pvNodes, uiOldNumIndexes * SizeofNodePtr());
+	memmove(pvDest, pvNodes, (size)(uiOldNumIndexes * SizeofNodePtr()));
 	memset(pvNodes, (int)iClearValue, uiSize);
 	muiFirstIndex = (uint8)uiNewFirstIndex;
 }
@@ -352,7 +352,7 @@ void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, size iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, size iClearValue)
+void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, uint8 iClearValue)
 {
 	size		uiOldNumIndexes;
 	void*		pvDest;
@@ -363,7 +363,7 @@ void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, size iClearValue)
 	uiOldNumIndexes = NumIndexes();
 
 	uiSize = (uiNewLastIndex - muiLastIndex) * SizeofNodePtr();
-	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiOldNumIndexes * SizeofNodePtr());
+	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, (size)(uiOldNumIndexes * SizeofNodePtr()));
 	memset(pvDest, (int)iClearValue, uiSize);
 	muiLastIndex = (uint8)uiNewLastIndex;
 }

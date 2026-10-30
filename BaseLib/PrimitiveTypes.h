@@ -111,11 +111,18 @@ typedef float			float32;
 typedef double			float64 ALIGN_64;
 typedef long double		float128;
 typedef unsigned int	uint;
-#if defined(LINUX_GNU) && defined(BUILD_64)
+//SIZE_16: size is 16 bits.  On the W65C816, and in a host build that checks the W65C816's size model (BASELIB_SIZE16:
+//g++ -m32 -DBASELIB_SIZE16 -Wconversion warns of every lsize, or wider, value narrowed to a size).
+#if defined(__W65C816__) || defined(BASELIB_SIZE16)
+#define SIZE_16
+#endif // __W65C816__ || BASELIB_SIZE16
+#if defined(LINUX_GNU) && defined(BUILD_64) && defined(BASELIB_SIZE16)
+#error BASELIB_SIZE16 is for 32 bit builds.
+#elif defined(LINUX_GNU) && defined(BUILD_64)
 typedef uint64			size;
 typedef uint64			ptr;
 typedef int64			ptrdiff;
-#elif defined(__W65C816__)
+#elif defined(SIZE_16)
 //size is the W65C816's natural width; pointers (and size_t) stay 32 bits.  Use lsize past 64KB.
 typedef uint16			size;
 typedef uintptr_t		ptr;
@@ -128,12 +135,12 @@ typedef ptrdiff_t		ptrdiff;
 
 //lsize counts and measures things that can pass 64KB.  It is the same type as size except on 16 bit targets, so
 //only those can overload on size and lsize (SIZE_IS_LSIZE is defined everywhere else).
-#if defined(__W65C816__)
+#if defined(SIZE_16)
 typedef uint32			lsize;
 #else
 typedef size			lsize;
 #define SIZE_IS_LSIZE
-#endif // __W65C816__
+#endif // SIZE_16
 #define MAX_SIZE		((size)-1)
 #define MAX_LSIZE		((lsize)-1)
 

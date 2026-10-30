@@ -45,7 +45,7 @@ void* CSlabAllocator::Malloc(lsize uiSize)
 {
 	if (uiSize > SLAB_SIZE)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate [", SizeToString(uiSize), "] bytes, slabs are [", SizeToString(SLAB_SIZE), "] bytes.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate [", LongToString((uint64)uiSize), "] bytes, slabs are [", LongToString((uint64)SLAB_SIZE), "] bytes.", NULL);
 		return NULL;
 	}
 
@@ -65,7 +65,7 @@ void* CSlabAllocator::Realloc(void* pv, lsize uiSize)
 	}
 	if (uiSize > SLAB_SIZE)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot reallocate to [", SizeToString(uiSize), "] bytes, slabs are [", SizeToString(SLAB_SIZE), "] bytes.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot reallocate to [", LongToString((uint64)uiSize), "] bytes, slabs are [", LongToString((uint64)SLAB_SIZE), "] bytes.", NULL);
 		return NULL;
 	}
 	return pv;

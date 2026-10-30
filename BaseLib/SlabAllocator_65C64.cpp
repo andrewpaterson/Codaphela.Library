@@ -41,7 +41,7 @@ void* CSlabAllocator::AllocateSlab(void)
 	{
 		return NULL;
 	}
-	pcSlab = (char*)(((size)pcMemory + sizeof(void*) + SLAB_SIZE - 1) & ~((size)SLAB_SIZE - 1));
+	pcSlab = (char*)(((ptr)pcMemory + sizeof(void*) + SLAB_SIZE - 1) & ~((ptr)SLAB_SIZE - 1));
 	((void**)pcSlab)[-1] = pcMemory;
 	return pcSlab;
 }

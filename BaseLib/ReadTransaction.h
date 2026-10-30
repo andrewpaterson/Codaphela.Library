@@ -25,11 +25,11 @@ public:
 	int64	GetSnapshot(void);
 
 	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
+	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
 
 	bool	GetName(OIndex oi, CChars* szName);
 	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
@@ -40,8 +40,8 @@ public:
 	bool	Contains(const char* szName);
 	bool	Contains(CChars* szName);
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
-	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 };

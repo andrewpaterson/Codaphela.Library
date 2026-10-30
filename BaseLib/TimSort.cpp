@@ -64,7 +64,7 @@ void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumEle
 #define MIN_GALLOP 7
 
    /**
-	* Maximum initial lsize of tmp array, which is used for merging.  The array
+	* Maximum initial size of tmp array, which is used for merging.  The array
 	* can grow to accommodate demand.
 	*
 	* Unlike Tim's original C version, we do not allocate this much storage
@@ -73,7 +73,7 @@ void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumEle
 #define INITIAL_TMP_STORAGE_LENGTH 256
 
 	/**
-	 * Maximum stack lsize.  This depends on MIN_MERGE and sizeof(lsize).
+	 * Maximum stack size.  This depends on MIN_MERGE and sizeof(lsize).
 	 */
 #define MAX_STACK 85
 
@@ -358,7 +358,7 @@ static void pushRun(struct timsort* ts, void* runBase, lsize runLen)
 
 /**
  * Ensures that the external array tmp has at least the specified
- * number of elements, increasing its lsize if necessary.  The lsize
+ * number of elements, increasing its size if necessary.  The size
  * increases exponentially to ensure amortized linear time complexity.
  *
  * @param minCapacity the minimum required capacity of the tmp array

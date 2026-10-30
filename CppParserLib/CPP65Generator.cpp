@@ -200,6 +200,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	miQuiet = 0;
 	miWarningChecks = 0;
 	mbWarnNarrowing = gbCPP65DefaultWarnNarrowing;
+	mbKeepTypeErrors = false;
 	mbQuietFailed = false;
 	maszStrings.Init();
 	mszInitialise.Init();
@@ -979,6 +980,28 @@ void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a warning containing szText is at one of pcNode's tokens.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasWarning(CCPPSyntax* pcNode, const char* szText)
+{
+	size	i;
+	int		iToken;
+
+	for (i = 0; i < mcWarnings.NumErrors(); i++)
+	{
+		iToken = mcWarnings.GetToken(i);
+		if ((iToken >= pcNode->miFirstToken) && (iToken <= pcNode->miLastToken) && strstr(mcWarnings.Get(i), szText))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
@@ -998,6 +1021,36 @@ bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
 	mcErrors.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessage, szDetail.Text());
 	szDetail.Kill();
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Works out pcExpression's type again with errors reported, in quiet mode too,
+// when the IR front end couldn't: a call that no function matches, or that
+// more than one does, is then an error where it is ("No function matches the
+// arguments": an unsigned short* passed for an unsigned long*), not only
+// "doesn't support yet".  Only for a target without the direct generator,
+// which might write the function itself.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
+{
+	int		iQuiet;
+	bool	bQuietFailed;
+
+	if (mpsTarget->bDirectGenerator)
+	{
+		return;
+	}
+	iQuiet = miQuiet;
+	bQuietFailed = mbQuietFailed;
+	miQuiet = 0;
+	mbKeepTypeErrors = true;
+	DiscardedType(pcExpression, false);  //Not TypeOf, which remembers it failed.
+	mbKeepTypeErrors = false;
+	miQuiet = iQuiet;
+	mbQuietFailed = bQuietFailed;
 }
 
 
@@ -2545,6 +2598,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	size							j;
 	size							k;
 	size							uiPack;
+	size							uiErrors;
 	int								iOffset;
 	bool							bResult;
 	CChars							szMessage;
@@ -2605,10 +2659,18 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	miFrameBytes = (miFrameBytes + 3) & ~3;
 
 	//The IR front end writes the whole function when it supports everything in it.  A target without the direct
-	//generator (the W65C816) can't have it written any other way.
+	//generator (the W65C816) can't have it written any other way.  An error the front end reported (ReportTypeOf: C++
+	//that is wrong) is the reason; else it is C++ the front end doesn't do yet.
+	uiErrors = mcErrors.NumErrors();
 	if (mpcIRFrontEnd && mpcIRFrontEnd->Body(psFunction))
 	{
 		return true;
+	}
+	if (!mpsTarget->bDirectGenerator && (mcErrors.NumErrors() > uiErrors))
+	{
+		CCPP65IRFrontEnd::sszUnsupported[0] = '\0';
+		EndFunction(psFunction);
+		return false;
 	}
 	if (!mpsTarget->bDirectGenerator)
 	{

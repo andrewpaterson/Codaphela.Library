@@ -49,9 +49,9 @@ struct SLinkedListTemplateDesc
 {
 	size	iNumElements;
 	size	uiNodeSize;
-	size	uiDataSize;
+	lsize	uiDataSize;
 
-	void Init(size iNumElements, size uiNodeSize, size uiDataSize);
+	void Init(size iNumElements, size uiNodeSize, lsize uiDataSize);
 	bool Write(CFileWriter* pcFileWriter);
 	bool Read(CFileReader* pcFileReader);
 };
@@ -68,10 +68,10 @@ public:
 	void		Init(CMallocator* pcMalloc, size uiNodeSize);
 	void		Kill(void);
 
-	void*		InsertAfterTail(size uiDataSize);
-	void*		InsertBeforeHead(size uiDataSize);
-	void*		InsertBeforeNode(size uiDataSize, void* psPos);
-	void*		InsertAfterNode(size uiDataSize, void* psPos); 
+	void*		InsertAfterTail(lsize uiDataSize);
+	void*		InsertBeforeHead(lsize uiDataSize);
+	void*		InsertBeforeNode(lsize uiDataSize, void* psPos);
+	void*		InsertAfterNode(lsize uiDataSize, void* psPos); 
 
 	void* 		GetHead(void);
 	void* 		GetTail(void);
@@ -104,7 +104,7 @@ public:
 	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);
 
 protected:	
-	SLLNode*	AllocateDetached(size uiDataSize);
+	SLLNode*	AllocateDetached(lsize uiDataSize);
 
 	void		Swap(void* psData1, void* psData2);
 	void*		NodeGetData(SLLNode* psNode);

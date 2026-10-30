@@ -350,7 +350,7 @@ size CColourFormatHelper::GetFirstColourIndex(void)
 		break;
 	}
 
-	return SIZE_MAX;
+	return MAX_SIZE;
 }
 
 
@@ -374,6 +374,6 @@ size CColourFormatHelper::GetAlphaIndex(void)
 		break;
 	}
 
-	return SIZE_MAX;
+	return MAX_SIZE;
 }
 

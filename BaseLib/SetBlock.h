@@ -65,7 +65,7 @@ public:
 	bool				WriteSetBlockElements(CFileWriter* pcFileWriter);
 	bool				ReadSetBlockElements(CFileReader* pcFileReader);
 
-	size				ByteSize(void);
+	lsize				ByteSize(void);
 	void				Dump(void);
 	void				Pack(void);
 

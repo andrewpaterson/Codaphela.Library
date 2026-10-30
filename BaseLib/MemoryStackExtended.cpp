@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryStackExtended::Init(size iChunkSize)
+void CMemoryStackExtended::Init(lsize iChunkSize)
 {
 	mcStacks.Init();
 	muiElements = 0;
@@ -90,11 +90,11 @@ void CMemoryStackExtended::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStackExtended::Add(size uiSize)
+void* CMemoryStackExtended::Add(lsize uiSize)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size			uiRemaining;
+	lsize			uiRemaining;
 
 	if (uiSize > muiChunkSize)
 	{
@@ -220,11 +220,11 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStackExtended::GetTotalMemory(void)
+lsize CMemoryStackExtended::GetTotalMemory(void)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size			uiSize;
+	lsize			uiSize;
 	size			uiNumElements;
 
 	uiNumElements = mcStacks.NumElements();
@@ -242,11 +242,11 @@ size CMemoryStackExtended::GetTotalMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStackExtended::GetUsedMemory(void)
+lsize CMemoryStackExtended::GetUsedMemory(void)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size			uiSize;
+	lsize			uiSize;
 	size			uiNumElements;
 
 	uiNumElements = mcStacks.NumElements();

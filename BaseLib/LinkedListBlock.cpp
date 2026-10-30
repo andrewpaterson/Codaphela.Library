@@ -39,7 +39,7 @@ void CLinkedListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CLinkedListBlock::GetNodeSize(void* pvData)
+lsize CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLBlockNode*		psNodeHeader;
 
@@ -52,7 +52,7 @@ size CLinkedListBlock::GetNodeSize(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CLinkedListBlock::GetDataSize(void* pvData)
+lsize CLinkedListBlock::GetDataSize(void* pvData)
 {
 	SLLBlockNode* psNodeHeader;
 
@@ -65,9 +65,9 @@ size CLinkedListBlock::GetDataSize(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CLinkedListBlock::ByteSize(void)
+lsize CLinkedListBlock::ByteSize(void)
 {
-	size	iSize;
+	lsize	iSize;
 	void*	pvNode;
 
 	iSize = 0;
@@ -87,7 +87,7 @@ size CLinkedListBlock::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterTail(size uiDataSize)
+void* CLinkedListBlock::InsertAfterTail(lsize uiDataSize)
 {
 	SLLBlockNode* psNode;
 
@@ -100,7 +100,7 @@ void* CLinkedListBlock::InsertAfterTail(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::Add(size uiDataSize)
+void* CLinkedListBlock::Add(lsize uiDataSize)
 {
 	return InsertAfterTail(uiDataSize);
 }
@@ -110,7 +110,7 @@ void* CLinkedListBlock::Add(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeHead(size uiDataSize)
+void* CLinkedListBlock::InsertBeforeHead(lsize uiDataSize)
 {
 	SLLBlockNode* psNode;
 
@@ -123,7 +123,7 @@ void* CLinkedListBlock::InsertBeforeHead(size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeNode(size uiDataSize, void* psPos)
+void* CLinkedListBlock::InsertBeforeNode(lsize uiDataSize, void* psPos)
 {
 	SLLBlockNode* psNode;
 	SLLBlockNode* psNodePos;
@@ -138,7 +138,7 @@ void* CLinkedListBlock::InsertBeforeNode(size uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterNode(size uiDataSize, void* psPos)
+void* CLinkedListBlock::InsertAfterNode(lsize uiDataSize, void* psPos)
 {
 	SLLBlockNode* psNode;
 	SLLBlockNode* psNodePos;
@@ -153,7 +153,7 @@ void* CLinkedListBlock::InsertAfterNode(size uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLBlockNode* CLinkedListBlock::AllocateDetached(size uiDataSize)
+SLLBlockNode* CLinkedListBlock::AllocateDetached(lsize uiDataSize)
 {
 	SLLBlockNode*		psNode;
 
@@ -239,7 +239,7 @@ bool CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 bool CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 {
 	void*	pvData;
-	size	iSize;
+	lsize	iSize;
 
 	pvData = GetHead();
 	while (pvData)
@@ -321,7 +321,7 @@ bool CLinkedListBlock::ReadData(CFileReader* pcFileReader, size iNumElements)
 {
 	size	i;
 	void*	pvData;
-	size	iSize;
+	lsize	iSize;
 
 	for (i = 0; i < iNumElements; i++)
 	{

@@ -51,25 +51,25 @@ public:
 	void					Print(CChars* psz);
 	void					Dump(void);
 	size					GetNumWrites(void);
-	size					GetWriteSize(size iIndex);
+	lsize					GetWriteSize(size iIndex);
 	size					GetNumCommands(void);
 	CLogFileCommandWrite*	GetWriteData(size iWrite);
-	bool					TestFindHoles(size iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
+	bool					TestFindHoles(size iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength);
 	bool					IsBegun(void);
 	void					SetSync(bool bSync);
 
 protected:
-	bool					FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength, bool bMustOverlap);
-	bool					Overlaps(filePos iPosition, size iLength, CLogFileCommandWrite* psWrite);
-	bool					AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength);
-	bool					ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength);
-	bool					FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
+	bool					FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength, bool bMustOverlap);
+	bool					Overlaps(filePos iPosition, lsize iLength, CLogFileCommandWrite* psWrite);
+	bool					AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, lsize iLength);
+	bool					ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, lsize iLength);
+	bool					FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength);
 	void					UpdateLength(void);
-	size					ReadFromBackingFile(void* pvDest, size iSize, size iCount);
-	size					ReadWithNoTouchingWrites(void* pvDest, size iSize, size iCount);
-	size					ReadFirstTouchingWrites(size iWriteIndex, void* pvDest, size iSize, size iCount);
-	size					ReadNextTouchingWrites(size iWriteIndex, void* pvDest, size iSize, size iCount);
-	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByteSize, void* pvDest);
+	lsize					ReadFromBackingFile(void* pvDest, lsize iSize, lsize iCount);
+	lsize					ReadWithNoTouchingWrites(void* pvDest, lsize iSize, lsize iCount);
+	lsize					ReadFirstTouchingWrites(size iWriteIndex, void* pvDest, lsize iSize, lsize iCount);
+	lsize					ReadNextTouchingWrites(size iWriteIndex, void* pvDest, lsize iSize, lsize iCount);
+	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, lsize iByteSize, void* pvDest);
 	size					FindNextWriteCommand(size iIndex);
 
 	bool					FailBegun(char* szMethod, const char* szTask, CAbstractFile* pcFile);
@@ -80,8 +80,8 @@ protected:
 	void					AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 
 	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);
-	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, size iByteLength);
-	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, size iByteLength);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, lsize iByteLength);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, lsize iByteLength);
 	CLogFileCommandClose*	AddCloseCommand(void);
 	CLogFileCommandDelete*	AddDeleteCommand(void);
 	CLogFileCommandTruncate*	AddTruncateCommand(filePos iSize);

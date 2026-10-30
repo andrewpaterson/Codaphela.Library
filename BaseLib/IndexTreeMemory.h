@@ -91,7 +91,7 @@ public:
 	bool					StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize);
 	bool					Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize);
 
-	size					ByteSize(void);
+	lsize					ByteSize(void);
 
 	bool					Write(CFileWriter* pcFileWriter);
 	bool					Read(CFileReader* pcFileReader);
@@ -150,7 +150,7 @@ protected:
 	size					RecurseSize(CIndexTreeNodeMemory* pcNode);
 	size					RecurseNumNodes(CIndexTreeNodeMemory* pcNode);
 	size					RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
-	size					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
+	lsize					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 	bool					ValidateLimits(void);
 	bool					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 	bool					ValidateParentIndex(void);

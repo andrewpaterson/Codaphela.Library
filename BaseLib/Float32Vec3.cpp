@@ -344,8 +344,8 @@ void Float32Vec3TransformCoords(SFloat32Vec3* asOut, int iOutStride, SFloat32Vec
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, (lsize)i * iOutStride);
+		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 		Float32Vec3TransformCoord(psOut, psIn, psMat);
 	}
 }
@@ -363,8 +363,8 @@ void Float32Vec3TransformNormals(SFloat32Vec3* asOut, int iOutStride, SFloat32Ve
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, (lsize)i * iOutStride);
+		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 		Float32Vec3TransformNormal(psOut, psIn, psMat);
 	}
 }
@@ -401,7 +401,7 @@ void Float32Vec3MinMax(SFloat32Vec3* psMin, SFloat32Vec3* psMax, SFloat32Vec3* a
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, (lsize)i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{

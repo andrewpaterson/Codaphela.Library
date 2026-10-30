@@ -138,8 +138,8 @@ bool CMD5HashFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 lsize CMD5HashFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size		iSuccessfulCount;
-	size		iSuccessfulBytes;
+	lsize		iSuccessfulCount;
+	lsize		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
@@ -166,8 +166,8 @@ lsize CMD5HashFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 //////////////////////////////////////////////////////////////////////////
 lsize CMD5HashFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 {
-	size		iSuccessfulCount;
-	size		iSuccessfulBytes;
+	lsize		iSuccessfulCount;
+	lsize		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
