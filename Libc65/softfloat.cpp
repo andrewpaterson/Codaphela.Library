@@ -4,10 +4,11 @@
 //operation gives the default NaN (sign set, quiet), a NaN operand is returned quietened (the first if both
 //are NaNs), and a conversion to an integer that is out of range or a NaN gives the most negative integer.
 //The code only uses integers so it also compiles for a host, to be checked against its hardware.
-//On the 65C64 every function here is softfloat.asm's, which gives the same results much faster, so this file
-//compiles to nothing there; it is kept as softfloat.asm's reference (TestLibc65 compiles it natively).
+//On the 65C64 every function here is softfloat.asm's, and on the W65C816 softfloat816.asm's, which give the same
+//results much faster, so this file compiles to nothing there; it is kept as their reference (TestLibc65 compiles it
+//natively).
 #include <stdint.h>
-#ifndef __65C64__
+#if !defined(__65C64__) && !defined(__W65C816__)
 
 
 #define SOFT_ZERO		0
@@ -645,7 +646,7 @@ static uint64_t SquareRoot(uint64_t ulliBits, int iFraction)
 }
 
 
-//C linkage: softfloat.asm defines the same names on the 65C64.
+//C linkage: softfloat.asm and softfloat816.asm define the same names on the 65C64 and the W65C816.
 extern "C"
 {
 uint32_t SoftFloatAdd(uint32_t uiA, uint32_t uiB)						{ return (uint32_t)Add(uiA, uiB, false, FLOAT_FRACTION); }
@@ -680,4 +681,4 @@ int64_t SoftDoubleToLongLong(uint64_t ulli)								{ return (int64_t)ToInteger(u
 uint64_t SoftDoubleToUnsignedLongLong(uint64_t ulli)					{ return ToInteger(ulli, DOUBLE_FRACTION, 64, false); }
 uint64_t SoftDoubleSqrt(uint64_t ulli)									{ return SquareRoot(ulli, DOUBLE_FRACTION); }
 }
-#endif // __65C64__
+#endif // !__65C64__ && !__W65C816__

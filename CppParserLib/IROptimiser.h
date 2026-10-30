@@ -309,6 +309,9 @@ public:
 	bool			BoundDivisions(void);
 	bool			ConstantDivisions(void);
 	bool			BiasSignedIndices(void);
+	bool			MergeAddressPhis(void);
+	SIRReference	AddressPhiIndex(SIRReference sValue, SIRReference sBase);
+	void			CountAddressUses(CArrayTemplate<uint32>* pauiAddressUses);
 	bool			IsHot(SIRInstruction* psInstruction, uint64 ulliSaving);
 	bool			IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor);
 	bool			NarrowCounters(void);
