@@ -137,6 +137,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mpaszRuntime = paszRuntime;
 	mbSignedDivide = false;
 	mbSignedDivide64 = false;
+	mbSourceMarkers = false;
+	mcSourceMarkers.Init();
 	mpcFunction = NULL;
 	mpszOut = NULL;
 	mpcErrors = NULL;
@@ -188,6 +190,7 @@ void CIR65Backend::Kill(void)
 	size	ui;
 
 	mauiNarrowOnly.Kill();
+	mcSourceMarkers.Kill();
 	mcPeephole.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
@@ -969,6 +972,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mpcErrors = pcErrors;
 	mbResult = true;
 	uiStart = pszDest->Length();
+	muiSource = 0;
 
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
@@ -1013,11 +1017,19 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 		}
 	}
 	Epilogue();
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Take(pszDest, uiStart);
+	}
 	Peephole(uiStart);
 	mcFlags.Optimise(pszDest, uiStart);
 	mcWidths.Optimise(pszDest, uiStart);
 	mcPeephole.Optimise(pszDest, uiStart);
 	IR65PseudoWithoutW(pszDest, uiStart);
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Put(pszDest, uiStart);
+	}
 	return mbResult;
 }
 
@@ -1425,6 +1437,37 @@ CChars* CIR65Backend::Line(const char* szText)
 {
 	mpszOut->Append("\t\t");
 	return mpszOut->Append(szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The marker line (IR_SOURCE_MARKER) before the code of an instruction or
+// a jump with uiSource (0 for none) when it isn't the last one's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Source(uint32 uiSource)
+{
+	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
+	{
+		return;
+	}
+	muiSource = uiSource;
+	mpszOut->Append(IR_SOURCE_MARKER);
+	mpszOut->Append((int64)muiSource);
+	mpszOut->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether Source writes markers (for a listing): they are taken out while
+// the text passes run, so the code is the same as without them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::SetSourceMarkers(bool bSourceMarkers)
+{
+	mbSourceMarkers = bSourceMarkers;
 }
 
 
@@ -3550,6 +3593,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 		msAvailable = msInA;
 		msInA = IRNone();
 		sDeferred = msDeferred;
+		Source(psInstruction->uiSource);
 		bResult &= Instruction(pcBlock, ui);
 		if (!sDeferred.IsNone())
 		{
@@ -3559,6 +3603,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	}
 	msAvailable = msInA;
 	msInA = IRNone();
+	Source(psFused ? psFused->uiSource : pcBlock->msJump.uiSource);
 	bResult &= Jump(pcBlock, pcNext, psFused);
 	mbFlagsKnown = false;
 	if (psFused && !psFused->sType.IsFloat())

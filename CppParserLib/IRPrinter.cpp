@@ -34,6 +34,21 @@ void CIRPrinter::Init(CIRModule* pcModule, CChars* pszDest)
 	mpszDest = pszDest;
 	mauiTemporaryNumbers.Init();
 	mauiBlockNumbers.Init();
+	mbSources = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line with the source of the instructions and jumps that follow
+// is printed where it changes (IR_SOURCE_MARKER and the source token + 1,
+// as the back ends write them for a listing).  The IR parser doesn't read
+// them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPrinter::SetSources(bool bSources)
+{
+	mbSources = bSources;
 }
 
 
@@ -486,6 +501,7 @@ void CIRPrinter::PrintFunction(CIRFunction* pcFunction)
 void CIRPrinter::PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock)
 {
 	size	ui;
+	uint32	uiLast;
 
 	PrintBlockName(pcBlock);
 	mpszDest->Append(':');
@@ -494,15 +510,36 @@ void CIRPrinter::PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock)
 	{
 		PrintPhi(pcFunction, pcBlock->masPhis.Get(ui));
 	}
+	uiLast = 0;
 	ui = 0;
 	while (ui < pcBlock->masInstructions.NumElements())
 	{
+		PrintSource(pcBlock->masInstructions.Get(ui)->uiSource, &uiLast);
 		ui = PrintInstruction(pcFunction, pcBlock, ui);
 	}
 	if (pcBlock->HasJump())
 	{
+		PrintSource(pcBlock->msJump.uiSource, &uiLast);
 		PrintJump(pcFunction, &pcBlock->msJump);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The source line (SetSources) when uiSource isn't 0 or the last printed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPrinter::PrintSource(uint32 uiSource, uint32* puiLast)
+{
+	if (!mbSources || (uiSource == 0) || (uiSource == *puiLast))
+	{
+		return;
+	}
+	*puiLast = uiSource;
+	mpszDest->Append(IR_SOURCE_MARKER);
+	mpszDest->Append((int64)uiSource);
+	mpszDest->AppendNewLine();
 }
 
 

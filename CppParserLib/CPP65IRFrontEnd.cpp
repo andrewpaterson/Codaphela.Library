@@ -21,6 +21,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/StringHelper.h"
 #include "CTIdentifier.h"
 #include "CppTokeniser.h"
+#include "SourceFile.h"
+#include "PreprocessedTokens.h"
 #include "CPPSyntaxTree.h"
 #include "CPP65Generator.h"
 #include "IRInliner.h"
@@ -183,6 +185,8 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes)
 {
+	//The prologue's instructions (parameters, locals, a constructor's bases) are for the function's first line.
+	CIRBlock::suiSource = (psFunction && psFunction->pcDefinition && (psFunction->pcDefinition->miFirstToken >= 0)) ? (uint32)psFunction->pcDefinition->miFirstToken + 1 : 0;
 	mpsFunction = psFunction;
 	mbUnsupported = false;
 	masJumps.ReInit();
@@ -256,6 +260,8 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	size					uiStart;
 	size					uiLength;
 
+	//Instructions the optimiser adds have no source of their own.
+	CIRBlock::suiSource = 0;
 	bResult = bResult && !mbUnsupported;
 	if (bResult)
 	{
@@ -822,6 +828,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		//The back end's errors (a frame too big ...) are why the function wasn't written.
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
+		cBackend816.SetSourceMarkers(mpcGenerator->mbListing);
 		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
 		cBackend816.GetFrame(psFrame);
 		if (!bResult)
@@ -840,6 +847,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	}
 
 	cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
+	cBackend.SetSourceMarkers(mpcGenerator->mbListing);
 	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
 	mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
 	mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
@@ -950,7 +958,10 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	int					iIndex;
 	int					iRound;
 	bool				bResult;
+	CIRSourceMarkers	cMarkers;
 
+	//The inliner's and optimiser's instructions have no source of their own.
+	CIRBlock::suiSource = 0;
 	cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
 	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
@@ -1015,11 +1026,16 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	}
 
 	//On the W65C816, frames worth it are put on a page, now that the unit's calls are known (CIR816Backend::AlignFrame).
+	//A listing's source markers are taken out while it looks at the code.
+	cMarkers.Init();
 	for (ui = 0; (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (ui < masWritten.NumElements()); ui++)
 	{
 		psWritten = masWritten.Get(ui);
+		cMarkers.Take(&psWritten->szCode, 0);
 		CIR816Backend::AlignFrame(&psWritten->szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || IsRecursive(psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
+		cMarkers.Put(&psWritten->szCode, 0);
 	}
+	cMarkers.Kill();
 
 	//The markers become the code.
 	szAll.Init();
@@ -1035,6 +1051,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szAll.AppendSubString(szText, szMarker);
 		iIndex = atoi(szMarker + 1);
 		psWritten = masWritten.Get((size)iIndex);
+		SourceComments(&psWritten->szCode, mpcGenerator->mbListing);
 		if (sbPrint)
 		{
 			fprintf(stderr, "%s\n", psWritten->szCode.Text());
@@ -1051,6 +1068,120 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		masWritten.Get(ui)->szCode.Kill();
 	}
 	masWritten.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The back ends (and CIRPrinter) write a marker line (IR_SOURCE_MARKER and
+// the source token + 1) where the instructions' source changes.  With
+// bComments (a listing) each becomes a comment with the file, line and
+// text of the line, when it is another line than the last comment's;
+// otherwise they go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments)
+{
+	CChars				szOut;
+	const char*			szText;
+	const char*			szEnd;
+	const char*			szLine;
+	CSourceFile*		pcLastFile;
+	int					iLastLine;
+	CSourceFile*		pcFile;
+	int					iLine;
+	size				uiMarker;
+
+	if (!pszCode->Contains(IR_SOURCE_MARKER))
+	{
+		return;
+	}
+
+	uiMarker = strlen(IR_SOURCE_MARKER);
+	szOut.Init();
+	pcLastFile = NULL;
+	iLastLine = -1;
+	for (szText = pszCode->Text(); *szText != '\0'; szText = (*szEnd == '\n') ? szEnd + 1 : szEnd)
+	{
+		szEnd = strchr(szText, '\n');
+		if (!szEnd)
+		{
+			szEnd = szText + strlen(szText);
+		}
+		if (strncmp(szText, IR_SOURCE_MARKER, uiMarker) != 0)
+		{
+			szOut.AppendSubString(szText, (*szEnd == '\n') ? szEnd + 1 : szEnd);
+			continue;
+		}
+		if (!bComments || !SourceLine((int)strtol(szText + uiMarker, NULL, 10) - 1, &pcFile, &iLine))
+		{
+			continue;
+		}
+		if ((pcFile == pcLastFile) && (iLine == iLastLine))
+		{
+			continue;
+		}
+		pcLastFile = pcFile;
+		iLastLine = iLine;
+
+		//\t\t; File.cpp(12): the line, without its indent.
+		szLine = pcFile->GetContents() + pcFile->GetOffset(iLine, 0);
+		while ((*szLine == ' ') || (*szLine == '\t'))
+		{
+			szLine++;
+		}
+		szOut.Append("\t\t; ");
+		szOut.Append(pcFile->ShortName());
+		szOut.Append('(');
+		szOut.Append(iLine + 1);
+		szOut.Append("): ");
+		for (; (*szLine != '\0') && (*szLine != '\n') && (*szLine != '\r'); szLine++)
+		{
+			szOut.Append(*szLine);
+		}
+		szOut.AppendNewLine();
+	}
+	pszCode->Kill();
+	pszCode->Init(&szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the token iToken is in the source: a token a macro made is where
+// the outermost macro was used.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::SourceLine(int iToken, CSourceFile** ppcFile, int* piLine)
+{
+	SPreprocessedToken*	psSource;
+	SMacroExpansion*	psExpansion;
+	CPreprocessedTokens*	pcSource;
+
+	if ((iToken < 0) || ((size)iToken >= mpcGenerator->mpcTokeniser->NumTokens()))
+	{
+		return false;
+	}
+	psSource = mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(iToken));
+	if (!psSource)
+	{
+		return false;
+	}
+	*ppcFile = psSource->pcFile;
+	*piLine = psSource->iLine;
+	pcSource = mpcGenerator->mpcTokeniser->mpcSource;
+	if (psSource->iExpansion >= 0)
+	{
+		psExpansion = pcSource->GetExpansion((size)psSource->iExpansion);
+		while (psExpansion->iParent >= 0)
+		{
+			psExpansion = pcSource->GetExpansion((size)psExpansion->iParent);
+		}
+		*ppcFile = psExpansion->pcFile;
+		*piLine = psExpansion->iLine;
+	}
+	return (*ppcFile != NULL) && (*piLine >= 0) && ((size)*piLine < (*ppcFile)->NumLines());
 }
 
 
@@ -1143,19 +1274,23 @@ void CCPP65IRFrontEnd::Finish(void)
 bool CCPP65IRFrontEnd::Statement(CCPPSyntax* pcStatement)
 {
 	size	uiTemporaries;
+	uint32	uiSource;
+	bool	bResult;
+
+	//The instructions are for the statement's first token (its line), and the rest of the statement it is in for its
+	//own (a for's condition and step after its body).
+	uiSource = CIRBlock::suiSource;
+	if (pcStatement && (pcStatement->miFirstToken >= 0))
+	{
+		CIRBlock::suiSource = (uint32)pcStatement->miFirstToken + 1;
+	}
 
 	//Expression, declaration and return statements destroy their temporaries; one left (made in a condition, say) isn't
 	//supported.
 	uiTemporaries = masTemporaries.NumElements();
-	if (!StatementOf(pcStatement))
-	{
-		return false;
-	}
-	if (masTemporaries.NumElements() > uiTemporaries)
-	{
-		return Unsupported(__LINE__);
-	}
-	return true;
+	bResult = StatementOf(pcStatement) && ((masTemporaries.NumElements() <= uiTemporaries) || Unsupported(__LINE__));
+	CIRBlock::suiSource = uiSource;
+	return bResult;
 }
 
 
@@ -5459,8 +5594,10 @@ void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
 
 	szText.Init();
 	cPrinter.Init(&mcModule, &szText);
+	cPrinter.SetSources(true);
 	cPrinter.PrintFunction(pcFunction);
 	cPrinter.Kill();
+	SourceComments(&szText, true);
 	fprintf(stderr, "%s\n", szText.Text());
 	szText.Kill();
 }

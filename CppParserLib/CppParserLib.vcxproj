@@ -193,6 +193,7 @@
     <ClCompile Include="IR65Flags.cpp" />
     <ClCompile Include="IR65Peephole.cpp" />
     <ClCompile Include="IR65Widths.cpp" />
+    <ClCompile Include="IRSourceMarkers.cpp" />
     <ClCompile Include="IRBlock.cpp" />
     <ClCompile Include="IRDominators.cpp" />
     <ClCompile Include="IRDefinitions.cpp" />
@@ -394,6 +395,7 @@
     <ClInclude Include="IR65Flags.h" />
     <ClInclude Include="IR65Peephole.h" />
     <ClInclude Include="IR65Widths.h" />
+    <ClInclude Include="IRSourceMarkers.h" />
     <ClInclude Include="IRBlock.h" />
     <ClInclude Include="IRDominators.h" />
     <ClInclude Include="IRDefinitions.h" />
