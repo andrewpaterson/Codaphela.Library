@@ -4426,6 +4426,10 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	{
 		bResult = BuiltinMemcpy(pcCall, psValue);
 	}
+	else if ((szName.Equals("bcd_add") || szName.Equals("bcd_subtract")) && (iArguments == 4) && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
+	{
+		bResult = BuiltinBCD(pcCall, szName.Equals("bcd_subtract"), psValue);
+	}
 	else if (szName.Equals("alloca"))
 	{
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
@@ -6474,6 +6478,44 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRV
 	sPointer = IRTypeOf(apsParameter[0]);
 	psValue->sValue = mpcFunction->Call(mpcBlock, sPointer, mcModule.Symbol("_memcpy"));
 	psValue->psType = apsParameter[0];
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __builtin_bcd_add(Dest, Source, Words, Carry) and __builtin_bcd_subtract
+// (Words packed BCD words of Source added to or subtracted from Dest's,
+// returning the carry or borrow; the W65C816's decimal mode) are calls of
+// the runtime routines R816_BcdAdd and R816_BcdSubtract.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue)
+{
+	SCPP65IRValue	asArgument[4];
+	SCPP65Type*		apsParameter[4];
+	char*			szLabel;
+	int				i;
+
+	apsParameter[0] = mpcTypes->Pointer(&mpcTypes->msVoid);
+	apsParameter[1] = apsParameter[0];
+	apsParameter[2] = &mpcTypes->msUnsignedInt;
+	apsParameter[3] = &mpcTypes->msUnsignedInt;
+	for (i = 0; i < 4; i++)
+	{
+		if (!Value(pcCall->macpArguments.GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameter[i]))
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < 4; i++)
+	{
+		mpcFunction->Argument(mpcBlock, IRTypeOf(apsParameter[i]), asArgument[i].sValue);
+	}
+	szLabel = (char*)(bSubtract ? "R816_BcdSubtract" : "R816_BcdAdd");
+	maszRuntime.AddIfUnique(szLabel);
+	psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msUnsignedInt), mcModule.Symbol(szLabel));
+	psValue->psType = &mpcTypes->msUnsignedInt;
 	return true;
 }
 

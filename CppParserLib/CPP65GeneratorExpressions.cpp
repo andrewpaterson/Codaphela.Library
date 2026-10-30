@@ -1219,6 +1219,17 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		Line("nop")->AppendNewLine();
 		return &mcTypes.msVoid;
 	}
+	if ((szName.Equals("bcd_add") || szName.Equals("bcd_subtract")) && !mpsTarget->bDirectGenerator)
+	{
+		//The W65C816's decimal mode (CCPP65IRFrontEnd::BuiltinBCD writes the call): only its type is needed here.
+		szName.Kill();
+		if (iArguments != 4)
+		{
+			Error(pcCall, "The builtin takes four arguments");
+			return NULL;
+		}
+		return &mcTypes.msUnsignedInt;
+	}
 	if (szName.Equals("expect"))
 	{
 		szName.Kill();

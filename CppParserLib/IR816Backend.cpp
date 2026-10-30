@@ -275,6 +275,25 @@ struct SIR816Routine
 #define IR816_MULTIPLY_ADD_BYTES_2 \
 	"\t\tclc\n\t\tadc [D + 7]\n\t\tsta [D + 7]\n"
 
+//uint16 __builtin_bcd_add(uint16* pauiDest, uint16* pauiSource, uint16 uiWords, uint16 uiCarry) and
+//__builtin_bcd_subtract (BaseLib's BCDAdd and BCDSubtract), with the compiler's calling convention: D is pointed at
+//the stack, so the destination is at D + 6, the source at D + 10, the words at D + 14 and the carry (or borrow) at
+//D + 16.  The carry in goes to C (a borrow is C clear), then each word is added (or subtracted) in decimal mode,
+//the least significant first, and the carry out is returned.
+#define IR816_BCD(NAME, CARRY_IN, OPERATION, CARRY_OUT) \
+	"\t\t.width (A, X), 16\n" \
+	"\t\tphd\n\t\ttsc\n\t\ttcd\n" \
+	"\t\tlda [D + 16]\n" CARRY_IN "\t\tlsr A\n" \
+	"\t\tldy 0\n\t\tldx [D + 14]\n\t\tbeq " NAME "_Done\n" \
+	"\t\tsed\n" \
+	NAME "_Loop:\n" \
+	"\t\tlda [[D + 6]:24 + Y]\n\t\t" OPERATION " [[D + 10]:24 + Y]\n\t\tsta [[D + 6]:24 + Y]\n" \
+	"\t\tiny\n\t\tiny\n\t\tdex\n\t\tbne " NAME "_Loop\n" \
+	"\t\tcld\n" \
+	NAME "_Done:\n" \
+	"\t\tlda 0\n\t\trol A\n" CARRY_OUT \
+	"\t\tpld\n\t\trtl\n"
+
 static const SIR816Routine gasIR816Routines[] =
 {
 	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18") },
@@ -342,6 +361,8 @@ static const SIR816Routine gasIR816Routines[] =
 		"R816_Mul32_XDone:\n"
 		"\t\trep m\n"
 		"\t\tlda [D + 7]\n\t\ttax\n\t\tlda [D + 5]\n\t\trtl\n" },
+	{ "R816_BcdAdd", IR816_BCD("R816_BcdAdd", "", "adc", "") },
+	{ "R816_BcdSubtract", IR816_BCD("R816_BcdSubtract", "\t\teor 1\n", "sbc", "\t\teor 1\n") },
 	{ NULL, NULL }
 };
 

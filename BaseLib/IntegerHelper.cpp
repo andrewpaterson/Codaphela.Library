@@ -2160,3 +2160,63 @@ int64 SquareRoot(int64 i)
 	return iAns;
 }
 
+
+#ifndef __W65C816__
+//////////////////////////////////////////////////////////////////////////
+//
+// Each word is added in binary with 6 more in every nibble (x), so a
+// nibble's digit sum of 10 or more carries out of it.  The nibbles that
+// didn't carry (their carry in bit, found from x ^ y ^ the sum) have the
+// 6 taken off again.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 BCDAdd(uint16* pauiDest, uint16* pauiSource, size uiWords, uint16 uiCarry)
+{
+	size	i;
+	uint32	uiX;
+	uint32	uiY;
+	uint32	uiSum;
+	uint32	uiCarries;
+	uint32	uiNone;
+
+	for (i = 0; i < uiWords; i++)
+	{
+		uiX = (uint32)pauiDest[i] + 0x6666;
+		uiY = (uint32)pauiSource[i] + uiCarry;
+		uiSum = uiX + uiY;
+		uiCarries = (uiSum ^ uiX ^ uiY) & 0x11110;
+		uiNone = ~uiCarries & 0x11110;
+		pauiDest[i] = (uint16)(uiSum - ((uiNone >> 2) | (uiNone >> 3)));
+		uiCarry = (uint16)(uiCarries >> 16);
+	}
+	return uiCarry;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each word is subtracted in binary; the nibbles that borrowed (their
+// borrow in bit, found from x ^ y ^ the difference) went up by 16, not 10,
+// so 6 is taken off them.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 BCDSubtract(uint16* pauiDest, uint16* pauiSource, size uiWords, uint16 uiBorrow)
+{
+	size	i;
+	uint32	uiX;
+	uint32	uiY;
+	uint32	uiDifference;
+	uint32	uiBorrows;
+
+	for (i = 0; i < uiWords; i++)
+	{
+		uiX = pauiDest[i];
+		uiY = (uint32)pauiSource[i] + uiBorrow;
+		uiDifference = uiX - uiY;
+		uiBorrows = (uiDifference ^ uiX ^ uiY) & 0x11110;
+		pauiDest[i] = (uint16)(uiDifference - ((uiBorrows >> 2) | (uiBorrows >> 3)));
+		uiBorrow = (uint16)(uiBorrows >> 16);
+	}
+	return uiBorrow;
+}
+#endif // __W65C816__

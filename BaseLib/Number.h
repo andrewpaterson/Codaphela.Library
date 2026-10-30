@@ -53,7 +53,12 @@ protected:
 };
 
 
-#define NUMBER_SIZE(p, q) (p + q + sizeof(CNumberDetail))
+//The digits are packed BCD, four to a word (the least significant in the low nibble), the least significant word
+//first.  The whole numbers and the decimals are each rounded up to whole words, so the decimal point is on a word
+//boundary and the same digit of two numbers is in the same nibble of a word.
+#define NUMBER_WORD_DIGITS(p) (((p) + 3) & ~3)
+#define NUMBER_WORDS(p, q) ((NUMBER_WORD_DIGITS(p) + NUMBER_WORD_DIGITS(q)) / 4)
+#define NUMBER_SIZE(p, q) ((size_t)NUMBER_WORDS(p, q) * sizeof(uint16) + sizeof(CNumberDetail))
 #define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
 
 
@@ -62,14 +67,15 @@ class CNumber : public CNumberDetail
 {
 public:
 
-	char		mcDigits[DEFAULT_DIGITS];	// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
+	uint16		mauiDigits[NUMBER_WORDS(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS)];
+											// ..WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
 											//
-											// 00000000001111111111222222 2222333333333344 <- Array Position
-											// 01234567890123456789012345 6789012345678901
+											// 4444444444333333333322222222221111111111
+											// 32109876543210987654321098765432109876543210 <- Nibble Position (DigitPosition)
 											//
-											// ++++++++++++++++++++++++++ ----------------
-											// 2222222111111111100000000000000000001111111 <- Digit Access (Get/Set)
-											// 6543210987654321098765432101234567890123456
+											//   ++++++++++++++++++++++++++ ----------------
+											//   22222221111111111000000000 0000000001111111 <- Digit Access (Get/Set)
+											//   65432109876543210987654321 1234567890123456
 	//Initialisation
 	CNumber*	Init(void);
 	CNumber*	Init(int32 iNumber);
@@ -148,7 +154,15 @@ public:
 	void		Clean(void);
 	void		CleanRight(void);
 	void		CleanLeft(void);
-	char*		DigitToArray(int16 iDigit);
+	int16		DigitPosition(int16 iDigit);
+	int16		PositionDigit(int16 iPosition);
+	int16		PrivateFindNonZero(bool bDown);
+	char		GetNibble(int16 iPosition);
+	void		SetNibble(int16 iPosition, char cValue);
+	int16		NumWords(void);
+	void		PrivateZeroPositions(int16 iHigh, int16 iLow);
+	void		PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast);
+	int16		PrivateCompareDigits(CNumber* pcOther, int16 iFirst, int16 iOtherFirst, size uiDigits);
 	int16		OffsetDigit(int16 iCurrentDigit, int16 iOffset);
 	size		GetDigitsBetween(int16 iFirst, int16 iLast);
 	void		RoundSignificant(int16 iSignificantDigits);
@@ -170,6 +184,8 @@ public:
 	//Private Math
 	void		PrivateAdd(CNumber* pcNumber);
 	void		PrivateSubtract(CNumber* pcNumber);
+	uint16		PrivateAddWords(CNumber* pcNumber, int16 iFirst, int16 iLast, bool bSubtract);
+	bool		PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iShift, uint16* pauiPlaced);
 	bool		PrivateGreaterThan(CNumber* pcNumber);
 	bool		PrivateGreaterThanOrEquals(CNumber* pcNumber);
 	char		PrivateDivide(CNumber* pcDivisor, bool* pbExact);

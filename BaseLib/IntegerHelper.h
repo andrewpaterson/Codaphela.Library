@@ -123,6 +123,19 @@ int32	SquareRoot(int32 i);
 int64	SquareRoot(int64 i);
 
 
+//Packed BCD words: four decimal digits a word, the least significant in the low nibble.  BCDAdd adds uiWords words
+//of pauiSource to pauiDest (the least significant word first) with a carry in of 0 or 1 and returns the carry out;
+//BCDSubtract subtracts them with a borrow.  The W65C816 does them in its decimal mode (its compiler's
+//__builtin_bcd_add and __builtin_bcd_subtract).
+#ifdef __W65C816__
+#define BCDAdd(pauiDest, pauiSource, uiWords, uiCarry)			__builtin_bcd_add(pauiDest, pauiSource, uiWords, uiCarry)
+#define BCDSubtract(pauiDest, pauiSource, uiWords, uiBorrow)	__builtin_bcd_subtract(pauiDest, pauiSource, uiWords, uiBorrow)
+#else
+uint16	BCDAdd(uint16* pauiDest, uint16* pauiSource, size uiWords, uint16 uiCarry);
+uint16	BCDSubtract(uint16* pauiDest, uint16* pauiSource, size uiWords, uint16 uiBorrow);
+#endif // __W65C816__
+
+
 
 //Inline: called often (flag tests) and too small to be worth a call.
 inline bool FixBool(int32 i)
