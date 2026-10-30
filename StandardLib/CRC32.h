@@ -31,7 +31,7 @@ protected:
 
 public:
 	void	Init(void);
-	void	Update(uint8* puiData, size uiLength);
+	void	Update(uint8* puiData, lsize uiLength);
 	uint32	Get(void);
 };
 

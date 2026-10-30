@@ -52,6 +52,8 @@ void CMemoryFile::Init(void* pvInitialMem, lsize iInitialLength)
 	CAbstractFile::Init();
 	mcArray.Init();
 	mbOpen = false;
+	miFlags = 0;  //Not open: Read and Write do nothing.
+	miPos = 0;
 	mpvInitialMem = pvInitialMem;
 	miInitialLength = iInitialLength;
 	mbFakeArray = false;

@@ -110,6 +110,13 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 #define AssertLongDouble(e, a, t)			Validate(PrivateAssertLongDouble(e, a, t, NULL, __LINE__, __FILE__))
 #define AssertSize(e, a)		    		Validate(PrivateAssertSize(e, a, NULL, __LINE__, __FILE__))
 #define AssertLSize(e, a)		    		Validate(PrivateAssertLSize(e, a, NULL, __LINE__, __FILE__))
+//A struct's layout (sizeof, field offsets).  Skipped in a BASELIB_SIZE16 build: a 16 bit size with a 32 bit int is
+//no target's layout.
+#ifdef BASELIB_SIZE16
+#define AssertLayoutSize(e, a)
+#else
+#define AssertLayoutSize(e, a)		AssertSize(e, a)
+#endif // BASELIB_SIZE16
 #define AssertMemory(e, a, s)				Validate(PrivateAssertMemory(e, a, s, NULL, __LINE__, __FILE__))
 #define AssertZero(a, s)					Validate(PrivateAssertZero(a, s, NULL, __LINE__, __FILE__))
 #define AssertNegative(a)					Validate(PrivateAssertNegative(a, NULL, __LINE__, __FILE__))

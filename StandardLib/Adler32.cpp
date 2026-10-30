@@ -42,14 +42,14 @@ void CAdler32::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAdler32::Update(uint8* puiData, size uiLength)
+void CAdler32::Update(uint8* puiData, lsize uiLength)
 {
 	size	uiRun;
 	size	i;
 
 	while (uiLength > 0)
 	{
-		uiRun = (uiLength < ADLER_32_MAX_RUN) ? uiLength : ADLER_32_MAX_RUN;
+		uiRun = (uiLength < ADLER_32_MAX_RUN) ? (size)uiLength : ADLER_32_MAX_RUN;
 		for (i = 0; i < uiRun; i++)
 		{
 			muiA += puiData[i];

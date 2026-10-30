@@ -154,7 +154,7 @@ bool PNGReadHeader(CFileBasic* pcFile, SPNGInfo* psInfo)
 // and RGB images isn't used.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, size uiFileSize, SPNGInfo* psInfo, CArrayUint8* pacCompressed)
+bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo* psInfo, CArrayLargeUint8* pacCompressed)
 {
 	uint8	auiSignature[PNG_SIGNATURE_SIZE];
 	uint32	uiLength;
@@ -419,16 +419,16 @@ void PNGCopyPixel(uint8* puiSource, int iSourceX, uint8* puiDest, int iDestX, in
 // byte.
 //
 //////////////////////////////////////////////////////////////////////////
-size PNGFilteredSize(SPNGInfo* psInfo)
+lsize PNGFilteredSize(SPNGInfo* psInfo)
 {
-	size	uiSize;
+	lsize	uiSize;
 	int		iPass;
 	int		iPassWidth;
 	int		iPassHeight;
 
 	if (psInfo->iInterlace == PNG_INTERLACE_NONE)
 	{
-		return (psInfo->uiRowBytes + 1) * psInfo->iHeight;
+		return ((lsize)psInfo->uiRowBytes + 1) * psInfo->iHeight;
 	}
 
 	uiSize = 0;
@@ -438,7 +438,7 @@ size PNGFilteredSize(SPNGInfo* psInfo)
 		iPassHeight = (psInfo->iHeight - gaiAdam7StartY[iPass] + gaiAdam7StepY[iPass] - 1) / gaiAdam7StepY[iPass];
 		if ((iPassWidth > 0) && (iPassHeight > 0))
 		{
-			uiSize += (PNGRowBytes(iPassWidth, psInfo->iBitsPerPixel) + 1) * iPassHeight;
+			uiSize += ((lsize)PNGRowBytes(iPassWidth, psInfo->iBitsPerPixel) + 1) * iPassHeight;
 		}
 	}
 	return uiSize;
@@ -713,12 +713,12 @@ Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
 // Decompresses and decodes the image data into puiPixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PNGDecodeImage(CArrayUint8* pacCompressed, SPNGInfo* psInfo, uint8* puiPixels)
+bool PNGDecodeImage(CArrayLargeUint8* pacCompressed, SPNGInfo* psInfo, uint8* puiPixels)
 {
 	CFileBasic		cFile;
 	CInflater		cInflater;
-	CArrayUint8		acFiltered;
-	size			uiFilteredSize;
+	CArrayLargeUint8	acFiltered;
+	lsize			uiFilteredSize;
 	bool			bResult;
 
 	uiFilteredSize = PNGFilteredSize(psInfo);
@@ -748,10 +748,10 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 {
 	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
-	size			uiFileSize;
+	lsize			uiFileSize;
 	CFileBasic		cFile;
 	SPNGInfo		sInfo;
-	CArrayUint8		acCompressed;
+	CArrayLargeUint8	acCompressed;
 	uint8*			puiPixels;
 	bool			bValid;
 	bool			bDecoded;
@@ -765,7 +765,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 	pvFile = (uint8*)cNaiveFile.Get();
-	uiFileSize = (size)cNaiveFile.Size();
+	uiFileSize = (lsize)cNaiveFile.Size();
 
 	acCompressed.Init();
 	cFile.Init(MemoryFile(pvFile, uiFileSize));

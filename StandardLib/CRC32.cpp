@@ -70,9 +70,9 @@ void CCRC32::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCRC32::Update(uint8* puiData, size uiLength)
+void CCRC32::Update(uint8* puiData, lsize uiLength)
 {
-	size	i;
+	lsize	i;
 
 	for (i = 0; i < uiLength; i++)
 	{

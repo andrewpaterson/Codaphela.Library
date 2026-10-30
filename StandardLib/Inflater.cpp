@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 // corrupt or malicious stream can't claim a huge amount of memory.
 //
 //////////////////////////////////////////////////////////////////////////
-void CInflater::Init(CFileReader* pcInput, bool bZLib, size uiMaxOutput)
+void CInflater::Init(CFileReader* pcInput, bool bZLib, lsize uiMaxOutput)
 {
 	mpcInput = pcInput;
 	mbZLib = bZLib;
@@ -62,7 +62,7 @@ void CInflater::Kill(void)
 // than the maximum output.  The input is left just after the stream.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInflater::Inflate(CArrayUint8* pacOutput)
+bool CInflater::Inflate(CArrayLargeUint8* pacOutput)
 {
 	bool	bResult;
 
@@ -191,10 +191,10 @@ bool CInflater::InflateBlocks(void)
 // Makes room for uiLength more bytes of output.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInflater::Reserve(size uiLength)
+bool CInflater::Reserve(lsize uiLength)
 {
-	size	uiNeeded;
-	size	uiCapacity;
+	lsize	uiNeeded;
+	lsize	uiCapacity;
 
 	if (uiLength > muiMaxOutput - (muiOutputUsed - muiOutputStart))
 	{

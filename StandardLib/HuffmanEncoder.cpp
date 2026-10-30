@@ -39,7 +39,7 @@ void CHuffmanEncoder::Init(uint32* puiFrequencies, int iNumSymbols, int iMaxBits
 	int		i;
 
 	miNumSymbols = iNumSymbols;
-	memcpy(auiFrequencies, puiFrequencies, iNumSymbols * sizeof(uint32));
+	memcpy(auiFrequencies, puiFrequencies, (lsize)iNumSymbols * sizeof(uint32));
 	while (!BuildLengths(auiFrequencies, iMaxBits))
 	{
 		for (i = 0; i < iNumSymbols; i++)

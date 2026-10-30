@@ -532,7 +532,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	}
 
 	iNumElements = (int)szNodes.NumElements();
-	apCharDirectories = (CChars**)cStack.Init(iNumElements * sizeof(CChars*));  //A pointer for each part of the path.
+	apCharDirectories = (CChars**)cStack.Init((lsize)iNumElements * sizeof(CChars*));  //A pointer for each part of the path.
 	iPos = 0;
 	for (i = 0; i < iNumElements; i++)
 	{

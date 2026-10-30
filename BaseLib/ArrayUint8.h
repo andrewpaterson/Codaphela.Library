@@ -32,5 +32,9 @@ public:
 };
 
 
+//Bytes that can pass 64KB with a 16 bit size (decompressed data).
+typedef CArrayLargeTemplatePrimitive<uint8>	CArrayLargeUint8;
+
+
 #endif // __ARRAY_UINT8_H__
 

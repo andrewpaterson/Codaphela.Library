@@ -34,7 +34,7 @@ void* CChannelsAccessorTypeConverter::Get(size iPos)
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
-	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	pvSource = RemapSinglePointer(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetByteStride());
 	pvDest = msBuffer.GetStackData();
 	for (i = 0; i < uiNumAccessors; i++)
 	{
@@ -58,7 +58,7 @@ void CChannelsAccessorTypeConverter::Set(size iPos, void* pvSource)
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
-	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	pvDest = RemapSinglePointer(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetByteStride());
 	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
