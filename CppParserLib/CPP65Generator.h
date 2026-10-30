@@ -786,6 +786,7 @@ protected:
 	SCPP65Type*				SizeofExpression(CCPPSyntax* pcSizeof);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	void					ReportTypeOf(CCPPSyntax* pcExpression);
+	bool					ReportError(CCPPSyntax* pcNode, const char* szMessage);
 	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
 	void					NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
