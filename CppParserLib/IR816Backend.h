@@ -149,7 +149,10 @@ public:
 	CArrayChars*	GetRuntime(void);
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
+	static void		AppendDivideTable(CChars* pszDest, const char* szName);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
+	static void		PeepholeMasks(CChars* pszDest, size uiStart);
+	static void		PeepholeStores(CChars* pszDest, size uiStart);
 
 protected:
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
@@ -210,6 +213,9 @@ protected:
 	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
+	void			SignedLessFlags(SIRReference* psArguments, bool bSwapped);
+	bool			TableDivide(SIRInstruction* psInstruction, bool bSigned);
+	bool			ByteMultiply(SIRInstruction* psInstruction);
 	void			Extend(SIRInstruction* psInstruction);
 	void			ExtendInX(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);

@@ -140,6 +140,7 @@ struct SIRBoundDivision
 	CIRBlock*		pcBlock;
 	size			uiInstruction;
 	bool			bOnce;
+	bool			bTable;		//ConstantDivisions: a hot one of a byte's range, made an i8 one for the target's table.
 };
 
 
@@ -227,6 +228,9 @@ struct SIRIdiomAddress
 typedef CArrayTemplatePtr<SIRPhiArgument>	CArrayIRExitArguments;
 
 
+class CIRInlineProfile;
+
+
 class CIROptimiser
 {
 protected:
@@ -237,8 +241,10 @@ protected:
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
 	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
+	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
+	CIRInlineProfile*		mpcProfile;			//How often lines ran (SetProfile), NULL for none.
 	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
@@ -263,8 +269,10 @@ public:
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
 	void			SetNarrowCounters(bool bNarrowCounters);
+	void			SetBiasedIndices(bool bBiasedIndices);
 	void			SetWarnings(CChars* pszWarnings);
 	void			SetLibraryInt(SIRType sInt);
+	void			SetProfile(CIRInlineProfile* pcProfile);
 
 	bool			SimplifyCFG(void);
 	bool			SplitSlots(void);
@@ -300,6 +308,9 @@ public:
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
 	bool			ConstantDivisions(void);
+	bool			BiasSignedIndices(void);
+	bool			IsHot(SIRInstruction* psInstruction, uint64 ulliSaving);
+	bool			IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor);
 	bool			NarrowCounters(void);
 	bool			NarrowCounter(size uiLoop, CIRBlock* pcBlock);
 	bool			NarrowLoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);

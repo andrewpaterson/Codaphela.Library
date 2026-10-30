@@ -202,7 +202,7 @@ bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels
 	uint32		uiFmtSize;
 	uint32		uiRIFFSize;
 	bool		bResult;
-	size		uiNumFrames;
+	lsize		uiNumFrames;
 
 	bFloat = (eFormat == WSF_Float32) || (eFormat == WSF_Float64);
 	uiBlockAlign = (uint16)(uiNumChannels * (uiBitsPerSample / 8));
@@ -268,15 +268,15 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 	uint16		uiBitsPerSample;
 	size		uiBytesPerSample;
 	size		uiBlockAlign;
-	size		uiNumFrames;
+	lsize		uiNumFrames;
 	uint64		ulliDataSize;
 	lsize		uiDataSize;
 	uint8*		puiData;
 	float64*	pfBlock;
-	size		uiFirst;
-	size		uiCount;
+	lsize		uiFirst;
+	lsize		uiCount;
 	size		uiChannel;
-	size		uiFrame;
+	lsize		uiFrame;
 	uint8*		puiDest;
 	CFileBasic	cFile;
 	bool		bResult;

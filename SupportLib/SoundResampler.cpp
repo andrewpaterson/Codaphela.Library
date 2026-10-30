@@ -94,7 +94,7 @@ void CSoundResampler::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundResampler::GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate)
+lsize CSoundResampler::GetResampledNumFrames(lsize uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate)
 {
 	uint64	ulli;
 
@@ -137,16 +137,16 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 {
 	Ptr<CSound>		pcDest;
 	uint32			uiSourceRate;
-	size			uiSourceFrames;
-	size			uiDestFrames;
+	lsize			uiSourceFrames;
+	lsize			uiDestFrames;
 	size			uiChannel;
 	size			uiNumChannels;
 	float64*		pfSource;
 	float64*		pfDest;
 	float64*		pfTable;
-	size			uiNumPhases;
+	lsize			uiNumPhases;
 	size			uiNumTaps;
-	size			uiPhase;
+	lsize			uiPhase;
 	float64			fCutoff;
 
 	if (pcSource.IsNull() || !pcSource->CanAccessSamples() || (pcSource->GetSampleRate() == 0) || (muiSampleRate == 0))
@@ -166,7 +166,7 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 	pcDest = OMalloc<CSound>(muiSampleRate, uiDestFrames, pcSource);
 	if ((uiDestFrames > 0) && (pcDest->GetData() == NULL))
 	{
-		gcLogger.Error2(__METHOD__, " Could not allocate resampled sound of [", SizeToString(uiDestFrames), "] frames.", NULL);
+		gcLogger.Error2(__METHOD__, " Could not allocate resampled sound of [", LongToString((uint64)uiDestFrames), "] frames.", NULL);
 		return NULL;
 	}
 
@@ -224,9 +224,9 @@ float64 CSoundResampler::GetCutoff(uint32 uiSourceRate, uint32 uiDestRate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundResampler::ResampleChannel(float64* pfSource, size uiSourceFrames, float64* pfDest, size uiDestFrames, uint32 uiSourceRate, uint32 uiDestRate, float64* pfTable, size uiNumPhases)
+void CSoundResampler::ResampleChannel(float64* pfSource, lsize uiSourceFrames, float64* pfDest, lsize uiDestFrames, uint32 uiSourceRate, uint32 uiDestRate, float64* pfTable, lsize uiNumPhases)
 {
-	size		uiFrame;
+	lsize		uiFrame;
 	uint64		ulliPosition;
 	uint64		ulliIndex;
 	uint64		ulliPhase;
@@ -234,7 +234,7 @@ void CSoundResampler::ResampleChannel(float64* pfSource, size uiSourceFrames, fl
 	float64		fCutoff;
 	size		uiNumTaps;
 	float64*	pfTaps;
-	size		uiPhaseIndex;
+	lsize		uiPhaseIndex;
 
 	fCutoff = 0.0;
 	uiNumTaps = 0;
@@ -272,7 +272,7 @@ void CSoundResampler::ResampleChannel(float64* pfSource, size uiSourceFrames, fl
 			if (pfTable)
 			{
 				//The phase is always a multiple of dest rate / number of phases.
-				uiPhaseIndex = (size)(ulliPhase / (uiDestRate / uiNumPhases));
+				uiPhaseIndex = (lsize)(ulliPhase / (uiDestRate / uiNumPhases));
 				pfDest[uiFrame] = Sinc(pfSource, uiSourceFrames, ulliIndex, &pfTable[uiPhaseIndex * uiNumTaps], uiNumTaps);
 			}
 			else
@@ -291,7 +291,7 @@ void CSoundResampler::ResampleChannel(float64* pfSource, size uiSourceFrames, fl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSoundResampler::Nearest(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, uint64 ulliPhase, uint32 uiDestRate)
+float64 CSoundResampler::Nearest(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, uint64 ulliPhase, uint32 uiDestRate)
 {
 	if (ulliPhase * 2 >= uiDestRate)
 	{
@@ -309,7 +309,7 @@ float64 CSoundResampler::Nearest(float64* pfSource, size uiSourceFrames, uint64 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSoundResampler::Linear(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64 fFraction)
+float64 CSoundResampler::Linear(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64 fFraction)
 {
 	float64	f0;
 	float64	f1;
@@ -324,7 +324,7 @@ float64 CSoundResampler::Linear(float64* pfSource, size uiSourceFrames, uint64 u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSoundResampler::Cubic(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64 fFraction)
+float64 CSoundResampler::Cubic(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64 fFraction)
 {
 	float64	fm1;
 	float64	f0;
@@ -346,7 +346,7 @@ float64 CSoundResampler::Cubic(float64* pfSource, size uiSourceFrames, uint64 ul
 // Tap m multiplies source frame ulliIndex - (uiNumTaps / 2) + 1 + m.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSoundResampler::Sinc(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64* pfTaps, size uiNumTaps)
+float64 CSoundResampler::Sinc(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64* pfTaps, size uiNumTaps)
 {
 	int64	lliFirst;
 	int64	lliFrame;

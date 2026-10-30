@@ -305,8 +305,8 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 	EChannel		aeChannels[WAV_MAX_CHANNELS];
 	EPrimitiveType	eType;
 	Ptr<CSound>		pcSound;
-	size			uiNumFrames;
-	size			uiFrame;
+	lsize			uiNumFrames;
+	lsize			uiFrame;
 	size			uiChannel;
 	size			uiBytesPerSample;
 	lsize			uiStride;
@@ -329,15 +329,9 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 		return NULL;
 	}
 
-	//A sound's frames are counted in a size (16 bits on the W65C816).
-	if (sInfo.uiDataSize / sInfo.uiBlockAlign > MAX_SIZE)
-	{
-		return NULL;
-	}
-
 	WAVGetChannels(&sInfo, aeChannels);
 	eType = WAVGetSampleType(&sInfo);
-	uiNumFrames = (size)(sInfo.uiDataSize / sInfo.uiBlockAlign);
+	uiNumFrames = sInfo.uiDataSize / sInfo.uiBlockAlign;
 
 	pcSound = OMalloc<CSound>();
 	pcSound->BeginChange();

@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "IRSSAUpdater.h"
+#include "IRInliner.h"
 #include "IROptimiser.h"
 
 
@@ -43,10 +44,12 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mbNarrowMultiplies = false;
 	mbConstantDivisions = false;
 	mbNarrowCounters = false;
+	mbBiasedIndices = false;
 	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;
 	msLibraryInt = IRType(IRTK_None);
+	mpcProfile = NULL;
 	mcDominators.Init();
 	mcDefinitions.Init();
 	mcLoops.Init();
@@ -152,6 +155,38 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How often the profiled run ran each instruction's line, for the passes
+// that spend memory on hot code (ConstantDivisions' byte tables).  NULL for
+// no profile.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetProfile(CIRInlineProfile* pcProfile)
+{
+	mpcProfile = pcProfile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the profile has the instruction's line run often enough that
+// saving ulliSaving cycles each time is 1/IR_INLINE_HOT_SHARE of the run.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsHot(SIRInstruction* psInstruction, uint64 ulliSaving)
+{
+	uint64	ulliCount;
+
+	if (!mpcProfile || (mpcProfile->ProfileCycles() == 0))
+	{
+		return false;
+	}
+	ulliCount = mpcProfile->CallCount(mpcFunction, psInstruction);
+	return (ulliCount != IR_INLINE_UNKNOWN) && (ulliCount * ulliSaving * IR_INLINE_HOT_SHARE >= mpcProfile->ProfileCycles());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether NarrowCounters runs (for a target whose 32 bit arithmetic takes
 // more instructions than 16 bit: the W65C816's).
 //
@@ -159,6 +194,111 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 void CIROptimiser::SetNarrowCounters(bool bNarrowCounters)
 {
 	mbNarrowCounters = bNarrowCounters;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether BiasSignedIndices runs (for a target that adds an unsigned 16
+// bit index to a pointer for nothing: the W65C816's [p],Y).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetBiasedIndices(bool bBiasedIndices)
+{
+	mbBiasedIndices = bBiasedIndices;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// p + sext(x), x an i16, used only as the address of loads and stores of
+// at most 2 bytes, is (p - 32768) + zext(x ^ 32768): the target adds the
+// zero extended index in a register as it loads (CIR816Backend::
+// FoldIndices), and p - 32768 is worked out once (outside the loop, when p
+// doesn't change in it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::BiasSignedIndices(void)
+{
+	CArrayTemplate<uint32>	auiAddressUses;		//Per temporary: its uses as a 2 byte load's or store's address.
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psInstruction;
+	SIRInstruction*			psExtend;
+	SIRReference			sPointer;
+	SIRReference			sIndex;
+	SIRReference			sBase;
+	SIRReference			sBiased;
+	SIRType					sOffsetType;
+	size					ui;
+	size					uj;
+	uint32					uiZero;
+	bool					bChanged;
+
+	mpcFunction->CountUses(&mauiUses);
+	FindDefinitions();
+	auiAddressUses.Init();
+	uiZero = 0;
+	for (ui = 0; ui < mauiUses.NumElements(); ui++)
+	{
+		auiAddressUses.Add(&uiZero);
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if ((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store))
+			{
+				continue;
+			}
+			sPointer = psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1];
+			if (sPointer.IsTemporary() && (sPointer.Index() < auiAddressUses.NumElements()) && !(psInstruction->uiFlags & IRF_Volatile) &&
+				psInstruction->sType.IsInteger() && (psInstruction->sType.IntegerBits() <= 16) &&
+				((psInstruction->uiOpcode == IRO_Load) || !psInstruction->asArguments[0].Equals(sPointer)))
+			{
+				(*auiAddressUses.Get(sPointer.Index()))++;
+			}
+		}
+	}
+
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[1].IsTemporary() ||
+				(psInstruction->sResult.Index() >= auiAddressUses.NumElements()) || (*mauiUses.Get(psInstruction->sResult.Index()) == 0) ||
+				(*mauiUses.Get(psInstruction->sResult.Index()) != *auiAddressUses.Get(psInstruction->sResult.Index())))
+			{
+				continue;
+			}
+			psExtend = mcDefinitions.Instruction(psInstruction->asArguments[1]);
+			if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !mpcFunction->TypeOf(psExtend->asArguments[0]).Is(IRTK_I16))
+			{
+				continue;
+			}
+			sIndex = psExtend->asArguments[0];
+			sBase = psInstruction->asArguments[0];
+			sOffsetType = mpcFunction->TypeOf(psInstruction->asArguments[1]);
+			sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, -32768));
+			sIndex = InsertInstruction(pcBlock, uj++, IRO_Xor, IRType(IRTK_I16), sIndex, mpcFunction->AddInteger(IRType(IRTK_I16), 0x8000));
+			sIndex = InsertInstruction(pcBlock, uj++, IRO_ZExt, sOffsetType, sIndex, IRNone());
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			psInstruction->asArguments[0] = sBiased;
+			psInstruction->asArguments[1] = sIndex;
+			psInstruction->uiFlags &= ~IRF_InBank;
+			bChanged = true;
+		}
+	}
+	auiAddressUses.Kill();
+	if (bChanged)
+	{
+		FindDefinitions();
+	}
+	return bChanged;
 }
 
 
@@ -215,6 +355,13 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	if (mbNarrowMultiplies && NarrowMultiplies())
 	{
 		FoldConstants();
+		RemoveDeadCode();
+		bAny = true;
+	}
+	if (mbBiasedIndices && BiasSignedIndices())
+	{
+		RemoveCommonSubexpressions();
+		HoistInvariants();
 		RemoveDeadCode();
 		bAny = true;
 	}
@@ -4006,6 +4153,7 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 {
 	CIRBlock*		pcHead;
 	CIRBlock*		pcOutside;
+	CIRBlock*		pcInside;
 	CIRBlock*		pcStepBlock;
 	SIRInstruction*	psCompare;
 	SIRInstruction*	psStep;
@@ -4201,6 +4349,9 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	}
 	asExits.Kill();
 	sNarrowCounter = mpcFunction->AddTemporary(sNarrowType);
+	//AddPhi may move the head's phis, psCounter too.
+	pcInside = psCounter->asArguments.Get(1 - uiOutside)->pcBlock;
+	psCounter = NULL;
 	psNarrow = pcHead->AddPhi(sNarrowType, sNarrowCounter);
 	pcStepBlock = mcDefinitions.Block(sStepped);
 	for (uiStep = 0; (uiStep < pcStepBlock->masInstructions.NumElements()) && !pcStepBlock->masInstructions.Get(uiStep)->sResult.Equals(sStepped); uiStep++)
@@ -4209,7 +4360,7 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	sNarrowStepped = InsertInstruction(pcStepBlock, uiStep + 1, IRO_Add, sNarrowType, sNarrowCounter, mpcFunction->AddInteger(sNarrowType, lliStep));
 	sWideStepped = InsertInstruction(pcStepBlock, uiStep + 2, IRO_SExt, sWide, sNarrowStepped, IRNone());
 	pcHead->AddPhiArgument(psNarrow, pcOutside, sNarrowInitial);
-	pcHead->AddPhiArgument(psNarrow, psCounter->asArguments.Get(1 - uiOutside)->pcBlock, sNarrowStepped);
+	pcHead->AddPhiArgument(psNarrow, pcInside, sNarrowStepped);
 	sWideCounter = InsertInstruction(pcHead, 0, IRO_SExt, sWide, sNarrowCounter, IRNone());
 
 	//The compare is of the 16 bit values.
@@ -6269,7 +6420,8 @@ uint64 CIROptimiser::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sV
 //////////////////////////////////////////////////////////////////////////
 //
 // A new instruction at uiIndex in pcBlock's instructions; sType is as
-// CIRFunction::Add takes it.
+// CIRFunction::Add takes it.  It has the source line of the instruction it
+// goes before.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CIROptimiser::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond)
@@ -6281,6 +6433,11 @@ SIRReference CIROptimiser::InsertInstruction(CIRBlock* pcBlock, size uiIndex, ui
 	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
 	uiLast = pcBlock->masInstructions.NumElements() - 1;
 	sMoved = *pcBlock->masInstructions.Get(uiLast);
+	if ((sMoved.uiSource == 0) && (uiIndex < uiLast))
+	{
+		//Part of the work of the instruction it goes before: its source line too (for listings and profiles).
+		sMoved.uiSource = pcBlock->masInstructions.Get(uiIndex)->uiSource;
+	}
 	pcBlock->masInstructions.RemoveAt(uiLast, true);
 	pcBlock->masInstructions.InsertAt(&sMoved, uiIndex);
 	return sResult;
@@ -6456,6 +6613,7 @@ bool CIROptimiser::BoundDivisions(void)
 
 
 #define IR_DIVISION_RANGE	0x20000		//The most values ConstantDivisions checks a reciprocal for.
+#define IR_DIVISION_TABLE_SAVING	50	//The cycles a byte divide's table saves over its reciprocal (a hot one's, IRF_Hot).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -6550,6 +6708,23 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether x / divisor and x % divisor for x from lliMin to lliMax can be
+// looked up in a table of a byte's (an i8 divide marked IRF_Hot): x fits a
+// signed byte (or an unsigned one when it is never negative).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor)
+{
+	if (lliMin < 0)
+	{
+		return (lliMin >= -0x80) && (lliMax < 0x80) && (lliDivisor < 0x80);
+	}
+	return (lliMax < 0x100) && (lliDivisor < 0x100);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The smallest shift and multiplier with x / divisor (rounding towards 0)
 // the same as (x * multiplier) >> shift (plus 1 when x and so the product
 // is negative, bSigned) for every x from lliMin to lliMax, with x *
@@ -6607,7 +6782,9 @@ bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivis
 // x * m fits it, else in 32 bits (from 16).  For a target whose divides are
 // runtime calls (the multiply and shifts are a few instructions; the
 // multiply by a constant shifts and adds).  A divide and a remainder of one
-// x get the same q, which common subexpressions make one.
+// x get the same q, which common subexpressions make one.  An i8 one the
+// profile finds hot (IsHot) is marked IRF_Hot and left for the target to
+// look up in a table.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ConstantDivisions(void)
@@ -6655,8 +6832,23 @@ bool CIROptimiser::ConstantDivisions(void)
 			{
 				continue;
 			}
+			if (psInstruction->sType.Is(IRTK_I8) && ((psInstruction->uiFlags & IRF_Hot) || IsHot(psInstruction, IR_DIVISION_TABLE_SAVING)))
+			{
+				//Hot: the target looks q and r up in a table of every byte's.
+				psInstruction->uiFlags |= IRF_Hot;
+				continue;
+			}
 			if (!SignedRange(psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
 			{
+				continue;
+			}
+			if (IsByteTableDivision(lliMin, lliMax, lliDivisor) && IsHot(psInstruction, IR_DIVISION_TABLE_SAVING))
+			{
+				psFound = asFound.Add();
+				psFound->pcBlock = pcBlock;
+				psFound->uiInstruction = uiInstruction;
+				psFound->bOnce = false;
+				psFound->bTable = true;
 				continue;
 			}
 			if (DivisionReciprocal(lliMin, lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift) ||
@@ -6666,6 +6858,7 @@ bool CIROptimiser::ConstantDivisions(void)
 				psFound->pcBlock = pcBlock;
 				psFound->uiInstruction = uiInstruction;
 				psFound->bOnce = false;
+				psFound->bTable = false;
 			}
 		}
 	}
@@ -6683,6 +6876,30 @@ bool CIROptimiser::ConstantDivisions(void)
 		bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
 		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 		SignedRange(sValue, &lliMin, &lliMax);
+		if (psFound->bTable)
+		{
+			//The byte's i8 divide (signed only when the byte may be negative), extended back.
+			sWork = IRType(IRTK_I8);
+			bSigned = lliMin < 0;
+			uiAt = uiInstruction;
+			sWide = InsertInstruction(pcBlock, uiAt++, IRO_Trunc, sWork, sValue, IRNone());
+			if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+			{
+				uiOpcode = bSigned ? IRO_SDiv : IRO_UDiv;
+			}
+			else
+			{
+				uiOpcode = bSigned ? IRO_SRem : IRO_URem;
+			}
+			sQuotient = InsertInstruction(pcBlock, uiAt++, uiOpcode, sWork, sWide, mpcFunction->AddInteger(sWork, lliDivisor));
+			pcBlock->masInstructions.Get(uiAt - 1)->uiFlags |= IRF_Hot;
+			psInstruction = pcBlock->masInstructions.Get(uiAt);
+			psInstruction->uiOpcode = bSigned ? IRO_SExt : IRO_ZExt;
+			psInstruction->uiFlags = 0;
+			psInstruction->asArguments[0] = sQuotient;
+			psInstruction->asArguments[1] = IRNone();
+			continue;
+		}
 		sWork = sType;
 		if (!DivisionReciprocal(lliMin, lliMax, lliDivisor, sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift))
 		{

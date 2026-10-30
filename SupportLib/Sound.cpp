@@ -245,7 +245,7 @@ void CSound::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(uint32 uiSampleRate, size uiNumFrames, EPrimitiveType eType, EChannel eFirst, ...)
+void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	EChannel	eIC;
@@ -276,7 +276,7 @@ void CSound::Init(uint32 uiSampleRate, size uiNumFrames, EPrimitiveType eType, E
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(uint32 uiSampleRate, size uiNumFrames, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
+void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	EChannel	eIC;
@@ -308,7 +308,7 @@ void CSound::Init(uint32 uiSampleRate, size uiNumFrames, void* pvUserData, EPrim
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(uint32 uiSampleRate, size uiNumFrames, CArrayChannel* pasNewChannels)
+void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, CArrayChannel* pasNewChannels)
 {
 	PreInit();
 
@@ -327,7 +327,7 @@ void CSound::Init(uint32 uiSampleRate, size uiNumFrames, CArrayChannel* pasNewCh
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(uint32 uiSampleRate, size uiNumFrames, Ptr<CSound> pcChannelsSource)
+void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pcChannelsSource)
 {
 	PreInit();
 
@@ -421,7 +421,7 @@ void CSound::BeginChange(void)
 	mcChannels.BeginChange();
 	mpsSoundChangingDesc = (SSoundChangingDesc*)malloc(sizeof(SSoundChangingDesc));
 	mpsSoundChangingDesc->uiSampleRate = muiSampleRate;
-	mpsSoundChangingDesc->uiNumFrames = (size)mcChannels.GetSize();
+	mpsSoundChangingDesc->uiNumFrames = mcChannels.GetSize();
 }
 
 
@@ -500,7 +500,7 @@ bool CSound::RenameChannel(size iOldName, size iNewName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::SetNumFrames(size uiNumFrames)
+void CSound::SetNumFrames(lsize uiNumFrames)
 {
 	if (IsChanging())
 	{
@@ -544,7 +544,7 @@ void CSound::ByteAlignChannels(void)
 bool CSound::EndChange(void)
 {
 	bool	bResult;
-	size	uiNumFrames;
+	lsize	uiNumFrames;
 
 	if (IsChanging())
 	{
@@ -556,7 +556,7 @@ bool CSound::EndChange(void)
 		if ((uiNumFrames > 0) && (mcChannels.GetChannelOffsets()->NumElements() > 0) && (mcChannels.GetData() == NULL))
 		{
 			//The data could not be allocated so the sound is empty rather than the wrong length.
-			gcLogger.Error2(__METHOD__, " Could not allocate sound of [", SizeToString(uiNumFrames), "] frames.", NULL);
+			gcLogger.Error2(__METHOD__, " Could not allocate sound of [", LongToString((uint64)uiNumFrames), "] frames.", NULL);
 			mcChannels.BeginChange();
 			mcChannels.SetSize(0);
 			mcChannels.EndChange();
@@ -582,13 +582,13 @@ bool CSound::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSound::GetNumFrames(void)
+lsize CSound::GetNumFrames(void)
 {
 	if (IsChanging())
 	{
 		return mpsSoundChangingDesc->uiNumFrames;
 	}
-	return (size)mcChannels.GetSize();
+	return mcChannels.GetSize();
 }
 
 
@@ -682,8 +682,8 @@ void CSound::Silence(void)
 {
 	size		uiNumChannels;
 	size		uiIndex;
-	size		uiFrame;
-	size		uiNumFrames;
+	lsize		uiFrame;
+	lsize		uiNumFrames;
 	CChannel*	pcChannel;
 	uint64		ulliRaw;
 
@@ -716,7 +716,7 @@ void CSound::Silence(void)
 // types and isn't reversed.  It needn't be byte aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-CChannel* CSound::GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size uiNumFrames)
+CChannel* CSound::GetSampleChannel(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames)
 {
 	CChannel*	pcChannel;
 
@@ -732,7 +732,7 @@ CChannel* CSound::GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size 
 	}
 	if ((uiFirstFrame > GetNumFrames()) || (uiNumFrames > GetNumFrames() - uiFirstFrame))
 	{
-		gcLogger.Error2(__METHOD__, " Frames [", SizeToString(uiFirstFrame), "] to [", SizeToString(uiFirstFrame + uiNumFrames), "] are past the end of the sound [", SizeToString(GetNumFrames()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Frames [", LongToString((uint64)uiFirstFrame), "] to [", LongToString((uint64)(uiFirstFrame + uiNumFrames)), "] are past the end of the sound [", LongToString((uint64)(GetNumFrames())), "].", NULL);
 		return NULL;
 	}
 
@@ -750,7 +750,7 @@ CChannel* CSound::GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSound::GetSample(size uiFrame, size uiChannelIndex)
+float64 CSound::GetSample(lsize uiFrame, size uiChannelIndex)
 {
 	CChannel*	pcChannel;
 
@@ -770,7 +770,7 @@ float64 CSound::GetSample(size uiFrame, size uiChannelIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::SetSample(size uiFrame, size uiChannelIndex, float64 fSample)
+void CSound::SetSample(lsize uiFrame, size uiChannelIndex, float64 fSample)
 {
 	CChannel*	pcChannel;
 
@@ -790,12 +790,12 @@ void CSound::SetSample(size uiFrame, size uiChannelIndex, float64 fSample)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSound::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames, float64* pfDest)
+bool CSound::GetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfDest)
 {
 	CChannel*		pcChannel;
 	uint8*			pui;
 	size			uiStride;
-	size			i;
+	lsize			i;
 	EPrimitiveType	eType;
 	uint64			ulliRaw;
 
@@ -832,12 +832,12 @@ bool CSound::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSound::SetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames, float64* pfSource)
+bool CSound::SetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfSource)
 {
 	CChannel*		pcChannel;
 	uint8*			pui;
 	size			uiStride;
-	size			i;
+	lsize			i;
 	EPrimitiveType	eType;
 	uint64			ulliRaw;
 
@@ -945,7 +945,7 @@ bool CSound::IsSameFormat(Ptr<CSound> pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSound::IsValid(size uiFrame)
+bool CSound::IsValid(lsize uiFrame)
 {
 	return uiFrame < mcChannels.GetSize();
 }
@@ -1093,8 +1093,8 @@ void CSound::Print(CChars* psz)
 {
 	size		uiNumChannels;
 	size		uiIndex;
-	size		uiFrame;
-	size		uiNumFrames;
+	lsize		uiFrame;
+	lsize		uiNumFrames;
 	CChannel*	pcChannel;
 	bool		bSamples;
 
