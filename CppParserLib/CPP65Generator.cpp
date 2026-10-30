@@ -1069,6 +1069,27 @@ void CCPP65Generator::ReportTypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An error in the C++ the IR front end found (break outside a loop), reported
+// in quiet mode too.  Returns false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
+{
+	int		iQuiet;
+	bool	bQuietFailed;
+
+	iQuiet = miQuiet;
+	bQuietFailed = mbQuietFailed;
+	miQuiet = 0;
+	Error(pcNode, szMessage);
+	miQuiet = iQuiet;
+	mbQuietFailed = bQuietFailed;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Declarations of things the generator cannot do yet are only errors when they
 // are used.
 //
@@ -2542,9 +2563,10 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 
 	if (psFunction->bImplicit && !mpsTarget->bDirectGenerator)
 	{
-		//Only the IR front end writes code for this target: an implicit default constructor or destructor.
+		//Only the IR front end writes code for this target: an implicit default constructor, an inherited one or a
+		//destructor.
 		BeginFunction(psFunction);
-		if ((psFunction->mapsParameters.NumElements() != 0) || !mpcIRFrontEnd || !mpcIRFrontEnd->Body(psFunction))
+		if (((psFunction->mapsParameters.NumElements() != 0) && !psFunction->psInherited) || !mpcIRFrontEnd || !mpcIRFrontEnd->Body(psFunction))
 		{
 			szLabel.Init("An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: ");
 			AppendFunctionLabel(&szLabel, psFunction);
@@ -4088,7 +4110,7 @@ void CCPP65Generator::AppendRuntime(void)
 	bool	bDivide64;
 
 	mpszOut = &mszCode;
-	if (!mpsTarget->bDirectGenerator)
+	if (mpsTarget->eTarget == CPPT_W65C816)
 	{
 		AppendRuntime816();
 		return;

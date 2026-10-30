@@ -24,7 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //The 65C64's numbers are the generator's (CPP65Generator.txt Memory map); the W65C816's are W65C816.txt's.
 static SCPPTarget	gasCPPTargets[CPPT_NumTargets] =
 {
-	{ CPPT_65C64,	"65C64",	"__65C64__=1",		4, 4, true,  true,  0,			0x1FFFFF },
+	{ CPPT_65C64,	"65C64",	"__65C64__=1",		4, 4, true,  false, 0,			0x1FFFFF },
 	{ CPPT_W65C816,	"W65C816",	"__W65C816__=1",	2, 4, false, false, 0x10000,	0xEFFF },
 };
 

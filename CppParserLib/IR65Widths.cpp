@@ -405,7 +405,8 @@ void CIR65Widths::Anticipate(size uiLabel, size uiFallThrough)
 // The widths a loop's label (one a later line jumps back to) starts with
 // in the new code: what its code first needs, so the loop sets them once
 // before it, else what the code reaching it has (bFromActual), else what
-// it had.
+// it had.  They are decided once, by the first way in: one that left a
+// register's width unknown (0) has gone there already.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::DecideEntry(size uiLabel, bool bFromActual)
@@ -414,13 +415,14 @@ void CIR65Widths::DecideEntry(size uiLabel, bool bFromActual)
 	uint8			uiNeed;
 	int				i;
 
+	if (*mauiArrived.Get(uiLabel))
+	{
+		return;
+	}
+	*mauiArrived.Get(uiLabel) = 1;
 	psEntry = masEntries.Get(uiLabel);
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
-		if (psEntry->auiRegisters[i] != 0)
-		{
-			continue;
-		}
 		uiNeed = NextNeed(uiLabel + 1, i);
 		if (uiNeed == 0)
 		{

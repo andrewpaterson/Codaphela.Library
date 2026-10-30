@@ -37,7 +37,7 @@ protected:
 	CArrayTemplate<uint8>	mauiDemand;		//Per line: the flags read after it before they are set.
 	CArrayIR65Widths		masLive;		//Per line: the bits read from its start before they are written (CIR65Code::Bands).
 	CArrayIR65Widths		masEntries;		//Per line: a label's widths as the new code reaches it (0 unknown or undecided).
-	CArrayTemplate<uint8>	mauiArrived;	//Per line: 1 for a label the new code has reached (Arrive).
+	CArrayTemplate<uint8>	mauiArrived;	//Per line: 1 for a label the new code has reached (Arrive), or a loop's with its entry decided.
 	SIR65Widths				msActual;		//The widths the new code has set.
 	CChars*					mpszOut;
 
