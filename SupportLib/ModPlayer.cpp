@@ -263,7 +263,7 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 	size			uiChannel;
 	size			uiNumChannels;
 	Ptr<CSound>		pcBank;
-	size			uiBankFrames;
+	lsize			uiBankFrames;
 	SModChannel*	psChannel;
 
 	mpSong = pcSong;
@@ -334,10 +334,10 @@ void CModPlayer::Kill(void)
 // the frames mixed, fewer if the song ended.
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::Render(float64* pfStereo, size uiNumFrames)
+lsize CModPlayer::Render(float64* pfStereo, lsize uiNumFrames)
 {
-	size	uiWritten;
-	size	uiCount;
+	lsize	uiWritten;
+	lsize	uiCount;
 
 	uiWritten = 0;
 	while (uiWritten < uiNumFrames)
@@ -371,21 +371,21 @@ size CModPlayer::Render(float64* pfStereo, size uiNumFrames)
 // stereo sound.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, size uiMaxFrames)
+Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 {
 	float64*	pfStereo;
-	size		uiAllocated;
-	size		uiFrames;
-	size		uiCount;
+	lsize		uiAllocated;
+	lsize		uiFrames;
+	lsize		uiCount;
 	size		uiRequest;
 	float64*	pfChannel;
-	size		i;
+	lsize		i;
 	size		c;
 	Ptr<CSound>	pcSound;
 
 	if (uiMaxFrames == 0)
 	{
-		uiMaxFrames = (size)muiSampleRate * 60 * MOD_MAX_SONG_MINUTES;
+		uiMaxFrames = (lsize)muiSampleRate * 60 * MOD_MAX_SONG_MINUTES;
 	}
 
 	uiAllocated = MOD_RENDER_BLOCK;
@@ -398,7 +398,7 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, size uiMaxFrames)
 			uiAllocated *= 2;
 			pfStereo = (float64*)realloc(pfStereo, (lsize)sizeof(float64) * 2 * uiAllocated);
 		}
-		uiRequest = uiMaxFrames - uiFrames < MOD_RENDER_BLOCK ? uiMaxFrames - uiFrames : MOD_RENDER_BLOCK;
+		uiRequest = uiMaxFrames - uiFrames < MOD_RENDER_BLOCK ? (size)(uiMaxFrames - uiFrames) : MOD_RENDER_BLOCK;
 		uiCount = Render(&pfStereo[uiFrames * 2], uiRequest);
 		uiFrames += uiCount;
 		if (uiCount < uiRequest)
@@ -429,9 +429,9 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, size uiMaxFrames)
 // song has ended.
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::SkipTick(void)
+lsize CModPlayer::SkipTick(void)
 {
-	size	uiFrames;
+	lsize	uiFrames;
 
 	StartTick();
 	if (mbFinished)
@@ -548,7 +548,7 @@ void CModPlayer::ProcessRow(void)
 	size			uiPattern;
 	SModNote*		psNote;
 	SModChannel*	psChannel;
-	size			uiPlayed;
+	lsize			uiPlayed;
 	int				iX;
 	int				iY;
 	size			uiRow;
@@ -804,7 +804,7 @@ void CModPlayer::SetSample(SModChannel* psChannel, size uiSample)
 // end plays the loop, or nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-void CModPlayer::StartSample(SModChannel* psChannel, size uiOffset)
+void CModPlayer::StartSample(SModChannel* psChannel, lsize uiOffset)
 {
 	Ptr<CSoundCel>	pcCel;
 
@@ -1047,7 +1047,7 @@ void CModPlayer::Tremolo(SModChannel* psChannel)
 // past the end.  Silence past the end of a sample that doesn't loop.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CModPlayer::GetSampleAt(SModChannel* psChannel, size uiFrame)
+float64 CModPlayer::GetSampleAt(SModChannel* psChannel, lsize uiFrame)
 {
 	uiFrame = CSoundCel::GetLoopedFrame(uiFrame, psChannel->uiLength, psChannel->uiLoopFrame);
 	if (uiFrame == SOUND_CEL_NO_LOOP)
@@ -1062,10 +1062,10 @@ float64 CModPlayer::GetSampleAt(SModChannel* psChannel, size uiFrame)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CModPlayer::Mix(float64* pfStereo, size uiNumFrames)
+void CModPlayer::Mix(float64* pfStereo, lsize uiNumFrames)
 {
 	size			uiChannel;
-	size			uiFrame;
+	lsize			uiFrame;
 	SModChannel*	psChannel;
 	float64			fStep;
 	float64			fPan;
@@ -1181,7 +1181,7 @@ size CModPlayer::GetTempo(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetFramesPlayed(void)
+lsize CModPlayer::GetFramesPlayed(void)
 {
 	return muiFramesPlayed;
 }

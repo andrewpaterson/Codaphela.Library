@@ -77,9 +77,9 @@ struct SMODSampleHeader
 	char	szName[23];
 	uint8	uiFineTune;
 	uint8	uiVolume;
-	size	uiLength;
-	size	uiLoopStart;
-	size	uiLoopLength;
+	lsize	uiLength;
+	lsize	uiLoopStart;
+	lsize	uiLoopLength;
 };
 
 
@@ -156,11 +156,11 @@ bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pcSong)
 bool MODReadSamples(CFileBasic* pcFile, size uiFileSize, Ptr<CModSong> pcSong, SMODSampleHeader* pasHeaders)
 {
 	size					i;
-	size					uiTotalFrames;
-	size					uiBankFrame;
-	size					uiAvailable;
-	size					uiCelFrames;
-	size					uiLoop;
+	lsize					uiTotalFrames;
+	lsize					uiBankFrame;
+	lsize					uiAvailable;
+	lsize					uiCelFrames;
+	lsize					uiLoop;
 	Ptr<CSound>				pcBank;
 	Ptr<CSoundCelGroup>		pcGroup;
 	SModSample*				psSample;

@@ -42,8 +42,8 @@ struct SModChannel
 	//The sample playing.
 	size		uiSample;			//1 to 31, zero for none.
 	float64*	pfData;				//The sample's cel in the player's copy of the bank.
-	size		uiLength;
-	size		uiLoopFrame;		//SOUND_CEL_NO_LOOP if the sample plays once.
+	lsize		uiLength;
+	lsize		uiLoopFrame;		//SOUND_CEL_NO_LOOP if the sample plays once.
 	bool		bPlaying;
 	float64		fPosition;			//Frames into the cel.
 
@@ -70,7 +70,7 @@ struct SModChannel
 	int			iTremoloSpeed;
 	int			iTremoloDepth;
 	int			iTremoloWave;
-	size		uiSampleOffset;
+	lsize		uiSampleOffset;
 	int			iLoopRow;
 	int			iLoopCount;
 	SModNote	sDelayedNote;
@@ -113,15 +113,15 @@ protected:
 	float64				mfFramesPerTick;
 	float64				mfTickFrames;		//Frames of the current tick still to mix.
 	float64				mfFrameRemainder;
-	size				muiFramesPlayed;
+	lsize				muiFramesPlayed;
 
 public:
 	void			Init(Ptr<CModSong> pcSong, uint32 uiSampleRate = 44100, EModInterpolation eInterpolation = MI_Linear, float64 fStereoSeparation = 1.0);
 	void			Kill(void);
 
-	size			Render(float64* pfStereo, size uiNumFrames);
-	Ptr<CSound>		RenderSong(EPrimitiveType eType = PT_int16, size uiMaxFrames = 0);
-	size			SkipTick(void);
+	lsize			Render(float64* pfStereo, lsize uiNumFrames);
+	Ptr<CSound>		RenderSong(EPrimitiveType eType = PT_int16, lsize uiMaxFrames = 0);
+	lsize			SkipTick(void);
 
 	bool			IsFinished(void);
 	size			GetOrder(void);
@@ -129,7 +129,7 @@ public:
 	size			GetTick(void);
 	size			GetSpeed(void);
 	size			GetTempo(void);
-	size			GetFramesPlayed(void);
+	lsize			GetFramesPlayed(void);
 	SModChannel*	GetChannel(size uiChannel);
 	size			NumChannels(void);
 
@@ -142,7 +142,7 @@ protected:
 	void			ProcessTickEffects(void);
 	void			NextRow(void);
 	void			PlayNote(SModChannel* psChannel, SModNote* psNote, bool bStart);
-	void			StartSample(SModChannel* psChannel, size uiOffset);
+	void			StartSample(SModChannel* psChannel, lsize uiOffset);
 	void			SetSample(SModChannel* psChannel, size uiSample);
 	void			ExtendedTickZero(SModChannel* psChannel, int iCommand, int iValue);
 	void			VolumeSlide(SModChannel* psChannel, int iParam);
@@ -150,8 +150,8 @@ protected:
 	void			Vibrato(SModChannel* psChannel);
 	void			Tremolo(SModChannel* psChannel);
 	int				GetWave(int iWave, int iPosition);
-	void			Mix(float64* pfStereo, size uiNumFrames);
-	float64			GetSampleAt(SModChannel* psChannel, size uiFrame);
+	void			Mix(float64* pfStereo, lsize uiNumFrames);
+	float64			GetSampleAt(SModChannel* psChannel, lsize uiFrame);
 };
 
 

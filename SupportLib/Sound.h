@@ -28,7 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 struct SSoundChangingDesc
 {
 	uint32	uiSampleRate;
-	size	uiNumFrames;
+	lsize	uiNumFrames;
 };
 
 
@@ -51,10 +51,10 @@ public:
 
 public:
 	void					Init(void);
-	void					Init(uint32 uiSampleRate, size uiNumFrames, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(uint32 uiSampleRate, size uiNumFrames, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(uint32 uiSampleRate, size uiNumFrames, CArrayChannel* pasNewChannels);
-	void					Init(uint32 uiSampleRate, size uiNumFrames, Ptr<CSound> pcChannelsSource);
+	void					Init(uint32 uiSampleRate, lsize uiNumFrames, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(uint32 uiSampleRate, lsize uiNumFrames, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(uint32 uiSampleRate, lsize uiNumFrames, CArrayChannel* pasNewChannels);
+	void					Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pcChannelsSource);
 	void					Init(Ptr<CSound> pcChannelsSource);  //This only sets up channels, sample rate and length.
 	void					Class(void) override;
 	void					Free(void) override;
@@ -72,13 +72,13 @@ public:
 	void 					AddChannels(Ptr<CSound> pcSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	bool					RenameChannel(size iOldName, size iNewName);
-	void					SetNumFrames(size uiNumFrames);
+	void					SetNumFrames(lsize uiNumFrames);
 	void					SetSampleRate(uint32 uiSampleRate);
 	void 					ByteAlignChannels(void);
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 
-	size					GetNumFrames(void);
+	lsize					GetNumFrames(void);
 	uint32					GetSampleRate(void);
 	float64					GetDuration(void);
 
@@ -86,10 +86,10 @@ public:
 	void					CopyIntoInitialised(Ptr<CSound> pcSource);
 	void					Silence(void);
 
-	float64					GetSample(size uiFrame, size uiChannelIndex);
-	void					SetSample(size uiFrame, size uiChannelIndex, float64 fSample);
-	bool					GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames, float64* pfDest);
-	bool					SetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames, float64* pfSource);
+	float64					GetSample(lsize uiFrame, size uiChannelIndex);
+	void					SetSample(lsize uiFrame, size uiChannelIndex, float64 fSample);
+	bool					GetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfDest);
+	bool					SetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfSource);
 
 	void					SetData(void* pvData);
 	void*					GetData(void);
@@ -99,7 +99,7 @@ public:
 	size					GetFrameBitStride(void);
 
 	bool					IsSameFormat(Ptr<CSound> pcOther);
-	bool					IsValid(size uiFrame);
+	bool					IsValid(lsize uiFrame);
 	CChannel*				GetChannel(size iChannel);
 	CChannel*				GetChannelAtIndex(size iIndex);
 	size					GetIndexOfChannel(size iChannel);
@@ -116,7 +116,7 @@ public:
 
 protected:
 	void					PrivateInit(void);
-	CChannel*				GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size uiNumFrames);
+	CChannel*				GetSampleChannel(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames);
 };
 
 

@@ -45,8 +45,8 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 
 	size			AddCel(Ptr<CSoundCel> pCel);
-	size			AddCel(size uiFirstFrame, size uiNumFrames, size uiLoopFrame = SOUND_CEL_NO_LOOP);
-	size			AddSound(Ptr<CSound> pcSound, size uiLoopFrame = SOUND_CEL_NO_LOOP);
+	size			AddCel(lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
+	size			AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
 
 	size			NumCels(void);
 	Ptr<CSoundCel>	GetCel(size uiIndex);

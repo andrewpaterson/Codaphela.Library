@@ -32,6 +32,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR_INTEGER_COMPARE(name, properties)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, properties }
 #define IR_FLOAT_OP(name, properties)		{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0, properties }
 #define IR_FLOAT_COMPARE(name, properties)	{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, properties }
+#define IR_DIVIDE_OP(name)					{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, IRF_Hot, IR_TRAPS }
 #define IR_CONVERSION(name, to, from)		{ name, IRSH_Conversion, to, from, { IROK_Source, IROK_None }, IRRS_Same, 0, IR_PURE }
 
 
@@ -42,10 +43,10 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_INTEGER_OP("add", IR_SWAPS),
 	IR_INTEGER_OP("sub", IR_PURE),
 	IR_INTEGER_OP("mul", IR_SWAPS),
-	IR_INTEGER_OP("sdiv", IR_TRAPS),
-	IR_INTEGER_OP("udiv", IR_TRAPS),
-	IR_INTEGER_OP("srem", IR_TRAPS),
-	IR_INTEGER_OP("urem", IR_TRAPS),
+	IR_DIVIDE_OP("sdiv"),
+	IR_DIVIDE_OP("udiv"),
+	IR_DIVIDE_OP("srem"),
+	IR_DIVIDE_OP("urem"),
 	IR_INTEGER_OP("and", IR_SWAPS),
 	IR_INTEGER_OP("or", IR_SWAPS),
 	IR_INTEGER_OP("xor", IR_SWAPS),
@@ -108,6 +109,7 @@ SIRFlagName	gasIRFlagNames[IRF_NumWordFlags] =
 	{ IRF_Volatile, "volatile" },
 	{ IRF_InBank, "inbank" },
 	{ IRF_ThisCall, "thiscall" },
+	{ IRF_Hot, "hot" },
 };
 
 

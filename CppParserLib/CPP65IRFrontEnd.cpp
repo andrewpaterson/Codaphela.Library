@@ -258,6 +258,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
 	SIR816Frame				sFrame;
+	SAsm816FunctionProfile*	psProfiled;
 	size					ui;
 	size					uiStart;
 	size					uiLength;
@@ -282,11 +283,21 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetBiasedIndices(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+			if (InliningProfile())
+			{
+				//The function isn't written yet: CallCount is told its fingerprint here.
+				psProfiled = InliningProfile()->Get(szLabel);
+				mpcProfiledCaller = mpcFunction;
+				mbProfiledCaller = psProfiled && ((psProfiled->uiHash == 0) || (psProfiled->uiHash == uiFingerprint));
+				cOptimiser.SetProfile(this);
+			}
 			szWarnings.Init();
 			cOptimiser.SetWarnings(&szWarnings);
 			cOptimiser.Optimise(mpcFunction);
 			cOptimiser.Kill();
+			mpcProfiledCaller = NULL;
 			OptimiserWarnings(&szWarnings);
 			szWarnings.Kill();
 		}
@@ -996,7 +1007,12 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetBiasedIndices(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+			if (InliningProfile())
+			{
+				cOptimiser.SetProfile(this);
+			}
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();
 			if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
@@ -5660,6 +5676,8 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 	const char*				szLabel;
 	int						iLine;
 	size					ui;
+	uint64					ulliCount;
+	uint64					ulliEntered;
 
 	pcProfile = InliningProfile();
 	if (!pcProfile || (psCall->uiSource == 0) || !SourceLine((int)psCall->uiSource - 1, &pcFile, &iLine))
@@ -5690,9 +5708,66 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 	psLine = psFunction ? pcProfile->GetLine(szLabel, pcFile->FullName(), (uint32)iLine + 1) : NULL;
 	if (psLine)
 	{
-		return psLine->ulliEntries;
+		ulliCount = psLine->ulliEntries;
 	}
-	return pcProfile->LineEntries(pcFile->FullName(), (uint32)iLine + 1);
+	else
+	{
+		ulliCount = pcProfile->LineEntries(pcFile->FullName(), (uint32)iLine + 1);
+	}
+	if (psFunction)
+	{
+		//A call the profiled build inlined left its line no code: its callee's first line ran in the caller instead.
+		ulliEntered = InlinedEntries(pcProfile, szLabel, psCall);
+		ulliCount = (ulliEntered > ulliCount) ? ulliEntered : ulliCount;
+	}
+	return ulliCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How often the code of psCall's callee (a function of this unit) ran in
+// the function szLabel, as the most entries of any of its entry block's
+// source lines there: how often the profiled build entered a copy of it
+// that it inlined there (the entry block's first line may be another
+// function's, inlined into the callee).  0 if not known.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall)
+{
+	CIRFunction*			pcCallee;
+	CIRBlock*				pcEntry;
+	SAsm816LineProfile*		psLine;
+	CSourceFile*			pcFile;
+	uint32					uiSource;
+	uint64					ulliMost;
+	int						iLine;
+	size					ui;
+
+	if ((psCall->uiOpcode != IRO_Call) || !psCall->asArguments[0].IsSymbol())
+	{
+		return 0;
+	}
+	pcCallee = mcModule.FindFunction(psCall->asArguments[0].Index());
+	if (!pcCallee || (pcCallee->NumBlocks() == 0))
+	{
+		return 0;
+	}
+	pcEntry = pcCallee->GetBlock(0);
+	ulliMost = 0;
+	for (ui = 0; ui <= pcEntry->masInstructions.NumElements(); ui++)
+	{
+		uiSource = (ui < pcEntry->masInstructions.NumElements()) ? pcEntry->masInstructions.Get(ui)->uiSource : pcEntry->msJump.uiSource;
+		if ((uiSource != 0) && SourceLine((int)uiSource - 1, &pcFile, &iLine))
+		{
+			psLine = pcProfile->GetLine(szLabel, pcFile->FullName(), (uint32)iLine + 1);
+			if (psLine && (psLine->ulliEntries > ulliMost))
+			{
+				ulliMost = psLine->ulliEntries;
+			}
+		}
+	}
+	return ulliMost;
 }
 
 

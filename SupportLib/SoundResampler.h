@@ -57,15 +57,15 @@ public:
 	void			Class(void) override;
 
 	Ptr<CSound>		Modify(Ptr<CSound> pcSound) override;
-	static size		GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate);
+	static lsize		GetResampledNumFrames(lsize uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate);
 
 protected:
 	void			PrivateInit(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings);
-	void			ResampleChannel(float64* pfSource, size uiSourceFrames, float64* pfDest, size uiDestFrames, uint32 uiSourceRate, uint32 uiDestRate, float64* pfTable, size uiNumPhases);
-	float64			Nearest(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, uint64 ulliPhase, uint32 uiDestRate);
-	float64			Linear(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64 fFraction);
-	float64			Cubic(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64 fFraction);
-	float64			Sinc(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64* pfTaps, size uiNumTaps);
+	void			ResampleChannel(float64* pfSource, lsize uiSourceFrames, float64* pfDest, lsize uiDestFrames, uint32 uiSourceRate, uint32 uiDestRate, float64* pfTable, lsize uiNumPhases);
+	float64			Nearest(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, uint64 ulliPhase, uint32 uiDestRate);
+	float64			Linear(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64 fFraction);
+	float64			Cubic(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64 fFraction);
+	float64			Sinc(float64* pfSource, lsize uiSourceFrames, uint64 ulliIndex, float64* pfTaps, size uiNumTaps);
 	float64			GetCutoff(uint32 uiSourceRate, uint32 uiDestRate);
 	void			CalculateSincTaps(float64 fFraction, float64 fCutoff, float64* pfTaps, size uiNumTaps);
 	size			GetNumSincTaps(float64 fCutoff);

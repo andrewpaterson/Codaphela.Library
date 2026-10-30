@@ -41,7 +41,7 @@ void CSoundCel::Init(Ptr<CSound> pcSourceSound)
 // A loop frame that isn't inside the cel means no loop.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundCel::Init(Ptr<CSound> pcSourceSound, size uiFirstFrame, size uiNumFrames, size uiLoopFrame)
+void CSoundCel::Init(Ptr<CSound> pcSourceSound, lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame)
 {
 	PreInit();
 
@@ -61,9 +61,9 @@ void CSoundCel::Init(Ptr<CSound> pcSourceSound, size uiFirstFrame, size uiNumFra
 void CSoundCel::Class(void)
 {
 	M_Pointer(mpSourceSound);
-	U_Size(muiFirstFrame);
-	U_Size(muiNumFrames);
-	U_Size(muiLoopFrame);
+	U_LSize(muiFirstFrame);
+	U_LSize(muiNumFrames);
+	U_LSize(muiLoopFrame);
 }
 
 
@@ -139,7 +139,7 @@ Ptr<CSound> CSoundCel::GetSourceSound(void)
 // The cel's first frame in the source sound.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::GetFirstFrame(void)
+lsize CSoundCel::GetFirstFrame(void)
 {
 	return muiFirstFrame;
 }
@@ -149,7 +149,7 @@ size CSoundCel::GetFirstFrame(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::GetNumFrames(void)
+lsize CSoundCel::GetNumFrames(void)
 {
 	return muiNumFrames;
 }
@@ -171,7 +171,7 @@ bool CSoundCel::HasLoop(void)
 // reaches its end.  SOUND_CEL_NO_LOOP if it doesn't loop.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::GetLoopFrame(void)
+lsize CSoundCel::GetLoopFrame(void)
 {
 	return muiLoopFrame;
 }
@@ -183,7 +183,7 @@ size CSoundCel::GetLoopFrame(void)
 // doesn't loop.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::GetLoopNumFrames(void)
+lsize CSoundCel::GetLoopNumFrames(void)
 {
 	if (!HasLoop())
 	{
@@ -197,7 +197,7 @@ size CSoundCel::GetLoopNumFrames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundCel::SetLoopFrame(size uiLoopFrame)
+void CSoundCel::SetLoopFrame(lsize uiLoopFrame)
 {
 	if (uiLoopFrame < muiNumFrames)
 	{
@@ -215,7 +215,7 @@ void CSoundCel::SetLoopFrame(size uiLoopFrame)
 // uiFrame is counted from the start of the cel.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSoundCel::GetSample(size uiFrame, size uiChannelIndex)
+float64 CSoundCel::GetSample(lsize uiFrame, size uiChannelIndex)
 {
 	float64	fSample;
 
@@ -232,11 +232,11 @@ float64 CSoundCel::GetSample(size uiFrame, size uiChannelIndex)
 // uiFirstFrame is counted from the start of the cel.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSoundCel::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames, float64* pfDest)
+bool CSoundCel::GetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfDest)
 {
 	if ((uiFirstFrame > muiNumFrames) || (uiNumFrames > muiNumFrames - uiFirstFrame))
 	{
-		gcLogger.Error2(__METHOD__, " Frames [", SizeToString(uiFirstFrame), "] to [", SizeToString(uiFirstFrame + uiNumFrames), "] are past the end of the cel [", SizeToString(muiNumFrames), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Frames [", LongToString((uint64)uiFirstFrame), "] to [", LongToString((uint64)(uiFirstFrame + uiNumFrames)), "] are past the end of the cel [", LongToString((uint64)muiNumFrames), "].", NULL);
 		return false;
 	}
 	if (!IsValid())
@@ -256,12 +256,12 @@ bool CSoundCel::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFra
 // frames that came from the cel; the rest of pfDest is silence.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::Play(size uiChannelIndex, size uiPosition, size uiNumFrames, float64* pfDest)
+lsize CSoundCel::Play(size uiChannelIndex, lsize uiPosition, lsize uiNumFrames, float64* pfDest)
 {
-	size	uiWritten;
-	size	uiFrame;
-	size	uiCount;
-	size	i;
+	lsize	uiWritten;
+	lsize	uiFrame;
+	lsize	uiCount;
+	lsize	i;
 
 	uiWritten = 0;
 	while (uiWritten < uiNumFrames)
@@ -299,7 +299,7 @@ size CSoundCel::Play(size uiChannelIndex, size uiPosition, size uiNumFrames, flo
 // has ended.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCel::GetLoopedFrame(size uiFrame, size uiNumFrames, size uiLoopFrame)
+lsize CSoundCel::GetLoopedFrame(lsize uiFrame, lsize uiNumFrames, lsize uiLoopFrame)
 {
 	if (uiFrame < uiNumFrames)
 	{
@@ -319,7 +319,7 @@ size CSoundCel::GetLoopedFrame(size uiFrame, size uiNumFrames, size uiLoopFrame)
 // loop.  Returns false if the cel has ended.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSoundCel::WrapPosition(float64* pfPosition, size uiNumFrames, size uiLoopFrame)
+bool CSoundCel::WrapPosition(float64* pfPosition, lsize uiNumFrames, lsize uiLoopFrame)
 {
 	float64	fLoopFrame;
 

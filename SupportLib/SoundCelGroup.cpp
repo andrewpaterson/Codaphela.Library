@@ -102,7 +102,7 @@ size CSoundCelGroup::AddCel(Ptr<CSoundCel> pCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCelGroup::AddCel(size uiFirstFrame, size uiNumFrames, size uiLoopFrame)
+size CSoundCelGroup::AddCel(lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame)
 {
 	Ptr<CSoundCel>	pCel;
 
@@ -118,10 +118,10 @@ size CSoundCelGroup::AddCel(size uiFirstFrame, size uiNumFrames, size uiLoopFram
 // matched by index.  Returns the cel's index, or ARRAY_ELEMENT_NOT_FOUND.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, size uiLoopFrame)
+size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame)
 {
-	size		uiFirstFrame;
-	size		uiNumFrames;
+	lsize		uiFirstFrame;
+	lsize		uiNumFrames;
 	size		uiChannel;
 	float64*	pfSamples;
 	bool		bResult;

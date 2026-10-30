@@ -177,6 +177,7 @@ public:
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
+	uint64			InlinedEntries(CAsm816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
 	uint64			ProfileCycles(void);
 	CAsm816Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
