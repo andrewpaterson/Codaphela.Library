@@ -72,6 +72,9 @@ char* CIRBlock::GetName(void)
 }
 
 
+uint32	CIRBlock::suiSource = 0;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -87,6 +90,7 @@ SIRInstruction* CIRBlock::AddInstruction(uint16 uiOpcode, SIRType sType, SIRRefe
 	psInstruction->sResult = sResult;
 	psInstruction->asArguments[0] = sArgument0;
 	psInstruction->asArguments[1] = sArgument1;
+	psInstruction->uiSource = suiSource;
 	return psInstruction;
 }
 
@@ -153,6 +157,7 @@ void CIRBlock::SetJump(EIRJumpKind eKind, SIRType sType, SIRReference sArgument,
 	msJump.sArgument = sArgument;
 	msJump.pcThen = pcThen;
 	msJump.pcElse = pcElse;
+	msJump.uiSource = suiSource;
 }
 
 

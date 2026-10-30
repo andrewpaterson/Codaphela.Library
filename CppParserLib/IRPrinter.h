@@ -33,10 +33,12 @@ protected:
 	CChars*					mpszDest;
 	CArrayTemplate<uint32>	mauiTemporaryNumbers;	//Per temporary, for the function being printed.
 	CArrayTemplate<uint32>	mauiBlockNumbers;
+	bool					mbSources;				//A line with the source (IR_SOURCE_MARKER) where it changes (SetSources).
 
 public:
 	void	Init(CIRModule* pcModule, CChars* pszDest);
 	void	Kill(void);
+	void	SetSources(bool bSources);
 
 	void	PrintModule(void);
 	void	PrintFunction(CIRFunction* pcFunction);
@@ -52,6 +54,7 @@ protected:
 	void	PrintBlockName(CIRBlock* pcBlock);
 	void	PrintResult(CIRFunction* pcFunction, SIRReference sResult);
 	void	PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock);
+	void	PrintSource(uint32 uiSource, uint32* puiLast);
 	void	PrintPhi(CIRFunction* pcFunction, SIRPhi* psPhi);
 	size	PrintInstruction(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiIndex);
 	void	PrintCall(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFirstArg, size uiCall);

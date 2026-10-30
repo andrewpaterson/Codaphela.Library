@@ -485,6 +485,7 @@ protected:
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//NULL unless SetUseIR(true).
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	CAsm816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
+	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -507,6 +508,7 @@ public:
 	void					GetExternals(CArrayChars* paszLabels);
 	void					SetImports(CIRImports* pcImports);
 	void					SetFrameProfile(CAsm816Profile* pcProfile);
+	void					SetListing(bool bListing);
 	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:

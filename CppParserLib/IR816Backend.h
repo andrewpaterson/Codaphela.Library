@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPErrors.h"
 #include "Assembler65Lib/Asm816Profile.h"
 #include "IRModule.h"
+#include "IRSourceMarkers.h"
 
 
 class CIR816LiveRanges;
@@ -102,6 +103,9 @@ protected:
 	CArrayChars				maszRuntime;		//The runtime routines used.
 	CIRFunction*			mpcFunction;
 	CChars*					mpszOut;
+	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
+	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
+	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
 	CCPPErrors*				mpcErrors;
 	bool					mbResult;
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
@@ -135,6 +139,7 @@ public:
 	void			Kill(void);
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	void			SetSourceMarkers(bool bSourceMarkers);
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
@@ -150,6 +155,7 @@ protected:
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	bool			Error(const char* szMessage, const char* szDetail = NULL);
 	void			Line(const char* szText);
+	void			Source(uint32 uiSource);
 	void			Line(const char* szText, int64 lliValue);
 	int32			NewLabel(void);
 	void			Label(int32 iLabel);

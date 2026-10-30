@@ -28,6 +28,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPP65Type.h"
 
 
+class CSourceFile;
+
+
 class CCPP65Generator;
 struct SCPP65Function;
 struct SCPP65Variable;
@@ -166,6 +169,8 @@ public:
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			FinishUnit(void);
+	void			SourceComments(CChars* pszCode, bool bComments);
+	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
 
 protected:

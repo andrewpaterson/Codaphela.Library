@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IR65Flags.h"
 #include "IR65Widths.h"
 #include "IR65Peephole.h"
+#include "IRSourceMarkers.h"
 
 
 //Where a temporary is kept.
@@ -146,6 +147,9 @@ protected:
 
 	CIRFunction*			mpcFunction;
 	CChars*					mpszOut;
+	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
+	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
+	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
 	CCPPErrors*				mpcErrors;
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
@@ -190,6 +194,7 @@ public:
 
 	bool				GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	void				SetSourceMarkers(bool bSourceMarkers);
 	void				GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	bool				UsesSignedDivide(void);
 	bool				UsesSignedDivide64(void);
@@ -212,6 +217,7 @@ protected:
 	void				Epilogue(void);
 	bool				Error(const char* szMessage, const char* szDetail = NULL);
 	CChars*				Line(const char* szText);
+	void				Source(uint32 uiSource);
 	int32				NewLabel(void);
 	void				Label(int32 iLabel);
 	void				Branch(const char* szBranch, int32 iLabel);

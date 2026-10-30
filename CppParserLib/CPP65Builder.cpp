@@ -63,6 +63,7 @@ void CCPP65Builder::Init(void)
 	mszWarnings.Init();
 	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
 	mpcFrameProfile = NULL;
+	mszListings.Init();
 }
 
 
@@ -74,6 +75,7 @@ void CCPP65Builder::Kill(void)
 {
 	size	i;
 
+	mszListings.Kill();
 	mcImports.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
@@ -340,6 +342,21 @@ void CCPP65Builder::SetFrameProfile(CAsm816Profile* pcProfile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each unit compiled is also written to szDirectory as a listing: its
+// assembly with comments giving the C++ source line each piece of code is
+// for (UnitName.lst).  The code is the same as without.  NULL for none.
+// Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetListingDirectory(const char* szDirectory)
+{
+	mszListings.Kill();
+	mszListings.Init(szDirectory ? szDirectory : "");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A global's address after Link (see CAsm65Linker::GetSymbol).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -402,7 +419,11 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty());
+	if (!mszListings.Empty())
+	{
+		bResult &= WriteListing(szName, &szAssembly);
+	}
 	bResult &= AddObject(szName, szAssembly.Text());
 	szAssembly.Kill();
 	return bResult;
@@ -651,10 +672,11 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // Preprocesses, parses and generates szSource with the include directories.  As a program (with its start up) if
 // bProgram, otherwise as an object.  The assembly is appended to pszAssembly and every stage's errors to
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
-// pcFrameProfile's measured functions get aligned frames (NULL for none).
+// pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
+// C++ source lines it is for (CCPP65Generator::SetListing).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile, bool bListing)
 {
 	CTranslationUnit		cFile;
 	CPreprocessor			cPreprocessor;
@@ -704,6 +726,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 
 	cGenerator.Init(&cTree, eTarget);
 	cGenerator.SetFrameProfile(pcFrameProfile);
+	cGenerator.SetListing(bListing);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -823,6 +846,46 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 // called one before it was exported is compiled again at the end.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// Writes a unit's assembly (with its source comments) to the listings
+// directory as the unit's name with .lst for its extension.  A unit with
+// no code (all of it left out by #if) has no listing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
+{
+	CFileUtil	cFileUtil;
+	CTextFile	cFile;
+	CChars		szName;
+	CChars		szPath;
+	bool		bResult;
+
+	if (pszAssembly->Empty())
+	{
+		return true;
+	}
+	szName.Init(szUnit);
+	cFileUtil.RemoveExtension(&szName);
+	szName.Append(".lst");
+	szPath.Init(mszListings);
+	cFileUtil.AppendToPath(&szPath, szName.Text());
+	cFileUtil.TouchDir(mszListings.Text());
+	cFile.Init(pszAssembly->Text());
+	bResult = cFile.Write(szPath.Text());
+	cFile.Kill();
+	if (!bResult)
+	{
+		mszErrors.Append("Can't write the listing ");
+		mszErrors.Append(szPath);
+		mszErrors.AppendNewLine();
+	}
+	szPath.Kill();
+	szName.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::CompileUnits(void)
 {
 	CTranslationUnit*			pcFile;
@@ -915,7 +978,12 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		cGenerator.SetImports(&mcImports);
 		cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
+	cGenerator.SetListing(!mszListings.Empty());
 	bResult &= cGenerator.Generate(&szAssembly);
+	if (!mszListings.Empty())
+	{
+		bResult &= WriteListing(psUnit->pcFile->ShortName(), &szAssembly);
+	}
 	cGenerator.GetMissingCallees(&psUnit->aszMissing);
 	mszErrors.Append(cGenerator.GetErrors()->Text());
 	if (!psUnit->pcObject)

@@ -391,6 +391,8 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	mpcModule = pcModule;
 	mpiLabels = piLabels;
 	maszRuntime.Init();
+	mbSourceMarkers = false;
+	mcSourceMarkers.Init();
 	mpcFunction = NULL;
 	mpszOut = NULL;
 	mpcErrors = NULL;
@@ -421,6 +423,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Kill(void)
 {
+	mcSourceMarkers.Kill();
 	maiPendingArguments.Kill();
 	maiParameters.Kill();
 	maiBlockLabels.Kill();
@@ -604,6 +607,37 @@ void CIR816Backend::Line(const char* szText)
 	mpszOut->Append("\t\t");
 	mpszOut->Append(szText);
 	mpszOut->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The marker line (IR_SOURCE_MARKER) before the code of an instruction or
+// a jump with uiSource (0 for none) when it isn't the last one's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::Source(uint32 uiSource)
+{
+	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
+	{
+		return;
+	}
+	muiSource = uiSource;
+	mpszOut->Append(IR_SOURCE_MARKER);
+	mpszOut->Append((int64)muiSource);
+	mpszOut->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether Source writes markers (for a listing): they are taken out while
+// the text passes run, so the code is the same as without them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SetSourceMarkers(bool bSourceMarkers)
+{
+	mbSourceMarkers = bSourceMarkers;
 }
 
 
@@ -2936,6 +2970,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	mpcErrors = pcErrors;
 	mbResult = true;
 	uiStart = pszDest->Length();
+	muiSource = 0;
 
 	ExpandMultiplies();
 	pcFunction->Renumber();
@@ -2952,6 +2987,10 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	}
 	GenerateBody(szLabel, uiStart);
 	DropFrame(uiStart);
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Put(pszDest, uiStart);
+	}
 	pszDest->AppendNewLine();
 	return mbResult;
 }
@@ -3217,9 +3256,11 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 				miFused++;
 				continue;
 			}
+			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
 			Instruction(pcBlock, uiInstruction);
 			miFused = 0;
 		}
+		Source(pcBlock->msJump.uiSource);
 		Jump(pcBlock, pcNext);
 		miFused = 0;
 
@@ -3236,6 +3277,10 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	miBlock = -1;
 	mpcDominators = NULL;
 	cDominators.Kill();
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Take(mpszOut, uiStart);
+	}
 	Peephole(mpszOut, uiStart);
 	PeepholeBranches(mpszOut, uiStart);
 }

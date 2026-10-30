@@ -143,6 +143,18 @@ void CCPP65Generator::SetFrameProfile(CAsm816Profile* pcProfile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The code the IR front end writes gets a comment with the C++ source line
+// before the code for it ("; File.cpp(12): text"), for a listing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetListing(bool bListing)
+{
+	mbListing = bListing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -183,6 +195,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcIRFrontEnd = NULL;
 	mpcImports = NULL;
 	mpcFrameProfile = NULL;
+	mbListing = false;
 	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
 	mcWarnings.Init();
