@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Project.h"
 #include "CPPTarget.h"
 #include "IRImports.h"
+#include "Assembler65Lib/Asm816Profile.h"
 
 
 struct SCPP65IncludeDirectory
@@ -110,11 +111,13 @@ protected:
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
+	CAsm816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 
 public:
 	void			Init(void);
 	void			Kill(void);
 	void			SetTarget(ECPPTarget eTarget);
+	void			SetFrameProfile(CAsm816Profile* pcProfile);
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
@@ -143,7 +146,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* piValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm816Profile* pcFrameProfile = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

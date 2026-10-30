@@ -21,6 +21,9 @@
     <ClCompile Include="Asm816Lockstep.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm816Profile.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65Errors.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -72,6 +75,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm816Lockstep.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm816Profile.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Errors.h">

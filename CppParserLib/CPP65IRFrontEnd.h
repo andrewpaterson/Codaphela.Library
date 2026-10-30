@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "IRModule.h"
+#include "IR816Backend.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 
@@ -80,6 +81,7 @@ struct SCPP65IRWritten
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
 	CChars			szLabel;
 	CChars			szCode;
+	SIR816Frame		sFrame;			//The W65C816's frame, for AlignFrame.
 };
 
 
@@ -158,7 +160,8 @@ protected:
 	void			BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
 	void			OptimiserWarnings(CChars* pszWarnings);
-	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode);
+	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame);
+	bool			IsRecursive(CIRFunction* pcFunction);
 	bool			Unsupported(int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
 	SIRType			ReturnIRType(SCPP65Type* psType);

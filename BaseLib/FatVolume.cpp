@@ -492,6 +492,21 @@ void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The query is past the directory's last sector: its current entry is the
+// query's own empty one (the directory's last entry, in the sector cache,
+// is left alone).
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::EndQuery(SFatQueryState* psQuery)
+{
+	memset(&psQuery->sEndEntry, 0, sizeof(SFatRawDirectoryEntry));
+	psQuery->psCurrentEntryRaw = &psQuery->sEndEntry;
+	return FAT_SHORT_NAME_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery)
@@ -504,8 +519,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector,
 
 	if (FatIsEOFEntry(uiFat))
 	{
-		psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
-		return FAT_SHORT_NAME_FOUND;
+		return EndQuery(psQuery);
 	}
 
 	psQuery->uiCurrentCluster = uiFat;
@@ -539,8 +553,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQue
 	{
 		if (psQuery->uiCurrentSector == GetRootDirectorySectors())
 		{
-			psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
-			return FAT_SHORT_NAME_FOUND;
+			return EndQuery(psQuery);
 		}
 		*puiSector = GetRootDirectorySector() + psQuery->uiCurrentSector;
 	}
@@ -559,13 +572,22 @@ EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQue
 EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 {
 	uint32		uiSector;
+	uint32		uiPreviousSector;
 	EFatCode	eResult;
+
+	if (psQuery->psCurrentEntryRaw == &psQuery->sEndEntry)
+	{
+		return FAT_SHORT_NAME_FOUND;
+	}
 
 	eResult = ValidateFatCache(psQuery->sBuffer);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	if (((uintptr_t)psQuery->psCurrentEntryRaw - (uintptr_t)psQuery->psFirstEntryRaw) == (uint32)GetSectorSize() - 0x20)
 	{
+		//Only the sector the query is in stays locked (the one it leaves is unlocked once the next is read).
+		uiPreviousSector = IsRootDirectoryCluster(psQuery->uiCurrentCluster) ? GetRootDirectorySector() + psQuery->uiCurrentSector : CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+
 		if ((psQuery->uiCurrentCluster > 0) && (psQuery->uiCurrentSector == NumSectorsPerCluster() - 1))
 		{
 			eResult = FindNextRawDirectoryEntrySectorInCluster(&uiSector, psQuery);
@@ -590,6 +612,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 		{
 			return FAT_NO_CACHE_LOCK;
 		}
+		psQuery->Unlock(uiPreviousSector, GetSectorCache());
 
 		psQuery->psFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 		psQuery->psCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
@@ -646,6 +669,7 @@ void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
 	else
 	{
 		psQuery->uiChecksum = 0;
+		psQuery->uiSequence = 0;
 	}
 }
 
@@ -695,6 +719,10 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 		}
 		else
 		{
+			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY)
+			{
+				psQuery->uiSequence = 0;
+			}
 			bPass =
 				(!(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_HIDDEN) || (psQuery->uiAttributes & FAT_ATTR_HIDDEN)) &&
 				(!(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_SYSTEM) || (psQuery->uiAttributes & FAT_ATTR_SYSTEM)) &&
@@ -706,7 +734,8 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 
 	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
 	{
-		if (psQuery->uiChecksum != FatLongEntryChecksum((char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
+		//The long name belongs to this entry if all its parts (down to sequence 1) came just before it.
+		if ((psQuery->uiSequence != 1) || (psQuery->uiChecksum != FatLongEntryChecksum((char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName)))
 		{
 			psQuery->auiLongFilename[0] = 0;
 		}
@@ -717,6 +746,8 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 		ConstructQueryLongFileNameFromShortName(psQuery);
 	}
 
+	psQuery->uiSequence = 0;
+	psQuery->uiChecksum = 0;
 	return FAT_SUCCESS;
 }
 
@@ -2326,9 +2357,9 @@ void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::SetTotalFreeClusters(uint32 muiTotalFreeClusters)
+void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters)
 {
-	muiTotalFreeClusters = muiTotalFreeClusters;
+	muiTotalFreeClusters = uiTotalFreeClusters;
 }
 
 
@@ -2553,7 +2584,7 @@ EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* ps
 	do
 	{
 		bIsValidEntry = true;
-
+		sQuery.Kill(GetSectorCache());
 		eResult = QueryFirstEntry(psParentDirectory, 0, &sQuery, 0);
 		if (eResult != FAT_SUCCESS)
 		{
@@ -2878,61 +2909,75 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiLastDirectoryCluster, uint32 uiSector)
+EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiSector, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiFirstDirectoryCluster)
 {
-	uintptr_t				puiLastEntryAddress;
 	SFatCache				sBuffer;
 	SFatRawDirectoryEntry*	psParentEntry;
+	uint32					uiSector;
 	uint32					uiFirstSectorOfCluster;
 	fatEntry				uiDirectoryCluster;
+	EFatCode				eResult;
 
+	uiSector = *puiSector;
 	uiFirstSectorOfCluster = *puiFirstSectorOfCluster;
 	uiDirectoryCluster = *puiDirectoryCluster;
 	psParentEntry = *ppsParentEntry;
-
 	while (iLFNEntriesFound > 1)
 	{
 		READ_SECTOR(sBuffer, uiSector);
-		puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
-
 		if ((uintptr_t)psParentEntry > (uintptr_t)sBuffer.Get())
 		{
 			psParentEntry--;
 		}
 		else
 		{
+			//The entries may start in an earlier sector, or an earlier cluster (a FAT12 or FAT16 root directory is one run of sectors).
 			if (uiSector > uiFirstSectorOfCluster)
 			{
 				uiSector--;
 			}
 			else
 			{
-				if (IsRootDirectoryCluster(uiLastDirectoryCluster))
-				{
-					uiFirstSectorOfCluster = GetRootDirectorySector();
-				}
-				else
-				{
-					uiDirectoryCluster = uiLastDirectoryCluster;
-					uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiDirectoryCluster);
-				}
-				uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster();
+				eResult = FindPreviousCluster(uiFirstDirectoryCluster, uiDirectoryCluster, &uiDirectoryCluster);
+				RETURN_ON_FAT_FAILURE(eResult);
+				uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiDirectoryCluster);
+				uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster() - 1;
 			}
-
 			READ_SECTOR(sBuffer, uiSector);
-
-			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
-		  //psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  // ?? Isn't this more correct?
-			psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
+			psParentEntry = (SFatRawDirectoryEntry*)(((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20);
 		}
 		iLFNEntriesFound--;
 	}
-
 	*ppsParentEntry = psParentEntry;
+	*puiSector = uiSector;
 	*puiFirstSectorOfCluster = uiFirstSectorOfCluster;
 	*puiDirectoryCluster = uiDirectoryCluster;
-
 	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cluster before uiCluster in the chain starting at uiFirstCluster.
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::FindPreviousCluster(fatEntry uiFirstCluster, fatEntry uiCluster, fatEntry* puiPreviousCluster)
+{
+	EFatCode	eResult;
+	fatEntry	uiNextCluster;
+
+	while (!FatIsEOFEntry(uiFirstCluster))
+	{
+		eResult = GetNextClusterEntry(uiFirstCluster, &uiNextCluster);
+		RETURN_ON_FAT_FAILURE(eResult);
+		if (uiNextCluster == uiCluster)
+		{
+			*puiPreviousCluster = uiFirstCluster;
+			return FAT_SUCCESS;
+		}
+		uiFirstCluster = uiNextCluster;
+	}
+	return FAT_CORRUPTED_FILE;
 }
 
 
@@ -3032,7 +3077,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* s
 	eResult = FindEnoughEntries(&uiLastDirectoryCluster, &uiDirectoryCluster, &uiFirstSectorOfCluster, &uiSector, &iLFNEntriesFound, &psParentEntry, psParentDirectory, iLFNEntriesNeeded);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	eResult = RewindFoundEntries(&psParentEntry, &uiFirstSectorOfCluster, &uiDirectoryCluster, iLFNEntriesFound, uiLastDirectoryCluster, uiSector);
+	eResult = RewindFoundEntries(&psParentEntry, &uiSector, &uiFirstSectorOfCluster, &uiDirectoryCluster, iLFNEntriesFound, GetDirectoryCluster(psParentDirectory));
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	uiChecksum = FatLongEntryChecksum((char*)psNewEntry->sRaw.uEntry.sFatRawCommon.szShortName);
@@ -3064,6 +3109,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* s
 					uiLastDirectoryCluster = uiDirectoryCluster;
 					eResult = IncrementOrAllocateDirectoryCluster(&uiSector, &uiDirectoryCluster, uiLastDirectoryCluster);
 					RETURN_ON_FAT_FAILURE(eResult);
+					uiFirstSectorOfCluster = uiSector;
 				}
 
 				READ_SECTOR(sBuffer, uiSector);
@@ -3074,9 +3120,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* s
 		}
 		else
 		{
-			eResult = ValidateFatCache(sBuffer);
-			RETURN_ON_FAT_FAILURE(eResult);
-
+			READ_SECTOR(sBuffer, uiSector);
 			*psParentEntry = psNewEntry->sRaw;
 			DirtySector(sBuffer);
 		}
@@ -3121,7 +3165,8 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, co
 	}
 	else
 	{
-		iLFNEntriesNeeded = 0;
+		//Just the short name's entry.
+		iLFNEntriesNeeded = 1;
 	}
 
 	if (IsRootDirectoryCluster(uiEntryCluster) && (uiAttributes & FAT_ATTR_DIRECTORY))
@@ -3334,44 +3379,61 @@ EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Deletes the long name entries just before the short name entry at
+// uiSectorAddress and uiSectorOffset in szParentPath (with its checksum).
+// Other entries with the same checksum belong to other files and are left.
+// The short name entry must not be deleted yet (queries skip deleted ones).
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Delete(SFatDirectoryEntry* psEntry, const char* szNamePart, char* szPathPart, uint8 uiChecksum)
+EFatCode CFatVolume::DeleteLongNameEntries(const char* szParentPath, uint32 uiSectorAddress, uint16 uiSectorOffset, uint8 uiChecksum)
 {
 	EFatCode				eResult;
 	SFatFileSystemQuery		sQuery;
 	SFatCache				sBuffer;
+	uint32					auiSectors[FAT_MAX_LFN_ENTRIES];
+	uint16					auiOffsets[FAT_MAX_LFN_ENTRIES];
+	int						iRun;
+	int						i;
 
+	iRun = 0;
 	sQuery.Init();
-
-	eResult = FindFirstFATEntry(szPathPart, FAT_ATTR_LONG_NAME, 0, &sQuery);
-	if (eResult == FAT_SUCCESS)
+	eResult = FindFirstFATEntry(szParentPath, FAT_ATTR_LONG_NAME, 0, &sQuery);
+	while ((eResult == FAT_SUCCESS) && (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] != '\0'))
 	{
-		while (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] != '\0')
+		if (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_LONG_NAME)
 		{
-			if (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawLongFileName.uiChecksum == uiChecksum)
+			if ((sQuery.sCurrentEntry.sRaw.uEntry.sFatRawLongFileName.uiChecksum != uiChecksum) || (iRun == FAT_MAX_LFN_ENTRIES))
 			{
-				sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
-
-				sBuffer = mcSectorCache.ReadSector(sQuery.sCurrentEntry.uiSectorAddress);
-				if (!sBuffer.IsValid())
-				{
-					eResult = FAT_CANNOT_READ_MEDIA;
-					break;
-				}
-
-				memcpy(sBuffer.Get() + sQuery.sCurrentEntry.uiSectorOffset, &sQuery.sCurrentEntry.sRaw, sizeof(psEntry->sRaw));
-				DirtySector(sBuffer);
+				iRun = 0;
 			}
-
-			eResult = FindNextFATEntry(0, &sQuery);
-			if (eResult != FAT_SUCCESS)
+			else
 			{
-				break;
+				auiSectors[iRun] = sQuery.sCurrentEntry.uiSectorAddress;
+				auiOffsets[iRun] = sQuery.sCurrentEntry.uiSectorOffset;
+				iRun++;
 			}
 		}
+		else
+		{
+			if ((sQuery.sCurrentEntry.uiSectorAddress == uiSectorAddress) && (sQuery.sCurrentEntry.uiSectorOffset == uiSectorOffset))
+			{
+				for (i = 0; i < iRun; i++)
+				{
+					sBuffer = mcSectorCache.ReadSector(auiSectors[i]);
+					if (!sBuffer.IsValid())
+					{
+						eResult = FAT_CANNOT_READ_MEDIA;
+						break;
+					}
+					sBuffer.Get()[auiOffsets[i]] = FAT_DELETED_ENTRY;
+					DirtySector(sBuffer);
+				}
+				break;
+			}
+			iRun = 0;
+		}
+		eResult = FindNextFATEntry(0, &sQuery);
 	}
-
 	sQuery.Kill(GetSectorCache());
 	return eResult;
 }
@@ -3411,6 +3473,10 @@ EFatCode CFatVolume::Delete(const char* szFilename)
 			RETURN_ON_FAT_FAILURE(eResult);
 		}
 
+		ParsePathAndFilename(szFilename, szPathPart, &szNamePart);
+		eResult = DeleteLongNameEntries(szPathPart, sEntry.uiSectorAddress, sEntry.uiSectorOffset, uiChecksum);
+		RETURN_ON_FAT_FAILURE(eResult);
+
 		sEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
 		READ_SECTOR(sBuffer, sEntry.uiSectorAddress);
@@ -3423,10 +3489,7 @@ EFatCode CFatVolume::Delete(const char* szFilename)
 		return FAT_FILE_NOT_FOUND;
 	}
 
-	ParsePathAndFilename(szFilename, szPathPart, &szNamePart);
-
-	eResult = Delete(&sEntry, szNamePart, szPathPart, uiChecksum);
-	return eResult;
+	return FAT_SUCCESS;
 }
 
 
@@ -3447,51 +3510,6 @@ void CFatVolume::CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectory
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiModifyTime = psOriginalEntry->sRaw.uEntry.sFatRawCommon.uiModifyTime;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiReserved = psOriginalEntry->sRaw.uEntry.sFatRawCommon.uiReserved;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiSize = psOriginalEntry->sRaw.uEntry.sFatRawCommon.uiSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Rename(const char* szOriginalParent, uint8 uiChecksum)
-{
-	SFatFileSystemQuery		sQuery;
-	EFatCode				eResult;
-	SFatCache				sBuffer;
-
-	sQuery.Init();
-
-	eResult = FindFirstFATEntry(szOriginalParent, FAT_ATTR_LONG_NAME, 0, &sQuery);
-	if (eResult == FAT_SUCCESS)
-	{
-		while (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] != '\0')
-		{
-			if (sQuery.sCurrentEntry.sRaw.uEntry.sFatRawLongFileName.uiChecksum == uiChecksum)
-			{
-				sQuery.sCurrentEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
-
-				sBuffer = mcSectorCache.ReadSector(sQuery.sCurrentEntry.uiSectorAddress);
-				if (!sBuffer.IsValid())
-				{
-					eResult = FAT_CANNOT_READ_MEDIA;
-					break;
-				}
-
-				memcpy(sBuffer.Get() + sQuery.sCurrentEntry.uiSectorOffset, &sQuery.sCurrentEntry.sRaw, sizeof(sQuery.sCurrentEntry.sRaw));
-				DirtySector(sBuffer);
-			}
-
-			eResult = FindNextFATEntry(0, &sQuery);
-			if (eResult != FAT_SUCCESS)
-			{
-				break;
-			}
-		}
-	}
-
-	sQuery.Kill(GetSectorCache());
-	return eResult;
 }
 
 
@@ -3544,6 +3562,9 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 		memcpy(sBuffer.Get() + sNewEntry.uiSectorOffset, &sNewEntry.sRaw, sizeof(sNewEntry.sRaw));
 		DirtySector(sBuffer);
 
+		eResult = DeleteLongNameEntries(szOriginalParent, sOriginalEntry.uiSectorAddress, sOriginalEntry.uiSectorOffset, uiChecksum);
+		RETURN_ON_FAT_FAILURE(eResult);
+
 		sOriginalEntry.sRaw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
 		READ_SECTOR(sBuffer, sOriginalEntry.uiSectorAddress);
@@ -3556,8 +3577,7 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 		return FAT_FILE_NOT_FOUND;
 	}
 
-	eResult = Rename(szOriginalParent, uiChecksum);
-	return eResult;
+	return FAT_SUCCESS;
 }
 
 

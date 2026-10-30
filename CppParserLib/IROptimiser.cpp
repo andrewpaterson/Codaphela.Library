@@ -160,6 +160,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= FoldConstants();
 		bChanged |= NarrowTruncations();
 		bChanged |= BoundDivisions();
+		bChanged |= SignedPowerDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
 		bChanged |= RotateLoops();
@@ -1890,6 +1891,14 @@ bool CIROptimiser::FoldConstants(void)
 				//A sext of a value whose top bit is 0 (or that the branches to here keep 0 or more) is a zext (cheaper
 				//where a sign must be worked out).
 				psInstruction->uiOpcode = IRO_ZExt;
+				bChanged = true;
+			}
+			else if (((psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem)) && psInstruction->asArguments[1].IsConstant() &&
+					 (IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) > 0) &&
+					 NotNegative(pcBlock, psInstruction->asArguments[0]))
+			{
+				//A signed x / c or x % c is unsigned when x is never negative (and c is more than 0).
+				psInstruction->uiOpcode = (psInstruction->uiOpcode == IRO_SDiv) ? IRO_UDiv : IRO_URem;
 				bChanged = true;
 			}
 			else if (((psInstruction->uiOpcode == IRO_Mul) || (psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_URem)) && psInstruction->asArguments[1].IsConstant())
@@ -5801,6 +5810,76 @@ SIRReference CIROptimiser::InsertInstruction(CIRBlock* pcBlock, size uiIndex, ui
 	pcBlock->masInstructions.RemoveAt(uiLast, true);
 	pcBlock->masInstructions.InsertAt(&sMoved, uiIndex);
 	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A signed x / 2^n or x % 2^n is shifts and adds, not the target's divide:
+// a negative x has 2^n - 1 added first, so the shift rounds towards 0.
+//   t = x + ((x >> (bits - 1)) >>> (bits - n))
+//   x / 2^n = t >> n
+//   x % 2^n = x - (t & -2^n)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::SignedPowerDivisions(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sValue;
+	SIRReference	sBias;
+	SIRType			sType;
+	int64			lliDivisor;
+	int				iBits;
+	int				iShift;
+	size			ui;
+	size			uiInstruction;
+	bool			bChanged;
+
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (((psInstruction->uiOpcode != IRO_SDiv) && (psInstruction->uiOpcode != IRO_SRem)) || !psInstruction->asArguments[1].IsConstant() ||
+				!psInstruction->sType.IsInteger() || psInstruction->sType.Is(IRTK_I1))
+			{
+				continue;
+			}
+			sType = psInstruction->sType;
+			iBits = sType.IntegerBits();
+			lliDivisor = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+			if ((lliDivisor < 2) || ((lliDivisor & (lliDivisor - 1)) != 0))
+			{
+				continue;
+			}
+			iShift = (int)FindFirstSetBit((uint64)lliDivisor);
+			sValue = psInstruction->asArguments[0];
+			sBias = InsertInstruction(pcBlock, uiInstruction, IRO_AShr, sType, sValue, mpcFunction->AddInteger(sType, iBits - 1));
+			sBias = InsertInstruction(pcBlock, uiInstruction + 1, IRO_LShr, sType, sBias, mpcFunction->AddInteger(sType, iBits - iShift));
+			sBias = InsertInstruction(pcBlock, uiInstruction + 2, IRO_Add, sType, sValue, sBias);
+			uiInstruction += 3;
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (psInstruction->uiOpcode == IRO_SDiv)
+			{
+				psInstruction->uiOpcode = IRO_AShr;
+				psInstruction->asArguments[0] = sBias;
+				psInstruction->asArguments[1] = mpcFunction->AddInteger(sType, iShift);
+			}
+			else
+			{
+				sBias = InsertInstruction(pcBlock, uiInstruction, IRO_And, sType, sBias, mpcFunction->AddInteger(sType, -lliDivisor));
+				uiInstruction++;
+				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+				psInstruction->uiOpcode = IRO_Sub;
+				psInstruction->asArguments[1] = sBias;
+			}
+			bChanged = true;
+		}
+	}
+	return bChanged;
 }
 
 

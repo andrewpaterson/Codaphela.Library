@@ -62,6 +62,7 @@ void CCPP65Builder::Init(void)
 	mszErrors.Init();
 	mszWarnings.Init();
 	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
+	mpcFrameProfile = NULL;
 }
 
 
@@ -326,6 +327,19 @@ void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A profile of the program's functions (CAsm816Profile, from a run): on the
+// W65C816 those it measured worth it get page aligned frames.  Without one
+// none do.  Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetFrameProfile(CAsm816Profile* pcProfile)
+{
+	mpcFrameProfile = pcProfile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A global's address after Link (see CAsm65Linker::GetSymbol).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -388,7 +402,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile);
 	bResult &= AddObject(szName, szAssembly.Text());
 	szAssembly.Kill();
 	return bResult;
@@ -461,7 +475,7 @@ bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
 	mcLinkWithObjects.Kill();
 	mcLinkWithObjects.Init("link with");
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile);
 	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
 	szAssembly.Kill();
 	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
@@ -636,10 +650,11 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 //
 // Preprocesses, parses and generates szSource with the include directories.  As a program (with its start up) if
 // bProgram, otherwise as an object.  The assembly is appended to pszAssembly and every stage's errors to
-// pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.
+// pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
+// pcFrameProfile's measured functions get aligned frames (NULL for none).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile)
 {
 	CTranslationUnit		cFile;
 	CPreprocessor			cPreprocessor;
@@ -688,6 +703,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cParser.Kill();
 
 	cGenerator.Init(&cTree, eTarget);
+	cGenerator.SetFrameProfile(pcFrameProfile);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -897,6 +913,7 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	if (meTarget == CPPT_W65C816)
 	{
 		cGenerator.SetImports(&mcImports);
+		cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
 	bResult &= cGenerator.Generate(&szAssembly);
 	cGenerator.GetMissingCallees(&psUnit->aszMissing);

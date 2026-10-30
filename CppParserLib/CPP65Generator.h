@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_TEMPORARY_BYTES		0x100
 #define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place.
+#define CPP65_INLINE_ZERO			64		//Value initialised objects up to this size are zeroed in place, bigger ones with memset.
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -39,6 +40,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
 #include "IRImports.h"
+#include "Assembler65Lib/Asm816Profile.h"
 #include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
@@ -482,6 +484,7 @@ protected:
 	bool					mbSignedDivide64;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//NULL unless SetUseIR(true).
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
+	CAsm816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -503,6 +506,7 @@ public:
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
 	void					SetImports(CIRImports* pcImports);
+	void					SetFrameProfile(CAsm816Profile* pcProfile);
 	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:
@@ -688,6 +692,7 @@ protected:
 	bool					InheritedConstructorCall(SCPP65Function* psFunction, SCPP65Place* psBase);
 	bool					DestructorBody(SCPP65Function* psFunction);
 	bool					Construct(SCPP65Place* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	void					ZeroObject(SCPP65Place* psPlace, int iBytes);
 	bool					ConstructReference(SCPP65Place* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 	bool					ConstructClass(SCPP65Place* psPlace, SCPP65Class* psClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool					Destroy(SCPP65Place* psPlace);

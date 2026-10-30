@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __I_R_816_BACKEND_H__
 #include "BaseLib/ArrayChars.h"
 #include "CPPErrors.h"
+#include "Assembler65Lib/Asm816Profile.h"
 #include "IRModule.h"
 
 
@@ -45,6 +46,34 @@ class CIR816LiveRanges;
 //The stack is in bank 0 (from the target's stack top down) with the direct page: a frame may use most of it, but
 //not all.
 #define IR816_MAX_FRAME_BYTES	0xC000
+
+//A direct page access costs a cycle more when D isn't on a page.  A function may get a page aligned frame (AlignFrame),
+//costing each call IR816_ALIGN_CYCLES, IR816_ALIGN_WORD_CYCLES for each argument word copied into the frame and
+//IR816_ALIGN_BIG_CYCLES more for a frame past the page, and up to 255 bytes of stack.  It never does if it may recurse.
+//By default the estimate decides (the user: only when really worth it): it has a loop, and its direct page accesses,
+//each weighted by IR816_ALIGN_LOOP_WEIGHT for each loop it is in (up to IR816_ALIGN_MAX_DEPTH), are more than
+//IR816_ALIGN_GAIN times the cost.  With a profile (CAsm816Profile, CCPP65Builder::SetFrameProfile) the measure
+//decides: it was never seen recursing, its accesses are more than IR816_ALIGN_GAIN times the cost of its calls and
+//they save at least one IR816_ALIGN_SHARE'th of the profiled cycles.
+#define IR816_ALIGN_GAIN		3
+#define IR816_ALIGN_LOOP_WEIGHT	8
+#define IR816_ALIGN_MAX_DEPTH	3
+#define IR816_ALIGN_SHARE		10000
+#define IR816_ALIGN_CYCLES		6
+#define IR816_ALIGN_WORD_CYCLES	10
+#define IR816_ALIGN_BIG_CYCLES	12
+
+
+//What AlignFrame needs of a function's frame, from GenerateFunction (GetFrame).
+struct SIR816Frame
+{
+	int32	iFrameBytes;
+	int32	iArgumentBytes;
+	int32	iSavedS;			//Where an aligned frame past the page keeps S, or -1.
+	int32	iDirectPageWeight;	//The direct page accesses, weighted by the loops they are in.
+	bool	bLoops;
+	bool	bVariadic;
+};
 
 
 //Writes W65C816 assembly (Assembler816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
@@ -83,6 +112,10 @@ protected:
 	CArrayTemplate<size>	maiPendingArguments;	//Instruction indices of the args before a call.
 	int32					miFrameBytes;
 	int32					miHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
+	int32					miArgumentBytes;	//The arguments' bytes (the hidden result pointer's too) above the frame.
+	int32					miSavedS;			//Where an aligned frame past the page keeps S (Layout), or -1.
+	int32					miDirectPageWeight;	//The direct page accesses, weighted by the loops they are in (AlignFrame).
+	bool					mbLoops;
 	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the runtime.
 	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
@@ -97,6 +130,8 @@ protected:
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
+	void			GetFrame(SIR816Frame* psFrame);
+	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm816Profile* pcProfile);
 	void			Kill(void);
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);

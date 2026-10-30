@@ -81,6 +81,9 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 			return FAT_INVALID_FILENAME;
 		}
 		bLongFilename = true;
+
+		//No short name was made: one of zeros never matches an entry (a zero first character ends the directory).
+		memset(szConstructedShortFileName, 0, 11);
 		bMatch = CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 	}
 	else

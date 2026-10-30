@@ -249,6 +249,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	CChars					szCode;
 	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
+	SIR816Frame				sFrame;
 	size					ui;
 	size					uiStart;
 	size					uiLength;
@@ -291,7 +292,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		szCode.Init();
-		bResult = GenerateCode(mpcFunction, szLabel, &szCode);
+		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &sFrame);
 		if (bResult)
 		{
 			//The code waits (with a marker where it goes) for FinishUnit, which inlines across the unit.
@@ -299,6 +300,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
 			psWritten->szCode.Init(szCode);
+			psWritten->sFrame = sFrame;
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
 			mpcGenerator->mszCode.Append((int)(masWritten.NumElements() - 1));
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
@@ -804,7 +806,7 @@ int CCPP65IRFrontEnd::PieceBytes(int iLeft)
 // for the W65C816 (whose runtime routines the generator then writes).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode)
+bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame)
 {
 	CIR65Backend	cBackend;
 	CIR816Backend	cBackend816;
@@ -819,6 +821,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
 		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
+		cBackend816.GetFrame(psFrame);
 		if (!bResult)
 		{
 			siUnsupportedLine = __LINE__;
@@ -852,6 +855,69 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 CArrayChars* CCPP65IRFrontEnd::GetMissingCallees(void)
 {
 	return &maszMissing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction may call itself: through the calls of the unit's
+// functions (calls of functions in other units are taken not to).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsRecursive(CIRFunction* pcFunction)
+{
+	CArrayTemplate<CIRFunction*>	apcToDo;
+	CArrayTemplate<CIRFunction*>	apcSeen;
+	CIRFunction*					pcCaller;
+	CIRFunction*					pcCallee;
+	CIRBlock*						pcBlock;
+	SIRInstruction*					psInstruction;
+	size							ui;
+	size							uiBlock;
+	size							uiInstruction;
+	bool							bSeen;
+	bool							bRecursive;
+
+	apcToDo.Init();
+	apcSeen.Init();
+	apcToDo.Add(&pcFunction);
+	bRecursive = false;
+	while ((apcToDo.NumElements() > 0) && !bRecursive)
+	{
+		pcCaller = *apcToDo.Tail();
+		apcToDo.RemoveTail();
+		for (uiBlock = 0; (uiBlock < pcCaller->NumBlocks()) && !bRecursive; uiBlock++)
+		{
+			pcBlock = pcCaller->GetBlock(uiBlock);
+			for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+				if ((psInstruction->uiOpcode != IRO_Call) || !psInstruction->asArguments[0].IsSymbol())
+				{
+					continue;
+				}
+				pcCallee = mcModule.FindFunction(psInstruction->asArguments[0].Index());
+				if (pcCallee == pcFunction)
+				{
+					bRecursive = true;
+					break;
+				}
+				bSeen = (pcCallee == NULL);
+				for (ui = 0; (ui < apcSeen.NumElements()) && !bSeen; ui++)
+				{
+					bSeen = *apcSeen.Get(ui) == pcCallee;
+				}
+				if (!bSeen)
+				{
+					apcSeen.Add(&pcCallee);
+					apcToDo.Add(&pcCallee);
+				}
+			}
+		}
+	}
+	apcSeen.Kill();
+	apcToDo.Kill();
+	return bRecursive;
 }
 
 
@@ -920,7 +986,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szCode.Init();
 		if (bResult)
 		{
-			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode);
+			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode, &psWritten->sFrame);
 		}
 		if (bResult)
 		{
@@ -944,6 +1010,13 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			mpcGenerator->mpcImports->Export(&mcModule, psWritten->pcFunction);
 		}
+	}
+
+	//On the W65C816, frames worth it are put on a page, now that the unit's calls are known (CIR816Backend::AlignFrame).
+	for (ui = 0; (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (ui < masWritten.NumElements()); ui++)
+	{
+		psWritten = masWritten.Get(ui);
+		CIR816Backend::AlignFrame(&psWritten->szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || IsRecursive(psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
 	}
 
 	//The markers become the code.
@@ -5382,6 +5455,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	SCPP65IRValue					sMade;
 	int								i;
 	bool							bResult;
+	bool							bValueInitialise;
 
 	psType = psPlace->psType;
 	if (!papcArguments)
@@ -5419,18 +5493,27 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		return true;
 	}
 
+	bValueInitialise = false;
 	if (pcInitialiser)
 	{
 		if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 		{
 			papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
 			pcInitialiser = NULL;
+			bValueInitialise = papcArguments->NumElements() == 0;
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
 			papcArguments = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
 			pcInitialiser = NULL;
+			bValueInitialise = papcArguments->NumElements() == 0;
 		}
+	}
+
+	//() and {} value initialise: an object without a constructor of its own is zeroed first.
+	if (bValueInitialise && !ElementType(psType)->psClass->bConstructors)
+	{
+		ZeroBytes(psPlace->sAddress, psType->iBytes);
 	}
 
 	if (psType->IsArray())
