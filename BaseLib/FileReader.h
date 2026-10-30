@@ -71,6 +71,9 @@ public:
 						bool	ReadBool(bool* pb);
 						bool	ReadBits(void* pvData, lsize iByteLength);
 						bool	ReadIntArray(int32* pai, size iLength);
+#ifdef __W65C816__
+						bool	ReadIntArray(int16* pai, size iLength);  //Each int read from 32 bits, as ReadInt32(int16*).
+#endif // __W65C816__
 
 	//Least significant byte first, whatever the platform's byte order.
 						bool	ReadLittleEndianInt16(int16* pi);

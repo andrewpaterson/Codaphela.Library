@@ -432,7 +432,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 
 	iNumFaces = (int)pcTriangles->mcTriangles.NumElements();
 
-	asSpheres = (STriangleSphere*)malloc(sizeof(STriangleSphere) * iNumFaces);
+	asSpheres = (STriangleSphere*)malloc((lsize)sizeof(STriangleSphere) * iNumFaces);
 
 	//First generate a sphere for each triangle and calculate it's volume.
 	for (i = 0; i < iNumFaces; i++)

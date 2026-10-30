@@ -42,7 +42,7 @@ struct SSmartSource
 
 	bool		Init(Ptr<CImage> pcSource);
 	void		Kill(void);
-	bool		IsSimilar(size uiPixel1, size uiPixel2);
+	bool		IsSimilar(lsize uiPixel1, lsize uiPixel2);
 };
 
 
@@ -55,13 +55,13 @@ bool SSmartSource::Init(Ptr<CImage> pcSource)
 	size					uiChannel;
 	CImageResampleChannel	cChannel;
 	EChannel				eChannel;
-	size					uiNumPixels;
+	lsize					uiNumPixels;
 
 	uiNumChannels = pcSource->NumChannels();
-	uiNumPixels = (size)pcSource->GetWidth() * (size)pcSource->GetHeight();
-	papafValues = (float64**)malloc(sizeof(float64*) * (uiNumChannels + 1));
-	pafScales = (float64*)malloc(sizeof(float64) * (uiNumChannels + 1));
-	pabCompared = (bool*)malloc(sizeof(bool) * (uiNumChannels + 1));
+	uiNumPixels = (lsize)pcSource->GetWidth() * pcSource->GetHeight();
+	papafValues = (float64**)malloc((lsize)sizeof(float64*) * (uiNumChannels + 1));
+	pafScales = (float64*)malloc((lsize)sizeof(float64) * (uiNumChannels + 1));
+	pabCompared = (bool*)malloc((lsize)sizeof(bool) * (uiNumChannels + 1));
 
 	uiRed = pcSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_RED);
 	uiGreen = pcSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_GREEN);
@@ -112,7 +112,7 @@ void SSmartSource::Kill(void)
 // Red, green and blue are compared in YUV, as the hq filters do.
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSmartSource::IsSimilar(size uiPixel1, size uiPixel2)
+bool SSmartSource::IsSimilar(lsize uiPixel1, lsize uiPixel2)
 {
 	size	uiChannel;
 	float64	fRed;
@@ -161,7 +161,7 @@ bool SSmartSource::IsSimilar(size uiPixel1, size uiPixel2)
 // wins, then the first.
 //
 //////////////////////////////////////////////////////////////////////////
-int SmartChooseGroup(SSmartSource* psSource, size* puiPixels, float64* pafWeights, int* paiGroups)
+int SmartChooseGroup(SSmartSource* psSource, lsize* puiPixels, float64* pafWeights, int* paiGroups)
 {
 	int		i;
 	int		j;
@@ -236,7 +236,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64**				papafDest;
 	uint32					x;
 	uint32					y;
-	size					auiPixels[SMART_CORNERS];
+	lsize					auiPixels[SMART_CORNERS];
 	float64					afWeights[SMART_CORNERS];
 	int						aiGroups[SMART_CORNERS];
 	float64					fX;
@@ -245,7 +245,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	int						i;
 	float64					fTotal;
 	float64					fValue;
-	size					uiDestPixel;
+	lsize					uiDestPixel;
 	bool					bResult;
 
 	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
@@ -265,7 +265,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	sY.Init(pcSource->GetHeight(), uiDestHeight);
 	sSource.Init(pcSource);
 
-	papafDest = (float64**)malloc(sizeof(float64*) * (sSource.uiNumChannels + 1));
+	papafDest = (float64**)malloc((lsize)sizeof(float64*) * (sSource.uiNumChannels + 1));
 	for (uiChannel = 0; uiChannel < sSource.uiNumChannels; uiChannel++)
 	{
 		papafDest[uiChannel] = (float64*)malloc(sizeof(float64) * uiDestWidth * uiDestHeight);
@@ -278,10 +278,10 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 		{
 			fX = (float64)sX.paiFraction[x] / BILINEAR_ONE;
 
-			auiPixels[0] = (size)sY.paiFirst[y] * uiSourceWidth + sX.paiFirst[x];
-			auiPixels[1] = (size)sY.paiFirst[y] * uiSourceWidth + sX.paiSecond[x];
-			auiPixels[2] = (size)sY.paiSecond[y] * uiSourceWidth + sX.paiFirst[x];
-			auiPixels[3] = (size)sY.paiSecond[y] * uiSourceWidth + sX.paiSecond[x];
+			auiPixels[0] = (lsize)sY.paiFirst[y] * uiSourceWidth + sX.paiFirst[x];
+			auiPixels[1] = (lsize)sY.paiFirst[y] * uiSourceWidth + sX.paiSecond[x];
+			auiPixels[2] = (lsize)sY.paiSecond[y] * uiSourceWidth + sX.paiFirst[x];
+			auiPixels[3] = (lsize)sY.paiSecond[y] * uiSourceWidth + sX.paiSecond[x];
 			afWeights[0] = (1.0 - fX) * (1.0 - fY);
 			afWeights[1] = fX * (1.0 - fY);
 			afWeights[2] = (1.0 - fX) * fY;
@@ -298,7 +298,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 				}
 			}
 
-			uiDestPixel = (size)y * uiDestWidth + x;
+			uiDestPixel = (lsize)y * uiDestWidth + x;
 			for (uiChannel = 0; uiChannel < sSource.uiNumChannels; uiChannel++)
 			{
 				fValue = 0.0;

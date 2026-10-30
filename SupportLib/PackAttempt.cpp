@@ -81,7 +81,7 @@ int ComparePackAttempt(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth, EPackRotation eRotation, bool bRotateToFit)
+void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int32 iMaxWidth, EPackRotation eRotation, bool bRotateToFit)
 {
 	macLines.Init();
 	mpcRectanglePacker = pcRectanglePacker;

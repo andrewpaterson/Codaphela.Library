@@ -44,14 +44,14 @@ public:
 	
 	void	GetNative(void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1
 	void	GetAs(EPrimitiveType eType, void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1
-	void	GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest);	
+	void	GetAsSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvDest);	
 
 	void	SetNative(void* pvBase, void* pvSource); //Not valid if miByteSize or miByteOffset -1
 	void	SetFrom(EPrimitiveType eType, void* pvBase, void* pvSource);	//Not valid if miByteSize or miByteOffset -1
-	void	SetFromSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvSource);	
+	void	SetFromSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvSource);	
 
-	void	GetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvDest);
-	void	SetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvSource);
+	void	GetBits(void* pvBase, lsize iBitOffset, size iNumBits, void* pvDest);
+	void	SetBits(void* pvBase, lsize iBitOffset, size iNumBits, void* pvSource);
 
 };
 

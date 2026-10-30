@@ -40,7 +40,7 @@ void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAcces
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorContiguous::Get(size iPos)
+void* CChannelsAccessorContiguous::Get(lsize iPos)
 {
 	void*	pvSource;
 
@@ -53,7 +53,7 @@ void* CChannelsAccessorContiguous::Get(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Set(size iPos, void* pvSource)
+void CChannelsAccessorContiguous::Set(lsize iPos, void* pvSource)
 {
 	void*	pvDest;
 

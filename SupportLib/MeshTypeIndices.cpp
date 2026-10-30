@@ -123,7 +123,7 @@ bool CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 	{
 		psFaceIndex = pcFaceIndicies->Get(i);
 
-		pvFaceVertIndex1 = RemapSinglePointer(pavFaceIndices, miStride * 3 * i);
+		pvFaceVertIndex1 = RemapSinglePointer(pavFaceIndices, (lsize)miStride * 3 * i);
 		pvFaceVertIndex2 = RemapSinglePointer(pvFaceVertIndex1, miStride);
 		pvFaceVertIndex3 = RemapSinglePointer(pvFaceVertIndex2, miStride);
 

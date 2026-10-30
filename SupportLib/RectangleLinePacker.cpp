@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangleLinePacker::Init(bool bLeftToRight, bool bPow2, int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CRectangleLinePacker::Init(bool bLeftToRight, bool bPow2, int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth)
 {
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
@@ -148,12 +148,12 @@ SInt32Vec2 CRectangleLinePacker::GetPackedImageSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleLinePacker::GetWidestRect(void)
+int32 CRectangleLinePacker::GetWidestRect(void)
 {
 	size			i;
-	int				iMaxWidth;
+	int32			iMaxWidth;
 	CInt32Rect*		pcRect;
-	int				iWidth;
+	int32			iWidth;
 	size			uiNumElements;
 
 	iMaxWidth = 0;
@@ -176,12 +176,12 @@ int CRectangleLinePacker::GetWidestRect(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleLinePacker::GetHighestRect(void)
+int32 CRectangleLinePacker::GetHighestRect(void)
 {
 	size			i;
-	int				iMaxHeight;
+	int32			iMaxHeight;
 	CInt32Rect*		pcRect;
-	int				iHeight;
+	int32			iHeight;
 	size			uiNumElements;
 
 	iMaxHeight = 0;
@@ -204,11 +204,11 @@ int CRectangleLinePacker::GetHighestRect(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleLinePacker::PackLeftToRight(void)
+int32 CRectangleLinePacker::PackLeftToRight(void)
 {
 	size			i;
 	CInt32Rect*		pcRect;
-	int				iLeft;
+	int32			iLeft;
 	size			uiNumElements;
 
 	iLeft = miOutsideEdgeWidth;
@@ -231,11 +231,11 @@ int CRectangleLinePacker::PackLeftToRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangleLinePacker::PackTopToBottom(void)
+int32 CRectangleLinePacker::PackTopToBottom(void)
 {
 	size			i;
 	CInt32Rect*		pcRect;
-	int				iTop;
+	int32			iTop;
 	size			uiNumElements;
 
 	iTop = miOutsideEdgeWidth;
@@ -259,8 +259,8 @@ int CRectangleLinePacker::PackTopToBottom(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayPackedRectangle* CRectangleLinePacker::GetRectangles(void) {return &macRectangles;}
-int CRectangleLinePacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
-int CRectangleLinePacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
+int32 CRectangleLinePacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
+int32 CRectangleLinePacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
 bool CRectangleLinePacker::IsLeftToRight(void) {return mbLeftToRight;}
 SInt32Vec2 CRectangleLinePacker::GetSize(void) {return miSize;}
 bool CRectangleLinePacker::IsPow2(void) {return mbPow2;}

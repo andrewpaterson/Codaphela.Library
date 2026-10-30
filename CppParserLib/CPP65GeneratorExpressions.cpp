@@ -4450,6 +4450,43 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Warns if a shift's count is a constant not less than iBits, the width of
+// the (promoted) value shifted: the result is undefined.  On the W65C816 an
+// int is 16 bits, so a uint8 or int promoted to it and shifted by 16 or more
+// ((uint32)(b << 16) with a uint8 b) is zero, not the 32 bit value meant.
+// Converting the operand first ((uint32)b << 16) shifts in the wider type.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
+{
+	CChars	szMessage;
+	int64	lliCount;
+	bool	bConstant;
+	bool	bQuietFailed;
+
+	if (miWarningChecks > 0)
+	{
+		return;
+	}
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	bConstant = Constant(pcBinary->mpcRight, &lliCount);
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	if (!bConstant || (lliCount < iBits))
+	{
+		return;
+	}
+
+	szMessage.Init("Shift count ");
+	szMessage.Append(lliCount)->Append(" is not less than the ")->Append(iBits)->Append(" bit width of the value shifted, so the result is undefined.  Convert the operand first to shift in a wider type.");
+	Warning(pcBinary, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Warns if a for loop's counter (a variable its increment steps with ++,
 // --, += or -=) is compared in its condition with a wider integer that isn't
 // a constant: for (size i = 0; i < aoi.NumElements(); i++) with a 16 bit i

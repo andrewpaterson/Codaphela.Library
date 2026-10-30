@@ -180,7 +180,7 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 		uiNumTaps = GetNumSincTaps(fCutoff);
 		if ((uint64)uiNumPhases * (uint64)uiNumTaps <= SOUND_RESAMPLER_MAX_TABLE_TAPS)
 		{
-			pfTable = (float64*)malloc(sizeof(float64) * uiNumPhases * uiNumTaps);
+			pfTable = (float64*)malloc((lsize)sizeof(float64) * uiNumPhases * uiNumTaps);
 			for (uiPhase = 0; uiPhase < uiNumPhases; uiPhase++)
 			{
 				CalculateSincTaps((float64)uiPhase / (float64)uiNumPhases, fCutoff, &pfTable[uiPhase * uiNumTaps], uiNumTaps);
@@ -188,8 +188,8 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 		}
 	}
 
-	pfSource = (float64*)malloc(sizeof(float64) * (uiSourceFrames + 1));
-	pfDest = (float64*)malloc(sizeof(float64) * (uiDestFrames + 1));
+	pfSource = (float64*)malloc((lsize)sizeof(float64) * (uiSourceFrames + 1));
+	pfDest = (float64*)malloc((lsize)sizeof(float64) * (uiDestFrames + 1));
 	uiNumChannels = pcSource->NumChannels();
 	for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 	{
@@ -243,7 +243,7 @@ void CSoundResampler::ResampleChannel(float64* pfSource, size uiSourceFrames, fl
 	{
 		fCutoff = GetCutoff(uiSourceRate, uiDestRate);
 		uiNumTaps = GetNumSincTaps(fCutoff);
-		pfTaps = (float64*)malloc(sizeof(float64) * uiNumTaps);
+		pfTaps = (float64*)malloc((lsize)sizeof(float64) * uiNumTaps);
 	}
 	else if (meResample == SR_Sinc)
 	{

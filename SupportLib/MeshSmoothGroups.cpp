@@ -139,7 +139,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 			uiFaceName = pcPolygon->miName;
 			if (uiFaceName != 0)
 			{
-				uiSmoothingGroup = 1 << (uiFaceName-1);
+				uiSmoothingGroup = (uint32)1 << (uiFaceName-1);
 			}
 			else
 			{

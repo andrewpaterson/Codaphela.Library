@@ -72,7 +72,7 @@ void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest)
+void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvDest)
 {
 	char	c[16];
 
@@ -85,7 +85,7 @@ void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvDest)
+void CChannelAccessor::GetBits(void* pvBase, lsize iBitOffset, size iNumBits, void* pvDest)
 {
 	if (!mbChannelReverse)
 	{
@@ -128,7 +128,7 @@ void CChannelAccessor::SetFrom(EPrimitiveType eType, void* pvBase, void* pvSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvSource)
+void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, lsize iBitOffset, void* pvSource)
 {
 	uint8	c[16];
 
@@ -141,7 +141,7 @@ void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, size iBitO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvSource)
+void CChannelAccessor::SetBits(void* pvBase, lsize iBitOffset, size iNumBits, void* pvSource)
 {
 	if (!mbChannelReverse)
 	{

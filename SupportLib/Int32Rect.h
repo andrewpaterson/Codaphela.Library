@@ -33,10 +33,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CInt32Rect : public CRectangle<SInt32Vec2, int32, int64>
 {
 public:
-	using CRectangle<SInt32Vec2, int32, int64>::Init;
-
-	void			Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
-
 	void			GrowToContain(int32 iXPos, int32 iYPos);
 	void			GrowToContain(CInt32Rect* pcOther);
 

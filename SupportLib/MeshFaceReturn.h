@@ -29,12 +29,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMFRet
 {
 public:
-	int				miFirstFace;
+	int32	miFirstFace;
 	uint8	manCorners[4];
 
 	void	PackEmpty(void);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges);
+	void	Pack(int32 iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges);
+	void	Pack(int32 iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges);
 	void	Pack2(CMFRet r2);
 	void	Repack(int iCorner1, int iCorner2, int iCorner3);
 	void	Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6);

@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __TILE_LAYER_H__
 #define __TILE_LAYER_H__
-#include "BaseLib/IntVec2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
@@ -43,7 +43,7 @@ protected:
 	int			miIdentifier;
 
 public:
-			void	Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition);
+			void	Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition);
 			void 	Free(void) override;
 			void	Class(void) override;
 

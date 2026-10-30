@@ -26,11 +26,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //A pixel completely covered accumulates cover * 2 * COVERAGE_SUBPIXELS - area of this.
-#define COVERAGE_FULL				(2 * COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS)
+#define COVERAGE_FULL				((int32)2 * COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS)
 
 //Curves whose control point is less than this far (squared, in subpixels) from straight are drawn as one line;
 //one third of a pixel squared.
-#define COVERAGE_FLAT_DEVIATION		(COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS / 3)
+#define COVERAGE_FLAT_DEVIATION		((int32)COVERAGE_SUBPIXELS * COVERAGE_SUBPIXELS / 3)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,14 +69,14 @@ void CCoverageRasteriser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 {
-	size	uiCells;
+	lsize	uiCells;
 
 	//An empty grid (nothing to draw) is allowed.
 	if ((iWidth < 0) || (iHeight < 0))
 	{
 		return false;
 	}
-	uiCells = (size)iWidth * iHeight;
+	uiCells = (lsize)iWidth * iHeight;
 	if (uiCells == 0)
 	{
 		miWidth = iWidth;
@@ -289,7 +289,7 @@ void CCoverageRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, in
 	int32	iLeft;
 	int32	iX1;
 	int32	iX2;
-	size	uiCell;
+	lsize	uiCell;
 
 	iHeight = y2 - y1;
 	if (iHeight == 0)
@@ -315,7 +315,7 @@ void CCoverageRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, in
 		iX2 = x2 - iLeft;
 	}
 
-	uiCell = (size)iRow * miWidth + iColumn;
+	uiCell = (lsize)iRow * miWidth + iColumn;
 	mpiCover[uiCell] += iHeight;
 	mpiArea[uiCell] += (iX1 + iX2) * iHeight;
 }
@@ -332,7 +332,7 @@ void CCoverageRasteriser::Accumulate(void)
 {
 	int		x;
 	int		y;
-	size	uiCell;
+	lsize	uiCell;
 	int64	iCover;
 	int64	iCoverage;
 
@@ -341,7 +341,7 @@ void CCoverageRasteriser::Accumulate(void)
 		iCover = 0;
 		for (x = 0; x < miWidth; x++)
 		{
-			uiCell = (size)y * miWidth + x;
+			uiCell = (lsize)y * miWidth + x;
 			iCover += mpiCover[uiCell];
 			iCoverage = iCover * 2 * COVERAGE_SUBPIXELS - mpiArea[uiCell];
 			if (iCoverage < 0)

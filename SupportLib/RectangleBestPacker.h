@@ -34,13 +34,13 @@ class CRectangleBestPacker : public CRectanglePacker
 CONSTRUCTABLE(CRectangleBestPacker)
 protected:
 	CArrayPackSourceRectangle	masSourceRectangles;
-	int							miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
-	int							miInnerEdgeWidth;  //Gap between rectangles.
+	int32						miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
+	int32						miInnerEdgeWidth;  //Gap between rectangles.
 	CArrayPackAttempt			macPackAttempts;
 	int64						miSourceArea;
 
 public:
-	void						Init(int iOutsideEdgeWidth, int iInnerEdgeWidth);
+	void						Init(int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth);
 	void						Kill(void);
 
 	void						Pack(void);
@@ -50,7 +50,7 @@ public:
 	bool						AddRectangle(CSubImage* pcSubImage);
 	bool						AddRectangle(CImageCel* pcImageCel);
 
-	void						AddAttempt(int iMaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
+	void						AddAttempt(int32 iMaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
 	void						AddHorizontalAttempt(void);
 	void						AddSquareAttempt(void);
 	void						AddVerticalAttempt(void);
@@ -59,17 +59,17 @@ public:
 
 	CPackAttempt*				GetBestAttempt(void);
 	CPackAttempt*				GetWorstAttempt(void);
-	int							GetSourcesMinWidth(void);
-	int							GetSourcesMinWidth(EPackRotation eRotation, bool bRotateToFit);
-	int							GetSourcesMaxWidth(void);
-	int							GetSourcesMaxWidth(EPackRotation eRotation);
+	int32						GetSourcesMinWidth(void);
+	int32						GetSourcesMinWidth(EPackRotation eRotation, bool bRotateToFit);
+	int32						GetSourcesMaxWidth(void);
+	int32						GetSourcesMaxWidth(EPackRotation eRotation);
 
 	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt32Vec2						GetPackedImageSize(void);
 
 	CArrayPackSourceRectangle*	GetSourceRectangles(void);
-	int							GetOutsideEdgeWidth(void);
-	int							GetInnerEdgeWidth(void);
+	int32						GetOutsideEdgeWidth(void);
+	int32						GetInnerEdgeWidth(void);
 	CArrayPackAttempt*			GetPackAttempts(void);
 	int64						GetSourceArea(void);
 };

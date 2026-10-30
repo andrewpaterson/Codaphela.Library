@@ -31,19 +31,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInt32Rect::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
-{
-	msTopLeft.x = (int32)iLeft;
-	msTopLeft.y = (int32)iTop;
-	msBottomRight.x = (int32)iRight;
-	msBottomRight.y = (int32)iBottom;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CInt32Rect::GrowToContain(int32 iXPos, int32 iYPos)
 {
 	if (iXPos < msTopLeft.x)

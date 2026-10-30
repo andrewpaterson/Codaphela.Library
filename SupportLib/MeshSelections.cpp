@@ -111,7 +111,7 @@ bool CMeshSelections::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	size	iCount;
 	bool	bCurrent;
 	lsize	uiNumElements;
@@ -136,7 +136,7 @@ int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::SetFaceSelectionTo(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	lsize	uiNumElements;
 
 	uiNumElements = mcFaces.NumElements();
@@ -163,7 +163,7 @@ void CMeshSelections::ClearFaceSelection(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	size	iCount;
 	bool	bCurrent;
 	lsize	uiNumElements;
@@ -188,7 +188,7 @@ int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::SetCornerSelectionTo(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	lsize	uiNumElements;
 
 	uiNumElements = mcVerts.NumElements();
@@ -215,7 +215,7 @@ void CMeshSelections::ClearCornerSelection(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	size	iCount;
 	bool	bCurrent;
 	lsize	uiNumElements;
@@ -240,7 +240,7 @@ int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::SetEdgeSelectionTo(bool bSelected)
 {
-	size	i;
+	lsize	i;
 	lsize	uiNumElements;
 
 	uiNumElements = mcEdges.NumElements();

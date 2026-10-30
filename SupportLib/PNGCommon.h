@@ -47,8 +47,8 @@ extern const uint8	gauiPNGSignature[PNG_SIGNATURE_SIZE];
 
 
 uint8	PNGPaethPredictor(uint8 uiLeft, uint8 uiUp, uint8 uiUpLeft);
-bool	PNGWriteChunk(CFileWriter* pcFile, const char* szType, uint8* puiData, size uiLength);
-uint32	PNGChunkCRC(uint8* puiType, uint8* puiData, size uiLength);
+bool	PNGWriteChunk(CFileWriter* pcFile, const char* szType, uint8* puiData, lsize uiLength);
+uint32	PNGChunkCRC(uint8* puiType, uint8* puiData, lsize uiLength);
 
 
 #endif // __PNG_COMMON_H__

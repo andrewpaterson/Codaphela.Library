@@ -32,7 +32,7 @@ class CImageAccessorByte : public CImageAccessor
 CONSTRUCTABLE(CImageAccessorByte);
 protected:
 	size	miOffset;
-	size	miImageStride;
+	lsize	miImageStride;
 	size	miPixelStride;
 	uint8*	mpucImageData;
 

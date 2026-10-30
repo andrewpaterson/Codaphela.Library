@@ -74,7 +74,7 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 	}
 	else
 	{
-		CChannelAccessor::GetBits(mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), miChannelBitSize, auc);
+		CChannelAccessor::GetBits(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetBitStride(), miChannelBitSize, auc);
 	}
 
 	switch (meChannelType)
@@ -146,7 +146,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 		}
 		else
 		{
-			CChannelAccessor::GetAsSub(eType, mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), pvDest);
+			CChannelAccessor::GetAsSub(eType, mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetBitStride(), pvDest);
 		}
 	}
 }

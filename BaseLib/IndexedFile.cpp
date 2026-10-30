@@ -273,7 +273,7 @@ bool CIndexedFile::Delete(filePos iIndex, lsize uiCount)
 			cTemp.Kill();
 			return false;
 		}
-		iPosition += (filePos)(uiChunk * muiDataSize);
+		iPosition += (filePos)uiChunk * muiDataSize;
 		uiCount -= uiChunk;
 	}
 	cTemp.Kill();

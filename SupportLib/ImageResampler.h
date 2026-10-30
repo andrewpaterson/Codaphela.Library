@@ -51,13 +51,13 @@ class CImageResampler : public CImageModifier
 CONSTRUCTABLE(CImageResampler);
 DESTRUCTABLE(CImageResampler);
 private:
-	void			GetPowerOf2Size(EPow2Style eStyle, int iSourceWidth, int iSourceHeight, int* piDestWidth, int* piDestHeight);
+	void			GetPowerOf2Size(EPow2Style eStyle, int32 iSourceWidth, int32 iSourceHeight, int32* piDestWidth, int32* piDestHeight);
 	Ptr<CImage>		ResampleTo(Ptr<CImage> pcSource);
 
 public:
 	EImageResample	meResample;
-	int				miWidth;
-	int				miHeight;
+	int32			miWidth;
+	int32			miHeight;
 	EPow2Style		meStyle;
 
 	void			Init(EImageResample eResample, EPow2Style eStyle);

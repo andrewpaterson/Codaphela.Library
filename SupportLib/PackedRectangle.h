@@ -38,13 +38,13 @@ enum EPackRotation
 class CPackSourceRectangle
 {
 public:
-	int			miWidth;
-	int			miHeight;
+	int32		miWidth;
+	int32		miHeight;
 	void*		mpvUserData;
 
 	void Init(CInt32Rect* pcRect, void* pvUserData);
 	bool IsRotatedBy(EPackRotation eRotation);
-	void GetSize(EPackRotation eRotation, int* piWidth, int* piHeight);
+	void GetSize(EPackRotation eRotation, int32* piWidth, int32* piHeight);
 };
 
 
@@ -55,12 +55,12 @@ class CPackRectangleAttempt
 {
 public:
 	CPackSourceRectangle	mcSourceRectangle;  //A copy so that adding source rectangles to the packer can't leave it dangling.  Its size is the size as packed, so it is swapped if rotated.
-	int						mix;	//Relative to the CPackedLine.
-	int						miy;
+	int32					mix;	//Relative to the CPackedLine.
+	int32					miy;
 	bool					mbRotated;
 
 	void Init(CPackSourceRectangle* pcSourceRectangle, bool bRotated = false);
-	void SetPos(int x, int y);
+	void SetPos(int32 x, int32 y);
 	void Rotate(void);
 };
 
@@ -75,7 +75,7 @@ public:
 	void*		mpvUserData;
 	bool		mbRotated;  //Turned 90 degrees clockwise from the rectangle that was added.  The packed width is the added height.
 
-	void	Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated = false);
+	void	Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, void* pvUserData, bool bRotated = false);
 	void	Init(CInt32Rect* pcRect, void* pvUserData);
 
 	void*	GetUserData(void);

@@ -220,7 +220,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 	}
 
 	iNumNormals = (pcImageDest->GetImageWidth() + 1) * (pcImageDest->GetImageHeight() + 1);
-	pasNormals = (SFloat32Vec3*)malloc(sizeof(SFloat32Vec3) * iNumNormals);
+	pasNormals = (SFloat32Vec3*)malloc((lsize)sizeof(SFloat32Vec3) * iNumNormals);
 
 	GenerateNormalMapFromMono(&pcImageSource, pasNormals, eHeightChannel);
 	if (bNormalMap)

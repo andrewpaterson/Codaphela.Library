@@ -1013,6 +1013,7 @@ void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
 	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
 	szMessageText.Init("Warning: ");
 	szMessageText.Append(szMessage);
+	AppendMacroUse(psSource, &szMessageText);
 	szDetail.Init();
 	psSource->Append(&szDetail);
 	mcWarnings.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessageText.Text(), szDetail.Text());
@@ -1051,6 +1052,7 @@ bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
 {
 	SPreprocessedToken*	psSource;
 	CChars				szDetail;
+	CChars				szMessageText;
 
 	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
 	{
@@ -1059,11 +1061,51 @@ bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
 	}
 
 	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
+	szMessageText.Init(szMessage);
+	AppendMacroUse(psSource, &szMessageText);
 	szDetail.Init();
 	psSource->Append(&szDetail);
-	mcErrors.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessage, szDetail.Text());
+	mcErrors.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessageText.Text(), szDetail.Text());
 	szDetail.Kill();
+	szMessageText.Kill();
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A token made by a macro is reported where its characters are (often in a header's #define), so where the outermost
+// macro was used is added: " (in AssertInt at TestImage.cpp (12, 2))".
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage)
+{
+	SMacroExpansion*		psExpansion;
+	CPreprocessedTokens*	pcSource;
+
+	if (!psSource || (psSource->iExpansion < 0))
+	{
+		return;
+	}
+	pcSource = mpcTokeniser->mpcSource;
+	psExpansion = pcSource->GetExpansion((size)psSource->iExpansion);
+	while (psExpansion->iParent >= 0)
+	{
+		psExpansion = pcSource->GetExpansion((size)psExpansion->iParent);
+	}
+	if (!psExpansion->pcFile)
+	{
+		return;
+	}
+	pszMessage->Append(" (in ");
+	pszMessage->Append(psExpansion->szName, (size)psExpansion->uiNameLength);
+	pszMessage->Append(" at ");
+	pszMessage->Append(psExpansion->pcFile->ShortName());
+	pszMessage->Append(" (");
+	pszMessage->Append(psExpansion->iLine + 1);
+	pszMessage->Append(", ");
+	pszMessage->Append(psExpansion->iColumn + 1);
+	pszMessage->Append("))");
 }
 
 

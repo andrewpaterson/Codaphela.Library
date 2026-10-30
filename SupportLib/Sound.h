@@ -93,7 +93,7 @@ public:
 
 	void					SetData(void* pvData);
 	void*					GetData(void);
-	size					GetByteSize(void);
+	lsize					GetByteSize(void);
 	CChannels*				GetChannels(void);
 	size					GetFrameByteStride(void);
 	size					GetFrameBitStride(void);

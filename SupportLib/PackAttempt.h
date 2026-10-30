@@ -31,9 +31,9 @@ class CRectangleBestPacker;
 class CPackAttempt
 {
 public:
-	int							miMaxWidth;
-	int							miWidth;
-	int							miHeight;
+	int32						miMaxWidth;
+	int32						miWidth;
+	int32						miHeight;
 	int64						miArea;  //64 bit; micrometre rectangles easily pass 2^31 square micrometres.
 	CArrayPackedLine			macLines;
 	CArrayPackRectangleAttempt	macRectangles;
@@ -42,7 +42,7 @@ public:
 	EPackRotation				meRotation;  //How every rectangle is turned before packing.
 	bool						mbRotateToFit;  //Turn a rectangle that doesn't fit a space the way it is.
 
-	void 					Init(CRectangleBestPacker* pcRectanglePacker, int MaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
+	void 					Init(CRectangleBestPacker* pcRectanglePacker, int32 MaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
 	void 					Kill(void);
 
 	void 					AddRectanglesFromPacker(void);

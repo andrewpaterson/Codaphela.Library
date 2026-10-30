@@ -95,7 +95,7 @@ bool CImageResampleChannel::Init(Ptr<CImage> pcImage, size uiChannelIndex)
 {
 	mpcChannels = pcImage->GetChannels();
 	mpcChannel = pcImage->GetChannelAtIndex(uiChannelIndex);
-	muiNumPixels = (size)pcImage->GetWidth() * (size)pcImage->GetHeight();
+	muiNumPixels = (lsize)pcImage->GetWidth() * (lsize)pcImage->GetHeight();
 
 	if ((mpcChannel == NULL) || mpcChannel->bReverse || !ImageResampleGetRange(mpcChannel->eType, &mfMinimum, &mfMaximum, &mbFloat))
 	{
@@ -196,7 +196,7 @@ float64 CImageResampleChannel::GetMaximum(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImageResampleChannel::NumPixels(void)
+lsize CImageResampleChannel::NumPixels(void)
 {
 	return muiNumPixels;
 }
@@ -331,7 +331,7 @@ void CImageResampleChannel::FromFloat(float64 fValue, void* pvRaw)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampleChannel::GetIntegers(int32* paiDest)
 {
-	size	uiPixel;
+	lsize	uiPixel;
 	uint64	ulliRaw;
 
 	for (uiPixel = 0; uiPixel < muiNumPixels; uiPixel++)
@@ -348,7 +348,7 @@ void CImageResampleChannel::GetIntegers(int32* paiDest)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampleChannel::SetIntegers(int32* paiSource)
 {
-	size	uiPixel;
+	lsize	uiPixel;
 	uint64	ulliRaw;
 	int32	iMinimum;
 	int32	iMaximum;
@@ -380,7 +380,7 @@ void CImageResampleChannel::SetIntegers(int32* paiSource)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampleChannel::GetFloats(float64* pafDest)
 {
-	size	uiPixel;
+	lsize	uiPixel;
 	uint64	ulliRaw;
 
 	for (uiPixel = 0; uiPixel < muiNumPixels; uiPixel++)
@@ -397,7 +397,7 @@ void CImageResampleChannel::GetFloats(float64* pafDest)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampleChannel::SetFloats(float64* pafSource)
 {
-	size	uiPixel;
+	lsize	uiPixel;
 	uint64	ulliRaw;
 
 	for (uiPixel = 0; uiPixel < muiNumPixels; uiPixel++)

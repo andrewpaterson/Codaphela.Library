@@ -153,10 +153,10 @@ void CVectorRasteriser::AddLine(SFloat64Vec2* psStart, SFloat64Vec2* psEnd)
 // eight so the grid is symmetric about the axes and the diagonals.
 //
 //////////////////////////////////////////////////////////////////////////
-int CVectorRasteriser::ArcSteps(float64 fPixelRadius)
+int32 CVectorRasteriser::ArcSteps(float64 fPixelRadius)
 {
 	float64	fSteps;
-	int		iSteps;
+	int32	iSteps;
 
 	if (fPixelRadius <= mfTolerance)
 	{
@@ -167,7 +167,7 @@ int CVectorRasteriser::ArcSteps(float64 fPixelRadius)
 	{
 		return VECTOR_ARC_MAX_STEPS;
 	}
-	iSteps = ((int)ceil(fSteps) + 7) / 8 * 8;
+	iSteps = ((int32)ceil(fSteps) + 7) / 8 * 8;
 	if (iSteps < 8)
 	{
 		iSteps = 8;
@@ -183,7 +183,7 @@ int CVectorRasteriser::ArcSteps(float64 fPixelRadius)
 // grid is exactly symmetric.
 //
 //////////////////////////////////////////////////////////////////////////
-void CVectorRasteriser::GridCosSin(int64 iIndex, int iSteps, float64* pfCos, float64* pfSin)
+void CVectorRasteriser::GridCosSin(int64 iIndex, int32 iSteps, float64* pfCos, float64* pfSin)
 {
 	int64	iEighth;
 	int64	iOctant;
@@ -254,7 +254,7 @@ void CVectorRasteriser::AddArc(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloa
 	float64			fCenterY;
 	float64			fCos;
 	float64			fSin;
-	int				iSteps;
+	int32			iSteps;
 	int64			iFirst;
 	int64			iLast;
 	int64			i;
@@ -385,8 +385,8 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 	size		uiNumSegments;
 	size		uiPartStart;
 	size		uiNumParts;
-	size		uiCells;
-	size		uiCell;
+	lsize		uiCells;
+	lsize		uiCell;
 	bool		bExposure;
 	uint8*		puiPart;
 	int32		iPart;
@@ -423,13 +423,13 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 		mpuiResult = mcCoverage.GetCoverage();
 		if ((uiNumParts == 1) && !pcPath->GetSegment(0)->bExposure)
 		{
-			memset(mpuiResult, 0, (size)iWidth * iHeight);
+			memset(mpuiResult, 0, (lsize)iWidth * iHeight);
 		}
 		return true;
 	}
 
 	//Several parts may overlap and wind differently so each is filled on its own and combined: on adds, off erases.
-	uiCells = (size)iWidth * iHeight;
+	uiCells = (lsize)iWidth * iHeight;
 	if (uiCells > muiPathCapacity)
 	{
 		free(mpuiPath);

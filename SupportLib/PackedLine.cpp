@@ -146,7 +146,7 @@ void CPackedLine::Done(void)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;
-	int						iTemp;
+	int32					iTemp;
 	size					uiNumElements;
 
 	miWidth = 0;
@@ -199,13 +199,13 @@ CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles, int iOutsideEdgeWidth)
+void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles, int32 iOutsideEdgeWidth)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;
 	CPackedRectangle*		pcPackedRect;
-	int						iLeft;
-	int						iTop;
+	int32					iLeft;
+	int32					iTop;
 	size					uiNumElements;
 
 	uiNumElements = macRectangles.NumElements();

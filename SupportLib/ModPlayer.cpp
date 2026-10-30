@@ -280,7 +280,7 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 	{
 		pcBank = pcSong->GetSampleBank()->GetSound();
 		uiBankFrames = pcBank->GetNumFrames();
-		mpfBank = (float64*)malloc(sizeof(float64) * (uiBankFrames + 1));
+		mpfBank = (float64*)malloc((lsize)sizeof(float64) * (uiBankFrames + 1));
 		pcBank->GetSamples(0, 0, uiBankFrames, mpfBank);
 	}
 
@@ -389,14 +389,14 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, size uiMaxFrames)
 	}
 
 	uiAllocated = MOD_RENDER_BLOCK;
-	pfStereo = (float64*)malloc(sizeof(float64) * 2 * uiAllocated);
+	pfStereo = (float64*)malloc((lsize)sizeof(float64) * 2 * uiAllocated);
 	uiFrames = 0;
 	while ((uiFrames < uiMaxFrames) && !mbFinished)
 	{
 		if (uiFrames + MOD_RENDER_BLOCK > uiAllocated)
 		{
 			uiAllocated *= 2;
-			pfStereo = (float64*)realloc(pfStereo, sizeof(float64) * 2 * uiAllocated);
+			pfStereo = (float64*)realloc(pfStereo, (lsize)sizeof(float64) * 2 * uiAllocated);
 		}
 		uiRequest = uiMaxFrames - uiFrames < MOD_RENDER_BLOCK ? uiMaxFrames - uiFrames : MOD_RENDER_BLOCK;
 		uiCount = Render(&pfStereo[uiFrames * 2], uiRequest);
@@ -408,7 +408,7 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, size uiMaxFrames)
 	}
 
 	pcSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
-	pfChannel = (float64*)malloc(sizeof(float64) * (uiFrames + 1));
+	pfChannel = (float64*)malloc((lsize)sizeof(float64) * (uiFrames + 1));
 	for (c = 0; c < 2; c++)
 	{
 		for (i = 0; i < uiFrames; i++)
@@ -1075,7 +1075,7 @@ void CModPlayer::Mix(float64* pfStereo, size uiNumFrames)
 	size			uiIndex;
 	float64			fFraction;
 
-	memset(pfStereo, 0, sizeof(float64) * 2 * uiNumFrames);
+	memset(pfStereo, 0, (lsize)sizeof(float64) * 2 * uiNumFrames);
 	for (uiChannel = 0; uiChannel < mpSong->NumChannels(); uiChannel++)
 	{
 		psChannel = &masChannels[uiChannel];

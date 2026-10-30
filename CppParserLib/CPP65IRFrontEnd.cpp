@@ -281,6 +281,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			szWarnings.Init();
 			cOptimiser.SetWarnings(&szWarnings);
@@ -994,6 +995,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();
@@ -3381,6 +3383,10 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		if (!Value(pcBinary->mpcLeft, &sLeft) || !Value(pcBinary->mpcRight, &sRight))
 		{
 			return false;
+		}
+		if (((pcBinary->meOperator == CT_LeftShift) || (pcBinary->meOperator == CT_RightShift)) && sLeft.psType->IsInteger())
+		{
+			mpcGenerator->ShiftCount(pcBinary, mpcTypes->Promote(sLeft.psType)->iBytes * 8);
 		}
 		return Operate(pcBinary->meOperator, &sLeft, &sRight, psValue);
 	}

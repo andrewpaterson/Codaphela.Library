@@ -34,7 +34,7 @@ DESTRUCTABLE(CImageChannelAdd);
 public:
 	EPrimitiveType		meType;
 	CArrayInt			maiChannels;
-	int					miGroup;
+	int32				miGroup;
 
 	void			 Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
 	void			 Class(void) override;

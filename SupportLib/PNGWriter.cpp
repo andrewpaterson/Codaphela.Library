@@ -79,7 +79,7 @@ uint8 PNGFilterByte(int iFilter, uint8 uiByte, uint8 uiLeft, uint8 uiUp, uint8 u
 // The absolute value of a filtered byte as a signed byte.
 //
 //////////////////////////////////////////////////////////////////////////
-size PNGFilterCost(uint8 uiFiltered)
+lsize PNGFilterCost(uint8 uiFiltered)
 {
 	return (uiFiltered < 128) ? uiFiltered : 256 - uiFiltered;
 }
@@ -163,12 +163,12 @@ __m256i PNGAddFilterCost8(__m256i sSums, __m256i sFiltered)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size PNGSumFilterCost8(__m256i sSums)
+lsize PNGSumFilterCost8(__m256i sSums)
 {
 	uint64	auiSums[4];
 
 	_mm256_storeu_si256((__m256i*)auiSums, sSums);
-	return (size)(auiSums[0] + auiSums[1] + auiSums[2] + auiSums[3]);
+	return (lsize)(auiSums[0] + auiSums[1] + auiSums[2] + auiSums[3]);
 }
 #endif // __AVX2__
 
@@ -179,9 +179,9 @@ size PNGSumFilterCost8(__m256i sSums)
 // all zeros for the first row.
 //
 //////////////////////////////////////////////////////////////////////////
-void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiPixelBytes, uint8* puiDest)
+void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize uiPixelBytes, uint8* puiDest)
 {
-	size	i;
+	lsize	i;
 
 	//The first pixel has nothing to its left.
 	for (i = 0; (i < uiPixelBytes) && (i < uiRowBytes); i++)
@@ -238,9 +238,9 @@ void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes, 
 // above, all zeros for the first row.
 //
 //////////////////////////////////////////////////////////////////////////
-void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiPixelBytes, size* puiCosts)
+void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize uiPixelBytes, lsize* puiCosts)
 {
-	size	i;
+	lsize	i;
 	int		iFilter;
 
 	for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
@@ -303,12 +303,12 @@ void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiP
 // above the first.
 //
 //////////////////////////////////////////////////////////////////////////
-void PNGFilterRows(uint8* puiPixels, int iHeight, size uiRowBytes, size uiPixelBytes, uint8* puiFiltered, uint8* puiZeros)
+void PNGFilterRows(uint8* puiPixels, int iHeight, lsize uiRowBytes, lsize uiPixelBytes, uint8* puiFiltered, uint8* puiZeros)
 {
 	int		y;
 	int		iFilter;
 	int		iBestFilter;
-	size	auiCosts[PNG_NUM_FILTERS];
+	lsize	auiCosts[PNG_NUM_FILTERS];
 	uint8*	puiRow;
 	uint8*	puiPrior;
 
@@ -340,13 +340,13 @@ void PNGFilterRows(uint8* puiPixels, int iHeight, size uiRowBytes, size uiPixelB
 // chunks and IEND.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PNGWriteFile(CFileBasic* pcFile, int iWidth, int iHeight, int iBitDepth, int iColourType, uint8* puiCompressed, size uiCompressedSize)
+bool PNGWriteFile(CFileBasic* pcFile, int iWidth, int iHeight, int iBitDepth, int iColourType, uint8* puiCompressed, lsize uiCompressedSize)
 {
 	CMemoryFile		cHeaderMemory;
 	CFileBasic		cHeader;
 	bool			bResult;
-	size			uiPosition;
-	size			uiChunk;
+	lsize			uiPosition;
+	lsize			uiChunk;
 
 	cHeaderMemory.Init();
 	cHeader.Init(&cHeaderMemory);
@@ -396,8 +396,8 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	size			aiChannels[4];
 	size			uiNumChannels;
 	size			uiBytesPerSample;
-	size			uiRowBytes;
-	size			uiPixelBytes;
+	lsize			uiRowBytes;
+	lsize			uiPixelBytes;
 	EPrimitiveType	eSampleType;
 	uint8*			pvPixels;
 	uint8*			pvFiltered;
@@ -409,6 +409,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	CDeflater		cDeflater;
 	CFileBasic		cFile;
 	size			i;
+	lsize			uiByte;
 	uint8			uiSwap;
 	bool			bResult;
 
@@ -474,7 +475,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 		}
 	}
 
-	uiPixelBytes = uiNumChannels * uiBytesPerSample;
+	uiPixelBytes = (lsize)uiNumChannels * uiBytesPerSample;
 	uiRowBytes = iWidth * uiPixelBytes;
 	pvPixels = (uint8*)malloc(uiRowBytes * iHeight);
 	pvFiltered = (uint8*)malloc((uiRowBytes + 1) * iHeight);
@@ -512,11 +513,11 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	if (uiBytesPerSample == 2)
 	{
 		//PNG stores 16 bit samples most significant byte first.
-		for (i = 0; i < uiRowBytes * iHeight; i += 2)
+		for (uiByte = 0; uiByte < uiRowBytes * iHeight; uiByte += 2)
 		{
-			uiSwap = pvPixels[i];
-			pvPixels[i] = pvPixels[i + 1];
-			pvPixels[i + 1] = uiSwap;
+			uiSwap = pvPixels[uiByte];
+			pvPixels[uiByte] = pvPixels[uiByte + 1];
+			pvPixels[uiByte + 1] = uiSwap;
 		}
 	}
 

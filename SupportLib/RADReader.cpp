@@ -167,7 +167,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	CTextFile		cTextFile;
 	CChars			szRawFilename;
 	CChars			szRadFilename;
-	size			iImageSize;
+	lsize			iImageSize;
 	CFileBasic		sFile;
 	CFileUtil		cFileUtil;
 
@@ -235,7 +235,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	if ((size)sFile.Size() != iImageSize)
+	if ((lsize)sFile.Size() != iImageSize)
 	{
 		pcImage->Kill();
 		sFile.Close();
@@ -268,7 +268,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 {
 	CFileBasic	sFile;
-	size		iImageSize;
+	lsize		iImageSize;
 	filePos		iResult;
 
 	sFile.Init(DiskFile(szFilename));
@@ -280,7 +280,7 @@ bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 
 	iImageSize = pcImage->GetByteSize();
 
-	if ((size)sFile.Size() != iImageSize)
+	if ((lsize)sFile.Size() != iImageSize)
 	{
 		sFile.Close();
 		sFile.Kill();

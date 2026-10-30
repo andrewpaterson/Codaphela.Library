@@ -403,6 +403,27 @@ bool CFileReader::ReadIntArray(int32* pai, size iLength)
 }
 
 
+#ifdef __W65C816__
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadIntArray(int16* pai, size iLength)
+{
+	size	i;
+
+	for (i = 0; i < iLength; i++)
+	{
+		if (!ReadInt32(&pai[i]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+#endif // __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

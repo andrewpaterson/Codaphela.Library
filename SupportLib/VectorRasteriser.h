@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "VectorPath.h"
 
 
-#define VECTOR_ARC_MAX_STEPS	65536
+#define VECTOR_ARC_MAX_STEPS	((int32)65536)
 
 
 //Fills a vector path into a grid of coverage from 0 (empty) to 255 (covered).  The path is placed in pixels by an
@@ -42,7 +42,7 @@ class CVectorRasteriser
 protected:
 	CCoverageRasteriser		mcCoverage;
 	uint8*					mpuiPath;
-	size					muiPathCapacity;
+	lsize					muiPathCapacity;
 	uint8*					mpuiResult;
 	float64					mfTolerance;
 
@@ -76,8 +76,8 @@ protected:
 	float64		ToPixelX(float64 x);
 	float64		ToPixelY(float64 y);
 	int32		ToSubpixel(float64 fPixel, int iCorner);
-	int			ArcSteps(float64 fPixelRadius);
-	void		GridCosSin(int64 iIndex, int iSteps, float64* pfCos, float64* pfSin);
+	int32		ArcSteps(float64 fPixelRadius);
+	void		GridCosSin(int64 iIndex, int32 iSteps, float64* pfCos, float64* pfSin);
 };
 
 

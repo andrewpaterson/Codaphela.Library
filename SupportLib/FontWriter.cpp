@@ -32,7 +32,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void AppendFontInteger(CLargeChars* szText, size uiDepth, char* szIdentifier, int32 iValue)
 {
-	szText->Append('\t', uiDepth);
+	szText->Append('\t', (lsize)uiDepth);
 	szText->Append(szIdentifier);
 	szText->Append("\t");
 	szText->Append(iValue);

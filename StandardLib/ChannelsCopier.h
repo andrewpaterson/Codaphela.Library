@@ -35,7 +35,7 @@ public:
 	void Init(CChannels* pcSource, CChannels* pcDest);
 	void Kill(void);
 
-	void Copy(size uiSourcePos, size uiDestPos, size uiLength);
+	void Copy(lsize uiSourcePos, lsize uiDestPos, lsize uiLength);
 };
 
 

@@ -260,7 +260,7 @@ void CSound::Init(uint32 uiSampleRate, size uiNumFrames, EPrimitiveType eType, E
 	while (eIC != CHANNEL_STOP)
 	{
 		AddChannel(eIC, eType);
-		eIC = va_arg(vaMarker, EChannel);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -291,7 +291,7 @@ void CSound::Init(uint32 uiSampleRate, size uiNumFrames, void* pvUserData, EPrim
 	while (eIC != CHANNEL_STOP)
 	{
 		AddChannel(eIC, eType);
-		eIC = va_arg(vaMarker, EChannel);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -421,7 +421,7 @@ void CSound::BeginChange(void)
 	mcChannels.BeginChange();
 	mpsSoundChangingDesc = (SSoundChangingDesc*)malloc(sizeof(SSoundChangingDesc));
 	mpsSoundChangingDesc->uiSampleRate = muiSampleRate;
-	mpsSoundChangingDesc->uiNumFrames = mcChannels.GetSize();
+	mpsSoundChangingDesc->uiNumFrames = (size)mcChannels.GetSize();
 }
 
 
@@ -588,7 +588,7 @@ size CSound::GetNumFrames(void)
 	{
 		return mpsSoundChangingDesc->uiNumFrames;
 	}
-	return mcChannels.GetSize();
+	return (size)mcChannels.GetSize();
 }
 
 
@@ -895,7 +895,7 @@ void* CSound::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSound::GetByteSize(void)
+lsize CSound::GetByteSize(void)
 {
 	return mcChannels.GetByteSize();
 }
@@ -1048,7 +1048,7 @@ bool CSound::HasChannels(size iFirst, ...)
 	while (eIC != CHANNEL_STOP)
 	{
 		bResult &= HasChannel(eIC);
-		eIC = va_arg(vaMarker, size);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 

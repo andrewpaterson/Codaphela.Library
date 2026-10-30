@@ -48,19 +48,19 @@ class CTrueTypeFont
 {
 protected:
 	uint8*		mpuiData;
-	size		muiSize;
+	lsize		muiSize;
 
-	size		muiHeadOffset;
-	size		muiLocaOffset;
-	size		muiLocaLength;
-	size		muiGlyfOffset;
-	size		muiGlyfLength;
-	size		muiHmtxOffset;
-	size		muiHmtxLength;
-	size		muiNameOffset;
-	size		muiNameLength;
-	size		muiCmapOffset;  //The chosen subtable, not the table.
-	size		muiCmapLength;
+	lsize		muiHeadOffset;
+	lsize		muiLocaOffset;
+	lsize		muiLocaLength;
+	lsize		muiGlyfOffset;
+	lsize		muiGlyfLength;
+	lsize		muiHmtxOffset;
+	lsize		muiHmtxLength;
+	lsize		muiNameOffset;
+	lsize		muiNameLength;
+	lsize		muiCmapOffset;  //The chosen subtable, not the table.
+	lsize		muiCmapLength;
 	int			miCmapFormat;
 
 	int			miUnitsPerEm;
@@ -93,7 +93,7 @@ public:
 	void		Kill(void);
 
 	bool		Load(char* szFilename);
-	bool		Load(void* pvData, size uiSize);
+	bool		Load(void* pvData, lsize uiSize);
 
 	int			NumGlyphs(void);
 	int			GetUnitsPerEm(void);
@@ -122,20 +122,20 @@ protected:
 	bool		Parse(void);
 	void		ParsePost(void);
 	void		ParseOS2(void);
-	bool		FindTable(const char* szTag, size* puiOffset, size* puiLength);
-	bool		ChooseCmap(size uiCmapOffset, size uiCmapLength);
+	bool		FindTable(const char* szTag, lsize* puiOffset, lsize* puiLength);
+	bool		ChooseCmap(lsize uiCmapOffset, lsize uiCmapLength);
 	int			GetGlyphIndexFormat4(uint32 uiCodePoint);
 	int			GetGlyphIndexFormat12(uint32 uiCodePoint);
-	bool		GetGlyphData(int iGlyph, size* puiOffset, size* puiLength);
-	bool		ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContours, CTrueTypeOutline* pcOutline);
-	bool		ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOutline* pcOutline, int iDepth);
+	bool		GetGlyphData(int iGlyph, lsize* puiOffset, lsize* puiLength);
+	bool		ReadSimpleGlyph(lsize uiOffset, lsize uiLength, int iNumContours, CTrueTypeOutline* pcOutline);
+	bool		ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueTypeOutline* pcOutline, int iDepth);
 	bool		ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth);
 
-	bool		ReadUint8(size uiOffset, uint8* pui);
-	bool		ReadUint16(size uiOffset, uint16* pui);
-	bool		ReadInt16(size uiOffset, int16* pi);
-	bool		ReadUint32(size uiOffset, uint32* pui);
-	bool		IsInFile(size uiOffset, size uiLength);
+	bool		ReadUint8(lsize uiOffset, uint8* pui);
+	bool		ReadUint16(lsize uiOffset, uint16* pui);
+	bool		ReadInt16(lsize uiOffset, int16* pi);
+	bool		ReadUint32(lsize uiOffset, uint32* pui);
+	bool		IsInFile(lsize uiOffset, lsize uiLength);
 };
 
 

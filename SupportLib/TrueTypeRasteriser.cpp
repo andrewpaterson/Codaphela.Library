@@ -629,7 +629,7 @@ Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 	Ptr<CImage>		pcImage;
 
 	pcImage = OMalloc<CImage>(mcCoverage.GetWidth(), mcCoverage.GetHeight(), PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
-	memcpy(pcImage->GetData(), mcCoverage.GetCoverage(), (size)mcCoverage.GetWidth() * mcCoverage.GetHeight());
+	memcpy(pcImage->GetData(), mcCoverage.GetCoverage(), (lsize)mcCoverage.GetWidth() * mcCoverage.GetHeight());
 	return pcImage;
 }
 
@@ -687,7 +687,7 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 	{
 		for (x = 0; x < mcCoverage.GetWidth(); x++)
 		{
-			iCoverage = mcCoverage.GetCoverage()[(size)y * mcCoverage.GetWidth() + x];
+			iCoverage = mcCoverage.GetCoverage()[(lsize)y * mcCoverage.GetWidth() + x];
 			if (iCoverage == 0)
 			{
 				continue;

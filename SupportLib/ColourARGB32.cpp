@@ -95,22 +95,22 @@ ARGB32 Set8BitRedColour(uint32 iRed)
 
 ARGB32 Set8BitAlphaColour(uint8 iAlpha)
 {
-	return iAlpha << RGBA32_ALPHA_SHIFT;
+	return (ARGB32)iAlpha << RGBA32_ALPHA_SHIFT;
 }
 
 ARGB32 Set8BitBlueColour(uint8 iBlue)
 {
-	return iBlue << RGBA32_BLUE_SHIFT;
+	return (ARGB32)iBlue << RGBA32_BLUE_SHIFT;
 }
 
 ARGB32 Set8BitGreenColour(uint8 iGreen)
 {
-	return iGreen << RGBA32_GREEN_SHIFT;
+	return (ARGB32)iGreen << RGBA32_GREEN_SHIFT;
 }
 
 ARGB32 Set8BitRedColour(uint8 iRed)
 {
-	return iRed << RGBA32_RED_SHIFT;
+	return (ARGB32)iRed << RGBA32_RED_SHIFT;
 }
 
 
@@ -337,7 +337,7 @@ ARGB32 Set32BitColour(uint32 r, uint32 g, uint32 b)
 	uiColour = Set8BitRedColour(r);
 	uiColour |= Set8BitGreenColour(g);
 	uiColour |= Set8BitBlueColour(b);
-	uiColour |= 255 << RGBA32_ALPHA_SHIFT;
+	uiColour |= (ARGB32)255 << RGBA32_ALPHA_SHIFT;
 
 	return uiColour;
 }
@@ -350,7 +350,7 @@ ARGB32 Set32BitColour(uint8 r, uint8 g, uint8 b)
 	uiColour = Set8BitRedColour(r);
 	uiColour |= Set8BitGreenColour(g);
 	uiColour |= Set8BitBlueColour(b);
-	uiColour |= 255 << RGBA32_ALPHA_SHIFT;
+	uiColour |= (ARGB32)255 << RGBA32_ALPHA_SHIFT;
 
 	return uiColour;
 }
@@ -405,22 +405,22 @@ uint8 GetM8BitRedColour(ARGB32 uiColour)
 
 ARGB32 SetM8BitAlphaColour(uint8 iAlpha)
 {
-	return iAlpha << M_RGBA32_ALPHA_SHIFT;
+	return (ARGB32)iAlpha << M_RGBA32_ALPHA_SHIFT;
 }
 
 ARGB32 SetM8BitBlueColour(uint8 iBlue)
 {
-	return iBlue << M_RGBA32_BLUE_SHIFT;
+	return (ARGB32)iBlue << M_RGBA32_BLUE_SHIFT;
 }
 
 ARGB32 SetM8BitGreenColour(uint8 iGreen)
 {
-	return iGreen << M_RGBA32_GREEN_SHIFT;
+	return (ARGB32)iGreen << M_RGBA32_GREEN_SHIFT;
 }
 
 ARGB32 SetM8BitRedColour(uint8 iRed)
 {
-	return iRed << M_RGBA32_RED_SHIFT;
+	return (ARGB32)iRed << M_RGBA32_RED_SHIFT;
 }
 
 ARGB32 SetM32BitColour(uint8 r, uint8 g, uint8 b, uint8 a)

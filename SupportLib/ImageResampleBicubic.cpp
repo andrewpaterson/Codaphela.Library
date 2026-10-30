@@ -119,8 +119,8 @@ void ResampleBicubicFloats(float64* pafSource, uint32 uiSourceWidth, uint32 uiSo
 	pafRows = (float64*)malloc(sizeof(float64) * uiDestWidth * uiSourceHeight);
 	for (y = 0; y < uiSourceHeight; y++)
 	{
-		pafSourceRow = &pafSource[(size)y * uiSourceWidth];
-		pafRow = &pafRows[(size)y * uiDestWidth];
+		pafSourceRow = &pafSource[(lsize)y * uiSourceWidth];
+		pafRow = &pafRows[(lsize)y * uiDestWidth];
 		for (x = 0; x < uiDestWidth; x++)
 		{
 			paiTaps = &psX->paiPixels[x * BICUBIC_TAPS];
@@ -136,7 +136,7 @@ void ResampleBicubicFloats(float64* pafSource, uint32 uiSourceWidth, uint32 uiSo
 	{
 		paiTaps = &psY->paiPixels[y * BICUBIC_TAPS];
 		pafTaps = &psY->pafWeights[y * BICUBIC_TAPS];
-		pafRow = &pafDest[(size)y * uiDestWidth];
+		pafRow = &pafDest[(lsize)y * uiDestWidth];
 		for (x = 0; x < uiDestWidth; x++)
 		{
 			pafRow[x] =	pafRows[(size)paiTaps[0] * uiDestWidth + x] * pafTaps[0] +

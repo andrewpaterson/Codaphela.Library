@@ -41,13 +41,13 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SPNGInfo
 {
-	int		iWidth;
-	int		iHeight;
+	int32	iWidth;
+	int32	iHeight;
 	int		iBitDepth;
 	int		iColourType;
 	int		iInterlace;
 	int		iBitsPerPixel;
-	size	uiRowBytes;
+	lsize	uiRowBytes;
 	int		iNumPalette;
 	uint8	aauiPalette[256][4];	//Red, green, blue, alpha.
 	bool	bPaletteAlpha;
@@ -65,9 +65,9 @@ static const int gaiAdam7StepY[PNG_ADAM7_PASSES] = { 8, 8, 8, 4, 4, 2, 2 };
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size PNGRowBytes(int iWidth, int iBitsPerPixel)
+lsize PNGRowBytes(int iWidth, int iBitsPerPixel)
 {
-	return ((size)iWidth * iBitsPerPixel + 7) / 8;
+	return ((lsize)iWidth * iBitsPerPixel + 7) / 8;
 }
 
 
@@ -135,8 +135,8 @@ bool PNGReadHeader(CFileBasic* pcFile, SPNGInfo* psInfo)
 		return false;
 	}
 
-	psInfo->iWidth = (int)uiWidth;
-	psInfo->iHeight = (int)uiHeight;
+	psInfo->iWidth = (int32)uiWidth;
+	psInfo->iHeight = (int32)uiHeight;
 	psInfo->iBitDepth = uiBitDepth;
 	psInfo->iColourType = uiColourType;
 	psInfo->iInterlace = uiInterlace;
@@ -160,7 +160,7 @@ bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo
 	uint32	uiLength;
 	uint8	auiType[4];
 	uint32	uiCRC;
-	size	uiDataPosition;
+	lsize	uiDataPosition;
 	bool	bHeader;
 	bool	bData;
 	int		i;
@@ -180,7 +180,7 @@ bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo
 		{
 			return false;
 		}
-		uiDataPosition = (size)pcFile->GetFilePos();
+		uiDataPosition = (lsize)pcFile->GetFilePos();
 		if ((uiLength > 0x7FFFFFFF) || (uiLength > uiFileSize - uiDataPosition) || (uiFileSize - uiDataPosition - uiLength < 4))
 		{
 			return false;
@@ -274,9 +274,9 @@ bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo
 // unfiltered row above, or NULL for the first row.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PNGUnfilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiPixelBytes)
+bool PNGUnfilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize uiPixelBytes)
 {
-	size	i;
+	lsize	i;
 	uint8	uiLeft;
 	uint8	uiUp;
 	uint8	uiUpLeft;
@@ -364,7 +364,7 @@ bool PNGUnfilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes
 // place.  Returns a pointer just past the last row.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* PNGUnfilterRows(uint8* puiData, int iHeight, size uiRowBytes, size uiPixelBytes)
+uint8* PNGUnfilterRows(uint8* puiData, int iHeight, lsize uiRowBytes, lsize uiPixelBytes)
 {
 	int		y;
 	uint8*	puiRow;
@@ -393,20 +393,20 @@ uint8* PNGUnfilterRows(uint8* puiData, int iHeight, size uiRowBytes, size uiPixe
 //////////////////////////////////////////////////////////////////////////
 void PNGCopyPixel(uint8* puiSource, int iSourceX, uint8* puiDest, int iDestX, int iBitsPerPixel)
 {
-	size	uiSourceBit;
-	size	uiDestBit;
+	lsize	uiSourceBit;
+	lsize	uiDestBit;
 	uint8	uiMask;
 	uint8	uiValue;
 
 	if (iBitsPerPixel >= 8)
 	{
-		memcpy(&puiDest[iDestX * (iBitsPerPixel / 8)], &puiSource[iSourceX * (iBitsPerPixel / 8)], iBitsPerPixel / 8);
+		memcpy(&puiDest[(lsize)iDestX * (iBitsPerPixel / 8)], &puiSource[(lsize)iSourceX * (iBitsPerPixel / 8)], iBitsPerPixel / 8);
 	}
 	else
 	{
 		uiMask = (uint8)((1 << iBitsPerPixel) - 1);
-		uiSourceBit = (size)iSourceX * iBitsPerPixel;
-		uiDestBit = (size)iDestX * iBitsPerPixel;
+		uiSourceBit = (lsize)iSourceX * iBitsPerPixel;
+		uiDestBit = (lsize)iDestX * iBitsPerPixel;
 		uiValue = (uint8)((puiSource[uiSourceBit / 8] >> (8 - iBitsPerPixel - (uiSourceBit % 8))) & uiMask);
 		puiDest[uiDestBit / 8] |= (uint8)(uiValue << (8 - iBitsPerPixel - (uiDestBit % 8)));
 	}
@@ -453,11 +453,11 @@ lsize PNGFilteredSize(SPNGInfo* psInfo)
 //////////////////////////////////////////////////////////////////////////
 bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 {
-	size	uiPixelBytes;
+	lsize	uiPixelBytes;
 	int		iPass;
 	int		iPassWidth;
 	int		iPassHeight;
-	size	uiPassRowBytes;
+	lsize	uiPassRowBytes;
 	int		x;
 	int		y;
 	uint8*	puiPassRow;
@@ -520,7 +520,7 @@ void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 	uint8	uiIndex;
 	uint8*	puiRow;
 	uint8*	puiDest;
-	size	uiBit;
+	lsize	uiBit;
 	uint8	uiMask;
 
 	uiMask = (uint8)((1 << psInfo->iBitDepth) - 1);
@@ -529,9 +529,9 @@ void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 		puiRow = &puiPixels[y * psInfo->uiRowBytes];
 		for (x = 0; x < psInfo->iWidth; x++)
 		{
-			uiBit = (size)x * psInfo->iBitDepth;
+			uiBit = (lsize)x * psInfo->iBitDepth;
 			uiIndex = (uint8)((puiRow[uiBit / 8] >> (8 - psInfo->iBitDepth - (uiBit % 8))) & uiMask);
-			puiDest = &puiRGBA[((size)y * psInfo->iWidth + x) * 4];
+			puiDest = &puiRGBA[((lsize)y * psInfo->iWidth + x) * 4];
 			if (uiIndex < psInfo->iNumPalette)
 			{
 				memcpy(puiDest, psInfo->aauiPalette[uiIndex], 4);
@@ -576,7 +576,7 @@ Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddD
 		}
 	}
 
-	puiRGBA = (uint8*)malloc((size)psInfo->iWidth * psInfo->iHeight * 4);
+	puiRGBA = (uint8*)malloc((lsize)psInfo->iWidth * psInfo->iHeight * 4);
 	if (puiRGBA == NULL)
 	{
 		return NULL;

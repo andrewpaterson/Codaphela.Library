@@ -41,7 +41,7 @@ protected:
 	uint8*		mpuiCoverage;
 	int			miWidth;
 	int			miHeight;
-	size		muiCapacity;
+	lsize		muiCapacity;
 
 public:
 	void		Init(void);

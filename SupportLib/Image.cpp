@@ -98,7 +98,7 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChanne
 	{
 		AddChannel(eIC, eType);
 		iCount++;
-		eIC = va_arg(vaMarker, EChannel);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -131,7 +131,7 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, EPrimitiveT
 	{
 		AddChannel(eIC, eType);
 		iCount++;
-		eIC = va_arg(vaMarker, EChannel);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -356,7 +356,7 @@ void CImage::ReInit(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChan
 	{
 		AddChannel(eIC, eType);
 		iCount++;
-		eIC = va_arg(vaMarker, EChannel);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 
@@ -583,7 +583,7 @@ void CImage::SetSize(uint32 uiWidth, uint32 uiHeight)
 
 		//The number of pixels is calculated in 64 bits because width * height can overflow 32 bits.
 		ulliNumPixels = (uint64)uiWidth * (uint64)uiHeight;
-		if (ulliNumPixels > MAX_SIZE)
+		if (ulliNumPixels > MAX_LSIZE)
 		{
 			gcLogger.Error2(__METHOD__, " Image [", IntToString(uiWidth), " x ", IntToString(uiHeight), "] has more pixels than can be addressed.", NULL);
 			uiWidth = 0;
@@ -593,7 +593,7 @@ void CImage::SetSize(uint32 uiWidth, uint32 uiHeight)
 
 		mpsImageChangingDesc->uiWidth = uiWidth;
 		mpsImageChangingDesc->uiHeight = uiHeight;
-		mcChannels.SetSize((size)ulliNumPixels);
+		mcChannels.SetSize((lsize)ulliNumPixels);
 	}
 }
 
@@ -851,7 +851,7 @@ void* CImage::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImage::GetByteSize(void)
+lsize CImage::GetByteSize(void)
 {
 	return mcChannels.GetByteSize();
 }
@@ -861,7 +861,7 @@ size CImage::GetByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImage::GetPixelSize(void)
+lsize CImage::GetPixelSize(void)
 {
 	return mcChannels.GetSize();
 }
@@ -1040,7 +1040,7 @@ bool CImage::HasChannels(size iFirst, ...)
 	while (eIC != CHANNEL_STOP)
 	{
 		bResult &= HasChannel(eIC);
-		eIC = va_arg(vaMarker, size);
+		eIC = VA_ARG_SIZE(vaMarker);
 	}
 	va_end(vaMarker);
 

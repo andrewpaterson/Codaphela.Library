@@ -119,7 +119,7 @@ uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
 	r = (r << 5) + (r << 2) + (r >> 1);
 	a = 0xff;
 
-	uiColour32 = (r << 0) | (g << 8) | (b << 16) | (a << 24);
+	uiColour32 = (uint32)r | ((uint32)g << 8) | ((uint32)b << 16) | ((uint32)a << 24);
 	return uiColour32;
 }
 
@@ -131,14 +131,14 @@ uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
 Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTImage	sStruct;
-	size		iResult;
-	size		i;
+	lsize		iResult;
+	lsize		i;
 	uint8		uiColour8;
 	uint32		uiColour32;
 	uint8*		puiImage;
-	size		uiSize;
+	lsize		uiSize;
 	uint8*		puiData;
-	size		iPos;
+	lsize		iPos;
 
 	if (!sStruct.Read(pcFile))
 	{
@@ -164,7 +164,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_BLUE);
 	}
 
-	uiSize = sStruct.uiImageWidth * sStruct.uiImageHeight;
+	uiSize = (lsize)sStruct.uiImageWidth * sStruct.uiImageHeight;
 	puiData = (uint8*)malloc(uiSize);
 	iResult = pcFile->Read(puiData, 1, uiSize);
 	if (iResult != uiSize)
@@ -194,17 +194,17 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTImage			sStruct;
-	size				iResult;
-	size				x;
-	size				y;
+	lsize				iResult;
+	lsize				x;
+	lsize				y;
 	SSFTCelRun			sCelRun;
 	CArrayChar			sMemory;
-	size				x2;
-	size				i;
+	lsize				x2;
+	lsize				i;
 	uint8				uiColour8;
 	uint32				uiColour32;
 	uint32*				puiImage;
-	size				uiWidth;
+	lsize				uiWidth;
 	void*				pvResult;
 
 	if (!sStruct.Read(pcFile))
@@ -297,7 +297,7 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 	uint16					uiType;
 	filePos					uiFilePos;
 	Ptr<CImage>				pcImage;
-	size					i;
+	lsize					i;
 	CImageCelsSource		cSource;
 	CImageCombiner			cCombiner;
 	CImageCelSourceSingle	cSingle;

@@ -31,8 +31,8 @@ public:
 
 	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
 
-	void*	Get(size iPos) override;
-	void	Set(size iPos, void* pvData) override;
+	void*	Get(lsize iPos) override;
+	void	Set(lsize iPos, void* pvData) override;
 
 	bool	IsContiguous(void);
 };

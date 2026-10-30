@@ -87,7 +87,7 @@ bool CPackSourceRectangle::IsRotatedBy(EPackRotation eRotation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackSourceRectangle::GetSize(EPackRotation eRotation, int* piWidth, int* piHeight)
+void CPackSourceRectangle::GetSize(EPackRotation eRotation, int32* piWidth, int32* piHeight)
 {
 	if (IsRotatedBy(eRotation))
 	{
@@ -125,7 +125,7 @@ void CPackRectangleAttempt::Init(CPackSourceRectangle* pcSourceRectangle, bool b
 //////////////////////////////////////////////////////////////////////////
 void CPackRectangleAttempt::Rotate(void)
 {
-	int		iTemp;
+	int32	iTemp;
 
 	iTemp = mcSourceRectangle.miWidth;
 	mcSourceRectangle.miWidth = mcSourceRectangle.miHeight;
@@ -137,7 +137,7 @@ void CPackRectangleAttempt::Rotate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackRectangleAttempt::SetPos(int x, int y)
+void CPackRectangleAttempt::SetPos(int32 x, int32 y)
 {
 	mix = x;
 	miy = y;
@@ -148,7 +148,7 @@ void CPackRectangleAttempt::SetPos(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedRectangle::Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated)
+void CPackedRectangle::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, void* pvUserData, bool bRotated)
 {
 	CInt32Rect::Init(iLeft, iTop, iRight, iBottom);
 	mpvUserData = pvUserData;

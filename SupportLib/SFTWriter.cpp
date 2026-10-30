@@ -37,16 +37,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool HasTransparency(Ptr<CImage> pImage, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool HasTransparency(Ptr<CImage> pImage, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
-	size				x;
-	size				y;
-	size				y2;
-	size				x2;
+	lsize				x;
+	lsize				y;
+	lsize				y2;
+	lsize				x2;
 	CChannelsAccessor*	pcOppacityAccessor;
 	CChannel*			pcAlpha;
 	bool				bOpaque;
-	size				uiImageWidth;
+	lsize				uiImageWidth;
 
 	uiImageWidth = pImage->GetWidth();
 	pcAlpha = pImage->GetChannel(IMAGE_OPACITY);
@@ -135,17 +135,17 @@ bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
 	SSFTImage	sStruct;
-	size		iResult;
-	size		uiImageWidth;
+	lsize		iResult;
+	lsize		uiImageWidth;
 	uint8*		puiData;
-	size		x;
-	size		y;
-	size		x2;
-	size		y2;
-	size		i;
+	lsize		x;
+	lsize		y;
+	lsize		x2;
+	lsize		y2;
+	lsize		i;
 	uint8*		puiImage;
 
 	if (pcFile->IsOpen())
@@ -190,14 +190,14 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffse
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
 	SSFTImage					sStruct;
 	CChannelsAccessor*			pcOppacityAccessor;
 	CChannelsAccessor*			pcDiffuseAccessor;
-	size						x;
-	size						y;
-	size						uiImageWidth;
+	lsize						x;
+	lsize						y;
+	lsize						uiImageWidth;
 	bool						bOpaque;
 	uint8						uiColour;
 	SSFTCelRun					sCelRun;
@@ -205,9 +205,9 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 	uint16						uiSkipLength;
 	uint16						uiRunLength;
 	CArrayChar					auiRow;
-	size						iResult;
-	size						y2;
-	size						x2;
+	lsize						iResult;
+	lsize						y2;
+	lsize						x2;
 	CChannelsAccessorCreator	cCreator;
 
 	if (pcFile->IsOpen())

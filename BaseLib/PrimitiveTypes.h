@@ -144,6 +144,14 @@ typedef size			lsize;
 #define MAX_SIZE		((size)-1)
 #define MAX_LSIZE		((lsize)-1)
 
+//A size (or EChannel) read from "...".  A 16 bit size reaches it promoted to an int, except on the W65C816 where an
+//int is 16 bits too (va_arg of a type that is promoted is undefined; g++ traps).
+#if defined(BASELIB_SIZE16)
+#define VA_ARG_SIZE(vaMarker)	((size)va_arg(vaMarker, int))
+#else
+#define VA_ARG_SIZE(vaMarker)	va_arg(vaMarker, size)
+#endif // BASELIB_SIZE16
+
 #if INT_MAX == MAX_INT32
 typedef int64			longint;
 typedef uint64			ulongint;

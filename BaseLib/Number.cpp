@@ -1182,7 +1182,7 @@ void CNumber::PrivateZeroEnds(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::IsInteger(void)
 {
-	int32		iLast;
+	int16		iLast;
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast > 0)
@@ -1495,10 +1495,10 @@ bool CNumber::IsPositiveOrZero(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 {
-	int32	iThisLastDigit;
-	int32	iOtherLastDigit;
-	int32	iThisFirstDigit;
-	int32	iOtherFirstDigit;
+	int16	iThisLastDigit;
+	int16	iOtherLastDigit;
+	int16	iThisFirstDigit;
+	int16	iOtherFirstDigit;
 	int32	iResult;
 
 	if (IsError())
@@ -1700,10 +1700,10 @@ bool CNumber::LessThanOrEquals(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 {
-	int32	iThisLastDigit;
-	int32	iOtherLastDigit;
-	int32	iThisFirstDigit;
-	int32	iOtherFirstDigit;
+	int16	iThisLastDigit;
+	int16	iOtherLastDigit;
+	int16	iThisFirstDigit;
+	int16	iOtherFirstDigit;
 	int32	iResult;
 
 	//Zero's first digit is the units digit so it would look bigger than any number below one.
@@ -1761,10 +1761,10 @@ bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 {
-	int32		iThisLastDigit;
-	int32		iOtherLastDigit;
-	int32		iThisFirstDigit;
-	int32		iOtherFirstDigit;
+	int16		iThisLastDigit;
+	int16		iOtherLastDigit;
+	int16		iThisFirstDigit;
+	int16		iOtherFirstDigit;
 	int32		iResult;
 
 	//Zero's first digit is the units digit so it would look bigger than any number below one.
@@ -1962,14 +1962,14 @@ bool CNumber::PrivateError(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateAdd(CNumber* pcNumber)
 {
-	int32	i;
+	int16	i;
 	char	cCarry;
-	int32	iThisLastDigit;
-	int32	iOtherLastDigit;
-	int32	iLast;
-	int32	iFirst;
-	int32	iThisFirstDigit;
-	int32	iOtherFirstDigit;
+	int16	iThisLastDigit;
+	int16	iOtherLastDigit;
+	int16	iLast;
+	int16	iFirst;
+	int16	iThisFirstDigit;
+	int16	iOtherFirstDigit;
 	char	cThisDigit;
 	char	cOtherDigit;
 	char	cResult;
@@ -2045,20 +2045,20 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 void CNumber::PrivateSubtract(CNumber* pcNumber)
 {
 	char	cCarry;
-	int32	iThisLastDigit;
-	int32	iOtherLastDigit;
-	int32	iThisFirstDigit;
-	int32	iOtherFirstDigit;
+	int16	iThisLastDigit;
+	int16	iOtherLastDigit;
+	int16	iThisFirstDigit;
+	int16	iOtherFirstDigit;
 	char	cThisDigit;
 	char	cOtherDigit;
 	char	cResult;
-	int32	iThisLastIndex;
-	int32	iOtherLastIndex;
-	int32	iThisFirstIndex;
-	int32	iOtherFirstIndex;
+	int16	iThisLastIndex;
+	int16	iOtherLastIndex;
+	int16	iThisFirstIndex;
+	int16	iOtherFirstIndex;
 	int16	iDiff;
-	int32	iThisIndex;
-	int32	iOtherIndex;
+	int16	iThisIndex;
+	int16	iOtherIndex;
 
 	if (PrivateError(pcNumber)) return;
 
@@ -2076,11 +2076,11 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 		iOtherLastDigit = -mcMaxDecimals;
 	}
 
-	iThisLastIndex = (int32)PrivateGetIndex(iThisLastDigit);
-	iOtherLastIndex = (int32)pcNumber->PrivateGetIndex(iOtherLastDigit);
+	iThisLastIndex = (int16)PrivateGetIndex(iThisLastDigit);
+	iOtherLastIndex = (int16)pcNumber->PrivateGetIndex(iOtherLastDigit);
 
-	iThisFirstIndex = (int32)PrivateGetIndex(iThisFirstDigit);
-	iOtherFirstIndex = (int32)pcNumber->PrivateGetIndex(iOtherFirstDigit);
+	iThisFirstIndex = (int16)PrivateGetIndex(iThisFirstDigit);
+	iOtherFirstIndex = (int16)pcNumber->PrivateGetIndex(iOtherFirstDigit);
 
 	// xxxxxxxxxx.xxxxxxxxxxx00
 	// 00yyyyyyyy.yyyyyyyyyyyyy
@@ -2090,7 +2090,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 		SetLastNonZeroDigit(iOtherLastDigit);
 
 		iDiff = (int16)(GetDigitsBetween(iThisLastDigit, iOtherLastDigit)) - 1;
-		iThisIndex = (int32)PrivateGetIndex(iOtherLastDigit);
+		iThisIndex = (int16)PrivateGetIndex(iOtherLastDigit);
 		for (iOtherIndex = iOtherLastIndex; iOtherIndex > iOtherLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{
 			cThisDigit = 10;
@@ -2115,7 +2115,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 	else if (iThisLastDigit < iOtherLastDigit)
 	{
 		iDiff = (int16)(GetDigitsBetween(iOtherLastDigit, iThisLastDigit)) - 1;
-		iOtherIndex = (int32)pcNumber->PrivateGetIndex(iThisLastDigit);
+		iOtherIndex = (int16)pcNumber->PrivateGetIndex(iThisLastDigit);
 		for (iThisIndex = iThisLastIndex; iThisIndex > iThisLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{
 			cThisDigit = mcDigits[iThisIndex] + 10;
@@ -2186,16 +2186,16 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CNumber::PrivateGetIndex(int16 iDigit)
+int16 CNumber::PrivateGetIndex(int16 iDigit)
 {
 	//Assumes iDigit != 0.
 	if (iDigit > 0)
 	{
-		return mcMaxWholeNumbers-iDigit;
+		return (int16)(mcMaxWholeNumbers - iDigit);
 	}
 	else
 	{
-		return mcMaxWholeNumbers - iDigit - 1;
+		return (int16)(mcMaxWholeNumbers - iDigit - 1);
 	}
 }
 
@@ -2207,22 +2207,22 @@ int32 CNumber::PrivateGetIndex(int16 iDigit)
 CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 {
 	char		cCarry;
-	int32			iThisLastDigit;
-	int32			iMultiplicandLastDigit;
-	int32			iThisFirstDigit;
-	int32			iMultiplicandFirstDigit;
+	int16			iThisLastDigit;
+	int16			iMultiplicandLastDigit;
+	int16			iThisFirstDigit;
+	int16			iMultiplicandFirstDigit;
 	char		cThisDigit;
 	char		cOtherDigit;
-	int32			i;
-	int32			j;
+	int16			i;
+	int16			j;
 	int32			iResultantDigit;
-	int32			iThisDigit;
-	int32			iOtherDigit;
+	int16			iThisDigit;
+	int16			iOtherDigit;
 	char		cResult;
 	CNumber*	pcResult;
 	CNumber*	pcLine;
-	int32			iFirstSignificantDigit;
-	int32			iDecimals;
+	int16			iFirstSignificantDigit;
+	int16			iDecimals;
 
 	if (PrivateError(pcMultiplicand)) return this;
 
@@ -2352,12 +2352,12 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 	char		cThisDigit;
 	char		cPartialQuotient;
 	CNumber*	pcQuotient;
-	int32		iDividendDigit;
-	int32		iQuotientDigit;
+	int16		iDividendDigit;
+	int16		iQuotientDigit;
 	bool		bExact;
-	int32		iLastDigit;
-	int32		iLastDivisorDigit;
-	int32		iDecimals;
+	int16		iLastDigit;
+	int16		iLastDivisorDigit;
+	int16		iDecimals;
 
 	if (PrivateError(pcDivisorIn)) return this;
 	if (pcDivisorIn->IsZero()) return DivisionByZero();
