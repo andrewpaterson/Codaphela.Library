@@ -874,6 +874,9 @@ ClearResult:
 ; significand, as softfloat.cpp's Unpack.
 
 Unpack:
+		lda [D + Fraction]
+		cmp 23
+		beq UnpackFloat
 		lda [D + RawA + X]
 		sta [D + SigA + X]
 		lda [D + RawA + 2 + X]
@@ -882,9 +885,6 @@ Unpack:
 		sta [D + SigA + 4 + X]
 		lda [D + RawA + 6 + X]
 		sta [D + SigA + 6 + X]
-		lda [D + Fraction]
-		cmp 23
-		beq UnpackFloat
 
 		lda [D + SigA + 6 + X]
 		and $8000
@@ -922,16 +922,21 @@ UnpackDoubleSmall:
 		bra UnpackFinite
 
 UnpackFloat:
-		lda [D + SigA + 2 + X]
+		; Two words: the significand's top two are 0.
+		lda [D + RawA + X]
+		sta [D + SigA + X]
+		stz [D + SigA + 4 + X]
+		stz [D + SigA + 6 + X]
+		lda [D + RawA + 2 + X]
 		and $8000
 		sta [D + SignA + X]
-		lda [D + SigA + 2 + X]
+		lda [D + RawA + 2 + X]
 		and $7F80
 		asl A
 		xba
 		and $00FF
 		sta [D + ExpA + X]
-		lda [D + SigA + 2 + X]
+		lda [D + RawA + 2 + X]
 		and $007F
 		sta [D + SigA + 2 + X]
 		lda [D + ExpA + X]
@@ -1266,7 +1271,7 @@ RoundPackKept:
 		sta [D + Result + 6]
 		lda [D + Fraction]
 		cmp 23
-		beq RoundPackFloat
+		beq RoundPackPackFloat
 		lda [D + Biased]
 		dec A
 		asl A
@@ -1279,7 +1284,7 @@ RoundPackKept:
 		cmp $7FF0
 		bcs RoundPackInfinity
 		jmp PutSign
-RoundPackFloat:
+RoundPackPackFloat:
 		lda [D + Biased]
 		dec A
 		xba
@@ -1294,6 +1299,55 @@ RoundPackFloat:
 RoundPackInfinity:
 		jmp Infinity
 
+; Z set when RawA (X = 0) or RawB (X = SideB) has no fraction bits: a finite one is a power of two.
+IsRawPower:
+		lda [D + Fraction]
+		cmp 23
+		beq IsRawPowerFloat
+		lda [D + RawA + 6 + X]
+		and $000F
+		ora [D + RawA + X]
+		ora [D + RawA + 2 + X]
+		ora [D + RawA + 4 + X]
+		rts
+IsRawPowerFloat:
+		lda [D + RawA + 2 + X]
+		and $007F
+		ora [D + RawA + X]
+		rts
+
+; SignA (X = 0) or SignB (X = SideB) from the raw bits, the carry set when they are a NaN.
+RawSignNaN:
+		lda [D + Fraction]
+		cmp 23
+		beq RawSignNaNFloat
+		lda [D + RawA + 6 + X]
+		and $8000
+		sta [D + SignA + X]
+		lda [D + RawA + 6 + X]
+		and $7FFF
+		cmp $7FF0
+		bcc RawSignNaNDone
+		bne RawSignNaNDone
+		lda [D + RawA + 4 + X]
+		ora [D + RawA + 2 + X]
+		ora [D + RawA + X]
+		cmp 1
+RawSignNaNDone:
+		rts
+RawSignNaNFloat:
+		lda [D + RawA + 2 + X]
+		and $8000
+		sta [D + SignA + X]
+		lda [D + RawA + 2 + X]
+		and $7FFF
+		cmp $7F80
+		bcc RawSignNaNDone
+		bne RawSignNaNDone
+		lda [D + RawA + X]
+		cmp 1
+		rts
+
 ; The 64 bit value at D + X = 0.
 ZeroValue:
 		stz [D + X]
@@ -1301,6 +1355,374 @@ ZeroValue:
 		stz [D + 4 + X]
 		stz [D + 6 + X]
 		rts
+
+
+;-----------------------------------------------------------------------------------------------
+; The float rounding: as RoundPack, for a significand of up to 48 bits (SigA's low three words),
+; with the format's numbers as constants.
+
+; RoundPackFloat for a float, else RoundPack, then the result returned.
+RoundPackAndReturn:
+		lda [D + Fraction]
+		cmp 23
+		bne RoundPackAndReturnDouble
+		jsr RoundPackFloat
+		jmp ReturnResult
+RoundPackAndReturnDouble:
+		jsr RoundPack
+		jmp ReturnResult
+
+RoundPackFloat:
+		lda [D + SigA]
+		ora [D + SigA + 2]
+		ora [D + SigA + 4]
+		bne RoundPackFloatNotZero
+		jmp SignedZero
+RoundPackFloatNotZero:
+		ldy 32
+		lda [D + SigA + 4]
+		bne RoundPackFloatTop
+		ldy 16
+		lda [D + SigA + 2]
+		bne RoundPackFloatTop
+		ldy 0
+		lda [D + SigA]
+RoundPackFloatTop:
+		jsr HighestBitWord
+		sta [D + TopBit]
+		clc
+		adc [D + ExpA]
+		clc
+		adc 127
+		sta [D + Biased]
+		sec
+		sbc 255
+		bvs RoundPackFloatOverflowed
+		bpl RoundPackFloatInfinity
+		bra RoundPackFloatInRange
+RoundPackFloatOverflowed:
+		bmi RoundPackFloatInfinity
+RoundPackFloatInRange:
+		lda [D + TopBit]
+		sec
+		sbc 23
+		sta [D + Shift]
+		lda [D + Biased]
+		dec A
+		bpl RoundPackFloatNormal
+		lda 1
+		sec
+		sbc [D + Biased]
+		clc
+		adc [D + Shift]
+		sta [D + Shift]
+		lda 1
+		sta [D + Biased]
+RoundPackFloatNormal:
+		lda [D + Shift]
+		beq RoundPackFloatKept
+		bmi RoundPackFloatLeft
+		cmp 49
+		bcc RoundPackFloatRight
+		; Below half the smallest subnormal: 0.
+		stz [D + SigA]
+		stz [D + SigA + 2]
+		bra RoundPackFloatKept
+RoundPackFloatLeft:
+		; Up to 23 bits: the significand fits two words.
+		eor $FFFF
+		inc A
+		cmp 16
+		bcc RoundPackFloatLeftByte
+		ldx [D + SigA]
+		stx [D + SigA + 2]
+		stz [D + SigA]
+		sec
+		sbc 16
+RoundPackFloatLeftByte:
+		cmp 8
+		bcc RoundPackFloatLeftBits
+		tax
+		lda [D + SigA + 1]
+		sta [D + SigA + 2]
+		lda [D + SigA]
+		xba
+		and $FF00
+		sta [D + SigA]
+		txa
+		and 7
+RoundPackFloatLeftBits:
+		tay
+		beq RoundPackFloatKept
+RoundPackFloatLeftLoop:
+		asl [D + SigA]
+		rol [D + SigA + 2]
+		dey
+		bne RoundPackFloatLeftLoop
+		bra RoundPackFloatKept
+RoundPackFloatRight:
+		; Down to the round bit, then the round bit out: up when it is set and the rest isn't 0 or
+		; the kept bits are odd.
+		dec A
+		jsr ShiftRight48
+		lda [D + SigA]
+		and 1
+		sta [D + Temp]
+		lsr [D + SigA + 4]
+		ror [D + SigA + 2]
+		ror [D + SigA]
+		lda [D + Temp]
+		beq RoundPackFloatKept
+		lda [D + Sticky]
+		bne RoundPackFloatUp
+		lda [D + SigA]
+		and 1
+		beq RoundPackFloatKept
+RoundPackFloatUp:
+		inc [D + SigA]
+		bne RoundPackFloatKept
+		inc [D + SigA + 2]
+RoundPackFloatKept:
+		; The significand's top bit adds to the exponent, so a carry out of rounding is right.
+		lda [D + SigA]
+		sta [D + Result]
+		lda [D + Biased]
+		dec A
+		xba
+		and $FF00
+		lsr A
+		clc
+		adc [D + SigA + 2]
+		cmp $7F80
+		bcs RoundPackFloatInfinity
+		ora [D + SignA]
+		sta [D + Result + 2]
+		rts
+RoundPackFloatInfinity:
+		jmp Infinity
+
+; SigA's low 48 bits shifted right A bits (any count), Sticky not 0 if a 1 bit went.
+ShiftRight48:
+		stz [D + Sticky]
+		cmp 48
+		bcc ShiftRight48Some
+		lda [D + SigA]
+		ora [D + SigA + 2]
+		ora [D + SigA + 4]
+		sta [D + Sticky]
+		stz [D + SigA]
+		stz [D + SigA + 2]
+		stz [D + SigA + 4]
+		rts
+ShiftRight48Some:
+		sta [D + Count]
+ShiftRight48Words:
+		lda [D + Count]
+		cmp 16
+		bcc ShiftRight48Byte
+		lda [D + SigA]
+		ora [D + Sticky]
+		sta [D + Sticky]
+		lda [D + SigA + 2]
+		sta [D + SigA]
+		lda [D + SigA + 4]
+		sta [D + SigA + 2]
+		stz [D + SigA + 4]
+		lda [D + Count]
+		sec
+		sbc 16
+		sta [D + Count]
+		bra ShiftRight48Words
+ShiftRight48Byte:
+		cmp 8
+		bcc ShiftRight48Bits
+		lda [D + SigA]
+		and $00FF
+		ora [D + Sticky]
+		sta [D + Sticky]
+		lda [D + SigA + 1]
+		sta [D + SigA]
+		lda [D + SigA + 3]
+		sta [D + SigA + 2]
+		lda [D + SigA + 5]
+		and $00FF
+		sta [D + SigA + 4]
+		lda [D + Count]
+		and 7
+ShiftRight48Bits:
+		tay
+		beq ShiftRight48Done
+ShiftRight48Loop:
+		lsr [D + SigA + 4]
+		ror [D + SigA + 2]
+		ror [D + SigA]
+		bcc ShiftRight48Next
+		lda 1
+		tsb [D + Sticky]
+ShiftRight48Next:
+		dey
+		bne ShiftRight48Loop
+ShiftRight48Done:
+		rts
+
+; The 32 bit value at D + X shifted right A bits (any count), any bit shifted out kept in the
+; lowest bit.
+ShiftRightJam32:
+		stz [D + Sticky]
+		cmp 32
+		bcc ShiftRightJam32Some
+		lda [D + X]
+		ora [D + 2 + X]
+		sta [D + Sticky]
+		stz [D + X]
+		stz [D + 2 + X]
+		bra ShiftRightJam32Jam
+ShiftRightJam32Some:
+		cmp 16
+		bcc ShiftRightJam32Byte
+		ldy [D + X]
+		sty [D + Sticky]
+		ldy [D + 2 + X]
+		sty [D + X]
+		stz [D + 2 + X]
+		sec
+		sbc 16
+ShiftRightJam32Byte:
+		cmp 8
+		bcc ShiftRightJam32Bits
+		tay
+		lda [D + X]
+		and $00FF
+		ora [D + Sticky]
+		sta [D + Sticky]
+		lda [D + 1 + X]
+		sta [D + X]
+		lda [D + 3 + X]
+		and $00FF
+		sta [D + 2 + X]
+		tya
+		and 7
+ShiftRightJam32Bits:
+		tay
+		beq ShiftRightJam32Jam
+ShiftRightJam32Loop:
+		lsr [D + 2 + X]
+		ror [D + X]
+		bcc ShiftRightJam32Next
+		lda 1
+		tsb [D + Sticky]
+ShiftRightJam32Next:
+		dey
+		bne ShiftRightJam32Loop
+ShiftRightJam32Jam:
+		lda [D + Sticky]
+		beq ShiftRightJam32Done
+		lda [D + X]
+		ora 1
+		sta [D + X]
+ShiftRightJam32Done:
+		rts
+
+; Floats added and subtracted in two words, their top bits at 29 rather than softfloat.cpp's 61:
+; the 6 bits below the 24 and the sticky bit round the same.
+AddFiniteFloat:
+		; Both up a byte, the top bits at 31: a carry out of the sum goes into SigA + 4.
+		lda [D + SigA + 1]
+		sta [D + SigA + 2]
+		lda [D + SigA]
+		xba
+		and $FF00
+		sta [D + SigA]
+		lda [D + SigB + 1]
+		sta [D + SigB + 2]
+		lda [D + SigB]
+		xba
+		and $FF00
+		sta [D + SigB]
+		lda [D + ExpA]
+		sec
+		sbc 8
+		sta [D + ExpA]
+		lda [D + ExpB]
+		sec
+		sbc 8
+		sta [D + ExpB]
+
+		; The larger in A.
+		lda [D + ExpA]
+		sec
+		sbc [D + ExpB]
+		beq AddFloatSameExponent
+		bvc AddFloatExponentSign
+		eor $8000
+AddFloatExponentSign:
+		bpl AddFloatOrdered
+		bra AddFloatSwap
+AddFloatSameExponent:
+		lda [D + SigA + 2]
+		cmp [D + SigB + 2]
+		bne AddFloatCompared
+		lda [D + SigA]
+		cmp [D + SigB]
+AddFloatCompared:
+		bcs AddFloatOrdered
+AddFloatSwap:
+		jsr SwapAddSides
+AddFloatOrdered:
+		lda [D + ExpA]
+		sec
+		sbc [D + ExpB]
+		ldx SigB
+		jsr ShiftRightJam32
+
+		lda [D + SignA]
+		cmp [D + SignB]
+		bne AddFloatDifferentSigns
+		clc
+		lda [D + SigA]
+		adc [D + SigB]
+		sta [D + SigA]
+		lda [D + SigA + 2]
+		adc [D + SigB + 2]
+		sta [D + SigA + 2]
+		lda 0
+		rol A
+		sta [D + SigA + 4]
+		jsr RoundPackFloat
+		jmp ReturnResult
+AddFloatDifferentSigns:
+		lda [D + SigA + 2]
+		cmp [D + SigB + 2]
+		bne AddFloatUnequal
+		lda [D + SigA]
+		cmp [D + SigB]
+		bne AddFloatUnequal
+		stz [D + SignA]
+		jsr SignedZero
+		jmp ReturnResult
+AddFloatUnequal:
+		bcs AddFloatASubtractB
+		sec
+		lda [D + SigB]
+		sbc [D + SigA]
+		sta [D + SigA]
+		lda [D + SigB + 2]
+		sbc [D + SigA + 2]
+		sta [D + SigA + 2]
+		lda [D + SignB]
+		sta [D + SignA]
+		jsr RoundPackFloat
+		jmp ReturnResult
+AddFloatASubtractB:
+		sec
+		lda [D + SigA]
+		sbc [D + SigB]
+		sta [D + SigA]
+		lda [D + SigA + 2]
+		sbc [D + SigB + 2]
+		sta [D + SigA + 2]
+		jsr RoundPackFloat
+		jmp ReturnResult
 
 
 ;-----------------------------------------------------------------------------------------------
@@ -1377,7 +1799,12 @@ AddReturnB:
 		jmp ReturnResult
 
 AddFinite:
-		; The top bits at 61, leaving room for a carry.
+		lda [D + Fraction]
+		cmp 23
+		bne AddFiniteDouble
+		jmp AddFiniteFloat
+AddFiniteDouble:
+		; The top bits at 61, leaving room for a carry (and RoundPack a byte step down).
 		lda 61
 		sec
 		sbc [D + Fraction]
@@ -1410,7 +1837,7 @@ AddSameExponent:
 		jsr CompareSignificands
 		bcs AddOrdered
 AddSwap:
-		jsr SwapSides
+		jsr SwapAddSides
 AddOrdered:
 		lda [D + ExpA]
 		sec
@@ -1495,22 +1922,33 @@ CompareSignificands:
 CompareSignificandsDone:
 		rts
 
-; Swaps side A's Sign, Class, Exponent and significand with side B's.
-SwapSides:
-		ldx 0
-SwapSidesLoop:
-		lda [D + SignA + X]
-		pha
-		lda [D + SignB + X]
-		sta [D + SignA + X]
-		pla
-		sta [D + SignB + X]
-		inx
-		inx
-		cpx SideB
-		bcc SwapSidesLoop
+; Swaps side A's Sign, Exponent and significand with side B's (not the Class: Add is past it).
+SwapAddSides:
+		lda [D + SignA]
+		ldx [D + SignB]
+		sta [D + SignB]
+		stx [D + SignA]
+		lda [D + ExpA]
+		ldx [D + ExpB]
+		sta [D + ExpB]
+		stx [D + ExpA]
+		lda [D + SigA]
+		ldx [D + SigB]
+		sta [D + SigB]
+		stx [D + SigA]
+		lda [D + SigA + 2]
+		ldx [D + SigB + 2]
+		sta [D + SigB + 2]
+		stx [D + SigA + 2]
+		lda [D + SigA + 4]
+		ldx [D + SigB + 4]
+		sta [D + SigB + 4]
+		stx [D + SigA + 4]
+		lda [D + SigA + 6]
+		ldx [D + SigB + 6]
+		sta [D + SigB + 6]
+		stx [D + SigA + 6]
 		rts
-
 
 ;-----------------------------------------------------------------------------------------------
 ; Multiply, as softfloat.cpp's Multiply.
@@ -1559,11 +1997,48 @@ MultiplyZero:
 		jmp ReturnResult
 
 MultiplyFinite:
+		; A power of two (only its hidden bit) times the other is the other's significand,
+		; exactly, at the exponents' sum and a power of two's Fraction.
+		ldx SideB
+		jsr IsRawPower
+		beq MultiplyPower
+		ldx 0
+		jsr IsRawPower
+		bne MultiplyGeneral
+		lda [D + SigB]
+		sta [D + SigA]
+		lda [D + SigB + 2]
+		sta [D + SigA + 2]
+		lda [D + SigB + 4]
+		sta [D + SigA + 4]
+		lda [D + SigB + 6]
+		sta [D + SigA + 6]
+MultiplyPower:
+		lda [D + ExpA]
+		clc
+		adc [D + ExpB]
+		clc
+		adc [D + Fraction]
+		sta [D + ExpA]
+		jmp RoundPackAndReturn
+MultiplyGeneral:
 		jsr MultiplySignificands
 		lda [D + ExpA]
 		clc
 		adc [D + ExpB]
 		sta [D + ExpA]
+		lda [D + Fraction]
+		cmp 23
+		bne MultiplyDoubleProduct
+		lda [D + Product]
+		sta [D + SigA]
+		lda [D + Product + 2]
+		sta [D + SigA + 2]
+		lda [D + Product + 4]
+		sta [D + SigA + 4]
+		jsr RoundPackFloat
+		jmp ReturnResult
+MultiplyDoubleProduct:
 
 		; The top 64 bits, the rest sticky in the lowest.
 		ldx Product + 8
@@ -1647,11 +2122,70 @@ MultiplySignificands:
 		bne MultiplyDouble
 		jmp MultiplyFloat
 MultiplyDouble:
+		; A significand with its low 29 bits 0 (a double from a float) has only 24 bits above
+		; them: in B, shifted down, it takes three bytes a row (MultiplyNarrowRow) not seven, and
+		; the product is 2^29 times less (into ExpA, which is added to ExpB after).  IndexJ is
+		; B's bytes.
+		lda 7
+		sta [D + IndexJ]
+		lda [D + SigB + 2]
+		and $1FFF
+		ora [D + SigB]
+		beq MultiplyNarrowB
+		lda [D + SigA + 2]
+		and $1FFF
+		ora [D + SigA]
+		bne MultiplyZeroProduct
+		lda [D + SigA]
+		ldx [D + SigB]
+		sta [D + SigB]
+		stx [D + SigA]
+		lda [D + SigA + 2]
+		ldx [D + SigB + 2]
+		sta [D + SigB + 2]
+		stx [D + SigA + 2]
+		lda [D + SigA + 4]
+		ldx [D + SigB + 4]
+		sta [D + SigB + 4]
+		stx [D + SigA + 4]
+		lda [D + SigA + 6]
+		ldx [D + SigB + 6]
+		sta [D + SigB + 6]
+		stx [D + SigA + 6]
+MultiplyNarrowB:
+		; B >> 16, up 3 (B >> 13), its top two words (B >> 29).
+		lda [D + SigB + 2]
+		sta [D + SigB]
+		lda [D + SigB + 4]
+		sta [D + SigB + 2]
+		lda [D + SigB + 6]
+		sta [D + SigB + 4]
+		ldy 3
+MultiplyNarrowShift:
+		asl [D + SigB]
+		rol [D + SigB + 2]
+		rol [D + SigB + 4]
+		dey
+		bne MultiplyNarrowShift
+		lda [D + SigB + 2]
+		sta [D + SigB]
+		lda [D + SigB + 4]
+		sta [D + SigB + 2]
+		stz [D + SigB + 4]
+		stz [D + SigB + 6]
+		lda [D + ExpA]
+		clc
+		adc 29
+		sta [D + ExpA]
+		lda 3
+		sta [D + IndexJ]
+MultiplyZeroProduct:
 		ldx Product
 		jsr ZeroValue
 		ldx Product + 8
 		jsr ZeroValue
 		stz [D + RowOdd - 1]
+		stz [D + RowOdd + 2]
 		stz [D + RowOdd + 5]
 		ldx RowEven
 		jsr ZeroValue
@@ -1713,10 +2247,10 @@ MultiplyRow:
 		xba
 		asl A
 		sta [D + RowBase]
-		lda [D + Bytes]
+		lda [D + IndexJ]
 		cmp 7
 		beq MultiplyRow7
-		jmp MultiplyRow3
+		jmp MultiplyNarrowRow
 MultiplyRow7:
 		lda [D + ByteB2 + 12]
 		ora [D + RowBase]
@@ -1738,7 +2272,6 @@ MultiplyRow7:
 		tax
 		lda [MathMult + X]:24
 		sta [D + RowOdd + 2]
-MultiplyRow3:
 		lda [D + ByteB2 + 4]
 		ora [D + RowBase]
 		tax
@@ -1819,6 +2352,58 @@ MultiplyNextRow:
 		jmp MultiplyRow
 MultiplyRowsDone:
 		rts
+
+; A row of a 24 bit B: a * B is 32 bits, the products of b0 and b2 side by side and b1's a byte
+; up (RowOdd's bytes either side are 0), added into Product IndexI bytes up.
+MultiplyNarrowRow:
+		lda [D + ByteB2 + 4]
+		ora [D + RowBase]
+		tax
+		lda [MathMult + X]:24
+		sta [D + RowEven + 2]
+		lda [D + ByteB2 + 2]
+		ora [D + RowBase]
+		tax
+		lda [MathMult + X]:24
+		sta [D + RowOdd]
+		lda [D + ByteB2]
+		ora [D + RowBase]
+		tax
+		lda [MathMult + X]:24
+		clc
+		adc [D + RowOdd - 1]
+		sta [D + RowEven]
+		lda [D + RowEven + 2]
+		adc [D + RowOdd + 1]
+		sta [D + RowEven + 2]
+		lda [D + Temp]
+		cmp $0080
+		bcc MultiplyAddNarrowRow
+		clc
+		lda [D + RowEven]
+		adc [D + B7]
+		sta [D + RowEven]
+		lda [D + RowEven + 2]
+		adc [D + B7 + 2]
+		sta [D + RowEven + 2]
+MultiplyAddNarrowRow:
+		ldx [D + IndexI]
+		clc
+		lda [D + RowEven]
+		adc [D + Product + X]
+		sta [D + Product + X]
+		lda [D + RowEven + 2]
+		adc [D + Product + 2 + X]
+		sta [D + Product + 2 + X]
+		bcc MultiplyNarrowNext
+MultiplyNarrowCarry:
+		inc [D + Product + 4 + X]
+		bne MultiplyNarrowNext
+		inx
+		inx
+		bra MultiplyNarrowCarry
+MultiplyNarrowNext:
+		jmp MultiplyNextRow
 
 ; A float's Product: 24 bit significands, so each row a * SigB is 32 bits (the products of b0
 ; and b2 side by side, b1's a byte up) and the product 48.  As MultiplySignificands otherwise.
@@ -1964,6 +2549,19 @@ DivideZero:
 		jmp ReturnResult
 
 DivideFinite:
+		; Over a power of two (only its hidden bit) is A's significand, exactly, at the exponents'
+		; difference less the power of two's Fraction.
+		ldx SideB
+		jsr IsRawPower
+		bne DivideGeneral
+		lda [D + ExpA]
+		sec
+		sbc [D + ExpB]
+		sec
+		sbc [D + Fraction]
+		sta [D + ExpA]
+		jmp RoundPackAndReturn
+DivideGeneral:
 		; Both with their top bit at 62 (a double) or 30 (a float, so it fits two words), so A / B
 		; is from 1/2 to 2.
 		lda [D + Fraction]
@@ -2098,8 +2696,7 @@ DivideNoRest:
 		sec
 		sbc [D + IndexJ]
 		sta [D + ExpA]
-		jsr RoundPack
-		jmp ReturnResult
+		jmp RoundPackAndReturn
 
 ; After a word of quotient bits: Z set when all are done, otherwise the quotient's words moved
 ; up and Y = 16 for the next.
@@ -2147,19 +2744,36 @@ Normalise62:
 ; B, and 2 if either is a NaN.
 
 CompareOp:
+		; From the bits as given, without unpacking: NaNs, then two zeros, then the signs and the
+		; magnitudes.
 		ldx 0
-		jsr Unpack
+		jsr RawSignNaN
+		bcs CompareUnordered
 		ldx SideB
-		jsr Unpack
-		lda [D + ClassA]
-		cmp SoftNaN
-		beq CompareUnordered
-		lda [D + ClassB]
-		cmp SoftNaN
-		beq CompareUnordered
-		lda [D + ClassA]
-		ora [D + ClassB]
+		jsr RawSignNaN
+		bcs CompareUnordered
+		lda [D + Fraction]
+		cmp 23
+		beq CompareFloatZeros
+		lda [D + RawA + 6]
+		ora [D + RawB + 6]
+		and $7FFF
+		ora [D + RawA + 4]
+		ora [D + RawB + 4]
+		ora [D + RawA + 2]
+		ora [D + RawB + 2]
+		ora [D + RawA]
+		ora [D + RawB]
 		beq CompareEqual
+		bra CompareSigns
+CompareFloatZeros:
+		lda [D + RawA + 2]
+		ora [D + RawB + 2]
+		and $7FFF
+		ora [D + RawA]
+		ora [D + RawB]
+		beq CompareEqual
+CompareSigns:
 		lda [D + SignA]
 		cmp [D + SignB]
 		beq CompareSameSign
@@ -2262,7 +2876,8 @@ FromUnsigned32Op:
 FromInteger32:
 		stz [D + SigA + 4]
 		stz [D + SigA + 6]
-		bra FromInteger
+		stz [D + ExpA]
+		jmp RoundPackAndReturn
 
 FromInt64Op:
 		stz [D + SignA]
@@ -2437,6 +3052,46 @@ ToIntegerToIndefinite:
 ; payload and are quietened.
 
 FloatToDoubleOp:
+		; A normal float's bits move: the fraction up 29 and the exponent biased 896 more.
+		lda [D + RawA + 2]
+		and $7F80
+		beq FloatToDoubleUnpack
+		cmp $7F80
+		beq FloatToDoubleUnpack
+		lsr A
+		lsr A
+		lsr A
+		clc
+		adc $3800
+		sta [D + Temp2]
+		lda [D + RawA + 2]
+		and $007F
+		sta [D + Temp]
+		lda [D + RawA]
+		lsr [D + Temp]
+		ror A
+		lsr [D + Temp]
+		ror A
+		lsr [D + Temp]
+		ror A
+		sta [D + Result + 4]
+		lda [D + RawA + 2]
+		and $8000
+		ora [D + Temp]
+		ora [D + Temp2]
+		sta [D + Result + 6]
+		lda [D + RawA]
+		xba
+		and $FF00
+		asl A
+		asl A
+		asl A
+		asl A
+		asl A
+		sta [D + Result + 2]
+		stz [D + Result]
+		jmp ReturnResult
+FloatToDoubleUnpack:
 		ldx 0
 		jsr Unpack
 		jsr SetFormatDouble
@@ -2452,6 +3107,54 @@ FloatToDoubleNaN:
 		jmp ChangeNaN
 
 DoubleToFloatOp:
+		; A double that is a normal float: its bits from the fraction's top 23 down (the exponent
+		; biased 896 less), rounded to nearest, ties to even, by what is below them.  A carry out
+		; of rounding goes into the exponent (to infinity from the largest).
+		lda [D + RawA + 6]
+		and $7FF0
+		cmp $3810
+		bcc DoubleToFloatUnpack
+		cmp $47F0
+		bcs DoubleToFloatUnpack
+		lda [D + RawA + 2]
+		sta [D + Result]
+		lda [D + RawA + 4]
+		sta [D + Result + 2]
+		lda [D + RawA + 6]
+		and $7FFF
+		sta [D + Result + 4]
+		ldy 3
+DoubleToFloatShift:
+		asl [D + Result]
+		rol [D + Result + 2]
+		rol [D + Result + 4]
+		dey
+		bne DoubleToFloatShift
+		lda [D + Result]
+		bpl DoubleToFloatRounded
+		and $7FFF
+		ora [D + RawA]
+		bne DoubleToFloatUp
+		lda [D + Result + 2]
+		and 1
+		beq DoubleToFloatRounded
+DoubleToFloatUp:
+		inc [D + Result + 2]
+		bne DoubleToFloatRounded
+		inc [D + Result + 4]
+DoubleToFloatRounded:
+		lda [D + Result + 2]
+		sta [D + Result]
+		lda [D + RawA + 6]
+		and $8000
+		sta [D + Temp]
+		lda [D + Result + 4]
+		sec
+		sbc $C000
+		ora [D + Temp]
+		sta [D + Result + 2]
+		jmp ReturnResult
+DoubleToFloatUnpack:
 		ldx 0
 		jsr Unpack
 		jsr SetFormatFloat
@@ -2542,128 +3245,204 @@ SqrtFinite:
 		ror [D + SigA]
 		inc [D + ExpA]
 SqrtEven:
-		; The radicand is the significand times 2^48 (112 bits); in Product it is up 16 more, so its
-		; top two bits are always Product's.
-		ldx Product
-		jsr ZeroValue
-		lda [D + SigA]
-		sta [D + Product + 8]
-		lda [D + SigA + 2]
-		sta [D + Product + 10]
-		lda [D + SigA + 4]
-		sta [D + Product + 12]
-		lda [D + SigA + 6]
-		sta [D + Product + 14]
+		; A bit of the root for each two bits of the radicand, the significand times 2^(2N - 64)
+		; (N steps): its bits come in from the top, a word at a time, then 0s.  Quotient keeps
+		; T = root << 2, so the trial (root << 2) | 1 is T + 1, reached when the remainder is above T.
+		lda 6
+		sta [D + Count]
+		lda [D + Fraction]
+		cmp 23
+		bne SqrtDouble
+		jmp SqrtFloat
+SqrtDouble:
+		; 55 steps give a root of at least 54 bits: 53 and the round bit.
 		ldx Quotient
 		jsr ZeroValue
 		ldx Remainder
 		jsr ZeroValue
-
-		; A bit of the root for each two bits of the radicand, from the top.
-		lda 56
+		lda 55
 		sta [D + IndexI]
-SqrtLoop:
-		ldy 2
-SqrtTwoBits:
-		asl [D + Product]
-		rol [D + Product + 2]
-		rol [D + Product + 4]
-		rol [D + Product + 6]
-		rol [D + Product + 8]
-		rol [D + Product + 10]
-		rol [D + Product + 12]
-		rol [D + Product + 14]
+SqrtWord:
+		lda [D + Count]
+		bmi SqrtWordZero
+		tax
+		lda [D + SigA + X]
+		dex
+		dex
+		stx [D + Count]
+		bra SqrtWordLoaded
+SqrtWordZero:
+		lda 0
+SqrtWordLoaded:
+		sta [D + Temp]
+		lda 8
+		sta [D + Temp2]
+SqrtStep:
+		asl [D + Temp]
 		rol [D + Remainder]
 		rol [D + Remainder + 2]
 		rol [D + Remainder + 4]
 		rol [D + Remainder + 6]
-		dey
-		bne SqrtTwoBits
-
-		; The trial (root << 2) | 1 in SigB.
+		asl [D + Temp]
+		rol [D + Remainder]
+		rol [D + Remainder + 2]
+		rol [D + Remainder + 4]
+		rol [D + Remainder + 6]
+		lda [D + Remainder + 6]
+		cmp [D + Quotient + 6]
+		bne SqrtCompared
+		lda [D + Remainder + 4]
+		cmp [D + Quotient + 4]
+		bne SqrtCompared
+		lda [D + Remainder + 2]
+		cmp [D + Quotient + 2]
+		bne SqrtCompared
+		lda [D + Remainder]
+		cmp [D + Quotient]
+		beq SqrtZeroBit
+SqrtCompared:
+		bcc SqrtZeroBit
+		; Remainder -= T + 1, T = (T << 1) + 4.
+		clc
+		lda [D + Remainder]
+		sbc [D + Quotient]
+		sta [D + Remainder]
+		lda [D + Remainder + 2]
+		sbc [D + Quotient + 2]
+		sta [D + Remainder + 2]
+		lda [D + Remainder + 4]
+		sbc [D + Quotient + 4]
+		sta [D + Remainder + 4]
+		lda [D + Remainder + 6]
+		sbc [D + Quotient + 6]
+		sta [D + Remainder + 6]
 		lda [D + Quotient]
 		asl A
-		sta [D + SigB]
-		lda [D + Quotient + 2]
-		rol A
-		sta [D + SigB + 2]
-		lda [D + Quotient + 4]
-		rol A
-		sta [D + SigB + 4]
-		lda [D + Quotient + 6]
-		rol A
-		sta [D + SigB + 6]
-		asl [D + SigB]
-		rol [D + SigB + 2]
-		rol [D + SigB + 4]
-		rol [D + SigB + 6]
-		lda [D + SigB]
-		ora 1
-		sta [D + SigB]
-
-		; The root shifted up, its new bit 1 when the remainder reaches the trial.
+		ora 4
+		sta [D + Quotient]
+		bra SqrtShiftT
+SqrtZeroBit:
 		asl [D + Quotient]
+SqrtShiftT:
 		rol [D + Quotient + 2]
 		rol [D + Quotient + 4]
 		rol [D + Quotient + 6]
-		lda [D + Remainder + 6]
-		cmp [D + SigB + 6]
-		bne SqrtCompared
-		lda [D + Remainder + 4]
-		cmp [D + SigB + 4]
-		bne SqrtCompared
-		lda [D + Remainder + 2]
-		cmp [D + SigB + 2]
-		bne SqrtCompared
-		lda [D + Remainder]
-		cmp [D + SigB]
-SqrtCompared:
-		bcc SqrtNext
-		sec
-		lda [D + Remainder]
-		sbc [D + SigB]
-		sta [D + Remainder]
-		lda [D + Remainder + 2]
-		sbc [D + SigB + 2]
-		sta [D + Remainder + 2]
-		lda [D + Remainder + 4]
-		sbc [D + SigB + 4]
-		sta [D + Remainder + 4]
-		lda [D + Remainder + 6]
-		sbc [D + SigB + 6]
-		sta [D + Remainder + 6]
-		inc [D + Quotient]
-SqrtNext:
 		dec [D + IndexI]
-		bne SqrtLoop
-
-		; (root << 1) | (remainder != 0), at (exponent - 48) / 2 - 1.
+		beq SqrtDoubleDone
+		dec [D + Temp2]
+		bne SqrtStep
+		jmp SqrtWord
+SqrtDoubleDone:
+		; (root << 1) | (remainder != 0) = (T >> 1) | (remainder != 0), at (exponent - 46) / 2 - 1.
+		lsr [D + Quotient + 6]
+		ror [D + Quotient + 4]
+		ror [D + Quotient + 2]
+		ror [D + Quotient]
 		ldx Remainder
 		jsr IsZero
-		beq SqrtExact
+		beq SqrtDoubleExact
 		lda 1
-SqrtExact:
-		sta [D + Temp]
-		lda [D + Quotient]
-		asl A
-		ora [D + Temp]
+SqrtDoubleExact:
+		ora [D + Quotient]
 		sta [D + SigA]
 		lda [D + Quotient + 2]
-		rol A
 		sta [D + SigA + 2]
 		lda [D + Quotient + 4]
-		rol A
 		sta [D + SigA + 4]
 		lda [D + Quotient + 6]
-		rol A
 		sta [D + SigA + 6]
 		lda [D + ExpA]
 		sec
-		sbc 48
+		sbc 46
 		cmp $8000
 		ror A
 		dec A
 		sta [D + ExpA]
 		stz [D + SignA]
 		jsr RoundPack
+		jmp ReturnResult
+
+SqrtFloat:
+		; 26 steps give a root of at least 25 bits: 24 and the round bit.  The significand's bits
+		; are in its top two words, the root under 2^26 and T and the remainder under 2^29.
+		stz [D + Quotient]
+		stz [D + Quotient + 2]
+		stz [D + Remainder]
+		stz [D + Remainder + 2]
+		lda 26
+		sta [D + IndexI]
+SqrtFloatWord:
+		lda [D + Count]
+		bmi SqrtFloatWordZero
+		tax
+		lda [D + SigA + X]
+		dex
+		dex
+		stx [D + Count]
+		bra SqrtFloatWordLoaded
+SqrtFloatWordZero:
+		lda 0
+SqrtFloatWordLoaded:
+		sta [D + Temp]
+		lda 8
+		sta [D + Temp2]
+SqrtFloatStep:
+		asl [D + Temp]
+		rol [D + Remainder]
+		rol [D + Remainder + 2]
+		asl [D + Temp]
+		rol [D + Remainder]
+		rol [D + Remainder + 2]
+		lda [D + Remainder + 2]
+		cmp [D + Quotient + 2]
+		bne SqrtFloatCompared
+		lda [D + Remainder]
+		cmp [D + Quotient]
+		beq SqrtFloatZeroBit
+SqrtFloatCompared:
+		bcc SqrtFloatZeroBit
+		clc
+		lda [D + Remainder]
+		sbc [D + Quotient]
+		sta [D + Remainder]
+		lda [D + Remainder + 2]
+		sbc [D + Quotient + 2]
+		sta [D + Remainder + 2]
+		lda [D + Quotient]
+		asl A
+		ora 4
+		sta [D + Quotient]
+		bra SqrtFloatShiftT
+SqrtFloatZeroBit:
+		asl [D + Quotient]
+SqrtFloatShiftT:
+		rol [D + Quotient + 2]
+		dec [D + IndexI]
+		beq SqrtFloatDone
+		dec [D + Temp2]
+		bne SqrtFloatStep
+		bra SqrtFloatWord
+SqrtFloatDone:
+		; As the double's, at (exponent + 12) / 2 - 1.
+		lsr [D + Quotient + 2]
+		ror [D + Quotient]
+		lda [D + Remainder]
+		ora [D + Remainder + 2]
+		beq SqrtFloatExact
+		lda 1
+SqrtFloatExact:
+		ora [D + Quotient]
+		sta [D + SigA]
+		lda [D + Quotient + 2]
+		sta [D + SigA + 2]
+		stz [D + SigA + 4]
+		lda [D + ExpA]
+		clc
+		adc 12
+		cmp $8000
+		ror A
+		dec A
+		sta [D + ExpA]
+		stz [D + SignA]
+		jsr RoundPackFloat
 		jmp ReturnResult
