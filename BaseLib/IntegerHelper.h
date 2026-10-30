@@ -33,13 +33,15 @@ size 	GetLogBase2(uint32 i);  //0x1 -> 0, 0x2 -> 1, 0x4 -> 2, 0x8 -> 3, 0x10 -> 
 uint8	GetByte(uint32 iInt, uint16 iPos);
 uint32 	SetByte(uint8 c, uint16 iPos);
 bool 	GetBit(size iBit, void* pvBitArray);  //return 1 or 0 in char array of bits.
-bool 	GetBitReverseHiLo(size iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
+bool 	GetBitReverseHiLo(lsize iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
 size	CountBits(void* pvBitArray, size iBitLength);
 size	CountBitsSingly(void* pvBitArray, size iBitLength);  //Slow, for testing.
 size	CountDigits(int16 i);
 size	CountDigits(int32 i);
 size	CountDigits(int64 i);
 void 	SetBit(size iBit, void* pvBitArray, bool bBit);
+bool 	GetBitLarge(lsize iBit, void* pvBitArray);
+void 	SetBitLarge(lsize iBit, void* pvBitArray, bool bBit);
 void 	SetBits(size iStart, void* pvBitArray, bool bBit, size iLength);
 void 	SetFlagByte(uint8* psiDest, uint8 iFlag, bool iFlagValue);
 void 	SetFlagByte(int8* psiDest, int8 iFlag, bool iFlagValue);
@@ -50,7 +52,7 @@ void 	SetFlagInt(int32* piDest, int32 iFlag, bool iFlagValue);
 void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue); 
 void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
-size 	FindFirstClearBit(void* pvArray, size iArraySize);
+size 	FindFirstClearBit(void* pvArray, size iArraySize);  //Libc65's string816_16.asm on the W65C816 (and the Last, uint32 and uint64 ones).
 size	FindFirstClearBit(uint32 uiBits);  //uiBits must have a clear bit.
 size 	FindFirstSetBit(void* pvArray, size iArraySize);
 size	FindFirstSetBit(uint64 uiBits);  //uiBits must have a set bit.
@@ -58,6 +60,12 @@ size 	FindLastClearBit(void* pvArray, size iArraySize);
 size 	FindLastSetBit(void* pvArray, size iArraySize);
 size	FindNextSetBit(void* pvArray, size iArraySize, size iStartBit);
 size	FindNextClearBit(void* pvArray, size iArraySize, size iStartBit);
+lsize 	FindFirstClearBitLarge(void* pvArray, lsize iArraySize);  //The bit array functions for more bits than a size counts, ARRAY_LARGE_ELEMENT_NOT_FOUND if there is none.
+lsize 	FindFirstSetBitLarge(void* pvArray, lsize iArraySize);
+lsize 	FindLastClearBitLarge(void* pvArray, lsize iArraySize);
+lsize 	FindLastSetBitLarge(void* pvArray, lsize iArraySize);
+lsize	FindNextSetBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit);
+lsize	FindNextClearBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit);
 void 	SwapInt16(int16* pi1, int16* pi2);
 void 	SwapUint16(uint16* pi1, uint16* pi2);
 void 	SwapInt32(int32* pi1, int32* pi2);
@@ -87,8 +95,8 @@ int 	CompareLong(const void* arg1, const void* arg2);
 int		CompareLongReverse(const void* arg1, const void* arg2);
 uint8	GetCrumb(size iCrumb, void* pvArray);  //return 11, 10, 01 or 00.
 uint8	GetNybble(size iNybble, void* pvArray);
-void 	CopyBits(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset, size iNumBits, bool bClear);  //Setting clear will make all unused bits zero.
-void 	CopyBitsReverseHiLo(void* pvDest, size iDestOffset, void* pvSource, size iSourceOffset, size iNumBits, bool bClear);  //Setting clear will make all unused bits zero.
+void 	CopyBits(void* pvDest, lsize iDestOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits, bool bClear);  //Setting clear will make all unused bits zero.
+void 	CopyBitsReverseHiLo(void* pvDest, lsize iDestOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits, bool bClear);  //Setting clear will make all unused bits zero.
 int16	ReverseShortEndianness(int16 s);
 int32	ReverseIntEndianness(int32 i);
 int64	ReverseLongEndianness(int64 i);

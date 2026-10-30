@@ -263,9 +263,9 @@ CReadTransaction* CCodabase::BeginReadTransaction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCodabase::NumVersions(void)
+lsize CCodabase::NumVersions(void)
 {
-	size	uiNumVersions;
+	lsize	uiNumVersions;
 
 	mcMutex.Lock();
 	uiNumVersions = mcVersions.NumVersions();
@@ -355,11 +355,13 @@ bool CCodabase::HasWriterOnThisThread(void)
 	size	i;
 	int		iThread;
 	bool	bFound;
+	size	uiNumElements;
 
 	iThread = CurrentThreadId();
 	bFound = false;
 	mcMutex.Lock();
-	for (i = 0; i < mapcWriters.NumElements(); i++)
+	uiNumElements = mapcWriters.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if ((*mapcWriters.Get(i))->GetThread() == iThread)
 		{
@@ -380,9 +382,11 @@ bool CCodabase::HasWriterOnThisThread(void)
 void CCodabase::RemoveWriter(CWriteTransaction* pcTransaction)
 {
 	size	i;
+	size	uiNumElements;
 
 	mcMutex.Lock();
-	for (i = 0; i < mapcWriters.NumElements(); i++)
+	uiNumElements = mapcWriters.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (*mapcWriters.Get(i) == pcTransaction)
 		{
@@ -437,9 +441,11 @@ void CCodabase::ReleaseNames(CArrayChars* paszNames, int64 iTransaction)
 	size	i;
 	int64*	piOwner;
 	char*	szName;
+	size	uiNumElements;
 
 	mcMutex.Lock();
-	for (i = 0; i < paszNames->NumElements(); i++)
+	uiNumElements = paszNames->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szName = paszNames->GetText(i);
 		piOwner = mcReservedNames.Get(szName);
@@ -621,7 +627,8 @@ void CCodabase::SnapshotIndices(int64 iSnapshot, CArrayOIndex* paoi)
 	OIndex					oi;
 	lsize					iDataSize;
 	CArrayOIndex			aoiVersioned;
-	size					i;
+	lsize					i;
+	lsize					uiNumElements;
 
 	//The indices that existed at the snapshot: those in the store that have not been added since, and those that have
 	//been removed since.
@@ -638,7 +645,8 @@ void CCodabase::SnapshotIndices(int64 iSnapshot, CArrayOIndex* paoi)
 
 	aoiVersioned.Init();
 	mcVersions.GetIndices(&aoiVersioned);
-	for (i = 0; i < aoiVersioned.NumElements(); i++)
+	uiNumElements = aoiVersioned.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		oi = aoiVersioned.GetValue(i);
 		if (!mcNamedIndexedData.Contains(oi) && SnapshotContainsLocked(iSnapshot, oi))
@@ -660,13 +668,15 @@ void CCodabase::SnapshotNames(int64 iSnapshot, CArrayChars* paszNames)
 	CArrayChars	aszNames;
 	size		i;
 	char*		szName;
+	size		uiNumElements;
 
 	//The stored names and the names changed since the snapshot, if the name existed at the snapshot.
 	aszNames.Init();
 	StoredNames(&aszNames);
 	mcMutex.Lock();
 	mcVersions.GetNames(&aszNames);
-	for (i = 0; i < aszNames.NumElements(); i++)
+	uiNumElements = aszNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szName = aszNames.GetText(i);
 		if (SnapshotGetIndexLocked(iSnapshot, szName) != INVALID_O_INDEX)
@@ -892,10 +902,12 @@ void CCodabase::RemoveOldVersions(void)
 	size	i;
 	int64	iOldest;
 	int64	iSnapshot;
+	size	uiNumElements;
 
 	//mcMutex must be locked.  Versions that no open read transaction can see are thrown away.
 	iOldest = miCommitNumber;
-	for (i = 0; i < maiSnapshots.NumElements(); i++)
+	uiNumElements = maiSnapshots.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iSnapshot = maiSnapshots.GetValue(i);
 		if (iSnapshot < iOldest)
@@ -1821,7 +1833,7 @@ int64 CCodabase::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCodabase::NumDataCached(size iSize)
+int64 CCodabase::NumDataCached(lsize iSize)
 {
 	int64			iResult;
 	SWriteCounts	sCounts;

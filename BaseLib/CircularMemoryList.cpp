@@ -408,7 +408,7 @@ lsize CCircularMemoryList::GetSize(void* pvCacheBasedData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::NumElements(void)
+lsize CCircularMemoryList::NumElements(void)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 	lsize							iNum;
@@ -491,7 +491,7 @@ bool CCircularMemoryList::CanCache(lsize uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCircularMemoryList::NumElements(lsize iSize)
+lsize CCircularMemoryList::NumElements(lsize iSize)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 	lsize						iNum;

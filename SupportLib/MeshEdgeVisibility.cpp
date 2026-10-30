@@ -144,9 +144,11 @@ size CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
 {
 	size	i;
 	size	iCount;
+	size	uiNumElements;
 
 	iCount = 0;
-	for (i = 0; i < mcEdges.NumElements(); i++)
+	uiNumElements = mcEdges.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (mcEdges.GetValue(i) >= cEdge)
 		{
@@ -174,16 +176,20 @@ void CMeshEdgeVisibility::GenerateEdgeSelectionFromPolygons(CMeshConnectivity* p
 	int				iAdjPolygon;
 	char*			pcEdge;
 	SAdjFaces		sAdjFaces;
+	size			uiNumFaces;
+	size			uiNumPolygons;
 
 	pcConn->mcEdges.Zero();
 
 	//I'm not sure how this used to work.
 	pcEdge = NULL;
 
-	for (iPolygon = 0; iPolygon < pcPolygons->mcPolygons.NumElements(); iPolygon++)
+	uiNumPolygons = pcPolygons->mcPolygons.NumElements();
+	for (iPolygon = 0; iPolygon < uiNumPolygons; iPolygon++)
 	{
 		psPolygon = pcPolygons->mcPolygons.Get(iPolygon);
-		for (i = 0; i < psPolygon->maiFaces.NumElements(); i++)
+		uiNumFaces = psPolygon->maiFaces.NumElements();
+		for (i = 0; i < uiNumFaces; i++)
 		{
 			iFaceIndex = psPolygon->maiFaces.GetValue(i);
 			psFace = pcConn->GetFace(iFaceIndex);

@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTypeParser::Init(const char* szText, size iTextLen)
+bool CTypeParser::Init(const char* szText, lsize iTextLen)
 {
 	AllocateParser();
 	return mpcParser->Init(szText, iTextLen);

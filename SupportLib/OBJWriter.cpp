@@ -102,10 +102,12 @@ bool AddOBJNormals(CMeshNormals* pcNormals, CLargeChars* psz)
 	size		i;
 	SFloat32Vec3*	psNormal;
 	SFloat32Vec3		sNormal;
+	size				uiNumNormals;
 
 	if (pcNormals->mcNormals.NumElements() > 0)
 	{
-		for (i = 0; i < pcNormals->mcNormals.NumElements(); i++)
+		uiNumNormals = pcNormals->mcNormals.NumElements();
+		for (i = 0; i < uiNumNormals; i++)
 		{
 			psNormal = pcNormals->mcNormals.Get(i);
 			sNormal = *psNormal;
@@ -140,11 +142,13 @@ bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CLargeChars* psz)
 	SFloat32Vec2*		psUV;
 	SFloat32Vec2			sUV;
 	CMeshUVLayer*	pcUVLayer;
+	size					uiNumUVs;
 
 	if (pcUVs->mcLayers.NumElements() > 0)
 	{
 		pcUVLayer = pcUVs->mcLayers.Get(0);
-		for (i = 0; i < pcUVLayer->mcUVs.NumElements(); i++)
+		uiNumUVs = pcUVLayer->mcUVs.NumElements();
+		for (i = 0; i < uiNumUVs; i++)
 		{
 			psUV = pcUVLayer->mcUVs.Get(i);
 			sUV = *psUV;

@@ -199,8 +199,10 @@ bool CPolygon::HasPositionPtr(SFloat32Vec3* psPosition)
 {
 	size		i;
 	SFloat32Vec3*	psOther;
+	size			uiNumElements;
 	
-	for (i = 0; i < mapsPositions.NumElements(); i++)
+	uiNumElements = mapsPositions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psOther = *((SFloat32Vec3**)mapsPositions.Get(i));
 		if (psOther == psPosition)
@@ -222,6 +224,7 @@ bool CPolygon::UnionPosition(SFloat32Vec3* psPosition)
 	int			iInsertionIndex;
 	size		i;
 	int			iIndex;
+	size		uiNumElements;
 	
 	if (mbConvex)
 	{
@@ -244,7 +247,8 @@ bool CPolygon::UnionPosition(SFloat32Vec3* psPosition)
 
 				iInsertionIndex = cIndices.GetValue(1);  //End index of the first visible line.
 
-				for (i = 2; i < cIndices.NumElements(); i+= 2)
+				uiNumElements = cIndices.NumElements();
+				for (i = 2; i < uiNumElements; i+= 2)
 				{
 					iIndex = cIndices.GetValue(i);
 					mapsPositions.RemoveAt(iIndex);
@@ -277,10 +281,12 @@ bool CPolygon::Contains(SFloat32Vec3* psPosition)
 	CHalfSpace	cHalfSpace;
 	SFloat32Vec3		sVector;
 	SFloat32Vec3		sTempNormal;
+	size				uiNumElements;
 
 	if (CHalfSpace::Contains(psPosition))
 	{
-		for (i = 0; i < mapsPositions.NumElements(); i++)
+		uiNumElements = mapsPositions.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			psStart = *((SFloat32Vec3**)mapsPositions.Get(i));
 			if (i != mapsPositions.NumElements()-1)
@@ -319,11 +325,13 @@ void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat32Vec3* psPosition, CArrayIn
 	SFloat32Vec3*	psEnd;
 	int*		piLastIndex;
 	int			iElementPos;
+	size				uiNumElements;
 
 	iStart = -1;
 	iEnd = -1;
 	iElementPos = 0;
-	for (i = 0; i < mapsPositions.NumElements(); i++)
+	uiNumElements = mapsPositions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iStart = (int)i;
 		psStart = *((SFloat32Vec3**)mapsPositions.Get(iStart));

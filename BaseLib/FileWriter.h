@@ -67,7 +67,7 @@ public:
 						bool	WriteChar(char8 c);
 						bool	WriteWChar(char16 c);
 						bool	WriteBool(bool b);
-						bool	WriteBits(void* pvData, size iBitLength);
+						bool	WriteBits(void* pvData, lsize iByteLength);
 
 						bool	WriteIntArray(int32* pai, size iLength);
 

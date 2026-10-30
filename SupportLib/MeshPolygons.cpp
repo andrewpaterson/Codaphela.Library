@@ -150,10 +150,12 @@ bool CMeshPolygons::Save(CObjectWriter* pcFile)
 {
 	size			i;
 	CMeshPolygon*	psPolygon;
+	size			uiNumElements;
 
 	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));	
 
-	for (i = 0; i < mcPolygons.NumElements(); i++)
+	uiNumElements = mcPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psPolygon = mcPolygons.Get(i);
 		ReturnOnFalse(psPolygon->Save(pcFile));
@@ -172,10 +174,12 @@ bool CMeshPolygons::Load(CObjectReader* pcFile)
 {
 	size			i;
 	CMeshPolygon*	psPolygon;
+	size			uiNumElements;
 
 	ReturnOnFalse(mcPolygons.ReadAllocatorAndHeader(pcFile));
 
-	for (i = 0; i < mcPolygons.NumElements(); i++)
+	uiNumElements = mcPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psPolygon = mcPolygons.Get(i);
 		ReturnOnFalse(psPolygon->Load(pcFile));
@@ -697,13 +701,15 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 	int*			piPolygon;
 	int				iFace;
 	int				iLastPolygon;
+	size			uiNumElements;
 
 	pcDestPolygon = mcPolygons.Get(iDestPolygon);
 	pcSourcePolygon = mcPolygons.Get(iSource);
 
 	iLastPolygon = (int)mcPolygons.NumElements()-1;
 
-	for (i = 0; i < maiFacesToPolygons.NumElements(); i++)
+	uiNumElements = maiFacesToPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		piPolygon = (int*)maiFacesToPolygons.Get(i);
 		if (*piPolygon == iSource)
@@ -724,7 +730,8 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 
 	if (iLastPolygon != iSource)
 	{
-		for (i = 0; i < maiFacesToPolygons.NumElements(); i++)
+		uiNumElements = maiFacesToPolygons.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			piPolygon = (int*)maiFacesToPolygons.Get(i);
 			if (*piPolygon == iLastPolygon)

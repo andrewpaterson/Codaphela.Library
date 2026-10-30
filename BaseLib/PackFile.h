@@ -32,7 +32,7 @@ class CPackFile : public CAbstractFile
 public:
 	CPackFiles*		mpcPackFiles;
 	CPackFileNode*	mpsPackFileNode;
-	size			miPos;
+	filePos			miPos;
 	EFileMode		meMode;
 
 	void		Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFileNode);

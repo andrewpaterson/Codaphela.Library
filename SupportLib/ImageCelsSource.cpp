@@ -226,6 +226,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	CChars					szNiceName;
 	size					iIndex;
 	size					iLen;
+	size						uiNumElements;
 
 	if (!szFileNameContains)
 	{
@@ -240,7 +241,8 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	cFileNames.Init();
 	cFileUtil.FindFilesWithNameContaining(szPathName, szFileNameContains, &cFileNames, false);
 
-	for (i = 0; i < cFileNames.NumElements(); i++)
+	uiNumElements = cFileNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszName = cFileNames.Get(i);
 
@@ -307,6 +309,7 @@ bool CImageCelsSource::Load(void)
 	Ptr<CImage>						pcCombined;
 	size							j;
 	char*							szFileName;
+	size								uiNumCels;
 
 	for (i = 0; i < maImageSources.NumElements(); i++)
 	{
@@ -346,7 +349,8 @@ bool CImageCelsSource::Load(void)
 			}
 
 			szFileName = pImageSource->GetFileName();
-			for (j = iFirstCelIndex; j < maImageCels.NumElements(); j++)
+			uiNumCels = maImageCels.NumElements();
+			for (j = iFirstCelIndex; j < uiNumCels; j++)
 			{
 				maszCelFileNames.Add(szFileName ? szFileName : "");
 			}
@@ -406,8 +410,10 @@ void CImageCelsSource::PopulateImageArray(void)
 	size							i;
 	Ptr<CImageSourceWithCelSources>	pSource;
 	Ptr<CImage>						pcImage;
+	size							uiNumElements;
 
-	for (i = 0; i < maImageSources.NumElements(); i++)
+	uiNumElements = maImageSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pSource = maImageSources.Get(i);
 		pcImage = pSource->GetImageSource()->GetImage();

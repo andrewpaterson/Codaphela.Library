@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExcellonParser::Init(char* szText, size uiTextLength, char* szFileName, CExcellonCommands* pcCommands)
+void CExcellonParser::Init(char* szText, lsize uiTextLength, char* szFileName, CExcellonCommands* pcCommands)
 {
 	mszText = szText;
 	muiTextLength = uiTextLength;
@@ -71,7 +71,7 @@ TRISTATE CExcellonParser::Parse(void)
 //////////////////////////////////////////////////////////////////////////
 bool CExcellonParser::NextLine(void)
 {
-	size	uiEnd;
+	lsize	uiEnd;
 	char	c;
 
 	if (muiPosition >= muiTextLength)
@@ -85,7 +85,7 @@ bool CExcellonParser::NextLine(void)
 	{
 		uiEnd++;
 	}
-	muiLineLength = uiEnd - muiPosition;
+	muiLineLength = (size)(uiEnd - muiPosition);
 	muiPosition = uiEnd + 1;
 	muiLine++;
 

@@ -133,9 +133,11 @@ void CMeshColours::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSou
 	size				i;
 	size				iFaceIndex;
 	SMeshFaceColour*	psFaceColour;
+	size				uiNumElements;
 
 	//This assumes something else has check that paiSourceFaces actually have corner normals.
-	for (i = 0; i < paiSourceFaces->NumElements(); i++)
+	uiNumElements = paiSourceFaces->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		iFaceIndex = paiSourceFaces->GetValue(i);
 		psFaceColour = mcFaces.Get(iFaceIndex);

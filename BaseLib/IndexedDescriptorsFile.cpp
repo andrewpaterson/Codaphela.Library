@@ -155,7 +155,7 @@ int64 CIndexedDescriptorsFile::NumIndices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDescriptorsFile::NumIndicesCached(void)
+lsize CIndexedDescriptorsFile::NumIndicesCached(void)
 {
 	return mcIndexTree.NumMemoryElements();
 }
@@ -165,7 +165,7 @@ size CIndexedDescriptorsFile::NumIndicesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDescriptorsFile::NumIndicesCached(size iSize)
+lsize CIndexedDescriptorsFile::NumIndicesCached(size iSize)
 {
 	return mcIndexTree.NumMemoryElements(iSize);
 }

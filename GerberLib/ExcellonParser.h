@@ -12,12 +12,12 @@ class CExcellonParser
 {
 protected:
 	const char*			mszText;
-	size				muiTextLength;
+	lsize				muiTextLength;
 	CChars				mszFilename;
 	CExcellonCommands*	mpcCommands;
 
-	size				muiPosition;		//Start of the next line.
-	size				muiLine;			//Of the current line, starting at 1.
+	lsize				muiPosition;		//Start of the next line.
+	lsize				muiLine;			//Of the current line, starting at 1.
 	const char*			mszLine;
 	size				muiLineLength;		//Without the line ending or trailing whitespace.
 
@@ -26,7 +26,7 @@ protected:
 	bool				mbEndOfProgram;
 
 public:
-	void		Init(char* szText, size uiTextLength, char* szFileName, CExcellonCommands* pcCommands);
+	void		Init(char* szText, lsize uiTextLength, char* szFileName, CExcellonCommands* pcCommands);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);

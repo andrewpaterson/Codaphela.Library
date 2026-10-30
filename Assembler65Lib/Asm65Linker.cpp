@@ -116,6 +116,7 @@ void CAsm65Linker::Init(void)
 
 	mcOutput.Init();
 	mszMap.Init();
+	mcLineTable.Init();
 }
 
 
@@ -128,6 +129,7 @@ void CAsm65Linker::Kill(void)
 {
 	size	i;
 
+	mcLineTable.Kill();
 	mszMap.Kill();
 	mcOutput.Kill();
 
@@ -320,6 +322,7 @@ bool CAsm65Linker::Link(void)
 
 	Relocate();
 	WriteMap();
+	BuildLineTable();
 	return mcErrors.NumErrors() == 0;
 }
 
@@ -1266,6 +1269,68 @@ bool CAsm65Linker::Target(size uiObject, SAsm65Relocation* psRelocation, int64* 
 // not changed.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The line table: each placed section's source lines at their addresses,
+// then a line of 0 (no line) at the end of a section that has any, so code
+// after it isn't taken for its last line.  The fingerprints of the objects
+// with a placed section.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::BuildLineTable(void)
+{
+	SAsm65LinkObject*	psObject;
+	SAsm65LinkSection*	psLinkSection;
+	SAsm65SourceLine*	psSourceLine;
+	SAsm65Fingerprint*	psFingerprint;
+	CAsm65Object*		pcObject;
+	CArrayUint8			auiHasLines;
+	size				i;
+	size				j;
+	bool				bPlaced;
+
+	mcLineTable.Clear();
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		pcObject = psObject->pcObject;
+		if (pcObject->NumSourceLines() == 0)
+		{
+			continue;
+		}
+		auiHasLines.Init();
+		auiHasLines.GrowToAtLeastNumElements(pcObject->NumSections(), true, 0);
+		bPlaced = false;
+		for (j = 0; j < pcObject->NumSourceLines(); j++)
+		{
+			psSourceLine = pcObject->GetSourceLine(j);
+			psLinkSection = GetLinkSection(i, psSourceLine->uiSection);
+			if (IsPlaced(psLinkSection))
+			{
+				mcLineTable.AddLine(psLinkSection->uiAddress + psSourceLine->uiOffset, pcObject->GetSourceFile(psSourceLine->uiFile), psSourceLine->uiLine);
+				auiHasLines.SetValue(psSourceLine->uiSection, 1);
+				bPlaced = true;
+			}
+		}
+		for (j = 0; j < pcObject->NumSections(); j++)
+		{
+			if (auiHasLines.GetValue(j))
+			{
+				psLinkSection = GetLinkSection(i, j);
+				mcLineTable.AddLine(psLinkSection->uiAddress + pcObject->GetSection(j)->uiSize, "", 0);
+			}
+		}
+		auiHasLines.Kill();
+		for (j = 0; bPlaced && (j < pcObject->NumFingerprints()); j++)
+		{
+			psFingerprint = pcObject->GetFingerprint(j);
+			mcLineTable.AddFingerprint(psFingerprint->szLabel.Text(), psFingerprint->uiHash, psFingerprint->iTime);
+		}
+	}
+	mcLineTable.Sort();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::Relocate(void)
 {
 	CArrayTemplate<CArrayUint8>	acBytes;
@@ -1624,6 +1689,18 @@ void CAsm65Linker::Error(CAsm65Object* pcObject, SAsm65Relocation* psRelocation,
 CAsm65Output* CAsm65Linker::GetOutput(void)
 {
 	return &mcOutput;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The placed code's source lines (.line) and the objects' fingerprints,
+// after Link.
+//
+//////////////////////////////////////////////////////////////////////////
+CAsm65LineTable* CAsm65Linker::GetLineTable(void)
+{
+	return &mcLineTable;
 }
 
 

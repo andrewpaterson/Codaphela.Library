@@ -391,8 +391,8 @@ OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, l
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
-size CIndexedData::NumIndicesCached(size iSize) { return mcIndices.NumIndicesCached(iSize); }
+lsize CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
+lsize CIndexedData::NumIndicesCached(size iSize) { return mcIndices.NumIndicesCached(iSize); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
 bool CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
 lsize CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }

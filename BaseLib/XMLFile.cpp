@@ -144,10 +144,12 @@ bool CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 	CMarkupDoc*			pcDoc;
 	bool				bResult;
 	CMarkupDoc*			pcParentDoc;
+	size				uiNumEntities;
 
 	pcParentDoc = pcXMLParser->mpcDoc;
 	pcMarkup = pcXMLParser->mpcDoc->mpcMarkup;
-	for (i = 0; i <	pcXMLParser->macEntities.NumElements(); i++)
+	uiNumEntities = pcXMLParser->macEntities.NumElements();
+	for (i = 0; i <	uiNumEntities; i++)
 	{
 		pcEntity = pcXMLParser->macEntities.Get(i);
 		if ((pcEntity->meType == XET_External) || (pcEntity->meType == XET_ExternalFile))

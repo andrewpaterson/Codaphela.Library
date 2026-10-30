@@ -172,8 +172,10 @@ bool CChunkFile::ReadClose(void)
 {
 	size	i;
 	bool	bResult;
+	size	uiNumElements;
 
-	for (i = 0; i < mcChunkStack.NumElements(); i++)
+	uiNumElements = mcChunkStack.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		mcChunkStack.Get(i)->cChunkIndex.Kill();
 	}
@@ -756,10 +758,12 @@ char* CChunkFile::GetTailChunkNameForIndex(size iIndex)
 bool CChunkFile::ReadChunkEndAll(void)
 {
 	size		i;
+	size		uiNumElements;
 
 	if (mcChunkStack.NumElements() > 0)
 	{
-		for (i = 1; i < mcChunkStack.NumElements(); i++)
+		uiNumElements = mcChunkStack.NumElements();
+		for (i = 1; i < uiNumElements; i++)
 		{
 			mcChunkStack.Get(i)->cChunkIndex.Kill();
 		}

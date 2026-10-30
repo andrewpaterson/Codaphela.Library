@@ -39,8 +39,8 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 	macBases.Init();
 	mcAttributes.Init();
 	mszName.Init();
-	miLine = ARRAY_ELEMENT_NOT_FOUND;
-	miColumn = ARRAY_ELEMENT_NOT_FOUND;
+	miLine = ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	miColumn = ARRAY_LARGE_ELEMENT_NOT_FOUND;
 }
 
 
@@ -54,8 +54,8 @@ void CMarkupTag::Init(const char* szName, CMarkupTag* pcParent)
 	macBases.Init();
 	mcAttributes.Init();
 	mszName.Init(szName);
-	miLine = ARRAY_ELEMENT_NOT_FOUND;
-	miColumn = ARRAY_ELEMENT_NOT_FOUND;
+	miLine = ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	miColumn = ARRAY_LARGE_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1009,7 +1009,7 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	bNameEmpty = mszName.Empty();
 	
 	miLine = iLine;
-	miColumn = iDepth * 2;
+	miColumn = (lsize)iDepth * 2;
 
 	if ((uiNumBases != 0) || (uiNumOrderedAttributes != 0) || !bNameEmpty)
 	{

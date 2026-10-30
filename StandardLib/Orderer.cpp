@@ -136,18 +136,21 @@ bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>>
 	CArrayTemplate<size>	auiUnordered;
 	size					i;
 	bool					bResult;
+	size					uiNumElements;
 
 	auiOrdered.Init();
 	auiUnordered.Init();
 	bResult = OrderHolders(&auiOrdered, &auiUnordered, ARRAY_ELEMENT_NOT_FOUND, NULL);
 
-	for (i = 0; i < auiOrdered.NumElements(); i++)
+	uiNumElements = auiOrdered.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pOrdered->Add(mpHolders->Get(*auiOrdered.Get(i))->GetObject());
 	}
 	if (pUnordered.IsNotNull())
 	{
-		for (i = 0; i < auiUnordered.NumElements(); i++)
+		uiNumElements = auiUnordered.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pUnordered->Add(mpHolders->Get(*auiUnordered.Get(i))->GetObject());
 		}
@@ -214,10 +217,13 @@ bool COrderer::OrderHolders(CArrayTemplate<size>* pauiOrdered, CArrayTemplate<si
 	CArrayChars*			paszFulfilments;
 	const char*				szRequirement;
 	bool					bResult;
+	size					uiNumElements;
+	size					uiNumFulfilments;
 
 	auiToProcess.Init();
 	cFulfilled.Init(true);
-	for (i = 0; i < mpHolders->NumElements(); i++)
+	uiNumElements = mpHolders->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		auiToProcess.Add(&i);
 	}
@@ -227,7 +233,8 @@ bool COrderer::OrderHolders(CArrayTemplate<size>* pauiOrdered, CArrayTemplate<si
 	{
 		//Objects ordered earlier in a pass fulfil requirements of objects later in it.
 		pauiUnordered->ReInit();
-		for (i = 0; i < auiToProcess.NumElements(); i++)
+		uiNumElements = auiToProcess.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			uiHolder = *auiToProcess.Get(i);
 			pHolder = mpHolders->Get(uiHolder);
@@ -236,7 +243,8 @@ bool COrderer::OrderHolders(CArrayTemplate<size>* pauiOrdered, CArrayTemplate<si
 			{
 				pauiOrdered->Add(&uiHolder);
 				paszFulfilments = pHolder->GetFulfilments();
-				for (j = 0; j < paszFulfilments->NumElements(); j++)
+				uiNumFulfilments = paszFulfilments->NumElements();
+				for (j = 0; j < uiNumFulfilments; j++)
 				{
 					cFulfilled.Put(paszFulfilments->GetText(j), 1);
 				}
@@ -272,6 +280,7 @@ bool COrderer::AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, const char*
 {
 	CArrayChars*	paszRequirements;
 	size			i;
+	size			uiNumElements;
 
 	if ((szExtraRequirement != NULL) && !pcFulfilled->HasKey(szExtraRequirement))
 	{
@@ -279,7 +288,8 @@ bool COrderer::AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, const char*
 	}
 
 	paszRequirements = pHolder->GetRequirements();
-	for (i = 0; i < paszRequirements->NumElements(); i++)
+	uiNumElements = paszRequirements->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (!pcFulfilled->HasKey(paszRequirements->GetText(i)))
 		{
@@ -299,8 +309,10 @@ bool COrderer::IsFulfilled(const char* szName)
 {
 	size				i;
 	Ptr<COrdererHolder>	pHolder;
+	size				uiNumElements;
 
-	for (i = 0; i < mpHolders->NumElements(); i++)
+	uiNumElements = mpHolders->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pHolder = mpHolders->Get(i);
 		if (pHolder->GetFulfilments()->GetIndex(szName) != ARRAY_ELEMENT_NOT_FOUND)
@@ -386,9 +398,11 @@ void COrderer::IndexHolders(void)
 	size				i;
 	Ptr<COrdererHolder>	pHolder;
 	OIndex				oi;
+	size				uiNumElements;
 
 	mcHolderIndices.ReInit();
-	for (i = 0; i < mpHolders->NumElements(); i++)
+	uiNumElements = mpHolders->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pHolder = mpHolders->Get(i);
 		oi = pHolder->GetObject().GetIndex();

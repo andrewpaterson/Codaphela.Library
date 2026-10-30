@@ -152,8 +152,10 @@ void CMeshSkin::KillSkinVerts(void)
 {
 	CMeshSkinVert*	psSkinVert;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < mcSkinVerts.NumElements(); i++)
+	uiNumElements = mcSkinVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSkinVert = mcSkinVerts.Get(i);
 		psSkinVert->Kill();
@@ -196,6 +198,7 @@ bool CMeshSkin::Load(CObjectReader* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	size			i;
+	size			uiNumElements;
 
 	Init();
 
@@ -203,7 +206,8 @@ bool CMeshSkin::Load(CObjectReader* pcFile)
 
 	ReturnOnFalse(mcSkinVerts.ReadAllocatorAndHeader(pcFile));
 
-	for (i = 0; i < mcSkinVerts.NumElements(); i++)
+	uiNumElements = mcSkinVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSkinVert = mcSkinVerts.Get(i);
 		ReturnOnFalse(psSkinVert->Load(pcFile));
@@ -222,12 +226,14 @@ bool CMeshSkin::Save(CObjectWriter* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	size			i;
+	size			uiNumElements;
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
 	ReturnOnFalse(mcSkinVerts.WriteAllocatorAndHeader(pcFile));
 
-	for (i = 0; i < mcSkinVerts.NumElements(); i++)
+	uiNumElements = mcSkinVerts.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSkinVert = mcSkinVerts.Get(i);
 		ReturnOnFalse(psSkinVert->Save(pcFile));
@@ -246,10 +252,12 @@ void CMeshSkin::Touch(void)
 {
 	CMeshSkinVert*	pcSkinVert;
 	size			i;
+	size			uiNumElements;
 
 	if (mbInUse)
 	{
-		for (i = 0; i < mcSkinVerts.NumElements(); i++)
+		uiNumElements = mcSkinVerts.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcSkinVert = mcSkinVerts.Get(i);
 			pcSkinVert->SortSkinWeights();
@@ -311,8 +319,10 @@ void CMeshSkin::PrivateAddMatricies(CMeshSkinVert* pcVert, CArrayInt* paiMatrici
 {
 	size			i;
 	SSkinWeight*	psWeight;
+	size			uiNumWeights;
 
-	for (i = 0; i < pcVert->mcWeights.NumElements(); i++)
+	uiNumWeights = pcVert->mcWeights.NumElements();
+	for (i = 0; i < uiNumWeights; i++)
 	{
 		psWeight = pcVert->mcWeights.Get(i);
 		paiMatricies->AddIfUnique(psWeight->iMatrix);
@@ -357,10 +367,12 @@ void CMeshSkin::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSource
 	size		i;
 	size		iFaceIndex;
 	CMeshFace*	pcFace;
+	size		uiNumElements;
 
 	if (mbInUse)
 	{
-		for (i = 0; i < paiSourceFaces->NumElements(); i++)
+		uiNumElements = paiSourceFaces->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			iFaceIndex = paiSourceFaces->GetValue(i);
 			pcFace = pcConn->mcFaces.Get(iFaceIndex);

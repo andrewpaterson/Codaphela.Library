@@ -102,6 +102,7 @@ bool CObjReader::Read(void)
 	CChars*				pszLine;
 	size				i;
 	TRISTATE			tResult;
+	size				uiNumElements;
 
 	cTypes.Init();
 	cTypes.Add("v",			WOBJP_v);
@@ -129,7 +130,8 @@ bool CObjReader::Read(void)
 	//The Mesh/MeshEditor must already be initialised.
 	mcWrapper.ClearConnectivity();
 
-	for (i = 0; i < cLines.NumElements(); i++)
+	uiNumElements = cLines.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszLine = cLines.Get(i);
 		cTextParser.Init(pszLine->Text(), pszLine->Length());
@@ -251,6 +253,7 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	SMeshNormalFace*		psFaceNormal;
 	CMFRet					r;
 	int						aiCornerIndices[6];
+	size					uiNumElements;
 
 	asCorners.Init();
 	while (true)
@@ -291,7 +294,8 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 
 	aiCorners.Init();
 	aiCorners.Resize(asCorners.NumElements());
-	for (i = 0; i < asCorners.NumElements(); i++)
+	uiNumElements = asCorners.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psCorner = asCorners.Get(i);
 		iCorner = psCorner->iVertex;

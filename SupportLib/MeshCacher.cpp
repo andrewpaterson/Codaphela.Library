@@ -45,8 +45,10 @@ void CMeshCacher::Kill(void)
 {
 	size				i;
 	CMeshTypeIndices*	pcType;
+	size				uiNumElements;
 
-	for (i = 0; i < mcTypeIndices.NumElements(); i++)
+	uiNumElements = mcTypeIndices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcType = mcTypeIndices.Get(i);
 		pcType->Kill();

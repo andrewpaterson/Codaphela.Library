@@ -5461,7 +5461,6 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 	int32			iEnd;
 	SIRReference	sAmount;
 	SIRType			sType;
-	int64			lliAmount;
 
 	sType = psInstruction->sType;
 	iResult = OffsetOf(psInstruction->sResult);
@@ -5471,22 +5470,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 	{
 		//A 16 bit shift by a constant (AllocateX), in A.
 		Operand("lda", psInstruction->asArguments[0], 0);
-		for (lliAmount = (int64)(mpcFunction->GetConstant(sAmount)->ulliBits & 63); lliAmount > 0; lliAmount--)
-		{
-			if (psInstruction->uiOpcode == IRO_Shl)
-			{
-				Line("asl A");
-			}
-			else if (psInstruction->uiOpcode == IRO_LShr)
-			{
-				Line("lsr A");
-			}
-			else
-			{
-				Line("cmp $8000");
-				Line("ror A");
-			}
-		}
+		ShiftWordInA(psInstruction->uiOpcode, (int)(mpcFunction->GetConstant(sAmount)->ulliBits & 63));
 		Line("tax");
 		return;
 	}
@@ -5602,6 +5586,67 @@ void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRRefe
 // A shift by a count in the scratch word a bit at a time in memory.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The 16 bit word in A shifted iAmount bits: 8 of them at once by
+// swapping its bytes (xba, then the byte shifted in made 0 or the sign),
+// an ashr by 15 or more the sign (asl puts it in the carry; 0 + $FFFF and
+// the carry is 0 or $FFFF, the sign inverted), the rest a bit at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
+{
+	if ((uiOpcode == IRO_AShr) && (iAmount >= 15))
+	{
+		Line("asl A");
+		Line("lda 0");
+		Line("adc $FFFF");
+		Line("eor $FFFF");
+		return;
+	}
+	if (iAmount >= 16)
+	{
+		Line("lda 0");
+		return;
+	}
+	if (iAmount >= 8)
+	{
+		Line("xba");
+		if (uiOpcode == IRO_Shl)
+		{
+			Line("and $FF00");
+		}
+		else
+		{
+			Line("and $FF");
+			if (uiOpcode == IRO_AShr)
+			{
+				Line("eor $80");
+				Line("sec");
+				Line("sbc $80");
+			}
+		}
+		iAmount -= 8;
+	}
+	for (; iAmount > 0; iAmount--)
+	{
+		if (uiOpcode == IRO_Shl)
+		{
+			Line("asl A");
+		}
+		else if (uiOpcode == IRO_LShr)
+		{
+			Line("lsr A");
+		}
+		else
+		{
+			Line("cmp $8000");
+			Line("ror A");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
 {
 	CChars	sz;
@@ -5665,6 +5710,14 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 	int		iBits;
 	int		i;
 	int		j;
+
+	if (iWords == 1)
+	{
+		Frame("lda", iResult);
+		ShiftWordInA(uiOpcode, iAmount);
+		Frame("sta", iResult);
+		return;
+	}
 
 	iWordShift = iAmount / 16;
 	iBits = iAmount % 16;

@@ -92,13 +92,15 @@ Ptr<CFont> CFontColours::GetFont(ARGB32 sColour)
 {
 	size		i;
 	Ptr<CFont>	pFont;
+	size		uiNumElements;
 
 	if (sColour == FONT_COLOURS_WHITE)
 	{
 		return mpWhite;
 	}
 
-	for (i = 0; i < masColours.NumElements(); i++)
+	uiNumElements = masColours.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (*masColours.Get(i) == sColour)
 		{

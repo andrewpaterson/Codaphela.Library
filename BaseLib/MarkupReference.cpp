@@ -143,8 +143,8 @@ void CMarkupNamedRef::Kill(void)
 size CMarkupNamedRef::Print(CChars* psz, size iDepth, size iLine)
 {
 	miLine = iLine;
-	miColumn = iDepth*2;
-	psz->Append(' ', miColumn);
+	miColumn = (lsize)iDepth * 2;
+	psz->Append(' ', iDepth*2);
 	psz->Append('&');
 	psz->Append(&mszName);
 	iLine++;

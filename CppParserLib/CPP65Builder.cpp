@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include <time.h>
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/StringHelper.h"
@@ -64,6 +65,8 @@ void CCPP65Builder::Init(void)
 	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
 	mpcFrameProfile = NULL;
 	mszListings.Init();
+	mbLineTable = false;
+	miCompileTime = 0;
 }
 
 
@@ -330,8 +333,9 @@ void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 //
 // A profile of the program's functions (CAsm816Profile, from a run): on the
-// W65C816 those it measured worth it get page aligned frames.  Without one
-// none do.  Set it before compiling.
+// W65C816 those it measured worth it get page aligned frames (without one
+// none do), and its hottest calls are inlined first, bigger callees for
+// hot ones (CIRInliner::SetProfile).  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetFrameProfile(CAsm816Profile* pcProfile)
@@ -352,6 +356,32 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 {
 	mszListings.Kill();
 	mszListings.Init(szDirectory ? szDirectory : "");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The units are compiled with their C++ source lines and functions'
+// fingerprints (now as their compile time), so after Link the linker's
+// line table (GetLineTable) gives the source line of an address: a profile
+// by line.  The code is the same as without.  Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLineTable(bool bLineTable)
+{
+	mbLineTable = bLineTable;
+	miCompileTime = (int64)time(NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The linked program's source lines and fingerprints (SetLineTable).
+//
+//////////////////////////////////////////////////////////////////////////
+CAsm65LineTable* CCPP65Builder::GetLineTable(void)
+{
+	return mcLinker.GetLineTable();
 }
 
 
@@ -419,7 +449,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty());
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, &szAssembly);
@@ -673,10 +703,11 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // bProgram, otherwise as an object.  The assembly is appended to pszAssembly and every stage's errors to
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
 // pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
-// C++ source lines it is for (CCPP65Generator::SetListing).
+// C++ source lines it is for (CCPP65Generator::SetListing), bLineTable .line and .fingerprint directives
+// (CCPP65Generator::SetLineTable).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile, bool bListing)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile, bool bListing, bool bLineTable)
 {
 	CTranslationUnit		cFile;
 	CPreprocessor			cPreprocessor;
@@ -727,6 +758,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.Init(&cTree, eTarget);
 	cGenerator.SetFrameProfile(pcFrameProfile);
 	cGenerator.SetListing(bListing);
+	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -979,6 +1011,7 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
 	cGenerator.SetListing(!mszListings.Empty());
+	cGenerator.SetLineTable(mbLineTable, miCompileTime);
 	bResult &= cGenerator.Generate(&szAssembly);
 	if (!mszListings.Empty())
 	{

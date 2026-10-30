@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands)
+bool CGerberParser::Init(char* szText, lsize iTextLen, char* szFileName, CGerberCommands* pcCommands)
 {
 	STextParserConfig	sConfig;
 	bool				bResult;

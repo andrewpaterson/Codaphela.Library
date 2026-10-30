@@ -62,8 +62,8 @@ public:
 	bool			IsFlushed(void);
 
 	int64			NumIndices(void);
-	size			NumIndicesCached(void);
-	size			NumIndicesCached(size iSize);
+	lsize			NumIndicesCached(void);
+	lsize			NumIndicesCached(size iSize);
 
 	bool			IsDirty(OIndex oi);
 	bool			EvictKey(OIndex oi);

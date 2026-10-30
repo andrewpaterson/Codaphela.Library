@@ -197,8 +197,10 @@ void CImageDivider::GenerateFromRectangles(CArrayInt32Rect* pacRectangles)
 {
 	size			i;
 	CInt32Rect*		pcRectangle;
+	size			uiNumElements;
 
-	for (i = 0; i < pacRectangles->NumElements(); i++)
+	uiNumElements = pacRectangles->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRectangle = pacRectangles->Get(i);
 		AddImageCel(pcRectangle);

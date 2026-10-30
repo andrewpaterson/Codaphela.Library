@@ -24,7 +24,7 @@ public:
 	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
-	size	NumIndicesCached(void);
+	lsize	NumIndicesCached(void);
 	bool	IsDirty(OIndex oi);
 
 	bool	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);

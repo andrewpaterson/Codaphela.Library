@@ -40,9 +40,12 @@ void MinimiseLines(CArrayLine* pacInput, CArrayLine* pacOutput)
 	size				i;
 	size				j;
 	bool				bMerged;
+	size				uiNumElements;
+	size				uiNumBuckets;
 
 	acBuckets.Init();
-	for (i = 0; i < pacInput->NumElements(); i++)
+	uiNumElements = pacInput->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBucket = acBuckets.Add();
 		pcBucket->Init(pacInput->Get(i));
@@ -54,7 +57,8 @@ void MinimiseLines(CArrayLine* pacInput, CArrayLine* pacOutput)
 	{
 		bMerged = false;
 		pcBucket = acBuckets.Get(i);
-		for (j = i + 1; j < acBuckets.NumElements(); j++)
+		uiNumBuckets = acBuckets.NumElements();
+		for (j = i + 1; j < uiNumBuckets; j++)
 		{
 			pcOther = acBuckets.Get(j);
 			if (pcBucket->Overlaps(pcOther))
@@ -71,7 +75,8 @@ void MinimiseLines(CArrayLine* pacInput, CArrayLine* pacOutput)
 		}
 	}
 
-	for (i = 0; i < acBuckets.NumElements(); i++)
+	uiNumElements = acBuckets.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBucket = acBuckets.Get(i);
 		pacOutput->Add(pcBucket->GetLine());

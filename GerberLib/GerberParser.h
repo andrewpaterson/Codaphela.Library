@@ -43,7 +43,7 @@ protected:
 	bool				mbInRegion;
 
 public:
-	bool		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);
+	bool		Init(char* szText, lsize iTextLen, char* szFileName, CGerberCommands* pcCommands);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);

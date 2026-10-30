@@ -52,8 +52,10 @@ filePos CPackFileReadArray::GetReadPos(CPackFileNode* psPackFile)
 {
 	size						i;
 	SPackFileReadPtrPosition*	psPtr;
+	size						uiNumElements;
 
-	for (i = 0; i < maPtrs.NumElements(); i++)
+	uiNumElements = maPtrs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psPtr = maPtrs.Get(i);
 		if (psPtr->psPackFile == psPackFile)
@@ -73,8 +75,10 @@ void CPackFileReadArray::SetReadPos(CPackFileNode* psPackFile, filePos iLastRead
 {
 	size						i;
 	SPackFileReadPtrPosition*	psPtr;
+	size						uiNumElements;
 
-	for (i = 0; i < maPtrs.NumElements(); i++)
+	uiNumElements = maPtrs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psPtr = maPtrs.Get(i);
 		if (psPtr->psPackFile == psPackFile)

@@ -154,9 +154,11 @@ int CRectangleLinePacker::GetWidestRect(void)
 	int				iMaxWidth;
 	CInt32Rect*		pcRect;
 	int				iWidth;
+	size			uiNumElements;
 
 	iMaxWidth = 0;
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 		iWidth = pcRect->GetWidth();
@@ -180,9 +182,11 @@ int CRectangleLinePacker::GetHighestRect(void)
 	int				iMaxHeight;
 	CInt32Rect*		pcRect;
 	int				iHeight;
+	size			uiNumElements;
 
 	iMaxHeight = 0;
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
 		iHeight = pcRect->GetHeight();
@@ -205,9 +209,11 @@ int CRectangleLinePacker::PackLeftToRight(void)
 	size			i;
 	CInt32Rect*		pcRect;
 	int				iLeft;
+	size			uiNumElements;
 
 	iLeft = miOutsideEdgeWidth;
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{
@@ -230,9 +236,11 @@ int CRectangleLinePacker::PackTopToBottom(void)
 	size			i;
 	CInt32Rect*		pcRect;
 	int				iTop;
+	size			uiNumElements;
 
 	iTop = miOutsideEdgeWidth;
-	for (i = 0; i < macRectangles.NumElements(); i++)
+	uiNumElements = macRectangles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{

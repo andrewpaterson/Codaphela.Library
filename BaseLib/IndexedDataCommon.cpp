@@ -278,7 +278,7 @@ bool CIndexedDataCommon::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDataCommon::NumDataCached(void)
+lsize CIndexedDataCommon::NumDataCached(void)
  {
 	return mcData.NumCached();
 }
@@ -288,7 +288,7 @@ size CIndexedDataCommon::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDataCommon::NumDataCached(size iSize)
+lsize CIndexedDataCommon::NumDataCached(lsize iSize)
 {
 	return mcData.NumCached(iSize);
 }

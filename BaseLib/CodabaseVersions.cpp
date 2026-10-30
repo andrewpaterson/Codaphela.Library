@@ -243,7 +243,10 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 	SNameVersion*	psNextName;
 	CArrayOIndex	aoiEmpty;
 	CArrayChars		aszEmpty;
-	size			i;
+	lsize			i;
+	size			j;
+	size			uiNumNames;
+	lsize			uiNumElements;
 
 	//No reader has a snapshot before iOldestSnapshot, so versions that stopped being valid by then are not needed.
 	aoiEmpty.Init();
@@ -264,7 +267,8 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 		}
 		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
-	for (i = 0; i < aoiEmpty.NumElements(); i++)
+	uiNumElements = aoiEmpty.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		mcRecords.Remove(aoiEmpty.GetValue(i));
 	}
@@ -288,9 +292,10 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 		}
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
-	for (i = 0; i < aszEmpty.NumElements(); i++)
+	uiNumNames = aszEmpty.NumElements();
+	for (j = 0; j < uiNumNames; j++)
 	{
-		mcNames.Remove(aszEmpty.GetText(i));
+		mcNames.Remove(aszEmpty.GetText(j));
 	}
 	aszEmpty.Kill();
 }
@@ -345,7 +350,7 @@ void CCodabaseVersions::GetNames(CArrayChars* paszNames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCodabaseVersions::NumVersions(void)
+lsize CCodabaseVersions::NumVersions(void)
 {
 	SMapIterator	sIter;
 	void*			pvKey;
@@ -353,7 +358,7 @@ size CCodabaseVersions::NumVersions(void)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	size			uiCount;
+	lsize			uiCount;
 	CVersion*		pcVersion;
 	SNameVersion*	psName;
 

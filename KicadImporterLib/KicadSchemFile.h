@@ -61,7 +61,7 @@ public:
 	void					Kill(void);
 
 	bool					Load(char* szPathName);
-	bool					Import(char* szText, size iTextLen, char* szFileName);
+	bool					Import(char* szText, lsize iTextLen, char* szFileName);
 
 	void					SetVersion(int32 iVersion);
 	void					SetGenerator(char* szGenerator, char* szGeneratorVersion);

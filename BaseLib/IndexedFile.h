@@ -56,13 +56,13 @@ public:
 
 	filePos			Write(const void* pvData);
 	bool			Write(filePos iIndex, const void* pvData);
-	bool			Write(filePos iIndex, const void* pvData, size iCount);
+	bool			Write(filePos iIndex, const void* pvData, lsize iCount);
 
 	bool			Read(filePos iIndex, void* pvData);
-	bool			Read(filePos iIndex, void* pvData, size iCount);
+	bool			Read(filePos iIndex, void* pvData, lsize iCount);
 
 	bool			Delete(filePos iIndex);
-	bool			Delete(filePos iIndex, size iCount);
+	bool			Delete(filePos iIndex, lsize iCount);
 
 	size			GetFileIndex(void);
 	bool			IsFileIndex(size uiFileIndex);
@@ -79,7 +79,7 @@ public:
 	void			Dump(void);
 
 protected:
-	filePos			Write(const void* pvData, size iCount);
+	filePos			Write(const void* pvData, lsize iCount);
 };
 
 

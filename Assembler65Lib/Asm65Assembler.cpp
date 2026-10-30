@@ -414,6 +414,14 @@ void CAsm65Assembler::Statement(void)
 			{
 				bResult = SymbolBinding(psToken);
 			}
+			else if (psToken->IsIdentifierIgnoreCase(".line"))
+			{
+				bResult = SourceLine(psToken);
+			}
+			else if (psToken->IsIdentifierIgnoreCase(".fingerprint"))
+			{
+				bResult = Fingerprint(psToken);
+			}
 			else if (!ProcessorDirective(psToken, &bResult))
 			{
 				bResult = Error(psToken, "Unknown directive");
@@ -1155,6 +1163,103 @@ bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
 		}
 	}
 	while (Accept(AP65_Comma));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .line "file", line
+// The code from here is for the line (1 based) of the source file, for the
+// linker's line table (CAsm65Output) and a profile of the program by line.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::SourceLine(SAsm65Token* psDirective)
+{
+	SAsm65Token*	psFile;
+	SAsm65Token*	psLine;
+	int64			iLine;
+
+	if (!mbObject)
+	{
+		return Error(psDirective, ".line is only allowed when assembling an object");
+	}
+	psFile = Peek();
+	if (psFile->eType != AT65_String)
+	{
+		return ErrorExpected(psFile, "a file name");
+	}
+	Next();
+	if (!Accept(AP65_Comma))
+	{
+		return ErrorExpected(Peek(), "','");
+	}
+	psLine = Peek();
+	if (!ExpressionValue(&iLine))
+	{
+		return false;
+	}
+	if ((iLine < 1) || (iLine > 0x7FFFFFFF))
+	{
+		return Error(psLine, "A line number must be 1 or more");
+	}
+	if (mbFinal)
+	{
+		mpcObject->AddSourceLine(muiSection, muiAddress, mcTokeniser.GetString(psFile), (uint32)iLine);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .fingerprint "label", hash, time
+// The function at the label was compiled from code with the hash (32 bits)
+// at the time (seconds since 1970): a profile of it is for that code.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::Fingerprint(SAsm65Token* psDirective)
+{
+	SAsm65Token*	psLabel;
+	SAsm65Token*	psHash;
+	int64			iHash;
+	int64			iTime;
+
+	if (!mbObject)
+	{
+		return Error(psDirective, ".fingerprint is only allowed when assembling an object");
+	}
+	psLabel = Peek();
+	if (psLabel->eType != AT65_String)
+	{
+		return ErrorExpected(psLabel, "a label");
+	}
+	Next();
+	if (!Accept(AP65_Comma))
+	{
+		return ErrorExpected(Peek(), "','");
+	}
+	psHash = Peek();
+	if (!ExpressionValue(&iHash))
+	{
+		return false;
+	}
+	if ((iHash < 0) || (iHash > 0xFFFFFFFFll))
+	{
+		return Error(psHash, "A fingerprint's hash is 32 bits");
+	}
+	if (!Accept(AP65_Comma))
+	{
+		return ErrorExpected(Peek(), "','");
+	}
+	if (!ExpressionValue(&iTime))
+	{
+		return false;
+	}
+	if (mbFinal)
+	{
+		mpcObject->AddFingerprint(mcTokeniser.GetString(psLabel), (uint32)iHash, iTime);
+	}
 	return true;
 }
 

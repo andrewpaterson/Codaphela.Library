@@ -484,6 +484,7 @@ bool CPackFiles::AddDirectory(const char* szDirectory, const char* szPackDirecto
 	CChars			szNameDirectory;
 	bool			bResult;
 	bool			bAnyFiles;
+	size			uiNumElements;
 
 	aszFilenames.Init();
 	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFilenames, true, false);
@@ -495,7 +496,8 @@ bool CPackFiles::AddDirectory(const char* szDirectory, const char* szPackDirecto
 	}
 
 	szNameDirectory.Init(szDirectory);
-	for (i = 0; i < aszFilenames.NumElements(); i++)
+	uiNumElements = aszFilenames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszFilename = aszFilenames.Get(i);
 		cDiskFile.Init(pszFilename->Text());
@@ -658,7 +660,7 @@ bool CPackFiles::ReadHeader(void)
 bool CPackFiles::ReadNodes(void)
 {
 	filePos		iPosition;
-	size		i;
+	uint32		i;
 	uint32		uiNumFiles;
 	bool		bResult;
 
@@ -772,11 +774,13 @@ uint32 CPackFiles::RecurseGetNumUnwrittenNames(CFileNodePackFileNode* pcNode)
 	CFileNodePackFileNode*	pcChild;
 	size					i;
 	uint32					iNumUnwritten;
+	size					uiNumElements;
 
 	if (pcNode->IsDirectory())
 	{
 		iNumUnwritten = 0;
-		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
+		uiNumElements = pcNode->Directory()->maNodeFiles.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcChild = (CFileNodePackFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
 			iNumUnwritten += RecurseGetNumUnwrittenNames(pcChild);
@@ -829,11 +833,13 @@ bool CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChar
 	bool					bResult;
 	size					iPathLength;
 	CChars					szPath;
+	size					uiNumElements;
 
 	if (pcNode->IsDirectory())
 	{
 		iPathLength = pszPath->Length();
-		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
+		uiNumElements = pcNode->Directory()->maNodeFiles.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcChild = (CFileNodePackFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
 			pszPath->Append("/");
@@ -892,11 +898,13 @@ bool CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, const char* szDest
 	CFileCopier				cCopier;
 	CDiskFile				cDiskFile;
 	CFileUtil				cFileUtil;
+	size					uiNumElements;
 
 	if (pcNode->IsDirectory())
 	{
 		bResult = true;
-		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
+		uiNumElements = pcNode->Directory()->maNodeFiles.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcChild = (CFileNodePackFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
 			bResult &= RecurseUnpack(pcChild, szDestination);

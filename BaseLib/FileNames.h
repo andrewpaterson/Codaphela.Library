@@ -94,6 +94,7 @@ CFileNode<M>* CFilenames<M>::GetNode(const char* szFullName)
 	char*			szName;
 	CFileNode<M>*	pcCurrent;
 	CFileNode<M>*	pcChild;
+	size			uiNumElements;
 
 	asNames.Init();
 	szFake.Fake(szFullName);
@@ -101,7 +102,8 @@ CFileNode<M>* CFilenames<M>::GetNode(const char* szFullName)
 
 	pcCurrent = &mcRoot;
 	pcChild = NULL;
-	for (i = 0; i < asNames.NumElements(); i++)
+	uiNumElements = asNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szName = asNames.GetText(i);
 		if (pcCurrent->IsDirectory())
@@ -138,6 +140,7 @@ CFileNode<M>* CFilenames<M>::AddFile(const char* szFullName)
 	char*			szName;
 	CFileNode<M>*	pcCurrent;
 	CFileNode<M>*	pcChild;
+	size			uiNumElements;
 
 	mbParentsValid = false;
 
@@ -147,7 +150,8 @@ CFileNode<M>* CFilenames<M>::AddFile(const char* szFullName)
 
 	pcCurrent = &mcRoot;
 	pcChild = NULL;
-	for (i = 0; i < asNames.NumElements(); i++)
+	uiNumElements = asNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szName = asNames.GetText(i);
 		if (pcCurrent->IsDirectory())
@@ -193,6 +197,7 @@ M* CFilenames<M>::GetNearestFile(const char* szFullName, CChars* pszRemaining)
 	CFileNode<M>*	pcChild;
 	size			iRemain;
 	CChars*			szName;
+	size			uiNumElements;
 
 	asNames.Init();
 	szFake.Fake(szFullName);
@@ -201,7 +206,8 @@ M* CFilenames<M>::GetNearestFile(const char* szFullName, CChars* pszRemaining)
 	pcCurrent = &mcRoot;
 	pcChild = NULL;
 	iRemain = 0;
-	for (i = 0; i < asNames.NumElements(); i++)
+	uiNumElements = asNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szName = asNames.Get(i);
 		if (pcCurrent->IsDirectory())

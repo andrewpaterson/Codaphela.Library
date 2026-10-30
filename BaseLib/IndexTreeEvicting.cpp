@@ -422,7 +422,7 @@ CIndexTreeFile* CIndexTreeEvicting::GetIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvicting::NumNodes(void)
+uint32 CIndexTreeEvicting::NumNodes(void)
 {
 	return mcIndexTree.NumNodes();
 }
@@ -432,7 +432,7 @@ size CIndexTreeEvicting::NumNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvicting::NumMemoryNodes(void)
+lsize CIndexTreeEvicting::NumMemoryNodes(void)
 {
 	return mcIndexTree.NumMemoryNodes();
 }
@@ -463,7 +463,7 @@ int64 CIndexTreeEvicting::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvicting::NumMemoryElements(void)
+lsize CIndexTreeEvicting::NumMemoryElements(void)
 {
 	return mcIndexTree.NumMemoryElements();
 }
@@ -473,7 +473,7 @@ size CIndexTreeEvicting::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvicting::NumMemoryElements(size iSize)
+lsize CIndexTreeEvicting::NumMemoryElements(size iSize)
 {
 	return mcIndexTree.NumMemoryElements(iSize);
 }

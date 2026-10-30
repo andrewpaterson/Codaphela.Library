@@ -41,6 +41,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
+	mbConstantDivisions = false;
 	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;
@@ -138,6 +139,18 @@ void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether ConstantDivisions runs (for a target whose divides are calls:
+// the W65C816's).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
+{
+	mbConstantDivisions = bConstantDivisions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs the passes until none changes the function.  Returns true if any did.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -161,6 +174,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= NarrowTruncations();
 		bChanged |= BoundDivisions();
 		bChanged |= SignedPowerDivisions();
+		bChanged |= mbConstantDivisions && ConstantDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
 		bChanged |= RotateLoops();
@@ -5978,6 +5992,245 @@ bool CIROptimiser::BoundDivisions(void)
 		ApplyReplacements();
 	}
 	return bChanged;
+}
+
+
+#define IR_DIVISION_RANGE	0x20000		//The most values ConstantDivisions checks a reciprocal for.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signed range of sValue as an integer of its type: a constant's; a
+// sext's or zext's of the narrower value's; else from 0 to UpperBound when
+// that is below the type's sign bit.  False if nothing narrower than the
+// type is known.  mcDefinitions must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax)
+{
+	SIRInstruction*	psInstruction;
+	SIRType			sType;
+	SIRType			sNarrow;
+	int				iBits;
+	uint64			ulliBound;
+
+	sType = mpcFunction->TypeOf(sValue);
+	if (!sType.IsInteger() || (sType.IntegerBits() > 32))
+	{
+		return false;
+	}
+	iBits = sType.IntegerBits();
+	if (sValue.IsConstant())
+	{
+		*plliMin = IRSignExtend(sType, mpcFunction->GetConstant(sValue)->ulliBits);
+		*plliMax = *plliMin;
+		return true;
+	}
+	psInstruction = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
+	if (psInstruction && (psInstruction->uiOpcode == IRO_SExt))
+	{
+		sNarrow = mpcFunction->TypeOf(psInstruction->asArguments[0]);
+		if (sNarrow.IsInteger() && (sNarrow.IntegerBits() < iBits))
+		{
+			if (!SignedRange(psInstruction->asArguments[0], plliMin, plliMax))
+			{
+				*plliMin = -((int64)1 << (sNarrow.IntegerBits() - 1));
+				*plliMax = ((int64)1 << (sNarrow.IntegerBits() - 1)) - 1;
+			}
+			return true;
+		}
+	}
+	ulliBound = UpperBound(sValue, IR_BOUND_DEPTH);
+	if (ulliBound < ((uint64)1 << (iBits - 1)))
+	{
+		*plliMin = 0;
+		*plliMax = (int64)ulliBound;
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The smallest shift and multiplier with x / divisor (rounding towards 0)
+// the same as (x * multiplier) >> shift (plus 1 when x and so the product
+// is negative, bSigned) for every x from lliMin to lliMax, with x *
+// multiplier fitting iBits (signed when bSigned).  Every x is checked
+// (ranges of at most IR_DIVISION_RANGE values).  False if none fits.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift)
+{
+	int64	lliMost;
+	int64	lliLeast;
+	int64	lliMultiplier;
+	int64	lliProduct;
+	int64	lliQuotient;
+	int64	x;
+	int		iShift;
+	bool	bExact;
+
+	if ((lliMax - lliMin >= IR_DIVISION_RANGE) || (lliDivisor < 3) || (iBits > 32))
+	{
+		return false;
+	}
+	lliMost = bSigned ? (((int64)1 << (iBits - 1)) - 1) : (((int64)1 << iBits) - 1);
+	lliLeast = bSigned ? -((int64)1 << (iBits - 1)) : 0;
+	for (iShift = 1; iShift < iBits; iShift++)
+	{
+		lliMultiplier = (((int64)1 << iShift) + lliDivisor - 1) / lliDivisor;
+		if ((lliMultiplier * lliMax > lliMost) || (lliMultiplier * lliMin < lliLeast))
+		{
+			break;
+		}
+		bExact = true;
+		for (x = lliMin; bExact && (x <= lliMax); x++)
+		{
+			lliProduct = x * lliMultiplier;
+			lliQuotient = (lliProduct >= 0) ? (lliProduct >> iShift) : -(((-lliProduct) + ((int64)1 << iShift) - 1) >> iShift) + 1;
+			bExact = lliQuotient == x / lliDivisor;
+		}
+		if (bExact)
+		{
+			*pulliMultiplier = (uint64)lliMultiplier;
+			*piShift = iShift;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// x / c and x % c, c a constant above 2 and not a power of 2, x in a known
+// range (SignedRange): q is (x * m) >> s (DivisionReciprocal), plus 1 when
+// x is negative (signed); x % c is x - q * c.  Worked out in the type when
+// x * m fits it, else in 32 bits (from 16).  For a target whose divides are
+// runtime calls (the multiply and shifts are a few instructions; the
+// multiply by a constant shifts and adds).  A divide and a remainder of one
+// x get the same q, which common subexpressions make one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ConstantDivisions(void)
+{
+	CArrayTemplate<SIRBoundDivision>	asFound;
+	SIRBoundDivision*					psFound;
+	CIRBlock*							pcBlock;
+	SIRInstruction*						psInstruction;
+	SIRReference						sValue;
+	SIRReference						sWide;
+	SIRReference						sQuotient;
+	SIRReference						sSign;
+	SIRType								sType;
+	SIRType								sWork;
+	int64								lliDivisor;
+	int64								lliMin;
+	int64								lliMax;
+	uint64								ulliMultiplier;
+	int									iShift;
+	size								ui;
+	size								uiInstruction;
+	size								uiAt;
+	bool								bSigned;
+	uint16								uiOpcode;
+
+	FindDefinitions();
+	asFound.Init();
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			uiOpcode = psInstruction->uiOpcode;
+			if (((uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem) && (uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem)) ||
+				!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary() || !psInstruction->sType.IsInteger() ||
+				(psInstruction->sType.IntegerBits() < 8) || (psInstruction->sType.IntegerBits() > 32))
+			{
+				continue;
+			}
+			bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+			lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
+								   (int64)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+			if ((lliDivisor < 3) || ((lliDivisor & (lliDivisor - 1)) == 0))
+			{
+				continue;
+			}
+			if (!SignedRange(psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
+			{
+				continue;
+			}
+			if (DivisionReciprocal(lliMin, lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift) ||
+				((psInstruction->sType.IntegerBits() < 32) && DivisionReciprocal(lliMin, lliMax, lliDivisor, 32, bSigned, &ulliMultiplier, &iShift)))
+			{
+				psFound = asFound.Add();
+				psFound->pcBlock = pcBlock;
+				psFound->uiInstruction = uiInstruction;
+				psFound->bOnce = false;
+			}
+		}
+	}
+
+	//Last first, so each instruction's index is still where it was found.
+	for (ui = asFound.NumElements(); ui > 0; ui--)
+	{
+		psFound = asFound.Get(ui - 1);
+		pcBlock = psFound->pcBlock;
+		uiInstruction = psFound->uiInstruction;
+		psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+		uiOpcode = psInstruction->uiOpcode;
+		sType = psInstruction->sType;
+		sValue = psInstruction->asArguments[0];
+		bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+		SignedRange(sValue, &lliMin, &lliMax);
+		sWork = sType;
+		if (!DivisionReciprocal(lliMin, lliMax, lliDivisor, sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift))
+		{
+			DivisionReciprocal(lliMin, lliMax, lliDivisor, 32, bSigned, &ulliMultiplier, &iShift);
+			sWork = IRType(IRTK_I32);
+		}
+
+		uiAt = uiInstruction;
+		sWide = sValue;
+		if (sWork.uiKind != sType.uiKind)
+		{
+			sWide = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SExt : IRO_ZExt, sWork, sValue, IRNone());
+		}
+		sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sWork, sWide, mpcFunction->AddInteger(sWork, (int64)ulliMultiplier));
+		sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_AShr : IRO_LShr, sWork, sQuotient, mpcFunction->AddInteger(sWork, iShift));
+		if (bSigned && (lliMin < 0))
+		{
+			sSign = InsertInstruction(pcBlock, uiAt++, IRO_AShr, sWork, sWide, mpcFunction->AddInteger(sWork, sWork.IntegerBits() - 1));
+			sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Sub, sWork, sQuotient, sSign);
+		}
+		if (sWork.uiKind != sType.uiKind)
+		{
+			sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Trunc, sType, sQuotient, IRNone());
+		}
+		psInstruction = pcBlock->masInstructions.Get(uiAt);
+		if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+		{
+			//q.
+			psInstruction->uiOpcode = IRO_Add;
+			psInstruction->asArguments[0] = sQuotient;
+			psInstruction->asArguments[1] = mpcFunction->AddInteger(sType, 0);
+		}
+		else
+		{
+			//x - q * c.
+			sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sType, sQuotient, mpcFunction->AddInteger(sType, lliDivisor));
+			psInstruction = pcBlock->masInstructions.Get(uiAt);
+			psInstruction->uiOpcode = IRO_Sub;
+			psInstruction->asArguments[0] = sValue;
+			psInstruction->asArguments[1] = sQuotient;
+		}
+	}
+	ui = asFound.NumElements();
+	asFound.Kill();
+	return ui > 0;
 }
 
 

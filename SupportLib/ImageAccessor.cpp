@@ -162,6 +162,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	CChannelAccessor*		pcAccessor;
 	size					iSize;
 	CArrayChannelAccessor*	pacAccessors;
+	size					uiNumElements;
 
 	if (GetBufferSize() > sizeof(SImageColour))
 	{
@@ -179,7 +180,8 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	}
 
 	pacAccessors = mpcAccessor->GetAccessors();
-	for (i = 0; i < pacAccessors->NumElements(); i++)
+	uiNumElements = pacAccessors->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcAccessor = pacAccessors->Get(i);
 		fValue = pcColour->GetValue(pcAccessor->miChannel);

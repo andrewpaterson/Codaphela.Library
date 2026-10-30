@@ -862,11 +862,13 @@ bool CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, 
 	CArrayChars		aszDirs;
 	bool			bDirectories;
 	bool			bFiles;
+	size			uiNumElements;
 
 	aszDirs.Init();
 	bDirectories = FindFiles(szDirectory, true, NULL, NULL, &aszDirs, bHidden);
 
-	for (i = 0; i < aszDirs.NumElements(); i++)
+	uiNumElements = aszDirs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szDir = aszDirs.Get(i);
 		if (!(szDir->EndsWith(".") || szDir->EndsWith("..")))
@@ -980,6 +982,7 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	size			i;
 	CChars			szPartialPath;
 	bool			bResult;
+	size			uiNumElements;
 
 	szPath.Init(szDirectory);
 
@@ -1034,7 +1037,8 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	szPath.Kill();
 	szPartialPath.Init();
 	bResult = false;
-	for (i = 0; i < aszPathComponents.NumElements(); i++)
+	uiNumElements = aszPathComponents.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{

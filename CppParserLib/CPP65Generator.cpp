@@ -155,6 +155,21 @@ void CCPP65Generator::SetListing(bool bListing)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The code the IR front end writes gets .line directives where its C++
+// source line changes and a .fingerprint for each function (a hash of its
+// IR and iCompileTime), for the linker's line table: a profile by source
+// line that knows which code it is for.  The code is the same as without.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetLineTable(bool bLineTable, int64 iCompileTime)
+{
+	mbLineTable = bLineTable;
+	miCompileTime = iCompileTime;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -196,6 +211,8 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcImports = NULL;
 	mpcFrameProfile = NULL;
 	mbListing = false;
+	mbLineTable = false;
+	miCompileTime = 0;
 	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
 	mcWarnings.Init();

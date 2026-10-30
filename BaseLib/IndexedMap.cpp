@@ -232,7 +232,7 @@ int64 CIndexedMap::NumIndices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedMap::NumIndicesCached(void)
+lsize CIndexedMap::NumIndicesCached(void)
 {
 	return mcDescriptors.NumElements();
 }

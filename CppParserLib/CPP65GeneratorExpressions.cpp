@@ -4450,6 +4450,198 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Warns if a for loop's counter (a variable its increment steps with ++,
+// --, += or -=) is compared in its condition with a wider integer that isn't
+// a constant: for (size i = 0; i < aoi.NumElements(); i++) with a 16 bit i
+// and a 32 bit count wraps i at 65535 and goes round forever once the count
+// passes it.  Converting the bound to the counter's type ((size)uiCount) says
+// it fits.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LoopCounterWidth(CCPPSyntaxForStatement* pcFor)
+{
+	CArrayVoidPtr	apcCounters;
+
+	if (!pcFor->mpcCondition || !pcFor->mpcIncrement || (miWarningChecks > 0))
+	{
+		return;
+	}
+	apcCounters.Init();
+	LoopCounters(pcFor->mpcIncrement, &apcCounters);
+	if (apcCounters.NumElements() > 0)
+	{
+		LoopCounterComparisons(pcFor->mpcCondition, &apcCounters);
+	}
+	apcCounters.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variables pcIncrement steps (through commas): i++, --i, i += 2.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters)
+{
+	CCPPSyntax*					pcInner;
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CCPPSyntaxUnaryExpression*	pcUnary;
+	CCPPSymbol*					pcSymbol;
+
+	pcInner = SkipParentheses(pcIncrement);
+	if (!pcInner)
+	{
+		return;
+	}
+	pcSymbol = NULL;
+	if (pcInner->GetKind() == CPPS_UnaryExpression)
+	{
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcInner;
+		if ((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement))
+		{
+			pcSymbol = LoopCounterSymbol(pcUnary->mpcOperand);
+		}
+	}
+	else if (pcInner->GetKind() == CPPS_BinaryExpression)
+	{
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
+		if (pcBinary->meOperator == CT_Comma)
+		{
+			LoopCounters(pcBinary->mpcLeft, papcCounters);
+			LoopCounters(pcBinary->mpcRight, papcCounters);
+		}
+		else if ((pcBinary->meOperator == CT_AssignmentAdd) || (pcBinary->meOperator == CT_AssignmentSubtract))
+		{
+			pcSymbol = LoopCounterSymbol(pcBinary->mpcLeft);
+		}
+	}
+	if (pcSymbol)
+	{
+		papcCounters->Add(pcSymbol);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The comparisons in pcCondition (through && and ||) of a counter with a
+// wider integer that isn't a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters)
+{
+	CCPPSyntax*					pcInner;
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CCPPSyntax*					pcCounter;
+	CCPPSyntax*					pcBound;
+	CCPPSymbol*					pcSymbol;
+	SCPP65Type*					psCounter;
+	SCPP65Type*					psBound;
+	int64						lliValue;
+	bool						bConstant;
+	bool						bQuietFailed;
+	CChars						szMessage;
+	ECppTokens					eOperator;
+
+	pcInner = SkipParentheses(pcCondition);
+	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
+	{
+		return;
+	}
+	pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
+	eOperator = pcBinary->meOperator;
+	if ((eOperator == CT_LogicalAnd) || (eOperator == CT_LogicalOr))
+	{
+		LoopCounterComparisons(pcBinary->mpcLeft, papcCounters);
+		LoopCounterComparisons(pcBinary->mpcRight, papcCounters);
+		return;
+	}
+	if ((eOperator != CT_LessThan) && (eOperator != CT_LessThanEqualTo) && (eOperator != CT_GreaterThan) &&
+		(eOperator != CT_GreaterThanEqualTo) && (eOperator != CT_NotEqualTo))
+	{
+		return;
+	}
+
+	pcSymbol = LoopCounterSymbol(pcBinary->mpcLeft);
+	if (pcSymbol && (papcCounters->Find(pcSymbol) != ARRAY_ELEMENT_NOT_FOUND))
+	{
+		pcCounter = pcBinary->mpcLeft;
+		pcBound = pcBinary->mpcRight;
+	}
+	else
+	{
+		pcSymbol = LoopCounterSymbol(pcBinary->mpcRight);
+		if (!pcSymbol || (papcCounters->Find(pcSymbol) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			return;
+		}
+		pcCounter = pcBinary->mpcRight;
+		pcBound = pcBinary->mpcLeft;
+	}
+
+	miWarningChecks++;
+	psCounter = TypeOf(pcCounter);
+	psBound = TypeOf(pcBound);
+	miWarningChecks--;
+	if (!psCounter || !psBound || (psCounter->eKind != CPP65TK_Integer) || (psBound->eKind != CPP65TK_Integer) || (psBound->iBytes <= psCounter->iBytes))
+	{
+		return;
+	}
+
+	//A constant bound is ComparisonRange's, and a choice of constants (b ? 7 : 3) is two of them.
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	pcInner = SkipParentheses(pcBound);
+	if (pcInner && (pcInner->GetKind() == CPPS_ConditionalExpression))
+	{
+		bConstant = Constant(((CCPPSyntaxConditionalExpression*)pcInner)->mpcTrue, &lliValue) &&
+					Constant(((CCPPSyntaxConditionalExpression*)pcInner)->mpcFalse, &lliValue);
+	}
+	else
+	{
+		bConstant = Constant(pcBound, &lliValue);
+	}
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	if (bConstant || HasWarning(pcBinary, "Loop counter"))
+	{
+		return;
+	}
+
+	szMessage.Init("Loop counter narrower than its bound: the ");
+	szMessage.Append(psCounter->iBytes * 8)->Append(" bit counter is compared with a ")->Append(psBound->iBytes * 8);
+	szMessage.Append(" bit value and wraps before it can pass one that doesn't fit.  Widen the counter, or convert the bound if it always fits.");
+	Warning(pcBinary, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variable pcExpression names (i, or a member m), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPP65Generator::LoopCounterSymbol(CCPPSyntax* pcExpression)
+{
+	CCPPSyntax*				pcInner;
+	CCPPSyntaxIdExpression*	pcId;
+
+	pcInner = SkipParentheses(pcExpression);
+	if (!pcInner || (pcInner->GetKind() != CPPS_IdExpression))
+	{
+		return NULL;
+	}
+	pcId = (CCPPSyntaxIdExpression*)pcInner;
+	if (!pcId->mpcName)
+	{
+		return NULL;
+	}
+	return pcId->mpcName->mpcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Warns if one side of an integer comparison is a constant outside the range
 // of the other side's type, so the comparison is always true or always false:
 // a 16 bit size compared with 0xFFFFFFFF (a 32 bit "not found").  The constant

@@ -6,13 +6,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseParser::Init(const char* szText, size iTextLen, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
+void CBaseParser::Init(const char* szText, lsize iTextLen, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
 {
 	STextParserConfig	sConfig;
 
 	sConfig.Init(pfSkipWhitespace, pfParseString, pfParseExactIdentifier, pfParseIdentifier);
 
-	mcParser.Init(szText, &sConfig);
+	mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
 	mpcCurrent = NULL;
 }
@@ -24,9 +24,9 @@ void CBaseParser::Init(const char* szText, size iTextLen, const char* szFileName
 //////////////////////////////////////////////////////////////////////////
 void CBaseParser::Init(const char* szText, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
 {
-	size	uiLength;
+	lsize	uiLength;
 
-	uiLength = StrLen(szText);
+	uiLength = strlen(szText);
 
 	Init(szText, uiLength, szFileName, pcLogger, pfSkipWhitespace, pfParseString, pfParseExactIdentifier, pfParseIdentifier);
 	mpcCurrent = NULL;

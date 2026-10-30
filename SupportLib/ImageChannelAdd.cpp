@@ -83,10 +83,12 @@ Ptr<CImage> CImageChannelAdd::Modify(Ptr<CImage> pcImage)
 {
 	size		i;
 	EChannel	eChannel;
+	size		uiNumElements;
 
 	pcImage->BeginChange();
 
-	for (i = 0; i < maiChannels.NumElements(); i++)
+	uiNumElements = maiChannels.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		eChannel = (EChannel)maiChannels.GetValue(i);
 		pcImage->AddChannel(eChannel, meType, miGroup);

@@ -35,7 +35,7 @@ protected:
 	CKicadSchemExpressions*	mpcExpressions;
 
 public:
-	bool		Init(char* szText, size iTextLen, char* szFileName, CKicadSchemExpressions* pcExpressions);
+	bool		Init(char* szText, lsize iTextLen, char* szFileName, CKicadSchemExpressions* pcExpressions);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);

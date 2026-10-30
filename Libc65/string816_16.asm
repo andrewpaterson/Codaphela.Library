@@ -530,3 +530,206 @@ Strlen16Done:
 		tya
 		pld
 		rtl
+
+
+; The bit array functions (BaseLib's IntegerHelper.h) with size (16 bit) counts and results:
+; FindFirstSetBit, FindFirstClearBit, FindLastSetBit and FindLastClearBit (FindNextSetBit and
+; FindNextClearBit are C++ on them), as string816.asm's Large ones but with the count of words
+; in X (first) or Y the byte offset (last) only: a size count of bits is at most 8KB.  And
+; FindFirstClearBit(uint32) and FindFirstSetBit(uint64): the lowest clear (set) bit's index, or
+; the width when there is none (as __builtin_ctzl and ctzll).  ARRAY_ELEMENT_NOT_FOUND ($FFFF)
+; when the array has none.  The array functions push 2 bytes of locals and D, and point D at
+; the stack:
+;	D + 1		the caller's D
+;	D + 3		BitInvert16: 0 or $FFFF
+;	D + 5		the return address
+;	D + 8		the arguments: the array, then the count of bits at D + 12
+
+BitInvert16	= 3
+BitArray16	= 8
+BitBits16	= 12
+
+
+		.section text.Bits816_16
+		.relax
+		.global _FindFirstSetBit__FPvt, _FindFirstClearBit__FPvt, _FindLastSetBit__FPvt, _FindLastClearBit__FPvt
+		.global _FindFirstClearBit__Fj, _FindFirstSetBit__Fy
+
+; size FindFirstSetBit(void* pvArray, size iArraySize)
+_FindFirstSetBit__FPvt:
+		.width (A, X), 16
+		pea 0
+		bra FindFirst16
+
+; size FindFirstClearBit(void* pvArray, size iArraySize)
+_FindFirstClearBit__FPvt:
+		.width (A, X), 16
+		pea $FFFF
+FindFirst16:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		ldy 0
+		lda [D + BitBits16]
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		beq FindFirst16Part
+		tax
+FindFirst16Word:
+		.width (A, X), 16
+		lda [[D + BitArray16]:24 + Y]
+		eor [D + BitInvert16]
+		bne FindFirst16Found
+		iny
+		iny
+		dex
+		bne FindFirst16Word
+FindFirst16Part:
+		.width (A, X), 16
+		lda [D + BitBits16]
+		and 15
+		beq FindFirst16None
+		asl A
+		tax
+		lda [[D + BitArray16]:24 + Y]
+		eor [D + BitInvert16]
+		and [BitsMasks16 + X]:24
+		bne FindFirst16Found
+FindFirst16None:
+		.width (A, X), 16
+		lda $FFFF
+		bra Bits16Return
+FindFirst16Found:
+		.width (A, X), 16
+		jsl BitsCtz16
+		sta [D + BitInvert16]
+		tya
+		asl A
+		asl A
+		asl A
+		clc
+		adc [D + BitInvert16]
+Bits16Return:
+		.width (A, X), 16
+		pld
+		ply
+		rtl
+
+; size FindLastSetBit(void* pvArray, size iArraySize)
+_FindLastSetBit__FPvt:
+		.width (A, X), 16
+		pea 0
+		bra FindLast16
+
+; size FindLastClearBit(void* pvArray, size iArraySize): Y starts at the last (partial) word.
+_FindLastClearBit__FPvt:
+		.width (A, X), 16
+		pea $FFFF
+FindLast16:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		lda [D + BitBits16]
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		asl A
+		tay
+		lda [D + BitBits16]
+		and 15
+		beq FindLast16Words
+		asl A
+		tax
+		lda [[D + BitArray16]:24 + Y]
+		eor [D + BitInvert16]
+		and [BitsMasks16 + X]:24
+		bne FindLast16Found
+FindLast16Words:
+		.width (A, X), 16
+		cpy 0
+		beq FindLast16None
+		dey
+		dey
+		lda [[D + BitArray16]:24 + Y]
+		eor [D + BitInvert16]
+		beq FindLast16Words
+FindLast16Found:
+		.width (A, X), 16
+		jsl BitsLog2_16
+		sta [D + BitInvert16]
+		tya
+		asl A
+		asl A
+		asl A
+		clc
+		adc [D + BitInvert16]
+		bra Bits16Return
+FindLast16None:
+		.width (A, X), 16
+		lda $FFFF
+		bra Bits16Return
+
+; size FindFirstClearBit(uint32 uiBits): D points at the stack, uiBits is at D + 6.
+_FindFirstClearBit__Fj:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		lda [D + 6]
+		eor $FFFF
+		bne FindWord32Found
+		lda [D + 8]
+		eor $FFFF
+		beq FindWord32None
+		jsl BitsCtz16
+		clc
+		adc 16
+		pld
+		rtl
+FindWord32None:
+		.width (A, X), 16
+		lda 32
+		pld
+		rtl
+FindWord32Found:
+		.width (A, X), 16
+		jsl BitsCtz16
+		pld
+		rtl
+
+; size FindFirstSetBit(uint64 uiBits): D points at the stack, uiBits is at D + 6; Y is the
+; found word's first bit.
+_FindFirstSetBit__Fy:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		ldy 0
+		lda [D + 6]
+		bne FindWord64Found
+		ldy 16
+		lda [D + 8]
+		bne FindWord64Found
+		ldy 32
+		lda [D + 10]
+		bne FindWord64Found
+		ldy 48
+		lda [D + 12]
+		bne FindWord64Found
+		lda 64
+		pld
+		rtl
+FindWord64Found:
+		.width (A, X), 16
+		jsl BitsCtz16
+		phy
+		clc
+		adc [S + 1]
+		ply
+		pld
+		rtl

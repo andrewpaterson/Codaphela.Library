@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ErrorTypes.h"
 #include "Define.h"
 #include "Number.h"
+#include "StringHelper.h"
 #include "TextParserConfig.h"
 #include "TextParserParameters.h"
 
@@ -34,24 +35,24 @@ class CTextParser
 {
 public:
 	const char*			mszStartOfText;
-	size				miTextLen;
+	lsize				miTextLen;
 	const char*			mszParserPos;
 	const char*			mszEndOfText;  //Is inclusive (ie: mszEndOfText == the last character in the parser).
 	bool				mbCaseSensitive;
 	bool				mbOutsideText;
 	CArrayTextPosition	masPositions;
-	size				miLine;
-	size				miColumn;
+	lsize				miLine;
+	lsize				miColumn;
 	bool				mbAnnotated;
 	ETextParseError		meError;
 	STextParserConfig	msConfig;
 
-	bool 			Init(const char* szText, size iTextLen);
+	bool 			Init(const char* szText, lsize iTextLen);
 	bool 			Init(const char* szText);
 	bool 			Init(CChars* szText);
 	bool			Init(void);
 	bool			Init(const char* szText, STextParserConfig* psConfig);
-	bool			Init(const char* szText, size iTextLen, STextParserConfig* psConfig);
+	bool			Init(const char* szText, lsize iTextLen, STextParserConfig* psConfig);
 	void 			Kill(void);
 	bool			IsEmpty(void);
 
@@ -78,11 +79,12 @@ public:
 	STextPosition*	GetPosition(STextPosition* psPosition);
 	void			SetPosition(STextPosition* psPosition);
 
-	size			Line(void);
-	size			Column(void);
-	size			Length(void);
-	size			RemainingLength(void);
-	size			UsedLength(void);
+	lsize			Line(void);
+	lsize			Column(void);
+	lsize			Length(void);
+	lsize			RemainingLength(void);
+	lsize			UsedLength(void);
+	lsize			SearchLength(void);
 
 	TRISTATE 		GetExactCharacter(char c, bool bSkipWhitespace = true);
 	TRISTATE 		GetExactCaseInsensitiveCharacter(char c, bool bSkipWhitespace = true);
@@ -134,7 +136,7 @@ public:
 	void			SetErrorEndOfFile(void);
 	void			SetErrorSyntaxError(void);
 	void			AppendError(CChars* pszDest);
-	void			GetText(CExternalString* pcDest);
+	const char*		Text(void);
 
 	void			PrintPosition(CChars* pszDest);
 	void			PrintPositionSingleLineParser(CChars* pszDest);
@@ -204,7 +206,7 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 		tReturn = GetExactIdentifier(szName, false);
 		if (tReturn == TRITRUE)
 		{
-			iLength = strlen(szName);
+			iLength = StrLen(szName);
 			if (iLength > iLongestLength)
 			{
 				iLongestLength = iLength;
@@ -266,7 +268,7 @@ TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerat
 		tReturn = GetExactCharacterSequence(szName, false);
 		if (tReturn == TRITRUE)
 		{
-			iLength = strlen(szName);
+			iLength = StrLen(szName);
 			if (iLength > iLongestLength)
 			{
 				iLongestLength = iLength;

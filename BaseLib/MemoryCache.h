@@ -54,8 +54,8 @@ public:
 
 	void	Clear(void);
 	void	Deallocate(void* pvCache);
-	size	NumElements(void);
-	size	NumElements(lsize iSize);
+	lsize	NumElements(void);
+	lsize	NumElements(lsize iSize);
 	lsize	GetDescriptorSize(void);
 	lsize	GetCacheSize(void);
 	void*	GetCache(void);

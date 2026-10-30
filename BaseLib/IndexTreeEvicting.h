@@ -65,10 +65,10 @@ protected:
 	CIndexedFiles*			GetIndexFiles(void);
 	CIndexTreeFile*			GetIndexTree(void);
 
-	size					NumNodes(void);
-	size					NumMemoryNodes(void);
-	size					NumMemoryElements(void);
-	size					NumMemoryElements(size iSize);
+	uint32					NumNodes(void);
+	lsize					NumMemoryNodes(void);
+	lsize					NumMemoryElements(void);
+	lsize					NumMemoryElements(size iSize);
 
 	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 

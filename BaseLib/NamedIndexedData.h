@@ -85,7 +85,7 @@ public:
 	int64			NumIndicesCached(void);
 	int64			NumIndicesCached(size iSize);
 	int64			NumDataCached(void);
-	int64			NumDataCached(size iSize);
+	int64			NumDataCached(lsize iSize);
 	int64			NumNames(void);
 	int64			NumNamesCached(void);
 	bool			IsCaching(void);

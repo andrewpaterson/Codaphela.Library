@@ -537,8 +537,10 @@ void CImageCombiner::CountFileNames(CMapStringInt* pmFileNameCounts)
 {
 	size	i;
 	char*	szFileName;
+	size	uiNumElements;
 
-	for (i = 0; i < maszSourceFileNames.NumElements(); i++)
+	uiNumElements = maszSourceFileNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szFileName = maszSourceFileNames.Get(i)->Text();
 		if (!StrEmpty(szFileName))
@@ -608,9 +610,11 @@ CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacP
 	CPackedRectangle*		pcPackedRect;
 	CPackedRectangle*		pcFoundPackedRect;
 	size					j;
+	size					uiNumElements;
 
 	pcFoundPackedRect = NULL;
-	for (j = 0; j < pacPackedRects->NumElements(); j++)
+	uiNumElements = pacPackedRects->NumElements();
+	for (j = 0; j < uiNumElements; j++)
 	{
 		pcPackedRect = pacPackedRects->Get(j);
 		if ((CImageCel*)pcPackedRect->mpvUserData == &pcSourceCel)

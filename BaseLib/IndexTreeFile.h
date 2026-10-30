@@ -131,9 +131,9 @@ protected:
 	void					GetFiles(CArrayIndexedFilePtr* pac);
 	CIndexedFile*			GetFile(int iFile);
 	uint32					NumNodes(void);
-	size					NumMemoryNodes(void);
-	size					NumMemoryElements(void);
-	size					NumMemoryElements(size iSize);
+	lsize					NumMemoryNodes(void);
+	lsize					NumMemoryElements(void);
+	lsize					NumMemoryElements(size iSize);
 
 	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 	void					PrintChildren(CChars* pszDest, bool bShowFlags, bool bShowSize);
@@ -176,14 +176,14 @@ protected:
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, uint8 uiFlags);
 	void					FindWithFlags(CArrayVoidPtr* papNodes, uint8 uiFollowFlags, uint8 uiAddFlags);
 	uint32					RecurseNumElements(CIndexTreeNodeFile* pcNode);
-	size					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode);
-	size					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize);
-	size					CountListSize(void);
-	size					RecurseCountListSize(CIndexTreeNodeFile* pcNode);
+	lsize					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode);
+	lsize					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize);
+	lsize					CountListSize(void);
+	lsize					RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	lsize					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, uint8 uiFollowFlags, uint8 uiAddFlags, CArrayVoidPtr* papNodes);
 	uint32					RecurseNumNodes(CIndexTreeRecursor* pcCursor);
-	size					RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
+	lsize					RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
 
 	bool					ValidateLimits(bool bReadNodes);
 	bool					RecurseValidateLimits(CIndexTreeRecursor* pcCursor, bool bReadNodes);

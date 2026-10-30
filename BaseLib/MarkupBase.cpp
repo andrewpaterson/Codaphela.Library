@@ -88,7 +88,7 @@ bool CMarkupBase::IsNamedRef(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMarkupBase::GetLine(void)
+lsize CMarkupBase::GetLine(void)
 {
 	return miLine;
 }
@@ -98,7 +98,7 @@ size CMarkupBase::GetLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMarkupBase::GetColumn(void)
+lsize CMarkupBase::GetColumn(void)
 {
 	return miColumn;
 }
@@ -108,7 +108,7 @@ size CMarkupBase::GetColumn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupBase::SetLineAndColumn(size iLine, size iColumn)
+void CMarkupBase::SetLineAndColumn(lsize iLine, lsize iColumn)
 {
 	miLine = iLine;
 	miColumn = iColumn;

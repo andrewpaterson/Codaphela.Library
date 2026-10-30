@@ -901,7 +901,7 @@ int64 CNamedIndexedData::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumDataCached(size iSize)
+int64 CNamedIndexedData::NumDataCached(lsize iSize)
 {
 	return mcData.NumDataCached(iSize);
 }

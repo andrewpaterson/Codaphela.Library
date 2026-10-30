@@ -130,10 +130,12 @@ void CLogger::Kill(void)
 	size			i;
 	CAbstractFile*	pcFile;
 	bool			bDebugFreed;
+	size			uiNumElements;
 
 	Lock();
 	bDebugFreed = false;
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcFile = *mapcFiles.Get(i);
 		if (pcFile == mpcDebugOutputFile)
@@ -197,11 +199,13 @@ void CLogger::Add(const char* szText)
 {
 	size			i;
 	CAbstractFile*	pcFile;
+	size			uiNumElements;
 
 	Lock();
 	if (msConfig.bEnabled)
 	{
-		for (i = 0; i < mapcFiles.NumElements(); i++)
+		uiNumElements = mapcFiles.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcFile = *mapcFiles.Get(i);
 			pcFile->Open(EFM_ReadWrite_Create);

@@ -385,7 +385,7 @@ bool CFileReader::ReadInt8(uint8* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadBits(void* pvData, size iByteLength)
+bool CFileReader::ReadBits(void* pvData, lsize iByteLength)
 {
 	CheckRead(pvData, iByteLength);
 	return true;

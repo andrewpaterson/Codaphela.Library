@@ -185,6 +185,9 @@ struct SIRIdiomAddress
 //						values as an earlier phi of its block is that phi
 //	narrowing			trunc of add, sub, mul, and, or, xor or shl by a constant that only it uses, with an
 //						extended or constant operand, is the operation done narrow (C's char promotions)
+//	constant divisions	x / c and x % c (c not a power of 2) with x's range known (ConstantDivisions, for a target
+//						whose divides are calls) are a multiply by a reciprocal and a shift, checked exact for
+//						every x in the range
 //	bounded divisions	an unsigned x / c or x % c with x known to be below c (its most worked out from
 //						constants, extensions, ands, shifts, adds and the branches into phis) is 0 or x,
 //						and below 2c a compare and subtract
@@ -225,6 +228,7 @@ protected:
 	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
+	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
@@ -249,6 +253,7 @@ public:
 	bool			Optimise(CIRFunction* pcFunction);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
+	void			SetConstantDivisions(bool bConstantDivisions);
 	void			SetWarnings(CChars* pszWarnings);
 	void			SetLibraryInt(SIRType sInt);
 
@@ -284,6 +289,9 @@ public:
 	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
+	bool			ConstantDivisions(void);
+	bool			SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax);
+	bool			DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift);
 	bool			SignedPowerDivisions(void);
 	bool			ReplaceLoopIdioms(void);
 	bool			RemoveDeadCode(void);

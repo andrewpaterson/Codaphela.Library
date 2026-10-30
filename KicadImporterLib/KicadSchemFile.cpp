@@ -153,7 +153,7 @@ bool CKicadSchemFile::Load(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemFile::Import(char* szText, size iTextLen, char* szFileName)
+bool CKicadSchemFile::Import(char* szText, lsize iTextLen, char* szFileName)
 {
 	CKicadSchemParser		cParser;
 	CKicadSchemExpressions	cExpressions;

@@ -50,18 +50,21 @@ void SplitLines(CLinePositionCache* pcCache, CPositions* pcPositions, CArrayInt3
 {
 	CArrayInt32Vec2	asJunctions;
 	size			i;
+	size			uiNumElements;
 
 	asJunctions.Init();
 	CalculateLineJunctions(pcPositions, pcCache, &asJunctions);
 	if (pasAdditionalJunctions != NULL)
 	{
-		for (i = 0; i < pasAdditionalJunctions->NumElements(); i++)
+		uiNumElements = pasAdditionalJunctions->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			asJunctions.AddIfUnique(pasAdditionalJunctions->Get(i));
 		}
 	}
 
-	for (i = 0; i < asJunctions.NumElements(); i++)
+	uiNumElements = asJunctions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCache->Split(asJunctions.Get(i));
 	}

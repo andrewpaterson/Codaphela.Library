@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayUint8.h"
 #include "IRModule.h"
 #include "IR816Backend.h"
+#include "IRInliner.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 
@@ -95,6 +96,7 @@ struct SCPP65IRWritten
 	CChars			szLabel;
 	CChars			szCode;
 	SIR816Frame		sFrame;			//The W65C816's frame, for AlignFrame.
+	uint32			uiFingerprint;	//A hash of its IR before it was optimised (for a line table).
 };
 
 
@@ -103,6 +105,7 @@ struct SCPP65IRWritten
 #define IR65_INLINE_LOOP_INSTRUCTIONS	32		//...or where the call is in a loop...
 #define IR65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time...
 #define IR65_INLINE_ROUNDS				4		//...in at most this many rounds (optimising between them).
+#define IR65_INLINE_HOT_INSTRUCTIONS	64		//With a profile, the most a hot call's callee may have (CIRInliner::SetProfile).
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
@@ -119,9 +122,11 @@ typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 //does for its own code; Body then writes the function as IR if it supports everything in it, or returns false
 //(having changed nothing) so the generator writes it itself.  Locals are slots, read and written with load and
 //store; parameters are where their caller pushed them (argaddr).  What is supported is in IR.txt (Front end).
-class CCPP65IRFrontEnd
+class CCPP65IRFrontEnd : public CIRInlineProfile
 {
 protected:
+	CIRFunction*			mpcProfiledCaller;	//The caller CallCount last looked at...
+	bool					mbProfiledCaller;	//...and whether the profile has it, as it is now (its fingerprint).
 	CCPP65Generator*		mpcGenerator;
 	CCPP65Types*			mpcTypes;
 
@@ -169,7 +174,11 @@ public:
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			FinishUnit(void);
-	void			SourceComments(CChars* pszCode, bool bComments);
+	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
+	uint32			Fingerprint(CIRFunction* pcFunction);
+	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
+	uint64			ProfileCycles(void);
+	CAsm816Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
 

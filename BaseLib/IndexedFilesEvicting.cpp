@@ -197,7 +197,7 @@ bool CIndexedFilesEvicting::IsFlushed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFilesEvicting::NumCached(void)
+lsize CIndexedFilesEvicting::NumCached(void)
 {
 	if (mbCaching)
 	{
@@ -214,7 +214,7 @@ size CIndexedFilesEvicting::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFilesEvicting::NumCached(size iSize)
+lsize CIndexedFilesEvicting::NumCached(lsize iSize)
 {
 	if (mbCaching)
 	{

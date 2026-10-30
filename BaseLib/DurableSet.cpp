@@ -165,7 +165,8 @@ bool CDurableSet::End(void)
 	}
 
 	bResult = true;
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
 		bResult &= pcDurable->Recommit();
@@ -585,7 +586,8 @@ bool CDurableSet::CopyRecoveryFiles(bool bBackupToPrimary)
 		}
 	}
 
-	for (i = 0; i < aszFiles.NumElements(); i += 2)
+	uiNumElements = aszFiles.NumElements();
+	for (i = 0; i < uiNumElements; i += 2)
 	{
 		if (bBackupToPrimary)
 		{
@@ -613,8 +615,10 @@ bool CDurableSet::CopyRecoveryFiles(bool bBackupToPrimary)
 bool CDurableSet::ContainsPair(CArrayChars* paszFiles, const char* szPrimary)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < paszFiles->NumElements(); i += 2)
+	uiNumElements = paszFiles->NumElements();
+	for (i = 0; i < uiNumElements; i += 2)
 	{
 		if (paszFiles->Get(i)->Equals(szPrimary))
 		{

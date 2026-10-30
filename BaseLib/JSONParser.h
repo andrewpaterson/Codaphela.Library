@@ -34,8 +34,8 @@ public:
 	int					miDepth;
 	CMarkupDoc*			mpcDoc;
 
-	void		Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
-	void		Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
+	void		Init(char* szText, lsize iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
+	void		Init(char* szText, lsize iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
 	void		Init(const char* szText, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
 	void		Init(const char* szText, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
 	void		Kill(void);

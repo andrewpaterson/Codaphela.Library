@@ -35,8 +35,8 @@ public:
 	void						Clear(void);
 
 	lsize						GetSize(void* pvData);
-	size						NumElements(void);
-	size						NumElements(lsize iSize);
+	lsize						NumElements(void);
+	lsize						NumElements(lsize iSize);
 	bool						IsEmpty(void);
 
 	void*						StartIteration(void);

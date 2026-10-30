@@ -120,12 +120,14 @@ Ptr<CImageCel> CImageCelGroup::GetCel(size iIndex)
 Ptr<CImage> CImageCelGroup::GetImage(void)
 {
 	size				i;
+	size				uiNumElements;
 	Ptr < CImageCel>	pcCel;
 	Ptr<CImage>			pcImage;
 
 	//If there is only one image in use by the group (the normal case) then return it, otherwise NULL.
 	pcImage = NULL;
-	for (i = 0; i < maImageCels.NumElements(); i++)
+	uiNumElements = maImageCels.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCel = maImageCels.Get(i);
 		if (pcImage == NULL)

@@ -39,10 +39,10 @@ public:
 			int64			NumElements(void);
 
 	virtual int64			NumIndices(void) =0;
-	virtual size			NumIndicesCached(void) =0;
+	virtual lsize			NumIndicesCached(void) =0;
 			int64			NumDatas(void);
-			size			NumDataCached(void);
-			size			NumDataCached(size iSize);
+			lsize			NumDataCached(void);
+			lsize			NumDataCached(lsize iSize);
 			size			NumFiles(void);
 			int64			NumDatas(lsize uiDataSize);
 

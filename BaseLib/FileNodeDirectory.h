@@ -67,8 +67,10 @@ void CFileNodeDirectory<M>::Kill(void)
 {
 	size			i;
 	CFileNode<M>*	pcChild;
+	size			uiNumElements;
 
-	for (i = 0; i < maNodeFiles.NumElements(); i++)
+	uiNumElements = maNodeFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcChild = (CFileNode<M>*)maNodeFiles.Get(i);
 		pcChild->Kill();
@@ -86,8 +88,10 @@ CFileNode<M>* CFileNodeDirectory<M>::Get(const char* szName)
 {
 	size			i;
 	CFileNode<M>*	pcNode;
+	size			uiNumElements;
 
-	for (i = 0; i < maNodeFiles.NumElements(); i++)
+	uiNumElements = maNodeFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcNode = (CFileNode<M>*)maNodeFiles.Get(i);
 		if (pcNode->Is(szName))
@@ -139,8 +143,10 @@ void CFileNodeDirectory<M>::FixParents(CFileNode<M>* pcContaintingNode)
 	size					i;
 	CFileNode<M>*			pcNode;
 	CFileNodeDirectory<M>*	pcDirectory;
+	size					uiNumElements;
 
-	for (i = 0; i < maNodeFiles.NumElements(); i++)
+	uiNumElements = maNodeFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcNode = (CFileNode<M>*)maNodeFiles.Get(i);
 		pcNode->mpcParent = pcContaintingNode;

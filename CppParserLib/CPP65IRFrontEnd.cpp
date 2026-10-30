@@ -63,6 +63,8 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	msResult = IRNone();
 	msElide = IRNone();
 	mpcValue = NULL;
+	mpcProfiledCaller = NULL;
+	mbProfiledCaller = false;
 	mcModule.Init();
 	mcModule.AddSpace("default", 4);
 	masWritten.Init();
@@ -259,19 +261,26 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	size					ui;
 	size					uiStart;
 	size					uiLength;
+	uint32					uiFingerprint;
 
 	//Instructions the optimiser adds have no source of their own.
 	CIRBlock::suiSource = 0;
 	bResult = bResult && !mbUnsupported;
+	uiFingerprint = 0;
 	if (bResult)
 	{
 		//IR that doesn't verify is the front end's (or a pass's) mistake; the generator writes the function instead.
 		Finish();
+		if (mpcGenerator->mbLineTable || InliningProfile())
+		{
+			uiFingerprint = Fingerprint(mpcFunction);
+		}
 		if (sbOptimise)
 		{
 			cOptimiser.Init(&mcModule);
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			szWarnings.Init();
 			cOptimiser.SetWarnings(&szWarnings);
@@ -309,6 +318,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->szLabel.Init(szLabel);
 			psWritten->szCode.Init(szCode);
 			psWritten->sFrame = sFrame;
+			psWritten->uiFingerprint = uiFingerprint;
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
 			mpcGenerator->mszCode.Append((int)(masWritten.NumElements() - 1));
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
@@ -828,7 +838,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		//The back end's errors (a frame too big ...) are why the function wasn't written.
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
-		cBackend816.SetSourceMarkers(mpcGenerator->mbListing);
+		cBackend816.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
 		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
 		cBackend816.GetFrame(psFrame);
 		if (!bResult)
@@ -847,7 +857,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	}
 
 	cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
-	cBackend.SetSourceMarkers(mpcGenerator->mbListing);
+	cBackend.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
 	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
 	mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
 	mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
@@ -964,6 +974,11 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	CIRBlock::suiSource = 0;
 	cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
 	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
+	mpcProfiledCaller = NULL;
+	if (InliningProfile())
+	{
+		cInliner.SetProfile(this, IR65_INLINE_HOT_INSTRUCTIONS);
+	}
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
@@ -978,6 +993,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 			cOptimiser.Init(&mcModule);
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
+			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();
@@ -1051,7 +1067,17 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szAll.AppendSubString(szText, szMarker);
 		iIndex = atoi(szMarker + 1);
 		psWritten = masWritten.Get((size)iIndex);
-		SourceComments(&psWritten->szCode, mpcGenerator->mbListing);
+		SourceComments(&psWritten->szCode, mpcGenerator->mbListing, mpcGenerator->mbLineTable);
+		if (mpcGenerator->mbLineTable)
+		{
+			psWritten->szCode.Append("\t\t.fingerprint \"");
+			psWritten->szCode.Append(psWritten->szLabel);
+			psWritten->szCode.Append("\", ");
+			psWritten->szCode.Append((int64)psWritten->uiFingerprint);
+			psWritten->szCode.Append(", ");
+			psWritten->szCode.Append(mpcGenerator->miCompileTime);
+			psWritten->szCode.AppendNewLine();
+		}
 		if (sbPrint)
 		{
 			fprintf(stderr, "%s\n", psWritten->szCode.Text());
@@ -1074,13 +1100,14 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The back ends (and CIRPrinter) write a marker line (IR_SOURCE_MARKER and
-// the source token + 1) where the instructions' source changes.  With
-// bComments (a listing) each becomes a comment with the file, line and
-// text of the line, when it is another line than the last comment's;
+// the source token + 1) where the instructions' source changes.  Where it
+// is another line than the last's, with bComments (a listing) it becomes a
+// comment with the file, line and text of the line, and with bLines a
+// .line directive with the file's full name (the linker's line table);
 // otherwise they go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments)
+void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments, bool bLines)
 {
 	CChars				szOut;
 	const char*			szText;
@@ -1113,7 +1140,7 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments)
 			szOut.AppendSubString(szText, (*szEnd == '\n') ? szEnd + 1 : szEnd);
 			continue;
 		}
-		if (!bComments || !SourceLine((int)strtol(szText + uiMarker, NULL, 10) - 1, &pcFile, &iLine))
+		if ((!bComments && !bLines) || !SourceLine((int)strtol(szText + uiMarker, NULL, 10) - 1, &pcFile, &iLine))
 		{
 			continue;
 		}
@@ -1123,6 +1150,27 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments)
 		}
 		pcLastFile = pcFile;
 		iLastLine = iLine;
+
+		//\t\t.line "C:\\Path\\File.cpp", 12 (a backslash or quote in the name escaped).
+		if (bLines)
+		{
+			szOut.Append("\t\t.line \"");
+			for (szLine = pcFile->FullName(); *szLine != '\0'; szLine++)
+			{
+				if ((*szLine == '\\') || (*szLine == '"'))
+				{
+					szOut.Append('\\');
+				}
+				szOut.Append(*szLine);
+			}
+			szOut.Append("\", ");
+			szOut.Append(iLine + 1);
+			szOut.AppendNewLine();
+		}
+		if (!bComments)
+		{
+			continue;
+		}
 
 		//\t\t; File.cpp(12): the line, without its indent.
 		szLine = pcFile->GetContents() + pcFile->GetOffset(iLine, 0);
@@ -1975,6 +2023,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	{
 		return false;
 	}
+	mpcGenerator->LoopCounterWidth(pcFor);
 	pcTest = NewBlock();
 	pcBody = NewBlock();
 	pcNext = NewBlock();
@@ -4675,9 +4724,10 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	{
 		pcArgument = (ui <= uiArguments) ? papcArguments->GetPtr(ui - 1) : (papcDefaults ? papcDefaults->GetPtr(ui - 1) : NULL);
 		psParameter = papsParameters->GetPtr(ui - 1);
-		if (pcArgument && psParameter->IsClass() && !bVariadic && mpcGenerator->CompleteClass(psParameter->psClass, NULL) && IsPassedByAddress(psParameter))
+		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcGenerator->CompleteClass(psParameter->psClass, NULL) && IsPassedByAddress(psParameter))
 		{
-			//A copy made here (and destroyed at the end of the full expression) is passed by its address.
+			//A copy made here (and destroyed at the end of the full expression) is passed by its address.  Not a variadic
+			//function's last named parameter, whose address va_start takes for the arguments after it.
 			if (!Temporary(psParameter, &sCopy, true) || !Construct(&sCopy, NULL, pcArgument))
 			{
 				asArguments.Kill();
@@ -5535,6 +5585,112 @@ bool CCPP65IRFrontEnd::IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscr
 // operator if one matches, otherwise a free operator function.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// A hash (32 bit FNV-1a) of the function's IR as printed: the same code
+// gives the same hash in every build.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
+{
+	CIRPrinter		cPrinter;
+	CChars			szText;
+	const char*		sz;
+	uint32			uiHash;
+
+	szText.Init();
+	cPrinter.Init(&mcModule, &szText);
+	cPrinter.PrintFunction(pcFunction);
+	cPrinter.Kill();
+	uiHash = 2166136261u;
+	for (sz = szText.Text(); *sz != '\0'; sz++)
+	{
+		uiHash = (uiHash ^ (uint8)*sz) * 16777619u;
+	}
+	szText.Kill();
+	return uiHash;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The profile the inliner is guided by: the generator's, on the W65C816
+// (CCPP65Builder::SetFrameProfile).  NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+CAsm816Profile* CCPP65IRFrontEnd::InliningProfile(void)
+{
+	return (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? mpcGenerator->mpcFrameProfile : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cycles of the profiled run (CIRInlineProfile).
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CCPP65IRFrontEnd::ProfileCycles(void)
+{
+	return InliningProfile() ? InliningProfile()->NumCycles() : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How often the profiled run made the call (CIRInlineProfile): how often
+// its source line's code was entered in the caller, when the profile has
+// the caller as it is now (the same fingerprint), or else (the caller
+// wasn't run, or the call is in code inlined from another function) in
+// every function.  IR_INLINE_UNKNOWN when the caller's profile is of other
+// code or the call has no source line.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall)
+{
+	CAsm816Profile*			pcProfile;
+	SAsm816FunctionProfile*	psFunction;
+	SAsm816LineProfile*		psLine;
+	SCPP65IRWritten*		psWritten;
+	CSourceFile*			pcFile;
+	const char*				szLabel;
+	int						iLine;
+	size					ui;
+
+	pcProfile = InliningProfile();
+	if (!pcProfile || (psCall->uiSource == 0) || !SourceLine((int)psCall->uiSource - 1, &pcFile, &iLine))
+	{
+		return IR_INLINE_UNKNOWN;
+	}
+	szLabel = mcModule.GetSymbolName(pcCaller->muiSymbol);
+	psFunction = pcProfile->Get(szLabel);
+	if (pcCaller != mpcProfiledCaller)
+	{
+		//The caller's fingerprint (when it was written) against the profile's.
+		mpcProfiledCaller = pcCaller;
+		mbProfiledCaller = false;
+		for (ui = 0; psFunction && (ui < masWritten.NumElements()); ui++)
+		{
+			psWritten = masWritten.Get(ui);
+			if (psWritten->pcFunction == pcCaller)
+			{
+				mbProfiledCaller = (psFunction->uiHash == 0) || (psFunction->uiHash == psWritten->uiFingerprint);
+				break;
+			}
+		}
+	}
+	if (psFunction && !mbProfiledCaller)
+	{
+		return IR_INLINE_UNKNOWN;
+	}
+	psLine = psFunction ? pcProfile->GetLine(szLabel, pcFile->FullName(), (uint32)iLine + 1) : NULL;
+	if (psLine)
+	{
+		return psLine->ulliEntries;
+	}
+	return pcProfile->LineEntries(pcFile->FullName(), (uint32)iLine + 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psType;
@@ -5597,7 +5753,7 @@ void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
 	cPrinter.SetSources(true);
 	cPrinter.PrintFunction(pcFunction);
 	cPrinter.Kill();
-	SourceComments(&szText, true);
+	SourceComments(&szText, true, false);
 	fprintf(stderr, "%s\n", szText.Text());
 	szText.Kill();
 }

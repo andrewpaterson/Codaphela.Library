@@ -195,6 +195,7 @@
     <ClCompile Include="Asm65Instructions.cpp" />
     <ClCompile Include="Asm65Library.cpp" />
     <ClCompile Include="Asm65Linker.cpp" />
+    <ClCompile Include="Asm65LineTable.cpp" />
     <ClCompile Include="Asm65LinkerLazy.cpp" />
     <ClCompile Include="Asm65Memory.cpp" />
     <ClCompile Include="Asm65Object.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="Asm65Lockstep.h" />
     <ClInclude Include="Asm65Library.h" />
     <ClInclude Include="Asm65Linker.h" />
+    <ClInclude Include="Asm65LineTable.h" />
     <ClInclude Include="Asm65Memory.h" />
     <ClInclude Include="Asm65Object.h" />
     <ClInclude Include="Asm65Output.h" />

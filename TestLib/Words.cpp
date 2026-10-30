@@ -459,8 +459,10 @@ void GetArchaicWords(CArrayChars* pasz)
 	CChars*		pszDefinition;
 	size		iIndex;
 	CChars		sz;
+	size		uiNumElements;
 
-	for (i = 0; i < gaszArchaicDefinitions.NumElements(); i++)
+	uiNumElements = gaszArchaicDefinitions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pszDefinition = gaszArchaicDefinitions.Get(i);
 		iIndex = pszDefinition->Find(':');
@@ -486,6 +488,7 @@ void GetCommonWords(CArrayChars* pasz)
 {
 	uint32	i;
 	char*	sz;
+	size	uiNumElements;
 
 	pasz->Add("a");
 	pasz->Add("ability");
@@ -1488,7 +1491,8 @@ void GetCommonWords(CArrayChars* pasz)
 	pasz->Add("your");
 	pasz->Add("yourself");
 
-	for (i = 0; i < pasz->NumElements(); i++)
+	uiNumElements = pasz->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		sz = pasz->Get(i)->Text();
 		ToLower(sz);

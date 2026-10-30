@@ -79,9 +79,11 @@ void CPositions::Init(CArrayLine* pacLines)
 {
 	size	i;
 	CLine*	pcLine;
+	size	uiNumElements;
 
 	Init();
-	for (i = 0; i < pacLines->NumElements(); i++)
+	uiNumElements = pacLines->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLine = pacLines->Get(i);
 		Add(pcLine->GetStart());
@@ -97,8 +99,10 @@ void CPositions::Init(CArrayLine* pacLines)
 void CPositions::Kill(void)
 {
 	size	i;
+	size	uiNumElements;
 
-	for (i = 0; i < macColumns.NumElements(); i++)
+	uiNumElements = macColumns.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		macColumns.Get(i)->Kill();
 	}
@@ -151,9 +155,11 @@ size CPositions::NumPositions(void)
 {
 	size	i;
 	size	uiNumPositions;
+	size	uiNumElements;
 
 	uiNumPositions = 0;
-	for (i = 0; i < macColumns.NumElements(); i++)
+	uiNumElements = macColumns.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		uiNumPositions += macColumns.Get(i)->NumYs();
 	}
@@ -174,15 +180,19 @@ void CPositions::CalculatePositions(CArrayInt32Vec2* pasPositions)
 	size				j;
 	CPositionColumn*	pcColumn;
 	SInt32Vec2*			psPosition;
+	size				uiNumElements;
+	size				uiNumYs;
 
 	aiXs.Init();
-	for (i = 0; i < macColumns.NumElements(); i++)
+	uiNumElements = macColumns.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		aiXs.Add(macColumns.Get(i)->GetX());
 	}
 	aiXs.QuickSort();
 
-	for (i = 0; i < aiXs.NumElements(); i++)
+	uiNumElements = aiXs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcColumn = macColumns.Get(*mcColumnIndices.Get(aiXs.GetValue(i)));
 		aiYs.Init();
@@ -191,7 +201,8 @@ void CPositions::CalculatePositions(CArrayInt32Vec2* pasPositions)
 			aiYs.Add(pcColumn->GetY(j));
 		}
 		aiYs.QuickSort();
-		for (j = 0; j < aiYs.NumElements(); j++)
+		uiNumYs = aiYs.NumElements();
+		for (j = 0; j < uiNumYs; j++)
 		{
 			psPosition = pasPositions->Add();
 			psPosition->Init(pcColumn->GetX(), aiYs.GetValue(j));

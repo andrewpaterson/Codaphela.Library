@@ -7,10 +7,10 @@
 struct SBaseParserString
 {
 	CChars	szString;
-	size	uiLine;
-	size	uiColumn;
+	lsize	uiLine;
+	lsize	uiColumn;
 
-	void	Init(size uiColumn, size uiLine);
+	void	Init(lsize uiColumn, lsize uiLine);
 	void	Kill(void);
 	char*	GetString(void);
 };

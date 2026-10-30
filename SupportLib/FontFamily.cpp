@@ -179,9 +179,11 @@ Ptr<CFontColours> CFontFamily::GetColours(EFontStyle eStyle, float32 fPixelSize,
 	int32				iSize64;
 	SFontFamilySize*	psSize;
 	Ptr<CFontColours>	pColours;
+	size				uiNumElements;
 
 	iSize64 = GetSizeKey(fPixelSize);
-	for (i = 0; i < masSizes.NumElements(); i++)
+	uiNumElements = masSizes.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psSize = masSizes.Get(i);
 		if ((psSize->eStyle == eStyle) && (psSize->iSize64 == iSize64) && (psSize->eTurn == eTurn))
