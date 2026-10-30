@@ -41,15 +41,15 @@ protected:
 	CBitWriter		mcBits;
 
 	uint8*			mpuiData;
-	size			muiDataSize;
+	lsize			muiDataSize;
 	int32*			maiHead;		//Most recent position of each hash.
 	int32*			maiPrevious;	//Previous position with the same hash, by position modulo the window.
 
 	uint16*			mauiSymbolLengths;		//Match length, or 0 for a literal.
 	uint16*			mauiSymbolValues;		//Match distance, or the literal byte.
 	size			muiNumSymbols;
-	size			muiBlockStart;
-	size			muiBlockLength;
+	lsize			muiBlockStart;
+	lsize			muiBlockLength;
 	uint32			mauiLiteralFrequencies[DEFLATE_NUM_LITERAL_LENGTHS];
 	uint32			mauiDistanceFrequencies[DEFLATE_NUM_DISTANCES];
 
@@ -57,18 +57,18 @@ public:
 	bool	Init(CFileWriter* pcOutput, bool bZLib);
 	void	Kill(void);
 
-	bool	Deflate(uint8* puiData, size uiSize);
+	bool	Deflate(uint8* puiData, lsize uiSize);
 
 protected:
-	int32	InsertHash(size uiPosition);
-	int		FindMatch(size uiPosition, int32 iChain, int iPreviousLength, size* puiDistance);
+	int32	InsertHash(lsize uiPosition);
+	int		FindMatch(lsize uiPosition, int32 iChain, int iPreviousLength, size* puiDistance);
 	void	AddLiteral(uint8 uiLiteral);
 	void	AddMatch(int iLength, size uiDistance);
 	void	ClearBlock(void);
 	void	WriteBlock(bool bLast);
 	void	WriteStored(bool bLast);
 	void	WriteSymbols(CHuffmanEncoder* pcLiteralLengths, CHuffmanEncoder* pcDistances);
-	size	CountSymbolBits(uint8* puiLiteralLengths, uint8* puiDistances);
+	lsize	CountSymbolBits(uint8* puiLiteralLengths, uint8* puiDistances);
 	size	BuildCodeLengthSymbols(uint8* puiLengths, int iNumLengths, uint8* puiSymbols, uint8* puiExtras);
 };
 

@@ -156,11 +156,11 @@ void CDeflater::Kill(void)
 // fails.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDeflater::Deflate(uint8* puiData, size uiSize)
+bool CDeflater::Deflate(uint8* puiData, lsize uiSize)
 {
-	size		uiPosition;
-	size		uiEnd;
-	size		p;
+	lsize		uiPosition;
+	lsize		uiEnd;
+	lsize		p;
 	int32		iChain;
 	int			iLength;
 	size		uiDistance;
@@ -253,7 +253,7 @@ bool CDeflater::Deflate(uint8* puiData, size uiSize)
 // returns the previous position in that chain, or -1.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CDeflater::InsertHash(size uiPosition)
+int32 CDeflater::InsertHash(lsize uiPosition)
 {
 	uint32	uiHash;
 	int32	iPrevious;
@@ -277,7 +277,7 @@ int32 CDeflater::InsertHash(size uiPosition)
 // iPreviousLength.  Returns its length, or 0 if there isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-int CDeflater::FindMatch(size uiPosition, int32 iChain, int iPreviousLength, size* puiDistance)
+int CDeflater::FindMatch(lsize uiPosition, int32 iChain, int iPreviousLength, size* puiDistance)
 {
 	int		iMaxLength;
 	int		iBest;
@@ -289,7 +289,7 @@ int CDeflater::FindMatch(size uiPosition, int32 iChain, int iPreviousLength, siz
 	int32	iNext;
 
 	iMaxLength = DEFLATE_MAX_MATCH;
-	if (muiDataSize - uiPosition < (size)iMaxLength)
+	if (muiDataSize - uiPosition < (lsize)iMaxLength)
 	{
 		iMaxLength = (int)(muiDataSize - uiPosition);
 	}
@@ -400,9 +400,9 @@ void CDeflater::AddMatch(int iLength, size uiDistance)
 // given code lengths.
 //
 //////////////////////////////////////////////////////////////////////////
-size CDeflater::CountSymbolBits(uint8* puiLiteralLengths, uint8* puiDistances)
+lsize CDeflater::CountSymbolBits(uint8* puiLiteralLengths, uint8* puiDistances)
 {
-	size	uiBits;
+	lsize	uiBits;
 	size	i;
 	int		iCode;
 
@@ -526,9 +526,9 @@ void CDeflater::WriteBlock(bool bLast)
 	int					iNumDistances;
 	int					iNumCodeLengths;
 	size				uiNumCodeLengthSymbols;
-	size				uiDynamicBits;
-	size				uiFixedBits;
-	size				uiStoredBits;
+	lsize				uiDynamicBits;
+	lsize				uiFixedBits;
+	lsize				uiStoredBits;
 	size				uiNumStored;
 	size				i;
 	uint8				uiSymbol;
@@ -640,15 +640,15 @@ void CDeflater::WriteBlock(bool bLast)
 //////////////////////////////////////////////////////////////////////////
 void CDeflater::WriteStored(bool bLast)
 {
-	size	uiPosition;
-	size	uiRemaining;
+	lsize	uiPosition;
+	lsize	uiRemaining;
 	size	uiChunk;
 
 	uiPosition = muiBlockStart;
 	uiRemaining = muiBlockLength;
 	do
 	{
-		uiChunk = (uiRemaining < DEFLATE_MAX_STORED) ? uiRemaining : DEFLATE_MAX_STORED;
+		uiChunk = (uiRemaining < DEFLATE_MAX_STORED) ? (size)uiRemaining : DEFLATE_MAX_STORED;
 		mcBits.WriteBits((bLast && (uiChunk == uiRemaining)) ? 1 : 0, 1);
 		mcBits.WriteBits(DEFLATE_BLOCK_STORED, 2);
 		mcBits.AlignToByte();

@@ -4401,8 +4401,9 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 // in an integer type narrower than psTo, which it is implicitly converted
 // to: the result may have wrapped before it was widened.  iKey = ui * 0x39e7
 // with a 16 bit ui and a 64 bit iKey multiplies in 16 bits.  Converting an
-// operand first ((int64)ui * 0x39e7) does the arithmetic in the wider type;
-// converting the result ((int64)(ui * 0x39e7)) says the wrap is wanted.
+// operand first ((int64)ui * 0x39e7) does the arithmetic in the wider type.
+// An explicit cast of the result ((int64)(ui * 0x39e7)) is warned about too:
+// it doesn't make the multiply wider.  Constants are ConstantOverflow's.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo)
@@ -4410,8 +4411,11 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 	CCPPSyntax*					pcInner;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CChars						szMessage;
+	int64						lliValue;
+	bool						bConstant;
+	bool						bQuietFailed;
 
-	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes))
+	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes) || (miWarningChecks > 0))
 	{
 		return;
 	}
@@ -4422,6 +4426,16 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 	}
 	pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
 	if ((pcBinary->meOperator != CT_Multiply) && (pcBinary->meOperator != CT_LeftShift))
+	{
+		return;
+	}
+
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	bConstant = Constant(pcInner, &lliValue);
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	if (bConstant)
 	{
 		return;
 	}

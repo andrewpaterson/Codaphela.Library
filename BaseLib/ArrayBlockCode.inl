@@ -1578,6 +1578,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 		}
 	}
 
+	//Each batch moves up by less than its own length when the inserted part is smaller than it, so the moves overlap.
 	iStride = iSkip * miElementSize;
 	iTotalStride = (iNumInBatch + iSkip) * miElementSize;
 	if (iStride == 1)
@@ -1588,7 +1589,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 1);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 1);
 			}
 			while (i != 0);
 		}
@@ -1601,7 +1602,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 2);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 2);
 			}
 			while (i != 0);
 		}
@@ -1614,7 +1615,7 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE i
 			do
 			{
 				i--;
-				ARRAY_MEMCPY(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 4);
+				ARRAY_MEMMOVE(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, (ASIZE)(iStride * i)), 4);
 			}
 			while (i != 0);
 		}

@@ -4500,6 +4500,12 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 		psValue->psType = psTo;
 		return true;
 	}
+
+	//(int32)((ui + 1) * 7) still multiplies in ui's width.
+	if (psTo->IsInteger() && psValue->psType && psValue->psType->IsInteger())
+	{
+		mpcGenerator->WideningArithmetic(pcOperand, psValue->psType, psTo);
+	}
 	return psTo->IsScalar() ? Convert(psValue, psTo) : Unsupported(__LINE__);
 }
 

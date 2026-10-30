@@ -875,7 +875,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 
-	pcNode->Contain(uiIndex, (uint8)INDEX_TREE_FILE_NODE_UNALLOCATED);
+	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED_BYTE);
 	//pcNode->SetDirtyNode(true);
 
 	RemapNodePointers(pcOldNode, pcNode);

@@ -1565,7 +1565,7 @@ bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 		pvUnmanaged = pcUnmanagedField->GetData(this);
 		uiCount = pcUnmanagedField->GetLength();
 		uiSize = pcUnmanagedField->GetSizeOf();
-		bResult = pcFile->WriteData(pvUnmanaged, uiCount * uiSize);
+		bResult = pcFile->WriteData(pvUnmanaged, (lsize)uiCount * uiSize);
 
 		if (!bResult)
 		{
@@ -1742,7 +1742,7 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 		pvUnmanaged = pcUnmanagedField->GetData(this);
 		uiCount = pcUnmanagedField->GetLength();
 		uiSize = pcUnmanagedField->GetSizeOf();
-		bResult = pcFile->ReadData(pvUnmanaged, uiCount * uiSize);
+		bResult = pcFile->ReadData(pvUnmanaged, (lsize)uiCount * uiSize);
 
 		if (!bResult)
 		{

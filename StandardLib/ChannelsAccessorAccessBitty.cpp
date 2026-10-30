@@ -37,7 +37,7 @@ void* CChannelsAccessorAccessBitty::Get(size iPos)
 	uint8*				pvBuffer;
 
 	uiNumAccessors = macAccessors.NumElements();
-	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	pvSource = RemapSinglePointer(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetByteStride());
 	iDestBitPos = 0;
 	pvBuffer = (uint8*)msBuffer.GetStackData();
 	pvBuffer[GetBufferSize() - 1] = 0;
@@ -67,7 +67,7 @@ void CChannelsAccessorAccessBitty::Set(size iPos, void* pvSource)
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
-	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	pvDest = RemapSinglePointer(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetByteStride());
 	iSourceBitPos = 0;
 	for (i = 0; i < uiNumAccessors; i++)
 	{

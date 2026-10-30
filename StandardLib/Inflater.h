@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HuffmanDecoder.h"
 
 
-#define INFLATER_UNLIMITED	((size)-1)
+#define INFLATER_UNLIMITED	((lsize)-1)
 
 
 //Decompresses deflate data (RFC 1951), optionally wrapped in a zlib stream (RFC 1950) whose header and Adler-32
@@ -37,20 +37,20 @@ class CInflater
 protected:
 	CFileReader*		mpcInput;
 	bool				mbZLib;
-	size				muiMaxOutput;
+	lsize				muiMaxOutput;
 	CBitReader			mcBits;
-	CArrayUint8*		mpacOutput;
+	CArrayLargeUint8*		mpacOutput;
 	uint8*				mpuiOutput;
-	size				muiOutputUsed;
-	size				muiOutputStart;
+	lsize				muiOutputUsed;
+	lsize				muiOutputStart;
 	CHuffmanDecoder		mcLiteralLengths;
 	CHuffmanDecoder		mcDistances;
 
 public:
-	void	Init(CFileReader* pcInput, bool bZLib, size uiMaxOutput = INFLATER_UNLIMITED);
+	void	Init(CFileReader* pcInput, bool bZLib, lsize uiMaxOutput = INFLATER_UNLIMITED);
 	void	Kill(void);
 
-	bool	Inflate(CArrayUint8* pacOutput);
+	bool	Inflate(CArrayLargeUint8* pacOutput);
 
 protected:
 	bool	ReadZLibHeader(void);
@@ -60,7 +60,7 @@ protected:
 	bool	InflateFixed(void);
 	bool	InflateDynamic(void);
 	bool	InflateCodes(void);
-	bool	Reserve(size uiLength);
+	bool	Reserve(lsize uiLength);
 };
 
 
