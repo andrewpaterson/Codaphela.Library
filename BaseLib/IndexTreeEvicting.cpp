@@ -201,10 +201,12 @@ size CIndexTreeEvicting::PotentiallyEvict(uint8* pvKey, size iKeySize)
 	bool					bResult;
 	CChars					sz;
 	size					iEvicted;
+	bool					bFlushedDeleted;
 
 	uiLastSize = 0;
 	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	iEvicted = 0;
+	bFlushedDeleted = false;
 
 	if (mpcEvictionStrategy)
 	{
@@ -218,6 +220,16 @@ size CIndexTreeEvicting::PotentiallyEvict(uint8* pvKey, size iKeySize)
 
 			bResult = mpcEvictionStrategy->Run(pcDontEvict);
 			uiLastSize = uiSize;
+			if (!bResult && !bFlushedDeleted && (mcIndexTree.meWriteThrough == IWT_No))
+			{
+				//Removed keys (written back) keep their memory until their removal is written, and the strategy only
+				//evicts keys that have data: write the removals and try again.  The touched key's node may be gone.
+				bFlushedDeleted = true;
+				mcIndexTree.FlushDeleted();
+				pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
+				uiLastSize = 0;
+				continue;
+			}
 			if (!bResult)
 			{
 				sz.Init();

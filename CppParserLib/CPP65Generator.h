@@ -44,6 +44,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
+#include "CPP65Assembly.h"
 
 
 enum ECPP65Storage
@@ -453,6 +454,9 @@ protected:
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
+	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore).
+	CMemorySpillStore		mcMemorySpillStore;	//The spill store when none is set.
+	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -462,6 +466,7 @@ public:
 	static bool				GetDefaultWarnNarrowing(void);
 
 	bool					Generate(CChars* pszDest);
+	bool					Generate(CCPP65Assembly* pcDest);
 	bool					GenerateProgram(CChars* pszDest);
 	static void				AppendStartUp(CChars* pszDest, ECPPTarget eTarget = CPPT_65C64);
 	static void				AppendStartUp816(CChars* pszDest);
@@ -474,6 +479,8 @@ public:
 	void					SetFrameProfile(CAsm65816Profile* pcProfile);
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
+	void					SetSpillStore(CSpillStore* pcStore);
+	CSpillStore*			GetSpillStore(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:

@@ -34,6 +34,7 @@ protected:
 	CChars				mszContents;
 	CChars				mszFullName;
 	bool				mbLoaded;
+	bool				mbContentsSet;		//The contents were given (SetContents), not read from the file.
 	CPPTokenMemory		mcTokenMemory;
 	CPPBlockSetArray	macBlockSets;
 	bool				mbBlockSetsKilled;
@@ -46,6 +47,7 @@ public:
 
 			void				KillBlockSets(void);
 			void				Load(void);
+			void				Unload(void);
 			void				SetContents(const char* sz);
 			bool				IsLoaded(void);
 			bool				IsNamed(char* szName);

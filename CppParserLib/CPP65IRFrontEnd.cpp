@@ -101,7 +101,6 @@ void CCPP65IRFrontEnd::Kill(void)
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
 		masWritten.Get(ui)->szLabel.Kill();
-		masWritten.Get(ui)->szCode.Kill();
 	}
 	masWritten.Kill();
 	mcModule.Kill();
@@ -309,7 +308,8 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten = masWritten.Add();
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
-			psWritten->szCode.Init(szCode);
+			psWritten->uiPieces = 0;
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->sFrame = sFrame;
 			psWritten->uiFingerprint = uiFingerprint;
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);
@@ -946,24 +946,27 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	CIRInliner			cInliner;
 	CIROptimiser		cOptimiser;
 	CChars				szCode;
-	CChars				szAll;
 	SCPP65IRWritten*	psWritten;
 	size				ui;
-	char*				szMarker;
-	char*				szText;
-	int					iIndex;
 	int					iRound;
 	bool				bResult;
 	CIRSourceMarkers	cMarkers;
 
 	//The inliner's and optimiser's instructions have no source of their own.
 	CIRBlock::suiSource = 0;
-	cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
+	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
+	{
+		cInliner.Init(&mcModule, IR816_INLINE_INSTRUCTIONS, IR816_INLINE_LOOP_INSTRUCTIONS, IR816_INLINE_CALLS);
+	}
+	else
+	{
+		cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
+	}
 	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
 	mpcProfiledCaller = NULL;
 	if (InliningProfile())
 	{
-		cInliner.SetProfile(this, IR65_INLINE_HOT_INSTRUCTIONS);
+		cInliner.SetProfile(this, (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
 	}
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
 	{
@@ -998,8 +1001,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		}
 		if (bResult)
 		{
-			psWritten->szCode.Kill();
-			psWritten->szCode.Init(szCode);
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 		}
 		else
 		{
@@ -1020,57 +1022,48 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		}
 	}
 
-	//On the W65C816, frames worth it are put on a page, now that the unit's calls are known (CIR816Backend::AlignFrame).
-	//A listing's source markers are taken out while it looks at the code.
+	//Each function's code is finished: on the W65C816 frames worth it are put on a page, now that the unit's calls
+	//are known (CIR816Backend::AlignFrame; a listing's source markers are taken out while it looks at the code), then
+	//the source markers become comments or .line directives.  The generator's code keeps the markers (the code stays
+	//in the spill store until the unit is assembled, CCPP65Assembly).
 	cMarkers.Init();
-	for (ui = 0; (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (ui < masWritten.NumElements()); ui++)
+	mpcGenerator->mauiCodePieces.Kill();
+	mpcGenerator->mauiCodePieces.Init();
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
 		psWritten = masWritten.Get(ui);
-		cMarkers.Take(&psWritten->szCode, 0);
-		CIR816Backend::AlignFrame(&psWritten->szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || IsRecursive(psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
-		cMarkers.Put(&psWritten->szCode, 0);
-	}
-	cMarkers.Kill();
-
-	//The markers become the code.
-	szAll.Init();
-	szText = mpcGenerator->mszCode.Text();
-	for (;;)
-	{
-		szMarker = strchr(szText, IR65_FRONT_END_MARKER[0]);
-		if (!szMarker)
+		szCode.Init();
+		CCPP65Assembly::GetCode(mpcGenerator->mpcSpillStore, ui, psWritten->uiPieces, &szCode);
+		if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 		{
-			szAll.Append(szText);
-			break;
+			cMarkers.Take(&szCode, 0);
+			CIR816Backend::AlignFrame(&szCode, psWritten->szLabel.Text(), &psWritten->sFrame, !psWritten->pcFunction || IsRecursive(psWritten->pcFunction), mpcGenerator->mpcFrameProfile);
+			cMarkers.Put(&szCode, 0);
 		}
-		szAll.AppendSubString(szText, szMarker);
-		iIndex = atoi(szMarker + 1);
-		psWritten = masWritten.Get((size)iIndex);
-		SourceComments(&psWritten->szCode, mpcGenerator->mbListing, mpcGenerator->mbLineTable);
+		SourceComments(&szCode, mpcGenerator->mbListing, mpcGenerator->mbLineTable);
 		if (mpcGenerator->mbLineTable)
 		{
-			psWritten->szCode.Append("\t\t.fingerprint \"");
-			psWritten->szCode.Append(psWritten->szLabel);
-			psWritten->szCode.Append("\", ");
-			psWritten->szCode.Append((int64)psWritten->uiFingerprint);
-			psWritten->szCode.Append(", ");
-			psWritten->szCode.Append(mpcGenerator->mlliCompileTime);
-			psWritten->szCode.AppendNewLine();
+			szCode.Append("\t\t.fingerprint \"");
+			szCode.Append(psWritten->szLabel);
+			szCode.Append("\", ");
+			szCode.Append((int64)psWritten->uiFingerprint);
+			szCode.Append(", ");
+			szCode.Append(mpcGenerator->mlliCompileTime);
+			szCode.AppendNewLine();
 		}
 		if (sbPrint)
 		{
-			fprintf(stderr, "%s\n", psWritten->szCode.Text());
+			fprintf(stderr, "%s\n", szCode.Text());
 		}
-		szAll.Append(psWritten->szCode);
-		szText = strchr(szMarker + 1, IR65_FRONT_END_MARKER[0]) + 1;
+		CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, ui, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+		mpcGenerator->mauiCodePieces.Add(&psWritten->uiPieces);
+		szCode.Kill();
 	}
-	mpcGenerator->mszCode.Kill();
-	mpcGenerator->mszCode.Init(&szAll);
-	szAll.Kill();
+	cMarkers.Kill();
+
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
 		masWritten.Get(ui)->szLabel.Kill();
-		masWritten.Get(ui)->szCode.Kill();
 	}
 	masWritten.ReInit();
 }
@@ -2943,6 +2936,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	SCPP65IRValue					sIndex;
 	SCPP65IRValue					sAddress;
 	SCPP65Type*						psType;
+	SCPP65Type*						psArray;
 
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
@@ -3016,11 +3010,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return Unsupported(__LINE__);
 		}
-		if (!Value(pcSubscript->mpcIndex, &sIndex) || !Value(pcSubscript->mpcArray, &sPointer))
+		if (!Value(pcSubscript->mpcIndex, &sIndex) || !ArrayValue(pcSubscript->mpcArray, &sPointer, &psArray))
 		{
 			return false;
 		}
-		if (!Operate(CT_Add, &sPointer, &sIndex, &sAddress))
+		if (!(psArray && NarrowSubscript(psArray, &sPointer, &sIndex, &sAddress)) && !Operate(CT_Add, &sPointer, &sIndex, &sAddress))
 		{
 			return false;
 		}
@@ -5755,6 +5749,90 @@ void CCPP65IRFrontEnd::PrintFunction(CIRFunction* pcFunction, CChars* pszText, b
 	cPrinter.SetSources(bSources);
 	cPrinter.PrintFunction(pcFunction);
 	cPrinter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of the array (or pointer) in array[index], as Value, and in
+// *ppsArray the array's own type when it is a place that is an array (a
+// variable, member or element), else NULL.  For those Value is the place
+// loaded (an array's first element's address), so they are done the same.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer, SCPP65Type** ppsArray)
+{
+	SCPP65IRPlace	sPlace;
+	CCPPSymbol*		pcSymbol;
+	bool			bPlace;
+
+	*ppsArray = NULL;
+	pcArray = mpcGenerator->SkipParentheses(pcArray);
+	switch (pcArray->GetKind())
+	{
+	case CPPS_MemberExpression:
+		bPlace = true;
+		break;
+	case CPPS_SubscriptExpression:
+		bPlace = !IsObjectSubscript((CCPPSyntaxSubscriptExpression*)pcArray);
+		break;
+	case CPPS_IdExpression:
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcArray)->mpcName->mpcSymbol;
+		bPlace = pcSymbol && ((pcSymbol->meKind == CPPSK_Variable) || (pcSymbol->meKind == CPPSK_Field) || (pcSymbol->meKind == CPPSK_Parameter)) &&
+				 !mpcGenerator->IsFunctionName((CCPPSyntaxIdExpression*)pcArray);
+		break;
+	default:
+		bPlace = false;
+		break;
+	}
+	if (!bPlace)
+	{
+		return Value(pcArray, psPointer);
+	}
+	if (!Place(pcArray, &sPlace))
+	{
+		return false;
+	}
+	if (sPlace.psType->IsArray())
+	{
+		*ppsArray = sPlace.psType;
+	}
+	return Load(&sPlace, psPointer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// array[index] on the W65C816, for an array (not a pointer) of at least two
+// elements and less than 64KB: an index outside the array is undefined, so
+// the offset fits in 16 bits and is worked out in them, then zero extended
+// once, instead of widening the index to 32 bits and scaling it there.  An
+// array of 0 or 1 elements may be a struct's open ended tail, so it isn't.
+// False (nothing written) when the subscript isn't one of these.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::NarrowSubscript(SCPP65Type* psArray, SCPP65IRValue* psPointer, SCPP65IRValue* psIndex, SCPP65IRValue* psAddress)
+{
+	SIRType			sWord;
+	SIRReference	sOffset;
+	int				iBytes;
+
+	if ((mpcGenerator->mpsTarget->eTarget != CPPT_W65C816) || !psArray->IsArray() || (psArray->iCount < 2) || (psArray->iBytes >= 0x10000) ||
+		!psIndex->psType->IsInteger() || !psPointer->psType->IsPointer())
+	{
+		return false;
+	}
+	if (!Convert(psIndex, mpcTypes->Integer(2, false)))
+	{
+		return false;
+	}
+	sWord = IRType(IRTK_I16);
+	iBytes = psPointer->psType->GetElementBytes();
+	sOffset = (iBytes == 1) ? psIndex->sValue : mpcFunction->Add(mpcBlock, IRO_Mul, sWord, psIndex->sValue, mpcFunction->AddInteger(sWord, iBytes));
+	sOffset = mpcFunction->Add(mpcBlock, IRO_ZExt, IRIntegerType(mcModule.GetPointerSize(0)), sOffset);
+	psAddress->sValue = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, sOffset);
+	psAddress->psType = psPointer->psType;
+	return true;
 }
 
 

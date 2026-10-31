@@ -64,8 +64,10 @@ struct SIR816Routine
 //reciprocal table), whose operands are already in place (their low words), jumped to; it returns the 32 bit result
 //(X is 0).  A divisor under 65536 keeps the remainder in A: 16 unrolled steps (IR816_DIVIDE_STEP) on the dividend's
 //low word, after 16 on its high word when that is not below the divisor (else the quotient's high word is 0 and the
-//high word is the remainder to start).  A dividend under 65536 with a wider divisor is a quotient of 0.  Otherwise 32
-//steps on the remainder at D + 5 and D + 7, the quotient bit (C) rotated into the dividend as its next bit comes out.
+//high word is the remainder to start).  A dividend under 65536 with a wider divisor is a quotient of 0.  Otherwise
+//(both wide) the quotient is under 65536: its high word is 0, the dividend's high word is the remainder to start, and
+//16 steps on the remainder at D + 5 and D + 7 take the dividend's low word, the quotient bit (C) rotated into it as
+//its next bit comes out.
 //One step of a 16 bit restoring divide, unrolled: the next dividend bit (in C) is rotated into the remainder in A,
 //which is compared with the divisor at D + 19 (a remainder that carries out of A is always over it) and taken from
 //when it is over; C is then the quotient bit, which rol shifts into the dividend word at D + WORD as the word's next
@@ -98,9 +100,9 @@ struct SIR816Routine
 	"\t\tlda [D + 17]\n\t\tbne " NAME "_Long\n" \
 	"\t\tlda [D + 15]\n\t\tsta [D + 5]\n\t\tstz [D + 15]\n\t\tbra " NAME "_Done\n" \
 	NAME "_Long:\n" \
-	"\t\tstz [D + 5]\n\t\tldx 32\n\t\tasl [D + 15]\n" \
+	"\t\tsta [D + 5]\n\t\tstz [D + 17]\n\t\tldx 16\n\t\tasl [D + 15]\n" \
 	NAME "_Bit:\n" \
-	"\t\trol [D + 17]\n\t\trol [D + 5]\n\t\trol [D + 7]\n" \
+	"\t\trol [D + 5]\n\t\trol [D + 7]\n" \
 	"\t\tbcs " NAME "_Over\n" \
 	"\t\tsec\n\t\tlda [D + 5]\n\t\tsbc [D + 19]\n\t\ttay\n\t\tlda [D + 7]\n\t\tsbc [D + 21]\n" \
 	"\t\tbcc " NAME "_Next\n" \
@@ -111,7 +113,6 @@ struct SIR816Routine
 	"\t\tsta [D + 7]\n\t\tsty [D + 5]\n" \
 	NAME "_Next:\n" \
 	"\t\trol [D + 15]\n\t\tdex\n\t\tbne " NAME "_Bit\n" \
-	"\t\trol [D + 17]\n" \
 	NAME "_Done:\n" \
 	"\t\tlda [D + " RESULT_HIGH "]\n\t\ttax\n\t\tlda [D + " RESULT_LOW "]\n\t\trtl\n"
 
@@ -415,6 +416,24 @@ static const char* gszIR816Signed =
 	"\t%s = $SIGN\n\tbrif %s, neg, pos\n"
 	"neg:\n\t%nu = sub $T 0, %u\n\tret $T %nu\n"
 	"pos:\n\tret $T %u\n}\n\n";
+
+//The 64 bit signed divide and remainder: as gszIR816Signed, but when both magnitudes fit in 32 bits (file positions
+//and sizes nearly always do) the 32 bit unsigned routine works it out, much faster than the 64 bit loop.
+static const char* gszIR816Signed64 =
+	"function i64 @R816_$NAME(i64 %a, i64 %b)\n{\n"
+	"entry:\n\t%an = slt i64 %a, 0\n\tbrif %an, negA, posA\n"
+	"negA:\n\t%na = sub i64 0, %a\n\tjmp gotA\n"
+	"posA:\n\tjmp gotA\n"
+	"gotA:\n\t%ua = phi i64 [negA, %na], [posA, %a]\n\t%bn = slt i64 %b, 0\n\tbrif %bn, negB, posB\n"
+	"negB:\n\t%nb = sub i64 0, %b\n\tjmp gotB\n"
+	"posB:\n\tjmp gotB\n"
+	"gotB:\n\t%ub = phi i64 [negB, %nb], [posB, %b]\n\t%w = or i64 %ua, %ub\n\t%hi = lshr i64 %w, 32\n\t%narrow = eq i64 %hi, 0\n\tbrif %narrow, short, long\n"
+	"short:\n\t%sa = trunc i64 %ua to i32\n\t%sb = trunc i64 %ub to i32\n\t%su = $UOP i32 %sa, %sb\n\t%sw = zext i32 %su to i64\n\tjmp got\n"
+	"long:\n\t%lu = $UOP i64 %ua, %ub\n\tjmp got\n"
+	"got:\n\t%u = phi i64 [short, %sw], [long, %lu]\n"
+	"\t%s = $SIGN\n\tbrif %s, neg, pos\n"
+	"neg:\n\t%nu = sub i64 0, %u\n\tret i64 %nu\n"
+	"pos:\n\tret i64 %u\n}\n\n";
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3109,6 +3128,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	PeepholeStores(mpszOut, uiStart);
 	PeepholeTransfers(mpszOut, uiStart);
 	PeepholeBranches(mpszOut, uiStart);
+	PeepholeRegisters(mpszOut, uiStart);
 }
 
 
@@ -4759,6 +4779,297 @@ void CIR816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
 				szOut.Append("\t\ttay\n");
 				continue;
 			}
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+}
+
+
+//What a register holds (PeepholeRegisters): up to IR816_HELD direct page words ([D + n], aiOffset n) or constants
+//(aiOffset -1), each "" when not known.  A register stored to a word holds both the word and what it held.
+#define IR816_HELD			2
+#define IR816_HELD_LENGTH	32
+
+struct SIR816Held
+{
+	char	aszOperand[IR816_HELD][IR816_HELD_LENGTH];
+	int32	aiOffset[IR816_HELD];
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nothing known of what registers iFirst to iLast (0 A, 1 X, 2 Y) hold.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast)
+{
+	int	i;
+	int	j;
+
+	for (i = iFirst; i <= iLast; i++)
+	{
+		for (j = 0; j < IR816_HELD; j++)
+		{
+			asHeld[i].aszOperand[j][0] = '\0';
+			asHeld[i].aiOffset[j] = -1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What registers hold of a direct page word a 16 bit write at [D + iOffset]
+// may change (any word overlapping it), or, for an iOffset of -1 (a write
+// through a pointer or an index, which may reach the frame), of any word.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816ForgetWritten(SIR816Held* asHeld, int32 iOffset)
+{
+	int	i;
+	int	j;
+
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < IR816_HELD; j++)
+		{
+			if ((asHeld[i].aiOffset[j] >= 0) && ((iOffset < 0) || ((asHeld[i].aiOffset[j] >= iOffset - 1) && (asHeld[i].aiOffset[j] <= iOffset + 1))))
+			{
+				asHeld[i].aszOperand[j][0] = '\0';
+				asHeld[i].aiOffset[j] = -1;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the instruction's operand is one a register's contents are known
+// as: a direct page word or a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsHeldOperand(SIR816Line* psLine)
+{
+	size	ui;
+
+	if (psLine->bDirect)
+	{
+		return true;
+	}
+	if ((psLine->uiOperand == 0) || (psLine->uiOperand >= IR816_HELD_LENGTH) || (psLine->szOperand[0] < '0') || (psLine->szOperand[0] > '9'))
+	{
+		return false;
+	}
+	for (ui = 0; ui < psLine->uiOperand; ui++)
+	{
+		if (psLine->szOperand[ui] == ' ')
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether register iRegister holds the instruction's operand.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine)
+{
+	int	j;
+
+	for (j = 0; j < IR816_HELD; j++)
+	{
+		if ((asHeld[iRegister].aszOperand[j][0] != '\0') && (StrLen(asHeld[iRegister].aszOperand[j]) == psLine->uiOperand) &&
+			(strncmp(asHeld[iRegister].aszOperand[j], psLine->szOperand, psLine->uiOperand) == 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Register iRegister holds the instruction's operand: only it after a load
+// (bAlso false), as well as what it held after a store (bAlso).  Nothing
+// is known after a load of anything but a direct page word or a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816Hold(SIR816Held* asHeld, int iRegister, SIR816Line* psLine, bool bAlso)
+{
+	SIR816Held*	psHeld;
+
+	psHeld = &asHeld[iRegister];
+	if (!bAlso)
+	{
+		IR816ForgetHeld(asHeld, iRegister, iRegister);
+	}
+	if (!IR816IsHeldOperand(psLine) || IR816Holds(asHeld, iRegister, psLine))
+	{
+		return;
+	}
+	//The operand first, what it held second (the oldest is forgotten).
+	memcpy(psHeld->aszOperand[1], psHeld->aszOperand[0], IR816_HELD_LENGTH);
+	psHeld->aiOffset[1] = psHeld->aiOffset[0];
+	memcpy(psHeld->aszOperand[0], psLine->szOperand, psLine->uiOperand);
+	psHeld->aszOperand[0][psLine->uiOperand] = '\0';
+	psHeld->aiOffset[0] = psLine->bDirect ? psLine->iOffset : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What A, X and Y hold after the instruction (PeepholeRegisters).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816UpdateHeld(SIR816Held* asHeld, SIR816Line* psLine)
+{
+	bool	bOfA;
+
+	switch (psLine->uiMnemonic)
+	{
+	case IR816M_Lda:	IR816Hold(asHeld, 0, psLine, false);	return;
+	case IR816M_Ldx:	IR816Hold(asHeld, 1, psLine, false);	return;
+	case IR816M_Ldy:	IR816Hold(asHeld, 2, psLine, false);	return;
+	case IR816M_Sta:
+	case IR816M_Stx:
+	case IR816M_Sty:
+	case IR816M_Stz:
+		IR816ForgetWritten(asHeld, psLine->bDirect ? psLine->iOffset : -1);
+		if (psLine->bDirect && (psLine->uiMnemonic != IR816M_Stz))
+		{
+			IR816Hold(asHeld, (psLine->uiMnemonic == IR816M_Sta) ? 0 : (psLine->uiMnemonic == IR816M_Stx) ? 1 : 2, psLine, true);
+		}
+		return;
+	case IR816M_Tax:	asHeld[1] = asHeld[0];	return;
+	case IR816M_Tay:	asHeld[2] = asHeld[0];	return;
+	case IR816M_Txa:	asHeld[0] = asHeld[1];	return;
+	case IR816M_Tya:	asHeld[0] = asHeld[2];	return;
+	case IR816M_Txy:	asHeld[2] = asHeld[1];	return;
+	case IR816M_Tyx:	asHeld[1] = asHeld[2];	return;
+	case IR816M_Inc:
+	case IR816M_Dec:
+	case IR816M_Asl:
+	case IR816M_Lsr:
+	case IR816M_Rol:
+	case IR816M_Ror:
+	case IR816M_Tsb:
+	case IR816M_Trb:
+		bOfA = (psLine->uiOperand == 0) || ((psLine->uiOperand == 1) && (psLine->szOperand[0] == 'A'));
+		if (bOfA)
+		{
+			IR816ForgetHeld(asHeld, 0, 0);
+		}
+		else
+		{
+			IR816ForgetWritten(asHeld, psLine->bDirect ? psLine->iOffset : -1);
+		}
+		return;
+	case IR816M_Inx:
+	case IR816M_Dex:
+	case IR816M_Plx:
+	case IR816M_Tsx:
+		IR816ForgetHeld(asHeld, 1, 1);
+		return;
+	case IR816M_Iny:
+	case IR816M_Dey:
+	case IR816M_Ply:
+		IR816ForgetHeld(asHeld, 2, 2);
+		return;
+	case IR816M_Bcc:
+	case IR816M_Bcs:
+	case IR816M_Beq:
+	case IR816M_Bmi:
+	case IR816M_Bne:
+	case IR816M_Bpl:
+	case IR816M_Bvc:
+	case IR816M_Bvs:
+	case IR816M_Cmp:
+	case IR816M_Cpx:
+	case IR816M_Cpy:
+	case IR816M_Bit:
+	case IR816M_Clc:
+	case IR816M_Sec:
+	case IR816M_Clv:
+	case IR816M_Nop:
+	case IR816M_Pha:
+	case IR816M_Phx:
+	case IR816M_Phy:
+	case IR816M_Php:
+	case IR816M_Phb:
+	case IR816M_Phd:
+	case IR816M_Phk:
+	case IR816M_Pea:
+	case IR816M_Pei:
+	case IR816M_Per:
+		return;
+	case IR816M_Adc:
+	case IR816M_Sbc:
+	case IR816M_And:
+	case IR816M_Ora:
+	case IR816M_Eor:
+	case IR816M_Pla:
+	case IR816M_Xba:
+	case IR816M_Tsc:
+	case IR816M_Tdc:
+		IR816ForgetHeld(asHeld, 0, 0);
+		return;
+	default:
+		//Calls, jumps, returns, width and mode changes, moves and D or the stack changing: nothing is known after.
+		IR816ForgetHeld(asHeld, 0, 2);
+		return;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A load of what the register already holds (a direct page word or a
+// constant, from a load, store or transfer earlier in the same straight
+// line code) taken out of the code from uiStart, when nothing reads the N
+// and Z it sets (IR816ZNReadAfter).  What a register holds is forgotten
+// when the register may change, when the word is written (a write through
+// a pointer or an index may write any of the frame's words), and at labels,
+// directives, calls, jumps and width changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeRegisters(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+	SIR816Line	sLine;
+	SIR816Held	asHeld[3];
+	int			iRegister;
+
+	szOut.Init();
+	IR816ForgetHeld(asHeld, 0, 2);
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		if (!IR816IsInstruction(szLine))
+		{
+			IR816ForgetHeld(asHeld, 0, 2);
+		}
+		else if (szLine[2] != ';')
+		{
+			IR816Decode(szLine, &sLine);
+			iRegister = (sLine.uiMnemonic == IR816M_Lda) ? 0 : (sLine.uiMnemonic == IR816M_Ldx) ? 1 : (sLine.uiMnemonic == IR816M_Ldy) ? 2 : -1;
+			if ((iRegister >= 0) && IR816Holds(asHeld, iRegister, &sLine) && !IR816ZNReadAfter(szLine))
+			{
+				continue;
+			}
+			IR816UpdateHeld(asHeld, &sLine);
 		}
 		szOut.Append(szLine, (size)(szEnd - szLine));
 		szOut.AppendNewLine();
@@ -7911,6 +8222,12 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 			szText.Init(IR816_RUNTIME_PREFIX "U");
 			szText.Append(&szName[IR816_RUNTIME_PREFIX_LENGTH + 1]);
 			aszNames.AddIfUnique(szText.Text());
+			if (atoi(&szName[StrLen(szName) - 2]) == 64)
+			{
+				//gszIR816Signed64's 32 bit one too.
+				szText.Replace("64", "32");
+				aszNames.AddIfUnique(szText.Text());
+			}
 			szText.Kill();
 		}
 	}
@@ -7956,7 +8273,7 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 		}
 		else
 		{
-			szText.Init(gszIR816Signed);
+			szText.Init((iBits == 64) ? gszIR816Signed64 : gszIR816Signed);
 			szText.Replace("$UOP", bDivide ? "udiv" : "urem");
 			szText.Replace("$SIGN", bDivide ? "ne i1 %an, %bn" : "copy i1 %an");
 		}

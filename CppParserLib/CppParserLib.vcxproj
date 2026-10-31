@@ -183,6 +183,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CPP65Assembly.cpp" />
     <ClCompile Include="CPPErrors.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
@@ -212,6 +213,7 @@
     <ClCompile Include="IRTypes.cpp" />
     <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
+    <ClCompile Include="SpillStore.cpp" />
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPP65Generator.cpp" />
     <ClCompile Include="CPP65GeneratorClasses.cpp" />
@@ -384,6 +386,7 @@
     <ClCompile Include="CTShort.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPP65Assembly.h" />
     <ClInclude Include="CPPErrors.h" />
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
@@ -413,6 +416,7 @@
     <ClInclude Include="IRTypes.h" />
     <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPP65Builder.h" />
+    <ClInclude Include="SpillStore.h" />
     <ClInclude Include="VisualStudioProject.h" />
     <ClInclude Include="CPP65Generator.h" />
     <ClInclude Include="CPP65Type.h" />

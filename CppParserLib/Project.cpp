@@ -186,9 +186,6 @@ CTranslationUnit* CProject::StartLibrary(SProcessIter* psIter)
 bool CProject::Process(char* szConfiguration, CChars* pszErrors, CChars* pszWarnings)
 {
 	CTranslationUnit*	pcFile;
-	CConfig*			pcConfig;
-	bool				bResult;
-	CPreprocessor		cPreprocessor;
 	SProcessIter		sPreIter;
 	bool				bTotalResult;
 
@@ -198,35 +195,52 @@ bool CProject::Process(char* szConfiguration, CChars* pszErrors, CChars* pszWarn
 	pcFile = Start(&sPreIter, szConfiguration);
 	while (pcFile)
 	{
-		DumpProcessedCPPFileName(pcFile);
-		
-		pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
-
-		cPreprocessor.Init(pcConfig);
-		cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
-		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
-		cPreprocessor.LogDumping(mbDumpLogs);
-
-		ClearPragmaOnceFromAllFiles();
-
-		bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
-		bTotalResult &= bResult;
-		if (pszErrors)
-		{
-			pszErrors->Append(cPreprocessor.GetErrors()->Text());
-		}
-		if (pszWarnings)
-		{
-			pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
-		}
-
-		WritePost(pcFile);
-
-		cPreprocessor.Kill();
+		bTotalResult &= ProcessUnit(pcFile, szConfiguration, pszErrors, pszWarnings);
 		pcFile = Iterate(&sPreIter);
 	}
 
 	return bTotalResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Preprocesses one translation unit (its tokens replace any it had).  A
+// unit can be preprocessed just before it is compiled, and its tokens
+// cleared (GetTokens()->Clear()) once it is: CreatePost first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors, CChars* pszWarnings)
+{
+	CConfig*			pcConfig;
+	bool				bResult;
+	CPreprocessor		cPreprocessor;
+
+	DumpProcessedCPPFileName(pcFile);
+
+	pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
+
+	cPreprocessor.Init(pcConfig);
+	cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
+	cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
+	cPreprocessor.LogDumping(mbDumpLogs);
+
+	ClearPragmaOnceFromAllFiles();
+
+	bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
+	if (pszErrors)
+	{
+		pszErrors->Append(cPreprocessor.GetErrors()->Text());
+	}
+	if (pszWarnings)
+	{
+		pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
+	}
+
+	WritePost(pcFile);
+
+	cPreprocessor.Kill();
+	return bResult;
 }
 
 

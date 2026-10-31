@@ -142,6 +142,7 @@ public:
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
 	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
+	static void		PeepholeRegisters(CChars* pszDest, size uiStart);
 
 protected:
 	void			Line(const char* szText);
