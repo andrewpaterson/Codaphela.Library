@@ -51,7 +51,8 @@ typedef CArrayTemplate<SMovedTrace>	CArrayMovedTrace;
 
 
 //Moves, turns and flips components and wires with the pointer, as Logicim's MoveComponents.  They turn and flip about
-//where the edit started and move as far as the pointer has.  New components (being placed) are already in the circuit but have no
+//where the edit started and move as far as the pointer has.  Moved connected, they keep their wires; otherwise they
+//come off them (see CCircuitEditor::StartMoveViews).  New components (being placed) are already in the circuit but have no
 //components in the simulation until the move is done; a discarded placement takes them out again, a discarded move
 //puts them back where they were.
 //
@@ -65,10 +66,14 @@ protected:
 	CArrayMovedTrace		masTraces;
 	bool					mbNew;
 	bool					mbSelect;
+	bool					mbConnected;
+	SInt32Vec2				msLastDiff;  //Where the views were last moved to, so they're only moved again when it changes.
+	int						miLastRightRotations;
+	bool					mbLastMirrored;
 
 public:
-	void			Init(CComponentView* pcComponent, bool bNew);
-	void			Init(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew);
+	void			Init(CComponentView* pcComponent, bool bNew, bool bConnected);
+	void			Init(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected);
 	void			Kill(void) override;
 
 	void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
@@ -79,6 +84,8 @@ public:
 	bool			CanTransformComponents(void) override;
 
 protected:
+	void			InitMove(bool bNew, bool bSelect, bool bConnected);
+	void			Follow(CCircuitEdit* pcEdit);
 	void			AddComponent(CComponentView* pcComponent);
 	void			AddTrace(CTraceView* pcTrace);
 	void			MoveViews(bool bMirror, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);

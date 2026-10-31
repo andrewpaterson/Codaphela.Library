@@ -219,8 +219,9 @@ bool CSelectionEdit::CanTransformComponents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStartEditInComponent::Init(void)
+void CStartEditInComponent::Init(CComponentView* pcPressed)
 {
+	mpcPressed = pcPressed;
 }
 
 
@@ -235,7 +236,8 @@ void CStartEditInComponent::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Dragging moves the selection.
+// Dragging moves the selection, which is just the pressed component if
+// there is one.
 //
 //////////////////////////////////////////////////////////////////////////
 CStatefulEdit* CStartEditInComponent::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
@@ -244,8 +246,13 @@ CStatefulEdit* CStartEditInComponent::Move(SFloat64Vec2 sPosition, CCircuitEdit*
 	CCircuitSelection*		pcSelection;
 
 	pcSelection = pcEdit->GetEditor()->GetSelection();
+	if (mpcPressed != NULL)
+	{
+		pcSelection->Clear();
+		pcSelection->Add(mpcPressed);
+	}
 	pcMove = NewMalloc<CMoveComponentsEdit>();
-	pcMove->Init(pcSelection->GetComponents(), pcSelection->GetTraces(), false);
+	pcMove->Init(pcSelection->GetComponents(), pcSelection->GetTraces(), false, pcEdit->GetEditor()->IsControl());
 	return pcMove;
 }
 

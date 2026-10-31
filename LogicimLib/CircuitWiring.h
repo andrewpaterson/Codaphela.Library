@@ -56,6 +56,10 @@ typedef CArrayTemplate<SWiringLevel>	CArrayWiringLevel;
 //
 //Rewire wires a running simulation again after its circuits have been edited.  The simulation must be of the path's
 //circuit only: traces in it that end up with no ports and no wire are removed.
+//
+//Views can be detached (SetDetached), as the editor detaches the views being dragged: they join nothing.  A detached
+//wire is on no net and loses its traces, and a detached component's ports come off their traces, though the component
+//stays in the simulation.
 class CCircuitWiring
 {
 protected:
@@ -70,11 +74,14 @@ protected:
 	CArrayInt					maiNetBitWidths;
 	CArrayInt					maiBitParents;
 	CArrayTraceViewTracePtr*	mapcNetTraces;
+	CArrayComponentViewPtr*		mpapcDetachedComponents;
+	CArrayTraceViewPtr*			mpapcDetachedTraces;
 
 public:
 	void	Init(CCircuitSimulation* pcSimulation);
 	void	Kill(void);
 
+	void	SetDetached(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	bool	Wire(CViewPath* pcViewPath, bool bStart);
 	bool	Rewire(CViewPath* pcViewPath);
 
@@ -96,6 +103,9 @@ protected:
 	int		GetBitRoot(int iNet, size uiBit);
 	size	NumLevelTraces(SWiringLevel* psLevel);
 	bool	IsTraceNode(size uiNode);
+	bool	IsDetachedTraceNode(size uiNode);
+	bool	IsDetached(CTraceView* pcTrace);
+	bool	IsDetached(CPortView* pcPortView);
 	int		GetPortViewNode(SWiringLevel* psLevel, CPortView* pcPortView);
 	int		GetPortViewNet(SWiringLevel* psLevel, CPortView* pcPortView);
 	int		FindRoot(CArrayInt* paiParents, int iNode);

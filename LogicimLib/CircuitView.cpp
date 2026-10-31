@@ -199,6 +199,25 @@ bool CCircuitView::RemoveTrace(CTraceView* pcTrace)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Puts a wire taken out (see RemoveTrace) back at uiIndex in the wires,
+// or at the end if there are fewer.  The circuit owns it again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::InsertTrace(CTraceView* pcTrace, size uiIndex)
+{
+	if (uiIndex >= mapcTraces.NumElements())
+	{
+		mapcTraces.Add(pcTrace);
+	}
+	else
+	{
+		mapcTraces.InsertAt(&pcTrace, uiIndex);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Adds wires along the lines, as Logicim's createTraceViews.  The lines,
 // and the wires of every net they or the seed wires (which may be NULL)
 // touch, are merged and split again (see MergeTraceLines), and those wires

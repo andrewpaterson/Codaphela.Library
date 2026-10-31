@@ -51,13 +51,18 @@ public:
 };
 
 
-//A press on a selected view, as Logicim's StartEditInComponent: dragging moves the selection, releasing without moving
-//selects as a click there would.
+//A press on a selected view, as Logicim's StartEditInComponent, or on a component that isn't selected (mpcPressed):
+//dragging moves the selection, or just the pressed component; releasing without moving selects as a click there
+//would.  The move keeps its wires if control is held when it starts, otherwise it comes off them (see
+//CCircuitEditor::StartMoveViews).
 class CStartEditInComponent : public CStatefulEdit
 {
 CONSTRUCTABLE(CStartEditInComponent);
+protected:
+	CComponentView*	mpcPressed;
+
 public:
-	void			Init(void);
+	void			Init(CComponentView* pcPressed);
 
 	void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	CStatefulEdit*	Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;

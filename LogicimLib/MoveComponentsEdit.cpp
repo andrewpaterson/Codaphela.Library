@@ -27,12 +27,9 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 // One component, left unselected when done.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMoveComponentsEdit::Init(CComponentView* pcComponent, bool bNew)
+void CMoveComponentsEdit::Init(CComponentView* pcComponent, bool bNew, bool bConnected)
 {
-	masComponents.Init();
-	masTraces.Init();
-	mbNew = bNew;
-	mbSelect = false;
+	InitMove(bNew, false, bConnected);
 	AddComponent(pcComponent);
 }
 
@@ -42,14 +39,11 @@ void CMoveComponentsEdit::Init(CComponentView* pcComponent, bool bNew)
 // Views selected when done.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMoveComponentsEdit::Init(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew)
+void CMoveComponentsEdit::Init(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected)
 {
 	size			i;
 
-	masComponents.Init();
-	masTraces.Init();
-	mbNew = bNew;
-	mbSelect = true;
+	InitMove(bNew, true, bConnected);
 	for (i = 0; i < papcComponents->NumElements(); i++)
 	{
 		AddComponent(papcComponents->GetPtr(i));
@@ -58,6 +52,23 @@ void CMoveComponentsEdit::Init(CArrayComponentViewPtr* papcComponents, CArrayTra
 	{
 		AddTrace(papcTraces->GetPtr(i));
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMoveComponentsEdit::InitMove(bool bNew, bool bSelect, bool bConnected)
+{
+	masComponents.Init();
+	masTraces.Init();
+	mbNew = bNew;
+	mbSelect = bSelect;
+	mbConnected = bConnected;
+	msLastDiff.Init(0, 0);
+	miLastRightRotations = 0;
+	mbLastMirrored = false;
 }
 
 
@@ -121,7 +132,7 @@ void CMoveComponentsEdit::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 	apcTraces.Init();
 	apcFollowing.Init();
 	GetViews(&apcComponents, &apcTraces);
-	pcEdit->GetEditor()->StartMoveViews(&apcComponents, &apcTraces, mbNew, &apcFollowing);
+	pcEdit->GetEditor()->StartMoveViews(&apcComponents, &apcTraces, mbNew, mbConnected, &apcFollowing);
 	for (i = 0; i < apcFollowing.NumElements(); i++)
 	{
 		AddTrace(apcFollowing.GetPtr(i));
@@ -138,7 +149,7 @@ void CMoveComponentsEdit::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 //////////////////////////////////////////////////////////////////////////
 CStatefulEdit* CMoveComponentsEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 {
-	MoveViews(pcEdit->IsMirrored(), pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
+	Follow(pcEdit);
 	return this;
 }
 
@@ -149,8 +160,28 @@ CStatefulEdit* CMoveComponentsEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* p
 //////////////////////////////////////////////////////////////////////////
 CStatefulEdit* CMoveComponentsEdit::Transform(CCircuitEdit* pcEdit)
 {
-	MoveViews(pcEdit->IsMirrored(), pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
+	Follow(pcEdit);
 	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the views to where the edit has taken them, if that's changed,
+// and tells the editor they've moved.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMoveComponentsEdit::Follow(CCircuitEdit* pcEdit)
+{
+	if ((pcEdit->GetDiff() == msLastDiff) && (pcEdit->GetRightRotations() == miLastRightRotations) && (pcEdit->IsMirrored() == mbLastMirrored))
+	{
+		return;
+	}
+	msLastDiff = pcEdit->GetDiff();
+	miLastRightRotations = pcEdit->GetRightRotations();
+	mbLastMirrored = pcEdit->IsMirrored();
+	MoveViews(mbLastMirrored, miLastRightRotations, pcEdit->GetStart(), msLastDiff);
+	pcEdit->GetEditor()->MovedViews();
 }
 
 

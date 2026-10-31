@@ -46,6 +46,8 @@ void CCircuitWiring::Init(CCircuitSimulation* pcSimulation)
 	maiNetBitWidths.Init();
 	maiBitParents.Init();
 	mapcNetTraces = NULL;
+	mpapcDetachedComponents = NULL;
+	mpapcDetachedTraces = NULL;
 }
 
 
@@ -79,6 +81,19 @@ void CCircuitWiring::Kill(void)
 	}
 	masLevels.Kill();
 	mpcSimulation = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The views (either can be NULL) that join nothing when wired.  The
+// arrays must last until the wiring is done.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitWiring::SetDetached(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+{
+	mpapcDetachedComponents = papcComponents;
+	mpapcDetachedTraces = papcTraces;
 }
 
 
@@ -266,7 +281,7 @@ bool CCircuitWiring::AddLevels(CViewPath* pcViewPath, int iParent, CCircuitInsta
 //
 // In a circuit, wires that touch, port views on a wire, port views on the
 // same grid point and the port views of views with the same connection
-// name are joined.
+// name are joined.  Detached views join nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitWiring::JoinLevel(SWiringLevel* psLevel)
@@ -288,9 +303,13 @@ void CCircuitWiring::JoinLevel(SWiringLevel* psLevel)
 	iFirst = (int)psLevel->uiFirstNode;
 	for (i = 0; i < uiTraces; i++)
 	{
+		if (IsDetached(pcCircuit->GetTrace(i)))
+		{
+			continue;
+		}
 		for (j = i + 1; j < uiTraces; j++)
 		{
-			if (pcCircuit->GetTrace(i)->Touches(pcCircuit->GetTrace(j)))
+			if (!IsDetached(pcCircuit->GetTrace(j)) && pcCircuit->GetTrace(i)->Touches(pcCircuit->GetTrace(j)))
 			{
 				Join(&maiParents, iFirst + (int)i, iFirst + (int)j);
 			}
@@ -299,9 +318,13 @@ void CCircuitWiring::JoinLevel(SWiringLevel* psLevel)
 	for (i = 0; i < papcPortViews->NumElements(); i++)
 	{
 		pcPortView = papcPortViews->GetPtr(i);
+		if (IsDetached(pcPortView))
+		{
+			continue;
+		}
 		for (j = 0; j < uiTraces; j++)
 		{
-			if (pcCircuit->GetTrace(j)->Contains(pcPortView->GetGridPosition()))
+			if (!IsDetached(pcCircuit->GetTrace(j)) && pcCircuit->GetTrace(j)->Contains(pcPortView->GetGridPosition()))
 			{
 				Join(&maiParents, iFirst + (int)(uiTraces + i), iFirst + (int)j);
 			}
@@ -310,6 +333,10 @@ void CCircuitWiring::JoinLevel(SWiringLevel* psLevel)
 		for (j = i + 1; j < papcPortViews->NumElements(); j++)
 		{
 			pcOtherPortView = papcPortViews->GetPtr(j);
+			if (IsDetached(pcOtherPortView))
+			{
+				continue;
+			}
 			if (pcOtherPortView->GetGridPosition() == pcPortView->GetGridPosition())
 			{
 				Join(&maiParents, iFirst + (int)(uiTraces + i), iFirst + (int)(uiTraces + j));
@@ -368,7 +395,8 @@ void CCircuitWiring::JoinPins(SWiringLevel* psLevel)
 //
 // A net is as wide as its widest port view; one with no ports gets a
 // single trace to show it's undriven.  Roots that are nets (anything with
-// a wire, and port views joined to another) are numbered in maiNetIndices
+// a wire that isn't detached, and port views joined to another) are
+// numbered in maiNetIndices
 // (-1 for the others) and their widths are in maiNetWidths, both by root.
 // Fails if ports of different widths are joined.
 //
@@ -415,7 +443,7 @@ bool CCircuitWiring::FindNets(void)
 	for (i = 0; i < muiNumNodes; i++)
 	{
 		iRoot = FindRoot(&maiParents, (int)i);
-		if (IsTraceNode(i) || (iRoot != (int)i))
+		if ((IsTraceNode(i) && !IsDetachedTraceNode(i)) || (iRoot != (int)i))
 		{
 			if (maiNetIndices.GetValue(iRoot) == -1)
 			{
@@ -602,7 +630,7 @@ void CCircuitWiring::ReuseBitTraces(CArrayTraceViewTracePtr* papcBitTraces)
 		{
 			iNet = maiNetIndices.GetValue(FindRoot(&maiParents, (int)(psLevel->uiFirstNode + j)));
 			papcOldTraces = psLevel->pcCircuit->GetTrace(j)->GetTraces(psLevel->pcViewPath, mpcSimulation);
-			if (papcOldTraces != NULL)
+			if ((iNet != -1) && (papcOldTraces != NULL))
 			{
 				for (k = 0; (k < papcOldTraces->NumElements()) && (k < (size)maiNetBitWidths.GetValue(iNet)); k++)
 				{
@@ -685,7 +713,7 @@ void CCircuitWiring::CreateNetTraces(CArrayTraceViewTracePtr* papcBitTraces)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every wire is on a net.
+// Every wire is on a net, except a detached one, which loses its traces.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitWiring::SetLevelTraces(SWiringLevel* psLevel)
@@ -696,7 +724,14 @@ void CCircuitWiring::SetLevelTraces(SWiringLevel* psLevel)
 	for (i = 0; i < NumLevelTraces(psLevel); i++)
 	{
 		iNet = maiNetIndices.GetValue(FindRoot(&maiParents, (int)(psLevel->uiFirstNode + i)));
-		psLevel->pcCircuit->GetTrace(i)->SetTraces(psLevel->pcViewPath, mpcSimulation, &mapcNetTraces[iNet]);
+		if (iNet == -1)
+		{
+			psLevel->pcCircuit->GetTrace(i)->ClearTraces(psLevel->pcViewPath, mpcSimulation);
+		}
+		else
+		{
+			psLevel->pcCircuit->GetTrace(i)->SetTraces(psLevel->pcViewPath, mpcSimulation, &mapcNetTraces[iNet]);
+		}
 	}
 }
 
@@ -872,6 +907,49 @@ bool CCircuitWiring::IsTraceNode(size uiNode)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the node is a detached wire.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitWiring::IsDetachedTraceNode(size uiNode)
+{
+	size			i;
+	SWiringLevel*	psLevel;
+
+	for (i = 0; i < masLevels.NumElements(); i++)
+	{
+		psLevel = masLevels.Get(i);
+		if ((uiNode >= psLevel->uiFirstNode) && (uiNode < psLevel->uiFirstNode + NumLevelTraces(psLevel)))
+		{
+			return IsDetached(psLevel->pcCircuit->GetTrace(uiNode - psLevel->uiFirstNode));
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitWiring::IsDetached(CTraceView* pcTrace)
+{
+	return (mpapcDetachedTraces != NULL) && (mpapcDetachedTraces->Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A port view of a detached component.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitWiring::IsDetached(CPortView* pcPortView)
+{
+	return (mpapcDetachedComponents != NULL) && (mpapcDetachedComponents->Find(pcPortView->GetOwner()) != ARRAY_ELEMENT_NOT_FOUND);
 }
 
 
