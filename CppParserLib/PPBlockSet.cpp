@@ -72,59 +72,6 @@ void CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
-{
-	int			i;
-	CPPBlock* pcBlock;
-	bool		bResult;
-	int			iNumElements;
-
-	iNumElements = (int)mapcBlocks.NumElements();
-	for (i = iNumElements - 1; i >= 0; i--)
-	{
-		pcBlock = *mapcBlocks.Get(i);
-		bResult = pcOtherBlock->Equals(pcBlock);
-		if (bResult)
-		{
-			return pcBlock;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CPPBlockSet::IsLastToken(int iToken)
-{
-	CPPToken*	pcToken;
-	int			i;
-	int			iNumTokens;
-
-	iNumTokens = (int)mcUnprocessedTokens.NumTokens();
-	if (iNumTokens == iToken)
-	{
-		return true;
-	}
-
-	for (i = iNumTokens - 1; i >= iToken; i--)
-	{
-		pcToken = mcUnprocessedTokens.Get(i);
-		if (!pcToken->IsEmpty())
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////

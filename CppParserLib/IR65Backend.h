@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IR65Flags.h"
 #include "IR65Widths.h"
 #include "IR65Peephole.h"
-#include "IRSourceMarkers.h"
+#include "IRBackend.h"
 
 
 //Where a temporary is kept.
@@ -136,21 +136,12 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 //(CPP65Generator.txt): arguments pushed last first at their own size, the caller removes them, this in X for a
 //thiscall, the result in A (all 8 bytes of a 64 bit one).  Labels are L and a number from the generator's
 //counter; the soft float routines called are added to its runtime list.
-class CIR65Backend
+class CIR65Backend : public CIRBackend
 {
 protected:
-	CIRModule*				mpcModule;
-	int*					mpiLabels;
 	CArrayChars*			mpaszRuntime;
 	bool					mbSignedDivide;
 	bool					mbSignedDivide64;
-
-	CIRFunction*			mpcFunction;
-	CChars*					mpszOut;
-	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
-	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
-	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
-	CCPPErrors*				mpcErrors;
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
 	CArrayIR65Places		masPlaces;			//Per temporary.
@@ -161,17 +152,14 @@ protected:
 	CArrayTemplate<int32>	maiCalls;			//Positions of instructions that change X, Y and [$00 + W] to [$7F + W]...
 	CArrayTemplate<int32>	maiChangesXY;		//...that change X and Y...
 	CArrayTemplate<int32>	maiChangesY;		//...and that change Y.
-	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
 	CArrayIR65Moves			masMoves;
 	CArrayIR65Stubs			masStubs;
 	uint32					muiSaved;			//The [$80 + W] units used, a bit each.
-	int32					miFrameBytes;
 	int32					miArguments;		//Where the arguments start: 1 + frame + 8.
 	int32					miThisOffset;		//A thiscall's this in the frame, for an argaddr of it; -1 for none.
 	int32					miReturnLabel;
-	bool					mbResult;
 	SIRReference			msInA;				//The temporary the last instruction left in A (or IRNone).
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
 	SIRReference			msDeferred;			//A load the next instruction reads itself, from mszDeferred.
@@ -192,15 +180,11 @@ public:
 	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);
 	void				Kill(void);
 
-	bool				GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
-	void				SetSourceMarkers(bool bSourceMarkers);
-	void				GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	bool				UsesSignedDivide(void);
 	bool				UsesSignedDivide64(void);
 
 protected:
-	void				Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	void				OrderBlocks(void);
 	void				RotateLoops(void);
 	void				AdjustComparisons(void);
@@ -215,11 +199,7 @@ protected:
 	void				Peephole(size uiStart);
 	void				Prologue(const char* szLabel);
 	void				Epilogue(void);
-	bool				Error(const char* szMessage, const char* szDetail = NULL);
 	CChars*				Line(const char* szText);
-	void				Source(uint32 uiSource);
-	int32				NewLabel(void);
-	void				Label(int32 iLabel);
 	void				Branch(const char* szBranch, int32 iLabel);
 	void				CallRuntime(const char* szName, int iBytes);
 	int					ValueBytes(SIRType sType);

@@ -40,26 +40,6 @@ void CCPPSyntaxRangeForStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxRangeForStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxRangeForStatement::GetType(void)
-{
-	return "RangeForStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxRangeForStatement::GetKind(void)
 {
 	return CPPS_RangeForStatement;
@@ -100,30 +80,12 @@ size CCPPSyntaxRangeForStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxRangeForStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcSpecifiers;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, mpcRange, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
 	{
-		return mpcDeclarator;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcRange;
-	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcBody;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

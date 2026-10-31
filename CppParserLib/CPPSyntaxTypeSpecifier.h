@@ -26,7 +26,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCPPSyntaxTypeSpecifier : public CCPPSyntax
 {
 public:
-	bool	IsTypeSpecifier(void) override;
 };
 
 

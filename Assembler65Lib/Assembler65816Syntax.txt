@@ -3,20 +3,21 @@ W65C816 assembler
 
 Approved by the user (2026-10-25, see the rulings at the end).  The user chose Assembler65Lib's style for the
 W65C816 assembler (CppParserLib/W65C816.txt question 4).  So: the W65C816's own mnemonics
-(lda, sta, adc, jsl, rep ...), with Assembler65Syntax.txt's conventions: upper case
+(lda, sta, adc, jsl, rep ...), with Assembler65C64Syntax.txt's conventions: upper case
 registers, lower case flags, memory in square brackets, a bare value is a constant, :
 suffixes for widths, and the same lines, labels, numbers, expressions, directives,
 sections and objects.  It writes the same CAsm65Object, so CAsm65Linker links both.
 
-Class CAsm816Assembler (Asm816Assembler.h/.cpp and Asm816Instructions.cpp) derives from
-CAsm65Assembler and shares its passes, tokeniser, expressions, symbols, errors, sections,
-object and output; it supplies the instructions, operands, widths and two directives
-(CAsm65Assembler's virtual Instruction, IsRegisterName, InstructionAlignment,
-ProcessorDirective and SectionStarted).  Usage is CAsm65Assembler's: Assemble (.org) or
+Class CAsm65816Assembler (Asm65816Assembler.h/.cpp and Asm65816Instructions.cpp) derives from
+CAsm65BaseAssembler (as CAsm65C64Assembler, the 65C64's, does) and shares its passes,
+tokeniser, expressions, symbols, errors, sections, object and output; it supplies the
+instructions, operands, widths and two directives (CAsm65BaseAssembler's virtual
+Instruction, IsRegisterName, InstructionAlignment, ProcessorDirective and
+SectionStarted).  Usage is CAsm65BaseAssembler's: Assemble (.org) or
 AssembleObject.  The opcode table is checked against MicroprocessorLib's
-CW65C816InstructionFactory by TestAsm816Opcodes (the simulator calls jml JMP and puts per
+CW65C816InstructionFactory by TestAsm65816Opcodes (the simulator calls jml JMP and puts per
 with the stack instructions; those two are allowed).  Tests: test/TestAssembler65Lib
-TestAsm816.cpp (every mode, widths, errors, relocations through CAsm65Linker, and a
+TestAsm65816.cpp (every mode, widths, errors, relocations through CAsm65Linker, and a
 program run on CFast65C816).
 
 
@@ -74,7 +75,7 @@ address, so it is clear which bank and which base an address uses:
 	[[S + value] + Y]	(stack relative),y
 
 The :24 suffix on a bracket means a long (24 bit) address or pointer, like
-Assembler65Syntax.txt's :16 and :32.  Without it, [value] is absolute when the value
+Assembler65C64Syntax.txt's :16 and :32.  Without it, [value] is absolute when the value
 fits 16 bits and long when it doesn't; an unresolved label is absolute unless :24 is
 given.  In an object the field is relocated "in bank": the linker writes the label's low
 16 bits and reports an error unless the label is in the bank of the instruction (the
@@ -86,7 +87,7 @@ always direct page, value 0 to 255.
 Jumps, calls and branches
 -------------------------
 
-As Assembler65Syntax.txt, the target of a jump is the effective address:
+As Assembler65C64Syntax.txt, the target of a jump is the effective address:
 
 	jmp Label			absolute, in the program bank
 	jmp [Vector]		(absolute): the address read from Vector (bank 0)
@@ -122,7 +123,7 @@ not (Label >> 16) + 2.  Assembled absolute (.org) they are ordinary arithmetic.
 Data
 ----
 
-As Assembler65Syntax.txt (.byte .word .long .quad .space .align), plus
+As Assembler65C64Syntax.txt (.byte .word .long .quad .space .align), plus
 
 	.word24 value, ...		24 bits, little endian (a far address without its pad byte)
 
@@ -134,14 +135,14 @@ Running and testing
 
 CAsm65Memory is the W65C816's test memory too: its devices (console, drive, host
 files, memory size register) are at 00FF:0000, the W65C816's bank $FF.
-InitFast816 connects a CFast65C816, TickHigh816 / TickLow816 a CW65C816Meta, and
-CAsm816Lockstep runs both side by side (as CAsm65Lockstep does for the 65C64).
+InitFast65816 connects a CFast65C816, TickHigh65816 / TickLow65816 a CW65C816Meta, and
+CAsm65816Lockstep runs both side by side (as CAsm65C64Lockstep does for the 65C64).
 
 Bank 0 holds only the stack, the direct page, the vectors and a jml stub per vector:
 
-	.section rodata.Vectors, at $FFFC
+	.section rodata.Vectors, at 0xFFFC
 		.word ResetStub
-	.section text.ResetStub, at $FF00
+	.section text.ResetStub, at 0xFF00
 	ResetStub:
 		jml Start
 

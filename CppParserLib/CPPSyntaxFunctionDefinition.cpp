@@ -54,16 +54,6 @@ void CCPPSyntaxFunctionDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxFunctionDefinition::GetType(void)
-{
-	return "FunctionDefinition";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxFunctionDefinition::GetKind(void)
 {
 	return CPPS_FunctionDefinition;
@@ -128,30 +118,12 @@ size CCPPSyntaxFunctionDefinition::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxFunctionDefinition::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcSpecifiers;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, &macpMemberInitializers, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
 	{
-		return mpcDeclarator;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex < macpMemberInitializers.NumElements())
-	{
-		return macpMemberInitializers.GetPtr(iIndex);
-	}
-	iIndex -= macpMemberInitializers.NumElements();
-
-	if (iIndex == 0)
-	{
-		return mpcBody;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

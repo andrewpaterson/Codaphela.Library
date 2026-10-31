@@ -25,6 +25,37 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPHighlighter.h"
 
 
+//The name of each kind of highlight, indexed by ECPPHighlight.
+char* gaszHighlightKindNames[] =
+{
+	"comment",
+	"inactive",
+	"directive",
+	"macro",
+	"keyword",
+	"operator",
+	"number",
+	"character",
+	"string",
+	"namespace",
+	"class",
+	"enum",
+	"typedef",
+	"type parameter",
+	"builtin type",
+	"function",
+	"variable",
+	"field",
+	"parameter",
+	"enumerator",
+	"label",
+	"member",
+	"unresolved",
+	"identifier",
+};
+static_assert(sizeof(gaszHighlightKindNames) / sizeof(char*) == CPPH_Identifier + 1, "gaszHighlightKindNames must have a name for every ECPPHighlight.");
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -475,16 +506,6 @@ int CCPPHighlighter::LineLength(int iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPHighlighter::NumHighlights(void)
-{
-	return macHighlights.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SCPPHighlight* CCPPHighlighter::Get(size iIndex)
 {
 	return macHighlights.SafeGet(iIndex);
@@ -526,32 +547,9 @@ char* CCPPHighlighter::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 char* CCPPHighlighter::GetKindName(ECPPHighlight eKind)
 {
-	switch (eKind)
+	if ((eKind >= CPPH_Comment) && (eKind <= CPPH_Identifier))
 	{
-	case CPPH_Comment:			return "comment";
-	case CPPH_Inactive:			return "inactive";
-	case CPPH_Directive:		return "directive";
-	case CPPH_Macro:			return "macro";
-	case CPPH_Keyword:			return "keyword";
-	case CPPH_Operator:			return "operator";
-	case CPPH_Number:			return "number";
-	case CPPH_Character:		return "character";
-	case CPPH_String:			return "string";
-	case CPPH_Namespace:		return "namespace";
-	case CPPH_Class:			return "class";
-	case CPPH_Enum:				return "enum";
-	case CPPH_Typedef:			return "typedef";
-	case CPPH_TypeParameter:	return "type parameter";
-	case CPPH_BuiltinType:		return "builtin type";
-	case CPPH_Function:			return "function";
-	case CPPH_Variable:			return "variable";
-	case CPPH_Field:			return "field";
-	case CPPH_Parameter:		return "parameter";
-	case CPPH_Enumerator:		return "enumerator";
-	case CPPH_Label:			return "label";
-	case CPPH_Member:			return "member";
-	case CPPH_Unresolved:		return "unresolved";
-	case CPPH_Identifier:		return "identifier";
+		return gaszHighlightKindNames[eKind];
 	}
 	return "unknown";
 }

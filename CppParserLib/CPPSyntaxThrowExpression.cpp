@@ -36,26 +36,6 @@ void CCPPSyntaxThrowExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxThrowExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxThrowExpression::GetType(void)
-{
-	return "ThrowExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxThrowExpression::GetKind(void)
 {
 	return CPPS_ThrowExpression;
@@ -93,12 +73,12 @@ size CCPPSyntaxThrowExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxThrowExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcOperand;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcOperand, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

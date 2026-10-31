@@ -37,26 +37,6 @@ void CCPPSyntaxCaseStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxCaseStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxCaseStatement::GetType(void)
-{
-	return "CaseStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxCaseStatement::GetKind(void)
 {
 	return CPPS_CaseStatement;
@@ -100,18 +80,12 @@ size CCPPSyntaxCaseStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxCaseStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcValue;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcValue, &pcChild) || IsChild(&iIndex, mpcStatement, &pcChild))
 	{
-		return mpcStatement;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

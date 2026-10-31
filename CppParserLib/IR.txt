@@ -464,8 +464,8 @@ copies.  Classes are given homes most weighted first:
 	X or Y					if nothing that changes them is done while the class is live
 							(calls, the soft float routines and R_DivideSigned change X
 							and Y; mul and div change Y)
-	[$00 + W] to [$7F + W]	if no call is made while it is live (calls may change them)
-	[$80 + W] to [$FF + W]	if the class weighs 8 or more (used in a loop, say): the
+	[0x00 + W] to [0x7F + W]	if no call is made while it is live (calls may change them)
+	[0x80 + W] to [0xFF + W]	if the class weighs 8 or more (used in a loop, say): the
 							function pushes those it uses after setting V up and pulls
 							them before returning (the user's callee saved pseudo
 							registers, 2026-10-24)
@@ -640,9 +640,9 @@ pass cleans up, and the instructions print as assembly.
 				cmp, shl and shr address memory with V, X or Y but not W (the user,
 				2026-10-28), so the last pass writes their pseudo registers as [n] (W
 				is 0); the passes before see [n + W].  They still can't use [n + S].
-	Calls		V, W and S are kept as now, and so are the pseudo registers [$80 + W] to
-				[$FF + W] (callee saved, the user 2026-10-24): a function that uses one
-				pushes it first and pulls it before returning.  [$00 + W] to [$7F + W]
+	Calls		V, W and S are kept as now, and so are the pseudo registers [0x80 + W] to
+				[0xFF + W] (callee saved, the user 2026-10-24): a function that uses one
+				pushes it first and pulls it before returning.  [0x00 + W] to [0x7F + W]
 				may change.  The runtime routines (softfloat.asm, string.asm, R_*) use
 				no pseudo registers, so they already keep them.
 	Selection	add i32 %a, 3 is add A, 3 when %a is in A; load + add folds to add A,

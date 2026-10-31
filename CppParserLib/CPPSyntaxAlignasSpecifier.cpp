@@ -36,26 +36,6 @@ void CCPPSyntaxAlignasSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxAlignasSpecifier::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxAlignasSpecifier::GetType(void)
-{
-	return "AlignasSpecifier";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxAlignasSpecifier::GetKind(void)
 {
 	return CPPS_AlignasSpecifier;
@@ -90,12 +70,12 @@ size CCPPSyntaxAlignasSpecifier::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxAlignasSpecifier::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcAlignment;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcAlignment, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

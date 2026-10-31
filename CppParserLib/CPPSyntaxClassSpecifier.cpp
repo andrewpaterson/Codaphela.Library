@@ -57,16 +57,6 @@ void CCPPSyntaxClassSpecifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxClassSpecifier::GetType(void)
-{
-	return "ClassSpecifier";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxClassSpecifier::GetKind(void)
 {
 	return CPPS_ClassSpecifier;
@@ -124,30 +114,12 @@ size CCPPSyntaxClassSpecifier::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxClassSpecifier::GetChild(size iIndex)
 {
-	if (iIndex < macpAttributes.NumElements())
-	{
-		return macpAttributes.GetPtr(iIndex);
-	}
-	iIndex -= macpAttributes.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, &macpBases, &pcChild) || IsChild(&iIndex, &macpMembers, &pcChild))
 	{
-		return mpcName;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex < macpBases.NumElements())
-	{
-		return macpBases.GetPtr(iIndex);
-	}
-	iIndex -= macpBases.NumElements();
-
-	if (iIndex < macpMembers.NumElements())
-	{
-		return macpMembers.GetPtr(iIndex);
-	}
-	iIndex -= macpMembers.NumElements();
-
 	return NULL;
 }
 

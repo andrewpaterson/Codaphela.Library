@@ -48,18 +48,13 @@ public:
 	virtual void		Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent);
 	virtual void		Kill(void);
 
-	virtual char*		GetType(void) =0;
 	virtual ECPPSyntax	GetKind(void) =0;
 	virtual void		PrettyPrint(CChars* pszDest, int iDepth) =0;
 	virtual void		TypePrint(CChars* pszDest, int iDepth);
-	virtual size		NumChildren(void) =0;
-	virtual CCPPSyntax*	GetChild(size iIndex) =0;
+	virtual size		NumChildren(void);
+	virtual CCPPSyntax*	GetChild(size iIndex);
 
-	virtual bool		IsDeclaration(void);
-	virtual bool		IsStatement(void);
-	virtual bool		IsExpression(void);
-	virtual bool		IsTypeSpecifier(void);
-
+			char*		GetType(void);
 			void		SetTokens(int iFirstToken, int iLastToken);
 			void		Dump(void);
 
@@ -74,6 +69,8 @@ protected:
 			void		PrintStatements(CChars* pszDest, CArraySyntax* papcNodes, int iDepth);
 			void		PrintCondition(CChars* pszDest, CCPPSyntax* pcCondition, int iDepth);
 			void		PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int iDepth);
+			bool		IsChild(size* piIndex, CCPPSyntax* pcNode, CCPPSyntax** ppcChild);
+			bool		IsChild(size* piIndex, CArraySyntax* papcNodes, CCPPSyntax** ppcChild);
 };
 
 

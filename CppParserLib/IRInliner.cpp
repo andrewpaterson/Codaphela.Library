@@ -178,9 +178,50 @@ size CIRInliner::NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inlines the calls in pcCaller of small functions of the module (and the
-// calls the copies make).  Returns true if any were.
+// The function psInstruction calls when it is a direct call (a callee of
+// this module or an import, mpcCalleeModule set for an import), else NULL.
 //
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CIRInliner::DirectCallee(SIRInstruction* psInstruction)
+{
+	CIRFunction*	pcCallee;
+
+	if ((psInstruction->uiOpcode != IRO_Call) || !psInstruction->asArguments[0].IsSymbol())
+	{
+		return NULL;
+	}
+	pcCallee = Callee(psInstruction->asArguments[0], true);
+	mpcCalleeModule = (pcCallee && (pcCallee != mpcModule->FindFunction(psInstruction->asArguments[0].Index()))) ? mpcImports->GetModule() : NULL;
+	return pcCallee;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inlines pcCallee at the call uiInstruction of block uiBlock.  The rest of
+// the block is moved to a new block; the new blocks are in the block's
+// loop.  False if it couldn't be.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCallee)
+{
+	size	uiBlocks;
+	bool	bInLoop;
+
+	bInLoop = *mabInLoop.Get(uiBlock);
+	uiBlocks = mpcCaller->NumBlocks();
+	if (!InlineCall(mpcCaller->GetBlock(uiBlock), uiInstruction, pcCallee))
+	{
+		return false;
+	}
+	for (; uiBlocks < mpcCaller->NumBlocks(); uiBlocks++)
+	{
+		mabInLoop.Add(&bInLoop);
+	}
+	return true;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // With a profile: inlines the call that was made most (of those that can
@@ -192,7 +233,6 @@ bool CIRInliner::InlineHottest(void)
 {
 	size			uiBlock;
 	size			uiInstruction;
-	size			uiBlocks;
 	size			uiBestBlock;
 	size			uiBestInstruction;
 	CIRBlock*		pcBlock;
@@ -227,8 +267,7 @@ bool CIRInliner::InlineHottest(void)
 			{
 				continue;
 			}
-			pcCallee = Callee(psInstruction->asArguments[0], true);
-			mpcCalleeModule = (pcCallee && (pcCallee != mpcModule->FindFunction(psInstruction->asArguments[0].Index()))) ? mpcImports->GetModule() : NULL;
+			pcCallee = DirectCallee(psInstruction);
 			if (!CanInline(pcCallee, bInLoop, pcBlock, uiInstruction, HotLimit(ulliCount)))
 			{
 				continue;
@@ -246,19 +285,8 @@ bool CIRInliner::InlineHottest(void)
 		return false;
 	}
 
-	//The rest of the block was moved to a new block; the new blocks are in the block's loop.
 	mpcCalleeModule = pcBestModule;
-	bInLoop = *mabInLoop.Get(uiBestBlock);
-	uiBlocks = mpcCaller->NumBlocks();
-	if (!InlineCall(mpcCaller->GetBlock(uiBestBlock), uiBestInstruction, pcBest))
-	{
-		return false;
-	}
-	for (; uiBlocks < mpcCaller->NumBlocks(); uiBlocks++)
-	{
-		mabInLoop.Add(&bInLoop);
-	}
-	return true;
+	return InlineAt(uiBestBlock, uiBestInstruction, pcBest);
 }
 
 
@@ -299,14 +327,17 @@ void CIRInliner::SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Inlines the calls in pcCaller of small functions of the module (and the
+// calls the copies make).  Returns true if any were.
+//
+//////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 {
 	size			uiBlock;
 	size			uiInstruction;
 	size			uiInlines;
-	size			uiBlocks;
 	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
 	CIRFunction*	pcCallee;
 	bool			bInLoop;
 
@@ -328,22 +359,11 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 		bInLoop = *mabInLoop.Get(uiBlock);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
-			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode != IRO_Call) || !psInstruction->asArguments[0].IsSymbol())
+			pcCallee = DirectCallee(pcBlock->masInstructions.Get(uiInstruction));
+
+			//The rest of the block is moved to a new block, which is looked at later.
+			if (CanInline(pcCallee, bInLoop, pcBlock, uiInstruction) && InlineAt(uiBlock, uiInstruction, pcCallee))
 			{
-				continue;
-			}
-			pcCallee = Callee(psInstruction->asArguments[0], true);
-			mpcCalleeModule = (pcCallee && (pcCallee != mpcModule->FindFunction(psInstruction->asArguments[0].Index()))) ? mpcImports->GetModule() : NULL;
-			uiBlocks = pcCaller->NumBlocks();
-			if (CanInline(pcCallee, bInLoop, pcBlock, uiInstruction) && InlineCall(pcBlock, uiInstruction, pcCallee))
-			{
-				//The rest of the block was moved to a new block, which is looked at later; the new blocks are in the
-				//block's loop.
-				for (; uiBlocks < pcCaller->NumBlocks(); uiBlocks++)
-				{
-					mabInLoop.Add(&bInLoop);
-				}
 				uiInlines++;
 				break;
 			}
@@ -510,12 +530,6 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Replaces the call at uiCall in pcBlock (and the args before it) with a
-// copy of pcCallee.  Returns false (changing nothing) if the arguments
-// don't match its parameters.
-//
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether the callee takes a parameter's address (argaddr).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -600,6 +614,12 @@ void CIRInliner::StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the call at uiCall in pcBlock (and the args before it) with a
+// copy of pcCallee.  Returns false (changing nothing) if the arguments
+// don't match its parameters.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee)
 {

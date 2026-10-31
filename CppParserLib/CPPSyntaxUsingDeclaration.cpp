@@ -37,26 +37,6 @@ void CCPPSyntaxUsingDeclaration::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxUsingDeclaration::Kill(void)
-{
-	CCPPSyntaxDeclaration::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxUsingDeclaration::GetType(void)
-{
-	return "UsingDeclaration";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxUsingDeclaration::GetKind(void)
 {
 	return CPPS_UsingDeclaration;
@@ -96,12 +76,12 @@ size CCPPSyntaxUsingDeclaration::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxUsingDeclaration::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcName;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcName, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

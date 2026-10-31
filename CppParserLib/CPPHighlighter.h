@@ -84,7 +84,6 @@ public:
 	void				Kill(void);
 	void				Highlight(CSourceFile* pcFile, CPreprocessedTokens* pcPreprocessed, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 
-	size				NumHighlights(void);
 	SCPPHighlight*		Get(size iIndex);
 	char*				Print(CChars* psz);
 	static char*		GetKindName(ECPPHighlight eKind);

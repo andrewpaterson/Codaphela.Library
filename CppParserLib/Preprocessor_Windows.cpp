@@ -24,21 +24,29 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The Microsoft compiler's own macros, as the compiler building this
+// defines them (__COUNTER__ is every platform's: Init adds it).  The
+// Windows version macros are 0 when the build doesn't set them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::InitPlatformSpecific(void)
 {
-	CChars	sz;
-
 	AddSpecialDefine("__FUNCSIG__");
-	AddSpecialDefine("__COUNTER__");
 	AddSpecialDefine("__FUNCDNAME__");
 
-	AddDefine("_M_IX86");
 	AddDefine("__inline", "inline", &mcDefineReplacementMemory);
 
+#ifdef _M_IX86
+	AddNumberDefine("_M_IX86", _M_IX86);
+#endif
+
+#ifdef _M_X64
+	AddNumberDefine("_M_X64", _M_X64);
+	AddNumberDefine("_M_AMD64", _M_X64);
+#endif
+
 #ifdef _ATL_VER
-	AddDefine("_ATL_VER", _ATL_VER);
+	AddNumberDefine("_ATL_VER", _ATL_VER);
 #endif
 
 #ifdef _CHAR_UNSIGNED
@@ -46,7 +54,7 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef __CLR_VER
-	AddDefine("__CLR_VER", __CLR_VER);
+	AddNumberDefine("__CLR_VER", __CLR_VER);
 #endif
 
 #ifdef _DEBUG
@@ -58,33 +66,23 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _INTEGRAL_MAX_BITS
-	sz.Init();
-	sz.Append(_INTEGRAL_MAX_BITS);
-	AddDefine("_INTEGRAL_MAX_BITS", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_INTEGRAL_MAX_BITS", _INTEGRAL_MAX_BITS);
 #endif
-
 
 #ifdef _MANAGED
 	AddDefine("_MANAGED");
 #endif
 
 #ifdef _MFC_VER
-	AddDefine("_MFC_VER", _MFC_VER);
+	AddNumberDefine("_MFC_VER", _MFC_VER);
 #endif
 
 #ifdef _MSC_EXTENSIONS
-	sz.Init();
-	sz.Append(_MSC_EXTENSIONS);
-	AddDefine("_MSC_EXTENSIONS", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_MSC_EXTENSIONS", _MSC_EXTENSIONS);
 #endif
 
 #ifdef _MSC_VER
-	sz.Init();
-	sz.Append(_MSC_VER);
-	AddDefine("_MSC_VER", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_MSC_VER", _MSC_VER);
 #endif
 
 #ifdef _MT
@@ -108,38 +106,25 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _MSC_FULL_VER
-	sz.Init();
-	sz.Append(_MSC_FULL_VER);
-	AddDefine("_MSC_FULL_VER", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_MSC_FULL_VER", _MSC_FULL_VER);
 #endif
 
 #ifdef _WIN32_WINNT
-	sz.Init();
-	sz.Append(_WIN32_WINNT);
-	AddDefine("_WIN32_WINNT", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_WIN32_WINNT", _WIN32_WINNT);
 #else
-	AddDefine("_WIN32_WINNT", "0");
+	AddNumberDefine("_WIN32_WINNT", 0);
 #endif
 
-
 #ifdef _WIN32_FUSION
-	sz.Init();
-	sz.Append(_WIN32_FUSION);
-	AddDefine("_WIN32_FUSION", sz.Text());
-	sz.Kill();
+	AddNumberDefine("_WIN32_FUSION", _WIN32_FUSION);
 #else
-	AddDefine("_WIN32_FUSION", "0", &mcDefineReplacementMemory);
+	AddNumberDefine("_WIN32_FUSION", 0);
 #endif
 
 #ifdef _WIN32_WINDOWS
-	sz.Init();
-	sz.Append(_WIN32_WINDOWS);
-	AddDefine("_WIN32_WINDOWS", sz.Text(), &mcDefineReplacementMemory);
-	sz.Kill();
+	AddNumberDefine("_WIN32_WINDOWS", _WIN32_WINDOWS);
 #else
-	AddDefine("_WIN32_WINDOWS", "0");
+	AddNumberDefine("_WIN32_WINDOWS", 0);
 #endif
 }
 

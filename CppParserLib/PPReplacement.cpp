@@ -108,13 +108,10 @@ bool CPPReplacement::Equals(CPPToken* pcOther)
 	if (pcOther->IsReplacement())
 	{
 		pcCast = (CPPReplacement*)pcOther;
+		//The same argument of the define (the define is the same one wherever the replacements are compared).
 		if (miArgIndex == pcCast->miArgIndex)
 		{
-			//I'm assuming it's safe to ignore this until such time as it comes back and bites me.
-			//if (miDefineIndex == pcCast->miDefineIndex)
-			//{
-				return true;
-			//}
+			return true;
 		}
 	}
 	return false;

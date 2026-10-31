@@ -22,21 +22,21 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/FileUtil.h"
-#include "Asm65Assembler.h"
+#include "Asm65BaseAssembler.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Init(void)
+void CAsm65BaseAssembler::Init(void)
 {
 	mcErrors.Init();
 	mcWarnings.Init();
 	mcTokeniser.Init(&mcErrors);
 	mcSymbols.Init();
 	mcOutput.Init();
-	mcMinimumWords.Init();
+	mcMinimumLengths.Init();
 	mcPendingLabels.Init();
 
 	muiToken = 0;
@@ -47,7 +47,6 @@ void CAsm65Assembler::Init(void)
 	mbChanged = false;
 	mbStatementError = false;
 	mbRelative = false;
-	mbMemoryWidth = false;
 	muiInstruction = 0;
 	muiPasses = 0;
 
@@ -71,7 +70,7 @@ void CAsm65Assembler::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Kill(void)
+void CAsm65BaseAssembler::Kill(void)
 {
 	size		i;
 	CIntelHex*	pcHex;
@@ -88,7 +87,7 @@ void CAsm65Assembler::Kill(void)
 	mcUndefined.Kill();
 	mcSectionAddresses.Kill();
 	mcPendingLabels.Kill();
-	mcMinimumWords.Kill();
+	mcMinimumLengths.Kill();
 	mcOutput.Kill();
 	mcSymbols.Kill();
 	mcTokeniser.Kill();
@@ -103,7 +102,7 @@ void CAsm65Assembler::Kill(void)
 // the output and reports errors.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Assemble(const char* szSource)
+bool CAsm65BaseAssembler::Assemble(const char* szSource)
 {
 	if (!mcTokeniser.Tokenise(szSource))
 	{
@@ -147,7 +146,7 @@ bool CAsm65Assembler::Assemble(const char* szSource)
 // are used but never defined are externals.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::AssembleObject(const char* szSource, CAsm65Object* pcObject)
+bool CAsm65BaseAssembler::AssembleObject(const char* szSource, CAsm65Object* pcObject)
 {
 	bool	bResult;
 
@@ -174,7 +173,7 @@ bool CAsm65Assembler::AssembleObject(const char* szSource, CAsm65Object* pcObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Pass(void)
+void CAsm65BaseAssembler::Pass(void)
 {
 	size			i;
 	SAsm65Section*	psSection;
@@ -232,7 +231,7 @@ void CAsm65Assembler::Pass(void)
 // another pass: an external address is always 32 bits.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::MarkExternals(void)
+void CAsm65BaseAssembler::MarkExternals(void)
 {
 	size			i;
 	SAsm65Token*	psToken;
@@ -257,7 +256,7 @@ void CAsm65Assembler::MarkExternals(void)
 // The symbol is defined by another object; uiToken is where it was named.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::MakeExternal(SAsm65Symbol* psSymbol, size uiToken)
+void CAsm65BaseAssembler::MakeExternal(SAsm65Symbol* psSymbol, size uiToken)
 {
 	psSymbol->iValue = 0;
 	psSymbol->bResolved = true;
@@ -274,7 +273,7 @@ void CAsm65Assembler::MakeExternal(SAsm65Symbol* psSymbol, size uiToken)
 // externals that are declared or used by a relocation.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::BuildObjectSymbols(void)
+void CAsm65BaseAssembler::BuildObjectSymbols(void)
 {
 	size				i;
 	char*				szName;
@@ -323,14 +322,13 @@ void CAsm65Assembler::BuildObjectSymbols(void)
 // address, a .org moves it or a .align pads it).
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Statement(void)
+void CAsm65BaseAssembler::Statement(void)
 {
 	SAsm65Token*	psToken;
 	bool			bResult;
 
 	mbStatementError = false;
 	mbRelative = false;
-	mbMemoryWidth = false;
 	muiStatementTerms = 0;
 	muiStatementTermsUsed = 0;
 	mpsTermToken = NULL;
@@ -462,7 +460,7 @@ void CAsm65Assembler::Statement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::BindLabels(void)
+void CAsm65BaseAssembler::BindLabels(void)
 {
 	size			i;
 	SAsm65Token*	psLabel;
@@ -492,7 +490,7 @@ void CAsm65Assembler::BindLabels(void)
 // the last pass needs another pass.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken)
+void CAsm65BaseAssembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken)
 {
 	SAsm65Symbol*	psSymbol;
 
@@ -523,7 +521,7 @@ void CAsm65Assembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bReso
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CAsm65Assembler::TokenIndex(SAsm65Token* psToken)
+size CAsm65BaseAssembler::TokenIndex(SAsm65Token* psToken)
 {
 	return (size)(psToken - mcTokeniser.Get(0));
 }
@@ -534,7 +532,7 @@ size CAsm65Assembler::TokenIndex(SAsm65Token* psToken)
 // name = expression
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Constant(SAsm65Token* psName)
+bool CAsm65BaseAssembler::Constant(SAsm65Token* psName)
 {
 	SAsm65Value	sValue;
 
@@ -566,7 +564,7 @@ bool CAsm65Assembler::Constant(SAsm65Token* psName)
 // .org address
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Origin(void)
+bool CAsm65BaseAssembler::Origin(void)
 {
 	int64	iValue;
 
@@ -591,7 +589,7 @@ bool CAsm65Assembler::Origin(void)
 // .align bytes (a power of two)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Align(void)
+bool CAsm65BaseAssembler::Align(void)
 {
 	SAsm65Token*	psToken;
 	int64			iValue;
@@ -617,7 +615,7 @@ bool CAsm65Assembler::Align(void)
 // .byte, .word, .long and .quad: values, little endian.  .byte also takes strings.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Data(uint8 uiBytes)
+bool CAsm65BaseAssembler::Data(uint8 uiBytes)
 {
 	SAsm65Token*	psToken;
 	SAsm65Value		sValue;
@@ -681,7 +679,7 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 // Pads with zeros.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::AlignTo(uint32 uiAlignment)
+void CAsm65BaseAssembler::AlignTo(uint32 uiAlignment)
 {
 	SAsm65Section*	psSection;
 
@@ -704,7 +702,7 @@ void CAsm65Assembler::AlignTo(uint32 uiAlignment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::WriteByte(uint8 uiByte)
+void CAsm65BaseAssembler::WriteByte(uint8 uiByte)
 {
 	SAsm65Section*	psSection;
 
@@ -736,7 +734,7 @@ void CAsm65Assembler::WriteByte(uint8 uiByte)
 // .space bytes (zeros)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Space(void)
+bool CAsm65BaseAssembler::Space(void)
 {
 	SAsm65Token*	psToken;
 	int64			iValue;
@@ -767,7 +765,7 @@ bool CAsm65Assembler::Space(void)
 // the file has none (as an erased ROM).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::IncludeHex(void)
+bool CAsm65BaseAssembler::IncludeHex(void)
 {
 	SAsm65Token*	psName;
 	SAsm65Token*	psToken;
@@ -844,7 +842,7 @@ bool CAsm65Assembler::IncludeHex(void)
 // once for all the passes.
 //
 //////////////////////////////////////////////////////////////////////////
-CIntelHex* CAsm65Assembler::GetHexFile(SAsm65Token* psName)
+CIntelHex* CAsm65BaseAssembler::GetHexFile(SAsm65Token* psName)
 {
 	CChars		szPath;
 	CFileUtil	cFileUtil;
@@ -895,7 +893,7 @@ CIntelHex* CAsm65Assembler::GetHexFile(SAsm65Token* psName)
 // The directory .inchex file names are relative to.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::SetDirectory(const char* szDirectory)
+void CAsm65BaseAssembler::SetDirectory(const char* szDirectory)
 {
 	mszDirectory.Kill();
 	mszDirectory.Init(szDirectory);
@@ -913,7 +911,7 @@ void CAsm65Assembler::SetDirectory(const char* szDirectory)
 // Options given again when switching back to a section are added.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Section(void)
+bool CAsm65BaseAssembler::Section(void)
 {
 	SAsm65Token*		psName;
 	SAsm65Token*		psGroup;
@@ -993,7 +991,7 @@ bool CAsm65Assembler::Section(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt)
+bool CAsm65BaseAssembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt)
 {
 	SAsm65Token*	psOption;
 	SAsm65Value		sValue;
@@ -1063,7 +1061,7 @@ bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup
 // Points each associated section at the section it names (by name, in this object).
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Associate(void)
+void CAsm65BaseAssembler::Associate(void)
 {
 	size			i;
 	SAsm65Token*	psName;
@@ -1093,7 +1091,7 @@ void CAsm65Assembler::Associate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::SwitchSection(uint32 uiSection)
+void CAsm65BaseAssembler::SwitchSection(uint32 uiSection)
 {
 	mcSectionAddresses.SetValue(muiSection, muiAddress);
 	muiSection = uiSection;
@@ -1107,7 +1105,7 @@ void CAsm65Assembler::SwitchSection(uint32 uiSection)
 // A bss section only has labels, .space and .align.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::InBss(SAsm65Token* psToken)
+bool CAsm65BaseAssembler::InBss(SAsm65Token* psToken)
 {
 	if (mbObject && (mpcObject->GetSection(muiSection)->eKind == ASK65_Bss))
 	{
@@ -1126,7 +1124,7 @@ bool CAsm65Assembler::InBss(SAsm65Token* psToken)
 // .extern name, ...    the name is defined by another object
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
+bool CAsm65BaseAssembler::SymbolBinding(SAsm65Token* psDirective)
 {
 	SAsm65Token*	psName;
 	SAsm65Symbol*	psSymbol;
@@ -1174,7 +1172,7 @@ bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
 // linker's line table (CAsm65Output) and a profile of the program by line.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SourceLine(SAsm65Token* psDirective)
+bool CAsm65BaseAssembler::SourceLine(SAsm65Token* psDirective)
 {
 	SAsm65Token*	psFile;
 	SAsm65Token*	psLine;
@@ -1218,7 +1216,7 @@ bool CAsm65Assembler::SourceLine(SAsm65Token* psDirective)
 // at the time (seconds since 1970): a profile of it is for that code.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Fingerprint(SAsm65Token* psDirective)
+bool CAsm65BaseAssembler::Fingerprint(SAsm65Token* psDirective)
 {
 	SAsm65Token*	psLabel;
 	SAsm65Token*	psHash;
@@ -1270,7 +1268,7 @@ bool CAsm65Assembler::Fingerprint(SAsm65Token* psDirective)
 // that is not resolved yet is sized like any forward reference (it grows next pass).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::IsRelocatable(SAsm65Value* psValue)
+bool CAsm65BaseAssembler::IsRelocatable(SAsm65Value* psValue)
 {
 	return mbObject && psValue->bResolved && (psValue->iTerms != 0);
 }
@@ -1281,7 +1279,7 @@ bool CAsm65Assembler::IsRelocatable(SAsm65Value* psValue)
 // A relative target in the current section is an offset the assembler knows.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::IsLocalTarget(SAsm65Value* psValue)
+bool CAsm65BaseAssembler::IsLocalTarget(SAsm65Value* psValue)
 {
 	return mbObject && psValue->bResolved && (psValue->iTerms == 1) && (psValue->iSection == (int32)muiSection);
 }
@@ -1293,7 +1291,7 @@ bool CAsm65Assembler::IsLocalTarget(SAsm65Value* psValue)
 // in this section becomes a plain offset (like the statement's address).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::TargetIsRelocatable(SAsm65Value* psTarget)
+bool CAsm65BaseAssembler::TargetIsRelocatable(SAsm65Value* psTarget)
 {
 	if (IsLocalTarget(psTarget))
 	{
@@ -1311,7 +1309,7 @@ bool CAsm65Assembler::TargetIsRelocatable(SAsm65Value* psTarget)
 // Each section address in a statement must be used by a relocation or a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::UseTerm(void)
+void CAsm65BaseAssembler::UseTerm(void)
 {
 	muiStatementTermsUsed++;
 }
@@ -1325,7 +1323,7 @@ void CAsm65Assembler::UseTerm(void)
 // is measured from C, uiFieldToNext bytes after the field's start.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, uint8 uiBytes, bool bSigned, bool bRelative, uint32 uiFieldToNext, SAsm65Token* psToken)
+void CAsm65BaseAssembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, uint8 uiBytes, bool bSigned, bool bRelative, uint32 uiFieldToNext, SAsm65Token* psToken)
 {
 	SAsm65Relocation*	psRelocation;
 	SAsm65Token*		psTerm;
@@ -1380,11 +1378,11 @@ void CAsm65Assembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, ui
 // An instruction's length can only grow from pass to pass.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CAsm65Assembler::GetMinimumWords(void)
+uint8 CAsm65BaseAssembler::GetMinimumLength(void)
 {
-	if (muiInstruction < mcMinimumWords.NumElements())
+	if (muiInstruction < mcMinimumLengths.NumElements())
 	{
-		return mcMinimumWords.GetValue(muiInstruction);
+		return mcMinimumLengths.GetValue(muiInstruction);
 	}
 	return 1;
 }
@@ -1392,34 +1390,21 @@ uint8 CAsm65Assembler::GetMinimumWords(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Records the length of the instruction just assembled (in words on the 65C64, bytes
+// on the W65C816S) and moves on to the next.  A longer length changes the pass.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Emit(SAsm65Instruction* psInstruction)
+void CAsm65BaseAssembler::RecordLength(uint8 uiLength)
 {
-	uint8							i;
-	SAsm65InstructionRelocation*	psRelocation;
-
-	if (muiInstruction >= mcMinimumWords.NumElements())
+	if (muiInstruction >= mcMinimumLengths.NumElements())
 	{
-		mcMinimumWords.Add(psInstruction->uiWords);
+		mcMinimumLengths.Add(uiLength);
 		mbChanged = true;
 	}
-	else if (psInstruction->uiWords > mcMinimumWords.GetValue(muiInstruction))
+	else if (uiLength > mcMinimumLengths.GetValue(muiInstruction))
 	{
-		mcMinimumWords.SetValue(muiInstruction, psInstruction->uiWords);
+		mcMinimumLengths.SetValue(muiInstruction, uiLength);
 		mbChanged = true;
-	}
-
-	for (i = 0; i < psInstruction->uiRelocations; i++)
-	{
-		psRelocation = &psInstruction->asRelocations[i];
-		RecordRelocation(&psRelocation->sValue, muiAddress + 2 * psRelocation->uiWord, psRelocation->uiBytes, psRelocation->bSigned, psRelocation->bRelative, 2 * (psInstruction->uiWords - psRelocation->uiWord), psRelocation->psToken);
-	}
-
-	for (i = 0; i < psInstruction->uiWords; i++)
-	{
-		WriteByte((uint8)psInstruction->auiWords[i]);
-		WriteByte((uint8)(psInstruction->auiWords[i] >> 8));
 	}
 	muiInstruction++;
 }
@@ -1429,7 +1414,7 @@ void CAsm65Assembler::Emit(SAsm65Instruction* psInstruction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm65Token* CAsm65Assembler::Peek(size uiOffset)
+SAsm65Token* CAsm65BaseAssembler::Peek(size uiOffset)
 {
 	size	uiIndex;
 
@@ -1447,7 +1432,7 @@ SAsm65Token* CAsm65Assembler::Peek(size uiOffset)
 // Never moves past the end of a statement.
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm65Token* CAsm65Assembler::Next(void)
+SAsm65Token* CAsm65BaseAssembler::Next(void)
 {
 	SAsm65Token*	psToken;
 
@@ -1464,7 +1449,7 @@ SAsm65Token* CAsm65Assembler::Next(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Accept(EAsm65Punctuator ePunctuator)
+bool CAsm65BaseAssembler::Accept(EAsm65Punctuator ePunctuator)
 {
 	if (Peek()->Is(ePunctuator))
 	{
@@ -1479,7 +1464,7 @@ bool CAsm65Assembler::Accept(EAsm65Punctuator ePunctuator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Expect(EAsm65Punctuator ePunctuator, const char* szWhat)
+bool CAsm65BaseAssembler::Expect(EAsm65Punctuator ePunctuator, const char* szWhat)
 {
 	if (Accept(ePunctuator))
 	{
@@ -1493,7 +1478,7 @@ bool CAsm65Assembler::Expect(EAsm65Punctuator ePunctuator, const char* szWhat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ExpectEnd(void)
+bool CAsm65BaseAssembler::ExpectEnd(void)
 {
 	if (Peek()->IsEndOfStatement())
 	{
@@ -1509,7 +1494,7 @@ bool CAsm65Assembler::ExpectEnd(void)
 // One error per statement.  Always returns false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Error(SAsm65Token* psToken, const char* szMessage)
+bool CAsm65BaseAssembler::Error(SAsm65Token* psToken, const char* szMessage)
 {
 	if (mbFinal && !mbStatementError)
 	{
@@ -1525,7 +1510,7 @@ bool CAsm65Assembler::Error(SAsm65Token* psToken, const char* szMessage)
 // "Expected what".  Always returns false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ErrorExpected(SAsm65Token* psToken, const char* szWhat)
+bool CAsm65BaseAssembler::ErrorExpected(SAsm65Token* psToken, const char* szWhat)
 {
 	CChars	szMessage;
 	bool	bResult;
@@ -1543,7 +1528,7 @@ bool CAsm65Assembler::ErrorExpected(SAsm65Token* psToken, const char* szWhat)
 // Warnings are reported by the final pass and do not stop assembly.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Warning(SAsm65Token* psToken, const char* szMessage)
+void CAsm65BaseAssembler::Warning(SAsm65Token* psToken, const char* szMessage)
 {
 	if (mbFinal)
 	{
@@ -1556,7 +1541,7 @@ void CAsm65Assembler::Warning(SAsm65Token* psToken, const char* szMessage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const char* szMessage)
+void CAsm65BaseAssembler::Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const char* szMessage)
 {
 	CChars	szText;
 
@@ -1580,21 +1565,10 @@ void CAsm65Assembler::Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 65C64 instructions are whole words.
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CAsm65Assembler::InstructionAlignment(void)
-{
-	return 2;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A directive only one processor's assembler has.  Returns false if it isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ProcessorDirective(SAsm65Token* psDirective, bool* pbResult)
+bool CAsm65BaseAssembler::ProcessorDirective(SAsm65Token* psDirective, bool* pbResult)
 {
 	return false;
 }
@@ -1605,7 +1579,7 @@ bool CAsm65Assembler::ProcessorDirective(SAsm65Token* psDirective, bool* pbResul
 // Called at the start of a pass, .org and .section.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::SectionStarted(void)
+void CAsm65BaseAssembler::SectionStarted(void)
 {
 }
 
@@ -1614,7 +1588,7 @@ void CAsm65Assembler::SectionStarted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAsm65Output* CAsm65Assembler::GetOutput(void)
+CAsm65Output* CAsm65BaseAssembler::GetOutput(void)
 {
 	return &mcOutput;
 }
@@ -1624,7 +1598,7 @@ CAsm65Output* CAsm65Assembler::GetOutput(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAsm65Assembler::GetErrors(void)
+char* CAsm65BaseAssembler::GetErrors(void)
 {
 	return mcErrors.Text();
 }
@@ -1634,7 +1608,7 @@ char* CAsm65Assembler::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CAsm65Assembler::NumErrors(void)
+size CAsm65BaseAssembler::NumErrors(void)
 {
 	return mcErrors.NumErrors();
 }
@@ -1644,7 +1618,7 @@ size CAsm65Assembler::NumErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAsm65Assembler::GetWarnings(void)
+char* CAsm65BaseAssembler::GetWarnings(void)
 {
 	return mcWarnings.Text();
 }
@@ -1654,7 +1628,7 @@ char* CAsm65Assembler::GetWarnings(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CAsm65Assembler::NumWarnings(void)
+size CAsm65BaseAssembler::NumWarnings(void)
 {
 	return mcWarnings.NumErrors();
 }
@@ -1664,7 +1638,7 @@ size CAsm65Assembler::NumWarnings(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::GetSymbol(const char* szName, int64* piValue)
+bool CAsm65BaseAssembler::GetSymbol(const char* szName, int64* piValue)
 {
 	SAsm65Symbol*	psSymbol;
 
@@ -1682,7 +1656,7 @@ bool CAsm65Assembler::GetSymbol(const char* szName, int64* piValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CAsm65Assembler::NumPasses(void)
+uint32 CAsm65BaseAssembler::NumPasses(void)
 {
 	return muiPasses;
 }

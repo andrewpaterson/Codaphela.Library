@@ -54,16 +54,6 @@ void CCPPSyntaxDeclarator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxDeclarator::GetType(void)
-{
-	return "Declarator";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxDeclarator::GetKind(void)
 {
 	return CPPS_Declarator;
@@ -128,36 +118,12 @@ size CCPPSyntaxDeclarator::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxDeclarator::GetChild(size iIndex)
 {
-	if (iIndex < macpPrefix.NumElements())
-	{
-		return macpPrefix.GetPtr(iIndex);
-	}
-	iIndex -= macpPrefix.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpPrefix, &pcChild) || IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcNested, &pcChild) || IsChild(&iIndex, &macpSuffixes, &pcChild) || IsChild(&iIndex, &macpAttributes, &pcChild))
 	{
-		return mpcName;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcNested;
-	}
-	iIndex--;
-
-	if (iIndex < macpSuffixes.NumElements())
-	{
-		return macpSuffixes.GetPtr(iIndex);
-	}
-	iIndex -= macpSuffixes.NumElements();
-
-	if (iIndex < macpAttributes.NumElements())
-	{
-		return macpAttributes.GetPtr(iIndex);
-	}
-	iIndex -= macpAttributes.NumElements();
-
 	return NULL;
 }
 

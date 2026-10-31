@@ -125,6 +125,7 @@ void CPreprocessor::Kill(void)
 	mcDefineReplacementMemory.Kill();
 	mcDefineStrings.Kill();
 	mcErrors.Kill();
+	mcWarnings.Kill();
 }
 
 
@@ -763,7 +764,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 
 	mcSpecialOperators.Init();
 	miIncludeDepth = 0;
-	mbLogInlucdes = false;
+	mbLogIncludes = false;
 	mbDumpLogs = false;
 	mpszIncludesLog = NULL;
 
@@ -782,6 +783,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mbKeepPragmaPack = pcConfig ? pcConfig->mbKeepPragmaPack : false;
 	miCounter = 0;
 	mcErrors.Init();
+	mcWarnings.Init();
 	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
@@ -846,7 +848,7 @@ void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CPreprocessor::GetDefine(CExternalString* pcString, bool bExact)
 {
-	return mcDefines.GetDefine(pcString, bExact);
+	return mcDefines.Get(pcString, bExact);
 }
 
 
@@ -856,7 +858,7 @@ CDefine* CPreprocessor::GetDefine(CExternalString* pcString, bool bExact)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CPreprocessor::GetDefine(char* szName, bool bExact)
 {
-	return mcDefines.GetDefine(szName, bExact);
+	return mcDefines.Get(szName, bExact);
 }
 
 
@@ -866,7 +868,7 @@ CDefine* CPreprocessor::GetDefine(char* szName, bool bExact)
 //////////////////////////////////////////////////////////////////////////
 CSpecialOperator* CPreprocessor::GetSpecialOperator(CExternalString* pcString, bool bExact)
 {
-	return mcSpecialOperators.GetSpecialOperator(pcString , bExact);
+	return mcSpecialOperators.Get(pcString , bExact);
 }
 
 
@@ -876,7 +878,7 @@ CSpecialOperator* CPreprocessor::GetSpecialOperator(CExternalString* pcString, b
 //////////////////////////////////////////////////////////////////////////
 CSpecialOperator* CPreprocessor::GetSpecialOperator(char* szName, bool bExact)
 {
-	return mcSpecialOperators.GetSpecialOperator(szName, bExact);
+	return mcSpecialOperators.Get(szName, bExact);
 }
 
 
@@ -898,6 +900,25 @@ CDefine* CPreprocessor::AddSpecialDefine(char* szDefine)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szDefine as the number lliValue (a compiler's numeric macro, such as
+// _MSC_VER).
+//
+//////////////////////////////////////////////////////////////////////////
+CDefine* CPreprocessor::AddNumberDefine(char* szDefine, int64 lliValue)
+{
+	CChars		sz;
+	CDefine*	pcDefine;
+
+	sz.Init();
+	sz.Append(lliValue);
+	pcDefine = AddDefine(szDefine, sz.Text(), &mcDefineReplacementMemory);
+	sz.Kill();
+	return pcDefine;
 }
 
 
@@ -973,10 +994,10 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
-		pcExisting = mcDefines.GetDefine(&cIdentifier, true);
+		pcExisting = mcDefines.Get(&cIdentifier, true);
 		if (pcExisting)
 		{
-			mcDefines.RemoveDefine(&cIdentifier);
+			mcDefines.Remove(&cIdentifier);
 		}
 		pcDefine = mcDefines.AddDefine(&cIdentifier);
 
@@ -1009,7 +1030,7 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 					iReplaceArg = pcDefine->GetArguments()->GetIndex(pcText->mcText.msz, pcText->mcText.miLen);
 					if (iReplaceArg != ARRAY_ELEMENT_NOT_FOUND)
 					{
-						pcReplacement = pcTokenMemory->AddReplacement();
+						pcReplacement = pcTokenMemory->AddToken<CPPReplacement>();
 						pcReplacement->Init(pcDefine->GetID(), (int)iReplaceArg, -1, -1, gszEmptyString, bVariadic && (iReplacementNum == iNumArguments - 1));
 
 						pcToken = pcReplacement;
@@ -1025,8 +1046,12 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				if (!bAllocated)
 				{
 					pcToken = DuplicatePPToken(pcToken);
+					if (pcToken == NULL)
+					{
+						return Error(&sPos, "Cannot duplicate token");
+					}
 				}
-				pcDefine->AddReplacmentToken(pcToken);
+				pcDefine->AddReplacementToken(pcToken);
 			}
 
 			pcParser->NextToken();
@@ -1116,7 +1141,7 @@ bool CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
-		mcDefines.RemoveDefine(&cIdentifier);
+		mcDefines.Remove(&cIdentifier);
 	}
 
 	return true;
@@ -1273,7 +1298,7 @@ void CPreprocessor::LogInclude(CSourceFile* pcFile)
 {
 	CChars			sz;
 
-	if (mbLogInlucdes)
+	if (mbLogIncludes)
 	{
 		sz.Init();
 		sz.Append(' ', miIncludeDepth*4);
@@ -1321,12 +1346,12 @@ void CPreprocessor::LogIncludes(CChars* pszIncludesLog)
 {
 	if (pszIncludesLog)
 	{
-		mbLogInlucdes = true;
+		mbLogIncludes = true;
 		mpszIncludesLog = pszIncludesLog;
 	}
 	else
 	{
-		mbLogInlucdes = false;
+		mbLogIncludes = false;
 		mpszIncludesLog = NULL;
 	}
 }
@@ -1346,26 +1371,32 @@ void CPreprocessor::LogDumping(bool bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
+bool CPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning)
 {
-	CChars			szError;
-	CPPToken*		pcToken;
+	CChars					szMessage;
+	CPPToken*				pcToken;
+	SPreprocessorPosition	sPos;
 
+	//#error's text is an error (preprocessing fails); #warning's is a warning.
+	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
 	pcParser->SkipWhitespace();
-	szError.Init("Error (");
-	szError.Append(GetFileName());
-	szError.Append("):");
-
+	szMessage.Init(bWarning ? "#warning " : "#error ");
 	while (pcParser->HasToken())
 	{
 		pcToken = pcParser->GetToken();
-		pcToken->Print(&szError);
+		pcToken->Print(&szMessage);
 		pcParser->NextToken();
-	}		
-	szError.AppendNewLine();
-	szError.Dump();
-	szError.Kill();
-
+	}
+	szMessage.StripWhitespace(true);
+	if (bWarning)
+	{
+		mcWarnings.Add(sPos.mszShortName, (int)sPos.miLine, (int)sPos.miColumn, -1, szMessage.Text(), NULL);
+		szMessage.Kill();
+		return true;
+	}
+	Error(&sPos, szMessage.Text());
+	szMessage.Kill();
+	mbError = true;
 	return false;
 }
 
@@ -1508,7 +1539,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 	{
 		for (i = 0; i < pcConfig->maszDefines.NumElements(); i++)
 		{
-			//A define can have a value, as in "NAME=VALUE".
+			//A define can have a value, as in "NAME=VALUE".  Without one it is 1, as -D NAME and /D NAME are.
 			pszText = pcConfig->maszDefines.Get(i);
 			iEquals = pszText->Find('=');
 			if (iEquals == ARRAY_ELEMENT_NOT_FOUND)
@@ -1521,10 +1552,10 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 			}
 
 			//The configuration replaces predefined macros.
-			mcDefines.RemoveDefine(szName.Text());
+			mcDefines.Remove(szName.Text());
 			if (iEquals == ARRAY_ELEMENT_NOT_FOUND)
 			{
-				mcDefines.AddDefine(szName.Text());
+				AddDefine(szName.Text(), "1", &mcDefineReplacementMemory);
 			}
 			else
 			{
@@ -1568,7 +1599,7 @@ void CPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessor
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
 {
-	if (pcFile->LogInlucdes())
+	if (pcFile->LogIncludes())
 	{
 		LogIncludes(&pcFile->GetLogs()->szIncludesLog);
 	}
@@ -1671,7 +1702,7 @@ bool CPreprocessor::Next(SPreprocessedToken* psToken)
 		}
 
 		acArguments.Init();
-		if (pcDefine->IsBacketed())
+		if (pcDefine->IsBracketed())
 		{
 			//A function-like macro name not followed by ( is not an invocation.
 			if (!PeekOpenParenthesis())
@@ -1860,7 +1891,7 @@ bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, C
 	pacBody = GetBody(pcDefine);
 	iNumBody = pacBody->NumElements();
 	iNumParameters = pacArguments->NumElements();
-	bFunctionLike = pcDefine->IsBacketed();
+	bFunctionLike = pcDefine->IsBracketed();
 	iExpansion = mpcOutput->AddExpansion(psName->szText, psName->uiLength, psName->pcFile, psName->iLine, psName->iColumn, psName->iExpansion);
 
 	//Arguments are macro replaced once, when first needed.
@@ -2453,7 +2484,7 @@ CDefine* CPreprocessor::GetDefine(SPreprocessedToken* psToken)
 	CExternalString		cName;
 
 	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-	return mcDefines.GetDefine(&cName, true);
+	return mcDefines.Get(&cName, true);
 }
 
 
@@ -2486,11 +2517,11 @@ bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
 
 	//The special operators, like __has_include, count as defined so that headers can test for them.
 	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-	if (mcDefines.GetDefine(&cName, true))
+	if (mcDefines.Get(&cName, true))
 	{
 		return true;
 	}
-	return mcSpecialOperators.GetSpecialOperator(&cName, true) != NULL;
+	return mcSpecialOperators.Get(&cName, true) != NULL;
 }
 
 
@@ -2564,6 +2595,17 @@ CCPPErrors* CPreprocessor::GetErrors(void)
 {
 	//The errors in all the translation units preprocessed so far.
 	return &mcErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The #warning messages in all the translation units preprocessed so far.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPErrors* CPreprocessor::GetWarnings(void)
+{
+	return &mcWarnings;
 }
 
 
@@ -2663,9 +2705,9 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 	{
 		bResult = ProcessHashInclude(pcDirective, true);
 	}
-	else if (pcDirective->Is(PPD_error))
+	else if (pcDirective->Is(PPD_error) || pcDirective->Is(PPD_warning))
 	{
-		bResult = ProcessHashError(&cParser);
+		bResult = ProcessHashError(pcDirective, &cParser, pcDirective->Is(PPD_warning));
 	}
 	else if (pcDirective->Is(PPD_pragma))
 	{
@@ -2764,6 +2806,11 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 	{
 		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
 		return Error(&sPos, "#elif, #else or #endif without #if.");
+	}
+	if ((pcDirective->Is(PPD_elif) || pcDirective->Is(PPD_else)) && mcConditionalStack.IsInElse())
+	{
+		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+		return Error(&sPos, "#elif or #else after #else.");
 	}
 
 	if (pcDirective->Is(PPD_elif))
@@ -2941,7 +2988,7 @@ bool CPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSourc
 		}
 
 		cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-		pcSpecial = mcSpecialOperators.GetSpecialOperator(&cName, true);
+		pcSpecial = mcSpecialOperators.Get(&cName, true);
 		psNext = pacSource->SafeGet(i + 1);
 		if (pcSpecial)
 		{

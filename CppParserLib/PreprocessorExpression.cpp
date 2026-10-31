@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
+#include "LiteralHelper.h"
 #include "PreprocessorExpression.h"
 
 
@@ -497,108 +499,48 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 //////////////////////////////////////////////////////////////////////////
 SPPValue CPreprocessorExpression::Number(void)
 {
-	SPPValue	sValue;
-	uint64		ulliValue;
-	uint64		ulliBase;
-	uint64		ulliDigit;
-	bool		bUnsigned;
-	bool		bOverflow;
-	char		c;
+	SPPValue			sValue;
+	SIntegerLiteral		sLiteral;
+	char*				szStart;
+	char				c;
+	bool				bHex;
 
-	ulliBase = 10;
-	if ((mszPos[0] == '0') && ((mszPos[1] == 'x') || (mszPos[1] == 'X')))
-	{
-		ulliBase = 16;
-		mszPos += 2;
-	}
-	else if ((mszPos[0] == '0') && ((mszPos[1] == 'b') || (mszPos[1] == 'B')))
-	{
-		ulliBase = 2;
-		mszPos += 2;
-	}
-	else if (mszPos[0] == '0')
-	{
-		ulliBase = 8;
-	}
-
-	ulliValue = 0;
-	bOverflow = false;
+	//The pp-number's extent: a sign belongs to it after e (not in hex) or p.  [lex.ppnumber]
+	szStart = mszPos;
+	bHex = (mszPos[0] == '0') && ((mszPos[1] == 'x') || (mszPos[1] == 'X'));
 	for (;;)
 	{
 		c = *mszPos;
-		if (c == '\'')
+		if (IsIdentifierCharacter(c) || (c == '.') || (c == '\''))
 		{
 			mszPos++;
-			continue;
 		}
-
-		if ((c >= '0') && (c <= '9'))
+		else if (((c == '+') || (c == '-')) && (((!bHex) && ((mszPos[-1] == 'e') || (mszPos[-1] == 'E'))) || (bHex && ((mszPos[-1] == 'p') || (mszPos[-1] == 'P')))))
 		{
-			ulliDigit = c - '0';
-		}
-		else if ((ulliBase == 16) && (c >= 'a') && (c <= 'f'))
-		{
-			ulliDigit = c - 'a' + 10;
-		}
-		else if ((ulliBase == 16) && (c >= 'A') && (c <= 'F'))
-		{
-			ulliDigit = c - 'A' + 10;
+			mszPos++;
 		}
 		else
 		{
 			break;
 		}
-
-		if (ulliDigit >= ulliBase)
-		{
-			return Error("Invalid digit in integer");
-		}
-
-		if (ulliValue > (0xFFFFFFFFFFFFFFFFULL - ulliDigit) / ulliBase)
-		{
-			bOverflow = true;
-		}
-		ulliValue = ulliValue * ulliBase + ulliDigit;
-		mszPos++;
 	}
 
-	if ((c == '.') || (((c == 'e') || (c == 'E')) && (ulliBase != 16)) || (((c == 'p') || (c == 'P')) && (ulliBase == 16)))
+	switch (ParseIntegerLiteral(szStart, mszPos - szStart, &sLiteral))
 	{
+	case ILR_Integer:
+		break;
+	case ILR_Floating:
 		return Error("Floating point in a preprocessor expression");
-	}
-
-	if (bOverflow)
-	{
+	case ILR_InvalidDigit:
+		return Error("Invalid digit in integer");
+	case ILR_TooLarge:
 		return Error("Integer is too large");
-	}
-
-	bUnsigned = false;
-	for (;;)
-	{
-		c = *mszPos;
-		if ((c == 'u') || (c == 'U'))
-		{
-			bUnsigned = true;
-		}
-		else if ((c != 'l') && (c != 'L'))
-		{
-			break;
-		}
-		mszPos++;
-	}
-
-	if (IsIdentifierCharacter(*mszPos))
-	{
+	default:
 		return Error("Invalid integer suffix");
 	}
 
 	//A literal too large for intmax_t is uintmax_t.
-	if (ulliValue > 0x7FFFFFFFFFFFFFFFULL)
-	{
-		bUnsigned = true;
-	}
-
-	sValue.Init(ulliValue, bUnsigned);
+	sValue.Init(sLiteral.ulliValue, sLiteral.bUnsigned || (sLiteral.ulliValue > 0x7FFFFFFFFFFFFFFFULL));
 	return sValue;
 }
 
@@ -611,10 +553,10 @@ SPPValue CPreprocessorExpression::Character(void)
 {
 	SPPValue	sValue;
 	uint64		ulliValue;
-	uint64		ulliCharacter;
+	uint32		uiCharacter;
 	int			iCount;
-	int			iDigits;
 	char		c;
+	const char*	sz;
 
 	mszPos++;  //Skip the opening '.
 	ulliValue = 0;
@@ -629,76 +571,21 @@ SPPValue CPreprocessorExpression::Character(void)
 
 		if (c != '\\')
 		{
-			ulliCharacter = (unsigned char)c;
+			uiCharacter = (unsigned char)c;
 			mszPos++;
 		}
 		else
 		{
-			mszPos++;
-			c = *mszPos;
-			mszPos++;
-			switch (c)
+			sz = mszPos + 1;
+			if (!DecodeEscape(&sz, sz + StrLen(sz), &uiCharacter))
 			{
-			case 'n':	ulliCharacter = '\n';	break;
-			case 't':	ulliCharacter = '\t';	break;
-			case 'r':	ulliCharacter = '\r';	break;
-			case 'a':	ulliCharacter = '\a';	break;
-			case 'b':	ulliCharacter = '\b';	break;
-			case 'f':	ulliCharacter = '\f';	break;
-			case 'v':	ulliCharacter = '\v';	break;
-			case '\\':	ulliCharacter = '\\';	break;
-			case '\'':	ulliCharacter = '\'';	break;
-			case '"':	ulliCharacter = '"';	break;
-			case '?':	ulliCharacter = '?';	break;
-			case 'x':
-				ulliCharacter = 0;
-				for (;;)
-				{
-					c = *mszPos;
-					if ((c >= '0') && (c <= '9'))
-					{
-						ulliCharacter = ulliCharacter * 16 + (c - '0');
-					}
-					else if ((c >= 'a') && (c <= 'f'))
-					{
-						ulliCharacter = ulliCharacter * 16 + (c - 'a' + 10);
-					}
-					else if ((c >= 'A') && (c <= 'F'))
-					{
-						ulliCharacter = ulliCharacter * 16 + (c - 'A' + 10);
-					}
-					else
-					{
-						break;
-					}
-					mszPos++;
-				}
-				break;
-			default:
-				if ((c >= '0') && (c <= '7'))
-				{
-					ulliCharacter = c - '0';
-					for (iDigits = 1; iDigits < 3; iDigits++)
-					{
-						c = *mszPos;
-						if ((c < '0') || (c > '7'))
-						{
-							break;
-						}
-						ulliCharacter = ulliCharacter * 8 + (c - '0');
-						mszPos++;
-					}
-				}
-				else
-				{
-					return Error("Unknown escape sequence");
-				}
-				break;
+				return Error("Unknown escape sequence");
 			}
+			mszPos = (char*)sz;
 		}
 
 		//Multi-character literals, as in 'ABCD', are int.
-		ulliValue = (ulliValue << 8) | (ulliCharacter & 0xFF);
+		ulliValue = (ulliValue << 8) | (uiCharacter & 0xFF);
 		iCount++;
 	}
 	mszPos++;  //Skip the closing '.

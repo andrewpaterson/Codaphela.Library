@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "TranslationUnit.h"
 
 
@@ -25,10 +27,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STULog::Init(bool bLogInlucdes)
+void STULog::Init(bool bLogIncludes)
 {
 	szIncludesLog.Init();
-	this->bLogInlucdes = bLogInlucdes;
+	this->bLogIncludes = bLogIncludes;
 }
 
 
@@ -54,7 +56,7 @@ void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncl
 
 	if (bLogIncludes)
 	{
-		mpcLogs = (STULog*)malloc(sizeof(STULog));
+		mpcLogs = NewMalloc<STULog>();
 		mpcLogs->Init(bLogIncludes);
 	}
 	else
@@ -72,11 +74,7 @@ void CTranslationUnit::Kill(void)
 {
 	mcTokens.Kill();
 
-	if (mpcLogs)
-	{
-		mpcLogs->Kill();
-		free(mpcLogs);
-	}
+	SafeKill(mpcLogs);
 	
 	CSourceFile::Kill();
 }
@@ -106,11 +104,11 @@ bool CTranslationUnit::IsHeader(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTranslationUnit::LogInlucdes(void)
+bool CTranslationUnit::LogIncludes(void)
 {
 	if (mpcLogs)
 	{
-		if (mpcLogs->bLogInlucdes)
+		if (mpcLogs->bLogIncludes)
 		{
 			return true;
 		}

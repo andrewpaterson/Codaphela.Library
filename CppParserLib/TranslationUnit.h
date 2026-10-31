@@ -28,9 +28,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 struct STULog
 {
 	CChars	szIncludesLog;
-	bool	bLogInlucdes;
+	bool	bLogIncludes;
 
-	void Init(bool bLogInlucdes);
+	void Init(bool bLogIncludes);
 	void Kill(void);
 };
 
@@ -47,7 +47,7 @@ public:
 	void					Kill(void);
 	bool					IsTranslationUnit(void);
 	bool					IsHeader(void);
-	bool					LogInlucdes(void);
+	bool					LogIncludes(void);
 	bool					IsPragmaOnced(void);
 	bool					IsSystemFile(void);
 	STULog*					GetLogs(void);

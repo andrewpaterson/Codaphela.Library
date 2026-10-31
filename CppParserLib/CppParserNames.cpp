@@ -47,15 +47,14 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 	bool						bTemplateKeyword;
 	bool						bTemplate;
 	int64						lliName;
-	SCPPParserPosition			sPosition;
-	int							iSavedFailed;
+	SCPPTentative				sTentative;
 	bool						bArguments;
 	bool						bMember;
 
 	//id-expression: [::] nested-name-specifier unqualified-id, looked up as it is read.  [basic.lookup.qual]
 	bMember = mbMemberName;
 	mbMemberName = false;
-	pcName = mpcMemory->CreateName(pcParent);
+	pcName = mpcMemory->Create<CCPPSyntaxName>(pcParent);
 	pcName->miFirstToken = CurrentToken();
 	pcScope = NULL;
 	bQualified = false;
@@ -69,15 +68,16 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 
 	for (;;)
 	{
+		//X::template Y<...>, and p->template Y<...> after . or ->.  [temp.names] 4
 		bTemplateKeyword = false;
-		if (bQualified && Accept(CT_template))
+		if ((bQualified || (bMember && (pcName->macpComponents.NumElements() == 0))) && Accept(CT_template))
 		{
 			bTemplateKeyword = true;
 		}
 
 		if (IsIdentifier())
 		{
-			pcComponent = mpcMemory->CreateNameComponent(pcName);
+			pcComponent = mpcMemory->Create<CCPPSyntaxNameComponent>(pcName);
 			pcComponent->miFirstToken = CurrentToken();
 			pcComponent->meKind = CPPNC_Identifier;
 			pcComponent->mbTemplateKeyword = bTemplateKeyword;
@@ -109,11 +109,9 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 				{
 					//An unknown name, as a member of a dependent or unknown type, is a template if what follows the
 					//'<' is a template argument list followed by '(' or '::'.
-					sPosition = Mark();
-					BeginTentative(&iSavedFailed);
+					BeginTentative(&sTentative);
 					bArguments = ParseTemplateArguments(pcComponent);
-					bTemplate = EndTentative(iSavedFailed) && bArguments && (Is(CT_OpenRoundBracket) || Is(CT_ScopeResolution));
-					Rewind(sPosition);
+					bTemplate = EndTentative(&sTentative, bArguments && (Is(CT_OpenRoundBracket) || Is(CT_ScopeResolution)));
 					pcComponent->macpTemplateArguments.Kill();
 					pcComponent->macpTemplateArguments.Init();
 					pcComponent->mbTemplateArguments = false;
@@ -131,7 +129,7 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 		else if (Is(CT_BitwiseNot) && IsIdentifierAhead(1))
 		{
 			//A destructor: ~X.
-			pcComponent = mpcMemory->CreateNameComponent(pcName);
+			pcComponent = mpcMemory->Create<CCPPSyntaxNameComponent>(pcName);
 			pcComponent->miFirstToken = CurrentToken();
 			pcComponent->meKind = CPPNC_Destructor;
 			Next();
@@ -208,7 +206,7 @@ CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
 	CCPPToken*					pcToken;
 
 	//operator+, operator(), operator new[] and conversion functions, operator const char*.  [over.oper] [class.conv.fct]
-	pcComponent = mpcMemory->CreateNameComponent(pcParent);
+	pcComponent = mpcMemory->Create<CCPPSyntaxNameComponent>(pcParent);
 	pcComponent->miFirstToken = CurrentToken();
 	Expect(CT_operator);
 
@@ -293,7 +291,7 @@ bool CCPPParser::ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent)
 			}
 			else
 			{
-				pcPack = mpcMemory->CreatePackExpansionExpression(pcComponent);
+				pcPack = mpcMemory->Create<CCPPSyntaxPackExpansionExpression>(pcComponent);
 				pcPack->mpcPattern = pcArgument;
 				pcArgument->mpcParent = pcPack;
 				pcPack->SetTokens(pcArgument->miFirstToken, CurrentToken());
@@ -324,19 +322,16 @@ bool CCPPParser::ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPParser::ParseTemplateArgument(CCPPSyntax* pcParent)
 {
-	SCPPParserPosition	sPosition;
+	SCPPTentative		sTentative;
 	CCPPSyntaxTypeId*	pcType;
-	int					iSavedFailed;
 	bool				bType;
 
 	//A template argument that could be a type-id is a type-id.  [temp.arg] 2
 	if (IsTypeIdStart())
 	{
-		sPosition = Mark();
-		BeginTentative(&iSavedFailed);
+		BeginTentative(&sTentative);
 		pcType = ParseTypeId(pcParent);
-		bType = EndTentative(iSavedFailed) && pcType && (Is(CT_Comma) || IsCloseAngle() || Is(CT_Elipsis));
-		Rewind(sPosition);
+		bType = EndTentative(&sTentative, pcType && (Is(CT_Comma) || IsCloseAngle() || Is(CT_Elipsis)));
 		if (bType)
 		{
 			return ParseTypeId(pcParent);
@@ -352,22 +347,19 @@ CCPPSyntax* CCPPParser::ParseTemplateArgument(CCPPSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPParser::LookupNameAhead(int* piLength)
 {
-	SCPPParserPosition	sPosition;
+	SCPPTentative		sTentative;
 	CCPPSyntaxName*		pcName;
-	int					iSavedFailed;
 	CCPPSymbol*			pcSymbol;
 
 	//The symbol the name that is next refers to.  Nothing is consumed.
-	sPosition = Mark();
-	BeginTentative(&iSavedFailed);
+	BeginTentative(&sTentative);
 	pcName = ParseName(NULL, false, NULL);
-	EndTentative(iSavedFailed);
 	pcSymbol = pcName ? pcName->mpcSymbol : NULL;
 	if (piLength)
 	{
-		*piLength = CurrentToken() - sPosition.iToken;
+		*piLength = CurrentToken() - sTentative.sPosition.iToken;
 	}
-	Rewind(sPosition);
+	EndTentative(&sTentative, true);
 	return pcSymbol;
 }
 

@@ -9,34 +9,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Asm65Assembler.cpp">
+    <ClCompile Include="Asm65C64Assembler.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm816Assembler.cpp">
+    <ClCompile Include="Asm65BaseAssembler.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm816Instructions.cpp">
+    <ClCompile Include="Asm65BaseExpressions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm816Lockstep.cpp">
+    <ClCompile Include="Asm65C64Operands.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm816Profile.cpp">
+    <ClCompile Include="Asm65816Assembler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65816Instructions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65816Lockstep.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65816Profile.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Asm65Errors.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm65Expressions.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Asm65HostFiles.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm65Lockstep.cpp">
+    <ClCompile Include="Asm65C64Lockstep.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Asm65Instructions.cpp">
+    <ClCompile Include="Asm65C64Instructions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Asm65Library.cpp">
@@ -71,16 +77,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Asm65Assembler.h">
+    <ClInclude Include="Asm65C64Assembler.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Asm816Assembler.h">
+    <ClInclude Include="Asm65BaseAssembler.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Asm816Lockstep.h">
+    <ClInclude Include="Asm65816Assembler.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Asm816Profile.h">
+    <ClInclude Include="Asm65816Lockstep.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65816Profile.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Errors.h">
@@ -89,7 +98,7 @@
     <ClInclude Include="Asm65HostFiles.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Asm65Lockstep.h">
+    <ClInclude Include="Asm65C64Lockstep.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Library.h">
@@ -121,7 +130,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Assembler65Syntax.txt" />
-    <Text Include="Assembler816Syntax.txt" />
+    <Text Include="Assembler65C64Syntax.txt" />
+    <Text Include="Assembler65816Syntax.txt" />
   </ItemGroup>
 </Project>

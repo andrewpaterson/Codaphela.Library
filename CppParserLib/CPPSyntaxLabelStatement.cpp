@@ -37,26 +37,6 @@ void CCPPSyntaxLabelStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxLabelStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxLabelStatement::GetType(void)
-{
-	return "LabelStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxLabelStatement::GetKind(void)
 {
 	return CPPS_LabelStatement;
@@ -91,12 +71,12 @@ size CCPPSyntaxLabelStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxLabelStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcStatement;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcStatement, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

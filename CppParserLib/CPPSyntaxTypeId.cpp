@@ -38,26 +38,6 @@ void CCPPSyntaxTypeId::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxTypeId::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxTypeId::GetType(void)
-{
-	return "TypeId";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxTypeId::GetKind(void)
 {
 	return CPPS_TypeId;
@@ -99,18 +79,12 @@ size CCPPSyntaxTypeId::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxTypeId::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcSpecifiers;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild))
 	{
-		return mpcDeclarator;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

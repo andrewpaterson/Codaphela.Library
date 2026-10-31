@@ -46,7 +46,6 @@ public:
 	void				Init(char* szName, char* szBaseDir, bool bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
 	void				Kill(void);
 	CTranslationUnit*	AddTranslationUnit(char* szRelativeNameFile, bool bLogIncludes = false);
-	void				AddAllTranslationUnitsInBaseDir(bool bLogIncludes = false);
 	CHeaderFile*		AddHeaderFile(char* szRelativeNameFile);
 	CConfig*			AddConfiguration(char* szConfig);
 	CConfig*			GetConfig(char* szConfiguration);

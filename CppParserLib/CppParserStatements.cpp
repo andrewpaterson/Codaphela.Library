@@ -33,7 +33,7 @@ CCPPSyntaxCompoundStatement* CCPPParser::ParseCompoundStatement(CCPPSyntax* pcPa
 	CCPPScope*						pcScope;
 
 	//{ statements }  [stmt.block]
-	pcCompound = mpcMemory->CreateCompoundStatement(pcParent);
+	pcCompound = mpcMemory->Create<CCPPSyntaxCompoundStatement>(pcParent);
 	pcCompound->miFirstToken = CurrentToken();
 	if (!Expect(CT_OpenCurlyBracket))
 	{
@@ -104,11 +104,11 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 	else if (Is(CT_switch))
 	{
-		pcStatement = ParseSwitchStatement(pcParent);
+		pcStatement = ParseConditionStatement<CCPPSyntaxSwitchStatement>(pcParent, CT_switch);
 	}
 	else if (Is(CT_while))
 	{
-		pcStatement = ParseWhileStatement(pcParent);
+		pcStatement = ParseConditionStatement<CCPPSyntaxWhileStatement>(pcParent, CT_while);
 	}
 	else if (Is(CT_do))
 	{
@@ -132,7 +132,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 	else if (Is(CT_break))
 	{
-		pcBreak = mpcMemory->CreateBreakStatement(pcParent);
+		pcBreak = mpcMemory->Create<CCPPSyntaxBreakStatement>(pcParent);
 		pcBreak->miFirstToken = CurrentToken();
 		Next();
 		if (Expect(CT_SemiColon))
@@ -143,7 +143,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 	else if (Is(CT_continue))
 	{
-		pcContinue = mpcMemory->CreateContinueStatement(pcParent);
+		pcContinue = mpcMemory->Create<CCPPSyntaxContinueStatement>(pcParent);
 		pcContinue->miFirstToken = CurrentToken();
 		Next();
 		if (Expect(CT_SemiColon))
@@ -154,7 +154,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 	else if (Is(CT_goto))
 	{
-		pcGoto = mpcMemory->CreateGotoStatement(pcParent);
+		pcGoto = mpcMemory->Create<CCPPSyntaxGotoStatement>(pcParent);
 		pcGoto->miFirstToken = CurrentToken();
 		Next();
 		if (IsIdentifier())
@@ -174,7 +174,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	}
 	else if (Is(CT_SemiColon))
 	{
-		pcExpression = mpcMemory->CreateExpressionStatement(pcParent);
+		pcExpression = mpcMemory->Create<CCPPSyntaxExpressionStatement>(pcParent);
 		pcExpression->SetTokens(CurrentToken(), CurrentToken());
 		Next();
 		pcStatement = pcExpression;
@@ -182,7 +182,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	else if (IsIdentifier() && IsAhead(1, CT_Colon))
 	{
 		//label: statement  [stmt.label]
-		pcLabel = mpcMemory->CreateLabelStatement(pcParent);
+		pcLabel = mpcMemory->Create<CCPPSyntaxLabelStatement>(pcParent);
 		pcLabel->miFirstToken = CurrentToken();
 		pcLabel->miName = CurrentToken();
 		Next();
@@ -212,7 +212,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 		}
 		if (Is(CT_OpenRoundBracket) && SkipBalanced() && Expect(CT_SemiColon))
 		{
-			pcSkipped = mpcMemory->CreateSkippedStatement(pcParent);
+			pcSkipped = mpcMemory->Create<CCPPSyntaxSkippedStatement>(pcParent);
 			pcSkipped->SetTokens(sStart.iToken, PreviousToken());
 			pcStatement = pcSkipped;
 		}
@@ -224,7 +224,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	else
 	{
 		//expression ;  [stmt.expr]
-		pcExpression = mpcMemory->CreateExpressionStatement(pcParent);
+		pcExpression = mpcMemory->Create<CCPPSyntaxExpressionStatement>(pcParent);
 		pcExpression->miFirstToken = CurrentToken();
 		pcExpression->mpcExpression = ParseExpression(pcExpression);
 		if (pcExpression->mpcExpression && Expect(CT_SemiColon))
@@ -257,7 +257,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	{
 		ErrorAt(sStart.iToken, "Could not parse the statement.");
 	}
-	pcSkipped = mpcMemory->CreateSkippedStatement(pcParent);
+	pcSkipped = mpcMemory->Create<CCPPSyntaxSkippedStatement>(pcParent);
 	pcSkipped->SetTokens(sStart.iToken, PreviousToken());
 	return pcSkipped;
 }
@@ -271,11 +271,9 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 {
 	CCPPToken*					pcToken;
 	ECppTokens					eToken;
-	SCPPParserPosition			sPosition;
+	SCPPTentative				sTentative;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntaxDeclarator*		pcDeclarator;
-	int							iSavedFailed;
-	bool						bDeclaration;
 	bool						bFollows;
 
 	//A statement that could be a declaration is a declaration.  [stmt.ambig]
@@ -283,6 +281,21 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 	if (!pcToken)
 	{
 		return false;
+	}
+
+	if (Is(CT_OpenSquareBracket) && IsAhead(1, CT_OpenSquareBracket))
+	{
+		//[[ starts attributes, never a lambda.  It is a declaration if one follows them.  [dcl.attr.grammar] 7
+		BeginTentative(&sTentative);
+		while (Is(CT_OpenSquareBracket) && IsAhead(1, CT_OpenSquareBracket))
+		{
+			if (!SkipBalanced())
+			{
+				return EndTentative(&sTentative, false);
+			}
+		}
+		bFollows = IsDeclarationStatement(eContext);
+		return EndTentative(&sTentative, bFollows);
 	}
 
 	if (pcToken->IsReservedWord())
@@ -321,7 +334,7 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 		default:
 			break;
 		}
-		if (!IsSimpleTypeKeyword(eToken) && (eToken != CT_typename) && (eToken != CT_decltype) && (eToken != CT___typeof__) && (eToken != CT_ScopeResolution))
+		if (!IsTypeStartKeyword(eToken) && (eToken != CT_ScopeResolution))
 		{
 			return false;
 		}
@@ -343,8 +356,7 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 		return false;
 	}
 
-	sPosition = Mark();
-	BeginTentative(&iSavedFailed);
+	BeginTentative(&sTentative);
 	pcSpecifiers = ParseDeclSpecifiers(NULL, eContext);
 	pcDeclarator = NULL;
 	if (pcSpecifiers && (pcSpecifiers->macpSpecifiers.NumElements() > 0))
@@ -356,9 +368,7 @@ bool CCPPParser::IsDeclarationStatement(ECPPDeclarationContext eContext)
 	{
 		bFollows = false;
 	}
-	bDeclaration = EndTentative(iSavedFailed) && pcDeclarator && pcDeclarator->GetName() && bFollows;
-	Rewind(sPosition);
-	return bDeclaration;
+	return EndTentative(&sTentative, pcDeclarator && pcDeclarator->GetName() && bFollows);
 }
 
 
@@ -371,7 +381,7 @@ CCPPSyntaxStatement* CCPPParser::ParseDeclarationStatement(CCPPSyntax* pcParent,
 	CCPPSyntaxDeclarationStatement*	pcStatement;
 
 	//[stmt.dcl]
-	pcStatement = mpcMemory->CreateDeclarationStatement(pcParent);
+	pcStatement = mpcMemory->Create<CCPPSyntaxDeclarationStatement>(pcParent);
 	pcStatement->miFirstToken = CurrentToken();
 	pcStatement->mpcDeclaration = ParseDeclaration(pcStatement, eContext);
 	if (!pcStatement->mpcDeclaration)
@@ -407,7 +417,7 @@ CCPPSyntaxStatement* CCPPParser::ParseIfStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxIfStatement*	pcIf;
 
 	//if ( condition ) statement else statement  [stmt.if]
-	pcIf = mpcMemory->CreateIfStatement(pcParent);
+	pcIf = mpcMemory->Create<CCPPSyntaxIfStatement>(pcParent);
 	pcIf->miFirstToken = CurrentToken();
 	Expect(CT_if);
 	if (!Expect(CT_OpenRoundBracket))
@@ -445,80 +455,12 @@ CCPPSyntaxStatement* CCPPParser::ParseIfStatement(CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxStatement* CCPPParser::ParseSwitchStatement(CCPPSyntax* pcParent)
-{
-	CCPPSyntaxSwitchStatement*	pcSwitch;
-
-	//switch ( condition ) statement  [stmt.switch]
-	pcSwitch = mpcMemory->CreateSwitchStatement(pcParent);
-	pcSwitch->miFirstToken = CurrentToken();
-	Expect(CT_switch);
-	if (!Expect(CT_OpenRoundBracket))
-	{
-		return NULL;
-	}
-	pcSwitch->mpcScope = PushScope(CPPSC_Block, NULL);
-	pcSwitch->mpcCondition = ParseCondition(pcSwitch);
-	if (!pcSwitch->mpcCondition || !Expect(CT_CloseRoundBracket))
-	{
-		PopScope(pcSwitch->mpcScope);
-		return NULL;
-	}
-	pcSwitch->mpcBody = ParseStatement(pcSwitch);
-	PopScope(pcSwitch->mpcScope);
-	if (!pcSwitch->mpcBody)
-	{
-		return NULL;
-	}
-	pcSwitch->miLastToken = PreviousToken();
-	return pcSwitch;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntaxStatement* CCPPParser::ParseWhileStatement(CCPPSyntax* pcParent)
-{
-	CCPPSyntaxWhileStatement*	pcWhile;
-
-	//while ( condition ) statement  [stmt.while]
-	pcWhile = mpcMemory->CreateWhileStatement(pcParent);
-	pcWhile->miFirstToken = CurrentToken();
-	Expect(CT_while);
-	if (!Expect(CT_OpenRoundBracket))
-	{
-		return NULL;
-	}
-	pcWhile->mpcScope = PushScope(CPPSC_Block, NULL);
-	pcWhile->mpcCondition = ParseCondition(pcWhile);
-	if (!pcWhile->mpcCondition || !Expect(CT_CloseRoundBracket))
-	{
-		PopScope(pcWhile->mpcScope);
-		return NULL;
-	}
-	pcWhile->mpcBody = ParseStatement(pcWhile);
-	PopScope(pcWhile->mpcScope);
-	if (!pcWhile->mpcBody)
-	{
-		return NULL;
-	}
-	pcWhile->miLastToken = PreviousToken();
-	return pcWhile;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CCPPSyntaxStatement* CCPPParser::ParseDoStatement(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxDoStatement*	pcDo;
 
 	//do statement while ( expression ) ;  [stmt.do]
-	pcDo = mpcMemory->CreateDoStatement(pcParent);
+	pcDo = mpcMemory->Create<CCPPSyntaxDoStatement>(pcParent);
 	pcDo->miFirstToken = CurrentToken();
 	Expect(CT_do);
 	pcDo->mpcBody = ParseStatement(pcDo);
@@ -547,9 +489,8 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxExpressionStatement*	pcInit;
 	CCPPSyntaxDeclarationStatement*	pcDeclaration;
 	CCPPScope*						pcScope;
-	SCPPParserPosition				sPosition;
+	SCPPTentative					sTentative;
 	int								iFirstToken;
-	int								iSavedFailed;
 	bool							bRange;
 
 	//for ( init condition ; increment ) statement  [stmt.for]  for ( declaration : range ) statement  [stmt.ranged]
@@ -563,16 +504,14 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 
 	if (IsDeclarationStatement(CPPDC_ForInit))
 	{
-		sPosition = Mark();
-		BeginTentative(&iSavedFailed);
+		BeginTentative(&sTentative);
 		ParseDeclSpecifiers(NULL, CPPDC_ForInit);
 		ParseDeclarator(NULL, CPPDK_Named, CPPDC_ForInit);
-		bRange = EndTentative(iSavedFailed) && Is(CT_Colon);
-		Rewind(sPosition);
+		bRange = EndTentative(&sTentative, Is(CT_Colon));
 
 		if (bRange)
 		{
-			pcRange = mpcMemory->CreateRangeForStatement(pcParent);
+			pcRange = mpcMemory->Create<CCPPSyntaxRangeForStatement>(pcParent);
 			pcRange->miFirstToken = iFirstToken;
 			pcRange->mpcScope = pcScope;
 			pcRange->mpcSpecifiers = ParseDeclSpecifiers(pcRange, CPPDC_ForInit);
@@ -605,7 +544,7 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 		}
 	}
 
-	pcFor = mpcMemory->CreateForStatement(pcParent);
+	pcFor = mpcMemory->Create<CCPPSyntaxForStatement>(pcParent);
 	pcFor->miFirstToken = iFirstToken;
 	pcFor->mpcScope = pcScope;
 
@@ -615,7 +554,7 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 	}
 	else if (IsDeclarationStatement(CPPDC_ForInit))
 	{
-		pcDeclaration = mpcMemory->CreateDeclarationStatement(pcFor);
+		pcDeclaration = mpcMemory->Create<CCPPSyntaxDeclarationStatement>(pcFor);
 		pcDeclaration->miFirstToken = CurrentToken();
 		pcDeclaration->mpcDeclaration = ParseSimpleDeclaration(pcDeclaration, CPPDC_ForInit);
 		if (!pcDeclaration->mpcDeclaration)
@@ -628,7 +567,7 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 	}
 	else
 	{
-		pcInit = mpcMemory->CreateExpressionStatement(pcFor);
+		pcInit = mpcMemory->Create<CCPPSyntaxExpressionStatement>(pcFor);
 		pcInit->miFirstToken = CurrentToken();
 		pcInit->mpcExpression = ParseExpression(pcInit);
 		if (!pcInit->mpcExpression || !Expect(CT_SemiColon))
@@ -690,7 +629,7 @@ CCPPSyntaxStatement* CCPPParser::ParseReturnStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxReturnStatement*	pcReturn;
 
 	//return expression ; or return braced-init-list ;  [stmt.return]
-	pcReturn = mpcMemory->CreateReturnStatement(pcParent);
+	pcReturn = mpcMemory->Create<CCPPSyntaxReturnStatement>(pcParent);
 	pcReturn->miFirstToken = CurrentToken();
 	Expect(CT_return);
 	if (!Is(CT_SemiColon))
@@ -726,7 +665,7 @@ CCPPSyntaxStatement* CCPPParser::ParseCaseStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxCaseStatement*	pcCase;
 
 	//case constant-expression : statement and default : statement  [stmt.label]
-	pcCase = mpcMemory->CreateCaseStatement(pcParent);
+	pcCase = mpcMemory->Create<CCPPSyntaxCaseStatement>(pcParent);
 	pcCase->miFirstToken = CurrentToken();
 	if (Accept(CT_case))
 	{
@@ -769,7 +708,7 @@ CCPPSyntaxStatement* CCPPParser::ParseTryStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxCatchHandler*		pcHandler;
 
 	//try compound-statement handlers  [except]
-	pcTry = mpcMemory->CreateTryStatement(pcParent);
+	pcTry = mpcMemory->Create<CCPPSyntaxTryStatement>(pcParent);
 	pcTry->miFirstToken = CurrentToken();
 	Expect(CT_try);
 	pcTry->mpcBlock = ParseCompoundStatement(pcTry, true);
@@ -780,7 +719,7 @@ CCPPSyntaxStatement* CCPPParser::ParseTryStatement(CCPPSyntax* pcParent)
 
 	while (Is(CT_catch))
 	{
-		pcHandler = mpcMemory->CreateCatchHandler(pcTry);
+		pcHandler = mpcMemory->Create<CCPPSyntaxCatchHandler>(pcTry);
 		pcHandler->miFirstToken = CurrentToken();
 		Next();
 		if (!Expect(CT_OpenRoundBracket))

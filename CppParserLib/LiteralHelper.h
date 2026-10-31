@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2022 Andrew Paterson
+Copyright (c) 2026 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -18,27 +18,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FILE_DEFINE_H__
-#define __FILE_DEFINE_H__
-#include "BaseLib/Chars.h"
-#include "BaseLib/ArrayTemplate.h"
+#ifndef __LITERAL_HELPER_H__
+#define __LITERAL_HELPER_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
-class CFileDefine
+//What ParseIntegerLiteral found.
+enum EIntegerLiteralResult
 {
-public:
-	CChars			mszDefine;
-	unsigned int	muiID;
-
-	void Init(char* szName, unsigned uiID);
-	void Kill(void);
+	ILR_Integer,
+	ILR_Floating,		//A floating literal: szNumber holds it without digit separators.
+	ILR_InvalidDigit,
+	ILR_TooLarge,
+	ILR_InvalidSuffix,
 };
 
 
-int FileDefineCompare(const void* pv1, const void* pv2);
+//An integer literal's value and suffix.  [lex.icon]
+struct SIntegerLiteral
+{
+	char	szNumber[256];	//The literal without digit separators.
+	uint64	ulliValue;
+	int		iBase;
+	bool	bUnsigned;		//u or U.
+	int		iLongs;			//0, 1 (l) or 2 (ll).
+	bool	bInt64;			//Microsoft's i64.
+};
 
 
-typedef CArrayTemplate<CFileDefine> CFileDefineArray;
+EIntegerLiteralResult	ParseIntegerLiteral(const char* szText, size uiLength, SIntegerLiteral* psLiteral);
+bool					DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue);
 
 
-#endif // !__FILE_DEFINE_H__
+#endif // !__LITERAL_HELPER_H__
+

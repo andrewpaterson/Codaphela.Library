@@ -38,26 +38,6 @@ void CCPPSyntaxWhileStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxWhileStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxWhileStatement::GetType(void)
-{
-	return "WhileStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxWhileStatement::GetKind(void)
 {
 	return CPPS_WhileStatement;
@@ -94,18 +74,12 @@ size CCPPSyntaxWhileStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxWhileStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCondition;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
 	{
-		return mpcBody;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

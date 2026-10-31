@@ -42,7 +42,7 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 #define IR_INLINE_UNKNOWN			((uint64)-1)
 
 
-//How often calls were made, from a profile of the program (CAsm816Profile): what a profile guided inliner asks.
+//How often calls were made, from a profile of the program (CAsm65816Profile): what a profile guided inliner asks.
 class CIRInlineProfile
 {
 public:
@@ -99,6 +99,8 @@ protected:
 	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
 	bool			HasLoopCandidate(void);
 	bool			InlineHottest(void);
+	CIRFunction*	DirectCallee(SIRInstruction* psInstruction);
+	bool			InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCallee);
 	size			HotLimit(uint64 ulliCount);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);

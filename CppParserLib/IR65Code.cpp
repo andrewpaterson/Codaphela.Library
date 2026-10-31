@@ -88,20 +88,7 @@ static const SIR65CodeMnemonic gasIR65CodeMnemonics[] =
 //////////////////////////////////////////////////////////////////////////
 static int IR65CodeRegister(SIR65CodeOperand* psOperand)
 {
-	int	i;
-
-	if (psOperand->uiLength != 1)
-	{
-		return -1;
-	}
-	for (i = 0; i < IR65_CODE_REGISTERS; i++)
-	{
-		if (psOperand->szStart[0] == gacIR65CodeRegisters[i])
-		{
-			return i;
-		}
-	}
-	return -1;
+	return CIR65Code::RegisterIndex(psOperand->szStart, psOperand->uiLength);
 }
 
 
@@ -520,6 +507,66 @@ uint8 CIR65Code::Bands(uint8 uiBits)
 char CIR65Code::RegisterName(int iRegister)
 {
 	return gacIR65CodeRegisters[iRegister];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 0 to 3 for a register A, B, X or Y named by sz (uiLength long: just the
+// name), -1 for anything else.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Code::RegisterIndex(const char* sz, size uiLength)
+{
+	int	i;
+
+	if (uiLength != 1)
+	{
+		return -1;
+	}
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
+	{
+		if (sz[0] == gacIR65CodeRegisters[i])
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's own memory, [n + W], [n + V] or [n + S] (a pseudo
+// register or the frame, which only the function's own code touches, so
+// never volatile): its base register ('W', 'V' or 'S') and offset.  False
+// for any other operand.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::IsOwnMemory(const char* szOperand, size uiLength, uint8* puiBase, int32* piOffset)
+{
+	size	ui;
+	char	cBase;
+
+	if ((uiLength < 7) || (szOperand[0] != '[') || (szOperand[uiLength - 1] != ']'))
+	{
+		return false;
+	}
+	cBase = szOperand[uiLength - 2];
+	if (((cBase != 'W') && (cBase != 'V') && (cBase != 'S')) || (memcmp(&szOperand[uiLength - 5], " + ", 3) != 0))
+	{
+		return false;
+	}
+	for (ui = 1; ui < uiLength - 5; ui++)
+	{
+		if ((szOperand[ui] < '0') || (szOperand[ui] > '9'))
+		{
+			return false;
+		}
+	}
+	*puiBase = (uint8)cBase;
+	*piOffset = atoi(&szOperand[1]);
+	return true;
 }
 
 

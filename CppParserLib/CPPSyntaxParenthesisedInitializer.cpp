@@ -47,16 +47,6 @@ void CCPPSyntaxParenthesisedInitializer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxParenthesisedInitializer::GetType(void)
-{
-	return "ParenthesisedInitializer";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxParenthesisedInitializer::GetKind(void)
 {
 	return CPPS_ParenthesisedInitializer;
@@ -91,12 +81,12 @@ size CCPPSyntaxParenthesisedInitializer::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxParenthesisedInitializer::GetChild(size iIndex)
 {
-	if (iIndex < macpElements.NumElements())
-	{
-		return macpElements.GetPtr(iIndex);
-	}
-	iIndex -= macpElements.NumElements();
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, &macpElements, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

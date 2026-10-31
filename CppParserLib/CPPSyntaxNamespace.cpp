@@ -52,16 +52,6 @@ void CCPPSyntaxNamespace::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxNamespace::GetType(void)
-{
-	return "Namespace";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxNamespace::GetKind(void)
 {
 	return CPPS_Namespace;
@@ -115,18 +105,12 @@ size CCPPSyntaxNamespace::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxNamespace::GetChild(size iIndex)
 {
-	if (iIndex < macpAttributes.NumElements())
-	{
-		return macpAttributes.GetPtr(iIndex);
-	}
-	iIndex -= macpAttributes.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpDeclarations.NumElements())
+	if (IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, &macpDeclarations, &pcChild))
 	{
-		return macpDeclarations.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpDeclarations.NumElements();
-
 	return NULL;
 }
 

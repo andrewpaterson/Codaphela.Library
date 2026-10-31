@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Asm65Assembler.h"
+#include "Asm65C64Assembler.h"
 
 
 //Immediate widths in bytes, from the decoder's table without the unused code 0.  The
@@ -27,135 +27,135 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 static const uint8* const gauiWidthBytes = &gaui65ImmediateBytes[1];
 
 
-enum EAsm65Kind
+enum EAsm65C64Kind
 {
-	AK65_ArithmeticLogic,
-	AK65_Shift,
-	AK65_Jump,
-	AK65_Return,
-	AK65_Push,
-	AK65_Pull,
-	AK65_StateBits,
-	AK65_Width,
-	AK65_Break,
-	AK65_Stop,
-	AK65_GetWidth,
-	AK65_ExtendWidth,
-	AK65_Branch,
-	AK65_BranchEqual,
-	AK65_NoOperation,
-	AK65_CopyExtend,
-	AK65_MultiplyDivide,
-	AK65_NegateAbsolute,
-	AK65_Find,
-	AK65_Subcopy,
-	AK65_BitToStatus,
-	AK65_StatusToBit,
-	AK65_StatusToStatus,
-	AK65_Block,
-	AK65_Vector,
-	AK65_Hardware,
+	AK65C64_ArithmeticLogic,
+	AK65C64_Shift,
+	AK65C64_Jump,
+	AK65C64_Return,
+	AK65C64_Push,
+	AK65C64_Pull,
+	AK65C64_StateBits,
+	AK65C64_Width,
+	AK65C64_Break,
+	AK65C64_Stop,
+	AK65C64_GetWidth,
+	AK65C64_ExtendWidth,
+	AK65C64_Branch,
+	AK65C64_BranchEqual,
+	AK65C64_NoOperation,
+	AK65C64_CopyExtend,
+	AK65C64_MultiplyDivide,
+	AK65C64_NegateAbsolute,
+	AK65C64_Find,
+	AK65C64_Subcopy,
+	AK65C64_BitToStatus,
+	AK65C64_StatusToBit,
+	AK65C64_StatusToStatus,
+	AK65C64_Block,
+	AK65C64_Vector,
+	AK65C64_Hardware,
 };
 
 
-struct SAsm65Mnemonic
+struct SAsm65C64Mnemonic
 {
 	const char*	szName;
-	EAsm65Kind	eKind;
+	EAsm65C64Kind	eKind;
 	uint16		uiParameter;
 };
 
 
 //Jump parameters: bit 0 push C, bit 1 relative.  Find parameters: bit 2 set, bits 1-0 the unit.
-static const SAsm65Mnemonic gasMnemonics[] =
+static const SAsm65C64Mnemonic gasMnemonics[] =
 {
-	{ "cpy",	AK65_ArithmeticLogic,	0 },
-	{ "and",	AK65_ArithmeticLogic,	1 },
-	{ "or",		AK65_ArithmeticLogic,	2 },
-	{ "xor",	AK65_ArithmeticLogic,	3 },
-	{ "tst",	AK65_ArithmeticLogic,	4 },
-	{ "add",	AK65_ArithmeticLogic,	5 },
-	{ "sub",	AK65_ArithmeticLogic,	6 },
-	{ "cmp",	AK65_ArithmeticLogic,	7 },
-	{ "shl",	AK65_Shift,				1 },
-	{ "shr",	AK65_Shift,				0 },
-	{ "jmp",	AK65_Jump,				0 },
-	{ "jsr",	AK65_Jump,				1 },
-	{ "bra",	AK65_Jump,				2 },
-	{ "brsr",	AK65_Jump,				3 },
-	{ "ret",	AK65_Return,			0 },
-	{ "rti",	AK65_Return,			1 },
-	{ "psh",	AK65_Push,				0 },
-	{ "pul",	AK65_Pull,				0 },
-	{ "sep",	AK65_StateBits,			0 },
-	{ "cep",	AK65_StateBits,			1 },
-	{ "wth",	AK65_Width,				0 },
-	{ "wtth",	AK65_Width,				1 },
-	{ "brk",	AK65_Break,				0 },
-	{ "stp",	AK65_Stop,				0 },
-	{ "gwth",	AK65_GetWidth,			0 },
-	{ "wthx",	AK65_ExtendWidth,		0 },
-	{ "brac",	AK65_Branch,			0 },
-	{ "bras",	AK65_Branch,			1 },
-	{ "brasa",	AK65_Branch,			2 },
-	{ "braso",	AK65_Branch,			3 },
-	{ "brae",	AK65_BranchEqual,		0 },
-	{ "brane",	AK65_BranchEqual,		1 },
-	{ "nop",	AK65_NoOperation,		0 },
-	{ "cpyx",	AK65_CopyExtend,		0 },
-	{ "mul",	AK65_MultiplyDivide,	0 },
-	{ "div",	AK65_MultiplyDivide,	1 },
-	{ "neg",	AK65_NegateAbsolute,	2 },
-	{ "abs",	AK65_NegateAbsolute,	3 },
-	{ "fsbi",	AK65_Find,				4 },
-	{ "fcbi",	AK65_Find,				0 },
-	{ "fscr",	AK65_Find,				5 },
-	{ "fccr",	AK65_Find,				1 },
-	{ "fsny",	AK65_Find,				6 },
-	{ "fcny",	AK65_Find,				2 },
-	{ "fsby",	AK65_Find,				7 },
-	{ "fcby",	AK65_Find,				3 },
-	{ "scp",	AK65_Subcopy,			0 },
-	{ "scb",	AK65_Subcopy,			1 },
-	{ "bist",	AK65_BitToStatus,		0 },
-	{ "stab",	AK65_StatusToBit,		0 },
-	{ "stat",	AK65_StatusToStatus,	0 },
-	{ "bcpy",	AK65_Block,				0 },
-	{ "band",	AK65_Block,				2 },
-	{ "btst",	AK65_Block,				3 },
-	{ "bor",	AK65_Block,				4 },
-	{ "bxor",	AK65_Block,				5 },
-	{ "badd",	AK65_Block,				6 },
-	{ "bsub",	AK65_Block,				8 },
-	{ "bcmp",	AK65_Block,				10 },
-	{ "bpcpy",	AK65_Block,				12 },
-	{ "bpand",	AK65_Block,				13 },
-	{ "bpor",	AK65_Block,				14 },
-	{ "bpxor",	AK65_Block,				15 },
-	{ "vcpy",	AK65_Vector,			0 },
-	{ "vnot",	AK65_Vector,			1 },
-	{ "vand",	AK65_Vector,			2 },
-	{ "vtst",	AK65_Vector,			3 },
-	{ "vor",	AK65_Vector,			4 },
-	{ "vxor",	AK65_Vector,			5 },
-	{ "vadd",	AK65_Vector,			6 },
-	{ "vsub",	AK65_Vector,			8 },
-	{ "vcmp",	AK65_Vector,			10 },
-	{ "vpcpy",	AK65_Vector,			12 },
-	{ "vpand",	AK65_Vector,			13 },
-	{ "vpor",	AK65_Vector,			14 },
-	{ "vpxor",	AK65_Vector,			15 },
-	{ "hws",	AK65_Hardware,			0 },
-	{ "hwg",	AK65_Hardware,			1 },
-	{ "hwsp",	AK65_Hardware,			2 },
-	{ "hwcp",	AK65_Hardware,			3 },
+	{ "cpy",	AK65C64_ArithmeticLogic,	0 },
+	{ "and",	AK65C64_ArithmeticLogic,	1 },
+	{ "or",		AK65C64_ArithmeticLogic,	2 },
+	{ "xor",	AK65C64_ArithmeticLogic,	3 },
+	{ "tst",	AK65C64_ArithmeticLogic,	4 },
+	{ "add",	AK65C64_ArithmeticLogic,	5 },
+	{ "sub",	AK65C64_ArithmeticLogic,	6 },
+	{ "cmp",	AK65C64_ArithmeticLogic,	7 },
+	{ "shl",	AK65C64_Shift,				1 },
+	{ "shr",	AK65C64_Shift,				0 },
+	{ "jmp",	AK65C64_Jump,				0 },
+	{ "jsr",	AK65C64_Jump,				1 },
+	{ "bra",	AK65C64_Jump,				2 },
+	{ "brsr",	AK65C64_Jump,				3 },
+	{ "ret",	AK65C64_Return,			0 },
+	{ "rti",	AK65C64_Return,			1 },
+	{ "psh",	AK65C64_Push,				0 },
+	{ "pul",	AK65C64_Pull,				0 },
+	{ "sep",	AK65C64_StateBits,			0 },
+	{ "cep",	AK65C64_StateBits,			1 },
+	{ "wth",	AK65C64_Width,				0 },
+	{ "wtth",	AK65C64_Width,				1 },
+	{ "brk",	AK65C64_Break,				0 },
+	{ "stp",	AK65C64_Stop,				0 },
+	{ "gwth",	AK65C64_GetWidth,			0 },
+	{ "wthx",	AK65C64_ExtendWidth,		0 },
+	{ "brac",	AK65C64_Branch,			0 },
+	{ "bras",	AK65C64_Branch,			1 },
+	{ "brasa",	AK65C64_Branch,			2 },
+	{ "braso",	AK65C64_Branch,			3 },
+	{ "brae",	AK65C64_BranchEqual,		0 },
+	{ "brane",	AK65C64_BranchEqual,		1 },
+	{ "nop",	AK65C64_NoOperation,		0 },
+	{ "cpyx",	AK65C64_CopyExtend,		0 },
+	{ "mul",	AK65C64_MultiplyDivide,	0 },
+	{ "div",	AK65C64_MultiplyDivide,	1 },
+	{ "neg",	AK65C64_NegateAbsolute,	2 },
+	{ "abs",	AK65C64_NegateAbsolute,	3 },
+	{ "fsbi",	AK65C64_Find,				4 },
+	{ "fcbi",	AK65C64_Find,				0 },
+	{ "fscr",	AK65C64_Find,				5 },
+	{ "fccr",	AK65C64_Find,				1 },
+	{ "fsny",	AK65C64_Find,				6 },
+	{ "fcny",	AK65C64_Find,				2 },
+	{ "fsby",	AK65C64_Find,				7 },
+	{ "fcby",	AK65C64_Find,				3 },
+	{ "scp",	AK65C64_Subcopy,			0 },
+	{ "scb",	AK65C64_Subcopy,			1 },
+	{ "bist",	AK65C64_BitToStatus,		0 },
+	{ "stab",	AK65C64_StatusToBit,		0 },
+	{ "stat",	AK65C64_StatusToStatus,	0 },
+	{ "bcpy",	AK65C64_Block,				0 },
+	{ "band",	AK65C64_Block,				2 },
+	{ "btst",	AK65C64_Block,				3 },
+	{ "bor",	AK65C64_Block,				4 },
+	{ "bxor",	AK65C64_Block,				5 },
+	{ "badd",	AK65C64_Block,				6 },
+	{ "bsub",	AK65C64_Block,				8 },
+	{ "bcmp",	AK65C64_Block,				10 },
+	{ "bpcpy",	AK65C64_Block,				12 },
+	{ "bpand",	AK65C64_Block,				13 },
+	{ "bpor",	AK65C64_Block,				14 },
+	{ "bpxor",	AK65C64_Block,				15 },
+	{ "vcpy",	AK65C64_Vector,			0 },
+	{ "vnot",	AK65C64_Vector,			1 },
+	{ "vand",	AK65C64_Vector,			2 },
+	{ "vtst",	AK65C64_Vector,			3 },
+	{ "vor",	AK65C64_Vector,			4 },
+	{ "vxor",	AK65C64_Vector,			5 },
+	{ "vadd",	AK65C64_Vector,			6 },
+	{ "vsub",	AK65C64_Vector,			8 },
+	{ "vcmp",	AK65C64_Vector,			10 },
+	{ "vpcpy",	AK65C64_Vector,			12 },
+	{ "vpand",	AK65C64_Vector,			13 },
+	{ "vpor",	AK65C64_Vector,			14 },
+	{ "vpxor",	AK65C64_Vector,			15 },
+	{ "hws",	AK65C64_Hardware,			0 },
+	{ "hwg",	AK65C64_Hardware,			1 },
+	{ "hwsp",	AK65C64_Hardware,			2 },
+	{ "hwcp",	AK65C64_Hardware,			3 },
 };
 
 
 //Where the logical (codes 0 to 4) and arithmetic (5 to 7) instructions put their fields.
 //The field is the second register, the immediate width, the embedded value or the
 //addressing register.  Logical memory forms have no sign bit.
-struct SAsm65AluLayout
+struct SAsm65C64AluLayout
 {
 	int					iFieldShift;
 	int					iModeShift;
@@ -168,8 +168,8 @@ struct SAsm65AluLayout
 	int					iSecondSize;
 };
 
-static const SAsm65AluLayout gsLogicalLayout = { 8, 4, 11, 10, 4, gae65Registers, 8, gae65VWXY, 4 };
-static const SAsm65AluLayout gsArithmeticLayout = { 9, 5, 4, 11, 3, gae65NoneVXY, 4, gae65XY, 2 };
+static const SAsm65C64AluLayout gsLogicalLayout = { 8, 4, 11, 10, 4, gae65Registers, 8, gae65VWXY, 4 };
+static const SAsm65C64AluLayout gsArithmeticLayout = { 9, 5, 4, 11, 3, gae65NoneVXY, 4, gae65XY, 2 };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -177,7 +177,7 @@ static const SAsm65AluLayout gsArithmeticLayout = { 9, 5, 4, 11, 3, gae65NoneVXY
 // uiTop holds the fields above the layout's field (the first register, swap and sign).
 //
 //////////////////////////////////////////////////////////////////////////
-static uint16 AluOpcode(const SAsm65AluLayout* psLayout, uint16 uiCode, uint16 uiTop, uint16 uiField, uint16 uiMode, bool bSigned)
+static uint16 AluOpcode(const SAsm65C64AluLayout* psLayout, uint16 uiCode, uint16 uiTop, uint16 uiField, uint16 uiMode, bool bSigned)
 {
 	return (uint16)(uiTop | (uiField << psLayout->iFieldShift) | (uiMode << psLayout->iModeShift) | (bSigned << psLayout->iSignedShift) | uiCode);
 }
@@ -241,7 +241,7 @@ static int64 RelativeOffset(SAsm65Value* psValue, uint32 uiAddress, uint8 uiWord
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void StartInstruction(SAsm65Instruction* psInstruction, uint16 uiOpcode)
+static void StartInstruction(SAsm65C64Instruction* psInstruction, uint16 uiOpcode)
 {
 	psInstruction->auiWords[0] = uiOpcode;
 	psInstruction->uiWords = 1;
@@ -253,12 +253,12 @@ static void StartInstruction(SAsm65Instruction* psInstruction, uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Instruction(SAsm65Token* psMnemonic)
+bool CAsm65C64Assembler::Instruction(SAsm65Token* psMnemonic)
 {
 	size					i;
-	const SAsm65Mnemonic*	psEntry;
+	const SAsm65C64Mnemonic*	psEntry;
 
-	for (i = 0; i < sizeof(gasMnemonics) / sizeof(SAsm65Mnemonic); i++)
+	for (i = 0; i < sizeof(gasMnemonics) / sizeof(SAsm65C64Mnemonic); i++)
 	{
 		psEntry = &gasMnemonics[i];
 		if (!psMnemonic->IsIdentifierIgnoreCase(psEntry->szName))
@@ -268,57 +268,57 @@ bool CAsm65Assembler::Instruction(SAsm65Token* psMnemonic)
 
 		switch (psEntry->eKind)
 		{
-		case AK65_ArithmeticLogic:
+		case AK65C64_ArithmeticLogic:
 			return ArithmeticLogic(psEntry->uiParameter);
-		case AK65_Shift:
+		case AK65C64_Shift:
 			return Shift(psEntry->uiParameter != 0);
-		case AK65_Jump:
+		case AK65C64_Jump:
 			return Jump((psEntry->uiParameter & 1) != 0, (psEntry->uiParameter & 2) != 0);
-		case AK65_Return:
+		case AK65C64_Return:
 			return Return(psEntry->uiParameter != 0);
-		case AK65_Push:
+		case AK65C64_Push:
 			return Push();
-		case AK65_Pull:
+		case AK65C64_Pull:
 			return Pull();
-		case AK65_StateBits:
+		case AK65C64_StateBits:
 			return StateBits(psEntry->uiParameter);
-		case AK65_Width:
+		case AK65C64_Width:
 			return Width(psEntry->uiParameter != 0);
-		case AK65_Break:
+		case AK65C64_Break:
 			return Break();
-		case AK65_Stop:
+		case AK65C64_Stop:
 			return Stop();
-		case AK65_GetWidth:
+		case AK65C64_GetWidth:
 			return GetWidth();
-		case AK65_ExtendWidth:
+		case AK65C64_ExtendWidth:
 			return ExtendWidth();
-		case AK65_Branch:
+		case AK65C64_Branch:
 			return Branch(psEntry->uiParameter);
-		case AK65_BranchEqual:
+		case AK65C64_BranchEqual:
 			return BranchEqual(psEntry->uiParameter);
-		case AK65_NoOperation:
+		case AK65C64_NoOperation:
 			return NoOperation();
-		case AK65_CopyExtend:
+		case AK65C64_CopyExtend:
 			return CopyExtend();
-		case AK65_MultiplyDivide:
+		case AK65C64_MultiplyDivide:
 			return MultiplyDivide(psEntry->uiParameter);
-		case AK65_NegateAbsolute:
+		case AK65C64_NegateAbsolute:
 			return NegateAbsolute(psEntry->uiParameter);
-		case AK65_Find:
+		case AK65C64_Find:
 			return Find((psEntry->uiParameter & 4) != 0, psEntry->uiParameter & 3);
-		case AK65_Subcopy:
+		case AK65C64_Subcopy:
 			return Subcopy(psEntry->uiParameter != 0);
-		case AK65_BitToStatus:
+		case AK65C64_BitToStatus:
 			return BitToStatus();
-		case AK65_StatusToBit:
+		case AK65C64_StatusToBit:
 			return StatusToBit();
-		case AK65_StatusToStatus:
+		case AK65C64_StatusToStatus:
 			return StatusToStatus();
-		case AK65_Block:
+		case AK65C64_Block:
 			return Block(psEntry->uiParameter);
-		case AK65_Vector:
+		case AK65C64_Vector:
 			return Vector(psEntry->uiParameter);
-		case AK65_Hardware:
+		case AK65C64_Hardware:
 			return Error(psMnemonic, "Hardware register instructions are not supported");
 		}
 	}
@@ -334,7 +334,7 @@ bool CAsm65Assembler::Instruction(SAsm65Token* psMnemonic)
 // its width is given (the linker checks it fits).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiExplicitBytes, const uint8* auiBytes, int iNumBytes, uint8 uiFixedWords, SAsm65Token* psToken, uint8* puiBytes)
+bool CAsm65C64Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiExplicitBytes, const uint8* auiBytes, int iNumBytes, uint8 uiFixedWords, SAsm65Token* psToken, uint8* puiBytes)
 {
 	int		i;
 	uint8	uiMinimumWords;
@@ -364,7 +364,7 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 		return true;
 	}
 
-	uiMinimumWords = GetMinimumWords();
+	uiMinimumWords = GetMinimumLength();
 	for (i = 0; i < iNumBytes; i++)
 	{
 		uiBytes = auiBytes[i];
@@ -402,7 +402,7 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 // when the target is a label.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken, uint8* puiBytes, int64* piOffset)
+bool CAsm65C64Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken, uint8* puiBytes, int64* piOffset)
 {
 	int		i;
 	uint8	uiWords;
@@ -418,7 +418,7 @@ bool CAsm65Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken,
 	{
 		uiWords = 1 + (gauiWidthBytes[i] + 1) / 2;
 		*piOffset = RelativeOffset(psTarget, muiStatementAddress, uiWords);
-		if ((uiWords >= GetMinimumWords()) && (!psTarget->bResolved || Asm65Fits(*piOffset, gauiWidthBytes[i], true)))
+		if ((uiWords >= GetMinimumLength()) && (!psTarget->bResolved || Asm65Fits(*piOffset, gauiWidthBytes[i], true)))
 		{
 			*puiBytes = gauiWidthBytes[i];
 			return true;
@@ -432,7 +432,7 @@ bool CAsm65Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::AddValueWords(SAsm65Instruction* psInstruction, uint64 uiValue, uint8 uiBytes)
+void CAsm65C64Assembler::AddValueWords(SAsm65C64Instruction* psInstruction, uint64 uiValue, uint8 uiBytes)
 {
 	uint8	i;
 
@@ -452,7 +452,7 @@ void CAsm65Assembler::AddValueWords(SAsm65Instruction* psInstruction, uint64 uiV
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::AddAddressWords(SAsm65Instruction* psInstruction, SAsm65Memory* psMemory)
+void CAsm65C64Assembler::AddAddressWords(SAsm65C64Instruction* psInstruction, SAsm65C64Memory* psMemory)
 {
 	if (psMemory->uiAddressWords != 0)
 	{
@@ -466,16 +466,16 @@ void CAsm65Assembler::AddAddressWords(SAsm65Instruction* psInstruction, SAsm65Me
 // The value's words, or zeros and a relocation when the value is a section address.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::AddRelocatableWords(SAsm65Instruction* psInstruction, SAsm65Value* psValue, uint64 uiValue, uint8 uiBytes, bool bSigned, bool bRelative, SAsm65Token* psToken)
+bool CAsm65C64Assembler::AddRelocatableWords(SAsm65C64Instruction* psInstruction, SAsm65Value* psValue, uint64 uiValue, uint8 uiBytes, bool bSigned, bool bRelative, SAsm65Token* psToken)
 {
-	SAsm65InstructionRelocation*	psRelocation;
+	SAsm65C64InstructionRelocation*	psRelocation;
 
 	if (!IsRelocatable(psValue))
 	{
 		AddValueWords(psInstruction, uiValue, uiBytes);
 		return true;
 	}
-	if (psInstruction->uiRelocations == ASM65_MAX_INSTRUCTION_RELOCATIONS)
+	if (psInstruction->uiRelocations == ASM65C64_MAX_INSTRUCTION_RELOCATIONS)
 	{
 		return Error(psToken, "Too many section addresses in one instruction");
 	}
@@ -500,9 +500,9 @@ bool CAsm65Assembler::AddRelocatableWords(SAsm65Instruction* psInstruction, SAsm
 // modes with an address: offset when the address is below 0001:0000.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMemory, uint8 uiFixedWords)
+bool CAsm65C64Assembler::MemoryOperand(SAsm65C64Operand* psOperand, SAsm65C64Memory* psMemory, uint8 uiFixedWords)
 {
-	SAsm65Address*	psAddress;
+	SAsm65C64Address*	psAddress;
 	bool			bOffset;
 	bool			bFits;
 	bool			bRelocatable;
@@ -535,7 +535,7 @@ bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMe
 	}
 	else
 	{
-		bOffset = bFits && (uiFixedWords + 1 >= GetMinimumWords());
+		bOffset = bFits && (uiFixedWords + 1 >= GetMinimumLength());
 	}
 
 	if (!bOffset && !bRelocatable && psAddress->sValue.bResolved && ((psAddress->sValue.iValue < 0) || (psAddress->sValue.iValue > 0xFFFFFFFFLL)))
@@ -556,7 +556,7 @@ bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SingleRegisterField(SAsm65Memory* psMemory, const E65Register* aeList, int iListSize, SAsm65Token* psToken, uint16* puiField)
+bool CAsm65C64Assembler::SingleRegisterField(SAsm65C64Memory* psMemory, const E65Register* aeList, int iListSize, SAsm65Token* psToken, uint16* puiField)
 {
 	int		iIndex;
 	CChars	szMessage;
@@ -593,7 +593,7 @@ bool CAsm65Assembler::SingleRegisterField(SAsm65Memory* psMemory, const E65Regis
 // and [R1 + R2] may be written either way round.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::TwoRegisterFields(SAsm65Memory* psMemory, const E65Register* aeSecondList, int iSecondListSize, SAsm65Token* psToken, uint16* puiFirst, uint16* puiSecond)
+bool CAsm65C64Assembler::TwoRegisterFields(SAsm65C64Memory* psMemory, const E65Register* aeSecondList, int iSecondListSize, SAsm65Token* psToken, uint16* puiFirst, uint16* puiSecond)
 {
 	int		iFirst;
 	int		iSecond;
@@ -627,12 +627,12 @@ bool CAsm65Assembler::TwoRegisterFields(SAsm65Memory* psMemory, const E65Registe
 //   op [address], value    embedded (-8 to 8)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
+bool CAsm65C64Assembler::ArithmeticLogic(uint16 uiCode)
 {
-	SAsm65Operand			sFirst;
-	SAsm65Operand			sSecond;
-	SAsm65Instruction		sInstruction;
-	const SAsm65AluLayout*	psLayout;
+	SAsm65C64Operand			sFirst;
+	SAsm65C64Operand			sSecond;
+	SAsm65C64Instruction		sInstruction;
+	const SAsm65C64AluLayout*	psLayout;
 	bool					bSigned;
 	uint16					uiFirst;
 	uint16					uiSign;
@@ -648,18 +648,18 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 
 	psLayout = (uiCode >= 5) ? &gsArithmeticLayout : &gsLogicalLayout;
 	uiFirst = (uint16)(sFirst.eRegister << 13);
-	if ((sFirst.eKind == AO65_Memory) || (sSecond.eKind == AO65_Memory))
+	if ((sFirst.eKind == AO65C64_Memory) || (sSecond.eKind == AO65C64_Memory))
 	{
 		if (!ArithmeticLogicMemory(uiCode, &sFirst, &sSecond, &sInstruction))
 		{
 			return false;
 		}
 	}
-	else if (sFirst.eKind != AO65_Register)
+	else if (sFirst.eKind != AO65C64_Register)
 	{
 		return Error(sFirst.psToken, "The first operand must be a register or memory");
 	}
-	else if (sSecond.eKind == AO65_Register)
+	else if (sSecond.eKind == AO65C64_Register)
 	{
 		StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, uiFirst, sSecond.eRegister, OPERAND_MODE_REGISTER, sSecond.bSigned));
 	}
@@ -668,12 +668,12 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 		iValue = sSecond.sValue.iValue;
 		bRelocatable = IsRelocatable(&sSecond.sValue);
 		bSigned = sSecond.bSigned || (!bRelocatable && (iValue < 0));
-		if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumWords() <= 1))
+		if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumLength() <= 1))
 		{
 			//The zero register.
 			StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, uiFirst, R65_Zero, OPERAND_MODE_REGISTER, false));
 		}
-		else if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (GetMinimumWords() <= 1) && EmbeddedField(iValue, psLayout->iEmbeddedBits, &uiSign, &uiField))
+		else if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (GetMinimumLength() <= 1) && EmbeddedField(iValue, psLayout->iEmbeddedBits, &uiSign, &uiField))
 		{
 			StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, (uint16)(uiFirst | (uiSign << 12)), uiField, OPERAND_MODE_EMBEDDED, false));
 		}
@@ -702,11 +702,11 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 // sign bit; arithmetic instructions address with V, X or Y and have a sign bit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction)
+bool CAsm65C64Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65C64Operand* psFirst, SAsm65C64Operand* psSecond, SAsm65C64Instruction* psInstruction)
 {
-	SAsm65Operand*			psMemoryOperand;
-	SAsm65Memory			sMemory;
-	const SAsm65AluLayout*	psLayout;
+	SAsm65C64Operand*			psMemoryOperand;
+	SAsm65C64Memory			sMemory;
+	const SAsm65C64AluLayout*	psLayout;
 	bool					bArithmetic;
 	bool					bSwap;
 	bool					bEmbedded;
@@ -720,7 +720,7 @@ bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirs
 
 	bArithmetic = uiCode >= 5;
 	psLayout = bArithmetic ? &gsArithmeticLayout : &gsLogicalLayout;
-	bSwap = psFirst->eKind == AO65_Memory;
+	bSwap = psFirst->eKind == AO65C64_Memory;
 	bEmbedded = false;
 	uiSign = 0;
 	uiField = 0;
@@ -728,11 +728,11 @@ bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirs
 	if (bSwap)
 	{
 		psMemoryOperand = psFirst;
-		if (psSecond->eKind == AO65_Register)
+		if (psSecond->eKind == AO65C64_Register)
 		{
 			eRegister = psSecond->eRegister;
 		}
-		else if (psSecond->eKind == AO65_Constant)
+		else if (psSecond->eKind == AO65C64_Constant)
 		{
 			if (psSecond->uiWidthBytes != 0)
 			{
@@ -811,11 +811,11 @@ bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirs
 //   shl R, [address]       shl [address], R       shl [address], 1 to 8
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Shift(bool bLeft)
+bool CAsm65C64Assembler::Shift(bool bLeft)
 {
-	SAsm65Operand		sFirst;
-	SAsm65Operand		sSecond;
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Operand		sFirst;
+	SAsm65C64Operand		sSecond;
+	SAsm65C64Instruction	sInstruction;
 	uint16				uiExtend;
 	uint8				uiBytes;
 	int64				iValue;
@@ -830,18 +830,18 @@ bool CAsm65Assembler::Shift(bool bLeft)
 	}
 
 	uiExtend = bLeft ? 2 : 3;
-	if ((sFirst.eKind == AO65_Memory) || (sSecond.eKind == AO65_Memory))
+	if ((sFirst.eKind == AO65C64_Memory) || (sSecond.eKind == AO65C64_Memory))
 	{
 		if (!ShiftMemory(uiExtend, &sFirst, &sSecond, &sInstruction))
 		{
 			return false;
 		}
 	}
-	else if (sFirst.eKind != AO65_Register)
+	else if (sFirst.eKind != AO65C64_Register)
 	{
 		return Error(sFirst.psToken, "The first operand must be a register or memory");
 	}
-	else if (sSecond.eKind == AO65_Register)
+	else if (sSecond.eKind == AO65C64_Register)
 	{
 		StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (sSecond.eRegister << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 14));
 	}
@@ -852,11 +852,11 @@ bool CAsm65Assembler::Shift(bool bLeft)
 		{
 			return Error(sSecond.psToken, "A shift amount cannot be negative");
 		}
-		if ((sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumWords() <= 1))
+		if ((sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumLength() <= 1))
 		{
 			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (R65_Zero << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 14));
 		}
-		else if ((sSecond.uiWidthBytes == 0) && (iValue >= 1) && (iValue <= 8) && (GetMinimumWords() <= 1))
+		else if ((sSecond.uiWidthBytes == 0) && (iValue >= 1) && (iValue <= 8) && (GetMinimumLength() <= 1))
 		{
 			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | ((iValue - 1) << 10) | (OPERAND_MODE_EMBEDDED << 6) | (uiExtend << 4) | 14));
 		}
@@ -882,11 +882,11 @@ bool CAsm65Assembler::Shift(bool bLeft)
 // with a two register address.  Addressing registers are V, X or Y.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction)
+bool CAsm65C64Assembler::ShiftMemory(uint16 uiExtend, SAsm65C64Operand* psFirst, SAsm65C64Operand* psSecond, SAsm65C64Instruction* psInstruction)
 {
-	SAsm65Operand*	psMemoryOperand;
-	SAsm65Operand*	psOther;
-	SAsm65Memory	sMemory;
+	SAsm65C64Operand*	psMemoryOperand;
+	SAsm65C64Operand*	psOther;
+	SAsm65C64Memory	sMemory;
 	bool			bSwap;
 	int				iRegister;
 	uint16			uiFirst;
@@ -894,14 +894,14 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 	uint16			uiOpcode;
 	int64			iValue;
 
-	bSwap = psFirst->eKind == AO65_Memory;
+	bSwap = psFirst->eKind == AO65C64_Memory;
 	psMemoryOperand = bSwap ? psFirst : psSecond;
 	psOther = bSwap ? psSecond : psFirst;
-	if (psOther->eKind == AO65_Memory)
+	if (psOther->eKind == AO65C64_Memory)
 	{
 		return Error(psOther->psToken, "Only one operand can be memory");
 	}
-	if (!bSwap && (psOther->eKind != AO65_Register))
+	if (!bSwap && (psOther->eKind != AO65C64_Register))
 	{
 		return Error(psOther->psToken, "The first operand must be a register or memory");
 	}
@@ -912,7 +912,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 
 	if (Is65C64TwoRegisterMode(sMemory.uiMode))
 	{
-		if (psOther->eKind != AO65_Register)
+		if (psOther->eKind != AO65C64_Register)
 		{
 			return Error(psOther->psToken, "A two register address cannot take a value");
 		}
@@ -933,7 +933,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 		{
 			return false;
 		}
-		if (psOther->eKind == AO65_Register)
+		if (psOther->eKind == AO65C64_Register)
 		{
 			iRegister = Get65C64RegisterIndex(psOther->eRegister, gae65ABSV, 4);
 			if (iRegister < 0)
@@ -972,7 +972,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 // {, P} {, stack} in any order.  The stack is S, V, W or Y.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::JumpOptions(E65Register* peStack, bool* pbPushP)
+bool CAsm65C64Assembler::JumpOptions(E65Register* peStack, bool* pbPushP)
 {
 	SAsm65Token*	psToken;
 	E65Register		eRegister;
@@ -1013,12 +1013,12 @@ bool CAsm65Assembler::JumpOptions(E65Register* peStack, bool* pbPushP)
 // -64 to 63 bytes is the one word branch always.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
+bool CAsm65C64Assembler::Jump(bool bPushC, bool bRelative)
 {
-	SAsm65Address		sAddress;
-	SAsm65Operand		sOperand;
-	SAsm65Memory		sMemory;
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Address		sAddress;
+	SAsm65C64Operand		sOperand;
+	SAsm65C64Memory		sMemory;
+	SAsm65C64Instruction	sInstruction;
 	E65Register			eStack;
 	bool				bPushP;
 	uint16				uiStack;
@@ -1074,7 +1074,7 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 		{
 			bRelocatable = TargetIsRelocatable(&sAddress.sValue);
 			iOffset = RelativeOffset(&sAddress.sValue, muiStatementAddress, 1);
-			if (!bRelocatable && !bPushC && !bPushP && (eStack == R65_S) && (GetMinimumWords() <= 1) && (!sAddress.sValue.bResolved || ((iOffset >= -64) && (iOffset <= 63))))
+			if (!bRelocatable && !bPushC && !bPushP && (eStack == R65_S) && (GetMinimumLength() <= 1) && (!sAddress.sValue.bResolved || ((iOffset >= -64) && (iOffset <= 63))))
 			{
 				//Branch always.
 				StartInstruction(&sInstruction, (uint16)(((iOffset & 0x7F) << 9) | (1 << 8) | (0 << 6) | (1 << 4) | 12));
@@ -1095,7 +1095,7 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 	}
 	else
 	{
-		sOperand.eKind = AO65_Memory;
+		sOperand.eKind = AO65C64_Memory;
 		sOperand.sAddress = sAddress;
 		sOperand.psToken = sAddress.psToken;
 		if (!MemoryOperand(&sOperand, &sMemory, 1))
@@ -1130,9 +1130,9 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 // (instruction code 11).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ProgramState(bool bPush, bool bC, bool bP, E65Register eStack)
+bool CAsm65C64Assembler::ProgramState(bool bPush, bool bC, bool bP, E65Register eStack)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	int					iStack;
 
 	iStack = Get65C64RegisterIndex(eStack, gae65SVWY, 4);
@@ -1163,9 +1163,9 @@ bool CAsm65Assembler::ProgramState(bool bPush, bool bC, bool bP, E65Register eSt
 // (if asked) then C; rti pulls P then C.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Return(bool bRti)
+bool CAsm65C64Assembler::Return(bool bRti)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eStack;
 	E65Register			eRegister;
@@ -1210,7 +1210,7 @@ bool CAsm65Assembler::Return(bool bRti)
 // A register list: R or (R, R, ...).  P and C are the status and the program counter.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::RegisterList(uint8* puiMask, bool* pbP, bool* pbC)
+bool CAsm65C64Assembler::RegisterList(uint8* puiMask, bool* pbP, bool* pbC)
 {
 	bool			bList;
 	SAsm65Token*	psStart;
@@ -1274,10 +1274,10 @@ bool CAsm65Assembler::RegisterList(uint8* puiMask, bool* pbP, bool* pbC)
 // psh [address] {, stack}      push operand (the 32 bit value at the address)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Push(void)
+bool CAsm65C64Assembler::Push(void)
 {
-	SAsm65Instruction	sInstruction;
-	SAsm65Operand		sOperand;
+	SAsm65C64Instruction	sInstruction;
+	SAsm65C64Operand		sOperand;
 	SAsm65Token*		psToken;
 	E65Register			eRegister;
 	E65Register			eStack;
@@ -1296,7 +1296,7 @@ bool CAsm65Assembler::Push(void)
 	{
 		return false;
 	}
-	if (sOperand.eKind == AO65_Memory)
+	if (sOperand.eKind == AO65C64_Memory)
 	{
 		return PushPullMemory(true, &sOperand, eStack);
 	}
@@ -1327,9 +1327,9 @@ bool CAsm65Assembler::Push(void)
 // pul [address] {, stack}      pull operand (32 bits into the address)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Pull(void)
+bool CAsm65C64Assembler::Pull(void)
 {
-	SAsm65Operand	sOperand;
+	SAsm65C64Operand	sOperand;
 	E65Register		eStack;
 
 	if (!Peek()->Is(AP65_LeftSquare))
@@ -1350,9 +1350,9 @@ bool CAsm65Assembler::Pull(void)
 // P and C is the program state instead.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::PushPullRegisters(bool bPush)
+bool CAsm65C64Assembler::PushPullRegisters(bool bPush)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	E65Register			eStack;
 	uint8				uiMask;
 	bool				bP;
@@ -1386,10 +1386,10 @@ bool CAsm65Assembler::PushPullRegisters(bool bPush)
 // one register addresses are allowed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::PushPullMemory(bool bPush, SAsm65Operand* psOperand, E65Register eStack)
+bool CAsm65C64Assembler::PushPullMemory(bool bPush, SAsm65C64Operand* psOperand, E65Register eStack)
 {
-	SAsm65Instruction	sInstruction;
-	SAsm65Memory		sMemory;
+	SAsm65C64Instruction	sInstruction;
+	SAsm65C64Memory		sMemory;
 	uint16				uiField;
 
 	if (!MemoryOperand(psOperand, &sMemory, 1))
@@ -1416,7 +1416,7 @@ bool CAsm65Assembler::PushPullMemory(bool bPush, SAsm65Operand* psOperand, E65Re
 // {, stack}: any register, S when left out.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::StackRegister(E65Register* peStack)
+bool CAsm65C64Assembler::StackRegister(E65Register* peStack)
 {
 	*peStack = R65_S;
 	if (Accept(AP65_Comma))
@@ -1432,10 +1432,10 @@ bool CAsm65Assembler::StackRegister(E65Register* peStack)
 // sep flag or sep (flag, flag, ...), and cep: e, l, f, g, n, v, z, c.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::StateBits(uint16 uiSub)
+bool CAsm65C64Assembler::StateBits(uint16 uiSub)
 {
 	static const char*	aszFlags[8] = { "c", "z", "v", "n", "g", "f", "l", "e" };
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	uint16				uiMask;
 
 	if (!NameList(aszFlags, 8, "a status flag (e, l, f, g, n, v, z or c)", &uiMask))
@@ -1454,7 +1454,7 @@ bool CAsm65Assembler::StateBits(uint16 uiSub)
 // be in brackets (the user, 2026-10-23).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::NameList(const char** aszNames, int iNumNames, const char* szWhat, uint16* puiMask)
+bool CAsm65C64Assembler::NameList(const char** aszNames, int iNumNames, const char* szWhat, uint16* puiMask)
 {
 	SAsm65Token*	psStart;
 	SAsm65Token*	psToken;
@@ -1503,7 +1503,7 @@ bool CAsm65Assembler::NameList(const char** aszNames, int iNumNames, const char*
 // The ')' of a group.  Brackets group two or more operands; a group of one is an error.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::CloseGroup(SAsm65Token* psOpen, int iCount)
+bool CAsm65C64Assembler::CloseGroup(SAsm65Token* psOpen, int iCount)
 {
 	if (!Expect(AP65_RightRound, "')'"))
 	{
@@ -1538,9 +1538,9 @@ static int64 WidthBitsToBytes(int64 iBits)
 // width is 8, 16, 32 or 64 bits (encoded as bytes).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Width(bool bTwo)
+bool CAsm65C64Assembler::Width(bool bTwo)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eFirst;
 	E65Register			eSecond;
@@ -1609,9 +1609,9 @@ bool CAsm65Assembler::Width(bool bTwo)
 // brk vector (0 to 1023).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Break(void)
+bool CAsm65C64Assembler::Break(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	int64				iVector;
 
@@ -1635,10 +1635,10 @@ bool CAsm65Assembler::Break(void)
 // stp {wake list}: l (the level interrupt) and e0 to e3 (the edge interrupts).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Stop(void)
+bool CAsm65C64Assembler::Stop(void)
 {
 	static const char*	aszWake[5] = { "l", "e0", "e1", "e2", "e3" };
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	uint16				uiMask;
 
 	uiMask = 0;
@@ -1657,9 +1657,9 @@ bool CAsm65Assembler::Stop(void)
 // gwth R, Q or gwth R, (Q, -1): Q's width in bits (less 1) into R.  Q is A, B, X or Y.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::GetWidth(void)
+bool CAsm65C64Assembler::GetWidth(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eDestination;
 	E65Register			eQuery;
@@ -1714,9 +1714,9 @@ bool CAsm65Assembler::GetWidth(void)
 // wthx R, bits{:s}: extend R from its width to bits (zero or sign extend).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::ExtendWidth(void)
+bool CAsm65C64Assembler::ExtendWidth(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eRegister;
 	int					iRegister;
@@ -1762,9 +1762,9 @@ bool CAsm65Assembler::ExtendWidth(void)
 // 2, 4, 6, 8, -4, -6, -8 and -10 are embedded, others take an 8 to 32 bit immediate.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Branch(uint16 uiCondition)
+bool CAsm65C64Assembler::Branch(uint16 uiCondition)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	SAsm65Value			sTarget;
 	uint8				uiFirst;
@@ -1814,7 +1814,7 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 
 	bRelocatable = TargetIsRelocatable(&sTarget);
 	iOffset = RelativeOffset(&sTarget, muiStatementAddress, 1);
-	if (!bRelocatable && (GetMinimumWords() <= 1))
+	if (!bRelocatable && (GetMinimumLength() <= 1))
 	{
 		for (i = 0; i < 8; i++)
 		{
@@ -1849,9 +1849,9 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 // 8 to 32 bit immediate.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::BranchEqual(uint16 uiSub)
+bool CAsm65C64Assembler::BranchEqual(uint16 uiSub)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	SAsm65Value			sTarget;
 	uint8				uiFirst;
@@ -1883,7 +1883,7 @@ bool CAsm65Assembler::BranchEqual(uint16 uiSub)
 
 	bRelocatable = TargetIsRelocatable(&sTarget);
 	iOffset = RelativeOffset(&sTarget, muiStatementAddress, 1);
-	if (!bRelocatable && (GetMinimumWords() <= 1))
+	if (!bRelocatable && (GetMinimumLength() <= 1))
 	{
 		for (i = 0; i < 4; i++)
 		{
@@ -1919,14 +1919,14 @@ bool CAsm65Assembler::BranchEqual(uint16 uiSub)
 // [[value]], [[value + R]], [R] or [[R]], with R V, X or Y.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::CopyExtend(void)
+bool CAsm65C64Assembler::CopyExtend(void)
 {
-	SAsm65Operand		sFirst;
-	SAsm65Operand		sSecond;
-	SAsm65Operand*		psMemoryOperand;
-	SAsm65Operand*		psRegisterOperand;
-	SAsm65Memory		sMemory;
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Operand		sFirst;
+	SAsm65C64Operand		sSecond;
+	SAsm65C64Operand*		psMemoryOperand;
+	SAsm65C64Operand*		psRegisterOperand;
+	SAsm65C64Memory		sMemory;
+	SAsm65C64Instruction	sInstruction;
 	bool				bSwap;
 	bool				bSigned;
 	bool				bResult;
@@ -1945,10 +1945,10 @@ bool CAsm65Assembler::CopyExtend(void)
 		return false;
 	}
 
-	bSwap = sFirst.eKind == AO65_Memory;
+	bSwap = sFirst.eKind == AO65C64_Memory;
 	psMemoryOperand = bSwap ? &sFirst : &sSecond;
 	psRegisterOperand = bSwap ? &sSecond : &sFirst;
-	if (psMemoryOperand->eKind != AO65_Memory)
+	if (psMemoryOperand->eKind != AO65C64_Memory)
 	{
 		return Error(psMemoryOperand->psToken, "cpyx needs a memory operand");
 	}
@@ -1963,7 +1963,7 @@ bool CAsm65Assembler::CopyExtend(void)
 	{
 		return Error(psMemoryOperand->psToken, "cpyx memory needs a width of :8, :16, :32 or :64");
 	}
-	if (psRegisterOperand->eKind != AO65_Register)
+	if (psRegisterOperand->eKind != AO65C64_Register)
 	{
 		return Error(psRegisterOperand->psToken, "cpyx needs a register operand");
 	}
@@ -2028,9 +2028,9 @@ bool CAsm65Assembler::CopyExtend(void)
 // nop {cycles} (1 to 8 cycles of waiting, 1 when left out).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::NoOperation(void)
+bool CAsm65C64Assembler::NoOperation(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	int64				iWait;
 
@@ -2058,9 +2058,9 @@ bool CAsm65Assembler::NoOperation(void)
 // mul and div (no operands; they use A, B, W and Y).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::MultiplyDivide(uint16 uiSub)
+bool CAsm65C64Assembler::MultiplyDivide(uint16 uiSub)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 
 	StartInstruction(&sInstruction, (uint16)((uiSub << 6) | (0 << 4) | 14));
 	Emit(&sInstruction);
@@ -2074,9 +2074,9 @@ bool CAsm65Assembler::MultiplyDivide(uint16 uiSub)
 // when it is left out.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::NegateAbsolute(uint16 uiSub)
+bool CAsm65C64Assembler::NegateAbsolute(uint16 uiSub)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	E65Register			eDestination;
 	E65Register			eSource;
 
@@ -2100,9 +2100,9 @@ bool CAsm65Assembler::NegateAbsolute(uint16 uiSub)
 // fsbi R, I {, +1|-1} ...: scan R from the unit at index I up (or down).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Find(bool bSet, uint16 uiUnit)
+bool CAsm65C64Assembler::Find(bool bSet, uint16 uiUnit)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	E65Register			eRegister;
 	E65Register			eIndex;
 	bool				bDecrement;
@@ -2129,7 +2129,7 @@ bool CAsm65Assembler::Find(bool bSet, uint16 uiUnit)
 // index), else the register in bits 6-4.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SubcopyPair(E65Register* peRegister, uint16* puiIndexField, bool bBits)
+bool CAsm65C64Assembler::SubcopyPair(E65Register* peRegister, uint16* puiIndexField, bool bBits)
 {
 	SAsm65Token*	psToken;
 	E65Register		eIndex;
@@ -2168,9 +2168,9 @@ bool CAsm65Assembler::SubcopyPair(E65Register* peRegister, uint16* puiIndexField
 // scb (source, index), (destination, index), count    (count 1 to 64 bits or a register)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Subcopy(bool bBits)
+bool CAsm65C64Assembler::Subcopy(bool bBits)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eSource;
 	E65Register			eDestination;
@@ -2228,7 +2228,7 @@ bool CAsm65Assembler::Subcopy(bool bBits)
 // 6, an immediate).  bForceWord makes 0 to 5 an immediate too.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::BitIndex(uint16* puiStyle, uint16* puiWord, bool bForceWord)
+bool CAsm65C64Assembler::BitIndex(uint16* puiStyle, uint16* puiWord, bool bForceWord)
 {
 	SAsm65Token*	psToken;
 	E65Register		eIndex;
@@ -2270,9 +2270,9 @@ bool CAsm65Assembler::BitIndex(uint16* puiStyle, uint16* puiWord, bool bForceWor
 // bist flag, (R, index): bit index of R into the flag (c, z, n, v, f or g).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::BitToStatus(void)
+bool CAsm65C64Assembler::BitToStatus(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	E65Register			eRegister;
 	uint8				uiFlag;
 	uint16				uiStyle;
@@ -2302,9 +2302,9 @@ bool CAsm65Assembler::BitToStatus(void)
 // register or 0 to 63.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::StatusToBit(void)
+bool CAsm65C64Assembler::StatusToBit(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eRegister;
 	E65Register			eRepeat;
@@ -2392,9 +2392,9 @@ bool CAsm65Assembler::StatusToBit(void)
 // stat destination, source: c, z, n, v, f or g from 0, 1, c, z, n, v, f or g.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::StatusToStatus(void)
+bool CAsm65C64Assembler::StatusToStatus(void)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	uint8				uiDestination;
 	uint8				uiSource;
 
@@ -2415,9 +2415,9 @@ bool CAsm65Assembler::StatusToStatus(void)
 // stops early.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Block(uint16 uiSub)
+bool CAsm65C64Assembler::Block(uint16 uiSub)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	E65Register			eRegister;
 	bool				bDecrement;
@@ -2464,9 +2464,9 @@ bool CAsm65Assembler::Block(uint16 uiSub)
 // operands are never grouped in brackets.  The element width is 8, 16, 32 or 64 bits.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::Vector(uint16 uiSub)
+bool CAsm65C64Assembler::Vector(uint16 uiSub)
 {
-	SAsm65Instruction	sInstruction;
+	SAsm65C64Instruction	sInstruction;
 	SAsm65Token*		psToken;
 	bool				bDecrementV;
 	bool				bDecrementW;

@@ -36,26 +36,6 @@ void CCPPSyntaxNoexceptExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxNoexceptExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxNoexceptExpression::GetType(void)
-{
-	return "NoexceptExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxNoexceptExpression::GetKind(void)
 {
 	return CPPS_NoexceptExpression;
@@ -90,12 +70,12 @@ size CCPPSyntaxNoexceptExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxNoexceptExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcOperand;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcOperand, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

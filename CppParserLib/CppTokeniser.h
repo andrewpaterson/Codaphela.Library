@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 #include "PreprocessedTokens.h"
 #include "CPPErrors.h"
+#include "LiteralHelper.h"
 
 
 typedef CArrayTemplatePtr<CCPPToken>	CCTArrayTokens;
@@ -68,11 +69,10 @@ protected:
 	bool				Identifier(SPreprocessedToken* psToken, int iSource);
 	bool				Punctuator(SPreprocessedToken* psToken, int iSource);
 	bool				Number(SPreprocessedToken* psToken, int iSource);
-	bool				Integer(SPreprocessedToken* psToken, int iSource, char* szDigits, int iBase, char* szSuffix);
+	bool				Integer(int iSource, SIntegerLiteral* psLiteral);
 	bool				Floating(SPreprocessedToken* psToken, int iSource, char* szNumber);
 	bool				Character(SPreprocessedToken* psToken, int iSource);
 	bool				String(SPreprocessedToken* psToken, int iSource);
-	bool				Escape(const char** psz, const char* szEnd, uint32* puiValue);
 	void				AddToken(CCPPToken* pcToken, int iSource);
 	bool				Error(SPreprocessedToken* psToken, char* szError);
 };

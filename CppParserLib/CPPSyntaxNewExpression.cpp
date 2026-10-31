@@ -54,16 +54,6 @@ void CCPPSyntaxNewExpression::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxNewExpression::GetType(void)
-{
-	return "NewExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxNewExpression::GetKind(void)
 {
 	return CPPS_NewExpression;
@@ -124,30 +114,12 @@ size CCPPSyntaxNewExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxNewExpression::GetChild(size iIndex)
 {
-	if (iIndex < macpPlacement.NumElements())
-	{
-		return macpPlacement.GetPtr(iIndex);
-	}
-	iIndex -= macpPlacement.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpPlacement, &pcChild) || IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, &macpArraySizes, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
 	{
-		return mpcType;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex < macpArraySizes.NumElements())
-	{
-		return macpArraySizes.GetPtr(iIndex);
-	}
-	iIndex -= macpArraySizes.NumElements();
-
-	if (iIndex == 0)
-	{
-		return mpcInitializer;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

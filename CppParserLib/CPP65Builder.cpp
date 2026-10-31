@@ -24,8 +24,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/StringHelper.h"
 #include "VisualStudioProject.h"
-#include "Assembler65Lib/Asm65Assembler.h"
-#include "Assembler65Lib/Asm816Assembler.h"
+#include "Assembler65Lib/Asm65C64Assembler.h"
+#include "Assembler65Lib/Asm65816Assembler.h"
 #include "CPP65IRFrontEnd.h"
 #include "Preprocessor.h"
 #include "HeaderFileMap.h"
@@ -66,7 +66,7 @@ void CCPP65Builder::Init(void)
 	mpcFrameProfile = NULL;
 	mszListings.Init();
 	mbLineTable = false;
-	miCompileTime = 0;
+	mlliCompileTime = 0;
 }
 
 
@@ -332,13 +332,13 @@ void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A profile of the program's functions (CAsm816Profile, from a run): on the
+// A profile of the program's functions (CAsm65816Profile, from a run): on the
 // W65C816 those it measured worth it get page aligned frames (without one
 // none do), and its hottest calls are inlined first, bigger callees for
 // hot ones (CIRInliner::SetProfile).  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::SetFrameProfile(CAsm816Profile* pcProfile)
+void CCPP65Builder::SetFrameProfile(CAsm65816Profile* pcProfile)
 {
 	mpcFrameProfile = pcProfile;
 }
@@ -370,7 +370,7 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 void CCPP65Builder::SetLineTable(bool bLineTable)
 {
 	mbLineTable = bLineTable;
-	miCompileTime = (int64)time(NULL);
+	mlliCompileTime = (int64)time(NULL);
 }
 
 
@@ -390,9 +390,9 @@ CAsm65LineTable* CCPP65Builder::GetLineTable(void)
 // A global's address after Link (see CAsm65Linker::GetSymbol).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::GetSymbol(const char* szName, int64* piValue)
+bool CCPP65Builder::GetSymbol(const char* szName, int64* plliValue)
 {
-	return mcLinker.GetSymbol(szName, piValue);
+	return mcLinker.GetSymbol(szName, plliValue);
 }
 
 
@@ -449,13 +449,29 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable);
-	if (!mszListings.Empty())
-	{
-		bResult &= WriteListing(szName, &szAssembly);
-	}
+	bResult = GenerateSource(&szAssembly, szName, szSource);
 	bResult &= AddObject(szName, szAssembly.Text());
 	szAssembly.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles szSource (AddSource's and LinkWith's) with the builder's
+// settings: its line table, and its listing (UnitName.lst) when it keeps
+// listings.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource)
+{
+	bool	bResult;
+
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable);
+	if (!mszListings.Empty())
+	{
+		bResult &= WriteListing(szName, pszAssembly);
+	}
 	return bResult;
 }
 
@@ -526,7 +542,7 @@ bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
 	mcLinkWithObjects.Kill();
 	mcLinkWithObjects.Init("link with");
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile);
+	bResult = GenerateSource(&szAssembly, szName, szSource);
 	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
 	szAssembly.Kill();
 	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
@@ -707,29 +723,34 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // (CCPP65Generator::SetLineTable).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm816Profile* pcFrameProfile, bool bListing, bool bLineTable)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable)
 {
-	CTranslationUnit		cFile;
-	CPreprocessor			cPreprocessor;
-	CCPPTokeniser			cTokeniser;
-	CCPPSyntaxTree			cTree;
-	CCPPParser				cParser;
-	CCPP65Generator			cGenerator;
-	CHeaderFileMap			cHeaderFileMap;
-	CHeaderFiles*			acHeaderFiles;
-	SCPP65IncludeDirectory*	psInclude;
-	CConfig					cConfig;
-	size					uiIncludes;
-	size					i;
-	bool					bResult;
+	CTranslationUnit				cFile;
+	CPreprocessor					cPreprocessor;
+	CCPPTokeniser					cTokeniser;
+	CCPPSyntaxTree					cTree;
+	CCPPParser						cParser;
+	CCPP65Generator					cGenerator;
+	CHeaderFileMap					cHeaderFileMap;
+	CArrayTemplate<CHeaderFiles>	acHeaderFiles;
+	SCPP65IncludeDirectory*			psInclude;
+	CConfig							cConfig;
+	size							uiIncludes;
+	size							i;
+	bool							bResult;
 
 	cHeaderFileMap.Init();
 	uiIncludes = pacIncludeDirectories->NumElements();
-	acHeaderFiles = (CHeaderFiles*)malloc(uiIncludes * sizeof(CHeaderFiles) + 1);
+	//All added before any is used: the preprocessor keeps their addresses.
+	acHeaderFiles.Init();
+	for (i = 0; i < uiIncludes; i++)
+	{
+		acHeaderFiles.Add();
+	}
 	for (i = 0; i < uiIncludes; i++)
 	{
 		psInclude = pacIncludeDirectories->Get(i);
-		acHeaderFiles[i].Init(psInclude->szDirectory.Text(), &cHeaderFileMap, psInclude->bIncludeSubDirectories, psInclude->bSystem);
+		acHeaderFiles.Get(i)->Init(psInclude->szDirectory.Text(), &cHeaderFileMap, psInclude->bIncludeSubDirectories, psInclude->bSystem);
 	}
 
 	cConfig.Init((char*)GetCPPTarget(eTarget)->szName);
@@ -739,10 +760,14 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cPreprocessor.Init(&cConfig);
 	for (i = 0; i < uiIncludes; i++)
 	{
-		cPreprocessor.AddIncludeDirectory(&acHeaderFiles[i]);
+		cPreprocessor.AddIncludeDirectory(acHeaderFiles.Get(i));
 	}
 	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
 	pszErrors->Append(cPreprocessor.GetErrors()->Text());
+	if (pszWarnings)
+	{
+		pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
+	}
 	cPreprocessor.Kill();
 
 	cTokeniser.Init();
@@ -777,9 +802,9 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cConfig.Kill();
 	for (i = 0; i < uiIncludes; i++)
 	{
-		acHeaderFiles[i].Kill();
+		acHeaderFiles.Get(i)->Kill();
 	}
-	free(acHeaderFiles);
+	acHeaderFiles.Kill();
 	cHeaderFileMap.Kill();
 	return bResult;
 }
@@ -822,8 +847,8 @@ bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool b
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory)
 {
-	CAsm65Assembler		cAssembler;
-	CAsm816Assembler	cAssembler816;
+	CAsm65C64Assembler		cAssembler;
+	CAsm65816Assembler	cAssembler816;
 	bool				bResult;
 
 	if (meTarget == CPPT_W65C816)
@@ -935,7 +960,7 @@ bool CCPP65Builder::CompileUnits(void)
 		return true;
 	}
 
-	bResult = mcProject.Process((char*)GetCPPTarget(meTarget)->szName, &mszErrors);
+	bResult = mcProject.Process((char*)GetCPPTarget(meTarget)->szName, &mszErrors, &mszWarnings);
 	uiCompiled = 0;
 	asUnits.Init();
 	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
@@ -1011,7 +1036,7 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
 	cGenerator.SetListing(!mszListings.Empty());
-	cGenerator.SetLineTable(mbLineTable, miCompileTime);
+	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	bResult &= cGenerator.Generate(&szAssembly);
 	if (!mszListings.Empty())
 	{

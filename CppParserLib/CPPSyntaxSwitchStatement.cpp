@@ -38,26 +38,6 @@ void CCPPSyntaxSwitchStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxSwitchStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxSwitchStatement::GetType(void)
-{
-	return "SwitchStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxSwitchStatement::GetKind(void)
 {
 	return CPPS_SwitchStatement;
@@ -94,18 +74,12 @@ size CCPPSyntaxSwitchStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxSwitchStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCondition;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
 	{
-		return mpcBody;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

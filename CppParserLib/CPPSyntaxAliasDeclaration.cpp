@@ -38,26 +38,6 @@ void CCPPSyntaxAliasDeclaration::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxAliasDeclaration::Kill(void)
-{
-	CCPPSyntaxDeclaration::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxAliasDeclaration::GetType(void)
-{
-	return "AliasDeclaration";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxAliasDeclaration::GetKind(void)
 {
 	return CPPS_AliasDeclaration;
@@ -95,12 +75,12 @@ size CCPPSyntaxAliasDeclaration::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxAliasDeclaration::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcType;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcType, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

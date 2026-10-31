@@ -72,9 +72,6 @@ public:
 	void 		SkipWhitespace(void);
 	bool 		NextToken(void);
 	void		NextToken(int iNumToSkip);
-	bool 		GetQuotedCharacterSequence(char cOpen, char cClosed, CExternalString* pcSequence);
-	bool 		GetStringDoubleQuoted(CExternalString* pcString);
-	bool 		GetStringSingleQuoted(CExternalString* pcString, bool bSkipWhitespace);
 	bool		GetInteger(uint64* pulli, bool bSkipWhitespace, bool bTestSign);
 	bool		GetFloat(long double* pf);
 	void 		PushPosition(void);
@@ -89,8 +86,6 @@ public:
 	bool		GetOctal(uint64* pulli, int* piNumDigits);
 	bool		HasToken(void);
 	CPPToken*	GetToken(void);
-	bool		HasTokens(void);
-	bool		ToDecortatorString(char* szDest, int iMaxLen, int* piLen);
 	void		AssignCurrent(CPPToken* pcToken, int iTokenIndex);
 	void		Dump(void);
 	void		DumpAll(void);

@@ -38,10 +38,12 @@ public:
 	void 				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
-	void				SavageDump(void);
 	bool				Equals(CPPToken* pcOther);
 	bool				IsEmpty(void);
 	CPPTokenList*		GetTokenList(void);
+
+protected:
+	void				CopyTokens(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
 };
 
 

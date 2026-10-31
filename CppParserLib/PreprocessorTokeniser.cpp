@@ -19,7 +19,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "PreprocessorTokeniser.h"
-#include "PPUnknown.h"
 #include "PPLine.h"
 #include "PPConditional.h"
 #include "PPInclude.h"
@@ -174,53 +173,10 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
-{
-	char*					szEnd;
-	int						iLine;
-	EPreprocessorDirective	eDirective;
-	CPPToken*				pcToken;
-
-	mpcPrev = NULL;
-	szEnd = szPos + iLength-1;
-	mcParser.Init(szPos, szEnd, mszFileName);
-	mcParser.SetComments(mpacComments);
-
-	iLine = 0;
-	while (!mcParser.mbEndOfFile)
-	{
-		mcParser.SkipWhitespace();
-		if ((*mcParser.GetPos()) == '#')
-		{
-			mcParser.StepRight();
-			eDirective = GetDirective();
-			pcToken = TokeniseDirective(pcTokens, eDirective, iBlock, iIndex+iLine);
-		}
-		else
-		{
-			pcToken = Line(pcTokens);
-		}
-
-		if (pcToken)
-		{
-			pcDestTokenHolder->Add(pcToken);
-		}
-
-		//Add Token here.
-		iLine++;
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokeniser::TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens)
 {
 	mcParser.Init(sz, NULL, mszFileName);
-	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens);
+	CPreprocessorLineTokeniser::Preprocess(pcHolder, &mcParser, pcTokens);
 }
 
 
@@ -259,7 +215,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	}
 
 	cName.Init(szName, (int)(szEnd - szName));
-	pcDirective = mcDirectives.GetDirective(&cName, true);
+	pcDirective = mcDirectives.Get(&cName, true);
 	if (pcDirective == NULL)
 	{
 		//The name is left in the directive's tokens so it can be reported.
@@ -271,8 +227,11 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Tokenises the rest of a directive line whose name has been read.
+// #define and #undef skip the whitespace after the name before their
+// position is taken; the others take it straight after the name.
+//
 //////////////////////////////////////////////////////////////////////////
 CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex)
 {
@@ -287,29 +246,22 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens
 		pcDirective->Set(PPD_include_next);
 		return pcDirective;
 	case PPD_define:
-		return TokeniseHashDefine(pcTokens);
-	case PPD_ifdef:
-		return TokeniseHashIfdef(pcTokens, iBlock, iIndex);
-	case PPD_ifndef:
-		return TokeniseHashIfndef(pcTokens, iBlock, iIndex);
-	case PPD_endif:
-		return TokeniseHashEndif(pcTokens, iBlock, iIndex);
-	case PPD_else:
-		return TokeniseHashElse(pcTokens, iBlock, iIndex);
-	case PPD_if:
-		return TokeniseHashIf(pcTokens, iBlock, iIndex);
-	case PPD_elif:
-		return TokeniseHashElif(pcTokens, iBlock, iIndex);
 	case PPD_undef:
-		return TokeniseHashUndef(pcTokens);
+		mcParser.SkipWhitespace();
+		return TokeniseHashPlain(pcTokens, eDirective);
+	case PPD_ifdef:
+	case PPD_ifndef:
+	case PPD_endif:
+	case PPD_else:
+	case PPD_if:
+	case PPD_elif:
+		return TokeniseHashConditional(pcTokens, eDirective, iBlock, iIndex);
 	case PPD_error:
-		return TokeniseHashError(pcTokens);
 	case PPD_pragma:
-		return TokeniseHashPragma(pcTokens);
 	case PPD_warning:
 	case PPD_null:
 	case PPD_unknown:
-		return TokeniseHashOther(pcTokens, eDirective);
+		return TokeniseHashPlain(pcTokens, eDirective);
 	default:
 		break;
 	}
@@ -318,44 +270,9 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokenMemory* pcTokens)
-{
-	CPPDirective*	pcDefine;
-
-	mcParser.SkipWhitespace();
-	
-	pcDefine = pcTokens->AddDirective();
-	pcDefine->Init(PPD_define, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcDefine->GetTokenList(), &mcParser, pcTokens);
-	return pcDefine; 
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokenMemory* pcTokens)
-{
-	CPPDirective*			pcUndef;
-
-	mcParser.SkipWhitespace();
-
-	pcUndef = pcTokens->AddDirective();
-	pcUndef->Init(PPD_undef, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcUndef->GetTokenList(), &mcParser, pcTokens);
-	return pcUndef;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Tokenises an #include (or #include_next) line.
+//
 //////////////////////////////////////////////////////////////////////////
 CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokenMemory* pcTokens)
 {
@@ -363,163 +280,49 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokenMemory* pcToke
 
 	mcParser.SkipWhitespace();
 
-	pcInclude = pcTokens->AddInclude();
+	pcInclude = pcTokens->AddToken<CPPInclude>();
 	pcInclude->Init(mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcInclude->GetTokenList(), &mcParser, pcTokens);
+	CPreprocessorLineTokeniser::Preprocess(pcInclude->GetTokenList(), &mcParser, pcTokens);
 	return pcInclude;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Tokenises an #if, #ifdef, #ifndef, #elif, #else or #endif line and
+// links it to the previous conditional.
+//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashConditional(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex)
 {
-	CPPConditional*		pcIfNDef;
+	CPPConditional*		pcConditional;
 
-	pcIfNDef = pcTokens->AddConditional();
-	pcIfNDef->Init(PPD_ifndef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
+	pcConditional = pcTokens->AddToken<CPPConditional>();
+	pcConditional->Init(eDirective, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcIfNDef->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcIfNDef);
-	return pcIfNDef;
+	CPreprocessorLineTokeniser::Preprocess(pcConditional->GetTokenList(), &mcParser, pcTokens);
+	NextConditional(pcConditional);
+	return pcConditional;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Tokenises any other directive line (#define, #undef, #error,
+// #pragma, #warning, a lone # or an unknown directive) into a plain
+// directive holding the line's tokens.
+//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashPlain(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective)
 {
-	CPPConditional*		pcIfDef;
+	CPPDirective*		pcDirective;
 
-	pcIfDef = pcTokens->AddConditional();
-	pcIfDef->Init(PPD_ifdef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
+	pcDirective = pcTokens->AddToken<CPPDirective>();
+	pcDirective->Init(eDirective, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcIfDef->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcIfDef);
-	return pcIfDef;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
-{
-	CPPConditional*		pcElse;
-
-	pcElse = pcTokens->AddConditional();
-	pcElse->Init(PPD_else, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcElse->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcElse);
-	return pcElse;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
-{
-	//IF and Elif are special cases because the calculator does it's own parsing.
-	CPPConditional*		pcIf;
-
-	pcIf = pcTokens->AddConditional();
-	pcIf->Init(PPD_if, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcIf->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcIf);
-	return pcIf;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
-{
-	//IF and Elif are special cases because the calculator does it's own parsing.
-	CPPConditional*		pcElif;
-
-	pcElif = pcTokens->AddConditional();
-	pcElif->Init(PPD_elif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcElif->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcElif);
-	return pcElif;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
-{
-	CPPConditional*		pcEndif;
-
-	pcEndif = pcTokens->AddConditional();
-	pcEndif->Init(PPD_endif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcEndif->GetTokenList(), &mcParser, pcTokens);
-	NextConditional(pcEndif);
-	return pcEndif;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokenMemory* pcTokens)
-{
-	CPPDirective*		pcError;
-
-	pcError = pcTokens->AddDirective();
-	pcError->Init(PPD_error, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcError->GetTokenList(), &mcParser, pcTokens);
-	return pcError;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokenMemory* pcTokens)
-{
-	CPPDirective*		pcPragma;
-
-	pcPragma = pcTokens->AddDirective();
-	pcPragma->Init(PPD_pragma, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcPragma->GetTokenList(), &mcParser, pcTokens);
-	return pcPragma;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashOther(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective)
-{
-	CPPDirective*		pcOther;
-
-	pcOther = pcTokens->AddDirective();
-	pcOther->Init(eDirective, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-
-	CPreprocessorLineTokensier::Preprocess(pcOther->GetTokenList(), &mcParser, pcTokens);
-	return pcOther;
+	CPreprocessorLineTokeniser::Preprocess(pcDirective->GetTokenList(), &mcParser, pcTokens);
+	return pcDirective;
 }
 
 
@@ -533,7 +336,7 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 	CPPLine*	pcLine;
 
 	cLine.Init(mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-	CPreprocessorLineTokensier::Preprocess(cLine.GetTokenList(), &mcParser, pcTokens);
+	CPreprocessorLineTokeniser::Preprocess(cLine.GetTokenList(), &mcParser, pcTokens);
 	if (cLine.IsEmpty())
 	{
 		cLine.Kill();
@@ -541,21 +344,10 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 	}
 	else
 	{
-		pcLine = pcTokens->AddLine();
+		pcLine = pcTokens->AddToken<CPPLine>();
 		memcpy(pcLine, &cLine, sizeof(CPPLine));
 		return pcLine;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessorTokeniser::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
-{
-	pcTokens->Add(pcToken);
-	return pcToken;
 }
 
 

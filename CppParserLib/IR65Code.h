@@ -129,6 +129,8 @@ public:
 
 	static uint8	Bands(uint8 uiBits);
 	static char		RegisterName(int iRegister);
+	static int		RegisterIndex(const char* sz, size uiLength);
+	static bool		IsOwnMemory(const char* szOperand, size uiLength, uint8* puiBase, int32* piOffset);
 	static bool		IsCopyExtendAddress(CChars* pszOperand);
 
 protected:

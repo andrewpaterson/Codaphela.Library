@@ -37,26 +37,6 @@ void CCPPSyntaxMemberInitializer::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxMemberInitializer::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxMemberInitializer::GetType(void)
-{
-	return "MemberInitializer";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxMemberInitializer::GetKind(void)
 {
 	return CPPS_MemberInitializer;
@@ -90,18 +70,12 @@ size CCPPSyntaxMemberInitializer::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxMemberInitializer::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcName;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
 	{
-		return mpcInitializer;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

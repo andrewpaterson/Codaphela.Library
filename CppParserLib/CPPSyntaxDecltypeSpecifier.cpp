@@ -37,26 +37,6 @@ void CCPPSyntaxDecltypeSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxDecltypeSpecifier::Kill(void)
-{
-	CCPPSyntaxTypeSpecifier::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxDecltypeSpecifier::GetType(void)
-{
-	return "DecltypeSpecifier";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxDecltypeSpecifier::GetKind(void)
 {
 	return CPPS_DecltypeSpecifier;
@@ -92,12 +72,12 @@ size CCPPSyntaxDecltypeSpecifier::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxDecltypeSpecifier::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcOperand;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcOperand, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

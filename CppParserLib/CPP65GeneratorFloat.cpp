@@ -30,10 +30,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Floating point is worked out by Libc65's soft float runtime (softfloat.cpp): the
-// generator calls its functions with the values' bits pushed (the right operand
-// first, as arguments are) and gets the result in A.  Only negation and tests
-// against zero are written in line.
+// Floating point is worked out by Libc65's soft float runtime (softfloat.cpp and
+// its assembly): the IR back ends call its functions.  Here are the float
+// builtins' constants and the types and constant values of float expressions.
 //
 //////////////////////////////////////////////////////////////////////////
 
@@ -568,9 +567,7 @@ bool CCPP65Generator::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SC
 	{
 		return false;
 	}
-	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	szName += 10;
-	iLength -= 10;
+	szName = BuiltinName(lliName, &iLength);
 	bFloat = (iLength > 0) && (szName[iLength - 1] == 'f');
 	iLength -= bFloat ? 1 : 0;
 	if (((iLength == 8) && (memcmp(szName, "huge_val", 8) == 0)) || ((iLength == 3) && (memcmp(szName, "inf", 3) == 0)))

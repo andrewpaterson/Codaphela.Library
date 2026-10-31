@@ -21,6 +21,92 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxes.h"
 
 
+//The name of each kind of node, indexed by ECPPSyntax, for TypePrint.
+char* gaszSyntaxKindNames[] =
+{
+	"TranslationUnit",
+	"Namespace",
+	"LinkageSpecification",
+	"SimpleDeclaration",
+	"FunctionDefinition",
+	"InitDeclarator",
+	"TemplateDeclaration",
+	"TypeParameter",
+	"Parameter",
+	"UsingDirective",
+	"UsingDeclaration",
+	"AliasDeclaration",
+	"StaticAssert",
+	"ExtensionDeclaration",
+	"EmptyDeclaration",
+	"AccessSpecifier",
+	"SkippedDeclaration",
+	"Enumerator",
+	"BaseSpecifier",
+	"MemberInitializer",
+	"Attribute",
+	"DeclSpecifiers",
+	"KeywordSpecifier",
+	"AlignasSpecifier",
+	"NamedTypeSpecifier",
+	"ClassSpecifier",
+	"EnumSpecifier",
+	"ElaboratedTypeSpecifier",
+	"DecltypeSpecifier",
+	"Declarator",
+	"PointerOperator",
+	"FunctionSuffix",
+	"ArraySuffix",
+	"ExceptionSpecification",
+	"TypeId",
+	"Name",
+	"NameComponent",
+	"CompoundStatement",
+	"DeclarationStatement",
+	"ExpressionStatement",
+	"IfStatement",
+	"SwitchStatement",
+	"CaseStatement",
+	"LabelStatement",
+	"WhileStatement",
+	"DoStatement",
+	"ForStatement",
+	"RangeForStatement",
+	"BreakStatement",
+	"ContinueStatement",
+	"ReturnStatement",
+	"GotoStatement",
+	"TryStatement",
+	"CatchHandler",
+	"SkippedStatement",
+	"LiteralExpression",
+	"StringExpression",
+	"IdExpression",
+	"ThisExpression",
+	"ParenthesisedExpression",
+	"UnaryExpression",
+	"BinaryExpression",
+	"ConditionalExpression",
+	"CallExpression",
+	"SubscriptExpression",
+	"MemberExpression",
+	"CastExpression",
+	"ConstructExpression",
+	"NamedCastExpression",
+	"SizeofExpression",
+	"TypeidExpression",
+	"NewExpression",
+	"DeleteExpression",
+	"ThrowExpression",
+	"InitializerList",
+	"ParenthesisedInitializer",
+	"TypeTraitExpression",
+	"PackExpansionExpression",
+	"NoexceptExpression",
+};
+static_assert(sizeof(gaszSyntaxKindNames) / sizeof(char*) == CPPS_NoexceptExpression + 1, "gaszSyntaxKindNames must have a name for every ECPPSyntax.");
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -42,6 +128,39 @@ void CCPPSyntax::Kill(void)
 {
 	mpcTree = NULL;
 	mpcParent = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPSyntax::GetType(void)
+{
+	//The kind's name.  One table instead of an override in every node class.
+	return gaszSyntaxKindNames[GetKind()];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntax::NumChildren(void)
+{
+	//Leaf nodes have no children.
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPSyntax::GetChild(size iIndex)
+{
+	//Leaf nodes have no children.
+	return NULL;
 }
 
 
@@ -72,46 +191,6 @@ void CCPPSyntax::TypePrint(CChars* pszDest, int iDepth)
 			pcChild->TypePrint(pszDest, iDepth + 1);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsDeclaration(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsStatement(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsExpression(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsTypeSpecifier(void)
-{
-	return false;
 }
 
 
@@ -297,5 +376,40 @@ void CCPPSyntax::PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int
 	{
 		pcStatement->PrettyPrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::IsChild(size* piIndex, CCPPSyntax* pcNode, CCPPSyntax** ppcChild)
+{
+	//GetChild walks a node's children in order, one member at a time.  pcNode is one child, which may be NULL.  True
+	//if *piIndex is it, otherwise *piIndex is moved past it.
+	if (*piIndex == 0)
+	{
+		*ppcChild = pcNode;
+		return true;
+	}
+	(*piIndex)--;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::IsChild(size* piIndex, CArraySyntax* papcNodes, CCPPSyntax** ppcChild)
+{
+	//As above for a list of children.  True if *piIndex is in papcNodes, otherwise *piIndex is moved past them.
+	if (*piIndex < papcNodes->NumElements())
+	{
+		*ppcChild = papcNodes->GetPtr(*piIndex);
+		return true;
+	}
+	*piIndex -= papcNodes->NumElements();
+	return false;
 }
 

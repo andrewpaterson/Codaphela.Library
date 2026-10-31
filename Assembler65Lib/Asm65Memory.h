@@ -64,14 +64,14 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //Flat memory for a 65C64 running assembled code: 2MB (or Init's uiLowSize) at 0000:0000 and the 4KB vector page at
-//FFFF:F000.  An access anywhere else is counted as bad and reads 0.  TickHigh and TickLow are the C65C64Meta
-//callbacks, with the memory as their context.  InitFast
+//FFFF:F000.  An access anywhere else is counted as bad and reads 0.  TickHigh65C64 and TickLow65C64 are the C65C64Meta
+//callbacks, with the memory as their context.  InitFast65C64
 //connects a CFast65C64 instead: it reads and writes the low memory directly and everything else through ReadWord and
 //WriteByte.  A CFileDrive (such as a CMemoryDrive) can be attached as a storage device (see ASM65_DRIVE_BASE), a
 //CChars as the console (ASM65_CONSOLE) and a CAsm65HostFiles as the host file device (ASM65_HOST_BASE).
 //
 //It is the W65C816's test memory too: the devices' page 00FF:0000 is the W65C816's bank $FF, so the memory at 0000:0000
-//can be up to $FF0000 bytes.  TickHigh816 and TickLow816 are CW65C816Meta's callbacks; InitFast816 connects a
+//can be up to $FF0000 bytes.  TickHigh65816 and TickLow65816 are CW65C816Meta's callbacks; InitFast65816 connects a
 //CFast65C816 (ReadByte and WriteByte).
 class CAsm65Memory
 {
@@ -113,16 +113,16 @@ public:
 	void			SetHostFiles(CAsm65HostFiles* pcHostFiles);
 	size			NumDriveReads(void);
 
-	static void		TickHigh(C65C64Meta* pcMPU, void* pvMemory);
-	static void		TickLow(C65C64Meta* pcMPU, void* pvMemory);
+	static void		TickHigh65C64(C65C64Meta* pcMPU, void* pvMemory);
+	static void		TickLow65C64(C65C64Meta* pcMPU, void* pvMemory);
 
-	void			InitFast(CFast65C64* pcMPU);
+	void			InitFast65C64(CFast65C64* pcMPU);
 	static uint16	ReadWord(void* pvMemory, uint32 uiAddress);
 	static void		WriteByte(void* pvMemory, uint32 uiAddress, uint8 uiValue);
 
-	static void		TickHigh816(CW65C816Meta* pcMPU, void* pvMemory);
-	static void		TickLow816(CW65C816Meta* pcMPU, void* pvMemory);
-	void			InitFast816(CFast65C816* pcMPU);
+	static void		TickHigh65816(CW65C816Meta* pcMPU, void* pvMemory);
+	static void		TickLow65816(CW65C816Meta* pcMPU, void* pvMemory);
+	void			InitFast65816(CFast65C816* pcMPU);
 	static uint8	ReadByte(void* pvMemory, uint32 uiAddress);
 
 protected:

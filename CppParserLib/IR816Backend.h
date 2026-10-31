@@ -21,10 +21,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __I_R_816_BACKEND_H__
 #define __I_R_816_BACKEND_H__
 #include "BaseLib/ArrayChars.h"
-#include "CPPErrors.h"
-#include "Assembler65Lib/Asm816Profile.h"
-#include "IRModule.h"
-#include "IRSourceMarkers.h"
+#include "Assembler65Lib/Asm65816Profile.h"
+#include "IRBackend.h"
+#include "IRDominators.h"
+#include "IRLoops.h"
 
 
 class CIR816LiveRanges;
@@ -53,7 +53,7 @@ class CIR816LiveRanges;
 //IR816_ALIGN_BIG_CYCLES more for a frame past the page, and up to 255 bytes of stack.  It never does if it may recurse.
 //By default the estimate decides (the user: only when really worth it): it has a loop, and its direct page accesses,
 //each weighted by IR816_ALIGN_LOOP_WEIGHT for each loop it is in (up to IR816_ALIGN_MAX_DEPTH), are more than
-//IR816_ALIGN_GAIN times the cost.  With a profile (CAsm816Profile, CCPP65Builder::SetFrameProfile) the measure
+//IR816_ALIGN_GAIN times the cost.  With a profile (CAsm65816Profile, CCPP65Builder::SetFrameProfile) the measure
 //decides: it was never seen recursing, its accesses are more than IR816_ALIGN_GAIN times the cost of its calls and
 //they save at least one IR816_ALIGN_SHARE'th of the profiled cycles.
 #define IR816_ALIGN_GAIN		3
@@ -77,7 +77,7 @@ struct SIR816Frame
 };
 
 
-//Writes W65C816 assembly (Assembler816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
+//Writes W65C816 assembly (Assembler65816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
 //
 //The direct page is the frame: the prologue saves D, makes room on the stack and points D at it, so every
 //temporary, slot and argument is a direct page operand ([D + n], or [D + X] with X = n past 255).  Every temporary
@@ -94,39 +94,28 @@ struct SIR816Frame
 //the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
 //in a call; D and the widths are kept.
-class CIRDominators;
-class CIR816Backend
+class CIR816Backend : public CIRBackend
 {
 protected:
-	CIRModule*				mpcModule;
-	int*					mpiLabels;
 	CArrayChars				maszRuntime;		//The runtime routines used.
-	CIRFunction*			mpcFunction;
-	CChars*					mpszOut;
-	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
-	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
-	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
-	CCPPErrors*				mpcErrors;
-	bool					mbResult;
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
 	CArrayTemplate<int32>	maiIncoming;		//Per phi: where its value is put on the way in, else -1.
 	CArrayTemplate<int32>	maiSlots;			//Per temporary made by slot: the slot's place, else -1.
-	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	CArrayTemplate<int32>	maiParameters;		//Per parameter: its place (D + offset).
-	CArrayTemplate<size>	maiPendingArguments;	//Instruction indices of the args before a call.
-	int32					miFrameBytes;
+	CArrayTemplate<size>	mauiPendingArguments;	//Instruction indices of the args before a call.
 	int32					miHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
 	int32					miArgumentBytes;	//The arguments' bytes (the hidden result pointer's too) above the frame.
 	int32					miSavedS;			//Where an aligned frame past the page keeps S (Layout), or -1.
 	int32					miDirectPageWeight;	//The direct page accesses, weighted by the loops they are in (AlignFrame).
 	bool					mbLoops;
-	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the runtime.
 	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
 	CArrayTemplate<SIRReference>	masFoldIndex;	//Per temporary: the i16 a folded pointer adds in Y instead (its offset is 0), else none.
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
+	CIRDominators			mcDominators;		//The function's, worked out once (GenerateFunction)...
+	CIRLoops				mcLoops;			//...and its loops: each block's depth (PackTemporaries, AllocateX, GenerateBody).
 	CIRDominators*			mpcDominators;		//While the body is written: which jumps go round loops (JumpTo).
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
@@ -135,42 +124,34 @@ protected:
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
 	void			GetFrame(SIR816Frame* psFrame);
-	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm816Profile* pcProfile);
+	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);
-	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
-	void			SetSourceMarkers(bool bSourceMarkers);
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
-	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	CArrayChars*	GetRuntime(void);
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
+	static void		Peephole(CChars* pszDest, size uiStart);
+	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
 	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
 
 protected:
-	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
-	bool			Error(const char* szMessage, const char* szDetail = NULL);
 	void			Line(const char* szText);
-	void			Source(uint32 uiSource);
 	void			Line(const char* szText, int64 lliValue);
-	int32			NewLabel(void);
-	void			Label(int32 iLabel);
 	void			UseRuntime(const char* szName);
 
 	int				ValueBytes(SIRType sType);
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
 	void			Layout(void);
-	void			Peephole(CChars* pszDest, size uiStart);
-	void			RemoveDeadStores(CChars* pszDest, size uiStart);
 	int32			PackTemporaries(void);
 	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);

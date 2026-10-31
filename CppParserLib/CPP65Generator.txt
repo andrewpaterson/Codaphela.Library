@@ -2,7 +2,7 @@
 ====================
 
 CCPP65Generator turns a parsed translation unit (CCPPSyntaxTree) into 65C64 assembly
-for Assembler65Lib (syntax in Assembler65Lib/Assembler65Syntax.txt).  It is the first
+for Assembler65Lib (syntax in Assembler65Lib/Assembler65C64Syntax.txt).  It is the first
 back end of the C++ parser.  Usage:
 
 	CCPP65Generator	cGenerator;
@@ -37,9 +37,9 @@ CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput
 for the platform (FILE_SEPARATOR, __ENGINE_PRETTY_FUNCTION__, EngineOutput ...).
 
 Generate writes the translation unit as the assembly of an object, for
-CAsm65Assembler::AssembleObject and CAsm65Linker (see Several translation units).
+CAsm65C64Assembler::AssembleObject and CAsm65Linker (see Several translation units).
 GenerateProgram puts the start up (AppendStartUp) in front of it, so one object is a
-whole program.  The start up sets S to $1fffff, W to 0 and A, B, X and Y to 32 bits,
+whole program.  The start up sets S to 0x1fffff, W to 0 and A, B, X and Y to 32 bits,
 calls the init table (each global's R_Initialise, in link order), calls _main, calls
 Libc65's atexit functions (a weak reference to __RunAtExit, so only when stdlib.cpp is
 linked), calls the fini table backwards and stops.  main's result is in A when the
@@ -442,7 +442,7 @@ Several translation units
 -------------------------
 
 Each translation unit is one object (Assembler65Lib: AssembleObject, then
-CAsm65Linker; see Assembler65Syntax.txt "Objects and linking").  For each unit (a
+CAsm65Linker; see Assembler65C64Syntax.txt "Objects and linking").  For each unit (a
 CProject's, after Process):
 
 	cGenerator.Init(&cTree);
@@ -462,7 +462,7 @@ copy.
 
 Runtime routines are resident sections, and so is the start up: CCPP65Builder::SetLazy
 loads every other function from a drive when it is first called (see
-Assembler65Syntax.txt "Lazy loading").
+Assembler65C64Syntax.txt "Lazy loading").
 
 A global whose value isn't constant, or that is an object, has its own R_Initialise<n>
 (and an object its own R_Finalise<n>) in a text section, with its entry in an init (or

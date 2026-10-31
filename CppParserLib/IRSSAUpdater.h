@@ -43,6 +43,7 @@ public:
 	void			Define(CIRBlock* pcBlock, SIRReference sValue);
 	SIRReference	ValueAtStart(CIRBlock* pcBlock);
 	SIRReference	ValueAtEnd(CIRBlock* pcBlock);
+	bool			IsUnreachedCycle(CIRBlock* pcBlock);
 };
 
 

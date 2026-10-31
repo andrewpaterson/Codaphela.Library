@@ -38,26 +38,6 @@ void CCPPSyntaxConditionalExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxConditionalExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxConditionalExpression::GetType(void)
-{
-	return "ConditionalExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxConditionalExpression::GetKind(void)
 {
 	return CPPS_ConditionalExpression;
@@ -94,24 +74,12 @@ size CCPPSyntaxConditionalExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxConditionalExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCondition;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcTrue, &pcChild) || IsChild(&iIndex, mpcFalse, &pcChild))
 	{
-		return mpcTrue;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcFalse;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

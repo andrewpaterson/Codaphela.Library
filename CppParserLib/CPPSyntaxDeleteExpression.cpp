@@ -38,26 +38,6 @@ void CCPPSyntaxDeleteExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxDeleteExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxDeleteExpression::GetType(void)
-{
-	return "DeleteExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxDeleteExpression::GetKind(void)
 {
 	return CPPS_DeleteExpression;
@@ -100,12 +80,12 @@ size CCPPSyntaxDeleteExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxDeleteExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcOperand;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcOperand, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

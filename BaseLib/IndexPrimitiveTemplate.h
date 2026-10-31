@@ -25,7 +25,7 @@ public:
 template<class M, class D>
 bool CIndexPrimitiveTemplate<M, D>::Get(M sData, D** ppsData)
 {
-	return CIndexPrimitiveBlock<M>::Get(sData, ppsData, NULL);
+	return CIndexPrimitiveBlock<M>::Get(sData, (void**)ppsData, NULL);
 }
 
 

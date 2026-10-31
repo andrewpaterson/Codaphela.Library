@@ -38,26 +38,6 @@ void CCPPSyntaxMemberExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxMemberExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxMemberExpression::GetType(void)
-{
-	return "MemberExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxMemberExpression::GetKind(void)
 {
 	return CPPS_MemberExpression;
@@ -92,18 +72,12 @@ size CCPPSyntaxMemberExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxMemberExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcObject;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcObject, &pcChild) || IsChild(&iIndex, mpcName, &pcChild))
 	{
-		return mpcName;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

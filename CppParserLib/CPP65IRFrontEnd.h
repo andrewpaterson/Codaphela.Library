@@ -30,6 +30,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CSourceFile;
+class CIROptimiser;
 
 
 class CCPP65Generator;
@@ -157,11 +158,9 @@ protected:
 	bool					mbUnsupported;		//Something the front end can't write yet: the generator writes the function.
 
 public:
-	static size		suiWritten;				//Functions written as IR, and left to the generator, by every front end.
-	static size		suiLeft;
+	static size		suiWritten;				//Functions written as IR by every front end.
 	static int		siUnsupportedLine;		//The line of CPP65IRFrontEnd.cpp that last left a function to the generator.
 	static char		sszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
-	static size		sauiUnsupported[8192];	//How many functions each line of CPP65IRFrontEnd.cpp left to the generator.
 	static bool		sbPrint;				//Print each function's IR to stderr, for debugging.
 	static bool		sbOptimise;				//Run the mid level passes (CIROptimiser).
 	static bool		sbInline;				//Inline small functions across the unit (CIRInliner).
@@ -177,9 +176,9 @@ public:
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
-	uint64			InlinedEntries(CAsm816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
+	uint64			InlinedEntries(CAsm65816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
 	uint64			ProfileCycles(void);
-	CAsm816Profile*	InliningProfile(void);
+	CAsm65816Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
 
@@ -283,6 +282,9 @@ protected:
 	bool			Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue);
 	bool			BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue);
+	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
+	bool			VerifyIR(CIRFunction* pcFunction, int iLine);
+	void			InitOptimiser(CIROptimiser* pcOptimiser);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);
 	bool			ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRReference* psAddress);
@@ -297,6 +299,7 @@ protected:
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);
 	bool			IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscript);
 	void			PrintIR(CIRFunction* pcFunction);
+	void			PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources);
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool			DestructorEnd(void);
 	bool			StoreVtables(SIRReference sObject, SCPP65Class* psClass);

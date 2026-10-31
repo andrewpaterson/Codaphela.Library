@@ -38,8 +38,6 @@ public:
 	CCPPScope*					mpcScope;
 
 	void						Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	void						Kill(void) override;
-	char*						GetType(void) override;
 	ECPPSyntax					GetKind(void) override;
 	void						PrettyPrint(CChars* pszDest, int iDepth) override;
 	size						NumChildren(void) override;

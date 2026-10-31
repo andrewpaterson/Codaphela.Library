@@ -1,31 +1,36 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2021 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppParserLib
+
+Codaphela CppParserLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppParserLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
 #ifndef __DIRECTIVE_MAP_H__
 #define __DIRECTIVE_MAP_H__
-#include "BaseLib/PrimitiveTypes.h"
-#include "BaseLib/IndexPrimitiveTemplate.h"
-#include "ASCIITree.h"
+#include "NameMap.h"
 #include "PreprocessorDirective.h"
 
 
-typedef CIndexPrimitiveTemplate<int64, CPreprocessorDirective>	CDirectivesIndex;
-
-
-class CDirectiveMap
+class CDirectiveMap : public CNameMap<CPreprocessorDirective>
 {
-protected:
-	CASCIITree			mcNameToIDIndex;
-	CDirectivesIndex	mcIDToDirectiveIndex;
-
 public:
-	void 						Init(void);
-	void 						Kill(void);
 	CPreprocessorDirective*		AddDirective(CExternalString* pcName, EPreprocessorDirective eDirective);
 	CPreprocessorDirective*		AddDirective(char* szName, EPreprocessorDirective eDirective);
-	void						RemoveDirective(CExternalString* pcName);
-	void						RemoveDirective(char* szName);
-	CPreprocessorDirective*		GetDirective(CExternalString* pcName, bool bExact);
-	CPreprocessorDirective*		GetDirective(CChars* pszName, bool bExact);
 	CPreprocessorDirective*		GetDirective(char* szName, bool bExact);
-	void						Dump(void);
+	void						RemoveDirective(char* szName);
 };
 
 

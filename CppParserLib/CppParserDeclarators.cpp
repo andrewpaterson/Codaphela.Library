@@ -39,7 +39,7 @@ CCPPSyntaxDeclarator* CCPPParser::ParseDeclarator(CCPPSyntax* pcParent, ECPPDecl
 	CCPPSyntaxName*				pcName;
 
 	//[dcl.decl]
-	pcDeclarator = mpcMemory->CreateDeclarator(pcParent);
+	pcDeclarator = mpcMemory->Create<CCPPSyntaxDeclarator>(pcParent);
 	pcDeclarator->miFirstToken = CurrentToken();
 	pcQualifier = NULL;
 
@@ -57,7 +57,7 @@ CCPPSyntaxDeclarator* CCPPParser::ParseDeclarator(CCPPSyntax* pcParent, ECPPDecl
 		else if (Is(CT___cdecl) || Is(CT___stdcall) || Is(CT___fastcall) || Is(CT___thiscall) || Is(CT___vectorcall))
 		{
 			//Calling conventions, as in void (__stdcall *pf)(void).
-			pcKeyword = mpcMemory->CreateKeywordSpecifier(pcDeclarator);
+			pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcDeclarator);
 			pcKeyword->meKeyword = ((CCTReservedWord*)Peek(0))->GetToken();
 			pcKeyword->SetTokens(CurrentToken(), CurrentToken());
 			pcDeclarator->macpPrefix.Add(pcKeyword);
@@ -243,7 +243,7 @@ CCPPSyntaxPointerOperator* CCPPParser::ParsePointerOperator(CCPPSyntax* pcParent
 	CCPPSyntaxPointerOperator*	pcPointer;
 
 	//[dcl.ptr] [dcl.ref] [dcl.mptr]
-	pcPointer = mpcMemory->CreatePointerOperator(pcParent);
+	pcPointer = mpcMemory->Create<CCPPSyntaxPointerOperator>(pcParent);
 	pcPointer->miFirstToken = CurrentToken();
 	if (Accept(CT_Multiply))
 	{
@@ -316,7 +316,7 @@ void CCPPParser::ParseQualifiers(CArraySyntax* papcQualifiers, CCPPSyntax* pcPar
 			return;
 		}
 
-		pcKeyword = mpcMemory->CreateKeywordSpecifier(pcParent);
+		pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcParent);
 		pcKeyword->meKeyword = eToken;
 		pcKeyword->SetTokens(CurrentToken(), CurrentToken());
 		papcQualifiers->Add(pcKeyword);
@@ -403,7 +403,7 @@ bool CCPPParser::IsParameterClause(void)
 	if (pcNext->IsReservedWord())
 	{
 		eToken = ((CCTReservedWord*)pcNext)->GetToken();
-		if (IsSimpleTypeKeyword(eToken) || IsDeclSpecifierKeyword(eToken) || (eToken == CT_class) || (eToken == CT_struct) || (eToken == CT_union) || (eToken == CT_enum) || (eToken == CT_typename) || (eToken == CT_decltype) || (eToken == CT___typeof__) || (eToken == CT___attribute__) || (eToken == CT___declspec))
+		if (IsTypeStartKeyword(eToken) || IsDeclSpecifierKeyword(eToken) || (eToken == CT___attribute__) || (eToken == CT___declspec))
 		{
 			return true;
 		}
@@ -443,7 +443,7 @@ CCPPSyntaxFunctionSuffix* CCPPParser::ParseFunctionSuffix(CCPPSyntax* pcParent, 
 
 	//( parameter-declaration-clause ) cv ref-qualifier exception-specification -> trailing-return-type virt-specifiers
 	//[dcl.fct]
-	pcFunction = mpcMemory->CreateFunctionSuffix(pcParent);
+	pcFunction = mpcMemory->Create<CCPPSyntaxFunctionSuffix>(pcParent);
 	pcFunction->miFirstToken = CurrentToken();
 	if (!Expect(CT_OpenRoundBracket))
 	{
@@ -529,7 +529,7 @@ CCPPSyntaxFunctionSuffix* CCPPParser::ParseFunctionSuffix(CCPPSyntax* pcParent, 
 		{
 			break;
 		}
-		pcVirt = mpcMemory->CreateKeywordSpecifier(pcFunction);
+		pcVirt = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcFunction);
 		pcVirt->SetTokens(CurrentToken(), CurrentToken());
 		pcFunction->macpVirtSpecifiers.Add(pcVirt);
 		Next();
@@ -550,7 +550,7 @@ CCPPSyntaxExceptionSpecification* CCPPParser::ParseExceptionSpecification(CCPPSy
 	CCPPSyntaxTypeId*					pcType;
 
 	//noexcept, noexcept(e) and the dynamic throw(T, U).  [except.spec]
-	pcSpecification = mpcMemory->CreateExceptionSpecification(pcParent);
+	pcSpecification = mpcMemory->Create<CCPPSyntaxExceptionSpecification>(pcParent);
 	pcSpecification->miFirstToken = CurrentToken();
 	if (Accept(CT_noexcept))
 	{
@@ -610,7 +610,7 @@ CCPPSyntaxParameter* CCPPParser::ParseParameter(CCPPSyntax* pcParent)
 	CCPPSyntaxParameter*	pcParameter;
 
 	//[dcl.fct] parameter-declaration
-	pcParameter = mpcMemory->CreateParameter(pcParent);
+	pcParameter = mpcMemory->Create<CCPPSyntaxParameter>(pcParent);
 	pcParameter->miFirstToken = CurrentToken();
 	pcParameter->mpcSpecifiers = ParseDeclSpecifiers(pcParameter, CPPDC_Parameter);
 	if (!pcParameter->mpcSpecifiers)
@@ -653,7 +653,7 @@ CCPPSyntaxArraySuffix* CCPPParser::ParseArraySuffix(CCPPSyntax* pcParent)
 	bool					bNoGreater;
 
 	//[ constant-expression ]  [dcl.array]
-	pcArray = mpcMemory->CreateArraySuffix(pcParent);
+	pcArray = mpcMemory->Create<CCPPSyntaxArraySuffix>(pcParent);
 	pcArray->miFirstToken = CurrentToken();
 	Expect(CT_OpenSquareBracket);
 	if (!Is(CT_CloseSquareBracket))
@@ -685,7 +685,7 @@ CCPPSyntaxTypeId* CCPPParser::ParseTypeId(CCPPSyntax* pcParent)
 	CCPPSyntaxTypeId*	pcType;
 
 	//type-specifier-seq abstract-declarator  [dcl.name]
-	pcType = mpcMemory->CreateTypeId(pcParent);
+	pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
 	pcType->miFirstToken = CurrentToken();
 	pcType->mpcSpecifiers = ParseDeclSpecifiers(pcType, CPPDC_TypeId);
 	if (!pcType->mpcSpecifiers)
@@ -718,14 +718,27 @@ CCPPSyntaxTypeId* CCPPParser::ParseConversionTypeId(CCPPSyntax* pcParent)
 	CCPPSyntaxPointerOperator*	pcPointer;
 
 	//The type of operator T: type specifiers and pointer operators only, so operator int() parses.  [class.conv.fct]
-	pcType = mpcMemory->CreateTypeId(pcParent);
+	pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
 	pcType->miFirstToken = CurrentToken();
 	pcType->mpcSpecifiers = ParseDeclSpecifiers(pcType, CPPDC_TypeId);
 	if (!pcType->mpcSpecifiers)
 	{
 		return NULL;
 	}
-	pcType->mpcDeclarator = mpcMemory->CreateDeclarator(pcType);
+	if (!pcType->mpcSpecifiers->mpcType && (pcType->mpcSpecifiers->muiTypeKeywords == 0) && (pcType->mpcSpecifiers->miLongs == 0))
+	{
+		//operator needs an operator or a conversion type: int operator ; has neither.
+		if (pcType->mpcSpecifiers->macpSpecifiers.NumElements() == 0)
+		{
+			Error("Expected an operator.");
+		}
+		else
+		{
+			Error("Expected a type.");
+		}
+		return NULL;
+	}
+	pcType->mpcDeclarator = mpcMemory->Create<CCPPSyntaxDeclarator>(pcType);
 	pcType->mpcDeclarator->miFirstToken = CurrentToken();
 	while (Is(CT_Multiply) || Is(CT_BitwiseAnd) || Is(CT_LogicalAnd))
 	{
@@ -760,7 +773,7 @@ bool CCPPParser::IsTypeIdStart(void)
 	if (pcToken->IsReservedWord())
 	{
 		eToken = ((CCTReservedWord*)pcToken)->GetToken();
-		return IsSimpleTypeKeyword(eToken) || (eToken == CT_const) || (eToken == CT_volatile) || (eToken == CT___const__) || (eToken == CT___volatile__) || (eToken == CT_class) || (eToken == CT_struct) || (eToken == CT_union) || (eToken == CT_enum) || (eToken == CT_typename) || (eToken == CT_decltype) || (eToken == CT___typeof__);
+		return IsTypeStartKeyword(eToken) || (eToken == CT_const) || (eToken == CT_volatile) || (eToken == CT___const__) || (eToken == CT___volatile__);
 	}
 
 	if (pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution))
@@ -777,18 +790,33 @@ bool CCPPParser::IsTypeIdStart(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::IsTypeIdAhead(ECppTokens eFollowing)
 {
-	SCPPParserPosition	sPosition;
+	SCPPTentative		sTentative;
 	CCPPSyntaxTypeId*	pcType;
-	int					iSavedFailed;
-	bool				bSucceeded;
 
 	//True if a type-id followed by eFollowing is next, as in sizeof(T) but not sizeof(T() + 1).  Nothing is consumed.
-	sPosition = Mark();
-	BeginTentative(&iSavedFailed);
+	BeginTentative(&sTentative);
 	pcType = ParseTypeId(NULL);
-	bSucceeded = EndTentative(iSavedFailed) && (pcType != NULL) && Is(eFollowing);
-	Rewind(sPosition);
-	return bSucceeded;
+	return EndTentative(&sTentative, (pcType != NULL) && Is(eFollowing));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPParser::ParseTypeIdOrExpression(CCPPSyntax* pcParent, bool bConstant)
+{
+	//( type-id | expression ) after the '(' of decltype, __typeof__ or alignas: a type-id if one fills the parentheses,
+	//otherwise an expression, a constant expression if bConstant.
+	if (IsTypeIdStart() && IsTypeIdAhead(CT_CloseRoundBracket))
+	{
+		return ParseTypeId(pcParent);
+	}
+	if (bConstant)
+	{
+		return ParseConstantExpression(pcParent);
+	}
+	return ParseExpression(pcParent);
 }
 
 
@@ -821,7 +849,7 @@ CCPPSyntax* CCPPParser::ParseInitializer(CCPPSyntax* pcParent, ECPPInitializer* 
 	if (Is(CT_OpenRoundBracket))
 	{
 		*peKind = CPPI_Parentheses;
-		pcParentheses = mpcMemory->CreateParenthesisedInitializer(pcParent);
+		pcParentheses = mpcMemory->Create<CCPPSyntaxParenthesisedInitializer>(pcParent);
 		pcParentheses->miFirstToken = CurrentToken();
 		Next();
 		bNoGreater = mbNoGreater;
