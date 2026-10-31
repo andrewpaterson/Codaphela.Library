@@ -199,28 +199,6 @@ bool CCircuitView::RemoveTrace(CTraceView* pcTrace)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many wires the grid point is on, at an end or along them.
-//
-//////////////////////////////////////////////////////////////////////////
-size CCircuitView::NumTracesAt(SInt32Vec2 sPoint)
-{
-	size	i;
-	size	uiCount;
-
-	uiCount = 0;
-	for (i = 0; i < mapcTraces.NumElements(); i++)
-	{
-		if (mapcTraces.GetPtr(i)->Contains(sPoint))
-		{
-			uiCount++;
-		}
-	}
-	return uiCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Puts a wire taken out (see RemoveTrace) back at uiIndex in the wires,
 // or at the end if there are fewer.  The circuit owns it again.
 //
