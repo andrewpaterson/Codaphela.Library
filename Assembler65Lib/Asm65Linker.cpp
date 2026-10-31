@@ -901,6 +901,11 @@ void CAsm65Linker::Layout(void)
 				}
 				uiAddress = FlowAddress(uiAddress, psSection);
 				psLinkSection->uiAddress = (uint32)uiAddress;
+				if ((muiBankSize != 0) && (psSection->eKind == ASK65_Text) && (psSection->uiSize > muiBankSize))
+				{
+					//The program counter wraps in its bank: code can't run on into the next one.
+					mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Code is bigger than a bank", psSection->szName.Text());
+				}
 				if (bFirst)
 				{
 					mauiStart[iKind] = (uint32)uiAddress;

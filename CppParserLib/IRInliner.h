@@ -40,6 +40,8 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 #define IR_INLINE_HOT_SAVING		30		//About the cycles a call costs that inlining it saves (a W65C816's jsl, frame and rtl)...
 #define IR_INLINE_HOT_SHARE			2000	//...a call site is hot when that, times the calls, is 1/IR_INLINE_HOT_SHARE of the profiled run.
 #define IR_INLINE_UNKNOWN			((uint64)-1)
+#define IR_INLINE_MAX_CALLER		4096	//No function grows past this many instructions by inlining (a W65C816 function
+										//must fit in a 64KB bank).
 
 
 //How often calls were made, from a profile of the program (CAsm65816Profile): what a profile guided inliner asks.
@@ -82,12 +84,16 @@ protected:
 	CArrayIRReferences		masArguments;				//The call's arguments, in order.
 	CIRInlineProfile*		mpcProfile;					//NULL for none.
 	size					muiHotInstructions;
+	CArrayTemplate<CIRFunction*>	mapcRecursiveCallers;	//A function that calls itself is inlined once into a caller: the
+	CArrayTemplate<CIRFunction*>	mapcRecursiveCallees;	//callers and callees done (its copies' calls of it aren't).
 
 public:
 	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);
 	void			Kill(void);
 
 	static size		NumInstructions(CIRFunction* pcFunction);
+	static bool		CallsItself(CIRFunction* pcFunction);
+	bool			InlinedRecursive(CIRFunction* pcCallee);
 	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0, size uiHotLimit = 0);
 	bool			InlineCalls(CIRFunction* pcCaller);
 	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing);
