@@ -22,7 +22,7 @@ void SChunkFileHeader::WriteInit(chunkName iUserID)
 //////////////////////////////////////////////////////////////////////////
 void CChunkHeader::WriteInit(void)
 {
-	memset(this, 0xEE, sizeof(SChunkFileHeader));
+	memset(this, 0xEE, sizeof(CChunkHeader));
 	miChunkIndexPos = -1;
 	miChunkSize = 0;
 	miName = -1;

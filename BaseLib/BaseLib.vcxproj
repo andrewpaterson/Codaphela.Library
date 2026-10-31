@@ -483,6 +483,7 @@
     <ClInclude Include="AbstractFile.h" />
     <ClInclude Include="BufferedFile.h" />
     <ClInclude Include="DiskFile.h" />
+    <ClInclude Include="HashFile.h" />
     <ClInclude Include="MD5HashFile.h" />
     <ClInclude Include="MemoryFile.h" />
     <ClInclude Include="FileCompare.h" />

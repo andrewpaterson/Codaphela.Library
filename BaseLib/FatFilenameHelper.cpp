@@ -538,12 +538,28 @@ bool IsIllegalFilename(const char* szName, uint16 uiLength)
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 {
 	char	szNameSuffix[7];
+	char	szDigits[6];
 	size	i;
 	size	c;
 	size	uiSuffixLength;
+	size	uiDigits;
 
-	sprintf(szNameSuffix, "~%i", uiNameSuffix);
-	uiSuffixLength = StrLen(szNameSuffix);
+	//"~" and the suffix's digits (not sprintf: it would link a whole formatter).
+	uiDigits = 0;
+	do
+	{
+		szDigits[uiDigits] = (char)('0' + (uiNameSuffix % 10));
+		uiNameSuffix = (uint16)(uiNameSuffix / 10);
+		uiDigits++;
+	}
+	while (uiNameSuffix != 0);
+	szNameSuffix[0] = '~';
+	for (c = 0; c < uiDigits; c++)
+	{
+		szNameSuffix[1 + c] = szDigits[uiDigits - 1 - c];
+	}
+	szNameSuffix[1 + uiDigits] = 0;
+	uiSuffixLength = 1 + uiDigits;
 
 	for (i = 0; i < 8 - uiSuffixLength; i++)
 	{
