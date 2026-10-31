@@ -111,6 +111,7 @@ void CInputChord::Init(CAction* pcAction, CInputChords* pcInputChords, CInputCho
 	masScratchPadDeviceValue.Init();
 	mpcDesc = pcDesc;
 	miMatchedCriteria = 0;
+	muiEvictionAge = 0;
 }
 
 
@@ -482,6 +483,7 @@ void CInputChord::Copy(CInputChord* pcSource, CInputDeviceCopyContext* pcContext
 	Init(NULL, pcInputChords, pcChordDesc);
 
 	mpcAction = pcSource->mpcAction;
+	muiEvictionAge = pcSource->muiEvictionAge;
 	CopyActionCriteria(&muActionCriteria, &pcSource->muActionCriteria, pcContext);
 
 	//The chords copied from were already checked against each other.
@@ -927,4 +929,16 @@ size CInputChord::GetUpdateCriteria(void) { return miUpdateCriteria; }
 size CInputChord::GetMatchedCriteria(void) { return miMatchedCriteria; }
 
 void CInputChord::SetMatchedCriteria(size iMatchedCriteria) { miMatchedCriteria = iMatchedCriteria; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long a partial match of this chord waits for the rest once all its
+// inputs are let go; 0 (the default) waits the chords' eviction age.  A
+// chord of keys pressed one after another wants longer than one of keys
+// held together.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputChord::SetEvictionAge(uint32 uiMilliseconds) { muiEvictionAge = uiMilliseconds; }
+uint32 CInputChord::GetEvictionAge(void) { return muiEvictionAge; }
 

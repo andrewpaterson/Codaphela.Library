@@ -70,7 +70,9 @@ typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 
 
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing East about its
-//position, as it's normally read (-y up and -x left), and turned by its rotation.  As Logicim's views, it makes a component for each circuit simulation of
+//position, as it's normally read (-y up and -x left), mirrored top to bottom if it's mirrored and turned by its
+//rotation (see TransformPoint).  A view is made unmirrored; mirroring is set after it's made (SetMirrored), as the
+//circuit does when loading it (LoadXMLMirrored).  As Logicim's views, it makes a component for each circuit simulation of
 //each view path its circuit is on (CreateComponent), in the subcircuit simulation the path has for that circuit
 //simulation, and remembers each by its path and circuit simulation.  A circuit used in many places, or simulated many
 //times, has one set of views and a component of each per use.
@@ -94,6 +96,7 @@ CONSTRUCTABLE(CComponentView);
 protected:
 	SInt32Vec2				msPosition;
 	ERotation				meRotation;
+	bool					mbMirrored;
 	CChars					mszName;
 	CComponentShapes		mcShapes;
 	CArrayPortViewPtr		mapcPortViews;
@@ -120,6 +123,7 @@ public:
 	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			void					SaveXML(CXMLWriter* pcWriter);
+			bool					LoadXMLMirrored(CMarkupTag* pcTag);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 
 			void					DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
@@ -132,6 +136,8 @@ public:
 			SInt32Vec2				GetPosition(void);
 			void					SetRotation(ERotation eRotation);
 			ERotation				GetRotation(void);
+			void					SetMirrored(bool bMirrored);
+			bool					IsMirrored(void);
 			char*					GetName(void);
 			CComponentShapes*		GetShapes(void);
 

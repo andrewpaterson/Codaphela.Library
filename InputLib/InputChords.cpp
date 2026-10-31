@@ -38,6 +38,7 @@ void CInputChords::Init(void)
 	mscEvaluators.Init(false);
 	macHistory.Init();
 	muiEvictionAge = 300;  // Milliseconds.
+	muiPartialEvictionAge = muiEvictionAge;
 	muiTime = 0;
 	masEvents.Init();
 	mpcPending = NULL;
@@ -76,6 +77,7 @@ void CInputChords::Copy(CInputChords* pcSource, CInputDeviceCopyContext* pcConte
 	bool					bExists;
 
 	muiEvictionAge = pcSource->muiEvictionAge;
+	muiPartialEvictionAge = muiEvictionAge;
 
 	bExists = pcSource->mscEvaluators.StartIteration(&sEvaluatorIter, &pcSourceInputSourceEvaluator);
 	while (bExists)
@@ -350,6 +352,7 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 	bool					bLonger;
 	bool					bPendingGoesOn;
 	size					uiKept;
+	uint32					uiEvictionAge;
 
 	sMatch.iIndex = MAX_UINT;
 	sMatch.iLength = 0;
@@ -357,6 +360,7 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 	sMatch.bPotentialMatch = false;
 	iLowestIndex = MAX_UINT;
 	bPendingGoesOn = false;
+	muiPartialEvictionAge = 0;
 	bExists = mlcChords.StartIteration(&sIter, &pcChord);
 	while (bExists)
 	{
@@ -371,6 +375,11 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 			if (mpcPending && (sResult.iIndex == muiPendingStart))
 			{
 				bPendingGoesOn = true;
+			}
+			uiEvictionAge = (pcChord->GetEvictionAge() != 0) ? pcChord->GetEvictionAge() : muiEvictionAge;
+			if (uiEvictionAge > muiPartialEvictionAge)
+			{
+				muiPartialEvictionAge = uiEvictionAge;
 			}
 
 			if (sResult.iLength > sMatch.iLength)
@@ -554,10 +563,11 @@ void CInputChords::AddEvent(CInputChord* pcChord, SInputDeviceTimeValue* psValue
 //
 // An input that is still down never ages, so a partial chord is only too
 // old to finish once everything after the carried inputs has been let go
-// for longer than the eviction age.  If the oldest of them is the start
-// of a pending chord the pending chord is called, otherwise it is let
-// through.  What is left is matched again, which lets through the rest
-// unless a later chord could still match.  The carried inputs don't age.
+// for longer than the eviction age of the chords that could still match
+// it (worked out by Match).  If the oldest of them is the start of a
+// pending chord the pending chord is called, otherwise it is let through.
+// What is left is matched again, which lets through the rest unless a
+// later chord could still match.  The carried inputs don't age.
 //
 //////////////////////////////////////////////////////////////////////////
 void CInputChords::Evict(void)
@@ -577,7 +587,7 @@ void CInputChords::Evict(void)
 			break;
 		}
 		psNewest = macHistory.Tail();
-		if (muiTime - psNewest->uiTime <= muiEvictionAge)
+		if (muiTime - psNewest->uiTime <= muiPartialEvictionAge)
 		{
 			break;
 		}

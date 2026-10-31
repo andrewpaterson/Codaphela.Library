@@ -360,7 +360,7 @@ SInt32Vec2 CPortView::GetGridPosition(void)
 	SInt32Vec2	sOwner;
 
 	sPosition = msRelativePosition;
-	RotatePoint(mpcOwner->GetRotation(), &sPosition);
+	TransformPoint(mpcOwner->GetRotation(), mpcOwner->IsMirrored(), &sPosition);
 	sOwner = mpcOwner->GetPosition();
 	sPosition.x += sOwner.x;
 	sPosition.y += sOwner.y;

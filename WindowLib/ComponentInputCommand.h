@@ -85,6 +85,8 @@ enum EComponentInputCommand
 	CIC_StepUndo,
 	CIC_Redo,
 	CIC_StepRedo,
+	CIC_FlipHorizontally,  //Control+Shift+F, then H.
+	CIC_FlipVertically,  //Control+Shift+F, then V.
 
 	//Components
 	CIC_ActivateComponent,

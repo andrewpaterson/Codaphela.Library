@@ -61,7 +61,8 @@ public:
 //The only part of WindowLib that uses InputLib.  Every keyboard, mouse, joystick and gamepad's sources are in one
 //virtual device so a chord can be made of any of them; AddDevice adds a device in another category.  Update updates the input and queues what changed: keys and
 //buttons, movement other than none and controllers.  An input that can be part of a chord is only queued once the
-//chord matches (then only the chord is queued) or stops matching or 0.3 seconds pass.
+//chord matches (then only the chord is queued) or stops matching or, once its inputs are let go, the chord's eviction
+//age passes (0.3 seconds unless the chord says otherwise).
 //
 //The queue holds what the last Update found until the next one.  Kill the CInput after the source.
 class CWindowInputSource : public CObject
@@ -94,6 +95,7 @@ public:
 	bool					IsDelta(CInputSourceDesc* pcSource);
 	CInputChord*			AddChord(char* szName);
 	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
+	bool					AddKeySequenceChord(char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds);
 	CInputVirtualDevice*	GetVirtualDevice(void);
 
 	bool					IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource);

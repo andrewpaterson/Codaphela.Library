@@ -105,6 +105,8 @@ protected:
 	void						AddKeyboardChords(CComponentInputDevice* pcKeyboard);
 	void						AddMouseChords(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcMouse);
 	void						AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
+	void						AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
+	void						AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	SComponentInputChordCommand*	GetChordCommand(char* szName);
 	bool						IsKeyDown(EComponentInputKey eKey);
 	void						InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent);

@@ -76,7 +76,7 @@ void COscilloscopeView::Init(int32 x, int32 y, ERotation eRotation, const char* 
 //////////////////////////////////////////////////////////////////////////
 void COscilloscopeView::Paint(CCircuitPainter* pcPainter)
 {
-	pcPainter->SetTransform(msPosition, meRotation);
+	pcPainter->SetTransform(msPosition, meRotation, mbMirrored);
 	PaintShapes(pcPainter);
 	PaintSamples(pcPainter);
 	PaintPorts(pcPainter);

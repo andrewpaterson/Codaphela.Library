@@ -31,6 +31,7 @@ struct SMovedComponent
 	CComponentView*		pcComponent;
 	SInt32Vec2			sPosition;
 	ERotation			eRotation;
+	bool				bMirrored;
 };
 
 
@@ -49,8 +50,8 @@ struct SMovedTrace
 typedef CArrayTemplate<SMovedTrace>	CArrayMovedTrace;
 
 
-//Moves and turns components and wires with the pointer, as Logicim's MoveComponents.  They turn about where the edit
-//started and move as far as the pointer has.  New components (being placed) are already in the circuit but have no
+//Moves, turns and flips components and wires with the pointer, as Logicim's MoveComponents.  They turn and flip about
+//where the edit started and move as far as the pointer has.  New components (being placed) are already in the circuit but have no
 //components in the simulation until the move is done; a discarded placement takes them out again, a discarded move
 //puts them back where they were.
 //
@@ -72,7 +73,7 @@ public:
 
 	void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	CStatefulEdit*	Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
-	CStatefulEdit*	Rotate(bool bRight, CCircuitEdit* pcEdit) override;
+	CStatefulEdit*	Transform(CCircuitEdit* pcEdit) override;
 	void			Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	void			Discard(CCircuitEdit* pcEdit) override;
 	bool			CanTransformComponents(void) override;
@@ -80,12 +81,12 @@ public:
 protected:
 	void			AddComponent(CComponentView* pcComponent);
 	void			AddTrace(CTraceView* pcTrace);
-	void			MoveViews(int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);
+	void			MoveViews(bool bMirror, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);
 	void			GetViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 };
 
 
-SInt32Vec2	MoveAbout(SInt32Vec2 sPosition, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);
+SInt32Vec2	MoveAbout(SInt32Vec2 sPosition, bool bMirror, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);
 
 
 #endif // __MOVE_COMPONENTS_EDIT_H__

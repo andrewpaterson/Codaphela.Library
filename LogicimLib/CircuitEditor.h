@@ -99,15 +99,29 @@ typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
 //
 //A component's properties (see CComponentProperties) are edited as Logicim's property editor dialog edits them: the
 //hovered component's, or else the selected one's, are listed by GetProperties and a new component made from them (and
-//turned to a rotation) replaces it, in the circuit and in the running simulations, by SetProperties.
+//turned to a rotation and mirrored or not) replaces it, in the circuit and in the running simulations, by SetProperties.
 //
 //A saved project is a circuits file (see CircuitFile.h) with an <Editor> element naming the circuit being edited, the
-//rotation new components are placed with and the selection in it (each <Selected> a component's or wire's index).
+//rotation new components are placed with (and mirrored, only when they are) and the selection in it (each <Selected> a
+//component's or wire's index).
+//
+//Turning and flipping act on what's being moved or placed, or else the component under the pointer, or else the
+//selection, about the pointer.  Components placed afterwards are turned and flipped too.  Flipping horizontally mirrors
+//left to right on the screen and vertically top to bottom, whichever way the components face.
 //
 //Undo and redo are Logicim's: after each change (and a load, and starting to simulate a circuit) the whole project is
 //saved onto an undo stack (see CUndoStack), and undoing or redoing loads one of those again, simulation and all.  A
 //change that only changed the selection is marked so: Undo and Redo skip it, as if it were part of the change before
 //or after it, and stepping (as Logicim does) doesn't.
+enum EEditTransform
+{
+	ET_RotateRight,
+	ET_RotateLeft,
+	ET_FlipHorizontally,
+	ET_FlipVertically,
+};
+
+
 class CCircuitEditor
 {
 protected:
@@ -121,6 +135,7 @@ protected:
 	CCircuitEdit*						mpcEdit;
 	CComponentView*						mpcNextUnit;
 	ERotation							meCreationRotation;
+	bool								mbCreationMirrored;
 	CComponentView*						mpcHover;
 	bool								mbHoverConnection;
 	SInt32Vec2							msHoverConnection;
@@ -149,12 +164,14 @@ public:
 	bool				StartPlaceSubcircuit(const char* szTypeName);
 	void				RotateRight(void);
 	void				RotateLeft(void);
+	void				FlipHorizontally(void);
+	void				FlipVertically(void);
 	bool				Delete(void);
 	void				StopEdit(void);
 
 	CComponentView*		GetPropertiesComponent(void);
 	void				GetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties);
-	CComponentView*		SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation);
+	CComponentView*		SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation, bool bMirrored);
 
 	bool				Save(const char* szFilename);
 	bool				Load(const char* szFilename);
@@ -180,6 +197,7 @@ public:
 	bool				GetHoverConnection(SInt32Vec2* psConnection);
 	CTraceView*			GetHoverTrace(void);
 	ERotation			GetCreationRotation(void);
+	bool				IsCreationMirrored(void);
 	bool				IsControl(void);
 	bool				IsShift(void);
 
@@ -195,7 +213,7 @@ protected:
 	void				DiscardEdit(void);
 	void				KillEdit(void);
 	bool				StartPlace(CComponentView* pcComponent);
-	void				RotateComponents(bool bRight);
+	void				TransformComponents(EEditTransform eTransform);
 	void				UpdateHover(void);
 	void				ClearHover(void);
 	void				GetTracesEndingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcTraces);
