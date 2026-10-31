@@ -32,7 +32,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 int CalculateMaxDigits(ERadix eRadix, int iBitWidth)
 {
 	int		iMaxDigits;
-	uint64	ulMax;
+	uint64	uiMax;
 
 	iMaxDigits = 0;
 	if (eRadix == RADIX_Binary)
@@ -45,13 +45,13 @@ int CalculateMaxDigits(ERadix eRadix, int iBitWidth)
 	}
 	else if (eRadix == RADIX_Decimal)
 	{
-		ulMax = (iBitWidth >= 64) ? 0xFFFFFFFFFFFFFFFFULL : ((1ULL << iBitWidth) - 1);
+		uiMax = (iBitWidth >= 64) ? 0xFFFFFFFFFFFFFFFFULL : ((1ULL << iBitWidth) - 1);
 		do
 		{
 			iMaxDigits++;
-			ulMax /= 10;
+			uiMax /= 10;
 		}
-		while (ulMax != 0);
+		while (uiMax != 0);
 	}
 	if (iMaxDigits < 1)
 	{
@@ -98,7 +98,7 @@ void AppendTraceValues(CChars* psz, STraceValue* asValues, int iBitWidth, ERadix
 	int			iNybble;
 	bool		bUnsettled;
 	bool		bUndriven;
-	uint64		ulValue;
+	uint64		uiValue;
 
 	if (eRadix == RADIX_Binary)
 	{
@@ -146,12 +146,12 @@ void AppendTraceValues(CChars* psz, STraceValue* asValues, int iBitWidth, ERadix
 	}
 	else if (eRadix == RADIX_Decimal)
 	{
-		ulValue = 0;
+		uiValue = 0;
 		for (i = 0; i < iBitWidth; i++)
 		{
 			if (asValues[i].eValue == TV_High)
 			{
-				ulValue |= 1ULL << i;
+				uiValue |= 1ULL << i;
 			}
 			else if ((asValues[i].eValue == TV_Undriven) || (asValues[i].eValue == TV_Unsettled))
 			{
@@ -162,7 +162,7 @@ void AppendTraceValues(CChars* psz, STraceValue* asValues, int iBitWidth, ERadix
 				return;
 			}
 		}
-		psz->Append(ulValue);
+		psz->Append(uiValue);
 	}
 }
 
