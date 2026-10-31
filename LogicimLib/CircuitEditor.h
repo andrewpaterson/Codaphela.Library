@@ -62,6 +62,16 @@ struct SMoveAnchor
 typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
 
 
+//The ways the editor turns or flips components (see CCircuitEditor::TransformComponents).
+enum EEditTransform
+{
+	ET_RotateRight,
+	ET_RotateLeft,
+	ET_FlipHorizontally,
+	ET_FlipVertically,
+};
+
+
 //Edits a project's circuits while one of them is simulated, as Logicim's editor (Logicim, CircuitEditor and
 //SubcircuitEditor): selecting, placing, moving, turning and deleting components and wires, drawing wires, and loading
 //and saving.  The editor owns the circuits and the simulation; the families and fonts are the caller's.
@@ -113,15 +123,6 @@ typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
 //saved onto an undo stack (see CUndoStack), and undoing or redoing loads one of those again, simulation and all.  A
 //change that only changed the selection is marked so: Undo and Redo skip it, as if it were part of the change before
 //or after it, and stepping (as Logicim does) doesn't.
-enum EEditTransform
-{
-	ET_RotateRight,
-	ET_RotateLeft,
-	ET_FlipHorizontally,
-	ET_FlipVertically,
-};
-
-
 class CCircuitEditor
 {
 protected:

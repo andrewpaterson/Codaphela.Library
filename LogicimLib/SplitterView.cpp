@@ -38,10 +38,10 @@ void CSplitterView::CreateSplitIndices(int* aiSplitIndices, int32 iBitWidth, int
 {
 	int32	i;
 	int32	iFan;
-	int32	d;
+	int32	iShare;
 
 	iFan = 0;
-	d = iFanOut / 2;
+	iShare = iFanOut / 2;
 	for (i = 0; i < iBitWidth; i++)
 	{
 		if (iFanOut == 1)
@@ -50,10 +50,10 @@ void CSplitterView::CreateSplitIndices(int* aiSplitIndices, int32 iBitWidth, int
 			continue;
 		}
 		aiSplitIndices[i] = iFan;
-		d += iFanOut;
-		if (d >= iBitWidth)
+		iShare += iFanOut;
+		if (iShare >= iBitWidth)
 		{
-			d -= iBitWidth;
+			iShare -= iBitWidth;
 			iFan++;
 		}
 	}

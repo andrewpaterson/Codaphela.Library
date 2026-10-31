@@ -876,6 +876,7 @@ void CTraceAutoConnector::SortConnections(CArrayInt* paiOrder)
 	CArrayInt				aiSingles;
 	size					i;
 	size					j;
+	size					k;
 	STraceAutoConnection*	psConnection;
 	int						iRun;
 	SInt32Vec2				sFrom;
@@ -939,7 +940,6 @@ void CTraceAutoConnector::SortConnections(CArrayInt* paiOrder)
 			{
 				//Across the way they leave, as their bends are stepped.
 				sFrom = psConnection->pcFrom->GetGridPosition();
-				size	k;
 				for (k = uiFirst; k < paiOrder->NumElements(); k++)
 				{
 					sOtherFrom = masConnections.Get(paiOrder->GetValue(k))->pcFrom->GetGridPosition();
