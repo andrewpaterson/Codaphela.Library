@@ -171,6 +171,7 @@ struct SCPP65Field
 	int64			lliName;
 	SCPP65Type*		psType;
 	int				iOffset;
+	int				iAlign;				//Its alignas, 0 for none.
 	CCPPSyntax*		pcInitialiser;		//The default member initialiser, or NULL.
 };
 
@@ -561,6 +562,7 @@ protected:
 	SCPP65Class*			QualifierClass(SCPP65Class* psClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						TypeAlignment(SCPP65Type* psType);
 	int						PackAlignment(int iAlign, int iPack);
+	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
 	SCPP65Class*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration);

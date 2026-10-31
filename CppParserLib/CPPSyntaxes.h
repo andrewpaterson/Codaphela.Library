@@ -70,6 +70,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxSwitchStatement.h"
 #include "CPPSyntaxCaseStatement.h"
 #include "CPPSyntaxLabelStatement.h"
+#include "CPPSyntaxAttributedStatement.h"
 #include "CPPSyntaxWhileStatement.h"
 #include "CPPSyntaxDoStatement.h"
 #include "CPPSyntaxForStatement.h"

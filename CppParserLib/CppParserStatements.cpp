@@ -81,6 +81,7 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	CCPPSyntaxContinueStatement*	pcContinue;
 	CCPPSyntaxGotoStatement*		pcGoto;
 	CCPPSyntaxSkippedStatement*		pcSkipped;
+	CCPPSyntaxAttributedStatement*	pcAttributed;
 	SCPPParserPosition				sStart;
 	CCPPScope*						pcScope;
 	int								iErrors;
@@ -94,7 +95,20 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	mbNoGreater = false;
 	pcStatement = NULL;
 
-	if (Is(CT_OpenCurlyBracket))
+	if (Is(CT_OpenSquareBracket) && IsAhead(1, CT_OpenSquareBracket) && !IsDeclarationStatement(CPPDC_Block))
+	{
+		//[[attributes]] statement, as [[fallthrough]];  [stmt.pre]
+		pcAttributed = mpcMemory->Create<CCPPSyntaxAttributedStatement>(pcParent);
+		pcAttributed->miFirstToken = CurrentToken();
+		ParseAttributes(&pcAttributed->macpAttributes, pcAttributed);
+		pcAttributed->mpcStatement = ParseStatement(pcAttributed);
+		if (pcAttributed->mpcStatement)
+		{
+			pcAttributed->miLastToken = PreviousToken();
+			pcStatement = pcAttributed;
+		}
+	}
+	else if (Is(CT_OpenCurlyBracket))
 	{
 		pcStatement = ParseCompoundStatement(pcParent, true);
 	}

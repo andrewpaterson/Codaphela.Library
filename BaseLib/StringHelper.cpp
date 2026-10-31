@@ -706,10 +706,9 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 
 	if (szString)
 	{
-		iLen = strlen(szString);
-
 		if (bReverse)
 		{
+			iLen = strlen(szString);
 			if (iLen == 0)
 			{
 				return NULL;
@@ -728,11 +727,13 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 		}
 		else
 		{
-			for (i =  0; i < iLen; i++)
+			//Forwards stops at the first c without measuring the string first (a search per line of a long text
+			//would go over the rest of the text each time).
+			for (; *szString != '\0'; szString++)
 			{
-				if (szString[i] == c)
+				if (*szString == c)
 				{
-					return &szString[i];
+					return szString;
 				}
 			}
 		}

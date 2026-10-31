@@ -180,7 +180,9 @@ bool CIndexedFiles::WriteIndexedFileDescriptors(void)
 	size						iResult;
 	size						uiNumElements;
 
+	//Zeroed: the descriptors' padding is written to the file too, and the same files must give the same bytes.
 	pvFileDescriptors = malloc((lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
+	memset(pvFileDescriptors, 0, (lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
 	bResult = true;
 	uiNumElements = mcFiles.NumElements();
