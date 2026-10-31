@@ -4266,6 +4266,82 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 
 //////////////////////////////////////////////////////////////////////////
 //
+// __builtin_clz or __builtin_ctz (bLeading) of psArgument (psType wide): the
+// width when it is 0, else narrowed by halves to a byte (NarrowCount, each
+// half's bits counted) and the byte's leading or trailing zeros looked up in
+// a 256 byte table, instead of a loop of up to 15 shifts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue)
+{
+	SIRType			sType;
+	SIRType			sInt;
+	SIRType			sByte;
+	SIRReference	sTest;
+	SIRReference	sCount;
+	SIRReference	sByteValue;
+	SIRReference	sAddress;
+	SIRReference	sZeros;
+	SCPP65IRValue	sTable;
+	CIRBlock*		pcZero;
+	CIRBlock*		pcNarrow;
+	CIRBlock*		pcCounted;
+	CIRBlock*		pcDone;
+	SIRPhi*			psResult;
+	char			acZeros[256];
+	int				iBits;
+	int				i;
+	int				iBit;
+
+	sType = IRTypeOf(psType);
+	sInt = IRTypeOf(&mpcTypes->msInt);
+	sByte = IRType(IRTK_I8);
+	iBits = psType->iBytes * 8;
+	pcZero = NewBlock();
+	pcNarrow = NewBlock();
+	pcDone = NewBlock();
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, psArgument->sValue, mpcFunction->AddInteger(sType, 0));
+	mpcBlock->Branch(sTest, pcZero, pcNarrow);
+
+	StartBlock(pcNarrow);
+	sByteValue = psArgument->sValue;
+	sCount = mpcFunction->AddInteger(sInt, 0);
+	while (iBits > 8)
+	{
+		NarrowCount(bLeading, &sByteValue, &sCount, &iBits, sInt);
+	}
+	acZeros[0] = 8;
+	for (i = 1; i < 256; i++)
+	{
+		for (iBit = 0; (iBit < 8) && !(i & (bLeading ? (0x80 >> iBit) : (1 << iBit))); iBit++)
+		{
+		}
+		acZeros[i] = (char)iBit;
+	}
+	StringData(acZeros, 256, &sTable);
+	sAddress = mpcFunction->Add(mpcBlock, IRO_ZExt, IRIntegerType(mcModule.GetPointerSize(0)), sByteValue);
+	sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sTable.sValue, sAddress);
+	sZeros = mpcFunction->Load(mpcBlock, sByte, sAddress);
+	sZeros = mpcFunction->Add(mpcBlock, IRO_ZExt, sInt, sZeros);
+	sCount = mpcFunction->Add(mpcBlock, IRO_Add, sInt, sCount, sZeros);
+	pcCounted = mpcBlock;
+	mpcBlock->Jump(pcDone);
+
+	StartBlock(pcZero);
+	mpcBlock->Jump(pcDone);
+
+	StartBlock(pcDone);
+	psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+	mpcBlock->AddPhiArgument(psResult, pcCounted, sCount);
+	mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
+	psValue->sValue = psResult->sResult;
+	psValue->psType = &mpcTypes->msInt;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The half of *psValue (*piBits wide and not 0) that ctz (the low half) or
 // clz (the high half) counts from, unless it is 0: then the other half, and
 // the half's bits are added to *psCount.  *psValue and *piBits become the
@@ -4291,7 +4367,7 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 
 	iHalf = *piBits / 2;
 	sType = mpcFunction->TypeOf(*psValue);
-	sHalf = IRType((iHalf == 32) ? IRTK_I32 : IRTK_I16);
+	sHalf = IRType((iHalf == 32) ? IRTK_I32 : (iHalf == 16) ? IRTK_I16 : IRTK_I8);
 	sHigh = mpcFunction->Add(mpcBlock, IRO_LShr, sType, *psValue, mpcFunction->AddInteger(sType, iHalf));
 	sHigh = mpcFunction->Add(mpcBlock, IRO_Trunc, sHalf, sHigh);
 	sLow = mpcFunction->Add(mpcBlock, IRO_Trunc, sHalf, *psValue);
@@ -4416,7 +4492,14 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 
 		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
 		//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
-		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.
+		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 they are narrowed to a
+		//byte instead, whose count is looked up (CountTable).
+		if (!szName.Equals("popcount") && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
+		{
+			bResult = CountTable(szName.Equals("clz"), &sArgument, psType, psValue);
+			szName.Kill();
+			return bResult || Unsupported(__LINE__);
+		}
 		sType = IRTypeOf(psType);
 		sInt = IRTypeOf(&mpcTypes->msInt);
 		iBits = psType->iBytes * 8;

@@ -57,6 +57,11 @@ struct SIR816Routine
 #define IR816_SIGNED_TABLE			"R816_STable"
 #define IR816_UNSIGNED_TABLE		"R816_UTable"
 #define IR816_TABLE_LENGTH			11
+#define IR816_BITS_TABLE			"R816_Bits"		//R816_Bits16 and R816_Bits32: 1 << k for k from 0 to 63 (0 past the width).
+#define IR816_BITS_TABLE_LENGTH		9
+#define IR816_DIRECT_PAGE			256		//The bytes [D + n] reaches (IR816FindReads).
+#define IR816_SCRATCH_FIRST			3		//The caller's bytes the scratch runtime routines may read (D + 5 to D + 22, with
+#define IR816_SCRATCH_END			24		//a byte either side).
 
 
 //The 32 bit divide runs on the caller's D (IR816ScratchRoutine): the dividend is at D + 15 (and becomes the quotient)
@@ -3129,6 +3134,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	PeepholeTransfers(mpszOut, uiStart);
 	PeepholeBranches(mpszOut, uiStart);
 	PeepholeRegisters(mpszOut, uiStart);
+	RemoveUnreadStores(mpszOut, uiStart);
 }
 
 
@@ -5477,6 +5483,150 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the tdc at szLine only moves S: a tcs follows it, after nothing
+// but a clc and an adc of a constant (a frame's exit).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816MovesS(const char* szLine)
+{
+	SIR816Line	sLine;
+	int			i;
+
+	for (i = 0, szLine = IR816NextLine(szLine); (i < 3) && szLine && IR816IsInstruction(szLine); i++, szLine = IR816NextLine(szLine))
+	{
+		IR816Decode(szLine, &sLine);
+		if (sLine.uiMnemonic == IR816M_Tcs)
+		{
+			return true;
+		}
+		if ((sLine.uiMnemonic != IR816M_Clc) && !((sLine.uiMnemonic == IR816M_Adc) && (sLine.uiOperand > 0) && (sLine.szOperand[0] >= '0') && (sLine.szOperand[0] <= '9')))
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The direct page bytes the function's code at szLine may read: for each
+// instruction mentioning [D + n] other than a store to it, the word's two
+// bytes ([D + n]), or a pointer's three ([[D + n]:24 ...]), and the
+// scratch bytes when it calls a runtime routine (they work in the caller's
+// frame, IR816ScratchRoutine).  True (all of them may be) when the code
+// indexes the direct page ([D + X]) or takes D's value (tdc: the frame's
+// address may be passed on), unless only to move S (IR816MovesS).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816FindReads(const char* szLine, uint8* abRead)
+{
+	SIR816Line	sLine;
+	const char*	szOperand;
+	int32		iOffset;
+	int			iBytes;
+	int			i;
+
+	memset(abRead, 0, IR816_DIRECT_PAGE);
+	for (; szLine; szLine = IR816NextLine(szLine))
+	{
+		if (!IR816IsInstruction(szLine) || (szLine[2] == ';'))
+		{
+			continue;
+		}
+		IR816Decode(szLine, &sLine);
+		if ((sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine))
+		{
+			return true;
+		}
+		if (sLine.uiMnemonic == IR816M_Unknown)
+		{
+			return true;
+		}
+		if ((sLine.uiMnemonic == IR816M_Jsl) && (strncmp(sLine.szOperand, IR816_RUNTIME_PREFIX, IR816_RUNTIME_PREFIX_LENGTH) == 0))
+		{
+			memset(&abRead[IR816_SCRATCH_FIRST], 1, IR816_SCRATCH_END - IR816_SCRATCH_FIRST);
+			continue;
+		}
+		szOperand = sLine.szOperand;
+		if ((sLine.uiOperand >= 7) && (strncmp(szOperand, "[D + X]", 7) == 0))
+		{
+			return true;
+		}
+		if (sLine.bDirect)
+		{
+			if (sLine.uiFlags & IR816MF_STORE)
+			{
+				continue;
+			}
+			iOffset = sLine.iOffset;
+			iBytes = 2;
+		}
+		else if ((sLine.uiOperand >= 7) && (strncmp(szOperand, "[[D + ", 6) == 0) && (szOperand[6] >= '0') && (szOperand[6] <= '9'))
+		{
+			iOffset = atoi(&szOperand[6]);
+			iBytes = 3;
+		}
+		else
+		{
+			continue;
+		}
+		for (i = 0; i < iBytes; i++)
+		{
+			if (iOffset + i >= IR816_DIRECT_PAGE)
+			{
+				return true;
+			}
+			abRead[iOffset + i] = 1;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stores to a direct page word whose bytes nothing in the function's code
+// from uiStart reads (IR816FindReads) taken out, wherever they are: the
+// high words of values only their low words of are used (a shift's
+// count), and values worked out for nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+	SIR816Line	sLine;
+	uint8		abRead[IR816_DIRECT_PAGE];
+
+	if (IR816FindReads(pszDest->Text() + uiStart, abRead))
+	{
+		return;
+	}
+	szOut.Init();
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		if (IR816IsInstruction(szLine) && (szLine[2] != ';'))
+		{
+			IR816Decode(szLine, &sLine);
+			if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && (sLine.iOffset < IR816_DIRECT_PAGE - 1) && !abRead[sLine.iOffset] && !abRead[sLine.iOffset + 1])
+			{
+				continue;
+			}
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut.Text(), szOut.Length());
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After Peephole: stores to a direct page word that the next store to it
 // overwrites unread (IR816DeadStore) go, and loads of a direct page word or
 // a constant that A is loaded again over before it is read (IR816DeadLoad).
@@ -6375,6 +6525,10 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Line("tax");
 		return;
 	}
+	if (BitShift(psInstruction))
+	{
+		return;
+	}
 	CopyWords(iResult, psInstruction->asArguments[0], iWords);
 	if (sAmount.IsConstant() && ((mpcFunction->GetConstant(sAmount)->ulliBits & 63) == 0))
 	{
@@ -6419,6 +6573,55 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Mask(sType);
 		Frame("sta", iResult);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 1 << n of 16 or 32 bits, n known when it runs, looked up in R816_Bits16
+// or R816_Bits32 (AppendBitsTable) at n * 2 or n * 4 in X instead of a
+// shift: bitmaps' masks.  False, with nothing written, for any other
+// shift, or a result past the direct page (Frame would use X).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
+{
+	CChars	szTable;
+	int32	iResult;
+	int		iWords;
+
+	iWords = Words(psInstruction->sType);
+	if ((psInstruction->uiOpcode != IRO_Shl) || psInstruction->asArguments[1].IsConstant() || !psInstruction->asArguments[0].IsConstant() ||
+		(mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits != 1) || !(psInstruction->sType.Is(IRTK_I16) || psInstruction->sType.Is(IRTK_I32)) ||
+		InX(psInstruction->sResult) || psInstruction->sResult.IsNone())
+	{
+		return false;
+	}
+	iResult = OffsetOf(psInstruction->sResult);
+	if (iResult + 2 * iWords > 255)
+	{
+		return false;
+	}
+	szTable.Init(IR816_BITS_TABLE);
+	szTable.Append(16 * iWords);
+	UseRuntime(szTable.Text());
+	Operand("lda", psInstruction->asArguments[1], 0);
+	Line("and 63");
+	Line("asl A");
+	if (iWords == 2)
+	{
+		Line("asl A");
+	}
+	Line("tax");
+	mpszOut->Append("\t\tlda [")->Append(szTable)->Append(" + X]:24\n");
+	Frame("sta", iResult);
+	if (iWords == 2)
+	{
+		mpszOut->Append("\t\tlda [")->Append(szTable)->Append(" + 2 + X]:24\n");
+		Frame("sta", iResult + 2);
+	}
+	szTable.Kill();
+	return true;
 }
 
 
@@ -7141,6 +7344,35 @@ bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
 		Store(psInstruction->sResult, 0);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The table TableDivide reads (szName is R816_STable<c> or R816_UTable<c>):
+// for each byte b, b / c and b % c (b signed for STable) as a word, q in
+// its low byte.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
+{
+	int		iBits;
+	int		i;
+	uint32	uiBit;
+
+	iBits = atoi(&szName[IR816_BITS_TABLE_LENGTH]);
+	IR816RuntimeHeader(pszDest, "rodata.", szName);
+	for (i = 0; i < 64; i++)
+	{
+		uiBit = (i < iBits) ? ((uint32)1 << i) : 0;
+		pszDest->Append("\t\t.word ")->Append((int)(uiBit & 0xFFFF));
+		if (iBits == 32)
+		{
+			pszDest->Append(", ")->Append((int)(uiBit >> 16));
+		}
+		pszDest->AppendNewLine();
+	}
+	pszDest->AppendNewLine();
 }
 
 
@@ -8249,6 +8481,11 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 		if (IR816StartsWith(szName, IR816_SIGNED_TABLE) || IR816StartsWith(szName, IR816_UNSIGNED_TABLE))
 		{
 			AppendDivideTable(pszDest, szName);
+			continue;
+		}
+		if (IR816StartsWith(szName, IR816_BITS_TABLE))
+		{
+			AppendBitsTable(pszDest, szName);
 			continue;
 		}
 

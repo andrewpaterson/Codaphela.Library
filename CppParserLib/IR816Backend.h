@@ -136,6 +136,7 @@ public:
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
+	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
 	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
@@ -143,6 +144,7 @@ public:
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
 	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
 	static void		PeepholeRegisters(CChars* pszDest, size uiStart);
+	static void		RemoveUnreadStores(CChars* pszDest, size uiStart);
 
 protected:
 	void			Line(const char* szText);
@@ -182,6 +184,7 @@ protected:
 	bool			StepInPlace(SIRInstruction* psInstruction);
 	void			Logic(SIRInstruction* psInstruction);
 	void			Shift(SIRInstruction* psInstruction);
+	bool			BitShift(SIRInstruction* psInstruction);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
