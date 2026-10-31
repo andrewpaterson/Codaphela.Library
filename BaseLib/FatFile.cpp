@@ -28,6 +28,10 @@
 #include "FatFile.h"
 
 
+//The W65C816 has FatFile816.asm instead.
+#ifndef __W65C816__
+
+
  //////////////////////////////////////////////////////////////////////////
  //
  //
@@ -915,4 +919,6 @@ uint32 CFatFile::Size(void) { return msFile.uiFileSize; }
 uint32 CFatFile::Tell(void) { return msFile.uiFilePosition; }
 bool CFatFile::IsBusy(void) { return msFile.bBusy; }
 uint8 CFatFile::GetAccessFlags(void) { return msFile.uiAccessFlags; }
+
+#endif // __W65C816__
 

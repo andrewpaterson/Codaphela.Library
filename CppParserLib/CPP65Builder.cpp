@@ -275,10 +275,47 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 			continue;
 		}
 		AddUnit(szLibrary, cProject.GetDirectory(), cProject.GetSource(i), bLinkAsLibrary);
+		if (meTarget == CPPT_W65C816)
+		{
+			AddW65C816Assembly(szLibrary, cProject.GetDirectory(), cProject.GetSource(i), bLinkAsLibrary);
+		}
 	}
 	cProject.Kill();
 	aszExcluded.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A project's unit X.cpp may have W65C816 assembly next to it, X816.asm,
+// with the functions X.cpp leaves out on the W65C816 (#ifndef
+// __W65C816__).  It is added with it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary)
+{
+	CFileUtil	cFileUtil;
+	CChars		szUnit;
+	CChars		szPath;
+	const char*	szExtension;
+
+	szExtension = strrchr(szSource, '.');
+	if ((szExtension == NULL) || (StringInsensitiveCompare(szExtension, ".cpp") != 0))
+	{
+		return;
+	}
+	szUnit.Init();
+	szUnit.Append(szSource, (size)(szExtension - szSource));
+	szUnit.Append("816.asm");
+	szPath.Init(szDirectory);
+	cFileUtil.AppendToPath(&szPath, szUnit.Text());
+	if (cFileUtil.Exists(szPath.Text()))
+	{
+		AddUnit(szLibrary, szDirectory, szUnit.Text(), bLinkAsLibrary);
+	}
+	szPath.Kill();
+	szUnit.Kill();
 }
 
 

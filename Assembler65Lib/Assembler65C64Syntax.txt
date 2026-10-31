@@ -107,6 +107,9 @@ Directives
 								or length bytes from start (a slice), $FF where the file has
 								none; the file name is relative to SetDirectory's directory
 								(Garth Wilson's tables in Libc65/MathTbls)
+	.include "file"				the file's lines in place of this one (nested up to 8 deep);
+								the name is relative to SetDirectory's directory, like
+								.inchex's (the W65C816 FAT assembly's structure offsets)
 	name = expression
 
 Only when assembling an object (AssembleObject):

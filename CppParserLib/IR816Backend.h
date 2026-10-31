@@ -186,6 +186,7 @@ protected:
 	void			Logic(SIRInstruction* psInstruction);
 	void			Shift(SIRInstruction* psInstruction);
 	bool			BitShift(SIRInstruction* psInstruction);
+	bool			ShiftTwoWords(SIRInstruction* psInstruction);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
@@ -193,6 +194,8 @@ protected:
 	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
 	void			SignExtendInA(int iSignBit);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
+	void			RuntimeName(CChars* pszName, SIRInstruction* psInstruction);
+	bool			IsScratchCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
 	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
 	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel);

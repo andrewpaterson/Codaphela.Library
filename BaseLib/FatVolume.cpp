@@ -8,6 +8,10 @@
 #include "PointerFunctions.h"
 
 
+//The W65C816 has FatVolume816.asm instead.
+#ifndef __W65C816__
+
+
 #define READ_SECTOR(c, s) c = mcSectorCache.ReadSector(s); if (!c.IsValid()) { return FAT_CANNOT_READ_MEDIA; }
 
 
@@ -20,14 +24,6 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 {
 	switch (eFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-		{
-			if (uiFatSize < (((uiNoOfClusters + (uiNoOfClusters >> 1)) + uiBytesPerSector - 1) / uiBytesPerSector))
-			{
-				return false;
-			}
-			break;
-		}
 		case FAT_FS_TYPE_FAT16:
 		{
 			if (uiFatSize < (((uiNoOfClusters * 2) + uiBytesPerSector - 1) / uiBytesPerSector))
@@ -100,9 +96,10 @@ bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SF
 	muiNoOfDataSectors = muiNoOfSectors - (psBPB->uiReservedSectorCount + (psBPB->uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors);
 	muiNoOfClusters = muiNoOfDataSectors / psBPB->uiSectorsPerCluster;
 	muiBytesPerSector = psBPB->uiBytsPerSector;
-	meFileSystem = (muiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
+	meFileSystem = (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 
-	if (!CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
+	//FAT12 (fewer than 4085 clusters) isn't supported: it isn't mounted.
+	if ((muiNoOfClusters <= FAT12_MAX_CLUSTERS) || !CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
 	{
 		(*puiPartitionsTried)++;
 		return false;
@@ -925,9 +922,6 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void)
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-			return FAT12_EOC;
-
 		case FAT_FS_TYPE_FAT16:
 			return FAT16_EOC;
 
@@ -949,9 +943,6 @@ fatEntry CFatVolume::GetBadClusterMarker(void)
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-			return FAT12_BAD_CLUSTER;
-
 		case FAT_FS_TYPE_FAT16:
 			return FAT16_BAD_CLUSTER;
 
@@ -973,9 +964,6 @@ fatEntry CFatVolume::GetClusterEntryMask(void)
 {
 	switch (meFileSystem)
 	{
-	case FAT_FS_TYPE_FAT12:
-		return FAT12_CLUSTER_MASK;
-
 	case FAT_FS_TYPE_FAT16:
 		return FAT16_CLUSTER_MASK;
 
@@ -1217,95 +1205,6 @@ EFatCode CFatVolume::WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry)
-{
-	bool		bNextSector;
-	SFatCache	sBuffer;
-	uint8*		puiBuffer;
-
-	READ_SECTOR(sBuffer, uiSector);
-	puiBuffer = sBuffer.Get();
-
-	if (uiCluster & 1)
-	{
-		puiBuffer[uiOffsetInSector] &= 0x0F;
-		puiBuffer[uiOffsetInSector] |= (uint8)(FAT12_EOC << 4);
-	}
-	else
-	{
-		puiBuffer[uiOffsetInSector] = (uint8)FAT12_EOC;
-	}
-	DirtySector(sBuffer);
-
-	if (uiOffsetInSector == (uint32)GetSectorSize() - 1)
-	{
-		READ_SECTOR(sBuffer, uiSector + 1);
-		puiBuffer = sBuffer.Get();
-		bNextSector = true;
-	}
-	else
-	{
-		bNextSector = false;
-	}
-
-	if (uiCluster & 1)
-	{
-		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] = ((uint16)FAT12_EOC << 4) >> 8;  //Wut?
-	}
-	else
-	{
-		//Even cluster.
-		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] &= 0xF0;
-		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] |= FAT12_EOC >> 8;
-	}
-	DirtySector(sBuffer);
-
-	// if this is not the 1st cluster allocated update the last one to link to this one
-	if (uiLastFatEntry != FAT12_EOC)
-	{
-		READ_SECTOR(sBuffer, uiPreviousSector);
-		puiBuffer = sBuffer.Get();
-
-		if (uiLastFatEntry & 1)
-		{
-			puiBuffer[uiPreviousOffset] &= 0x0F;
-			puiBuffer[uiPreviousOffset] |= (uint8)(uiCluster << 4);
-		}
-		else
-		{
-			puiBuffer[uiPreviousOffset] = (uint8)uiCluster;
-		}
-		DirtySector(sBuffer);
-
-		// if the FAT entry spans a sector boundary flush the currently loaded sector to the drive and load the next one.
-		if (uiPreviousOffset == (uint32)GetSectorSize() - 1)
-		{
-			READ_SECTOR(sBuffer, uiPreviousSector + 1);
-			puiBuffer = sBuffer.Get();
-			bNextSector = true;
-		}
-
-		// write the 2nd byte
-		if (uiLastFatEntry & 1)
-		{
-			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] = ((uint16)uiCluster << 4) >> 8;
-		}
-		else
-		{
-			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] &= 0xF0;
-			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] |= (uint8)(uiCluster >> 8);
-		}
-		DirtySector(sBuffer);
-	}
-
-	return FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry)
 {
 	SFatCache	sBuffer;
@@ -1373,10 +1272,6 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 	// mark the FAT as the the new 1st link of the cluster chain (or the end of the chain if we're only allocating 1 cluster)
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-		{
-			return WriteFat12Entry(uiOffsetInSector, uiPreviousEntryOffset, uiClusterIndexInTable, uiSector, uiPreviousSector, uiPreviousFatEntry);
-		}
 		case FAT_FS_TYPE_FAT16:
 		{
 			return WriteFat16Entry(uiOffsetInSector, uiPreviousEntryOffset, uiClusterIndexInTable, uiSector, uiPreviousSector, uiPreviousFatEntry);
@@ -1450,10 +1345,12 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 	uiStartCluster = uiCluster;
 	uiLastClusterIndex = uiPreviousCluster;
 
+	//Once: wrapping round to cluster 2 twice means the volume is full (it was reset each FAT sector, so a full volume
+	//wrapped round for ever).
+	bWrappedAround = false;
 	for (iCount = 0;; iCount++)
 	{
 		uiCurrentSector = uiFirstClusterSector;
-		bWrappedAround = false;
 
 		do
 		{
@@ -1550,64 +1447,6 @@ EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector)
-{
-	uint8*		puiBuffer;
-	SFatCache	sBuffer;
-
-	READ_SECTOR(sBuffer, uiFirstClusterSector);
-	puiBuffer = sBuffer.Get();
-
-	// write the 1st byte
-	if (uiClusterIndex & 1)
-	{
-		uiClusterInVolume <<= 4;										// odd entries occupy the upper 12 bits so we must shift
-		puiBuffer[uiOffsetInSector] &= 0x0F;							// clear entry bits on 1st byte
-		puiBuffer[uiOffsetInSector] |= (uint8)uiClusterInVolume;	// set entry bits on 1st byte
-	}
-	else
-	{
-		puiBuffer[uiOffsetInSector] = (uint8)uiClusterInVolume;		// just copy the 1st byte
-	}
-	DirtySector(sBuffer);
-
-	// if the FAT entry spans a sector boundary flush the currently
-	// loaded sector to the drive and load the next one.
-	if (uiOffsetInSector == GetSectorSize() - 1)
-	{
-		READ_SECTOR(sBuffer, uiFirstClusterSector + 1);
-		puiBuffer = sBuffer.Get();
-
-		// the next byte is now loacted at offset 0 on the uiBuffer
-		uiOffsetInSector = 0;
-	}
-	else
-	{
-		// the next byte is located next to the 1st one on the uiBuffer
-		uiOffsetInSector++;
-	}
-
-	// write the 2nd byte
-	if (uiClusterIndex & 1)
-	{
-		//puiBuffer[uiOffsetInSector] = ((uint16)uiClusterInVolume << 4) >> 8;  //Isn't this correct?
-		puiBuffer[uiOffsetInSector] = ((uint16)uiClusterInVolume) >> 8;
-	}
-	else
-	{
-		puiBuffer[uiOffsetInSector] &= 0xF0;							
-		puiBuffer[uiOffsetInSector] |= ((uint16)uiClusterInVolume) >> 8;
-	}
-	DirtySector(sBuffer);
-
-	return FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::SetFat16ClusterEntry(fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector)
 {
 	uint8*		puiBuffer;
@@ -1657,11 +1496,6 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 	// set the FAT entry
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-		{
-			eResult = SetFat12ClusterEntry(uiClusterIndex, uiClusterInVolume, uiFirstClusterSector, uiOffsetInSector);
-			return eResult;
-		}
 		case FAT_FS_TYPE_FAT16:
 		{
 			eResult = SetFat16ClusterEntry(uiClusterInVolume, uiFirstClusterSector, uiOffsetInSector);
@@ -1677,55 +1511,6 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 	}
 
 	return FAT_UNKNOWN_ERROR;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32* puiSector, uint32* puiOffsetInSector, bool* pbFat12OddClusterBeingProcessed, bool* pbFat12MultiStepProgress)
-{
-	SFatCache	sBuffer;
-	uint8*		puiBuffer;
-
-	READ_SECTOR(sBuffer, *puiSector);
-	puiBuffer = sBuffer.Get();
-
-	if (!*pbFat12MultiStepProgress)
-	{
-		*pbFat12OddClusterBeingProcessed = *puiClusterIndex & 1;
-
-		*puiClusterIndex = 0;
-		((uint8*)&puiClusterIndex)[0] = puiBuffer[*puiOffsetInSector];
-	}
-
-	if (*puiOffsetInSector == (uint32)GetSectorSize() - 1)
-	{
-		(*puiSector)++;
-		*puiOffsetInSector = 0;
-		*pbFat12MultiStepProgress = true;
-
-		return FAT_SUCCESS;
-	}
-	else if (!*pbFat12MultiStepProgress)
-	{
-		(*puiOffsetInSector)++;
-	}
-
-	((uint8*)&puiClusterIndex)[1] = puiBuffer[*puiOffsetInSector];
-
-	if (*pbFat12OddClusterBeingProcessed)
-	{
-		*puiClusterIndex >>= 4;
-	}
-	else
-	{
-		*puiClusterIndex &= FAT12_CLUSTER_MASK;
-	}
-
-	*pbFat12MultiStepProgress = false;
-	return FAT_SUCCESS;
 }
 
 
@@ -1816,8 +1601,6 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 	uint32		uiOffsetInSector;
 	uint32		uiFirstClusterSector;
 	uint32		uiCurrentSector;
-	bool		bFat12OddClusterBeingProcessed;
-	bool		bFat12MultiStepProgress;
 	EFatCode	eResult;
 
 	if (uiClusterCount == 0)
@@ -1832,9 +1615,6 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
-	bFat12OddClusterBeingProcessed = false;
-	bFat12MultiStepProgress = false;
-
 	for (;;)
 	{
 		uiCurrentSector = uiFirstClusterSector;
@@ -1848,19 +1628,6 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 
 			switch (meFileSystem)
 			{
-				case FAT_FS_TYPE_FAT12:
-				{
-					eResult = IncreaseFat12ClusterAddress(&uiClusterIndex, &uiFirstClusterSector, &uiOffsetInSector, &bFat12OddClusterBeingProcessed, &bFat12MultiStepProgress);
-					RETURN_ON_FAT_FAILURE(eResult);
-					if (uiOffsetInSector != 0)
-					{
-						break;
-					}
-					else
-					{
-						continue;
-					}
-				}
 				case FAT_FS_TYPE_FAT16:
 				{
 					eResult = IncreaseFat16ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
@@ -1950,9 +1717,6 @@ uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-			return uiClusterIndexInFAT + (uiClusterIndexInFAT >> 1);
-
 		case FAT_FS_TYPE_FAT16:
 			return uiClusterIndexInFAT * 2;
 
@@ -2028,9 +1792,6 @@ bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-			return uiFat >= 0x0FF8;
-
 		case FAT_FS_TYPE_FAT16:
 			return uiFat >= 0xFFF8;
 
@@ -2075,54 +1836,6 @@ uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, uint32 uiSector, fatEntry* puiFatEntry)
-{
-	fatEntry	uiFatEntry;
-	bool		bNextSector;
-	SFatCache	sBuffer;
-
-	uiFatEntry = 0;
-
-	READ_SECTOR(sBuffer, uiSector);
-
-	// read the 1st byte
-	((uint8*)&uiFatEntry)[INT32_BYTE0] = sBuffer.Get()[uiOffsetInSector];
-
-	// load the next sector (if necessary) and set the offset for the next byte in the uiBuffer
-	if (uiOffsetInSector == (uint32)GetSectorSize() - 1)
-	{
-		READ_SECTOR(sBuffer, uiSector + 1);
-		bNextSector = true;
-	}
-	else
-	{
-		bNextSector = false;
-	}
-
-	// read the 2nd byte
-	((uint8*)&uiFatEntry)[INT32_BYTE1] = sBuffer.Get()[bNextSector ? 0 : (uiOffsetInSector + 1)];
-
-	// Since a FAT12 entry is only 12 bits (1.5 bytes) we need to adjust the peResult.  For odd cluster numbers the FAT entry is stored in the upper 12 bits of the
-	// 16 bits where it is stored, so we need to shift the value 4 bits to the right. For even cluster numbers the FAT entry is stored in the lower 12 bits of the
-	// 16 bits where it is stored, so we need to clear the upper 4 bits.
-	if (uiCluster & 0x1)
-	{
-		uiFatEntry >>= 4;
-	}
-	else
-	{
-		uiFatEntry &= FAT12_CLUSTER_MASK;
-	}
-
-	*puiFatEntry = uiFatEntry;
-	return FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry)
 {
 	SFatCache	sBuffer;
@@ -2158,11 +1871,6 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT12:
-		{
-			eResult = ReadFat12Entry(uiOffsetInSector, uiClusterIndex, uiSector, puiFatEntry);
-			break;
-		}
 		case FAT_FS_TYPE_FAT16:
 		{
 			eResult = ReadFat16Entry(uiOffsetInSector, uiSector, puiFatEntry);
@@ -2178,104 +1886,6 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 			break;
 	}
 	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiFreedClusterIndex, uint32* puiSector, uint32* puiOffsetInSector)
-{
-	SFatCache	sBuffer;
-	uint8*		puiBuffer;
-
-	READ_SECTOR(sBuffer, *puiSector);
-	puiBuffer = sBuffer.Get();
-
-	if (!*pbFat12MultiStepProgress)
-	{
-		// remember whether this is an odd cluster or not
-		*pbFat12MultiStepProgress = *puiFreedClusterIndex & 1;
-
-		// set the cluster to zero to make sure that the upper bytes are cleared
-		// since we're only updating the lower 16 bits.
-		*puiFreedClusterIndex = 0;
-
-		// read the 1st byte
-		((uint8*)puiFreedClusterIndex)[0] = puiBuffer[*puiOffsetInSector];
-
-		// write the 1st byte
-		//
-		// note: since the value that we're writting is FREE_FAT which expands
-		// to zero we can skip a step or two in the update process. I left the code
-		// for the steps that we're skipping commented out for clarity.
-		if (*pbFat12MultiStepProgress)
-		{
-			puiBuffer[*puiOffsetInSector] &= 0x0F;
-		}
-		else
-		{
-			puiBuffer[*puiOffsetInSector] = FREE_FAT;
-		}
-		DirtySector(sBuffer);
-	}
-
-	if (*puiOffsetInSector == (uint32)GetSectorSize() - 1)
-	{
-		// if the entry spans a sector boundary set bFat12MultiStepProgress to 1 so that we don't read the 1st byte again when we come back.
-		// also increase the sector number and set the uiOffsetInSector to 0 since the next byte will be on offset zero when the next sector is loaded.
-		(*puiSector)++;
-		*puiOffsetInSector = 0;
-		*pbFat12MultiStepProgress = true;
-
-		// continue with the next iteration of the loop. We'll come right back here with the next sector loaded
-		return FAT_SUCCESS;
-	}
-	else if (!*pbFat12MultiStepProgress)
-	{
-		// increase the offset to point to the next byte
-		(*puiOffsetInSector)++;
-	}
-
-	// read the 2nd byte
-	((uint8*)puiFreedClusterIndex)[1] = puiBuffer[*puiOffsetInSector];
-
-	// Since a FAT12 entry is only 12 bits (1.5 bytes) we need to adjust the result.  For odd cluster numbers the FAT entry is stored in the upper 12 bits of the
-	// 16 bits where it is stored, so we need to shift the value 4 bits to the right.  For even cluster numbers the FAT entry is stored in the lower 12 bits of the
-	// 16 bits where it is stored, so we need to clear the upper 4 bits.
-	if (*pbFat12MultiStepProgress)
-	{
-		*puiFreedClusterIndex >>= 4;
-	}
-	else
-	{
-		*puiFreedClusterIndex &= 0xFFF;
-	}
-
-	// write the 2nd byte
-	//
-	// note: since the value that we're writting is FREE_FAT which expands
-	// to zero we can skip a step or two in the update process. I left the code
-	// for the steps that we're skipping commented out for clarity.
-	//
-	// note: we could bundle this with the above if...else statement but
-	// since that is part of the read operation and this is the write operation
-	// i've decided to keep it separate for code clarity. maybe the compiler
-	// can optimize this for us??
-	if (*pbFat12MultiStepProgress)
-	{
-		puiBuffer[*puiOffsetInSector] = FREE_FAT;
-	}
-	else
-	{
-		puiBuffer[*puiOffsetInSector] &= 0xF0;	/* clear bits that 1st byte will be written to */
-	}
-	DirtySector(sBuffer);
-
-	// clear bFat12MultiStepProgress flag.
-	*pbFat12MultiStepProgress = false;
-	return FAT_SUCCESS;
 }
 
 
@@ -2327,7 +1937,6 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 	uint32		uiOffsetInSector;						
 	uint32		uiFirstClusterSector;					
 	uint32		uiCurrentSector;						
-	bool		bFat12OddClusterBeingProcessed = false;	
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
@@ -2344,19 +1953,6 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 
 			switch (meFileSystem)
 			{
-				case FAT_FS_TYPE_FAT12:
-				{
-					eResult = FreeFat12Chain(&bFat12OddClusterBeingProcessed, &uiClusterIndex, &uiFirstClusterSector, &uiOffsetInSector);
-					RETURN_ON_FAT_FAILURE(eResult);
-					if (uiOffsetInSector != 0)
-					{
-						break;
-					}
-					else
-					{
-						continue;
-					}
-				}
 				case FAT_FS_TYPE_FAT16:
 				{
 					eResult = FreeFat16Chain(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
@@ -2400,8 +1996,6 @@ bool CFatVolume::IsFreeFat(fatEntry uifat)
 		case FAT_FS_TYPE_FAT16:
 			return (uifat & FAT16_CLUSTER_MASK) == 0;
 
-		case FAT_FS_TYPE_FAT12:
-			return (uifat & FAT12_CLUSTER_MASK) == 0;
 		default:
 			break;
 	}
@@ -2991,7 +2585,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 		}
 		else
 		{
-			//The entries may start in an earlier sector, or an earlier cluster (a FAT12 or FAT16 root directory is one run of sectors).
+			//The entries may start in an earlier sector, or an earlier cluster (a FAT16 root directory is one run of sectors).
 			if (uiSector > uiFirstSectorOfCluster)
 			{
 				uiSector--;
@@ -3660,4 +3254,6 @@ uint8 CFatVolume::GetNoOfFatTables(void) { return muiNoOfFatTables; }
 char* CFatVolume::GetLabel(void) { return mszLabel.Text(); }
 CFileDrive* CFatVolume::GetFileDrive(void) { return mpcDevice; }
 CFatInfoSectorCache* CFatVolume::GetSectorCache(void) { return &mcSectorCache; }
+
+#endif // __W65C816__
 

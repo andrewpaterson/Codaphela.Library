@@ -13,9 +13,10 @@ struct SFatCache
 	void*	pvCachedSector;
 	uint32	uiTimeStamp;
 
-	void	Clear(void);
-	uint8*	Get(void);
-	bool	IsValid(void);
+	//Inline: the compilers inline them where they are used (the W65C816's FAT assembly has no copies).
+	void	Clear(void) { pvCachedSector = NULL; uiTimeStamp = 0xffffffff; }
+	uint8*	Get(void) { return (uint8*)pvCachedSector; }
+	bool	IsValid(void) { return pvCachedSector != NULL; }
 }; 
 
 

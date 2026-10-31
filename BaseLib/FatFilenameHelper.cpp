@@ -5,6 +5,10 @@
 #include "FatFilenameHelper.h"
 
 
+//The W65C816 has FatFilenameHelper816.asm instead.
+#ifndef __W65C816__
+
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -594,4 +598,6 @@ void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** psz
 	*szPathPart = 0;
 	(*pszFilenamePart)++;
 }
+
+#endif // __W65C816__
 

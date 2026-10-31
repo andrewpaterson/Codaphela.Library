@@ -131,6 +131,7 @@ void CAsm65Object::Init(const char* szName)
 	maszSourceFiles.Init();
 	mcSourceLines.Init();
 	mcFingerprints.Init();
+	mbSkipSectionBytes = false;
 }
 
 
@@ -199,6 +200,8 @@ uint32 CAsm65Object::AddSection(const char* szName, const char* szGroup, EAsm65S
 	psSection->bAt = false;
 	psSection->uiAt = 0;
 	psSection->cBytes.Init();
+	psSection->iBytesPosition = -1;
+	psSection->uiNumBytes = 0;
 	return (uint32)(mcSections.NumElements() - 1);
 }
 
@@ -772,13 +775,35 @@ bool CAsm65Object::Read(CAbstractFile* pcFile)
 	CChunkFile	cChunkFile;
 	bool		bResult;
 
-	//ReadClose frees what a failed ReadOpen allocated too.
-	cChunkFile.Init(pcFile);
+	//ReadClose frees what a failed ReadOpen allocated too.  Skipping the sections' bytes, the file's hashes can't be
+	//checked (they are over all of it).
+	if (mbSkipSectionBytes)
+	{
+		cChunkFile.InitUnhashed(pcFile);
+	}
+	else
+	{
+		cChunkFile.Init(pcFile);
+	}
 	bResult = cChunkFile.ReadOpen();
 	bResult = bResult && ReadChunks(&cChunkFile);
 	bResult &= cChunkFile.ReadClose();
 	cChunkFile.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reading leaves the sections' bytes in the file: each section has where
+// they are (iBytesPosition) and how many there are (uiNumBytes) instead,
+// for a loader to read them straight to where they go (the HCP65 kernal
+// loading an executable bigger than its heap).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Object::SetSkipSectionBytes(bool bSkip)
+{
+	mbSkipSectionBytes = bSkip;
 }
 
 
@@ -846,7 +871,16 @@ bool CAsm65Object::ReadSections(CChunkFile* pcChunkFile)
 			return false;
 		}
 		psSection->eKind = (EAsm65SectionKind)iKind;
-		if (uiBytes != 0)
+		psSection->uiNumBytes = uiBytes;
+		if (mbSkipSectionBytes)
+		{
+			psSection->iBytesPosition = pcChunkFile->Tell();
+			if ((uiBytes != 0) && !pcChunkFile->Seek(psSection->iBytesPosition + uiBytes))
+			{
+				return false;
+			}
+		}
+		else if (uiBytes != 0)
 		{
 			psSection->cBytes.Resize(uiBytes);
 			if (!pcChunkFile->ReadData(psSection->cBytes.GetData(), uiBytes))
@@ -927,7 +961,7 @@ bool CAsm65Object::ReadRelocations(CChunkFile* pcChunkFile)
 			return false;
 		}
 		if ((psRelocation->uiSection >= mcSections.NumElements()) || (psRelocation->uiBytes == 0) || (psRelocation->uiBytes > 8) || (psRelocation->uiForm >= ASM65RF_NumForms) ||
-			((uint64)psRelocation->uiOffset + psRelocation->uiBytes > mcSections.Get(psRelocation->uiSection)->cBytes.NumElements()))
+			((uint64)psRelocation->uiOffset + psRelocation->uiBytes > mcSections.Get(psRelocation->uiSection)->uiNumBytes))
 		{
 			return false;
 		}

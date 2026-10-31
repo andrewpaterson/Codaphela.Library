@@ -15,9 +15,6 @@ fatEntry GetDunnoClusterMarker(CFatVolume* pcVolume)
 {
 	switch (pcVolume->GetFileSystemType())
 	{
-	case FAT_FS_TYPE_FAT12:
-		return 0x0FF8;
-
 	case FAT_FS_TYPE_FAT16:
 		return 0xFFF8;
 

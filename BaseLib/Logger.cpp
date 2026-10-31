@@ -101,12 +101,13 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 		mapcFiles.Add(pcFile);
 	}
 
-#ifdef LINUX_GNU
-	//On Linux the console output goes to stderr: unbuffered and separate from program output on stdout.
+#if defined(LINUX_GNU) || defined(__LIBC65__)
+	//On Linux the console output goes to stderr: unbuffered and separate from program output on stdout.  The 65C64 and
+	//W65C816 have no EngineOutput (it is empty); their stderr is the console.
 	pcDebugFile = StdErrFile();
 #else
 	pcDebugFile = DebugOutputFile();
-#endif // LINUX_GNU
+#endif // LINUX_GNU || __LIBC65__
 	mapcFiles.Add(pcDebugFile);
 	mpcDebugOutputFile = pcDebugFile;
 
