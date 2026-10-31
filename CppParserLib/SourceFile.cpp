@@ -35,6 +35,7 @@ void CSourceFile::Init(char* szName)
 	mszContents.Init();
 	mszFullName.Init(szName);
 	mbLoaded = false;
+	mbContentsSet = false;
 	mcTokenMemory.Init();
 	macBlockSets.Init();
 	mbBlockSetsKilled = false;
@@ -70,6 +71,36 @@ void CSourceFile::Kill(void)
 	mszFullName.Kill();
 	mszContents.Kill();
 	mbLoaded = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Frees the file's tokens (and its contents, if they were read from the	//
+// file): it is read and tokenised again when next preprocessed.  Nothing	//
+// may still point into them (a translation unit's preprocessed tokens).	//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::Unload(void)
+{
+	if (!mbBlockSetsKilled)
+	{
+		macBlockSets.Kill();
+	}
+	macBlockSets.Init();
+	mbBlockSetsKilled = false;
+	maiLineStarts.Kill();
+	maiLineStarts.Init();
+	macComments.Kill();
+	macComments.Init();
+	mcTokenMemory.Kill();
+	mcTokenMemory.Init();
+	if (!mbContentsSet)
+	{
+		mszContents.Kill();
+		mszContents.Init();
+		mbLoaded = false;
+	}
 }
 
 
@@ -124,6 +155,7 @@ void CSourceFile::SetContents(const char* sz)
 {
 	mszContents.Set(sz);
 	mbLoaded = true;
+	mbContentsSet = true;
 	maiLineStarts.Kill();
 	maiLineStarts.Init();
 }

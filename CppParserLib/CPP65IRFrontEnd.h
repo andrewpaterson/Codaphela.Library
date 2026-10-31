@@ -95,7 +95,7 @@ struct SCPP65IRWritten
 {
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
 	CChars			szLabel;
-	CChars			szCode;
+	uint16			uiPieces;		//How many pieces its code is in, in the generator's spill store (CCPP65Assembly::PutCode).
 	SIR816Frame		sFrame;			//The W65C816's frame, for AlignFrame.
 	uint32			uiFingerprint;	//A hash of its IR before it was optimised (for a line table).
 };
@@ -107,6 +107,10 @@ struct SCPP65IRWritten
 #define IR65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time...
 #define IR65_INLINE_ROUNDS				4		//...in at most this many rounds (optimising between them).
 #define IR65_INLINE_HOT_INSTRUCTIONS	64		//With a profile, the most a hot call's callee may have (CIRInliner::SetProfile).
+#define IR816_INLINE_INSTRUCTIONS		32		//The W65C816's: a call costs it far more (about 70 cycles with its frame), so more
+#define IR816_INLINE_LOOP_INSTRUCTIONS	64		//is inlined (measured 2026-10-31: TestBaseLib65 -3.3%, TestStandardLib65 -5.0%
+#define IR816_INLINE_CALLS				32		//from 16, 32 and 24; 48 and over miscompiled TestRedBlackTree, not yet found).
+#define IR816_INLINE_HOT_INSTRUCTIONS	96		//With a profile: more than in a loop, or a profile would add nothing there.
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
@@ -298,6 +302,8 @@ protected:
 	bool			OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CCPPSyntax* pcArgument, SCPP65IRValue* psValue);
 	bool			OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue);
 	bool			IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscript);
+	bool			ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer, SCPP65Type** ppsArray);
+	bool			NarrowSubscript(SCPP65Type* psArray, SCPP65IRValue* psPointer, SCPP65IRValue* psIndex, SCPP65IRValue* psAddress);
 	void			PrintIR(CIRFunction* pcFunction);
 	void			PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources);
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);

@@ -67,6 +67,8 @@ void CCPP65Builder::Init(void)
 	mszListings.Init();
 	mbLineTable = false;
 	mlliCompileTime = 0;
+	mcMemorySpillStore.Init();
+	mpcSpillStore = &mcMemorySpillStore;
 }
 
 
@@ -78,6 +80,11 @@ void CCPP65Builder::Kill(void)
 {
 	size	i;
 
+	if (mpcSpillStore == &mcIndexTreeSpillStore)
+	{
+		mcIndexTreeSpillStore.Kill();
+	}
+	mcMemorySpillStore.Kill();
 	mszListings.Kill();
 	mcImports.Kill();
 	mszWarnings.Kill();
@@ -356,6 +363,37 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 {
 	mszListings.Kill();
 	mszListings.Init(szDirectory ? szDirectory : "");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each unit's functions' code waits to be assembled in an evicting index
+// tree in szDirectory (made, and removed by Kill), with at most uiCacheSize
+// bytes of it in memory, instead of all in memory.  The code is the same.
+// NULL for memory.  Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize)
+{
+	if (mpcSpillStore == &mcIndexTreeSpillStore)
+	{
+		mcIndexTreeSpillStore.Kill();
+	}
+	mpcSpillStore = &mcMemorySpillStore;
+	if (StrEmpty(szDirectory))
+	{
+		return true;
+	}
+	if (!mcIndexTreeSpillStore.Init(szDirectory, uiCacheSize))
+	{
+		mszErrors.Append("Can't make the spill directory ");
+		mszErrors.Append(szDirectory);
+		mszErrors.AppendNewLine();
+		return false;
+	}
+	mpcSpillStore = &mcIndexTreeSpillStore;
+	return true;
 }
 
 
@@ -818,12 +856,28 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident, const char* szDirectory)
 {
+	CAsm65TextSource	cSource;
+	bool				bResult;
+
+	cSource.Init(szAssembly);
+	bResult = AddObject(szName, &cSource, bResident, szDirectory);
+	cSource.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool bResident, const char* szDirectory)
+{
 	CAsm65Object*	pcObject;
 	SCPP65Object*	psObject;
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
-	bResult = Assemble(pcObject, szAssembly, szDirectory);
+	bResult = Assemble(pcObject, pcSource, szDirectory);
 	psObject = macObjects.Add();
 	psObject->pcObject = pcObject;
 	psObject->bResident = bResident;
@@ -847,6 +901,22 @@ bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool b
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory)
 {
+	CAsm65TextSource	cSource;
+	bool				bResult;
+
+	cSource.Init(szAssembly);
+	bResult = Assemble(pcObject, &cSource, szDirectory);
+	cSource.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory)
+{
 	CAsm65C64Assembler		cAssembler;
 	CAsm65816Assembler	cAssembler816;
 	bool				bResult;
@@ -858,7 +928,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 		{
 			cAssembler816.SetDirectory(szDirectory);
 		}
-		bResult = cAssembler816.AssembleObject(szAssembly, pcObject);
+		bResult = cAssembler816.AssembleObject(pcSource, pcObject);
 		mszErrors.Append(cAssembler816.GetErrors());
 		cAssembler816.Kill();
 		return bResult;
@@ -868,7 +938,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 	{
 		cAssembler.SetDirectory(szDirectory);
 	}
-	bResult = cAssembler.AssembleObject(szAssembly, pcObject);
+	bResult = cAssembler.AssembleObject(pcSource, pcObject);
 	mszErrors.Append(cAssembler.GetErrors());
 	cAssembler.Kill();
 	return bResult;
@@ -911,9 +981,7 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
 {
-	CFileUtil	cFileUtil;
 	CTextFile	cFile;
-	CChars		szName;
 	CChars		szPath;
 	bool		bResult;
 
@@ -921,12 +989,8 @@ bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
 	{
 		return true;
 	}
-	szName.Init(szUnit);
-	cFileUtil.RemoveExtension(&szName);
-	szName.Append(".lst");
-	szPath.Init(mszListings);
-	cFileUtil.AppendToPath(&szPath, szName.Text());
-	cFileUtil.TouchDir(mszListings.Text());
+	szPath.Init();
+	ListingName(szUnit, &szPath);
 	cFile.Init(pszAssembly->Text());
 	bResult = cFile.Write(szPath.Text());
 	cFile.Kill();
@@ -937,8 +1001,56 @@ bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
 		mszErrors.AppendNewLine();
 	}
 	szPath.Kill();
-	szName.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As WriteListing(CChars*), a line at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly)
+{
+	CChars	szPath;
+	bool	bResult;
+
+	if (pcAssembly->IsEmpty())
+	{
+		return true;
+	}
+	szPath.Init();
+	ListingName(szUnit, &szPath);
+	bResult = pcAssembly->Write(szPath.Text());
+	if (!bResult)
+	{
+		mszErrors.Append("Can't write the listing ");
+		mszErrors.Append(szPath);
+		mszErrors.AppendNewLine();
+	}
+	szPath.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The listings directory (made if it isn't there) and the unit's name with
+// .lst for its extension.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
+{
+	CFileUtil	cFileUtil;
+	CChars		szName;
+
+	szName.Init(szUnit);
+	cFileUtil.RemoveExtension(&szName);
+	szName.Append(".lst");
+	pszPath->Append(mszListings);
+	cFileUtil.AppendToPath(pszPath, szName.Text());
+	szName.Kill();
+	return cFileUtil.TouchDir(mszListings.Text());
 }
 
 
@@ -960,7 +1072,10 @@ bool CCPP65Builder::CompileUnits(void)
 		return true;
 	}
 
-	bResult = mcProject.Process((char*)GetCPPTarget(meTarget)->szName, &mszErrors, &mszWarnings);
+	//Each unit is preprocessed just before it is compiled and its tokens and source freed after, so only one unit's
+	//are kept (headers stay tokenised for the units after).
+	mcProject.CreatePost();
+	bResult = true;
 	uiCompiled = 0;
 	asUnits.Init();
 	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
@@ -970,7 +1085,10 @@ bool CCPP65Builder::CompileUnits(void)
 		psUnit->pcFile = pcFile;
 		psUnit->pcObject = NULL;
 		psUnit->aszMissing.Init();
+		bResult &= mcProject.ProcessUnit(pcFile, (char*)GetCPPTarget(meTarget)->szName, &mszErrors, &mszWarnings);
 		bResult &= CompileUnit(psUnit);
+		pcFile->GetTokens()->Clear();
+		pcFile->Unload();
 	}
 
 	for (ui = 0; bResult && (meTarget == CPPT_W65C816) && (ui < asUnits.NumElements()); ui++)
@@ -983,8 +1101,12 @@ bool CCPP65Builder::CompileUnits(void)
 		}
 		if (bAgain)
 		{
+			//Preprocessed again: its errors and warnings were reported the first time.
 			psUnit->aszMissing.ReInit();
+			mcProject.ProcessUnit(psUnit->pcFile, (char*)GetCPPTarget(meTarget)->szName);
 			bResult &= CompileUnit(psUnit);
+			psUnit->pcFile->GetTokens()->Clear();
+			psUnit->pcFile->Unload();
 		}
 	}
 	for (ui = 0; ui < asUnits.NumElements(); ui++)
@@ -1015,7 +1137,7 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
 	CCPP65Generator		cGenerator;
-	CChars				szAssembly;
+	CCPP65Assembly		cAssembly;
 	CAsm65Library*		pcLinkLibrary;
 	bool				bResult;
 
@@ -1028,8 +1150,9 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	mszErrors.Append(cTree.GetErrors()->Text());
 	cParser.Kill();
 
-	szAssembly.Init();
+	cAssembly.Init(mpcSpillStore);
 	cGenerator.Init(&cTree, meTarget);
+	cGenerator.SetSpillStore(mpcSpillStore);
 	if (meTarget == CPPT_W65C816)
 	{
 		cGenerator.SetImports(&mcImports);
@@ -1037,10 +1160,10 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	}
 	cGenerator.SetListing(!mszListings.Empty());
 	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
-	bResult &= cGenerator.Generate(&szAssembly);
+	bResult &= cGenerator.Generate(&cAssembly);
 	if (!mszListings.Empty())
 	{
-		bResult &= WriteListing(psUnit->pcFile->ShortName(), &szAssembly);
+		bResult &= WriteListing(psUnit->pcFile->ShortName(), &cAssembly);
 	}
 	cGenerator.GetMissingCallees(&psUnit->aszMissing);
 	mszErrors.Append(cGenerator.GetErrors()->Text());
@@ -1058,7 +1181,7 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	{
 		psUnit->pcObject->Kill();
 		psUnit->pcObject->Init(psUnit->pcFile->ShortName());
-		bResult &= Assemble(psUnit->pcObject, szAssembly.Text());
+		bResult &= Assemble(psUnit->pcObject, &cAssembly);
 	}
 	else
 	{
@@ -1066,15 +1189,15 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		if (pcLinkLibrary)
 		{
 			psUnit->pcObject = pcLinkLibrary->AddObject(psUnit->pcFile->ShortName());
-			bResult &= Assemble(psUnit->pcObject, szAssembly.Text());
+			bResult &= Assemble(psUnit->pcObject, &cAssembly);
 		}
 		else
 		{
-			bResult &= AddObject(psUnit->pcFile->ShortName(), szAssembly.Text());
+			bResult &= AddObject(psUnit->pcFile->ShortName(), &cAssembly);
 			psUnit->pcObject = macObjects.Tail()->pcObject;
 		}
 	}
-	szAssembly.Kill();
+	cAssembly.Kill();
 	return bResult;
 }
 

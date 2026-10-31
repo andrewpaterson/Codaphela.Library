@@ -99,6 +99,12 @@
     <ClCompile Include="CPP65Builder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="SpillStore.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65Assembly.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPTarget.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -696,6 +702,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPP65Builder.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="SpillStore.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65Assembly.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPTarget.h">

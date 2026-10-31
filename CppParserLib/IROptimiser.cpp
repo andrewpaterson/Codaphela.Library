@@ -617,6 +617,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= SignedPowerDivisions();
 		bChanged |= mbConstantDivisions && DivisibilityTests();
 		bChanged |= mbConstantDivisions && ConstantDivisions();
+		bChanged |= mbConstantDivisions && ShareDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
 		bChanged |= mbBiasedIndices && MergeAddressPhis();
@@ -8068,6 +8069,82 @@ bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int
 		lliDivisor >>= 1;
 	}
 	return lliDivisor < 0x10000;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// x % d next to x / d in one block (d not a constant, ConstantDivisions has
+// those; the same signedness and type) is x - (x / d) * d: one divide
+// instead of two, for a target whose divides are runtime calls (a multiply
+// is much cheaper).  When the remainder comes first a divide is put before
+// it, which common subexpressions make the later one.  C's division rounds
+// towards 0, so it holds signed too.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ShareDivisions(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psRemainder;
+	SIRInstruction*	psDivide;
+	SIRReference	sValue;
+	SIRReference	sDivisor;
+	SIRReference	sQuotient;
+	SIRReference	sProduct;
+	SIRType			sType;
+	size			ui;
+	size			uiRemainder;
+	size			uiDivide;
+	size			uiAt;
+	uint16			uiDivideOpcode;
+	bool			bChanged;
+
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiRemainder = 0; uiRemainder < pcBlock->masInstructions.NumElements(); uiRemainder++)
+		{
+			psRemainder = pcBlock->masInstructions.Get(uiRemainder);
+			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || psRemainder->asArguments[1].IsConstant() || !psRemainder->sType.IsInteger())
+			{
+				continue;
+			}
+			uiDivideOpcode = (psRemainder->uiOpcode == IRO_SRem) ? IRO_SDiv : IRO_UDiv;
+			sType = psRemainder->sType;
+			sValue = psRemainder->asArguments[0];
+			sDivisor = psRemainder->asArguments[1];
+			for (uiDivide = 0; uiDivide < pcBlock->masInstructions.NumElements(); uiDivide++)
+			{
+				psDivide = pcBlock->masInstructions.Get(uiDivide);
+				if ((psDivide->uiOpcode == uiDivideOpcode) && psDivide->sType.Equals(sType) && psDivide->asArguments[0].Equals(sValue) && psDivide->asArguments[1].Equals(sDivisor))
+				{
+					break;
+				}
+			}
+			if (uiDivide == pcBlock->masInstructions.NumElements())
+			{
+				continue;
+			}
+			uiAt = uiRemainder;
+			if (uiDivide < uiRemainder)
+			{
+				sQuotient = pcBlock->masInstructions.Get(uiDivide)->sResult;
+			}
+			else
+			{
+				sQuotient = InsertInstruction(pcBlock, uiAt++, uiDivideOpcode, sType, sValue, sDivisor);
+			}
+			sProduct = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sType, sQuotient, sDivisor);
+			psRemainder = pcBlock->masInstructions.Get(uiAt);
+			psRemainder->uiOpcode = IRO_Sub;
+			psRemainder->asArguments[0] = sValue;
+			psRemainder->asArguments[1] = sProduct;
+			uiRemainder = uiAt;
+			bChanged = true;
+		}
+	}
+	return bChanged;
 }
 
 

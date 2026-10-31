@@ -369,6 +369,7 @@ public:
 	bool			NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth);
 	bool			FoldNullTests(void);
 	bool			ConstantDivisions(void);
+	bool			ShareDivisions(void);
 	bool			DivisibilityTests(void);
 	bool			BiasSignedIndices(void);
 	bool			MergeAddressPhis(void);

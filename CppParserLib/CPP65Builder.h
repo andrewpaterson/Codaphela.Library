@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPTarget.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65816Profile.h"
+#include "CPP65Assembly.h"
 
 
 struct SCPP65IncludeDirectory
@@ -115,6 +116,9 @@ protected:
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
+	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
+	CMemorySpillStore				mcMemorySpillStore;
+	CIndexTreeSpillStore			mcIndexTreeSpillStore;
 
 public:
 	void			Init(void);
@@ -122,6 +126,7 @@ public:
 	void			SetTarget(ECPPTarget eTarget);
 	void			SetFrameProfile(CAsm65816Profile* pcProfile);
 	void			SetListingDirectory(const char* szDirectory);
+	bool			SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
 	void			SetLineTable(bool bLineTable);
 	CAsm65LineTable*	GetLineTable(void);
 
@@ -157,11 +162,15 @@ public:
 
 protected:
 	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL);
+	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
+	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory = NULL);
 	bool			CompileUnits(void);
 	bool			CompileUnit(SCPP65CompiledUnit* psUnit);
 	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
 	bool			WriteListing(const char* szUnit, CChars* pszAssembly);
+	bool			WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly);
+	bool			ListingName(const char* szUnit, CChars* pszPath);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
 	bool			LinkObjects(void);
 	void			ResetLinker(void);
