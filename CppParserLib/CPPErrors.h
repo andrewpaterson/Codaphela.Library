@@ -65,6 +65,9 @@ public:
 	int		GetToken(size iIndex);
 	char*	Text(void);
 	void	AppendTo(CCPPErrors* pcDest);
+
+protected:
+	size	GetFileIndex(const char* szFile);
 };
 
 

@@ -107,14 +107,14 @@ and its epilogue the reverse then rtl.  Locals, spilled temporaries and the argu
 Costs: about 20 cycles of prologue and epilogue, a cycle more per direct page access when
 the frame isn't page aligned (DL != 0), and frames over 256 bytes need their far part
 addressed through a pointer.  The alternative is a fixed direct page of pseudo registers
-(callee saved, as the 65C64's [$80 + W]) with locals stack relative (d,s): cheaper calls,
+(callee saved, as the 65C64's [0x80 + W]) with locals stack relative (d,s): cheaper calls,
 but d,s only works with lda/sta/adc/and/cmp/eor/ora/sbc and (d,s),y is near only, so far
 pointers in locals would always be copied to the direct page first.  Recommendation: the
 frame as direct page (as far as I know WDC's compiler does the same).
 
 Calling convention:
 
-- m and x are 16 bit (rep #$30) on entry and exit of every function, and at labels.
+- m and x are 16 bit (rep (m, x)) on entry and exit of every function, and at labels.
 - Arguments are pushed last first, each in 16 bit units (a char takes 2), and the caller
   removes them.  Constants push with pea, direct page values with pei.
 - Results: 8 and 16 bit in A, 32 bit and pointers in A (low) and X (high), 64 bit and
@@ -133,7 +133,7 @@ other section there.
 Pointers: far (4 bytes, 24 bit address, top byte 0).  The user (2026-10-25): far pointers
 are stored in 32 bits with the top 8 bits ignored, so as not to switch between 8 and 16
 bit mode; they are loaded and stored as two 16 bit words.  The compiler keeps the top
-byte 0 so == and != need no mask (Assembler816Syntax.txt rulings).  Following one: put it in the frame
+byte 0 so == and != need no mask (Assembler65816Syntax.txt rulings).  Following one: put it in the frame
 (it usually already is) and use [d] / [d],y.  The address of a local is bank 0: D + offset.
 A ptradd is 24 bit (adc low 16, then adc #0 on the bank byte) unless inbank, then 16 bit.
 Later (v2) the near and zero address spaces let a pass make pointers 16 bit where it can
@@ -175,7 +175,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	whether results widen to 32 bits, whether the generator may write functions itself,
 	the bank size and the stack top.  CCPP65Builder::SetTarget (before anything is
 	added) picks the configuration, the defines, the generator's target, the assembler
-	(CAsm816Assembler) and the linker's bank size; CCPP65Generator::Init takes the
+	(CAsm65816Assembler) and the linker's bank size; CCPP65Generator::Init takes the
 	target.  Types: int is the target's (2 bytes), long a 4 byte type of its own
 	(CCPP65Types::Long), the usual arithmetic conversions take the wider type, and an
 	int literal that doesn't fit int is long.  int and short are the same type on the
@@ -193,7 +193,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	per target.  Tests: TestCPP816.cpp (C++ programs built for the W65C816 and run on
 	CFast65C816, some in lockstep).
 
-2.	A W65C816 assembler (Assembler65Lib, CAsm816Assembler: WDC's syntax, QUESTION 4)
+2.	A W65C816 assembler (Assembler65Lib, CAsm65816Assembler: WDC's syntax, QUESTION 4)
 	writing the same CAsm65Object.  Relocations gain a shift so a field can be the bank
 	byte (^label) and a check that a 16 bit address is in the bank it is used in.  The
 	assembler tracks m and x from directives (.a8 .a16 .i8 .i16, or LONGA/LONGI) to size
@@ -205,7 +205,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	Assembler65Lib's feature programs rewritten for the W65C816 (Sieve, Queens, Base64),
 	run on CFast65C816.
 
-3.	A test context: CAsm816Memory (a flat 16MB for tests, CFast65C816 behind it, host
+3.	A test context: CAsm65816Memory (a flat 16MB for tests, CFast65C816 behind it, host
 	files and results as CAsm65Memory has them), a start up for tests, and lockstep with
 	CW65C816 for compiled programs as Asm65Lockstep does for the 65C64.
 
@@ -479,7 +479,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	a function that may recurse (in a cycle of calls its unit can see, or calling
 	itself).  By default estimated: a function with loops whose direct page accesses,
 	weighted 8 for each loop they are in, are more than 3 times what aligning costs a
-	call.  Optionally measured (profile guided): CAsm816Profile runs the programs and
+	call.  Optionally measured (profile guided): CAsm65816Profile runs the programs and
 	counts each function's direct page accesses (on its D, so its runtime routines'
 	too), calls and whether it was entered again while running;
 	CCPP65Builder::SetFrameProfile gives that to the back end, which then aligns a

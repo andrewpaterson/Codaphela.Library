@@ -148,6 +148,29 @@ SIRPhiArgument* CIRBlock::FindPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The phi whose result is sResult, else NULL.  A pointer to it lasts only
+// until a phi is added to the block.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRPhi* CIRBlock::FindPhi(SIRReference sResult)
+{
+	size	ui;
+	SIRPhi*	psPhi;
+
+	for (ui = 0; ui < masPhis.NumElements(); ui++)
+	{
+		psPhi = masPhis.Get(ui);
+		if (psPhi->sResult.Equals(sResult))
+		{
+			return psPhi;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBlock::SetJump(EIRJumpKind eKind, SIRType sType, SIRReference sArgument, CIRBlock* pcThen, CIRBlock* pcElse)

@@ -101,16 +101,27 @@ void CCPPErrors::Add(const char* szFile, int iLine, int iColumn, int iToken, con
 	psPosition->iLine = iLine;
 	psPosition->iColumn = iColumn;
 	psPosition->iToken = iToken;
-	psPosition->uiFile = ARRAY_ELEMENT_NOT_FOUND;
-	if (szFile)
+	psPosition->uiFile = szFile ? GetFileIndex(szFile) : ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of szFile in the file names, which is added if it isn't there
+// yet.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPErrors::GetFileIndex(const char* szFile)
+{
+	size	uiFile;
+
+	uiFile = maszFiles.GetIndex(szFile);
+	if (uiFile == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		psPosition->uiFile = maszFiles.GetIndex(szFile);
-		if (psPosition->uiFile == ARRAY_ELEMENT_NOT_FOUND)
-		{
-			psPosition->uiFile = maszFiles.NumElements();
-			maszFiles.Add(szFile);
-		}
+		uiFile = maszFiles.NumElements();
+		maszFiles.Add(szFile);
 	}
+	return uiFile;
 }
 
 
@@ -227,12 +238,7 @@ void CCPPErrors::AppendTo(CCPPErrors* pcDest)
 		pcDest->masPositions.Add(masPositions.Get(i));
 		if (masPositions.Get(i)->uiFile != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			pcDest->masPositions.Tail()->uiFile = pcDest->maszFiles.GetIndex(GetFile(i));
-			if (pcDest->masPositions.Tail()->uiFile == ARRAY_ELEMENT_NOT_FOUND)
-			{
-				pcDest->masPositions.Tail()->uiFile = pcDest->maszFiles.NumElements();
-				pcDest->maszFiles.Add(GetFile(i));
-			}
+			pcDest->masPositions.Tail()->uiFile = pcDest->GetFileIndex(GetFile(i));
 		}
 	}
 }

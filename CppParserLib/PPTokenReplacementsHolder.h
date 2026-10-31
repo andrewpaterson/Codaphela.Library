@@ -31,7 +31,6 @@ public:
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	Equals(CPPToken* pcOther);
-	bool	IsHolder2(void);
 };
 
 

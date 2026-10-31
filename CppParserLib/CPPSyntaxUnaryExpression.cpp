@@ -38,26 +38,6 @@ void CCPPSyntaxUnaryExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxUnaryExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxUnaryExpression::GetType(void)
-{
-	return "UnaryExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxUnaryExpression::GetKind(void)
 {
 	return CPPS_UnaryExpression;
@@ -99,12 +79,12 @@ size CCPPSyntaxUnaryExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxUnaryExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcOperand;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcOperand, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

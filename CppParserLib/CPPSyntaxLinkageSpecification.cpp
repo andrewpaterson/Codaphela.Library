@@ -49,16 +49,6 @@ void CCPPSyntaxLinkageSpecification::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxLinkageSpecification::GetType(void)
-{
-	return "LinkageSpecification";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxLinkageSpecification::GetKind(void)
 {
 	return CPPS_LinkageSpecification;
@@ -107,12 +97,12 @@ size CCPPSyntaxLinkageSpecification::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxLinkageSpecification::GetChild(size iIndex)
 {
-	if (iIndex < macpDeclarations.NumElements())
-	{
-		return macpDeclarations.GetPtr(iIndex);
-	}
-	iIndex -= macpDeclarations.NumElements();
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, &macpDeclarations, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

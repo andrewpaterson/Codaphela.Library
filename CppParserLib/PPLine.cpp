@@ -59,21 +59,12 @@ bool CPPLine::IsLine(void)
 void CPPLine::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPLine*	pcCast;
-	CPPToken*	pcToken;
-	int			i;
-	int			iNumTokens;
 
 	if (pcSource->IsLine())
 	{
 		pcCast = (CPPLine*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
-
-		iNumTokens = (int)pcCast->mcTokens.NumTokens();
-		for (i = 0; i < iNumTokens; i++)
-		{
-			pcToken = DuplicatePPToken(pcCast->mcTokens.Get(i), pcTokens);
-			mcTokens.Add(pcToken);
-		}
+		CopyTokens(pcCast, pcTokens);
 	}
 }
 

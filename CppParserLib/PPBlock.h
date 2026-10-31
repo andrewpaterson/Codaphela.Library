@@ -25,7 +25,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "DefineMap.h"
 #include "PPTokenBlockIndex.h"
-#include "NamedDefine.h"
 
 
 class CPPBlockSet;

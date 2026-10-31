@@ -41,7 +41,6 @@ struct SCPPTarget
 	int				iIntBytes;			//int and unsigned int: 4 on the 65C64, 2 on the W65C816.  long is 4 on both.
 	int				iPointerBytes;		//A pointer's size in memory (a W65C816 pointer is 24 bits and a zero byte).
 	bool			bWidenResults;		//Results narrower than 32 bits are returned as i32 (the 65C64's 32 bit A).
-	bool			bDirectGenerator;	//Functions the IR front end can't write are written by the generator itself.
 	uint32			uiBankSize;			//The linker keeps sections inside banks of this size (0 for none).
 	uint32			uiStackTop;			//S as the start up sets it.
 };

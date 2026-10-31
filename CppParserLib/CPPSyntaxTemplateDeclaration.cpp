@@ -51,16 +51,6 @@ void CCPPSyntaxTemplateDeclaration::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxTemplateDeclaration::GetType(void)
-{
-	return "TemplateDeclaration";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxTemplateDeclaration::GetKind(void)
 {
 	return CPPS_TemplateDeclaration;
@@ -106,18 +96,12 @@ size CCPPSyntaxTemplateDeclaration::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxTemplateDeclaration::GetChild(size iIndex)
 {
-	if (iIndex < macpParameters.NumElements())
-	{
-		return macpParameters.GetPtr(iIndex);
-	}
-	iIndex -= macpParameters.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpParameters, &pcChild) || IsChild(&iIndex, mpcDeclaration, &pcChild))
 	{
-		return mpcDeclaration;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

@@ -19,7 +19,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/StringHelper.h"
-#include "Asm65Assembler.h"
+#include "Asm65C64Assembler.h"
 #include "Asm65Linker.h"
 
 
@@ -54,12 +54,12 @@ static int CompareMapSymbols(const void* pvLeft, const void* pvRight)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// $0001001a (BaseLib hex is lower case)
+// 0x0001001a (BaseLib hex is lower case)
 //
 //////////////////////////////////////////////////////////////////////////
 static void AppendAddress(CChars* psz, uint32 uiAddress)
 {
-	psz->Append('$');
+	psz->Append("0x");
 	psz->AppendHexHiLo(&uiAddress, sizeof(uint32));
 }
 
@@ -819,7 +819,7 @@ bool CAsm65Linker::IsCore(SAsm65LinkSection* psLinkSection)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::AddStubs(void)
 {
-	CAsm65Assembler		cAssembler;
+	CAsm65C64Assembler		cAssembler;
 	SAsm65Segment*		psSegment;
 	SAsm65Section*		psSection;
 	SAsm65ObjectSymbol*	psSymbol;
@@ -917,7 +917,7 @@ void CAsm65Linker::Layout(void)
 		}
 		if (uiAddress > 0xFFFFFFFFULL)
 		{
-			mcErrors.Add("link", 0, 0, "Sections end past $FFFFFFFF", Asm65SectionKindName((EAsm65SectionKind)iKind));
+			mcErrors.Add("link", 0, 0, "Sections end past 0xFFFFFFFF", Asm65SectionKindName((EAsm65SectionKind)iKind));
 			uiAddress = 0xFFFFFFFFULL;
 		}
 		mauiEnd[iKind] = (uint32)uiAddress;
@@ -981,7 +981,7 @@ void CAsm65Linker::LayoutAt(void)
 			psLinkSection->uiAddress = psSection->uiAt;
 			if ((uint64)psSection->uiAt + psSection->uiSize > 0x100000000ULL)
 			{
-				mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Section ends past $FFFFFFFF", psSection->szName.Text());
+				mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Section ends past 0xFFFFFFFF", psSection->szName.Text());
 			}
 			if (!InBank(psSection->uiAt, psSection->uiSize))
 			{

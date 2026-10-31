@@ -49,16 +49,6 @@ void CCPPSyntaxElaboratedTypeSpecifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxElaboratedTypeSpecifier::GetType(void)
-{
-	return "ElaboratedTypeSpecifier";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxElaboratedTypeSpecifier::GetKind(void)
 {
 	return CPPS_ElaboratedTypeSpecifier;
@@ -98,18 +88,12 @@ size CCPPSyntaxElaboratedTypeSpecifier::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxElaboratedTypeSpecifier::GetChild(size iIndex)
 {
-	if (iIndex < macpAttributes.NumElements())
-	{
-		return macpAttributes.GetPtr(iIndex);
-	}
-	iIndex -= macpAttributes.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, mpcName, &pcChild))
 	{
-		return mpcName;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

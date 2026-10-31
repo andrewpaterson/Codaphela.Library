@@ -333,9 +333,9 @@ void CCPP65Types::Kill(void)
 		if (psType->papsParameters)
 		{
 			psType->papsParameters->Kill();
-			free(psType->papsParameters);
+			SafeFree(psType->papsParameters);
 		}
-		free(psType);
+		SafeFree(psType);
 	}
 	mapsTypes.Kill();
 }
@@ -362,6 +362,22 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A new type of eKind and iBytes (as InitBuiltin makes it: unsigned, no
+// base, class, parameters or enum).  Add or Class put it in the list.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::NewType(ECPP65TypeKind eKind, int iBytes)
+{
+	SCPP65Type*	psType;
+
+	psType = NewMalloc<SCPP65Type>();
+	InitBuiltin(psType, eKind, iBytes, false);
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount)
@@ -378,17 +394,9 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 		}
 	}
 
-	psType = (SCPP65Type*)malloc(sizeof(SCPP65Type));
-	psType->eKind = eKind;
-	psType->iBytes = iBytes;
-	psType->bSigned = false;
+	psType = NewType(eKind, iBytes);
 	psType->psBase = psBase;
 	psType->iCount = iCount;
-	psType->psClass = NULL;
-	psType->papsParameters = NULL;
-	psType->bVariadic = false;
-	psType->bLongDouble = false;
-	psType->pcEnum = NULL;
 	mapsTypes.Add(psType);
 	return psType;
 }
@@ -460,11 +468,10 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 	SCPP65Type*	psOther;
 	size		i;
 
-	psType = (SCPP65Type*)malloc(sizeof(SCPP65Type));
-	InitBuiltin(psType, CPP65TK_Function, 0, false);
+	psType = NewType(CPP65TK_Function, 0);
 	psType->psBase = psReturn;
 	psType->bVariadic = bVariadic;
-	psType->papsParameters = (CArrayTemplatePtr<SCPP65Type>*)malloc(sizeof(CArrayTemplatePtr<SCPP65Type>));
+	psType->papsParameters = NewMalloc<CArrayTemplatePtr<SCPP65Type> >();
 	psType->papsParameters->Init();
 	for (i = 0; papsParameters && (i < papsParameters->NumElements()); i++)
 	{
@@ -478,8 +485,8 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 		if ((psOther->eKind == CPP65TK_Function) && psOther->Equals(psType))
 		{
 			psType->papsParameters->Kill();
-			free(psType->papsParameters);
-			free(psType);
+			SafeFree(psType->papsParameters);
+			SafeFree(psType);
 			return psOther;
 		}
 	}
@@ -612,17 +619,8 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 		}
 	}
 
-	psType = (SCPP65Type*)malloc(sizeof(SCPP65Type));
-	psType->eKind = CPP65TK_Class;
-	psType->iBytes = 0;
-	psType->bSigned = false;
-	psType->psBase = NULL;
-	psType->iCount = 0;
+	psType = NewType(CPP65TK_Class, 0);
 	psType->psClass = psClass;
-	psType->papsParameters = NULL;
-	psType->bVariadic = false;
-	psType->bLongDouble = false;
-	psType->pcEnum = NULL;
 	mapsTypes.Add(psType);
 	return psType;
 }

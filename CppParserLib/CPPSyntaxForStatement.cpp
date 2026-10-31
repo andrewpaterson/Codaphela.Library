@@ -40,26 +40,6 @@ void CCPPSyntaxForStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxForStatement::Kill(void)
-{
-	CCPPSyntaxStatement::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxForStatement::GetType(void)
-{
-	return "ForStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxForStatement::GetKind(void)
 {
 	return CPPS_ForStatement;
@@ -120,30 +100,12 @@ size CCPPSyntaxForStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxForStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcInitialiser;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcInitialiser, &pcChild) || IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcIncrement, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
 	{
-		return mpcCondition;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcIncrement;
-	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcBody;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

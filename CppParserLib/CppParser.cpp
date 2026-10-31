@@ -86,7 +86,7 @@ bool CCPPParser::Parse(void)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
-	pcRoot = mpcMemory->CreateTranslationUnit(NULL);
+	pcRoot = mpcMemory->Create<CCPPSyntaxTranslationUnit>(NULL);
 	mpcTree->SetRoot(pcRoot);
 	DeclareBuiltins();
 
@@ -222,12 +222,10 @@ int64 CCPPParser::GetIdentifier(int iAhead)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPParser::IsLiteral(void)
+int64 CCPPParser::GetTokenIdentifier(int iToken)
 {
-	CCPPToken*	pcToken;
-
-	pcToken = Peek(0);
-	return pcToken && (pcToken->IsNumber() || pcToken->IsChar() || pcToken->IsBool() || pcToken->IsString());
+	//The identifier of token iToken, which the caller knows is an identifier.
+	return ((CCTIdentifier*)mpcTokeniser->Get(iToken))->mlliIdentifier;
 }
 
 
@@ -473,10 +471,12 @@ bool CCPPParser::ErrorAt(int iToken, char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPParser::BeginTentative(int* piSavedFailed)
+void CCPPParser::BeginTentative(SCPPTentative* psTentative)
 {
-	//Nothing parsed tentatively is reported, declared or resolved.
-	*piSavedFailed = mbFailed;
+	//Nothing parsed tentatively is reported, declared or resolved.  The position is marked so EndTentative can rewind
+	//to it.
+	psTentative->sPosition = Mark();
+	psTentative->bSavedFailed = mbFailed;
 	mbFailed = false;
 	miTentative++;
 }
@@ -486,14 +486,17 @@ void CCPPParser::BeginTentative(int* piSavedFailed)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPParser::EndTentative(int iSavedFailed)
+bool CCPPParser::EndTentative(SCPPTentative* psTentative, bool bParsed)
 {
 	bool	bSucceeded;
 
+	//True if nothing failed in the tentative parse and bParsed, which the caller works out from what was parsed and
+	//what follows it before the parser is rewound to where the tentative parse began.
 	bSucceeded = !mbFailed;
 	miTentative--;
-	mbFailed = (iSavedFailed != 0);
-	return bSucceeded;
+	mbFailed = psTentative->bSavedFailed;
+	Rewind(psTentative->sPosition);
+	return bSucceeded && bParsed;
 }
 
 
@@ -724,6 +727,23 @@ CCPPSymbol* CCPPParser::Declare(int64 lliName, int iToken, ECPPSymbolKind eKind,
 		Resolve(iToken, pcSymbol, CPPTR_Declaration);
 	}
 	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPParser::ReuseOrDeclare(CCPPSymbol* pcFound, int64 lliName, int iToken, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope)
+{
+	//pcFound is the symbol already declared in pcScope that this declaration redeclares, or NULL if there is none.  A
+	//redeclaration resolves its name to the existing symbol, otherwise a new symbol is declared.
+	if (pcFound)
+	{
+		Resolve(iToken, pcFound, CPPTR_Declaration);
+		return pcFound;
+	}
+	return Declare(lliName, iToken, eKind, pcDeclaration, pcScope);
 }
 
 

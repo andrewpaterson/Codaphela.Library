@@ -31,6 +31,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	CCPPSyntaxClassSpecifier*			pcClass;
 	CCPPSyntaxElaboratedTypeSpecifier*	pcElaborated;
 	CCPPSyntaxNameComponent*			pcComponent;
+	CCPPSyntaxAlignasSpecifier*			pcAlignas;
 	CCPPSymbol*							pcSymbol;
 	CCPPScope*							pcDeclarationScope;
 	CCPPScope*							pcQualifier;
@@ -47,10 +48,25 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	bTemplate = IsDeclaringTemplate();
 	Next();
 
+	//alignas is an attribute-specifier, so it can come before the name too.  [dcl.attr.grammar] 1
 	apcAttributes.Init();
-	ParseAttributes(&apcAttributes, pcParent);
+	for (;;)
+	{
+		ParseAttributes(&apcAttributes, pcParent);
+		if (!Is(CT_alignas))
+		{
+			break;
+		}
+		pcAlignas = ParseAlignasSpecifier(pcParent);
+		if (!pcAlignas)
+		{
+			apcAttributes.Kill();
+			return NULL;
+		}
+		apcAttributes.Add(pcAlignas);
+	}
 
-	pcClass = mpcMemory->CreateClassSpecifier(pcParent);
+	pcClass = mpcMemory->Create<CCPPSyntaxClassSpecifier>(pcParent);
 	pcClass->miFirstToken = iFirstToken;
 	pcClass->meKey = eKey;
 	pcClass->miPack = miPack;
@@ -77,7 +93,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 
 	pcComponent = pcClass->mpcName ? pcClass->mpcName->GetLast() : NULL;
 	bSimple = pcClass->mpcName && pcClass->mpcName->IsSimple();
-	lliName = (pcComponent && (pcComponent->miName != -1)) ? ((CCTIdentifier*)mpcTokeniser->Get(pcComponent->miName))->mlliIdentifier : -1;
+	lliName = (pcComponent && (pcComponent->miName != -1)) ? GetTokenIdentifier(pcComponent->miName) : -1;
 	pcDeclarationScope = mpcScope->GetDeclarationScope();
 
 	if (!Is(CT_OpenCurlyBracket) && !Is(CT_Colon))
@@ -88,7 +104,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 			Error("Expected a class name or a class body.");
 			return NULL;
 		}
-		pcElaborated = mpcMemory->CreateElaboratedTypeSpecifier(pcParent);
+		pcElaborated = mpcMemory->Create<CCPPSyntaxElaboratedTypeSpecifier>(pcParent);
 		pcElaborated->miFirstToken = iFirstToken;
 		pcElaborated->meKey = eKey;
 		pcElaborated->macpAttributes.InsertArrayAfterEnd(&pcClass->macpAttributes);
@@ -105,14 +121,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 			if (Is(CT_SemiColon) || !pcSymbol)
 			{
 				pcSymbol = pcDeclarationScope->FindHere(lliName);
-				if (!pcSymbol || !pcSymbol->IsClass())
-				{
-					pcSymbol = Declare(lliName, pcComponent->miName, bTemplate ? CPPSK_ClassTemplate : CPPSK_Class, pcElaborated, pcDeclarationScope);
-				}
-				else
-				{
-					Resolve(pcComponent->miName, pcSymbol, CPPTR_Declaration);
-				}
+				pcSymbol = ReuseOrDeclare((pcSymbol && pcSymbol->IsClass()) ? pcSymbol : NULL, lliName, pcComponent->miName, bTemplate ? CPPSK_ClassTemplate : CPPSK_Class, pcElaborated, pcDeclarationScope);
 			}
 			pcElaborated->mpcName->mpcSymbol = pcSymbol;
 			if (pcComponent)
@@ -196,7 +205,7 @@ bool CCPPParser::ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass)
 	Expect(CT_Colon);
 	for (;;)
 	{
-		pcBase = mpcMemory->CreateBaseSpecifier(pcClass);
+		pcBase = mpcMemory->Create<CCPPSyntaxBaseSpecifier>(pcClass);
 		pcBase->miFirstToken = CurrentToken();
 		apcAttributes.Init();
 		ParseAttributes(&apcAttributes, pcBase);
@@ -288,7 +297,7 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 	{
 		if ((Is(CT_public) || Is(CT_protected) || Is(CT_private)) && IsAhead(1, CT_Colon))
 		{
-			pcAccess = mpcMemory->CreateAccessSpecifier(pcClass);
+			pcAccess = mpcMemory->Create<CCPPSyntaxAccessSpecifier>(pcClass);
 			pcAccess->meAccess = Is(CT_public) ? CPPA_Public : (Is(CT_protected) ? CPPA_Protected : CPPA_Private);
 			pcAccess->SetTokens(CurrentToken(), CurrentToken() + 1);
 			Next();
@@ -319,7 +328,7 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 			{
 				Next();
 			}
-			pcSkipped = mpcMemory->CreateSkippedDeclaration(pcClass);
+			pcSkipped = mpcMemory->Create<CCPPSyntaxSkippedDeclaration>(pcClass);
 			pcSkipped->SetTokens(sStart.iToken, PreviousToken());
 			pcClass->macpMembers.Add(pcSkipped);
 		}
@@ -412,7 +421,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	CArraySyntax						apcAttributes;
 
 	//enum [class] name [: type] { enumerators }  [dcl.enum]
-	pcEnum = mpcMemory->CreateEnumSpecifier(pcParent);
+	pcEnum = mpcMemory->Create<CCPPSyntaxEnumSpecifier>(pcParent);
 	pcEnum->miFirstToken = CurrentToken();
 	Expect(CT_enum);
 	if (Is(CT_class) || Is(CT_struct))
@@ -445,7 +454,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	}
 
 	pcComponent = pcEnum->mpcName ? pcEnum->mpcName->GetLast() : NULL;
-	lliName = (pcComponent && (pcComponent->miName != -1) && pcEnum->mpcName->IsSimple()) ? ((CCTIdentifier*)mpcTokeniser->Get(pcComponent->miName))->mlliIdentifier : -1;
+	lliName = (pcComponent && (pcComponent->miName != -1) && pcEnum->mpcName->IsSimple()) ? GetTokenIdentifier(pcComponent->miName) : -1;
 	pcDeclarationScope = mpcScope->GetDeclarationScope();
 
 	if (!Is(CT_OpenCurlyBracket))
@@ -456,7 +465,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			Error("Expected an enum name or body.");
 			return NULL;
 		}
-		pcElaborated = mpcMemory->CreateElaboratedTypeSpecifier(pcParent);
+		pcElaborated = mpcMemory->Create<CCPPSyntaxElaboratedTypeSpecifier>(pcParent);
 		pcElaborated->miFirstToken = pcEnum->miFirstToken;
 		pcElaborated->meKey = CT_enum;
 		pcElaborated->mpcName = pcEnum->mpcName;
@@ -473,14 +482,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	if (lliName != -1)
 	{
 		pcSymbol = pcDeclarationScope->FindHere(lliName);
-		if (!pcSymbol || (pcSymbol->meKind != CPPSK_Enum))
-		{
-			pcSymbol = Declare(lliName, pcComponent->miName, CPPSK_Enum, pcEnum, pcDeclarationScope);
-		}
-		else
-		{
-			Resolve(pcComponent->miName, pcSymbol, CPPTR_Declaration);
-		}
+		pcSymbol = ReuseOrDeclare((pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? pcSymbol : NULL, lliName, pcComponent->miName, CPPSK_Enum, pcEnum, pcDeclarationScope);
 	}
 	else if (pcEnum->mpcName)
 	{
@@ -513,7 +515,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			Error("Expected an enumerator.");
 			return NULL;
 		}
-		pcEnumerator = mpcMemory->CreateEnumerator(pcEnum);
+		pcEnumerator = mpcMemory->Create<CCPPSyntaxEnumerator>(pcEnum);
 		pcEnumerator->miFirstToken = CurrentToken();
 		pcEnumerator->miName = CurrentToken();
 		lliName = GetIdentifier();
@@ -576,7 +578,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseTemplateDeclaration(CCPPSyntax* pcParent
 
 	//template < parameters > declaration, template<> for a specialisation and template declaration for an explicit
 	//instantiation.  [temp] [temp.expl.spec] [temp.explicit]
-	pcTemplate = mpcMemory->CreateTemplateDeclaration(pcParent);
+	pcTemplate = mpcMemory->Create<CCPPSyntaxTemplateDeclaration>(pcParent);
 	pcTemplate->miFirstToken = CurrentToken();
 	pcTemplate->mbExtern = Accept(CT_extern);
 	Expect(CT_template);
@@ -682,7 +684,7 @@ CCPPSyntax* CCPPParser::ParseTemplateParameter(CCPPSyntax* pcParent)
 		}
 		if (IsAhead(i, CT_Comma) || IsAhead(i, CT_GreaterThan) || IsAhead(i, CT_RightShift) || IsAhead(i, CT_Assignment))
 		{
-			pcType = mpcMemory->CreateTypeParameter(pcParent);
+			pcType = mpcMemory->Create<CCPPSyntaxTypeParameter>(pcParent);
 			pcType->miFirstToken = CurrentToken();
 			pcType->mbTypename = Is(CT_typename);
 			Next();

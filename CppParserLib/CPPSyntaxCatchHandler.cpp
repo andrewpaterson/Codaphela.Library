@@ -38,26 +38,6 @@ void CCPPSyntaxCatchHandler::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxCatchHandler::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxCatchHandler::GetType(void)
-{
-	return "CatchHandler";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxCatchHandler::GetKind(void)
 {
 	return CPPS_CatchHandler;
@@ -101,18 +81,12 @@ size CCPPSyntaxCatchHandler::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxCatchHandler::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcParameter;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcParameter, &pcChild) || IsChild(&iIndex, mpcBlock, &pcChild))
 	{
-		return mpcBlock;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

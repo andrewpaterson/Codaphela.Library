@@ -271,7 +271,7 @@ size CAsm65Memory::NumBadAccesses(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bus cycles TickHigh has answered since Init.
+// The bus cycles TickHigh65C64 has answered since Init.
 //
 //////////////////////////////////////////////////////////////////////////
 size CAsm65Memory::NumCycles(void)
@@ -286,7 +286,7 @@ size CAsm65Memory::NumCycles(void)
 // bytes the byte enables select.  Cycles with no valid address are ignored.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::TickHigh(C65C64Meta* pcMPU, void* pvMemory)
+void CAsm65Memory::TickHigh65C64(C65C64Meta* pcMPU, void* pvMemory)
 {
 	CAsm65Memory*	pcMemory;
 	uint32			uiAddress;
@@ -327,7 +327,7 @@ void CAsm65Memory::TickHigh(C65C64Meta* pcMPU, void* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::TickLow(C65C64Meta* pcMPU, void* pvMemory)
+void CAsm65Memory::TickLow65C64(C65C64Meta* pcMPU, void* pvMemory)
 {
 }
 
@@ -337,7 +337,7 @@ void CAsm65Memory::TickLow(C65C64Meta* pcMPU, void* pvMemory)
 // Initialises pcMPU to run from this memory.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::InitFast(CFast65C64* pcMPU)
+void CAsm65Memory::InitFast65C64(CFast65C64* pcMPU)
 {
 	pcMPU->Init(ReadWord, WriteByte, this, mpuiLow, muiLowSize);
 	pcMPU->SetHole(ASM65_DEVICE_BASE, ASM65_DEVICE_END);
@@ -349,7 +349,7 @@ void CAsm65Memory::InitFast(CFast65C64* pcMPU)
 // The W65C816S's bus: a byte at a 24 bit address when VDA, VPA or VPB says it is valid.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::TickHigh816(CW65C816Meta* pcMPU, void* pvMemory)
+void CAsm65Memory::TickHigh65816(CW65C816Meta* pcMPU, void* pvMemory)
 {
 	CAsm65Memory*	pcMemory;
 	uint32			uiAddress;
@@ -381,7 +381,7 @@ void CAsm65Memory::TickHigh816(CW65C816Meta* pcMPU, void* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::TickLow816(CW65C816Meta* pcMPU, void* pvMemory)
+void CAsm65Memory::TickLow65816(CW65C816Meta* pcMPU, void* pvMemory)
 {
 }
 
@@ -391,7 +391,7 @@ void CAsm65Memory::TickLow816(CW65C816Meta* pcMPU, void* pvMemory)
 // CFast65C816 reads and writes the memory at 0000:0000 directly, the devices through ReadByte and WriteByte.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::InitFast816(CFast65C816* pcMPU)
+void CAsm65Memory::InitFast65816(CFast65C816* pcMPU)
 {
 	pcMPU->Init(ReadByte, WriteByte, this, mpuiLow, (muiLowSize < ASM65_DEVICE_BASE) ? muiLowSize : ASM65_DEVICE_BASE);
 	pcMPU->SetHole(ASM65_DEVICE_BASE, ASM65_DEVICE_END);

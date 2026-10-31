@@ -51,16 +51,6 @@ void CCPPSyntaxDeclSpecifiers::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxDeclSpecifiers::GetType(void)
-{
-	return "DeclSpecifiers";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxDeclSpecifiers::GetKind(void)
 {
 	return CPPS_DeclSpecifiers;
@@ -93,18 +83,12 @@ size CCPPSyntaxDeclSpecifiers::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxDeclSpecifiers::GetChild(size iIndex)
 {
-	if (iIndex < macpSpecifiers.NumElements())
-	{
-		return macpSpecifiers.GetPtr(iIndex);
-	}
-	iIndex -= macpSpecifiers.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpSpecifiers, &pcChild) || IsChild(&iIndex, mpcType, &pcChild))
 	{
-		return mpcType;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

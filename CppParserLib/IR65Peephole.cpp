@@ -113,39 +113,6 @@ static void IR65PeepholeOperands(CChars* pszLine, const char** pszFirst, size* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function's own memory, [n + W], [n + V] or [n + S]: its base
-// register ('W', 'V' or 'S') and offset.  False for any other operand.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR65PeepholeOwnMemory(const char* szOperand, size uiLength, uint8* puiBase, int32* piOffset)
-{
-	size	ui;
-	char	cBase;
-
-	if ((uiLength < 7) || (szOperand[0] != '[') || (szOperand[uiLength - 1] != ']'))
-	{
-		return false;
-	}
-	cBase = szOperand[uiLength - 2];
-	if (((cBase != 'W') && (cBase != 'V') && (cBase != 'S')) || (memcmp(&szOperand[uiLength - 5], " + ", 3) != 0))
-	{
-		return false;
-	}
-	for (ui = 1; ui < uiLength - 5; ui++)
-	{
-		if ((szOperand[ui] < '0') || (szOperand[ui] > '9'))
-		{
-			return false;
-		}
-	}
-	*puiBase = (uint8)cBase;
-	*piOffset = atoi(&szOperand[1]);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Peephole::Init(void)
@@ -290,7 +257,7 @@ int16 CIR65Peephole::AddValue(const char* szOperand, size uiLength)
 			return IR65_VALUE_UNKNOWN;
 		}
 	}
-	else if (!IR65PeepholeOwnMemory(szOperand, uiLength, &sValue.uiBase, &sValue.iOffset))
+	else if (!CIR65Code::IsOwnMemory(szOperand, uiLength, &sValue.uiBase, &sValue.iOffset))
 	{
 		//A number or a symbol: letters, digits, _ and a leading -.
 		for (ui = 0; ui < uiLength; ui++)
@@ -364,7 +331,7 @@ void CIR65Peephole::ComputeCopied(void)
 			{
 				iCopied = AddValue(szSecond, uiSecond);
 			}
-			else if (psLine->bFirstMemory && (psLine->iSecond >= 0) && (psWidths->auiRegisters[psLine->iSecond] == 32) && IR65PeepholeOwnMemory(szFirst, uiFirst, &uiBase, &iOffset))
+			else if (psLine->bFirstMemory && (psLine->iSecond >= 0) && (psWidths->auiRegisters[psLine->iSecond] == 32) && CIR65Code::IsOwnMemory(szFirst, uiFirst, &uiBase, &iOffset))
 			{
 				iCopied = AddValue(szFirst, uiFirst);
 			}
@@ -596,7 +563,7 @@ void CIR65Peephole::ForgetMemory(SIR65Values* psState, const char* szOperand, si
 	int32		iOffset;
 	bool		bOwn;
 
-	bOwn = IR65PeepholeOwnMemory(szOperand, uiLength, &uiBase, &iOffset);
+	bOwn = CIR65Code::IsOwnMemory(szOperand, uiLength, &uiBase, &iOffset);
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		iValue = psState->aiValues[i];

@@ -42,7 +42,6 @@ class CProject
 {
 protected:
 	CListLibraries			mcLibraries;
-	int						miNumSystemLibraries;
 	bool					mbDumpLogs;
 	CArrayHeaderNameMap		mcHeaderNames;
 	CHeaderFileMap			mcIncludeFiles;
@@ -53,7 +52,7 @@ public:
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
-	bool				Process(char* szConfiguration, CChars* pszErrors = NULL);
+	bool				Process(char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);
@@ -63,6 +62,9 @@ public:
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
 
 	void				AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem);
+
+protected:
+	CTranslationUnit*	StartLibrary(SProcessIter* psIter);
 };
 
 

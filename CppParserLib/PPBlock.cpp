@@ -61,21 +61,12 @@ bool CPPBlock::IsBlock(void)
 void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPBlock*	pcCast;
-	CPPToken*	pcToken;
-	size			i;
-	size			iNumTokens;
 
 	if (pcSource->IsBlock())
 	{
 		pcCast = (CPPBlock*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
-
-		iNumTokens = pcCast->mcTokens.NumTokens();
-		for (i = 0; i < iNumTokens; i++)
-		{
-			pcToken = DuplicatePPToken(pcCast->GetTokenList()->Get(i), pcTokens);
-			mcTokens.Add(pcToken);
-		}
+		CopyTokens(pcCast, pcTokens);
 	}
 }
 

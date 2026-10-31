@@ -55,16 +55,6 @@ void CCPPSyntaxEnumSpecifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxEnumSpecifier::GetType(void)
-{
-	return "EnumSpecifier";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxEnumSpecifier::GetKind(void)
 {
 	return CPPS_EnumSpecifier;
@@ -121,24 +111,12 @@ size CCPPSyntaxEnumSpecifier::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxEnumSpecifier::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcName;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcBase, &pcChild) || IsChild(&iIndex, &macpEnumerators, &pcChild))
 	{
-		return mpcBase;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex < macpEnumerators.NumElements())
-	{
-		return macpEnumerators.GetPtr(iIndex);
-	}
-	iIndex -= macpEnumerators.NumElements();
-
 	return NULL;
 }
 

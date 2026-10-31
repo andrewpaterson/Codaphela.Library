@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Project.h"
 #include "CPPTarget.h"
 #include "IRImports.h"
-#include "Assembler65Lib/Asm816Profile.h"
+#include "Assembler65Lib/Asm65816Profile.h"
 
 
 struct SCPP65IncludeDirectory
@@ -111,16 +111,16 @@ protected:
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
-	CAsm816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
+	CAsm65816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
-	int64							miCompileTime;		//When SetLineTable was called (seconds since 1970).
+	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 
 public:
 	void			Init(void);
 	void			Kill(void);
 	void			SetTarget(ECPPTarget eTarget);
-	void			SetFrameProfile(CAsm816Profile* pcProfile);
+	void			SetFrameProfile(CAsm65816Profile* pcProfile);
 	void			SetListingDirectory(const char* szDirectory);
 	void			SetLineTable(bool bLineTable);
 	CAsm65LineTable*	GetLineTable(void);
@@ -149,10 +149,10 @@ public:
 	char*			GetMissing(size uiIndex);
 	void			GetMissingNames(CChars* pszDest);
 	size			NumUnits(void);
-	bool			GetSymbol(const char* szName, int64* piValue);
+	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
@@ -160,6 +160,7 @@ protected:
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
 	bool			CompileUnits(void);
 	bool			CompileUnit(SCPP65CompiledUnit* psUnit);
+	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
 	bool			WriteListing(const char* szUnit, CChars* pszAssembly);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
 	bool			LinkObjects(void);

@@ -103,8 +103,6 @@ struct SIRSlotAccess
 };
 
 
-//An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
-//(bOnce false) or below twice it.
 //A value an unswitched loop defines: its block (an index in the loop's blocks) and whether that block and its copy
 //can be reached after the branch is gone.
 struct SIRUnswitchedValue
@@ -135,6 +133,8 @@ struct SIRNarrowMultiply
 };
 
 
+//An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
+//(bOnce false) or below twice it.
 struct SIRBoundDivision
 {
 	CIRBlock*		pcBlock;
@@ -145,6 +145,51 @@ struct SIRBoundDivision
 	int64			lliMin;		//ConstantDivisions: the dividend's range.
 	int64			lliMax;
 };
+
+
+//What a use of a value is (SIRUse): a phi's argument, an instruction's operand or a block's jump's argument.
+enum EIRUseKind
+{
+	IRUK_Phi,
+	IRUK_Instruction,
+	IRUK_Jump,
+};
+
+
+//Where a walk of a value's uses is (CIROptimiser::FirstUse, FirstTemporaryUse and NextUse): block by block, each
+//block's phis' arguments, then its instructions' operands, then its jump.  Each step fetches the block, phi and
+//instruction again by their indices, so a walk may add phis and instructions (at the ends of the blocks) as it
+//goes; SetUse writes a use the same way.
+struct SIRUse
+{
+	SIRReference		sValue;			//The value whose uses are walked...
+	bool				bTemporaries;	//...or, when true, every temporary's.
+	CArrayIRBlocks*		papcBlocks;		//The blocks walked, NULL for all the function's.
+	size				uiBlock;		//The use: its block (in papcBlocks or the function)...
+	EIRUseKind			eKind;
+	size				uiIndex;		//...the phi or instruction...
+	size				uiArgument;		//...and the phi's argument or the instruction's operand.
+	CIRBlock*			pcBlock;		//Fetched by NextUse: the use's block...
+	SIRPhi*				psPhi;			//...a phi argument's phi and argument...
+	SIRPhiArgument*		psArgument;
+	SIRInstruction*		psInstruction;	//...an operand's instruction...
+	SIRReference*		psSlot;			//...and the use itself (until the blocks change).
+};
+
+
+//A loop's counter (CIROptimiser::MatchCounter): a phi of its head with two arguments, sInit from a block outside
+//the loop (argument uiOutside) and sNext = phi + lliStep from the other.
+struct SIRLoopCounter
+{
+	size			uiOutside;
+	SIRReference	sInit;
+	SIRReference	sNext;
+	int64			lliStep;
+};
+
+
+#define IR_COUNTER_SUB		0x01	//MatchCounter: the step may be a sub of a constant (lliStep its negative).
+#define IR_COUNTER_INSIDE	0x02	//MatchCounter: sNext's argument must come from a block in the loop.
 
 
 //A loop's counter for ReplaceLoopIdioms: i = phi [init, i + 1], round while i + 1 < n (signed, unsigned or not equal).
@@ -170,10 +215,7 @@ struct SIRIdiomAddress
 };
 
 
-#define IR_AVAILABLE_LIMIT	64
-#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions).
-#define IR_BASE_VALUES		16		//How many phis and their arguments PointerBase looks through.
-#define IR_KNOWN_DEPTH		8		//How many single predecessors back KnownCondition and ImpliedComparison look for a branch.
+#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions); the other limits are in IROptimiser.cpp.
 
 
 //The mid level passes (IR.txt Passes), run on a function until nothing changes:
@@ -300,6 +342,7 @@ public:
 	bool			SinkLoad(CIRBlock* pcFrom, size uiLoad, CIRBlock* pcTo, size uiUse);
 	bool			WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, SIRReference sRoot, int64 lliOffset, int iBytes);
 	bool			StepsByOne(SIRReference sStepped, SIRReference sValue);
+	bool			MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter);
 	bool			LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);
 	bool			ReduceStrength(void);
 	SIRReference	ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended, bool bZeroExtends, uint16* puiExtend);
@@ -350,6 +393,10 @@ protected:
 	void			Replace(SIRReference sOld, SIRReference sNew);
 	SIRReference	Replacement(SIRReference sReference);
 	void			ApplyReplacements(void);
+	bool			FirstUse(SIRUse* psUse, SIRReference sValue, CArrayIRBlocks* papcBlocks = NULL, bool bTemporaries = false);
+	bool			FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks = NULL);
+	bool			NextUse(SIRUse* psUse);
+	void			SetUse(SIRUse* psUse, SIRReference sNew);
 	bool			HasEffect(SIRInstruction* psInstruction);
 	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
 	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
@@ -361,6 +408,7 @@ protected:
 	int				KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition);
 	bool			ThreadBranches(void);
 	bool			OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis = false);
+	bool			OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis);
 	void			CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccessor, CArrayTemplate<uint32>* pauiInside);
 	CIRBlock*		KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock);
 	bool			ThreadPhis(void);
@@ -426,6 +474,7 @@ protected:
 	SIRReference	FreeNarrow(SIRReference sValue, SIRType sType);
 	uint64			UpperBound(SIRReference sValue, int iDepth);
 	uint64			EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
+	SIRInstruction*	EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther);
 	SIRReference	InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	SIRReference	Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth);
 };

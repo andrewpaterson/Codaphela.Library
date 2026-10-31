@@ -44,6 +44,14 @@ struct SCPPDeferredBody
 };
 
 
+//A tentative parse: where it started and whether the parse around it had already failed.
+struct SCPPTentative
+{
+	SCPPParserPosition	sPosition;
+	bool				bSavedFailed;
+};
+
+
 typedef CArrayTemplate<SCPPDeferredBody>	CArrayDeferredBodies;
 
 
@@ -117,7 +125,6 @@ protected:
 	bool							IsIdentifier(void);
 	bool							IsIdentifierAhead(int iAhead);
 	int64							GetIdentifier(int iAhead = 0);
-	bool							IsLiteral(void);
 	bool							IsEnd(void);
 	void							Next(void);
 	bool							Accept(ECppTokens eToken);
@@ -133,8 +140,9 @@ protected:
 	bool							IsDeclaringTemplate(void);
 	bool							Error(char* szError);
 	bool							ErrorAt(int iToken, char* szError);
-	void							BeginTentative(int* piSavedFailed);
-	bool							EndTentative(int iSavedFailed);
+	int64							GetTokenIdentifier(int iToken);
+	void							BeginTentative(SCPPTentative* psTentative);
+	bool							EndTentative(SCPPTentative* psTentative, bool bParsed);
 	void							Resolve(int iToken, CCPPSymbol* pcSymbol, ECPPTokenRole eRole);
 	bool							SkipBalanced(void);
 	bool							SkipPragma(void);
@@ -144,6 +152,7 @@ protected:
 	CCPPScope*						PushScope(ECPPScopeKind eKind, CCPPSymbol* pcOwner);
 	void							PopScope(CCPPScope* pcScope);
 	CCPPSymbol*						Declare(int64 lliName, int iToken, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
+	CCPPSymbol*						ReuseOrDeclare(CCPPSymbol* pcFound, int64 lliName, int iToken, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
 	void							DeclareBuiltins(void);
 
 	//Declarations.  CppParserDeclarations.cpp
@@ -159,13 +168,16 @@ protected:
 	bool							ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool							ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool							IsFunctionDefinitionStart(void);
+	bool							IsDeclaringSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSymbol*						DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcDeclaration, ECPPDeclarationContext eContext);
 	CCPPSyntaxDeclSpecifiers*		ParseDeclSpecifiers(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
 	CCPPSyntaxAttribute*			ParseAttribute(CCPPSyntax* pcParent);
 	bool							IsAttributeStart(void);
 	void							ParseAttributes(CArraySyntax* papcAttributes, CCPPSyntax* pcParent);
+	CCPPSyntaxAlignasSpecifier*		ParseAlignasSpecifier(CCPPSyntax* pcParent);
 	bool							IsDeclSpecifierKeyword(ECppTokens eToken);
 	bool							IsSimpleTypeKeyword(ECppTokens eToken);
+	bool							IsTypeStartKeyword(ECppTokens eToken);
 	bool							IsConstructorName(CCPPSyntaxName* pcName);
 	CCPPSymbol*						GetTypeSymbol(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 
@@ -193,6 +205,7 @@ protected:
 	void							ParseQualifiers(CArraySyntax* papcQualifiers, CCPPSyntax* pcParent, bool bRefQualifiers);
 	CCPPSyntaxTypeId*				ParseTypeId(CCPPSyntax* pcParent);
 	CCPPSyntaxTypeId*				ParseConversionTypeId(CCPPSyntax* pcParent);
+	CCPPSyntax*						ParseTypeIdOrExpression(CCPPSyntax* pcParent, bool bConstant);
 	bool							IsTypeIdStart(void);
 	bool							IsTypeIdAhead(ECppTokens eFollowing);
 	CCPPSyntax*						ParseInitializer(CCPPSyntax* pcParent, ECPPInitializer* peKind);
@@ -210,8 +223,7 @@ protected:
 	CCPPSyntaxCompoundStatement*	ParseCompoundStatement(CCPPSyntax* pcParent, bool bNewScope);
 	CCPPSyntaxStatement*			ParseStatement(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseIfStatement(CCPPSyntax* pcParent);
-	CCPPSyntaxStatement*			ParseSwitchStatement(CCPPSyntax* pcParent);
-	CCPPSyntaxStatement*			ParseWhileStatement(CCPPSyntax* pcParent);
+	template<class M> M*			ParseConditionStatement(CCPPSyntax* pcParent, ECppTokens eKeyword);
 	CCPPSyntaxStatement*			ParseDoStatement(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseForStatement(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseReturnStatement(CCPPSyntax* pcParent);
@@ -247,6 +259,42 @@ protected:
 	bool							IsCastAhead(void);
 	CCPPSyntaxTypeId*				CreateSimpleTypeId(CCPPSyntax* pcParent);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CCPPParser::ParseConditionStatement(CCPPSyntax* pcParent, ECppTokens eKeyword)
+{
+	M*	pcStatement;
+
+	//keyword ( condition ) statement, for switch and while, whose nodes have the same scope, condition and body.
+	//[stmt.switch] [stmt.while]
+	pcStatement = mpcMemory->Create<M>(pcParent);
+	pcStatement->miFirstToken = CurrentToken();
+	Expect(eKeyword);
+	if (!Expect(CT_OpenRoundBracket))
+	{
+		return NULL;
+	}
+	pcStatement->mpcScope = PushScope(CPPSC_Block, NULL);
+	pcStatement->mpcCondition = ParseCondition(pcStatement);
+	if (!pcStatement->mpcCondition || !Expect(CT_CloseRoundBracket))
+	{
+		PopScope(pcStatement->mpcScope);
+		return NULL;
+	}
+	pcStatement->mpcBody = ParseStatement(pcStatement);
+	PopScope(pcStatement->mpcScope);
+	if (!pcStatement->mpcBody)
+	{
+		return NULL;
+	}
+	pcStatement->miLastToken = PreviousToken();
+	return pcStatement;
+}
 
 
 #endif // !__C_P_P_PARSER_H__

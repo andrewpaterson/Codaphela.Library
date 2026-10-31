@@ -39,8 +39,10 @@ void CPPTextWithSource::Init(int iLine, int iColumn, char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength)
 {
+	//szStart's range isn't terminated: it is part of a line.
 	mszText = (char*)malloc(iLength + 1);
-	memcpy(mszText, szStart, iLength + 1);
+	memcpy(mszText, szStart, iLength);
+	mszText[iLength] = '\0';
 
 	CPPText::Init(eType, iLine, iColumn, szFileName, mszText, iLength);
 

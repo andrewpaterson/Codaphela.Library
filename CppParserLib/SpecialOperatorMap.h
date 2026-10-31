@@ -20,31 +20,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPECIAL_OPERATOR_MAP_H__
 #define __SPECIAL_OPERATOR_MAP_H__
-#include "BaseLib/IndexPrimitiveTemplate.h"
-#include "ASCIITree.h"
+#include "NameMap.h"
 #include "SpecialOperator.h"
 
 
-typedef CIndexPrimitiveTemplate<int64, CSpecialOperator>	CSpecialOperatorsIndex;
-
-
-class CSpecialOperatorMap
+class CSpecialOperatorMap : public CNameMap<CSpecialOperator>
 {
-protected:
-	CASCIITree				mcNameToIDIndex;
-	CSpecialOperatorsIndex	mcIDToSpecialOperatorIndex;
-
 public:
-	void 					Init(void);
-	void 					Kill(void);
-	CSpecialOperator*		AddSpecialOperator(char* szName, EPreprocessorSpecialOperator eType);
-	void					RemoveSpecialOperator(CExternalString* pcName);
-	void					RemoveSpecialOperator(char* szName);
-	CSpecialOperator*		GetSpecialOperator(CExternalString* pcName, bool bExact);
-	CSpecialOperator*		GetSpecialOperator(CChars* pszName);
-	CSpecialOperator*		GetSpecialOperator(char* szName, bool bExact);
-	void					Dump(void);
-	CSpecialOperatorsIndex* GetIDToSpecialOperatorIndex(void);
+	CSpecialOperator*	AddSpecialOperator(char* szName, EPreprocessorSpecialOperator eType);
 };
 
 

@@ -38,26 +38,6 @@ void CCPPSyntaxBinaryExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxBinaryExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxBinaryExpression::GetType(void)
-{
-	return "BinaryExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxBinaryExpression::GetKind(void)
 {
 	return CPPS_BinaryExpression;
@@ -105,18 +85,12 @@ size CCPPSyntaxBinaryExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxBinaryExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcLeft;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcLeft, &pcChild) || IsChild(&iIndex, mpcRight, &pcChild))
 	{
-		return mpcRight;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

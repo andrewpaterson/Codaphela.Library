@@ -22,27 +22,27 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/TextFile.h"
-#include "Asm816Profile.h"
+#include "Asm65816Profile.h"
 
 
-#define ASM816_PROFILE_NO_FUNCTION		0xFFFFFFFF
-#define ASM816_PROFILE_ADDRESSES		0x1000000
-#define ASM816_PROFILE_NO_LINE			0xFFFFFFFF
-#define ASM816_PROFILE_BANKS			256
-#define ASM816_PROFILE_BANK_SIZE		0x10000
+#define ASM65816_PROFILE_NO_FUNCTION		0xFFFFFFFF
+#define ASM65816_PROFILE_ADDRESSES		0x1000000
+#define ASM65816_PROFILE_NO_LINE			0xFFFFFFFF
+#define ASM65816_PROFILE_BANKS			256
+#define ASM65816_PROFILE_BANK_SIZE		0x10000
 
 
 //A function's code: its section in the linker's map.
-struct SAsm816ProfileFunction
+struct SAsm65816ProfileFunction
 {
 	uint32					uiStart;
 	uint32					uiEnd;
-	SAsm816FunctionProfile*	psProfile;
+	SAsm65816FunctionProfile*	psProfile;
 };
 
 
 //A function being run: S as it was entered (S is below this while it runs), and which function it is.
-struct SAsm816ProfileCall
+struct SAsm65816ProfileCall
 {
 	uint16	uiS;
 	uint32	uiFunction;
@@ -56,7 +56,7 @@ struct SAsm816ProfileCall
 // isn't 0.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool Asm816HasDirectPageOperand(uint8 uiOpcode)
+static bool Asm65816HasDirectPageOperand(uint8 uiOpcode)
 {
 	uint8	uiLow;
 
@@ -92,7 +92,7 @@ static bool Asm816HasDirectPageOperand(uint8 uiOpcode)
 // is a loop.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool Asm816IsCall(uint8 uiOpcode)
+static bool Asm65816IsCall(uint8 uiOpcode)
 {
 	switch (uiOpcode)
 	{
@@ -108,7 +108,7 @@ static bool Asm816IsCall(uint8 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm816Profile::Init(void)
+void CAsm65816Profile::Init(void)
 {
 	mcFunctions.Init();
 	mcLines.Init();
@@ -122,7 +122,7 @@ void CAsm816Profile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm816Profile::Kill(void)
+void CAsm65816Profile::Kill(void)
 {
 	mcLineEntries.Kill();
 	mcLines.Kill();
@@ -133,10 +133,10 @@ void CAsm816Profile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function (its index in pasFunctions, in address order) whose code
-// uiAddress is in, or ASM816_PROFILE_NO_FUNCTION.
+// uiAddress is in, or ASM65816_PROFILE_NO_FUNCTION.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint32 Asm816ProfileFind(CArrayTemplate<SAsm816ProfileFunction>* pasFunctions, uint32 uiAddress)
+static uint32 Asm65816ProfileFind(CArrayTemplate<SAsm65816ProfileFunction>* pasFunctions, uint32 uiAddress)
 {
 	size	uiLow;
 	size	uiHigh;
@@ -160,7 +160,7 @@ static uint32 Asm816ProfileFind(CArrayTemplate<SAsm816ProfileFunction>* pasFunct
 	{
 		return (uint32)uiLow;
 	}
-	return ASM816_PROFILE_NO_FUNCTION;
+	return ASM65816_PROFILE_NO_FUNCTION;
 }
 
 
@@ -170,7 +170,7 @@ static uint32 Asm816ProfileFind(CArrayTemplate<SAsm816ProfileFunction>* pasFunct
 // steps, adding what each function did to its profile.  The functions are
 // the text sections in the linker's map (szMap): "  $00012345 $0000021C
 // text._Label".  A call is getting to the start of a function by a call
-// or a jump (Asm816IsCall); the calls being run are kept by S, so those
+// or a jump (Asm65816IsCall); the calls being run are kept by S, so those
 // entered below S are over after a return, and before a call at or above
 // where they were entered.  A direct page access is counted for the function that last set
 // D to D's value (tcd): runtime routines run on their caller's frame.  With
@@ -180,13 +180,13 @@ static uint32 Asm816ProfileFind(CArrayTemplate<SAsm816ProfileFunction>* pasFunct
 // its profile).  Returns the steps run.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, uint64 uiMaxSteps, CAsm65LineTable* pcLines)
+uint64 CAsm65816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const char* szMap, uint64 uiMaxSteps, CAsm65LineTable* pcLines)
 {
-	CArrayTemplate<SAsm816ProfileFunction>	asFunctions;
-	CArrayTemplate<SAsm816ProfileCall>		asCalls;
-	SAsm816ProfileFunction*					psFunction;
-	SAsm816ProfileCall*						psCall;
-	SAsm816FunctionProfile*					psProfile;
+	CArrayTemplate<SAsm65816ProfileFunction>	asFunctions;
+	CArrayTemplate<SAsm65816ProfileCall>		asCalls;
+	SAsm65816ProfileFunction*					psFunction;
+	SAsm65816ProfileCall*						psCall;
+	SAsm65816FunctionProfile*					psProfile;
 	uint32*									auiDirectPageOwners;
 	uint8*									auiStarts;
 	const char*								szLine;
@@ -204,15 +204,15 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 	uint64									uiSteps;
 	size									ui;
 	CArrayChars								aszLabels;		//Per function in asFunctions.
-	uint32*									apuiBanks[ASM816_PROFILE_BANKS];	//Per address in a bank with lines: its line, or ASM816_PROFILE_NO_LINE.
-	CArrayTemplate<SAsm816LineProfile>		asRun;			//Per line in pcLines, this run.
-	SAsm816LineProfile*						psLine;
+	uint32*									apuiBanks[ASM65816_PROFILE_BANKS];	//Per address in a bank with lines: its line, or ASM65816_PROFILE_NO_LINE.
+	CArrayTemplate<SAsm65816LineProfile>		asRun;			//Per line in pcLines, this run.
+	SAsm65816LineProfile*						psLine;
 	SAsm65LineEntry*						psEntry;
 	uint32									uiLine;
 	uint32									uiLastLine;
 	uint32*									puiBank;
-	CMapStringTemplate<SAsm816LineProfile>	cRun;
-	SAsm816LineProfile*						psTotal;
+	CMapStringTemplate<SAsm65816LineProfile>	cRun;
+	SAsm65816LineProfile*						psTotal;
 	CChars									szKey;
 	char*									szKeyText;
 	SMapIterator							sIterator;
@@ -223,7 +223,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 	//The functions' profiles are put first (a put may move those already there), then found for each function.
 	for (szLine = strstr(szMap, "Sections\n"); szLine && (strncmp(szLine, "\nDropped", 8) != 0) && (strncmp(szLine, "\nSymbols", 8) != 0); szLine = strchr(szLine + 1, '\n'))
 	{
-		if ((sscanf(szLine + 1, " $%x $%x text.%511s", &uiStart, &uiSize, szLabel) == 3) && (uiSize > 0) && (uiStart < ASM816_PROFILE_ADDRESSES))
+		if ((sscanf(szLine + 1, " 0x%x 0x%x text.%511s", &uiStart, &uiSize, szLabel) == 3) && (uiSize > 0) && (uiStart < ASM65816_PROFILE_ADDRESSES))
 		{
 			PutFunction(szLabel);
 		}
@@ -234,11 +234,11 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 	}
 	asFunctions.Init();
 	aszLabels.Init();
-	auiStarts = (uint8*)malloc(ASM816_PROFILE_ADDRESSES);
-	memset(auiStarts, 0, ASM816_PROFILE_ADDRESSES);
+	auiStarts = (uint8*)malloc(ASM65816_PROFILE_ADDRESSES);
+	memset(auiStarts, 0, ASM65816_PROFILE_ADDRESSES);
 	for (szLine = strstr(szMap, "Sections\n"); szLine && (strncmp(szLine, "\nDropped", 8) != 0) && (strncmp(szLine, "\nSymbols", 8) != 0); szLine = strchr(szLine + 1, '\n'))
 	{
-		if ((sscanf(szLine + 1, " $%x $%x text.%511s", &uiStart, &uiSize, szLabel) == 3) && (uiSize > 0) && (uiStart < ASM816_PROFILE_ADDRESSES))
+		if ((sscanf(szLine + 1, " 0x%x 0x%x text.%511s", &uiStart, &uiSize, szLabel) == 3) && (uiSize > 0) && (uiStart < ASM65816_PROFILE_ADDRESSES))
 		{
 			psFunction = asFunctions.Add();
 			psFunction->uiStart = uiStart;
@@ -258,18 +258,18 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 		for (ui = 0; ui < pcLines->NumLines(); ui++)
 		{
 			psEntry = pcLines->GetLine(ui);
-			uiStart = psEntry->uiAddress & (ASM816_PROFILE_ADDRESSES - 1);
-			uiSize = (ui + 1 < pcLines->NumLines()) ? (pcLines->GetLine(ui + 1)->uiAddress & (ASM816_PROFILE_ADDRESSES - 1)) : uiStart;
+			uiStart = psEntry->uiAddress & (ASM65816_PROFILE_ADDRESSES - 1);
+			uiSize = (ui + 1 < pcLines->NumLines()) ? (pcLines->GetLine(ui + 1)->uiAddress & (ASM65816_PROFILE_ADDRESSES - 1)) : uiStart;
 			for (uiAddress = uiStart; (psEntry->uiLine != 0) && (uiAddress < uiSize); uiAddress++)
 			{
-				puiBank = apuiBanks[uiAddress / ASM816_PROFILE_BANK_SIZE];
+				puiBank = apuiBanks[uiAddress / ASM65816_PROFILE_BANK_SIZE];
 				if (!puiBank)
 				{
-					puiBank = (uint32*)malloc(ASM816_PROFILE_BANK_SIZE * sizeof(uint32));
-					memset(puiBank, 0xFF, ASM816_PROFILE_BANK_SIZE * sizeof(uint32));
-					apuiBanks[uiAddress / ASM816_PROFILE_BANK_SIZE] = puiBank;
+					puiBank = (uint32*)malloc(ASM65816_PROFILE_BANK_SIZE * sizeof(uint32));
+					memset(puiBank, 0xFF, ASM65816_PROFILE_BANK_SIZE * sizeof(uint32));
+					apuiBanks[uiAddress / ASM65816_PROFILE_BANK_SIZE] = puiBank;
 				}
-				puiBank[uiAddress % ASM816_PROFILE_BANK_SIZE] = (uint32)ui;
+				puiBank[uiAddress % ASM65816_PROFILE_BANK_SIZE] = (uint32)ui;
 			}
 		}
 	}
@@ -279,12 +279,12 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 	asCalls.Init();
 	ulliCycles = pcFast->NumCycles();
 	uiPreviousOpcode = 0x22;
-	uiLastLine = ASM816_PROFILE_NO_LINE;
+	uiLastLine = ASM65816_PROFILE_NO_LINE;
 	for (uiSteps = 0; (uiSteps < uiMaxSteps) && !pcFast->IsStopped(); uiSteps++)
 	{
-		uiAddress = pcFast->GetProgramAddress() & (ASM816_PROFILE_ADDRESSES - 1);
+		uiAddress = pcFast->GetProgramAddress() & (ASM65816_PROFILE_ADDRESSES - 1);
 		uiOpcode = pcMemory->GetByte(uiAddress);
-		if (auiStarts[uiAddress] && Asm816IsCall(uiPreviousOpcode))
+		if (auiStarts[uiAddress] && Asm65816IsCall(uiPreviousOpcode))
 		{
 			//A call: those that have returned are above S.
 			uiS = pcFast->GetS();
@@ -292,7 +292,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 			{
 				asCalls.RemoveTail();
 			}
-			uiFunction = Asm816ProfileFind(&asFunctions, uiAddress);
+			uiFunction = Asm65816ProfileFind(&asFunctions, uiAddress);
 			psProfile = asFunctions.Get(uiFunction)->psProfile;
 			psProfile->ulliCalls++;
 			for (ui = 0; ui < asCalls.NumElements(); ui++)
@@ -307,25 +307,25 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 			psCall->uiS = uiS;
 			psCall->uiFunction = uiFunction;
 		}
-		if (Asm816HasDirectPageOperand(uiOpcode))
+		if (Asm65816HasDirectPageOperand(uiOpcode))
 		{
 			uiOwner = auiDirectPageOwners[pcFast->GetD()];
-			if (uiOwner == ASM816_PROFILE_NO_FUNCTION)
+			if (uiOwner == ASM65816_PROFILE_NO_FUNCTION)
 			{
-				uiOwner = Asm816ProfileFind(&asFunctions, uiAddress);
+				uiOwner = Asm65816ProfileFind(&asFunctions, uiAddress);
 			}
-			if (uiOwner != ASM816_PROFILE_NO_FUNCTION)
+			if (uiOwner != ASM65816_PROFILE_NO_FUNCTION)
 			{
 				asFunctions.Get(uiOwner)->psProfile->ulliDirectPage++;
 			}
 		}
-		puiBank = apuiBanks[uiAddress / ASM816_PROFILE_BANK_SIZE];
-		uiLine = puiBank ? puiBank[uiAddress % ASM816_PROFILE_BANK_SIZE] : ASM816_PROFILE_NO_LINE;
-		if (uiLine != ASM816_PROFILE_NO_LINE)
+		puiBank = apuiBanks[uiAddress / ASM65816_PROFILE_BANK_SIZE];
+		uiLine = puiBank ? puiBank[uiAddress % ASM65816_PROFILE_BANK_SIZE] : ASM65816_PROFILE_NO_LINE;
+		if (uiLine != ASM65816_PROFILE_NO_LINE)
 		{
 			psLine = asRun.Get(uiLine);
 			psLine->ulliInstructions++;
-			if (uiAddress == (pcLines->GetLine(uiLine)->uiAddress & (ASM816_PROFILE_ADDRESSES - 1)))
+			if (uiAddress == (pcLines->GetLine(uiLine)->uiAddress & (ASM65816_PROFILE_ADDRESSES - 1)))
 			{
 				psLine->ulliEntries++;
 			}
@@ -334,7 +334,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 			psLine->ulliCycles += pcFast->NumCycles() - ulliBefore;
 			uiLastLine = uiLine;
 		}
-		else if (uiLastLine != ASM816_PROFILE_NO_LINE)
+		else if (uiLastLine != ASM65816_PROFILE_NO_LINE)
 		{
 			//Code with no line (a runtime routine) is the last line's.
 			ulliBefore = pcFast->NumCycles();
@@ -358,7 +358,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 		if (uiOpcode == 0x5B)
 		{
 			//tcd: this function's frame.
-			auiDirectPageOwners[pcFast->GetD()] = Asm816ProfileFind(&asFunctions, uiAddress);
+			auiDirectPageOwners[pcFast->GetD()] = Asm65816ProfileFind(&asFunctions, uiAddress);
 		}
 	}
 	mulliCycles += pcFast->NumCycles() - ulliCycles;
@@ -374,8 +374,8 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 		{
 			continue;
 		}
-		uiFunction = Asm816ProfileFind(&asFunctions, psEntry->uiAddress & (ASM816_PROFILE_ADDRESSES - 1));
-		if (uiFunction == ASM816_PROFILE_NO_FUNCTION)
+		uiFunction = Asm65816ProfileFind(&asFunctions, psEntry->uiAddress & (ASM65816_PROFILE_ADDRESSES - 1));
+		if (uiFunction == ASM65816_PROFILE_NO_FUNCTION)
 		{
 			continue;
 		}
@@ -385,7 +385,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 		if (!psTotal)
 		{
 			psTotal = cRun.Put(szKey.Text());
-			memset(psTotal, 0, sizeof(SAsm816LineProfile));
+			memset(psTotal, 0, sizeof(SAsm65816LineProfile));
 		}
 		szKey.Kill();
 		psTotal->ulliEntries = (psLine->ulliEntries > psTotal->ulliEntries) ? psLine->ulliEntries : psTotal->ulliEntries;
@@ -400,7 +400,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 		if (!psLine)
 		{
 			psLine = mcLines.Put(szKeyText);
-			memset(psLine, 0, sizeof(SAsm816LineProfile));
+			memset(psLine, 0, sizeof(SAsm65816LineProfile));
 		}
 		psLine->ulliEntries += psTotal->ulliEntries;
 		psLine->ulliInstructions += psTotal->ulliInstructions;
@@ -409,7 +409,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 	}
 	cRun.Kill();
 
-	for (ui = 0; ui < ASM816_PROFILE_BANKS; ui++)
+	for (ui = 0; ui < ASM65816_PROFILE_BANKS; ui++)
 	{
 		if (apuiBanks[ui])
 		{
@@ -431,7 +431,7 @@ uint64 CAsm816Profile::Run(CAsm65Memory* pcMemory, CFast65C816* pcFast, const ch
 // A line's key: "label\tline\tfile".
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm816Profile::LineKey(CChars* pszKey, const char* szLabel, const char* szFile, uint32 uiLine)
+void CAsm65816Profile::LineKey(CChars* pszKey, const char* szLabel, const char* szFile, uint32 uiLine)
 {
 	pszKey->Init(szLabel);
 	pszKey->Append('\t');
@@ -446,15 +446,15 @@ void CAsm816Profile::LineKey(CChars* pszKey, const char* szLabel, const char* sz
 // The function's profile, an empty one if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm816FunctionProfile* CAsm816Profile::PutFunction(const char* szLabel)
+SAsm65816FunctionProfile* CAsm65816Profile::PutFunction(const char* szLabel)
 {
-	SAsm816FunctionProfile*	psProfile;
+	SAsm65816FunctionProfile*	psProfile;
 
 	psProfile = mcFunctions.Get(szLabel);
 	if (!psProfile)
 	{
 		psProfile = mcFunctions.Put(szLabel);
-		memset(psProfile, 0, sizeof(SAsm816FunctionProfile));
+		memset(psProfile, 0, sizeof(SAsm65816FunctionProfile));
 	}
 	return psProfile;
 }
@@ -466,9 +466,9 @@ SAsm816FunctionProfile* CAsm816Profile::PutFunction(const char* szLabel)
 // none.
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm816LineProfile* CAsm816Profile::PutLine(const char* szLabel, const char* szFile, uint32 uiLine)
+SAsm65816LineProfile* CAsm65816Profile::PutLine(const char* szLabel, const char* szFile, uint32 uiLine)
 {
-	SAsm816LineProfile*	psLine;
+	SAsm65816LineProfile*	psLine;
 	CChars				szKey;
 
 	mbLineEntries = false;
@@ -477,7 +477,7 @@ SAsm816LineProfile* CAsm816Profile::PutLine(const char* szLabel, const char* szF
 	if (!psLine)
 	{
 		psLine = mcLines.Put(szKey.Text());
-		memset(psLine, 0, sizeof(SAsm816LineProfile));
+		memset(psLine, 0, sizeof(SAsm65816LineProfile));
 	}
 	szKey.Kill();
 	return psLine;
@@ -490,12 +490,12 @@ SAsm816LineProfile* CAsm816Profile::PutLine(const char* szLabel, const char* szF
 // (code inlined into others is a line of its callee), 0 for none.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CAsm816Profile::LineEntries(const char* szFile, uint32 uiLine)
+uint64 CAsm65816Profile::LineEntries(const char* szFile, uint32 uiLine)
 {
 	SMapIterator		sIterator;
 	char*				szKey;
 	const char*			szTab;
-	SAsm816LineProfile*	psLine;
+	SAsm65816LineProfile*	psLine;
 	uint64*				pulliEntries;
 	size				uiKeySize;
 	size				uiDataSize;
@@ -538,9 +538,9 @@ uint64 CAsm816Profile::LineEntries(const char* szFile, uint32 uiLine)
 // The profile of a line of szFile in the function, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm816LineProfile* CAsm816Profile::GetLine(const char* szLabel, const char* szFile, uint32 uiLine)
+SAsm65816LineProfile* CAsm65816Profile::GetLine(const char* szLabel, const char* szFile, uint32 uiLine)
 {
-	SAsm816LineProfile*	psLine;
+	SAsm65816LineProfile*	psLine;
 	CChars				szKey;
 
 	LineKey(&szKey, szLabel, szFile, uiLine);
@@ -555,7 +555,7 @@ SAsm816LineProfile* CAsm816Profile::GetLine(const char* szLabel, const char* szF
 // Removes the function's lines (its code changed).
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm816Profile::ForgetLines(const char* szLabel)
+void CAsm65816Profile::ForgetLines(const char* szLabel)
 {
 	CArrayChars		aszKeys;
 	SMapIterator	sIterator;
@@ -591,10 +591,10 @@ void CAsm816Profile::ForgetLines(const char* szLabel)
 // of other code (another hash) starts again.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm816Profile::Fingerprints(CAsm65LineTable* pcLines)
+void CAsm65816Profile::Fingerprints(CAsm65LineTable* pcLines)
 {
 	SAsm65LineFingerprint*	psFingerprint;
-	SAsm816FunctionProfile*	psProfile;
+	SAsm65816FunctionProfile*	psProfile;
 	size					ui;
 
 	for (ui = 0; ui < pcLines->NumFingerprints(); ui++)
@@ -607,7 +607,7 @@ void CAsm816Profile::Fingerprints(CAsm65LineTable* pcLines)
 		}
 		if ((psProfile->uiHash != 0) && (psProfile->uiHash != psFingerprint->uiHash))
 		{
-			memset(psProfile, 0, sizeof(SAsm816FunctionProfile));
+			memset(psProfile, 0, sizeof(SAsm65816FunctionProfile));
 			ForgetLines(psFingerprint->szLabel.Text());
 		}
 		psProfile->uiHash = psFingerprint->uiHash;
@@ -622,7 +622,7 @@ void CAsm816Profile::Fingerprints(CAsm65LineTable* pcLines)
 // function whose hash differs from the one here (other code) replaces it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm816Profile::Read(const char* szFilename)
+bool CAsm65816Profile::Read(const char* szFilename)
 {
 	CTextFile				cFile;
 	const char*				szLine;
@@ -641,8 +641,8 @@ bool CAsm816Profile::Read(const char* szFilename)
 	const char*				szEnd;
 	CChars					szFile;
 	CChars					szFunction;
-	SAsm816FunctionProfile*	psProfile;
-	SAsm816LineProfile*		psLine;
+	SAsm65816FunctionProfile*	psProfile;
+	SAsm65816LineProfile*		psLine;
 
 	cFile.Init();
 	if (!cFile.Read(szFilename))
@@ -663,7 +663,7 @@ bool CAsm816Profile::Read(const char* szFilename)
 			psProfile = PutFunction(szLabel);
 			if ((uiHash != 0) && (psProfile->uiHash != 0) && (psProfile->uiHash != uiHash))
 			{
-				memset(psProfile, 0, sizeof(SAsm816FunctionProfile));
+				memset(psProfile, 0, sizeof(SAsm65816FunctionProfile));
 				ForgetLines(szLabel);
 				psProfile = mcFunctions.Get(szLabel);
 			}
@@ -712,7 +712,7 @@ bool CAsm816Profile::Read(const char* szFilename)
 // and line order.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm816Profile::Write(const char* szFilename)
+bool CAsm65816Profile::Write(const char* szFilename)
 {
 	CTextFile				cFile;
 	CChars					sz;
@@ -720,8 +720,8 @@ bool CAsm816Profile::Write(const char* szFilename)
 	CArrayChars				aszKeys;
 	SMapIterator			sIterator;
 	char*					szKey;
-	SAsm816FunctionProfile*	psProfile;
-	SAsm816LineProfile*		psLine;
+	SAsm65816FunctionProfile*	psProfile;
+	SAsm65816LineProfile*		psLine;
 	size					uiKeySize;
 	size					uiDataSize;
 	size					ui;
@@ -789,7 +789,7 @@ bool CAsm816Profile::Write(const char* szFilename)
 
 
 //A source line's run in all the functions its code is in, for WriteReport.
-struct SAsm816ReportLine
+struct SAsm65816ReportLine
 {
 	CChars	szFile;
 	uint32	uiLine;
@@ -806,13 +806,13 @@ struct SAsm816ReportLine
 // The most cycles first.
 //
 //////////////////////////////////////////////////////////////////////////
-static int Asm816CompareReportLines(const void* pv1, const void* pv2)
+static int Asm65816CompareReportLines(const void* pv1, const void* pv2)
 {
-	SAsm816ReportLine*	ps1;
-	SAsm816ReportLine*	ps2;
+	SAsm65816ReportLine*	ps1;
+	SAsm65816ReportLine*	ps2;
 
-	ps1 = *(SAsm816ReportLine**)pv1;
-	ps2 = *(SAsm816ReportLine**)pv2;
+	ps1 = *(SAsm65816ReportLine**)pv1;
+	ps2 = *(SAsm65816ReportLine**)pv2;
 	if (ps1->ulliCycles + ps1->ulliRuntimeCycles != ps2->ulliCycles + ps2->ulliRuntimeCycles)
 	{
 		return (ps1->ulliCycles + ps1->ulliRuntimeCycles > ps2->ulliCycles + ps2->ulliRuntimeCycles) ? -1 : 1;
@@ -822,10 +822,10 @@ static int Asm816CompareReportLines(const void* pv1, const void* pv2)
 
 
 //A function's cycles, for WriteReport.
-struct SAsm816ReportFunction
+struct SAsm65816ReportFunction
 {
 	const char*				szLabel;
-	SAsm816FunctionProfile*	psProfile;
+	SAsm65816FunctionProfile*	psProfile;
 };
 
 
@@ -834,13 +834,13 @@ struct SAsm816ReportFunction
 // The most cycles first.
 //
 //////////////////////////////////////////////////////////////////////////
-static int Asm816CompareReportFunctions(const void* pv1, const void* pv2)
+static int Asm65816CompareReportFunctions(const void* pv1, const void* pv2)
 {
-	SAsm816ReportFunction*	ps1;
-	SAsm816ReportFunction*	ps2;
+	SAsm65816ReportFunction*	ps1;
+	SAsm65816ReportFunction*	ps2;
 
-	ps1 = (SAsm816ReportFunction*)pv1;
-	ps2 = (SAsm816ReportFunction*)pv2;
+	ps1 = (SAsm65816ReportFunction*)pv1;
+	ps2 = (SAsm65816ReportFunction*)pv2;
 	if (ps1->psProfile->ulliCycles != ps2->psProfile->ulliCycles)
 	{
 		return (ps1->psProfile->ulliCycles > ps2->psProfile->ulliCycles) ? -1 : 1;
@@ -855,7 +855,7 @@ static int Asm816CompareReportFunctions(const void* pv1, const void* pv2)
 // empty if the file can't be read.  Files read are kept in pcFiles.
 //
 //////////////////////////////////////////////////////////////////////////
-static void Asm816SourceText(CMapStringTemplate<CChars>* pcFiles, const char* szFile, uint32 uiLine, CChars* pszText)
+static void Asm65816SourceText(CMapStringTemplate<CChars>* pcFiles, const char* szFile, uint32 uiLine, CChars* pszText)
 {
 	CChars*		pszContents;
 	CTextFile	cFile;
@@ -908,16 +908,16 @@ static void Asm816SourceText(CMapStringTemplate<CChars>* pcFiles, const char* sz
 // uiMost functions whose own code ran the most cycles.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
+bool CAsm65816Profile::WriteReport(const char* szFilename, size uiMost)
 {
-	CMapStringTemplate<SAsm816ReportLine>	cByLine;		//By "line\tfile".
+	CMapStringTemplate<SAsm65816ReportLine>	cByLine;		//By "line\tfile".
 	CMapStringTemplate<CChars>				cFiles;
-	CArrayTemplate<SAsm816ReportLine*>		apsLines;
-	CArrayTemplate<SAsm816ReportFunction>	asFunctions;
-	SAsm816ReportFunction*					psFunction;
-	SAsm816ReportLine*						psReport;
-	SAsm816LineProfile*						psLine;
-	SAsm816FunctionProfile*					psProfile;
+	CArrayTemplate<SAsm65816ReportLine*>		apsLines;
+	CArrayTemplate<SAsm65816ReportFunction>	asFunctions;
+	SAsm65816ReportFunction*					psFunction;
+	SAsm65816ReportLine*						psReport;
+	SAsm65816LineProfile*						psLine;
+	SAsm65816FunctionProfile*					psProfile;
 	SMapIterator							sIterator;
 	char*									szKey;
 	const char*								szTab;
@@ -948,7 +948,7 @@ bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
 		if (!psReport)
 		{
 			psReport = cByLine.Put(szLineKey.Text());
-			memset(psReport, 0, sizeof(SAsm816ReportLine));
+			memset(psReport, 0, sizeof(SAsm65816ReportLine));
 			psReport->szFile.Init(strchr(szTab + 1, '\t') ? strchr(szTab + 1, '\t') + 1 : "");
 			psReport->uiLine = (uint32)atoi(szTab + 1);
 			psReport->szFunction.Init();
@@ -971,7 +971,7 @@ bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
 	{
 		apsLines.Add(&psReport);
 	}
-	apsLines.Sort(Asm816CompareReportLines);
+	apsLines.Sort(Asm65816CompareReportLines);
 
 	sz.Init();
 	cFiles.Init();
@@ -990,7 +990,7 @@ bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
 		sz.Append(") in ");
 		sz.Append(psReport->szFunction);
 		sz.Append(": ");
-		Asm816SourceText(&cFiles, psReport->szFile.Text(), psReport->uiLine, &sz);
+		Asm65816SourceText(&cFiles, psReport->szFile.Text(), psReport->uiLine, &sz);
 		sz.AppendNewLine();
 	}
 
@@ -1004,7 +1004,7 @@ bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
 			psFunction->psProfile = psProfile;
 		}
 	}
-	asFunctions.Sort(Asm816CompareReportFunctions);
+	asFunctions.Sort(Asm65816CompareReportFunctions);
 	sz.Append("\nFunctions (cycles of its own code and the runtime's it called, % of all, calls, function)\n");
 	for (ui = 0; (ui < asFunctions.NumElements()) && (ui < uiMost); ui++)
 	{
@@ -1040,7 +1040,7 @@ bool CAsm816Profile::WriteReport(const char* szFilename, size uiMost)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SAsm816FunctionProfile* CAsm816Profile::Get(const char* szLabel)
+SAsm65816FunctionProfile* CAsm65816Profile::Get(const char* szLabel)
 {
 	return mcFunctions.Get(szLabel);
 }
@@ -1050,7 +1050,7 @@ SAsm816FunctionProfile* CAsm816Profile::Get(const char* szLabel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CAsm816Profile::NumCycles(void)
+uint64 CAsm65816Profile::NumCycles(void)
 {
 	return mulliCycles;
 }

@@ -36,7 +36,7 @@ SCPP65Class* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 {
 	SCPP65Class*	psClass;
 
-	psClass = (SCPP65Class*)malloc(sizeof(SCPP65Class));
+	psClass = NewMalloc<SCPP65Class>();
 	psClass->pcSymbol = pcSymbol;
 	psClass->lliName = lliName;
 	psClass->psType = mcTypes.Class(psClass);
@@ -582,7 +582,7 @@ SCPP65Template* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTem
 {
 	SCPP65Template*	psTemplate;
 
-	psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
+	psTemplate = NewMalloc<SCPP65Template>();
 	psTemplate->pcSymbol = pcSymbol;
 	psTemplate->pcDeclaration = pcDeclaration;
 	psTemplate->pcDefinition = pcDefinition;
@@ -626,7 +626,7 @@ bool CCPP65Generator::ExplicitInstantiation(CCPPSyntax* pcDeclaration)
 	}
 	if (!pcType || ((pcType->GetKind() != CPPS_ElaboratedTypeSpecifier) && (pcType->GetKind() != CPPS_NamedTypeSpecifier)))
 	{
-		return Error(pcDeclaration, "Only explicit instantiations of class templates are supported by the 65C64 generator yet");
+		return Error(pcDeclaration, "Only explicit instantiations of class templates are supported by the compiler yet");
 	}
 	pcName = (pcType->GetKind() == CPPS_ElaboratedTypeSpecifier) ? ((CCPPSyntaxElaboratedTypeSpecifier*)pcType)->mpcName : ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
 	psClass = GetNameClass(pcName, pcDeclaration);
@@ -752,7 +752,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 					psType = (pcArgument->GetKind() == CPPS_TypeId) ? GetTypeIdType((CCPPSyntaxTypeId*)pcArgument) : NULL;
 					if (!psType)
 					{
-						bResult = Error(pcArgument, "The template argument is not a type the 65C64 generator supports");
+						bResult = Error(pcArgument, "The template argument is not a type the compiler supports");
 						break;
 					}
 					psBinding->papsPack->Add(psType);
@@ -794,7 +794,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			if (!psBinding->psType)
 			{
-				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument is not a type the 65C64 generator supports");
+				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument is not a type the compiler supports");
 				break;
 			}
 			pszArguments->Append(psBinding->bConst ? "_K" : "_");
@@ -824,7 +824,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		}
 		else
 		{
-			bResult = Error(pcParameter, "This template parameter is not supported by the 65C64 generator yet");
+			bResult = Error(pcParameter, "This template parameter is not supported by the compiler yet");
 			break;
 		}
 	}
@@ -1268,7 +1268,7 @@ SCPP65Bindings* CCPP65Generator::NewBindings(void)
 {
 	SCPP65Bindings*	psBindings;
 
-	psBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
+	psBindings = NewMalloc<SCPP65Bindings>();
 	psBindings->macBindings.Init();
 	psBindings->psOuter = NULL;
 	psBindings->psClass = NULL;
@@ -1748,13 +1748,13 @@ bool CCPP65Generator::ResolveBases(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		pcBaseSpecifier = (CCPPSyntaxBaseSpecifier*)psClass->pcSpecifier->macpBases.GetPtr(i);
 		if (pcBaseSpecifier->mbVirtual)
 		{
-			bResult = Error(pcBaseSpecifier, "Virtual inheritance is not supported by the 65C64 generator yet");
+			bResult = Error(pcBaseSpecifier, "Virtual inheritance is not supported by the compiler yet");
 			continue;
 		}
 		psBaseClass = GetNameClass(pcBaseSpecifier->mpcName, pcBaseSpecifier);
 		if (!psBaseClass)
 		{
-			bResult = Error(pcBaseSpecifier, "This base class is not supported by the 65C64 generator yet");
+			bResult = Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
 			continue;
 		}
 		bResult &= ResolveBases(psBaseClass, pcBaseSpecifier);
@@ -2346,63 +2346,6 @@ void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An inherited constructor's call of the base's: its own parameters pushed again
-// (a reference's address, a value at its size), this moved to the base, then the
-// call.  Objects passed by value are not supported.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::InheritedConstructorCall(SCPP65Function* psFunction, SCPP65Place* psBase)
-{
-	SCPP65Place		sParameter;
-	SCPP65Type*		psType;
-	int				aiOffsets[32];
-	int				iOffset;
-	int				iBytes;
-	size			uiParameters;
-	size			i;
-
-	uiParameters = psFunction->mapsParameters.NumElements();
-	if (uiParameters > 32)
-	{
-		return Error(NULL, "Too many parameters");
-	}
-	iOffset = 0;
-	for (i = 0; i < uiParameters; i++)
-	{
-		aiOffsets[i] = iOffset;
-		iOffset += psFunction->mapsParameters.GetPtr(i)->iBytes;
-	}
-
-	sParameter.eKind = CPP65PK_Frame;
-	sParameter.lliName = -1;
-	sParameter.iString = -1;
-	sParameter.bInternal = false;
-	sParameter.psClass = NULL;
-	iBytes = 0;
-	for (i = uiParameters; i > 0; i--)
-	{
-		psType = psFunction->mapsParameters.GetPtr(i - 1);
-		if (psType->IsClass())
-		{
-			return Error(NULL, "An inherited constructor that takes an object by value is not supported by the 65C64 generator yet");
-		}
-		sParameter.psType = psType->IsReference() ? mcTypes.Pointer(psType->psBase) : psType;
-		sParameter.iOffset = miFrameBytes + 8 + aiOffsets[i - 1];
-		Load(&sParameter, "A", NULL);
-		PushValue(sParameter.psType);
-		iBytes += sParameter.psType->iBytes;
-	}
-
-	LoadAddress(psBase);
-	Line("cpy X, A")->AppendNewLine();
-	ChangeX();
-	Call(psFunction->psInherited, false, iBytes);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether psFunction, a function named lliName, is one of psClass's overloads: its
 // own, or a base's brought in by a using declaration and not hidden by one of its
 // own with the same parameters.
@@ -2549,7 +2492,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 		if (!psFunction && pcFunction->mpcSpecifiers && (pcFunction->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 		{
 			//Leaving out a virtual function would move the vtable's other entries.
-			return Error(pcFunction, "This virtual function's declaration is not supported by the 65C64 generator yet");
+			return Error(pcFunction, "This virtual function's declaration is not supported by the compiler yet");
 		}
 		if (!psFunction)
 		{
@@ -2625,7 +2568,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 				if (!psFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 				{
 					//Leaving out a virtual function would move the vtable's other entries.
-					bResult &= Error(pcInit, "This virtual function's declaration is not supported by the 65C64 generator yet");
+					bResult &= Error(pcInit, "This virtual function's declaration is not supported by the compiler yet");
 				}
 				else if (!psFunction)
 				{
@@ -2675,7 +2618,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 		return bResult;
 
 	default:
-		return Error(pcMember, "This member is not supported by the 65C64 generator yet");
+		return Error(pcMember, "This member is not supported by the compiler yet");
 	}
 }
 
@@ -2872,6 +2815,40 @@ void CCPP65Generator::AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP
 bool CCPP65Generator::IsPolymorphic(SCPP65Class* psClass)
 {
 	return (psClass->iVtableOffset != -1) || (psClass->macVtables.NumElements() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function in the class's vtables (its final overriders) is pure
+// virtual: no object of the class can be made.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsAbstract(SCPP65Class* psClass)
+{
+	SCPP65Vtable*	psVtable;
+	size			i;
+	size			j;
+
+	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
+	{
+		if (psClass->mapsVirtuals.GetPtr(i)->bPure)
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	{
+		psVtable = psClass->macVtables.Get(i);
+		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		{
+			if (psVtable->mapsFunctions.GetPtr(j)->bPure)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -4218,160 +4195,6 @@ void CCPP65Generator::SetDefinition(SCPP65Function* psFunction, CCPPSyntaxFuncti
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The start of a constructor: the bases (from the member initialiser list or their
-// default constructors), the vtable pointer, then the fields from the member
-// initialisers, the default member initialisers or their own constructors.  The
-// body follows.  pcFunction is NULL for a constructor the generator writes.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ConstructorBody(SCPP65Function* psFunction, CCPPSyntaxFunctionDefinition* pcFunction)
-{
-	SCPP65Class*					psClass;
-	CCPPSyntaxMemberInitializer*	pcMember;
-	CCPPSyntaxMemberInitializer*	pcFound;
-	CArraySyntax*					papcArguments;
-	SCPP65Field*					psField;
-	SCPP65Base*						psBase;
-	SCPP65Place						sPlace;
-	CArraySyntax					apcNone;
-	CCPPSyntax*						pcInitialiser;
-	SCPP65Class*					psNamed;
-	size							i;
-	size							j;
-	bool							bResult;
-	int								iOffset;
-
-	psClass = psFunction->psClass;
-	bResult = true;
-	apcNone.Init();
-
-	sPlace.eKind = CPP65PK_This;
-	sPlace.iOffset = 0;
-	sPlace.lliName = -1;
-	sPlace.iString = -1;
-	sPlace.bInternal = false;
-	sPlace.psClass = NULL;
-
-	//The bases, in order.
-	for (i = 0; i < psClass->macBases.NumElements(); i++)
-	{
-		psBase = psClass->macBases.Get(i);
-		pcFound = NULL;
-		for (j = 0; pcFunction && (j < pcFunction->macpMemberInitializers.NumElements()); j++)
-		{
-			pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(j);
-			psNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : GetNameClass(pcMember->mpcName, pcMember);
-			if (psNamed == psBase->psClass)
-			{
-				pcFound = pcMember;
-			}
-		}
-		sPlace.psType = psBase->psClass->psType;
-		sPlace.iOffset = psBase->iOffset;
-		if (!pcFunction && psFunction->psInherited && (psFunction->psInherited->psClass == psBase->psClass))
-		{
-			bResult &= InheritedConstructorCall(psFunction, &sPlace);
-			continue;
-		}
-		papcArguments = &apcNone;
-		if (pcFound && pcFound->mpcInitializer)
-		{
-			if (pcFound->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
-			{
-				papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcFound->mpcInitializer)->macpElements;
-			}
-			else if (pcFound->mpcInitializer->GetKind() == CPPS_InitializerList)
-			{
-				papcArguments = &((CCPPSyntaxInitializerList*)pcFound->mpcInitializer)->macpElements;
-			}
-		}
-		bResult &= ConstructClass(&sPlace, psBase->psClass, papcArguments, pcFound ? (CCPPSyntax*)pcFound : (CCPPSyntax*)pcFunction);
-	}
-
-	bResult &= SetVtable(NULL, psClass);
-
-	//The fields, in order.
-	for (i = 0; i < psClass->macFields.NumElements(); i++)
-	{
-		psField = psClass->macFields.Get(i);
-		pcFound = NULL;
-		for (j = 0; pcFunction && (j < pcFunction->macpMemberInitializers.NumElements()); j++)
-		{
-			pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(j);
-			if ((pcMember->mpcName->mpcSymbol == psField->pcSymbol) || (!pcMember->mpcName->mpcSymbol && (GetComponentName(pcMember->mpcName->GetLast()) == psField->lliName)))
-			{
-				pcFound = pcMember;
-			}
-		}
-
-		sPlace.eKind = CPP65PK_This;
-		sPlace.psType = psField->psType;
-		sPlace.iOffset = psField->iOffset;
-		pcInitialiser = pcFound ? pcFound->mpcInitializer : psField->pcInitialiser;
-		if (pcInitialiser || psField->psType->IsClass() || psField->psType->IsArray())
-		{
-			bResult &= Construct(&sPlace, NULL, pcInitialiser, pcFound ? (CCPPSyntax*)pcFound : (CCPPSyntax*)pcFunction);
-		}
-	}
-
-	//Member initialisers that name nothing.
-	for (j = 0; pcFunction && (j < pcFunction->macpMemberInitializers.NumElements()); j++)
-	{
-		pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(j);
-		psNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : GetNameClass(pcMember->mpcName, pcMember);
-		if (!(psNamed && IsDerived(psClass, psNamed, NULL)) && !FindField(psClass, GetComponentName(pcMember->mpcName->GetLast()), &iOffset))
-		{
-			bResult &= Error(pcMember, "The member initialiser is not a base or a field of the class");
-		}
-	}
-
-	apcNone.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The end of a destructor, after its body: the fields in reverse, then the bases in
-// reverse.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::DestructorBody(SCPP65Function* psFunction)
-{
-	SCPP65Class*	psClass;
-	SCPP65Field*	psField;
-	SCPP65Base*		psBase;
-	SCPP65Place		sPlace;
-	size			i;
-	bool			bResult;
-
-	psClass = psFunction->psClass;
-	bResult = true;
-	sPlace.eKind = CPP65PK_This;
-	sPlace.lliName = -1;
-	sPlace.iString = -1;
-	sPlace.bInternal = false;
-	sPlace.psClass = NULL;
-	for (i = psClass->macFields.NumElements(); i > 0; i--)
-	{
-		psField = psClass->macFields.Get(i - 1);
-		sPlace.psType = psField->psType;
-		sPlace.iOffset = psField->iOffset;
-		bResult &= Destroy(&sPlace);
-	}
-	for (i = psClass->macBases.NumElements(); i > 0; i--)
-	{
-		psBase = psClass->macBases.Get(i - 1);
-		sPlace.psType = psBase->psClass->psType;
-		sPlace.iOffset = psBase->iOffset;
-		bResult &= Destroy(&sPlace);
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Initialises the object at a place from a declaration's initialiser (or a member
 // initialiser): nothing, (arguments), {arguments}, = value or = Class(arguments).
 // Scalars are stored, arrays are initialised element by element, objects are
@@ -4438,7 +4261,7 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 		if (pcInitialiser || (papcArguments->NumElements() > (size)psType->iCount))
 		{
 			apcArguments.Kill();
-			return Error(pcNode, "This array initialiser is not supported by the 65C64 generator yet");
+			return Error(pcNode, "This array initialiser is not supported by the compiler yet");
 		}
 		sElement = *psPlace;
 		sElement.psType = psType->psBase;
@@ -4717,44 +4540,6 @@ bool CCPP65Generator::ConstructClass(SCPP65Place* psPlace, SCPP65Class* psClass,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Calls the destructor of the object (or each object of an array, last first) at a
-// place.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::Destroy(SCPP65Place* psPlace)
-{
-	SCPP65Place		sElement;
-	SCPP65Type*		psType;
-	int				i;
-	bool			bResult;
-
-	psType = psPlace->psType;
-	if (psType->IsArray())
-	{
-		if (!psType->psBase->IsClass() || !psType->psBase->psClass->psDestructor)
-		{
-			return true;
-		}
-		bResult = true;
-		sElement = *psPlace;
-		sElement.psType = psType->psBase;
-		for (i = psType->iCount; i > 0; i--)
-		{
-			sElement.iOffset = psPlace->iOffset + (i - 1) * psType->psBase->iBytes;
-			bResult &= Destroy(&sElement);
-		}
-		return bResult;
-	}
-	if (!psType->IsClass() || !psType->psClass->psDestructor)
-	{
-		return true;
-	}
-	return CallMember(psType->psClass->psDestructor, psPlace, NULL, false, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Calls a member function: the arguments are pushed, X gets the object's address
 // (from psObject, or this when it is NULL), moved on to the function's class if it
 // is a base, and the function is called, through the vtable if bVirtual and the
@@ -4889,10 +4674,10 @@ void CCPP65Generator::AppendAdjustThunk816(int iAdjust)
 	mszThunks.Append("\t\t.width (A, X), 16\n");
 	mszThunks.Append("\t\tclc\n");
 	mszThunks.Append("\t\tlda [S + 4]\n");
-	mszThunks.Append("\t\tadc $")->Append((uint32)iAdjust & 0xFFFF, 16)->AppendNewLine();
+	mszThunks.Append("\t\tadc 0x")->Append((uint32)iAdjust & 0xFFFF, 16)->AppendNewLine();
 	mszThunks.Append("\t\tsta [S + 4]\n");
 	mszThunks.Append("\t\tlda [S + 6]\n");
-	mszThunks.Append("\t\tadc $")->Append(((uint32)iAdjust >> 16) & 0xFFFF, 16)->AppendNewLine();
+	mszThunks.Append("\t\tadc 0x")->Append(((uint32)iAdjust >> 16) & 0xFFFF, 16)->AppendNewLine();
 	mszThunks.Append("\t\tsta [S + 6]\n");
 }
 
@@ -5058,7 +4843,7 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 	{
 		if (!psClass || (pcCall->macpArguments.NumElements() != 0) || !CompleteClass(psClass, pcCallee))
 		{
-			Error(pcCallee, "This destructor call is not supported by the 65C64 generator yet");
+			Error(pcCallee, "This destructor call is not supported by the compiler yet");
 			return NULL;
 		}
 		if (!psClass->psDestructor)
@@ -5075,7 +4860,7 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 	lliName = GetFunctionName(pcName->GetLast());
 	if (!psClass || (lliName == -1))
 	{
-		Error(pcCallee, "This call is not supported by the 65C64 generator yet");
+		Error(pcCallee, "This call is not supported by the compiler yet");
 		return NULL;
 	}
 
@@ -5279,12 +5064,12 @@ int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySynt
 		}
 		else if (psType->IsClass())
 		{
-			Error(pcArgument, "Objects cannot be passed by value by the 65C64 generator yet; pass a pointer or a reference");
+			Error(pcArgument, "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference");
 			return -1;
 		}
 		else
 		{
-			Error(pcArgument, "This variable argument is not supported by the 65C64 generator yet");
+			Error(pcArgument, "This variable argument is not supported by the compiler yet");
 			return -1;
 		}
 		if (!Convert(psType, psParameter, pcArgument))
@@ -5551,7 +5336,7 @@ SCPP65Type* CCPP65Generator::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNo
 	apcNone.Kill();
 	if (psType && !psType->IsPointer())
 	{
-		Error(pcNode, "operator-> must return a pointer for the 65C64 generator");
+		Error(pcNode, "operator-> must return a pointer for the compiler");
 		return NULL;
 	}
 	return psType;
@@ -5684,24 +5469,6 @@ bool CCPP65Generator::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65Pl
 		return VariablePlace(psVariable, psPlace);
 	}
 	return Error(pcMember, "The class has no member of that name");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Points the vtable pointer of this (psPlace is NULL) at psClass's vtable, in its
-// constructors and destructor.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::SetVtable(SCPP65Place* psPlace, SCPP65Class* psClass)
-{
-	if (!IsPolymorphic(psClass))
-	{
-		return true;
-	}
-	EnsureThis();
-	StoreVtables(psClass, "A", "X");
-	return true;
 }
 
 

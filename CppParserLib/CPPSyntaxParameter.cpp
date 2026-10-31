@@ -39,26 +39,6 @@ void CCPPSyntaxParameter::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxParameter::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxParameter::GetType(void)
-{
-	return "Parameter";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxParameter::GetKind(void)
 {
 	return CPPS_Parameter;
@@ -101,24 +81,12 @@ size CCPPSyntaxParameter::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxParameter::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcSpecifiers;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, mpcDefault, &pcChild))
 	{
-		return mpcDeclarator;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcDefault;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

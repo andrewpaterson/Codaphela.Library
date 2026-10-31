@@ -58,16 +58,6 @@ void CCPPSyntaxFunctionSuffix::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxFunctionSuffix::GetType(void)
-{
-	return "FunctionSuffix";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxFunctionSuffix::GetKind(void)
 {
 	return CPPS_FunctionSuffix;
@@ -135,42 +125,12 @@ size CCPPSyntaxFunctionSuffix::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxFunctionSuffix::GetChild(size iIndex)
 {
-	if (iIndex < macpParameters.NumElements())
-	{
-		return macpParameters.GetPtr(iIndex);
-	}
-	iIndex -= macpParameters.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpQualifiers.NumElements())
+	if (IsChild(&iIndex, &macpParameters, &pcChild) || IsChild(&iIndex, &macpQualifiers, &pcChild) || IsChild(&iIndex, mpcExceptionSpecification, &pcChild) || IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, mpcTrailingReturn, &pcChild) || IsChild(&iIndex, &macpVirtSpecifiers, &pcChild))
 	{
-		return macpQualifiers.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpQualifiers.NumElements();
-
-	if (iIndex == 0)
-	{
-		return mpcExceptionSpecification;
-	}
-	iIndex--;
-
-	if (iIndex < macpAttributes.NumElements())
-	{
-		return macpAttributes.GetPtr(iIndex);
-	}
-	iIndex -= macpAttributes.NumElements();
-
-	if (iIndex == 0)
-	{
-		return mpcTrailingReturn;
-	}
-	iIndex--;
-
-	if (iIndex < macpVirtSpecifiers.NumElements())
-	{
-		return macpVirtSpecifiers.GetPtr(iIndex);
-	}
-	iIndex -= macpVirtSpecifiers.NumElements();
-
 	return NULL;
 }
 

@@ -74,17 +74,31 @@ char* CPPTokenListHolder::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens)
 {
+	Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
+	CopyTokens(pcCast, pcTokens);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds a duplicate of each of pcCast's tokens.  A token that can't be
+// duplicated (DuplicatePPToken has set gcUserError) is left out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPTokenListHolder::CopyTokens(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens)
+{
 	int			i;
 	CPPToken*	pcToken;
 	int			iNumTokens;
-
-	Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 
 	iNumTokens = (int)pcCast->mcTokens.NumTokens();
 	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = DuplicatePPToken(pcCast->Get(i), pcTokens);
-		mcTokens.Add(pcToken);
+		if (pcToken)
+		{
+			mcTokens.Add(pcToken);
+		}
 	}
 }
 
@@ -106,20 +120,6 @@ int CPPTokenListHolder::TokenLength(void)
 CPPToken* CPPTokenListHolder::Get(int iIndex)
 {
 	return mcTokens.Get(iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPTokenListHolder::SavageDump(void)
-{
-	CChars	sz;
-
-	sz.Init();
-	mcTokens.SavageAppend(&sz, 0);
-	sz.DumpKill();
 }
 
 

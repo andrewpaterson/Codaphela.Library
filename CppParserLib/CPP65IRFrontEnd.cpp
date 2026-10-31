@@ -36,11 +36,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPP65IRFrontEnd.h"
 
 
+#define IR65_MAX_BUILTIN_ARGUMENTS	4		//The most arguments a builtin passed on to a function takes (CallWithArguments).
+
+
 size	CCPP65IRFrontEnd::suiWritten = 0;
-size	CCPP65IRFrontEnd::suiLeft = 0;
 int		CCPP65IRFrontEnd::siUnsupportedLine = 0;
 char	CCPP65IRFrontEnd::sszUnsupported[1024] = "";
-size	CCPP65IRFrontEnd::sauiUnsupported[8192];
 bool	CCPP65IRFrontEnd::sbPrint = false;
 bool	CCPP65IRFrontEnd::sbOptimise = true;
 bool	CCPP65IRFrontEnd::sbInline = true;
@@ -139,8 +140,6 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 	{
 		mbUnsupported = false;
 		Unsupported(__LINE__);
-		suiLeft++;
-		sauiUnsupported[siUnsupportedLine & 8191]++;
 		return false;
 	}
 
@@ -251,14 +250,12 @@ void CCPP65IRFrontEnd::OptimiserWarnings(CChars* pszWarnings)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 {
-	CCPPErrors				cErrors;
-	CIRVerifier				cVerifier;
 	CIROptimiser			cOptimiser;
 	CChars					szCode;
 	CChars					szWarnings;
 	SCPP65IRWritten*		psWritten;
 	SIR816Frame				sFrame;
-	SAsm816FunctionProfile*	psProfiled;
+	SAsm65816FunctionProfile*	psProfiled;
 	size					ui;
 	size					uiStart;
 	size					uiLength;
@@ -278,20 +275,13 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		}
 		if (sbOptimise)
 		{
-			cOptimiser.Init(&mcModule);
-			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
-			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetBiasedIndices(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+			InitOptimiser(&cOptimiser);
 			if (InliningProfile())
 			{
 				//The function isn't written yet: CallCount is told its fingerprint here.
 				psProfiled = InliningProfile()->Get(szLabel);
 				mpcProfiledCaller = mpcFunction;
 				mbProfiledCaller = psProfiled && ((psProfiled->uiHash == 0) || (psProfiled->uiHash == uiFingerprint));
-				cOptimiser.SetProfile(this);
 			}
 			szWarnings.Init();
 			cOptimiser.SetWarnings(&szWarnings);
@@ -301,16 +291,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			OptimiserWarnings(&szWarnings);
 			szWarnings.Kill();
 		}
-		cErrors.Init();
-		cVerifier.Init(&mcModule, &cErrors);
-		bResult = cVerifier.VerifyFunction(mpcFunction);
-		if (!bResult)
-		{
-			siUnsupportedLine = __LINE__;
-			StrCpySafe(sszUnsupported, cErrors.Text(), sizeof(sszUnsupported));
-		}
-		cVerifier.Kill();
-		cErrors.Kill();
+		bResult = VerifyIR(mpcFunction, __LINE__);
 		if (sbPrint)
 		{
 			fprintf(stderr, "Function %d\n", (int)suiAttempts);
@@ -368,11 +349,6 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		suiWritten++;
-	}
-	else
-	{
-		suiLeft++;
-		sauiUnsupported[siUnsupportedLine & 8191]++;
 	}
 	return bResult;
 }
@@ -775,7 +751,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::IsPassedByAddress(SCPP65Type* psType)
 {
-	return psType->IsClass() && !mpcGenerator->mpsTarget->bDirectGenerator && !mpcGenerator->IsTriviallyCopyable(psType->psClass);
+	return psType->IsClass() && !mpcGenerator->IsTriviallyCopyable(psType->psClass);
 }
 
 
@@ -969,8 +945,6 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 {
 	CIRInliner			cInliner;
 	CIROptimiser		cOptimiser;
-	CIRVerifier			cVerifier;
-	CCPPErrors			cErrors;
 	CChars				szCode;
 	CChars				szAll;
 	SCPP65IRWritten*	psWritten;
@@ -1002,17 +976,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		//inlined too.
 		for (iRound = 0; iRound < IR65_INLINE_ROUNDS; iRound++)
 		{
-			cOptimiser.Init(&mcModule);
-			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
-			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetConstantDivisions(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetNarrowCounters(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetBiasedIndices(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
-			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
-			if (InliningProfile())
-			{
-				cOptimiser.SetProfile(this);
-			}
+			InitOptimiser(&cOptimiser);
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();
 			if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
@@ -1025,11 +989,8 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 			fprintf(stderr, "Inlined\n");
 			PrintIR(psWritten->pcFunction);
 		}
-		cErrors.Init();
-		cVerifier.Init(&mcModule, &cErrors);
-		bResult = cVerifier.VerifyFunction(psWritten->pcFunction);
-		cVerifier.Kill();
-		cErrors.Kill();
+		//IR that stops verifying once inlined keeps the code written before (a pass's mistake, recorded for finding it).
+		bResult = VerifyIR(psWritten->pcFunction, __LINE__);
 		szCode.Init();
 		if (bResult)
 		{
@@ -1093,7 +1054,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 			psWritten->szCode.Append("\", ");
 			psWritten->szCode.Append((int64)psWritten->uiFingerprint);
 			psWritten->szCode.Append(", ");
-			psWritten->szCode.Append(mpcGenerator->miCompileTime);
+			psWritten->szCode.Append(mpcGenerator->mlliCompileTime);
 			psWritten->szCode.AppendNewLine();
 		}
 		if (sbPrint)
@@ -4266,9 +4227,9 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		return CallThroughPointer(pcCall, pcCallee, psValue);
 	}
 
-	//__builtin_ functions, on a target the generator doesn't write code for (the 65C64's are the generator's).
+	//__builtin_ functions.
 	lliName = pcSymbol ? pcSymbol->mlliName : mpcGenerator->GetFunctionName(pcComponent);
-	if (!mpcGenerator->mpsTarget->bDirectGenerator && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcGenerator->IsBuiltin(lliName))
+	if ((!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcGenerator->IsBuiltin(lliName))
 	{
 		return Builtin(pcCall, lliName, psValue);
 	}
@@ -4403,9 +4364,9 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		return true;
 	}
 
-	szIdentifier = mpcGenerator->mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szIdentifier = mpcGenerator->BuiltinName(lliName, &iLength);
 	szName.Init();
-	szName.Append(szIdentifier + 10, iLength - 10);
+	szName.Append(szIdentifier, iLength);
 	iArguments = (int)pcCall->macpArguments.NumElements();
 	bResult = true;
 	psValue->sValue = IRNone();
@@ -4568,66 +4529,21 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
-// f(args...), as the generator's ExpandPackCall: the call is written with
-// args... replaced by a name for each of the pack's elements, then given
-// back its arguments.  Only the function parameter pack can be expanded.
+// f(args...): written with the generator's ExpandPackArguments, which replaces
+// args... by a name for each of the pack's elements.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
 {
-	CArraySyntax				apcArguments;
-	CCPPSyntax*					pcArgument;
-	CCPPSyntax*					pcPattern;
-	CCPPSyntaxIdExpression*		pcId;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSyntaxMemory*			pcMemory;
-	size						ui;
-	size						uiElement;
-	bool						bResult;
+	CArraySyntax	apcArguments;
+	bool			bResult;
 
-	apcArguments.Init();
-	apcArguments.Copy(&pcCall->macpArguments);
-	pcCall->macpArguments.ReInit();
-	pcMemory = mpcGenerator->mpcTree->GetMemory();
-	for (ui = 0; ui < apcArguments.NumElements(); ui++)
+	if (mpcGenerator->ExpandPackArguments(pcCall, &apcArguments))
 	{
-		pcArgument = apcArguments.GetPtr(ui);
-		if (pcArgument->GetKind() != CPPS_PackExpansionExpression)
-		{
-			pcCall->macpArguments.Add(pcArgument);
-			continue;
-		}
-		pcPattern = mpcGenerator->SkipParentheses(((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern);
-		if (!mpcGenerator->mpcPackParameter || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != mpcGenerator->mpcPackParameter))
-		{
-			pcCall->macpArguments.ReInit();
-			pcCall->macpArguments.Copy(&apcArguments);
-			apcArguments.Kill();
-			return Unsupported(__LINE__);
-		}
-		for (uiElement = 0; uiElement < mpcGenerator->mapcPackElements.NumElements(); uiElement++)
-		{
-			pcId = pcMemory->CreateIdExpression(pcCall);
-			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcName = pcMemory->CreateName(pcId);
-			pcName->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcName->mpcSymbol = mpcGenerator->mapcPackElements.GetPtr(uiElement);
-			pcComponent = pcMemory->CreateNameComponent(pcName);
-			pcComponent->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcComponent->meKind = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->meKind;
-			pcComponent->miName = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->miName;
-			pcComponent->mpcSymbol = pcName->mpcSymbol;
-			pcName->macpComponents.Add(pcComponent);
-			pcId->mpcName = pcName;
-			pcCall->macpArguments.Add(pcId);
-		}
+		return Unsupported(__LINE__);
 	}
-
 	bResult = CallExpression(pcCall, psValue);
-	pcCall->macpArguments.ReInit();
-	pcCall->macpArguments.Copy(&apcArguments);
-	apcArguments.Kill();
+	mpcGenerator->RestoreArguments(pcCall, &apcArguments);
 	return bResult;
 }
 
@@ -5606,27 +5522,18 @@ bool CCPP65IRFrontEnd::IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// left op right, or op operand when pcRight is NULL, with an object
-// operand, as the generator's OperatorExpression: the left's member
-// operator if one matches, otherwise a free operator function.
-//
-//////////////////////////////////////////////////////////////////////////
-//
 // A hash (32 bit FNV-1a) of the function's IR as printed: the same code
 // gives the same hash in every build.
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 {
-	CIRPrinter		cPrinter;
 	CChars			szText;
 	const char*		sz;
 	uint32			uiHash;
 
 	szText.Init();
-	cPrinter.Init(&mcModule, &szText);
-	cPrinter.PrintFunction(pcFunction);
-	cPrinter.Kill();
+	PrintFunction(pcFunction, &szText, false);
 	uiHash = 2166136261u;
 	for (sz = szText.Text(); *sz != '\0'; sz++)
 	{
@@ -5643,7 +5550,7 @@ uint32 CCPP65IRFrontEnd::Fingerprint(CIRFunction* pcFunction)
 // (CCPP65Builder::SetFrameProfile).  NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-CAsm816Profile* CCPP65IRFrontEnd::InliningProfile(void)
+CAsm65816Profile* CCPP65IRFrontEnd::InliningProfile(void)
 {
 	return (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? mpcGenerator->mpcFrameProfile : NULL;
 }
@@ -5672,9 +5579,9 @@ uint64 CCPP65IRFrontEnd::ProfileCycles(void)
 //////////////////////////////////////////////////////////////////////////
 uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall)
 {
-	CAsm816Profile*			pcProfile;
-	SAsm816FunctionProfile*	psFunction;
-	SAsm816LineProfile*		psLine;
+	CAsm65816Profile*			pcProfile;
+	SAsm65816FunctionProfile*	psFunction;
+	SAsm65816LineProfile*		psLine;
 	SCPP65IRWritten*		psWritten;
 	CSourceFile*			pcFile;
 	const char*				szLabel;
@@ -5718,9 +5625,10 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 	{
 		ulliCount = pcProfile->LineEntries(pcFile->FullName(), (uint32)iLine + 1);
 	}
-	if (psFunction)
+	if (psFunction && (ulliCount == 0))
 	{
-		//A call the profiled build inlined left its line no code: its callee's first line ran in the caller instead.
+		//A call the profiled build inlined left its line no code: its callee's lines ran in the caller instead.  (A
+		//call that stayed a call has its own count, even when another call of the callee there was inlined.)
 		ulliEntered = InlinedEntries(pcProfile, szLabel, psCall);
 		ulliCount = (ulliEntered > ulliCount) ? ulliEntered : ulliCount;
 	}
@@ -5737,11 +5645,11 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 // function's, inlined into the callee).  0 if not known.
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall)
+uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm65816Profile* pcProfile, const char* szLabel, SIRInstruction* psCall)
 {
 	CIRFunction*			pcCallee;
 	CIRBlock*				pcEntry;
-	SAsm816LineProfile*		psLine;
+	SAsm65816LineProfile*		psLine;
 	CSourceFile*			pcFile;
 	uint32					uiSource;
 	uint64					ulliMost;
@@ -5775,6 +5683,12 @@ uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm816Profile* pcProfile, const char* s
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// left op right, or op operand when pcRight is NULL, with an object
+// operand, as the generator's OperatorExpression: the left's member
+// operator if one matches, otherwise a free operator function.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue)
 {
@@ -5826,18 +5740,33 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcFunction's IR as text (with each instruction's source token when
+// bSources) appended to pszText.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::PrintFunction(CIRFunction* pcFunction, CChars* pszText, bool bSources)
+{
+	CIRPrinter	cPrinter;
+
+	cPrinter.Init(&mcModule, pszText);
+	cPrinter.SetSources(bSources);
+	cPrinter.PrintFunction(pcFunction);
+	cPrinter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's IR (with its source lines as comments) to stderr, for
+// debugging (sbPrint).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
 {
-	CIRPrinter	cPrinter;
-	CChars		szText;
+	CChars	szText;
 
 	szText.Init();
-	cPrinter.Init(&mcModule, &szText);
-	cPrinter.SetSources(true);
-	cPrinter.PrintFunction(pcFunction);
-	cPrinter.Kill();
+	PrintFunction(pcFunction, &szText, true);
 	SourceComments(&szText, true, false);
 	fprintf(stderr, "%s\n", szText.Text());
 	szText.Kill();
@@ -6456,28 +6385,39 @@ bool CCPP65IRFrontEnd::CallObject(SCPP65Function* psFunction, SIRReference sObje
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
 {
-	SCPP65IRValue	asArgument[3];
 	SCPP65Type*		apsParameter[3];
-	SIRType			sPointer;
-	int				i;
 
 	apsParameter[0] = mpcTypes->Pointer(&mpcTypes->msVoid);
 	apsParameter[1] = apsParameter[0];
 	apsParameter[2] = mpcTypes->Long(false);
-	for (i = 0; i < 3; i++)
+	return CallWithArguments(pcCall, apsParameter, 3, "_memcpy", apsParameter[0], psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The call's iCount arguments converted to apsParameters' types, passed to
+// the function szSymbol, whose result is of psResult's type.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue)
+{
+	SCPP65IRValue	asArgument[IR65_MAX_BUILTIN_ARGUMENTS];
+	int				i;
+
+	for (i = 0; i < iCount; i++)
 	{
-		if (!Value(pcCall->macpArguments.GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameter[i]))
+		if (!Value(pcCall->macpArguments.GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameters[i]))
 		{
 			return false;
 		}
 	}
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < iCount; i++)
 	{
-		mpcFunction->Argument(mpcBlock, IRTypeOf(apsParameter[i]), asArgument[i].sValue);
+		mpcFunction->Argument(mpcBlock, IRTypeOf(apsParameters[i]), asArgument[i].sValue);
 	}
-	sPointer = IRTypeOf(apsParameter[0]);
-	psValue->sValue = mpcFunction->Call(mpcBlock, sPointer, mcModule.Symbol("_memcpy"));
-	psValue->psType = apsParameter[0];
+	psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(psResult), mcModule.Symbol(szSymbol));
+	psValue->psType = psResult;
 	return true;
 }
 
@@ -6492,31 +6432,69 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRV
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue)
 {
-	SCPP65IRValue	asArgument[4];
 	SCPP65Type*		apsParameter[4];
 	char*			szLabel;
-	int				i;
 
 	apsParameter[0] = mpcTypes->Pointer(&mpcTypes->msVoid);
 	apsParameter[1] = apsParameter[0];
 	apsParameter[2] = &mpcTypes->msUnsignedInt;
 	apsParameter[3] = &mpcTypes->msUnsignedInt;
-	for (i = 0; i < 4; i++)
-	{
-		if (!Value(pcCall->macpArguments.GetPtr(i), &asArgument[i]) || !Convert(&asArgument[i], apsParameter[i]))
-		{
-			return false;
-		}
-	}
-	for (i = 0; i < 4; i++)
-	{
-		mpcFunction->Argument(mpcBlock, IRTypeOf(apsParameter[i]), asArgument[i].sValue);
-	}
 	szLabel = (char*)(bSubtract ? "R816_BcdSubtract" : "R816_BcdAdd");
 	maszRuntime.AddIfUnique(szLabel);
-	psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msUnsignedInt), mcModule.Symbol(szLabel));
-	psValue->psType = &mpcTypes->msUnsignedInt;
-	return true;
+	return CallWithArguments(pcCall, apsParameter, 4, szLabel, &mpcTypes->msUnsignedInt, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inits pcOptimiser with the target's passes: the W65C816 has no indexed
+// addresses, narrows multiplies and counters, divides by constants with
+// multiplies and biases signed indices; and the profile when there is one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
+{
+	bool	bW65C816;
+
+	bW65C816 = mpcGenerator->mpsTarget->eTarget == CPPT_W65C816;
+	pcOptimiser->Init(&mcModule);
+	pcOptimiser->SetIndexedAddresses(!bW65C816);
+	pcOptimiser->SetNarrowMultiplies(bW65C816);
+	pcOptimiser->SetConstantDivisions(bW65C816);
+	pcOptimiser->SetNarrowCounters(bW65C816);
+	pcOptimiser->SetBiasedIndices(bW65C816);
+	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+	if (InliningProfile())
+	{
+		pcOptimiser->SetProfile(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction's IR is valid.  When it isn't, the verifier's errors
+// and iLine (the caller's line) are kept as the reason
+// (sszUnsupported, siUnsupportedLine).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, int iLine)
+{
+	CCPPErrors	cErrors;
+	CIRVerifier	cVerifier;
+	bool		bResult;
+
+	cErrors.Init();
+	cVerifier.Init(&mcModule, &cErrors);
+	bResult = cVerifier.VerifyFunction(pcFunction);
+	if (!bResult)
+	{
+		siUnsupportedLine = iLine;
+		StrCpySafe(sszUnsupported, cErrors.Text(), sizeof(sszUnsupported));
+	}
+	cVerifier.Kill();
+	cErrors.Kill();
+	return bResult;
 }
 
 

@@ -44,7 +44,19 @@ struct SIR816Routine
 {
 	const char*	szName;
 	const char*	szText;
+	bool		bScratch;	//Takes its operands in the caller's scratch bytes (IR816ScratchRoutine), not pushed.
+	const char*	szCalls;	//The runtime routine it jumps to, which must be in the unit too, or NULL.
 };
+
+
+//Every runtime routine's name starts with IR816_RUNTIME_PREFIX, IR816_RUNTIME_PREFIX_LENGTH characters; then the
+//operation and the bits (R816_UDiv32), or the name of an assembly routine (R816_BcdAdd).  TableDivide's tables are
+//IR816_SIGNED_TABLE or IR816_UNSIGNED_TABLE and the divisor (R816_UTable10), the divisor IR816_TABLE_LENGTH in.
+#define IR816_RUNTIME_PREFIX		"R816_"
+#define IR816_RUNTIME_PREFIX_LENGTH	5
+#define IR816_SIGNED_TABLE			"R816_STable"
+#define IR816_UNSIGNED_TABLE		"R816_UTable"
+#define IR816_TABLE_LENGTH			11
 
 
 //The 32 bit divide runs on the caller's D (IR816ScratchRoutine): the dividend is at D + 15 (and becomes the quotient)
@@ -117,7 +129,7 @@ struct SIR816Routine
 	"\t\tasl A\n\t\ttax\n\t\tbcs " NAME "_High\n" \
 	"\t\tlda [MathInvert + X]:24\n\t\tbra " NAME "_Got\n" \
 	NAME "_High:\n" \
-	"\t\tlda [MathInvert + $10000 + X]:24\n" \
+	"\t\tlda [MathInvert + 0x10000 + X]:24\n" \
 	NAME "_Got:\n"
 
 //A = (the byte at D + HIGH << 8) | the byte at D + LOW.
@@ -140,7 +152,7 @@ struct SIR816Routine
 	NAME "_Shift:\n" \
 	"\t\tinx\n\t\tasl A\n\t\tbcc " NAME "_Shift\n" \
 	"\t\tror A\n\t\tdex\n\t\tstx [D + 9]\n\t\tasl [D + 9]\n" \
-	"\t\tcmp $8000\n\t\tbeq " NAME "_Power\n" \
+	"\t\tcmp 0x8000\n\t\tbeq " NAME "_Power\n" \
 	"\t\tasl A\n" \
 	IR816_INVERT_BYTES(NAME "_Inv") \
 	"\t\tsta [D + 11]\n" \
@@ -149,7 +161,7 @@ struct SIR816Routine
 	"\t\tsta [D + 5]\n" \
 	IR816_BYTES_INDEX("12", "15") \
 	IR816_MULTIPLY_BYTES(NAME "_LH") \
-	"\t\tclc\n\t\tadc [D + 5]\n\t\txba\n\t\tand $FF\n\t\tbcc C + 3\n\t\tora $100\n\t\tsta [D + 5]\n" \
+	"\t\tclc\n\t\tadc [D + 5]\n\t\txba\n\t\tand 0xFF\n\t\tbcc C + 3\n\t\tora 0x100\n\t\tsta [D + 5]\n" \
 	IR816_BYTES_INDEX("16", "12") \
 	IR816_MULTIPLY_BYTES(NAME "_HH") \
 	"\t\tclc\n\t\tadc [D + 5]\n\t\tbra " NAME "_AddN\n" \
@@ -157,7 +169,7 @@ struct SIR816Routine
 	"\t\t.width A, 8\n" \
 	"\t\tlda [D + 12]\n\t\txba\n\t\tlda [D + 15]\n\t\trep m\n" \
 	IR816_MULTIPLY_BYTES(NAME "_LHn") \
-	"\t\txba\n\t\tand $FF\n" \
+	"\t\txba\n\t\tand 0xFF\n" \
 	NAME "_AddN:\n" \
 	"\t\tclc\n\t\tadc [D + 15]\n\t\tror A\n" \
 	"\t\tldx [D + 9]\n\t\tjmp [" NAME "_Shifts + X]\n" \
@@ -186,26 +198,26 @@ struct SIR816Routine
 	"\t\tstz [D + 11]\n\t\tlda [D + 19]\n\t\tdec A\n\t\tand [D + 15]\n\t\tsta [D + 7]\n" \
 	"\t\tlda [D + 15]\n\t\tldx [D + 9]\n\t\tjmp [" NAME "_Shifts + X]\n" \
 	NAME "_Zero:\n" \
-	"\t\tlda $FFFF\n\t\tsta [D + 5]\n\t\tlda [D + 15]\n\t\tsta [D + 7]\n" \
+	"\t\tlda 0xFFFF\n\t\tsta [D + 5]\n\t\tlda [D + 15]\n\t\tsta [D + 7]\n" \
 	NAME "_Done:\n" \
 	"\t\tlda [D + " RESULT "]\n\t\tldx 0\n\t\trtl\n" \
 	NAME "_Shifts:\n" \
-	"\t\t.word (" NAME "_Chain + 0) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 1) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 2) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 3) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 4) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 5) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 6) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 7) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 8) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 9) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 10) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 11) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 12) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 13) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 14) & $FFFF\n" \
-	"\t\t.word (" NAME "_Chain + 15) & $FFFF\n"
+	"\t\t.word (" NAME "_Chain + 0) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 1) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 2) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 3) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 4) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 5) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 6) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 7) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 8) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 9) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 10) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 11) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 12) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 13) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 14) & 0xFFFF\n" \
+	"\t\t.word (" NAME "_Chain + 15) & 0xFFFF\n"
 
 //The 64 bit divide: D + 3 to D + 10 is the remainder, then the caller's return address, the hidden result pointer at
 //D + 14, the dividend (shifted into the quotient) at D + 18 and the divisor at D + 26.  Zero words at the top of the
@@ -247,12 +259,12 @@ struct SIR816Routine
 	"\t\tasl A\n\t\ttax\n\t\tbcs " NAME "_High\n" \
 	"\t\tlda [MathMult + X]:24\n\t\tbra " NAME "_Got\n" \
 	NAME "_High:\n" \
-	"\t\tlda [MathMult + $10000 + X]:24\n" \
+	"\t\tlda [MathMult + 0x10000 + X]:24\n" \
 	NAME "_Got:\n"
 
 //Adds the product in A a byte up into the word at WORD (only its low byte reaches it).
 #define IR816_MULTIPLY_ADD_BYTE_1(WORD) \
-	"\t\txba\n\t\tand $FF00\n\t\tclc\n\t\tadc " WORD "\n\t\tsta " WORD "\n"
+	"\t\txba\n\t\tand 0xFF00\n\t\tclc\n\t\tadc " WORD "\n\t\tsta " WORD "\n"
 
 //The multiplies run on the caller's D (IR816ScratchRoutine): a is at D + 15 and b at D + 19 (the scratch arguments),
 //and the result is put together at D + 5.  R816_Mul32's result is D + 5 to D + 8, a's bytes are D + 15 to D + 18 and
@@ -296,12 +308,12 @@ struct SIR816Routine
 
 static const SIR816Routine gasIR816Routines[] =
 {
-	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18") },
-	{ "R816_URem64", IR816_DIVIDE_64("R816_URem64", "3") },
-	{ "R816_UDiv32", IR816_DIVIDE_32("R816_UDiv32", "R816_UDiv16", "15", "17") },
-	{ "R816_URem32", IR816_DIVIDE_32("R816_URem32", "R816_URem16", "5", "7") },
-	{ "R816_UDiv16", IR816_DIVIDE_16("R816_UDiv16", "5") },
-	{ "R816_URem16", IR816_DIVIDE_16("R816_URem16", "7") },
+	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18"), false, NULL },
+	{ "R816_URem64", IR816_DIVIDE_64("R816_URem64", "3"), false, NULL },
+	{ "R816_UDiv32", IR816_DIVIDE_32("R816_UDiv32", "R816_UDiv16", "15", "17"), true, "R816_UDiv16" },
+	{ "R816_URem32", IR816_DIVIDE_32("R816_URem32", "R816_URem16", "5", "7"), true, "R816_URem16" },
+	{ "R816_UDiv16", IR816_DIVIDE_16("R816_UDiv16", "5"), true, NULL },
+	{ "R816_URem16", IR816_DIVIDE_16("R816_URem16", "7"), true, NULL },
 	{ "R816_Mul16",
 		"\t\t.width (A, X), 16\n"
 		IR816_BYTES_INDEX("19", "15")
@@ -317,7 +329,7 @@ static const SIR816Routine gasIR816Routines[] =
 		IR816_MULTIPLY_ADD_BYTE_1("[D + 5]")
 		"R816_Mul16_Done:\n"
 		"\t\trep m\n"
-		"\t\tlda [D + 5]\n\t\trtl\n" },
+		"\t\tlda [D + 5]\n\t\trtl\n", true, NULL },
 	{ "R816_Mul32",
 		"\t\t.width (A, X), 16\n"
 		"\t\t.relax\n"
@@ -360,10 +372,10 @@ static const SIR816Routine gasIR816Routines[] =
 		IR816_MULTIPLY_ADD_BYTES_1
 		"R816_Mul32_XDone:\n"
 		"\t\trep m\n"
-		"\t\tlda [D + 7]\n\t\ttax\n\t\tlda [D + 5]\n\t\trtl\n" },
-	{ "R816_BcdAdd", IR816_BCD("R816_BcdAdd", "", "adc", "") },
-	{ "R816_BcdSubtract", IR816_BCD("R816_BcdSubtract", "\t\teor 1\n", "sbc", "\t\teor 1\n") },
-	{ NULL, NULL }
+		"\t\tlda [D + 7]\n\t\ttax\n\t\tlda [D + 5]\n\t\trtl\n", true, NULL },
+	{ "R816_BcdAdd", IR816_BCD("R816_BcdAdd", "", "adc", ""), false, NULL },
+	{ "R816_BcdSubtract", IR816_BCD("R816_BcdSubtract", "\t\teor 1\n", "sbc", "\t\teor 1\n"), false, NULL },
+	{ NULL, NULL, false, NULL }
 };
 
 
@@ -411,32 +423,24 @@ static const char* gszIR816Signed =
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 {
-	mpcModule = pcModule;
-	mpiLabels = piLabels;
+	CIRBackend::Init(pcModule, piLabels);
 	maszRuntime.Init();
-	mbSourceMarkers = false;
-	mcSourceMarkers.Init();
-	mpcFunction = NULL;
-	mpszOut = NULL;
-	mpcErrors = NULL;
-	mbResult = true;
 	maiOffsets.Init();
 	maiIncoming.Init();
 	maiSlots.Init();
-	maiBlockLabels.Init();
 	maiParameters.Init();
-	maiPendingArguments.Init();
+	mauiPendingArguments.Init();
 	masFoldBase.Init();
 	maiFoldOffset.Init();
 	masFoldIndex.Init();
+	mcDominators.Init();
+	mcLoops.Init();
 	mpcDominators = NULL;
 	maiUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
 	miFused = 0;
-	miFrameBytes = 0;
 	miHiddenResult = -1;
-	mszSectionOptions = "";
 }
 
 
@@ -446,10 +450,8 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Kill(void)
 {
-	mcSourceMarkers.Kill();
-	maiPendingArguments.Kill();
+	mauiPendingArguments.Kill();
 	maiParameters.Kill();
-	maiBlockLabels.Kill();
 	maiSlots.Kill();
 	maiIncoming.Kill();
 	mabInX.Kill();
@@ -459,39 +461,10 @@ void CIR816Backend::Kill(void)
 	maiFoldOffset.Kill();
 	masFoldBase.Kill();
 	maiOffsets.Kill();
+	mcLoops.Kill();
+	mcDominators.Kill();
 	maszRuntime.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Each function and global a section of its own.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::GenerateModule(CChars* pszDest, CCPPErrors* pcErrors)
-{
-	size			ui;
-	CIRFunction*	pcFunction;
-	char*			szName;
-	bool			bResult;
-
-	bResult = true;
-	for (ui = 0; ui < mpcModule->NumFunctions(); ui++)
-	{
-		pcFunction = mpcModule->GetFunction(ui);
-		szName = mpcModule->GetSymbolName(pcFunction->muiSymbol);
-		pszDest->Append("\t\t.section text.");
-		pszDest->Append(szName);
-		pszDest->Append(mszSectionOptions);
-		pszDest->AppendNewLine();
-		Binding(szName, pcFunction->muiAttributes, pszDest);
-		bResult &= GenerateFunction(pcFunction, szName, pszDest, pcErrors);
-	}
-	for (ui = 0; ui < mpcModule->NumGlobals(); ui++)
-	{
-		GenerateGlobal(mpcModule->GetGlobal(ui), pszDest);
-	}
-	return bResult;
+	CIRBackend::Kill();
 }
 
 
@@ -508,121 +481,6 @@ CArrayChars* CIR816Backend::GetRuntime(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .global or .weak, or nothing for the unit's own label.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Binding(const char* szName, uint32 uiAttributes, CChars* pszDest)
-{
-	if (uiAttributes & IRA_Local)
-	{
-		return;
-	}
-	pszDest->Append((uiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-	pszDest->Append(szName);
-	pszDest->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest)
-{
-	size			ui;
-	size			uiByte;
-	SIRDataItem*	psItem;
-	char*			szName;
-	int				iBytes;
-
-	szName = mpcModule->GetSymbolName(pcGlobal->muiSymbol);
-	pszDest->Append("\t\t.section data.");
-	pszDest->Append(szName);
-	pszDest->AppendNewLine();
-	if (pcGlobal->muiAlign > 1)
-	{
-		pszDest->Append("\t\t.align ");
-		pszDest->Append(pcGlobal->muiAlign);
-		pszDest->AppendNewLine();
-	}
-	Binding(szName, pcGlobal->muiAttributes, pszDest);
-	pszDest->Append(szName);
-	pszDest->Append(':');
-	pszDest->AppendNewLine();
-
-	for (ui = 0; ui < pcGlobal->masItems.NumElements(); ui++)
-	{
-		psItem = pcGlobal->masItems.Get(ui);
-		switch (psItem->uiKind)
-		{
-		case IRDK_Value:
-		case IRDK_Symbol:
-			iBytes = mpcModule->GetSize(psItem->sType);
-			pszDest->Append((iBytes == 1) ? "\t\t.byte " : (iBytes == 2) ? "\t\t.word " : (iBytes == 4) ? "\t\t.long " : "\t\t.quad ");
-			if (psItem->uiKind == IRDK_Symbol)
-			{
-				pszDest->Append(mpcModule->GetSymbolName((uint32)psItem->ulliValue));
-				if (psItem->lliOffset != 0)
-				{
-					pszDest->Append(psItem->lliOffset > 0 ? " + " : " - ");
-					pszDest->Append(psItem->lliOffset > 0 ? psItem->lliOffset : -psItem->lliOffset);
-				}
-			}
-			else
-			{
-				pszDest->Append(IRSignExtend(psItem->sType, psItem->ulliValue));
-			}
-			pszDest->AppendNewLine();
-			break;
-		case IRDK_Bytes:
-			for (uiByte = 0; uiByte < psItem->uiLength; uiByte++)
-			{
-				pszDest->Append(((uiByte % 16) == 0) ? "\t\t.byte " : ", ");
-				pszDest->Append((int32)*pcGlobal->macBytes.Get(psItem->uiStart + uiByte));
-				if (((uiByte % 16) == 15) || (uiByte + 1 == psItem->uiLength))
-				{
-					pszDest->AppendNewLine();
-				}
-			}
-			break;
-		case IRDK_Zero:
-			if (psItem->ulliValue > 0)
-			{
-				pszDest->Append("\t\t.space ");
-				pszDest->Append(psItem->ulliValue);
-				pszDest->AppendNewLine();
-			}
-			break;
-		}
-	}
-	pszDest->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::Error(const char* szMessage, const char* szDetail)
-{
-	CChars	szError;
-
-	szError.Init("@");
-	szError.Append(mpcModule->GetSymbolName(mpcFunction->muiSymbol));
-	szError.Append(": ");
-	szError.Append(szMessage);
-	if (mpcErrors)
-	{
-		mpcErrors->Add(NULL, -1, -1, -1, szError.Text(), szDetail);
-	}
-	szError.Kill();
-	mbResult = false;
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Line(const char* szText)
@@ -630,37 +488,6 @@ void CIR816Backend::Line(const char* szText)
 	mpszOut->Append("\t\t");
 	mpszOut->Append(szText);
 	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The marker line (IR_SOURCE_MARKER) before the code of an instruction or
-// a jump with uiSource (0 for none) when it isn't the last one's.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Source(uint32 uiSource)
-{
-	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
-	{
-		return;
-	}
-	muiSource = uiSource;
-	mpszOut->Append(IR_SOURCE_MARKER);
-	mpszOut->Append((int64)muiSource);
-	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether Source writes markers (for a listing): they are taken out while
-// the text passes run, so the code is the same as without them.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SetSourceMarkers(bool bSourceMarkers)
-{
-	mbSourceMarkers = bSourceMarkers;
 }
 
 
@@ -680,44 +507,13 @@ void CIR816Backend::Line(const char* szText, int64 lliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::NewLabel(void)
-{
-	(*mpiLabels)++;
-	return *mpiLabels;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Label(int32 iLabel)
-{
-	mpszOut->Append('L');
-	mpszOut->Append(iLabel);
-	mpszOut->Append(':');
-	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Notes that the function calls the runtime routine szName (once each),
+// for GetRuntime and GenerateRuntime.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::UseRuntime(const char* szName)
 {
-	size	i;
-
-	for (i = 0; i < maszRuntime.NumElements(); i++)
-	{
-		if (strcmp(maszRuntime.GetText(i), szName) == 0)
-		{
-			return;
-		}
-	}
-	maszRuntime.Add(szName);
+	maszRuntime.AddIfUnique((char*)szName);
 }
 
 
@@ -1729,8 +1525,6 @@ int32 CIR816Backend::PackTemporaries(void)
 	bool						bChanged;
 	bool						bFree;
 	CArrayTemplate<int32>		aiDepths;		//Per block: how many loops it is in.
-	CIRDominators				cDominators;
-	CIRLoops					cLoops;
 	int32						iDepth;
 	int32						iBestDepth;
 	int32						iBestOffset;
@@ -1747,18 +1541,11 @@ int32 CIR816Backend::PackTemporaries(void)
 
 	//Each block's loop depth, for choosing between pairs.
 	aiDepths.Init();
-	mpcFunction->ComputePredecessors();
-	cDominators.Init();
-	cDominators.Compute(mpcFunction);
-	cLoops.Init();
-	cLoops.Compute(mpcFunction, &cDominators);
 	for (ui = 0; ui < uiBlocks; ui++)
 	{
-		iDepth = cLoops.Depth(mpcFunction->GetBlock(ui));
+		iDepth = mcLoops.Depth(mpcFunction->GetBlock(ui));
 		aiDepths.Add(&iDepth);
 	}
-	cLoops.Kill();
-	cDominators.Kill();
 
 	//The uses, definitions and writes, and the pairs.
 	iPosition = 0;
@@ -2233,8 +2020,6 @@ static bool IR816ClobbersX(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
 {
-	CIRDominators			cDominators;
-	CIRLoops				cLoops;
 	CArrayTemplate<int32>	aiScore;		//Per temporary.
 	CArrayTemplate<uint8>	abCandidate;	//Per temporary.
 	CArrayTemplate<int32>	aiClobbers;		//Positions that change X.
@@ -2267,18 +2052,12 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	abCandidate.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	aiClobbers.Init();
 
-	mpcFunction->ComputePredecessors();
-	cDominators.Init();
-	cDominators.Compute(mpcFunction);
-	cLoops.Init();
-	cLoops.Compute(mpcFunction, &cDominators);
-
 	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
 	iPosition = 0;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		iDepth = cLoops.Depth(pcBlock);
+		iDepth = mcLoops.Depth(pcBlock);
 		iWeight = 1 << ((iDepth > 4) ? 12 : 3 * iDepth);
 		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
 		{
@@ -2384,8 +2163,6 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 
 	aiInX.Kill();
 	aiOrder.Kill();
-	cLoops.Kill();
-	cDominators.Kill();
 	aiClobbers.Kill();
 	abCandidate.Kill();
 	aiScore.Kill();
@@ -2499,7 +2276,7 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 		{
 			mpszOut->Append(" ");
 			mpszOut->Append(szName);
-			mpszOut->Append(" & $FFFF");
+			mpszOut->Append(" & 0xFFFF");
 		}
 		else if (iWord == 1)
 		{
@@ -2561,7 +2338,7 @@ void CIR816Backend::Mask(SIRType sType)
 {
 	if (sType.Is(IRTK_I8))
 	{
-		Line("and $FF");
+		Line("and 0xFF");
 	}
 	else if (sType.Is(IRTK_I1))
 	{
@@ -2645,8 +2422,8 @@ void CIR816Backend::FillSign(int32 iDestination, int iFirst, int iWords)
 	Frame("lda", iDestination + 2 * (iFirst - 1));
 	Line("asl A");
 	Line("lda 0");
-	Line("adc $FFFF");
-	Line("eor $FFFF");
+	Line("adc 0xFFFF");
+	Line("eor 0xFFFF");
 	for (i = 0; i < iWords; i++)
 	{
 		Frame("sta", iDestination + 2 * (iFirst + i));
@@ -2730,6 +2507,36 @@ void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The frame's set up as Prologue writes it (after the label and the
+// directives): D saved, S moved down iFrameBytes and D pointed at it.
+// DropFrame and AlignFrame find and replace it by this text.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes)
+{
+	psz->Append("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
+	psz->Append(iFrameBytes);
+	psz->Append("\n\t\ttcs\n\t\ttcd\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame's removal as Epilogue writes it (before the rtl): A kept in Y
+// while S moves back up iFrameBytes, then D restored.  DropFrame and
+// AlignFrame find and replace it by this text.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendFrameExit(CChars* psz, int32 iFrameBytes)
+{
+	psz->Append("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
+	psz->Append(iFrameBytes);
+	psz->Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's code from uiStart without its frame when it never reads
 // or writes the frame's bytes (D + 1 to D + frame size; its temporaries may
 // all have been kept in A or fused) or D but to move S back: S isn't moved
@@ -2761,12 +2568,10 @@ void CIR816Backend::DropFrame(size uiStart)
 			return;
 		}
 	}
-	szPrologue.Init("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
-	szPrologue.Append(miFrameBytes);
-	szPrologue.Append("\n\t\ttcs\n\t\ttcd\n");
-	szEpilogue.Init("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
-	szEpilogue.Append(miFrameBytes);
-	szEpilogue.Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	szPrologue.Init();
+	IR816AppendFrameEntry(&szPrologue, miFrameBytes);
+	szEpilogue.Init();
+	IR816AppendFrameExit(&szEpilogue, miFrameBytes);
 	iEpilogues = 0;
 	for (szAt = strstr(szCode, szEpilogue.Text()); szAt; szAt = strstr(szAt + 1, szEpilogue.Text()))
 	{
@@ -2838,7 +2643,7 @@ void CIR816Backend::DropFrame(size uiStart)
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm816Profile* pcProfile)
+bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile)
 {
 	CChars					sz;
 	CChars					szPrologue;
@@ -2852,7 +2657,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	int32					iSavedS;
 	int32					i;
 	uint64					ulliCost;
-	SAsm816FunctionProfile*	psProfile;
+	SAsm65816FunctionProfile*	psProfile;
 	bool					bBig;
 	bool					bWorth;
 
@@ -2896,12 +2701,10 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	}
 
 	iSavedS = bBig ? psFrame->iSavedS : psFrame->iFrameBytes + 1;
-	szPrologue.Init("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
-	szPrologue.Append(psFrame->iFrameBytes);
-	szPrologue.Append("\n\t\ttcs\n\t\ttcd\n");
-	szEpilogue.Init("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
-	szEpilogue.Append(psFrame->iFrameBytes);
-	szEpilogue.Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	szPrologue.Init();
+	IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
+	szEpilogue.Init();
+	IR816AppendFrameExit(&szEpilogue, psFrame->iFrameBytes);
 	if (strstr(szCode, szPrologue.Text()) == NULL)
 	{
 		szPrologue.Kill();
@@ -2912,7 +2715,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	//S goes down before anything is written below where it was (an interrupt pushes there).
 	szAligned.Init("\t\tphd\n\t\ttsc\n\t\ttax\n\t\tsec\n\t\tsbc ");
 	szAligned.Append(iTop);
-	szAligned.Append("\n\t\tand $FF00\n");
+	szAligned.Append("\n\t\tand 0xFF00\n");
 	if (!bBig)
 	{
 		szAligned.Append("\t\ttcs\n\t\ttcd\n");
@@ -2997,6 +2800,12 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 
 	ExpandMultiplies();
 	pcFunction->Renumber();
+
+	//The blocks' dominators and loops, for Layout (the loop depths PackTemporaries and AllocateX weigh by) and
+	//GenerateBody (the jumps round loops, AlignFrame's estimate).  Nothing after changes the blocks or their jumps.
+	pcFunction->ComputePredecessors();
+	mcDominators.Compute(pcFunction);
+	mcLoops.Compute(pcFunction, &mcDominators);
 	Layout();
 	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
@@ -3233,8 +3042,6 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcNext;
 	int32			iLabel;
-	CIRDominators	cDominators;
-	CIRLoops		cLoops;
 	size			uiBlockStart;
 	int32			iWeight;
 	int32			iDepth;
@@ -3247,12 +3054,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	}
 
 	FindSingleUses();
-	mpcFunction->ComputePredecessors();
-	cDominators.Init();
-	cDominators.Compute(mpcFunction);
-	mpcDominators = &cDominators;
-	cLoops.Init();
-	cLoops.Compute(mpcFunction, &cDominators);
+	mpcDominators = &mcDominators;
 	miDirectPageWeight = 0;
 	mbLoops = false;
 	Prologue(szLabel);
@@ -3264,7 +3066,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		uiBlockStart = mpszOut->Length();
 		Label(*maiBlockLabels.Get(ui));
 		PhiCopies(pcBlock);
-		maiPendingArguments.FakeSetUsedElements(0);
+		mauiPendingArguments.FakeSetUsedElements(0);
 		miFused = 0;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
@@ -3289,17 +3091,15 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 		//The block's direct page accesses, weighted by its loops (AlignFrame's estimate).
 		iWeight = 1;
-		for (iDepth = cLoops.Depth(pcBlock); iDepth > 0; iDepth--)
+		for (iDepth = mcLoops.Depth(pcBlock); iDepth > 0; iDepth--)
 		{
 			mbLoops = true;
 			iWeight *= (iDepth <= IR816_ALIGN_MAX_DEPTH) ? IR816_ALIGN_LOOP_WEIGHT : 1;
 		}
 		miDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
 	}
-	cLoops.Kill();
 	miBlock = -1;
 	mpcDominators = NULL;
-	cDominators.Kill();
 	if (mbSourceMarkers)
 	{
 		mcSourceMarkers.Take(mpszOut, uiStart);
@@ -3390,6 +3190,444 @@ void CIR816Backend::FindSingleUses(void)
 }
 
 
+//The W65C816's mnemonics, as the text passes (Peephole ...) decode them (IR816Decode); gasIR816Mnemonics is in this
+//order, alphabetical.
+enum EIR816Mnemonic
+{
+	IR816M_Adc,
+	IR816M_And,
+	IR816M_Asl,
+	IR816M_Bcc,
+	IR816M_Bcs,
+	IR816M_Beq,
+	IR816M_Bit,
+	IR816M_Bmi,
+	IR816M_Bne,
+	IR816M_Bpl,
+	IR816M_Bra,
+	IR816M_Brk,
+	IR816M_Brl,
+	IR816M_Bvc,
+	IR816M_Bvs,
+	IR816M_Clc,
+	IR816M_Cld,
+	IR816M_Cli,
+	IR816M_Clv,
+	IR816M_Cmp,
+	IR816M_Cop,
+	IR816M_Cpx,
+	IR816M_Cpy,
+	IR816M_Dec,
+	IR816M_Dex,
+	IR816M_Dey,
+	IR816M_Eor,
+	IR816M_Inc,
+	IR816M_Inx,
+	IR816M_Iny,
+	IR816M_Jml,
+	IR816M_Jmp,
+	IR816M_Jsl,
+	IR816M_Jsr,
+	IR816M_Lda,
+	IR816M_Ldx,
+	IR816M_Ldy,
+	IR816M_Lsr,
+	IR816M_Mvn,
+	IR816M_Mvp,
+	IR816M_Nop,
+	IR816M_Ora,
+	IR816M_Pea,
+	IR816M_Pei,
+	IR816M_Per,
+	IR816M_Pha,
+	IR816M_Phb,
+	IR816M_Phd,
+	IR816M_Phk,
+	IR816M_Php,
+	IR816M_Phx,
+	IR816M_Phy,
+	IR816M_Pla,
+	IR816M_Plb,
+	IR816M_Pld,
+	IR816M_Plp,
+	IR816M_Plx,
+	IR816M_Ply,
+	IR816M_Rep,
+	IR816M_Rol,
+	IR816M_Ror,
+	IR816M_Rti,
+	IR816M_Rtl,
+	IR816M_Rts,
+	IR816M_Sbc,
+	IR816M_Sec,
+	IR816M_Sed,
+	IR816M_Sei,
+	IR816M_Sep,
+	IR816M_Sta,
+	IR816M_Stp,
+	IR816M_Stx,
+	IR816M_Sty,
+	IR816M_Stz,
+	IR816M_Tax,
+	IR816M_Tay,
+	IR816M_Tcd,
+	IR816M_Tcs,
+	IR816M_Tdc,
+	IR816M_Trb,
+	IR816M_Tsb,
+	IR816M_Tsc,
+	IR816M_Tsx,
+	IR816M_Txa,
+	IR816M_Txs,
+	IR816M_Txy,
+	IR816M_Tya,
+	IR816M_Tyx,
+	IR816M_Wai,
+	IR816M_Wdm,
+	IR816M_Xba,
+	IR816M_Xce,
+	IR816M_Unknown,		//Anything else (IR816UnknownFlags).
+};
+
+
+//What the text passes know of a mnemonic, a bit each.  The groups are the ones the passes' rules are written in; a
+//rule only relies on the instructions it names, so a group holds those its rules were taught (the passes see only
+//code the back end writes), not always every instruction with the property.
+#define IR816MF_CARRY			0x00000001	//clc, sec: change C only.
+#define IR816MF_LOAD_INDEX		0x00000002	//ldx, ldy.
+#define IR816MF_STEP_INDEX		0x00000004	//inx, iny, dex, dey.
+#define IR816MF_STORE			0x00000008	//sta, stx, sty, stz: write their operand, change no register or flag.
+#define IR816MF_LOGIC			0x00000010	//and, ora, eor: a bit of A depends only on that bit of A and the operand.
+#define IR816MF_COMPARE			0x00000020	//cmp, cpx, cpy.
+#define IR816MF_SHIFT_STEP		0x00000040	//asl, lsr, rol, ror, inc, dec: A or memory, as the operand ("A") says.
+#define IR816MF_LOADS_A			0x00000080	//lda, pla, txa, tya, tdc, tsc: set all of A (and N and Z) without reading it.
+#define IR816MF_ZN_FROM_A		0x00000100	//N and Z are all of A after it: lda, pla, txa, tya, tdc, and, ora, eor, adc, sbc (not tsc).
+#define IR816MF_READS_A			0x00000200	//Reads A (as a value: a shift or step of A is the operand's).
+#define IR816MF_A_ALU			0x00000400	//lda, sta, and, ora, eor, adc, sbc, cmp, bit: A and an operand.
+#define IR816MF_Y_ALU			0x00000800	//ldy, sty, tay, tya, iny, dey, cpy: Y (and A) and an operand.
+#define IR816MF_COPIES_A		0x00001000	//tax, tay, pha: copy A, changing neither it nor C.
+#define IR816MF_BRANCH			0x00002000	//bra, brl and the conditional branches: to a label (IR816BranchLine).
+#define IR816MF_BRANCH_ZN		0x00004000	//beq, bne, bmi, bpl: read Z or N.
+#define IR816MF_BRANCH_C		0x00008000	//bcc, bcs: read C.
+#define IR816MF_ENDS_FLOW		0x00010000	//bra, brl, jml, jmp, rtl, rts, stp: the next line isn't run after it (IR816Unreachable).
+#define IR816MF_LEAVES			0x00020000	//Every b, j and rt mnemonic (bit and brk too, conservatively): may leave straight line code.
+#define IR816MF_WIDTH			0x00040000	//sep, rep.
+#define IR816MF_SETS_D			0x00080000	//pld, tcd: the direct page moves.
+#define IR816MF_BLOCK_MOVE		0x00100000	//mvn, mvp: A, X, Y and memory.
+#define IR816MF_CALL			0x00200000	//jsl, jsr.
+#define IR816MF_INTERRUPT		0x00400000	//brk, cop.
+#define IR816MF_READS_X			0x00800000	//txa, txy, stx, inx, dex, cpx, phx, txs, mvn, mvp (an X indexed operand is the operand's).
+#define IR816MF_WRITES_X		0x01000000	//tax, tyx, ldx, plx: set all of X (tsx too, but only IR816UsesXOrY takes it).
+#define IR816MF_USES_Y			0x02000000	//Reads or writes Y; a call (jsl, jsr) may change it.
+#define IR816MF_WRITES_Y		0x04000000	//tay, txy, ldy, ply, iny, dey, mvn, mvp.
+#define IR816MF_PUSH_REGISTER	0x08000000	//pha, phx, phy.
+#define IR816MF_PUSH_WORD		0x10000000	//pea, pei, phk: a constant, a direct page word or K.
+#define IR816MF_SETS_CARRY		0x20000000	//clc, sec, cmp, cpx, cpy, asl, lsr, rol, ror, adc, sbc, xce (not plp, sep and rep).
+#define IR816MF_READS_CARRY		0x40000000	//adc, sbc, rol, ror, xce, php, bcc, bcs.
+
+
+//A mnemonic and its IR816MF_ bits.
+struct SIR816Mnemonic
+{
+	const char*	szName;
+	uint32		uiFlags;
+};
+
+
+//Per EIR816Mnemonic.
+static const SIR816Mnemonic gasIR816Mnemonics[] =
+{
+	{ "adc", IR816MF_ZN_FROM_A | IR816MF_READS_A | IR816MF_A_ALU | IR816MF_SETS_CARRY | IR816MF_READS_CARRY },
+	{ "and", IR816MF_LOGIC | IR816MF_ZN_FROM_A | IR816MF_READS_A | IR816MF_A_ALU },
+	{ "asl", IR816MF_SHIFT_STEP | IR816MF_SETS_CARRY },
+	{ "bcc", IR816MF_BRANCH | IR816MF_BRANCH_C | IR816MF_LEAVES | IR816MF_READS_CARRY },
+	{ "bcs", IR816MF_BRANCH | IR816MF_BRANCH_C | IR816MF_LEAVES | IR816MF_READS_CARRY },
+	{ "beq", IR816MF_BRANCH | IR816MF_BRANCH_ZN | IR816MF_LEAVES },
+	{ "bit", IR816MF_READS_A | IR816MF_A_ALU | IR816MF_LEAVES },
+	{ "bmi", IR816MF_BRANCH | IR816MF_BRANCH_ZN | IR816MF_LEAVES },
+	{ "bne", IR816MF_BRANCH | IR816MF_BRANCH_ZN | IR816MF_LEAVES },
+	{ "bpl", IR816MF_BRANCH | IR816MF_BRANCH_ZN | IR816MF_LEAVES },
+	{ "bra", IR816MF_BRANCH | IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "brk", IR816MF_LEAVES | IR816MF_INTERRUPT },
+	{ "brl", IR816MF_BRANCH | IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "bvc", IR816MF_BRANCH | IR816MF_LEAVES },
+	{ "bvs", IR816MF_BRANCH | IR816MF_LEAVES },
+	{ "clc", IR816MF_CARRY | IR816MF_SETS_CARRY },
+	{ "cld", 0 },
+	{ "cli", 0 },
+	{ "clv", 0 },
+	{ "cmp", IR816MF_COMPARE | IR816MF_READS_A | IR816MF_A_ALU | IR816MF_SETS_CARRY },
+	{ "cop", IR816MF_INTERRUPT },
+	{ "cpx", IR816MF_COMPARE | IR816MF_READS_X | IR816MF_SETS_CARRY },
+	{ "cpy", IR816MF_COMPARE | IR816MF_Y_ALU | IR816MF_USES_Y | IR816MF_SETS_CARRY },
+	{ "dec", IR816MF_SHIFT_STEP },
+	{ "dex", IR816MF_STEP_INDEX | IR816MF_READS_X },
+	{ "dey", IR816MF_STEP_INDEX | IR816MF_Y_ALU | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "eor", IR816MF_LOGIC | IR816MF_ZN_FROM_A | IR816MF_READS_A | IR816MF_A_ALU },
+	{ "inc", IR816MF_SHIFT_STEP },
+	{ "inx", IR816MF_STEP_INDEX | IR816MF_READS_X },
+	{ "iny", IR816MF_STEP_INDEX | IR816MF_Y_ALU | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "jml", IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "jmp", IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "jsl", IR816MF_LEAVES | IR816MF_CALL | IR816MF_USES_Y },
+	{ "jsr", IR816MF_LEAVES | IR816MF_CALL | IR816MF_USES_Y },
+	{ "lda", IR816MF_LOADS_A | IR816MF_ZN_FROM_A | IR816MF_A_ALU },
+	{ "ldx", IR816MF_LOAD_INDEX | IR816MF_WRITES_X },
+	{ "ldy", IR816MF_LOAD_INDEX | IR816MF_Y_ALU | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "lsr", IR816MF_SHIFT_STEP | IR816MF_SETS_CARRY },
+	{ "mvn", IR816MF_READS_A | IR816MF_BLOCK_MOVE | IR816MF_READS_X | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "mvp", IR816MF_READS_A | IR816MF_BLOCK_MOVE | IR816MF_READS_X | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "nop", 0 },
+	{ "ora", IR816MF_LOGIC | IR816MF_ZN_FROM_A | IR816MF_READS_A | IR816MF_A_ALU },
+	{ "pea", IR816MF_PUSH_WORD },
+	{ "pei", IR816MF_PUSH_WORD },
+	{ "per", 0 },
+	{ "pha", IR816MF_READS_A | IR816MF_COPIES_A | IR816MF_PUSH_REGISTER },
+	{ "phb", 0 },
+	{ "phd", 0 },
+	{ "phk", IR816MF_PUSH_WORD },
+	{ "php", IR816MF_READS_CARRY },
+	{ "phx", IR816MF_READS_X | IR816MF_PUSH_REGISTER },
+	{ "phy", IR816MF_USES_Y | IR816MF_PUSH_REGISTER },
+	{ "pla", IR816MF_LOADS_A | IR816MF_ZN_FROM_A },
+	{ "plb", 0 },
+	{ "pld", IR816MF_SETS_D },
+	{ "plp", 0 },
+	{ "plx", IR816MF_WRITES_X },
+	{ "ply", IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "rep", IR816MF_WIDTH },
+	{ "rol", IR816MF_SHIFT_STEP | IR816MF_SETS_CARRY | IR816MF_READS_CARRY },
+	{ "ror", IR816MF_SHIFT_STEP | IR816MF_SETS_CARRY | IR816MF_READS_CARRY },
+	{ "rti", IR816MF_LEAVES },
+	{ "rtl", IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "rts", IR816MF_ENDS_FLOW | IR816MF_LEAVES },
+	{ "sbc", IR816MF_ZN_FROM_A | IR816MF_READS_A | IR816MF_A_ALU | IR816MF_SETS_CARRY | IR816MF_READS_CARRY },
+	{ "sec", IR816MF_CARRY | IR816MF_SETS_CARRY },
+	{ "sed", 0 },
+	{ "sei", 0 },
+	{ "sep", IR816MF_WIDTH },
+	{ "sta", IR816MF_STORE | IR816MF_READS_A | IR816MF_A_ALU },
+	{ "stp", IR816MF_ENDS_FLOW },
+	{ "stx", IR816MF_STORE | IR816MF_READS_X },
+	{ "sty", IR816MF_STORE | IR816MF_Y_ALU | IR816MF_USES_Y },
+	{ "stz", IR816MF_STORE },
+	{ "tax", IR816MF_READS_A | IR816MF_COPIES_A | IR816MF_WRITES_X },
+	{ "tay", IR816MF_READS_A | IR816MF_Y_ALU | IR816MF_COPIES_A | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "tcd", IR816MF_READS_A | IR816MF_SETS_D },
+	{ "tcs", IR816MF_READS_A },
+	{ "tdc", IR816MF_LOADS_A | IR816MF_ZN_FROM_A },
+	{ "trb", 0 },
+	{ "tsb", 0 },
+	{ "tsc", IR816MF_LOADS_A },
+	{ "tsx", 0 },
+	{ "txa", IR816MF_LOADS_A | IR816MF_ZN_FROM_A | IR816MF_READS_X },
+	{ "txs", IR816MF_READS_X },
+	{ "txy", IR816MF_READS_X | IR816MF_USES_Y | IR816MF_WRITES_Y },
+	{ "tya", IR816MF_LOADS_A | IR816MF_ZN_FROM_A | IR816MF_Y_ALU | IR816MF_USES_Y },
+	{ "tyx", IR816MF_WRITES_X | IR816MF_USES_Y },
+	{ "wai", 0 },
+	{ "wdm", 0 },
+	{ "xba", IR816MF_READS_A },
+	{ "xce", IR816MF_SETS_CARRY | IR816MF_READS_CARRY },
+};
+
+
+//The conditional branches in pairs: each goes when the other doesn't (IR816InvertedBranch).
+static const uint16 gauiIR816InvertedBranches[] = { IR816M_Bcc, IR816M_Bcs, IR816M_Beq, IR816M_Bne, IR816M_Bmi, IR816M_Bpl, IR816M_Bvc, IR816M_Bvs };
+
+
+//An instruction line ("\t\tmnemonic operand"), decoded by IR816Decode.
+struct SIR816Line
+{
+	char		szMnemonic[8];
+	uint16		uiMnemonic;		//EIR816Mnemonic.
+	uint32		uiFlags;		//Its IR816MF_ bits.
+	const char*	szOperand;
+	size		uiOperand;		//To the end of the line, less a IR816_KEEP_IN_A mark.
+	bool		bMarked;		//The line ends with IR816_KEEP_IN_A (Store).
+	bool		bDirect;		//The operand is a direct page word, [D + iOffset] (IR816IsDirect).
+	int32		iOffset;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The IR816MF_ bits of a mnemonic the table doesn't have, as the rules
+// took any b, j or rt mnemonic to leave straight line code, and any other
+// three letter b one (but brk and bit) to branch to a label.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 IR816UnknownFlags(const char* szMnemonic)
+{
+	uint32	uiFlags;
+
+	uiFlags = 0;
+	if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || ((szMnemonic[0] == 'r') && (szMnemonic[1] == 't')))
+	{
+		uiFlags |= IR816MF_LEAVES;
+	}
+	if ((szMnemonic[0] == 'b') && (StrLen(szMnemonic) == 3))
+	{
+		uiFlags |= IR816MF_BRANCH;
+	}
+	return uiFlags;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The EIR816Mnemonic of szMnemonic (a binary search of gasIR816Mnemonics),
+// IR816M_Unknown for one it doesn't have.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint16 IR816FindMnemonic(const char* szMnemonic)
+{
+	int		iLow;
+	int		iHigh;
+	int		iMiddle;
+	int		iCompare;
+
+	iLow = 0;
+	iHigh = IR816M_Unknown - 1;
+	while (iLow <= iHigh)
+	{
+		iMiddle = (iLow + iHigh) / 2;
+		iCompare = StringCompare(szMnemonic, gasIR816Mnemonics[iMiddle].szName);
+		if (iCompare == 0)
+		{
+			return (uint16)iMiddle;
+		}
+		if (iCompare < 0)
+		{
+			iHigh = iMiddle - 1;
+		}
+		else
+		{
+			iLow = iMiddle + 1;
+		}
+	}
+	return IR816M_Unknown;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operand is a direct page word, [D + n] (n decimal): n into
+// *piOffset.  [D + X], a pointer's [[D + n]:24 ...] and a symbol aren't.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsDirect(const char* szOperand, size uiOperand, int32* piOffset)
+{
+	if ((uiOperand >= 30) || (strncmp(szOperand, "[D + ", 5) != 0) || (szOperand[5] < '0') || (szOperand[5] > '9') || (szOperand[uiOperand - 1] != ']'))
+	{
+		return false;
+	}
+	*piOffset = atoi(&szOperand[5]);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is an instruction: it starts with two tabs and isn't a
+// directive (".width").  Labels start in the first column.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsInstruction(const char* szLine)
+{
+	return (szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] != '.');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction at szLine (a line starting with two tabs, ending at a new
+// line or the end) decoded: its mnemonic, what is known of it and its
+// operand (less a IR816_KEEP_IN_A mark).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816Decode(const char* szLine, SIR816Line* psLine)
+{
+	const char*	szEnd;
+	size		uiLength;
+	size		uiMark;
+	int			i;
+
+	szEnd = strchr(szLine, '\n');
+	uiLength = szEnd ? (size)(szEnd - szLine) : StrLen(szLine);
+	uiMark = StrLen(IR816_KEEP_IN_A);
+	psLine->bMarked = (uiLength >= uiMark) && (strncmp(szLine + uiLength - uiMark, IR816_KEEP_IN_A, uiMark) == 0);
+	if (psLine->bMarked)
+	{
+		uiLength -= uiMark;
+	}
+	for (i = 0; (i < 7) && (2 + (size)i < uiLength) && (szLine[2 + i] != ' '); i++)
+	{
+		psLine->szMnemonic[i] = szLine[2 + i];
+	}
+	psLine->szMnemonic[i] = '\0';
+	psLine->szOperand = szLine + 2 + i + ((2 + (size)i < uiLength) ? 1 : 0);
+	psLine->uiOperand = (size)(szLine + uiLength - psLine->szOperand);
+	psLine->uiMnemonic = IR816FindMnemonic(psLine->szMnemonic);
+	psLine->uiFlags = (psLine->uiMnemonic != IR816M_Unknown) ? gasIR816Mnemonics[psLine->uiMnemonic].uiFlags : IR816UnknownFlags(psLine->szMnemonic);
+	psLine->iOffset = 0;
+	psLine->bDirect = IR816IsDirect(psLine->szOperand, psLine->uiOperand, &psLine->iOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of a split function (PeepholeBranches) decoded, when it may be an
+// instruction (it starts with a tab and has a mnemonic's room).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816DecodeLine(CChars* psz, SIR816Line* psLine)
+{
+	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
+	{
+		return false;
+	}
+	IR816Decode(psz->Text(), psLine);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line of a split function is an instruction with any of the
+// IR816MF_ bits in uiFlags.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LineHas(CChars* psz, uint32 uiFlags)
+{
+	SIR816Line	sLine;
+
+	return IR816DecodeLine(psz, &sLine) && ((sLine.uiFlags & uiFlags) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the operand is the accumulator ("asl A").
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816OperandIsA(SIR816Line* psLine)
+{
+	return (psLine->uiOperand == 1) && (psLine->szOperand[0] == 'A');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the instruction's operand is exactly szOperand (uiOperand long).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand)
+{
+	return (psLine->uiOperand == uiOperand) && (strncmp(psLine->szOperand, szOperand, uiOperand) == 0);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The end of the last label line after the line ending at szEnd (labels
@@ -3421,24 +3659,15 @@ static const char* IR816SkipLabels(const char* szEnd)
 //////////////////////////////////////////////////////////////////////////
 static bool IR816BranchesOnZN(const char* szEnd)
 {
+	SIR816Line	sLine;
+
 	szEnd = IR816SkipLabels(szEnd);
-	if (*szEnd != '\n')
+	if ((*szEnd != '\n') || !IR816IsInstruction(szEnd + 1))
 	{
 		return false;
 	}
-	szEnd++;
-	return (strncmp(szEnd, "\t\tbeq", 5) == 0) || (strncmp(szEnd, "\t\tbne", 5) == 0) || (strncmp(szEnd, "\t\tbpl", 5) == 0) || (strncmp(szEnd, "\t\tbmi", 5) == 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the line at szLine is a branch on the carry.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816BranchesOnCarry(const char* szLine)
-{
-	return (strncmp(szLine, "\t\tbcc", 5) == 0) || (strncmp(szLine, "\t\tbcs", 5) == 0);
+	IR816Decode(szEnd + 1, &sLine);
+	return (sLine.uiFlags & IR816MF_BRANCH_ZN) != 0;
 }
 
 
@@ -3475,16 +3704,18 @@ static const char* IR816NextInstruction(const char* szLine)
 static bool IR816CarryReadAt(const char* szLine)
 {
 	const char*	szEnd;
+	SIR816Line	sLine;
 
 	for (szLine = IR816NextInstruction(szLine); szLine; szLine = IR816NextInstruction(szEnd + 1))
 	{
-		if (IR816BranchesOnCarry(szLine))
+		IR816Decode(szLine, &sLine);
+		if (sLine.uiFlags & IR816MF_BRANCH_C)
 		{
 			return true;
 		}
-		if ((strncmp(szLine, "\t\tbeq", 5) != 0) && (strncmp(szLine, "\t\tbne", 5) != 0) && (strncmp(szLine, "\t\tbmi", 5) != 0) &&
-			(strncmp(szLine, "\t\tbpl", 5) != 0) && (strncmp(szLine, "\t\tbvs", 5) != 0) && (strncmp(szLine, "\t\tbvc", 5) != 0))
+		if (!(sLine.uiFlags & IR816MF_BRANCH) || (sLine.uiFlags & IR816MF_ENDS_FLOW) || (sLine.uiMnemonic == IR816M_Unknown))
 		{
+			//Not a conditional branch.
 			return false;
 		}
 		szEnd = strchr(szLine, '\n');
@@ -3543,55 +3774,16 @@ static bool IR816CarryReadAfterBranch(const char* szText, const char* szEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the mnemonic sets N and Z from all of A (as wide as it is).
+// Whether the instruction sets N and Z from all of A (as wide as it is).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SetsZNFromA(const char* szMnemonic, const char* szOperand, size uiOperand)
+static bool IR816SetsZNFromA(SIR816Line* psLine)
 {
-	static const char*	aszMnemonics[] = { "lda", "and", "ora", "eor", "adc", "sbc", "txa", "tya", "tdc", "pla", NULL };
-	int					i;
-
-	for (i = 0; aszMnemonics[i]; i++)
+	if (psLine->uiFlags & IR816MF_ZN_FROM_A)
 	{
-		if (strcmp(szMnemonic, aszMnemonics[i]) == 0)
-		{
-			return true;
-		}
+		return true;
 	}
-	if ((uiOperand == 1) && (szOperand[0] == 'A'))
-	{
-		return (strcmp(szMnemonic, "asl") == 0) || (strcmp(szMnemonic, "lsr") == 0) || (strcmp(szMnemonic, "rol") == 0) ||
-			   (strcmp(szMnemonic, "ror") == 0) || (strcmp(szMnemonic, "inc") == 0) || (strcmp(szMnemonic, "dec") == 0);
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The mnemonic of the instruction at szLine (a line starting with two tabs)
-// into szMnemonic, and its operand (to the end of the line, less a mark).
-//
-//////////////////////////////////////////////////////////////////////////
-static void IR816SplitLine(const char* szLine, char* szMnemonic, const char** pszOperand, size* puiOperand)
-{
-	const char*	szEnd;
-	size		uiLength;
-	int			i;
-
-	szEnd = strchr(szLine, '\n');
-	uiLength = szEnd ? (size)(szEnd - szLine) : strlen(szLine);
-	if ((uiLength >= strlen(IR816_KEEP_IN_A)) && (strncmp(szLine + uiLength - strlen(IR816_KEEP_IN_A), IR816_KEEP_IN_A, strlen(IR816_KEEP_IN_A)) == 0))
-	{
-		uiLength -= strlen(IR816_KEEP_IN_A);
-	}
-	for (i = 0; (i < 7) && (2 + (size)i < uiLength) && (szLine[2 + i] != ' '); i++)
-	{
-		szMnemonic[i] = szLine[2 + i];
-	}
-	szMnemonic[i] = '\0';
-	*pszOperand = szLine + 2 + i + ((2 + (size)i < uiLength) ? 1 : 0);
-	*puiOperand = (size)(szLine + uiLength - *pszOperand);
+	return (psLine->uiFlags & IR816MF_SHIFT_STEP) && IR816OperandIsA(psLine);
 }
 
 
@@ -3608,29 +3800,25 @@ static bool IR816IsLabel(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a line is a branch (bra or a conditional one) to a label: its
-// mnemonic and label (without the colon).
+// Whether a line is a branch (bra or a conditional one) to a label: the
+// line decoded and its label (without the colon).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BranchLine(CChars* psz, char* szMnemonic, char* szLabel)
+static bool IR816BranchLine(CChars* psz, SIR816Line* psLine, char* szLabel)
 {
-	const char*	szOperand;
-	size		uiOperand;
-	size		ui;
+	size	ui;
 
-	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
+	if (!IR816DecodeLine(psz, psLine))
 	{
 		return false;
 	}
-	IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
-	if ((szMnemonic[0] != 'b') || (strlen(szMnemonic) != 3) || (strcmp(szMnemonic, "brk") == 0) || (strcmp(szMnemonic, "bit") == 0) ||
-		(uiOperand < 2) || (uiOperand > 30) || (szOperand[0] != 'L'))
+	if (!(psLine->uiFlags & IR816MF_BRANCH) || (psLine->uiOperand < 2) || (psLine->uiOperand > 30) || (psLine->szOperand[0] != 'L'))
 	{
 		return false;
 	}
-	for (ui = 0; (ui < uiOperand) && (szOperand[ui] != ' '); ui++)
+	for (ui = 0; (ui < psLine->uiOperand) && (psLine->szOperand[ui] != ' '); ui++)
 	{
-		szLabel[ui] = szOperand[ui];
+		szLabel[ui] = psLine->szOperand[ui];
 	}
 	szLabel[ui] = '\0';
 	return true;
@@ -3639,19 +3827,18 @@ static bool IR816BranchLine(CChars* psz, char* szMnemonic, char* szLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The branch that goes when szMnemonic's doesn't, or NULL.
+// The branch that goes when uiMnemonic's doesn't, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-static const char* IR816InvertedBranch(const char* szMnemonic)
+static const char* IR816InvertedBranch(uint16 uiMnemonic)
 {
-	static const char*	aszPairs[] = { "bcc", "bcs", "beq", "bne", "bmi", "bpl", "bvc", "bvs" };
-	int					i;
+	int	i;
 
 	for (i = 0; i < 8; i++)
 	{
-		if (strcmp(szMnemonic, aszPairs[i]) == 0)
+		if (gauiIR816InvertedBranches[i] == uiMnemonic)
 		{
-			return aszPairs[i ^ 1];
+			return gasIR816Mnemonics[gauiIR816InvertedBranches[i ^ 1]].szName;
 		}
 	}
 	return NULL;
@@ -3670,7 +3857,7 @@ static bool IR816LabelFollows(CArrayChars* paszLines, size uiFrom, const char* s
 	size	uiLength;
 	CChars*	psz;
 
-	uiLength = strlen(szLabel);
+	uiLength = StrLen(szLabel);
 	for (ui = uiFrom; (ui < paszLines->NumElements()) && IR816IsLabel(paszLines->Get(ui)); ui++)
 	{
 		psz = paszLines->Get(ui);
@@ -3694,7 +3881,7 @@ static size IR816LabelledInstruction(CArrayChars* paszLines, const char* szLabel
 	size	uiLength;
 	CChars*	psz;
 
-	uiLength = strlen(szLabel);
+	uiLength = StrLen(szLabel);
 	for (ui = 0; ui < paszLines->NumElements(); ui++)
 	{
 		psz = paszLines->Get(ui);
@@ -3712,39 +3899,28 @@ static size IR816LabelledInstruction(CArrayChars* paszLines, const char* szLabel
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a line's mnemonic is one of aszMnemonics (NULL terminated).
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816LineIsOneOf(CChars* psz, const char** aszMnemonics)
-{
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-	int			i;
-
-	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
-	{
-		return false;
-	}
-	IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
-	for (i = 0; aszMnemonics[i]; i++)
-	{
-		if (strcmp(szMnemonic, aszMnemonics[i]) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Whether c may be part of a label's name.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816IsNameCharacter(char c)
 {
 	return ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A decimal constant operand.  The 0x and 0b constants the backend writes
+// for masks and sign flips are not taken as plain constants.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsDecimal(const char* szOperand)
+{
+	if ((szOperand[0] < '0') || (szOperand[0] > '9'))
+	{
+		return false;
+	}
+	return !((szOperand[0] == '0') && ((szOperand[1] == 'x') || (szOperand[1] == 'b')));
 }
 
 
@@ -3782,22 +3958,21 @@ static bool IR816LabelUsed(CArrayChars* paszLines, CChars* pszLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Removes the instructions after a bra, brl, jml, rtl or stp up to a label
-// other than an unused local one (IR816LabelUsed), which go too.  True if
-// any did.
+// Removes the instructions after a bra, brl, jml, jmp, rtl, rts or stp
+// (IR816MF_ENDS_FLOW) up to a label other than an unused local one
+// (IR816LabelUsed), which go too.  True if any did.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816Unreachable(CArrayChars* paszLines)
 {
-	static const char*	aszEnds[] = { "bra", "brl", "jml", "jmp", "rtl", "rts", "stp", NULL };
-	size				ui;
-	CChars*				psz;
-	bool				bChanged;
+	size	ui;
+	CChars*	psz;
+	bool	bChanged;
 
 	bChanged = false;
 	for (ui = 0; ui + 1 < paszLines->NumElements(); ui++)
 	{
-		if (!IR816LineIsOneOf(paszLines->Get(ui), aszEnds))
+		if (!IR816LineHas(paszLines->Get(ui), IR816MF_ENDS_FLOW))
 		{
 			continue;
 		}
@@ -3823,27 +3998,34 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether what runs from line uiFrom on (past labels, following bras, past
-// instructions in aszIgnoreA) starts with an instruction in aszSetsA: it
-// sets A and N and Z, so a value in A and its flags aren't read.
+// clc, sec, ldx, ldy, inx, iny, dex, dey, stx, sty and stz) starts with an
+// instruction that sets all of A (IR816MF_LOADS_A) and N and Z, so a value
+// in A and its flags aren't read.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom, const char** aszSetsA, const char** aszIgnoreA)
+static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom)
 {
-	size	ui;
-	size	uiTarget;
-	int		iSteps;
-	char	szMnemonic[8];
-	char	szLabel[32];
+	size		ui;
+	size		uiTarget;
+	int			iSteps;
+	SIR816Line	sLine;
+	char		szLabel[32];
 
 	ui = uiFrom;
 	for (iSteps = 0; (iSteps < 32) && (ui < paszLines->NumElements()); iSteps++)
 	{
-		if (IR816IsLabel(paszLines->Get(ui)) || IR816LineIsOneOf(paszLines->Get(ui), aszIgnoreA))
+		if (IR816IsLabel(paszLines->Get(ui)))
 		{
 			ui++;
 			continue;
 		}
-		if (IR816BranchLine(paszLines->Get(ui), szMnemonic, szLabel) && (strcmp(szMnemonic, "bra") == 0))
+		if (IR816DecodeLine(paszLines->Get(ui), &sLine) &&
+			((sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STEP_INDEX)) || ((sLine.uiFlags & IR816MF_STORE) && !(sLine.uiFlags & IR816MF_READS_A))))
+		{
+			ui++;
+			continue;
+		}
+		if (IR816BranchLine(paszLines->Get(ui), &sLine, szLabel) && (sLine.uiMnemonic == IR816M_Bra))
 		{
 			uiTarget = IR816LabelledInstruction(paszLines, szLabel);
 			if (uiTarget == (size)-1)
@@ -3853,7 +4035,7 @@ static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom, const char** as
 			ui = uiTarget;
 			continue;
 		}
-		return IR816LineIsOneOf(paszLines->Get(ui), aszSetsA);
+		return IR816LineHas(paszLines->Get(ui), IR816MF_LOADS_A);
 	}
 	return false;
 }
@@ -3869,29 +4051,42 @@ static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom, const char** as
 //////////////////////////////////////////////////////////////////////////
 static bool IR816SetsXFirst(CArrayChars* paszLines, size uiFrom)
 {
-	static const char*	aszKeepX[] = { "lda", "sta", "stz", "clc", "sec", "adc", "sbc", "and", "ora", "eor", "cmp", "bit", "ldy", "sty", "tay", "tya", "sep", "rep",
-										"asl", "lsr", "rol", "ror", "inc", "dec", "iny", "dey", "cpy", NULL };
-	static const char*	aszSetsX[] = { "tax", "ldx", "plx", NULL };
-	size				ui;
-	CChars*				psz;
+	size		ui;
+	CChars*		psz;
+	SIR816Line	sLine;
 
 	for (ui = uiFrom; ui < paszLines->NumElements(); ui++)
 	{
 		psz = paszLines->Get(ui);
-		if ((psz->Length() < 3) || (psz->Text()[0] != '\t') || (strstr(psz->Text(), "X]") != NULL) || (strstr(psz->Text(), ", X") != NULL))
+		if (!IR816DecodeLine(psz, &sLine) || (strstr(psz->Text(), "X]") != NULL) || (strstr(psz->Text(), ", X") != NULL))
 		{
 			return false;
 		}
-		if (IR816LineIsOneOf(psz, aszSetsX))
+		if ((sLine.uiFlags & IR816MF_WRITES_X) && (sLine.uiMnemonic != IR816M_Tyx))
 		{
 			return true;
 		}
-		if (!IR816LineIsOneOf(psz, aszKeepX))
+		if (!(sLine.uiFlags & (IR816MF_A_ALU | IR816MF_Y_ALU | IR816MF_CARRY | IR816MF_WIDTH | IR816MF_SHIFT_STEP)) && (sLine.uiMnemonic != IR816M_Stz))
 		{
 			return false;
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes a branch line, "\t\tszMnemonic szLabel", over psz.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816SetBranch(CChars* psz, const char* szMnemonic, const char* szLabel)
+{
+	psz->Clear();
+	psz->Append("\t\t");
+	psz->Append(szMnemonic);
+	psz->Append(" ");
+	psz->Append(szLabel);
 }
 
 
@@ -3912,24 +4107,19 @@ static bool IR816SetsXFirst(CArrayChars* paszLines, size uiFrom)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 {
-	static const char*	aszSetsA[] = { "lda", "txa", "tya", "pla", "tdc", "tsc", NULL };
-	static const char*	aszIgnoreA[] = { "clc", "sec", "ldx", "ldy", "inx", "iny", "dex", "dey", "stz", "stx", "sty", NULL };
-	static const char*	aszKeepsXY[] = { "lda", "sta", "and", "ora", "eor", "adc", "sbc", "cmp", "sep", "rep", "clc", "sec", NULL };
-	CArrayChars			aszLines;
-	CChars				szOut;
-	CChars*				psz;
-	char				szMnemonic[8];
-	char				szLabel[32];
-	char				szMnemonic2[8];
-	char				szLabel2[32];
-	char				szMnemonic3[8];
-	char				szLabel3[32];
-	const char*			szOperand;
-	size				uiOperand;
-	size				ui;
-	size				uiTarget;
-	int					iPass;
-	bool				bChanged;
+	CArrayChars		aszLines;
+	CChars			szOut;
+	CChars*			psz;
+	SIR816Line		sLine;
+	SIR816Line		sLine2;
+	SIR816Line		sLine3;
+	char			szLabel[32];
+	char			szLabel2[32];
+	char			szLabel3[32];
+	size			ui;
+	size			uiTarget;
+	int				iPass;
+	bool			bChanged;
 
 	aszLines.Init();
 	aszLines.Split(pszDest->Text() + uiStart, '\n');
@@ -3943,24 +4133,20 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 		for (ui = 0; ui < aszLines.NumElements(); ui++)
 		{
 			psz = aszLines.Get(ui);
-			if (IR816BranchLine(psz, szMnemonic, szLabel))
+			if (IR816BranchLine(psz, &sLine, szLabel))
 			{
 				//To a bra: straight to where it goes.
 				uiTarget = IR816LabelledInstruction(&aszLines, szLabel);
-				if ((uiTarget != (size)-1) && IR816BranchLine(aszLines.Get(uiTarget), szMnemonic2, szLabel2) && (strcmp(szMnemonic2, "bra") == 0) &&
-					(strcmp(szLabel2, szLabel) != 0))
+				if ((uiTarget != (size)-1) && IR816BranchLine(aszLines.Get(uiTarget), &sLine2, szLabel2) && (sLine2.uiMnemonic == IR816M_Bra) &&
+					(StringCompare(szLabel2, szLabel) != 0))
 				{
-					psz->Clear();
-					psz->Append("\t\t");
-					psz->Append(szMnemonic);
-					psz->Append(" ");
-					psz->Append(szLabel2);
+					IR816SetBranch(psz, sLine.szMnemonic, szLabel2);
 					bChanged = true;
 					continue;
 				}
 
 				//A bra to the next label.
-				if ((strcmp(szMnemonic, "bra") == 0) && IR816LabelFollows(&aszLines, ui + 1, szLabel))
+				if ((sLine.uiMnemonic == IR816M_Bra) && IR816LabelFollows(&aszLines, ui + 1, szLabel))
 				{
 					aszLines.Remove(ui);
 					ui--;
@@ -3969,49 +4155,33 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 				}
 
 				//Bcc X, bra Y, X:
-				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(szMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
-					(strcmp(szMnemonic2, "bra") == 0) && IR816LabelFollows(&aszLines, ui + 2, szLabel))
+				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(sLine.uiMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), &sLine2, szLabel2) &&
+					(sLine2.uiMnemonic == IR816M_Bra) && IR816LabelFollows(&aszLines, ui + 2, szLabel))
 				{
-					psz->Clear();
-					psz->Append("\t\t");
-					psz->Append(IR816InvertedBranch(szMnemonic));
-					psz->Append(" ");
-					psz->Append(szLabel2);
+					IR816SetBranch(psz, IR816InvertedBranch(sLine.uiMnemonic), szLabel2);
 					aszLines.Remove(ui + 1);
 					bChanged = true;
 					continue;
 				}
 
 				//Bcc X, bra Y round a loop (JumpTo marked it) is B!cc Y, bra X: going round, the usual way, is one branch taken.
-				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(szMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
-					(strcmp(szMnemonic2, "bra") == 0) && aszLines.Get(ui + 1)->EndsWith(IR816_ROUND) && (strcmp(szLabel, szLabel2) != 0))
+				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(sLine.uiMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), &sLine2, szLabel2) &&
+					(sLine2.uiMnemonic == IR816M_Bra) && aszLines.Get(ui + 1)->EndsWith(IR816_ROUND) && (StringCompare(szLabel, szLabel2) != 0))
 				{
-					psz->Clear();
-					psz->Append("\t\t");
-					psz->Append(IR816InvertedBranch(szMnemonic));
-					psz->Append(" ");
-					psz->Append(szLabel2);
-					psz = aszLines.Get(ui + 1);
-					psz->Clear();
-					psz->Append("\t\tbra ");
-					psz->Append(szLabel);
+					IR816SetBranch(psz, IR816InvertedBranch(sLine.uiMnemonic), szLabel2);
+					IR816SetBranch(aszLines.Get(ui + 1), "bra", szLabel);
 					bChanged = true;
 					continue;
 				}
 
 				//bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y, X:.
-				if ((ui + 2 < aszLines.NumElements()) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
-					IR816BranchLine(aszLines.Get(ui + 2), szMnemonic3, szLabel3) && (strcmp(szMnemonic3, "bra") == 0) && (strcmp(szLabel, szLabel2) == 0) &&
-					(((strcmp(szMnemonic, "bcc") == 0) && (strcmp(szMnemonic2, "beq") == 0)) || ((strcmp(szMnemonic, "beq") == 0) && (strcmp(szMnemonic2, "bcc") == 0))) &&
+				if ((ui + 2 < aszLines.NumElements()) && IR816BranchLine(aszLines.Get(ui + 1), &sLine2, szLabel2) &&
+					IR816BranchLine(aszLines.Get(ui + 2), &sLine3, szLabel3) && (sLine3.uiMnemonic == IR816M_Bra) && (StringCompare(szLabel, szLabel2) == 0) &&
+					(((sLine.uiMnemonic == IR816M_Bcc) && (sLine2.uiMnemonic == IR816M_Beq)) || ((sLine.uiMnemonic == IR816M_Beq) && (sLine2.uiMnemonic == IR816M_Bcc))) &&
 					IR816LabelFollows(&aszLines, ui + 3, szLabel))
 				{
-					psz->Clear();
-					psz->Append("\t\tbeq ");
-					psz->Append(szLabel);
-					psz = aszLines.Get(ui + 1);
-					psz->Clear();
-					psz->Append("\t\tbcs ");
-					psz->Append(szLabel3);
+					IR816SetBranch(psz, "beq", szLabel);
+					IR816SetBranch(aszLines.Get(ui + 1), "bcs", szLabel3);
 					aszLines.Remove(ui + 2);
 					bChanged = true;
 					continue;
@@ -4020,11 +4190,10 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 			}
 
 			//An lda (of a direct page word or a constant) for nothing: what runs next sets A before reading A or N and Z.
-			if ((psz->Length() > 3) && (psz->Text()[0] == '\t'))
+			if ((psz->Length() > 3) && IR816DecodeLine(psz, &sLine))
 			{
-				IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
-				if ((strcmp(szMnemonic, "lda") == 0) && ((strncmp(szOperand, "[D + ", 5) == 0) || ((szOperand[0] >= '0') && (szOperand[0] <= '9'))) &&
-					IR816SetsAFirst(&aszLines, ui + 1, aszSetsA, aszIgnoreA))
+				if ((sLine.uiMnemonic == IR816M_Lda) && ((strncmp(sLine.szOperand, "[D + ", 5) == 0) || IR816IsDecimal(sLine.szOperand)) &&
+					IR816SetsAFirst(&aszLines, ui + 1))
 				{
 					aszLines.Remove(ui);
 					ui--;
@@ -4034,7 +4203,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 			}
 
 			//A tax for nothing: X is written again before anything reads it.
-			if ((strcmp(psz->Text(), "\t\ttax") == 0) && IR816SetsXFirst(&aszLines, ui + 1))
+			if (psz->Equals("\t\ttax") && IR816SetsXFirst(&aszLines, ui + 1))
 			{
 				aszLines.Remove(ui);
 				ui--;
@@ -4044,13 +4213,12 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 
 			//tax then txa, or txa then tax, with only clc or sec between: A and X hold the same already (and N and Z
 			//are as the first set them).
-			if ((strcmp(psz->Text(), "\t\ttax") == 0) || (strcmp(psz->Text(), "\t\ttxa") == 0))
+			if (psz->Equals("\t\ttax") || psz->Equals("\t\ttxa"))
 			{
-				for (uiTarget = ui + 1; (uiTarget < aszLines.NumElements()) &&
-					((strcmp(aszLines.GetText(uiTarget), "\t\tclc") == 0) || (strcmp(aszLines.GetText(uiTarget), "\t\tsec") == 0)); uiTarget++)
+				for (uiTarget = ui + 1; (uiTarget < aszLines.NumElements()) && (aszLines.Get(uiTarget)->Equals("\t\tclc") || aszLines.Get(uiTarget)->Equals("\t\tsec")); uiTarget++)
 				{
 				}
-				if ((uiTarget < aszLines.NumElements()) && (strcmp(aszLines.GetText(uiTarget), (psz->Text()[3] == 'a') ? "\t\ttxa" : "\t\ttax") == 0))
+				if ((uiTarget < aszLines.NumElements()) && aszLines.Get(uiTarget)->Equals((psz->Text()[3] == 'a') ? "\t\ttxa" : "\t\ttax"))
 				{
 					aszLines.Remove(uiTarget);
 					bChanged = true;
@@ -4058,9 +4226,10 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 				}
 			}
 
-			//txy, an instruction that keeps X and Y, txy.
-			if ((ui + 2 < aszLines.NumElements()) && (strcmp(psz->Text(), "\t\ttxy") == 0) && IR816LineIsOneOf(aszLines.Get(ui + 1), aszKeepsXY) &&
-				(strcmp(aszLines.Get(ui + 2)->Text(), "\t\ttxy") == 0))
+			//txy, an instruction that keeps X and Y (lda, sta, and, ora, eor, adc, sbc, cmp, sep, rep, clc or sec), txy.
+			if ((ui + 2 < aszLines.NumElements()) && psz->Equals("\t\ttxy") && IR816DecodeLine(aszLines.Get(ui + 1), &sLine) &&
+				(((sLine.uiFlags & IR816MF_A_ALU) && (sLine.uiMnemonic != IR816M_Bit)) || (sLine.uiFlags & (IR816MF_WIDTH | IR816MF_CARRY))) &&
+				aszLines.Get(ui + 2)->Equals("\t\ttxy"))
 			{
 				aszLines.Remove(ui + 2);
 				bChanged = true;
@@ -4080,7 +4249,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 		psz = aszLines.Get(ui);
 		if (psz->EndsWith(IR816_ROUND))
 		{
-			psz->RemoveFromEnd(strlen(IR816_ROUND));
+			psz->RemoveFromEnd(StrLen(IR816_ROUND));
 		}
 		szOut.Append(psz);
 		szOut.AppendNewLine();
@@ -4108,31 +4277,41 @@ static const char* IR816NextLine(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The end of the line at szLine: its new line, or the end of the text.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816LineEnd(const char* szLine)
+{
+	const char*	szEnd;
+
+	szEnd = strchr(szLine, '\n');
+	return szEnd ? szEnd : szLine + StrLen(szLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether N or Z may be read after the line at szLine before an
-// instruction sets them again (stores and pushes don't; a label or the
-// end might lead to a read).
+// instruction sets them again (stores, register pushes, clc and sec don't;
+// a label or the end might lead to a read).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816ZNReadAfter(const char* szLine)
 {
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
+	SIR816Line	sLine;
 
 	for (szLine = IR816NextLine(szLine); szLine; szLine = IR816NextLine(szLine))
 	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		if (!IR816IsInstruction(szLine))
 		{
 			return true;
 		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((strcmp(szMnemonic, "beq") == 0) || (strcmp(szMnemonic, "bne") == 0) || (strcmp(szMnemonic, "bmi") == 0) || (strcmp(szMnemonic, "bpl") == 0))
+		IR816Decode(szLine, &sLine);
+		if (sLine.uiFlags & IR816MF_BRANCH_ZN)
 		{
 			return true;
 		}
-		if ((strcmp(szMnemonic, "sta") != 0) && (strcmp(szMnemonic, "stx") != 0) && (strcmp(szMnemonic, "sty") != 0) &&
-			(strcmp(szMnemonic, "stz") != 0) && (strcmp(szMnemonic, "pha") != 0) && (strcmp(szMnemonic, "phx") != 0) &&
-			(strcmp(szMnemonic, "phy") != 0) && (strcmp(szMnemonic, "clc") != 0) && (strcmp(szMnemonic, "sec") != 0))
+		if (!(sLine.uiFlags & (IR816MF_STORE | IR816MF_PUSH_REGISTER | IR816MF_CARRY)))
 		{
 			return false;
 		}
@@ -4143,41 +4322,67 @@ static bool IR816ZNReadAfter(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the "and $FF" before szLine is done for nothing: A's low byte is
-// all that is used before the next "and $FF" masks it again, as only clc,
+// Whether the carry may be read after the line at szLine before an
+// instruction sets it again without reading it (a label, a directive, a
+// branch, a jump, a return, a width change or the end might lead to a
+// read).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816CarryReadLater(const char* szLine)
+{
+	SIR816Line	sLine;
+
+	for (szLine = IR816NextLine(szLine); szLine && *szLine; szLine = IR816NextLine(szLine))
+	{
+		if (!IR816IsInstruction(szLine))
+		{
+			return true;
+		}
+		IR816Decode(szLine, &sLine);
+		if ((sLine.uiFlags & IR816MF_SETS_CARRY) && !(sLine.uiFlags & IR816MF_READS_CARRY))
+		{
+			return false;
+		}
+		if (sLine.uiFlags & (IR816MF_LEAVES | IR816MF_READS_CARRY | IR816MF_WIDTH))
+		{
+			return true;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the "and 0xFF" before szLine is done for nothing: A's low byte is
+// all that is used before the next "and 0xFF" masks it again, as only clc,
 // sec, adc, sbc, ora, eor, and and asl A come between (their low bytes
 // don't depend on the high bytes), and the carry those leave isn't read
 // after it (IR816CarryReadLater).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816CarryReadLater(const char* szLine);
-
-
 static bool IR816MaskRedone(const char* szLine)
 {
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
+	SIR816Line	sLine;
 	bool		bCarry;
 
 	bCarry = false;
 	for (; szLine && *szLine; szLine = IR816NextLine(szLine))
 	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		if (!IR816IsInstruction(szLine))
 		{
 			return false;
 		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((strcmp(szMnemonic, "and") == 0) && (uiOperand == 3) && (strncmp(szOperand, "$FF", 3) == 0))
+		IR816Decode(szLine, &sLine);
+		if ((sLine.uiMnemonic == IR816M_And) && IR816OperandIs(&sLine, "0xFF", 4))
 		{
 			return !bCarry || !IR816CarryReadLater(szLine);
 		}
-		if ((strcmp(szMnemonic, "adc") == 0) || (strcmp(szMnemonic, "sbc") == 0) || ((strcmp(szMnemonic, "asl") == 0) && (uiOperand == 1) && (szOperand[0] == 'A')))
+		if ((sLine.uiMnemonic == IR816M_Adc) || (sLine.uiMnemonic == IR816M_Sbc) || ((sLine.uiMnemonic == IR816M_Asl) && IR816OperandIsA(&sLine)))
 		{
 			bCarry = true;
 		}
-		else if ((strcmp(szMnemonic, "clc") != 0) && (strcmp(szMnemonic, "sec") != 0) && (strcmp(szMnemonic, "ora") != 0) &&
-				 (strcmp(szMnemonic, "eor") != 0) && (strcmp(szMnemonic, "and") != 0))
+		else if (!(sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOGIC)))
 		{
 			return false;
 		}
@@ -4188,231 +4393,20 @@ static bool IR816MaskRedone(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the carry may be read after the line at szLine before an
-// instruction sets it again (a label, a directive, a branch or the end
-// might lead to a read).
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816CarryReadLater(const char* szLine)
-{
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-
-	for (szLine = IR816NextLine(szLine); szLine && *szLine; szLine = IR816NextLine(szLine))
-	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
-		{
-			return true;
-		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((strcmp(szMnemonic, "clc") == 0) || (strcmp(szMnemonic, "sec") == 0) || (strcmp(szMnemonic, "cmp") == 0) ||
-			(strcmp(szMnemonic, "cpx") == 0) || (strcmp(szMnemonic, "cpy") == 0) || (strcmp(szMnemonic, "asl") == 0) || (strcmp(szMnemonic, "lsr") == 0))
-		{
-			return false;
-		}
-		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "adc") == 0) ||
-			(strcmp(szMnemonic, "sbc") == 0) || (strcmp(szMnemonic, "rol") == 0) || (strcmp(szMnemonic, "ror") == 0) ||
-			(strcmp(szMnemonic, "rep") == 0) || (strcmp(szMnemonic, "sep") == 0) || (strcmp(szMnemonic, "php") == 0) ||
-			(strcmp(szMnemonic, "xce") == 0))
-		{
-			return true;
-		}
-	}
-	return true;
-}
-
-
-static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord);
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the line at szLine is "szMnemonic szOperand" (szOperand as long
+// Whether the line at szLine is "uiMnemonic szOperand" (szOperand as long
 // as uiOperand).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816LineIs(const char* szLine, const char* szMnemonic, const char* szOperand, size uiOperand)
+static bool IR816LineIs(const char* szLine, uint16 uiMnemonic, const char* szOperand, size uiOperand)
 {
-	char		szFound[8];
-	const char*	szFoundOperand;
-	size		uiFoundOperand;
+	SIR816Line	sLine;
 
-	if (!szLine || (szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+	if (!szLine || !IR816IsInstruction(szLine))
 	{
 		return false;
 	}
-	IR816SplitLine(szLine, szFound, &szFoundOperand, &uiFoundOperand);
-	return (strcmp(szFound, szMnemonic) == 0) && (uiFoundOperand == uiOperand) && (strncmp(szFoundOperand, szOperand, uiOperand) == 0);
-}
-
-
-static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c);
-static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an instruction reads or writes Y: a transfer, load, store, step,
-// compare, push or pull of it, a block move, or a Y indexed operand.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816UsesY(const char* szMnemonic, const char* szOperand, size uiOperand)
-{
-	static const char*	aszY[] = { "tay", "tya", "tyx", "txy", "ldy", "sty", "iny", "dey", "cpy", "phy", "ply", "mvn", "mvp", "jsl", "jsr", NULL };
-	size				ui;
-
-	for (ui = 0; aszY[ui]; ui++)
-	{
-		if (strcmp(szMnemonic, aszY[ui]) == 0)
-		{
-			return true;
-		}
-	}
-	return IR816IndexedBy(szOperand, uiOperand, 'Y');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The line "ldy w" after szLine (not the next line), when the lines from
-// szLine to it are straight line code that neither uses Y nor names a byte
-// near w; else NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816LoadYLater(const char* szLine, const char* szWord, size uiWord)
-{
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-	const char*	szFirst;
-
-	szFirst = szLine;
-	for (; szLine && *szLine; szLine = IR816NextLine(szLine))
-	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.') || !strchr(szLine, '\n'))
-		{
-			return NULL;
-		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((strcmp(szMnemonic, "ldy") == 0) && (uiOperand == uiWord) && (strncmp(szOperand, szWord, uiWord) == 0))
-		{
-			return (szLine == szFirst) ? NULL : szLine;
-		}
-		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "brk") == 0) ||
-			(strcmp(szMnemonic, "cop") == 0) || (strcmp(szMnemonic, "pld") == 0) || (strcmp(szMnemonic, "tcd") == 0) ||
-			IR816UsesY(szMnemonic, szOperand, uiOperand) || IR816MentionsNear(szOperand, uiOperand, atoi(szWord + 5)))
-		{
-			return NULL;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Stores of A to a direct page word w that the next lines read back,
-// after Peephole:
-//   sta w / dec w / lda w  ->  dec A / sta w  (inc the same)
-//   sta w / ldy w          ->  sta w / tay    (ldx: tax)
-// and the store is left out too when w is written again before it is read
-// (IR816DeadStore).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PeepholeStores(CChars* pszDest, size uiStart)
-{
-	CChars		szOut;
-	const char*	szLine;
-	const char*	szEnd;
-	const char*	szNext;
-	const char*	szAfter;
-	const char*	szOperand;
-	char		szMnemonic[8];
-	size		uiOperand;
-	bool		bDirect;
-
-	szOut.Init();
-	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
-	{
-		szEnd = strchr(szLine, '\n');
-		if (!szEnd)
-		{
-			szEnd = szLine + strlen(szLine);
-		}
-		bDirect = false;
-		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] != '.'))
-		{
-			IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-			bDirect = (strcmp(szMnemonic, "sta") == 0) && (uiOperand < 30) && (strncmp(szOperand, "[D + ", 5) == 0) && (szOperand[5] >= '0') &&
-					  (szOperand[5] <= '9') && (szOperand[uiOperand - 1] == ']') && (*szEnd == '\n');
-		}
-		szNext = bDirect ? IR816NextLine(szLine) : NULL;
-		if (szNext && (IR816LineIs(szNext, "dec", szOperand, uiOperand) || IR816LineIs(szNext, "inc", szOperand, uiOperand)) &&
-			IR816LineIs(IR816NextLine(szNext), "lda", szOperand, uiOperand))
-		{
-			szAfter = IR816NextLine(IR816NextLine(szNext));
-			if (!szAfter || !IR816DeadStore(szAfter, szOperand, uiOperand))
-			{
-				szOut.Append("\t\t")->Append((szNext[2] == 'd') ? "dec" : "inc")->Append(" A\n");
-				szOut.Append(szLine, (size)(szEnd - szLine));
-				szOut.AppendNewLine();
-			}
-			else
-			{
-				szOut.Append("\t\t")->Append((szNext[2] == 'd') ? "dec" : "inc")->Append(" A\n");
-			}
-			szEnd = strchr(IR816NextLine(szNext), '\n');
-			if (!szEnd)
-			{
-				szEnd = szLine + strlen(szLine);
-			}
-			continue;
-		}
-		szAfter = szNext ? IR816LoadYLater(szNext, szOperand, uiOperand) : NULL;
-		if (szAfter && !IR816ZNReadAfter(szLine) && !IR816ZNReadAfter(szAfter))
-		{
-			//sta w ... ldy w (Y and w untouched between): tay at once.
-			if (!IR816NextLine(szAfter) || !IR816DeadStore(IR816NextLine(szAfter), szOperand, uiOperand))
-			{
-				szOut.Append(szLine, (size)(szEnd - szLine));
-				szOut.AppendNewLine();
-			}
-			szOut.Append("\t\ttay\n");
-			for (szNext = IR816NextLine(szLine); szNext != szAfter; szNext = IR816NextLine(szNext))
-			{
-				szOut.Append(szNext, (size)(strchr(szNext, '\n') - szNext));
-				szOut.AppendNewLine();
-			}
-			szEnd = strchr(szAfter, '\n');
-			if (!szEnd)
-			{
-				szEnd = szAfter + strlen(szAfter);
-			}
-			continue;
-		}
-		if (szNext && (IR816LineIs(szNext, "ldy", szOperand, uiOperand) || IR816LineIs(szNext, "ldx", szOperand, uiOperand)))
-		{
-			szAfter = IR816NextLine(szNext);
-			if (!szAfter || !IR816DeadStore(szAfter, szOperand, uiOperand))
-			{
-				szOut.Append(szLine, (size)(szEnd - szLine));
-				szOut.AppendNewLine();
-			}
-			szOut.Append((szNext[4] == 'y') ? "\t\ttay\n" : "\t\ttax\n");
-			szEnd = strchr(szNext, '\n');
-			if (!szEnd)
-			{
-				szEnd = szNext + strlen(szNext);
-			}
-			continue;
-		}
-		szOut.Append(szLine, (size)(szEnd - szLine));
-		szOut.AppendNewLine();
-	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut);
-	szOut.Kill();
+	IR816Decode(szLine, &sLine);
+	return (sLine.uiMnemonic == uiMnemonic) && IR816OperandIs(&sLine, szOperand, uiOperand);
 }
 
 
@@ -4430,236 +4424,6 @@ static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c)
 		if (((szOperand[ui] == '+') || (szOperand[ui] == ',')) && (szOperand[ui + 1] == ' ') && (szOperand[ui + 2] == c))
 		{
 			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an instruction reads X: a transfer, store, step, compare or push
-// of it, or an X indexed operand.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816ReadsX(const char* szMnemonic, const char* szOperand, size uiOperand)
-{
-	static const char*	aszReadsX[] = { "txa", "txy", "stx", "inx", "dex", "cpx", "phx", "txs", "mvn", "mvp", NULL };
-	size				ui;
-
-	for (ui = 0; aszReadsX[ui]; ui++)
-	{
-		if (strcmp(szMnemonic, aszReadsX[ui]) == 0)
-		{
-			return true;
-		}
-	}
-	return IR816IndexedBy(szOperand, uiOperand, 'X');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an instruction reads or writes X or Y.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816UsesXOrY(const char* szMnemonic, const char* szOperand, size uiOperand)
-{
-	static const char*	aszXY[] = { "tax", "tyx", "tay", "tya", "ldx", "ldy", "sty", "iny", "dey", "cpy", "phy", "plx", "ply", "tsx", NULL };
-	size				ui;
-
-	for (ui = 0; aszXY[ui]; ui++)
-	{
-		if (strcmp(szMnemonic, aszXY[ui]) == 0)
-		{
-			return true;
-		}
-	}
-	return IR816ReadsX(szMnemonic, szOperand, uiOperand) || IR816IndexedBy(szOperand, uiOperand, 'Y');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether X is written before it is read after the line at szLine (tax,
-// ldx or plx first, in straight line code).
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816XDeadAfter(const char* szLine)
-{
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-
-	for (szLine = IR816NextLine(szLine); szLine && *szLine; szLine = IR816NextLine(szLine))
-	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
-		{
-			return false;
-		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if (IR816ReadsX(szMnemonic, szOperand, uiOperand))
-		{
-			return false;
-		}
-		if ((strcmp(szMnemonic, "tax") == 0) || (strcmp(szMnemonic, "ldx") == 0) || (strcmp(szMnemonic, "plx") == 0) || (strcmp(szMnemonic, "tyx") == 0))
-		{
-			return true;
-		}
-		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "brk") == 0) || (strcmp(szMnemonic, "cop") == 0))
-		{
-			return false;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// tax ... txy is tay ... when the instructions between don't use X or Y,
-// X is written again before it is read after the txy (IR816XDeadAfter)
-// and nothing reads the N and Z the txy set (IR816ZNReadAfter).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
-{
-	CChars		szOut;
-	const char*	szLine;
-	const char*	szEnd;
-	const char*	szScan;
-	const char*	szTransfer;
-	const char*	szOperand;
-	char		szMnemonic[8];
-	size		uiOperand;
-
-	szOut.Init();
-	szTransfer = NULL;
-	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
-	{
-		szEnd = strchr(szLine, '\n');
-		if (!szEnd)
-		{
-			szEnd = szLine + strlen(szLine);
-		}
-		if (szLine == szTransfer)
-		{
-			//The txy that the tay before made.
-			szTransfer = NULL;
-			continue;
-		}
-		if (!szTransfer && ((size)(szEnd - szLine) == 5) && (strncmp(szLine, "\t\ttax", 5) == 0) && (*szEnd == '\n'))
-		{
-			for (szScan = IR816NextLine(szLine); szScan && *szScan; szScan = IR816NextLine(szScan))
-			{
-				if ((szScan[0] != '\t') || (szScan[1] != '\t') || (szScan[2] == '.'))
-				{
-					break;
-				}
-				IR816SplitLine(szScan, szMnemonic, &szOperand, &uiOperand);
-				if (strcmp(szMnemonic, "txy") == 0)
-				{
-					if (IR816XDeadAfter(szScan) && !IR816ZNReadAfter(szScan))
-					{
-						szTransfer = szScan;
-					}
-					break;
-				}
-				if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || IR816UsesXOrY(szMnemonic, szOperand, uiOperand))
-				{
-					break;
-				}
-			}
-			if (szTransfer)
-			{
-				szOut.Append("\t\ttay\n");
-				continue;
-			}
-		}
-		szOut.Append(szLine, (size)(szEnd - szLine));
-		szOut.AppendNewLine();
-	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut);
-	szOut.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The "and $FF"s done for nothing (IR816MaskRedone) taken out of the code
-// from uiStart, after Peephole has kept values in A (so only the masking
-// is left between two masks).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PeepholeMasks(CChars* pszDest, size uiStart)
-{
-	CChars		szOut;
-	const char*	szLine;
-	const char*	szEnd;
-
-	szOut.Init();
-	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
-	{
-		szEnd = strchr(szLine, '\n');
-		if (!szEnd)
-		{
-			szEnd = szLine + strlen(szLine);
-		}
-		if (((size)(szEnd - szLine) == 9) && (strncmp(szLine, "\t\tand $FF", 9) == 0) && (*szEnd == '\n') && IR816MaskRedone(szEnd + 1))
-		{
-			continue;
-		}
-		szOut.Append(szLine, (size)(szEnd - szLine));
-		szOut.AppendNewLine();
-	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut);
-	szOut.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a value stored to the word szWord (as "[D + 12]") by the line
-// before szLine can stay in A instead: the next line that mentions the word
-// loads it (and nothing after the load reads the N and Z it sets) or pushes
-// it (pei, which becomes pha), and nothing before that changes A or goes
-// anywhere.  Its one use (Store) is that load or push.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816KeepsInA(const char* szLine, const char* szWord, size uiWord)
-{
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-	size		ui;
-	bool		bMentions;
-
-	for (; szLine; szLine = IR816NextLine(szLine))
-	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
-		{
-			return false;
-		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		bMentions = false;
-		for (ui = 0; !bMentions && (ui + uiWord <= uiOperand); ui++)
-		{
-			bMentions = strncmp(szOperand + ui, szWord, uiWord) == 0;
-		}
-		if (bMentions)
-		{
-			return (uiOperand == uiWord) && (((strcmp(szMnemonic, "lda") == 0) && !IR816ZNReadAfter(szLine)) || (strcmp(szMnemonic, "pei") == 0));
-		}
-		if ((strcmp(szMnemonic, "clc") != 0) && (strcmp(szMnemonic, "sec") != 0) && (strcmp(szMnemonic, "ldx") != 0) &&
-			(strcmp(szMnemonic, "ldy") != 0) && (strcmp(szMnemonic, "tax") != 0) && (strcmp(szMnemonic, "tay") != 0) &&
-			(strcmp(szMnemonic, "pha") != 0) && (strcmp(szMnemonic, "pea") != 0) && (strcmp(szMnemonic, "phk") != 0) &&
-			(strcmp(szMnemonic, "pei") != 0) &&
-			(strcmp(szMnemonic, "cmp") != 0) && (strcmp(szMnemonic, "sta") != 0) && (strcmp(szMnemonic, "stx") != 0) &&
-			(strcmp(szMnemonic, "sty") != 0) && (strcmp(szMnemonic, "stz") != 0))
-		{
-			return false;
 		}
 	}
 	return false;
@@ -4713,34 +4477,30 @@ static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffs
 //////////////////////////////////////////////////////////////////////////
 static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
 {
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
+	SIR816Line	sLine;
 	int32		iOffset;
 	bool		bStore;
 
 	iOffset = atoi(szWord + 5);
 	for (; szLine; szLine = IR816NextLine(szLine))
 	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		if (!IR816IsInstruction(szLine))
 		{
 			return false;
 		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((szMnemonic[0] == 'b') || (szMnemonic[0] == 'j') || (strncmp(szMnemonic, "rt", 2) == 0) || (strcmp(szMnemonic, "sep") == 0) ||
-			(strcmp(szMnemonic, "rep") == 0) || (strcmp(szMnemonic, "mvn") == 0) || (strcmp(szMnemonic, "mvp") == 0) || (strcmp(szMnemonic, "pld") == 0) ||
-			(strcmp(szMnemonic, "tcd") == 0) || (strcmp(szMnemonic, "brk") == 0) || (strcmp(szMnemonic, "cop") == 0))
+		IR816Decode(szLine, &sLine);
+		if (sLine.uiFlags & (IR816MF_LEAVES | IR816MF_WIDTH | IR816MF_BLOCK_MOVE | IR816MF_SETS_D | IR816MF_INTERRUPT))
 		{
 			return false;
 		}
-		if (IR816MentionsNear(szOperand, uiOperand, iOffset))
+		if (IR816MentionsNear(sLine.szOperand, sLine.uiOperand, iOffset))
 		{
-			bStore = (strcmp(szMnemonic, "sta") == 0) || (strcmp(szMnemonic, "stz") == 0) || (strcmp(szMnemonic, "stx") == 0) || (strcmp(szMnemonic, "sty") == 0);
-			if (bStore && (uiOperand == uiWord) && (strncmp(szOperand, szWord, uiWord) == 0))
+			bStore = (sLine.uiFlags & IR816MF_STORE) != 0;
+			if (bStore && IR816OperandIs(&sLine, szWord, uiWord))
 			{
 				return true;
 			}
-			if (bStore && (strncmp(szOperand, "[D + ", 5) == 0) && (szOperand[uiOperand - 1] == ']') && !memchr(szOperand, ':', uiOperand))
+			if (bStore && (strncmp(sLine.szOperand, "[D + ", 5) == 0) && (sLine.szOperand[sLine.uiOperand - 1] == ']') && !memchr(sLine.szOperand, ':', sLine.uiOperand))
 			{
 				//A store to another direct page word reads nothing.
 				continue;
@@ -4754,40 +4514,350 @@ static bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The line "ldy w" after szLine (not the next line), when the lines from
+// szLine to it are straight line code that neither uses Y nor names a byte
+// near w; else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816LoadYLater(const char* szLine, const char* szWord, size uiWord)
+{
+	SIR816Line	sLine;
+	const char*	szFirst;
+
+	szFirst = szLine;
+	for (; szLine && *szLine; szLine = IR816NextLine(szLine))
+	{
+		if (!IR816IsInstruction(szLine) || !strchr(szLine, '\n'))
+		{
+			return NULL;
+		}
+		IR816Decode(szLine, &sLine);
+		if ((sLine.uiMnemonic == IR816M_Ldy) && IR816OperandIs(&sLine, szWord, uiWord))
+		{
+			return (szLine == szFirst) ? NULL : szLine;
+		}
+		if ((sLine.uiFlags & (IR816MF_LEAVES | IR816MF_INTERRUPT | IR816MF_SETS_D | IR816MF_USES_Y)) || IR816IndexedBy(sLine.szOperand, sLine.uiOperand, 'Y') ||
+			IR816MentionsNear(sLine.szOperand, sLine.uiOperand, atoi(szWord + 5)))
+		{
+			return NULL;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stores of A to a direct page word w that the next lines read back,
+// after Peephole:
+//   sta w / dec w / lda w  ->  dec A / sta w  (inc the same)
+//   sta w / ldy w          ->  sta w / tay    (ldx: tax)
+// and the store is left out too when w is written again before it is read
+// (IR816DeadStore).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeStores(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+	const char*	szNext;
+	const char*	szAfter;
+	SIR816Line	sLine;
+	bool		bDirect;
+
+	szOut.Init();
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		bDirect = false;
+		if (IR816IsInstruction(szLine))
+		{
+			IR816Decode(szLine, &sLine);
+			bDirect = (sLine.uiMnemonic == IR816M_Sta) && sLine.bDirect && (*szEnd == '\n');
+		}
+		szNext = bDirect ? IR816NextLine(szLine) : NULL;
+		if (szNext && (IR816LineIs(szNext, IR816M_Dec, sLine.szOperand, sLine.uiOperand) || IR816LineIs(szNext, IR816M_Inc, sLine.szOperand, sLine.uiOperand)) &&
+			IR816LineIs(IR816NextLine(szNext), IR816M_Lda, sLine.szOperand, sLine.uiOperand))
+		{
+			szAfter = IR816NextLine(IR816NextLine(szNext));
+			szOut.Append("\t\t")->Append((szNext[2] == 'd') ? "dec" : "inc")->Append(" A\n");
+			if (!szAfter || !IR816DeadStore(szAfter, sLine.szOperand, sLine.uiOperand))
+			{
+				szOut.Append(szLine, (size)(szEnd - szLine));
+				szOut.AppendNewLine();
+			}
+			szEnd = strchr(IR816NextLine(szNext), '\n');
+			if (!szEnd)
+			{
+				szEnd = szLine + StrLen(szLine);
+			}
+			continue;
+		}
+		szAfter = szNext ? IR816LoadYLater(szNext, sLine.szOperand, sLine.uiOperand) : NULL;
+		if (szAfter && !IR816ZNReadAfter(szLine) && !IR816ZNReadAfter(szAfter))
+		{
+			//sta w ... ldy w (Y and w untouched between): tay at once.
+			if (!IR816NextLine(szAfter) || !IR816DeadStore(IR816NextLine(szAfter), sLine.szOperand, sLine.uiOperand))
+			{
+				szOut.Append(szLine, (size)(szEnd - szLine));
+				szOut.AppendNewLine();
+			}
+			szOut.Append("\t\ttay\n");
+			for (szNext = IR816NextLine(szLine); szNext != szAfter; szNext = IR816NextLine(szNext))
+			{
+				szOut.Append(szNext, (size)(strchr(szNext, '\n') - szNext));
+				szOut.AppendNewLine();
+			}
+			szEnd = IR816LineEnd(szAfter);
+			continue;
+		}
+		if (szNext && (IR816LineIs(szNext, IR816M_Ldy, sLine.szOperand, sLine.uiOperand) || IR816LineIs(szNext, IR816M_Ldx, sLine.szOperand, sLine.uiOperand)))
+		{
+			szAfter = IR816NextLine(szNext);
+			if (!szAfter || !IR816DeadStore(szAfter, sLine.szOperand, sLine.uiOperand))
+			{
+				szOut.Append(szLine, (size)(szEnd - szLine));
+				szOut.AppendNewLine();
+			}
+			szOut.Append((szNext[4] == 'y') ? "\t\ttay\n" : "\t\ttax\n");
+			szEnd = IR816LineEnd(szNext);
+			continue;
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction reads X: a transfer, store, step, compare or push
+// of it (IR816MF_READS_X), or an X indexed operand.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816ReadsX(SIR816Line* psLine)
+{
+	return (psLine->uiFlags & IR816MF_READS_X) || IR816IndexedBy(psLine->szOperand, psLine->uiOperand, 'X');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether X is written before it is read after the line at szLine (tax,
+// ldx, plx or tyx first, in straight line code).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816XDeadAfter(const char* szLine)
+{
+	SIR816Line	sLine;
+
+	for (szLine = IR816NextLine(szLine); szLine && *szLine; szLine = IR816NextLine(szLine))
+	{
+		if (!IR816IsInstruction(szLine))
+		{
+			return false;
+		}
+		IR816Decode(szLine, &sLine);
+		if (IR816ReadsX(&sLine))
+		{
+			return false;
+		}
+		if (sLine.uiFlags & IR816MF_WRITES_X)
+		{
+			return true;
+		}
+		if (sLine.uiFlags & (IR816MF_LEAVES | IR816MF_INTERRUPT))
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// tax ... txy is tay ... when the instructions between don't use X or Y
+// (and don't leave the straight line code), X is written again before it
+// is read after the txy (IR816XDeadAfter) and nothing reads the N and Z
+// the txy set (IR816ZNReadAfter).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+	const char*	szScan;
+	const char*	szTransfer;
+	SIR816Line	sLine;
+
+	szOut.Init();
+	szTransfer = NULL;
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		if (szLine == szTransfer)
+		{
+			//The txy that the tay before made.
+			szTransfer = NULL;
+			continue;
+		}
+		if (!szTransfer && ((size)(szEnd - szLine) == 5) && (strncmp(szLine, "\t\ttax", 5) == 0) && (*szEnd == '\n'))
+		{
+			for (szScan = IR816NextLine(szLine); szScan && *szScan; szScan = IR816NextLine(szScan))
+			{
+				if (!IR816IsInstruction(szScan))
+				{
+					break;
+				}
+				IR816Decode(szScan, &sLine);
+				if (sLine.uiMnemonic == IR816M_Txy)
+				{
+					if (IR816XDeadAfter(szScan) && !IR816ZNReadAfter(szScan))
+					{
+						szTransfer = szScan;
+					}
+					break;
+				}
+				if ((sLine.uiFlags & (IR816MF_LEAVES | IR816MF_READS_X | IR816MF_WRITES_X | IR816MF_USES_Y)) || (sLine.uiMnemonic == IR816M_Tsx) ||
+					IR816IndexedBy(sLine.szOperand, sLine.uiOperand, 'X') || IR816IndexedBy(sLine.szOperand, sLine.uiOperand, 'Y'))
+				{
+					break;
+				}
+			}
+			if (szTransfer)
+			{
+				szOut.Append("\t\ttay\n");
+				continue;
+			}
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The "and 0xFF"s done for nothing (IR816MaskRedone) taken out of the code
+// from uiStart, after Peephole has kept values in A (so only the masking
+// is left between two masks).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeMasks(CChars* pszDest, size uiStart)
+{
+	CChars		szOut;
+	const char*	szLine;
+	const char*	szEnd;
+
+	szOut.Init();
+	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		if (((size)(szEnd - szLine) == 10) && (strncmp(szLine, "\t\tand 0xFF", 10) == 0) && (*szEnd == '\n') && IR816MaskRedone(szEnd + 1))
+		{
+			continue;
+		}
+		szOut.Append(szLine, (size)(szEnd - szLine));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the operand names szWord anywhere in it.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816OperandMentions(SIR816Line* psLine, const char* szWord, size uiWord)
+{
+	size	ui;
+
+	for (ui = 0; ui + uiWord <= psLine->uiOperand; ui++)
+	{
+		if (strncmp(psLine->szOperand + ui, szWord, uiWord) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a value stored to the word szWord (as "[D + 12]") by the line
+// before szLine can stay in A instead: the next line that mentions the word
+// loads it (and nothing after the load reads the N and Z it sets) or pushes
+// it (pei, which becomes pha), and nothing before that changes A or goes
+// anywhere (only clc, sec, ldx, ldy, stores, tax, tay, pha, pea, pei, phk and
+// cmp come between).  Its one use (Store) is that load or push.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816KeepsInA(const char* szLine, const char* szWord, size uiWord)
+{
+	SIR816Line	sLine;
+
+	for (; szLine; szLine = IR816NextLine(szLine))
+	{
+		if (!IR816IsInstruction(szLine))
+		{
+			return false;
+		}
+		IR816Decode(szLine, &sLine);
+		if (IR816OperandMentions(&sLine, szWord, uiWord))
+		{
+			return (sLine.uiOperand == uiWord) && (((sLine.uiMnemonic == IR816M_Lda) && !IR816ZNReadAfter(szLine)) || (sLine.uiMnemonic == IR816M_Pei));
+		}
+		if (!(sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STORE | IR816MF_PUSH_WORD | IR816MF_COPIES_A)) && (sLine.uiMnemonic != IR816M_Cmp))
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an lda before the line at szLine is never read: in straight line
 // code, before anything reads A or the N and Z the lda set, an instruction
-// sets A again (only instructions that read neither come between).
+// sets A again (only instructions that read neither come between: clc,
+// sec, ldx, ldy, inx, iny, dex, dey, stx, sty, stz, pea, pei, phk, phx,
+// phy, cpx, cpy, and shifts and steps of memory).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816DeadLoad(const char* szLine)
 {
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
+	SIR816Line	sLine;
 	bool		bMemory;
 
 	for (; szLine; szLine = IR816NextLine(szLine))
 	{
-		if ((szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		if (!IR816IsInstruction(szLine))
 		{
 			return false;
 		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		if ((strcmp(szMnemonic, "lda") == 0) || (strcmp(szMnemonic, "pla") == 0) || (strcmp(szMnemonic, "txa") == 0) ||
-			(strcmp(szMnemonic, "tya") == 0) || (strcmp(szMnemonic, "tdc") == 0) || (strcmp(szMnemonic, "tsc") == 0))
+		IR816Decode(szLine, &sLine);
+		if (sLine.uiFlags & IR816MF_LOADS_A)
 		{
 			return true;
 		}
-		bMemory = (uiOperand > 0) && (szOperand[0] == '[');
-		if ((strcmp(szMnemonic, "clc") != 0) && (strcmp(szMnemonic, "sec") != 0) && (strcmp(szMnemonic, "ldx") != 0) &&
-			(strcmp(szMnemonic, "ldy") != 0) && (strcmp(szMnemonic, "stz") != 0) && (strcmp(szMnemonic, "stx") != 0) &&
-			(strcmp(szMnemonic, "sty") != 0) && (strcmp(szMnemonic, "pea") != 0) && (strcmp(szMnemonic, "phk") != 0) &&
-			(strcmp(szMnemonic, "pei") != 0) &&
-			(strcmp(szMnemonic, "phx") != 0) && (strcmp(szMnemonic, "phy") != 0) && (strcmp(szMnemonic, "cpx") != 0) &&
-			(strcmp(szMnemonic, "cpy") != 0) && (strcmp(szMnemonic, "inx") != 0) && (strcmp(szMnemonic, "iny") != 0) &&
-			(strcmp(szMnemonic, "dex") != 0) && (strcmp(szMnemonic, "dey") != 0) &&
-			!(bMemory && ((strcmp(szMnemonic, "inc") == 0) || (strcmp(szMnemonic, "dec") == 0) || (strcmp(szMnemonic, "asl") == 0) ||
-						  (strcmp(szMnemonic, "lsr") == 0) || (strcmp(szMnemonic, "rol") == 0) || (strcmp(szMnemonic, "ror") == 0))))
+		bMemory = (sLine.uiOperand > 0) && (sLine.szOperand[0] == '[');
+		if (!(sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STEP_INDEX | IR816MF_PUSH_WORD)) &&
+			!((sLine.uiFlags & (IR816MF_STORE | IR816MF_PUSH_REGISTER | IR816MF_COMPARE)) && !(sLine.uiFlags & IR816MF_READS_A)) &&
+			!(bMemory && (sLine.uiFlags & IR816MF_SHIFT_STEP)))
 		{
 			return false;
 		}
@@ -4808,10 +4878,7 @@ static bool IR816DeadLoad(const char* szLine)
 static bool IR816SwapsInA(const char* szLine, const char* szWord, size uiWord, const char** pszLoad, const char** pszUse)
 {
 	const char*	szLoad;
-	char		szMnemonic[8];
-	const char*	szOperand;
-	size		uiOperand;
-	size		ui;
+	SIR816Line	sLine;
 
 	while (szLine && ((strncmp(szLine, "\t\tclc\n", 6) == 0) || (strncmp(szLine, "\t\tsec\n", 6) == 0)))
 	{
@@ -4822,15 +4889,12 @@ static bool IR816SwapsInA(const char* szLine, const char* szWord, size uiWord, c
 		return false;
 	}
 	szLoad = szLine;
-	IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-	for (ui = 0; ui + uiWord <= uiOperand; ui++)
+	IR816Decode(szLine, &sLine);
+	if (IR816OperandMentions(&sLine, szWord, uiWord))
 	{
-		if (strncmp(szOperand + ui, szWord, uiWord) == 0)
-		{
-			return false;
-		}
+		return false;
 	}
-	if ((uiOperand == 0) || (uiOperand > 40) || (szOperand[uiOperand - 1] == 'A') || (strchr(szOperand, ';') && (strchr(szOperand, ';') < szOperand + uiOperand)))
+	if ((sLine.uiOperand == 0) || (sLine.uiOperand > 40) || (sLine.szOperand[sLine.uiOperand - 1] == 'A') || (strchr(sLine.szOperand, ';') && (strchr(sLine.szOperand, ';') < sLine.szOperand + sLine.uiOperand)))
 	{
 		return false;
 	}
@@ -4839,15 +4903,52 @@ static bool IR816SwapsInA(const char* szLine, const char* szWord, size uiWord, c
 	{
 		return false;
 	}
-	IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-	if (((strcmp(szMnemonic, "adc") != 0) && (strcmp(szMnemonic, "and") != 0) && (strcmp(szMnemonic, "ora") != 0) && (strcmp(szMnemonic, "eor") != 0)) ||
-		(uiOperand != uiWord) || (strncmp(szOperand, szWord, uiWord) != 0))
+	IR816Decode(szLine, &sLine);
+	if ((!(sLine.uiFlags & IR816MF_LOGIC) && (sLine.uiMnemonic != IR816M_Adc)) || !IR816OperandIs(&sLine, szWord, uiWord))
 	{
 		return false;
 	}
 	*pszLoad = szLoad;
 	*pszUse = szLine;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether A and the direct page word it holds (Peephole) stay as they are
+// after the instruction: it changes neither (ldx, ldy, clc, sec, cmp, tax,
+// tay, pha, pea, per, phk and the branches on Z, N and C), or it changes
+// memory other than that word (a store, or a shift or step of memory; a
+// store through a pointer might be to it, an address taken local).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816KeepsAWord(SIR816Line* psLine, const char* szA)
+{
+	if ((psLine->uiFlags & (IR816MF_LOAD_INDEX | IR816MF_CARRY | IR816MF_COPIES_A | IR816MF_BRANCH_ZN | IR816MF_BRANCH_C)) ||
+		(psLine->uiMnemonic == IR816M_Cmp) || (psLine->uiMnemonic == IR816M_Pea) || (psLine->uiMnemonic == IR816M_Per) || (psLine->uiMnemonic == IR816M_Phk))
+	{
+		return true;
+	}
+	if ((psLine->uiFlags & (IR816MF_STORE | IR816MF_SHIFT_STEP)) && !IR816OperandIsA(psLine))
+	{
+		return psLine->bDirect && !IR816OperandIs(psLine, szA, StrLen(szA));
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the constant Y holds (Peephole) is changed by the instruction:
+// it writes Y (IR816MF_WRITES_Y), calls, changes the widths, or is a bra,
+// brl, jml or rtl.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816ChangesYConstant(SIR816Line* psLine)
+{
+	return (psLine->uiFlags & (IR816MF_WRITES_Y | IR816MF_CALL | IR816MF_WIDTH)) ||
+		   (psLine->uiMnemonic == IR816M_Rtl) || (psLine->uiMnemonic == IR816M_Brl) || (psLine->uiMnemonic == IR816M_Bra) || (psLine->uiMnemonic == IR816M_Jml);
 }
 
 
@@ -4872,22 +4973,18 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 	const char*	szText;
 	const char*	szLine;
 	const char*	szEnd;
-	const char*	szOperand;
+	SIR816Line	sLine;
 	char		szA[32];		//The direct page operand A holds ("[D + 12]"), or empty.
 	char		szKept[32];		//The word whose store was left out, its value kept in A for its next lda, or empty.
 	const char*	szSwapLoad;		//An lda left out: the value kept in A is the first operand instead (IR816SwapsInA)...
 	const char*	szSwapUse;		//...of this instruction, which takes the lda's operand.
 	char		szSwapped[64];
 	char		szY[32];		//The constant Y holds, or empty.
-	char		szMnemonic[8];
 	size		uiLength;
-	size		uiOperand;
 	size		uiDeadLoad;		//Where in szOut the last line starts if it is an lda of a direct page word or a constant, else -1.
 	bool		bClearCarry;
 	bool		bZNFromA;		//The last instruction kept set N and Z from A.
 	bool		bKeep;
-	bool		bDirect;
-	bool		bMarked;
 
 	szText = pszDest->Text() + uiStart;
 	szOut.Init();
@@ -4901,16 +4998,12 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 	uiDeadLoad = (size)-1;
 	for (szLine = szText; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
-		szEnd = strchr(szLine, '\n');
-		if (!szEnd)
-		{
-			szEnd = szLine + strlen(szLine);
-		}
+		szEnd = IR816LineEnd(szLine);
 		uiLength = (size)(szEnd - szLine);
 		bKeep = true;
 
 		//A label, or a directive: nothing is known after it.
-		if ((uiLength < 3) || (szLine[0] != '\t') || (szLine[1] != '\t') || (szLine[2] == '.'))
+		if ((uiLength < 3) || !IR816IsInstruction(szLine))
 		{
 			szA[0] = '\0';
 			szY[0] = '\0';
@@ -4923,36 +5016,35 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 		}
 
 		//The mnemonic and the operand.
-		bMarked = (uiLength >= strlen(IR816_KEEP_IN_A)) && (strncmp(szEnd - strlen(IR816_KEEP_IN_A), IR816_KEEP_IN_A, strlen(IR816_KEEP_IN_A)) == 0);
-		if (bMarked)
+		IR816Decode(szLine, &sLine);
+		if (sLine.bMarked)
 		{
-			uiLength -= strlen(IR816_KEEP_IN_A);
+			uiLength -= StrLen(IR816_KEEP_IN_A);
 		}
-		IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-		bDirect = (uiOperand < 30) && (strncmp(szOperand, "[D + ", 5) == 0) && (szOperand[5] >= '0') && (szOperand[5] <= '9') && (szOperand[uiOperand - 1] == ']');
 
 		//A value kept in A instead of its store and load, or as the first operand of a commutative instruction.
-		if (bMarked && bDirect && (strcmp(szMnemonic, "sta") == 0) && (*szEnd == '\n') && IR816KeepsInA(szEnd + 1, szOperand, uiOperand))
+		if (sLine.bMarked && sLine.bDirect && (sLine.uiMnemonic == IR816M_Sta) && (*szEnd == '\n') && IR816KeepsInA(szEnd + 1, sLine.szOperand, sLine.uiOperand))
 		{
-			memcpy(szKept, szOperand, uiOperand);
-			szKept[uiOperand] = '\0';
+			memcpy(szKept, sLine.szOperand, sLine.uiOperand);
+			szKept[sLine.uiOperand] = '\0';
 			continue;
 		}
-		if (bMarked && bDirect && (szKept[0] == '\0') && (strcmp(szMnemonic, "sta") == 0) && (*szEnd == '\n') && IR816SwapsInA(szEnd + 1, szOperand, uiOperand, &szSwapLoad, &szSwapUse))
+		if (sLine.bMarked && sLine.bDirect && (szKept[0] == '\0') && (sLine.uiMnemonic == IR816M_Sta) && (*szEnd == '\n') &&
+			IR816SwapsInA(szEnd + 1, sLine.szOperand, sLine.uiOperand, &szSwapLoad, &szSwapUse))
 		{
 			continue;
 		}
 		if (szLine == szSwapLoad)
 		{
 			//The lda's operand goes to the instruction it was loaded for.
-			snprintf(szSwapped, sizeof(szSwapped), "%.*s", (int)uiOperand, szOperand);
+			snprintf(szSwapped, sizeof(szSwapped), "%.*s", (int)sLine.uiOperand, sLine.szOperand);
 			szSwapLoad = NULL;
 			continue;
 		}
 		if (szLine == szSwapUse)
 		{
 			szOut.Append("\t\t");
-			szOut.Append(szMnemonic);
+			szOut.Append(sLine.szMnemonic);
 			szOut.Append(" ");
 			szOut.Append(szSwapped);
 			szOut.AppendNewLine();
@@ -4963,17 +5055,17 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 			uiDeadLoad = (size)-1;
 			continue;
 		}
-		if (((strcmp(szMnemonic, "lda") == 0) || (strcmp(szMnemonic, "pei") == 0)) && (strlen(szKept) == uiOperand) && (strncmp(szKept, szOperand, uiOperand) == 0))
+		if (((sLine.uiMnemonic == IR816M_Lda) || (sLine.uiMnemonic == IR816M_Pei)) && IR816OperandIs(&sLine, szKept, StrLen(szKept)))
 		{
 			szKept[0] = '\0';
-			if (strcmp(szMnemonic, "pei") == 0)
+			if (sLine.uiMnemonic == IR816M_Pei)
 			{
 				szOut.Append("\t\tpha\n");
 				uiDeadLoad = (size)-1;
 			}
 			continue;
 		}
-		if ((strcmp(szMnemonic, "pei") == 0) && (strlen(szA) == uiOperand) && (strncmp(szA, szOperand, uiOperand) == 0))
+		if ((sLine.uiMnemonic == IR816M_Pei) && IR816OperandIs(&sLine, szA, StrLen(szA)))
 		{
 			//A holds the word: pha pushes it for less.
 			szOut.Append("\t\tpha\n");
@@ -4981,24 +5073,24 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 			continue;
 		}
 
-		if ((strcmp(szMnemonic, "lda") == 0) && bDirect && (strlen(szA) == uiOperand) && (strncmp(szA, szOperand, uiOperand) == 0) && !IR816BranchesOnZN(szEnd))
+		if ((sLine.uiMnemonic == IR816M_Lda) && sLine.bDirect && IR816OperandIs(&sLine, szA, StrLen(szA)) && !IR816BranchesOnZN(szEnd))
 		{
 			bKeep = false;
 		}
-		else if ((strcmp(szMnemonic, "ldy") == 0) && (uiOperand < 30) && (strlen(szY) == uiOperand) && (strncmp(szY, szOperand, uiOperand) == 0))
+		else if ((sLine.uiMnemonic == IR816M_Ldy) && (sLine.uiOperand < 30) && IR816OperandIs(&sLine, szY, StrLen(szY)))
 		{
 			bKeep = false;
 		}
-		else if ((strcmp(szMnemonic, "adc") == 0) && (uiOperand == 1) && (szOperand[0] == '0') && bClearCarry)
+		else if ((sLine.uiMnemonic == IR816M_Adc) && IR816OperandIs(&sLine, "0", 1) && bClearCarry)
 		{
 			bKeep = false;
 		}
-		else if ((strcmp(szMnemonic, "sta") == 0) && bDirect && (strlen(szA) == uiOperand) && (strncmp(szA, szOperand, uiOperand) == 0))
+		else if ((sLine.uiMnemonic == IR816M_Sta) && sLine.bDirect && IR816OperandIs(&sLine, szA, StrLen(szA)))
 		{
 			//The word already holds A.
 			bKeep = false;
 		}
-		else if ((strcmp(szMnemonic, "cmp") == 0) && (uiOperand == 1) && (szOperand[0] == '0') && bZNFromA && IR816BranchesOnZN(szEnd) &&
+		else if ((sLine.uiMnemonic == IR816M_Cmp) && IR816OperandIs(&sLine, "0", 1) && bZNFromA && IR816BranchesOnZN(szEnd) &&
 				 !IR816CarryReadAfterBranch(szText, szEnd))
 		{
 			bKeep = false;
@@ -5007,72 +5099,45 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 		{
 			continue;
 		}
-		if ((strcmp(szMnemonic, "lda") == 0) && (uiDeadLoad != (size)-1))
+		if ((sLine.uiMnemonic == IR816M_Lda) && (uiDeadLoad != (size)-1))
 		{
 			//The lda before it loaded A for nothing.
 			szOut.SetLength(uiDeadLoad);
 		}
-		uiDeadLoad = ((strcmp(szMnemonic, "lda") == 0) && (bDirect || ((szOperand[0] >= '0') && (szOperand[0] <= '9')))) ? szOut.Length() : (size)-1;
+		uiDeadLoad = ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || IR816IsDecimal(sLine.szOperand))) ? szOut.Length() : (size)-1;
 		szOut.Append(szLine, uiLength);
 		szOut.AppendNewLine();
-		if ((strcmp(szMnemonic, "sta") != 0) && (strcmp(szMnemonic, "stx") != 0) && (strcmp(szMnemonic, "sty") != 0) &&
-			(strcmp(szMnemonic, "stz") != 0) && (strcmp(szMnemonic, "pha") != 0))
+		if (!(sLine.uiFlags & IR816MF_STORE) && (sLine.uiMnemonic != IR816M_Pha))
 		{
 			//Stores change neither A nor the flags.
-			bZNFromA = IR816SetsZNFromA(szMnemonic, szOperand, uiOperand);
+			bZNFromA = IR816SetsZNFromA(&sLine);
 		}
 
 		//What A and Y hold after it.
-		if (((strcmp(szMnemonic, "lda") == 0) || (strcmp(szMnemonic, "sta") == 0)) && bDirect)
+		if (((sLine.uiMnemonic == IR816M_Lda) || (sLine.uiMnemonic == IR816M_Sta)) && sLine.bDirect)
 		{
-			memcpy(szA, szOperand, uiOperand);
-			szA[uiOperand] = '\0';
+			memcpy(szA, sLine.szOperand, sLine.uiOperand);
+			szA[sLine.uiOperand] = '\0';
 		}
-		else if ((strcmp(szMnemonic, "ldx") == 0) || (strcmp(szMnemonic, "clc") == 0) ||
-				 (strcmp(szMnemonic, "sec") == 0) || (strcmp(szMnemonic, "cmp") == 0) || (strcmp(szMnemonic, "tax") == 0) ||
-				 (strcmp(szMnemonic, "tay") == 0) || (strcmp(szMnemonic, "pha") == 0) || (strcmp(szMnemonic, "pea") == 0) ||
-				 (strcmp(szMnemonic, "per") == 0) || (strcmp(szMnemonic, "phk") == 0) || (strcmp(szMnemonic, "ldy") == 0) ||
-				 (strcmp(szMnemonic, "beq") == 0) || (strcmp(szMnemonic, "bne") == 0) || (strcmp(szMnemonic, "bcc") == 0) ||
-				 (strcmp(szMnemonic, "bcs") == 0) || (strcmp(szMnemonic, "bpl") == 0) || (strcmp(szMnemonic, "bmi") == 0))
-		{
-			//A and the word it holds are kept.
-		}
-		else if (((strcmp(szMnemonic, "sta") == 0) || (strcmp(szMnemonic, "stx") == 0) || (strcmp(szMnemonic, "sty") == 0) || (strcmp(szMnemonic, "stz") == 0) ||
-				  (strcmp(szMnemonic, "inc") == 0) || (strcmp(szMnemonic, "dec") == 0) || (strcmp(szMnemonic, "asl") == 0) ||
-				  (strcmp(szMnemonic, "lsr") == 0) || (strcmp(szMnemonic, "rol") == 0) || (strcmp(szMnemonic, "ror") == 0)) &&
-				 !((uiOperand == 1) && (szOperand[0] == 'A')))
-		{
-			//Memory changes: A no longer matches it if it is the word A holds (a store through a pointer might be, to an address taken local).
-			if (!bDirect || ((strlen(szA) == uiOperand) && (strncmp(szA, szOperand, uiOperand) == 0)))
-			{
-				szA[0] = '\0';
-			}
-		}
-		else
+		else if (!IR816KeepsAWord(&sLine, szA))
 		{
 			szA[0] = '\0';
 		}
 
-		if ((strcmp(szMnemonic, "ldy") == 0) && (uiOperand < 30) && (szOperand[0] >= '0') && (szOperand[0] <= '9'))
+		if ((sLine.uiMnemonic == IR816M_Ldy) && (sLine.uiOperand < 30) && IR816IsDecimal(sLine.szOperand))
 		{
-			memcpy(szY, szOperand, uiOperand);
-			szY[uiOperand] = '\0';
+			memcpy(szY, sLine.szOperand, sLine.uiOperand);
+			szY[sLine.uiOperand] = '\0';
 		}
-		else if ((strcmp(szMnemonic, "ldy") == 0) || (strcmp(szMnemonic, "tay") == 0) || (strcmp(szMnemonic, "iny") == 0) ||
-				 (strcmp(szMnemonic, "dey") == 0) || (strcmp(szMnemonic, "ply") == 0) || (strcmp(szMnemonic, "jsl") == 0) ||
-				 (strcmp(szMnemonic, "jsr") == 0) || (strcmp(szMnemonic, "rtl") == 0) || (strcmp(szMnemonic, "sep") == 0) ||
-				 (strcmp(szMnemonic, "rep") == 0) || (strcmp(szMnemonic, "txy") == 0) || (strcmp(szMnemonic, "brl") == 0) ||
-				 (strcmp(szMnemonic, "bra") == 0) || (strcmp(szMnemonic, "jml") == 0) ||
-				 (strcmp(szMnemonic, "mvn") == 0) || (strcmp(szMnemonic, "mvp") == 0))
+		else if (IR816ChangesYConstant(&sLine))
 		{
 			szY[0] = '\0';
 		}
-		if ((strcmp(szMnemonic, "sep") == 0) || (strcmp(szMnemonic, "rep") == 0) || (strcmp(szMnemonic, "jsl") == 0) ||
-			(strcmp(szMnemonic, "jsr") == 0) || (strcmp(szMnemonic, "pld") == 0) || (strcmp(szMnemonic, "tcd") == 0))
+		if (sLine.uiFlags & (IR816MF_WIDTH | IR816MF_CALL | IR816MF_SETS_D))
 		{
 			szA[0] = '\0';
 		}
-		bClearCarry = (strcmp(szMnemonic, "clc") == 0) || (bClearCarry && (strcmp(szMnemonic, "lda") == 0));
+		bClearCarry = (sLine.uiMnemonic == IR816M_Clc) || (bClearCarry && (sLine.uiMnemonic == IR816M_Lda));
 	}
 	pszDest->SetLength(uiStart);
 	pszDest->Append(szOut.Text(), szOut.Length());
@@ -5095,29 +5160,20 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 	CChars		szOut;
 	const char*	szLine;
 	const char*	szEnd;
-	const char*	szOperand;
-	char		szMnemonic[8];
-	size		uiOperand;
-	bool		bDirect;
+	SIR816Line	sLine;
 
 	szOut.Init();
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
-		szEnd = strchr(szLine, '\n');
-		if (!szEnd)
+		szEnd = IR816LineEnd(szLine);
+		if ((szEnd - szLine >= 3) && IR816IsInstruction(szLine) && (*szEnd == '\n'))
 		{
-			szEnd = szLine + strlen(szLine);
-		}
-		if ((szEnd - szLine >= 3) && (szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] != '.') && (*szEnd == '\n'))
-		{
-			IR816SplitLine(szLine, szMnemonic, &szOperand, &uiOperand);
-			bDirect = (uiOperand < 30) && (strncmp(szOperand, "[D + ", 5) == 0) && (szOperand[5] >= '0') && (szOperand[5] <= '9') && (szOperand[uiOperand - 1] == ']');
-			if (bDirect && ((strcmp(szMnemonic, "sta") == 0) || (strcmp(szMnemonic, "stz") == 0) || (strcmp(szMnemonic, "stx") == 0) || (strcmp(szMnemonic, "sty") == 0)) &&
-				IR816DeadStore(szEnd + 1, szOperand, uiOperand))
+			IR816Decode(szLine, &sLine);
+			if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(szEnd + 1, sLine.szOperand, sLine.uiOperand))
 			{
 				continue;
 			}
-			if ((strcmp(szMnemonic, "lda") == 0) && (bDirect || ((uiOperand > 0) && (szOperand[0] != '['))) && IR816DeadLoad(szEnd + 1))
+			if ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || ((sLine.uiOperand > 0) && (sLine.szOperand[0] != '['))) && IR816DeadLoad(szEnd + 1))
 			{
 				continue;
 			}
@@ -5143,12 +5199,7 @@ void CIR816Backend::Prologue(const char* szLabel)
 	mpszOut->AppendNewLine();
 	Line(".width (A, X), 16");
 	Line(".relax");
-	Line("phd");
-	Line("tsc");
-	Line("sec");
-	Line("sbc ", miFrameBytes);
-	Line("tcs");
-	Line("tcd");
+	IR816AppendFrameEntry(mpszOut, miFrameBytes);
 }
 
 
@@ -5159,13 +5210,7 @@ void CIR816Backend::Prologue(const char* szLabel)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Epilogue(void)
 {
-	Line("tay");
-	Line("tdc");
-	Line("clc");
-	Line("adc ", miFrameBytes);
-	Line("tcs");
-	Line("tya");
-	Line("pld");
+	IR816AppendFrameExit(mpszOut, miFrameBytes);
 	Line("rtl");
 }
 
@@ -5194,7 +5239,7 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 			{
 				Line("ldy ", 2 * i);
 				Operand("lda", psJump->sArgument, i);
-				Line("sta [[D + 1]:24 + Y]");
+				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
 			}
 		}
 		else if (Fused(psJump->sArgument))
@@ -5573,7 +5618,7 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		StoreMemory(psInstruction);
 		return true;
 	case IRO_Arg:
-		maiPendingArguments.Add(&uiIndex);
+		mauiPendingArguments.Add(&uiIndex);
 		return true;
 	case IRO_Call:
 		Call(pcBlock, psInstruction);
@@ -5587,7 +5632,7 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_FNeg:
 		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
 		Frame("lda", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
-		Line("eor $8000");
+		Line("eor 0x8000");
 		Frame("sta", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
 		return true;
 	case IRO_FEq:
@@ -5816,17 +5861,17 @@ void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 	Operand("lda", sValue, 0);
 	if (bSigned && sType.Is(IRTK_I8))
 	{
-		Line("eor $80");
+		Line("eor 0x80");
 		Line("sec");
-		Line("sbc $80");
+		Line("sbc 0x80");
 	}
 	Frame("sta", IR816_SCRATCH_VALUE);
 	if (bSigned && !sType.Is(IRTK_I1))
 	{
 		Line("asl A");
 		Line("lda 0");
-		Line("adc $FFFF");
-		Line("eor $FFFF");
+		Line("adc 0xFFFF");
+		Line("eor 0xFFFF");
 	}
 	else
 	{
@@ -6010,9 +6055,9 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 	if ((psInstruction->uiOpcode == IRO_AShr) && (sType.Is(IRTK_I8) || sType.Is(IRTK_I1)))
 	{
 		Frame("lda", iResult);
-		Line(sType.Is(IRTK_I8) ? "eor $80" : "eor 1");
+		Line(sType.Is(IRTK_I8) ? "eor 0x80" : "eor 1");
 		Line("sec");
-		Line(sType.Is(IRTK_I8) ? "sbc $80" : "sbc 1");
+		Line(sType.Is(IRTK_I8) ? "sbc 0x80" : "sbc 1");
 		Frame("sta", iResult);
 	}
 
@@ -6138,7 +6183,7 @@ void CIR816Backend::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRRefe
 	{
 		sz.Init(".word L");
 		sz.Append((i == 0) ? iDone : aiSteps[IR816_SHIFT_STEPS - i]);
-		sz.Append(" & $FFFF");
+		sz.Append(" & 0xFFFF");
 		Line(sz.Text());
 		sz.Kill();
 	}
@@ -6183,7 +6228,7 @@ void CIR816Backend::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
 	}
 	else
 	{
-		Line("cmp $8000");
+		Line("cmp 0x8000");
 		Line("ror A");
 	}
 	if (iWords == 2)
@@ -6211,8 +6256,8 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	{
 		Line("asl A");
 		Line("lda 0");
-		Line("adc $FFFF");
-		Line("eor $FFFF");
+		Line("adc 0xFFFF");
+		Line("eor 0xFFFF");
 		return;
 	}
 	if (iAmount >= 16)
@@ -6224,7 +6269,7 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	{
 		for (iBits = 0; iBits < iAmount; iBits++)
 		{
-			Line("cmp $8000");
+			Line("cmp 0x8000");
 			Line("ror A");
 		}
 		return;
@@ -6234,7 +6279,7 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	if (iBits >= 8)
 	{
 		Line("xba");
-		Line((uiOpcode == IRO_Shl) ? "and $FF00" : "and $FF");
+		Line((uiOpcode == IRO_Shl) ? "and 0xFF00" : "and 0xFF");
 		iBits -= 8;
 	}
 	for (; iBits > 0; iBits--)
@@ -6258,10 +6303,10 @@ void CIR816Backend::SignExtendInA(int iSignBit)
 {
 	char	szLine[32];
 
-	snprintf(szLine, sizeof(szLine), "eor $%X", 1u << iSignBit);
+	snprintf(szLine, sizeof(szLine), "eor 0x%X", 1u << iSignBit);
 	Line(szLine);
 	Line("sec");
-	snprintf(szLine, sizeof(szLine), "sbc $%X", 1u << iSignBit);
+	snprintf(szLine, sizeof(szLine), "sbc 0x%X", 1u << iSignBit);
 	Line(szLine);
 }
 
@@ -6346,7 +6391,7 @@ void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SI
 		else
 		{
 			Frame("lda", iResult + 2 * (iWords - 1));
-			Line("cmp $8000");
+			Line("cmp 0x8000");
 			Line("ror A");
 			Frame("sta", iResult + 2 * (iWords - 1));
 		}
@@ -6415,7 +6460,7 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 			{
 				//The sign word: $FFFF when the top bit is set.
 				Frame("lda", iResult + 2 * (iWords - 1));
-				Line("cmp $8000");
+				Line("cmp 0x8000");
 				Line("lda 0");
 				Line("bcc C + 1");
 				Line("dec A");
@@ -6453,7 +6498,7 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 				Frame("lda", iResult + 2 * i - 1);
 				if (i == 0)
 				{
-					Line("and $FF00");
+					Line("and 0xFF00");
 				}
 				Frame("sta", iResult + 2 * i);
 			}
@@ -6465,12 +6510,12 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 				Frame("lda", iResult + 2 * i + 1);
 				if (i == iWords - 1)
 				{
-					Line("and $FF");
+					Line("and 0xFF");
 					if (uiOpcode == IRO_AShr)
 					{
-						Line("cmp $80");
+						Line("cmp 0x80");
 						Line("bcc C + 3");
-						Line("ora $FF00");
+						Line("ora 0xFF00");
 					}
 				}
 				Frame("sta", iResult + 2 * i);
@@ -6553,15 +6598,62 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether szName starts with szPrefix.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816StartsWith(const char* szName, const char* szPrefix)
+{
+	return strncmp(szName, szPrefix, StrLen(szPrefix)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The assembly runtime routine named szName (gasIR816Routines), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const SIR816Routine* IR816FindRoutine(const char* szName)
+{
+	size	ui;
+
+	for (ui = 0; gasIR816Routines[ui].szName; ui++)
+	{
+		if (StringCompare(gasIR816Routines[ui].szName, szName) == 0)
+		{
+			return &gasIR816Routines[ui];
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A runtime routine's or table's start: its own COMDAT section (each unit
+// that uses it writes it), in szSection ("text." or "rodata."), and its
+// global label.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816RuntimeHeader(CChars* pszDest, const char* szSection, const char* szName)
+{
+	pszDest->Append("\t\t.section ")->Append(szSection)->Append(szName)->Append(", comdat\n");
+	pszDest->Append("\t\t.global ")->Append(szName)->AppendNewLine();
+	pszDest->Append(szName)->Append(":\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the runtime routine szName takes its operands in the caller's
 // scratch bytes (the assembly ones of 16 and 32 bits) rather than pushed.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816ScratchRoutine(const char* szName)
 {
-	return (strcmp(szName, "R816_Mul16") == 0) || (strcmp(szName, "R816_Mul32") == 0) ||
-		   (strcmp(szName, "R816_UDiv16") == 0) || (strcmp(szName, "R816_UDiv32") == 0) ||
-		   (strcmp(szName, "R816_URem16") == 0) || (strcmp(szName, "R816_URem32") == 0);
+	const SIR816Routine*	psRoutine;
+
+	psRoutine = IR816FindRoutine(szName);
+	return psRoutine && psRoutine->bScratch;
 }
 
 
@@ -6592,7 +6684,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		return true;
 	}
 
-	szName.Init("R816_");
+	szName.Init(IR816_RUNTIME_PREFIX);
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_Mul:	szName.Append("Mul");	break;
@@ -6617,9 +6709,9 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 			if (bSigned && sType.Is(IRTK_I8))
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
-				Line("eor $80");
+				Line("eor 0x80");
 				Line("sec");
-				Line("sbc $80");
+				Line("sbc 0x80");
 				Line("pha");
 			}
 			else
@@ -6664,7 +6756,7 @@ bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 	{
 		return false;
 	}
-	szName.Init(bSigned ? "R816_STable" : "R816_UTable");
+	szName.Init(bSigned ? IR816_SIGNED_TABLE : IR816_UNSIGNED_TABLE);
 	szName.Append((int)ulliDivisor);
 	UseRuntime(szName.Text());
 	Operand("lda", psInstruction->asArguments[0], 0);
@@ -6676,7 +6768,7 @@ bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 	{
 		Line("xba");
 	}
-	Line("and $FF");
+	Line("and 0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);
@@ -6712,9 +6804,9 @@ bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
 	Line("lda [MathMult + X]:24");
 	Branch("bra", iGot);
 	Label(iHigh);
-	Line("lda [MathMult + $10000 + X]:24");
+	Line("lda [MathMult + 0x10000 + X]:24");
 	Label(iGot);
-	Line("and $FF");
+	Line("and 0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);
@@ -6739,11 +6831,9 @@ void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 	int		i;
 	bool	bSigned;
 
-	bSigned = szName[5] == 'S';
-	iDivisor = atoi(&szName[11]);
-	pszDest->Append("\t\t.section rodata.")->Append(szName)->Append(", comdat\n");
-	pszDest->Append("\t\t.global ")->Append(szName)->AppendNewLine();
-	pszDest->Append(szName)->Append(":\n");
+	bSigned = IR816StartsWith(szName, IR816_SIGNED_TABLE);
+	iDivisor = atoi(&szName[IR816_TABLE_LENGTH]);
+	IR816RuntimeHeader(pszDest, "rodata.", szName);
 	for (i = 0; i < 256; i++)
 	{
 		iValue = (bSigned && (i >= 0x80)) ? i - 0x100 : i;
@@ -6838,7 +6928,7 @@ void CIR816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRTyp
 
 	iWords = Words(sType);
 	iDone = NewLabel();
-	szFlip = sType.Is(IRTK_I1) ? "eor 1" : (sType.Is(IRTK_I8) ? "eor $80" : "eor $8000");
+	szFlip = sType.Is(IRTK_I1) ? "eor 1" : (sType.Is(IRTK_I8) ? "eor 0x80" : "eor 0x8000");
 	uiFlip = sType.Is(IRTK_I1) ? 1 : (sType.Is(IRTK_I8) ? 0x80 : 0x8000);
 	for (i = iWords - 1; i >= 0; i--)
 	{
@@ -6895,7 +6985,7 @@ void CIR816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
 	Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
 	Operand("sbc", psArguments[bSwapped ? 0 : 1], 0);
 	Branch("bvc", iNoOverflow);
-	Line("eor $8000");
+	Line("eor 0x8000");
 	Label(iNoOverflow);
 }
 
@@ -7112,9 +7202,9 @@ void CIR816Backend::ExtendInX(SIRInstruction* psInstruction)
 	else if ((psInstruction->uiOpcode == IRO_SExt) && sSource.Is(IRTK_I8))
 	{
 		Operand("lda", sValue, 0);
-		Line("eor $80");
+		Line("eor 0x80");
 		Line("sec");
-		Line("sbc $80");
+		Line("sbc 0x80");
 		Mask(sType);
 	}
 	else if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
@@ -7173,9 +7263,9 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 		else if (sSource.Is(IRTK_I8))
 		{
 			Operand("lda", sValue, 0);
-			Line("eor $80");
+			Line("eor 0x80");
 			Line("sec");
-			Line("sbc $80");
+			Line("sbc 0x80");
 			Frame("sta", iResult);
 			iCopied = 1;
 		}
@@ -7199,7 +7289,7 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 	{
 		//A pointer's top byte is always 0.
 		Frame("lda", iResult + 2);
-		Line("and $FF");
+		Line("and 0xFF");
 		Frame("sta", iResult + 2);
 	}
 }
@@ -7616,7 +7706,7 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 		return;
 	case IRO_Not:
 		Operand("lda", sFirst, iWord);
-		Line("eor $FFFF");
+		Line("eor 0xFFFF");
 		return;
 	default:
 		//A constant word that leaves the other's (and all ones, or and eor 0) is a copy; and 0 is 0.
@@ -7710,13 +7800,13 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	CChars			sz;
 
 	iBytes = 0;
-	for (ui = maiPendingArguments.NumElements(); ui > 0; ui--)
+	for (ui = mauiPendingArguments.NumElements(); ui > 0; ui--)
 	{
-		psArgument = pcBlock->masInstructions.Get(*maiPendingArguments.Get(ui - 1));
+		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui - 1));
 		PushValue(psArgument->asArguments[0], psArgument->sType);
 		iBytes += ValueBytes(psArgument->sType);
 	}
-	maiPendingArguments.FakeSetUsedElements(0);
+	mauiPendingArguments.FakeSetUsedElements(0);
 	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
 	{
 		PushFrameAddress(OffsetOf(psInstruction->sResult));
@@ -7770,49 +7860,39 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	CChars			szTop;
 	CIRModule		cModule;
 	CIRParser		cParser;
-	CIR816Backend	cBackend;
-	size			i;
-	size			j;
-	char*			szName;
-	int				iBits;
-	bool			bResult;
-	bool			bFound;
+	CIR816Backend			cBackend;
+	size					i;
+	char*					szName;
+	const char*				szOperation;
+	const SIR816Routine*	psRoutine;
+	int						iBits;
+	bool					bResult;
+	bool					bDivide;
 
 	//Only the R816_ routines are made here (the soft float functions are Libc65's).
 	aszNames.Init();
 	for (i = 0; i < paszRuntime->NumElements(); i++)
 	{
-		if (strncmp(paszRuntime->GetText(i), "R816_", 5) == 0)
+		if (IR816StartsWith(paszRuntime->GetText(i), IR816_RUNTIME_PREFIX))
 		{
 			aszNames.Add(paszRuntime->GetText(i));
 		}
 	}
 	for (i = 0; i < aszNames.NumElements(); i++)
 	{
-		//Signed divide and remainder call the unsigned ones, and the 32 bit unsigned ones call the 16 bit ones.
+		//Signed divide and remainder call the unsigned ones (R816_S... to R816_U...), and the 32 bit unsigned ones
+		//jump to the 16 bit ones (szCalls).
 		szName = aszNames.GetText(i);
-		if ((strncmp(szName, "R816_SDiv", 9) == 0) || (strncmp(szName, "R816_SRem", 9) == 0) ||
-			(strcmp(szName, "R816_UDiv32") == 0) || (strcmp(szName, "R816_URem32") == 0))
+		psRoutine = IR816FindRoutine(szName);
+		if (psRoutine && psRoutine->szCalls)
 		{
-			szText.Init("R816_U");
-			if (szName[5] == 'U')
-			{
-				szText.Append(&szName[6], 3);
-				szText.Append("16");
-			}
-			else
-			{
-				szText.Append(&szName[6]);
-			}
-			bFound = false;
-			for (j = 0; j < aszNames.NumElements(); j++)
-			{
-				bFound |= (strcmp(aszNames.GetText(j), szText.Text()) == 0);
-			}
-			if (!bFound)
-			{
-				aszNames.Add(szText.Text());
-			}
+			aszNames.AddIfUnique((char*)psRoutine->szCalls);
+		}
+		else if (IR816StartsWith(szName, IR816_RUNTIME_PREFIX "SDiv") || IR816StartsWith(szName, IR816_RUNTIME_PREFIX "SRem"))
+		{
+			szText.Init(IR816_RUNTIME_PREFIX "U");
+			szText.Append(&szName[IR816_RUNTIME_PREFIX_LENGTH + 1]);
+			aszNames.AddIfUnique(szText.Text());
 			szText.Kill();
 		}
 	}
@@ -7822,52 +7902,47 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	{
 		szName = aszNames.GetText(i);
 
-		//The routines written in assembly.
-		for (j = 0; gasIR816Routines[j].szName; j++)
+		//The routines written in assembly, and the divide tables.
+		psRoutine = IR816FindRoutine(szName);
+		if (psRoutine)
 		{
-			if (strcmp(gasIR816Routines[j].szName, szName) == 0)
-			{
-				pszDest->Append("\t\t.section text.")->Append(szName)->Append(", comdat\n");
-				pszDest->Append("\t\t.global ")->Append(szName)->AppendNewLine();
-				pszDest->Append(szName)->Append(":\n");
-				pszDest->Append(gasIR816Routines[j].szText);
-				pszDest->AppendNewLine();
-				break;
-			}
-		}
-		if (gasIR816Routines[j].szName)
-		{
+			IR816RuntimeHeader(pszDest, "text.", szName);
+			pszDest->Append(psRoutine->szText);
+			pszDest->AppendNewLine();
 			continue;
 		}
-		if ((strncmp(szName, "R816_STable", 11) == 0) || (strncmp(szName, "R816_UTable", 11) == 0))
+		if (IR816StartsWith(szName, IR816_SIGNED_TABLE) || IR816StartsWith(szName, IR816_UNSIGNED_TABLE))
 		{
 			AppendDivideTable(pszDest, szName);
 			continue;
 		}
 
-		iBits = atoi(&szName[strlen(szName) - 2]);
+		//The others from IR: szOperation is Mul, UDiv, URem, SDiv or SRem, then the bits.
+		szOperation = &szName[IR816_RUNTIME_PREFIX_LENGTH];
+		bDivide = szOperation[1] == 'D';
+		iBits = atoi(&szName[StrLen(szName) - 2]);
 		szType.Init("i");
 		szType.Append(iBits);
 		szBits.Init();
 		szBits.Append(iBits);
 		szTop.Init();
 		szTop.Append(iBits - 1);
-		if (strncmp(szName, "R816_Mul", 8) == 0)
+		if (IR816StartsWith(szOperation, "Mul"))
 		{
 			szText.Init(gszIR816Mul);
 		}
-		else if (szName[5] == 'U')
+		else if (szOperation[0] == 'U')
 		{
 			szText.Init(gszIR816Divide);
-			szText.Replace("$RESULT", (szName[6] == 'D') ? "%q" : "%r");
+			szText.Replace("$RESULT", bDivide ? "%q" : "%r");
 		}
 		else
 		{
 			szText.Init(gszIR816Signed);
-			szText.Replace("$UOP", (szName[6] == 'D') ? "udiv" : "urem");
-			szText.Replace("$SIGN", (szName[6] == 'D') ? "ne i1 %an, %bn" : "copy i1 %an");
+			szText.Replace("$UOP", bDivide ? "udiv" : "urem");
+			szText.Replace("$SIGN", bDivide ? "ne i1 %an, %bn" : "copy i1 %an");
 		}
-		szText.Replace("$NAME", &szName[5]);
+		szText.Replace("$NAME", szOperation);
 		szText.Replace("$T", szType.Text());
 		szText.Replace("$N", szBits.Text());
 		szText.Replace("$M", szTop.Text());

@@ -40,26 +40,6 @@ void CCPPSyntaxInitDeclarator::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxInitDeclarator::Kill(void)
-{
-	CCPPSyntax::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxInitDeclarator::GetType(void)
-{
-	return "InitDeclarator";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxInitDeclarator::GetKind(void)
 {
 	return CPPS_InitDeclarator;
@@ -119,24 +99,12 @@ size CCPPSyntaxInitDeclarator::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxInitDeclarator::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcDeclarator;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, mpcBitField, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
 	{
-		return mpcBitField;
+		return pcChild;
 	}
-	iIndex--;
-
-	if (iIndex == 0)
-	{
-		return mpcInitializer;
-	}
-	iIndex--;
-
 	return NULL;
 }
 

@@ -32,7 +32,6 @@ void CProject::Init(bool bDumpLogs)
 {
 	mcLibraries.Init();
 
-	miNumSystemLibraries = 0;
 	mbDumpLogs = bDumpLogs;
 	mcIncludeFiles.Init();
 	mcHeaderNames.Init();
@@ -58,7 +57,6 @@ void CProject::Kill(void)
 	mcHeaderNames.Kill();
 
 
-	miNumSystemLibraries = 0;
 
 	pcLibrary = mcLibraries.GetHead();
 	while (pcLibrary)
@@ -123,49 +121,11 @@ CLibrary* CProject::GetLibrary(char* szLibrary)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-//void CProject::Process(char* szConfiguration)
-//{
-//						cTokeniser.Init();
-//						//bResult = cTokeniser.Tokenise(&cPreprocessor.mcPost);
-//						//if (!bResult)
-//						//{
-//						//	bError = true;
-//						//	cTokeniser.Kill();
-//						//	cParser.Kill();
-//						//	cPreprocessor.Kill();
-//						//	break;
-//						//}
-//						//cParser.BuildAST(cPreprocessor.mszPost.Text());
-//
-//						cTokeniser.Kill();
-//}
-
-
-/////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 CTranslationUnit* CProject::Start(SProcessIter* psIter, char* szConfiguration)
 {
-	CConfig*	pcConfig;
-
 	psIter->szConfiguration = szConfiguration;
 	psIter->pcLibrary = mcLibraries.GetHead();
-
-	while (psIter->pcLibrary)
-	{
-		pcConfig = psIter->pcLibrary->GetConfig(psIter->szConfiguration);
-		if (pcConfig)
-		{
-			psIter->pcFile = psIter->pcLibrary->GetFirstTranslationUnit(&psIter->sIter);
-			if (psIter->pcFile)
-			{
-				return psIter->pcFile;
-			}
-		}
-		psIter->pcLibrary = mcLibraries.GetNext(psIter->pcLibrary);
-	}
-	return NULL;
+	return StartLibrary(psIter);
 }
 
 
@@ -175,31 +135,37 @@ CTranslationUnit* CProject::Start(SProcessIter* psIter, char* szConfiguration)
 //////////////////////////////////////////////////////////////////////////
 CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 {
-	CConfig*	pcConfig;
-
 	if (!psIter->pcLibrary)
 	{
 		return NULL;
 	}
 
-	for (;;)
+	if (psIter->pcLibrary->GetConfig(psIter->szConfiguration))
 	{
-		pcConfig = psIter->pcLibrary->GetConfig(psIter->szConfiguration);
-		if (pcConfig)
+		psIter->pcFile = psIter->pcLibrary->GetNextTranslationUnit(&psIter->sIter);
+		if (psIter->pcFile)
 		{
-			psIter->pcFile = psIter->pcLibrary->GetNextTranslationUnit(&psIter->sIter);
-			if (psIter->pcFile)
-			{
-				return psIter->pcFile;
-			}
+			return psIter->pcFile;
 		}
-		psIter->pcLibrary = mcLibraries.GetNext(psIter->pcLibrary);
-		if (!psIter->pcLibrary)
-		{
-			break;
-		}
-		pcConfig = psIter->pcLibrary->GetConfig(psIter->szConfiguration);
-		if (pcConfig)
+	}
+	psIter->pcLibrary = mcLibraries.GetNext(psIter->pcLibrary);
+	return StartLibrary(psIter);
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+//
+// Returns the first translation unit of psIter->pcLibrary or of the
+// libraries after it, skipping libraries without the configuration and
+// libraries with no translation units.  psIter->pcLibrary is left on the
+// library the unit is from, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CTranslationUnit* CProject::StartLibrary(SProcessIter* psIter)
+{
+	while (psIter->pcLibrary)
+	{
+		if (psIter->pcLibrary->GetConfig(psIter->szConfiguration))
 		{
 			psIter->pcFile = psIter->pcLibrary->GetFirstTranslationUnit(&psIter->sIter);
 			if (psIter->pcFile)
@@ -207,6 +173,7 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 				return psIter->pcFile;
 			}
 		}
+		psIter->pcLibrary = mcLibraries.GetNext(psIter->pcLibrary);
 	}
 	return NULL;
 }
@@ -216,7 +183,7 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CProject::Process(char* szConfiguration, CChars* pszErrors)
+bool CProject::Process(char* szConfiguration, CChars* pszErrors, CChars* pszWarnings)
 {
 	CTranslationUnit*	pcFile;
 	CConfig*			pcConfig;
@@ -247,6 +214,10 @@ bool CProject::Process(char* szConfiguration, CChars* pszErrors)
 		if (pszErrors)
 		{
 			pszErrors->Append(cPreprocessor.GetErrors()->Text());
+		}
+		if (pszWarnings)
+		{
+			pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
 		}
 
 		WritePost(pcFile);

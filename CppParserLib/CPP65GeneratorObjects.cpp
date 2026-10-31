@@ -189,7 +189,7 @@ bool CCPP65Generator::TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType)
 	}
 	if (psType->psClass->psDestructor)
 	{
-		return Error(pcNode, "Temporary objects that need destroying are not supported here by the 65C64 generator yet");
+		return Error(pcNode, "Temporary objects that need destroying are not supported here by the compiler yet");
 	}
 
 	szLabel.Init("T");
@@ -200,62 +200,6 @@ bool CCPP65Generator::TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType)
 	Line("cpy A, ")->Append(szLabel)->AppendNewLine();
 	szLabel.Kill();
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Destroys the temporaries of a full expression, last first.  bKeep keeps A (and
-// all 8 bytes when bWide).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::DestroyTemporaries(bool bKeep, bool bWide)
-{
-	SCPP65Pending*	psPending;
-	SCPP65Place		sPlace;
-	size			i;
-	int				iSkip;
-
-	if (macPendingTemporaries.NumElements() == 0)
-	{
-		return;
-	}
-	if (bKeep)
-	{
-		PushWide("A", bWide);
-	}
-	for (i = macPendingTemporaries.NumElements(); i > 0; i--)
-	{
-		psPending = macPendingTemporaries.Get(i - 1);
-		sPlace.eKind = CPP65PK_Frame;
-		sPlace.psType = psPending->psType;
-		sPlace.iOffset = psPending->iOffset;
-		sPlace.lliName = -1;
-		sPlace.iString = -1;
-		sPlace.bInternal = false;
-		sPlace.psClass = NULL;
-		if (psPending->iGuard != -1)
-		{
-			//Only if it was made: a side of && or || or a ?: operand may have been skipped.
-			iSkip = NewLabel();
-			Line("cpy A, [")->Append(1 + psPending->iGuard)->Append(" + V]")->AppendNewLine();
-			Line("cmp A, 0")->AppendNewLine();
-			Line("bras z, ");
-			AppendLabel(mpszOut, iSkip);
-			mpszOut->AppendNewLine();
-			Destroy(&sPlace);
-			Label(iSkip);
-		}
-		else
-		{
-			Destroy(&sPlace);
-		}
-	}
-	macPendingTemporaries.ReInit();
-	if (bKeep)
-	{
-		PullWide("A", bWide);
-	}
 }
 
 
@@ -518,40 +462,6 @@ void CCPP65Generator::LoadResultAddress(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// return value; in a function that returns an object: the value is constructed at
-// the hidden result address, which is returned in A.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::ReturnObject(CCPPSyntax* pcValue, CCPPSyntax* pcNode)
-{
-	SCPP65Place		sPlace;
-
-	if (!pcValue)
-	{
-		return Error(pcNode, "The function must return a value");
-	}
-	LoadResultAddress();
-	sPlace.eKind = CPP65PK_Address;
-	sPlace.psType = mpsFunction->psReturn;
-	sPlace.iOffset = 0;
-	sPlace.lliName = -1;
-	sPlace.iString = -1;
-	sPlace.bInternal = false;
-	sPlace.psClass = NULL;
-	meNextElide = CPP65E_Result;
-	if (!Construct(&sPlace, NULL, pcValue, pcNode))
-	{
-		meNextElide = CPP65E_None;
-		return false;
-	}
-	meNextElide = CPP65E_None;
-	LoadResultAddress();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Class(arguments), Class{arguments} and Class() as a value: the object is made in
 // its temporary, whose address is left in A.
 //
@@ -715,7 +625,7 @@ bool CCPP65Generator::ConstructFromMade(SCPP65Place* psPlace, CCPPSyntax* pcInit
 	bResult = Expression(pcInitialiser) != NULL;
 	if (mpcElide && (miTypeOf == 0))
 	{
-		bResult = Error(pcNode, "The object could not be made in place by the 65C64 generator");
+		bResult = Error(pcNode, "The object could not be made in place by the compiler");
 	}
 	mpcElide = pcSaved;
 	msElide = sSaved;

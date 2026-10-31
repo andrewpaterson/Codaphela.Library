@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Asm65Assembler.h"
+#include "Asm65C64Assembler.h"
 #include "Asm65Linker.h"
 
 
@@ -58,13 +58,13 @@ static const char* gszLazyLoader =
 	"	bra R_LazyFail\n"
 	"R_LazyFits:\n"
 	"	cpy B, [Y]\n"
-	"	cpy [$FF0000], B\n"
-	"	cpy [$FF0004], A\n"
+	"	cpy [0xFF0000], B\n"
+	"	cpy [0xFF0004], A\n"
 	"	cpy B, [4 + Y]\n"
-	"	cpy [$FF0008], B\n"
+	"	cpy [0xFF0008], B\n"
 	"	cpy B, 1\n"
-	"	cpy [$FF000C], B\n"
-	"	cpy B, [$FF0010]\n"
+	"	cpy [0xFF000C], B\n"
+	"	cpy B, [0xFF0010]\n"
 	"	cmp B, 0\n"
 	"	bras z, R_LazyRead\n"
 	"	cpy B, 2\n"
@@ -90,7 +90,7 @@ static const char* gszLazyLoader =
 	"	add X, 8\n"
 	"	bra R_LazyRelocate\n"
 	"R_LazyRelative:\n"
-	"	and Y, $7FFFFFFF\n"
+	"	and Y, 0x7FFFFFFF\n"
 	"	add Y, A\n"
 	"	cpy B, [4 + X]\n"
 	"	sub B, Y\n"
@@ -310,7 +310,7 @@ EAsm65LazyField CAsm65Linker::LazyField(size uiObject, SAsm65Relocation* psReloc
 	pcObject = masObjects.Get(uiObject)->pcObject;
 	if (psRelocation->uiForm != ASM65RF_Plain)
 	{
-		Error(pcObject, psRelocation, "Lazy linking only takes whole values (no >> 16, & $FFFF or in bank)", NULL);
+		Error(pcObject, psRelocation, "Lazy linking only takes whole values (no >> 16, & 0xFFFF or in bank)", NULL);
 		return ALF65_Error;
 	}
 	if (!TargetPlace(uiObject, psRelocation, &iSection, piValue))
@@ -440,7 +440,7 @@ int64 CAsm65Linker::TrampolineAddress(int32 iTrampoline)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::AssembleLazyObject(void)
 {
-	CAsm65Assembler			cAssembler;
+	CAsm65C64Assembler			cAssembler;
 	CChars					szSource;
 	SAsm65LinkTrampoline*	psTrampoline;
 	SAsm65LinkUnit*			psUnit;

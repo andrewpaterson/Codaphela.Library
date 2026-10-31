@@ -49,16 +49,6 @@ void CCPPSyntaxPointerOperator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxPointerOperator::GetType(void)
-{
-	return "PointerOperator";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxPointerOperator::GetKind(void)
 {
 	return CPPS_PointerOperator;
@@ -113,18 +103,12 @@ size CCPPSyntaxPointerOperator::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxPointerOperator::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcClass;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpQualifiers.NumElements())
+	if (IsChild(&iIndex, mpcClass, &pcChild) || IsChild(&iIndex, &macpQualifiers, &pcChild))
 	{
-		return macpQualifiers.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpQualifiers.NumElements();
-
 	return NULL;
 }
 

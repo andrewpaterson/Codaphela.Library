@@ -37,26 +37,6 @@ void CCPPSyntaxCastExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxCastExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxCastExpression::GetType(void)
-{
-	return "CastExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxCastExpression::GetKind(void)
 {
 	return CPPS_CastExpression;
@@ -92,18 +72,12 @@ size CCPPSyntaxCastExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxCastExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcType;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, mpcOperand, &pcChild))
 	{
-		return mpcOperand;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

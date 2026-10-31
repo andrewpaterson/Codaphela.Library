@@ -75,7 +75,8 @@ void CIRSSAUpdater::Define(CIRBlock* pcBlock, SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value as pcBlock starts: for a block nothing reaches, 0 (it is never
+// The value as pcBlock starts: for a block nothing reaches (no
+// predecessors, or only a cycle of blocks with one each), 0 (it is never
 // used).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -93,6 +94,10 @@ SIRReference CIRSSAUpdater::ValueAtStart(CIRBlock* pcBlock)
 		return sValue;
 	}
 	if (pcBlock->mapcPredecessors.NumElements() == 0)
+	{
+		sValue = mpcFunction->AddConstant(msType, 0);
+	}
+	else if (IsUnreachedCycle(pcBlock))
 	{
 		sValue = mpcFunction->AddConstant(msType, 0);
 	}
@@ -116,6 +121,37 @@ SIRReference CIRSSAUpdater::ValueAtStart(CIRBlock* pcBlock)
 	}
 	*masStart.Get(pcBlock->muiIndex) = sValue;
 	return sValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcBlock is in a cycle of blocks each with only the one before it
+// as a predecessor (a block that is its own only predecessor): nothing
+// reaches them, and looking back through them would never end.  A loop
+// that is reached has a head with more than one predecessor, which
+// ValueAtStart gives its phi before looking round the loop.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRSSAUpdater::IsUnreachedCycle(CIRBlock* pcBlock)
+{
+	CIRBlock*	pcBack;
+	size		ui;
+
+	pcBack = pcBlock;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		if (pcBack->mapcPredecessors.NumElements() != 1)
+		{
+			return false;
+		}
+		pcBack = pcBack->mapcPredecessors.GetPtr(0);
+		if (pcBack == pcBlock)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

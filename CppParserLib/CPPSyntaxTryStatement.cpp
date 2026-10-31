@@ -48,16 +48,6 @@ void CCPPSyntaxTryStatement::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxTryStatement::GetType(void)
-{
-	return "TryStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxTryStatement::GetKind(void)
 {
 	return CPPS_TryStatement;
@@ -98,18 +88,12 @@ size CCPPSyntaxTryStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxTryStatement::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcBlock;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpHandlers.NumElements())
+	if (IsChild(&iIndex, mpcBlock, &pcChild) || IsChild(&iIndex, &macpHandlers, &pcChild))
 	{
-		return macpHandlers.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpHandlers.NumElements();
-
 	return NULL;
 }
 

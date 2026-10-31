@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPTokenMemory.h"
 
 
-class CPreprocessorLineTokensier
+class CPreprocessorLineTokeniser
 {
 protected:
 	CPPTokenList*			mpcTokenHolder;

@@ -49,16 +49,6 @@ void CCPPSyntaxName::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxName::GetType(void)
-{
-	return "Name";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxName::GetKind(void)
 {
 	return CPPS_Name;
@@ -104,12 +94,12 @@ size CCPPSyntaxName::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxName::GetChild(size iIndex)
 {
-	if (iIndex < macpComponents.NumElements())
-	{
-		return macpComponents.GetPtr(iIndex);
-	}
-	iIndex -= macpComponents.NumElements();
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, &macpComponents, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

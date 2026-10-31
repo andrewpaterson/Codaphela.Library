@@ -70,6 +70,9 @@ SIRType		IRType(EIRTypeKind eKind, uint8 uiSpace = 0);
 SIRType		IRIntegerType(int iBytes);
 uint64		IRTruncate(SIRType sType, uint64 ulliBits);
 int64		IRSignExtend(SIRType sType, uint64 ulliBits);
+int64		IRSignedMin(int iBits);
+int64		IRSignedMax(int iBits);
+int64		IRUnsignedMax(int iBits);
 const char*	GetIRTypeName(SIRType sType);
 EIRTypeKind	FindIRTypeKind(const char* szName);
 

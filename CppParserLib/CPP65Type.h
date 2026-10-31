@@ -44,8 +44,8 @@ struct SCPP65Class;
 class CCPPSymbol;
 
 
-//The type of a value the 65C64 generator works with.  Integers are 1, 2, 4 or 8 bytes (int and long are 4 bytes,
-//as on Windows), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase is the member's
+//The type of a value the compiler works with.  Integers are 1, 2, 4 or 8 bytes (int is 4 bytes on the 65C64 and 2
+//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase is the member's
 //type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
 struct SCPP65Type
@@ -126,6 +126,7 @@ public:
 
 protected:
 	void				InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iBytes, bool bSigned);
+	SCPP65Type*			NewType(ECPP65TypeKind eKind, int iBytes);
 	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount);
 };
 

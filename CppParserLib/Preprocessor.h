@@ -97,7 +97,7 @@ protected:
 
 	CChars*							mpszIncludesLog;
 	size							miIncludeDepth;
-	bool							mbLogInlucdes;
+	bool							mbLogIncludes;
 	bool							mbDumpLogs;
 	CChars							mszVaArgs;
 
@@ -112,10 +112,12 @@ protected:
 	bool							mbKeepPragmaPack;		//#pragma pack(...) is output as __pragma(pack(...)) (CConfig).
 	int								miCounter;
 	CCPPErrors						mcErrors;
+	CCPPErrors						mcWarnings;				//#warning's.
 
 public:
 	static bool			Preprocess(char* szSource, CChars* pszDest);
 	CCPPErrors*			GetErrors(void);
+	CCPPErrors*			GetWarnings(void);
 
 public:
 	void 				Init(CConfig* pcConfig);
@@ -133,6 +135,7 @@ public:
 	CDefine* 			AddDefine(char* szDefine);
 	CDefine*			AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory);
 	CDefine*			AddSpecialDefine(char* szDefine);
+	CDefine*			AddNumberDefine(char* szDefine, int64 lliValue);
 
 	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString, bool bExact);
 	CSpecialOperator*	GetSpecialOperator(char* szName, bool bExact);
@@ -178,7 +181,7 @@ protected:
 	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	bool 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
 	bool 				ProcessHashInclude(CPPDirective* pcDirective, bool bNext);
-	bool 				ProcessHashError(CPreprocessorTokenParser* pcParser);
+	bool 				ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning);
 	bool 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	bool 				ProcessHashUnknown(CPPDirective* pcDirective);
 	TRISTATE			EvaluateCondition(CPPDirective* pcDirective);

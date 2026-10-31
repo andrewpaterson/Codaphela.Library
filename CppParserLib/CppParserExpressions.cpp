@@ -47,7 +47,7 @@ CCPPSyntaxExpression* CCPPParser::ParseExpression(CCPPSyntax* pcParent)
 		{
 			return NULL;
 		}
-		pcComma = mpcMemory->CreateBinaryExpression(pcParent);
+		pcComma = mpcMemory->Create<CCPPSyntaxBinaryExpression>(pcParent);
 		pcComma->meOperator = CT_Comma;
 		pcComma->mpcLeft = pcLeft;
 		pcComma->mpcRight = pcRight;
@@ -76,7 +76,7 @@ CCPPSyntaxExpression* CCPPParser::ParseAssignmentExpression(CCPPSyntax* pcParent
 	//[expr.ass] [except.throw]
 	if (Is(CT_throw))
 	{
-		pcThrow = mpcMemory->CreateThrowExpression(pcParent);
+		pcThrow = mpcMemory->Create<CCPPSyntaxThrowExpression>(pcParent);
 		pcThrow->miFirstToken = CurrentToken();
 		Next();
 		if (!Is(CT_SemiColon) && !Is(CT_CloseRoundBracket) && !Is(CT_Comma) && !Is(CT_Colon))
@@ -106,7 +106,7 @@ CCPPSyntaxExpression* CCPPParser::ParseAssignmentExpression(CCPPSyntax* pcParent
 		{
 			return NULL;
 		}
-		pcAssignment = mpcMemory->CreateBinaryExpression(pcParent);
+		pcAssignment = mpcMemory->Create<CCPPSyntaxBinaryExpression>(pcParent);
 		pcAssignment->meOperator = eOperator;
 		pcAssignment->mpcLeft = pcLeft;
 		pcAssignment->mpcRight = pcRight;
@@ -142,7 +142,7 @@ CCPPSyntaxExpression* CCPPParser::ParseConditionalExpression(CCPPSyntax* pcParen
 	}
 	Next();
 
-	pcConditional = mpcMemory->CreateConditionalExpression(pcParent);
+	pcConditional = mpcMemory->Create<CCPPSyntaxConditionalExpression>(pcParent);
 	pcConditional->mpcCondition = pcCondition;
 	pcCondition->mpcParent = pcConditional;
 	bNoGreater = mbNoGreater;
@@ -264,7 +264,7 @@ CCPPSyntaxExpression* CCPPParser::ParseBinaryExpression(CCPPSyntax* pcParent, in
 			return NULL;
 		}
 
-		pcBinary = mpcMemory->CreateBinaryExpression(pcParent);
+		pcBinary = mpcMemory->Create<CCPPSyntaxBinaryExpression>(pcParent);
 		pcBinary->meOperator = eOperator;
 		pcBinary->mpcLeft = pcLeft;
 		pcBinary->mpcRight = pcRight;
@@ -282,25 +282,20 @@ CCPPSyntaxExpression* CCPPParser::ParseBinaryExpression(CCPPSyntax* pcParent, in
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::IsCastAhead(void)
 {
-	SCPPParserPosition	sPosition;
-	int					iSavedFailed;
+	SCPPTentative		sTentative;
 	CCPPSyntaxTypeId*	pcType;
-	bool				bCast;
 
 	//( type-id ) cast-expression.  The current token is '('.  [expr.cast]
-	sPosition = Mark();
+	BeginTentative(&sTentative);
 	Next();
 	if (!IsTypeIdStart())
 	{
-		Rewind(sPosition);
+		EndTentative(&sTentative, false);
 		return false;
 	}
 
-	BeginTentative(&iSavedFailed);
 	pcType = ParseTypeId(NULL);
-	bCast = EndTentative(iSavedFailed) && pcType && Is(CT_CloseRoundBracket);
-	Rewind(sPosition);
-	return bCast;
+	return EndTentative(&sTentative, pcType && Is(CT_CloseRoundBracket));
 }
 
 
@@ -315,7 +310,7 @@ CCPPSyntaxExpression* CCPPParser::ParseCastExpression(CCPPSyntax* pcParent)
 
 	if (Is(CT_OpenRoundBracket) && IsCastAhead())
 	{
-		pcCast = mpcMemory->CreateCastExpression(pcParent);
+		pcCast = mpcMemory->Create<CCPPSyntaxCastExpression>(pcParent);
 		pcCast->miFirstToken = CurrentToken();
 		Next();
 		bNoGreater = mbNoGreater;
@@ -376,7 +371,7 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 		case CT_Subtract:
 		case CT_LogicalNot:
 		case CT_BitwiseNot:
-			pcUnary = mpcMemory->CreateUnaryExpression(pcParent);
+			pcUnary = mpcMemory->Create<CCPPSyntaxUnaryExpression>(pcParent);
 			pcUnary->miFirstToken = CurrentToken();
 			pcUnary->meOperator = eToken;
 			Next();
@@ -394,7 +389,7 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 			return ParseSizeofExpression(pcParent);
 
 		case CT_noexcept:
-			pcNoexcept = mpcMemory->CreateNoexceptExpression(pcParent);
+			pcNoexcept = mpcMemory->Create<CCPPSyntaxNoexceptExpression>(pcParent);
 			pcNoexcept->miFirstToken = CurrentToken();
 			Next();
 			if (!Expect(CT_OpenRoundBracket))
@@ -462,7 +457,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 	{
 		if (Is(CT_OpenSquareBracket))
 		{
-			pcSubscript = mpcMemory->CreateSubscriptExpression(pcParent);
+			pcSubscript = mpcMemory->Create<CCPPSyntaxSubscriptExpression>(pcParent);
 			pcSubscript->miFirstToken = pcExpression->miFirstToken;
 			pcSubscript->mpcArray = pcExpression;
 			pcExpression->mpcParent = pcSubscript;
@@ -480,7 +475,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 		}
 		else if (Is(CT_OpenRoundBracket))
 		{
-			pcCall = mpcMemory->CreateCallExpression(pcParent);
+			pcCall = mpcMemory->Create<CCPPSyntaxCallExpression>(pcParent);
 			pcCall->miFirstToken = pcExpression->miFirstToken;
 			pcCall->mpcCallee = pcExpression;
 			pcExpression->mpcParent = pcCall;
@@ -502,7 +497,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 		}
 		else if (Is(CT_Member) || Is(CT_MemberByPointer))
 		{
-			pcMember = mpcMemory->CreateMemberExpression(pcParent);
+			pcMember = mpcMemory->Create<CCPPSyntaxMemberExpression>(pcParent);
 			pcMember->miFirstToken = pcExpression->miFirstToken;
 			pcMember->mpcObject = pcExpression;
 			pcMember->mbArrow = Is(CT_MemberByPointer);
@@ -520,7 +515,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 		}
 		else if (Is(CT_Increment) || Is(CT_Decrement))
 		{
-			pcUnary = mpcMemory->CreateUnaryExpression(pcParent);
+			pcUnary = mpcMemory->Create<CCPPSyntaxUnaryExpression>(pcParent);
 			pcUnary->miFirstToken = pcExpression->miFirstToken;
 			pcUnary->meOperator = ((CCTReservedWord*)Peek(0))->GetToken();
 			pcUnary->mbPostfix = true;
@@ -549,14 +544,14 @@ CCPPSyntaxTypeId* CCPPParser::CreateSimpleTypeId(CCPPSyntax* pcParent)
 	ECppTokens						eToken;
 
 	//The simple type specifiers of int(x) or unsigned long(x).  [expr.type.conv]
-	pcType = mpcMemory->CreateTypeId(pcParent);
+	pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
 	pcType->miFirstToken = CurrentToken();
-	pcType->mpcSpecifiers = mpcMemory->CreateDeclSpecifiers(pcType);
+	pcType->mpcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcType);
 	pcType->mpcSpecifiers->miFirstToken = CurrentToken();
 	while (Peek(0) && Peek(0)->IsReservedWord() && IsSimpleTypeKeyword(((CCTReservedWord*)Peek(0))->GetToken()))
 	{
 		eToken = ((CCTReservedWord*)Peek(0))->GetToken();
-		pcKeyword = mpcMemory->CreateKeywordSpecifier(pcType->mpcSpecifiers);
+		pcKeyword = mpcMemory->Create<CCPPSyntaxKeywordSpecifier>(pcType->mpcSpecifiers);
 		pcKeyword->meKeyword = eToken;
 		pcKeyword->SetTokens(CurrentToken(), CurrentToken());
 		pcType->mpcSpecifiers->macpSpecifiers.Add(pcKeyword);
@@ -586,7 +581,7 @@ CCPPSyntaxExpression* CCPPParser::ParseConstructExpression(CCPPSyntax* pcParent,
 	ECPPInitializer					eKind;
 
 	//T(x) or T{x}.  [expr.type.conv]
-	pcConstruct = mpcMemory->CreateConstructExpression(pcParent);
+	pcConstruct = mpcMemory->Create<CCPPSyntaxConstructExpression>(pcParent);
 	pcConstruct->miFirstToken = pcType->miFirstToken;
 	pcConstruct->mpcType = pcType;
 	pcType->mpcParent = pcConstruct;
@@ -633,7 +628,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 
 	if (pcToken->IsNumber() || pcToken->IsChar() || pcToken->IsBool() || pcToken->Is(CT_nullptr))
 	{
-		pcLiteral = mpcMemory->CreateLiteralExpression(pcParent);
+		pcLiteral = mpcMemory->Create<CCPPSyntaxLiteralExpression>(pcParent);
 		pcLiteral->miLiteral = CurrentToken();
 		pcLiteral->SetTokens(CurrentToken(), CurrentToken());
 		Next();
@@ -646,13 +641,13 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 		switch (eToken)
 		{
 		case CT_this:
-			pcThis = mpcMemory->CreateThisExpression(pcParent);
+			pcThis = mpcMemory->Create<CCPPSyntaxThisExpression>(pcParent);
 			pcThis->SetTokens(CurrentToken(), CurrentToken());
 			Next();
 			return pcThis;
 
 		case CT_OpenRoundBracket:
-			pcParentheses = mpcMemory->CreateParenthesisedExpression(pcParent);
+			pcParentheses = mpcMemory->Create<CCPPSyntaxParenthesisedExpression>(pcParent);
 			pcParentheses->miFirstToken = CurrentToken();
 			Next();
 			bNoGreater = mbNoGreater;
@@ -677,7 +672,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			return ParseNamedCastExpression(pcParent);
 
 		case CT_typeid:
-			pcTypeid = mpcMemory->CreateTypeidExpression(pcParent);
+			pcTypeid = mpcMemory->Create<CCPPSyntaxTypeidExpression>(pcParent);
 			pcTypeid->miFirstToken = CurrentToken();
 			Next();
 			if (!Expect(CT_OpenRoundBracket))
@@ -735,7 +730,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 
 	if (IsNameStart())
 	{
-		pcId = mpcMemory->CreateIdExpression(pcParent);
+		pcId = mpcMemory->Create<CCPPSyntaxIdExpression>(pcParent);
 		pcId->miFirstToken = CurrentToken();
 		pcName = ParseName(pcId, false, NULL);
 		if (!pcName)
@@ -746,10 +741,10 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 		if (pcName->mpcSymbol && pcName->mpcSymbol->IsType() && (Is(CT_OpenRoundBracket) || Is(CT_OpenCurlyBracket)))
 		{
 			//A type name followed by ( or { makes an object.
-			pcType = mpcMemory->CreateTypeId(pcParent);
+			pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
 			pcType->miFirstToken = pcId->miFirstToken;
-			pcType->mpcSpecifiers = mpcMemory->CreateDeclSpecifiers(pcType);
-			pcNamed = mpcMemory->CreateNamedTypeSpecifier(pcType->mpcSpecifiers);
+			pcType->mpcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcType);
+			pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcType->mpcSpecifiers);
 			pcNamed->mpcName = pcName;
 			pcName->mpcParent = pcNamed;
 			pcNamed->SetTokens(pcId->miFirstToken, PreviousToken());
@@ -779,7 +774,7 @@ CCPPSyntaxExpression* CCPPParser::ParseStringExpression(CCPPSyntax* pcParent)
 	CCPPSyntaxStringExpression*	pcString;
 
 	//Adjacent string literals are one.  [lex.string] 13
-	pcString = mpcMemory->CreateStringExpression(pcParent);
+	pcString = mpcMemory->Create<CCPPSyntaxStringExpression>(pcParent);
 	pcString->miFirstToken = CurrentToken();
 	if (!IsStringPart())
 	{
@@ -854,12 +849,11 @@ CCPPSyntaxExpression* CCPPParser::ParseTypeTraitExpression(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxTypeTraitExpression*	pcTrait;
 	CCPPSyntax*						pcArgument;
-	SCPPParserPosition				sPosition;
-	int								iSavedFailed;
+	SCPPTentative					sTentative;
 	bool							bType;
 	CCPPSyntaxTypeId*				pcType;
 
-	pcTrait = mpcMemory->CreateTypeTraitExpression(pcParent);
+	pcTrait = mpcMemory->Create<CCPPSyntaxTypeTraitExpression>(pcParent);
 	pcTrait->miFirstToken = CurrentToken();
 	pcTrait->miName = CurrentToken();
 	Next();
@@ -870,11 +864,9 @@ CCPPSyntaxExpression* CCPPParser::ParseTypeTraitExpression(CCPPSyntax* pcParent)
 		bType = false;
 		if (IsTypeIdStart())
 		{
-			sPosition = Mark();
-			BeginTentative(&iSavedFailed);
+			BeginTentative(&sTentative);
 			pcType = ParseTypeId(pcTrait);
-			bType = EndTentative(iSavedFailed) && pcType && (Is(CT_Comma) || Is(CT_CloseRoundBracket));
-			Rewind(sPosition);
+			bType = EndTentative(&sTentative, pcType && (Is(CT_Comma) || Is(CT_CloseRoundBracket)));
 		}
 		pcArgument = bType ? (CCPPSyntax*)ParseTypeId(pcTrait) : (CCPPSyntax*)ParseAssignmentExpression(pcTrait);
 		if (!pcArgument)
@@ -906,7 +898,7 @@ CCPPSyntaxExpression* CCPPParser::ParseNamedCastExpression(CCPPSyntax* pcParent)
 	bool							bNoGreater;
 
 	//static_cast<T>(e) and the others.  [expr.static.cast]
-	pcCast = mpcMemory->CreateNamedCastExpression(pcParent);
+	pcCast = mpcMemory->Create<CCPPSyntaxNamedCastExpression>(pcParent);
 	pcCast->miFirstToken = CurrentToken();
 	pcCast->meCast = ((CCTReservedWord*)Peek(0))->GetToken();
 	Next();
@@ -951,12 +943,13 @@ CCPPSyntaxExpression* CCPPParser::ParseNamedCastExpression(CCPPSyntax* pcParent)
 CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxSizeofExpression*	pcSizeof;
+	CCPPSymbol*					pcSymbol;
 	SCPPParserPosition			sPosition;
 	bool						bType;
 	bool						bNoGreater;
 
 	//sizeof unary-expression, sizeof ( type-id ), sizeof...( pack ) and alignof ( type-id ).  [expr.sizeof]
-	pcSizeof = mpcMemory->CreateSizeofExpression(pcParent);
+	pcSizeof = mpcMemory->Create<CCPPSyntaxSizeofExpression>(pcParent);
 	pcSizeof->miFirstToken = CurrentToken();
 	pcSizeof->meKeyword = ((CCTReservedWord*)Peek(0))->GetToken();
 	Next();
@@ -969,6 +962,8 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 			return NULL;
 		}
 		pcSizeof->miPack = CurrentToken();
+		pcSymbol = mpcScope->Find(GetIdentifier());
+		Resolve(CurrentToken(), pcSymbol, pcSymbol ? CPPTR_Reference : CPPTR_Unresolved);
 		Next();
 		if (!Expect(CT_CloseRoundBracket))
 		{
@@ -1036,7 +1031,7 @@ CCPPSyntaxExpression* CCPPParser::ParseNewExpression(CCPPSyntax* pcParent)
 	bool							bNoGreater;
 
 	//[::] new ( placement ) new-type-id new-initializer or new ( type-id ).  [expr.new]
-	pcNew = mpcMemory->CreateNewExpression(pcParent);
+	pcNew = mpcMemory->Create<CCPPSyntaxNewExpression>(pcParent);
 	pcNew->miFirstToken = CurrentToken();
 	pcNew->mbGlobal = Accept(CT_ScopeResolution);
 	Expect(CT_new);
@@ -1099,7 +1094,7 @@ CCPPSyntaxExpression* CCPPParser::ParseNewExpression(CCPPSyntax* pcParent)
 		else
 		{
 			//A new-type-id: type specifiers and pointer operators.  [ size ] follows.
-			pcNew->mpcType = mpcMemory->CreateTypeId(pcNew);
+			pcNew->mpcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcNew);
 			pcNew->mpcType->miFirstToken = CurrentToken();
 			pcNew->mpcType->mpcSpecifiers = ParseDeclSpecifiers(pcNew->mpcType, CPPDC_TypeId);
 			if (!pcNew->mpcType->mpcSpecifiers || (pcNew->mpcType->mpcSpecifiers->macpSpecifiers.NumElements() == 0))
@@ -1108,7 +1103,7 @@ CCPPSyntaxExpression* CCPPParser::ParseNewExpression(CCPPSyntax* pcParent)
 				Error("Expected a type after new.");
 				return NULL;
 			}
-			pcDeclarator = mpcMemory->CreateDeclarator(pcNew->mpcType);
+			pcDeclarator = mpcMemory->Create<CCPPSyntaxDeclarator>(pcNew->mpcType);
 			pcDeclarator->miFirstToken = CurrentToken();
 			while (Is(CT_Multiply) || IsMemberPointerAhead())
 			{
@@ -1162,7 +1157,7 @@ CCPPSyntaxExpression* CCPPParser::ParseDeleteExpression(CCPPSyntax* pcParent)
 	CCPPSyntaxDeleteExpression*	pcDelete;
 
 	//[::] delete cast-expression and [::] delete [] cast-expression.  [expr.delete]
-	pcDelete = mpcMemory->CreateDeleteExpression(pcParent);
+	pcDelete = mpcMemory->Create<CCPPSyntaxDeleteExpression>(pcParent);
 	pcDelete->miFirstToken = CurrentToken();
 	pcDelete->mbGlobal = Accept(CT_ScopeResolution);
 	Expect(CT_delete);
@@ -1194,7 +1189,7 @@ CCPPSyntaxInitializerList* CCPPParser::ParseBracedInitList(CCPPSyntax* pcParent)
 	bool								bNoGreater;
 
 	//{ initializer-clause , ... }  [dcl.init.list]
-	pcList = mpcMemory->CreateInitializerList(pcParent);
+	pcList = mpcMemory->Create<CCPPSyntaxInitializerList>(pcParent);
 	pcList->miFirstToken = CurrentToken();
 	if (!Expect(CT_OpenCurlyBracket))
 	{
@@ -1212,7 +1207,7 @@ CCPPSyntaxInitializerList* CCPPParser::ParseBracedInitList(CCPPSyntax* pcParent)
 		}
 		if (Is(CT_Elipsis))
 		{
-			pcPack = mpcMemory->CreatePackExpansionExpression(pcList);
+			pcPack = mpcMemory->Create<CCPPSyntaxPackExpansionExpression>(pcList);
 			pcPack->mpcPattern = pcElement;
 			pcElement->mpcParent = pcPack;
 			pcPack->SetTokens(pcElement->miFirstToken, CurrentToken());
@@ -1273,7 +1268,7 @@ bool CCPPParser::ParseExpressionList(CArraySyntax* papcExpressions, CCPPSyntax* 
 		}
 		if (Is(CT_Elipsis))
 		{
-			pcPack = mpcMemory->CreatePackExpansionExpression(pcParent);
+			pcPack = mpcMemory->Create<CCPPSyntaxPackExpansionExpression>(pcParent);
 			pcPack->mpcPattern = pcExpression;
 			pcExpression->mpcParent = pcPack;
 			pcPack->SetTokens(pcExpression->miFirstToken, CurrentToken());

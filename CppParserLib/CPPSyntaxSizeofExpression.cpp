@@ -40,26 +40,6 @@ void CCPPSyntaxSizeofExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxSizeofExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxSizeofExpression::GetType(void)
-{
-	return "SizeofExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxSizeofExpression::GetKind(void)
 {
 	return CPPS_SizeofExpression;
@@ -109,18 +89,12 @@ size CCPPSyntaxSizeofExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxSizeofExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcType;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, mpcOperand, &pcChild))
 	{
-		return mpcOperand;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

@@ -121,6 +121,7 @@ public:
 	SIRPhi*			AddPhi(SIRType sType, SIRReference sResult);
 	void			AddPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock, SIRReference sValue);
 	SIRPhiArgument*	FindPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock);
+	SIRPhi*			FindPhi(SIRReference sResult);
 
 	void			Jump(CIRBlock* pcTarget);
 	void			Branch(SIRReference sCondition, CIRBlock* pcThen, CIRBlock* pcElse);

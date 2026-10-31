@@ -20,31 +20,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEFINE_MAP_H__
 #define __DEFINE_MAP_H__
-#include "BaseLib/IndexPrimitiveTemplate.h"
-#include "ASCIITree.h"
+#include "NameMap.h"
 #include "Define.h"
 
 
-typedef CIndexPrimitiveTemplate<int64, CDefine>	CDefinesIndex;
-
-
-class CDefineMap
+class CDefineMap : public CNameMap<CDefine>
 {
-protected:
-	CASCIITree			mcNameToIDIndex;
-	CDefinesIndex		mcIDToDefineIndex;
-
 public:
-	void 		Init(void);
-	void 		Kill(void);
 	CDefine*	AddDefine(CExternalString* pcName);
 	CDefine*	AddDefine(char* szName);
-	void		RemoveDefine(CExternalString* pcName);
-	void		RemoveDefine(char* szName);
-	CDefine*	GetDefine(CExternalString* pcName, bool bExact);
-	CDefine*	GetDefine(CChars* pszName);
-	CDefine*	GetDefine(char* szName, bool bExact);
-	void		Dump(void);
 };
 
 

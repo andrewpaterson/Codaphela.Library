@@ -1,3 +1,23 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2021 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppParserLib
+
+Codaphela CppParserLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppParserLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "DefineMap.h"
 #include "Define.h"
@@ -113,7 +133,7 @@ void CDefine::SetVariadic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::AddReplacmentToken(CPPToken* pcToken)
+void CDefine::AddReplacementToken(CPPToken* pcToken)
 {
 	mcReplacement.GetTokenList()->Add(pcToken);
 }
@@ -123,7 +143,7 @@ void CDefine::AddReplacmentToken(CPPToken* pcToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsBacketed(void)
+bool CDefine::IsBracketed(void)
 {
 	return FixBool(miFlags & DEFINE_FLAGS_BRACKETED);
 }
@@ -183,29 +203,11 @@ void CDefine::SetBracketed(bool b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::SetDefineMap(CDefineMap* pcDefineMap)
-{
-	if (pcDefineMap)
-	{
-		SetFlagInt(&miFlags, DEFINE_FLAGS_IN_MAP, true);
-	}
-	else
-	{
-		SetFlagInt(&miFlags, DEFINE_FLAGS_IN_MAP, false);
-	}
-	mpcDefineMap = pcDefineMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CDefine::Equals(CDefine* pcOther)
 {
 	if (pcOther)
 	{
-		if (IsBacketed() == pcOther->IsBacketed())
+		if (IsBracketed() == pcOther->IsBracketed())
 		{
 			if (mcReplacement.Equals(&pcOther->mcReplacement))
 			{
@@ -214,23 +216,6 @@ bool CDefine::Equals(CDefine* pcOther)
 		}
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDefine::CanProcessArguments(size iNumArguments)
-{
-	if (!IsVariadic())
-	{
-		return iNumArguments == maszArguments.NumElements();
-	}
-	else
-	{
-		return iNumArguments >= (maszArguments.NumElements() - 1);
-	}
 }
 
 
@@ -275,7 +260,7 @@ void CDefine::Dump(void)
 		sz.Append("*Not In Map*");
 	}
 
-	if (IsBacketed())
+	if (IsBracketed())
 	{
 		sz.Append('(');
 		for (i = 0; i < maszArguments.NumElements(); i++)

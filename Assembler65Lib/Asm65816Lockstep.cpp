@@ -21,7 +21,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include <string.h>
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
-#include "Asm65Lockstep.h"
+#include "Asm65816Lockstep.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 // pcFast has run reset on pcFastMemory.  The simulator gets a copy of the memory and runs reset too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Lockstep::Init(CAsm65Memory* pcFastMemory, CFast65C64* pcFast)
+void CAsm65816Lockstep::Init(CAsm65Memory* pcFastMemory, CFast65C816* pcFast)
 {
 	mpcFastMemory = pcFastMemory;
 	mpcFast = pcFast;
@@ -40,7 +40,8 @@ void CAsm65Lockstep::Init(CAsm65Memory* pcFastMemory, CFast65C64* pcFast)
 	mpcSimMemory = NewMalloc<CAsm65Memory>();
 	mpcSimMemory->Init(mpcFastMemory->GetLowSize());
 	mpcSimMemory->CopyFrom(mpcFastMemory);
-	mcMeta.Init(CAsm65Memory::TickHigh, CAsm65Memory::TickLow, mpcSimMemory);
+	mcMeta.Init(CAsm65Memory::TickHigh65816, CAsm65Memory::TickLow65816, mpcSimMemory);
+	mcMeta.GetRESB()->Set(false);
 	mcMeta.TickInstruction();
 }
 
@@ -49,7 +50,7 @@ void CAsm65Lockstep::Init(CAsm65Memory* pcFastMemory, CFast65C64* pcFast)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Lockstep::Kill(void)
+void CAsm65816Lockstep::Kill(void)
 {
 	mcMeta.Kill();
 	SafeKill(mpcSimMemory);
@@ -59,11 +60,11 @@ void CAsm65Lockstep::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Steps both until either stops, they differ or uiMaxSteps.  Memory is compared every uiMemoryInterval steps (never
-// if 0) and at the end.  Returns the number of steps.
+// Steps both until either stops, they differ or uiMaxSteps.  Memory is compared every uiMemoryInterval
+// steps (0 for only at the end).  Returns the number of steps.
 //
 //////////////////////////////////////////////////////////////////////////
-size CAsm65Lockstep::Run(size uiMaxSteps, size uiMemoryInterval)
+size CAsm65816Lockstep::Run(size uiMaxSteps, size uiMemoryInterval)
 {
 	size	i;
 
@@ -91,16 +92,16 @@ size CAsm65Lockstep::Run(size uiMaxSteps, size uiMemoryInterval)
 // One step on both.  Returns false if either stopped or they differ.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Lockstep::Step(void)
+bool CAsm65816Lockstep::Step(void)
 {
-	C65C64*	pcSim;
-	uint32	uiC;
-	bool	bSim;
-	bool	bFast;
-	CChars	szDifferences;
+	CW65C816*	pcSim;
+	uint32		uiAddress;
+	bool		bSim;
+	bool		bFast;
+	CChars		szDifferences;
 
 	pcSim = mcMeta.GetMPU();
-	uiC = pcSim->GetProgramCounter();
+	uiAddress = mpcFast->GetProgramAddress();
 	bSim = mcMeta.TickInstruction();
 	bFast = mpcFast->Step();
 	muiSteps++;
@@ -114,7 +115,7 @@ bool CAsm65Lockstep::Step(void)
 		mszDifferences.Append("Step ");
 		mszDifferences.Append((int)muiSteps);
 		mszDifferences.Append(" at 0x");
-		mszDifferences.AppendHexHiLo(&uiC, 4);
+		mszDifferences.AppendHexHiLo(&uiAddress, 3);
 		mszDifferences.Append(":");
 		mszDifferences.Append(szDifferences);
 	}
@@ -128,12 +129,11 @@ bool CAsm65Lockstep::Step(void)
 // Returns false (and notes it) if the memories or their bad access counts differ.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Lockstep::CompareMemory(void)
+bool CAsm65816Lockstep::CompareMemory(void)
 {
 	bool	bSame;
 
 	bSame = (memcmp(mpcSimMemory->Byte(0), mpcFastMemory->Byte(0), mpcFastMemory->GetLowSize()) == 0);
-	bSame &= (memcmp(mpcSimMemory->Byte(ASM65_MEMORY_HIGH_BASE), mpcFastMemory->Byte(ASM65_MEMORY_HIGH_BASE), ASM65_MEMORY_HIGH_SIZE) == 0);
 	bSame &= mpcSimMemory->NumBadAccesses() == mpcFastMemory->NumBadAccesses();
 	if (!bSame)
 	{
@@ -150,7 +150,7 @@ bool CAsm65Lockstep::CompareMemory(void)
 // What differed first, empty if nothing has.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAsm65Lockstep::GetDifferences(void)
+char* CAsm65816Lockstep::GetDifferences(void)
 {
 	return mszDifferences.Text();
 }
@@ -160,7 +160,7 @@ char* CAsm65Lockstep::GetDifferences(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Lockstep::IsStopped(void)
+bool CAsm65816Lockstep::IsStopped(void)
 {
 	return mbStopped;
 }

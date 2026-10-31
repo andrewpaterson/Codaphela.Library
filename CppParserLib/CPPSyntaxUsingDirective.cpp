@@ -36,26 +36,6 @@ void CCPPSyntaxUsingDirective::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxUsingDirective::Kill(void)
-{
-	CCPPSyntaxDeclaration::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxUsingDirective::GetType(void)
-{
-	return "UsingDirective";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxUsingDirective::GetKind(void)
 {
 	return CPPS_UsingDirective;
@@ -91,12 +71,12 @@ size CCPPSyntaxUsingDirective::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxUsingDirective::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcName;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, mpcName, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

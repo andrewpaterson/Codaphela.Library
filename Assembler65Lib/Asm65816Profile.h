@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ASM816_PROFILE_H__
-#define __ASM816_PROFILE_H__
+#ifndef __ASM65816_PROFILE_H__
+#define __ASM65816_PROFILE_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/MapStringTemplate.h"
@@ -33,7 +33,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //called while it was already running (recursion, directly or through others).  With a line table (CAsm65LineTable):
 //the cycles its own code ran for and the fingerprint of the code that was run (its hash and compile time, 0 for
 //none).
-struct SAsm816FunctionProfile
+struct SAsm65816FunctionProfile
 {
 	uint64	ulliDirectPage;
 	uint64	ulliCalls;
@@ -47,7 +47,7 @@ struct SAsm816FunctionProfile
 //What a profiled run measured of a source line's code in a function (inlined code is the function's it is in): how
 //often its code was entered at its start (of its pieces, the most), the instructions and cycles run in it, and the
 //cycles of code with no line (runtime routines, assembly) run after it, before another line's (what it called).
-struct SAsm816LineProfile
+struct SAsm65816LineProfile
 {
 	uint64	ulliEntries;
 	uint64	ulliInstructions;
@@ -60,11 +60,11 @@ struct SAsm816LineProfile
 //for, and with the program's line table the profile of each line of each function; read and written as text (Write).
 //The W65C816 back end gives a function a page aligned frame (a cycle less each direct page access) only when its
 //profile says that is worth it (CIR816Backend::AlignFrame).
-class CAsm816Profile
+class CAsm65816Profile
 {
 protected:
-	CMapStringTemplate<SAsm816FunctionProfile>	mcFunctions;
-	CMapStringTemplate<SAsm816LineProfile>		mcLines;		//By "label\tline\tfile".
+	CMapStringTemplate<SAsm65816FunctionProfile>	mcFunctions;
+	CMapStringTemplate<SAsm65816LineProfile>		mcLines;		//By "label\tline\tfile".
 	CMapStringTemplate<uint64>					mcLineEntries;	//By "line\tfile": the entries in all functions (LineEntries), made when first needed.
 	bool										mbLineEntries;
 	uint64										mulliCycles;
@@ -79,19 +79,19 @@ public:
 	bool					Write(const char* szFilename);
 	bool					WriteReport(const char* szFilename, size uiMost);
 
-	SAsm816FunctionProfile*	Get(const char* szLabel);
-	SAsm816LineProfile*		GetLine(const char* szLabel, const char* szFile, uint32 uiLine);
+	SAsm65816FunctionProfile*	Get(const char* szLabel);
+	SAsm65816LineProfile*		GetLine(const char* szLabel, const char* szFile, uint32 uiLine);
 	uint64					LineEntries(const char* szFile, uint32 uiLine);
 	uint64					NumCycles(void);
 
 protected:
-	SAsm816FunctionProfile*	PutFunction(const char* szLabel);
-	SAsm816LineProfile*		PutLine(const char* szLabel, const char* szFile, uint32 uiLine);
+	SAsm65816FunctionProfile*	PutFunction(const char* szLabel);
+	SAsm65816LineProfile*		PutLine(const char* szLabel, const char* szFile, uint32 uiLine);
 	void					ForgetLines(const char* szLabel);
 	void					Fingerprints(CAsm65LineTable* pcLines);
 	void					LineKey(CChars* pszKey, const char* szLabel, const char* szFile, uint32 uiLine);
 };
 
 
-#endif // __ASM816_PROFILE_H__
+#endif // __ASM65816_PROFILE_H__
 

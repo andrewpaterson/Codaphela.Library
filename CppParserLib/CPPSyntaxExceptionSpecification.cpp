@@ -50,16 +50,6 @@ void CCPPSyntaxExceptionSpecification::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxExceptionSpecification::GetType(void)
-{
-	return "ExceptionSpecification";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxExceptionSpecification::GetKind(void)
 {
 	return CPPS_ExceptionSpecification;
@@ -107,18 +97,12 @@ size CCPPSyntaxExceptionSpecification::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxExceptionSpecification::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCondition;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpTypes.NumElements())
+	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, &macpTypes, &pcChild))
 	{
-		return macpTypes.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpTypes.NumElements();
-
 	return NULL;
 }
 

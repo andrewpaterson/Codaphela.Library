@@ -37,26 +37,6 @@ void CCPPSyntaxStaticAssert::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxStaticAssert::Kill(void)
-{
-	CCPPSyntaxDeclaration::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxStaticAssert::GetType(void)
-{
-	return "StaticAssert";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxStaticAssert::GetKind(void)
 {
 	return CPPS_StaticAssert;
@@ -97,18 +77,12 @@ size CCPPSyntaxStaticAssert::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxStaticAssert::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCondition;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcMessage, &pcChild))
 	{
-		return mpcMessage;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

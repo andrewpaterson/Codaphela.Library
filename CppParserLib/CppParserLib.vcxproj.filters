@@ -132,6 +132,9 @@
     <ClCompile Include="CPP65IRFrontEnd.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRBackend.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -525,9 +528,6 @@
     <ClCompile Include="PPInclude.cpp">
       <Filter>Source\Preprocessor\Tokens\Directives</Filter>
     </ClCompile>
-    <ClCompile Include="PPUnknown.cpp">
-      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
-    </ClCompile>
     <ClCompile Include="PPTokenListHolder.cpp">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClCompile>
@@ -639,12 +639,6 @@
     <ClCompile Include="ASCIITree.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
-    <ClCompile Include="NamedDefine.cpp">
-      <Filter>Source\Preprocessor\Define</Filter>
-    </ClCompile>
-    <ClCompile Include="FileDefine.cpp">
-      <Filter>Source\Preprocessor\Define</Filter>
-    </ClCompile>
     <ClCompile Include="DefineMap.cpp">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClCompile>
@@ -664,6 +658,9 @@
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorExpression.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="LiteralHelper.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessedTokens.cpp">
@@ -693,9 +690,6 @@
     <ClCompile Include="PreprocessorLineTokeniser.cpp">
       <Filter>Source\Preprocessor\Tokeniser</Filter>
     </ClCompile>
-    <ClCompile Include="PreprocessorStack.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPP65Builder.h">
@@ -720,6 +714,9 @@
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPP65IRFrontEnd.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRBackend.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Backend.h">
@@ -1100,9 +1097,6 @@
     <ClInclude Include="PPInclude.h">
       <Filter>Source\Preprocessor\Tokens\Directives</Filter>
     </ClInclude>
-    <ClInclude Include="PPUnknown.h">
-      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
-    </ClInclude>
     <ClInclude Include="PPTokenListHolder.h">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClInclude>
@@ -1217,13 +1211,10 @@
     <ClInclude Include="ASCIITree.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClInclude>
-    <ClInclude Include="NamedDefine.h">
-      <Filter>Source\Preprocessor\Define</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDefine.h">
-      <Filter>Source\Preprocessor\Define</Filter>
-    </ClInclude>
     <ClInclude Include="DefineMap.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="NameMap.h">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClInclude>
     <ClInclude Include="DefineArguments.h">
@@ -1245,6 +1236,9 @@
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorExpression.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="LiteralHelper.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessedTokens.h">
@@ -1271,9 +1265,6 @@
     <ClInclude Include="CPPTokens.h" />
     <ClInclude Include="PPTokenMemory.h">
       <Filter>Source\Preprocessor\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="PreprocessorStack.h">
-      <Filter>Source\Preprocessor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

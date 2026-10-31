@@ -49,16 +49,6 @@ void CCPPSyntaxSimpleDeclaration::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxSimpleDeclaration::GetType(void)
-{
-	return "SimpleDeclaration";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxSimpleDeclaration::GetKind(void)
 {
 	return CPPS_SimpleDeclaration;
@@ -101,18 +91,12 @@ size CCPPSyntaxSimpleDeclaration::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxSimpleDeclaration::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcSpecifiers;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpDeclarators.NumElements())
+	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, &macpDeclarators, &pcChild))
 	{
-		return macpDeclarators.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpDeclarators.NumElements();
-
 	return NULL;
 }
 

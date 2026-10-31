@@ -215,7 +215,13 @@ void CIndexBlock::SetDataFreeCallback(CDataFree* pcDataFree)
 //////////////////////////////////////////////////////////////////////////
 size CIndexBlock::DataSize(uint8* pvKey, size iKeySize)
 {
-	return mcIndex.GetDataSize(pvKey, iKeySize);
+	size	iDataSize;
+
+	if (Get(pvKey, iKeySize, NULL, &iDataSize))
+	{
+		return iDataSize;
+	}
+	return 0;
 }
 
 

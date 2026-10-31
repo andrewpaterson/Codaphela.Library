@@ -18,202 +18,62 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/ConstructorCall.h"
-#include "ASCIINameIndex.h"
-#include "GeneralToken.h"
 #include "DirectiveMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CDirectiveMap::Init(void)
-{
-	mcIDToDirectiveIndex.Init();
-	mcNameToIDIndex.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDirectiveMap::Kill(void)
-{
-	CPreprocessorDirective*				pcDirective;
-	SIndexTreeMemoryUnsafeIterator		sIter;
-	int64								lli;
-	bool								bHasNext;
-
-	bHasNext = mcIDToDirectiveIndex.StartIteration(&sIter, &pcDirective, &lli);
-	while (bHasNext)
-	{
-		pcDirective->Kill();
-		bHasNext = mcIDToDirectiveIndex.Iterate(&sIter, &pcDirective, &lli);
-	}
-
-	mcIDToDirectiveIndex.Kill();
-	mcNameToIDIndex.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Adds the directive called pcName.  Returns NULL if it is already in the
+// map.
 //
 //////////////////////////////////////////////////////////////////////////
 CPreprocessorDirective* CDirectiveMap::AddDirective(CExternalString* pcName, EPreprocessorDirective eDirective)
 {
-	CPreprocessorDirective		cDirective;
 	CPreprocessorDirective*		pcDirective;
 	int64						lliID;
-	bool						bResult;
 
-	lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
-	if (lliID != -1)
+	pcDirective = AddEntry(pcName, &lliID);
+	if (pcDirective)
 	{
-		bResult = mcIDToDirectiveIndex.Put(lliID, &cDirective);
-		if (bResult)
-		{
-			pcDirective = mcIDToDirectiveIndex.Get(lliID);
-			pcDirective->Init(pcName, eDirective, lliID, this);
-			return pcDirective;
-		}
-		else
-		{
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-			return NULL;
-		}
+		pcDirective->Init(pcName, eDirective, lliID, this);
 	}
-	else
-	{
-		return NULL;
-	}
+	return pcDirective;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the directive called szName.  Returns NULL if it is already in the
+// map.
 //
 //////////////////////////////////////////////////////////////////////////
 CPreprocessorDirective* CDirectiveMap::AddDirective(char* szName, EPreprocessorDirective eDirective)
 {
 	CExternalString		cExternalString;
-	int					iLen;
 
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-
+	cExternalString.Init(szName, StrLen(szName));
 	return AddDirective(&cExternalString, eDirective);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, bool bExact)
-{
-	SASCIINameIndex* psNameIndex;
-	CPreprocessorDirective* pcDirective;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
-	if (psNameIndex)
-	{
-		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
-		return pcDirective;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(CChars* pszName, bool bExact)
-{
-	CExternalString	cExternalString;
-
-	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetDirective(&cExternalString, bExact);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Returns the directive called szName, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName, bool bExact)
 {
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-	return GetDirective(&cExternalString, bExact);
+	return Get(szName, bExact);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CDirectiveMap::RemoveDirective(CExternalString* pcName)
-{
-	SASCIINameIndex* psNameIndex;
-	CPreprocessorDirective* pcDirective;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
-	if (psNameIndex)
-	{
-		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
-		if (pcDirective)
-		{
-			pcDirective->Kill();
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-			mcIDToDirectiveIndex.Remove(psNameIndex->mlliID);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Removes the directive called szName, if it is in the map.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDirectiveMap::RemoveDirective(char* szName)
 {
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-
-	RemoveDirective(&cExternalString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDirectiveMap::Dump(void)
-{
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	int								iWordEnd;
-	CPreprocessorDirective*			pcDirective;
-
-	iWordEnd = (int)mcNameToIDIndex.StartIteration(&sIter);
-	while (iWordEnd != -1)
-	{
-		pcDirective = mcIDToDirectiveIndex.Get(iWordEnd);
-		pcDirective->Dump();
-
-		iWordEnd = (int)mcNameToIDIndex.Iterate(&sIter);
-	}
+	Remove(szName);
 }
 

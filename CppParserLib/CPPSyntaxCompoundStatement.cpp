@@ -48,16 +48,6 @@ void CCPPSyntaxCompoundStatement::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxCompoundStatement::GetType(void)
-{
-	return "CompoundStatement";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxCompoundStatement::GetKind(void)
 {
 	return CPPS_CompoundStatement;
@@ -94,12 +84,12 @@ size CCPPSyntaxCompoundStatement::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxCompoundStatement::GetChild(size iIndex)
 {
-	if (iIndex < macpStatements.NumElements())
-	{
-		return macpStatements.GetPtr(iIndex);
-	}
-	iIndex -= macpStatements.NumElements();
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, &macpStatements, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

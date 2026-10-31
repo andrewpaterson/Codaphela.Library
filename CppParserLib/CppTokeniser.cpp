@@ -443,90 +443,21 @@ bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken, int iSource)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
 {
-	char		szNumber[256];
-	char*		szDigits;
-	char*		szEnd;
-	size		i;
-	size		iLength;
-	int			iBase;
-	char		c;
-	bool		bFloating;
+	SIntegerLiteral		sLiteral;
 
-	//Digit separators are left out.  [lex.icon]
-	iLength = 0;
-	for (i = 0; (i < psToken->uiLength) && (iLength < 255); i++)
+	switch (ParseIntegerLiteral(psToken->szText, psToken->uiLength, &sLiteral))
 	{
-		if (psToken->szText[i] != '\'')
-		{
-			szNumber[iLength] = psToken->szText[i];
-			iLength++;
-		}
+	case ILR_Integer:
+		return Integer(iSource, &sLiteral);
+	case ILR_Floating:
+		return Floating(psToken, iSource, sLiteral.szNumber);
+	case ILR_InvalidDigit:
+		return Error(psToken, "Invalid digit in integer literal.");
+	case ILR_TooLarge:
+		return Error(psToken, "Integer literal is too large.");
+	default:
+		return Error(psToken, "Invalid integer literal suffix.");
 	}
-	szNumber[iLength] = '\0';
-
-	iBase = 10;
-	szDigits = szNumber;
-	if ((szNumber[0] == '0') && ((szNumber[1] == 'x') || (szNumber[1] == 'X')))
-	{
-		iBase = 16;
-		szDigits = &szNumber[2];
-	}
-	else if ((szNumber[0] == '0') && ((szNumber[1] == 'b') || (szNumber[1] == 'B')))
-	{
-		iBase = 2;
-		szDigits = &szNumber[2];
-	}
-
-	//Find where the digits end and the suffix starts.
-	bFloating = false;
-	szEnd = szDigits;
-	for (;;)
-	{
-		c = *szEnd;
-		if ((c >= '0') && (c <= '9'))
-		{
-		}
-		else if ((iBase == 16) && (((c >= 'a') && (c <= 'f')) || ((c >= 'A') && (c <= 'F'))))
-		{
-		}
-		else if (c == '.')
-		{
-			bFloating = true;
-		}
-		else if ((iBase == 10) && ((c == 'e') || (c == 'E')))
-		{
-			bFloating = true;
-			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
-			{
-				szEnd++;
-			}
-		}
-		else if ((iBase == 16) && ((c == 'p') || (c == 'P')))
-		{
-			bFloating = true;
-			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
-			{
-				szEnd++;
-			}
-		}
-		else
-		{
-			break;
-		}
-		szEnd++;
-	}
-
-	if (bFloating)
-	{
-		return Floating(psToken, iSource, szNumber);
-	}
-
-	if ((iBase == 10) && (szDigits[0] == '0') && (szEnd > szDigits + 1))
-	{
-		iBase = 8;
-		szDigits++;
-	}
-	return Integer(psToken, iSource, szDigits, iBase, szEnd);
 }
 
 
@@ -534,89 +465,22 @@ bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Integer(SPreprocessedToken* psToken, int iSource, char* szDigits, int iBase, char* szSuffix)
+bool CCPPTokeniser::Integer(int iSource, SIntegerLiteral* psLiteral)
 {
 	uint64			ulliValue;
-	uint64			ulliDigit;
-	char*			sz;
-	char			c;
 	bool			bUnsigned;
 	int				iLongs;
-	bool			bInt64;
 	bool			bDecimal;
 	CCTInt*			pcInt;
 	CCTLongLong*	pcLongLong;
 
-	ulliValue = 0;
-	for (sz = szDigits; sz < szSuffix; sz++)
-	{
-		c = *sz;
-		if ((c >= '0') && (c <= '9'))
-		{
-			ulliDigit = c - '0';
-		}
-		else if ((c >= 'a') && (c <= 'f'))
-		{
-			ulliDigit = c - 'a' + 10;
-		}
-		else
-		{
-			ulliDigit = c - 'A' + 10;
-		}
-
-		if (ulliDigit >= (uint64)iBase)
-		{
-			return Error(psToken, "Invalid digit in integer literal.");
-		}
-		if (ulliValue > (0xFFFFFFFFFFFFFFFFULL - ulliDigit) / iBase)
-		{
-			return Error(psToken, "Integer literal is too large.");
-		}
-		ulliValue = ulliValue * iBase + ulliDigit;
-	}
-
-	//Suffixes: u, l, ll in any order, and Microsoft's i8, i16, i32, i64 and ui64.
-	bUnsigned = false;
-	iLongs = 0;
-	bInt64 = false;
-	for (sz = szSuffix; *sz != '\0';)
-	{
-		if ((*sz == 'u') || (*sz == 'U'))
-		{
-			bUnsigned = true;
-			sz++;
-		}
-		else if ((*sz == 'l') || (*sz == 'L'))
-		{
-			iLongs++;
-			sz++;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '6') && (sz[2] == '4'))
-		{
-			bInt64 = true;
-			sz += 3;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (((sz[1] == '3') && (sz[2] == '2')) || ((sz[1] == '1') && (sz[2] == '6'))))
-		{
-			sz += 3;
-		}
-		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '8'))
-		{
-			sz += 2;
-		}
-		else
-		{
-			return Error(psToken, "Invalid integer literal suffix.");
-		}
-	}
-	if (iLongs > 2)
-	{
-		return Error(psToken, "Invalid integer literal suffix.");
-	}
+	ulliValue = psLiteral->ulliValue;
+	bUnsigned = psLiteral->bUnsigned;
+	iLongs = psLiteral->iLongs;
 
 	//[lex.icon] Table 6 with 32 bit int and long and 64 bit long long, as on Windows.  The first type the value fits.
-	bDecimal = (iBase == 10);
-	if ((iLongs < 2) && !bInt64)
+	bDecimal = (psLiteral->iBase == 10);
+	if ((iLongs < 2) && !psLiteral->bInt64)
 	{
 		if (!bUnsigned && (ulliValue <= 0x7FFFFFFFULL))
 		{
@@ -705,89 +569,6 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Escape(const char** psz, const char* szEnd, uint32* puiValue)
-{
-	const char*	sz;
-	uint32		uiValue;
-	int			iDigits;
-	int			iMaxDigits;
-	char		c;
-
-	//*psz is the character after the backslash.  [lex.ccon] Table 7
-	sz = *psz;
-	c = *sz;
-	sz++;
-	switch (c)
-	{
-	case 'n':	uiValue = '\n';	break;
-	case 't':	uiValue = '\t';	break;
-	case 'v':	uiValue = '\v';	break;
-	case 'b':	uiValue = '\b';	break;
-	case 'r':	uiValue = '\r';	break;
-	case 'f':	uiValue = '\f';	break;
-	case 'a':	uiValue = '\a';	break;
-	case '\\':	uiValue = '\\';	break;
-	case '?':	uiValue = '?';	break;
-	case '\'':	uiValue = '\'';	break;
-	case '"':	uiValue = '"';	break;
-	case 'x':
-	case 'u':
-	case 'U':
-		uiValue = 0;
-		iMaxDigits = (c == 'x') ? 8 : ((c == 'u') ? 4 : 8);
-		for (iDigits = 0; (sz < szEnd) && (iDigits < iMaxDigits); iDigits++)
-		{
-			c = *sz;
-			if ((c >= '0') && (c <= '9'))
-			{
-				uiValue = uiValue * 16 + (c - '0');
-			}
-			else if ((c >= 'a') && (c <= 'f'))
-			{
-				uiValue = uiValue * 16 + (c - 'a' + 10);
-			}
-			else if ((c >= 'A') && (c <= 'F'))
-			{
-				uiValue = uiValue * 16 + (c - 'A' + 10);
-			}
-			else
-			{
-				break;
-			}
-			sz++;
-		}
-		if (iDigits == 0)
-		{
-			return false;
-		}
-		break;
-	default:
-		if ((c >= '0') && (c <= '7'))
-		{
-			uiValue = c - '0';
-			for (iDigits = 1; (sz < szEnd) && (iDigits < 3) && (*sz >= '0') && (*sz <= '7'); iDigits++)
-			{
-				uiValue = uiValue * 8 + (*sz - '0');
-				sz++;
-			}
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	}
-
-	*psz = sz;
-	*puiValue = uiValue;
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 {
 	const char*		sz;
@@ -832,7 +613,7 @@ bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 		if (*sz == '\\')
 		{
 			sz++;
-			if (!Escape(&sz, szEnd, &uiCharacter))
+			if (!DecodeEscape(&sz, szEnd, &uiCharacter))
 			{
 				return Error(psToken, "Invalid escape sequence.");
 			}

@@ -61,6 +61,8 @@ public:
 	void PushIfDefined(bool bEvaluated);
 	void SwapForElse(void);
 	void SwapForElseIf(bool bEvaluated);  //The else portion of bEvaluated will be calculated, don't include it in bEvaluated.
+	void Swap(EConditionalType eType, bool bEvaluated);
+	bool IsInElse(void);
 	void PushIf(bool bEvaluated);
 	void PopEndIf(void);
 

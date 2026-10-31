@@ -48,16 +48,6 @@ void CCPPSyntaxCallExpression::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxCallExpression::GetType(void)
-{
-	return "CallExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxCallExpression::GetKind(void)
 {
 	return CPPS_CallExpression;
@@ -93,18 +83,12 @@ size CCPPSyntaxCallExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxCallExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcCallee;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex < macpArguments.NumElements())
+	if (IsChild(&iIndex, mpcCallee, &pcChild) || IsChild(&iIndex, &macpArguments, &pcChild))
 	{
-		return macpArguments.GetPtr(iIndex);
+		return pcChild;
 	}
-	iIndex -= macpArguments.NumElements();
-
 	return NULL;
 }
 

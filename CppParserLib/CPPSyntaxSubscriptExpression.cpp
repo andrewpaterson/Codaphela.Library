@@ -37,26 +37,6 @@ void CCPPSyntaxSubscriptExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxSubscriptExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxSubscriptExpression::GetType(void)
-{
-	return "SubscriptExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxSubscriptExpression::GetKind(void)
 {
 	return CPPS_SubscriptExpression;
@@ -92,18 +72,12 @@ size CCPPSyntaxSubscriptExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxSubscriptExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcArray;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcArray, &pcChild) || IsChild(&iIndex, mpcIndex, &pcChild))
 	{
-		return mpcIndex;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

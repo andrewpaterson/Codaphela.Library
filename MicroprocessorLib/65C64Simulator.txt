@@ -307,7 +307,7 @@ cycles and takes interrupts at the same instruction boundaries.  One Step is one
 C65C64Meta::TickInstruction (a block, vector, multiply or divide step is a Step).  The
 assembler, C++ and Libc65 tests run on it.  A change to an instruction here must be made
 there too: TestFast65C64 (TestMicroprocessorLib) runs every opcode from random state on
-both and compares everything after each step, TestAsm65Fast and TestCPP65GeneratorLockstep
+both and compares everything after each step, TestAsm65C64Fast and TestCPP65GeneratorLockstep
 run programs on both in lockstep.
 
 Not implemented yet

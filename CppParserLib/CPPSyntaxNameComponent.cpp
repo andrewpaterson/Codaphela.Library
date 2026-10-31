@@ -53,16 +53,6 @@ void CCPPSyntaxNameComponent::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxNameComponent::GetType(void)
-{
-	return "NameComponent";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxNameComponent::GetKind(void)
 {
 	return CPPS_NameComponent;
@@ -123,18 +113,12 @@ size CCPPSyntaxNameComponent::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxNameComponent::GetChild(size iIndex)
 {
-	if (iIndex < macpTemplateArguments.NumElements())
-	{
-		return macpTemplateArguments.GetPtr(iIndex);
-	}
-	iIndex -= macpTemplateArguments.NumElements();
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, &macpTemplateArguments, &pcChild) || IsChild(&iIndex, mpcConversionType, &pcChild))
 	{
-		return mpcConversionType;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

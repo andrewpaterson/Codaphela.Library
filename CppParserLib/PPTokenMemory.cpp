@@ -1,3 +1,23 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2012 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppParserLib
+
+Codaphela CppParserLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppParserLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
 #include "PPTokenMemory.h"
 
@@ -18,171 +38,8 @@ void CPPTokenMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenMemory::Kill(void)
 {
-	//SPPTokenIterator	sIter;
-	//CPPToken*			pcPPToken;
-
-	//pcPPToken = StartIteration(&sIter);
-	//while (pcPPToken)
-	//{
-	//	pcPPToken->Kill();
-	//	pcPPToken = Iterate(&sIter);
-	//}
-
+	//The tokens own nothing: the stack's memory is all there is.
 	mcStack.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPBlock* CPPTokenMemory::AddBlock(void)
-{
-	CPPBlock* pcToken;
-		
-	pcToken = (CPPBlock*)mcStack.Add(sizeof(CPPBlock));
-	CPPBlock::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPWhitespace* CPPTokenMemory::AddWhitespace(void)
-{
-	CPPWhitespace* pcToken;
-
-	pcToken = (CPPWhitespace*)mcStack.Add(sizeof(CPPWhitespace));
-	CPPWhitespace::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPHashes* CPPTokenMemory::AddHashes(void)
-{
-	CPPHashes* pcToken;
-
-	pcToken = (CPPHashes*)mcStack.Add(sizeof(CPPHashes));
-	CPPHashes::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPReplacement* CPPTokenMemory::AddReplacement(void)
-{
-	CPPReplacement* pcToken;
-
-	pcToken = (CPPReplacement*)mcStack.Add(sizeof(CPPReplacement));
-	CPPReplacement::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPText* CPPTokenMemory::AddText(void)
-{
-	CPPText* pcToken;
-
-	pcToken = (CPPText*)mcStack.Add(sizeof(CPPText));
-	CPPText::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPTextWithSource* CPPTokenMemory::AddTextWithSource(void)
-{
-	CPPTextWithSource* pcToken;
-
-	pcToken = (CPPTextWithSource*)mcStack.Add(sizeof(CPPTextWithSource));
-	CPPTextWithSource::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPTokenReplacementsHolder* CPPTokenMemory::AddTokenReplacementsHolder(void)
-{
-	CPPTokenReplacementsHolder* pcToken;
-
-	pcToken = (CPPTokenReplacementsHolder*)mcStack.Add(sizeof(CPPTokenReplacementsHolder));
-	CPPTokenReplacementsHolder::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPLine* CPPTokenMemory::AddLine(void)
-{
-	CPPLine* pcToken;
-
-	pcToken = (CPPLine*)mcStack.Add(sizeof(CPPLine));
-	CPPLine::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPPTokenMemory::AddDirective(void)
-{
-	CPPDirective* pcToken;
-
-	pcToken = (CPPDirective*)mcStack.Add(sizeof(CPPDirective));
-	CPPDirective::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPConditional* CPPTokenMemory::AddConditional(void)
-{
-	CPPConditional* pcToken;
-
-	pcToken = (CPPConditional*)mcStack.Add(sizeof(CPPConditional));
-	CPPConditional::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPInclude* CPPTokenMemory::AddInclude(void)
-{
-	CPPInclude* pcToken;
-
-	pcToken = (CPPInclude*)mcStack.Add(sizeof(CPPInclude));
-	CPPInclude::Construct(pcToken);
-	return pcToken;
 }
 
 

@@ -123,7 +123,7 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
-			Error(pcExpression, "dynamic_cast is not supported by the 65C64 generator");
+			Error(pcExpression, "dynamic_cast is not supported by the compiler");
 			return NULL;
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);
@@ -142,7 +142,7 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 				return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), pcExpression);
 			}
 		}
-		Error(pcExpression, "This construction is not supported by the 65C64 generator yet");
+		Error(pcExpression, "This construction is not supported by the compiler yet");
 		return NULL;
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
@@ -152,7 +152,7 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 	case CPPS_DeleteExpression:
 		return DeleteExpression((CCPPSyntaxDeleteExpression*)pcExpression);
 	default:
-		Error(pcExpression, "This expression is not supported by the 65C64 generator yet");
+		Error(pcExpression, "This expression is not supported by the compiler yet");
 		return NULL;
 	}
 }
@@ -190,7 +190,7 @@ SCPP65Type* CCPP65Generator::Value(CCPPSyntax* pcExpression)
 	}
 	if (!sPlace.psType->IsScalar())
 	{
-		Error(pcExpression, "This type of value is not supported by the 65C64 generator yet");
+		Error(pcExpression, "This type of value is not supported by the compiler yet");
 		return NULL;
 	}
 	if (!Supported(sPlace.psType, pcExpression))
@@ -229,7 +229,7 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		case CTNT_LongDouble:
 			return &mcTypes.msLongDouble;
 		default:
-			Error(pcLiteral, "This literal is not supported by the 65C64 generator yet");
+			Error(pcLiteral, "This literal is not supported by the compiler yet");
 			return NULL;
 		}
 	}
@@ -640,7 +640,7 @@ SCPP65Type* CCPP65Generator::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcI
 	psTemplate = GetTemplate(pcId->mpcName->mpcSymbol);
 	if (!psTemplate || !pcComponent->mbTemplateArguments)
 	{
-		Error(pcId, "The address of a function template needs its template arguments in the 65C64 generator yet");
+		Error(pcId, "The address of a function template needs its template arguments in the compiler yet");
 		return NULL;
 	}
 	psFunction = InstantiateFunction(psTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
@@ -757,7 +757,7 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		Line(psType->IsWide() ? "wth A, 64\n\t\txor A, -1\n\t\twth A, 32" : "xor A, -1")->AppendNewLine();
 		return psType;
 	default:
-		Error(pcUnary, "This operator is not supported by the 65C64 generator yet");
+		Error(pcUnary, "This operator is not supported by the compiler yet");
 		return NULL;
 	}
 }
@@ -929,7 +929,7 @@ SCPP65Type* CCPP65Generator::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	if (!sPlace.psType->IsScalar())
 	{
-		Error(pcBinary, "Only integers, pointers and objects can be assigned by the 65C64 generator yet");
+		Error(pcBinary, "Only integers, pointers and objects can be assigned by the compiler yet");
 		return NULL;
 	}
 	bAddress = sPlace.eKind == CPP65PK_Address;
@@ -1082,7 +1082,7 @@ SCPP65Type* CCPP65Generator::ObjectConditional(CCPPSyntaxConditionalExpression* 
 	psFalse = psFalse->IsReference() ? psFalse->psBase : psFalse;
 	if (!psTrue->IsClass() || !psFalse->IsClass() || (psTrue->psClass != psFalse->psClass))
 	{
-		Error(pcConditional, "c ? x : y with objects of different types is not supported by the 65C64 generator yet");
+		Error(pcConditional, "c ? x : y with objects of different types is not supported by the compiler yet");
 		return NULL;
 	}
 	if (!CompleteClass(psTrue->psClass, pcConditional) || !TemporaryAddress(pcConditional, psTrue))
@@ -1159,7 +1159,43 @@ bool CCPP65Generator::IsBuiltin(int64 lliName)
 		return false;
 	}
 	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	return szName && (iLength > 10) && (memcmp(szName, "__builtin_", 10) == 0);
+	return szName && (iLength > CPP65_BUILTIN_PREFIX_LENGTH) && (memcmp(szName, CPP65_BUILTIN_PREFIX, CPP65_BUILTIN_PREFIX_LENGTH) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Constant, without reporting an error when the expression isn't constant
+// (most aren't: it is only looking), and without changing whether an
+// earlier quiet evaluation failed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
+{
+	bool	bQuietFailed;
+	bool	bConstant;
+
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	bConstant = Constant(pcExpression, plliValue);
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	return bConstant;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A builtin's name without "__builtin_" (IsBuiltin) and its length.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCPP65Generator::BuiltinName(int64 lliName, int* piLength)
+{
+	char*	szName;
+
+	szName = mpcTokeniser->GetIdentifier(lliName, piLength);
+	*piLength -= CPP65_BUILTIN_PREFIX_LENGTH;
+	return szName + CPP65_BUILTIN_PREFIX_LENGTH;
 }
 
 
@@ -1191,9 +1227,9 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		return psType;
 	}
 
-	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szIdentifier = BuiltinName(lliName, &iLength);
 	szName.Init();
-	szName.Append(szIdentifier + 10, iLength - 10);
+	szName.Append(szIdentifier, iLength);
 	iArguments = (int)pcCall->macpArguments.NumElements();
 
 	if (szName.Equals("unreachable") || szName.Equals("trap"))
@@ -1219,10 +1255,15 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		Line("nop")->AppendNewLine();
 		return &mcTypes.msVoid;
 	}
-	if ((szName.Equals("bcd_add") || szName.Equals("bcd_subtract")) && !mpsTarget->bDirectGenerator)
+	if (szName.Equals("bcd_add") || szName.Equals("bcd_subtract"))
 	{
 		//The W65C816's decimal mode (CCPP65IRFrontEnd::BuiltinBCD writes the call): only its type is needed here.
 		szName.Kill();
+		if (mpsTarget->eTarget != CPPT_W65C816)
+		{
+			Error(pcCall, "__builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract");
+			return NULL;
+		}
 		if (iArguments != 4)
 		{
 			Error(pcCall, "The builtin takes four arguments");
@@ -1252,7 +1293,7 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		if (miDepth != 0)
 		{
 			//The space would be between the arguments already pushed.
-			Error(pcCall, "__builtin_alloca in a call's arguments is not supported by the 65C64 generator yet");
+			Error(pcCall, "__builtin_alloca in a call's arguments is not supported by the compiler yet");
 			return NULL;
 		}
 		psArgument = Expression(pcCall->macpArguments.GetPtr(0));
@@ -1265,22 +1306,25 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		Line("sub S, A")->AppendNewLine();
 		Line("cpy A, S")->AppendNewLine();
 		Line("add A, 1")->AppendNewLine();
-		mbAlloca = true;
 		return mcTypes.Pointer(&mcTypes.msVoid);
 	}
 
+	//ctz, clz and popcount of unsigned int; l: unsigned long; ll: unsigned long long (as the IR front end has them).
 	bWide = szName.EndsWith("ll");
+	psType = &mcTypes.msUnsignedInt;
 	if (bWide)
 	{
 		szName.SetLength(szName.Length() - 2);
+		psType = &mcTypes.msUnsignedLongLong;
 	}
 	else if (szName.EndsWith('l'))
 	{
 		szName.SetLength(szName.Length() - 1);
+		psType = mcTypes.Long(false);
 	}
 	if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount"))
 	{
-		Error(pcCall, "This builtin is not supported by the 65C64 generator yet");
+		Error(pcCall, "This builtin is not supported by the compiler yet");
 		szName.Kill();
 		return NULL;
 	}
@@ -1291,7 +1335,6 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		return NULL;
 	}
 
-	psType = bWide ? &mcTypes.msUnsignedLongLong : &mcTypes.msUnsignedInt;
 	psArgument = Expression(pcCall->macpArguments.GetPtr(0));
 	if (!psArgument || !Convert(psArgument, psType, pcCall))
 	{
@@ -1456,7 +1499,7 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return PointerCall(pcCall, psType->psBase);
 		}
-		Error(pcCallee, "Only calls to functions and pointers to functions are supported by the 65C64 generator yet");
+		Error(pcCallee, "Only calls to functions and pointers to functions are supported by the compiler yet");
 		return NULL;
 	}
 
@@ -1672,7 +1715,7 @@ bool CCPP65Generator::MemberFunctionAddress(SCPP65Class* psClass, int64 lliName,
 		{
 			if (psFound)
 			{
-				Error(pcNode, "The address of an overloaded function is not supported by the 65C64 generator yet");
+				Error(pcNode, "The address of an overloaded function is not supported by the compiler yet");
 				return true;
 			}
 			psFound = psFunction;
@@ -1880,7 +1923,7 @@ CCPPSymbol* CCPP65Generator::NewPackElement(CCPPSymbol* pcPack)
 {
 	CCPPSymbol*	pcSymbol;
 
-	pcSymbol = (CCPPSymbol*)malloc(sizeof(CCPPSymbol));
+	pcSymbol = NewMalloc<CCPPSymbol>();
 	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
 	mapcPackSymbols.Add(pcSymbol);
 	mapcPackElements.Add(pcSymbol);
@@ -1910,31 +1953,32 @@ bool CCPP65Generator::HasPackExpansion(CArraySyntax* papcArguments)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// f(args...): the call is generated with args... replaced by a name for each of the
-// pack's elements, then given back its arguments (the same call is in instances
-// with other packs).  Only the function parameter pack itself can be expanded.
+// f(args...): the call's arguments are moved to papcArguments and replaced by
+// themselves with args... replaced by a name for each of the pack's elements.
+// RestoreArguments gives them back (the same call is in instances with other
+// packs).  Only the function parameter pack itself can be expanded: otherwise
+// the arguments are given back and the expansion is returned.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
+CCPPSyntax* CCPP65Generator::ExpandPackArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
-	CArraySyntax				apcArguments;
 	CCPPSyntax*					pcArgument;
 	CCPPSyntax*					pcPattern;
 	CCPPSyntaxIdExpression*		pcId;
 	CCPPSyntaxName*				pcName;
 	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntaxNameComponent*	pcLast;
 	CCPPSyntaxMemory*			pcMemory;
-	SCPP65Type*					psType;
 	size						i;
 	size						j;
 
-	apcArguments.Init();
-	apcArguments.Copy(&pcCall->macpArguments);
+	papcArguments->Init();
+	papcArguments->Copy(&pcCall->macpArguments);
 	pcCall->macpArguments.ReInit();
 	pcMemory = mpcTree->GetMemory();
-	for (i = 0; i < apcArguments.NumElements(); i++)
+	for (i = 0; i < papcArguments->NumElements(); i++)
 	{
-		pcArgument = apcArguments.GetPtr(i);
+		pcArgument = papcArguments->GetPtr(i);
 		if (pcArgument->GetKind() != CPPS_PackExpansionExpression)
 		{
 			pcCall->macpArguments.Add(pcArgument);
@@ -1943,34 +1987,61 @@ SCPP65Type* CCPP65Generator::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
 		pcPattern = SkipParentheses(((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern);
 		if (!mpcPackParameter || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != mpcPackParameter))
 		{
-			pcCall->macpArguments.ReInit();
-			pcCall->macpArguments.Copy(&apcArguments);
-			apcArguments.Kill();
-			Error(pcArgument, "Only a function parameter pack can be expanded by the 65C64 generator yet");
-			return NULL;
+			RestoreArguments(pcCall, papcArguments);
+			return pcArgument;
 		}
+		pcLast = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast();
 		for (j = 0; j < mapcPackElements.NumElements(); j++)
 		{
-			pcId = pcMemory->CreateIdExpression(pcCall);
+			pcId = pcMemory->Create<CCPPSyntaxIdExpression>(pcCall);
 			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcName = pcMemory->CreateName(pcId);
+			pcName = pcMemory->Create<CCPPSyntaxName>(pcId);
 			pcName->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
 			pcName->mpcSymbol = mapcPackElements.GetPtr(j);
-			pcComponent = pcMemory->CreateNameComponent(pcName);
+			pcComponent = pcMemory->Create<CCPPSyntaxNameComponent>(pcName);
 			pcComponent->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcComponent->meKind = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->meKind;
-			pcComponent->miName = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->miName;
+			pcComponent->meKind = pcLast->meKind;
+			pcComponent->miName = pcLast->miName;
 			pcComponent->mpcSymbol = pcName->mpcSymbol;
 			pcName->macpComponents.Add(pcComponent);
 			pcId->mpcName = pcName;
 			pcCall->macpArguments.Add(pcId);
 		}
 	}
+	return NULL;
+}
 
-	psType = CallExpression(pcCall);
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
+{
 	pcCall->macpArguments.ReInit();
-	pcCall->macpArguments.Copy(&apcArguments);
-	apcArguments.Kill();
+	pcCall->macpArguments.Copy(papcArguments);
+	papcArguments->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
+{
+	CArraySyntax	apcArguments;
+	CCPPSyntax*		pcExpansion;
+	SCPP65Type*		psType;
+
+	pcExpansion = ExpandPackArguments(pcCall, &apcArguments);
+	if (pcExpansion)
+	{
+		Error(pcExpansion, "Only a function parameter pack can be expanded by the compiler yet");
+		return NULL;
+	}
+	psType = CallExpression(pcCall);
+	RestoreArguments(pcCall, &apcArguments);
 	return psType;
 }
 
@@ -2105,7 +2176,7 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 	}
 	if (!psTo->IsScalar())
 	{
-		Error(pcNode, "Only casts to integers and pointers are supported by the 65C64 generator yet");
+		Error(pcNode, "Only casts to integers and pointers are supported by the compiler yet");
 		return NULL;
 	}
 	if (!Convert(psFrom, psTo, pcNode))
@@ -2127,7 +2198,7 @@ SCPP65Type* CCPP65Generator::SizeofExpression(CCPPSyntax* pcSizeof)
 	//sizeof and type traits (__is_trivially_constructible(T) ...) are constants.
 	if (!Constant(pcSizeof, &lliBytes))
 	{
-		Error(pcSizeof, "This sizeof or type trait is not supported by the 65C64 generator yet");
+		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
 		return NULL;
 	}
 	Line("cpy A, ")->Append(lliBytes)->AppendNewLine();
@@ -2151,7 +2222,7 @@ SCPP65Type* CCPP65Generator::NewExpression(CCPPSyntaxNewExpression* pcNew)
 
 	if (pcNew->mbPlacement && ((pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() != 0)))
 	{
-		Error(pcNew, "Only new(address) Type is supported for placement new by the 65C64 generator yet");
+		Error(pcNew, "Only new(address) Type is supported for placement new by the compiler yet");
 		return NULL;
 	}
 	psType = GetTypeIdType(pcNew->mpcType);
@@ -2251,12 +2322,12 @@ SCPP65Type* CCPP65Generator::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type
 
 	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer && (pcNew->mpcInitializer->GetKind() != CPPS_ParenthesisedInitializer)))
 	{
-		Error(pcNew, "Only new Type[count] (one dimension, no initialiser list) is supported by the 65C64 generator yet");
+		Error(pcNew, "Only new Type[count] (one dimension, no initialiser list) is supported by the compiler yet");
 		return NULL;
 	}
 	if (pcNew->mpcInitializer && psType->IsScalar())
 	{
-		Error(pcNew, "new Type[count]() is not supported by the 65C64 generator yet");
+		Error(pcNew, "new Type[count]() is not supported by the compiler yet");
 		return NULL;
 	}
 	bCookie = psType->IsClass() && psType->psClass->psDestructor;
@@ -2847,7 +2918,7 @@ SCPP65Type* CCPP65Generator::Operate(ECppTokens eOperator, SCPP65Type* psLeft, S
 		Label(iEnd);
 		break;
 	default:
-		Error(pcNode, "This operator is not supported by the 65C64 generator yet");
+		Error(pcNode, "This operator is not supported by the compiler yet");
 		return NULL;
 	}
 
@@ -2945,7 +3016,7 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 		break;
 	default:
 		Line("wtth (A, B), 32")->AppendNewLine();
-		Error(pcNode, "This operator is not supported by the 65C64 generator yet");
+		Error(pcNode, "This operator is not supported by the compiler yet");
 		return NULL;
 	}
 	Line("wtth (A, B), 32")->AppendNewLine();
@@ -3204,7 +3275,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 	{
 		if (!ConditionDeclaration(pcExpression))
 		{
-			return Error(pcExpression, "This condition is not supported by the 65C64 generator yet");
+			return Error(pcExpression, "This condition is not supported by the compiler yet");
 		}
 		psVariable = GetVariable(((CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcExpression)->macpDeclarators.GetPtr(0))->mpcSymbol);
 		VariablePlace(psVariable, &sPlace);
@@ -3295,11 +3366,11 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 	}
 	if (psFrom->IsClass() || psTo->IsClass())
 	{
-		return Error(pcNode, "Objects can only be copied or used through pointers by the 65C64 generator yet");
+		return Error(pcNode, "Objects can only be copied or used through pointers by the compiler yet");
 	}
 	if (!psFrom->IsScalar() || !psTo->IsScalar())
 	{
-		return Error(pcNode, "This conversion is not supported by the 65C64 generator yet");
+		return Error(pcNode, "This conversion is not supported by the compiler yet");
 	}
 	if (!Supported(psFrom, pcNode) || !Supported(psTo, pcNode))
 	{
@@ -3325,7 +3396,7 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 	{
 		if (psFrom->psBase->IsFunction())
 		{
-			return Error(pcNode, "A pointer to a member function of a base further on in the class is not supported by the 65C64 generator yet");
+			return Error(pcNode, "A pointer to a member function of a base further on in the class is not supported by the compiler yet");
 		}
 		Line("add A, ")->Append(iOffset)->AppendNewLine();
 		return true;
@@ -3416,7 +3487,7 @@ bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 {
 	if (psType->IsScalar() && (psType->iBytes > 8))
 	{
-		return Error(pcNode, "Integers wider than 64 bits are not supported by the 65C64 generator");
+		return Error(pcNode, "Integers wider than 64 bits are not supported by the compiler");
 	}
 	return true;
 }
@@ -3527,7 +3598,7 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 			{
 				return Error(pcExpression, "This is not an lvalue");
 			}
-			return Error(pcExpression, "Only variables are supported by the 65C64 generator here yet");
+			return Error(pcExpression, "Only variables are supported by the compiler here yet");
 		}
 		if (miThisOffset == -1)
 		{
@@ -3659,7 +3730,7 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		//An expression that makes an object: its temporary.
 		return ResultPlace(Evaluate(pcExpression), psPlace, pcExpression);
 	}
-	return Error(pcExpression, "This lvalue is not supported by the 65C64 generator yet");
+	return Error(pcExpression, "This lvalue is not supported by the compiler yet");
 }
 
 
@@ -4355,7 +4426,6 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	int64		lliValue;
 	int			iBits;
 	bool		bConstant;
-	bool		bQuietFailed;
 	CChars		szMessage;
 
 	if (!psTo || !psTo->IsInteger() || (psTo->eKind == CPP65TK_Bool) || (miWarningChecks > 0))
@@ -4371,11 +4441,7 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	}
 
 	//Most expressions aren't constant; looking must not leave an error.
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
-	bConstant = Constant(pcExpression, &lliValue);
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	bConstant = QuietConstant(pcExpression, &lliValue);
 	if (!bConstant)
 	{
 		WideningArithmetic(pcExpression, psFrom, psTo);
@@ -4423,7 +4489,6 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 	CChars						szMessage;
 	int64						lliValue;
 	bool						bConstant;
-	bool						bQuietFailed;
 
 	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes) || (miWarningChecks > 0))
 	{
@@ -4435,11 +4500,7 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 		return;
 	}
 
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
-	bConstant = Constant(pcBinary, &lliValue);
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	bConstant = QuietConstant(pcBinary, &lliValue);
 	if (bConstant)
 	{
 		return;
@@ -4467,17 +4528,12 @@ void CCPP65Generator::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits
 	CChars	szMessage;
 	int64	lliCount;
 	bool	bConstant;
-	bool	bQuietFailed;
 
 	if (miWarningChecks > 0)
 	{
 		return;
 	}
-	bQuietFailed = mbQuietFailed;
-	BeginQuiet();
-	bConstant = Constant(pcBinary->mpcRight, &lliCount);
-	EndQuiet();
-	mbQuietFailed = bQuietFailed;
+	bConstant = QuietConstant(pcBinary->mpcRight, &lliCount);
 	if (!bConstant || (lliCount < iBits))
 	{
 		return;
@@ -4906,14 +4962,14 @@ void CCPP65Generator::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CC
 // The compiler's type traits: __is_class, __is_enum, __is_union, __is_empty,
 // __is_polymorphic, __is_abstract, __is_pod, __is_trivial, __is_trivially_copyable,
 // __is_trivially_constructible, __is_trivially_destructible and
-// __has_trivial_destructor of one type.  Enums are ints.
+// __has_trivial_destructor of one type.  A class is abstract when one of its
+// virtual functions is still pure.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
 {
 	SCPP65Type*		psType;
 	SCPP65Class*	psClass;
-	char*			szName;
 	CChars			szTrait;
 	bool			bResult;
 
@@ -4934,39 +4990,44 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 
 	szTrait.Init();
 	mpcTokeniser->GetSource(mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
-	szName = szTrait.Text();
 	bResult = true;
-	if (strcmp(szName, "__is_class") == 0)
+	if (szTrait.Equals("__is_class"))
 	{
 		*plliValue = psClass && !psClass->bUnion;
 	}
-	else if (strcmp(szName, "__is_union") == 0)
+	else if (szTrait.Equals("__is_union"))
 	{
 		*plliValue = psClass && psClass->bUnion;
 	}
-	else if (strcmp(szName, "__is_enum") == 0)
+	else if (szTrait.Equals("__is_enum"))
 	{
-		*plliValue = 0;
+		*plliValue = psType->pcEnum != NULL;
 	}
-	else if (strcmp(szName, "__is_empty") == 0)
+	else if (szTrait.Equals("__is_empty"))
 	{
 		*plliValue = psClass && psClass->bEmpty;
 	}
-	else if ((strcmp(szName, "__is_polymorphic") == 0) || (strcmp(szName, "__is_abstract") == 0))
+	else if (szTrait.Equals("__is_polymorphic"))
 	{
 		*plliValue = psClass && IsPolymorphic(psClass);
 	}
-	else if ((strcmp(szName, "__is_trivially_constructible") == 0) || (strcmp(szName, "__has_trivial_constructor") == 0))
+	else if (szTrait.Equals("__is_abstract"))
+	{
+		*plliValue = psClass && IsAbstract(psClass);
+	}
+	else if (szTrait.Equals("__is_trivially_constructible") || szTrait.Equals("__has_trivial_constructor"))
 	{
 		*plliValue = !psClass || !NeedsConstructor(psClass);
 	}
-	else if ((strcmp(szName, "__is_trivially_destructible") == 0) || (strcmp(szName, "__has_trivial_destructor") == 0))
+	else if (szTrait.Equals("__is_trivially_destructible") || szTrait.Equals("__has_trivial_destructor"))
 	{
 		*plliValue = !psClass || !psClass->psDestructor;
 	}
-	else if ((strcmp(szName, "__is_pod") == 0) || (strcmp(szName, "__is_trivial") == 0) || (strcmp(szName, "__is_trivially_copyable") == 0))
+	else if (szTrait.Equals("__is_pod") || szTrait.Equals("__is_trivial") || szTrait.Equals("__is_trivially_copyable"))
 	{
-		*plliValue = !psClass || (!NeedsConstructor(psClass) && !psClass->psDestructor);
+		//Nothing the compiler writes runs to make, copy or destroy one: no constructor, copy constructor, destructor
+		//or vtable.
+		*plliValue = !psClass || (!NeedsConstructor(psClass) && !psClass->psDestructor && !HasCopyConstructor(psClass) && !IsPolymorphic(psClass));
 	}
 	else
 	{
@@ -5279,7 +5340,7 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->mlliIdentifier, &szName))
 		{
 			szName.Kill();
-			return Error(pcString, "This part of a string literal is not supported by the 65C64 generator yet");
+			return Error(pcString, "This part of a string literal is not supported by the compiler yet");
 		}
 		for (i = 0; i < szName.Length(); i++)
 		{
@@ -5305,7 +5366,7 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 
 	if ((pcToken->meEncoding != CTE_Narrow) && (pcToken->meEncoding != CTE_UTF8))
 	{
-		return Error(pcString, "Wide string literals are not supported by the 65C64 generator yet");
+		return Error(pcString, "Wide string literals are not supported by the compiler yet");
 	}
 
 	sz = pcToken->mszStart;
@@ -5313,7 +5374,7 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 	{
 		if (*sz == 'R')
 		{
-			return Error(pcString, "Raw string literals are not supported by the 65C64 generator yet");
+			return Error(pcString, "Raw string literals are not supported by the compiler yet");
 		}
 		sz++;
 	}

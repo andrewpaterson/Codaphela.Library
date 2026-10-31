@@ -132,16 +132,10 @@ static uint8 IR65OpcodeFlags(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime)
 {
-	mpcModule = pcModule;
-	mpiLabels = piLabels;
+	CIRBackend::Init(pcModule, piLabels);
 	mpaszRuntime = paszRuntime;
 	mbSignedDivide = false;
 	mbSignedDivide64 = false;
-	mbSourceMarkers = false;
-	mcSourceMarkers.Init();
-	mpcFunction = NULL;
-	mpszOut = NULL;
-	mpcErrors = NULL;
 	mcDominators.Init();
 	mcLiveness.Init();
 	masPlaces.Init();
@@ -152,16 +146,13 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	maiCalls.Init();
 	maiChangesXY.Init();
 	maiChangesY.Init();
-	maiBlockLabels.Init();
 	mauiUses.Init();
 	masMoves.Init();
 	masStubs.Init();
 	muiSaved = 0;
-	miFrameBytes = 0;
 	miArguments = 0;
 	miThisOffset = -1;
 	miReturnLabel = 0;
-	mbResult = true;
 	msInA = IRNone();
 	msAvailable = IRNone();
 	msDeferred = IRNone();
@@ -190,7 +181,6 @@ void CIR65Backend::Kill(void)
 	size	ui;
 
 	mauiNarrowOnly.Kill();
-	mcSourceMarkers.Kill();
 	mcPeephole.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
@@ -198,7 +188,6 @@ void CIR65Backend::Kill(void)
 	masStubs.Kill();
 	masMoves.Kill();
 	mauiUses.Kill();
-	maiBlockLabels.Kill();
 	maiChangesY.Kill();
 	maiChangesXY.Kill();
 	maiCalls.Kill();
@@ -213,6 +202,7 @@ void CIR65Backend::Kill(void)
 	masPlaces.Kill();
 	mcLiveness.Kill();
 	mcDominators.Kill();
+	CIRBackend::Kill();
 }
 
 
@@ -237,131 +227,6 @@ bool CIR65Backend::UsesSignedDivide64(void)
 	return mbSignedDivide64;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Every function (each a text section of its own) and global (a data
-// section) of the module, for CAsm65Assembler::AssembleObject.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::GenerateModule(CChars* pszDest, CCPPErrors* pcErrors)
-{
-	size			ui;
-	CIRFunction*	pcFunction;
-	char*			szName;
-	bool			bResult;
-
-	bResult = true;
-	for (ui = 0; ui < mpcModule->NumFunctions(); ui++)
-	{
-		pcFunction = mpcModule->GetFunction(ui);
-		szName = mpcModule->GetSymbolName(pcFunction->muiSymbol);
-		pszDest->Append("\t\t.section text.");
-		pszDest->Append(szName);
-		pszDest->AppendNewLine();
-		Binding(szName, pcFunction->muiAttributes, pszDest);
-		bResult &= GenerateFunction(pcFunction, szName, pszDest, pcErrors);
-	}
-	for (ui = 0; ui < mpcModule->NumGlobals(); ui++)
-	{
-		GenerateGlobal(mpcModule->GetGlobal(ui), pszDest);
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// .global or .weak, or nothing for the unit's own label.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Binding(const char* szName, uint32 uiAttributes, CChars* pszDest)
-{
-	if (uiAttributes & IRA_Local)
-	{
-		return;
-	}
-	pszDest->Append((uiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-	pszDest->Append(szName);
-	pszDest->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A global's data section, alignment, binding, label and items.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest)
-{
-	size			ui;
-	size			uiByte;
-	SIRDataItem*	psItem;
-	char*			szName;
-	int				iBytes;
-
-	szName = mpcModule->GetSymbolName(pcGlobal->muiSymbol);
-	pszDest->Append("\t\t.section data.");
-	pszDest->Append(szName);
-	pszDest->AppendNewLine();
-	if (pcGlobal->muiAlign > 1)
-	{
-		pszDest->Append("\t\t.align ");
-		pszDest->Append(pcGlobal->muiAlign);
-		pszDest->AppendNewLine();
-	}
-	Binding(szName, pcGlobal->muiAttributes, pszDest);
-	pszDest->Append(szName);
-	pszDest->Append(':');
-	pszDest->AppendNewLine();
-
-	for (ui = 0; ui < pcGlobal->masItems.NumElements(); ui++)
-	{
-		psItem = pcGlobal->masItems.Get(ui);
-		switch (psItem->uiKind)
-		{
-		case IRDK_Value:
-		case IRDK_Symbol:
-			iBytes = mpcModule->GetSize(psItem->sType);
-			pszDest->Append((iBytes == 1) ? "\t\t.byte " : (iBytes == 2) ? "\t\t.word " : (iBytes == 4) ? "\t\t.long " : "\t\t.quad ");
-			if (psItem->uiKind == IRDK_Symbol)
-			{
-				pszDest->Append(mpcModule->GetSymbolName((uint32)psItem->ulliValue));
-				if (psItem->lliOffset != 0)
-				{
-					pszDest->Append(psItem->lliOffset > 0 ? " + " : " - ");
-					pszDest->Append(psItem->lliOffset > 0 ? psItem->lliOffset : -psItem->lliOffset);
-				}
-			}
-			else
-			{
-				pszDest->Append(IRSignExtend(psItem->sType, psItem->ulliValue));
-			}
-			pszDest->AppendNewLine();
-			break;
-		case IRDK_Bytes:
-			for (uiByte = 0; uiByte < psItem->uiLength; uiByte++)
-			{
-				pszDest->Append(((uiByte % 16) == 0) ? "\t\t.byte " : ", ");
-				pszDest->Append((int32)*pcGlobal->macBytes.Get(psItem->uiStart + uiByte));
-				if (((uiByte % 16) == 15) || (uiByte + 1 == psItem->uiLength))
-				{
-					pszDest->AppendNewLine();
-				}
-			}
-			break;
-		case IRDK_Zero:
-			if (psItem->ulliValue > 0)
-			{
-				pszDest->Append("\t\t.space ");
-				pszDest->Append(psItem->ulliValue);
-				pszDest->AppendNewLine();
-			}
-			break;
-		}
-	}
-	pszDest->AppendNewLine();
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1034,32 +899,6 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 }
 
 
-#define IR65_PEEPHOLE_REGISTERS	4		//A, B, X and Y (IR65RegisterIndex).
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The index of a register A, B, X or Y named by sz (just the name), -1 for
-// anything else.
-//
-//////////////////////////////////////////////////////////////////////////
-static int IR65RegisterIndex(const char* sz, size uiLength)
-{
-	if (uiLength != 1)
-	{
-		return -1;
-	}
-	switch (sz[0])
-	{
-	case 'A':	return 0;
-	case 'B':	return 1;
-	case 'X':	return 2;
-	case 'Y':	return 3;
-	default:	return -1;
-	}
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Splits "\t\tcpy first, second" into its operands; false if pszLine isn't
@@ -1096,7 +935,7 @@ static void IR65ResetWidths(int* aiWidths)
 {
 	int	iRegister;
 
-	for (iRegister = 0; iRegister < IR65_PEEPHOLE_REGISTERS; iRegister++)
+	for (iRegister = 0; iRegister < IR65_CODE_REGISTERS; iRegister++)
 	{
 		aiWidths[iRegister] = 32;
 	}
@@ -1121,12 +960,12 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 		szText = pszLine->Text() + 8;
 		szComma = strstr(szText, "), ");
 		iWidth = szComma ? atoi(szComma + 3) : 0;
-		iRegister = IR65RegisterIndex(szText, 1);
+		iRegister = CIR65Code::RegisterIndex(szText, 1);
 		if (iRegister >= 0)
 		{
 			aiWidths[iRegister] = iWidth;
 		}
-		iRegister = IR65RegisterIndex(szText + 3, 1);
+		iRegister = CIR65Code::RegisterIndex(szText + 3, 1);
 		if (iRegister >= 0)
 		{
 			aiWidths[iRegister] = iWidth;
@@ -1137,33 +976,12 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 	{
 		szText = pszLine->Text() + (pszLine->StartsWith("\t\twth ") ? 6 : 7);
 		szComma = strstr(szText, ", ");
-		iRegister = IR65RegisterIndex(szText, szComma ? (size)(szComma - szText) : 0);
+		iRegister = CIR65Code::RegisterIndex(szText, szComma ? (size)(szComma - szText) : 0);
 		if (iRegister >= 0)
 		{
 			aiWidths[iRegister] = szComma ? atoi(szComma + 2) : 0;
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pszOperand is a pseudo register or the frame ([n + W], [n + V],
-// [n + S]): memory only the function's own code touches, so never volatile.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR65OwnMemory(CChars* pszOperand)
-{
-	const char*	sz;
-
-	if (!pszOperand->StartsWith('[') || !(pszOperand->EndsWith(" + W]") || pszOperand->EndsWith(" + V]") || pszOperand->EndsWith(" + S]")))
-	{
-		return false;
-	}
-	for (sz = pszOperand->Text() + 1; (*sz >= '0') && (*sz <= '9'); sz++)
-	{
-	}
-	return (sz != pszOperand->Text() + 1) && (*sz == ' ') && (sz + 5 == pszOperand->Text() + pszOperand->Length());
 }
 
 
@@ -1221,9 +1039,11 @@ void CIR65Backend::Peephole(size uiStart)
 	CChars			szTo;
 	CChars			szLoaded;
 	size			ui;
-	int				aiWidths[IR65_PEEPHOLE_REGISTERS];
+	int				aiWidths[IR65_CODE_REGISTERS];
 	int				iFrom;
 	int				iTo;
+	uint8			uiBase;
+	int32			iOffset;
 
 	szText.Init(mpszOut->Text() + uiStart);
 	aszLines.Init();
@@ -1251,10 +1071,10 @@ void CIR65Backend::Peephole(size uiStart)
 			szFrom.Init();
 			szTo.Init();
 			szLoaded.Init();
-			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && IR65OwnMemory(&szStored) && szLoaded.Equals(szStored))
+			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && CIR65Code::IsOwnMemory(szStored.Text(), szStored.Length(), &uiBase, &iOffset) && szLoaded.Equals(szStored))
 			{
-				iFrom = IR65RegisterIndex(szFrom.Text(), szFrom.Length());
-				iTo = IR65RegisterIndex(szTo.Text(), szTo.Length());
+				iFrom = CIR65Code::RegisterIndex(szFrom.Text(), szFrom.Length());
+				iTo = CIR65Code::RegisterIndex(szTo.Text(), szTo.Length());
 				if ((iFrom >= 0) && (iTo >= 0) && (aiWidths[iFrom] == 32) && (aiWidths[iTo] == 32))
 				{
 					pszNext->Kill();
@@ -1408,28 +1228,6 @@ void CIR65Backend::Epilogue(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Error(const char* szMessage, const char* szDetail)
-{
-	CChars	szError;
-
-	szError.Init("@");
-	szError.Append(mpcModule->GetSymbolName(mpcFunction->muiSymbol));
-	szError.Append(": ");
-	szError.Append(szMessage);
-	if (mpcErrors)
-	{
-		mpcErrors->Add(NULL, -1, -1, -1, szError.Text(), szDetail);
-	}
-	szError.Kill();
-	mbResult = false;
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Starts an instruction line.  The caller appends the rest and the new line.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1437,61 +1235,6 @@ CChars* CIR65Backend::Line(const char* szText)
 {
 	mpszOut->Append("\t\t");
 	return mpszOut->Append(szText);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The marker line (IR_SOURCE_MARKER) before the code of an instruction or
-// a jump with uiSource (0 for none) when it isn't the last one's.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Source(uint32 uiSource)
-{
-	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
-	{
-		return;
-	}
-	muiSource = uiSource;
-	mpszOut->Append(IR_SOURCE_MARKER);
-	mpszOut->Append((int64)muiSource);
-	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether Source writes markers (for a listing): they are taken out while
-// the text passes run, so the code is the same as without them.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::SetSourceMarkers(bool bSourceMarkers)
-{
-	mbSourceMarkers = bSourceMarkers;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::NewLabel(void)
-{
-	(*mpiLabels)++;
-	return *mpiLabels;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Label(int32 iLabel)
-{
-	mpszOut->Append('L');
-	mpszOut->Append(iLabel);
-	mpszOut->Append(':');
-	mpszOut->AppendNewLine();
 }
 
 

@@ -48,16 +48,6 @@ void CCPPSyntaxTypeTraitExpression::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxTypeTraitExpression::GetType(void)
-{
-	return "TypeTraitExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxTypeTraitExpression::GetKind(void)
 {
 	return CPPS_TypeTraitExpression;
@@ -94,12 +84,12 @@ size CCPPSyntaxTypeTraitExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxTypeTraitExpression::GetChild(size iIndex)
 {
-	if (iIndex < macpArguments.NumElements())
-	{
-		return macpArguments.GetPtr(iIndex);
-	}
-	iIndex -= macpArguments.NumElements();
+	CCPPSyntax*	pcChild;
 
+	if (IsChild(&iIndex, &macpArguments, &pcChild))
+	{
+		return pcChild;
+	}
 	return NULL;
 }
 

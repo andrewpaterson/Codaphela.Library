@@ -37,26 +37,6 @@ void CCPPSyntaxConstructExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxConstructExpression::Kill(void)
-{
-	CCPPSyntaxExpression::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CCPPSyntaxConstructExpression::GetType(void)
-{
-	return "ConstructExpression";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPSyntaxConstructExpression::GetKind(void)
 {
 	return CPPS_ConstructExpression;
@@ -91,18 +71,12 @@ size CCPPSyntaxConstructExpression::NumChildren(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntaxConstructExpression::GetChild(size iIndex)
 {
-	if (iIndex == 0)
-	{
-		return mpcType;
-	}
-	iIndex--;
+	CCPPSyntax*	pcChild;
 
-	if (iIndex == 0)
+	if (IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
 	{
-		return mpcInitializer;
+		return pcChild;
 	}
-	iIndex--;
-
 	return NULL;
 }
 

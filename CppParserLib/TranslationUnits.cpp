@@ -58,7 +58,7 @@ void CTranslationUnits::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes)
+void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogIncludes)
 {
 	CChars			szTemp;
 	CArrayChars		aszTemp;
@@ -92,7 +92,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes)
 		for (j = 0; j < aszFileNames.NumElements(); j++)
 		{
 			szFile = aszFileNames.Get(j);
-			AddFile(szFile->Text(iBaseDirLen+1), bLogInlucdes);
+			AddFile(szFile->Text(iBaseDirLen+1), bLogIncludes);
 		}
 
 		aszFileNames.Kill();

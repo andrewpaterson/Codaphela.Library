@@ -18,205 +18,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/ConstructorCall.h"
-#include "ASCIINameIndex.h"
-#include "GeneralToken.h"
 #include "SpecialOperatorMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CSpecialOperatorMap::Init(void)
-{
-	mcIDToSpecialOperatorIndex.Init();
-	mcNameToIDIndex.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSpecialOperatorMap::Kill(void)
-{
-	CSpecialOperator* pcSpecialOperator;
-	SIndexTreeMemoryUnsafeIterator		sIter;
-	int64								lli;
-	bool								bHasNext;
-
-	bHasNext = mcIDToSpecialOperatorIndex.StartIteration(&sIter, &pcSpecialOperator, &lli);
-	while (bHasNext)
-	{
-		pcSpecialOperator->Kill();
-		bHasNext = mcIDToSpecialOperatorIndex.Iterate(&sIter, &pcSpecialOperator, &lli);
-	}
-
-	mcIDToSpecialOperatorIndex.Kill();
-	mcNameToIDIndex.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Adds the special operator called szName.  Returns NULL if it is already
+// in the map.
 //
 //////////////////////////////////////////////////////////////////////////
 CSpecialOperator* CSpecialOperatorMap::AddSpecialOperator(char* szName, EPreprocessorSpecialOperator eType)
 {
-
-	CSpecialOperator	cSpecialOperator;
+	CExternalString		cExternalString;
 	CSpecialOperator*	pcSpecialOperator;
 	int64				lliID;
-	bool				bResult;
-	SASCIINameIndex*	psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(szName, NULL, true);
-	if (psNameIndex == NULL)
+	cExternalString.Init(szName, StrLen(szName));
+	pcSpecialOperator = AddEntry(&cExternalString, &lliID);
+	if (pcSpecialOperator)
 	{
-		lliID = mcNameToIDIndex.Add(szName);
-		if (lliID != -1)
-		{
-			bResult = mcIDToSpecialOperatorIndex.Put(lliID, &cSpecialOperator);
-			if (bResult)
-			{
-				pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(lliID);
-				pcSpecialOperator->Init(szName, eType, lliID);
-				return pcSpecialOperator;
-			}
-			else
-			{
-				mcNameToIDIndex.Remove(szName);
-				return NULL;
-			}
-		}
-		else
-		{
-			return NULL;
-		}
+		pcSpecialOperator->Init(szName, eType, lliID);
 	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CExternalString* pcName, bool bExact)
-{
-	SASCIINameIndex* psNameIndex;
-	CSpecialOperator* pcSpecialOperator;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
-	if (psNameIndex)
-	{
-		pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(psNameIndex->mlliID);
-		return pcSpecialOperator;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CChars* pszName)
-{
-	CExternalString	cExternalString;
-
-	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetSpecialOperator(&cExternalString, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(char* szName, bool bExact)
-{
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-	return GetSpecialOperator(&cExternalString, bExact);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSpecialOperatorMap::RemoveSpecialOperator(CExternalString* pcName)
-{
-	SASCIINameIndex* psNameIndex;
-	CSpecialOperator* pcSpecialOperator;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
-	if (psNameIndex)
-	{
-		pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(psNameIndex->mlliID);
-		if (pcSpecialOperator)
-		{
-			pcSpecialOperator->Kill();
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-			mcIDToSpecialOperatorIndex.Remove(psNameIndex->mlliID);
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSpecialOperatorMap::RemoveSpecialOperator(char* szName)
-{
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-
-	RemoveSpecialOperator(&cExternalString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSpecialOperatorMap::Dump(void)
-{
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	int								iWordEnd;
-	CSpecialOperator* pcSpecialOperator;
-
-	iWordEnd = (int)mcNameToIDIndex.StartIteration(&sIter);
-	while (iWordEnd != -1)
-	{
-		pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(iWordEnd);
-		pcSpecialOperator->Dump();
-
-		iWordEnd = (int)mcNameToIDIndex.Iterate(&sIter);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperatorsIndex* CSpecialOperatorMap::GetIDToSpecialOperatorIndex(void)
-{
-	return &mcIDToSpecialOperatorIndex;
+	return pcSpecialOperator;
 }
 

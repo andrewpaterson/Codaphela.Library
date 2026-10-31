@@ -5,7 +5,7 @@ Assembles 65C64 source (658-Computer/W65C64/65C64 Instruction Architecture.xlsx)
 into bytes.  Encodings follow the Opcode encoding sheet as decoded by Decode65C64
 in MicroprocessorLib.  Usage:
 
-	CAsm65Assembler	cAssembler;
+	CAsm65C64Assembler	cAssembler;
 
 	cAssembler.Init();
 	if (cAssembler.Assemble(szSource))
@@ -23,11 +23,13 @@ Assemble is absolute mode: .org places the bytes.  AssembleObject(szSource,
 &cObject) writes sections, symbols and relocations into a CAsm65Object instead, and
 CAsm65Linker links objects (see Objects and linking below).
 
-Classes: CAsm65Tokeniser (text to tokens), CAsm65Assembler (passes, statements,
-expressions, instructions), CAsm65Symbols, CAsm65Output, CAsm65Errors, CAsm65Object
-(an assembled translation unit), CAsm65Library and CAsm65Linker.  The
-assembler is split like CppParser: Asm65Assembler.cpp (passes, labels, directives),
-Asm65Expressions.cpp (expressions and operands) and Asm65Instructions.cpp (encoders).
+Classes: CAsm65Tokeniser (text to tokens), CAsm65BaseAssembler (passes, statements,
+expressions; shared with CAsm65816Assembler), CAsm65C64Assembler (the 65C64's instructions
+and operands), CAsm65Symbols, CAsm65Output, CAsm65Errors, CAsm65Object (an assembled
+translation unit), CAsm65Library and CAsm65Linker.  The assembler is split like
+CppParser: Asm65BaseAssembler.cpp (passes, labels, directives), Asm65BaseExpressions.cpp
+(expressions), Asm65C64Operands.cpp (registers and operands), Asm65C64Assembler.cpp (writing
+instructions) and Asm65C64Instructions.cpp (encoders).
 
 
 Passes
@@ -305,7 +307,7 @@ COMDAT copy) is used.  A relocation writes target + addend into a field of 1 to 
 little endian bytes; a relative one subtracts the field's own address (the
 assembler folds the field to next instruction distance into the addend).
 A relocation also has a form (object version 4, for the W65C816 assembler, see
-Assembler816Syntax.txt): the value, its bank (Label >> 16), its low 16 bits (Label &
+Assembler65816Syntax.txt): the value, its bank (Label >> 16), its low 16 bits (Label &
 $FFFF), or its low 16 bits checked to be in the field's own bank.  Lazy linking only
 takes the plain form.
 

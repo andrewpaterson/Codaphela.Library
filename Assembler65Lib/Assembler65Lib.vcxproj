@@ -183,35 +183,38 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Asm65Assembler.cpp" />
-    <ClCompile Include="Asm816Assembler.cpp" />
-    <ClCompile Include="Asm816Instructions.cpp" />
-    <ClCompile Include="Asm816Lockstep.cpp" />
-    <ClCompile Include="Asm816Profile.cpp" />
+    <ClCompile Include="Asm65C64Assembler.cpp" />
+    <ClCompile Include="Asm65BaseAssembler.cpp" />
+    <ClCompile Include="Asm65BaseExpressions.cpp" />
+    <ClCompile Include="Asm65816Assembler.cpp" />
+    <ClCompile Include="Asm65816Instructions.cpp" />
+    <ClCompile Include="Asm65816Lockstep.cpp" />
+    <ClCompile Include="Asm65816Profile.cpp" />
     <ClCompile Include="Asm65Errors.cpp" />
-    <ClCompile Include="Asm65Expressions.cpp" />
     <ClCompile Include="Asm65HostFiles.cpp" />
-    <ClCompile Include="Asm65Lockstep.cpp" />
-    <ClCompile Include="Asm65Instructions.cpp" />
+    <ClCompile Include="Asm65C64Lockstep.cpp" />
+    <ClCompile Include="Asm65C64Instructions.cpp" />
     <ClCompile Include="Asm65Library.cpp" />
     <ClCompile Include="Asm65Linker.cpp" />
     <ClCompile Include="Asm65LineTable.cpp" />
     <ClCompile Include="Asm65LinkerLazy.cpp" />
     <ClCompile Include="Asm65Memory.cpp" />
     <ClCompile Include="Asm65Object.cpp" />
+    <ClCompile Include="Asm65C64Operands.cpp" />
     <ClCompile Include="Asm65Output.cpp" />
     <ClCompile Include="Asm65Symbols.cpp" />
     <ClCompile Include="Asm65Token.cpp" />
     <ClCompile Include="Asm65Tokeniser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Asm65Assembler.h" />
-    <ClInclude Include="Asm816Assembler.h" />
-    <ClInclude Include="Asm816Lockstep.h" />
-    <ClInclude Include="Asm816Profile.h" />
+    <ClInclude Include="Asm65C64Assembler.h" />
+    <ClInclude Include="Asm65BaseAssembler.h" />
+    <ClInclude Include="Asm65816Assembler.h" />
+    <ClInclude Include="Asm65816Lockstep.h" />
+    <ClInclude Include="Asm65816Profile.h" />
     <ClInclude Include="Asm65Errors.h" />
     <ClInclude Include="Asm65HostFiles.h" />
-    <ClInclude Include="Asm65Lockstep.h" />
+    <ClInclude Include="Asm65C64Lockstep.h" />
     <ClInclude Include="Asm65Library.h" />
     <ClInclude Include="Asm65Linker.h" />
     <ClInclude Include="Asm65LineTable.h" />
@@ -223,8 +226,8 @@
     <ClInclude Include="Asm65Tokeniser.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Assembler65Syntax.txt" />
-    <Text Include="Assembler816Syntax.txt" />
+    <Text Include="Assembler65C64Syntax.txt" />
+    <Text Include="Assembler65816Syntax.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

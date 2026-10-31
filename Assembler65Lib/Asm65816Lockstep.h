@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ASM816_LOCKSTEP_H__
-#define __ASM816_LOCKSTEP_H__
+#ifndef __ASM65816_LOCKSTEP_H__
+#define __ASM65816_LOCKSTEP_H__
 #include "BaseLib/Chars.h"
 #include "MicroprocessorLib/W65C816Meta.h"
 #include "MicroprocessorLib/Fast65C816.h"
@@ -28,8 +28,8 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 //Runs a program on CFast65C816 and on the CW65C816 simulator side by side, each with its own memory, and finds where
 //they first differ: the registers and cycles after every step, memory every so often and at the end.  As
-//CAsm65Lockstep is for the 65C64.
-class CAsm816Lockstep
+//CAsm65C64Lockstep is for the 65C64.
+class CAsm65816Lockstep
 {
 protected:
 	CAsm65Memory*	mpcFastMemory;
@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // __ASM816_LOCKSTEP_H__
+#endif // __ASM65816_LOCKSTEP_H__
 

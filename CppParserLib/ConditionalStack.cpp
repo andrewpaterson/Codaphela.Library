@@ -144,60 +144,75 @@ void CConditionalStack::PushIfDefined(bool bEvaluated)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The innermost conditional moves on to its #else.
+//
 //////////////////////////////////////////////////////////////////////////
 void CConditionalStack::SwapForElse(void)
 {
 	SDefineConditional*		psConditional;
 
 	psConditional = mcStack.Tail();
-	if (psConditional)
-	{
-		if (psConditional->bElseIfPassed)
-		{
-			psConditional->bEvaluated = false;
-		}
-		else
-		{
-			psConditional->bEvaluated = !psConditional->bEvaluated;
-			psConditional->eType = CT_Else;
-
-			if (psConditional->bEvaluated)
-				psConditional->bElseIfPassed = true;
-		}
-	}
-
-	CalculateIsParsing();
+	Swap(CT_Else, psConditional ? !psConditional->bEvaluated : false);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The innermost conditional moves on to an #elif whose condition is
+// bEvaluated.
+//
 //////////////////////////////////////////////////////////////////////////
 void CConditionalStack::SwapForElseIf(bool bEvaluated)
+{
+	Swap(CT_ElseIf, bEvaluated);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The innermost conditional moves on to its next group (eType, #elif or
+// #else): the group is taken when bEvaluated and no group before it was
+// (bElseIfPassed), and then none after it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CConditionalStack::Swap(EConditionalType eType, bool bEvaluated)
 {
 	SDefineConditional*		psConditional;
 
 	psConditional = mcStack.Tail();
 	if (psConditional)
 	{
+		psConditional->eType = eType;
 		if (psConditional->bElseIfPassed)
 		{
 			psConditional->bEvaluated = false;
 		}
 		else
 		{
-			psConditional->bEvaluated = bEvaluated;  //Uh... haven't thought about this, could be wrong.
-			psConditional->eType = CT_ElseIf;
-
-			if (psConditional->bEvaluated)
+			psConditional->bEvaluated = bEvaluated;
+			if (bEvaluated)
+			{
 				psConditional->bElseIfPassed = true;
+			}
 		}
 	}
-
 	CalculateIsParsing();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the innermost conditional is in its #else group (another #elif
+// or #else is an error).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CConditionalStack::IsInElse(void)
+{
+	SDefineConditional*		psConditional;
+
+	psConditional = mcStack.Tail();
+	return psConditional && (psConditional->eType == CT_Else);
 }
 
 

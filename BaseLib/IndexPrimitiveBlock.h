@@ -53,7 +53,7 @@ void* CIndexPrimitiveBlock<M>::Get(M sData)
 template<class M>
 void* CIndexPrimitiveBlock<M>::Put(M sData, size iDataSize)
 {
-	return CIndexBlock::Put(&sData, sizeof(M), iDataSize);
+	return CIndexBlock::Put((uint8*)&sData, sizeof(M), iDataSize);
 }
 
 
@@ -86,7 +86,7 @@ bool CIndexPrimitiveBlock<M>::Remove(M sData)
 template<class M>
 size CIndexPrimitiveBlock<M>::DataSize(M sData)
 {
-	return CIndexBlock::DataSize(&sData, sizeof(M));
+	return CIndexBlock::DataSize((uint8*)&sData, sizeof(M));
 }
 
 
@@ -97,7 +97,7 @@ size CIndexPrimitiveBlock<M>::DataSize(M sData)
 template<class M>
 bool CIndexPrimitiveBlock<M>::HasKey(M sData)
 {
-	return CIndexBlock::HasKey(&sData, sizeof(M));
+	return CIndexBlock::HasKey((uint8*)&sData, sizeof(M));
 }
 
 
@@ -108,7 +108,7 @@ bool CIndexPrimitiveBlock<M>::HasKey(M sData)
 template<class M>
 bool CIndexPrimitiveBlock<M>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, M* psDestKey)
 {
-	return CIndexBlock::StartIteration(psIterator, ppvData, puiDataSize, psDestKey, NULL, 0);
+	return CIndexBlock::StartIteration(psIterator, ppvData, puiDataSize, psDestKey, NULL, sizeof(M));
 }
 
 
@@ -119,7 +119,7 @@ bool CIndexPrimitiveBlock<M>::StartIteration(SIndexTreeMemoryUnsafeIterator* psI
 template<class M>
 bool CIndexPrimitiveBlock<M>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, M* psDestKey)
 {
-	return CIndexBlock::Iterate(psIterator, ppvData, puiDataSize, psDestKey, NULL, 0);
+	return CIndexBlock::Iterate(psIterator, ppvData, puiDataSize, psDestKey, NULL, sizeof(M));
 }
 
 

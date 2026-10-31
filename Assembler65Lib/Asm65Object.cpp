@@ -489,7 +489,7 @@ void CAsm65Object::Dump(CChars* psz)
 		psz->Append(psSection->uiSize);
 		for (j = 0; j < psSection->cBytes.NumElements(); j++)
 		{
-			psz->Append((j % 16 == 0) ? "\n  $" : " $");
+			psz->Append((j % 16 == 0) ? "\n  0x" : " 0x");
 			psz->AppendHexHiLo(psSection->cBytes.Get(j), 1);
 		}
 		psz->AppendNewLine();
@@ -561,7 +561,7 @@ void CAsm65Object::Dump(CChars* psz)
 		}
 		else if (psRelocation->uiForm == ASM65RF_Low16)
 		{
-			psz->Append(" & $FFFF");
+			psz->Append(" & 0xFFFF");
 		}
 		else if (psRelocation->uiForm == ASM65RF_InBank)
 		{

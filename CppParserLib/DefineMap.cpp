@@ -18,210 +18,40 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/ConstructorCall.h"
-#include "ASCIINameIndex.h"
-#include "GeneralToken.h"
 #include "DefineMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::Init(void)
-{
-	mcIDToDefineIndex.Init();
-	mcNameToIDIndex.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::Kill(void)
-{
-	CDefine*							pcDefine;
-	SIndexTreeMemoryUnsafeIterator		sIter;
-	int64								lli;
-	bool								bHasNext;
-
-	bHasNext = mcIDToDefineIndex.StartIteration(&sIter, &pcDefine, &lli);
-	while (bHasNext)
-	{
-		pcDefine->Kill();
-		bHasNext = mcIDToDefineIndex.Iterate(&sIter, &pcDefine, &lli);
-	}
-
-	mcIDToDefineIndex.Kill();
-	mcNameToIDIndex.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Adds an empty define called pcName.  Returns NULL if it is already
+// defined.
 //
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
-	CDefine				cDefine;
-	CDefine*			pcDefine;
-	int64				lliID;
-	bool				bResult;
-	SASCIINameIndex*	psNameIndex;
+	CDefine*	pcDefine;
+	int64		lliID;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
-	if (psNameIndex == NULL)
+	pcDefine = AddEntry(pcName, &lliID);
+	if (pcDefine)
 	{
-		lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
-		if (lliID != -1)
-		{
-			bResult = mcIDToDefineIndex.Put(lliID, &cDefine);
-			if (bResult)
-			{
-				pcDefine = mcIDToDefineIndex.Get(lliID);
-				pcDefine->Init(pcName, lliID, this);
-				return pcDefine;
-			}
-			else
-			{
-				mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-				return NULL;
-			}
-		}
-		else
-		{
-			return NULL;
-		}
+		pcDefine->Init(pcName, lliID, this);
 	}
-	else
-	{
-		return NULL;
-	}
+	return pcDefine;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds an empty define called szName.  Returns NULL if it is already
+// defined.
 //
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(char* szName)
 {
 	CExternalString		cExternalString;
-	int					iLen;
 
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-
+	cExternalString.Init(szName, StrLen(szName));
 	return AddDefine(&cExternalString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CExternalString* pcName, bool bExact)
-{
-	SASCIINameIndex*	psNameIndex;
-	CDefine*			pcDefine;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
-	if (psNameIndex)
-	{
-		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
-		return pcDefine;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CChars* pszName)
-{
-	CExternalString	cExternalString;
-
-	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetDefine(&cExternalString, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(char* szName, bool bExact)
-{
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-	return GetDefine(&cExternalString, bExact);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::RemoveDefine(CExternalString* pcName)
-{
-	SASCIINameIndex*	psNameIndex;
-	CDefine*			pcDefine;
-
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
-	if (psNameIndex)
-	{
-		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
-		if (pcDefine)
-		{
-			pcDefine->Kill();
-			mcIDToDefineIndex.Remove(psNameIndex->mlliID);
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::RemoveDefine(char* szName)
-{
-	CExternalString	cExternalString;
-	int				iLen;
-
-	iLen = (int)strlen(szName);
-	cExternalString.Init(szName, iLen);
-
-	RemoveDefine(&cExternalString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::Dump(void)
-{
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	int								iWordEnd;
-	CDefine*						pcDefine;
-
-	iWordEnd = (int)mcNameToIDIndex.StartIteration(&sIter);
-	while (iWordEnd != -1)
-	{
-		pcDefine = mcIDToDefineIndex.Get(iWordEnd);
-		pcDefine->Dump();
-
-		iWordEnd = (int)mcNameToIDIndex.Iterate(&sIter);
-	}
 }
 

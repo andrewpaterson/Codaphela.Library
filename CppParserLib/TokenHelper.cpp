@@ -33,82 +33,71 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Copies pcSource, which must be an M, into a new M in pcTokens.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+static CPPToken* DuplicateTypedPPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
+{
+	M*	pcToken;
+
+	pcToken = pcTokens->AddToken<M>();
+	pcToken->Copy((M*)pcSource, pcTokens);
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies pcSource into pcTokens.  Returns NULL, with gcUserError set, if
+// pcSource is not a kind of token that can be copied.
 //
 //////////////////////////////////////////////////////////////////////////
 CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
-	CPPDirective*			pcDirective;
-	CPPLine*				pcLine;
-	CPPWhitespace*			pcWhitespace;
-	CPPReplacement*			pcReplacement;
-	CPPText*				pcText;
-	CPPTextWithSource*		pcTextWithSource;
-	CPPTokenReplacementsHolder*				pcHolder;
-	CPPHashes*				pcHashes;
-	CPPBlock*				pcBlock;
-
 	if (pcSource->IsDirective())
 	{
-		pcDirective = pcTokens->AddDirective();
-		pcDirective->Copy((CPPDirective*)pcSource, pcTokens);
-		return pcDirective;
+		return DuplicateTypedPPToken<CPPDirective>(pcSource, pcTokens);
 	}
 	else if (pcSource->IsWhitespace())
 	{
-		pcWhitespace = pcTokens->AddWhitespace();
-		pcWhitespace->Copy((CPPWhitespace*)pcSource, pcTokens);
-		return pcWhitespace;
+		return DuplicateTypedPPToken<CPPWhitespace>(pcSource, pcTokens);
 	}
 	else if (pcSource->IsReplacement())
 	{
-		pcReplacement = pcTokens->AddReplacement();
-		pcReplacement->Copy((CPPReplacement*)pcSource, pcTokens);
-		return pcReplacement;
+		return DuplicateTypedPPToken<CPPReplacement>(pcSource, pcTokens);
 	}
 	else if (pcSource->IsText())
 	{
 		if (((CPPText*)pcSource)->HasSource())
 		{
-			pcTextWithSource = pcTokens->AddTextWithSource();
-			pcTextWithSource->Copy((CPPTextWithSource*)pcSource, pcTokens);
-			return pcTextWithSource;
+			return DuplicateTypedPPToken<CPPTextWithSource>(pcSource, pcTokens);
 		}
 		else
 		{
-			pcText = pcTokens->AddText();
-			pcText->Copy((CPPText*)pcSource, pcTokens);
-			return pcText;
+			return DuplicateTypedPPToken<CPPText>(pcSource, pcTokens);
 		}
 	}
 	else if (pcSource->IsHash())
 	{
-		pcHashes = pcTokens->AddHashes();
-		pcHashes->Copy((CPPHashes*)pcSource, pcTokens);
-		return pcHashes;
+		return DuplicateTypedPPToken<CPPHashes>(pcSource, pcTokens);
 	}
 	else if (pcSource->IsLine())
 	{
-		pcLine = pcTokens->AddLine();
-		pcLine->Copy((CPPLine*)pcSource, pcTokens);
-		return pcLine;
+		return DuplicateTypedPPToken<CPPLine>(pcSource, pcTokens);
 	}
 	else if (pcSource->IsBlock())
 	{
-		pcBlock = pcTokens->AddBlock();
-		pcBlock->Copy((CPPBlock*)pcSource, pcTokens);
-		return pcBlock;
-	}	
+		return DuplicateTypedPPToken<CPPBlock>(pcSource, pcTokens);
+	}
 	else if (pcSource->IsTokenReplacementsHolder())
 	{
-		pcHolder = pcTokens->AddTokenReplacementsHolder();
-		pcHolder->Copy((CPPTokenReplacementsHolder*)pcSource, pcTokens);
-		return pcHolder;
+		return DuplicateTypedPPToken<CPPTokenReplacementsHolder>(pcSource, pcTokens);
 	}
 	else
 	{
 		gcUserError.Set("Cannot Duplicate Token");
-		exit(1);
+		return NULL;
 	}
-	return NULL;
 }
 

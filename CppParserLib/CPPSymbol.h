@@ -66,8 +66,6 @@ public:
 	bool	IsNamespace(void);
 	bool	IsClass(void);
 	bool	IsFunction(void);
-	bool	HasMembers(void);
-	char*	GetKindName(void);
 };
 
 

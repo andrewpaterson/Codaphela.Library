@@ -53,19 +53,7 @@ public:
 	void							Mark(CStackMarkExtended* psMark);
 	void							Rollback(CStackMarkExtended* psMark);
 
-	CPPHashes*						AddHashes(void);
-	CPPReplacement*					AddReplacement(void);
-	CPPText*						AddText(void);
-	CPPTextWithSource*				AddTextWithSource(void);
-	CPPWhitespace*					AddWhitespace(void);
-
-	CPPBlock*						AddBlock(void);
-	CPPTokenReplacementsHolder*		AddTokenReplacementsHolder(void);
-	CPPLine*						AddLine(void);
-	CPPDirective*					AddDirective(void);
-
-	CPPConditional*					AddConditional(void);
-	CPPInclude*						AddInclude(void);
+	template<class M> M*			AddToken(void);
 
 	CPPToken*						StartIteration(SPPTokenIterator* psIter);
 	CPPToken*						Iterate(SPPTokenIterator* psIter);
@@ -74,6 +62,23 @@ public:
 	char*							Print(CChars* psz);
 	void							Dump(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Allocates and constructs a token of type M (CPPText, CPPLine, ...) on
+// the stack.  The caller Inits it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CPPTokenMemory::AddToken(void)
+{
+	M*	pcToken;
+
+	pcToken = (M*)mcStack.Add(sizeof(M));
+	M::Construct(pcToken);
+	return pcToken;
+}
 
 
 #endif // !__P_P_TOKENS_H__
