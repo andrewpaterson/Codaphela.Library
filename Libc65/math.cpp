@@ -51,6 +51,9 @@ static bool IsNaNOrInfinity(double d)
 }
 
 
+//On the W65C816 these are Libc65/softfloat816.asm's: fabs, sqrt, trunc, floor, ceil, round (and their float and long
+//double forms), ldexp, frexp, modf and fmod, the same bit for bit.
+#if !defined(__W65C816__)
 double fabs(double x)					{ return BitsDouble(DoubleBits(x) & 0x7FFFFFFFFFFFFFFFULL); }
 float fabsf(float x)					{ return BitsFloat(FloatBits(x) & 0x7FFFFFFF); }
 long double fabsl(long double x)		{ return fabs(x); }
@@ -181,7 +184,30 @@ double modf(double x, double* pdInteger)
 }
 
 
+//The power of two of d's top bit, a subnormal's too.
+static int TopExponent(double d)
+{
+	uint64_t	ulliBits;
+	int			iExponent;
+
+	iExponent = Exponent(d);
+	if (iExponent == -1023)
+	{
+		ulliBits = DoubleBits(d) & 0x000FFFFFFFFFFFFFULL;
+		iExponent = -1022;
+		while (!(ulliBits & 0x0010000000000000ULL))
+		{
+			ulliBits <<= 1;
+			iExponent--;
+		}
+	}
+	return iExponent;
+}
+
+
 //The remainder of x / y with x's sign, exactly: y doubled up to x and taken off, largest first.
+//The doubling goes by top bits (TopExponent): a subnormal's field exponent would take a step per
+//multiple of y.
 double fmod(double x, double y)
 {
 	double	dRemainder;
@@ -200,7 +226,7 @@ double fmod(double x, double y)
 	}
 	while (dRemainder >= dDivisor)
 	{
-		dPart = ldexp(dDivisor, Exponent(dRemainder) - Exponent(dDivisor));
+		dPart = ldexp(dDivisor, TopExponent(dRemainder) - TopExponent(dDivisor));
 		if (dPart > dRemainder)
 		{
 			dPart = dPart / 2;
@@ -213,6 +239,7 @@ double fmod(double x, double y)
 
 float fmodf(float x, float y)			{ return (float)fmod(x, y); }
 long double fmodl(long double x, long double y)	{ return fmod(x, y); }
+#endif // !__W65C816__
 
 
 
