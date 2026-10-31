@@ -7,355 +7,382 @@
     <Filter Include="Source\Common">
       <UniqueIdentifier>{83973da1-d22a-48bc-be9b-dfb19847226c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Common\Wire">
-      <UniqueIdentifier>{ebe1a1e3-8032-456f-a077-952564ef7afd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Meta">
       <UniqueIdentifier>{1434093c-1795-4898-88ac-ab597c79f3db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C02">
-      <UniqueIdentifier>{ab18b0a7-80ed-47d5-bae4-77edfc06b9d7}</UniqueIdentifier>
+    <Filter Include="Source\Components">
+      <UniqueIdentifier>{114be178-b3e6-417f-a63d-79a9bc151c09}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C02\Instruction">
-      <UniqueIdentifier>{1a63d115-5fcf-4020-9c69-b151acb9cb30}</UniqueIdentifier>
+    <Filter Include="Source\Components\Generic">
+      <UniqueIdentifier>{b52e1594-b846-4480-a185-bb357c4354c8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C02\Meta">
-      <UniqueIdentifier>{8dbfe5d2-7b46-4631-9eeb-354726a934dc}</UniqueIdentifier>
+    <Filter Include="Source\Components\Generic\Adder">
+      <UniqueIdentifier>{4888194c-9b23-4671-828b-4fe50021db3f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC">
+    <Filter Include="Source\Components\Generic\AndGate">
+      <UniqueIdentifier>{ec1d5e0d-ef02-4e79-9de1-23f6fdb76f23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Components\Generic\Buffer">
+      <UniqueIdentifier>{89c9c535-8d6f-4402-8447-842bca711820}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Components\Generic\Transceiver">
+      <UniqueIdentifier>{f7957ff5-e4bc-4d4a-bed5-921a2c5c5f61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Wire">
+      <UniqueIdentifier>{ebe1a1e3-8032-456f-a077-952564ef7afd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Microprocessor">
+      <UniqueIdentifier>{70fbd647-8eb8-40ca-b96a-4fe666f8c1b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Microprocessor\WDC">
       <UniqueIdentifier>{a642cece-12a3-4639-9354-9c51693588ae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816">
+    <Filter Include="Source\Microprocessor\WDC\W65C02">
+      <UniqueIdentifier>{ab18b0a7-80ed-47d5-bae4-77edfc06b9d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Microprocessor\WDC\W65C02\Instruction">
+      <UniqueIdentifier>{1a63d115-5fcf-4020-9c69-b151acb9cb30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Microprocessor\WDC\W65C02\Meta">
+      <UniqueIdentifier>{8dbfe5d2-7b46-4631-9eeb-354726a934dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Microprocessor\WDC\W65C816">
       <UniqueIdentifier>{e80ba460-b69d-4163-a16e-d83d7bdc0220}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Instruction">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Instruction">
       <UniqueIdentifier>{78e75463-1e0c-434c-8629-f88ba2d7076f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Instruction\Address">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Instruction\Address">
       <UniqueIdentifier>{3bb46297-63d6-4c5b-9afd-48ef8309a595}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Instruction\Interrupt">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Instruction\Interrupt">
       <UniqueIdentifier>{5449f406-a537-4d4d-aac5-d648bd7bdd46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Instruction\Operation">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Instruction\Operation">
       <UniqueIdentifier>{d0fe7c2b-414d-48c3-90b4-b303ae5106ba}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Instruction\Operation\Note">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note">
       <UniqueIdentifier>{7368ed0a-40af-4a4a-b4ab-7af760bee65d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\WDC\W65C816\Meta">
+    <Filter Include="Source\Microprocessor\WDC\W65C816\Meta">
       <UniqueIdentifier>{ec5393fa-0d73-4725-b944-252c3341b250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela">
+    <Filter Include="Source\Microprocessor\Codaphela">
       <UniqueIdentifier>{22a2d622-caba-4c5b-8513-2bdad7391b6a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela\65C64">
+    <Filter Include="Source\Microprocessor\Codaphela\65C64">
       <UniqueIdentifier>{d9eb2912-a272-4f5b-976a-64861653558f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela\65C64\Meta">
+    <Filter Include="Source\Microprocessor\Codaphela\65C64\Meta">
       <UniqueIdentifier>{fe1d7438-ebbb-4e2a-9f94-1dec7f202b7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela\65C64\Instruction">
+    <Filter Include="Source\Microprocessor\Codaphela\65C64\Instruction">
       <UniqueIdentifier>{a797f6d9-9f73-4062-8b6e-ef84b573aee1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela\65C64\Instruction\Address">
+    <Filter Include="Source\Microprocessor\Codaphela\65C64\Instruction\Address">
       <UniqueIdentifier>{f9717be9-5310-49b0-b9de-3d2656819f8b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Codaphela\65C64\Instruction\Operation">
+    <Filter Include="Source\Microprocessor\Codaphela\65C64\Instruction\Operation">
       <UniqueIdentifier>{0d0e5ff7-c520-4811-bb83-e0be944c9270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Components\Generic\XorGate">
+      <UniqueIdentifier>{d8ae9c7f-35c7-4ea0-9666-9388d2a252e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Pin">
+      <UniqueIdentifier>{6f693eaf-6a67-4a8e-8cd7-27b7f89cb094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Circuit">
+      <UniqueIdentifier>{cc034769-c312-40b6-afcf-bc2408b3fbc7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="W65CCore.cpp">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClCompile>
     <ClCompile Include="W65CPins.cpp">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClCompile>
     <ClCompile Include="W65InstructionCycleBuilder.cpp">
-      <Filter>Source\WDC</Filter>
-    </ClCompile>
-    <ClCompile Include="W65CMeta.cpp">
-      <Filter>Source\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteDecimal.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstructionIfBinary.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstructionIfSamePage.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65BranchAddress.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65C02.cpp">
-      <Filter>Source\WDC\W65C02</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02</Filter>
     </ClCompile>
     <ClCompile Include="W65C02Pins.cpp">
-      <Filter>Source\WDC\W65C02</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02</Filter>
     </ClCompile>
     <ClCompile Include="W65C02InstructionFactory.cpp">
-      <Filter>Source\WDC\W65C02\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65C02InstructionCycleFactory.cpp">
-      <Filter>Source\WDC\W65C02\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65C02Meta.cpp">
-      <Filter>Source\WDC\W65C02\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Meta</Filter>
     </ClCompile>
     <ClCompile Include="W65C816.cpp">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClCompile>
     <ClCompile Include="W65Instruction.cpp">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65BusCycle.cpp">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65AddressOffset.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AbsoluteAddress.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AbsoluteAddressHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AbsoluteAddressLowPlusXLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AbsoluteAddressLowPlusYLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65ConstantOffset.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65DataBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65DirectOffset.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65DirectPage.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AddressBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65InstructionCycles.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65InterruptAddress.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65NewProgramBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65Address.cpp">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClCompile>
     <ClCompile Include="W65NewProgramCounter.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65ProgramBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65ProgramCounter.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65SignedData.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65SignedDataLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65StackPointer.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65XIndex.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65YIndex.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65AddressOffsetArray.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="W65C816InstructionFactory.cpp">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65Operation.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DataOperation.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65AbortVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65BRKVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65COPVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65IRQVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65NMIVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65ResetVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="W65DecrementStackPointer.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstruction.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstructionIf8Bit.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstructionIfEmulation.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65DoneInstructionIf16Bit.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65Execute.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ExecuteIf8Bit.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ExecuteIf16Bit.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65IncrementProgramCounter.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65IncrementStackPointer.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65InternalFirst.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65InternalOperation.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadAbsoluteAddressBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadAbsoluteAddressHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadAbsoluteAddressLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadDataBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadDataHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadDataLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadDirectOffset.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadProgramBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadProgramCounterHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadProgramCounterLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65RestoreAbortValues.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65SetProgramBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteFour.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteOne.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65SetProgramCounter.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WaitOperation.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteAbsoluteAddressHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteAbsoluteAddressLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteDataHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteDataLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteProcessorStatus.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteProgramBank.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteProgramCounterHigh.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WriteProgramCounterLow.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteSeven.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteSix.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteThree.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteTwo.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadOpcode.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65ReadProcessorStatus.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="W65WidthFromRegister.cpp">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClCompile>
     <ClCompile Include="W65BCDResult.cpp">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClCompile>
     <ClCompile Include="W65C816InstructionCycleFactory.cpp">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65InterruptVector.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
     <ClCompile Include="TraceValue.cpp">
-      <Filter>Source\Common\Wire</Filter>
+      <Filter>Source\Wire</Filter>
     </ClCompile>
     <ClCompile Include="Timeline.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="W65C816Pins.cpp">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClCompile>
     <ClCompile Include="MetaBus8.cpp">
       <Filter>Source\Meta</Filter>
@@ -370,115 +397,115 @@
       <Filter>Source\Meta</Filter>
     </ClCompile>
     <ClCompile Include="W65C816Meta.cpp">
-      <Filter>Source\WDC\W65C816\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClCompile>
     <ClCompile Include="Fast65C816.cpp">
-      <Filter>Source\WDC\W65C816\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClCompile>
     <ClCompile Include="W65CompoundAddress.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="MetaSignal.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
     <ClCompile Include="65AddressOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65AddressOffsetArray.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65BusCycle.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64.cpp">
-      <Filter>Source\Codaphela\65C64</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
     </ClCompile>
     <ClCompile Include="65C64Decoded.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64InstructionCycleFactory.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64InstructionFactory.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64Meta.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClCompile>
     <ClCompile Include="Fast65C64.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClCompile>
     <ClCompile Include="65C64Pins.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClCompile>
     <ClCompile Include="65ConstantOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65DataOperation.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65DoneInstruction.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65Execute.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ExecuteIfLastPointerWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ExecuteIfLastTransferWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65IncrementProgramCounter.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65Instruction.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65InstructionCycles.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65InternalOperation.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65OpcodeCycle.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65Operation.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65PointerAddressOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65ProgramCounterOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65ReadOpcode.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ReadOperandWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ReadPointerWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ReadTransferWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65ReadVectorWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65TransferWordOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65VectorAddressOffset.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClCompile>
     <ClCompile Include="65WaitOperation.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65WriteTransferWord.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="LongTime.cpp">
       <Filter>Source\Common</Filter>
@@ -519,13 +546,7 @@
     <ClCompile Include="PowerOutPort.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="TracePort.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="PortOutput.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Trace.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="LogicPort.cpp">
@@ -558,19 +579,7 @@
     <ClCompile Include="TickEvent.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="Circuit.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="LogicPortBus.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="CircuitComponent.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="SubcircuitSimulation.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="SubcircuitSimulations.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="CircuitSimulation.cpp">
@@ -588,34 +597,10 @@
     <ClCompile Include="Splitter.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="SubcircuitInstance.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="AndGatePins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="AndLogic.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="AndGate.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="OrGatePins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="OrGate.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="XorGatePins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="XorGate.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferPins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Buffer.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="GateArray.cpp">
@@ -627,19 +612,10 @@
     <ClCompile Include="Comparator.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="Adder.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="Decoder.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="Multiplexer.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="BusTransceiver.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="BusBuffer.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="Register.cpp">
@@ -681,337 +657,388 @@
     <ClCompile Include="Counter.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="W65C816ChipPins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="W65C816Chip.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="65C64ChipPins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="65C64Chip.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="OscilloscopePins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="Oscilloscope.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="65C64Chip.cpp">
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64ChipPins.cpp">
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Adder.cpp">
+      <Filter>Source\Components\Generic\Adder</Filter>
+    </ClCompile>
+    <ClCompile Include="AndGate.cpp">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClCompile>
+    <ClCompile Include="AndGatePins.cpp">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClCompile>
+    <ClCompile Include="AndLogic.cpp">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferPins.cpp">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="BusBuffer.cpp">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="BusTransceiver.cpp">
+      <Filter>Source\Components\Generic\Transceiver</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816Chip.cpp">
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816ChipPins.cpp">
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="XorGate.cpp">
+      <Filter>Source\Components\Generic\XorGate</Filter>
+    </ClCompile>
+    <ClCompile Include="XorGatePins.cpp">
+      <Filter>Source\Components\Generic\XorGate</Filter>
+    </ClCompile>
+    <ClCompile Include="Trace.cpp">
+      <Filter>Source\Wire</Filter>
+    </ClCompile>
+    <ClCompile Include="TracePort.cpp">
+      <Filter>Source\Wire</Filter>
+    </ClCompile>
+    <ClCompile Include="W65CMeta.cpp">
+      <Filter>Source\Microprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="Circuit.cpp">
+      <Filter>Source\Circuit</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitComponent.cpp">
+      <Filter>Source\Circuit</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitInstance.cpp">
+      <Filter>Source\Circuit</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitSimulation.cpp">
+      <Filter>Source\Circuit</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitSimulations.cpp">
+      <Filter>Source\Circuit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65CCore.h">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClInclude>
     <ClInclude Include="W65CPins.h">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClInclude>
     <ClInclude Include="W65CFunc.h">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClInclude>
     <ClInclude Include="W65InstructionCycleBuilder.h">
-      <Filter>Source\WDC</Filter>
-    </ClInclude>
-    <ClInclude Include="W65CMeta.h">
-      <Filter>Source\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteDecimal.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstructionIfBinary.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstructionIfSamePage.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65BranchAddress.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65C02.h">
-      <Filter>Source\WDC\W65C02</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02</Filter>
     </ClInclude>
     <ClInclude Include="W65C02Pins.h">
-      <Filter>Source\WDC\W65C02</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02</Filter>
     </ClInclude>
     <ClInclude Include="W65C02Func.h">
-      <Filter>Source\WDC\W65C02</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02</Filter>
     </ClInclude>
     <ClInclude Include="W65C02InstructionCodes.h">
-      <Filter>Source\WDC\W65C02\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65C02InstructionFactory.h">
-      <Filter>Source\WDC\W65C02\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65C02InstructionCycleFactory.h">
-      <Filter>Source\WDC\W65C02\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65C02Meta.h">
-      <Filter>Source\WDC\W65C02\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C02\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65C816.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="W65Instruction.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="AddressingMode.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65BusCycle.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65BusCycleParameter.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65AddressOffset.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AbsoluteAddress.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AbsoluteAddressHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AbsoluteAddressLowPlusXLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AbsoluteAddressLowPlusYLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AddressBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65ConstantOffset.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65DataBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65DirectOffset.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65DirectPage.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65InstructionCycles.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65InterruptAddress.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65NewProgramBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65Address.h">
-      <Filter>Source\WDC</Filter>
+      <Filter>Source\Microprocessor\WDC</Filter>
     </ClInclude>
     <ClInclude Include="W65NewProgramCounter.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65ProgramBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65ProgramCounter.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65SignedData.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65SignedDataLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65StackPointer.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65XIndex.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65YIndex.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65AddressOffsetArray.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65C816InstructionFactory.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="CPUFlags.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="W65Operation.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DataOperation.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65InterruptVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65AbortVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65BRKVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65COPVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65IRQVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65NMIVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65ResetVector.h">
-      <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClInclude>
     <ClInclude Include="W65DecrementStackPointer.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstruction.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstructionIf8Bit.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstructionIfEmulation.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65DoneInstructionIf16Bit.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65Execute.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ExecuteIf8Bit.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ExecuteIf16Bit.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65IncrementProgramCounter.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65IncrementStackPointer.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65InternalFirst.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65InternalOperation.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadAbsoluteAddressBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadAbsoluteAddressHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadAbsoluteAddressLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadDataBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadDataHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadDataLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadDirectOffset.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadProgramBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadProgramCounterHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadProgramCounterLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65RestoreAbortValues.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65SetProgramBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteFour.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteOne.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65SetProgramCounter.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WaitOperation.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteAbsoluteAddressHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteAbsoluteAddressLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteDataHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteDataLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteProcessorStatus.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteProgramBank.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteProgramCounterHigh.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WriteProgramCounterLow.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteSeven.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteSix.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteThree.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteTwo.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadOpcode.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65ReadProcessorStatus.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="W65WidthFromRegister.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Func.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="W65BCDResult.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="W65C816InstructionCycleFactory.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="NotMemoryLock.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="W65C816InstructionCodes.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="TraceValue.h">
-      <Filter>Source\Common\Wire</Filter>
+      <Filter>Source\Wire</Filter>
     </ClInclude>
     <ClInclude Include="ArrayOwnedPtr.h">
       <Filter>Source\Common</Filter>
@@ -1020,7 +1047,7 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Pins.h">
-      <Filter>Source\WDC\W65C816</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="MetaBus8.h">
       <Filter>Source\Meta</Filter>
@@ -1035,121 +1062,121 @@
       <Filter>Source\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Meta.h">
-      <Filter>Source\WDC\W65C816\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClInclude>
     <ClInclude Include="Fast65C816.h">
-      <Filter>Source\WDC\W65C816\Meta</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65CompoundAddress.h">
-      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="MetaSignal.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
     <ClInclude Include="65AddressOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65AddressOffsetArray.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65BusCycle.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65BusCycleParameter.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64.h">
-      <Filter>Source\Codaphela\65C64</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
     </ClInclude>
     <ClInclude Include="65C64Decoded.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64Func.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64InstructionCycleFactory.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64InstructionFactory.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64Meta.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClInclude>
     <ClInclude Include="Fast65C64.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClInclude>
     <ClInclude Include="65C64Pins.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Meta</Filter>
     </ClInclude>
     <ClInclude Include="65ConstantOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65DataOperation.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65DoneInstruction.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65Execute.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ExecuteIfLastPointerWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ExecuteIfLastTransferWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65IncrementProgramCounter.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65Instruction.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65InstructionCycles.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65InternalOperation.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65OpcodeCycle.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65Operation.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65PointerAddressOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65ProgramCounterOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65ReadOpcode.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ReadOperandWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ReadPointerWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ReadTransferWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65ReadVectorWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65TransferWordOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65VectorAddressOffset.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="65WaitOperation.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65WriteTransferWord.h">
-      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="LongTime.h">
       <Filter>Source\Common</Filter>
@@ -1205,13 +1232,7 @@
     <ClInclude Include="PowerOutPort.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="TracePort.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="PortOutput.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Trace.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="LogicPort.h">
@@ -1250,19 +1271,7 @@
     <ClInclude Include="TickEvent.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Circuit.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="LogicPortBus.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="CircuitComponent.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="SubcircuitSimulation.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="SubcircuitSimulations.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitSimulation.h">
@@ -1283,34 +1292,10 @@
     <ClInclude Include="Splitter.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="SubcircuitInstance.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="AndGatePins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="AndLogic.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="AndGate.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="OrGatePins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="OrGate.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="XorGatePins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="XorGate.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="BufferPins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Buffer.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="GateArray.h">
@@ -1322,19 +1307,10 @@
     <ClInclude Include="Comparator.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Adder.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="Decoder.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Multiplexer.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="BusTransceiver.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="BusBuffer.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Register.h">
@@ -1376,28 +1352,82 @@
     <ClInclude Include="Counter.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="W65C816ChipPins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="W65C816Chip.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="65C64ChipPins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="65C64Chip.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="OscilloscopePins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Oscilloscope.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
+    <ClInclude Include="65C64Chip.h">
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64ChipPins.h">
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
+    </ClInclude>
+    <ClInclude Include="Adder.h">
+      <Filter>Source\Components\Generic\Adder</Filter>
+    </ClInclude>
+    <ClInclude Include="AndGate.h">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClInclude>
+    <ClInclude Include="AndGatePins.h">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClInclude>
+    <ClInclude Include="AndLogic.h">
+      <Filter>Source\Components\Generic\AndGate</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferPins.h">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="BusBuffer.h">
+      <Filter>Source\Components\Generic\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="BusTransceiver.h">
+      <Filter>Source\Components\Generic\Transceiver</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816Chip.h">
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816ChipPins.h">
+      <Filter>Source\Microprocessor\WDC\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="XorGate.h">
+      <Filter>Source\Components\Generic\XorGate</Filter>
+    </ClInclude>
+    <ClInclude Include="XorGatePins.h">
+      <Filter>Source\Components\Generic\XorGate</Filter>
+    </ClInclude>
+    <ClInclude Include="Trace.h">
+      <Filter>Source\Wire</Filter>
+    </ClInclude>
+    <ClInclude Include="TracePort.h">
+      <Filter>Source\Wire</Filter>
+    </ClInclude>
+    <ClInclude Include="W65CMeta.h">
+      <Filter>Source\Microprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="Circuit.h">
+      <Filter>Source\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitComponent.h">
+      <Filter>Source\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitInstance.h">
+      <Filter>Source\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitSimulation.h">
+      <Filter>Source\Circuit</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitSimulations.h">
+      <Filter>Source\Circuit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="65C64Simulator.txt">
-      <Filter>Source\Codaphela\65C64</Filter>
+      <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
     </None>
   </ItemGroup>
-</Project>
+</Project>

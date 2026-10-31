@@ -34,5 +34,5 @@ public:
 };
 
 
-#endif // !__META_TRACE_H__
+#endif // __META_TRACE_H__
 
