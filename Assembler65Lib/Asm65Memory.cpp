@@ -20,6 +20,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/Logger.h"
 #include "Asm65Memory.h"
 
 
@@ -33,6 +34,12 @@ void CAsm65Memory::Init(uint32 uiLowSize)
 
 	muiLowSize = uiLowSize;
 	mpuiLow = (uint8*)calloc(muiLowSize, 1);
+	if (!mpuiLow)
+	{
+		//With no low memory every access is a bad one, not a write through NULL.
+		gcLogger.Error2(__METHOD__, " Could not allocate [", IntToString(uiLowSize), "] bytes of low memory.", NULL);
+		muiLowSize = 0;
+	}
 	for (i = 0; i < 4; i++)
 	{
 		mauiMemorySize[i] = (uint8)(muiLowSize >> (8 * i));

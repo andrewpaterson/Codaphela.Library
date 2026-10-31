@@ -350,7 +350,8 @@ void CComponentInput::AddMouseChords(CComponentInputDevice* pcKeyboard, CCompone
 //
 // A chord for each of the keyboard's left and right controls and shifts
 // that the row wants, then szKey on pcKeyDevice.  They share one name and
-// command.
+// command.  A modifier the keyboard doesn't have makes no chord; without
+// its shift a control and shift chord would be its control chord too.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
@@ -391,7 +392,10 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 		{
 			for (j = 0; j < 2; j++)
 			{
-				mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcKeyDevice->GetDevice(), pcKey);
+				if (apcControls[i] && apcShifts[j])
+				{
+					mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcKeyDevice->GetDevice(), pcKey);
+				}
 			}
 		}
 		else if (bControl)
