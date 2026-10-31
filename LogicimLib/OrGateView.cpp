@@ -56,6 +56,19 @@ void COrGateView::InitOr(int32 x, int32 y, ERotation eRotation, const char* szNa
 //////////////////////////////////////////////////////////////////////////
 void COrGateView::CreateShapes(void)
 {
+	AddOrShapes(&mcShapes, 0, 0, miInputCount, mbExclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An OR (or exclusive OR) gate of iInputCount inputs with its position at
+// (x, y), so its inputs are at x - 1 (x - 2 exclusive) and its output at
+// x + 2.
+//
+//////////////////////////////////////////////////////////////////////////
+void COrGateView::AddOrShapes(CComponentShapes* pcShapes, float64 x, float64 y, int iInputCount, bool bExclusive)
+{
 	float64			fHeight;
 	float64			fRadius;
 	float64			fCentre;
@@ -63,23 +76,23 @@ void COrGateView::CreateShapes(void)
 	float64			fMiddle;
 	float64			fZero;
 
-	fHeight = CalculateWidth(miInputCount);
+	fHeight = CalculateWidth(iInputCount);
 	fRadius = fHeight * 2;
-	fCentre = -0.6;
-	fBack = -3.5;
-	fMiddle = -0.9;
-	fZero = 0.0;
+	fCentre = x - 0.6;
+	fBack = x - 3.5;
+	fMiddle = x - 0.9;
+	fZero = x;
 
-	mcShapes.AddArc(fCentre, fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
-	mcShapes.AddArc(fCentre, -fHeight, 3, fRadius, OR_ARC_UPPER_START + OR_ARC_FILL_OFFSET, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
-	mcShapes.AddTriangle(fMiddle, fHeight, fZero, fHeight - OR_FILL_OFFSET, fZero, 0, true, false);
-	mcShapes.AddTriangle(fMiddle, -fHeight, fZero, -fHeight + OR_FILL_OFFSET, fZero, 0, true, false);
-	mcShapes.AddArc(fCentre, fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH, false, true);
-	mcShapes.AddArc(fCentre, -fHeight, 3, fRadius, OR_ARC_UPPER_START, OR_ARC_SIDE_LENGTH, false, true);
-	mcShapes.AddArc(fBack, 0, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
-	if (mbExclusive)
+	pcShapes->AddArc(fCentre, y + fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
+	pcShapes->AddArc(fCentre, y - fHeight, 3, fRadius, OR_ARC_UPPER_START + OR_ARC_FILL_OFFSET, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
+	pcShapes->AddTriangle(fMiddle, y + fHeight, fZero, y + fHeight - OR_FILL_OFFSET, fZero, y, true, false);
+	pcShapes->AddTriangle(fMiddle, y - fHeight, fZero, y - fHeight + OR_FILL_OFFSET, fZero, y, true, false);
+	pcShapes->AddArc(fCentre, y + fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH, false, true);
+	pcShapes->AddArc(fCentre, y - fHeight, 3, fRadius, OR_ARC_UPPER_START, OR_ARC_SIDE_LENGTH, false, true);
+	pcShapes->AddArc(fBack, y, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
+	if (bExclusive)
 	{
-		mcShapes.AddArc(fBack - 1, 0, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
+		pcShapes->AddArc(fBack - 1, y, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
 	}
 }
 

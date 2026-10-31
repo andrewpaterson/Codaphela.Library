@@ -56,7 +56,9 @@
     <ClCompile Include="SimulationStateXML.cpp" />
     <ClCompile Include="TraceView.cpp" />
     <ClCompile Include="TraceAutoConnector.cpp" />
-    <ClCompile Include="InverterPackageView.cpp" />
+    <ClCompile Include="Logic74View.cpp" />
+    <ClCompile Include="LogicBlockView.cpp" />
+    <ClCompile Include="Logic74Parts.cpp" />
     <ClCompile Include="CircuitSelection.cpp" />
     <ClCompile Include="UndoStack.cpp" />
     <ClCompile Include="CircuitEdit.cpp" />
@@ -107,7 +109,9 @@
     <ClInclude Include="SimulationStateXML.h" />
     <ClInclude Include="TraceView.h" />
     <ClInclude Include="TraceAutoConnector.h" />
-    <ClInclude Include="InverterPackageView.h" />
+    <ClInclude Include="Logic74View.h" />
+    <ClInclude Include="LogicBlockView.h" />
+    <ClInclude Include="Logic74Parts.h" />
     <ClInclude Include="CircuitSelection.h" />
     <ClInclude Include="UndoStack.h" />
     <ClInclude Include="CircuitEdit.h" />

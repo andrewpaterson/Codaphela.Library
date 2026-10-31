@@ -63,6 +63,7 @@ public:
 			const char*			GetType(void);
 
 	static	void				CalculatePortName(CChars* psz, const char* szName, size i, size uiBufferCount);
+	static	void				CalculateGroupPortName(CChars* psz, size uiGroup, size uiGroupCount, const char* szName, size uiBit, size uiBitCount);
 };
 
 

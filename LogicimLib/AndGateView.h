@@ -36,6 +36,8 @@ public:
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 
+	static	void					AddAndShapes(CComponentShapes* pcShapes, float64 x, float64 y, int iInputCount);
+
 protected:
 			void					InitAnd(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iInputCount, int iInputWidth, bool bNegated);
 			void					CreateShapes(void);

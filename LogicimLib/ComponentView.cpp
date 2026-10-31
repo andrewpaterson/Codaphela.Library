@@ -271,7 +271,7 @@ void CComponentView::GetBitJoins(CArrayPortBitJoin* pasJoins)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The next unit of a part placed as its units (see CInverterUnitView),
+// The next unit of a part placed as its units (see CLogic74UnitView),
 // to be placed after this one.  NULL for anything else, or after the
 // part's last unit.
 //

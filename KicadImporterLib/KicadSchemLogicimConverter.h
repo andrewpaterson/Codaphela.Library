@@ -95,17 +95,17 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 
 //Makes a Logicim circuit from one KiCad sheet.
 //
-//Each symbol becomes the components Logicim has for it.  A 74 series gate part (see ParseKicadSchemLogicFunction)
-//becomes a gate for each of its gates, found by its pin names ("1A", "1B" and "1Y"; "A" and "Y" on a single gate) or,
-//if its pins have no names, by their types; and a 74 flip flop becomes a D flip flop for each of its flip flops ("1CP",
-//"1D", "~{1SD}", "~{1RD}", "1Q" and "~{1Q}").  Their power pins are left out: the gates have implied power.  An
-//inverter part is placed as KiCad has it: each unit of a part drawn as units (a 74LVC04's "_Multi" symbol) is an
-//inverter unit, and a part drawn whole is an inverter package of all its inverters; a single inverter is an
-//inverter.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V).  Resistors,
-//capacitors, inductors, diodes, LEDs, mounting holes, net ties, test points and power flags are left out.  Any other
-//symbol becomes an instance of a placeholder subcircuit made for its library symbol and unit: an empty circuit with a
-//pin for each of its shown pins, on the side KiCad draws it, so it can be wired and its logic filled in
-//later.  Hierarchical sheets are left out.
+//Each symbol becomes the components Logicim has for it.  A real 74 series part (see SLogic74Part) is placed as KiCad
+//has it: each unit of a part drawn as units (a 74LVC00's "_Multi" symbol) is a 74 series unit, and a part drawn whole is
+//a 74 series package, both named as the part.  A gate part's pins are found by their names ("1A", "1B" and "1Y"; "A"
+//and "Y" on a single gate part, which is a unit) or, if they have no names, by their types; any other part's pins by
+//the labels of its package's pins (see AddLogic74Block).  A 74 series gate or flip flop that isn't a part there's a row
+//for becomes a generic gate (or D flip flop) for each of its gates.  Power pins are left out: the parts have implied
+//power.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V).  Resistors and resistor
+//networks, capacitors and capacitor networks, inductors, diodes, LEDs, mounting holes, net ties, test points and power
+//flags are left out.  Any other symbol becomes an instance of a placeholder subcircuit made for its library symbol and
+//unit: an empty circuit with a pin for each of its shown pins, on the side KiCad draws it, so it can be wired and its
+//logic filled in later.  Hierarchical sheets are left out.
 //
 //A subnet that is part of a bigger net (it's joined to the rest by labels) gets a tunnel named as the net at each of
 //its labels, so each subnet is wired on its own, as KiCad drew it.  A tunnel or supply KiCad has right on a pin is
@@ -145,6 +145,7 @@ protected:
 	size								muiPowers;
 	size								muiTunnels;
 	size								muiSplitters;
+	size								muiBlocks;
 	size								muiSkipped;
 	size								muiOverlaps;
 	size								muiExplosions;
@@ -170,6 +171,7 @@ public:
 	size							NumPowers(void);
 	size							NumTunnels(void);
 	size							NumSplitters(void);
+	size							NumBlocks(void);
 	size							NumSkipped(void);
 	size							NumOverlaps(void);
 	size							NumExplosions(void);
@@ -186,7 +188,8 @@ protected:
 	bool							AddSymbol(CKicadSchemSymbol* pcSymbol);
 	bool							AddPower(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	bool							AddLogicParts(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, const char* szFamily, const char* szPartType);
-	void							AddInverterPackage(CKicadSchemSymbol* pcSymbol, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType);
+	bool							AddLogic74Block(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, const char* szFamily, const char* szPartType);
+	bool							AddLogic74Part(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType);
 	bool							AddPlaceholder(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	CCircuitView*					GetPlaceholderCircuit(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	void							GetPlaceholderPins(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayChars* paszNames);

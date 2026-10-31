@@ -29,13 +29,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 // Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCounter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue)
+void CCounter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue, bool bSynchronousLoad)
 {
 	PreInit();
 
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	muiBitWidth = uiBitWidth;
 	muiTerminalValue = uiTerminalValue;
+	mbSynchronousLoad = bSynchronousLoad;
 	ResetState();
 
 	PostInit();
@@ -54,6 +55,7 @@ void CCounter::Class(void)
 	U_UInt32(muiTerminalValue);
 	U_UInt32(muiCount);
 	U_Bool(mbTerminal);
+	U_Bool(mbSynchronousLoad);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,9 +120,16 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	{
 		muiCount = 0;
 	}
-	else if (bLoadLow)
+	else if (bLoadLow && !mbSynchronousLoad)
 	{
 		muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
+	}
+	else if (bLoadLow)
+	{
+		if (pcPins->IsClock(pcPort) && pcPort->Read(pcTimeline).IsHigh())
+		{
+			muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
+		}
 	}
 	else if (pcPins->IsClock(pcPort))
 	{
@@ -175,6 +184,7 @@ CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)&mpPins; }
 uint32 CCounter::GetCount(void) { return muiCount; }
 void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
 bool CCounter::IsTerminal(void) { return mbTerminal; }
+bool CCounter::IsSynchronousLoad(void) { return mbSynchronousLoad; }
 void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
 
 

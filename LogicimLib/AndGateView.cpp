@@ -54,17 +54,29 @@ void CAndGateView::InitAnd(int32 x, int32 y, ERotation eRotation, const char* sz
 //////////////////////////////////////////////////////////////////////////
 void CAndGateView::CreateShapes(void)
 {
+	AddAndShapes(&mcShapes, 0, 0, miInputCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An AND gate of iInputCount inputs with its position at (x, y), so its
+// inputs are at x - 1 and its output at x + 2.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAndGateView::AddAndShapes(CComponentShapes* pcShapes, float64 x, float64 y, int iInputCount)
+{
 	float64		fHeight;
 	float64		fBack;
 
-	fHeight = CalculateWidth(miInputCount);
+	fHeight = CalculateWidth(iInputCount);
 	fBack = 0.5 - 1.4;
 
-	mcShapes.AddRectangle(fBack, -fHeight, 0.5, fHeight, true, false);
-	mcShapes.AddArc(0.4, 0, 1.5, fHeight, -90, 180, true, true);
-	mcShapes.AddLine(0.5, -fHeight, fBack, -fHeight);
-	mcShapes.AddLine(fBack, -fHeight, fBack, fHeight);
-	mcShapes.AddLine(fBack, fHeight, 0.5, fHeight);
+	pcShapes->AddRectangle(x + fBack, y - fHeight, x + 0.5, y + fHeight, true, false);
+	pcShapes->AddArc(x + 0.4, y, 1.5, fHeight, -90, 180, true, true);
+	pcShapes->AddLine(x + 0.5, y - fHeight, x + fBack, y - fHeight);
+	pcShapes->AddLine(x + fBack, y - fHeight, x + fBack, y + fHeight);
+	pcShapes->AddLine(x + fBack, y + fHeight, x + 0.5, y + fHeight);
 }
 
 

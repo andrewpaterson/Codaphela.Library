@@ -41,6 +41,8 @@ public:
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 			bool					IsExclusive(void);
 
+	static	void					AddOrShapes(CComponentShapes* pcShapes, float64 x, float64 y, int iInputCount, bool bExclusive);
+
 protected:
 			void					InitOr(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iInputCount, int iInputWidth, bool bNegated, bool bExclusive);
 			void					CreateShapes(void);

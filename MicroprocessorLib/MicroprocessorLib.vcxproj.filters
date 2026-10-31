@@ -618,6 +618,39 @@
     <ClCompile Include="Buffer.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="GateArray.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FlipFlopArray.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Comparator.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Adder.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Decoder.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Multiplexer.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="BusTransceiver.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="BusBuffer.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Register.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GroupPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GateArrayPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="ConstantPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -1278,6 +1311,39 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GateArray.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FlipFlopArray.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Comparator.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Adder.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Decoder.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Multiplexer.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="BusTransceiver.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="BusBuffer.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Register.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GroupPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GateArrayPins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="ConstantPins.h">

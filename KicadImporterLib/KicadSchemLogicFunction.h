@@ -45,6 +45,11 @@ enum EKicadSchemLogicFunction
 //series gate or flip flop Logicim has.  The part type is what follows the family: "04", "1G08".
 EKicadSchemLogicFunction	ParseKicadSchemLogicFunction(const char* szPartNumber, CChars* pszFamily, CChars* pszPartType = NULL);
 const char*					KicadSchemLogicFunctionName(EKicadSchemLogicFunction eFunction);
+
+//The real 74 series part (see SLogic74Part) a part number is, as ParseKicadSchemLogicFunction reads it: "74", the
+//family, then a type there's a row for ("574", "16373", "2G04").  A QuickSwitch ("QS3253S1G") is the LVC part of its
+//number.  False if it isn't one.
+bool						ParseKicadSchemLogic74Part(const char* szPartNumber, CChars* pszFamily, CChars* pszPartType);
 bool						IsKicadSchemLogicimFamily(const char* szFamily);
 
 

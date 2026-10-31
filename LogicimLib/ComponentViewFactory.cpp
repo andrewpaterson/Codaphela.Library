@@ -23,7 +23,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "AndGateView.h"
 #include "OrGateView.h"
 #include "BufferView.h"
-#include "InverterPackageView.h"
+#include "Logic74View.h"
+#include "LogicBlockView.h"
 #include "PowerSourceView.h"
 #include "ValueView.h"
 #include "FlipFlopView.h"
@@ -73,8 +74,16 @@ SComponentViewType gasComponentViewTypes[] =
 	{ "XnorGate", NewComponentViewOfClass<CXnorGateView> },
 	{ "Buffer", NewComponentViewOfClass<CBufferView> },
 	{ "Inverter", NewComponentViewOfClass<CInverterView> },
-	{ "InverterPackage", NewComponentViewOfClass<CInverterPackageView> },
-	{ "InverterUnit", NewComponentViewOfClass<CInverterUnitView> },
+	{ "Logic74Package", NewComponentViewOfClass<CLogic74PackageView> },
+	{ "Logic74Unit", NewComponentViewOfClass<CLogic74UnitView> },
+	{ "Register", NewComponentViewOfClass<CRegisterView> },
+	{ "Latch", NewComponentViewOfClass<CLatchView> },
+	{ "BusBuffer", NewComponentViewOfClass<CBusBufferView> },
+	{ "BusTransceiver", NewComponentViewOfClass<CBusTransceiverView> },
+	{ "Multiplexer", NewComponentViewOfClass<CMultiplexerView> },
+	{ "Decoder", NewComponentViewOfClass<CDecoderView> },
+	{ "Adder", NewComponentViewOfClass<CAdderView> },
+	{ "Comparator", NewComponentViewOfClass<CComparatorView> },
 	{ "Ground", NewComponentViewOfClass<CGroundView> },
 	{ "Constant", NewComponentViewOfClass<CConstantView> },
 	{ "Probe", NewComponentViewOfClass<CProbeView> },

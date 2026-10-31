@@ -108,7 +108,13 @@
     <ClCompile Include="TraceAutoConnector.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
-    <ClCompile Include="InverterPackageView.cpp">
+    <ClCompile Include="Logic74View.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicBlockView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="Logic74Parts.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
     <ClCompile Include="CircuitFile.cpp">
@@ -257,7 +263,13 @@
     <ClInclude Include="TraceAutoConnector.h">
       <Filter>Source\View</Filter>
     </ClInclude>
-    <ClInclude Include="InverterPackageView.h">
+    <ClInclude Include="Logic74View.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicBlockView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Logic74Parts.h">
       <Filter>Source\View</Filter>
     </ClInclude>
     <ClInclude Include="CircuitFile.h">

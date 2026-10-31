@@ -24,7 +24,9 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "AndGateView.h"
 #include "OrGateView.h"
 #include "BufferView.h"
-#include "InverterPackageView.h"
+#include "Logic74View.h"
+#include "LogicBlockView.h"
+#include "ComponentViewFactory.h"
 #include "PowerSourceView.h"
 #include "ValueView.h"
 #include "FlipFlopView.h"
@@ -210,6 +212,47 @@ void GetFreeReference(CChars* psz, CCircuitView* pcCircuit, const char* szPrefix
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A real 74 series part ("Logic74Package:00") or its first unit
+// ("Logic74Unit:00"), of the placed family and with the next free
+// reference.  The units placed after a unit (see NewNextUnit) take its
+// reference, as one part's.
+//
+//////////////////////////////////////////////////////////////////////////
+static CComponentView* NewPlacedLogic74View(const char* szXMLName, const char* szPartType, int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit)
+{
+	CChars					szName;
+	SLogic74PartType		sType;
+	CLogic74PackageView*	pcPackage;
+	CLogic74UnitView*		pcUnit;
+	CComponentView*			pcView;
+
+	if (!FindLogic74Part(&sType, szPartType))
+	{
+		return NULL;
+	}
+
+	szName.Init();
+	GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
+	pcView = NULL;
+	if (strncmp(szXMLName, "Logic74Package:", 15) == 0)
+	{
+		pcPackage = NewMalloc<CLogic74PackageView>();
+		pcPackage->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, szPartType);
+		pcView = pcPackage;
+	}
+	else if (strncmp(szXMLName, "Logic74Unit:", 12) == 0)
+	{
+		pcUnit = NewMalloc<CLogic74UnitView>();
+		pcUnit->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, szPartType, 0);
+		pcView = pcUnit;
+	}
+	szName.Kill();
+	return pcView;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit, CCircuitFonts* pcFonts)
@@ -225,9 +268,27 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	CSplitterView*		pcSplitter;
 	CTunnelView*		pcTunnel;
 	CLabelView*			pcLabel;
-	CInverterPackageView*	pcPackage;
-	CInverterUnitView*	pcUnit;
 	CChars				szName;
+	const char*			szPartType;
+	ELogicBlockKind		eKind;
+	SLogicBlockParams	sParams;
+	CLogicBlockView*	pcBlock;
+
+	szPartType = strchr(szXMLName, PLACED_PART_SEPARATOR);
+	if (szPartType != NULL)
+	{
+		return NewPlacedLogic74View(szXMLName, szPartType + 1, x, y, eRotation, pcCircuit);
+	}
+	if (CLogicBlockView::FindKind(szXMLName, &eKind))
+	{
+		CLogicBlockView::GetDefaultParams(eKind, &sParams);
+		szName.Init();
+		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
+		pcBlock = (CLogicBlockView*)NewComponentView(szXMLName);
+		pcBlock->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, eKind, &sParams);
+		szName.Kill();
+		return pcBlock;
+	}
 
 	if (StringCompare(szXMLName, "AndGate") == 0)
 	{
@@ -260,25 +321,6 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	else if (StringCompare(szXMLName, "Inverter") == 0)
 	{
 		return NewPlacedGate<CInverterView>(x, y, eRotation, 1, pcCircuit);
-	}
-	else if (StringCompare(szXMLName, "InverterPackage") == 0)
-	{
-		szName.Init();
-		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
-		pcPackage = NewMalloc<CInverterPackageView>();
-		pcPackage->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, "04", 6);
-		szName.Kill();
-		return pcPackage;
-	}
-	else if (StringCompare(szXMLName, "InverterUnit") == 0)
-	{
-		//The units placed after it (see NewNextUnit) take its reference, as one part's.
-		szName.Init();
-		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
-		pcUnit = NewMalloc<CInverterUnitView>();
-		pcUnit->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, "04", 0);
-		szName.Kill();
-		return pcUnit;
 	}
 	else if (StringCompare(szXMLName, "Ground") == 0)
 	{
