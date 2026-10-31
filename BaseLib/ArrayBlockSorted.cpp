@@ -64,12 +64,9 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, size iElementSize, size iHol
 			paHoldingArray = maaHoldingArrays.Get(i);
 			paHoldingArray->Init(pcMalloc, miElementSize);
 		}
-		mapiInsertionIndices = (size*)mpcMalloc->Malloc((lsize)miHoldingBufferSize * iHoldingBuffers * sizeof(size));
 	}
-	else
-	{
-		mapiInsertionIndices = NULL;
-	}
+	//Made when first needed (CalculateInsertionIndices): an array nothing is added to stays small.
+	mapiInsertionIndices = NULL;
 }
 
 
@@ -84,7 +81,11 @@ void CArrayBlockSorted::Kill(void)
 	size			iNumElements;
 
 	iNumElements = maaHoldingArrays.NumElements();
-	mpcMalloc->Free(mapiInsertionIndices);
+	if (mapiInsertionIndices)
+	{
+		mpcMalloc->Free(mapiInsertionIndices);
+		mapiInsertionIndices = NULL;
+	}
 	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
@@ -355,6 +356,11 @@ size* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingA
 	void*	pv;
 	size	i;
 	size	iNumElements;
+
+	if (!mapiInsertionIndices)
+	{
+		mapiInsertionIndices = (size*)mpcMalloc->Malloc((lsize)miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(size));
+	}
 
 	iNumElements = paMergedHoldingArrays->NumElements();
 	for (i = 0; i < iNumElements; i++)
@@ -709,7 +715,7 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 		paHoldingArray->Init(mpcMalloc, miElementSize);
 	}
 
-	mapiInsertionIndices = (size*)mpcMalloc->Malloc((lsize)miHoldingBufferSize * iHoldingBuffers * sizeof(size));
+	mapiInsertionIndices = NULL;
 	return true;
 }
 
@@ -877,7 +883,10 @@ lsize CArrayBlockSorted::ByteSize(void)
 	}
 	uiSize += maaHoldingArrays.ByteSize();
 	uiSize += maSortedArray.ByteSize();
-	uiSize += miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(size);
+	if (mapiInsertionIndices)
+	{
+		uiSize += miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(size);
+	}
 	return uiSize;
 }
 
