@@ -26,15 +26,20 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 //A label or a constant.  uiPass is the pass that last defined it.  In an object
 //iSection is the label's section (iValue is its offset), ASM65_SECTION_ABSOLUTE for a
-//plain value or ASM65_SECTION_UNDEFINED for an external.  uiTermToken names the label
-//or external a constant's value is relative to.
+//plain value or ASM65_SECTION_UNDEFINED for an external.  uiTerm is the index of the
+//label or external a constant's value is relative to (a label's is its own).  An
+//external was named at uiNamedLine and uiNamedColumn.  uiIndex is the symbol's own
+//index, in the order symbols were added.
 struct SAsm65Symbol
 {
 	int64	iValue;
 	uint32	uiPass;
 	bool	bResolved;
 	int32	iSection;
-	size	uiTermToken;
+	size	uiTerm;
+	size	uiIndex;
+	uint32	uiNamedLine;
+	uint32	uiNamedColumn;
 	bool	bExternal;
 	bool	bGlobal;
 	bool	bWeak;

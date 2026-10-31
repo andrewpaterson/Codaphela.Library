@@ -82,7 +82,10 @@ SAsm65Symbol* CAsm65Symbols::Put(const char* szName, size uiLength)
 		psSymbol->uiPass = 0;
 		psSymbol->bResolved = false;
 		psSymbol->iSection = ASM65_SECTION_ABSOLUTE;
-		psSymbol->uiTermToken = 0;
+		psSymbol->uiTerm = 0;
+		psSymbol->uiIndex = maszNames.NumElements();
+		psSymbol->uiNamedLine = 0;
+		psSymbol->uiNamedColumn = 0;
 		psSymbol->bExternal = false;
 		psSymbol->bGlobal = false;
 		psSymbol->bWeak = false;

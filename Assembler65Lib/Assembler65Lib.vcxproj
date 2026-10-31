@@ -192,6 +192,7 @@
     <ClCompile Include="Asm65816Profile.cpp" />
     <ClCompile Include="Asm65Errors.cpp" />
     <ClCompile Include="Asm65HostFiles.cpp" />
+    <ClCompile Include="Asm65KeptTokens.cpp" />
     <ClCompile Include="Asm65C64Lockstep.cpp" />
     <ClCompile Include="Asm65C64Instructions.cpp" />
     <ClCompile Include="Asm65Library.cpp" />
@@ -202,6 +203,7 @@
     <ClCompile Include="Asm65Object.cpp" />
     <ClCompile Include="Asm65C64Operands.cpp" />
     <ClCompile Include="Asm65Output.cpp" />
+    <ClCompile Include="Asm65Source.cpp" />
     <ClCompile Include="Asm65Symbols.cpp" />
     <ClCompile Include="Asm65Token.cpp" />
     <ClCompile Include="Asm65Tokeniser.cpp" />
@@ -214,6 +216,7 @@
     <ClInclude Include="Asm65816Profile.h" />
     <ClInclude Include="Asm65Errors.h" />
     <ClInclude Include="Asm65HostFiles.h" />
+    <ClInclude Include="Asm65KeptTokens.h" />
     <ClInclude Include="Asm65C64Lockstep.h" />
     <ClInclude Include="Asm65Library.h" />
     <ClInclude Include="Asm65Linker.h" />
@@ -221,6 +224,7 @@
     <ClInclude Include="Asm65Memory.h" />
     <ClInclude Include="Asm65Object.h" />
     <ClInclude Include="Asm65Output.h" />
+    <ClInclude Include="Asm65Source.h" />
     <ClInclude Include="Asm65Symbols.h" />
     <ClInclude Include="Asm65Token.h" />
     <ClInclude Include="Asm65Tokeniser.h" />

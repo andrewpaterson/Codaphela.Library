@@ -32,6 +32,10 @@ typedef CArrayTemplate<SAsm65Token>	CArrayAsm65Tokens;
 //Splits source text into identifiers, numbers, strings, punctuators and new lines.
 //Comments start with ';' and run to the end of the line.  The source text must outlive
 //the tokens.  The last token is always AT65_End.
+//
+//TokeniseLine splits one line at a time (the assembler's passes read their source a
+//statement at a time): the tokens and strings are only the line's, ending with
+//AT65_NewLine, or AT65_End for the source's last line.
 class CAsm65Tokeniser
 {
 protected:
@@ -48,6 +52,8 @@ public:
 	void			Kill(void);
 
 	bool			Tokenise(const char* szSource);
+	const char*		TokeniseLine(const char* szLine, uint32 uiLine, bool* pbResult);
+	void			SetErrors(CAsm65Errors* pcErrors);
 
 	size			NumTokens(void);
 	SAsm65Token*	Get(size uiIndex);
@@ -55,6 +61,7 @@ public:
 	void			Print(CChars* psz);
 
 protected:
+	bool			Line(void);
 	SAsm65Token*	AddToken(EAsm65TokenType eType, const char* szStart);
 	bool			Number(void);
 	bool			Character(void);

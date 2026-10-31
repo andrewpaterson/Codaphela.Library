@@ -65,7 +65,7 @@ void CAsm65BaseAssembler::ClearValue(SAsm65Value* psValue)
 	psValue->iProgramCounter = 0;
 	psValue->iTerms = 0;
 	psValue->iSection = ASM65_SECTION_ABSOLUTE;
-	psValue->uiTermToken = 0;
+	psValue->uiTerm = 0;
 	psValue->uiForm = ASM65RF_Plain;
 }
 
@@ -451,7 +451,7 @@ bool CAsm65BaseAssembler::Primary(SAsm65Value* psValue)
 			}
 			if (mbObject)
 			{
-				mcUndefined.Add((int)TokenIndex(psToken));
+				AddUndefined(psToken);
 			}
 			return true;
 		}
@@ -465,7 +465,7 @@ bool CAsm65BaseAssembler::Primary(SAsm65Value* psValue)
 		{
 			psValue->iTerms = 1;
 			psValue->iSection = psSymbol->iSection;
-			psValue->uiTermToken = psSymbol->uiTermToken;
+			psValue->uiTerm = psSymbol->uiTerm;
 		}
 		return true;
 	}
@@ -532,7 +532,7 @@ bool CAsm65BaseAssembler::AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, b
 	{
 		psValue->iTerms = iRight;
 		psValue->iSection = psRight->iSection;
-		psValue->uiTermToken = psRight->uiTermToken;
+		psValue->uiTerm = psRight->uiTerm;
 		return true;
 	}
 	if (!SameTerm(psValue, psRight))
@@ -546,7 +546,7 @@ bool CAsm65BaseAssembler::AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, b
 	}
 	else if ((psValue->iTerms == 1) && (iRight == 1))
 	{
-		psValue->uiTermToken = psRight->uiTermToken;
+		psValue->uiTerm = psRight->uiTerm;
 	}
 	return true;
 }
@@ -559,9 +559,6 @@ bool CAsm65BaseAssembler::AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, b
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65BaseAssembler::SameTerm(SAsm65Value* psValue, SAsm65Value* psRight)
 {
-	SAsm65Token*	psLeftTerm;
-	SAsm65Token*	psRightTerm;
-
 	if (psValue->iSection != psRight->iSection)
 	{
 		return false;
@@ -570,9 +567,7 @@ bool CAsm65BaseAssembler::SameTerm(SAsm65Value* psValue, SAsm65Value* psRight)
 	{
 		return true;
 	}
-	psLeftTerm = mcTokeniser.Get(psValue->uiTermToken);
-	psRightTerm = mcTokeniser.Get(psRight->uiTermToken);
-	return (psLeftTerm->uiLength == psRightTerm->uiLength) && (memcmp(psLeftTerm->szText, psRightTerm->szText, psLeftTerm->uiLength) == 0);
+	return psValue->uiTerm == psRight->uiTerm;
 }
 
 
