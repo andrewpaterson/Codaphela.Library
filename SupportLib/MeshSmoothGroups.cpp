@@ -110,17 +110,17 @@ void CMeshSmoothGroups::GenerateSmoothing(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 {
-	int				i;
-	int				iNumPolygons;
+	size			i;
+	size			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
-	int				iNumFaces;
-	int				j;
+	size			iNumFaces;
+	size			j;
 	int				iFace;
 	CArrayInt		aiUniqueNames;
 	uint32	uiFaceName;
 	uint32	uiSmoothingGroup;
 
-	iNumPolygons = (int)pcMeshEditor->mcPolygons.mcPolygons.NumElements();
+	iNumPolygons = pcMeshEditor->mcPolygons.mcPolygons.NumElements();
 
 	aiUniqueNames.Init();
 	pcMeshEditor->mcPolygons.GetUniqueNames(&aiUniqueNames);
@@ -134,8 +134,8 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 	{
 		for (i = 0; i < iNumPolygons; i++)
 		{
-			pcPolygon = pcMeshEditor->mcPolygons.Get(i);
-			iNumFaces = (int)pcPolygon->maiFaces.NumElements();
+			pcPolygon = pcMeshEditor->mcPolygons.Get((int)i);
+			iNumFaces = pcPolygon->maiFaces.NumElements();
 			uiFaceName = pcPolygon->miName;
 			if (uiFaceName != 0)
 			{

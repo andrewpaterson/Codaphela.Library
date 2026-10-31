@@ -95,7 +95,7 @@ bool CSharedMemoryChannel::InitSignals(char* szName, bool bCreate)
 {
 	CChars	sz;
 	CChars	szSide;
-	int		i;
+	size	i;
 	bool	bResult;
 
 	InterProcessName(&sz, INTER_PROCESS_SIGNAL_PREFIX, szName);
@@ -108,9 +108,9 @@ bool CSharedMemoryChannel::InitSignals(char* szName, bool bCreate)
 		bResult = bCreate ? macSignal[i].Create() : macSignal[i].Connect();
 		if (!bResult)
 		{
-			for (; i >= 0; i--)
+			for (i++; i > 0; i--)
 			{
-				macSignal[i].Kill();
+				macSignal[i - 1].Kill();
 			}
 			sz.Kill();
 			return false;

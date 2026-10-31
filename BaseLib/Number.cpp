@@ -193,7 +193,7 @@ CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 	int32		e;
 	int32		f;
 	int32		s;
-	int32		iCount;
+	uint32		iCount;
 	int32		iBitMask;
 
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
@@ -229,7 +229,7 @@ CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 			iBitMask = (int32)1 << (22-iCount);
 			if (f & iBitMask)
 			{
-				AddBinaryOne(e - iCount - 1);
+				AddBinaryOne(e - (int32)iCount - 1);
 			}
 		}
 	}
@@ -1228,7 +1228,7 @@ void CNumber::PrivateZeroPositions(int16 iHigh, int16 iLow)
 {
 	int16	iLowWord;
 	int16	iHighWord;
-	int16	i;
+	uint16	i;
 
 	if (iHigh < iLow)
 	{
@@ -1243,7 +1243,7 @@ void CNumber::PrivateZeroPositions(int16 iHigh, int16 iLow)
 	}
 	mauiDigits[iLowWord] &= (uint16)~gauiNumberNibblesFrom[iLow & 3];
 	mauiDigits[iHighWord] &= (uint16)~gauiNumberNibblesTo[iHigh & 3];
-	for (i = (int16)(iLowWord + 1); i < iHighWord; i++)
+	for (i = (uint16)(iLowWord + 1); i < (uint16)iHighWord; i++)
 	{
 		mauiDigits[i] = 0;
 	}
@@ -2046,7 +2046,7 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 	int16	iFirst;
 	int16	iThisFirstDigit;
 	int16	iOtherFirstDigit;
-	int16	i;
+	uint16	i;
 
 	if (PrivateError(pcNumber)) return;
 
@@ -2085,7 +2085,7 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 		Overflow(GetSign());
 		return;
 	}
-	for (i = DigitPosition(mcMaxWholeNumbers) + 1; i < NumWords() * 4; i++)
+	for (i = (uint16)(DigitPosition(mcMaxWholeNumbers) + 1); i < (uint16)(NumWords() * 4); i++)
 	{
 		if (GetNibble(i) != 0)
 		{
@@ -2636,7 +2636,7 @@ bool CNumber::PrivateOverflow(CNumber* pcNumber)
 void CNumber::PrivateIntegerFactorial(int16 iN, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	CNumber*	pcI;
-	int16		i;
+	uint16		i;
 
 	if (iN < 0)
 	{
@@ -2652,7 +2652,7 @@ void CNumber::PrivateIntegerFactorial(int16 iN, int16 cMaxWholeNumbers, int16 cM
 
 	pcI = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
 	pcI->One(mcMaxWholeNumbers, mcMaxDecimals);
-	for (i = 1; i <= iN; i++)
+	for (i = 1; i <= (uint16)iN; i++)
 	{
 		Multiply(pcI);
 		if (IsOverflow())
@@ -2729,7 +2729,7 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 {
 	int16	iThisPosition;
 	int16	iOtherPosition;
-	int16	i;
+	size	i;
 	int16	iOtherFirst;
 	int16	iOtherLast;
 	size	iLength;
@@ -2771,7 +2771,7 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	iLength = GetDigitsBetween(iOtherFirst, iOtherLast);
 	iThisPosition = DigitPosition(iOtherFirst);
 	iOtherPosition = pcNumber->DigitPosition(iOtherFirst);
-	for (i = 0; i < (int16)iLength; i++)
+	for (i = 0; i < iLength; i++)
 	{
 		SetNibble(iThisPosition - i, pcNumber->GetNibble(iOtherPosition - i));
 	}
@@ -3248,7 +3248,7 @@ CNumber* CNumber::ArithmeticGeometricMean(CNumber* pcOther)
 CNumber* CNumber::Exponential(void)  //e^this
 {
 	//Also	=	cosh(x)+sinh(x)
-	int32		i;
+	uint32		i;
 	CNumber*	pcFractional;
 	CNumber*	pcIntegral;
 	CNumber*	pcOne;
@@ -3284,10 +3284,10 @@ CNumber* CNumber::Exponential(void)  //e^this
 	pcE = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 
 	pcResult->One(mcMaxWholeNumbers, iDecimals);
-	for (i = iDecimals; i >= 1; i--)
+	for (i = (uint32)iDecimals; i > 0; i--)
 	{
 		pcPart->Init(pcFractional, mcMaxWholeNumbers, iDecimals);
-		pcNumber->Init(i, mcMaxWholeNumbers, iDecimals);
+		pcNumber->Init((int32)i, mcMaxWholeNumbers, iDecimals);
 		pcPart->Divide(pcNumber);
 		pcResult->Multiply(pcPart);
 		pcResult->Increment();
@@ -3656,7 +3656,7 @@ CNumber* CNumber::RadiansToDegrees(void)
 int32 CNumber::IntValue(void)
 {
 	int16	iFirst;
-	int32	i;
+	uint32	i;
 	int32	iTimes;
 	char	iValue;
 	int32	iResult;
@@ -3671,7 +3671,7 @@ int32 CNumber::IntValue(void)
 	iTimes = 1;
 	iResult = 0;
 
-	for (i = 1; i <= iFirst; i++)
+	for (i = 1; i <= (uint32)iFirst; i++)
 	{
 		iValue = GetDigitUnsafe(i);
 		iResult += (iValue*iTimes);
@@ -3690,7 +3690,7 @@ int32 CNumber::IntValue(void)
 uint64 CNumber::ULongValue(void)
 {
 	int16	iFirst;
-	int32	i;
+	uint32	i;
 	uint64	iTimes;
 	char	iValue;
 	uint64	iResult;
@@ -3705,7 +3705,7 @@ uint64 CNumber::ULongValue(void)
 	iTimes = 1;
 	iResult = 0;
 
-	for (i = 1; i <= iFirst; i++)
+	for (i = 1; i <= (uint32)iFirst; i++)
 	{
 		iValue = GetDigitUnsafe(i);
 		iResult += (iValue * iTimes);
@@ -4081,13 +4081,13 @@ int16 CNumber::PrivateCompareDigits(CNumber* pcOther, int16 iFirst, int16 iOther
 {
 	int16	iThis;
 	int16	iOther;
-	int16	i;
+	size	i;
 	char	cThis;
 	char	cOther;
 
 	iThis = DigitPosition(iFirst);
 	iOther = pcOther->DigitPosition(iOtherFirst);
-	for (i = 0; i < (int16)uiDigits; i++)
+	for (i = 0; i < uiDigits; i++)
 	{
 		cThis = GetNibble(iThis - i);
 		cOther = pcOther->GetNibble(iOther - i);

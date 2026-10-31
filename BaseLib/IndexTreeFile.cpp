@@ -3985,7 +3985,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 	char*					pucMemory;
 	int						iFile;
 	uint32					uiIndex;
-	int						i;
+	size					i;
 	SIndexTreeDebugNode		sDebugNode;
 	int						iPos;
 	uint32					ulliFilePos;
@@ -4002,7 +4002,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 	iPos = sDebugNode.InitFromBuffer(pucMemory, iDataSize, iFile, uiIndex);
 	if (!(sDebugNode.sFlags & INDEX_TREE_NODE_FLAG_NODES_EMPTY))
 	{
-		for (i = 0; i <= sDebugNode.uiLastIndex - sDebugNode.uiFirstIndex; i++)
+		for (i = 0; i + sDebugNode.uiFirstIndex <= sDebugNode.uiLastIndex; i++)
 		{
 			iFile = *((int32*)&pucMemory[iPos]);  iPos += sizeof(int32);
 			ulliFilePos = *((uint32*)&pucMemory[iPos]);  iPos += sizeof(uint32);

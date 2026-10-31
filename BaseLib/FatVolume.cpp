@@ -3446,8 +3446,8 @@ EFatCode CFatVolume::DeleteLongNameEntries(const char* szParentPath, uint32 uiSe
 	SFatCache				sBuffer;
 	uint32					auiSectors[FAT_MAX_LFN_ENTRIES];
 	uint16					auiOffsets[FAT_MAX_LFN_ENTRIES];
-	int						iRun;
-	int						i;
+	size					iRun;
+	size					i;
 
 	iRun = 0;
 	sQuery.Init();

@@ -452,7 +452,7 @@ float64 BesselI0(float64 fX)
 	float64	fSum;
 	float64	fTerm;
 	float64	fHalfX;
-	int		k;
+	uint	k;
 
 	fSum = 1.0;
 	fTerm = 1.0;

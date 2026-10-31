@@ -125,8 +125,8 @@ void CMeshDiscEditor::Apply(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
 {
-	int			i;
-	int			j;
+	uint		i;
+	uint		j;
 	SFloat32Vec3		sDest;
 	SFloat32Vec3		sSource;
 	float32		fWedgeRad;
@@ -138,11 +138,11 @@ void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
 	iStartPosition = pcMeshEditor->NumCorners();
 
 	pcMeshEditor->AddCorner(&msStart);
-	for (j = 0; j < miCircleSegments; j++)
+	for (j = 0; j < (uint)miCircleSegments; j++)
 	{
 		fRadius = (mfOuterRadius / miCircleSegments) * (j+1);
 		sSource.Init(0.0f, fRadius, 0.0f);
-		for (i = 0; i < miWedgeSegments; i++)
+		for (i = 0; i < (uint)miWedgeSegments; i++)
 		{
 			Float32Vec3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
 			sDest.Add(&msStart);
@@ -150,15 +150,15 @@ void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
 		}
 	}
 
-	for (i = 0; i < miWedgeSegments-1; i++)
+	for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 	{
 		pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + i+2, miFaceName, true, true, true, mbFlipFaces);
 	}
 	pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + 1, miFaceName, true, true, true, mbFlipFaces);
 
-	for (j = 0; j < miCircleSegments-1; j++)
+	for (j = 0; j + 1 < (uint)miCircleSegments; j++)
 	{
-		for (i = 0; i < miWedgeSegments-1; i++)
+		for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 		{
 			pcMeshEditor->AddQuad(iStartPosition + (j*miWedgeSegments) + (i+2), iStartPosition + (j*miWedgeSegments) + (i+1),
 				                  iStartPosition + ((j+1)*miWedgeSegments) + (i+1), iStartPosition + ((j+1)*miWedgeSegments) + (i+2), 

@@ -138,10 +138,10 @@ Ptr<CFont> CFontColours::Recolour(ARGB32 sColour)
 	uint8					uiAlpha;
 	uint8*					puiOpacity;
 	uint8					uiOpacity;
-	int32					x;
-	int32					y;
-	int32					iWidth;
-	int32					iHeight;
+	uint32					x;
+	uint32					y;
+	uint32					iWidth;
+	uint32					iHeight;
 
 	pWhiteImage = mpWhite->GetImage();
 	if (pWhiteImage.IsNull())
@@ -162,8 +162,8 @@ Ptr<CFont> CFontColours::Recolour(ARGB32 sColour)
 
 	pImage = OMalloc<CImage>();
 	pImage->CopyIntoInitialised(pWhiteImage);
-	iWidth = (int32)pImage->GetWidth();
-	iHeight = (int32)pImage->GetHeight();
+	iWidth = pImage->GetWidth();
+	iHeight = pImage->GetHeight();
 
 	auiColour[0] = Get8BitRedColour(sColour);
 	auiColour[1] = Get8BitGreenColour(sColour);

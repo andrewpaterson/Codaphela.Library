@@ -50,7 +50,7 @@ void CRelativeSphereVolume::Init(float32 fVolume)
 //////////////////////////////////////////////////////////////////////////
 bool CRelativeSphereVolume::IsAllGreaterThan(void)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < 3; i++)
 	{
@@ -69,7 +69,7 @@ bool CRelativeSphereVolume::IsAllGreaterThan(void)
 //////////////////////////////////////////////////////////////////////////
 bool CRelativeSphereVolume::IsAllEqual(void)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < 3; i++)
 	{
@@ -88,7 +88,7 @@ bool CRelativeSphereVolume::IsAllEqual(void)
 //////////////////////////////////////////////////////////////////////////
 bool CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 {
-	int		i;
+	size	i;
 	int		iCount;
 	int		iTotal;
 
@@ -127,7 +127,7 @@ bool CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 //////////////////////////////////////////////////////////////////////////
 bool CRelativeSphereVolume::IsEqual(int iNumEqual)
 {
-	int		i;
+	size	i;
 	int		iCount;
 	int		iTotal;
 
@@ -301,7 +301,7 @@ bool CMeshLeaves::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
+void CMeshLeaves::PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
 {
 	CTriangleIndexed*		pcTriangle;
 	size					j;
@@ -320,7 +320,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 
 	iNewIndex = mcLeaves.NumElements();
 
-	sAdjFaces = pcConn->GetAdjacentFaces(iFaceNum);
+	sAdjFaces = pcConn->GetAdjacentFaces((int)iFaceNum);
 	pcTriangle = pcTriangles->mcTriangles.Get(iFaceNum);
 
 	psSphere = &pasSpheres[iFaceNum];
@@ -387,7 +387,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 void CMeshLeaves::PrivateAddContainedLeafSpheres(int iCentralFaceNum, int iFaceNum, int iSphereIndex, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
 {
 	SAdjFaces			sAdjFaces;
-	int					i;
+	size				i;
 	CTriangleIndexed*	pcTriangle;
 	CTriangle			cTriangle;
 
@@ -420,17 +420,17 @@ void CMeshLeaves::PrivateAddContainedLeafSpheres(int iCentralFaceNum, int iFaceN
 //////////////////////////////////////////////////////////////////////////
 void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions* pcPositions, CMeshTriangles* pcTriangles)
 {
-	int							i;
+	size						i;
 	CTriangleIndexed*			pcTriangle;
-	int							iNumFaces;
+	size						iNumFaces;
 	SFloat32Vec3						cCenter;
 	CRelativeSphereVolume*		psVolume;
 	SAdjFaces					sAdjFaces;
-	int							j;
+	size						j;
 	float32						fRelativeVolume;
 	STriangleSphere*			asSpheres;
 
-	iNumFaces = (int)pcTriangles->mcTriangles.NumElements();
+	iNumFaces = pcTriangles->mcTriangles.NumElements();
 
 	asSpheres = (STriangleSphere*)malloc((lsize)sizeof(STriangleSphere) * iNumFaces);
 
@@ -444,7 +444,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	//Then work out the relative sizes.
 	for (i = 0; i < iNumFaces; i++)
 	{
-		sAdjFaces = pcConn->GetAdjacentFaces(i);
+		sAdjFaces = pcConn->GetAdjacentFaces((int)i);
 		for (j = 0; j < NUM_FACE_EDGES; j++)
 		{
 			if (sAdjFaces.aiFace[j] != -1)

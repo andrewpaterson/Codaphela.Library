@@ -534,7 +534,7 @@ bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int3
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
-	int32 				x, y;
+	uint32 				x, y;
 	int32 				xStop, yStop;
 	int32 				xStart, yStart;
 	int32 				xSize, ySize;
@@ -598,15 +598,20 @@ bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		}
 	}
 
-	for (y = yStart; y < yStop; y++)
+	if ((xStart >= xStop) || (yStart >= yStop))
 	{
-		for (x = xStart; x < xStop; x++)
+		return true;
+	}
+
+	for (y = (uint32)yStart; y < (uint32)yStop; y++)
+	{
+		for (x = (uint32)xStart; x < (uint32)xStop; x++)
 		{
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
 			{
-				xOffset = x * (int32)msCelSize.x;
-				yOffset = y * (int32)msCelSize.y;
+				xOffset = (int32)x * (int32)msCelSize.x;
+				yOffset = (int32)y * (int32)msCelSize.y;
 				bResult = pBlitter->Blit(xOffset - pcViewportRect->msTopLeft.x, yOffset - pcViewportRect->msTopLeft.y);
 				if (!bResult)
 				{

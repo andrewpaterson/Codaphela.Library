@@ -305,9 +305,9 @@ void CConvexHullIndexed::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHullIndexed::Init(int iNumPolygons)
+void CConvexHullIndexed::Init(size iNumPolygons)
 {
-	int					i;
+	size				i;
 	CPolygonIndexed*	pcPolygon;
 
 	mcPolygons.Init();

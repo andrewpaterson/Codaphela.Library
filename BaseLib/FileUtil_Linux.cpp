@@ -376,9 +376,9 @@ char CFileUtil::GetDriveLetter(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void FreeDirEnts(struct dirent** apDirEnts, int iNumDirEnts)
+void FreeDirEnts(struct dirent** apDirEnts, size iNumDirEnts)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < iNumDirEnts; i++)
 	{
@@ -408,7 +408,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	struct dirent**     apDirEnts;
 	struct dirent*      pDirEnt;
 	int                 iNumDirEnts;
-	int                 i;
+	size                i;
     CChars				szTemp;
 	bool				bValid;
     CChars				szDirectory;
@@ -426,7 +426,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 		return false;
 	}
 
-	for (i = 0; i < iNumDirEnts; i++)
+	for (i = 0; i < (size)iNumDirEnts; i++)
 	{
 		pDirEnt = apDirEnts[i];
 
@@ -458,7 +458,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
         }
 	}
 
-	FreeDirEnts(apDirEnts, iNumDirEnts);
+	FreeDirEnts(apDirEnts, (size)iNumDirEnts);
 	szDirectory.Kill();
 	return true;
 }

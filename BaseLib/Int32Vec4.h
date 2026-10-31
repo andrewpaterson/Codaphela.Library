@@ -51,7 +51,7 @@ SInt32Vec4* 	Int32Vec4Minimize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SI
 SInt32Vec4* 	Int32Vec4Maximize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
 SInt32Vec4* 	Int32Vec4Scale(SInt32Vec4* pOut, const SInt32Vec4* pV, float32 s);
 SInt32Vec4* 	Int32Vec4Lerp(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2, float32 s);
-void			Int32Vec4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, int iNumPoints);
+void			Int32Vec4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, size iNumPoints);
 void			Int32Vec4Swap(SInt32Vec4* ps1, SInt32Vec4* ps2);
 void 			Int32Vec4InterpolatePosition(SInt32Vec4* psVecDest, const SInt32Vec4* psVec1, const SInt32Vec4* psVec2, float32 fWeight);
 

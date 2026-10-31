@@ -298,7 +298,7 @@ CFileBasic*	CIndexedFile::DumpGetPrimaryFile(void)
 void CIndexedFile::Dump(void)
 {
 	CChars			sz;
-	filePos			i;
+	uint64			i;
 	filePos			iSizeOnDisk;
 	filePos			iPos;
 	char			pvData[80];
@@ -339,7 +339,7 @@ void CIndexedFile::Dump(void)
 	}
 
 	iPos = mcFile.Tell();
-	for (i = 0; i < iNumDatas; i++)
+	for (i = 0; i < (uint64)iNumDatas; i++)
 	{
 		pcFile->Seek(i * muiDataSize, EFSO_SET);
 		pcFile->Read(pvData, uiReadSize, 1);
@@ -365,7 +365,7 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 	CStackMemory<2 KB>	cCompare;
 	CStackMemory<2 KB>	cData;
 	void*				pvCompare;
-	filePos				i;
+	uint64				i;
 	void*				pv;
 	bool				bUsed;
 	filePos				iUsed;
@@ -375,7 +375,7 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 
 	iUsed = 0;
 	pv = cData.Init(muiDataSize);
-	for (i = 0; i < miNumDatas; i++)
+	for (i = 0; i < (uint64)miNumDatas; i++)
 	{
 		if (!Read(i, pv))
 		{

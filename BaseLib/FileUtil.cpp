@@ -496,12 +496,12 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 {
 	CChars			szTemp;
 	CArrayChars		szNodes;
-	int				i;
+	size			i;
 	CChars*			pszNode;
 	CChars**		apCharDirectories;
 	CStackMemory<256>	cStack;
 	int				iPos;
-	int				iNumElements;
+	size			iNumElements;
 	bool			bLeadingSeparator;
 	char			cDriveLetter;
 
@@ -531,7 +531,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 		bLeadingSeparator = true;
 	}
 
-	iNumElements = (int)szNodes.NumElements();
+	iNumElements = szNodes.NumElements();
 	apCharDirectories = (CChars**)cStack.Init((lsize)iNumElements * sizeof(CChars*));  //A pointer for each part of the path.
 	iPos = 0;
 	for (i = 0; i < iNumElements; i++)
@@ -575,10 +575,10 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 			szTemp.Append(FILE_SEPARATOR);
 		}
 
-		for (i = 0; i < iPos; i++)
+		for (i = 0; i < (size)iPos; i++)
 		{
 			szTemp.Append(apCharDirectories[i]);
-			if (i != iPos - 1)
+			if (i != (size)iPos - 1)
 			{
 				szTemp.Append(FILE_SEPARATOR);
 			}

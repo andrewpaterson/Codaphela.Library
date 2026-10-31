@@ -42,7 +42,7 @@ protected:
 	int		miUnused;							//Codes left over by an incomplete set of lengths.
 
 public:
-	bool	Init(uint8* puiLengths, int iNumSymbols);
+	bool	Init(uint8* puiLengths, size iNumSymbols);
 	void	Kill(void);
 
 	bool	IsComplete(void);
@@ -51,7 +51,7 @@ public:
 	bool	Decode(CBitReader* pcReader, int* piSymbol);
 
 protected:
-	void	InitFast(uint8* puiLengths, int iNumSymbols);
+	void	InitFast(uint8* puiLengths, size iNumSymbols);
 	bool	DecodeSlow(CBitReader* pcReader, int* piSymbol);
 };
 

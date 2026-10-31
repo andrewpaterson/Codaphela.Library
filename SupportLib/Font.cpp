@@ -330,8 +330,8 @@ void CFont::RecolourGlyph(SGlyphDescription* psDescription)
 	uint8					uiAlpha;
 	int32					iLeft;
 	int32					iTop;
-	int32					x;
-	int32					y;
+	uint32					x;
+	uint32					y;
 
 	pWhiteImage = mpWhite->GetImage();
 	cCreator.Init(&pWhiteImage);
@@ -347,9 +347,9 @@ void CFont::RecolourGlyph(SGlyphDescription* psDescription)
 	uiAlpha = Get8BitAlphaColour(msColour);
 	iLeft = psDescription->cSubImage.mcImageRect.msTopLeft.x;
 	iTop = psDescription->cSubImage.mcImageRect.msTopLeft.y;
-	for (y = 0; y < psDescription->cSubImage.GetImageHeight(); y++)
+	for (y = 0; y < (uint32)psDescription->cSubImage.GetImageHeight(); y++)
 	{
-		for (x = 0; x < psDescription->cSubImage.GetImageWidth(); x++)
+		for (x = 0; x < (uint32)psDescription->cSubImage.GetImageWidth(); x++)
 		{
 			pcSource->Get(iLeft + x, iTop + y, &uiOpacity);
 			if (uiAlpha != 0xFF)

@@ -30,7 +30,7 @@ void CWorkerThreadPool::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadPool::Init(int iNumThreads)
 {
-	int				i;
+	size			i;
 	SWorkerThread*	psThread;
 
 	mcMutex.Init();
@@ -43,12 +43,12 @@ void CWorkerThreadPool::Init(int iNumThreads)
 	//The threads keep pointers to their elements so the array must not grow after this.
 	macThreads.Init();
 	macThreads.Resize(iNumThreads);
-	for (i = 0; i < iNumThreads; i++)
+	for (i = 0; i < (size)iNumThreads; i++)
 	{
 		psThread = macThreads.Get(i);
 		psThread->cThread.Init();
 		psThread->pcPool = this;
-		psThread->iThreadId = i;
+		psThread->iThreadId = (int)i;
 		psThread->cThread.Start(RunWorkerThread, psThread);
 	}
 }

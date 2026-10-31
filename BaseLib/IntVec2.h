@@ -50,7 +50,7 @@ SIntVec2* 	IntVec2Minimize(SIntVec2* pOut, const SIntVec2* pV1, const SIntVec2* 
 SIntVec2* 	IntVec2Maximize(SIntVec2* pOut, const SIntVec2* pV1, const SIntVec2* pV2);
 SIntVec2* 	IntVec2Scale(SIntVec2* pOut, const SIntVec2* pV, float32 s);
 SIntVec2* 	IntVec2Lerp(SIntVec2* pOut, const SIntVec2* pV1, const SIntVec2* pV2, float32 s);
-void		IntVec2MinMax(SIntVec2* psMin, SIntVec2* psMax, SIntVec2* asIn, int iInStride, int iNumPoints);
+void		IntVec2MinMax(SIntVec2* psMin, SIntVec2* psMax, SIntVec2* asIn, int iInStride, size iNumPoints);
 void		IntVec2Swap(SIntVec2* ps1, SIntVec2* ps2);
 void 		IntVec2InterpolatePosition(SIntVec2* psVecDest, const SIntVec2* psVec1, const SIntVec2* psVec2, float32 fWeight);
 

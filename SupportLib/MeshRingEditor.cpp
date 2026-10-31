@@ -131,7 +131,7 @@ void CMeshRingEditor::Apply(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 {
-	int			i;
+	uint		i;
 	int			z;
 	SFloat32Vec3		sDest;
 	SFloat32Vec3		sSource;
@@ -155,7 +155,7 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 		fZ = mfLength * f;
 
 		sSource.Init(0.0f, fRadius, 0.0f);
-		for (i = 0; i < miWedgeSegments; i++)
+		for (i = 0; i < (uint)miWedgeSegments; i++)
 		{
 			Float32Vec3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
 			sDest.Add(&msStart);
@@ -182,9 +182,9 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshRingEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, bool bFlipFaces)
 {
-	int		i;
+	uint	i;
 
-	for (i = 0; i < miWedgeSegments-1; i++)
+	for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 	{
 		pcMeshEditor->AddQuad(iStartPosition1 + i+1, iStartPosition1 + i, iStartPosition2 + i, iStartPosition2 + i+1, miFaceName, bFlipFaces);
 	}

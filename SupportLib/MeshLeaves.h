@@ -100,7 +100,7 @@ public:
 
 	void	GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions* pcPositions, CMeshTriangles* pcTriangles);
 	void	SetSphereFromTriangle(STriangleSphere* psSphere, CTriangleIndexed* pcTriangleIndexed, CMeshPositions* pcPositions);
-	void	PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres);
+	void	PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres);
 	void	PrivateAddContainedLeafSpheres(int iCentralFaceNum, int iFaceNum, int iSphereIndex, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres);
 	void	MakeLeavesIntoPolygons(void);
 };

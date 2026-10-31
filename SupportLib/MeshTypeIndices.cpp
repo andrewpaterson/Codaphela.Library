@@ -95,15 +95,15 @@ void CMeshTypeIndices::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 {
-	int						i;
-	int						iNumFaces;
+	size					i;
+	size					iNumFaces;
 	SMeshFaceIndex*			psFaceIndex;
 	void*					pvFaceVertIndex1;
 	void*					pvFaceVertIndex2;
 	void*					pvFaceVertIndex3;
 	CArrayMeshFaceIndex*	pcFaceIndicies;
 
-	iNumFaces = (int)paiFaces->NumElements();
+	iNumFaces = paiFaces->NumElements();
 
 	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();

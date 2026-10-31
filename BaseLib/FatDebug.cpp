@@ -249,7 +249,7 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 //////////////////////////////////////////////////////////////////////////
 void PrintAttributes(CChars* psz, uint8 uiAttributes)
 {
-	int		i;
+	uint	i;
 	const char* szAttribute;
 
 	if (uiAttributes == FAT_ATTR_LONG_NAME)
@@ -282,7 +282,7 @@ void PrintAttributes(CChars* psz, uint8 uiAttributes)
 //////////////////////////////////////////////////////////////////////////
 void PrintLongNamePart(CChars* psz, uint8* puiChars, uint8 uiLength)
 {
-	int		i;
+	size	i;
 	char	c;
 
 	for (i = 0; i < uiLength; i += 2)

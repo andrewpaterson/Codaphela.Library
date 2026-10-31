@@ -81,7 +81,7 @@ void CJewelImageGenerator::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTo
 //////////////////////////////////////////////////////////////////////////
 void CJewelImageGenerator::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour)
 {
-	int		i;
+	uint	i;
 
 	SetColour(pcDraw, sColour);
 
@@ -334,7 +334,7 @@ Ptr<CImageCel> CJewelImageGenerator::CreateKeyboard(ARGB32 sColour, CColourForma
 	CVectorPath			cPath;
 	SFloat64Vec2		sMinimum;
 	SFloat64Vec2		sMaximum;
-	int					x;
+	uint				x;
 
 	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	pImage->Black();
@@ -519,7 +519,7 @@ Ptr<CImageCel> CJewelImageGenerator::DrawCheckBox(bool bTicked, bool bFocusRing,
 Ptr<CCheckBoxImages> CJewelImageGenerator::CreateCheckBoxImages(CColourFormatHelper* pcFormat)
 {
 	Ptr<CCheckBoxImages>	pImages;
-	int						i;
+	uint					i;
 	bool					bTicked;
 
 	pImages = OMalloc<CCheckBoxImages>();

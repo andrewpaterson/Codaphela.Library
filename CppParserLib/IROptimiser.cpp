@@ -6011,23 +6011,159 @@ bool CIROptimiser::SinkLoads(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The counter sCounter if sValue is it (bExtended false) or it sign
-// extended (bExtended true), for ReduceStrength; IRNone otherwise.
+// extended (bExtended true), or zero extended when bZeroExtends, for
+// ReduceStrength; IRNone otherwise.  *puiExtend is the extension (IRO_SExt
+// or IRO_ZExt), IRO_Copy when there is none.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIROptimiser::ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended)
+SIRReference CIROptimiser::ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended, bool bZeroExtends, uint16* puiExtend)
 {
 	SIRInstruction*	psExtend;
 
+	*puiExtend = IRO_Copy;
 	if (!bExtended)
 	{
 		return sValue.Equals(sCounter) ? sCounter : IRNone();
 	}
 	psExtend = sValue.IsTemporary() ? mcDefinitions.Instruction(sValue) : NULL;
-	if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->sType.Is(IRTK_I32) || !psExtend->asArguments[0].Equals(sCounter))
+	if ((psExtend == NULL) || ((psExtend->uiOpcode != IRO_SExt) && ((psExtend->uiOpcode != IRO_ZExt) || !bZeroExtends)) || !psExtend->sType.Is(IRTK_I32) || !psExtend->asArguments[0].Equals(sCounter))
 	{
 		return IRNone();
 	}
+	*puiExtend = psExtend->uiOpcode;
 	return sCounter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The most sValue can be when pcBlock's branch goes to pcStay (and the
+// branch's other way is elsewhere): when the branch is on sValue ult b,
+// b - 1 for a constant b and the type's highest - 1 for any other; when it
+// is on sValue ule b, a constant b.  *psBound and *puiCompare are b and
+// the compare (ult or ule).  False when the branch doesn't hold sValue
+// below something.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::UnsignedMaximum(CIRBlock* pcBlock, CIRBlock* pcStay, SIRReference sValue, uint64 ulliMask, uint64* pulliMax, SIRReference* psBound, uint16* puiCompare)
+{
+	SIRInstruction*	psCompare;
+	uint16			uiCompare;
+	SIRReference	sA;
+	SIRReference	sB;
+	uint64			ulliBound;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcBlock->msJump.pcThen == pcBlock->msJump.pcElse) || !pcBlock->msJump.sArgument.IsTemporary())
+	{
+		return false;
+	}
+	psCompare = mcDefinitions.Instruction(pcBlock->msJump.sArgument);
+	if ((psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode))
+	{
+		return false;
+	}
+	if (pcBlock->msJump.pcThen == pcStay)
+	{
+		uiCompare = psCompare->uiOpcode;
+	}
+	else if (pcBlock->msJump.pcElse == pcStay)
+	{
+		uiCompare = IRInvertedComparison(psCompare->uiOpcode);
+	}
+	else
+	{
+		return false;
+	}
+	sA = psCompare->asArguments[0];
+	sB = psCompare->asArguments[1];
+	if (IsIRSwappedComparison(uiCompare))
+	{
+		uiCompare = IRSwappedComparison(uiCompare);
+		sA = psCompare->asArguments[1];
+		sB = psCompare->asArguments[0];
+	}
+	if (!sA.Equals(sValue))
+	{
+		return false;
+	}
+
+	ulliBound = sB.IsConstant() ? ((uint64)mpcFunction->GetSigned(sB) & ulliMask) : 0;
+	if (uiCompare == IRO_ULt)
+	{
+		if (!sB.IsConstant())
+		{
+			*pulliMax = ulliMask - 1;
+		}
+		else if (ulliBound != 0)
+		{
+			*pulliMax = ulliBound - 1;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else if ((uiCompare == IRO_ULe) && sB.IsConstant())
+	{
+		*pulliMax = ulliBound;
+	}
+	else
+	{
+		return false;
+	}
+	*psBound = sB;
+	*puiCompare = uiCompare;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if counter sCounter of loop uiLoop (a phi of its head: sInit coming
+// in, sNext = sCounter + lliStep going round from pcLatch) never wraps
+// while the loop goes round, so its zero extension steps with it.  Either
+// the head only goes on into the loop while sCounter is at most a maximum
+// (UnsignedMaximum), or the latch only goes round while sNext is and the
+// loop is only entered when sInit is too (a constant, or LoopGuarded); so
+// each value stepped from is at most the maximum, and the maximum +
+// lliStep must still fit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRReference sCounter, SIRReference sInit, SIRReference sNext, int64 lliStep, uint64 ulliMask)
+{
+	CIRBlock*		pcHead;
+	CIRBlock*		pcInside;
+	SIRReference	sBound;
+	uint64			ulliMax;
+	uint16			uiCompare;
+
+	if (lliStep <= 0)
+	{
+		return false;
+	}
+
+	//The head's test on the counter, going on in when it holds.
+	pcHead = mcLoops.GetLoop(uiLoop)->pcHead;
+	if ((pcHead->msJump.uiKind == IRJ_Branch) && (mcLoops.Contains(uiLoop, pcHead->msJump.pcThen) != mcLoops.Contains(uiLoop, pcHead->msJump.pcElse)))
+	{
+		pcInside = mcLoops.Contains(uiLoop, pcHead->msJump.pcThen) ? pcHead->msJump.pcThen : pcHead->msJump.pcElse;
+		if (UnsignedMaximum(pcHead, pcInside, sCounter, ulliMask, &ulliMax, &sBound, &uiCompare))
+		{
+			return ulliMax + (uint64)lliStep <= ulliMask;
+		}
+	}
+
+	//The latch's test on the stepped counter, going round when it holds.
+	if ((pcLatch->msJump.uiKind != IRJ_Branch) || mcLoops.Contains(uiLoop, (pcLatch->msJump.pcThen == pcHead) ? pcLatch->msJump.pcElse : pcLatch->msJump.pcThen) ||
+		!UnsignedMaximum(pcLatch, pcHead, sNext, ulliMask, &ulliMax, &sBound, &uiCompare) || (ulliMax + (uint64)lliStep > ulliMask))
+	{
+		return false;
+	}
+	if (sInit.IsConstant())
+	{
+		return ((uint64)mpcFunction->GetSigned(sInit) & ulliMask) <= ulliMax;
+	}
+	return LoopGuarded(uiLoop, uiCompare, sInit, sBound);
 }
 
 
@@ -6041,7 +6177,9 @@ SIRReference CIROptimiser::ExtendedCounter(SIRReference sValue, SIRReference sCo
 // round.  The shift or multiply and the add each time round become one
 // add.  A counter narrower than 32 bits is the target's int (msLibraryInt,
 // the W65C816's 16 bits) sign extended in the index: an int stepped past
-// its end is undefined, so its extension steps with it.
+// its end is undefined, so its extension steps with it.  An unsigned one is
+// zero extended, and only steps with it when the loop's tests keep it from
+// wrapping (CounterUnwrapped).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ReduceStrength(void)
@@ -6072,8 +6210,11 @@ bool CIROptimiser::ReduceStrength(void)
 	SIRType					sType;
 	int64					lliStep;
 	int64					lliScale;
+	uint64					ulliMask;
+	uint16					uiExtend;
 	bool					bChanged;
 	bool					bExtended;
+	bool					bZeroExtends;
 
 	ComputeLoops();
 	ClearReplacements();
@@ -6123,8 +6264,10 @@ bool CIROptimiser::ReduceStrength(void)
 				lliStep = -lliStep;
 			}
 			sType = IRType(IRTK_I32);
+			ulliMask = bExtended ? ((uint64)1 << psPhi->sType.Bits()) - 1 : 0;
+			bZeroExtends = bExtended && CounterUnwrapped(uiLoop, pcLatch, sCounter, sInit, sNext, lliStep, ulliMask);
 
-			//Addresses p + (i << s) or p + i * k in the loop (i sign extended when narrower).
+			//Addresses p + (i << s) or p + i * k in the loop (i sign or zero extended when narrower).
 			for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 			{
 				pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -6140,7 +6283,7 @@ bool CIROptimiser::ReduceStrength(void)
 						continue;
 					}
 					psScaled = mcDefinitions.Instruction(psAddress->asArguments[1]);
-					sIndex = ExtendedCounter(psAddress->asArguments[1], sCounter, bExtended);
+					sIndex = ExtendedCounter(psAddress->asArguments[1], sCounter, bExtended, bZeroExtends, &uiExtend);
 					if (sIndex.Equals(sCounter))
 					{
 						//p + i, unless loads and stores add it for nothing.
@@ -6150,7 +6293,7 @@ bool CIROptimiser::ReduceStrength(void)
 						}
 						lliScale = 1;
 					}
-					else if ((psScaled == NULL) || (psScaled->uiOpcode == IRO_SExt) || !ExtendedCounter(psScaled->asArguments[0], sCounter, bExtended).Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
+					else if ((psScaled == NULL) || (psScaled->uiOpcode == IRO_SExt) || (psScaled->uiOpcode == IRO_ZExt) || !ExtendedCounter(psScaled->asArguments[0], sCounter, bExtended, bZeroExtends, &uiExtend).Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
 					{
 						continue;
 					}
@@ -6178,11 +6321,11 @@ bool CIROptimiser::ReduceStrength(void)
 					sAddress = psAddress->sResult;
 					if (sInit.IsConstant())
 					{
-						sStart = mpcFunction->AddInteger(sType, mpcFunction->GetSigned(sInit) * lliScale);
+						sStart = mpcFunction->AddInteger(sType, ((uiExtend == IRO_ZExt) ? (int64)((uint64)mpcFunction->GetSigned(sInit) & ulliMask) : mpcFunction->GetSigned(sInit)) * lliScale);
 					}
 					else
 					{
-						sStart = bExtended ? mpcFunction->Add(pcEntering, IRO_SExt, sType, sInit) : sInit;
+						sStart = bExtended ? mpcFunction->Add(pcEntering, uiExtend, sType, sInit) : sInit;
 						sStart = (lliScale == 1) ? sStart : mpcFunction->Add(pcEntering, IRO_Mul, sType, sStart, mpcFunction->AddInteger(sType, lliScale));
 					}
 					if (!sStart.IsConstant() || (mpcFunction->GetSigned(sStart) != 0))

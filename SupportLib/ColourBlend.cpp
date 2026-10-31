@@ -98,7 +98,7 @@ void BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, int iCoverage)
 	int64	iSourceOpacity;  //In 65280ths (255 * 256).
 	int64	iDestOpacity;
 	int64	iOpacity;  //In 65280ths of 65280ths.
-	int		i;
+	size	i;
 
 	iSourceOpacity = (int64)puiSource[0] * iCoverage;
 	if ((puiDest[0] == 0) || (iSourceOpacity == 65280))

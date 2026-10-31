@@ -88,8 +88,8 @@ bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, 
 	int32					iImageTop;
 	int32					iImageWidth;
 	int32					iImageHeight;
-	int32					x;
-	int32					y;
+	uint32					x;
+	uint32					y;
 	int32					iGlyphWidth;
 
 	iImageWidth = psDescription->cSubImage.GetImageWidth();
@@ -119,9 +119,9 @@ bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, 
 	auiPixel[1] = 0xFF;
 	auiPixel[2] = 0xFF;
 	puiCoverage = (uint8*)pGlyphImage->GetData();
-	for (y = 0; y < iImageHeight; y++)
+	for (y = 0; y < (uint32)iImageHeight; y++)
 	{
-		for (x = 0; x < iImageWidth; x++)
+		for (x = 0; x < (uint32)iImageWidth; x++)
 		{
 			auiPixel[3] = puiCoverage[TurnedGlyphOffset(meTurn, x, y, iGlyphWidth, iImageWidth)];
 			pcAccessor->Set(iImageLeft + x, iImageTop + y, auiPixel);

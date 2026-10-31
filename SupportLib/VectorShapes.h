@@ -29,7 +29,7 @@ void	RotateVectorPoint(SFloat64Vec2* psPoint, float64 fDegrees);
 void	AddVectorStroke(CVectorPath* pcPath, SFloat64Vec2* psStart, SFloat64Vec2* psEnd, float64 fRadius);
 void	AddVectorArcStroke(CVectorPath* pcPath, SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise, float64 fRadius);
 void	AddVectorObround(CVectorPath* pcPath, float64 fWidth, float64 fHeight);
-void	AddVectorRegularPolygon(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fDiameter, int iVertices, float64 fRotation, float64 fPrimitiveRotation);
+void	AddVectorRegularPolygon(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fDiameter, size iVertices, float64 fRotation, float64 fPrimitiveRotation);
 void	AddVectorRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 void	AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fRadius);
 void	AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fMinimumYRadius, float64 fMaximumYRadius);

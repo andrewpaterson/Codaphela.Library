@@ -164,9 +164,9 @@ void CMeshConnectivity::KillCornerEdgesMap(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::InitCorners(int iNumCorners)
+void CMeshConnectivity::InitCorners(size iNumCorners)
 {
-	int				i;
+	size			i;
 	CMeshCorner*	psCorner;
 
 	mcCorners.Init();
@@ -379,7 +379,7 @@ bool CMeshConnectivity::Save(CObjectWriter* pcFile)
 SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 {
 	CMeshFace*	psFace;
-	int			i;
+	size		i;
 	CMeshEdge*	psEdge;
 	int			iAdjFaceNum;
 	int			iEdgeIndex;
@@ -415,13 +415,13 @@ SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 //////////////////////////////////////////////////////////////////////////
 int CMeshConnectivity::GenerateEdgeConnectivity(void)
 {
-	int					iCornerNum;
-	int					iFaceNum;
-	int					iNumCorners;
+	size				iCornerNum;
+	size				iFaceNum;
+	size				iNumCorners;
 	CCornerEdgesMap*	pcCornerEdgesMap;
 	CMeshFace*			pcFace;
 	int					iNumEdges;
-	int					iNumFaces;
+	size				iNumFaces;
 
 	mcEdges.Kill();
 	mcEdges.Init();
@@ -429,7 +429,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	KillCornerEdgesMap();
 	mcCornerEdgesMap.Init();
 
-	iNumCorners = (int)mcCorners.NumElements();
+	iNumCorners = mcCorners.NumElements();
 
 	for (iCornerNum = 0; iCornerNum < iNumCorners; iCornerNum++)
 	{
@@ -438,11 +438,11 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	}
 
 	iNumEdges = 0;
-	iNumFaces = (int)mcFaces.NumElements();
+	iNumFaces = mcFaces.NumElements();
 	for (iFaceNum = 0; iFaceNum < iNumFaces; iFaceNum++)
 	{
 		pcFace = mcFaces.Get(iFaceNum);
-		iNumEdges += GenerateEdgeConnectivity(pcFace, iFaceNum);
+		iNumEdges += GenerateEdgeConnectivity(pcFace, (int)iFaceNum);
 	}
 	return iNumEdges;
 }

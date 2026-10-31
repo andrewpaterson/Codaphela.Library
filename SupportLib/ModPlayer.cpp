@@ -184,7 +184,7 @@ void ModSetSpeedAndDepth(uint8 uiParam, int* piSpeed, int* piDepth)
 //////////////////////////////////////////////////////////////////////////
 int ModGetNote(int iPeriod)
 {
-	int		i;
+	size	i;
 
 	if ((iPeriod < MOD_MIN_PERIOD) || (iPeriod > gaaiModPeriods[8][0]))
 	{
@@ -234,7 +234,7 @@ int CModPlayer::GetFineTunedPeriod(int iPeriod, int iFineTune)
 int CModPlayer::GetArpeggioPeriod(int iPeriod, int iFineTune, int iSemitones)
 {
 	const int16*	paiPeriods;
-	int				i;
+	size			i;
 	int				iNote;
 
 	paiPeriods = ModGetPeriods(iFineTune);
@@ -242,7 +242,7 @@ int CModPlayer::GetArpeggioPeriod(int iPeriod, int iFineTune, int iSemitones)
 	{
 		if (iPeriod >= paiPeriods[i])
 		{
-			iNote = i + iSemitones;
+			iNote = (int)i + iSemitones;
 			if (iNote >= MOD_NUM_NOTES)
 			{
 				iNote = MOD_NUM_NOTES - 1;

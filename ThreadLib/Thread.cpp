@@ -140,13 +140,13 @@ void CThread::TryStop(void)
 //////////////////////////////////////////////////////////////////////////
 void CThread::ChangeState(EThreadState eState)
 {
-	int						i;
+	size					i;
 	CThreadStateNotifer*	pcNotifier;
 
 	meState = eState;
-	for (i = (int)mapcNotifiers.NumElements() -1; i >= 0; i--)
+	for (i = mapcNotifiers.NumElements(); i > 0; i--)
 	{
-		pcNotifier = (CThreadStateNotifer*)mapcNotifiers.GetPtr(i);
+		pcNotifier = (CThreadStateNotifer*)mapcNotifiers.GetPtr(i - 1);
 		pcNotifier->ThreadStateChanged(this, eState);
 	}
 }

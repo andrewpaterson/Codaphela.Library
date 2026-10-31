@@ -67,7 +67,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 
-	void			InitCorners(int iNumCorners);
+	void			InitCorners(size iNumCorners);
 	void			KillCorners(void);
 	void			KillCornerEdgesMap(void);
 	CMeshCorner*	AddCorner(void);

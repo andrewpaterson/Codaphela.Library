@@ -186,9 +186,9 @@ void Int32Vec3Swap(SIntVec3* ps1, SIntVec3* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec3MinMax(SIntVec3* psMin, SIntVec3* psMax, SIntVec3* asIn, int iInStride, int iNumPoints)
+void Int32Vec3MinMax(SIntVec3* psMin, SIntVec3* psMax, SIntVec3* asIn, int iInStride, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SIntVec3*	psIn;
 
 	if (iNumPoints > 0)

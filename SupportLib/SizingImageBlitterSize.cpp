@@ -48,7 +48,7 @@ bool CSizingImageBlitterSize::Matches(int32 iDestWidth, int32 iDestHeight)
 void CSizingImageBlitterSize::CacheBresenhamIndices(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset)
 {
 	int32*	paiSample;
-	int32	i;
+	uint32	i;
 	int32	iSample;
 	int32	iError;
 
@@ -60,7 +60,7 @@ void CSizingImageBlitterSize::CacheBresenhamIndices(CArrayInt32* paiSamples, int
 
 	iSample = 0;
 	iError = iFullLength;
-	for (i = 0; i < iDestLength; i++)
+	for (i = 0; i < (uint32)iDestLength; i++)
 	{
 		while (iError >= 2 * iDestLength)
 		{
@@ -84,7 +84,7 @@ bool CSizingImageBlitterSize::PopulateSizingTables(CSubImage* pcSubImage, int32 
 	int32		iSourceLeft;
 	int32*		paiSourceX;
 	int32*		paiDestX;
-	int32		x;
+	uint32		x;
 	int32		xDest;
 
 	if (Matches(iDestWidth, iDestHeight))
@@ -106,9 +106,9 @@ bool CSizingImageBlitterSize::PopulateSizingTables(CSubImage* pcSubImage, int32 
 	paiDestX = maiSizedDestX.GetData();
 	paiSourceX = maiSizedSourceX.GetData();
 	xDest = 0;
-	for (x = 0; x <= iFullWidth; x++)
+	for (x = 0; x <= (uint32)iFullWidth; x++)
 	{
-		while ((xDest < iDestWidth) && (paiSourceX[xDest] - iSourceLeft < x))
+		while ((xDest < iDestWidth) && (paiSourceX[xDest] - iSourceLeft < (int32)x))
 		{
 			xDest++;
 		}

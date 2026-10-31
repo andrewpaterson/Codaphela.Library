@@ -39,7 +39,7 @@ void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImage
 	Ptr<CImageCanvasDraw>	pDraw;
 	Ptr<CCanvas>			pCanvas;
 	Ptr<CCanvas>			pBackground;
-	int						i;
+	size					i;
 	int32					iTileSize;
 	bool					bEdge;
 
@@ -166,7 +166,7 @@ void CImageBorderContainer::SetImages(Ptr<CButtonImages> pImages)
 //////////////////////////////////////////////////////////////////////////
 void CImageBorderContainer::UpdateBorder(void)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
 	{

@@ -50,7 +50,7 @@ SInt64Vec2* 	Int64Vec2Minimize(SInt64Vec2* pOut, const SInt64Vec2* pV1, const SI
 SInt64Vec2* 	Int64Vec2Maximize(SInt64Vec2* pOut, const SInt64Vec2* pV1, const SInt64Vec2* pV2);
 SInt64Vec2* 	Int64Vec2Scale(SInt64Vec2* pOut, const SInt64Vec2* pV, float32 s);
 SInt64Vec2* 	Int64Vec2Lerp(SInt64Vec2* pOut, const SInt64Vec2* pV1, const SInt64Vec2* pV2, float32 s);
-void			Int64Vec2MinMax(SInt64Vec2* psMin, SInt64Vec2* psMax, SInt64Vec2* asIn, int iInStride, int iNumPoints);
+void			Int64Vec2MinMax(SInt64Vec2* psMin, SInt64Vec2* psMax, SInt64Vec2* asIn, int iInStride, size iNumPoints);
 void			Int64Vec2Swap(SInt64Vec2* ps1, SInt64Vec2* ps2);
 void 			Int64Vec2InterpolatePosition(SInt64Vec2* psVecDest, const SInt64Vec2* psVec1, const SInt64Vec2* psVec2, float32 fWeight);
 

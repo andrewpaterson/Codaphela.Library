@@ -390,11 +390,11 @@ void CImageCel::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int32 x, int32 y1, int32 y2)
 {
-	int32		y;
+	uint32		y;
 
-	for (y = y1; y < y2; y++)
+	for (y = (uint32)y1; y < (uint32)y2; y++)
 	{
-		if (!pcOpacity->IsTransparent(x, y))
+		if (!pcOpacity->IsTransparent(x, (int32)y))
 		{
 			return false;
 		}
@@ -409,11 +409,11 @@ bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int32 x, int32
 //////////////////////////////////////////////////////////////////////////
 bool CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int32 y, int32 x1, int32 x2)
 {
-	int32		x;
+	uint32		x;
 
-	for (x = x1; x < x2; x++)
+	for (x = (uint32)x1; x < (uint32)x2; x++)
 	{
-		if (!pcOpacity->IsTransparent(x, y))
+		if (!pcOpacity->IsTransparent((int32)x, y))
 		{
 			return false;
 		}
@@ -467,8 +467,8 @@ void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, in
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
-	int32						x;
-	int32						y;
+	uint32						x;
+	uint32						y;
 	int32						iDestX;
 	int32						iDestY;
 	SImageColour			sOneAlpha;
@@ -480,12 +480,12 @@ void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor
 	sZeroAlpha.Zero();
 
 	iDestY = iDestTop;
-	for (y = mcSubImage.mcImageRect.msTopLeft.y; y < mcSubImage.mcImageRect.msBottomRight.y; y++)
+	for (y = (uint32)mcSubImage.mcImageRect.msTopLeft.y; y < (uint32)mcSubImage.mcImageRect.msBottomRight.y; y++)
 	{
 		iDestX = iDestLeft;
-		for (x = mcSubImage.mcImageRect.msTopLeft.x; x < mcSubImage.mcImageRect.msBottomRight.x; x++)
+		for (x = (uint32)mcSubImage.mcImageRect.msTopLeft.x; x < (uint32)mcSubImage.mcImageRect.msBottomRight.x; x++)
 		{
-			if (pcPixelOpacity->IsTransparent(x, y))
+			if (pcPixelOpacity->IsTransparent((int32)x, (int32)y))
 			{
 				pcDestOpacity->Set(iDestX, iDestY, &sZeroAlpha);
 			}

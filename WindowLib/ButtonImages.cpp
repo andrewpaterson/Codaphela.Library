@@ -110,7 +110,7 @@ bool CButtonImages::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CButtonImages::AddStrip(Ptr<CImage> pStrip)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
 	{
@@ -130,8 +130,8 @@ Ptr<CImageCel> CButtonImages::CreateCel(Ptr<CImage> pStrip, int iTile, int iQuar
 	Ptr<CImage>		pTile;
 	CImageAccessor*	pcSource;
 	CImageAccessor*	pcDest;
-	int				x;
-	int				y;
+	uint			x;
+	uint			y;
 	int				iTop;
 	int				iLast;
 
@@ -145,9 +145,9 @@ Ptr<CImageCel> CButtonImages::CreateCel(Ptr<CImage> pStrip, int iTile, int iQuar
 	pTile = OMalloc<CImage>(miTileSize, miTileSize, pStrip);
 	pcSource = CImageAccessorCreator::Create(&pStrip);
 	pcDest = CImageAccessorCreator::Create(&pTile);
-	for (y = 0; y < miTileSize; y++)
+	for (y = 0; y < (uint)miTileSize; y++)
 	{
-		for (x = 0; x < miTileSize; x++)
+		for (x = 0; x < (uint)miTileSize; x++)
 		{
 			if (iQuarterTurns == 1)
 			{
