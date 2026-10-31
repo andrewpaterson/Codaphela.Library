@@ -165,20 +165,20 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 {
 	CInt32Rect			cFillRect;
-	int					iRow;
-	int					iColumn;
+	size				iRow;
+	size				iColumn;
 	int					iLeft;
 	int					iTop;
 
 	pcNumbers->Calculate(mpImage->GetImageWidth(), mpImage->GetImageHeight());
 
-	for (iRow = 0; iRow < pcNumbers->iRowCount; iRow++)
+	for (iRow = 0; iRow < (size)pcNumbers->iRowCount; iRow++)
 	{
-		iTop = pcNumbers->iTopOffset + iRow * (pcNumbers->iCelHeight + pcNumbers->iHeightSpacing);
+		iTop = pcNumbers->iTopOffset + (int)iRow * (pcNumbers->iCelHeight + pcNumbers->iHeightSpacing);
 
-		for (iColumn = 0; iColumn < pcNumbers->iColumnCount; iColumn++)
+		for (iColumn = 0; iColumn < (size)pcNumbers->iColumnCount; iColumn++)
 		{
-			iLeft = pcNumbers->iLeftOffset + iColumn * (pcNumbers->iCelWidth + pcNumbers->iWidthSpacing);
+			iLeft = pcNumbers->iLeftOffset + (int)iColumn * (pcNumbers->iCelWidth + pcNumbers->iWidthSpacing);
 			
 			cFillRect.Init(iLeft, iTop, iLeft + pcNumbers->iCelWidth, iTop + pcNumbers->iCelHeight);
 			AddImageCel(&cFillRect);

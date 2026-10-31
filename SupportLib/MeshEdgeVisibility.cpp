@@ -98,10 +98,10 @@ bool CMeshEdgeVisibility::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEdgeVisibility::AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12, char cEdge23, char cEdge31)
 {
-	int		i;
+	size	i;
 	char*	pcValue;
 
-	for (i = 0; i < iNewEdges; i++)
+	for (i = 0; i < (size)iNewEdges; i++)
 	{
 		mcEdges.Add(0);
 	}

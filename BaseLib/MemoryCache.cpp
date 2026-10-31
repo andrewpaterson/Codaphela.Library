@@ -171,8 +171,8 @@ void* CMemoryCache::Allocate(lsize uiDataSize)
 	CMemoryCacheAllocation	cPreAllocation;
 	bool					bResult;
 	void*					pvCache;
-	int						i;
-	int						iNumEvictions;
+	size					i;
+	size					iNumEvictions;
 	SMemoryCacheDescriptor* psDescriptor;
 	void*					pvEvictedData;
 

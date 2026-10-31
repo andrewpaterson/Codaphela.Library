@@ -101,15 +101,15 @@ bool CMeshSkinVert::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSkinVert::SortSkinWeights(void)
 {
-	int				j;
+	size			j;
 	SSkinWeight*	psWeight;
 
-	for (j = (int)mcWeights.NumElements() - 1; j >= 0; j--)
+	for (j = mcWeights.NumElements(); j > 0; j--)
 	{
-		psWeight = mcWeights.Get(j);
+		psWeight = mcWeights.Get(j - 1);
 		if (psWeight->fWeight == 0.0f)
 		{
-			mcWeights.RemoveAt(j);
+			mcWeights.RemoveAt(j - 1);
 		}
 	}
 

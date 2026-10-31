@@ -1888,10 +1888,10 @@ uint32 GetPowerOf2SizeAuto(uint32 iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 LargestInt(int32* pInts, int32 iCount)
+int32 LargestInt(int32* pInts, uint32 iCount)
 {
 	int32	iLargest;
-	int32 i;
+	uint32	i;
 
 	iLargest = pInts[0];
 	for (i = 1; i < iCount; i++)

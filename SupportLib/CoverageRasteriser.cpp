@@ -134,8 +134,8 @@ void CCoverageRasteriser::AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, i
 	int64	iDeviationX;
 	int64	iDeviationY;
 	int64	iDeviation;
-	int64	iNumLines;
-	int64	i;
+	uint64	iNumLines;
+	uint64	i;
 	int64	iDivisor;
 	int64	iWeight0;
 	int64	iWeight1;
@@ -330,16 +330,16 @@ void CCoverageRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, in
 //////////////////////////////////////////////////////////////////////////
 void CCoverageRasteriser::Accumulate(void)
 {
-	int		x;
-	int		y;
+	uint	x;
+	uint	y;
 	lsize	uiCell;
 	int64	iCover;
 	int64	iCoverage;
 
-	for (y = 0; y < miHeight; y++)
+	for (y = 0; y < (uint)miHeight; y++)
 	{
 		iCover = 0;
-		for (x = 0; x < miWidth; x++)
+		for (x = 0; x < (uint)miWidth; x++)
 		{
 			uiCell = (lsize)y * miWidth + x;
 			iCover += mpiCover[uiCell];

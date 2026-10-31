@@ -158,7 +158,7 @@ void CPolygon::CalculateConvexity(void)
 bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 {
 	SFloat32Vec3**	ppsPositions;
-	int			i;
+	size		i;
 	SFloat32Vec3*	psPosition;
 	bool		bResult;
 

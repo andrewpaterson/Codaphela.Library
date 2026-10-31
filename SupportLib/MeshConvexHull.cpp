@@ -102,12 +102,12 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 	SFloat32Vec3*				asPoint;
 	int						iFirstNormal;
 	SFloat32Vec3*				asNormal;
-	int						i;
+	size					i;
 	CPolygon*				pcPolygon;
 	CPolygonIndexed*		pcPolygonIndexed;
-	int						iNumPolygons;
-	int						j;
-	int						iNumVerts;
+	size					iNumPolygons;
+	size					j;
+	size					iNumVerts;
 	SFloat32Vec3*				psPosition;
 	uint32					iPositionIndex;
 	int						iNormalIndex;
@@ -121,7 +121,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 	asNormal = pcNormals->mcNormals.Get(iFirstNormal);
 	cHull.EndSetFromPoints(asNormal, sizeof(SFloat32Vec3), &cGenerator);
 
-	iNumPolygons = (int)cHull.mcPolygons.NumElements();
+	iNumPolygons = cHull.mcPolygons.NumElements();
 
 	mcHull.Kill();
 	mcHull.Init(iNumPolygons);
@@ -131,7 +131,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 		pcPolygon = cHull.mcPolygons.Get(i);
 		pcPolygonIndexed = mcHull.mcPolygons.Get(i);
 
-		iNumVerts = (int)pcPolygon->mapsPositions.NumElements();
+		iNumVerts = pcPolygon->mapsPositions.NumElements();
 		pcPolygonIndexed->maiPositions.Resize(iNumVerts);
 		for (j = 0; j < iNumVerts; j++)
 		{

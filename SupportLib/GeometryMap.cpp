@@ -660,8 +660,8 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 	int				iTop;
 	int				iRight;
 	int				iBottom;
-	int				x;
-	int				y;
+	size			x;
+	size			y;
 	uint8*			puiCoverage;
 	uint32			uiAlpha;
 	uint32			uiCoverage;
@@ -697,14 +697,14 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 
 	uiAlpha = Get8BitAlphaColour(psCommand->sColour);
 	puiCoverage = pcRasteriser->GetCoverage();
-	for (y = 0; y < pcRasteriser->GetHeight(); y++)
+	for (y = 0; y < (size)pcRasteriser->GetHeight(); y++)
 	{
-		for (x = 0; x < pcRasteriser->GetWidth(); x++)
+		for (x = 0; x < (size)pcRasteriser->GetWidth(); x++)
 		{
 			uiCoverage = puiCoverage[(lsize)y * pcRasteriser->GetWidth() + x];
 			if (uiCoverage > 0)
 			{
-				BlendPixel(psPixels, pcRasteriser->GetLeft() + x, pcRasteriser->GetTop() + y, psCommand->sColour, (uint32)DivideRound((uint64)uiAlpha * uiCoverage, 255));
+				BlendPixel(psPixels, pcRasteriser->GetLeft() + (int)x, pcRasteriser->GetTop() + (int)y, psCommand->sColour, (uint32)DivideRound((uint64)uiAlpha * uiCoverage, 255));
 			}
 		}
 	}
@@ -792,8 +792,8 @@ void CGeometryMap::AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand
 void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour)
 {
 	uint32	uiAlpha;
-	int32	x;
-	int32	y;
+	uint32	x;
+	uint32	y;
 	uint8*	puiRow;
 	uint8*	puiPixel;
 	uint8	uiRed;
@@ -803,11 +803,11 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 	uiAlpha = Get8BitAlphaColour(sColour);
 	if (psPixels->pcAccessor || (uiAlpha != 255))
 	{
-		for (y = iTop; y < iBottom; y++)
+		for (y = (uint32)iTop; y < (uint32)iBottom; y++)
 		{
-			for (x = iLeft; x < iRight; x++)
+			for (x = (uint32)iLeft; x < (uint32)iRight; x++)
 			{
-				BlendPixel(psPixels, x, y, sColour, uiAlpha);
+				BlendPixel(psPixels, (int32)x, (int32)y, sColour, uiAlpha);
 			}
 		}
 		return;
@@ -817,10 +817,10 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 	uiGreen = Get8BitGreenColour(sColour);
 	uiBlue = Get8BitBlueColour(sColour);
 	puiRow = psPixels->puiData + (lsize)iTop * psPixels->uiRowStride + (size)iLeft * psPixels->uiPixelStride;
-	for (y = iTop; y < iBottom; y++)
+	for (y = (uint32)iTop; y < (uint32)iBottom; y++)
 	{
 		puiPixel = puiRow;
-		for (x = iLeft; x < iRight; x++)
+		for (x = (uint32)iLeft; x < (uint32)iRight; x++)
 		{
 			puiPixel[psPixels->uiRed] = uiRed;
 			puiPixel[psPixels->uiGreen] = uiGreen;

@@ -514,8 +514,8 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 	int				iImageHeight;
 	uint8*			puiGlyph;
 	uint8*			puiDest;
-	int				x;
-	int				y;
+	uint			x;
+	uint			y;
 	uint8			uiRed;
 	uint8			uiGreen;
 	uint8			uiBlue;
@@ -539,10 +539,10 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 
 	//Opacity, red, green and blue bytes.
 	puiGlyph = (uint8*)pGlyphImage->GetData();
-	for (y = 0; y < iImageHeight; y++)
+	for (y = 0; y < (uint)iImageHeight; y++)
 	{
 		puiDest = &((uint8*)pImage->GetData())[((iImageTop + y) * pImage->GetWidth() + iImageLeft) * 4];
-		for (x = 0; x < iImageWidth; x++)
+		for (x = 0; x < (uint)iImageWidth; x++)
 		{
 			puiDest[0] = puiGlyph[TurnedGlyphOffset(meTurn, x, y, iGlyphWidth, iImageWidth)];
 			puiDest[1] = uiRed;

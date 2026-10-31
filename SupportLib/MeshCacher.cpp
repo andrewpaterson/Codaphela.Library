@@ -103,8 +103,8 @@ size CMeshCacher::GetIndexSize(SMeshFaceType* psFaceType)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCacher::Index(void)
 {
-	int						iUniqueFaceTypes;
-	int						i;
+	size					iUniqueFaceTypes;
+	size					i;
 	SMeshFaceType*			psFaceType;
 	CArrayInt				aiFaces;
 	int						iStride;
@@ -122,7 +122,7 @@ bool CMeshCacher::Index(void)
 	Kill();
 	Init(mpcMesh);
 
-	iUniqueFaceTypes = (int)mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements();
+	iUniqueFaceTypes = mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements();
 
 	for (i = 0; i < iUniqueFaceTypes; i++)
 	{
@@ -198,17 +198,17 @@ bool CMeshCacher::Index(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCacher::Vertex(void)
 {
-	int						i;
+	size					i;
 	CMeshTypeIndices*		pcTypeIndices;
-	int						iUniqueTypes;
+	size					iUniqueTypes;
 	Ptr<CMeshVertexArray>	pcVertexArray;
 
-	iUniqueTypes = (int)mcTypeIndices.NumElements();
+	iUniqueTypes = mcTypeIndices.NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
 		pcTypeIndices = mcTypeIndices.Get(i);
 
-		pcVertexArray = mpcMesh->mcCache.GetVertexArray(i);
+		pcVertexArray = mpcMesh->mcCache.GetVertexArray((int)i);
 		pcVertexArray->GetVertexArray()->BeginChange();
 		pcVertexArray->GetVertexArray()->SetSize(pcTypeIndices->NumVerts());
 		pcVertexArray->GetVertexArray()->EndChange();
@@ -230,8 +230,8 @@ bool CMeshCacher::Vertex(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::PopulatePositions(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices)
 {
-	int							j;
-	int							iNumVerts;
+	size						j;
+	size						iNumVerts;
 	int							iIndex;
 	SFloat32Vec3*					psPosition;
 	CChannelsAccessorCreator	cCreator;
@@ -244,7 +244,7 @@ void CMeshCacher::PopulatePositions(CMeshVertexArray* pcVertexArray, CMeshTypeIn
 	iNumVerts = pcTypeIndices->NumVerts();
 	for (j = 0; j < iNumVerts; j++)
 	{
-		iIndex = pcTypeIndices->GetPositionIndex(j);
+		iIndex = pcTypeIndices->GetPositionIndex((int)j);
 		psPosition = mpcMesh->GetPosition(iIndex);
 		pcAccessor->Set(j, psPosition);
 	}
@@ -259,8 +259,8 @@ void CMeshCacher::PopulatePositions(CMeshVertexArray* pcVertexArray, CMeshTypeIn
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::PopulateNormals(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices)
 {
-	int							j;
-	int							iNumVerts;
+	size						j;
+	size						iNumVerts;
 	int							iIndex;
 	SFloat32Vec3*					psNormal;
 	CChannelsAccessorCreator	cCreator;
@@ -274,7 +274,7 @@ void CMeshCacher::PopulateNormals(CMeshVertexArray* pcVertexArray, CMeshTypeIndi
 		iNumVerts = pcTypeIndices->NumVerts();
 		for (j = 0; j < iNumVerts; j++)
 		{
-			iIndex = pcTypeIndices->GetNormalIndex(j);
+			iIndex = pcTypeIndices->GetNormalIndex((int)j);
 			psNormal = mpcMesh->mcNormals.mcNormals.Get(iIndex);
 			pcAccessor->Set(j, psNormal);
 		}
@@ -321,17 +321,17 @@ void CMeshCacher::PopulateColours(CMeshVertexArray* pcVertexArray, CMeshTypeIndi
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::PopulateUVs(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices)
 {
-	int							j;
-	int							iNumVerts;
+	size						j;
+	size						iNumVerts;
 	int							iIndex;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
-	int							iNumUVs;
-	int							k;
+	size						iNumUVs;
+	size						k;
 	CMeshUVLayer*				pcUVLayer;
 	SFloat32Vec2*					psUV;
 
-	iNumUVs = (int)pcVertexArray->GetFaceType()->GetUVs();
+	iNumUVs = pcVertexArray->GetFaceType()->GetUVs();
 	iNumVerts = pcTypeIndices->NumVerts();
 
 	for (k = 0; k < iNumUVs; k++)
@@ -344,7 +344,7 @@ void CMeshCacher::PopulateUVs(CMeshVertexArray* pcVertexArray, CMeshTypeIndices*
 
 		for (j = 0; j < iNumVerts; j++)
 		{
-			iIndex = pcTypeIndices->GetUVIndex(j, k);
+			iIndex = pcTypeIndices->GetUVIndex((int)j, (int)k);
 
 			psUV = pcUVLayer->mcUVs.Get(iIndex);
 			pcAccessor->Set(j, psUV);
@@ -361,18 +361,18 @@ void CMeshCacher::PopulateUVs(CMeshVertexArray* pcVertexArray, CMeshTypeIndices*
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::PopulateSkin(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices)
 {
-	int							j;
-	int							iNumVerts;
+	size						j;
+	size						iNumVerts;
 	int							iIndex;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcMatrixAccessor;
 	CChannelsAccessor*			pcWeightAccessor;
-	int							iNumMatricies;
-	int							k;
+	size						iNumMatricies;
+	size						k;
 	CMeshSkinVert*				pcSkinVert;
 	SSkinWeight*				psSkinWeight;
 
-	iNumMatricies = (int)pcVertexArray->GetFaceType()->GetMatricies();
+	iNumMatricies = pcVertexArray->GetFaceType()->GetMatricies();
 	iNumVerts = pcTypeIndices->NumVerts();
 
 	for (k = 0; k < iNumMatricies; k++)
@@ -387,7 +387,7 @@ void CMeshCacher::PopulateSkin(CMeshVertexArray* pcVertexArray, CMeshTypeIndices
 
 		for (j = 0; j < iNumVerts; j++)
 		{
-			iIndex = pcTypeIndices->GetSkinIndex(j);
+			iIndex = pcTypeIndices->GetSkinIndex((int)j);
 			pcSkinVert = mpcMesh->mcSkin.mcSkinVerts.Get(iIndex);
 			psSkinWeight = pcSkinVert->mcWeights.Get(k);
 			pcMatrixAccessor->Set(j, &psSkinWeight->iMatrix);

@@ -250,7 +250,7 @@ void CVectorPath::CalculateBounds(void)
 	float64					fStart;
 	float64					fSweep;
 	float64					fAngle;
-	int						iQuarter;
+	uint					iQuarter;
 
 	mbBounds = false;
 	sCurrent.Init(0, 0);

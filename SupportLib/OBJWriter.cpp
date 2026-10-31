@@ -65,15 +65,15 @@ void AddOBJName(CMesh* pcMesh, CLargeChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void AddOBJVertices(CMesh* pcMesh, CLargeChars* psz)
 {
-	int			i;
+	size		i;
 	SFloat32Vec3*	psPosition;
 	SFloat32Vec3		sPosition;
 	int			iNumPositions;
 
 	iNumPositions = pcMesh->NumCorners();
-	for (i = iNumPositions-1; i >= 0 ; i--)
+	for (i = (size)iNumPositions; i > 0; i--)
 	{
-		psPosition = pcMesh->GetPosition(i);
+		psPosition = pcMesh->GetPosition((int)(i - 1));
 		sPosition = *psPosition;
 		sPosition.Fix();
 		
@@ -177,13 +177,13 @@ bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CLargeChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVertexNormals)
 {
-	int					i;
+	size				i;
 	int					iNumFaces;
 	CMeshFace*			pcFace;
 	SMeshUVFace*		psFaceUV;
 	CMeshUVLayer*		pcUVLayer;
 	SMeshNormalFace*	psFaceNormal;
-	int					j;
+	size				j;
 
 	if (bTextureCoords)
 	{
@@ -195,9 +195,9 @@ void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVer
 	}
 
 	iNumFaces = pcMesh->NumFaces();
-	for (i = 0; i < iNumFaces; i++)
+	for (i = 0; i < (size)iNumFaces; i++)
 	{
-		pcFace = pcMesh->GetFace(i);
+		pcFace = pcMesh->GetFace((int)i);
 		psz->Append("f  ");
 		for (j = 0; j < NUM_FACE_CORNERS; j++)
 		{

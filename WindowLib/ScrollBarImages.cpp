@@ -33,7 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
-	int		iOrientation;
+	uint	iOrientation;
 
 	PreInit();
 

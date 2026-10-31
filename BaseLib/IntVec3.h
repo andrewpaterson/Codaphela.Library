@@ -50,7 +50,7 @@ SIntVec3* 	Int32Vec3Minimize(SIntVec3* pOut, const SIntVec3* pV1, const SIntVec3
 SIntVec3* 	Int32Vec3Maximize(SIntVec3* pOut, const SIntVec3* pV1, const SIntVec3* pV2);
 SIntVec3*	Int32Vec3Scale(SIntVec3* pOut, const SIntVec3* pV, float32 s);
 SIntVec3*	Int32Vec3Lerp(SIntVec3* pOut, const SIntVec3* pV1, const SIntVec3* pV2, float32 s);
-void		Int32Vec3MinMax(SIntVec3* psMin, SIntVec3* psMax, SIntVec3* asIn, int iInStride, int iNumPoints);
+void		Int32Vec3MinMax(SIntVec3* psMin, SIntVec3* psMax, SIntVec3* asIn, int iInStride, size iNumPoints);
 void		Int32Vec3Swap(SIntVec3* ps1, SIntVec3* ps2);
 void 		Int32Vec3InterpolatePosition(SIntVec3* psVecDest, const SIntVec3* psVec1, const SIntVec3* psVec3, float32 fWeight);
 

@@ -820,17 +820,17 @@ bool CTileMapGenerator::ValidatePatterns(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 {
-	int						x;
-	int						y;
-	int						iWidth;
-	int						iHeight;
+	size					x;
+	size					y;
+	size					iWidth;
+	size					iHeight;
 	bool					bResult;
 	SSizeVec2				sSize;
 	char*					szSourceConstantName;
 
 	sSize = pSource->GetSize();
-	iWidth = (int)sSize.x;
-	iHeight = (int)sSize.y;
+	iWidth = sSize.x;
+	iHeight = sSize.y;
 	szSourceConstantName = pSource->GetConstantName();
 
 	//Every generator for this source that matches a cel writes a tile to its own layer.

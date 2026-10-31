@@ -339,9 +339,9 @@ SFloat32Vec4* Float32Vec4TransformNormal(SFloat32Vec4* psOut, SFloat32Vec4* psV,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints)
 {
-	int				i;
+	size			i;
 	SFloat32Vec4*	psOut;
 	SFloat32Vec4*	psIn;
 
@@ -358,9 +358,9 @@ void Float32Vec4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SFloat32Vec4*	psOut;
 	SFloat32Vec4*	psIn;
 
@@ -378,9 +378,9 @@ void Float32Vec4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Ve
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* asIn, int iInStride, int iNumPoints)
+void Float32Vec4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* asIn, int iInStride, size iNumPoints)
 {
-	int				i;
+	size			i;
 	SFloat32Vec4*	psIn;
 
 	if (iNumPoints > 0)

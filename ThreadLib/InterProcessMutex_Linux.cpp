@@ -193,7 +193,7 @@ bool CInterProcessMutex::Create(void)
 	int					iFile;
 	int					iErrno;
 	SInterProcessLock*	psLock;
-	int					iAttempt;
+	uint				iAttempt;
 	bool				bCreated;
 
 	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());

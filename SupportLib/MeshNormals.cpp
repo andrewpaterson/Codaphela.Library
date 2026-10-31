@@ -117,15 +117,15 @@ bool CMeshNormals::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
-	int					iFaceNum;
+	size				iFaceNum;
 	SFloat32Vec3				sVec1;
 	SFloat32Vec3				sVec2;
 	SFloat32Vec3				sNormal;
-	int					iNumFaces;
+	size				iNumFaces;
 
 	if (mbInUse)
 	{
-		iNumFaces = (int)pcConn->mcFaces.NumElements();
+		iNumFaces = pcConn->mcFaces.NumElements();
 
 		mcFaces.Kill();
 		mcFaces.Init();
@@ -135,7 +135,7 @@ void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshCon
 
 		for (iFaceNum = 0; iFaceNum < iNumFaces; iFaceNum++)
 		{
-			AddFace(iFaceNum, pcPositions, pcConn);
+			AddFace((int)iFaceNum, pcPositions, pcConn);
 		}
 	}
 }

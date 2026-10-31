@@ -99,8 +99,8 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 {
 	CImageAccessor*		pcAccessorOld;
 	CImageAccessor*		pcAccessorNew;
-	int32				x;
-	int32				y;
+	uint32				x;
+	uint32				y;
 	SImageColour		sColourOld[4];
 	SImageColour		sColourNew[4];
 	size				i;
@@ -126,9 +126,9 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 		sColourNew[0].Zero();
 		pcAccessorNew->MakeColour(sColourNew, pcColourNew);
 
-		for (y = mcRectangle.msTopLeft.y; y < mcRectangle.msBottomRight.y; y++)
+		for (y = (uint32)mcRectangle.msTopLeft.y; y < (uint32)mcRectangle.msBottomRight.y; y++)
 		{
-			for (x = mcRectangle.msTopLeft.x; x < mcRectangle.msBottomRight.x; x++)
+			for (x = (uint32)mcRectangle.msTopLeft.x; x < (uint32)mcRectangle.msBottomRight.x; x++)
 			{
 				psColourCurrent = (SImageColour *)pcAccessorOld->Get(x, y);
 				if (psColourCurrent->Equals(&sColourOld, pcAccessorOld->GetBufferSize()))

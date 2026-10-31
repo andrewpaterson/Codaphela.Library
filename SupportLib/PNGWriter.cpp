@@ -241,7 +241,7 @@ void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, lsize uiRowBytes,
 void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize uiPixelBytes, lsize* puiCosts)
 {
 	lsize	i;
-	int		iFilter;
+	size	iFilter;
 
 	for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
 	{
@@ -305,15 +305,15 @@ void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize u
 //////////////////////////////////////////////////////////////////////////
 void PNGFilterRows(uint8* puiPixels, int iHeight, lsize uiRowBytes, lsize uiPixelBytes, uint8* puiFiltered, uint8* puiZeros)
 {
-	int		y;
-	int		iFilter;
+	uint	y;
+	size	iFilter;
 	int		iBestFilter;
 	lsize	auiCosts[PNG_NUM_FILTERS];
 	uint8*	puiRow;
 	uint8*	puiPrior;
 
 	puiPrior = puiZeros;
-	for (y = 0; y < iHeight; y++)
+	for (y = 0; y < (uint)iHeight; y++)
 	{
 		puiRow = &puiPixels[y * uiRowBytes];
 		PNGFilterRowCosts(puiRow, puiPrior, uiRowBytes, uiPixelBytes, auiCosts);

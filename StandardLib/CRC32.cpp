@@ -36,8 +36,8 @@ bool	gbCRC32TableBuilt = false;
 void CRC32BuildTable(void)
 {
 	uint32	uiValue;
-	int		i;
-	int		j;
+	size	i;
+	uint	j;
 
 	for (i = 0; i < 256; i++)
 	{
