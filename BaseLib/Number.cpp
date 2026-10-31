@@ -2793,7 +2793,7 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	iOtherPosition = pcNumber->DigitPosition(iOtherFirst);
 	for (i = 0; i < iLength; i++)
 	{
-		SetNibble(iThisPosition - i, pcNumber->GetNibble(iOtherPosition - i));
+		SetNibble(iThisPosition - (int16)i, pcNumber->GetNibble(iOtherPosition - (int16)i));
 	}
 
 	SetFirstNonZerotDigit(iOtherFirst);
@@ -4132,8 +4132,8 @@ int16 CNumber::PrivateCompareDigits(CNumber* pcOther, int16 iFirst, int16 iOther
 	iOther = pcOther->DigitPosition(iOtherFirst);
 	for (i = 0; i < uiDigits; i++)
 	{
-		cThis = GetNibble(iThis - i);
-		cOther = pcOther->GetNibble(iOther - i);
+		cThis = GetNibble(iThis - (int16)i);
+		cOther = pcOther->GetNibble(iOther - (int16)i);
 		if (cThis != cOther)
 		{
 			return (cThis > cOther) ? 1 : -1;

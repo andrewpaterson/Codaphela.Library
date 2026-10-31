@@ -39,6 +39,7 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 	if (HostCurrentDirectory(szTemp, MAX_PATH) > 0)
 	{
 		szDest->Append(szTemp);
+		FixSeparators(szDest);
 	}
 }
 

@@ -5728,6 +5728,7 @@ bool CIROptimiser::HoistCommon(void)
 			{
 				continue;
 			}
+			psSecond = NULL;
 			for (uiSecond = 0; uiSecond < pcElse->masInstructions.NumElements(); uiSecond++)
 			{
 				psSecond = pcElse->masInstructions.Get(uiSecond);
