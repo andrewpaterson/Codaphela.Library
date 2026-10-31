@@ -27,9 +27,10 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //A new view, as the editor places it, of the component an element is saved as (see ComponentViewFactory.h), with
 //Logicim's initial properties for it (its ViewFactory's createInitialProperties): the LVC family, implicit power,
 //two inputs on a gate and so on.  Views measured with fonts are measured with the fonts given.  A pin is given a name
-//no other pin in the circuit has, as Logicim's ComponentNameHelper, and an inverter unit the next free reference (U1,
-//U2...) so the units placed after it (see NewNextUnit) are one part's.  NULL for an unknown element name, and for a
-//subcircuit instance, which is placed with NewPlacedSubcircuitInstanceView.
+//no other pin in the circuit has, as Logicim's ComponentNameHelper, and a chip (a gate, buffer, inverter, inverter
+//package or unit, flip flop, counter, clock or microprocessor) the next free reference (U1, U2...), as KiCad annotates
+//its symbols.  The units placed after an inverter unit (see NewNextUnit) take its reference, as one part's.  NULL for
+//an unknown element name, and for a subcircuit instance, which is placed with NewPlacedSubcircuitInstanceView.
 CComponentView*	NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit, CCircuitFonts* pcFonts);
 void			GetFreeReference(CChars* psz, CCircuitView* pcCircuit, const char* szPrefix);
 CComponentView*	NewPlacedSubcircuitInstanceView(CCircuitView* pcSubcircuit, int32 x, int32 y, ERotation eRotation, CCircuitFonts* pcFonts);

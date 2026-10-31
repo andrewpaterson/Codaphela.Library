@@ -40,38 +40,48 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentPlacement.h"
 
 
-#define PLACED_FAMILY	"LVC"
+#define PLACED_FAMILY		"LVC"
+#define PLACED_REFERENCE	"U"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // A gate of the class with iInputCount one bit inputs, of the placed
-// family and with implicit power.
+// family, with implicit power and the next free reference.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-static CComponentView* NewPlacedGate(int32 x, int32 y, ERotation eRotation, int iInputCount)
+static CComponentView* NewPlacedGate(int32 x, int32 y, ERotation eRotation, int iInputCount, CCircuitView* pcCircuit)
 {
-	M*	pcView;
+	M*		pcView;
+	CChars	szName;
 
+	szName.Init();
+	GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 	pcView = NewMalloc<M>();
-	pcView->Init(x, y, eRotation, "", PLACED_FAMILY, false, iInputCount, 1);
+	pcView->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, iInputCount, 1);
+	szName.Kill();
 	return pcView;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chip of the class, of the placed family and with implicit power.
+// A chip of the class, of the placed family, with implicit power and the
+// next free reference.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-static CComponentView* NewPlacedChip(int32 x, int32 y, ERotation eRotation)
+static CComponentView* NewPlacedChip(int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit)
 {
-	M*	pcView;
+	M*		pcView;
+	CChars	szName;
 
+	szName.Init();
+	GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 	pcView = NewMalloc<M>();
-	pcView->Init(x, y, eRotation, "", PLACED_FAMILY, false);
+	pcView->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false);
+	szName.Kill();
 	return pcView;
 }
 
@@ -209,66 +219,62 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	CProbeView*			pcProbe;
 	CGroundView*		pcGround;
 	CPositivePowerView*	pcPower;
-	CDTypeFlipFlopView*	pcFlipFlop;
 	CCounterView*		pcCounter;
 	CClockView*			pcClock;
 	COscilloscopeView*	pcScope;
 	CSplitterView*		pcSplitter;
 	CTunnelView*		pcTunnel;
 	CLabelView*			pcLabel;
-	CBufferView*		pcBuffer;
-	CInverterView*		pcInverter;
 	CInverterPackageView*	pcPackage;
 	CInverterUnitView*	pcUnit;
 	CChars				szName;
 
 	if (StringCompare(szXMLName, "AndGate") == 0)
 	{
-		return NewPlacedGate<CAndGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<CAndGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "NandGate") == 0)
 	{
-		return NewPlacedGate<CNandGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<CNandGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "OrGate") == 0)
 	{
-		return NewPlacedGate<COrGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<COrGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "NorGate") == 0)
 	{
-		return NewPlacedGate<CNorGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<CNorGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "XorGate") == 0)
 	{
-		return NewPlacedGate<CXorGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<CXorGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "XnorGate") == 0)
 	{
-		return NewPlacedGate<CXnorGateView>(x, y, eRotation, 2);
+		return NewPlacedGate<CXnorGateView>(x, y, eRotation, 2, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "Buffer") == 0)
 	{
-		pcBuffer = NewMalloc<CBufferView>();
-		pcBuffer->Init(x, y, eRotation, "", PLACED_FAMILY, false, 1, 1);
-		return pcBuffer;
+		return NewPlacedGate<CBufferView>(x, y, eRotation, 1, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "Inverter") == 0)
 	{
-		pcInverter = NewMalloc<CInverterView>();
-		pcInverter->Init(x, y, eRotation, "", PLACED_FAMILY, false, 1, 1);
-		return pcInverter;
+		return NewPlacedGate<CInverterView>(x, y, eRotation, 1, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "InverterPackage") == 0)
 	{
+		szName.Init();
+		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 		pcPackage = NewMalloc<CInverterPackageView>();
-		pcPackage->Init(x, y, eRotation, "", PLACED_FAMILY, false, "04", 6);
+		pcPackage->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, "04", 6);
+		szName.Kill();
 		return pcPackage;
 	}
 	else if (StringCompare(szXMLName, "InverterUnit") == 0)
 	{
-		//Named, so its units are one part's.
+		//The units placed after it (see NewNextUnit) take its reference, as one part's.
 		szName.Init();
-		GetFreeReference(&szName, pcCircuit, "U");
+		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 		pcUnit = NewMalloc<CInverterUnitView>();
 		pcUnit->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, "04", 0);
 		szName.Kill();
@@ -308,29 +314,33 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	}
 	else if (StringCompare(szXMLName, "DTypeFlipFlop") == 0)
 	{
-		pcFlipFlop = NewMalloc<CDTypeFlipFlopView>();
-		pcFlipFlop->Init(x, y, eRotation, "", PLACED_FAMILY, false);
-		return pcFlipFlop;
+		return NewPlacedChip<CDTypeFlipFlopView>(x, y, eRotation, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "Counter") == 0)
 	{
+		szName.Init();
+		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 		pcCounter = NewMalloc<CCounterView>();
-		pcCounter->Init(x, y, eRotation, "", PLACED_FAMILY, false, 4, 0xf);
+		pcCounter->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, 4, 0xf);
+		szName.Kill();
 		return pcCounter;
 	}
 	else if (StringCompare(szXMLName, "Clock") == 0)
 	{
+		szName.Init();
+		GetFreeReference(&szName, pcCircuit, PLACED_REFERENCE);
 		pcClock = NewMalloc<CClockView>();
-		pcClock->Init(x, y, eRotation, "", PLACED_FAMILY, false, 25000000.0, false);
+		pcClock->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, 25000000.0, false);
+		szName.Kill();
 		return pcClock;
 	}
 	else if (StringCompare(szXMLName, "W65C816") == 0)
 	{
-		return NewPlacedChip<CW65C816View>(x, y, eRotation);
+		return NewPlacedChip<CW65C816View>(x, y, eRotation, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "MPU65C64") == 0)
 	{
-		return NewPlacedChip<C65C64View>(x, y, eRotation);
+		return NewPlacedChip<C65C64View>(x, y, eRotation, pcCircuit);
 	}
 	else if (StringCompare(szXMLName, "Oscilloscope") == 0)
 	{
