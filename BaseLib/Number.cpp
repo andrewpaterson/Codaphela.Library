@@ -43,6 +43,17 @@ static const uint16 gauiNumberNibblesTo[4] = { 0x000F, 0x00FF, 0x0FFF, 0xFFFF };
 
 //////////////////////////////////////////////////////////////////////////
 //
+// BCDAdd, or BCDSubtract when bSubtract.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint16 NumberBCD(uint16* pauiDest, uint16* pauiSource, size uiWords, uint16 uiCarry, bool bSubtract)
+{
+	return bSubtract ? BCDSubtract(pauiDest, pauiSource, uiWords, uiCarry) : BCDAdd(pauiDest, pauiSource, uiWords, uiCarry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The word uiHigh moved up iNibbles nibbles (0 to 3) with the top of uiLow
 // coming in below it.  The shifts are constants (a W65C816 shifts by a
 // variable count a bit at a time).
@@ -990,9 +1001,7 @@ void CNumber::CleanLeft(void)
 	iPosition = PrivateFindNonZero(true);
 	if (iPosition < 0)
 	{
-		SetFirstNonZerotDigit(1);
-		SetLastNonZeroDigit(1);
-		SetSign(1);
+		PrivateNoDigits();
 		return;
 	}
 	SetFirstNonZerotDigit(PositionDigit(iPosition));
@@ -1010,12 +1019,23 @@ void CNumber::CleanRight(void)
 	iPosition = PrivateFindNonZero(false);
 	if (iPosition < 0)
 	{
-		SetFirstNonZerotDigit(1);
-		SetLastNonZeroDigit(1);
-		SetSign(1);
+		PrivateNoDigits();
 		return;
 	}
 	SetLastNonZeroDigit(PositionDigit(iPosition));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every digit is 0: zero's first and last digit and sign.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNumber::PrivateNoDigits(void)
+{
+	SetFirstNonZerotDigit(1);
+	SetLastNonZeroDigit(1);
+	SetSign(1);
 }
 
 
@@ -1109,9 +1129,20 @@ int16 CNumber::PositionDigit(int16 iPosition)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::Clean(void)
 {
+	PrivateFindEnds();
+	PrivateZeroEnds();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first and last non zero digits found again (between the ones set).
+//
+//////////////////////////////////////////////////////////////////////////
+void CNumber::PrivateFindEnds(void)
+{
 	CleanLeft();
 	CleanRight();
-	PrivateZeroEnds();
 }
 
 
@@ -1290,18 +1321,6 @@ bool CNumber::IsInteger(void)
 	return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CNumber::DigitsEqual(CNumber* pcTest, int16 iFirstDigit, int16 iLastDigit)
-{
-	int32 iResult;
-
-	iResult = PrivateCompareDigits(pcTest, iFirstDigit, iLastDigit, GetDigitsBetween(iFirstDigit, iLastDigit));
-	return iResult == 0;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2040,30 +2059,14 @@ bool CNumber::PrivateError(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateAdd(CNumber* pcNumber)
 {
-	int16	iThisLastDigit;
-	int16	iOtherLastDigit;
 	int16	iLast;
 	int16	iFirst;
 	int16	iThisFirstDigit;
 	int16	iOtherFirstDigit;
-	uint16	i;
 
 	if (PrivateError(pcNumber)) return;
 
-	iThisLastDigit = GetLastNonZeroDigit();
-	iOtherLastDigit = pcNumber->GetLastNonZeroDigit();
-	if (iOtherLastDigit < -mcMaxDecimals)
-	{
-		SetFlag(NUMBER_FLAGS_UNDERFLOW);
-		iOtherLastDigit = -mcMaxDecimals;
-	}
-
-	iLast = iThisLastDigit;
-	if (iOtherLastDigit < iThisLastDigit)
-	{
-		SetLastNonZeroDigit(iOtherLastDigit);
-		iLast = iOtherLastDigit;
-	}
+	iLast = PrivateLowestLast(pcNumber);
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iOtherFirstDigit = pcNumber->GetFirstNonZeroDigit();
@@ -2080,18 +2083,10 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 	}
 
 	//A carry out of the top word, or into the nibbles above the biggest whole number, is too big.
-	if (PrivateAddWords(pcNumber, iFirst, iLast, false) != 0)
+	if ((PrivateAddWords(pcNumber, iFirst, iLast, false) != 0) || PrivateAboveMaximum())
 	{
 		Overflow(GetSign());
 		return;
-	}
-	for (i = (uint16)(DigitPosition(mcMaxWholeNumbers) + 1); i < (uint16)(NumWords() * 4); i++)
-	{
-		if (GetNibble(i) != 0)
-		{
-			Overflow(GetSign());
-			return;
-		}
 	}
 
 	if (iFirst < mcMaxWholeNumbers)
@@ -2101,8 +2096,7 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 	SetFirstNonZerotDigit(iFirst);
 
 	//The digits outside first and last are still 0: only first and last are found again.
-	CleanLeft();
-	CleanRight();
+	PrivateFindEnds();
 }
 
 
@@ -2122,14 +2116,12 @@ uint16 CNumber::PrivateAddWords(CNumber* pcNumber, int16 iFirst, int16 iLast, bo
 	int16	iHigh;
 	int16	iDelta;
 	int16	iMinimum;
-	int16	iWords;
-	int16	i;
 	uint16	uiCarry;
 	uint16	uiWord;
 
 	iLow = (int16)(DigitPosition(iLast) >> 2);
 	iHigh = (int16)(DigitPosition(iFirst) >> 2);
-	iDelta = (int16)((NUMBER_WORD_DIGITS(mcMaxDecimals) - NUMBER_WORD_DIGITS(pcNumber->mcMaxDecimals)) / 4);
+	iDelta = (int16)((NUMBER_WORD_DIGITS(mcMaxDecimals) - NUMBER_WORD_DIGITS(pcNumber->mcMaxDecimals)) >> 2);
 
 	//The words pcNumber has.
 	if (iLow < iDelta)
@@ -2146,32 +2138,53 @@ uint16 CNumber::PrivateAddWords(CNumber* pcNumber, int16 iFirst, int16 iLast, bo
 	}
 
 	uiCarry = 0;
-	iMinimum = (int16)(NUMBER_WORD_DIGITS(mcMaxDecimals) - mcMaxDecimals);
+	iMinimum = MinimumPosition();
 	if ((iLow == (iMinimum >> 2)) && ((iMinimum & 3) != 0))
 	{
 		uiWord = (uint16)(pcNumber->mauiDigits[iLow - iDelta] & gauiNumberNibblesFrom[iMinimum & 3]);
-		uiCarry = bSubtract ? BCDSubtract(&mauiDigits[iLow], &uiWord, 1, 0) : BCDAdd(&mauiDigits[iLow], &uiWord, 1, 0);
+		uiCarry = NumberBCD(&mauiDigits[iLow], &uiWord, 1, 0, bSubtract);
 		iLow++;
 	}
 	if (iLow <= iHigh)
 	{
-		iWords = iHigh - iLow + 1;
-		if (bSubtract)
-		{
-			uiCarry = BCDSubtract(&mauiDigits[iLow], &pcNumber->mauiDigits[iLow - iDelta], iWords, uiCarry);
-		}
-		else
-		{
-			uiCarry = BCDAdd(&mauiDigits[iLow], &pcNumber->mauiDigits[iLow - iDelta], iWords, uiCarry);
-		}
+		uiCarry = NumberBCD(&mauiDigits[iLow], &pcNumber->mauiDigits[iLow - iDelta], iHigh - iLow + 1, uiCarry, bSubtract);
 	}
 
-	uiWord = 0;
-	for (i = iHigh + 1; (i < NumWords()) && (uiCarry != 0); i++)
+	return PrivateRipple((int16)(iHigh + 1), uiCarry, bSubtract);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A carry (or a borrow, bSubtract) of uiCarry into the word iWord, on up
+// the words while it goes on: a word of 9999 carries out to 0, a 0 borrows
+// to 9999; the first word that doesn't takes the 1.  Returns the carry (or
+// borrow) out of the top word.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CNumber::PrivateRipple(int16 iWord, uint16 uiCarry, bool bSubtract)
+{
+	int16	iWords;
+	uint16	uiOne;
+	uint16*	puiWord;
+
+	if (uiCarry == 0)
 	{
-		uiCarry = bSubtract ? BCDSubtract(&mauiDigits[i], &uiWord, 1, uiCarry) : BCDAdd(&mauiDigits[i], &uiWord, 1, uiCarry);
+		return 0;
 	}
-	return uiCarry;
+	iWords = NumWords();
+	puiWord = &mauiDigits[iWord];
+	for (; iWord < iWords; iWord++)
+	{
+		if (*puiWord != (bSubtract ? 0 : 0x9999))
+		{
+			uiOne = 1;
+			return NumberBCD(puiWord, &uiOne, 1, 0, bSubtract);
+		}
+		*puiWord = bSubtract ? 0x9999 : 0;
+		puiWord++;
+	}
+	return 1;
 }
 
 
@@ -2182,54 +2195,63 @@ uint16 CNumber::PrivateAddWords(CNumber* pcNumber, int16 iFirst, int16 iLast, bo
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateSubtract(CNumber* pcNumber)
 {
-	int16	iThisLastDigit;
-	int16	iOtherLastDigit;
-	int16	iThisFirstDigit;
 	int16	iLast;
 
 	if (PrivateError(pcNumber)) return;
 
-	iThisFirstDigit = GetFirstNonZeroDigit();
-	iThisLastDigit = GetLastNonZeroDigit();
-	iOtherLastDigit = pcNumber->GetLastNonZeroDigit();
-
-	if (iOtherLastDigit < -mcMaxDecimals)
-	{
-		SetFlag(NUMBER_FLAGS_UNDERFLOW);
-		iOtherLastDigit = -mcMaxDecimals;
-	}
-
-	iLast = iThisLastDigit;
-	if (iOtherLastDigit < iThisLastDigit)
-	{
-		SetLastNonZeroDigit(iOtherLastDigit);
-		iLast = iOtherLastDigit;
-	}
-
-	PrivateAddWords(pcNumber, iThisFirstDigit, iLast, true);
+	iLast = PrivateLowestLast(pcNumber);
+	PrivateAddWords(pcNumber, GetFirstNonZeroDigit(), iLast, true);
 
 	//The digits outside first and last are still 0: only first and last are found again.
-	CleanLeft();
-	CleanRight();
+	PrivateFindEnds();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The lower of this number's last non zero digit and pcNumber's, which
+// becomes this one's last.  pcNumber's digits below this one's smallest
+// decimal are lost (underflow).
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CNumber::PrivateGetIndex(int16 iDigit)
+int16 CNumber::PrivateLowestLast(CNumber* pcNumber)
 {
-	//Assumes iDigit != 0.
-	if (iDigit > 0)
+	int16	iLast;
+
+	iLast = pcNumber->GetLastNonZeroDigit();
+	if (iLast < -mcMaxDecimals)
 	{
-		return (int16)(mcMaxWholeNumbers - iDigit);
+		SetFlag(NUMBER_FLAGS_UNDERFLOW);
+		iLast = -mcMaxDecimals;
 	}
-	else
+	if (iLast < GetLastNonZeroDigit())
 	{
-		return (int16)(mcMaxWholeNumbers - iDigit - 1);
+		SetLastNonZeroDigit(iLast);
 	}
+	return GetLastNonZeroDigit();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a digit above the biggest whole number (in the top word's spare
+// nibbles) isn't 0: a carry went past it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNumber::PrivateAboveMaximum(void)
+{
+	int16	i;
+
+	for (i = (int16)(DigitPosition(mcMaxWholeNumbers) + 1); i < NumWords() * 4; i++)
+	{
+		if (GetNibble(i) != 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2329,8 +2351,7 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 	pcResult->SetFirstNonZerotDigit(mcMaxWholeNumbers);
 	pcResult->SetLastNonZeroDigit(-iDecimals);
 	pcResult->SetSign(GetSign() * pcMultiplicand->GetSign());
-	pcResult->CleanLeft();
-	pcResult->CleanRight();
+	pcResult->PrivateFindEnds();
 	Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
 	gcNumberControl.Remove(3);
 	return this;
@@ -2348,6 +2369,8 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iShift, uint16* pauiPlaced)
 {
+	uint16*	puiSource;
+	uint16*	puiPlaced;
 	int16	iWords;
 	int16	iNibbles;
 	int16	iWordShift;
@@ -2363,8 +2386,8 @@ bool CNumber::PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iSh
 
 	iWords = NumWords();
 	iNibbles = (int16)(iShift & 3);
-	iWordShift = (int16)((iShift - iNibbles) / 4);
-	iMinimum = (int16)(NUMBER_WORD_DIGITS(mcMaxDecimals) - mcMaxDecimals);
+	iWordShift = (int16)((iShift - iNibbles) >> 2);
+	iMinimum = MinimumPosition();
 
 	//The words the source reaches: from its first word's, to its last word's (and the one its top nibbles go to).
 	iLow = iWordShift;
@@ -2373,29 +2396,34 @@ bool CNumber::PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iSh
 		iLow = (int16)(iMinimum >> 2);
 	}
 	iHigh = (int16)(iWordShift + iSourceWords - ((iNibbles == 0) ? 1 : 0));
+
+	//The source words from iLow's on (iLow is at least iWordShift, so the first is in the source).  Words past this
+	//number's top must be 0.
 	iSource = (int16)(iLow - iWordShift);
-	uiLow = ((iSource >= 1) && (iSource <= iSourceWords)) ? pauiSource[iSource - 1] : 0;
-	for (i = iLow; i <= iHigh; i++, iSource++)
+	puiSource = &pauiSource[iSource];
+	puiPlaced = &pauiPlaced[iLow];
+	uiLow = (iSource >= 1) ? puiSource[-1] : 0;
+	for (i = iLow; i <= iHigh; i++)
 	{
 		//This word's high source is the next one's low.
-		uiHigh = ((iSource >= 0) && (iSource < iSourceWords)) ? pauiSource[iSource] : 0;
+		uiHigh = (iSource < iSourceWords) ? *puiSource : 0;
 		uiWord = NumberCombineNibbles(uiHigh, uiLow, iNibbles);
 		uiLow = uiHigh;
-		if (i == (iMinimum >> 2))
+		puiSource++;
+		iSource++;
+		if (i < iWords)
 		{
-			uiWord = (uint16)(uiWord & gauiNumberNibblesFrom[iMinimum & 3]);
+			*puiPlaced = uiWord;
+			puiPlaced++;
 		}
-		if (i >= iWords)
+		else if (uiWord != 0)
 		{
-			if (uiWord != 0)
-			{
-				return false;
-			}
+			return false;
 		}
-		else
-		{
-			pauiPlaced[i] = uiWord;
-		}
+	}
+	if (iLow == (iMinimum >> 2))
+	{
+		pauiPlaced[iLow] &= gauiNumberNibblesFrom[iMinimum & 3];
 	}
 	if (iHigh >= iWords)
 	{
@@ -2407,23 +2435,8 @@ bool CNumber::PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iSh
 	}
 
 	uiCarry = BCDAdd(&mauiDigits[iLow], &pauiPlaced[iLow], iHigh - iLow + 1, 0);
-	uiWord = 0;
-	for (i = (int16)(iHigh + 1); (i < iWords) && (uiCarry != 0); i++)
-	{
-		uiCarry = BCDAdd(&mauiDigits[i], &uiWord, 1, uiCarry);
-	}
-	if (uiCarry != 0)
-	{
-		return false;
-	}
-	for (i = (int16)(DigitPosition(mcMaxWholeNumbers) + 1); i < iWords * 4; i++)
-	{
-		if (GetNibble(i) != 0)
-		{
-			return false;
-		}
-	}
-	return true;
+	uiCarry = PrivateRipple((int16)(iHigh + 1), uiCarry, false);
+	return (uiCarry == 0) && !PrivateAboveMaximum();
 }
 
 
@@ -2525,29 +2538,36 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 char CNumber::PrivateDivide(CNumber* pcDivisor, bool* pbExact)
 {
 	char	cDigit;
+	int16	iFirst;
+	int16	iLast;
 
-	//"this" will contain the remainder.
-
+	//"this" will contain the remainder.  The divisor is taken off until that borrows (this was smaller), and then put
+	//back once: a borrow wraps the words to its top, and adding back carries out of it again.  Both are positive,
+	//with the same decimals.
 	cDigit = 0;
-	for (;;)
+	if (!IsZero())
 	{
-		if (pcDivisor->GreaterThan(this))
+		iFirst = GetFirstNonZeroDigit();
+		if (pcDivisor->GetFirstNonZeroDigit() > iFirst)
 		{
-			if (IsZero())
-			{
-				*pbExact = true;
-				return cDigit;
-			}
-			else
-			{
-				*pbExact = false;
-				return cDigit;
-			}
+			iFirst = pcDivisor->GetFirstNonZeroDigit();
 		}
-		cDigit++;
-
-		Subtract(pcDivisor);
+		iLast = GetLastNonZeroDigit();
+		if (pcDivisor->GetLastNonZeroDigit() < iLast)
+		{
+			iLast = pcDivisor->GetLastNonZeroDigit();
+		}
+		SetFirstNonZerotDigit(iFirst);
+		SetLastNonZeroDigit(iLast);
+		while (PrivateAddWords(pcDivisor, iFirst, iLast, true) == 0)
+		{
+			cDigit++;
+		}
+		PrivateAddWords(pcDivisor, iFirst, iLast, false);
+		PrivateFindEnds();
 	}
+	*pbExact = IsZero();
+	return cDigit;
 }
 
 
@@ -3959,6 +3979,8 @@ int16 CNumber::DigitPosition(int16 iDigit)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast)
 {
+	uint16*	puiSource;
+	uint16*	puiDest;
 	int16	iWords;
 	int16	iNibbles;
 	int16	iWordShift;
@@ -3972,7 +3994,7 @@ void CNumber::PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast)
 
 	iWords = NumWords();
 	iNibbles = (int16)(iShift & 3);
-	iWordShift = (int16)((iShift - iNibbles) / 4);
+	iWordShift = (int16)((iShift - iNibbles) >> 2);
 
 	//The words the digits from iFirst to iLast are in, before and after they move.
 	iLow = (int16)(DigitPosition(iLast) >> 2);
@@ -3994,31 +4016,41 @@ void CNumber::PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast)
 		iHigh = (int16)(iWords - 1);
 	}
 
+	//Pointers walk the words (an index would be scaled each time); the counters say when a source word is outside
+	//the number (0 then).
+	iSource = (int16)(((iShift > 0) ? iHigh : iLow) - iWordShift);
+	puiSource = &mauiDigits[iSource];
 	if (iShift > 0)
 	{
 		//Down from the top: this word's low source is the next one's high.
-		iSource = (int16)(iHigh - iWordShift);
-		uiHigh = ((iSource >= 0) && (iSource < iWords)) ? mauiDigits[iSource] : 0;
-		for (i = iHigh; i >= iLow; i--, iSource--)
+		puiDest = &mauiDigits[iHigh];
+		uiHigh = ((iSource >= 0) && (iSource < iWords)) ? *puiSource : 0;
+		for (i = iHigh; i >= iLow; i--)
 		{
-			uiLow = ((iSource >= 1) && (iSource <= iWords)) ? mauiDigits[iSource - 1] : 0;
-			mauiDigits[i] = NumberCombineNibbles(uiHigh, uiLow, iNibbles);
+			iSource--;
+			puiSource--;
+			uiLow = ((iSource >= 0) && (iSource < iWords)) ? *puiSource : 0;
+			*puiDest = NumberCombineNibbles(uiHigh, uiLow, iNibbles);
+			puiDest--;
 			uiHigh = uiLow;
 		}
 	}
 	else
 	{
 		//Up from the bottom: this word's high source is the next one's low.
-		iSource = (int16)(iLow - iWordShift);
-		uiLow = ((iSource >= 1) && (iSource <= iWords)) ? mauiDigits[iSource - 1] : 0;
-		for (i = iLow; i <= iHigh; i++, iSource++)
+		puiDest = &mauiDigits[iLow];
+		uiLow = ((iSource >= 1) && (iSource <= iWords)) ? puiSource[-1] : 0;
+		for (i = iLow; i <= iHigh; i++)
 		{
-			uiHigh = ((iSource >= 0) && (iSource < iWords)) ? mauiDigits[iSource] : 0;
-			mauiDigits[i] = NumberCombineNibbles(uiHigh, uiLow, iNibbles);
+			uiHigh = ((iSource >= 0) && (iSource < iWords)) ? *puiSource : 0;
+			*puiDest = NumberCombineNibbles(uiHigh, uiLow, iNibbles);
+			puiDest++;
+			puiSource++;
+			iSource++;
 			uiLow = uiHigh;
 		}
 	}
-	iMinimum = (int16)(NUMBER_WORD_DIGITS(mcMaxDecimals) - mcMaxDecimals);
+	iMinimum = MinimumPosition();
 	if (iLow * 4 < iMinimum)
 	{
 		PrivateZeroPositions((int16)(iMinimum - 1), (int16)(iLow * 4));
@@ -4068,6 +4100,17 @@ void CNumber::SetNibble(int16 iPosition, char cValue)
 int16 CNumber::NumWords(void)
 {
 	return NUMBER_WORDS(mcMaxWholeNumbers, mcMaxDecimals);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The position of the smallest decimal (the nibbles below it are 0).
+//
+//////////////////////////////////////////////////////////////////////////
+int16 CNumber::MinimumPosition(void)
+{
+	return (int16)(NUMBER_WORD_DIGITS(mcMaxDecimals) - mcMaxDecimals);
 }
 
 

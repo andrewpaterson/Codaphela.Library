@@ -27,7 +27,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define DEFAULT_WHOLE_NUMBERS 26
 #define DEFAULT_DECIMALS 16
-#define DEFAULT_DIGITS (DEFAULT_WHOLE_NUMBERS + DEFAULT_DECIMALS)
 
 #define NUMBER_FLAGS_LAST_DIGIT_MASK	0x00
 #define NUMBER_FLAGS_FIRST_DIGIT_MASK	0x00
@@ -57,7 +56,7 @@ protected:
 //first.  The whole numbers and the decimals are each rounded up to whole words, so the decimal point is on a word
 //boundary and the same digit of two numbers is in the same nibble of a word.
 #define NUMBER_WORD_DIGITS(p) (((p) + 3) & ~3)
-#define NUMBER_WORDS(p, q) ((NUMBER_WORD_DIGITS(p) + NUMBER_WORD_DIGITS(q)) / 4)
+#define NUMBER_WORDS(p, q) ((NUMBER_WORD_DIGITS(p) + NUMBER_WORD_DIGITS(q)) >> 2)
 #define NUMBER_SIZE(p, q) ((size_t)NUMBER_WORDS(p, q) * sizeof(uint16) + sizeof(CNumberDetail))
 #define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
 
@@ -160,6 +159,7 @@ public:
 	char		GetNibble(int16 iPosition);
 	void		SetNibble(int16 iPosition, char cValue);
 	int16		NumWords(void);
+	int16		MinimumPosition(void);
 	void		PrivateZeroPositions(int16 iHigh, int16 iLow);
 	void		PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast);
 	int16		PrivateCompareDigits(CNumber* pcOther, int16 iFirst, int16 iOtherFirst, size uiDigits);
@@ -169,7 +169,6 @@ public:
 	void		PrivateZeroDigits(int16 iFirst, int16 iLast);
 	void		PrivateZeroEnds(void);
 	bool		IsInteger(void);
-	bool		DigitsEqual(CNumber* pcTest, int16 iFirstDigit, int16 iLastDigit);
 
 	//Logical
 	bool		Equals(CNumber* pcNumber);
@@ -185,6 +184,11 @@ public:
 	void		PrivateAdd(CNumber* pcNumber);
 	void		PrivateSubtract(CNumber* pcNumber);
 	uint16		PrivateAddWords(CNumber* pcNumber, int16 iFirst, int16 iLast, bool bSubtract);
+	uint16		PrivateRipple(int16 iWord, uint16 uiCarry, bool bSubtract);
+	int16		PrivateLowestLast(CNumber* pcNumber);
+	bool		PrivateAboveMaximum(void);
+	void		PrivateFindEnds(void);
+	void		PrivateNoDigits(void);
 	bool		PrivateAddPlaced(uint16* pauiSource, int16 iSourceWords, int16 iShift, uint16* pauiPlaced);
 	bool		PrivateGreaterThan(CNumber* pcNumber);
 	bool		PrivateGreaterThanOrEquals(CNumber* pcNumber);
@@ -202,7 +206,6 @@ public:
 	void		PrivateInit(size cWholeNumbers, size cMaxDecimals);
 	void		PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	bool		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
-	int16		PrivateGetIndex(int16 iDigit);  //-1 when the digit is before the first.
 
 	//Mathematical
 	CNumber*	Add(CNumber* pcNumber);
