@@ -301,7 +301,9 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 			}
 		}
 	}
-	mpiMix = (int32*)malloc((lsize)sizeof(int32) * 2 * MOD_MIX_BLOCK);
+	mpsMix = (SModMix*)malloc(sizeof(SModMix));
+	mpsGainTables = (SModGainTable*)malloc((lsize)sizeof(SModGainTable) * 2 * (uiNumChannels > 0 ? uiNumChannels : 1));
+	muiStepNumerator = (uint32)(MOD_PAULA_CLOCK_PAL / 2.0 * 65536.0 / (float64)muiSampleRate + 0.5);
 
 	memset(masChannels, 0, sizeof(masChannels));
 	for (uiChannel = 0; uiChannel < MOD_MAX_CHANNELS; uiChannel++)
@@ -309,6 +311,10 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 		psChannel = &masChannels[uiChannel];
 		psChannel->uiLoopFrame = SOUND_CEL_NO_LOOP;
 		psChannel->fPan = ((uiChannel % 4 == 0) || (uiChannel % 4 == 3)) ? -1.0 : 1.0;
+		psChannel->fMixPan = 2.0;
+		psChannel->iMixVolume = -1;
+		psChannel->iTableLeft = -1;
+		psChannel->iTableRight = -1;
 	}
 
 	muiOrder = 0;
@@ -329,7 +335,7 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 	memset(mpuiPlayedRows, 0, MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
 
 	mfFramesPerTick = (float64)muiSampleRate * 2.5 / (float64)muiTempo;
-	mfTickFrames = 0.0;
+	muiTickFrames = 0;
 	mfFrameRemainder = 0.0;
 	muiFramesPlayed = 0;
 }
@@ -342,7 +348,8 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 void CModPlayer::Kill(void)
 {
 	SafeFree(mpiBank16);
-	SafeFree(mpiMix);
+	SafeFree(mpsMix);
+	SafeFree(mpsGainTables);
 	mpiBank8 = NULL;
 	SafeFree(mpuiPlayedRows);
 	mpSong = NULL;
@@ -351,11 +358,11 @@ void CModPlayer::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Mixes uiNumFrames stereo frames (left, right) into piStereo, in units
-// of MOD_MIX_ONE.  Returns the frames mixed, fewer if the song ended.
+// Mixes uiNumFrames (at most MOD_MIX_BLOCK) stereo frames into the mix,
+// in units of MOD_MIX_ONE (16 bits).  Returns the frames mixed, fewer if the song ended.
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CModPlayer::RenderMix(int32* piStereo, lsize uiNumFrames)
+lsize CModPlayer::RenderMix(SModMix* psMix, lsize uiNumFrames)
 {
 	lsize	uiWritten;
 	lsize	uiCount;
@@ -363,22 +370,26 @@ lsize CModPlayer::RenderMix(int32* piStereo, lsize uiNumFrames)
 	uiWritten = 0;
 	while (uiWritten < uiNumFrames)
 	{
-		if (mfTickFrames < 1.0)
+		if (muiTickFrames == 0)
 		{
 			StartTick();
 			if (mbFinished)
 			{
 				break;
 			}
+			if (muiTickFrames == 0)
+			{
+				continue;
+			}
 		}
 
-		uiCount = (lsize)mfTickFrames;
+		uiCount = muiTickFrames;
 		if (uiCount > uiNumFrames - uiWritten)
 		{
 			uiCount = uiNumFrames - uiWritten;
 		}
-		Mix(&piStereo[uiWritten * 2], uiCount);
-		mfTickFrames -= (float64)uiCount;
+		Mix(psMix, (uint16)uiWritten, (uint16)uiCount);
+		muiTickFrames -= uiCount;
 		uiWritten += uiCount;
 	}
 	muiFramesPlayed += uiWritten;
@@ -403,10 +414,10 @@ lsize CModPlayer::Render(float64* pfStereo, lsize uiNumFrames)
 	while (uiWritten < uiNumFrames)
 	{
 		uiCount = (uiNumFrames - uiWritten < MOD_MIX_BLOCK) ? (uiNumFrames - uiWritten) : MOD_MIX_BLOCK;
-		uiMixed = RenderMix(mpiMix, uiCount);
+		uiMixed = RenderMix(mpsMix, uiCount);
 		for (i = 0; i < uiMixed * 2; i++)
 		{
-			pfStereo[uiWritten * 2 + i] = (float64)mpiMix[i] / (float64)MOD_MIX_ONE;
+			pfStereo[uiWritten * 2 + i] = (float64)((i & 1) ? mpsMix->sRight.aiFrames[i / 2] : mpsMix->sLeft.aiFrames[i / 2]) / (float64)MOD_MIX_ONE;
 		}
 		uiWritten += uiMixed;
 		if (uiMixed < uiCount)
@@ -437,10 +448,10 @@ lsize CModPlayer::Render(int16* piStereo, lsize uiNumFrames)
 	while (uiWritten < uiNumFrames)
 	{
 		uiCount = (uiNumFrames - uiWritten < MOD_MIX_BLOCK) ? (uiNumFrames - uiWritten) : MOD_MIX_BLOCK;
-		uiMixed = RenderMix(mpiMix, uiCount);
+		uiMixed = RenderMix(mpsMix, uiCount);
 		for (i = 0; i < uiMixed * 2; i++)
 		{
-			iSample = mpiMix[i] >> 4;
+			iSample = (int32)((i & 1) ? mpsMix->sRight.aiFrames[i / 2] : mpsMix->sLeft.aiFrames[i / 2]) * 2;
 			piStereo[uiWritten * 2 + i] = (int16)((iSample > 32767) ? 32767 : ((iSample < -32768) ? -32768 : iSample));
 		}
 		uiWritten += uiMixed;
@@ -450,6 +461,28 @@ lsize CModPlayer::Render(int16* piStereo, lsize uiNumFrames)
 		}
 	}
 	return uiWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Mixes uiNumFrames (at most MOD_MIX_BLOCK) frames as the HCP65's sound
+// board plays them: unsigned 8 bit samples ($80 the middle, clipped),
+// left and right apart.  The same as Render's 16 bit samples' high bytes
+// + $80.  Returns the frames mixed, fewer if the song ended.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CModPlayer::Render8(SModUnsigned8* psOut, lsize uiNumFrames)
+{
+	lsize	uiMixed;
+
+	if (uiNumFrames > MOD_MIX_BLOCK)
+	{
+		uiNumFrames = MOD_MIX_BLOCK;
+	}
+	uiMixed = RenderMix(mpsMix, uiNumFrames);
+	ModMixToUnsigned8(psOut, mpsMix, (uint16)uiMixed);
+	return uiMixed;
 }
 
 
@@ -526,8 +559,8 @@ lsize CModPlayer::SkipTick(void)
 	{
 		return 0;
 	}
-	uiFrames = (size)mfTickFrames;
-	mfTickFrames = 0.0;
+	uiFrames = muiTickFrames;
+	muiTickFrames = 0;
 	muiFramesPlayed += uiFrames;
 	return uiFrames;
 }
@@ -543,6 +576,7 @@ lsize CModPlayer::SkipTick(void)
 void CModPlayer::StartTick(void)
 {
 	float64	fFrames;
+	float64	fTickFrames;
 
 	if (mbFinished)
 	{
@@ -573,8 +607,9 @@ void CModPlayer::StartTick(void)
 	}
 
 	fFrames = mfFramesPerTick + mfFrameRemainder;
-	mfTickFrames = floor(fFrames);
-	mfFrameRemainder = fFrames - mfTickFrames;
+	fTickFrames = floor(fFrames);
+	muiTickFrames = (lsize)fTickFrames;
+	mfFrameRemainder = fFrames - fTickFrames;
 }
 
 
@@ -1166,30 +1201,16 @@ int32 CModPlayer::GetBankSample(SModChannel* psChannel, lsize uiFrame)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds uiNumFrames frames of each channel playing to piStereo.  The step
-// and the gains are the tick's, worked out once.
+// Adds uiNumFrames frames of each channel playing to piStereo.
 //
 //////////////////////////////////////////////////////////////////////////
-void CModPlayer::Mix(int32* piStereo, lsize uiNumFrames)
+void CModPlayer::Mix(SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames)
 {
 	size			uiChannel;
-	lsize			uiFrame;
 	SModChannel*	psChannel;
-	float64			fStep;
-	float64			fPan;
-	uint32			uiStep;
-	lsize			uiStepFrames;
-	uint16			uiStepFraction;
-	uint16			uiFraction;
-	int32			iLeft;
-	int32			iRight;
-	int32			iSample;
-	int32			iNext;
-	lsize			uiPosition;
-	lsize			uiLength;
-	lsize			uiLoopFrame;
 
-	memset(piStereo, 0, (lsize)sizeof(int32) * 2 * uiNumFrames);
+	memset(&psMix->sLeft.aiFrames[uiFirstFrame], 0, sizeof(int16) * uiNumFrames);
+	memset(&psMix->sRight.aiFrames[uiFirstFrame], 0, sizeof(int16) * uiNumFrames);
 	for (uiChannel = 0; uiChannel < mpSong->NumChannels(); uiChannel++)
 	{
 		psChannel = &masChannels[uiChannel];
@@ -1198,48 +1219,225 @@ void CModPlayer::Mix(int32* piStereo, lsize uiNumFrames)
 			continue;
 		}
 
-		fStep = MOD_PAULA_CLOCK_PAL / (2.0 * (float64)psChannel->iOutPeriod) / (float64)muiSampleRate;
-		uiStep = (uint32)(fStep * 65536.0 + 0.5);
-		uiStepFrames = uiStep >> 16;
-		uiStepFraction = (uint16)uiStep;
-		fPan = psChannel->fPan * mfStereoSeparation;
-		iLeft = (int32)((1.0 - fPan) * 0.5 * mfGain * (float64)psChannel->iOutVolume / 64.0 * MOD_GAIN_ONE + 0.5);
-		iRight = (int32)((1.0 + fPan) * 0.5 * mfGain * (float64)psChannel->iOutVolume / 64.0 * MOD_GAIN_ONE + 0.5);
+		UpdateMix(psChannel);
+		if (mpiBank8 && (meInterpolation == MI_Nearest))
+		{
+			MixNearest8(psChannel, psMix, uiFirstFrame, uiNumFrames);
+		}
+		else
+		{
+			MixSamples(psChannel, psMix, uiFirstFrame, uiNumFrames);
+		}
+	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The channel's step and gains for its period, volume and pan, worked out
+// again only when they change: a step is the step numerator / the period
+// and a gain the side's gain for a volume of 1 (Q8, from the pan) * the
+// volume.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModPlayer::UpdateMix(SModChannel* psChannel)
+{
+	float64	fPan;
+	uint32	uiPeriod;
+
+	if (psChannel->iMixPeriod != psChannel->iOutPeriod)
+	{
+		uiPeriod = (uint32)psChannel->iOutPeriod;
+		psChannel->uiStep = (muiStepNumerator + uiPeriod / 2) / uiPeriod;
+		psChannel->iMixPeriod = psChannel->iOutPeriod;
+	}
+
+	if (psChannel->fMixPan != psChannel->fPan)
+	{
+		fPan = psChannel->fPan * mfStereoSeparation;
+		psChannel->uiPanLeft = (uint32)((1.0 - fPan) * 0.5 * mfGain / 64.0 * MOD_GAIN_ONE * 256.0 + 0.5);
+		psChannel->uiPanRight = (uint32)((1.0 + fPan) * 0.5 * mfGain / 64.0 * MOD_GAIN_ONE * 256.0 + 0.5);
+		psChannel->fMixPan = psChannel->fPan;
+		psChannel->iMixVolume = -1;
+	}
+
+	if (psChannel->iMixVolume != psChannel->iOutVolume)
+	{
+		psChannel->iLeft = (int16)((psChannel->uiPanLeft * (uint32)psChannel->iOutVolume + 128) >> 8);
+		psChannel->iRight = (int16)((psChannel->uiPanRight * (uint32)psChannel->iOutVolume + 128) >> 8);
+		psChannel->iMixVolume = psChannel->iOutVolume;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds uiNumFrames frames of the channel's 8 bit samples, played nearest,
+// through its gain tables (made again when its gains change), to each
+// side of the mix it has a gain on: a channel panned to one side (as all
+// are with full stereo separation) is mixed once.  At the end of its
+// sample it loops, or stops if it doesn't loop.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModPlayer::MixNearest8(SModChannel* psChannel, SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames)
+{
+	SModGainTable*	psLeft;
+	SModGainTable*	psRight;
+	lsize			uiPosition;
+	uint16			uiFraction;
+	bool			bPlaying;
+	size			uiChannel;
+	bool			bLeft;
+	bool			bRight;
+
+	uiChannel = (size)(psChannel - masChannels);
+	psLeft = &mpsGainTables[uiChannel * 2];
+	psRight = &mpsGainTables[uiChannel * 2 + 1];
+	bRight = psChannel->iRight != 0;
+	bLeft = (psChannel->iLeft != 0) || !bRight;
+
+	bPlaying = true;
+	if (bLeft)
+	{
+		if (psChannel->iTableLeft != psChannel->iLeft)
+		{
+			ModBuildGainTable(psLeft, psChannel->iLeft);
+			psChannel->iTableLeft = psChannel->iLeft;
+		}
 		uiPosition = psChannel->uiPosition;
 		uiFraction = psChannel->uiFraction;
-		uiLength = psChannel->uiLength;
-		uiLoopFrame = psChannel->uiLoopFrame;
-		for (uiFrame = 0; uiFrame < uiNumFrames; uiFrame++)
-		{
-			iSample = GetBankSample(psChannel, uiPosition);
-			if (meInterpolation == MI_Linear)
-			{
-				iNext = GetSampleAt(psChannel, uiPosition + 1);
-				iSample += ((iNext - iSample) >> 8) * (int32)uiFraction >> 8;
-			}
-			piStereo[uiFrame * 2] += (iSample * iLeft) >> 8;
-			piStereo[uiFrame * 2 + 1] += (iSample * iRight) >> 8;
-
-			uiPosition += uiStepFrames;
-			uiFraction += uiStepFraction;
-			if (uiFraction < uiStepFraction)
-			{
-				uiPosition++;
-			}
-			if (uiPosition >= uiLength)
-			{
-				if (uiLoopFrame == SOUND_CEL_NO_LOOP)
-				{
-					psChannel->bPlaying = false;
-					break;
-				}
-				uiPosition = uiLoopFrame + (uiPosition - uiLength) % (uiLength - uiLoopFrame);
-			}
-		}
-		psChannel->uiPosition = uiPosition;
-		psChannel->uiFraction = uiFraction;
+		MixNearest8Side(psChannel, &psMix->sLeft, psLeft, uiFirstFrame, uiNumFrames, &uiPosition, &uiFraction, &bPlaying);
 	}
+	if (bRight)
+	{
+		if (psChannel->iTableRight != psChannel->iRight)
+		{
+			ModBuildGainTable(psRight, psChannel->iRight);
+			psChannel->iTableRight = psChannel->iRight;
+		}
+		uiPosition = psChannel->uiPosition;
+		uiFraction = psChannel->uiFraction;
+		MixNearest8Side(psChannel, &psMix->sRight, psRight, uiFirstFrame, uiNumFrames, &uiPosition, &uiFraction, &bPlaying);
+	}
+	psChannel->uiPosition = uiPosition;
+	psChannel->uiFraction = uiFraction;
+	if (!bPlaying)
+	{
+		psChannel->bPlaying = false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One side of MixNearest8, from *puiPosition and *puiFraction (left where
+// it stopped; *pbPlaying false if the sample ended without a loop).  The
+// sample is given to ModMixNearest8 at most MOD_SAMPLE_WINDOW frames at a
+// time.  A position past the end (a sample offset) plays a frame and
+// wraps, as each frame past the end does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModPlayer::MixNearest8Side(SModChannel* psChannel, SModMixSide* psMix, SModGainTable* psGains, uint16 uiFirstFrame, uint16 uiNumFrames, lsize* puiPosition, uint16* puiFraction, bool* pbPlaying)
+{
+	int8*	piBase;
+	lsize	uiPosition;
+	lsize	uiLength;
+	lsize	uiLeft;
+	uint16	uiFraction;
+	uint16	uiFrame;
+	uint16	uiOffset;
+	uint16	uiEnd;
+
+	piBase = &mpiBank8[psChannel->uiFirstFrame];
+	uiPosition = *puiPosition;
+	uiFraction = *puiFraction;
+	uiLength = psChannel->uiLength;
+	uiFrame = 0;
+	while (uiFrame < uiNumFrames)
+	{
+		if (uiPosition >= uiLength)
+		{
+			uiEnd = 1;
+		}
+		else
+		{
+			uiLeft = uiLength - uiPosition;
+			uiEnd = (uiLeft > MOD_SAMPLE_WINDOW) ? (uint16)MOD_SAMPLE_WINDOW : (uint16)uiLeft;
+		}
+		uiOffset = 0;
+		uiFrame = (uint16)(uiFrame + ModMixNearest8(psMix, (uint16)(uiFirstFrame + uiFrame), (uint16)(uiNumFrames - uiFrame), (SModSampleWindow*)&piBase[uiPosition], &uiOffset, &uiFraction, uiEnd, psChannel->uiStep, psGains));
+		uiPosition += uiOffset;
+		if (uiPosition >= uiLength)
+		{
+			if (psChannel->uiLoopFrame == SOUND_CEL_NO_LOOP)
+			{
+				*pbPlaying = false;
+				break;
+			}
+			uiPosition = psChannel->uiLoopFrame + (uiPosition - uiLength) % (uiLength - psChannel->uiLoopFrame);
+		}
+	}
+	*puiPosition = uiPosition;
+	*puiFraction = uiFraction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds uiNumFrames frames of the channel's samples (16 bit, or played
+// with linear interpolation): each sample (Q8) * gain >> MOD_MIX_SHIFT.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModPlayer::MixSamples(SModChannel* psChannel, SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames)
+{
+	uint16	uiFrame;
+	uint16	uiMix;
+	lsize	uiStepFrames;
+	uint16	uiStepFraction;
+	uint16	uiFraction;
+	int32	iSample;
+	int32	iNext;
+	lsize	uiPosition;
+	lsize	uiLength;
+	lsize	uiLoopFrame;
+
+	uiStepFrames = psChannel->uiStep >> 16;
+	uiStepFraction = (uint16)psChannel->uiStep;
+	uiPosition = psChannel->uiPosition;
+	uiFraction = psChannel->uiFraction;
+	uiLength = psChannel->uiLength;
+	uiLoopFrame = psChannel->uiLoopFrame;
+	uiMix = uiFirstFrame;
+	for (uiFrame = 0; uiFrame < uiNumFrames; uiFrame++)
+	{
+		iSample = GetBankSample(psChannel, uiPosition);
+		if (meInterpolation == MI_Linear)
+		{
+			iNext = GetSampleAt(psChannel, uiPosition + 1);
+			iSample += ((iNext - iSample) >> 8) * (int32)uiFraction >> 8;
+		}
+		psMix->sLeft.aiFrames[uiMix] = (int16)(psMix->sLeft.aiFrames[uiMix] + ((iSample * psChannel->iLeft) >> MOD_MIX_SHIFT));
+		psMix->sRight.aiFrames[uiMix] = (int16)(psMix->sRight.aiFrames[uiMix] + ((iSample * psChannel->iRight) >> MOD_MIX_SHIFT));
+		uiMix++;
+
+		uiPosition += uiStepFrames;
+		uiFraction += uiStepFraction;
+		if (uiFraction < uiStepFraction)
+		{
+			uiPosition++;
+		}
+		if (uiPosition >= uiLength)
+		{
+			if (uiLoopFrame == SOUND_CEL_NO_LOOP)
+			{
+				psChannel->bPlaying = false;
+				break;
+			}
+			uiPosition = uiLoopFrame + (uiPosition - uiLength) % (uiLength - uiLoopFrame);
+		}
+	}
+	psChannel->uiPosition = uiPosition;
+	psChannel->uiFraction = uiFraction;
 }
 
 

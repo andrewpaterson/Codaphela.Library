@@ -924,6 +924,9 @@
     <ClInclude Include="MODReader.h">
       <Filter>Source\Sound\Module</Filter>
     </ClInclude>
+    <ClInclude Include="ModMixer.h">
+      <Filter>Source\Sound\Module</Filter>
+    </ClInclude>
     <ClInclude Include="ModPlayer.h">
       <Filter>Source\Sound\Module</Filter>
     </ClInclude>
@@ -1653,6 +1656,9 @@
       <Filter>Source\Sound\Module</Filter>
     </ClCompile>
     <ClCompile Include="MODReader.cpp">
+      <Filter>Source\Sound\Module</Filter>
+    </ClCompile>
+    <ClCompile Include="ModMixer.cpp">
       <Filter>Source\Sound\Module</Filter>
     </ClCompile>
     <ClCompile Include="ModPlayer.cpp">

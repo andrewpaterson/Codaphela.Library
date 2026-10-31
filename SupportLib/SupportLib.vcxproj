@@ -294,6 +294,7 @@
     <ClInclude Include="Sound.h" />
     <ClInclude Include="ModSong.h" />
     <ClInclude Include="MODReader.h" />
+    <ClInclude Include="ModMixer.h" />
     <ClInclude Include="ModPlayer.h" />
     <ClInclude Include="SoundCel.h" />
     <ClInclude Include="SoundCelGroup.h" />
@@ -547,6 +548,7 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="ModSong.cpp" />
     <ClCompile Include="MODReader.cpp" />
+    <ClCompile Include="ModMixer.cpp" />
     <ClCompile Include="ModPlayer.cpp" />
     <ClCompile Include="SoundCel.cpp" />
     <ClCompile Include="SoundCelGroup.cpp" />

@@ -21,6 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MOD_PLAYER_H__
 #define __MOD_PLAYER_H__
 #include "ModSong.h"
+#include "ModMixer.h"
 
 
 #define MOD_PAULA_CLOCK_PAL			7093789.2	//The PAL Amiga's clock.  A sample at period p plays at clock / (2 * p) Hz.
@@ -31,10 +32,12 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The mixer is fixed point, so it is the same and fast enough on every target (the W65C816 and 65C64 have no floating
 //point hardware): samples are Q8 (an 8 bit sample shifted up 8), gains Q12 (4096 is 1), positions frames and a 16 bit
-//fraction.  A frame of the mix is the sum of each channel's sample * gain >> 8: MOD_MIX_ONE is full scale.
+//fraction.  A frame of the mix is 16 bits: the sum of each channel's sample * gain >> MOD_MIX_SHIFT (ModMixer.h), so
+//MOD_MIX_ONE is full scale.  The gains of all the channels (2 / channels each, at most) add up to at most 2.0, which
+//keeps the sum in 16 bits.  8 bit samples played nearest (a MOD's, as the Amiga plays them) are mixed through tables
+//of sample * gain (ModMixNearest8).
 #define MOD_GAIN_ONE				4096
-#define MOD_MIX_ONE					((int32)128 * MOD_GAIN_ONE)
-#define MOD_MIX_BLOCK				256			//Frames mixed at a time for Render.
+#define MOD_MIX_ONE					((int32)128 * 256 * MOD_GAIN_ONE >> MOD_MIX_SHIFT)
 
 
 enum EModInterpolation
@@ -65,6 +68,18 @@ struct SModChannel
 	//What this tick plays, after arpeggio, vibrato and tremolo.
 	int			iOutPeriod;
 	int			iOutVolume;
+
+	//The mixer's step and gains, worked out again when the period, volume or pan they came from change.
+	int			iMixPeriod;
+	uint32		uiStep;				//Frames a frame of the mix, 16.16.
+	float64		fMixPan;
+	uint32		uiPanLeft;			//Each side's gain for a volume of 1, Q8.
+	uint32		uiPanRight;
+	int			iMixVolume;
+	int16		iLeft;				//The gains, Q12.
+	int16		iRight;
+	int16		iTableLeft;			//The gains the channel's gain tables hold, -1 for none.
+	int16		iTableRight;
 
 	//Effects.
 	uint8		uiEffect;
@@ -102,7 +117,9 @@ protected:
 
 	int8*				mpiBank8;			//The song's sample bank's own samples when they are 8 bit mono (a MOD's are), read as they are
 	int16*				mpiBank16;			//mixed, otherwise the bank as 16 bit samples.
-	int32*				mpiMix;				//MOD_MIX_BLOCK stereo frames.
+	SModMix*			mpsMix;
+	SModGainTable*		mpsGainTables;		//Each channel's left and right gain tables.
+	uint32				muiStepNumerator;	//A period's step (16.16) is this / the period.
 	SModChannel			masChannels[MOD_MAX_CHANNELS];
 
 	size				muiOrder;
@@ -122,7 +139,7 @@ protected:
 	uint8*				mpuiPlayedRows;		//One for each order and row played.
 
 	float64				mfFramesPerTick;
-	float64				mfTickFrames;		//Frames of the current tick still to mix.
+	lsize				muiTickFrames;		//Frames of the current tick still to mix.
 	float64				mfFrameRemainder;
 	lsize				muiFramesPlayed;
 
@@ -132,6 +149,7 @@ public:
 
 	lsize			Render(float64* pfStereo, lsize uiNumFrames);
 	lsize			Render(int16* piStereo, lsize uiNumFrames);
+	lsize			Render8(SModUnsigned8* psOut, lsize uiNumFrames);
 	Ptr<CSound>		RenderSong(EPrimitiveType eType = PT_int16, lsize uiMaxFrames = 0);
 	lsize			SkipTick(void);
 
@@ -162,8 +180,12 @@ protected:
 	void			Vibrato(SModChannel* psChannel);
 	void			Tremolo(SModChannel* psChannel);
 	int				GetWave(int iWave, int iPosition);
-	lsize			RenderMix(int32* piStereo, lsize uiNumFrames);
-	void			Mix(int32* piStereo, lsize uiNumFrames);
+	lsize			RenderMix(SModMix* psMix, lsize uiNumFrames);
+	void			Mix(SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames);
+	void			UpdateMix(SModChannel* psChannel);
+	void			MixNearest8(SModChannel* psChannel, SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames);
+	void			MixNearest8Side(SModChannel* psChannel, SModMixSide* psMix, SModGainTable* psGains, uint16 uiFirstFrame, uint16 uiNumFrames, lsize* puiPosition, uint16* puiFraction, bool* pbPlaying);
+	void			MixSamples(SModChannel* psChannel, SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames);
 	int32			GetSampleAt(SModChannel* psChannel, lsize uiFrame);
 	int32			GetBankSample(SModChannel* psChannel, lsize uiFrame);
 };
