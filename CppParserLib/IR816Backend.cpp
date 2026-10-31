@@ -850,6 +850,8 @@ void CIR816Backend::FoldPointers(void)
 // A pointer plus a zero extended i16 x (ptradd p, zext x) that is only used
 // as the addresses of 1 word loads and stores isn't worked out: they put x
 // in Y and use p ([[D + p]:24 + Y]; the W65C816 adds Y to all 24 bits).
+// 2 word ones too when the ptradd is IRF_InArray: x + 2 then can't wrap
+// (LoadY's iny).
 // p must be a temporary that isn't folded itself, and nothing folded may
 // add to the ptradd (Y would be x plus a constant, which can wrap).  The
 // zext isn't worked out either when the folded ptradds are all its uses:
@@ -860,6 +862,7 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 {
 	CArrayTemplate<SIRInstruction*>	apsDefinitions;
 	CArrayTemplate<int32>			aiWordUses;		//Per temporary: its uses as a 1 word load's or store's address.
+	CArrayTemplate<int32>			aiPairUses;		//Per temporary: its uses as a 2 word load's or store's address.
 	CArrayTemplate<int32>			aiFoldedUses;	//Per zext: its uses by ptradds folded here.
 	CArrayTemplate<uint8>			abBase;			//Per temporary: something folded adds to it.
 	SIRInstruction*					psInstruction;
@@ -879,12 +882,14 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 	uiFalse = 0;
 	apsDefinitions.Init();
 	aiWordUses.Init();
+	aiPairUses.Init();
 	aiFoldedUses.Init();
 	abBase.Init();
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		apsDefinitions.Add(&psNull);
 		aiWordUses.Add(&iZero);
+		aiPairUses.Add(&iZero);
 		aiFoldedUses.Add(&iZero);
 		abBase.Add(&uiFalse);
 	}
@@ -921,6 +926,10 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 			{
 				(*aiWordUses.Get(sPointer.Index()))++;
 			}
+			else if (sPointer.IsTemporary() && (Words(psInstruction->sType) == 2) && !(psInstruction->uiFlags & IRF_Volatile))
+			{
+				(*aiPairUses.Get(sPointer.Index()))++;
+			}
 		}
 	}
 
@@ -933,7 +942,8 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[0].IsTemporary() ||
 				!psInstruction->asArguments[1].IsTemporary() || !masFoldBase.Get(psInstruction->sResult.Index())->IsNone() ||
 				!masFoldBase.Get(psInstruction->asArguments[0].Index())->IsNone() || *abBase.Get(psInstruction->sResult.Index()) ||
-				(*paiUses->Get(psInstruction->sResult.Index()) == 0) || (*paiUses->Get(psInstruction->sResult.Index()) != *aiWordUses.Get(psInstruction->sResult.Index())))
+				(*paiUses->Get(psInstruction->sResult.Index()) == 0) ||
+				(*paiUses->Get(psInstruction->sResult.Index()) != *aiWordUses.Get(psInstruction->sResult.Index()) + ((psInstruction->uiFlags & IRF_InArray) ? *aiPairUses.Get(psInstruction->sResult.Index()) : 0)))
 			{
 				continue;
 			}
@@ -962,6 +972,7 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 	}
 	apsDefinitions.Kill();
 	aiWordUses.Kill();
+	aiPairUses.Kill();
 	aiFoldedUses.Kill();
 	abBase.Kill();
 }
@@ -999,8 +1010,9 @@ bool CIR816Backend::IsFolded(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 //
 // Y for word iOffset / 2 of a load or store through sPointer: the folded
-// index (a 1 word access, so iOffset is 0), else the constant.  Word 0 with
-// no index needs no Y ([[D + p]:24]): returns whether Y was loaded.
+// index (plus iOffset by iny: a 2 word access is IRF_InArray, FoldIndices,
+// so it can't wrap), else the constant.  Word 0 with no index needs no Y
+// ([[D + p]:24]): returns whether Y was loaded.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
@@ -1018,6 +1030,10 @@ bool CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
 		return true;
 	}
 	Operand("ldy", sIndex, 0);
+	for (; iOffset > 0; iOffset--)
+	{
+		Line("iny");
+	}
 	return true;
 }
 
@@ -2095,6 +2111,16 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 			{
 				aiClobbers.Add(&iPosition);
 			}
+			if (((psInstruction->uiOpcode == IRO_Load) || (psInstruction->uiOpcode == IRO_Store)) && (Words(psInstruction->sType) > 1))
+			{
+				//A 2 word access's folded index is read again for its second word (LoadY), after X may hold the first
+				//(a 32 bit result in A and X).
+				sValue = FoldedIndex(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1]);
+				if (sValue.IsTemporary())
+				{
+					*aiScore.Get(sValue.Index()) += IR816_X_BAD;
+				}
+			}
 			for (iArgument = 0; iArgument < 2; iArgument++)
 			{
 				sValue = psInstruction->asArguments[iArgument];
@@ -2823,6 +2849,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	muiSource = 0;
 
 	ExpandMultiplies();
+	SinkSteps();
 	pcFunction->Renumber();
 
 	//The blocks' dominators and loops, for Layout (the loop depths PackTemporaries and AllocateX weigh by) and
@@ -2892,6 +2919,92 @@ static int IR816ShiftAddCost(int iWords, int iShift, int iAdds)
 		iCost = 5 * iWords + 12 * iWords * (iShift / 8) + 7 * iWords * (iShift % 8);
 	}
 	return iCost + 12 * iWords * iAdds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A loop's step p2 = p + c (add, sub or ptradd of a constant; p a phi and
+// p2 the value it takes from round the loop) is moved down its block past
+// the instructions after it that read p (*p++ reads p after working out
+// p + 1).  Then p's place is free when p2 is made, so PackTemporaries can
+// give them one place (a phi and its value) and StepInPlace step it there,
+// instead of copying p2 back to p each time round.  Only past instructions
+// that don't use p2.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SinkSteps(void)
+{
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcHead;
+	SIRInstruction*	psStep;
+	SIRInstruction*	psLater;
+	SIRInstruction	sMoved;
+	SIRPhi*			psPhi;
+	size			ui;
+	size			uj;
+	size			uiStep;
+	size			uiLater;
+	size			uiLast;
+	size			uiPhi;
+	size			uiArgument;
+	bool			bStep;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcHead = mpcFunction->GetBlock(ui);
+		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
+		{
+			psPhi = pcHead->masPhis.Get(uiPhi);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				//The step making the phi's argument: in which block, and where.
+				psStep = NULL;
+				pcBlock = NULL;
+				uiStep = 0;
+				for (uj = 0; (uj < mpcFunction->NumBlocks()) && !psStep; uj++)
+				{
+					pcBlock = mpcFunction->GetBlock(uj);
+					for (uiStep = 0; uiStep < pcBlock->masInstructions.NumElements(); uiStep++)
+					{
+						if (pcBlock->masInstructions.Get(uiStep)->sResult.Equals(psPhi->asArguments.Get(uiArgument)->sValue))
+						{
+							psStep = pcBlock->masInstructions.Get(uiStep);
+							break;
+						}
+					}
+				}
+				bStep = psStep && ((psStep->uiOpcode == IRO_Add) || (psStep->uiOpcode == IRO_Sub) || (psStep->uiOpcode == IRO_PtrAdd)) &&
+						psStep->asArguments[0].Equals(psPhi->sResult) && psStep->asArguments[1].IsConstant() && psStep->sResult.IsTemporary();
+				if (!bStep)
+				{
+					continue;
+				}
+
+				//The last instruction after it that reads p, with none between using p2.
+				uiLast = uiStep;
+				for (uiLater = uiStep + 1; uiLater < pcBlock->masInstructions.NumElements(); uiLater++)
+				{
+					psLater = pcBlock->masInstructions.Get(uiLater);
+					if (psLater->asArguments[0].Equals(psStep->sResult) || psLater->asArguments[1].Equals(psStep->sResult))
+					{
+						break;
+					}
+					if (psLater->asArguments[0].Equals(psPhi->sResult) || psLater->asArguments[1].Equals(psPhi->sResult))
+					{
+						uiLast = uiLater;
+					}
+				}
+				if (uiLast == uiStep)
+				{
+					continue;
+				}
+				sMoved = *psStep;
+				pcBlock->masInstructions.RemoveAt(uiStep, true);
+				pcBlock->masInstructions.InsertAt(&sMoved, uiLast);
+			}
+		}
+	}
 }
 
 
@@ -3135,6 +3248,9 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	PeepholeBranches(mpszOut, uiStart);
 	PeepholeRegisters(mpszOut, uiStart);
 	RemoveUnreadStores(mpszOut, uiStart);
+
+	//The passes after Peephole leave stores and loads it would have taken out.
+	RemoveDeadStores(mpszOut, uiStart);
 }
 
 
@@ -4127,6 +4243,88 @@ static bool IR816SetsXFirst(CArrayChars* paszLines, size uiFrom)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether c may be part of a name (so an L after it doesn't start a label).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsNameChar(char c)
+{
+	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The local labels (L and a number) the lines name anywhere but in their
+// own definitions (branches, jumps and jump tables' .words), marked by
+// number in pabUsed.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816FindUsedLabels(CArrayChars* paszLines, CArrayTemplate<uint8>* pabUsed)
+{
+	const char*	szText;
+	size		ui;
+	size		uiNumber;
+	uint8		uiZero;
+	uint8		uiOne;
+
+	uiZero = 0;
+	uiOne = 1;
+	pabUsed->FakeSetUsedElements(0);
+	for (ui = 0; ui < paszLines->NumElements(); ui++)
+	{
+		szText = paszLines->GetText(ui);
+		if (szText[0] == 'L')
+		{
+			//A label's definition.
+			continue;
+		}
+		for (; *szText; szText++)
+		{
+			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == paszLines->GetText(ui)) || !IR816IsNameChar(szText[-1])))
+			{
+				uiNumber = (size)atoi(&szText[1]);
+				while (pabUsed->NumElements() <= uiNumber)
+				{
+					pabUsed->Add(&uiZero);
+				}
+				pabUsed->Set(uiNumber, &uiOne);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False if psz is a local label's definition ("L12:") that nothing names
+// (IR816FindUsedLabels); true for any other line.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LabelUsed(CChars* psz, CArrayTemplate<uint8>* pabUsed)
+{
+	const char*	szText;
+	size		ui;
+	size		uiNumber;
+
+	szText = psz->Text();
+	if ((szText[0] != 'L') || (szText[1] < '0') || (szText[1] > '9'))
+	{
+		return true;
+	}
+	for (ui = 1; (szText[ui] >= '0') && (szText[ui] <= '9'); ui++)
+	{
+	}
+	if ((szText[ui] != ':') || (szText[ui + 1] != '\0'))
+	{
+		return true;
+	}
+	uiNumber = (size)atoi(&szText[1]);
+	return (uiNumber < pabUsed->NumElements()) && (*pabUsed->Get(uiNumber) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Writes a branch line, "\t\tszMnemonic szLabel", over psz.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4157,19 +4355,20 @@ static void IR816SetBranch(CChars* psz, const char* szMnemonic, const char* szLa
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 {
-	CArrayChars		aszLines;
-	CChars			szOut;
-	CChars*			psz;
-	SIR816Line		sLine;
-	SIR816Line		sLine2;
-	SIR816Line		sLine3;
-	char			szLabel[32];
-	char			szLabel2[32];
-	char			szLabel3[32];
-	size			ui;
-	size			uiTarget;
-	int				iPass;
-	bool			bChanged;
+	CArrayTemplate<uint8>	abUsed;
+	CArrayChars				aszLines;
+	CChars					szOut;
+	CChars*					psz;
+	SIR816Line				sLine;
+	SIR816Line				sLine2;
+	SIR816Line				sLine3;
+	char					szLabel[32];
+	char					szLabel2[32];
+	char					szLabel3[32];
+	size					ui;
+	size					uiTarget;
+	int						iPass;
+	bool					bChanged;
 
 	aszLines.Init();
 	aszLines.Split(pszDest->Text() + uiStart, '\n');
@@ -4177,12 +4376,22 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	{
 		aszLines.RemoveTail();
 	}
+	abUsed.Init();
 	for (iPass = 0; iPass < 8; iPass++)
 	{
 		bChanged = false;
+		IR816FindUsedLabels(&aszLines, &abUsed);
 		for (ui = 0; ui < aszLines.NumElements(); ui++)
 		{
 			psz = aszLines.Get(ui);
+			if (!IR816LabelUsed(psz, &abUsed))
+			{
+				//A label nothing goes to (its branches were sent elsewhere): it would keep the rules below apart.
+				aszLines.Remove(ui);
+				ui--;
+				bChanged = true;
+				continue;
+			}
 			if (IR816BranchLine(psz, &sLine, szLabel))
 			{
 				//To a bra: straight to where it goes.
@@ -4308,6 +4517,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	pszDest->Append(szOut);
 	szOut.Kill();
 	aszLines.Kill();
+	abUsed.Kill();
 }
 
 

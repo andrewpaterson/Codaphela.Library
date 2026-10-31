@@ -60,6 +60,8 @@ struct SCPP65Type
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
+	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
+	SCPP65Type*		psUnqualified;	//The type without volatile (itself when it isn't volatile).
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -75,6 +77,7 @@ struct SCPP65Type
 	bool	IsWide(void);
 	bool	Is64(void);
 	bool	Equals(SCPP65Type* psOther);
+	SCPP65Type*	Unqualified(void);
 	int		GetElementBytes(void);
 	void	Append(CChars* psz);
 };
@@ -121,6 +124,7 @@ public:
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
 	SCPP65Type*			Class(SCPP65Class* psClass);
+	SCPP65Type*			Volatile(SCPP65Type* psType);
 	SCPP65Type*			Promote(SCPP65Type* psType);
 	SCPP65Type*			Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
 

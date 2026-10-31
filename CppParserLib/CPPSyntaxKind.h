@@ -104,6 +104,7 @@ enum ECPPSyntax
 	CPPS_TypeTraitExpression,
 	CPPS_PackExpansionExpression,
 	CPPS_NoexceptExpression,
+	CPPS_LazyDeclaration,
 };
 
 

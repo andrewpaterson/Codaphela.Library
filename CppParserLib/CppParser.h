@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppTokeniser.h"
 #include "CTReservedWord.h"
 #include "CPPSyntaxes.h"
+#include "CPPHeaderIndex.h"
 
 
 //Where the parser is.  bHalf is set when the first '>' of a '>>' closed a template argument list.  [temp.names] 3
@@ -78,7 +79,7 @@ enum ECPPDeclaratorKind
 //C++14 recursive descent parser.  Names are looked up as they are parsed so types can be told from values.  Member
 //function bodies are parsed when their class is complete.  Declarations in system headers are only skimmed: their
 //function bodies are skipped and parse errors in them are ignored.
-class CCPPParser
+class CCPPParser : public CCPPLazyLoader
 {
 protected:
 	CCPPTokeniser*			mpcTokeniser;
@@ -108,6 +109,11 @@ protected:
 	int64					mlliPack;
 	int						miPack;					//The current #pragma pack, as __pragma(pack(n)): 0 for none.
 	CArrayInt				maiPacks;				//pack(push) saves miPack here.
+	CCPPHeaderIndex*		mpcHeaderIndex;			//Header declarations seen before, which are parsed when first used (SetHeaderIndex), or NULL.
+	CArrayTemplate<CCPPSymbol*>*	mpapcRecorded;	//The symbols the namespace declaration being parsed declares, for the index.
+	CCPPScope*				mpcRecordScope;
+	size					muiLazySkipped;			//Header declarations left unparsed...
+	size					muiLazyLoaded;			//...and how many of them were parsed when used.
 
 public:
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
@@ -116,8 +122,21 @@ public:
 	int								NumErrors(void);
 	int								NumSkimmedErrors(void);
 	void							ReportSkimmedErrors(bool bReport);
+	void							SetHeaderIndex(CCPPHeaderIndex* pcIndex);
+	void							LoadLazy(CCPPScope* pcScope, int64 lliName) override;
+	size							NumLazySkipped(void);
+	size							NumLazyLoaded(void);
 
 protected:
+	//Lazy header declarations.  CppParserLazy.cpp
+	bool							HeaderTokens(int iFirst, int iLast, CSourceFile** ppcFile, uint64* puiHash);
+	bool							SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent);
+	void							RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclaration* pcDeclaration, CArrayTemplate<CCPPSymbol*>* papcDeclared);
+	void							LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy);
+	CCPPSymbol*						MemberDefinitionClass(CCPPSyntaxDeclaration* pcDeclaration);
+	CCPPSyntaxLazyDeclaration*		UnloadedClass(const char* szName);
+	bool							HasParsedSymbol(const char* szName);
+
 	//Tokens.  CppParser.cpp
 	CCPPToken*						Peek(int iAhead = 0);
 	bool							Is(ECppTokens eToken);

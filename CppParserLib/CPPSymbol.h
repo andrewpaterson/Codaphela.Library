@@ -49,6 +49,19 @@ class CCPPSyntax;
 
 
 //A declared name.  Names are resolved while parsing so the parser can tell types from values.  [basic.lookup]
+class CCPPSymbol;
+class CCPPScope;
+class CCPPSyntaxLazyDeclaration;
+
+
+//Parses a lazy header declaration when one of its names is first looked up (CCPPParser).
+class CCPPLazyLoader
+{
+public:
+	virtual void	LoadLazy(CCPPScope* pcScope, int64 lliName) =0;
+};
+
+
 class CCPPSymbol
 {
 public:
@@ -58,6 +71,8 @@ public:
 	CCPPScope*		mpcScope;			//The scope the name is declared in.
 	CCPPScope*		mpcMembers;			//The members of a namespace, class or enum, or of the class a typedef names.
 	CCPPSymbol*		mpcNext;			//Another declaration of the name in the same scope, such as an overload.
+	CCPPSyntaxLazyDeclaration*	mpcLazy;	//A header declaration not parsed yet: this symbol stands for its name.
+	CCPPLazyLoader*				mpcLoader;	//Parses mpcLazy.
 
 	void	Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
 	bool	IsType(void);

@@ -527,6 +527,10 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 		if (pcEnumeratorSymbol && !pcEnum->mbScoped)
 		{
 			pcDeclarationScope->AddAlias(lliName, pcEnumeratorSymbol);
+			if (mpapcRecorded && (pcDeclarationScope == mpcRecordScope))
+			{
+				mpapcRecorded->Add(&pcEnumeratorSymbol);
+			}
 		}
 
 		apcAttributes.Init();

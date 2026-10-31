@@ -33,6 +33,8 @@ void CCPPSymbol::Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclara
 	mpcScope = pcScope;
 	mpcMembers = NULL;
 	mpcNext = NULL;
+	mpcLazy = NULL;
+	mpcLoader = NULL;
 }
 
 

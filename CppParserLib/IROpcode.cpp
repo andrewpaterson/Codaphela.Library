@@ -93,7 +93,7 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 
 	{ "slot", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_Constant }, IRRS_Same, 0, IR_PURE },
 	{ "argaddr", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_None }, IRRS_Same, 0, IR_PURE },
-	{ "ptradd", IRSH_Operands, IRTM_Pointer, 0, { IROK_Same, IROK_Offset }, IRRS_Same, IRF_InBank, IR_PURE },
+	{ "ptradd", IRSH_Operands, IRTM_Pointer, 0, { IROK_Same, IROK_Offset }, IRRS_Same, IRF_InBank | IRF_InArray, IR_PURE },
 	IR_CONVERSION("ptrtoi", IRTM_Integer, IRTM_Pointer),
 	IR_CONVERSION("itoptr", IRTM_Pointer, IRTM_Integer),
 	IR_CONVERSION("spacecast", IRTM_Pointer, IRTM_Pointer),
@@ -110,6 +110,7 @@ SIRFlagName	gasIRFlagNames[IRF_NumWordFlags] =
 	{ IRF_InBank, "inbank" },
 	{ IRF_ThisCall, "thiscall" },
 	{ IRF_Hot, "hot" },
+	{ IRF_InArray, "inarray" },
 };
 
 

@@ -576,7 +576,7 @@ bool CIROptimiser::BiasSignedIndices(void)
 			psInstruction = pcBlock->masInstructions.Get(uj);
 			psInstruction->asArguments[0] = sBiased;
 			psInstruction->asArguments[1] = sIndex;
-			psInstruction->uiFlags &= ~IRF_InBank;
+			psInstruction->uiFlags &= ~(IRF_InBank | IRF_InArray);
 			bChanged = true;
 
 			//The inserts moved the block's instructions.
@@ -8774,6 +8774,7 @@ bool CIROptimiser::SplitLoopAddresses(void)
 		psAddress = psFound->pcBlock->masInstructions.Get(psFound->uiInstruction + 1);
 		psAddress->asArguments[0] = sInner;
 		psAddress->asArguments[1] = psFound->sVariant;
+		psAddress->uiFlags &= ~IRF_InArray;
 	}
 	asFound.Kill();
 	return bChanged;

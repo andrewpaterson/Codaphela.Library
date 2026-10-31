@@ -806,6 +806,34 @@ bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if a pointer operator is qualified volatile (T* volatile p): the
+// pointer itself is volatile.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsVolatilePointer(CCPPSyntaxPointerOperator* pcPointer)
+{
+	CCPPSyntax*	pcQualifier;
+	ECppTokens	eKeyword;
+	size		i;
+
+	for (i = 0; i < pcPointer->macpQualifiers.NumElements(); i++)
+	{
+		pcQualifier = pcPointer->macpQualifiers.GetPtr(i);
+		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
+		{
+			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
+			if ((eKeyword == CT_volatile) || (eKeyword == CT___volatile__))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __attribute__((used)) (or __used__) on a declarator: the global is kept even if
 // nothing uses it (its constructor may register it somewhere).
 //
@@ -827,7 +855,7 @@ bool CCPP65Generator::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
 			pcToken = mpcTokeniser->Get(iToken);
 			if (pcToken->IsIdentifier())
 			{
-				szName = mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->mlliIdentifier, &iLength);
+				szName = mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength);
 				if (((iLength == 4) && (memcmp(szName, "used", 4) == 0)) || ((iLength == 8) && (memcmp(szName, "__used__", 8) == 0)))
 				{
 					return true;
@@ -1274,7 +1302,7 @@ int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 	{
 		return -1;
 	}
-	return ((CCTIdentifier*)pcToken)->mlliIdentifier;
+	return ((CCTIdentifier*)pcToken)->miIdentifier;
 }
 
 
@@ -1323,6 +1351,7 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 			break;
 		case CPPS_EmptyDeclaration:
 		case CPPS_StaticAssert:
+		case CPPS_LazyDeclaration:		//A header declaration the unit never used, so never parsed.
 			break;
 		default:
 			bResult &= Error(pcDeclaration, "This declaration is not supported by the compiler yet");
@@ -2130,6 +2159,10 @@ SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 	SCPP65Type*	psType;
 
 	psType = GetBaseType(pcSpecifiers, pcNode);
+	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_VOLATILE))
+	{
+		psType = mcTypes.Volatile(psType);
+	}
 	if (!psType || !pcDeclarator)
 	{
 		return psType;
@@ -2162,6 +2195,10 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 		case CPPP_Pointer:
 			psType = mcTypes.Pointer(psType);
+			if (IsVolatilePointer(pcPointer))
+			{
+				psType = mcTypes.Volatile(psType);
+			}
 			break;
 		case CPPP_Reference:
 		case CPPP_RValueReference:

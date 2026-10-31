@@ -225,6 +225,12 @@
     <ClCompile Include="CppParserDeclarators.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="CppParserLazy.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPHeaderIndex.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="CppParserDeclarations.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
@@ -406,6 +412,9 @@
       <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntaxFunctionSuffix.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLazyDeclaration.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntaxFunctionDefinition.cpp">
@@ -809,6 +818,9 @@
     <ClInclude Include="CppParser.h">
       <Filter>Source\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="CPPHeaderIndex.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
     <ClInclude Include="CPPScope.h">
       <Filter>Source\Symbols</Filter>
     </ClInclude>
@@ -990,6 +1002,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxFunctionSuffix.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLazyDeclaration.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxFunctionDefinition.h">

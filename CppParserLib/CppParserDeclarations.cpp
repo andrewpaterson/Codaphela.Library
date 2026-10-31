@@ -35,6 +35,10 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 	int							iClassDepth;
 	bool						bNoGreater;
 	CCPPSyntaxDeclaration*		pcSkipped;
+	bool						bRecord;
+	CArrayTemplate<CCPPSymbol*>		apcDeclared;
+	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
+	CCPPScope*					pcRecordScope;
 
 	//[dcl.dcl]  A declaration that can't be parsed is skipped and kept as its tokens.
 	while (!IsEnd())
@@ -52,7 +56,30 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 		pcScope = mpcScope;
 		iClassDepth = miClassDepth;
 		bNoGreater = mbNoGreater;
+		bRecord = mpcHeaderIndex && (miTentative == 0) && (mpcScope->meKind == CPPSC_Namespace);
+		if (bRecord && SkipLazy(papcDeclarations, pcParent))
+		{
+			continue;
+		}
+		if (bRecord)
+		{
+			apcDeclared.Init();
+			papcRecorded = mpapcRecorded;
+			pcRecordScope = mpcRecordScope;
+			mpapcRecorded = &apcDeclared;
+			mpcRecordScope = mpcScope;
+		}
 		pcDeclaration = ParseDeclaration(pcParent, CPPDC_Namespace);
+		if (bRecord)
+		{
+			mpapcRecorded = papcRecorded;
+			mpcRecordScope = pcRecordScope;
+			if (pcDeclaration)
+			{
+				RecordHeaderDeclaration(sStart.iToken, PreviousToken(), pcDeclaration, &apcDeclared);
+			}
+			apcDeclared.Kill();
+		}
 		if (pcDeclaration)
 		{
 			papcDeclarations->Add(pcDeclaration);

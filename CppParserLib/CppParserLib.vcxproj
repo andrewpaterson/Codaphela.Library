@@ -185,8 +185,11 @@
   <ItemGroup>
     <ClCompile Include="CPP65Assembly.cpp" />
     <ClCompile Include="CPPErrors.cpp" />
+    <ClCompile Include="CPPHeaderIndex.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
+    <ClCompile Include="CppParserLazy.cpp" />
+    <ClCompile Include="CPPSyntaxLazyDeclaration.cpp" />
     <ClCompile Include="IRBackend.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
     <ClCompile Include="IR816Backend.cpp" />
@@ -388,8 +391,10 @@
   <ItemGroup>
     <ClInclude Include="CPP65Assembly.h" />
     <ClInclude Include="CPPErrors.h" />
+    <ClInclude Include="CPPHeaderIndex.h" />
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
+    <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />
     <ClInclude Include="IR65Backend.h" />
     <ClInclude Include="IR816Backend.h" />

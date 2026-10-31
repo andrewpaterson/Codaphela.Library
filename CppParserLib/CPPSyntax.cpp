@@ -104,8 +104,9 @@ char* gaszSyntaxKindNames[] =
 	"TypeTraitExpression",
 	"PackExpansionExpression",
 	"NoexceptExpression",
+	"LazyDeclaration",
 };
-static_assert(sizeof(gaszSyntaxKindNames) / sizeof(char*) == CPPS_NoexceptExpression + 1, "gaszSyntaxKindNames must have a name for every ECPPSyntax.");
+static_assert(sizeof(gaszSyntaxKindNames) / sizeof(char*) == CPPS_LazyDeclaration + 1, "gaszSyntaxKindNames must have a name for every ECPPSyntax.");
 
 
 //////////////////////////////////////////////////////////////////////////

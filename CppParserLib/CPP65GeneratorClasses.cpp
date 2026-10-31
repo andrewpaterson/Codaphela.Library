@@ -5585,5 +5585,5 @@ int64 CCPP65Generator::GetComponentName(CCPPSyntaxNameComponent* pcComponent)
 	{
 		return -1;
 	}
-	return ((CCTIdentifier*)pcToken)->mlliIdentifier;
+	return ((CCTIdentifier*)pcToken)->miIdentifier;
 }
