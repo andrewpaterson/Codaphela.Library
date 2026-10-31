@@ -1863,10 +1863,11 @@ void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcCom
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lead of a port on a junction: where several wires meet, or on a
-// wire that goes on through it.  It has no wires, and ends on the
-// junction, which stays where it is, so the port is routed back to it.
-// None if no wire is on the port, or a moved wire is (it moves with the
+// The lead of a port on a junction: where several wires meet, on a wire
+// that goes on through it, or on a port of a component that isn't moving.
+// It has no wires, and ends on the junction, which stays where it is, so
+// the port is routed back to it (to the port there, if there is one).
+// None if nothing is on the port, or a moved wire is (it moves with the
 // port).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1876,6 +1877,9 @@ void CCircuitEditor::AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* 
 	size				i;
 	bool				bOnWire;
 	CTraceView*			pcTrace;
+	CPortView*			pcPortAt;
+	CPortView*			pcOther;
+	CArrayPortViewPtr	apcPortViews;
 	SMoveLead*			psLead;
 	CArrayTraceViewPtr	apcNoWires;
 
@@ -1893,7 +1897,21 @@ void CCircuitEditor::AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* 
 			bOnWire = true;
 		}
 	}
-	if (!bOnWire)
+
+	pcPortAt = NULL;
+	apcPortViews.Init();
+	mpcCircuit->CollectPortViews(&apcPortViews);
+	for (i = 0; i < apcPortViews.NumElements(); i++)
+	{
+		pcOther = apcPortViews.GetPtr(i);
+		if ((pcOther->GetGridPosition() == sPoint) && (papcComponents->Find(pcOther->GetOwner()) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			pcPortAt = pcOther;
+			break;
+		}
+	}
+	apcPortViews.Kill();
+	if (!bOnWire && (pcPortAt == NULL))
 	{
 		return;
 	}
@@ -1904,7 +1922,11 @@ void CCircuitEditor::AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* 
 	psLead->sTarget = sPoint;
 	psLead->apcTraces.Init();
 	psLead->pcNetPort = FindNetPort(sPoint, &apcNoWires, papcComponents);
-	psLead->pcTargetPort = psLead->pcNetPort;
+	psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : psLead->pcNetPort;
+	if (psLead->pcNetPort == NULL)
+	{
+		psLead->pcNetPort = pcPortAt;
+	}
 	apcNoWires.Kill();
 }
 
