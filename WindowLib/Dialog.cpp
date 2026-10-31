@@ -223,10 +223,10 @@ Ptr<CCheckBox> CDialog::AddCheckBox(const char* szLabel, bool bTicked)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComboBox> CDialog::AddComboBox(const char* szLabel, const char** aszItems, int iNumItems, int iSelected)
+Ptr<CComboBox> CDialog::AddComboBox(const char* szLabel, const char** aszItems, size iNumItems, int iSelected)
 {
 	Ptr<CComboBox>	pCombo;
-	int				i;
+	size			i;
 
 	pCombo = OMalloc<CComboBox>(mpDialog, mpsLook->pTheme);
 	for (i = 0; i < iNumItems; i++)

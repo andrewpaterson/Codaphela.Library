@@ -193,9 +193,9 @@ void Int16Vec4Swap(SInt16Vec4* ps1, SInt16Vec4* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int16Vec4MinMax(SInt16Vec4* psMin, SInt16Vec4* psMax, SInt16Vec4* asIn, int iInStride, int iNumPoints)
+void Int16Vec4MinMax(SInt16Vec4* psMin, SInt16Vec4* psMax, SInt16Vec4* asIn, int iInStride, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SInt16Vec4*	psIn;
 
 	if (iNumPoints > 0)

@@ -29,11 +29,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 // IsComplete and IsSingleCode.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHuffmanDecoder::Init(uint8* puiLengths, int iNumSymbols)
+bool CHuffmanDecoder::Init(uint8* puiLengths, size iNumSymbols)
 {
 	int16	aiOffsets[DEFLATE_MAX_BITS + 1];
-	int		iLength;
-	int		iSymbol;
+	size	iLength;
+	size	iSymbol;
 	int		iLeft;
 
 	for (iLength = 0; iLength <= DEFLATE_MAX_BITS; iLength++)
@@ -44,7 +44,7 @@ bool CHuffmanDecoder::Init(uint8* puiLengths, int iNumSymbols)
 	{
 		maiCount[puiLengths[iSymbol]]++;
 	}
-	miNumCodes = iNumSymbols - maiCount[0];
+	miNumCodes = (int)iNumSymbols - maiCount[0];
 
 	//Each length doubles the number of possible codes.  Running out means the lengths are over subscribed.
 	iLeft = 1;
@@ -87,16 +87,16 @@ bool CHuffmanDecoder::Init(uint8* puiLengths, int iNumSymbols)
 // at every value of the bits that follow it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CHuffmanDecoder::InitFast(uint8* puiLengths, int iNumSymbols)
+void CHuffmanDecoder::InitFast(uint8* puiLengths, size iNumSymbols)
 {
 	uint32	auiNextCode[DEFLATE_MAX_BITS + 1];
 	uint32	uiCode;
 	uint32	uiReversed;
 	uint32	uiIndex;
 	uint16	uiEntry;
-	int		iLength;
-	int		iSymbol;
-	int		i;
+	uint	iLength;
+	size	iSymbol;
+	uint	i;
 
 	memset(mauiFast, 0, sizeof(mauiFast));
 
@@ -213,7 +213,7 @@ bool CHuffmanDecoder::DecodeSlow(CBitReader* pcReader, int* piSymbol)
 	int		iCode;
 	int		iFirst;
 	int		iIndex;
-	int		iLength;
+	uint	iLength;
 	int		iCount;
 
 	iCode = 0;
@@ -221,7 +221,7 @@ bool CHuffmanDecoder::DecodeSlow(CBitReader* pcReader, int* piSymbol)
 	iIndex = 0;
 	for (iLength = 1; iLength <= DEFLATE_MAX_BITS; iLength++)
 	{
-		if ((iLength > pcReader->NumBits()) && !pcReader->FillByte())
+		if (((int)iLength > pcReader->NumBits()) && !pcReader->FillByte())
 		{
 			return false;
 		}

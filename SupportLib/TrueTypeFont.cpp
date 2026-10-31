@@ -1072,11 +1072,11 @@ bool CTrueTypeFont::ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDept
 // repeat and coordinates are deltas from the previous point.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadSimpleGlyph(lsize uiOffset, lsize uiLength, int iNumContours, CTrueTypeOutline* pcOutline)
+bool CTrueTypeFont::ReadSimpleGlyph(lsize uiOffset, lsize uiLength, size iNumContours, CTrueTypeOutline* pcOutline)
 {
 	lsize			uiEnd;
 	lsize			uiFirstPoint;
-	int				i;
+	size			i;
 	uint16			uiContourEnd;
 	int				iLastContourEnd;
 	lsize			uiNumPoints;

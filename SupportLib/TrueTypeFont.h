@@ -127,7 +127,7 @@ protected:
 	int			GetGlyphIndexFormat4(uint32 uiCodePoint);
 	int			GetGlyphIndexFormat12(uint32 uiCodePoint);
 	bool		GetGlyphData(int iGlyph, lsize* puiOffset, lsize* puiLength);
-	bool		ReadSimpleGlyph(lsize uiOffset, lsize uiLength, int iNumContours, CTrueTypeOutline* pcOutline);
+	bool		ReadSimpleGlyph(lsize uiOffset, lsize uiLength, size iNumContours, CTrueTypeOutline* pcOutline);
 	bool		ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueTypeOutline* pcOutline, int iDepth);
 	bool		ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth);
 

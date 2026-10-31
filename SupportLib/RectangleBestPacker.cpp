@@ -307,7 +307,7 @@ void CRectangleBestPacker::AddDefaultAttempts(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::AddWidthAttempts(EPackRotation eRotation, bool bRotateToFit)
 {
-	int32					i;
+	uint32					i;
 	float32					fStartWidth;
 	float32					fEndWidth;
 	int32					iLastWidth;

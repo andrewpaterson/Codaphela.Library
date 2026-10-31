@@ -163,9 +163,9 @@ bool SSmartSource::IsSimilar(lsize uiPixel1, lsize uiPixel2)
 //////////////////////////////////////////////////////////////////////////
 int SmartChooseGroup(SSmartSource* psSource, lsize* puiPixels, float64* pafWeights, int* paiGroups)
 {
-	int		i;
-	int		j;
-	int		k;
+	size	i;
+	size	j;
+	size	k;
 	int		iOld;
 	float64	afMembership[SMART_CORNERS];
 	int		iBest;
@@ -175,7 +175,7 @@ int SmartChooseGroup(SSmartSource* psSource, lsize* puiPixels, float64* pafWeigh
 
 	for (i = 0; i < SMART_CORNERS; i++)
 	{
-		paiGroups[i] = i;
+		paiGroups[i] = (int)i;
 		afMembership[i] = 0.0;
 	}
 
@@ -242,7 +242,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64					fX;
 	float64					fY;
 	int						iGroup;
-	int						i;
+	size					i;
 	float64					fTotal;
 	float64					fValue;
 	lsize					uiDestPixel;

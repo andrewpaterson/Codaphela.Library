@@ -112,8 +112,8 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 //////////////////////////////////////////////////////////////////////////
 bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3)
 {
-	int						x;
-	int						y;
+	size					x;
+	size					y;
 	CImageAccessor*			pcAccessor1;
 	CImageAccessor*			pcAccessor2;
 	CImageAccessor*			pcAccessor3;
@@ -134,9 +134,9 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	iSize = (int)pcAccessor1->GetByteSize();
 
 	iWidth = pcImage->GetWidth();
-	for (y = 0; y < iWidth; y++)
+	for (y = 0; y < (size)iWidth; y++)
 	{
-		for (x = 0; x < iWidth; x++)
+		for (x = 0; x < (size)iWidth; x++)
 		{
 			psColour1 = (SImageColour*)pcAccessor1->Get(x, y);
 			psColour2 = (SImageColour*)pcAccessor2->Get(x, y);

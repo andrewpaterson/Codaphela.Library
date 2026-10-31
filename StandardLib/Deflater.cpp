@@ -42,7 +42,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 int DeflateLengthCode(int iLength)
 {
-	int		iCode;
+	uint	iCode;
 
 	for (iCode = DEFLATE_NUM_LENGTH_CODES - 1; iCode > 0; iCode--)
 	{
@@ -61,7 +61,7 @@ int DeflateLengthCode(int iLength)
 //////////////////////////////////////////////////////////////////////////
 int DeflateDistanceCode(size uiDistance)
 {
-	int		iCode;
+	uint	iCode;
 
 	for (iCode = DEFLATE_NUM_DISTANCES - 1; iCode > 0; iCode--)
 	{

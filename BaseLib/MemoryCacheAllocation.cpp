@@ -50,9 +50,9 @@ SMemoryCacheDescriptor* CMemoryCacheAllocation::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemoryCacheAllocation::NumElements(void)
+size CMemoryCacheAllocation::NumElements(void)
 {
-	return (int)mapEvictedCacheDescriptors.NumElements();
+	return mapEvictedCacheDescriptors.NumElements();
 }
 
 

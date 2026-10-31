@@ -47,8 +47,8 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 	CImageAccessor*		pcGreen;
 	CImageAccessor*		pcBlue;
 	CChannel*			psGreyChannel;
-	int					x;
-	int					y;
+	size				x;
+	size				y;
 	int 				iWidth;
 	int 				iHeight;
 	void*				pvRed;
@@ -76,9 +76,9 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 
 		iHeight = pcImage->GetHeight();
 		iWidth = pcImage->GetWidth();
-		for (y = 0; y < iHeight; y++)
+		for (y = 0; y < (size)iHeight; y++)
 		{
-			for (x = 0; x < iWidth; x++)
+			for (x = 0; x < (size)iWidth; x++)
 			{
 
 				pvRed = pcRed->Get(x, y);

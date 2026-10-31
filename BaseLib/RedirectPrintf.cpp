@@ -47,17 +47,17 @@ bool IsPrintFSpecifier(const char c)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int FindPrintFParameters(const char* szUnformatted, char** paszParameters)
+size FindPrintFParameters(const char* szUnformatted, char** paszParameters)
 {
-	int		i;
+	size	i;
 	char	c;
-	int		iFormattedCount;
-	int		iUnformattedCount;
+	size	iFormattedCount;
+	size	iUnformattedCount;
 	bool	bInSpecifier;
 	int		iParameterLength;
 	char*	aszParameters;
 	bool	bInUnformatted;
-	int		iLength;
+	size	iLength;
 	bool	bAppendTerminator;
 
 	bInUnformatted = false;
@@ -176,8 +176,8 @@ int eprintf(const char* szUnformatted, ...)
 	va_list				vaMarker;
 	const char*			szValue;
 	CChars				sz;
-	int					iParameterCount;
-	int					i;
+	size				iParameterCount;
+	size				i;
 	int					iLength;
 	char*				aszParameters;
 	char*				szParameter;

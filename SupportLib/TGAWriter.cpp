@@ -93,8 +93,8 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	CImageCopier		cCopier;
 	CFileBasic			cFile;
 	CRLEPacketEncoder	cEncoder;
-	int					x;
-	int					y;
+	uint				x;
+	uint				y;
 	bool				bResult;
 
 	if (pcImage.IsNull())
@@ -167,9 +167,9 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 		return false;
 	}
 	puiDest = pvData;
-	for (y = iHeight - 1; y >= 0; y--)
+	for (y = iHeight; y > 0; y--)
 	{
-		puiRow = &pvPixels[y * uiRowBytes];
+		puiRow = &pvPixels[(y - 1) * uiRowBytes];
 		if (bRLE)
 		{
 			//Packets never cross rows.
@@ -177,7 +177,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 		}
 		else
 		{
-			for (x = 0; x < iWidth; x++)
+			for (x = 0; x < (uint)iWidth; x++)
 			{
 				puiSource = &puiRow[x * iPixelBytes];
 				memcpy(puiDest, puiSource, iPixelBytes);

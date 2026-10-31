@@ -197,9 +197,9 @@ void IntVec2Swap(SIntVec2* ps1, SIntVec2* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void IntVec2MinMax(SIntVec2* psMin, SIntVec2* psMax, SIntVec2* asIn, int iInStride, int iNumPoints)
+void IntVec2MinMax(SIntVec2* psMin, SIntVec2* psMax, SIntVec2* asIn, int iInStride, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SIntVec2*	psIn;
 
 	if (iNumPoints > 0)

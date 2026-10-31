@@ -222,7 +222,7 @@ void CWindow::Paint(void)
 void CWindow::Layout(void)
 {
 	CInt32Rect	cRect;
-	int			iPass;
+	uint		iPass;
 
 	mpcNativeWindow->GetRectangle(&cRect);
 	SetActualSize(cRect.GetWidth(), cRect.GetHeight());

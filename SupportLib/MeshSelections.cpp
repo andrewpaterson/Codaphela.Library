@@ -278,11 +278,11 @@ void CMeshSelections::AddCorner(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::AddFace(int iNewEdges)
 {
-	int		i;
+	size	i;
 
 	mcFaces.Add(false);
 
-	for (i = 0; i < iNewEdges; i++)
+	for (i = 0; i < (size)iNewEdges; i++)
 	{
 		mcEdges.Add(false);
 	}

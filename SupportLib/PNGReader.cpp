@@ -48,7 +48,7 @@ struct SPNGInfo
 	int		iInterlace;
 	int		iBitsPerPixel;
 	lsize	uiRowBytes;
-	int		iNumPalette;
+	size	iNumPalette;
 	uint8	aauiPalette[256][4];	//Red, green, blue, alpha.
 	bool	bPaletteAlpha;
 };
@@ -163,7 +163,7 @@ bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo
 	lsize	uiDataPosition;
 	bool	bHeader;
 	bool	bData;
-	int		i;
+	size	i;
 
 	if (!pcFile->ReadData(auiSignature, PNG_SIGNATURE_SIZE) || (memcmp(auiSignature, gauiPNGSignature, PNG_SIGNATURE_SIZE) != 0))
 	{
@@ -232,7 +232,7 @@ bool PNGReadChunks(CFileBasic* pcFile, uint8* pvFile, lsize uiFileSize, SPNGInfo
 				{
 					return false;
 				}
-				for (i = 0; i < (int)uiLength; i++)
+				for (i = 0; i < (size)uiLength; i++)
 				{
 					if (!pcFile->ReadInt8(&psInfo->aauiPalette[i][3]))
 					{
@@ -366,12 +366,12 @@ bool PNGUnfilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, lsize uiRowByte
 //////////////////////////////////////////////////////////////////////////
 uint8* PNGUnfilterRows(uint8* puiData, int iHeight, lsize uiRowBytes, lsize uiPixelBytes)
 {
-	int		y;
+	uint	y;
 	uint8*	puiRow;
 	uint8*	puiPrior;
 
 	puiPrior = NULL;
-	for (y = 0; y < iHeight; y++)
+	for (y = 0; y < (uint)iHeight; y++)
 	{
 		puiRow = &puiData[1];
 		if (!PNGUnfilterRow(puiData[0], puiRow, puiPrior, uiRowBytes, uiPixelBytes))
@@ -422,7 +422,7 @@ void PNGCopyPixel(uint8* puiSource, int iSourceX, uint8* puiDest, int iDestX, in
 lsize PNGFilteredSize(SPNGInfo* psInfo)
 {
 	lsize	uiSize;
-	int		iPass;
+	size	iPass;
 	int		iPassWidth;
 	int		iPassHeight;
 
@@ -454,12 +454,12 @@ lsize PNGFilteredSize(SPNGInfo* psInfo)
 bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 {
 	lsize	uiPixelBytes;
-	int		iPass;
+	size	iPass;
 	int		iPassWidth;
 	int		iPassHeight;
 	lsize	uiPassRowBytes;
-	int32	x;
-	int32	y;
+	uint32	x;
+	uint32	y;
 	uint8*	puiPassRow;
 	int		iDestY;
 
@@ -470,7 +470,7 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 		{
 			return false;
 		}
-		for (y = 0; y < psInfo->iHeight; y++)
+		for (y = 0; y < (uint32)psInfo->iHeight; y++)
 		{
 			memcpy(&puiPixels[y * psInfo->uiRowBytes], &puiFiltered[y * (psInfo->uiRowBytes + 1) + 1], psInfo->uiRowBytes);
 		}
@@ -492,11 +492,11 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 		{
 			return false;
 		}
-		for (y = 0; y < iPassHeight; y++)
+		for (y = 0; y < (uint32)iPassHeight; y++)
 		{
 			puiPassRow = &puiFiltered[y * (uiPassRowBytes + 1) + 1];
 			iDestY = gaiAdam7StartY[iPass] + y * gaiAdam7StepY[iPass];
-			for (x = 0; x < iPassWidth; x++)
+			for (x = 0; x < (uint32)iPassWidth; x++)
 			{
 				PNGCopyPixel(puiPassRow, x, &puiPixels[iDestY * psInfo->uiRowBytes], gaiAdam7StartX[iPass] + x * gaiAdam7StepX[iPass], psInfo->iBitsPerPixel);
 			}
@@ -515,8 +515,8 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 //////////////////////////////////////////////////////////////////////////
 void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 {
-	int32	x;
-	int32	y;
+	uint32	x;
+	uint32	y;
 	uint8	uiIndex;
 	uint8*	puiRow;
 	uint8*	puiDest;
@@ -524,10 +524,10 @@ void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 	uint8	uiMask;
 
 	uiMask = (uint8)((1 << psInfo->iBitDepth) - 1);
-	for (y = 0; y < psInfo->iHeight; y++)
+	for (y = 0; y < (uint32)psInfo->iHeight; y++)
 	{
 		puiRow = &puiPixels[y * psInfo->uiRowBytes];
-		for (x = 0; x < psInfo->iWidth; x++)
+		for (x = 0; x < (uint32)psInfo->iWidth; x++)
 		{
 			uiBit = (lsize)x * psInfo->iBitDepth;
 			uiIndex = (uint8)((puiRow[uiBit / 8] >> (8 - psInfo->iBitDepth - (uiBit % 8))) & uiMask);
@@ -559,7 +559,7 @@ Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddD
 	uint8*			puiRGBA;
 	bool			bGrey;
 	bool			bAlpha;
-	int				i;
+	size			i;
 	Ptr<CImage>		pcImage;
 
 	bGrey = true;
@@ -621,7 +621,7 @@ Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
 	bool				bReverse;
 	CImage				cImageImport;
 	CImageCopier		cCopier;
-	int32				y;
+	uint32				y;
 	bool				bResult;
 	Ptr<CImage>			pcImage;
 
@@ -691,7 +691,7 @@ Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
 	bResult = bResult && cCopier.Init(&cImageImport, pcImage);
 	if (bResult)
 	{
-		for (y = 0; y < psInfo->iHeight; y++)
+		for (y = 0; y < (uint32)psInfo->iHeight; y++)
 		{
 			cImageImport.SetData(&puiPixels[y * psInfo->uiRowBytes]);
 			cCopier.Copy(0, y, 0, 0, psInfo->iWidth, 1);

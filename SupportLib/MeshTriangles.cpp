@@ -99,13 +99,13 @@ bool CMeshTriangles::Save(CObjectWriter* pcFile)
 void CMeshTriangles::GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* pcNormals)
 {
 	CTriangleIndexed*	pcTriangle;
-	int					iNumFaces;
+	size				iNumFaces;
 	CMeshFace*			pcFace;
 	int					iNormal;
 	SMeshNormalFace*	psFaceNormal;
-	int					i;
+	size				i;
 
-	iNumFaces = (int)pcConn->mcFaces.NumElements();
+	iNumFaces = pcConn->mcFaces.NumElements();
 
 	mcTriangles.Kill();
 	mcTriangles.Init();

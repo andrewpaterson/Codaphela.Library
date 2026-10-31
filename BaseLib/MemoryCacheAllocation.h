@@ -18,7 +18,7 @@ public:
 
 	bool						HasOverlaps(void);
 	SMemoryCacheDescriptor*		Get(size iIndex);
-	int							NumElements(void);
+	size						NumElements(void);
 
 	CArrayVoidPtr*				GetEvictedArray(void);
 

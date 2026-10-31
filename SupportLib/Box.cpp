@@ -54,14 +54,14 @@ float32 CBox::Volume(void)
 //////////////////////////////////////////////////////////////////////////
 void CBox::SetFromPointsAxisAligned(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
-	int					i;
+	size				i;
 	SFloat32Vec3			msMinimum;
 	SFloat32Vec3			msMaximum;
 	SFloat32Vec3*			psPoint;
 
 	msMinimum.Init(LARGE_NUMBER, LARGE_NUMBER, LARGE_NUMBER);
 	msMaximum.Init(-LARGE_NUMBER, -LARGE_NUMBER, -LARGE_NUMBER);
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		psPoint = GetPosition(psPoints, iStride, iNumPoints);
 
@@ -111,9 +111,9 @@ void CBox::SetFromPointsAxisAligned(SFloat32Vec3* psPoints, int iStride, int iNu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void FindMinXAndMaxX(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float32* pfMax, float32* pfMin)
+void FindMinXAndMaxX(SFloat32Vec3* psPoints, int iStride, size iNumPoints, float32* pfMax, float32* pfMin)
 {
-	int		i;
+	size	i;
 	float32	fXMax;
 	float32	fXMin;
 
@@ -140,9 +140,9 @@ void FindMinXAndMaxX(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void FindMinYAndMaxY(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float32* pfMay, float32* pfMin)
+void FindMinYAndMaxY(SFloat32Vec3* psPoints, int iStride, size iNumPoints, float32* pfMay, float32* pfMin)
 {
-	int		i;
+	size	i;
 	float32	fYMay;
 	float32	fYMin;
 
@@ -169,9 +169,9 @@ void FindMinYAndMaxY(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void FindMinZAndMaxZ(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float32* pfMaz, float32* pfMin)
+void FindMinZAndMaxZ(SFloat32Vec3* psPoints, int iStride, size iNumPoints, float32* pfMaz, float32* pfMin)
 {
-	int		i;
+	size	i;
 	float32	fZMaz;
 	float32	fZMin;
 
@@ -198,9 +198,9 @@ void FindMinZAndMaxZ(SFloat32Vec3* psPoints, int iStride, int iNumPoints, float3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CopyPoints(CArrayBlock* pasPositions, SFloat32Vec3* psPoints, int iStride, int iNumPoints)
+void CopyPoints(CArrayBlock* pasPositions, SFloat32Vec3* psPoints, int iStride, size iNumPoints)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
@@ -266,9 +266,9 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 	for (fDeg = 0.0f; fDeg <= 360.0f; fDeg += 0.125f)
 	{
 		Float4x4RotationY(&sMatrix, Deg2Rad(fDeg));
-		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, (int)asPositions.NumElements());
+		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, asPositions.NumElements());
 
-		FindMinXAndMaxX(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+		FindMinXAndMaxX(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 		fDist = fMax - fMin;
 
 		if (fDist < fMinDist)
@@ -286,9 +286,9 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 	{
 		Float4x4RotationX(&sMatrix, Deg2Rad(fDeg));
 		Float4x4Multiply(&sMatrix, &sMinXMatrix, &sMatrix);
-		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, (int)asPositions.NumElements());
+		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, asPositions.NumElements());
 
-		FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+		FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 		fDist = fMax - fMin;
 		if (fDist < fMinDist)
 		{
@@ -306,9 +306,9 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 	{
 		Float4x4RotationZ(&sMatrix, Deg2Rad(fDeg));
 		Float4x4Multiply(&sMatrix, &sMinXMinYMatrix, &sMatrix);
-		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, (int)asPositions.NumElements());
+		Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sMatrix, asPositions.NumElements());
 
-		FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+		FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 		fDist = fMax - fMin;
 		if (fDist < fMinDist)
 		{
@@ -321,12 +321,12 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 	Float4x4Multiply(&sFinalMatrix, &sMinXMinYMatrix, &sMatrix);
 	sFinalMatrix.Fix();
 
-	Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sFinalMatrix, (int)asPositions.NumElements());
-	FindMinXAndMaxX(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+	Float32Vec3TransformCoords(asTransformedPoints, sizeof(SFloat32Vec3), (SFloat32Vec3*)asPositions.GetData(), (int)asPositions.ElementSize(), &sFinalMatrix, asPositions.NumElements());
+	FindMinXAndMaxX(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 	fXSize = fMax - fMin;
-	FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+	FindMinYAndMaxY(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 	fYSize = fMax - fMin;
-	FindMinZAndMaxZ(asTransformedPoints, sizeof(SFloat32Vec3), (int)asPositions.NumElements(), &fMax, &fMin);
+	FindMinZAndMaxZ(asTransformedPoints, sizeof(SFloat32Vec3), asPositions.NumElements(), &fMax, &fMin);
 	fZSize = fMax - fMin;
 
 	*mpsShortAxis = *((SFloat32Vec3*)&sFinalMatrix.y);

@@ -339,9 +339,9 @@ SFloat64Vec4* Float64Vec4TransformNormal(SFloat64Vec4* psOut, SFloat64Vec4* psV,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float64Vec4TransformCoords(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, int iNumPoints)
+void Float64Vec4TransformCoords(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, size iNumPoints)
 {
-	int				i;
+	size			i;
 	SFloat64Vec4*	psOut;
 	SFloat64Vec4*	psIn;
 
@@ -358,9 +358,9 @@ void Float64Vec4TransformCoords(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float64Vec4TransformNormals(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, int iNumPoints)
+void Float64Vec4TransformNormals(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SFloat64Vec4*	psOut;
 	SFloat64Vec4*	psIn;
 
@@ -378,9 +378,9 @@ void Float64Vec4TransformNormals(SFloat64Vec4* asOut, int iOutStride, SFloat64Ve
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float64Vec4MinMax(SFloat64Vec4* psMin, SFloat64Vec4* psMax, SFloat64Vec4* asIn, int iInStride, int iNumPoints)
+void Float64Vec4MinMax(SFloat64Vec4* psMin, SFloat64Vec4* psMax, SFloat64Vec4* asIn, int iInStride, size iNumPoints)
 {
-	int				i;
+	size			i;
 	SFloat64Vec4*	psIn;
 
 	if (iNumPoints > 0)

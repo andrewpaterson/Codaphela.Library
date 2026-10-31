@@ -29,19 +29,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CHuffmanEncoder
 {
 protected:
-	int		miNumSymbols;
+	size	miNumSymbols;
 	uint8	mauiLengths[HUFFMAN_MAX_SYMBOLS];
 	uint16	mauiCodes[HUFFMAN_MAX_SYMBOLS];		//Bit reversed so they can be written least significant bit first.
 
 public:
-	void	Init(uint32* puiFrequencies, int iNumSymbols, int iMaxBits);
-	void	Init(uint8* puiLengths, int iNumSymbols);
+	void	Init(uint32* puiFrequencies, size iNumSymbols, int iMaxBits);
+	void	Init(uint8* puiLengths, size iNumSymbols);
 	void	Kill(void);
 
 	void	Write(CBitWriter* pcWriter, int iSymbol);
 	int		GetLength(int iSymbol);
 	uint8*	GetLengths(void);
-	int		GetNumSymbols(void);
+	size	GetNumSymbols(void);
 
 protected:
 	bool	BuildLengths(uint32* puiFrequencies, int iMaxBits);

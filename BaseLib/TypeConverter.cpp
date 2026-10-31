@@ -450,8 +450,8 @@ void ConversionInvalid(void* pvDest, void* pvSource) { gcUserError.Set("Conversi
 //////////////////////////////////////////////////////////////////////////
 void CTypeConverter::Init(void)
 {
-	int32		iDest;
-	int32		iSource;
+	uint32		iDest;
+	uint32		iSource;
 
 	for (iDest = 0; iDest < PRIMTIVE_CONVERTER_END; iDest++)
 	{

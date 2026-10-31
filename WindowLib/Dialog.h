@@ -96,7 +96,7 @@ public:
 
 	Ptr<CTextField>		AddTextField(const char* szLabel, const char* szText);
 	Ptr<CCheckBox>		AddCheckBox(const char* szLabel, bool bTicked);
-	Ptr<CComboBox>		AddComboBox(const char* szLabel, const char** aszItems, int iNumItems, int iSelected);
+	Ptr<CComboBox>		AddComboBox(const char* szLabel, const char** aszItems, size iNumItems, int iSelected);
 	void				AddEditor(const char* szLabel, Ptr<CComponent> pEditor);
 	void				AddDivider(const char* szTitle);
 	void				AddExtraButton(const char* szCaption);

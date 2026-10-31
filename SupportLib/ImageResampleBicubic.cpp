@@ -53,7 +53,7 @@ void SBicubicAxis::Init(uint32 uiSourceSize, uint32 uiDestSize)
 	int32		iFloor;
 	int32		iPixel;
 	int32		iLast;
-	int32		i;
+	uint32		i;
 	int32*		paiTaps;
 	float64*	pafTaps;
 
@@ -72,7 +72,7 @@ void SBicubicAxis::Init(uint32 uiSourceSize, uint32 uiDestSize)
 		pafTaps = &pafWeights[d * BICUBIC_TAPS];
 		for (i = 0; i < BICUBIC_TAPS; i++)
 		{
-			iPixel = iFloor - 1 + i;
+			iPixel = iFloor - 1 + (int32)i;
 			if (iPixel < 0)
 			{
 				iPixel = 0;
