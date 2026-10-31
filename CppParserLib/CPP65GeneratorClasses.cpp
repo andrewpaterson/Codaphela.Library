@@ -165,6 +165,59 @@ int CCPP65Generator::PackAlignment(int iAlign, int iPack)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The strictest alignment the alignas(n) and alignas(type) specifiers in
+// papcSpecifiers ask for: 0 for none (alignas(0) asks for nothing), -1 after
+// an error.  It is kept whatever #pragma pack says, as MSVC does.  [dcl.align]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::AlignasAlignment(CArraySyntax* papcSpecifiers)
+{
+	CCPPSyntax*		pcSpecifier;
+	CCPPSyntax*		pcAlignment;
+	SCPP65Type*		psType;
+	int64			lliAlign;
+	int				iAlign;
+	size			i;
+
+	iAlign = 0;
+	for (i = 0; i < papcSpecifiers->NumElements(); i++)
+	{
+		pcSpecifier = papcSpecifiers->GetPtr(i);
+		if (pcSpecifier->GetKind() != CPPS_AlignasSpecifier)
+		{
+			continue;
+		}
+		pcAlignment = ((CCPPSyntaxAlignasSpecifier*)pcSpecifier)->mpcAlignment;
+		if (pcAlignment->GetKind() == CPPS_TypeId)
+		{
+			psType = GetTypeIdType((CCPPSyntaxTypeId*)pcAlignment);
+			if (!psType || (psType->IsClass() && !CompleteClass(psType->psClass, pcAlignment)))
+			{
+				return -1;
+			}
+			lliAlign = TypeAlignment(psType);
+		}
+		else if (!Constant(pcAlignment, &lliAlign))
+		{
+			Error(pcAlignment, "The alignment must be a constant");
+			return -1;
+		}
+		if ((lliAlign < 0) || (lliAlign > 0x10000) || ((lliAlign & (lliAlign - 1)) != 0))
+		{
+			Error(pcAlignment, "The alignment must be a power of two");
+			return -1;
+		}
+		if (lliAlign > iAlign)
+		{
+			iAlign = (int)lliAlign;
+		}
+	}
+	return iAlign;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class a name component names: a class, a typedef of one, an instance of a
 // class template (Name<Arguments>), or a class template's own name inside it.  A
 // base template's name without arguments is psContext's (or else the current member
@@ -1821,6 +1874,7 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	int								iAlign;
 	int								iPack;
 	int								iFieldAlign;
+	int								iClassAlign;
 	bool							bResult;
 
 	pcSpecifier = psClass->pcSpecifier;
@@ -1920,6 +1974,7 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	{
 		psField = psClass->macFields.Get(i);
 		iFieldAlign = PackAlignment(TypeAlignment(psField->psType), iPack);
+		iFieldAlign = (psField->iAlign > iFieldAlign) ? psField->iAlign : iFieldAlign;
 		iBytes = psClass->bUnion ? 0 : (iBytes + iFieldAlign - 1) & ~(iFieldAlign - 1);
 		psField->iOffset = iBytes;
 		iBytes += psField->psType->iBytes;
@@ -1933,6 +1988,12 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	{
 		iBytes = psClass->psType->iBytes;
 	}
+	iClassAlign = AlignasAlignment(&pcSpecifier->macpAttributes);
+	if (iClassAlign < 0)
+	{
+		bResult = false;
+	}
+	iAlign = (iClassAlign > iAlign) ? iClassAlign : iAlign;
 	iBytes = (iBytes + iAlign - 1) & ~(iAlign - 1);
 
 	psClass->bEmpty = (psClass->macFields.NumElements() == 0) && (psClass->iVtableOffset == -1);
@@ -2462,6 +2523,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	bool							bResult;
 	bool							bFriend;
 	int64							lliZero;
+	int								iAlign;
 
 	switch (pcMember->GetKind())
 	{
@@ -2549,12 +2611,18 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 				psField->lliName = -1;
 				psField->psType = psType;
 				psField->iOffset = 0;
+				psField->iAlign = 0;
 				psField->pcInitialiser = NULL;
 				return true;
 			}
 		}
 
 		bResult = true;
+		iAlign = pcSpecifiers ? AlignasAlignment(&pcSpecifiers->macpSpecifiers) : 0;
+		if (iAlign < 0)
+		{
+			return false;
+		}
 		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 		{
 			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
@@ -2613,6 +2681,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 			psField->lliName = pcInit->mpcSymbol->mlliName;
 			psField->psType = psType;
 			psField->iOffset = 0;
+			psField->iAlign = iAlign;
 			psField->pcInitialiser = pcInit->mpcInitializer;
 		}
 		return bResult;

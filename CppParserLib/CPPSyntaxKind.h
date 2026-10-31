@@ -68,6 +68,7 @@ enum ECPPSyntax
 	CPPS_SwitchStatement,
 	CPPS_CaseStatement,
 	CPPS_LabelStatement,
+	CPPS_AttributedStatement,
 	CPPS_WhileStatement,
 	CPPS_DoStatement,
 	CPPS_ForStatement,

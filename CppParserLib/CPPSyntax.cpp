@@ -68,6 +68,7 @@ char* gaszSyntaxKindNames[] =
 	"SwitchStatement",
 	"CaseStatement",
 	"LabelStatement",
+	"AttributedStatement",
 	"WhileStatement",
 	"DoStatement",
 	"ForStatement",

@@ -1373,6 +1373,9 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		return GotoStatement((CCPPSyntaxGotoStatement*)pcStatement);
 	case CPPS_LabelStatement:
 		return LabelStatement((CCPPSyntaxLabelStatement*)pcStatement);
+	case CPPS_AttributedStatement:
+		//[[fallthrough]], [[likely]] and the like change nothing.
+		return StatementOf(((CCPPSyntaxAttributedStatement*)pcStatement)->mpcStatement);
 	default:
 		return Unsupported(__LINE__);
 	}

@@ -292,6 +292,9 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 	mcSectorCache.Init(pcDevice, 3);
 	mszLabel.Init();
 
+	//Not mounted until the BIOS parameter block is found: unmounting after a mount that fails writes nothing.
+	meFileSystem = FAT_FS_TYPE_UNSPECIFIED;
+	muiFileSystemInfoSector = 0xFFFFFFFF;
 	mpcDevice = pcDevice;
 
 	READ_SECTOR(sMBRSector, 0);

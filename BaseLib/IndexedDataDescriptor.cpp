@@ -30,6 +30,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(lsize uiDataSize, CFilePosIndex* pcFilePosIndex)
 {
+	//The descriptor is written to the index file whole: its padding must be zero.
+	memset(this, 0, sizeof(CIndexedDataDescriptor));
 	msFileDescriptor.muiDataSize = (uint32)uiDataSize;
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
@@ -44,6 +46,7 @@ void CIndexedDataDescriptor::Init(lsize uiDataSize, CFilePosIndex* pcFilePosInde
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(lsize uiDataSize, void* pvCache)
 {
+	memset(this, 0, sizeof(CIndexedDataDescriptor));
 	msFileDescriptor.muiDataSize = 0;
 	msFileDescriptor.mcFileIndex.Init();
 
@@ -58,6 +61,7 @@ void CIndexedDataDescriptor::Init(lsize uiDataSize, void* pvCache)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(lsize uiFileDataSize, CFilePosIndex* pcFilePosIndex, lsize uiCacheDataSize, void* pvCache)
 {
+	memset(this, 0, sizeof(CIndexedDataDescriptor));
 	if (pcFilePosIndex->HasFile())
 	{
 		msFileDescriptor.muiDataSize = (uint32)uiFileDataSize;

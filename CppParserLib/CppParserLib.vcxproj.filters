@@ -378,6 +378,9 @@
     <ClCompile Include="CPPSyntaxLabelStatement.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="CPPSyntaxAttributedStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
     <ClCompile Include="CPPSyntaxKeywordSpecifier.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
@@ -948,6 +951,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxLabelStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxAttributedStatement.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxKind.h">

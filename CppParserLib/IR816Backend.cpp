@@ -3789,6 +3789,31 @@ static bool IR816SetsZNFromA(SIR816Line* psLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the instruction reads neither A nor the N and Z an lda before it
+// set, and leaves A as it is: clc, sec, ldx, ldy, inx, iny, dex, dey, stx,
+// sty, stz, pea, pei, phk, phx, phy, cpx, cpy, and shifts and steps of
+// memory.  An lda followed only by these and then a load of A is dead.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LeavesA(SIR816Line* psLine)
+{
+	bool	bMemory;
+
+	if (psLine->uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STEP_INDEX | IR816MF_PUSH_WORD))
+	{
+		return true;
+	}
+	if ((psLine->uiFlags & (IR816MF_STORE | IR816MF_PUSH_REGISTER | IR816MF_COMPARE)) && !(psLine->uiFlags & IR816MF_READS_A))
+	{
+		return true;
+	}
+	bMemory = (psLine->uiOperand > 0) && (psLine->szOperand[0] == '[');
+	return bMemory && (psLine->uiFlags & IR816MF_SHIFT_STEP);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a line is a label ("L12:" or a function's).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -3998,9 +4023,9 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether what runs from line uiFrom on (past labels, following bras, past
-// clc, sec, ldx, ldy, inx, iny, dex, dey, stx, sty and stz) starts with an
-// instruction that sets all of A (IR816MF_LOADS_A) and N and Z, so a value
-// in A and its flags aren't read.
+// instructions that leave A and don't read it or N and Z: IR816LeavesA)
+// starts with an instruction that sets all of A (IR816MF_LOADS_A) and N and
+// Z, so a value in A and its flags aren't read.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom)
@@ -4019,8 +4044,7 @@ static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom)
 			ui++;
 			continue;
 		}
-		if (IR816DecodeLine(paszLines->Get(ui), &sLine) &&
-			((sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STEP_INDEX)) || ((sLine.uiFlags & IR816MF_STORE) && !(sLine.uiFlags & IR816MF_READS_A))))
+		if (IR816DecodeLine(paszLines->Get(ui), &sLine) && IR816LeavesA(&sLine))
 		{
 			ui++;
 			continue;
@@ -4833,15 +4857,12 @@ static bool IR816KeepsInA(const char* szLine, const char* szWord, size uiWord)
 //
 // Whether an lda before the line at szLine is never read: in straight line
 // code, before anything reads A or the N and Z the lda set, an instruction
-// sets A again (only instructions that read neither come between: clc,
-// sec, ldx, ldy, inx, iny, dex, dey, stx, sty, stz, pea, pei, phk, phx,
-// phy, cpx, cpy, and shifts and steps of memory).
+// sets A again (only IR816LeavesA instructions come between).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816DeadLoad(const char* szLine)
 {
 	SIR816Line	sLine;
-	bool		bMemory;
 
 	for (; szLine; szLine = IR816NextLine(szLine))
 	{
@@ -4854,10 +4875,7 @@ static bool IR816DeadLoad(const char* szLine)
 		{
 			return true;
 		}
-		bMemory = (sLine.uiOperand > 0) && (sLine.szOperand[0] == '[');
-		if (!(sLine.uiFlags & (IR816MF_CARRY | IR816MF_LOAD_INDEX | IR816MF_STEP_INDEX | IR816MF_PUSH_WORD)) &&
-			!((sLine.uiFlags & (IR816MF_STORE | IR816MF_PUSH_REGISTER | IR816MF_COMPARE)) && !(sLine.uiFlags & IR816MF_READS_A)) &&
-			!(bMemory && (sLine.uiFlags & IR816MF_SHIFT_STEP)))
+		if (!IR816LeavesA(&sLine))
 		{
 			return false;
 		}
