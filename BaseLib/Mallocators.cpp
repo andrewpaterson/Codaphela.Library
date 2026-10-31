@@ -12,12 +12,26 @@
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Init(void)
 {
+	InitSystem();
+	Add(&gcMemoryAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The null and system allocators, without the global memory's (so a
+// program that only reads files whose maps and arrays use malloc doesn't
+// link the global memory).
+//
+//////////////////////////////////////////////////////////////////////////
+void CMallocators::InitSystem(void)
+{
 	mmszClasses.Init(true, false);
 	mmShortNames.Init(true, false);
 
 	Add(&gcNullAllocator);
 	Add(&gcSystemAllocator);
-	Add(&gcMemoryAllocator);
+	mbInitialised = true;
 }
 
 
@@ -27,6 +41,7 @@ void CMallocators::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Kill(void)
 {
+	mbInitialised = false;
 	mmShortNames.Kill();
 	mmszClasses.Kill();
 }
@@ -65,7 +80,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	CLocalMallocator*	pcLocalMallocator;
 	char*				szClassName;
 
-	if (!MemoryValidate())
+	if (!IsInitialised())
 	{
 		return NULL;
 	}
@@ -135,7 +150,7 @@ bool CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 {
 	CLocalMallocator*	pcLocal;
 
-	if (!MemoryValidate())
+	if (!IsInitialised())
 	{
 		return false;
 	}
@@ -163,3 +178,19 @@ bool CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mallocators are known (Init or InitSystem; MemoryInit calls Init).
+// Reading and writing mallocators doesn't need the global memory itself.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMallocators::IsInitialised(void)
+{
+	if (!mbInitialised)
+	{
+		gcLogger.Error("The mallocators have not been initialised.  Call MemoryInit() (or gcMallocators.InitSystem()).");
+		return false;
+	}
+	return true;
+}

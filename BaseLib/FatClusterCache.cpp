@@ -6,6 +6,10 @@
 #include "FatClusterCache.h"
 
 
+//The W65C816 has these in FatClusterCache816.asm.
+#ifndef __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -509,4 +513,5 @@ bool CFatClusterCache::SetDirtySector(size uiSectorIndex, bool bDirty)
 		return false;
 	}
 }
+#endif // __W65C816__
 

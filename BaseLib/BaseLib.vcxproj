@@ -547,6 +547,7 @@
     <ClInclude Include="Fat32.h" />
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatDebug.h" />
+    <ClInclude Include="FatAbstractFile.h" />
     <ClInclude Include="FatFile.h" />
     <ClInclude Include="FatFilenameHelper.h" />
     <ClInclude Include="FatFormat.h" />
@@ -944,6 +945,7 @@
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FatCommon.cpp" />
     <ClCompile Include="FatDebug.cpp" />
+    <ClCompile Include="FatAbstractFile.cpp" />
     <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFilenameHelper.cpp" />
     <ClCompile Include="FatFormat.cpp" />

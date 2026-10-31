@@ -35,20 +35,6 @@ struct SDiskSizeToSectorsPerCluster
 };
 
 
-// this is the table for FAT12 drives.
-static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat12[] =
-{
-	{ 8200, 2 },  		/* disks up to 4 MB, 1k cluster */
-	{ 16368, 4 },		/* disks up to 8 MB, 2k cluster */
-	{ 32704, 8 },		/* disks up to 16 MB, 4k cluster */
-	/* The entries after this point are not used unless FAT16 is forced */
-	{ 65376, 16 },		/* disks up to 32 MB, 8k cluster */
-	{ 130720, 32 },		/* disks up to 64 MB, 16k cluster */
-	{ 261408, 64 },		/* disks up to 128 MB, 32k cluster */
-	{ 0xFFFFFFFF, 0 }	/* any disk greater than 2GB, 0 value for SecPerClusVal trips an error */
-};
-
-
 //* This is the table for FAT16 drives. NOTE that this table includes
 //* entries for disk sizes larger than 512 MB even though typically
 //* only the entries for disks < 512 MB in size are used.
@@ -106,16 +92,6 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 uiTotalSectors, char forced_
 	uint8 i;
 	switch (fs_type)
 	{
-	case FAT_FS_TYPE_FAT12:
-		for (i = 0; i < (forced_fs_type ? 7 : 3); i++)
-		{
-			if (gasFatDiskSizeTableFat12[i].DiskSize >= uiTotalSectors)
-			{
-				return gasFatDiskSizeTableFat12[i].SecPerClusVal;
-			}
-		}
-		break;
-
 	case FAT_FS_TYPE_FAT16:
 		for (i = 0; i < (forced_fs_type ? 8 : 5); i++)
 		{
@@ -179,11 +155,6 @@ void CalcuateFatTableSizeInSectorsAndNumberOfClusters(uint32* puiNoOfClusters, u
 	{
 		switch (fs_type)
 		{
-			case FAT_FS_TYPE_FAT12:
-			{
-				*puiFatTableSizeInSectors = (((*puiNoOfClusters + 2) + ((*puiNoOfClusters + 2) >> 1)) + uiBytesPerSector - 1) / uiBytesPerSector;
-				break;
-			}
 			case FAT_FS_TYPE_FAT16:
 			{
 				*puiFatTableSizeInSectors = (((*puiNoOfClusters + 2) * 2) + uiBytesPerSector - 1) / uiBytesPerSector;
@@ -268,37 +239,26 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			return FAT_INVALID_FORMAT_PARAMETERS;
 		}
 
-		// first try FAT12
-		uiSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT12, uiTotalSectors, 0);
+		// FAT16 (FAT12 isn't supported), else FAT32.
+		uiSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT16, uiTotalSectors, 0);
 
 		if (uiSectorsPerCluster)
 		{
-			fs_type = FAT_FS_TYPE_FAT12;
+			fs_type = FAT_FS_TYPE_FAT16;
 		}
 		else
 		{
-			// try FAT16
-			uiSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT16, uiTotalSectors, 0);
+			uiSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT32, uiTotalSectors, 0);
 
 			if (uiSectorsPerCluster)
 			{
-				fs_type = FAT_FS_TYPE_FAT16;
-			}
-			else
-			{
-				// try FAT32
-				uiSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT32, uiTotalSectors, 0);
-
-				if (uiSectorsPerCluster)
-				{
-					fs_type = FAT_FS_TYPE_FAT32;
-				}
+				fs_type = FAT_FS_TYPE_FAT32;
 			}
 		}
 	}
 
-	// if we don't have a valid fs type return error
-	if (fs_type < FAT_FS_TYPE_FAT12 || fs_type > FAT_FS_TYPE_FAT32)
+	// if we don't have a valid fs type return error (FAT12 isn't supported)
+	if (fs_type < FAT_FS_TYPE_FAT16 || fs_type > FAT_FS_TYPE_FAT32)
 	{
 		return FAT_INVALID_FORMAT_PARAMETERS;
 	}
@@ -334,14 +294,6 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	// check that the filesystem type/cluster size supplied is correct.
 	switch (fs_type)
 	{
-		case FAT_FS_TYPE_FAT12:
-		{
-			if (uiNoOfClusters > FAT12_MAX_CLUSTERS)
-			{
-				return FAT_INVALID_FORMAT_PARAMETERS;
-			}
-			break;
-		}
 		case FAT_FS_TYPE_FAT16:
 		{
 			if (uiNoOfClusters > FAT16_MAX_CLUSTERS || uiNoOfClusters < (FAT12_MAX_CLUSTERS + 1))
@@ -366,13 +318,9 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 
 	// calculate the offset of the cluster's FAT entry within it's sector
 	// note: when we hit get past the end of the current sector entry_offset
-	// will roll back to zero (or possibly 1 for FAT12)
+	// will roll back to zero
 	switch (fs_type)
 	{
-		case FAT_FS_TYPE_FAT12: 
-			root_entry_offset = root_cluster + (root_cluster >> 1); 
-			break;
-
 		case FAT_FS_TYPE_FAT16: 
 			root_entry_offset = root_cluster * ((uint32)2); 
 			break;
@@ -428,7 +376,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	}
 	else
 	{
-		// set FAT12/FAT16 specific fields
+		// set FAT16 specific fields
 		bpb->uFatEx.sFat16.uiDriverNumber = 0;
 		bpb->uFatEx.sFat16.uiReserved1 = 0;
 		bpb->uFatEx.sFat16.uiBootSignature = 0x29;
@@ -494,30 +442,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			{
 				// if this is the 1st sector of the FAT set the values for
 				// clusters 0 and 1
-				if (fs_type == FAT_FS_TYPE_FAT12)
-				{
-					uint16 value;
-
-					/* even */
-					value = 0x0FF8;												/* the value to be written */
-					*((uint16*)&uiBuffer[0]) &= (~FAT12_CLUSTER_MASK);			/* clear bits for entry */
-					*((uint16*)&uiBuffer[0]) |= (value & FAT12_CLUSTER_MASK);	/* set bits for entry */
-
-
-					// odd - we need to write this one 1 byte at a time since
-					// unaligned word access is inefficient and may cause a fatal
-					// exception on some platforms.
-					value = FAT12_EOC;							/* the value to be written */
-					value <<= 4;								/* an odd entry occupies the upper 12-bits of the word */
-
-					uiBuffer[1 + 0] &= 0x0F;					/* clear entry bits on 1st byte */
-					uiBuffer[1 + 0] |= (uint8)value;				/* set entry bits on 1st byte */
-
-					uiBuffer[1 + 1] = 0x00;						/* clear the 2nd byte */
-					uiBuffer[1 + 1] = value >> 8;				/* set the 2nd byte */
-
-				}
-				else if (fs_type == FAT_FS_TYPE_FAT16)
+				if (fs_type == FAT_FS_TYPE_FAT16)
 				{
 					((uint16*)uiBuffer)[0] = (FAT16_EOC & 0xFF00) | media_type;
 					((uint16*)uiBuffer)[1] = FAT16_EOC;
@@ -549,7 +474,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 
 	// zero the root directory (or it's 1st cluster in the case of FAT32
 	// note: since cluster #2 is located where the root directory would be on
-	// a FAT12/FAT16 volume we can use the same code for both, only far
+	// a FAT16 volume we can use the same code for both, only far
 	// FAT32 we only initialize 1 cluster
 	//
 	// this is the formula to get the 1st sector of a cluster:
@@ -560,7 +485,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	//
 	// uiNoOfReservedSectors + (uiNoOfFatTables * fatsz)
 	//
-	// so the address for the root directory is the same on FAT32 and on FAT12/16 as long as we're
+	// so the address for the root directory is the same on FAT32 and on FAT16 as long as we're
 	// using cluster #2
 	memset(uiBuffer, 0, MAX_SECTOR_LENGTH);
 	c = (fs_type == FAT_FS_TYPE_FAT32) ? uiSectorsPerCluster : root_dir_sectors;

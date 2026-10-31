@@ -1488,6 +1488,9 @@
     <ClInclude Include="FatCommon.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
+    <ClInclude Include="FatAbstractFile.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
     <ClInclude Include="FatFile.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
@@ -2673,6 +2676,9 @@
       <Filter>Source\FileSystem\Underlying</Filter>
     </ClCompile>
     <ClCompile Include="FatFormat.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="FatAbstractFile.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
     <ClCompile Include="FatFile.cpp">

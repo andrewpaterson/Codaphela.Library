@@ -27,7 +27,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //"CD81", "OKTA", "xCHN", "xxCH" or "TDZx") signature and 15 sample Soundtracker modules with none.  FLT8 (which splits patterns
 //in two) isn't read.  Sample data cut off by the end of the file is silence.
 Ptr<CModSong> LoadMOD(char* szFilename);
-Ptr<CModSong> LoadMOD(void* pvFile, size uiFileSize);
+Ptr<CModSong> LoadMOD(void* pvFile, lsize uiFileSize);
 
 
 #endif // __MOD_READER_H__

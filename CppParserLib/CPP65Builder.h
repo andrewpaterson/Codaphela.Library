@@ -173,6 +173,7 @@ protected:
 	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
 	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory = NULL);
+	void			AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
 	bool			CompileUnits(void);
 	bool			CompileUnit(SCPP65CompiledUnit* psUnit);
 	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);

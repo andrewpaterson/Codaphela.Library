@@ -127,19 +127,20 @@ bool CAsm65BaseAssembler::Assemble(const char* szSource)
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65BaseAssembler::Assemble(CAsm65Source* pcSource)
 {
-	bool	bResult;
+	CAsm65IncludeSource	cIncludeSource;
+	bool				bResult;
 
-	mpcSource = pcSource;
+	cIncludeSource.Init(pcSource, mszDirectory.Text());
+	mpcSource = &cIncludeSource;
 	bResult = CheckTokens();
-	if (!bResult)
+	if (bResult)
 	{
-		mpcSource = NULL;
-		return false;
+		mcTokeniser.SetErrors(NULL);
+		bResult = Passes();
+		mcTokeniser.SetErrors(&mcErrors);
 	}
-	mcTokeniser.SetErrors(NULL);
-	bResult = Passes();
-	mcTokeniser.SetErrors(&mcErrors);
 	mpcSource = NULL;
+	cIncludeSource.Kill();
 	return bResult;
 }
 
@@ -532,6 +533,11 @@ void CAsm65BaseAssembler::Statement(void)
 			else if (psToken->IsIdentifierIgnoreCase(".inchex"))
 			{
 				bResult = IncludeHex();
+			}
+			else if (psToken->IsIdentifierIgnoreCase(".include"))
+			{
+				//CAsm65IncludeSource replaces the line with the file's lines when it can read it.
+				bResult = Error(psToken, "Could not read the included file");
 			}
 			else if (psToken->IsIdentifierIgnoreCase(".global") || psToken->IsIdentifierIgnoreCase(".weak") || psToken->IsIdentifierIgnoreCase(".extern"))
 			{

@@ -82,6 +82,8 @@ struct SAsm65Section
 	bool				bAt;			//Placed at uiAt (.section name, at address), not after the others.
 	uint32				uiAt;
 	CArrayUint8			cBytes;
+	filePos				iBytesPosition;	//With SetSkipSectionBytes: where the bytes are in the file, and how many, instead of cBytes.
+	uint32				uiNumBytes;
 };
 
 
@@ -164,6 +166,7 @@ protected:
 	CArrayChars					maszSourceFiles;
 	CArrayAsm65SourceLines		mcSourceLines;
 	CArrayAsm65Fingerprints		mcFingerprints;
+	bool						mbSkipSectionBytes;
 
 public:
 	void				Init(const char* szName);
@@ -198,6 +201,7 @@ public:
 	bool				Write(CAbstractFile* pcFile);
 	bool				Read(CAbstractFile* pcFile);
 	bool				ReadChunks(CChunkFile* pcChunkFile);	//From a chunk file opened for reading (Read's, or one without hashes).
+	void				SetSkipSectionBytes(bool bSkip);		//Read leaves sections' bytes in the file (iBytesPosition, uiNumBytes), unhashed.
 
 protected:
 	bool				WriteChunks(CChunkFile* pcChunkFile);

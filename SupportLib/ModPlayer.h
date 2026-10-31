@@ -29,6 +29,13 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MOD_MIN_PERIOD				113			//B-3, the highest note ProTracker slides to.
 #define MOD_MAX_PERIOD				856			//C-1, the lowest.
 
+//The mixer is fixed point, so it is the same and fast enough on every target (the W65C816 and 65C64 have no floating
+//point hardware): samples are Q8 (an 8 bit sample shifted up 8), gains Q12 (4096 is 1), positions frames and a 16 bit
+//fraction.  A frame of the mix is the sum of each channel's sample * gain >> 8: MOD_MIX_ONE is full scale.
+#define MOD_GAIN_ONE				4096
+#define MOD_MIX_ONE					((int32)128 * MOD_GAIN_ONE)
+#define MOD_MIX_BLOCK				256			//Frames mixed at a time for Render.
+
 
 enum EModInterpolation
 {
@@ -41,11 +48,13 @@ struct SModChannel
 {
 	//The sample playing.
 	size		uiSample;			//1 to 31, zero for none.
-	float64*	pfData;				//The sample's cel in the player's copy of the bank.
+	bool		bHasData;
+	lsize		uiFirstFrame;		//The sample's cel in the bank.
 	lsize		uiLength;
 	lsize		uiLoopFrame;		//SOUND_CEL_NO_LOOP if the sample plays once.
 	bool		bPlaying;
-	float64		fPosition;			//Frames into the cel.
+	lsize		uiPosition;			//Frames into the cel,
+	uint16		uiFraction;			//and the fraction of a frame (65536ths).
 
 	//The note.
 	int			iPeriod;
@@ -91,7 +100,9 @@ protected:
 	float64				mfStereoSeparation;
 	float64				mfGain;
 
-	float64*			mpfBank;			//The song's sample bank as floats.
+	int8*				mpiBank8;			//The song's sample bank's own samples when they are 8 bit mono (a MOD's are), read as they are
+	int16*				mpiBank16;			//mixed, otherwise the bank as 16 bit samples.
+	int32*				mpiMix;				//MOD_MIX_BLOCK stereo frames.
 	SModChannel			masChannels[MOD_MAX_CHANNELS];
 
 	size				muiOrder;
@@ -120,6 +131,7 @@ public:
 	void			Kill(void);
 
 	lsize			Render(float64* pfStereo, lsize uiNumFrames);
+	lsize			Render(int16* piStereo, lsize uiNumFrames);
 	Ptr<CSound>		RenderSong(EPrimitiveType eType = PT_int16, lsize uiMaxFrames = 0);
 	lsize			SkipTick(void);
 
@@ -150,8 +162,10 @@ protected:
 	void			Vibrato(SModChannel* psChannel);
 	void			Tremolo(SModChannel* psChannel);
 	int				GetWave(int iWave, int iPosition);
-	void			Mix(float64* pfStereo, lsize uiNumFrames);
-	float64			GetSampleAt(SModChannel* psChannel, lsize uiFrame);
+	lsize			RenderMix(int32* piStereo, lsize uiNumFrames);
+	void			Mix(int32* piStereo, lsize uiNumFrames);
+	int32			GetSampleAt(SModChannel* psChannel, lsize uiFrame);
+	int32			GetBankSample(SModChannel* psChannel, lsize uiFrame);
 };
 
 

@@ -1066,6 +1066,17 @@ struct SIR816Event
 };
 
 
+//A load that may have its pointer's place (PackTemporaries).
+struct SIR816LoadPair
+{
+	SIRReference	sResult;
+	SIRReference	sPointer;
+	int32			iPosition;
+	int32			iDepth;
+	bool			bWide;		//Two or more words: Load keeps one on the stack.
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The positions each temporary is live over, as ranges in position order
@@ -1097,6 +1108,7 @@ public:
 	void	Add(int32 iTemporary, int32 iStart, int32 iEnd);
 	void	AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition, int32 iWeight);
 	bool	IsPair(int32 iOne, int32 iOther, int32 iPosition);
+	bool	IsPaired(int32 iOne, int32 iOther);
 	bool	Interferes(int32 iOne, int32 iOther, bool bSamePlace);
 	int32	Start(int32 iTemporary);
 	bool	IsFree(int32 iTemporary, int32 iOffset, int32 iBytes, CArrayTemplate<int32>* paiOffsets);
@@ -1240,6 +1252,26 @@ bool CIR816LiveRanges::IsPair(int32 iOne, int32 iOther, int32 iPosition)
 	for (iPair = *maiPairFirst.Get(iOne); iPair != -1; iPair = *maiPairNext.Get(iPair))
 	{
 		if ((*maiPairOther.Get(iPair) == iOther) && (*maiPairPosition.Get(iPair) == iPosition))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two temporaries are a pair anywhere.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816LiveRanges::IsPaired(int32 iOne, int32 iOther)
+{
+	int32	iPair;
+
+	for (iPair = *maiPairFirst.Get(iOne); iPair != -1; iPair = *maiPairNext.Get(iPair))
+	{
+		if (*maiPairOther.Get(iPair) == iOther)
 		{
 			return true;
 		}
@@ -1430,7 +1462,8 @@ static void IR816Use(uint32* puiUse, uint32* puiDef, SIRReference sValue)
 // iArgument when that argument dies there: true when each word of the
 // argument is read before that word of the result is written and never
 // after.  A shift copies its value to the result before reading the count; a
-// load writes the result through the pointer.
+// load reads through the pointer for each word (PackTemporaries pairs some
+// with their pointers, and Load reads the words that overlap it last).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
@@ -1511,10 +1544,11 @@ static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
 // its own, or also at the ends of its predecessors when they put its values
 // straight in its place (IsCoalescedPhiBlock).  Uses of an instruction's
 // operands and its result's definition are at the same position, so they
-// only share a place when they are a pair (IR816CanShareArgument, or a call's
-// argument) at exactly the same place.  Each temporary, in the order they
-// start, is placed at a pair's place when it can be, else at the first place
-// free.  Returns the first byte after them.
+// only share a place when they are a pair (IR816CanShareArgument, a call's
+// argument, or a load's pointer: a one word load's, or one a phi joins them
+// by, p = p->psNext) at exactly the same place.  Each temporary, in the
+// order they start, is placed at a pair's place when it can be, else at the
+// first place free.  Returns the first byte after them.
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CIR816Backend::PackTemporaries(void)
@@ -1568,6 +1602,8 @@ int32 CIR816Backend::PackTemporaries(void)
 	int32						iDepth;
 	int32						iBestDepth;
 	int32						iBestOffset;
+	CArrayTemplate<SIR816LoadPair>	asLoadPairs;
+	SIR816LoadPair*				psLoadPair;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
 	uiWords = (uiTemporaries + 31) / 32;
@@ -1575,6 +1611,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	iNone = -1;
 	cRanges.Init(uiTemporaries);
 	asEvents.Init();
+	asLoadPairs.Init();
 	aiBlockEvents.Init();
 	aiBlockStart.Init();
 	aiBlockEnd.Init();
@@ -1635,6 +1672,17 @@ int32 CIR816Backend::PackTemporaries(void)
 						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, *aiDepths.Get(ui));
 					}
 				}
+				if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && FoldedBase(psInstruction->asArguments[0]).IsTemporary())
+				{
+					//Its pointer's place: Load reads the words that overlap the pointer last (only worth keeping a word on
+					//the stack for when a phi joins them, p = p->psNext, so they're paired after the phis).
+					psLoadPair = asLoadPairs.Add();
+					psLoadPair->sResult = psInstruction->sResult;
+					psLoadPair->sPointer = FoldedBase(psInstruction->asArguments[0]);
+					psLoadPair->iPosition = iPosition;
+					psLoadPair->iDepth = *aiDepths.Get(ui);
+					psLoadPair->bWide = Words(psInstruction->sType) > 1;
+				}
 			}
 			iPosition++;
 		}
@@ -1674,6 +1722,14 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 	iEvent = (int32)asEvents.NumElements();
 	aiBlockEvents.Add(&iEvent);
+	for (ui = 0; ui < asLoadPairs.NumElements(); ui++)
+	{
+		psLoadPair = asLoadPairs.Get(ui);
+		if (!psLoadPair->bWide || cRanges.IsPaired((int32)psLoadPair->sResult.Index(), (int32)psLoadPair->sPointer.Index()))
+		{
+			cRanges.AddPair(psLoadPair->sResult, psLoadPair->sPointer, psLoadPair->iPosition, psLoadPair->iDepth);
+		}
+	}
 
 	//Each block's use and def sets.
 	auiUse.Init();
@@ -1879,6 +1935,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 
 	AllocateX(&cRanges, &abParameter);
+	asLoadPairs.Kill();
 	aiDepths.Kill();
 	abParameter.Kill();
 	aiOrder.Kill();
@@ -2677,6 +2734,9 @@ void CIR816Backend::DropFrame(size uiStart)
 }
 
 
+static bool IR816FindReads(const char* szLine, uint8* abRead);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Gives the function in pszCode (as GenerateFunction wrote it, psFrame from
@@ -2689,7 +2749,8 @@ void CIR816Backend::DropFrame(size uiStart)
 // (from X, S as it was) where they were, and S as it was is kept where the
 // caller's D was (at D + frame size + 1) for the epilogue.  A frame past
 // the page (its far bytes are reached through X) has its arguments pushed
-// into place and S kept in psFrame->iSavedS (in the page).  Returns true if
+// into place and S kept in psFrame->iSavedS (in the page).  Argument words
+// nothing reads (IR816FindReads) aren't copied.  Returns true if
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2705,11 +2766,16 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	int32					iTop;
 	int32					iWords;
 	int32					iSavedS;
+	int32					iFirst;
+	int32					iCopied;
 	int32					i;
 	uint64					ulliCost;
 	SAsm65816FunctionProfile*	psProfile;
 	bool					bBig;
 	bool					bWorth;
+	bool					bAllRead;
+	uint8					abRead[IR816_DIRECT_PAGE];
+	bool					abCopy[IR816_DIRECT_PAGE / 2];
 
 	iTop = psFrame->iFrameBytes + IR816_LINK_BYTES + psFrame->iArgumentBytes;
 	iWords = (psFrame->iArgumentBytes + 1) / 2;
@@ -2718,6 +2784,16 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
 	{
 		return false;
+	}
+
+	//Argument words nothing reads aren't copied into the frame (a frame past the page pushes them all into place).
+	iFirst = psFrame->iFrameBytes + 1 + IR816_LINK_BYTES;
+	bAllRead = bBig || IR816FindReads(szCode, abRead);
+	iCopied = bBig ? iWords : 0;
+	for (i = 0; !bBig && (i < iWords); i++)
+	{
+		abCopy[i] = bAllRead || abRead[iFirst + 2 * i] || abRead[iFirst + 2 * i + 1];
+		iCopied += abCopy[i] ? 1 : 0;
 	}
 
 	//A call of itself is recursion.
@@ -2731,7 +2807,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		return false;
 	}
 
-	ulliCost = (uint64)(IR816_ALIGN_CYCLES + IR816_ALIGN_WORD_CYCLES * iWords + (bBig ? IR816_ALIGN_BIG_CYCLES : 0));
+	ulliCost = (uint64)(IR816_ALIGN_CYCLES + IR816_ALIGN_WORD_CYCLES * iCopied + (bBig ? IR816_ALIGN_BIG_CYCLES : 0));
 	if (pcProfile)
 	{
 		//Measured: never seen recursing, and the accesses well past the cost of its calls.
@@ -2771,6 +2847,10 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		szAligned.Append("\t\ttcs\n\t\ttcd\n");
 		for (i = 0; i < iWords; i++)
 		{
+			if (!abCopy[i])
+			{
+				continue;
+			}
 			szAligned.Append("\t\tlda [");
 			szAligned.Append(1 + IR816_LINK_BYTES + 2 * i);
 			szAligned.Append(" + X]:24\n\t\tsta [D + ");
@@ -4694,7 +4774,8 @@ static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c)
 //
 // Whether an operand may read or write the direct page bytes near
 // iOffset: it names [D + n] with n within 2 of it (a pointer is 3 bytes;
-// words may start at either byte), or [D + X].
+// words may start at either byte), or [D + X].  A whole operand [D + n] is
+// a word, bytes n and n + 1: near only when it shares one with iOffset's.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset)
@@ -4702,6 +4783,7 @@ static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffs
 	size	ui;
 	int32	iValue;
 	size	uiDigit;
+	bool	bWord;
 
 	for (ui = 0; ui + 5 <= uiOperand; ui++)
 	{
@@ -4718,7 +4800,8 @@ static bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffs
 		{
 			iValue = iValue * 10 + (szOperand[uiDigit] - '0');
 		}
-		if ((iValue >= iOffset - 2) && (iValue <= iOffset + 2))
+		bWord = (ui == 1) && (szOperand[0] == '[') && (uiDigit + 1 == uiOperand) && (szOperand[uiDigit] == ']');
+		if (bWord ? ((iValue >= iOffset - 1) && (iValue <= iOffset + 1)) : ((iValue >= iOffset - 2) && (iValue <= iOffset + 2)))
 		{
 			return true;
 		}
@@ -5839,7 +5922,8 @@ void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 //
 // After Peephole: stores to a direct page word that the next store to it
 // overwrites unread (IR816DeadStore) go, and loads of a direct page word or
-// a constant that A is loaded again over before it is read (IR816DeadLoad).
+// a constant that A is loaded again over before it is read (IR816DeadLoad),
+// until none are left.
 // Places are shared, so a value worked out in steps is often stored after
 // each.
 //
@@ -5850,29 +5934,38 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 	const char*	szLine;
 	const char*	szEnd;
 	SIR816Line	sLine;
+	bool		bRemoved;
 
-	szOut.Init();
-	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	//Again while any went: the lda that fed a store that went is loaded over unread now.
+	do
 	{
-		szEnd = IR816LineEnd(szLine);
-		if ((szEnd - szLine >= 3) && IR816IsInstruction(szLine) && (*szEnd == '\n'))
+		bRemoved = false;
+		szOut.Init();
+		for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 		{
-			IR816Decode(szLine, &sLine);
-			if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(szEnd + 1, sLine.szOperand, sLine.uiOperand))
+			szEnd = IR816LineEnd(szLine);
+			if ((szEnd - szLine >= 3) && IR816IsInstruction(szLine) && (*szEnd == '\n'))
 			{
-				continue;
+				IR816Decode(szLine, &sLine);
+				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(szEnd + 1, sLine.szOperand, sLine.uiOperand))
+				{
+					bRemoved = true;
+					continue;
+				}
+				if ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || ((sLine.uiOperand > 0) && (sLine.szOperand[0] != '['))) && IR816DeadLoad(szEnd + 1))
+				{
+					bRemoved = true;
+					continue;
+				}
 			}
-			if ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || ((sLine.uiOperand > 0) && (sLine.szOperand[0] != '['))) && IR816DeadLoad(szEnd + 1))
-			{
-				continue;
-			}
+			szOut.Append(szLine, (size)(szEnd - szLine));
+			szOut.AppendNewLine();
 		}
-		szOut.Append(szLine, (size)(szEnd - szLine));
-		szOut.AppendNewLine();
+		pszDest->SetLength(uiStart);
+		pszDest->Append(szOut.Text(), szOut.Length());
+		szOut.Kill();
 	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut.Text(), szOut.Length());
-	szOut.Kill();
+	while (bRemoved);
 }
 
 
@@ -6735,7 +6828,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Line("tax");
 		return;
 	}
-	if (BitShift(psInstruction))
+	if (BitShift(psInstruction) || ShiftTwoWords(psInstruction))
 	{
 		return;
 	}
@@ -6783,6 +6876,78 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Mask(sType);
 		Frame("sta", iResult);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 32 bit shl or lshr by 1 to 7 from the value to the result, not copied
+// to the result first: a bit through A from word to word, or more with the
+// high word copied and the low word read into A, shifted there and stored.
+// (The result is at the value's place or apart from it: the value's word
+// still to be read isn't written first.)  False, with nothing written, for
+// any other shift, or a result past the direct page.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
+{
+	SIRReference	sValue;
+	int32			iResult;
+	int				iAmount;
+	int				i;
+
+	if ((Words(psInstruction->sType) != 2) || !psInstruction->asArguments[1].IsConstant() || psInstruction->sResult.IsNone() ||
+		((psInstruction->uiOpcode != IRO_Shl) && (psInstruction->uiOpcode != IRO_LShr)))
+	{
+		return false;
+	}
+	iAmount = (int)(mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits & 63);
+	iResult = OffsetOf(psInstruction->sResult);
+	if ((iAmount < 1) || (iAmount > 7) || (iResult + 4 > 255))
+	{
+		return false;
+	}
+	sValue = psInstruction->asArguments[0];
+	if (iAmount == 1)
+	{
+		if (psInstruction->uiOpcode == IRO_Shl)
+		{
+			Operand("lda", sValue, 0);
+			Line("asl A");
+			Frame("sta", iResult);
+			Operand("lda", sValue, 1);
+			Line("rol A");
+			Frame("sta", iResult + 2);
+		}
+		else
+		{
+			Operand("lda", sValue, 1);
+			Line("lsr A");
+			Frame("sta", iResult + 2);
+			Operand("lda", sValue, 0);
+			Line("ror A");
+			Frame("sta", iResult);
+		}
+		return true;
+	}
+	Operand("lda", sValue, 1);
+	Frame("sta", iResult + 2);
+	Operand("lda", sValue, 0);
+	for (i = 0; i < iAmount; i++)
+	{
+		if (psInstruction->uiOpcode == IRO_Shl)
+		{
+			Line("asl A");
+			Frame("rol", iResult + 2);
+		}
+		else
+		{
+			Frame("lsr", iResult + 2);
+			Line("ror A");
+		}
+	}
+	Frame("sta", iResult);
+	return true;
 }
 
 
@@ -7401,6 +7566,50 @@ static bool IR816ScratchRoutine(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The runtime routine RuntimeCall calls for psInstruction (mul, udiv, sdiv,
+// urem or srem), into pszName (Init'd here).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RuntimeName(CChars* pszName, SIRInstruction* psInstruction)
+{
+	pszName->Init(IR816_RUNTIME_PREFIX);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Mul:	pszName->Append("Mul");	break;
+	case IRO_UDiv:	pszName->Append("UDiv");	break;
+	case IRO_SDiv:	pszName->Append("SDiv");	break;
+	case IRO_URem:	pszName->Append("URem");	break;
+	default:		pszName->Append("SRem");	break;
+	}
+	pszName->Append(psInstruction->sType.Is(IRTK_I8) ? 16 : psInstruction->sType.Bits());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether RuntimeCall calls a scratch routine (IR816ScratchRoutine) for
+// psInstruction, of two or more words: its operands are copied a word at a
+// time to the scratch bytes, the first then the second.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsScratchCall(SIRInstruction* psInstruction)
+{
+	CChars	szName;
+	bool	bScratch;
+
+	if (psInstruction->sType.IsFloat() || (Words(psInstruction->sType) < 2))
+	{
+		return false;
+	}
+	RuntimeName(&szName, psInstruction);
+	bScratch = IR816ScratchRoutine(szName.Text());
+	szName.Kill();
+	return bScratch;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // mul, udiv, sdiv, urem and srem call R816_<operation><bits>, an i8 as 16 bits (sign extended for sdiv and srem).
 // The scratch routines get their operands at IR816_SCRATCH_ARGUMENT_A and _B, the others pushed.
 //
@@ -7409,7 +7618,6 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 {
 	CChars		szName;
 	SIRType		sType;
-	int			iBits;
 	int32		iBytes;
 	bool		bSigned;
 	int			i;
@@ -7419,23 +7627,13 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	{
 		return Error("Multiply and divide are for i8 to i64");
 	}
-	iBits = sType.Is(IRTK_I8) ? 16 : sType.Bits();
 	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
 	if (TableDivide(psInstruction, bSigned) || ByteMultiply(psInstruction))
 	{
 		return true;
 	}
 
-	szName.Init(IR816_RUNTIME_PREFIX);
-	switch (psInstruction->uiOpcode)
-	{
-	case IRO_Mul:	szName.Append("Mul");	break;
-	case IRO_UDiv:	szName.Append("UDiv");	break;
-	case IRO_SDiv:	szName.Append("SDiv");	break;
-	case IRO_URem:	szName.Append("URem");	break;
-	default:		szName.Append("SRem");	break;
-	}
-	szName.Append(iBits);
+	RuntimeName(&szName, psInstruction);
 
 	iBytes = 0;
 	if (IR816ScratchRoutine(szName.Text()))
@@ -8084,7 +8282,8 @@ void CIR816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
 //////////////////////////////////////////////////////////////////////////
 //
 // A word at a time (WordInA).  An i8 is read as a word and masked (the byte after it is only memory), or with m 8 bits
-// when volatile (it may be a device's register).
+// when volatile (it may be a device's register).  A value in its pointer's place (p = p->psNext, PackTemporaries) has
+// its words past the pointer read first, then its second word is kept on the stack while the first is read.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Load(SIRInstruction* psInstruction)
@@ -8096,6 +8295,21 @@ void CIR816Backend::Load(SIRInstruction* psInstruction)
 	if (bByte)
 	{
 		Line("sep m");
+	}
+	else if ((Words(psInstruction->sType) >= 2) && !InX(psInstruction->sResult) && FusedOverlaps(psInstruction->sResult, FoldedBase(psInstruction->asArguments[0]), true))
+	{
+		for (i = Words(psInstruction->sType) - 1; i >= 2; i--)
+		{
+			WordInA(psInstruction, i);
+			Store(psInstruction->sResult, i);
+		}
+		WordInA(psInstruction, 1);
+		Line("pha");
+		WordInA(psInstruction, 0);
+		Store(psInstruction->sResult, 0);
+		Line("pla");
+		Store(psInstruction->sResult, 1);
+		return;
 	}
 	for (i = 0; i < Words(psInstruction->sType); i++)
 	{
@@ -8322,6 +8536,18 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 			return false;
 		}
 		sNextResult = psNext->sResult;
+		break;
+	case IRO_Mul:
+	case IRO_UDiv:
+	case IRO_SDiv:
+	case IRO_URem:
+	case IRO_SRem:
+		//Read into the scratch routine's operand a word at a time (RuntimeCall), all before its result is written.
+		if (!IsScratchCall(psNext) || (Words(psNext->sType) != Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]) ||
+			(!psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult)))
+		{
+			return false;
+		}
 		break;
 	default:
 		return false;

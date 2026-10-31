@@ -31,7 +31,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 void CModSong::Init(size uiNumChannels, size uiNumSamples, size uiNumPatterns)
 {
 	size	i;
-	size	uiNumNotes;
+	lsize	uiNumNotes;
 
 	PreInit();
 
@@ -47,7 +47,7 @@ void CModSong::Init(size uiNumChannels, size uiNumSamples, size uiNumPatterns)
 	muiRestart = 0;
 	memset(mauiOrders, 0, sizeof(mauiOrders));
 	muiNumPatterns = uiNumPatterns;
-	uiNumNotes = uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels;
+	uiNumNotes = (lsize)uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels;
 	mpsNotes = (SModNote*)malloc((lsize)sizeof(SModNote) * (uiNumNotes + 1));
 	memset(mpsNotes, 0, (lsize)sizeof(SModNote) * (uiNumNotes + 1));
 	mpSamples = NULL;
@@ -278,6 +278,6 @@ SModNote* CModSong::GetNote(size uiPattern, size uiRow, size uiChannel)
 	{
 		return NULL;
 	}
-	return &mpsNotes[(uiPattern * MOD_ROWS_PER_PATTERN + uiRow) * muiNumChannels + uiChannel];
+	return &mpsNotes[((lsize)uiPattern * MOD_ROWS_PER_PATTERN + uiRow) * muiNumChannels + uiChannel];
 }
 

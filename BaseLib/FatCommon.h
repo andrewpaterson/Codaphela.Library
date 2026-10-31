@@ -298,16 +298,14 @@ struct SFatFileSystemQuery
 enum EFatFileSystemType
 {
 	FAT_FS_TYPE_UNSPECIFIED,
-	FAT_FS_TYPE_FAT12,
+	FAT_FS_TYPE_FAT12,		//Not supported (not mounted or formatted).
 	FAT_FS_TYPE_FAT16,
 	FAT_FS_TYPE_FAT32
 };
 
 
-#define FAT12_EOC					0x00000FFF
 #define FAT16_EOC					0x0000FFFF
 #define FAT32_EOC					0x0FFFFFFF
-#define FAT12_BAD_CLUSTER			0x00000FF7
 #define FAT16_BAD_CLUSTER			0x0000FFF7
 #define FAT32_BAD_CLUSTER			0x0FFFFFF7
 #define FAT16_CLEAN_SHUTDOWN		0x8000
@@ -319,10 +317,9 @@ enum EFatFileSystemType
 #define FAT_OPEN_HANDLE_MAGIC		0x4B
 #define FAT_KANJI_SKIP_ENTRY		0x05
 #define FAT_DELETED_ENTRY			0xE5
-#define FAT12_CLUSTER_MASK			0x00000FFF
 #define FAT16_CLUSTER_MASK			0x0000FFFF
 #define FAT32_CLUSTER_MASK			0x0FFFFFFF
-#define FAT12_MAX_CLUSTERS			4084
+#define FAT12_MAX_CLUSTERS			4084		//FAT12 isn't supported: a FAT16 volume has more clusters than this.
 #define FAT16_MAX_CLUSTERS			65524
 
 

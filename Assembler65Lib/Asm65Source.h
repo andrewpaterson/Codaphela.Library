@@ -21,6 +21,8 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __ASM65_SOURCE_H__
 #define __ASM65_SOURCE_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/Chars.h"
+#include "BaseLib/TextFile.h"
 
 
 //Where an assembler reads its source from, a line at a time: each pass reads it
@@ -49,6 +51,34 @@ public:
 
 	void			Rewind(void) override;
 	const char*		NextLine(void) override;
+};
+
+
+#define ASM65_MAX_INCLUDE_DEPTH		8
+
+
+//A source with .include "file" lines replaced by the file's lines (an included file may include others).  A file
+//name is relative to the directory given, like .inchex's.  A .include line whose file can't be read is passed on, for
+//the assembler to report.
+class CAsm65IncludeSource : public CAsm65Source
+{
+protected:
+	CAsm65Source*		mpcSource;
+	CChars				mszDirectory;
+	CTextFile			macFiles[ASM65_MAX_INCLUDE_DEPTH];
+	CAsm65TextSource	macSources[ASM65_MAX_INCLUDE_DEPTH];
+	size				muiDepth;
+
+public:
+	void			Init(CAsm65Source* pcSource, const char* szDirectory);
+	void			Kill(void);
+
+	void			Rewind(void) override;
+	const char*		NextLine(void) override;
+
+protected:
+	bool			Include(const char* szLine);
+	void			Pop(void);
 };
 
 

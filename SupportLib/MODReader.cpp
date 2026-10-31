@@ -101,9 +101,9 @@ bool MODReadSampleHeader(CFileBasic* pcFile, SMODSampleHeader* psHeader)
 		return false;
 	}
 	psHeader->szName[22] = '\0';
-	psHeader->uiLength = (size)uiLength * 2;
-	psHeader->uiLoopStart = (size)uiLoopStart * 2;
-	psHeader->uiLoopLength = (size)uiLoopLength * 2;
+	psHeader->uiLength = (lsize)uiLength * 2;
+	psHeader->uiLoopStart = (lsize)uiLoopStart * 2;
+	psHeader->uiLoopLength = (lsize)uiLoopLength * 2;
 
 	//Every tracker writes the finetune in the low four bits and volumes up to 64.  Anything else is most likely not a module.
 	return ((psHeader->uiFineTune & 0xF0) == 0) && (psHeader->uiVolume <= 64);
@@ -153,7 +153,7 @@ bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pcSong)
 // cut off by the end of the file is left silent.
 //
 //////////////////////////////////////////////////////////////////////////
-bool MODReadSamples(CFileBasic* pcFile, size uiFileSize, Ptr<CModSong> pcSong, SMODSampleHeader* pasHeaders)
+bool MODReadSamples(CFileBasic* pcFile, lsize uiFileSize, Ptr<CModSong> pcSong, SMODSampleHeader* pasHeaders)
 {
 	size					i;
 	lsize					uiTotalFrames;
@@ -191,7 +191,7 @@ bool MODReadSamples(CFileBasic* pcFile, size uiFileSize, Ptr<CModSong> pcSong, S
 		psSample->iFineTune = (int8)((psHeader->uiFineTune & 0x08) ? (int)psHeader->uiFineTune - 16 : (int)psHeader->uiFineTune);
 		psSample->uiVolume = psHeader->uiVolume;
 
-		uiAvailable = (size)(uiFileSize - pcFile->Tell());
+		uiAvailable = (lsize)(uiFileSize - pcFile->Tell());
 		pcFile->ReadData(&puiBank[uiBankFrame], uiAvailable < psHeader->uiLength ? uiAvailable : psHeader->uiLength);
 
 		if (psHeader->uiLength > 0)
@@ -221,7 +221,7 @@ bool MODReadSamples(CFileBasic* pcFile, size uiFileSize, Ptr<CModSong> pcSong, S
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CModSong> MODRead(CFileBasic* pcFile, size uiFileSize)
+Ptr<CModSong> MODRead(CFileBasic* pcFile, lsize uiFileSize)
 {
 	uint8					auiSignature[4];
 	size					uiNumSamples;
@@ -231,7 +231,7 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, size uiFileSize)
 	uint8					uiRestart;
 	uint8					auiOrders[MOD_MAX_ORDERS];
 	size					uiNumPatterns;
-	size					uiPatternsSize;
+	lsize					uiPatternsSize;
 	size					i;
 	char					szTitle[21];
 	SMODSampleHeader		asHeaders[MOD_MAX_SAMPLES];
@@ -295,12 +295,12 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, size uiFileSize)
 		return NULL;
 	}
 
-	uiPatternsSize = uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels * MOD_NOTE_SIZE;
+	uiPatternsSize = (lsize)uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels * MOD_NOTE_SIZE;
 	if ((uiNumSamples == 31) && !pcFile->Seek(1084))
 	{
 		return NULL;
 	}
-	if ((size)pcFile->Tell() + uiPatternsSize > uiFileSize)
+	if ((lsize)pcFile->Tell() + uiPatternsSize > uiFileSize)
 	{
 		return NULL;
 	}
@@ -325,7 +325,7 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, size uiFileSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CModSong> LoadMOD(void* pvFile, size uiFileSize)
+Ptr<CModSong> LoadMOD(void* pvFile, lsize uiFileSize)
 {
 	CFileBasic		cFile;
 	Ptr<CModSong>	pcSong;
@@ -358,7 +358,7 @@ Ptr<CModSong> LoadMOD(char* szFilename)
 		return NULL;
 	}
 
-	pcSong = LoadMOD(cNaiveFile.Get(), (size)cNaiveFile.Size());
+	pcSong = LoadMOD(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
 	cNaiveFile.Kill();
 
 	if (pcSong.IsNull())
