@@ -39,6 +39,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mabInLoop.Init();
 	maiArgumentOffsets.Init();
 	masArguments.Init();
+	mapcRecursiveCallers.Init();
+	mapcRecursiveCallees.Init();
 	msArguments = IRNone();
 	mpcImports = NULL;
 	mpaszMissing = NULL;
@@ -54,6 +56,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::Kill(void)
 {
+	mapcRecursiveCallees.Kill();
+	mapcRecursiveCallers.Kill();
 	masArguments.Kill();
 	maiArgumentOffsets.Kill();
 	mabInLoop.Kill();
@@ -83,6 +87,54 @@ size CIRInliner::NumInstructions(CIRFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcCallee calls itself and has been inlined into mpcCaller already.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::InlinedRecursive(CIRFunction* pcCallee)
+{
+	size	ui;
+
+	for (ui = 0; ui < mapcRecursiveCallers.NumElements(); ui++)
+	{
+		if ((*mapcRecursiveCallers.Get(ui) == mpcCaller) && (*mapcRecursiveCallees.Get(ui) == pcCallee))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction calls itself directly.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::CallsItself(CIRFunction* pcFunction)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	size			ui;
+	size			uiInstruction;
+
+	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = pcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && (psInstruction->asArguments[0].Index() == pcFunction->muiSymbol))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if calls of pcCallee (from mpcCaller) may be replaced by its body:
 // a call in a loop by a larger one, and a call (the one at uiCall in
 // pcBlock, if given) passing constants the callee compares by a larger one
@@ -98,6 +150,12 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 
 	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0))
 	{
+		return false;
+	}
+	if ((NumInstructions(mpcCaller) + NumInstructions(pcCallee) > IR_INLINE_MAX_CALLER) || InlinedRecursive(pcCallee))
+	{
+		//A recursive function's calls of itself would be inlined again in the next round, and again: the caller
+		//doubles each round.  It is inlined once.
 		return false;
 	}
 	uiLimit = bInLoop ? muiMaxLoopInstructions : muiMaxInstructions;
@@ -213,6 +271,11 @@ bool CIRInliner::InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCalle
 	if (!InlineCall(mpcCaller->GetBlock(uiBlock), uiInstruction, pcCallee))
 	{
 		return false;
+	}
+	if (CallsItself(pcCallee))
+	{
+		mapcRecursiveCallers.Add(&mpcCaller);
+		mapcRecursiveCallees.Add(&pcCallee);
 	}
 	for (; uiBlocks < mpcCaller->NumBlocks(); uiBlocks++)
 	{

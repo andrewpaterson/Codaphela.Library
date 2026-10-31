@@ -107,10 +107,10 @@ struct SCPP65IRWritten
 #define IR65_INLINE_CALLS				24		//...and the most calls inlined into one function at a time...
 #define IR65_INLINE_ROUNDS				4		//...in at most this many rounds (optimising between them).
 #define IR65_INLINE_HOT_INSTRUCTIONS	64		//With a profile, the most a hot call's callee may have (CIRInliner::SetProfile).
-#define IR816_INLINE_INSTRUCTIONS		32		//The W65C816's: a call costs it far more (about 70 cycles with its frame), so more
-#define IR816_INLINE_LOOP_INSTRUCTIONS	64		//is inlined (measured 2026-10-31: TestBaseLib65 -3.3%, TestStandardLib65 -5.0%
-#define IR816_INLINE_CALLS				32		//from 16, 32 and 24; 48 and over miscompiled TestRedBlackTree, not yet found).
-#define IR816_INLINE_HOT_INSTRUCTIONS	96		//With a profile: more than in a loop, or a profile would add nothing there.
+#define IR816_INLINE_INSTRUCTIONS		64		//The W65C816's: a call costs it far more (about 70 cycles with its frame), so more
+#define IR816_INLINE_LOOP_INSTRUCTIONS	128		//is inlined (measured 2026-10-31, TestBaseLib65 and TestStandardLib65: 16/32/24 to
+#define IR816_INLINE_CALLS				64		//32/64/32 -3.3% and -5.0%, then -2.0% and -3.5%; 96 ran one out of bank 0's stack).
+#define IR816_INLINE_HOT_INSTRUCTIONS	192		//With a profile: more than in a loop, or a profile would add nothing there.
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
