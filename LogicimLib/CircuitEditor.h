@@ -64,6 +64,15 @@ struct SMoveAnchor
 typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
 
 
+//Where the wires followed out from a moved port or wire end go (see CCircuitEditor::FollowChain).
+enum EMoveChain
+{
+	MC_None,
+	MC_Follows,
+	MC_Stops,
+};
+
+
 //The ways the editor turns or flips components (see CCircuitEditor::TransformComponents).
 enum EEditTransform
 {
@@ -98,14 +107,14 @@ enum EEditTransform
 //CCircuitWiring::SetDetached), so their components keep their state.
 //
 //Dragged with control held, or turned or flipped from the keyboard, they stay connected, which Logicim doesn't do.
-//The wires from each moved port to the next junction or port (its lead) are found when the move starts, taken out
-//once the views move, and the port routed again to where its lead went (see CTraceAutoConnector) each time they move,
-//or wired there straight if there's no route; the routes are drawn as disconnected wires until the move is done.  A
-//lead that ends on nothing, or on a port of a moved component, moves with them instead.  Leads with moved wires in
-//them stay as they are.  A port on a junction (where several wires meet, on a wire that goes on through it, or on
-//another component's port) has a lead of no wires: the junction stays where it is and the port is routed back to it.  Each end of a moved wire that was joined to something that isn't moving is joined
-//back to where it was by new wire, along and then across, drawn as a disconnected wire while it moves and added when
-//the move is done.  The simulations aren't rewired until then; a move that ends where it started puts the leads back.
+//When the move starts the wires that aren't moving are followed out from each moved port and each end of each moved
+//wire (see FollowChain).  Wires that end on nothing, or on something else that's moving, move with the views.  Wires
+//from a port that end on a junction or a port that isn't moving (its lead; none if the port is right on one) are taken
+//out once the views move, and the port routed again to where its lead went (see CTraceAutoConnector) each time they
+//move, or wired there straight if there's no route; the routes are drawn as disconnected wires until the move is done.
+//Each end of a moved wire still joined to something that isn't moving is joined back to where it was by new wire,
+//along and then across, drawn as a disconnected wire while it moves and added when the move is done.  The simulations
+//aren't rewired until then; a move that ends where it started puts the leads back.
 //
 //Wires are kept as Logicim keeps them (see MergeTraceLines): those along each other are merged and they're split
 //where one ends on another and at ports, whenever wires are drawn, moved or deleted, or components moved.
@@ -233,9 +242,8 @@ protected:
 	void				ClearHover(void);
 	void				GetTracesEndingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcTraces);
 	bool				RouteWire(SInt32Vec2 sFrom, SInt32Vec2 sTo);
-	void				FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
-	void				FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
-	void				AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	void				FollowFrom(SInt32Vec2 sPoint, CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcMoving, CArrayTraceViewPtr* papcFollowing);
+	EMoveChain			FollowChain(SInt32Vec2 sPoint, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcMoving, CArrayTraceViewPtr* papcChain, SInt32Vec2* psEnd, CPortView** ppcPortAt);
 	CPortView*			FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded, CArrayComponentViewPtr* papcComponents);
 	void				LiftLeads(void);
 	void				RouteLeads(void);
@@ -244,7 +252,6 @@ protected:
 	void				FinishLeads(CArrayTraceViewPtr* papcSeeds);
 	void				KillLeads(void);
 	void				InitPropertiesContext(SComponentPropertiesContext* psContext);
-	bool				IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded);
 	void				FindAnchors(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	bool				IsJoinedAt(SInt32Vec2 sPoint, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	void				GetAnchorLines(SMoveAnchor* psAnchor, CArrayTraceLine* pasLines);

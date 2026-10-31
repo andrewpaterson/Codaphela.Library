@@ -1278,53 +1278,211 @@ CViewPath* CCircuitEditor::GetViewPath(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Views being moved aren't selected while they move.  Moved bConnected,
-// the leads of components already in the circuit are found, to be routed
-// again as they move (see MovedViews); the wires of leads that end on
-// nothing, or on another moved port, are added to papcFollowing, to be
-// moved with them.  Otherwise
-// views already in the circuit are detached from their wires.  New views
-// (being placed) are in no simulation yet, so neither is done.
+// the wires that aren't moving are followed out from each moved port and
+// each end of each moved wire (see FollowFrom), and then the moved wires'
+// ends still joined to something that isn't moving are anchored.
+// Otherwise views already in the circuit are detached from their wires.
+// New views (being placed) are in no simulation yet, so neither is done.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected, CArrayTraceViewPtr* papcFollowing)
 {
-	size			i;
-	size			j;
-	SMoveLead*		psLead;
-	CTraceView*		pcTrace;
+	size				i;
+	size				j;
+	CComponentView*		pcComponent;
+	CTraceView*			pcTrace;
+	CArrayTraceViewPtr	apcMoving;
 
 	mcSelection.Clear();
 	KillLeads();
 	masAnchors.ReInit();
 	mbDetachedMove = false;
-	if (!bNew)
+	if (bNew)
 	{
-		if (bConnected)
-		{
-			FindLeads(papcComponents, papcTraces, papcFollowing);
-			FindAnchors(papcComponents, papcTraces);
-		}
-		else
-		{
-			mbDetachedMove = true;
-			Rewire(papcComponents, papcTraces);
-		}
+		return;
+	}
+	if (!bConnected)
+	{
+		mbDetachedMove = true;
+		Rewire(papcComponents, papcTraces);
+		return;
 	}
 
-	for (i = masLeads.NumElements(); i > 0; i--)
+	apcMoving.Init();
+	for (i = 0; i < papcTraces->NumElements(); i++)
 	{
-		psLead = masLeads.Get(i - 1);
-		if ((psLead->pcTargetPort == NULL) && !IsAnythingAt(psLead->sTarget, &psLead->apcTraces))
+		apcMoving.Add(papcTraces->GetPtr(i));
+	}
+	for (i = 0; i < papcComponents->NumElements(); i++)
+	{
+		pcComponent = papcComponents->GetPtr(i);
+		for (j = 0; j < pcComponent->NumPortViews(); j++)
 		{
-			for (j = 0; j < psLead->apcTraces.NumElements(); j++)
-			{
-				pcTrace = psLead->apcTraces.GetPtr(j);
-				papcFollowing->Add(pcTrace);
-				mapcFollowing.Add(pcTrace);
-			}
-			psLead->apcTraces.Kill();
-			masLeads.RemoveAt(i - 1, true);
+			FollowFrom(pcComponent->GetPortView(j)->GetGridPosition(), pcComponent->GetPortView(j), papcComponents, &apcMoving, papcFollowing);
 		}
+	}
+	for (i = 0; i < papcTraces->NumElements(); i++)
+	{
+		pcTrace = papcTraces->GetPtr(i);
+		FollowFrom(pcTrace->GetStart(), NULL, papcComponents, &apcMoving, papcFollowing);
+		FollowFrom(pcTrace->GetEnd(), NULL, papcComponents, &apcMoving, papcFollowing);
+	}
+	FindAnchors(papcComponents, &apcMoving);
+	apcMoving.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Follows the wires that aren't moving from sPoint, a moved port (pcPort)
+// or the end of a moved wire (pcPort NULL), see FollowChain.  Wires that
+// follow are added to papcFollowing (and papcMoving), to be moved with the
+// views.  A port's wires that stop at a junction or a port are its lead,
+// to be routed again as it moves (see MovedViews); a moved wire's are
+// left, and it's anchored to them (see FindAnchors).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::FollowFrom(SInt32Vec2 sPoint, CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcMoving, CArrayTraceViewPtr* papcFollowing)
+{
+	CArrayTraceViewPtr	apcChain;
+	SInt32Vec2			sEnd;
+	CPortView*			pcPortAt;
+	EMoveChain			eChain;
+	SMoveLead*			psLead;
+	size				i;
+
+	apcChain.Init();
+	eChain = FollowChain(sPoint, papcComponents, papcMoving, &apcChain, &sEnd, &pcPortAt);
+	if (eChain == MC_Follows)
+	{
+		for (i = 0; i < apcChain.NumElements(); i++)
+		{
+			papcFollowing->Add(apcChain.GetPtr(i));
+			mapcFollowing.Add(apcChain.GetPtr(i));
+			papcMoving->Add(apcChain.GetPtr(i));
+		}
+	}
+	else if ((eChain == MC_Stops) && (pcPort != NULL))
+	{
+		psLead = masLeads.Add();
+		psLead->pcPort = pcPort;
+		psLead->sTarget = sEnd;
+		psLead->apcTraces.Init();
+		for (i = 0; i < apcChain.NumElements(); i++)
+		{
+			psLead->apcTraces.Add(apcChain.GetPtr(i));
+		}
+		psLead->pcNetPort = FindNetPort(sEnd, &apcChain, papcComponents);
+		psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : psLead->pcNetPort;
+		if (psLead->pcNetPort == NULL)
+		{
+			psLead->pcNetPort = pcPortAt;
+		}
+	}
+	apcChain.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Follows the wires that aren't moving from sPoint (a moved port, or a
+// moved wire's end) on through the points where one wire ends on another
+// and nothing else is, into papcChain.  MC_Follows if they end on nothing
+// or on something else that's moving: they can move with it.  MC_Stops,
+// with where they stop in *psEnd and the port there (that isn't moving)
+// in *ppcPortAt, if they end on a junction or a port; a junction or port
+// right at sPoint stops there with no wires.  MC_None if nothing that
+// isn't moving is joined at sPoint, or something else moving is.
+//
+//////////////////////////////////////////////////////////////////////////
+EMoveChain CCircuitEditor::FollowChain(SInt32Vec2 sPoint, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcMoving, CArrayTraceViewPtr* papcChain, SInt32Vec2* psEnd, CPortView** ppcPortAt)
+{
+	size				i;
+	CTraceView*			pcFrom;
+	CTraceView*			pcTrace;
+	CTraceView*			pcNext;
+	size				uiStill;
+	size				uiMoving;
+	CArrayPortViewPtr	apcPortViews;
+	CPortView*			pcPortView;
+
+	apcPortViews.Init();
+	mpcCircuit->CollectPortViews(&apcPortViews);
+	pcFrom = NULL;
+	for (;;)
+	{
+		*psEnd = sPoint;
+		*ppcPortAt = NULL;
+		uiMoving = 0;
+		for (i = 0; i < apcPortViews.NumElements(); i++)
+		{
+			pcPortView = apcPortViews.GetPtr(i);
+			if (pcPortView->GetGridPosition() == sPoint)
+			{
+				if (papcComponents->Find(pcPortView->GetOwner()) == ARRAY_ELEMENT_NOT_FOUND)
+				{
+					*ppcPortAt = pcPortView;
+				}
+				else
+				{
+					uiMoving++;
+				}
+			}
+		}
+		pcNext = NULL;
+		uiStill = 0;
+		for (i = 0; i < mpcCircuit->NumTraces(); i++)
+		{
+			pcTrace = mpcCircuit->GetTrace(i);
+			if ((pcTrace != pcFrom) && pcTrace->Contains(sPoint) && (papcChain->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				if (papcMoving->Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND)
+				{
+					uiMoving++;
+				}
+				else
+				{
+					pcNext = pcTrace;
+					uiStill++;
+				}
+			}
+		}
+
+		//The moved port or wire at sPoint itself is one of the moving there.
+		if ((pcFrom == NULL) && (uiMoving > 1))
+		{
+			apcPortViews.Kill();
+			return MC_None;
+		}
+		if (*ppcPortAt != NULL)
+		{
+			apcPortViews.Kill();
+			return MC_Stops;
+		}
+		if ((pcFrom == NULL) && (uiStill == 0))
+		{
+			apcPortViews.Kill();
+			return MC_None;
+		}
+		if ((pcFrom != NULL) && (uiMoving > 0))
+		{
+			apcPortViews.Kill();
+			return (uiStill == 0) ? MC_Follows : MC_Stops;
+		}
+		if (uiStill == 0)
+		{
+			apcPortViews.Kill();
+			return MC_Follows;
+		}
+		if ((uiStill > 1) || !pcNext->IsEnd(sPoint))
+		{
+			apcPortViews.Kill();
+			return MC_Stops;
+		}
+
+		papcChain->Add(pcNext);
+		pcFrom = pcNext;
+		sPoint = (pcFrom->GetStart() == sPoint) ? pcFrom->GetEnd() : pcFrom->GetStart();
 	}
 }
 
@@ -1450,33 +1608,6 @@ void CCircuitEditor::GetAnchorLines(SMoveAnchor* psAnchor, CArrayTraceLine* pasL
 	{
 		pasLines->Add()->Init(sCorner, psAnchor->sOriginal);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a port, or a wire other than the excluded ones, is on the grid
-// point.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCircuitEditor::IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded)
-{
-	size			i;
-	CTraceView*		pcTrace;
-
-	if (mpcCircuit->GetPortViewAt(sPoint) != NULL)
-	{
-		return true;
-	}
-	for (i = 0; i < mpcCircuit->NumTraces(); i++)
-	{
-		pcTrace = mpcCircuit->GetTrace(i);
-		if (pcTrace->Contains(sPoint) && (papcExcluded->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 
@@ -1741,193 +1872,6 @@ void CCircuitEditor::PullWire(CWirePullEdit* pcPull)
 	}
 	Rewire();
 	PushUndo(false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The lead of each port of each component, see SMoveLead.  The wires
-// between moved ports are added to papcFollowing.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing)
-{
-	size				i;
-	size				j;
-	CComponentView*		pcComponent;
-
-	for (i = 0; i < papcComponents->NumElements(); i++)
-	{
-		pcComponent = papcComponents->GetPtr(i);
-		for (j = 0; j < pcComponent->NumPortViews(); j++)
-		{
-			FindLead(pcComponent->GetPortView(j), papcComponents, papcTraces, papcFollowing);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Follows the one wire from the port on through the points where only two
-// wires meet (and nothing else), to the next junction or port.  A port
-// that isn't on exactly one wire, at its end, is on a junction (see
-// AddJunctionLead).  There's no lead if the wires go through a moved
-// wire.  Wires that end on a moved component's port are
-// no lead either: they move with the components, so they're added to
-// papcFollowing (once, though they're found from both ends).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing)
-{
-	CArrayTraceViewPtr	apcChain;
-	CArrayTraceViewPtr	apcAt;
-	SInt32Vec2			sPoint;
-	CTraceView*			pcTrace;
-	CPortView*			pcPortAt;
-	SMoveLead*			psLead;
-	size				i;
-	bool				bLead;
-
-	apcChain.Init();
-	apcAt.Init();
-	sPoint = pcPort->GetGridPosition();
-	GetTracesEndingAt(sPoint, &apcAt);
-	bLead = (apcAt.NumElements() == 1) && (mpcCircuit->NumTracesAt(sPoint) == 1);
-	if (!bLead)
-	{
-		AddJunctionLead(pcPort, papcComponents, papcTraces);
-	}
-	pcTrace = bLead ? apcAt.GetPtr(0) : NULL;
-	pcPortAt = NULL;
-	while (bLead)
-	{
-		if ((papcTraces->Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND) || (apcChain.Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND))
-		{
-			bLead = false;
-			break;
-		}
-		apcChain.Add(pcTrace);
-		sPoint = (pcTrace->GetStart() == sPoint) ? pcTrace->GetEnd() : pcTrace->GetStart();
-
-		apcAt.ReInit();
-		for (i = 0; i < mpcCircuit->NumTraces(); i++)
-		{
-			if ((mpcCircuit->GetTrace(i) != pcTrace) && mpcCircuit->GetTrace(i)->Contains(sPoint))
-			{
-				apcAt.Add(mpcCircuit->GetTrace(i));
-			}
-		}
-		pcPortAt = mpcCircuit->GetPortViewAt(sPoint);
-		if ((pcPortAt != NULL) || (apcAt.NumElements() != 1) || !apcAt.GetPtr(0)->IsEnd(sPoint))
-		{
-			break;
-		}
-		pcTrace = apcAt.GetPtr(0);
-	}
-
-	if (bLead && (pcPortAt != NULL) && (papcComponents->Find(pcPortAt->GetOwner()) != ARRAY_ELEMENT_NOT_FOUND))
-	{
-		bLead = false;
-		for (i = 0; i < apcChain.NumElements(); i++)
-		{
-			pcTrace = apcChain.GetPtr(i);
-			if (papcFollowing->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND)
-			{
-				papcFollowing->Add(pcTrace);
-				mapcFollowing.Add(pcTrace);
-			}
-		}
-	}
-	if (bLead)
-	{
-		psLead = masLeads.Add();
-		psLead->pcPort = pcPort;
-		psLead->sTarget = sPoint;
-		psLead->apcTraces.Init();
-		for (i = 0; i < apcChain.NumElements(); i++)
-		{
-			psLead->apcTraces.Add(apcChain.GetPtr(i));
-		}
-		psLead->pcNetPort = FindNetPort(sPoint, &apcChain, papcComponents);
-		psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : psLead->pcNetPort;
-		if (psLead->pcNetPort == NULL)
-		{
-			psLead->pcNetPort = pcPortAt;
-		}
-	}
-	apcAt.Kill();
-	apcChain.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The lead of a port on a junction: where several wires meet, on a wire
-// that goes on through it, or on a port of a component that isn't moving.
-// It has no wires, and ends on the junction, which stays where it is, so
-// the port is routed back to it (to the port there, if there is one).
-// None if nothing is on the port, or a moved wire is (it moves with the
-// port).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
-{
-	SInt32Vec2			sPoint;
-	size				i;
-	bool				bOnWire;
-	CTraceView*			pcTrace;
-	CPortView*			pcPortAt;
-	CPortView*			pcOther;
-	CArrayPortViewPtr	apcPortViews;
-	SMoveLead*			psLead;
-	CArrayTraceViewPtr	apcNoWires;
-
-	sPoint = pcPort->GetGridPosition();
-	bOnWire = false;
-	for (i = 0; i < mpcCircuit->NumTraces(); i++)
-	{
-		pcTrace = mpcCircuit->GetTrace(i);
-		if (pcTrace->Contains(sPoint))
-		{
-			if (papcTraces->Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND)
-			{
-				return;
-			}
-			bOnWire = true;
-		}
-	}
-
-	pcPortAt = NULL;
-	apcPortViews.Init();
-	mpcCircuit->CollectPortViews(&apcPortViews);
-	for (i = 0; i < apcPortViews.NumElements(); i++)
-	{
-		pcOther = apcPortViews.GetPtr(i);
-		if ((pcOther->GetGridPosition() == sPoint) && (papcComponents->Find(pcOther->GetOwner()) == ARRAY_ELEMENT_NOT_FOUND))
-		{
-			pcPortAt = pcOther;
-			break;
-		}
-	}
-	apcPortViews.Kill();
-	if (!bOnWire && (pcPortAt == NULL))
-	{
-		return;
-	}
-
-	apcNoWires.Init();
-	psLead = masLeads.Add();
-	psLead->pcPort = pcPort;
-	psLead->sTarget = sPoint;
-	psLead->apcTraces.Init();
-	psLead->pcNetPort = FindNetPort(sPoint, &apcNoWires, papcComponents);
-	psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : psLead->pcNetPort;
-	if (psLead->pcNetPort == NULL)
-	{
-		psLead->pcNetPort = pcPortAt;
-	}
-	apcNoWires.Kill();
 }
 
 
