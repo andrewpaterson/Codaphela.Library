@@ -1770,9 +1770,10 @@ void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTra
 //////////////////////////////////////////////////////////////////////////
 //
 // Follows the one wire from the port on through the points where only two
-// wires meet (and nothing else), to the next junction or port.  There's no
-// lead if the port isn't on exactly one wire's end or if the wires go
-// through a moved wire.  Wires that end on a moved component's port are
+// wires meet (and nothing else), to the next junction or port.  A port
+// that isn't on exactly one wire, at its end, is on a junction (see
+// AddJunctionLead).  There's no lead if the wires go through a moved
+// wire.  Wires that end on a moved component's port are
 // no lead either: they move with the components, so they're added to
 // papcFollowing (once, though they're found from both ends).
 //
@@ -1792,7 +1793,11 @@ void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcCom
 	apcAt.Init();
 	sPoint = pcPort->GetGridPosition();
 	GetTracesEndingAt(sPoint, &apcAt);
-	bLead = (apcAt.NumElements() == 1);
+	bLead = (apcAt.NumElements() == 1) && (mpcCircuit->NumTracesAt(sPoint) == 1);
+	if (!bLead)
+	{
+		AddJunctionLead(pcPort, papcComponents, papcTraces);
+	}
 	pcTrace = bLead ? apcAt.GetPtr(0) : NULL;
 	pcPortAt = NULL;
 	while (bLead)
@@ -1853,6 +1858,54 @@ void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcCom
 	}
 	apcAt.Kill();
 	apcChain.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lead of a port on a junction: where several wires meet, or on a
+// wire that goes on through it.  It has no wires, and ends on the
+// junction, which stays where it is, so the port is routed back to it.
+// None if no wire is on the port, or a moved wire is (it moves with the
+// port).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+{
+	SInt32Vec2			sPoint;
+	size				i;
+	bool				bOnWire;
+	CTraceView*			pcTrace;
+	SMoveLead*			psLead;
+	CArrayTraceViewPtr	apcNoWires;
+
+	sPoint = pcPort->GetGridPosition();
+	bOnWire = false;
+	for (i = 0; i < mpcCircuit->NumTraces(); i++)
+	{
+		pcTrace = mpcCircuit->GetTrace(i);
+		if (pcTrace->Contains(sPoint))
+		{
+			if (papcTraces->Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND)
+			{
+				return;
+			}
+			bOnWire = true;
+		}
+	}
+	if (!bOnWire)
+	{
+		return;
+	}
+
+	apcNoWires.Init();
+	psLead = masLeads.Add();
+	psLead->pcPort = pcPort;
+	psLead->sTarget = sPoint;
+	psLead->apcTraces.Init();
+	psLead->pcNetPort = FindNetPort(sPoint, &apcNoWires, papcComponents);
+	psLead->pcTargetPort = psLead->pcNetPort;
+	apcNoWires.Kill();
 }
 
 
