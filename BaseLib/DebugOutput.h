@@ -40,7 +40,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #ifdef __LIBC65__
-#define EngineOutput(p)	printf("%s", p)
+//The 65C64 and W65C816 have nowhere to send debug output: it is dropped (and nothing it would need is linked).
+#define EngineOutput(p)
 #endif // __LIBC65__
 
 

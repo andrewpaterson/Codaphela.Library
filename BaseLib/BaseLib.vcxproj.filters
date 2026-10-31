@@ -582,6 +582,9 @@
     <ClInclude Include="DiskFile.h">
       <Filter>Source\File\Chains</Filter>
     </ClInclude>
+    <ClInclude Include="HashFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
     <ClInclude Include="MD5HashFile.h">
       <Filter>Source\File\Chains</Filter>
     </ClInclude>

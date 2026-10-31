@@ -27,9 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ChunkFileName.h"
 
 
+//Written as it is in memory: see SChunkFileHeader.
 struct SChunkIndex
 {
 	chunkName	miName;
+	uint32		muiPadding;
 	filePos		miChunkSize;	//Size of data in this chunk
 	filePos		miChunkDataPos;	//Position of chunk data in file
 

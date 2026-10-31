@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MD5_HASH_FILE_H__
 #define __MD5_HASH_FILE_H__
 #include "MD5.h"
-#include "AbstractFile.h"
+#include "HashFile.h"
 
 
 enum ELastMD5Operation
@@ -34,7 +34,7 @@ enum ELastMD5Operation
 };
 
 
-class CMD5HashFile : public CAbstractFile
+class CMD5HashFile : public CHashFile
 {
 public:
 	CAbstractFile*		mpcFile;
@@ -61,12 +61,12 @@ public:
 	bool		Delete(void);
 	const char*		GetFilename(void);
 
-	void		StopHashing(void);
-	void		StartHashing(void);
-	void		ResetHash(void);
-	void		CopyContextToDest(SMD5Context* psDestContext);
-	void		CopyContextFromSource(SMD5Context* psSourceContext);
-	void		CopyDigestToDest(void* pvDest);
+	void		StopHashing(void) override;
+	void		StartHashing(void) override;
+	void		ResetHash(void) override;
+	void		CopyContextToDest(SMD5Context* psDestContext) override;
+	void		CopyContextFromSource(SMD5Context* psSourceContext) override;
+	void		CopyDigestToDest(void* pvDest) override;
 	void		Dump(void);
 };
 

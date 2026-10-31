@@ -29,11 +29,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileBasic.h"
 #include "MapStringInt.h"
 #include "ChunkStack.h"
+#include "HashFile.h"
 
 
+//A file of named chunks.  Init hashes each chunk and the file with MD5 (written into the headers and checked when read);
+//InitUnhashed neither writes hashes (they are zeros) nor checks them, and doesn't link MD5.  A hashed reader accepts a
+//file written without hashes.
 class CChunkFile : public CFileBasic
 {
 protected:
+	CHashFile*			mpcHashFile;	//NULL without hashes.
 	CChunkStack			mcChunkStack;
 	bool				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
@@ -42,10 +47,12 @@ protected:
 	
 	bool	__PrivateReadChunkBegin(void);
 	bool	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
+	bool	HashMatches(void* pvExpected);
 
 public:
 	void		_Init(void);
 	void		Init(CAbstractFile*	pcFile);
+	void		InitUnhashed(CAbstractFile* pcFile);
 	void		Kill(void);
 
 	bool		ReadOpen(void);
