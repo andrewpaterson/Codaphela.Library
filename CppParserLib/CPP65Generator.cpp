@@ -229,6 +229,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	maszStrings.Init();
 	mszInitialise.Init();
 	miStartUps = 0;
+	mbDataBss = false;
 	mbPureVirtual = false;
 
 	mapsLocals.Init();
@@ -455,7 +456,7 @@ void CCPP65Generator::AppendStartUpEntry(const char* szTable, CChars* pszLabel, 
 {
 	CChars	szOptions;
 
-	szOptions.Init(", associated data.");
+	szOptions.Init(mbDataBss ? ", associated bss." : ", associated data.");
 	szOptions.Append(pszData);
 	AppendSection(&mszData, szTable, pszLabel, szOptions.Text());
 
@@ -593,7 +594,7 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest, ECPPTarget eTarget)
 //
 // The W65C816's start up.  Bank 0 only holds the stack, the direct page, the vectors and their stubs (the user,
 // 2026-10-25), so the reset vector goes to a jml stub there and the start up is in bank 1 onwards.  It switches to
-// native mode with 16 bit registers, sets S to the target's stack top and D to 0, calls the init table's routines
+// native mode with 16 bit registers, sets S to the target's stack top and D to 0, clears bss, calls the init table's routines
 // (each global's R_Initialise, in link order), calls main, Libc65's __RunAtExit when stdlib.cpp is linked (a weak
 // reference), the fini table's routines last first, and stops with main's result in A.  The table walks keep a far
 // pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A.
@@ -615,6 +616,52 @@ void CCPP65Generator::AppendStartUp816(CChars* pszDest)
 	pszDest->Append("\t\ttcs\n");
 	pszDest->Append("\t\tlda 0\n");
 	pszDest->Append("\t\ttcd\n");
+
+	//bss (globals with no initialiser) isn't in the program's image.  Up to 64KB is cleared a word at a time (a long
+	//address plus X crosses banks; an odd size clears the byte after it too, where nothing is yet), more a byte at a time.
+	pszDest->Append("\t\tlda __bss_end & 0xFFFF\n");
+	pszDest->Append("\t\tsec\n");
+	pszDest->Append("\t\tsbc __bss_start & 0xFFFF\n");
+	pszDest->Append("\t\ttay\n");
+	pszDest->Append("\t\tlda __bss_end >> 16\n");
+	pszDest->Append("\t\tsbc __bss_start >> 16\n");
+	pszDest->Append("\t\tbne StartClearLarge\n");
+	pszDest->Append("\t\ttya\n");
+	pszDest->Append("\t\tinc A\n");
+	pszDest->Append("\t\tlsr A\n");
+	pszDest->Append("\t\tbeq StartCleared\n");
+	pszDest->Append("\t\ttay\n");
+	pszDest->Append("\t\tldx 0\n");
+	pszDest->Append("\t\tlda 0\n");
+	pszDest->Append("StartClearWord:\n");
+	pszDest->Append("\t\tsta [__bss_start + X]:24\n");
+	pszDest->Append("\t\tinx\n");
+	pszDest->Append("\t\tinx\n");
+	pszDest->Append("\t\tdey\n");
+	pszDest->Append("\t\tbne StartClearWord\n");
+	pszDest->Append("\t\tbra StartCleared\n");
+	pszDest->Append("StartClearLarge:\n");
+	pszDest->Append("\t\tlda __bss_start & 0xFFFF\n");
+	pszDest->Append("\t\tsta [D + 0]\n");
+	pszDest->Append("\t\tlda __bss_start >> 16\n");
+	pszDest->Append("\t\tsta [D + 2]\n");
+	pszDest->Append("StartClear:\n");
+	pszDest->Append("\t\tlda [D + 0]\n");
+	pszDest->Append("\t\tcmp __bss_end & 0xFFFF\n");
+	pszDest->Append("\t\tbne StartClearByte\n");
+	pszDest->Append("\t\tlda [D + 2]\n");
+	pszDest->Append("\t\tcmp __bss_end >> 16\n");
+	pszDest->Append("\t\tbeq StartCleared\n");
+	pszDest->Append("StartClearByte:\n");
+	pszDest->Append("\t\tsep m\n");
+	pszDest->Append("\t\tlda 0\n");
+	pszDest->Append("\t\tsta [[D + 0]:24]\n");
+	pszDest->Append("\t\trep m\n");
+	pszDest->Append("\t\tinc [D + 0]\n");
+	pszDest->Append("\t\tbne StartClear\n");
+	pszDest->Append("\t\tinc [D + 2]\n");
+	pszDest->Append("\t\tbra StartClear\n");
+	pszDest->Append("StartCleared:\n");
 	pszDest->Append("\t\tlda __init_start & 0xFFFF\n");
 	pszDest->Append("\t\tsta [D + 0]\n");
 	pszDest->Append("\t\tlda __init_start >> 16\n");
@@ -724,13 +771,15 @@ void CCPP65Generator::AppendSection(CChars* psz, const char* szKind, CChars* psz
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A data item's section (data.label and szOptions), alignment, .global (if bGlobal)
-// and label.  Its data follows.
+// A data item's section (data.label, or bss.label if bBss, and szOptions),
+// alignment, .global (if bGlobal) and label.  Its data follows (only .space
+// in bss).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions)
+void CCPP65Generator::BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss)
 {
-	AppendSection(&mszData, "data", pszLabel, szOptions);
+	AppendSection(&mszData, bBss ? "bss" : "data", pszLabel, szOptions);
+	mbDataBss = bBss;
 	if (iAlignment > 1)
 	{
 		mszData.Append("\t\t.align ");
@@ -743,6 +792,34 @@ void CCPP65Generator::BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, 
 	}
 	mszData.Append(pszLabel);
 	mszData.Append(':');
+	mszData.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global or static local with no initialiser starts as zeros: on the
+// W65C816 it goes in bss, which takes no space in the program's image and
+// is cleared by the start up.  (The 65C64's start up and lazy loading don't
+// clear bss, so it keeps its zeros in data.)  An object is cleared there
+// too, before its constructor runs from the init table.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
+{
+	return (mpsTarget->eTarget == CPPT_W65C816) && !pcInitialiser && !psType->IsReference() && (psType->iBytes > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iBytes of a bss item.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendSpace(int iBytes)
+{
+	mszData.Append("\t\t.space ");
+	mszData.Append(iBytes);
 	mszData.AppendNewLine();
 }
 
@@ -1745,6 +1822,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 	SCPP65Class*				psClass;
 	int64						lliName;
 	bool						bResult;
+	bool						bBss;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
@@ -1840,7 +1918,8 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		VariablePlace(psVariable, &sPlace);
 		szLabel.Init();
 		AppendPlaceLabel(&szLabel, &sPlace);
-		BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !psVariable->bInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
+		bBss = IsBss(pcInit->mpcInitializer, psType);
+		BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !psVariable->bInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL, bBss);
 
 		//What isn't constant is worked out by the global's own R_Initialise; an object is destroyed by its R_Finalise.
 		mszInitialise.Clear();
@@ -1848,7 +1927,12 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		miThisOffset = -1;
 		//GlobalInitialiser writes the constant data; what isn't constant (mszInitialise) is only a sign that a routine
 		//is needed: the IR front end writes the routines.
-		if (!psElement->IsClass() && !psType->IsReference())
+		if (bBss)
+		{
+			AppendSpace(psType->iBytes);
+			bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
+		}
+		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
 			bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, mszInitialise.Length() != 0, false);
@@ -2990,8 +3074,13 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	VariablePlace(psVariable, &sPlace);
 	szLabel.Init();
 	AppendPlaceLabel(&szLabel, &sPlace);
-	BeginData(&szLabel, DataAlignment(psType, false), false, NULL);
+	BeginData(&szLabel, DataAlignment(psType, false), false, NULL, IsBss(pcInit->mpcInitializer, psType));
 	szLabel.Kill();
+	if (IsBss(pcInit->mpcInitializer, psType))
+	{
+		AppendSpace(psType->iBytes);
+		return true;
+	}
 
 	iThisOffset = miThisOffset;
 	miThisOffset = -1;

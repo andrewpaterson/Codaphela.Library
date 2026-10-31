@@ -197,10 +197,10 @@ public:
 
 	bool				Write(CAbstractFile* pcFile);
 	bool				Read(CAbstractFile* pcFile);
+	bool				ReadChunks(CChunkFile* pcChunkFile);	//From a chunk file opened for reading (Read's, or one without hashes).
 
 protected:
 	bool				WriteChunks(CChunkFile* pcChunkFile);
-	bool				ReadChunks(CChunkFile* pcChunkFile);
 	bool				ReadHeader(CChunkFile* pcChunkFile);
 	bool				ReadSections(CChunkFile* pcChunkFile);
 	bool				ReadSymbols(CChunkFile* pcChunkFile);
