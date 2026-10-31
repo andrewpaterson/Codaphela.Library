@@ -131,7 +131,9 @@ enum EIRShape
 #define IRF_ThisCall	0x04		//call: the first argument is a member function's this (in X on the 65C64)
 #define IRF_Variadic	0x08		//call: uiNamed is the number of named arguments
 #define IRF_Hot			0x10		//sdiv, udiv, srem, urem: the profile found it hot (a target may spend memory on it)
-#define IRF_NumWordFlags	4
+#define IRF_InArray		0x20		//ptradd: the result is in an array of under 64KB that starts at the pointer, so the offset
+									//and the bytes read or written through it stay under 64KB
+#define IRF_NumWordFlags	5
 
 
 //What optimising may do with an opcode's instructions.  A target's opcodes have none, so are left alone.

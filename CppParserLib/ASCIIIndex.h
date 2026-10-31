@@ -20,15 +20,30 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ASCII_INDEX_H__
 #define __ASCII_INDEX_H__
-#include "ASCIITree.h"
-#include "BaseLib/IndexLongString.h"
+#include "BaseLib/MemoryStackExtended.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Numbers.h"
 
 
+//A name in the index: its hash and length, then its characters and a terminating zero.
+struct SASCIIIndexName
+{
+	uint32	uiHash;
+	int32	iLength;
+
+	char*	Text(void);
+};
+
+
+//Names given IDs (0, 1, 2... in the order they are added) and found by name with a
+//hash table.  The names are kept once, in a stack of chunks.
 class CASCIIIndex
 {
 protected:
-	CASCIITree			mcNameToIDIndex;
-	CIndexLongString	mcIDToNameIndex;
+	CMemoryStackExtended						mcNames;
+	CArrayLargeTemplate<SASCIIIndexName*>		mapsNames;		//By ID.
+	CArrayLargeTemplate<int32>					maiTable;		//IDs by hash, -1 for an empty slot.  The length is a power of two.
 
 public:
 	void	Init(void);
@@ -40,8 +55,14 @@ public:
 	int64	Get(const char* szText, const char* szLastCharInclusive, bool bExact);
 
 	int		NumElements(void);
+
+protected:
+	lsize	Find(const char* sz, int iLength, uint32 uiHash);
+	void	Grow(void);
+	static uint32	Hash(const char* sz, int iLength);
+	static int		Length(const char* sz, const char* szLastCharInclusive);
 };
 
 
-#endif // !__ASCII_INDEX_H__
+#endif // __ASCII_INDEX_H__
 

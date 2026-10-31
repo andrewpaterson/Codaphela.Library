@@ -69,6 +69,10 @@ void CCPP65Builder::Init(void)
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
+	mbLazyHeaders = false;
+	mcHeaderIndex.Init();
+	muiLazySkipped = 0;
+	muiLazyLoaded = 0;
 }
 
 
@@ -85,6 +89,7 @@ void CCPP65Builder::Kill(void)
 		mcIndexTreeSpillStore.Kill();
 	}
 	mcMemorySpillStore.Kill();
+	mcHeaderIndex.Kill();
 	mszListings.Kill();
 	mcImports.Kill();
 	mszWarnings.Kill();
@@ -372,6 +377,39 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 // tree in szDirectory (made, and removed by Kill), with at most uiCacheSize
 // bytes of it in memory, instead of all in memory.  The code is the same.
 // NULL for memory.  Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLazyHeaders(bool bLazyHeaders)
+{
+	mbLazyHeaders = bLazyHeaders;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumLazySkipped(void)
+{
+	return muiLazySkipped;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumLazyLoaded(void)
+{
+	return muiLazyLoaded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A header declaration (a class, enum, typedef, template or function) a
+// unit parsed is not parsed by the units after until they use one of its
+// names.  The code is the same.  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize)
@@ -1146,9 +1184,12 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	mszErrors.Append(cTokeniser.GetErrors()->Text());
 	cTree.Init(&cTokeniser);
 	cParser.Init(&cTokeniser, &cTree);
+	if (mbLazyHeaders)
+	{
+		cParser.SetHeaderIndex(&mcHeaderIndex);
+	}
 	bResult &= cParser.Parse();
 	mszErrors.Append(cTree.GetErrors()->Text());
-	cParser.Kill();
 
 	cAssembly.Init(mpcSpillStore);
 	cGenerator.Init(&cTree, meTarget);
@@ -1172,6 +1213,9 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		mszWarnings.Append(cGenerator.GetWarnings()->Text());
 	}
 	cGenerator.Kill();
+	muiLazySkipped += cParser.NumLazySkipped();
+	muiLazyLoaded += cParser.NumLazyLoaded();
+	cParser.Kill();
 
 	//The syntax tree and tokens aren't needed to assemble.
 	cTree.Kill();

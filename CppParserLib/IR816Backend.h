@@ -131,6 +131,7 @@ public:
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
+	void			SinkSteps(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	CArrayChars*	GetRuntime(void);
 

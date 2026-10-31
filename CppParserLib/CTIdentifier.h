@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTIdentifier : public CCPPToken
 {
 public:
-	int64	mlliIdentifier;
+	int32	miIdentifier;		//Its ID in the tokeniser's identifiers.
 
 	CPP_TOKEN_CONSTRUCT(CCTIdentifier);
 	void Init(void);

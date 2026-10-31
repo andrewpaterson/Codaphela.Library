@@ -29,6 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "CPP65Assembly.h"
+#include "CPPHeaderIndex.h"
 
 
 struct SCPP65IncludeDirectory
@@ -119,6 +120,10 @@ protected:
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
 	CMemorySpillStore				mcMemorySpillStore;
 	CIndexTreeSpillStore			mcIndexTreeSpillStore;
+	bool							mbLazyHeaders;			//Header declarations are parsed when a unit first uses them (SetLazyHeaders).
+	CCPPHeaderIndex					mcHeaderIndex;			//The header declarations the units have parsed.
+	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
+	size							muiLazyLoaded;			//...and parsed when used.
 
 public:
 	void			Init(void);
@@ -127,6 +132,9 @@ public:
 	void			SetFrameProfile(CAsm65816Profile* pcProfile);
 	void			SetListingDirectory(const char* szDirectory);
 	bool			SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
+	void			SetLazyHeaders(bool bLazyHeaders);
+	size			NumLazySkipped(void);
+	size			NumLazyLoaded(void);
 	void			SetLineTable(bool bLineTable);
 	CAsm65LineTable*	GetLineTable(void);
 

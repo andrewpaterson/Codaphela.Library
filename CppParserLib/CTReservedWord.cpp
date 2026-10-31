@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCTReservedWord::Init(void)
 {
-	mlliReservedWord = -1;
+	miReservedWord = -1;
 }
 
 
@@ -38,7 +38,7 @@ void CCTReservedWord::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCTReservedWord::Init(int64 iReservedWord)
 {
-	mlliReservedWord = iReservedWord;
+	miReservedWord = (int32)iReservedWord;
 }
 
 
@@ -67,7 +67,7 @@ bool CCTReservedWord::IsReservedWord(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCTReservedWord::Is(ECppTokens eToken)
 {
-	return mlliReservedWord == eToken;
+	return miReservedWord == eToken;
 }
 
 
@@ -77,5 +77,5 @@ bool CCTReservedWord::Is(ECppTokens eToken)
 //////////////////////////////////////////////////////////////////////////
 ECppTokens CCTReservedWord::GetToken(void)
 {
-	return (ECppTokens)mlliReservedWord;
+	return (ECppTokens)miReservedWord;
 }

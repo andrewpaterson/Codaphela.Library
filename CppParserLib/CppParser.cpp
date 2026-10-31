@@ -59,6 +59,11 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	mlliPack = pcTokeniser->GetIdentifierID("pack");
 	miPack = 0;
 	maiPacks.Init();
+	mpcHeaderIndex = NULL;
+	mpapcRecorded = NULL;
+	mpcRecordScope = NULL;
+	muiLazySkipped = 0;
+	muiLazyLoaded = 0;
 }
 
 
@@ -212,7 +217,7 @@ int64 CCPPParser::GetIdentifier(int iAhead)
 	pcToken = Peek(iAhead);
 	if (pcToken && pcToken->IsIdentifier())
 	{
-		return ((CCTIdentifier*)pcToken)->mlliIdentifier;
+		return ((CCTIdentifier*)pcToken)->miIdentifier;
 	}
 	return -1;
 }
@@ -225,7 +230,7 @@ int64 CCPPParser::GetIdentifier(int iAhead)
 int64 CCPPParser::GetTokenIdentifier(int iToken)
 {
 	//The identifier of token iToken, which the caller knows is an identifier.
-	return ((CCTIdentifier*)mpcTokeniser->Get(iToken))->mlliIdentifier;
+	return ((CCTIdentifier*)mpcTokeniser->Get(iToken))->miIdentifier;
 }
 
 
@@ -543,8 +548,8 @@ bool CCPPParser::SkipPragma(void)
 			pcToken = Peek(iAhead);
 			if (pcToken->IsIdentifier())
 			{
-				bPush |= ((CCTIdentifier*)pcToken)->mlliIdentifier == mpcTokeniser->GetIdentifierID("push");
-				bPop |= ((CCTIdentifier*)pcToken)->mlliIdentifier == mpcTokeniser->GetIdentifierID("pop");
+				bPush |= ((CCTIdentifier*)pcToken)->miIdentifier == mpcTokeniser->GetIdentifierID("push");
+				bPop |= ((CCTIdentifier*)pcToken)->miIdentifier == mpcTokeniser->GetIdentifierID("pop");
 			}
 			else if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Int))
 			{
@@ -722,6 +727,10 @@ CCPPSymbol* CCPPParser::Declare(int64 lliName, int iToken, ECPPSymbolKind eKind,
 
 	pcSymbol = mpcSymbols->CreateSymbol(lliName, eKind, pcDeclaration, pcScope);
 	pcScope->Add(pcSymbol);
+	if (mpapcRecorded && (pcScope == mpcRecordScope))
+	{
+		mpapcRecorded->Add(&pcSymbol);
+	}
 	if (iToken != -1)
 	{
 		Resolve(iToken, pcSymbol, CPPTR_Declaration);

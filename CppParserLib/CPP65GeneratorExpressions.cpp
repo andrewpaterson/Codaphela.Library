@@ -5328,7 +5328,7 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 			continue;
 		}
 
-		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->mlliIdentifier, &iLength) : NULL;
+		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength) : NULL;
 		szName.Init();
 		if (szIdentifier && (iLength == 13) && (memcmp(szIdentifier, "__FUNCDNAME__", 13) == 0))
 		{
@@ -5337,7 +5337,7 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 				AppendFunctionLabel(&szName, mpsFunction);
 			}
 		}
-		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->mlliIdentifier, &szName))
+		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))
 		{
 			szName.Kill();
 			return Error(pcString, "This part of a string literal is not supported by the compiler yet");

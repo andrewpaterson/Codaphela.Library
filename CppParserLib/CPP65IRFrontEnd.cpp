@@ -2335,7 +2335,7 @@ CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
 	{
 		return NULL;
 	}
-	lliName = ((CCTIdentifier*)pcToken)->mlliIdentifier;
+	lliName = ((CCTIdentifier*)pcToken)->miIdentifier;
 	for (ui = 0; ui < masLabels.NumElements(); ui++)
 	{
 		if (masLabels.Get(ui)->lliName == lliName)
@@ -2508,8 +2508,8 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 	{
 		return Unsupported(__LINE__);
 	}
-	psValue->sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psPlace->psType), psPlace->sAddress);
-	psValue->psType = psPlace->psType;
+	psValue->sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psPlace->psType), psPlace->sAddress, psPlace->psType->bVolatile);
+	psValue->psType = psPlace->psType->Unqualified();
 	return true;
 }
 
@@ -2521,7 +2521,7 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 {
-	mpcFunction->Store(mpcBlock, IRTypeOf(psPlace->psType), psValue->sValue, psPlace->sAddress);
+	mpcFunction->Store(mpcBlock, IRTypeOf(psPlace->psType), psValue->sValue, psPlace->sAddress, psPlace->psType->bVolatile);
 }
 
 
@@ -5329,7 +5329,17 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	{
 		return Unsupported(__LINE__);
 	}
-	return FieldPlace(sObject, psType->psClass, mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()), NULL, psPlace);
+	if (!FieldPlace(sObject, psType->psClass, mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()), NULL, psPlace))
+	{
+		return false;
+	}
+
+	//A member of a volatile object is volatile.
+	if (psType->bVolatile)
+	{
+		psPlace->psType = mpcTypes->Volatile(psPlace->psType);
+	}
+	return true;
 }
 
 
@@ -5889,7 +5899,7 @@ bool CCPP65IRFrontEnd::ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer,
 // array[index] on the W65C816, for an array (not a pointer) of at least two
 // elements and less than 64KB: an index outside the array is undefined, so
 // the offset fits in 16 bits and is worked out in them, then zero extended
-// once, instead of widening the index to 32 bits and scaling it there.  An
+// once (marked IRF_InArray), instead of widening the index to 32 bits and scaling it there.  An
 // array of 0 or 1 elements may be a struct's open ended tail, so it isn't.
 // False (nothing written) when the subscript isn't one of these.
 //
@@ -5914,6 +5924,10 @@ bool CCPP65IRFrontEnd::NarrowSubscript(SCPP65Type* psArray, SCPP65IRValue* psPoi
 	sOffset = (iBytes == 1) ? psIndex->sValue : mpcFunction->Add(mpcBlock, IRO_Mul, sWord, psIndex->sValue, mpcFunction->AddInteger(sWord, iBytes));
 	sOffset = mpcFunction->Add(mpcBlock, IRO_ZExt, IRIntegerType(mcModule.GetPointerSize(0)), sOffset);
 	psAddress->sValue = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, sOffset);
+	if ((mpcBlock->masInstructions.NumElements() > 0) && mpcBlock->masInstructions.Tail()->sResult.Equals(psAddress->sValue) && (mpcBlock->masInstructions.Tail()->uiOpcode == IRO_PtrAdd))
+	{
+		mpcBlock->masInstructions.Tail()->uiFlags |= IRF_InArray;
+	}
 	psAddress->psType = psPointer->psType;
 	return true;
 }

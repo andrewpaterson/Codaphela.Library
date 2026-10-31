@@ -550,6 +550,7 @@ protected:
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
+	bool					IsVolatilePointer(CCPPSyntaxPointerOperator* pcPointer);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);

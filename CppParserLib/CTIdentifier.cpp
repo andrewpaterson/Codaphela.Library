@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCTIdentifier::Init(void)
 {
-	mlliIdentifier = -1;
+	miIdentifier = -1;
 }
 
 
@@ -38,7 +38,7 @@ void CCTIdentifier::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCTIdentifier::Init(int64 lliIdentifier)
 {
-	mlliIdentifier = lliIdentifier;
+	miIdentifier = (int32)lliIdentifier;
 }
 
 

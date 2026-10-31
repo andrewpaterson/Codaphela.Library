@@ -59,6 +59,7 @@ public:
 	void			Add(CCPPSymbol* pcSymbol);
 	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol);
 	CCPPSymbol*		FindHere(int64 lliName);
+	void			LoadLazy(int64 lliName);
 	CCPPSymbol*		FindMember(int64 lliName);
 	CCPPSymbol*		Find(int64 lliName);
 	CCPPScope*		GetDeclarationScope(void);

@@ -165,7 +165,8 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 {
 	size	i;
 
-	if (this == psOther)
+	//volatile doesn't make a type different here (a pointer to volatile converts to and from a pointer).
+	if ((this == psOther) || (psUnqualified == psOther->psUnqualified))
 	{
 		return true;
 	}
@@ -277,6 +278,17 @@ void SCPP65Type::Append(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type without volatile.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* SCPP65Type::Unqualified(void)
+{
+	return psUnqualified;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The size of what a pointer points to, for pointer arithmetic.  void* steps in bytes
 // (a GNU extension).
 //
@@ -357,6 +369,8 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
 	psType->pcEnum = NULL;
+	psType->bVolatile = false;
+	psType->psUnqualified = psType;
 }
 
 
@@ -434,6 +448,39 @@ SCPP65Type* CCPP65Types::Integer(int iBytes, bool bSigned)
 SCPP65Type* CCPP65Types::Long(bool bSigned)
 {
 	return Integer(4, bSigned);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// volatile psType: a copy of it, kept with the types, whose loads and
+// stores are volatile.  Functions and references can't be volatile.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
+{
+	SCPP65Type*	psVolatile;
+	size		i;
+
+	if (!psType || psType->bVolatile || psType->IsFunction() || psType->IsReference())
+	{
+		return psType;
+	}
+	for (i = 0; i < mapsTypes.NumElements(); i++)
+	{
+		psVolatile = mapsTypes.GetPtr(i);
+		if (psVolatile->bVolatile && (psVolatile->psUnqualified == psType))
+		{
+			return psVolatile;
+		}
+	}
+	psVolatile = NewType(psType->eKind, psType->iBytes);
+	*psVolatile = *psType;
+	psVolatile->papsParameters = NULL;
+	psVolatile->bVolatile = true;
+	psVolatile->psUnqualified = psType;
+	mapsTypes.Add(psVolatile);
+	return psVolatile;
 }
 
 
@@ -633,6 +680,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Promote(SCPP65Type* psType)
 {
+	psType = psType->Unqualified();
 	if (psType->IsInteger() && ((psType->iBytes < msInt.iBytes) || psType->pcEnum))
 	{
 		return &msInt;

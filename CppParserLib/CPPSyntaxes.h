@@ -43,6 +43,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxEmptyDeclaration.h"
 #include "CPPSyntaxAccessSpecifier.h"
 #include "CPPSyntaxSkippedDeclaration.h"
+#include "CPPSyntaxLazyDeclaration.h"
 #include "CPPSyntaxEnumerator.h"
 #include "CPPSyntaxBaseSpecifier.h"
 #include "CPPSyntaxMemberInitializer.h"

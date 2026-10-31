@@ -269,7 +269,7 @@ ECPPHighlight CCPPHighlighter::GetIdentifierKind(CCPPTokeniser* pcTokeniser, CCP
 			return CPPH_Member;
 		}
 
-		lliName = ((CCTIdentifier*)pcTokeniser->Get(iToken))->mlliIdentifier;
+		lliName = ((CCTIdentifier*)pcTokeniser->Get(iToken))->miIdentifier;
 		if ((lliName == pcTokeniser->mlliOverride) || (lliName == pcTokeniser->mlliFinal))
 		{
 			return CPPH_Keyword;

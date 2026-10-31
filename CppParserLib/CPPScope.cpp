@@ -61,9 +61,15 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 {
 	CCPPSymbol**	ppcExisting;
 
-	//Later declarations of a name chain after the first, so lookup finds the first.
+	//Later declarations of a name chain after the first, so lookup finds the first.  A header's lazy declarations of
+	//the name are parsed first, so they stay before this one.
 	ppcExisting = mcSymbols.Get(pcSymbol->mlliName);
-	if (ppcExisting)
+	if (ppcExisting && *ppcExisting && !pcSymbol->mpcLazy)
+	{
+		LoadLazy(pcSymbol->mlliName);
+		ppcExisting = mcSymbols.Get(pcSymbol->mlliName);
+	}
+	if (ppcExisting && *ppcExisting)
 	{
 		pcSymbol->mpcNext = (*ppcExisting)->mpcNext;
 		(*ppcExisting)->mpcNext = pcSymbol;
@@ -81,10 +87,42 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 //////////////////////////////////////////////////////////////////////////
 void CCPPScope::AddAlias(int64 lliName, CCPPSymbol* pcSymbol)
 {
-	//The name finds a symbol declared somewhere else, as a using-declaration does.  The symbol is not changed.
-	if (!mcSymbols.Get(lliName))
+	//The name finds a symbol declared somewhere else, as a using-declaration does.  The symbol is not changed.  A
+	//header's lazy declarations of the name are parsed first.
+	CCPPSymbol**	ppcExisting;
+
+	LoadLazy(lliName);
+	ppcExisting = mcSymbols.Get(lliName);
+	if (!ppcExisting || !*ppcExisting)
 	{
 		mcSymbols.Put(lliName, &pcSymbol);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Parses the header declarations of the name that haven't been parsed yet
+// (lazy symbols, CCPPParser::LoadLazy).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPScope::LoadLazy(int64 lliName)
+{
+	CCPPSymbol**	ppcSymbol;
+	CCPPSymbol*		pcSymbol;
+
+	ppcSymbol = mcSymbols.Get(lliName);
+	if (!ppcSymbol)
+	{
+		return;
+	}
+	for (pcSymbol = *ppcSymbol; pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		if (pcSymbol->mpcLazy)
+		{
+			pcSymbol->mpcLoader->LoadLazy(this, lliName);
+			return;
+		}
 	}
 }
 
@@ -97,6 +135,7 @@ CCPPSymbol* CCPPScope::FindHere(int64 lliName)
 {
 	CCPPSymbol**	ppcSymbol;
 
+	LoadLazy(lliName);
 	ppcSymbol = mcSymbols.Get(lliName);
 	if (ppcSymbol)
 	{
