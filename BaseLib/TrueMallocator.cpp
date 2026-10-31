@@ -79,8 +79,8 @@ bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 	lsize					uiEnd;
 	lsize					uiSize;
 	STrueMallocatorBlock*	psBlock;
-	int						i;
-	int						j;
+	size					i;
+	size					j;
 
 	muiFirstBitmap = 0;
 	for (i = 0; i < TRUE_MALLOCATOR_FIRST_LEVELS; i++)
@@ -359,8 +359,8 @@ bool CTrueMallocator::IsValid(void)
 	bool					bPreviousFree;
 	int						iFirst;
 	int						iSecond;
-	int						i;
-	int						j;
+	size					i;
+	size					j;
 
 	if (!mpsEnd)
 	{

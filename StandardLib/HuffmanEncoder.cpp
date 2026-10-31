@@ -33,10 +33,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 // some decoders reject a code with only one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CHuffmanEncoder::Init(uint32* puiFrequencies, int iNumSymbols, int iMaxBits)
+void CHuffmanEncoder::Init(uint32* puiFrequencies, size iNumSymbols, int iMaxBits)
 {
 	uint32	auiFrequencies[HUFFMAN_MAX_SYMBOLS];
-	int		i;
+	size	i;
 
 	miNumSymbols = iNumSymbols;
 	memcpy(auiFrequencies, puiFrequencies, (lsize)iNumSymbols * sizeof(uint32));
@@ -58,7 +58,7 @@ void CHuffmanEncoder::Init(uint32* puiFrequencies, int iNumSymbols, int iMaxBits
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHuffmanEncoder::Init(uint8* puiLengths, int iNumSymbols)
+void CHuffmanEncoder::Init(uint8* puiLengths, size iNumSymbols)
 {
 	miNumSymbols = iNumSymbols;
 	memcpy(mauiLengths, puiLengths, iNumSymbols);
@@ -89,15 +89,15 @@ bool CHuffmanEncoder::BuildLengths(uint32* puiFrequencies, int iMaxBits)
 	int16	aiParents[HUFFMAN_MAX_NODES];
 	int16	aiSymbols[HUFFMAN_MAX_SYMBOLS];
 	int16	aiActive[HUFFMAN_MAX_SYMBOLS];
-	int		iNumLeaves;
+	size	iNumLeaves;
 	int		iNumNodes;
-	int		iNumActive;
+	size	iNumActive;
 	int		iFirst;
 	int		iSecond;
-	int		i;
+	size	i;
 	int		iNode;
 	int		iDepth;
-	int		iSymbol;
+	size	iSymbol;
 
 	memset(mauiLengths, 0, miNumSymbols);
 	iNumLeaves = 0;
@@ -189,9 +189,9 @@ void CHuffmanEncoder::BuildCodes(void)
 	uint16	auiNextCode[DEFLATE_MAX_BITS + 1];
 	uint16	uiCode;
 	uint16	uiReversed;
-	int		iLength;
-	int		iSymbol;
-	int		i;
+	uint	iLength;
+	size	iSymbol;
+	uint	i;
 
 	memset(auiCount, 0, sizeof(auiCount));
 	for (iSymbol = 0; iSymbol < miNumSymbols; iSymbol++)
@@ -264,7 +264,7 @@ uint8* CHuffmanEncoder::GetLengths(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHuffmanEncoder::GetNumSymbols(void)
+size CHuffmanEncoder::GetNumSymbols(void)
 {
 	return miNumSymbols;
 }

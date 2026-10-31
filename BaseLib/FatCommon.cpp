@@ -194,7 +194,7 @@ void SFatQueryState::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool SFatQueryState::Kill(CFatInfoSectorCache* pcCache)
 {
-	int		i;
+	size	i;
 	uint32	uiSector;
 	bool	bResult;
 
@@ -219,7 +219,7 @@ bool SFatQueryState::Kill(CFatInfoSectorCache* pcCache)
 //////////////////////////////////////////////////////////////////////////
 bool SFatQueryState::Unlock(uint32 uiSector, CFatInfoSectorCache* pcCache)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < FAT_MAX_SECTOR_QUERY_LOCKS; i++)
 	{
@@ -239,7 +239,7 @@ bool SFatQueryState::Unlock(uint32 uiSector, CFatInfoSectorCache* pcCache)
 //////////////////////////////////////////////////////////////////////////
 bool SFatQueryState::Lock(uint32 uiSector)
 {
-	int		i;
+	size	i;
 	uint32	uiCheckSector;
 
 	for (i = 0; i < FAT_MAX_SECTOR_QUERY_LOCKS; i++)

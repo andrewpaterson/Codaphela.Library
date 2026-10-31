@@ -111,7 +111,7 @@ int32	IntAbs(int32 i);
 uint32	GetPowerOf2SizeDown(uint32 iInt);
 uint32	GetPowerOf2SizeUp(uint32 iInt);
 uint32	GetPowerOf2SizeAuto(uint32 iInt);
-int32	LargestInt(int32* pInts, int32 iCount);
+int32	LargestInt(int32* pInts, uint32 iCount);
 size	Min(size ui1, size ui2);
 size	Max(size ui1, size ui2);
 int8	Absolute(int8 i);

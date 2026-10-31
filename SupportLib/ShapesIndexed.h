@@ -114,7 +114,7 @@ public:
 	CArrayPolygonIndexed	mcPolygons;
 
 	void 	Init(void);
-	void	Init(int iNumPolygons);
+	void	Init(size iNumPolygons);
 	void 	Kill(void);
 
 	bool	Save(CFileWriter* pcFile);

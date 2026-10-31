@@ -292,14 +292,14 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 0; i < miXSegments; i++)
+	for (i = 0; i < (uint)miXSegments; i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + i, iIndex1+1 + i, iIndex2+1 + i, iIndex2 + i, iName, bFlipFaces);
 	}
 
-	for (i = 0; i < miXSegments; i++)
+	for (i = 0; i < (uint)miXSegments; i++)
 	{
 		pcMeshEditor->AddQuad(iIndex4 + i, iIndex4+1 + i, iIndex3+1 + i, iIndex3 + i, iName, bFlipFaces);
 	}
@@ -312,9 +312,9 @@ void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 0; i < miXSegments; i++)
+	for (i = 0; i < (uint)miXSegments; i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + i, iIndex1+1 + i, iIndex3+1 + i, iIndex3 + i, iName, bFlipFaces);
 	}
@@ -327,14 +327,14 @@ void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 1; i < miYSegments-1; i++)
+	for (i = 1; i < (uint)(miYSegments-1); i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + (i) * (miXSegments+1), iIndex2 + i-1, iIndex2 + i, iIndex1 + (i + 1) * (miXSegments+1), iName, bFlipFaces);
 	}
 
-	for (i = 1; i < miYSegments-1; i++)
+	for (i = 1; i < (uint)(miYSegments-1); i++)
 	{
 		pcMeshEditor->AddQuad(iIndex4 + i-1, iIndex3 + (i) * (miXSegments+1), iIndex3 + (i + 1) * (miXSegments+1), iIndex4 + i, iName, bFlipFaces);
 	}
@@ -347,9 +347,9 @@ void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 0; i < miYSegments; i++)
+	for (i = 0; i < (uint)miYSegments; i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + (i) * (miXSegments+1), iIndex1 + (i + 1) * (miXSegments+1), iIndex3 + (i + 1) * (miXSegments+1), iIndex3 + (i) * (miXSegments+1), iName, bFlipFaces);
 	}
@@ -362,14 +362,14 @@ void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 1; i < miZSegments-1; i++)
+	for (i = 1; i < (uint)(miZSegments-1); i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + (i-1) * (miXSegments+1), iIndex1 + (i) * (miXSegments+1), iIndex2 + (i) * (miYSegments-1), iIndex2 + (i-1) * (miYSegments-1), iName, bFlipFaces);
 	}
 
-	for (i = 1; i < miZSegments-1; i++)
+	for (i = 1; i < (uint)(miZSegments-1); i++)
 	{
 		pcMeshEditor->AddQuad(iIndex3 + (i) * (miXSegments+1), iIndex3 + (i-1) * (miXSegments+1), iIndex4 + (i-1) * (miYSegments-1), iIndex4 + i * (miYSegments-1), iName, bFlipFaces);
 	}
@@ -382,9 +382,9 @@ void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
-	int	i;
+	uint	i;
 
-	for (i = 1; i < miZSegments-1; i++)
+	for (i = 1; i < (uint)(miZSegments-1); i++)
 	{
 		pcMeshEditor->AddQuad(iIndex1 + (i-1) * (miXSegments+1), iIndex1 + (i) * (miXSegments+1), iIndex3 + (i) * (miXSegments+1), iIndex3 + (i-1) * (miXSegments+1), iName, bFlipFaces);
 	}

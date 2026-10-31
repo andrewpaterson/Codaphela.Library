@@ -127,14 +127,14 @@ void CHalfSpace::SetZPlane(SFloat32Vec3* v1, SFloat32Vec3* v2)
 int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int					iFarIndex;
-	int					i;
+	size				i;
 	SFloat32Vec3*			psOther;
 	float32				fDist;
 	float32				fMaxDist;
 
 	fMaxDist = SMALL_NUMBER;
 	iFarIndex = -1;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		psOther = GetPosition(psPoints, iStride, i);
 
@@ -142,7 +142,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumP
 		if (fDist >= fMaxDist)
 		{
 			fMaxDist = fDist;
-			iFarIndex = i;
+			iFarIndex = (int)i;
 		}
 	}
 	return iFarIndex;
@@ -156,14 +156,14 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumP
 int CHalfSpace::FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int					iFarIndex;
-	int					i;
+	size				i;
 	SFloat32Vec3*			psOther;
 	float32				fDist;
 	float32				fMaxDist;
 
 	fMaxDist = SMALL_NUMBER;
 	iFarIndex = -1;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		psOther = GetPosition(psPoints, iStride, i);
 
@@ -171,7 +171,7 @@ int CHalfSpace::FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, i
 		if (fDist >= fMaxDist)
 		{
 			fMaxDist = fDist;
-			iFarIndex = i;
+			iFarIndex = (int)i;
 		}
 	}
 	return iFarIndex;
@@ -185,7 +185,7 @@ int CHalfSpace::FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, i
 int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIndices, int iNumIndices)
 {
 	int					iFarIndex;
-	int					i;
+	size				i;
 	SFloat32Vec3*			psOther;
 	float32				fDist;
 	float32				fMaxDist;
@@ -193,7 +193,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIn
 
 	fMaxDist = SMALL_NUMBER;
 	iFarIndex = -1;
-	for (i = 0; i < iNumIndices; i++)
+	for (i = 0; i < (size)iNumIndices; i++)
 	{
 		iIndex = aiIndices[i];
 		psOther = GetPosition(psPoints, iStride, iIndex);

@@ -119,8 +119,8 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	CImage			cImageExport;
 	CImageCopier	cCopier;
 	CFileBasic		cFile;
-	int				x;
-	int				y;
+	uint			x;
+	uint			y;
 	bool			bResult;
 
 	if (pcImage.IsNull())
@@ -201,10 +201,10 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	pvRows = (uint8*)malloc(uiImageSize);
 	memset(pvRows, 0, uiImageSize);
 
-	for (y = 0; y < iHeight; y++)
+	for (y = 0; y < (uint)iHeight; y++)
 	{
 		pvRow = &pvRows[(iHeight - 1 - y) * uiStride];
-		for (x = 0; x < iWidth; x++)
+		for (x = 0; x < (uint)iWidth; x++)
 		{
 			puiSource = &pvPixels[(y * iWidth + x) * uiNumChannels];
 			if (bGrey && bAlpha)

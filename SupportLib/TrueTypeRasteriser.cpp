@@ -650,8 +650,8 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 	size					i;
 	int32					aiColour[MAX_IMAGE_COLOUR_BYTES];
 	uint8					auiPixel[MAX_IMAGE_COLOUR_BYTES];
-	int						x;
-	int						y;
+	uint					x;
+	uint					y;
 	int32					iCoverage;
 	int32					iColour;
 
@@ -683,9 +683,9 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 		return false;
 	}
 
-	for (y = 0; y < mcCoverage.GetHeight(); y++)
+	for (y = 0; y < (uint)mcCoverage.GetHeight(); y++)
 	{
-		for (x = 0; x < mcCoverage.GetWidth(); x++)
+		for (x = 0; x < (uint)mcCoverage.GetWidth(); x++)
 		{
 			iCoverage = mcCoverage.GetCoverage()[(lsize)y * mcCoverage.GetWidth() + x];
 			if (iCoverage == 0)

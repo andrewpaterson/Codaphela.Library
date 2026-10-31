@@ -623,7 +623,7 @@ void CImageBlitter::PopulateRowStarts(void)
 {
 	CInt32Rect					cRect;
 	int32						iHeight;
-	int32						y;
+	uint32						y;
 	size						ui;
 	size						uiNumElements;
 	int32*						paiRowStarts;
@@ -637,12 +637,12 @@ void CImageBlitter::PopulateRowStarts(void)
 
 	uiNumElements = macRowBlitters.NumElements();
 	ui = 0;
-	for (y = 0; y <= iHeight; y++)
+	for (y = 0; y <= (uint32)iHeight; y++)
 	{
 		while (ui < uiNumElements)
 		{
 			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
-			if ((int32)pcOffsetImageRowBlitter->msOffset.y >= cRect.GetTop() + y)
+			if ((int32)pcOffsetImageRowBlitter->msOffset.y >= cRect.GetTop() + (int32)y)
 			{
 				break;
 			}
@@ -826,7 +826,7 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDe
 	int32						xVisibleEnd;
 	int32						yVisibleStart;
 	int32						yVisibleEnd;
-	int32						y;
+	uint32						y;
 	int32						iImageRow;
 	int32						xStart;
 	int32						xEnd;
@@ -906,7 +906,7 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDe
 	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
 	iImageHeight = pcSubImage->GetImageHeight();
 
-	for (y = yVisibleStart; y < yVisibleEnd; y++)
+	for (y = (uint32)yVisibleStart; y < (uint32)yVisibleEnd; y++)
 	{
 		//Rows in the cel's transparent borders have nothing to draw.
 		iImageRow = paiSourceY[y];
@@ -940,11 +940,11 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDe
 			if (iDestWidth == iFullWidth)
 			{
 				//Only the height changes so the columns are copied one for one by the faster blitters.
-				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iTop + y, paiSourceX[xStart], paiSourceX[xStart] + (xEnd - xStart), pcRowBlitter->msOffset.y);
+				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iTop + (int32)y, paiSourceX[xStart], paiSourceX[xStart] + (xEnd - xStart), pcRowBlitter->msOffset.y);
 			}
 			else
 			{
-				pcRowBlitter->mpcSizingBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iLeft + xEnd, iTop + y, &paiSourceX[xStart], pcRowBlitter->msOffset.y);
+				pcRowBlitter->mpcSizingBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iLeft + xEnd, iTop + (int32)y, &paiSourceX[xStart], pcRowBlitter->msOffset.y);
 			}
 		}
 	}

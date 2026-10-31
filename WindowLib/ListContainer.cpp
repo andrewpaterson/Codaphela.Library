@@ -340,7 +340,7 @@ void CListContainer::Activate(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CListContainer::FindRowAt(int x, int y)
 {
-	int32	i;
+	uint32	i;
 	int32	iTop;
 	int32	iHeight;
 
@@ -349,7 +349,7 @@ int32 CListContainer::FindRowAt(int x, int y)
 		return -1;
 	}
 
-	for (i = 0; i < NumRows(); i++)
+	for (i = 0; i < (uint32)NumRows(); i++)
 	{
 		if (GetTrackBounds(false, (size)i, &iTop, &iHeight))
 		{

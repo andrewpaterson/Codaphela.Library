@@ -112,7 +112,7 @@ char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDeci
 	pcResult->Zero(iWholeDigits, iFractionalDigits);
 
 	INTEGER iDigit = iFirstMantisaBit;
-	for (int i = 0; i <= iExponentShift; i++)
+	for (uint i = 0; i <= (uint)iExponentShift; i++)
 	{
 		if (iValue & iDigit)
 		{
@@ -255,7 +255,7 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 	pcResult->Zero(iWholeDigits, iFractionalDigits);
 
 	INTEGER iDigit = iFirstMantisaBit;
-	for (int i = 0; i <= iExponentShift; i++)
+	for (uint i = 0; i <= (uint)iExponentShift; i++)
 	{
 		if (iValue & iDigit)
 		{

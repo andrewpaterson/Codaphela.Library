@@ -60,10 +60,10 @@ SFloat64Vec2* 	Float64Vec2Maximize(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, 
 SFloat64Vec2* 	Float64Vec2Scale(SFloat64Vec2* pOut, const SFloat64Vec2* pV, float64 s);
 SFloat64Vec2* 	Float64Vec2Lerp(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2, float64 s);
 SFloat64Vec2*	Float64Vec2TransformCoord(SFloat64Vec2* pOut, SFloat64Vec2* pV, SFloat4x4* psMat);
-void			Float64Vec2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
+void			Float64Vec2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints);
 SFloat64Vec2*	Float64Vec2TransformNormal(SFloat64Vec2* pOut, SFloat64Vec2* pV, SFloat4x4* psMat);
-void			Float64Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
-void			Float64Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, int iNumPoints);
+void			Float64Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints);
+void			Float64Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, size iNumPoints);
 void			Float64Vec2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2);
 float64			Float64Vec2ArcSweep(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise);
 void 			Float64Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight);

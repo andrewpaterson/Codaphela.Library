@@ -115,7 +115,7 @@ bool BMPReadInfo(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo)
 	lsize	uiPaletteOffset;
 	lsize	uiPaletteEntrySize;
 	uint32	uiColoursUsed;
-	int		i;
+	size	i;
 	uint8	auiEntry[4];
 
 	if ((uiFileSize < BMP_FILE_HEADER_SIZE + BMP_CORE_HEADER_SIZE) || !pcFile->ReadData(auiSignature, 2) || (auiSignature[0] != 'B') || (auiSignature[1] != 'M'))
@@ -265,7 +265,7 @@ bool BMPReadInfo(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo)
 		{
 			return false;
 		}
-		for (i = 0; i < psInfo->iNumColours; i++)
+		for (i = 0; i < (size)psInfo->iNumColours; i++)
 		{
 			//Blue, green, red and (except for OS/2) reserved.
 			if (!pcFile->ReadData(auiEntry, uiPaletteEntrySize))
@@ -322,7 +322,7 @@ void BMPPaletteColour(SBMPInfo* psInfo, int iIndex, uint8* puiRGBA)
 //////////////////////////////////////////////////////////////////////////
 bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 {
-	int32	x;
+	uint32	x;
 	uint8*	puiPixel;
 	uint8	uiByte;
 	uint8	auiBGR[3];
@@ -330,7 +330,7 @@ bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 	uint32	uiPixel;
 
 	uiByte = 0;
-	for (x = 0; x < psInfo->iWidth; x++)
+	for (x = 0; x < (uint32)psInfo->iWidth; x++)
 	{
 		puiPixel = &puiRGBA[x * 4];
 		if (psInfo->iBitsPerPixel <= 8)
@@ -404,8 +404,8 @@ bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 {
 	uint8*				puiIndices;
-	int32				x;
-	int32				y;
+	uint32				x;
+	uint32				y;
 	int32				iFileRow;
 	CRLEBitmapDecoder	cDecoder;
 	bool				bResult;
@@ -423,10 +423,10 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 
 	if (bResult)
 	{
-		for (y = 0; y < psInfo->iHeight; y++)
+		for (y = 0; y < (uint32)psInfo->iHeight; y++)
 		{
 			iFileRow = psInfo->bTopDown ? y : psInfo->iHeight - 1 - y;
-			for (x = 0; x < psInfo->iWidth; x++)
+			for (x = 0; x < (uint32)psInfo->iWidth; x++)
 			{
 				BMPPaletteColour(psInfo, puiIndices[iFileRow * psInfo->iWidth + x], &puiRGBA[(y * psInfo->iWidth + x) * 4]);
 			}
@@ -445,7 +445,7 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
 {
 	lsize	uiStride;
-	int32	y;
+	uint32	y;
 	int32	iFileRow;
 
 	if ((psInfo->uiCompression == BMP_RLE8) || (psInfo->uiCompression == BMP_RLE4))
@@ -459,7 +459,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uin
 		return false;
 	}
 
-	for (y = 0; y < psInfo->iHeight; y++)
+	for (y = 0; y < (uint32)psInfo->iHeight; y++)
 	{
 		iFileRow = psInfo->bTopDown ? y : psInfo->iHeight - 1 - y;
 		if (!pcFile->Seek(psInfo->uiPixelOffset + (filePos)iFileRow * uiStride) || !BMPReadRow(pcFile, psInfo, &puiRGBA[y * psInfo->iWidth * 4]))
@@ -487,7 +487,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	uint8*			puiRGBA;
 	bool			bGrey;
 	bool			bAlpha;
-	int				i;
+	size			i;
 	Ptr<CImage>		pcImage;
 
 	cNaiveFile.Init();
@@ -534,7 +534,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	if (sInfo.iBitsPerPixel <= 8)
 	{
 		bGrey = true;
-		for (i = 0; i < sInfo.iNumColours; i++)
+		for (i = 0; i < (size)sInfo.iNumColours; i++)
 		{
 			if ((sInfo.aauiPalette[i][0] != sInfo.aauiPalette[i][1]) || (sInfo.aauiPalette[i][0] != sInfo.aauiPalette[i][2]))
 			{

@@ -165,7 +165,7 @@ bool TGAReadHeader(CFileBasic* pcFile, STGAInfo* psInfo)
 bool TGAReadInfo(CFileBasic* pcFile, lsize uiFileSize, STGAInfo* psInfo)
 {
 	int		iEntryBytes;
-	int		i;
+	size	i;
 
 	psInfo->puiColourMap = NULL;
 	if ((uiFileSize < TGA_HEADER_SIZE) || !TGAReadHeader(pcFile, psInfo))
@@ -244,7 +244,7 @@ bool TGAReadInfo(CFileBasic* pcFile, lsize uiFileSize, STGAInfo* psInfo)
 			{
 				return false;
 			}
-			for (i = 0; i < psInfo->iColourMapLength; i++)
+			for (i = 0; i < (size)psInfo->iColourMapLength; i++)
 			{
 				if (!TGAReadColour(pcFile, psInfo->iColourMapEntryBits, &psInfo->puiColourMap[i * 4]))
 				{
@@ -348,8 +348,8 @@ bool TGAReadPixel(CFileReader* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 //////////////////////////////////////////////////////////////////////////
 bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 {
-	int					iNumPixels;
-	int					iPixel;
+	size				iNumPixels;
+	size				iPixel;
 	bool				bRepeat;
 	uint8				auiPixel[4];
 	int32				iFileRow;
@@ -416,7 +416,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	uint8*			puiRGBA;
 	bool			bGrey;
 	bool			bAlpha;
-	int				i;
+	size			i;
 	Ptr<CImage>		pcImage;
 
 	cNaiveFile.Init();
@@ -465,7 +465,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	{
 		bGrey = true;
 		bAlpha = false;
-		for (i = 0; i < sInfo.iColourMapLength; i++)
+		for (i = 0; i < (size)sInfo.iColourMapLength; i++)
 		{
 			if (sInfo.puiColourMap[i * 4 + 3] != 255)
 			{

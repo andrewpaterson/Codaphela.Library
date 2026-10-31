@@ -220,12 +220,12 @@ CMeshPolygon* CMeshPolygons::Get(int iPolygonNum)
 //////////////////////////////////////////////////////////////////////////
 CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 {
-	int				iOldNum;
-	int				i;
+	size			iOldNum;
+	size			i;
 	CMeshPolygon*		psPolygon;
 
-	iOldNum = (int)mcPolygons.Resize(iNumPolygons);
-	for (i = iOldNum; i < iNumPolygons; i++)
+	iOldNum = mcPolygons.Resize(iNumPolygons);
+	for (i = iOldNum; i < (size)iNumPolygons; i++)
 	{
 		psPolygon = mcPolygons.Get(i);
 		psPolygon->Init(iName);
@@ -242,8 +242,8 @@ CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 //////////////////////////////////////////////////////////////////////////
 int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStartFaceIndex)
 {
-	int		i;
-	int		iNumFaces;
+	size	i;
+	size	iNumFaces;
 	int		iPolygonIndex;
 
 	if (pcConn->mcFaces.NumElements() != maiFacesToPolygons.NumElements())
@@ -251,13 +251,13 @@ int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStar
 		return -1;
 	}
 
-	iNumFaces = (int)pcConn->mcFaces.NumElements();
-	for (i = iStartFaceIndex; i < iNumFaces; i++)
+	iNumFaces = pcConn->mcFaces.NumElements();
+	for (i = (size)iStartFaceIndex; i < iNumFaces; i++)
 	{
 		iPolygonIndex = maiFacesToPolygons.GetValue(i);
 		if (iPolygonIndex == -1)
 		{
-			return i;
+			return (int)i;
 		}
 	}
 	return -1;
@@ -271,17 +271,17 @@ int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStar
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshPolygon* psPolygon, int* aiStack, int* aiTouched)
 {
-	int				iNumFaces;
+	size			iNumFaces;
 	int				iFaceIndex;
 	int				iAdjFaceIndex;
 	int				iPolygonFaceIndex;
 	int				iStackTop;
-	int				iAdj;
+	size			iAdj;
 	CMeshPolygon*	psPolygonForFace;
-	int				i;
+	size			i;
 	SAdjFaces		sAdjFaces;
 
-	iNumFaces = (int)psPolygon->maiFaces.NumElements();
+	iNumFaces = psPolygon->maiFaces.NumElements();
 
 	memset(aiTouched, 0, (lsize)sizeof(int)*iNumFaces);
 	memset(aiStack, -1, (lsize)sizeof(int)*iNumFaces);
@@ -425,7 +425,7 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 {
 	int				iAdjFaceIndex;
 	CMeshPolygon*	pcPolygon;
-	int				i;
+	size			i;
 	CMeshFace*		psFace;
 	char*			cEdge;
 	int				iEdgeIndex;
@@ -592,11 +592,11 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::GetUniqueNames(CArrayInt* paiNames)
 {
-	int				i;
-	int				iNumPolygons;
+	size			i;
+	size			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
 
-	iNumPolygons = (int)mcPolygons.NumElements();
+	iNumPolygons = mcPolygons.NumElements();
 
 	//Generate polygon normals;
 	for (i = 0; i < iNumPolygons; i++)
@@ -634,16 +634,16 @@ int CMeshPolygons::NumUniqueNames(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals)
 {
-	int				i;
-	int				iNumPolygons;
+	size			i;
+	size			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
-	int				iNumFaces;
-	int				j;
+	size			iNumFaces;
+	size			j;
 	int				iFace;
 	SFloat32Vec3*	psNormal;
 	SFloat32Vec3*	pasNormalsData;
 
-	iNumPolygons = (int)mcPolygons.NumElements();
+	iNumPolygons = mcPolygons.NumElements();
 	pasNormals->Resize(iNumPolygons);
 	pasNormalsData = pasNormals->GetData();
 
@@ -651,7 +651,7 @@ void CMeshPolygons::GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNo
 	for (i = 0; i < iNumPolygons; i++)
 	{
 		pcPolygon = mcPolygons.Get(i);
-		iNumFaces = (int)pcPolygon->maiFaces.NumElements();
+		iNumFaces = pcPolygon->maiFaces.NumElements();
 		pasNormalsData[i].Zero();
 		for (j = 0; j < iNumFaces; j++)
 		{

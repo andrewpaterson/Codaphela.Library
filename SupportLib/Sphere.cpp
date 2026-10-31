@@ -77,7 +77,7 @@ void CSphere::Copy(CSphere* source)
 //////////////////////////////////////////////////////////////////////////
 void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
-	int				i;
+	size			i;
 	SFloat32Vec3*	psPBase;
 	SFloat32Vec3	cPoint;
 	float64			fMaxLen;
@@ -86,7 +86,7 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStr
 
 	psPBase = psPoints;
 	cCenter.Init(0,0,0);
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		cCenter += *psPoints;
 		psPoints = (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride);
@@ -96,7 +96,7 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStr
 
 	fMaxLen = 0.0f;
 	psPoints = psPBase;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		cPoint = cCenter - *psPoints;
 		fLen = cPoint.SquareMagnitude();
@@ -117,7 +117,7 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStr
 //////////////////////////////////////////////////////////////////////////
 void CSphere::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
-	int				i, j;
+	size			i, j;
 	SFloat32Vec3*	psPoints1;
 	SFloat32Vec3*	psPoints2;
 	SFloat32Vec3*	psEndPoint1;
@@ -131,10 +131,10 @@ void CSphere::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int
 	psPoints1 = psPoints;
 	psEndPoint1 = NULL;
 	psEndPoint2 = NULL;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < (size)iNumPoints; i++)
 	{
 		psPoints2 = psPoints;
-		for (j = 0; j < iNumPoints; j++)
+		for (j = 0; j < (size)iNumPoints; j++)
 		{
 			if (i != j)
 			{
@@ -212,7 +212,7 @@ float32 CSphere::IntersectSphereVolume(CSphere* pcOther)
 bool CSphere::Contains(CTriangle* pcTriangle)
 {
 	float32		fRadiusSq;
-	int			i;
+	size		i;
 	SFloat32Vec3		sVec;
 
 	fRadiusSq = SquareRoot(mfRadius);

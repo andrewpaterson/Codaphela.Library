@@ -205,9 +205,9 @@ bool CMeshFaceTypes::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshFaceTypes::ClearFaceTypes(int iNumFaces)
+void CMeshFaceTypes::ClearFaceTypes(size iNumFaces)
 {
-	int				i;
+	size			i;
 	SMeshFaceType*	psType;
 
 	mcFaces.ReInit();
@@ -227,14 +227,14 @@ void CMeshFaceTypes::ClearFaceTypes(int iNumFaces)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateFromNormals(CMeshNormals* pcNormals)
 {
-	int					i;
+	size				i;
 	SMeshFaceType*		psType;
 	SMeshNormalFace*	psFaceNormals;
-	int					iNumFaces;
+	size				iNumFaces;
 
 	if (pcNormals->InUse())
 	{
-		iNumFaces = (int)mcFaces.NumElements();
+		iNumFaces = mcFaces.NumElements();
 		for (i = 0; i < iNumFaces; i++)
 		{
 			psFaceNormals = pcNormals->mcFaces.Get(i);
@@ -257,21 +257,21 @@ void CMeshFaceTypes::GenerateFromNormals(CMeshNormals* pcNormals)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 {
-	int					i;
+	size				i;
 	SMeshFaceType*		psType;
 	CMeshFace*			pcFace;
-	int					iNumFaces;
+	size				iNumFaces;
 	int					iMatricies;
 	CMeshSkin*			pcSkin;
 
 	pcSkin = &pcMesh->mcSkin;
 
-	iNumFaces = (int)mcFaces.NumElements();
+	iNumFaces = mcFaces.NumElements();
 	if (pcSkin->InUse())
 	{
 		for (i = 0; i < iNumFaces; i++)
 		{
-			pcFace = pcMesh->GetFace(i);
+			pcFace = pcMesh->GetFace((int)i);
 			psType = mcFaces.Get(i);
 
 			iMatricies = pcFace->asCorner[0] = pcSkin->GetFaceVertexMaxMatrixCount(pcFace->asCorner[0], pcFace->asCorner[1], pcFace->asCorner[0]);
@@ -359,14 +359,14 @@ void CMeshFaceTypes::GenerateFromColours(CMeshColours* pcColours)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateFromMaterals(CMeshMaterials* pcMaterials)
 {
-	int					i;
+	size				i;
 	SMeshFaceType*		psType;
 	int					iMaterial;
-	int					iNumFaces;
+	size				iNumFaces;
 
 	if (pcMaterials->InUse())
 	{
-		iNumFaces = (int)mcFaces.NumElements();
+		iNumFaces = mcFaces.NumElements();
 		for (i = 0; i < iNumFaces; i++)
 		{
 			iMaterial = pcMaterials->mcFaces.GetValue(i);

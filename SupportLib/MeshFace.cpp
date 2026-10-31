@@ -81,13 +81,13 @@ bool CMeshFace::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CMeshFace::GetOffsetForCorner(int iCornerNum)
 {
-	int i;
+	size	i;
 
 	for (i = 0; i < NUM_FACE_CORNERS; i++)
 	{
 		if (asCorner[i] == iCornerNum)
 		{
-			return i;
+			return (int)i;
 		}
 	}
 	return -1;

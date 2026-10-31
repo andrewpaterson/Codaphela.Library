@@ -193,9 +193,9 @@ void Int32Vec4Swap(SInt32Vec4* ps1, SInt32Vec4* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, int iNumPoints)
+void Int32Vec4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SInt32Vec4*	psIn;
 
 	if (iNumPoints > 0)

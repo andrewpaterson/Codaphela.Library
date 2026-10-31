@@ -193,10 +193,10 @@ void AddVectorObround(CVectorPath* pcPath, float64 fWidth, float64 fHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddVectorRegularPolygon(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fDiameter, int iVertices, float64 fRotation, float64 fPrimitiveRotation)
+void AddVectorRegularPolygon(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fDiameter, size iVertices, float64 fRotation, float64 fPrimitiveRotation)
 {
 	SFloat64Vec2	asPoints[12];
-	int				i;
+	size			i;
 
 	//The first vertex is on the positive X axis through the center, then the polygon is rotated about its center
 	//and, for a macro primitive, the whole primitive about the macro origin.

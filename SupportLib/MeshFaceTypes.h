@@ -86,7 +86,7 @@ public:
 
 	void	Touch(CMesh* pcMesh);
 
-	void	ClearFaceTypes(int iNumFaces);
+	void	ClearFaceTypes(size iNumFaces);
 	void	GenerateFromNormals(CMeshNormals* pcNormals);
 	void	GenerateFromSkin(CMesh* pcMesh);
 	void	GenerateFromUVCoords(CMeshUVCoords* pcUVs);

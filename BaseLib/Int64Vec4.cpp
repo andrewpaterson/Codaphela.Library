@@ -193,9 +193,9 @@ void Int64Vec4Swap(SInt64Vec4* ps1, SInt64Vec4* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int64Vec4MinMax(SInt64Vec4* psMin, SInt64Vec4* psMax, SInt64Vec4* asIn, int iInStride, int iNumPoints)
+void Int64Vec4MinMax(SInt64Vec4* psMin, SInt64Vec4* psMax, SInt64Vec4* asIn, int iInStride, size iNumPoints)
 {
-	int			i;
+	size		i;
 	SInt64Vec4*	psIn;
 
 	if (iNumPoints > 0)

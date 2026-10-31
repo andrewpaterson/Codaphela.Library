@@ -508,8 +508,8 @@ bool CImageDraw::BlendCoverage(void)
 	uint8					auiSource[4];  //Opacity, red, green then blue.
 	uint8*					puiDest;
 	uint8*					puiCoverage;
-	int						x;
-	int						y;
+	size					x;
+	size					y;
 	int						iWidth;
 	int						iCoverage;
 
@@ -524,18 +524,18 @@ bool CImageDraw::BlendCoverage(void)
 
 	puiCoverage = mcRasteriser.GetCoverage();
 	iWidth = mcRasteriser.GetWidth();
-	for (y = 0; y < mcRasteriser.GetHeight(); y++)
+	for (y = 0; y < (size)mcRasteriser.GetHeight(); y++)
 	{
-		for (x = 0; x < iWidth; x++)
+		for (x = 0; x < (size)iWidth; x++)
 		{
 			iCoverage = puiCoverage[(lsize)y * iWidth + x];
 			if (iCoverage > 0)
 			{
 				//Coverage is in 255ths and the blend takes 256ths.
 				iCoverage = (int)DivideRound((int64)iCoverage * 256, 255);
-				puiDest = (uint8*)pcAccessor->Get(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y);
+				puiDest = (uint8*)pcAccessor->Get(mcRasteriser.GetLeft() + (int)x, mcRasteriser.GetTop() + (int)y);
 				BlendStraightOverPixel(puiDest, auiSource, iCoverage);
-				pcAccessor->Set(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y, puiDest);
+				pcAccessor->Set(mcRasteriser.GetLeft() + (int)x, mcRasteriser.GetTop() + (int)y, puiDest);
 			}
 		}
 	}

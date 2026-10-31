@@ -75,7 +75,7 @@ bool CRLEBitmapDecoder::Decode(CFileReader* pcFile, uint8* puiIndices)
 	uint8	uiDeltaX;
 	uint8	uiDeltaY;
 	uint8	uiByte;
-	int		i;
+	uint	i;
 
 	x = 0;
 	y = 0;

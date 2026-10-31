@@ -168,7 +168,7 @@ void CMeshUVCoords::Class(void)
 bool CMeshUVCoords::Load(CObjectReader* pcFile)
 {
 	CMeshUVLayer*	pcLayer;
-	int				i;
+	size			i;
 	int				iNumLayers;
 
 	Init();
@@ -179,7 +179,7 @@ bool CMeshUVCoords::Load(CObjectReader* pcFile)
 
 	mcLayers.Resize(iNumLayers);
 
-	for (i = 0; i < iNumLayers; i++)
+	for (i = 0; i < (size)iNumLayers; i++)
 	{
 		pcLayer = mcLayers.Get(i);
 		ReturnOnFalse(pcLayer->Load(pcFile));

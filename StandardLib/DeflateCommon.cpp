@@ -55,7 +55,7 @@ const uint8 gauiDeflateCodeLengthOrder[DEFLATE_NUM_CODE_LENGTHS] =
 //////////////////////////////////////////////////////////////////////////
 void DeflateFixedLiteralLengths(uint8* puiLengths)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < 144; i++)
 	{
@@ -83,7 +83,7 @@ void DeflateFixedLiteralLengths(uint8* puiLengths)
 //////////////////////////////////////////////////////////////////////////
 void DeflateFixedDistanceLengths(uint8* puiLengths)
 {
-	int		i;
+	size	i;
 
 	for (i = 0; i < DEFLATE_NUM_FIXED_DISTANCES; i++)
 	{
