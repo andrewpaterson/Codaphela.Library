@@ -24,13 +24,20 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitFonts.h"
 
 
+//What separates a real 74 series view's element name from its part type in the name it's placed by: "Logic74Package:00"
+//places a whole 74LVC00 and "Logic74Unit:00" its first unit.
+#define PLACED_PART_SEPARATOR	':'
+
+
 //A new view, as the editor places it, of the component an element is saved as (see ComponentViewFactory.h), with
 //Logicim's initial properties for it (its ViewFactory's createInitialProperties): the LVC family, implicit power,
-//two inputs on a gate and so on.  Views measured with fonts are measured with the fonts given.  A pin is given a name
-//no other pin in the circuit has, as Logicim's ComponentNameHelper, and a chip (a gate, buffer, inverter, inverter
-//package or unit, flip flop, counter, clock or microprocessor) the next free reference (U1, U2...), as KiCad annotates
-//its symbols.  The units placed after an inverter unit (see NewNextUnit) take its reference, as one part's.  NULL for
-//an unknown element name, and for a subcircuit instance, which is placed with NewPlacedSubcircuitInstanceView.
+//two inputs on a gate and so on.  A real 74 series part is placed by its element name and part type (see
+//PLACED_PART_SEPARATOR).  Views measured with fonts are measured with the fonts given.  A pin is given a name no other
+//pin in the circuit has, as Logicim's ComponentNameHelper, and a chip (a gate, buffer, inverter, logic block, 74 series package
+//or unit, flip flop, counter, clock or microprocessor) the next free reference (U1, U2...), as KiCad annotates its
+//symbols.  The units placed after a 74 series unit (see NewNextUnit) take its reference, as one part's.  NULL for an
+//unknown element name or part type, and for a subcircuit instance, which is placed with
+//NewPlacedSubcircuitInstanceView.
 CComponentView*	NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit, CCircuitFonts* pcFonts);
 void			GetFreeReference(CChars* psz, CCircuitView* pcCircuit, const char* szPrefix);
 CComponentView*	NewPlacedSubcircuitInstanceView(CCircuitView* pcSubcircuit, int32 x, int32 y, ERotation eRotation, CCircuitFonts* pcFonts);

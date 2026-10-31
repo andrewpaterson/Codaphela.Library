@@ -26,7 +26,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #include "LogicimLib/AndGateView.h"
 #include "LogicimLib/OrGateView.h"
 #include "LogicimLib/BufferView.h"
-#include "LogicimLib/InverterPackageView.h"
+#include "LogicimLib/Logic74View.h"
 #include "LogicimLib/FlipFlopView.h"
 #include "LogicimLib/PowerSourceView.h"
 #include "LogicimLib/TunnelView.h"
@@ -47,7 +47,7 @@ static ERotation gaeKicadSchemLogicimRotations[4] = { ROT_East, ROT_South, ROT_W
 
 
 //Reference prefixes and library names of the symbols that are left out.
-static const char* gaszKicadSchemSkippedReferences[] = { "R", "RN", "C", "L", "FB", "D", "LED", "H", "MH", "TP", "NT", "FID" };
+static const char* gaszKicadSchemSkippedReferences[] = { "R", "RN", "C", "CN", "L", "FB", "D", "LED", "H", "MH", "TP", "NT", "FID" };
 static const char* gaszKicadSchemSkippedLibraryNames[] = { "MountingHole", "NetTie", "TestPoint", "PWR_FLAG", "Fiducial" };
 
 
@@ -76,6 +76,7 @@ void CKicadSchemLogicimConverter::Init(CKicadSchemFile* pcFile, CKicadSchemNetli
 	muiPowers = 0;
 	muiTunnels = 0;
 	muiSplitters = 0;
+	muiBlocks = 0;
 	muiSkipped = 0;
 	muiOverlaps = 0;
 	muiExplosions = 0;
@@ -204,6 +205,21 @@ bool CKicadSchemLogicimConverter::AddSymbol(CKicadSchemSymbol* pcSymbol)
 		muiSkipped++;
 		return true;
 	}
+
+	//A real 74 series part that isn't gates.
+	szFamily.Init();
+	szPartType.Init();
+	if (ParseKicadSchemLogic74Part(pcLibSymbol->GetName(), &szFamily, &szPartType) || ParseKicadSchemLogic74Part(pcSymbol->GetValue(), &szFamily, &szPartType))
+	{
+		if (AddLogic74Block(pcSymbol, pcLibSymbol, szFamily.Text(), szPartType.Text()))
+		{
+			szPartType.Kill();
+			szFamily.Kill();
+			return true;
+		}
+	}
+	szPartType.Kill();
+	szFamily.Kill();
 
 	szFamily.Init();
 	szPartType.Init();
@@ -593,12 +609,11 @@ bool CKicadSchemLogicimConverter::AddLogicParts(CKicadSchemSymbol* pcSymbol, CKi
 		}
 	}
 
-	//A whole inverter part is one package, its inverters in gate number order.
+	//A real 74 series gate part is its package, or the unit of it KiCad draws.
 	bPackaged = false;
-	if (bValid && (eFunction == KSLF_Inverter) && (pcLibSymbol->NumUnits() <= 1) && (aszIndices.NumElements() > 1))
+	if (bValid && (eFunction != KSLF_DFlipFlop))
 	{
-		AddInverterPackage(pcSymbol, &aszIndices, &apcPins, &aiGroups, &aszLetters, &asPositions, szFamily, szPartType);
-		bPackaged = true;
+		bPackaged = AddLogic74Part(pcSymbol, pcLibSymbol, eFunction, &aszIndices, &apcPins, &aiGroups, &aszLetters, &asPositions, szFamily, szPartType);
 	}
 
 	for (uiGroup = 0; bValid && !bPackaged && (uiGroup < aszIndices.NumElements()); uiGroup++)
@@ -693,16 +708,7 @@ bool CKicadSchemLogicimConverter::AddLogicParts(CKicadSchemSymbol* pcSymbol, CKi
 			pcView = NewKicadSchemGateView<CBufferView>(eRotation, szName.Text(), szFamily, 1);
 			break;
 		case KSLF_Inverter:
-			if (pcLibSymbol->NumUnits() > 1)
-			{
-				//A unit of the part, named as the part.
-				pcView = NewMalloc<CInverterUnitView>();
-				((CInverterUnitView*)pcView)->Init(0, 0, eRotation, pcSymbol->GetReference(), szFamily, false, szPartType, pcSymbol->GetUnit() - 1);
-			}
-			else
-			{
-				pcView = NewKicadSchemGateView<CInverterView>(eRotation, szName.Text(), szFamily, 1);
-			}
+			pcView = NewKicadSchemGateView<CInverterView>(eRotation, szName.Text(), szFamily, 1);
 			break;
 		default:
 			pcView = NewMalloc<CDTypeFlipFlopView>();
@@ -748,43 +754,102 @@ bool CKicadSchemLogicimConverter::AddLogicParts(CKicadSchemSymbol* pcSymbol, CKi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An inverter package of the part's inverters (one for each gate number,
-// in number order) where the part's pins are, facing from its inputs to
-// its outputs.
+// The generic gate a KiCad logic function is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLogicimConverter::AddInverterPackage(CKicadSchemSymbol* pcSymbol, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType)
+static bool GetKicadSchemGateFunction(EKicadSchemLogicFunction eFunction, EGateFunction* peGateFunction)
 {
-	CArrayInt					aiOrder;
-	size						i;
-	size						j;
-	int							iGroup;
-	SKicadSchemPoint			sCentre;
-	SKicadSchemPoint			sInputs;
-	SKicadSchemPoint			sOutputs;
-	int							iInputs;
-	int							iOutputs;
-	CInverterPackageView*		pcPackage;
-	size						uiItem;
+	switch (eFunction)
+	{
+	case KSLF_And:			*peGateFunction = GF_And;		return true;
+	case KSLF_Nand:			*peGateFunction = GF_Nand;		return true;
+	case KSLF_Or:			*peGateFunction = GF_Or;		return true;
+	case KSLF_Nor:			*peGateFunction = GF_Nor;		return true;
+	case KSLF_Xor:			*peGateFunction = GF_Xor;		return true;
+	case KSLF_Xnor:			*peGateFunction = GF_Xnor;		return true;
+	case KSLF_Buffer:		*peGateFunction = GF_Buffer;	return true;
+	case KSLF_Inverter:		*peGateFunction = GF_Inverter;	return true;
+	default:				return false;
+	}
+}
 
-	aiOrder.Init();
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The real 74 series part (see SLogic74Part) the symbol's unit is of, as
+// KiCad draws it.  A unit of a part drawn as units ("74LVC00_Multi") is a
+// unit view of the part, named as the part; a single gate part ("1G08")
+// is a unit view too.  A part drawn whole is a package, each pin on the
+// port of its name ("2B").  False (and nothing added) if there's no row
+// for the part or its pins aren't its row's gates.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemLogicimConverter::AddLogic74Part(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType)
+{
+	SLogic74PartType		sType;
+	EGateFunction			eGateFunction;
+	size					i;
+	size					j;
+	int						iInputs;
+	int						iIndex;
+	int						iUnit;
+	SKicadSchemPoint		sCentre;
+	SKicadSchemPoint		sInputs;
+	SKicadSchemPoint		sOutputs;
+	int						iOutputs;
+	CArrayInt				aiInputs;
+	int						iOutput;
+	CLogic74PackageView*	pcPackage;
+	CLogic74UnitView*		pcUnit;
+	CComponentView*			pcView;
+	size					uiItem;
+	CChars					szPortName;
+	CPortView*				pcPortView;
+	bool					bUnit;
+
+	if (!FindLogic74Part(&sType, szPartType) || !GetKicadSchemGateFunction(eFunction, &eGateFunction))
+	{
+		return false;
+	}
+	if ((sType.psPart->eKind != L74K_Gates) || (sType.psPart->eGateFunction != eGateFunction))
+	{
+		return false;
+	}
+
+	//Every gate has the row's inputs, and a gate number the part has.
 	for (i = 0; i < paszIndices->NumElements(); i++)
 	{
-		for (j = 0; j < aiOrder.NumElements(); j++)
+		iInputs = 0;
+		for (j = 0; j < papcPins->NumElements(); j++)
 		{
-			if (atoi(paszIndices->GetText(i)) < atoi(paszIndices->GetText(aiOrder.GetValue(j))))
+			if ((paiGroups->GetValue(j) == (int)i) && !paszLetters->Get(j)->Equals("Y"))
 			{
-				break;
+				iInputs++;
 			}
 		}
-		aiOrder.InsertAt((int)i, j);
+		if (iInputs != sType.psPart->iInputCount)
+		{
+			return false;
+		}
+		iIndex = paszIndices->Get(i)->Empty() ? 1 : atoi(paszIndices->GetText(i));
+		if ((iIndex < 1) || (iIndex > sType.iUnitCount))
+		{
+			return false;
+		}
+	}
+
+	bUnit = (pcLibSymbol->NumUnits() > 1) || (sType.iUnitCount == 1);
+	if (bUnit && (paszIndices->NumElements() != 1))
+	{
+		return false;
 	}
 
 	sCentre.Init();
 	sInputs.Init();
 	sOutputs.Init();
-	iInputs = 0;
 	iOutputs = 0;
+	iOutput = -1;
+	aiInputs.Init();
 	for (i = 0; i < papcPins->NumElements(); i++)
 	{
 		sCentre.fX += pasPositions->Get(i)->fX;
@@ -794,44 +859,371 @@ void CKicadSchemLogicimConverter::AddInverterPackage(CKicadSchemSymbol* pcSymbol
 			sOutputs.fX += pasPositions->Get(i)->fX;
 			sOutputs.fY += pasPositions->Get(i)->fY;
 			iOutputs++;
+			iOutput = (int)i;
 		}
 		else
 		{
 			sInputs.fX += pasPositions->Get(i)->fX;
 			sInputs.fY += pasPositions->Get(i)->fY;
-			iInputs++;
+			for (j = 0; j < aiInputs.NumElements(); j++)
+			{
+				if (strcmp(paszLetters->GetText(i), paszLetters->GetText(aiInputs.GetValue(j))) < 0)
+				{
+					break;
+				}
+			}
+			aiInputs.InsertAt((int)i, j);
 		}
 	}
 	sCentre.fX /= (float64)papcPins->NumElements();
 	sCentre.fY /= (float64)papcPins->NumElements();
-	sInputs.fX /= (float64)iInputs;
-	sInputs.fY /= (float64)iInputs;
+	sInputs.fX /= (float64)aiInputs.NumElements();
+	sInputs.fY /= (float64)aiInputs.NumElements();
 	sOutputs.fX /= (float64)iOutputs;
 	sOutputs.fY /= (float64)iOutputs;
 
-	pcPackage = NewMalloc<CInverterPackageView>();
-	pcPackage->Init(0, 0, GetKicadSchemFacing(&sInputs, &sOutputs), pcSymbol->GetReference(), szFamily, false, szPartType, (int)aiOrder.NumElements());
-	uiItem = AddItem(pcPackage, &sCentre, NULL);
-	for (j = 0; j < aiOrder.NumElements(); j++)
+	if (bUnit)
 	{
-		iGroup = aiOrder.GetValue(j);
-		for (i = 0; i < papcPins->NumElements(); i++)
+		//The unit's inputs in letter order, then its output, as the generic gate's.
+		iUnit = (pcLibSymbol->NumUnits() > 1) ? pcSymbol->GetUnit() - 1 : 0;
+		pcUnit = NewMalloc<CLogic74UnitView>();
+		pcUnit->Init(0, 0, GetKicadSchemFacing(&sInputs, &sOutputs), pcSymbol->GetReference(), szFamily, false, szPartType, iUnit);
+		pcView = pcUnit;
+		uiItem = AddItem(pcView, &sCentre, NULL);
+		for (j = 0; j < aiInputs.NumElements(); j++)
 		{
-			if (paiGroups->GetValue(i) == iGroup)
-			{
-				if (paszLetters->Get(i)->Equals("Y"))
-				{
-					AddPinTerminal(pcSymbol, papcPins->GetPtr(i), pcPackage->GetUnitOutput((int)j), uiItem);
-				}
-				else
-				{
-					AddPinTerminal(pcSymbol, papcPins->GetPtr(i), pcPackage->GetUnitInput((int)j), uiItem);
-				}
-			}
+			szPortName.Init();
+			CPins::CalculatePortName(&szPortName, "Input", j, aiInputs.NumElements());
+			AddPinTerminal(pcSymbol, papcPins->GetPtr(aiInputs.GetValue(j)), pcView->GetPortView(szPortName.Text()), uiItem);
+			szPortName.Kill();
 		}
+		AddPinTerminal(pcSymbol, papcPins->GetPtr(iOutput), pcView->GetPortView("Output"), uiItem);
 		muiGates++;
 	}
-	aiOrder.Kill();
+	else
+	{
+		pcPackage = NewMalloc<CLogic74PackageView>();
+		pcPackage->Init(0, 0, GetKicadSchemFacing(&sInputs, &sOutputs), pcSymbol->GetReference(), szFamily, false, szPartType);
+		pcView = pcPackage;
+		uiItem = AddItem(pcView, &sCentre, NULL);
+		for (i = 0; i < papcPins->NumElements(); i++)
+		{
+			szPortName.Init();
+			szPortName.Append(paszIndices->Get(paiGroups->GetValue(i))->Empty() ? "1" : paszIndices->GetText(paiGroups->GetValue(i)));
+			szPortName.Append(paszLetters->Get(i));
+			pcPortView = pcView->GetPortView(szPortName.Text());
+			szPortName.Kill();
+			if (pcPortView != NULL)
+			{
+				AddPinTerminal(pcSymbol, papcPins->GetPtr(i), pcPortView, uiItem);
+			}
+		}
+		muiGates += paszIndices->NumElements();
+	}
+	aiInputs.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A KiCad pin's name as the label of the port it's on (see
+// CLogicBlockView): its overbars ("~{OE}", "1~{OE}") taken out, and
+// pbNegated whether it had any; a sigma ("Σ1", a sum) is an S.
+//
+//////////////////////////////////////////////////////////////////////////
+static void GetKicadSchemPinLabel(const char* szName, CChars* pszLabel, bool* pbNegated)
+{
+	size	i;
+
+	*pbNegated = false;
+	for (i = 0; (szName != NULL) && (szName[i] != '\0'); i++)
+	{
+		if ((szName[i] == '~') && (szName[i + 1] == '{'))
+		{
+			*pbNegated = true;
+			i++;
+		}
+		else if (szName[i] == '}')
+		{
+		}
+		else if (((unsigned char)szName[i] == 0xCE) && ((unsigned char)szName[i + 1] == 0xA3))
+		{
+			pszLabel->Append('S');
+			i++;
+		}
+		else
+		{
+			pszLabel->Append(szName[i]);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The other names a pin's label goes by: a 74F283's carries ("C0", "C4")
+// are a 74LVC283's "CIN" and "COUT", and a bus switch's channel letter
+// after the name ("I0A", "YA", "EA") is the channel's number before it
+// ("1I0", "1Y", "1E").  False if there's no other name.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool GetKicadSchemPinLabelAlias(const char* szLabel, CChars* pszAlias)
+{
+	size	uiLength;
+	char	cChannel;
+	CChars	szName;
+
+	if (StringCompare(szLabel, "C0") == 0)
+	{
+		pszAlias->Set("CIN");
+		return true;
+	}
+	if (StringCompare(szLabel, "C4") == 0)
+	{
+		pszAlias->Set("COUT");
+		return true;
+	}
+	uiLength = StrLen(szLabel);
+	if ((uiLength >= 2) && ((szLabel[0] == 'I') || (szLabel[0] == 'Y') || (szLabel[0] == 'E')))
+	{
+		cChannel = szLabel[uiLength - 1];
+		if ((cChannel >= 'A') && (cChannel <= 'D'))
+		{
+			szName.Init(szLabel, 0, uiLength - 1);
+			pszAlias->Kill();
+			pszAlias->Init();
+			pszAlias->Append((int32)(cChannel - 'A' + 1));
+			pszAlias->Append(szName.Text());
+			szName.Kill();
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The view's port labelled szLabel and inverted or not, or the only one
+// labelled szLabel.  A unit's labels have no flip flop number ("1CP" is
+// "CP").
+//
+//////////////////////////////////////////////////////////////////////////
+static CPortView* FindKicadSchemLabelledPort(CComponentView* pcView, const char* szLabel, bool bNegated, bool bUnit)
+{
+	size		i;
+	CPortView*	pcPortView;
+	CPortView*	pcOnly;
+	size		uiLabelled;
+
+	if (bUnit)
+	{
+		while ((*szLabel >= '0') && (*szLabel <= '9'))
+		{
+			szLabel++;
+		}
+	}
+	pcOnly = NULL;
+	uiLabelled = 0;
+	for (i = 0; i < pcView->NumPortViews(); i++)
+	{
+		pcPortView = pcView->GetPortView(i);
+		if (StringCompare(pcPortView->GetText(), szLabel) == 0)
+		{
+			if (pcPortView->IsInverting() == bNegated)
+			{
+				return pcPortView;
+			}
+			pcOnly = pcPortView;
+			uiLabelled++;
+		}
+	}
+	return (uiLabelled == 1) ? pcOnly : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The view's port for each of the unit's logic pins (not its power or
+// unconnected pins), in the order of the pins.  False if a pin has none.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool MapKicadSchemLogic74Pins(CComponentView* pcView, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayPortViewPtr* papcPorts, bool bUnit)
+{
+	size		i;
+	CChars		szLabel;
+	CChars		szAlias;
+	bool		bNegated;
+	CPortView*	pcPortView;
+
+	papcPorts->Kill();
+	papcPorts->Init();
+	for (i = 0; i < papcPins->NumElements(); i++)
+	{
+		szLabel.Init();
+		GetKicadSchemPinLabel(papcPins->GetPtr(i)->GetName(), &szLabel, &bNegated);
+		pcPortView = FindKicadSchemLabelledPort(pcView, szLabel.Text(), bNegated, bUnit);
+		if (pcPortView == NULL)
+		{
+			szAlias.Init();
+			if (GetKicadSchemPinLabelAlias(szLabel.Text(), &szAlias))
+			{
+				pcPortView = FindKicadSchemLabelledPort(pcView, szAlias.Text(), bNegated, bUnit);
+			}
+			szAlias.Kill();
+		}
+		szLabel.Kill();
+		if (pcPortView == NULL)
+		{
+			return false;
+		}
+		papcPorts->Add(pcPortView);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A package (or unit) view of the part turned eRotation.
+//
+//////////////////////////////////////////////////////////////////////////
+static CComponentView* NewKicadSchemLogic74View(CKicadSchemSymbol* pcSymbol, ERotation eRotation, const char* szFamily, const char* szPartType, bool bUnit, int iUnit)
+{
+	CLogic74PackageView*	pcPackage;
+	CLogic74UnitView*		pcUnit;
+
+	if (bUnit)
+	{
+		pcUnit = NewMalloc<CLogic74UnitView>();
+		pcUnit->Init(0, 0, eRotation, pcSymbol->GetReference(), szFamily, false, szPartType, iUnit);
+		return pcUnit;
+	}
+	pcPackage = NewMalloc<CLogic74PackageView>();
+	pcPackage->Init(0, 0, eRotation, pcSymbol->GetReference(), szFamily, false, szPartType);
+	return pcPackage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A real 74 series part that isn't gates (see SLogic74Part): a package of
+// the whole part, or a unit of a part KiCad draws as units (a 74LVC74's
+// flip flop).  Each KiCad pin is on the port its name labels (see
+// GetKicadSchemPinLabel).  The view is turned so the pins KiCad has on
+// the left of the part are on its left.  False (and nothing added) if a
+// logic pin has no port.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemLogicimConverter::AddLogic74Block(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, const char* szFamily, const char* szPartType)
+{
+	SLogic74PartType						sType;
+	CArrayTemplatePtr<CKicadSchemLibPin>	apcPins;
+	CArrayPortViewPtr						apcPorts;
+	CArrayKicadSchemPoint					asPositions;
+	CKicadSchemLibPin*						pcPin;
+	SKicadSchemPoint						sPosition;
+	SKicadSchemPoint						sCentre;
+	SKicadSchemPoint						sLeft;
+	SKicadSchemPoint						sRight;
+	int										iLeft;
+	int										iRight;
+	bool									bUnit;
+	int										iUnit;
+	size									i;
+	CComponentView*							pcView;
+	bool									bMapped;
+	size									uiItem;
+	ERotation								eRotation;
+
+	if (!FindLogic74Part(&sType, szPartType) || (sType.psPart->eKind != L74K_Block))
+	{
+		return false;
+	}
+	bUnit = (pcLibSymbol->NumUnits() > 1) && (sType.iUnitCount > 1);
+	iUnit = bUnit ? pcSymbol->GetUnit() - 1 : 0;
+
+	apcPins.Init();
+	asPositions.Init();
+	for (i = 0; i < pcLibSymbol->NumPins(); i++)
+	{
+		pcPin = pcLibSymbol->GetPin(i);
+		if (!pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()) || (pcPin->GetType() == KSPT_PowerIn) || (pcPin->GetType() == KSPT_NoConnect) || IsKicadSchemPowerPinName(pcPin->GetName()))
+		{
+			continue;
+		}
+		apcPins.Add(pcPin);
+		mpcFile->GetPinPosition(&sPosition, pcSymbol, pcPin);
+		asPositions.Add(&sPosition);
+	}
+	if (apcPins.NumElements() == 0)
+	{
+		asPositions.Kill();
+		apcPins.Kill();
+		return false;
+	}
+
+	//Which side of the part's middle each pin's port is on, unturned, gives the way KiCad turned it.
+	apcPorts.Init();
+	pcView = NewKicadSchemLogic74View(pcSymbol, ROT_East, szFamily, szPartType, bUnit, iUnit);
+	bMapped = MapKicadSchemLogic74Pins(pcView, &apcPins, &apcPorts, bUnit);
+	sCentre.Init();
+	sLeft.Init();
+	sRight.Init();
+	iLeft = 0;
+	iRight = 0;
+	for (i = 0; bMapped && (i < apcPins.NumElements()); i++)
+	{
+		sCentre.fX += asPositions.Get(i)->fX;
+		sCentre.fY += asPositions.Get(i)->fY;
+		if (apcPorts.GetPtr(i)->GetGridPosition().x < 0)
+		{
+			sLeft.fX += asPositions.Get(i)->fX;
+			sLeft.fY += asPositions.Get(i)->fY;
+			iLeft++;
+		}
+		else
+		{
+			sRight.fX += asPositions.Get(i)->fX;
+			sRight.fY += asPositions.Get(i)->fY;
+			iRight++;
+		}
+	}
+	pcView->Kill();
+	if (!bMapped)
+	{
+		apcPorts.Kill();
+		asPositions.Kill();
+		apcPins.Kill();
+		return false;
+	}
+
+	sCentre.fX /= (float64)apcPins.NumElements();
+	sCentre.fY /= (float64)apcPins.NumElements();
+	eRotation = ROT_East;
+	if ((iLeft > 0) && (iRight > 0))
+	{
+		sLeft.fX /= (float64)iLeft;
+		sLeft.fY /= (float64)iLeft;
+		sRight.fX /= (float64)iRight;
+		sRight.fY /= (float64)iRight;
+		eRotation = GetKicadSchemFacing(&sLeft, &sRight);
+	}
+
+	pcView = NewKicadSchemLogic74View(pcSymbol, eRotation, szFamily, szPartType, bUnit, iUnit);
+	MapKicadSchemLogic74Pins(pcView, &apcPins, &apcPorts, bUnit);
+	uiItem = AddItem(pcView, &sCentre, NULL);
+	for (i = 0; i < apcPins.NumElements(); i++)
+	{
+		AddPinTerminal(pcSymbol, apcPins.GetPtr(i), apcPorts.GetPtr(i), uiItem);
+	}
+	muiBlocks++;
+
+	apcPorts.Kill();
+	asPositions.Kill();
+	apcPins.Kill();
+	return true;
 }
 
 
@@ -2399,6 +2791,7 @@ size CKicadSchemLogicimConverter::NumPlaceholders(void) { return muiPlaceholders
 size CKicadSchemLogicimConverter::NumPowers(void) { return muiPowers; }
 size CKicadSchemLogicimConverter::NumTunnels(void) { return muiTunnels; }
 size CKicadSchemLogicimConverter::NumSplitters(void) { return muiSplitters; }
+size CKicadSchemLogicimConverter::NumBlocks(void) { return muiBlocks; }
 size CKicadSchemLogicimConverter::NumSkipped(void) { return muiSkipped; }
 size CKicadSchemLogicimConverter::NumOverlaps(void) { return muiOverlaps; }
 size CKicadSchemLogicimConverter::NumExplosions(void) { return muiExplosions; }

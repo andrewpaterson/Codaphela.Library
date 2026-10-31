@@ -64,7 +64,7 @@ void CBufferView::CreateShapes(void)
 	for (i = 0; i < aiOffsets.NumElements(); i++)
 	{
 		fOffset = aiOffsets.GetValue(i);
-		mcShapes.AddTriangle(0.9, fOffset, -1, fOffset + fWidth, -1, fOffset - fWidth, true, true);
+		AddBufferShape(&mcShapes, 0, fOffset, fWidth);
 	}
 	aiOffsets.Kill();
 }
@@ -72,39 +72,13 @@ void CBufferView::CreateShapes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// All the inputs and then all the outputs.
+// A buffer's triangle, fHalfWidth either side of y, from its input at
+// x - 1 to its tip at x + 0.9.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBufferView::CreateBufferPortViews(void)
+void CBufferView::AddBufferShape(CComponentShapes* pcShapes, float64 x, float64 y, float64 fHalfWidth)
 {
-	CArrayInt		aiOffsets;
-	CArrayChars		aszNames;
-	size			i;
-	CPortView*		pcOutput;
-
-	CreatePowerPortViews();
-
-	aiOffsets.Init();
-	CalculatePortOffsets(&aiOffsets, miInputCount);
-	for (i = 0; i < aiOffsets.NumElements(); i++)
-	{
-		aszNames.Init();
-		GetPortNames(&aszNames, "Input", (int)i, miInputWidth, miInputCount);
-		AddPortView(&aszNames, -1, aiOffsets.GetValue(i));
-		aszNames.Kill();
-	}
-	for (i = 0; i < aiOffsets.NumElements(); i++)
-	{
-		aszNames.Init();
-		GetPortNames(&aszNames, "Output", (int)i, miInputWidth, miInputCount);
-		pcOutput = AddPortView(&aszNames, 1, aiOffsets.GetValue(i));
-		aszNames.Kill();
-		if (mbNegated)
-		{
-			pcOutput->SetInverting(ROT_East);
-		}
-	}
-	aiOffsets.Kill();
+	pcShapes->AddTriangle(x + 0.9, y, x - 1, y + fHalfWidth, x - 1, y - fHalfWidth, true, true);
 }
 
 

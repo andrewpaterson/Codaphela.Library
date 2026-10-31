@@ -172,6 +172,44 @@ void CLogicGateView::CreateGatePortViews(int iInputOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// All the inputs and then all the outputs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicGateView::CreateBufferPortViews(void)
+{
+	CArrayInt		aiOffsets;
+	CArrayChars		aszNames;
+	size			i;
+	CPortView*		pcOutput;
+
+	CreatePowerPortViews();
+
+	aiOffsets.Init();
+	CalculatePortOffsets(&aiOffsets, miInputCount);
+	for (i = 0; i < aiOffsets.NumElements(); i++)
+	{
+		aszNames.Init();
+		GetPortNames(&aszNames, "Input", (int)i, miInputWidth, miInputCount);
+		AddPortView(&aszNames, -1, aiOffsets.GetValue(i));
+		aszNames.Kill();
+	}
+	for (i = 0; i < aiOffsets.NumElements(); i++)
+	{
+		aszNames.Init();
+		GetPortNames(&aszNames, "Output", (int)i, miInputWidth, miInputCount);
+		pcOutput = AddPortView(&aszNames, 1, aiOffsets.GetValue(i));
+		aszNames.Kill();
+		if (mbNegated)
+		{
+			pcOutput->SetInverting(ROT_East);
+		}
+	}
+	aiOffsets.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A gate is three grid units high at least, whatever its shape.
 //
 //////////////////////////////////////////////////////////////////////////

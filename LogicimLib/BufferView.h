@@ -37,10 +37,11 @@ public:
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 
+	static	void					AddBufferShape(CComponentShapes* pcShapes, float64 x, float64 y, float64 fHalfWidth);
+
 protected:
 			void					InitBuffer(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iBufferCount, int iBufferWidth, bool bNegated);
 			void					CreateShapes(void);
-			void					CreateBufferPortViews(void);
 	virtual	bool					IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
 };
 

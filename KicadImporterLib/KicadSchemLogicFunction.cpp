@@ -19,6 +19,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/StringHelper.h"
+#include "LogicimLib/Logic74Parts.h"
 #include "KicadSchemLogicFunction.h"
 
 
@@ -161,6 +162,78 @@ EKicadSchemLogicFunction ParseKicadSchemLogicFunction(const char* szPartNumber, 
 		return eFunction;
 	}
 	return KSLF_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The longest run of digits (with a small part's "nG" before them) after
+// each "74" or "QS" that has a 74 series part row.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ParseKicadSchemLogic74Part(const char* szPartNumber, CChars* pszFamily, CChars* pszPartType)
+{
+	size				i;
+	size				j;
+	size				uiFamilyStart;
+	size				uiFamilyEnd;
+	size				uiNumberStart;
+	bool				bQuickSwitch;
+	CChars				szType;
+	CChars				szFamily;
+	SLogic74PartType	sType;
+	bool				bFound;
+
+	if (szPartNumber == NULL)
+	{
+		return false;
+	}
+
+	for (i = 0; szPartNumber[i] != '\0'; i++)
+	{
+		bQuickSwitch = (szPartNumber[i] == 'Q') && (szPartNumber[i + 1] == 'S') && IsKicadSchemDigit(szPartNumber[i + 2]);
+		if (!bQuickSwitch && ((szPartNumber[i] != '7') || (szPartNumber[i + 1] != '4') || ((i > 0) && IsKicadSchemDigit(szPartNumber[i - 1]))))
+		{
+			continue;
+		}
+
+		j = i + 2;
+		uiFamilyStart = j;
+		while (IsKicadSchemUpper(szPartNumber[j]))
+		{
+			j++;
+		}
+		uiFamilyEnd = j;
+		uiNumberStart = j;
+		if (IsKicadSchemDigit(szPartNumber[j]) && (szPartNumber[j + 1] == 'G'))
+		{
+			j += 2;
+		}
+		while (IsKicadSchemDigit(szPartNumber[j]))
+		{
+			j++;
+		}
+		if (j == uiNumberStart)
+		{
+			continue;
+		}
+
+		szType.Init(szPartNumber, uiNumberStart, j);
+		bFound = FindLogic74Part(&sType, szType.Text());
+		if (bFound)
+		{
+			szFamily.Init(szPartNumber, uiFamilyStart, uiFamilyEnd);
+			pszFamily->Set((!bQuickSwitch && IsKicadSchemLogicimFamily(szFamily.Text())) ? szFamily.Text() : "LVC");
+			szFamily.Kill();
+			pszPartType->Set(szType.Text());
+		}
+		szType.Kill();
+		if (bFound)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

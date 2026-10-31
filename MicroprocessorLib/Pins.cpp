@@ -173,6 +173,28 @@ void CPins::CalculatePortName(CChars* psz, const char* szName, size i, size uiBu
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A port of a chip of groups of bits, named as 74 series parts name them:
+// the group's number first if there's more than one group ("1D"), and the
+// bit's after if there's more than one bit ("D0", "1D0").  uiGroup and
+// uiBit are from 0; groups are numbered from 1 and bits from 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPins::CalculateGroupPortName(CChars* psz, size uiGroup, size uiGroupCount, const char* szName, size uiBit, size uiBitCount)
+{
+	if (uiGroupCount > 1)
+	{
+		psz->Append((int32)(uiGroup + 1));
+	}
+	psz->Append(szName);
+	if (uiBitCount > 1)
+	{
+		psz->Append((int32)uiBit);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CPins::SetIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit) { mpcIntegratedCircuit = pcIntegratedCircuit; }

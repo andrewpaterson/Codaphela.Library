@@ -34,6 +34,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //whenever they change; Logicim's only drives them when they change, so they're undriven until the count first
 //changes.  The count and whether terminal count is high are what it remembers; ResetState sets them back to zero and
 //low.
+//
+//A counter with bSynchronousLoad is a real 74161's: load takes the data on a rising clock, not at once (reset still
+//clears it at once).
 class CCounter : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CCounter);
@@ -42,9 +45,10 @@ protected:
 	uint32	muiTerminalValue;
 	uint32	muiCount;
 	bool	mbTerminal;
+	bool	mbSynchronousLoad;
 
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue, bool bSynchronousLoad = false);
 			void			Class(void) override;
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
@@ -61,6 +65,7 @@ public:
 			void			SetCount(uint32 uiCount);
 			bool			IsTerminal(void);
 			void			SetTerminal(bool bTerminal);
+			bool			IsSynchronousLoad(void);
 };
 
 

@@ -76,6 +76,7 @@ public:
 protected:
 	virtual	void	SaveXMLAttributes(CXMLWriter* pcWriter);
 			void	CreateGatePortViews(int iInputOffset);
+			void	CreateBufferPortViews(void);
 	virtual	bool	IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
 };
 
