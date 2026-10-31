@@ -9,7 +9,7 @@
 
 
 //The W65C816 has FatVolume816.asm instead.
-#ifndef __W65C816__
+#ifndef __W65C816_ASSEMBLY__
 
 
 #define READ_SECTOR(c, s) c = mcSectorCache.ReadSector(s); if (!c.IsValid()) { return FAT_CANNOT_READ_MEDIA; }
@@ -3255,5 +3255,5 @@ char* CFatVolume::GetLabel(void) { return mszLabel.Text(); }
 CFileDrive* CFatVolume::GetFileDrive(void) { return mpcDevice; }
 CFatInfoSectorCache* CFatVolume::GetSectorCache(void) { return &mcSectorCache; }
 
-#endif // __W65C816__
+#endif // __W65C816_ASSEMBLY__
 

@@ -290,7 +290,8 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 //
 // A project's unit X.cpp may have W65C816 assembly next to it, X816.asm,
 // with the functions X.cpp leaves out on the W65C816 (#ifndef
-// __W65C816__).  It is added with it.
+// __W65C816_ASSEMBLY__).  It is added with it, unless the C++ is used
+// instead (CCPP65Generator::SetW65C816Assembly(false)).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary)
@@ -300,6 +301,10 @@ void CCPP65Builder::AddW65C816Assembly(const char* szLibrary, const char* szDire
 	CChars		szPath;
 	const char*	szExtension;
 
+	if (!CCPP65Generator::IsW65C816Assembly())
+	{
+		return;
+	}
 	szExtension = strrchr(szSource, '.');
 	if ((szExtension == NULL) || (StringInsensitiveCompare(szExtension, ".cpp") != 0))
 	{

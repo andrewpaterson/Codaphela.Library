@@ -6,7 +6,7 @@
 
 
 //The W65C816 has FatFilenameHelper816.asm instead.
-#ifndef __W65C816__
+#ifndef __W65C816_ASSEMBLY__
 
 
 
@@ -599,5 +599,5 @@ void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** psz
 	(*pszFilenamePart)++;
 }
 
-#endif // __W65C816__
+#endif // __W65C816_ASSEMBLY__
 

@@ -33,6 +33,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 bool	gbCPP65DefaultWarnNarrowing = false;
+bool	gbW65C816Assembly = CPP65_W65C816_ASSEMBLY;		//SetW65C816Assembly.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1051,9 +1052,33 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether W65C816 builds use the units' X816.asm (and define
+// __W65C816_ASSEMBLY__, which leaves out the C++ they replace) or compile
+// the C++.  CPP65_W65C816_ASSEMBLY to start with.  Set it before building.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetW65C816Assembly(bool bAssembly)
+{
+	gbW65C816Assembly = bAssembly;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsW65C816Assembly(void)
+{
+	return gbW65C816Assembly;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The macros the target predefines, for the configuration code is preprocessed
 // with.  __65C64__ or __W65C816__ is the processor (Libc65 uses __65C64__ for
-// what its 65C64 assembly does); __LIBC65__ is on both: the Libc65 headers and
+// what its 65C64 assembly does), and __W65C816_ASSEMBLY__ when W65C816 builds
+// use the X816.asm units (SetW65C816Assembly); __LIBC65__ is on both: the Libc65 headers and
 // devices, which BaseLib's Define.h and its _65C64.cpp files are written for.
 // The host's macros (_MSC_VER, _WIN32) are not defined, so its headers and
 // _Windows.cpp files are left out.
@@ -1063,6 +1088,10 @@ void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 {
 	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
 	pcConfig->AddDefine("__LIBC65__=1");
+	if ((eTarget == CPPT_W65C816) && gbW65C816Assembly)
+	{
+		pcConfig->AddDefine("__W65C816_ASSEMBLY__=1");
+	}
 	pcConfig->mbKeepPragmaPack = true;
 	pcConfig->mbHostDefines = false;
 }

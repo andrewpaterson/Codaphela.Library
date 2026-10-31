@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_TEMPORARY_BYTES		0x100
 #define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place.
 #define CPP65_INLINE_ZERO			64		//Value initialised objects up to this size are zeroed in place, bigger ones with memset.
+#define CPP65_W65C816_ASSEMBLY		1		//1: a W65C816 build links X816.asm in place of the parts of X.cpp it replaces (they are left out with #ifndef __W65C816_ASSEMBLY__); 0: the C++ (SetW65C816Assembly changes it at run time).
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -472,6 +473,8 @@ public:
 	static void				AppendStartUp(CChars* pszDest, ECPPTarget eTarget = CPPT_65C64);
 	static void				AppendStartUp816(CChars* pszDest);
 	static void				AddDefines(CConfig* pcConfig, ECPPTarget eTarget = CPPT_65C64);
+	static void				SetW65C816Assembly(bool bAssembly);
+	static bool				IsW65C816Assembly(void);
 	CCPPErrors*				GetErrors(void);
 	CCPPErrors*				GetWarnings(void);
 	int						NumErrors(void);
