@@ -102,7 +102,8 @@ enum EEditTransform
 //once the views move, and the port routed again to where its lead went (see CTraceAutoConnector) each time they move,
 //or wired there straight if there's no route; the routes are drawn as disconnected wires until the move is done.  A
 //lead that ends on nothing, or on a port of a moved component, moves with them instead.  Leads with moved wires in
-//them stay as they are.  Each end of a moved wire that was joined to something that isn't moving is joined
+//them stay as they are.  A port on a junction (where several wires meet, or on a wire that goes on through it) has a
+//lead of no wires: the junction stays where it is and the port is routed back to it.  Each end of a moved wire that was joined to something that isn't moving is joined
 //back to where it was by new wire, along and then across, drawn as a disconnected wire while it moves and added when
 //the move is done.  The simulations aren't rewired until then; a move that ends where it started puts the leads back.
 //
@@ -234,6 +235,7 @@ protected:
 	bool				RouteWire(SInt32Vec2 sFrom, SInt32Vec2 sTo);
 	void				FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
 	void				FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
+	void				AddJunctionLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	CPortView*			FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded, CArrayComponentViewPtr* papcComponents);
 	void				LiftLeads(void);
 	void				RouteLeads(void);
