@@ -25,15 +25,19 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayUint32.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/MapStringInt.h"
 #include "BaseLib/IntelHex.h"
 #include "Asm65Tokeniser.h"
 #include "Asm65Symbols.h"
 #include "Asm65Output.h"
 #include "Asm65Errors.h"
 #include "Asm65Object.h"
+#include "Asm65Source.h"
+#include "Asm65KeptTokens.h"
 
 
 #define ASM65_MAX_PASSES	16
+#define ASM65_TERM_SELF		((size)-1)		//DefineSymbol: a label is its own term.
 
 
 //A value from an expression.  An unresolved value uses a symbol that has no value yet.
@@ -41,7 +45,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //C (the program counter) is never a value: it counts 0 in iValue and iProgramCounter
 //says how many times it was added, so C - 2 is an offset of -2 from C.
 //In an object a label is an offset in its section: iTerms counts how many times a
-//section address (iSection, or the external named by uiTermToken) was added.  Only
+//section address (iSection, or the external whose symbol index is uiTerm) was added.  Only
 //values with iTerms of 0 (a constant) or 1 (an address) can be assembled.
 struct SAsm65Value
 {
@@ -51,7 +55,7 @@ struct SAsm65Value
 	int		iProgramCounter;
 	int		iTerms;
 	int32	iSection;
-	size	uiTermToken;
+	size	uiTerm;
 	uint8	uiForm;		//EAsm65RelocationForm: a section address >> 16 or & $FFFF.
 };
 
@@ -65,6 +69,10 @@ struct SAsm65Value
 //
 //Assemble writes bytes at absolute addresses (.org).  AssembleObject writes sections,
 //symbols and relocations into a CAsm65Object for CAsm65Linker.
+//
+//The source is read a line (a statement) at a time, every pass, so only one line's
+//tokens are ever held.  Tokens needed after their line (labels waiting for the next
+//statement, names not yet defined, associated sections) are kept as copies.
 class CAsm65BaseAssembler
 {
 protected:
@@ -74,7 +82,10 @@ protected:
 	CAsm65Symbols		mcSymbols;
 	CAsm65Output		mcOutput;
 	CArrayUint8			mcMinimumLengths;
-	CArraySize			mcPendingLabels;
+	CAsm65KeptTokens	mcPendingLabels;
+	CAsm65Source*		mpcSource;
+	CAsm65TextSource	mcTextSource;
+	uint32				muiLine;
 
 	size				muiToken;
 	uint32				muiAddress;
@@ -92,8 +103,10 @@ protected:
 	CAsm65Object*		mpcObject;
 	uint32				muiSection;
 	CArrayUint32		mcSectionAddresses;
-	CArraySize			mcUndefined;
-	CArraySize			mcAssociations;
+	CAsm65KeptTokens	mcUndefined;
+	CMapStringInt		mcUndefinedNames;
+	CArraySize			mcAssociatedSections;
+	CAsm65KeptTokens	mcAssociations;
 	int					miExpressionDepth;
 	uint32				muiStatementTerms;
 	uint32				muiStatementTermsUsed;
@@ -108,7 +121,9 @@ public:
 	void			Kill(void);
 
 	bool			Assemble(const char* szSource);
+	bool			Assemble(CAsm65Source* pcSource);
 	bool			AssembleObject(const char* szSource, CAsm65Object* pcObject);
+	bool			AssembleObject(CAsm65Source* pcSource, CAsm65Object* pcObject);
 	void			SetDirectory(const char* szDirectory);
 
 	CAsm65Output*	GetOutput(void);
@@ -128,11 +143,14 @@ protected:
 	virtual void	SectionStarted(void);
 
 	//Asm65BaseAssembler.cpp: passes, statements, labels and directives.
+	bool			Passes(void);
+	bool			CheckTokens(void);
+	bool			NextLine(void);
 	void			Pass(void);
 	void			Statement(void);
 	void			BindLabels(void);
-	void			DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken);
-	size			TokenIndex(SAsm65Token* psToken);
+	void			DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTerm);
+	void			AddUndefined(SAsm65Token* psToken);
 	void			AlignTo(uint32 uiAlignment);
 	void			WriteByte(uint8 uiByte);
 	bool			Origin(void);
@@ -151,7 +169,7 @@ protected:
 	void			SwitchSection(uint32 uiSection);
 	bool			InBss(SAsm65Token* psToken);
 	void			MarkExternals(void);
-	void			MakeExternal(SAsm65Symbol* psSymbol, size uiToken);
+	void			MakeExternal(SAsm65Symbol* psSymbol, SAsm65Token* psNamed);
 	void			BuildObjectSymbols(void);
 	bool			IsRelocatable(SAsm65Value* psValue);
 	bool			IsLocalTarget(SAsm65Value* psValue);
@@ -170,6 +188,7 @@ protected:
 	bool			ErrorExpected(SAsm65Token* psToken, const char* szWhat);
 	void			Warning(SAsm65Token* psToken, const char* szMessage);
 	void			Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const char* szMessage);
+	void			ReportTerm(size uiTerm, const char* szMessage);
 
 	//Asm65BaseExpressions.cpp: expressions.
 	void			ClearValue(SAsm65Value* psValue);

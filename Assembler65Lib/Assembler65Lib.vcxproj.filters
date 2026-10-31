@@ -39,6 +39,9 @@
     <ClCompile Include="Asm65HostFiles.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm65KeptTokens.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65C64Lockstep.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -64,6 +67,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Asm65Output.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Source.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Asm65Symbols.cpp">
@@ -98,6 +104,9 @@
     <ClInclude Include="Asm65HostFiles.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="Asm65KeptTokens.h">
+      <Filter>Header</Filter>
+    </ClInclude>
     <ClInclude Include="Asm65C64Lockstep.h">
       <Filter>Header</Filter>
     </ClInclude>
@@ -117,6 +126,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Output.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Source.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Symbols.h">

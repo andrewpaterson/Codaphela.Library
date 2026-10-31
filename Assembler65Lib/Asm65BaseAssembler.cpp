@@ -38,6 +38,8 @@ void CAsm65BaseAssembler::Init(void)
 	mcOutput.Init();
 	mcMinimumLengths.Init();
 	mcPendingLabels.Init();
+	mpcSource = NULL;
+	muiLine = 0;
 
 	muiToken = 0;
 	muiAddress = 0;
@@ -55,6 +57,8 @@ void CAsm65BaseAssembler::Init(void)
 	muiSection = 0;
 	mcSectionAddresses.Init();
 	mcUndefined.Init();
+	mcUndefinedNames.Init();
+	mcAssociatedSections.Init();
 	mcAssociations.Init();
 	miExpressionDepth = 0;
 	muiStatementTerms = 0;
@@ -84,6 +88,8 @@ void CAsm65BaseAssembler::Kill(void)
 	maszHexFiles.Kill();
 	mszDirectory.Kill();
 	mcAssociations.Kill();
+	mcAssociatedSections.Kill();
+	mcUndefinedNames.Kill();
 	mcUndefined.Kill();
 	mcSectionAddresses.Kill();
 	mcPendingLabels.Kill();
@@ -104,11 +110,46 @@ void CAsm65BaseAssembler::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65BaseAssembler::Assemble(const char* szSource)
 {
-	if (!mcTokeniser.Tokenise(szSource))
+	bool	bResult;
+
+	mcTextSource.Init(szSource);
+	bResult = Assemble(&mcTextSource);
+	mcTextSource.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The source is read a line at a time, every pass.  A line the tokeniser can't
+// read stops the assembly before the first pass.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65BaseAssembler::Assemble(CAsm65Source* pcSource)
+{
+	bool	bResult;
+
+	mpcSource = pcSource;
+	bResult = CheckTokens();
+	if (!bResult)
 	{
+		mpcSource = NULL;
 		return false;
 	}
+	mcTokeniser.SetErrors(NULL);
+	bResult = Passes();
+	mcTokeniser.SetErrors(&mcErrors);
+	mpcSource = NULL;
+	return bResult;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65BaseAssembler::Passes(void)
+{
 	mbFinal = false;
 	for (muiPass = 1; muiPass <= ASM65_MAX_PASSES; muiPass++)
 	{
@@ -150,6 +191,21 @@ bool CAsm65BaseAssembler::AssembleObject(const char* szSource, CAsm65Object* pcO
 {
 	bool	bResult;
 
+	mcTextSource.Init(szSource);
+	bResult = AssembleObject(&mcTextSource, pcObject);
+	mcTextSource.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65BaseAssembler::AssembleObject(CAsm65Source* pcSource, CAsm65Object* pcObject)
+{
+	bool	bResult;
+
 	mbObject = true;
 	mpcObject = pcObject;
 	if (mpcObject->FindSection("text", "") != 0)
@@ -157,7 +213,7 @@ bool CAsm65BaseAssembler::AssembleObject(const char* szSource, CAsm65Object* pcO
 		mpcObject->AddSection("text", "", ASK65_Text);
 	}
 
-	bResult = Assemble(szSource);
+	bResult = Assemble(pcSource);
 	if (bResult)
 	{
 		Associate();
@@ -166,6 +222,52 @@ bool CAsm65BaseAssembler::AssembleObject(const char* szSource, CAsm65Object* pcO
 	}
 	mpcObject = NULL;
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tokenises every line once, reporting the tokeniser's errors (the passes don't
+// report them again).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65BaseAssembler::CheckTokens(void)
+{
+	const char*	szLine;
+	uint32		uiLine;
+	bool		bResult;
+	bool		bLine;
+
+	bResult = true;
+	mpcSource->Rewind();
+	for (uiLine = 1; (szLine = mpcSource->NextLine()) != NULL; uiLine++)
+	{
+		mcTokeniser.TokeniseLine(szLine, uiLine, &bLine);
+		bResult &= bLine;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the next line's tokens.  False after the last line.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65BaseAssembler::NextLine(void)
+{
+	const char*	szLine;
+	bool		bResult;
+
+	szLine = mpcSource->NextLine();
+	if (szLine == NULL)
+	{
+		return false;
+	}
+	muiLine++;
+	mcTokeniser.TokeniseLine(szLine, muiLine, &bResult);
+	muiToken = 0;
+	return true;
 }
 
 
@@ -182,10 +284,10 @@ void CAsm65BaseAssembler::Pass(void)
 	muiAddress = 0;
 	muiInstruction = 0;
 	miLabelShift = 0;
-	mcPendingLabels.Kill();
-	mcPendingLabels.Init();
-	mcUndefined.Kill();
-	mcUndefined.Init();
+	mcPendingLabels.Clear();
+	mcUndefined.Clear();
+	mcUndefinedNames.Kill();
+	mcUndefinedNames.Init();
 	if (mbObject)
 	{
 		muiSection = 0;
@@ -204,7 +306,9 @@ void CAsm65BaseAssembler::Pass(void)
 	}
 
 	SectionStarted();
-	while (Peek()->eType != AT65_End)
+	mpcSource->Rewind();
+	muiLine = 0;
+	while (NextLine() && (Peek()->eType != AT65_End))
 	{
 		Statement();
 	}
@@ -233,19 +337,17 @@ void CAsm65BaseAssembler::Pass(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65BaseAssembler::MarkExternals(void)
 {
-	size			i;
+	lsize			i;
 	SAsm65Token*	psToken;
 	SAsm65Symbol*	psSymbol;
-	size			uiToken;
 
-	for (i = 0; i < mcUndefined.NumElements(); i++)
+	for (i = 0; i < mcUndefined.NumTokens(); i++)
 	{
-		uiToken = mcUndefined.GetValue(i);
-		psToken = mcTokeniser.Get(uiToken);
+		psToken = mcUndefined.Get(i);
 		psSymbol = mcSymbols.Get(psToken->szText, psToken->uiLength);
 		if ((psSymbol == NULL) || (!psSymbol->bResolved && (psSymbol->uiPass != muiPass)))
 		{
-			MakeExternal(mcSymbols.Put(psToken->szText, psToken->uiLength), uiToken);
+			MakeExternal(mcSymbols.Put(psToken->szText, psToken->uiLength), psToken);
 		}
 	}
 }
@@ -253,17 +355,40 @@ void CAsm65BaseAssembler::MarkExternals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The symbol is defined by another object; uiToken is where it was named.
+// The symbol is defined by another object; psNamed is where it was named.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65BaseAssembler::MakeExternal(SAsm65Symbol* psSymbol, size uiToken)
+void CAsm65BaseAssembler::MakeExternal(SAsm65Symbol* psSymbol, SAsm65Token* psNamed)
 {
 	psSymbol->iValue = 0;
 	psSymbol->bResolved = true;
 	psSymbol->bExternal = true;
 	psSymbol->iSection = ASM65_SECTION_UNDEFINED;
-	psSymbol->uiTermToken = uiToken;
+	psSymbol->uiTerm = psSymbol->uiIndex;
+	psSymbol->uiNamedLine = psNamed->uiLine;
+	psSymbol->uiNamedColumn = psNamed->uiColumn;
 	mbChanged = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name used before it is defined (or never defined: an external).  Only its
+// first use in a pass matters (MarkExternals), so later ones aren't kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65BaseAssembler::AddUndefined(SAsm65Token* psToken)
+{
+	CChars	szName;
+
+	szName.Init();
+	szName.Append(psToken->szText, psToken->uiLength);
+	if (mcUndefinedNames.Get(szName.Text(), -1) == -1)
+	{
+		mcUndefinedNames.Put(szName.Text(), 0);
+		mcUndefined.Add(psToken);
+	}
+	szName.Kill();
 }
 
 
@@ -300,7 +425,7 @@ void CAsm65BaseAssembler::BuildObjectSymbols(void)
 		{
 			if (eBinding != AB65_Local)
 			{
-				Report(&mcErrors, mcTokeniser.Get(psSymbol->uiTermToken), "A global symbol cannot be an external plus a value");
+				ReportTerm(psSymbol->uiTerm, "A global symbol cannot be an external plus a value");
 			}
 		}
 		else
@@ -342,7 +467,7 @@ void CAsm65BaseAssembler::Statement(void)
 		}
 		else
 		{
-			mcPendingLabels.Add((int)(psToken - mcTokeniser.Get(0)));
+			mcPendingLabels.Add(psToken);
 		}
 	}
 
@@ -462,25 +587,24 @@ void CAsm65BaseAssembler::Statement(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65BaseAssembler::BindLabels(void)
 {
-	size			i;
+	lsize			i;
 	SAsm65Token*	psLabel;
 	SAsm65Symbol*	psSymbol;
 	int32			iSection;
 
 	iSection = mbObject ? (int32)muiSection : ASM65_SECTION_ABSOLUTE;
-	for (i = 0; i < mcPendingLabels.NumElements(); i++)
+	for (i = 0; i < mcPendingLabels.NumTokens(); i++)
 	{
-		psLabel = mcTokeniser.Get(mcPendingLabels.GetValue(i));
+		psLabel = mcPendingLabels.Get(i);
 		psSymbol = mcSymbols.Get(psLabel->szText, psLabel->uiLength);
 		if (psSymbol && psSymbol->bLabel && psSymbol->bResolved && (psSymbol->uiPass + 1 == muiPass) && (psSymbol->iSection == iSection))
 		{
 			miLabelShift = (int64)muiAddress - psSymbol->iValue;
 		}
-		DefineSymbol(psLabel, muiAddress, true, iSection, mcPendingLabels.GetValue(i));
+		DefineSymbol(psLabel, muiAddress, true, iSection, ASM65_TERM_SELF);
 		mcSymbols.Get(psLabel->szText, psLabel->uiLength)->bLabel = true;
 	}
-	mcPendingLabels.Kill();
-	mcPendingLabels.Init();
+	mcPendingLabels.Clear();
 }
 
 
@@ -490,7 +614,7 @@ void CAsm65BaseAssembler::BindLabels(void)
 // the last pass needs another pass.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65BaseAssembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken)
+void CAsm65BaseAssembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTerm)
 {
 	SAsm65Symbol*	psSymbol;
 
@@ -513,17 +637,7 @@ void CAsm65BaseAssembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool b
 	psSymbol->bResolved = bResolved;
 	psSymbol->uiPass = muiPass;
 	psSymbol->iSection = iSection;
-	psSymbol->uiTermToken = uiTermToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CAsm65BaseAssembler::TokenIndex(SAsm65Token* psToken)
-{
-	return (size)(psToken - mcTokeniser.Get(0));
+	psSymbol->uiTerm = (uiTerm == ASM65_TERM_SELF) ? psSymbol->uiIndex : uiTerm;
 }
 
 
@@ -554,7 +668,7 @@ bool CAsm65BaseAssembler::Constant(SAsm65Token* psName)
 		return Error(psName, "An address must be one label plus or minus a constant");
 	}
 	UseTerm();
-	DefineSymbol(psName, sValue.iValue, sValue.bResolved, sValue.iSection, sValue.uiTermToken);
+	DefineSymbol(psName, sValue.iValue, sValue.bResolved, sValue.iSection, sValue.uiTerm);
 	return true;
 }
 
@@ -976,8 +1090,8 @@ bool CAsm65BaseAssembler::Section(void)
 	if (psAssociated && mbFinal)
 	{
 		//Resolved after the final pass (Associate): the section may come later.
-		mcAssociations.Add(iSection);
-		mcAssociations.Add((int)TokenIndex(psAssociated));
+		mcAssociatedSections.Add(iSection);
+		mcAssociations.Add(psAssociated);
 	}
 
 	SwitchSection((uint32)iSection);
@@ -1068,9 +1182,9 @@ void CAsm65BaseAssembler::Associate(void)
 	CChars			szName;
 	int32			iSection;
 
-	for (i = 0; i + 1 < mcAssociations.NumElements(); i += 2)
+	for (i = 0; i < mcAssociatedSections.NumElements(); i++)
 	{
-		psName = mcTokeniser.Get(mcAssociations.GetValue(i + 1));
+		psName = mcAssociations.Get(i);
 		szName.Init();
 		szName.Append(psName->szText, psName->uiLength);
 		iSection = mpcObject->FindSection(szName.Text(), NULL);
@@ -1081,7 +1195,7 @@ void CAsm65BaseAssembler::Associate(void)
 		}
 		else
 		{
-			mpcObject->GetSection(mcAssociations.GetValue(i))->iAssociated = iSection;
+			mpcObject->GetSection(mcAssociatedSections.GetValue(i))->iAssociated = iSection;
 		}
 	}
 }
@@ -1157,7 +1271,7 @@ bool CAsm65BaseAssembler::SymbolBinding(SAsm65Token* psDirective)
 			{
 				return Error(psName, "Symbol is already defined");
 			}
-			MakeExternal(psSymbol, TokenIndex(psName));
+			MakeExternal(psSymbol, psName);
 		}
 	}
 	while (Accept(AP65_Comma));
@@ -1326,7 +1440,7 @@ void CAsm65BaseAssembler::UseTerm(void)
 void CAsm65BaseAssembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, uint8 uiBytes, bool bSigned, bool bRelative, uint32 uiFieldToNext, SAsm65Token* psToken)
 {
 	SAsm65Relocation*	psRelocation;
-	SAsm65Token*		psTerm;
+	char*				szTerm;
 	SAsm65Symbol*		psSymbol;
 	CChars				szName;
 
@@ -1350,12 +1464,12 @@ void CAsm65BaseAssembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset
 	psRelocation->uiLine = psToken->uiLine;
 	psRelocation->uiColumn = psToken->uiColumn;
 
-	psTerm = mcTokeniser.Get(psValue->uiTermToken);
-	psSymbol = mcSymbols.Get(psTerm->szText, psTerm->uiLength);
+	szTerm = mcSymbols.GetName(psValue->uiTerm);
+	psSymbol = mcSymbols.Get(szTerm, strlen(szTerm));
 	if (psSymbol && (psSymbol->bExternal || psSymbol->bGlobal || psSymbol->bWeak))
 	{
 		szName.Init();
-		szName.Append(psTerm->szText, psTerm->uiLength);
+		szName.Append(szTerm);
 		psRelocation->iTargetSection = ASM65_TARGET_SYMBOL;
 		psRelocation->uiTargetSymbol = mpcObject->PutSymbol(szName.Text());
 		psRelocation->iAddend = psSymbol->bExternal ? psValue->iValue : psValue->iValue - psSymbol->iValue;
@@ -1502,6 +1616,29 @@ bool CAsm65BaseAssembler::Error(SAsm65Token* psToken, const char* szMessage)
 	}
 	mbStatementError = true;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reports at where the term (a symbol's index) was named.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65BaseAssembler::ReportTerm(size uiTerm, const char* szMessage)
+{
+	SAsm65Token		sToken;
+	SAsm65Symbol*	psTerm;
+	char*			szName;
+
+	szName = mcSymbols.GetName(uiTerm);
+	psTerm = mcSymbols.Get(szName, strlen(szName));
+	memset(&sToken, 0, sizeof(sToken));
+	sToken.eType = AT65_Identifier;
+	sToken.uiLine = psTerm->uiNamedLine;
+	sToken.uiColumn = psTerm->uiNamedColumn;
+	sToken.szText = szName;
+	sToken.uiLength = (uint32)strlen(szName);
+	Report(&mcErrors, &sToken, szMessage);
 }
 
 

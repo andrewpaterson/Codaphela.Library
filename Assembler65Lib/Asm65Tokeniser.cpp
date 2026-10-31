@@ -102,15 +102,72 @@ void CAsm65Tokeniser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Tokeniser::Tokenise(const char* szSource)
 {
-	bool			bResult;
-	char			c;
-	SAsm65Token*	psToken;
+	bool	bResult;
 
 	mszPos = szSource;
 	mszLineStart = szSource;
 	muiLine = 1;
 	bResult = true;
+	while (*mszPos != '\0')
+	{
+		bResult &= Line();
+	}
+	AddToken(AT65_End, mszPos);
+	return bResult;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tokenises the line at szLine (line number uiLine), replacing the tokens and
+// strings of the line before.  Returns where the next line starts, or NULL when
+// this was the source's last line (it ends with AT65_End).  *pbResult is false
+// if the line has an error.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CAsm65Tokeniser::TokeniseLine(const char* szLine, uint32 uiLine, bool* pbResult)
+{
+	mcTokens.Kill();
+	mcTokens.Init();
+	mszStrings.Kill();
+	mszStrings.Init();
+	mszPos = szLine;
+	mszLineStart = szLine;
+	muiLine = uiLine;
+	*pbResult = Line();
+	if (*mszPos == '\0')
+	{
+		AddToken(AT65_End, mszPos);
+		return NULL;
+	}
+	return mszPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the tokeniser reports errors, NULL for nowhere.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Tokeniser::SetErrors(CAsm65Errors* pcErrors)
+{
+	mpcErrors = pcErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tokens of one line, up to and including its new line (or the end of the
+// source).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Tokeniser::Line(void)
+{
+	bool			bResult;
+	char			c;
+	SAsm65Token*	psToken;
+
+	bResult = true;
 	for (;;)
 	{
 		c = *mszPos;
@@ -135,6 +192,7 @@ bool CAsm65Tokeniser::Tokenise(const char* szSource)
 			mszPos++;
 			muiLine++;
 			mszLineStart = mszPos;
+			break;
 		}
 		else if (IsIdentifierStart(c))
 		{
@@ -162,8 +220,6 @@ bool CAsm65Tokeniser::Tokenise(const char* szSource)
 			bResult &= Punctuator();
 		}
 	}
-
-	AddToken(AT65_End, mszPos);
 	return bResult;
 }
 

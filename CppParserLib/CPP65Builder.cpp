@@ -1050,6 +1050,10 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	}
 	cGenerator.Kill();
 
+	//The syntax tree and tokens aren't needed to assemble.
+	cTree.Kill();
+	cTokeniser.Kill();
+
 	if (psUnit->pcObject)
 	{
 		psUnit->pcObject->Kill();
@@ -1071,9 +1075,6 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		}
 	}
 	szAssembly.Kill();
-
-	cTree.Kill();
-	cTokeniser.Kill();
 	return bResult;
 }
 
