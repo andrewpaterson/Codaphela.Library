@@ -52,6 +52,7 @@ protected:
 	CInputChordDesc*				mpcDesc;  //Optional.
 
 	size							miMatchedCriteria;  //How many criteria match the input stream.
+	uint32							muiEvictionAge;  //Milliseconds a partial match waits once let go of, 0 for the chords' age.
 
 public:
 	void 							Init(CAction* pcAction, CInputChords* pcInputChords, CInputChordDesc* pcDesc);
@@ -87,6 +88,8 @@ public:
 	size							GetUpdateCriteria(void);
 	size							GetMatchedCriteria(void);
 	void							SetMatchedCriteria(size iMatchedCriteria);
+	void							SetEvictionAge(uint32 uiMilliseconds);
+	uint32							GetEvictionAge(void);
 	size							MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, size iStartPos);
 	void							ToString(CChars* psz);
 };

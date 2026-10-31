@@ -30,6 +30,10 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //the way that port points out of it, so an upright ground faces North and an upright positive supply faces South.
 //Rotating right (clockwise) goes North, East, South, West.
 //
+//A component can also be mirrored: it is drawn facing East and mirrored top to bottom (y becomes -y) before it is
+//turned, so its output still points the way it faces.  Turning and mirroring together give all eight ways a component
+//can lie; mirroring left to right is mirroring top to bottom and turning it half way round.  TransformPoint does both.
+//
 //Logicim's Rotation drew components facing North and had East and West the other way round: Logicim's West is East
 //here, its East is West, and North and South are the same.  Its rotateRight goes North, West, South, East by its
 //names, which is the same clockwise turn as RotateRight here.  Anything ported from Logicim that rotates or places
@@ -53,6 +57,10 @@ int			RotationToDegrees(ERotation eRotation);
 bool		IsRotationEastWest(ERotation eRotation);
 void		RotatePoint(ERotation eRotation, SFloat64Vec2* psPoint);
 void		RotatePoint(ERotation eRotation, SInt32Vec2* psPoint);
+void		TransformPoint(ERotation eRotation, bool bMirrored, SFloat64Vec2* psPoint);
+void		TransformPoint(ERotation eRotation, bool bMirrored, SInt32Vec2* psPoint);
+ERotation	MirrorRotation(ERotation eRotation);
+void		TransformOrientation(ERotation* peRotation, bool* pbMirrored, bool bMirror, int iRightRotations);
 const char*	RotationToString(ERotation eRotation);
 ERotation	StringToRotation(const char* szRotation);
 

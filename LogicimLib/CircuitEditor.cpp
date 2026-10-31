@@ -59,6 +59,7 @@ void CCircuitEditor::Init(CFamilyVoltageConfigurationStore* pcFamilies, CCircuit
 	mpcEdit = NULL;
 	mpcNextUnit = NULL;
 	meCreationRotation = ROT_East;
+	mbCreationMirrored = false;
 	ClearHover();
 	masLeads.Init();
 	mapcFollowing.Init();
@@ -354,7 +355,7 @@ bool CCircuitEditor::StartPlaceSubcircuit(const char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 //
 // The component is in the circuit from now, but not simulated until it's
-// placed.
+// placed.  It's turned as new components are and is mirrored if they are.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitEditor::StartPlace(CComponentView* pcComponent)
@@ -362,6 +363,7 @@ bool CCircuitEditor::StartPlace(CComponentView* pcComponent)
 	CMoveComponentsEdit*	pcMove;
 
 	mcSelection.Clear();
+	pcComponent->SetMirrored(mbCreationMirrored);
 	mpcCircuit->Add(pcComponent);
 	pcMove = NewMalloc<CMoveComponentsEdit>();
 	pcMove->Init(pcComponent, true);
@@ -374,13 +376,14 @@ bool CCircuitEditor::StartPlace(CComponentView* pcComponent)
 //
 // Turns what's being moved or placed, or the component under the pointer,
 // or the selection, a quarter clockwise about the pointer, as Logicim's
-// rotateRight.  Components placed afterwards are turned too.
+// rotateRight.  Components placed afterwards are turned too, which is
+// done first so the undo snapshot the turn saves has it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::RotateRight(void)
 {
-	RotateComponents(true);
 	meCreationRotation = ::RotateRight(meCreationRotation);
+	TransformComponents(ET_RotateRight);
 }
 
 
@@ -390,47 +393,96 @@ void CCircuitEditor::RotateRight(void)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::RotateLeft(void)
 {
-	RotateComponents(false);
 	meCreationRotation = ::RotateLeft(meCreationRotation);
+	TransformComponents(ET_RotateLeft);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As Logicim's rotateMoveComponents.
+// Mirrors what's being moved or placed, or the component under the
+// pointer, or the selection, left to right on the screen about the
+// pointer.  Components placed afterwards are flipped too.  Logicim had no
+// flipping.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::RotateComponents(bool bRight)
+void CCircuitEditor::FlipHorizontally(void)
+{
+	TransformOrientation(&meCreationRotation, &mbCreationMirrored, true, 2);
+	TransformComponents(ET_FlipHorizontally);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As FlipHorizontally, top to bottom.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::FlipVertically(void)
+{
+	TransformOrientation(&meCreationRotation, &mbCreationMirrored, true, 0);
+	TransformComponents(ET_FlipVertically);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's rotateMoveComponents: the edit in progress is turned or
+// flipped, or else an edit moving the component under the pointer, or the
+// selection, is started, turned or flipped and done.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::TransformComponents(EEditTransform eTransform)
 {
 	CMoveComponentsEdit*	pcMove;
+	bool					bStarted;
 
-	if (mpcEdit != NULL)
+	bStarted = false;
+	if (mpcEdit == NULL)
 	{
-		mpcEdit->Rotate(bRight);
-		return;
-	}
-	if (!mbPointer)
-	{
-		return;
+		if (!mbPointer)
+		{
+			return;
+		}
+
+		if (mpcHover != NULL)
+		{
+			pcMove = NewMalloc<CMoveComponentsEdit>();
+			pcMove->Init(mpcHover, false);
+		}
+		else if (!mcSelection.IsEmpty())
+		{
+			pcMove = NewMalloc<CMoveComponentsEdit>();
+			pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false);
+		}
+		else
+		{
+			return;
+		}
+		StartEdit(pcMove, msPointer);
+		bStarted = true;
 	}
 
-	if (mpcHover != NULL)
+	switch (eTransform)
 	{
-		pcMove = NewMalloc<CMoveComponentsEdit>();
-		pcMove->Init(mpcHover, false);
+	case ET_RotateRight:
+		mpcEdit->Rotate(true);
+		break;
+	case ET_RotateLeft:
+		mpcEdit->Rotate(false);
+		break;
+	case ET_FlipHorizontally:
+		mpcEdit->Flip(true);
+		break;
+	case ET_FlipVertically:
+		mpcEdit->Flip(false);
+		break;
 	}
-	else if (!mcSelection.IsEmpty())
+
+	if (bStarted)
 	{
-		pcMove = NewMalloc<CMoveComponentsEdit>();
-		pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false);
+		DoneEdit(msPointer);
 	}
-	else
-	{
-		return;
-	}
-	StartEdit(pcMove, msPointer);
-	mpcEdit->Rotate(bRight);
-	DoneEdit(msPointer);
 }
 
 
@@ -556,16 +608,17 @@ void CCircuitEditor::GetProperties(CComponentView* pcComponent, CComponentProper
 //////////////////////////////////////////////////////////////////////////
 //
 // Replaces the component with a new one of the same kind made from the
-// properties (see CComponentView::InitFromProperties) and turned to the
-// rotation, as Logicim's PropertyEditEvent.  The old component is taken
-// out of every simulation and freed; the new one is made and started in
-// them, its wires merged and split, and the simulations rewired.  The new
-// one is selected if the old one was.  Returns the new component, or NULL
-// (leaving the old one) if it can't be made, or an instance would be of a
-// subcircuit that holds the circuit being edited.
+// properties (see CComponentView::InitFromProperties), turned to the
+// rotation and mirrored or not, as Logicim's PropertyEditEvent.  The old
+// component is taken out of every simulation and freed; the new one is
+// made and started in them, its wires merged and split, and the
+// simulations rewired.  The new one is selected if the old one was.
+// Returns the new component, or NULL (leaving the old one) if it can't be
+// made, or an instance would be of a subcircuit that holds the circuit
+// being edited.
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation)
+CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation, bool bMirrored)
 {
 	SComponentPropertiesContext	sContext;
 	CComponentView*				pcNew;
@@ -597,6 +650,7 @@ CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComp
 		}
 		return NULL;
 	}
+	pcNew->SetMirrored(bMirrored);
 	pcInstanceView = pcNew->GetCircuitInstanceView();
 	if (pcInstanceView != NULL)
 	{
@@ -729,6 +783,10 @@ void CCircuitEditor::SaveXML(CXMLWriter* pcWriter)
 		pcWriter->Attribute("circuit", mpcCircuit->GetTypeName());
 	}
 	pcWriter->Attribute("rotation", RotationToString(meCreationRotation));
+	if (mbCreationMirrored)
+	{
+		pcWriter->Attribute("mirrored", true);
+	}
 	if (mpcCircuit != NULL)
 	{
 		for (i = 0; i < mcSelection.NumComponents(); i++)
@@ -796,8 +854,10 @@ bool CCircuitEditor::LoadXML(CMarkupTag* pcRoot, const char* szSource)
 	CCircuitView*				pcCircuit;
 	CCircuitSimulation*			pcSimulation;
 	ERotation					eRotation;
+	bool						bMirrored;
 	char*						szCircuit;
 	char*						szRotation;
+	char*						szMirrored;
 	CArrayTemplate<int64>		aiComponents;
 	CArrayTemplate<int64>		aiTraces;
 	int64						iIndex;
@@ -809,6 +869,7 @@ bool CCircuitEditor::LoadXML(CMarkupTag* pcRoot, const char* szSource)
 	bResult = pcCircuits->LoadXML(pcRoot->GetTag("Circuits"));
 
 	eRotation = ROT_East;
+	bMirrored = false;
 	szCircuit = NULL;
 	aiComponents.Init();
 	aiTraces.Init();
@@ -824,6 +885,11 @@ bool CCircuitEditor::LoadXML(CMarkupTag* pcRoot, const char* szSource)
 			{
 				bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] has an unknown rotation [", szRotation, "].", NULL);
 			}
+		}
+		szMirrored = pcEditorTag->GetStringAttribute("mirrored");
+		if ((szMirrored != NULL) && !pcEditorTag->GetBoolAttribute("mirrored", &bMirrored))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] has a mirrored that isn't true or false [", szMirrored, "].", NULL);
 		}
 
 		pcTag = pcEditorTag->GetTag("Selected", &sIter);
@@ -903,6 +969,7 @@ bool CCircuitEditor::LoadXML(CMarkupTag* pcRoot, const char* szSource)
 	mpcCircuit = pcCircuit;
 	mpcSimulation = pcSimulation;
 	meCreationRotation = eRotation;
+	mbCreationMirrored = bMirrored;
 	for (i = 0; i < aiComponents.NumElements(); i++)
 	{
 		mcSelection.Add(mpcCircuit->GetComponent((size)*aiComponents.Get(i)));
@@ -1164,6 +1231,7 @@ bool CCircuitEditor::GetHoverConnection(SInt32Vec2* psConnection)
 	return mbHoverConnection;
 }
 ERotation CCircuitEditor::GetCreationRotation(void) { return meCreationRotation; }
+bool CCircuitEditor::IsCreationMirrored(void) { return mbCreationMirrored; }
 bool CCircuitEditor::IsControl(void) { return mbControl; }
 bool CCircuitEditor::IsShift(void) { return mbShift; }
 

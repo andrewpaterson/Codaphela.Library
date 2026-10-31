@@ -54,6 +54,7 @@ protected:
 	int64				miTime;
 	SInt32Vec2			msPosition;
 	ERotation			meRotation;
+	bool				mbMirrored;
 
 public:
 	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
@@ -62,7 +63,7 @@ public:
 
 	bool				BlitImage(void);
 
-	void				SetTransform(SInt32Vec2 sPosition, ERotation eRotation);
+	void				SetTransform(SInt32Vec2 sPosition, ERotation eRotation, bool bMirrored);
 	void				ClearTransform(void);
 	void				ToScreen(SFloat64Vec2* psScreen, SFloat64Vec2* psLocal);
 	void				ToScreen(SFloat64Vec2* psScreen, float64 x, float64 y);

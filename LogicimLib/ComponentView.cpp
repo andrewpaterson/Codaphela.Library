@@ -36,6 +36,7 @@ void CComponentView::Init(int32 x, int32 y, ERotation eRotation, const char* szN
 {
 	msPosition.Init(x, y);
 	meRotation = eRotation;
+	mbMirrored = false;
 	mszName.Init(szName);
 	mcShapes.Init();
 	mapcPortViews.Init();
@@ -98,7 +99,8 @@ CComponentStateXML* CComponentView::GetComponentStateXML(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Subclasses add their properties after these.
+// Subclasses add their properties after these.  Mirrored is only saved
+// when it's true, so files from before mirroring are the same.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentView::SaveXMLAttributes(CXMLWriter* pcWriter)
@@ -107,6 +109,34 @@ void CComponentView::SaveXMLAttributes(CXMLWriter* pcWriter)
 	pcWriter->Attribute("x", msPosition.x);
 	pcWriter->Attribute("y", msPosition.y);
 	pcWriter->Attribute("rotation", RotationToString(meRotation));
+	if (mbMirrored)
+	{
+		pcWriter->Attribute("mirrored", true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called on a view LoadXML has initialised, as LoadXML's Init makes it
+// unmirrored.  A missing mirrored attribute is false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::LoadXMLMirrored(CMarkupTag* pcTag)
+{
+	char*	szMirrored;
+
+	mbMirrored = false;
+	szMirrored = pcTag->GetStringAttribute("mirrored");
+	if (szMirrored == NULL)
+	{
+		return true;
+	}
+	if (!pcTag->GetBoolAttribute("mirrored", &mbMirrored))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a mirrored attribute that isn't true or false [", szMirrored, "].", NULL);
+	}
+	return true;
 }
 
 
@@ -270,7 +300,7 @@ CCircuitInstanceView* CComponentView::GetCircuitInstanceView(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponentView::Paint(CCircuitPainter* pcPainter)
 {
-	pcPainter->SetTransform(msPosition, meRotation);
+	pcPainter->SetTransform(msPosition, meRotation, mbMirrored);
 	PaintShapes(pcPainter);
 	PaintPorts(pcPainter);
 	pcPainter->ClearTransform();
@@ -539,6 +569,26 @@ ERotation CComponentView::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CComponentView::SetMirrored(bool bMirrored)
+{
+	mbMirrored = bMirrored;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::IsMirrored(void)
+{
+	return mbMirrored;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CComponentView::GetName(void)
 {
 	return mszName.Text();
@@ -674,7 +724,7 @@ bool CComponentView::GetLocalBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMax
 
 //////////////////////////////////////////////////////////////////////////
 //
-// In the circuit's grid space, turned and moved.
+// In the circuit's grid space, mirrored, turned and moved.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum)
@@ -687,11 +737,11 @@ bool CComponentView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMax
 	}
 
 	sCorner = msBoundsMinimum;
-	RotatePoint(meRotation, &sCorner);
+	TransformPoint(meRotation, mbMirrored, &sCorner);
 	psMinimum->Init(sCorner.x, sCorner.y);
 	psMaximum->Init(sCorner.x, sCorner.y);
 	sCorner = msBoundsMaximum;
-	RotatePoint(meRotation, &sCorner);
+	TransformPoint(meRotation, mbMirrored, &sCorner);
 	IncludeBoundsPoint(psMinimum, psMaximum, sCorner.x, sCorner.y);
 
 	psMinimum->x += msPosition.x;

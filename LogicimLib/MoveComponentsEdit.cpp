@@ -84,6 +84,7 @@ void CMoveComponentsEdit::AddComponent(CComponentView* pcComponent)
 	psComponent->pcComponent = pcComponent;
 	psComponent->sPosition = pcComponent->GetPosition();
 	psComponent->eRotation = pcComponent->GetRotation();
+	psComponent->bMirrored = pcComponent->IsMirrored();
 }
 
 
@@ -137,7 +138,7 @@ void CMoveComponentsEdit::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 //////////////////////////////////////////////////////////////////////////
 CStatefulEdit* CMoveComponentsEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 {
-	MoveViews(pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
+	MoveViews(pcEdit->IsMirrored(), pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
 	return this;
 }
 
@@ -146,9 +147,9 @@ CStatefulEdit* CMoveComponentsEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStatefulEdit* CMoveComponentsEdit::Rotate(bool bRight, CCircuitEdit* pcEdit)
+CStatefulEdit* CMoveComponentsEdit::Transform(CCircuitEdit* pcEdit)
 {
-	MoveViews(pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
+	MoveViews(pcEdit->IsMirrored(), pcEdit->GetRightRotations(), pcEdit->GetStart(), pcEdit->GetDiff());
 	return this;
 }
 
@@ -194,7 +195,7 @@ void CMoveComponentsEdit::Discard(CCircuitEdit* pcEdit)
 	else
 	{
 		sNoDiff.Init(0, 0);
-		MoveViews(0, pcEdit->GetStart(), sNoDiff);
+		MoveViews(false, 0, pcEdit->GetStart(), sNoDiff);
 		pcEdit->GetEditor()->DoneMoveViews(&apcComponents, &apcTraces, mbSelect, false, false);
 	}
 	apcTraces.Kill();
@@ -214,28 +215,34 @@ bool CMoveComponentsEdit::CanTransformComponents(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each view from where it started, turned right iRightRotations times
-// about sStart and moved by sDiff.
+// Each view from where it started, mirrored top to bottom (if bMirror)
+// and turned right iRightRotations times about sStart, and moved by sDiff.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMoveComponentsEdit::MoveViews(int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff)
+void CMoveComponentsEdit::MoveViews(bool bMirror, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff)
 {
 	size				i;
 	SMovedComponent*	psComponent;
 	SMovedTrace*		psTrace;
 	SInt32Vec2			sPosition;
+	ERotation			eRotation;
+	bool				bMirrored;
 
 	for (i = 0; i < masComponents.NumElements(); i++)
 	{
 		psComponent = masComponents.Get(i);
-		sPosition = MoveAbout(psComponent->sPosition, iRightRotations, sStart, sDiff);
+		sPosition = MoveAbout(psComponent->sPosition, bMirror, iRightRotations, sStart, sDiff);
 		psComponent->pcComponent->SetPosition(sPosition.x, sPosition.y);
-		psComponent->pcComponent->SetRotation(RotateRight(psComponent->eRotation, iRightRotations));
+		eRotation = psComponent->eRotation;
+		bMirrored = psComponent->bMirrored;
+		TransformOrientation(&eRotation, &bMirrored, bMirror, iRightRotations);
+		psComponent->pcComponent->SetRotation(eRotation);
+		psComponent->pcComponent->SetMirrored(bMirrored);
 	}
 	for (i = 0; i < masTraces.NumElements(); i++)
 	{
 		psTrace = masTraces.Get(i);
-		psTrace->pcTrace->SetEnds(MoveAbout(psTrace->sStart, iRightRotations, sStart, sDiff), MoveAbout(psTrace->sEnd, iRightRotations, sStart, sDiff));
+		psTrace->pcTrace->SetEnds(MoveAbout(psTrace->sStart, bMirror, iRightRotations, sStart, sDiff), MoveAbout(psTrace->sEnd, bMirror, iRightRotations, sStart, sDiff));
 	}
 }
 
@@ -261,16 +268,16 @@ void CMoveComponentsEdit::GetViews(CArrayComponentViewPtr* papcComponents, CArra
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The grid position turned right (clockwise) iRightRotations times about
-// sStart and then moved by sDiff.
+// The grid position mirrored top to bottom (if bMirror) and turned right
+// (clockwise) iRightRotations times about sStart, and then moved by sDiff.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 MoveAbout(SInt32Vec2 sPosition, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff)
+SInt32Vec2 MoveAbout(SInt32Vec2 sPosition, bool bMirror, int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff)
 {
 	SInt32Vec2	sMoved;
 
 	sMoved.Init(sPosition.x - sStart.x, sPosition.y - sStart.y);
-	RotatePoint(RotateRight(ROT_East, iRightRotations), &sMoved);
+	TransformPoint(RotateRight(ROT_East, iRightRotations), bMirror, &sMoved);
 	sMoved.Init(sMoved.x + sStart.x + sDiff.x, sMoved.y + sStart.y + sDiff.y);
 	return sMoved;
 }

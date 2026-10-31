@@ -30,9 +30,9 @@ class CCircuitEditor;
 class CCircuitPainter;
 
 
-//What an edit is doing, as Logicim's StatefulEdit: selecting, moving or placing.  Move (and Rotate) can hand back a
-//different stateful edit to carry on with, which is then started; the edit frees the one it replaced.  Positions are
-//grid positions.
+//What an edit is doing, as Logicim's StatefulEdit: selecting, moving or placing.  Move (and Transform, when the edit
+//has been turned or flipped) can hand back a different stateful edit to carry on with, which is then started; the edit
+//frees the one it replaced.  Positions are grid positions.
 class CStatefulEdit : public CConstructable
 {
 CONSTRUCTABLE(CStatefulEdit);
@@ -41,7 +41,7 @@ public:
 
 	virtual void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) =0;
 	virtual CStatefulEdit*	Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) =0;
-	virtual CStatefulEdit*	Rotate(bool bRight, CCircuitEdit* pcEdit) =0;
+	virtual CStatefulEdit*	Transform(CCircuitEdit* pcEdit) =0;
 	virtual void			Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) =0;
 	virtual void			Discard(CCircuitEdit* pcEdit) =0;
 	virtual void			Paint(CCircuitPainter* pcPainter);
@@ -50,8 +50,9 @@ public:
 
 
 //An edit in progress from a mouse press (or the start of a placement) to its end, as Logicim's Edit.  It knows where
-//it started (rounded to the grid), how far the pointer has moved from there and how many times it has been turned
-//right, and passes the pointer to its stateful edit.
+//it started (rounded to the grid), how far the pointer has moved from there and how it has been turned and flipped
+//about there, and passes the pointer to its stateful edit.  The turns and flips are kept as a mirror top to bottom (if
+//IsMirrored) followed by GetRightRotations turns right, as a component's are (see TransformOrientation).
 class CCircuitEdit
 {
 protected:
@@ -61,6 +62,7 @@ protected:
 	SInt32Vec2			msDiff;
 	bool				mbHadDiff;
 	int					miRightRotations;
+	bool				mbMirrored;
 
 public:
 	void				Init(SFloat64Vec2 sStart, CStatefulEdit* pcEdit, CCircuitEditor* pcEditor);
@@ -68,16 +70,21 @@ public:
 
 	void				Move(SFloat64Vec2 sPosition);
 	void				Rotate(bool bRight);
+	void				Flip(bool bHorizontally);
 	void				Done(SFloat64Vec2 sPosition);
 	void				Discard(void);
 	void				Paint(CCircuitPainter* pcPainter);
 
 	bool				HasDiff(void);
 	int					GetRightRotations(void);
+	bool				IsMirrored(void);
 	SInt32Vec2			GetStart(void);
 	SInt32Vec2			GetDiff(void);
 	CCircuitEditor*		GetEditor(void);
 	bool				CanTransformComponents(void);
+
+protected:
+	void				Transform(void);
 };
 
 

@@ -178,6 +178,79 @@ void RotatePoint(ERotation eRotation, SInt32Vec2* psPoint)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Mirrors a point drawn facing East top to bottom, if bMirrored, and then
+// turns it to face eRotation.
+//
+//////////////////////////////////////////////////////////////////////////
+void TransformPoint(ERotation eRotation, bool bMirrored, SFloat64Vec2* psPoint)
+{
+	if (bMirrored)
+	{
+		psPoint->y = -psPoint->y;
+	}
+	RotatePoint(eRotation, psPoint);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TransformPoint(ERotation eRotation, bool bMirrored, SInt32Vec2* psPoint)
+{
+	if (bMirrored)
+	{
+		psPoint->y = -psPoint->y;
+	}
+	RotatePoint(eRotation, psPoint);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The way a component faces once it's mirrored top to bottom on the
+// screen: North and South swap, East and West stay.
+//
+//////////////////////////////////////////////////////////////////////////
+ERotation MirrorRotation(ERotation eRotation)
+{
+	switch (eRotation)
+	{
+	case ROT_North:
+		return ROT_South;
+	case ROT_South:
+		return ROT_North;
+	default:
+		return eRotation;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Mirrors a component lying as *peRotation and *pbMirrored top to bottom
+// on the screen, if bMirror, and then turns it right iRightRotations
+// times, as an edit that has been flipped and turned moves it.  A
+// component that can't turn can't be mirrored either.
+//
+//////////////////////////////////////////////////////////////////////////
+void TransformOrientation(ERotation* peRotation, bool* pbMirrored, bool bMirror, int iRightRotations)
+{
+	if (*peRotation == ROT_Cannot)
+	{
+		return;
+	}
+	if (bMirror)
+	{
+		*peRotation = MirrorRotation(*peRotation);
+		*pbMirrored = !*pbMirrored;
+	}
+	*peRotation = RotateRight(*peRotation, iRightRotations);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 const char* RotationToString(ERotation eRotation)

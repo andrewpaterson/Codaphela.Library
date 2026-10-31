@@ -56,6 +56,7 @@ void CCircuitEdit::Init(SFloat64Vec2 sStart, CStatefulEdit* pcEdit, CCircuitEdit
 	msDiff.Init(0, 0);
 	mbHadDiff = false;
 	miRightRotations = 0;
+	mbMirrored = false;
 
 	mpcEdit->Start(sStart, this);
 }
@@ -75,7 +76,8 @@ void CCircuitEdit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Nothing happens until the pointer has moved a grid point from where the
-// edit started (or the edit has turned), so a click doesn't move.  A
+// edit started (or the edit has turned or flipped), so a click doesn't
+// move.  A
 // stateful edit handed on to is started and then moved too (Logicim's
 // waits for the next move).
 //
@@ -113,12 +115,37 @@ void CCircuitEdit::Move(SFloat64Vec2 sPosition)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEdit::Rotate(bool bRight)
 {
+	miRightRotations = (miRightRotations + (bRight ? 1 : 3)) % 4;
+	Transform();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Flips left to right (horizontally) or top to bottom about the start.
+// Flipping top to bottom after turning r times right is the same as
+// mirroring first and turning -r times; left to right is that turned half
+// way round.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEdit::Flip(bool bHorizontally)
+{
+	mbMirrored = !mbMirrored;
+	miRightRotations = ((bHorizontally ? 2 : 0) - miRightRotations + 4) % 4;
+	Transform();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEdit::Transform(void)
+{
 	CStatefulEdit*	pcNewEdit;
 
 	mbHadDiff = true;
-	miRightRotations = (miRightRotations + (bRight ? 1 : 3)) % 4;
-
-	pcNewEdit = mpcEdit->Rotate(bRight, this);
+	pcNewEdit = mpcEdit->Transform(this);
 	if (pcNewEdit != mpcEdit)
 	{
 		SafeKill(mpcEdit);
@@ -159,12 +186,13 @@ void CCircuitEdit::Paint(CCircuitPainter* pcPainter)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the pointer has moved from the start or the edit has turned.
+// Whether the pointer has moved from the start or the edit has turned or
+// flipped.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitEdit::HasDiff(void)
 {
-	return (msDiff.x != 0) || (msDiff.y != 0) || (miRightRotations != 0);
+	return (msDiff.x != 0) || (msDiff.y != 0) || (miRightRotations != 0) || mbMirrored;
 }
 
 
@@ -173,6 +201,7 @@ bool CCircuitEdit::HasDiff(void)
 //
 //////////////////////////////////////////////////////////////////////////
 int CCircuitEdit::GetRightRotations(void) { return miRightRotations; }
+bool CCircuitEdit::IsMirrored(void) { return mbMirrored; }
 SInt32Vec2 CCircuitEdit::GetStart(void) { return msStart; }
 SInt32Vec2 CCircuitEdit::GetDiff(void) { return msDiff; }
 CCircuitEditor* CCircuitEdit::GetEditor(void) { return mpcEditor; }

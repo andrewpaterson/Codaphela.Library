@@ -43,7 +43,7 @@ public:
 
 	void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	CStatefulEdit*	Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
-	CStatefulEdit*	Rotate(bool bRight, CCircuitEdit* pcEdit) override;
+	CStatefulEdit*	Transform(CCircuitEdit* pcEdit) override;
 	void			Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	void			Discard(CCircuitEdit* pcEdit) override;
 	void			Paint(CCircuitPainter* pcPainter) override;
@@ -61,7 +61,7 @@ public:
 
 	void			Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	CStatefulEdit*	Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
-	CStatefulEdit*	Rotate(bool bRight, CCircuitEdit* pcEdit) override;
+	CStatefulEdit*	Transform(CCircuitEdit* pcEdit) override;
 	void			Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit) override;
 	void			Discard(CCircuitEdit* pcEdit) override;
 	bool			CanTransformComponents(void) override;

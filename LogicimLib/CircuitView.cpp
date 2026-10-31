@@ -721,6 +721,11 @@ bool CCircuitView::LoadXML(CMarkupTag* pcCircuitTag)
 				free(pcComponent);
 				return false;
 			}
+			if (!pcComponent->LoadXMLMirrored(pcTag))
+			{
+				SafeKill(pcComponent);
+				return false;
+			}
 			mapcComponents.Add(pcComponent);
 		}
 		pcTag = pcCircuitTag->GetNextTag(&sIter);

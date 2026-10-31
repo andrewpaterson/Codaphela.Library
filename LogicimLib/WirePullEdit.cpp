@@ -62,7 +62,7 @@ CStatefulEdit* CStartEditInPort::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStatefulEdit* CStartEditInPort::Rotate(bool bRight, CCircuitEdit* pcEdit)
+CStatefulEdit* CStartEditInPort::Transform(CCircuitEdit* pcEdit)
 {
 	return this;
 }
@@ -153,7 +153,7 @@ CStatefulEdit* CWirePullEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStatefulEdit* CWirePullEdit::Rotate(bool bRight, CCircuitEdit* pcEdit)
+CStatefulEdit* CWirePullEdit::Transform(CCircuitEdit* pcEdit)
 {
 	return this;
 }

@@ -81,6 +81,25 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 };
 
 
+//Two keys one after the other with control and shift held for the first, like "Control+Shift+F, H".  The first key is
+//let go before the second is pressed; control and shift can be held for the second or let go.  Once everything is let
+//go the second key must come within the row's milliseconds.
+struct SComponentInputSequenceRow
+{
+	char*					szFirstKey;
+	char*					szSecondKey;
+	EComponentInputCommand	eCommand;
+	uint32					uiEvictionMilliseconds;
+};
+
+
+static SComponentInputSequenceRow	gasKeyboardSequenceRows[] =
+{
+	{ "F",	"H",	CIC_FlipHorizontally,	500 },
+	{ "F",	"V",	CIC_FlipVertically,		500 },
+};
+
+
 //The keyboard's modifiers with the mouse's buttons.
 static SComponentInputChordRow	gasMouseChordRows[] =
 {
@@ -326,6 +345,10 @@ void CComponentInput::AddKeyboardChords(CComponentInputDevice* pcKeyboard)
 		psRow = &gasKeyboardChordRows[i];
 		AddChordCommands(pcKeyboard, pcKeyboard, psRow->bControl, psRow->bShift, psRow->szKey, psRow->ePressed, psRow->eReleased);
 	}
+	for (i = 0; i < sizeof(gasKeyboardSequenceRows) / sizeof(SComponentInputSequenceRow); i++)
+	{
+		AddSequenceChordCommands(pcKeyboard, gasKeyboardSequenceRows[i].szFirstKey, gasKeyboardSequenceRows[i].szSecondKey, gasKeyboardSequenceRows[i].eCommand, gasKeyboardSequenceRows[i].uiEvictionMilliseconds);
+	}
 }
 
 
@@ -360,7 +383,6 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 	CInputSourceDesc*				apcShifts[2];
 	CInputSourceDesc*				pcKey;
 	CChars							szName;
-	SComponentInputChordCommand*	psCommand;
 	size							i;
 	size							j;
 
@@ -408,14 +430,81 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 		}
 	}
 
-	if (!GetChordCommand(szName.Text()))
+	AddChordCommand(szName.Text(), ePressed, eReleased);
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chord, named like "Control+Shift+F, H", for each of the keyboard's
+// left and right controls with each of its shifts, and for each of them
+// let go or held for the second key.  They share one name and command.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds)
+{
+	CInputSourceDesc*	apcControls[2];
+	CInputSourceDesc*	apcShifts[2];
+	CInputSourceDesc*	pcFirstKey;
+	CInputSourceDesc*	pcSecondKey;
+	CChars				szName;
+	size				i;
+	size				j;
+	size				uiLetGo;
+
+	pcFirstKey = pcKeyboard->GetSource(szFirstKey);
+	pcSecondKey = pcKeyboard->GetSource(szSecondKey);
+	if (!pcFirstKey || !pcSecondKey)
+	{
+		return;
+	}
+
+	apcControls[0] = pcKeyboard->GetSource("Left Control");
+	apcControls[1] = pcKeyboard->GetSource("Right Control");
+	apcShifts[0] = pcKeyboard->GetSource("Left Shift");
+	apcShifts[1] = pcKeyboard->GetSource("Right Shift");
+
+	szName.Init("Control+Shift+");
+	szName.Append(szFirstKey);
+	szName.Append(", ");
+	szName.Append(szSecondKey);
+
+	for (i = 0; i < 2; i++)
+	{
+		for (j = 0; j < 2; j++)
+		{
+			if (apcControls[i] && apcShifts[j])
+			{
+				for (uiLetGo = 0; uiLetGo < 4; uiLetGo++)
+				{
+					mpcSource->AddKeySequenceChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcFirstKey, pcSecondKey, (uiLetGo & 1) != 0, (uiLetGo & 2) != 0, uiEvictionMilliseconds);
+				}
+			}
+		}
+	}
+
+	AddChordCommand(szName.Text(), eCommand, CIC_Ignored);
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The command of the chords named szName, unless they have one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
+{
+	SComponentInputChordCommand*	psCommand;
+
+	if (!GetChordCommand(szName))
 	{
 		psCommand = masChordCommands.Add();
-		psCommand->szName.Init(szName.Text());
+		psCommand->szName.Init(szName);
 		psCommand->ePressed = ePressed;
 		psCommand->eReleased = eReleased;
 	}
-	szName.Kill();
 }
 
 

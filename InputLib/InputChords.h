@@ -71,6 +71,7 @@ typedef CArrayTemplate<SInputChordsEvent>	CArrayInputChordsEvent;
 //Matches the inputs of a virtual device against its chords.  An input that could be part of a chord is held in the
 //history until a chord matches, using it up, or no chord can match, letting it through.  Held inputs that are down
 //never age; once all are let go a partial chord has the eviction age to finish or its held inputs are let through.
+//The age is the longest of those of the chords that could still match (see CInputChord::SetEvictionAge).
 //An input that is still down and could start a chord is carried once it has been let through or used by a chord, as
 //the start of the next chord (ctrl held for ctrl+z, z, or shift held while typing for shift+tab after) until it is let
 //go.  Carried inputs are never let through again and never age.  A chord that matches while a longer chord with
@@ -85,7 +86,8 @@ public:
 	CSetInputSourceEvaluators	mscEvaluators;
 	CSetInputChords				mlcChords;
 	CArrayInputDeviceTimeValue	macHistory;
-	uint32						muiEvictionAge;  //Milliseconds.
+	uint32						muiEvictionAge;  //Milliseconds, for chords without their own.
+	uint32						muiPartialEvictionAge;  //Of the chords that could still match the history.
 	uint32						muiTime;  //Milliseconds, of the update the inputs are from.
 	CArrayInputChordsEvent		masEvents;
 	CInputChord*				mpcPending;  //A chord that matched, waiting to see if a longer one does.  NULL if none.

@@ -85,7 +85,7 @@ CStatefulEdit* CSelectionEdit::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit
 // A selection doesn't turn.
 //
 //////////////////////////////////////////////////////////////////////////
-CStatefulEdit* CSelectionEdit::Rotate(bool bRight, CCircuitEdit* pcEdit)
+CStatefulEdit* CSelectionEdit::Transform(CCircuitEdit* pcEdit)
 {
 	return this;
 }
@@ -254,7 +254,7 @@ CStatefulEdit* CStartEditInComponent::Move(SFloat64Vec2 sPosition, CCircuitEdit*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStatefulEdit* CStartEditInComponent::Rotate(bool bRight, CCircuitEdit* pcEdit)
+CStatefulEdit* CStartEditInComponent::Transform(CCircuitEdit* pcEdit)
 {
 	return this;
 }

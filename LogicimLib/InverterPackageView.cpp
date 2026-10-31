@@ -461,8 +461,8 @@ int CInverterUnitView::GetUnitCount(void) { return CInverterPackageView::GetPart
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The part's next unit where this one is, named, turned and of the family
-// as it is.  NULL after the part's last unit.
+// The part's next unit where this one is, named, turned, mirrored and of
+// the family as it is.  NULL after the part's last unit.
 //
 //////////////////////////////////////////////////////////////////////////
 CComponentView* CInverterUnitView::NewNextUnit(void)
@@ -475,6 +475,7 @@ CComponentView* CInverterUnitView::NewNextUnit(void)
 	}
 	pcNext = NewMalloc<CInverterUnitView>();
 	pcNext->Init(msPosition.x, msPosition.y, meRotation, mszName.Text(), mszFamily.Text(), mbExplicitPowerPorts, mszPartType.Text(), miUnit + 1);
+	pcNext->SetMirrored(mbMirrored);
 	return pcNext;
 }
 int CInverterUnitView::GetUnit(void) { return miUnit; }

@@ -115,12 +115,15 @@ bool CCircuitPainter::BlitImage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Shapes are then in a component's grid space, mirrored and turned as it
+// is (see TransformPoint).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitPainter::SetTransform(SInt32Vec2 sPosition, ERotation eRotation)
+void CCircuitPainter::SetTransform(SInt32Vec2 sPosition, ERotation eRotation, bool bMirrored)
 {
 	msPosition = sPosition;
 	meRotation = eRotation;
+	mbMirrored = bMirrored;
 }
 
 
@@ -133,6 +136,7 @@ void CCircuitPainter::ClearTransform(void)
 {
 	msPosition.Init(0, 0);
 	meRotation = ROT_East;
+	mbMirrored = false;
 }
 
 
@@ -145,7 +149,7 @@ void CCircuitPainter::ToScreen(SFloat64Vec2* psScreen, SFloat64Vec2* psLocal)
 	SFloat64Vec2	sGrid;
 
 	sGrid = *psLocal;
-	RotatePoint(meRotation, &sGrid);
+	TransformPoint(meRotation, mbMirrored, &sGrid);
 	sGrid.x += msPosition.x;
 	sGrid.y += msPosition.y;
 	mpcViewport->GridToScreen(psScreen, &sGrid);
@@ -326,7 +330,10 @@ void CCircuitPainter::Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sCo
 // of the text's height past the position, which roughly centres capitals
 // on it.  Text facing North or West ends at the position and text facing
 // South or East starts there (for left aligned text), so port labels
-// point into the component whichever way it's turned.
+// point into the component whichever way it's turned.  A mirrored
+// component's text isn't mirrored: it's at the mirrored position and runs
+// the mirrored way (up instead of down), so it still reads and still
+// points into the component.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour)
@@ -360,7 +367,7 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 	fHalfHeight = sSize.fHeight * fFactor / 3.5;
 	fWidthAdjust = GetTextWidthAdjust(0.1, sSize.fWidth, eAlignment) * fFactor;
 
-	eRotation = RotateRight(meRotation, iRelativeRightRotations);
+	eRotation = RotateRight(meRotation, mbMirrored ? -iRelativeRightRotations : iRelativeRightRotations);
 	ToScreen(&sAnchor, x, y);
 	switch (eRotation)
 	{
