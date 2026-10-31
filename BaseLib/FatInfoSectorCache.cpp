@@ -4,7 +4,7 @@
 
 
 //The W65C816 has these in FatInfoSectorCache816.asm (all but Dump).
-#ifndef __W65C816__
+#ifndef __W65C816_ASSEMBLY__
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -458,7 +458,7 @@ uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
 }
 
 
-#endif // __W65C816__
+#endif // __W65C816_ASSEMBLY__
 
 
 //////////////////////////////////////////////////////////////////////////
