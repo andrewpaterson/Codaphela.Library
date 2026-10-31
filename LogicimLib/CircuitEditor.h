@@ -36,12 +36,14 @@ class CMarkupTag;
 
 //The wires from a port of a component being moved to the next junction or port, and where they end: a port of a
 //component that isn't moving (pcTargetPort) or a junction of the rest of the net (pcTargetPort is then a port of the
-//net, NULL if it has none).
+//net, NULL if it has none).  pcNetPort names the net the lead ends on, the same port for every lead ending on it, so
+//leads to one net are routed as one net (see CCircuitEditor::RouteLeads).
 struct SMoveLead
 {
 	CPortView*			pcPort;
 	SInt32Vec2			sTarget;
 	CPortView*			pcTargetPort;
+	CPortView*			pcNetPort;
 	CArrayTraceViewPtr	apcTraces;
 };
 
@@ -77,9 +79,10 @@ enum EEditTransform
 //and saving.  The editor owns the circuits and the simulation; the families and fonts are the caller's.
 //
 //The pointer is given in grid space.  Button one's press starts an edit (or ends a placement): on a selected view it
-//moves the selection if dragged; on a hovered connection it pulls a wire out if dragged (see CWirePullEdit); anywhere
-//else it drags a selection rectangle; its release ends the edit.  The selection mode follows the control and shift
-//keys (see SetModifiers and CalculateSelectionMode).
+//moves the selection if dragged; on a hovered connection it pulls a wire out if dragged (see CWirePullEdit); on a
+//component that isn't selected, without shift, it selects just that component and moves it if dragged; anywhere else
+//it drags a selection rectangle; its release ends the edit.  The selection mode follows the control and shift keys
+//(see SetModifiers and CalculateSelectionMode).
 //
 //With no edit and nothing selected the component under the pointer is hovered, and a connection (a port or a wire's
 //end) on the grid point under the pointer in it, or else a point on a wire there, as Logicim's
@@ -89,15 +92,19 @@ enum EEditTransform
 //A wire pulled from one component's port and released on another's is routed around the components (see
 //CTraceAutoConnector) rather than drawn as pulled, which Logicim doesn't do.
 //
-//Moving components drags their wires with them, which Logicim doesn't: the wires from each moved port to the next
-//junction or port (its lead) are found when the move starts and, when it's done, are taken out and the port routed
-//again to where its lead went (see CTraceAutoConnector), or wired there straight if there's no route.  A lead that
-//ends on nothing moves with its component instead.  Leads between moved components, and leads with moved wires in
-//them, stay as they are.
+//A drag moves views in one of two ways.  Dragged with button one alone they're detached: they come off their wires
+//(which stay where they were) and move on their own, drawn as disconnected, and when dropped they join whatever their
+//ports and wires land on.  The simulations are rewired with them detached when the move starts (see
+//CCircuitWiring::SetDetached), so their components keep their state.
 //
-//Moving wires stretches them: each end of a moved wire that was joined to something that isn't moving is joined back
-//to where it was by new wire, along and then across, drawn as a disconnected wire while it moves and added when the
-//move is done.  The circuit and the simulations aren't changed until then.
+//Dragged with control held, or turned or flipped from the keyboard, they stay connected, which Logicim doesn't do.
+//The wires from each moved port to the next junction or port (its lead) are found when the move starts, taken out
+//once the views move, and the port routed again to where its lead went (see CTraceAutoConnector) each time they move,
+//or wired there straight if there's no route; the routes are drawn as disconnected wires until the move is done.  A
+//lead that ends on nothing, or on a port of a moved component, moves with them instead.  Leads with moved wires in
+//them stay as they are.  Each end of a moved wire that was joined to something that isn't moving is joined
+//back to where it was by new wire, along and then across, drawn as a disconnected wire while it moves and added when
+//the move is done.  The simulations aren't rewired until then; a move that ends where it started puts the leads back.
 //
 //Wires are kept as Logicim keeps them (see MergeTraceLines): those along each other are merged and they're split
 //where one ends on another and at ports, whenever wires are drawn, moved or deleted, or components moved.
@@ -144,6 +151,11 @@ protected:
 	CArrayMoveLead						masLeads;  //Of the components being moved.
 	CArrayTraceViewPtr					mapcFollowing;  //Wires that only hang off the components being moved, moving with them.
 	CArrayMoveAnchor					masAnchors;  //Of the wires being moved.
+	bool								mbDetachedMove;  //The views being moved are detached from their wires.
+	bool								mbLeadsLifted;  //The leads' wires are out of the circuit, routed live.
+	CArrayTraceViewPtr					mapcLiftedLeads;  //The leads' wires taken out, owned by the editor until put back.
+	CArrayInt							maiLiftedLeadIndices;  //Where each was in the circuit's wires.
+	CArrayTraceViewPtr					mapcLeadRoutes;  //The leads routed to where the moved ports are now, in the circuit.
 	SFloat64Vec2						msPointer;
 	bool								mbPointer;
 	bool								mbControl;
@@ -202,7 +214,8 @@ public:
 	bool				IsControl(void);
 	bool				IsShift(void);
 
-	void				StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, CArrayTraceViewPtr* papcFollowing);
+	void				StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected, CArrayTraceViewPtr* papcFollowing);
+	void				MovedViews(void);
 	void				DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bSelect, bool bNew, bool bChanged);
 	void				DeleteViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	bool				SelectInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, CCircuitSelection* pcPrevious);
@@ -219,10 +232,14 @@ protected:
 	void				ClearHover(void);
 	void				GetTracesEndingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcTraces);
 	bool				RouteWire(SInt32Vec2 sFrom, SInt32Vec2 sTo);
-	void				FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
-	void				FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	void				FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
+	void				FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing);
 	CPortView*			FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded, CArrayComponentViewPtr* papcComponents);
-	void				RerouteLeads(CArrayTraceViewPtr* papcSeeds);
+	void				LiftLeads(void);
+	void				RouteLeads(void);
+	void				KillLeadRoutes(void);
+	void				RestoreLeads(void);
+	void				FinishLeads(CArrayTraceViewPtr* papcSeeds);
 	void				KillLeads(void);
 	void				InitPropertiesContext(SComponentPropertiesContext* psContext);
 	bool				IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded);
@@ -232,7 +249,7 @@ protected:
 	void				PaintAnchors(CCircuitPainter* pcPainter);
 	void				GetEditedPaths(CArrayViewPathPtr* papcViewPaths);
 	void				CreateComponents(CArrayComponentViewPtr* papcComponents);
-	bool				Rewire(void);
+	bool				Rewire(CArrayComponentViewPtr* papcDetachedComponents = NULL, CArrayTraceViewPtr* papcDetachedTraces = NULL);
 	void				KillProject(void);
 	bool				LoadUndo(size uiIndex);
 	size				FindComponentIndex(CComponentView* pcComponent);

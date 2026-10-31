@@ -67,6 +67,7 @@ public:
 	bool				Remove(CComponentView* pcComponent);
 	bool				Replace(CComponentView* pcOld, CComponentView* pcNew);
 	bool				RemoveTrace(CTraceView* pcTrace);
+	void				InsertTrace(CTraceView* pcTrace, size uiIndex);
 	void				ReplaceWires(CArrayTraceLine* pasLines, CArrayTraceViewPtr* papcSeeds, CArrayTraceViewPtr* papcAdded);
 	void				KillTraces(void);
 

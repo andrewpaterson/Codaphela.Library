@@ -64,6 +64,11 @@ void CCircuitEditor::Init(CFamilyVoltageConfigurationStore* pcFamilies, CCircuit
 	masLeads.Init();
 	mapcFollowing.Init();
 	masAnchors.Init();
+	mbDetachedMove = false;
+	mbLeadsLifted = false;
+	mapcLiftedLeads.Init();
+	maiLiftedLeadIndices.Init();
+	mapcLeadRoutes.Init();
 	msPointer.Init(0, 0);
 	mbPointer = false;
 	mbControl = false;
@@ -80,6 +85,9 @@ void CCircuitEditor::Kill(void)
 	SafeKill(mpcNextUnit);
 	KillProject();
 	mcUndo.Kill();
+	mapcLeadRoutes.Kill();
+	maiLiftedLeadIndices.Kill();
+	mapcLiftedLeads.Kill();
 	masAnchors.Kill();
 	mapcFollowing.Kill();
 	masLeads.Kill();
@@ -184,7 +192,10 @@ bool CCircuitEditor::Simulate(const char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 //
 // As Logicim's mousePressed for button one: a press during an edit (a
-// placement) ends it, otherwise it starts one.
+// placement) ends it, otherwise it starts one.  A press on a component
+// that isn't selected, without shift (which adds to the selection), moves
+// just that component if it's dragged; on its port it's a wire pull, as a
+// hovered connection is.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::ButtonPressed(SFloat64Vec2 sPosition)
@@ -192,6 +203,8 @@ void CCircuitEditor::ButtonPressed(SFloat64Vec2 sPosition)
 	CStartEditInComponent*	pcStartEdit;
 	CStartEditInPort*		pcStartPort;
 	CSelectionEdit*			pcSelectionEdit;
+	CComponentView*			pcPressed;
+	SInt32Vec2				sPoint;
 
 	msPointer = sPosition;
 	mbPointer = true;
@@ -208,7 +221,7 @@ void CCircuitEditor::ButtonPressed(SFloat64Vec2 sPosition)
 	else if (mcSelection.IsOn(sPosition))
 	{
 		pcStartEdit = NewMalloc<CStartEditInComponent>();
-		pcStartEdit->Init();
+		pcStartEdit->Init(NULL);
 		StartEdit(pcStartEdit, sPosition);
 	}
 	else if (mbHoverConnection)
@@ -219,9 +232,20 @@ void CCircuitEditor::ButtonPressed(SFloat64Vec2 sPosition)
 	}
 	else
 	{
-		pcSelectionEdit = NewMalloc<CSelectionEdit>();
-		pcSelectionEdit->Init();
-		StartEdit(pcSelectionEdit, sPosition);
+		sPoint.Init(RoundToGrid(sPosition.x), RoundToGrid(sPosition.y));
+		pcPressed = mbShift ? NULL : mpcCircuit->GetComponentAt(sPosition);
+		if ((pcPressed != NULL) && (mpcCircuit->GetPortViewAt(sPoint) == NULL))
+		{
+			pcStartEdit = NewMalloc<CStartEditInComponent>();
+			pcStartEdit->Init(pcPressed);
+			StartEdit(pcStartEdit, sPosition);
+		}
+		else
+		{
+			pcSelectionEdit = NewMalloc<CSelectionEdit>();
+			pcSelectionEdit->Init();
+			StartEdit(pcSelectionEdit, sPosition);
+		}
 	}
 }
 
@@ -366,7 +390,7 @@ bool CCircuitEditor::StartPlace(CComponentView* pcComponent)
 	pcComponent->SetMirrored(mbCreationMirrored);
 	mpcCircuit->Add(pcComponent);
 	pcMove = NewMalloc<CMoveComponentsEdit>();
-	pcMove->Init(pcComponent, true);
+	pcMove->Init(pcComponent, true, true);
 	StartEdit(pcMove, msPointer);
 	return true;
 }
@@ -448,12 +472,12 @@ void CCircuitEditor::TransformComponents(EEditTransform eTransform)
 		if (mpcHover != NULL)
 		{
 			pcMove = NewMalloc<CMoveComponentsEdit>();
-			pcMove->Init(mpcHover, false);
+			pcMove->Init(mpcHover, false, true);
 		}
 		else if (!mcSelection.IsEmpty())
 		{
 			pcMove = NewMalloc<CMoveComponentsEdit>();
-			pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false);
+			pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false, true);
 		}
 		else
 		{
@@ -1253,13 +1277,16 @@ CViewPath* CCircuitEditor::GetViewPath(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Views being moved aren't selected while they move.  The leads of
-// components already in the circuit are found, to be routed again when
-// the move is done; the wires of leads that end on nothing are added to
-// papcFollowing, to be moved with them.
+// Views being moved aren't selected while they move.  Moved bConnected,
+// the leads of components already in the circuit are found, to be routed
+// again as they move (see MovedViews); the wires of leads that end on
+// nothing, or on another moved port, are added to papcFollowing, to be
+// moved with them.  Otherwise
+// views already in the circuit are detached from their wires.  New views
+// (being placed) are in no simulation yet, so neither is done.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, CArrayTraceViewPtr* papcFollowing)
+void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected, CArrayTraceViewPtr* papcFollowing)
 {
 	size			i;
 	size			j;
@@ -1269,10 +1296,19 @@ void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArr
 	mcSelection.Clear();
 	KillLeads();
 	masAnchors.ReInit();
+	mbDetachedMove = false;
 	if (!bNew)
 	{
-		FindLeads(papcComponents, papcTraces);
-		FindAnchors(papcComponents, papcTraces);
+		if (bConnected)
+		{
+			FindLeads(papcComponents, papcTraces, papcFollowing);
+			FindAnchors(papcComponents, papcTraces);
+		}
+		else
+		{
+			mbDetachedMove = true;
+			Rewire(papcComponents, papcTraces);
+		}
 	}
 
 	for (i = masLeads.NumElements(); i > 0; i--)
@@ -1289,6 +1325,21 @@ void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArr
 			psLead->apcTraces.Kill();
 			masLeads.RemoveAt(i - 1, true);
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by the move each time the views have moved (or turned or
+// flipped): the leads are routed to where they are now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::MovedViews(void)
+{
+	if (!mbDetachedMove)
+	{
+		RouteLeads();
 	}
 }
 
@@ -1432,11 +1483,13 @@ bool CCircuitEditor::IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExc
 //////////////////////////////////////////////////////////////////////////
 //
 // As Logicim's doneMoveComponents: new components are made and started
-// in the simulations.  If anything changed the moved wires, and the wires
-// at the moved components' ports, are merged and split again with the
-// wires they touch, and the simulations are rewired.  The views are
-// selected if bSelect: the components and the wires along where the moved
-// wires went.
+// in the simulations.  If anything changed the leads' routes are kept, the
+// moved wires, and the wires at the moved components' ports, are merged
+// and split again with the wires they touch, and the simulations are
+// rewired, which joins detached views to what they're on.  If nothing
+// changed the leads are put back and detached views joined again where
+// they were.  The views are selected if bSelect: the components and the
+// wires along where the moved wires went.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bSelect, bool bNew, bool bChanged)
@@ -1492,7 +1545,11 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 	apcSeeds.Init();
 	if (bChanged)
 	{
-		RerouteLeads(&apcSeeds);
+		FinishLeads(&apcSeeds);
+	}
+	else
+	{
+		RestoreLeads();
 	}
 	KillLeads();
 
@@ -1527,7 +1584,12 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 		{
 			apcAdded.Add(papcTraces->GetPtr(i));
 		}
+		if (mbDetachedMove)
+		{
+			Rewire();
+		}
 	}
+	mbDetachedMove = false;
 	apcSeeds.Kill();
 
 	mcSelection.Clear();
@@ -1684,10 +1746,11 @@ void CCircuitEditor::PullWire(CWirePullEdit* pcPull)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lead of each port of each component, see SMoveLead.
+// The lead of each port of each component, see SMoveLead.  The wires
+// between moved ports are added to papcFollowing.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing)
 {
 	size				i;
 	size				j;
@@ -1698,7 +1761,7 @@ void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTra
 		pcComponent = papcComponents->GetPtr(i);
 		for (j = 0; j < pcComponent->NumPortViews(); j++)
 		{
-			FindLead(pcComponent->GetPortView(j), papcComponents, papcTraces);
+			FindLead(pcComponent->GetPortView(j), papcComponents, papcTraces, papcFollowing);
 		}
 	}
 }
@@ -1708,11 +1771,13 @@ void CCircuitEditor::FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTra
 //
 // Follows the one wire from the port on through the points where only two
 // wires meet (and nothing else), to the next junction or port.  There's no
-// lead if the port isn't on exactly one wire's end, if the wires go
-// through a moved wire, or if they end on a moved component's port.
+// lead if the port isn't on exactly one wire's end or if the wires go
+// through a moved wire.  Wires that end on a moved component's port are
+// no lead either: they move with the components, so they're added to
+// papcFollowing (once, though they're found from both ends).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, CArrayTraceViewPtr* papcFollowing)
 {
 	CArrayTraceViewPtr	apcChain;
 	CArrayTraceViewPtr	apcAt;
@@ -1759,6 +1824,15 @@ void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcCom
 	if (bLead && (pcPortAt != NULL) && (papcComponents->Find(pcPortAt->GetOwner()) != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		bLead = false;
+		for (i = 0; i < apcChain.NumElements(); i++)
+		{
+			pcTrace = apcChain.GetPtr(i);
+			if (papcFollowing->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND)
+			{
+				papcFollowing->Add(pcTrace);
+				mapcFollowing.Add(pcTrace);
+			}
+		}
 	}
 	if (bLead)
 	{
@@ -1770,7 +1844,12 @@ void CCircuitEditor::FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcCom
 		{
 			psLead->apcTraces.Add(apcChain.GetPtr(i));
 		}
-		psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : FindNetPort(sPoint, &apcChain, papcComponents);
+		psLead->pcNetPort = FindNetPort(sPoint, &apcChain, papcComponents);
+		psLead->pcTargetPort = (pcPortAt != NULL) ? pcPortAt : psLead->pcNetPort;
+		if (psLead->pcNetPort == NULL)
+		{
+			psLead->pcNetPort = pcPortAt;
+		}
 	}
 	apcAt.Kill();
 	apcChain.Kill();
@@ -1841,45 +1920,78 @@ CPortView* CCircuitEditor::FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* pa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes out the leads' wires and routes each moved port again to where its
-// lead went, or wires it there straight (along and then across) if it
-// can't be routed.  The new wires, and those at the leads' ends, are added
-// to papcSeeds to be merged and split.
+// Takes the leads' wires out of the circuit, remembering where each was
+// in its wires so they can be put back as they were (see RestoreLeads).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
+void CCircuitEditor::LiftLeads(void)
+{
+	size			i;
+	size			j;
+	size			k;
+	CTraceView*		pcTrace;
+	size			uiIndex;
+
+	for (i = 0; i < masLeads.NumElements(); i++)
+	{
+		for (j = 0; j < masLeads.Get(i)->apcTraces.NumElements(); j++)
+		{
+			pcTrace = masLeads.Get(i)->apcTraces.GetPtr(j);
+			uiIndex = FindTraceIndex(pcTrace);
+			if ((uiIndex != ARRAY_ELEMENT_NOT_FOUND) && (mapcLiftedLeads.Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				for (k = 0; (k < maiLiftedLeadIndices.NumElements()) && (maiLiftedLeadIndices.GetValue(k) < (int)uiIndex); k++)
+				{
+				}
+				mapcLiftedLeads.InsertAt(&pcTrace, k);
+				maiLiftedLeadIndices.InsertAt((int)uiIndex, k);
+			}
+		}
+	}
+	for (i = 0; i < mapcLiftedLeads.NumElements(); i++)
+	{
+		mpcCircuit->RemoveTrace(mapcLiftedLeads.GetPtr(i));
+	}
+	mbLeadsLifted = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Routes each moved port again to where its lead went, where the ports
+// are now, or wires it there straight (along and then across) if it can't
+// be routed.  Leads that end on the same net (pcNetPort) are routed as one
+// net, as a port can only be on one.  The routes replace those of the
+// last time and are left in the circuit, not merged, split or simulated,
+// so they're drawn as disconnected wires.  The leads' wires are taken out
+// first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::RouteLeads(void)
 {
 	size					i;
-	size					j;
 	size					uiConnection;
+	size					uiNet;
+	size					uiNetIndex;
 	SMoveLead*				psLead;
 	CTraceView*				pcTrace;
 	CArrayTraceViewPtr		apcBefore;
 	CArrayInt				aiConnections;
-	CArrayTraceLine			asLines;
+	CArrayPortViewPtr		apcNetPorts;
+	CArrayInt				aiNets;
 	CTraceAutoConnector		cConnector;
 	SInt32Vec2				sPort;
-	STraceLine*				psLine;
 	bool					bRouted;
 
 	if (masLeads.NumElements() == 0)
 	{
 		return;
 	}
-
-	for (i = 0; i < masLeads.NumElements(); i++)
+	if (!mbLeadsLifted)
 	{
-		psLead = masLeads.Get(i);
-		for (j = 0; j < psLead->apcTraces.NumElements(); j++)
-		{
-			pcTrace = psLead->apcTraces.GetPtr(j);
-			if (mpcCircuit->RemoveTrace(pcTrace))
-			{
-				mcSelection.Remove(pcTrace);
-				SafeKill(pcTrace);
-			}
-		}
+		LiftLeads();
 	}
+	KillLeadRoutes();
 
 	apcBefore.Init();
 	for (i = 0; i < mpcCircuit->NumTraces(); i++)
@@ -1888,12 +2000,29 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 	}
 
 	aiConnections.Init();
+	apcNetPorts.Init();
+	aiNets.Init();
 	cConnector.Init(mpcCircuit);
 	uiConnection = 0;
 	for (i = 0; i < masLeads.NumElements(); i++)
 	{
 		psLead = masLeads.Get(i);
-		if ((psLead->pcTargetPort != NULL) && cConnector.AddConnection(cConnector.AddNet(), psLead->pcPort, psLead->pcTargetPort, TRACE_AUTO_CONNECT_NO_BEND))
+		uiNet = 0;
+		if (psLead->pcTargetPort != NULL)
+		{
+			uiNetIndex = apcNetPorts.Find(psLead->pcNetPort);
+			if (uiNetIndex == ARRAY_ELEMENT_NOT_FOUND)
+			{
+				uiNet = cConnector.AddNet();
+				apcNetPorts.Add(psLead->pcNetPort);
+				aiNets.Add((int)uiNet);
+			}
+			else
+			{
+				uiNet = (size)aiNets.GetValue(uiNetIndex);
+			}
+		}
+		if ((psLead->pcTargetPort != NULL) && cConnector.AddConnection(uiNet, psLead->pcPort, psLead->pcTargetPort, TRACE_AUTO_CONNECT_NO_BEND))
 		{
 			aiConnections.Add((int)uiConnection);
 			uiConnection++;
@@ -1904,8 +2033,9 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 		}
 	}
 	cConnector.Connect();
+	aiNets.Kill();
+	apcNetPorts.Kill();
 
-	asLines.Init();
 	for (i = 0; i < masLeads.NumElements(); i++)
 	{
 		psLead = masLeads.Get(i);
@@ -1913,10 +2043,14 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 		if (!bRouted)
 		{
 			sPort = psLead->pcPort->GetGridPosition();
-			psLine = asLines.Add();
-			psLine->Init(sPort.x, sPort.y, psLead->sTarget.x, sPort.y);
-			psLine = asLines.Add();
-			psLine->Init(psLead->sTarget.x, sPort.y, psLead->sTarget.x, psLead->sTarget.y);
+			if (sPort.x != psLead->sTarget.x)
+			{
+				mpcCircuit->AddTrace(sPort.x, sPort.y, psLead->sTarget.x, sPort.y);
+			}
+			if (sPort.y != psLead->sTarget.y)
+			{
+				mpcCircuit->AddTrace(psLead->sTarget.x, sPort.y, psLead->sTarget.x, psLead->sTarget.y);
+			}
 		}
 	}
 	cConnector.Kill();
@@ -1927,9 +2061,93 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 		pcTrace = mpcCircuit->GetTrace(i);
 		if (apcBefore.Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND)
 		{
-			papcSeeds->Add(pcTrace);
+			mapcLeadRoutes.Add(pcTrace);
 		}
-		else
+	}
+	apcBefore.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the leads' routes out of the circuit and frees them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::KillLeadRoutes(void)
+{
+	size			i;
+	CTraceView*		pcTrace;
+
+	for (i = 0; i < mapcLeadRoutes.NumElements(); i++)
+	{
+		pcTrace = mapcLeadRoutes.GetPtr(i);
+		mpcCircuit->RemoveTrace(pcTrace);
+		SafeKill(pcTrace);
+	}
+	mapcLeadRoutes.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The leads' routes are taken out and their wires put back where they
+// were, for a move that ends where it started.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::RestoreLeads(void)
+{
+	size			i;
+	CTraceView*		pcTrace;
+
+	KillLeadRoutes();
+	for (i = 0; i < mapcLiftedLeads.NumElements(); i++)
+	{
+		pcTrace = mapcLiftedLeads.GetPtr(i);
+		mpcCircuit->InsertTrace(pcTrace, (size)maiLiftedLeadIndices.GetValue(i));
+	}
+	mapcLiftedLeads.ReInit();
+	maiLiftedLeadIndices.ReInit();
+	mbLeadsLifted = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The leads' routes, where the moved ports ended up, are kept and their
+// old wires freed.  The routes, and the wires at the leads' ends, are
+// added to papcSeeds to be merged and split.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::FinishLeads(CArrayTraceViewPtr* papcSeeds)
+{
+	size			i;
+	size			j;
+	CTraceView*		pcTrace;
+
+	if (masLeads.NumElements() == 0)
+	{
+		return;
+	}
+	RouteLeads();
+	for (i = 0; i < mapcLiftedLeads.NumElements(); i++)
+	{
+		pcTrace = mapcLiftedLeads.GetPtr(i);
+		mcSelection.Remove(pcTrace);
+		SafeKill(pcTrace);
+	}
+	mapcLiftedLeads.ReInit();
+	maiLiftedLeadIndices.ReInit();
+	mbLeadsLifted = false;
+
+	for (i = 0; i < mapcLeadRoutes.NumElements(); i++)
+	{
+		papcSeeds->Add(mapcLeadRoutes.GetPtr(i));
+	}
+	mapcLeadRoutes.ReInit();
+	for (i = 0; i < mpcCircuit->NumTraces(); i++)
+	{
+		pcTrace = mpcCircuit->GetTrace(i);
+		if (papcSeeds->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			for (j = 0; j < masLeads.NumElements(); j++)
 			{
@@ -1941,14 +2159,6 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 			}
 		}
 	}
-	apcBefore.Kill();
-
-	if (asLines.NumElements() > 0)
-	{
-		mpcCircuit->ReplaceWires(&asLines, papcSeeds, NULL);
-		papcSeeds->ReInit();
-	}
-	asLines.Kill();
 }
 
 
@@ -1958,13 +2168,23 @@ void CCircuitEditor::RerouteLeads(CArrayTraceViewPtr* papcSeeds)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::KillLeads(void)
 {
-	size	i;
+	size			i;
+	CTraceView*		pcTrace;
 
 	for (i = 0; i < masLeads.NumElements(); i++)
 	{
 		masLeads.Get(i)->apcTraces.Kill();
 	}
 	masLeads.ReInit();
+	for (i = 0; i < mapcLiftedLeads.NumElements(); i++)
+	{
+		pcTrace = mapcLiftedLeads.GetPtr(i);
+		SafeKill(pcTrace);
+	}
+	mapcLiftedLeads.ReInit();
+	maiLiftedLeadIndices.ReInit();
+	mapcLeadRoutes.ReInit();
+	mbLeadsLifted = false;
 }
 
 
@@ -2247,10 +2467,11 @@ void CCircuitEditor::CreateComponents(CArrayComponentViewPtr* papcComponents)
 //////////////////////////////////////////////////////////////////////////
 //
 // Rewires each simulation of each path through the circuit being edited,
-// once for each simulation's top path.
+// once for each simulation's top path.  The detached views (either can be
+// NULL) join nothing, see CCircuitWiring::SetDetached.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircuitEditor::Rewire(void)
+bool CCircuitEditor::Rewire(CArrayComponentViewPtr* papcDetachedComponents, CArrayTraceViewPtr* papcDetachedTraces)
 {
 	CArrayViewPathPtr						apcViewPaths;
 	CArrayViewPathPtr						apcTops;
@@ -2298,6 +2519,7 @@ bool CCircuitEditor::Rewire(void)
 	for (k = 0; k < apcTops.NumElements(); k++)
 	{
 		cWiring.Init(apcSimulations.GetPtr(k));
+		cWiring.SetDetached(papcDetachedComponents, papcDetachedTraces);
 		bResult &= cWiring.Rewire(apcTops.GetPtr(k));
 		cWiring.Kill();
 	}
