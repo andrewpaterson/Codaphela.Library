@@ -7404,9 +7404,9 @@ bool CIROptimiser::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMi
 //////////////////////////////////////////////////////////////////////////
 //
 // The signed range of x + y, x - y (both ranges known), x * c, x << c,
-// x >> c (arithmetic, or logical of an x never negative) and a trunc of x
-// that fits the narrower type, when it can't wrap.  False for anything
-// else.
+// x >> c (arithmetic, or logical of an x never negative; of any x when its
+// range isn't known) and a trunc of x that fits the narrower type, when it
+// can't wrap.  False for anything else.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
@@ -7432,7 +7432,13 @@ bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin
 	pcBlock = mcDefinitions.Block(psInstruction->sResult);
 	if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
 	{
-		return false;
+		//A shift right narrows any value: x is any of its type's (as signed for ashr, unsigned for lshr).
+		if (((uiOpcode != IRO_AShr) && (uiOpcode != IRO_LShr)) || !psInstruction->asArguments[1].IsConstant())
+		{
+			return false;
+		}
+		lliMin = (uiOpcode == IRO_AShr) ? -((int64)1 << (iBits - 1)) : 0;
+		lliMax = (uiOpcode == IRO_AShr) ? (((int64)1 << (iBits - 1)) - 1) : (((int64)1 << iBits) - 1);
 	}
 	if (uiOpcode == IRO_Trunc)
 	{
