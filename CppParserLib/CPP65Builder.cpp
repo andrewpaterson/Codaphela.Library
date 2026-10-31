@@ -69,7 +69,7 @@ void CCPP65Builder::Init(void)
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
-	mbLazyHeaders = false;
+	mbLazyHeaders = true;
 	mcHeaderIndex.Init();
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
@@ -409,7 +409,8 @@ size CCPP65Builder::NumLazyLoaded(void)
 //
 // A header declaration (a class, enum, typedef, template or function) a
 // unit parsed is not parsed by the units after until they use one of its
-// names.  The code is the same.  Set it before compiling.
+// names.  The code is the same.  On by default; false parses every header
+// declaration in every unit.  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize)

@@ -432,6 +432,7 @@ protected:
 	CArrayCPP65Strings		maszStrings;
 	CChars					mszInitialise;		//Works out the global being defined (its R_Initialise).
 	int						miStartUps;			//R_Initialise and R_Finalise routines written.
+	bool						mbDataBss;			//The last BeginData was bss: the global's start up routines associate with bss.label.
 	bool					mbPureVirtual;
 
 	CArrayCPP65Variables	mapsLocals;
@@ -551,7 +552,9 @@ protected:
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsVolatilePointer(CCPPSyntaxPointerOperator* pcPointer);
-	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions);
+	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions, bool bBss = false);
+	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
+	void					AppendSpace(int iBytes);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);
 	bool					IsUnitFunction(SCPP65Function* psFunction);
