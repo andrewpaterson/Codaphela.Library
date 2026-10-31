@@ -71,6 +71,24 @@ bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The power of two uiSize is (it is one: Mount checks).
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CFatVolume::PowerOfTwoShift(uint32 uiSize)
+{
+	uint8	uiShift;
+
+	uiShift = 0;
+	while (((uint32)1 << uiShift) < uiSize)
+	{
+		uiShift++;
+	}
+	return uiShift;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors)
@@ -97,6 +115,9 @@ bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SF
 	muiNoOfFatTables = psBPB->uiNumFileAllocationTables;
 	muiFileSystemInfoSector = psBPB->uFatEx.sFat32.uiFileSystemInformation;
 	muiBytesPerCluster = (uint32)muiBytesPerSector * muiNoOfSectorsPerCluster;
+	muiBytesPerSectorShift = PowerOfTwoShift(muiBytesPerSector);
+	muiSectorsPerClusterShift = PowerOfTwoShift(muiNoOfSectorsPerCluster);
+	muiBytesPerClusterShift = muiBytesPerSectorShift + muiSectorsPerClusterShift;
 
 	// read the volume label from the boot sector.
 	if (meFileSystem == FAT_FS_TYPE_FAT16)
@@ -203,7 +224,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			continue;
 		}
 
-		if (!CheckSectorsPerClusterIsPowerOfTwo(msBPB.uiSectorsPerCluster))
+		if (!CheckSectorsPerClusterIsPowerOfTwo(msBPB.uiSectorsPerCluster) || ((msBPB.uiBytsPerSector & (msBPB.uiBytsPerSector - 1)) != 0))
 		{
 			uiPartitionsTried++;
 			continue;
@@ -456,36 +477,25 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, ui
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery, int8 iLongOffset, uint8* puiChars, int8 iRawOffset)
-{
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + iLongOffset])[0] = puiChars[iRawOffset + 0];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + iLongOffset])[1] = puiChars[iRawOffset + 1];
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// The long name entry's 13 characters (its sequence's) go into the query's
+// long name as they are, byte by byte: 5 then 6 then 2.  The 20th entry
+// (characters 247 on) only has room for 9.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
 {
-	SetQueryLongFilenamePart(psQuery, 0, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 0);
-	SetQueryLongFilenamePart(psQuery, 1, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 2);
-	SetQueryLongFilenamePart(psQuery, 2, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 4);
-	SetQueryLongFilenamePart(psQuery, 3, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 6);
-	SetQueryLongFilenamePart(psQuery, 4, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 8);
-	SetQueryLongFilenamePart(psQuery, 5, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 0);
-	SetQueryLongFilenamePart(psQuery, 6, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 2);
-	SetQueryLongFilenamePart(psQuery, 7, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 4);
-	SetQueryLongFilenamePart(psQuery, 8, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 6);
+	uint8*	puiDest;
+
+	puiDest = (uint8*)&psQuery->auiLongFilename[(psQuery->uiSequence - 1) * 13];
+	memcpy(puiDest, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 10);
 	if (psQuery->uiSequence < 20)
 	{
-		SetQueryLongFilenamePart(psQuery, 9, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 8);
-		SetQueryLongFilenamePart(psQuery, 10, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 10);
-		SetQueryLongFilenamePart(psQuery, 11, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3, 0);
-		SetQueryLongFilenamePart(psQuery, 12, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3, 2);
+		memcpy(&puiDest[10], psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 12);
+		memcpy(&puiDest[22], psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3, 4);
+	}
+	else
+	{
+		memcpy(&puiDest[10], psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 8);
 	}
 }
 
@@ -657,11 +667,18 @@ void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
 		psQuery->uiSequence = (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence ^ FAT_FIRST_LFN_ENTRY) + 1;
 		psQuery->uiChecksum = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum;
 
-		memset(psQuery->auiLongFilename, 0, sizeof(uint16) * (FAT_MAX_FILENAME + 1));
+		//The entries fill the name up to their last's end (sequence * 13): the end is all that needs a 0 (the name is
+		//read up to its first 0).
+		if ((psQuery->uiSequence - 1) * 13 <= FAT_MAX_FILENAME)
+		{
+			psQuery->auiLongFilename[(psQuery->uiSequence - 1) * 13] = 0;
+		}
 	}
 
+	//A sequence past the 20th entry (a broken entry) would put its characters past the end of the name.
 	if (psQuery->uiChecksum == psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum &&
-		(psQuery->uiSequence == (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
+		(psQuery->uiSequence == (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1) &&
+		(psQuery->uiSequence <= FAT_MAX_LFN_ENTRIES + 1))
 	{
 		psQuery->uiSequence = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
 		SetQueryLongFilenamePart(psQuery);
@@ -811,7 +828,7 @@ EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster,
 
 	if (uiPageSize > NumSectorsPerCluster())
 	{
-		uint32 uiClustersPerPage = uiPageSize / NumSectorsPerCluster();
+		uint32 uiClustersPerPage = SectorsToClusters(uiPageSize);
 
 		if (uiClustersNeeded % uiClustersPerPage > 0)
 		{
@@ -1012,7 +1029,7 @@ uint16 CFatVolume::CalculateClusterStepSize(uint32 uiPageSize)
 	// find the step between clusters allocated on page boundaries
 	if (NumSectorsPerCluster() < uiPageSize)
 	{
-		return (uint16)(uiPageSize / NumSectorsPerCluster());
+		return (uint16)(SectorsToClusters(uiPageSize));
 	}
 	else
 	{
@@ -1068,8 +1085,7 @@ void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries,
 	psEntries->uEntry.sFatRawCommon.uiReserved = 0;
 	psEntries->uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiCluster;
 	psEntries->uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiCluster >> 16);
-	psEntries->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
-	psEntries->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	FatSetCreateDateTime(psEntries);
 	psEntries->uEntry.sFatRawCommon.uiModifyDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
 	psEntries->uEntry.sFatRawCommon.uiModifyTime = psEntries->uEntry.sFatRawCommon.uiCreateTime;
 	psEntries->uEntry.sFatRawCommon.uiAccessDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
@@ -1746,6 +1762,50 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 
 //////////////////////////////////////////////////////////////////////////
 //
+// SeekByClusterCount on a FAT32 volume: the chain is followed uiClusterCount
+// clusters on, each FAT sector read once while the chain stays in it (no
+// other sector is read meanwhile, so its cache stays put).
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::SeekFat32ByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
+{
+	SFatCache	sBuffer;
+	uint8*		puiBuffer;
+	uint32		uiEntry;
+	uint32		uiSector;
+	uint32		uiReadSector;
+
+	puiBuffer = NULL;
+	uiReadSector = 0xFFFFFFFF;
+	while (uiClusterCount > 0)
+	{
+		if (uiClusterIndex < 2)
+		{
+			return FAT_INVALID_CLUSTER;
+		}
+
+		uiEntry = uiClusterIndex * 4;
+		uiSector = muiNoOfReservedSectors + BytesToSectors(uiEntry);
+		if (uiSector != uiReadSector)
+		{
+			READ_SECTOR(sBuffer, uiSector);
+			puiBuffer = sBuffer.Get();
+			uiReadSector = uiSector;
+		}
+		uiClusterIndex = *((uint32*)&puiBuffer[OffsetInSector(uiEntry)]) & FAT32_CLUSTER_MASK;
+		if (FatIsEOFEntry(uiClusterIndex))
+		{
+			return FAT_UNKNOWN_ERROR;
+		}
+		uiClusterCount--;
+	}
+	*puiNewClusterIndex = uiClusterIndex;
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
@@ -1761,6 +1821,10 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 	{
 		*puiNewClusterIndex = uiClusterIndex;
 		return FAT_SUCCESS;
+	}
+	if (meFileSystem == FAT_FS_TYPE_FAT32)
+	{
+		return SeekFat32ByClusterCount(uiClusterIndex, uiClusterCount, puiNewClusterIndex);
 	}
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
@@ -1870,8 +1934,8 @@ EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry)
 void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector)
 {
 	*puiOffsetInSector = CalculateFATEntryIndex(uiClusterIndex);
-	*puiSector = GetNoOfReservedSectors() + (*puiOffsetInSector / GetSectorSize());
-	*puiOffsetInSector = *puiOffsetInSector % GetSectorSize();
+	*puiSector = GetNoOfReservedSectors() + BytesToSectors(*puiOffsetInSector);
+	*puiOffsetInSector = OffsetInSector(*puiOffsetInSector);
 }
 
 
@@ -2561,9 +2625,6 @@ void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFa
 
 	psEntry->uiAttributes = psRawEntry->uEntry.sFatRawCommon.uiAttributes;
 	psEntry->uiSize = psRawEntry->uEntry.sFatRawCommon.uiSize;
-	psEntry->tCreateTime = FatDecodeDateTime(psRawEntry->uEntry.sFatRawCommon.uiCreateDate, psRawEntry->uEntry.sFatRawCommon.uiCreateTime);
-	psEntry->tModifyTime = FatDecodeDateTime(psRawEntry->uEntry.sFatRawCommon.uiModifyDate, psRawEntry->uEntry.sFatRawCommon.uiModifyTime);
-	psEntry->tAccessTime = FatDecodeDateTime(psRawEntry->uEntry.sFatRawCommon.uiAccessDate, 0);
 	psEntry->sRaw = *psRawEntry;
 }
 
@@ -2640,14 +2701,10 @@ void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* 
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiEntryCluster;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiEntryCluster >> 16);
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
-	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
-	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	FatSetCreateDateTime(&psNewEntry->sRaw);
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiModifyDate = psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateDate;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiModifyTime = psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTime;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiAccessDate = psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateDate;
-	psNewEntry->tCreateTime = FatDecodeDateTime(psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateDate, psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTime);
-	psNewEntry->tModifyTime = FatDecodeDateTime(psNewEntry->sRaw.uEntry.sFatRawCommon.uiModifyDate, psNewEntry->sRaw.uEntry.sFatRawCommon.uiModifyTime);
-	psNewEntry->tAccessTime = FatDecodeDateTime(psNewEntry->sRaw.uEntry.sFatRawCommon.uiAccessDate, 0);
 }
 
 
@@ -3354,9 +3411,6 @@ EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntr
 
 		psEntry->uiAttributes = sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes;
 		psEntry->uiSize = sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiSize;
-		psEntry->tCreateTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateDate, sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateTime);
-		psEntry->tModifyTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyDate, sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyTime);
-		psEntry->tAccessTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAccessDate, 0);
 
 		if (IsRootDirectoryCluster(sQuery.uiCurrentCluster))
 		{
@@ -3585,7 +3639,6 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetClusterSize(void) { return muiBytesPerCluster; }
 uint32 CFatVolume::GetID(void) { return muiID; }
 uint32 CFatVolume::GetFatSize(void) { return muiFatSize; }
 uint32 CFatVolume::GetRootCluster(void) { return muiRootCluster; }
@@ -3594,13 +3647,10 @@ uint32 CFatVolume::GetFirstDataSector(void) { return muiFirstDataSector; }
 uint32 CFatVolume::GetNoOfSectors(void) { return muiNoOfSectors; }
 uint32 CFatVolume::GetNoOfDataSectors(void) { return muiNoOfDataSectors; }
 uint32 CFatVolume::GetNumClusters(void) { return muiNoOfClusters; }
-uint32 CFatVolume::GetNoOfReservedSectors(void) { return muiNoOfReservedSectors; }
 uint32 CFatVolume::GetNextFreeCluster(void) { return muiNextFreeCluster; }
 uint32 CFatVolume::GetTotalFreeClusters(void) { return muiTotalFreeClusters; }
 uint32 CFatVolume::GetFileSystemInfoSector(void) { return muiFileSystemInfoSector; }
 uint16 CFatVolume::GetRootDirectorySectors(void) { return muiRootDirectorySectors; }
-uint16 CFatVolume::GetSectorSize(void) { return muiBytesPerSector; }
-uint16 CFatVolume::NumSectorsPerCluster(void) { return muiNoOfSectorsPerCluster; }
 bool CFatVolume::IsUseLongFilenames(void) { return mbUseLongFilenames; }
 EFatFileSystemType CFatVolume::GetFileSystemType(void) { return meFileSystem; }
 uint8 CFatVolume::GetNoOfFatTables(void) { return muiNoOfFatTables; }

@@ -26,6 +26,9 @@ protected:
 	uint16					muiRootDirectorySectors;
 	uint16					muiBytesPerSector;
 	uint16					muiNoOfSectorsPerCluster;
+	uint8					muiBytesPerSectorShift;		//Sector, cluster and sectors per cluster sizes are powers of two (Mount
+	uint8					muiBytesPerClusterShift;	//checks): bytes and sectors are shifted and masked to clusters and
+	uint8					muiSectorsPerClusterShift;	//sectors, not divided (the 65C64s divide in software).
 	bool					mbUseLongFilenames;
 	EFatFileSystemType		meFileSystem;
 	uint8					muiNoOfFatTables;
@@ -72,20 +75,25 @@ public:
 	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 
 	//Getters
-	uint32					GetClusterSize(void);
+	uint32					GetClusterSize(void) { return muiBytesPerCluster; }
 	uint32					GetID(void);
 	uint32					GetFatSize(void);
 	uint32					GetFirstDataSector(void);
 	uint32					GetNoOfSectors(void);
 	uint32					GetNoOfDataSectors(void);
 	uint32					GetNumClusters(void);
-	uint32					GetNoOfReservedSectors(void);
+	uint32					GetNoOfReservedSectors(void) { return muiNoOfReservedSectors; }
 	uint32					GetNextFreeCluster(void);
 	uint32					GetTotalFreeClusters(void);
 	uint32					GetFileSystemInfoSector(void);
 	uint16					GetRootDirectorySectors(void);
-	uint16					GetSectorSize(void);
-	uint16					NumSectorsPerCluster(void);
+	uint16					GetSectorSize(void) { return muiBytesPerSector; }
+	uint16					NumSectorsPerCluster(void) { return muiNoOfSectorsPerCluster; }
+	uint32					BytesToSectors(uint32 uiBytes) { return uiBytes >> muiBytesPerSectorShift; }
+	uint32					OffsetInSector(uint32 uiBytes) { return uiBytes & ((uint32)muiBytesPerSector - 1); }
+	uint32					BytesToClusters(uint32 uiBytes) { return uiBytes >> muiBytesPerClusterShift; }
+	uint32					OffsetInCluster(uint32 uiBytes) { return uiBytes & (muiBytesPerCluster - 1); }
+	uint32					SectorsToClusters(uint32 uiSectors) { return uiSectors >> muiSectorsPerClusterShift; }
 	bool					IsUseLongFilenames(void);
 	EFatFileSystemType		GetFileSystemType(void);
 	uint8					GetNoOfFatTables(void);
@@ -98,6 +106,7 @@ public:
 	
 protected:
 	EFatCode				InitialiseFat32FileSystemInfo(void);
+	uint8					PowerOfTwoShift(uint32 uiSize);
 	bool					InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors);
 
 	EFatCode				QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, bool bBufferLocked);
@@ -123,6 +132,7 @@ protected:
 	EFatCode				IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32* puiSector, uint32* puiOffsetInSector, bool* pbFat12OddClusterBeingProcessed, bool* pbFat12MultiStepProgress);
 	EFatCode				IncreaseFat16ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector);
 	EFatCode				IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector);
+	EFatCode				SeekFat32ByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex);
 
 	EFatCode				ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, uint32 uiSector, fatEntry* puiFatEntry);
 	EFatCode				ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry);
@@ -159,7 +169,6 @@ protected:
 	EFatCode				GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* psParentDirectory, uint8* szShortName);
 	void					InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster);
 	void					InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, const char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound);
-	void					SetQueryLongFilenamePart(SFatQueryState* psQuery, int8 iLongOffset, uint8* puiChars, int8 iRawOffset);
 	void					SetQueryLongFilenamePart(SFatQueryState* psQuery);
 	EFatCode				FindNextRawDirectoryEntry(SFatQueryState* psQuery);
 	EFatCode				EndQuery(SFatQueryState* psQuery);

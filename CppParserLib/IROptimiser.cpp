@@ -28,6 +28,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR_OPTIMISE_ROUNDS		16
 #define IR_ROTATE_LIMIT			8		//The most instructions a loop's head may have for RotateLoops to copy it.
 #define IR_THREAD_LIMIT			8		//The most instructions a block may have for ThreadPhis to work out.
+#define IR_RANGE_DEPTH			8		//How many single predecessors up DominatingRange looks.
+#define IR_NON_NULL_DEPTH		6		//How many definitions back NonNullAt looks (through phis and pointer adds).
 #define IR_NARROW_DEPTH			4		//How deep NarrowTruncations follows operations to narrow.
 #define IR_IDIOM_MIN_BYTES		16		//A loop filling or copying a known number of bytes up to this many stays a loop.
 
@@ -45,6 +47,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mbConstantDivisions = false;
 	mbNarrowCounters = false;
 	mbBiasedIndices = false;
+	mbBranchRanges = false;
 	mpszWarnings = NULL;
 	mbRestrict = false;
 	miUnswitched = 0;
@@ -415,7 +418,11 @@ bool CIROptimiser::MergeAddressPhis(void)
 // at most 2 bytes, is (p - 32768) + zext(x ^ 32768): the target adds the
 // zero extended index in a register as it loads (CIR816Backend::
 // FoldIndices), and p - 32768 is worked out once (outside the loop, when p
-// doesn't change in it).
+// doesn't change in it).  A scaled index p + sext(x) * s (a shl or mul by
+// a constant) with x from lo to hi, (hi - lo) * s under 65536, is
+// (p + lo * s) + zext((x - lo) * s), worked out in 16 bits; a constant
+// added after it (p + sext(x) * s + c, the sum used only by that add) goes
+// in the base.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::BiasSignedIndices(void)
@@ -423,19 +430,30 @@ bool CIROptimiser::BiasSignedIndices(void)
 	CArrayTemplate<uint32>	auiAddressUses;		//Per temporary: its uses as a 2 byte load's or store's address.
 	CIRBlock*				pcBlock;
 	SIRInstruction*			psInstruction;
+	SIRInstruction*			psInner;
 	SIRInstruction*			psExtend;
+	SIRInstruction*			psScale;
 	SIRReference			sIndex;
 	SIRReference			sBase;
+	SIRReference			sOffset;
 	SIRReference			sBiased;
 	SIRType					sOffsetType;
+	SIRType					sShort;
+	int64					lliScale;
+	int64					lliExtra;
+	int64					lliBias;
+	int64					lliMin;
+	int64					lliMax;
 	size					ui;
 	size					uj;
 	bool					bChanged;
 
 	mpcFunction->CountUses(&mauiUses);
 	FindDefinitions();
+	mpcFunction->ComputePredecessors();
 	auiAddressUses.Init();
 	CountAddressUses(&auiAddressUses);
+	sShort = IRType(IRTK_I16);
 
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -444,35 +462,113 @@ bool CIROptimiser::BiasSignedIndices(void)
 		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uj);
-			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[1].IsTemporary() ||
+			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() ||
 				(psInstruction->sResult.Index() >= auiAddressUses.NumElements()) || (*mauiUses.Get(psInstruction->sResult.Index()) == 0) ||
 				(*mauiUses.Get(psInstruction->sResult.Index()) != *auiAddressUses.Get(psInstruction->sResult.Index())))
 			{
 				continue;
 			}
-			psExtend = mcDefinitions.Instruction(psInstruction->asArguments[1]);
+			sBase = psInstruction->asArguments[0];
+			sOffset = psInstruction->asArguments[1];
+			lliExtra = 0;
+			if (sOffset.IsConstant() && sBase.IsTemporary() && (sBase.Index() < mauiUses.NumElements()) && (*mauiUses.Get(sBase.Index()) == 1))
+			{
+				//(p + sext(x) * s) + c.
+				psInner = mcDefinitions.Instruction(sBase);
+				lliExtra = mpcFunction->GetSigned(sOffset);
+				if (!psInner || (psInner->uiOpcode != IRO_PtrAdd) || !psInner->asArguments[1].IsTemporary() || (lliExtra < -0x8000) || (lliExtra > 0x7FFF))
+				{
+					continue;
+				}
+				sBase = psInner->asArguments[0];
+				sOffset = psInner->asArguments[1];
+			}
+			if (!sOffset.IsTemporary())
+			{
+				continue;
+			}
+			lliScale = 1;
+			psExtend = mcDefinitions.Instruction(sOffset);
+			psScale = NULL;
+			if (psExtend && ((psExtend->uiOpcode == IRO_Shl) || (psExtend->uiOpcode == IRO_Mul)) && psExtend->asArguments[1].IsConstant())
+			{
+				psScale = psExtend;
+				lliScale = mpcFunction->GetSigned(psScale->asArguments[1]);
+				if ((psScale->uiOpcode == IRO_Shl) && (lliScale >= 0) && (lliScale < 16))
+				{
+					lliScale = (int64)1 << lliScale;
+				}
+				else if ((psScale->uiOpcode == IRO_Shl) || (lliScale < 1) || (lliScale > 0x7FFF))
+				{
+					continue;
+				}
+				psExtend = psScale->asArguments[0].IsTemporary() ? mcDefinitions.Instruction(psScale->asArguments[0]) : NULL;
+			}
 			if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !mpcFunction->TypeOf(psExtend->asArguments[0]).Is(IRTK_I16))
 			{
 				continue;
 			}
 			sIndex = psExtend->asArguments[0];
-			sBase = psInstruction->asArguments[0];
-			sOffsetType = mpcFunction->TypeOf(psInstruction->asArguments[1]);
-			sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, -32768));
-			sIndex = InsertInstruction(pcBlock, uj++, IRO_Xor, IRType(IRTK_I16), sIndex, mpcFunction->AddInteger(IRType(IRTK_I16), 0x8000));
+			sOffsetType = mpcFunction->TypeOf(sOffset);
+			if ((lliScale == 1) && (lliExtra == 0))
+			{
+				sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, -32768));
+				sIndex = InsertInstruction(pcBlock, uj++, IRO_Xor, sShort, sIndex, mpcFunction->AddInteger(sShort, 0x8000));
+			}
+			else
+			{
+				mbBranchRanges = true;
+				if (!RangeAt(pcBlock, sIndex, &lliMin, &lliMax))
+				{
+					lliMin = -0x8000;
+					lliMax = 0x7FFF;
+				}
+				mbBranchRanges = false;
+				if ((lliMax - lliMin) * lliScale > 0xFFFF)
+				{
+					continue;
+				}
+
+				//A constant after the index goes in it while it fits (so p + sext(x) * s and p + sext(x) * s + 1 share
+				//a base), else in the base; so does a constant p is from another pointer.
+				lliBias = -lliMin * lliScale;
+				if ((lliExtra >= 0) && ((lliMax - lliMin) * lliScale + lliExtra <= 0xFFFF))
+				{
+					lliBias += lliExtra;
+					lliExtra = 0;
+				}
+				psInner = sBase.IsTemporary() ? mcDefinitions.Instruction(sBase) : NULL;
+				if (psInner && (psInner->uiOpcode == IRO_PtrAdd) && psInner->asArguments[1].IsConstant())
+				{
+					lliExtra += mpcFunction->GetSigned(psInner->asArguments[1]);
+					sBase = psInner->asArguments[0];
+				}
+				sBiased = sBase;
+				if (lliExtra + lliMin * lliScale != 0)
+				{
+					sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, lliExtra + lliMin * lliScale));
+				}
+				if (lliScale != 1)
+				{
+					sIndex = InsertInstruction(pcBlock, uj++, (psScale->uiOpcode == IRO_Shl) ? IRO_Shl : IRO_Mul, sShort, sIndex, mpcFunction->AddInteger(sShort, psScale->uiOpcode == IRO_Shl ? mpcFunction->GetSigned(psScale->asArguments[1]) : lliScale));
+				}
+				if (lliBias != 0)
+				{
+					sIndex = InsertInstruction(pcBlock, uj++, IRO_Add, sShort, sIndex, mpcFunction->AddInteger(sShort, lliBias));
+				}
+			}
 			sIndex = InsertInstruction(pcBlock, uj++, IRO_ZExt, sOffsetType, sIndex, IRNone());
 			psInstruction = pcBlock->masInstructions.Get(uj);
 			psInstruction->asArguments[0] = sBiased;
 			psInstruction->asArguments[1] = sIndex;
 			psInstruction->uiFlags &= ~IRF_InBank;
 			bChanged = true;
+
+			//The inserts moved the block's instructions.
+			FindDefinitions();
 		}
 	}
 	auiAddressUses.Kill();
-	if (bChanged)
-	{
-		FindDefinitions();
-	}
 	return bChanged;
 }
 
@@ -495,13 +591,16 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
 	{
 		bChanged = SimplifyCFG();
+		bChanged |= UnifySlotTypes();
 		bChanged |= SplitSlots();
 		bChanged |= PromoteSlots();
 		bChanged |= RemoveTrivialPhis();
 		bChanged |= FoldConstants();
+		bChanged |= FoldNullTests();
 		bChanged |= NarrowTruncations();
 		bChanged |= BoundDivisions();
 		bChanged |= SignedPowerDivisions();
+		bChanged |= mbConstantDivisions && DivisibilityTests();
 		bChanged |= mbConstantDivisions && ConstantDivisions();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
@@ -755,10 +854,25 @@ void CIROptimiser::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* 
 	size			uiPhi;
 	SIRPhiArgument*	psArgument;
 
+	SIRReference	sValue;
+	SIRPhiArgument*	psThrough;
+	size			uiBlockPhi;
+
 	for (uiPhi = 0; uiPhi < pcTarget->masPhis.NumElements(); uiPhi++)
 	{
 		psArgument = pcTarget->FindPhiArgument(pcTarget->masPhis.Get(uiPhi), pcBlock);
-		pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, psArgument ? psArgument->sValue : IRNone());
+		sValue = psArgument ? psArgument->sValue : IRNone();
+		for (uiBlockPhi = 0; uiBlockPhi < pcBlock->masPhis.NumElements(); uiBlockPhi++)
+		{
+			if (pcBlock->masPhis.Get(uiBlockPhi)->sResult.Equals(sValue))
+			{
+				//One of pcBlock's phis: what pcPredecessor gives it.
+				psThrough = pcBlock->FindPhiArgument(pcBlock->masPhis.Get(uiBlockPhi), pcPredecessor);
+				sValue = psThrough ? psThrough->sValue : IRNone();
+				break;
+			}
+		}
+		pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, sValue);
 	}
 	RedirectJump(pcPredecessor, pcBlock, pcTarget);
 }
@@ -983,12 +1097,50 @@ bool CIROptimiser::ThreadBranches(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if pcBlock's phis and results are only used in pcBlock (by its
-// instructions, jump or phis; so a predecessor can go round it without
-// them).  mauiUses must be counted.
+// Counts in pauiInside the values pcSuccessor's phis take from pcBlock
+// that are pcBlock's phis (not when pcSuccessor is pcBlock: those are
+// counted with its phis).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock)
+void CIROptimiser::CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccessor, CArrayTemplate<uint32>* pauiInside)
+{
+	SIRPhiArgument*	psArgument;
+	size			ui;
+	size			uj;
+
+	if (!pcSuccessor || (pcSuccessor == pcBlock))
+	{
+		return;
+	}
+	for (ui = 0; ui < pcSuccessor->masPhis.NumElements(); ui++)
+	{
+		psArgument = pcSuccessor->FindPhiArgument(pcSuccessor->masPhis.Get(ui), pcBlock);
+		if (!psArgument || !psArgument->sValue.IsTemporary())
+		{
+			continue;
+		}
+		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
+		{
+			if (pcBlock->masPhis.Get(uj)->sResult.Equals(psArgument->sValue))
+			{
+				(*pauiInside->Get(psArgument->sValue.Index()))++;
+				break;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcBlock's phis and results are only used in pcBlock (by its
+// instructions, jump or phis; so a predecessor can go round it without
+// them).  With bSuccessorPhis its phis may also be the values its
+// successors' phis take from it (Bypass gives those what the predecessor
+// gave).  mauiUses must be counted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
 {
 	CArrayTemplate<uint32>	auiInside;
 	SIRInstruction*			psInstruction;
@@ -1024,6 +1176,14 @@ bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock)
 	if (pcBlock->msJump.sArgument.IsTemporary())
 	{
 		(*auiInside.Get(pcBlock->msJump.sArgument.Index()))++;
+	}
+	if (bSuccessorPhis)
+	{
+		CountSuccessorPhiUses(pcBlock, pcBlock->msJump.pcThen, &auiInside);
+		if (pcBlock->msJump.pcElse != pcBlock->msJump.pcThen)
+		{
+			CountSuccessorPhiUses(pcBlock, pcBlock->msJump.pcElse, &auiInside);
+		}
 	}
 
 	bOnly = true;
@@ -1074,6 +1234,18 @@ CIRBlock* CIROptimiser::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock)
 	for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
 	{
 		sCopy = *pcBlock->masInstructions.Get(ui);
+		if (sCopy.sResult.IsTemporary() && ((sCopy.uiOpcode == IRO_Eq) || (sCopy.uiOpcode == IRO_Ne)) && sCopy.asArguments[1].IsConstant() &&
+			(mpcFunction->GetConstant(sCopy.asArguments[1])->ulliBits == 0) && sCopy.asArguments[0].IsTemporary() && mpcFunction->TypeOf(sCopy.asArguments[0]).IsPointer())
+		{
+			//A pointer phi that isn't null coming from pcPredecessor (NonNullAt): p == 0 is false, p != 0 true.
+			psPhi = mcDefinitions.Phi(sCopy.asArguments[0]);
+			psArgument = (psPhi && (mcDefinitions.Block(sCopy.asArguments[0]) == pcBlock)) ? pcBlock->FindPhiArgument(psPhi, pcPredecessor) : NULL;
+			if (psArgument && (BranchNonNull(pcPredecessor, pcBlock, psArgument->sValue) || NonNullAt(pcPredecessor, psArgument->sValue, IR_NON_NULL_DEPTH)))
+			{
+				*asKnown.Get(sCopy.sResult.Index()) = mpcFunction->AddConstant(mpcFunction->GetTemporaryType(sCopy.sResult), (sCopy.uiOpcode == IRO_Ne) ? 1 : 0);
+				continue;
+			}
+		}
 		for (iArgument = 0; iArgument < 2; iArgument++)
 		{
 			if (sCopy.asArguments[iArgument].IsTemporary() && !asKnown.Get(sCopy.asArguments[iArgument].Index())->IsNone())
@@ -1122,6 +1294,7 @@ bool CIROptimiser::ThreadPhis(void)
 	bool			bPure;
 
 	mpcFunction->CountUses(&mauiUses);
+	FindDefinitions();
 	apcPredecessors.Init();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -1137,7 +1310,7 @@ bool CIROptimiser::ThreadPhis(void)
 		{
 			bPure = IsIRPure(pcBlock->masInstructions.Get(uiPredecessor)->uiOpcode);
 		}
-		if (!bPure || !OnlyUsedInBlock(pcBlock))
+		if (!bPure || !OnlyUsedInBlock(pcBlock, true))
 		{
 			continue;
 		}
@@ -3641,6 +3814,127 @@ bool CIROptimiser::SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64
 		return true;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a slot's bytes at lliOffset are loaded and stored at when it is
+// one type, or a pointer and an integer of a pointer's size (a pointer
+// field copied as an integer: an object returned by value): the pointer.
+// IRTK_None for anything else (or a slot with an access that isn't a load
+// or store).  mcDefinitions must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRType CIROptimiser::SlotOffsetType(SIRReference sSlot, int64 lliOffset)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sFoundSlot;
+	SIRType			sType;
+	SIRType			sInteger;
+	int64			lliFound;
+	size			ui;
+	size			uj;
+	bool			bPointer;
+
+	bPointer = false;
+	sInteger = IRType(IRTK_None);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if (((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store)) ||
+				!SlotOffset(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1], &sFoundSlot, &lliFound) ||
+				!sFoundSlot.Equals(sSlot) || (lliFound != lliOffset))
+			{
+				continue;
+			}
+			sType = psInstruction->sType;
+			if (sType.IsPointer())
+			{
+				bPointer = true;
+			}
+			else if (sType.IsInteger() && (mpcModule->GetSize(sType) == mpcModule->GetSize(IRType(IRTK_Pointer))) &&
+					 (sInteger.Is(IRTK_None) || sInteger.Equals(sType)))
+			{
+				sInteger = sType;
+			}
+			else
+			{
+				return IRType(IRTK_None);
+			}
+		}
+	}
+	return (bPointer && !sInteger.Is(IRTK_None)) ? IRType(IRTK_Pointer) : IRType(IRTK_None);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A slot's pointer that is also loaded or stored as an integer of a
+// pointer's size (an object returned by value is copied a word at a time)
+// is only loaded and stored as a pointer: the integer is converted
+// (ptrtoi after a load, itoptr before a store), so the slot can be split
+// and promoted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::UnifySlotTypes(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sSlot;
+	SIRReference	sValue;
+	SIRType			sType;
+	int64			lliOffset;
+	size			ui;
+	size			uj;
+	bool			bChanged;
+
+	FindDefinitions();
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = pcBlock->masInstructions.NumElements(); uj > 0; uj--)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj - 1);
+			if (((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store)) || (psInstruction->uiFlags & IRF_Volatile) ||
+				!psInstruction->sType.IsInteger() || ((psInstruction->uiOpcode == IRO_Load) && !psInstruction->sResult.IsTemporary()) ||
+				!SlotOffset(psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1], &sSlot, &lliOffset))
+			{
+				continue;
+			}
+			sType = SlotOffsetType(sSlot, lliOffset);
+			if (!sType.IsPointer())
+			{
+				continue;
+			}
+			if (psInstruction->uiOpcode == IRO_Load)
+			{
+				//x = load iN p is t = load ptr p; x = ptrtoi t.
+				sValue = InsertInstruction(pcBlock, uj - 1, IRO_Load, IRType(IRTK_Pointer), psInstruction->asArguments[0], IRNone());
+				pcBlock->masInstructions.Get(uj - 1)->uiFlags = pcBlock->masInstructions.Get(uj)->uiFlags;
+				psInstruction = pcBlock->masInstructions.Get(uj);
+				psInstruction->uiOpcode = IRO_PtrToI;
+				psInstruction->asArguments[0] = sValue;
+				psInstruction->asArguments[1] = IRNone();
+			}
+			else
+			{
+				//store iN x, p is t = itoptr x; store ptr t, p.
+				sValue = InsertInstruction(pcBlock, uj - 1, IRO_IToPtr, IRType(IRTK_Pointer), psInstruction->asArguments[0], IRNone());
+				psInstruction = pcBlock->masInstructions.Get(uj);
+				psInstruction->sType = IRType(IRTK_Pointer);
+				psInstruction->asArguments[0] = sValue;
+			}
+			bChanged = true;
+			FindDefinitions();
+		}
+	}
+	return bChanged;
 }
 
 
@@ -6695,6 +6989,8 @@ bool CIROptimiser::SignedPowerDivisions(void)
 // An unsigned x / c or x % c (c a constant, not a power of 2) with x known
 // to be below c (UpperBound) is 0 or x; below 2c it is x >= c, or
 // x - (c & -(x >= c)): a compare and a subtract, not the target's divide.
+// So is a signed one of an x never negative.  x's bound is UpperBound's
+// or its signed range's narrowed by the branches to the divide (RangeAt).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::BoundDivisions(void)
@@ -6709,12 +7005,17 @@ bool CIROptimiser::BoundDivisions(void)
 	SIRType								sType;
 	uint64								ulliDivisor;
 	uint64								ulliBound;
+	int64								lliMin;
+	int64								lliMax;
+	uint16								uiOpcode;
 	size								ui;
 	size								uiInstruction;
 	bool								bChanged;
 
 	//Found first: the inserts move the definitions UpperBound reads.
 	FindDefinitions();
+	mpcFunction->ComputePredecessors();
+	mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -6722,7 +7023,8 @@ bool CIROptimiser::BoundDivisions(void)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if (((psInstruction->uiOpcode != IRO_UDiv) && (psInstruction->uiOpcode != IRO_URem)) || !psInstruction->asArguments[1].IsConstant() ||
+			uiOpcode = psInstruction->uiOpcode;
+			if (((uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem) && (uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem)) || !psInstruction->asArguments[1].IsConstant() ||
 				!psInstruction->sResult.IsTemporary() || !psInstruction->sType.IsInteger())
 			{
 				continue;
@@ -6732,7 +7034,11 @@ bool CIROptimiser::BoundDivisions(void)
 			{
 				continue;
 			}
-			ulliBound = UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH);
+			ulliBound = ((uiOpcode == IRO_UDiv) || (uiOpcode == IRO_URem)) ? UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
+			if ((ulliBound >= ulliDivisor * 2) && RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0))
+			{
+				ulliBound = (uint64)lliMax;
+			}
 			if (ulliBound < ulliDivisor * 2)
 			{
 				psFound = asFound.Add();
@@ -6742,6 +7048,7 @@ bool CIROptimiser::BoundDivisions(void)
 			}
 		}
 	}
+	mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	ClearReplacements();
@@ -6757,12 +7064,12 @@ bool CIROptimiser::BoundDivisions(void)
 		sDivisor = psInstruction->asArguments[1];
 		if (!psFound->bOnce)
 		{
-			Replace(psInstruction->sResult, (psInstruction->uiOpcode == IRO_URem) ? sValue : mpcFunction->AddInteger(sType, 0));
+			Replace(psInstruction->sResult, ((psInstruction->uiOpcode == IRO_URem) || (psInstruction->uiOpcode == IRO_SRem)) ? sValue : mpcFunction->AddInteger(sType, 0));
 			continue;
 		}
 		sTest = InsertInstruction(pcBlock, uiInstruction, IRO_UGe, sType, sValue, sDivisor);
 		uiInstruction++;
-		if (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_UDiv)
+		if ((pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_UDiv) || (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_SDiv))
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			psInstruction->uiOpcode = IRO_ZExt;
@@ -6795,10 +7102,14 @@ bool CIROptimiser::BoundDivisions(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The signed range of sValue as an integer of its type: a constant's; a
-// sext's of the narrower value's; x + c's and x - c's moved by c (when it
-// can't wrap); a phi's of all its values (up to iDepth definitions back);
-// else from 0 to UpperBound when that is below the type's sign bit (a
-// zext, an and).  False if nothing narrower than the
+// sext's of the narrower value's; x + c's, x - c's and c - x's moved by c
+// (when it can't wrap); a divide's or remainder's by a constant
+// (DivisionRange); x + y's, x - y's, x * c's and shifts' by a constant
+// (ArithmeticRange); a phi's of all its values (up to iDepth definitions
+// back); else from 0 to UpperBound when that is below the type's sign bit
+// (a zext, an and).  With mbBranchRanges an operand's range is narrowed by
+// the branches to the instruction's block (RangeAt) and a phi's values by
+// the branches to the phi on their way.  False if nothing narrower than the
 // type is known.  mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -6832,7 +7143,7 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 	{
 		//x + c, x - c: x's range moved, when it can't wrap.
 		lliConstant = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		if ((lliConstant > -65536) && (lliConstant < 65536) && (iDepth > 0) && SignedRange(psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
+		if ((iDepth > 0) && RangeAt(mcDefinitions.Block(sValue), psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
 		{
 			if (psInstruction->uiOpcode == IRO_Sub)
 			{
@@ -6843,13 +7154,32 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 			return (*plliMin >= -((int64)1 << (iBits - 1))) && (*plliMax < ((int64)1 << (iBits - 1)));
 		}
 	}
+	if (psInstruction && (psInstruction->uiOpcode == IRO_Sub) && psInstruction->asArguments[0].IsConstant() && (iDepth > 0))
+	{
+		//c - x: x's range turned over and moved by c, when it can't wrap.
+		lliConstant = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
+		if (RangeAt(mcDefinitions.Block(sValue), psInstruction->asArguments[1], &lliArgumentMin, &lliArgumentMax, iDepth - 1))
+		{
+			*plliMin = lliConstant - lliArgumentMax;
+			*plliMax = lliConstant - lliArgumentMin;
+			return (*plliMin >= -((int64)1 << (iBits - 1))) && (*plliMax < ((int64)1 << (iBits - 1)));
+		}
+	}
+	if (psInstruction && (iDepth > 0) && DivisionRange(psInstruction, plliMin, plliMax, iDepth - 1))
+	{
+		return true;
+	}
+	if (psInstruction && (iDepth > 0) && ArithmeticRange(psInstruction, plliMin, plliMax, iDepth - 1))
+	{
+		return true;
+	}
 	psPhi = sValue.IsTemporary() ? mcDefinitions.Phi(sValue) : NULL;
 	if (psPhi && (iDepth > 0))
 	{
-		//A phi: the range of all its values.
+		//A phi: the range of all its values (each narrowed by the branches on its way).
 		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
 		{
-			if (!SignedRange(psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1))
+			if (!RangeAt(psPhi->asArguments.Get(ui)->pcBlock, psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1, mcDefinitions.Block(sValue)))
 			{
 				return false;
 			}
@@ -6879,6 +7209,204 @@ bool CIROptimiser::SignedRange(SIRReference sValue, int64* plliMin, int64* plliM
 		return true;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signed range of sValue where pcBlock runs (on its way to pcTo when
+// pcTo isn't NULL): SignedRange's, or the type's when that isn't known,
+// narrowed by the branches there (BranchRange, DominatingRange) when
+// mbBranchRanges.  False if nothing narrower than the type is known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth, CIRBlock* pcTo)
+{
+	SIRType	sType;
+	int64	lliLeast;
+	int64	lliMost;
+	bool	bKnown;
+
+	bKnown = SignedRange(sValue, plliMin, plliMax, iDepth);
+	if (!mbBranchRanges || !pcBlock)
+	{
+		return bKnown;
+	}
+	sType = mpcFunction->TypeOf(sValue);
+	if (!sType.IsInteger() || (sType.IntegerBits() > 32))
+	{
+		return bKnown;
+	}
+	lliLeast = -((int64)1 << (sType.IntegerBits() - 1));
+	lliMost = ((int64)1 << (sType.IntegerBits() - 1)) - 1;
+	if (!bKnown)
+	{
+		*plliMin = lliLeast;
+		*plliMax = lliMost;
+	}
+	if (pcTo)
+	{
+		BranchRange(pcBlock, pcTo, sValue, plliMin, plliMax);
+	}
+	DominatingRange(pcBlock, sValue, plliMin, plliMax);
+	if (*plliMin > *plliMax)
+	{
+		//No value gets here (the branches contradict): any range will do.
+		*plliMax = *plliMin;
+	}
+	return bKnown || (*plliMin > lliLeast) || (*plliMax < lliMost);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signed range of x + y, x - y (both ranges known), x * c, x << c,
+// x >> c (arithmetic, or logical of an x never negative) and a trunc of x
+// that fits the narrower type, when it can't wrap.  False for anything
+// else.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+{
+	CIRBlock*	pcBlock;
+	SIRType		sType;
+	uint16		uiOpcode;
+	int64		lliMin;
+	int64		lliMax;
+	int64		lliOtherMin;
+	int64		lliOtherMax;
+	int64		lliConstant;
+	int			iBits;
+
+	uiOpcode = psInstruction->uiOpcode;
+	sType = psInstruction->sType;
+	if (((uiOpcode != IRO_Add) && (uiOpcode != IRO_Sub) && (uiOpcode != IRO_Mul) && (uiOpcode != IRO_Shl) && (uiOpcode != IRO_AShr) &&
+		 (uiOpcode != IRO_LShr) && (uiOpcode != IRO_Trunc)) || !sType.IsInteger() || (sType.IntegerBits() > 32) || !psInstruction->sResult.IsTemporary())
+	{
+		return false;
+	}
+	iBits = sType.IntegerBits();
+	pcBlock = mcDefinitions.Block(psInstruction->sResult);
+	if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
+	{
+		return false;
+	}
+	if (uiOpcode == IRO_Trunc)
+	{
+		*plliMin = lliMin;
+		*plliMax = lliMax;
+	}
+	else if ((uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub))
+	{
+		if (!RangeAt(pcBlock, psInstruction->asArguments[1], &lliOtherMin, &lliOtherMax, iDepth))
+		{
+			return false;
+		}
+		*plliMin = (uiOpcode == IRO_Add) ? lliMin + lliOtherMin : lliMin - lliOtherMax;
+		*plliMax = (uiOpcode == IRO_Add) ? lliMax + lliOtherMax : lliMax - lliOtherMin;
+	}
+	else
+	{
+		if (!psInstruction->asArguments[1].IsConstant())
+		{
+			return false;
+		}
+		lliConstant = mpcFunction->GetSigned(psInstruction->asArguments[1]);
+		if ((uiOpcode != IRO_Mul) && ((lliConstant < 0) || (lliConstant >= iBits)))
+		{
+			return false;
+		}
+		if (uiOpcode == IRO_Shl)
+		{
+			lliConstant = (int64)1 << lliConstant;
+		}
+		if ((uiOpcode == IRO_Mul) || (uiOpcode == IRO_Shl))
+		{
+			if ((lliConstant > 0xFFFFFFFFLL) || (lliConstant < -0xFFFFFFFFLL))
+			{
+				return false;
+			}
+			*plliMin = (lliConstant >= 0) ? lliMin * lliConstant : lliMax * lliConstant;
+			*plliMax = (lliConstant >= 0) ? lliMax * lliConstant : lliMin * lliConstant;
+		}
+		else if ((uiOpcode == IRO_AShr) || (lliMin >= 0))
+		{
+			*plliMin = lliMin >> lliConstant;
+			*plliMax = lliMax >> lliConstant;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return (*plliMin >= -((int64)1 << (iBits - 1))) && (*plliMax < ((int64)1 << (iBits - 1)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signed range of a divide or remainder by a constant c (at least 1):
+// x / c's is x's range divided (the type's when x's isn't known); x % c's
+// is within c - 1 of 0 on x's side of it, and x's own when that is nearer.
+// An unsigned x that may be negative as signed is any of the type's
+// unsigned values.  False for anything else.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+{
+	SIRType	sType;
+	uint16	uiOpcode;
+	int64	lliDivisor;
+	int64	lliMin;
+	int64	lliMax;
+	int		iBits;
+	bool	bSigned;
+
+	uiOpcode = psInstruction->uiOpcode;
+	sType = psInstruction->sType;
+	if (((uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem) && (uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem)) ||
+		!psInstruction->asArguments[1].IsConstant() || !sType.IsInteger() || (sType.IntegerBits() > 32))
+	{
+		return false;
+	}
+	iBits = sType.IntegerBits();
+	bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+	lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
+						   (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+	if (lliDivisor < 2)
+	{
+		return false;
+	}
+	if (!RangeAt(mcDefinitions.Block(psInstruction->sResult), psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
+	{
+		lliMin = -((int64)1 << (iBits - 1));
+		lliMax = ((int64)1 << (iBits - 1)) - 1;
+	}
+	if (!bSigned && (lliMin < 0))
+	{
+		lliMin = 0;
+		lliMax = ((int64)1 << iBits) - 1;
+	}
+	if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+	{
+		//Rounding towards 0 keeps the order.
+		*plliMin = lliMin / lliDivisor;
+		*plliMax = lliMax / lliDivisor;
+	}
+	else
+	{
+		*plliMin = (lliMin < 0) ? ((lliMin > -lliDivisor) ? lliMin : -(lliDivisor - 1)) : 0;
+		*plliMax = (lliMax > 0) ? ((lliMax < lliDivisor) ? lliMax : lliDivisor - 1) : 0;
+		if ((lliMin >= 0) && (lliMax < lliDivisor))
+		{
+			*plliMin = lliMin;
+		}
+		if ((lliMax <= 0) && (lliMin > -lliDivisor))
+		{
+			*plliMax = lliMax;
+		}
+	}
+	return (*plliMax < ((int64)1 << (iBits - 1)));
 }
 
 
@@ -6952,6 +7480,149 @@ bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivis
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The reciprocal (DivisionReciprocal) of lliDivisor for x from lliMin to
+// lliMax in iBits, else in 32 bits (*piBits says which).  Failing that, for
+// an x that is never negative and an even divisor 2^k * m, m's for x >> k
+// (*piPreShift is k, else 0): its smaller products fit where x's don't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift)
+{
+	int		iPreShift;
+	int		iWork;
+
+	for (iPreShift = 0; ; )
+	{
+		for (iWork = iBits; iWork <= 32; iWork = (iWork < 32) ? 32 : 33)
+		{
+			if (DivisionReciprocal(lliMin >> iPreShift, lliMax >> iPreShift, lliDivisor >> iPreShift, iWork, bSigned, pulliMultiplier, piShift))
+			{
+				*piBits = iWork;
+				*piPreShift = iPreShift;
+				return true;
+			}
+		}
+		if ((iPreShift > 0) || (lliMin < 0) || ((lliDivisor & 1) != 0))
+		{
+			return false;
+		}
+		while (((lliDivisor >> iPreShift) & 1) == 0)
+		{
+			iPreShift++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// x % c == 0 and x % c != 0 (c a constant above 2, not a power of 2, x an
+// i16 or i32) without a divide: c = 2^k * d (d odd), so with i the
+// inverse of d modulo 2^n, x % c == 0 exactly when (x * i) rotated right
+// k places is at most (2^n - 1) / c (Hacker's Delight 10-17).  A signed
+// x's remainder is 0 when its size's is, so a signed x that may be
+// negative is made its size first.  For a target whose divides are
+// runtime calls.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::DivisibilityTests(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psRemainder;
+	SIRReference	sValue;
+	SIRReference	sSign;
+	SIRReference	sTest;
+	SIRType			sType;
+	uint64			ulliDivisor;
+	uint64			ulliOdd;
+	uint64			ulliInverse;
+	uint64			ulliMask;
+	int64			lliMin;
+	int64			lliMax;
+	size			ui;
+	size			uj;
+	int				iBits;
+	int				iShift;
+	int				i;
+	bool			bChanged;
+	bool			bSigned;
+
+	FindDefinitions();
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if (((psInstruction->uiOpcode != IRO_Eq) && (psInstruction->uiOpcode != IRO_Ne)) || !psInstruction->sResult.IsTemporary() ||
+				!psInstruction->asArguments[0].IsTemporary() || !psInstruction->asArguments[1].IsConstant() ||
+				(mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits != 0))
+			{
+				continue;
+			}
+			psRemainder = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+			if (!psRemainder || ((psRemainder->uiOpcode != IRO_SRem) && (psRemainder->uiOpcode != IRO_URem)) || !psRemainder->asArguments[1].IsConstant() ||
+				!(psRemainder->sType.Is(IRTK_I16) || psRemainder->sType.Is(IRTK_I32)))
+			{
+				continue;
+			}
+			sType = psRemainder->sType;
+			iBits = sType.IntegerBits();
+			ulliMask = IRTruncate(sType, (uint64)-1);
+			bSigned = psRemainder->uiOpcode == IRO_SRem;
+			ulliDivisor = bSigned ? (uint64)IRSignExtend(sType, mpcFunction->GetConstant(psRemainder->asArguments[1])->ulliBits) :
+									IRTruncate(sType, mpcFunction->GetConstant(psRemainder->asArguments[1])->ulliBits);
+			if (bSigned && ((int64)ulliDivisor < 0))
+			{
+				ulliDivisor = (uint64)(-(int64)ulliDivisor);
+			}
+			if ((ulliDivisor < 3) || (ulliDivisor > ulliMask) || ((ulliDivisor & (ulliDivisor - 1)) == 0))
+			{
+				continue;
+			}
+			for (iShift = 0, ulliOdd = ulliDivisor; (ulliOdd & 1) == 0; iShift++)
+			{
+				ulliOdd >>= 1;
+			}
+
+			//Newton's iteration: each step doubles the low bits of the inverse that are right (d * d = 1 mod 8).
+			ulliInverse = ulliOdd;
+			for (i = 0; i < 5; i++)
+			{
+				ulliInverse = (ulliInverse * (2 - ulliOdd * ulliInverse)) & ulliMask;
+			}
+
+			sValue = psRemainder->asArguments[0];
+			if (bSigned && (!SignedRange(sValue, &lliMin, &lliMax) || (lliMin < 0)))
+			{
+				//|x|: (x ^ s) - s with s the sign (-2^(n-1) stays itself, which is its size unsigned).
+				sSign = InsertInstruction(pcBlock, uj++, IRO_AShr, sType, sValue, mpcFunction->AddInteger(sType, iBits - 1));
+				sValue = InsertInstruction(pcBlock, uj++, IRO_Xor, sType, sValue, sSign);
+				sValue = InsertInstruction(pcBlock, uj++, IRO_Sub, sType, sValue, sSign);
+			}
+			sTest = InsertInstruction(pcBlock, uj++, IRO_Mul, sType, sValue, mpcFunction->AddConstant(sType, ulliInverse));
+			if (iShift > 0)
+			{
+				sSign = InsertInstruction(pcBlock, uj++, IRO_Shl, sType, sTest, mpcFunction->AddInteger(sType, iBits - iShift));
+				sTest = InsertInstruction(pcBlock, uj++, IRO_LShr, sType, sTest, mpcFunction->AddInteger(sType, iShift));
+				sTest = InsertInstruction(pcBlock, uj++, IRO_Or, sType, sTest, sSign);
+			}
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			psInstruction->uiOpcode = (psInstruction->uiOpcode == IRO_Eq) ? IRO_ULe : IRO_UGt;
+			psInstruction->asArguments[0] = sTest;
+			psInstruction->asArguments[1] = mpcFunction->AddConstant(sType, ulliMask / ulliDivisor);
+			bChanged = true;
+			FindDefinitions();
+		}
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // x / c and x % c, c a constant above 2 and not a power of 2, x in a known
 // range (SignedRange): q is (x * m) >> s (DivisionReciprocal), plus 1 when
 // x is negative (signed); x % c is x - q * c.  Worked out in the type when
@@ -6960,7 +7631,9 @@ bool CIROptimiser::DivisionReciprocal(int64 lliMin, int64 lliMax, int64 lliDivis
 // multiply by a constant shifts and adds).  A divide and a remainder of one
 // x get the same q, which common subexpressions make one.  An i8 one the
 // profile finds hot (IsHot) is marked IRF_Hot and left for the target to
-// look up in a table.
+// look up in a table.  x's range is narrowed by the branches to the divide
+// (mbBranchRanges).  A 32 bit divide by a wide c = 2^k * m (m under 65536)
+// that isn't made a multiply is split (SplitDivisor).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ConstantDivisions(void)
@@ -6973,6 +7646,7 @@ bool CIROptimiser::ConstantDivisions(void)
 	SIRReference						sWide;
 	SIRReference						sQuotient;
 	SIRReference						sSign;
+	SIRReference						sDivisor;
 	SIRType								sType;
 	SIRType								sWork;
 	int64								lliDivisor;
@@ -6980,6 +7654,8 @@ bool CIROptimiser::ConstantDivisions(void)
 	int64								lliMax;
 	uint64								ulliMultiplier;
 	int									iShift;
+	int									iBits;
+	int									iPreShift;
 	size								ui;
 	size								uiInstruction;
 	size								uiAt;
@@ -6987,6 +7663,8 @@ bool CIROptimiser::ConstantDivisions(void)
 	uint16								uiOpcode;
 
 	FindDefinitions();
+	mpcFunction->ComputePredecessors();
+	mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -7014,30 +7692,48 @@ bool CIROptimiser::ConstantDivisions(void)
 				psInstruction->uiFlags |= IRF_Hot;
 				continue;
 			}
-			if (!SignedRange(psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
+			if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
 			{
-				continue;
+				lliMin = 1;
+				lliMax = 0;
 			}
-			if (IsByteTableDivision(lliMin, lliMax, lliDivisor) && IsHot(psInstruction, IR_DIVISION_TABLE_SAVING))
+			if ((lliMin <= lliMax) && IsByteTableDivision(lliMin, lliMax, lliDivisor) && IsHot(psInstruction, IR_DIVISION_TABLE_SAVING))
 			{
 				psFound = asFound.Add();
 				psFound->pcBlock = pcBlock;
 				psFound->uiInstruction = uiInstruction;
 				psFound->bOnce = false;
 				psFound->bTable = true;
+				psFound->bSplit = false;
+				psFound->lliMin = lliMin;
+				psFound->lliMax = lliMax;
 				continue;
 			}
-			if (DivisionReciprocal(lliMin, lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift) ||
-				((psInstruction->sType.IntegerBits() < 32) && DivisionReciprocal(lliMin, lliMax, lliDivisor, 32, bSigned, &ulliMultiplier, &iShift)))
+			if ((lliMin <= lliMax) && FindReciprocal(lliMin, lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift, &iBits, &iPreShift))
 			{
 				psFound = asFound.Add();
 				psFound->pcBlock = pcBlock;
 				psFound->uiInstruction = uiInstruction;
 				psFound->bOnce = false;
 				psFound->bTable = false;
+				psFound->bSplit = false;
+				psFound->lliMin = lliMin;
+				psFound->lliMax = lliMax;
+			}
+			else if (SplitDivisor(psInstruction, lliMin, lliMax))
+			{
+				psFound = asFound.Add();
+				psFound->pcBlock = pcBlock;
+				psFound->uiInstruction = uiInstruction;
+				psFound->bOnce = false;
+				psFound->bTable = false;
+				psFound->bSplit = true;
+				psFound->lliMin = lliMin;
+				psFound->lliMax = lliMax;
 			}
 		}
 	}
+	mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	for (ui = asFound.NumElements(); ui > 0; ui--)
@@ -7051,7 +7747,46 @@ bool CIROptimiser::ConstantDivisions(void)
 		sValue = psInstruction->asArguments[0];
 		bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
 		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		SignedRange(sValue, &lliMin, &lliMax);
+		lliMin = psFound->lliMin;
+		lliMax = psFound->lliMax;
+		if (psFound->bSplit)
+		{
+			for (iShift = 0; ((lliDivisor >> iShift) & 1) == 0; iShift++)
+			{
+			}
+			uiAt = uiInstruction;
+			sWide = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SDiv : IRO_UDiv, sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
+			sDivisor = mpcFunction->AddInteger(sType, lliDivisor >> iShift);
+			if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+			{
+				//(x / 2^k) / m.
+				psInstruction = pcBlock->masInstructions.Get(uiAt);
+				psInstruction->asArguments[0] = sWide;
+				psInstruction->asArguments[1] = sDivisor;
+			}
+			else if (HasDivision(pcBlock, uiOpcode == IRO_SRem ? IRO_SDiv : IRO_UDiv, sValue, psInstruction->asArguments[1]))
+			{
+				//x - ((x / 2^k) / m) * c: the same q as the divide's.
+				sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SDiv : IRO_UDiv, sType, sWide, sDivisor);
+				sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sType, sQuotient, mpcFunction->AddInteger(sType, lliDivisor));
+				psInstruction = pcBlock->masInstructions.Get(uiAt);
+				psInstruction->uiOpcode = IRO_Sub;
+				psInstruction->asArguments[0] = sValue;
+				psInstruction->asArguments[1] = sQuotient;
+			}
+			else
+			{
+				//((x / 2^k) % m) << k + x % 2^k (both with x's sign).
+				sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SRem : IRO_URem, sType, sWide, sDivisor);
+				sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Shl, sType, sQuotient, mpcFunction->AddInteger(sType, iShift));
+				sSign = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SRem : IRO_URem, sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
+				psInstruction = pcBlock->masInstructions.Get(uiAt);
+				psInstruction->uiOpcode = IRO_Add;
+				psInstruction->asArguments[0] = sQuotient;
+				psInstruction->asArguments[1] = sSign;
+			}
+			continue;
+		}
 		if (psFound->bTable)
 		{
 			//The byte's i8 divide (signed only when the byte may be negative), extended back.
@@ -7076,18 +7811,19 @@ bool CIROptimiser::ConstantDivisions(void)
 			psInstruction->asArguments[1] = IRNone();
 			continue;
 		}
-		sWork = sType;
-		if (!DivisionReciprocal(lliMin, lliMax, lliDivisor, sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift))
-		{
-			DivisionReciprocal(lliMin, lliMax, lliDivisor, 32, bSigned, &ulliMultiplier, &iShift);
-			sWork = IRType(IRTK_I32);
-		}
+		FindReciprocal(lliMin, lliMax, lliDivisor, sType.IntegerBits(), bSigned, &ulliMultiplier, &iShift, &iBits, &iPreShift);
+		sWork = (iBits == sType.IntegerBits()) ? sType : IRType(IRTK_I32);
 
 		uiAt = uiInstruction;
 		sWide = sValue;
 		if (sWork.uiKind != sType.uiKind)
 		{
 			sWide = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SExt : IRO_ZExt, sWork, sValue, IRNone());
+		}
+		if (iPreShift > 0)
+		{
+			//x is never negative: (x >> k) / m for c = 2^k * m.
+			sWide = InsertInstruction(pcBlock, uiAt++, IRO_LShr, sWork, sWide, mpcFunction->AddInteger(sWork, iPreShift));
 		}
 		sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sWork, sWide, mpcFunction->AddInteger(sWork, (int64)ulliMultiplier));
 		sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_AShr : IRO_LShr, sWork, sQuotient, mpcFunction->AddInteger(sWork, iShift));
@@ -7124,7 +7860,236 @@ bool CIROptimiser::ConstantDivisions(void)
 }
 
 
-#define IR_RANGE_DEPTH	8
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a 32 bit x / c or x % c (c a constant) is better as x / 2^k
+// then / m: c = 2^k * m is wide (65536 or more) and m isn't, so the
+// target's divide by m is a narrow one (and x / 2^k is a shift).  Not
+// when x is known to be below c (BoundDivisions' then).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax)
+{
+	int64	lliDivisor;
+	bool	bSigned;
+
+	if (!psInstruction->sType.Is(IRTK_I32))
+	{
+		return false;
+	}
+	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
+	lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
+						   (int64)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+	if ((lliDivisor < 0x10000) || ((lliDivisor & 1) != 0))
+	{
+		return false;
+	}
+	if ((lliMin <= lliMax) && (lliMin > -lliDivisor) && (lliMax < lliDivisor))
+	{
+		return false;
+	}
+	while ((lliDivisor & 1) == 0)
+	{
+		lliDivisor >>= 1;
+	}
+	return lliDivisor < 0x10000;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcBlock has a uiOpcode of sValue by sDivisor.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor)
+{
+	SIRInstruction*	psInstruction;
+	size			ui;
+
+	for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+	{
+		psInstruction = pcBlock->masInstructions.Get(ui);
+		if ((psInstruction->uiOpcode == uiOpcode) && psInstruction->asArguments[0].Equals(sValue) && psInstruction->asArguments[1].Equals(sDivisor))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFrom's branch to pcTo is taken only when sValue isn't null
+// (a brif on sValue != 0 to its then, or on sValue == 0 to its else).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
+{
+	SIRInstruction*	psCompare;
+	SIRReference	sOther;
+
+	if ((pcFrom->msJump.uiKind != IRJ_Branch) || (pcFrom->msJump.pcThen == pcFrom->msJump.pcElse) || !pcFrom->msJump.sArgument.IsTemporary())
+	{
+		return false;
+	}
+	psCompare = mcDefinitions.Instruction(pcFrom->msJump.sArgument);
+	if (!psCompare || ((psCompare->uiOpcode != IRO_Eq) && (psCompare->uiOpcode != IRO_Ne)))
+	{
+		return false;
+	}
+	if (psCompare->asArguments[0].Equals(sValue))
+	{
+		sOther = psCompare->asArguments[1];
+	}
+	else if (psCompare->asArguments[1].Equals(sValue))
+	{
+		sOther = psCompare->asArguments[0];
+	}
+	else
+	{
+		return false;
+	}
+	if (!sOther.IsConstant() || (mpcFunction->GetConstant(sOther)->ulliBits != 0))
+	{
+		return false;
+	}
+	return (psCompare->uiOpcode == IRO_Ne) ? (pcFrom->msJump.pcThen == pcTo) : (pcFrom->msJump.pcElse == pcTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the pointer sValue is never null where pcBlock runs: a global's
+// address, a slot, a constant other than 0; tested not null on the way to
+// pcBlock (while blocks have one predecessor); a pointer added to one that
+// isn't null (C++'s pointer arithmetic stays in an object); a phi whose
+// every value isn't null on its way in.  mcDefinitions and the
+// predecessors must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth)
+{
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	CIRBlock*		pcTo;
+	CIRBlock*		pcDefinition;
+	size			ui;
+	int				i;
+
+	if (sValue.IsSymbol())
+	{
+		return true;
+	}
+	if (sValue.IsConstant())
+	{
+		return mpcFunction->GetConstant(sValue)->ulliBits != 0;
+	}
+	if (!sValue.IsTemporary() || (iDepth <= 0))
+	{
+		return false;
+	}
+	pcTo = pcBlock;
+	for (i = 0; pcTo && (i < IR_RANGE_DEPTH) && (pcTo->mapcPredecessors.NumElements() == 1); i++)
+	{
+		if (BranchNonNull(pcTo->mapcPredecessors.GetPtr(0), pcTo, sValue))
+		{
+			return true;
+		}
+		pcTo = pcTo->mapcPredecessors.GetPtr(0);
+	}
+
+	pcDefinition = mcDefinitions.Block(sValue);
+	psInstruction = mcDefinitions.Instruction(sValue);
+	if (psInstruction)
+	{
+		if (psInstruction->uiOpcode == IRO_Slot)
+		{
+			return true;
+		}
+		if ((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Copy))
+		{
+			return NonNullAt(pcDefinition, psInstruction->asArguments[0], iDepth - 1);
+		}
+		return false;
+	}
+	psPhi = mcDefinitions.Phi(sValue);
+	if (!psPhi || (psPhi->asArguments.NumElements() == 0))
+	{
+		return false;
+	}
+	for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+	{
+		psArgument = psPhi->asArguments.Get(ui);
+		if (!BranchNonNull(psArgument->pcBlock, pcDefinition, psArgument->sValue) && !NonNullAt(psArgument->pcBlock, psArgument->sValue, iDepth - 1))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// p == 0 and p != 0 of a pointer that isn't null there (NonNullAt) are
+// false and true.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::FoldNullTests(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sPointer;
+	size			ui;
+	size			uj;
+	bool			bChanged;
+
+	FindDefinitions();
+	mpcFunction->ComputePredecessors();
+	ClearReplacements();
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if (((psInstruction->uiOpcode != IRO_Eq) && (psInstruction->uiOpcode != IRO_Ne)) || !psInstruction->sResult.IsTemporary())
+			{
+				continue;
+			}
+			if (psInstruction->asArguments[1].IsConstant() && (mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits == 0))
+			{
+				sPointer = psInstruction->asArguments[0];
+			}
+			else if (psInstruction->asArguments[0].IsConstant() && (mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits == 0))
+			{
+				sPointer = psInstruction->asArguments[1];
+			}
+			else
+			{
+				continue;
+			}
+			if (!sPointer.IsTemporary() || !mpcFunction->TypeOf(sPointer).IsPointer() || !NonNullAt(pcBlock, sPointer, IR_NON_NULL_DEPTH))
+			{
+				continue;
+			}
+			Replace(psInstruction->sResult, mpcFunction->AddConstant(mpcFunction->GetTemporaryType(psInstruction->sResult), (psInstruction->uiOpcode == IRO_Ne) ? 1 : 0));
+			bChanged = true;
+		}
+	}
+	if (bChanged)
+	{
+		ApplyReplacements();
+	}
+	return bChanged;
+}
+
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -7139,55 +8104,68 @@ void CIROptimiser::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64
 {
 	CIRBlock*		pcTo;
 	CIRBlock*		pcFrom;
-	SIRInstruction*	psCompare;
-	SIRReference	sConstant;
-	uint16			uiOpcode;
-	int64			lliConstant;
 	int				iDepth;
 
 	pcTo = pcBlock;
 	for (iDepth = 0; (iDepth < IR_RANGE_DEPTH) && (pcTo->mapcPredecessors.NumElements() == 1); iDepth++)
 	{
 		pcFrom = pcTo->mapcPredecessors.GetPtr(0);
-		psCompare = ((pcFrom->msJump.uiKind == IRJ_Branch) && (pcFrom->msJump.pcThen != pcFrom->msJump.pcElse)) ? mcDefinitions.Instruction(pcFrom->msJump.sArgument) : NULL;
-		if (psCompare && (psCompare->asArguments[0].Equals(sValue) || psCompare->asArguments[1].Equals(sValue)))
+		BranchRange(pcFrom, pcTo, sValue, plliMin, plliMax);
+		pcTo = pcFrom;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Narrows the signed range [*plliMin, *plliMax] of sValue by pcFrom's
+// branch to pcTo, when it is on a compare of sValue with a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
+{
+	SIRInstruction*	psCompare;
+	SIRReference	sConstant;
+	uint16			uiOpcode;
+	int64			lliConstant;
+
+	psCompare = ((pcFrom->msJump.uiKind == IRJ_Branch) && (pcFrom->msJump.pcThen != pcFrom->msJump.pcElse)) ? mcDefinitions.Instruction(pcFrom->msJump.sArgument) : NULL;
+	if (psCompare && (psCompare->asArguments[0].Equals(sValue) || psCompare->asArguments[1].Equals(sValue)))
+	{
+		uiOpcode = psCompare->uiOpcode;
+		sConstant = psCompare->asArguments[1];
+		if (psCompare->asArguments[1].Equals(sValue))
 		{
-			uiOpcode = psCompare->uiOpcode;
-			sConstant = psCompare->asArguments[1];
-			if (psCompare->asArguments[1].Equals(sValue))
+			sConstant = psCompare->asArguments[0];
+			uiOpcode = IRSwappedComparison(uiOpcode);
+		}
+		if (sConstant.IsConstant())
+		{
+			if (pcFrom->msJump.pcElse == pcTo)
 			{
-				sConstant = psCompare->asArguments[0];
-				uiOpcode = IRSwappedComparison(uiOpcode);
+				uiOpcode = IRInvertedComparison(uiOpcode);
 			}
-			if (sConstant.IsConstant())
+			lliConstant = mpcFunction->GetSigned(sConstant);
+			switch (uiOpcode)
 			{
-				if (pcFrom->msJump.pcElse == pcTo)
+			case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
+			case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
+			case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
+			case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
+			case IRO_ULt:
+			case IRO_ULe:
+				//Below a constant that is positive as signed: 0 up to it.
+				if (lliConstant > 0)
 				{
-					uiOpcode = IRInvertedComparison(uiOpcode);
+					*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+					lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
+					*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
 				}
-				lliConstant = mpcFunction->GetSigned(sConstant);
-				switch (uiOpcode)
-				{
-				case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
-				case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
-				case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
-				case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
-				case IRO_ULt:
-				case IRO_ULe:
-					//Below a constant that is positive as signed: 0 up to it.
-					if (lliConstant > 0)
-					{
-						*plliMin = (*plliMin < 0) ? 0 : *plliMin;
-						lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
-						*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
-					}
-					break;
-				default:
-					break;
-				}
+				break;
+			default:
+				break;
 			}
 		}
-		pcTo = pcFrom;
 	}
 }
 

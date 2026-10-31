@@ -15,12 +15,21 @@ void CFatClusterCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 ui
 	muiClusterSize = uiClusterSize;
 	muiSectorSize = uiSectorSize;
 	muiSectorsPerCluster = muiClusterSize / muiSectorSize;
+
+	//Sector sizes are powers of two (the volume checks): offsets are shifted and masked, not divided.
+	muiSectorSizeShift = 0;
+	while (((uint32)1 << muiSectorSizeShift) < muiSectorSize)
+	{
+		muiSectorSizeShift++;
+	}
 	mpcDrive = pcDrive;
 	muiBytesForBits = muiSectorsPerCluster / sizeof(uint8);
 
 	msCluster.pvCache = (uint8*)malloc(uiClusterSize);
 	msCluster.pbCachedSectors = (uint8*)malloc(muiBytesForBits);
 	msCluster.pbDirtySectors = (uint8*)malloc(muiBytesForBits);
+	memset(msCluster.pvCache, 0, muiClusterSize);
+	memset(msCluster.pbCachedSectors, 0, muiBytesForBits);
 	Invalidate(&msCluster);
 }
 
@@ -34,6 +43,17 @@ void CFatClusterCache::Kill(void)
 	SafeFree(msCluster.pbDirtySectors);
 	SafeFree(msCluster.pbCachedSectors);
 	SafeFree(msCluster.pvCache);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The sector of the byte before uiEnd (0 when uiEnd is 0).
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatClusterCache::LastSectorBefore(uint16 uiEnd)
+{
+	return (uiEnd == 0) ? 0 : (uint16)((uiEnd - 1) >> muiSectorSizeShift);
 }
 
 
@@ -82,10 +102,10 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 		uiLength = uiMaximumOffset - uiOffset;
 	}
 
-	uiFirstSectorIndex = uiOffset / muiSectorSize;
-	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) / muiSectorSize;
+	uiFirstSectorIndex = uiOffset >> muiSectorSizeShift;
+	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) >> muiSectorSizeShift;
 
-	uiMaximumSector = (uint16)(((int32)uiMaximumOffset - 1) / muiSectorSize);
+	uiMaximumSector = LastSectorBefore(uiMaximumOffset);
 
 	if (uiFirstSectorIndex > uiMaximumSector)
 	{
@@ -118,7 +138,7 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 		}
 
 		uiNumSectors = (uint16)(iEnd - iStart);
-		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, uiNumSectors, &msCluster.pvCache[iStart * muiSectorSize]);
+		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, uiNumSectors, &msCluster.pvCache[iStart << muiSectorSizeShift]);
 		SetBits(iStart, msCluster.pbCachedSectors, true, uiNumSectors);
 
 		if (iEnd > uiLastSectorIndexInclusive)
@@ -173,8 +193,8 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 	}
 
 	uiLength = *puiLength;
-	uiFirstSectorIndex = uiOffset / muiSectorSize;
-	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) / muiSectorSize;
+	uiFirstSectorIndex = uiOffset >> muiSectorSizeShift;
+	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) >> muiSectorSizeShift;
 
 	if (uiLastSectorIndexInclusive >= muiSectorsPerCluster)
 	{
@@ -187,12 +207,12 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 		*puiLength = 0;
 	}
 
-	uiPreviousMaximumSector = (uint16)(((int32)uiPreviousMaximumOffset - 1) / muiSectorSize);
+	uiPreviousMaximumSector = LastSectorBefore(uiPreviousMaximumOffset);
 
 	if (uiFirstSectorIndex <= uiPreviousMaximumSector)
 	{
 		//The first sector keeps what the write does not cover: before it, and after it when it ends in the same sector.
-		if (((uiOffset % muiSectorSize != 0) || ((uiFirstSectorIndex == uiLastSectorIndexInclusive) && ((uiOffset + uiLength) % muiSectorSize != 0))) && (!IsCached(uiFirstSectorIndex)))
+		if ((((uiOffset & (muiSectorSize - 1)) != 0) || ((uiFirstSectorIndex == uiLastSectorIndexInclusive) && (((uiOffset + uiLength) & (muiSectorSize - 1)) != 0))) && (!IsCached(uiFirstSectorIndex)))
 		{
 			bResult = CacheSector(&msCluster, uiFirstSectorIndex);
 			if (!bResult)
@@ -202,7 +222,7 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 		}
 	}
 
-	uiSectorLength = muiSectorSize - uiOffset % muiSectorSize;
+	uiSectorLength = (uint16)(muiSectorSize - (uiOffset & (muiSectorSize - 1)));
 	if (uiSectorLength > uiLength)
 	{
 		uiSectorLength = uiLength;
@@ -233,7 +253,7 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 	{
 		if (uiLastSectorIndexInclusive <= uiPreviousMaximumSector)
 		{
-			if (((uiOffset + uiLength) % muiSectorSize != 0) && (!IsCached(uiLastSectorIndexInclusive)))
+			if ((((uiOffset + uiLength) & (muiSectorSize - 1)) != 0) && (!IsCached(uiLastSectorIndexInclusive)))
 			{
 				bResult = CacheSector(&msCluster, uiLastSectorIndexInclusive);
 				if (!bResult)
@@ -298,7 +318,7 @@ bool CFatClusterCache::Flush(SClusterCache* psCluster)
 			bDone = true;
 		}
 
-		bResult = mpcDrive->Write(psCluster->uiClusterFirstSector + (uint32)iFirstDirtySector, (uint32)(iLastDirtySector - iFirstDirtySector), &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
+		bResult = mpcDrive->Write(psCluster->uiClusterFirstSector + (uint32)iFirstDirtySector, (uint32)(iLastDirtySector - iFirstDirtySector), &psCluster->pvCache[iFirstDirtySector << muiSectorSizeShift]);
 		if (!bResult)
 		{
 			return false;
@@ -355,7 +375,7 @@ bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorInde
 {
 	bool	bResult;
 
-	bResult = mpcDrive->Read(psCluster->uiClusterFirstSector + uiSectorIndex, &psCluster->pvCache[uiSectorIndex * muiSectorSize]);
+	bResult = mpcDrive->Read(psCluster->uiClusterFirstSector + uiSectorIndex, &psCluster->pvCache[uiSectorIndex << muiSectorSizeShift]);
 	if (!bResult)
 	{
 		return false;
@@ -384,9 +404,18 @@ void CFatClusterCache::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CFatClusterCache::Invalidate(SClusterCache* psCluster)
 {
+	uint16	i;
+
 	psCluster->uiCluster = NO_CLUSTER_CACHED;
 
-	memset(psCluster->pvCache, 0, muiClusterSize);
+	//A sector that isn't cached is all 0 (Init clears them all), so only the cached ones are cleared.
+	for (i = 0; i < muiSectorsPerCluster; i++)
+	{
+		if (GetBit(i, psCluster->pbCachedSectors))
+		{
+			memset(&psCluster->pvCache[i << muiSectorSizeShift], 0, muiSectorSize);
+		}
+	}
 	memset(psCluster->pbCachedSectors, 0, muiBytesForBits);
 	memset(psCluster->pbDirtySectors, 0, muiBytesForBits);
 }

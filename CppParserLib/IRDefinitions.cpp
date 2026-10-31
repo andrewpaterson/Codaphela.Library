@@ -110,13 +110,20 @@ void CIRDefinitions::Compute(CIRFunction* pcFunction)
 SIRInstruction* CIRDefinitions::Instruction(SIRReference sValue)
 {
 	SIRDefinition*	psDefinition;
+	SIRInstruction*	psInstruction;
 
 	psDefinition = Get(sValue);
-	if (!psDefinition || !psDefinition->pcBlock || (psDefinition->iInstruction < 0))
+	if (!psDefinition || !psDefinition->pcBlock || (psDefinition->iInstruction < 0) || ((size)psDefinition->iInstruction >= psDefinition->pcBlock->masInstructions.NumElements()))
 	{
 		return NULL;
 	}
-	return psDefinition->pcBlock->masInstructions.Get(psDefinition->iInstruction);
+	psInstruction = psDefinition->pcBlock->masInstructions.Get(psDefinition->iInstruction);
+	if (!psInstruction->sResult.Equals(sValue))
+	{
+		//Instructions were added or removed since Compute: not this one.
+		return NULL;
+	}
+	return psInstruction;
 }
 
 
@@ -128,13 +135,20 @@ SIRInstruction* CIRDefinitions::Instruction(SIRReference sValue)
 SIRPhi* CIRDefinitions::Phi(SIRReference sValue)
 {
 	SIRDefinition*	psDefinition;
+	SIRPhi*			psPhi;
 
 	psDefinition = Get(sValue);
-	if (!psDefinition || !psDefinition->pcBlock || (psDefinition->iPhi < 0))
+	if (!psDefinition || !psDefinition->pcBlock || (psDefinition->iPhi < 0) || ((size)psDefinition->iPhi >= psDefinition->pcBlock->masPhis.NumElements()))
 	{
 		return NULL;
 	}
-	return psDefinition->pcBlock->masPhis.Get(psDefinition->iPhi);
+	psPhi = psDefinition->pcBlock->masPhis.Get(psDefinition->iPhi);
+	if (!psPhi->sResult.Equals(sValue))
+	{
+		//Phis were added or removed since Compute: not this one.
+		return NULL;
+	}
+	return psPhi;
 }
 
 

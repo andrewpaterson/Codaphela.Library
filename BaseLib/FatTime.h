@@ -7,6 +7,10 @@ int64 FatDecodeDateTime(uint16 date, uint16 time);
 uint16 GetSystemClockDate(void);
 uint16 GetSystemClockTime(void);
 
+struct SFatRawDirectoryEntry;
+void FatSetCreateDateTime(SFatRawDirectoryEntry* psEntry);
+void FatSetModifyDateTime(SFatRawDirectoryEntry* psEntry);
+
 
 #endif // __FAT_TIME_H__
 

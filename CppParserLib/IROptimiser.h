@@ -141,6 +141,9 @@ struct SIRBoundDivision
 	size			uiInstruction;
 	bool			bOnce;
 	bool			bTable;		//ConstantDivisions: a hot one of a byte's range, made an i8 one for the target's table.
+	bool			bSplit;		//ConstantDivisions: a wide divisor 2^k * m, divided by 2^k then m.
+	int64			lliMin;		//ConstantDivisions: the dividend's range.
+	int64			lliMax;
 };
 
 
@@ -242,6 +245,7 @@ protected:
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
 	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
 	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
+	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	CIRInlineProfile*		mpcProfile;			//How often lines ran (SetProfile), NULL for none.
@@ -276,6 +280,8 @@ public:
 
 	bool			SimplifyCFG(void);
 	bool			SplitSlots(void);
+	bool			UnifySlotTypes(void);
+	SIRType			SlotOffsetType(SIRReference sSlot, int64 lliOffset);
 	bool			PromoteSlots(void);
 	bool			RemoveTrivialPhis(void);
 	bool			FoldConstants(void);
@@ -305,9 +311,20 @@ public:
 	bool			UnswitchLoops(void);
 	void			RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRSSAUpdater* pcUpdater);
 	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
+	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax);
+	bool			RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth = IR_SIGNED_RANGE_DEPTH, CIRBlock* pcTo = NULL);
+	bool			DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
+	bool			ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
+	bool			SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax);
+	bool			FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift);
+	bool			HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor);
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
+	bool			BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
+	bool			NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth);
+	bool			FoldNullTests(void);
 	bool			ConstantDivisions(void);
+	bool			DivisibilityTests(void);
 	bool			BiasSignedIndices(void);
 	bool			MergeAddressPhis(void);
 	SIRReference	AddressPhiIndex(SIRReference sValue, SIRReference sBase);
@@ -341,7 +358,8 @@ protected:
 	bool			SkipEmptyBlocks(void);
 	int				KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition);
 	bool			ThreadBranches(void);
-	bool			OnlyUsedInBlock(CIRBlock* pcBlock);
+	bool			OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis = false);
+	void			CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSuccessor, CArrayTemplate<uint32>* pauiInside);
 	CIRBlock*		KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock);
 	bool			ThreadPhis(void);
 	bool			DuplicateReturns(void);

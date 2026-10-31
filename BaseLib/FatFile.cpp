@@ -292,7 +292,7 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 	eResult = CounterClustersInFile(&uiClustersInFile, &uiPreviousCluster, uiFirstCluster);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	uiClustersNeeded = (uiBytes + mpcVolume->GetClusterSize() - 1) / mpcVolume->GetClusterSize();
+	uiClustersNeeded = mpcVolume->BytesToClusters(uiBytes + mpcVolume->GetClusterSize() - 1);
 
 	if (uiClustersNeeded > uiClustersInFile)
 	{
@@ -400,11 +400,11 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode)
 		return FAT_SEEK_FAILED;
 	}
 	
-	uiSectorIndexInFile = uiBytePositionInFile / mpcVolume->GetSectorSize();
-	uiClusterIndex = uiSectorIndexInFile / mpcVolume->NumSectorsPerCluster();
+	uiSectorIndexInFile = mpcVolume->BytesToSectors(uiBytePositionInFile);
+	uiClusterIndex = mpcVolume->SectorsToClusters(uiSectorIndexInFile);
 
 	//The end of a file that fills its last cluster has no cluster after it (until a write adds one): stay on the last.
-	if ((uiBytePositionInFile == msFile.uiFileSize) && (uiClusterIndex > 0) && (uiBytePositionInFile % mpcVolume->GetClusterSize() == 0) && !HasCluster(uiClusterIndex))
+	if ((uiBytePositionInFile == msFile.uiFileSize) && (uiClusterIndex > 0) && (mpcVolume->OffsetInCluster(uiBytePositionInFile) == 0) && !HasCluster(uiClusterIndex))
 	{
 		uiClusterIndex--;
 	}
@@ -516,16 +516,16 @@ EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* pui
 	for (;;)
 	{
 		uiFirstSectorOfCluster = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiFilePositionCluster);
-		uiClustersInFile = msFile.uiFileSize / mpcVolume->GetClusterSize();
-		uiWriteClusterIndex = msFile.uiFilePosition / mpcVolume->GetClusterSize();
-		uiWriteOffsetInCluster = msFile.uiFilePosition % mpcVolume->GetClusterSize();
+		uiClustersInFile = mpcVolume->BytesToClusters(msFile.uiFileSize);
+		uiWriteClusterIndex = mpcVolume->BytesToClusters(msFile.uiFilePosition);
+		uiWriteOffsetInCluster = mpcVolume->OffsetInCluster(msFile.uiFilePosition);
 		if (uiWriteClusterIndex < uiClustersInFile)
 		{
 			uiPreviousMaximumOffset = mpcVolume->GetClusterSize();
 		}
 		else
 		{
-			uiPreviousMaximumOffset = msFile.uiFileSize % mpcVolume->GetClusterSize();
+			uiPreviousMaximumOffset = mpcVolume->OffsetInCluster(msFile.uiFileSize);
 		}
 
 		uiBytesWritten = uiBytesRemaining;
@@ -628,16 +628,16 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead
 	for (;;)
 	{
 		uiFirstSector = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiFilePositionCluster);
-		uiClustersInFile = msFile.uiFileSize / mpcVolume->GetClusterSize();
-		uiReadClusterIndex = msFile.uiFilePosition / mpcVolume->GetClusterSize();
-		uiReadOffsetInCluster = msFile.uiFilePosition % mpcVolume->GetClusterSize();
+		uiClustersInFile = mpcVolume->BytesToClusters(msFile.uiFileSize);
+		uiReadClusterIndex = mpcVolume->BytesToClusters(msFile.uiFilePosition);
+		uiReadOffsetInCluster = mpcVolume->OffsetInCluster(msFile.uiFilePosition);
 		if (uiReadClusterIndex < uiClustersInFile)
 		{
 			uiPreviousMaximumOffset = mpcVolume->GetClusterSize();
 		}
 		else
 		{
-			uiPreviousMaximumOffset = msFile.uiFileSize % mpcVolume->GetClusterSize();
+			uiPreviousMaximumOffset = mpcVolume->OffsetInCluster(msFile.uiFileSize);
 		}
 
 		uiBytesRead = uiBytesRemaining;
@@ -711,7 +711,7 @@ bool CFatFile::HasCluster(uint32 uiClusterIndex)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::StepToClusterOfPosition(void)
 {
-	if ((msFile.uiFilePosition % mpcVolume->GetClusterSize() == 0) && (msFile.uiFilePosition < msFile.uiFileSize))
+	if ((mpcVolume->OffsetInCluster(msFile.uiFilePosition) == 0) && (msFile.uiFilePosition < msFile.uiFileSize))
 	{
 		return mpcVolume->GetNextClusterEntry(msFile.uiFilePositionCluster, &msFile.uiFilePositionCluster);
 	}
@@ -742,8 +742,7 @@ EFatCode CFatFile::FlushCacheUpdateAccess(void)
 	mcCache.Flush();
 
 	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
-	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
-	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
+	FatSetModifyDateTime(&msFile.sDirectoryEntry.sRaw);
 	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate;
 
 	sBuffer = mpcVolume->ReadSector(msFile.sDirectoryEntry.uiSectorAddress);
@@ -801,12 +800,12 @@ EFatCode CFatFile::Truncate(void)
 	{
 		//The last cluster kept holds the byte before the position (on a cluster boundary the position's cluster goes too).
 		uiLastCluster = msFile.uiFilePositionCluster;
-		if (msFile.uiFilePosition % mpcVolume->GetClusterSize() == 0)
+		if (mpcVolume->OffsetInCluster(msFile.uiFilePosition) == 0)
 		{
 			uiLastCluster = CalculateFirstCluster();
 			if (msFile.uiFilePosition > mpcVolume->GetClusterSize())
 			{
-				eResult = mpcVolume->SeekByClusterCount(uiLastCluster, (uint16)(msFile.uiFilePosition / mpcVolume->GetClusterSize() - 1), &uiLastCluster);
+				eResult = mpcVolume->SeekByClusterCount(uiLastCluster, (uint16)(mpcVolume->BytesToClusters(msFile.uiFilePosition) - 1), &uiLastCluster);
 				if (eResult != FAT_SUCCESS)
 				{
 					return eResult;

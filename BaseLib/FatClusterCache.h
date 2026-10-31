@@ -26,6 +26,7 @@ protected:
 	uint16			muiSectorSize;
 	uint16			muiSectorsPerCluster;
 	uint16			muiBytesForBits;
+	uint16			muiSectorSizeShift;		//muiSectorSize is 1 << muiSectorSizeShift.
 
 	CFileDrive*		mpcDrive;
 
@@ -50,6 +51,7 @@ protected:
 	bool	Flush(SClusterCache* psCluster);
 	bool	FlushAndInvalidate(SClusterCache* psCluster);
 	bool	IsCached(uint32 uiSectorIndex);
+	uint16	LastSectorBefore(uint16 uiEnd);
 	bool	CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex);
 
 	bool	SetCachedSector(size uiSectorIndex, bool bCached);
