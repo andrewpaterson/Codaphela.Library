@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include "FatCommon.h"
 #include "FatTime.h"
 
 // date/time macros
@@ -44,6 +45,41 @@ uint16 GetSystemClockTime(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The entry's create date and time from one reading of the clock (one
+// localtime, not one each).
+//
+//////////////////////////////////////////////////////////////////////////
+void FatSetCreateDateTime(SFatRawDirectoryEntry* psEntry)
+{
+	time_t		now;
+	tm*			timeinfo;
+
+	time(&now);
+	timeinfo = localtime(&now);
+	psEntry->uEntry.sFatRawCommon.uiCreateDate = FAT_ENCODE_DATE(timeinfo->tm_mon + 1, timeinfo->tm_mday, timeinfo->tm_year + 1900);
+	psEntry->uEntry.sFatRawCommon.uiCreateTime = FAT_ENCODE_TIME(timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entry's modify date and time from one reading of the clock.
+//
+//////////////////////////////////////////////////////////////////////////
+void FatSetModifyDateTime(SFatRawDirectoryEntry* psEntry)
+{
+	time_t		now;
+	tm*			timeinfo;
+
+	time(&now);
+	timeinfo = localtime(&now);
+	psEntry->uEntry.sFatRawCommon.uiModifyDate = FAT_ENCODE_DATE(timeinfo->tm_mon + 1, timeinfo->tm_mday, timeinfo->tm_year + 1900);
+	psEntry->uEntry.sFatRawCommon.uiModifyTime = FAT_ENCODE_TIME(timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 int64 FatDecodeDateTime(uint16 date, uint16 time)
@@ -66,6 +102,7 @@ int64 FatDecodeDateTime(uint16 date, uint16 time)
 	tm.tm_hour = (time) >> 11;
 	tm.tm_min = ((time) & 0x7E0) >> 5;
 	tm.tm_sec = ((time) & 0x1F) << 1;
+	tm.tm_isdst = -1;	//Not known: mktime works it out (it was left unset, so an hour could be added or taken).
 	return (int64)mktime(&tm);
 }
 

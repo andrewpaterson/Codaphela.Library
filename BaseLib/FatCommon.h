@@ -140,13 +140,15 @@ struct SFatDirectoryEntry
 {
 	uint8					szName[FAT_MAX_FILENAME + 1];  //Converting this to a char causes a failure with sign extension ... somewhere.
 	uint8					uiAttributes;
-	time_t					tCreateTime;
-	time_t					tModifyTime;
-	time_t					tAccessTime;
 	uint32					uiSize;
 	uint32					uiSectorAddress;
 	uint16					uiSectorOffset;
 	SFatRawDirectoryEntry	sRaw;
+
+	//Decoded from sRaw when asked for (mktime is slow on the 65C64s).
+	time_t	GetCreateTime(void);
+	time_t	GetModifyTime(void);
+	time_t	GetAccessTime(void);
 };
 
 

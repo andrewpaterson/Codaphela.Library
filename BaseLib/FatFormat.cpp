@@ -593,8 +593,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	psEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
 	psEntry->uEntry.sFatRawCommon.uiReserved = 0;
 	psEntry->uEntry.sFatRawCommon.uiSize = 0;
-	psEntry->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
-	psEntry->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	FatSetCreateDateTime(psEntry);
 	psEntry->uEntry.sFatRawCommon.uiModifyDate = psEntry->uEntry.sFatRawCommon.uiCreateDate;
 	psEntry->uEntry.sFatRawCommon.uiModifyTime = psEntry->uEntry.sFatRawCommon.uiCreateTime;
 	psEntry->uEntry.sFatRawCommon.uiAccessDate = psEntry->uEntry.sFatRawCommon.uiCreateDate;

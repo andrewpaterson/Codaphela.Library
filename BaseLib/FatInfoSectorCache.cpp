@@ -171,10 +171,7 @@ CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector)
 	uint16				uiUnlockedCaches;
 	bool				bSuccess;
 
-	pcEmptySector = NULL;
-	pcOldestUnlockedSector = NULL;
-	uiOldestStamp = 0xFFFFFFFFFFFFFFFF;
-	uiUnlockedCaches = 0;
+	//Found (as most are): nothing else matters.
 	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
 	while (pcCachedSector != NULL)
 	{
@@ -182,7 +179,17 @@ CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector)
 		{
 			return pcCachedSector;
 		}
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
 
+	//Not cached: an empty cache, else a new one, else the oldest unlocked one.
+	pcEmptySector = NULL;
+	pcOldestUnlockedSector = NULL;
+	uiOldestStamp = 0xFFFFFFFFFFFFFFFF;
+	uiUnlockedCaches = 0;
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
 		if ((pcCachedSector->muiInfoSector == NO_SECTOR_CACHED) && (pcEmptySector == NULL))
 		{
 			pcEmptySector = pcCachedSector;
