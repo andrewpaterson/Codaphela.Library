@@ -42,7 +42,7 @@ static SComponentLibraryEntry gas74Series[] =
 };
 
 
-static SComponentLibraryEntry gasSequential[] =
+static SComponentLibraryEntry gasMemory[] =
 {
 	{ "DTypeFlipFlop", "D-Type Flip Flop", "Latches its data input on the clock's rising edge, with set and reset.", "flip flop latch register d type memory" },
 	{ "Counter", "Up Counter", "Counts up on the clock's rising edge, with reset, load and a terminal count.", "counter binary register" },
@@ -53,6 +53,11 @@ static SComponentLibraryEntry gasSources[] =
 {
 	{ "Clock", "Clock", "A square wave oscillator, with an inverted output if wanted.", "clock oscillator square wave" },
 	{ "Constant", "Constant", "Drives its bus with a fixed value.", "constant value bus source" },
+};
+
+
+static SComponentLibraryEntry gasPower[] =
+{
 	{ "PositivePower", "Positive Power", "A supply at a fixed voltage.", "power supply vcc voltage" },
 	{ "Ground", "Ground", "A supply at 0V.", "ground gnd 0v power" },
 };
@@ -93,8 +98,9 @@ static SComponentLibrary gasComponentLibraries[] =
 {
 	LIBRARY("Generic Logic", "Combinational gates and buffers of any width.", gasGenericLogic),
 	LIBRARY("74' Series", "74 series logic parts, as packages and as their units.", gas74Series),
-	LIBRARY("Sequential", "Flip flops and counters.", gasSequential),
-	LIBRARY("Sources", "Clocks, constants and supplies.", gasSources),
+	LIBRARY("Memory", "Flip flops and counters.", gasMemory),
+	LIBRARY("Sources", "Clocks and constants.", gasSources),
+	LIBRARY("Power", "Supplies and ground.", gasPower),
 	LIBRARY("Instruments", "Probes and oscilloscopes.", gasInstruments),
 	LIBRARY("Wiring", "Pins, splitters and tunnels.", gasWiring),
 	LIBRARY("Microprocessors", "Microprocessors.", gasMicroprocessors),
