@@ -29,10 +29,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef uint8(*CFast65C816ReadByte)(void* pvContext, uint32 uiAddress);
 typedef void(*CFast65C816WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiValue);
 
+//Bus events a computer around the processor may need to see, for example to switch memory maps.
+typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
+
 
 #define FAST_65C816_NEXT_INSTRUCTION	0
 #define FAST_65C816_NEXT_IRQ			1
 #define FAST_65C816_NEXT_NMI			2
+
+
+#define FAST_65C816_SIGNAL_VECTOR_PULL	0	//VPB is about to go low: an interrupt, BRK, COP or reset vector is read next.
+#define FAST_65C816_SIGNAL_RTI			1	//An RTI opcode has been fetched; its pulls come next.
+#define FAST_65C816_SIGNAL_NATIVE		2	//XCE has just cleared E.
 
 
 //An instruction level W65C816S.  It does what CW65C816 does an instruction at a time, without pins, bus
@@ -77,12 +85,14 @@ protected:
 	CFast65C816ReadByte		mfReadByte;
 	CFast65C816WriteByte	mfWriteByte;
 	void*					mpvContext;
+	CFast65C816Signal		mfSignal;	//NULL if no one is listening.
 
 public:
 	void		Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
 
 	void		SetHole(uint32 uiStart, uint32 uiEnd);
+	void		SetSignal(CFast65C816Signal fSignal);
 	void		Reset(void);
 	bool		Step(void);
 	size		Run(size uiMaxInstructions);
