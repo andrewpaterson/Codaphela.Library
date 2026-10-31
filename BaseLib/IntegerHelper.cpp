@@ -656,6 +656,11 @@ size FindFirstClearBit(void* pvArray, size iArraySize)
 //////////////////////////////////////////////////////////////////////////
 size FindFirstClearBit(uint32 uiBits)
 {
+	if (uiBits == 0xFFFFFFFF)
+	{
+		return 32;
+	}
+
 #ifdef _MSC_VER
 	unsigned long	uiIndex;
 

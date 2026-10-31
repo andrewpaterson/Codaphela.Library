@@ -53,7 +53,7 @@ void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue);
 void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
 size 	FindFirstClearBit(void* pvArray, size iArraySize);  //Libc65's string816_16.asm on the W65C816 (and the Last, uint32 and uint64 ones).
-size	FindFirstClearBit(uint32 uiBits);  //uiBits must have a clear bit.
+size	FindFirstClearBit(uint32 uiBits);  //32 if uiBits has no clear bit.
 size 	FindFirstSetBit(void* pvArray, size iArraySize);
 size	FindFirstSetBit(uint64 uiBits);  //uiBits must have a set bit.
 size 	FindLastClearBit(void* pvArray, size iArraySize);
