@@ -81,6 +81,7 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 	mfReadByte = fReadByte;
 	mfWriteByte = fWriteByte;
 	mpvContext = pvContext;
+	mfSignal = NULL;
 	mpuiMemory = puiMemory;
 	muiMemorySize = puiMemory ? uiMemorySize : 0;
 	muiHoleStart = 0;
@@ -97,6 +98,7 @@ void CFast65C816::Kill(void)
 	mfReadByte = NULL;
 	mfWriteByte = NULL;
 	mpvContext = NULL;
+	mfSignal = NULL;
 	mpuiMemory = NULL;
 }
 
@@ -110,6 +112,17 @@ void CFast65C816::SetHole(uint32 uiStart, uint32 uiEnd)
 {
 	muiHoleStart = uiStart;
 	muiHoleSize = uiEnd - uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fSignal is called with the FAST_65C816_SIGNAL_* events, with the context given to Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C816::SetSignal(CFast65C816Signal fSignal)
+{
+	mfSignal = fSignal;
 }
 
 
@@ -137,6 +150,10 @@ void CFast65C816::Reset(void)
 	muiS = (uint16)(0x100 | ((muiS - 3) & 0xFF));
 	muiCycles += 5;
 
+	if (mfSignal)
+	{
+		mfSignal(mpvContext, FAST_65C816_SIGNAL_VECTOR_PULL);
+	}
 	uiLow = Read(0xFFFC);
 	uiHigh = Read(0xFFFD);
 	muiPC = (uint16)(uiLow | (uiHigh << 8));
@@ -312,6 +329,10 @@ void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, boo
 	muiPBR = 0;
 
 	uiVector = mbE ? uiEmulationVector : uiNativeVector;
+	if (mfSignal)
+	{
+		mfSignal(mpvContext, FAST_65C816_SIGNAL_VECTOR_PULL);
+	}
 	uiLow = Read(uiVector);
 	uiHigh = Read(uiVector + 1);
 	muiPC = (uint16)(uiLow | (uiHigh << 8));
@@ -1600,6 +1621,10 @@ void CFast65C816::Execute(void)
 			muiS = (uint16)(0x100 | (muiS & 0xFF));
 			SetP(muiP);
 		}
+		else if (mfSignal)
+		{
+			mfSignal(mpvContext, FAST_65C816_SIGNAL_NATIVE);
+		}
 		break;
 
 	case 0x18:	muiCycles++;	muiP &= ~FAST_816_C;	break;
@@ -1728,6 +1753,10 @@ void CFast65C816::Execute(void)
 		break;
 	case 0x40:
 		//RTI.  The pulled P takes effect at the end.
+		if (mfSignal)
+		{
+			mfSignal(mpvContext, FAST_65C816_SIGNAL_RTI);
+		}
 		muiCycles += 2;
 		uiValue = Pull();
 		uiLow = Pull();
