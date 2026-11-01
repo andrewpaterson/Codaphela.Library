@@ -181,45 +181,71 @@ static void FatStressNewPath(SFatStress* ps, uint32 uiDirectory, uint32 uiMaxLen
 }
 
 
+//The checks below run over every cluster and every directory entry after every operation.  So that each check counts
+//as one test, they only Assert when something is wrong and return whether everything was right; FatStressRun
+//Asserts that.
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void FatStressMarkCluster(SFatStress* ps, uint32 uiCluster)
+static bool FatStressMarkCluster(SFatStress* ps, uint32 uiCluster)
 {
-	AssertTrue(uiCluster >= 2);
-	AssertTrue(uiCluster < ps->uiClusters + 2);
-	AssertFalse(FixBool(ps->puiClusterOwners[uiCluster >> 3] & ((uint32)1 << (uiCluster & 7))));
+	bool	bOwned;
+
+	if (uiCluster < 2)
+	{
+		AssertTrue(uiCluster >= 2);
+		return false;
+	}
+	if (uiCluster >= ps->uiClusters + 2)
+	{
+		AssertTrue(uiCluster < ps->uiClusters + 2);
+		return false;
+	}
+	bOwned = FixBool(ps->puiClusterOwners[uiCluster >> 3] & ((uint32)1 << (uiCluster & 7)));
+	if (bOwned)
+	{
+		AssertFalse(bOwned);
+		return false;
+	}
 	ps->puiClusterOwners[uiCluster >> 3] |= (uint8)(1 << (uiCluster & 7));
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Marks the chain's clusters as owned (each once) and returns how many there are.
+// Marks the chain's clusters as owned (each once) and sets how many there are.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint32 FatStressMarkChain(SFatStress* ps, uint32 uiCluster)
+static bool FatStressMarkChain(SFatStress* ps, uint32 uiCluster, uint32* puiCount)
 {
 	EFatCode	eResult;
 	fatEntry	uiNext;
-	uint32		uiCount;
 
-	uiCount = 0;
+	*puiCount = 0;
 	while ((uiCluster != 0) && !ps->cVolume.FatIsEOFEntry(uiCluster))
 	{
-		FatStressMarkCluster(ps, uiCluster);
-		uiCount++;
-		if (uiCount > ps->uiClusters)
+		if (!FatStressMarkCluster(ps, uiCluster))
 		{
-			AssertTrue(false);
-			break;
+			return false;
+		}
+		(*puiCount)++;
+		if (*puiCount > ps->uiClusters)
+		{
+			AssertTrue(*puiCount <= ps->uiClusters);
+			return false;
 		}
 		eResult = ps->cVolume.GetNextClusterEntry(uiCluster, &uiNext);
-		AssertInt(FAT_SUCCESS, eResult);
+		if (eResult != FAT_SUCCESS)
+		{
+			AssertInt(FAT_SUCCESS, eResult);
+			return false;
+		}
 		uiCluster = uiNext;
 	}
-	return uiCount;
+	return true;
 }
 
 
@@ -229,7 +255,7 @@ static uint32 FatStressMarkChain(SFatStress* ps, uint32 uiCluster)
 // and chains.
 //
 //////////////////////////////////////////////////////////////////////////
-static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
+static bool FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 {
 	SFatDirectoryEntry*		psEntry;
 	SFatFileSystemQuery		sQuery;
@@ -239,9 +265,12 @@ static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 	uint32					uiFound;
 	uint32					uiDots;
 	uint32					uiClusters;
+	uint32					uiFileClusters;
 	uint32					uiClusterSize;
+	uint32					uiExpectedDots;
 	uint32					i;
 	bool					bFound;
+	bool					bResult;
 
 	uiClusterSize = ps->cVolume.GetClusterSize();
 	uiExpected = 0;
@@ -258,10 +287,10 @@ static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 
 	uiFound = 0;
 	uiDots = 0;
+	bResult = true;
 	sQuery.Init();
 	eResult = ps->cVolume.FindFirstFATEntry((uiDirectory == 0) ? "\\" : ps->asDirectories[uiDirectory].szPath, 0, &psEntry, &sQuery);
-	AssertInt(FAT_SUCCESS, eResult);
-	while ((eResult == FAT_SUCCESS) && (psEntry->szName[0] != '\0'))
+	while (bResult && (eResult == FAT_SUCCESS) && (psEntry->szName[0] != '\0'))
 	{
 		if ((strcmp((char*)psEntry->szName, ".") == 0) || (strcmp((char*)psEntry->szName, "..") == 0))
 		{
@@ -282,8 +311,20 @@ static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 						break;
 					}
 				}
-				AssertTrue(bFound);
-				AssertTrue(FatStressMarkChain(ps, GetFirstClusterFromFatEntry(&psEntry->sRaw, true)) > 0);
+				if (!bFound)
+				{
+					AssertTrue(bFound);
+					bResult = false;
+				}
+				else if (!FatStressMarkChain(ps, GetFirstClusterFromFatEntry(&psEntry->sRaw, true), &uiClusters))
+				{
+					bResult = false;
+				}
+				else if (uiClusters == 0)
+				{
+					AssertTrue(uiClusters > 0);
+					bResult = false;
+				}
 			}
 			else
 			{
@@ -298,21 +339,55 @@ static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 				if (!bFound)
 				{
 					AssertString("A file in the model", szPath);
+					bResult = false;
+				}
+				else if (ps->asFiles[i].uiSize != psEntry->uiSize)
+				{
+					AssertInt(ps->asFiles[i].uiSize, psEntry->uiSize);
+					bResult = false;
+				}
+				else if (!FatStressMarkChain(ps, GetFirstClusterFromFatEntry(&psEntry->sRaw, true), &uiClusters))
+				{
+					bResult = false;
 				}
 				else
 				{
-					AssertInt(ps->asFiles[i].uiSize, psEntry->uiSize);
-					uiClusters = FatStressMarkChain(ps, GetFirstClusterFromFatEntry(&psEntry->sRaw, true));
-					AssertInt((ps->asFiles[i].uiSize + uiClusterSize - 1) / uiClusterSize, uiClusters);
+					uiFileClusters = (ps->asFiles[i].uiSize + uiClusterSize - 1) / uiClusterSize;
+					if (uiFileClusters != uiClusters)
+					{
+						AssertInt(uiFileClusters, uiClusters);
+						bResult = false;
+					}
 				}
 			}
 		}
-		eResult = ps->cVolume.FindNextFATEntry(&psEntry, &sQuery);
+		if (bResult)
+		{
+			eResult = ps->cVolume.FindNextFATEntry(&psEntry, &sQuery);
+		}
 	}
-	AssertInt(FAT_SUCCESS, eResult);
 	sQuery.Kill(ps->cVolume.GetSectorCache());
-	AssertInt(uiExpected, uiFound);
-	AssertInt((uint32)((uiDirectory == 0) ? 0 : 2), uiDots);
+	if (!bResult)
+	{
+		return false;
+	}
+	if (eResult != FAT_SUCCESS)
+	{
+		AssertInt(FAT_SUCCESS, eResult);
+		return false;
+	}
+	if (uiExpected != uiFound)
+	{
+		AssertInt(uiExpected, uiFound);
+		return false;
+	}
+	uiExpectedDots = (uiDirectory == 0) ? 0 : 2;
+	if (uiExpectedDots != uiDots)
+	{
+		AssertInt(uiExpectedDots, uiDots);
+		return false;
+	}
+	return true;
 }
 
 
@@ -320,19 +395,30 @@ static void FatStressCheckDirectory(SFatStress* ps, uint32 uiDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void FatStressCheckContents(SFatStress* ps, SFatStressFile* psFile)
+static bool FatStressCheckContents(SFatStress* ps, SFatStressFile* psFile)
 {
 	CFatFile	cFatFile;
 	EFatCode	eResult;
 	uint32		uiDone;
 	uint32		uiLength;
 	lsize		uiBytesRead;
+	bool		bResult;
 
 	cFatFile.Init(&ps->cVolume);
 	eResult = cFatFile.Open(psFile->szPath, FAT_FILE_ACCESS_READ);
-	AssertInt(FAT_SUCCESS, eResult);
-	AssertInt(psFile->uiSize, cFatFile.Size());
-	for (uiDone = 0; uiDone < psFile->uiSize; uiDone += uiLength)
+	if (eResult != FAT_SUCCESS)
+	{
+		AssertInt(FAT_SUCCESS, eResult);
+		return false;
+	}
+
+	bResult = true;
+	if (psFile->uiSize != cFatFile.Size())
+	{
+		AssertInt(psFile->uiSize, cFatFile.Size());
+		bResult = false;
+	}
+	for (uiDone = 0; bResult && (uiDone < psFile->uiSize); uiDone += uiLength)
 	{
 		uiLength = psFile->uiSize - uiDone;
 		if (uiLength > 4096)
@@ -340,14 +426,38 @@ static void FatStressCheckContents(SFatStress* ps, SFatStressFile* psFile)
 			uiLength = 4096;
 		}
 		eResult = cFatFile.Read(ps->puiBuffer, uiLength, &uiBytesRead);
-		AssertInt(FAT_SUCCESS, eResult);
-		AssertLSize(uiLength, uiBytesRead);
-		AssertMemory(&psFile->puiData[uiDone], ps->puiBuffer, uiLength);
+		if (eResult != FAT_SUCCESS)
+		{
+			AssertInt(FAT_SUCCESS, eResult);
+			bResult = false;
+		}
+		else if (uiBytesRead != uiLength)
+		{
+			AssertLSize(uiLength, uiBytesRead);
+			bResult = false;
+		}
+		else if (memcmp(&psFile->puiData[uiDone], ps->puiBuffer, uiLength) != 0)
+		{
+			AssertMemory(&psFile->puiData[uiDone], ps->puiBuffer, uiLength);
+			bResult = false;
+		}
 	}
-	eResult = cFatFile.Read(ps->puiBuffer, 1, &uiBytesRead);
-	AssertLSize(0, uiBytesRead);
+	if (bResult)
+	{
+		eResult = cFatFile.Read(ps->puiBuffer, 1, &uiBytesRead);
+		if (uiBytesRead != 0)
+		{
+			AssertLSize(0, uiBytesRead);
+			bResult = false;
+		}
+	}
 	eResult = cFatFile.Close();
-	AssertInt(FAT_SUCCESS, eResult);
+	if (eResult != FAT_SUCCESS)
+	{
+		AssertInt(FAT_SUCCESS, eResult);
+		bResult = false;
+	}
+	return bResult;
 }
 
 
@@ -356,45 +466,67 @@ static void FatStressCheckContents(SFatStress* ps, SFatStressFile* psFile)
 // Every directory, and (when bFull) every file's contents, no cluster outside the chains in use and the free count.
 //
 //////////////////////////////////////////////////////////////////////////
-static void FatStressCheck(SFatStress* ps, bool bFull)
+static bool FatStressCheck(SFatStress* ps, bool bFull)
 {
 	EFatCode	eResult;
 	fatEntry	uiEntry;
 	uint32		uiOwned;
+	uint32		uiRootClusters;
+	uint32		uiFree;
 	uint32		i;
 
 	memset(ps->puiClusterOwners, 0, (ps->uiClusters + 2 + 7) / 8);
-	FatStressMarkChain(ps, ps->cVolume.GetRootCluster());
+	if (!FatStressMarkChain(ps, ps->cVolume.GetRootCluster(), &uiRootClusters))
+	{
+		return false;
+	}
 	for (i = 0; i < ps->uiDirectories; i++)
 	{
-		FatStressCheckDirectory(ps, i);
+		if (!FatStressCheckDirectory(ps, i))
+		{
+			return false;
+		}
 	}
 	if (!bFull)
 	{
-		return;
+		return true;
 	}
 
 	for (i = 0; i < ps->uiFiles; i++)
 	{
-		FatStressCheckContents(ps, &ps->asFiles[i]);
+		if (!FatStressCheckContents(ps, &ps->asFiles[i]))
+		{
+			return false;
+		}
 	}
 
 	uiOwned = 0;
 	for (i = 2; i < ps->uiClusters + 2; i++)
 	{
 		eResult = ps->cVolume.GetNextClusterEntry(i, &uiEntry);
-		AssertInt(FAT_SUCCESS, eResult);
+		if (eResult != FAT_SUCCESS)
+		{
+			AssertInt(FAT_SUCCESS, eResult);
+			return false;
+		}
 		if (ps->puiClusterOwners[i >> 3] & (1 << (i & 7)))
 		{
 			uiOwned++;
 		}
-		else
+		else if ((uiEntry & 0x0FFFFFFF) != 0)
 		{
 			//A cluster no chain owns is free.
 			AssertInt((uint32)0, (uint32)(uiEntry & 0x0FFFFFFF));
+			return false;
 		}
 	}
-	AssertInt(ps->cVolume.GetNumClusters() - uiOwned, ps->cVolume.GetTotalFreeClusters());
+	uiFree = ps->cVolume.GetNumClusters() - uiOwned;
+	if (uiFree != ps->cVolume.GetTotalFreeClusters())
+	{
+		AssertInt(uiFree, ps->cVolume.GetTotalFreeClusters());
+		return false;
+	}
+	return true;
 }
 
 
@@ -751,15 +883,15 @@ static void FatStressRun(uint8 uiSectorsPerCluster, uint64 uiSectors, uint32 uiS
 	ps->puiBuffer = (uint8*)malloc(4096);
 	ps->asDirectories[0].szPath[0] = '\0';
 	ps->uiDirectories = 1;
-	FatStressCheck(ps, true);
+	AssertTrue(FatStressCheck(ps, true));
 
 	for (ps->uiOperation = 0; ps->uiOperation < FAT_STRESS_OPERATIONS; ps->uiOperation++)
 	{
 		FatStressOperation(ps);
-		FatStressCheck(ps, ((ps->uiOperation + 1) % FAT_STRESS_FULL_CHECK) == 0);
+		AssertTrue(FatStressCheck(ps, ((ps->uiOperation + 1) % FAT_STRESS_FULL_CHECK) == 0));
 	}
 	FatStressRemount(ps);
-	FatStressCheck(ps, true);
+	AssertTrue(FatStressCheck(ps, true));
 
 	eResult = ps->cVolume.Unmount();
 	AssertInt(FAT_SUCCESS, eResult);
