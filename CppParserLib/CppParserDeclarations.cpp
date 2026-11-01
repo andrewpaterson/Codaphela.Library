@@ -40,6 +40,9 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
 	CCPPScope*					pcRecordScope;
 
+	papcRecorded = NULL;
+	pcRecordScope = NULL;
+
 	//[dcl.dcl]  A declaration that can't be parsed is skipped and kept as its tokens.
 	while (!IsEnd())
 	{
