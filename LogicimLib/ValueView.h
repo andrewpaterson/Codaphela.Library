@@ -23,9 +23,11 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IntegratedCircuitView.h"
 #include "CircuitFonts.h"
 #include "Radix.h"
+#include "TunnelView.h"
 
 
 #define VALUE_FONT_SIZE		10.0
+#define PIN_NAME_FONT_SIZE	TUNNEL_FONT_SIZE  //A pin's name is as big as a tunnel's.
 
 
 class CPort;

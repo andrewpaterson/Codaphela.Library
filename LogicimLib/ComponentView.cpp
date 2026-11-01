@@ -142,6 +142,31 @@ bool CComponentView::LoadXMLMirrored(CMarkupTag* pcTag)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The attributes every view of a kind has that its LoadXML's Init sets to
+// their defaults: mirrored, and what subclasses add.  Called on a view
+// LoadXML has initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::LoadXMLAfterInit(CMarkupTag* pcTag)
+{
+	return LoadXMLMirrored(pcTag);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The properties every view of a kind has that its InitFromProperties'
+// Init sets to their defaults (other than mirrored, which isn't a
+// property).  Called on a view InitFromProperties has initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::InitAfterProperties(CComponentProperties* pcProperties)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The attributes SaveXMLAttributes writes.  A missing name is empty.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -288,6 +313,17 @@ CComponentView* CComponentView::NewNextUnit(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CCircuitInstanceView* CComponentView::GetCircuitInstanceView(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This view if it's an integrated circuit's, otherwise NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CIntegratedCircuitView* CComponentView::GetIntegratedCircuitView(void)
 {
 	return NULL;
 }

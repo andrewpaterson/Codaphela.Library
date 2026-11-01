@@ -29,11 +29,28 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #include "KicadSchemSubnetGraph.h"
 
 
-//KiCad's 2.54mm (100 mil) pin spacing is one Logicim grid unit.
+//KiCad's 2.54mm (100 mil) pin spacing, its grid.
 #define KICAD_SCHEM_LOGICIM_GRID			2.54
+
+//Logicim grid units to one of KiCad's.  Logicim's parts are bigger than KiCad's symbols for their pins.
+#define KICAD_SCHEM_LOGICIM_SCALE			2.0
 
 //The gap kept between components' boxes.
 #define KICAD_SCHEM_LOGICIM_SPACING			2
+
+
+//How much more a component lined up with another (see SKicadSchemLogicimAlignment) would rather be moved along the
+//line than off it when it's moved clear of the others.
+#define KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT	4
+
+
+//Which way a component keeps to the line it's lined up on with another.
+enum EKicadSchemLogicimAlign
+{
+	KSLA_None,
+	KSLA_KeepY,		//A horizontal wire: moved across, not up or down.
+	KSLA_KeepX,		//A vertical wire.
+};
 
 //Knots are wire turns and crossings.  An area of DENSE_WINDOW grid units square with more than DENSE_KNOTS is dense,
 //and is exploded: EXPLODE_SPACE grid units are put in across it each way.
@@ -49,7 +66,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #define KICAD_SCHEM_LOGICIM_SEPARATE_RADIUS	400
 
 
-//A component made in the Logicim circuit and where KiCad has it, in grid units.  The anchor is the point of the view
+//A component made in the Logicim circuit and where KiCad has it, in Logicim grid units (see KICAD_SCHEM_LOGICIM_SCALE).  The anchor is the point of the view
 //that goes there (a power symbol's port, otherwise the view's position), from its position.  A tunnel or power
 //supply has one port; if KiCad has it right on a pin it's attached to that pin's port: it goes port to port with it
 //(Logicim joins ports in the same place), pointing away, and moves with it.
@@ -61,6 +78,8 @@ struct SKicadSchemLogicimItem
 	SInt32Vec2			sOffset;
 	CPortView*			pcPort;
 	CPortView*			pcAttachedTo;
+	EKicadSchemLogicimAlign	eAlign;
+	CKicadSchemSymbol*	pcSymbol;  //The symbol it was made for.  NULL for tunnels and splitters.
 };
 
 
@@ -88,7 +107,29 @@ struct SKicadSchemLogicimConnection
 };
 
 
+//Two components that are all of a subnet, wired by one straight wire in KiCad (their pins level or one above the
+//other): their ports are lined up when they're placed so the wire stays straight.
+struct SKicadSchemLogicimAlignment
+{
+	size		uiFromItem;
+	size		uiToItem;
+	CPortView*	pcFromPort;
+	CPortView*	pcToPort;
+	bool		bHorizontal;
+};
+
+
+//A voltage regulator's output: the net it drives and its voltage.
+struct SKicadSchemLogicimRegulated
+{
+	CKicadSchemNet*		pcNet;
+	float32				fVoltage;
+};
+
+
 typedef CArrayTemplate<SKicadSchemLogicimItem>			CArrayKicadSchemLogicimItem;
+typedef CArrayTemplate<SKicadSchemLogicimRegulated>		CArrayKicadSchemLogicimRegulated;
+typedef CArrayTemplate<SKicadSchemLogicimAlignment>		CArrayKicadSchemLogicimAlignment;
 typedef CArrayTemplate<SKicadSchemLogicimTerminal>		CArrayKicadSchemLogicimTerminal;
 typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConnection;
 
@@ -101,8 +142,9 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //and "Y" on a single gate part, which is a unit) or, if they have no names, by their types; any other part's pins by
 //the labels of its package's pins (see AddLogic74Block).  A 74 series gate or flip flop that isn't a part there's a row
 //for becomes a generic gate (or D flip flop) for each of its gates.  Power pins are left out: the parts have implied
-//power.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V), and so does a voltage
-//regulator's output (see AddRegulator).  A connector (a board's edge connector) becomes the circuit's pins, one for
+//power.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V).  A voltage regulator
+//isn't drawn: the ICs whose power pins its output reaches are given its voltage as their implied Vcc (see AddRegulator
+//and ApplyRegulatedVoltages).  A connector (a board's edge connector) becomes the circuit's pins, one for
 //each net on it that isn't a supply's (see AddBoardPins).  Resistors and resistor networks, capacitors and capacitor
 //networks, inductors, diodes, LEDs, mounting holes, net ties, test points and power flags are left out.  Any other
 //symbol becomes an instance of a placeholder subcircuit made for its library symbol and unit: an empty circuit with a
@@ -110,7 +152,8 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //Hierarchical sheets are left out.
 //
 //A subnet that is part of a bigger net (it's joined to the rest by labels) gets a tunnel named as the net at each of
-//its labels, so each subnet is wired on its own, as KiCad drew it.  A tunnel or supply KiCad has right on a pin is
+//its labels, so each subnet is wired on its own, as KiCad drew it.  A tunnel or supply on a subnet with nothing else drawn on it (wired only to
+//parts' left out power pins, or to nothing) isn't made.  A tunnel or supply KiCad has right on a pin is
 //attached to the pin's port: port to port, pointing away from it, and moving with it.  The terminals of each subnet are
 //wired as a tree in the order KiCad's wires join them, each connection hinted to bend as KiCad's wire first
 //bends.  Connections between the same two components are routed as a run (see CTraceAutoConnector).
@@ -120,6 +163,10 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //members' wires.  A splitter has an end for each member it taps and, if the bus has others, an end for the rest.  The
 //splitters of a bus are wired to each other along it, and a bus whose name is on other buses gets a tunnel at each of
 //its labels.
+//
+//Two components that are all of a subnet, joined by one straight wire in KiCad, are lined up wherever they're placed
+//(the one with fewer connections is moved), and moving them clear of the others would rather move them along their
+//line than off it (see KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT).
 //
 //The components are first placed spread out from where KiCad has them (like raisins in rising dough), wired, and
 //then moved back towards KiCad's places in steps and rewired at each, while the wiring stays as good; between the
@@ -140,6 +187,10 @@ protected:
 	CArrayKicadSchemLogicimItem			masItems;
 	CArrayKicadSchemLogicimTerminal		masTerminals;
 	CArrayKicadSchemLogicimConnection	masConnections;
+	CArrayKicadSchemLogicimAlignment	masAlignments;
+	CArrayKicadSchemLogicimRegulated	masRegulated;
+	CKicadSchemSymbol*					mpcAddingSymbol;
+	size								muiRegulators;
 	float64								mfSpread;
 	size								muiUnconnected;
 	size								muiGates;
@@ -172,6 +223,7 @@ public:
 	size							NumGates(void);
 	size							NumPlaceholders(void);
 	size							NumPowers(void);
+	size							NumRegulators(void);
 	size							NumTunnels(void);
 	size							NumSplitters(void);
 	size							NumBlocks(void);
@@ -200,10 +252,16 @@ protected:
 	CCircuitView*					GetPlaceholderCircuit(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	void							GetPlaceholderPins(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayChars* paszNames);
 	void							AddTunnels(void);
+	void							ApplyRegulatedVoltages(void);
+	float32							GetRegulatedVoltage(CKicadSchemSymbol* pcSymbol);
+	float32							GetNetRegulatedVoltage(CKicadSchemNet* pcNet);
+	void							RemoveUnconnectedItems(void);
 	void							AddBuses(void);
 	void							AddBus(CKicadSchemBus* pcBus, size uiBus);
 	void							AddBusSplitter(CKicadSchemBus* pcBus, CArrayInt* paiTaps, bool bVertical, int iSide);
 	void							AddConnections(void);
+	void							FindAlignments(void);
+	void							AlignItems(void);
 	void							AddSubnetConnections(CKicadSchemSubnet* pcSubnet, size uiSubnet);
 
 	size							AddItem(CComponentView* pcView, SKicadSchemPoint* psKicadPosition, CPortView* pcAnchor);

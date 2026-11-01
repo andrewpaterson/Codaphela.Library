@@ -727,6 +727,7 @@ CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComp
 		}
 		return NULL;
 	}
+	pcNew->InitAfterProperties(pcProperties);
 	pcNew->SetMirrored(bMirrored);
 	pcInstanceView = pcNew->GetCircuitInstanceView();
 	if (pcInstanceView != NULL)

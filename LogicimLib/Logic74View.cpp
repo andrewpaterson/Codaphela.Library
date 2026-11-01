@@ -646,6 +646,7 @@ CComponentView* CLogic74UnitView::NewNextUnit(void)
 	pcNext = NewMalloc<CLogic74UnitView>();
 	pcNext->Init(msPosition.x, msPosition.y, meRotation, mszName.Text(), mszFamily.Text(), mbExplicitPowerPorts, mszPartType.Text(), miUnit + 1);
 	pcNext->SetMirrored(mbMirrored);
+	pcNext->SetImpliedVcc(mfImpliedVcc);
 	return pcNext;
 }
 

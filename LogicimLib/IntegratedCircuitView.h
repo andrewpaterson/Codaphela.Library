@@ -43,8 +43,9 @@ struct SPortViewCreator
 
 
 //A view of an integrated circuit of a logic family, as Logicim's IntegratedCircuitView and
-//StandardIntegratedCircuitView.  Unless its power ports are explicit the IC is powered by its own supply at the
-//family's default (TTL) voltage when it's made.  Explicit power ports are drawn as a VCC port on the left of the
+//StandardIntegratedCircuitView.  Unless its power ports are explicit the IC is powered by its own supply at its
+//implied Vcc, if it has one, otherwise the family's default (TTL) voltage, when it's made.  A KiCad import gives the
+//ICs a voltage regulator powers its voltage.  Explicit power ports are drawn as a VCC port on the left of the
 //bounding box and a GND port on the right, each with a grid unit of line to the shapes.
 class CIntegratedCircuitView : public CComponentView
 {
@@ -52,6 +53,7 @@ CONSTRUCTABLE(CIntegratedCircuitView);
 protected:
 	CChars		mszFamily;
 	bool		mbExplicitPowerPorts;
+	float32		mfImpliedVcc;  //Volts of the IC's own supply.  0 for the family's default.
 
 public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts);
@@ -59,10 +61,15 @@ public:
 
 	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
+	virtual CIntegratedCircuitView*	GetIntegratedCircuitView(void);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily) =0;
 
 			char*					GetFamily(void);
 			bool					IsExplicitPowerPorts(void);
+			void					SetImpliedVcc(float32 fImpliedVcc);
+			float32					GetImpliedVcc(void);
+	virtual bool					LoadXMLAfterInit(CMarkupTag* pcTag);
+	virtual void					InitAfterProperties(CComponentProperties* pcProperties);
 			CIntegratedCircuit*		GetIntegratedCircuit(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 
 protected:
@@ -79,7 +86,7 @@ protected:
 
 
 class CPort;
-bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies);
+bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies, float32 fVcc = 0);
 
 
 #endif // __INTEGRATED_CIRCUIT_VIEW_H__

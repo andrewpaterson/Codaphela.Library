@@ -39,6 +39,7 @@ class CCircuitComponent;
 class CSubcircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 class CComponentStateXML;
+class CIntegratedCircuitView;
 class CComponentView;
 
 
@@ -72,7 +73,7 @@ typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing East about its
 //position, as it's normally read (-y up and -x left), mirrored top to bottom if it's mirrored and turned by its
 //rotation (see TransformPoint).  A view is made unmirrored; mirroring is set after it's made (SetMirrored), as the
-//circuit does when loading it (LoadXMLMirrored).  As Logicim's views, it makes a component for each circuit simulation of
+//circuit does when loading it (LoadXMLAfterInit, which loads what every view of a kind has after LoadXML's Init).  As Logicim's views, it makes a component for each circuit simulation of
 //each view path its circuit is on (CreateComponent), in the subcircuit simulation the path has for that circuit
 //simulation, and remembers each by its path and circuit simulation.  A circuit used in many places, or simulated many
 //times, has one set of views and a component of each per use.
@@ -115,6 +116,7 @@ public:
 	virtual const char*				GetConnectionName(void);
 	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
 	virtual CCircuitInstanceView*	GetCircuitInstanceView(void);
+	virtual CIntegratedCircuitView*	GetIntegratedCircuitView(void);
 	virtual CComponentView*			NewNextUnit(void);
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
@@ -124,6 +126,8 @@ public:
 	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			void					SaveXML(CXMLWriter* pcWriter);
 			bool					LoadXMLMirrored(CMarkupTag* pcTag);
+	virtual bool					LoadXMLAfterInit(CMarkupTag* pcTag);
+	virtual void					InitAfterProperties(CComponentProperties* pcProperties);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 
 			void					DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);

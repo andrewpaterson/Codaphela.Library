@@ -447,7 +447,7 @@ void CPinView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, c
 //////////////////////////////////////////////////////////////////////////
 //
 // The name is a quarter of a grid unit past the end of the box, turned
-// with the value.
+// with the value, as big as a tunnel's name.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPinView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int32 iBitWidth, ERadix eRadix, SInt32Vec2 sBoxMinimum, SInt32Vec2 sBoxMaximum)
@@ -473,7 +473,7 @@ void CPinView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, c
 	}
 	CreateValuePortViews("Port");
 	AddValueText();
-	mcShapes.AddText(msBoxMinimum.x - 0.25, 0, szName, CF_SansSerifBold, VALUE_FONT_SIZE, TA_Left, 2);
+	mcShapes.AddText(msBoxMinimum.x - 0.25, 0, szName, CF_SansSerifBold, PIN_NAME_FONT_SIZE, TA_Left, 2);
 	CalculateBounds();
 }
 
@@ -590,7 +590,7 @@ CCircuitComponent* CPinView::CreateComponent(CViewPath* pcViewPath, CCircuitSimu
 	apcSupplies.Init();
 	if (!mbExplicitPowerPorts)
 	{
-		if (!PowerPortsImplicitly(pcSimulation, pcPin->GetVoltageCommon(), pcPin->GetVoltageGround(), mpcFamily, &apcSupplies))
+		if (!PowerPortsImplicitly(pcSimulation, pcPin->GetVoltageCommon(), pcPin->GetVoltageGround(), mpcFamily, &apcSupplies, mfImpliedVcc))
 		{
 			//Nothing points to the pin yet, so removing it frees it.
 			apcSupplies.Kill();

@@ -740,7 +740,7 @@ bool CCircuitView::LoadXML(CMarkupTag* pcCircuitTag)
 				free(pcComponent);
 				return false;
 			}
-			if (!pcComponent->LoadXMLMirrored(pcTag))
+			if (!pcComponent->LoadXMLAfterInit(pcTag))
 			{
 				SafeKill(pcComponent);
 				return false;

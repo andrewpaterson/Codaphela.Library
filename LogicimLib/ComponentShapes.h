@@ -84,7 +84,6 @@ struct SComponentShape
 	ETextAlignment	eAlignment;
 	int				iRelativeRightRotations;
 	bool			bCentred;
-	bool			bInkCentred;	//Placed across by its ink, see CCircuitPainter::Text.
 	bool			bVisible;
 };
 

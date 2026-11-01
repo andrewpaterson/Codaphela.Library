@@ -44,6 +44,7 @@ void CIntegratedCircuitView::Init(int32 x, int32 y, ERotation eRotation, const c
 	CComponentView::Init(x, y, eRotation, szName);
 	mszFamily.Init(szFamily);
 	mbExplicitPowerPorts = bExplicitPowerPorts;
+	mfImpliedVcc = 0;
 }
 
 
@@ -67,6 +68,51 @@ void CIntegratedCircuitView::SaveXMLAttributes(CXMLWriter* pcWriter)
 	CComponentView::SaveXMLAttributes(pcWriter);
 	pcWriter->Attribute("family", mszFamily.Text());
 	pcWriter->Attribute("explicitPowerPorts", mbExplicitPowerPorts);
+	if (mfImpliedVcc > 0)
+	{
+		pcWriter->Attribute("impliedVcc", mfImpliedVcc);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The implied Vcc, after what every view loads.  Only saved when there is
+// one, so files from before are the same: missing is the family's default.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuitView::LoadXMLAfterInit(CMarkupTag* pcTag)
+{
+	if (!CComponentView::LoadXMLAfterInit(pcTag))
+	{
+		return false;
+	}
+	mfImpliedVcc = 0;
+	if (pcTag->GetStringAttribute("impliedVcc") == NULL)
+	{
+		return true;
+	}
+	if (!pcTag->GetFloat32Attribute("impliedVcc", &mfImpliedVcc) || (mfImpliedVcc < 0))
+	{
+		mfImpliedVcc = 0;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] impliedVcc must be a voltage, 0 or more.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuitView::InitAfterProperties(CComponentProperties* pcProperties)
+{
+	CComponentView::InitAfterProperties(pcProperties);
+	mfImpliedVcc = (float32)pcProperties->GetFloat("impliedVcc", mfImpliedVcc);
+	if (mfImpliedVcc < 0)
+	{
+		mfImpliedVcc = 0;
+	}
 }
 
 
@@ -161,24 +207,24 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A supply at the family's default voltage and a ground, on traces of
-// their own.
+// A supply at the implied Vcc (the family's default voltage without one)
+// and a ground, on traces of their own.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIntegratedCircuitView::PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies)
 {
-	return PowerPortsImplicitly(pcIntegratedCircuit->GetContainingSubcircuitSimulation(), pcIntegratedCircuit->GetPins()->GetVoltageCommon(), pcIntegratedCircuit->GetPins()->GetVoltageGround(), pcFamily, papcSupplies);
+	return PowerPortsImplicitly(pcIntegratedCircuit->GetContainingSubcircuitSimulation(), pcIntegratedCircuit->GetPins()->GetVoltageCommon(), pcIntegratedCircuit->GetPins()->GetVoltageGround(), pcFamily, papcSupplies, mfImpliedVcc);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A supply at the family's default voltage on pcCommon and a ground on
-// pcGround, on traces of their own.  The supplies are added to
-// papcSupplies.
+// A supply at fVcc (if it's 0, the family's default voltage) on pcCommon
+// and a ground on pcGround, on traces of their own.  The supplies are
+// added to papcSupplies.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies)
+bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies, float32 fVcc)
 {
 	CVoltageConfiguration*	pcVoltage;
 	CCircuit*				pcCircuit;
@@ -196,7 +242,7 @@ bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, 
 
 	pcVCC = pcCircuit->AddTrace();
 	pcCommon->Connect(pcVCC, false);
-	pcPower = &OMalloc<CPowerSource>(pcSimulation, "", pcVoltage->GetVcc());
+	pcPower = &OMalloc<CPowerSource>(pcSimulation, "", (fVcc > 0) ? fVcc : pcVoltage->GetVcc());
 	pcPower->GetPowerOutPort()->Connect(pcVCC, false);
 	papcSupplies->Add(pcPower);
 
@@ -372,6 +418,9 @@ size CIntegratedCircuitView::AddDetail(float64 y, int32 iWidth, const char* szNa
 //////////////////////////////////////////////////////////////////////////
 char* CIntegratedCircuitView::GetFamily(void) { return mszFamily.Text(); }
 bool CIntegratedCircuitView::IsExplicitPowerPorts(void) { return mbExplicitPowerPorts; }
+CIntegratedCircuitView* CIntegratedCircuitView::GetIntegratedCircuitView(void) { return this; }
+void CIntegratedCircuitView::SetImpliedVcc(float32 fImpliedVcc) { mfImpliedVcc = fImpliedVcc; }
+float32 CIntegratedCircuitView::GetImpliedVcc(void) { return mfImpliedVcc; }
 CIntegratedCircuit* CIntegratedCircuitView::GetIntegratedCircuit(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation) { return (CIntegratedCircuit*)GetComponent(pcViewPath, pcCircuitSimulation); }
 
 
@@ -411,4 +460,5 @@ void CIntegratedCircuitView::AddPowerProperties(CComponentProperties* pcProperti
 {
 	AddFamilyProperty(pcProperties, psContext);
 	pcProperties->AddBoolean("explicitPowerPorts", mbExplicitPowerPorts);
+	pcProperties->AddFloat("impliedVcc", "V", mfImpliedVcc, 0.0, 100.0);
 }

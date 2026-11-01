@@ -47,6 +47,10 @@ static float64 gafKicadSchemLogicimSpreads[] = { 3.0, 2.5, 2.1, 1.8, 1.55, 1.35,
 static ERotation gaeKicadSchemLogicimRotations[4] = { ROT_East, ROT_South, ROT_West, ROT_North };
 
 
+static ERotation GetKicadSchemFacing(SKicadSchemPoint* psFrom, SKicadSchemPoint* psTo);
+static bool IsKicadSchemPowerPinName(const char* szName);
+
+
 //Reference prefixes and library names of the symbols that are left out.
 static const char* gaszKicadSchemSkippedReferences[] = { "R", "RN", "C", "CN", "L", "FB", "D", "LED", "H", "MH", "TP", "NT", "FID" };
 static const char* gaszKicadSchemSkippedLibraryNames[] = { "MountingHole", "NetTie", "TestPoint", "PWR_FLAG", "Fiducial" };
@@ -70,6 +74,10 @@ void CKicadSchemLogicimConverter::Init(CKicadSchemFile* pcFile, CKicadSchemNetli
 	masItems.Init();
 	masTerminals.Init();
 	masConnections.Init();
+	masAlignments.Init();
+	masRegulated.Init();
+	mpcAddingSymbol = NULL;
+	muiRegulators = 0;
 	mfSpread = 1.0;
 	muiUnconnected = 0;
 	muiGates = 0;
@@ -94,6 +102,8 @@ void CKicadSchemLogicimConverter::Init(CKicadSchemFile* pcFile, CKicadSchemNetli
 //////////////////////////////////////////////////////////////////////////
 void CKicadSchemLogicimConverter::Kill(void)
 {
+	masRegulated.Kill();
+	masAlignments.Kill();
 	masConnections.Kill();
 	masTerminals.Kill();
 	masItems.Kill();
@@ -130,15 +140,21 @@ bool CKicadSchemLogicimConverter::Convert(const char* szTypeName)
 
 	for (i = 0; i < mpcFile->NumSymbols(); i++)
 	{
-		if (!AddSymbol(mpcFile->GetSymbol(i)))
+		mpcAddingSymbol = mpcFile->GetSymbol(i);
+		if (!AddSymbol(mpcAddingSymbol))
 		{
+			mpcAddingSymbol = NULL;
 			return false;
 		}
 	}
+	mpcAddingSymbol = NULL;
+	ApplyRegulatedVoltages();
 	AddTunnels();
 	AddBuses();
+	RemoveUnconnectedItems();
 	AttachItems();
 	AddConnections();
+	FindAlignments();
 
 	//Spread out and then pulled in while it wires no worse.
 	uiNumSpreads = sizeof(gafKicadSchemLogicimSpreads) / sizeof(float64);
@@ -359,12 +375,11 @@ static bool HasKicadSchemVoltage(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 //
 // A voltage regulator (an input pin "VIN", "6VIn"; an output pin "VOUT",
-// "3.3VOut"; and a ground) is the supply its output is: a positive power
-// on its output pin of the voltage the output pin's name says ("3.3VOut")
-// or, if it doesn't say, its net's name ("+3V3"); on all its output pins
-// if it has more than one (a tab).  Its other pins are left out: the
-// parts have implied power.  False (and nothing added) if
-// it isn't a regulator or neither says its voltage.
+// "3.3VOut"; and a ground) isn't drawn.  Its output's net, on all its
+// output pins if it has more than one (a tab), is remembered with the
+// voltage the output pin's name says ("3.3VOut") or, if it doesn't say,
+// its net's name ("+3V3"), for ApplyRegulatedVoltages.  False (and
+// nothing added) if it isn't a regulator or neither says its voltage.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CKicadSchemLogicimConverter::AddRegulator(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol)
@@ -375,12 +390,11 @@ bool CKicadSchemLogicimConverter::AddRegulator(CKicadSchemSymbol* pcSymbol, CKic
 	CKicadSchemLibPin*		pcOutput;
 	bool					bGround;
 	CKicadSchemSubnet*		pcSubnet;
+	CKicadSchemNet*			pcNet;
 	char*					szNetName;
 	const char*				szVoltage;
-	const char*				szName;
-	CPositivePowerView*		pcPositive;
-	SKicadSchemPoint		sPosition;
-	size					uiItem;
+	float32					fVoltage;
+	SKicadSchemLogicimRegulated*	psRegulated;
 
 	pcInput = NULL;
 	pcOutput = NULL;
@@ -424,22 +438,138 @@ bool CKicadSchemLogicimConverter::AddRegulator(CKicadSchemSymbol* pcSymbol, CKic
 	{
 		return false;
 	}
-	szName = !StrEmpty(szNetName) ? szNetName : pcOutput->GetName();
+	fVoltage = GetSupplyVoltage(szVoltage);
 
-	pcPositive = NewMalloc<CPositivePowerView>();
-	pcPositive->Init(0, 0, ROT_South, szName, GetSupplyVoltage(szVoltage));
-	mpcFile->GetPinPosition(&sPosition, pcSymbol, pcOutput);
-	uiItem = AddItem(pcPositive, &sPosition, pcPositive->GetPortView((size)0));
 	for (i = 0; i < pcLibSymbol->NumPins(); i++)
 	{
 		pcPin = pcLibSymbol->GetPin(i);
 		if (pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()) && IsKicadSchemRegulatorPinName(pcPin->GetName(), "OUT"))
 		{
-			AddPinTerminal(pcSymbol, pcPin, pcPositive->GetPortView((size)0), uiItem);
+			pcSubnet = mpcNetlist->GetPinSubnet(pcSymbol, pcPin);
+			pcNet = (pcSubnet != NULL) ? pcSubnet->GetNet() : NULL;
+			if ((pcNet != NULL) && (GetNetRegulatedVoltage(pcNet) == 0))
+			{
+				psRegulated = masRegulated.Add();
+				psRegulated->pcNet = pcNet;
+				psRegulated->fVoltage = fVoltage;
+			}
 		}
 	}
-	muiPowers++;
+	muiRegulators++;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The voltage of the regulator whose output drives the net.  0 if none
+// does.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CKicadSchemLogicimConverter::GetNetRegulatedVoltage(CKicadSchemNet* pcNet)
+{
+	size	i;
+
+	for (i = 0; i < masRegulated.NumElements(); i++)
+	{
+		if (masRegulated.Get(i)->pcNet == pcNet)
+		{
+			return masRegulated.Get(i)->fVoltage;
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The voltage of the regulator whose output the symbol's power pins (its
+// power inputs that aren't ground) are on, if any of them are on one.  0
+// if none are.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CKicadSchemLogicimConverter::GetRegulatedVoltage(CKicadSchemSymbol* pcSymbol)
+{
+	CKicadSchemLibSymbol*	pcLibSymbol;
+	CKicadSchemLibPin*		pcPin;
+	CKicadSchemSubnet*		pcSubnet;
+	size					i;
+	float32					fVoltage;
+
+	pcLibSymbol = mpcFile->GetLibSymbol(pcSymbol);
+	if (pcLibSymbol == NULL)
+	{
+		return 0;
+	}
+	for (i = 0; i < pcLibSymbol->NumPins(); i++)
+	{
+		pcPin = pcLibSymbol->GetPin(i);
+		if (!pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()) || IsGroundName(pcPin->GetName()))
+		{
+			continue;
+		}
+		if ((pcPin->GetType() != KSPT_PowerIn) && !IsKicadSchemPowerPinName(pcPin->GetName()))
+		{
+			continue;
+		}
+		pcSubnet = mpcNetlist->GetPinSubnet(pcSymbol, pcPin);
+		if ((pcSubnet == NULL) || (pcSubnet->GetNet() == NULL))
+		{
+			continue;
+		}
+		fVoltage = GetNetRegulatedVoltage(pcSubnet->GetNet());
+		if (fVoltage > 0)
+		{
+			return fVoltage;
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each IC made for a symbol whose power pins a regulator's output reaches
+// is powered at the regulator's voltage (its implied Vcc).  A part drawn
+// as units is one part: if any of its units' power pins are on the
+// output, all its units are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemLogicimConverter::ApplyRegulatedVoltages(void)
+{
+	size						i;
+	size						j;
+	SKicadSchemLogicimItem*		psItem;
+	CIntegratedCircuitView*		pcIntegratedCircuit;
+	CKicadSchemSymbol*			pcSymbol;
+	float32						fVoltage;
+
+	if (masRegulated.NumElements() == 0)
+	{
+		return;
+	}
+	for (i = 0; i < masItems.NumElements(); i++)
+	{
+		psItem = masItems.Get(i);
+		pcIntegratedCircuit = psItem->pcView->GetIntegratedCircuitView();
+		if ((psItem->pcSymbol == NULL) || (pcIntegratedCircuit == NULL))
+		{
+			continue;
+		}
+		fVoltage = 0;
+		for (j = 0; (j < mpcFile->NumSymbols()) && (fVoltage == 0); j++)
+		{
+			pcSymbol = mpcFile->GetSymbol(j);
+			if ((pcSymbol == psItem->pcSymbol) || (StringCompare(pcSymbol->GetReference(), psItem->pcSymbol->GetReference()) == 0))
+			{
+				fVoltage = GetRegulatedVoltage(pcSymbol);
+			}
+		}
+		if (fVoltage > 0)
+		{
+			pcIntegratedCircuit->SetImpliedVcc(fVoltage);
+		}
+	}
 }
 
 
@@ -2112,6 +2242,103 @@ void CKicadSchemLogicimConverter::AddTunnels(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tunnel or supply whose subnet has nothing drawn on it but tunnels and
+// supplies (a supply wired only to parts' power pins, which are left out
+// as the parts have implied power, or a label on a wire to nothing) would
+// be drawn joined to nothing, so it's taken out with its terminal, and so
+// isn't wired.  Bus tunnels are kept: they're on their bus's splitters.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemLogicimConverter::RemoveUnconnectedItems(void)
+{
+	size							i;
+	size							j;
+	size							uiKept;
+	SKicadSchemLogicimTerminal*		psTerminal;
+	SKicadSchemLogicimTerminal*		psOther;
+	SKicadSchemLogicimItem*			psItem;
+	CArrayInt						aiNewIndices;
+	bool							bDrawn;
+
+	aiNewIndices.Init();
+	for (i = 0; i < masItems.NumElements(); i++)
+	{
+		aiNewIndices.Add(0);
+	}
+
+	//Which items go: -1.
+	for (i = 0; i < masTerminals.NumElements(); i++)
+	{
+		psTerminal = masTerminals.Get(i);
+		if (psTerminal->bBus || (masItems.Get(psTerminal->uiItem)->pcPort == NULL))
+		{
+			continue;
+		}
+		bDrawn = false;
+		for (j = 0; (j < masTerminals.NumElements()) && !bDrawn; j++)
+		{
+			psOther = masTerminals.Get(j);
+			if ((psOther->pcSubnet == psTerminal->pcSubnet) && (psOther->bBus || (masItems.Get(psOther->uiItem)->pcPort == NULL)))
+			{
+				bDrawn = true;
+			}
+		}
+		if (!bDrawn)
+		{
+			aiNewIndices.SetValue(psTerminal->uiItem, -1);
+		}
+	}
+
+	//The items kept, in order, and where each is now.
+	uiKept = 0;
+	for (i = 0; i < masItems.NumElements(); i++)
+	{
+		psItem = masItems.Get(i);
+		if (aiNewIndices.GetValue(i) == -1)
+		{
+			if (StringCompare(psItem->pcView->GetXMLName(), "Tunnel") == 0)
+			{
+				muiTunnels--;
+			}
+			else
+			{
+				muiPowers--;
+			}
+			mpcCircuit->Remove(psItem->pcView);
+			SafeKill(psItem->pcView);
+			continue;
+		}
+		aiNewIndices.SetValue(i, (int)uiKept);
+		if (uiKept != i)
+		{
+			*masItems.Get(uiKept) = *psItem;
+		}
+		uiKept++;
+	}
+	masItems.SetUsedElements(uiKept);
+
+	uiKept = 0;
+	for (i = 0; i < masTerminals.NumElements(); i++)
+	{
+		psTerminal = masTerminals.Get(i);
+		if (aiNewIndices.GetValue(psTerminal->uiItem) == -1)
+		{
+			continue;
+		}
+		psTerminal->uiItem = (size)aiNewIndices.GetValue(psTerminal->uiItem);
+		if (uiKept != i)
+		{
+			*masTerminals.Get(uiKept) = *psTerminal;
+		}
+		uiKept++;
+	}
+	masTerminals.SetUsedElements(uiKept);
+	aiNewIndices.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CKicadSchemLogicimConverter::AddConnections(void)
@@ -2273,9 +2500,11 @@ size CKicadSchemLogicimConverter::AddItem(CComponentView* pcView, SKicadSchemPoi
 	mpcCircuit->Add(pcView);
 	psItem = masItems.Add();
 	psItem->pcView = pcView;
-	psItem->sKicadPosition.Init(psKicadPosition->fX / KICAD_SCHEM_LOGICIM_GRID, psKicadPosition->fY / KICAD_SCHEM_LOGICIM_GRID);
+	psItem->sKicadPosition.Init(psKicadPosition->fX / KICAD_SCHEM_LOGICIM_GRID * KICAD_SCHEM_LOGICIM_SCALE, psKicadPosition->fY / KICAD_SCHEM_LOGICIM_GRID * KICAD_SCHEM_LOGICIM_SCALE);
 	psItem->pcPort = pcAnchor;
 	psItem->pcAttachedTo = NULL;
+	psItem->eAlign = KSLA_None;
+	psItem->pcSymbol = mpcAddingSymbol;
 	psItem->sOffset.Init(0, 0);
 	if (pcAnchor != NULL)
 	{
@@ -2628,8 +2857,165 @@ size CKicadSchemLogicimConverter::FindDenseAreas(CArrayTemplate<SFloat64Vec2>* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each item at its KiCad place spread out from the origin, and then moved
-// apart where they overlap.  Attached items go with their pins.
+// The pairs of items that are all of a subnet, wired by one straight wire
+// in KiCad: their pins are level (a horizontal wire) or one above the
+// other.  Items attached to a pin already sit on it, so aren't paired.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemLogicimConverter::FindAlignments(void)
+{
+	size							i;
+	size							uiCount;
+	SKicadSchemLogicimConnection*	psConnection;
+	SKicadSchemLogicimConnection*	psOther;
+	SKicadSchemLogicimTerminal*		psFrom;
+	SKicadSchemLogicimTerminal*		psTo;
+	SKicadSchemLogicimAlignment*	psAlignment;
+	size							j;
+	bool							bHorizontal;
+	bool							bVertical;
+
+	masAlignments.ReInit();
+	for (i = 0; i < masConnections.NumElements(); i++)
+	{
+		psConnection = masConnections.Get(i);
+		uiCount = 0;
+		for (j = 0; j < masConnections.NumElements(); j++)
+		{
+			psOther = masConnections.Get(j);
+			if (psOther->uiSubnet == psConnection->uiSubnet)
+			{
+				uiCount++;
+			}
+		}
+		if (uiCount != 1)
+		{
+			continue;
+		}
+
+		psFrom = masTerminals.Get(psConnection->uiFrom);
+		psTo = masTerminals.Get(psConnection->uiTo);
+		if (psFrom->bBus || psTo->bBus || (psFrom->uiItem == psTo->uiItem) || (masItems.Get(psFrom->uiItem)->pcAttachedTo != NULL) || (masItems.Get(psTo->uiItem)->pcAttachedTo != NULL))
+		{
+			continue;
+		}
+		bHorizontal = fabs(psFrom->sKicadPosition.fY - psTo->sKicadPosition.fY) < 0.001;
+		bVertical = fabs(psFrom->sKicadPosition.fX - psTo->sKicadPosition.fX) < 0.001;
+		if (bHorizontal == bVertical)
+		{
+			continue;
+		}
+
+		psAlignment = masAlignments.Add();
+		psAlignment->uiFromItem = psFrom->uiItem;
+		psAlignment->uiToItem = psTo->uiItem;
+		psAlignment->pcFromPort = psFrom->pcPortView;
+		psAlignment->pcToPort = psTo->pcPortView;
+		psAlignment->bHorizontal = bHorizontal;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lines up the ports of each pair of items found by FindAlignments by
+// moving the item with fewer terminals across the wire (the other if
+// that's already been lined up with something), and marks both to keep
+// to the line when they're moved clear of the others.  An item is moved
+// only once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemLogicimConverter::AlignItems(void)
+{
+	size							i;
+	size							j;
+	SKicadSchemLogicimAlignment*	psAlignment;
+	SKicadSchemLogicimItem*			psMover;
+	SKicadSchemLogicimItem*			psFrom;
+	SKicadSchemLogicimItem*			psTo;
+	CPortView*						pcMoverPort;
+	CPortView*						pcStillPort;
+	CArrayInt						aiTerminals;
+	CArrayInt						aiFixed;
+	SInt32Vec2						sMover;
+	SInt32Vec2						sStill;
+	SInt32Vec2						sPosition;
+	bool							bFromMoves;
+
+	for (i = 0; i < masItems.NumElements(); i++)
+	{
+		masItems.Get(i)->eAlign = KSLA_None;
+	}
+	if (masAlignments.NumElements() == 0)
+	{
+		return;
+	}
+
+	aiTerminals.Init();
+	aiFixed.Init();
+	for (i = 0; i < masItems.NumElements(); i++)
+	{
+		aiTerminals.Add(0);
+		aiFixed.Add(0);
+	}
+	for (j = 0; j < masTerminals.NumElements(); j++)
+	{
+		i = masTerminals.Get(j)->uiItem;
+		aiTerminals.SetValue(i, aiTerminals.GetValue(i) + 1);
+	}
+
+	for (i = 0; i < masAlignments.NumElements(); i++)
+	{
+		psAlignment = masAlignments.Get(i);
+		if (aiFixed.GetValue(psAlignment->uiFromItem) && aiFixed.GetValue(psAlignment->uiToItem))
+		{
+			continue;
+		}
+		if (aiFixed.GetValue(psAlignment->uiFromItem))
+		{
+			bFromMoves = false;
+		}
+		else if (aiFixed.GetValue(psAlignment->uiToItem))
+		{
+			bFromMoves = true;
+		}
+		else
+		{
+			bFromMoves = aiTerminals.GetValue(psAlignment->uiFromItem) <= aiTerminals.GetValue(psAlignment->uiToItem);
+		}
+
+		psFrom = masItems.Get(psAlignment->uiFromItem);
+		psTo = masItems.Get(psAlignment->uiToItem);
+		psMover = bFromMoves ? psFrom : psTo;
+		pcMoverPort = bFromMoves ? psAlignment->pcFromPort : psAlignment->pcToPort;
+		pcStillPort = bFromMoves ? psAlignment->pcToPort : psAlignment->pcFromPort;
+		sMover = pcMoverPort->GetGridPosition();
+		sStill = pcStillPort->GetGridPosition();
+		sPosition = psMover->pcView->GetPosition();
+		if (psAlignment->bHorizontal)
+		{
+			psMover->pcView->SetPosition(sPosition.x, sPosition.y + sStill.y - sMover.y);
+		}
+		else
+		{
+			psMover->pcView->SetPosition(sPosition.x + sStill.x - sMover.x, sPosition.y);
+		}
+		psFrom->eAlign = psAlignment->bHorizontal ? KSLA_KeepY : KSLA_KeepX;
+		psTo->eAlign = psFrom->eAlign;
+		aiFixed.SetValue(psAlignment->uiFromItem, 1);
+		aiFixed.SetValue(psAlignment->uiToItem, 1);
+	}
+	aiFixed.Kill();
+	aiTerminals.Kill();
+	PlaceAttachedItems();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each item at its KiCad place spread out from the origin, lined up with
+// the item a straight wire joins it to (see FindAlignments), and then
+// moved apart where they overlap.  Attached items go with their pins.
 //
 //////////////////////////////////////////////////////////////////////////
 void CKicadSchemLogicimConverter::Place(float64 fSpread)
@@ -2646,6 +3032,7 @@ void CKicadSchemLogicimConverter::Place(float64 fSpread)
 		}
 	}
 	PlaceAttachedItems();
+	AlignItems();
 	SeparateItems();
 }
 
@@ -2804,9 +3191,30 @@ static bool IsKicadSchemLogicimBoxFree(SFloat64Vec2* psMinimum, SFloat64Vec2* ps
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How far a move is for an item lined up eAlign: moving off its line
+// counts KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT times.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 GetKicadSchemLogicimMoveCost(EKicadSchemLogicimAlign eAlign, int32 iMoveX, int32 iMoveY)
+{
+	if (eAlign == KSLA_KeepY)
+	{
+		return abs(iMoveX) + abs(iMoveY) * KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT;
+	}
+	else if (eAlign == KSLA_KeepX)
+	{
+		return abs(iMoveX) * KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT + abs(iMoveY);
+	}
+	return abs(iMoveX) + abs(iMoveY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Places the items one at a time, each where it is if that's clear of the
 // ones already placed, otherwise at the nearest place that is (searching
-// out in rings).  An item's box takes in the items attached to it.  Items
+// out in rings).  An item lined up with another counts moving off its line
+// KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT times as far.  An item's box takes in the items attached to it.  Items
 // that couldn't be placed clear are counted as overlaps.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2845,17 +3253,17 @@ void CKicadSchemLogicimConverter::SeparateItems(void)
 
 		iBestX = 0;
 		iBestY = 0;
+		iBestDistance = -1;
 		bFound = IsKicadSchemLogicimBoxFree(&sMinimum, &sMaximum, 0, 0, &asMinimums, &asMaximums, uiPlaced);
-		for (iRadius = 1; !bFound && (iRadius <= KICAD_SCHEM_LOGICIM_SEPARATE_RADIUS); iRadius++)
+		//Rings out, while a ring could still have a nearer place than the best found (its moves cost at least its radius).
+		for (iRadius = 1; !bFound && (iRadius <= KICAD_SCHEM_LOGICIM_SEPARATE_RADIUS) && ((iBestDistance == -1) || (iRadius < iBestDistance)); iRadius++)
 		{
-			//The ring's places nearest first.
-			iBestDistance = -1;
 			for (iStep = -iRadius; iStep <= iRadius; iStep++)
 			{
 				for (iMoveY = -iRadius; iMoveY <= iRadius; iMoveY += 2 * iRadius)
 				{
 					iMoveX = iStep;
-					iDistance = abs(iMoveX) + abs(iMoveY);
+					iDistance = GetKicadSchemLogicimMoveCost(psItem->eAlign, iMoveX, iMoveY);
 					if (((iBestDistance == -1) || (iDistance < iBestDistance)) && IsKicadSchemLogicimBoxFree(&sMinimum, &sMaximum, iMoveX, iMoveY, &asMinimums, &asMaximums, uiPlaced))
 					{
 						iBestDistance = iDistance;
@@ -2866,7 +3274,7 @@ void CKicadSchemLogicimConverter::SeparateItems(void)
 				for (iMoveX = -iRadius; iMoveX <= iRadius; iMoveX += 2 * iRadius)
 				{
 					iMoveY = iStep;
-					iDistance = abs(iMoveX) + abs(iMoveY);
+					iDistance = GetKicadSchemLogicimMoveCost(psItem->eAlign, iMoveX, iMoveY);
 					if (((iBestDistance == -1) || (iDistance < iBestDistance)) && IsKicadSchemLogicimBoxFree(&sMinimum, &sMaximum, iMoveX, iMoveY, &asMinimums, &asMaximums, uiPlaced))
 					{
 						iBestDistance = iDistance;
@@ -2875,8 +3283,8 @@ void CKicadSchemLogicimConverter::SeparateItems(void)
 					}
 				}
 			}
-			bFound = iBestDistance != -1;
 		}
+		bFound = bFound || (iBestDistance != -1);
 		if (!bFound)
 		{
 			muiOverlaps++;
@@ -3147,6 +3555,7 @@ size CKicadSchemLogicimConverter::NumItems(void) { return masItems.NumElements()
 size CKicadSchemLogicimConverter::NumGates(void) { return muiGates; }
 size CKicadSchemLogicimConverter::NumPlaceholders(void) { return muiPlaceholders; }
 size CKicadSchemLogicimConverter::NumPowers(void) { return muiPowers; }
+size CKicadSchemLogicimConverter::NumRegulators(void) { return muiRegulators; }
 size CKicadSchemLogicimConverter::NumTunnels(void) { return muiTunnels; }
 size CKicadSchemLogicimConverter::NumSplitters(void) { return muiSplitters; }
 size CKicadSchemLogicimConverter::NumBlocks(void) { return muiBlocks; }
