@@ -242,7 +242,7 @@ void TestTileMapGenerator3x3ImageGenerate(void)
 
 		pTileMap = pTileMapGenerator->Generate();
 
-		pDestImage = OMalloc<CImage>((uint32)sMapSize.x * sCelSize.x, (uint32)sMapSize.y * sCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pDestImage = OMalloc<CImage>((uint32)(sMapSize.x * sCelSize.x), (uint32)(sMapSize.y * sCelSize.y), PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 		pBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
 
 		pMaps = OMalloc<CMaps>(pBlitterCache, pDestImage);;
@@ -351,7 +351,7 @@ void TestTileMapGenerator40x40ImageGenerate(void)
 		gcObjects.DisableValidation();
 		pTileMap = pTileMapGenerator->Generate();
 
-		pDestImage = OMalloc<CImage>((uint32)sMapSize.x * sCelSize.x, (uint32)sMapSize.y * sCelSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pDestImage = OMalloc<CImage>((uint32)(sMapSize.x * sCelSize.x), (uint32)(sMapSize.y * sCelSize.y), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		pDestImage->White();
 		pBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
 		
@@ -466,7 +466,7 @@ void TestTileMapGenerator7x5StringGenerate(void)
 
 		pTileMap = pTileMapGenerator->Generate();
 
-		pDestImage = OMalloc<CImage>((uint32)sMapSize.x * sCelSize.x, (uint32)sMapSize.y * sCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pDestImage = OMalloc<CImage>((uint32)(sMapSize.x * sCelSize.x), (uint32)(sMapSize.y * sCelSize.y), PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 		pDestImage->White();
 		pBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
 		
@@ -646,7 +646,7 @@ void TestTileMapGenerator11x11StringGenerate(void)
 
 		asDoors.Kill();
 
-		pDestImage = OMalloc<CImage>((uint32)sMapSize.x * sCelSize.x, (uint32)sMapSize.y * sCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pDestImage = OMalloc<CImage>((uint32)(sMapSize.x * sCelSize.x), (uint32)(sMapSize.y * sCelSize.y), PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 		pDestImage->White();
 		pBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
 		

@@ -962,6 +962,11 @@ void TestIndexTreeEvictingEvictRemoved(EIndexWriteThrough eWriteThrough)
 		AssertFalse(cIndexTree.Get((uint8*)"Key00", 5, szRead, &uiSize, 1024));
 	}
 
+	if (eWriteThrough == IWT_No)
+	{
+		AssertTrue(cIndexTree.Flush());
+	}
+	AssertTrue(cIndexTree.IsFlushed());
 	cController.End();
 	cIndexTree.Kill();
 	cStrategy.Kill();

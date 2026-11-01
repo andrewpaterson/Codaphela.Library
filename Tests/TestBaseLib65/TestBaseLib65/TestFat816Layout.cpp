@@ -17,6 +17,7 @@
 //assembly that uses what moved.
 #define TEST_FAT816_COMMON			".." _FS_ ".." _FS_ ".." _FS_ "Libraries"
 #define TEST_FAT816_LAYOUT			TEST_FAT816_COMMON _FS_ "BaseLib" _FS_ "Fat816.inc"
+#define TEST_FAT816_LIBC65			".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65"
 #define TEST_FAT816_OUTPUT			"Output" _FS_ "Fat816.inc"
 
 
@@ -360,8 +361,8 @@ void TestFat816Layout(void)
 
 	szCommon.Init(TEST_FAT816_COMMON);
 	cFileUtil.FullPath(&szCommon);
-	szLibc65.Init(szCommon);
-	cFileUtil.AppendToPath(&szLibc65, "Libc65");
+	szLibc65.Init(TEST_FAT816_LIBC65);
+	cFileUtil.FullPath(&szLibc65);
 
 	cBuilder.Init();
 	cBuilder.SetTarget(CPPT_W65C816);
