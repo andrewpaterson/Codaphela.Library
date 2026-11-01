@@ -378,6 +378,76 @@ bool CCircuitEditor::StartPlaceSubcircuit(const char* szTypeName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The selection, or else the component under the pointer, follows the
+// pointer without the button held, as a placed component does, until a
+// click drops it.  Escape puts it back.  Ctrl keeps it connected, as a
+// Ctrl+drag does.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::StartMove(void)
+{
+	return StartMove(mbControl);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts moving the selection, or else the hovered component, about the
+// pointer.  Fails if there's nothing to move or an edit is in progress.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::StartMove(bool bConnected)
+{
+	CMoveComponentsEdit*	pcMove;
+
+	if (!mbPointer || (mpcCircuit == NULL) || (mpcEdit != NULL))
+	{
+		return false;
+	}
+
+	pcMove = NewMoveEdit(bConnected);
+	if (pcMove == NULL)
+	{
+		return false;
+	}
+	StartEdit(pcMove, msPointer);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A move of the selection (left selected when done), or else of the
+// hovered component (left unselected), as every move of existing views is
+// made: dragged, from the keyboard, or turned and flipped.  NULL if
+// there's neither.  The hover is only kept while nothing is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+CMoveComponentsEdit* CCircuitEditor::NewMoveEdit(bool bConnected)
+{
+	CMoveComponentsEdit*	pcMove;
+
+	if (!mcSelection.IsEmpty())
+	{
+		pcMove = NewMalloc<CMoveComponentsEdit>();
+		pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false, bConnected);
+		return pcMove;
+	}
+	else if (mpcHover != NULL)
+	{
+		pcMove = NewMalloc<CMoveComponentsEdit>();
+		pcMove->Init(mpcHover, false, bConnected);
+		return pcMove;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The component is in the circuit from now, but not simulated until it's
 // placed.  It's turned as new components are and is mirrored if they are.
 //
@@ -452,38 +522,21 @@ void CCircuitEditor::FlipVertically(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // As Logicim's rotateMoveComponents: the edit in progress is turned or
-// flipped, or else an edit moving the component under the pointer, or the
-// selection, is started, turned or flipped and done.
+// flipped, or else a connected move (see NewMoveEdit) is started, turned
+// or flipped and done.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::TransformComponents(EEditTransform eTransform)
 {
-	CMoveComponentsEdit*	pcMove;
-	bool					bStarted;
+	bool	bStarted;
 
 	bStarted = false;
 	if (mpcEdit == NULL)
 	{
-		if (!mbPointer)
+		if (!StartMove(true))
 		{
 			return;
 		}
-
-		if (mpcHover != NULL)
-		{
-			pcMove = NewMalloc<CMoveComponentsEdit>();
-			pcMove->Init(mpcHover, false, true);
-		}
-		else if (!mcSelection.IsEmpty())
-		{
-			pcMove = NewMalloc<CMoveComponentsEdit>();
-			pcMove->Init(mcSelection.GetComponents(), mcSelection.GetTraces(), false, true);
-		}
-		else
-		{
-			return;
-		}
-		StartEdit(pcMove, msPointer);
 		bStarted = true;
 	}
 

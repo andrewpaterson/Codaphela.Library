@@ -242,17 +242,22 @@ void CStartEditInComponent::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 //////////////////////////////////////////////////////////////////////////
 CStatefulEdit* CStartEditInComponent::Move(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 {
-	CMoveComponentsEdit*	pcMove;
 	CCircuitSelection*		pcSelection;
+	CCircuitEditor*			pcEditor;
+	CMoveComponentsEdit*	pcMove;
 
-	pcSelection = pcEdit->GetEditor()->GetSelection();
+	pcEditor = pcEdit->GetEditor();
+	pcSelection = pcEditor->GetSelection();
 	if (mpcPressed != NULL)
 	{
 		pcSelection->Clear();
 		pcSelection->Add(mpcPressed);
 	}
-	pcMove = NewMalloc<CMoveComponentsEdit>();
-	pcMove->Init(pcSelection->GetComponents(), pcSelection->GetTraces(), false, pcEdit->GetEditor()->IsControl());
+	pcMove = pcEditor->NewMoveEdit(pcEditor->IsControl());
+	if (pcMove == NULL)
+	{
+		return this;
+	}
 	return pcMove;
 }
 

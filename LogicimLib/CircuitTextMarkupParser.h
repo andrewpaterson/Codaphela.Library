@@ -34,5 +34,10 @@ protected:
 };
 
 
+void	GetCircuitPlainText(const char* szMarkup, CChars* pszPlain);
+bool	CircuitPlainTextEquals(const char* szMarkup, const char* szPlain);
+bool	HasCircuitOverline(const char* szMarkup);
+
+
 #endif // __CIRCUIT_TEXT_MARKUP_PARSER_H__
 

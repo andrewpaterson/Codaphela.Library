@@ -315,6 +315,18 @@ bool CCircuitSelection::GetCentre(SInt32Vec2* psCentre)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Around the selected components' boxes and wires, in grid units.  False
+// if nothing's selected.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitSelection::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum)
+{
+	return GetViewsBoundingBox(&mapcComponents, &mapcTraces, psMinimum, psMaximum);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the grid position is in a selected component's box or on a
 // selected wire, as Logicim's isInSelectedComponent.
 //

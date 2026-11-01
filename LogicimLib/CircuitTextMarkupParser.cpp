@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
 #include "CircuitTextMarkupParser.h"
 
 
@@ -66,3 +67,48 @@ size CCircuitTextMarkupParser::ReadClose(const char* szMarkup, int iKind)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The text as it reads, its marks taken out, appended to pszPlain.
+//
+//////////////////////////////////////////////////////////////////////////
+void GetCircuitPlainText(const char* szMarkup, CChars* pszPlain)
+{
+	CCircuitTextMarkupParser	cParser;
+	CArrayTextStyleRun			asRuns;
+
+	asRuns.Init();
+	cParser.Init();
+	cParser.Parse(szMarkup, pszPlain, &asRuns);
+	cParser.Kill();
+	asRuns.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the markup reads szPlain ("~{OE}" reads "OE").
+//
+//////////////////////////////////////////////////////////////////////////
+bool CircuitPlainTextEquals(const char* szMarkup, const char* szPlain)
+{
+	CChars	sz;
+	bool	bEquals;
+
+	sz.Init();
+	GetCircuitPlainText(szMarkup, &sz);
+	bEquals = StringCompare(sz.Text(), szPlain) == 0;
+	sz.Kill();
+	return bEquals;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if any of the markup is overlined.
+//
+//////////////////////////////////////////////////////////////////////////
+bool HasCircuitOverline(const char* szMarkup)
+{
+	return (szMarkup != NULL) && (strstr(szMarkup, "~{") != NULL);
+}

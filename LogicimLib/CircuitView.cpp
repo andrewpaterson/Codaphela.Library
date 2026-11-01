@@ -780,6 +780,18 @@ void CCircuitView::Paint(CCircuitPainter* pcPainter)
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum)
 {
+	return GetViewsBoundingBox(&mapcComponents, &mapcTraces, psMinimum, psMaximum);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box around the components' boxes and the wires, in grid units.
+// False if there's nothing in it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool GetViewsBoundingBox(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum)
+{
 	size			i;
 	bool			bHasBounds;
 	SFloat64Vec2	sMinimum;
@@ -787,9 +799,9 @@ bool CCircuitView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaxim
 	CTraceView*		pcTrace;
 
 	bHasBounds = false;
-	for (i = 0; i < mapcComponents.NumElements(); i++)
+	for (i = 0; i < papcComponents->NumElements(); i++)
 	{
-		if (mapcComponents.GetPtr(i)->GetBoundingBox(&sMinimum, &sMaximum))
+		if (papcComponents->GetPtr(i)->GetBoundingBox(&sMinimum, &sMaximum))
 		{
 			if (!bHasBounds)
 			{
@@ -801,9 +813,9 @@ bool CCircuitView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaxim
 			IncludeBoundsPoint(psMinimum, psMaximum, sMaximum.x, sMaximum.y);
 		}
 	}
-	for (i = 0; i < mapcTraces.NumElements(); i++)
+	for (i = 0; i < papcTraces->NumElements(); i++)
 	{
-		pcTrace = mapcTraces.GetPtr(i);
+		pcTrace = papcTraces->GetPtr(i);
 		if (!bHasBounds)
 		{
 			psMinimum->Init(pcTrace->GetStart().x, pcTrace->GetStart().y);

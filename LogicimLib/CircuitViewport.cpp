@@ -146,6 +146,33 @@ void CCircuitViewport::ZoomAround(float64 fScreenX, float64 fScreenY, float64 fZ
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Zooms (no further in than fMaximumZoom) and scrolls so the grid box,
+// fBorder grid units bigger on each side, fills the screen and is in the
+// middle of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitViewport::ZoomToFit(SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum, float64 fBorder, float64 fMaximumZoom)
+{
+	float64		fZoomX;
+	float64		fZoomY;
+	float64		fZoom;
+	float64		fPixelsPerGrid;
+
+	fZoomX = msSize.x / ((sMaximum.x - sMinimum.x + fBorder * 2) * CIRCUIT_GRID_SCALE);
+	fZoomY = msSize.y / ((sMaximum.y - sMinimum.y + fBorder * 2) * CIRCUIT_GRID_SCALE);
+	fZoom = (fZoomX < fZoomY) ? fZoomX : fZoomY;
+	if (fZoom > fMaximumZoom)
+	{
+		fZoom = fMaximumZoom;
+	}
+	SetZoom(fZoom);
+	fPixelsPerGrid = GetPixelsPerGrid();
+	msPosition.Init(-(sMinimum.x + sMaximum.x) / 2 * fPixelsPerGrid, -(sMinimum.y + sMaximum.y) / 2 * fPixelsPerGrid);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitViewport::GridToScreen(SFloat64Vec2* psScreen, SFloat64Vec2* psGrid)

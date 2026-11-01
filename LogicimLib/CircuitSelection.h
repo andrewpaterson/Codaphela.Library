@@ -69,6 +69,7 @@ public:
 	CArrayTraceViewPtr*	GetTraces(void);
 	CComponentView*		GetSingleComponent(void);
 	bool				GetCentre(SInt32Vec2* psCentre);
+	bool				GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 	bool				IsOn(SFloat64Vec2 sPosition);
 
 	void				Paint(CCircuitPainter* pcPainter);

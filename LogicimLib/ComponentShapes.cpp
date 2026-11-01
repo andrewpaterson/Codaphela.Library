@@ -114,6 +114,7 @@ SComponentShape* CComponentShapes::AddShape(EComponentShape eType, bool bFill, b
 	psShape->eAlignment = TA_Left;
 	psShape->iRelativeRightRotations = 0;
 	psShape->bCentred = false;
+	psShape->bInkCentred = false;
 	psShape->bVisible = true;
 	return psShape;
 }
@@ -470,7 +471,7 @@ void CComponentShapes::Paint(CCircuitPainter* pcPainter, SComponentShape* psShap
 			pcPainter->CentredText(psShape->sCentre.x, psShape->sCentre.y, maszTexts.GetText(psShape->uiText), psShape->eFont, psShape->fFontSize, GetBorder(pcPainter, psShape));
 			break;
 		}
-		pcPainter->Text(psShape->sCentre.x, psShape->sCentre.y, maszTexts.GetText(psShape->uiText), psShape->eFont, psShape->fFontSize, psShape->eAlignment, psShape->iRelativeRightRotations, GetBorder(pcPainter, psShape));
+		pcPainter->Text(psShape->sCentre.x, psShape->sCentre.y, maszTexts.GetText(psShape->uiText), psShape->eFont, psShape->fFontSize, psShape->eAlignment, psShape->iRelativeRightRotations, GetBorder(pcPainter, psShape), psShape->bInkCentred);
 		break;
 	}
 }

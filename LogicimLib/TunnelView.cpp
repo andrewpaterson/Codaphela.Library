@@ -72,7 +72,7 @@ void CTunnelView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 		asPoints[2].Init(fFar, -fHalf);
 		asPoints[3].Init(fFar, fHalf);
 		asPoints[4].Init(fPoint, fHalf);
-		mcShapes.AddPolygon(asPoints, 5, true, true);
+		mcShapes.AddPolygon(asPoints, 5, true, true)->fLineWidth = TUNNEL_LINE_WIDTH;
 	}
 	else
 	{
@@ -80,9 +80,9 @@ void CTunnelView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 		asPoints[3].Init(fFar, 0);
 		asPoints[4].Init(fFar - fPoint, fHalf);
 		asPoints[5].Init(fPoint, fHalf);
-		mcShapes.AddPolygon(asPoints, 6, true, true);
+		mcShapes.AddPolygon(asPoints, 6, true, true)->fLineWidth = TUNNEL_LINE_WIDTH;
 	}
-	mcShapes.AddText(0.5, 0, szName, CF_SansSerifBold, TUNNEL_FONT_SIZE, TA_Left);
+	mcShapes.AddText(fPoint, 0, szName, CF_SansSerifBold, TUNNEL_FONT_SIZE, TA_Left)->bInkCentred = true;
 
 	aszNoPorts.Init();
 	pcPortView = AddPortView(&aszNoPorts, 0, 0);
@@ -110,10 +110,12 @@ void CTunnelView::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As Logicim's TunnelView.createGraphics: the name in bold 11, pointed at
-// each end by half its height less a quarter of a grid unit.  A double
-// sided tunnel is half a grid unit longer and its far end is rounded to a
-// whole grid unit.
+// As Logicim's TunnelView.createGraphics, but smaller so tunnels fit a
+// grid unit apart: the name in bold 7 in a body TUNNEL_HALF_HEIGHT above
+// and below the line, pointed at each end by that less an eighth of a
+// grid unit.  The name starts a tenth of a grid unit past the near point
+// and has three tenths after it.  A double sided tunnel's far end is rounded up
+// to a whole grid unit.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTunnelView::MeasureBox(CCircuitFonts* pcFonts, const char* szName, bool bDoubleSided, SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum)
@@ -122,18 +124,20 @@ void CTunnelView::MeasureBox(CCircuitFonts* pcFonts, const char* szName, bool bD
 	float64				fPoint;
 	float64				fLength;
 
-	sSize = pcFonts->Measure(CF_SansSerifBold, TUNNEL_FONT_SIZE, szName);
-	fPoint = (sSize.fHeight - 0.25) / 2;
+	//Measured four times as big: at 7 pixels the glyphs' whole pixel steps are narrower than the name drawn zoomed in.
+	sSize = pcFonts->Measure(CF_SansSerifBold, TUNNEL_FONT_SIZE * 4, szName);
+	sSize.fWidth /= 4;
+	fPoint = TUNNEL_HALF_HEIGHT - 0.125;
 	if (!bDoubleSided)
 	{
-		fLength = sSize.fWidth + fPoint + 0.4;
+		fLength = fPoint + 0.1 + sSize.fWidth + 0.3;
 	}
 	else
 	{
-		fLength = floor(sSize.fWidth + fPoint + fPoint + 0.5 + 0.5);
+		fLength = ceil(fPoint + 0.1 + sSize.fWidth + 0.3 + fPoint);
 	}
-	psBoxMinimum->Init(0, -sSize.fHeight / 2);
-	psBoxMaximum->Init(fLength, sSize.fHeight / 2);
+	psBoxMinimum->Init(0, -TUNNEL_HALF_HEIGHT);
+	psBoxMaximum->Init(fLength, TUNNEL_HALF_HEIGHT);
 }
 
 

@@ -74,7 +74,7 @@ public:
 	void				Arc(float64 fCentreX, float64 fCentreY, float64 fRadiusX, float64 fRadiusY, float64 fStartAngle, float64 fArcAngle, bool bFill, bool bBorder, float64 fWidth, ARGB32 sFill, ARGB32 sBorder);
 	void				Circle(float64 fCentreX, float64 fCentreY, float64 fRadius, bool bFill, bool bBorder, float64 fWidth, ARGB32 sFill, ARGB32 sBorder);
 	void				Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sColour);
-	void				Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour);
+	void				Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour, bool bInkCentred = false);
 	void				CentredText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ARGB32 sColour);
 
 	CCircuitViewport*	GetViewport(void);

@@ -24,14 +24,19 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitFonts.h"
 
 
-#define TUNNEL_FONT_SIZE	11.0
+//Tunnels are a grid unit apart at the closest, so their bodies (border included) are less than a grid unit high and
+//their names are small enough to fit inside.
+#define TUNNEL_FONT_SIZE	7.0
+#define TUNNEL_HALF_HEIGHT	0.4
+#define TUNNEL_LINE_WIDTH	1.0
 
 
 //A named tag that joins its wire to the wires of every other tunnel of the same name, as Logicim's TunnelView.  Names
 //are matched with their case but without the spaces around them (Logicim ignored case).  Its point is at its position and its name runs away from it
 //(to the right, facing East).  A double sided tunnel has a second point at its far end, a whole number of grid units away,
 //that's joined to the first.  How long it is depends on its name as it measured when the tunnel was made; its box is
-//saved and loaded with it.  A tunnel makes no component.
+//saved and loaded with it.  New tunnels are TUNNEL_HALF_HEIGHT above and below their line, with a thin border, so
+//tunnels on neighbouring grid lines don't touch.  A tunnel makes no component.
 class CTunnelView : public CComponentView
 {
 CONSTRUCTABLE(CTunnelView);

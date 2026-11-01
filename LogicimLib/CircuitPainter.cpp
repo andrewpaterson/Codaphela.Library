@@ -333,10 +333,13 @@ void CCircuitPainter::Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sCo
 // point into the component whichever way it's turned.  A mirrored
 // component's text isn't mirrored: it's at the mirrored position and runs
 // the mirrored way (up instead of down), so it still reads and still
-// points into the component.
+// points into the component.  Ink centred text is placed across by its
+// ink instead: from the top of its highest glyph or overline down to its
+// baseline is centred on the position, so it fits a body barely taller
+// than its capitals (as a tunnel's).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour)
+void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour, bool bInkCentred)
 {
 	SCircuitTextSize	sSize;
 	float64				fFactor;
@@ -349,6 +352,8 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 	ERotation			eRotation;
 	EFontTurn			eTurn;
 	CCircuitTextLine	cLine;
+	int32				iInkAscent;
+	float64				fDown;
 
 	if ((mpcFonts == NULL) || (mpcSprites == NULL) || (szText == NULL) || (szText[0] == '\0'))
 	{
@@ -391,6 +396,27 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 	cLine.Init();
 	if (cLine.Layout(mpcFonts, eFont, fPixelSize, eTurn, sColour, szText))
 	{
+		if (bInkCentred)
+		{
+			//How much further down (away from the tops of the glyphs) the baseline goes.
+			iInkAscent = cLine.GetInkAscent(0, cLine.NumRuns());
+			if (cLine.GetOverlineTop() > iInkAscent)
+			{
+				iInkAscent = cLine.GetOverlineTop();
+			}
+			if (iInkAscent > 0)
+			{
+				fDown = iInkAscent / 2.0 - fHalfHeight;
+				if (eTurn == FT_Clockwise)
+				{
+					sOrigin.x -= fDown;
+				}
+				else
+				{
+					sOrigin.y += fDown;
+				}
+			}
+		}
 		if (eTurn == FT_Clockwise)
 		{
 			TextLine(&cLine, eTurn, (int32)floor(sOrigin.y + 0.5), (int32)floor(sOrigin.x + 0.5));

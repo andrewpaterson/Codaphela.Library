@@ -30,6 +30,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #include "LogicimLib/FlipFlopView.h"
 #include "LogicimLib/PowerSourceView.h"
 #include "LogicimLib/TunnelView.h"
+#include "LogicimLib/CircuitTextMarkupParser.h"
 #include "LogicimLib/SplitterView.h"
 #include "LogicimLib/ValueView.h"
 #include "LogicimLib/SubcircuitInstanceView.h"
@@ -1150,8 +1151,9 @@ static bool GetKicadSchemPinLabelAlias(const char* szLabel, CChars* pszAlias)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The view's port labelled szLabel and inverted or not, or the only one
-// labelled szLabel.  A unit's labels have no flip flop number ("1CP" is
+// The view's port labelled szLabel (as it reads: an active low port's
+// label is overlined) and inverted or not, or the only one labelled
+// szLabel.  A unit's labels have no flip flop number ("1CP" is
 // "CP").
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1174,7 +1176,7 @@ static CPortView* FindKicadSchemLabelledPort(CComponentView* pcView, const char*
 	for (i = 0; i < pcView->NumPortViews(); i++)
 	{
 		pcPortView = pcView->GetPortView(i);
-		if (StringCompare(pcPortView->GetText(), szLabel) == 0)
+		if (CircuitPlainTextEquals(pcPortView->GetText(), szLabel))
 		{
 			if (pcPortView->IsInverting() == bNegated)
 			{

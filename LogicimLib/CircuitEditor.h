@@ -30,6 +30,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 class CWirePullEdit;
+class CMoveComponentsEdit;
 class CXMLWriter;
 class CMarkupTag;
 
@@ -116,6 +117,10 @@ enum EEditTransform
 //along and then across, drawn as a disconnected wire while it moves and added when the move is done.  The simulations
 //aren't rewired until then; a move that ends where it started puts the leads back.
 //
+//A move can also be started without a drag (see StartMove): the selection, or else the component under the pointer,
+//follows the pointer with the button up, as a placement does, until a press drops it.  It's detached, or connected if
+//control is held when it starts.
+//
 //Wires are kept as Logicim keeps them (see MergeTraceLines): those along each other are merged and they're split
 //where one ends on another and at ports, whenever wires are drawn, moved or deleted, or components moved.
 //
@@ -185,6 +190,7 @@ public:
 
 	bool				StartPlaceComponent(const char* szXMLName);
 	bool				StartPlaceSubcircuit(const char* szTypeName);
+	bool				StartMove(void);
 	void				RotateRight(void);
 	void				RotateLeft(void);
 	void				FlipHorizontally(void);
@@ -224,6 +230,7 @@ public:
 	bool				IsControl(void);
 	bool				IsShift(void);
 
+	CMoveComponentsEdit*	NewMoveEdit(bool bConnected);
 	void				StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, bool bConnected, CArrayTraceViewPtr* papcFollowing);
 	void				MovedViews(void);
 	void				DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bSelect, bool bNew, bool bChanged);
@@ -237,6 +244,7 @@ protected:
 	void				DiscardEdit(void);
 	void				KillEdit(void);
 	bool				StartPlace(CComponentView* pcComponent);
+	bool				StartMove(bool bConnected);
 	void				TransformComponents(EEditTransform eTransform);
 	void				UpdateHover(void);
 	void				ClearHover(void);

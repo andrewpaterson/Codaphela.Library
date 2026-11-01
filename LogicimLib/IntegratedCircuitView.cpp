@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/IntegratedCircuit.h"
 #include "MicroprocessorLib/FamilyVoltageConfigurationStore.h"
 #include "MicroprocessorLib/PowerSource.h"
@@ -30,6 +31,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
 #include "ComponentStateXML.h"
+#include "CircuitTextMarkupParser.h"
 #include "IntegratedCircuitView.h"
 
 
@@ -289,6 +291,7 @@ CPortView* CIntegratedCircuitView::CreateLabelledPortView(SPortViewCreator* psCr
 	CPortView*		pcPortView;
 	CArrayChars		aszNames;
 	CChars			szName;
+	CChars			szText;
 	int				i;
 
 	if (psCreator->iPortCount == 1)
@@ -309,7 +312,19 @@ CPortView* CIntegratedCircuitView::CreateLabelledPortView(SPortViewCreator* psCr
 		pcPortView = AddPortView(&aszNames, x, y);
 		aszNames.Kill();
 	}
-	pcPortView->SetText(psCreator->szText);
+	if (psCreator->bInverted && !StrEmpty(psCreator->szText) && !HasCircuitOverline(psCreator->szText))
+	{
+		//An active low port's label is overlined as well as bubbled, as KiCad's.
+		szText.Init("~{");
+		szText.Append(psCreator->szText);
+		szText.Append('}');
+		pcPortView->SetText(szText.Text());
+		szText.Kill();
+	}
+	else
+	{
+		pcPortView->SetText(psCreator->szText);
+	}
 	if (psCreator->bClock)
 	{
 		pcPortView->SetClock(eInvertFacing);

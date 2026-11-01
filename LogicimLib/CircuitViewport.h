@@ -51,6 +51,7 @@ public:
 	void			SetZoom(float64 fZoom);
 	float64			GetZoom(void);
 	void			ZoomAround(float64 fScreenX, float64 fScreenY, float64 fZoom);
+	void			ZoomToFit(SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum, float64 fBorder, float64 fMaximumZoom);
 
 	void			GridToScreen(SFloat64Vec2* psScreen, SFloat64Vec2* psGrid);
 	void			ScreenToGrid(SFloat64Vec2* psGrid, SFloat64Vec2* psScreen);

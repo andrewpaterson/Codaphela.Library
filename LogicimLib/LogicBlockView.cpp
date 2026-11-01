@@ -32,6 +32,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/Counter.h"
 #include "MicroprocessorLib/FlipFlopArray.h"
 #include "ComponentProperties.h"
+#include "CircuitTextMarkupParser.h"
 #include "LogicBlockView.h"
 
 
@@ -651,7 +652,8 @@ void CLogicBlockView::CreateBlock(const char* szTitle, const char* szSubtitle)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The port view labelled szLabel and inverted (a bubble) or not.  If none
+// The port view labelled szLabel (as it reads, without its overline) and
+// inverted (a bubble) or not.  If none
 // is, the only port view labelled szLabel.  NULL if there isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -667,7 +669,7 @@ CPortView* CLogicBlockView::GetPortViewByLabel(const char* szLabel, bool bInvert
 	for (i = 0; i < NumPortViews(); i++)
 	{
 		pcPortView = GetPortView(i);
-		if (StringCompare(pcPortView->GetText(), szLabel) == 0)
+		if (CircuitPlainTextEquals(pcPortView->GetText(), szLabel))
 		{
 			if (pcPortView->IsInverting() == bInverted)
 			{
