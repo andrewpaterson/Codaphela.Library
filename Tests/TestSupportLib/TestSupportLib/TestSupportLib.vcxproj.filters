@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Sound">
+      <UniqueIdentifier>{c6993c73-7ef7-4325-a66b-0f996aefe06d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image">
+      <UniqueIdentifier>{da8e2d3d-708a-4bb1-b2da-7c806f02d090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Font">
+      <UniqueIdentifier>{876c8615-8a62-4cc7-8cea-334f67288179}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mesh">
+      <UniqueIdentifier>{4448e937-2f7e-43d9-b1d0-69f89b088ed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TextEditor">
+      <UniqueIdentifier>{a5b23259-78be-4c56-a24a-d576373fe969}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shape">
+      <UniqueIdentifier>{47a626e0-7e47-47b3-aa1b-ebefdc76f4d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Draw">
+      <UniqueIdentifier>{6fcdae2d-418a-4cd3-aa1e-fdde63040822}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Cel">
+      <UniqueIdentifier>{4a25fa40-f94e-4fb9-a2ae-5eb9e566d918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Cel\Divider">
+      <UniqueIdentifier>{31e9e937-63df-4f85-b747-3bdaef932df4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Cel\Source">
+      <UniqueIdentifier>{d85f8030-37be-4b5b-bde4-2de8e7a2b953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Cel\Combiner">
+      <UniqueIdentifier>{a8d4497b-2590-4533-a2fe-4e863c2e5302}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Modifiers">
+      <UniqueIdentifier>{004b17ec-d906-4de3-829c-9d6c45ae3be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Colour">
+      <UniqueIdentifier>{46a84e3f-0036-4397-b939-b18ca5590243}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Compression">
+      <UniqueIdentifier>{50791f6e-d3f7-45e2-9e61-d531ef620284}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\IO">
+      <UniqueIdentifier>{22f2a94a-cb59-45ed-977c-b9d8f6afad44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Area">
+      <UniqueIdentifier>{5e02e4e4-74b3-4d00-827a-3b28afe3ed60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Map">
+      <UniqueIdentifier>{1665df54-a7e8-4ce6-a0d3-8c9776ca2286}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Test">
+      <UniqueIdentifier>{4ab42786-e413-48cc-9643-6ad65e7c3e75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Map\Generator">
+      <UniqueIdentifier>{83e1c3de-9493-4687-9bb0-8cc8cc3da511}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image\Helper">
+      <UniqueIdentifier>{4478508e-8652-4d2c-ad77-405d5e184458}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestSupportLib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImage.cpp">
+      <Filter>Source Files\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshColour.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshConnectivity.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshFaceReturn.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshMaterial.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshOBJReader.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshPolygons.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshShapes.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMeshUVCoords.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNormalGeneration.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPlainTextEditor.cpp">
+      <Filter>Source Files\TextEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="TestHalfSpace.cpp">
+      <Filter>Source Files\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPolygon.cpp">
+      <Filter>Source Files\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSphereShape.cpp">
+      <Filter>Source Files\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTriangleShape.cpp">
+      <Filter>Source Files\Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="AssertImage.cpp">
+      <Filter>Source Files\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageCel.cpp">
+      <Filter>Source Files\Image\Cel</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageDivider.cpp">
+      <Filter>Source Files\Image\Cel\Divider</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageCelsSource.cpp">
+      <Filter>Source Files\Image\Cel\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageCombiner.cpp">
+      <Filter>Source Files\Image\Cel\Combiner</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageModifierDrawBox.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageModifierStack.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageDraw.cpp">
+      <Filter>Source Files\Image\Draw</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageRecolour.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageRGBAToR3G3B2A.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageRGBToGrey.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageGreyToRGB.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestBumpMapper.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageColour.cpp">
+      <Filter>Source Files\Image\Colour</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageSwizzle.cpp">
+      <Filter>Source Files\Image\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageWriter.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageBMP.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageResampler.cpp">
+      <Filter>Source Files\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSound.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSoundWAV.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSoundResampler.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSoundCel.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="TestModPlayer.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageTGA.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImagePNG.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCompressionRLE.cpp">
+      <Filter>Source Files\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageSFTWriter.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageCelsFile.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageReader.cpp">
+      <Filter>Source Files\Image\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRectangle.cpp">
+      <Filter>Source Files\Image\Area</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRectangleBestPacker.cpp">
+      <Filter>Source Files\Image\Area</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRectanglePow2Packer.cpp">
+      <Filter>Source Files\Image\Area</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRectangleLinePacker.cpp">
+      <Filter>Source Files\Image\Area</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRectangleBestPackerWithRotation.cpp">
+      <Filter>Source Files\Image\Area</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMaps.cpp">
+      <Filter>Source Files\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGeometryMap.cpp">
+      <Filter>Source Files\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFont.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapViewport.cpp">
+      <Filter>Source Files\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="SupportAssert.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="TestImageOpacity.cpp">
+      <Filter>Source Files\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTileMapGenerator.cpp">
+      <Filter>Source Files\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReadImage.cpp">
+      <Filter>Source Files\Image\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTrueTypeFont.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFontFamily.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextMarkupParser.cpp">
+      <Filter>Source Files\Image\Font</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AssertImage.h">
+      <Filter>Source Files\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="SupportAssert.h">
+      <Filter>Source Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="TestReadImage.h">
+      <Filter>Source Files\Image\Helper</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Log.txt" />
+    <None Include="Todo.txt" />
+  </ItemGroup>
+</Project>

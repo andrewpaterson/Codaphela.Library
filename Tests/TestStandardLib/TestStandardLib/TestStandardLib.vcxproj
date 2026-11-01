@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{94B0D21C-D345-4665-8E02-2329EED520AB}</ProjectGuid>
+    <RootNamespace>TestStandardLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <Optimization>MaxSpeed</Optimization>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <Optimization>MaxSpeed</Optimization>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CollectionObjectTestClasses.cpp" />
+    <ClCompile Include="EmbeddedObjectTestClasses.cpp" />
+    <ClCompile Include="NamedObjectTestClasses.cpp" />
+    <ClCompile Include="ObjectTestSetup.cpp" />
+    <ClCompile Include="ChunkFileObjectWriterTestClasses.cpp" />
+    <ClCompile Include="TestArrayObject.cpp" />
+    <ClCompile Include="TestArrayCommonObject.cpp" />
+    <ClCompile Include="TestClass.cpp" />
+    <ClCompile Include="TestDehollowfication.cpp" />
+    <ClCompile Include="TestDistToRootCalculator.cpp" />
+    <ClCompile Include="TestDistToStackCalculator.cpp" />
+    <ClCompile Include="TestEmbedded.cpp" />
+    <ClCompile Include="TestEmbeddedObjectRemapTos.cpp" />
+    <ClCompile Include="TestFreeObjects.cpp" />
+    <ClCompile Include="TestOrderer.cpp" />
+    <ClCompile Include="TestIndexObject.cpp" />
+    <ClCompile Include="TestIndexUnknown.cpp" />
+    <ClCompile Include="TestMapObject.cpp" />
+    <ClCompile Include="TestMapUnknownUnknown.cpp" />
+    <ClCompile Include="TestObjectFree.cpp" />
+    <ClCompile Include="TestObjectFreeOrdering.cpp" />
+    <ClCompile Include="TestStackEmbeddedReInit.cpp" />
+    <ClCompile Include="TestEmbeddedStackPointers.cpp" />
+    <ClCompile Include="TestFreeEmbedded.cpp" />
+    <ClCompile Include="TestHollowObject.cpp" />
+    <ClCompile Include="TestIndexTreeMemory.cpp" />
+    <ClCompile Include="TestKill.cpp" />
+    <ClCompile Include="TestNamedObject.cpp" />
+    <ClCompile Include="TestObjectAllocator.cpp" />
+    <ClCompile Include="TestObjectConverter.cpp" />
+    <ClCompile Include="TestObjectDirty.cpp" />
+    <ClCompile Include="TestObjectGraphDeserialiser.cpp" />
+    <ClCompile Include="TestObjectGraphWriting.cpp" />
+    <ClCompile Include="TestObjectReaderChunked.cpp" />
+    <ClCompile Include="TestObjectReaderSimple.cpp" />
+    <ClCompile Include="TestObjects.cpp" />
+    <ClCompile Include="TestObjectsEvictVsKill.cpp" />
+    <ClCompile Include="TestObjectsSimple.cpp" />
+    <ClCompile Include="TestObjectStack.cpp" />
+    <ClCompile Include="TestObjectStackPointers.cpp" />
+    <ClCompile Include="TestObjectWriterChunked.cpp" />
+    <ClCompile Include="TestPointer.cpp" />
+    <ClCompile Include="TestReplaceAndRemap.cpp" />
+    <ClCompile Include="TestSetObject.cpp" />
+    <ClCompile Include="TestStackPointers.cpp" />
+    <ClCompile Include="TestStandardLib.cpp" />
+    <ClCompile Include="TestChannelAccessor.cpp" />
+    <ClCompile Include="TestChannelPadder.cpp" />
+    <ClCompile Include="TestChannels.cpp" />
+    <ClCompile Include="TestExternalChannels.cpp" />
+    <ClCompile Include="TestSingleChannelAccessor.cpp" />
+    <ClCompile Include="TestCompressionZLib.cpp" />
+    <ClCompile Include="TestActionEvent.cpp" />
+    <ClCompile Include="TestEvent.cpp" />
+    <ClCompile Include="TestParameters.cpp" />
+    <ClCompile Include="ObjectTestClasses.cpp" />
+    <ClCompile Include="TestObject.cpp" />
+    <ClCompile Include="TestRoot.cpp" />
+    <ClCompile Include="TestObjectGraphSerialiser.cpp" />
+    <ClCompile Include="TestString.cpp" />
+    <ClCompile Include="TestStringOverride.cpp" />
+    <ClCompile Include="TestUnknowns.cpp" />
+    <ClCompile Include="TestUsage.cpp" />
+    <ClCompile Include="UnknownKillList.cpp" />
+    <ClCompile Include="UnknownObjectHolderTestClasses.cpp" />
+    <ClCompile Include="UnknownTestClasses.cpp" />
+    <ClCompile Include="TestArrayType.cpp" />
+    <ClCompile Include="TestArrayUnknown.cpp" />
+    <ClCompile Include="TestSetType.cpp" />
+    <ClCompile Include="TestSetUnknown.cpp" />
+    <ClCompile Include="TestMapStringUnknown.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CollectionObjectTestClasses.h" />
+    <ClInclude Include="EmbeddedObjectTestClasses.h" />
+    <ClInclude Include="NamedObjectTestClasses.h" />
+    <ClInclude Include="ObjectTestClasses.h" />
+    <ClInclude Include="ObjectTestSetup.h" />
+    <ClInclude Include="ChunkFileObjectWriterTestClasses.h" />
+    <ClInclude Include="TestArrayObject.h" />
+    <ClInclude Include="TestBaseObject.h" />
+    <ClInclude Include="TestClass.h" />
+    <ClInclude Include="TestIndexObject.h" />
+    <ClInclude Include="TestMapObject.h" />
+    <ClInclude Include="TestSetObject.h" />
+    <ClInclude Include="UnknownObjectHolderTestClasses.h" />
+    <ClInclude Include="UnknownKillList.h" />
+    <ClInclude Include="UnknownTestClasses.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DebugDefines.txt" />
+    <None Include="Log.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libraries\BaseLib\BaseLib.vcxproj">
+      <Project>{e25d2dac-0e80-42b2-8fa7-99b837cf7588}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\StandardLib\StandardLib.vcxproj">
+      <Project>{2cfa23fa-6565-4744-8b75-9790b21cc0e5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\TestLib\TestLib.vcxproj">
+      <Project>{d06d265e-a503-42f8-a93a-a0a1c0b058ff}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

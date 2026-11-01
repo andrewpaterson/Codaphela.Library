@@ -1,0 +1,92 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"grid.png";
+		Directory	"Input";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{1, 1, 15, 15};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{0, 17, 15, 31};
+		Offset	{0, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	2;
+		Rect	{1, 33, 15, 47};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	3;
+		Rect	{1, 49, 15, 64};
+		Offset	{1, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	4;
+		Rect	{17, 1, 31, 15};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	5;
+		Rect	{17, 17, 31, 31};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	6;
+		Rect	{17, 33, 31, 47};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	7;
+		Rect	{17, 49, 31, 63};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	8;
+		Rect	{33, 1, 47, 15};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	9;
+		Rect	{33, 17, 47, 31};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	10;
+		Rect	{33, 33, 47, 47};
+		Offset	{1, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	11;
+		Rect	{32, 49, 47, 63};
+		Offset	{0, 1, 1, 1};
+		Align	{0, 0};
+	}
+}

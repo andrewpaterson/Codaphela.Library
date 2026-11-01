@@ -1,0 +1,22 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"cel6.png";
+		Directory	"Input";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{4, 4, 32, 22};
+		Offset	{3, 3, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{18, 9, 43, 20};
+		Offset	{2, 8, 4, 3};
+		Align	{0, 0};
+	}
+}

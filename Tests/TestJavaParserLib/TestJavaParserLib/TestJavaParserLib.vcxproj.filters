@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Java">
+      <UniqueIdentifier>{31031b58-800a-4ed0-b959-5c01e46cd45a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\TextParser">
+      <UniqueIdentifier>{d9f53788-e88d-4faf-9a43-392df08406bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Java\Token">
+      <UniqueIdentifier>{1437f301-8d90-4a7a-97cf-cb5b3b553915}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Java\Syntax">
+      <UniqueIdentifier>{212ed298-1dd7-4de0-a777-7e8c4199bbdb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestJavaParserLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserSkipComments.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserGetInteger.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserGetCharacter.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserGetString.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserGetFloat.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaParserPrintFloat.cpp">
+      <Filter>Source\TextParser</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaTokenAssert.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaProjectTokenParser.cpp">
+      <Filter>Source\Java\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaTokenParser.cpp">
+      <Filter>Source\Java\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaSyntaxParser.cpp">
+      <Filter>Source\Java\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaSyntaxParserGenerics.cpp">
+      <Filter>Source\Java\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaSyntaxParserImports.cpp">
+      <Filter>Source\Java\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJavaSyntaxParserClassVariables.cpp">
+      <Filter>Source\Java\Syntax</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Log.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="JavaTokenAssert.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

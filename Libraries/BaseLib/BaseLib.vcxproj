@@ -1,0 +1,1071 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}</ProjectGuid>
+    <RootNamespace>BaseLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\CommonLibraries.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\CommonLibraries.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <CodeAnalysisRuleSet>BaseLib.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CodeAnalysisRuleSet>BaseLib.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+    <Bscmake />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+    <Bscmake />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="ArrayElementNotFound.h" />
+    <ClInclude Include="ArrayEmbeddedInt.h" />
+    <ClInclude Include="ArrayInt16.h" />
+    <ClInclude Include="ArrayInt32.h" />
+    <ClInclude Include="ArrayNameIntAndPointer.h" />
+    <ClInclude Include="ArraySize.h" />
+    <ClInclude Include="ArrayTemplateEmbeddedPrimitive.h" />
+    <ClInclude Include="ArrayTemplateEmbeddedPtr.h" />
+    <ClInclude Include="ArrayTemplatePtr.h" />
+    <ClInclude Include="ArrayUint.h" />
+    <ClInclude Include="ArrayUint16.h" />
+    <ClInclude Include="ArrayUint32.h" />
+    <ClInclude Include="ArrayUint64.h" />
+    <ClInclude Include="ArrayUint8.h" />
+    <ClInclude Include="BaseParser.h" />
+    <ClInclude Include="BinarySearch.h" />
+    <ClInclude Include="BubbleSort.h" />
+    <ClInclude Include="CalcObjectArray.h" />
+    <ClInclude Include="CalculatorOperator.h" />
+    <ClInclude Include="CalculatorParser.h" />
+    <ClInclude Include="CalculatorSymbols.h" />
+    <ClInclude Include="CalculatorVariables.h" />
+    <ClInclude Include="CalcVariable.h" />
+    <ClInclude Include="CalcVariableDefinition.h" />
+    <ClInclude Include="CalculatorError.h" />
+    <ClInclude Include="CharHelper.h" />
+    <ClInclude Include="CharsImmutable.h" />
+    <ClInclude Include="ChunkFileFileSystem.h" />
+    <ClInclude Include="ChunkFileName.h" />
+    <ClInclude Include="CPPIdentifier.h" />
+    <ClInclude Include="CPPString.h" />
+    <ClInclude Include="CPPWhitespace.h" />
+    <ClInclude Include="DataFree.h" />
+    <ClInclude Include="DataIO.h" />
+    <ClInclude Include="DataMemoryAllocator.h" />
+    <ClInclude Include="DataOrderers.h" />
+    <ClInclude Include="DataCompare.h" />
+    <ClInclude Include="DatasIO.h" />
+    <ClInclude Include="DataTypesIO.h" />
+    <ClInclude Include="DateTime.h" />
+    <ClInclude Include="Float64Vec3.h" />
+    <ClInclude Include="Float64Vec4.h" />
+    <ClInclude Include="Double4x4.h" />
+    <ClInclude Include="EnumeratorNode.h" />
+    <ClInclude Include="ExternalString.h" />
+    <ClInclude Include="Float64Vec2.h" />
+    <ClInclude Include="FloatPrinter.h" />
+    <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="HexString.h" />
+    <ClInclude Include="IndexPtr.h" />
+    <ClInclude Include="IndexTemplate.h" />
+    <ClInclude Include="Int16Vec2.h" />
+    <ClInclude Include="Int16Vec3.h" />
+    <ClInclude Include="Int16Vec4.h" />
+    <ClInclude Include="Int32Vec2.h" />
+    <ClInclude Include="Int32Vec4.h" />
+    <ClInclude Include="Int64Vec2.h" />
+    <ClInclude Include="Int64Vec3.h" />
+    <ClInclude Include="Int64Vec4.h" />
+    <ClInclude Include="IntAndPointer.h" />
+    <ClInclude Include="IntVec3.h" />
+    <ClInclude Include="JSONIdentifier.h" />
+    <ClInclude Include="BaseParserString.h" />
+    <ClInclude Include="JSONParser.h" />
+    <ClInclude Include="JSONString.h" />
+    <ClInclude Include="JSONWhitespace.h" />
+    <ClInclude Include="LeakDetector.h" />
+    <ClInclude Include="MapIntString.h" />
+    <ClInclude Include="MapStringIntAndPointer.h" />
+    <ClInclude Include="MemCompare.h" />
+    <ClInclude Include="MemoryManager.h" />
+    <ClInclude Include="RedirectPrintf.h" />
+    <ClInclude Include="IndexLongString.h" />
+    <ClInclude Include="IndexPrimitiveTemplate.h" />
+    <ClInclude Include="IndexMapAccess.h" />
+    <ClInclude Include="IndexMapIterator.h" />
+    <ClInclude Include="IndexPrimitiveBlock.h" />
+    <ClInclude Include="IndexStringBlock.h" />
+    <ClInclude Include="IndexStringInt.h" />
+    <ClInclude Include="IndexStringLong.h" />
+    <ClInclude Include="IndexStringPrimitive.h" />
+    <ClInclude Include="IndexStringTemplate.h" />
+    <ClInclude Include="IndexTemplateTemplate.h" />
+    <ClInclude Include="LogToMemory.h" />
+    <ClInclude Include="Malloc.h" />
+    <ClInclude Include="ArrayBlock.h" />
+    <ClInclude Include="ArrayBlockSorted.h" />
+    <ClInclude Include="ArraySizer.h" />
+    <ClInclude Include="ArrayVoidPtr.h" />
+    <ClInclude Include="BaseFileNode.h" />
+    <ClInclude Include="BaseLinkedListBlock.h" />
+    <ClInclude Include="BaseMemory.h" />
+    <ClInclude Include="ChunkFileFile.h" />
+    <ClInclude Include="ChunkFileHeader.h" />
+    <ClInclude Include="ChunkStack.h" />
+    <ClInclude Include="CircularMemoryList.h" />
+    <ClInclude Include="Constructable.h" />
+    <ClInclude Include="CountingAllocator.h" />
+    <ClInclude Include="CreationDataOrderer.h" />
+    <ClInclude Include="DataMemory.h" />
+    <ClInclude Include="FilePathBuilder.h" />
+    <ClInclude Include="IndexKeyReverse.h" />
+    <ClInclude Include="IndexAccess.h" />
+    <ClInclude Include="IndexTreeConfig.h" />
+    <ClInclude Include="IndexTreeDataNode.h" />
+    <ClInclude Include="IndexTreeDataOrderer.h" />
+    <ClInclude Include="IndexTreeIterator.h" />
+    <ClInclude Include="IndexTreeMemoryAccess.h" />
+    <ClInclude Include="IndexTreeMemoryConfig.h" />
+    <ClInclude Include="IndexTreeMemoryIterator.h" />
+    <ClInclude Include="IndexTreeNodeDebug.h" />
+    <ClInclude Include="Killable.h" />
+    <ClInclude Include="LifeCycle.h" />
+    <ClInclude Include="LinkedList.h" />
+    <ClInclude Include="ListCharsMinimal.h" />
+    <ClInclude Include="Constructors.h" />
+    <ClInclude Include="DataMacro.h" />
+    <ClInclude Include="ArrayBit.h" />
+    <ClInclude Include="ArrayChar.h" />
+    <ClInclude Include="ArrayFloat64.h" />
+    <ClInclude Include="ArrayTemplateEmbedded.h" />
+    <ClInclude Include="ArrayFloat32.h" />
+    <ClInclude Include="ArrayInt.h" />
+    <ClInclude Include="ArrayInt2D.h" />
+    <ClInclude Include="ArrayInt64.h" />
+    <ClInclude Include="ArrayIntAndPointer.h" />
+    <ClInclude Include="ArrayTemplatePrimitive.h" />
+    <ClInclude Include="ArrayChars.h" />
+    <ClInclude Include="ArrayTemplate.h" />
+    <ClInclude Include="ArrayDenseTemplate.h" />
+    <ClInclude Include="ArraySparseTemplate.h" />
+    <ClInclude Include="RedBlackTree.h" />
+    <ClInclude Include="Line.h" />
+    <ClInclude Include="LineBucket.h" />
+    <ClInclude Include="LineDirection.h" />
+    <ClInclude Include="LineMinimiser.h" />
+    <ClInclude Include="LineOverlap.h" />
+    <ClInclude Include="LinePositionCache.h" />
+    <ClInclude Include="LineSplitter.h" />
+    <ClInclude Include="Positions.h" />
+    <ClInclude Include="EscapeCodes.h" />
+    <ClInclude Include="FileIndex.h" />
+    <ClInclude Include="FilePosition.h" />
+    <ClInclude Include="FileSystemIterator.h" />
+    <ClInclude Include="FileSystemGeneral.h" />
+    <ClInclude Include="FreeListAllocator.h" />
+    <ClInclude Include="GlobalMemory.h" />
+    <ClInclude Include="GlobalMemoryAllocator.h" />
+    <ClInclude Include="GuidClass.h" />
+    <ClInclude Include="IndexTree.h" />
+    <ClInclude Include="IndexTreeMemory.h" />
+    <ClInclude Include="IndexTreeNode.h" />
+    <ClInclude Include="IndexTreeNodeMemory.h" />
+    <ClInclude Include="IndexTreeRecursor.h" />
+    <ClInclude Include="LinkedListBlock.h" />
+    <ClInclude Include="Mutex.h" />
+    <ClInclude Include="ConditionVariable.h" />
+    <ClInclude Include="NativeThread.h" />
+    <ClInclude Include="SafeArrayBlock.h" />
+    <ClInclude Include="SafeLinkedListBlock.h" />
+    <ClInclude Include="LinkedListTemplate.h" />
+    <ClInclude Include="ListBlock.h" />
+    <ClInclude Include="ListTemplate.h" />
+    <ClInclude Include="ListTemplateMinimal.h" />
+    <ClInclude Include="ListVariable.h" />
+    <ClInclude Include="LocalMallocator.h" />
+    <ClInclude Include="LocalMallocatorConstructors.h" />
+    <ClInclude Include="LogConfig.h" />
+    <ClInclude Include="LogString.h" />
+    <ClInclude Include="Mallocator.h" />
+    <ClInclude Include="MapAccess.h" />
+    <ClInclude Include="MapBlock.h" />
+    <ClInclude Include="IndexBlock.h" />
+    <ClInclude Include="MapIndexAccess.h" />
+    <ClInclude Include="MapHelper.h" />
+    <ClInclude Include="MapIterator.h" />
+    <ClInclude Include="MapLongLong.h" />
+    <ClInclude Include="MapLongTemplate.h" />
+    <ClInclude Include="MapMapAccess.h" />
+    <ClInclude Include="MapMapIterator.h" />
+    <ClInclude Include="MapNode.h" />
+    <ClInclude Include="MapPrimitiveTemplate.h" />
+    <ClInclude Include="MapStringBlock.h" />
+    <ClInclude Include="MapStringPrimitive.h" />
+    <ClInclude Include="MarkupTextParser.h" />
+    <ClInclude Include="MemoryAllocator.h" />
+    <ClInclude Include="Mallocators.h" />
+    <ClInclude Include="TrueMallocator.h" />
+    <ClInclude Include="MemoryBlock.h" />
+    <ClInclude Include="MemoryCacheAllocation.h" />
+    <ClInclude Include="MemoryCacheDescriptor.h" />
+    <ClInclude Include="MemoryCacheEvictedData.h" />
+    <ClInclude Include="MemoryCacheEvictionCallback.h" />
+    <ClInclude Include="MemoryFreeListParams.h" />
+    <ClInclude Include="MemoryHeader.h" />
+    <ClInclude Include="MemoryQueue.h" />
+    <ClInclude Include="ModificationDataOrderer.h" />
+    <ClInclude Include="NullAllocator.h" />
+    <ClInclude Include="PackFileIterator.h" />
+    <ClInclude Include="PackFilePacker.h" />
+    <ClInclude Include="PackFilesGeneral.h" />
+    <ClInclude Include="QuickSort.h" />
+    <ClInclude Include="Refered.h" />
+    <ClInclude Include="ScratchPadAllocator.h" />
+    <ClInclude Include="SetBlock.h" />
+    <ClInclude Include="SetNode.h" />
+    <ClInclude Include="SetString.h" />
+    <ClInclude Include="SetTemplate.h" />
+    <ClInclude Include="SizeVec2.h" />
+    <ClInclude Include="UInt32Vec2.h" />
+    <ClInclude Include="Source\Aarvark\Aardvark.h" />
+    <ClInclude Include="StackMemory.h" />
+    <ClInclude Include="DebugOutputFile.h" />
+    <ClInclude Include="StdErrFile.h" />
+    <ClInclude Include="MersenneTwister.h" />
+    <ClInclude Include="StdRandom.h" />
+    <ClInclude Include="SystemAllocator.h" />
+    <ClInclude Include="SlabAllocator.h" />
+    <ClInclude Include="TemporaryMemory.h" />
+    <ClInclude Include="TextParser.h" />
+    <ClInclude Include="TextParserConfig.h" />
+    <ClInclude Include="TextParserParameters.h" />
+    <ClInclude Include="TextPosition.h" />
+    <ClInclude Include="TimSort.h" />
+    <ClInclude Include="TrackingAllocator.h" />
+    <ClInclude Include="TreeBlock.h" />
+    <ClInclude Include="TreeTemplate.h" />
+    <ClInclude Include="EnumeratorBlock.h" />
+    <ClInclude Include="EnumeratorEnumerator.h" />
+    <ClInclude Include="EnumeratorPointer.h" />
+    <ClInclude Include="EnumeratorTemplate.h" />
+    <ClInclude Include="EnumeratorVoid.h" />
+    <ClInclude Include="Chars.h" />
+    <ClInclude Include="CharsHelper.h" />
+    <ClInclude Include="Newline.h" />
+    <ClInclude Include="StringHelper.h" />
+    <ClInclude Include="MapIntInt.h" />
+    <ClInclude Include="MapIntTemplate.h" />
+    <ClInclude Include="MapPtrPtr.h" />
+    <ClInclude Include="MapStringInt.h" />
+    <ClInclude Include="MapStringString.h" />
+    <ClInclude Include="MapStringTemplate.h" />
+    <ClInclude Include="MapTemplateTemplate.h" />
+    <ClInclude Include="Date.h" />
+    <ClInclude Include="DataTypes.h" />
+    <ClInclude Include="PrimitiveTypes.h" />
+    <ClInclude Include="Markup.h" />
+    <ClInclude Include="MarkupBase.h" />
+    <ClInclude Include="MarkupDoc.h" />
+    <ClInclude Include="MarkupReference.h" />
+    <ClInclude Include="MarkupSubstitute.h" />
+    <ClInclude Include="MarkupTag.h" />
+    <ClInclude Include="MarkupText.h" />
+    <ClInclude Include="Float32Vec2.h" />
+    <ClInclude Include="Float32Vec3.h" />
+    <ClInclude Include="Float32Vec4.h" />
+    <ClInclude Include="Float4x4.h" />
+    <ClInclude Include="GeometricTypes.h" />
+    <ClInclude Include="IntVec2.h" />
+    <ClInclude Include="Int32Vec3.h" />
+    <ClInclude Include="IntVec4.h" />
+    <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="DebugOutput.h" />
+    <ClInclude Include="ErrorHandler.h" />
+    <ClInclude Include="ErrorTypes.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="FloatHelper.h" />
+    <ClInclude Include="IntegerHelper.h" />
+    <ClInclude Include="FixedPoint.h" />
+    <ClInclude Include="Numbers.h" />
+    <ClInclude Include="PackedFloat.h" />
+    <ClInclude Include="Number.h" />
+    <ClInclude Include="NumberControl.h" />
+    <ClInclude Include="ChunkFile.h" />
+    <ClInclude Include="ChunkFileIndex.h" />
+    <ClInclude Include="ChunkFileGeneral.h" />
+    <ClInclude Include="CSVFile.h" />
+    <ClInclude Include="CSVFileEditable.h" />
+    <ClInclude Include="CSVFileImutable.h" />
+    <ClInclude Include="CSVHelper.h" />
+    <ClInclude Include="IntelHex.h" />
+    <ClInclude Include="TextFile.h" />
+    <ClInclude Include="NaiveFile.h" />
+    <ClInclude Include="AbstractFile.h" />
+    <ClInclude Include="BufferedFile.h" />
+    <ClInclude Include="DiskFile.h" />
+    <ClInclude Include="HashFile.h" />
+    <ClInclude Include="MD5HashFile.h" />
+    <ClInclude Include="MemoryFile.h" />
+    <ClInclude Include="FileCompare.h" />
+    <ClInclude Include="FileIO.h" />
+    <ClInclude Include="FileReader.h" />
+    <ClInclude Include="FileWriter.h" />
+    <ClInclude Include="PackFile.h" />
+    <ClInclude Include="PackFileNode.h" />
+    <ClInclude Include="PackFileReadArrary.h" />
+    <ClInclude Include="PackFiles.h" />
+    <ClInclude Include="FileUtil.h" />
+    <ClInclude Include="FileBasic.h" />
+    <ClInclude Include="MD5.h" />
+    <ClInclude Include="FileHeader.h" />
+    <ClInclude Include="FileMode.h" />
+    <ClInclude Include="FileNames.h" />
+    <ClInclude Include="FileNode.h" />
+    <ClInclude Include="FileNodeDirectory.h" />
+    <ClInclude Include="FileNodeFileSystem.h" />
+    <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="FileCopier.h" />
+    <ClInclude Include="FreeList.h" />
+    <ClInclude Include="LinkedListBlockAligned.h" />
+    <ClInclude Include="MemoryCache.h" />
+    <ClInclude Include="MemoryStack.h" />
+    <ClInclude Include="MemoryStackExtended.h" />
+    <ClInclude Include="StackMark.h" />
+    <ClInclude Include="GeneralMemory.h" />
+    <ClInclude Include="ScratchPad.h" />
+    <ClInclude Include="PointerFunctions.h" />
+    <ClInclude Include="PointerRemapper.h" />
+    <ClInclude Include="Define.h" />
+    <ClInclude Include="TypeConverter.h" />
+    <ClInclude Include="TypeNames.h" />
+    <ClInclude Include="TypeParser.h" />
+    <ClInclude Include="Unicode.h" />
+    <ClInclude Include="UnicodeReader.h" />
+    <ClInclude Include="UnicodeWriter.h" />
+    <ClInclude Include="UTF16.h" />
+    <ClInclude Include="UTF8.h" />
+    <ClInclude Include="Validation.h" />
+    <ClInclude Include="Vec2.h" />
+    <ClInclude Include="Vec3.h" />
+    <ClInclude Include="Vec4.h" />
+    <ClInclude Include="Version.h" />
+    <ClInclude Include="WindowsError.h" />
+    <ClInclude Include="LinuxError.h" />
+    <ClInclude Include="WindowsHeaders.h" />
+    <ClInclude Include="ConstructorCall.h" />
+    <ClInclude Include="CharEncoding.h" />
+    <ClInclude Include="FatClusterCache.h" />
+    <ClInclude Include="Codabase.h" />
+    <ClInclude Include="WriteTransaction.h" />
+    <ClInclude Include="LockManager.h" />
+    <ClInclude Include="ReadTransaction.h" />
+    <ClInclude Include="TransactionIteration.h" />
+    <ClInclude Include="CodabaseVersions.h" />
+    <ClInclude Include="CodabaseFactory.h" />
+    <ClInclude Include="DataConnection.h" />
+    <ClInclude Include="DataReader.h" />
+    <ClInclude Include="Fat32.h" />
+    <ClInclude Include="FatCommon.h" />
+    <ClInclude Include="FatDebug.h" />
+    <ClInclude Include="FatAbstractFile.h" />
+    <ClInclude Include="FatFile.h" />
+    <ClInclude Include="FatFilenameHelper.h" />
+    <ClInclude Include="FatFormat.h" />
+    <ClInclude Include="FatInfoSectorCache.h" />
+    <ClInclude Include="FatTime.h" />
+    <ClInclude Include="FatVolume.h" />
+    <ClInclude Include="FileDrive.h" />
+    <ClInclude Include="IndexedDataEvictionCallback.h" />
+    <ClInclude Include="IndexedDataEvictionCounter.h" />
+    <ClInclude Include="IndexTreeEvictionCounter.h" />
+    <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyFactory.h" />
+    <ClInclude Include="IndexTreeEvctionStrategySystemTypes.h" />
+    <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />
+    <ClInclude Include="IndexTreeFileIterator.h" />
+    <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h" />
+    <ClInclude Include="MemoryDrive.h" />
+    <ClInclude Include="NamedIndexedHeader.h" />
+    <ClInclude Include="NamedIndexesConfig.h" />
+    <ClInclude Include="IndexedCacheResult.h" />
+    <ClInclude Include="IndexedDataConfig.h" />
+    <ClInclude Include="IndexedDataAccess.h" />
+    <ClInclude Include="IndexedDataCommon.h" />
+    <ClInclude Include="IndexedDataEvictedList.h" />
+    <ClInclude Include="IndexedMap.h" />
+    <ClInclude Include="IndexedFilesEvictionCallback.h" />
+    <ClInclude Include="IndexedFilesEvicting.h" />
+    <ClInclude Include="IndexTreeEvictedList.h" />
+    <ClInclude Include="IndexTreeEvictionCallback.h" />
+    <ClInclude Include="IndexTreeEvictionStrategy.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyRandom.h" />
+    <ClInclude Include="IndexTreeFile.h" />
+    <ClInclude Include="IndexTreeFileAccess.h" />
+    <ClInclude Include="IndexTreeFileDebug.h" />
+    <ClInclude Include="IndexTreeEvicting.h" />
+    <ClInclude Include="IndexTreeEvictingAccess.h" />
+    <ClInclude Include="IndexTreeFileDefaultDataCallback.h" />
+    <ClInclude Include="FileIterator.h" />
+    <ClInclude Include="FileIteratorReturn.h" />
+    <ClInclude Include="Files.h" />
+    <ClInclude Include="IndexedDescriptorsFile.h" />
+    <ClInclude Include="IndexTreeHelper.h" />
+    <ClInclude Include="IndexTreeChildNode.h" />
+    <ClInclude Include="IndexTreeFileDataCallback.h" />
+    <ClInclude Include="IndexTreeNodeFile.h" />
+    <ClInclude Include="IndexTreeWriter.h" />
+    <ClInclude Include="IndexWriteThrough.h" />
+    <ClInclude Include="LogFile.h" />
+    <ClInclude Include="LogFileCommands.h" />
+    <ClInclude Include="NamedIndexedData.h" />
+    <ClInclude Include="NamedIndexes.h" />
+    <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h" />
+    <ClInclude Include="PackFileOffset.h" />
+    <ClInclude Include="IndexedData.h" />
+    <ClInclude Include="IndexedGeneral.h" />
+    <ClInclude Include="IndexedDataDescriptor.h" />
+    <ClInclude Include="IndexedFile.h" />
+    <ClInclude Include="IndexedFiles.h" />
+    <ClInclude Include="IndexedCache.h" />
+    <ClInclude Include="DurableFile.h" />
+    <ClInclude Include="DurableFileController.h" />
+    <ClInclude Include="DurableSet.h" />
+    <ClInclude Include="DurableSync.h" />
+    <ClInclude Include="PropertiesFile.h" />
+    <ClInclude Include="Sequence.h" />
+    <ClInclude Include="SequenceConfig.h" />
+    <ClInclude Include="SequenceConnection.h" />
+    <ClInclude Include="SequenceFactory.h" />
+    <ClInclude Include="TransientSequence.h" />
+    <ClInclude Include="ValueIndexedDataConfig.h" />
+    <ClInclude Include="ValueNamedIndexesConfig.h" />
+    <ClInclude Include="ValueSequenceConfig.h" />
+    <ClInclude Include="XMLFile.h" />
+    <ClInclude Include="XMLWriter.h" />
+    <ClInclude Include="FunctionCaller.h" />
+    <ClInclude Include="Calculator.h" />
+    <ClInclude Include="CalcBinaryExpression.h" />
+    <ClInclude Include="CalcConstExpression.h" />
+    <ClInclude Include="CalcExpression.h" />
+    <ClInclude Include="CalcObject.h" />
+    <ClInclude Include="CalcOperator.h" />
+    <ClInclude Include="CalcParentheses.h" />
+    <ClInclude Include="CalcUnaryExpression.h" />
+    <ClInclude Include="XMLEntity.h" />
+    <ClInclude Include="XMLIdentifier.h" />
+    <ClInclude Include="XMLParser.h" />
+    <ClInclude Include="PlainTextEditor.h" />
+    <ClInclude Include="TextEditor.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="ConnectSocket.h" />
+    <ClInclude Include="ListenSocket.h" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="XMLProlog.h" />
+    <ClInclude Include="XMLString.h" />
+    <ClInclude Include="XMLWhitespace.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="ArrayChar.cpp" />
+    <ClCompile Include="ArrayEmbeddedInt.cpp" />
+    <ClCompile Include="ArrayFloat64.cpp" />
+    <ClCompile Include="ArrayFloat32.cpp" />
+    <ClCompile Include="ArrayInt16.cpp" />
+    <ClCompile Include="ArrayInt32.cpp" />
+    <ClCompile Include="ArrayNameIntAndPointer.cpp" />
+    <ClCompile Include="ArraySize.cpp" />
+    <ClCompile Include="ArrayUint.cpp" />
+    <ClCompile Include="ArrayUint16.cpp" />
+    <ClCompile Include="ArrayUint32.cpp" />
+    <ClCompile Include="ArrayUint64.cpp" />
+    <ClCompile Include="ArrayUint8.cpp" />
+    <ClCompile Include="BaseParser.cpp" />
+    <ClCompile Include="BinarySearch.cpp" />
+    <ClCompile Include="BubbleSort.cpp" />
+    <ClCompile Include="CalcObjectArray.cpp" />
+    <ClCompile Include="CalculatorError.cpp" />
+    <ClCompile Include="CalculatorOperator.cpp" />
+    <ClCompile Include="CalculatorParser.cpp" />
+    <ClCompile Include="CalculatorSymbols.cpp" />
+    <ClCompile Include="CalculatorVariables.cpp" />
+    <ClCompile Include="CalcVariable.cpp" />
+    <ClCompile Include="CalcVariableDefinition.cpp" />
+    <ClCompile Include="CharHelper.cpp" />
+    <ClCompile Include="CharsImmutable.cpp" />
+    <ClCompile Include="ChunkFileFileSystem.cpp" />
+    <ClCompile Include="CPPIdentifier.cpp" />
+    <ClCompile Include="CPPString.cpp" />
+    <ClCompile Include="CPPWhitespace.cpp" />
+    <ClCompile Include="DataMemoryAllocator.cpp" />
+    <ClCompile Include="DataOrderers.cpp" />
+    <ClCompile Include="DatasIO.cpp" />
+    <ClCompile Include="DataTypes.cpp" />
+    <ClCompile Include="DataTypesIO.cpp" />
+    <ClCompile Include="DateTime.cpp" />
+    <ClCompile Include="Float64Vec3.cpp" />
+    <ClCompile Include="Float64Vec4.cpp" />
+    <ClCompile Include="Double4x4.cpp" />
+    <ClCompile Include="ExternalString.cpp" />
+    <ClCompile Include="Float64Vec2.cpp" />
+    <ClCompile Include="FloatPrinter.cpp" />
+    <ClCompile Include="GlobalDataTypesIO.cpp" />
+    <ClCompile Include="HexString.cpp" />
+    <ClCompile Include="IndexLongString.cpp" />
+    <ClCompile Include="IndexMapAccess.cpp" />
+    <ClCompile Include="IndexMapIterator.cpp" />
+    <ClCompile Include="IndexPtr.cpp" />
+    <ClCompile Include="IndexStringBlock.cpp" />
+    <ClCompile Include="Int16Vec2.cpp" />
+    <ClCompile Include="Int16Vec3.cpp" />
+    <ClCompile Include="Int16Vec4.cpp" />
+    <ClCompile Include="Int32Vec2.cpp" />
+    <ClCompile Include="Int32Vec4.cpp" />
+    <ClCompile Include="Int64Vec2.cpp" />
+    <ClCompile Include="Int64Vec3.cpp" />
+    <ClCompile Include="Int64Vec4.cpp" />
+    <ClCompile Include="IntVec3.cpp" />
+    <ClCompile Include="JSONIdentifier.cpp" />
+    <ClCompile Include="BaseParserString.cpp" />
+    <ClCompile Include="JSONParser.cpp" />
+    <ClCompile Include="JSONString.cpp" />
+    <ClCompile Include="JSONWhitespace.cpp" />
+    <ClCompile Include="Killable.cpp" />
+    <ClCompile Include="LeakDetector.cpp" />
+    <ClCompile Include="LogToMemory.cpp" />
+    <ClCompile Include="Malloc.cpp" />
+    <ClCompile Include="ArrayBlock.cpp" />
+    <ClCompile Include="ArrayBit.cpp" />
+    <ClCompile Include="ArrayBlockSorted.cpp" />
+    <ClCompile Include="RedBlackTree.cpp" />
+    <ClCompile Include="Line.cpp" />
+    <ClCompile Include="LineBucket.cpp" />
+    <ClCompile Include="LineDirection.cpp" />
+    <ClCompile Include="LineMinimiser.cpp" />
+    <ClCompile Include="LineOverlap.cpp" />
+    <ClCompile Include="LinePositionCache.cpp" />
+    <ClCompile Include="LineSplitter.cpp" />
+    <ClCompile Include="Positions.cpp" />
+    <ClCompile Include="ArrayInt.cpp" />
+    <ClCompile Include="ArrayInt2D.cpp" />
+    <ClCompile Include="ArrayInt64.cpp" />
+    <ClCompile Include="ArrayIntAndPointer.cpp" />
+    <ClCompile Include="ArrayChars.cpp" />
+    <ClCompile Include="ArraySizer.cpp" />
+    <ClCompile Include="BaseFileNode.cpp" />
+    <ClCompile Include="BaseLinkedListBlock.cpp" />
+    <ClCompile Include="ChunkFileFile.cpp" />
+    <ClCompile Include="ChunkFileHeader.cpp" />
+    <ClCompile Include="ChunkStack.cpp" />
+    <ClCompile Include="CircularMemoryList.cpp" />
+    <ClCompile Include="Constructors.cpp" />
+    <ClCompile Include="CountingAllocator.cpp" />
+    <ClCompile Include="CreationDataOrderer.cpp" />
+    <ClCompile Include="DataMemory.cpp" />
+    <ClCompile Include="EscapeCodes.cpp" />
+    <ClCompile Include="FileIndex.cpp" />
+    <ClCompile Include="FileMode.cpp" />
+    <ClCompile Include="FilePathBuilder.cpp" />
+    <ClCompile Include="FileSystemIterator.cpp" />
+    <ClCompile Include="FreeListAllocator.cpp" />
+    <ClCompile Include="FreeList.cpp" />
+    <ClCompile Include="GlobalMemory.cpp" />
+    <ClCompile Include="GlobalMemoryAllocator.cpp" />
+    <ClCompile Include="GuidClass.cpp" />
+    <ClCompile Include="IndexTree.cpp" />
+    <ClCompile Include="IndexAccess.cpp" />
+    <ClCompile Include="IndexTreeConfig.cpp" />
+    <ClCompile Include="IndexTreeDataNode.cpp" />
+    <ClCompile Include="IndexTreeDataOrderer.cpp" />
+    <ClCompile Include="IndexTreeIterator.cpp" />
+    <ClCompile Include="IndexTreeMemory.cpp" />
+    <ClCompile Include="IndexTreeMemoryAccess.cpp" />
+    <ClCompile Include="IndexTreeMemoryConfig.cpp" />
+    <ClCompile Include="IndexTreeMemoryIterator.cpp" />
+    <ClCompile Include="IndexTreeNode.cpp" />
+    <ClCompile Include="IndexTreeNodeDebug.cpp" />
+    <ClCompile Include="IndexTreeNodeMemory.cpp" />
+    <ClCompile Include="IndexTreeRecursor.cpp" />
+    <ClCompile Include="LinkedList.cpp" />
+    <ClCompile Include="LinkedListBlock.cpp" />
+    <ClCompile Include="Mutex_Windows.cpp" />
+    <ClCompile Include="Mutex_Linux.cpp" />
+    <ClCompile Include="Mutex_65C64.cpp" />
+    <ClCompile Include="ConditionVariable_Windows.cpp" />
+    <ClCompile Include="ConditionVariable_Linux.cpp" />
+    <ClCompile Include="ConditionVariable_65C64.cpp" />
+    <ClCompile Include="NativeThread.cpp" />
+    <ClCompile Include="NativeThread_Windows.cpp" />
+    <ClCompile Include="NativeThread_Linux.cpp" />
+    <ClCompile Include="NativeThread_65C64.cpp" />
+    <ClCompile Include="SafeArrayBlock.cpp" />
+    <ClCompile Include="SafeLinkedListBlock.cpp" />
+    <ClCompile Include="ListBlock.cpp" />
+    <ClCompile Include="ListCharsMinimal.cpp" />
+    <ClCompile Include="ListVariable.cpp" />
+    <ClCompile Include="LocalMallocator.cpp" />
+    <ClCompile Include="LocalMallocatorConstructors.cpp" />
+    <ClCompile Include="LogString.cpp" />
+    <ClCompile Include="Mallocator.cpp" />
+    <ClCompile Include="MapAccess.cpp" />
+    <ClCompile Include="MapBlock.cpp" />
+    <ClCompile Include="IndexBlock.cpp" />
+    <ClCompile Include="MapIndexAccess.cpp" />
+    <ClCompile Include="MapHelper.cpp" />
+    <ClCompile Include="MapIntString.cpp" />
+    <ClCompile Include="MapLongLong.cpp" />
+    <ClCompile Include="MapMapAccess.cpp" />
+    <ClCompile Include="MapMapIterator.cpp" />
+    <ClCompile Include="MapNode.cpp" />
+    <ClCompile Include="MapStringBlock.cpp" />
+    <ClCompile Include="MapStringIntAndPointer.cpp" />
+    <ClCompile Include="MarkupTextParser.cpp" />
+    <ClCompile Include="MemoryAllocator.cpp" />
+    <ClCompile Include="Mallocators.cpp" />
+    <ClCompile Include="TrueMallocator.cpp" />
+    <ClCompile Include="MemoryBlock.cpp" />
+    <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="MemoryCacheDescriptor.cpp" />
+    <ClCompile Include="MemoryCacheEvictedData.cpp" />
+    <ClCompile Include="MemoryFreeListParams.cpp" />
+    <ClCompile Include="MemoryHeader.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="MemoryQueue.cpp" />
+    <ClCompile Include="ModificationDataOrderer.cpp" />
+    <ClCompile Include="NullAllocator.cpp" />
+    <ClCompile Include="Numbers.cpp" />
+    <ClCompile Include="PackFileIterator.cpp" />
+    <ClCompile Include="PackFilePacker.cpp" />
+    <ClCompile Include="QuickSort.cpp" />
+    <ClCompile Include="RedirectPrintf.cpp" />
+    <ClCompile Include="Refered.cpp" />
+    <ClCompile Include="ScratchPadAllocator.cpp" />
+    <ClCompile Include="DebugOutputFile.cpp" />
+    <ClCompile Include="StdErrFile.cpp" />
+    <ClCompile Include="SetBlock.cpp" />
+    <ClCompile Include="SetNode.cpp" />
+    <ClCompile Include="SetString.cpp" />
+    <ClCompile Include="SizeVec2.cpp" />
+    <ClCompile Include="UInt32Vec2.cpp" />
+    <ClCompile Include="Source\Aarvark\Aardvark.cpp" />
+    <ClCompile Include="MersenneTwister.cpp" />
+    <ClCompile Include="StdRandom.cpp" />
+    <ClCompile Include="SystemAllocator.cpp" />
+    <ClCompile Include="SlabAllocator.cpp" />
+    <ClCompile Include="SlabAllocator_Windows.cpp" />
+    <ClCompile Include="SlabAllocator_Linux.cpp" />
+    <ClCompile Include="SlabAllocator_65C64.cpp" />
+    <ClCompile Include="TemporaryMemory.cpp" />
+    <ClCompile Include="TextParser.cpp" />
+    <ClCompile Include="TextParserConfig.cpp" />
+    <ClCompile Include="TextPosition.cpp" />
+    <ClCompile Include="TimSort.cpp" />
+    <ClCompile Include="TrackingAllocator.cpp" />
+    <ClCompile Include="TreeBlock.cpp" />
+    <ClCompile Include="EnumeratorBlock.cpp" />
+    <ClCompile Include="EnumeratorEnumerator.cpp" />
+    <ClCompile Include="EnumeratorPointer.cpp" />
+    <ClCompile Include="EnumeratorTemplate.cpp" />
+    <ClCompile Include="EnumeratorVoid.cpp" />
+    <ClCompile Include="Chars.cpp" />
+    <ClCompile Include="CharsHelper.cpp" />
+    <ClCompile Include="Newline.cpp" />
+    <ClCompile Include="StringHelper.cpp" />
+    <ClCompile Include="MapIntInt.cpp" />
+    <ClCompile Include="MapPtrPtr.cpp" />
+    <ClCompile Include="MapStringInt.cpp" />
+    <ClCompile Include="MapStringString.cpp" />
+    <ClCompile Include="Date.cpp" />
+    <ClCompile Include="Markup.cpp" />
+    <ClCompile Include="MarkupBase.cpp" />
+    <ClCompile Include="MarkupDoc.cpp" />
+    <ClCompile Include="MarkupReference.cpp" />
+    <ClCompile Include="MarkupSubstitute.cpp" />
+    <ClCompile Include="MarkupTag.cpp" />
+    <ClCompile Include="MarkupText.cpp" />
+    <ClCompile Include="Float32Vec2.cpp" />
+    <ClCompile Include="Float32Vec3.cpp" />
+    <ClCompile Include="Float32Vec4.cpp" />
+    <ClCompile Include="Float4x4.cpp" />
+    <ClCompile Include="GeometricTypes.cpp" />
+    <ClCompile Include="IntVec2.cpp" />
+    <ClCompile Include="Int32Vec3.cpp" />
+    <ClCompile Include="IntVec4.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="ErrorHandler.cpp" />
+    <ClCompile Include="ErrorTypes.cpp" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="FloatHelper.cpp" />
+    <ClCompile Include="IntegerHelper.cpp" />
+    <ClCompile Include="FixedPoint.cpp" />
+    <ClCompile Include="PackedFloat.cpp" />
+    <ClCompile Include="Number.cpp" />
+    <ClCompile Include="NumberControl.cpp" />
+    <ClCompile Include="ChunkFile.cpp" />
+    <ClCompile Include="ChunkFileIndex.cpp" />
+    <ClCompile Include="CSVFile.cpp" />
+    <ClCompile Include="CSVFileEditable.cpp" />
+    <ClCompile Include="CSVFileImutable.cpp" />
+    <ClCompile Include="CSVHelper.cpp" />
+    <ClCompile Include="IntelHex.cpp" />
+    <ClCompile Include="TextFile.cpp" />
+    <ClCompile Include="NaiveFile.cpp" />
+    <ClCompile Include="AbstractFile.cpp" />
+    <ClCompile Include="BufferedFile.cpp" />
+    <ClCompile Include="DiskFile_Windows.cpp" />
+    <ClCompile Include="DiskFile_Linux.cpp" />
+    <ClCompile Include="DiskFile_65C64.cpp" />
+    <ClCompile Include="MD5HashFile.cpp" />
+    <ClCompile Include="MemoryFile.cpp" />
+    <ClCompile Include="FileCompare.cpp" />
+    <ClCompile Include="FileReader.cpp" />
+    <ClCompile Include="FileWriter.cpp" />
+    <ClCompile Include="PackFile.cpp" />
+    <ClCompile Include="PackFileNode.cpp" />
+    <ClCompile Include="PackFileReadArrary.cpp" />
+    <ClCompile Include="PackFiles.cpp" />
+    <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="FileUtil_Linux.cpp" />
+    <ClCompile Include="FileUtil_65C64.cpp" />
+    <ClCompile Include="FileUtil_Windows.cpp" />
+    <ClCompile Include="FileBasic.cpp" />
+    <ClCompile Include="MD5.cpp" />
+    <ClCompile Include="FileHeader.cpp" />
+    <ClCompile Include="FileNodeFileSystem.cpp" />
+    <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="FileCopier.cpp" />
+    <ClCompile Include="LinkedListBlockAligned.cpp" />
+    <ClCompile Include="MemoryCache.cpp" />
+    <ClCompile Include="MemoryStack.cpp" />
+    <ClCompile Include="MemoryStackExtended.cpp" />
+    <ClCompile Include="StackMark.cpp" />
+    <ClCompile Include="GeneralMemory.cpp" />
+    <ClCompile Include="ScratchPad.cpp" />
+    <ClCompile Include="PointerFunctions.cpp" />
+    <ClCompile Include="TypeConverter.cpp" />
+    <ClCompile Include="TypeNames.cpp" />
+    <ClCompile Include="TypeParser.cpp" />
+    <ClCompile Include="MemCompare.cpp" />
+    <ClCompile Include="Unicode.cpp" />
+    <ClCompile Include="UnicodeReader.cpp" />
+    <ClCompile Include="UnicodeWriter.cpp" />
+    <ClCompile Include="UTF16.cpp" />
+    <ClCompile Include="UTF8.cpp" />
+    <ClCompile Include="WindowsError.cpp" />
+    <ClCompile Include="LinuxError.cpp" />
+    <ClCompile Include="CalcObject.cpp" />
+    <ClCompile Include="CharEncoding.cpp" />
+    <ClCompile Include="FatClusterCache.cpp" />
+    <ClCompile Include="Codabase.cpp" />
+    <ClCompile Include="WriteTransaction.cpp" />
+    <ClCompile Include="LockManager.cpp" />
+    <ClCompile Include="ReadTransaction.cpp" />
+    <ClCompile Include="TransactionIteration.cpp" />
+    <ClCompile Include="CodabaseVersions.cpp" />
+    <ClCompile Include="CodabaseFactory.cpp" />
+    <ClCompile Include="FatCommon.cpp" />
+    <ClCompile Include="FatDebug.cpp" />
+    <ClCompile Include="FatAbstractFile.cpp" />
+    <ClCompile Include="FatFile.cpp" />
+    <ClCompile Include="FatFilenameHelper.cpp" />
+    <ClCompile Include="FatFormat.cpp" />
+    <ClCompile Include="FatInfoSectorCache.cpp" />
+    <ClCompile Include="FatTime.cpp" />
+    <ClCompile Include="FatVolume.cpp" />
+    <ClCompile Include="FileDrive.cpp" />
+    <ClCompile Include="FileIterator.cpp" />
+    <ClCompile Include="FileIteratorReturn.cpp" />
+    <ClCompile Include="Files.cpp" />
+    <ClCompile Include="IndexedDataConfig.cpp" />
+    <ClCompile Include="IndexedCacheResult.cpp" />
+    <ClCompile Include="IndexedDataAccess.cpp" />
+    <ClCompile Include="IndexedDataCommon.cpp" />
+    <ClCompile Include="IndexedDataEvictedList.cpp" />
+    <ClCompile Include="IndexedDataEvictionCounter.cpp" />
+    <ClCompile Include="IndexedMap.cpp" />
+    <ClCompile Include="IndexedDescriptorsFile.cpp" />
+    <ClCompile Include="IndexedFilesEvicting.cpp" />
+    <ClCompile Include="IndexedGeneral.cpp" />
+    <ClCompile Include="IndexTreeEvictedList.cpp" />
+    <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp" />
+    <ClCompile Include="IndexTreeEvictionCounter.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyFactory.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp" />
+    <ClCompile Include="IndexTreeFile.cpp" />
+    <ClCompile Include="IndexTreeFileAccess.cpp" />
+    <ClCompile Include="IndexTreeFileDebug.cpp" />
+    <ClCompile Include="IndexTreeEvicting.cpp" />
+    <ClCompile Include="IndexTreeEvictingAccess.cpp" />
+    <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp" />
+    <ClCompile Include="IndexTreeFileIterator.cpp" />
+    <ClCompile Include="IndexTreeFileDiagnosticCallback.cpp" />
+    <ClCompile Include="IndexTreeFileDiagnosticLoggingCallback.cpp" />
+    <ClCompile Include="IndexTreeHelper.cpp" />
+    <ClCompile Include="IndexTreeChildNode.cpp" />
+    <ClCompile Include="IndexTreeNodeFile.cpp" />
+    <ClCompile Include="IndexTreeWriter.cpp" />
+    <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp" />
+    <ClCompile Include="LogFile.cpp" />
+    <ClCompile Include="LogFileCommands.cpp" />
+    <ClCompile Include="MemoryDrive.cpp" />
+    <ClCompile Include="NamedIndexedData.cpp" />
+    <ClCompile Include="NamedIndexedHeader.cpp" />
+    <ClCompile Include="NamedIndexes.cpp" />
+    <ClCompile Include="NamedIndexesConfig.cpp" />
+    <ClCompile Include="PackFileOffset.cpp" />
+    <ClCompile Include="IndexedData.cpp" />
+    <ClCompile Include="IndexedDataDescriptor.cpp" />
+    <ClCompile Include="IndexedFile.cpp" />
+    <ClCompile Include="IndexedFiles.cpp" />
+    <ClCompile Include="IndexedCache.cpp" />
+    <ClCompile Include="DurableFile.cpp" />
+    <ClCompile Include="DurableFileController.cpp" />
+    <ClCompile Include="DurableSet.cpp" />
+    <ClCompile Include="PropertiesFile.cpp" />
+    <ClCompile Include="Sequence.cpp" />
+    <ClCompile Include="SequenceConfig.cpp" />
+    <ClCompile Include="SequenceFactory.cpp" />
+    <ClCompile Include="TransientSequence.cpp" />
+    <ClCompile Include="ValueIndexedDataConfig.cpp" />
+    <ClCompile Include="ValueNamedIndexesConfig.cpp" />
+    <ClCompile Include="ValueSequenceConfig.cpp" />
+    <ClCompile Include="XMLFile.cpp" />
+    <ClCompile Include="XMLWriter.cpp" />
+    <ClCompile Include="FunctionCaller.cpp" />
+    <ClCompile Include="Calculator.cpp" />
+    <ClCompile Include="CalcBinaryExpression.cpp" />
+    <ClCompile Include="CalcConstExpression.cpp" />
+    <ClCompile Include="CalcExpression.cpp" />
+    <ClCompile Include="CalcOperator.cpp" />
+    <ClCompile Include="CalcParentheses.cpp" />
+    <ClCompile Include="CalcUnaryExpression.cpp" />
+    <ClCompile Include="XMLEntity.cpp" />
+    <ClCompile Include="XMLIdentifier.cpp" />
+    <ClCompile Include="XMLParser.cpp" />
+    <ClCompile Include="PlainTextEditor.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Timer_Windows.cpp" />
+    <ClCompile Include="Timer_Linux.cpp" />
+    <ClCompile Include="Timer_65C64.cpp" />
+    <ClCompile Include="ConnectSocket_Windows.cpp" />
+    <ClCompile Include="ConnectSocket_Linux.cpp" />
+    <ClCompile Include="ListenSocket_Windows.cpp" />
+    <ClCompile Include="ListenSocket_Linux.cpp" />
+    <ClCompile Include="Socket_Windows.cpp" />
+    <ClCompile Include="Socket_Linux.cpp" />
+    <ClCompile Include="XMLProlog.cpp" />
+    <ClCompile Include="XMLString.cpp" />
+    <ClCompile Include="XMLWhitespace.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BaseLib.ruleset" />
+    <None Include="FunctionCaller_C_Call.inl" />
+    <None Include="FunctionCaller_ThisCall.inl" />
+    <None Include="FunctionCaller_ThisMultiCall.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MemoryTodo.txt" />
+    <None Include="gpl.txt" />
+    <None Include="lgpl.txt" />
+    <None Include="TimSort.inl" />
+    <None Include="CharsClass.inl" />
+    <None Include="CharsCode.inl" />
+    <None Include="ArrayBlockClass.inl" />
+    <None Include="ArrayBlockCode.inl" />
+    <None Include="ArraySizeNatural.inl" />
+    <None Include="ArraySizeLarge.inl" />
+    <None Include="ArraySizeUndef.inl" />
+    <None Include="ArrayTemplate.inl" />
+    <None Include="ArrayTemplatePrimitive.inl" />
+    <None Include="ArrayCharClass.inl" />
+    <None Include="ArrayCharCode.inl" />
+    <None Include="TypeConverter_Mapping.inl" />
+    <None Include="LibraryBreakdown.txt" />
+    <None Include="CodabaseTransactions.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

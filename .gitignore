@@ -6,5 +6,18 @@ x64/
 us.stackdump
 *.suo
 *.sdf
-*/.vs
+*.opensdf
+*.VC.db
+*.VC.opendb
+.vs/
+*ipch
+*.swp
 *Log.txt
+
+# What every test writes when it runs: the Output and Post folders next to its sources (TestJavaParserLib's Post is
+# its own input)
+/Tests/*/*/Output/
+/Tests/*/*/Post/
+!/Tests/TestJavaParserLib/TestJavaParserLib/Post/
+/Tests/TestStandardLib/TestStandardLib120427.vsp
+/Tests/TestStandardLib/TestStandardLib.psess

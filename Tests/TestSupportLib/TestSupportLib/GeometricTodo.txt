@@ -1,0 +1,55 @@
+Smoothing groups by polygon angle
+Optimise the mesh cacher
+Write a UV Box Mapper mesh modifier
+Write a UV Plane Mapper mesh modifier
+Write a UV Sphere Mapper mesh modifier
+Fix Skinning.  Fuck knows how broken it is.
+Write a Colour XYZ Mapper mesh modifier
+
+Fix Mesh Exporter to work with new Mesh
+Fix Mesh Converter to work with new Mesh
+Rename FindElement* to Find* 
+Make SFloat3 etc... use the fastest transform implementation available (ie: DX if using DX).
+Write a Tube Editor mesh modifier.
+Circle/Ring segment count consistency
+Non-Z aligned shapes need fixing.
+Design/write the OBK reader.
+DrawImage must handle images and cels.
+Add a draw image modifier also.
+*Move SFloat3 etc... into their own files.  Remove GeometricTypes.h
+*Remove DataArray and DataIndicies etc...
+*Write some sort of CImageCel source thingy.
+*User should work with named CImageCelGroups rather than single CImageCels.
+*Rename Editor -> Modifier
+*MeshEditor Wrapper
+*Animations belong in SupportLib.
+*Optimise accessors
+*CImage::DrawImage must move to a helper class.
+*CImageAccessor::DrawRow belongs where?
+*CImage must have a CChannels, not be one.
+*Rewrite ImageCombiner
+*ImageColourCombo to Combo2 and make a Combo3 also.
+*Need ImageColourRGBA because it's used so often.
+*Recolour must become a modifier
+*Write an image channel box modifier.  
+*CImageAccessor::DrawBox must go away.
+*ImageScratchPad must go away.  Use SImageColour instead.
+*CImage::PrivateCreateMultiAccessor must move ... elsewhere.
+*How do you set the colour?  With CImageColour
+*Write an image channel rename modifier
+*CImage::GetOpacity must move to Material converter
+*CImageModifier and CImageModifierStack.  Write them.
+*BumpMapper must become a modifier.
+*Resampler, Helper, GreyToRGB must become modifiers.
+*CImagePixelFunc can fuck right off.
+*Other global methods in Image.h must move to CRectangleBestPacker
+*DumpToExternal must be renamed to CopyToExternal.
+*DumpRowToExternal must be renamed to CopyRowToExternal.
+*TGA 16/24/32 image reader.
+*RAD reader and writer.
+*Global method DumpToExternal in Image.h must move to ImageWriter
+*Write the Mesh.Touch method
+*Write Mesh primitive shapes (see Mesh.AddPlane)
+*Write ArrayBit to be less retarded
+*Finish writing MeshConvexHull
+*Finish writing MeshBoundingBox

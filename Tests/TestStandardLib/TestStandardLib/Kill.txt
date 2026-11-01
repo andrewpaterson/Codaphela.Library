@@ -1,0 +1,82 @@
+-----------------------------------------------------------
+
+void CEmbeddedObject::KillDontFree(void) =0;
+
+
+void CHollowEmbeddedObject::KillDontFree(void)
+{
+	KillInternalData();
+}
+
+
+void CBaseObject::KillDontFree(void)
+{
+	LOG_OBJECT_DESTRUCTION(this);
+
+	KillData();
+	KillInternalData();
+
+	miFlags |= OBJECT_FLAGS_KILLED;
+}
+
+
+void CObject::KillDontFree(void)
+{
+	int		iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+	int		i;
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->KillDontFree();
+	}
+
+	CBaseObject::KillDontFree();
+}
+
+-----------------------------------------------------------
+
+void CEmbeddedObject::KillInternalData()
+{
+	mapHeapFroms.Kill();
+
+	RemoveAllStackFroms();
+}
+
+
+void CBaseObject::KillInternalData(void)
+{
+	CEmbeddedObject::KillInternalData();
+}
+
+
+void CObject::KillInternalData(void)
+{
+	CBaseObject::KillInternalData();
+	mapEmbedded.Kill();
+	mapPointers.Kill();
+} 
+
+
+void CNamedObject::KillInternalData(void)
+{
+	mon.Kill();
+	CObject::KillInternalData();
+}
+
+
+void CHollowObject::KillInternalData(void)
+{
+	CBaseObject::KillInternalData();
+}
+
+
+void CArrayCommonObject::KillInternalData(void)
+{
+	CBaseObject::KillInternalData();
+	mcArray.Kill();
+}
+
+-----------------------------------------------------------

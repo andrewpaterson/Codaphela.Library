@@ -1,0 +1,29 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"grid.png";
+		Directory	"Input";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{0, 0, 16, 16};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{16, 16, 32, 48};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	2;
+		Rect	{24, 8, 48, 40};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+}

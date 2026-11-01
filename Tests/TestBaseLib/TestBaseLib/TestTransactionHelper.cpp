@@ -1,0 +1,135 @@
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/NativeThread.h"
+#include "BaseLib/CodabaseFactory.h"
+#include "TestLib/Assert.h"
+#include "TestTransactionHelper.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestStage::Init(void)
+{
+	mcMutex.Init();
+	miStage = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestStage::Kill(void)
+{
+	mcMutex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestStage::Set(int iStage)
+{
+	mcMutex.Lock();
+	miStage = iStage;
+	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTestStage::Get(void)
+{
+	int	iStage;
+
+	mcMutex.Lock();
+	iStage = miStage;
+	mcMutex.Unlock();
+	return iStage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestStage::WaitFor(int iStage)
+{
+	int	i;
+
+	//Gives up after about five seconds so a broken test fails instead of hanging.
+	for (i = 0; (i < 5000) && (Get() < iStage); i++)
+	{
+		ThreadSleep(1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCodabase* CreateTransactionTestCodabase(const char* szDirectory, EDurableSync eSync)
+{
+	CCodabase*	pcDatabase;
+	CFileUtil	cFileUtil;
+	char		szOne[] = "One";
+	char		szTwo[] = "Two";
+
+	//A new Codabase with "One" named "Alpha" at index 1 and "Two" at index 2.
+	cFileUtil.RemoveDir(szDirectory);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, eSync);
+	AssertNotNull(pcDatabase);
+	AssertTrue(pcDatabase->Open());
+	AssertTrue(pcDatabase->Add(1LL, "Alpha", szOne, strlen(szOne) + 1));
+	AssertTrue(pcDatabase->Add(2LL, szTwo, strlen(szTwo) + 1));
+	AssertTrue(pcDatabase->Close());
+	return pcDatabase;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertStoredString(CCodabase* pcDatabase, OIndex oi, const char* szExpected)
+{
+	char	szResult[256];
+
+	memset(szResult, 0, 256);
+	AssertTrue(pcDatabase->Get(oi, szResult));
+	AssertString(szExpected, szResult);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTransactionString(CWriteTransaction* pcTransaction, OIndex oi, const char* szExpected)
+{
+	char	szResult[256];
+
+	memset(szResult, 0, 256);
+	AssertTrue(pcTransaction->Get(oi, szResult));
+	AssertString(szExpected, szResult);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertReadString(CReadTransaction* pcRead, OIndex oi, const char* szExpected)
+{
+	char	szResult[256];
+
+	memset(szResult, 0, 256);
+	AssertTrue(pcRead->Get(oi, szResult));
+	AssertString(szExpected, szResult);
+}
+

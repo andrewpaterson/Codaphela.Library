@@ -1,0 +1,9 @@
+<!DOCTYPE Root [
+  <!ENTITY ext SYSTEM "file:External.xml">
+]>
+<Root>
+  &ext;
+  &ext;
+  &ext;
+  &ext;
+</Root>

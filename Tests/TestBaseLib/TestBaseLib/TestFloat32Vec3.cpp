@@ -1,0 +1,71 @@
+#include "BaseLib/Float32Vec3.h"
+#include "TestLib/Assert.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat32Vec3Add(void)
+{
+	SFloat32Vec3 sfa;
+	SFloat32Vec3 sfb;
+
+	sfa.Init(1, 2, 3);
+	sfb.Init(4, 3, 2);
+
+	sfa += sfb;
+
+	AssertFloat(5, sfa.x, 13);
+	AssertFloat(5, sfa.y, 13);
+	AssertFloat(5, sfa.z, 13);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat32Vec3Print(void)
+{
+	SFloat32Vec3	sf;
+	CChars			sz;
+
+	sf.Init(345.342359f, 0.0002345f, 53.0f);
+	sz.Init();
+	sf.Print(&sz);
+	AssertString("[ 345.34,   0.00,  53.00]", sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat32Vec3Magnitude(void)
+{
+	SFloat32Vec3	sf;
+
+	sf.Init(345.0f, 432.0f, 1789.0f);
+	AssertFloat(1872.4769287109375f, sf.Magnitude(), 13);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat32Vec3(void)
+{
+	BeginTests();
+	NumberInit();
+
+	TestFloat32Vec3Add();
+	TestFloat32Vec3Print();
+	TestFloat32Vec3Magnitude();
+
+	NumberKill();
+	TestStatistics();
+}
+

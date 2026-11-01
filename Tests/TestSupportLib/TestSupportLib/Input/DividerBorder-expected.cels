@@ -1,0 +1,148 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"splitter.png";
+		Directory	"Input";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{1, 1, 14, 14};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{1, 15, 14, 28};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	2;
+		Rect	{1, 23, 7, 44};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	3;
+		Rect	{1, 45, 24, 63};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	4;
+		Rect	{8, 29, 14, 44};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	5;
+		Rect	{15, 1, 21, 18};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	6;
+		Rect	{15, 1, 42, 24};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	7;
+		Rect	{17, 27, 33, 42};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	8;
+		Rect	{25, 47, 33, 63};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	9;
+		Rect	{34, 25, 37, 26};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	10;
+		Rect	{34, 27, 35, 28};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	11;
+		Rect	{34, 29, 36, 31};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	12;
+		Rect	{34, 25, 42, 41};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	13;
+		Rect	{34, 42, 38, 52};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	14;
+		Rect	{34, 53, 38, 58};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	15;
+		Rect	{34, 60, 42, 63};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	16;
+		Rect	{36, 27, 37, 28};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	17;
+		Rect	{39, 21, 42, 24};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	18;
+		Rect	{39, 42, 42, 59};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	19;
+		Rect	{43, 0, 64, 63};
+		Offset	{0, 0, 0, 0};
+		Align	{0, 0};
+	}
+}

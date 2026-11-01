@@ -1,0 +1,72 @@
+#include "BaseLib/Int64Vec4.h"
+#include "TestLib/Assert.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt64Vec4Add(void)
+{
+	SInt64Vec4 sia;
+	SInt64Vec4 sib;
+
+	sia.Init(1, 2, 3, 4);
+	sib.Init(4, 3, 2, 1);
+
+	sia += sib;
+
+	AssertLong(5, sia.x);
+	AssertLong(5, sia.y);
+	AssertLong(5, sia.z);
+	AssertLong(5, sia.w);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt64Vec4Print(void)
+{
+	SInt64Vec4	si;
+	CChars		sz;
+
+	si.Init(345, 0, 1397533873, -3);
+	sz.Init();
+	si.Print(&sz);
+	AssertString("[         345,           0,  1397533873,          -3]", sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt64Vec4Magnitude(void)
+{
+	SInt64Vec4	si;
+
+	si.Init(20123405, 13459784, 478, -3423454);
+	AssertLong(24450710, si.Magnitude());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt64Vec4(void)
+{
+	BeginTests();
+	NumberInit();
+
+	TestInt64Vec4Add();
+	TestInt64Vec4Print();
+	TestInt64Vec4Magnitude();
+
+	NumberKill();
+	TestStatistics();
+}
+

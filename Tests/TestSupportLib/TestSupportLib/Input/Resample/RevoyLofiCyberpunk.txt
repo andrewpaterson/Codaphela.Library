@@ -1,0 +1,15 @@
+RevoyLofiCyberpunk.png and RevoyLofiCyberpunk-640.png are crops of
+"2021-09-29 lofi cyberpunk" by David Revoy, licensed CC BY 4.0
+(https://creativecommons.org/licenses/by/4.0/).
+
+Source: https://commons.wikimedia.org/wiki/File:2021-09-29_lofi_cyberpunk_by_david-revoy.jpg
+
+Changes: cropped to (760, 228) - (1570, 876) of the 2431 x 1930 original and
+resized with Lanczos to 160 x 128 (RevoyLofiCyberpunk.png, the resampler's
+source) and 640 x 512 (RevoyLofiCyberpunk-640.png, what a 4x resample should
+look like).  MakeRevoyLofiCyberpunk.py made them (needs Pillow):
+
+    python3 MakeRevoyLofiCyberpunk.py 2021-09-29_lofi_cyberpunk_by_david-revoy.jpg .
+
+RevoyLofiCyberpunk-Smart-expected.png is the IR_Smart resample of
+RevoyLofiCyberpunk.png and is under the same licence.

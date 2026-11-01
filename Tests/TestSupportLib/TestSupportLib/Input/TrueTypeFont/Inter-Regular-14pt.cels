@@ -1,0 +1,4110 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"Inter-Regular-14pt.png";
+		Directory	"Output/TrueTypeFont";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{63, 456, 80, 469};
+		Offset	{2, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{63, 470, 78, 480};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	2;
+		Rect	{167, 365, 185, 374};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	3;
+		Rect	{63, 481, 81, 494};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	4;
+		Rect	{167, 375, 182, 390};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	5;
+		Rect	{246, 190, 261, 200};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	6;
+		Rect	{63, 495, 79, 505};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	7;
+		Rect	{167, 391, 185, 400};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	8;
+		Rect	{83, 0, 101, 14};
+		Offset	{5, 0, 1, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	9;
+		Rect	{167, 401, 182, 413};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	10;
+		Rect	{83, 15, 98, 25};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	11;
+		Rect	{167, 414, 182, 424};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	12;
+		Rect	{226, 454, 241, 472};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	13;
+		Rect	{83, 26, 102, 38};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	14;
+		Rect	{167, 425, 181, 428};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	15;
+		Rect	{246, 201, 260, 214};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	16;
+		Rect	{83, 39, 99, 49};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	17;
+		Rect	{167, 429, 185, 436};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	18;
+		Rect	{83, 50, 102, 62};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	19;
+		Rect	{167, 437, 182, 447};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	20;
+		Rect	{83, 63, 99, 73};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	21;
+		Rect	{167, 448, 181, 468};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	22;
+		Rect	{83, 74, 102, 86};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	23;
+		Rect	{167, 469, 181, 489};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	24;
+		Rect	{83, 87, 99, 97};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	25;
+		Rect	{167, 490, 181, 506};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	26;
+		Rect	{83, 98, 102, 110};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	27;
+		Rect	{187, 0, 205, 12};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	28;
+		Rect	{83, 111, 99, 121};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	29;
+		Rect	{83, 122, 101, 134};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	30;
+		Rect	{187, 13, 205, 25};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	31;
+		Rect	{83, 135, 99, 148};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	32;
+		Rect	{187, 26, 204, 37};
+		Offset	{5, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	33;
+		Rect	{246, 215, 262, 226};
+		Offset	{5, 1, 3, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	34;
+		Rect	{83, 149, 97, 162};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	35;
+		Rect	{187, 38, 201, 51};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	36;
+		Rect	{226, 130, 228, 137};
+		Offset	{12, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	37;
+		Rect	{83, 163, 98, 175};
+		Offset	{5, 0, 4, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	38;
+		Rect	{187, 52, 201, 63};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	39;
+		Rect	{226, 138, 228, 145};
+		Offset	{12, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	40;
+		Rect	{246, 227, 263, 239};
+		Offset	{5, 0, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	41;
+		Rect	{83, 176, 100, 185};
+		Offset	{2, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	42;
+		Rect	{187, 64, 201, 75};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	43;
+		Rect	{226, 146, 228, 158};
+		Offset	{12, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	44;
+		Rect	{246, 240, 249, 250};
+		Offset	{12, 1, 9, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	45;
+		Rect	{83, 186, 98, 196};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	46;
+		Rect	{187, 76, 201, 85};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	47;
+		Rect	{226, 159, 228, 169};
+		Offset	{12, 0, 10, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	48;
+		Rect	{226, 473, 240, 481};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	49;
+		Rect	{83, 197, 101, 206};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	50;
+		Rect	{187, 86, 204, 101};
+		Offset	{5, 0, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	51;
+		Rect	{226, 170, 228, 189};
+		Offset	{12, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	52;
+		Rect	{83, 207, 99, 217};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	53;
+		Rect	{187, 102, 201, 111};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	54;
+		Rect	{226, 190, 228, 209};
+		Offset	{12, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	55;
+		Rect	{83, 218, 101, 227};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	56;
+		Rect	{187, 112, 201, 130};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	57;
+		Rect	{226, 482, 240, 500};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	58;
+		Rect	{83, 228, 99, 238};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	59;
+		Rect	{187, 131, 202, 141};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	60;
+		Rect	{226, 210, 230, 220};
+		Offset	{19, -1, 1, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	61;
+		Rect	{83, 239, 101, 249};
+		Offset	{5, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	62;
+		Rect	{125, 427, 144, 437};
+		Offset	{5, 1, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	63;
+		Rect	{187, 142, 201, 154};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	64;
+		Rect	{226, 221, 232, 225};
+		Offset	{5, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	65;
+		Rect	{83, 250, 98, 260};
+		Offset	{8, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	66;
+		Rect	{125, 438, 141, 447};
+		Offset	{8, 0, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	67;
+		Rect	{187, 155, 205, 167};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	68;
+		Rect	{226, 226, 232, 230};
+		Offset	{5, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	69;
+		Rect	{83, 261, 101, 270};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	70;
+		Rect	{125, 448, 144, 460};
+		Offset	{5, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	71;
+		Rect	{187, 168, 201, 180};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	72;
+		Rect	{226, 231, 232, 234};
+		Offset	{17, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	73;
+		Rect	{246, 251, 260, 263};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	74;
+		Rect	{83, 271, 99, 281};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	75;
+		Rect	{125, 461, 143, 467};
+		Offset	{6, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	76;
+		Rect	{187, 181, 201, 194};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	77;
+		Rect	{226, 235, 232, 239};
+		Offset	{5, 0, 13, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	78;
+		Rect	{83, 282, 102, 294};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	79;
+		Rect	{187, 195, 201, 210};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	80;
+		Rect	{226, 240, 232, 247};
+		Offset	{5, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	81;
+		Rect	{83, 295, 103, 306};
+		Offset	{4, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	82;
+		Rect	{187, 211, 201, 223};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	83;
+		Rect	{226, 248, 232, 255};
+		Offset	{5, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	84;
+		Rect	{83, 307, 102, 319};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	85;
+		Rect	{187, 224, 202, 237};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	86;
+		Rect	{226, 256, 232, 263};
+		Offset	{17, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	87;
+		Rect	{246, 264, 254, 281};
+		Offset	{9, 0, 7, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	88;
+		Rect	{83, 320, 103, 331};
+		Offset	{4, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	89;
+		Rect	{187, 238, 201, 250};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	90;
+		Rect	{0, 0, 0, 0};
+		Offset	{0, 5, 24, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	91;
+		Rect	{83, 332, 102, 344};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	92;
+		Rect	{187, 251, 201, 261};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	93;
+		Rect	{226, 264, 237, 272};
+		Offset	{5, 1, 8, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	94;
+		Rect	{0, 0, 15, 3};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	95;
+		Rect	{83, 345, 103, 356};
+		Offset	{4, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	96;
+		Rect	{187, 262, 202, 274};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	97;
+		Rect	{226, 273, 240, 281};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	98;
+		Rect	{0, 4, 6, 10};
+		Offset	{5, 1, 13, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	99;
+		Rect	{83, 357, 102, 369};
+		Offset	{5, 1, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	100;
+		Rect	{187, 275, 201, 287};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	101;
+		Rect	{226, 282, 233, 289};
+		Offset	{10, 2, 7, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	102;
+		Rect	{226, 501, 232, 512};
+		Offset	{5, 0, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	103;
+		Rect	{0, 11, 14, 23};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	104;
+		Rect	{83, 370, 104, 381};
+		Offset	{3, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	105;
+		Rect	{187, 288, 201, 300};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	106;
+		Rect	{0, 24, 18, 34};
+		Offset	{3, 1, 3, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	107;
+		Rect	{83, 382, 101, 394};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	108;
+		Rect	{187, 301, 203, 315};
+		Offset	{4, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	109;
+		Rect	{0, 35, 15, 50};
+		Offset	{5, 2, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	110;
+		Rect	{83, 395, 101, 406};
+		Offset	{1, -1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	111;
+		Rect	{187, 316, 201, 329};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	112;
+		Rect	{0, 51, 15, 63};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	113;
+		Rect	{83, 407, 97, 421};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	114;
+		Rect	{187, 330, 204, 343};
+		Offset	{5, 1, 2, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	115;
+		Rect	{226, 290, 230, 304};
+		Offset	{16, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	116;
+		Rect	{246, 0, 260, 13};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	117;
+		Rect	{0, 64, 6, 67};
+		Offset	{5, 1, 13, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	118;
+		Rect	{83, 422, 97, 432};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	119;
+		Rect	{187, 344, 201, 355};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	120;
+		Rect	{0, 68, 18, 73};
+		Offset	{4, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	121;
+		Rect	{83, 433, 101, 440};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	122;
+		Rect	{187, 356, 201, 372};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	123;
+		Rect	{0, 74, 18, 79};
+		Offset	{4, 0, 2, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	124;
+		Rect	{83, 441, 97, 447};
+		Offset	{5, -1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	125;
+		Rect	{187, 373, 204, 390};
+		Offset	{5, 1, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	126;
+		Rect	{0, 80, 9, 88};
+		Offset	{5, 1, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	127;
+		Rect	{83, 448, 100, 455};
+		Offset	{2, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	128;
+		Rect	{187, 391, 201, 406};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	129;
+		Rect	{0, 89, 10, 99};
+		Offset	{9, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	130;
+		Rect	{83, 456, 97, 462};
+		Offset	{5, -1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	131;
+		Rect	{187, 407, 201, 421};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	132;
+		Rect	{246, 282, 266, 290};
+		Offset	{4, -1, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	133;
+		Rect	{0, 100, 6, 103};
+		Offset	{17, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	134;
+		Rect	{83, 463, 101, 470};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	135;
+		Rect	{187, 422, 201, 433};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	136;
+		Rect	{0, 104, 2, 111};
+		Offset	{12, 1, 10, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	137;
+		Rect	{83, 471, 98, 477};
+		Offset	{4, -1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	138;
+		Rect	{187, 434, 202, 446};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	139;
+		Rect	{0, 112, 4, 115};
+		Offset	{16, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	140;
+		Rect	{83, 478, 101, 482};
+		Offset	{5, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	141;
+		Rect	{187, 447, 202, 464};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	142;
+		Rect	{246, 14, 258, 24};
+		Offset	{8, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	143;
+		Rect	{0, 116, 18, 123};
+		Offset	{4, 0, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	144;
+		Rect	{83, 483, 102, 488};
+		Offset	{4, -1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	145;
+		Rect	{187, 465, 201, 476};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	146;
+		Rect	{0, 124, 15, 134};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	147;
+		Rect	{83, 489, 101, 492};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	148;
+		Rect	{187, 477, 199, 487};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	149;
+		Rect	{226, 305, 241, 326};
+		Offset	{5, 2, 4, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	150;
+		Rect	{0, 135, 14, 141};
+		Offset	{5, 0, 5, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	151;
+		Rect	{83, 493, 94, 496};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	152;
+		Rect	{187, 488, 202, 499};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	153;
+		Rect	{0, 142, 14, 152};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	154;
+		Rect	{83, 497, 98, 511};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	155;
+		Rect	{187, 500, 198, 509};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	156;
+		Rect	{226, 327, 232, 331};
+		Offset	{5, 0, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	157;
+		Rect	{0, 153, 15, 163};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	158;
+		Rect	{105, 0, 124, 7};
+		Offset	{4, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	159;
+		Rect	{206, 0, 217, 7};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	160;
+		Rect	{226, 332, 232, 340};
+		Offset	{5, 0, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	161;
+		Rect	{0, 164, 14, 174};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	162;
+		Rect	{105, 8, 124, 20};
+		Offset	{1, 0, 4, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	163;
+		Rect	{206, 8, 220, 20};
+		Offset	{8, 0, 2, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	164;
+		Rect	{0, 175, 15, 184};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	165;
+		Rect	{105, 21, 124, 28};
+		Offset	{4, -1, 1, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	166;
+		Rect	{206, 21, 218, 31};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	167;
+		Rect	{0, 185, 15, 195};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	168;
+		Rect	{105, 29, 124, 41};
+		Offset	{5, 1, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	169;
+		Rect	{206, 32, 217, 47};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	170;
+		Rect	{0, 196, 14, 206};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	171;
+		Rect	{105, 42, 124, 51};
+		Offset	{5, 1, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	172;
+		Rect	{206, 48, 218, 57};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	173;
+		Rect	{0, 207, 15, 217};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	174;
+		Rect	{105, 52, 116, 61};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	175;
+		Rect	{206, 58, 217, 67};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	176;
+		Rect	{0, 218, 15, 228};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	177;
+		Rect	{105, 62, 123, 71};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	178;
+		Rect	{206, 68, 221, 77};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	179;
+		Rect	{226, 341, 235, 348};
+		Offset	{9, 0, 6, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	180;
+		Rect	{0, 229, 11, 232};
+		Offset	{9, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	181;
+		Rect	{105, 72, 123, 76};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	182;
+		Rect	{206, 78, 217, 87};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	183;
+		Rect	{226, 349, 235, 356};
+		Offset	{9, 0, 6, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	184;
+		Rect	{0, 233, 14, 237};
+		Offset	{9, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	185;
+		Rect	{105, 77, 124, 86};
+		Offset	{5, 1, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	186;
+		Rect	{206, 88, 217, 98};
+		Offset	{8, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	187;
+		Rect	{0, 238, 11, 248};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	188;
+		Rect	{105, 87, 124, 91};
+		Offset	{5, 0, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	189;
+		Rect	{206, 99, 217, 111};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	190;
+		Rect	{226, 357, 241, 366};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	191;
+		Rect	{269, 0, 287, 18};
+		Offset	{3, 1, 3, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	192;
+		Rect	{0, 249, 7, 258};
+		Offset	{10, 2, 7, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	193;
+		Rect	{105, 92, 120, 101};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	194;
+		Rect	{206, 112, 217, 121};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	195;
+		Rect	{0, 259, 11, 268};
+		Offset	{8, 2, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	196;
+		Rect	{105, 102, 120, 108};
+		Offset	{4, 1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	197;
+		Rect	{206, 122, 218, 133};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	198;
+		Rect	{226, 367, 228, 377};
+		Offset	{3, 0, 19, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	199;
+		Rect	{0, 269, 15, 278};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	200;
+		Rect	{105, 109, 119, 118};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	201;
+		Rect	{206, 134, 217, 143};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	202;
+		Rect	{0, 279, 18, 295};
+		Offset	{5, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	203;
+		Rect	{105, 119, 119, 125};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	204;
+		Rect	{206, 144, 221, 154};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	205;
+		Rect	{0, 296, 14, 309};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	206;
+		Rect	{105, 126, 119, 137};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	207;
+		Rect	{206, 155, 218, 165};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	208;
+		Rect	{0, 310, 14, 321};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	209;
+		Rect	{105, 138, 119, 144};
+		Offset	{5, -1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	210;
+		Rect	{206, 166, 217, 175};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	211;
+		Rect	{0, 322, 15, 334};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	212;
+		Rect	{105, 145, 123, 157};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	213;
+		Rect	{206, 176, 221, 186};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	214;
+		Rect	{0, 335, 14, 347};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	215;
+		Rect	{105, 158, 120, 167};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	216;
+		Rect	{206, 187, 224, 199};
+		Offset	{5, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	217;
+		Rect	{226, 378, 240, 390};
+		Offset	{5, -4, 5, -4};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	218;
+		Rect	{0, 348, 14, 357};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	219;
+		Rect	{105, 168, 124, 180};
+		Offset	{5, 1, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	220;
+		Rect	{206, 200, 217, 210};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	221;
+		Rect	{0, 358, 14, 367};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	222;
+		Rect	{105, 181, 121, 190};
+		Offset	{8, 1, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	223;
+		Rect	{206, 211, 220, 221};
+		Offset	{8, 1, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	224;
+		Rect	{0, 368, 15, 380};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	225;
+		Rect	{105, 191, 123, 203};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	226;
+		Rect	{206, 222, 217, 231};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	227;
+		Rect	{0, 381, 14, 393};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	228;
+		Rect	{105, 204, 120, 213};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	229;
+		Rect	{206, 232, 217, 245};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	230;
+		Rect	{246, 291, 255, 301};
+		Offset	{9, 1, 6, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	231;
+		Rect	{0, 394, 14, 397};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	232;
+		Rect	{206, 246, 220, 261};
+		Offset	{8, 1, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	233;
+		Rect	{0, 398, 15, 408};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	234;
+		Rect	{105, 214, 123, 226};
+		Offset	{5, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	235;
+		Rect	{206, 262, 217, 274};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	236;
+		Rect	{0, 409, 14, 421};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	237;
+		Rect	{105, 227, 120, 236};
+		Offset	{8, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	238;
+		Rect	{206, 275, 217, 287};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	239;
+		Rect	{0, 422, 14, 431};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	240;
+		Rect	{105, 237, 123, 250};
+		Offset	{2, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	241;
+		Rect	{206, 288, 217, 297};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	242;
+		Rect	{0, 432, 14, 447};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	243;
+		Rect	{105, 251, 120, 262};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	244;
+		Rect	{206, 298, 218, 308};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	245;
+		Rect	{0, 448, 14, 460};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	246;
+		Rect	{105, 263, 124, 276};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	247;
+		Rect	{206, 309, 218, 323};
+		Offset	{8, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	248;
+		Rect	{0, 461, 15, 474};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	249;
+		Rect	{105, 277, 121, 288};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	250;
+		Rect	{206, 324, 217, 333};
+		Offset	{8, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	251;
+		Rect	{0, 475, 14, 485};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	252;
+		Rect	{105, 289, 124, 302};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	253;
+		Rect	{0, 486, 16, 499};
+		Offset	{5, 1, 3, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	254;
+		Rect	{105, 303, 121, 314};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	255;
+		Rect	{206, 334, 222, 344};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	256;
+		Rect	{0, 500, 14, 511};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	257;
+		Rect	{105, 315, 119, 332};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	258;
+		Rect	{206, 345, 224, 355};
+		Offset	{5, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	259;
+		Rect	{19, 0, 34, 10};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	260;
+		Rect	{105, 333, 117, 351};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	261;
+		Rect	{206, 356, 221, 363};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	262;
+		Rect	{19, 11, 33, 23};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	263;
+		Rect	{105, 352, 123, 363};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	264;
+		Rect	{206, 364, 218, 374};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	265;
+		Rect	{19, 24, 34, 36};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	266;
+		Rect	{105, 364, 120, 370};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	267;
+		Rect	{206, 375, 218, 384};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	268;
+		Rect	{19, 37, 33, 50};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	269;
+		Rect	{105, 371, 124, 382};
+		Offset	{5, 1, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	270;
+		Rect	{206, 385, 221, 388};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	271;
+		Rect	{19, 51, 33, 69};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	272;
+		Rect	{105, 383, 121, 390};
+		Offset	{8, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	273;
+		Rect	{206, 389, 221, 396};
+		Offset	{4, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	274;
+		Rect	{19, 70, 33, 83};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	275;
+		Rect	{105, 391, 123, 402};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	276;
+		Rect	{206, 397, 225, 402};
+		Offset	{4, -1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	277;
+		Rect	{19, 84, 33, 97};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	278;
+		Rect	{105, 403, 120, 410};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	279;
+		Rect	{206, 403, 217, 420};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	280;
+		Rect	{19, 98, 33, 108};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	281;
+		Rect	{105, 411, 124, 421};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	282;
+		Rect	{206, 421, 217, 436};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	283;
+		Rect	{19, 109, 37, 113};
+		Offset	{4, 2, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	284;
+		Rect	{105, 422, 121, 431};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	285;
+		Rect	{206, 437, 220, 447};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	286;
+		Rect	{246, 25, 261, 41};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	287;
+		Rect	{19, 114, 37, 121};
+		Offset	{4, 0, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	288;
+		Rect	{105, 432, 124, 442};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	289;
+		Rect	{206, 448, 221, 457};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	290;
+		Rect	{246, 42, 261, 59};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	291;
+		Rect	{19, 122, 37, 126};
+		Offset	{4, 1, 2, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	292;
+		Rect	{105, 443, 121, 452};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	293;
+		Rect	{246, 60, 261, 76};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	294;
+		Rect	{19, 127, 26, 136};
+		Offset	{5, 0, 12, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	295;
+		Rect	{105, 453, 123, 463};
+		Offset	{5, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	296;
+		Rect	{206, 458, 225, 468};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	297;
+		Rect	{246, 77, 261, 92};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	298;
+		Rect	{19, 137, 21, 146};
+		Offset	{19, 0, 3, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	299;
+		Rect	{105, 464, 120, 473};
+		Offset	{8, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	300;
+		Rect	{206, 469, 220, 478};
+		Offset	{8, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	301;
+		Rect	{19, 147, 23, 151};
+		Offset	{4, 1, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	302;
+		Rect	{105, 474, 124, 484};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	303;
+		Rect	{246, 302, 257, 311};
+		Offset	{8, 2, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	304;
+		Rect	{19, 152, 31, 162};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	305;
+		Rect	{105, 485, 121, 494};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	306;
+		Rect	{19, 163, 34, 173};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	307;
+		Rect	{105, 495, 123, 507};
+		Offset	{5, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	308;
+		Rect	{19, 174, 31, 184};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	309;
+		Rect	{125, 0, 142, 7};
+		Offset	{6, 0, 1, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	310;
+		Rect	{19, 185, 34, 195};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	311;
+		Rect	{125, 8, 143, 20};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	312;
+		Rect	{246, 312, 257, 322};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	313;
+		Rect	{19, 196, 31, 206};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	314;
+		Rect	{125, 21, 141, 28};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	315;
+		Rect	{246, 323, 257, 333};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	316;
+		Rect	{269, 19, 284, 36};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	317;
+		Rect	{19, 207, 34, 214};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	318;
+		Rect	{125, 29, 139, 41};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	319;
+		Rect	{19, 215, 35, 226};
+		Offset	{8, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	320;
+		Rect	{125, 42, 139, 48};
+		Offset	{6, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	321;
+		Rect	{19, 227, 33, 236};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	322;
+		Rect	{125, 49, 144, 61};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	323;
+		Rect	{19, 237, 34, 240};
+		Offset	{4, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	324;
+		Rect	{125, 62, 140, 71};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	325;
+		Rect	{19, 241, 38, 246};
+		Offset	{4, -1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	326;
+		Rect	{125, 72, 143, 84};
+		Offset	{2, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	327;
+		Rect	{269, 37, 285, 50};
+		Offset	{5, 1, 3, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	328;
+		Rect	{19, 247, 33, 256};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	329;
+		Rect	{125, 85, 140, 94};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	330;
+		Rect	{269, 51, 286, 67};
+		Offset	{4, 1, 3, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	331;
+		Rect	{19, 257, 33, 260};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	332;
+		Rect	{125, 95, 144, 107};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	333;
+		Rect	{19, 261, 30, 275};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	334;
+		Rect	{125, 108, 141, 117};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	335;
+		Rect	{19, 276, 30, 285};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	336;
+		Rect	{125, 118, 145, 130};
+		Offset	{0, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	337;
+		Rect	{19, 286, 31, 297};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	338;
+		Rect	{125, 131, 142, 140};
+		Offset	{3, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	339;
+		Rect	{19, 298, 34, 308};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	340;
+		Rect	{125, 141, 144, 153};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	341;
+		Rect	{19, 309, 34, 319};
+		Offset	{8, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	342;
+		Rect	{125, 154, 141, 163};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	343;
+		Rect	{19, 320, 30, 326};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	344;
+		Rect	{125, 164, 143, 176};
+		Offset	{5, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	345;
+		Rect	{19, 327, 31, 336};
+		Offset	{8, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	346;
+		Rect	{125, 177, 140, 187};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	347;
+		Rect	{19, 337, 33, 343};
+		Offset	{6, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	348;
+		Rect	{125, 188, 143, 206};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	349;
+		Rect	{19, 344, 31, 353};
+		Offset	{8, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	350;
+		Rect	{125, 207, 140, 222};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	351;
+		Rect	{19, 354, 30, 364};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	352;
+		Rect	{125, 223, 143, 236};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	353;
+		Rect	{19, 365, 30, 380};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	354;
+		Rect	{125, 237, 144, 247};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	355;
+		Rect	{19, 381, 30, 391};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	356;
+		Rect	{125, 248, 143, 261};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	357;
+		Rect	{19, 392, 34, 402};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	358;
+		Rect	{125, 262, 143, 272};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	359;
+		Rect	{19, 403, 30, 412};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	360;
+		Rect	{125, 273, 140, 282};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	361;
+		Rect	{19, 413, 37, 419};
+		Offset	{4, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	362;
+		Rect	{125, 283, 143, 293};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	363;
+		Rect	{19, 420, 42, 422};
+		Offset	{1, 2, 0, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	364;
+		Rect	{125, 294, 140, 303};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	365;
+		Rect	{19, 423, 37, 429};
+		Offset	{4, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	366;
+		Rect	{125, 304, 143, 314};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	367;
+		Rect	{19, 430, 24, 440};
+		Offset	{11, 1, 8, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	368;
+		Rect	{125, 315, 140, 324};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	369;
+		Rect	{147, 21, 161, 25};
+		Offset	{9, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	370;
+		Rect	{125, 325, 140, 330};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	371;
+		Rect	{226, 391, 232, 398};
+		Offset	{5, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	372;
+		Rect	{226, 0, 244, 18};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	373;
+		Rect	{226, 19, 241, 34};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	374;
+		Rect	{226, 35, 244, 53};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	375;
+		Rect	{226, 54, 241, 69};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	376;
+		Rect	{147, 26, 151, 29};
+		Offset	{4, 1, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	377;
+		Rect	{226, 70, 244, 88};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	378;
+		Rect	{147, 30, 153, 39};
+		Offset	{2, 2, 16, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	379;
+		Rect	{226, 89, 241, 104};
+		Offset	{4, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	380;
+		Rect	{147, 40, 161, 53};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	381;
+		Rect	{147, 54, 151, 57};
+		Offset	{8, 1, 12, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	382;
+		Rect	{147, 58, 161, 71};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	383;
+		Rect	{147, 72, 161, 87};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	384;
+		Rect	{147, 88, 161, 94};
+		Offset	{5, 0, 5, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	385;
+		Rect	{147, 95, 162, 110};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	386;
+		Rect	{147, 111, 161, 127};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	387;
+		Rect	{147, 128, 161, 144};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	388;
+		Rect	{147, 145, 166, 152};
+		Offset	{1, -1, 4, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	389;
+		Rect	{206, 479, 223, 488};
+		Offset	{2, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	390;
+		Rect	{246, 93, 258, 108};
+		Offset	{7, 1, 5, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	391;
+		Rect	{147, 153, 161, 166};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	392;
+		Rect	{206, 489, 219, 496};
+		Offset	{6, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	393;
+		Rect	{246, 109, 260, 122};
+		Offset	{5, 1, 5, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	394;
+		Rect	{125, 331, 144, 338};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	395;
+		Rect	{147, 167, 161, 178};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	396;
+		Rect	{246, 123, 258, 137};
+		Offset	{7, 2, 5, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	397;
+		Rect	{147, 179, 161, 188};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	398;
+		Rect	{246, 138, 261, 151};
+		Offset	{5, 1, 4, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	399;
+		Rect	{147, 189, 161, 202};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	400;
+		Rect	{246, 152, 258, 175};
+		Offset	{7, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	401;
+		Rect	{147, 203, 161, 212};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	402;
+		Rect	{246, 176, 268, 189};
+		Offset	{2, 1, 0, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	403;
+		Rect	{147, 213, 161, 223};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	404;
+		Rect	{147, 224, 161, 236};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	405;
+		Rect	{147, 237, 162, 250};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	406;
+		Rect	{147, 251, 161, 254};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	407;
+		Rect	{147, 255, 161, 267};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	408;
+		Rect	{147, 268, 161, 281};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	409;
+		Rect	{147, 282, 161, 297};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	410;
+		Rect	{147, 298, 161, 310};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	411;
+		Rect	{147, 311, 161, 321};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	412;
+		Rect	{147, 322, 162, 335};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	413;
+		Rect	{0, 0, 0, 0};
+		Offset	{0, 5, 24, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	414;
+		Rect	{147, 336, 161, 348};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	415;
+		Rect	{246, 334, 260, 349};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	416;
+		Rect	{19, 441, 34, 444};
+		Offset	{8, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	417;
+		Rect	{147, 349, 161, 359};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	418;
+		Rect	{246, 350, 260, 365};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	419;
+		Rect	{19, 445, 33, 455};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	420;
+		Rect	{19, 456, 33, 466};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	421;
+		Rect	{147, 360, 161, 371};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	422;
+		Rect	{226, 399, 240, 411};
+		Offset	{5, -1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	423;
+		Rect	{19, 467, 32, 479};
+		Offset	{7, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	424;
+		Rect	{147, 372, 161, 384};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	425;
+		Rect	{226, 412, 240, 422};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	426;
+		Rect	{19, 480, 33, 491};
+		Offset	{5, 0, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	427;
+		Rect	{147, 385, 161, 398};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	428;
+		Rect	{19, 492, 36, 495};
+		Offset	{5, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	429;
+		Rect	{147, 399, 163, 414};
+		Offset	{4, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	430;
+		Rect	{19, 496, 36, 505};
+		Offset	{5, 1, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	431;
+		Rect	{147, 415, 161, 428};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	432;
+		Rect	{226, 423, 241, 440};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	433;
+		Rect	{43, 0, 47, 7};
+		Offset	{4, 2, 16, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	434;
+		Rect	{147, 429, 161, 443};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	435;
+		Rect	{43, 8, 58, 23};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	436;
+		Rect	{147, 444, 161, 457};
+		Offset	{5, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	437;
+		Rect	{43, 24, 52, 32};
+		Offset	{5, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	438;
+		Rect	{147, 458, 165, 465};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	439;
+		Rect	{246, 366, 253, 372};
+		Offset	{10, 2, 7, 3};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	440;
+		Rect	{43, 33, 52, 44};
+		Offset	{9, 0, 6, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	441;
+		Rect	{147, 466, 165, 479};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	442;
+		Rect	{43, 45, 48, 53};
+		Offset	{12, 2, 7, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	443;
+		Rect	{147, 480, 163, 492};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	444;
+		Rect	{226, 441, 241, 453};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	445;
+		Rect	{147, 493, 163, 503};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	446;
+		Rect	{43, 54, 54, 66};
+		Offset	{5, 0, 8, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	447;
+		Rect	{167, 0, 186, 9};
+		Offset	{4, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	448;
+		Rect	{43, 67, 45, 73};
+		Offset	{5, 1, 17, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	449;
+		Rect	{167, 10, 183, 14};
+		Offset	{4, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	450;
+		Rect	{43, 74, 50, 81};
+		Offset	{5, 1, 12, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	451;
+		Rect	{167, 15, 185, 24};
+		Offset	{2, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	452;
+		Rect	{43, 82, 54, 92};
+		Offset	{8, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	453;
+		Rect	{167, 25, 179, 37};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	454;
+		Rect	{43, 93, 51, 100};
+		Offset	{3, 1, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	455;
+		Rect	{167, 38, 185, 48};
+		Offset	{5, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	456;
+		Rect	{246, 373, 261, 391};
+		Offset	{4, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	457;
+		Rect	{43, 101, 51, 109};
+		Offset	{3, 0, 13, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	458;
+		Rect	{167, 49, 182, 59};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	459;
+		Rect	{43, 110, 47, 114};
+		Offset	{4, 1, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	460;
+		Rect	{167, 60, 182, 70};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	461;
+		Rect	{43, 115, 58, 125};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	462;
+		Rect	{167, 71, 179, 81};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	463;
+		Rect	{43, 126, 57, 135};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	464;
+		Rect	{167, 82, 184, 91};
+		Offset	{5, 0, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	465;
+		Rect	{43, 136, 46, 139};
+		Offset	{11, 1, 10, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	466;
+		Rect	{167, 92, 182, 101};
+		Offset	{8, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	467;
+		Rect	{43, 140, 48, 144};
+		Offset	{18, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	468;
+		Rect	{167, 102, 182, 112};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	469;
+		Rect	{43, 145, 51, 150};
+		Offset	{3, 0, 13, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	470;
+		Rect	{167, 113, 179, 117};
+		Offset	{8, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	471;
+		Rect	{43, 151, 52, 160};
+		Offset	{5, 0, 10, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	472;
+		Rect	{167, 118, 178, 127};
+		Offset	{8, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	473;
+		Rect	{246, 392, 264, 408};
+		Offset	{3, 1, 3, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	474;
+		Rect	{43, 161, 52, 171};
+		Offset	{9, 0, 6, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	475;
+		Rect	{167, 128, 182, 140};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	476;
+		Rect	{43, 172, 57, 187};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	477;
+		Rect	{167, 141, 182, 151};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	478;
+		Rect	{246, 409, 261, 427};
+		Offset	{5, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	479;
+		Rect	{43, 188, 57, 203};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	480;
+		Rect	{167, 152, 178, 163};
+		Offset	{8, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	481;
+		Rect	{43, 204, 57, 220};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	482;
+		Rect	{167, 164, 184, 173};
+		Offset	{5, 1, 2, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	483;
+		Rect	{43, 221, 58, 230};
+		Offset	{8, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	484;
+		Rect	{167, 174, 179, 185};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	485;
+		Rect	{43, 231, 61, 244};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	486;
+		Rect	{167, 186, 179, 197};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	487;
+		Rect	{43, 245, 61, 258};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	488;
+		Rect	{167, 198, 182, 208};
+		Offset	{8, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	489;
+		Rect	{43, 259, 61, 272};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	490;
+		Rect	{167, 209, 181, 219};
+		Offset	{8, 0, 2, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	491;
+		Rect	{43, 273, 61, 286};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	492;
+		Rect	{167, 220, 179, 232};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	493;
+		Rect	{43, 287, 61, 300};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	494;
+		Rect	{167, 233, 179, 242};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	495;
+		Rect	{246, 428, 264, 444};
+		Offset	{3, 0, 3, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	496;
+		Rect	{43, 301, 62, 314};
+		Offset	{0, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	497;
+		Rect	{167, 243, 179, 252};
+		Offset	{8, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	498;
+		Rect	{43, 315, 57, 333};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	499;
+		Rect	{125, 468, 129, 475};
+		Offset	{4, 0, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	500;
+		Rect	{167, 253, 182, 266};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	501;
+		Rect	{43, 334, 61, 346};
+		Offset	{5, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	502;
+		Rect	{125, 476, 129, 483};
+		Offset	{4, 0, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	503;
+		Rect	{167, 267, 182, 278};
+		Offset	{8, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	504;
+		Rect	{43, 347, 61, 356};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	505;
+		Rect	{167, 279, 184, 292};
+		Offset	{6, 1, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	506;
+		Rect	{43, 357, 61, 366};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	507;
+		Rect	{125, 484, 127, 490};
+		Offset	{5, 1, 17, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	508;
+		Rect	{167, 293, 179, 308};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	509;
+		Rect	{43, 367, 61, 376};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	510;
+		Rect	{167, 309, 183, 316};
+		Offset	{4, -1, 4, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	511;
+		Rect	{246, 445, 260, 455};
+		Offset	{5, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	512;
+		Rect	{43, 377, 61, 386};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	513;
+		Rect	{167, 317, 183, 326};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	514;
+		Rect	{246, 456, 261, 471};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	515;
+		Rect	{43, 387, 61, 391};
+		Offset	{1, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	516;
+		Rect	{167, 327, 183, 338};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	517;
+		Rect	{43, 392, 61, 396};
+		Offset	{1, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	518;
+		Rect	{167, 339, 183, 348};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	519;
+		Rect	{43, 397, 61, 404};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	520;
+		Rect	{167, 349, 183, 364};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	521;
+		Rect	{43, 405, 61, 412};
+		Offset	{1, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	522;
+		Rect	{246, 472, 261, 487};
+		Offset	{5, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	523;
+		Rect	{43, 413, 57, 426};
+		Offset	{5, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	524;
+		Rect	{43, 427, 61, 439};
+		Offset	{1, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	525;
+		Rect	{43, 440, 62, 453};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	526;
+		Rect	{43, 454, 62, 467};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	527;
+		Rect	{43, 468, 62, 481};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	528;
+		Rect	{43, 482, 62, 495};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	529;
+		Rect	{43, 496, 62, 509};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	530;
+		Rect	{63, 0, 72, 10};
+		Offset	{9, 1, 6, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	531;
+		Rect	{63, 11, 78, 24};
+		Offset	{5, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	532;
+		Rect	{125, 491, 129, 498};
+		Offset	{4, 0, 16, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	533;
+		Rect	{63, 25, 82, 37};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	534;
+		Rect	{125, 499, 129, 502};
+		Offset	{4, 1, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	535;
+		Rect	{63, 38, 82, 50};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	536;
+		Rect	{125, 503, 131, 509};
+		Offset	{3, 0, 15, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	537;
+		Rect	{63, 51, 82, 63};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	538;
+		Rect	{147, 0, 152, 5};
+		Offset	{18, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	539;
+		Rect	{63, 64, 82, 76};
+		Offset	{1, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	540;
+		Rect	{147, 6, 150, 12};
+		Offset	{5, 2, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	541;
+		Rect	{63, 77, 81, 90};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	542;
+		Rect	{147, 13, 151, 20};
+		Offset	{4, 1, 16, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	543;
+		Rect	{63, 91, 77, 101};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	544;
+		Rect	{63, 102, 77, 112};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	545;
+		Rect	{63, 113, 79, 123};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	546;
+		Rect	{63, 124, 79, 134};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	547;
+		Rect	{63, 135, 79, 145};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	548;
+		Rect	{63, 146, 78, 156};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	549;
+		Rect	{63, 157, 79, 167};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	550;
+		Rect	{63, 168, 80, 178};
+		Offset	{3, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	551;
+		Rect	{63, 179, 75, 196};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	552;
+		Rect	{246, 488, 253, 495};
+		Offset	{10, 2, 7, 2};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	553;
+		Rect	{63, 197, 78, 207};
+		Offset	{8, 0, 1, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	554;
+		Rect	{63, 208, 79, 218};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	555;
+		Rect	{63, 219, 79, 229};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	556;
+		Rect	{63, 230, 79, 240};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	557;
+		Rect	{63, 241, 79, 251};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	558;
+		Rect	{63, 252, 78, 257};
+		Offset	{4, -1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	559;
+		Rect	{63, 258, 78, 262};
+		Offset	{4, 1, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	560;
+		Rect	{63, 263, 78, 270};
+		Offset	{4, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	561;
+		Rect	{63, 271, 78, 278};
+		Offset	{4, -1, 5, -1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	562;
+		Rect	{63, 279, 79, 289};
+		Offset	{4, 0, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	563;
+		Rect	{63, 290, 77, 299};
+		Offset	{5, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	564;
+		Rect	{63, 300, 79, 311};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	565;
+		Rect	{226, 105, 244, 118};
+		Offset	{1, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	566;
+		Rect	{63, 312, 79, 323};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	567;
+		Rect	{226, 119, 245, 129};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	568;
+		Rect	{63, 324, 79, 335};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	569;
+		Rect	{63, 336, 78, 347};
+		Offset	{5, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	570;
+		Rect	{63, 348, 79, 359};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	571;
+		Rect	{63, 360, 73, 370};
+		Offset	{9, 1, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	572;
+		Rect	{63, 371, 75, 382};
+		Offset	{8, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	573;
+		Rect	{63, 383, 79, 392};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	574;
+		Rect	{63, 393, 79, 402};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	575;
+		Rect	{125, 339, 146, 352};
+		Offset	{-2, 0, 5, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	576;
+		Rect	{63, 403, 79, 412};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	577;
+		Rect	{125, 353, 144, 363};
+		Offset	{1, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	578;
+		Rect	{63, 413, 79, 422};
+		Offset	{4, 1, 4, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	579;
+		Rect	{125, 364, 143, 382};
+		Offset	{1, 0, 5, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	580;
+		Rect	{63, 423, 82, 433};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	581;
+		Rect	{125, 383, 141, 400};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	582;
+		Rect	{63, 434, 81, 444};
+		Offset	{5, 1, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	583;
+		Rect	{125, 401, 144, 414};
+		Offset	{1, 1, 4, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	584;
+		Rect	{63, 445, 82, 455};
+		Offset	{4, 0, 1, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	585;
+		Rect	{125, 415, 141, 426};
+		Offset	{4, 0, 4, 0};
+		Align	{0, 0};
+	}
+}

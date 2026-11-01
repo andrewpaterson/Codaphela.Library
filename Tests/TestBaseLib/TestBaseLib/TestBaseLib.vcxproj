@@ -1,0 +1,456 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7A007E2A-5588-4047-94CC-BCF680664E4D}</ProjectGuid>
+    <RootNamespace>TestBaseLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</LinkIncremental>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\..\Libraries\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <TargetMachine>MachineX64</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ArrayTemplateTestClasses.cpp" />
+    <ClCompile Include="TestArrayTemplatePtr.cpp" />
+    <ClCompile Include="TestCircularMemoryList.cpp" />
+    <ClCompile Include="ConstructorCallTestClasses.cpp" />
+    <ClCompile Include="ConstructorsTestClasses.cpp" />
+    <ClCompile Include="FileIOTestObjects.cpp" />
+    <ClCompile Include="ParserCustomIdentifier.cpp" />
+    <ClCompile Include="SortedTestObject.cpp" />
+    <ClCompile Include="TestAllocator.cpp" />
+    <ClCompile Include="TestArrayBlock.cpp" />
+    <ClCompile Include="TestSafeArrayBlock.cpp" />
+    <ClCompile Include="TestArrayBlockSorted.cpp" />
+    <ClCompile Include="TestArraySizer.cpp" />
+    <ClCompile Include="TestArrayTemplateEmbeddedPtr.cpp" />
+    <ClCompile Include="TestArrayVoidPtr.cpp" />
+    <ClCompile Include="TestBaseLib.cpp" />
+    <ClCompile Include="TestChars.cpp" />
+    <ClCompile Include="TestCharsHelper.cpp" />
+    <ClCompile Include="TestCharsImmutable.cpp" />
+    <ClCompile Include="TestChunkFileFile.cpp" />
+    <ClCompile Include="TestChunkFileFileSystem.cpp" />
+    <ClCompile Include="TestConstructorCall.cpp" />
+    <ClCompile Include="TestConstructors.cpp" />
+    <ClCompile Include="TestCountingAllocator.cpp" />
+    <ClCompile Include="TestCSVFileEditable.cpp" />
+    <ClCompile Include="TestCSVFileImmutable.cpp" />
+    <ClCompile Include="TestDataMemory.cpp" />
+    <ClCompile Include="TestDataTypesIO.cpp" />
+    <ClCompile Include="TestEscapeCodes.cpp" />
+    <ClCompile Include="TestFileIO.cpp" />
+    <ClCompile Include="TestFloat32Vec2.cpp" />
+    <ClCompile Include="TestFloat32Vec3.cpp" />
+    <ClCompile Include="TestFloat32Vec4.cpp" />
+    <ClCompile Include="TestFloat64Vec4.cpp" />
+    <ClCompile Include="TestFloat64Vec2.cpp" />
+    <ClCompile Include="TestFloat64Vec3.cpp" />
+    <ClCompile Include="TestFloatHelper.cpp" />
+    <ClCompile Include="TestFreeListAllocator.cpp" />
+    <ClCompile Include="TestTrueMallocator.cpp" />
+    <ClCompile Include="TestGlobalDataTypesIO.cpp" />
+    <ClCompile Include="TestIndexBlock.cpp" />
+    <ClCompile Include="TestIndexPtr.cpp" />
+    <ClCompile Include="TestIndexString.cpp" />
+    <ClCompile Include="TestIndexTemplate.cpp" />
+    <ClCompile Include="TestIndexTreeConfig.cpp" />
+    <ClCompile Include="TestIndexTreeDataOrderer.cpp" />
+    <ClCompile Include="TestIndexTreeMemory.cpp" />
+    <ClCompile Include="TestIndexTreeIterator.cpp" />
+    <ClCompile Include="TestIndexTreeNodeMemory.cpp" />
+    <ClCompile Include="TestIndexTreeObject.cpp" />
+    <ClCompile Include="TestInt16Vec2.cpp" />
+    <ClCompile Include="TestInt16Vec3.cpp" />
+    <ClCompile Include="TestInt16Vec4.cpp" />
+    <ClCompile Include="TestInt32Vec2.cpp" />
+    <ClCompile Include="TestInt32Vec3.cpp" />
+    <ClCompile Include="TestInt32Vec4.cpp" />
+    <ClCompile Include="TestInt64Vec2.cpp" />
+    <ClCompile Include="TestInt64Vec3.cpp" />
+    <ClCompile Include="TestInt64Vec4.cpp" />
+    <ClCompile Include="TestIntVec2.cpp" />
+    <ClCompile Include="TestIntVec3.cpp" />
+    <ClCompile Include="TestIntVec4.cpp" />
+    <ClCompile Include="TestJSONParser.cpp" />
+    <ClCompile Include="TestLinkedList.cpp" />
+    <ClCompile Include="TestLinkedListBlock.cpp" />
+    <ClCompile Include="TestSafeLinkedListBlock.cpp" />
+    <ClCompile Include="TestMutex.cpp" />
+    <ClCompile Include="TestLinkedListTemplate.cpp" />
+    <ClCompile Include="TestListBlock.cpp" />
+    <ClCompile Include="TestListCharsMinimal.cpp" />
+    <ClCompile Include="TestListTemplate.cpp" />
+    <ClCompile Include="TestListVariable.cpp" />
+    <ClCompile Include="TestLogger.cpp" />
+    <ClCompile Include="TestLogString.cpp" />
+    <ClCompile Include="TestMap.cpp" />
+    <ClCompile Include="TestMapAccess.cpp" />
+    <ClCompile Include="TestMapBlock.cpp" />
+    <ClCompile Include="TestIndexAccess.cpp" />
+    <ClCompile Include="TestMapLong.cpp" />
+    <ClCompile Include="TestMapString.cpp" />
+    <ClCompile Include="TestMapStringIntAndPointer.cpp" />
+    <ClCompile Include="TestMemoryAllocator.cpp" />
+    <ClCompile Include="TestMemoryBlock.cpp" />
+    <ClCompile Include="TestMemoryCache.cpp" />
+    <ClCompile Include="TestMemoryManager.cpp" />
+    <ClCompile Include="TestMemoryQueue.cpp" />
+    <ClCompile Include="TestMemoryStack.cpp" />
+    <ClCompile Include="TestPrimitiveTypes.cpp" />
+    <ClCompile Include="TestReditectPrintf.cpp" />
+    <ClCompile Include="TestScratchPad.cpp" />
+    <ClCompile Include="TestScratchPadAllocator.cpp" />
+    <ClCompile Include="TestSet.cpp" />
+    <ClCompile Include="TestSetBlock.cpp" />
+    <ClCompile Include="TestSorting.cpp" />
+    <ClCompile Include="TestArrayBit.cpp" />
+    <ClCompile Include="TestArrayTemplateEmbedded.cpp" />
+    <ClCompile Include="TestArrayInt.cpp" />
+    <ClCompile Include="TestArrayInt2D.cpp" />
+    <ClCompile Include="TestArrayLong.cpp" />
+    <ClCompile Include="TestArrayTemplatePrimitive.cpp" />
+    <ClCompile Include="TestArrayTemplate.cpp" />
+    <ClCompile Include="TestDenseArrayTemplate.cpp" />
+    <ClCompile Include="TestSparseArrayTemplate.cpp" />
+    <ClCompile Include="TestRedBlackTree.cpp" />
+    <ClCompile Include="TestLine.cpp" />
+    <ClCompile Include="TestStackMemory.cpp" />
+    <ClCompile Include="TestStringHelper.cpp" />
+    <ClCompile Include="TestDate.cpp" />
+    <ClCompile Include="TestMapInt.cpp" />
+    <ClCompile Include="TestMapPtrPtr.cpp" />
+    <ClCompile Include="TestBufferedFile.cpp" />
+    <ClCompile Include="TestDiskFile.cpp" />
+    <ClCompile Include="TestFileFinder.cpp" />
+    <ClCompile Include="TestFileUtil.cpp" />
+    <ClCompile Include="TestTextFile.cpp" />
+    <ClCompile Include="TestIntelHex.cpp" />
+    <ClCompile Include="TestMD5File.cpp" />
+    <ClCompile Include="TestMemoryFile.cpp" />
+    <ClCompile Include="TestChunkFile.cpp" />
+    <ClCompile Include="TestPackFile.cpp" />
+    <ClCompile Include="TestFileSystem.cpp" />
+    <ClCompile Include="TestIntegerHelper.cpp" />
+    <ClCompile Include="TestFixedPoint.cpp" />
+    <ClCompile Include="TestNumbers.cpp" />
+    <ClCompile Include="TestFreeList.cpp" />
+    <ClCompile Include="TestLinkedListAligned.cpp" />
+    <ClCompile Include="TestGeneralMemory.cpp" />
+    <ClCompile Include="TestTemporaryMemory.cpp" />
+    <ClCompile Include="TestTextParser.cpp" />
+    <ClCompile Include="TestTextPosition.cpp" />
+    <ClCompile Include="TestTrackingAllocator.cpp" />
+    <ClCompile Include="TestTreeTemplate.cpp" />
+    <ClCompile Include="TestTypeConverter.cpp" />
+    <ClCompile Include="TestUnicode.cpp" />
+    <ClCompile Include="TestUnicodeWriter.cpp" />
+    <ClCompile Include="TestUTF16.cpp" />
+    <ClCompile Include="TestUTF8.cpp" />
+    <ClCompile Include="IndexTreeCallbackTestObject.cpp" />
+    <ClCompile Include="IndexTreeFileDataTestCallback.cpp" />
+    <ClCompile Include="NamedIndexedDataObject.cpp" />
+    <ClCompile Include="TestCalculator.cpp" />
+    <ClCompile Include="TestCodabase.cpp" />
+    <ClCompile Include="TestWriteTransaction.cpp" />
+    <ClCompile Include="TestReadTransaction.cpp" />
+    <ClCompile Include="TestTransactionConcurrency.cpp" />
+    <ClCompile Include="TestTransactionHelper.cpp" />
+    <ClCompile Include="TestFat32.cpp" />
+    <ClCompile Include="TestFat16.cpp" />
+    <ClCompile Include="TestFat32Common.cpp" />
+    <ClCompile Include="TestFatCache.cpp" />
+    <ClCompile Include="TestFatBench.cpp" />
+    <ClCompile Include="TestFatStress.cpp" />
+    <ClCompile Include="TestFat32Bugs.cpp" />
+    <ClCompile Include="TestFiles.cpp" />
+    <ClCompile Include="TestFloatPrinter.cpp" />
+    <ClCompile Include="TestIndexedFile.cpp" />
+    <ClCompile Include="TestIndexedFiles.cpp" />
+    <ClCompile Include="TestIndexedFilesCache.cpp" />
+    <ClCompile Include="TestIndexTemplateFile.cpp" />
+    <ClCompile Include="TestIndexTreeAccess.cpp" />
+    <ClCompile Include="TestIndexTreeEvicting.cpp" />
+    <ClCompile Include="TestIndexTreeEvictingDiagnosticCallback.cpp" />
+    <ClCompile Include="TestIndexTreeFile.cpp" />
+    <ClCompile Include="TestIndexTreeFileCallback.cpp" />
+    <ClCompile Include="TestIndexTreeFileDataOrderer.cpp" />
+    <ClCompile Include="TestIndexTreeFileIterator.cpp" />
+    <ClCompile Include="TestIndexTreeNodeFile.cpp" />
+    <ClCompile Include="TestIndexTreeWriter.cpp" />
+    <ClCompile Include="TestLogFile.cpp" />
+    <ClCompile Include="TestIndexedData.cpp" />
+    <ClCompile Include="TestMemoryDrive.cpp" />
+    <ClCompile Include="TestNamedIndexedData.cpp" />
+    <ClCompile Include="TestNamedIndexes.cpp" />
+    <ClCompile Include="TestPackFilesPacker.cpp" />
+    <ClCompile Include="TestPropertiesFile.cpp" />
+    <ClCompile Include="TestDurableFile.cpp" />
+    <ClCompile Include="TestDurableFileController.cpp" />
+    <ClCompile Include="TestDurableSet.cpp" />
+    <ClCompile Include="TestSequence.cpp" />
+    <ClCompile Include="TestXMLFile.cpp" />
+    <ClCompile Include="TestXMLWriter.cpp" />
+    <ClCompile Include="TestFunctionCaller.cpp" />
+    <ClCompile Include="TestNumber.cpp" />
+    <ClCompile Include="TestXMLParser.cpp" />
+    <ClCompile Include="WordKey.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArrayTemplateTestClasses.h" />
+    <ClInclude Include="ConstructorCallTestClasses.h" />
+    <ClInclude Include="ConstructorsTestClasses.h" />
+    <ClInclude Include="TestTransactionHelper.h" />
+    <ClInclude Include="FileIOTestObjects.h" />
+    <ClInclude Include="ParserCustomIdentifier.h" />
+    <ClInclude Include="SortedTestObject.h" />
+    <ClInclude Include="TestIndexTreeMemory.h" />
+    <ClInclude Include="TestPackFile.h" />
+    <ClInclude Include="IndexTreeCallbackTestObject.h" />
+    <ClInclude Include="IndexTreeFileDataTestCallback.h" />
+    <ClInclude Include="NamedIndexedDataObject.h" />
+    <ClInclude Include="TestFat32Common.h" />
+    <ClInclude Include="TestFunctionCaller.h" />
+    <ClInclude Include="TestIndexTreeEvicting.h" />
+    <ClInclude Include="TestIndexTreeFile.h" />
+    <ClInclude Include="TestIndexTreeObject.h" />
+    <ClInclude Include="WordKey.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="External.xml" />
+    <None Include="File.xml" />
+    <None Include="First.xml" />
+    <None Include="Second.xml" />
+    <None Include="Third.xml" />
+    <None Include="Log.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libraries\BaseLib\BaseLib.vcxproj">
+      <Project>{e25d2dac-0e80-42b2-8fa7-99b837cf7588}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\TestLib\TestLib.vcxproj">
+      <Project>{d06d265e-a503-42f8-a93a-a0a1c0b058ff}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

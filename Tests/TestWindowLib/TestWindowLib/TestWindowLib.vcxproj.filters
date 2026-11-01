@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Component">
+      <UniqueIdentifier>{f56382f2-5dbf-4e64-ac69-179be08b5f9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Window">
+      <UniqueIdentifier>{7daf3352-2eae-4ed3-9ad3-0c8c28acdc78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Event">
+      <UniqueIdentifier>{1b97a888-2b1b-40d2-a1d0-dde7030f6d42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Container">
+      <UniqueIdentifier>{37b33757-0df9-4ff5-81cd-c02b27757f43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\TestCommon">
+      <UniqueIdentifier>{477c47f5-af94-4ef5-bc50-5766f29aceae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Drawing">
+      <UniqueIdentifier>{6732870f-ae3b-4640-97b9-25d5a7c76686}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestWindowLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRefWindow.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFillContainer.cpp">
+      <Filter>Source\Component\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="TestComponentInputWinRaw.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestComponentInputDevices.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInputAction.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTabbedContainer.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInputSourceChannel.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="TestComponentInput.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="InputTestComponent.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TestButton.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestButtonBar.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestList.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLabel.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextArea.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextAreaEdit.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScrollPane.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGridContainer.cpp">
+      <Filter>Source\Component\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="TestBorderLayoutHelper.cpp">
+      <Filter>Source\Component\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFlowContainer.cpp">
+      <Filter>Source\Component\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNestedContainers.cpp">
+      <Filter>Source\Component\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMenu.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="BorderCanvasDraw.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRefWindowCanvasDraw.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TickTestRefWindow.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCanvas.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="DarkForest.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="NoImageRefWindowFactory.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="SpaceCrusade.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TickTestCanvas.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextField.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCheckBox.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestComboBox.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDialog.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFileChooser.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DataTestRefWindow.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="BorderCanvasDraw.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="TestRefWindowCanvasDraw.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="TickTestRefWindow.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="DarkForest.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="NoImageRefWindowFactory.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="SpaceCrusade.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="InputTestComponent.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="TickTestCanvas.h">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFramesTick.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

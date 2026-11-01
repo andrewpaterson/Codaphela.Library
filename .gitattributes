@@ -10,3 +10,6 @@
 *.cmake         text eol=lf
 CMakeLists.txt  text eol=lf
 .gitattributes  text eol=lf
+
+# Test input files are compared byte for byte; leave their line endings alone.
+**/Input/**     -text -eol

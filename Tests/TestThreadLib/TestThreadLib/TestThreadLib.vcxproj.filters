@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{c647c44a-854c-4242-8fd6-d2db44ae43c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{b94ef80c-9353-464b-ac4f-a8be0f1902e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array">
+      <UniqueIdentifier>{fd743969-61fc-4f59-8519-e0498d17bf6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic">
+      <UniqueIdentifier>{3f591bfe-5c6a-4509-941f-c90248c25111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Thread">
+      <UniqueIdentifier>{5351bd9d-09f4-4df7-b2cc-0b64747995c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\LinkedList">
+      <UniqueIdentifier>{5082bab5-5125-48b8-85d3-64b0aba42ab7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Thread\Pool">
+      <UniqueIdentifier>{d0b0c5d6-b137-40eb-b2b6-5a9f0da9bf4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Process">
+      <UniqueIdentifier>{7f9b2221-ea34-4bf7-a8cb-c8dc4c258ae9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\SharedMemory">
+      <UniqueIdentifier>{99ca84f6-de3c-4757-a5c7-34e226864629}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestThreadLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSafeArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMutex.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReferences.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestThread.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSafeLinkedListBlock.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestThreadPool.cpp">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClCompile>
+    <ClCompile Include="TestWorkerThreadPool.cpp">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMainProcessDirector.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSharedMemory.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProcessFork.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProcessForkMain.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSharedMemoryMain.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedMemoryFill.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSharedMemoryQueue.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProcessChannel.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProcessChannelMain.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSharedQueueMain.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SharedMemoryThread.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryFill.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryQueueProducerThread.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryQueueConsumerThread.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="PoolConsumerThread.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="PoolProducerThread.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryQueueTheadElement.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSharedMemoryQueue.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="TestProcessChannel.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="TestTimeout.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

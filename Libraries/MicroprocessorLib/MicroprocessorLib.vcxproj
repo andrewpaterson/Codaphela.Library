@@ -1,0 +1,644 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0BF6F66E-80B2-44CF-897C-0F305AAF6AF0}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClCompile Include="W65AbortVector.cpp" />
+    <ClCompile Include="W65AbsoluteAddress.cpp" />
+    <ClCompile Include="W65AbsoluteAddressHigh.cpp" />
+    <ClCompile Include="W65AbsoluteAddressLowPlusXLow.cpp" />
+    <ClCompile Include="W65AbsoluteAddressLowPlusYLow.cpp" />
+    <ClCompile Include="W65Address.cpp" />
+    <ClCompile Include="W65AddressBank.cpp" />
+    <ClCompile Include="W65AddressOffset.cpp" />
+    <ClCompile Include="W65AddressOffsetArray.cpp" />
+    <ClCompile Include="W65BCDResult.cpp" />
+    <ClCompile Include="W65BRKVector.cpp" />
+    <ClCompile Include="W65BusCycle.cpp" />
+    <ClCompile Include="W65CompoundAddress.cpp" />
+    <ClCompile Include="W65ConstantOffset.cpp" />
+    <ClCompile Include="W65COPVector.cpp" />
+    <ClCompile Include="W65DataBank.cpp" />
+    <ClCompile Include="W65DataOperation.cpp" />
+    <ClCompile Include="W65DecrementStackPointer.cpp" />
+    <ClCompile Include="W65DirectOffset.cpp" />
+    <ClCompile Include="W65DirectPage.cpp" />
+    <ClCompile Include="W65DoneInstruction.cpp" />
+    <ClCompile Include="W65DoneInstructionIf16Bit.cpp" />
+    <ClCompile Include="W65DoneInstructionIf8Bit.cpp" />
+    <ClCompile Include="W65DoneInstructionIfEmulation.cpp" />
+    <ClCompile Include="W65Execute.cpp" />
+    <ClCompile Include="W65ExecuteIf16Bit.cpp" />
+    <ClCompile Include="W65ExecuteIf8Bit.cpp" />
+    <ClCompile Include="W65IncrementProgramCounter.cpp" />
+    <ClCompile Include="W65IncrementStackPointer.cpp" />
+    <ClCompile Include="W65Instruction.cpp" />
+    <ClCompile Include="W65C816InstructionCycleFactory.cpp" />
+    <ClCompile Include="W65InstructionCycles.cpp" />
+    <ClCompile Include="W65InternalFirst.cpp" />
+    <ClCompile Include="W65InternalOperation.cpp" />
+    <ClCompile Include="W65InterruptAddress.cpp" />
+    <ClCompile Include="W65InterruptVector.cpp" />
+    <ClCompile Include="W65IRQVector.cpp" />
+    <ClCompile Include="MetaBus16.cpp" />
+    <ClCompile Include="MetaBus32.cpp" />
+    <ClCompile Include="MetaBus8.cpp" />
+    <ClCompile Include="MetaSignal.cpp" />
+    <ClCompile Include="MetaTrace.cpp" />
+    <ClCompile Include="W65C816Meta.cpp" />
+    <ClCompile Include="W65NewProgramBank.cpp" />
+    <ClCompile Include="W65NMIVector.cpp" />
+    <ClCompile Include="W65NoteFour.cpp" />
+    <ClCompile Include="W65NoteOne.cpp" />
+    <ClCompile Include="W65NoteSeven.cpp" />
+    <ClCompile Include="W65NoteSix.cpp" />
+    <ClCompile Include="W65NoteThree.cpp" />
+    <ClCompile Include="W65NoteTwo.cpp" />
+    <ClCompile Include="W65Operation.cpp" />
+    <ClCompile Include="W65ProgramBank.cpp" />
+    <ClCompile Include="W65ProgramCounter.cpp" />
+    <ClCompile Include="W65ReadAbsoluteAddressBank.cpp" />
+    <ClCompile Include="W65ReadAbsoluteAddressHigh.cpp" />
+    <ClCompile Include="W65ReadAbsoluteAddressLow.cpp" />
+    <ClCompile Include="W65ReadDataBank.cpp" />
+    <ClCompile Include="W65ReadDataHigh.cpp" />
+    <ClCompile Include="W65ReadDataLow.cpp" />
+    <ClCompile Include="W65ReadDirectOffset.cpp" />
+    <ClCompile Include="W65ReadOpcode.cpp" />
+    <ClCompile Include="W65ReadProcessorStatus.cpp" />
+    <ClCompile Include="W65ReadProgramBank.cpp" />
+    <ClCompile Include="W65ReadProgramCounterHigh.cpp" />
+    <ClCompile Include="W65ReadProgramCounterLow.cpp" />
+    <ClCompile Include="W65NewProgramCounter.cpp" />
+    <ClCompile Include="W65RestoreAbortValues.cpp" />
+    <ClCompile Include="W65SetProgramBank.cpp" />
+    <ClCompile Include="W65SetProgramCounter.cpp" />
+    <ClCompile Include="W65SignedData.cpp" />
+    <ClCompile Include="W65SignedDataLow.cpp" />
+    <ClCompile Include="W65C816InstructionFactory.cpp" />
+    <ClCompile Include="W65ResetVector.cpp" />
+    <ClCompile Include="W65StackPointer.cpp" />
+    <ClCompile Include="Timeline.cpp" />
+    <ClCompile Include="TraceValue.cpp" />
+    <ClCompile Include="W65CCore.cpp" />
+    <ClCompile Include="W65CPins.cpp" />
+    <ClCompile Include="W65InstructionCycleBuilder.cpp" />
+    <ClCompile Include="W65CMeta.cpp" />
+    <ClCompile Include="W65NoteDecimal.cpp" />
+    <ClCompile Include="W65DoneInstructionIfBinary.cpp" />
+    <ClCompile Include="W65DoneInstructionIfSamePage.cpp" />
+    <ClCompile Include="W65BranchAddress.cpp" />
+    <ClCompile Include="W65C02.cpp" />
+    <ClCompile Include="W65C02Pins.cpp" />
+    <ClCompile Include="W65C02InstructionFactory.cpp" />
+    <ClCompile Include="W65C02InstructionCycleFactory.cpp" />
+    <ClCompile Include="W65C02Meta.cpp" />
+    <ClCompile Include="W65C816.cpp" />
+    <ClCompile Include="W65C816Pins.cpp" />
+    <ClCompile Include="W65WaitOperation.cpp" />
+    <ClCompile Include="W65WidthFromRegister.cpp" />
+    <ClCompile Include="W65WriteAbsoluteAddressHigh.cpp" />
+    <ClCompile Include="W65WriteAbsoluteAddressLow.cpp" />
+    <ClCompile Include="W65WriteDataHigh.cpp" />
+    <ClCompile Include="W65WriteDataLow.cpp" />
+    <ClCompile Include="W65WriteProcessorStatus.cpp" />
+    <ClCompile Include="W65WriteProgramBank.cpp" />
+    <ClCompile Include="W65WriteProgramCounterHigh.cpp" />
+    <ClCompile Include="W65WriteProgramCounterLow.cpp" />
+    <ClCompile Include="W65XIndex.cpp" />
+    <ClCompile Include="W65YIndex.cpp" />
+    <ClCompile Include="65AddressOffset.cpp" />
+    <ClCompile Include="65AddressOffsetArray.cpp" />
+    <ClCompile Include="65BusCycle.cpp" />
+    <ClCompile Include="65C64.cpp" />
+    <ClCompile Include="65C64Decoded.cpp" />
+    <ClCompile Include="65C64InstructionCycleFactory.cpp" />
+    <ClCompile Include="65C64InstructionFactory.cpp" />
+    <ClCompile Include="65C64Meta.cpp" />
+    <ClCompile Include="Fast65C64.cpp" />
+    <ClCompile Include="Fast65C816.cpp" />
+    <ClCompile Include="65C64Pins.cpp" />
+    <ClCompile Include="65ConstantOffset.cpp" />
+    <ClCompile Include="65DataOperation.cpp" />
+    <ClCompile Include="65DoneInstruction.cpp" />
+    <ClCompile Include="65Execute.cpp" />
+    <ClCompile Include="65ExecuteIfLastPointerWord.cpp" />
+    <ClCompile Include="65ExecuteIfLastTransferWord.cpp" />
+    <ClCompile Include="65IncrementProgramCounter.cpp" />
+    <ClCompile Include="65Instruction.cpp" />
+    <ClCompile Include="65InstructionCycles.cpp" />
+    <ClCompile Include="65InternalOperation.cpp" />
+    <ClCompile Include="65OpcodeCycle.cpp" />
+    <ClCompile Include="65Operation.cpp" />
+    <ClCompile Include="65PointerAddressOffset.cpp" />
+    <ClCompile Include="65ProgramCounterOffset.cpp" />
+    <ClCompile Include="65ReadOpcode.cpp" />
+    <ClCompile Include="65ReadOperandWord.cpp" />
+    <ClCompile Include="65ReadPointerWord.cpp" />
+    <ClCompile Include="65ReadTransferWord.cpp" />
+    <ClCompile Include="65ReadVectorWord.cpp" />
+    <ClCompile Include="65TransferWordOffset.cpp" />
+    <ClCompile Include="65VectorAddressOffset.cpp" />
+    <ClCompile Include="65WaitOperation.cpp" />
+    <ClCompile Include="65WriteTransferWord.cpp" />
+    <ClCompile Include="LongTime.cpp" />
+    <ClCompile Include="Event.cpp" />
+    <ClCompile Include="SimultaneousEvents.cpp" />
+    <ClCompile Include="Voltage.cpp" />
+    <ClCompile Include="VoltageConfiguration.cpp" />
+    <ClCompile Include="FamilyVoltageConfiguration.cpp" />
+    <ClCompile Include="FixedVoltageConfiguration.cpp" />
+    <ClCompile Include="VoltagePropagationTimeRow.cpp" />
+    <ClCompile Include="FamilyVoltageConfigurationStore.cpp" />
+    <ClCompile Include="Port.cpp" />
+    <ClCompile Include="PortHolder.cpp" />
+    <ClCompile Include="PowerInPort.cpp" />
+    <ClCompile Include="PowerOutPort.cpp" />
+    <ClCompile Include="TracePort.cpp" />
+    <ClCompile Include="PortOutput.cpp" />
+    <ClCompile Include="Trace.cpp" />
+    <ClCompile Include="LogicPort.cpp" />
+    <ClCompile Include="PortEvent.cpp" />
+    <ClCompile Include="DriveEvent.cpp" />
+    <ClCompile Include="SlewEvent.cpp" />
+    <ClCompile Include="TransitionEvent.cpp" />
+    <ClCompile Include="Pins.cpp" />
+    <ClCompile Include="IntegratedCircuit.cpp" />
+    <ClCompile Include="StateXMLFields.cpp" />
+    <ClCompile Include="IntegratedCircuitEvent.cpp" />
+    <ClCompile Include="TickEvent.cpp" />
+    <ClCompile Include="Circuit.cpp" />
+    <ClCompile Include="LogicPortBus.cpp" />
+    <ClCompile Include="CircuitComponent.cpp" />
+    <ClCompile Include="SubcircuitSimulation.cpp" />
+    <ClCompile Include="SubcircuitSimulations.cpp" />
+    <ClCompile Include="CircuitSimulation.cpp" />
+    <ClCompile Include="Passive.cpp" />
+    <ClCompile Include="PowerSource.cpp" />
+    <ClCompile Include="Pin.cpp" />
+    <ClCompile Include="Splitter.cpp" />
+    <ClCompile Include="SubcircuitInstance.cpp" />
+    <ClCompile Include="AndGatePins.cpp" />
+    <ClCompile Include="AndLogic.cpp" />
+    <ClCompile Include="AndGate.cpp" />
+    <ClCompile Include="OrGatePins.cpp" />
+    <ClCompile Include="OrGate.cpp" />
+    <ClCompile Include="XorGatePins.cpp" />
+    <ClCompile Include="XorGate.cpp" />
+    <ClCompile Include="BufferPins.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="GateArray.cpp" />
+    <ClCompile Include="FlipFlopArray.cpp" />
+    <ClCompile Include="Comparator.cpp" />
+    <ClCompile Include="Adder.cpp" />
+    <ClCompile Include="Decoder.cpp" />
+    <ClCompile Include="Multiplexer.cpp" />
+    <ClCompile Include="BusTransceiver.cpp" />
+    <ClCompile Include="BusBuffer.cpp" />
+    <ClCompile Include="Register.cpp" />
+    <ClCompile Include="GroupPins.cpp" />
+    <ClCompile Include="GateArrayPins.cpp" />
+    <ClCompile Include="ConstantPins.cpp" />
+    <ClCompile Include="Constant.cpp" />
+    <ClCompile Include="ProbePins.cpp" />
+    <ClCompile Include="Probe.cpp" />
+    <ClCompile Include="ClockOscillatorPins.cpp" />
+    <ClCompile Include="ClockOscillator.cpp" />
+    <ClCompile Include="DTypeFlipFlopPins.cpp" />
+    <ClCompile Include="DTypeFlipFlop.cpp" />
+    <ClCompile Include="CounterPins.cpp" />
+    <ClCompile Include="Counter.cpp" />
+    <ClCompile Include="W65C816ChipPins.cpp" />
+    <ClCompile Include="W65C816Chip.cpp" />
+    <ClCompile Include="65C64ChipPins.cpp" />
+    <ClCompile Include="65C64Chip.cpp" />
+    <ClCompile Include="OscilloscopePins.cpp" />
+    <ClCompile Include="Oscilloscope.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="W65AbortVector.h" />
+    <ClInclude Include="W65AbsoluteAddress.h" />
+    <ClInclude Include="W65AbsoluteAddressHigh.h" />
+    <ClInclude Include="W65AbsoluteAddressLowPlusXLow.h" />
+    <ClInclude Include="W65AbsoluteAddressLowPlusYLow.h" />
+    <ClInclude Include="W65Address.h" />
+    <ClInclude Include="W65AddressBank.h" />
+    <ClInclude Include="AddressingMode.h" />
+    <ClInclude Include="W65AddressOffset.h" />
+    <ClInclude Include="W65AddressOffsetArray.h" />
+    <ClInclude Include="W65BCDResult.h" />
+    <ClInclude Include="W65BRKVector.h" />
+    <ClInclude Include="W65BusCycle.h" />
+    <ClInclude Include="W65BusCycleParameter.h" />
+    <ClInclude Include="W65CompoundAddress.h" />
+    <ClInclude Include="W65ConstantOffset.h" />
+    <ClInclude Include="W65COPVector.h" />
+    <ClInclude Include="CPUFlags.h" />
+    <ClInclude Include="W65DataBank.h" />
+    <ClInclude Include="W65DataOperation.h" />
+    <ClInclude Include="W65DecrementStackPointer.h" />
+    <ClInclude Include="W65DirectOffset.h" />
+    <ClInclude Include="W65DirectPage.h" />
+    <ClInclude Include="W65DoneInstruction.h" />
+    <ClInclude Include="W65DoneInstructionIf16Bit.h" />
+    <ClInclude Include="W65DoneInstructionIf8Bit.h" />
+    <ClInclude Include="W65DoneInstructionIfEmulation.h" />
+    <ClInclude Include="W65Execute.h" />
+    <ClInclude Include="W65ExecuteIf16Bit.h" />
+    <ClInclude Include="W65ExecuteIf8Bit.h" />
+    <ClInclude Include="W65IncrementProgramCounter.h" />
+    <ClInclude Include="W65IncrementStackPointer.h" />
+    <ClInclude Include="W65Instruction.h" />
+    <ClInclude Include="W65C816InstructionCodes.h" />
+    <ClInclude Include="W65C816InstructionCycleFactory.h" />
+    <ClInclude Include="W65InstructionCycles.h" />
+    <ClInclude Include="W65C816InstructionFactory.h" />
+    <ClInclude Include="W65InternalFirst.h" />
+    <ClInclude Include="W65InternalOperation.h" />
+    <ClInclude Include="W65InterruptAddress.h" />
+    <ClInclude Include="W65InterruptVector.h" />
+    <ClInclude Include="W65IRQVector.h" />
+    <ClInclude Include="MetaBus16.h" />
+    <ClInclude Include="MetaBus32.h" />
+    <ClInclude Include="MetaBus8.h" />
+    <ClInclude Include="MetaSignal.h" />
+    <ClInclude Include="MetaTrace.h" />
+    <ClInclude Include="W65C816Meta.h" />
+    <ClInclude Include="W65NewProgramBank.h" />
+    <ClInclude Include="W65NewProgramCounter.h" />
+    <ClInclude Include="W65NMIVector.h" />
+    <ClInclude Include="W65NoteFour.h" />
+    <ClInclude Include="W65NoteOne.h" />
+    <ClInclude Include="W65NoteSeven.h" />
+    <ClInclude Include="W65NoteSix.h" />
+    <ClInclude Include="W65NoteThree.h" />
+    <ClInclude Include="W65NoteTwo.h" />
+    <ClInclude Include="NotMemoryLock.h" />
+    <ClInclude Include="W65Operation.h" />
+    <ClInclude Include="W65ProgramBank.h" />
+    <ClInclude Include="W65ProgramCounter.h" />
+    <ClInclude Include="W65ReadAbsoluteAddressBank.h" />
+    <ClInclude Include="W65ReadAbsoluteAddressHigh.h" />
+    <ClInclude Include="W65ReadAbsoluteAddressLow.h" />
+    <ClInclude Include="W65ReadDataBank.h" />
+    <ClInclude Include="W65ReadDataHigh.h" />
+    <ClInclude Include="W65ReadDataLow.h" />
+    <ClInclude Include="W65ReadDirectOffset.h" />
+    <ClInclude Include="W65ReadOpcode.h" />
+    <ClInclude Include="W65ReadProcessorStatus.h" />
+    <ClInclude Include="W65ReadProgramBank.h" />
+    <ClInclude Include="W65ReadProgramCounterHigh.h" />
+    <ClInclude Include="W65ReadProgramCounterLow.h" />
+    <ClInclude Include="W65ResetVector.h" />
+    <ClInclude Include="W65RestoreAbortValues.h" />
+    <ClInclude Include="W65SetProgramBank.h" />
+    <ClInclude Include="W65SetProgramCounter.h" />
+    <ClInclude Include="W65SignedData.h" />
+    <ClInclude Include="W65SignedDataLow.h" />
+    <ClInclude Include="W65StackPointer.h" />
+    <ClInclude Include="ArrayOwnedPtr.h" />
+    <ClInclude Include="Timeline.h" />
+    <ClInclude Include="TraceValue.h" />
+    <ClInclude Include="W65CCore.h" />
+    <ClInclude Include="W65CPins.h" />
+    <ClInclude Include="W65CFunc.h" />
+    <ClInclude Include="W65InstructionCycleBuilder.h" />
+    <ClInclude Include="W65CMeta.h" />
+    <ClInclude Include="W65NoteDecimal.h" />
+    <ClInclude Include="W65DoneInstructionIfBinary.h" />
+    <ClInclude Include="W65DoneInstructionIfSamePage.h" />
+    <ClInclude Include="W65BranchAddress.h" />
+    <ClInclude Include="W65C02.h" />
+    <ClInclude Include="W65C02Pins.h" />
+    <ClInclude Include="W65C02Func.h" />
+    <ClInclude Include="W65C02InstructionCodes.h" />
+    <ClInclude Include="W65C02InstructionFactory.h" />
+    <ClInclude Include="W65C02InstructionCycleFactory.h" />
+    <ClInclude Include="W65C02Meta.h" />
+    <ClInclude Include="W65C816.h" />
+    <ClInclude Include="W65C816Func.h" />
+    <ClInclude Include="W65C816Pins.h" />
+    <ClInclude Include="W65WaitOperation.h" />
+    <ClInclude Include="W65WidthFromRegister.h" />
+    <ClInclude Include="W65WriteAbsoluteAddressHigh.h" />
+    <ClInclude Include="W65WriteAbsoluteAddressLow.h" />
+    <ClInclude Include="W65WriteDataHigh.h" />
+    <ClInclude Include="W65WriteDataLow.h" />
+    <ClInclude Include="W65WriteProcessorStatus.h" />
+    <ClInclude Include="W65WriteProgramBank.h" />
+    <ClInclude Include="W65WriteProgramCounterHigh.h" />
+    <ClInclude Include="W65WriteProgramCounterLow.h" />
+    <ClInclude Include="W65XIndex.h" />
+    <ClInclude Include="W65YIndex.h" />
+    <ClInclude Include="65AddressOffset.h" />
+    <ClInclude Include="65AddressOffsetArray.h" />
+    <ClInclude Include="65BusCycle.h" />
+    <ClInclude Include="65BusCycleParameter.h" />
+    <ClInclude Include="65C64.h" />
+    <ClInclude Include="65C64Decoded.h" />
+    <ClInclude Include="65C64Func.h" />
+    <ClInclude Include="65C64InstructionCycleFactory.h" />
+    <ClInclude Include="65C64InstructionFactory.h" />
+    <ClInclude Include="65C64Meta.h" />
+    <ClInclude Include="Fast65C64.h" />
+    <ClInclude Include="Fast65C816.h" />
+    <ClInclude Include="65C64Pins.h" />
+    <ClInclude Include="65ConstantOffset.h" />
+    <ClInclude Include="65DataOperation.h" />
+    <ClInclude Include="65DoneInstruction.h" />
+    <ClInclude Include="65Execute.h" />
+    <ClInclude Include="65ExecuteIfLastPointerWord.h" />
+    <ClInclude Include="65ExecuteIfLastTransferWord.h" />
+    <ClInclude Include="65IncrementProgramCounter.h" />
+    <ClInclude Include="65Instruction.h" />
+    <ClInclude Include="65InstructionCycles.h" />
+    <ClInclude Include="65InternalOperation.h" />
+    <ClInclude Include="65OpcodeCycle.h" />
+    <ClInclude Include="65Operation.h" />
+    <ClInclude Include="65PointerAddressOffset.h" />
+    <ClInclude Include="65ProgramCounterOffset.h" />
+    <ClInclude Include="65ReadOpcode.h" />
+    <ClInclude Include="65ReadOperandWord.h" />
+    <ClInclude Include="65ReadPointerWord.h" />
+    <ClInclude Include="65ReadTransferWord.h" />
+    <ClInclude Include="65ReadVectorWord.h" />
+    <ClInclude Include="65TransferWordOffset.h" />
+    <ClInclude Include="65VectorAddressOffset.h" />
+    <ClInclude Include="65WaitOperation.h" />
+    <ClInclude Include="65WriteTransferWord.h" />
+    <ClInclude Include="LongTime.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="SimultaneousEvents.h" />
+    <ClInclude Include="Units.h" />
+    <ClInclude Include="Voltage.h" />
+    <ClInclude Include="VoltageConfigurationSource.h" />
+    <ClInclude Include="VoltageConfiguration.h" />
+    <ClInclude Include="FamilyVoltageConfiguration.h" />
+    <ClInclude Include="FixedVoltageConfiguration.h" />
+    <ClInclude Include="VoltagePropagationTimeRow.h" />
+    <ClInclude Include="FamilyVoltageConfigurationStore.h" />
+    <ClInclude Include="LogicSignal.h" />
+    <ClInclude Include="LogicBus.h" />
+    <ClInclude Include="PortType.h" />
+    <ClInclude Include="Port.h" />
+    <ClInclude Include="PortHolder.h" />
+    <ClInclude Include="PowerInPort.h" />
+    <ClInclude Include="PowerOutPort.h" />
+    <ClInclude Include="TracePort.h" />
+    <ClInclude Include="PortOutput.h" />
+    <ClInclude Include="Trace.h" />
+    <ClInclude Include="LogicPort.h" />
+    <ClInclude Include="PortEvent.h" />
+    <ClInclude Include="PortInputEvent.h" />
+    <ClInclude Include="PortOutputEvent.h" />
+    <ClInclude Include="DriveEvent.h" />
+    <ClInclude Include="SlewEvent.h" />
+    <ClInclude Include="TransitionEvent.h" />
+    <ClInclude Include="Pins.h" />
+    <ClInclude Include="IntegratedCircuit.h" />
+    <ClInclude Include="StateXMLFields.h" />
+    <ClInclude Include="IntegratedCircuitEvent.h" />
+    <ClInclude Include="TickEvent.h" />
+    <ClInclude Include="Circuit.h" />
+    <ClInclude Include="LogicPortBus.h" />
+    <ClInclude Include="CircuitComponent.h" />
+    <ClInclude Include="SubcircuitSimulation.h" />
+    <ClInclude Include="SubcircuitSimulations.h" />
+    <ClInclude Include="CircuitSimulation.h" />
+    <ClInclude Include="PowerPinNames.h" />
+    <ClInclude Include="Passive.h" />
+    <ClInclude Include="PowerSource.h" />
+    <ClInclude Include="Pin.h" />
+    <ClInclude Include="Splitter.h" />
+    <ClInclude Include="SubcircuitInstance.h" />
+    <ClInclude Include="AndGatePins.h" />
+    <ClInclude Include="AndLogic.h" />
+    <ClInclude Include="AndGate.h" />
+    <ClInclude Include="OrGatePins.h" />
+    <ClInclude Include="OrGate.h" />
+    <ClInclude Include="XorGatePins.h" />
+    <ClInclude Include="XorGate.h" />
+    <ClInclude Include="BufferPins.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="GateArray.h" />
+    <ClInclude Include="FlipFlopArray.h" />
+    <ClInclude Include="Comparator.h" />
+    <ClInclude Include="Adder.h" />
+    <ClInclude Include="Decoder.h" />
+    <ClInclude Include="Multiplexer.h" />
+    <ClInclude Include="BusTransceiver.h" />
+    <ClInclude Include="BusBuffer.h" />
+    <ClInclude Include="Register.h" />
+    <ClInclude Include="GroupPins.h" />
+    <ClInclude Include="GateArrayPins.h" />
+    <ClInclude Include="ConstantPins.h" />
+    <ClInclude Include="Constant.h" />
+    <ClInclude Include="ProbePins.h" />
+    <ClInclude Include="Probe.h" />
+    <ClInclude Include="ClockOscillatorPins.h" />
+    <ClInclude Include="ClockOscillator.h" />
+    <ClInclude Include="DTypeFlipFlopPins.h" />
+    <ClInclude Include="DTypeFlipFlop.h" />
+    <ClInclude Include="CounterPins.h" />
+    <ClInclude Include="Counter.h" />
+    <ClInclude Include="W65C816ChipPins.h" />
+    <ClInclude Include="W65C816Chip.h" />
+    <ClInclude Include="65C64ChipPins.h" />
+    <ClInclude Include="65C64Chip.h" />
+    <ClInclude Include="OscilloscopePins.h" />
+    <ClInclude Include="Oscilloscope.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Lib />
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Lib />
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="65C64Simulator.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

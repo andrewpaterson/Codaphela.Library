@@ -1,0 +1,4117 @@
+Font
+{
+	Name	"InterVariable.ttf";
+	SpaceWidth	5;
+	Ascent	19;
+	Descent	5;
+	Cels
+	{
+		FileName	"Inter-Regular-14pt.cels";
+		Directory	"Input/TrueTypeFont";
+	}
+	Glyphs
+	{
+		Glyph
+		{
+			CodePoint	256;
+			Length	2;
+			CelIndex	0;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	257;
+			Length	2;
+			CelIndex	1;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1025;
+			Length	2;
+			CelIndex	2;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	258;
+			Length	2;
+			CelIndex	3;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1026;
+			Length	2;
+			CelIndex	4;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	8706;
+			Length	2;
+			CelIndex	5;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	259;
+			Length	2;
+			CelIndex	6;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1027;
+			Length	2;
+			CelIndex	7;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	260;
+			Length	2;
+			CelIndex	8;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1028;
+			Length	2;
+			CelIndex	9;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	261;
+			Length	2;
+			CelIndex	10;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1029;
+			Length	2;
+			CelIndex	11;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8453;
+			Length	2;
+			CelIndex	12;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	262;
+			Length	2;
+			CelIndex	13;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1030;
+			Length	2;
+			CelIndex	14;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	8710;
+			Length	2;
+			CelIndex	15;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	263;
+			Length	2;
+			CelIndex	16;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1031;
+			Length	2;
+			CelIndex	17;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	264;
+			Length	2;
+			CelIndex	18;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1032;
+			Length	2;
+			CelIndex	19;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	265;
+			Length	2;
+			CelIndex	20;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1033;
+			Length	2;
+			CelIndex	21;
+			Step	21;
+		}
+		Glyph
+		{
+			CodePoint	266;
+			Length	2;
+			CelIndex	22;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1034;
+			Length	2;
+			CelIndex	23;
+			Step	21;
+		}
+		Glyph
+		{
+			CodePoint	267;
+			Length	2;
+			CelIndex	24;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1035;
+			Length	2;
+			CelIndex	25;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	268;
+			Length	2;
+			CelIndex	26;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1036;
+			Length	2;
+			CelIndex	27;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	269;
+			Length	2;
+			CelIndex	28;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	270;
+			Length	2;
+			CelIndex	29;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1038;
+			Length	2;
+			CelIndex	30;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	271;
+			Length	2;
+			CelIndex	31;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1039;
+			Length	2;
+			CelIndex	32;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8719;
+			Length	2;
+			CelIndex	33;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	272;
+			Length	2;
+			CelIndex	34;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1040;
+			Length	2;
+			CelIndex	35;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8208;
+			Length	2;
+			CelIndex	36;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	273;
+			Length	2;
+			CelIndex	37;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1041;
+			Length	2;
+			CelIndex	38;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8209;
+			Length	2;
+			CelIndex	39;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	8721;
+			Length	2;
+			CelIndex	40;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	274;
+			Length	2;
+			CelIndex	41;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1042;
+			Length	2;
+			CelIndex	42;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8210;
+			Length	2;
+			CelIndex	43;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8722;
+			Length	2;
+			CelIndex	44;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	275;
+			Length	2;
+			CelIndex	45;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1043;
+			Length	2;
+			CelIndex	46;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8211;
+			Length	2;
+			CelIndex	47;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	8467;
+			Length	2;
+			CelIndex	48;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	276;
+			Length	2;
+			CelIndex	49;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1044;
+			Length	2;
+			CelIndex	50;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	8212;
+			Length	2;
+			CelIndex	51;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	277;
+			Length	2;
+			CelIndex	52;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1045;
+			Length	2;
+			CelIndex	53;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8213;
+			Length	2;
+			CelIndex	54;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	278;
+			Length	2;
+			CelIndex	55;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1046;
+			Length	2;
+			CelIndex	56;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	8470;
+			Length	2;
+			CelIndex	57;
+			Step	20;
+		}
+		Glyph
+		{
+			CodePoint	279;
+			Length	2;
+			CelIndex	58;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1047;
+			Length	2;
+			CelIndex	59;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8215;
+			Length	2;
+			CelIndex	60;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	280;
+			Length	2;
+			CelIndex	61;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	536;
+			Length	2;
+			CelIndex	62;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1048;
+			Length	2;
+			CelIndex	63;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8216;
+			Length	2;
+			CelIndex	64;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	281;
+			Length	2;
+			CelIndex	65;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	537;
+			Length	2;
+			CelIndex	66;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1049;
+			Length	2;
+			CelIndex	67;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8217;
+			Length	2;
+			CelIndex	68;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	282;
+			Length	2;
+			CelIndex	69;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	538;
+			Length	2;
+			CelIndex	70;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1050;
+			Length	2;
+			CelIndex	71;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8218;
+			Length	2;
+			CelIndex	72;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	8730;
+			Length	2;
+			CelIndex	73;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	283;
+			Length	2;
+			CelIndex	74;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	539;
+			Length	2;
+			CelIndex	75;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	1051;
+			Length	2;
+			CelIndex	76;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8219;
+			Length	2;
+			CelIndex	77;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	284;
+			Length	2;
+			CelIndex	78;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1052;
+			Length	2;
+			CelIndex	79;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	8220;
+			Length	2;
+			CelIndex	80;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	285;
+			Length	2;
+			CelIndex	81;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1053;
+			Length	2;
+			CelIndex	82;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8221;
+			Length	2;
+			CelIndex	83;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	286;
+			Length	2;
+			CelIndex	84;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1054;
+			Length	2;
+			CelIndex	85;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8222;
+			Length	2;
+			CelIndex	86;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	8734;
+			Length	2;
+			CelIndex	87;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	287;
+			Length	2;
+			CelIndex	88;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1055;
+			Length	2;
+			CelIndex	89;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	32;
+			Length	1;
+			CelIndex	90;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	288;
+			Length	2;
+			CelIndex	91;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1056;
+			Length	2;
+			CelIndex	92;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8224;
+			Length	2;
+			CelIndex	93;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	33;
+			Length	1;
+			CelIndex	94;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	289;
+			Length	2;
+			CelIndex	95;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1057;
+			Length	2;
+			CelIndex	96;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8225;
+			Length	2;
+			CelIndex	97;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	34;
+			Length	1;
+			CelIndex	98;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	290;
+			Length	2;
+			CelIndex	99;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1058;
+			Length	2;
+			CelIndex	100;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8226;
+			Length	2;
+			CelIndex	101;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8482;
+			Length	2;
+			CelIndex	102;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	35;
+			Length	1;
+			CelIndex	103;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	291;
+			Length	2;
+			CelIndex	104;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1059;
+			Length	2;
+			CelIndex	105;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	36;
+			Length	1;
+			CelIndex	106;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	292;
+			Length	2;
+			CelIndex	107;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1060;
+			Length	2;
+			CelIndex	108;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	37;
+			Length	1;
+			CelIndex	109;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	293;
+			Length	2;
+			CelIndex	110;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1061;
+			Length	2;
+			CelIndex	111;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	38;
+			Length	1;
+			CelIndex	112;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	294;
+			Length	2;
+			CelIndex	113;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1062;
+			Length	2;
+			CelIndex	114;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8230;
+			Length	2;
+			CelIndex	115;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	8486;
+			Length	2;
+			CelIndex	116;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	39;
+			Length	1;
+			CelIndex	117;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	295;
+			Length	2;
+			CelIndex	118;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1063;
+			Length	2;
+			CelIndex	119;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	40;
+			Length	1;
+			CelIndex	120;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	296;
+			Length	2;
+			CelIndex	121;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1064;
+			Length	2;
+			CelIndex	122;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	41;
+			Length	1;
+			CelIndex	123;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	297;
+			Length	2;
+			CelIndex	124;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1065;
+			Length	2;
+			CelIndex	125;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	42;
+			Length	1;
+			CelIndex	126;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	298;
+			Length	2;
+			CelIndex	127;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1066;
+			Length	2;
+			CelIndex	128;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	43;
+			Length	1;
+			CelIndex	129;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	299;
+			Length	2;
+			CelIndex	130;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1067;
+			Length	2;
+			CelIndex	131;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	8747;
+			Length	2;
+			CelIndex	132;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	44;
+			Length	1;
+			CelIndex	133;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	300;
+			Length	2;
+			CelIndex	134;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1068;
+			Length	2;
+			CelIndex	135;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	45;
+			Length	1;
+			CelIndex	136;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	301;
+			Length	2;
+			CelIndex	137;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1069;
+			Length	2;
+			CelIndex	138;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	46;
+			Length	1;
+			CelIndex	139;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	302;
+			Length	2;
+			CelIndex	140;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1070;
+			Length	2;
+			CelIndex	141;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	8494;
+			Length	2;
+			CelIndex	142;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	47;
+			Length	1;
+			CelIndex	143;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	303;
+			Length	2;
+			CelIndex	144;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1071;
+			Length	2;
+			CelIndex	145;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	48;
+			Length	1;
+			CelIndex	146;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	304;
+			Length	2;
+			CelIndex	147;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1072;
+			Length	2;
+			CelIndex	148;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	8240;
+			Length	2;
+			CelIndex	149;
+			Step	25;
+		}
+		Glyph
+		{
+			CodePoint	49;
+			Length	1;
+			CelIndex	150;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	305;
+			Length	2;
+			CelIndex	151;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1073;
+			Length	2;
+			CelIndex	152;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	50;
+			Length	1;
+			CelIndex	153;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	306;
+			Length	2;
+			CelIndex	154;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	1074;
+			Length	2;
+			CelIndex	155;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8242;
+			Length	2;
+			CelIndex	156;
+			Step	4;
+		}
+		Glyph
+		{
+			CodePoint	51;
+			Length	1;
+			CelIndex	157;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	307;
+			Length	2;
+			CelIndex	158;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	1075;
+			Length	2;
+			CelIndex	159;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	8243;
+			Length	2;
+			CelIndex	160;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	52;
+			Length	1;
+			CelIndex	161;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	308;
+			Length	2;
+			CelIndex	162;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1076;
+			Length	2;
+			CelIndex	163;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	53;
+			Length	1;
+			CelIndex	164;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	309;
+			Length	2;
+			CelIndex	165;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1077;
+			Length	2;
+			CelIndex	166;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	54;
+			Length	1;
+			CelIndex	167;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	310;
+			Length	2;
+			CelIndex	168;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1078;
+			Length	2;
+			CelIndex	169;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	55;
+			Length	1;
+			CelIndex	170;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	311;
+			Length	2;
+			CelIndex	171;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1079;
+			Length	2;
+			CelIndex	172;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	56;
+			Length	1;
+			CelIndex	173;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	312;
+			Length	2;
+			CelIndex	174;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1080;
+			Length	2;
+			CelIndex	175;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	57;
+			Length	1;
+			CelIndex	176;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	313;
+			Length	2;
+			CelIndex	177;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1081;
+			Length	2;
+			CelIndex	178;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8249;
+			Length	2;
+			CelIndex	179;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	58;
+			Length	1;
+			CelIndex	180;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	314;
+			Length	2;
+			CelIndex	181;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1082;
+			Length	2;
+			CelIndex	182;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	8250;
+			Length	2;
+			CelIndex	183;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	59;
+			Length	1;
+			CelIndex	184;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	315;
+			Length	2;
+			CelIndex	185;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1083;
+			Length	2;
+			CelIndex	186;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	60;
+			Length	1;
+			CelIndex	187;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	316;
+			Length	2;
+			CelIndex	188;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1084;
+			Length	2;
+			CelIndex	189;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	8252;
+			Length	2;
+			CelIndex	190;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	9788;
+			Length	2;
+			CelIndex	191;
+			Step	20;
+		}
+		Glyph
+		{
+			CodePoint	61;
+			Length	1;
+			CelIndex	192;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	317;
+			Length	2;
+			CelIndex	193;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1085;
+			Length	2;
+			CelIndex	194;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	62;
+			Length	1;
+			CelIndex	195;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	318;
+			Length	2;
+			CelIndex	196;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	1086;
+			Length	2;
+			CelIndex	197;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8254;
+			Length	2;
+			CelIndex	198;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	63;
+			Length	1;
+			CelIndex	199;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	319;
+			Length	2;
+			CelIndex	200;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1087;
+			Length	2;
+			CelIndex	201;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	64;
+			Length	1;
+			CelIndex	202;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	320;
+			Length	2;
+			CelIndex	203;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	1088;
+			Length	2;
+			CelIndex	204;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	65;
+			Length	1;
+			CelIndex	205;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	321;
+			Length	2;
+			CelIndex	206;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1089;
+			Length	2;
+			CelIndex	207;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	66;
+			Length	1;
+			CelIndex	208;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	322;
+			Length	2;
+			CelIndex	209;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1090;
+			Length	2;
+			CelIndex	210;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	67;
+			Length	1;
+			CelIndex	211;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	323;
+			Length	2;
+			CelIndex	212;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1091;
+			Length	2;
+			CelIndex	213;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	68;
+			Length	1;
+			CelIndex	214;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	324;
+			Length	2;
+			CelIndex	215;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1092;
+			Length	2;
+			CelIndex	216;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8260;
+			Length	2;
+			CelIndex	217;
+			Step	4;
+		}
+		Glyph
+		{
+			CodePoint	69;
+			Length	1;
+			CelIndex	218;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	325;
+			Length	2;
+			CelIndex	219;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1093;
+			Length	2;
+			CelIndex	220;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	70;
+			Length	1;
+			CelIndex	221;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	326;
+			Length	2;
+			CelIndex	222;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1094;
+			Length	2;
+			CelIndex	223;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	71;
+			Length	1;
+			CelIndex	224;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	327;
+			Length	2;
+			CelIndex	225;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1095;
+			Length	2;
+			CelIndex	226;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	72;
+			Length	1;
+			CelIndex	227;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	328;
+			Length	2;
+			CelIndex	228;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1096;
+			Length	2;
+			CelIndex	229;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	8776;
+			Length	2;
+			CelIndex	230;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	73;
+			Length	1;
+			CelIndex	231;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1097;
+			Length	2;
+			CelIndex	232;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	74;
+			Length	1;
+			CelIndex	233;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	330;
+			Length	2;
+			CelIndex	234;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1098;
+			Length	2;
+			CelIndex	235;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	75;
+			Length	1;
+			CelIndex	236;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	331;
+			Length	2;
+			CelIndex	237;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1099;
+			Length	2;
+			CelIndex	238;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	76;
+			Length	1;
+			CelIndex	239;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	332;
+			Length	2;
+			CelIndex	240;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1100;
+			Length	2;
+			CelIndex	241;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	77;
+			Length	1;
+			CelIndex	242;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	333;
+			Length	2;
+			CelIndex	243;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1101;
+			Length	2;
+			CelIndex	244;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	78;
+			Length	1;
+			CelIndex	245;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	334;
+			Length	2;
+			CelIndex	246;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	1102;
+			Length	2;
+			CelIndex	247;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	79;
+			Length	1;
+			CelIndex	248;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	335;
+			Length	2;
+			CelIndex	249;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1103;
+			Length	2;
+			CelIndex	250;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	80;
+			Length	1;
+			CelIndex	251;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	336;
+			Length	2;
+			CelIndex	252;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	81;
+			Length	1;
+			CelIndex	253;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	337;
+			Length	2;
+			CelIndex	254;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	1105;
+			Length	2;
+			CelIndex	255;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	82;
+			Length	1;
+			CelIndex	256;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	338;
+			Length	2;
+			CelIndex	257;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	1106;
+			Length	2;
+			CelIndex	258;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	83;
+			Length	1;
+			CelIndex	259;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	339;
+			Length	2;
+			CelIndex	260;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	1107;
+			Length	2;
+			CelIndex	261;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	84;
+			Length	1;
+			CelIndex	262;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	340;
+			Length	2;
+			CelIndex	263;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1108;
+			Length	2;
+			CelIndex	264;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	85;
+			Length	1;
+			CelIndex	265;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	341;
+			Length	2;
+			CelIndex	266;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	1109;
+			Length	2;
+			CelIndex	267;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	86;
+			Length	1;
+			CelIndex	268;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	342;
+			Length	2;
+			CelIndex	269;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1110;
+			Length	2;
+			CelIndex	270;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	87;
+			Length	1;
+			CelIndex	271;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	343;
+			Length	2;
+			CelIndex	272;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	1111;
+			Length	2;
+			CelIndex	273;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	88;
+			Length	1;
+			CelIndex	274;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	344;
+			Length	2;
+			CelIndex	275;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1112;
+			Length	2;
+			CelIndex	276;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	89;
+			Length	1;
+			CelIndex	277;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	345;
+			Length	2;
+			CelIndex	278;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	1113;
+			Length	2;
+			CelIndex	279;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	90;
+			Length	1;
+			CelIndex	280;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	346;
+			Length	2;
+			CelIndex	281;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1114;
+			Length	2;
+			CelIndex	282;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	91;
+			Length	1;
+			CelIndex	283;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	347;
+			Length	2;
+			CelIndex	284;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1115;
+			Length	2;
+			CelIndex	285;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8539;
+			Length	2;
+			CelIndex	286;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	92;
+			Length	1;
+			CelIndex	287;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	348;
+			Length	2;
+			CelIndex	288;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1116;
+			Length	2;
+			CelIndex	289;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	8540;
+			Length	2;
+			CelIndex	290;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	93;
+			Length	1;
+			CelIndex	291;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	349;
+			Length	2;
+			CelIndex	292;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	8541;
+			Length	2;
+			CelIndex	293;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	94;
+			Length	1;
+			CelIndex	294;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	350;
+			Length	2;
+			CelIndex	295;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	1118;
+			Length	2;
+			CelIndex	296;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	8542;
+			Length	2;
+			CelIndex	297;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	95;
+			Length	1;
+			CelIndex	298;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	351;
+			Length	2;
+			CelIndex	299;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	1119;
+			Length	2;
+			CelIndex	300;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	96;
+			Length	1;
+			CelIndex	301;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	352;
+			Length	2;
+			CelIndex	302;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8800;
+			Length	2;
+			CelIndex	303;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	97;
+			Length	1;
+			CelIndex	304;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	353;
+			Length	2;
+			CelIndex	305;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	98;
+			Length	1;
+			CelIndex	306;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	354;
+			Length	2;
+			CelIndex	307;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	99;
+			Length	1;
+			CelIndex	308;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	355;
+			Length	2;
+			CelIndex	309;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	100;
+			Length	1;
+			CelIndex	310;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	356;
+			Length	2;
+			CelIndex	311;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8804;
+			Length	2;
+			CelIndex	312;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	101;
+			Length	1;
+			CelIndex	313;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	357;
+			Length	2;
+			CelIndex	314;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	8805;
+			Length	2;
+			CelIndex	315;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	9829;
+			Length	2;
+			CelIndex	316;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	102;
+			Length	1;
+			CelIndex	317;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	358;
+			Length	2;
+			CelIndex	318;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	103;
+			Length	1;
+			CelIndex	319;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	359;
+			Length	2;
+			CelIndex	320;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	104;
+			Length	1;
+			CelIndex	321;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	360;
+			Length	2;
+			CelIndex	322;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	105;
+			Length	1;
+			CelIndex	323;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	361;
+			Length	2;
+			CelIndex	324;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	106;
+			Length	1;
+			CelIndex	325;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	362;
+			Length	2;
+			CelIndex	326;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	9834;
+			Length	2;
+			CelIndex	327;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	107;
+			Length	1;
+			CelIndex	328;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	363;
+			Length	2;
+			CelIndex	329;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	9835;
+			Length	2;
+			CelIndex	330;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	108;
+			Length	1;
+			CelIndex	331;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	364;
+			Length	2;
+			CelIndex	332;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	109;
+			Length	1;
+			CelIndex	333;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	365;
+			Length	2;
+			CelIndex	334;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	110;
+			Length	1;
+			CelIndex	335;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	366;
+			Length	2;
+			CelIndex	336;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	111;
+			Length	1;
+			CelIndex	337;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	367;
+			Length	2;
+			CelIndex	338;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	112;
+			Length	1;
+			CelIndex	339;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	368;
+			Length	2;
+			CelIndex	340;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	113;
+			Length	1;
+			CelIndex	341;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	369;
+			Length	2;
+			CelIndex	342;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	114;
+			Length	1;
+			CelIndex	343;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	370;
+			Length	2;
+			CelIndex	344;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	115;
+			Length	1;
+			CelIndex	345;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	371;
+			Length	2;
+			CelIndex	346;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	116;
+			Length	1;
+			CelIndex	347;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	372;
+			Length	2;
+			CelIndex	348;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	117;
+			Length	1;
+			CelIndex	349;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	373;
+			Length	2;
+			CelIndex	350;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	118;
+			Length	1;
+			CelIndex	351;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	374;
+			Length	2;
+			CelIndex	352;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	119;
+			Length	1;
+			CelIndex	353;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	375;
+			Length	2;
+			CelIndex	354;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	120;
+			Length	1;
+			CelIndex	355;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	376;
+			Length	2;
+			CelIndex	356;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	121;
+			Length	1;
+			CelIndex	357;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	377;
+			Length	2;
+			CelIndex	358;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	122;
+			Length	1;
+			CelIndex	359;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	378;
+			Length	2;
+			CelIndex	360;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	123;
+			Length	1;
+			CelIndex	361;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	379;
+			Length	2;
+			CelIndex	362;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	124;
+			Length	1;
+			CelIndex	363;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	380;
+			Length	2;
+			CelIndex	364;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	125;
+			Length	1;
+			CelIndex	365;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	381;
+			Length	2;
+			CelIndex	366;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	126;
+			Length	1;
+			CelIndex	367;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	382;
+			Length	2;
+			CelIndex	368;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	894;
+			Length	2;
+			CelIndex	369;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	383;
+			Length	2;
+			CelIndex	370;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	8319;
+			Length	2;
+			CelIndex	371;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	7808;
+			Length	2;
+			CelIndex	372;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	7809;
+			Length	2;
+			CelIndex	373;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	7810;
+			Length	2;
+			CelIndex	374;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	7811;
+			Length	2;
+			CelIndex	375;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	900;
+			Length	2;
+			CelIndex	376;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	7812;
+			Length	2;
+			CelIndex	377;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	901;
+			Length	2;
+			CelIndex	378;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	7813;
+			Length	2;
+			CelIndex	379;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	902;
+			Length	2;
+			CelIndex	380;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	903;
+			Length	2;
+			CelIndex	381;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	904;
+			Length	2;
+			CelIndex	382;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	905;
+			Length	2;
+			CelIndex	383;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	906;
+			Length	2;
+			CelIndex	384;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	908;
+			Length	2;
+			CelIndex	385;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	910;
+			Length	2;
+			CelIndex	386;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	911;
+			Length	2;
+			CelIndex	387;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	912;
+			Length	2;
+			CelIndex	388;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	1168;
+			Length	2;
+			CelIndex	389;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8592;
+			Length	2;
+			CelIndex	390;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	913;
+			Length	2;
+			CelIndex	391;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	1169;
+			Length	2;
+			CelIndex	392;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	8593;
+			Length	2;
+			CelIndex	393;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	402;
+			Length	2;
+			CelIndex	394;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	914;
+			Length	2;
+			CelIndex	395;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8594;
+			Length	2;
+			CelIndex	396;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	915;
+			Length	2;
+			CelIndex	397;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8595;
+			Length	2;
+			CelIndex	398;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	916;
+			Length	2;
+			CelIndex	399;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8596;
+			Length	2;
+			CelIndex	400;
+			Step	25;
+		}
+		Glyph
+		{
+			CodePoint	917;
+			Length	2;
+			CelIndex	401;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	8597;
+			Length	2;
+			CelIndex	402;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	918;
+			Length	2;
+			CelIndex	403;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	919;
+			Length	2;
+			CelIndex	404;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	920;
+			Length	2;
+			CelIndex	405;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	921;
+			Length	2;
+			CelIndex	406;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	922;
+			Length	2;
+			CelIndex	407;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	923;
+			Length	2;
+			CelIndex	408;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	924;
+			Length	2;
+			CelIndex	409;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	925;
+			Length	2;
+			CelIndex	410;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	926;
+			Length	2;
+			CelIndex	411;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	927;
+			Length	2;
+			CelIndex	412;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	160;
+			Length	1;
+			CelIndex	413;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	928;
+			Length	2;
+			CelIndex	414;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	9632;
+			Length	2;
+			CelIndex	415;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	161;
+			Length	1;
+			CelIndex	416;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	929;
+			Length	2;
+			CelIndex	417;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	9633;
+			Length	2;
+			CelIndex	418;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	162;
+			Length	1;
+			CelIndex	419;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	163;
+			Length	1;
+			CelIndex	420;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	931;
+			Length	2;
+			CelIndex	421;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8355;
+			Length	2;
+			CelIndex	422;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	164;
+			Length	1;
+			CelIndex	423;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	932;
+			Length	2;
+			CelIndex	424;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8356;
+			Length	2;
+			CelIndex	425;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	165;
+			Length	1;
+			CelIndex	426;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	933;
+			Length	2;
+			CelIndex	427;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	166;
+			Length	1;
+			CelIndex	428;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	934;
+			Length	2;
+			CelIndex	429;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	167;
+			Length	1;
+			CelIndex	430;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	935;
+			Length	2;
+			CelIndex	431;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	8359;
+			Length	2;
+			CelIndex	432;
+			Step	18;
+		}
+		Glyph
+		{
+			CodePoint	168;
+			Length	1;
+			CelIndex	433;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	936;
+			Length	2;
+			CelIndex	434;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	169;
+			Length	1;
+			CelIndex	435;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	937;
+			Length	2;
+			CelIndex	436;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	170;
+			Length	1;
+			CelIndex	437;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	938;
+			Length	2;
+			CelIndex	438;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	9642;
+			Length	2;
+			CelIndex	439;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	171;
+			Length	1;
+			CelIndex	440;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	939;
+			Length	2;
+			CelIndex	441;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	172;
+			Length	1;
+			CelIndex	442;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	940;
+			Length	2;
+			CelIndex	443;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	8364;
+			Length	2;
+			CelIndex	444;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	941;
+			Length	2;
+			CelIndex	445;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	174;
+			Length	1;
+			CelIndex	446;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	942;
+			Length	2;
+			CelIndex	447;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	175;
+			Length	1;
+			CelIndex	448;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	943;
+			Length	2;
+			CelIndex	449;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	176;
+			Length	1;
+			CelIndex	450;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	944;
+			Length	2;
+			CelIndex	451;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	177;
+			Length	1;
+			CelIndex	452;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	945;
+			Length	2;
+			CelIndex	453;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	178;
+			Length	1;
+			CelIndex	454;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	946;
+			Length	2;
+			CelIndex	455;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	9650;
+			Length	2;
+			CelIndex	456;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	179;
+			Length	1;
+			CelIndex	457;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	947;
+			Length	2;
+			CelIndex	458;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	180;
+			Length	1;
+			CelIndex	459;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	948;
+			Length	2;
+			CelIndex	460;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	181;
+			Length	1;
+			CelIndex	461;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	949;
+			Length	2;
+			CelIndex	462;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	182;
+			Length	1;
+			CelIndex	463;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	950;
+			Length	2;
+			CelIndex	464;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	183;
+			Length	1;
+			CelIndex	465;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	951;
+			Length	2;
+			CelIndex	466;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	184;
+			Length	1;
+			CelIndex	467;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	952;
+			Length	2;
+			CelIndex	468;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	185;
+			Length	1;
+			CelIndex	469;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	953;
+			Length	2;
+			CelIndex	470;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	186;
+			Length	1;
+			CelIndex	471;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	954;
+			Length	2;
+			CelIndex	472;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	9658;
+			Length	2;
+			CelIndex	473;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	187;
+			Length	1;
+			CelIndex	474;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	955;
+			Length	2;
+			CelIndex	475;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	188;
+			Length	1;
+			CelIndex	476;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	956;
+			Length	2;
+			CelIndex	477;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	9660;
+			Length	2;
+			CelIndex	478;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	189;
+			Length	1;
+			CelIndex	479;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	957;
+			Length	2;
+			CelIndex	480;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	190;
+			Length	1;
+			CelIndex	481;
+			Step	16;
+		}
+		Glyph
+		{
+			CodePoint	958;
+			Length	2;
+			CelIndex	482;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	191;
+			Length	1;
+			CelIndex	483;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	959;
+			Length	2;
+			CelIndex	484;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	192;
+			Length	1;
+			CelIndex	485;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	960;
+			Length	2;
+			CelIndex	486;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	193;
+			Length	1;
+			CelIndex	487;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	961;
+			Length	2;
+			CelIndex	488;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	194;
+			Length	1;
+			CelIndex	489;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	962;
+			Length	2;
+			CelIndex	490;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	195;
+			Length	1;
+			CelIndex	491;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	963;
+			Length	2;
+			CelIndex	492;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	196;
+			Length	1;
+			CelIndex	493;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	964;
+			Length	2;
+			CelIndex	494;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	9668;
+			Length	2;
+			CelIndex	495;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	197;
+			Length	1;
+			CelIndex	496;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	965;
+			Length	2;
+			CelIndex	497;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	198;
+			Length	1;
+			CelIndex	498;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	710;
+			Length	2;
+			CelIndex	499;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	966;
+			Length	2;
+			CelIndex	500;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	199;
+			Length	1;
+			CelIndex	501;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	711;
+			Length	2;
+			CelIndex	502;
+			Step	8;
+		}
+		Glyph
+		{
+			CodePoint	967;
+			Length	2;
+			CelIndex	503;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	200;
+			Length	1;
+			CelIndex	504;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	968;
+			Length	2;
+			CelIndex	505;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	201;
+			Length	1;
+			CelIndex	506;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	713;
+			Length	2;
+			CelIndex	507;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	969;
+			Length	2;
+			CelIndex	508;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	202;
+			Length	1;
+			CelIndex	509;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	970;
+			Length	2;
+			CelIndex	510;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	9674;
+			Length	2;
+			CelIndex	511;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	203;
+			Length	1;
+			CelIndex	512;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	971;
+			Length	2;
+			CelIndex	513;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	9675;
+			Length	2;
+			CelIndex	514;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	204;
+			Length	1;
+			CelIndex	515;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	972;
+			Length	2;
+			CelIndex	516;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	205;
+			Length	1;
+			CelIndex	517;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	973;
+			Length	2;
+			CelIndex	518;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	206;
+			Length	1;
+			CelIndex	519;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	974;
+			Length	2;
+			CelIndex	520;
+			Step	15;
+		}
+		Glyph
+		{
+			CodePoint	207;
+			Length	1;
+			CelIndex	521;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	9679;
+			Length	2;
+			CelIndex	522;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	208;
+			Length	1;
+			CelIndex	523;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	209;
+			Length	1;
+			CelIndex	524;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	210;
+			Length	1;
+			CelIndex	525;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	211;
+			Length	1;
+			CelIndex	526;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	212;
+			Length	1;
+			CelIndex	527;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	213;
+			Length	1;
+			CelIndex	528;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	214;
+			Length	1;
+			CelIndex	529;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	215;
+			Length	1;
+			CelIndex	530;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	216;
+			Length	1;
+			CelIndex	531;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	728;
+			Length	2;
+			CelIndex	532;
+			Step	7;
+		}
+		Glyph
+		{
+			CodePoint	217;
+			Length	1;
+			CelIndex	533;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	729;
+			Length	2;
+			CelIndex	534;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	218;
+			Length	1;
+			CelIndex	535;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	730;
+			Length	2;
+			CelIndex	536;
+			Step	6;
+		}
+		Glyph
+		{
+			CodePoint	219;
+			Length	1;
+			CelIndex	537;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	731;
+			Length	2;
+			CelIndex	538;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	220;
+			Length	1;
+			CelIndex	539;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	732;
+			Length	2;
+			CelIndex	540;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	221;
+			Length	1;
+			CelIndex	541;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	733;
+			Length	2;
+			CelIndex	542;
+			Step	9;
+		}
+		Glyph
+		{
+			CodePoint	222;
+			Length	1;
+			CelIndex	543;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	223;
+			Length	1;
+			CelIndex	544;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	224;
+			Length	1;
+			CelIndex	545;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	225;
+			Length	1;
+			CelIndex	546;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	226;
+			Length	1;
+			CelIndex	547;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	227;
+			Length	1;
+			CelIndex	548;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	228;
+			Length	1;
+			CelIndex	549;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	229;
+			Length	1;
+			CelIndex	550;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	230;
+			Length	1;
+			CelIndex	551;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	9702;
+			Length	2;
+			CelIndex	552;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	231;
+			Length	1;
+			CelIndex	553;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	232;
+			Length	1;
+			CelIndex	554;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	233;
+			Length	1;
+			CelIndex	555;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	234;
+			Length	1;
+			CelIndex	556;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	235;
+			Length	1;
+			CelIndex	557;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	236;
+			Length	1;
+			CelIndex	558;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	237;
+			Length	1;
+			CelIndex	559;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	238;
+			Length	1;
+			CelIndex	560;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	239;
+			Length	1;
+			CelIndex	561;
+			Step	5;
+		}
+		Glyph
+		{
+			CodePoint	240;
+			Length	1;
+			CelIndex	562;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	241;
+			Length	1;
+			CelIndex	563;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	242;
+			Length	1;
+			CelIndex	564;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	7922;
+			Length	2;
+			CelIndex	565;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	243;
+			Length	1;
+			CelIndex	566;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	7923;
+			Length	2;
+			CelIndex	567;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	244;
+			Length	1;
+			CelIndex	568;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	245;
+			Length	1;
+			CelIndex	569;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	246;
+			Length	1;
+			CelIndex	570;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	247;
+			Length	1;
+			CelIndex	571;
+			Step	12;
+		}
+		Glyph
+		{
+			CodePoint	248;
+			Length	1;
+			CelIndex	572;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	249;
+			Length	1;
+			CelIndex	573;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	250;
+			Length	1;
+			CelIndex	574;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	506;
+			Length	2;
+			CelIndex	575;
+			Step	13;
+		}
+		Glyph
+		{
+			CodePoint	251;
+			Length	1;
+			CelIndex	576;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	507;
+			Length	2;
+			CelIndex	577;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	252;
+			Length	1;
+			CelIndex	578;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	508;
+			Length	2;
+			CelIndex	579;
+			Step	19;
+		}
+		Glyph
+		{
+			CodePoint	253;
+			Length	1;
+			CelIndex	580;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	509;
+			Length	2;
+			CelIndex	581;
+			Step	17;
+		}
+		Glyph
+		{
+			CodePoint	254;
+			Length	1;
+			CelIndex	582;
+			Step	11;
+		}
+		Glyph
+		{
+			CodePoint	510;
+			Length	2;
+			CelIndex	583;
+			Step	14;
+		}
+		Glyph
+		{
+			CodePoint	255;
+			Length	2;
+			CelIndex	584;
+			Step	10;
+		}
+		Glyph
+		{
+			CodePoint	511;
+			Length	2;
+			CelIndex	585;
+			Step	11;
+		}
+	}
+}

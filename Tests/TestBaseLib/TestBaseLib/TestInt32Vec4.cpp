@@ -1,0 +1,72 @@
+#include "BaseLib/Int32Vec4.h"
+#include "TestLib/Assert.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt32Vec4Add(void)
+{
+	SInt32Vec4 sia;
+	SInt32Vec4 sib;
+
+	sia.Init(1, 2, 3, 4);
+	sib.Init(4, 3, 2, 1);
+
+	sia += sib;
+
+	AssertInt((int32)5, sia.x);
+	AssertInt((int32)5, sia.y);
+	AssertInt((int32)5, sia.z);
+	AssertInt((int32)5, sia.w);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt32Vec4Print(void)
+{
+	SInt32Vec4	si;
+	CChars		sz;
+
+	si.Init(345, 0, 1397533873, -3);
+	sz.Init();
+	si.Print(&sz);
+	AssertString("[         345,           0,  1397533873,          -3]", sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt32Vec4Magnitude(void)
+{
+	SInt32Vec4	si;
+
+	si.Init(20123405, 13459784, 478, -3423454);
+	AssertInt(24450710, si.Magnitude());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInt32Vec4(void)
+{
+	BeginTests();
+	NumberInit();
+
+	TestInt32Vec4Add();
+	TestInt32Vec4Print();
+	TestInt32Vec4Magnitude();
+
+	NumberKill();
+	TestStatistics();
+}
+

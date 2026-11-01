@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Preprocessor">
+      <UniqueIdentifier>{d25dff93-745e-44b9-90ae-9c17fc25c8a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Project">
+      <UniqueIdentifier>{17298909-da20-4fd5-ac3b-7266b6802ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Parser">
+      <UniqueIdentifier>{7db195a5-6b29-4e91-bf72-e70af7eaa064}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Generator65">
+      <UniqueIdentifier>{afe39279-3487-443b-ad0d-c2f366ab3b9e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestCppParserLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnit1.cpp">
+      <Filter>Source\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnit2.cpp">
+      <Filter>Source\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPreprocessor.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProject.cpp">
+      <Filter>Source\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCppTokeniser.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCppErrors.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIR.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIR65Backend.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIR816Backend.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP816.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP816Volatile.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP65IR.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP65LazyHeaders.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP65Spill.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCppParser.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP65Context.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCPP65Generator.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCppHighlighter.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnit3.cpp">
+      <Filter>Source\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnit4.cpp">
+      <Filter>Source\Project</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestHeader.h">
+      <Filter>Source\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="TestCPP65Context.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="TestHeader2.h">
+      <Filter>Source\Project</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Log.txt" />
+  </ItemGroup>
+</Project>

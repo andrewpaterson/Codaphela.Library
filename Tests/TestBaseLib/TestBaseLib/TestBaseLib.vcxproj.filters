@@ -1,0 +1,888 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{42d3eae2-e70f-4e9f-81b7-a434cecb85bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{6b2bc978-6684-4637-ab7d-aa059cc1db76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array">
+      <UniqueIdentifier>{afb2e0df-ea6e-466d-9b0c-35acf11a6e95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Tree">
+      <UniqueIdentifier>{f0a97557-d958-4b76-96ca-3a7abab94ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\String">
+      <UniqueIdentifier>{e1ac7d13-c279-425f-bd69-5d57da2c2e61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Time">
+      <UniqueIdentifier>{107d4c21-4b42-4e8d-9da9-c94fd6f5509f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map">
+      <UniqueIdentifier>{081ad5e5-dc91-469d-9ac0-faa9db4c3b8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{15a52ed0-48f1-4cda-95ea-1e198afe6da6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\System">
+      <UniqueIdentifier>{2bd3b6a3-9373-432e-9bcd-bb600b4cfe0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math">
+      <UniqueIdentifier>{579b90d3-c2af-49aa-a0dc-9e41100bb3cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory">
+      <UniqueIdentifier>{498e30fc-fdcd-412f-b83d-b8d776df645c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Manager">
+      <UniqueIdentifier>{536f77c4-72d5-41e0-96e3-1fdc62e63472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Pack">
+      <UniqueIdentifier>{4a671ad4-e886-4d83-974e-d9a752add345}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Chunk">
+      <UniqueIdentifier>{3d2b4f47-88cf-40b5-8e30-774ef8a32f21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Tree">
+      <UniqueIdentifier>{0a997eac-2375-4e68-9dbf-316388a222c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\CSV">
+      <UniqueIdentifier>{5c9d020c-6a23-4f38-8d02-7425b9912ff9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\FreeList">
+      <UniqueIdentifier>{d8e0b5f5-3d04-4b8a-adea-b9102cc078c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Cache">
+      <UniqueIdentifier>{052276fa-dd6f-40f9-9b73-3e5300c88e9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\ScratchPad">
+      <UniqueIdentifier>{d8c169e4-1fb3-47a3-9c46-f5be02d8c70e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Stack">
+      <UniqueIdentifier>{5a2c8b49-5fb8-4be9-a2f1-c94f45225269}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Chunk\File">
+      <UniqueIdentifier>{48532850-bf26-4499-8d43-11e009bb52cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Index">
+      <UniqueIdentifier>{9e0b8477-536b-4b80-b717-1660dcf6d09a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\IO">
+      <UniqueIdentifier>{27e203b8-7b92-4e93-9f2f-cbdc59c5c99f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Allocator">
+      <UniqueIdentifier>{c32a2f17-43d1-4528-8c14-b1da112fe835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Sorted">
+      <UniqueIdentifier>{2f227715-abeb-4689-9d45-8fa38a6d84d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Construtor">
+      <UniqueIdentifier>{546164f4-50b2-4d8b-a1d6-6219fb5039e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric">
+      <UniqueIdentifier>{69bf5285-37f5-433b-92ae-29c47514319c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Temporary">
+      <UniqueIdentifier>{f7a8393f-19d8-44ac-84b0-41766b30c4c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List">
+      <UniqueIdentifier>{81324991-7985-488a-ad2c-09f43ba48034}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Minimal">
+      <UniqueIdentifier>{c435b4a6-eb92-474c-b822-3ecdddb6c426}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text">
+      <UniqueIdentifier>{cb4beb52-2e9f-4a7e-9966-059b5f77b0fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List\Minimal">
+      <UniqueIdentifier>{b3c55a73-adf4-4cb8-95fe-52d4b5b430af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List\Minimal\Specific">
+      <UniqueIdentifier>{dd29202e-ad4c-4547-9581-101803d03b58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic">
+      <UniqueIdentifier>{eb5ee618-1971-466f-a5d8-c1baf42613fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Primitive">
+      <UniqueIdentifier>{5564e44e-46f1-476c-8a5e-9e02a3f176bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic\Specific">
+      <UniqueIdentifier>{0d4cd219-a6fe-4ac5-bbdb-5c9e5600efd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Bit">
+      <UniqueIdentifier>{d9d2368e-e4c6-4128-a8bd-8cf685ce9d14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Embedded">
+      <UniqueIdentifier>{54544f2f-36a6-4285-b327-8eb77f822792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\LinkedList">
+      <UniqueIdentifier>{84a720a1-3862-4dc3-b246-4fccae290aa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Thread">
+      <UniqueIdentifier>{db27a846-023a-4f04-8e63-247f0d7eb54c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Error">
+      <UniqueIdentifier>{cde953d0-dca5-4096-a07d-3c1ee2fb9b8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types">
+      <UniqueIdentifier>{c8015ee2-edcb-4ce2-a25a-ffc666874d1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\File">
+      <UniqueIdentifier>{44bc08cf-d197-4d58-b60b-9e6d021ce005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Primitive">
+      <UniqueIdentifier>{36ac1be1-f14a-4d70-b710-5b688735bdc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Map">
+      <UniqueIdentifier>{141fe9c8-f9bc-4bc1-adfe-712c7b821a89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Map\Primitive">
+      <UniqueIdentifier>{75ee2fe2-6f73-4a20-ad84-62e1b62491d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Map\String">
+      <UniqueIdentifier>{41ea07bd-fab8-4567-82da-4369d44d629a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Access">
+      <UniqueIdentifier>{5a1f223d-f91c-4a03-8275-1f0493c5199b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Index">
+      <UniqueIdentifier>{3d7c81da-ed16-4589-82df-dfd04acec8d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math\Primitive">
+      <UniqueIdentifier>{3f103a76-5fdd-4795-a27a-075c7ee8321b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math\Numbers">
+      <UniqueIdentifier>{94aa2c89-b3f9-419c-9ecc-0834cf7a38d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Index\String">
+      <UniqueIdentifier>{9a764bed-4cdf-40f1-ac5b-c40525c594ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{1aed9247-84de-40a0-9b09-766f117e7b11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed">
+      <UniqueIdentifier>{54bb5c7a-9a10-419f-ad67-27920e26a5fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Durable">
+      <UniqueIdentifier>{73270a9f-ceb5-47ee-bf89-cb589fa8323b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\XML">
+      <UniqueIdentifier>{72ca532d-bd99-4f61-acfb-b87bd33a0aa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Function">
+      <UniqueIdentifier>{c794489d-44ec-4e21-bb07-0e532537e877}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math">
+      <UniqueIdentifier>{5f55bc52-0653-4429-bf22-26e3cd55ccba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory">
+      <UniqueIdentifier>{2bd1d6b0-cc0e-4e04-a474-6464ca245fec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script">
+      <UniqueIdentifier>{bc57d699-f6cb-4d12-bcb3-0215b841409e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text">
+      <UniqueIdentifier>{c8c22efd-cccb-4f35-b47f-7c27b17eca0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Files">
+      <UniqueIdentifier>{bd81b3ff-2b4a-4ba4-97fb-d1d64129c154}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Log">
+      <UniqueIdentifier>{a1c6c4b3-af17-46af-b893-e26bf8ffb45f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Properties">
+      <UniqueIdentifier>{b1fc7489-6b26-48f0-8339-35db8cd71235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index">
+      <UniqueIdentifier>{38b1bd3a-d2a1-4b28-b6ad-40b77c5eebc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Data">
+      <UniqueIdentifier>{a19d5601-6062-4edc-8b66-06492247b89e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\Access">
+      <UniqueIdentifier>{cebbb15c-4c6b-411f-964c-01d19063e8b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\Evicting">
+      <UniqueIdentifier>{b6091621-d2d2-4478-824b-42c9c5c04a7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Cache">
+      <UniqueIdentifier>{7e26f353-db33-4d82-aaf3-a30a528aedea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Named">
+      <UniqueIdentifier>{b6fba6c0-b21c-4582-9e3b-0fff5b46d58e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\DataOrderer">
+      <UniqueIdentifier>{fdd1e6a8-4b7d-4361-be11-8a352dc87d56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\Diagnostic">
+      <UniqueIdentifier>{d84d5a8b-05b6-4b6b-8a65-c8eb0ac903b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Database">
+      <UniqueIdentifier>{e688fdf5-a5e8-4326-9b66-050afb9f34c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Sequence">
+      <UniqueIdentifier>{e11fed26-2343-4c4c-ba2e-1760e53f7ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\FileSystem">
+      <UniqueIdentifier>{3ad80492-6538-43ad-a489-b23a360a7c5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\FileSystem\Fat32">
+      <UniqueIdentifier>{e738b858-80d7-442a-9a6b-005797943ad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\FileSystem\Underlying">
+      <UniqueIdentifier>{17df6ecf-55dc-4893-88a9-80d295d96926}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\Converter">
+      <UniqueIdentifier>{7c5556dd-2cc1-4bfc-a786-efc5910249da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Calculator">
+      <UniqueIdentifier>{2194bd06-1f6e-43f6-baae-085a5a72416f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric\Vec2">
+      <UniqueIdentifier>{badb46ba-cf50-418e-ad6f-352b6f2f343c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric\Vec3">
+      <UniqueIdentifier>{181516b8-a5c2-4558-8194-6a5ed2847d66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric\Vec4">
+      <UniqueIdentifier>{3aa55e09-bfec-4d7c-940f-a02fdae8ec57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Set">
+      <UniqueIdentifier>{447c2301-83a6-408d-a2c3-0eaa38d797f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Common">
+      <UniqueIdentifier>{b7cac390-cea3-439d-a3c4-b86c776e2e9e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestBaseLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSorting.cpp">
+      <Filter>Source\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDenseArrayTemplate.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSparseArrayTemplate.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRedBlackTree.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLine.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStringHelper.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDate.cpp">
+      <Filter>Source\Data\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="TestBufferedFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDiskFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFileFinder.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFileUtil.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIntelHex.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMD5File.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestChunkFile.cpp">
+      <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPackFile.cpp">
+      <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFileSystem.cpp">
+      <Filter>Source\File\System</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTreeTemplate.cpp">
+      <Filter>Source\Data\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCSVFileEditable.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFreeList.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryCache.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryStack.cpp">
+      <Filter>Source\Memory\Stack</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScratchPad.cpp">
+      <Filter>Source\Memory\ScratchPad</Filter>
+    </ClCompile>
+    <ClCompile Include="TestChunkFileFile.cpp">
+      <Filter>Source\File\Chunk\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeObject.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFileIO.cpp">
+      <Filter>Source\File\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIOTestObjects.cpp">
+      <Filter>Source\File\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="TestAllocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLinkedListAligned.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLinkedListTemplate.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryBlock.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayBlockSorted.cpp">
+      <Filter>Source\Data\Array\Sorted</Filter>
+    </ClCompile>
+    <ClCompile Include="SortedTestObject.cpp">
+      <Filter>Source\Data\Array\Sorted</Filter>
+    </ClCompile>
+    <ClCompile Include="TestConstructors.cpp">
+      <Filter>Source\Construtor</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScratchPadAllocator.cpp">
+      <Filter>Source\Memory\ScratchPad</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFreeListAllocator.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTrueMallocator.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTrackingAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTemporaryMemory.cpp">
+      <Filter>Source\Memory\Temporary</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeNodeMemory.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestChars.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestListBlock.cpp">
+      <Filter>Source\Data\List</Filter>
+    </ClCompile>
+    <ClCompile Include="TestListTemplate.cpp">
+      <Filter>Source\Data\List</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeIterator.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestListCharsMinimal.cpp">
+      <Filter>Source\Data\List\Minimal\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCSVFileImmutable.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStackMemory.cpp">
+      <Filter>Source\Memory\Temporary</Filter>
+    </ClCompile>
+    <ClCompile Include="TestListVariable.cpp">
+      <Filter>Source\Data\List</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGeneralMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDataMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestConstructorCall.cpp">
+      <Filter>Source\Construtor</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstructorsTestClasses.cpp">
+      <Filter>Source\Construtor</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstructorCallTestClasses.cpp">
+      <Filter>Source\Construtor</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayTemplateTestClasses.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayInt.cpp">
+      <Filter>Source\Data\Array\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayLong.cpp">
+      <Filter>Source\Data\Array\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayInt2D.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayTemplatePrimitive.cpp">
+      <Filter>Source\Data\Array\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayTemplate.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayVoidPtr.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayBit.cpp">
+      <Filter>Source\Data\Array\Bit</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayTemplateEmbedded.cpp">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArraySizer.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCountingAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapString.cpp">
+      <Filter>Source\Data\Map\Map\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapInt.cpp">
+      <Filter>Source\Data\Map\Map\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapLong.cpp">
+      <Filter>Source\Data\Map\Map\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLinkedList.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLinkedListBlock.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSafeLinkedListBlock.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMutex.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeMemory.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeDataOrderer.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCharsHelper.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeConfig.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryQueue.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLogger.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPrimitiveTypes.cpp">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDataTypesIO.cpp">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMap.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapBlock.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapPtrPtr.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexAccess.cpp">
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapAccess.cpp">
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexBlock.cpp">
+      <Filter>Source\Data\Map\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGlobalDataTypesIO.cpp">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIntegerHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFixedPoint.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNumbers.cpp">
+      <Filter>Source\Math\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloatHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TestChunkFileFileSystem.cpp">
+      <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexString.cpp">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTemplate.cpp">
+      <Filter>Source\Data\Map\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLogString.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="TestEscapeCodes.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTextPosition.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayTemplateEmbeddedPtr.cpp">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReditectPrintf.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexedData.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDurableFile.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDurableFileController.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDurableSet.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="TestXMLFile.cpp">
+      <Filter>Source\File\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="TestXMLWriter.cpp">
+      <Filter>Source\File\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFunctionCaller.cpp">
+      <Filter>Source\Function</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNumber.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="TestXMLParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFiles.cpp">
+      <Filter>Source\File\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLogFile.cpp">
+      <Filter>Source\File\Log</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPackFilesPacker.cpp">
+      <Filter>Source\File\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPropertiesFile.cpp">
+      <Filter>Source\File\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexedFiles.cpp">
+      <Filter>Source\File\Indexed\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeNodeFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeWriter.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeAccess.cpp">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTemplateFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeEvicting.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexedFilesCache.cpp">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexedFile.cpp">
+      <Filter>Source\File\Indexed\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeFileCallback.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeCallbackTestObject.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNamedIndexes.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNamedIndexedData.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedDataObject.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeFileDataOrderer.cpp">
+      <Filter>Source\File\Indexed\Index\DataOrderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeFileIterator.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileDataTestCallback.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexTreeEvictingDiagnosticCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCodabase.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="TestWriteTransaction.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReadTransaction.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTransactionConcurrency.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTransactionHelper.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSequence.cpp">
+      <Filter>Source\File\Indexed\Sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCalculator.cpp">
+      <Filter>Source\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloatPrinter.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFat32.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFat16.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryDrive.cpp">
+      <Filter>Source\FileSystem\Underlying</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFatCache.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFat32Common.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMemoryManager.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSafeArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTypeConverter.cpp">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ParserCustomIdentifier.cpp">
+      <Filter>Source\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="TestJSONParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMapStringIntAndPointer.cpp">
+      <Filter>Source\Data\Map\Map\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCharsImmutable.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUTF8.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIndexPtr.cpp">
+      <Filter>Source\Data\Map\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUTF16.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnicode.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestUnicodeWriter.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat64Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt16Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt32Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt64Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIntVec2.cpp">
+      <Filter>Source\Data\Geometric\Vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat64Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt16Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt32Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt64Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIntVec3.cpp">
+      <Filter>Source\Data\Geometric\Vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt32Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat32Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFloat64Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt16Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestInt64Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestIntVec4.cpp">
+      <Filter>Source\Data\Geometric\Vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSetBlock.cpp">
+      <Filter>Source\Data\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSet.cpp">
+      <Filter>Source\Data\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="WordKey.cpp">
+      <Filter>Source\Data\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCircularMemoryList.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArrayTemplatePtr.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFat32Bugs.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFatBench.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFatStress.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestIndexTreeObject.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIOTestObjects.h">
+      <Filter>Source\File\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="SortedTestObject.h">
+      <Filter>Source\Data\Array\Sorted</Filter>
+    </ClInclude>
+    <ClInclude Include="TestPackFile.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstructorsTestClasses.h">
+      <Filter>Source\Construtor</Filter>
+    </ClInclude>
+    <ClInclude Include="TestTransactionHelper.h">
+      <Filter>Source\Database</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstructorCallTestClasses.h">
+      <Filter>Source\Construtor</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplateTestClasses.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="TestIndexTreeMemory.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="TestFunctionCaller.h">
+      <Filter>Source\Function</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeCallbackTestObject.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedDataObject.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="TestIndexTreeFile.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="TestIndexTreeEvicting.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDataTestCallback.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="TestFat32Common.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="ParserCustomIdentifier.h">
+      <Filter>Source\Calculator</Filter>
+    </ClInclude>
+    <ClInclude Include="WordKey.h">
+      <Filter>Source\Data\Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="External.xml">
+      <Filter>Source\File\XML</Filter>
+    </None>
+    <None Include="File.xml">
+      <Filter>Source\File\XML</Filter>
+    </None>
+    <None Include="First.xml">
+      <Filter>Source\File\XML</Filter>
+    </None>
+    <None Include="Second.xml">
+      <Filter>Source\File\XML</Filter>
+    </None>
+    <None Include="Third.xml">
+      <Filter>Source\File\XML</Filter>
+    </None>
+    <None Include="Log.txt" />
+  </ItemGroup>
+</Project>

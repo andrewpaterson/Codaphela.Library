@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="Log.txt" />
+    <None Include="Todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{d5c00f06-eaad-4b95-aeb3-14fd10974709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc">
+      <UniqueIdentifier>{5abe8ae0-e04c-429b-8e84-9335e6bd6462}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\W65C816">
+      <UniqueIdentifier>{a311156c-7650-4e00-b585-41ced89298f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\W65C816\Context">
+      <UniqueIdentifier>{fe3d0591-37c3-4e1f-b036-f6bcee5a6aed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela">
+      <UniqueIdentifier>{60628a9e-5aab-4070-981f-1f34a5815077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64">
+      <UniqueIdentifier>{28d98927-4a18-456d-9782-9f65e85d3d00}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestMicroprocessorLib.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Reset.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Add.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Context.cpp">
+      <Filter>Source\wdc\W65C816\Context</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Subtract.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArithmetic.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Load.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C02.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C02SingleStep.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSingleStep.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816SingleStep.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFast65C816.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Timing.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Decimal.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816DirectPage.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816BlockMove.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Interrupt.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Branch.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Stack.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Mode.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="TestW65C816Logic.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Context.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Interrupt.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64MultiplyDivide.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Subcopy.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Bits.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Operand.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Block.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="Test65C64Vector.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFast65C64.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="TestTimeline.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestVoltageConfiguration.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestLogicPort.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPassive.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStandardIntegratedCircuits.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGroupIntegratedCircuits.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TestProcessorChips.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestW65C816Context.h">
+      <Filter>Source\wdc\W65C816\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSingleStep.h">
+      <Filter>Source\wdc\W65C816\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="Test65C64Context.h">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClInclude>
+    <ClInclude Include="TestCircuitBoard.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

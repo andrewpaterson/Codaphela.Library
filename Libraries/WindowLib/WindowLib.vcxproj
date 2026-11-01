@@ -1,0 +1,332 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B5D4C7AA-49EF-45D2-B970-0AB1F1184AE6}</ProjectGuid>
+    <RootNamespace>WindowLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\;$(IncludePath)</IncludePath>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+    <Bscmake />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+    <Bscmake />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <Optimization>MaxSpeed</Optimization>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <Optimization>MaxSpeed</Optimization>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="MapsCanvasDraw.h" />
+    <ClInclude Include="ImageCanvasDraw.h" />
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="ButtonBar.h" />
+    <ClInclude Include="ListContainer.h" />
+    <ClInclude Include="IconComponent.h" />
+    <ClInclude Include="Popup.h" />
+    <ClInclude Include="RoundedBoxCanvasDraw.h" />
+    <ClInclude Include="MenuListener.h" />
+    <ClInclude Include="MenuStyle.h" />
+    <ClInclude Include="MenuItem.h" />
+    <ClInclude Include="MenuContainer.h" />
+    <ClInclude Include="MenuBarItem.h" />
+    <ClInclude Include="MenuBar.h" />
+    <ClInclude Include="ListListener.h" />
+    <ClInclude Include="ButtonImages.h" />
+    <ClInclude Include="ButtonListener.h" />
+    <ClInclude Include="JewelImageGenerator.h" />
+    <ClInclude Include="ScrollBarImages.h" />
+    <ClInclude Include="ScrollBar.h" />
+    <ClInclude Include="ScrollPane.h" />
+    <ClInclude Include="Label.h" />
+    <ClInclude Include="ClearCanvasDraw.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="Canvas.h" />
+    <ClInclude Include="CanvasDraw.h" />
+    <ClInclude Include="ComponentInput.h" />
+    <ClInclude Include="ComponentInputDevice.h" />
+    <ClInclude Include="ComponentInputKey.h" />
+    <ClInclude Include="WindowInputSource.h" />
+    <ClInclude Include="ComponentInputEvent.h" />
+    <ClInclude Include="InputAction.h" />
+    <ClInclude Include="TabComponent.h" />
+    <ClInclude Include="TabbedContainer.h" />
+    <ClInclude Include="TabbedContainerListener.h" />
+    <ClInclude Include="Dialog.h" />
+    <ClInclude Include="FileChooser.h" />
+    <ClInclude Include="ComponentInputNumKey.h" />
+    <ClInclude Include="ComponentInputPrintable.h" />
+    <ClInclude Include="ComponentInputCommand.h" />
+    <ClInclude Include="Container.h" />
+    <ClInclude Include="ContainerStyle.h" />
+    <ClInclude Include="FillContainer.h" />
+    <ClInclude Include="FlowContainer.h" />
+    <ClInclude Include="Focus.h" />
+    <ClInclude Include="FocusListener.h" />
+    <ClInclude Include="GridCell.h" />
+    <ClInclude Include="GridContainer.h" />
+    <ClInclude Include="BorderLayoutHelper.h" />
+    <ClInclude Include="Insets.h" />
+    <ClInclude Include="NativeCanvas.h" />
+    <ClInclude Include="NativeComponent.h" />
+    <ClInclude Include="NativeWindow.h" />
+    <ClInclude Include="NativeWindowFactory.h" />
+    <ClInclude Include="TextArea.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="WindowTick.h" />
+    <ClInclude Include="ImageBorderContainer.h" />
+    <ClInclude Include="TextField.h" />
+    <ClInclude Include="TextFieldListener.h" />
+    <ClInclude Include="TextMarksCanvasDraw.h" />
+    <ClInclude Include="CheckBox.h" />
+    <ClInclude Include="CheckBoxListener.h" />
+    <ClInclude Include="CheckBoxImages.h" />
+    <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="ComboBoxListener.h" />
+    <ClInclude Include="WindowTheme.h" />
+    <ClInclude Include="JewelTheme.h" />
+    <ClInclude Include="JewelColours.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ComponentInput.cpp" />
+    <ClCompile Include="ComponentInputCommand.cpp" />
+    <ClCompile Include="ComponentInputDevice.cpp" />
+    <ClCompile Include="ComponentInputKey.cpp" />
+    <ClCompile Include="WindowInputSource.cpp" />
+    <ClCompile Include="InputAction.cpp" />
+    <ClCompile Include="TabComponent.cpp" />
+    <ClCompile Include="TabbedContainer.cpp" />
+    <ClCompile Include="Dialog.cpp" />
+    <ClCompile Include="FileChooser.cpp" />
+    <ClCompile Include="ComponentInputNumKey.cpp" />
+    <ClCompile Include="ComponentInputPrintable.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="CanvasDraw.cpp" />
+    <ClCompile Include="Container.cpp" />
+    <ClCompile Include="ContainerStyle.cpp" />
+    <ClCompile Include="FillContainer.cpp" />
+    <ClCompile Include="FlowContainer.cpp" />
+    <ClCompile Include="Focus.cpp" />
+    <ClCompile Include="GridCell.cpp" />
+    <ClCompile Include="GridContainer.cpp" />
+    <ClCompile Include="BorderLayoutHelper.cpp" />
+    <ClCompile Include="Insets.cpp" />
+    <ClCompile Include="MapsCanvasDraw.cpp" />
+    <ClCompile Include="ImageCanvasDraw.cpp" />
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="ButtonBar.cpp" />
+    <ClCompile Include="ListContainer.cpp" />
+    <ClCompile Include="IconComponent.cpp" />
+    <ClCompile Include="Popup.cpp" />
+    <ClCompile Include="RoundedBoxCanvasDraw.cpp" />
+    <ClCompile Include="MenuStyle.cpp" />
+    <ClCompile Include="MenuItem.cpp" />
+    <ClCompile Include="MenuContainer.cpp" />
+    <ClCompile Include="MenuBarItem.cpp" />
+    <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="ButtonImages.cpp" />
+    <ClCompile Include="JewelImageGenerator.cpp" />
+    <ClCompile Include="ScrollBarImages.cpp" />
+    <ClCompile Include="ScrollBar.cpp" />
+    <ClCompile Include="ScrollPane.cpp" />
+    <ClCompile Include="Label.cpp" />
+    <ClCompile Include="TextArea.cpp" />
+    <ClCompile Include="ClearCanvasDraw.cpp" />
+    <ClCompile Include="NativeCanvas.cpp" />
+    <ClCompile Include="NativeComponent.cpp" />
+    <ClCompile Include="NativeWindow.cpp" />
+    <ClCompile Include="NativeWindowFactory.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="WindowTick.cpp" />
+    <ClCompile Include="ImageBorderContainer.cpp" />
+    <ClCompile Include="TextField.cpp" />
+    <ClCompile Include="TextMarksCanvasDraw.cpp" />
+    <ClCompile Include="CheckBox.cpp" />
+    <ClCompile Include="CheckBoxImages.cpp" />
+    <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="WindowTheme.cpp" />
+    <ClCompile Include="JewelTheme.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Container.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

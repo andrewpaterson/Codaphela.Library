@@ -1,0 +1,58 @@
+ImageCels
+{
+	Image
+	{
+		FileName	"MakiWalk.png";
+		Directory	"Input";
+	}
+	Cel
+	{
+		Index	0;
+		Rect	{1, 2, 91, 34};
+		Offset	{1, 2, 0, 8};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	1;
+		Rect	{1, 48, 91, 73};
+		Offset	{1, 6, 0, 11};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	2;
+		Rect	{2, 84, 91, 126};
+		Offset	{2, 0, 0, 0};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	3;
+		Rect	{1, 128, 91, 159};
+		Offset	{1, 2, 0, 9};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	4;
+		Rect	{1, 175, 91, 199};
+		Offset	{1, 7, 0, 11};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	5;
+		Rect	{2, 210, 91, 251};
+		Offset	{2, 0, 0, 1};
+		Align	{0, 0};
+	}
+	Cel
+	{
+		Index	6;
+		Name	"MakiWalk/Whole";
+		Rect	{3, 2, 50, 40};
+		Offset	{2, 1, 4, 3};
+		Align	{-42, -53};
+	}
+}
