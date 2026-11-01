@@ -205,6 +205,10 @@ bool CKicadSchemLogicimConverter::AddSymbol(CKicadSchemSymbol* pcSymbol)
 		muiSkipped++;
 		return true;
 	}
+	if (AddRegulator(pcSymbol, pcLibSymbol))
+	{
+		return true;
+	}
 
 	//A real 74 series part that isn't gates.
 	szFamily.Init();
@@ -292,6 +296,146 @@ bool CKicadSchemLogicimConverter::AddPower(CKicadSchemSymbol* pcSymbol, CKicadSc
 	mpcFile->GetPinPosition(&sPosition, pcSymbol, pcPin);
 	uiItem = AddItem(pcView, &sPosition, pcView->GetPortView((size)0));
 	AddPinTerminal(pcSymbol, pcPin, pcView->GetPortView((size)0), uiItem);
+	muiPowers++;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the pin's name, ignoring case, ends with szEnd and is either
+// szEnd alone, starts with a V ("VOUT"), or has a voltage ("3.3VOut").
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsKicadSchemRegulatorPinName(const char* szName, const char* szEnd)
+{
+	size	uiLength;
+	size	uiEnd;
+	size	i;
+
+	uiLength = StrLen(szName);
+	uiEnd = StrLen(szEnd);
+	if ((uiLength < uiEnd) || (StringInsensitiveCompare(&szName[uiLength - uiEnd], szEnd) != 0))
+	{
+		return false;
+	}
+	if ((uiLength == uiEnd) || (szName[0] == 'V') || (szName[0] == 'v'))
+	{
+		return true;
+	}
+	for (i = 0; i < uiLength - uiEnd; i++)
+	{
+		if ((szName[i] >= '0') && (szName[i] <= '9'))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the text has a digit, so it can say a voltage.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool HasKicadSchemVoltage(const char* szText)
+{
+	size	i;
+
+	for (i = 0; (szText != NULL) && (szText[i] != '\0'); i++)
+	{
+		if ((szText[i] >= '0') && (szText[i] <= '9'))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A voltage regulator (an input pin "VIN", "6VIn"; an output pin "VOUT",
+// "3.3VOut"; and a ground) is the supply its output is: a positive power
+// on its output pin of the voltage the output pin's name says ("3.3VOut")
+// or, if it doesn't say, its net's name ("+3V3"); on all its output pins
+// if it has more than one (a tab).  Its other pins are left out: the
+// parts have implied power.  False (and nothing added) if
+// it isn't a regulator or neither says its voltage.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemLogicimConverter::AddRegulator(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol)
+{
+	size					i;
+	CKicadSchemLibPin*		pcPin;
+	CKicadSchemLibPin*		pcInput;
+	CKicadSchemLibPin*		pcOutput;
+	bool					bGround;
+	CKicadSchemSubnet*		pcSubnet;
+	char*					szNetName;
+	const char*				szVoltage;
+	const char*				szName;
+	CPositivePowerView*		pcPositive;
+	SKicadSchemPoint		sPosition;
+	size					uiItem;
+
+	pcInput = NULL;
+	pcOutput = NULL;
+	bGround = false;
+	for (i = 0; i < pcLibSymbol->NumPins(); i++)
+	{
+		pcPin = pcLibSymbol->GetPin(i);
+		if (!pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()))
+		{
+			continue;
+		}
+		if (IsKicadSchemRegulatorPinName(pcPin->GetName(), "OUT"))
+		{
+			pcOutput = pcPin;
+		}
+		else if (IsKicadSchemRegulatorPinName(pcPin->GetName(), "IN"))
+		{
+			pcInput = pcPin;
+		}
+		else if (IsGroundName(pcPin->GetName()))
+		{
+			bGround = true;
+		}
+	}
+	if ((pcInput == NULL) || (pcOutput == NULL) || !bGround)
+	{
+		return false;
+	}
+
+	pcSubnet = mpcNetlist->GetPinSubnet(pcSymbol, pcOutput);
+	szNetName = ((pcSubnet != NULL) && (pcSubnet->GetNet() != NULL)) ? pcSubnet->GetNet()->GetName() : NULL;
+	if (HasKicadSchemVoltage(pcOutput->GetName()))
+	{
+		szVoltage = pcOutput->GetName();
+	}
+	else if (HasKicadSchemVoltage(szNetName))
+	{
+		szVoltage = szNetName;
+	}
+	else
+	{
+		return false;
+	}
+	szName = !StrEmpty(szNetName) ? szNetName : pcOutput->GetName();
+
+	pcPositive = NewMalloc<CPositivePowerView>();
+	pcPositive->Init(0, 0, ROT_South, szName, GetSupplyVoltage(szVoltage));
+	mpcFile->GetPinPosition(&sPosition, pcSymbol, pcOutput);
+	uiItem = AddItem(pcPositive, &sPosition, pcPositive->GetPortView((size)0));
+	for (i = 0; i < pcLibSymbol->NumPins(); i++)
+	{
+		pcPin = pcLibSymbol->GetPin(i);
+		if (pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()) && IsKicadSchemRegulatorPinName(pcPin->GetName(), "OUT"))
+		{
+			AddPinTerminal(pcSymbol, pcPin, pcPositive->GetPortView((size)0), uiItem);
+		}
+	}
 	muiPowers++;
 	return true;
 }

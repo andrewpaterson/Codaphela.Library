@@ -101,11 +101,12 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //and "Y" on a single gate part, which is a unit) or, if they have no names, by their types; any other part's pins by
 //the labels of its package's pins (see AddLogic74Block).  A 74 series gate or flip flop that isn't a part there's a row
 //for becomes a generic gate (or D flip flop) for each of its gates.  Power pins are left out: the parts have implied
-//power.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V).  Resistors and resistor
-//networks, capacitors and capacitor networks, inductors, diodes, LEDs, mounting holes, net ties, test points and power
-//flags are left out.  Any other symbol becomes an instance of a placeholder subcircuit made for its library symbol and
-//unit: an empty circuit with a pin for each of its shown pins, on the side KiCad draws it, so it can be wired and its
-//logic filled in later.  Hierarchical sheets are left out.
+//power.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V), and so does a voltage
+//regulator's output (see AddRegulator).  Resistors and resistor networks, capacitors and capacitor networks,
+//inductors, diodes, LEDs, mounting holes, net ties, test points and power flags are left out.  Any other symbol
+//becomes an instance of a placeholder subcircuit made for its library symbol and unit: an empty circuit with a pin for
+//each of its shown pins, on the side KiCad draws it, so it can be wired and its logic filled in later.  Hierarchical
+//sheets are left out.
 //
 //A subnet that is part of a bigger net (it's joined to the rest by labels) gets a tunnel named as the net at each of
 //its labels, so each subnet is wired on its own, as KiCad drew it.  A tunnel or supply KiCad has right on a pin is
@@ -187,6 +188,7 @@ public:
 protected:
 	bool							AddSymbol(CKicadSchemSymbol* pcSymbol);
 	bool							AddPower(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
+	bool							AddRegulator(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	bool							AddLogicParts(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, const char* szFamily, const char* szPartType);
 	bool							AddLogic74Block(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, const char* szFamily, const char* szPartType);
 	bool							AddLogic74Part(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType);
