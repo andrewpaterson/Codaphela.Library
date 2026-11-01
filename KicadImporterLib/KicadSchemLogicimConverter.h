@@ -35,6 +35,12 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 //Logicim grid units to one of KiCad's.  Logicim's parts are bigger than KiCad's symbols for their pins.
 #define KICAD_SCHEM_LOGICIM_SCALE			2.0
 
+//How far the components are spread out from where KiCad has them (scaled), at most and at least, and how many times the
+//spread between is halved looking for the least that wires as well as the most.
+#define KICAD_SCHEM_LOGICIM_SPREAD_MAXIMUM	1.5
+#define KICAD_SCHEM_LOGICIM_SPREAD_MINIMUM	1.0
+#define KICAD_SCHEM_LOGICIM_SPREAD_HALVINGS	3
+
 //The gap kept between components' boxes.
 #define KICAD_SCHEM_LOGICIM_SPACING			2
 
@@ -168,10 +174,10 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //(the one with fewer connections is moved), and moving them clear of the others would rather move them along their
 //line than off it (see KICAD_SCHEM_LOGICIM_ALIGN_WEIGHT).
 //
-//The components are first placed spread out from where KiCad has them (like raisins in rising dough), wired, and
-//then moved back towards KiCad's places in steps and rewired at each, while the wiring stays as good; between the
-//last spread that wired as well and the first that didn't, two halfway spreads are tried.  The circuit is left at
-//the smallest spread that wired as many connections as the first.
+//The components are first placed spread out from where KiCad has them (like raisins in rising dough,
+//KICAD_SCHEM_LOGICIM_SPREAD_MAXIMUM) and wired, then at the least spread (KICAD_SCHEM_LOGICIM_SPREAD_MINIMUM).  If that
+//wires as many connections it's kept; otherwise the spread halfway between the closest that wired as many and the
+//widest that didn't is tried, KICAD_SCHEM_LOGICIM_SPREAD_HALVINGS times, and the closest that wired as many is kept.
 //
 //Then dense areas, where the wires knot (turn and cross a lot), are exploded a few times: space is put in across
 //each one, up and down and left and right (so what's lined up stays lined up), and it's rewired.  An explosion is

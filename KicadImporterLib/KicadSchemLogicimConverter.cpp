@@ -40,7 +40,6 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 
 
 //The spreads the components are placed at, from KiCad's places, widest first.
-static float64 gafKicadSchemLogicimSpreads[] = { 3.0, 2.5, 2.1, 1.8, 1.55, 1.35, 1.2, 1.1, 1.0 };
 
 
 //The rotations, turning right from East, to try something in each of.
@@ -124,13 +123,10 @@ void CKicadSchemLogicimConverter::Kill(void)
 bool CKicadSchemLogicimConverter::Convert(const char* szTypeName)
 {
 	size	i;
-	size	uiNumSpreads;
 	size	uiFirstUnconnected;
-	size	uiUnconnected;
-	size	uiBest;
-	size	j;
 	float64	fWorse;
 	float64	fSpread;
+	bool	bRouted;
 
 	mpcCircuit = mpcCircuits->Add(szTypeName);
 	if (mpcCircuit == NULL)
@@ -156,42 +152,44 @@ bool CKicadSchemLogicimConverter::Convert(const char* szTypeName)
 	AddConnections();
 	FindAlignments();
 
-	//Spread out and then pulled in while it wires no worse.
-	uiNumSpreads = sizeof(gafKicadSchemLogicimSpreads) / sizeof(float64);
-	uiBest = 0;
-	Place(gafKicadSchemLogicimSpreads[0]);
+	//Wired spread out, then as close as it wires as well: the least spread if that does, otherwise halfway between
+	//the closest that does and the widest that doesn't, a few times.  The circuit is left wired at the chosen spread.
+	Place(KICAD_SCHEM_LOGICIM_SPREAD_MAXIMUM);
 	uiFirstUnconnected = Route();
-	for (i = 1; i < uiNumSpreads; i++)
+	mfSpread = KICAD_SCHEM_LOGICIM_SPREAD_MAXIMUM;
+	Place(KICAD_SCHEM_LOGICIM_SPREAD_MINIMUM);
+	muiUnconnected = Route();
+	bRouted = true;
+	if (muiUnconnected <= uiFirstUnconnected)
 	{
-		Place(gafKicadSchemLogicimSpreads[i]);
-		uiUnconnected = Route();
-		if (uiUnconnected > uiFirstUnconnected)
-		{
-			break;
-		}
-		uiBest = i;
+		mfSpread = KICAD_SCHEM_LOGICIM_SPREAD_MINIMUM;
 	}
-	mfSpread = gafKicadSchemLogicimSpreads[uiBest];
-	if (i < uiNumSpreads)
+	else
 	{
-		//Halfway between the last spread that wired and the first that didn't, twice.
-		fWorse = gafKicadSchemLogicimSpreads[i];
-		for (j = 0; j < 2; j++)
+		fWorse = KICAD_SCHEM_LOGICIM_SPREAD_MINIMUM;
+		bRouted = false;
+		for (i = 0; i < KICAD_SCHEM_LOGICIM_SPREAD_HALVINGS; i++)
 		{
 			fSpread = (mfSpread + fWorse) / 2;
 			Place(fSpread);
-			if (Route() > uiFirstUnconnected)
+			muiUnconnected = Route();
+			if (muiUnconnected > uiFirstUnconnected)
 			{
 				fWorse = fSpread;
+				bRouted = false;
 			}
 			else
 			{
 				mfSpread = fSpread;
+				bRouted = true;
 			}
 		}
 	}
-	Place(mfSpread);
-	muiUnconnected = Route();
+	if (!bRouted)
+	{
+		Place(mfSpread);
+		muiUnconnected = Route();
+	}
 	Explode();
 	return true;
 }

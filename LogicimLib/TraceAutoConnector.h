@@ -71,6 +71,9 @@ struct STraceAutoConnection
 	bool			bHasBend;
 	bool			bConnected;
 	int32			iLength;
+	bool			bFailed;			//A plain search for it found no way: it can't until the way is cleared or its net
+	size			uiFailedRips;		//has more wires to end on, so it isn't searched for again until then (the rips
+	int				iFailedNetWires;	//and the net's wires when it failed).
 };
 
 
@@ -135,6 +138,20 @@ protected:
 	CArrayInt						maiAddedTraceNets;
 	CArrayInt						maiNetsWithExisting;
 	CArrayInt						maiNetRuns;
+	CArrayInt						maiNetWires;  //Of each net, how many routes have been added for it.
+	size							muiRips;      //How many nets have been ripped up.
+
+	//The arrays' elements, read directly in the search.  Set by Connect once the arrays are made.
+	int*							mpiOwners;
+	int*							mpiHorizontal;
+	int*							mpiVertical;
+	int*							mpiNodes;
+	int*							mpiNear;
+	int*							mpiCosts;
+	int*							mpiFrom;
+	int*							mpiStamps;
+	int*							mpiGoalStamps;
+	int*							mpiNetRuns;
 
 public:
 	void			Init(CCircuitView* pcCircuit);
@@ -170,6 +187,7 @@ protected:
 	void			CollectConflicts(int iGoalState, int iNet, CArrayInt* paiConflicts);
 	void			AddConflict(int iOccupant, int iNet, CArrayInt* paiConflicts);
 	void			RipNet(int iNet);
+	void			CacheArrays(void);
 	bool			IsRippable(int iOccupant);
 	bool			CanPassRipping(int iCell, int iNet, bool bHorizontal);
 	bool			CanNodeRipping(int iCell, int iNet);

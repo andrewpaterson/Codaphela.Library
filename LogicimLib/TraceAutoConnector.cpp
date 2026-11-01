@@ -105,6 +105,18 @@ void CTraceAutoConnector::Init(CCircuitView* pcCircuit)
 	maiAddedTraceNets.Init();
 	maiNetsWithExisting.Init();
 	maiNetRuns.Init();
+	maiNetWires.Init();
+	muiRips = 0;
+	mpiOwners = NULL;
+	mpiHorizontal = NULL;
+	mpiVertical = NULL;
+	mpiNodes = NULL;
+	mpiNear = NULL;
+	mpiCosts = NULL;
+	mpiFrom = NULL;
+	mpiStamps = NULL;
+	mpiGoalStamps = NULL;
+	mpiNetRuns = NULL;
 }
 
 
@@ -114,6 +126,7 @@ void CTraceAutoConnector::Init(CCircuitView* pcCircuit)
 //////////////////////////////////////////////////////////////////////////
 void CTraceAutoConnector::Kill(void)
 {
+	maiNetWires.Kill();
 	maiNetRuns.Kill();
 	maiNetsWithExisting.Kill();
 	maiAddedTraceNets.Kill();
@@ -191,6 +204,9 @@ bool CTraceAutoConnector::AddConnection(size uiNet, CPortView* pcFrom, CPortView
 	psConnection->bHasBend = false;
 	psConnection->bConnected = false;
 	psConnection->iLength = 0;
+	psConnection->bFailed = false;
+	psConnection->uiFailedRips = 0;
+	psConnection->iFailedNetWires = 0;
 	return true;
 }
 
@@ -263,11 +279,14 @@ bool CTraceAutoConnector::Connect(void)
 
 	maiNetsWithExisting.ReInit();
 	maiNetRuns.ReInit();
+	maiNetWires.ReInit();
 	for (i = 0; i < muiNumNets; i++)
 	{
 		maiNetsWithExisting.Add(0);
 		maiNetRuns.Add(-1);
+		maiNetWires.Add(0);
 	}
+	muiRips = 0;
 	for (i = 0; i < masConnections.NumElements(); i++)
 	{
 		psConnection = masConnections.Get(i);
@@ -298,6 +317,7 @@ bool CTraceAutoConnector::Connect(void)
 	maiGoalStamps.ReInit();
 	maiGoalStamps.GrowToAtLeastNumElements(uiStates / 2, true, 0);
 	miStamp = 0;
+	CacheArrays();
 
 	aiOrder.Init();
 	aiFailed.Init();
@@ -317,7 +337,13 @@ bool CTraceAutoConnector::Connect(void)
 	for (uiHead = 0; (uiHead < aiFailed.NumElements()) && (uiRips < uiMaxRips); uiHead++)
 	{
 		psConnection = masConnections.Get(aiFailed.GetValue(uiHead));
-		if (psConnection->bConnected || Route(psConnection, false, NULL))
+		if (psConnection->bConnected)
+		{
+			continue;
+		}
+		//A plain search that failed fails again unless a net has been ripped up since (clearing the way) or its net has
+		//new wires it could end on.
+		if ((!psConnection->bFailed || (psConnection->uiFailedRips != muiRips) || (psConnection->iFailedNetWires != maiNetWires.GetValue(psConnection->uiNet))) && Route(psConnection, false, NULL))
 		{
 			continue;
 		}
@@ -346,6 +372,27 @@ bool CTraceAutoConnector::Connect(void)
 	aiOrder.Kill();
 
 	return NumUnconnected() == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The grid's and the search's arrays don't change size while connecting,
+// so the search reads their elements directly.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTraceAutoConnector::CacheArrays(void)
+{
+	mpiOwners = maiOwners.GetData();
+	mpiHorizontal = maiHorizontal.GetData();
+	mpiVertical = maiVertical.GetData();
+	mpiNodes = maiNodes.GetData();
+	mpiNear = maiNear.GetData();
+	mpiCosts = maiCosts.GetData();
+	mpiFrom = maiFrom.GetData();
+	mpiStamps = maiStamps.GetData();
+	mpiGoalStamps = maiGoalStamps.GetData();
+	mpiNetRuns = maiNetRuns.GetData();
 }
 
 
@@ -1022,7 +1069,7 @@ bool CTraceAutoConnector::Route(STraceAutoConnection* psConnection, bool bRippin
 
 		iCell = sNode.iState / 4;
 		iDirection = sNode.iState % 4;
-		if (sNode.iCost - GetHeuristic(iCell, sTarget) > maiCosts.GetValue(sNode.iState))
+		if (sNode.iCost - GetHeuristic(iCell, sTarget) > mpiCosts[sNode.iState])
 		{
 			//A cheaper way here was found after this was pushed.
 			continue;
@@ -1078,18 +1125,24 @@ bool CTraceAutoConnector::Route(STraceAutoConnection* psConnection, bool bRippin
 				iCost += TRACE_AUTO_CONNECT_RIP_COST;
 			}
 
-			iCost += maiCosts.GetValue(sNode.iState) + GetStepCost(psConnection, iNewCell, iNewDirection);
+			iCost += mpiCosts[sNode.iState] + GetStepCost(psConnection, iNewCell, iNewDirection);
 			if (iNewDirection != iDirection)
 			{
 				iCost += TRACE_AUTO_CONNECT_BEND_COST;
 			}
 			iNewState = iNewCell * 4 + iNewDirection;
-			if (!IsVisited(iNewState) || (iCost < maiCosts.GetValue(iNewState)))
+			if (!IsVisited(iNewState) || (iCost < mpiCosts[iNewState]))
 			{
 				SetVisited(iNewState, iCost, sNode.iState);
 				PushHeap(iCost + GetHeuristic(iNewCell, sTarget), iNewState);
 			}
 		}
+	}
+	if (!bRipping)
+	{
+		psConnection->bFailed = true;
+		psConnection->uiFailedRips = muiRips;
+		psConnection->iFailedNetWires = maiNetWires.GetValue(iNet);
 	}
 	return false;
 }
@@ -1109,6 +1162,7 @@ void CTraceAutoConnector::AddRoute(int iGoalState, int iNet)
 	int		iEndCell;
 	int		iDirection;
 
+	maiNetWires.SetValue(iNet, maiNetWires.GetValue(iNet) + 1);
 	iState = iGoalState;
 	iEndCell = iState / 4;
 	for (;;)
@@ -1199,6 +1253,7 @@ void CTraceAutoConnector::RipNet(int iNet)
 	int				iCell;
 	int				iCells;
 
+	muiRips++;
 	for (i = mapcAddedTraces.NumElements(); i > 0; i--)
 	{
 		if (maiAddedTraceNets.GetValue(i - 1) == iNet)
@@ -1346,17 +1401,17 @@ bool CTraceAutoConnector::CanPass(int iCell, int iNet, bool bHorizontal)
 	int		iNode;
 	int		iAlong;
 
-	iOwner = maiOwners.GetValue(iCell);
+	iOwner = mpiOwners[iCell];
 	if ((iOwner == OWNER_BODY) || (iOwner == OWNER_FOREIGN) || ((iOwner >= 0) && (iOwner != iNet)))
 	{
 		return false;
 	}
-	iNode = maiNodes.GetValue(iCell);
+	iNode = mpiNodes[iCell];
 	if ((iNode != -1) && (iNode != iNet))
 	{
 		return false;
 	}
-	iAlong = bHorizontal ? maiHorizontal.GetValue(iCell) : maiVertical.GetValue(iCell);
+	iAlong = bHorizontal ? mpiHorizontal[iCell] : mpiVertical[iCell];
 	return (iAlong == -1) || (iAlong == iNet);
 }
 
@@ -1434,7 +1489,7 @@ void CTraceAutoConnector::MarkGoal(int iTarget, int iNet)
 //////////////////////////////////////////////////////////////////////////
 bool CTraceAutoConnector::IsGoal(int iCell)
 {
-	return (maiGoalStamps.GetValue(iCell * 2) == miStamp) || (maiGoalStamps.GetValue(iCell * 2 + 1) == miStamp);
+	return (mpiGoalStamps[iCell * 2] == miStamp) || (mpiGoalStamps[iCell * 2 + 1] == miStamp);
 }
 
 
@@ -1456,11 +1511,11 @@ int CTraceAutoConnector::GetStepCost(STraceAutoConnection* psConnection, int iCe
 	iNet = (int)psConnection->uiNet;
 	bHorizontal = IsDirectionHorizontal(iDirection);
 	iCost = TRACE_AUTO_CONNECT_STEP_COST;
-	if (maiNear.GetValue(iCell) != 0)
+	if (mpiNear[iCell] != 0)
 	{
 		iCost += TRACE_AUTO_CONNECT_NEAR_COST;
 	}
-	iAcross = bHorizontal ? maiVertical.GetValue(iCell) : maiHorizontal.GetValue(iCell);
+	iAcross = bHorizontal ? mpiVertical[iCell] : mpiHorizontal[iCell];
 	if ((iAcross != -1) && (iAcross != iNet))
 	{
 		iCost += TRACE_AUTO_CONNECT_CROSS_COST;
@@ -1471,22 +1526,22 @@ int CTraceAutoConnector::GetStepCost(STraceAutoConnection* psConnection, int iCe
 	y = iCell / miGridWidth;
 	if (bHorizontal)
 	{
-		if ((y > 0) && IsCrowding(maiHorizontal.GetValue(iCell - miGridWidth), iNet))
+		if ((y > 0) && IsCrowding(mpiHorizontal[iCell - miGridWidth], iNet))
 		{
 			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
 		}
-		if ((y < miGridHeight - 1) && IsCrowding(maiHorizontal.GetValue(iCell + miGridWidth), iNet))
+		if ((y < miGridHeight - 1) && IsCrowding(mpiHorizontal[iCell + miGridWidth], iNet))
 		{
 			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
 		}
 	}
 	else
 	{
-		if ((x > 0) && IsCrowding(maiVertical.GetValue(iCell - 1), iNet))
+		if ((x > 0) && IsCrowding(mpiVertical[iCell - 1], iNet))
 		{
 			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
 		}
-		if ((x < miGridWidth - 1) && IsCrowding(maiVertical.GetValue(iCell + 1), iNet))
+		if ((x < miGridWidth - 1) && IsCrowding(mpiVertical[iCell + 1], iNet))
 		{
 			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
 		}
@@ -1520,7 +1575,7 @@ bool CTraceAutoConnector::IsCrowding(int iOccupant, int iNet)
 	{
 		return false;
 	}
-	if ((iOccupant < (int)muiNumNets) && (maiNetRuns.GetValue(iNet) != -1) && (maiNetRuns.GetValue(iOccupant) == maiNetRuns.GetValue(iNet)))
+	if ((iOccupant < (int)muiNumNets) && (mpiNetRuns[iNet] != -1) && (mpiNetRuns[iOccupant] == mpiNetRuns[iNet]))
 	{
 		return false;
 	}
@@ -1587,25 +1642,25 @@ void CTraceAutoConnector::PushHeap(int32 iCost, int32 iState)
 {
 	size						uiIndex;
 	size						uiParent;
-	STraceAutoConnectHeapNode*	psNode;
-	STraceAutoConnectHeapNode	sSwap;
+	STraceAutoConnectHeapNode*	psHeap;
+	STraceAutoConnectHeapNode	sNode;
 
-	psNode = masHeap.Add();
-	psNode->iCost = iCost;
-	psNode->iState = iState;
+	masHeap.Add();
+	psHeap = masHeap.GetData();
+	sNode.iCost = iCost;
+	sNode.iState = iState;
 	uiIndex = masHeap.NumElements() - 1;
 	while (uiIndex > 0)
 	{
 		uiParent = (uiIndex - 1) / 2;
-		if (masHeap.Get(uiParent)->iCost <= masHeap.Get(uiIndex)->iCost)
+		if (psHeap[uiParent].iCost <= iCost)
 		{
 			break;
 		}
-		sSwap = *masHeap.Get(uiParent);
-		*masHeap.Get(uiParent) = *masHeap.Get(uiIndex);
-		*masHeap.Get(uiIndex) = sSwap;
+		psHeap[uiIndex] = psHeap[uiParent];
 		uiIndex = uiParent;
 	}
+	psHeap[uiIndex] = sNode;
 }
 
 
@@ -1618,18 +1673,26 @@ bool CTraceAutoConnector::PopHeap(STraceAutoConnectHeapNode* psNode)
 	size						uiIndex;
 	size						uiChild;
 	size						uiNum;
-	STraceAutoConnectHeapNode	sSwap;
+	STraceAutoConnectHeapNode*	psHeap;
+	STraceAutoConnectHeapNode	sLast;
 
 	uiNum = masHeap.NumElements();
 	if (uiNum == 0)
 	{
 		return false;
 	}
-	*psNode = *masHeap.Get(0);
-	*masHeap.Get(0) = *masHeap.Get(uiNum - 1);
+	psHeap = masHeap.GetData();
+	*psNode = psHeap[0];
+	sLast = psHeap[uiNum - 1];
 	masHeap.RemoveTail();
 	uiNum--;
+	if (uiNum == 0)
+	{
+		return true;
+	}
+	psHeap = masHeap.GetData();
 
+	//The last node sinks from the top to where it belongs.
 	uiIndex = 0;
 	for (;;)
 	{
@@ -1638,19 +1701,18 @@ bool CTraceAutoConnector::PopHeap(STraceAutoConnectHeapNode* psNode)
 		{
 			break;
 		}
-		if ((uiChild + 1 < uiNum) && (masHeap.Get(uiChild + 1)->iCost < masHeap.Get(uiChild)->iCost))
+		if ((uiChild + 1 < uiNum) && (psHeap[uiChild + 1].iCost < psHeap[uiChild].iCost))
 		{
 			uiChild++;
 		}
-		if (masHeap.Get(uiIndex)->iCost <= masHeap.Get(uiChild)->iCost)
+		if (sLast.iCost <= psHeap[uiChild].iCost)
 		{
 			break;
 		}
-		sSwap = *masHeap.Get(uiChild);
-		*masHeap.Get(uiChild) = *masHeap.Get(uiIndex);
-		*masHeap.Get(uiIndex) = sSwap;
+		psHeap[uiIndex] = psHeap[uiChild];
 		uiIndex = uiChild;
 	}
+	psHeap[uiIndex] = sLast;
 	return true;
 }
 
@@ -1662,9 +1724,9 @@ bool CTraceAutoConnector::PopHeap(STraceAutoConnectHeapNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 void CTraceAutoConnector::SetVisited(int iState, int32 iCost, int32 iFrom)
 {
-	maiStamps.SetValue(iState, miStamp);
-	maiCosts.SetValue(iState, iCost);
-	maiFrom.SetValue(iState, iFrom);
+	mpiStamps[iState] = miStamp;
+	mpiCosts[iState] = iCost;
+	mpiFrom[iState] = iFrom;
 }
 
 
@@ -1674,7 +1736,7 @@ void CTraceAutoConnector::SetVisited(int iState, int32 iCost, int32 iFrom)
 //////////////////////////////////////////////////////////////////////////
 bool CTraceAutoConnector::IsVisited(int iState)
 {
-	return maiStamps.GetValue(iState) == miStamp;
+	return mpiStamps[iState] == miStamp;
 }
 
 

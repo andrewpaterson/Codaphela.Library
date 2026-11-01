@@ -70,7 +70,7 @@ void CIntegratedCircuitView::SaveXMLAttributes(CXMLWriter* pcWriter)
 	pcWriter->Attribute("explicitPowerPorts", mbExplicitPowerPorts);
 	if (mfImpliedVcc > 0)
 	{
-		pcWriter->Attribute("impliedVcc", mfImpliedVcc);
+		pcWriter->Attribute("impliedVCC", mfImpliedVcc);
 	}
 }
 
@@ -88,14 +88,14 @@ bool CIntegratedCircuitView::LoadXMLAfterInit(CMarkupTag* pcTag)
 		return false;
 	}
 	mfImpliedVcc = 0;
-	if (pcTag->GetStringAttribute("impliedVcc") == NULL)
+	if (pcTag->GetStringAttribute("impliedVCC") == NULL)
 	{
 		return true;
 	}
-	if (!pcTag->GetFloat32Attribute("impliedVcc", &mfImpliedVcc) || (mfImpliedVcc < 0))
+	if (!pcTag->GetFloat32Attribute("impliedVCC", &mfImpliedVcc) || (mfImpliedVcc < 0))
 	{
 		mfImpliedVcc = 0;
-		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] impliedVcc must be a voltage, 0 or more.", NULL);
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] impliedVCC must be a voltage, 0 or more.", NULL);
 	}
 	return true;
 }
@@ -108,7 +108,7 @@ bool CIntegratedCircuitView::LoadXMLAfterInit(CMarkupTag* pcTag)
 void CIntegratedCircuitView::InitAfterProperties(CComponentProperties* pcProperties)
 {
 	CComponentView::InitAfterProperties(pcProperties);
-	mfImpliedVcc = (float32)pcProperties->GetFloat("impliedVcc", mfImpliedVcc);
+	mfImpliedVcc = (float32)pcProperties->GetFloat("impliedVCC", mfImpliedVcc);
 	if (mfImpliedVcc < 0)
 	{
 		mfImpliedVcc = 0;
@@ -460,5 +460,5 @@ void CIntegratedCircuitView::AddPowerProperties(CComponentProperties* pcProperti
 {
 	AddFamilyProperty(pcProperties, psContext);
 	pcProperties->AddBoolean("explicitPowerPorts", mbExplicitPowerPorts);
-	pcProperties->AddFloat("impliedVcc", "V", mfImpliedVcc, 0.0, 100.0);
+	pcProperties->AddFloat("impliedVCC", "V", mfImpliedVcc, 0.0, 100.0);
 }
