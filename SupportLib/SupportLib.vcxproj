@@ -234,6 +234,7 @@
     <ClInclude Include="TextElement.h" />
     <ClInclude Include="TextLayout.h" />
     <ClInclude Include="TextStyle.h" />
+    <ClInclude Include="TextMarkupParser.h" />
     <ClInclude Include="TextLayoutBuilder.h" />
     <ClInclude Include="TextNewLine.h" />
     <ClInclude Include="TextUTF16Long.h" />
@@ -535,6 +536,7 @@
     <ClCompile Include="TextBuilderUTFCommon.cpp" />
     <ClCompile Include="TextLayout.cpp" />
     <ClCompile Include="TextStyle.cpp" />
+    <ClCompile Include="TextMarkupParser.cpp" />
     <ClCompile Include="TextLayoutBuilder.cpp" />
     <ClCompile Include="TextRun.cpp" />
     <ClCompile Include="TextDrawable.cpp" />

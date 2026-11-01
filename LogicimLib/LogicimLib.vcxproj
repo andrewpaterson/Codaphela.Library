@@ -40,6 +40,7 @@
     <ClCompile Include="FlipFlopView.cpp" />
     <ClCompile Include="CounterView.cpp" />
     <ClCompile Include="CircuitFonts.cpp" />
+    <ClCompile Include="CircuitTextMarkupParser.cpp" />
     <ClCompile Include="CircuitView.cpp" />
     <ClCompile Include="CircuitViewport.cpp" />
     <ClCompile Include="ComponentShapes.cpp" />
@@ -93,6 +94,7 @@
     <ClInclude Include="FlipFlopView.h" />
     <ClInclude Include="CounterView.h" />
     <ClInclude Include="CircuitFonts.h" />
+    <ClInclude Include="CircuitTextMarkupParser.h" />
     <ClInclude Include="CircuitView.h" />
     <ClInclude Include="CircuitViewport.h" />
     <ClInclude Include="ComponentShapes.h" />

@@ -81,9 +81,9 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 			for (x = 0; x < (size)iWidth; x++)
 			{
 
-				pvRed = pcRed->Get(x, y);
-				pcGreen->Set(x, y, pvRed);
-				pcBlue->Set(x, y, pvRed);
+				pvRed = pcRed->Get((int32)x, (int32)y);
+				pcGreen->Set((int32)x, (int32)y, pvRed);
+				pcBlue->Set((int32)x, (int32)y, pvRed);
 			}
 		}
 		

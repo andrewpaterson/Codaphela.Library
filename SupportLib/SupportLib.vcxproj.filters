@@ -825,6 +825,9 @@
     <ClInclude Include="TextStyle.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="TextMarkupParser.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="BaseFontDraw.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1563,6 +1566,9 @@
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="TextStyle.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TextMarkupParser.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="BaseFontDraw.cpp">

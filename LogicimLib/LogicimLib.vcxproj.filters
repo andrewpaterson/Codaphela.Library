@@ -69,6 +69,9 @@
     <ClCompile Include="CircuitFonts.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="CircuitTextMarkupParser.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="CircuitViewport.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -222,6 +225,9 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitFonts.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitTextMarkupParser.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitViewport.h">

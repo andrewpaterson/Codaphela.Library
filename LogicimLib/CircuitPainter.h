@@ -37,7 +37,8 @@ class CCircuitSimulation;
 //Draws a circuit's shapes into a geometry map.  Shapes are given in the grid space of the component being drawn,
 //facing East about its position, and are turned and moved by SetTransform before the viewport puts them on the
 //screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.  Text is drawn as glyphs into a sprite
-//map, which is blitted after the geometry map; without fonts or a sprite map there is no text.
+//map, which is blitted after the geometry map; without fonts or a sprite map there is no text.  Text is KiCad markup
+//(see CCircuitTextMarkupParser): overlines are rectangles in the geometry map.
 //
 //InitImage paints into a whole image, as the circuit canvas does: the viewport is made the image's size and the maps
 //are cleared onto the image with the background drawn.  Paint, then BlitImage puts the maps on the image.
@@ -87,6 +88,8 @@ public:
 protected:
 	size				NumArcSegments(float64 fRadiusX, float64 fRadiusY, float64 fArcAngle);
 	float64				GetTextWidthAdjust(float64 fOffset, float64 fWidth, ETextAlignment eAlignment);
+	void				TextLine(CCircuitTextLine* pcLine, EFontTurn eTurn, int32 iPen, int32 iBaseline);
+	void				TextDecorations(CCircuitTextLine* pcLine, uint8 uiDecoration, EFontTurn eTurn, int32 iPen, int32 iBaseline);
 };
 
 

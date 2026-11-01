@@ -252,7 +252,7 @@ void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize u
 	{
 		for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
 		{
-			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte(iFilter, puiRow[i], 0, puiPrior[i], 0));
+			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte((int)iFilter, puiRow[i], 0, puiPrior[i], 0));
 		}
 	}
 
@@ -289,7 +289,7 @@ void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, lsize uiRowBytes, lsize u
 	{
 		for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
 		{
-			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte(iFilter, puiRow[i], puiRow[i - uiPixelBytes], puiPrior[i], puiPrior[i - uiPixelBytes]));
+			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte((int)iFilter, puiRow[i], puiRow[i - uiPixelBytes], puiPrior[i], puiPrior[i - uiPixelBytes]));
 		}
 	}
 }
@@ -322,7 +322,7 @@ void PNGFilterRows(uint8* puiPixels, int iHeight, lsize uiRowBytes, lsize uiPixe
 		{
 			if (auiCosts[iFilter] < auiCosts[iBestFilter])
 			{
-				iBestFilter = iFilter;
+				iBestFilter = (int)iFilter;
 			}
 		}
 

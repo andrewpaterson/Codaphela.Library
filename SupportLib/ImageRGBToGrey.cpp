@@ -138,9 +138,9 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	{
 		for (x = 0; x < (size)iWidth; x++)
 		{
-			psColour1 = (SImageColour*)pcAccessor1->Get(x, y);
-			psColour2 = (SImageColour*)pcAccessor2->Get(x, y);
-			psColour3 = (SImageColour*)pcAccessor3->Get(x, y);
+			psColour1 = (SImageColour*)pcAccessor1->Get((int32)x, (int32)y);
+			psColour2 = (SImageColour*)pcAccessor2->Get((int32)x, (int32)y);
+			psColour3 = (SImageColour*)pcAccessor3->Get((int32)x, (int32)y);
 
 			if ((!psColour1->Equals(psColour2, iSize)) || (!psColour1->Equals(psColour3, iSize)))
 			{

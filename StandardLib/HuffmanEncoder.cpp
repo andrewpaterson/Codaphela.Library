@@ -129,7 +129,7 @@ bool CHuffmanEncoder::BuildLengths(uint32* puiFrequencies, int iMaxBits)
 		return true;
 	}
 
-	iNumNodes = iNumLeaves;
+	iNumNodes = (int)iNumLeaves;
 	iNumActive = iNumLeaves;
 	while (iNumActive > 1)
 	{
@@ -141,11 +141,11 @@ bool CHuffmanEncoder::BuildLengths(uint32* puiFrequencies, int iMaxBits)
 			if ((iFirst == -1) || (auiWeights[iNode] < auiWeights[aiActive[iFirst]]))
 			{
 				iSecond = iFirst;
-				iFirst = i;
+				iFirst = (int)i;
 			}
 			else if ((iSecond == -1) || (auiWeights[iNode] < auiWeights[aiActive[iSecond]]))
 			{
-				iSecond = i;
+				iSecond = (int)i;
 			}
 		}
 
@@ -164,7 +164,7 @@ bool CHuffmanEncoder::BuildLengths(uint32* puiFrequencies, int iMaxBits)
 	for (i = 0; i < iNumLeaves; i++)
 	{
 		iDepth = 0;
-		for (iNode = i; aiParents[iNode] != -1; iNode = aiParents[iNode])
+		for (iNode = (int)i; aiParents[iNode] != -1; iNode = aiParents[iNode])
 		{
 			iDepth++;
 		}

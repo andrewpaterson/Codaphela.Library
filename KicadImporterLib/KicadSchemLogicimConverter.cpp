@@ -77,6 +77,7 @@ void CKicadSchemLogicimConverter::Init(CKicadSchemFile* pcFile, CKicadSchemNetli
 	muiTunnels = 0;
 	muiSplitters = 0;
 	muiBlocks = 0;
+	muiBoardPins = 0;
 	muiSkipped = 0;
 	muiOverlaps = 0;
 	muiExplosions = 0;
@@ -205,7 +206,7 @@ bool CKicadSchemLogicimConverter::AddSymbol(CKicadSchemSymbol* pcSymbol)
 		muiSkipped++;
 		return true;
 	}
-	if (AddRegulator(pcSymbol, pcLibSymbol))
+	if (AddRegulator(pcSymbol, pcLibSymbol) || AddBoardPins(pcSymbol, pcLibSymbol))
 	{
 		return true;
 	}
@@ -1367,6 +1368,217 @@ bool CKicadSchemLogicimConverter::AddLogic74Block(CKicadSchemSymbol* pcSymbol, C
 	apcPorts.Kill();
 	asPositions.Kill();
 	apcPins.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the symbol is a connector (a "J"), as a board's edge connector
+// is.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsKicadSchemConnector(CKicadSchemSymbol* pcSymbol)
+{
+	char*	szReference;
+
+	szReference = pcSymbol->GetReference();
+	return (szReference != NULL) && ((szReference[0] == 'J') || (szReference[0] == 'j')) && (szReference[1] >= '0') && (szReference[1] <= '9');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the net is a supply's: a ground ("GND"), a supply pin's name
+// ("VCC") or a voltage ("+3V3", "3.3V", "5V").
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsKicadSchemPowerNetName(const char* szName)
+{
+	size	i;
+	bool	bVolts;
+
+	if (CKicadSchemLogicimConverter::IsGroundName(szName) || IsKicadSchemPowerPinName(szName) || (szName[0] == '+') || (szName[0] == '-'))
+	{
+		return true;
+	}
+	if ((szName[0] < '0') || (szName[0] > '9'))
+	{
+		return false;
+	}
+	bVolts = false;
+	for (i = 0; szName[i] != '\0'; i++)
+	{
+		if ((szName[i] == 'V') || (szName[i] == 'v'))
+		{
+			bVolts = true;
+		}
+		else if (((szName[i] < '0') || (szName[i] > '9')) && (szName[i] != '.'))
+		{
+			return false;
+		}
+	}
+	return bVolts;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The circuit's pin named szName, NULL if there isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+static CPinView* FindKicadSchemBoardPin(CCircuitView* pcCircuit, const char* szName)
+{
+	size				i;
+	CComponentView*		pcView;
+
+	for (i = 0; i < pcCircuit->NumComponents(); i++)
+	{
+		pcView = pcCircuit->GetComponent(i);
+		if ((StringCompare(pcView->GetXMLName(), "Pin") == 0) && (StringCompare(pcView->GetName(), szName) == 0))
+		{
+			return (CPinView*)pcView;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the port's terminal (see AddTerminal) is of the subnet.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsKicadSchemTerminalSubnet(CArrayKicadSchemLogicimTerminal* pasTerminals, CPortView* pcPortView, CKicadSchemSubnet* pcSubnet)
+{
+	size	i;
+
+	for (i = 0; i < pasTerminals->NumElements(); i++)
+	{
+		if (pasTerminals->Get(i)->pcPortView == pcPortView)
+		{
+			return pasTerminals->Get(i)->pcSubnet == pcSubnet;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A connector (a board's edge connector, "J1") is how the sheet joins the
+// rest of the computer, so each of its pins on a net is a pin of the
+// circuit, as a subcircuit: named as its net ("D0") or, on a net that's
+// only the pin's, as the connector's pin ("J1-5").  A pin on a supply's
+// net (see IsKicadSchemPowerNetName) is left out: the supplies are
+// already there.  Another of the connector's pins on the same part of the
+// net (the same subnet) is wired to the same pin; one on another part of
+// it isn't, as that part is joined to the rest by its labels' tunnels.
+//
+// The circuit's pin is where the connector's is, facing out away from
+// the connector's body, and is shown on that side of an instance, in the
+// order of the connector's pin numbers.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemLogicimConverter::AddBoardPins(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol)
+{
+	size					i;
+	CKicadSchemLibPin*		pcPin;
+	CKicadSchemSubnet*		pcSubnet;
+	CKicadSchemNet*			pcNet;
+	CChars					szName;
+	CPinView*				pcPinView;
+	SKicadSchemPoint		sOuter;
+	SKicadSchemPoint		sInner;
+	SKicadSchemPoint		sLibrary;
+	int						iAngle;
+	int						aiDX[4] = { 1, 0, -1, 0 };
+	int						aiDY[4] = { 0, 1, 0, -1 };
+	ERotation				eRotation;
+	EPinAlignment			eAlignment;
+	size					uiItem;
+	char*					szNumber;
+
+	if (!IsKicadSchemConnector(pcSymbol))
+	{
+		return false;
+	}
+
+	for (i = 0; i < pcLibSymbol->NumPins(); i++)
+	{
+		pcPin = pcLibSymbol->GetPin(i);
+		if (!pcPin->IsOn(pcSymbol->GetUnit(), pcSymbol->GetBodyStyle()) || (pcPin->GetType() == KSPT_NoConnect))
+		{
+			continue;
+		}
+		pcSubnet = mpcNetlist->GetPinSubnet(pcSymbol, pcPin);
+		pcNet = (pcSubnet != NULL) ? pcSubnet->GetNet() : NULL;
+		if ((pcNet == NULL) || StrEmpty(pcNet->GetName()))
+		{
+			continue;
+		}
+
+		szName.Init();
+		szNumber = pcPin->GetNumber();
+		if (pcNet->GetNameSource() == KSNNS_Pin)
+		{
+			szName.Append(pcSymbol->GetReference());
+			szName.Append('-');
+			szName.Append(szNumber);
+		}
+		else
+		{
+			szName.Append((pcNet->GetName()[0] == '/') ? &pcNet->GetName()[1] : pcNet->GetName());
+			if (IsKicadSchemPowerNetName(szName.Text()))
+			{
+				szName.Kill();
+				continue;
+			}
+		}
+
+		//The pin points into the connector's body from where it's wired (library Y is up).
+		mpcFile->GetPinPosition(&sOuter, pcSymbol, pcPin);
+		iAngle = ((int)floor(pcPin->GetAngle() / 90.0 + 0.5) % 4 + 4) % 4;
+		sLibrary.Init(pcPin->GetPosition()->fX + aiDX[iAngle] * pcPin->GetLength(), pcPin->GetPosition()->fY + aiDY[iAngle] * pcPin->GetLength());
+		pcSymbol->GetSheetPosition(&sInner, &sLibrary);
+		eRotation = GetKicadSchemFacing(&sInner, &sOuter);
+		switch (eRotation)
+		{
+		case ROT_West:	eAlignment = PA_Left;	break;
+		case ROT_North:	eAlignment = PA_Top;	break;
+		case ROT_South:	eAlignment = PA_Bottom;	break;
+		default:		eAlignment = PA_Right;	break;
+		}
+
+		pcPinView = FindKicadSchemBoardPin(mpcCircuit, szName.Text());
+		if (pcPinView == NULL)
+		{
+			pcPinView = NewMalloc<CPinView>();
+			pcPinView->Init(0, 0, eRotation, szName.Text(), "LVC", false, 1, RADIX_Binary, mpcFonts);
+			pcPinView->SetSubcircuitAppearance(eAlignment, PAN_Negative, atoi(szNumber), false, false);
+			//Placed as a part is (its port is its position), so a label KiCad has on the connector's pin is attached to it.
+			uiItem = AddItem(pcPinView, &sOuter, NULL);
+			muiBoardPins++;
+		}
+		else
+		{
+			//Another part of the net (joined by its labels) is already joined through its tunnels.
+			if (!IsKicadSchemTerminalSubnet(&masTerminals, pcPinView->GetPortView((size)0), pcSubnet))
+			{
+				szName.Kill();
+				continue;
+			}
+			for (uiItem = 0; uiItem < masItems.NumElements(); uiItem++)
+			{
+				if (masItems.Get(uiItem)->pcView == pcPinView)
+				{
+					break;
+				}
+			}
+		}
+		AddPinTerminal(pcSymbol, pcPin, pcPinView->GetPortView((size)0), uiItem);
+		szName.Kill();
+	}
 	return true;
 }
 
@@ -2936,6 +3148,7 @@ size CKicadSchemLogicimConverter::NumPowers(void) { return muiPowers; }
 size CKicadSchemLogicimConverter::NumTunnels(void) { return muiTunnels; }
 size CKicadSchemLogicimConverter::NumSplitters(void) { return muiSplitters; }
 size CKicadSchemLogicimConverter::NumBlocks(void) { return muiBlocks; }
+size CKicadSchemLogicimConverter::NumBoardPins(void) { return muiBoardPins; }
 size CKicadSchemLogicimConverter::NumSkipped(void) { return muiSkipped; }
 size CKicadSchemLogicimConverter::NumOverlaps(void) { return muiOverlaps; }
 size CKicadSchemLogicimConverter::NumExplosions(void) { return muiExplosions; }

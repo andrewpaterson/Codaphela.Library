@@ -100,6 +100,7 @@ struct STextStyleOverride
 	void		SetOverline(bool bOverline);
 	void		SetStrikethrough(bool bStrikethrough);
 	void		ApplyTo(STextStyle* psStyle);
+	void		ApplyTo(STextStyleOverride* psOverride);
 	bool		ChangesFont(void);
 };
 

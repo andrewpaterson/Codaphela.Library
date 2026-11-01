@@ -409,6 +409,7 @@ bool CFont::IsLazy(void) { return mbLazy; }
 bool CFont::Is(char* szName) { return mpDescription->Is(szName); }
 char* CFont::GetFontName(void) { return mpDescription->GetFontName(); }
 size CFont::CalculateWidth(char* szText) { return mpDescription->CalculateWidth(szText); }
+size CFont::CalculateWidth(char* szText, size uiLength) { return mpDescription->CalculateWidth(szText, uiLength); }
 bool CFont::IsWhitespace(uint16 c) { return mpDescription->IsWhitespace(c); }
 int16 CFont::GetSpaceWidth(void) { return mpDescription->GetSpaceWidth(); }
 int16 CFont::GetAscent(void) { return mpDescription->GetAscent(); }

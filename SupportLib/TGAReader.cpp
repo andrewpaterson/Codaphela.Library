@@ -389,8 +389,8 @@ bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 			}
 		}
 
-		iFileRow = iPixel / psInfo->iWidth;
-		iFileColumn = iPixel % psInfo->iWidth;
+		iFileRow = (int32)(iPixel / psInfo->iWidth);
+		iFileColumn = (int)(iPixel % psInfo->iWidth);
 		y = psInfo->bTopToBottom ? iFileRow : psInfo->iHeight - 1 - iFileRow;
 		x = psInfo->bRightToLeft ? psInfo->iWidth - 1 - iFileColumn : iFileColumn;
 		memcpy(&puiRGBA[(y * psInfo->iWidth + x) * 4], auiPixel, 4);

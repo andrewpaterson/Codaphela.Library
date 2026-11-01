@@ -348,13 +348,7 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 	SFloat64Vec2		sOrigin;
 	ERotation			eRotation;
 	EFontTurn			eTurn;
-	Ptr<CFontColours>	pColours;
-	Ptr<CFont>			pFont;
-	Ptr<CGlyph>			pGlyph;
-	CUTF8				cUTF8;
-	int32				iPen;
-	int32				iBaseline;
-	size				uiUTFLength;
+	CCircuitTextLine	cLine;
 
 	if ((mpcFonts == NULL) || (mpcSprites == NULL) || (szText == NULL) || (szText[0] == '\0'))
 	{
@@ -394,48 +388,19 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 	{
 		return;
 	}
-	pColours = mpcFonts->GetColours(eFont, fPixelSize, eTurn);
-	if (pColours.IsNull())
+	cLine.Init();
+	if (cLine.Layout(mpcFonts, eFont, fPixelSize, eTurn, sColour, szText))
 	{
-		return;
-	}
-	pFont = pColours->GetFont(sColour);
-
-	//Sprites are placed by their full top left: the top of the line for upright glyphs, left of the descent for turned.
-	if (eTurn == FT_Clockwise)
-	{
-		iBaseline = (int32)floor(sOrigin.x + 0.5);
-		iPen = (int32)floor(sOrigin.y + 0.5);
-	}
-	else
-	{
-		iBaseline = (int32)floor(sOrigin.y + 0.5);
-		iPen = (int32)floor(sOrigin.x + 0.5);
-	}
-	cUTF8.Init(szText);
-	for (;;)
-	{
-		uiUTFLength = cUTF8.PeekUTFBytes();
-		if ((uiUTFLength == 0) || (uiUTFLength == cUTF8.GetError()))
-		{
-			break;
-		}
-		pGlyph = pFont->GetGlyph(&cUTF8);
-		if (pGlyph.IsNull())
-		{
-			continue;
-		}
 		if (eTurn == FT_Clockwise)
 		{
-			mpcSprites->AddSprite(pGlyph->GetCel(), iBaseline - pFont->GetDescent(), iPen);
+			TextLine(&cLine, eTurn, (int32)floor(sOrigin.y + 0.5), (int32)floor(sOrigin.x + 0.5));
 		}
 		else
 		{
-			mpcSprites->AddSprite(pGlyph->GetCel(), iPen, iBaseline - pFont->GetAscent());
+			TextLine(&cLine, eTurn, (int32)floor(sOrigin.x + 0.5), (int32)floor(sOrigin.y + 0.5));
 		}
-		iPen += pGlyph->GetStep();
 	}
-	cUTF8.Kill();
+	cLine.Kill();
 }
 
 
@@ -449,14 +414,10 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 void CCircuitPainter::CentredText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ARGB32 sColour)
 {
 	float32				fPixelSize;
-	Ptr<CFontColours>	pColours;
-	Ptr<CFont>			pFont;
-	Ptr<CGlyph>			pGlyph;
 	SFloat64Vec2		sCentre;
-	CUTF8				cUTF8;
+	CCircuitTextLine	cLine;
 	int32				iPen;
 	int32				iTop;
-	size				uiUTFLength;
 
 	if ((mpcFonts == NULL) || (mpcSprites == NULL) || (szText == NULL) || (szText[0] == '\0'))
 	{
@@ -467,33 +428,110 @@ void CCircuitPainter::CentredText(float64 x, float64 y, const char* szText, ECir
 	{
 		return;
 	}
-	pColours = mpcFonts->GetColours(eFont, fPixelSize, FT_Upright);
-	if (pColours.IsNull())
+	cLine.Init();
+	if (cLine.Layout(mpcFonts, eFont, fPixelSize, FT_Upright, sColour, szText))
 	{
-		return;
+		ToScreen(&sCentre, x, y);
+		iPen = (int32)floor(sCentre.x - cLine.GetWidth() / 2.0 + 0.5);
+		iTop = (int32)floor(sCentre.y - cLine.GetFont()->GetLineHeight() / 2.0 + 0.5);
+		TextLine(&cLine, FT_Upright, iPen, iTop + cLine.GetFont()->GetAscent());
 	}
-	pFont = pColours->GetFont(sColour);
+	cLine.Kill();
+}
 
-	ToScreen(&sCentre, x, y);
-	iPen = (int32)floor(sCentre.x - pFont->CalculateWidth((char*)szText) / 2.0 + 0.5);
-	iTop = (int32)floor(sCentre.y - pFont->GetLineHeight() / 2.0 + 0.5);
-	cUTF8.Init(szText);
-	for (;;)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The glyphs of a laid out line, from iPen along the line (across for
+// upright text, down for turned) on the baseline at iBaseline (down the
+// screen for upright text, across for turned, whose tops face right), then
+// its decorations over them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitPainter::TextLine(CCircuitTextLine* pcLine, EFontTurn eTurn, int32 iPen, int32 iBaseline)
+{
+	SCircuitTextRun*	psRun;
+	Ptr<CGlyph>			pGlyph;
+	CUTF8				cUTF8;
+	int32				iGlyphPen;
+	int32				iRunBaseline;
+	size				uiUTFLength;
+	size				i;
+
+	for (i = 0; i < pcLine->NumRuns(); i++)
 	{
-		uiUTFLength = cUTF8.PeekUTFBytes();
-		if ((uiUTFLength == 0) || (uiUTFLength == cUTF8.GetError()))
+		psRun = pcLine->GetRun(i);
+		iGlyphPen = iPen + psRun->iPen;
+		cUTF8.Init((uint8*)(pcLine->GetText() + psRun->uiStart), psRun->uiLength);
+		for (;;)
 		{
-			break;
+			uiUTFLength = cUTF8.PeekUTFBytes();
+			if ((uiUTFLength == 0) || (uiUTFLength == cUTF8.GetError()))
+			{
+				break;
+			}
+			pGlyph = psRun->pcFont->GetGlyph(&cUTF8);
+			if (pGlyph.IsNull())
+			{
+				continue;
+			}
+			//Sprites are placed by their full top left: the top of the line for upright glyphs, left of the descent for turned.
+			if (eTurn == FT_Clockwise)
+			{
+				iRunBaseline = iBaseline + psRun->iBaselineShift;
+				mpcSprites->AddSprite(pGlyph->GetCel(), iRunBaseline - psRun->pcFont->GetDescent(), iGlyphPen);
+			}
+			else
+			{
+				iRunBaseline = iBaseline - psRun->iBaselineShift;
+				mpcSprites->AddSprite(pGlyph->GetCel(), iGlyphPen, iRunBaseline - psRun->pcFont->GetAscent());
+			}
+			iGlyphPen += pGlyph->GetStep();
 		}
-		pGlyph = pFont->GetGlyph(&cUTF8);
-		if (pGlyph.IsNull())
-		{
-			continue;
-		}
-		mpcSprites->AddSprite(pGlyph->GetCel(), iPen, iTop);
-		iPen += pGlyph->GetStep();
+		cUTF8.Kill();
 	}
-	cUTF8.Kill();
+
+	TextDecorations(pcLine, TD_Underline, eTurn, iPen, iBaseline);
+	TextDecorations(pcLine, TD_Overline, eTurn, iPen, iBaseline);
+	TextDecorations(pcLine, TD_Strikethrough, eTurn, iPen, iBaseline);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each stretch of runs with the decoration gets one line (see
+// CCircuitTextLine::GetDecoration), each run's part in its colour.
+// Decorations are rectangles in the geometry map, which is blitted before
+// the glyphs' sprites, so they're under the glyphs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitPainter::TextDecorations(CCircuitTextLine* pcLine, uint8 uiDecoration, EFontTurn eTurn, int32 iPen, int32 iBaseline)
+{
+	SCircuitTextRun*	psRun;
+	size				uiFirst;
+	size				uiEnd;
+	size				i;
+	int32				iOffset;
+	int32				iThickness;
+
+	uiFirst = pcLine->FindDecorated(uiDecoration, 0, &uiEnd);
+	while (uiFirst < pcLine->NumRuns())
+	{
+		pcLine->GetDecoration(uiDecoration, uiFirst, uiEnd, &iOffset, &iThickness);
+		for (i = uiFirst; i < uiEnd; i++)
+		{
+			psRun = pcLine->GetRun(i);
+			if (eTurn == FT_Clockwise)
+			{
+				mpcMap->AddRectangle(iBaseline - iOffset - iThickness, iPen + psRun->iPen, iThickness, psRun->iWidth, psRun->sColour);
+			}
+			else
+			{
+				mpcMap->AddRectangle(iPen + psRun->iPen, iBaseline + iOffset, psRun->iWidth, iThickness, psRun->sColour);
+			}
+		}
+		uiFirst = pcLine->FindDecorated(uiDecoration, uiEnd, &uiEnd);
+	}
 }
 
 

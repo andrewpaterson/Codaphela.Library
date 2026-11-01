@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
 #include "BaseLib/UTF8.h"
 #include "FontDescription.h"
 
@@ -334,13 +335,24 @@ size CFontDescription::ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size 
 //////////////////////////////////////////////////////////////////////////
 size CFontDescription::CalculateWidth(char* szText)
 {
+	return CalculateWidth(szText, StrLen(szText));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The width of the first uiLength bytes of szText.
+//
+//////////////////////////////////////////////////////////////////////////
+size CFontDescription::CalculateWidth(char* szText, size uiLength)
+{
 	CUTF8				cUTF8;
 	size				uiUTFElementLength;
 	size				iWidth;
 	SGlyphDescription*	psDescription;
 
 	iWidth = 0;
-	cUTF8.Init(szText);
+	cUTF8.Init((uint8*)szText, uiLength);
 	uiUTFElementLength = cUTF8.PeekUTFBytes();
 	while ((uiUTFElementLength != 0) && (uiUTFElementLength != cUTF8.GetError()))
 	{

@@ -235,6 +235,19 @@ void STextStyleOverride::ApplyTo(STextStyle* psStyle)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// psOverride then this override: what this one sets replaces what
+// psOverride set, and what it doesn't set is left.
+//
+//////////////////////////////////////////////////////////////////////////
+void STextStyleOverride::ApplyTo(STextStyleOverride* psOverride)
+{
+	ApplyTo(&psOverride->sStyle);
+	psOverride->uiSet |= uiSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the override can change which font is used, and so the size of
 // the text.  Colours and decorations don't.
 //

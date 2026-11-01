@@ -194,7 +194,7 @@ int ModGetNote(int iPeriod)
 	{
 		if (iPeriod >= gaaiModPeriods[0][i])
 		{
-			return i;
+			return (int)i;
 		}
 	}
 	return MOD_NUM_NOTES - 1;

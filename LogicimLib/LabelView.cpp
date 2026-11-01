@@ -71,6 +71,7 @@ void CLabelView::MeasureBox(CCircuitFonts* pcFonts, const char* szText, ETextAli
 {
 	SCircuitTextSize	sSize;
 	float64				fAdjust;
+	float64				fTop;
 
 	sSize = pcFonts->Measure(bBold ? CF_SansSerifBold : CF_SansSerif, LABEL_FONT_SIZE, szText);
 	if (eAlignment == TA_Centre)
@@ -87,6 +88,14 @@ void CLabelView::MeasureBox(CCircuitFonts* pcFonts, const char* szText, ETextAli
 	}
 	psBoxMinimum->Init(fAdjust - sSize.fHeight / 4, -sSize.fHeight / 2);
 	psBoxMaximum->Init(sSize.fWidth + fAdjust + sSize.fHeight / 4, sSize.fHeight / 2);
+
+	//Overlines are over the glyphs, which nearly reach the top of the box, so the box is taken up to clear them by a
+	//border's width.  The baseline is a 3.5th of the height below the label's position (see CCircuitPainter::Text).
+	fTop = sSize.fHeight / 3.5 - sSize.fOverlineTop - SHAPE_LINE_WIDTH / CIRCUIT_TEXT_SCALE;
+	if ((sSize.fOverlineTop > 0) && (fTop < psBoxMinimum->y))
+	{
+		psBoxMinimum->y = fTop;
+	}
 }
 
 

@@ -35,7 +35,7 @@ void CLogToMemory::Stop(char* szOutput, size uiOutputSize)
 	cFileBasic.Init(&mcMemoryFile);
 	memset(szOutput, 0, uiOutputSize);
 	iFileSize = cFileBasic.Size();
-	if (iFileSize + 1 > uiOutputSize)
+	if (iFileSize + 1 > (filePos)uiOutputSize)
 	{
 		uiFileSize = uiOutputSize - 1;
 	}
