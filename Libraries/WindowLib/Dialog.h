@@ -44,14 +44,28 @@ struct SDialogLook
 };
 
 
-//Paints a dialog each tick.
+//Called by a dialog's tick, outside of its input, so it can do what can't be done from an input listener, like show
+//another dialog over it (see CWindow::ShowModal).
+class CDialogTicker
+{
+public:
+	virtual void	DialogTick(void) = 0;
+};
+
+
+//Paints a dialog each tick, after calling its ticker if it has one.
 class CDialogTick : public CWindowTick
 {
 CONSTRUCTABLE(CDialogTick);
 DESTRUCTABLE(CDialogTick);
+protected:
+	CDialogTicker*	mpcTicker;
+
 public:
 	void	Init(void);
+	void	Class(void) override;
 	void	Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) override;
+	void	SetTicker(CDialogTicker* pcTicker);
 };
 
 
@@ -80,6 +94,7 @@ protected:
 	SDialogLook*		mpsLook;
 	Ptr<CWindow>			mpOwner;
 	Ptr<CWindow>			mpDialog;
+	Ptr<CDialogTick>		mpTick;
 	Ptr<CGridContainer>		mpForm;
 	Ptr<CButtonBar>			mpButtons;
 	Ptr<CButton>			mpOK;
@@ -103,6 +118,7 @@ public:
 	void				SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor);
 	void				SetOKCaption(const char* szCaption);
 	void				SetApprover(CDialogApprover* pcApprover);
+	void				SetTicker(CDialogTicker* pcTicker);
 
 	bool				Show(int32 iWidth);
 	bool				Show(int32 iWidth, int32 iHeight);

@@ -38,6 +38,8 @@ public:
 	Ptr<CComboBox>		GetFileType(void) { return mpFileType; }
 	Ptr<CComboBox>		GetLookIn(void) { return mpLookIn; }
 	Ptr<CButton>		GetUp(void) { return mpUp; }
+	Ptr<CButton>		GetNewFolder(void) { return mpNewFolder; }
+	bool				IsNewFolderPending(void) { return mbNewFolderPending; }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
 };
 
@@ -170,9 +172,15 @@ void TestFileChooserBrowse(void)
 		AssertString(szFull.Text(), cChooser.GetDirectory());
 		AssertInt(0, cChooser.GetList()->GetSelected());
 
-		//Activating a folder's row opens it.
+		//Activating a folder's row opens it.  The list is activated by a double click, not a click.
+		AssertTrue(cChooser.GetList()->IsDoubleClickActivates());
 		cChooser.ItemActivated();
 		AssertString(szFullSub.Text(), cChooser.GetDirectory());
+
+		//New Folder's dialog isn't shown from the click, which is input, but on the chooser's next tick.
+		AssertFalse(cChooser.IsNewFolderPending());
+		cChooser.ButtonClicked(&cChooser.GetNewFolder());
+		AssertTrue(cChooser.IsNewFolderPending());
 		cChooser.Kill();
 
 		//Saving adds the type's extension.

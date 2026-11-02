@@ -41,7 +41,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //Pressing a row selects it and releasing over the selected row activates it.  Up, down, home, end, page up and page
 //down move the selection over the enabled rows, and enter or space activates the selected row.  When the selection
 //follows the pointer, as in a menu, moving over a row selects it so pressing, dragging to a row and releasing activates
-//that row.
+//that row.  A list can instead be activated by a double click, pressing and releasing the same row twice quickly, as
+//a file chooser's is; enter and space still activate the selected row.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
@@ -61,6 +62,10 @@ protected:
 	int32					miPageRows;  //How far page up and page down move the selection.
 	bool					mbPressed;  //Pressed on a row and not yet released.
 	bool					mbSelectOnHover;
+	bool					mbDoubleClickActivates;
+	int32					miLastReleased;  //The row last released on, for a double click.  -1 for none.
+	int64					miLastRelease;  //When it was released.
+	SInt32Vec2				msLastRelease;  //Where it was released, relative to the list.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -86,6 +91,8 @@ public:
 
 	void			SetSelectOnHover(bool bSelectOnHover);
 	bool			IsSelectOnHover(void);
+	void			SetDoubleClickActivates(bool bDoubleClickActivates);
+	bool			IsDoubleClickActivates(void);
 	void			SetPageRows(int32 iPageRows);
 	void			SetHighlightColours(ARGB32 sSelected, ARGB32 sHover);
 	void			SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDraw> pHover);
@@ -130,6 +137,7 @@ protected:
 	int32			FindEnabled(int32 iFrom, int32 iStep);
 	void			SelectEnabled(int32 iRow);
 	void			SetHover(int32 iRow);
+	bool			IsDoubleClick(int32 iRow, int x, int y);
 };
 
 

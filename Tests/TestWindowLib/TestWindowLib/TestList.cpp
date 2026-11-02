@@ -268,6 +268,27 @@ void TestListInput(void)
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 		AssertLog("");
 
+		//When double clicks activate, a row is only activated by pressing and releasing it twice quickly.  Releasing on
+		//another row in between starts again.  Enter still activates.
+		pList->SetDoubleClickActivates(true);
+		pTestWindow->PointerMoved(x, 57);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertLog("");
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertLog("Activated:3;");
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertLog("");
+		pTestWindow->PointerMoved(x, 67);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertLog("Selected:4;");
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Activated:4;");
+		pList->SetDoubleClickActivates(false);
+
 		//Removing everything leaves only the highlights.
 		AssertTrue(pList->RemoveAllComponents());
 		AssertLog("Selected:-1;");

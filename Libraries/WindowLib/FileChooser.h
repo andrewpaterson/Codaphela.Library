@@ -87,7 +87,7 @@ public:
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last
 //as long as the chooser; the first is chosen to start with.
-class CFileChooser : public CDialogApprover
+class CFileChooser : public CDialogApprover, public CDialogTicker
 {
 protected:
 	CDialog						mcDialog;
@@ -110,6 +110,7 @@ protected:
 	int32						miNumFolders;  //The rows before the files.
 	CChars						mszChosen;
 	bool						mbSave;
+	bool						mbNewFolderPending;  //New Folder was clicked; its dialog is shown on the next tick.
 	SFileChooserType*			masTypes;
 	size						muiNumTypes;
 
@@ -121,6 +122,7 @@ public:
 	char*			GetChosen(void);
 
 	bool			Approve(void) override;
+	void			DialogTick(void) override;
 	void			SelectionChanged(void);
 	void			ItemActivated(void);
 	void			ComboChanged(CUnknown* pcSource);

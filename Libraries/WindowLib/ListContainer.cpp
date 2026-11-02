@@ -18,10 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include "BaseLib/Logger.h"
+#include "BaseLib/Timer.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ListContainer.h"
+
+
+#define LIST_DOUBLE_CLICK_MILLISECONDS	500
+#define LIST_DOUBLE_CLICK_PIXELS		4
 
 
 static EComponentInputCommand	gaeListContainerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Up, CIC_Down, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd, CIC_PageUp, CIC_PageDown, CIC_Space, CIC_Enter };
@@ -46,6 +52,10 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	miPageRows = 10;
 	mbPressed = false;
 	mbSelectOnHover = false;
+	mbDoubleClickActivates = false;
+	miLastReleased = -1;
+	miLastRelease = 0;
+	msLastRelease.Init(0, 0);
 	SetCanGetFocus(true);
 
 	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListSelectedColour());
@@ -129,6 +139,10 @@ void CListContainer::Class(void)
 	U_Int32(miPageRows);
 	U_Bool(mbPressed);
 	U_Bool(mbSelectOnHover);
+	U_Bool(mbDoubleClickActivates);
+	U_Int32(miLastReleased);
+	U_Int64(miLastRelease);
+	U_2Int32(msLastRelease);
 }
 
 
@@ -248,6 +262,7 @@ bool CListContainer::RemoveAllComponents(void)
 	Select(-1);
 	miHover = -1;
 	mbPressed = false;
+	miLastReleased = -1;
 	bResult = CGridContainer::RemoveAllComponents();
 	mabEnabled.ReInit();
 	AddHighlights();
@@ -564,7 +579,8 @@ void CListContainer::ActivateComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The release goes to the list with focus wherever the pointer is.  It
-// only activates if the pointer is still over the selected row.
+// only activates if the pointer is still over the selected row and, if
+// double clicks activate, the row was released on just before.
 //
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::ExecuteComponent(int x, int y)
@@ -574,9 +590,37 @@ void CListContainer::ExecuteComponent(int x, int y)
 		mbPressed = false;
 		if ((miHover >= 0) && (miHover == miSelected))
 		{
-			Activate();
+			if (!mbDoubleClickActivates || IsDoubleClick(miSelected, x, y))
+			{
+				Activate();
+			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Released twice on the same row in half a second within a few pixels.
+// x and y are relative to the list.  A release that isn't the second of
+// a double click may be the first of one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::IsDoubleClick(int32 iRow, int x, int y)
+{
+	int64	iNow;
+
+	iNow = GetDebugTickCount();
+	if ((miLastReleased == iRow) && (iNow - miLastRelease <= LIST_DOUBLE_CLICK_MILLISECONDS) && (abs(x - msLastRelease.x) <= LIST_DOUBLE_CLICK_PIXELS) && (abs(y - msLastRelease.y) <= LIST_DOUBLE_CLICK_PIXELS))
+	{
+		miLastReleased = -1;
+		return true;
+	}
+
+	miLastReleased = iRow;
+	miLastRelease = iNow;
+	msLastRelease.Init(x, y);
+	return false;
 }
 
 
@@ -834,6 +878,8 @@ int32 CListContainer::GetSelected(void) { return miSelected; }
 int32 CListContainer::GetHover(void) { return miHover; }
 void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = bSelectOnHover; }
 bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
+void CListContainer::SetDoubleClickActivates(bool bDoubleClickActivates) { mbDoubleClickActivates = bDoubleClickActivates; miLastReleased = -1; }
+bool CListContainer::IsDoubleClickActivates(void) { return mbDoubleClickActivates; }
 void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; }
 Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
 Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }

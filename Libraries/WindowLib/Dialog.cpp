@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ClearCanvasDraw.h"
 #include "FillContainer.h"
@@ -51,7 +52,19 @@ void CDialogTick::Init(void)
 {
 	PreInit();
 	CWindowTick::Init();
+	mpcTicker = NULL;
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialogTick::Class(void)
+{
+	CWindowTick::Class();
+	U_Pointer(mpcTicker);
 }
 
 
@@ -61,7 +74,22 @@ void CDialogTick::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDialogTick::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
+	if (mpcTicker)
+	{
+		mpcTicker->DialogTick();
+	}
 	pWindow->Paint();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialogTick::SetTicker(CDialogTicker* pcTicker)
+{
+	mpcTicker = pcTicker;
 }
 
 
@@ -84,7 +112,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mszClicked.Init();
 	miRows = 0;
 
-	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), OMalloc<CDialogTick>(), OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
+	mpTick = OMalloc<CDialogTick>();
+	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick,OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
 	ORoot()->Add(mpDialog);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);
@@ -139,6 +168,8 @@ void CDialog::Kill(void)
 	mpCancel = NULL;
 	mpButtons = NULL;
 	mpForm = NULL;
+	mpTick->SetTicker(NULL);
+	mpTick = NULL;
 	ORoot()->Remove(mpDialog);
 	mpDialog = NULL;
 	mpOwner = NULL;
@@ -334,6 +365,17 @@ void CDialog::SetOKCaption(const char* szCaption)
 void CDialog::SetApprover(CDialogApprover* pcApprover)
 {
 	mpcApprover = pcApprover;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcTicker is called each tick while the dialog is shown, NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::SetTicker(CDialogTicker* pcTicker)
+{
+	mpTick->SetTicker(pcTicker);
 }
 
 

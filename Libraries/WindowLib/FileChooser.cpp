@@ -181,6 +181,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	size			i;
 
 	mbSave = bSave;
+	mbNewFolderPending = false;
 	masTypes = asTypes;
 	muiNumTypes = uiNumTypes;
 	mpFolderIcon = pFolderIcon;
@@ -197,6 +198,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mcDialog.Init(pOwner, psLook, szTitle);
 	mcDialog.SetOKCaption(bSave ? "Save" : "Open");
 	mcDialog.SetApprover(this);
+	mcDialog.SetTicker(this);
 	pBody = CreateBody();
 	mcDialog.SetBody(pBody, mpFileName);
 
@@ -319,6 +321,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpList = OMalloc<CListContainer>(pWindow, psLook->pTheme);
 	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pTheme->GetListHoverColour(), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
+	mpList->SetDoubleClickActivates(true);
 	mpScrollPane = OMalloc<CScrollPane>(pWindow, psLook->pTheme);
 	mpScrollPane->SetContent(mpList);
 	mpScrollPane->SetAlignment(CSH_Stretch, CSV_Stretch);
@@ -760,6 +763,23 @@ void CFileChooser::ButtonClicked(CUnknown* pcSource)
 	}
 	else if (&mpNewFolder == pcSource)
 	{
+		//Its dialog can't be shown from an input listener, see CWindow::ShowModal.
+		mbNewFolderPending = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by the chooser's tick, outside of its input.  Shows the New
+// Folder dialog if New Folder was clicked.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::DialogTick(void)
+{
+	if (mbNewFolderPending)
+	{
+		mbNewFolderPending = false;
 		NewFolder();
 	}
 }
