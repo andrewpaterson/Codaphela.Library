@@ -18,15 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
-#include "BaseLib/Timer.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "TabbedContainer.h"
-
-
-#define TABBED_DOUBLE_CLICK_MILLISECONDS	500
-#define TABBED_DOUBLE_CLICK_PIXELS			4
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,9 +43,7 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	miNextColumn = 0;
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CTabbedContainerListener>();
-	mpLastReleased = NULL;
-	miLastRelease = 0;
-	msLastRelease.Init(0, 0);
+	msDoubleClick.Init();
 
 	//The background is in the bar's cell first so the bar is drawn over it.
 	pBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour()));
@@ -94,9 +86,7 @@ void CTabbedContainer::Class(void)
 	M_Pointer(mpSelected);
 	U_Int32(miNextColumn);
 	U_Data(CListenerCall, mcListeners);
-	M_Pointer(mpLastReleased);
-	U_Int64(miLastRelease);
-	U_Data(SInt32Vec2, msLastRelease);
+	U_Data(SDoubleClick, msDoubleClick);
 }
 
 
@@ -186,10 +176,8 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 		return false;
 	}
 
-	if (mpLastReleased == pTab)
-	{
-		mpLastReleased = NULL;
-	}
+	//The tabs after it move down an index.
+	msDoubleClick.Forget();
 
 	bWasSelected = (mpSelected == pTab);
 	if (bWasSelected)
@@ -309,33 +297,25 @@ bool CTabbedContainer::RemoveListener(CTabbedContainerListener* pcListener)
 //////////////////////////////////////////////////////////////////////////
 //
 // Called by a tab when button one is released on it, x and y relative to
-// its top left; bClick is false on its cross.  Released twice on the same
-// tab in half a second within a few pixels it's a double click, which
-// tells the listeners.  They are told after the release so a dialog they
-// open doesn't take it.
+// its top left; bClick is false on its cross.  A double click (see
+// SDoubleClick) tells the listeners.  They are told after the release so
+// a dialog they open doesn't take it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick)
 {
-	int64	iNow;
+	size	uiIndex;
 
-	if (!bClick || (IndexOf(pTab) == ARRAY_ELEMENT_NOT_FOUND))
+	uiIndex = IndexOf(pTab);
+	if (!bClick || (uiIndex == ARRAY_ELEMENT_NOT_FOUND))
 	{
-		mpLastReleased = NULL;
+		msDoubleClick.Forget();
 		return;
 	}
 
-	iNow = GetDebugTickCount();
-	if ((mpLastReleased == pTab) && (iNow - miLastRelease <= TABBED_DOUBLE_CLICK_MILLISECONDS) && (abs(x - msLastRelease.x) <= TABBED_DOUBLE_CLICK_PIXELS) && (abs(y - msLastRelease.y) <= TABBED_DOUBLE_CLICK_PIXELS))
+	if (msDoubleClick.Released((int32)uiIndex, x, y))
 	{
-		mpLastReleased = NULL;
 		mcListeners.CallListeners(&CTabbedContainerListener::TabDoubleClicked, &pTab, NULL);
-	}
-	else
-	{
-		mpLastReleased = pTab;
-		miLastRelease = iNow;
-		msLastRelease.Init(x, y);
 	}
 }
 

@@ -33,7 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //The scroll bar is laid out to its track, the strip along the side of the scroll pane the thumb moves in.  The whole
 //track is hit, even though only the thumb is drawn.  Pressing the thumb and dragging it scrolls the scroll pane.
 //Pressing the track elsewhere jumps the thumb's middle to the pointer and drags it from there.  A scroll bar is only
-//shown, and only hit, while the content is longer than the view.
+//shown, and only hit, while the content is longer than the view and its track is long enough for the thumb's ends.
 class CScrollPane;
 class CScrollBar : public CContainer
 {

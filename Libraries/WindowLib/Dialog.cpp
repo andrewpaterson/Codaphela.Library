@@ -113,7 +113,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	miRows = 0;
 
 	mpTick = OMalloc<CDialogTick>();
-	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick,OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
+	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
 	ORoot()->Add(mpDialog);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);

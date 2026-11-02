@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GridContainer.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
+#include "DoubleClick.h"
 #include "WindowTheme.h"
 #include "ListListener.h"
 
@@ -63,9 +64,7 @@ protected:
 	bool					mbPressed;  //Pressed on a row and not yet released.
 	bool					mbSelectOnHover;
 	bool					mbDoubleClickActivates;
-	int32					miLastReleased;  //The row last released on, for a double click.  -1 for none.
-	int64					miLastRelease;  //When it was released.
-	SInt32Vec2				msLastRelease;  //Where it was released, relative to the list.
+	SDoubleClick			msDoubleClick;  //Keyed by row, positions relative to the list.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -137,7 +136,6 @@ protected:
 	int32			FindEnabled(int32 iFrom, int32 iStep);
 	void			SelectEnabled(int32 iRow);
 	void			SetHover(int32 iRow);
-	bool			IsDoubleClick(int32 iRow, int x, int y);
 };
 
 

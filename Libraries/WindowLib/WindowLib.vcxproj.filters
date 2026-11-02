@@ -165,6 +165,9 @@
     <ClInclude Include="ComponentInputCommand.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="DoubleClick.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="Insets.h">
       <Filter>Source\Component\Inset</Filter>
     </ClInclude>
@@ -385,6 +388,9 @@
     </ClCompile>
     <ClCompile Include="Focus.cpp">
       <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="DoubleClick.cpp">
+      <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="Insets.cpp">
       <Filter>Source\Component\Inset</Filter>

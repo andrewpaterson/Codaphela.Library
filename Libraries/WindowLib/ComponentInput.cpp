@@ -659,7 +659,8 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 //
 // A pressed source is, in order: a lock or insert, a numpad key standing
 // in for another source, then nothing if control or alt is held (it would
-// have been a chord), a command or a printable character.  Returns true if
+// have been a chord), the lock or insert the numpad key stands in for, a
+// command or a printable character.  Returns true if
 // psDest is set.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -699,6 +700,17 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 	if (IsControl() || IsAlt())
 	{
 		return false;
+	}
+
+	//A numpad key standing in for a lock or insert, as numpad 0 does for insert, toggles it.
+	if (pcRemapped != pcSource)
+	{
+		psKey = GetKey(pcRemapped);
+		if (psKey)
+		{
+			PressedKey(psKey);
+			return false;
+		}
 	}
 
 	psReleased = GetCommand(pcRemapped, false);

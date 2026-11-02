@@ -242,6 +242,20 @@ void TestScrollPaneLayout(void)
 		AssertTrue(pScrollPane->FindComponentAt(150, 94) == pContent);
 		pScrollPane->SetPolicy(SBO_Horizontal, SPP_AsNeeded);
 
+		//A track too short for a thumb's two ends, here 6 pixels for two 4 pixel ends, has no thumb and isn't hit.
+		pScrollPane->SetDesiredSize(200, 20);
+		pScrollPane->SetAlignment(CSH_Left, CSV_Top);
+		pTestWindow->Layout();
+		AssertTrue(pVertical->IsShown());
+		sVec = pVertical->GetActualSize();
+		AssertInt32Vec2(8, 6, &sVec);
+		AssertScrollThumb(190, 2, 198, 2, pVertical);
+		AssertScrollThumb(2 + 93, 10, 2 + 186, 18, pHorizontal);  //Still scrolled to the right from above.
+		AssertTrue(pScrollPane->FindComponentAt(194, 5) == pContent);
+		AssertTrue(pScrollPane->FindComponentAt(50, 14) == pHorizontal);
+		pScrollPane->SetDesiredSize(-1, -1);
+		pScrollPane->SetAlignment(CSH_Center, CSV_Center);
+
 		//Content smaller than the view isn't scrolled and is placed by its alignment.
 		pContent->SetDesiredSize(50, 50);
 		pScrollPane->SetScrollPosition(10, 10);

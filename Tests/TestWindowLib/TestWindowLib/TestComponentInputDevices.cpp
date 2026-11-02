@@ -62,6 +62,7 @@ public:
 		mpcKeyboard->AddSource("Numpad 1");
 		mpcKeyboard->AddSource("Numpad 5");
 		mpcKeyboard->AddSource("Numpad 8");
+		mpcKeyboard->AddSource("Numpad 0");
 		mpcKeyboard->AddSource("F1");
 
 		mpcMouse->AddSource("Button 1");
@@ -249,6 +250,17 @@ void TestComponentInputKeyboard(void)
 		cDevices.Tap("Numpad 8");
 		cDevices.Release("Left Shift");
 		AssertLog("B:Up;B:End;B:Up;");
+
+		//With num lock off numpad 0 is insert, which toggles insert.  With control held it is nothing.
+		cDevices.Tap("Numpad 0");
+		AssertFalse(cComponentInput.IsInsert());
+		cDevices.Press("Left Control");
+		cDevices.Tap("Numpad 0");
+		cDevices.Release("Left Control");
+		AssertFalse(cComponentInput.IsInsert());
+		cDevices.Tap("Numpad 0");
+		AssertTrue(cComponentInput.IsInsert());
+		AssertLog("");
 
 		cDevices.Tap("Num Lock");
 		AssertTrue(cComponentInput.IsNumLock());

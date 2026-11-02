@@ -162,7 +162,7 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddNumKeyRemap("Numpad 7", "7", "Home");
 	AddNumKeyRemap("Numpad 8", "8", "Cursor Up");
 	AddNumKeyRemap("Numpad 9", "9", "Page Up");
-	AddNumKeyRemap("Numpad 0", "0", "Delete");
+	AddNumKeyRemap("Numpad 0", "0", "Insert");
 	AddNumKeyRemap("Numpad .", ".", "Delete");
 }
 

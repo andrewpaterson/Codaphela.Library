@@ -40,6 +40,7 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	msInsets.Init();
 	msBackground = 0;
 	msBorder = 0;
+	mbBackground = false;
 	mbBorder = false;
 	AddComponent(pContent);
 
@@ -61,6 +62,7 @@ void CPopup::Class(void)
 	U_Data(SInsets, msInsets);
 	U_UInt32(msBackground);
 	U_UInt32(msBorder);
+	U_Bool(mbBackground);
 	U_Bool(mbBorder);
 }
 
@@ -105,6 +107,7 @@ void CPopup::SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets)
 {
 	msBackground = sBackground;
 	msBorder = sBorder;
+	mbBackground = true;
 	mbBorder = true;
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
 }
@@ -117,6 +120,7 @@ void CPopup::SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets)
 void CPopup::SetLook(ARGB32 sBackground, SInsets* psInsets)
 {
 	msBackground = sBackground;
+	mbBackground = true;
 	mbBorder = false;
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
 }
@@ -202,13 +206,18 @@ void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 //
 // The background and border go straight onto the window's canvas, under
-// the content.
+// the content.  A popup without a look has neither.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CPopup::Draw(void)
 {
 	Ptr<CCanvas>	pWindowCanvas;
 	CInt32Rect		cRect;
+
+	if (!mbBackground)
+	{
+		return DrawChildren();
+	}
 
 	pWindowCanvas = mpWindow->GetCanvas();
 	cRect.Init(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), mcActualBounds.GetRight() - 1, mcActualBounds.GetBottom() - 1);

@@ -289,6 +289,19 @@ void TestListInput(void)
 		AssertLog("Activated:4;");
 		pList->SetDoubleClickActivates(false);
 
+		//A row that comes under the pointer without it moving, as when a popup opens under it, is activated by pressing
+		//and releasing it.  A sixth row moves the rows up so the first is under the pointer.
+		pList->SetSelectOnHover(false);
+		pTestWindow->PointerMoved(x, 20);
+		AssertInt(-1, pList->GetHover());
+		AssertInt(5, pList->AddItem(CreateListItem(pTestWindow, 40, 10, 0)));
+		pTestWindow->Layout();
+		AssertInt(0, pList->FindRowAt(x, 20));
+		AssertInt(-1, pList->GetHover());
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertLog("Selected:0;Activated:0;");
+
 		//Removing everything leaves only the highlights.
 		AssertTrue(pList->RemoveAllComponents());
 		AssertLog("Selected:-1;");

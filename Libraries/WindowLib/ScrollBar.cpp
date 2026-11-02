@@ -247,8 +247,11 @@ void CScrollBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetContainerBounds(sPosition, sAreaSize);
 	SetActualBounds(sPosition, sAreaSize);
 
+	//A track too short for the thumb's two round ends has no thumb; it would be drawn with a middle shorter than
+	//nothing.  The content can still be scrolled with the wheel.
 	iTrackLength = GetTrackLength();
-	if (!IsShown() || (iTrackLength <= 0))
+	iCapLength = mpImages->GetCapLength();
+	if (!IsShown() || (iTrackLength < iCapLength * 2))
 	{
 		miThumbStart = 0;
 		miThumbLength = 0;
@@ -268,7 +271,6 @@ void CScrollBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iScrollRange = miContentLength - miViewLength;
 	miThumbStart = (int32)(((int64)(iTrackLength - miThumbLength) * miPosition) / iScrollRange);
 
-	iCapLength = mpImages->GetCapLength();
 	LayoutPiece(mpStart, miThumbStart, iCapLength);
 	LayoutPiece(mpMiddle, miThumbStart + iCapLength, miThumbLength - iCapLength * 2);
 	LayoutPiece(mpEnd, miThumbStart + miThumbLength - iCapLength, iCapLength);

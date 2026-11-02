@@ -241,6 +241,7 @@
     <ClInclude Include="GridCell.h" />
     <ClInclude Include="GridContainer.h" />
     <ClInclude Include="BorderLayoutHelper.h" />
+    <ClInclude Include="DoubleClick.h" />
     <ClInclude Include="Insets.h" />
     <ClInclude Include="NativeCanvas.h" />
     <ClInclude Include="NativeComponent.h" />
@@ -292,6 +293,7 @@
     <ClCompile Include="GridCell.cpp" />
     <ClCompile Include="GridContainer.cpp" />
     <ClCompile Include="BorderLayoutHelper.cpp" />
+    <ClCompile Include="DoubleClick.cpp" />
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
     <ClCompile Include="ImageCanvasDraw.cpp" />

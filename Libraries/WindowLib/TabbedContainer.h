@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IconComponent.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
+#include "DoubleClick.h"
 #include "WindowTheme.h"
 #include "TabComponent.h"
 #include "TabbedContainerListener.h"
@@ -49,9 +50,7 @@ protected:
 	Ptr<CTabComponent>		mpSelected;
 	int						miNextColumn;  //The bar's column for the next tab; a closed tab's stays, empty.
 	CListenerCall			mcListeners;
-	Ptr<CTabComponent>		mpLastReleased;  //The tab button one was last released on, for double clicks, NULL if that was one.
-	int64					miLastRelease;
-	SInt32Vec2				msLastRelease;
+	SDoubleClick			msDoubleClick;  //Keyed by tab index, positions relative to the tab.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);

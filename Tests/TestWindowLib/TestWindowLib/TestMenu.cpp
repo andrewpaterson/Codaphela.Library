@@ -707,6 +707,67 @@ void TestMenuBarFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A popup without a look draws nothing behind its content, so the window
+// shows through content that doesn't draw.  With a look its background
+// is drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPopupDraw(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	const char*				szDirectory;
+
+	szDirectory = "Output" _FS_ "PopupDraw";
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CIconComponent>		pContent;
+		Ptr<CPopup>				pPopup;
+		CPointer				pNull;
+		SInsets					sInsets;
+		uint8*					puiPixel;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 100, 40, (char*)szDirectory);
+		pTestWindow = OMalloc<CWindow>("Popup Window", &cNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pContent = OMalloc<CIconComponent>(pTestWindow, Ptr<CImageCel>(), 20, 10);
+		pTestWindow->Layout();
+
+		pPopup = pTestWindow->OpenPopup(pContent, SInt32Vec2(10, 10), pNull);
+		pTestWindow->Paint();
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[(15 * 100 + 20) * 3];
+		AssertInt(0xFF, puiPixel[0]);
+		AssertInt(0xFF, puiPixel[1]);
+		AssertInt(0xFF, puiPixel[2]);
+
+		sInsets.Init();
+		pPopup->SetLook(Set32BitColour((uint8)0xFF, (uint8)0, (uint8)0), &sInsets);
+		pTestWindow->Paint();
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[(15 * 100 + 20) * 3];
+		AssertInt(0xFF, puiPixel[0]);
+		AssertInt(0, puiPixel[1]);
+		AssertInt(0, puiPixel[2]);
+
+		pTestWindow->CloseAllPopups();
+		pPopup = NULL;
+		pContent = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -718,6 +779,7 @@ void TestMenu(void)
 	TestMenuBarPointer();
 	TestMenuBarKeys();
 	TestMenuBarFrames();
+	TestPopupDraw();
 
 	ObjectsFlush();
 	ObjectsKill();

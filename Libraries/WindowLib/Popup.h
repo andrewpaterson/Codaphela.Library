@@ -29,8 +29,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //canvas draws them after its container, so they are drawn over it, and they are hit before it.
 //
 //The popup is the size its content wants plus its insets, with its top left where it was opened unless that would put
-//it past the window's right or bottom edge, then it is moved back in.  It fills its insets with its background and
-//draws a one pixel border around its outside, if it has a border colour.
+//it past the window's right or bottom edge, then it is moved back in.  Once it has a look it fills its insets with its
+//background and draws a one pixel border around its outside, if it has a border colour.  Without one what is behind
+//the popup shows wherever its content doesn't draw.
 //
 //The owner is the component that opened it.  A press on the owner, or in any popup, leaves the popups open; a press
 //anywhere else closes them.  The owner is told when its popup closes.
@@ -45,6 +46,7 @@ protected:
 	SInsets				msInsets;
 	ARGB32				msBackground;
 	ARGB32				msBorder;
+	bool				mbBackground;  //False until a look is set, then nothing is drawn behind the content.
 	bool				mbBorder;
 
 public:
