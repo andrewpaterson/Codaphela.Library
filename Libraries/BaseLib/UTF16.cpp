@@ -286,6 +286,12 @@ size CUTF16::PeekUTFBytes(void)
     for (;;)
     {
         uiLength = GetUTF16ElementLength();
+        if (uiLength == muiError)
+        {
+            muiPos = uiStartPos;
+            return muiError;
+        }
+
         if (uiLength == UNICODE_ZWJ)
         {
             if (bLastZWJ)

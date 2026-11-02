@@ -79,6 +79,9 @@ int CUnicodeWriter::WriteCharacters(size uiMaxToWrite)
 	case UE_UTF16BE:
 		uiNumWritten = WriteUTF16BE(mpcReader, ((CArrayUint16*)mpauiDest), uiMaxToWrite);
 		break;
+	case UE_Latin1:
+		uiNumWritten = WriteLatin1(mpcReader, ((CArrayUint8*)mpauiDest), uiMaxToWrite);
+		break;
 	default:
 		return 0;
 	}
@@ -116,6 +119,12 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	while ((uiUTFLength != 0) && (uiNumWritten < uiMaxToWrite))
 	{
+		//Invalid text: the reader hasn't moved past it.
+		if (pcUnicodeReader->IsError((uint32)uiUTFLength))
+		{
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+
 		if (uiUTFLength <= 4)
 		{
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
@@ -166,7 +175,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 		else
 		{
 			uiCodePointsLength = pcUnicodeReader->GetCodePointMulti(auiBuffer, 0x13);
-			if (uiCodePointsLength == 0)
+			if ((uiCodePointsLength == 0) || pcUnicodeReader->IsError((uint32)uiCodePointsLength))
 			{
 				return ARRAY_ELEMENT_NOT_FOUND;
 			}
@@ -241,6 +250,12 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	while ((uiUTFLength != 0) && (uiNumWritten < uiMaxToWrite))
 	{
+		//Invalid text: the reader hasn't moved past it.
+		if (pcUnicodeReader->IsError((uint32)uiUTFLength))
+		{
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+
 		if (uiUTFLength <= 2)
 		{
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
@@ -283,10 +298,19 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 					puiUTF8Dest->InsertBlockAfterEnd((uint8*)&cUTF8Element32, uiUTF8Length);
 				}
 			}
+			else
+			{
+				//Not a code point UTF8 can hold, like a surrogate half from UTF16.
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
 		}
 		else
 		{
 			uiCodePointsLength = pcUnicodeReader->GetCodePointMulti(auiBuffer, 0x13);
+			if ((uiCodePointsLength == 0) || pcUnicodeReader->IsError((uint32)uiCodePointsLength))
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
 			puiCodePoint = auiBuffer;
 			for (;;)
 			{
@@ -319,6 +343,54 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 				uiCodePointsLength -= (uiCodePointLength + 1);
 			}
 		}
+
+		uiUTFLength = pcUnicodeReader->PeekUTFBytes();
+	}
+	return uiNumWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each character Latin-1 has is its code point's byte.  A character it
+// doesn't have, including one joined from several code points by ZWJs,
+// is a question mark.
+//
+//////////////////////////////////////////////////////////////////////////
+size CUnicodeWriter::WriteLatin1(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiLatin1Dest, size uiMaxToWrite)
+{
+	uint32	cCodePoint32;
+	uint8	auiBuffer[0x13];
+	size	uiUTFLength;
+	size	uiCodePointsLength;
+	size	uiNumWritten;
+
+	uiNumWritten = 0;
+	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
+	while ((uiUTFLength != 0) && (uiNumWritten < uiMaxToWrite))
+	{
+		//Invalid text: the reader hasn't moved past it.
+		if (pcUnicodeReader->IsError((uint32)uiUTFLength))
+		{
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+
+		//A single code point is at most four bytes, a joined character is longer.
+		if (uiUTFLength <= 4)
+		{
+			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
+			puiLatin1Dest->Push((cCodePoint32 <= 0xFF) ? (uint8)cCodePoint32 : (uint8)'?');
+		}
+		else
+		{
+			uiCodePointsLength = pcUnicodeReader->GetCodePointMulti(auiBuffer, 0x13);
+			if ((uiCodePointsLength == 0) || pcUnicodeReader->IsError((uint32)uiCodePointsLength))
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
+			puiLatin1Dest->Push((uint8)'?');
+		}
+		uiNumWritten++;
 
 		uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	}

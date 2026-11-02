@@ -52,6 +52,7 @@ enum EUnicodeEncoding
 	UE_UTF8BOM,
 	UE_UTF16LE,
 	UE_UTF16BE,
+	UE_Latin1,  //ISO 8859-1: each byte is the code point of the same value.  It has no byte order mark.
 };
 
 

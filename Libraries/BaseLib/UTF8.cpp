@@ -101,7 +101,7 @@ uint16 CUTF8::GetCodePointUint16(void)
 	}
 
 	c = mszText[muiPos];
-	if (c < 0x7F)
+	if (c <= 0x7F)
 	{
 		muiPos += 1;
 		return c;
@@ -152,7 +152,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 	}
 
 	c = mszText[muiPos];
-	if (c < 0x7F)
+	if (c <= 0x7F)
 	{
 		muiPos += 1;
 		return c;
@@ -330,6 +330,12 @@ size CUTF8::PeekUTFBytes(void)
 	for (;;)
 	{
 		uiLength = GetUTF8ElementLength();
+		if (uiLength == muiError)
+		{
+			muiPos = uiStartPos;
+			return muiError;
+		}
+
 		if (uiLength == UNICODE_ZWJ)
 		{
 			if (bLastZWJ)
@@ -377,7 +383,7 @@ size CUTF8::GetUTF8ElementLength(void)
 	}
 
 	c = mszText[muiPos];
-	if (c < 0x7F)
+	if (c <= 0x7F)
 	{
 		return 1;
 	}

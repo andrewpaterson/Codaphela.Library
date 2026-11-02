@@ -1635,6 +1635,9 @@
     <ClInclude Include="UTF8.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
+    <ClInclude Include="Latin1.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
     <ClInclude Include="IndexPtr.h">
       <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
@@ -2826,6 +2829,9 @@
       <Filter>Source\Data\String</Filter>
     </ClCompile>
     <ClCompile Include="UTF8.cpp">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Latin1.cpp">
       <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
     <ClCompile Include="IndexPtr.cpp">

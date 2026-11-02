@@ -49,6 +49,7 @@ protected:
 	size	WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);
 	size	WriteUTF16BE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);
 	size	WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiUTF8Dest, size uiMaxToWrite);
+	size	WriteLatin1(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiLatin1Dest, size uiMaxToWrite);
 };
 
 
