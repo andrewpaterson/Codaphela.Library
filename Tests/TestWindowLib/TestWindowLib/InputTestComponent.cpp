@@ -131,7 +131,7 @@ void CInputTestComponent::CommandAction(SComponentInputEvent* psEvent)
 	case CIC_Hover:				Log("Hover", x, y);						break;
 	case CIC_Paste:
 		szClipboard.Init();
-		mpWindow->GetFactory()->GetClipboardText(&szClipboard);
+		mpWindow->GetClipboard()->GetText(&szClipboard);
 		Log(szClipboard.Empty() ? "Paste()" : "Paste(...)");
 		szClipboard.Kill();
 		break;

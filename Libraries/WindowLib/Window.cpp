@@ -55,6 +55,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	}
 
 	mFocus.Init(this);
+	mpClipboard = OMalloc<CClipboard>(this);
 
 	PostInit();
 }
@@ -102,6 +103,7 @@ void CWindow::Class(void)
 	U_Bool(mbLayoutAgain);
 	M_Embedded(maPopups);
 	M_Pointer(mpSoundMixer);
+	M_Pointer(mpClipboard);
 }
 
 
@@ -557,6 +559,7 @@ Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 CNativeWindow*			CWindow::GetNativeWindow(void) { return mpcNativeWindow; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
 Ptr<CSoundMixer>		CWindow::GetSoundMixer(void) { return mpSoundMixer; }
+Ptr<CClipboard>			CWindow::GetClipboard(void) { return mpClipboard; }
 Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
 Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }

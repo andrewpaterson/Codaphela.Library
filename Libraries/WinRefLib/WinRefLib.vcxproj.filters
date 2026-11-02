@@ -9,6 +9,9 @@
     <ClInclude Include="WinRefCanvas.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="WinRefClipboard.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="WinRefWindow.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -18,6 +21,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinRefCanvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRefClipboard.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="WinRefWindow.cpp">

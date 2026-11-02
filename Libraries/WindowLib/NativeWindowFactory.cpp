@@ -8,7 +8,6 @@
 void CNativeWindowFactory::Init(CMallocator* pcMallocator)
 {
 	mpcMallocator = pcMallocator;
-	mszClipboard.Init();
 }
 
 
@@ -18,7 +17,6 @@ void CNativeWindowFactory::Init(CMallocator* pcMallocator)
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindowFactory::Kill(void)
 {
-	mszClipboard.Kill();
 	mpcMallocator = NULL;
 }
 
@@ -47,22 +45,10 @@ bool CNativeWindowFactory::DestroyNativeCanvas(CNativeCanvas* pcCanvas)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What cut and copy put on the clipboard.
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindowFactory::SetClipboardText(const char* szText)
+bool CNativeWindowFactory::DestroyNativeClipboard(CNativeClipboard* pcClipboard)
 {
-	mszClipboard.Kill();
-	mszClipboard.Init(szText);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Appends what is on the clipboard, for paste.
-//
-//////////////////////////////////////////////////////////////////////////
-void CNativeWindowFactory::GetClipboardText(CChars* pszDest)
-{
-	pszDest->Append(mszClipboard);
+	pcClipboard->Kill();
+	return mpcMallocator->Free(pcClipboard);
 }

@@ -189,11 +189,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="WinRefCanvas.h" />
+    <ClInclude Include="WinRefClipboard.h" />
     <ClInclude Include="WinRefWindow.h" />
     <ClInclude Include="WinRefWindowFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinRefCanvas.cpp" />
+    <ClCompile Include="WinRefClipboard.cpp" />
     <ClCompile Include="WinRefWindow.cpp" />
     <ClCompile Include="WinRefWindowFactory.cpp" />
   </ItemGroup>

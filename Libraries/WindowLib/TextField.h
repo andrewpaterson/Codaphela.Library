@@ -37,7 +37,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //keep the caret in view.
 //
 //The text is edited by a CPlainTextEditor.  Every key a CComponentInput gives that makes sense on one line works:
-//moving and selecting by character, word and to the ends, deleting, cut, copy and paste with the window factory's
+//moving and selecting by character, word and to the ends, deleting, cut, copy and paste with the window's
 //clipboard, and select all.  Pressing places the caret at the nearest gap between characters, dragging selects from
 //there and shift pressing selects from the caret.  Enter isn't wanted, so it clicks the window's default button.
 //

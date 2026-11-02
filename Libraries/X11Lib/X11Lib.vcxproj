@@ -185,12 +185,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="X11Canvas.h" />
+    <ClInclude Include="X11Clipboard.h" />
     <ClInclude Include="X11Input.h" />
     <ClInclude Include="X11Window.h" />
     <ClInclude Include="X11WindowFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="X11Canvas.cpp" />
+    <ClCompile Include="X11Clipboard.cpp" />
     <ClCompile Include="X11Input.cpp" />
     <ClCompile Include="X11Window.cpp" />
     <ClCompile Include="X11WindowFactory.cpp" />

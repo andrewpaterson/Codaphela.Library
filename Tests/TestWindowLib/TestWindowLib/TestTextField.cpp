@@ -82,6 +82,7 @@ void TestTextFieldEditing(void)
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTextField>			pField;
 		Ptr<CFocus>				pFocus;
+		Ptr<CWindow>			pOtherWindow;
 		CTestTextFieldListener	cListener;
 		CPointer				pNull;
 		CChars					szLog;
@@ -122,6 +123,12 @@ void TestTextFieldEditing(void)
 		AssertSize(2, pField->GetCaretPosition());
 		AssertLog("");
 
+		//Nothing has been copied yet.
+		szClipboard.Init();
+		AssertFalse(pTestWindow->GetClipboard()->GetText(&szClipboard));
+		AssertString("", szClipboard.Text());
+		szClipboard.Kill();
+
 		//Selecting to the start then copying puts the selection on the clipboard.
 		pTestWindow->InputCommand(CIC_SelectHome, true);
 		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
@@ -129,9 +136,19 @@ void TestTextFieldEditing(void)
 		AssertSize(2, uiEnd);
 		pTestWindow->InputCommand(CIC_Copy, true);
 		szClipboard.Init();
-		cNativeFactory.GetClipboardText(&szClipboard);
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&szClipboard));
 		AssertString("ab", szClipboard.Text());
 		szClipboard.Kill();
+
+		//Every window's clipboard is the same one, as a system's is.
+		pOtherWindow = OMalloc<CWindow>("Other Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pOtherWindow);
+		szClipboard.Init();
+		AssertTrue(pOtherWindow->GetClipboard()->GetText(&szClipboard));
+		AssertString("ab", szClipboard.Text());
+		szClipboard.Kill();
+		ORoot()->Remove(pOtherWindow);
+		pOtherWindow = NULL;
 
 		//Pasting at the end.
 		pTestWindow->InputCommand(CIC_End, true);
@@ -160,7 +177,7 @@ void TestTextFieldEditing(void)
 		AssertString("", pField->GetText());
 		AssertLog("Changed:;");
 		szClipboard.Init();
-		cNativeFactory.GetClipboardText(&szClipboard);
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&szClipboard));
 		AssertString("b ", szClipboard.Text());
 		szClipboard.Kill();
 

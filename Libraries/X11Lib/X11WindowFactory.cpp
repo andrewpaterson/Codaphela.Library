@@ -70,6 +70,7 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
     miScreen = 0;
 
     mpsDisplay = XOpenDisplay(szDisplayName);
+    mcSelection.Init(mpsDisplay, mpsDisplay ? DefaultScreen(mpsDisplay) : 0);
     if (mpsDisplay == NULL)
     {
         gcLogger.Error2(__METHOD__, " Could not open X display [", XDisplayName(szDisplayName), "].", NULL);
@@ -94,6 +95,7 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::Kill(void)
 {
+    mcSelection.Kill();
     if (mpsDisplay)
     {
         XCloseDisplay(mpsDisplay);
@@ -147,7 +149,24 @@ CNativeCanvas* CX11WindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+// NULL if the display couldn't be opened, then nothing is copied or
+// pasted.
+CNativeClipboard* CX11WindowFactory::CreateNativeClipboard(CClipboard* pcClipboard)
+{
+    CX11Clipboard*  pcNativeClipboard;
+
+    if (mpsDisplay == NULL)
+    {
+        return NULL;
+    }
+    pcNativeClipboard = NativeMalloc<CX11Clipboard>();
+    pcNativeClipboard->Init(pcClipboard, this);
+    return pcNativeClipboard;
+}
+
+
 _XDisplay* CX11WindowFactory::GetDisplay(void) { return mpsDisplay; }
+CX11Selection* CX11WindowFactory::GetSelection(void) { return &mcSelection; }
 int CX11WindowFactory::GetScreen(void) { return miScreen; }
 X11ID CX11WindowFactory::GetDeleteWindowAtom(void) { return mulDeleteWindowAtom; }
 X11ID CX11WindowFactory::GetProtocolsAtom(void) { return mulProtocolsAtom; }
@@ -233,6 +252,12 @@ void CX11WindowFactory::ExecuteEvents(void)
         if (uEvent.type == MappingNotify)
         {
             XRefreshKeyboardMapping(&uEvent.xmapping);
+            continue;
+        }
+
+        //Another program asking for text this program copied.
+        if (mcSelection.HandleEvent(&uEvent))
+        {
             continue;
         }
 

@@ -1,5 +1,6 @@
 #include "WinGDIWindow.h"
 #include "WinGDICanvas.h"
+#include "WinGDIClipboard.h"
 #include "WinGDIWindowFactory.h"
 
 
@@ -73,6 +74,21 @@ CNativeCanvas* CWinGDIWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
     {
         return pcNativeCanvas;
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The Windows clipboard.  It needs nothing made until it is used.
+//
+//////////////////////////////////////////////////////////////////////////
+CNativeClipboard* CWinGDIWindowFactory::CreateNativeClipboard(CClipboard* pcClipboard)
+{
+    CWinGDIClipboard*   pcNativeClipboard;
+
+    pcNativeClipboard = NativeMalloc<CWinGDIClipboard>();
+    pcNativeClipboard->Init(pcClipboard, this);
+    return pcNativeClipboard;
 }
 
 

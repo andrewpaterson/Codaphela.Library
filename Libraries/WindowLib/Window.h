@@ -27,6 +27,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentInputCommand.h"
 #include "Popup.h"
 #include "SoundMixer.h"
+#include "Clipboard.h"
 
 
 class CWindowTick;
@@ -52,6 +53,7 @@ protected:
 	bool					mbLayoutAgain;  //A component's required size changed while it was being laid out.
 	CArray<CPopup>			maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
 	Ptr<CSoundMixer>		mpSoundMixer;  //Only if the window was given a sound factory.  Mixed every tick.
+	Ptr<CClipboard>			mpClipboard;  //The system's clipboard.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -88,6 +90,7 @@ public:
 	Ptr<CCanvas>			GetCanvas(void);
 	Ptr<CFocus>				GetFocus(void);
 	Ptr<CSoundMixer>		GetSoundMixer(void);
+	Ptr<CClipboard>			GetClipboard(void);
 
 	void					SetDefaultButton(Ptr<CButton> pButton);
 	Ptr<CButton>			GetDefaultButton(void);

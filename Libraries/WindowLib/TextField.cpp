@@ -85,8 +85,8 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The input actions of gaeTextFieldCommands.  The clipboard is the native
-// window factory's; cutting or copying nothing leaves it as it was.
+// The input actions of gaeTextFieldCommands.  The clipboard is the
+// window's, the system's; cutting or copying nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::CommandAction(SComponentInputEvent* psEvent)
@@ -137,13 +137,13 @@ void CTextField::CommandAction(SComponentInputEvent* psEvent)
 		}
 		if (!szClipboard.Empty())
 		{
-			mpWindow->GetFactory()->SetClipboardText(szClipboard.Text());
+			mpWindow->GetClipboard()->SetText(szClipboard.Text());
 		}
 		szClipboard.Kill();
 		break;
 	case CIC_Paste:
 		szClipboard.Init();
-		mpWindow->GetFactory()->GetClipboardText(&szClipboard);
+		mpWindow->GetClipboard()->GetText(&szClipboard);
 		Paste(szClipboard.Text());
 		szClipboard.Kill();
 		break;

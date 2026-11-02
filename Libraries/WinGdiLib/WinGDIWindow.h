@@ -60,6 +60,7 @@ public:
 	void	MouseButton(HWND hWnd, WPARAM wParam, bool bPressed);
 	void	Activated(void);
 	void	Deactivated(void);
+	HWND	GetHWnd(void);
 };
 
 

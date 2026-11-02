@@ -1447,8 +1447,8 @@ void CTextArea::FocusLost(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The input actions of gaeTextAreaCommands.  The clipboard is the native
-// window factory's; cutting or copying nothing leaves it as it was.
+// The input actions of gaeTextAreaCommands.  The clipboard is the
+// window's, the system's; cutting or copying nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::CommandAction(SComponentInputEvent* psEvent)
@@ -1521,13 +1521,13 @@ void CTextArea::CommandAction(SComponentInputEvent* psEvent)
 		}
 		if (!szClipboard.Empty())
 		{
-			mpWindow->GetFactory()->SetClipboardText(szClipboard.Text());
+			mpWindow->GetClipboard()->SetText(szClipboard.Text());
 		}
 		szClipboard.Kill();
 		break;
 	case CIC_Paste:
 		szClipboard.Init();
-		mpWindow->GetFactory()->GetClipboardText(&szClipboard);
+		mpWindow->GetClipboard()->GetText(&szClipboard);
 		Paste(szClipboard.Text());
 		szClipboard.Kill();
 		break;

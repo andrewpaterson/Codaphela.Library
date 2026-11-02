@@ -9,6 +9,9 @@
     <ClInclude Include="X11Canvas.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="X11Clipboard.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="X11Input.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -21,6 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="X11Canvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="X11Clipboard.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="X11Input.cpp">

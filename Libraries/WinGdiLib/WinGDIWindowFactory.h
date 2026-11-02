@@ -31,6 +31,7 @@ public:
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;
+	CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) override;
 
 	void			SetHWnd(HWND hWnd);
 	HWND			GetHWnd(void);

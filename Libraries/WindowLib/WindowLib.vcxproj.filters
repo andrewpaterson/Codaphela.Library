@@ -183,6 +183,12 @@
     <ClInclude Include="NativeCanvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClInclude>
+    <ClInclude Include="Clipboard.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeClipboard.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
     <ClInclude Include="ListContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -415,6 +421,12 @@
     </ClCompile>
     <ClCompile Include="NativeCanvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="Clipboard.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeClipboard.cpp">
+      <Filter>Source\Component\Window</Filter>
     </ClCompile>
     <ClCompile Include="MapsCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>

@@ -282,7 +282,7 @@ void TestFlowContainerRightCenteredContinue(void)
 
 		cTick.Init(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		AssertSize(4, pTestWindow.NumHeapFroms());
+		AssertSize(5, pTestWindow.NumHeapFroms());
 		apcHeapFroms.Init();
 		pTestWindow->GetHeapFroms(&apcHeapFroms);
 		pcWindowObject = *apcHeapFroms.Get(0);
@@ -308,7 +308,7 @@ void TestFlowContainerRightCenteredContinue(void)
 
 		pFlow->SetFlowStyle(CSD_Right, CSW_Continue, CSV_Center);
 		pTestWindow->SetContainer(pFlow);
-		AssertSize(uiStartObjects + 3, gcObjects.NumMemoryIndexes());
+		AssertSize(uiStartObjects + 4, gcObjects.NumMemoryIndexes());
 
 		cRandom.Init(6785);
 		for (i = 0; i < 10; i++)
@@ -331,8 +331,8 @@ void TestFlowContainerRightCenteredContinue(void)
 			pCanvas = NULL;
 			pDraw = NULL;
 
-			AssertSize(uiStartObjects + 3 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
-			AssertSize(6 + i, pTestWindow.NumHeapFroms());
+			AssertSize(uiStartObjects + 4 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
+			AssertSize(7 + i, pTestWindow.NumHeapFroms());
 			AssertSize(1, pTestWindow.NumStackFroms());
 
 			apcHeapFroms.Init();
@@ -357,7 +357,7 @@ void TestFlowContainerRightCenteredContinue(void)
 		pFlow = NULL;
 
 		pTestWindow->Show();
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 
 		AssertSize(1, pTestWindow.NumStackFroms());
 		apcStackFroms.Init();
@@ -366,7 +366,7 @@ void TestFlowContainerRightCenteredContinue(void)
 		apcStackFroms.Kill();
 		AssertPointer(pTestWindow.This(), pcWindowPointer);
 
-		AssertSize(15, pTestWindow.NumHeapFroms());
+		AssertSize(16, pTestWindow.NumHeapFroms());
 		apcHeapFroms.Init();
 		pTestWindow->GetHeapFroms(&apcHeapFroms);
 		uiNumHeaps = apcHeapFroms.NumElements();
@@ -425,7 +425,7 @@ void TestFlowContainerRightTopContinue(void)
 
 		cTick.Init(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		AssertSize(4, pTestWindow.NumHeapFroms());
+		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -454,17 +454,17 @@ void TestFlowContainerRightTopContinue(void)
 			pCanvas = NULL;
 			pDraw = NULL;
 
-			AssertSize(uiStartObjects + 3 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
-			AssertSize(6 + i, pTestWindow.NumHeapFroms());
+			AssertSize(uiStartObjects + 4 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
+			AssertSize(7 + i, pTestWindow.NumHeapFroms());
 			AssertSize(1, pTestWindow.NumStackFroms());
 		}
 
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pFlow = NULL;
 		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
 
@@ -515,7 +515,7 @@ void TestFlowContainerRightBottomContinue(void)
 
 		cTick.Init(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		AssertSize(4, pTestWindow.NumHeapFroms());
+		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -544,17 +544,17 @@ void TestFlowContainerRightBottomContinue(void)
 			pCanvas = NULL;
 			pDraw = NULL;
 
-			AssertSize(uiStartObjects + 3 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
-			AssertSize(6 + i, pTestWindow.NumHeapFroms());
+			AssertSize(uiStartObjects + 4 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
+			AssertSize(7 + i, pTestWindow.NumHeapFroms());
 			AssertSize(1, pTestWindow.NumStackFroms());
 		}
 
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pFlow = NULL;
 		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
 
@@ -605,7 +605,7 @@ void TestFlowContainerRightTopWrap(void)
 
 		cTick.Init(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-		AssertSize(4, pTestWindow.NumHeapFroms());
+		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -634,17 +634,17 @@ void TestFlowContainerRightTopWrap(void)
 			pCanvas = NULL;
 			pDraw = NULL;
 
-			AssertSize(uiStartObjects + 3 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
-			AssertSize(6 + i, pTestWindow.NumHeapFroms());
+			AssertSize(uiStartObjects + 4 + (i + 1) * 2, gcObjects.NumMemoryIndexes());
+			AssertSize(7 + i, pTestWindow.NumHeapFroms());
 			AssertSize(1, pTestWindow.NumStackFroms());
 		}
 
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 56, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
 		pFlow = NULL;
 		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
 

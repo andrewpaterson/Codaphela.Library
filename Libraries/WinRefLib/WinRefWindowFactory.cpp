@@ -1,5 +1,6 @@
 #include "WinRefWindow.h"
 #include "WinRefCanvas.h"
+#include "WinRefClipboard.h"
 #include "WinRefWindowFactory.h"
 
 
@@ -12,6 +13,7 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
     CNativeWindowFactory::Init(pcMallocator);
     mcWindowBounds.Init(iWidth, iHeight);
     mszImagePath.Init(szImagePath);
+    mszClipboardText.Init();
 }
 
 
@@ -21,6 +23,7 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindowFactory::Kill(void)
 {
+    mszClipboardText.Kill();
     mszImagePath.Kill();
     CNativeWindowFactory::Kill();
 }
@@ -62,6 +65,32 @@ CNativeCanvas* CWinRefWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
     {
         return pcNativeCanvas;
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNativeClipboard* CWinRefWindowFactory::CreateNativeClipboard(CClipboard* pcClipboard)
+{
+    CWinRefClipboard*   pcNativeClipboard;
+
+    pcNativeClipboard = NativeMalloc<CWinRefClipboard>();
+    pcNativeClipboard->Init(pcClipboard, this);
+    return pcNativeClipboard;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text every one of the factory's clipboards has, empty until one
+// sets it.
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CWinRefWindowFactory::GetClipboardText(void)
+{
+    return &mszClipboardText;
 }
 
 

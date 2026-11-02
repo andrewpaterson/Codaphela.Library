@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "WindowLib/NativeWindowFactory.h"
+#include "X11Clipboard.h"
 
 
 //The X11 headers #define None, Bool, Status, True, False and others so they are only included by the .cpp files, after
@@ -48,6 +49,7 @@ protected:
 	X11ID			mulProtocolsAtom;  //WM_PROTOCOLS.
 	CX11Input*		mpcInput;
 	CArrayX11WindowPtr	mapcWindows;  //The windows that are on the screen.
+	CX11Selection	mcSelection;  //The clipboard every window shares; it must outlive any one of them.
 
 public:
 	bool			Init(CMallocator* pcMallocator, const char* szDisplayName);
@@ -55,8 +57,10 @@ public:
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;
+	CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) override;
 
 	_XDisplay*		GetDisplay(void);
+	CX11Selection*	GetSelection(void);
 	int				GetScreen(void);
 	X11ID			GetDeleteWindowAtom(void);
 	X11ID			GetProtocolsAtom(void);
