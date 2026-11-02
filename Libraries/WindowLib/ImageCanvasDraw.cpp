@@ -19,7 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
-#include "WindowLib/Canvas.h"
+#include "Canvas.h"
 #include "ImageCanvasDraw.h"
 
 

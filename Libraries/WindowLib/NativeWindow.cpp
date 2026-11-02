@@ -1,4 +1,24 @@
-#include "WindowLib/Window.h"
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2025 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela WindowLib
+
+Codaphela WindowLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela WindowLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "Window.h"
 #include "NativeWindowFactory.h"
 #include "NativeCanvas.h"
 #include "NativeWindow.h"
@@ -37,12 +57,12 @@ void CNativeWindow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindow::BeginPresent(void)
 {
-    if (!mbPainting)
-    {
-        mbPainting = true;
-        return true;
-    }
-    return false;
+	if (!mbPainting)
+	{
+		mbPainting = true;
+		return true;
+	}
+	return false;
 }
 
 
@@ -52,7 +72,7 @@ bool CNativeWindow::BeginPresent(void)
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindow::EndPresent(void)
 {
-    mbPainting = false;
+	mbPainting = false;
 }
 
 
@@ -62,27 +82,27 @@ void CNativeWindow::EndPresent(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindow::Present(void)
 {
-    bool            bResult;
-    CNativeCanvas*  pcNativeCanvas;
-    Ptr<CCanvas>    pCanvas;
-    SInt32Vec2           sSize;
+	bool            bResult;
+	CNativeCanvas*  pcNativeCanvas;
+	Ptr<CCanvas>    pCanvas;
+	SInt32Vec2           sSize;
 
-    bResult = BeginPresent();
-    if (bResult)
-    {
-        pCanvas = mpcWindow->GetCanvas();
+	bResult = BeginPresent();
+	if (bResult)
+	{
+		pCanvas = mpcWindow->GetCanvas();
 
-        pcNativeCanvas = pCanvas->GetNativeCanvas();
-        if (pcNativeCanvas)
-        {
-            sSize = pCanvas->GetActualSize();
-            Present(pcNativeCanvas, sSize.x, sSize.y);
-        }
+		pcNativeCanvas = pCanvas->GetNativeCanvas();
+		if (pcNativeCanvas)
+		{
+			sSize = pCanvas->GetActualSize();
+			Present(pcNativeCanvas, sSize.x, sSize.y);
+		}
 
-        EndPresent();
-        return true;
-    }
-    return false;
+		EndPresent();
+		return true;
+	}
+	return false;
 }
 
 
@@ -92,7 +112,7 @@ bool CNativeWindow::Present(void)
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindow::Stop(void)
 {
-    mpcWindow->Stop();
+	mpcWindow->Stop();
 }
 
 

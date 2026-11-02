@@ -52,7 +52,7 @@ void CSoundStreamVoice::Init(uint32 uiSampleRate, lsize uiBufferFrames, EPrimiti
 	mbStarting = true;
 	muiLatencyMs = SOUND_STREAM_DEFAULT_LATENCY_MS;
 	muiMaxLatencyMs = SOUND_STREAM_DEFAULT_MAX_LATENCY_MS;
-	mpfFill = (float64*)malloc((size_t)(uiBufferFrames * 2 * sizeof(float64)));
+	mpfFill = (float64*)malloc((size)(uiBufferFrames * 2 * sizeof(float64)));
 	muiFramesPlayed = 0;
 	muiDroppedFrames = 0;
 	muiUnderruns = 0;
@@ -226,7 +226,7 @@ void CSoundStreamVoice::Append(lsize uiFrames)
 	if (muiWaitingFrames + uiFrames > muiWaitingCapacity)
 	{
 		muiWaitingCapacity = (muiWaitingFrames + uiFrames) * 2;
-		mpfWaiting = (float64*)realloc(mpfWaiting, (size_t)(muiWaitingCapacity * 2 * sizeof(float64)));
+		mpfWaiting = (float64*)realloc(mpfWaiting, (size)(muiWaitingCapacity * 2 * sizeof(float64)));
 	}
 
 	pf = &mpfWaiting[muiWaitingFrames * 2];
@@ -254,7 +254,7 @@ void CSoundStreamVoice::Discard(lsize uiFrames)
 	if (uiFrames > 0)
 	{
 		muiWaitingFrames -= uiFrames;
-		memmove(mpfWaiting, &mpfWaiting[uiFrames * 2], (size_t)(muiWaitingFrames * 2 * sizeof(float64)));
+		memmove(mpfWaiting, &mpfWaiting[uiFrames * 2], (size)(muiWaitingFrames * 2 * sizeof(float64)));
 	}
 }
 

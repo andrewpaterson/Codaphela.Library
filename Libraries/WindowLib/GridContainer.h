@@ -1,5 +1,3 @@
-#ifndef __GRID_CONTAINER_H__
-#define __GRID_CONTAINER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __GRID_CONTAINER_H__
+#define __GRID_CONTAINER_H__
 #include "BaseLib/ArrayInt.h"
 #include "GridCell.h"
 #include "Container.h"

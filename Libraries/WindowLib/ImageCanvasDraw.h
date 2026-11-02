@@ -1,5 +1,3 @@
-#ifndef __IMAGE_CANVAS_DRAW_H__
-#define __IMAGE_CANVAS_DRAW_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,9 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __IMAGE_CANVAS_DRAW_H__
+#define __IMAGE_CANVAS_DRAW_H__
 #include "SupportLib/ImageCelBlitterCache.h"
-#include "WindowLib/CanvasDraw.h"
-#include "WindowLib/ContainerStyle.h"
+#include "CanvasDraw.h"
+#include "ContainerStyle.h"
 
 
 //Draws its cel at the top left of the canvas, or where its alignment puts it, or stretched (or shrunk) to the whole

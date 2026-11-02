@@ -52,6 +52,8 @@ void* CScratchPadAllocator::Malloc(lsize uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A new block with pv's data (as Malloc if pv is NULL, as an array's first
+// allocation is).
 //
 //////////////////////////////////////////////////////////////////////////
 void* CScratchPadAllocator::Realloc(void* pv, lsize uiSize)
@@ -65,6 +67,11 @@ void* CScratchPadAllocator::Realloc(void* pv, lsize uiSize)
 		BREAK();
 	}
 #endif // _DEBUG
+
+	if (pv == NULL)
+	{
+		return mcScratchPad.Add(uiSize);
+	}
 
 	pvNew = mcScratchPad.Add(uiSize);
 	psNode =  DataGetHeader<SSPNode, void>(pv);

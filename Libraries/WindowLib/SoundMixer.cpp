@@ -208,7 +208,7 @@ void CSoundMixer::Mix(lsize uiFrames)
 	SetMixFrames(uiFrames);
 	pfLeft = mpfMix;
 	pfRight = &mpfMix[uiFrames];
-	memset(mpfMix, 0, (size_t)(uiFrames * 2 * sizeof(float64)));
+	memset(mpfMix, 0, (size)(uiFrames * 2 * sizeof(float64)));
 
 	for (i = 0; i < maVoices.Size(); i++)
 	{
@@ -258,8 +258,8 @@ void CSoundMixer::SetMixFrames(lsize uiFrames)
 	{
 		free(mpfMix);
 		free(mpaiFrames);
-		mpfMix = (float64*)malloc((size_t)(uiFrames * 2 * sizeof(float64)));
-		mpaiFrames = (int16*)malloc((size_t)(uiFrames * 2 * sizeof(int16)));
+		mpfMix = (float64*)malloc((size)(uiFrames * 2 * sizeof(float64)));
+		mpaiFrames = (int16*)malloc((size)(uiFrames * 2 * sizeof(int16)));
 		muiMixFrames = uiFrames;
 	}
 }

@@ -1,5 +1,3 @@
-#ifndef __NATIVE_SOUND_FACTORY_H__
-#define __NATIVE_SOUND_FACTORY_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __NATIVE_SOUND_FACTORY_H__
+#define __NATIVE_SOUND_FACTORY_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Mallocator.h"

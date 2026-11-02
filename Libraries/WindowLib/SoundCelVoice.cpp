@@ -132,7 +132,7 @@ void CSoundCelVoice::Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uin
 	}
 	else
 	{
-		memcpy(pfWorkRight, pfWorkLeft, (size_t)(uiSpan * sizeof(float64)));
+		memcpy(pfWorkRight, pfWorkLeft, (size)(uiSpan * sizeof(float64)));
 	}
 
 	for (i = 0; i < uiFrames; i++)
@@ -160,7 +160,7 @@ float64* CSoundCelVoice::GetWork(lsize uiFrames)
 	if (uiFrames > muiWorkFrames)
 	{
 		free(mpfWork);
-		mpfWork = (float64*)malloc((size_t)(uiFrames * 2 * sizeof(float64)));
+		mpfWork = (float64*)malloc((size)(uiFrames * 2 * sizeof(float64)));
 		muiWorkFrames = uiFrames;
 	}
 	return mpfWork;

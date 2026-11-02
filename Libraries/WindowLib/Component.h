@@ -1,3 +1,23 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2025 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela WindowLib
+
+Codaphela WindowLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela WindowLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_H__
 #define __COMPONENT_H__
 #include "BaseLib/Constructable.h"
@@ -69,7 +89,7 @@ public:
 			Ptr<CWindow>		GetWindow(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);
 
-			void				SetActualSize(int fWidth, int fHeight);
+			void				SetActualSize(int iWidth, int iHeight);
 			void				SetActualSize(SInt32Vec2 sSize);
 			void				SetPosition(int x, int y);
 			void				SetPosition(SInt32Vec2 sPosition);
@@ -77,7 +97,7 @@ public:
 	virtual	SInt32Vec2			GetDesiredSize(void);
 	virtual	void				ScrollToShow(CInt32Rect* pcRect);
 	virtual	bool				GetScrollView(CInt32Rect* pcDest);
-			void				SetDesiredSize(int fWidth, int fHeight);
+			void				SetDesiredSize(int iWidth, int iHeight);
 			SInt32Vec2			GetActualSize(void);
 
 			void				SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);

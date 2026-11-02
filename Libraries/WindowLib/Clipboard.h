@@ -1,5 +1,3 @@
-#ifndef __CLIPBOARD_H__
-#define __CLIPBOARD_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __CLIPBOARD_H__
+#define __CLIPBOARD_H__
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"

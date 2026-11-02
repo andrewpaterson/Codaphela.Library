@@ -1,3 +1,23 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2012 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela WindowLib
+
+Codaphela WindowLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela WindowLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
@@ -500,7 +520,7 @@ bool CComponent::IsFocussed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::SetActualSize(int fWidth, int fHeight) { mcActualBounds.SetSize(fWidth, fHeight); }
+void CComponent::SetActualSize(int iWidth, int iHeight) { mcActualBounds.SetSize(iWidth, iHeight); }
 void CComponent::SetActualSize(SInt32Vec2 sSize) { mcActualBounds.SetSize(sSize.x, sSize.y); }
 void CComponent::SetPosition(int x, int y) { mcActualBounds.SetPos(x, y); }
 void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosition.x, sPosition.y); }
@@ -514,7 +534,7 @@ Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }
 void CComponent::ScrollToShow(CInt32Rect* pcRect) { if (mpParent) { mpParent->ScrollToShow(pcRect); } }  //pcRect is in the window's space.  A component that scrolls its content, like a scroll pane, moves it to show the rect.
 bool CComponent::GetScrollView(CInt32Rect* pcDest) { if (mpParent) { return mpParent->GetScrollView(pcDest); } return false; }  //The part of the window the component is seen through when it is scrolled.  False if nothing scrolls it.
-void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
+void CComponent::SetDesiredSize(int iWidth, int iHeight) { msDesiredSize.Init(iWidth, iHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
 void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; }

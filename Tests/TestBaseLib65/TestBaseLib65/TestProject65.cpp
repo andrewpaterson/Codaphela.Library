@@ -404,7 +404,12 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 		else
 		{
 			//The W65C816's own assembly for a 65C64 assembly unit (X816.asm for X.asm, and X816_16.asm with 16 bit
-			//counts), if it has some.
+			//counts), if it has some.  softfloat.cpp and math.cpp compile softfloat816.asm's functions themselves
+			//when the C++ is used instead of the assembly (TEST_PROJECT65_CPP).
+			if (!CCPP65Generator::IsW65C816Assembly() && (strcmp(gaszTestProject65Libc65[i], "softfloat.asm") == 0))
+			{
+				continue;
+			}
 			for (j = 0; gaszTestProject816Suffixes[j]; j++)
 			{
 				szUnit.Init();

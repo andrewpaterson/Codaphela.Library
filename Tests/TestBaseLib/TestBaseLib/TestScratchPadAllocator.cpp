@@ -1,6 +1,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/MemoryFile.h"
 #include "BaseLib/ScratchPadAllocator.h"
+#include "BaseLib/ArrayInt.h"
 #include "TestLib/Assert.h"
 #include "ConstructorsTestClasses.h"
 
@@ -94,6 +95,55 @@ void TestScratchPadAllocatorReadWrite(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Realloc of NULL allocates (as an array's first allocation is), and a
+// block grown or shrunk keeps its data.  An array made with the allocator
+// grows in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScratchPadAllocatorRealloc(void)
+{
+	MemoryInit();
+
+	CScratchPadAllocator	cAlloc;
+	char*					sz;
+	CArrayInt				ai;
+	int						i;
+	bool					bSame;
+
+	cAlloc.Init();
+	sz = (char*)cAlloc.Realloc(NULL, 4);
+	AssertNotNull(sz);
+	AssertSize(sizeof(SSPNode) + 4, cAlloc.GetScratchPad()->GetUsedSize());
+	memcpy(sz, "abc", 4);
+
+	sz = (char*)cAlloc.Realloc(sz, 8);
+	AssertString("abc", sz);
+	sz = (char*)cAlloc.Realloc(sz, 2);
+	AssertInt('a', sz[0]);
+	AssertInt('b', sz[1]);
+	cAlloc.Free(sz);
+
+	ai.Init(&cAlloc);
+	for (i = 0; i < 1000; i++)
+	{
+		ai.Add(i);
+	}
+	bSame = true;
+	for (i = 0; i < 1000; i++)
+	{
+		bSame &= ai.GetValue(i) == i;
+	}
+	AssertTrue(bSame);
+	ai.Kill();
+
+	cAlloc.Kill();
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestScratchPadAllocator(void)
@@ -102,6 +152,7 @@ void TestScratchPadAllocator(void)
 
 	TestScratchPadAllocatorPop();
 	TestScratchPadAllocatorReadWrite();
+	TestScratchPadAllocatorRealloc();
 
 	TestStatistics();
 }
