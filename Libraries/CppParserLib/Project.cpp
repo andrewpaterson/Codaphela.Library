@@ -26,13 +26,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// bWritePostFile: each unit's preprocessed text is written to Post\<unit> as it is processed (for looking at,
+// nothing reads it back).
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::Init(bool bDumpLogs)
+void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 {
 	mcLibraries.Init();
 
 	mbDumpLogs = bDumpLogs;
+	mbWritePostFile = bWritePostFile;
 	mcIncludeFiles.Init();
 	mcHeaderNames.Init();
 }
@@ -237,7 +240,10 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 		pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
 	}
 
-	WritePost(pcFile);
+	if (mbWritePostFile)
+	{
+		WritePost(pcFile);
+	}
 
 	cPreprocessor.Kill();
 	return bResult;
@@ -278,14 +284,20 @@ void CProject::ClearPragmaOnceFromAllFiles(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// An empty Post directory (in the current directory) for the units' Post files, when they are written
+// (bWritePostFile).
+//
 //////////////////////////////////////////////////////////////////////////
 void CProject::CreatePost(void)
 {
 	CFileUtil	cFileUtil;
 	CChars		szPath;
 
+	if (!mbWritePostFile)
+	{
+		return;
+	}
 	szPath.Init("Post");
 	cFileUtil.FullPath(&szPath);
 	cFileUtil.RemoveDir(szPath.Text());
@@ -295,8 +307,9 @@ void CProject::CreatePost(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// The unit's preprocessed text to Post\<unit> (in the current directory), replacing the file's contents.
+//
 //////////////////////////////////////////////////////////////////////////
 void CProject::WritePost(CTranslationUnit* pcTU)
 {
@@ -315,6 +328,9 @@ void CProject::WritePost(CTranslationUnit* pcTU)
 
 	pcTU->Print(&sz);
 	cDestFile.Write(sz.Text(), sz.Length(), 1);
+
+	//Opening doesn't empty a file that was there: what was longer is cut off.
+	cDestFile.Truncate(sz.Length());
 
 	sz.Kill();
 	szPath.Kill();

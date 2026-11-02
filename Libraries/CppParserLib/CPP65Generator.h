@@ -146,10 +146,22 @@ struct SCPP65Function
 	bool							bCalled;
 	SCPP65Template*					psTemplate;		//The function template this is an instance of.
 	CChars							mszArguments;	//The instance's template arguments, mangled for its label.
+	SCPP65Function*					psNextOfName;	//The next function added with the same lliName (see FirstFunctionOfName).
 };
 
 
 typedef CArrayTemplatePtr<SCPP65Function>	CArrayCPP65FunctionPtrs;
+
+
+//The functions of a name, in the order they were added: psFirst then each psNextOfName.
+struct SCPP65FunctionsOfName
+{
+	SCPP65Function*	psFirst;
+	SCPP65Function*	psLast;
+};
+
+
+typedef CMapLongTemplate<SCPP65FunctionsOfName>	CMapCPP65FunctionsOfNames;
 
 
 //How well an argument converts to a parameter, best last.
@@ -403,6 +415,7 @@ protected:
 
 	CArrayCPP65Variables	mapsGlobals;
 	CArrayCPP65FunctionPtrs	mapsFunctions;
+	CMapCPP65FunctionsOfNames	mcFunctionsOfNames;	//mapsFunctions by name (FirstFunctionOfName).
 	CArrayCPP65Classes		mapsClasses;
 	CArrayCPP65Templates	mapsTemplates;
 	CArrayCPP65BindingsPtrs	mapsAllBindings;
@@ -505,6 +518,7 @@ protected:
 
 	SCPP65Function*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, SCPP65Class* psClass, bool bPure, SCPP65Template* psTemplate = NULL, CChars* pszArguments = NULL);
 	SCPP65Function*			AddFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type* psReturn);
+	SCPP65Function*			FirstFunctionOfName(int64 lliName);
 	bool					SameParameters(SCPP65Function* psFunction, SCPP65Function* psOther);
 	void					RequireFunction(SCPP65Function* psFunction);
 	bool					Emit(CChars* pszLabel);

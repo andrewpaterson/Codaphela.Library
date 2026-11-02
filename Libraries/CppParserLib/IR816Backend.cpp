@@ -3696,39 +3696,60 @@ static uint32 IR816UnknownFlags(const char* szMnemonic)
 }
 
 
+//Every mnemonic is three lower case letters: as a key, five bits a letter (see IR816MnemonicKey).
+#define IR816_MNEMONIC_KEYS		(32 * 32 * 32)
+
+
+//Each EIR816Mnemonic by its key (IR816M_Unknown for the keys of no mnemonic), made when first needed.
+static uint8	gauiIR816MnemonicByKey[IR816_MNEMONIC_KEYS];
+static bool		gbIR816MnemonicsIndexed = false;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
-// The EIR816Mnemonic of szMnemonic (a binary search of gasIR816Mnemonics),
-// IR816M_Unknown for one it doesn't have.
+// The key of a mnemonic of three lower case letters, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816MnemonicKey(const char* szMnemonic)
+{
+	int		i;
+	int		iKey;
+
+	iKey = 0;
+	for (i = 0; i < 3; i++)
+	{
+		if ((szMnemonic[i] < 'a') || (szMnemonic[i] > 'z'))
+		{
+			return -1;
+		}
+		iKey = (iKey << 5) | (szMnemonic[i] - 'a');
+	}
+	return (szMnemonic[3] == '\0') ? iKey : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The EIR816Mnemonic of szMnemonic, IR816M_Unknown for one it doesn't have.
 //
 //////////////////////////////////////////////////////////////////////////
 static uint16 IR816FindMnemonic(const char* szMnemonic)
 {
-	int		iLow;
-	int		iHigh;
-	int		iMiddle;
-	int		iCompare;
+	int		iKey;
+	int		i;
 
-	iLow = 0;
-	iHigh = IR816M_Unknown - 1;
-	while (iLow <= iHigh)
+	if (!gbIR816MnemonicsIndexed)
 	{
-		iMiddle = (iLow + iHigh) / 2;
-		iCompare = StringCompare(szMnemonic, gasIR816Mnemonics[iMiddle].szName);
-		if (iCompare == 0)
+		memset(gauiIR816MnemonicByKey, IR816M_Unknown, sizeof(gauiIR816MnemonicByKey));
+		for (i = 0; i < IR816M_Unknown; i++)
 		{
-			return (uint16)iMiddle;
+			gauiIR816MnemonicByKey[IR816MnemonicKey(gasIR816Mnemonics[i].szName)] = (uint8)i;
 		}
-		if (iCompare < 0)
-		{
-			iHigh = iMiddle - 1;
-		}
-		else
-		{
-			iLow = iMiddle + 1;
-		}
+		gbIR816MnemonicsIndexed = true;
 	}
-	return IR816M_Unknown;
+
+	iKey = IR816MnemonicKey(szMnemonic);
+	return (iKey < 0) ? (uint16)IR816M_Unknown : gauiIR816MnemonicByKey[iKey];
 }
 
 
@@ -4119,28 +4140,119 @@ static bool IR816LabelFollows(CArrayChars* paszLines, size uiFrom, const char* s
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The index of the first instruction after label szLabel, else -1.
+// The number of a local label's name ("L12", or "L12:" with bColon), else -1.
 //
 //////////////////////////////////////////////////////////////////////////
-static size IR816LabelledInstruction(CArrayChars* paszLines, const char* szLabel)
+static int64 IR816LocalLabelNumber(const char* szLabel, bool bColon)
 {
 	size	ui;
-	size	uiLength;
+
+	if ((szLabel[0] != 'L') || (szLabel[1] < '0') || (szLabel[1] > '9') || ((szLabel[1] == '0') && (szLabel[2] >= '0') && (szLabel[2] <= '9')))
+	{
+		return -1;
+	}
+	for (ui = 1; (szLabel[ui] >= '0') && (szLabel[ui] <= '9'); ui++)
+	{
+	}
+	if (bColon ? ((szLabel[ui] != ':') || (szLabel[ui + 1] != '\0')) : (szLabel[ui] != '\0'))
+	{
+		return -1;
+	}
+	return (ui <= 10) ? atoll(&szLabel[1]) : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line local label uiNumber is defined on (its index + 1 in pauiLines, 0 for none), made again from paszLines
+// when it is out of date: lines move as others are removed, so the line found is checked to be the label's.
+// Labels are defined once.  Returns the line, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR816LocalLabelLine(CArrayChars* paszLines, CArrayTemplate<size>* pauiLines, int64 lliNumber, const char* szLabel)
+{
+	size	ui;
+	size	uiLine;
+	size	uiZero;
+	int64	lliDefined;
 	CChars*	psz;
 
-	uiLength = StrLen(szLabel);
+	uiLine = ((size)lliNumber < pauiLines->NumElements()) ? *pauiLines->Get((size)lliNumber) : 0;
+	if ((uiLine != 0) && (uiLine <= paszLines->NumElements()))
+	{
+		psz = paszLines->Get(uiLine - 1);
+		if ((psz->Length() == StrLen(szLabel) + 1) && (strncmp(psz->Text(), szLabel, psz->Length() - 1) == 0) && (psz->Text()[psz->Length() - 1] == ':'))
+		{
+			return uiLine - 1;
+		}
+	}
+
+	uiZero = 0;
+	pauiLines->FakeSetUsedElements(0);
 	for (ui = 0; ui < paszLines->NumElements(); ui++)
 	{
 		psz = paszLines->Get(ui);
-		if (IR816IsLabel(psz) && (psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+		lliDefined = IR816IsLabel(psz) ? IR816LocalLabelNumber(psz->Text(), true) : -1;
+		if (lliDefined < 0)
 		{
-			for (ui++; (ui < paszLines->NumElements()) && IR816IsLabel(paszLines->Get(ui)); ui++)
-			{
-			}
-			return (ui < paszLines->NumElements()) ? ui : (size)-1;
+			continue;
+		}
+		while (pauiLines->NumElements() <= (size)lliDefined)
+		{
+			pauiLines->Add(&uiZero);
+		}
+		if (*pauiLines->Get((size)lliDefined) == 0)
+		{
+			*pauiLines->Get((size)lliDefined) = ui + 1;
 		}
 	}
-	return (size)-1;
+	uiLine = ((size)lliNumber < pauiLines->NumElements()) ? *pauiLines->Get((size)lliNumber) : 0;
+	return (uiLine != 0) ? uiLine - 1 : (size)-1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of the first instruction after label szLabel, else -1.  pauiLabelLines is where local labels are
+// defined (IR816LocalLabelLine), so they aren't searched for.
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR816LabelledInstruction(CArrayChars* paszLines, const char* szLabel, CArrayTemplate<size>* pauiLabelLines)
+{
+	size	ui;
+	size	uiLength;
+	int64	lliNumber;
+	CChars*	psz;
+
+	lliNumber = IR816LocalLabelNumber(szLabel, false);
+	if (lliNumber >= 0)
+	{
+		ui = IR816LocalLabelLine(paszLines, pauiLabelLines, lliNumber, szLabel);
+	}
+	else
+	{
+		uiLength = StrLen(szLabel);
+		for (ui = 0; ui < paszLines->NumElements(); ui++)
+		{
+			psz = paszLines->Get(ui);
+			if (IR816IsLabel(psz) && (psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+			{
+				break;
+			}
+		}
+		if (ui == paszLines->NumElements())
+		{
+			ui = (size)-1;
+		}
+	}
+	if (ui == (size)-1)
+	{
+		return (size)-1;
+	}
+	for (ui++; (ui < paszLines->NumElements()) && IR816IsLabel(paszLines->Get(ui)); ui++)
+	{
+	}
+	return (ui < paszLines->NumElements()) ? ui : (size)-1;
 }
 
 
@@ -4173,15 +4285,74 @@ static bool IR816IsDecimal(const char* szOperand)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a local label ("L12:") is named by an instruction's operand.
+// Adds iChange to the count of each local label (L and a number) an instruction line names, in paiMentions by
+// number.  A name is bounded by characters that can't be in a name, as IR816LabelUsed matches it.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816LabelUsed(CArrayChars* paszLines, CChars* pszLabel)
+static void IR816CountMentions(const char* szLine, CArrayTemplate<int32>* paiMentions, int32 iChange)
+{
+	const char*	szAt;
+	const char*	szEnd;
+	int64		lliNumber;
+	int32		iZero;
+
+	iZero = 0;
+	for (szAt = szLine; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
+	{
+		if ((szAt == szLine) || IR816IsNameCharacter(szAt[-1]) || (szAt[1] < '0') || (szAt[1] > '9'))
+		{
+			continue;
+		}
+		for (szEnd = szAt + 1; (*szEnd >= '0') && (*szEnd <= '9'); szEnd++)
+		{
+		}
+		if (IR816IsNameCharacter(*szEnd) || ((szAt[1] == '0') && (szEnd - szAt > 2)) || (szEnd - szAt > 11))
+		{
+			continue;
+		}
+		lliNumber = atoll(szAt + 1);
+		while (paiMentions->NumElements() <= (size)lliNumber)
+		{
+			paiMentions->Add(&iZero);
+		}
+		*paiMentions->Get((size)lliNumber) += iChange;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a label ("L12:") is named by an instruction's operand.  A local label's mentions are counted
+// (IR816CountMentions, made when first needed and kept up to date as lines are removed: *pbCounted); another's
+// are searched for.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LabelUsed(CArrayChars* paszLines, CChars* pszLabel, CArrayTemplate<int32>* paiMentions, bool* pbCounted)
 {
 	size		ui;
 	size		uiLength;
+	int64		lliNumber;
 	const char*	szAt;
 	const char*	szText;
+
+	lliNumber = IR816LocalLabelNumber(pszLabel->Text(), true);
+	if (lliNumber >= 0)
+	{
+		if (!*pbCounted)
+		{
+			paiMentions->FakeSetUsedElements(0);
+			for (ui = 0; ui < paszLines->NumElements(); ui++)
+			{
+				szText = paszLines->GetText(ui);
+				if (szText[0] == '\t')
+				{
+					IR816CountMentions(szText, paiMentions, 1);
+				}
+			}
+			*pbCounted = true;
+		}
+		return ((size)lliNumber < paiMentions->NumElements()) && (*paiMentions->Get((size)lliNumber) > 0);
+	}
 
 	uiLength = pszLabel->Length() - 1;
 	for (ui = 0; ui < paszLines->NumElements(); ui++)
@@ -4212,11 +4383,15 @@ static bool IR816LabelUsed(CArrayChars* paszLines, CChars* pszLabel)
 //////////////////////////////////////////////////////////////////////////
 static bool IR816Unreachable(CArrayChars* paszLines)
 {
-	size	ui;
-	CChars*	psz;
-	bool	bChanged;
+	size					ui;
+	CChars*					psz;
+	bool					bChanged;
+	CArrayTemplate<int32>	aiMentions;
+	bool					bCounted;
 
 	bChanged = false;
+	aiMentions.Init();
+	bCounted = false;
 	for (ui = 0; ui + 1 < paszLines->NumElements(); ui++)
 	{
 		if (!IR816LineHas(paszLines->Get(ui), IR816MF_ENDS_FLOW))
@@ -4226,7 +4401,7 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 		while (ui + 1 < paszLines->NumElements())
 		{
 			psz = paszLines->Get(ui + 1);
-			if (psz->Empty() || ((psz->Text()[0] != '\t') && ((psz->Text()[0] != 'L') || !IR816IsLabel(psz) || IR816LabelUsed(paszLines, psz))))
+			if (psz->Empty() || ((psz->Text()[0] != '\t') && ((psz->Text()[0] != 'L') || !IR816IsLabel(psz) || IR816LabelUsed(paszLines, psz, &aiMentions, &bCounted))))
 			{
 				break;
 			}
@@ -4234,10 +4409,15 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 			{
 				break;
 			}
+			if (bCounted && (psz->Text()[0] == '\t'))
+			{
+				IR816CountMentions(psz->Text(), &aiMentions, -1);
+			}
 			paszLines->Remove(ui + 1);
 			bChanged = true;
 		}
 	}
+	aiMentions.Kill();
 	return bChanged;
 }
 
@@ -4247,10 +4427,11 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 // Whether what runs from line uiFrom on (past labels, following bras, past
 // instructions that leave A and don't read it or N and Z: IR816LeavesA)
 // starts with an instruction that sets all of A (IR816MF_LOADS_A) and N and
-// Z, so a value in A and its flags aren't read.
+// Z, so a value in A and its flags aren't read.  pauiLabelLines is as for
+// IR816LabelledInstruction.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom)
+static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom, CArrayTemplate<size>* pauiLabelLines)
 {
 	size		ui;
 	size		uiTarget;
@@ -4273,7 +4454,7 @@ static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom)
 		}
 		if (IR816BranchLine(paszLines->Get(ui), &sLine, szLabel) && (sLine.uiMnemonic == IR816M_Bra))
 		{
-			uiTarget = IR816LabelledInstruction(paszLines, szLabel);
+			uiTarget = IR816LabelledInstruction(paszLines, szLabel, pauiLabelLines);
 			if (uiTarget == (size)-1)
 			{
 				return false;
@@ -4323,17 +4504,6 @@ static bool IR816SetsXFirst(CArrayChars* paszLines, size uiFrom)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether c may be part of a name (so an L after it doesn't start a label).
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816IsNameChar(char c)
-{
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The local labels (L and a number) the lines name anywhere but in their
 // own definitions (branches, jumps and jump tables' .words), marked by
 // number in pabUsed.
@@ -4360,7 +4530,7 @@ static void IR816FindUsedLabels(CArrayChars* paszLines, CArrayTemplate<uint8>* p
 		}
 		for (; *szText; szText++)
 		{
-			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == paszLines->GetText(ui)) || !IR816IsNameChar(szText[-1])))
+			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == paszLines->GetText(ui)) || !IR816IsNameCharacter(szText[-1])))
 			{
 				uiNumber = (size)atoi(&szText[1]);
 				while (pabUsed->NumElements() <= uiNumber)
@@ -4436,6 +4606,7 @@ static void IR816SetBranch(CChars* psz, const char* szMnemonic, const char* szLa
 void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 {
 	CArrayTemplate<uint8>	abUsed;
+	CArrayTemplate<size>	auiLabelLines;
 	CArrayChars				aszLines;
 	CChars					szOut;
 	CChars*					psz;
@@ -4457,6 +4628,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 		aszLines.RemoveTail();
 	}
 	abUsed.Init();
+	auiLabelLines.Init();
 	for (iPass = 0; iPass < 8; iPass++)
 	{
 		bChanged = false;
@@ -4475,7 +4647,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 			if (IR816BranchLine(psz, &sLine, szLabel))
 			{
 				//To a bra: straight to where it goes.
-				uiTarget = IR816LabelledInstruction(&aszLines, szLabel);
+				uiTarget = IR816LabelledInstruction(&aszLines, szLabel, &auiLabelLines);
 				if ((uiTarget != (size)-1) && IR816BranchLine(aszLines.Get(uiTarget), &sLine2, szLabel2) && (sLine2.uiMnemonic == IR816M_Bra) &&
 					(StringCompare(szLabel2, szLabel) != 0))
 				{
@@ -4532,7 +4704,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 			if ((psz->Length() > 3) && IR816DecodeLine(psz, &sLine))
 			{
 				if ((sLine.uiMnemonic == IR816M_Lda) && ((strncmp(sLine.szOperand, "[D + ", 5) == 0) || IR816IsDecimal(sLine.szOperand)) &&
-					IR816SetsAFirst(&aszLines, ui + 1))
+					IR816SetsAFirst(&aszLines, ui + 1, &auiLabelLines))
 				{
 					aszLines.Remove(ui);
 					ui--;
@@ -4597,6 +4769,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	pszDest->Append(szOut);
 	szOut.Kill();
 	aszLines.Kill();
+	auiLabelLines.Kill();
 	abUsed.Kill();
 }
 

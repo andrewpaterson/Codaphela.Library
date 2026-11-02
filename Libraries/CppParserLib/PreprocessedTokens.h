@@ -89,6 +89,9 @@ struct SPreprocessedToken
 typedef CArrayTemplate<SPreprocessedToken>	CArrayPreprocessedTokens;
 
 
+#define PREPROCESSED_TOKENS_DOUBLE_FROM		0x1000	//CPreprocessedTokens' array doubles when full from this many tokens.
+
+
 //One expansion of a macro.  The tokens it made refer to it by index.
 struct SMacroExpansion
 {

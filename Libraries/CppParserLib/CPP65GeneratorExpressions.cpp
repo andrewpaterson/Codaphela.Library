@@ -520,7 +520,6 @@ SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, 
 	SCPP65Function*		psFound;
 	SCPP65Class*		psClass;
 	CCPPSyntaxName*		pcName;
-	size				i;
 	bool				bOverloaded;
 	bool				bQualified;
 
@@ -545,10 +544,9 @@ SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, 
 		psFound = FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
 	}
 
-	for (i = 0; !psFound && !bQualified && (i < mapsFunctions.NumElements()); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction && !psFound && !bQualified; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if (!psFunction->psClass && (psFunction->lliName == lliName) && !psFunction->psTemplate)
+		if (!psFunction->psClass && !psFunction->psTemplate)
 		{
 			if (psTarget && psTarget->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
 			{
@@ -594,10 +592,9 @@ SCPP65Function* CCPP65Generator::FindStaticFunction(SCPP65Class* psClass, int64 
 
 	psFound = NULL;
 	*pbOverloaded = false;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass == psClass) && psFunction->bStatic && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
+		if ((psFunction->psClass == psClass) && psFunction->bStatic && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
 		{
 			if (psTarget && psTarget->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
 			{
@@ -1629,10 +1626,9 @@ bool CCPP65Generator::HasMember(SCPP65Class* psClass, int64 lliName)
 	{
 		return false;
 	}
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass == psClass) && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function))
+		if ((psFunction->psClass == psClass) && (psFunction->eKind == CPP65FK_Function))
 		{
 			return true;
 		}
@@ -1708,10 +1704,9 @@ bool CCPP65Generator::MemberFunctionAddress(SCPP65Class* psClass, int64 lliName,
 	size				i;
 
 	psFound = NULL;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->psClass == psClass) && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
+		if ((psFunction->psClass == psClass) && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
 		{
 			if (psFound)
 			{

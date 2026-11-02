@@ -464,8 +464,10 @@ bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psTok
 				continue;
 			}
 
-			psSource->acTokens.Kill();
-			psSource->acTokens.Init();
+			//The line's tokens replace the last line's in the same memory (the array is emptied, not freed).  Not a
+			//CReuseAllocator: it keeps one block, and sources nest (an #include's lines are read while the including
+			//file's array still holds its own).
+			psSource->acTokens.FakeSetUsedElements(0);
 			psSource->iToken = 0;
 			psSource->iCurrentLine = pcToken->Line();
 			ConvertTokens(((CPPLine*)pcToken)->GetTokenList(), pcFile, NULL, true, &psSource->acTokens);

@@ -1,6 +1,8 @@
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
+#include "BaseLib/TextFile.h"
+#include "BaseLib/FileUtil.h"
 #include "CppParserLib/Project.h"
 #include "TestLib/Assert.h"
 
@@ -129,6 +131,103 @@ void TestReinclude(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The Post file's text (see TestWritePostFile).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertPostFile(const char* szExpected, const char* szFilename)
+{
+	CTextFile	cFile;
+
+	cFile.Init();
+	AssertTrue(cFile.Read(szFilename));
+	AssertString(szExpected, cFile.Text());
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bWritePostFile a unit's preprocessed text is written to Post\<unit>.  Processed again (as CCPP65Builder
+// does, without emptying Post) it replaces a longer file that was there.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWritePostFile(void)
+{
+	TypesInit();
+	TypeConverterInit();
+	NumberInit();
+
+	CProject			cProject;
+	CLibrary*			pcLibrary;
+	CConfig*			pcConfig;
+	CTranslationUnit*	pcTU;
+	CTextFile			cFile;
+	CFileUtil			cFileUtil;
+	const char*			szExpected;
+
+	//TestHeader2.h's declaration, then TestUnit4.cpp without its comment.
+	szExpected = "extern float gfYayForFloat;\nvoid TestUnit4(void)\n{\n};\n";
+
+	cProject.Init(false, true);
+	pcLibrary = cProject.AddLibrary("Test", ".", false);
+	pcLibrary->AddHeaderFile("TestHeader2.h");
+	pcTU = pcLibrary->AddTranslationUnit("TestUnit4.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE");
+	AssertTrue(cProject.Process("Debug"));
+	AssertPostFile(szExpected, "Post" _FS_ "TestUnit4.cpp");
+
+	cFile.Init("A stale Post file, longer than the unit's preprocessed text, from an earlier run.  Its end must not be left behind when the file is written again.\n");
+	AssertTrue(cFile.Write("Post" _FS_ "TestUnit4.cpp"));
+	cFile.Kill();
+	AssertTrue(cProject.ProcessUnit(pcTU, "Debug"));
+	AssertPostFile(szExpected, "Post" _FS_ "TestUnit4.cpp");
+
+	cProject.Kill();
+	AssertTrue(cFileUtil.Delete("Post" _FS_ "TestUnit4.cpp"));
+
+	NumberKill();
+	TypeConverterKill();
+	TypesKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Without bWritePostFile no Post file is written.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestNoPostFile(void)
+{
+	TypesInit();
+	TypeConverterInit();
+	NumberInit();
+
+	CProject			cProject;
+	CLibrary*			pcLibrary;
+	CConfig*			pcConfig;
+	CFileUtil			cFileUtil;
+
+	cFileUtil.Delete("Post" _FS_ "TestUnit3.cpp");
+
+	cProject.Init(false);
+	pcLibrary = cProject.AddLibrary("Test", ".", false);
+	pcLibrary->AddTranslationUnit("TestUnit3.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE");
+	AssertTrue(cProject.Process("Debug"));
+	cProject.Kill();
+
+	AssertFalse(cFileUtil.Exists("Post" _FS_ "TestUnit3.cpp"));
+
+	NumberKill();
+	TypeConverterKill();
+	TypesKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProject(void)
@@ -138,6 +237,8 @@ void TestProject(void)
 	TestNoInclude();
 	TestOneInclude();
 	TestReinclude();
+	TestWritePostFile();
+	TestNoPostFile();
 
 	TestStatistics();
 }

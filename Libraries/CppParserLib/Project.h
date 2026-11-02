@@ -43,11 +43,12 @@ class CProject
 protected:
 	CListLibraries			mcLibraries;
 	bool					mbDumpLogs;
+	bool					mbWritePostFile;	//Each unit's preprocessed text is written to Post\<unit> (WritePost).
 	CArrayHeaderNameMap		mcHeaderNames;
 	CHeaderFileMap			mcIncludeFiles;
 
 public:
-	void				Init(bool bDumpLogs = false);
+	void				Init(bool bDumpLogs = false, bool bWritePostFile = false);
 	void				Kill(void);
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);

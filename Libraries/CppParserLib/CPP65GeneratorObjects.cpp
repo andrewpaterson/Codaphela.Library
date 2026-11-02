@@ -754,10 +754,9 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	bool							bDeclared;
 
 	bDeclared = false;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if (!psFunction->psClass && (psFunction->lliName == lliName) && !psFunction->psTemplate)
+		if (!psFunction->psClass && !psFunction->psTemplate)
 		{
 			bDeclared = true;
 		}

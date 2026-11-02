@@ -201,6 +201,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 
 	mapsGlobals.Init();
 	mapsFunctions.Init();
+	mcFunctionsOfNames.Init(true);
 	mapsClasses.Init();
 	mapsTemplates.Init();
 	mapsAllBindings.Init();
@@ -298,6 +299,7 @@ void CCPP65Generator::Kill(void)
 		psFunction->mapsParameters.Kill();
 		SafeFree(psFunction);
 	}
+	mcFunctionsOfNames.Kill();
 	mapsFunctions.Kill();
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
@@ -1637,10 +1639,9 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	//A declaration of a function declared before.
 	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{
-		psOther = mapsFunctions.GetPtr(i);
-		if ((psOther->psClass != psClass) || (psOther->lliName != lliName) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate))
+		if ((psOther->psClass != psClass) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate))
 		{
 			continue;
 		}
@@ -1722,9 +1723,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 //////////////////////////////////////////////////////////////////////////
 SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type* psReturn)
 {
-	SCPP65Function*	psFunction;
-	SCPP65Function*	psOther;
-	size			i;
+	SCPP65Function*			psFunction;
+	SCPP65Function*			psOther;
+	SCPP65FunctionsOfName*	psOfName;
+	SCPP65FunctionsOfName	sOfName;
 
 	psFunction = NewMalloc<SCPP65Function>();
 	psFunction->lliName = lliName;
@@ -1754,16 +1756,44 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->bCalled = false;
 	psFunction->psTemplate = NULL;
 	psFunction->mszArguments.Init();
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	psFunction->psNextOfName = NULL;
+	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{
-		psOther = mapsFunctions.GetPtr(i);
-		if ((psOther->psClass == psClass) && (psOther->lliName == lliName) && (psOther->eKind == eKind) && !psOther->psTemplate)
+		if ((psOther->psClass == psClass) && (psOther->eKind == eKind) && !psOther->psTemplate)
 		{
 			psFunction->iOverload++;
 		}
 	}
 	mapsFunctions.Add(psFunction);
+
+	psOfName = mcFunctionsOfNames.Get(lliName);
+	if (psOfName)
+	{
+		psOfName->psLast->psNextOfName = psFunction;
+		psOfName->psLast = psFunction;
+	}
+	else
+	{
+		sOfName.psFirst = psFunction;
+		sOfName.psLast = psFunction;
+		mcFunctionsOfNames.Put(lliName, &sOfName);
+	}
 	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first function added with the name, or NULL.  The others follow it (psNextOfName) in the order they
+// were added, as in mapsFunctions.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FirstFunctionOfName(int64 lliName)
+{
+	SCPP65FunctionsOfName*	psOfName;
+
+	psOfName = mcFunctionsOfNames.Get(lliName);
+	return psOfName ? psOfName->psFirst : NULL;
 }
 
 

@@ -157,6 +157,12 @@ void CPreprocessedTokens::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 SPreprocessedToken* CPreprocessedTokens::Add(SPreprocessedToken* psToken)
 {
+	//A unit can have a million tokens: the array doubles when it is full (its chunk is set to its size), where the
+	//array's own chunks (at most 60750 elements) would copy it over and over as it grows.
+	if ((macTokens.NumElements() == macTokens.AllocatedElements()) && (macTokens.NumElements() >= PREPROCESSED_TOKENS_DOUBLE_FROM))
+	{
+		macTokens.SetAllocateSize(macTokens.NumElements());
+	}
 	return macTokens.Add(psToken);
 }
 

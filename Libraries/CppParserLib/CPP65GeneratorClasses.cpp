@@ -2442,10 +2442,9 @@ bool CCPP65Generator::IsOverloadOf(SCPP65Class* psClass, SCPP65Function* psFunct
 	{
 		return false;
 	}
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psOwn = FirstFunctionOfName(lliName); psOwn; psOwn = psOwn->psNextOfName)
 	{
-		psOwn = mapsFunctions.GetPtr(i);
-		if ((psOwn->psClass != psClass) || (psOwn->lliName != lliName) || (psOwn->eKind != psFunction->eKind) || psOwn->psTemplate || (psOwn->mapsParameters.NumElements() != psFunction->mapsParameters.NumElements()))
+		if ((psOwn->psClass != psClass) || (psOwn->eKind != psFunction->eKind) || psOwn->psTemplate || (psOwn->mapsParameters.NumElements() != psFunction->mapsParameters.NumElements()))
 		{
 			continue;
 		}
@@ -3220,10 +3219,9 @@ void CCPP65Generator::NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECP
 
 	psOnly = NULL;
 	uiCandidates = 0;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->lliName == lliName) && (psFunction->eKind == eKind) && !psFunction->psTemplate && IsOverloadOf(psClass, psFunction, lliName))
+		if ((psFunction->eKind == eKind) && !psFunction->psTemplate && IsOverloadOf(psClass, psFunction, lliName))
 		{
 			psOnly = psFunction;
 			uiCandidates++;
@@ -3303,10 +3301,9 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	//checked to be better than every other.
 	psBest = NULL;
 	bFound = false;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->lliName != lliName) || (psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
+		if ((psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
 		{
 			continue;
 		}
@@ -3322,10 +3319,9 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		}
 	}
 	bAmbiguous = false;
-	for (i = 0; psBest && (i < mapsFunctions.NumElements()); i++)
+	for (psFunction = psBest ? FirstFunctionOfName(lliName) : NULL; psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction == psBest) || (psFunction->lliName != lliName) || (psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
+		if ((psFunction == psBest) || (psFunction->eKind != eKind) || psFunction->psTemplate || !IsOverloadOf(psClass, psFunction, lliName))
 		{
 			continue;
 		}
@@ -5305,7 +5301,6 @@ SCPP65Function* CCPP65Generator::FindConversion(SCPP65Class* psClass, SCPP65Type
 	SCPP65Function*	psBest;
 	int				iRank;
 	int				iBest;
-	size			i;
 
 	if (!CompleteClass(psClass, pcNode))
 	{
@@ -5313,10 +5308,9 @@ SCPP65Function* CCPP65Generator::FindConversion(SCPP65Class* psClass, SCPP65Type
 	}
 	psBest = NULL;
 	iBest = CPP65CR_None;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	for (psFunction = FirstFunctionOfName(CPP65_CONVERSION_NAME); psFunction; psFunction = psFunction->psNextOfName)
 	{
-		psFunction = mapsFunctions.GetPtr(i);
-		if ((psFunction->lliName != CPP65_CONVERSION_NAME) || psFunction->psTemplate || (psFunction->bExplicit && !bExplicit) || !IsDerived(psClass, psFunction->psClass, NULL))
+		if (psFunction->psTemplate || (psFunction->bExplicit && !bExplicit) || !IsDerived(psClass, psFunction->psClass, NULL))
 		{
 			continue;
 		}

@@ -22,14 +22,34 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Punctuators.h"
 
 
-static const char* gaszPunctuators[] =
+//Each punctuator with its length, so a lookup compares the first character before anything else (the
+//preprocessor looks up every run of punctuation characters).
+struct SPunctuator
 {
-	"{", "}", "[", "]", "#", "##", "(", ")", "<:", ":>", "<%", "%>", "%:", "%:%:", ";", ":", "...",
-	"?", "::", ".", ".*", "+", "-", "*", "/", "%", "^", "&", "|", "~", "!", "=", "<", ">",
-	"+=", "-=", "*=", "/=", "%=", "^=", "&=", "|=", "<<", ">>", ">>=", "<<=", "==", "!=", "<=", ">=",
-	"&&", "||", "++", "--", ",", "->*", "->",
-	NULL
+	const char*	sz;
+	size		uiLength;
 };
+
+
+#define PUNCTUATOR(sz)	{ sz, sizeof(sz) - 1 }
+
+
+static const SPunctuator gasPunctuators[] =
+{
+	PUNCTUATOR("{"), PUNCTUATOR("}"), PUNCTUATOR("["), PUNCTUATOR("]"), PUNCTUATOR("#"), PUNCTUATOR("##"),
+	PUNCTUATOR("("), PUNCTUATOR(")"), PUNCTUATOR("<:"), PUNCTUATOR(":>"), PUNCTUATOR("<%"), PUNCTUATOR("%>"),
+	PUNCTUATOR("%:"), PUNCTUATOR("%:%:"), PUNCTUATOR(";"), PUNCTUATOR(":"), PUNCTUATOR("..."), PUNCTUATOR("?"),
+	PUNCTUATOR("::"), PUNCTUATOR("."), PUNCTUATOR(".*"), PUNCTUATOR("+"), PUNCTUATOR("-"), PUNCTUATOR("*"),
+	PUNCTUATOR("/"), PUNCTUATOR("%"), PUNCTUATOR("^"), PUNCTUATOR("&"), PUNCTUATOR("|"), PUNCTUATOR("~"),
+	PUNCTUATOR("!"), PUNCTUATOR("="), PUNCTUATOR("<"), PUNCTUATOR(">"), PUNCTUATOR("+="), PUNCTUATOR("-="),
+	PUNCTUATOR("*="), PUNCTUATOR("/="), PUNCTUATOR("%="), PUNCTUATOR("^="), PUNCTUATOR("&="), PUNCTUATOR("|="),
+	PUNCTUATOR("<<"), PUNCTUATOR(">>"), PUNCTUATOR(">>="), PUNCTUATOR("<<="), PUNCTUATOR("=="), PUNCTUATOR("!="),
+	PUNCTUATOR("<="), PUNCTUATOR(">="), PUNCTUATOR("&&"), PUNCTUATOR("||"), PUNCTUATOR("++"), PUNCTUATOR("--"),
+	PUNCTUATOR(","), PUNCTUATOR("->*"), PUNCTUATOR("->"),
+};
+
+
+#define NUM_PUNCTUATORS	(sizeof(gasPunctuators) / sizeof(SPunctuator))
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,11 +58,17 @@ static const char* gaszPunctuators[] =
 //////////////////////////////////////////////////////////////////////////
 bool IsPunctuator(const char* sz, size uiLength)
 {
-	size	i;
+	size				i;
+	const SPunctuator*	psPunctuator;
 
-	for (i = 0; gaszPunctuators[i] != NULL; i++)
+	if (uiLength == 0)
 	{
-		if ((strlen(gaszPunctuators[i]) == uiLength) && (memcmp(gaszPunctuators[i], sz, uiLength) == 0))
+		return false;
+	}
+	for (i = 0; i < NUM_PUNCTUATORS; i++)
+	{
+		psPunctuator = &gasPunctuators[i];
+		if ((psPunctuator->sz[0] == sz[0]) && (psPunctuator->uiLength == uiLength) && (memcmp(psPunctuator->sz, sz, uiLength) == 0))
 		{
 			return true;
 		}
@@ -57,11 +83,17 @@ bool IsPunctuator(const char* sz, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 bool IsPunctuatorPrefix(const char* sz, size uiLength)
 {
-	size	i;
+	size				i;
+	const SPunctuator*	psPunctuator;
 
-	for (i = 0; gaszPunctuators[i] != NULL; i++)
+	if (uiLength == 0)
 	{
-		if ((strlen(gaszPunctuators[i]) >= uiLength) && (memcmp(gaszPunctuators[i], sz, uiLength) == 0))
+		return true;
+	}
+	for (i = 0; i < NUM_PUNCTUATORS; i++)
+	{
+		psPunctuator = &gasPunctuators[i];
+		if ((psPunctuator->sz[0] == sz[0]) && (psPunctuator->uiLength >= uiLength) && (memcmp(psPunctuator->sz, sz, uiLength) == 0))
 		{
 			return true;
 		}
@@ -76,17 +108,21 @@ bool IsPunctuatorPrefix(const char* sz, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 size PunctuatorLength(const char* sz, size uiAvailable)
 {
-	size	i;
-	size	uiLength;
-	size	uiBest;
+	size				i;
+	size				uiBest;
+	const SPunctuator*	psPunctuator;
 
 	uiBest = 0;
-	for (i = 0; gaszPunctuators[i] != NULL; i++)
+	if (uiAvailable == 0)
 	{
-		uiLength = strlen(gaszPunctuators[i]);
-		if ((uiLength > uiBest) && (uiLength <= uiAvailable) && (memcmp(gaszPunctuators[i], sz, uiLength) == 0))
+		return 0;
+	}
+	for (i = 0; i < NUM_PUNCTUATORS; i++)
+	{
+		psPunctuator = &gasPunctuators[i];
+		if ((psPunctuator->sz[0] == sz[0]) && (psPunctuator->uiLength > uiBest) && (psPunctuator->uiLength <= uiAvailable) && (memcmp(psPunctuator->sz, sz, psPunctuator->uiLength) == 0))
 		{
-			uiBest = uiLength;
+			uiBest = psPunctuator->uiLength;
 		}
 	}
 
