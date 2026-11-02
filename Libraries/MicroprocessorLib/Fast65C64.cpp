@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include "BaseLib/Define.h"
 #include "65C64Decoded.h"
 #include "Fast65C64.h"
 
@@ -365,18 +366,58 @@ bool CFast65C64::Step(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a Step is more than its instruction: the processor stopped or waiting, or an interrupt pending
+// (edge) or its input low (level).  (A disabled interrupt needs nothing, but is rare enough to leave to Step.)
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C64::NeedsDeciding(void)
+{
+	return (mbStopped | mbWaiting | (muiPendingEdges != 0) | mbLevelInterrupt) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Steps until the processor stops.  Returns the number of steps, counting the one that stopped.
+//
+// It does what that many Steps do.  While a Step would only execute its instruction (not NeedsDeciding) the
+// instructions are executed one after another without the rest of Step.  When an instruction changes that
+// (stp, or a callback setting an interrupt input) the end of its Step is done, and Step does the steps after
+// it until the next would only execute again.
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C64::Run(size uiMaxInstructions)
 {
 	size	i;
 
-	for (i = 0; i < uiMaxInstructions; i++)
+	i = 0;
+	while (i < uiMaxInstructions)
 	{
-		if (!Step())
+		if (NeedsDeciding())
 		{
-			return i + 1;
+			i++;
+			if (!Step())
+			{
+				return i;
+			}
+			continue;
+		}
+
+		do
+		{
+			Execute();
+			i++;
+		}
+		while ((i < uiMaxInstructions) && !NeedsDeciding());
+
+		//The end of the last instruction's Step.
+		if (mbStopped)
+		{
+			return i;
+		}
+		if (muiPendingEdges || mbLevelInterrupt)
+		{
+			EnterInterrupt();
 		}
 	}
 	return i;
@@ -1697,9 +1738,10 @@ void CFast65C64::PullOperand(SFast65C64Op* psOp, uint16* auiWords)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Inlined into Run's loop and Step, so an instruction is not also a call.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C64::Execute(void)
+FORCE_INLINE void CFast65C64::Execute(void)
 {
 	SFast65C64Op*	psOp;
 	uint16			auiWords[MAX_65C64_OPERAND_WORDS];

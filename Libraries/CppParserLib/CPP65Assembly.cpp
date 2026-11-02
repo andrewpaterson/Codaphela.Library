@@ -38,8 +38,11 @@ void CCPP65Assembly::Init(CSpillStore* pcStore)
 	mszText.Init();
 	mpcStore = pcStore;
 	mauiPieces.Init();
-	mszPiece.Init();
-	mszLine.Init();
+	//A piece is at most the store's MaxDataSize, so its memory is always kept.
+	mcPieceMalloc.Init(0);
+	mcLineMalloc.Init(CPP65_ASSEMBLY_KEEP_LINE);
+	mszPiece.Init(&mcPieceMalloc);
+	mszLine.Init(&mcLineMalloc);
 	Rewind();
 }
 
@@ -58,6 +61,8 @@ void CCPP65Assembly::Kill(void)
 	}
 	mszLine.Kill();
 	mszPiece.Kill();
+	mcLineMalloc.Kill();
+	mcPieceMalloc.Kill();
 	mauiPieces.Kill();
 	mszText.Kill();
 }

@@ -315,6 +315,13 @@ void TestCppTokeniserIdentifierIndex(void)
 	char*		szName;
 	int			iLength;
 	int			i;
+	const char*	szValueAndMore;
+	const char*	szCountMe;
+
+	//A name's start and last character are in the same string: two equal literals are only the same string
+	//when the compiler pools them (not in Debug).
+	szValueAndMore = "ValueAndMore";
+	szCountMe = "CountMe";
 
 	cIndex.Init();
 	AssertInt(0, cIndex.NumElements());
@@ -323,13 +330,13 @@ void TestCppTokeniserIdentifierIndex(void)
 
 	AssertLong(0, cIndex.Add("miCount"));
 	AssertLong(1, cIndex.Add("Count"));
-	AssertLong(2, cIndex.Add("ValueAndMore", "ValueAndMore" + 4));
+	AssertLong(2, cIndex.Add(szValueAndMore, szValueAndMore + 4));
 	AssertLong(-1, cIndex.Add("Count"));
 	AssertInt(3, cIndex.NumElements());
 
 	AssertLong(0, cIndex.Get("miCount", NULL, true));
 	AssertLong(1, cIndex.Get("Count", NULL, true));
-	AssertLong(1, cIndex.Get("CountMe", "CountMe" + 4, true));
+	AssertLong(1, cIndex.Get(szCountMe, szCountMe + 4, true));
 	AssertLong(-1, cIndex.Get("Coun", NULL, true));
 	szName = cIndex.Get(2, &iLength);
 	AssertString("Value", szName);

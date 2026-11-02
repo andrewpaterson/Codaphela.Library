@@ -22,11 +22,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __CPP65_ASSEMBLY_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ReuseAllocator.h"
 #include "Assembler65Lib/Asm65Source.h"
 #include "SpillStore.h"
 
 
 #define CPP65_ASSEMBLY_MARKER	'\x01'		//Around a function's index in the text (IR65_FRONT_END_MARKER).
+#define CPP65_ASSEMBLY_KEEP_LINE	0x10000		//A line's memory bigger than this is not kept for the next line.
 
 
 //A unit's assembly as the generator leaves it: the text (code, thunks, data and
@@ -49,6 +51,9 @@ protected:
 	size							muiPiecePos;	//where in it,
 	CChars							mszLine;		//and the line read.
 	bool							mbDone;
+
+	CReuseAllocator					mcPieceMalloc;	//mszPiece's and mszLine's memory, kept from one piece or line to
+	CReuseAllocator					mcLineMalloc;	//the next.
 
 public:
 	void			Init(CSpillStore* pcStore);

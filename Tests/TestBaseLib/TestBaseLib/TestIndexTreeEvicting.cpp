@@ -891,6 +891,63 @@ void TestIndexTreeEvictingEmpty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Discard kills a tree that is not flushed: what was flushed is in the files, what was not is lost.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexTreeEvictingDiscard(void)
+{
+	CIndexTreeEvictingAccess 				cAccess;
+	CIndexTreeEvicting						cIndexTree;
+	CIndexTreeHelper						cHelper;
+	CDurableFileController					cController;
+	CIndexTreeEvictionStrategyDataOrderer	cEvictionStrategy;
+	CAccessDataOrderer						cDataOrderer;
+	char									szData[32];
+
+	cHelper.Init("Output" _FS_ "IndexTreeEvicting6", "primary", "backup", true);
+	cController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	cController.SetSync(DS_No);
+
+	cDataOrderer.Init();
+	cEvictionStrategy.Init(LifeLocal<CIndexTreeDataOrderer>(&cDataOrderer));
+	cController.Begin();
+	cIndexTree.Init(&cController, NULL, 8 KB, NULL, LifeLocal<CIndexTreeEvictionStrategy>(&cEvictionStrategy), NULL, IWT_No, IKR_No, LifeLocal<CIndexTreeDataOrderer>(&cDataOrderer));
+	cAccess.Init(&cIndexTree);
+
+	AssertTrue(cAccess.PutStringString("Flushed", "Kept"));
+	AssertTrue(cAccess.Flush());
+	AssertTrue(cAccess.PutStringString("Unflushed", "Lost"));
+	AssertFalse(cIndexTree.IsFlushed());
+
+	cController.End();
+	cAccess.Kill();
+	cIndexTree.Discard();
+	cEvictionStrategy.Kill();
+	cDataOrderer.Kill();
+
+	cDataOrderer.Init();
+	cEvictionStrategy.Init(LifeLocal<CIndexTreeDataOrderer>(&cDataOrderer));
+	cController.Begin();
+	cIndexTree.Init(&cController, NULL, 8 KB, NULL, LifeLocal<CIndexTreeEvictionStrategy>(&cEvictionStrategy), NULL, IWT_No, IKR_No, LifeLocal<CIndexTreeDataOrderer>(&cDataOrderer));
+	cAccess.Init(&cIndexTree);
+
+	AssertString("Kept", cAccess.GetStringString("Flushed", szData));
+	AssertFalse(cAccess.HasString("Unflushed"));
+	AssertTrue(cIndexTree.IsFlushed());
+
+	cController.End();
+	cAccess.Kill();
+	cIndexTree.Kill();
+	cController.Kill();
+	cEvictionStrategy.Kill();
+	cDataOrderer.Kill();
+
+	cHelper.Kill(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void AssertTree(const char* szExpected, CIndexTreeEvicting* pcTree)
@@ -988,6 +1045,7 @@ void TestIndexTreeEvicting(void)
 	BeginTests();
 
 	TestIndexTreeEvictingEmpty();
+	TestIndexTreeEvictingDiscard();
 	TestIndexTreeEvictingAdd(IWT_Yes, IKR_Yes);
 	TestIndexTreeEvictingAdd(IWT_Yes, IKR_No);
 	TestIndexTreeEvictingAdd(IWT_No, IKR_Yes);

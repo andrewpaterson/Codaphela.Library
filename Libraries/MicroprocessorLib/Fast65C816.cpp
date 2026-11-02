@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Define.h"
 #include "CPUFlags.h"
 #include "Fast65C816.h"
 
@@ -64,7 +65,6 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 	muiD = 0;
 	muiPC = 0;
 	muiDBR = 0;
-	muiPBR = 0;
 	muiP = FAST_816_M | FAST_816_X | FAST_816_I;
 	mbE = true;
 
@@ -86,6 +86,8 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 	muiMemorySize = puiMemory ? uiMemorySize : 0;
 	muiHoleStart = 0;
 	muiHoleSize = 0;
+	muiPBR = 0;
+	SetBanks();
 }
 
 
@@ -100,6 +102,8 @@ void CFast65C816::Kill(void)
 	mpvContext = NULL;
 	mfSignal = NULL;
 	mpuiMemory = NULL;
+	muiMemorySize = 0;
+	SetBanks();
 }
 
 
@@ -112,6 +116,46 @@ void CFast65C816::SetHole(uint32 uiStart, uint32 uiEnd)
 {
 	muiHoleStart = uiStart;
 	muiHoleSize = uiEnd - uiStart;
+	SetBanks();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// mapuiBanks: each bank in the flat block if all of it is there and none of it is in the hole (so Read, Write
+// and Fetch use it directly), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C816::SetBanks(void)
+{
+	uint32	uiBank;
+	uint32	uiStart;
+
+	for (uiBank = 0; uiBank < FAST_816_BANKS; uiBank++)
+	{
+		uiStart = uiBank << 16;
+		mapuiBanks[uiBank] = NULL;
+		if ((mpuiMemory != NULL) && (uiStart + 0x10000 <= muiMemorySize))
+		{
+			if ((muiHoleSize == 0) || (muiHoleStart >= uiStart + 0x10000) || (muiHoleStart + muiHoleSize <= uiStart))
+			{
+				mapuiBanks[uiBank] = &mpuiMemory[uiStart];
+			}
+		}
+	}
+	SetProgramBank(muiPBR);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PBR, and mpuiProgramBank: its bank if Fetch can read it directly (mapuiBanks), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE void CFast65C816::SetProgramBank(uint8 uiBank)
+{
+	muiPBR = uiBank;
+	mpuiProgramBank = mapuiBanks[uiBank];
 }
 
 
@@ -146,7 +190,7 @@ void CFast65C816::Reset(void)
 	muiY &= 0xFF;
 	muiD = 0;
 	muiDBR = 0;
-	muiPBR = 0;
+	SetProgramBank(0);
 	muiS = (uint16)(0x100 | ((muiS - 3) & 0xFF));
 	muiCycles += 5;
 
@@ -220,18 +264,62 @@ bool CFast65C816::Step(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the end of a Step has anything to decide: the processor stopped or waiting, or an interrupt input
+// low or pending.  (IRQB low with I set needs nothing, but is rare enough to leave to Step.)
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C816::NeedsDeciding(void)
+{
+	return (mbStopped | mbWaiting | mbIrq | mbNmiPending) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Steps until the processor stops.  Returns the number of steps, counting the one that stopped.
+//
+// It does what that many Steps do.  While nothing needs deciding (not stopped or waiting, IRQB and NMIB not
+// low or pending, so Decide would keep muiNext the next instruction) the instructions are executed one after
+// another without the rest of Step.  When an instruction changes that (STP, WAI, or a callback setting IRQB or
+// NMIB) the end of its Step is done, and Step does the steps after it until nothing needs deciding again.
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C816::Run(size uiMaxInstructions)
 {
 	size	i;
 
-	for (i = 0; i < uiMaxInstructions; i++)
+	i = 0;
+	while (i < uiMaxInstructions)
 	{
-		if (!Step())
+		if (NeedsDeciding() || (muiNext != FAST_65C816_NEXT_INSTRUCTION))
 		{
-			return i + 1;
+			i++;
+			if (!Step())
+			{
+				return i;
+			}
+			continue;
+		}
+
+		do
+		{
+			Execute();
+			if (mbE)
+			{
+				muiS = (uint16)(0x100 | (muiS & 0xFF));
+			}
+			i++;
+		}
+		while ((i < uiMaxInstructions) && !NeedsDeciding());
+
+		//The end of the last instruction's Step.
+		if (mbStopped)
+		{
+			return i;
+		}
+		if (!mbWaiting)
+		{
+			Decide();
 		}
 	}
 	return i;
@@ -326,7 +414,7 @@ void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, boo
 	Push(uiP);
 
 	muiP = (uint8)((muiP | FAST_816_I) & ~FAST_816_D);
-	muiPBR = 0;
+	SetProgramBank(0);
 
 	uiVector = mbE ? uiEmulationVector : uiNativeVector;
 	if (mfSignal)
@@ -344,9 +432,16 @@ void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, boo
 // A bus cycle with VDA or VPA high.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint8 CFast65C816::Read(uint32 uiAddress)
+FORCE_INLINE uint8 CFast65C816::Read(uint32 uiAddress)
 {
+	uint8*	puiBank;
+
 	muiCycles++;
+	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_816_BANKS - 1)];
+	if (puiBank)
+	{
+		return puiBank[uiAddress & 0xFFFF];
+	}
 	if ((uiAddress < muiMemorySize) && ((uiAddress - muiHoleStart) >= muiHoleSize))
 	{
 		return mpuiMemory[uiAddress];
@@ -359,9 +454,17 @@ inline uint8 CFast65C816::Read(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::Write(uint32 uiAddress, uint8 uiValue)
+FORCE_INLINE void CFast65C816::Write(uint32 uiAddress, uint8 uiValue)
 {
+	uint8*	puiBank;
+
 	muiCycles++;
+	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_816_BANKS - 1)];
+	if (puiBank)
+	{
+		puiBank[uiAddress & 0xFFFF] = uiValue;
+		return;
+	}
 	if ((uiAddress < muiMemorySize) && ((uiAddress - muiHoleStart) >= muiHoleSize))
 	{
 		mpuiMemory[uiAddress] = uiValue;
@@ -376,11 +479,19 @@ inline void CFast65C816::Write(uint32 uiAddress, uint8 uiValue)
 // The byte at PBR:PC.  PC wraps within the bank.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint8 CFast65C816::Fetch(void)
+FORCE_INLINE uint8 CFast65C816::Fetch(void)
 {
 	uint8	uiValue;
 
-	uiValue = Read(((uint32)muiPBR << 16) | muiPC);
+	if (mpuiProgramBank)
+	{
+		muiCycles++;
+		uiValue = mpuiProgramBank[muiPC];
+	}
+	else
+	{
+		uiValue = Read(((uint32)muiPBR << 16) | muiPC);
+	}
 	muiPC++;
 	return uiValue;
 }
@@ -390,7 +501,7 @@ inline uint8 CFast65C816::Fetch(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::Fetch16(void)
+FORCE_INLINE uint16 CFast65C816::Fetch16(void)
 {
 	uint8	uiLow;
 	uint8	uiHigh;
@@ -406,7 +517,7 @@ inline uint16 CFast65C816::Fetch16(void)
 // The address of the byte after uiAddress, wrapped as muiWrap says.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::Next(uint32 uiAddress)
+FORCE_INLINE uint32 CFast65C816::Next(uint32 uiAddress)
 {
 	return (uiAddress & ~muiWrap) | ((uiAddress + 1) & muiWrap);
 }
@@ -571,7 +682,7 @@ inline bool CFast65C816::IsX16(void)
 // The memory operand in the accumulator's width, low byte first.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ReadM(uint32 uiAddress)
+FORCE_INLINE uint16 CFast65C816::ReadM(uint32 uiAddress)
 {
 	uint8	uiLow;
 
@@ -588,7 +699,7 @@ inline uint16 CFast65C816::ReadM(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ReadX(uint32 uiAddress)
+FORCE_INLINE uint16 CFast65C816::ReadX(uint32 uiAddress)
 {
 	uint8	uiLow;
 
@@ -605,7 +716,7 @@ inline uint16 CFast65C816::ReadX(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::WriteM(uint32 uiAddress, uint16 uiValue)
+FORCE_INLINE void CFast65C816::WriteM(uint32 uiAddress, uint16 uiValue)
 {
 	Write(uiAddress, (uint8)uiValue);
 	if (IsM16())
@@ -619,7 +730,7 @@ inline void CFast65C816::WriteM(uint32 uiAddress, uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void CFast65C816::WriteX(uint32 uiAddress, uint16 uiValue)
+FORCE_INLINE void CFast65C816::WriteX(uint32 uiAddress, uint16 uiValue)
 {
 	Write(uiAddress, (uint8)uiValue);
 	if (IsX16())
@@ -633,7 +744,7 @@ inline void CFast65C816::WriteX(uint32 uiAddress, uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ImmediateM(void)
+FORCE_INLINE uint16 CFast65C816::ImmediateM(void)
 {
 	if (IsM16())
 	{
@@ -647,7 +758,7 @@ inline uint16 CFast65C816::ImmediateM(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint16 CFast65C816::ImmediateX(void)
+FORCE_INLINE uint16 CFast65C816::ImmediateX(void)
 {
 	if (IsX16())
 	{
@@ -663,7 +774,7 @@ inline uint16 CFast65C816::ImmediateX(void)
 // within bank 0.  Sets muiWrap to match.
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::Direct(uint32 uiOffset)
+FORCE_INLINE uint32 CFast65C816::Direct(uint32 uiOffset)
 {
 	if (mbE && ((muiD & 0xFF) == 0))
 	{
@@ -680,7 +791,7 @@ inline uint32 CFast65C816::Direct(uint32 uiOffset)
 // a
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressAbsolute(void)
+FORCE_INLINE uint32 CFast65C816::AddressAbsolute(void)
 {
 	muiWrap = FAST_816_WRAP_LONG;
 	return ((uint32)muiDBR << 16) | Fetch16();
@@ -738,7 +849,7 @@ inline uint32 CFast65C816::AddressLongX(void)
 // d.  An internal cycle when DL is not zero (note 2).
 //
 //////////////////////////////////////////////////////////////////////////
-inline uint32 CFast65C816::AddressDirect(void)
+FORCE_INLINE uint32 CFast65C816::AddressDirect(void)
 {
 	uint8	uiOffset;
 
@@ -1462,9 +1573,11 @@ void CFast65C816::BlockMove(int iStep)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Inlined into Run's loop and Step: as a call, saving and restoring the registers its switch uses was a
+// fifth of the time an instruction took.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::Execute(void)
+FORCE_INLINE void CFast65C816::Execute(void)
 {
 	uint8	uiOpcode;
 	uint8	uiLow;
@@ -1677,7 +1790,7 @@ void CFast65C816::Execute(void)
 	case 0x5C:
 		//JML al
 		uiValue = Fetch16();
-		muiPBR = Fetch();
+		SetProgramBank(Fetch());
 		muiPC = uiValue;
 		break;
 	case 0x6C:
@@ -1692,7 +1805,7 @@ void CFast65C816::Execute(void)
 		uiValue = Fetch16();
 		uiLow = Read(uiValue);
 		uiHigh = Read((uint16)(uiValue + 1));
-		muiPBR = Read((uint16)(uiValue + 2));
+		SetProgramBank(Read((uint16)(uiValue + 2)));
 		muiPC = (uint16)(uiLow | (uiHigh << 8));
 		break;
 	case 0x7C:
@@ -1732,7 +1845,7 @@ void CFast65C816::Execute(void)
 		uiBank = Read(((uint32)muiPBR << 16) | muiPC);
 		Push16((uint8)(muiPC >> 8));
 		Push16((uint8)muiPC);
-		muiPBR = uiBank;
+		SetProgramBank(uiBank);
 		muiPC = uiValue;
 		break;
 	case 0x60:
@@ -1748,7 +1861,7 @@ void CFast65C816::Execute(void)
 		muiCycles += 2;
 		uiLow = Pull16();
 		uiHigh = Pull16();
-		muiPBR = Pull16();
+		SetProgramBank(Pull16());
 		muiPC = (uint16)((uiLow | (uiHigh << 8)) + 1);
 		break;
 	case 0x40:
@@ -1763,7 +1876,7 @@ void CFast65C816::Execute(void)
 		uiHigh = Pull();
 		if (!mbE)
 		{
-			muiPBR = Pull();
+			SetProgramBank(Pull());
 		}
 		muiPC = (uint16)(uiLow | (uiHigh << 8));
 		SetP((uint8)uiValue);
@@ -1957,7 +2070,7 @@ void CFast65C816::TestSetDataBank(uint8 uiDataBank)	{ muiDBR = uiDataBank; }
 //////////////////////////////////////////////////////////////////////////
 void CFast65C816::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCounter)
 {
-	muiPBR = uiProgramBank;
+	SetProgramBank(uiProgramBank);
 	muiPC = uiProgramCounter;
 }
 

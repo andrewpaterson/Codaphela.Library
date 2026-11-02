@@ -115,6 +115,7 @@ void TestArrayBit(void);
 void TestCSVFileEditable(void);
 void TestMemoryAllocator(void);
 void TestTrackingAllocator(void);
+void TestReuseAllocator(void);
 void TestCountingAllocator(void);
 void TestCircularMemoryList(void);
 void TestMemoryStack(void);
@@ -290,6 +291,7 @@ int __cdecl main(void)
 	TestMemoryAllocator();
 	TestCountingAllocator();
 	TestTrackingAllocator();
+	TestReuseAllocator();
 	TestScratchPad();
 	TestScratchPadAllocator();
 	TestCircularMemoryList();

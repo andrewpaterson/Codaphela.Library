@@ -71,8 +71,7 @@ CHARS* CHARS::InitLength(CMallocator* pcMalloc, ASIZE iLength)
 	}
 	else
 	{
-		InitEmpty();
-		return this;
+		return Init(pcMalloc);
 	}
 }
 
@@ -84,6 +83,28 @@ CHARS* CHARS::InitLength(CMallocator* pcMalloc, ASIZE iLength)
 CHARS* CHARS::Init(void)
 {
 	InitEmpty();
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An empty string whose memory comes from pcMalloc.  Unless pcMalloc is the system allocator the string is never
+// faked empty (which would drop pcMalloc): empty, it is the one zero, in pcMalloc's memory.  With a
+// CReuseAllocator emptying and refilling the string then reuses the same memory.
+//
+//////////////////////////////////////////////////////////////////////////
+CHARS* CHARS::Init(CMallocator* pcMalloc)
+{
+	if ((pcMalloc == NULL) || (pcMalloc == &gcSystemAllocator))
+	{
+		InitEmpty();
+	}
+	else
+	{
+		mcText.Init(pcMalloc);
+		mcText.Add('\0');
+	}
 	return this;
 }
 
@@ -502,8 +523,16 @@ void CHARS::SetEmpty(void)
 {
 	if (!IsFakeEmpty())
 	{
-		mcText.Resize(0);
-		InitEmpty();
+		if (KeepsArray())
+		{
+			mcText.Resize(1);
+			mcText.SetValue(0, '\0');
+		}
+		else
+		{
+			mcText.Resize(0);
+			InitEmpty();
+		}
 	}
 }
 
@@ -3069,6 +3098,18 @@ void CHARS::InitEmpty(void)
 bool CHARS::IsFakeEmpty(void)
 {
 	return mcText.GetData() == gszEmptyString;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the string keeps its array (and so its allocator) when it is emptied: it does when its memory is not the
+// system allocator's (see Init(CMallocator*)).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CHARS::KeepsArray(void)
+{
+	return !mcText.IsMalloc(&gcSystemAllocator) && !mcText.IsMalloc(&gcNullAllocator);
 }
 
 

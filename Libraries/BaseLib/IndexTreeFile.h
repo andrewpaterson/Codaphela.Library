@@ -64,6 +64,7 @@ public:
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize);
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	void					Kill(void);
+	void					Discard(void);
 	void					ReInit(void) override;
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);
@@ -139,6 +140,7 @@ protected:
 	void					PrintChildren(CChars* pszDest, bool bShowFlags, bool bShowSize);
 
 	bool					InitRoot(const char* szSubDirectory);
+	void					PrivateKill(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, size c);

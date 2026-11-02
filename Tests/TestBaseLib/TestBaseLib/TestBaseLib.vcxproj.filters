@@ -378,6 +378,9 @@
     <ClCompile Include="TestTrackingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="TestReuseAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
     <ClCompile Include="TestTemporaryMemory.cpp">
       <Filter>Source\Memory\Temporary</Filter>
     </ClCompile>

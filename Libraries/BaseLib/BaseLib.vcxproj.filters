@@ -789,6 +789,9 @@
     <ClInclude Include="SystemAllocator.h">
       <Filter>Source\Memory\Allocator</Filter>
     </ClInclude>
+    <ClInclude Include="ReuseAllocator.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
     <ClInclude Include="SlabAllocator.h">
       <Filter>Source\Memory\Allocator</Filter>
     </ClInclude>
@@ -2052,6 +2055,9 @@
       <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
     <ClCompile Include="SystemAllocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="ReuseAllocator.cpp">
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="SlabAllocator.cpp">

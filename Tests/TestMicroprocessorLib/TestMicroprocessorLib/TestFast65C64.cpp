@@ -455,18 +455,11 @@ static void TestFast65C64End(STestFast65C64Pair* psPair)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Edge and level interrupts, brk, rti and stp waiting for an interrupt, with the inputs changed between steps.
+// A program at 0x1000 using edge and level interrupts, brk, rti and stp waiting for an interrupt.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestFast65C64Interrupts(void)
+static void TestFast65C64InterruptProgram(CTest65C64Context* pcContext)
 {
-	STestFast65C64Pair	sPair;
-	CTest65C64Context*	pcContext;
-	size				uiStep;
-	bool				bRunning;
-
-	TestFast65C64Begin(&sPair, 0x1000);
-	pcContext = sPair.pcSimContext;
 	pcContext->SetVector(VECTOR_65C64_EDGE_0, 0x1200);
 	pcContext->SetVector(VECTOR_65C64_EDGE_0 - 2, 0x1240);
 	pcContext->SetVector(VECTOR_65C64_LEVEL, 0x1300);
@@ -501,7 +494,22 @@ void TestFast65C64Interrupts(void)
 	pcContext->Org(0x1400);
 	pcContext->Op(Op65RE(C65_ADD, R65_B, 1));
 	pcContext->Op(Op65Return(R65_S, true, true, true));
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Edge and level interrupts, brk, rti and stp waiting for an interrupt, with the inputs changed between steps.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFast65C64Interrupts(void)
+{
+	STestFast65C64Pair	sPair;
+	size				uiStep;
+	bool				bRunning;
+
+	TestFast65C64Begin(&sPair, 0x1000);
+	TestFast65C64InterruptProgram(sPair.pcSimContext);
 	TestFast65C64Reset(&sPair);
 
 	bRunning = true;
@@ -545,6 +553,251 @@ void TestFast65C64Interrupts(void)
 	AssertLongLongIntHex(5 + 1 + 1, sPair.cFast.GetY());
 
 	TestFast65C64End(&sPair);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcRun (after a Run) and pcStep (after as many Steps) are the same.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestFast65C64RunSame(CFast65C64* pcStep, CFast65C64* pcRun, CTest65C64Context* pcStepContext, CTest65C64Context* pcRunContext, size uiStepped, size uiRun, size uiChunk)
+{
+	CChars	sz;
+	CChars	szWhere;
+	bool	bFailed;
+
+	sz.Init();
+	pcRun->AppendDifference(&sz, "Steps", uiStepped, uiRun);
+	pcRun->AppendDifference(&sz, "A", pcStep->GetA(), pcRun->GetA());
+	pcRun->AppendDifference(&sz, "B", pcStep->GetB(), pcRun->GetB());
+	pcRun->AppendDifference(&sz, "X", pcStep->GetX(), pcRun->GetX());
+	pcRun->AppendDifference(&sz, "Y", pcStep->GetY(), pcRun->GetY());
+	pcRun->AppendDifference(&sz, "S", pcStep->GetS(), pcRun->GetS());
+	pcRun->AppendDifference(&sz, "V", pcStep->GetV(), pcRun->GetV());
+	pcRun->AppendDifference(&sz, "W", pcStep->GetW(), pcRun->GetW());
+	pcRun->AppendDifference(&sz, "C", pcStep->GetProgramCounter(), pcRun->GetProgramCounter());
+	pcRun->AppendDifference(&sz, "P", pcStep->GetP(), pcRun->GetP());
+	pcRun->AppendDifference(&sz, "Depth", pcStep->GetInterruptDepth(), pcRun->GetInterruptDepth());
+	pcRun->AppendDifference(&sz, "Stopped", pcStep->IsStopped(), pcRun->IsStopped());
+	pcRun->AppendDifference(&sz, "Waiting", pcStep->IsWaiting(), pcRun->IsWaiting());
+	pcRun->AppendDifference(&sz, "PendingEdges", pcStep->GetPendingEdges(), pcRun->GetPendingEdges());
+	pcRun->AppendDifference(&sz, "Cycles", pcStep->NumCycles(), pcRun->NumCycles());
+	pcRun->AppendDifference(&sz, "BadAccesses", pcStepContext->muiBadAccesses, pcRunContext->muiBadAccesses);
+	if ((memcmp(pcStepContext->mauiLow, pcRunContext->mauiLow, TEST_65C64_LOW_SIZE) != 0) ||
+		(memcmp(pcStepContext->mauiHigh, pcRunContext->mauiHigh, TEST_65C64_HIGH_SIZE) != 0))
+	{
+		sz.Append(" Memory differs");
+	}
+	if (!sz.Empty())
+	{
+		szWhere.Init("Run chunk ");
+		szWhere.Append((int)uiChunk);
+		szWhere.Append(" (\"simulator\" is Step)");
+		sz.Insert(0, &szWhere);
+		szWhere.Kill();
+	}
+	bFailed = TestFast65C64Failed(&sz);
+	sz.Kill();
+	return !bFailed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The interrupt inputs before Run uiChunk: each falls again and again, so whichever stp the program is
+// waiting in is woken.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C64RunInputs(CFast65C64* pcFast, size uiChunk)
+{
+	pcFast->SetEdgeInterrupt(0, (uiChunk % 6) == 2);
+	pcFast->SetEdgeInterrupt(2, (uiChunk % 7) == 4);
+	pcFast->SetLevelInterrupt(((uiChunk % 9) == 5) || ((uiChunk % 9) == 6));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Run does what as many Steps do: edge and level interrupts, brk, rti and stp waiting for an interrupt, with
+// the inputs changed between Runs of different lengths.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFast65C64Run(void)
+{
+	CTest65C64Context*	pcStepContext;
+	CTest65C64Context*	pcRunContext;
+	CFast65C64			cStep;
+	CFast65C64			cRun;
+	size				uiChunk;
+	size				uiLength;
+	size				uiStepped;
+	size				uiRun;
+	static size			auiLengths[] = { 1, 2, 3, 1, 4, 2, 7, 1, 5, 3 };
+
+	pcStepContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+	pcStepContext->Init(0x1000);
+	TestFast65C64InterruptProgram(pcStepContext);
+	pcRunContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+	memcpy(pcRunContext, pcStepContext, sizeof(CTest65C64Context));
+
+	cStep.Init(TestFast65C64ContextReadWord, TestFast65C64ContextWriteByte, pcStepContext, pcStepContext->mauiLow, TEST_65C64_LOW_SIZE);
+	cRun.Init(TestFast65C64ContextReadWord, TestFast65C64ContextWriteByte, pcRunContext, pcRunContext->mauiLow, TEST_65C64_LOW_SIZE);
+	cStep.Reset();
+	cRun.Reset();
+
+	for (uiChunk = 0; (uiChunk < 60) && !cStep.IsStopped(); uiChunk++)
+	{
+		TestFast65C64RunInputs(&cStep, uiChunk);
+		TestFast65C64RunInputs(&cRun, uiChunk);
+
+		uiLength = auiLengths[uiChunk % (sizeof(auiLengths) / sizeof(size))];
+		for (uiStepped = 0; uiStepped < uiLength; )
+		{
+			uiStepped++;
+			if (!cStep.Step())
+			{
+				break;
+			}
+		}
+		uiRun = cRun.Run(uiLength);
+
+		if (!TestFast65C64RunSame(&cStep, &cRun, pcStepContext, pcRunContext, uiStepped, uiRun, uiChunk))
+		{
+			break;
+		}
+	}
+	AssertTrue(cRun.IsStopped());
+	AssertSize(1, cRun.Run(10));
+
+	cRun.Kill();
+	cStep.Kill();
+	free(pcRunContext);
+	free(pcStepContext);
+}
+
+
+//A device at TEST_FAST_65C64_DEVICE (a hole): writing a non-zero byte to it pulls edge interrupt 0 low, from
+//inside the instruction.
+#define TEST_FAST_65C64_DEVICE	0x3000
+struct STestFast65C64Device
+{
+	CTest65C64Context*	pcContext;
+	CFast65C64*			pcFast;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint16 TestFast65C64DeviceReadWord(void* pvDevice, uint32 uiAddress)
+{
+	STestFast65C64Device*	psDevice;
+
+	psDevice = (STestFast65C64Device*)pvDevice;
+	if ((uiAddress >= TEST_FAST_65C64_DEVICE) && (uiAddress < TEST_FAST_65C64_DEVICE + 0x10))
+	{
+		return 0;
+	}
+	return psDevice->pcContext->GetWord(uiAddress);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C64DeviceWriteByte(void* pvDevice, uint32 uiAddress, uint8 uiValue)
+{
+	STestFast65C64Device*	psDevice;
+
+	psDevice = (STestFast65C64Device*)pvDevice;
+	if ((uiAddress >= TEST_FAST_65C64_DEVICE) && (uiAddress < TEST_FAST_65C64_DEVICE + 0x10))
+	{
+		if (uiValue != 0)
+		{
+			psDevice->pcFast->SetEdgeInterrupt(0, true);
+		}
+		return;
+	}
+	psDevice->pcContext->SetByte(uiAddress, uiValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Run does what as many Steps do when an instruction's own write pulls an interrupt input low: the interrupt
+// is taken straight after that instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFast65C64RunDevice(void)
+{
+	CTest65C64Context*		pcStepContext;
+	CTest65C64Context*		pcRunContext;
+	STestFast65C64Device	sStepDevice;
+	STestFast65C64Device	sRunDevice;
+	CFast65C64				cStep;
+	CFast65C64				cRun;
+	size					uiChunk;
+	size					uiLength;
+	size					uiStepped;
+	size					uiRun;
+	static size				auiLengths[] = { 3, 2, 4, 1, 5 };
+
+	pcStepContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+	pcStepContext->Init(0x1000);
+	pcStepContext->SetVector(VECTOR_65C64_EDGE_0, 0x1200);
+	pcStepContext->Op(Op65Cep(STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE));
+	pcStepContext->Op(Op65RE(C65_CPY, R65_A, 1));
+	pcStepContext->OpLong(Op65M(C65_CPY, true, R65_A, OPERAND_MODE_ABSOLUTE, R65_Zero), TEST_FAST_65C64_DEVICE);
+	pcStepContext->Op(Op65RE(C65_ADD, R65_Y, 4));
+	pcStepContext->Op(Op65RE(C65_ADD, R65_Y, 4));
+	pcStepContext->Op(Op65RE(C65_ADD, R65_Y, 4));
+	pcStepContext->Op(Op65Stp());
+	pcStepContext->Org(0x1200);
+	pcStepContext->Op(Op65RE(C65_ADD, R65_X, 1));
+	pcStepContext->Op(Op65Return(R65_S, true, true, true));
+	pcRunContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+	memcpy(pcRunContext, pcStepContext, sizeof(CTest65C64Context));
+
+	sStepDevice.pcContext = pcStepContext;
+	sStepDevice.pcFast = &cStep;
+	sRunDevice.pcContext = pcRunContext;
+	sRunDevice.pcFast = &cRun;
+	cStep.Init(TestFast65C64DeviceReadWord, TestFast65C64DeviceWriteByte, &sStepDevice, pcStepContext->mauiLow, TEST_65C64_LOW_SIZE);
+	cRun.Init(TestFast65C64DeviceReadWord, TestFast65C64DeviceWriteByte, &sRunDevice, pcRunContext->mauiLow, TEST_65C64_LOW_SIZE);
+	cStep.SetHole(TEST_FAST_65C64_DEVICE, TEST_FAST_65C64_DEVICE + 0x10);
+	cRun.SetHole(TEST_FAST_65C64_DEVICE, TEST_FAST_65C64_DEVICE + 0x10);
+	cStep.Reset();
+	cRun.Reset();
+
+	for (uiChunk = 0; (uiChunk < 20) && !cStep.IsStopped(); uiChunk++)
+	{
+		uiLength = auiLengths[uiChunk % (sizeof(auiLengths) / sizeof(size))];
+		for (uiStepped = 0; uiStepped < uiLength; )
+		{
+			uiStepped++;
+			if (!cStep.Step())
+			{
+				break;
+			}
+		}
+		uiRun = cRun.Run(uiLength);
+
+		if (!TestFast65C64RunSame(&cStep, &cRun, pcStepContext, pcRunContext, uiStepped, uiRun, uiChunk))
+		{
+			break;
+		}
+	}
+	AssertTrue(cRun.IsStopped());
+	AssertLongLongIntHex(1, cRun.GetX());
+	AssertLongLongIntHex(12, cRun.GetY());
+
+	cRun.Kill();
+	cStep.Kill();
+	free(pcRunContext);
+	free(pcStepContext);
 }
 
 
@@ -606,6 +859,8 @@ void TestFast65C64(void)
 
 	TestFast65C64Unaligned();
 	TestFast65C64Interrupts();
+	TestFast65C64Run();
+	TestFast65C64RunDevice();
 	TestFast65C64Fuzz(true, 0x6502C64ULL);
 	TestFast65C64Fuzz(false, 0x65C816ULL);
 

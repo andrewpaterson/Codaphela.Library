@@ -132,8 +132,9 @@ void CIndexTreeSpillStore::Kill(void)
 {
 	CFileUtil	cFileUtil;
 
+	//The directory is removed, so what the tree holds is not written.
 	mcController.End();
-	mcTree.Kill();
+	mcTree.Discard();
 	mcStrategy.Kill();
 	mcOrderer.Kill();
 	mcController.Kill();

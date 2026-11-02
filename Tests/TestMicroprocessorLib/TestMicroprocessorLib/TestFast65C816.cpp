@@ -914,6 +914,225 @@ static void TestFast65C816Interrupts(bool bEmulation)
 }
 
 
+//Run's memory: the flat block, with a write to TEST_FAST_65C816_RUN_IRQ (a hole) setting IRQB from inside an
+//instruction (low for a non-zero byte).
+#define TEST_FAST_65C816_RUN_IRQ	0x3000
+struct STestFast65C816RunContext
+{
+	uint8*			puiMemory;
+	CFast65C816*	pcFast;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint8 TestFast65C816RunRead(void* pvContext, uint32 uiAddress)
+{
+	STestFast65C816RunContext*	psContext;
+
+	psContext = (STestFast65C816RunContext*)pvContext;
+	if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	{
+		return psContext->puiMemory[uiAddress];
+	}
+	return 0xFF;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816RunWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+{
+	STestFast65C816RunContext*	psContext;
+
+	psContext = (STestFast65C816RunContext*)pvContext;
+	if (uiAddress == TEST_FAST_65C816_RUN_IRQ)
+	{
+		psContext->pcFast->SetIRQ(uiValue != 0);
+	}
+	else if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	{
+		psContext->puiMemory[uiAddress] = uiValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcRun (after a Run) and pcStep (after as many Steps) are the same.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestFast65C816RunSame(CFast65C816* pcStep, CFast65C816* pcRun, uint8* puiStepMemory, uint8* puiRunMemory, size uiStepped, size uiRun, size uiChunk)
+{
+	CChars	sz;
+	CChars	szWhere;
+	bool	bFailed;
+
+	sz.Init();
+	pcRun->AppendDifference(&sz, "Steps", uiStepped, uiRun);
+	pcRun->AppendDifference(&sz, "C", pcStep->GetC(), pcRun->GetC());
+	pcRun->AppendDifference(&sz, "X", pcStep->GetX(), pcRun->GetX());
+	pcRun->AppendDifference(&sz, "Y", pcStep->GetY(), pcRun->GetY());
+	pcRun->AppendDifference(&sz, "S", pcStep->GetS(), pcRun->GetS());
+	pcRun->AppendDifference(&sz, "D", pcStep->GetD(), pcRun->GetD());
+	pcRun->AppendDifference(&sz, "DBR", pcStep->GetDataBank(), pcRun->GetDataBank());
+	pcRun->AppendDifference(&sz, "PC", pcStep->GetProgramAddress(), pcRun->GetProgramAddress());
+	pcRun->AppendDifference(&sz, "P", pcStep->GetP(), pcRun->GetP());
+	pcRun->AppendDifference(&sz, "E", pcStep->IsEmulation(), pcRun->IsEmulation());
+	pcRun->AppendDifference(&sz, "Stopped", pcStep->IsStopped(), pcRun->IsStopped());
+	pcRun->AppendDifference(&sz, "Waiting", pcStep->IsWaiting(), pcRun->IsWaiting());
+	pcRun->AppendDifference(&sz, "Cycles", pcStep->NumCycles(), pcRun->NumCycles());
+	if (memcmp(puiStepMemory, puiRunMemory, TEST_FAST_65C816_FUZZ_SIZE) != 0)
+	{
+		sz.Append(" Memory differs");
+	}
+	if (!sz.Empty())
+	{
+		szWhere.Init("Run chunk ");
+		szWhere.Append((int)uiChunk);
+		szWhere.Append(" (\"simulator\" is Step)");
+		sz.Insert(0, &szWhere);
+		szWhere.Kill();
+	}
+	bFailed = TestFast65C816Failed(&sz);
+	sz.Kill();
+	return !bFailed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Run does what as many Steps do: interrupts taken (IRQB set by an instruction's own write and between Runs,
+// NMIB pulsed), IRQB low while I is set, BRK, COP, WAI and STP.  Runs of different lengths start and end
+// anywhere in that.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816Run(bool bEmulation, bool bStop)
+{
+	uint8*						puiStepMemory;
+	uint8*						puiRunMemory;
+	STestFast65C816RunContext	sStepContext;
+	STestFast65C816RunContext	sRunContext;
+	CFast65C816					cStep;
+	CFast65C816					cRun;
+	size						uiChunk;
+	size						uiLength;
+	size						uiStepped;
+	size						uiRun;
+	size						i;
+	static size					auiLengths[] = { 1, 2, 3, 5, 8, 13, 1, 4, 7, 21, 2, 6 };
+	static uint8				auiProgram[] = {
+		0x58,				//CLI
+		0xA9, 0x01,			//LDA #1
+		0x8D, 0x00, 0x30,	//STA $3000: IRQB low from the write
+		0xEA,				//NOP
+		0xEA,				//NOP
+		0x00, 0x11,			//BRK
+		0x02, 0x22,			//COP
+		0xCB,				//WAI
+		0xEA,				//NOP
+		0x78,				//SEI
+		0xA9, 0x01,			//LDA #1
+		0x8D, 0x00, 0x30,	//STA $3000: IRQB low with I set
+		0xEA,				//NOP
+		0xA9, 0x00,			//LDA #0
+		0x8D, 0x00, 0x30,	//STA $3000: IRQB high
+		0x58,				//CLI
+		0xEA,				//NOP
+		0x80, 0xE8 };		//BRA to the first NOP
+	static uint8				auiHandler[] = {
+		0xE8,				//INX
+		0xA9, 0x00,			//LDA #0
+		0x8D, 0x00, 0x30,	//STA $3000: IRQB high
+		0x40 };				//RTI
+	static uint8				auiStop[] = {
+		0xEA,				//NOP
+		0xE8,				//INX
+		0xDB };				//STP
+
+	puiStepMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	puiRunMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	memset(puiStepMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	if (bStop)
+	{
+		memcpy(&puiStepMemory[0x1000], auiStop, sizeof(auiStop));
+	}
+	else
+	{
+		memcpy(&puiStepMemory[0x1000], auiProgram, sizeof(auiProgram));
+	}
+	memcpy(&puiStepMemory[0x2000], auiHandler, sizeof(auiHandler));
+	for (i = 0xFFE0; i < 0x10000; i += 2)
+	{
+		puiStepMemory[i] = 0x00;
+		puiStepMemory[i + 1] = 0x20;
+	}
+	memcpy(puiRunMemory, puiStepMemory, TEST_FAST_65C816_FUZZ_SIZE);
+
+	sStepContext.puiMemory = puiStepMemory;
+	sStepContext.pcFast = &cStep;
+	sRunContext.puiMemory = puiRunMemory;
+	sRunContext.pcFast = &cRun;
+	cStep.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sStepContext, puiStepMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cRun.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sRunContext, puiRunMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cStep.SetHole(TEST_FAST_65C816_RUN_IRQ, TEST_FAST_65C816_RUN_IRQ + 1);
+	cRun.SetHole(TEST_FAST_65C816_RUN_IRQ, TEST_FAST_65C816_RUN_IRQ + 1);
+	cStep.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, bEmulation);
+	cRun.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, bEmulation);
+	cStep.TestSetS(0x1F0);
+	cRun.TestSetS(0x1F0);
+	cStep.TestSetProgramCounter(0, 0x1000);
+	cRun.TestSetProgramCounter(0, 0x1000);
+
+	for (uiChunk = 0; uiChunk < 400; uiChunk++)
+	{
+		//Between Runs: IRQB low now and then (it wakes WAI with I set too), NMIB pulsed.
+		if ((uiChunk % 7) == 3)
+		{
+			cStep.SetIRQ(true);
+			cRun.SetIRQ(true);
+		}
+		cStep.SetNMI((uiChunk % 11) == 5);
+		cRun.SetNMI((uiChunk % 11) == 5);
+
+		uiLength = auiLengths[uiChunk % (sizeof(auiLengths) / sizeof(size))];
+		for (uiStepped = 0; uiStepped < uiLength; )
+		{
+			uiStepped++;
+			if (!cStep.Step())
+			{
+				break;
+			}
+		}
+		uiRun = cRun.Run(uiLength);
+
+		if (!TestFast65C816RunSame(&cStep, &cRun, puiStepMemory, puiRunMemory, uiStepped, uiRun, uiChunk))
+		{
+			break;
+		}
+	}
+	if (bStop)
+	{
+		AssertTrue(cRun.IsStopped());
+		AssertSize(1, cRun.Run(10));
+	}
+	else
+	{
+		AssertFalse(cRun.IsStopped());
+		AssertTrue(cRun.GetX() > 10);
+	}
+
+	cRun.Kill();
+	cStep.Kill();
+	free(puiRunMemory);
+	free(puiStepMemory);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -932,6 +1151,10 @@ void TestFast65C816(void)
 	TestFast65C816Fuzz(false, 0x816816ULL);
 	TestFast65C816Interrupts(false);
 	TestFast65C816Interrupts(true);
+	TestFast65C816Run(false, false);
+	TestFast65C816Run(true, false);
+	TestFast65C816Run(false, true);
+	TestFast65C816Run(true, true);
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 

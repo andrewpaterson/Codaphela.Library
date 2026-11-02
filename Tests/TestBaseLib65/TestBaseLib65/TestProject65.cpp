@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
@@ -528,6 +529,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	uint64				uiMaxSteps;
 	bool				bReturned;
 	bool				bW65C816;
+	clock_t				iStart;
 
 	//TEST_PROJECT65_STEPS (millions of instructions) gives a slow test longer, for timing it.
 	uiMaxSteps = getenv("TEST_PROJECT65_STEPS") ? (uint64)strtoul(getenv("TEST_PROJECT65_STEPS"), NULL, 10) * 1000000 : TEST_PROJECT65_MAX_STEPS;
@@ -549,6 +551,9 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	cHostFiles.SetDirectory(szOutput.Text());
 	szOutput.Kill();
 	pcMemory->SetHostFiles(&cHostFiles);
+
+	//TEST_PROJECT65_RUN_TIME prints how long each program ran on the host (not its compiling or linking).
+	iStart = clock();
 
 	//Run takes a size, which is 32 bits in a 32 bit build.
 	if (bW65C816)
@@ -652,6 +657,12 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 			TestProject65AppendStop(pcBuilder, cMPU.GetProgramCounter(), cMPU.GetS(), uiSteps / 1000000, pszConsole);
 		}
 		cMPU.Kill();
+	}
+
+	if (getenv("TEST_PROJECT65_RUN_TIME"))
+	{
+		printf("RUN_TIME %.2f\n", (double)(clock() - iStart) / CLOCKS_PER_SEC);
+		fflush(stdout);
 	}
 
 	cHostFiles.Kill();

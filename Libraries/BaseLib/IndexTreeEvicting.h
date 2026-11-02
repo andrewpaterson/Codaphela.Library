@@ -32,6 +32,7 @@ public:
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 
 	void					Kill(void);
+	void					Discard(void);
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize);
 	bool					Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);

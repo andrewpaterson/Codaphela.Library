@@ -34,6 +34,7 @@ protected:
 public:
 	void		_Init(void);
 	CHARS*		Init(void);
+	CHARS*		Init(CMallocator* pcMalloc);
 	CHARS*		Init(const char* szString);
 	CHARS*		Init(CHARS szString);
 	CHARS*		Init(CHARS* psz);
@@ -201,6 +202,7 @@ protected:
 	void	SetEmpty(void);
 	void	CleanIfEmpty(void);
 	void	InitEmpty(void);
+	bool	KeepsArray(void);
 	bool	IsFakeEmpty(void);
 	ASIZE	CStringLength(const char* szString);
 	void	Unfake(void);

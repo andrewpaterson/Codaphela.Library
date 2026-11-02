@@ -136,6 +136,34 @@ void CIndexTreeFile::Kill(void)
 		return;
 	}
 
+	PrivateKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Kill without flushing: what has not been written to the files is lost.  For a tree whose files are about
+// to be deleted (a scratch store), where flushing would only write data nobody will read.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::Discard(void)
+{
+	if (mpcDurableFileControl->IsBegun())
+	{
+		gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Discard.", NULL);
+		return;
+	}
+
+	PrivateKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::PrivateKill(void)
+{
 	mcPassThruMallocLife.Kill();
 	mcRootIndex.Kill();
 	mcIndexFiles.Kill();

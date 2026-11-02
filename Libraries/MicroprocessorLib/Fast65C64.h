@@ -107,6 +107,7 @@ public:
 
 protected:
 	void		Execute(void);
+	bool		NeedsDeciding(void);
 	void		SetWidths(void);
 	void		SetRegister(uint8 uiRegister, uint64 uiValue, uint8 uiBytes);
 	uint32		GetRegisterAddress(uint8 uiRegister);
