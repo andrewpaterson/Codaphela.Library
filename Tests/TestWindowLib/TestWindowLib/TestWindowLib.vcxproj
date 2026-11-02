@@ -260,6 +260,7 @@
     <ClCompile Include="TickTestCanvas.cpp" />
     <ClCompile Include="TickTestRefWindow.cpp" />
     <ClCompile Include="TestTextField.cpp" />
+    <ClCompile Include="TestSoundMixer.cpp" />
     <ClCompile Include="TestCheckBox.cpp" />
     <ClCompile Include="TestComboBox.cpp" />
     <ClCompile Include="TestDialog.cpp" />

@@ -88,8 +88,29 @@
     <Filter Include="Source\Component\Theme">
       <UniqueIdentifier>{8e5a8ca4-b11c-4912-89f6-59fba527dd92}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Sound">
+      <UniqueIdentifier>{22ed8e8e-291a-4ec6-ba8e-ff4a40717aca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NativeSoundFactory.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeSoundMixer.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundMixer.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundVoice.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundCelVoice.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundStreamVoice.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
     <ClInclude Include="NativeWindow.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
@@ -299,6 +320,24 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="NativeSoundFactory.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeSoundMixer.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundMixer.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundVoice.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundCelVoice.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundStreamVoice.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
     <ClCompile Include="NativeWindow.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>

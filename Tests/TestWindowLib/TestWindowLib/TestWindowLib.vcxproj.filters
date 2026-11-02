@@ -115,6 +115,9 @@
     <ClCompile Include="TickTestCanvas.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestSoundMixer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="TestTextField.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

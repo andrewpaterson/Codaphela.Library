@@ -26,9 +26,11 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CanvasDraw.h"
 #include "ComponentInputCommand.h"
 #include "Popup.h"
+#include "SoundMixer.h"
 
 
 class CWindowTick;
+class CNativeSoundFactory;
 class CComponentInput;
 class CButton;
 class CWindow : public CComponent
@@ -49,9 +51,11 @@ protected:
 	Ptr<CButton>			mpCancelButton;  //Clicked by escape when no popup is open.
 	bool					mbLayoutAgain;  //A component's required size changed while it was being laid out.
 	CArray<CPopup>			maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
+	Ptr<CSoundMixer>		mpSoundMixer;  //Only if the window was given a sound factory.  Mixed every tick.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Class(void) override;
 	void 					Free(void) override;
 	
@@ -83,6 +87,7 @@ public:
 	const char*				GetWindowTitle(void);
 	Ptr<CCanvas>			GetCanvas(void);
 	Ptr<CFocus>				GetFocus(void);
+	Ptr<CSoundMixer>		GetSoundMixer(void);
 
 	void					SetDefaultButton(Ptr<CButton> pButton);
 	Ptr<CButton>			GetDefaultButton(void);

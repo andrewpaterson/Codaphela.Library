@@ -6,6 +6,7 @@
 #include "WindowTick.h"
 #include "ComponentInput.h"
 #include "Button.h"
+#include "NativeSoundFactory.h"
 #include "Window.h"
 
 
@@ -14,6 +15,18 @@
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
+{
+	Init(szTitle, pcFactory, NULL, pTick, pDraw, eFormat, eOrder, eColourBits, eAlphaBits);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window given a sound factory has a sound mixer, at the default
+// sample rate, that is mixed after each tick.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
 {
 	PreInit();
 
@@ -32,6 +45,14 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mpCancelButton = NULL;
 	mbLayoutAgain = false;
 	maPopups.Init();
+	if (pcSoundFactory)
+	{
+		mpSoundMixer = OMalloc<CSoundMixer>(pcSoundFactory, (uint32)SOUND_MIXER_DEFAULT_SAMPLE_RATE);
+	}
+	else
+	{
+		mpSoundMixer = NULL;
+	}
 
 	mFocus.Init(this);
 
@@ -80,6 +101,7 @@ void CWindow::Class(void)
 	M_Pointer(mpCancelButton);
 	U_Bool(mbLayoutAgain);
 	M_Embedded(maPopups);
+	M_Pointer(mpSoundMixer);
 }
 
 
@@ -480,6 +502,10 @@ const char* CWindow::GetWindowTitle(void)
 void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
 	mpWindowTick->Tick(this, iUpdateTimeInMillieconds, iTotalTimeInMillieconds);
+	if (mpSoundMixer.IsNotNull())
+	{
+		mpSoundMixer->Mix();
+	}
 }
 
 
@@ -530,6 +556,7 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 CNativeWindow*			CWindow::GetNativeWindow(void) { return mpcNativeWindow; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
+Ptr<CSoundMixer>		CWindow::GetSoundMixer(void) { return mpSoundMixer; }
 Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
 Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }

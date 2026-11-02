@@ -246,6 +246,12 @@
     <ClInclude Include="NativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
+    <ClInclude Include="NativeSoundFactory.h" />
+    <ClInclude Include="NativeSoundMixer.h" />
+    <ClInclude Include="SoundMixer.h" />
+    <ClInclude Include="SoundVoice.h" />
+    <ClInclude Include="SoundCelVoice.h" />
+    <ClInclude Include="SoundStreamVoice.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
@@ -312,6 +318,12 @@
     <ClCompile Include="NativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
+    <ClCompile Include="NativeSoundFactory.cpp" />
+    <ClCompile Include="NativeSoundMixer.cpp" />
+    <ClCompile Include="SoundMixer.cpp" />
+    <ClCompile Include="SoundVoice.cpp" />
+    <ClCompile Include="SoundCelVoice.cpp" />
+    <ClCompile Include="SoundStreamVoice.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowTick.cpp" />
     <ClCompile Include="ImageBorderContainer.cpp" />
