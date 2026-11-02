@@ -2,8 +2,11 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// How many elements an array grows by when it has iNumElements: more as it
+// gets larger, so it is copied fewer times (a third of them for the
+// largest).
+//
 //////////////////////////////////////////////////////////////////////////
 lsize CalculateChunkSize(lsize iNumElements)
 {
@@ -90,7 +93,9 @@ lsize CalculateChunkSize(lsize iNumElements)
 	}
 	else
 	{
-		return 60750;
+		//A third of the elements (60750 at 182250), so a large array still grows by a third or more each time: a fixed
+		//chunk would copy it again and again as it grew.
+		return iNumElements / 3;
 	}
 }
 

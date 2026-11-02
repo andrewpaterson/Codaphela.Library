@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxAttributedStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntaxStatement::Init(pcTree, pcParent);
-	macpAttributes.Init();
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcStatement = NULL;
 }
 

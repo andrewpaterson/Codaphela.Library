@@ -34,6 +34,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "CPP65Assembly.h"
 #include "CPPHeaderIndex.h"
+#include "CPP65UnitWorkspace.h"
 
 
 struct SCPP65IncludeDirectory
@@ -156,6 +157,7 @@ protected:
 	CMutex							mcCompilingMutex;
 	CConditionVariable				mcCompiled;
 	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
+	CArrayTemplatePtr<CCPP65UnitWorkspace>	mapcWorkspaces;	//Those no unit is being compiled with (TakeWorkspace).
 	size							muiCompiledAgain;		//W65C816 units compiled a second time.
 
 public:
@@ -218,8 +220,10 @@ protected:
 	bool			CalleeExported(SCPP65CompiledUnit* psUnit);
 	void			CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport);
 	void			CompileUnitAgain(SCPP65CompiledUnit* psUnit);
-	void			ReleaseUnit(SCPP65CompiledUnit* psUnit);
 	void			UnitFinished(void);
+	CCPP65UnitWorkspace*	TakeWorkspace(void);
+	void			GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace);
+	void			KillWorkspaces(void);
 	static void		CompileUnitJob(void* pvUnit);
 	static void		CompileUnitAgainJob(void* pvUnit);
 	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);

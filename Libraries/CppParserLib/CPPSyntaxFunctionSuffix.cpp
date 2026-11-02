@@ -28,14 +28,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxFunctionSuffix::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
-	macpParameters.Init();
+	macpParameters.Init(NodeArrayMallocator());
 	mbVariadic = false;
 	mbVariadicComma = false;
-	macpQualifiers.Init();
+	macpQualifiers.Init(NodeArrayMallocator());
 	mpcExceptionSpecification = NULL;
-	macpAttributes.Init();
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcTrailingReturn = NULL;
-	macpVirtSpecifiers.Init();
+	macpVirtSpecifiers.Init(NodeArrayMallocator());
 	mpcScope = NULL;
 }
 

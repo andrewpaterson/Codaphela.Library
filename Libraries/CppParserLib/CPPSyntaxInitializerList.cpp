@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxInitializerList::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntaxExpression::Init(pcTree, pcParent);
-	macpElements.Init();
+	macpElements.Init(NodeArrayMallocator());
 	mbTrailingComma = false;
 }
 

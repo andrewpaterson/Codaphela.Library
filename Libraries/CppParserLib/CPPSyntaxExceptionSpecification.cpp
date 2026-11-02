@@ -31,7 +31,7 @@ void CCPPSyntaxExceptionSpecification::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* 
 	mbNoexcept = false;
 	mbParentheses = false;
 	mpcCondition = NULL;
-	macpTypes.Init();
+	macpTypes.Init(NodeArrayMallocator());
 }
 
 

@@ -29,7 +29,7 @@ void CCPPSyntaxTryStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntaxStatement::Init(pcTree, pcParent);
 	mpcBlock = NULL;
-	macpHandlers.Init();
+	macpHandlers.Init(NodeArrayMallocator());
 }
 
 

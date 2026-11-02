@@ -118,11 +118,8 @@ void SPreprocessedToken::Append(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessedTokens::Init(void)
 {
-	macTokens.Init();
-	macExpansions.Init();
-	macInactiveRegions.Init();
-	macDirectiveLines.Init();
-	mcStrings.Init(4 KB);
+	mpsMallocators = NULL;
+	InitArrays();
 }
 
 
@@ -131,6 +128,68 @@ void CPreprocessedTokens::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessedTokens::Kill(void)
+{
+	KillArrays();
+	mpsMallocators = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Empty, with the same allocators.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::Clear(void)
+{
+	KillArrays();
+	InitArrays();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Empties the tokens, which are then allocated by psMallocators' (NULL for
+// the system allocator).  The tokens' memory goes back to the allocators
+// they were made by.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::SetMallocators(SPreprocessedTokensMallocators* psMallocators)
+{
+	KillArrays();
+	mpsMallocators = psMallocators;
+	InitArrays();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::InitArrays(void)
+{
+	if (mpsMallocators)
+	{
+		macTokens.Init(mpsMallocators->pcTokens);
+		macExpansions.Init(mpsMallocators->pcExpansions);
+		macInactiveRegions.Init(mpsMallocators->pcInactiveRegions);
+		macDirectiveLines.Init(mpsMallocators->pcDirectiveLines);
+	}
+	else
+	{
+		macTokens.Init();
+		macExpansions.Init();
+		macInactiveRegions.Init();
+		macDirectiveLines.Init();
+	}
+	mcStrings.Init(4 KB);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::KillArrays(void)
 {
 	mcStrings.Kill();
 	macDirectiveLines.Kill();
@@ -144,25 +203,8 @@ void CPreprocessedTokens::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessedTokens::Clear(void)
-{
-	Kill();
-	Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 SPreprocessedToken* CPreprocessedTokens::Add(SPreprocessedToken* psToken)
 {
-	//A unit can have a million tokens: the array doubles when it is full (its chunk is set to its size), where the
-	//array's own chunks (at most 60750 elements) would copy it over and over as it grows.
-	if ((macTokens.NumElements() == macTokens.AllocatedElements()) && (macTokens.NumElements() >= PREPROCESSED_TOKENS_DOUBLE_FROM))
-	{
-		macTokens.SetAllocateSize(macTokens.NumElements());
-	}
 	return macTokens.Add(psToken);
 }
 

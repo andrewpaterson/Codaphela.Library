@@ -79,6 +79,7 @@ void CCPP65Builder::Init(void)
 	mcCompiled.Init();
 	muiCompiling = 0;
 	muiCompiledAgain = 0;
+	mapcWorkspaces.Init();
 }
 
 
@@ -94,6 +95,8 @@ void CCPP65Builder::Kill(void)
 	{
 		mcIndexTreeSpillStore.Kill();
 	}
+	KillWorkspaces();
+	mapcWorkspaces.Kill();
 	mcCompiled.Kill();
 	mcCompilingMutex.Kill();
 	mcMemorySpillStore.Kill();
@@ -1277,6 +1280,7 @@ bool CCPP65Builder::CompileUnits(void)
 		psUnit->szErrors.Kill();
 		free(psUnit);
 	}
+	KillWorkspaces();
 
 	if (apsUnits.NumElements() != muiUnits)
 	{
@@ -1488,15 +1492,59 @@ void CCPP65Builder::CompileUnitAgain(SCPP65CompiledUnit* psUnit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// psUnit's file's tokens and source are freed, and it has finished
-// compiling.
+// A workspace for compiling a unit (CCPP65UnitWorkspace): one another
+// unit has finished with, or a new one.  Units compiled at the same time
+// have their own.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::ReleaseUnit(SCPP65CompiledUnit* psUnit)
+CCPP65UnitWorkspace* CCPP65Builder::TakeWorkspace(void)
 {
-	psUnit->pcFile->GetTokens()->Clear();
-	psUnit->pcFile->Unload();
-	UnitFinished();
+	CCPP65UnitWorkspace*	pcWorkspace;
+
+	mcCompilingMutex.Lock();
+	pcWorkspace = mapcWorkspaces.IsNotEmpty() ? mapcWorkspaces.Pop() : NULL;
+	mcCompilingMutex.Unlock();
+
+	if (!pcWorkspace)
+	{
+		pcWorkspace = NewMalloc<CCPP65UnitWorkspace>();
+		pcWorkspace->Init();
+	}
+	pcWorkspace->Begin();
+	return pcWorkspace;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit compiled with pcWorkspace has finished with it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace)
+{
+	mcCompilingMutex.Lock();
+	mapcWorkspaces.Push(pcWorkspace);
+	mcCompilingMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The workspaces' memory is freed (no unit is compiling).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::KillWorkspaces(void)
+{
+	size					i;
+	CCPP65UnitWorkspace*	pcWorkspace;
+
+	for (i = 0; i < mapcWorkspaces.NumElements(); i++)
+	{
+		pcWorkspace = *mapcWorkspaces.Get(i);
+		pcWorkspace->Kill();
+		free(pcWorkspace);
+	}
+	mapcWorkspaces.ReInit();
 }
 
 
@@ -1530,8 +1578,12 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	CCPPParser			cParser;
 	CCPP65Generator		cGenerator;
 	CCPP65Assembly		cAssembly;
+	CCPP65UnitWorkspace*	pcWorkspace;
 	char*				szConfiguration;
 	bool				bResult;
+
+	pcWorkspace = TakeWorkspace();
+	psUnit->pcFile->GetTokens()->SetMallocators(pcWorkspace->GetPreprocessedTokensMallocators());
 
 	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
 	if (bReport)
@@ -1549,10 +1601,10 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 		psUnit->cSpillStore.Init();
 	}
 
-	cTokeniser.Init();
+	cTokeniser.Init(pcWorkspace->GetCPPTokensMallocator());
 	bResult &= cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
 	psUnit->szErrors.Append(cTokeniser.GetErrors()->Text());
-	cTree.Init(&cTokeniser);
+	cTree.Init(&cTokeniser, pcWorkspace->GetSyntaxTreeMallocators());
 	cParser.Init(&cTokeniser, &cTree);
 	if (mbLazyHeaders)
 	{
@@ -1600,6 +1652,11 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 		psUnit->cSpillStore.Kill();
 	}
 	psUnit->bResult &= bResult;
-	ReleaseUnit(psUnit);
+
+	//The file's tokens and source are freed (the tokens' memory kept by the workspace for the next unit).
+	psUnit->pcFile->GetTokens()->SetMallocators(NULL);
+	psUnit->pcFile->Unload();
+	GiveBackWorkspace(pcWorkspace);
+	UnitFinished();
 }
 

@@ -30,7 +30,7 @@ void CCPPSyntaxTemplateDeclaration::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcP
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	mbExtern = false;
 	mbInstantiation = false;
-	macpParameters.Init();
+	macpParameters.Init(NodeArrayMallocator());
 	mpcDeclaration = NULL;
 	mpcScope = NULL;
 }

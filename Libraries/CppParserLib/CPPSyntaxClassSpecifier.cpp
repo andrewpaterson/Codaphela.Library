@@ -29,11 +29,11 @@ void CCPPSyntaxClassSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 {
 	CCPPSyntaxTypeSpecifier::Init(pcTree, pcParent);
 	meKey = CT_class;
-	macpAttributes.Init();
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcName = NULL;
 	mbFinal = false;
-	macpBases.Init();
-	macpMembers.Init();
+	macpBases.Init(NodeArrayMallocator());
+	macpMembers.Init(NodeArrayMallocator());
 	mpcScope = NULL;
 	mpcSymbol = NULL;
 	miPack = 0;

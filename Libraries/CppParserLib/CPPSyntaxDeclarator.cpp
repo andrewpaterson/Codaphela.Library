@@ -28,12 +28,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxDeclarator::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
-	macpPrefix.Init();
+	macpPrefix.Init(NodeArrayMallocator());
 	mbPack = false;
 	mpcName = NULL;
 	mpcNested = NULL;
-	macpSuffixes.Init();
-	macpAttributes.Init();
+	macpSuffixes.Init(NodeArrayMallocator());
+	macpAttributes.Init(NodeArrayMallocator());
 }
 
 

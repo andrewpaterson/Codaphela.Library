@@ -32,7 +32,7 @@ void CCPPSyntaxNameComponent::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	mbTemplateKeyword = false;
 	miName = -1;
 	mbTemplateArguments = false;
-	macpTemplateArguments.Init();
+	macpTemplateArguments.Init(NodeArrayMallocator());
 	mpcConversionType = NULL;
 	mpcSymbol = NULL;
 }

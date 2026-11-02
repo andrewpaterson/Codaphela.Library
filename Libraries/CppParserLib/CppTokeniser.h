@@ -50,7 +50,7 @@ public:
 	int64					mlliOverride;
 	int64					mlliFinal;
 
-	void 				Init(void);
+	void 				Init(CMallocator* pcTokens = NULL);
 	void 				Kill(void);
 	bool 				Tokenise(CPreprocessedTokens* pcSource);
 

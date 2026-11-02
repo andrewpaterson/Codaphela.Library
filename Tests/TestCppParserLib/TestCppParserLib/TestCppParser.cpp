@@ -4,7 +4,9 @@
 #include "CppParserLib/CppTokeniser.h"
 #include "CppParserLib/CppParser.h"
 #include "CppParserLib/HeaderFileMap.h"
+#include "CppParserLib/CPP65UnitWorkspace.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/ConstructorCall.h"
 #include "TestLib/Assert.h"
 
 
@@ -16,7 +18,7 @@ struct SParsedText
 	CCPPSyntaxTree		cTree;
 	int					iErrors;
 
-	bool	Init(char* szSource);
+	bool	Init(char* szSource, CCPP65UnitWorkspace* pcWorkspace = NULL);
 	void	Kill(void);
 	char*	Print(CChars* psz);
 	int		FindToken(char* szSpelling, int iOccurrence);
@@ -27,9 +29,11 @@ struct SParsedText
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With pcWorkspace's allocators if it is given (as the builder compiles a
+// unit), else the system allocator's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool SParsedText::Init(char* szSource)
+bool SParsedText::Init(char* szSource, CCPP65UnitWorkspace* pcWorkspace)
 {
 	CPreprocessor	cPreprocessor;
 	CCPPParser		cParser;
@@ -37,14 +41,19 @@ bool SParsedText::Init(char* szSource)
 
 	cFile.Init("Parsed.cpp", NULL, false);
 	cFile.SetContents(szSource);
+	if (pcWorkspace)
+	{
+		pcWorkspace->Begin();
+		cFile.GetTokens()->SetMallocators(pcWorkspace->GetPreprocessedTokensMallocators());
+	}
 	cPreprocessor.Init(NULL);
 	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
 	cPreprocessor.Kill();
 
-	cTokeniser.Init();
+	cTokeniser.Init(pcWorkspace ? pcWorkspace->GetCPPTokensMallocator() : NULL);
 	bResult &= cTokeniser.Tokenise(cFile.GetTokens());
 
-	cTree.Init(&cTokeniser);
+	cTree.Init(&cTokeniser, pcWorkspace ? pcWorkspace->GetSyntaxTreeMallocators() : NULL);
 	cParser.Init(&cTokeniser, &cTree);
 	bResult &= cParser.Parse();
 	iErrors = cParser.NumErrors();
@@ -1510,6 +1519,68 @@ void f(void) { struct L; enum G { g0 }; }"));
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A unit preprocessed, tokenised and parsed with a workspace's allocators
+// (CCPP65UnitWorkspace, as the builder compiles one) gives the same tree
+// as without, and the next unit with the workspace reuses its memory: the
+// same unit again needs no more.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserWorkspace(void)
+{
+	static char*			szSource = "\
+#define SQUARE(x) ((x) * (x))\n\
+#if 0\n\
+int giSkipped;\n\
+#endif\n\
+template<class T> class CArray { public: T* mpaData; int miSize; T* Get(int i) { return &mpaData[i]; } };\n\
+namespace N { struct SPoint { int x, y; }; enum EColour { RED, GREEN = RED + 2 }; }\n\
+int Area(N::SPoint* ps, CArray<int>* pa) { return SQUARE(ps->x) + *pa->Get(ps->y) + N::GREEN; }\n";
+	SParsedText				sPlain;
+	SParsedText				sWorkspace;
+	CCPP65UnitWorkspace*	pcWorkspace;
+	CChars					szPlain;
+	CChars					szWorkspace;
+	lsize					uiKept;
+	int						i;
+
+	AssertTrue(sPlain.Init(szSource));
+	AssertInt(0, sPlain.iErrors);
+	szPlain.Init();
+	sPlain.Print(&szPlain);
+
+	pcWorkspace = NewMalloc<CCPP65UnitWorkspace>();
+	pcWorkspace->Init();
+	uiKept = 0;
+	for (i = 0; i < 2; i++)
+	{
+		AssertTrue(sWorkspace.Init(szSource, pcWorkspace));
+		AssertInt(0, sWorkspace.iErrors);
+		AssertSize(sPlain.cTokeniser.NumTokens(), sWorkspace.cTokeniser.NumTokens());
+		szWorkspace.Init();
+		AssertString(szPlain.Text(), sWorkspace.Print(&szWorkspace));
+		szWorkspace.Kill();
+		sWorkspace.Kill();
+
+		if (i == 0)
+		{
+			uiKept = pcWorkspace->GetKeptMemory();
+			AssertTrue(uiKept > 0);
+		}
+		else
+		{
+			AssertLSize(uiKept, pcWorkspace->GetKeptMemory());
+		}
+	}
+	pcWorkspace->Kill();
+	free(pcWorkspace);
+
+	szPlain.Kill();
+	sPlain.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1543,6 +1614,7 @@ void TestCppParser(void)
 	TestCppParserSizeofPack();
 	TestCppParserDeclarationErrors();
 	TestCppParserDeclarationsWithoutDeclarators();
+	TestCppParserWorkspace();
 
 	NumberKill();
 	TypeConverterKill();

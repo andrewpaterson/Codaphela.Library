@@ -24,13 +24,21 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcSyntaxes allocates the list of nodes (NULL for the system allocator).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxMemory::Init(CCPPSyntaxTree* pcTree)
+void CCPPSyntaxMemory::Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes)
 {
 	mpcTree = pcTree;
 	mcStack.Init(64 KB);
-	mapcSyntaxes.Init();
+	if (pcSyntaxes)
+	{
+		mapcSyntaxes.Init(pcSyntaxes);
+	}
+	else
+	{
+		mapcSyntaxes.Init();
+	}
 }
 
 

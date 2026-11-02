@@ -216,6 +216,7 @@
     <ClCompile Include="IRTypes.cpp" />
     <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
+    <ClCompile Include="CPP65UnitWorkspace.cpp" />
     <ClCompile Include="SpillStore.cpp" />
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPP65Generator.cpp" />
@@ -421,6 +422,7 @@
     <ClInclude Include="IRTypes.h" />
     <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPP65Builder.h" />
+    <ClInclude Include="CPP65UnitWorkspace.h" />
     <ClInclude Include="SpillStore.h" />
     <ClInclude Include="VisualStudioProject.h" />
     <ClInclude Include="CPP65Generator.h" />

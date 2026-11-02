@@ -112,8 +112,7 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 					BeginTentative(&sTentative);
 					bArguments = ParseTemplateArguments(pcComponent);
 					bTemplate = EndTentative(&sTentative, bArguments && (Is(CT_OpenRoundBracket) || Is(CT_ScopeResolution)));
-					pcComponent->macpTemplateArguments.Kill();
-					pcComponent->macpTemplateArguments.Init();
+					pcComponent->macpTemplateArguments.ReInit();
 					pcComponent->mbTemplateArguments = false;
 				}
 

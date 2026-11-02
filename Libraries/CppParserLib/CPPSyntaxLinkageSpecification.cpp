@@ -30,7 +30,7 @@ void CCPPSyntaxLinkageSpecification::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pc
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	miLanguage = -1;
 	mbBraced = false;
-	macpDeclarations.Init();
+	macpDeclarations.Init(NodeArrayMallocator());
 }
 
 

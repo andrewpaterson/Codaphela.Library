@@ -34,7 +34,7 @@ protected:
 	CCPPSyntaxTree*			mpcTree;
 
 public:
-	void							Init(CCPPSyntaxTree* pcTree);
+	void							Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes = NULL);
 	void							Kill(void);
 	size							NumSyntaxes(void);
 

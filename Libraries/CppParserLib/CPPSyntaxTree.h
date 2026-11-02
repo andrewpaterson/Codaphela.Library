@@ -47,6 +47,16 @@ struct SCPPTokenSymbol
 typedef CArrayTemplate<SCPPTokenSymbol>	CArrayTokenSymbols;
 
 
+//Where a syntax tree is allocated (CCPPSyntaxTree::Init): a builder compiling unit after unit on a thread gives it
+//allocators that keep their memory for the next unit (CCPP65UnitWorkspace).
+struct SCPPSyntaxTreeMallocators
+{
+	CMallocator*	pcSyntaxes;			//The list of nodes.
+	CMallocator*	pcTokenSymbols;		//What each token was found to be.
+	CMallocator*	pcNodeArrays;		//The nodes' own arrays (their children and the like).
+};
+
+
 class CCPPSyntaxTranslationUnit;
 class CCPPSyntaxTree
 {
@@ -57,13 +67,15 @@ protected:
 	CCPPSyntaxTranslationUnit*	mpcRoot;
 	CCPPErrors					mcErrors;
 	CArrayTokenSymbols			masTokenSymbols;
+	CMallocator*				mpcNodeArrays;
 
 public:
-	void						Init(CCPPTokeniser* pcTokeniser);
+	void						Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators* psMallocators = NULL);
 	void						Kill(void);
 
 	CCPPTokeniser*				GetTokeniser(void);
 	CCPPSyntaxMemory*			GetMemory(void);
+	CMallocator*				GetNodeArrayMallocator(void);
 	CCPPSymbolTable*			GetSymbols(void);
 	CCPPSyntaxTranslationUnit*	GetRoot(void);
 	void						SetRoot(CCPPSyntaxTranslationUnit* pcRoot);

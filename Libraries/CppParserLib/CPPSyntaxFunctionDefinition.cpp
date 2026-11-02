@@ -30,7 +30,7 @@ void CCPPSyntaxFunctionDefinition::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPa
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	mpcSpecifiers = NULL;
 	mpcDeclarator = NULL;
-	macpMemberInitializers.Init();
+	macpMemberInitializers.Init(NodeArrayMallocator());
 	mpcBody = NULL;
 	meBody = CPPFB_Body;
 	miBodyStart = -1;

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "CPPSyntaxes.h"
 
 
@@ -107,6 +108,22 @@ char* gaszSyntaxKindNames[] =
 	"LazyDeclaration",
 };
 static_assert(sizeof(gaszSyntaxKindNames) / sizeof(char*) == CPPS_LazyDeclaration + 1, "gaszSyntaxKindNames must have a name for every ECPPSyntax.");
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a node's own arrays are made with: its tree's (an arena when the
+// tree is given one, CCPPSyntaxTree::Init).  Init the node first.
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CCPPSyntax::NodeArrayMallocator(void)
+{
+	if (mpcTree)
+	{
+		return mpcTree->GetNodeArrayMallocator();
+	}
+	return &gcSystemAllocator;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -245,17 +245,26 @@ static SCPPReservedWord gasCPPReservedWords[] =
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// pcTokens allocates the array of tokens (NULL for the system allocator):
+// one that keeps its memory for the next unit (CCPP65UnitWorkspace).
+//
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::Init(void)
+void CCPPTokeniser::Init(CMallocator* pcTokens)
 {
 	size	i;
 	int64	lliID;
 
 	mcStack.Init(16 KB);
 	mcIdentifiers.Init();
-	mcTokens.Init();
+	if (pcTokens)
+	{
+		mcTokens.Init(pcTokens);
+	}
+	else
+	{
+		mcTokens.Init();
+	}
 	mpcSource = NULL;
 	mbError = false;
 	mcErrors.Init();
@@ -312,8 +321,7 @@ void CCPPTokeniser::Clear(void)
 		pcToken = *mcTokens.Get(i);
 		pcToken->Kill();
 	}
-	mcTokens.Kill();
-	mcTokens.Init();
+	mcTokens.ReInit();
 	mcStack.Kill();
 	mcStack.Init(16 KB);
 }

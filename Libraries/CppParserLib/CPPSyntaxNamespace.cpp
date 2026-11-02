@@ -30,8 +30,8 @@ void CCPPSyntaxNamespace::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	mbInline = false;
 	miName = -1;
-	macpAttributes.Init();
-	macpDeclarations.Init();
+	macpAttributes.Init(NodeArrayMallocator());
+	macpDeclarations.Init(NodeArrayMallocator());
 	mpcScope = NULL;
 }
 

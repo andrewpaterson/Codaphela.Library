@@ -30,7 +30,7 @@ void CCPPSyntaxPointerOperator::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParen
 	CCPPSyntax::Init(pcTree, pcParent);
 	meKind = CPPP_Pointer;
 	mpcClass = NULL;
-	macpQualifiers.Init();
+	macpQualifiers.Init(NodeArrayMallocator());
 }
 
 

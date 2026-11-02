@@ -29,7 +29,7 @@ void CCPPSyntaxName::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
 	mbGlobal = false;
-	macpComponents.Init();
+	macpComponents.Init(NodeArrayMallocator());
 	mpcSymbol = NULL;
 }
 

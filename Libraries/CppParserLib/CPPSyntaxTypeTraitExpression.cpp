@@ -29,7 +29,7 @@ void CCPPSyntaxTypeTraitExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcP
 {
 	CCPPSyntaxExpression::Init(pcTree, pcParent);
 	miName = -1;
-	macpArguments.Init();
+	macpArguments.Init(NodeArrayMallocator());
 }
 
 

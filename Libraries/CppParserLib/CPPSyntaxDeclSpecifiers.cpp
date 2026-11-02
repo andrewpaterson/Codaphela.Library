@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CCPPSyntaxDeclSpecifiers::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntax::Init(pcTree, pcParent);
-	macpSpecifiers.Init();
+	macpSpecifiers.Init(NodeArrayMallocator());
 	muiFlags = 0;
 	muiTypeKeywords = 0;
 	miLongs = 0;

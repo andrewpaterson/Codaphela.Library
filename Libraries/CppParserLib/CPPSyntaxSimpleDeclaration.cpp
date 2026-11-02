@@ -29,7 +29,7 @@ void CCPPSyntaxSimpleDeclaration::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 {
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	mpcSpecifiers = NULL;
-	macpDeclarators.Init();
+	macpDeclarators.Init(NodeArrayMallocator());
 	mbNoSemicolon = false;
 }
 

@@ -29,7 +29,7 @@ void CCPPSyntaxElaboratedTypeSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax*
 {
 	CCPPSyntaxTypeSpecifier::Init(pcTree, pcParent);
 	meKey = CT_class;
-	macpAttributes.Init();
+	macpAttributes.Init(NodeArrayMallocator());
 	mpcName = NULL;
 }
 

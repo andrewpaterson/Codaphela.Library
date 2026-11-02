@@ -29,11 +29,11 @@ void CCPPSyntaxNewExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 {
 	CCPPSyntaxExpression::Init(pcTree, pcParent);
 	mbGlobal = false;
-	macpPlacement.Init();
+	macpPlacement.Init(NodeArrayMallocator());
 	mbPlacement = false;
 	mbParenthesisedType = false;
 	mpcType = NULL;
-	macpArraySizes.Init();
+	macpArraySizes.Init(NodeArrayMallocator());
 	mpcInitializer = NULL;
 }
 

@@ -65,10 +65,10 @@ void TestArraySizer(void)
 	miiExpected.Put(87480, 21870);
 	miiExpected.Put(109350, 36450);
 	miiExpected.Put(145800, 36450);
+	//From here the chunk is a third of the elements: the array grows by a third each time.
 	miiExpected.Put(182250, 60750);
-	miiExpected.Put(243000, 60750);
-	miiExpected.Put(303750, 60750);
-	miiExpected.Put(364500, 60750);
+	miiExpected.Put(243000, 81000);
+	miiExpected.Put(324000, 108000);
 
 	iCount = 0;
 	;

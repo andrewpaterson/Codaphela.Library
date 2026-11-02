@@ -18,25 +18,36 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "CPPSyntaxes.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// psMallocators' allocators make the tree (NULL, or a NULL member, for the
+// system allocator).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser)
+void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators* psMallocators)
 {
 	SCPPTokenSymbol*	psTokenSymbols;
 	size				uiNumTokens;
 
 	mpcTokeniser = pcTokeniser;
-	mcMemory.Init(this);
+	mcMemory.Init(this, psMallocators ? psMallocators->pcSyntaxes : NULL);
 	mcSymbols.Init();
 	mpcRoot = NULL;
 	mcErrors.Init();
+	mpcNodeArrays = (psMallocators && psMallocators->pcNodeArrays) ? psMallocators->pcNodeArrays : &gcSystemAllocator;
 
-	masTokenSymbols.Init();
+	if (psMallocators && psMallocators->pcTokenSymbols)
+	{
+		masTokenSymbols.Init(psMallocators->pcTokenSymbols);
+	}
+	else
+	{
+		masTokenSymbols.Init();
+	}
 	uiNumTokens = pcTokeniser->NumTokens();
 	if (uiNumTokens > 0)
 	{
@@ -58,6 +69,19 @@ void CCPPSyntaxTree::Kill(void)
 	mcSymbols.Kill();
 	mcMemory.Kill();
 	mpcTokeniser = NULL;
+	mpcNodeArrays = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the nodes' own arrays are allocated by (CCPPSyntax::
+// NodeArrayMallocator).
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CCPPSyntaxTree::GetNodeArrayMallocator(void)
+{
+	return mpcNodeArrays;
 }
 
 

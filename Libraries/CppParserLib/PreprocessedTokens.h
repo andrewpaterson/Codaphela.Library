@@ -89,9 +89,6 @@ struct SPreprocessedToken
 typedef CArrayTemplate<SPreprocessedToken>	CArrayPreprocessedTokens;
 
 
-#define PREPROCESSED_TOKENS_DOUBLE_FROM		0x1000	//CPreprocessedTokens' array doubles when full from this many tokens.
-
-
 //One expansion of a macro.  The tokens it made refer to it by index.
 struct SMacroExpansion
 {
@@ -131,20 +128,33 @@ struct SDirectiveLine
 typedef CArrayTemplate<SDirectiveLine>	CArrayDirectiveLines;
 
 
+//Where a unit's preprocessed tokens are allocated (CPreprocessedTokens::SetMallocators): a builder compiling unit after
+//unit on a thread gives it allocators that keep their memory for the next unit (CCPP65UnitWorkspace).
+struct SPreprocessedTokensMallocators
+{
+	CMallocator*	pcTokens;
+	CMallocator*	pcExpansions;
+	CMallocator*	pcInactiveRegions;
+	CMallocator*	pcDirectiveLines;
+};
+
+
 //The output of the preprocessor for one translation unit.
 class CPreprocessedTokens
 {
 protected:
-	CArrayPreprocessedTokens	macTokens;
-	CArrayMacroExpansions		macExpansions;
-	CArrayInactiveRegions		macInactiveRegions;
-	CArrayDirectiveLines		macDirectiveLines;
-	CMemoryStackExtended		mcStrings;		//Spellings of tokens the preprocessor made.
+	CArrayPreprocessedTokens			macTokens;
+	CArrayMacroExpansions				macExpansions;
+	CArrayInactiveRegions				macInactiveRegions;
+	CArrayDirectiveLines				macDirectiveLines;
+	CMemoryStackExtended				mcStrings;		//Spellings of tokens the preprocessor made.
+	SPreprocessedTokensMallocators*		mpsMallocators;	//NULL for the system allocator.
 
 public:
 	void					Init(void);
 	void					Kill(void);
 	void					Clear(void);
+	void					SetMallocators(SPreprocessedTokensMallocators* psMallocators);
 
 	SPreprocessedToken*		Add(SPreprocessedToken* psToken);
 	size					NumTokens(void);
@@ -166,6 +176,10 @@ public:
 
 	char*					Print(CChars* psz);
 	void					Dump(void);
+
+protected:
+	void					InitArrays(void);
+	void					KillArrays(void);
 };
 
 

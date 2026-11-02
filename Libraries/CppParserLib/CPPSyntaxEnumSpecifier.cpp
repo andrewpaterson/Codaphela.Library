@@ -34,7 +34,7 @@ void CCPPSyntaxEnumSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	mpcBase = NULL;
 	mbBody = false;
 	mbTrailingComma = false;
-	macpEnumerators.Init();
+	macpEnumerators.Init(NodeArrayMallocator());
 	mpcScope = NULL;
 	mpcSymbol = NULL;
 }

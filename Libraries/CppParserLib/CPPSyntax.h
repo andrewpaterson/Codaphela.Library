@@ -59,6 +59,7 @@ public:
 			void		Dump(void);
 
 protected:
+			CMallocator*	NodeArrayMallocator(void);
 			void		Indent(CChars* pszDest, int iDepth);
 			void		AppendToken(CChars* pszDest, int iToken);
 			void		AppendTokens(CChars* pszDest, int iFirstToken, int iLastToken);
