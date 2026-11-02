@@ -1167,13 +1167,14 @@ bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
 //////////////////////////////////////////////////////////////////////////
 //
 // Compiles the project's units, each into an object (of its library when it
-// is linked as one).  Each unit is preprocessed (here, in order) just before
-// it is compiled, and its tokens and source freed after, so only the units
-// being compiled are kept (headers stay tokenised for the units after).
+// is linked as one).  Each unit is preprocessed just before it is compiled,
+// and its tokens and source freed after, so only the units being compiled
+// are kept (headers stay tokenised for the units after).
 //
-// The units are compiled by the jobs (SetJobs), several at once, while the
-// next is preprocessed.  What they share is used as if they were compiled
-// one after another: their objects are added in order, here; the W65C816's
+// The units are preprocessed and compiled by the jobs (SetJobs), several at
+// once.  What they share is used as if they were compiled one after
+// another: a header is tokenised by the first to include it (CPreprocessor::
+// TokeniseFile); their objects are added in order, here; the W65C816's
 // small functions are found and exported in each unit's turn (mcImports);
 // the header declarations they parse can't change what any of them is
 // compiled to (mcHeaderIndex); and their errors and warnings are added in
@@ -1218,7 +1219,7 @@ bool CCPP65Builder::CompileUnits(void)
 		uiTurn++;
 		apsUnits.Add(psUnit);
 		AddUnitObject(psUnit);
-		RunUnit(pcJobs, CompileUnitJob, psUnit, uiMaxCompiling, true);
+		RunUnit(pcJobs, CompileUnitJob, psUnit, uiMaxCompiling);
 	}
 	pcJobs->Wait();
 	for (ui = 0; ui < apsUnits.NumElements(); ui++)
@@ -1252,7 +1253,7 @@ bool CCPP65Builder::CompileUnits(void)
 				psUnit->uiTurn = uiTurn;
 				uiTurn++;
 				psUnit->bResult = true;
-				RunUnit(pcJobs, CompileUnitAgainJob, psUnit, uiMaxCompiling, false);
+				RunUnit(pcJobs, CompileUnitAgainJob, psUnit, uiMaxCompiling);
 			}
 		}
 		pcJobs->Wait();
@@ -1364,17 +1365,12 @@ void CCPP65Builder::AddUnitObject(SCPP65CompiledUnit* psUnit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Preprocesses psUnit's file and gives it to the jobs to compile (fJob),
-// once fewer than uiMaxCompiling units are compiling (each keeps its file's
-// tokens).  The preprocessor's errors and warnings are the unit's if
-// bReport.
+// Gives psUnit to the jobs to compile (fJob), once fewer than
+// uiMaxCompiling units are compiling (each keeps its file's tokens).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling, bool bReport)
+void CCPP65Builder::RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling)
 {
-	char*	szConfiguration;
-	bool	bResult;
-
 	mcCompilingMutex.Lock();
 	while (muiCompiling >= uiMaxCompiling)
 	{
@@ -1383,16 +1379,6 @@ void CCPP65Builder::RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit*
 	muiCompiling++;
 	mcCompilingMutex.Unlock();
 
-	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
-	if (bReport)
-	{
-		bResult = mcProject.ProcessUnit(psUnit->pcFile, szConfiguration, &psUnit->szErrors, &psUnit->szWarnings);
-		psUnit->bResult &= bResult;
-	}
-	else
-	{
-		mcProject.ProcessUnit(psUnit->pcFile, szConfiguration);
-	}
 	pcJobs->Run(fJob, psUnit);
 }
 
@@ -1450,7 +1436,7 @@ void CCPP65Builder::CompileUnitJob(void* pvUnit)
 	SCPP65CompiledUnit*	psUnit;
 
 	psUnit = (SCPP65CompiledUnit*)pvUnit;
-	psUnit->pcBuilder->CompileUnit(psUnit);
+	psUnit->pcBuilder->CompileUnit(psUnit, true);
 }
 
 
@@ -1486,30 +1472,41 @@ void CCPP65Builder::CompileUnitAgain(SCPP65CompiledUnit* psUnit)
 		{
 			mcImports.EndTurn(psUnit->uiTurn);
 			psUnit->eAgain = CPP65CA_No;
-			ReleaseUnit(psUnit);
+			UnitFinished();
 			return;
 		}
 		psUnit->eAgain = CPP65CA_Yes;
 	}
 
+	//Preprocessed again: its errors and warnings were reported the first time.
 	psUnit->aszMissing.ReInit();
 	psUnit->pcObject->Kill();
 	psUnit->pcObject->Init(psUnit->pcFile->ShortName());
-	CompileUnit(psUnit);
+	CompileUnit(psUnit, false);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // psUnit's file's tokens and source are freed, and it has finished
-// compiling (muiCompiling).
+// compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::ReleaseUnit(SCPP65CompiledUnit* psUnit)
 {
 	psUnit->pcFile->GetTokens()->Clear();
 	psUnit->pcFile->Unload();
+	UnitFinished();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A unit given to the jobs has finished (muiCompiling).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::UnitFinished(void)
+{
 	mcCompilingMutex.Lock();
 	muiCompiling--;
 	mcCompiled.WakeAll();
@@ -1519,20 +1516,33 @@ void CCPP65Builder::ReleaseUnit(SCPP65CompiledUnit* psUnit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compiles psUnit's preprocessed file into its object, then frees the
-// file's tokens and source.  Its errors and warnings go to the unit's, the
-// functions it calls that weren't found for inlining to its aszMissing.
-// The unit is counted as compiling (muiCompiling) until it has finished.
+// Preprocesses and compiles psUnit's file into its object, then frees the
+// file's tokens and source.  Its errors and warnings go to the unit's (the
+// preprocessor's only if bReport), the functions it calls that weren't
+// found for inlining to its aszMissing.  The unit is counted as compiling
+// (muiCompiling) until it has finished.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
+void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 {
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
 	CCPP65Generator		cGenerator;
 	CCPP65Assembly		cAssembly;
+	char*				szConfiguration;
 	bool				bResult;
+
+	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
+	if (bReport)
+	{
+		bResult = mcProject.ProcessUnit(psUnit->pcFile, szConfiguration, &psUnit->szErrors, &psUnit->szWarnings);
+	}
+	else
+	{
+		mcProject.ProcessUnit(psUnit->pcFile, szConfiguration);
+		bResult = true;
+	}
 
 	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
 	{
@@ -1540,7 +1550,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 	}
 
 	cTokeniser.Init();
-	bResult = cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
+	bResult &= cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
 	psUnit->szErrors.Append(cTokeniser.GetErrors()->Text());
 	cTree.Init(&cTokeniser);
 	cParser.Init(&cTokeniser, &cTree);

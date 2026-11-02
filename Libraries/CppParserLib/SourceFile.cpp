@@ -41,6 +41,7 @@ void CSourceFile::Init(char* szName)
 	mbBlockSetsKilled = false;
 	macComments.Init();
 	maiLineStarts.Init();
+	mcMutex.Init();
 }
 
 
@@ -71,6 +72,30 @@ void CSourceFile::Kill(void)
 	mszFullName.Kill();
 	mszContents.Kill();
 	mbLoaded = false;
+	mcMutex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Units preprocessed at the same time include the same headers: the first
+// to include one loads and tokenises it while it is locked, and the others
+// wait (CPreprocessor::TokeniseFile).
+//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::Lock(void)
+{
+	mcMutex.Lock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::Unlock(void)
+{
+	mcMutex.Unlock();
 }
 
 

@@ -210,7 +210,9 @@ bool CProject::Process(char* szConfiguration, CChars* pszErrors, CChars* pszWarn
 //
 // Preprocesses one translation unit (its tokens replace any it had).  A
 // unit can be preprocessed just before it is compiled, and its tokens
-// cleared (GetTokens()->Clear()) once it is: CreatePost first.
+// cleared (GetTokens()->Clear()) once it is: CreatePost first.  Units can
+// be preprocessed at the same time, on other threads (the headers they
+// share are tokenised once, locked: CPreprocessor::TokeniseFile).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors, CChars* pszWarnings)
@@ -227,8 +229,6 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 	cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
 	cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 	cPreprocessor.LogDumping(mbDumpLogs);
-
-	ClearPragmaOnceFromAllFiles();
 
 	bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 	if (pszErrors)
@@ -262,24 +262,6 @@ void CProject::DumpProcessedCPPFileName(CSourceFile* pcFile)
 	sz.Append(pcFile->ShortName());
 	sz.Append(")\n");
 	sz.DumpKill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CProject::ClearPragmaOnceFromAllFiles(void)
-{
-	CHeaderFile*	pcHeader;
-	SMapIterator	sIter;
-
-	pcHeader = mcIncludeFiles.StartIteration(&sIter);
-	while (pcHeader)
-	{
-		pcHeader->ClearPragmaOnce();
-		pcHeader = mcIncludeFiles.Iterate(&sIter);
-	}
 }
 
 

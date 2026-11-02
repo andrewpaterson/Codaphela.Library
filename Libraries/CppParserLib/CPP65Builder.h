@@ -118,7 +118,7 @@ typedef CArrayTemplatePtr<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
 //objects again and again, each time with another source (a main, for example), so a large project can be run as
 //several programs that each fit.  On the W65C816 small functions are inlined across the project's units (CIRImports):
 //a unit compiled before one whose function it calls is compiled again at the end.  With SetJobs several units are
-//compiled at once (while the next is preprocessed); what is built is the same as compiling them one at a time.
+//preprocessed and compiled at once; what is built is the same as compiling them one at a time.
 class CCPP65Builder
 {
 protected:
@@ -213,12 +213,13 @@ protected:
 	CJobs*			UnitJobs(CSerialJobs* pcSerialJobs);
 	void			StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore);
 	void			AddUnitObject(SCPP65CompiledUnit* psUnit);
-	void			RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling, bool bReport);
+	void			RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling);
 	void			FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings);
 	bool			CalleeExported(SCPP65CompiledUnit* psUnit);
-	void			CompileUnit(SCPP65CompiledUnit* psUnit);
+	void			CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport);
 	void			CompileUnitAgain(SCPP65CompiledUnit* psUnit);
 	void			ReleaseUnit(SCPP65CompiledUnit* psUnit);
+	void			UnitFinished(void);
 	static void		CompileUnitJob(void* pvUnit);
 	static void		CompileUnitAgainJob(void* pvUnit);
 	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);

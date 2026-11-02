@@ -1,5 +1,6 @@
 //Calls UseOuter (Middle.cpp), only exported when Middle.cpp is compiled again.
-int UseOuter(int x);
+#include "Jobs.h"
+#include "Jobs.h"
 
 
 int main()

@@ -706,8 +706,16 @@ void TestProject65RunTests(STestProject65* psProject)
 
 	cBuilder.Init();
 	cBuilder.SetTarget(geTestProject65Target);
-	//TEST_PROJECT65_SERIAL=1 compiles the units one at a time (it builds the same).
-	cJobs.Init();
+	//TEST_PROJECT65_SERIAL=1 compiles the units one at a time (it builds the same); TEST_PROJECT65_THREADS=n compiles
+	//them on n threads (the hardware's by default).
+	if (getenv("TEST_PROJECT65_THREADS"))
+	{
+		cJobs.Init(atoi(getenv("TEST_PROJECT65_THREADS")));
+	}
+	else
+	{
+		cJobs.Init();
+	}
 	if (getenv("TEST_PROJECT65_SERIAL") == NULL)
 	{
 		cBuilder.SetJobs(&cJobs);

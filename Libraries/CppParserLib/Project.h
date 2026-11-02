@@ -58,7 +58,6 @@ public:
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);
-	void				ClearPragmaOnceFromAllFiles(void);
 	CTranslationUnit*	Start(SProcessIter* psIter, char* szConfiguration);
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);

@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __SOURCE_FILE_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/Mutex.h"
 #include "PPBlockSetArray.h"
 #include "PPTokenMemory.h"
 #include "PreprocessorParser.h"
@@ -40,12 +41,15 @@ protected:
 	bool				mbBlockSetsKilled;
 	CArrayPPComments	macComments;		//Filled when the file is tokenised.
 	CArrayInt			maiLineStarts;		//Offset of the start of each line, made when first needed.
+	CMutex				mcMutex;			//Held while the file is loaded and tokenised (Lock).
 
 public:
 			void				Init(char* pszFullName);
 	virtual void				Kill(void);
 
 			void				KillBlockSets(void);
+			void				Lock(void);
+			void				Unlock(void);
 			void				Load(void);
 			void				Unload(void);
 			void				SetContents(const char* sz);
@@ -55,7 +59,6 @@ public:
 	virtual bool				IsHeader(void) =0;
 			char*				ShortName(void);
 			char*				FullName(void);
-	virtual bool				IsPragmaOnced(void) =0;
 	virtual bool				IsSystemFile(void) =0;
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);

@@ -48,7 +48,6 @@ public:
 	bool					IsTranslationUnit(void);
 	bool					IsHeader(void);
 	bool					LogIncludes(void);
-	bool					IsPragmaOnced(void);
 	bool					IsSystemFile(void);
 	STULog*					GetLogs(void);
 	CLibrary*				GetLibrary(void);

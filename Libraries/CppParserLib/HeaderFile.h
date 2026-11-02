@@ -27,18 +27,13 @@ class CHeaderFile : public CSourceFile
 {
 protected:
 	bool	mbSystemFile;
-	bool	mbPragmaOnce;
 
 public:
 	void	Init(char* szFullName, bool bSystemFile);
 	void	Kill(void);
 	bool	IsTranslationUnit(void);
 	bool	IsHeader(void);
-	bool	IsPragmaOnced(void);
 	bool	IsSystemFile(void);
-
-	void	ClearPragmaOnce(void);
-	void	SetPragmaOnce(void);
 };
 
 

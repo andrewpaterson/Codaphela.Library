@@ -118,6 +118,7 @@ void CPreprocessor::Kill(void)
 	mpcCurrentFile = NULL;
 	mcHeadersStack.Kill();
 	mcConditionalStack.Kill();
+	mcPragmaOnce.Kill();
 	mcHeaderNames.Kill();
 	mcSpecialOperators.Kill();
 
@@ -178,19 +179,24 @@ bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	bool					bResult;
 	CPPBlockSetArray*		pacBlockSets;
 
-	//A file is tokenised once and the tokens are read every time it is included.
+	//A file is tokenised once and the tokens are read every time it is included.  Units preprocessed at the same time
+	//(CCPP65Builder::SetJobs) include the same headers, so it is locked while it is.
+	bResult = true;
+	pcFile->Lock();
 	pcFile->Load();
 	pacBlockSets = pcFile->GetBlockSets();
-
 	if (!pacBlockSets->IsRawProcessed())
 	{
+		//Its lines are found now (NumLines finds them the first time), not when the generator first asks, so they are
+		//only read after.
+		pcFile->NumLines();
 		cTokeniser.Init(pcFile->ShortName());
 		cTokeniser.SetComments(pcFile->GetComments());
 		bResult = cTokeniser.TokeniseIntoBlockSets(pacBlockSets, pcFile->GetTokenMemory(), pcFile->GetContents(), (int)pcFile->GetContentsLength());
 		cTokeniser.Kill();
-		return bResult;
 	}
-	return true;
+	pcFile->Unlock();
+	return bResult;
 }
 
 
@@ -787,6 +793,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mcErrors.Init();
 	mcWarnings.Init();
 	mcHeaderNames.Init();
+	mcPragmaOnce.Init();
 
 	AddSpecialDefine("__DATE__");
 	AddSpecialDefine("__TIME__");
@@ -1410,7 +1417,6 @@ bool CPreprocessor::ProcessHashError(CPPDirective* pcDirective, CPreprocessorTok
 bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 {
 	bool			bResult;
-	CHeaderFile*	pcHeader;
 
 	pcParser->SkipWhitespace();
 	if (mbKeepPragmaPack)
@@ -1427,13 +1433,9 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 	bResult = pcParser->GetExactIdentifier("once", true, true);
 	if (bResult == TRITRUE)
 	{
-		if (mpcCurrentFile)
+		if (mpcCurrentFile && mpcCurrentFile->IsHeader())
 		{
-			if (mpcCurrentFile->IsHeader())
-			{
-				pcHeader = (CHeaderFile*)mpcCurrentFile;
-				pcHeader->SetPragmaOnce();
-			}
+			mcPragmaOnce.Put(mpcCurrentFile, mpcCurrentFile);
 		}
 	}
 	return true;
@@ -2653,15 +2655,14 @@ char* CPreprocessor::AddString(const char* szText, size uiLength)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Where #define's tokens go: the preprocessor's, not the file's (a header
+// is shared by the units preprocessed at the same time, and its defines
+// are this unit's).
+//
 //////////////////////////////////////////////////////////////////////////
 CPPTokenMemory* CPreprocessor::GetTokenMemory(void)
 {
-	if (mpcCurrentFile)
-	{
-		return mpcCurrentFile->GetTokenMemory();
-	}
 	return &mcDefineReplacementMemory;
 }
 
@@ -3187,7 +3188,7 @@ bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 	}
 	szName.Kill();
 
-	if (pcIncludeFile->IsPragmaOnced())
+	if (mcPragmaOnce.Get(pcIncludeFile))
 	{
 		miIncludeDepth++;
 		LogInclude(pcIncludeFile);
