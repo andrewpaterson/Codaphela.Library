@@ -41,6 +41,7 @@ class CComponentInput;
 class CFocus : public CObject
 {
 CONSTRUCTABLE(CFocus);
+DESTRUCTABLE(CFocus);
 protected:
 	Ptr<CComponent>		mpMouseOverComponent;
 	Ptr<CComponent>		mpFocussedComponent;

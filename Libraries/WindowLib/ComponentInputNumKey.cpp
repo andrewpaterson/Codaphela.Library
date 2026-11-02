@@ -27,9 +27,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputNumKey::Init(CInputSourceDesc* pcSource, CInputSourceDesc* pcYesNumLockRemap, CInputSourceDesc* pcNoNumLockRemap)
 {
-	this->pcSource = pcSource;
-	this->pcYesNumLockRemap = pcYesNumLockRemap;
-	this->pcNoNumLockRemap = pcNoNumLockRemap;
+	mpcSource = pcSource;
+	mpcYesNumLockRemap = pcYesNumLockRemap;
+	mpcNoNumLockRemap = pcNoNumLockRemap;
 }
 
 

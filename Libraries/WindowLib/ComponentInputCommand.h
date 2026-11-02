@@ -111,9 +111,9 @@ class CInputSourceDesc;
 class CComponentInputCommand
 {
 public:
-	EComponentInputCommand		eCommand;
-	CInputSourceDesc*			pcSource;
-	bool						bPressed;
+	EComponentInputCommand		meCommand;
+	CInputSourceDesc*			mpcSource;
+	bool						mbPressed;
 
 	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bPressed);
 	void Kill(void);

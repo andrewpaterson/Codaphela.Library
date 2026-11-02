@@ -34,9 +34,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void SDoubleClick::Init(void)
 {
-	miLastKey = -1;
-	miLastTime = 0;
-	msLastPosition.Init(0, 0);
+	iLastKey = -1;
+	iLastTime = 0;
+	sLastPosition.Init(0, 0);
 }
 
 
@@ -52,15 +52,15 @@ bool SDoubleClick::Released(int32 iKey, int x, int y)
 	int64	iNow;
 
 	iNow = GetDebugTickCount();
-	if ((miLastKey == iKey) && (iNow - miLastTime <= DOUBLE_CLICK_MILLISECONDS) && (abs(x - msLastPosition.x) <= DOUBLE_CLICK_PIXELS) && (abs(y - msLastPosition.y) <= DOUBLE_CLICK_PIXELS))
+	if ((iLastKey == iKey) && (iNow - iLastTime <= DOUBLE_CLICK_MILLISECONDS) && (abs(x - sLastPosition.x) <= DOUBLE_CLICK_PIXELS) && (abs(y - sLastPosition.y) <= DOUBLE_CLICK_PIXELS))
 	{
-		miLastKey = -1;
+		iLastKey = -1;
 		return true;
 	}
 
-	miLastKey = iKey;
-	miLastTime = iNow;
-	msLastPosition.Init(x, y);
+	iLastKey = iKey;
+	iLastTime = iNow;
+	sLastPosition.Init(x, y);
 	return false;
 }
 
@@ -73,6 +73,6 @@ bool SDoubleClick::Released(int32 iKey, int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void SDoubleClick::Forget(void)
 {
-	miLastKey = -1;
+	iLastKey = -1;
 }
 

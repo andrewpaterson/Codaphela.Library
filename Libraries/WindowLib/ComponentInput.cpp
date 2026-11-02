@@ -689,7 +689,7 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 	psNumKey = GetNumKeyRemap(pcSource);
 	if (psNumKey)
 	{
-		pcRemapped = mbNumLock ? psNumKey->pcYesNumLockRemap : psNumKey->pcNoNumLockRemap;
+		pcRemapped = mbNumLock ? psNumKey->mpcYesNumLockRemap : psNumKey->mpcNoNumLockRemap;
 		if (!pcRemapped)
 		{
 			return false;
@@ -714,17 +714,17 @@ bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputE
 	}
 
 	psReleased = GetCommand(pcRemapped, false);
-	AddPressed(pcSource, psReleased ? psReleased->eCommand : CIC_Ignored);
+	AddPressed(pcSource, psReleased ? psReleased->meCommand : CIC_Ignored);
 
 	psCommand = GetCommand(pcRemapped, true);
 	if (psCommand)
 	{
-		if (psCommand->eCommand == CIC_Ignored)
+		if (psCommand->meCommand == CIC_Ignored)
 		{
 			return false;
 		}
 		InitEvent(psDest, CIET_Command, psWindowEvent);
-		psDest->eCommand = psCommand->eCommand;
+		psDest->eCommand = psCommand->meCommand;
 		return true;
 	}
 
@@ -773,7 +773,7 @@ bool CComponentInput::Released(SWindowInputEvent* psWindowEvent, SComponentInput
 //////////////////////////////////////////////////////////////////////////
 bool CComponentInput::PressedKey(CComponentInputKey* psKey)
 {
-	switch (psKey->eKey)
+	switch (psKey->meKey)
 	{
 	case CIK_Shift:
 	case CIK_Control:

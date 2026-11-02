@@ -27,8 +27,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputKey::Init(CInputSourceDesc* pcSource, EComponentInputKey eKey)
 {
-	this->pcSource = pcSource;
-	this->eKey = eKey;
+	mpcSource = pcSource;
+	meKey = eKey;
 }
 
 

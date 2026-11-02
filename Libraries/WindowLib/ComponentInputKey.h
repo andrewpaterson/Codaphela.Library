@@ -39,8 +39,8 @@ class CInputSourceDesc;
 class CComponentInputKey
 {
 public:
-	CInputSourceDesc*	pcSource;
-	EComponentInputKey	eKey;
+	CInputSourceDesc*	mpcSource;
+	EComponentInputKey	meKey;
 
 	void Init(CInputSourceDesc*	pcSource, EComponentInputKey eKey);
 	void Kill(void);

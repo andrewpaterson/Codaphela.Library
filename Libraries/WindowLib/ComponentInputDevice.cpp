@@ -294,7 +294,7 @@ CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* 
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psPrintable = masPrintables.Get(i);
-		if (psPrintable->pcSource == pcSource)
+		if (psPrintable->mpcSource == pcSource)
 		{
 			return psPrintable;
 		}
@@ -317,7 +317,7 @@ CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSo
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psCommand = masCommands.Get(i);
-		if ((psCommand->pcSource == pcSource) && (psCommand->bPressed == bPressed))
+		if ((psCommand->mpcSource == pcSource) && (psCommand->mbPressed == bPressed))
 		{
 			return psCommand;
 		}
@@ -341,7 +341,7 @@ bool CComponentInputDevice::IsKeyDown(EComponentInputKey eKey)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psKey = masKeys.Get(i);
-		if ((psKey->eKey == eKey) && mpcComponentInput->GetSource()->IsDown(mpcDevice, psKey->pcSource))
+		if ((psKey->meKey == eKey) && mpcComponentInput->GetSource()->IsDown(mpcDevice, psKey->mpcSource))
 		{
 			return true;
 		}
@@ -364,7 +364,7 @@ CComponentInputNumKey* CComponentInputDevice::GetNumKeyRemap(CInputSourceDesc* p
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psNumKey = masNumKeys.Get(i);
-		if (psNumKey->pcSource == pcSource)
+		if (psNumKey->mpcSource == pcSource)
 		{
 			return psNumKey;
 		}
@@ -387,7 +387,7 @@ CComponentInputKey* CComponentInputDevice::GetKey(CInputSourceDesc* pcSource)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psKey = masKeys.Get(i);
-		if (psKey->pcSource == pcSource)
+		if (psKey->mpcSource == pcSource)
 		{
 			return psKey;
 		}

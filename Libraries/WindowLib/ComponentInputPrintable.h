@@ -28,11 +28,11 @@ class CInputSourceDesc;
 class CComponentInputPrintable
 {
 public:
-	CInputSourceDesc*	pcSource;
-	char				cNoShiftNoCaps;
-	char				cYesShiftNoCaps;
-	char				cNoShiftYesCaps;
-	char				cYesShiftYesCaps;
+	CInputSourceDesc*	mpcSource;
+	char				mcNoShiftNoCaps;
+	char				mcYesShiftNoCaps;
+	char				mcNoShiftYesCaps;
+	char				mcYesShiftYesCaps;
 
 	void Init(CInputSourceDesc*	pcSource, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
 	void Kill(void);

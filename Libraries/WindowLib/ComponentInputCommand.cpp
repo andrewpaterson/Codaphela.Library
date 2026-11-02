@@ -27,9 +27,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputCommand::Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bPressed)
 {
-	this->eCommand = eCommand;
-	this->pcSource = pcSource;
-	this->bPressed = bPressed;
+	meCommand = eCommand;
+	mpcSource = pcSource;
+	mbPressed = bPressed;
 }
 
 

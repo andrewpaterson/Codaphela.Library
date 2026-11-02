@@ -27,10 +27,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void SInsets::Init(void)
 {
-	maiWidths[0] = 0;
-	maiWidths[1] = 0;
-	maiWidths[2] = 0;
-	maiWidths[3] = 0;
+	aiWidths[0] = 0;
+	aiWidths[1] = 0;
+	aiWidths[2] = 0;
+	aiWidths[3] = 0;
 }
 
 
@@ -40,10 +40,10 @@ void SInsets::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void SInsets::Init(int* paiWidths)
 {
-	maiWidths[0] = paiWidths[0];
-	maiWidths[1] = paiWidths[1];
-	maiWidths[2] = paiWidths[2];
-	maiWidths[3] = paiWidths[3];
+	aiWidths[0] = paiWidths[0];
+	aiWidths[1] = paiWidths[1];
+	aiWidths[2] = paiWidths[2];
+	aiWidths[3] = paiWidths[3];
 }
 
 
@@ -53,7 +53,7 @@ void SInsets::Init(int* paiWidths)
 //////////////////////////////////////////////////////////////////////////
 int SInsets::GetLeftAndRight(void)
 {
-	return maiWidths[BEI_Left] + maiWidths[BEI_Right];
+	return aiWidths[BEI_Left] + aiWidths[BEI_Right];
 }
 
 
@@ -63,7 +63,7 @@ int SInsets::GetLeftAndRight(void)
 //////////////////////////////////////////////////////////////////////////
 int SInsets::GetTopAndBottom(void)
 {
-	return maiWidths[BEI_Top] + maiWidths[BEI_Bottom];
+	return aiWidths[BEI_Top] + aiWidths[BEI_Bottom];
 }
 
 
@@ -74,8 +74,8 @@ int SInsets::GetTopAndBottom(void)
 //////////////////////////////////////////////////////////////////////////
 void SInsets::Inset(SInt32Vec2* psPosition, SInt32Vec2* psSize)
 {
-	psPosition->x += maiWidths[BEI_Left];
-	psPosition->y += maiWidths[BEI_Top];
+	psPosition->x += aiWidths[BEI_Left];
+	psPosition->y += aiWidths[BEI_Top];
 	psSize->x -= GetLeftAndRight();
 	psSize->y -= GetTopAndBottom();
 	if (psSize->x < 0)

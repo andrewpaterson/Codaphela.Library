@@ -72,8 +72,8 @@ public:
 			bool				IsPointIn(int x, int y);
 			bool				HasFocus(void);
 	virtual	Ptr<CComponent>		FindComponentAt(int x, int y);
-			void				ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
-			void				FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
+			void				ToChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py);
+			void				FromChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py);
 
 	virtual	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 			void				LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);

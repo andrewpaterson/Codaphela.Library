@@ -39,7 +39,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SInsets
 {
-	int maiWidths[4];
+	int aiWidths[4];
 
 	void Init(void);
 	void Init(int* paiWidths);

@@ -391,7 +391,7 @@ bool CComponent::HasFocus(void)
 Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 {
 	size					i;
-	Ptr<CComponent>	pcComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	CInt32Rect				cBounds;
 
@@ -415,11 +415,11 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	uiSize = maChildren.Size();
 	for (i = uiSize; i > 0; i--)
 	{
-		pcComponent = maChildren.Get(i - 1);
-		pcComponent = pcComponent->FindComponentAt(x, y);
-		if (pcComponent)
+		pComponent = maChildren.Get(i - 1);
+		pComponent = pComponent->FindComponentAt(x, y);
+		if (pComponent)
 		{
-			return pcComponent;
+			return pComponent;
 		}
 	}
 
@@ -431,10 +431,10 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py)
+void CComponent::ToChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py)
 {
-	*px = x - pcChildComponent->mcActualBounds.msTopLeft.x;
-	*py = y - pcChildComponent->mcActualBounds.msTopLeft.y;
+	*px = x - pChildComponent->mcActualBounds.msTopLeft.x;
+	*py = y - pChildComponent->mcActualBounds.msTopLeft.y;
 }
 
 
@@ -442,10 +442,10 @@ void CComponent::ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py)
+void CComponent::FromChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py)
 {
-	*px = x + pcChildComponent->mcActualBounds.msTopLeft.x;
-	*py = y + pcChildComponent->mcActualBounds.msTopLeft.y;
+	*px = x + pChildComponent->mcActualBounds.msTopLeft.x;
+	*py = y + pChildComponent->mcActualBounds.msTopLeft.y;
 }
 
 
@@ -489,14 +489,14 @@ void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 size CComponent::GetDepth(void)
 {
 	size					iDepth;
-	Ptr<CComponent>	pcComponent;
+	Ptr<CComponent>	pComponent;
 
 	iDepth = 0;
-	pcComponent = mpParent;
-	while (pcComponent != NULL)
+	pComponent = mpParent;
+	while (pComponent != NULL)
 	{
 		iDepth++;
-		pcComponent = pcComponent->mpParent;
+		pComponent = pComponent->mpParent;
 	}
 	return iDepth;
 }

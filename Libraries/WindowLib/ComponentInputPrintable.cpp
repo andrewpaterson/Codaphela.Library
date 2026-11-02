@@ -27,11 +27,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputPrintable::Init(CInputSourceDesc* pcSource, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps)
 {
-	this->pcSource = pcSource;
-	this->cNoShiftNoCaps = cNoShiftNoCaps;
-	this->cYesShiftNoCaps = cYesShiftNoCaps;
-	this->cNoShiftYesCaps = cNoShiftYesCaps;
-	this->cYesShiftYesCaps = cYesShiftYesCaps;
+	mpcSource = pcSource;
+	mcNoShiftNoCaps = cNoShiftNoCaps;
+	mcYesShiftNoCaps = cYesShiftNoCaps;
+	mcNoShiftYesCaps = cNoShiftYesCaps;
+	mcYesShiftYesCaps = cYesShiftYesCaps;
 }
 
 
@@ -52,11 +52,11 @@ char CComponentInputPrintable::Get(bool bShift, bool bCapsLock)
 {
 	if (bShift)
 	{
-		return bCapsLock ? cYesShiftYesCaps : cYesShiftNoCaps;
+		return bCapsLock ? mcYesShiftYesCaps : mcYesShiftNoCaps;
 	}
 	else
 	{
-		return bCapsLock ? cNoShiftYesCaps : cNoShiftNoCaps;
+		return bCapsLock ? mcNoShiftYesCaps : mcNoShiftNoCaps;
 	}
 }
 

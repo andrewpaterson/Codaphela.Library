@@ -138,10 +138,10 @@ void CRoundedBoxCanvasDraw::MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize)
 	pImage = OMalloc<CImage>(sSize.x, sSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	pImage->Black();
 
-	fLeft = msInsets.maiWidths[BEI_Left];
-	fTop = msInsets.maiWidths[BEI_Top];
-	fRight = sSize.x - msInsets.maiWidths[BEI_Right];
-	fBottom = sSize.y - msInsets.maiWidths[BEI_Bottom];
+	fLeft = msInsets.aiWidths[BEI_Left];
+	fTop = msInsets.aiWidths[BEI_Top];
+	fRight = sSize.x - msInsets.aiWidths[BEI_Right];
+	fBottom = sSize.y - msInsets.aiWidths[BEI_Bottom];
 
 	cDraw.Init(&pImage);
 	cColour.Init(Get8BitAlphaColour(msColour) / 255.0f, Get8BitRedColour(msColour) / 255.0f, Get8BitGreenColour(msColour) / 255.0f, Get8BitBlueColour(msColour) / 255.0f);

@@ -339,7 +339,7 @@ void CMenuContainer::OpenSubMenu(int32 iRow, bool bFocus)
 	{
 		CloseSubMenu();
 		sPosition.x = pPopup->GetPosition().x + pPopup->GetActualSize().x;
-		sPosition.y = iTop - mpStyle->GetMenuInsets()->maiWidths[BEI_Top];
+		sPosition.y = iTop - mpStyle->GetMenuInsets()->aiWidths[BEI_Top];
 		pSubMenu->Open(sPosition, this, false);
 		mpOpenSubMenu = pSubMenu;
 		miOpenSubMenuRow = iRow;

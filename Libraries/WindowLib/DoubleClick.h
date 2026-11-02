@@ -28,9 +28,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //pixels.  The thing is a key the caller chooses, like a list's row or a tab's index, so nothing is held.
 struct SDoubleClick
 {
-	int32		miLastKey;  //What button one was last released on, -1 for nothing.
-	int64		miLastTime;  //When, in milliseconds.
-	SInt32Vec2	msLastPosition;  //Where, relative to whatever the caller measures from.
+	int32		iLastKey;  //What button one was last released on, -1 for nothing.
+	int64		iLastTime;  //When, in milliseconds.
+	SInt32Vec2	sLastPosition;  //Where, relative to whatever the caller measures from.
 
 	void	Init(void);
 	bool	Released(int32 iKey, int x, int y);

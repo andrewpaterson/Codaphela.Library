@@ -100,10 +100,10 @@ void CButtonBar::SetInsets(SInsets* psInsets)
 //////////////////////////////////////////////////////////////////////////
 void CButtonBar::SetInsets(int iTop, int iRight, int iBottom, int iLeft)
 {
-	msInsets.maiWidths[BEI_Top] = iTop;
-	msInsets.maiWidths[BEI_Right] = iRight;
-	msInsets.maiWidths[BEI_Bottom] = iBottom;
-	msInsets.maiWidths[BEI_Left] = iLeft;
+	msInsets.aiWidths[BEI_Top] = iTop;
+	msInsets.aiWidths[BEI_Right] = iRight;
+	msInsets.aiWidths[BEI_Bottom] = iBottom;
+	msInsets.aiWidths[BEI_Left] = iLeft;
 }
 
 

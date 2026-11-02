@@ -28,9 +28,9 @@ class CInputSourceDesc;
 class CComponentInputNumKey
 {
 public:
-	CInputSourceDesc*	pcSource;
-	CInputSourceDesc*	pcYesNumLockRemap;
-	CInputSourceDesc*	pcNoNumLockRemap;
+	CInputSourceDesc*	mpcSource;
+	CInputSourceDesc*	mpcYesNumLockRemap;
+	CInputSourceDesc*	mpcNoNumLockRemap;
 
 	void Init(CInputSourceDesc*	pcSource, CInputSourceDesc* pcYesNumLockRemap, CInputSourceDesc* pcNoNumLockRemap);
 	void Kill(void);
