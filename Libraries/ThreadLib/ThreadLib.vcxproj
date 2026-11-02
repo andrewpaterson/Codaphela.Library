@@ -216,6 +216,7 @@
     <ClInclude Include="ThreadStateNotifier.h" />
     <ClInclude Include="AtomicInt.h" />
     <ClInclude Include="WorkerThreadPool.h" />
+    <ClInclude Include="WorkerThreadJobs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InterProcessCounter.cpp" />
@@ -250,6 +251,7 @@
     <ClCompile Include="AtomicInt_Windows.cpp" />
     <ClCompile Include="AtomicInt_Linux.cpp" />
     <ClCompile Include="WorkerThreadPool.cpp" />
+    <ClCompile Include="WorkerThreadJobs.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ThreadsDone.cpp" />
   </ItemGroup>

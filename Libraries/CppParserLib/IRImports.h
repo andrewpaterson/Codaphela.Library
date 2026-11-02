@@ -21,6 +21,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __I_R_IMPORTS_H__
 #define __I_R_IMPORTS_H__
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/Mutex.h"
+#include "BaseLib/ConditionVariable.h"
 #include "IRModule.h"
 
 
@@ -29,15 +31,26 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //local to its unit (globals and the like may be named: they are the same symbols in any unit, and the inliner maps
 //them by name).  Units add their functions after they are optimised (Export); a unit compiled before a function it
 //calls was exported can be compiled again (the builder's CompileUnits).
+//
+//Units compiled at the same time take turns (BeginTurn, EndTurn): each finds and exports functions only in its own
+//turn, its place in the order the units are compiled, so it sees what it would if they were compiled one after
+//another.
 class CIRImports
 {
 protected:
-	CIRModule		mcModule;
-	size			muiMaxInstructions;
+	CIRModule			mcModule;
+	size				muiMaxInstructions;
+	CMutex				mcMutex;
+	CConditionVariable	mcTurnChanged;
+	size				muiTurn;		//The unit whose turn it is.
 
 public:
 	void			Init(size uiMaxInstructions);
 	void			Kill(void);
+
+	void			ResetTurns(void);
+	void			BeginTurn(size uiTurn);
+	void			EndTurn(size uiTurn);
 
 	bool			Export(CIRModule* pcModule, CIRFunction* pcFunction);
 	CIRFunction*	Find(const char* szName);

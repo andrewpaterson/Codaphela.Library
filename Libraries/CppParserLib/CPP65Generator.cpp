@@ -75,12 +75,13 @@ void CCPP65Generator::SetWarnNarrowing(bool bWarnNarrowing)
 //
 // Small functions of other units the IR front end's inliner may use; this
 // unit's are added to pcImports when it is finished (CCPP65IRFrontEnd::
-// FinishUnit).
+// FinishUnit), in its turn uiTurn (CIRImports::BeginTurn).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetImports(CIRImports* pcImports)
+void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn)
 {
 	mpcImports = pcImports;
+	muiImportsTurn = uiTurn;
 }
 
 
@@ -185,6 +186,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mszBody.Init();
 	mpszOut = &mszCode;
 	mpcImports = NULL;
+	muiImportsTurn = 0;
 	mpcFrameProfile = NULL;
 	mbListing = false;
 	mbLineTable = false;
@@ -2905,7 +2907,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	}
 	if (mcErrors.NumErrors() > uiErrors)
 	{
-		CCPP65IRFrontEnd::sszUnsupported[0] = '\0';
+		mpcIRFrontEnd->ClearUnsupported();
 	}
 	else
 	{
@@ -2923,21 +2925,13 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Why the IR front end couldn't write a function: " (CPP65IRFrontEnd.cpp
-// line N)" and its reason (cleared once told).
+// Why the IR front end couldn't write a function (CCPP65IRFrontEnd::
+// AppendUnsupported).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendUnsupported(CChars* psz)
 {
-	psz->Append(" (CPP65IRFrontEnd.cpp line ");
-	psz->Append(CCPP65IRFrontEnd::siUnsupportedLine);
-	psz->Append(")");
-	if (CCPP65IRFrontEnd::sszUnsupported[0] != '\0')
-	{
-		psz->Append(": ");
-		psz->Append(CCPP65IRFrontEnd::sszUnsupported);
-		CCPP65IRFrontEnd::sszUnsupported[0] = '\0';
-	}
+	mpcIRFrontEnd->AppendUnsupported(psz);
 }
 
 

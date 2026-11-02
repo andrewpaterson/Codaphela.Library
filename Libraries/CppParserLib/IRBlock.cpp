@@ -25,8 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBlock::Init(const char* szName)
+void CIRBlock::Init(uint32* puiSource, const char* szName)
 {
+	mpuiSource = puiSource;
 	if (szName)
 	{
 		mszName.Init(szName);
@@ -72,9 +73,6 @@ char* CIRBlock::GetName(void)
 }
 
 
-uint32	CIRBlock::suiSource = 0;
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -90,7 +88,7 @@ SIRInstruction* CIRBlock::AddInstruction(uint16 uiOpcode, SIRType sType, SIRRefe
 	psInstruction->sResult = sResult;
 	psInstruction->asArguments[0] = sArgument0;
 	psInstruction->asArguments[1] = sArgument1;
-	psInstruction->uiSource = suiSource;
+	psInstruction->uiSource = *mpuiSource;
 	return psInstruction;
 }
 
@@ -180,7 +178,7 @@ void CIRBlock::SetJump(EIRJumpKind eKind, SIRType sType, SIRReference sArgument,
 	msJump.sArgument = sArgument;
 	msJump.pcThen = pcThen;
 	msJump.pcElse = pcElse;
-	msJump.uiSource = suiSource;
+	msJump.uiSource = *mpuiSource;
 }
 
 

@@ -38,8 +38,9 @@ SIRAttributeName	gasIRAttributeNames[IRA_NumWordAttributes] =
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes)
+void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes, uint32* puiSource)
 {
+	mpuiSource = puiSource;
 	muiSymbol = uiSymbol;
 	msReturnType = sReturnType;
 	muiAttributes = uiAttributes;
@@ -485,12 +486,12 @@ CIRBlock* CIRFunction::AddBlock(const char* szName)
 		}
 		UniqueName(szName, mpmBlockNames, &szUnique);
 		mpmBlockNames->Put(szUnique.Text(), &pcBlock);
-		pcBlock->Init(szUnique.Text());
+		pcBlock->Init(mpuiSource, szUnique.Text());
 		szUnique.Kill();
 	}
 	else
 	{
-		pcBlock->Init();
+		pcBlock->Init(mpuiSource);
 	}
 	pcBlock->muiIndex = mapcBlocks.NumElements();
 	mapcBlocks.Add(pcBlock);

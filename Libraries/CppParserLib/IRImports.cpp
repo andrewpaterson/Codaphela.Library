@@ -35,6 +35,9 @@ void CIRImports::Init(size uiMaxInstructions)
 	mcModule.Init();
 	mcModule.AddSpace("default", 4);
 	muiMaxInstructions = uiMaxInstructions;
+	mcMutex.Init();
+	mcTurnChanged.Init();
+	muiTurn = 0;
 }
 
 
@@ -44,7 +47,62 @@ void CIRImports::Init(size uiMaxInstructions)
 //////////////////////////////////////////////////////////////////////////
 void CIRImports::Kill(void)
 {
+	mcTurnChanged.Kill();
+	mcMutex.Kill();
 	mcModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first unit compiled next has turn 0.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::ResetTurns(void)
+{
+	mcMutex.Lock();
+	muiTurn = 0;
+	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Waits for turn uiTurn: the units before it have ended theirs.  Compiled one after another, it is uiTurn's turn
+// already.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::BeginTurn(size uiTurn)
+{
+	mcMutex.Lock();
+	while (muiTurn < uiTurn)
+	{
+		mcTurnChanged.Wait(&mcMutex);
+	}
+	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ends turn uiTurn (waiting for it first): the next unit's begins.  A unit ends its turn when it has exported its
+// functions, and again when it has finished (it may have stopped before it took its turn); the second time does
+// nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::EndTurn(size uiTurn)
+{
+	mcMutex.Lock();
+	while (muiTurn < uiTurn)
+	{
+		mcTurnChanged.Wait(&mcMutex);
+	}
+	if (muiTurn == uiTurn)
+	{
+		muiTurn++;
+		mcTurnChanged.WakeAll();
+	}
+	mcMutex.Unlock();
 }
 
 

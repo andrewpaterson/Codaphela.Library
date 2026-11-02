@@ -3730,24 +3730,37 @@ static int IR816MnemonicKey(const char* szMnemonic)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Makes gauiIR816MnemonicByKey, if it isn't made already.  Before units are compiled at the same time (it is
+// made when first needed otherwise).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::IndexMnemonics(void)
+{
+	int		i;
+
+	if (gbIR816MnemonicsIndexed)
+	{
+		return;
+	}
+	memset(gauiIR816MnemonicByKey, IR816M_Unknown, sizeof(gauiIR816MnemonicByKey));
+	for (i = 0; i < IR816M_Unknown; i++)
+	{
+		gauiIR816MnemonicByKey[IR816MnemonicKey(gasIR816Mnemonics[i].szName)] = (uint8)i;
+	}
+	gbIR816MnemonicsIndexed = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The EIR816Mnemonic of szMnemonic, IR816M_Unknown for one it doesn't have.
 //
 //////////////////////////////////////////////////////////////////////////
 static uint16 IR816FindMnemonic(const char* szMnemonic)
 {
 	int		iKey;
-	int		i;
 
-	if (!gbIR816MnemonicsIndexed)
-	{
-		memset(gauiIR816MnemonicByKey, IR816M_Unknown, sizeof(gauiIR816MnemonicByKey));
-		for (i = 0; i < IR816M_Unknown; i++)
-		{
-			gauiIR816MnemonicByKey[IR816MnemonicKey(gasIR816Mnemonics[i].szName)] = (uint8)i;
-		}
-		gbIR816MnemonicsIndexed = true;
-	}
-
+	CIR816Backend::IndexMnemonics();
 	iKey = IR816MnemonicKey(szMnemonic);
 	return (iKey < 0) ? (uint16)IR816M_Unknown : gauiIR816MnemonicByKey[iKey];
 }

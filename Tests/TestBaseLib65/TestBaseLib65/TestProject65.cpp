@@ -15,6 +15,7 @@
 #include "MicroprocessorLib/Fast65C816.h"
 #include "CppParserLib/CPP65Builder.h"
 #include "CppParserLib/CPP65Generator.h"
+#include "ThreadLib/WorkerThreadJobs.h"
 #include "TestLib/Assert.h"
 #include "TestProject65.h"
 
@@ -679,6 +680,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 void TestProject65RunTests(STestProject65* psProject)
 {
 	CCPP65Builder	cBuilder;
+	CWorkerThreadJobs	cJobs;
 	CAsm65816Profile	cFrameProfile;
 	CAsm65816Profile	cMeasure;
 	CTextFile		cFile;
@@ -704,6 +706,12 @@ void TestProject65RunTests(STestProject65* psProject)
 
 	cBuilder.Init();
 	cBuilder.SetTarget(geTestProject65Target);
+	//TEST_PROJECT65_SERIAL=1 compiles the units one at a time (it builds the same).
+	cJobs.Init();
+	if (getenv("TEST_PROJECT65_SERIAL") == NULL)
+	{
+		cBuilder.SetJobs(&cJobs);
+	}
 	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have X816.asm, not the assembly.
 	CCPP65Generator::SetW65C816Assembly(getenv("TEST_PROJECT65_CPP") == NULL);
 	if (getenv("TEST_PROJECT65_LISTINGS"))
@@ -837,6 +845,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	aszTests.Kill();
 	aszLines.Kill();
 	cBuilder.Kill();
+	cJobs.Kill();
 }
 
 

@@ -787,9 +787,9 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	cModule.Init();
 	cErrors.Init();
 	cParser.Init(&cModule, &cErrors);
-	CIRBlock::suiSource = 7;
+	cModule.muiSource = 7;
 	AssertTrue(cParser.Parse(szText));
-	CIRBlock::suiSource = 0;
+	cModule.muiSource = 0;
 	cParser.Kill();
 	cOptimiser.Init(&cModule);
 	cOptimiser.SetIndexedAddresses((uiOptions & IR_TEST_INDEXED_ADDRESSES) != 0);

@@ -54,6 +54,9 @@
     <ClCompile Include="TestWorkerThreadPool.cpp">
       <Filter>Source\Thread\Pool</Filter>
     </ClCompile>
+    <ClCompile Include="TestWorkerThreadJobs.cpp">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClCompile>
     <ClCompile Include="TestMainProcessDirector.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>

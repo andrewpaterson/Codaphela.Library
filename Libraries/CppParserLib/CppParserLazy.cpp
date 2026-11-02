@@ -23,6 +23,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SourceFile.h"
 
 
+//The most variants of a header declaration (a header included with other macros) tried at one place; past them the
+//declaration is parsed, as it is the first time it is seen.
+#define CPP_PARSER_LAZY_VARIANTS	16
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Header declarations the index has seen are left unparsed, their names
@@ -141,6 +146,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 	}
 	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iFirst));
 	uiKey = CCPPHeaderIndex::Key(pcFile->FullName(), psSource->iLine, psSource->iColumn);
+	mpcHeaderIndex->Lock();
 	for (psRecord = mpcHeaderIndex->Get(uiKey); psRecord; psRecord = psRecord->psNext)
 	{
 		if ((psRecord->uiTokens == (uint32)(iLast - iFirst + 1)) && (psRecord->uiHash == uiHash))
@@ -148,6 +154,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 			break;
 		}
 	}
+	mpcHeaderIndex->Unlock();
 	if (psRecord)
 	{
 		return;
@@ -196,7 +203,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		}
 	}
 
-	psRecord = mpcHeaderIndex->Add(uiKey);
+	psRecord = mpcHeaderIndex->New();
 	psRecord->uiTokens = (uint32)(iLast - iFirst + 1);
 	psRecord->uiHash = uiHash;
 	psRecord->bLazy = bLazy;
@@ -211,6 +218,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		psRecord->aszNames.Add(szName);
 		psRecord->aiKinds.Add((int)pcSymbol->meKind);
 	}
+	mpcHeaderIndex->Publish(uiKey, psRecord);
 }
 
 
@@ -235,6 +243,8 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 	int							iFirst;
 	int							iLast;
 	size						i;
+	SCPPHeaderDeclaration*		apsVariants[CPP_PARSER_LAZY_VARIANTS];
+	size						uiVariants;
 
 	iFirst = CurrentToken();
 	if (mbHalf || (iFirst >= miNumTokens))
@@ -246,12 +256,23 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 	{
 		return false;
 	}
-	//The first variant whose tokens are the ones here.
-	for (psRecord = mpcHeaderIndex->Get(CCPPHeaderIndex::Key(psSource->pcFile->FullName(), psSource->iLine, psSource->iColumn)); psRecord; psRecord = psRecord->psNext)
+	//The first variant whose tokens are the ones here.  The variants are taken from the index while it is locked;
+	//they don't change once in it.
+	mpcHeaderIndex->Lock();
+	uiVariants = 0;
+	for (psRecord = mpcHeaderIndex->Get(CCPPHeaderIndex::Key(psSource->pcFile->FullName(), psSource->iLine, psSource->iColumn)); psRecord && (uiVariants < CPP_PARSER_LAZY_VARIANTS); psRecord = psRecord->psNext)
 	{
-		iLast = iFirst + (int)psRecord->uiTokens - 1;
-		if ((iLast < miNumTokens) && HeaderTokens(iFirst, iLast, &pcFile, &uiHash) && (uiHash == psRecord->uiHash))
+		apsVariants[uiVariants] = psRecord;
+		uiVariants++;
+	}
+	mpcHeaderIndex->Unlock();
+	psRecord = NULL;
+	for (i = 0; i < uiVariants; i++)
+	{
+		iLast = iFirst + (int)apsVariants[i]->uiTokens - 1;
+		if ((iLast < miNumTokens) && HeaderTokens(iFirst, iLast, &pcFile, &uiHash) && (uiHash == apsVariants[i]->uiHash))
 		{
+			psRecord = apsVariants[i];
 			break;
 		}
 	}

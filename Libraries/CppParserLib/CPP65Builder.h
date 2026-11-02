@@ -22,6 +22,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_P_P_65_BUILDER_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/Jobs.h"
+#include "BaseLib/Mutex.h"
+#include "BaseLib/ConditionVariable.h"
 #include "Assembler65Lib/Asm65Object.h"
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Project.h"
@@ -65,17 +69,40 @@ struct SCPP65Object
 typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
 
 
-//A translation unit compiled by CompileUnits: its object, and the functions it calls that no unit had exported
-//when it was compiled (it is compiled again if one is exported later).
-struct SCPP65CompiledUnit
+class CCPP65Builder;
+
+
+//Whether a unit is compiled again (after the first pass, on the W65C816).
+enum ECPP65CompileAgain
 {
-	CTranslationUnit*	pcFile;
-	CAsm65Object*		pcObject;
-	CArrayChars			aszMissing;
+	CPP65CA_No,
+	CPP65CA_Yes,			//A function it calls has been exported.
+	CPP65CA_IfExported,		//If a unit compiled again before it exports a function it calls.
 };
 
 
-typedef CArrayTemplate<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
+//A translation unit compiled by CompileUnits: its object, and the functions it calls that no unit had exported
+//when it was compiled (it is compiled again if one is exported later).  What compiling it gives (its errors,
+//warnings and counts) is kept with it until it is added to the builder's, in the units' order.
+struct SCPP65CompiledUnit
+{
+	CCPP65Builder*		pcBuilder;
+	CTranslationUnit*	pcFile;
+	CAsm65Object*		pcObject;
+	CArrayChars			aszMissing;
+	ECPP65CompileAgain	eAgain;
+	size				uiTurn;			//Its turn with the imports (CIRImports::BeginTurn).
+	bool				bResult;
+	CChars				szErrors;
+	CChars				szWarnings;
+	CSpillStore*		pcSpillStore;	//The builder's index tree (SetSpillDirectory), or cSpillStore.
+	CMemorySpillStore	cSpillStore;
+	size				uiLazySkipped;
+	size				uiLazyLoaded;
+};
+
+
+typedef CArrayTemplatePtr<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
 
 
 //Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
@@ -90,7 +117,8 @@ typedef CArrayTemplate<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
 //routines are resident); GetLazyImage is what to write to the drive.  Compile then LinkWith links the compiled
 //objects again and again, each time with another source (a main, for example), so a large project can be run as
 //several programs that each fit.  On the W65C816 small functions are inlined across the project's units (CIRImports):
-//a unit compiled before one whose function it calls is compiled again at the end.
+//a unit compiled before one whose function it calls is compiled again at the end.  With SetJobs several units are
+//compiled at once (while the next is preprocessed); what is built is the same as compiling them one at a time.
 class CCPP65Builder
 {
 protected:
@@ -124,6 +152,11 @@ protected:
 	CCPPHeaderIndex					mcHeaderIndex;			//The header declarations the units have parsed.
 	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
 	size							muiLazyLoaded;			//...and parsed when used.
+	CJobs*							mpcJobs;				//What compiles the units (SetJobs), or NULL for one at a time.
+	CMutex							mcCompilingMutex;
+	CConditionVariable				mcCompiled;
+	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
+	size							muiCompiledAgain;		//W65C816 units compiled a second time.
 
 public:
 	void			Init(void);
@@ -133,8 +166,10 @@ public:
 	void			SetListingDirectory(const char* szDirectory);
 	bool			SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
 	void			SetLazyHeaders(bool bLazyHeaders);
+	void			SetJobs(CJobs* pcJobs);
 	size			NumLazySkipped(void);
 	size			NumLazyLoaded(void);
+	size			NumCompiledAgain(void);
 	void			SetLineTable(bool bLineTable);
 	CAsm65LineTable*	GetLineTable(void);
 
@@ -172,13 +207,23 @@ protected:
 	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL);
 	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
-	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory = NULL);
+	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors);
 	void			AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
 	bool			CompileUnits(void);
-	bool			CompileUnit(SCPP65CompiledUnit* psUnit);
+	CJobs*			UnitJobs(CSerialJobs* pcSerialJobs);
+	void			StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore);
+	void			AddUnitObject(SCPP65CompiledUnit* psUnit);
+	void			RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling, bool bReport);
+	void			FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings);
+	bool			CalleeExported(SCPP65CompiledUnit* psUnit);
+	void			CompileUnit(SCPP65CompiledUnit* psUnit);
+	void			CompileUnitAgain(SCPP65CompiledUnit* psUnit);
+	void			ReleaseUnit(SCPP65CompiledUnit* psUnit);
+	static void		CompileUnitJob(void* pvUnit);
+	static void		CompileUnitAgainJob(void* pvUnit);
 	bool			GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
 	bool			WriteListing(const char* szUnit, CChars* pszAssembly);
-	bool			WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly);
+	bool			WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors);
 	bool			ListingName(const char* szUnit, CChars* pszPath);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
 	bool			LinkObjects(void);

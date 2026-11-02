@@ -28,7 +28,7 @@ int32 TestCPP65IRMain(const char* szSource, size uiWritten, bool bFloat = false)
 	{
 		if (uiWritten != CCPP65IRFrontEnd::suiWritten - uiBefore)
 		{
-			fprintf(stderr, "Left at CPP65IRFrontEnd.cpp line %d %s in %.80s\n", CCPP65IRFrontEnd::siUnsupportedLine, CCPP65IRFrontEnd::sszUnsupported, szSource);
+			fprintf(stderr, "Left at CPP65IRFrontEnd.cpp line %d %s in %.80s\n", CCPP65IRFrontEnd::siLastUnsupportedLine, CCPP65IRFrontEnd::sszLastUnsupported, szSource);
 		}
 		AssertSize(uiWritten, CCPP65IRFrontEnd::suiWritten - uiBefore);
 	}

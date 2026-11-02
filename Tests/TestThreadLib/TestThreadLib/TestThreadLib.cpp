@@ -18,6 +18,7 @@ void TestSafeArrayBlock(void);
 void TestMutex(void);
 void TestSafeLinkedListBlock(void);
 void TestWorkerThreadPool(void);
+void TestWorkerThreadJobs(void);
 void TestThread(void);
 void TestThreadPool(void);
 void TestProcessFork(void);
@@ -36,6 +37,7 @@ int TestThreadLib(int argc, char* argv[])
 	TestReferences();
 	TestThread();
 	TestWorkerThreadPool();
+	TestWorkerThreadJobs();
 	TestMutex();
 	TestSafeArrayBlock();
 	TestSafeLinkedListBlock();

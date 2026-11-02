@@ -236,6 +236,7 @@
     <ClCompile Include="TestMutex.cpp" />
     <ClCompile Include="TestThreadLib.cpp" />
     <ClCompile Include="TestWorkerThreadPool.cpp" />
+    <ClCompile Include="TestWorkerThreadJobs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\BaseLib\BaseLib.vcxproj">

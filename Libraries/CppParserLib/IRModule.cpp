@@ -169,6 +169,7 @@ void CIRModule::Init(void)
 	mapcKnown.Init();
 	mpasTargetOpcodes = NULL;
 	muiNumTargetOpcodes = 0;
+	muiSource = 0;
 }
 
 
@@ -430,7 +431,7 @@ CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uin
 
 	uiSymbol = AddSymbol(szName);
 	pcFunction = NewMalloc<CIRFunction>();
-	pcFunction->Init(uiSymbol, sReturnType, uiAttributes);
+	pcFunction->Init(uiSymbol, sReturnType, uiAttributes, &muiSource);
 	mapcFunctions.Add(pcFunction);
 	masDefinitions.Get(uiSymbol)->pcFunction = pcFunction;
 	return pcFunction;

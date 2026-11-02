@@ -31,6 +31,7 @@ void CCPPHeaderIndex::Init(void)
 {
 	mcDeclarations.Init(true);
 	mapsDeclarations.Init();
+	mcMutex.Init();
 }
 
 
@@ -53,6 +54,27 @@ void CCPPHeaderIndex::Kill(void)
 	}
 	mapsDeclarations.Kill();
 	mcDeclarations.Kill();
+	mcMutex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPHeaderIndex::Lock(void)
+{
+	mcMutex.Lock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPHeaderIndex::Unlock(void)
+{
+	mcMutex.Unlock();
 }
 
 
@@ -71,13 +93,12 @@ SCPPHeaderDeclaration* CCPPHeaderIndex::Get(uint64 uiKey)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new declaration starting at uiKey, after any already starting there.
+// A declaration to fill in and Publish.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPHeaderDeclaration* CCPPHeaderIndex::Add(uint64 uiKey)
+SCPPHeaderDeclaration* CCPPHeaderIndex::New(void)
 {
 	SCPPHeaderDeclaration*	psDeclaration;
-	SCPPHeaderDeclaration*	psLast;
 
 	psDeclaration = (SCPPHeaderDeclaration*)malloc(sizeof(SCPPHeaderDeclaration));
 	psDeclaration->uiTokens = 0;
@@ -87,19 +108,49 @@ SCPPHeaderDeclaration* CCPPHeaderIndex::Add(uint64 uiKey)
 	psDeclaration->aiKinds.Init();
 	psDeclaration->szClass.Init();
 	psDeclaration->psNext = NULL;
-	mapsDeclarations.Add(psDeclaration);
+	return psDeclaration;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds psDeclaration (from New, filled in) starting at uiKey, after any already starting there.  If another unit
+// published the same one (the same tokens) first, psDeclaration goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPHeaderIndex::Publish(uint64 uiKey, SCPPHeaderDeclaration* psDeclaration)
+{
+	SCPPHeaderDeclaration*	psLast;
+
+	mcMutex.Lock();
 	psLast = Get(uiKey);
 	if (!psLast)
 	{
 		mcDeclarations.Put((int64)uiKey, &psDeclaration);
-		return psDeclaration;
 	}
-	while (psLast->psNext)
+	else
 	{
-		psLast = psLast->psNext;
+		for (;;)
+		{
+			if ((psLast->uiTokens == psDeclaration->uiTokens) && (psLast->uiHash == psDeclaration->uiHash))
+			{
+				mcMutex.Unlock();
+				psDeclaration->aszNames.Kill();
+				psDeclaration->aiKinds.Kill();
+				psDeclaration->szClass.Kill();
+				free(psDeclaration);
+				return;
+			}
+			if (!psLast->psNext)
+			{
+				break;
+			}
+			psLast = psLast->psNext;
+		}
+		psLast->psNext = psDeclaration;
 	}
-	psLast->psNext = psDeclaration;
-	return psDeclaration;
+	mapsDeclarations.Add(psDeclaration);
+	mcMutex.Unlock();
 }
 
 
@@ -109,7 +160,12 @@ SCPPHeaderDeclaration* CCPPHeaderIndex::Add(uint64 uiKey)
 //////////////////////////////////////////////////////////////////////////
 size CCPPHeaderIndex::NumDeclarations(void)
 {
-	return mapsDeclarations.NumElements();
+	size	uiDeclarations;
+
+	mcMutex.Lock();
+	uiDeclarations = mapsDeclarations.NumElements();
+	mcMutex.Unlock();
+	return uiDeclarations;
 }
 
 

@@ -43,7 +43,7 @@ struct SIRInstruction
 	SIRType			sType;
 	SIRReference	sResult;
 	SIRReference	asArguments[2];
-	uint32			uiSource;		//The source token it was written for + 1, 0 for none (CIRBlock::suiSource).
+	uint32			uiSource;		//The source token it was written for + 1, 0 for none (CIRModule::muiSource).
 };
 
 
@@ -108,11 +108,10 @@ public:
 	SIRJump					msJump;
 	CArrayIRBlocks			mapcPredecessors;
 	size					muiIndex;			//Position in the function, set by CIRFunction::Renumber.
-
-	static uint32			suiSource;			//The source token + 1 instructions added now are for (0: none, as the optimiser's).
+	uint32*					mpuiSource;			//The source token + 1 instructions added now are for (the module's muiSource).
 
 public:
-	void			Init(const char* szName = NULL);
+	void			Init(uint32* puiSource, const char* szName = NULL);
 	void			Kill(void);
 
 	char*			GetName(void);

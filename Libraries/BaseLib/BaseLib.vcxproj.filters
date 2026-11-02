@@ -771,6 +771,9 @@
     <ClInclude Include="NativeThread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
+    <ClInclude Include="Jobs.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
     <ClInclude Include="SafeArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
@@ -2034,6 +2037,9 @@
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="NativeThread.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Jobs.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="NativeThread_Windows.cpp">

@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31402.337
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseLib", "..\..\Libraries\BaseLib\BaseLib.vcxproj", "{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThreadLib", "..\..\Libraries\ThreadLib\ThreadLib.vcxproj", "{7269D64F-994A-4233-9ADD-BAD415A07B64}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StandardLib", "..\..\Libraries\StandardLib\StandardLib.vcxproj", "{2CFA23FA-6565-4744-8B75-9790B21CC0E5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppParserLib", "..\..\Libraries\CppParserLib\CppParserLib.vcxproj", "{4D010C1E-4DCE-4271-9B1C-87BBF0BC761C}"
@@ -36,6 +38,14 @@ Global
 		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|Win32.Build.0 = Release|Win32
 		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|x64.ActiveCfg = Release|x64
 		{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}.Release|x64.Build.0 = Release|x64
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Debug|Win32.Build.0 = Debug|Win32
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Debug|x64.ActiveCfg = Debug|x64
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Debug|x64.Build.0 = Debug|x64
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Release|Win32.ActiveCfg = Release|Win32
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Release|Win32.Build.0 = Release|Win32
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Release|x64.ActiveCfg = Release|x64
+		{7269D64F-994A-4233-9ADD-BAD415A07B64}.Release|x64.Build.0 = Release|x64
 		{2CFA23FA-6565-4744-8B75-9790B21CC0E5}.Debug|Win32.ActiveCfg = Debug|Win32
 		{2CFA23FA-6565-4744-8B75-9790B21CC0E5}.Debug|Win32.Build.0 = Debug|Win32
 		{2CFA23FA-6565-4744-8B75-9790B21CC0E5}.Debug|x64.ActiveCfg = Debug|x64

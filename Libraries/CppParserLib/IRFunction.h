@@ -89,9 +89,10 @@ public:
 
 	CArrayIRBlocks		mapcBlocks;
 	CMapIRBlocks*		mpmBlockNames;
+	uint32*				mpuiSource;		//The module's source for instructions added now (CIRModule::muiSource).
 
 public:
-	void			Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes = 0);
+	void			Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes, uint32* puiSource);
 	void			Kill(void);
 
 	SIRReference	AddTemporary(SIRType sType, const char* szName = NULL);

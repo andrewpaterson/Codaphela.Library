@@ -123,6 +123,8 @@ protected:
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
+
+	static void		IndexMnemonics(void);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);

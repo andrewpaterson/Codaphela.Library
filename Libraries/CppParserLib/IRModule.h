@@ -115,6 +115,8 @@ public:
 	SIROpcode*					mpasTargetOpcodes;
 	uint16						muiNumTargetOpcodes;
 
+	uint32						muiSource;			//The source token + 1 instructions added to the module's blocks now are for (0: none, as the optimiser's).
+
 public:
 	void			Init(void);
 	void			Kill(void);

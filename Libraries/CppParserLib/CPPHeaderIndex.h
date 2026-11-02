@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/Mutex.h"
 
 
 //A header declaration seen in a unit: its tokens and the names it declares in its
@@ -47,18 +48,25 @@ struct SCPPHeaderDeclaration
 //are the same (a header can be included with different macros, so there may be more than
 //one declaration at a place) can skip the declaration and declare its names as lazy
 //symbols (CCPPParser).  Kept by the builder for all its units.
+//
+//Units parsed at the same time share it: Get, and following psNext, only while it is locked (Lock).  A declaration
+//is made whole (New) before it is added (Publish), and doesn't change after.
 class CCPPHeaderIndex
 {
 protected:
 	CMapLongTemplate<SCPPHeaderDeclaration*>		mcDeclarations;
 	CArrayTemplatePtr<SCPPHeaderDeclaration>		mapsDeclarations;
+	CMutex											mcMutex;
 
 public:
 	void					Init(void);
 	void					Kill(void);
 
+	void					Lock(void);
+	void					Unlock(void);
 	SCPPHeaderDeclaration*	Get(uint64 uiKey);	//The first declaration starting there; the rest follow psNext.
-	SCPPHeaderDeclaration*	Add(uint64 uiKey);
+	SCPPHeaderDeclaration*	New(void);
+	void					Publish(uint64 uiKey, SCPPHeaderDeclaration* psDeclaration);
 	size					NumDeclarations(void);
 
 	static uint64			Key(const char* szFile, int iLine, int iColumn);

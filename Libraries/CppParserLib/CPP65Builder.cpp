@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/StringHelper.h"
+#include "BaseLib/ConstructorCall.h"
 #include "VisualStudioProject.h"
 #include "Assembler65Lib/Asm65C64Assembler.h"
 #include "Assembler65Lib/Asm65816Assembler.h"
@@ -73,6 +74,11 @@ void CCPP65Builder::Init(void)
 	mcHeaderIndex.Init();
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
+	mpcJobs = NULL;
+	mcCompilingMutex.Init();
+	mcCompiled.Init();
+	muiCompiling = 0;
+	muiCompiledAgain = 0;
 }
 
 
@@ -88,6 +94,8 @@ void CCPP65Builder::Kill(void)
 	{
 		mcIndexTreeSpillStore.Kill();
 	}
+	mcCompiled.Kill();
+	mcCompilingMutex.Kill();
 	mcMemorySpillStore.Kill();
 	mcHeaderIndex.Kill();
 	mszListings.Kill();
@@ -415,15 +423,31 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each unit's functions' code waits to be assembled in an evicting index
-// tree in szDirectory (made, and removed by Kill), with at most uiCacheSize
-// bytes of it in memory, instead of all in memory.  The code is the same.
-// NULL for memory.  Set it before compiling.
+// A header declaration (a class, enum, typedef, template or function) a
+// unit parsed is not parsed by the units after until they use one of its
+// names.  The code is the same.  On by default; false parses every header
+// declaration in every unit.  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLazyHeaders(bool bLazyHeaders)
 {
 	mbLazyHeaders = bLazyHeaders;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The project's units are compiled by pcJobs: several at once by ThreadLib's
+// CWorkerThreadJobs (the builder doesn't own them).  What is built is the
+// same as without (though NumLazySkipped and NumLazyLoaded depend on how
+// the units overlap).  NULL compiles them one at a time, as do jobs of one
+// thread and a spill directory (SetSpillDirectory).  Set it before
+// compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetJobs(CJobs* pcJobs)
+{
+	mpcJobs = pcJobs;
 }
 
 
@@ -449,10 +473,22 @@ size CCPP65Builder::NumLazyLoaded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A header declaration (a class, enum, typedef, template or function) a
-// unit parsed is not parsed by the units after until they use one of its
-// names.  The code is the same.  On by default; false parses every header
-// declaration in every unit.  Set it before compiling.
+// How many of the W65C816's units were compiled again because a function
+// they call was exported after they were compiled (CompileUnits).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumCompiledAgain(void)
+{
+	return muiCompiledAgain;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each unit's functions' code waits to be assembled in an evicting index
+// tree in szDirectory (made, and removed by Kill), with at most uiCacheSize
+// bytes of it in memory, instead of all in memory.  The code is the same.
+// NULL for memory.  Set it before compiling.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize)
@@ -958,7 +994,7 @@ bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool b
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
-	bResult = Assemble(pcObject, pcSource, szDirectory);
+	bResult = Assemble(pcObject, pcSource, szDirectory, &mszErrors);
 	psObject = macObjects.Add();
 	psObject->pcObject = pcObject;
 	psObject->bResident = bResident;
@@ -977,7 +1013,7 @@ bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool b
 //////////////////////////////////////////////////////////////////////////
 //
 // szDirectory is the directory .inchex file names are relative to (an
-// assembly unit's own).
+// assembly unit's own).  The errors go to pszErrors.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory)
@@ -986,7 +1022,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 	bool				bResult;
 
 	cSource.Init(szAssembly);
-	bResult = Assemble(pcObject, &cSource, szDirectory);
+	bResult = Assemble(pcObject, &cSource, szDirectory, &mszErrors);
 	cSource.Kill();
 	return bResult;
 }
@@ -996,7 +1032,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory)
+bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors)
 {
 	CAsm65C64Assembler		cAssembler;
 	CAsm65816Assembler	cAssembler816;
@@ -1010,7 +1046,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, con
 			cAssembler816.SetDirectory(szDirectory);
 		}
 		bResult = cAssembler816.AssembleObject(pcSource, pcObject);
-		mszErrors.Append(cAssembler816.GetErrors());
+		pszErrors->Append(cAssembler816.GetErrors());
 		cAssembler816.Kill();
 		return bResult;
 	}
@@ -1020,7 +1056,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, con
 		cAssembler.SetDirectory(szDirectory);
 	}
 	bResult = cAssembler.AssembleObject(pcSource, pcObject);
-	mszErrors.Append(cAssembler.GetErrors());
+	pszErrors->Append(cAssembler.GetErrors());
 	cAssembler.Kill();
 	return bResult;
 }
@@ -1046,13 +1082,6 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Compiles the project's units, each into an object (of its library when it
-// is linked as one).  On the W65C816 the units' small functions are kept for
-// inlining in the units compiled after them (mcImports), and a unit that
-// called one before it was exported is compiled again at the end.
-//
 //////////////////////////////////////////////////////////////////////////
 //
 // Writes a unit's assembly (with its source comments) to the listings
@@ -1088,10 +1117,10 @@ bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As WriteListing(CChars*), a line at a time.
+// As WriteListing(CChars*), a line at a time, with its error in pszErrors.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly)
+bool CCPP65Builder::WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors)
 {
 	CChars	szPath;
 	bool	bResult;
@@ -1105,9 +1134,9 @@ bool CCPP65Builder::WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly)
 	bResult = pcAssembly->Write(szPath.Text());
 	if (!bResult)
 	{
-		mszErrors.Append("Can't write the listing ");
-		mszErrors.Append(szPath);
-		mszErrors.AppendNewLine();
+		pszErrors->Append("Can't write the listing ");
+		pszErrors->Append(szPath);
+		pszErrors->AppendNewLine();
 	}
 	szPath.Kill();
 	return bResult;
@@ -1136,95 +1165,383 @@ bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Compiles the project's units, each into an object (of its library when it
+// is linked as one).  Each unit is preprocessed (here, in order) just before
+// it is compiled, and its tokens and source freed after, so only the units
+// being compiled are kept (headers stay tokenised for the units after).
+//
+// The units are compiled by the jobs (SetJobs), several at once, while the
+// next is preprocessed.  What they share is used as if they were compiled
+// one after another: their objects are added in order, here; the W65C816's
+// small functions are found and exported in each unit's turn (mcImports);
+// the header declarations they parse can't change what any of them is
+// compiled to (mcHeaderIndex); and their errors and warnings are added in
+// order at the end.  A W65C816 unit that called one of those functions
+// before it was exported is compiled again after them all, in another turn.
+//
+//////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::CompileUnits(void)
 {
 	CTranslationUnit*			pcFile;
 	SProcessIter				sIter;
-	CArrayCPP65CompiledUnits	asUnits;
+	CArrayCPP65CompiledUnits	apsUnits;
 	SCPP65CompiledUnit*			psUnit;
-	size						uiCompiled;
+	CSerialJobs					cSerialJobs;
+	CJobs*						pcJobs;
+	size						uiMaxCompiling;
+	size						uiTurn;
 	size						ui;
-	size						uiName;
 	bool						bResult;
-	bool						bAgain;
+	CFileUtil					cFileUtil;
 
 	if (muiUnits == 0)
 	{
 		return true;
 	}
 
-	//Each unit is preprocessed just before it is compiled and its tokens and source freed after, so only one unit's
-	//are kept (headers stay tokenised for the units after).
 	mcProject.CreatePost();
+	if (!mszListings.Empty())
+	{
+		cFileUtil.TouchDir(mszListings.Text());
+	}
+	pcJobs = UnitJobs(&cSerialJobs);
+	uiMaxCompiling = (size)pcJobs->NumThreads() * 2;
+	mcImports.ResetTurns();
 	bResult = true;
-	uiCompiled = 0;
-	asUnits.Init();
+	uiTurn = 0;
+	apsUnits.Init();
 	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{
-		uiCompiled++;
-		psUnit = asUnits.Add();
-		psUnit->pcFile = pcFile;
-		psUnit->pcObject = NULL;
-		psUnit->aszMissing.Init();
-		bResult &= mcProject.ProcessUnit(pcFile, (char*)GetCPPTarget(meTarget)->szName, &mszErrors, &mszWarnings);
-		bResult &= CompileUnit(psUnit);
-		pcFile->GetTokens()->Clear();
-		pcFile->Unload();
+		psUnit = NewMalloc<SCPP65CompiledUnit>();
+		StartUnit(psUnit, pcFile, uiTurn, mpcSpillStore != &mcIndexTreeSpillStore);
+		uiTurn++;
+		apsUnits.Add(psUnit);
+		AddUnitObject(psUnit);
+		RunUnit(pcJobs, CompileUnitJob, psUnit, uiMaxCompiling, true);
+	}
+	pcJobs->Wait();
+	for (ui = 0; ui < apsUnits.NumElements(); ui++)
+	{
+		psUnit = *apsUnits.Get(ui);
+		FinishUnit(psUnit, true);
+		bResult &= psUnit->bResult;
 	}
 
-	for (ui = 0; bResult && (meTarget == CPPT_W65C816) && (ui < asUnits.NumElements()); ui++)
+	//The units that call functions exported after they were compiled, compiled again in order.  A unit decides in its
+	//turn if it calls only functions not yet exported (a unit before it may export one).
+	if (bResult && (meTarget == CPPT_W65C816))
 	{
-		psUnit = asUnits.Get(ui);
-		bAgain = false;
-		for (uiName = 0; uiName < psUnit->aszMissing.NumElements(); uiName++)
+		for (ui = 0; ui < apsUnits.NumElements(); ui++)
 		{
-			bAgain |= mcImports.Find(psUnit->aszMissing.GetText(uiName)) != NULL;
+			psUnit = *apsUnits.Get(ui);
+			if (psUnit->aszMissing.NumElements() == 0)
+			{
+				psUnit->eAgain = CPP65CA_No;
+			}
+			else
+			{
+				psUnit->eAgain = CalleeExported(psUnit) ? CPP65CA_Yes : CPP65CA_IfExported;
+			}
 		}
-		if (bAgain)
+		for (ui = 0; ui < apsUnits.NumElements(); ui++)
 		{
-			//Preprocessed again: its errors and warnings were reported the first time.
-			psUnit->aszMissing.ReInit();
-			mcProject.ProcessUnit(psUnit->pcFile, (char*)GetCPPTarget(meTarget)->szName);
-			bResult &= CompileUnit(psUnit);
-			psUnit->pcFile->GetTokens()->Clear();
-			psUnit->pcFile->Unload();
+			psUnit = *apsUnits.Get(ui);
+			if (psUnit->eAgain != CPP65CA_No)
+			{
+				psUnit->uiTurn = uiTurn;
+				uiTurn++;
+				psUnit->bResult = true;
+				RunUnit(pcJobs, CompileUnitAgainJob, psUnit, uiMaxCompiling, false);
+			}
+		}
+		pcJobs->Wait();
+		for (ui = 0; ui < apsUnits.NumElements(); ui++)
+		{
+			psUnit = *apsUnits.Get(ui);
+			if (psUnit->eAgain == CPP65CA_Yes)
+			{
+				muiCompiledAgain++;
+				FinishUnit(psUnit, false);
+				bResult &= psUnit->bResult;
+			}
 		}
 	}
-	for (ui = 0; ui < asUnits.NumElements(); ui++)
-	{
-		asUnits.Get(ui)->aszMissing.Kill();
-	}
-	asUnits.Kill();
 
-	if (uiCompiled != muiUnits)
+	for (ui = 0; ui < apsUnits.NumElements(); ui++)
 	{
-		mszErrors.Append("Only ")->Append((int)uiCompiled)->Append(" of the ")->Append((int)muiUnits)->Append(" translation units were compiled.\n");
-		return false;
+		psUnit = *apsUnits.Get(ui);
+		psUnit->aszMissing.Kill();
+		psUnit->szWarnings.Kill();
+		psUnit->szErrors.Kill();
+		free(psUnit);
 	}
+
+	if (apsUnits.NumElements() != muiUnits)
+	{
+		mszErrors.Append("Only ")->Append((int)apsUnits.NumElements())->Append(" of the ")->Append((int)muiUnits)->Append(" translation units were compiled.\n");
+		bResult = false;
+	}
+	apsUnits.Kill();
 	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compiles psUnit's file into its object: a new one, or its old one again.
-// The functions it calls that weren't found for inlining go to its
-// aszMissing.
+// What compiles the units: mpcJobs, or pcSerialJobs to compile them one at a
+// time (without SetJobs, with an index tree to spill to, or while the IR
+// front end is being debugged).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
+CJobs* CCPP65Builder::UnitJobs(CSerialJobs* pcSerialJobs)
+{
+	if (!mpcJobs || (mpcJobs->NumThreads() <= 1))
+	{
+		return pcSerialJobs;
+	}
+	if ((mpcSpillStore == &mcIndexTreeSpillStore) || CCPP65IRFrontEnd::sbPrint || (CCPP65IRFrontEnd::suiLimit != SIZE_MAX))
+	{
+		return pcSerialJobs;
+	}
+
+	//Built before the units, which only look them up.
+	CIR816Backend::IndexMnemonics();
+	CAsm65816Assembler::IndexMnemonics();
+	return mpcJobs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psUnit compiles pcFile in its turn uiTurn, with its own spill store or
+// the builder's index tree.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore)
+{
+	psUnit->pcBuilder = this;
+	psUnit->pcFile = pcFile;
+	psUnit->pcObject = NULL;
+	psUnit->aszMissing.Init();
+	psUnit->eAgain = CPP65CA_No;
+	psUnit->uiTurn = uiTurn;
+	psUnit->bResult = true;
+	psUnit->szErrors.Init();
+	psUnit->szWarnings.Init();
+	psUnit->pcSpillStore = bOwnSpillStore ? &psUnit->cSpillStore : mpcSpillStore;
+	psUnit->uiLazySkipped = 0;
+	psUnit->uiLazyLoaded = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit's (empty) object, added to its link library or to the objects
+// linked, after the units before it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddUnitObject(SCPP65CompiledUnit* psUnit)
+{
+	CAsm65Library*	pcLinkLibrary;
+	SCPP65Object*	psObject;
+
+	pcLinkLibrary = GetLinkLibrary(psUnit->pcFile->GetLibrary());
+	if (pcLinkLibrary)
+	{
+		psUnit->pcObject = pcLinkLibrary->AddObject(psUnit->pcFile->ShortName());
+	}
+	else
+	{
+		psUnit->pcObject = mcObjects.AddObject(psUnit->pcFile->ShortName());
+		psObject = macObjects.Add();
+		psObject->pcObject = psUnit->pcObject;
+		psObject->bResident = false;
+		mcLinker.AddObject(psUnit->pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Preprocesses psUnit's file and gives it to the jobs to compile (fJob),
+// once fewer than uiMaxCompiling units are compiling (each keeps its file's
+// tokens).  The preprocessor's errors and warnings are the unit's if
+// bReport.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling, bool bReport)
+{
+	char*	szConfiguration;
+	bool	bResult;
+
+	mcCompilingMutex.Lock();
+	while (muiCompiling >= uiMaxCompiling)
+	{
+		mcCompiled.Wait(&mcCompilingMutex);
+	}
+	muiCompiling++;
+	mcCompilingMutex.Unlock();
+
+	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
+	if (bReport)
+	{
+		bResult = mcProject.ProcessUnit(psUnit->pcFile, szConfiguration, &psUnit->szErrors, &psUnit->szWarnings);
+		psUnit->bResult &= bResult;
+	}
+	else
+	{
+		mcProject.ProcessUnit(psUnit->pcFile, szConfiguration);
+	}
+	pcJobs->Run(fJob, psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function psUnit calls, that wasn't found to inline, has been
+// exported since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::CalleeExported(SCPP65CompiledUnit* psUnit)
+{
+	size	ui;
+
+	for (ui = 0; ui < psUnit->aszMissing.NumElements(); ui++)
+	{
+		if (mcImports.Find(psUnit->aszMissing.GetText(ui)) != NULL)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds what compiling the unit gave to the builder's: its errors, and its
+// warnings if bWarnings (the first time it is compiled).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings)
+{
+	mszErrors.Append(psUnit->szErrors);
+	if (bWarnings)
+	{
+		mszWarnings.Append(psUnit->szWarnings);
+	}
+	psUnit->szErrors.ReInit();
+	psUnit->szWarnings.ReInit();
+	muiLazySkipped += psUnit->uiLazySkipped;
+	muiLazyLoaded += psUnit->uiLazyLoaded;
+	psUnit->uiLazySkipped = 0;
+	psUnit->uiLazyLoaded = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A job: compiles the unit (CompileUnit).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::CompileUnitJob(void* pvUnit)
+{
+	SCPP65CompiledUnit*	psUnit;
+
+	psUnit = (SCPP65CompiledUnit*)pvUnit;
+	psUnit->pcBuilder->CompileUnit(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A job: compiles the unit again (CompileUnitAgain).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::CompileUnitAgainJob(void* pvUnit)
+{
+	SCPP65CompiledUnit*	psUnit;
+
+	psUnit = (SCPP65CompiledUnit*)pvUnit;
+	psUnit->pcBuilder->CompileUnitAgain(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles psUnit into its object again, if it is to be (eAgain).  If it
+// calls only functions that weren't exported after the first pass, it
+// waits for its turn, when the units before it have exported theirs: it is
+// compiled again (in that turn, which it keeps) if one of them has been,
+// otherwise its object is as it was (eAgain is No).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::CompileUnitAgain(SCPP65CompiledUnit* psUnit)
+{
+	if (psUnit->eAgain == CPP65CA_IfExported)
+	{
+		mcImports.BeginTurn(psUnit->uiTurn);
+		if (!CalleeExported(psUnit))
+		{
+			mcImports.EndTurn(psUnit->uiTurn);
+			psUnit->eAgain = CPP65CA_No;
+			ReleaseUnit(psUnit);
+			return;
+		}
+		psUnit->eAgain = CPP65CA_Yes;
+	}
+
+	psUnit->aszMissing.ReInit();
+	psUnit->pcObject->Kill();
+	psUnit->pcObject->Init(psUnit->pcFile->ShortName());
+	CompileUnit(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psUnit's file's tokens and source are freed, and it has finished
+// compiling (muiCompiling).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ReleaseUnit(SCPP65CompiledUnit* psUnit)
+{
+	psUnit->pcFile->GetTokens()->Clear();
+	psUnit->pcFile->Unload();
+
+	mcCompilingMutex.Lock();
+	muiCompiling--;
+	mcCompiled.WakeAll();
+	mcCompilingMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles psUnit's preprocessed file into its object, then frees the
+// file's tokens and source.  Its errors and warnings go to the unit's, the
+// functions it calls that weren't found for inlining to its aszMissing.
+// The unit is counted as compiling (muiCompiling) until it has finished.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 {
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
 	CCPP65Generator		cGenerator;
 	CCPP65Assembly		cAssembly;
-	CAsm65Library*		pcLinkLibrary;
 	bool				bResult;
+
+	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
+	{
+		psUnit->cSpillStore.Init();
+	}
 
 	cTokeniser.Init();
 	bResult = cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
-	mszErrors.Append(cTokeniser.GetErrors()->Text());
+	psUnit->szErrors.Append(cTokeniser.GetErrors()->Text());
 	cTree.Init(&cTokeniser);
 	cParser.Init(&cTokeniser, &cTree);
 	if (mbLazyHeaders)
@@ -1232,59 +1549,47 @@ bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
 		cParser.SetHeaderIndex(&mcHeaderIndex);
 	}
 	bResult &= cParser.Parse();
-	mszErrors.Append(cTree.GetErrors()->Text());
+	psUnit->szErrors.Append(cTree.GetErrors()->Text());
 
-	cAssembly.Init(mpcSpillStore);
+	cAssembly.Init(psUnit->pcSpillStore);
 	cGenerator.Init(&cTree, meTarget);
-	cGenerator.SetSpillStore(mpcSpillStore);
+	cGenerator.SetSpillStore(psUnit->pcSpillStore);
 	if (meTarget == CPPT_W65C816)
 	{
-		cGenerator.SetImports(&mcImports);
+		cGenerator.SetImports(&mcImports, psUnit->uiTurn);
 		cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
 	cGenerator.SetListing(!mszListings.Empty());
 	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	bResult &= cGenerator.Generate(&cAssembly);
+	if (meTarget == CPPT_W65C816)
+	{
+		//Its turn is over even if it didn't get to it (an error before the unit was finished).
+		mcImports.EndTurn(psUnit->uiTurn);
+	}
 	if (!mszListings.Empty())
 	{
-		bResult &= WriteListing(psUnit->pcFile->ShortName(), &cAssembly);
+		bResult &= WriteListing(psUnit->pcFile->ShortName(), &cAssembly, &psUnit->szErrors);
 	}
 	cGenerator.GetMissingCallees(&psUnit->aszMissing);
-	mszErrors.Append(cGenerator.GetErrors()->Text());
-	if (!psUnit->pcObject)
-	{
-		mszWarnings.Append(cGenerator.GetWarnings()->Text());
-	}
+	psUnit->szErrors.Append(cGenerator.GetErrors()->Text());
+	psUnit->szWarnings.Append(cGenerator.GetWarnings()->Text());
 	cGenerator.Kill();
-	muiLazySkipped += cParser.NumLazySkipped();
-	muiLazyLoaded += cParser.NumLazyLoaded();
+	psUnit->uiLazySkipped += cParser.NumLazySkipped();
+	psUnit->uiLazyLoaded += cParser.NumLazyLoaded();
 	cParser.Kill();
 
 	//The syntax tree and tokens aren't needed to assemble.
 	cTree.Kill();
 	cTokeniser.Kill();
 
-	if (psUnit->pcObject)
-	{
-		psUnit->pcObject->Kill();
-		psUnit->pcObject->Init(psUnit->pcFile->ShortName());
-		bResult &= Assemble(psUnit->pcObject, &cAssembly);
-	}
-	else
-	{
-		pcLinkLibrary = GetLinkLibrary(psUnit->pcFile->GetLibrary());
-		if (pcLinkLibrary)
-		{
-			psUnit->pcObject = pcLinkLibrary->AddObject(psUnit->pcFile->ShortName());
-			bResult &= Assemble(psUnit->pcObject, &cAssembly);
-		}
-		else
-		{
-			bResult &= AddObject(psUnit->pcFile->ShortName(), &cAssembly);
-			psUnit->pcObject = macObjects.Tail()->pcObject;
-		}
-	}
+	bResult &= Assemble(psUnit->pcObject, &cAssembly, NULL, &psUnit->szErrors);
 	cAssembly.Kill();
-	return bResult;
+	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
+	{
+		psUnit->cSpillStore.Kill();
+	}
+	psUnit->bResult &= bResult;
+	ReleaseUnit(psUnit);
 }
 

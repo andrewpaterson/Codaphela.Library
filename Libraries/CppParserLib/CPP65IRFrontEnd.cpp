@@ -40,8 +40,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 size	CCPP65IRFrontEnd::suiWritten = 0;
-int		CCPP65IRFrontEnd::siUnsupportedLine = 0;
-char	CCPP65IRFrontEnd::sszUnsupported[1024] = "";
+int		CCPP65IRFrontEnd::siLastUnsupportedLine = 0;
+char	CCPP65IRFrontEnd::sszLastUnsupported[1024] = "";
 bool	CCPP65IRFrontEnd::sbPrint = false;
 bool	CCPP65IRFrontEnd::sbOptimise = true;
 bool	CCPP65IRFrontEnd::sbInline = true;
@@ -83,6 +83,8 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mauiStringLengths.Init();
 	muiFirstString = 0;
 	mbUnsupported = false;
+	miUnsupportedLine = 0;
+	mszUnsupported[0] = '\0';
 }
 
 
@@ -186,7 +188,7 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes)
 {
 	//The prologue's instructions (parameters, locals, a constructor's bases) are for the function's first line.
-	CIRBlock::suiSource = (psFunction && psFunction->pcDefinition && (psFunction->pcDefinition->miFirstToken >= 0)) ? (uint32)psFunction->pcDefinition->miFirstToken + 1 : 0;
+	mcModule.muiSource = (psFunction && psFunction->pcDefinition && (psFunction->pcDefinition->miFirstToken >= 0)) ? (uint32)psFunction->pcDefinition->miFirstToken + 1 : 0;
 	mpsFunction = psFunction;
 	mbUnsupported = false;
 	masJumps.ReInit();
@@ -261,7 +263,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	uint32					uiFingerprint;
 
 	//Instructions the optimiser adds have no source of their own.
-	CIRBlock::suiSource = 0;
+	mcModule.muiSource = 0;
 	bResult = bResult && !mbUnsupported;
 	uiFingerprint = 0;
 	if (bResult)
@@ -397,7 +399,7 @@ bool CCPP65IRFrontEnd::Unsupported(int iLine)
 {
 	if (!mbUnsupported)
 	{
-		siUnsupportedLine = iLine;
+		SetUnsupported(iLine, NULL);
 	}
 	mbUnsupported = true;
 	return false;
@@ -831,8 +833,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		cBackend816.GetFrame(psFrame);
 		if (!bResult)
 		{
-			siUnsupportedLine = __LINE__;
-			StrCpySafe(sszUnsupported, cErrors.Text(), sizeof(sszUnsupported));
+			SetUnsupported(__LINE__, cErrors.Text());
 		}
 		cErrors.Kill();
 		paszRuntime = cBackend816.GetRuntime();
@@ -953,7 +954,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	CIRSourceMarkers	cMarkers;
 
 	//The inliner's and optimiser's instructions have no source of their own.
-	CIRBlock::suiSource = 0;
+	mcModule.muiSource = 0;
 	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 	{
 		cInliner.Init(&mcModule, IR816_INLINE_INSTRUCTIONS, IR816_INLINE_LOOP_INSTRUCTIONS, IR816_INLINE_CALLS);
@@ -961,6 +962,12 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	else
 	{
 		cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
+	}
+	//Other units' functions are found, and this unit's added, in its turn: as if the units were compiled one after
+	//another.
+	if (mpcGenerator->mpcImports)
+	{
+		mpcGenerator->mpcImports->BeginTurn(mpcGenerator->muiImportsTurn);
 	}
 	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
 	mpcProfiledCaller = NULL;
@@ -1020,6 +1027,10 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			mpcGenerator->mpcImports->Export(&mcModule, psWritten->pcFunction);
 		}
+	}
+	if (mpcGenerator->mpcImports)
+	{
+		mpcGenerator->mpcImports->EndTurn(mpcGenerator->muiImportsTurn);
 	}
 
 	//Each function's code is finished: on the W65C816 frames worth it are put on a page, now that the unit's calls
@@ -1299,17 +1310,17 @@ bool CCPP65IRFrontEnd::Statement(CCPPSyntax* pcStatement)
 
 	//The instructions are for the statement's first token (its line), and the rest of the statement it is in for its
 	//own (a for's condition and step after its body).
-	uiSource = CIRBlock::suiSource;
+	uiSource = mcModule.muiSource;
 	if (pcStatement && (pcStatement->miFirstToken >= 0))
 	{
-		CIRBlock::suiSource = (uint32)pcStatement->miFirstToken + 1;
+		mcModule.muiSource = (uint32)pcStatement->miFirstToken + 1;
 	}
 
 	//Expression, declaration and return statements destroy their temporaries; one left (made in a condition, say) isn't
 	//supported.
 	uiTemporaries = masTemporaries.NumElements();
 	bResult = StatementOf(pcStatement) && ((masTemporaries.NumElements() <= uiTemporaries) || Unsupported(__LINE__));
-	CIRBlock::suiSource = uiSource;
+	mcModule.muiSource = uiSource;
 	return bResult;
 }
 
@@ -6648,9 +6659,59 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Why a function was left to the generator: the line of this file that found it and, when there is one, the
+// reason (szReason, or NULL to keep the last).  The generator tells it with the function's error
+// (CCPP65Generator::AppendUnsupported).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::SetUnsupported(int iLine, const char* szReason)
+{
+	miUnsupportedLine = iLine;
+	if (szReason)
+	{
+		StrCpySafe(mszUnsupported, szReason, sizeof(mszUnsupported));
+	}
+	siLastUnsupportedLine = miUnsupportedLine;
+	StrCpySafe(sszLastUnsupported, mszUnsupported, sizeof(sszLastUnsupported));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Why a function was left to the generator: " (CPP65IRFrontEnd.cpp line N)"
+// and its reason (forgotten once told).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::AppendUnsupported(CChars* psz)
+{
+	psz->Append(" (CPP65IRFrontEnd.cpp line ");
+	psz->Append(miUnsupportedLine);
+	psz->Append(")");
+	if (mszUnsupported[0] != '\0')
+	{
+		psz->Append(": ");
+		psz->Append(mszUnsupported);
+		mszUnsupported[0] = '\0';
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The reason is forgotten (the function's own error says why).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ClearUnsupported(void)
+{
+	mszUnsupported[0] = '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcFunction's IR is valid.  When it isn't, the verifier's errors
 // and iLine (the caller's line) are kept as the reason
-// (sszUnsupported, siUnsupportedLine).
+// (SetUnsupported).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, int iLine)
@@ -6664,8 +6725,7 @@ bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, int iLine)
 	bResult = cVerifier.VerifyFunction(pcFunction);
 	if (!bResult)
 	{
-		siUnsupportedLine = iLine;
-		StrCpySafe(sszUnsupported, cErrors.Text(), sizeof(sszUnsupported));
+		SetUnsupported(iLine, cErrors.Text());
 	}
 	cVerifier.Kill();
 	cErrors.Kill();
