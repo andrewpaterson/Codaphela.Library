@@ -1739,3 +1739,226 @@ Getter8:
 		and 0xFF
 		pld
 		rtl
+
+
+; ---- Register entries (the compiler's register arguments, W65C816.txt), small rather than fast: each
+; saves Y when it holds an argument, puts its stack entry's address in Y and goes to its shape's helper,
+; which pushes the argument words again as the stack entry wants them (A's, X's and Y's, and the words the
+; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
+; entries are unchanged.
+
+		.global _CFatFile__Init.ax, _FindBackslash__FPcPPc.ax, _CFatFile__Open.axssy, _CFatFile__Open__1.axssy, _CFatFile__CalculateFirstCluster.ax, _CFatFile__Seek.axssy
+		.global _CFatFile__AllocateClusters.ax, _CFatFile__Write.ax, _CFatFile__Read.ax, _CFatFile__Flush.ax, _CFatFile__Truncate.ax, _CFatFile__Close.ax
+		.global _CFatFile__Size.ax, _CFatFile__Tell.ax, _CFatFile__IsBusy.ax, _CFatFile__GetAccessFlags.ax
+
+_CFatFile__Init.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Init & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_FindBackslash__FPcPPc.ax:
+		.width (A, X), 16
+		ldy _FindBackslash__FPcPPc & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatFile__Open.axssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatFile__Open & 0xFFFF
+		brl RegisterEntry_axssy_2
+
+_CFatFile__Open__1.axssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatFile__Open__1 & 0xFFFF
+		brl RegisterEntry_axssy_2
+
+_CFatFile__CalculateFirstCluster.ax:
+		.width (A, X), 16
+		ldy _CFatFile__CalculateFirstCluster & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__Seek.axssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatFile__Seek & 0xFFFF
+		brl RegisterEntry_axssy_2
+
+_CFatFile__AllocateClusters.ax:
+		.width (A, X), 16
+		ldy _CFatFile__AllocateClusters & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatFile__Write.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Write & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatFile__Read.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Read & 0xFFFF
+		brl RegisterEntry_ax_6
+
+_CFatFile__Flush.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Flush & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__Truncate.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Truncate & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__Close.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Close & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__Size.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Size & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__Tell.ax:
+		.width (A, X), 16
+		ldy _CFatFile__Tell & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__IsBusy.ax:
+		.width (A, X), 16
+		ldy _CFatFile__IsBusy & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatFile__GetAccessFlags.ax:
+		.width (A, X), 16
+		ldy _CFatFile__GetAccessFlags & 0xFFFF
+		brl RegisterEntry_ax_0
+
+RegisterEntry_ax_2:
+		.width (A, X), 16
+		pha
+		lda [S + 8]
+		pha
+		lda [S + 8]
+		pha
+		phx
+		lda [S + 7]
+		pha
+		phk
+		per RegisterEntry_ax_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl
+
+RegisterEntry_axssy_2:
+		.width (A, X), 16
+		pha
+		lda [S + 3]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 9]
+		pha
+		phk
+		per RegisterEntry_axssy_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssy_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_0:
+		.width (A, X), 16
+		phx
+		pha
+		phk
+		per RegisterEntry_ax_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_0_Return:
+		.width (A, X), 16
+		ply
+		ply
+		rtl
+
+RegisterEntry_ax_4:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_ax_4_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_4_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_6:
+		.width (A, X), 16
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		phx
+		lda [S + 15]
+		pha
+		phk
+		per RegisterEntry_ax_6_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_6_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 18
+		tcs
+		tya
+		rtl

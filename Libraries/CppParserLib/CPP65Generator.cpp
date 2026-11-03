@@ -1064,6 +1064,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 void CCPP65Generator::SetW65C816Assembly(bool bAssembly)
 {
 	gbW65C816Assembly = bAssembly;
+	CIR816Backend::SetSoftFloatInFrame(bAssembly);
 }
 
 

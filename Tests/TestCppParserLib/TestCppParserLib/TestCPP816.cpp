@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeNames.h"
@@ -11,10 +12,12 @@
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
+#include "BaseLib/TextFile.h"
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
 #include "Assembler65Lib/Asm65816Lockstep.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppParserLib/CPP65Builder.h"
+#include "CppParserLib/IR816Backend.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -3400,21 +3403,81 @@ int TestCPP816CountWarnings(const char* szSource, const char* szWarning, ECPPTar
 // frame that isn't aligned is phd, tsc, sec).
 //
 //////////////////////////////////////////////////////////////////////////
-bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const char* szPrefix)
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of the function whose label starts with szPrefix: its body's
+// (a register function's label with its suffix, after the stub at the plain
+// label) if it has one.  0 if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 TestCPP816FunctionAddress(CCPP65Builder* pcBuilder, const char* szPrefix)
 {
 	const char*	szLine;
+	const char*	szEnd;
 	uint32		uiAddress;
 
+	uiAddress = 0;
 	for (szLine = strstr(pcBuilder->GetMap(), "Symbols\n"); szLine; szLine = strchr(szLine + 1, '\n'))
 	{
 		if ((szLine[1] == ' ') && (szLine[3] == '0') && (szLine[4] == 'x') && (strncmp(&szLine[16], szPrefix, strlen(szPrefix)) == 0))
 		{
-			uiAddress = (uint32)strtoul(&szLine[3], NULL, 16);
-			return (pcMemory->GetByte(uiAddress) == 0x0B) && (pcMemory->GetByte(uiAddress + 1) == 0x3B) && (pcMemory->GetByte(uiAddress + 2) == 0xAA);
+			szEnd = strchr(&szLine[16], ' ');
+			if (szEnd && (memchr(&szLine[16], '.', (size)(szEnd - &szLine[16])) != NULL))
+			{
+				return (uint32)strtoul(&szLine[3], NULL, 16);
+			}
+			if (uiAddress == 0)
+			{
+				uiAddress = (uint32)strtoul(&szLine[3], NULL, 16);
+			}
 		}
 	}
-	AssertString("A function", szPrefix);
-	return false;
+	return uiAddress;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The register words a function's prologue pushes after phd (pha, phx,
+// phy: a register function's), from the byte after phd at uiAddress.
+//
+//////////////////////////////////////////////////////////////////////////
+int TestCPP816RegisterPushes(CAsm65Memory* pcMemory, uint32 uiAddress)
+{
+	int		i;
+	uint8	uiOpcode;
+
+	for (i = 0; i < 3; i++)
+	{
+		uiOpcode = pcMemory->GetByte(uiAddress + 1 + (uint32)i);
+		if ((uiOpcode != 0x48) && (uiOpcode != 0xDA) && (uiOpcode != 0x5A))
+		{
+			break;
+		}
+	}
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function whose label starts with szPrefix has an aligned
+// frame: phd, its register pushes, then tsc and tax.
+//
+//////////////////////////////////////////////////////////////////////////
+bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const char* szPrefix)
+{
+	uint32	uiAddress;
+	int		iPushes;
+
+	uiAddress = TestCPP816FunctionAddress(pcBuilder, szPrefix);
+	if (uiAddress == 0)
+	{
+		AssertString("A function", szPrefix);
+		return false;
+	}
+	iPushes = TestCPP816RegisterPushes(pcMemory, uiAddress);
+	return (pcMemory->GetByte(uiAddress) == 0x0B) && (pcMemory->GetByte(uiAddress + 1 + iPushes) == 0x3B) && (pcMemory->GetByte(uiAddress + 2 + iPushes) == 0xAA);
 }
 
 
@@ -3552,7 +3615,6 @@ void TestCPP816AlignedFrames(void)
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816AlignedCopies(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const char* szPrefix)
 {
-	const char*	szLine;
 	uint32		uiAddress;
 	int32		iCopies;
 
@@ -3560,19 +3622,13 @@ int32 TestCPP816AlignedCopies(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, 
 	{
 		return -1;
 	}
-	for (szLine = strstr(pcBuilder->GetMap(), "Symbols\n"); szLine; szLine = strchr(szLine + 1, '\n'))
+	uiAddress = TestCPP816FunctionAddress(pcBuilder, szPrefix);
+	uiAddress += 12 + (uint32)TestCPP816RegisterPushes(pcMemory, uiAddress);
+	for (iCopies = 0; (pcMemory->GetByte(uiAddress) == 0xBF) && (pcMemory->GetByte(uiAddress + 4) == 0x85); iCopies++)
 	{
-		if ((szLine[1] == ' ') && (szLine[3] == '0') && (szLine[4] == 'x') && (strncmp(&szLine[16], szPrefix, strlen(szPrefix)) == 0))
-		{
-			uiAddress = (uint32)strtoul(&szLine[3], NULL, 16) + 12;
-			for (iCopies = 0; (pcMemory->GetByte(uiAddress) == 0xBF) && (pcMemory->GetByte(uiAddress + 4) == 0x85); iCopies++)
-			{
-				uiAddress += 6;
-			}
-			return iCopies;
-		}
+		uiAddress += 6;
 	}
-	return -1;
+	return iCopies;
 }
 
 
@@ -3959,6 +4015,583 @@ void TestCPP816SizeLsizeBugs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Builds szSource with aszUnits for the W65C816 keeping its listing (Test.lst, into pszListing) and runs it.
+// Returns main's int; puiResults gets uiResults longs from TEST_CPP816_RESULTS.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults)
+{
+	CCPP65Builder	cBuilder;
+	CAsm65Memory	cMemory;
+	CFast65C816		cFast;
+	CChars			szProject;
+	CFileUtil		cFileUtil;
+	CTextFile		cFile;
+	size			i;
+	int32			iResult;
+
+	iResult = -1000000;
+	cFileUtil.RemoveDir("Output" _FS_ "CPP816Listing");
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetListingDirectory("Output" _FS_ "CPP816Listing");
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	AssertTrue(cBuilder.AddStartUp());
+	szProject.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
+	cFileUtil.FullPath(&szProject);
+	cBuilder.AddMathTables(szProject.Text());
+	szProject.Kill();
+	AssertTrue(cBuilder.AddSource("Test.cpp", szSource));
+	TestCPP65AddUnits(&cBuilder, aszUnits, false);
+	AssertTrue(cBuilder.Link());
+	AssertString("", cBuilder.GetErrors());
+
+	cFile.Init();
+	AssertTrue(cFile.Read("Output" _FS_ "CPP816Listing" _FS_ "Test.lst"));
+	pszListing->Init(cFile.Text() ? cFile.Text() : "");
+	cFile.Kill();
+
+	cMemory.Init(ASM65_MEMORY_LOW_SIZE);
+	cMemory.Load(cBuilder.GetOutput());
+	cMemory.InitFast65816(&cFast);
+	cFast.Reset();
+	AssertTrue(cFast.Run(TEST_CPP816_SLOW_STEPS) < TEST_CPP816_SLOW_STEPS);
+	AssertTrue(cFast.IsStopped());
+	AssertInt(0, (int)cMemory.NumBadAccesses());
+	if (cFast.IsStopped())
+	{
+		iResult = (int16)cFast.GetC();
+		AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+	}
+	for (i = 0; i < uiResults; i++)
+	{
+		puiResults[i] = cMemory.GetLong(TEST_CPP816_RESULTS + 4 * (uint32)i);
+	}
+	cFast.Kill();
+	cMemory.Kill();
+	cBuilder.Kill();
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the listing calls a label starting szPrefix with the register
+// suffix szSuffix ("" for none: the plain label).
+//
+//////////////////////////////////////////////////////////////////////////
+bool TestCPP816Calls(const char* szListing, const char* szPrefix, const char* szSuffix)
+{
+	CChars		szCall;
+	const char*	szAt;
+	const char*	szEnd;
+	const char*	szDot;
+
+	szCall.Init("\t\tjsl ");
+	szCall.Append(szPrefix);
+	for (szAt = strstr(szListing, szCall.Text()); szAt; szAt = strstr(szAt + 1, szCall.Text()))
+	{
+		szEnd = strchr(szAt, '\n');
+		szDot = (const char*)memchr(szAt + 6, '.', (size)(szEnd - (szAt + 6)));
+		if (szSuffix[0] ? (szDot && ((size)(szEnd - szDot) == strlen(szSuffix)) && (strncmp(szDot, szSuffix, strlen(szSuffix)) == 0)) : (szDot == NULL))
+		{
+			szCall.Kill();
+			return true;
+		}
+	}
+	szCall.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Register arguments (W65C816.txt): the fixed rule's suffixes (A, X and Y
+// taken in order by arguments whose words all fit, a later smaller one
+// still fitting, the hidden result pointer first), extern "C" functions too,
+// a variadic function pushing everything, a member function, recursion,
+// narrow arguments, and each called through a function pointer (the plain
+// label's stub).  Each bit of the result is a call that went wrong.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816RegisterArguments(void)
+{
+	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	static const char*	szSource =
+		"#include <stdarg.h>\n"
+		"extern \"C\" long CAdd(long a, int b) { return a + b; }\n"
+		"int Three(int a, int b, int c) { return a * 100 + b * 10 + c; }\n"
+		"int Four(int a, int b, int c, int d) { return a * 1000 + b * 100 + c * 10 + d; }\n"
+		"long Mixed(long a, long b, int c) { return a * 3 + b * 5 + c; }\n"
+		"long long Wide(long long a, int b) { return a * b + 1; }\n"
+		"long long Twice(int a, long long b) { return b * 2 + a; }\n"
+		"int Sum(int n, ...) { va_list v; va_start(v, n); int s = 0; for (int i = 0; i < n; i++) { s += va_arg(v, int); } va_end(v); return s; }\n"
+		"struct SValue { int m; int Get(int k, long l) { return m + k + (int)(l / 1000); } };\n"
+		"long Recurse(int n, long acc) { return (n == 0) ? acc : Recurse(n - 1, acc + n); }\n"
+		"char Narrow(char c, unsigned char u, bool b) { return (char)(c + u + (b ? 1 : 0)); }\n"
+		"long (*volatile gpCAdd)(long, int) = CAdd;\n"
+		"int (*volatile gpThree)(int, int, int) = Three;\n"
+		"int (*volatile gpFour)(int, int, int, int) = Four;\n"
+		"long (*volatile gpMixed)(long, long, int) = Mixed;\n"
+		"long long (*volatile gpWide)(long long, int) = Wide;\n"
+		"long long (*volatile gpTwice)(int, long long) = Twice;\n"
+		"long (*volatile gpRecurse)(int, long) = Recurse;\n"
+		"char (*volatile gpNarrow)(char, unsigned char, bool) = Narrow;\n"
+		"volatile int gi = 3;\n"
+		"int main(void)\n"
+		"{\n"
+		"	int w = 0;\n"
+		"	SValue v;\n"
+		"	v.m = 5;\n"
+		"	if (CAdd(100000L, gi) != 100003L) { w |= 1; }\n"
+		"	if (gpCAdd(100000L, gi) != 100003L) { w |= 2; }\n"
+		"	if (Three(1, 2, gi) != 123) { w |= 4; }\n"
+		"	if (gpThree(1, 2, gi) != 123) { w |= 8; }\n"
+		"	if (Four(1, 2, gi, 4) != 1234) { w |= 16; }\n"
+		"	if (gpFour(1, 2, gi, 4) != 1234) { w |= 32; }\n"
+		"	if (Mixed(70000L, 80000L, gi) != 610003L) { w |= 64; }\n"
+		"	if (gpMixed(70000L, 80000L, gi) != 610003L) { w |= 128; }\n"
+		"	if (Wide(5000000000LL, gi) != 15000000001LL) { w |= 256; }\n"
+		"	if (gpWide(5000000000LL, gi) != 15000000001LL) { w |= 512; }\n"
+		"	if (Twice(gi, 5000000000LL) != 10000000003LL) { w |= 1024; }\n"
+		"	if (gpTwice(gi, 5000000000LL) != 10000000003LL) { w |= 2048; }\n"
+		"	if (Sum(4, 1, 2, gi, 4) != 10) { w |= 4096; }\n"
+		"	if (v.Get(gi, 70000L) != 78) { w |= 8192; }\n"
+		"	if ((Recurse(100, gi) != 5053L) || (gpRecurse(100, gi) != 5053L)) { w |= 16384; }\n"
+		"	if ((Narrow(-3, 200, true) != (char)198) || (gpNarrow(-3, 200, true) != (char)198)) { w = -1; }\n"
+		"	return w;\n"
+		"}\n";
+	CChars	szListing;
+
+	AssertInt(0, TestCPP816RunListed(szSource, aszUnits, &szListing, NULL, 0));
+
+	//The definitions' register labels (the plain labels are the stubs the function pointers call).
+	AssertTrue(szListing.Contains("\n_CAdd.axy:\n"));
+	AssertTrue(szListing.Contains("\n_CAdd:\n"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_Recurse__", ".axy"));
+	AssertTrue(szListing.Contains(".axy:\n"));
+	AssertTrue(szListing.Contains(".axssy:\n"));
+	AssertTrue(szListing.Contains(".axssssy:\n"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_Sum__", ""));
+	AssertFalse(TestCPP816Calls(szListing.Text(), "_Sum__", ".a"));
+	szListing.Kill();
+
+	//Every argument pushed (CIR816Backend::SetRegisterArguments(false), TestProject65's TEST_PROJECT65_STACK_ARGUMENTS):
+	//no register labels, and the assembly's are called at their plain labels (the stack entries).
+	CIR816Backend::SetRegisterArguments(false);
+	AssertInt(0, TestCPP816RunListed(szSource, aszUnits, &szListing, NULL, 0));
+	AssertFalse(szListing.Contains(".axy"));
+	AssertFalse(szListing.Contains(".ax\n"));
+	CIR816Backend::SetRegisterArguments(true);
+	szListing.Kill();
+}
+
+
+//The float program, compiled natively for the expected results and for the W65C816 (TestCPP816FrameOperandFloats):
+//arithmetic, compares (a NaN's too), every integer conversion each way, float and double conversions, operands that
+//are constants, a function with only its parameters (no frame of its own) and calls through function pointers.
+#define TEST_CPP816_FLOAT_GLOBALS \
+	volatile double gd[4] = { 1.5, -2.25, 1e300, 3.0 }; \
+	volatile float gf[4] = { 1.5f, -2.25f, 3.0e38f, 0.1f }; \
+	volatile signed char gc = -100; \
+	volatile unsigned char guc = 200; \
+	volatile short gs = -30000; \
+	volatile unsigned short gus = 60000; \
+	volatile short gi = -12345; \
+	volatile long gl = -2000000000L; \
+	volatile unsigned long gul = 4000000000UL; \
+	volatile long long gll = -5000000000000LL; \
+	volatile unsigned long long gull = 17000000000000000000ULL; \
+	double Add(double a, double b) { return a + b; } \
+	float AddF(float a, float b) { return a + b; } \
+	double (*volatile gpAdd)(double, double) = Add; \
+	float (*volatile gpAddF)(float, float) = AddF;
+
+#define TEST_CPP816_FLOAT_BODY \
+	double a = gd[0]; \
+	double b = gd[1]; \
+	double c = gd[2]; \
+	float f = gf[0]; \
+	float g = gf[1]; \
+	float h = gf[3]; \
+	double n; \
+	long long q; \
+	unsigned long long uq; \
+	PutD(a + b); PutD(a - b); PutD(a * b); PutD(a / b); PutD(c * c); PutD(a * 2.5); PutD(1.0 / b); PutD(gpAdd(a, b)); PutD(Add(c, a)); \
+	PutF(f + g); PutF(f - g); PutF(f * g); PutF(f / g); PutF(f * 2.5f); PutF(1.0f / h); PutF(gpAddF(f, h)); PutF(AddF(g, h)); \
+	PutI(a < b); PutI(a <= b); PutI(a == a); PutI(a != b); PutI(a > b); PutI(a >= b); PutI(f < g); PutI(f == f); \
+	n = c * c - c * c; \
+	PutI(n == n); PutI(n != n); PutI(n < a); PutI(a >= n); \
+	PutD((double)gc); PutD((double)guc); PutD((double)gs); PutD((double)gus); PutD((double)gi); PutD((double)gl); PutD((double)gul); PutD((double)gll); PutD((double)gull); \
+	PutF((float)gc); PutF((float)guc); PutF((float)gs); PutF((float)gus); PutF((float)gi); PutF((float)gl); PutF((float)gul); PutF((float)gll); PutF((float)gull); \
+	PutI((signed char)(b * 10.0)); PutI((unsigned char)(a * 100.0)); PutI((short)(b * 1000.0)); PutI((unsigned short)(a * 1000.0)); PutI((short)(b * 1000.0)); \
+	PutI((long)(b * 1000000.0)); PutI((long)(unsigned long)(a * 1000000000.0)); \
+	q = (long long)(b * 1e12); PutI((long)q); PutI((long)(q >> 32)); \
+	uq = (unsigned long long)(a * 1e18); PutI((long)uq); PutI((long)(uq >> 32)); \
+	PutI((short)(g * 10.0f)); PutI((long)(f * 1e6f)); PutI((long)(unsigned long)(f * 1e9f)); \
+	q = (long long)(g * 1e12f); PutI((long)q); PutI((long)(q >> 32)); \
+	PutF((float)a); PutF((float)c); PutD((double)f); PutD((double)h);
+
+namespace TestCPP816FloatNative
+{
+	uint32	gauiResults[256];
+	int		giResults;
+	void PutD(double d) { uint64 u; memcpy(&u, &d, 8); gauiResults[giResults++] = (uint32)u; gauiResults[giResults++] = (uint32)(u >> 32); }
+	void PutF(float x) { uint32 u; memcpy(&u, &x, 4); gauiResults[giResults++] = u; }
+	void PutI(long l) { gauiResults[giResults++] = (uint32)l; }
+	TEST_CPP816_FLOAT_GLOBALS
+	void Run(void) { TEST_CPP816_FLOAT_BODY }
+}
+
+#define TEST_CPP816_STRINGIZE2(x)	#x
+#define TEST_CPP816_STRINGIZE(x)	TEST_CPP816_STRINGIZE2(x)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The compiler's float instructions call softfloat816.asm's frame operand
+// entries (name.dp: the operands' places in X and Y, a 64 bit result's in
+// A): every result the same, bit for bit, as natively.  A function whose
+// only frame use is through those places keeps its frame (DropFrame).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816FrameOperandFloats(void)
+{
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	CChars				szSource;
+	CChars				szListing;
+	uint32				auiResults[256];
+	int					i;
+
+	TestCPP816FloatNative::giResults = 0;
+	TestCPP816FloatNative::Run();
+
+	szSource.Init("#define __cdecl\n#include <string.h>\n");
+	szSource.Append("unsigned long* gpuiResult = (unsigned long*)0x100000;\n");
+	szSource.Append("void PutD(double d) { unsigned long long u; memcpy(&u, &d, 8); *gpuiResult++ = (unsigned long)u; *gpuiResult++ = (unsigned long)(u >> 32); }\n");
+	szSource.Append("void PutF(float x) { unsigned long u; memcpy(&u, &x, 4); *gpuiResult++ = u; }\n");
+	szSource.Append("void PutI(long l) { *gpuiResult++ = (unsigned long)l; }\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_FLOAT_GLOBALS));
+	szSource.Append("\nint main(void)\n{\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_FLOAT_BODY));
+	szSource.Append("\n\treturn (int)(gpuiResult - (unsigned long*)0x100000);\n}\n");
+
+	AssertInt(TestCPP816FloatNative::giResults, TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, auiResults, TestCPP816FloatNative::giResults));
+	for (i = 0; i < TestCPP816FloatNative::giResults; i++)
+	{
+		AssertIntHex(TestCPP816FloatNative::gauiResults[i], auiResults[i]);
+	}
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleAdd", ".dp"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftFloatAdd", ".dp"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleCompare", ".dp"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleFromLongLong", ".dp"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftFloatToInt", ".dp"));
+	AssertFalse(TestCPP816Calls(szListing.Text(), "_SoftDoubleAdd", ""));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
+//The C string functions (string816.asm's register entries, and through function pointers their stack entries),
+//compiled natively for the expected results and for the W65C816 (TestCPP816StringRegisters).
+#define TEST_CPP816_STRING_GLOBALS \
+	volatile int gi = 'w'; \
+	void* (__cdecl *volatile gpMemcpy)(void*, const void*, size_t) = memcpy; \
+	void* (__cdecl *volatile gpMemmove)(void*, const void*, size_t) = memmove; \
+	void* (__cdecl *volatile gpMemset)(void*, int, size_t) = memset; \
+	int (__cdecl *volatile gpMemcmp)(const void*, const void*, size_t) = memcmp; \
+	void* (__cdecl *volatile gpMemchr)(const void*, int, size_t) = TestMemchr; \
+	size_t (__cdecl *volatile gpStrlen)(const char*) = strlen; \
+	char* (__cdecl *volatile gpStrcpy)(char*, const char*) = strcpy; \
+	char* (__cdecl *volatile gpStrncpy)(char*, const char*, size_t) = strncpy; \
+	char* (__cdecl *volatile gpStrcat)(char*, const char*) = strcat; \
+	char* (__cdecl *volatile gpStrncat)(char*, const char*, size_t) = strncat; \
+	int (__cdecl *volatile gpStrcmp)(const char*, const char*) = strcmp; \
+	int (__cdecl *volatile gpStrncmp)(const char*, const char*, size_t) = strncmp; \
+	char* (__cdecl *volatile gpStrchr)(const char*, int) = TestStrchr; \
+	char* (__cdecl *volatile gpStrrchr)(const char*, int) = TestStrrchr;
+
+#define TEST_CPP816_STRING_BODY \
+	char a[64]; \
+	char b[64]; \
+	char c[16]; \
+	int i; \
+	for (i = 0; i < 64; i++) { a[i] = (char)('a' + i % 26); b[i] = (char)('A' + i % 26); } \
+	a[40] = 0; \
+	b[30] = 0; \
+	strcpy(c, "abcabc"); \
+	PutI((long)strlen(a)); PutI((long)gpStrlen(b)); PutI((long)strlen("")); \
+	PutI((long)memcpy(a + 1, b + 2, 10) - (long)a); PutS(a); gpMemcpy(a + 3, b, 5); PutS(a); \
+	memmove(a + 2, a, 20); PutS(a); memmove(a, a + 5, 20); PutS(a); gpMemmove(a + 1, a, 7); PutS(a); \
+	PutI((long)memset(a + 4, 'z', 9) - (long)a); PutS(a); gpMemset(a + 10, gi, 3); PutS(a); memset(a, 'q', 0); PutS(a); \
+	PutI(memcmp(a, b, 5) < 0); PutI(gpMemcmp(a, a, 30)); PutI(memcmp(b, a, 5) > 0); PutI(memcmp(a, b, 0)); PutI(memcmp(a + 1, b + 1, 1) != 0); \
+	PutI((long)((char*)memchr(a, 'z', 30) - a)); PutI(gpMemchr(a, '#', 30) == 0); PutI((long)((char*)gpMemchr(a, gi, 30) - a)); \
+	PutI((long)strcpy(b + 40, "hello") - (long)b); PutS(b + 40); gpStrcpy(b + 50, "abc"); PutS(b + 50); \
+	strncpy(b + 40, "xy", 5); PutI(b[44]); PutS(b + 40); gpStrncpy(b + 40, "longer", 3); PutS(b + 40); \
+	strcat(b + 40, "end"); PutS(b + 40); gpStrcat(b + 40, "!"); PutS(b + 40); strncat(b + 40, "12345", 2); PutS(b + 40); gpStrncat(b + 40, "9", 5); PutS(b + 40); \
+	PutI(strcmp("abc", "abd") < 0); PutI(gpStrcmp("abc", "abc")); PutI(strcmp("b", "a") > 0); PutI(strncmp("abcx", "abcy", 3)); PutI(gpStrncmp("abcx", "abcy", 4) < 0); \
+	PutI((long)(strchr(a, 'z') - a)); PutI(gpStrchr(a, '@') == 0); PutI((long)(strchr(a, 0) - a)); \
+	PutI((long)(strrchr(c, 'b') - c)); PutI((long)(gpStrrchr(c, 'a') - c)); PutI(strrchr(c, 'x') == 0);
+
+namespace TestCPP816StringNative
+{
+	void* __cdecl TestMemchr(const void* pv, int c, size_t n) { return (void*)memchr(pv, c, n); }
+	char* __cdecl TestStrchr(const char* sz, int c) { return (char*)strchr(sz, c); }
+	char* __cdecl TestStrrchr(const char* sz, int c) { return (char*)strrchr(sz, c); }
+	uint32	gauiResults[256];
+	int		giResults;
+	void PutI(long l) { gauiResults[giResults++] = (uint32)l; }
+	void PutS(const char* sz) { uint32 h = 0; while (*sz) { h = h * 31 + (uint8)*sz++; } gauiResults[giResults++] = h; }
+	TEST_CPP816_STRING_GLOBALS
+	void Run(void) { TEST_CPP816_STRING_BODY }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The C string functions in string816.asm and string816_16.asm with C
+// linkage taking register arguments: each called straight (its register
+// entry, name.ax or name.axy) and through a function pointer (its stack
+// entry, which loads the registers), the same as natively.  Then the 16 bit
+// count ones, memset's and memcpy's moves across a bank's end, and BaseLib's
+// MemSwp16 and bit array finders (register entries and stack entries),
+// checked on the W65C816 against plain loops.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816StringRegisters(void)
+{
+	static const char*	aszUnits[] = { "Libc65/string816.asm", "Libc65/string816_16.asm", NULL };
+	static const char*	szSixteen =
+		"#include <string.h>\n"
+		"void MemSwp16(const void* pv1, const void* pv2, unsigned short uiLength);\n"
+		"unsigned short FindFirstSetBit(void* pvArray, unsigned short iArraySize);\n"
+		"unsigned short FindFirstClearBit(void* pvArray, unsigned short iArraySize);\n"
+		"unsigned short FindLastSetBit(void* pvArray, unsigned short iArraySize);\n"
+		"unsigned short FindLastClearBit(void* pvArray, unsigned short iArraySize);\n"
+		"unsigned long FindFirstSetBitLarge(void* pvArray, unsigned long iArraySize);\n"
+		"unsigned long FindLastClearBitLarge(void* pvArray, unsigned long iArraySize);\n"
+		"unsigned short FindFirstClearBit(unsigned long uiBits);\n"
+		"void* (*volatile gpMemcpy16)(void*, const void*, unsigned short) = memcpy16;\n"
+		"void* (*volatile gpMemmove16)(void*, const void*, unsigned short) = memmove16;\n"
+		"void* (*volatile gpMemset16)(void*, int, unsigned short) = memset16;\n"
+		"int (*volatile gpMemcmp16)(const void*, const void*, unsigned short) = memcmp16;\n"
+		"unsigned short (*volatile gpStrlen16)(const char*) = strlen16;\n"
+		"void (*volatile gpMemSwp16)(const void*, const void*, unsigned short) = MemSwp16;\n"
+		"unsigned short (*volatile gpFindFirstSetBit)(void*, unsigned short) = FindFirstSetBit;\n"
+		"unsigned short (*volatile gpFindLastClearBit)(void*, unsigned short) = FindLastClearBit;\n"
+		"unsigned long (*volatile gpFindFirstSetBitLarge)(void*, unsigned long) = FindFirstSetBitLarge;\n"
+		"unsigned long (*volatile gpFindLastClearBitLarge)(void*, unsigned long) = FindLastClearBitLarge;\n"
+		"unsigned short (*volatile gpFindFirstClearBit32)(unsigned long) = FindFirstClearBit;\n"
+		"unsigned char gauc[200];\n"
+		"unsigned char gauc2[200];\n"
+		"int Same(const unsigned char* p, const unsigned char* q, int n) { for (int i = 0; i < n; i++) { if (p[i] != q[i]) { return 0; } } return 1; }\n"
+		"int main(void)\n"
+		"{\n"
+		"	int w = 0;\n"
+		"	int i;\n"
+		"	unsigned char* pBank = (unsigned char*)0x10FFF0;\n"
+		"	for (i = 0; i < 200; i++) { gauc[i] = (unsigned char)(i * 7 + 1); gauc2[i] = 0; }\n"
+		"	if (memcpy16(gauc2, gauc, 50) != gauc2 || !Same(gauc2, gauc, 50) || gauc2[50] != 0) { w |= 1; }\n"
+		"	if (gpMemcpy16(gauc2 + 60, gauc, 33) != gauc2 + 60 || !Same(gauc2 + 60, gauc, 33)) { w |= 2; }\n"
+		"	memmove16(gauc2 + 1, gauc2, 40);\n"
+		"	if (!Same(gauc2 + 1, gauc, 40)) { w |= 4; }\n"
+		"	gpMemmove16(gauc2, gauc2 + 1, 40);\n"
+		"	if (!Same(gauc2, gauc, 40)) { w |= 8; }\n"
+		"	if (memset16(gauc2, 0x5A, 21) != gauc2 || gauc2[20] != 0x5A || gauc2[21] != gauc[21]) { w |= 16; }\n"
+		"	gpMemset16(gauc2, 0xA5, 3);\n"
+		"	if (gauc2[2] != 0xA5 || gauc2[3] != 0x5A) { w |= 32; }\n"
+		"	if (memcmp16(gauc, gauc, 100) != 0 || gpMemcmp16(gauc2, gauc, 5) <= 0 || memcmp16(gauc, gauc2, 5) >= 0) { w |= 64; }\n"
+		"	if (strlen16(\"hello\") != 5 || gpStrlen16(\"\") != 0) { w |= 128; }\n"
+		"	memcpy(gauc2, gauc, 200);\n"
+		"	MemSwp16(gauc, gauc2 + 100, 31);\n"
+		"	gpMemSwp16(gauc, gauc2 + 100, 31);\n"
+		"	if (!Same(gauc, gauc2, 200)) { w |= 256; }\n"
+		"	memset(pBank, 7, 32);\n"
+		"	for (i = 0; i < 32; i++) { if (pBank[i] != 7) { w |= 512; } }\n"
+		"	memcpy(pBank, gauc, 32);\n"
+		"	if (!Same(pBank, gauc, 32)) { w |= 1024; }\n"
+		"	memset(gauc2, 0, 40);\n"
+		"	gauc2[13] = 0x10;\n"
+		"	gauc2[17] = 0x81;\n"
+		"	if (FindFirstSetBit(gauc2, 300) != 13 * 8 + 4 || gpFindFirstSetBit(gauc2, 300) != 13 * 8 + 4 || FindLastSetBit(gauc2, 300) != 17 * 8 + 7) { w |= 2048; }\n"
+		"	if (FindFirstSetBitLarge(gauc2, 300) != 13 * 8 + 4 || gpFindFirstSetBitLarge(gauc2, 300) != 13 * 8 + 4) { w |= 4096; }\n"
+		"	memset(gauc2, 0xFF, 40);\n"
+		"	gauc2[5] = 0xEF;\n"
+		"	if (FindFirstClearBit(gauc2, 300) != 5 * 8 + 4 || FindLastClearBit(gauc2, 300) != 5 * 8 + 4 || gpFindLastClearBit(gauc2, 300) != 5 * 8 + 4) { w |= 8192; }\n"
+		"	if (FindLastClearBitLarge(gauc2, 300) != 5 * 8 + 4 || gpFindLastClearBitLarge(gauc2, 300) != 5 * 8 + 4) { w |= 16384; }\n"
+		"	if (FindFirstClearBit(0xFFFEFFFFUL) != 16 || gpFindFirstClearBit32(0xFFFFFFFFUL) != 32) { w = -1; }\n"
+		"	return w;\n"
+		"}\n";
+	CChars				szSource;
+	CChars				szListing;
+	uint32				auiResults[256];
+	int					i;
+
+	TestCPP816StringNative::giResults = 0;
+	TestCPP816StringNative::Run();
+
+	szSource.Init("#define __cdecl\n#define TestMemchr memchr\n#define TestStrchr strchr\n#define TestStrrchr strrchr\n#include <string.h>\n");
+	szSource.Append("unsigned long* gpuiResult = (unsigned long*)0x100000;\n");
+	szSource.Append("void PutI(long l) { *gpuiResult++ = (unsigned long)l; }\n");
+	szSource.Append("void PutS(const char* sz) { unsigned long h = 0; while (*sz) { h = h * 31 + (unsigned char)*sz++; } *gpuiResult++ = h; }\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_STRING_GLOBALS));
+	szSource.Append("\nint main(void)\n{\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_STRING_BODY));
+	szSource.Append("\n\treturn (int)(gpuiResult - (unsigned long*)0x100000);\n}\n");
+
+	AssertInt(TestCPP816StringNative::giResults, TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, auiResults, TestCPP816StringNative::giResults));
+	for (i = 0; i < TestCPP816StringNative::giResults; i++)
+	{
+		AssertIntHex(TestCPP816StringNative::gauiResults[i], auiResults[i]);
+	}
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_strlen", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_strchr", ".axy"));
+	szListing.Kill();
+	szSource.Kill();
+
+	AssertInt(0, TestCPP816RunListed(szSixteen, aszUnits, &szListing, NULL, 0));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_memcpy16", ".axssy"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_memset16", ".axy"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_FindFirstSetBit__", ".axy"));
+	szListing.Kill();
+}
+
+
+//The math functions softfloat816.asm has (register entries; through function pointers, the stack entries), compiled
+//natively for the expected results and for the W65C816 (TestCPP816MathRegisters).
+#define TEST_CPP816_MATH_GLOBALS \
+	volatile double gd[4] = { 2.5, -7.75, 1e20, 0.3 }; \
+	volatile float gf[3] = { 2.5f, -7.75f, 0.3f }; \
+	double (__cdecl *volatile gpFabs)(double) = fabs; \
+	float (__cdecl *volatile gpFabsf)(float) = fabsf; \
+	double (__cdecl *volatile gpFloor)(double) = floor; \
+	double (__cdecl *volatile gpRound)(double) = round; \
+	float (__cdecl *volatile gpCeilf)(float) = ceilf; \
+	double (__cdecl *volatile gpFmod)(double, double) = fmod; \
+	double (__cdecl *volatile gpLdexp)(double, int) = ldexp; \
+	double (__cdecl *volatile gpSqrt)(double) = sqrt; \
+	float (__cdecl *volatile gpSqrtf)(float) = sqrtf;
+
+#define TEST_CPP816_MATH_BODY \
+	double a = gd[0]; \
+	double b = gd[1]; \
+	double c = gd[2]; \
+	double d = gd[3]; \
+	float f = gf[0]; \
+	float g = gf[1]; \
+	float h = gf[2]; \
+	int e = 0; \
+	double ip = 0; \
+	PutD(fabs(b)); PutD(gpFabs(b)); PutF(fabsf(g)); PutF(gpFabsf(g)); \
+	PutD(floor(b)); PutD(gpFloor(a)); PutD(ceil(b)); PutD(trunc(b)); PutD(round(a)); PutD(gpRound(b)); \
+	PutF(floorf(g)); PutF(ceilf(f)); PutF(gpCeilf(g)); PutF(truncf(g)); PutF(roundf(f)); \
+	PutD(fmod(c, d)); PutD(gpFmod(b, a)); PutF(fmodf(g, f)); \
+	PutD(frexp(c, &e)); PutI(e); PutD(ldexp(a, 10)); PutD(gpLdexp(b, -3)); PutD(modf(b, &ip)); PutD(ip); \
+	PutD(sqrt(a)); PutD(gpSqrt(c)); PutF(sqrtf(h)); PutF(gpSqrtf(f));
+
+namespace TestCPP816MathNative
+{
+	uint32	gauiResults[256];
+	int		giResults;
+	void PutD(double x) { uint64 u; memcpy(&u, &x, 8); gauiResults[giResults++] = (uint32)u; gauiResults[giResults++] = (uint32)(u >> 32); }
+	void PutF(float x) { uint32 u; memcpy(&u, &x, 4); gauiResults[giResults++] = u; }
+	void PutI(long l) { gauiResults[giResults++] = (uint32)l; }
+	TEST_CPP816_MATH_GLOBALS
+	void Run(void) { TEST_CPP816_MATH_BODY }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The math functions in softfloat816.asm, with C linkage taking register
+// arguments (the result pointer in A and X): straight and through function
+// pointers (their stack entries), the same as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816MathRegisters(void)
+{
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	CChars				szSource;
+	CChars				szListing;
+	uint32				auiResults[256];
+	int					i;
+
+	TestCPP816MathNative::giResults = 0;
+	TestCPP816MathNative::Run();
+
+	szSource.Init("#define __cdecl\n#include <string.h>\n#include <math.h>\n");
+	szSource.Append("unsigned long* gpuiResult = (unsigned long*)0x100000;\n");
+	szSource.Append("void PutD(double d) { unsigned long long u; memcpy(&u, &d, 8); *gpuiResult++ = (unsigned long)u; *gpuiResult++ = (unsigned long)(u >> 32); }\n");
+	szSource.Append("void PutF(float x) { unsigned long u; memcpy(&u, &x, 4); *gpuiResult++ = u; }\n");
+	szSource.Append("void PutI(long l) { *gpuiResult++ = (unsigned long)l; }\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_MATH_GLOBALS));
+	szSource.Append("\nint main(void)\n{\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_MATH_BODY));
+	szSource.Append("\n\treturn (int)(gpuiResult - (unsigned long*)0x100000);\n}\n");
+
+	AssertInt(TestCPP816MathNative::giResults, TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, auiResults, TestCPP816MathNative::giResults));
+	for (i = 0; i < TestCPP816MathNative::giResults; i++)
+	{
+		AssertIntHex(TestCPP816MathNative::gauiResults[i], auiResults[i]);
+	}
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_fabs", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_sqrt", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_ldexp", ".axssssy"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 64 bit multiplies: of 32 bit halves (R816_UMulWide32, as softfloat's
+// Multiply has them) and of any two (R816_Mul64), hashed, the same as
+// natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816WideMultiplies(void)
+{
+	static const char*	szSource =
+		"volatile unsigned long long gx = 0x9ABCDEF123456789ULL;\n"
+		"volatile unsigned long long gy = 0xFEDCBA9876543210ULL;\n"
+		"int main(void)\n"
+		"{\n"
+		"	unsigned long long x = gx;\n"
+		"	unsigned long long y = gy;\n"
+		"	unsigned long long h = 0;\n"
+		"	for (int i = 0; i < 40; i++)\n"
+		"	{\n"
+		"		h = h * 33 + (x & 0xFFFFFFFF) * (y >> 32) + (x >> 32) * (y & 0xFFFFFFFF) + x * y;\n"
+		"		x = x * 6364136223846793005ULL + 1442695040888963407ULL;\n"
+		"		y = (y << 7) ^ (y >> 3) ^ x;\n"
+		"	}\n"
+		"	return (int)((h ^ (h >> 16) ^ (h >> 32) ^ (h >> 48)) & 0x7FFF);\n"
+		"}\n";
+	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	uint64	x;
+	uint64	y;
+	uint64	h;
+	int		i;
+	CChars	szListing;
+
+	x = 0x9ABCDEF123456789ULL;
+	y = 0xFEDCBA9876543210ULL;
+	h = 0;
+	for (i = 0; i < 40; i++)
+	{
+		h = h * 33 + (x & 0xFFFFFFFF) * (y >> 32) + (x >> 32) * (y & 0xFFFFFFFF) + x * y;
+		x = x * 6364136223846793005ULL + 1442695040888963407ULL;
+		y = (y << 7) ^ (y >> 3) ^ x;
+	}
+	AssertInt((int)((h ^ (h >> 16) ^ (h >> 32) ^ (h >> 48)) & 0x7FFF), TestCPP816RunListed(szSource, aszUnits, &szListing, NULL, 0));
+	AssertTrue(szListing.Contains("jsl R816_UMulWide32"));
+	AssertTrue(szListing.Contains("jsl R816_Mul64"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816(void)
@@ -4029,6 +4662,11 @@ void TestCPP816(void)
 	TestCPP816NarrowCounters();
 	TestCPP816AlignedFrames();
 	TestCPP816AlignedFrameUnreadArguments();
+	TestCPP816RegisterArguments();
+	TestCPP816FrameOperandFloats();
+	TestCPP816StringRegisters();
+	TestCPP816MathRegisters();
+	TestCPP816WideMultiplies();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	NumberKill();

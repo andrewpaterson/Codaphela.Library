@@ -1019,3 +1019,294 @@ ParsePathCopied:
 		ldy 2
 		sta [[D + PP_FILENAME]:24 + Y]
 		jmp Leave
+
+
+; ---- Register entries (the compiler's register arguments, W65C816.txt), small rather than fast: each
+; saves Y when it holds an argument, puts its stack entry's address in Y and goes to its shape's helper,
+; which pushes the argument words again as the stack entry wants them (A's, X's and Y's, and the words the
+; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
+; entries are unchanged.
+
+		.global _GetFatLongNameForEntry__FPtPc.ax, _CompareFatShortName__FPcPc.ax, _CompareFatLongName__FPtPt.ax, _MatchesFatFileName__FPbPbPcPtPcPtPh.ax, _GetFatShortNameForEntry__FPcPcb.axssy, _ConvertFATShortInternalNameInto8Dot3Format__FPhPh.ax
+		.global _ConstructFatLongFileNameFromShortName__FPtPcbb.axssy, _StepPathOverSlash__FPc.ax, _StepPathToSlash__FPc.ax, _CopyLongFilenameIntoString__FPcPt.ax, _IsIllegalFilenameCharacter__Fc.a, _IsIllegalFilename__FPct.axy
+		.global _GenerateShortNameWithSuffix__FtPh.axy, _ParsePathAndFilename__FPcPcPPc.ax
+
+_GetFatLongNameForEntry__FPtPc.ax:
+		.width (A, X), 16
+		ldy _GetFatLongNameForEntry__FPtPc & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CompareFatShortName__FPcPc.ax:
+		.width (A, X), 16
+		ldy _CompareFatShortName__FPcPc & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CompareFatLongName__FPtPt.ax:
+		.width (A, X), 16
+		ldy _CompareFatLongName__FPtPt & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_MatchesFatFileName__FPbPbPcPtPcPtPh.ax:
+		.width (A, X), 16
+		ldy _MatchesFatFileName__FPbPbPcPtPcPtPh & 0xFFFF
+		brl RegisterEntry_ax_12
+
+_GetFatShortNameForEntry__FPcPcb.axssy:
+		.width (A, X), 16
+		phy
+		ldy _GetFatShortNameForEntry__FPcPcb & 0xFFFF
+		brl RegisterEntry_axssy_2
+
+_ConvertFATShortInternalNameInto8Dot3Format__FPhPh.ax:
+		.width (A, X), 16
+		ldy _ConvertFATShortInternalNameInto8Dot3Format__FPhPh & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_ConstructFatLongFileNameFromShortName__FPtPcbb.axssy:
+		.width (A, X), 16
+		phy
+		ldy _ConstructFatLongFileNameFromShortName__FPtPcbb & 0xFFFF
+		brl RegisterEntry_axssy_3
+
+_StepPathOverSlash__FPc.ax:
+		.width (A, X), 16
+		ldy _StepPathOverSlash__FPc & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_StepPathToSlash__FPc.ax:
+		.width (A, X), 16
+		ldy _StepPathToSlash__FPc & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CopyLongFilenameIntoString__FPcPt.ax:
+		.width (A, X), 16
+		ldy _CopyLongFilenameIntoString__FPcPt & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_IsIllegalFilenameCharacter__Fc.a:
+		.width (A, X), 16
+		ldy _IsIllegalFilenameCharacter__Fc & 0xFFFF
+		brl RegisterEntry_a_0
+
+_IsIllegalFilename__FPct.axy:
+		.width (A, X), 16
+		phy
+		ldy _IsIllegalFilename__FPct & 0xFFFF
+		brl RegisterEntry_axy_0
+
+_GenerateShortNameWithSuffix__FtPh.axy:
+		.width (A, X), 16
+		phy
+		ldy _GenerateShortNameWithSuffix__FtPh & 0xFFFF
+		brl RegisterEntry_axy_0
+
+_ParsePathAndFilename__FPcPcPPc.ax:
+		.width (A, X), 16
+		ldy _ParsePathAndFilename__FPcPcPPc & 0xFFFF
+		brl RegisterEntry_ax_4
+
+RegisterEntry_ax_2:
+		.width (A, X), 16
+		pha
+		lda [S + 8]
+		pha
+		lda [S + 8]
+		pha
+		phx
+		lda [S + 7]
+		pha
+		phk
+		per RegisterEntry_ax_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_12:
+		.width (A, X), 16
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		lda [S + 28]
+		pha
+		phx
+		lda [S + 27]
+		pha
+		phk
+		per RegisterEntry_ax_12_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_12_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 30
+		tcs
+		tya
+		rtl
+
+RegisterEntry_axssy_2:
+		.width (A, X), 16
+		pha
+		lda [S + 3]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 9]
+		pha
+		phk
+		per RegisterEntry_axssy_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssy_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_axssy_3:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 5]
+		pha
+		lda [S + 14]
+		pha
+		lda [S + 14]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_axssy_3_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssy_3_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 16
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_0:
+		.width (A, X), 16
+		phx
+		pha
+		phk
+		per RegisterEntry_ax_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_0_Return:
+		.width (A, X), 16
+		ply
+		ply
+		rtl
+
+RegisterEntry_a_0:
+		.width (A, X), 16
+		pha
+		phk
+		per RegisterEntry_a_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_a_0_Return:
+		.width (A, X), 16
+		ply
+		rtl
+
+RegisterEntry_axy_0:
+		.width (A, X), 16
+		pha
+		lda [S + 3]
+		pha
+		phx
+		lda [S + 5]
+		pha
+		phk
+		per RegisterEntry_axy_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axy_0_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_4:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_ax_4_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_4_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl

@@ -159,6 +159,7 @@ public:
 	static void		IndexMnemonics(void);
 	static void		SetRegisterArguments(bool bRegisterArguments);
 	static bool		IsRegisterArguments(void);
+	static void		SetSoftFloatInFrame(bool bInFrame);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);
@@ -226,6 +227,8 @@ protected:
 	bool			BitShift(SIRInstruction* psInstruction);
 	bool			ShiftTwoWords(SIRInstruction* psInstruction);
 	bool			ShiftCall(SIRInstruction* psInstruction);
+	int32			FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch);
+	void			FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);

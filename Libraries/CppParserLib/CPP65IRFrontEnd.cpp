@@ -6565,8 +6565,9 @@ void CCPP65IRFrontEnd::MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiS
 	{
 		mcModule.SetLocal(uiSymbol);
 	}
-	if (!psFunction->bCLinkage && !psFunction->bVariadic)
+	if (!psFunction->bVariadic)
 	{
+		//C linkage too: this compiler is the only one that sees the source (the user, 2026-11-03).
 		mcModule.SetRegisterCall(uiSymbol);
 	}
 }
@@ -6600,6 +6601,7 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRV
 	apsParameter[0] = mpcTypes->Pointer(&mpcTypes->msVoid);
 	apsParameter[1] = apsParameter[0];
 	apsParameter[2] = mpcTypes->Long(false);
+	mcModule.SetRegisterCall(mcModule.AddSymbol("_memcpy"));
 	return CallWithArguments(pcCall, apsParameter, 3, "_memcpy", apsParameter[0], psValue);
 }
 

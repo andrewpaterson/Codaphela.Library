@@ -9357,6 +9357,8 @@ bool CIROptimiser::OnlyLoads(CIRBlock* pcBlock, int iLoads, SIRInstruction** aps
 //////////////////////////////////////////////////////////////////////////
 SIRReference CIROptimiser::LibraryCall(CIRBlock* pcBlock, const char* szName, SIRType sResultType, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond, SIRType sSecondType, SIRReference sThird, SIRType sThirdType)
 {
+	uint32	uiSymbol;
+
 	mpcFunction->Argument(pcBlock, sFirstType, sFirst);
 	if (!sSecond.IsNone())
 	{
@@ -9366,7 +9368,9 @@ SIRReference CIROptimiser::LibraryCall(CIRBlock* pcBlock, const char* szName, SI
 	{
 		mpcFunction->Argument(pcBlock, sThirdType, sThird);
 	}
-	return mpcFunction->Call(pcBlock, sResultType, IRReference(IRRK_Symbol, mpcModule->AddSymbol(szName)));
+	uiSymbol = mpcModule->AddSymbol(szName);
+	mpcModule->SetRegisterCall(uiSymbol);
+	return mpcFunction->Call(pcBlock, sResultType, IRReference(IRRK_Symbol, uiSymbol));
 }
 
 

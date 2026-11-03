@@ -62,6 +62,7 @@ struct SIR816Routine
 #define IR816_TABLE_LENGTH			11
 #define IR816_BITS_TABLE			"R816_Bits"		//R816_Bits16 and R816_Bits32: 1 << k for k from 0 to 63 (0 past the width).
 #define IR816_BITS_TABLE_LENGTH		9
+#define IR816_FRAME_OPERANDS		".dp"	//A soft float frame operand entry's label suffix (FrameOperandCall).
 #define IR816_DIRECT_PAGE			256		//The bytes [D + n] reaches (IR816FindReads).
 #define IR816_SCRATCH_FIRST			3		//The caller's bytes the scratch runtime routines may read (D + 5 to D + 22, with
 #define IR816_SCRATCH_END			24		//a byte either side).
@@ -1164,6 +1165,21 @@ int32 CIR816Backend::Allocate(int32* piNext, int32 iBytes)
 
 
 bool	gbIR816RegisterArguments = true;		//SetRegisterArguments.
+bool	gbIR816SoftFloatInFrame = true;			//SetSoftFloatInFrame.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the soft float is softfloat816.asm (true, the default), whose
+// frame operand entries (FrameOperandCall) the float instructions call, or
+// softfloat.cpp compiled, called as a function with its arguments pushed.
+// CCPP65Generator::SetW65C816Assembly sets it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SetSoftFloatInFrame(bool bInFrame)
+{
+	gbIR816SoftFloatInFrame = bInFrame;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3400,6 +3416,37 @@ static void IR816AppendFrameExit(CChars* psz, int32 iFrameBytes)
 }
 
 
+static bool IR816IndexedRoutine(const char* szOperand, size uiOperand);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the code calls a routine given places in the frame as numbers
+// (a 64 bit shift routine's in X, a soft float frame operand entry's in X,
+// Y and A), which DropFrame can't move.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816PassesFrameOffsets(const char* szCode)
+{
+	const char*	szAt;
+	const char*	szEnd;
+
+	for (szAt = strstr(szCode, "\tjsl "); szAt; szAt = strstr(szAt + 1, "\tjsl "))
+	{
+		szAt += 5;
+		for (szEnd = szAt; (*szEnd != '\n') && (*szEnd != '\0'); szEnd++)
+		{
+		}
+		if (IR816IndexedRoutine(szAt, (size)(szEnd - szAt)) ||
+			((szEnd - szAt > 3) && (strncmp(szEnd - 3, IR816_FRAME_OPERANDS, 3) == 0)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's code from uiStart without its frame when it never reads
@@ -3422,7 +3469,7 @@ void CIR816Backend::DropFrame(size uiStart)
 	bool		bUsesD;
 
 	szCode = mpszOut->Text() + uiStart;
-	if ((miFrameBytes == 0) || (strstr(szCode, "[D + X]") != NULL))
+	if ((miFrameBytes == 0) || (strstr(szCode, "[D + X]") != NULL) || IR816PassesFrameOffsets(szCode))
 	{
 		return;
 	}
@@ -6836,9 +6883,6 @@ static bool IR816MovesS(const char* szLine)
 // address may be passed on), unless only to move S (IR816MovesS).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816IndexedRoutine(const char* szOperand, size uiOperand);
-
-
 static bool IR816FindReads(const char* szLine, uint8* abRead)
 {
 	SIR816Line	sLine;
@@ -6860,6 +6904,10 @@ static bool IR816FindReads(const char* szLine, uint8* abRead)
 			return true;
 		}
 		if (sLine.uiMnemonic == IR816M_Unknown)
+		{
+			return true;
+		}
+		if ((sLine.uiMnemonic == IR816M_Jsl) && (sLine.uiOperand > 3) && (strncmp(&sLine.szOperand[sLine.uiOperand - 3], IR816_FRAME_OPERANDS, 3) == 0))
 		{
 			return true;
 		}
@@ -7608,6 +7656,8 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 {
 	CChars	szName;
+	int32	iFirst;
+	int32	iSecond;
 
 	szName.Init(psInstruction->sType.Is(IRTK_F64) ? "_SoftDouble" : "_SoftFloat");
 	switch (psInstruction->uiOpcode)
@@ -7617,10 +7667,73 @@ void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 	case IRO_FMul:	szName.Append("Multiply");	break;
 	default:		szName.Append("Divide");	break;
 	}
-	PushValue(psInstruction->asArguments[1], psInstruction->sType);
-	PushValue(psInstruction->asArguments[0], psInstruction->sType);
-	CallFunction(szName.Text(), 2 * ValueBytes(psInstruction->sType), psInstruction);
+	if (gbIR816SoftFloatInFrame)
+	{
+		iFirst = FrameOperand(psInstruction->asArguments[0], psInstruction->sType, IR816_SCRATCH_RESULT);
+		iSecond = FrameOperand(psInstruction->asArguments[1], psInstruction->sType, IR816_SCRATCH_ARGUMENT_A);
+		FrameOperandCall(szName.Text(), psInstruction, iFirst, iSecond);
+	}
+	else
+	{
+		PushValue(psInstruction->asArguments[1], psInstruction->sType);
+		PushValue(psInstruction->asArguments[0], psInstruction->sType);
+		CallFunction(szName.Text(), 2 * ValueBytes(psInstruction->sType), psInstruction);
+	}
 	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The place in the frame of an operand of a frame operand call: its own
+// when it is a temporary with one, else it is copied to iScratch.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::FrameOperand(SIRReference sValue, SIRType sType, int32 iScratch)
+{
+	if (sValue.IsTemporary() && !InX(sValue) && !Fused(sValue) && (OffsetOf(sValue) >= IR816_FIRST_TEMPORARY))
+	{
+		return OffsetOf(sValue);
+	}
+	CopyWords(iScratch, sValue, Words(sType));
+	return iScratch;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of the soft float assembly's frame operand entry (szName.dp,
+// Libc65's softfloat816.asm): the operands stay in the frame (FrameOperand)
+// and their places (from D) are in X and Y (iSecond is -1 for none); a 64
+// bit result's place is in A and the routine writes it there, any other
+// result comes back in A (and X).  Nothing is pushed or removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstruction, int32 iFirst, int32 iSecond)
+{
+	CChars	sz;
+	bool	bHidden;
+
+	bHidden = IsHiddenResult(psInstruction->sType);
+	Line("ldx ", iFirst);
+	if (iSecond >= 0)
+	{
+		Line("ldy ", iSecond);
+	}
+	if (bHidden)
+	{
+		Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+	}
+	sz.Init(szName);
+	sz.Append(IR816_FRAME_OPERANDS);
+	UseRuntime(sz.Text());
+	sz.Insert(0, "jsl ");
+	Line(sz.Text());
+	sz.Kill();
+	if (!bHidden)
+	{
+		CallerCleanUp(0, psInstruction);
+	}
 }
 
 
@@ -7666,15 +7779,26 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	SIRType				sType;
 
 	sType = psInstruction->sType;
-	PushValue(psInstruction->asArguments[1], sType);
-	PushValue(psInstruction->asArguments[0], sType);
-	UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare");
-	Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" : "jsl _SoftFloatCompare");
-	Frame("sta", IR816_SCRATCH_RESULT);
-	Line("tsc");
-	Line("clc");
-	Line("adc ", 2 * ValueBytes(sType));
-	Line("tcs");
+	if (gbIR816SoftFloatInFrame)
+	{
+		Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
+		Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
+		UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" IR816_FRAME_OPERANDS : "_SoftFloatCompare" IR816_FRAME_OPERANDS);
+		Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" IR816_FRAME_OPERANDS : "jsl _SoftFloatCompare" IR816_FRAME_OPERANDS);
+		Frame("sta", IR816_SCRATCH_RESULT);
+	}
+	else
+	{
+		PushValue(psInstruction->asArguments[1], sType);
+		PushValue(psInstruction->asArguments[0], sType);
+		UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare");
+		Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" : "jsl _SoftFloatCompare");
+		Frame("sta", IR816_SCRATCH_RESULT);
+		Line("tsc");
+		Line("clc");
+		Line("adc ", 2 * ValueBytes(sType));
+		Line("tcs");
+	}
 
 	//The compare's results that make it true (or false, for fne and fordered).
 	bNot = false;
@@ -7736,6 +7860,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	bool			bSigned;
 	CChars			szName;
 	int32			iBytes;
+	int32			iFirst;
 
 	sValue = psInstruction->asArguments[0];
 	sFrom = mpcFunction->TypeOf(sValue);
@@ -7746,7 +7871,10 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	case IRO_FExt:
 	case IRO_FTrunc:
 		szName.Append(sTo.Is(IRTK_F64) ? "_SoftFloatToDouble" : "_SoftDoubleToFloat");
-		PushValue(sValue, sFrom);
+		if (!gbIR816SoftFloatInFrame)
+		{
+			PushValue(sValue, sFrom);
+		}
 		iBytes = ValueBytes(sFrom);
 		break;
 	case IRO_SIToF:
@@ -7756,13 +7884,19 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 		if (sFrom.Is(IRTK_I64))
 		{
 			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-			PushValue(sValue, sFrom);
+			if (!gbIR816SoftFloatInFrame)
+			{
+				PushValue(sValue, sFrom);
+			}
 			iBytes = 8;
 		}
 		else
 		{
 			szName.Append((bSigned || (sFrom.IntegerBits() < 32)) ? "Int" : "Unsigned");
-			PushInt32(sValue, sFrom, bSigned);
+			if (!gbIR816SoftFloatInFrame)
+			{
+				PushInt32(sValue, sFrom, bSigned);
+			}
 			iBytes = 4;
 		}
 		break;
@@ -7777,11 +7911,52 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 		{
 			szName.Append((bSigned || (sTo.IntegerBits() < 32)) ? "Int" : "Unsigned");
 		}
-		PushValue(sValue, sFrom);
+		if (!gbIR816SoftFloatInFrame)
+		{
+			PushValue(sValue, sFrom);
+		}
 		iBytes = ValueBytes(sFrom);
 		break;
 	}
-	CallFunction(szName.Text(), iBytes, psInstruction);
+	if (gbIR816SoftFloatInFrame)
+	{
+		if (((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF)) && (Words(sFrom) < 2))
+		{
+			//Extended to 32 bits (as PushInt32 does) in the scratch bytes.
+			Operand("lda", sValue, 0);
+			if (sFrom.Is(IRTK_I8) || sFrom.Is(IRTK_I1))
+			{
+				Mask(sFrom);
+				if (bSigned && sFrom.Is(IRTK_I8))
+				{
+					SignExtendInA(7);
+				}
+			}
+			Frame("sta", IR816_SCRATCH_RESULT);
+			if (bSigned)
+			{
+				Line("cmp 0x8000");
+				Line("lda 0");
+				Line("bcc C + 1");
+				Line("dec A");
+			}
+			else
+			{
+				Line("lda 0");
+			}
+			Frame("sta", IR816_SCRATCH_RESULT + 2);
+			iFirst = IR816_SCRATCH_RESULT;
+		}
+		else
+		{
+			iFirst = FrameOperand(sValue, sFrom, IR816_SCRATCH_RESULT);
+		}
+		FrameOperandCall(szName.Text(), psInstruction, iFirst, -1);
+	}
+	else
+	{
+		CallFunction(szName.Text(), iBytes, psInstruction);
+	}
 	szName.Kill();
 }
 

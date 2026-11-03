@@ -1061,3 +1061,255 @@ DriveReturn:
 		tya
 		pld
 		rtl
+
+
+; ---- Register entries (the compiler's register arguments, W65C816.txt), small rather than fast: each
+; saves Y when it holds an argument, puts its stack entry's address in Y and goes to its shape's helper,
+; which pushes the argument words again as the stack entry wants them (A's, X's and Y's, and the words the
+; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
+; entries are unchanged.
+
+		.global _CFatSectorCache__Init.ax, _CFatSectorCache__GetCache.ax, _CFatSectorCache__Lock.ax, _CFatSectorCache__Unlock.ax, _CFatSectorCache__Dirty.ax, _CFatInfoSectorCache__Init.axssy
+		.global _CFatInfoSectorCache__Kill.ax, _CFatInfoSectorCache__ReadSector.ax, _CFatInfoSectorCache__ValidateTimeStamp.ax, _CFatInfoSectorCache__Lock.ax, _CFatInfoSectorCache__Unlock.ax, _CFatInfoSectorCache__Dirty.ax
+		.global _CFatInfoSectorCache__AddNewCache.ax, _CFatInfoSectorCache__GetOrCacheSector.ax, _CFatInfoSectorCache__Unlock__1.ax, _CFatInfoSectorCache__FindCachedSector.ax, _CFatInfoSectorCache__Flush.ax, _CFatInfoSectorCache__GetNumAllocatedSectors.ax
+		.global _CFatInfoSectorCache__GetNumCachedSectors.ax, _CFatInfoSectorCache__GetLockedCachedSectors.ax, _CFatInfoSectorCache__InitialiseCache.ax, _CFatInfoSectorCache__FlushCache.ax
+
+_CFatSectorCache__Init.ax:
+		.width (A, X), 16
+		ldy _CFatSectorCache__Init & 0xFFFF
+		brl RegisterEntry_ax_6
+
+_CFatSectorCache__GetCache.ax:
+		.width (A, X), 16
+		ldy _CFatSectorCache__GetCache & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatSectorCache__Lock.ax:
+		.width (A, X), 16
+		ldy _CFatSectorCache__Lock & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatSectorCache__Unlock.ax:
+		.width (A, X), 16
+		ldy _CFatSectorCache__Unlock & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatSectorCache__Dirty.ax:
+		.width (A, X), 16
+		ldy _CFatSectorCache__Dirty & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__Init.axssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatInfoSectorCache__Init & 0xFFFF
+		brl RegisterEntry_axssy_2
+
+_CFatInfoSectorCache__Kill.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Kill & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__ReadSector.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__ReadSector & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__ValidateTimeStamp.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__ValidateTimeStamp & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__Lock.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Lock & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__Unlock.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Unlock & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__Dirty.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Dirty & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__AddNewCache.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__AddNewCache & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__GetOrCacheSector.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__GetOrCacheSector & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatInfoSectorCache__Unlock__1.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Unlock__1 & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatInfoSectorCache__FindCachedSector.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__FindCachedSector & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__Flush.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__Flush & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__GetNumAllocatedSectors.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__GetNumAllocatedSectors & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__GetNumCachedSectors.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__GetNumCachedSectors & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__GetLockedCachedSectors.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__GetLockedCachedSectors & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatInfoSectorCache__InitialiseCache.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__InitialiseCache & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatInfoSectorCache__FlushCache.ax:
+		.width (A, X), 16
+		ldy _CFatInfoSectorCache__FlushCache & 0xFFFF
+		brl RegisterEntry_ax_2
+
+RegisterEntry_ax_6:
+		.width (A, X), 16
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		lda [S + 16]
+		pha
+		phx
+		lda [S + 15]
+		pha
+		phk
+		per RegisterEntry_ax_6_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_6_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 18
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_0:
+		.width (A, X), 16
+		phx
+		pha
+		phk
+		per RegisterEntry_ax_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_0_Return:
+		.width (A, X), 16
+		ply
+		ply
+		rtl
+
+RegisterEntry_axssy_2:
+		.width (A, X), 16
+		pha
+		lda [S + 3]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 9]
+		pha
+		phk
+		per RegisterEntry_axssy_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssy_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_4:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_ax_4_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_4_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_2:
+		.width (A, X), 16
+		pha
+		lda [S + 8]
+		pha
+		lda [S + 8]
+		pha
+		phx
+		lda [S + 7]
+		pha
+		phk
+		per RegisterEntry_ax_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl

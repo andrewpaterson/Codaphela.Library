@@ -125,6 +125,31 @@ void TestIRRoundTripLoop(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A symbol marked for register arguments (CIRModule::SetRegisterCall, the
+// W65C816's) is printed and parsed as regcall, after the restricts.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRRoundTripRegisterCall(void)
+{
+	AssertIRRoundTrip(
+		"space default 4\n"
+		"restrict @M\n"
+		"regcall @_F__Fii\n"
+		"regcall @_memcpy\n"
+		"\n"
+		"function i32 @_F__Fii(i32 %a, i32 %b)\n"
+		"{\n"
+		"entry:\n"
+		"\t%m = load ptr @M\n"
+		"\t%p = call ptr @_memcpy(ptr %m, ptr %m, i32 %b)\n"
+		"\t%s = add i32 %a, %b\n"
+		"\tret i32 %s\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIRRoundTripEverything(void)
@@ -509,7 +534,7 @@ void TestIRLarge(void)
 //////////////////////////////////////////////////////////////////////////
 void TestIRParserErrors(void)
 {
-	AssertIRErrors("(1, 1): Expected space, global, function or restrict. [fun]\n", "fun");
+	AssertIRErrors("(1, 1): Expected space, global, function, restrict or regcall. [fun]\n", "fun");
 	AssertIRErrors("(4, 7): Expected an opcode with a result. [plus]\n",
 		"function void @f()\n{\nb:\n\t%x = plus i32 1, 2\n\tret\n}\n");
 	AssertIRErrors("(4, 2): Expected a block label. [%x]\n",
@@ -2505,6 +2530,7 @@ void TestIROptimiser(void)
 	//A loop storing 7 to p[i] for i from 0 to n is memset(p, 7, n).
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_memset\n"
 		"\n"
 		"function void @_F__FPci(ptr %p, i32 %n)\n"
 		"{\n"
@@ -2537,6 +2563,7 @@ void TestIROptimiser(void)
 	//A loop copying q[i] to p[i], 16 bits each, is memmove when p is at or below q or past the end of what it reads.
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_memmove\n"
 		"\n"
 		"function void @_C__FPsPsj(ptr %p, ptr %q, i32 %n)\n"
 		"{\n"
@@ -2590,6 +2617,7 @@ void TestIROptimiser(void)
 	//Counting bytes until a 0 is strlen: the index it stops at is the length.
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_strlen\n"
 		"\n"
 		"function i32 @_L__FPc(ptr %s)\n"
 		"{\n"
@@ -2625,6 +2653,7 @@ void TestIROptimiser(void)
 	//Comparing p[i] with q[i] for i from 0 to n, leaving when they differ, is memcmp(p, q, n) != 0.
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_memcmp\n"
 		"\n"
 		"function i32 @_E__FPcPcj(ptr %p, ptr %q, i32 %n)\n"
 		"{\n"
@@ -2667,6 +2696,7 @@ void TestIROptimiser(void)
 	//Looking at p[i] for i from 0 to n, leaving with &p[i] when it is v, is memchr(p, v, n) (p + i made a pointer phi first).
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_memchr\n"
 		"\n"
 		"function ptr @_F__FPchj(ptr %p, i8 %v, i32 %n)\n"
 		"{\n"
@@ -2790,6 +2820,7 @@ void TestIROptimiser(void)
 	//The same returning i: memchr's offset from p.
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_memchr\n"
 		"\n"
 		"function i32 @_I__FPchj(ptr %p, i8 %v, i32 %n)\n"
 		"{\n"
@@ -2834,6 +2865,7 @@ void TestIROptimiser(void)
 	//Stepping a pointer until it points at v, or at a 0 first, is strchr(s, v) (with v being 0 found at the first 0).
 	AssertIROptimised(
 		"space default 4\n"
+		"regcall @_strchr\n"
 		"\n"
 		"function ptr @_C__FPcc(ptr %s, i8 %v)\n"
 		"{\n"
@@ -4081,6 +4113,7 @@ void TestIR(void)
 	BeginTests();
 
 	TestIRRoundTripLoop();
+	TestIRRoundTripRegisterCall();
 	TestIRRoundTripEverything();
 	TestIRRoundTripSpaces();
 	TestIRBuild();

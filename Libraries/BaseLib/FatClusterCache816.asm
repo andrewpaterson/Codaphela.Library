@@ -1252,3 +1252,299 @@ SetSector:
 SetSectorClear:
 		jsr ClearBit
 		jmp ReturnTrue
+
+
+; ---- Register entries (the compiler's register arguments, W65C816.txt), small rather than fast: each
+; saves Y when it holds an argument, puts its stack entry's address in Y and goes to its shape's helper,
+; which pushes the argument words again as the stack entry wants them (A's, X's and Y's, and the words the
+; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
+; entries are unchanged.
+
+		.global _CFatClusterCache__Init.axssy, _CFatClusterCache__Kill.ax, _CFatClusterCache__LastSectorBefore.axy, _CFatClusterCache__Read.axssssssy, _CFatClusterCache__Write.axssssssy, _CFatClusterCache__Flush.ax
+		.global _CFatClusterCache__Flush__1.ax, _CFatClusterCache__FlushAndInvalidate.ax, _CFatClusterCache__IsCached.ax, _CFatClusterCache__CacheSector.ax, _CFatClusterCache__Clear.ax, _CFatClusterCache__Invalidate.ax
+		.global _CFatClusterCache__GetCache.ax, _CFatClusterCache__IsSectorDirty.axy, _CFatClusterCache__IsSectorCached.axy, _CFatClusterCache__GetSectorsPerCluster.ax, _CFatClusterCache__SetCachedSector.axy, _CFatClusterCache__SetDirtySector.axy
+
+_CFatClusterCache__Init.axssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__Init & 0xFFFF
+		brl RegisterEntry_axssy_3
+
+_CFatClusterCache__Kill.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__Kill & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatClusterCache__LastSectorBefore.axy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__LastSectorBefore & 0xFFFF
+		brl RegisterEntry_axy_0
+
+_CFatClusterCache__Read.axssssssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__Read & 0xFFFF
+		brl RegisterEntry_axssssssy_9
+
+_CFatClusterCache__Write.axssssssy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__Write & 0xFFFF
+		brl RegisterEntry_axssssssy_9
+
+_CFatClusterCache__Flush.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__Flush & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatClusterCache__Flush__1.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__Flush__1 & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatClusterCache__FlushAndInvalidate.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__FlushAndInvalidate & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatClusterCache__IsCached.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__IsCached & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatClusterCache__CacheSector.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__CacheSector & 0xFFFF
+		brl RegisterEntry_ax_4
+
+_CFatClusterCache__Clear.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__Clear & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatClusterCache__Invalidate.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__Invalidate & 0xFFFF
+		brl RegisterEntry_ax_2
+
+_CFatClusterCache__GetCache.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__GetCache & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatClusterCache__IsSectorDirty.axy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__IsSectorDirty & 0xFFFF
+		brl RegisterEntry_axy_0
+
+_CFatClusterCache__IsSectorCached.axy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__IsSectorCached & 0xFFFF
+		brl RegisterEntry_axy_0
+
+_CFatClusterCache__GetSectorsPerCluster.ax:
+		.width (A, X), 16
+		ldy _CFatClusterCache__GetSectorsPerCluster & 0xFFFF
+		brl RegisterEntry_ax_0
+
+_CFatClusterCache__SetCachedSector.axy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__SetCachedSector & 0xFFFF
+		brl RegisterEntry_axy_1
+
+_CFatClusterCache__SetDirtySector.axy:
+		.width (A, X), 16
+		phy
+		ldy _CFatClusterCache__SetDirtySector & 0xFFFF
+		brl RegisterEntry_axy_1
+
+RegisterEntry_axssy_3:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 5]
+		pha
+		lda [S + 14]
+		pha
+		lda [S + 14]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_axssy_3_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssy_3_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 16
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_0:
+		.width (A, X), 16
+		phx
+		pha
+		phk
+		per RegisterEntry_ax_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_0_Return:
+		.width (A, X), 16
+		ply
+		ply
+		rtl
+
+RegisterEntry_axy_0:
+		.width (A, X), 16
+		pha
+		lda [S + 3]
+		pha
+		phx
+		lda [S + 5]
+		pha
+		phk
+		per RegisterEntry_axy_0_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axy_0_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl
+
+RegisterEntry_axssssssy_9:
+		.width (A, X), 16
+		pha
+		lda [S + 24]
+		pha
+		lda [S + 24]
+		pha
+		lda [S + 24]
+		pha
+		lda [S + 9]
+		pha
+		lda [S + 26]
+		pha
+		lda [S + 26]
+		pha
+		lda [S + 26]
+		pha
+		lda [S + 26]
+		pha
+		lda [S + 26]
+		pha
+		lda [S + 26]
+		pha
+		phx
+		lda [S + 23]
+		pha
+		phk
+		per RegisterEntry_axssssssy_9_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axssssssy_9_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 28
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_2:
+		.width (A, X), 16
+		pha
+		lda [S + 8]
+		pha
+		lda [S + 8]
+		pha
+		phx
+		lda [S + 7]
+		pha
+		phk
+		per RegisterEntry_ax_2_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_2_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 10
+		tcs
+		tya
+		rtl
+
+RegisterEntry_ax_4:
+		.width (A, X), 16
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		lda [S + 12]
+		pha
+		phx
+		lda [S + 11]
+		pha
+		phk
+		per RegisterEntry_ax_4_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_ax_4_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 14
+		tcs
+		tya
+		rtl
+
+RegisterEntry_axy_1:
+		.width (A, X), 16
+		pha
+		lda [S + 8]
+		pha
+		lda [S + 5]
+		pha
+		phx
+		lda [S + 7]
+		pha
+		phk
+		per RegisterEntry_axy_1_Return - 1
+		dey
+		phy
+		rts
+RegisterEntry_axy_1_Return:
+		.width (A, X), 16
+		tay
+		tsc
+		clc
+		adc 12
+		tcs
+		tya
+		rtl

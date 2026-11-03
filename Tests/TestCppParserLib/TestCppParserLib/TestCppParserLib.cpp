@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "BaseLib/LeakDetector.h"
 #include "TestLib/Assert.h"
 
@@ -32,8 +33,7 @@ int __cdecl main(void)
 	BreakOnAllocation(0);
 	InitTotalStatistics();
 
-	if (getenv("TEMP_IR816_ONLY")) { TestIR816Backend(); return TestTotalStatistics(); }
-	if (getenv("TEMP_IR816_ONLY")) { TestIR816Backend(); return TestTotalStatistics(); }
+	if (getenv("TEMP_ONLY")) { if (strstr(getenv("TEMP_ONLY"), "IR816")) TestIR816Backend(); if (strstr(getenv("TEMP_ONLY"), "CPP816")) TestCPP816(); if (strstr(getenv("TEMP_ONLY"), "IRTEST")) TestIR(); return TestTotalStatistics(); }
 	TestCppErrors();
 	TestPreprocessor();
 	TestProject();
