@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "StandardLib/Objects.h"
 #include "Input.h"
 
 
@@ -30,17 +31,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInput::Init(CNativeInput* pcNativeInput)
 {
+	PreInit();
+
 	muiSequence = 0;
 	muiTime = 0;
-	mcDevices.Init(&mcActions);
+	mpDevices = OMalloc<CInputDevices>(&mcActions);
 	mpcNativeInput = pcNativeInput;
 	mcProgramInput.Init();
-	mcActions.Init(&mcDevices);
+	mcActions.Init(&mpDevices);
 
 	if (mpcNativeInput)
 	{
-		mpcNativeInput->AddDevicesTo(&mcDevices);
+		mpcNativeInput->AddDevicesTo(&mpDevices);
 	}
+
+	PostInit();
 }
 
 
@@ -48,12 +53,46 @@ void CInput::Init(CNativeInput* pcNativeInput)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInput::Kill(void)
+void CInput::Class(void)
 {
+	Nes(M_Pointer(mpDevices));
+	U_Data(CInputActions, mcActions);
+	U_UInt32(muiSequence);
+	U_UInt32(muiTime);
+	U_Pointer(mpcNativeInput);
+	U_Data(CProgramInput, mcProgramInput);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInput::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInput::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInput::Free(void)
+{
+	//The devices are freed after this (they are Nes).
 	mcActions.Kill();
-	mcDevices.Kill();
 	mcProgramInput.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -67,7 +106,7 @@ bool CInput::Read(char* szDirectory)
 	{
 		szDirectory = "../../CommonLibraries/Libraries/InputLib/xml";
 	}
-	return mcDevices.Read(szDirectory);
+	return mpDevices->Read(szDirectory);
 }
 
 
@@ -77,9 +116,9 @@ bool CInput::Read(char* szDirectory)
 //////////////////////////////////////////////////////////////////////////
 void CInput::AddProgramInput(void)
 {
-	mcProgramInput.AddFormat(&mcDevices);
-	mcProgramInput.AddCategory(&mcDevices);
-	mcProgramInput.AddDevicesTo(&mcDevices);
+	mcProgramInput.AddFormat(&mpDevices);
+	mcProgramInput.AddCategory(&mpDevices);
+	mcProgramInput.AddDevicesTo(&mpDevices);
 }
 
 
@@ -97,7 +136,7 @@ bool CInput::AddNativeInput(CNativeInput* pcNativeInput)
 	}
 
 	mpcNativeInput = pcNativeInput;
-	mpcNativeInput->AddDevicesTo(&mcDevices);
+	mpcNativeInput->AddDevicesTo(&mpDevices);
 	return true;
 }
 
@@ -122,13 +161,13 @@ void CInput::Update(void)
 	ClearEvents();
 	if (mpcNativeInput)
 	{
-		mpcNativeInput->Update(&mcDevices, muiSequence);
+		mpcNativeInput->Update(&mpDevices, muiSequence);
 	}
-	mcProgramInput.Update(&mcDevices, muiSequence);
+	mcProgramInput.Update(&mpDevices, muiSequence);
 	UpdateRestEvents();
 	SortEvents();
 
-	mcDevices.UpdateVirtualDevicesEvents();
+	mpDevices->UpdateVirtualDevicesEvents();
 
 	CallListeners();
 	Step();
@@ -158,11 +197,11 @@ void CInput::ClearEvents(void)
 	SSetIterator	sIter;
 	bool			bExists;
 
-	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
+	bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (bExists)
 	{
 		pcInputDevice->ClearEvents();
-		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
+		bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -177,11 +216,11 @@ void CInput::SortEvents(void)
 	SSetIterator	sIter;
 	bool			bExists;
 
-	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
+	bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (bExists)
 	{
 		pcInputDevice->SortEvents();
-		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
+		bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -196,11 +235,11 @@ void CInput::DumpEvents()
 	SSetIterator	sIter;
 	bool			bExists;
 
-	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
+	bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (bExists)
 	{
 		pcInputDevice->DumpEvents();
-		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
+		bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -215,11 +254,11 @@ void CInput::ClearStateFlags(void)
 	SSetIterator	sIter;
 	bool			bExists;
 
-	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
+	bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (bExists)
 	{
 		pcInputDevice->ClearStateFlags();
-		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
+		bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -234,11 +273,11 @@ void CInput::UpdateRestEvents(void)
 	SSetIterator	sIter;
 	bool			bExists;
 
-	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
+	bExists = mpDevices->mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (bExists)
 	{
 		pcInputDevice->UpdateRestEvents(muiSequence);
-		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
+		bExists = mpDevices->mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -253,13 +292,13 @@ void CInput::CallListeners(void)
 	SSetIterator			sIter;
 	bool					bExists;
 
-	bExists = mcDevices.mlcVirtuals.StartIteration(&sIter, &pcVirtual);
+	bExists = mpDevices->mlcVirtuals.StartIteration(&sIter, &pcVirtual);
 	while (bExists)
 	{
 		pcVirtual->GetChords()->BeginUpdate(muiTime);
 		pcVirtual->CallListeners();
 		pcVirtual->GetChords()->EndUpdate();
-		bExists = mcDevices.mlcVirtuals.Iterate(&sIter, &pcVirtual);
+		bExists = mpDevices->mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}
 }
 
@@ -270,7 +309,7 @@ void CInput::CallListeners(void)
 //////////////////////////////////////////////////////////////////////////
 CInputCategory* CInput::GetCategory(char* szName)
 {
-	return mcDevices.GetCategory(szName);
+	return mpDevices->GetCategory(szName);
 }
 
 
@@ -279,6 +318,6 @@ CInputCategory* CInput::GetCategory(char* szName)
 //
 //////////////////////////////////////////////////////////////////////////
 CProgramInput* CInput::GetProgramInput(void) { return &mcProgramInput; }
-CInputDevices* CInput::GetDevices(void) { return &mcDevices; }
+CInputDevices* CInput::GetDevices(void) { return &mpDevices; }
 CInputActions* CInput::GetActions(void) { return &mcActions; }
 

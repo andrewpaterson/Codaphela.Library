@@ -25,13 +25,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/LinkedListTemplate.h"
 #include "StandardLib/Channels.h"
-#include "StandardLib/Unknown.h"
-#include "StandardLib/SetType.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
 
 
-class CInputDataFormat : public CUnknown
+//The layout of a device's data: its channels (mcExternalChannels describes data that isn't its own) and their names.
+class CInputDataFormat : public CObject
 {
 CONSTRUCTABLE(CInputDataFormat);
+DESTRUCTABLE(CInputDataFormat);
 protected:
 	CChannels		mcExternalChannels;
 	CArrayChars		mcChannelNames;
@@ -41,7 +43,11 @@ protected:
 public:
 	void 		Init(void);
 	void 		Init(char* szCommonName);
-	void 		Kill(void);
+	void		Class(void) override;
+	void		Free(void) override;
+
+	bool		Save(CObjectWriter* pcFile) override;
+	bool		Load(CObjectReader* pcFile) override;
 
 	void		Add(EPrimitiveType eType, char* szName);
 	void		Done(void);
@@ -57,7 +63,7 @@ public:
 };
 
 
-typedef CSetType<CInputDataFormat> CSetInputDataFormat;
+typedef CArray<CInputDataFormat> CArrayInputDataFormat;
 
 
 #endif // __INPUT_DATA_FORMAT_H__

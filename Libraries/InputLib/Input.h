@@ -23,7 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_H__
 #define __INPUT_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 #include "InputDevices.h"
 #include "InputActions.h"
 #include "ProgramInput.h"
@@ -31,11 +32,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "NativeInput.h"
 
 
-class CInput : public CUnknown
+//The input devices and the actions their chords call.  It is an object: hold it from another (or the root).
+class CInput : public CObject
 {
 CONSTRUCTABLE(CInput);
+DESTRUCTABLE(CInput);
 protected:
-	CInputDevices		mcDevices;
+	Ptr<CInputDevices>	mpDevices;  //Nes: freed after this, so the actions (which the devices' chords call) are killed first.
 	CInputActions		mcActions;
 	uint32				muiSequence;  //Sequence is updated everytime CInput::Update is called.  Not every event.
 	uint32				muiTime;  //Milliseconds, given to Update.  The chords time out partial matches by it.
@@ -45,7 +48,12 @@ protected:
 
 public:
 	void 				Init(CNativeInput* pcNativeInput);
-	void 				Kill(void);
+	void				Class(void) override;
+	void				Free(void) override;
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
+
 	bool 				Read(char* szDirectory = NULL);
 	void 				AddProgramInput(void);
 	bool				AddNativeInput(CNativeInput* pcNativeInput);

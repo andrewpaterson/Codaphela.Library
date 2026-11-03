@@ -32,14 +32,57 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDevices::Init(CInputActions* pcInputActions)
 {
+	PreInit();
 	mpcInputActions = pcInputActions;
 	mlcDeviceDescs.Init(false);
 	mlcDevices.Init(false);
 	mcCategories.Init(this);
 	mcDataFormats.Init();
+	mszXMLError._Init();
+	mszDirectory._Init();
 	mlcVirtualsDescs.Init(false);
 	mlcVirtuals.Init(false);
 	mbCommonalityDirty = false;
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputDevices::Class(void)
+{
+	U_Unknown(CSetInputDevice, mlcDevices);
+	U_Unknown(CSetInputDeviceDesc, mlcDeviceDescs);
+	U_Data(CInputCategories, mcCategories);
+	M_Embedded(mcDataFormats);
+	U_String(mszXMLError);
+	U_String(mszDirectory);
+	U_Unknown(CSetInputVirtualDevice, mlcVirtuals);
+	U_Unknown(CSetInputVirtualDeviceDesc, mlcVirtualsDescs);
+	U_Bool(mbCommonalityDirty);
+	U_Pointer(mpcInputActions);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDevices::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDevices::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -63,14 +106,18 @@ bool CInputDevices::Read(char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDevices::Kill(void)
+void CInputDevices::Free(void)
 {
+	//Freed without its destructor, so it is taken out of any listener calls here.  The data formats are an embedded object.
+	RemoveFromListenerCalls();
+
 	mlcVirtuals.Kill();
 	mlcVirtualsDescs.Kill();
 	mlcDevices.Kill();
 	mlcDeviceDescs.Kill();
 
-	mcDataFormats.Kill();
+	mszDirectory.Kill();
+	mszXMLError.Kill();
 	mcCategories.Kill();
 }
 

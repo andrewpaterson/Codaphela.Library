@@ -50,7 +50,7 @@ bool CompareInputSourceChannel(CInputSourceValue* pcValue, size iChannel, EInput
 //////////////////////////////////////////////////////////////////////////
 void TestInputSourceChannelCompare(void)
 {
-	CInputDataFormat	cFormat;
+	Ptr<CInputDataFormat>	pFormat;
 	CInputSourceValue	cValue;
 	uint8				auiData[64];
 	int8				i8;
@@ -60,24 +60,24 @@ void TestInputSourceChannelCompare(void)
 	float32				f32;
 	CChannel*			pcNybble;
 
-	cFormat.Init();
-	cFormat.Add(PT_int8, (char*)"Int8");
-	cFormat.Add(PT_int16, (char*)"Int16");
-	cFormat.Add(PT_uint8, (char*)"UInt8");
-	cFormat.Add(PT_uint32, (char*)"UInt32");
-	cFormat.Add(PT_float32, (char*)"Float32");
-	cFormat.Add(PT_nybble, (char*)"Nybble");
-	cFormat.Done();
+	pFormat = OMalloc<CInputDataFormat>();
+	pFormat->Add(PT_int8, (char*)"Int8");
+	pFormat->Add(PT_int16, (char*)"Int16");
+	pFormat->Add(PT_uint8, (char*)"UInt8");
+	pFormat->Add(PT_uint32, (char*)"UInt32");
+	pFormat->Add(PT_float32, (char*)"Float32");
+	pFormat->Add(PT_nybble, (char*)"Nybble");
+	pFormat->Done();
 
-	cValue.Init(NULL, &cFormat, (size)0);
+	cValue.Init(NULL, &pFormat, (size)0);
 
 	memset(auiData, 0, 64);
-	i8 = -5;		SetInputSourceChannelData(&cFormat, auiData, INPUT_CHANNEL_INT8, &i8, 1);
-	i16 = -3;		SetInputSourceChannelData(&cFormat, auiData, INPUT_CHANNEL_INT16, &i16, 2);
-	ui8 = 200;		SetInputSourceChannelData(&cFormat, auiData, INPUT_CHANNEL_UINT8, &ui8, 1);
-	ui32 = 70000;	SetInputSourceChannelData(&cFormat, auiData, INPUT_CHANNEL_UINT32, &ui32, 4);
-	f32 = 1.5f;		SetInputSourceChannelData(&cFormat, auiData, INPUT_CHANNEL_FLOAT32, &f32, 4);
-	pcNybble = cFormat.Get(INPUT_CHANNEL_NYBBLE);
+	i8 = -5;		SetInputSourceChannelData(&pFormat, auiData, INPUT_CHANNEL_INT8, &i8, 1);
+	i16 = -3;		SetInputSourceChannelData(&pFormat, auiData, INPUT_CHANNEL_INT16, &i16, 2);
+	ui8 = 200;		SetInputSourceChannelData(&pFormat, auiData, INPUT_CHANNEL_UINT8, &ui8, 1);
+	ui32 = 70000;	SetInputSourceChannelData(&pFormat, auiData, INPUT_CHANNEL_UINT32, &ui32, 4);
+	f32 = 1.5f;		SetInputSourceChannelData(&pFormat, auiData, INPUT_CHANNEL_FLOAT32, &f32, 4);
+	pcNybble = pFormat->Get(INPUT_CHANNEL_NYBBLE);
 	auiData[pcNybble->miBitOffset / 8] |= (uint8)(9 << (pcNybble->miBitOffset % 8));
 
 	//int8 has no entries in the old operator tables so only worked after the rewrite.
@@ -109,7 +109,7 @@ void TestInputSourceChannelCompare(void)
 	AssertFalse(CompareInputSourceChannel<uint8>(&cValue, INPUT_CHANNEL_UINT8, ISCC_Unknown, 200, auiData));
 
 	cValue.Kill();
-	cFormat.Kill();
+	pFormat = NULL;
 }
 
 

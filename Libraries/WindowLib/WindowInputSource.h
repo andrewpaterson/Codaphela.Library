@@ -64,13 +64,13 @@ public:
 //chord matches (then only the chord is queued) or stops matching or, once its inputs are let go, the chord's eviction
 //age passes (0.3 seconds unless the chord says otherwise).
 //
-//The queue holds what the last Update found until the next one.  Kill the CInput after the source.
+//The queue holds what the last Update found until the next one.  The source holds its input, which is freed after it.
 class CWindowInputSource : public CObject
 {
 CONSTRUCTABLE(CWindowInputSource);
 DESTRUCTABLE(CWindowInputSource);
 protected:
-	CInput*					mpcInput;
+	Ptr<CInput>				mpInput;  //Nes: the virtual device is the input's, so the input goes after the source.
 	CInputVirtualDevice*	mpcVirtual;
 	CArrayInputDevicePtr	mapcDevices;  //Whose sources are in the virtual device.
 	CTimer					mcTimer;
@@ -78,7 +78,7 @@ protected:
 	CArrayTemplate<SInputDeviceValueSource>	masForgotten;  //Down when ForgetDown was called, not down to IsDown until let go.
 
 public:
-	void					Init(CInput* pcInput);
+	void					Init(Ptr<CInput> pInput);
 	void					Class(void) override;
 	void					Free(void) override;
 	bool					Save(CObjectWriter* pcFile) override;

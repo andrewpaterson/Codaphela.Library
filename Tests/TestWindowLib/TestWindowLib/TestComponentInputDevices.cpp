@@ -23,7 +23,7 @@
 class CComponentInputTestDevices
 {
 public:
-	CInput					mcInput;
+	CInput*					mpcInput;  //Held by the root from Init to Kill.
 	CProgramDeviceDetail*	mpcKeyboard;
 	CProgramDeviceDetail*	mpcMouse;
 	CComponentInput*		mpcComponentInput;  //Updates the input through its source once it is set.
@@ -32,11 +32,15 @@ public:
 	{
 		CProgramInput*	pcProgram;
 
+		Ptr<CInput>		pInput;
+
 		mpcComponentInput = NULL;
-		mcInput.Init(NULL);
+		pInput = OMalloc<CInput>((CNativeInput*)NULL);
+		ORoot()->Add(pInput);
+		mpcInput = &pInput;
 
 		//The details are in an array that moves as it grows so they are only got once both are added.
-		pcProgram = mcInput.GetProgramInput();
+		pcProgram = mpcInput->GetProgramInput();
 		pcProgram->AddDetail("Programmatic: Keyboard", "Test Keyboard");
 		pcProgram->AddDetail("Programmatic: Mouse", "Test Mouse");
 		mpcKeyboard = pcProgram->macPDeviceDetails.Get(0);
@@ -71,22 +75,23 @@ public:
 		mpcMouse->AddSource("Wheel Forward");
 		mpcMouse->AddSource("Wheel Backward");
 
-		mcInput.AddProgramInput();
+		mpcInput->AddProgramInput();
 	}
 
 	void Kill(void)
 	{
-		mcInput.Kill();
+		ORoot()->Remove(mpcInput);
+		mpcInput = NULL;
 	}
 
 	CInputDevice* GetKeyboard(void)
 	{
-		return mcInput.GetDevices()->GetDevice(mpcKeyboard->miUniqueID);
+		return mpcInput->GetDevices()->GetDevice(mpcKeyboard->miUniqueID);
 	}
 
 	CInputDevice* GetMouse(void)
 	{
-		return mcInput.GetDevices()->GetDevice(mpcMouse->miUniqueID);
+		return mpcInput->GetDevices()->GetDevice(mpcMouse->miUniqueID);
 	}
 
 	void Event(CProgramDeviceDetail* pcDetail, char* szSource, float fValue)
@@ -98,7 +103,7 @@ public:
 		}
 		else
 		{
-			mcInput.Update();
+			mpcInput->Update();
 		}
 	}
 
@@ -147,7 +152,7 @@ void TestComponentInputKeyboard(void)
 		pTestWindow->Layout();
 
 		cDevices.Init();
-		pInputSource = OMalloc<CWindowInputSource>(&cDevices.mcInput);
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
 		cComponentInput.Init(&pInputSource, &pTestWindow);
 		cDevices.mpcComponentInput = &cComponentInput;
 		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
@@ -338,7 +343,7 @@ void TestComponentInputMouse(void)
 		pTestWindow->Layout();
 
 		cDevices.Init();
-		pInputSource = OMalloc<CWindowInputSource>(&cDevices.mcInput);
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
 		cComponentInput.Init(&pInputSource, &pTestWindow);
 		cDevices.mpcComponentInput = &cComponentInput;
 		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));

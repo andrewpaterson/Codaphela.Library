@@ -197,7 +197,7 @@ void TestInputActionMatching(void)
 class CActionTestDevices
 {
 public:
-	CInput					mcInput;
+	CInput*					mpcInput;  //Held by the root from Init to Kill.
 	CProgramDeviceDetail*	mpcKeyboard;
 	CProgramDeviceDetail*	mpcMouse;
 	CComponentInput*		mpcComponentInput;
@@ -205,10 +205,13 @@ public:
 	void Init(bool bRightModifiers = true)
 	{
 		CProgramInput*	pcProgram;
+		Ptr<CInput>		pInput;
 
 		mpcComponentInput = NULL;
-		mcInput.Init(NULL);
-		pcProgram = mcInput.GetProgramInput();
+		pInput = OMalloc<CInput>((CNativeInput*)NULL);
+		ORoot()->Add(pInput);
+		mpcInput = &pInput;
+		pcProgram = mpcInput->GetProgramInput();
 		pcProgram->AddDetail("Programmatic: Keyboard", "Test Keyboard");
 		pcProgram->AddDetail("Programmatic: Mouse", "Test Mouse");
 		mpcKeyboard = pcProgram->macPDeviceDetails.Get(0);
@@ -231,12 +234,16 @@ public:
 		mpcKeyboard->AddSource("Tab");
 		mpcMouse->AddSource("Button 1");
 		mpcMouse->AddSource("Wheel Forward");
-		mcInput.AddProgramInput();
+		mpcInput->AddProgramInput();
 	}
 
-	void Kill(void) { mcInput.Kill(); }
-	CInputDevice* GetKeyboard(void) { return mcInput.GetDevices()->GetDevice(mpcKeyboard->miUniqueID); }
-	CInputDevice* GetMouse(void) { return mcInput.GetDevices()->GetDevice(mpcMouse->miUniqueID); }
+	void Kill(void)
+	{
+		ORoot()->Remove(mpcInput);
+		mpcInput = NULL;
+	}
+	CInputDevice* GetKeyboard(void) { return mpcInput->GetDevices()->GetDevice(mpcKeyboard->miUniqueID); }
+	CInputDevice* GetMouse(void) { return mpcInput->GetDevices()->GetDevice(mpcMouse->miUniqueID); }
 
 	void Event(CProgramDeviceDetail* pcDetail, char* szSource, float fValue)
 	{
@@ -290,7 +297,7 @@ void TestInputActionDispatch(void)
 		cTabs.miCalls = 0;
 
 		cDevices.Init();
-		pInputSource = OMalloc<CWindowInputSource>(&cDevices.mcInput);
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
 		cComponentInput.Init(&pInputSource, &pTestWindow);
 		cDevices.mpcComponentInput = &cComponentInput;
 		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
@@ -392,7 +399,7 @@ void TestInputActionUndoChords(bool bRightModifiers)
 		pTestWindow->Layout();
 
 		cDevices.Init(bRightModifiers);
-		pInputSource = OMalloc<CWindowInputSource>(&cDevices.mcInput);
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
 		cComponentInput.Init(&pInputSource, &pTestWindow);
 		cDevices.mpcComponentInput = &cComponentInput;
 		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));

@@ -31,17 +31,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // The devices are described by the XML so they must have been read.
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindowInputSource::Init(CInput* pcInput)
+void CWindowInputSource::Init(Ptr<CInput> pInput)
 {
 	PreInit();
 
-	mpcInput = pcInput;
+	mpInput = pInput;
 	mapcDevices.Init();
 	mcTimer.Init();
 	masEvents.Init();
 	masForgotten.Init();
 
-	mpcVirtual = mpcInput->GetDevices()->CreateVirtualDevice("Window Input");
+	mpcVirtual = mpInput->GetDevices()->CreateVirtualDevice("Window Input");
 	AddDevices("Keyboard");
 	AddDevices("Mouse");
 	AddDevices("Joystick");
@@ -61,7 +61,7 @@ void CWindowInputSource::Init(CInput* pcInput)
 //////////////////////////////////////////////////////////////////////////
 void CWindowInputSource::Class(void)
 {
-	U_Pointer(mpcInput);
+	Nes(M_Pointer(mpInput));
 	U_Pointer(mpcVirtual);
 	U_Data(CArrayInputDevicePtr, mapcDevices);
 	U_Data(CTimer, mcTimer);
@@ -72,7 +72,8 @@ void CWindowInputSource::Class(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The virtual device is the CInput's, it goes when the input is killed.
+// The virtual device is the input's, it goes when the input (freed after this)
+// is.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindowInputSource::Free(void)
@@ -82,7 +83,6 @@ void CWindowInputSource::Free(void)
 	mcTimer.Kill();
 	mapcDevices.Kill();
 	mpcVirtual = NULL;
-	mpcInput = NULL;
 }
 
 
@@ -152,7 +152,7 @@ bool CWindowInputSource::AddDevice(CInputDevice* pcDevice)
 		bExists = pcDevice->GetDesc()->IterateInputs(&sIter, &pcSource);
 	}
 	mpcVirtual->DoneAddingSources();
-	mpcInput->GetDevices()->UpdateCommonality();
+	mpInput->GetDevices()->UpdateCommonality();
 	return true;
 }
 
@@ -170,7 +170,7 @@ void CWindowInputSource::Update(void)
 
 	mcTimer.Update();
 	masEvents.ReInit();
-	mpcInput->Update((uint32)mcTimer.GetTotalTimeInMillieconds());
+	mpInput->Update((uint32)mcTimer.GetTotalTimeInMillieconds());
 	RememberLetGo();
 
 	pasChordsEvents = mpcVirtual->GetChords()->GetEvents();
@@ -225,7 +225,7 @@ size CWindowInputSource::GetDevices(CArrayInputDevicePtr* papcDevices, char* szC
 {
 	CInputCategory*		pcCategory;
 
-	pcCategory = mpcInput->GetCategory(szCategory);
+	pcCategory = mpInput->GetCategory(szCategory);
 	if (!pcCategory)
 	{
 		return 0;
@@ -256,7 +256,7 @@ CInputChord* CWindowInputSource::AddChord(char* szName)
 {
 	CAction*	pcAction;
 
-	pcAction = mpcInput->GetActions()->AddAction(szName, &CWindowInputChordListener::Chord);
+	pcAction = mpInput->GetActions()->AddAction(szName, &CWindowInputChordListener::Chord);
 	return mpcVirtual->AddChordAction(pcAction);
 }
 

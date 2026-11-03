@@ -183,7 +183,7 @@ void TestComponentInputWinRawDevices(void)
 		SDataTestRefWindow			cData;
 		CPointer					pNull;
 		CChars						szLog;
-		CInput						cInput;
+		Ptr<CInput>					pInput;
 		CTestRawInput				cRaw;
 		Ptr<CWindowInputSource>		pInputSource;
 		CComponentInput				cComponentInput;
@@ -202,12 +202,13 @@ void TestComponentInputWinRawDevices(void)
 		pTestWindow->Layout();
 
 		//The devices are described by the XML so they are added after it is read.
-		cInput.Init(NULL);
-		AssertTrue(cInput.Read("../../../Libraries/WinInputLib/xml"));
-		cRaw.Init(&cInput);
-		AssertTrue(cInput.AddNativeInput(&cRaw));
+		pInput = OMalloc<CInput>((CNativeInput*)NULL);
+		ORoot()->Add(pInput);
+		AssertTrue(pInput->Read("../../../Libraries/WinInputLib/xml"));
+		cRaw.Init(&pInput);
+		AssertTrue(pInput->AddNativeInput(&cRaw));
 
-		pInputSource = OMalloc<CWindowInputSource>(&cInput);
+		pInputSource = OMalloc<CWindowInputSource>(pInput);
 		cComponentInput.Init(&pInputSource, &pTestWindow);
 		cRaw.mpcComponentInput = &cComponentInput;
 		AssertSize(1, cComponentInput.AddKeyboards());
@@ -305,7 +306,8 @@ void TestComponentInputWinRawDevices(void)
 		cComponentInput.Kill();
 		cRaw.mpcComponentInput = NULL;
 		pInputSource = NULL;
-		cInput.Kill();
+		ORoot()->Remove(pInput);
+		pInput = NULL;
 		cRaw.Kill();
 
 		ORoot()->Remove(pTestWindow);

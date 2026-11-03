@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_DEVICES_H__
 #define __INPUT_DEVICES_H__
 #include "StandardLib/Action.h"
+#include "StandardLib/Object.h"
 #include "InputDevice.h"
 #include "InputCategories.h"
 #include "InputDataFormats.h"
@@ -30,9 +31,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CInputActions;
-class CInputDevices : public CListener
+//The devices, their descriptions and the data formats they're read with.  It is held by CInput.
+class CInputDevices : public CObject, public CListener
 {
-CONSTRUCTABLE(CInputDevices); 
+CONSTRUCTABLE(CInputDevices);
+DESTRUCTABLE(CInputDevices);
 public:
 	CSetInputDevice					mlcDevices;
 	CSetInputDeviceDesc				mlcDeviceDescs;
@@ -46,8 +49,13 @@ public:
 	CInputActions*					mpcInputActions;
 
 	void						Init(CInputActions* pcInputActions);
+	void						Class(void) override;
+	void						Free(void) override;
+
+	bool						Save(CObjectWriter* pcFile) override;
+	bool						Load(CObjectReader* pcFile) override;
+
 	bool						Read(char* szDirectory);
-	void						Kill(void);
 
 	CInputDeviceDesc*			CreateDeviceDescription(void);
 

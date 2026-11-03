@@ -2,6 +2,7 @@
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/GlobalDataTypesIO.h"
+#include "StandardLib/Objects.h"
 #include "InputLib/Input.h"
 //#include "WinInputLib/WinInput.h"
 #include "TestLib/Assert.h"
@@ -178,7 +179,7 @@ void AssertChordsEvents(CInput* pcInput, CProgramDeviceDetail* pcDetail, CInputV
 //////////////////////////////////////////////////////////////////////////
 void TestInputChordsHeldAndEvicted(void)
 {
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer;
 	CProgramDeviceDetail*		pcDetail;
 	CInputVirtualDevice*		pcVirtual;
@@ -187,23 +188,24 @@ void TestInputChordsHeldAndEvicted(void)
 	CGroupInputChordCriteria*	pcGroup;
 	COrderedInputChordCriteria*	pcOrdered;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	cPlayer.Init();
 
-	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
-	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Held");
+	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Held");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "Left Control", "Space", NULL));
 
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcGroup = pcChord->AsGroup();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
 	AssertBool(true, pcChord->Done());
 
 	//Tap control then Space: control is let go before the chord ends.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
@@ -212,83 +214,84 @@ void TestInputChordsHeldAndEvicted(void)
 	pcVirtual->Enable();
 
 	//W can't be part of a chord so it isn't held.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 0, "W 1");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 10, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 0, "W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 10, "W 0");
 
 	//The chord completes in time; only the chord is let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 1100, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 1200, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 1100, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 1200, "[Control Space]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("Control Space: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1250, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 1260, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1250, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 1260, "Space 0");
 
 	//Either order.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 1500, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1550, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 1500, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1550, "[Control Space]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 1600, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1610, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 1600, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1610, "Left Control 0");
 
 	//A held input never ages, however long until Space.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2400, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 2500, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 2400, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 2500, "[Control Space]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
 
 	//Control is still down so it is carried; Space again is the chord again.  The releases are let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 2510, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 2520, "[Control Space]");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 2530, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 2540, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 2510, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 2520, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 2530, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 2540, "[Control Space]");
 	AssertSize(2, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 2550, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2560, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 2570, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 2580, "Space 1, Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 2550, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2560, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 2570, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 2580, "Space 1, Space 0");
 
 	//A press no chord can take is let through; the carried inputs were used by their chord so they aren't.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2600, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 2610, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2600, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 2610, "[Control Space]");
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 2620, "W 1");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 2630, "W 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 2640, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2650, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 2620, "W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 2630, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 2640, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2650, "Left Control 0");
 
 	//Once everything is let go a partial chord has 300ms from the last release.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2800, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2810, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3110, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3111, "Left Control 1, Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3200, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3210, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 3500, "[Tap Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2800, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2810, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3110, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3111, "Left Control 1, Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3200, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3210, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 3500, "[Tap Control Space]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 3510, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 3510, "Space 0");
 
 	//An input that isn't the chord's next lets the held one through, in order.  Control is still down and can start a
 	//chord so it is carried: Space after is still control and space, as shift held while typing is for shift+tab after.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 4000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 4050, "Left Control 1, W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 4000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 4050, "Left Control 1, W 1");
 	AssertSize(0, cPlayer.GetEvents()->NumElements());
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 4060, "W 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 4070, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 4060, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 4070, "[Control Space]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 4080, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 4090, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 4100, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 4110, "Space 1, Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 4080, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 4090, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 4100, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 4110, "Space 1, Space 0");
 
 	cPlayer.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 }
 
 
@@ -301,7 +304,7 @@ void TestInputChordsHeldAndEvicted(void)
 //////////////////////////////////////////////////////////////////////////
 void TestInputChordsEvictionDelay(void)
 {
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer;
 	CProgramDeviceDetail*		pcDetail;
 	CInputVirtualDevice*		pcVirtual;
@@ -312,22 +315,23 @@ void TestInputChordsEvictionDelay(void)
 	CInputChords*				pcChords;
 	uint32						uiDelay;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	cPlayer.Init();
 
-	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
-	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Delay");
+	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Delay");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "Left Control", "Space", NULL));
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcGroup = pcChord->AsGroup();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
 	AssertBool(true, pcChord->Done());
 
 	//Control tapped then Space: once control is let go the chord can still match, so control is held until it can't.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
@@ -337,41 +341,42 @@ void TestInputChordsEvictionDelay(void)
 	pcChords = pcVirtual->GetChords();
 
 	//Nothing held.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 0, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 0, "");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 10, "W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 10, "W 1");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 20, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 20, "W 0");
 
 	//Held while it is down: it never ages.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 1500, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 1500, "");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
 
 	//Let go, the partial chord has 300ms from the release, so it is evicted by the update 301ms after it.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2000, "");
 	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
 	AssertInt(301, uiDelay);
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2100, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 2100, "");
 	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
 	AssertInt(201, uiDelay);
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2300, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 2300, "");
 	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
 	AssertInt(1, uiDelay);
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2301, "Left Control 1, Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 2301, "Left Control 1, Left Control 0");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
 
 	//A completed chord leaves nothing to evict.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 3000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3010, "[Control Space]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 3000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3010, "[Control Space]");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 3020, "Space 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3030, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 3020, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3030, "Left Control 0");
 	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
 
 	cPlayer.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 }
 
 
@@ -403,62 +408,64 @@ void AddTapChord(CInput* pcInput, CPlayer* pcPlayer, CInputVirtualDevice* pcVirt
 //////////////////////////////////////////////////////////////////////////
 void TestInputChordsEvictionAge(void)
 {
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer;
 	CProgramDeviceDetail*		pcDetail;
 	CInputVirtualDevice*		pcVirtual;
 	CInputDevice*				pcDevice;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	cPlayer.Init();
 
-	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
-	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Ages");
+	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Ages");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "B", "Left Control", "Space", NULL));
-	AddTapChord(&cInput, &cPlayer, pcVirtual, pcDevice, "Slow", "Left Control", "Space", 500);
-	AddTapChord(&cInput, &cPlayer, pcVirtual, pcDevice, "Usual", "Left Control", "W", 0);
-	AddTapChord(&cInput, &cPlayer, pcVirtual, pcDevice, "Quick", "B", "W", 100);
-	AddTapChord(&cInput, &cPlayer, pcVirtual, pcDevice, "Default", "Space", "W", 0);
+	AddTapChord(&pInput, &cPlayer, pcVirtual, pcDevice, "Slow", "Left Control", "Space", 500);
+	AddTapChord(&pInput, &cPlayer, pcVirtual, pcDevice, "Usual", "Left Control", "W", 0);
+	AddTapChord(&pInput, &cPlayer, pcVirtual, pcDevice, "Quick", "B", "W", 100);
+	AddTapChord(&pInput, &cPlayer, pcVirtual, pcDevice, "Default", "Space", "W", 0);
 	pcVirtual->Enable();
 
 	//Control could start Slow or Usual, so it waits Slow's 500ms; Slow still matches after 300ms.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 1400, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 1450, "[Slow]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 1400, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 1450, "[Slow]");
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 1460, "Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 1460, "Space 0");
 
 	//Usual completes after 300ms too, while Slow could still match.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 2400, "[Usual]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 2400, "[Usual]");
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 2410, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 2410, "W 0");
 
 	//500ms after the release Control is let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3510, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3511, "Left Control 1, Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3510, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3511, "Left Control 1, Left Control 0");
 
 	//Quick waits only 100ms.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 4000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 0.0f, 4010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 4110, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 4111, "B 1, B 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 4000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 0.0f, 4010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 4110, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 4111, "B 1, B 0");
 
 	//A chord without its own age waits the chords' 300ms.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 5000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 5010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 5310, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 5311, "Space 1, Space 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 1.0f, 5000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Space", 0.0f, 5010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 5310, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 5311, "Space 1, Space 0");
 	AssertSize(0, cPlayer.GetEvents()->NumElements());
 
 	cPlayer.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 }
 
 
@@ -496,87 +503,89 @@ void AddControlsChord(CInput* pcInput, CInputVirtualDevice* pcVirtual, CInputDev
 //////////////////////////////////////////////////////////////////////////
 void TestInputChordsPrefix(void)
 {
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer;
 	CProgramDeviceDetail*		pcDetail;
 	CInputVirtualDevice*		pcVirtual;
 	CInputDevice*				pcDevice;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	cPlayer.Init();
 
-	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
-	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Prefix");
+	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Prefix");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "A", "D", "Left Control", "Right Control", NULL));
-	AddControlsChord(&cInput, pcVirtual, pcDevice, &cPlayer, "Controls A", NULL);
-	AddControlsChord(&cInput, pcVirtual, pcDevice, &cPlayer, "Controls A D", "D");
+	AddControlsChord(&pInput, pcVirtual, pcDevice, &cPlayer, "Controls A", NULL);
+	AddControlsChord(&pInput, pcVirtual, pcDevice, &cPlayer, "Controls A D", "D");
 	pcVirtual->Enable();
 
 	//The longer chord matches; the shorter is never called.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 0, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 1.0f, 10, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 20, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 0, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 1.0f, 10, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 20, "");
 	AssertSize(0, cPlayer.GetEvents()->NumElements());
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "D", 1.0f, 30, "[Controls A D]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "D", 1.0f, 30, "[Controls A D]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("Controls A D: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "D", 0.0f, 40, "D 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 50, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 60, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 0.0f, 70, "Right Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "D", 0.0f, 40, "D 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 50, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 60, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 0.0f, 70, "Right Control 0");
 
 	//Letting go of A stops the longer chord so the shorter is called, then the release is let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 1.0f, 1000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 1020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 1030, "[Controls A], A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 1.0f, 1000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 1020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 1030, "[Controls A], A 0");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("Controls A: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1040, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 0.0f, 1050, "Right Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1040, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 0.0f, 1050, "Right Control 0");
 
 	//An input that isn't part of a chord does the same.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 1.0f, 2010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 2020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 2030, "[Controls A], W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 1.0f, 2010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 2020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 2030, "[Controls A], W 1");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 2040, "W 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 2050, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2060, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 0.0f, 2070, "Right Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 2040, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 2050, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2060, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 0.0f, 2070, "Right Control 0");
 
 	//Held down the shorter chord waits however long; letting go of A calls it.  The controls are carried, D can't use them.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 1.0f, 3010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 3020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3500, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 3510, "[Controls A], A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 1.0f, 3010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 3020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3500, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 3510, "[Controls A], A 0");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("Controls A: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "D", 1.0f, 3520, "D 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "D", 1.0f, 3520, "D 1");
 
 	//With the controls still down A again is the shorter chord again.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "D", 0.0f, 3530, "D 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3540, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 0.0f, 3550, "Right Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3600, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Right Control", 1.0f, 3610, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 3620, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 3630, "[Controls A], A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 3640, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 3650, "[Controls A], A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "D", 0.0f, 3530, "D 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3540, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 0.0f, 3550, "Right Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3600, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Right Control", 1.0f, 3610, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 3620, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 3630, "[Controls A], A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 3640, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 3650, "[Controls A], A 0");
 	AssertSize(2, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
 
 	cPlayer.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 }
 
 
@@ -607,7 +616,7 @@ void AddControlShiftGroup(COrderedInputChordCriteria* pcOrdered, CInputChord* pc
 //////////////////////////////////////////////////////////////////////////
 void TestInputChordsCommonStart(void)
 {
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer;
 	CProgramDeviceDetail*		pcDetail;
 	CInputVirtualDevice*		pcVirtual;
@@ -619,16 +628,17 @@ void TestInputChordsCommonStart(void)
 	CInputChord*				pcMatching;
 	CInputChord*				pcAPlusB;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	cPlayer.Init();
 
-	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
-	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Common Start");
+	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Common Start");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "A", "B", "Left Control", "Left Shift", NULL));
 
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("CS A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	AddControlShiftGroup(pcOrdered, pcChord, pcDevice);
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("A"), ICT_Toggle));
@@ -636,7 +646,7 @@ void TestInputChordsCommonStart(void)
 	AssertNull(pcMatching);
 	AssertSize(3, pcChord->GetTotalCriteria());
 
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("CS A+B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A+B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	AddControlShiftGroup(pcOrdered, pcChord, pcDevice);
 	pcGroup = pcOrdered->AddGroupAction();
@@ -647,7 +657,7 @@ void TestInputChordsCommonStart(void)
 	pcAPlusB = pcChord;
 
 	//ctrl, shift, a then b: (a+b) matches that too so both would be called.  The new chord isn't added.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("CS A then B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A then B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcInner = pcOrdered->AddOrderedAction();
 	AddControlShiftGroup(pcInner, pcChord, pcDevice);
@@ -657,7 +667,7 @@ void TestInputChordsCommonStart(void)
 	AssertPointer(pcAPlusB, pcMatching);
 
 	//The same chord written the other way round.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("SC B+A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("SC B+A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Shift"), ICT_Toggle));
@@ -669,7 +679,7 @@ void TestInputChordsCommonStart(void)
 	AssertPointer(pcAPlusB, pcMatching);
 
 	//Four long but b can't be second, so nothing else matches it.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("C B S A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("C B S A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("B"), ICT_Toggle));
@@ -680,7 +690,7 @@ void TestInputChordsCommonStart(void)
 	pcVirtual->GetChords()->RemoveChord(pcChord);
 
 	//The inner ordered criteria are made before anything follows them in the outer.
-	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("CS A, B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A, B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
 	pcOrdered = pcChord->AsOrdered();
 	pcInner = pcOrdered->AddOrderedAction();
 	AddControlShiftGroup(pcInner, pcChord, pcDevice);
@@ -696,116 +706,117 @@ void TestInputChordsCommonStart(void)
 	pcVirtual->Enable();
 
 	//ctrl, shift, a then b with a still down: only (a+b).
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 0, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 10, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 20, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 30, "[CS A+B]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 0, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 10, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 20, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 30, "[CS A+B]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("CS A+B: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 0.0f, 40, "B 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 50, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 60, "Left Shift 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 70, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 0.0f, 40, "B 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 50, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 60, "Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 70, "Left Control 0");
 
 	//shift, ctrl, b then a: only (a+b) takes b first.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 1000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 1020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 1030, "[CS A+B]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 1000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 1020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 1030, "[CS A+B]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 1040, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 0.0f, 1050, "B 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1060, "Left Control 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 1070, "Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 1040, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 0.0f, 1050, "B 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 1060, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 1070, "Left Shift 0");
 
 	//ctrl, shift, a, all let go in any order, then b: (ctrl+shift) a waits through the releases and the longest is called.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 2020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2030, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 2040, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2050, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 2020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2030, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 2040, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2050, "");
 	AssertSize(0, cPlayer.GetEvents()->NumElements());
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 2060, "[CS A, B]");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 2060, "[CS A, B]");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("CS A, B: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 0.0f, 2070, "B 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 0.0f, 2070, "B 0");
 
 	//Letting go of a keeps (-ctrl-shift-a) b going, W stops it so (ctrl+shift) a is called and the rest let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2500, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2510, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 2520, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 2530, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 2540, "[CS A], A 0, W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2500, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2510, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 2520, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 2530, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 2540, "[CS A], A 0, W 1");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	AssertString("CS A: Up", cPlayer.GetEvents()->GetText(0));
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 2550, "W 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2560, "Left Shift 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2570, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 2550, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2560, "Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2570, "Left Control 0");
 
 	//Letting go of ctrl before b is down stops (a+b), and b with shift and a still down stops (-ctrl-shift-a) b.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2700, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2710, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 2720, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2730, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 2740, "[CS A], Left Control 0, B 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2700, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2710, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 2720, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2730, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 2740, "[CS A], Left Control 0, B 1");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 0.0f, 2750, "B 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 2760, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2770, "Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 0.0f, 2750, "B 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 2760, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2770, "Left Shift 0");
 
 	//All let go but no b: (ctrl+shift) a is called 300ms after the last release, then the releases are let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2800, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2810, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 2820, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 2830, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2840, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2850, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3150, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 3151, "[CS A], A 0, Left Control 0, Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 2800, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 2810, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 2820, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 2830, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2840, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 2850, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3150, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 3151, "[CS A], A 0, Left Control 0, Left Shift 0");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
 
 	//ctrl, shift, a then W, which no chord has.  The carried keys are dropped so their releases are let through.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3200, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 3210, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 3220, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 3230, "[CS A], W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3200, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 3210, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 3220, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 3230, "[CS A], W 1");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 3240, "W 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 3250, "A 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 3260, "Left Shift 0");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3270, "Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 0.0f, 3240, "W 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 3250, "A 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 3260, "Left Shift 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3270, "Left Control 0");
 
 	//ctrl, shift, a held: nothing ages while they are down.  Letting go keeps (-ctrl-shift-a) b going, then 300ms after
 	//the last release (ctrl+shift) a is called.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 4000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 4010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 1.0f, 4020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 4400, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "A", 0.0f, 4410, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 4420, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 4430, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 4730, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 4731, "[CS A], A 0, Left Shift 0, Left Control 0");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 4000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 4010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 1.0f, 4020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 4400, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "A", 0.0f, 4410, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 0.0f, 4420, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 0.0f, 4430, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 4730, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, NULL, 0.0f, 4731, "[CS A], A 0, Left Shift 0, Left Control 0");
 	AssertSize(1, cPlayer.GetEvents()->NumElements());
 	cPlayer.GetEvents()->ReInit();
 
 	//ctrl, shift, b then W: nothing matches so all are let through in order.
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 5000, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 5010, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "B", 1.0f, 5020, "");
-	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 5030, "Left Control 1, Left Shift 1, B 1, W 1");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Control", 1.0f, 5000, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "Left Shift", 1.0f, 5010, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "B", 1.0f, 5020, "");
+	AssertChordsEvents(&pInput, pcDetail, pcVirtual, "W", 1.0f, 5030, "Left Control 1, Left Shift 1, B 1, W 1");
 	AssertSize(0, cPlayer.GetEvents()->NumElements());
 
 	cPlayer.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 }
 
 
@@ -823,7 +834,7 @@ void TestInputChords(void)
 
 	BeginTests();
 
-	CInput						cInput;
+	Ptr<CInput>					pInput;
 	CPlayer						cPlayer1;
 	CPlayer						cPlayer2;
 	CProgramDeviceDetail*		pcDetail;
@@ -835,69 +846,70 @@ void TestInputChords(void)
 	COrderedInputChordCriteria*	pcOrdered;
 	CGroupInputChordCriteria*	pcGroup;
 
-	cInput.Init(NULL);
-	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
-	cInput.AddProgramInput();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	ORoot()->Add(pInput);
+	pcDetail = AddProgrammaticDevice(pInput->GetProgramInput());
+	pInput->AddProgramInput();
 	
 	cPlayer1.Init();
-	pcPlayer1 = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false);
+	pcPlayer1 = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false);
 	pcDevice = pcPlayer1->GetDefaultDevice();
 
-	pcPlayer1 = cInput.GetDevices()->CreateVirtualDevice("Player 1");
+	pcPlayer1 = pInput->GetDevices()->CreateVirtualDevice("Player 1");
 	bResult = pcPlayer1->AddSources(pcDevice, "W", "A", "S", "D", "Left Control", NULL);
 	AssertBool(true, bResult);
 
-	pcPlayer1->AddOrderedAction(cInput.GetActions()->AddActionWithListener("Player 1 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer1), "W", "W", NULL);
-	pcPlayer1->AddOrderedAction(cInput.GetActions()->AddActionWithListener("Player 1 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer1), "S", "W", "W", "W", NULL);
-	pcPlayer1->AddOrderedAction(cInput.GetActions()->AddActionWithListener("Player 1 Left", &CPlayerListener::Left, (CPlayerListener*)&cPlayer1), "A", "D", "A", "A", NULL);
-	pcPlayer1->AddOrderedAction(cInput.GetActions()->AddActionWithListener("Player 1 Right", &CPlayerListener::Right, (CPlayerListener*)&cPlayer1), "A", "D", "A", "D", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer1), "W", "W", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer1), "S", "W", "W", "W", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Left", &CPlayerListener::Left, (CPlayerListener*)&cPlayer1), "A", "D", "A", "A", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Right", &CPlayerListener::Right, (CPlayerListener*)&cPlayer1), "A", "D", "A", "D", NULL);
 
 	pcPlayer1->Enable();
 
 	pcDetail->AddEvent("W", 1.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
 	pcDetail->AddEvent("W", 1.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(1, cPlayer1.GetEvents()->NumElements());
 	AssertString("Player 1 Up: Up", cPlayer1.GetEvents()->GetText(0));
 	cPlayer1.GetEvents()->ReInit();
 
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
-	AssertEvents(&cInput, pcDetail, &cPlayer1, "Player 1 Up: Up",  "W\0 1", "W\0 0", "W\0 1", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer1, "Player 1 Up: Up",  "W\0 1", "W\0 0", "W\0 1", NULL);
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 
-	AssertEvents(&cInput, pcDetail, &cPlayer1, "Player 1 Down: Down",  "S\0 1", "S\0 0", "W\0 1", "W\0 0", "W\0 1", "W\0 0", "W\0 1", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer1, "Player 1 Down: Down",  "S\0 1", "S\0 0", "W\0 1", "W\0 0", "W\0 1", "W\0 0", "W\0 1", NULL);
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 
-	AssertEvents(&cInput, pcDetail, &cPlayer1, "Player 1 Left: Left",  "A\0 1", "A\0 0", "D\0 1", "D\0 0", "A\0 1", "A\0 0", "A\0 1", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer1, "Player 1 Left: Left",  "A\0 1", "A\0 0", "D\0 1", "D\0 0", "A\0 1", "A\0 0", "A\0 1", NULL);
 	pcDetail->AddEvent("A", 0.0f);
-	cInput.Update();
+	pInput->Update();
 
-	AssertEvents(&cInput, pcDetail, &cPlayer1, "Player 1 Right: Right",  "A\0 1", "A\0 0", "D\0 1", "D\0 0", "A\0 1", "A\0 0", "D\0 1", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer1, "Player 1 Right: Right",  "A\0 1", "A\0 0", "D\0 1", "D\0 0", "A\0 1", "A\0 0", "D\0 1", NULL);
 	pcDetail->AddEvent("D", 0.0f);
-	cInput.Update();
+	pInput->Update();
 
-	AssertEvents(&cInput, pcDetail, &cPlayer1, "Player 1 Up: Up",  "S\0 1", "S\0 0", "A\0 1", "A\0 0", "W\0 1", "W\0 0", "W\0 1", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer1, "Player 1 Up: Up",  "S\0 1", "S\0 0", "A\0 1", "A\0 0", "W\0 1", "W\0 0", "W\0 1", NULL);
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 
 	cPlayer2.Init();
-	pcPlayer2 = cInput.GetDevices()->CreateVirtualDevice("Player 2");
+	pcPlayer2 = pInput->GetDevices()->CreateVirtualDevice("Player 2");
 	bResult = pcPlayer2->AddSources(pcDevice, "Cursor Up", "Cursor Left", "Cursor Down", "Cursor Right", "Right Control", NULL);
 	AssertBool(true, bResult);
 
-	pcChord = pcPlayer2->AddChordAction(cInput.GetActions()->AddActionWithListener("Player 2 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer2));
+	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddActionWithListener("Player 2 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer2));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Left"), ICT_Toggle));
@@ -908,7 +920,7 @@ void TestInputChords(void)
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Up"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Up"), ICT_Toggle));
 	pcChord->Done();
-	pcChord = pcPlayer2->AddChordAction(cInput.GetActions()->AddActionWithListener("Player 2 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer2));
+	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddActionWithListener("Player 2 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer2));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Left"), ICT_Toggle));
@@ -921,38 +933,39 @@ void TestInputChords(void)
 	pcChord->Done();
 	pcPlayer2->Enable();
 
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Up: Up", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Up\0 1", "Cursor Up\0 0", NULL);
 
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
-	AssertEvents(&cInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Left\0 1", "Cursor Right\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Left\0 0", "Cursor Right\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
+	AssertEvents(&pInput, pcDetail, &cPlayer2, "Player 2 Down: Down", "Cursor Right\0 1", "Cursor Left\0 1", "Cursor Right\0 0", "Cursor Left\0 0", "Cursor Down\0 1", "Cursor Down\0 0", NULL);
 
 	cPlayer1.GetEvents()->ReInit();
 	pcDetail->AddEvent("W", 1.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
 	pcDetail->AddEvent("Cursor Left", 1.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
 	pcDetail->AddEvent("W", 0.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(0, cPlayer1.GetEvents()->NumElements());
 
 	pcDetail->AddEvent("W", 1.0f);
-	cInput.Update();
+	pInput->Update();
 	AssertSize(1, cPlayer1.GetEvents()->NumElements());
 	AssertString("Player 1 Up: Up", cPlayer1.GetEvents()->GetText(0));
 	cPlayer1.GetEvents()->ReInit();
 
 	cPlayer2.Kill();
 	cPlayer1.Kill();
-	cInput.Kill();
+	ORoot()->Remove(pInput);
+	pInput = NULL;
 
 	TestInputChordsHeldAndEvicted();
 	TestInputChordsEvictionAge();
@@ -962,6 +975,7 @@ void TestInputChords(void)
 
 	TestStatistics();
 
+	ObjectsFlush();
 	ObjectsKill();
 	DataIOKill();
 	MemoryKill();

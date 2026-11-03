@@ -20,6 +20,7 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Objects.h"
 #include "InputDataFormats.h"
 
 
@@ -29,7 +30,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDataFormats::Init(void)
 {
-	mlcFormats.Init(false);
+	PreInit();
+	maFormats.Init();
+	PostInit();
 }
 
 
@@ -37,9 +40,38 @@ void CInputDataFormats::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormats::Kill(void)
+void CInputDataFormats::Class(void)
 {
-	mlcFormats.Kill();
+	M_Embedded(maFormats);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputDataFormats::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDataFormats::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDataFormats::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -49,11 +81,11 @@ void CInputDataFormats::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CInputDataFormat* CInputDataFormats::Add(char* szName)
 {
-	CInputDataFormat*	pcInputDataFormat;
+	Ptr<CInputDataFormat>	pInputDataFormat;
 
-	pcInputDataFormat = mlcFormats.Add();
-	pcInputDataFormat->Init(szName);
-	return pcInputDataFormat;
+	pInputDataFormat = OMalloc<CInputDataFormat>(szName);
+	maFormats.Add(pInputDataFormat);
+	return &pInputDataFormat;
 }
 
 
@@ -63,41 +95,38 @@ CInputDataFormat* CInputDataFormats::Add(char* szName)
 //////////////////////////////////////////////////////////////////////////
 CInputDataFormat* CInputDataFormats::Add(void)
 {
-	CInputDataFormat*	pcInputDataFormat;
+	Ptr<CInputDataFormat>	pInputDataFormat;
 
-	pcInputDataFormat = mlcFormats.Add();
-	pcInputDataFormat->Init();
-	return pcInputDataFormat;
+	pInputDataFormat = OMalloc<CInputDataFormat>();
+	maFormats.Add(pInputDataFormat);
+	return &pInputDataFormat;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The common format of the name.  Only the common formats, which are added
+// before the others, are looked at.
 //
 //////////////////////////////////////////////////////////////////////////
 CInputDataFormat* CInputDataFormats::Get(char* szName)
 {
 	CInputDataFormat*	pcDataFormat;
-	SSetIterator		sIter;
-	bool				bExists;
+	size				i;
+	size				uiNumElements;
 
-	bExists = mlcFormats.StartIteration(&sIter, &pcDataFormat);
-	while (bExists)
+	uiNumElements = maFormats.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		if (pcDataFormat->IsCommon())
-		{
-			if (pcDataFormat->IsCommonName(szName))
-			{
-				return pcDataFormat;
-			}
-		}
-		else
+		pcDataFormat = &maFormats.Get(i);
+		if (!pcDataFormat->IsCommon())
 		{
 			break;
 		}
-		bExists = mlcFormats.Iterate(&sIter, &pcDataFormat);
+		if (pcDataFormat->IsCommonName(szName))
+		{
+			return pcDataFormat;
+		}
 	}
 	return NULL;
 }
-

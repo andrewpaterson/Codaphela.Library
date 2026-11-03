@@ -22,19 +22,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_DATA_FORMATS_H__
 #define __INPUT_DATA_FORMATS_H__
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 #include "InputDataFormat.h"
 
 
-class CInputDataFormats : public CUnknown
+//The data formats, in the order they were added.  The devices' descriptions and values point to them; this holds them.
+class CInputDataFormats : public CObject
 {
 CONSTRUCTABLE(CInputDataFormats);
+DESTRUCTABLE(CInputDataFormats);
 protected:
-	CSetInputDataFormat	mlcFormats;
+	CArrayInputDataFormat	maFormats;
 
 public:
 	void				Init(void);
-	void				Kill(void);
+	void				Class(void) override;
+	void				Free(void) override;
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
 	CInputDataFormat*	Add(char* szName);
 	CInputDataFormat*	Add(void);

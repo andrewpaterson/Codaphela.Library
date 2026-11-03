@@ -31,12 +31,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDataFormat::Init(void)
 {
+	PreInit();
 	mcExternalChannels.Init();
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
 	mcChannelNames.Init();
 	mbCommon = false;
 	mszCommonName._Init();
+	PostInit();
 }
 
 
@@ -46,12 +48,14 @@ void CInputDataFormat::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputDataFormat::Init(char* szCommonName)
 {
+	PreInit();
 	mcExternalChannels.Init();
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
 	mcChannelNames.Init();
 	mbCommon = true;
 	mszCommonName.Init(szCommonName);
+	PostInit();
 }
 
 
@@ -59,11 +63,43 @@ void CInputDataFormat::Init(char* szCommonName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormat::Kill(void)
+void CInputDataFormat::Class(void)
+{
+	M_Embedded(mcExternalChannels);
+	U_Data(CArrayChars, mcChannelNames);
+	U_Bool(mbCommon);
+	U_String(mszCommonName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputDataFormat::Free(void)
 {
 	mszCommonName.Kill();
-	mcExternalChannels.Kill();
 	mcChannelNames.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDataFormat::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputDataFormat::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
