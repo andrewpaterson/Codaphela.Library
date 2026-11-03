@@ -109,7 +109,7 @@ struct SModChannel
 class CModPlayer
 {
 protected:
-	Ptr<CModSong>		mpSong;
+	CModSong*			mpcSong;  //The caller keeps the song alive while it plays.
 	uint32				muiSampleRate;
 	EModInterpolation	meInterpolation;
 	float64				mfStereoSeparation;

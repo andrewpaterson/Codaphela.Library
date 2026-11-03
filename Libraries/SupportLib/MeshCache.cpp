@@ -94,18 +94,18 @@ bool CMeshCache::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCache::Touch(CMesh* pcMesh)
 {
-	CMeshCacher	cCacher;
-	bool		bResult;
+	Ptr<CMeshCacher>	pCacher;
+	bool				bResult;
 
-	cCacher.Init(pcMesh);
+	pCacher = OMalloc<CMeshCacher>(pcMesh);
 
-	bResult = cCacher.Index();
+	bResult = pCacher->Index();
 	if (bResult)
 	{
-		bResult = cCacher.Vertex();
+		bResult = pCacher->Vertex();
 	}
 
-	cCacher.Kill();
+	pCacher = NULL;
 	return bResult;
 }
 

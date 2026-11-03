@@ -269,7 +269,7 @@ void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolatio
 	CChannel*		pcChannel;
 	SModChannel*	psChannel;
 
-	mpSong = pSong;
+	mpcSong = &pSong;
 	muiSampleRate = uiSampleRate;
 	meInterpolation = eInterpolation;
 	mfStereoSeparation = fStereoSeparation;
@@ -352,7 +352,7 @@ void CModPlayer::Kill(void)
 	SafeFree(mpsGainTables);
 	mpiBank8 = NULL;
 	SafeFree(mpuiPlayedRows);
-	mpSong = NULL;
+	mpcSong = NULL;
 }
 
 
@@ -645,9 +645,9 @@ void CModPlayer::NextRow(void)
 		}
 	}
 
-	if (uiOrder >= mpSong->GetSongLength())
+	if (uiOrder >= mpcSong->GetSongLength())
 	{
-		uiOrder = mpSong->GetRestart();
+		uiOrder = mpcSong->GetRestart();
 	}
 
 	muiOrder = uiOrder;
@@ -677,18 +677,18 @@ void CModPlayer::ProcessRow(void)
 	size			uiRow;
 
 	uiPlayed = muiOrder * MOD_ROWS_PER_PATTERN + muiRow;
-	uiPattern = mpSong->GetOrder(muiOrder);
-	if (mpuiPlayedRows[uiPlayed] || (uiPattern >= mpSong->NumPatterns()))
+	uiPattern = mpcSong->GetOrder(muiOrder);
+	if (mpuiPlayedRows[uiPlayed] || (uiPattern >= mpcSong->NumPatterns()))
 	{
 		mbFinished = true;
 		return;
 	}
 	mpuiPlayedRows[uiPlayed] = 1;
 
-	for (uiChannel = 0; uiChannel < mpSong->NumChannels(); uiChannel++)
+	for (uiChannel = 0; uiChannel < mpcSong->NumChannels(); uiChannel++)
 	{
 		psChannel = &masChannels[uiChannel];
-		psNote = mpSong->GetNote(uiPattern, muiRow, uiChannel);
+		psNote = mpcSong->GetNote(uiPattern, muiRow, uiChannel);
 		psChannel->uiEffect = psNote->uiEffect;
 		psChannel->uiParam = psNote->uiParam;
 		iX = psNote->uiParam >> 4;
@@ -910,7 +910,7 @@ void CModPlayer::SetSample(SModChannel* psChannel, size uiSample)
 {
 	SModSample*		psSample;
 
-	psSample = mpSong->GetSample(uiSample);
+	psSample = mpcSong->GetSample(uiSample);
 	if (psSample == NULL)
 	{
 		return;
@@ -931,7 +931,7 @@ void CModPlayer::StartSample(SModChannel* psChannel, lsize uiOffset)
 {
 	Ptr<CSoundCel>	pCel;
 
-	pCel = mpSong->GetSampleCel(psChannel->uiSample);
+	pCel = mpcSong->GetSampleCel(psChannel->uiSample);
 	if (pCel.IsNull() || ((mpiBank8 == NULL) && (mpiBank16 == NULL)) || (pCel->GetNumFrames() == 0))
 	{
 		psChannel->bPlaying = false;
@@ -977,7 +977,7 @@ void CModPlayer::ProcessTickEffects(void)
 	//Pattern delay repeats the row's ticks; the first tick of each repeat plays no notes.
 	iTick = (int)(muiTick % muiSpeed);
 
-	for (uiChannel = 0; uiChannel < mpSong->NumChannels(); uiChannel++)
+	for (uiChannel = 0; uiChannel < mpcSong->NumChannels(); uiChannel++)
 	{
 		psChannel = &masChannels[uiChannel];
 		iX = psChannel->uiParam >> 4;
@@ -1211,7 +1211,7 @@ void CModPlayer::Mix(SModMix* psMix, uint16 uiFirstFrame, uint16 uiNumFrames)
 
 	memset(&psMix->sLeft.aiFrames[uiFirstFrame], 0, sizeof(int16) * uiNumFrames);
 	memset(&psMix->sRight.aiFrames[uiFirstFrame], 0, sizeof(int16) * uiNumFrames);
-	for (uiChannel = 0; uiChannel < mpSong->NumChannels(); uiChannel++)
+	for (uiChannel = 0; uiChannel < mpcSong->NumChannels(); uiChannel++)
 	{
 		psChannel = &masChannels[uiChannel];
 		if (!psChannel->bPlaying || !psChannel->bHasData || (psChannel->iOutPeriod <= 0) || (psChannel->iOutVolume == 0))
@@ -1532,6 +1532,6 @@ SModChannel* CModPlayer::GetChannel(size uiChannel)
 //////////////////////////////////////////////////////////////////////////
 size CModPlayer::NumChannels(void)
 {
-	return mpSong->NumChannels();
+	return mpcSong->NumChannels();
 }
 

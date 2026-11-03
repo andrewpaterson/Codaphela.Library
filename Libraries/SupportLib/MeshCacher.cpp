@@ -22,6 +22,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ChannelsAccessorCreator.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshCacher.h"
 
 
@@ -31,9 +33,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::Init(CMesh* pcMesh)
 {
+	PreInit();
+
 	//This assumes the mesh has been touched.
 	mpcMesh = pcMesh;
-	mpTypeIndices = OMalloc<CArrayMeshTypeIndices>();
+	maTypeIndices.Init();
+
+	PostInit();
 }
 
 
@@ -41,10 +47,41 @@ void CMeshCacher::Init(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshCacher::Kill(void)
+void CMeshCacher::Class(void)
 {
-	//Freeing the array frees the type indices in it.
-	mpTypeIndices = NULL;
+	U_Pointer(mpcMesh);
+	M_Embedded(maTypeIndices);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Freeing the array frees the type indices in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshCacher::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A cacher only lives for a touch.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshCacher::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshCacher::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -110,8 +147,7 @@ bool CMeshCacher::Index(void)
 	int						iMatricies;
 	Ptr<CMeshVertexArray>	pVertexArray;
 
-	Kill();
-	Init(mpcMesh);
+	maTypeIndices.RemoveAll();
 
 	iUniqueFaceTypes = mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements();
 
@@ -170,7 +206,7 @@ bool CMeshCacher::Index(void)
 
 		pVertexArray = mpcMesh->mcCache.AddVertexArray(*psFaceType);
 		pMeshTypeIndices = OMalloc<CMeshTypeIndices>(pVertexArray, iStride, iNormalOffset, iColourOffset, iUVOffset, iMatrixOffset);
-		mpTypeIndices->Add(pMeshTypeIndices);
+		maTypeIndices.Add(pMeshTypeIndices);
 
 		pMeshTypeIndices->Generate(&aiFaces, pvIndices);
 
@@ -194,10 +230,10 @@ bool CMeshCacher::Vertex(void)
 	size					iUniqueTypes;
 	Ptr<CMeshVertexArray>	pVertexArray;
 
-	iUniqueTypes = mpTypeIndices->NumElements();
+	iUniqueTypes = maTypeIndices.NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
-		pcTypeIndices = &mpTypeIndices->Get(i);
+		pcTypeIndices = &maTypeIndices.Get(i);
 
 		pVertexArray = mpcMesh->mcCache.GetVertexArray((int)i);
 		pVertexArray->GetVertexArray()->BeginChange();

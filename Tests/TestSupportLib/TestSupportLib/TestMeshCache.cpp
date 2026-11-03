@@ -47,7 +47,7 @@ void TestMeshCacheFreesTypeIndices(void)
 	SFloat32Vec3		sStart;
 	CMeshPlaneEditor*	pcPlaneEditor;
 	CMeshEditor			cMeshEditor;
-	CMeshCacher			cCacher;
+	Ptr<CMeshCacher>	pCacher;
 	size				uiVertexArrays;
 
 	cMesh.Init();
@@ -61,7 +61,7 @@ void TestMeshCacheFreesTypeIndices(void)
 	pcPlaneEditor->Init(&sXDirection, &sYDirection, &sStart, 2, 2);
 
 	AssertSize(0, CountMeshMemoryObjects("CMeshTypeIndices"));
-	AssertSize(0, CountMeshMemoryObjects("CArray"));
+	AssertSize(0, CountMeshMemoryObjects("CMeshCacher"));
 
 	//Touching the mesh caches it.  The type indices only live while it does.
 	cMeshEditor.Touch();
@@ -69,18 +69,20 @@ void TestMeshCacheFreesTypeIndices(void)
 	AssertTrue(uiVertexArrays > 0);
 	AssertSize(uiVertexArrays, CountMeshMemoryObjects("CMeshVertexArray"));
 	AssertSize(0, CountMeshMemoryObjects("CMeshTypeIndices"));
-	AssertSize(0, CountMeshMemoryObjects("CArray"));
+	AssertSize(0, CountMeshMemoryObjects("CMeshCacher"));
 
-	//While the cacher is alive its array and type indices are objects in memory and killing it frees them.
-	cCacher.Init(&cMesh);
-	AssertTrue(cCacher.Index());
-	AssertSize(1, CountMeshMemoryObjects("CArray"));
-	AssertSize(cCacher.mpTypeIndices->NumElements(), CountMeshMemoryObjects("CMeshTypeIndices"));
-	AssertTrue(cCacher.mpTypeIndices->NumElements() > 0);
-	AssertTrue(cCacher.Vertex());
-	cCacher.Kill();
+	//While the cacher is alive it and its type indices are objects in memory and letting go of it frees them.
+	pCacher = OMalloc<CMeshCacher>(&cMesh);
+	AssertTrue(pCacher->Index());
+	AssertSize(1, CountMeshMemoryObjects("CMeshCacher"));
+	AssertSize(pCacher->maTypeIndices.NumElements(), CountMeshMemoryObjects("CMeshTypeIndices"));
+	AssertTrue(pCacher->maTypeIndices.NumElements() > 0);
+	AssertTrue(pCacher->Index());
+	AssertSize(pCacher->maTypeIndices.NumElements(), CountMeshMemoryObjects("CMeshTypeIndices"));
+	AssertTrue(pCacher->Vertex());
+	pCacher = NULL;
 	AssertSize(0, CountMeshMemoryObjects("CMeshTypeIndices"));
-	AssertSize(0, CountMeshMemoryObjects("CArray"));
+	AssertSize(0, CountMeshMemoryObjects("CMeshCacher"));
 
 	cMeshEditor.Kill();
 	cMesh.Kill();

@@ -36,12 +36,12 @@ struct SMeshNormalFace;
 struct SMeshUVFace;
 class CMeshEditorWrapper : public CUnknown
 {
-CONSTRUCTABLE(CUnknown);
+CONSTRUCTABLE(CMeshEditorWrapper);
 public:
 
-	//Either/Or.
-	Ptr<CMeshEditor>	mpEditor;
-	Ptr<CMesh>			mpMesh;
+	//Either/Or.  The caller keeps the mesh, or editor, alive while it's wrapped.
+	CMeshEditor*		mpcEditor;
+	CMesh*				mpcMesh;
 
 	void 				Init(Ptr<CMesh> pMesh);
 	void 				Init(Ptr<CMeshEditor> pMesh);

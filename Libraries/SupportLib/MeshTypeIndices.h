@@ -36,13 +36,13 @@ class CMeshTypeIndices : public CObject
 CONSTRUCTABLE(CMeshTypeIndices);
 DESTRUCTABLE(CMeshTypeIndices);
 public:
-	int						miStride;
+	int32					miStride;
 	Ptr<CMeshVertexArray>	mpVertexArray;
 	CArrayBlock				maVerts;  //'Vertex Buffer',  however each vertex contains indcies into the data rather than the data itself.
-	int						miNormalOffset;
-	int						miColourOffset;
-	int						miUVOffset;
-	int						miSkinOffset;
+	int32					miNormalOffset;
+	int32					miColourOffset;
+	int32					miUVOffset;
+	int32					miSkinOffset;
 
 	void	Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
 	void	Free(void) override;

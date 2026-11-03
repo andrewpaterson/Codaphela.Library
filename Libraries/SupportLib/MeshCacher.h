@@ -26,14 +26,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshTypeIndices.h"
 
 
-class CMeshCacher
+//Works out the mesh's vertex arrays (see CMeshCache::Touch).  It is an object, made for one touch and let go of
+//after, because its type indices are.
+class CMeshCacher : public CObject
 {
+CONSTRUCTABLE(CMeshCacher);
+DESTRUCTABLE(CMeshCacher);
 public:
-	CMesh*							mpcMesh;
-	Ptr<CArrayMeshTypeIndices>		mpTypeIndices;
+	CMesh*					mpcMesh;
+	CArrayMeshTypeIndices	maTypeIndices;
 
 	void	Init(CMesh* pcMesh);
-	void	Kill(void);
+	void	Class(void) override;
+	void	Free(void) override;
+
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
 	bool	Index(void);
 	bool	Vertex(void);

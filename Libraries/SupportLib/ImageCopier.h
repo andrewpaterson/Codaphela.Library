@@ -40,8 +40,8 @@ public:
 	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 protected:
-	Ptr<CImage>			mpSource;
-	Ptr<CImage>			mpDest;
+	CImage*				mpcSource;  //Kept alive by the caller while it copies.
+	CImage*				mpcDest;
 	CImageAccessor*		mpcSourceAccessor;
 	CImageAccessor*		mpcDestAccessor;
 	bool				mbKillAccessors;
