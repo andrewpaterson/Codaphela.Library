@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Writes RGB images as 24 bit, RGBA as 32 bit, grey as 8 bit and grey with alpha as 16 bit Targa images, optionally RLE compressed.
-bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE = false);
+bool SaveTGA(Ptr<CImage> pImage, char* szPathName, bool bRLE = false);
 
 
 #endif // __TGA_WRITER_H__

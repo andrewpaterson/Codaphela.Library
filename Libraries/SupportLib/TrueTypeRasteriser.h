@@ -77,7 +77,7 @@ public:
 
 	Ptr<CImage>		RasteriseGlyph(int iGlyph, int* piLeft, int* piTop);
 	Ptr<CImage>		RasteriseText(char* szUTF8, int* piOriginX, int* piOriginY);
-	bool			DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour);
+	bool			DrawText(Ptr<CImage> pDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour);
 
 protected:
 	bool			BeginCoverage(int iWidth, int iHeight);
@@ -85,7 +85,7 @@ protected:
 	bool			AddGlyph(int iGlyph, int32 iX, int32 iY);
 	bool			AddText(char* szUTF8, int32 iX, int32 iY);
 	Ptr<CImage>		CoverageToImage(void);
-	bool			BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDestY, CImageColour* pcColour);
+	bool			BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDestY, CImageColour* pcColour);
 };
 
 

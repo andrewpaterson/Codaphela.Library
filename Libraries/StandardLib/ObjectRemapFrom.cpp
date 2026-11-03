@@ -92,12 +92,12 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 		while (pcStackPointer)
 		{
 			psStackPointer = pcStackPointer->Get();
-			if (psStackPointer->meType == SPT_Pointer)
+			if (psStackPointer->eType == SPT_Pointer)
 			{
 				psStackPointer->u.pcPointer->UnsafePointTo(pcNew);
 				iCount++;
 			}
-			else if (psStackPointer->meType == SPT_Collection)
+			else if (psStackPointer->eType == SPT_Collection)
 			{
 				iCount += psStackPointer->u.pcCollection->RemapPointerTos(pcOld, pcNew);
 			}

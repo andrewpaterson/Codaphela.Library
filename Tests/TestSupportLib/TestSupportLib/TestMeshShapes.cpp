@@ -572,9 +572,9 @@ void TestMeshShapes(void)
 //////////////////////////////////////////////////////////////////////////
 void AssertFace(CMeshFace* pcMeshFace, int iCorner1, int iCorner2, int iCorner3)
 {
-	AssertInt(iCorner1, pcMeshFace->asCorner[0]);
-	AssertInt(iCorner2, pcMeshFace->asCorner[1]);
-	AssertInt(iCorner3, pcMeshFace->asCorner[2]);
+	AssertInt(iCorner1, pcMeshFace->maiCorner[0]);
+	AssertInt(iCorner2, pcMeshFace->maiCorner[1]);
+	AssertInt(iCorner3, pcMeshFace->maiCorner[2]);
 }
 
 
@@ -584,7 +584,7 @@ void AssertFace(CMeshFace* pcMeshFace, int iCorner1, int iCorner2, int iCorner3)
 //////////////////////////////////////////////////////////////////////////
 void AssertCornerCount(CMeshCorner* pcMeshCorner, int iEdgeCount, int iFaceCount)
 {
-	AssertSize(iEdgeCount, pcMeshCorner->aiEdge.NumElements());
-	AssertSize(iFaceCount, pcMeshCorner->aiFace.NumElements());
+	AssertSize(iEdgeCount, pcMeshCorner->maiEdge.NumElements());
+	AssertSize(iFaceCount, pcMeshCorner->maiFace.NumElements());
 }
 

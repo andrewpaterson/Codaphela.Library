@@ -57,8 +57,8 @@ public:
 	CFreeList	mcNormals;
 	CFreeList	mcTriangles;
 	SFloat32Vec3*	mpsPoints;
-	size		iStride;
-	size		iNumPoints;
+	size		miStride;
+	size		miNumPoints;
 	char*		mszHullName;
 
 	void 					Init(SFloat32Vec3* psPoints, int iStride, size iNumPoints, char* szHullName = NULL);

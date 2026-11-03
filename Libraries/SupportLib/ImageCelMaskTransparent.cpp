@@ -28,9 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect)
+void CImageCelMaskTransparent::Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, Ptr<CImage> pMaskImage, CFillRectangle* pcRect)
 {
-	CImageCelMask::Init(pcSourceImage, pcMaskImage, pcRect);
+	CImageCelMask::Init(pSourceImage, pMaskImage, pcRect);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
 }
 
@@ -39,9 +39,9 @@ void CImageCelMaskTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMaskTransparent::Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, Ptr<CImage> pMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
-	CImageCelMask::Init(pcSourceImage, pcMaskImage, iMask, bFilled, iLeft, iTop, iRight, iBottom);
+	CImageCelMask::Init(pSourceImage, pMaskImage, iMask, bFilled, iLeft, iTop, iRight, iBottom);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
 }
 
@@ -97,7 +97,7 @@ void CImageCelMaskTransparent::CropTransparentBorders(void)
 {
 	CPixelOpacityMaskTransparentColour cOpacity;
 
-	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpMaskImage, miMask);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -143,7 +143,7 @@ void CImageCelMaskTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int
 {
 	CPixelOpacityMaskTransparentColour	cOpacity;
 
-	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpMaskImage, miMask);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

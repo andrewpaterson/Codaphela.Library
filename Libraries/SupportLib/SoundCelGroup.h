@@ -37,7 +37,7 @@ protected:
 	Ptr<CSound>		mpSound;
 
 public:
-	void 			Init(Ptr<CSound> pcSound);
+	void 			Init(Ptr<CSound> pSound);
 	void 			Free(void) override;
 	void			Class(void) override;
 
@@ -46,7 +46,7 @@ public:
 
 	size			AddCel(Ptr<CSoundCel> pCel);
 	size			AddCel(lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
-	size			AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
+	size			AddSound(Ptr<CSound> pSound, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
 
 	size			NumCels(void);
 	Ptr<CSoundCel>	GetCel(size uiIndex);

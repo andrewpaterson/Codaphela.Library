@@ -91,11 +91,11 @@ bool ImageResampleGetRange(EPrimitiveType eType, float64* pfMinimum, float64* pf
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageResampleChannel::Init(Ptr<CImage> pcImage, size uiChannelIndex)
+bool CImageResampleChannel::Init(Ptr<CImage> pImage, size uiChannelIndex)
 {
-	mpcChannels = pcImage->GetChannels();
-	mpcChannel = pcImage->GetChannelAtIndex(uiChannelIndex);
-	muiNumPixels = (lsize)pcImage->GetWidth() * (lsize)pcImage->GetHeight();
+	mpcChannels = pImage->GetChannels();
+	mpcChannel = pImage->GetChannelAtIndex(uiChannelIndex);
+	muiNumPixels = (lsize)pImage->GetWidth() * (lsize)pImage->GetHeight();
 
 	if ((mpcChannel == NULL) || mpcChannel->bReverse || !ImageResampleGetRange(mpcChannel->eType, &mfMinimum, &mfMaximum, &mbFloat))
 	{
@@ -121,14 +121,14 @@ void CImageResampleChannel::Kill(void)
 // True if every channel of pcImage can be resampled.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageResampleChannel::IsSupported(Ptr<CImage> pcImage)
+bool CImageResampleChannel::IsSupported(Ptr<CImage> pImage)
 {
 	size					uiIndex;
 	CImageResampleChannel	cChannel;
 
-	for (uiIndex = 0; uiIndex < pcImage->NumChannels(); uiIndex++)
+	for (uiIndex = 0; uiIndex < pImage->NumChannels(); uiIndex++)
 	{
-		if (!cChannel.Init(pcImage, uiIndex))
+		if (!cChannel.Init(pImage, uiIndex))
 		{
 			return false;
 		}
@@ -144,9 +144,9 @@ bool CImageResampleChannel::IsSupported(Ptr<CImage> pcImage)
 // the same number of channels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageResampleChannel::CanResample(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool CImageResampleChannel::CanResample(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
-	return IsSupported(pcSource) && IsSupported(pcDest) && (pcSource->NumChannels() == pcDest->NumChannels());
+	return IsSupported(pSource) && IsSupported(pDest) && (pSource->NumChannels() == pDest->NumChannels());
 }
 
 

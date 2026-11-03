@@ -368,13 +368,13 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 	while (pcPointer)
 	{
 		psPointer = pcPointer->Get();
-		if (psPointer->meType == SPT_Unknown)
+		if (psPointer->eType == SPT_Unknown)
 		{
 			psz->Append(ui);
 			psz->Append(": Unknown");
 			psz->AppendNewLine();
 		}
-		else if (psPointer->meType == SPT_Pointer)
+		else if (psPointer->eType == SPT_Pointer)
 		{
 			if (bPointerMemory)
 			{
@@ -387,7 +387,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 			psz->Append("]");
 			psz->AppendNewLine();
 		}
-		else if (psPointer->meType == SPT_Collection)
+		else if (psPointer->eType == SPT_Collection)
 		{
 			if (bPointerMemory)
 			{
@@ -1584,8 +1584,8 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Null(void)
 {
-	CPointer	pcObject;
-	return pcObject;
+	CPointer	pObject;
+	return pObject;
 }
 
 

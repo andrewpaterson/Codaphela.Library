@@ -27,7 +27,7 @@ class CHalfSpace
 {
 public:
 	SFloat32Vec3*	mpsNormal;		
-	float32		d;				//d of plane.
+	float32		mfDistance;				//d of plane.
 
 	void 	Init(SFloat32Vec3* mpsNormal);
 	void 	Set(SFloat32Vec3* v1, SFloat32Vec3* v2, SFloat32Vec3* v3);

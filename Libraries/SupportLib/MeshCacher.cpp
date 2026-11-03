@@ -117,7 +117,7 @@ bool CMeshCacher::Index(void)
 	int						iUVOffset;
 	int						iMatrixOffset;
 	int						iMatricies;
-	Ptr<CMeshVertexArray>	pcVertexArray;
+	Ptr<CMeshVertexArray>	pVertexArray;
 
 	Kill();
 	Init(mpcMesh);
@@ -178,8 +178,8 @@ bool CMeshCacher::Index(void)
 		}
 
 		pcMeshTypeIndices = mcTypeIndices.Add();
-		pcVertexArray = mpcMesh->mcCache.AddVertexArray(*psFaceType);
-		pcMeshTypeIndices->Init(pcVertexArray, iStride, iNormalOffset, iColourOffset, iUVOffset, iMatrixOffset);
+		pVertexArray = mpcMesh->mcCache.AddVertexArray(*psFaceType);
+		pcMeshTypeIndices->Init(pVertexArray, iStride, iNormalOffset, iColourOffset, iUVOffset, iMatrixOffset);
 
 		pcMeshTypeIndices->Generate(&aiFaces, pvIndices);
 
@@ -201,23 +201,23 @@ bool CMeshCacher::Vertex(void)
 	size					i;
 	CMeshTypeIndices*		pcTypeIndices;
 	size					iUniqueTypes;
-	Ptr<CMeshVertexArray>	pcVertexArray;
+	Ptr<CMeshVertexArray>	pVertexArray;
 
 	iUniqueTypes = mcTypeIndices.NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
 		pcTypeIndices = mcTypeIndices.Get(i);
 
-		pcVertexArray = mpcMesh->mcCache.GetVertexArray((int)i);
-		pcVertexArray->GetVertexArray()->BeginChange();
-		pcVertexArray->GetVertexArray()->SetSize(pcTypeIndices->NumVerts());
-		pcVertexArray->GetVertexArray()->EndChange();
+		pVertexArray = mpcMesh->mcCache.GetVertexArray((int)i);
+		pVertexArray->GetVertexArray()->BeginChange();
+		pVertexArray->GetVertexArray()->SetSize(pcTypeIndices->NumVerts());
+		pVertexArray->GetVertexArray()->EndChange();
 
-		PopulatePositions(&pcVertexArray, pcTypeIndices);
-		PopulateNormals(&pcVertexArray, pcTypeIndices);
-		PopulateColours(&pcVertexArray, pcTypeIndices);
-		PopulateUVs(&pcVertexArray, pcTypeIndices);
-		PopulateSkin(&pcVertexArray, pcTypeIndices);
+		PopulatePositions(&pVertexArray, pcTypeIndices);
+		PopulateNormals(&pVertexArray, pcTypeIndices);
+		PopulateColours(&pVertexArray, pcTypeIndices);
+		PopulateUVs(&pVertexArray, pcTypeIndices);
+		PopulateSkin(&pVertexArray, pcTypeIndices);
 	}
 
 	return true;

@@ -42,7 +42,7 @@ void CImageCelSourceSingle::Init(int iLeftOffset, int iTopOffset, int iRightOffs
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceSingle::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
+void CImageCelSourceSingle::Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask)
 {
 	CImageDividerNumbers	cNumbers;
 	CImageDivider			cDivider;
@@ -50,7 +50,7 @@ void CImageCelSourceSingle::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestIm
 	cDivider.Init(pcImage, mpsTransparentColour, mbIgnoreEmpty, mbCropTransparentBorders);
 	cNumbers.InitFromSingle(miLeftOffset, miTopOffset, miRightOffset, miBottomOffset);
 	cDivider.GenerateFromNumbers(&cNumbers);
-	cDivider.CopyCellsTo(pcDestImageCels);
+	cDivider.CopyCellsTo(pDestImageCels);
 	cDivider.Kill();
 }
 

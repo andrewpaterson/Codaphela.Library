@@ -153,7 +153,7 @@ void ResampleBicubicFloats(float64* pafSource, uint32 uiSourceWidth, uint32 uiSo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ResampleBicubic(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool ResampleBicubic(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	SBicubicAxis			sX;
 	SBicubicAxis			sY;
@@ -169,15 +169,15 @@ bool ResampleBicubic(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64*				pafDest;
 	bool					bResult;
 
-	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
+	if (!CImageResampleChannel::CanResample(pSource, pDest))
 	{
 		return false;
 	}
 
-	uiSourceWidth = pcSource->GetWidth();
-	uiSourceHeight = pcSource->GetHeight();
-	uiDestWidth = pcDest->GetWidth();
-	uiDestHeight = pcDest->GetHeight();
+	uiSourceWidth = pSource->GetWidth();
+	uiSourceHeight = pSource->GetHeight();
+	uiDestWidth = pDest->GetWidth();
+	uiDestHeight = pDest->GetHeight();
 	if ((uiSourceWidth == 0) || (uiSourceHeight == 0) || (uiDestWidth == 0) || (uiDestHeight == 0))
 	{
 		return true;
@@ -187,11 +187,11 @@ bool ResampleBicubic(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	sY.Init(uiSourceHeight, uiDestHeight);
 
 	bResult = true;
-	uiNumChannels = pcSource->NumChannels();
+	uiNumChannels = pSource->NumChannels();
 	for (uiChannel = 0; bResult && (uiChannel < uiNumChannels); uiChannel++)
 	{
-		cSourceChannel.Init(pcSource, uiChannel);
-		bResult = cDestChannel.Init(pcDest, uiChannel);
+		cSourceChannel.Init(pSource, uiChannel);
+		bResult = cDestChannel.Init(pDest, uiChannel);
 		if (bResult)
 		{
 			pafSource = (float64*)malloc(sizeof(float64) * cSourceChannel.NumPixels());

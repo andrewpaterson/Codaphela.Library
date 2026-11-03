@@ -26,7 +26,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Copies decoded pixels (red, green, blue, alpha; 4 bytes per pixel, top row first) into pcImage, keeping only the channels pcImage has.
 //If bGrey the red byte is the grey value.
-bool	CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pcImage);
+bool	CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pImage);
 
 
 #endif // __IMAGE_READER_COMMON_H__

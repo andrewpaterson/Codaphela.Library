@@ -106,19 +106,19 @@ void CMeshEdgeVisibility::AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12
 		mcEdges.Add(0);
 	}
 	
-	pcValue = mcEdges.Get(pcFace->asEdge[0]);
+	pcValue = mcEdges.Get(pcFace->maiEdge[0]);
 	if (*pcValue < cEdge12)
 	{
 		*pcValue = cEdge12;
 	}
 
-	pcValue = mcEdges.Get(pcFace->asEdge[1]);
+	pcValue = mcEdges.Get(pcFace->maiEdge[1]);
 	if (*pcValue < cEdge23)
 	{
 		*pcValue = cEdge23;
 	}
 
-	pcValue = mcEdges.Get(pcFace->asEdge[2]);
+	pcValue = mcEdges.Get(pcFace->maiEdge[2]);
 	if (*pcValue < cEdge31)
 	{
 		*pcValue = cEdge31;
@@ -203,7 +203,7 @@ void CMeshEdgeVisibility::GenerateEdgeSelectionFromPolygons(CMeshConnectivity* p
 				}
 				else
 				{
-					iEdgeIndex = psFace->asEdge[j];
+					iEdgeIndex = psFace->maiEdge[j];
 					pcEdge = mcEdges.Get(iEdgeIndex);
 
 					iAdjPolygon = pcPolygons->maiFacesToPolygons.GetValue(iAdjFaceIndex);

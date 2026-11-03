@@ -26,7 +26,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pcImage)
+bool CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pImage)
 {
 	CImage			cImageImport;
 	CImageCopier	cCopier;
@@ -34,14 +34,14 @@ bool CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pcImage)
 
 	if (bGrey)
 	{
-		cImageImport.Init(pcImage->GetWidth(), pcImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_GREY, IMAGE_IGNORED, IMAGE_IGNORED, IMAGE_OPACITY, CHANNEL_STOP);
+		cImageImport.Init(pImage->GetWidth(), pImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_GREY, IMAGE_IGNORED, IMAGE_IGNORED, IMAGE_OPACITY, CHANNEL_STOP);
 	}
 	else
 	{
-		cImageImport.Init(pcImage->GetWidth(), pcImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		cImageImport.Init(pImage->GetWidth(), pImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	}
 
-	bResult = cCopier.Init(&cImageImport, pcImage);
+	bResult = cCopier.Init(&cImageImport, pImage);
 	if (bResult)
 	{
 		cCopier.Copy(0, 0);

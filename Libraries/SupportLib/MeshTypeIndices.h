@@ -32,14 +32,14 @@ class CMeshTypeIndices
 {
 public:
 	int						miStride;
-	Ptr<CMeshVertexArray>	mpcVertexArray;
+	Ptr<CMeshVertexArray>	mpVertexArray;
 	CArrayBlock				maVerts;  //'Vertex Buffer',  however each vertex contains indcies into the data rather than the data itself.
 	int						miNormalOffset;
 	int						miColourOffset;
 	int						miUVOffset;
 	int						miSkinOffset;
 
-	void	Init(Ptr<CMeshVertexArray> pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
+	void	Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
 	void	Kill(void);
 
 	bool	Generate(CArrayInt* paiFaces, void* pavFaceIndices);

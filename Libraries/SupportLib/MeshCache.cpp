@@ -116,11 +116,11 @@ bool CMeshCache::Touch(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMeshVertexArray> CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
 {
-	Ptr<CMeshVertexArray>	pcVertexArray;
+	Ptr<CMeshVertexArray>	pVertexArray;
 
-	pcVertexArray = OMalloc<CMeshVertexArray>(sMeshFaceType);
-	mcMeshVerticesArrays.Add(pcVertexArray);
-	return pcVertexArray;
+	pVertexArray = OMalloc<CMeshVertexArray>(sMeshFaceType);
+	mcMeshVerticesArrays.Add(pVertexArray);
+	return pVertexArray;
 }
 
 
@@ -130,17 +130,17 @@ Ptr<CMeshVertexArray> CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMeshVertexArray> CMeshCache::GetVertexArray(SMeshFaceType sMeshFaceType)
 {
-	Ptr<CMeshVertexArray>	pcVertexArray;
+	Ptr<CMeshVertexArray>	pVertexArray;
 	size					i;
 	size					uiNumElements;
 
 	uiNumElements = mcMeshVerticesArrays.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcVertexArray = mcMeshVerticesArrays.Get(i);
-		if (pcVertexArray->Is(&sMeshFaceType))
+		pVertexArray = mcMeshVerticesArrays.Get(i);
+		if (pVertexArray->Is(&sMeshFaceType))
 		{
-			return pcVertexArray;
+			return pVertexArray;
 		}
 	}
 

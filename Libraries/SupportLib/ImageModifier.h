@@ -39,7 +39,7 @@ public:
 			bool			Save(CObjectWriter* pcFile) override;
 			bool			Load(CObjectReader* pcFile) override;
 
-	virtual Ptr<CImage>		Modify(Ptr<CImage> pcImage) =0;
+	virtual Ptr<CImage>		Modify(Ptr<CImage> pImage) =0;
 };
 
 

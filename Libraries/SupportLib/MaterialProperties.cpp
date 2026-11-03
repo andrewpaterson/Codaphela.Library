@@ -30,13 +30,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMaterialProperties::Init(void)
 {
-	sDiffuseColour.Zero();
-	sAmbientColour.Zero();
-	sEmissiveColour.Zero();
-	sSpecularColour.Zero();
-	fShininessPower = 0.0f;
-	fShininessBase = 0.0f;
-	bLit = false;
+	mcDiffuseColour.Zero();
+	mcAmbientColour.Zero();
+	mcEmissiveColour.Zero();
+	mcSpecularColour.Zero();
+	mfShininessPower = 0.0f;
+	mfShininessBase = 0.0f;
+	mbLit = false;
 	meOpacity = MO_Opaque;
 }
 
@@ -56,13 +56,13 @@ void CMaterialProperties::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMaterialProperties::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(sDiffuseColour.Save(pcFile));
-	ReturnOnFalse(sAmbientColour.Save(pcFile));
-	ReturnOnFalse(sEmissiveColour.Save(pcFile));
-	ReturnOnFalse(sSpecularColour.Save(pcFile));
-	ReturnOnFalse(pcFile->WriteFloat(fShininessPower));
-	ReturnOnFalse(pcFile->WriteFloat(fShininessBase));
-	ReturnOnFalse(pcFile->WriteBool(bLit));
+	ReturnOnFalse(mcDiffuseColour.Save(pcFile));
+	ReturnOnFalse(mcAmbientColour.Save(pcFile));
+	ReturnOnFalse(mcEmissiveColour.Save(pcFile));
+	ReturnOnFalse(mcSpecularColour.Save(pcFile));
+	ReturnOnFalse(pcFile->WriteFloat(mfShininessPower));
+	ReturnOnFalse(pcFile->WriteFloat(mfShininessBase));
+	ReturnOnFalse(pcFile->WriteBool(mbLit));
 	ReturnOnFalse(pcFile->WriteSInt(meOpacity));
 	return true;
 }
@@ -74,13 +74,13 @@ bool CMaterialProperties::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMaterialProperties::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(sDiffuseColour.Load(pcFile));
-	ReturnOnFalse(sAmbientColour.Load(pcFile));
-	ReturnOnFalse(sEmissiveColour.Load(pcFile));
-	ReturnOnFalse(sSpecularColour.Load(pcFile));
-	ReturnOnFalse(pcFile->ReadFloat(&fShininessPower));
-	ReturnOnFalse(pcFile->ReadFloat(&fShininessBase));
-	ReturnOnFalse(pcFile->ReadBool(&bLit));
+	ReturnOnFalse(mcDiffuseColour.Load(pcFile));
+	ReturnOnFalse(mcAmbientColour.Load(pcFile));
+	ReturnOnFalse(mcEmissiveColour.Load(pcFile));
+	ReturnOnFalse(mcSpecularColour.Load(pcFile));
+	ReturnOnFalse(pcFile->ReadFloat(&mfShininessPower));
+	ReturnOnFalse(pcFile->ReadFloat(&mfShininessBase));
+	ReturnOnFalse(pcFile->ReadBool(&mbLit));
 	ReturnOnFalse(pcFile->ReadSInt((int*)&meOpacity));
 	return true;
 }

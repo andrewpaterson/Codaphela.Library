@@ -43,9 +43,9 @@ void SMeshFaceIndex::Init(int iFaceIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset)
+void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset)
 {
-	mpcVertexArray = pcVertexArray;
+	mpVertexArray = pVertexArray;
 	miStride = iStride;
 	maVerts.Init(iStride);
 
@@ -84,7 +84,7 @@ void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pcVertexArray, int iStride, in
 //////////////////////////////////////////////////////////////////////////
 void CMeshTypeIndices::Kill(void)
 {
-	mpcVertexArray = NULL;
+	mpVertexArray = NULL;
 	maVerts.Kill();
 }
 
@@ -105,7 +105,7 @@ bool CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 
 	iNumFaces = paiFaces->NumElements();
 
-	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
+	pcFaceIndicies = mpVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();
 	pcFaceIndicies->Init(); 
 	pcFaceIndicies->Resize(iNumFaces);

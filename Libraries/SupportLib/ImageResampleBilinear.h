@@ -43,7 +43,7 @@ struct SBilinearAxis
 //past the edges use the edge pixels.  Positions are 16.16 fixed point.  Integer channels of 16 bits or fewer (including
 //the bit sized types) are interpolated with integer maths only and rounded to the nearest value; other channels in float64.
 //Returns false if a channel can't be resampled (reversed or not a primitive).
-bool ResampleBilinear(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+bool ResampleBilinear(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 
 #endif // __IMAGE_RESAMPLE_BILINEAR_H__

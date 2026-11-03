@@ -30,7 +30,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 void CHalfSpace::Init(SFloat32Vec3* psNormal)
 {
 	mpsNormal = psNormal;
-	d = 0;
+	mfDistance = 0;
 }
 
 
@@ -40,7 +40,7 @@ void CHalfSpace::Init(SFloat32Vec3* psNormal)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::Contains(SFloat32Vec3* psPosition)
 {
-	return FloatLessThan(Float32Vec3Dot(mpsNormal, psPosition), d);
+	return FloatLessThan(Float32Vec3Dot(mpsNormal, psPosition), mfDistance);
 }
 
 
@@ -50,7 +50,7 @@ bool CHalfSpace::Contains(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::NotContains(SFloat32Vec3* psPosition)
 {
-	return FloatGreaterThan(Float32Vec3Dot(mpsNormal, psPosition), d);
+	return FloatGreaterThan(Float32Vec3Dot(mpsNormal, psPosition), mfDistance);
 }
 
 
@@ -60,7 +60,7 @@ bool CHalfSpace::NotContains(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::On(SFloat32Vec3* psPosition)
 {
-	return FloatEqual(Float32Vec3Dot(mpsNormal, psPosition), d);
+	return FloatEqual(Float32Vec3Dot(mpsNormal, psPosition), mfDistance);
 }
 
 
@@ -198,7 +198,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIn
 		iIndex = aiIndices[i];
 		psOther = GetPosition(psPoints, iStride, iIndex);
 
-		fDist = Float32Vec3Dot(mpsNormal, psOther)-d;
+		fDist = Float32Vec3Dot(mpsNormal, psOther)-mfDistance;
 		if (fDist > fMaxDist)
 		{
 			fMaxDist = fDist;
@@ -225,7 +225,7 @@ bool CHalfSpace::Parallel(CHalfSpace* psOther)
 //////////////////////////////////////////////////////////////////////////
 void CHalfSpace::D(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal)
 {
-	d = Float32Vec3Dot(psNormal, psPosition1);
+	mfDistance = Float32Vec3Dot(psNormal, psPosition1);
 }
 
 
@@ -236,6 +236,6 @@ void CHalfSpace::D(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal)
 void CHalfSpace::Copy(CHalfSpace* psSource)
 {
 	mpsNormal->Copy(psSource->mpsNormal);
-	d = psSource->d;
+	mfDistance = psSource->mfDistance;
 }
 

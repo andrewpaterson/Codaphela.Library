@@ -65,7 +65,7 @@ public:
 	EImageCombineSize		meSize;
 	EImageCombineChannels	meChannels;
 	SInt32Vec2				msSize;  //Only if ICS_UserSpecified.
-	Ptr<CImage>				mpcDestImage;  //Assumed to be uninitialised.
+	Ptr<CImage>				mpDestImage;  //Assumed to be uninitialised.
 	CArrayImageCel			mcSourceCels;
 	CArrayChars				maszSourceFileNames;  //One for each source cel.  Empty if the cel has no file.
 	CArrayImageCel			mcDestCels;  //Theres a one-to-one between dest and source cells.
@@ -83,8 +83,8 @@ public:
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					AddCel(Ptr<CImageCel> pcCel, char* szFileName = NULL);
-	void 					AddCels(Ptr<CArrayImageCel> pcCels, CArrayChars* paszFileNames = NULL);  //paszFileNames has one file name for each cel.
+	void 					AddCel(Ptr<CImageCel> pCel, char* szFileName = NULL);
+	void 					AddCels(Ptr<CArrayImageCel> pCels, CArrayChars* paszFileNames = NULL);  //paszFileNames has one file name for each cel.
 	void					AddChannel(EChannel eChannel, EPrimitiveType eType);
 	Ptr<CImage>				Combine(void);
 	Ptr<CArrayImageCel>		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.
@@ -100,7 +100,7 @@ private:
 	bool				CreateDestCels(CArrayPackedRectangle* pacPackedRects);
 	void				CountFileNames(CMapStringInt* pmFileNameCounts);
 	void				MakeCelName(CChars* szName, size iSourceIndex, CMapStringInt* pmFileNameCounts, CMapStringInt* pmFileNameIndices);
-	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel);
+	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pSourceCel);
 };
 
 

@@ -27,8 +27,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMeshCorner
 {
 public:
-	CArrayEmbeddedInt		aiFace;		//Faces on this corner.
-	CArrayEmbeddedInt		aiEdge;		//Edges on this corner.
+	CArrayEmbeddedInt		maiFace;		//Faces on this corner.
+	CArrayEmbeddedInt		maiEdge;		//Edges on this corner.
 
 	void 	Init(void);
 	void 	Kill(void);

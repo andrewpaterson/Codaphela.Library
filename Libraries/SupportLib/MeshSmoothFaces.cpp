@@ -72,7 +72,7 @@ bool CMeshSmoothFaces::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothFaces::Apply(CMeshEditor* pcMeshEditor)
 {
-	GenerateNormals(&pcMeshEditor->mpcMesh);
+	GenerateNormals(&pcMeshEditor->mpMesh);
 }
 
 
@@ -111,12 +111,12 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	for (i = 0; i < iNumCorners; i++)
 	{
 		//Get the array of faces attached to the vert
-		aiFaceRef = (int*)psCorners[i].aiFace.GetData();
+		aiFaceRef = (int*)psCorners[i].maiFace.GetData();
 
 		cNormal.Init(0, 0, 0);
 
 		//Step over every face at this vertex
-		uiNumFaces = psCorners[i].aiFace.NumElements();
+		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
 			psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
@@ -135,13 +135,13 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 		iNewNormalIndex = (int)pcNormals->mcNormals.NumElements()-1;
 
 		//Step over every face at this vertex
-		uiNumFaces = psCorners[i].aiFace.NumElements();
+		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
 			//Then set the face point normal reference to the newly added normal
 			for (l = 0; l < 3; l++)
 			{
-				iPosition = psFaces[aiFaceRef[j]].asCorner[l];
+				iPosition = psFaces[aiFaceRef[j]].maiCorner[l];
 				if ((int)i == iPosition)
 				{
 					psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);

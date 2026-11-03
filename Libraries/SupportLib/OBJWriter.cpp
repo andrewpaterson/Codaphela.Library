@@ -201,7 +201,7 @@ void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVer
 		psz->Append("f  ");
 		for (j = 0; j < NUM_FACE_CORNERS; j++)
 		{
-			psz->Append(-(pcFace->asCorner[j]+1));
+			psz->Append(-(pcFace->maiCorner[j]+1));
 
 			if (bTextureCoords || bVertexNormals)
 			{

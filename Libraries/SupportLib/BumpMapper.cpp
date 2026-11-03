@@ -95,7 +95,7 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChann
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
+void AssignNormalMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 {
 	uint32				x, y;
 	ARGB32				iColour;
@@ -109,11 +109,11 @@ void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 	uint32				iWidth;
 	uint32				iImageWidth;
 
-	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_NORMAL_X, IMAGE_NORMAL_Y, IMAGE_NORMAL_Z, CHANNEL_STOP);
+	pcAccessor = CImageAccessorCreator::Create(&pImage, PT_uint8, IMAGE_NORMAL_X, IMAGE_NORMAL_Y, IMAGE_NORMAL_Z, CHANNEL_STOP);
 
-	iWidth = (pcImage->GetImageWidth() + 1);
-	iImageWidth = pcImage->GetImageWidth();
-	iHeight = pcImage->GetImageHeight();
+	iWidth = (pImage->GetImageWidth() + 1);
+	iImageWidth = pImage->GetImageWidth();
+	iHeight = pImage->GetImageHeight();
 	for (y = 0; y < iHeight; y++)
 	{
 		for (x = 0; x < iImageWidth; x++)
@@ -140,7 +140,7 @@ void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
+void AssignBumpMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 {
 	uint32				x, y;
 	uint32				iColour;
@@ -154,11 +154,11 @@ void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 	uint32				iHeight;
 	uint32				iImageWidth;
 
-	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_BUMP_U, IMAGE_BUMP_V, CHANNEL_STOP);
+	pcAccessor = CImageAccessorCreator::Create(&pImage, PT_uint8, IMAGE_BUMP_U, IMAGE_BUMP_V, CHANNEL_STOP);
 
-	iWidth = (pcImage->GetImageWidth() + 1);
-	iHeight = pcImage->GetImageHeight();
-	iImageWidth = pcImage->GetImageWidth();
+	iWidth = (pImage->GetImageWidth() + 1);
+	iHeight = pImage->GetImageHeight();
+	iImageWidth = pImage->GetImageWidth();
 	for (y = 0; y < iHeight; y++)
 	{
 		for (x = 0; x < iImageWidth; x++)
@@ -185,20 +185,20 @@ void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcImageSource, EChannel eHeightChannel)
+Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pImageSource, EChannel eHeightChannel)
 {
 	int				iNumNormals;
 	SFloat32Vec3*		pasNormals;
 	SFloat32Vec3			sNormal;
-	Ptr<CImage>		pcImageDest;
+	Ptr<CImage>		pImageDest;
 
-	pcImageDest = OMalloc<CImage>();
-	pcImageDest->BeginChange();
-	pcImageDest->SetSize(pcImageSource->GetWidth(), pcImageSource->GetHeight());
+	pImageDest = OMalloc<CImage>();
+	pImageDest->BeginChange();
+	pImageDest->SetSize(pImageSource->GetWidth(), pImageSource->GetHeight());
 
 	if (bNormalMap)
 	{
-		pcImageDest->AddChannel(
+		pImageDest->AddChannel(
 			IMAGE_NORMAL_X, 
 			IMAGE_NORMAL_Y, 
 			IMAGE_NORMAL_Z, 
@@ -207,29 +207,29 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 
 	if (bUVMapMap)
 	{
-		pcImageDest->AddChannel(
+		pImageDest->AddChannel(
 			IMAGE_BUMP_U,
 			IMAGE_BUMP_V,
 			PT_uint8);
 	}
 
-	pcImageDest->EndChange();
+	pImageDest->EndChange();
 	if ((!bNormalMap) && (!bUVMapMap))
 	{
 		return NULL;
 	}
 
-	iNumNormals = (pcImageDest->GetImageWidth() + 1) * (pcImageDest->GetImageHeight() + 1);
+	iNumNormals = (pImageDest->GetImageWidth() + 1) * (pImageDest->GetImageHeight() + 1);
 	pasNormals = (SFloat32Vec3*)malloc((lsize)sizeof(SFloat32Vec3) * iNumNormals);
 
-	GenerateNormalMapFromMono(&pcImageSource, pasNormals, eHeightChannel);
+	GenerateNormalMapFromMono(&pImageSource, pasNormals, eHeightChannel);
 	if (bNormalMap)
 	{
-		AssignNormalMapFromNormals(pcImageDest, pasNormals);
+		AssignNormalMapFromNormals(pImageDest, pasNormals);
 	}
 	if (bUVMapMap)
 	{
-		AssignBumpMapFromNormals(pcImageDest, pasNormals);
+		AssignBumpMapFromNormals(pImageDest, pasNormals);
 	}
 	
 	if (pasNormals)
@@ -237,7 +237,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 		free(pasNormals);
 	}
 
-	return pcImageDest;
+	return pImageDest;
 }
 
 
@@ -259,9 +259,9 @@ void CImageHeightToNormals::Init(EChannel eHeightChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageHeightToNormals::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageHeightToNormals::Modify(Ptr<CImage> pImage)
 {
-	return ConvertHeightMapTo(true, false, pcImage, meHeightChannel);
+	return ConvertHeightMapTo(true, false, pImage, meHeightChannel);
 }
 
 
@@ -294,9 +294,9 @@ void CImageHeightToBumpUVs::Init(EChannel eHeightChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageHeightToBumpUVs::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageHeightToBumpUVs::Modify(Ptr<CImage> pImage)
 {
-	return ConvertHeightMapTo(false, true, pcImage, meHeightChannel);
+	return ConvertHeightMapTo(false, true, pImage, meHeightChannel);
 }
 
 

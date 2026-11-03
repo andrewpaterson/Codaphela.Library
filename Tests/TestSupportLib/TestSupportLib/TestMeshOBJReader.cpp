@@ -44,17 +44,17 @@ void TestMeshOBJReader(void)
 		for (i = 0; i < cMesh.NumFaces(); i++)
 		{
 			pcFace = cMesh.GetFace(i);
-			if (pcFace->asCorner[0] >= iNumCorners)
+			if (pcFace->maiCorner[0] >= iNumCorners)
 			{
 				bOutOfBounds = true;
 				break;
 			}
-			if (pcFace->asCorner[1] >= iNumCorners)
+			if (pcFace->maiCorner[1] >= iNumCorners)
 			{
 				bOutOfBounds = true;
 				break;
 			}
-			if (pcFace->asCorner[2] >= iNumCorners)
+			if (pcFace->maiCorner[2] >= iNumCorners)
 			{
 				bOutOfBounds = true;
 				break;

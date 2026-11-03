@@ -274,7 +274,7 @@ void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 			pcFace = pcMesh->GetFace((int)i);
 			psType = mcFaces.Get(i);
 
-			iMatricies = pcFace->asCorner[0] = pcSkin->GetFaceVertexMaxMatrixCount(pcFace->asCorner[0], pcFace->asCorner[1], pcFace->asCorner[0]);
+			iMatricies = pcFace->maiCorner[0] = pcSkin->GetFaceVertexMaxMatrixCount(pcFace->maiCorner[0], pcFace->maiCorner[1], pcFace->maiCorner[0]);
 			psType->iFlags1 |= MESH_FACE_MATRIX_MASK1 & ((uint32)iMatricies << MESH_FACE_MATRIX_SHIFT);
 		}
 	}

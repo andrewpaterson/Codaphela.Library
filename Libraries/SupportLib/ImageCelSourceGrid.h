@@ -32,7 +32,7 @@ protected:
 
 public:
 	void Init(CImageDividerNumbers* pcNumbers, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask);
+	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask);
 	void Kill(void);
 };
 

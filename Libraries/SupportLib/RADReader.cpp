@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport)
+bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pImport)
 {
 	CEnumeratorVoid		cChannels;
 	CEnumeratorVoid		cTypes;
@@ -98,7 +98,7 @@ bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport)
 			return false;
 		}
 
-		pcImport->AddChannel(iChannel, (EPrimitiveType)iType);
+		pImport->AddChannel(iChannel, (EPrimitiveType)iType);
 
 		//Optionally get a semicolon.
 		pcTextParser->GetExactCharacter(';');
@@ -114,7 +114,7 @@ bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport, CChars* szRawFileName)
+bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pImport, CChars* szRawFileName)
 {
 	int64		iWidth;
 	int64		iHeight;
@@ -131,10 +131,10 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport, CChars* szRawF
 	ReturnOnErrorAndFalse(pcTextParser->GetHFExactIdentifierAndInteger("Height", &iHeight));
 	pcTextParser->GetExactCharacter(';');
 
-	pcImport->SetSize((int)iWidth, (int)iHeight);
+	pImport->SetSize((int)iWidth, (int)iHeight);
 	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier("Channels"));
 
-	ReturnOnFalse(AddChannelsFromText(pcTextParser, pcImport));
+	ReturnOnFalse(AddChannelsFromText(pcTextParser, pImport));
 	pcTextParser->GetExactCharacter(';');
 
 	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier("FileName"));
@@ -191,28 +191,28 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	Ptr<CImage> pcImage = OMalloc<CImage>();
-	pcImage->BeginChange();
+	Ptr<CImage> pImage = OMalloc<CImage>();
+	pImage->BeginChange();
 
 	//Create an image from the text descriptor.
 	szRawFilename.Init(szRadFilename);
 	cFileUtil.RemoveLastFromPath(&szRawFilename);
 	szRadFilename.Kill();
 
-	if (!SetFromText(&cTextParser, pcImage, &szRawFilename))
+	if (!SetFromText(&cTextParser, pImage, &szRawFilename))
 	{
-		pcImage->Kill();
+		pImage->Kill();
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
 		return NULL;
 	}
 
-	pcImage->EndChange();
+	pImage->EndChange();
 
 	if (szRawFilename.Empty())
 	{
-		pcImage->Kill();
+		pImage->Kill();
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
@@ -224,40 +224,40 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	cTextParser.Kill();
 
 	//Get the expected size of the source data.
-	iImageSize = pcImage->GetByteSize();
+	iImageSize = pImage->GetByteSize();
 
 	sFile.Init(DiskFile(szRawFilename.Text()));
 	szRawFilename.Kill();
 	if (!sFile.Open(EFM_Read))
 	{
-		pcImage->Kill();
+		pImage->Kill();
 		sFile.Kill();
 		return NULL;
 	}
 
 	if ((lsize)sFile.Size() != iImageSize)
 	{
-		pcImage->Kill();
+		pImage->Kill();
 		sFile.Close();
 		sFile.Kill();
 		return NULL;
 	}
 
-	if (pcImage->GetChannels()->GetByteSize() != iImageSize)
+	if (pImage->GetChannels()->GetByteSize() != iImageSize)
 	{
-		pcImage->Kill();
+		pImage->Kill();
 		sFile.Close();
 		sFile.Kill();
 		return NULL;
 	}
 
-	sFile.Read(pcImage->GetChannels()->GetData(), iImageSize, 1);
+	sFile.Read(pImage->GetChannels()->GetData(), iImageSize, 1);
 
 	//Close the file
 	sFile.Close();
 	sFile.Kill();
 
-	return pcImage;
+	return pImage;
 }
 
 
@@ -265,7 +265,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
+bool LoadRAW(char *szFilename, Ptr<CImage> pImage)
 {
 	CFileBasic	sFile;
 	lsize		iImageSize;
@@ -278,7 +278,7 @@ bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 		return false;
 	}
 
-	iImageSize = pcImage->GetByteSize();
+	iImageSize = pImage->GetByteSize();
 
 	if ((lsize)sFile.Size() != iImageSize)
 	{
@@ -287,14 +287,14 @@ bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 		return false;
 	}
 
-	if (pcImage->GetChannels()->GetByteSize() != iImageSize)
+	if (pImage->GetChannels()->GetByteSize() != iImageSize)
 	{
 		sFile.Close();
 		sFile.Kill();
 		return false;
 	}
 
-	iResult = sFile.Read(pcImage->GetChannels()->GetData(), iImageSize, 1);
+	iResult = sFile.Read(pImage->GetChannels()->GetData(), iImageSize, 1);
 
 	//Close the file
 	sFile.Close();

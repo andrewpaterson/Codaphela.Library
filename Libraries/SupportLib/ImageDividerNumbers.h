@@ -29,14 +29,14 @@ class CImageDividerNumbers
 {
 friend class CImageDivider;
 public:
-	int iCelWidth;
-	int iCelHeight;
-	int iColumnCount;
-	int iRowCount;
-	int iLeftOffset;
-	int iTopOffset;
-	int iWidthSpacing;
-	int iHeightSpacing;
+	int miCelWidth;
+	int miCelHeight;
+	int miColumnCount;
+	int miRowCount;
+	int miLeftOffset;
+	int miTopOffset;
+	int miWidthSpacing;
+	int miHeightSpacing;
 
 public:
 	void InitGeneral(int iCelWidth, int iCelHeight, int iColumnCount, int iRowCount, int iLeftOffset, int iTopOffset, int iWidthSpacing, int iHeightSpacing);

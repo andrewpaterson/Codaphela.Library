@@ -32,7 +32,7 @@ CONSTRUCTABLE(CImageGreyToRGB);
 DESTRUCTABLE(CImageGreyToRGB);
 public:
 	void			Init(void);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

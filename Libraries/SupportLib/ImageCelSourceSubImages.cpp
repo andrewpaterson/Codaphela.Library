@@ -59,7 +59,7 @@ void CImageCelSourceSubImages::AddSubImage(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceSubImages::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
+void CImageCelSourceSubImages::Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 	CArrayInt32Rect	acRects;
@@ -78,7 +78,7 @@ void CImageCelSourceSubImages::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDes
 
 	cDivider.Init(pcImage, mpsTransparentColour, mbIgnoreEmpty, mbCropTransparentBorders);
 	cDivider.GenerateFromRectangles(&acRects);
-	cDivider.CopyCellsTo(pcDestImageCels);
+	cDivider.CopyCellsTo(pDestImageCels);
 	cDivider.Kill();
 	acRects.Kill();
 
@@ -86,7 +86,7 @@ void CImageCelSourceSubImages::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDes
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSubImage = macSubImages.Get(i);
-		pcCel = (CImageCel*)pcDestImageCels->UnsafeGetObject(i);
+		pcCel = (CImageCel*)pDestImageCels->UnsafeGetObject(i);
 		pcSubImage->AdjustImageRect(pcCel->GetSubImage());
 		pcCel->SetSubImage(pcSubImage);
 	}

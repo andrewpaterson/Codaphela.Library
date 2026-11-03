@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMaterialImage::Init(void)
 {
 	memset(this, 0, sizeof(CMaterialImage));
-	iImageID = -1;
+	miImageID = -1;
 }
 
 
@@ -50,13 +50,13 @@ void CMaterialImage::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMaterialImage::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteSInt(iImageID));
-	ReturnOnFalse(pcFile->WriteSInt(eAddressU));
-	ReturnOnFalse(pcFile->WriteSInt(eAddressV));
-	ReturnOnFalse(pcFile->WriteSInt(eMagFilter));
-	ReturnOnFalse(pcFile->WriteSInt(eMinFilter));
-	ReturnOnFalse(pcFile->WriteSInt(eMipFilter));
-	ReturnOnFalse(pcFile->WriteSInt(eUVSource));
+	ReturnOnFalse(pcFile->WriteSInt(miImageID));
+	ReturnOnFalse(pcFile->WriteSInt(meAddressU));
+	ReturnOnFalse(pcFile->WriteSInt(meAddressV));
+	ReturnOnFalse(pcFile->WriteSInt(meMagFilter));
+	ReturnOnFalse(pcFile->WriteSInt(meMinFilter));
+	ReturnOnFalse(pcFile->WriteSInt(meMipFilter));
+	ReturnOnFalse(pcFile->WriteSInt(meUVSource));
 	return true;
 }
 
@@ -67,13 +67,13 @@ bool CMaterialImage::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMaterialImage::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadSInt(&iImageID));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eAddressU));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eAddressV));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eMagFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eMinFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eMipFilter));
-	ReturnOnFalse(pcFile->ReadSInt((int*)&eUVSource));
+	ReturnOnFalse(pcFile->ReadSInt(&miImageID));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meAddressU));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meAddressV));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meMagFilter));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meMinFilter));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meMipFilter));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meUVSource));
 	return true;
 }
 

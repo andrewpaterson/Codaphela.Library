@@ -42,9 +42,9 @@ void CImageR3G3B2A::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pImage)
 {
-	if (!pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
+	if (!pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		return NULL;
 	}
@@ -56,27 +56,27 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 	size				uiNumTransparent;
 	uint8				uiAlpha;
 
-	Ptr<CImage> pcDest = OMalloc<CImage>();
-	pcDest->BeginChange();
-	pcDest->SetSize(pcImage->GetWidth(), pcImage->GetHeight());
-	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_RED, PT_tribble);
-	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_GREEN, PT_tribble);
-	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_BLUE, PT_crumb);
-	if (pcImage->HasChannel(IMAGE_OPACITY))
+	Ptr<CImage> pDest = OMalloc<CImage>();
+	pDest->BeginChange();
+	pDest->SetSize(pImage->GetWidth(), pImage->GetHeight());
+	pDest->AddChannel(pImage, IMAGE_DIFFUSE_RED, PT_tribble);
+	pDest->AddChannel(pImage, IMAGE_DIFFUSE_GREEN, PT_tribble);
+	pDest->AddChannel(pImage, IMAGE_DIFFUSE_BLUE, PT_crumb);
+	if (pImage->HasChannel(IMAGE_OPACITY))
 	{
-		pcDest->AddChannel(pcImage, IMAGE_OPACITY, PT_uint8);
+		pDest->AddChannel(pImage, IMAGE_OPACITY, PT_uint8);
 	}
-	pcDest->EndChange();
+	pDest->EndChange();
 	
-	CImageCopier::Copy(pcImage, pcDest);
+	CImageCopier::Copy(pImage, pDest);
 
-	if (pcDest->HasChannel(IMAGE_OPACITY))
+	if (pDest->HasChannel(IMAGE_OPACITY))
 	{
 		uiNumOpaque = 0;
 		uiNumTransparent = 0;
 
-		pcAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcImage->GetChannels(), IMAGE_OPACITY);
-		uiNumElements = pcImage->GetPixelSize();
+		pcAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY);
+		uiNumElements = pImage->GetPixelSize();
 		for (i = 0; i < uiNumElements; i++)
 		{
 			uiAlpha = *((uint8*)pcAccessor->Get(i));
@@ -96,12 +96,12 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 
 		if ((uiNumOpaque == uiNumElements) || (uiNumTransparent == uiNumElements))
 		{
-			pcDest->BeginChange();
-			pcDest->RemoveChannel(IMAGE_OPACITY);
-			pcDest->EndChange();
+			pDest->BeginChange();
+			pDest->RemoveChannel(IMAGE_OPACITY);
+			pDest->EndChange();
 		}
 	}
 
-	return pcDest;
+	return pDest;
 }
 

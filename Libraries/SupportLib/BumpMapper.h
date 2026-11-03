@@ -35,7 +35,7 @@ public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 	void			Class(void) override;
 };
 
@@ -48,13 +48,13 @@ public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 	void			Class(void) override;
 };
 
 
 //For testing
-Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcImageSource, EChannel eHeightChannel);
+Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pImageSource, EChannel eHeightChannel);
 
 
 #endif // __BUMP_MAPPER_H__

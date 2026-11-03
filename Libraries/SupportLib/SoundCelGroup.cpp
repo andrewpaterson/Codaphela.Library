@@ -29,11 +29,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 // pcSound is the bank.  It can start with no frames.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundCelGroup::Init(Ptr<CSound> pcSound)
+void CSoundCelGroup::Init(Ptr<CSound> pSound)
 {
 	PreInit();
 
-	mpSound = pcSound;
+	mpSound = pSound;
 	maSoundCels.Init();
 
 	PostInit();
@@ -118,7 +118,7 @@ size CSoundCelGroup::AddCel(lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopF
 // matched by index.  Returns the cel's index, or ARRAY_ELEMENT_NOT_FOUND.
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame)
+size CSoundCelGroup::AddSound(Ptr<CSound> pSound, lsize uiLoopFrame)
 {
 	lsize		uiFirstFrame;
 	lsize		uiNumFrames;
@@ -126,24 +126,24 @@ size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame)
 	float64*	pfSamples;
 	bool		bResult;
 
-	if (pcSound.IsNull() || !pcSound->CanAccessSamples() || !mpSound->CanAccessSamples())
+	if (pSound.IsNull() || !pSound->CanAccessSamples() || !mpSound->CanAccessSamples())
 	{
 		gcLogger.Error2(__METHOD__, " Sound samples cannot be read.", NULL);
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-	if (pcSound->GetSampleRate() != mpSound->GetSampleRate())
+	if (pSound->GetSampleRate() != mpSound->GetSampleRate())
 	{
-		gcLogger.Error2(__METHOD__, " Sound sample rate [", IntToString(pcSound->GetSampleRate()), "] is not the bank's [", IntToString(mpSound->GetSampleRate()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Sound sample rate [", IntToString(pSound->GetSampleRate()), "] is not the bank's [", IntToString(mpSound->GetSampleRate()), "].", NULL);
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-	if (pcSound->NumChannels() != mpSound->NumChannels())
+	if (pSound->NumChannels() != mpSound->NumChannels())
 	{
-		gcLogger.Error2(__METHOD__, " Sound has [", SizeToString(pcSound->NumChannels()), "] channels but the bank has [", SizeToString(mpSound->NumChannels()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Sound has [", SizeToString(pSound->NumChannels()), "] channels but the bank has [", SizeToString(mpSound->NumChannels()), "].", NULL);
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
 	uiFirstFrame = mpSound->GetNumFrames();
-	uiNumFrames = pcSound->GetNumFrames();
+	uiNumFrames = pSound->GetNumFrames();
 	mpSound->BeginChange();
 	mpSound->SetNumFrames(uiFirstFrame + uiNumFrames);
 	if (!mpSound->EndChange() && (uiFirstFrame + uiNumFrames > 0))
@@ -153,9 +153,9 @@ size CSoundCelGroup::AddSound(Ptr<CSound> pcSound, lsize uiLoopFrame)
 
 	bResult = true;
 	pfSamples = (float64*)malloc((lsize)sizeof(float64) * (uiNumFrames + 1));
-	for (uiChannel = 0; uiChannel < pcSound->NumChannels(); uiChannel++)
+	for (uiChannel = 0; uiChannel < pSound->NumChannels(); uiChannel++)
 	{
-		bResult &= pcSound->GetSamples(uiChannel, 0, uiNumFrames, pfSamples);
+		bResult &= pSound->GetSamples(uiChannel, 0, uiNumFrames, pfSamples);
 		bResult &= mpSound->SetSamples(uiChannel, uiFirstFrame, uiNumFrames, pfSamples);
 	}
 	free(pfSamples);

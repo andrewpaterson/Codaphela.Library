@@ -54,18 +54,18 @@ protected:
 public:
 						CPointer();
 						CPointer(CEmbeddedObject* pcObject);
-						CPointer(CPointer& pcPointer);
-						CPointer(const CPointer& pcPointer);
+						CPointer(CPointer& pPointer);
+						CPointer(const CPointer& pPointer);
 						~CPointer();
 
 	void				operator = (CEmbeddedObject* pcObject);
-	void				operator = (CPointer& pcPointer);
-	void				operator = (const CPointer& pcPointer);
+	void				operator = (CPointer& pPointer);
+	void				operator = (const CPointer& pPointer);
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
 	bool				operator ! ();
-	bool				operator == (const CPointer& pcPointer);
-	bool				operator != (const CPointer& pcPointer);
+	bool				operator == (const CPointer& pPointer);
+	bool				operator != (const CPointer& pPointer);
 	bool				operator == (void* pcPointer);
 	bool				operator != (void* pcPointer);
 
@@ -73,8 +73,8 @@ public:
 
 	bool				IsNotNull(void) const;
 	bool				IsNull(void) const;
-	bool				IsNotEqual(CPointer& pcPointer);
-	bool				IsEqual(CPointer& pcPointer);
+	bool				IsNotEqual(CPointer& pPointer);
+	bool				IsEqual(CPointer& pPointer);
 	bool				IsEqual(CEmbeddedObject* pcObject);
 
 	CPointer*			This(void);

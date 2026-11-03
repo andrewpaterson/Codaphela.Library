@@ -37,7 +37,7 @@ public:
 			bool			Save(CObjectWriter* pcFile) override;
 			bool			Load(CObjectReader* pcFile) override;
 
-	virtual Ptr<CSound>		Modify(Ptr<CSound> pcSound) =0;
+	virtual Ptr<CSound>		Modify(Ptr<CSound> pSound) =0;
 };
 
 

@@ -47,7 +47,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 	meSize = eSize;
 	msSize.Init(iWidth, iHeight);
 	meLayout = eLayout;
-	mpcDestImage = NULL;
+	mpDestImage = NULL;
 	meChannels = eChannels;
 	mcSourceCels.Init();
 	maszSourceFileNames.Init();
@@ -102,7 +102,7 @@ void CImageCombiner::Class(void)
 	U_Enum(meSize);
 	U_Enum(meChannels);
 	U_2Int32(msSize);
-	M_Pointer(mpcDestImage);
+	M_Pointer(mpDestImage);
 	M_Embedded(mcSourceCels);
 	U_Data(CArrayChars, maszSourceFileNames);
 	M_Embedded(mcDestCels);
@@ -152,8 +152,8 @@ Ptr<CImage> CImageCombiner::Combine(void)
 			return NULL;
 		}
 
-		mpcDestImage = InitiailiseDestImage(sTextureSize);
-		if (mpcDestImage.IsNull())
+		mpDestImage = InitiailiseDestImage(sTextureSize);
+		if (mpDestImage.IsNull())
 		{
 			acPackedRects.Kill();
 			return NULL;
@@ -163,11 +163,11 @@ Ptr<CImage> CImageCombiner::Combine(void)
 		if (!CreateDestCels(&acPackedRects))
 		{
 			acPackedRects.Kill();
-			mpcDestImage = NULL;
+			mpDestImage = NULL;
 			return NULL;
 		}
 		acPackedRects.Kill();
-		return mpcDestImage;
+		return mpDestImage;
 	}
 	return NULL;
 }
@@ -177,9 +177,9 @@ Ptr<CImage> CImageCombiner::Combine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCel(Ptr<CImageCel> pcCel, char* szFileName)
+void CImageCombiner::AddCel(Ptr<CImageCel> pCel, char* szFileName)
 {
-	mcSourceCels.Add(pcCel);
+	mcSourceCels.Add(pCel);
 	maszSourceFileNames.Add(szFileName ? szFileName : "");
 }
 
@@ -188,21 +188,21 @@ void CImageCombiner::AddCel(Ptr<CImageCel> pcCel, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCels(Ptr<CArrayImageCel> pcCels, CArrayChars* paszFileNames)
+void CImageCombiner::AddCels(Ptr<CArrayImageCel> pCels, CArrayChars* paszFileNames)
 {
 	size	i;
 	size	uiNumCels;
 
-	uiNumCels = pcCels->NumElements();
+	uiNumCels = pCels->NumElements();
 	for (i = 0; i < uiNumCels; i++)
 	{
 		if (paszFileNames && (i < paszFileNames->NumElements()))
 		{
-			AddCel(pcCels->Get(i), paszFileNames->Get(i)->Text());
+			AddCel(pCels->Get(i), paszFileNames->Get(i)->Text());
 		}
 		else
 		{
-			AddCel(pcCels->Get(i));
+			AddCel(pCels->Get(i));
 		}
 	}
 }
@@ -229,22 +229,22 @@ void CImageCombiner::AddChannel(EChannel eChannel, EPrimitiveType eType)
 Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt32Vec2 sSize)
 {
 	bool			bResult; 
-	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pImage;
 
-	pcImage = OMalloc<CImage>();
-	pcImage->BeginChange();
+	pImage = OMalloc<CImage>();
+	pImage->BeginChange();
 
 	if (meChannels != ICC_UserSpecified)
 	{
 		CalculateChannels();
 	}
-	pcImage->AddChannels(&masChannels);
+	pImage->AddChannels(&masChannels);
 
-	pcImage->SetSize(sSize.x, sSize.y);
-	bResult = pcImage->EndChange();
+	pImage->SetSize(sSize.x, sSize.y);
+	bResult = pImage->EndChange();
 	if (bResult)
 	{
-		return pcImage;
+		return pImage;
 	}
 	else
 	{
@@ -293,28 +293,28 @@ void CImageCombiner::CalculateChannels(void)
 void CImageCombiner::CalculateChannelsFromCels(void)
 {
 	SSetIterator	sIter;
-	Ptr<CImageCel>	pcCel;
+	Ptr<CImageCel>	pCel;
 	CArrayChannel	asChannels;
-	Ptr<CImage>		pcLastImage;
+	Ptr<CImage>		pLastImage;
 	bool			bExists;
 
-	pcLastImage = NULL;
-	pcCel = mcSourceCels.StartIteration(&sIter, &bExists);
+	pLastImage = NULL;
+	pCel = mcSourceCels.StartIteration(&sIter, &bExists);
 	while (bExists)
 	{
-		if (pcCel.IsNotNull())
+		if (pCel.IsNotNull())
 		{
-			if (pcCel->GetSourceImage() != pcLastImage)
+			if (pCel->GetSourceImage() != pLastImage)
 			{
 				asChannels.Init();
-				pcCel->GetAllChannels(&asChannels);
+				pCel->GetAllChannels(&asChannels);
 				UpdateChannels(&asChannels);
 				asChannels.Kill();
 
-				pcLastImage = pcCel->GetSourceImage();
+				pLastImage = pCel->GetSourceImage();
 			}
 		}
-		pcCel = mcSourceCels.Iterate(&sIter, &bExists);
+		pCel = mcSourceCels.Iterate(&sIter, &bExists);
 	}
 }
 
@@ -411,24 +411,24 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 {
 	CRectanglePacker*	pcPacker;
 	SSetIterator		sIter;
-	Ptr<CImageCel>		pcCel;
+	Ptr<CImageCel>		pCel;
 	SInt32Vec2				sTextureSize;
 	bool				bExists;
 
 	pcPacker = GetPacker();
 
-	pcCel = mcSourceCels.StartIteration(&sIter, &bExists);
+	pCel = mcSourceCels.StartIteration(&sIter, &bExists);
 	while (bExists)
 	{
-		if (pcCel.IsNotNull())
+		if (pCel.IsNotNull())
 		{
-			if (!pcCel->GetSubImage()->IsImageEmpty())
+			if (!pCel->GetSubImage()->IsImageEmpty())
 			{
-				pcPacker->AddRectangle(&pcCel);
+				pcPacker->AddRectangle(&pCel);
 			}
 		}
 
-		pcCel = mcSourceCels.Iterate(&sIter, &bExists);
+		pCel = mcSourceCels.Iterate(&sIter, &bExists);
 	}
 
 	pcPacker->Pack();
@@ -459,10 +459,10 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 {
-	Ptr<CImageCel>			pcCelDest;
+	Ptr<CImageCel>			pCelDest;
 	size					i;
 	CPackedRectangle*		pcPackedRect;
-	Ptr<CImageCel>			pcCelSource;
+	Ptr<CImageCel>			pCelSource;
 	CMapStringInt			mFileNameCounts;
 	CMapStringInt			mFileNameIndices;
 	CChars					szName;
@@ -476,8 +476,8 @@ bool CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 
 	for (i = 0; i < mcSourceCels.NumElements(); i++)
 	{
-		pcCelSource = mcSourceCels.Get(i);
-		pcPackedRect = GetPackedRectangle(pacPackedRects, pcCelSource);
+		pCelSource = mcSourceCels.Get(i);
+		pcPackedRect = GetPackedRectangle(pacPackedRects, pCelSource);
 
 		szName.Init();
 		if (mbNameCels)
@@ -489,38 +489,38 @@ bool CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 		{
 			if (pcPackedRect)
 			{
-				pcCelDest = OMalloc<CImageCel>(mpcDestImage, pcPackedRect);
+				pCelDest = OMalloc<CImageCel>(mpDestImage, pcPackedRect);
 			}
 			else
 			{
-				pcCelDest = OMalloc<CImageCel>(mpcDestImage, 0, 0, 0, 0);
+				pCelDest = OMalloc<CImageCel>(mpDestImage, 0, 0, 0, 0);
 			}
 		}
 		else
 		{
 			if (pcPackedRect)
 			{
-				pcCelDest = ONMalloc<CImageCel>(szName.Text(), mpcDestImage, pcPackedRect);
+				pCelDest = ONMalloc<CImageCel>(szName.Text(), mpDestImage, pcPackedRect);
 			}
 			else
 			{
-				pcCelDest = ONMalloc<CImageCel>(szName.Text(), mpcDestImage, 0, 0, 0, 0);
+				pCelDest = ONMalloc<CImageCel>(szName.Text(), mpDestImage, 0, 0, 0, 0);
 			}
 		}
 		szName.Kill();
 
 		//ONMalloc fails if an object with the same name already exists.
-		if (pcCelDest.IsNull())
+		if (pCelDest.IsNull())
 		{
 			mFileNameIndices.Kill();
 			mFileNameCounts.Kill();
 			return false;
 		}
-		mcDestCels.Add(pcCelDest);
+		mcDestCels.Add(pCelDest);
 
-		pcCelDest->GetSubImage()->msOffsetTopLeft = pcCelSource->GetSubImage()->msOffsetTopLeft;
-		pcCelDest->GetSubImage()->msOffsetBottomRight = pcCelSource->GetSubImage()->msOffsetBottomRight;
-		pcCelDest->GetSubImage()->msAlignment = pcCelSource->GetSubImage()->msAlignment;
+		pCelDest->GetSubImage()->msOffsetTopLeft = pCelSource->GetSubImage()->msOffsetTopLeft;
+		pCelDest->GetSubImage()->msOffsetBottomRight = pCelSource->GetSubImage()->msOffsetBottomRight;
+		pCelDest->GetSubImage()->msAlignment = pCelSource->GetSubImage()->msAlignment;
 	}
 
 	mFileNameIndices.Kill();
@@ -605,7 +605,7 @@ void CImageCombiner::MakeCelName(CChars* szName, size iSourceIndex, CMapStringIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel)
+CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pSourceCel)
 {
 	CPackedRectangle*		pcPackedRect;
 	CPackedRectangle*		pcFoundPackedRect;
@@ -617,7 +617,7 @@ CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacP
 	for (j = 0; j < uiNumElements; j++)
 	{
 		pcPackedRect = pacPackedRects->Get(j);
-		if ((CImageCel*)pcPackedRect->mpvUserData == &pcSourceCel)
+		if ((CImageCel*)pcPackedRect->mpvUserData == &pSourceCel)
 		{
 			pcFoundPackedRect = pcPackedRect;
 			break;
@@ -638,7 +638,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	CImageCel*				pcCelSource;
 	CImageAccessor*			pcSource;
 	CImageAccessor*			pcDest;
-	Ptr<CImage>				pcLastImage;
+	Ptr<CImage>				pLastImage;
 	CArraySize				aiDestChannels;
 	CArraySize				aiSourceChannels;
 	CArraySize				aiIntersectChannels;
@@ -653,21 +653,21 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	int						iSourceRight;
 	CImageCopier			cCopier;
 
-	mpcDestImage->Black();
+	mpDestImage->Black();
 
 	bDestHasOpacity = false;
-	pcOpacityChannel = mpcDestImage->GetChannel(IMAGE_OPACITY);
+	pcOpacityChannel = mpDestImage->GetChannel(IMAGE_OPACITY);
 	if (pcOpacityChannel)
 	{
 		bDestHasOpacity = true;
-		pcDestOpacity = CImageAccessorCreator::Create(&mpcDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_STOP);
+		pcDestOpacity = CImageAccessorCreator::Create(&mpDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_STOP);
 	}
 	else
 	{
 		pcDestOpacity = NULL;
 	}
 
-	pcLastImage = NULL;
+	pLastImage = NULL;
 	pcDest = CImageAccessorCreator::CreateEmpty();
 	pcSource = CImageAccessorCreator::CreateEmpty();
 	for (i = 0; i < pacPackedRects->NumElements(); i++)
@@ -675,11 +675,11 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 		pcPackedRect = pacPackedRects->Get(i);
 		pcCelSource = (CImageCel*)pcPackedRect->mpvUserData;
 
-		if (pcLastImage != pcCelSource->GetSourceImage())
+		if (pLastImage != pcCelSource->GetSourceImage())
 		{
 			aiDestChannels.Init();
 			aiSourceChannels.Init();
-			mpcDestImage->GetAllChannels(&aiDestChannels);
+			mpDestImage->GetAllChannels(&aiDestChannels);
 			pcCelSource->GetSourceImage()->GetAllChannels(&aiSourceChannels);
 			aiIntersectChannels.Init();
 			aiIntersectChannels.Intersect(&aiDestChannels, &aiSourceChannels);
@@ -687,13 +687,13 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 			aiSourceChannels.Kill();
 
 			pcDest->Kill();
-			pcDest = CImageAccessorCreator::Create(&mpcDestImage, &aiIntersectChannels);
+			pcDest = CImageAccessorCreator::Create(&mpDestImage, &aiIntersectChannels);
 
 			pcSource->Kill();
 			pcSource = CImageAccessorCreator::Create(&pcCelSource->GetSourceImage(), &aiIntersectChannels);
 
 			aiIntersectChannels.Kill();
-			pcLastImage = pcCelSource->GetSourceImage();
+			pLastImage = pcCelSource->GetSourceImage();
 		}
 
 		iDestLeft = pcPackedRect->msTopLeft.x;

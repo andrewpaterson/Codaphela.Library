@@ -33,12 +33,12 @@ void CImageRecolourInvertBlackAndWhite::Init(CInt32Rect* pcRectangle)
 {
 	PreInit();
 
-	cARGB0000.Init(0.0f,0.0f,0.0f,0.0f);
-	cARGB1111.Init(1.0f,1.0f,1.0f,1.0f);
-	cARGB0111.Init(0.0f,1.0f,1.0f,1.0f);
+	mcARGB0000.Init(0.0f,0.0f,0.0f,0.0f);
+	mcARGB1111.Init(1.0f,1.0f,1.0f,1.0f);
+	mcARGB0111.Init(0.0f,1.0f,1.0f,1.0f);
 
-	CImageRecolour::Init(&cARGB0000, &cARGB1111, pcRectangle);
-	AddRecolour(&cARGB0111, &cARGB0000);
+	CImageRecolour::Init(&mcARGB0000, &mcARGB1111, pcRectangle);
+	AddRecolour(&mcARGB0111, &mcARGB0000);
 
 	PostInit();
 }
@@ -51,9 +51,9 @@ void CImageRecolourInvertBlackAndWhite::Init(CInt32Rect* pcRectangle)
 void CImageRecolourInvertBlackAndWhite::Class(void)
 {
 	CImageRecolour::Class();
-	U_Data(CImageColourARGB, cARGB0000);
-	U_Data(CImageColourARGB, cARGB1111);
-	U_Data(CImageColourARGB, cARGB0111);
+	U_Data(CImageColourARGB, mcARGB0000);
+	U_Data(CImageColourARGB, mcARGB1111);
+	U_Data(CImageColourARGB, mcARGB0111);
 }
 
 
@@ -63,6 +63,6 @@ void CImageRecolourInvertBlackAndWhite::Class(void)
 //////////////////////////////////////////////////////////////////////////
 CImageColourARGB* CImageRecolourInvertBlackAndWhite::GetBlack(void)
 {
-	return &cARGB0000;
+	return &mcARGB0000;
 }
 

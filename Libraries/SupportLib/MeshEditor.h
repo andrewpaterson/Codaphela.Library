@@ -37,14 +37,14 @@ class CMeshEditor : public CObject
 CONSTRUCTABLE(CMeshEditor);
 DESTRUCTABLE(CMeshEditor);
 public:
-	Ptr<CMesh>				mpcMesh;
+	Ptr<CMesh>				mpMesh;
 	CMeshModifierStack		mcModifiers;
 
 	CMeshSelections			mcSelections;
 	CMeshEdgeVisibility		mcEdgeVisibility;
 	CMeshPolygons			mcPolygons;
 
-	void	Init(Ptr<CMesh> pcMesh);
+	void	Init(Ptr<CMesh> pMesh);
 	void 	Free(void) override;
 	void	Class(void) override;
 

@@ -36,11 +36,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CRelativeSphereVolume::Init(float32 fVolume)
 {
-	this->fVolume = fVolume;
-	eRelative[0] = RSV_Unknown;
-	eRelative[1] = RSV_Unknown;
-	eRelative[2] = RSV_Unknown;
-	iNewIndex = -1;
+	this->mfVolume = fVolume;
+	meRelative[0] = RSV_Unknown;
+	meRelative[1] = RSV_Unknown;
+	meRelative[2] = RSV_Unknown;
+	miNewIndex = -1;
 }
 
 
@@ -54,7 +54,7 @@ bool CRelativeSphereVolume::IsAllGreaterThan(void)
 
 	for (i = 0; i < 3; i++)
 	{
-		if (!((eRelative[i] == RSV_GreaterThan) || (eRelative[i] == RSV_Unknown)))
+		if (!((meRelative[i] == RSV_GreaterThan) || (meRelative[i] == RSV_Unknown)))
 		{
 			return false;
 		}
@@ -73,7 +73,7 @@ bool CRelativeSphereVolume::IsAllEqual(void)
 
 	for (i = 0; i < 3; i++)
 	{
-		if (!(eRelative[i] == RSV_Equal))
+		if (!(meRelative[i] == RSV_Equal))
 		{
 			return false;
 		}
@@ -96,13 +96,13 @@ bool CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 	iTotal = 0;
 	for (i = 0; i < 3; i++)
 	{
-		if (eRelative[i] != RSV_Unknown)
+		if (meRelative[i] != RSV_Unknown)
 		{
-			if (eRelative[i] == RSV_GreaterThan)
+			if (meRelative[i] == RSV_GreaterThan)
 			{
 				iCount++;
 			}
-			if (eRelative[i] == RSV_LessThan)
+			if (meRelative[i] == RSV_LessThan)
 			{
 				return false;
 			}
@@ -135,13 +135,13 @@ bool CRelativeSphereVolume::IsEqual(int iNumEqual)
 	iTotal = 0;
 	for (i = 0; i < 3; i++)
 	{
-		if (eRelative[i] != RSV_Unknown)
+		if (meRelative[i] != RSV_Unknown)
 		{
-			if (eRelative[i] == RSV_Equal)
+			if (meRelative[i] == RSV_Equal)
 			{
 				iCount++;
 			}
-			if (eRelative[i] == RSV_LessThan)
+			if (meRelative[i] == RSV_LessThan)
 			{
 				return false;
 			}
@@ -330,10 +330,10 @@ void CMeshLeaves::PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn,
 	{
 		if (sAdjFaces.aiFace[j] != -1)
 		{
-			if (pasSpheres[sAdjFaces.aiFace[j]].cRelativeVolume.iNewIndex == -1)
+			if (pasSpheres[sAdjFaces.aiFace[j]].cRelativeVolume.miNewIndex == -1)
 			{
 				psSphereOther = &pasSpheres[sAdjFaces.aiFace[j]];
-				fSmallerVolume = psSphereOther->cRelativeVolume.fVolume;
+				fSmallerVolume = psSphereOther->cRelativeVolume.mfVolume;
 				pcTriangleOther = pcTriangles->mcTriangles.Get(sAdjFaces.aiFace[j]);
 
 				fIntersectionVolume = psSphere->cSphere.IntersectSphereVolume(&psSphereOther->cSphere);
@@ -347,7 +347,7 @@ void CMeshLeaves::PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn,
 					asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangleOther->maiPositions[1]));
 					asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangleOther->maiPositions[2]));
 
-					psSphereOther->cRelativeVolume.iNewIndex = (int)iNewIndex;
+					psSphereOther->cRelativeVolume.miNewIndex = (int)iNewIndex;
 				}
 			}
 		}
@@ -358,7 +358,7 @@ void CMeshLeaves::PrivateAddLeafSphere(size iFaceNum, CMeshConnectivity* pcConn,
 	asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangle->maiPositions[1]));
 	asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangle->maiPositions[2]));
 
-	pasSpheres[iFaceNum].cRelativeVolume.iNewIndex = (int)iNewIndex;
+	pasSpheres[iFaceNum].cRelativeVolume.miNewIndex = (int)iNewIndex;
 
 	psCenter = pcPositions->mcPositions.Add();
 	cNewSphere.Init(psCenter);
@@ -398,14 +398,14 @@ void CMeshLeaves::PrivateAddContainedLeafSpheres(int iCentralFaceNum, int iFaceN
 		{
 			if (sAdjFaces.aiFace[i] != iCentralFaceNum)
 			{
-				if (pasSpheres[sAdjFaces.aiFace[i]].cRelativeVolume.iNewIndex == -1)
+				if (pasSpheres[sAdjFaces.aiFace[i]].cRelativeVolume.miNewIndex == -1)
 				{
 					pcTriangle = pcTriangles->mcTriangles.Get(sAdjFaces.aiFace[i]);
 					pcTriangle->Shape(&cTriangle, pcPositions->mcPositions.GetData(), NULL);
 
 					if (pasSpheres[iCentralFaceNum].cSphere.Contains(&cTriangle))
 					{
-						pasSpheres[sAdjFaces.aiFace[i]].cRelativeVolume.iNewIndex = iSphereIndex;
+						pasSpheres[sAdjFaces.aiFace[i]].cRelativeVolume.miNewIndex = iSphereIndex;
 					}
 				}
 			}
@@ -449,18 +449,18 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 		{
 			if (sAdjFaces.aiFace[j] != -1)
 			{
-				fRelativeVolume = asSpheres[sAdjFaces.aiFace[j]].cRelativeVolume.fVolume / asSpheres[i].cRelativeVolume.fVolume;
+				fRelativeVolume = asSpheres[sAdjFaces.aiFace[j]].cRelativeVolume.mfVolume / asSpheres[i].cRelativeVolume.mfVolume;
 				if (fRelativeVolume < SPHERE_RADIUS_LESS_THAN)
 				{
-					asSpheres[i].cRelativeVolume.eRelative[j] = RSV_GreaterThan;
+					asSpheres[i].cRelativeVolume.meRelative[j] = RSV_GreaterThan;
 				}
 				else if (fRelativeVolume > SPHERE_RADIUS_GREATER_THAN)
 				{
-					asSpheres[i].cRelativeVolume.eRelative[j] = RSV_LessThan;
+					asSpheres[i].cRelativeVolume.meRelative[j] = RSV_LessThan;
 				}
 				else
 				{
-					asSpheres[i].cRelativeVolume.eRelative[j] = RSV_Equal;
+					asSpheres[i].cRelativeVolume.meRelative[j] = RSV_Equal;
 				}
 			}
 		}
@@ -479,7 +479,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			if (psVolume->IsGreaterThanOrEqual(2))
 			{
@@ -490,7 +490,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			if (psVolume->IsGreaterThanOrEqual(1))
 			{
@@ -501,7 +501,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			if (psVolume->IsAllEqual())
 			{
@@ -512,7 +512,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			if (psVolume->IsEqual(2))
 			{
@@ -523,7 +523,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			if (psVolume->IsEqual(1))
 			{
@@ -534,7 +534,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;
-		if (psVolume->iNewIndex == -1)
+		if (psVolume->miNewIndex == -1)
 		{
 			PrivateAddLeafSphere(i, pcConn, pcTriangles, pcPositions, asSpheres);
 		}

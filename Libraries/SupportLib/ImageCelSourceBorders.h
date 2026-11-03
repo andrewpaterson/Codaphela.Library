@@ -30,7 +30,7 @@ CONSTRUCTABLE(CImageCelSourceBorders);
 public:
 	void Init(SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void Kill(void);
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask);
+	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask);
 	bool NeedsMask(void);
 };
 

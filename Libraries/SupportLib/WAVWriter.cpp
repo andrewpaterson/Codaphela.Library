@@ -33,7 +33,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EWAVSampleFormat WAVGetDefaultFormat(Ptr<CSound> pcSound)
+EWAVSampleFormat WAVGetDefaultFormat(Ptr<CSound> pSound)
 {
 	size		uiIndex;
 	CChannel*	pcChannel;
@@ -45,9 +45,9 @@ EWAVSampleFormat WAVGetDefaultFormat(Ptr<CSound> pcSound)
 	uiBits = 0;
 	bFloat32 = false;
 	bFloat64 = false;
-	for (uiIndex = 0; uiIndex < pcSound->NumChannels(); uiIndex++)
+	for (uiIndex = 0; uiIndex < pSound->NumChannels(); uiIndex++)
 	{
-		pcChannel = pcSound->GetChannelAtIndex(uiIndex);
+		pcChannel = pSound->GetChannelAtIndex(uiIndex);
 		if (pcChannel->iChannel == SOUND_IGNORED)
 		{
 			continue;
@@ -86,7 +86,7 @@ EWAVSampleFormat WAVGetDefaultFormat(Ptr<CSound> pcSound)
 // unknown channels follow in the order they are in the sound.
 //
 //////////////////////////////////////////////////////////////////////////
-size WAVGetChannelOrder(Ptr<CSound> pcSound, size* puiOrder, uint32* puiMask)
+size WAVGetChannelOrder(Ptr<CSound> pSound, size* puiOrder, uint32* puiMask)
 {
 	size		uiNumChannels;
 	size		uiIndex;
@@ -97,13 +97,13 @@ size WAVGetChannelOrder(Ptr<CSound> pcSound, size* puiOrder, uint32* puiMask)
 	CChannel*	pcChannel;
 	uint32		uiBit;
 
-	uiNumChannels = pcSound->NumChannels();
+	uiNumChannels = pSound->NumChannels();
 	puiKeys = (size*)malloc((lsize)sizeof(size) * (uiNumChannels + 1));
 	uiNumWritten = 0;
 	*puiMask = 0;
 	for (uiIndex = 0; uiIndex < uiNumChannels; uiIndex++)
 	{
-		pcChannel = pcSound->GetChannelAtIndex(uiIndex);
+		pcChannel = pSound->GetChannelAtIndex(uiIndex);
 		if (pcChannel->iChannel == SOUND_IGNORED)
 		{
 			continue;
@@ -194,7 +194,7 @@ void WAVPutSample(uint8* puiDest, EWAVSampleFormat eFormat, float64 fSample)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels, uint32 uiMask, EWAVSampleFormat eFormat, uint16 uiBitsPerSample, lsize uiDataSize)
+bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pSound, size uiNumChannels, uint32 uiMask, EWAVSampleFormat eFormat, uint16 uiBitsPerSample, lsize uiDataSize)
 {
 	bool		bFloat;
 	bool		bExtensible;
@@ -206,7 +206,7 @@ bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels
 
 	bFloat = (eFormat == WSF_Float32) || (eFormat == WSF_Float64);
 	uiBlockAlign = (uint16)(uiNumChannels * (uiBitsPerSample / 8));
-	uiNumFrames = pcSound->GetNumFrames();
+	uiNumFrames = pSound->GetNumFrames();
 
 	//The channel mask is needed when the channels aren't the default mono or stereo.
 	bExtensible = (uiNumChannels > 2) || (uiBitsPerSample > 16) || bFloat || (uiMask != GetWAVDefaultChannelMask(uiNumChannels));
@@ -226,8 +226,8 @@ bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels
 				pcFile->WriteLittleEndianInt32(uiFmtSize) &&
 				pcFile->WriteLittleEndianInt16((uint16)(bExtensible ? WAV_FORMAT_EXTENSIBLE : WAV_FORMAT_PCM)) &&
 				pcFile->WriteLittleEndianInt16((uint16)uiNumChannels) &&
-				pcFile->WriteLittleEndianInt32(pcSound->GetSampleRate()) &&
-				pcFile->WriteLittleEndianInt32((uint32)(pcSound->GetSampleRate() * uiBlockAlign)) &&
+				pcFile->WriteLittleEndianInt32(pSound->GetSampleRate()) &&
+				pcFile->WriteLittleEndianInt32((uint32)(pSound->GetSampleRate() * uiBlockAlign)) &&
 				pcFile->WriteLittleEndianInt16(uiBlockAlign) &&
 				pcFile->WriteLittleEndianInt16(uiBitsPerSample);
 
@@ -260,7 +260,7 @@ bool WAVWriteHeaders(CFileBasic* pcFile, Ptr<CSound> pcSound, size uiNumChannels
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
+bool SaveWAV(Ptr<CSound> pSound, char* szPathName, EWAVSampleFormat eFormat)
 {
 	size*		puiOrder;
 	size		uiNumChannels;
@@ -282,19 +282,19 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 	bool		bResult;
 	uint8		uiPad;
 
-	if (pcSound.IsNull())
+	if (pSound.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write NULL sound [", szPathName, "].", NULL);
 		return false;
 	}
-	if (!pcSound->CanAccessSamples() || (pcSound->GetSampleRate() == 0))
+	if (!pSound->CanAccessSamples() || (pSound->GetSampleRate() == 0))
 	{
 		gcLogger.Error2(__METHOD__, " Sound samples cannot be read.  Cannot write [", szPathName, "].", NULL);
 		return false;
 	}
 
-	puiOrder = (size*)malloc((lsize)sizeof(size) * (pcSound->NumChannels() + 1));
-	uiNumChannels = WAVGetChannelOrder(pcSound, puiOrder, &uiMask);
+	puiOrder = (size*)malloc((lsize)sizeof(size) * (pSound->NumChannels() + 1));
+	uiNumChannels = WAVGetChannelOrder(pSound, puiOrder, &uiMask);
 	if ((uiNumChannels == 0) || (uiNumChannels > 0xFFFF))
 	{
 		free(puiOrder);
@@ -304,7 +304,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 
 	if (eFormat == WSF_Default)
 	{
-		eFormat = WAVGetDefaultFormat(pcSound);
+		eFormat = WAVGetDefaultFormat(pSound);
 	}
 	switch (eFormat)
 	{
@@ -327,7 +327,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 
 	uiBytesPerSample = uiBitsPerSample / 8;
 	uiBlockAlign = uiNumChannels * uiBytesPerSample;
-	uiNumFrames = pcSound->GetNumFrames();
+	uiNumFrames = pSound->GetNumFrames();
 	ulliDataSize = (uint64)uiNumFrames * (uint64)uiBlockAlign;
 	if ((uiBlockAlign > 0xFFFF) || (ulliDataSize > 0xFFFFFF00))
 	{
@@ -348,7 +348,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 		}
 		for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 		{
-			pcSound->GetSamples(puiOrder[uiChannel], uiFirst, uiCount, pfBlock);
+			pSound->GetSamples(puiOrder[uiChannel], uiFirst, uiCount, pfBlock);
 			puiDest = &puiData[(lsize)uiFirst * uiBlockAlign + uiChannel * uiBytesPerSample];
 			for (uiFrame = 0; uiFrame < uiCount; uiFrame++)
 			{
@@ -365,7 +365,7 @@ bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat)
 	bResult = cFile.Open(EFM_Write_Create);
 	if (bResult)
 	{
-		bResult = WAVWriteHeaders(&cFile, pcSound, uiNumChannels, uiMask, eFormat, uiBitsPerSample, uiDataSize) && cFile.WriteData(puiData, uiDataSize);
+		bResult = WAVWriteHeaders(&cFile, pSound, uiNumChannels, uiMask, eFormat, uiBitsPerSample, uiDataSize) && cFile.WriteData(puiData, uiDataSize);
 		if (bResult && (uiDataSize & 1))
 		{
 			bResult = cFile.WriteData(&uiPad, 1);

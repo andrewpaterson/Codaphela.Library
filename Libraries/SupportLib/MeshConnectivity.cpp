@@ -198,14 +198,14 @@ CMFRet CMeshConnectivity::AddFace(int iCorner1, int iCorner2, int iCorner3)
 	pcFace = AddFace();
 	pcFace->Init(iCorner1, iCorner2, iCorner3);
 
-	pcCorner = mcCorners.Get(pcFace->asCorner[0]);
-	pcCorner->aiFace.Add(iFaceNum);
+	pcCorner = mcCorners.Get(pcFace->maiCorner[0]);
+	pcCorner->maiFace.Add(iFaceNum);
 
-	pcCorner = mcCorners.Get(pcFace->asCorner[1]);
-	pcCorner->aiFace.Add(iFaceNum);
+	pcCorner = mcCorners.Get(pcFace->maiCorner[1]);
+	pcCorner->maiFace.Add(iFaceNum);
 
-	pcCorner = mcCorners.Get(pcFace->asCorner[2]);
-	pcCorner->aiFace.Add(iFaceNum);
+	pcCorner = mcCorners.Get(pcFace->maiCorner[2]);
+	pcCorner->maiFace.Add(iFaceNum);
 
 	iNewEdges = GenerateEdgeConnectivity(pcFace, iFaceNum);
 
@@ -390,17 +390,17 @@ SAdjFaces CMeshConnectivity::GetAdjacentFaces(int iFaceNum)
 	for (i = 0; i < NUM_FACE_EDGES; i++)
 	{
 		iAdjFaceNum = -1;
-		iEdgeIndex = psFace->asEdge[i];
+		iEdgeIndex = psFace->maiEdge[i];
 		if (iEdgeIndex != -1)
 		{
 			psEdge = mcEdges.Get(iEdgeIndex);
-			if ((psEdge->aiFace[0] != iFaceNum) && (psEdge->aiFace[0] != -1))
+			if ((psEdge->maiFace[0] != iFaceNum) && (psEdge->maiFace[0] != -1))
 			{
-				iAdjFaceNum = psEdge->aiFace[0];
+				iAdjFaceNum = psEdge->maiFace[0];
 			}
-			else if ((psEdge->aiFace[1] != iFaceNum) && (psEdge->aiFace[1] != -1))
+			else if ((psEdge->maiFace[1] != iFaceNum) && (psEdge->maiFace[1] != -1))
 			{
-				iAdjFaceNum = psEdge->aiFace[1];
+				iAdjFaceNum = psEdge->maiFace[1];
 			}
 		}
 		sAdjFaces.aiFace[i] = iAdjFaceNum;
@@ -480,8 +480,8 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	CCornerEdgesMap*	pcCornerEdgesMap;
 	int					iAddedEdges;
 
-	iCornerSmall = pcFace->asCorner[iC1];
-	iCornerLarger = pcFace->asCorner[iC2];
+	iCornerSmall = pcFace->maiCorner[iC1];
+	iCornerLarger = pcFace->maiCorner[iC2];
 	if (iCornerSmall > iCornerLarger)
 	{
 		SwapInt(&iCornerSmall, &iCornerLarger);
@@ -505,17 +505,17 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	}
 
 	pcCornerSmall = mcCorners.Get(iCornerSmall);
-	pcCornerSmall->aiEdge.AddIfUnique(iEdgeIndex);
+	pcCornerSmall->maiEdge.AddIfUnique(iEdgeIndex);
 
 	pcCornerLarger = mcCorners.Get(iCornerLarger);
-	pcCornerLarger->aiEdge.AddIfUnique(iEdgeIndex);
+	pcCornerLarger->maiEdge.AddIfUnique(iEdgeIndex);
 
 	pcEdge->AddFace(iFaceNum);
-	pcFace->asEdge[iE] = iEdgeIndex;
+	pcFace->maiEdge[iE] = iEdgeIndex;
 
 	//This will sometimes be re-assigned to the same value.
-	pcEdge->aiCorner[0] = iCornerSmall;
-	pcEdge->aiCorner[1] = iCornerLarger;
+	pcEdge->maiCorner[0] = iCornerSmall;
+	pcEdge->maiCorner[1] = iCornerLarger;
 
 	return iAddedEdges;
 }
@@ -538,13 +538,13 @@ void CMeshConnectivity::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* p
 		iFaceIndex = paiSourceFaces->GetValue(i);
 		pcFace = mcFaces.Get(iFaceIndex);
 
-		*paiDest = pcFace->asCorner[0];
+		*paiDest = pcFace->maiCorner[0];
 		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 
-		*paiDest = pcFace->asCorner[1];
+		*paiDest = pcFace->maiCorner[1];
 		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 
-		*paiDest = pcFace->asCorner[2];
+		*paiDest = pcFace->maiCorner[2];
 		paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 	}
 }

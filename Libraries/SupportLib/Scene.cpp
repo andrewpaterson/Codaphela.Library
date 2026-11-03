@@ -33,7 +33,7 @@ int giSceneID = 0;
 //////////////////////////////////////////////////////////////////////////
 void CScene::Init(void)
 {
-	iUniqueID = giSceneID;
+	miUniqueID = giSceneID;
 	giSceneID++;
 }
 

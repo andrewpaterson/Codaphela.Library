@@ -95,7 +95,7 @@ void CImageRecolour::AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pImage)
 {
 	CImageAccessor*		pcAccessorOld;
 	CImageAccessor*		pcAccessorNew;
@@ -110,7 +110,7 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 
 	if (mbWholeImage)
 	{
-		mcRectangle.Init(0, 0, pcImage->GetWidth(), pcImage->GetHeight());
+		mcRectangle.Init(0, 0, pImage->GetWidth(), pImage->GetHeight());
 	}
 
 	for (i = 0; i < macOldColour.NumElements(); i++)
@@ -118,11 +118,11 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 		pcColourOld = (CImageColour*)macOldColour.Get(i);
 		pcColourNew = (CImageColour*)macNewColour.Get(i);
 
-		pcAccessorOld = CImageAccessorCreator::Create(&pcImage, pcColourOld);
+		pcAccessorOld = CImageAccessorCreator::Create(&pImage, pcColourOld);
 		sColourOld[0].Zero();
 		pcAccessorOld->MakeColour(sColourOld, pcColourOld);
 
-		pcAccessorNew = CImageAccessorCreator::Create(&pcImage, pcColourNew);
+		pcAccessorNew = CImageAccessorCreator::Create(&pImage, pcColourNew);
 		sColourNew[0].Zero();
 		pcAccessorNew->MakeColour(sColourNew, pcColourNew);
 
@@ -141,6 +141,6 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 		pcAccessorOld->Kill();
 	}
 
-	return pcImage;
+	return pImage;
 }
 

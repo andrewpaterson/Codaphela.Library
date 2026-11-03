@@ -73,7 +73,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 		iIndex = maiVisible.GetValue(i);
 		psOther = GetPosition(psPoints, iStride, iIndex);
 
-		fDist = Float32Vec3Dot(mpsNormal, psOther)-d;
+		fDist = Float32Vec3Dot(mpsNormal, psOther)-mfDistance;
 		if ((fDist > fMaxDist) || ((iFarIndex == -1) && fDist == 0.0f))
 		{
 			fMaxDist = fDist;
@@ -90,7 +90,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 //////////////////////////////////////////////////////////////////////////
 bool CExtremeTriangle::NotContains(SFloat32Vec3* psPosition)
 {
-	return Float32Vec3Dot(mpsNormal, psPosition) > d;
+	return Float32Vec3Dot(mpsNormal, psPosition) > mfDistance;
 }
 
 
@@ -104,8 +104,8 @@ void CConvexHullGenerator::Init(SFloat32Vec3* psPoints, int iStride, size iNumPo
 	mcNormals.Init(512, sizeof(SFloat32Vec3));
 	mcTriangles.Init(512, sizeof(CExtremeTriangle));
 	mpsPoints = psPoints;
-	this->iStride = iStride;
-	this->iNumPoints = iNumPoints;
+	this->miStride = iStride;
+	this->miNumPoints = iNumPoints;
 	mszHullName = szHullName;
 }
 
@@ -143,17 +143,17 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 	CExtremeTriangle*			pcTriangleDown;
 	SFloat32Vec3*					psPosition;
 
-	pcTriangleUp = AddTriangle(GetPosition(mpsPoints, iStride, iMaxXIndex), 
-		GetPosition(mpsPoints, iStride, iMinXIndex), 
-		GetPosition(mpsPoints, iStride, iFarIndex));
+	pcTriangleUp = AddTriangle(GetPosition(mpsPoints, miStride, iMaxXIndex), 
+		GetPosition(mpsPoints, miStride, iMinXIndex), 
+		GetPosition(mpsPoints, miStride, iFarIndex));
 
-	pcTriangleDown = AddTriangle(GetPosition(mpsPoints, iStride, iMaxXIndex), 
-		GetPosition(mpsPoints, iStride, iFarIndex), 
-		GetPosition(mpsPoints, iStride, iMinXIndex));
+	pcTriangleDown = AddTriangle(GetPosition(mpsPoints, miStride, iMaxXIndex), 
+		GetPosition(mpsPoints, miStride, iFarIndex), 
+		GetPosition(mpsPoints, miStride, iMinXIndex));
 
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < miNumPoints; i++)
 	{
-		psPosition = GetPosition(mpsPoints, iStride, i);
+		psPosition = GetPosition(mpsPoints, miStride, i);
 		if (((int)i != iMaxXIndex) && ((int)i != iMinXIndex) && ((int)i != iFarIndex))
 		{
 			if (!pcTriangleUp->Contains(psPosition))
@@ -201,7 +201,7 @@ void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, 
 			iIndex = pcOther->maiVisible.GetValue(j);
 			if (iIndex != iDontAdd)
 			{
-				psPosition = GetPosition(mpsPoints, iStride, iIndex);
+				psPosition = GetPosition(mpsPoints, miStride, iIndex);
 				if (pcTriangle->NotContains(psPosition))
 				{
 					pcTriangle->maiVisible.InsertIntoSorted(iIndex, true);
@@ -270,7 +270,7 @@ bool CConvexHullGenerator::Generate(void)
 			continue;
 		}
 
-		iFarIndex = pcSelected->FindFurthestPoint(mpsPoints, (int)iStride);
+		iFarIndex = pcSelected->FindFurthestPoint(mpsPoints, (int)miStride);
 		if (iFarIndex == -1)
 		{
 			gcUserError.Set("Could not find furthest point!");
@@ -279,7 +279,7 @@ bool CConvexHullGenerator::Generate(void)
 
 		cDeleted.FakeSetUsedElements(0);  //It's sort of safe to do this.
 
-		psPosition = GetPosition(mpsPoints, iStride, iFarIndex);
+		psPosition = GetPosition(mpsPoints, miStride, iFarIndex);
 		pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 		while (pcTriangle)
 		{
@@ -302,9 +302,9 @@ bool CConvexHullGenerator::Generate(void)
 
 			for (k = 0; k < sEdges.iNumEdges; k++)
 			{
-				pcTriangle = AddTriangle(GetPosition(mpsPoints, iStride, sEdges.aaiEdgeIndices[k][0]),
-					GetPosition(mpsPoints, iStride, sEdges.aaiEdgeIndices[k][1]),
-					GetPosition(mpsPoints, iStride, iFarIndex));
+				pcTriangle = AddTriangle(GetPosition(mpsPoints, miStride, sEdges.aaiEdgeIndices[k][0]),
+					GetPosition(mpsPoints, miStride, sEdges.aaiEdgeIndices[k][1]),
+					GetPosition(mpsPoints, miStride, iFarIndex));
 
 				apcTriangles.Add(pcTriangle);
 				AddPointsFromTriangles(pcTriangle, &cDeleted, iFarIndex);
@@ -393,8 +393,8 @@ void CConvexHullGenerator::RemoveSlivers(void)
 		iNumSlivers = (int)pcTriangle->IsSliver(Deg2Rad(1.0f), &ps0, &ps1, &ps2);
 		if (iNumSlivers == 2)
 		{
-			iIndex0 = GetIndex(mpsPoints, iStride, ps0);
-			iIndex2 = GetIndex(mpsPoints, iStride, ps2);
+			iIndex0 = GetIndex(mpsPoints, miStride, ps0);
+			iIndex2 = GetIndex(mpsPoints, miStride, ps2);
 			
 			pcTriangleToRemove = FindAdjacentTriangle(pcTriangle, iIndex0, iIndex2);
 
@@ -407,9 +407,9 @@ void CConvexHullGenerator::RemoveSlivers(void)
 		}
 		else if (iNumSlivers == 1)
 		{
-			//iIndex0 = GetIndex(mpsPoints, iStride, ps0);
-			//iIndex1 = GetIndex(mpsPoints, iStride, ps1);
-			//iIndex2 = GetIndex(mpsPoints, iStride, ps2);
+			//iIndex0 = GetIndex(mpsPoints, miStride, ps0);
+			//iIndex1 = GetIndex(mpsPoints, miStride, ps1);
+			//iIndex2 = GetIndex(mpsPoints, miStride, ps2);
 
 			//pcTriangleToRemove = FindAdjacentTriangle(pcTriangle, iIndex0, iIndex1);
 
@@ -435,19 +435,19 @@ void CConvexHullGenerator::MoveTrianglesPointFrom(int iOldIndex, int iNewIndex)
 	CExtremeTriangle*			pcTriangle;
 	SFloat32Vec3*					psNewPosition;
 
-	psNewPosition = GetPosition(mpsPoints, iStride, iNewIndex);
+	psNewPosition = GetPosition(mpsPoints, miStride, iNewIndex);
 	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
-		if (GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition) == iOldIndex)
+		if (GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition) == iOldIndex)
 		{
 			pcTriangle->mpsPosition = psNewPosition;
 		}
-		if (GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition1) == iOldIndex)
+		if (GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition1) == iOldIndex)
 		{
 			pcTriangle->mpsPosition1 = psNewPosition;
 		}
-		if (GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition2) == iOldIndex)
+		if (GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition2) == iOldIndex)
 		{
 			pcTriangle->mpsPosition2 = psNewPosition;
 		}
@@ -569,9 +569,9 @@ void CConvexHullGenerator::FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTrian
 	int							iIndex[3];
 	bool						bAnyHasEdge;
 
-	iIndex[0] = GetIndex(mpsPoints, iStride, pcTriangleWithEdges->mpsPosition);
-	iIndex[1] = GetIndex(mpsPoints, iStride, pcTriangleWithEdges->mpsPosition1);
-	iIndex[2] = GetIndex(mpsPoints, iStride, pcTriangleWithEdges->mpsPosition2);
+	iIndex[0] = GetIndex(mpsPoints, miStride, pcTriangleWithEdges->mpsPosition);
+	iIndex[1] = GetIndex(mpsPoints, miStride, pcTriangleWithEdges->mpsPosition1);
+	iIndex[2] = GetIndex(mpsPoints, miStride, pcTriangleWithEdges->mpsPosition2);
 
 	psEdges->iNumEdges = 0;
 
@@ -635,9 +635,9 @@ bool CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTrian
 {
 	int		iOther[3];
 
-	iOther[0] = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition);
-	iOther[1] = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition1);
-	iOther[2] = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition2);
+	iOther[0] = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition);
+	iOther[1] = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition1);
+	iOther[2] = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition2);
 
 	if ((((iEdge1 == iOther[0]) && (iEdge2 == iOther[1])) || ((iEdge1 == iOther[1]) && (iEdge2 == iOther[0]))) ||
 		(((iEdge1 == iOther[1]) && (iEdge2 == iOther[2])) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[1]))) ||
@@ -657,9 +657,9 @@ bool CConvexHullGenerator::TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtr
 {
 	int							iIndex[3];
 
-	iIndex[0] = GetIndex(mpsPoints, iStride, pcTriangle1->mpsPosition);
-	iIndex[1] = GetIndex(mpsPoints, iStride, pcTriangle1->mpsPosition1);
-	iIndex[2] = GetIndex(mpsPoints, iStride, pcTriangle1->mpsPosition2);
+	iIndex[0] = GetIndex(mpsPoints, miStride, pcTriangle1->mpsPosition);
+	iIndex[1] = GetIndex(mpsPoints, miStride, pcTriangle1->mpsPosition1);
+	iIndex[2] = GetIndex(mpsPoints, miStride, pcTriangle1->mpsPosition2);
 
 	if (TriangleHasEdge(iIndex[0], iIndex[1], pcTriangle2))
 	{
@@ -706,8 +706,8 @@ int CConvexHullGenerator::FindFurthestPoint(int iMaxXIndex, int iMinXIndex)
 	CHalfSpaceHelper	cHalfSpace;
 
 	cHalfSpace.Init();
-	cHalfSpace.SetZPlane(GetPosition(mpsPoints, iStride, iMaxXIndex), GetPosition(mpsPoints, iStride, iMinXIndex));
-	return cHalfSpace.FindUnsignedFurthestPoint(mpsPoints, (int)iStride, (int)iNumPoints);
+	cHalfSpace.SetZPlane(GetPosition(mpsPoints, miStride, iMaxXIndex), GetPosition(mpsPoints, miStride, iMinXIndex));
+	return cHalfSpace.FindUnsignedFurthestPoint(mpsPoints, (int)miStride, (int)miNumPoints);
 }
 
 
@@ -724,9 +724,9 @@ int CConvexHullGenerator::FindMaxX(float32* px)
 
 	iIndex = -1;
 	x = 0;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < miNumPoints; i++)
 	{
-		psPosition = GetPosition(mpsPoints, iStride, i);
+		psPosition = GetPosition(mpsPoints, miStride, i);
 		if ((i == 0) || (psPosition->x > x))
 		{
 			x = psPosition->x;
@@ -752,9 +752,9 @@ int CConvexHullGenerator::FindMinX(float32* px)
 
 	iIndex = -1;
 	x = 0;
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < miNumPoints; i++)
 	{
-		psPosition = GetPosition(mpsPoints, iStride, i);
+		psPosition = GetPosition(mpsPoints, miStride, i);
 		if ((i == 0) || (psPosition->x < x))
 		{
 			x = psPosition->x;
@@ -838,10 +838,10 @@ void CConvexHullGenerator::DumpTriangleObj(CLargeChars* psz, int iLoop)
 	SFreeListIterator	sIter;
 	int					iIndex3;
 
-	for (i = 0; i < iNumPoints; i++)
+	for (i = 0; i < miNumPoints; i++)
 	{
 		psz->Append("v  ");
-		psPosition = GetPosition(mpsPoints, iStride, i);
+		psPosition = GetPosition(mpsPoints, miStride, i);
 		psz->Append(psPosition->x, 4);
 		psz->Append(" ");
 		psz->Append(psPosition->y, 4);
@@ -858,9 +858,9 @@ void CConvexHullGenerator::DumpTriangleObj(CLargeChars* psz, int iLoop)
 	while (pcTriangle)
 	{
 		psz->Append("f ");
-		iIndex1 = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition)+1;
-		iIndex2 = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition1)+1;
-		iIndex3 = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition2)+1;
+		iIndex1 = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition)+1;
+		iIndex2 = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition1)+1;
+		iIndex3 = GetIndex(mpsPoints, miStride, pcTriangle->mpsPosition2)+1;
 
 		psz->Append(iIndex1);
 		psz->Append(" ");

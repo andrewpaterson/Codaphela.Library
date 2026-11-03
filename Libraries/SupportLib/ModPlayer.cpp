@@ -258,44 +258,44 @@ int CModPlayer::GetArpeggioPeriod(int iPeriod, int iFineTune, int iSemitones)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolation eInterpolation, float64 fStereoSeparation)
+void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolation eInterpolation, float64 fStereoSeparation)
 {
 	size			uiChannel;
 	size			uiNumChannels;
-	Ptr<CSound>		pcBank;
+	Ptr<CSound>		pBank;
 	lsize			uiBankFrames;
 	lsize			uiFrame;
 	float64			fSample;
 	CChannel*		pcChannel;
 	SModChannel*	psChannel;
 
-	mpSong = pcSong;
+	mpSong = pSong;
 	muiSampleRate = uiSampleRate;
 	meInterpolation = eInterpolation;
 	mfStereoSeparation = fStereoSeparation;
 
 	//Half the channels are on each side, so this keeps each side in -1 to 1.
-	uiNumChannels = pcSong->NumChannels();
+	uiNumChannels = pSong->NumChannels();
 	mfGain = 2.0 / (float64)(uiNumChannels < 2 ? 2 : uiNumChannels);
 
 	//A MOD's 8 bit mono samples are mixed from the bank itself; other banks are copied as 16 bit samples.
 	mpiBank8 = NULL;
 	mpiBank16 = NULL;
-	if (pcSong->GetSampleBank().IsNotNull())
+	if (pSong->GetSampleBank().IsNotNull())
 	{
-		pcBank = pcSong->GetSampleBank()->GetSound();
-		uiBankFrames = pcBank->GetNumFrames();
-		pcChannel = pcBank->GetChannelAtIndex(0);
-		if ((pcChannel != NULL) && (pcChannel->eType == PT_int8) && pcChannel->Is8BitAligned() && (pcBank->GetFrameByteStride() == 1))
+		pBank = pSong->GetSampleBank()->GetSound();
+		uiBankFrames = pBank->GetNumFrames();
+		pcChannel = pBank->GetChannelAtIndex(0);
+		if ((pcChannel != NULL) && (pcChannel->eType == PT_int8) && pcChannel->Is8BitAligned() && (pBank->GetFrameByteStride() == 1))
 		{
-			mpiBank8 = (int8*)pcBank->GetData() + pcChannel->miByteOffset;
+			mpiBank8 = (int8*)pBank->GetData() + pcChannel->miByteOffset;
 		}
 		else
 		{
 			mpiBank16 = (int16*)malloc((lsize)sizeof(int16) * (uiBankFrames + 1));
 			for (uiFrame = 0; uiFrame < uiBankFrames; uiFrame++)
 			{
-				fSample = pcBank->GetSample(uiFrame, 0) * 32768.0;
+				fSample = pBank->GetSample(uiFrame, 0) * 32768.0;
 				fSample = (fSample > 32767.0) ? 32767.0 : ((fSample < -32768.0) ? -32768.0 : fSample);
 				mpiBank16[uiFrame] = (int16)fSample;
 			}
@@ -329,7 +329,7 @@ void CModPlayer::Init(Ptr<CModSong> pcSong, uint32 uiSampleRate, EModInterpolati
 	muiJumpOrder = 0;
 	mbLoopJump = false;
 	muiLoopRow = 0;
-	mbFinished = pcSong->GetSongLength() == 0;
+	mbFinished = pSong->GetSongLength() == 0;
 	mbStarted = false;
 	mpuiPlayedRows = (uint8*)malloc(MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
 	memset(mpuiPlayedRows, 0, MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
@@ -502,7 +502,7 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 	float64*	pfChannel;
 	lsize		i;
 	size		c;
-	Ptr<CSound>	pcSound;
+	Ptr<CSound>	pSound;
 
 	if (uiMaxFrames == 0)
 	{
@@ -528,7 +528,7 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 		}
 	}
 
-	pcSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
+	pSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
 	pfChannel = (float64*)malloc((lsize)sizeof(float64) * (uiFrames + 1));
 	for (c = 0; c < 2; c++)
 	{
@@ -536,11 +536,11 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 		{
 			pfChannel[i] = pfStereo[i * 2 + c];
 		}
-		pcSound->SetSamples(c, 0, uiFrames, pfChannel);
+		pSound->SetSamples(c, 0, uiFrames, pfChannel);
 	}
 	free(pfChannel);
 	free(pfStereo);
-	return pcSound;
+	return pSound;
 }
 
 
@@ -929,10 +929,10 @@ void CModPlayer::SetSample(SModChannel* psChannel, size uiSample)
 //////////////////////////////////////////////////////////////////////////
 void CModPlayer::StartSample(SModChannel* psChannel, lsize uiOffset)
 {
-	Ptr<CSoundCel>	pcCel;
+	Ptr<CSoundCel>	pCel;
 
-	pcCel = mpSong->GetSampleCel(psChannel->uiSample);
-	if (pcCel.IsNull() || ((mpiBank8 == NULL) && (mpiBank16 == NULL)) || (pcCel->GetNumFrames() == 0))
+	pCel = mpSong->GetSampleCel(psChannel->uiSample);
+	if (pCel.IsNull() || ((mpiBank8 == NULL) && (mpiBank16 == NULL)) || (pCel->GetNumFrames() == 0))
 	{
 		psChannel->bPlaying = false;
 		psChannel->bHasData = false;
@@ -940,9 +940,9 @@ void CModPlayer::StartSample(SModChannel* psChannel, lsize uiOffset)
 	}
 
 	psChannel->bHasData = true;
-	psChannel->uiFirstFrame = pcCel->GetFirstFrame();
-	psChannel->uiLength = pcCel->GetNumFrames();
-	psChannel->uiLoopFrame = pcCel->GetLoopFrame();
+	psChannel->uiFirstFrame = pCel->GetFirstFrame();
+	psChannel->uiLength = pCel->GetNumFrames();
+	psChannel->uiLoopFrame = pCel->GetLoopFrame();
 	psChannel->bPlaying = true;
 	psChannel->uiFraction = 0;
 	if (uiOffset < psChannel->uiLength)

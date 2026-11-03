@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
+bool SaveRAD(Ptr<CImage> pImage, char *szPathName)
 {
 	CTextFile	cTextFile;
 	CLargeChars*	szText;
@@ -49,17 +49,17 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	szText = &cTextFile.mcText;
 
 	szText->Append("RawImage\n{\n\tWidth\t");
-	szText->Append(pcImage->GetWidth());
+	szText->Append(pImage->GetWidth());
 	szText->Append(";\n\tHeight\t");
-	szText->Append(pcImage->GetHeight());
+	szText->Append(pImage->GetHeight());
 	szText->Append(";\n\tChannels\n\t{\n");
 
 	cTypeNames.Init();
 
-	uiNumChannels = pcImage->GetChannels()->GetChannelOffsets()->NumElements();
+	uiNumChannels = pImage->GetChannels()->GetChannelOffsets()->NumElements();
 	for (j = 0; j < uiNumChannels; j++)
 	{
-		psChannel = pcImage->GetChannels()->GetChannelOffsets()->Get(j);
+		psChannel = pImage->GetChannels()->GetChannelOffsets()->Get(j);
 
 		szTypeName = (char*)cTypeNames.GetPrettyName(psChannel->eType);
 		szText->Append("\t\t");
@@ -105,7 +105,7 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	cFileUtil.RemoveExtension(&szRawName);
 	szRawName.Append(".raw");
 
-	bResult = SaveRAW(pcImage, szRawName.Text());
+	bResult = SaveRAW(pImage, szRawName.Text());
 	szRawName.Kill();
 	return bResult;
 }
@@ -115,13 +115,13 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveRAW(Ptr<CImage> pcImage, char* szFilename)
+bool SaveRAW(Ptr<CImage> pImage, char* szFilename)
 {
 	CNaiveFile	cNaiveFile;
 	bool		bResult;
 
 	cNaiveFile.Init();
-	cNaiveFile.Set(pcImage->GetData(), pcImage->GetByteSize());
+	cNaiveFile.Set(pImage->GetData(), pImage->GetByteSize());
 	bResult = cNaiveFile.Write(szFilename);
 	cNaiveFile.Kill();
 

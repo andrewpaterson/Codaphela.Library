@@ -33,9 +33,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
+void CImageCel::Init(Ptr<CImage> pSourceImage, bool bCropTransparentBorders)
 {
-	Init(pcSourceImage, 0, 0, pcSourceImage->GetImageWidth(), pcSourceImage->GetImageHeight());
+	Init(pSourceImage, 0, 0, pSourceImage->GetImageWidth(), pSourceImage->GetImageHeight());
 	if (bCropTransparentBorders)
 	{
 		CropTransparentBorders();
@@ -47,9 +47,9 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, CInt32Rect* pcRect)
+void CImageCel::Init(Ptr<CImage> pSourceImage, CInt32Rect* pcRect)
 {
-	Init(pcSourceImage, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
+	Init(pSourceImage, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 
 
@@ -57,9 +57,9 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, CInt32Rect* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
+void CImageCel::Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
-	Init(pcSourceImage, iLeft, iTop, iRight, iBottom, 0, 0, 0, 0, SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+	Init(pSourceImage, iLeft, iTop, iRight, iBottom, 0, 0, 0, 0, SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 }
 
 
@@ -67,12 +67,12 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment)
+void CImageCel::Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment)
 {
 	PreInit();
 
 	mcSubImage.Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
-	mpSourceImage = pcSourceImage;
+	mpSourceImage = pSourceImage;
 	mapcBlitterCaches.Init();
 
 	PostInit();

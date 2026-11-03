@@ -304,7 +304,7 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 	SWAVInfo		sInfo;
 	EChannel		aeChannels[WAV_MAX_CHANNELS];
 	EPrimitiveType	eType;
-	Ptr<CSound>		pcSound;
+	Ptr<CSound>		pSound;
 	lsize			uiNumFrames;
 	lsize			uiFrame;
 	size			uiChannel;
@@ -333,28 +333,28 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 	eType = WAVGetSampleType(&sInfo);
 	uiNumFrames = sInfo.uiDataSize / sInfo.uiBlockAlign;
 
-	pcSound = OMalloc<CSound>();
-	pcSound->BeginChange();
+	pSound = OMalloc<CSound>();
+	pSound->BeginChange();
 	for (uiChannel = 0; uiChannel < sInfo.uiNumChannels; uiChannel++)
 	{
-		pcSound->AddChannel(aeChannels[uiChannel], eType);
+		pSound->AddChannel(aeChannels[uiChannel], eType);
 	}
-	pcSound->SetSampleRate(sInfo.uiSampleRate);
-	pcSound->SetNumFrames(uiNumFrames);
-	if (!pcSound->EndChange() && (uiNumFrames > 0))
+	pSound->SetSampleRate(sInfo.uiSampleRate);
+	pSound->SetNumFrames(uiNumFrames);
+	if (!pSound->EndChange() && (uiNumFrames > 0))
 	{
 		return NULL;
 	}
 
 	for (uiChannel = 0; uiChannel < sInfo.uiNumChannels; uiChannel++)
 	{
-		auiOffsets[uiChannel] = pcSound->GetChannelAtIndex(uiChannel)->miByteOffset;
+		auiOffsets[uiChannel] = pSound->GetChannelAtIndex(uiChannel)->miByteOffset;
 	}
 
 	uiBytesPerSample = sInfo.uiBitsPerSample / 8;
-	uiStride = pcSound->GetFrameByteStride();
+	uiStride = pSound->GetFrameByteStride();
 	puiSource = (uint8*)pvFile + sInfo.uiDataPos;
-	puiDest = (uint8*)pcSound->GetData();
+	puiDest = (uint8*)pSound->GetData();
 	for (uiFrame = 0; uiFrame < uiNumFrames; uiFrame++)
 	{
 		for (uiChannel = 0; uiChannel < sInfo.uiNumChannels; uiChannel++)
@@ -364,7 +364,7 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 		}
 		puiDest += uiStride;
 	}
-	return pcSound;
+	return pSound;
 }
 
 
@@ -375,7 +375,7 @@ Ptr<CSound> LoadWAV(void* pvFile, lsize uiFileSize)
 Ptr<CSound> LoadWAV(char* szFilename)
 {
 	CNaiveFile		cNaiveFile;
-	Ptr<CSound>		pcSound;
+	Ptr<CSound>		pSound;
 
 	cNaiveFile.Init();
 	if (!cNaiveFile.Read(szFilename))
@@ -385,13 +385,13 @@ Ptr<CSound> LoadWAV(char* szFilename)
 		return NULL;
 	}
 
-	pcSound = LoadWAV(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
+	pSound = LoadWAV(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
 	cNaiveFile.Kill();
 
-	if (pcSound.IsNull())
+	if (pSound.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not a supported WAVE file.", NULL);
 	}
-	return pcSound;
+	return pSound;
 }
 

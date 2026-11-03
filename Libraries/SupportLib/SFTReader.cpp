@@ -42,7 +42,7 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 	CFileBasic		cFile;
 	uint16			uiType;
 	bool			bResult;
-	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pImage;
 
 	cFile.Init(DiskFile(szFilename));
 	if (!cFile.Open(EFM_Read))
@@ -62,29 +62,29 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 	if (uiType == SFT_TYPE_OPAQUE)
 	{
 		cFile.Seek(0);
-		pcImage = LoadSFTOpaque(&cFile, bAddDebug);
+		pImage = LoadSFTOpaque(&cFile, bAddDebug);
 		cFile.Close();
 		cFile.Kill();
 
-		return pcImage;
+		return pImage;
 	}
 	else if (uiType == SFT_TYPE_TRANSPARENT)
 	{
 		cFile.Seek(0);
-		pcImage = LoadSFTTransparent(&cFile, bAddDebug);
+		pImage = LoadSFTTransparent(&cFile, bAddDebug);
 		cFile.Close();
 		cFile.Kill();
 
-		return pcImage;
+		return pImage;
 	}
 	else if (uiType == SFT_TYPE_CONTAINER)
 	{
 		cFile.Seek(0);
-		pcImage = LoadSFTContainer(&cFile, bAddDebug);
+		pImage = LoadSFTContainer(&cFile, bAddDebug);
 		cFile.Close();
 		cFile.Kill();
 
-		return pcImage;
+		return pImage;
 	}
 	else
 	{
@@ -150,18 +150,18 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 		return NULL;
 	}
 
-	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
-	if (pcImage.IsNull())
+	Ptr<CImage> pImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	if (pImage.IsNull())
 	{
 		return NULL;
 	}
-	puiImage = (uint8*)pcImage->GetData();
+	puiImage = (uint8*)pImage->GetData();
 
 	if (bAddDebug)
 	{
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_RED);
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_GREEN);
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_BLUE);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_RED);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_GREEN);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_BLUE);
 	}
 
 	uiSize = (lsize)sStruct.uiImageWidth * sStruct.uiImageHeight;
@@ -183,7 +183,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	}
 
 	free(puiData);
-	return pcImage;
+	return pImage;
 }
 
 
@@ -218,21 +218,21 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	}
 
 	uiWidth = sStruct.uiImageWidth;
-	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	if (pcImage.IsNull())
+	Ptr<CImage> pImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	if (pImage.IsNull())
 	{
 		return NULL;
 	}
 
-	puiImage = (uint32*)pcImage->GetData();
-	memset(puiImage, 0, pcImage->GetByteSize());
+	puiImage = (uint32*)pImage->GetData();
+	memset(puiImage, 0, pImage->GetByteSize());
 
 	if (bAddDebug)
 	{
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_RED);
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_GREEN);
-		pcImage->SetChannelDebugNames(IMAGE_DIFFUSE_BLUE);
-		pcImage->SetChannelDebugNames(IMAGE_OPACITY);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_RED);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_GREEN);
+		pImage->SetChannelDebugNames(IMAGE_DIFFUSE_BLUE);
+		pImage->SetChannelDebugNames(IMAGE_OPACITY);
 	}
 
 	x = 0;
@@ -281,7 +281,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	}
 	sMemory.Kill();
 
-	return pcImage;
+	return pImage;
 }
 
 
@@ -296,12 +296,12 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 	bool					bResult;
 	uint16					uiType;
 	filePos					uiFilePos;
-	Ptr<CImage>				pcImage;
+	Ptr<CImage>				pImage;
 	lsize					i;
 	CImageCelsSource		cSource;
 	CImageCombiner			cCombiner;
 	CImageCelSourceSingle	cSingle;
-	Ptr<CImage>				pcDestImage;
+	Ptr<CImage>				pDestImage;
 
 	cSingle.Init(0, 0, 0, 0, NULL, false, false);
 	cSource.Init();
@@ -331,19 +331,19 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 			return NULL;
 		}
 
-		pcImage = NULL;
+		pImage = NULL;
 		if (uiType == SFT_TYPE_OPAQUE)
 		{
-			pcImage = LoadSFTOpaque(pcFile, bAddDebug);
-			if (pcImage.IsNull())
+			pImage = LoadSFTOpaque(pcFile, bAddDebug);
+			if (pImage.IsNull())
 			{
 				return NULL;
 			}
 		}
 		else if (uiType == SFT_TYPE_TRANSPARENT)
 		{
-			pcImage = LoadSFTTransparent(pcFile, bAddDebug);
-			if (pcImage.IsNull())
+			pImage = LoadSFTTransparent(pcFile, bAddDebug);
+			if (pImage.IsNull())
 			{
 				return NULL;
 			}
@@ -353,7 +353,7 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 			return NULL;
 		}
 
-		cSource.AddMemorySource(pcImage, &cSingle);
+		cSource.AddMemorySource(pImage, &cSingle);
 
 		if (sContained.uiSkipToNext != 0)
 		{
@@ -374,13 +374,13 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 
 	cCombiner.Init(ICL_Best, ICS_PowerOf2, ICC_FromCels);
 	cCombiner.AddCels(cSource.GetImageCels());
-	pcDestImage = cCombiner.Combine();
+	pDestImage = cCombiner.Combine();
 
 	cCombiner.Kill();
 	cSingle.Kill();
 	cSource.Kill();
 
 
-	return pcDestImage;
+	return pDestImage;
 }
 

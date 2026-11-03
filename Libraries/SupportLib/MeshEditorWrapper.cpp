@@ -30,10 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::Init(Ptr<CMesh> pcMesh)
+void CMeshEditorWrapper::Init(Ptr<CMesh> pMesh)
 {
-	mpcEditor = NULL;
-	mpcMesh = pcMesh;
+	mpEditor = NULL;
+	mpMesh = pMesh;
 }
 
 
@@ -41,10 +41,10 @@ void CMeshEditorWrapper::Init(Ptr<CMesh> pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::Init(Ptr<CMeshEditor> pcEditor)
+void CMeshEditorWrapper::Init(Ptr<CMeshEditor> pEditor)
 {
-	mpcEditor = pcEditor;
-	mpcMesh = pcEditor->mpcMesh;
+	mpEditor = pEditor;
+	mpMesh = pEditor->mpMesh;
 }
 
 
@@ -63,13 +63,13 @@ void CMeshEditorWrapper::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::ClearConnectivity(void)
 {
-	if (mpcEditor.IsNotNull())
+	if (mpEditor.IsNotNull())
 	{
-		mpcEditor->ClearConnectivity();
+		mpEditor->ClearConnectivity();
 	}
 	else
 	{
-		mpcMesh->ClearConnectivity();
+		mpMesh->ClearConnectivity();
 	}
 }
 
@@ -80,7 +80,7 @@ void CMeshEditorWrapper::ClearConnectivity(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::SetUVsInUse(bool bInUse)
 {
-	mpcMesh->mcUVs.mbInUse = bInUse;
+	mpMesh->mcUVs.mbInUse = bInUse;
 }
 
 
@@ -90,7 +90,7 @@ void CMeshEditorWrapper::SetUVsInUse(bool bInUse)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::SetNormalsInUse(bool bInUse)
 {
-	mpcMesh->mcNormals.mbInUse = bInUse;
+	mpMesh->mcNormals.mbInUse = bInUse;
 }
 
 
@@ -112,19 +112,19 @@ CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int
 {
 	CMFRet	rFace;
 
-	if (mpcEditor.IsNotNull())
+	if (mpEditor.IsNotNull())
 	{
-		return mpcEditor->AddFace(iCorner1, iCorner2, iCorner3, iName, bEdge12, bEdge23, bEdge31, bFlipFaces);
+		return mpEditor->AddFace(iCorner1, iCorner2, iCorner3, iName, bEdge12, bEdge23, bEdge31, bFlipFaces);
 	}
 	else
 	{
 		if (!bFlipFaces)
 		{
-			return mpcMesh->AddFace(iCorner1, iCorner2, iCorner3);
+			return mpMesh->AddFace(iCorner1, iCorner2, iCorner3);
 		}
 		else
 		{
-			rFace = mpcMesh->AddFace(iCorner1, iCorner3, iCorner2);
+			rFace = mpMesh->AddFace(iCorner1, iCorner3, iCorner2);
 			rFace.Repack(0, 2, 1);
 			return rFace;
 		}
@@ -140,19 +140,19 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 {
 	CMFRet	rQuad;
 
-	if (mpcEditor.IsNotNull())
+	if (mpEditor.IsNotNull())
 	{
-		return mpcEditor->AddQuad(iCorner1, iCorner2, iCorner3, iCorner4, iName, bFlipFaces);
+		return mpEditor->AddQuad(iCorner1, iCorner2, iCorner3, iCorner4, iName, bFlipFaces);
 	}
 	else
 	{
 		if (!bFlipFaces)
 		{
-			return mpcMesh->AddQuad(iCorner1, iCorner2, iCorner3, iCorner4);
+			return mpMesh->AddQuad(iCorner1, iCorner2, iCorner3, iCorner4);
 		}
 		else
 		{
-			rQuad = mpcMesh->AddQuad(iCorner1, iCorner4, iCorner3, iCorner2);
+			rQuad = mpMesh->AddQuad(iCorner1, iCorner4, iCorner3, iCorner2);
 
 			//I have no idea if this is correct or not.
 			rQuad.Repack(0, 3, 1, 3, 2, 1);
@@ -168,13 +168,13 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
-	if (mpcEditor.IsNotNull())
+	if (mpEditor.IsNotNull())
 	{
-		return mpcEditor->AddPolygon(paiCorners, iName, bFlipFaces);
+		return mpEditor->AddPolygon(paiCorners, iName, bFlipFaces);
 	}
 	else
 	{
-		return mpcMesh->AddPolygon(paiCorners);
+		return mpMesh->AddPolygon(paiCorners);
 	}
 }
 
@@ -185,13 +185,13 @@ CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFl
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::AddCorner(float32 x, float32 y, float32 z)
 {
-	if (mpcEditor.IsNotNull())
+	if (mpEditor.IsNotNull())
 	{
-		mpcEditor->AddCorner(x, y, z);
+		mpEditor->AddCorner(x, y, z);
 	}
 	else
 	{
-		mpcMesh->AddCorner(x, y, z);
+		mpMesh->AddCorner(x, y, z);
 	}
 }
 
@@ -202,7 +202,7 @@ void CMeshEditorWrapper::AddCorner(float32 x, float32 y, float32 z)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::AddUV(float32 u, float32 v)
 {
-	mpcMesh->AddUV(u, v);
+	mpMesh->AddUV(u, v);
 }
 
 
@@ -212,7 +212,7 @@ void CMeshEditorWrapper::AddUV(float32 u, float32 v)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::AddNormal(float32 x, float32 y, float32 z)
 {
-	mpcMesh->AddNormal(x, y, z);
+	mpMesh->AddNormal(x, y, z);
 }
 
 
@@ -222,7 +222,7 @@ void CMeshEditorWrapper::AddNormal(float32 x, float32 y, float32 z)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditorWrapper::NumFaces(void)
 {
-	return mpcMesh->NumFaces();
+	return mpMesh->NumFaces();
 }
 
 
@@ -232,7 +232,7 @@ int CMeshEditorWrapper::NumFaces(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditorWrapper::NumCorners(void)
 {
-	return mpcMesh->NumCorners();
+	return mpMesh->NumCorners();
 }
 
 
@@ -242,7 +242,7 @@ int CMeshEditorWrapper::NumCorners(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditorWrapper::NumNormals(void)
 {
-	return (int)mpcMesh->mcNormals.mcNormals.NumElements();
+	return (int)mpMesh->mcNormals.mcNormals.NumElements();
 }
 
 
@@ -252,7 +252,7 @@ int CMeshEditorWrapper::NumNormals(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditorWrapper::NumUVs(void)
 {
-	return mpcMesh->mcUVs.NumUVs();
+	return mpMesh->mcUVs.NumUVs();
 }
 
 
@@ -262,7 +262,7 @@ int CMeshEditorWrapper::NumUVs(void)
 //////////////////////////////////////////////////////////////////////////
 SMeshNormalFace* CMeshEditorWrapper::GetFaceNormal(int iFace)
 {
-	return mpcMesh->mcNormals.mcFaces.Get(iFace);
+	return mpMesh->mcNormals.mcFaces.Get(iFace);
 }
 
 
@@ -274,7 +274,7 @@ SMeshUVFace* CMeshEditorWrapper::GetUVFace(int iFace, int iLayer)
 {
 	CMeshUVLayer*	pcUVLayer;
 
-	pcUVLayer = mpcMesh->mcUVs.mcLayers.Get(iLayer);
+	pcUVLayer = mpMesh->mcUVs.mcLayers.Get(iLayer);
 	return pcUVLayer->mcFaces.Get(iFace);
 }
 

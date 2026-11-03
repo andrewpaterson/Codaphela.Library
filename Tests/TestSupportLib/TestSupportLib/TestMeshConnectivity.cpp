@@ -99,8 +99,8 @@ void AssertCornerFaces(CMeshCorner* pcCorner, size iNumFaces, ...)
 	size			i;
 	size			iFaceNum;
 
-	AssertSize(iNumFaces, pcCorner->aiFace.NumElements());
-	if (iNumFaces != pcCorner->aiFace.NumElements())
+	AssertSize(iNumFaces, pcCorner->maiFace.NumElements());
+	if (iNumFaces != pcCorner->maiFace.NumElements())
 	{
 		return;
 	}
@@ -109,7 +109,7 @@ void AssertCornerFaces(CMeshCorner* pcCorner, size iNumFaces, ...)
 	for (i = 0; i < iNumFaces; i++)
 	{
 		iFaceNum = (size)va_arg(vaMarker, int);  //The face numbers are passed as int literals.
-		AssertSize(iFaceNum, pcCorner->aiFace.GetValue(i));
+		AssertSize(iFaceNum, pcCorner->maiFace.GetValue(i));
 	}
 	va_end(vaMarker);
 }
@@ -126,8 +126,8 @@ void AssertCornerEdges(CMeshCorner* pcCorner, size iNumEdges, ...)
 	size			i;
 	size			iEdgeNum;
 
-	AssertSize(iNumEdges, pcCorner->aiEdge.NumElements());
-	if (iNumEdges != pcCorner->aiEdge.NumElements())
+	AssertSize(iNumEdges, pcCorner->maiEdge.NumElements());
+	if (iNumEdges != pcCorner->maiEdge.NumElements())
 	{
 		return;
 	}
@@ -136,7 +136,7 @@ void AssertCornerEdges(CMeshCorner* pcCorner, size iNumEdges, ...)
 	for (i = 0; i < iNumEdges; i++)
 	{
 		iEdgeNum = (size)va_arg(vaMarker, int);  //The edge numbers are passed as int literals.
-		AssertSize(iEdgeNum, pcCorner->aiEdge.GetValue(i));
+		AssertSize(iEdgeNum, pcCorner->maiEdge.GetValue(i));
 	}
 	va_end(vaMarker);
 }
@@ -148,8 +148,8 @@ void AssertCornerEdges(CMeshCorner* pcCorner, size iNumEdges, ...)
 //////////////////////////////////////////////////////////////////////////
 void AssertEdgeFaces(CMeshEdge* pcEdge, size iFace1, size iFace2)
 {
-	AssertSize(iFace1, pcEdge->aiFace[0]);
-	AssertSize(iFace2, pcEdge->aiFace[1]);
+	AssertSize(iFace1, pcEdge->maiFace[0]);
+	AssertSize(iFace2, pcEdge->maiFace[1]);
 }
 
 
@@ -159,8 +159,8 @@ void AssertEdgeFaces(CMeshEdge* pcEdge, size iFace1, size iFace2)
 //////////////////////////////////////////////////////////////////////////
 void AssertEdgeCorners(CMeshEdge* pcEdge, size iCorner1, size iCorner2)
 {
-	AssertSize(iCorner1, pcEdge->aiCorner[0]);
-	AssertSize(iCorner2, pcEdge->aiCorner[1]);
+	AssertSize(iCorner1, pcEdge->maiCorner[0]);
+	AssertSize(iCorner2, pcEdge->maiCorner[1]);
 }
 
 

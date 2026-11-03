@@ -2740,11 +2740,11 @@ void CBaseObject::ValidateInternalConsistency(void)
 		while (pcStackPointer)
 		{
 			psStackPointer = pcStackPointer->Get();
-			if (psStackPointer->meType == SPT_Pointer)
+			if (psStackPointer->eType == SPT_Pointer)
 			{
 				pvPointer = psStackPointer->u.pcPointer;
 			}
-			else if (psStackPointer->meType == SPT_Collection)
+			else if (psStackPointer->eType == SPT_Collection)
 			{
 				pvPointer = psStackPointer->u.pcCollection;
 			}

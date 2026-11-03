@@ -40,7 +40,7 @@ public:
 	void			Init(CInt32Rect* pcRectangle, CImageColour* pcColour, bool bFilled = true);
 	void			Class(void) override;
 
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

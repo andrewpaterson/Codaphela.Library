@@ -30,14 +30,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageDividerNumbers::InitGeneral(int iCelWidth, int iCelHeight, int iColumnCount, int iRowCount, int iLeftOffset, int iTopOffset, int iWidthSpacing, int iHeightSpacing)
 {
-	this->iCelWidth =		iCelWidth;
-	this->iCelHeight =		iCelHeight;
-	this->iColumnCount =	iColumnCount;
-	this->iRowCount =		iRowCount;
-	this->iLeftOffset =		iLeftOffset;
-	this->iTopOffset =		iTopOffset;
-	this->iWidthSpacing =	iWidthSpacing;
-	this->iHeightSpacing =	iHeightSpacing;
+	this->miCelWidth =		iCelWidth;
+	this->miCelHeight =		iCelHeight;
+	this->miColumnCount =	iColumnCount;
+	this->miRowCount =		iRowCount;
+	this->miLeftOffset =		iLeftOffset;
+	this->miTopOffset =		iTopOffset;
+	this->miWidthSpacing =	iWidthSpacing;
+	this->miHeightSpacing =	iHeightSpacing;
 }
 
 
@@ -77,50 +77,50 @@ void CImageDividerNumbers::Calculate(int iImageWidth, int iImageHeight)
 	int					iTotalHeight;
 	int					iRemainder;
 
-	if ((iColumnCount == -1) && (iCelWidth == -1))
+	if ((miColumnCount == -1) && (miCelWidth == -1))
 	{
-		iCelWidth = iImageWidth - iLeftOffset - iWidthSpacing;
-		iColumnCount = 1;
+		miCelWidth = iImageWidth - miLeftOffset - miWidthSpacing;
+		miColumnCount = 1;
 	}
 	else
 	{
-		if (iColumnCount == -1)
+		if (miColumnCount == -1)
 		{
-			iTotalWidth = iCelWidth + iWidthSpacing;
-			iColumnCount = (iImageWidth - iLeftOffset) / iTotalWidth;
+			iTotalWidth = miCelWidth + miWidthSpacing;
+			miColumnCount = (iImageWidth - miLeftOffset) / iTotalWidth;
 
-			iRemainder = (iImageWidth - iLeftOffset) % iTotalWidth;
-			if (iRemainder >= iCelWidth)
+			iRemainder = (iImageWidth - miLeftOffset) % iTotalWidth;
+			if (iRemainder >= miCelWidth)
 			{
-				iColumnCount++;
+				miColumnCount++;
 			}
 		}
-		else if (iCelWidth == -1)
+		else if (miCelWidth == -1)
 		{
-			iCelWidth = (iImageWidth - iLeftOffset - iWidthSpacing * (iColumnCount-1)) / iColumnCount;
+			miCelWidth = (iImageWidth - miLeftOffset - miWidthSpacing * (miColumnCount-1)) / miColumnCount;
 		}
 	}
-	if ((iRowCount == -1) && (iCelHeight == -1))
+	if ((miRowCount == -1) && (miCelHeight == -1))
 	{
-		iCelHeight = iImageHeight;
-		iRowCount = 1;
+		miCelHeight = iImageHeight;
+		miRowCount = 1;
 	}
 	else
 	{
-		if (iRowCount == -1)
+		if (miRowCount == -1)
 		{
-			iTotalHeight = iCelHeight + iHeightSpacing;
-			iRowCount = (iImageHeight - iTopOffset) / iTotalHeight;
+			iTotalHeight = miCelHeight + miHeightSpacing;
+			miRowCount = (iImageHeight - miTopOffset) / iTotalHeight;
 
-			iRemainder = (iImageHeight - iTopOffset) % iTotalHeight;
-			if (iRemainder >= iCelHeight)
+			iRemainder = (iImageHeight - miTopOffset) % iTotalHeight;
+			if (iRemainder >= miCelHeight)
 			{
-				iRowCount++;
+				miRowCount++;
 			}
 		}
-		if (iCelHeight == -1)
+		if (miCelHeight == -1)
 		{
-			iCelHeight = (iImageHeight - iTopOffset - iHeightSpacing * (iRowCount-1)) / iRowCount;
+			miCelHeight = (iImageHeight - miTopOffset - miHeightSpacing * (miRowCount-1)) / miRowCount;
 		}
 	}
 }

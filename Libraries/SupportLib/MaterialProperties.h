@@ -39,13 +39,13 @@ enum EMaterialOpacity
 class CMaterialProperties
 {
 public:
-	CImageColourARGB	sDiffuseColour;
-	CImageColourARGB	sAmbientColour;
-	CImageColourARGB	sEmissiveColour;
-	CImageColourARGB	sSpecularColour;
-	float32				fShininessPower;
-	float32				fShininessBase;
-	bool				bLit;
+	CImageColourARGB	mcDiffuseColour;
+	CImageColourARGB	mcAmbientColour;
+	CImageColourARGB	mcEmissiveColour;
+	CImageColourARGB	mcSpecularColour;
+	float32				mfShininessPower;
+	float32				mfShininessBase;
+	bool				mbLit;
 	EMaterialOpacity	meOpacity;
 
 	void Init(void);

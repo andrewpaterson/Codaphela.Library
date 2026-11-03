@@ -37,7 +37,7 @@ public:
 
 	void			Init(EChannel eOldName, EChannel eNewName);
 	void			Class(void) override;
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

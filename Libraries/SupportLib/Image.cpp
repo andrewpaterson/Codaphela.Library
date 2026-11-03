@@ -147,14 +147,14 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, EPrimitiveT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(Ptr<CImage> pcSource)
+void CImage::Init(Ptr<CImage> pSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
-	AddChannels(pcSource);
-	SetSize(pcSource->GetWidth(), pcSource->GetHeight());
+	AddChannels(pSource);
+	SetSize(pSource->GetWidth(), pSource->GetHeight());
 	EndChange();
 
 	PostInit();
@@ -202,13 +202,13 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, CImageChann
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pcChannelsSource)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pChannelsSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
-	AddChannels(pcChannelsSource);
+	AddChannels(pChannelsSource);
 	SetSize(uiWidth, uiHeight);
 	EndChange();
 
@@ -439,17 +439,17 @@ void CImage::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType)
+bool CImage::AddChannel(Ptr<CImage> pSourceImage, size iChannel, EPrimitiveType eType)
 {
 	CChannel*	pcChannel;
 	const char*		szShortName;
 	const char*		szLongName;
 
-	pcChannel = pcSourceImage->GetChannel(iChannel);
+	pcChannel = pSourceImage->GetChannel(iChannel);
 	if (pcChannel)
 	{
-		szShortName = pcSourceImage->GetChannelShortName(iChannel);
-		szLongName = pcSourceImage->GetChannelLongName(iChannel);
+		szShortName = pSourceImage->GetChannelShortName(iChannel);
+		szLongName = pSourceImage->GetChannelLongName(iChannel);
 		mcChannels.AddChannel(iChannel, eType, szShortName, szLongName, pcChannel->bReverse);
 		return true;
 	}
@@ -527,9 +527,9 @@ void CImage::AddChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannels(Ptr<CImage> pcSourceChannels)
+void CImage::AddChannels(Ptr<CImage> pSourceChannels)
 {
-	mcChannels.AddChannels(&pcSourceChannels->mcChannels);
+	mcChannels.AddChannels(&pSourceChannels->mcChannels);
 }
 
 
@@ -689,25 +689,25 @@ bool CImage::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Copy(Ptr<CImage> pcSource)
+void CImage::Copy(Ptr<CImage> pSource)
 {
 	//This assumes Image is not initialised.
 	PreInit();
 
-	msSize.x = pcSource->msSize.x;
-	msSize.y = pcSource->msSize.y;
-	if (pcSource->mpsImageChangingDesc)
+	msSize.x = pSource->msSize.x;
+	msSize.y = pSource->msSize.y;
+	if (pSource->mpsImageChangingDesc)
 	{
 		mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
-		mpsImageChangingDesc->uiWidth = pcSource->mpsImageChangingDesc->uiWidth;
-		mpsImageChangingDesc->uiHeight = pcSource->mpsImageChangingDesc->uiHeight;
+		mpsImageChangingDesc->uiWidth = pSource->mpsImageChangingDesc->uiWidth;
+		mpsImageChangingDesc->uiHeight = pSource->mpsImageChangingDesc->uiHeight;
 	}
 	else
 	{
 		mpsImageChangingDesc = NULL;
 	}
 
-	mcChannels.Copy(&pcSource->mcChannels);
+	mcChannels.Copy(&pSource->mcChannels);
 
 	PostInit();
 }
@@ -733,24 +733,24 @@ Ptr<CImageCelBlitterCache> CImage::GetBlitterCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
+void CImage::CopyIntoInitialised(Ptr<CImage> pSource)
 {
 	//This assumes Image IS initialised.
 
-	msSize.x = pcSource->msSize.x;
-	msSize.y = pcSource->msSize.y;
-	if (pcSource->mpsImageChangingDesc)
+	msSize.x = pSource->msSize.x;
+	msSize.y = pSource->msSize.y;
+	if (pSource->mpsImageChangingDesc)
 	{
 		mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
-		mpsImageChangingDesc->uiWidth = pcSource->mpsImageChangingDesc->uiWidth;
-		mpsImageChangingDesc->uiHeight = pcSource->mpsImageChangingDesc->uiHeight;
+		mpsImageChangingDesc->uiWidth = pSource->mpsImageChangingDesc->uiWidth;
+		mpsImageChangingDesc->uiHeight = pSource->mpsImageChangingDesc->uiHeight;
 	}
 	else
 	{
 		mpsImageChangingDesc = NULL;
 	}
 
-	mcChannels.CopyIntoInitialised(&pcSource->mcChannels);
+	mcChannels.CopyIntoInitialised(&pSource->mcChannels);
 	mpBlitterCache = NULL;  //The blitters were made for the image as it was.
 }
 

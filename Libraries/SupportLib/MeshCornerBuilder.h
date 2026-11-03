@@ -29,13 +29,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshCornerBuilder
 {
 public:
-	int		iVertex;
+	int		miVertex;
 
-	bool	bUVCoord;
-	bool	bNormal;
+	bool	mbUVCoord;
+	bool	mbNormal;
 
-	int		iUVCoord;
-	int		iNormal;
+	int		miUVCoord;
+	int		miNormal;
 
 	void	Init(int iCorner);
 };

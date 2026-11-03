@@ -70,8 +70,8 @@ Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ReadRawImage(Ptr<CImage> pcImage, char* szFilename)
+bool ReadRawImage(Ptr<CImage> pImage, char* szFilename)
 {
-	return LoadRAW(szFilename, pcImage);
+	return LoadRAW(szFilename, pImage);
 }
 

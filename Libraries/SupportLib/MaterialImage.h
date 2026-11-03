@@ -63,13 +63,13 @@ enum EUVSource
 class CMaterialImage
 {
 public:
-	int					iImageID;
-	EUVAddress			eAddressU;  
-	EUVAddress			eAddressV;
-	EUVFilter			eMagFilter;  
-	EUVFilter			eMinFilter;
-	EUVFilter			eMipFilter;
-	EUVSource			eUVSource;
+	int					miImageID;
+	EUVAddress			meAddressU;  
+	EUVAddress			meAddressV;
+	EUVFilter			meMagFilter;  
+	EUVFilter			meMinFilter;
+	EUVFilter			meMipFilter;
+	EUVSource			meUVSource;
 
 	void Init(void);
 	void Kill(void);

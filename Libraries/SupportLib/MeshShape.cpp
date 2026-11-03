@@ -31,11 +31,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshShape::Init(Ptr<CMesh> pcMesh)
+void CMeshShape::Init(Ptr<CMesh> pMesh)
 {
 	PreInit();
 
-	mpcMesh = pcMesh;
+	mpMesh = pMesh;
 	mcTriangles.Init();
 	mcLeaves.Init();
 	mcBoundingBox.Init();
@@ -64,7 +64,7 @@ void CMeshShape::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshShape::Class(void)
 {
-	M_Pointer(mpcMesh);
+	M_Pointer(mpMesh);
 	M_Embedded(mcTriangles);
 	M_Embedded(mcLeaves);
 	M_Embedded(mcBoundingBox);

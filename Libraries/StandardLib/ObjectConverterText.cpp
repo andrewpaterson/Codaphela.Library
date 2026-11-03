@@ -71,7 +71,7 @@ CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, const c
 CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* szObjectName)
 {
 	CTextFile			cTextFile;
-	Ptr<CString>		pcString;
+	Ptr<CString>		pString;
 	bool				bResult;
 
 	cTextFile.Init();
@@ -83,13 +83,13 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* 
 		return NULL;
 	}
 
-	pcString = OMalloc<CString>(cTextFile.Text());
-	if (!pcString)
+	pString = OMalloc<CString>(cTextFile.Text());
+	if (!pString)
 	{
 		return NULL;
 	}
 
 	cTextFile.Kill();
-	return (CBaseObject*)pcString.Return();
+	return (CBaseObject*)pString.Return();
 }
 

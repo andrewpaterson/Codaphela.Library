@@ -41,11 +41,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsPNGChannel16Bit(Ptr<CImage> pcImage, size iChannel)
+bool IsPNGChannel16Bit(Ptr<CImage> pImage, size iChannel)
 {
 	CChannel*	pcChannel;
 
-	pcChannel = pcImage->GetChannel(iChannel);
+	pcChannel = pImage->GetChannel(iChannel);
 	return (pcChannel != NULL) && (pcChannel->miByteSize >= 2);
 }
 
@@ -388,7 +388,7 @@ bool PNGWriteFile(CFileBasic* pcFile, int iWidth, int iHeight, int iBitDepth, in
 // are 16 bit if any of those channels is 16 bit or wider, otherwise 8 bit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
+bool SavePNG(Ptr<CImage> pImage, char* szPathName)
 {
 	int				iWidth;
 	int				iHeight;
@@ -413,21 +413,21 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	uint8			uiSwap;
 	bool			bResult;
 
-	if (pcImage.IsNull())
+	if (pImage.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write NULL image [", szPathName, "].", NULL);
 		return false;
 	}
 
-	iWidth = pcImage->GetWidth();
-	iHeight = pcImage->GetHeight();
+	iWidth = pImage->GetWidth();
+	iHeight = pImage->GetHeight();
 	if ((iWidth <= 0) || (iHeight <= 0))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write empty image [", szPathName, "].", NULL);
 		return false;
 	}
 
-	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP))
+	if (pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOUR_RGB_ALPHA;
 		aiChannels[0] = IMAGE_DIFFUSE_RED;
@@ -436,7 +436,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 		aiChannels[3] = IMAGE_OPACITY;
 		uiNumChannels = 4;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOUR_RGB;
 		aiChannels[0] = IMAGE_DIFFUSE_RED;
@@ -444,14 +444,14 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 		aiChannels[2] = IMAGE_DIFFUSE_BLUE;
 		uiNumChannels = 3;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOUR_GREY_ALPHA;
 		aiChannels[0] = IMAGE_DIFFUSE_GREY;
 		aiChannels[1] = IMAGE_OPACITY;
 		uiNumChannels = 2;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOUR_GREY;
 		aiChannels[0] = IMAGE_DIFFUSE_GREY;
@@ -467,7 +467,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	uiBytesPerSample = 1;
 	for (i = 0; i < uiNumChannels; i++)
 	{
-		if (IsPNGChannel16Bit(pcImage, aiChannels[i]))
+		if (IsPNGChannel16Bit(pImage, aiChannels[i]))
 		{
 			eSampleType = PT_uint16;
 			uiBytesPerSample = 2;
@@ -505,7 +505,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	{
 		cImageExport.Init(iWidth, iHeight, pvPixels, eSampleType, aiChannels[0], CHANNEL_STOP);
 	}
-	cCopier.Init(pcImage, &cImageExport);
+	cCopier.Init(pImage, &cImageExport);
 	cCopier.Copy(0, 0);
 	cCopier.Kill();
 	cImageExport.Kill();

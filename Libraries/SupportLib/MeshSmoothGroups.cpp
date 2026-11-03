@@ -80,7 +80,7 @@ bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
 void CMeshSmoothGroups::Apply(CMeshEditor* pcMeshEditor)
 {
 	GenerateSmoothing(pcMeshEditor);
-	GenerateNormals(&pcMeshEditor->mpcMesh);
+	GenerateNormals(&pcMeshEditor->mpMesh);
 }
 
 
@@ -179,7 +179,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	fDot = Deg2Dot(mfSharpAngle);
 
 	asNormals.Init();
-	pcMeshEditor->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpcMesh->mcNormals);
+	pcMeshEditor->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpMesh->mcNormals);
 
 	mcSmoothingGroups.SetArrayValues(0);
 
@@ -188,7 +188,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	{
 		psThisNormal = asNormals.Get(i);
 		aiAdjPolys.Init();
-		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpcMesh->GetConnectivity(), (int)i, &aiAdjPolys);
+		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpMesh->GetConnectivity(), (int)i, &aiAdjPolys);
 
 		uiNumElements = aiAdjPolys.NumElements();
 		for (j = 0; j < uiNumElements; j++)
@@ -256,14 +256,14 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 		iNumNormals = 0;
 
 		//Get the array of faces attached to the vert
-		aiFaceRef = (int*)psCorners[i].aiFace.GetData();
+		aiFaceRef = (int*)psCorners[i].maiFace.GetData();
 
 		//Zero the smoothing group
 		dwSmooth[0] = 0;
 
 		//First work out all the overlapping smoothing groups as this vertex
 		//Step through every face attached to that vertex
-		uiNumFaces = psCorners[i].aiFace.NumElements();
+		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
 			iSmoothing = piSmoothing[aiFaceRef[j]];
@@ -324,7 +324,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			cNormal.Init(0, 0, 0);
 
 			//Step over every face at this vertex
-			uiNumFaces = psCorners[i].aiFace.NumElements();
+			uiNumFaces = psCorners[i].maiFace.NumElements();
 			for (j = 0; j < uiNumFaces; j++)
 			{
 				iSmoothing = piSmoothing[aiFaceRef[j]];
@@ -349,7 +349,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			iNewNormalIndex = (int)pcNormals->mcNormals.NumElements()-1;
 
 			//Step over every face at this vertex
-			uiNumFaces = psCorners[i].aiFace.NumElements();
+			uiNumFaces = psCorners[i].maiFace.NumElements();
 			for (j = 0; j < uiNumFaces; j++)
 			{
 				iSmoothing = piSmoothing[aiFaceRef[j]];
@@ -360,7 +360,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 					//Then set the face point normal reference to the newly added normal
 					for (l = 0; l < 3; l++)
 					{
-						iPosition = psFaces[aiFaceRef[j]].asCorner[l];
+						iPosition = psFaces[aiFaceRef[j]].maiCorner[l];
 						if ((int)i == iPosition)
 						{
 							psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
@@ -373,7 +373,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 		//Handle faces with zero smoothing groups as special cases
 		//Step over every face at this vertex
-		uiNumFaces = psCorners[i].aiFace.NumElements();
+		uiNumFaces = psCorners[i].maiFace.NumElements();
 		for (j = 0; j < uiNumFaces; j++)
 		{
 			iSmoothing = piSmoothing[aiFaceRef[j]];

@@ -37,7 +37,7 @@ protected:
 	bool			mbFloat;
 
 public:
-	bool			Init(Ptr<CImage> pcImage, size uiChannelIndex);
+	bool			Init(Ptr<CImage> pImage, size uiChannelIndex);
 	void			Kill(void);
 
 	bool			IsSmallInteger(void);  //An integer of 16 bits or fewer.  These can be read with GetIntegers.
@@ -51,8 +51,8 @@ public:
 	void			GetFloats(float64* pafDest);
 	void			SetFloats(float64* pafSource);  //Integer channels are rounded to the nearest value and clamped to their range.
 
-	static bool		IsSupported(Ptr<CImage> pcImage);
-	static bool		CanResample(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+	static bool		IsSupported(Ptr<CImage> pImage);
+	static bool		CanResample(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 protected:
 	int32			ToInteger(void* pvRaw);

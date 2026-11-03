@@ -38,13 +38,13 @@ void CImageCelSourceBorders::Init(SImageColour* psTransparentColour, bool bIgnor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceBorders::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
+void CImageCelSourceBorders::Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 
 	cDivider.Init(pcImage, mpsTransparentColour, mbIgnoreEmpty, mbCropTransparentBorders);
 	cDivider.GenerateFromBorder(pcMask);
-	cDivider.CopyCellsTo(pcDestImageCels);
+	cDivider.CopyCellsTo(pDestImageCels);
 	cDivider.Kill();
 }
 

@@ -684,10 +684,10 @@ void TestMapObjectPointerFromsStack(void)
 		apcFroms.Init();
 		pValue1->GetStackFroms(&apcFroms);
 		psStack = apcFroms.Get(0);
-		AssertTrue(psStack->meType == SPT_Pointer);
+		AssertTrue(psStack->eType == SPT_Pointer);
 		AssertPointer(pValue1.This(), psStack->u.pcPointer);
 		psStack = apcFroms.Get(1);
-		AssertTrue(psStack->meType == SPT_Collection);
+		AssertTrue(psStack->eType == SPT_Collection);
 		AssertPointer(&cMap, psStack->u.pcCollection);
 		apcFroms.Kill();
 

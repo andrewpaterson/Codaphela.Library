@@ -30,8 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshEdge::Init(void)
 {
-	aiFace[0] = -1;
-	aiFace[1] = -1;
+	maiFace[0] = -1;
+	maiFace[1] = -1;
 }
 
 
@@ -41,8 +41,8 @@ void CMeshEdge::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshEdge::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteIntArray(aiCorner, NUM_EDGE_CORNERS));
-	ReturnOnFalse(pcFile->WriteIntArray(aiFace, MAX_EDGE_FACES));
+	ReturnOnFalse(pcFile->WriteIntArray(maiCorner, NUM_EDGE_CORNERS));
+	ReturnOnFalse(pcFile->WriteIntArray(maiFace, MAX_EDGE_FACES));
 	return true;
 }
 
@@ -53,8 +53,8 @@ bool CMeshEdge::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshEdge::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadIntArray(aiCorner, NUM_EDGE_CORNERS));
-	ReturnOnFalse(pcFile->ReadIntArray(aiFace, MAX_EDGE_FACES));
+	ReturnOnFalse(pcFile->ReadIntArray(maiCorner, NUM_EDGE_CORNERS));
+	ReturnOnFalse(pcFile->ReadIntArray(maiFace, MAX_EDGE_FACES));
 	return true;
 }
 
@@ -65,14 +65,14 @@ bool CMeshEdge::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshEdge::AddFace(int iFaceNum)
 {
-	if (aiFace[0] == -1)
+	if (maiFace[0] == -1)
 	{
-		aiFace[0] = iFaceNum;
+		maiFace[0] = iFaceNum;
 		return true;
 	}
-	else if (aiFace[1] == -1)
+	else if (maiFace[1] == -1)
 	{
-		aiFace[1] = iFaceNum;
+		maiFace[1] = iFaceNum;
 		return true;
 	}
 	return false;

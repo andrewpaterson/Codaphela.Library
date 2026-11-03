@@ -40,11 +40,11 @@ CONSTRUCTABLE(CUnknown);
 public:
 
 	//Either/Or.
-	Ptr<CMeshEditor>	mpcEditor;
-	Ptr<CMesh>			mpcMesh;
+	Ptr<CMeshEditor>	mpEditor;
+	Ptr<CMesh>			mpMesh;
 
-	void 				Init(Ptr<CMesh> pcMesh);
-	void 				Init(Ptr<CMeshEditor> pcMesh);
+	void 				Init(Ptr<CMesh> pMesh);
+	void 				Init(Ptr<CMeshEditor> pMesh);
 	void				Kill(void);
 
 	void				ClearConnectivity(void);

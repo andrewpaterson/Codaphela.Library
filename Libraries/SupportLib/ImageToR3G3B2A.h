@@ -32,7 +32,7 @@ CONSTRUCTABLE(CImageR3G3B2A);
 DESTRUCTABLE(CImageR3G3B2A);
 public:
 	void			Init(void);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

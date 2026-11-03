@@ -32,7 +32,7 @@ public:
 	void		Init(void);
 
 	bool		Add(CPointer& pObject);
-	bool		AddAll(Ptr<CArrayObject> pcArray);
+	bool		AddAll(Ptr<CArrayObject> pArray);
 	CPointer	Get(size  iIndex);
 	bool		Insert(size  iIndex, CPointer& pObject);
 	bool		Remove(size  iIndex);

@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BlockMap.h"
 
 
-typedef void (*MapImageCelFunction)(Ptr<CImageCel> pcImageCel, int x, int y);
+typedef void (*MapImageCelFunction)(Ptr<CImageCel> pImageCel, int x, int y);
 
 
 //A cel drawn with its top left at a position in the map.  The cel is the map's cel at uiCel.

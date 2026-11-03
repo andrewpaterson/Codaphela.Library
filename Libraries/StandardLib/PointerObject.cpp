@@ -179,9 +179,9 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::operator = (CPointer& pcPointer)
+void CPointer::operator = (CPointer& pPointer)
 {
-	PointTo(pcPointer.mpcObject);
+	PointTo(pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -191,9 +191,9 @@ void CPointer::operator = (CPointer& pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::operator = (const CPointer& pcPointer)
+void CPointer::operator = (const CPointer& pPointer)
 {
-	PointTo(pcPointer.mpcObject);
+	PointTo(pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -233,9 +233,9 @@ bool CPointer::operator ! ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::operator == (const CPointer& pcPointer)
+bool CPointer::operator == (const CPointer& pPointer)
 {
-	return mpcObject == pcPointer.Object();
+	return mpcObject == pPointer.Object();
 }
 
 
@@ -243,9 +243,9 @@ bool CPointer::operator == (const CPointer& pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::operator != (const CPointer& pcPointer)
+bool CPointer::operator != (const CPointer& pPointer)
 {
-	return mpcObject != pcPointer.Object();
+	return mpcObject != pPointer.Object();
 }
 
 
@@ -505,9 +505,9 @@ bool CPointer::IsNull(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsNotEqual(CPointer& pcPointer)
+bool CPointer::IsNotEqual(CPointer& pPointer)
 {
-	return mpcObject != pcPointer.Object();
+	return mpcObject != pPointer.Object();
 }
 
 
@@ -515,9 +515,9 @@ bool CPointer::IsNotEqual(CPointer& pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsEqual(CPointer& pcPointer)
+bool CPointer::IsEqual(CPointer& pPointer)
 {
-	return mpcObject == pcPointer.Object();
+	return mpcObject == pPointer.Object();
 }
 
 

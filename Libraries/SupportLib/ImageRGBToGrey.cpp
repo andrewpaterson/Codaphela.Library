@@ -56,7 +56,7 @@ void CImageRGBToGrey::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pImage)
 {
 	bool				bDiffuseChannelsSame;
 	ERGBToGreyStyle		eStyle;
@@ -64,11 +64,11 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 
 	//This will preserve opacity.
 	eStyle = meStyle;
-	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
+	if (pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		if (eStyle == RGBTGS_OnlyIfChannelsSame)
 		{
-			bDiffuseChannelsSame = AreChannelsSame(&pcImage, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE);
+			bDiffuseChannelsSame = AreChannelsSame(&pImage, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE);
 			if (bDiffuseChannelsSame)
 			{
 				eStyle = RGBTGS_UseRed;
@@ -79,12 +79,12 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 		{
 			bSuccess = true;
 
-			pcImage->BeginChange();
-			bSuccess &= pcImage->RemoveChannel(IMAGE_DIFFUSE_GREEN);
-			bSuccess &= pcImage->RemoveChannel(IMAGE_DIFFUSE_BLUE);
-			bSuccess &= pcImage->EndChange();
-			bSuccess &= pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREY);
-			return pcImage;
+			pImage->BeginChange();
+			bSuccess &= pImage->RemoveChannel(IMAGE_DIFFUSE_GREEN);
+			bSuccess &= pImage->RemoveChannel(IMAGE_DIFFUSE_BLUE);
+			bSuccess &= pImage->EndChange();
+			bSuccess &= pImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREY);
+			return pImage;
 		}
 
 		if (eStyle == RGBTGS_UseAll)
@@ -95,9 +95,9 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 
 		return NULL;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
-		return pcImage;
+		return pImage;
 	}
 	else
 	{

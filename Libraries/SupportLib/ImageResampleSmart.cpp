@@ -40,7 +40,7 @@ struct SSmartSource
 	size		uiBlue;
 	bool		bRGB;
 
-	bool		Init(Ptr<CImage> pcSource);
+	bool		Init(Ptr<CImage> pSource);
 	void		Kill(void);
 	bool		IsSimilar(lsize uiPixel1, lsize uiPixel2);
 };
@@ -50,35 +50,35 @@ struct SSmartSource
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSmartSource::Init(Ptr<CImage> pcSource)
+bool SSmartSource::Init(Ptr<CImage> pSource)
 {
 	size					uiChannel;
 	CImageResampleChannel	cChannel;
 	EChannel				eChannel;
 	lsize					uiNumPixels;
 
-	uiNumChannels = pcSource->NumChannels();
-	uiNumPixels = (lsize)pcSource->GetWidth() * pcSource->GetHeight();
+	uiNumChannels = pSource->NumChannels();
+	uiNumPixels = (lsize)pSource->GetWidth() * pSource->GetHeight();
 	papafValues = (float64**)malloc((lsize)sizeof(float64*) * (uiNumChannels + 1));
 	pafScales = (float64*)malloc((lsize)sizeof(float64) * (uiNumChannels + 1));
 	pabCompared = (bool*)malloc((lsize)sizeof(bool) * (uiNumChannels + 1));
 
-	uiRed = pcSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_RED);
-	uiGreen = pcSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_GREEN);
-	uiBlue = pcSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_BLUE);
+	uiRed = pSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_RED);
+	uiGreen = pSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_GREEN);
+	uiBlue = pSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_BLUE);
 	bRGB = (uiRed != ARRAY_ELEMENT_NOT_FOUND) && (uiGreen != ARRAY_ELEMENT_NOT_FOUND) && (uiBlue != ARRAY_ELEMENT_NOT_FOUND);
 
 	for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 	{
 		papafValues[uiChannel] = (float64*)malloc(sizeof(float64) * (uiNumPixels + 1));
-		cChannel.Init(pcSource, uiChannel);
+		cChannel.Init(pSource, uiChannel);
 		cChannel.GetFloats(papafValues[uiChannel]);
 
 		//Floats are assumed to run from 0 to 1.
 		pafScales[uiChannel] = cChannel.IsFloat() ? 1.0 : 1.0 / (cChannel.GetMaximum() - cChannel.GetMinimum());
 		cChannel.Kill();
 
-		eChannel = pcSource->GetChannelAtIndex(uiChannel)->iChannel;
+		eChannel = pSource->GetChannelAtIndex(uiChannel)->iChannel;
 		pabCompared[uiChannel] = (eChannel != IMAGE_IGNORED);
 		if (bRGB && ((uiChannel == uiRed) || (uiChannel == uiGreen) || (uiChannel == uiBlue)))
 		{
@@ -223,7 +223,7 @@ int SmartChooseGroup(SSmartSource* psSource, lsize* puiPixels, float64* pafWeigh
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool ResampleSmart(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	SBilinearAxis			sX;
 	SBilinearAxis			sY;
@@ -248,22 +248,22 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	lsize					uiDestPixel;
 	bool					bResult;
 
-	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
+	if (!CImageResampleChannel::CanResample(pSource, pDest))
 	{
 		return false;
 	}
 
-	uiSourceWidth = pcSource->GetWidth();
-	uiDestWidth = pcDest->GetWidth();
-	uiDestHeight = pcDest->GetHeight();
-	if ((uiSourceWidth == 0) || (pcSource->GetHeight() == 0) || (uiDestWidth == 0) || (uiDestHeight == 0))
+	uiSourceWidth = pSource->GetWidth();
+	uiDestWidth = pDest->GetWidth();
+	uiDestHeight = pDest->GetHeight();
+	if ((uiSourceWidth == 0) || (pSource->GetHeight() == 0) || (uiDestWidth == 0) || (uiDestHeight == 0))
 	{
 		return true;
 	}
 
 	sX.Init(uiSourceWidth, uiDestWidth);
-	sY.Init(pcSource->GetHeight(), uiDestHeight);
-	sSource.Init(pcSource);
+	sY.Init(pSource->GetHeight(), uiDestHeight);
+	sSource.Init(pSource);
 
 	papafDest = (float64**)malloc((lsize)sizeof(float64*) * (sSource.uiNumChannels + 1));
 	for (uiChannel = 0; uiChannel < sSource.uiNumChannels; uiChannel++)
@@ -317,7 +317,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	bResult = true;
 	for (uiChannel = 0; uiChannel < sSource.uiNumChannels; uiChannel++)
 	{
-		bResult &= cDestChannel.Init(pcDest, uiChannel);
+		bResult &= cDestChannel.Init(pDest, uiChannel);
 		cDestChannel.SetFloats(papafDest[uiChannel]);
 		cDestChannel.Kill();
 		free(papafDest[uiChannel]);

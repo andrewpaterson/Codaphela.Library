@@ -32,13 +32,13 @@ class CImageCelMask : public CImageCel
 {
 CONSTRUCTABLE(CImageCelMask);
 protected:
-	Ptr<CImage>		mpcMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
+	Ptr<CImage>		mpMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
 	uint16			miMask;
 	bool			mbFilled;
 
 public:
-	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, CFillRectangle* pcRect);
+	void 	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 	void	Class(void) override;
 	void 	Free(void) override;
 

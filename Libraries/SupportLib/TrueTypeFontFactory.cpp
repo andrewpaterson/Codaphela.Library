@@ -533,9 +533,9 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 	iImageHeight = pcSubImage->GetImageHeight();
 	iGlyphWidth = (meTurn == FT_Clockwise) ? iImageHeight : iImageWidth;
 
-	uiRed = ColourByte(pcColour->r);
-	uiGreen = ColourByte(pcColour->g);
-	uiBlue = ColourByte(pcColour->b);
+	uiRed = ColourByte(pcColour->mfRed);
+	uiGreen = ColourByte(pcColour->mfGreen);
+	uiBlue = ColourByte(pcColour->mfBlue);
 
 	//Opacity, red, green and blue bytes.
 	puiGlyph = (uint8*)pGlyphImage->GetData();

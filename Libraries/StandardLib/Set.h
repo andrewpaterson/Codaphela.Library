@@ -33,7 +33,7 @@ public:
 	void			Init(bool bSortPointers = true);
 
 	bool			Add(Ptr<M> pObject);
-	void			AddAll(Ptr<CArrayCommonObject> pcSet);
+	void			AddAll(Ptr<CArrayCommonObject> pSet);
 	Ptr<M>			UnsafeGet(int iIndex);
 	bool			Remove(Ptr<M> pObject);
 
@@ -72,10 +72,10 @@ bool CSet<M>::Add(Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSet<M>::AddAll(Ptr<CArrayCommonObject> pcSet)
+void CSet<M>::AddAll(Ptr<CArrayCommonObject> pSet)
 {
-	pcSet->ClassName();
-	CSetObject::AddAll((CArrayCommonObject*)pcSet.Dereference());
+	pSet->ClassName();
+	CSetObject::AddAll((CArrayCommonObject*)pSet.Dereference());
 }
 
 

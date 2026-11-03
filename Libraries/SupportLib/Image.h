@@ -69,11 +69,11 @@ public:
 	void					Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
 	void					Init(uint32 uiWidth, uint32 uiHeight, CImageChannelsSource* pcSource);
 	void					Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, CImageChannelsSource* pcSource);
-	void					Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pcChannelsSource);
+	void					Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pChannelsSource);
 	void					Init(uint32 uiWidth, uint32 uiHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Init(uint32 uiWidth, uint32 uiHeight, CColourFormatHelper* pcHelper);
 	void					Init(uint32 uiWidth, uint32 uiHeight, CArrayChannel* pasNewChannels);
-	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
+	void					Init(Ptr<CImage> pChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void) override;
 	void					Free(void) override;
 
@@ -87,13 +87,13 @@ public:
 	void					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
-	bool					AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType);
+	bool					AddChannel(Ptr<CImage> pSourceImage, size iChannel, EPrimitiveType eType);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void					AddChannels(CImageChannelsSource* pcSource);
 	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(Ptr<CImage> pcSourceChannels);
+	void 					AddChannels(Ptr<CImage> pSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
 
@@ -109,8 +109,8 @@ public:
 
 	Ptr<CImageCelBlitterCache>	GetBlitterCache(void);
 
-	void					Copy(Ptr<CImage> pcSource);
-	void					CopyIntoInitialised(Ptr<CImage> pcSource);
+	void					Copy(Ptr<CImage> pSource);
+	void					CopyIntoInitialised(Ptr<CImage> pSource);
 	void					Black(void);
 	void					White(void);
 

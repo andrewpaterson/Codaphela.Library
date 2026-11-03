@@ -34,9 +34,9 @@ protected:
 	SImageColour	msTransparentColour;  //Treat this colour as transparent.
 
 public:
-	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent);
-	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, CInt32Rect* pcRect);
-	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent);
+	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, CInt32Rect* pcRect);
+	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom);
 
 	void	CropTransparentBorders(void);
 

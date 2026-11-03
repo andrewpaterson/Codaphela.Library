@@ -3,7 +3,7 @@
 #include "Image.h"
 
 
-void AddDebugChannel(Ptr<CImage> pcImage, EPrimitiveType eType, EChannel eChannel, bool bAddDebug);
+void AddDebugChannel(Ptr<CImage> pImage, EPrimitiveType eType, EChannel eChannel, bool bAddDebug);
 
 
 #endif // __IMAGE_READER_HELPER_H__

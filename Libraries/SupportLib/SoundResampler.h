@@ -56,7 +56,7 @@ public:
 	void			Init(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings);
 	void			Class(void) override;
 
-	Ptr<CSound>		Modify(Ptr<CSound> pcSound) override;
+	Ptr<CSound>		Modify(Ptr<CSound> pSound) override;
 	static lsize		GetResampledNumFrames(lsize uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate);
 
 protected:

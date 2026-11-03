@@ -274,11 +274,11 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource)
+void CImageCelsSource::AddMemorySource(Ptr<CImage> pImage, CImageCelSource* pcCelSource)
 {
 	Ptr<CImageSourceMemory>	pMemory;
 
-	pMemory = OMalloc<CImageSourceMemory>(pcImage);
+	pMemory = OMalloc<CImageSourceMemory>(pImage);
 	AddSource(pMemory, pcCelSource);
 }
 
@@ -302,11 +302,11 @@ bool CImageCelsSource::Load(void)
 	size								i;
 	Ptr<CImageSourceWithCelSources>	pSource;
 	bool							bResult;
-	Ptr<CImage>						pcMask;
+	Ptr<CImage>						pMask;
 	Ptr<CImageSource>				pImageSource;
 	CImageCelSource*				pcCelsSource;
 	int								iFirstCelIndex;
-	Ptr<CImage>						pcCombined;
+	Ptr<CImage>						pCombined;
 	size							j;
 	char*							szFileName;
 	size								uiNumCels;
@@ -316,7 +316,7 @@ bool CImageCelsSource::Load(void)
 		pSource = maImageSources.Get(i);
 		if (pSource.IsNotNull())
 		{
-			pcMask = NULL;
+			pMask = NULL;
 			pImageSource = pSource->GetImageSource();
 			pcCelsSource = pSource->GetCelsSource();
 
@@ -331,20 +331,20 @@ bool CImageCelsSource::Load(void)
 
 			if (pcCelsSource->NeedsMask())
 			{
-				pcMask = OMalloc<CImage>();
-				maFillMasks.Add(pcMask);
+				pMask = OMalloc<CImage>();
+				maFillMasks.Add(pMask);
 			}
 			iFirstCelIndex = (int)maImageCels.NumElements();
-			pcCelsSource->Divide((CImage*)pImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
+			pcCelsSource->Divide((CImage*)pImageSource->GetImage().Object(), &maImageCels, (CImage*)pMask.Object());
 
 			if (mbPackOnLoad)
 			{
-				pcCombined = Combine(iFirstCelIndex);
+				pCombined = Combine(iFirstCelIndex);
 				pImageSource->GetImage()->Kill();
-				pImageSource->SetImage(pcCombined);
-				if (pcMask.IsNotNull())
+				pImageSource->SetImage(pCombined);
+				if (pMask.IsNotNull())
 				{
-					maFillMasks.Remove(pcMask);
+					maFillMasks.Remove(pMask);
 				}
 			}
 
@@ -372,12 +372,12 @@ bool CImageCelsSource::Load(void)
 Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 {
 	CImageCombiner	cImageCombiner;
-	Ptr<CImage>		pcDest;
+	Ptr<CImage>		pDest;
 	size			i;
 	Ptr<CImageCel>	pCel;
 	size			uiNumElements;
 
-	pcDest = OMalloc<CImage>();
+	pDest = OMalloc<CImage>();
 	cImageCombiner.Init(ICL_Best, ICS_Arbitrary);
 
 	uiNumElements = maImageCels.NumElements();
@@ -386,13 +386,13 @@ Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 		pCel = maImageCels.Get(i);
 		cImageCombiner.AddCel(pCel);
 	}
-	pcDest = cImageCombiner.Combine();
-	if (pcDest.IsNotNull())
+	pDest = cImageCombiner.Combine();
+	if (pDest.IsNotNull())
 	{
 		maImageCels.RemoveEnd(iFirstCelIndex);
 		maImageCels.AddAll(&cImageCombiner.mcDestCels);
 		cImageCombiner.Kill();
-		return pcDest;
+		return pDest;
 	}
 	else
 	{
@@ -409,15 +409,15 @@ void CImageCelsSource::PopulateImageArray(void)
 {
 	size							i;
 	Ptr<CImageSourceWithCelSources>	pSource;
-	Ptr<CImage>						pcImage;
+	Ptr<CImage>						pImage;
 	size							uiNumElements;
 
 	uiNumElements = maImageSources.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pSource = maImageSources.Get(i);
-		pcImage = pSource->GetImageSource()->GetImage();
-		maImages.Add(pcImage);
+		pImage = pSource->GetImageSource()->GetImage();
+		maImages.Add(pImage);
 	}	
 }
 

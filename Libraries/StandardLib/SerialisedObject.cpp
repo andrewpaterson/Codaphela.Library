@@ -15,7 +15,7 @@ bool CSerialisedObject::IsNamed(void)
 		return false;
 	}
 
-	if (msName.miLength == 1)
+	if (msName.iLength == 1)
 	{
 		return false;
 	}
@@ -40,7 +40,7 @@ bool CSerialisedObject::IsIndexed(void)
 	}
 
 	bNamed = *((int32*)&mszType) == OBJECT_POINTER_NAMED;
-	if (bNamed && msName.miLength == 1)
+	if (bNamed && msName.iLength == 1)
 	{
 		return true;
 	}
@@ -65,7 +65,7 @@ bool CSerialisedObject::IsVoid(void)
 //////////////////////////////////////////////////////////////////////////
 char* CSerialisedObject::GetName(void)
 {
-	return msName.msz;
+	return msName.sz;
 }
 
 

@@ -39,13 +39,13 @@ void CImageCelSourceGrid::Init(CImageDividerNumbers* pcNumbers, SImageColour* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceGrid::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
+void CImageCelSourceGrid::Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 
 	cDivider.Init(pcImage, mpsTransparentColour, mbIgnoreEmpty, mbCropTransparentBorders);
 	cDivider.GenerateFromNumbers(&mcNumbers);
-	cDivider.CopyCellsTo(pcDestImageCels);
+	cDivider.CopyCellsTo(pDestImageCels);
 	cDivider.Kill();
 }
 

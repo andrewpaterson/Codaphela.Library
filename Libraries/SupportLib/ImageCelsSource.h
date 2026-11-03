@@ -87,7 +87,7 @@ public:
 	void					AddSource(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelSource);
 	void					AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
 	void					AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource);
-	void					AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource);
+	void					AddMemorySource(Ptr<CImage> pImage, CImageCelSource* pcCelSource);
 
 	void					AddModifier(Ptr<CImageModifier> pModifier);
 

@@ -28,7 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //bilinear and pixels past the edges are the edge pixels.  Integer channels are rounded to the nearest value and clamped
 //to their range (the cubic overshoots at hard edges); float channels are not clamped.
 //Returns false if a channel can't be resampled (reversed or not a primitive).
-bool ResampleBicubic(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+bool ResampleBicubic(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 
 #endif // __IMAGE_RESAMPLE_BICUBIC_H__

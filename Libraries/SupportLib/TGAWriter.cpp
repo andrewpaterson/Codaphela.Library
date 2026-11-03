@@ -74,7 +74,7 @@ bool TGAWriteFooter(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
+bool SaveTGA(Ptr<CImage> pImage, char* szPathName, bool bRLE)
 {
 	int					iWidth;
 	int					iHeight;
@@ -97,25 +97,25 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	uint				y;
 	bool				bResult;
 
-	if (pcImage.IsNull())
+	if (pImage.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write NULL image [", szPathName, "].", NULL);
 		return false;
 	}
 
-	iWidth = pcImage->GetWidth();
-	iHeight = pcImage->GetHeight();
+	iWidth = pImage->GetWidth();
+	iHeight = pImage->GetHeight();
 	if ((iWidth <= 0) || (iHeight <= 0) || (iWidth > 0xFFFF) || (iHeight > 0xFFFF))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write a [", IntToString(iWidth), " x ", IntToString(iHeight), "] image as a Targa [", szPathName, "].", NULL);
 		return false;
 	}
 
-	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
+	if (pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		bGrey = false;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
 		bGrey = true;
 	}
@@ -124,7 +124,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 		gcLogger.Error2(__METHOD__, " Image has no RGB or grey channels.  Cannot write [", szPathName, "].", NULL);
 		return false;
 	}
-	bAlpha = pcImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
+	bAlpha = pImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
 	iPixelBytes = (bGrey ? 1 : 3) + (bAlpha ? 1 : 0);
 
 	//Export in Targa's byte order: blue, green, red, alpha or grey, alpha.
@@ -150,7 +150,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	{
 		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_STOP);
 	}
-	cCopier.Init(pcImage, &cImageExport);
+	cCopier.Init(pImage, &cImageExport);
 	cCopier.Copy(0, 0);
 	cCopier.Kill();
 	cImageExport.Kill();

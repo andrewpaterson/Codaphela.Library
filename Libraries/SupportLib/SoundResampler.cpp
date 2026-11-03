@@ -133,9 +133,9 @@ uint32 SoundResamplerGreatestCommonDivisor(uint32 uiA, uint32 uiB)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
+Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pSource)
 {
-	Ptr<CSound>		pcDest;
+	Ptr<CSound>		pDest;
 	uint32			uiSourceRate;
 	lsize			uiSourceFrames;
 	lsize			uiDestFrames;
@@ -149,22 +149,22 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 	lsize			uiPhase;
 	float64			fCutoff;
 
-	if (pcSource.IsNull() || !pcSource->CanAccessSamples() || (pcSource->GetSampleRate() == 0) || (muiSampleRate == 0))
+	if (pSource.IsNull() || !pSource->CanAccessSamples() || (pSource->GetSampleRate() == 0) || (muiSampleRate == 0))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot resample sound.", NULL);
 		return NULL;
 	}
 
-	uiSourceRate = pcSource->GetSampleRate();
-	uiSourceFrames = pcSource->GetNumFrames();
+	uiSourceRate = pSource->GetSampleRate();
+	uiSourceFrames = pSource->GetNumFrames();
 	if (uiSourceRate == muiSampleRate)
 	{
-		return pcSource;
+		return pSource;
 	}
 
 	uiDestFrames = GetResampledNumFrames(uiSourceFrames, uiSourceRate, muiSampleRate);
-	pcDest = OMalloc<CSound>(muiSampleRate, uiDestFrames, pcSource);
-	if ((uiDestFrames > 0) && (pcDest->GetData() == NULL))
+	pDest = OMalloc<CSound>(muiSampleRate, uiDestFrames, pSource);
+	if ((uiDestFrames > 0) && (pDest->GetData() == NULL))
 	{
 		gcLogger.Error2(__METHOD__, " Could not allocate resampled sound of [", LongToString((uint64)uiDestFrames), "] frames.", NULL);
 		return NULL;
@@ -190,18 +190,18 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 
 	pfSource = (float64*)malloc((lsize)sizeof(float64) * (uiSourceFrames + 1));
 	pfDest = (float64*)malloc((lsize)sizeof(float64) * (uiDestFrames + 1));
-	uiNumChannels = pcSource->NumChannels();
+	uiNumChannels = pSource->NumChannels();
 	for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 	{
-		pcSource->GetSamples(uiChannel, 0, uiSourceFrames, pfSource);
+		pSource->GetSamples(uiChannel, 0, uiSourceFrames, pfSource);
 		ResampleChannel(pfSource, uiSourceFrames, pfDest, uiDestFrames, uiSourceRate, muiSampleRate, pfTable, uiNumPhases);
-		pcDest->SetSamples(uiChannel, 0, uiDestFrames, pfDest);
+		pDest->SetSamples(uiChannel, 0, uiDestFrames, pfDest);
 	}
 	free(pfDest);
 	free(pfSource);
 	SafeFree(pfTable);
 
-	return pcDest;
+	return pDest;
 }
 
 

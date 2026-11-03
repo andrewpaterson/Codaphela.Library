@@ -75,12 +75,12 @@ CAnimKeyFrame* CConnectionAnimation::Add(SFloat32Vec3* psPosition, SQuaternion* 
 	psPRS = (SAnimKeyFramePRS*)&psKeyFrame->msf;
 	if (psRotation)
 	{
-		psPRS->msRotation = *psRotation;
+		psPRS->sRotation = *psRotation;
 		iType |= KFT_Rotation;
 	}
 	if (psPosition)
 	{
-		psPRS->msPosition = *psPosition;
+		psPRS->sPosition = *psPosition;
 		iType |= KFT_Position;
 	}
 	psKeyFrame->mfTime = fTime;
@@ -103,7 +103,7 @@ CAnimKeyFrame* CConnectionAnimation::Add(SFloat4x4* psMatrix, float32 fTime)
 	memset(psKeyFrame, 0, sizeof(CAnimKeyFrame));
 	iType = KFT_Matrix;
 	psM = (SAnimKeyFrameMatrix*)&psKeyFrame->msf;
-	psM->msMatrix = *psMatrix;
+	psM->sMatrix = *psMatrix;
 	psKeyFrame->mfTime = fTime;
 	psKeyFrame->miType = iType;
 	return psKeyFrame;

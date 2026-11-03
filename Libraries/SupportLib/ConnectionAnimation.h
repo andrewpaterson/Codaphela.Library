@@ -36,14 +36,14 @@ enum EKeyframeType
 
 struct SAnimKeyFramePRS
 {
-	SFloat32Vec3			msPosition;
-	SQuaternion		msRotation;
+	SFloat32Vec3			sPosition;
+	SQuaternion		sRotation;
 	//Scale
 };
 
 struct SAnimKeyFrameMatrix
 {
-	SFloat4x4		msMatrix;
+	SFloat4x4		sMatrix;
 };
 
 

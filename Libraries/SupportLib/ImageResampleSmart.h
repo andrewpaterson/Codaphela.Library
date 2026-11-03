@@ -41,7 +41,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //and blends only that group's pixels.  So a flat or smooth block is bilinear, a block of all different pixels is nearest
 //neighbour, a straight edge stays at the midpoint and a staircase corner is cut along a curve joining the edge midpoints.
 //Values are float64 and integer channels are rounded.  Returns false if a channel can't be resampled.
-bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+bool ResampleSmart(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 
 #endif // __IMAGE_RESAMPLE_SMART_H__

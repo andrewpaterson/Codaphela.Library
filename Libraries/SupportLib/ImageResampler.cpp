@@ -82,23 +82,23 @@ void CImageResampler::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pImage)
 {
-	Ptr<CImage>		pcDest;
+	Ptr<CImage>		pDest;
 
 	if (meStyle != RS_Unknown)
 	{
-		GetPowerOf2Size(meStyle, pcImage->GetWidth(), pcImage->GetHeight(), &miWidth, &miHeight);
+		GetPowerOf2Size(meStyle, pImage->GetWidth(), pImage->GetHeight(), &miWidth, &miHeight);
 	}
 
-	if ((pcImage->GetWidth() == (uint32)miWidth) && (pcImage->GetHeight() == (uint32)miHeight))
+	if ((pImage->GetWidth() == (uint32)miWidth) && (pImage->GetHeight() == (uint32)miHeight))
 	{
-		return pcImage;
+		return pImage;
 	}
 
-	pcDest = ResampleTo(pcImage);
+	pDest = ResampleTo(pImage);
 
-	return pcDest;
+	return pDest;
 }
 
 
@@ -107,7 +107,7 @@ Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
+Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pSource)
 {
 	float32				fdx;
 	float32				fdy;
@@ -122,32 +122,32 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	float32				fScalex;
 	float32				fScaley;
 	SImageColour*		psColour;
-	Ptr<CImage>			pcDest;
+	Ptr<CImage>			pDest;
 	bool				bResampled;
 
-	pcDest = OMalloc<CImage>();
-	pcDest->BeginChange();
-	pcDest->AddChannels(&pcSource);
-	pcDest->SetSize(miWidth, miHeight);
-	pcDest->EndChange();
+	pDest = OMalloc<CImage>();
+	pDest->BeginChange();
+	pDest->AddChannels(&pSource);
+	pDest->SetSize(miWidth, miHeight);
+	pDest->EndChange();
 
-	pcSourceAccessor = CImageAccessorCreator::Create(&pcSource, &pcSource);
-	pcDestAccessor = CImageAccessorCreator::Create(&pcDest, &pcDest);
+	pcSourceAccessor = CImageAccessorCreator::Create(&pSource, &pSource);
+	pcDestAccessor = CImageAccessorCreator::Create(&pDest, &pDest);
 
-	if ((pcSource->GetWidth() == (uint32)miWidth) && (pcSource->GetHeight() == (uint32)miHeight))
+	if ((pSource->GetWidth() == (uint32)miWidth) && (pSource->GetHeight() == (uint32)miHeight))
 	{
 		gcLogger.Error2(__METHOD__, " Implement this.  Copy does not work.");
-		//pcDest->Copy(pcSource);
+		//pDest->Copy(pSource);
 	}
 	else
 	{
 		//This assumes the channels in dest and source are the same.
 		//Which is reasonable as dest has just been recreated.
-		fWidth = (float32)pcDest->GetWidth();
-		fHeight = (float32)pcDest->GetHeight();
+		fWidth = (float32)pDest->GetWidth();
+		fHeight = (float32)pDest->GetHeight();
 
-		fSourceWidth = (float32)pcSource->GetWidth();
-		fSourceHeight = (float32)pcSource->GetHeight();
+		fSourceWidth = (float32)pSource->GetWidth();
+		fSourceHeight = (float32)pSource->GetHeight();
 
 		fScalex = fSourceWidth/fWidth;
 		fScaley = fSourceHeight/fHeight;
@@ -155,15 +155,15 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 		bResampled = false;
 		if (meResample == IR_Bilinear)
 		{
-			bResampled = ResampleBilinear(pcSource, pcDest);
+			bResampled = ResampleBilinear(pSource, pDest);
 		}
 		else if (meResample == IR_Bicubic)
 		{
-			bResampled = ResampleBicubic(pcSource, pcDest);
+			bResampled = ResampleBicubic(pSource, pDest);
 		}
 		else if (meResample == IR_Smart)
 		{
-			bResampled = ResampleSmart(pcSource, pcDest);
+			bResampled = ResampleSmart(pSource, pDest);
 		}
 
 		//Channels the other methods can't resample (reversed channels) are resampled by nearest neighbour.
@@ -186,7 +186,7 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	pcSourceAccessor->Kill();
 	pcDestAccessor->Kill();
 
-	return pcDest;
+	return pDest;
 }
 
 

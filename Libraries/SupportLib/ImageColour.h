@@ -62,9 +62,9 @@ class CImageColourRGB : public CImageColour
 {
 CONSTRUCTABLE(CImageColourRGB);
 public:
-	float32	r;
-	float32	g;
-	float32	b;
+	float32	mfRed;
+	float32	mfGreen;
+	float32	mfBlue;
 
 	void	Init(float32 r, float32 g, float32 b);
 
@@ -80,10 +80,10 @@ class CImageColourARGB : public CImageColour
 {
 CONSTRUCTABLE(CImageColourARGB);
 public:
-	float32	a;
-	float32	r;
-	float32	g;
-	float32	b;
+	float32	mfAlpha;
+	float32	mfRed;
+	float32	mfGreen;
+	float32	mfBlue;
 
 	void	Init(float32 a, float32 r, float32 g, float32 b);
 	void	Zero(void);
@@ -100,7 +100,7 @@ class CImageColourOpacity : public CImageColour
 {
 CONSTRUCTABLE(CImageColourOpacity);
 public:
-	float32	a;
+	float32	mfOpacity;
 
 	void	Init(float32 a);
 
@@ -116,7 +116,7 @@ class CImageColourSpecular : public CImageColour
 {
 CONSTRUCTABLE(CImageColourSpecular);
 public:
-	float32	s;
+	float32	mfSpecular;
 
 	void	Init(float32 s);
 
@@ -132,9 +132,9 @@ class CImageColourNormal : public CImageColour
 {
 CONSTRUCTABLE(CImageColourNormal);
 public:
-	float32	x;
-	float32	y;
-	float32	z;
+	float32	mfX;
+	float32	mfY;
+	float32	mfZ;
 
 	void	Init(float32 x, float32 y, float32 z);
 
@@ -150,7 +150,7 @@ class CImageColourCombo2 : public CImageColour
 {
 CONSTRUCTABLE(CImageColourCombo2);
 public:
-	CImageColour*	cImageColours[2];
+	CImageColour*	mapcImageColours[2];
 
 	//Can't have a '1' combo and more than 3 is getting silly (You can chain them if needed).
 	void	Init(CImageColour* pc1, CImageColour* pc2);

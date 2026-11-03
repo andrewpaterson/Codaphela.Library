@@ -41,7 +41,7 @@ public:
 	void			 Free(void) override;
 
 	void			AddChannel(EChannel eChannel);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

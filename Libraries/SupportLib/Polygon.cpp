@@ -172,7 +172,7 @@ bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 		ppsPositions[1] = pcTriangle->mpsPosition1;
 		ppsPositions[2] = pcTriangle->mpsPosition2;
 		mpsPosition = pcTriangle->mpsPosition;
-		d = pcTriangle->d;
+		mfDistance = pcTriangle->mfDistance;
 		return true;
 	}
 	else

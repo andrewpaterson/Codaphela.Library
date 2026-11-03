@@ -29,9 +29,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent)
+void CImageCelTransparent::Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent)
 {
-	Init(pcSourceImage, psTransparent, 0, 0, pcSourceImage->GetWidth(), pcSourceImage->GetHeight());
+	Init(pSourceImage, psTransparent, 0, 0, pSourceImage->GetWidth(), pSourceImage->GetHeight());
 }
 
 
@@ -39,9 +39,9 @@ void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTrans
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, CInt32Rect* pcRect)
+void CImageCelTransparent::Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, CInt32Rect* pcRect)
 {
-	Init(pcSourceImage, psTransparent, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
+	Init(pSourceImage, psTransparent, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 
 
@@ -49,15 +49,15 @@ void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTrans
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelTransparent::Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageAccessor*	pcAccessor;
 	int				iDataSize;
 
-	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
+	CImageCel::Init(pSourceImage, iLeft, iTop, iRight, iBottom);
 
 	//Only copy as many bytes as a pixel has.  Callers pass colours smaller than SImageColour.
-	pcAccessor = CImageAccessorCreator::Create(&pcSourceImage);
+	pcAccessor = CImageAccessorCreator::Create(&pSourceImage);
 	iDataSize = (int)pcAccessor->GetBufferSize();
 	pcAccessor->Kill();
 

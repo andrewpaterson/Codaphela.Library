@@ -449,7 +449,7 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 
 		for (i = 0; i < NUM_FACE_EDGES; i++)
 		{
-			iEdgeIndex = psFace->asEdge[i];
+			iEdgeIndex = psFace->maiEdge[i];
 			cEdge = pcEdges->mcEdges.Get(iEdgeIndex);
 			if (!cEdge)
 			{

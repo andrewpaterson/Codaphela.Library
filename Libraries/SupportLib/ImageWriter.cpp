@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
+bool WriteImage(Ptr<CImage> pImage, char* szFilename, EImageType eType)
 {
 	if (eType == IT_Unknown)
 	{
@@ -45,17 +45,17 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 	switch (eType)
 	{
 	case IT_BMP:
-		return SaveBMP(pcImage, szFilename);
+		return SaveBMP(pImage, szFilename);
 	case IT_TGA:
-		return SaveTGA(pcImage, szFilename);
+		return SaveTGA(pImage, szFilename);
 	case IT_PNG:
-		return SavePNG(pcImage, szFilename);
+		return SavePNG(pImage, szFilename);
 	case IT_RAD:
-		return (SaveRAD(pcImage, szFilename));
+		return (SaveRAD(pImage, szFilename));
 	case IT_RAW:
-		return (SaveRAW(pcImage, szFilename));
+		return (SaveRAW(pImage, szFilename));
 	case IT_SFT:
-		return (SaveSFT(pcImage, szFilename));
+		return (SaveSFT(pImage, szFilename));
 	default:
 		break;
 	}

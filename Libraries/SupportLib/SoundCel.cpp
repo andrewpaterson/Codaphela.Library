@@ -30,9 +30,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundCel::Init(Ptr<CSound> pcSourceSound)
+void CSoundCel::Init(Ptr<CSound> pSourceSound)
 {
-	Init(pcSourceSound, 0, pcSourceSound->GetNumFrames(), SOUND_CEL_NO_LOOP);
+	Init(pSourceSound, 0, pSourceSound->GetNumFrames(), SOUND_CEL_NO_LOOP);
 }
 
 
@@ -41,11 +41,11 @@ void CSoundCel::Init(Ptr<CSound> pcSourceSound)
 // A loop frame that isn't inside the cel means no loop.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundCel::Init(Ptr<CSound> pcSourceSound, lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame)
+void CSoundCel::Init(Ptr<CSound> pSourceSound, lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame)
 {
 	PreInit();
 
-	mpSourceSound = pcSourceSound;
+	mpSourceSound = pSourceSound;
 	muiFirstFrame = uiFirstFrame;
 	muiNumFrames = uiNumFrames;
 	SetLoopFrame(uiLoopFrame);
@@ -344,7 +344,7 @@ bool CSoundCel::WrapPosition(float64* pfPosition, lsize uiNumFrames, lsize uiLoo
 //////////////////////////////////////////////////////////////////////////
 Ptr<CSound> CSoundCel::ToSound(void)
 {
-	Ptr<CSound>	pcSound;
+	Ptr<CSound>	pSound;
 	float64*	pfSamples;
 	size		uiChannel;
 
@@ -354,15 +354,15 @@ Ptr<CSound> CSoundCel::ToSound(void)
 		return NULL;
 	}
 
-	pcSound = OMalloc<CSound>(mpSourceSound->GetSampleRate(), muiNumFrames, mpSourceSound);
+	pSound = OMalloc<CSound>(mpSourceSound->GetSampleRate(), muiNumFrames, mpSourceSound);
 	pfSamples = (float64*)malloc((lsize)sizeof(float64) * (muiNumFrames + 1));
 	for (uiChannel = 0; uiChannel < mpSourceSound->NumChannels(); uiChannel++)
 	{
 		GetSamples(uiChannel, 0, muiNumFrames, pfSamples);
-		pcSound->SetSamples(uiChannel, 0, muiNumFrames, pfSamples);
+		pSound->SetSamples(uiChannel, 0, muiNumFrames, pfSamples);
 	}
 	free(pfSamples);
-	return pcSound;
+	return pSound;
 }
 
 

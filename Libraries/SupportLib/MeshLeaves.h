@@ -45,9 +45,9 @@ enum ERelativeSphereVolume
 class CRelativeSphereVolume
 {
 public:
-	float32					fVolume;
-	ERelativeSphereVolume	eRelative[3];  // This ERelativeSphereVolume other.
-	int						iNewIndex;
+	float32					mfVolume;
+	ERelativeSphereVolume	meRelative[3];  // This ERelativeSphereVolume other.
+	int						miNewIndex;
 
 	void					Init(float32 fVolume);
 	bool					IsAllGreaterThan(void);

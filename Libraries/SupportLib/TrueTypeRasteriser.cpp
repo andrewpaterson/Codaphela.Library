@@ -320,7 +320,7 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* piTop)
 {
 	STrueTypePixelBounds	sBounds;
-	Ptr<CImage>				pcImage;
+	Ptr<CImage>				pImage;
 
 	*piLeft = 0;
 	*piTop = 0;
@@ -335,12 +335,12 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 
 	AddGlyph(iGlyph, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	mcCoverage.Accumulate();
-	pcImage = CoverageToImage();
+	pImage = CoverageToImage();
 	EndCoverage();
 
 	*piLeft = sBounds.iLeft;
 	*piTop = sBounds.iTop;
-	return pcImage;
+	return pImage;
 }
 
 
@@ -354,7 +354,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int* piOriginY)
 {
 	STrueTypePixelBounds	sBounds;
-	Ptr<CImage>				pcImage;
+	Ptr<CImage>				pImage;
 
 	*piOriginX = 0;
 	*piOriginY = 0;
@@ -369,12 +369,12 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 
 	AddText(szUTF8, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	mcCoverage.Accumulate();
-	pcImage = CoverageToImage();
+	pImage = CoverageToImage();
 	EndCoverage();
 
 	*piOriginX = -sBounds.iLeft;
 	*piOriginY = -sBounds.iTop;
-	return pcImage;
+	return pImage;
 }
 
 
@@ -386,7 +386,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 // pcDest must have them all.  Text outside pcDest is clipped.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour)
+bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour)
 {
 	STrueTypePixelBounds	sBounds;
 	int32					iX;
@@ -419,13 +419,13 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, c
 		iTop = 0;
 	}
 	//The image size is unsigned; compare as int so a glyph wholly left of or above the image (negative right or bottom) is not clamped to the full size.
-	if (iRight > (int)pcDest->GetWidth())
+	if (iRight > (int)pDest->GetWidth())
 	{
-		iRight = (int)pcDest->GetWidth();
+		iRight = (int)pDest->GetWidth();
 	}
-	if (iBottom > (int)pcDest->GetHeight())
+	if (iBottom > (int)pDest->GetHeight())
 	{
-		iBottom = (int)pcDest->GetHeight();
+		iBottom = (int)pDest->GetHeight();
 	}
 	if ((iRight <= iLeft) || (iBottom <= iTop))
 	{
@@ -438,7 +438,7 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, c
 	}
 	AddText(szUTF8, iX - FixedFromInt(iLeft, TRUE_TYPE_SUBPIXEL_BITS), iY - FixedFromInt(iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	mcCoverage.Accumulate();
-	bResult = BlendCoverage(pcDest, iLeft, iTop, pcColour);
+	bResult = BlendCoverage(pDest, iLeft, iTop, pcColour);
 	EndCoverage();
 	return bResult;
 }
@@ -626,11 +626,11 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 {
-	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pImage;
 
-	pcImage = OMalloc<CImage>(mcCoverage.GetWidth(), mcCoverage.GetHeight(), PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
-	memcpy(pcImage->GetData(), mcCoverage.GetCoverage(), (lsize)mcCoverage.GetWidth() * mcCoverage.GetHeight());
-	return pcImage;
+	pImage = OMalloc<CImage>(mcCoverage.GetWidth(), mcCoverage.GetHeight(), PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
+	memcpy(pImage->GetData(), mcCoverage.GetCoverage(), (lsize)mcCoverage.GetWidth() * mcCoverage.GetHeight());
+	return pImage;
 }
 
 
@@ -641,7 +641,7 @@ Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 // bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDestY, CImageColour* pcColour)
+bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDestY, CImageColour* pcColour)
 {
 	CArraySize				aiChannels;
 	CImageAccessorCreator	cCreator;
@@ -665,7 +665,7 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 	}
 	for (i = 0; i < uiNumChannels; i++)
 	{
-		if (!pcDest->HasChannel(aiChannels.GetValue(i)))
+		if (!pDest->HasChannel(aiChannels.GetValue(i)))
 		{
 			aiChannels.Kill();
 			return false;
@@ -674,7 +674,7 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 		aiColour[i] = (iColour < 0) ? 0 : ((iColour > 255) ? 255 : iColour);
 	}
 
-	cCreator.Init(&pcDest);
+	cCreator.Init(&pDest);
 	cCreator.AddAccess(&aiChannels, PT_uint8);
 	pcAccessor = cCreator.CreateAndKill();
 	aiChannels.Kill();

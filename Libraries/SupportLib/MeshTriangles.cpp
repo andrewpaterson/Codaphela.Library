@@ -117,7 +117,7 @@ void CMeshTriangles::GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* 
 		psFaceNormal = pcNormals->mcFaces.Get(i);
 		pcTriangle = mcTriangles.Get(i);
 		iNormal = psFaceNormal->iFaceNormal;
-		pcTriangle->Init(pcFace->asCorner[0], pcFace->asCorner[1], pcFace->asCorner[2], iNormal);
+		pcTriangle->Init(pcFace->maiCorner[0], pcFace->maiCorner[1], pcFace->maiCorner[2], iNormal);
 	}
 }
 

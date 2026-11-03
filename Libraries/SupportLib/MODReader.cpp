@@ -117,7 +117,7 @@ bool MODReadSampleHeader(CFileBasic* pcFile, SMODSampleHeader* psHeader)
 // effect, parameter.
 //
 //////////////////////////////////////////////////////////////////////////
-bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pcSong)
+bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pSong)
 {
 	size		uiPattern;
 	size		uiRow;
@@ -125,17 +125,17 @@ bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pcSong)
 	uint8		auiNote[MOD_NOTE_SIZE];
 	SModNote*	psNote;
 
-	for (uiPattern = 0; uiPattern < pcSong->NumPatterns(); uiPattern++)
+	for (uiPattern = 0; uiPattern < pSong->NumPatterns(); uiPattern++)
 	{
 		for (uiRow = 0; uiRow < MOD_ROWS_PER_PATTERN; uiRow++)
 		{
-			for (uiChannel = 0; uiChannel < pcSong->NumChannels(); uiChannel++)
+			for (uiChannel = 0; uiChannel < pSong->NumChannels(); uiChannel++)
 			{
 				if (!pcFile->ReadData(auiNote, MOD_NOTE_SIZE))
 				{
 					return false;
 				}
-				psNote = pcSong->GetNote(uiPattern, uiRow, uiChannel);
+				psNote = pSong->GetNote(uiPattern, uiRow, uiChannel);
 				psNote->uiSample = (uint8)((auiNote[0] & 0xF0) | (auiNote[2] >> 4));
 				psNote->uiPeriod = (uint16)(((auiNote[0] & 0x0F) << 8) | auiNote[1]);
 				psNote->uiEffect = (uint8)(auiNote[2] & 0x0F);
@@ -153,7 +153,7 @@ bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pcSong)
 // cut off by the end of the file is left silent.
 //
 //////////////////////////////////////////////////////////////////////////
-bool MODReadSamples(CFileBasic* pcFile, lsize uiFileSize, Ptr<CModSong> pcSong, SMODSampleHeader* pasHeaders)
+bool MODReadSamples(CFileBasic* pcFile, lsize uiFileSize, Ptr<CModSong> pSong, SMODSampleHeader* pasHeaders)
 {
 	size					i;
 	lsize					uiTotalFrames;
@@ -161,32 +161,32 @@ bool MODReadSamples(CFileBasic* pcFile, lsize uiFileSize, Ptr<CModSong> pcSong, 
 	lsize					uiAvailable;
 	lsize					uiCelFrames;
 	lsize					uiLoop;
-	Ptr<CSound>				pcBank;
-	Ptr<CSoundCelGroup>		pcGroup;
+	Ptr<CSound>				pBank;
+	Ptr<CSoundCelGroup>		pGroup;
 	SModSample*				psSample;
 	SMODSampleHeader*		psHeader;
 	uint8*					puiBank;
 
 	uiTotalFrames = 0;
-	for (i = 0; i < pcSong->NumSamples(); i++)
+	for (i = 0; i < pSong->NumSamples(); i++)
 	{
 		uiTotalFrames += pasHeaders[i].uiLength;
 	}
 
-	pcBank = OMalloc<CSound>(MOD_BANK_SAMPLE_RATE, uiTotalFrames, PT_int8, SOUND_MONO, CHANNEL_STOP);
-	puiBank = (uint8*)pcBank->GetData();
+	pBank = OMalloc<CSound>(MOD_BANK_SAMPLE_RATE, uiTotalFrames, PT_int8, SOUND_MONO, CHANNEL_STOP);
+	puiBank = (uint8*)pBank->GetData();
 	if ((uiTotalFrames > 0) && (puiBank == NULL))
 	{
 		return false;
 	}
-	pcBank->Silence();
-	pcGroup = OMalloc<CSoundCelGroup>(pcBank);
+	pBank->Silence();
+	pGroup = OMalloc<CSoundCelGroup>(pBank);
 
 	uiBankFrame = 0;
-	for (i = 0; i < pcSong->NumSamples(); i++)
+	for (i = 0; i < pSong->NumSamples(); i++)
 	{
 		psHeader = &pasHeaders[i];
-		psSample = pcSong->GetSample(i + 1);
+		psSample = pSong->GetSample(i + 1);
 		StrCpySafe(psSample->szName, psHeader->szName, sizeof(psSample->szName));
 		psSample->iFineTune = (int8)((psHeader->uiFineTune & 0x08) ? (int)psHeader->uiFineTune - 16 : (int)psHeader->uiFineTune);
 		psSample->uiVolume = psHeader->uiVolume;
@@ -207,12 +207,12 @@ bool MODReadSamples(CFileBasic* pcFile, lsize uiFileSize, Ptr<CModSong> pcSong, 
 					uiCelFrames = psHeader->uiLoopStart + psHeader->uiLoopLength;
 				}
 			}
-			psSample->uiCel = pcGroup->AddCel(uiBankFrame, uiCelFrames, uiLoop);
+			psSample->uiCel = pGroup->AddCel(uiBankFrame, uiCelFrames, uiLoop);
 		}
 		uiBankFrame += psHeader->uiLength;
 	}
 
-	pcSong->SetSampleBank(pcGroup);
+	pSong->SetSampleBank(pGroup);
 	return true;
 }
 
@@ -235,7 +235,7 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, lsize uiFileSize)
 	size					i;
 	char					szTitle[21];
 	SMODSampleHeader		asHeaders[MOD_MAX_SAMPLES];
-	Ptr<CModSong>			pcSong;
+	Ptr<CModSong>			pSong;
 
 	uiNumChannels = 0;
 	if ((uiFileSize >= 1084) && pcFile->Seek(1080) && pcFile->ReadData(auiSignature, 4))
@@ -305,19 +305,19 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, lsize uiFileSize)
 		return NULL;
 	}
 
-	pcSong = OMalloc<CModSong>(uiNumChannels, uiNumSamples, uiNumPatterns);
-	pcSong->SetTitle(szTitle);
-	pcSong->SetSongLength(uiSongLength, uiRestart);
+	pSong = OMalloc<CModSong>(uiNumChannels, uiNumSamples, uiNumPatterns);
+	pSong->SetTitle(szTitle);
+	pSong->SetSongLength(uiSongLength, uiRestart);
 	for (i = 0; i < MOD_MAX_ORDERS; i++)
 	{
-		pcSong->SetOrder(i, auiOrders[i]);
+		pSong->SetOrder(i, auiOrders[i]);
 	}
 
-	if (!MODReadPatterns(pcFile, pcSong) || !MODReadSamples(pcFile, uiFileSize, pcSong, asHeaders))
+	if (!MODReadPatterns(pcFile, pSong) || !MODReadSamples(pcFile, uiFileSize, pSong, asHeaders))
 	{
 		return NULL;
 	}
-	return pcSong;
+	return pSong;
 }
 
 
@@ -328,16 +328,16 @@ Ptr<CModSong> MODRead(CFileBasic* pcFile, lsize uiFileSize)
 Ptr<CModSong> LoadMOD(void* pvFile, lsize uiFileSize)
 {
 	CFileBasic		cFile;
-	Ptr<CModSong>	pcSong;
+	Ptr<CModSong>	pSong;
 
 	cFile.Init(MemoryFile(pvFile, uiFileSize));
 	if (cFile.Open(EFM_Read))
 	{
-		pcSong = MODRead(&cFile, uiFileSize);
+		pSong = MODRead(&cFile, uiFileSize);
 		cFile.Close();
 	}
 	cFile.Kill();
-	return pcSong;
+	return pSong;
 }
 
 
@@ -348,7 +348,7 @@ Ptr<CModSong> LoadMOD(void* pvFile, lsize uiFileSize)
 Ptr<CModSong> LoadMOD(char* szFilename)
 {
 	CNaiveFile		cNaiveFile;
-	Ptr<CModSong>	pcSong;
+	Ptr<CModSong>	pSong;
 
 	cNaiveFile.Init();
 	if (!cNaiveFile.Read(szFilename))
@@ -358,13 +358,13 @@ Ptr<CModSong> LoadMOD(char* szFilename)
 		return NULL;
 	}
 
-	pcSong = LoadMOD(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
+	pSong = LoadMOD(cNaiveFile.Get(), (lsize)cNaiveFile.Size());
 	cNaiveFile.Kill();
 
-	if (pcSong.IsNull())
+	if (pSong.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not a supported module.", NULL);
 	}
-	return pcSong;
+	return pSong;
 }
 

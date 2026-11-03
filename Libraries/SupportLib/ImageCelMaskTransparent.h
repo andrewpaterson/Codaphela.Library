@@ -34,8 +34,8 @@ protected:
 	SImageColour	msTransparentColour;  //Treat this colour as transparent.
 
 public:
-	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, Ptr<CImage> pMaskImage, CFillRectangle* pcRect);
+	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, Ptr<CImage> pMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 	void	Class(void) override;
 	void 	Free(void) override;
 

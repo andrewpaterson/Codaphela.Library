@@ -53,7 +53,7 @@ protected:
 	CSizingImageBlitterSize*		mpcSizing;
 
 public:
-	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
+	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pDest);
 	bool			Configure(CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
 	void			Free(void);
 	void			Class(void) override;

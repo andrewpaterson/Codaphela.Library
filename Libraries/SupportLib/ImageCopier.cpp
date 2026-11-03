@@ -57,8 +57,8 @@ bool CImageCopier::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 		mpcDestAccessor = NULL;
 	}
 
-	mpcSource = pSource;
-	mpcDest = pDest;
+	mpSource = pSource;
+	mpDest = pDest;
 	mbKillAccessors = true;
 
 	return (mpcSourceAccessor != NULL) && (mpcDestAccessor != NULL);
@@ -73,8 +73,8 @@ void CImageCopier::Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDest
 {
 	mpcSourceAccessor = pcSourceAccessor;
 	mpcDestAccessor = pcDestAccessor;
-	mpcSource = pcSourceAccessor->GetImage();
-	mpcDest = pcDestAccessor->GetImage();
+	mpSource = pcSourceAccessor->GetImage();
+	mpDest = pcDestAccessor->GetImage();
 	mbKillAccessors = false;
 }
 
@@ -99,8 +99,8 @@ void CImageCopier::Kill(void)
 	mpcSourceAccessor = NULL;
 	mpcDestAccessor = NULL;
 
-	mpcSource = NULL;
-	mpcDest = NULL;
+	mpSource = NULL;
+	mpDest = NULL;
 
 	CUnknown::Kill();
 }
@@ -110,11 +110,11 @@ void CImageCopier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel)
+void CImageCopier::Copy(int iDestX, int iDestY, Ptr<CImageCel> pSourceCel)
 {
 	SImageCopy	sCopy;
 
-	pcSourceCel->CopyParam(&sCopy, iDestX, iDestY, mpcDest->GetImageWidth(), mpcDest->GetImageHeight());
+	pSourceCel->CopyParam(&sCopy, iDestX, iDestY, mpDest->GetImageWidth(), mpDest->GetImageHeight());
 	Copy(&sCopy);
 }
 
@@ -129,11 +129,11 @@ void CImageCopier::Copy(int iDestX, int iDestY, CInt32Rect* psSourceRect)
 
 	if (psSourceRect)
 	{
-		sCopy.Init(iDestX, iDestY, psSourceRect->msTopLeft.x, psSourceRect->msTopLeft.y, psSourceRect->msBottomRight.x, psSourceRect->msBottomRight.y, mpcDest->GetWidth(), mpcDest->GetHeight());
+		sCopy.Init(iDestX, iDestY, psSourceRect->msTopLeft.x, psSourceRect->msTopLeft.y, psSourceRect->msBottomRight.x, psSourceRect->msBottomRight.y, mpDest->GetWidth(), mpDest->GetHeight());
 	}
 	else
 	{
-		sCopy.Init(iDestX, iDestY, 0, 0, mpcSource->GetImageWidth(), mpcSource->GetImageHeight(), mpcDest->GetImageWidth(), mpcDest->GetImageHeight());
+		sCopy.Init(iDestX, iDestY, 0, 0, mpSource->GetImageWidth(), mpSource->GetImageHeight(), mpDest->GetImageWidth(), mpDest->GetImageHeight());
 	}
 
 	Copy(&sCopy);
@@ -148,7 +148,7 @@ void CImageCopier::Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, in
 {
 	SImageCopy	sCopy;
 
-	sCopy.Init(iDestX, iDestY, iSourceX1, iSourceY1, iSourceX2, iSourceY2, mpcDest->GetImageWidth(), mpcDest->GetImageHeight());
+	sCopy.Init(iDestX, iDestY, iSourceX1, iSourceY1, iSourceX2, iSourceY2, mpDest->GetImageWidth(), mpDest->GetImageHeight());
 	Copy(&sCopy);
 }
 

@@ -56,15 +56,15 @@ void CImageChannelRename::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageChannelRename::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageChannelRename::Modify(Ptr<CImage> pImage)
 {
 	bool	bResult;
 
 
-	bResult = pcImage->RenameChannel(meOldName, meNewName);
+	bResult = pImage->RenameChannel(meOldName, meNewName);
 	if (bResult)
 	{
-		return pcImage;
+		return pImage;
 	}
 	else
 	{

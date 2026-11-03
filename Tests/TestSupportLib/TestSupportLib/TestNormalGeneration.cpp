@@ -56,9 +56,9 @@ void TestMeshSmoothGroupsOneAndZero(void)
 		psFaceNormal = cMesh.mcNormals.mcFaces.Get(i);
 		pcFace = cMesh.GetFace(i);
 
-		AssertInt(pcFace->asCorner[0] + 48, psFaceNormal->aiCornerNormals[0]);
-		AssertInt(pcFace->asCorner[1] + 48, psFaceNormal->aiCornerNormals[1]);
-		AssertInt(pcFace->asCorner[2] + 48, psFaceNormal->aiCornerNormals[2]);
+		AssertInt(pcFace->maiCorner[0] + 48, psFaceNormal->aiCornerNormals[0]);
+		AssertInt(pcFace->maiCorner[1] + 48, psFaceNormal->aiCornerNormals[1]);
+		AssertInt(pcFace->maiCorner[2] + 48, psFaceNormal->aiCornerNormals[2]);
 
 		AssertInt(i, psFaceNormal->iFaceNormal);
 	}
@@ -196,9 +196,9 @@ void TestMeshSmoothFaces(void)
 		psFaceNormal = cMesh.mcNormals.mcFaces.Get(i);
 		pcFace = cMesh.GetFace(i);
 
-		AssertInt(pcFace->asCorner[0] + 48, psFaceNormal->aiCornerNormals[0]);
-		AssertInt(pcFace->asCorner[1] + 48, psFaceNormal->aiCornerNormals[1]);
-		AssertInt(pcFace->asCorner[2] + 48, psFaceNormal->aiCornerNormals[2]);
+		AssertInt(pcFace->maiCorner[0] + 48, psFaceNormal->aiCornerNormals[0]);
+		AssertInt(pcFace->maiCorner[1] + 48, psFaceNormal->aiCornerNormals[1]);
+		AssertInt(pcFace->maiCorner[2] + 48, psFaceNormal->aiCornerNormals[2]);
 
 		AssertInt(i, psFaceNormal->iFaceNormal);
 	}

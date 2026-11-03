@@ -327,13 +327,13 @@ void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, CArrayChannel* pasNewC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pcChannelsSource)
+void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pChannelsSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
-	AddChannels(pcChannelsSource);
+	AddChannels(pChannelsSource);
 	SetSampleRate(uiSampleRate);
 	SetNumFrames(uiNumFrames);
 	EndChange();
@@ -346,9 +346,9 @@ void CSound::Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pcChannels
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Init(Ptr<CSound> pcChannelsSource)
+void CSound::Init(Ptr<CSound> pChannelsSource)
 {
-	Init(pcChannelsSource->GetSampleRate(), pcChannelsSource->GetNumFrames(), pcChannelsSource);
+	Init(pChannelsSource->GetSampleRate(), pChannelsSource->GetNumFrames(), pChannelsSource);
 }
 
 
@@ -470,9 +470,9 @@ void CSound::AddChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::AddChannels(Ptr<CSound> pcSourceChannels)
+void CSound::AddChannels(Ptr<CSound> pSourceChannels)
 {
-	mcChannels.AddChannels(&pcSourceChannels->mcChannels);
+	mcChannels.AddChannels(&pSourceChannels->mcChannels);
 }
 
 
@@ -625,24 +625,24 @@ float64 CSound::GetDuration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::Copy(Ptr<CSound> pcSource)
+void CSound::Copy(Ptr<CSound> pSource)
 {
 	//This assumes Sound is not initialised.
 	PreInit();
 
-	muiSampleRate = pcSource->muiSampleRate;
-	if (pcSource->mpsSoundChangingDesc)
+	muiSampleRate = pSource->muiSampleRate;
+	if (pSource->mpsSoundChangingDesc)
 	{
 		mpsSoundChangingDesc = (SSoundChangingDesc*)malloc(sizeof(SSoundChangingDesc));
-		mpsSoundChangingDesc->uiSampleRate = pcSource->mpsSoundChangingDesc->uiSampleRate;
-		mpsSoundChangingDesc->uiNumFrames = pcSource->mpsSoundChangingDesc->uiNumFrames;
+		mpsSoundChangingDesc->uiSampleRate = pSource->mpsSoundChangingDesc->uiSampleRate;
+		mpsSoundChangingDesc->uiNumFrames = pSource->mpsSoundChangingDesc->uiNumFrames;
 	}
 	else
 	{
 		mpsSoundChangingDesc = NULL;
 	}
 
-	mcChannels.Copy(&pcSource->mcChannels);
+	mcChannels.Copy(&pSource->mcChannels);
 
 	PostInit();
 }
@@ -652,23 +652,23 @@ void CSound::Copy(Ptr<CSound> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSound::CopyIntoInitialised(Ptr<CSound> pcSource)
+void CSound::CopyIntoInitialised(Ptr<CSound> pSource)
 {
 	//This assumes Sound IS initialised.
 
-	muiSampleRate = pcSource->muiSampleRate;
-	if (pcSource->mpsSoundChangingDesc)
+	muiSampleRate = pSource->muiSampleRate;
+	if (pSource->mpsSoundChangingDesc)
 	{
 		mpsSoundChangingDesc = (SSoundChangingDesc*)malloc(sizeof(SSoundChangingDesc));
-		mpsSoundChangingDesc->uiSampleRate = pcSource->mpsSoundChangingDesc->uiSampleRate;
-		mpsSoundChangingDesc->uiNumFrames = pcSource->mpsSoundChangingDesc->uiNumFrames;
+		mpsSoundChangingDesc->uiSampleRate = pSource->mpsSoundChangingDesc->uiSampleRate;
+		mpsSoundChangingDesc->uiNumFrames = pSource->mpsSoundChangingDesc->uiNumFrames;
 	}
 	else
 	{
 		mpsSoundChangingDesc = NULL;
 	}
 
-	mcChannels.CopyIntoInitialised(&pcSource->mcChannels);
+	mcChannels.CopyIntoInitialised(&pSource->mcChannels);
 }
 
 
@@ -935,9 +935,9 @@ size CSound::GetFrameBitStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSound::IsSameFormat(Ptr<CSound> pcOther)
+bool CSound::IsSameFormat(Ptr<CSound> pOther)
 {
-	return (muiSampleRate == pcOther->muiSampleRate) && mcChannels.IsSameFormat(&pcOther->mcChannels);
+	return (muiSampleRate == pOther->muiSampleRate) && mcChannels.IsSameFormat(&pOther->mcChannels);
 }
 
 

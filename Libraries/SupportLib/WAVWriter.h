@@ -37,7 +37,7 @@ enum EWAVSampleFormat
 
 //Writes speaker channels in channel mask order followed by discrete channels.  Ignored channels are not written.
 //Mono and stereo PCM up to 16 bits is written as a plain PCM file; everything else is WAVE_FORMAT_EXTENSIBLE.
-bool SaveWAV(Ptr<CSound> pcSound, char* szPathName, EWAVSampleFormat eFormat = WSF_Default);
+bool SaveWAV(Ptr<CSound> pSound, char* szPathName, EWAVSampleFormat eFormat = WSF_Default);
 
 
 #endif // __WAV_WRITER_H__

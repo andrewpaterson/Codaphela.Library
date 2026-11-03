@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 Ptr<CImage> ReadImage(char* szFilename, EImageType eType = IT_Unknown, bool bAddDebug = false);
 
-bool ReadRawImage(Ptr<CImage> pcImage, char* szFilename);
+bool ReadRawImage(Ptr<CImage> pImage, char* szFilename);
 
 
 #endif // __IMAGE_READER_H__

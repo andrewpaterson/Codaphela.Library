@@ -28,11 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 
 
-bool SaveSFT(Ptr<CImage> pcImage, char* szPathName, bool bForceTransparent = false);
+bool SaveSFT(Ptr<CImage> pImage, char* szPathName, bool bForceTransparent = false);
 bool SaveSFTCelArray(Ptr<CArrayImageCel> pacImageCels, char* szFilename);
 
-bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
-bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
+bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
+bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
 bool SaveSFTContainer(Ptr<CArrayImageCel> pacImageCels, CFileBasic* pcFile);
 
 

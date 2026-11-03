@@ -42,8 +42,8 @@ protected:
 	lsize			muiLoopFrame;		//SOUND_CEL_NO_LOOP if the cel plays once.
 
 public:
-	void			Init(Ptr<CSound> pcSourceSound);
-	void			Init(Ptr<CSound> pcSourceSound, lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
+	void			Init(Ptr<CSound> pSourceSound);
+	void			Init(Ptr<CSound> pSourceSound, lsize uiFirstFrame, lsize uiNumFrames, lsize uiLoopFrame = SOUND_CEL_NO_LOOP);
 	void			Class(void) override;
 	void			Free(void) override;
 

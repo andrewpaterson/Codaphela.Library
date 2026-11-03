@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Writes RGBA, RGB, grey with alpha and grey PNGs, 16 bit if any written channel is 16 bit or wider, otherwise 8 bit.
-bool SavePNG(Ptr<CImage> pcImage, char* szPathName);
+bool SavePNG(Ptr<CImage> pImage, char* szPathName);
 
 
 #endif // __PNG_WRITER_H__

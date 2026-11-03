@@ -318,14 +318,14 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTCelArray(Ptr<CArrayImageCel> pcImageCels, char* szFilename)
+bool SaveSFTCelArray(Ptr<CArrayImageCel> pImageCels, char* szFilename)
 {
-	ValidatePtr(pcImageCels);
+	ValidatePtr(pImageCels);
 
 	CFileBasic			cDiskBasic;
 	bool				bResult;
 
-	if ((szFilename == NULL) || pcImageCels.IsNull())
+	if ((szFilename == NULL) || pImageCels.IsNull())
 	{
 		return false;
 	}
@@ -333,7 +333,7 @@ bool SaveSFTCelArray(Ptr<CArrayImageCel> pcImageCels, char* szFilename)
 	cDiskBasic.Init(DiskFile(szFilename));
 	if (cDiskBasic.Open(EFM_Write_Create))
 	{
-		bResult = SaveSFTContainer(pcImageCels, &cDiskBasic);
+		bResult = SaveSFTContainer(pImageCels, &cDiskBasic);
 
 		cDiskBasic.Close();
 		cDiskBasic.Kill();
@@ -349,16 +349,16 @@ bool SaveSFTCelArray(Ptr<CArrayImageCel> pcImageCels, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
+bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 {
 	CImageR3G3B2A	cRGBTo8bit;
 	size			i;
 	size			uiNumCels;
 	CMapPtrPtr		cMap;
 	Ptr<CImage>		pImage;
-	Ptr<CImage>		pcConverted;
-	Ptr<CImageCel>	pcImageCel;
-	Ptr<CImage>		pcExisting;
+	Ptr<CImage>		pConverted;
+	Ptr<CImageCel>	pImageCel;
+	Ptr<CImage>		pExisting;
 	CSubImage*		pcSub;
 	uint16			uiCelWidth;
 	uint16			uiCelHeight;
@@ -380,31 +380,31 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 		return false;
 	}
 
-	aConveted.Init();  // Necessary to stop the images being destroyed on pcConverted reassignment.
+	aConveted.Init();  // Necessary to stop the images being destroyed on pConverted reassignment.
 	cMap.Init();
-	uiNumCels = pcImageCels->NumElements();
+	uiNumCels = pImageCels->NumElements();
 	for (i = 0; i < uiNumCels; i++)
 	{
-		pcImageCel = pcImageCels->Get(i);
-		pImage = pcImageCel->GetSourceImage();
-		pcExisting = (CImage*)cMap.Get(&pImage);
+		pImageCel = pImageCels->Get(i);
+		pImage = pImageCel->GetSourceImage();
+		pExisting = (CImage*)cMap.Get(&pImage);
 
-		if (pcExisting.IsNull())
+		if (pExisting.IsNull())
 		{
 			cRGBTo8bit.Init();
-			pcConverted = cRGBTo8bit.Modify(&pImage);
-			if (pcConverted.IsNull())
+			pConverted = cRGBTo8bit.Modify(&pImage);
+			if (pConverted.IsNull())
 			{
 				cMap.Kill();
 				//You should kill the converted images to.  Or use a map that will do that for you.
 				return false;
 			}
-			aConveted.Add(pcConverted);
+			aConveted.Add(pConverted);
 			cRGBTo8bit.Kill();
 			
-			cMap.Put(&pImage, &pcConverted);
+			cMap.Put(&pImage, &pConverted);
 		}
-		pcExisting = NULL;
+		pExisting = NULL;
 	}
 
 	sContainer.Init((uint16)uiNumCels);
@@ -415,7 +415,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 		return false;
 	}
 
-	pcConverted = NULL;
+	pConverted = NULL;
 	
 	uiContainedPos = pcDiskBasic->Tell();
 	for (i = 0; i < uiNumCels; i++)
@@ -426,23 +426,23 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 		cMemoryBasic.Init(&cMemoryFile);
 		cMemoryBasic.Open(EFM_ReadWrite_Create);
 
-		pcImageCel = pcImageCels->Get(i);
-		pImage = pcImageCel->GetSourceImage();
-		pcExisting = (CImage*)cMap.Get(&pImage);
+		pImageCel = pImageCels->Get(i);
+		pImage = pImageCel->GetSourceImage();
+		pExisting = (CImage*)cMap.Get(&pImage);
 
-		pcSub = pcImageCel->GetSubImage();
+		pcSub = pImageCel->GetSubImage();
 		uiCelWidth = pcSub->GetImageWidth();
 		uiCelHeight = pcSub->GetImageHeight();
 		uiCelLeft = pcSub->mcImageRect.GetLeft();
 		uiCelTop = pcSub->mcImageRect.GetTop();
 
-		if (HasTransparency(pcExisting, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight))
+		if (HasTransparency(pExisting, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight))
 		{
-			SaveSFTTransparent(pcExisting, &cMemoryBasic, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
+			SaveSFTTransparent(pExisting, &cMemoryBasic, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
 		}
 		else
 		{
-			SaveSFTOpaque(pcExisting, &cMemoryBasic, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
+			SaveSFTOpaque(pExisting, &cMemoryBasic, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
 		}
 
 		uiContainedPos = pcDiskBasic->Tell();

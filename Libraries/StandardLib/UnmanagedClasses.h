@@ -8,7 +8,7 @@ class CUnmanagedClasses
 {
 private:
 	CClasses*	mpcClasses;
-	size		uiNumUnmanagedClasses;
+	size		muiNumUnmanagedClasses;
 
 protected:
 	CClass* mpcUndefined;

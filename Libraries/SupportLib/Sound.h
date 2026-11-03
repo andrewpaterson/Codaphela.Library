@@ -54,8 +54,8 @@ public:
 	void					Init(uint32 uiSampleRate, lsize uiNumFrames, EPrimitiveType eType, EChannel eFirst, ...);
 	void					Init(uint32 uiSampleRate, lsize uiNumFrames, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
 	void					Init(uint32 uiSampleRate, lsize uiNumFrames, CArrayChannel* pasNewChannels);
-	void					Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pcChannelsSource);
-	void					Init(Ptr<CSound> pcChannelsSource);  //This only sets up channels, sample rate and length.
+	void					Init(uint32 uiSampleRate, lsize uiNumFrames, Ptr<CSound> pChannelsSource);
+	void					Init(Ptr<CSound> pChannelsSource);  //This only sets up channels, sample rate and length.
 	void					Class(void) override;
 	void					Free(void) override;
 
@@ -69,7 +69,7 @@ public:
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(Ptr<CSound> pcSourceChannels);
+	void 					AddChannels(Ptr<CSound> pSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	bool					RenameChannel(size iOldName, size iNewName);
 	void					SetNumFrames(lsize uiNumFrames);
@@ -82,8 +82,8 @@ public:
 	uint32					GetSampleRate(void);
 	float64					GetDuration(void);
 
-	void					Copy(Ptr<CSound> pcSource);
-	void					CopyIntoInitialised(Ptr<CSound> pcSource);
+	void					Copy(Ptr<CSound> pSource);
+	void					CopyIntoInitialised(Ptr<CSound> pSource);
 	void					Silence(void);
 
 	float64					GetSample(lsize uiFrame, size uiChannelIndex);
@@ -98,7 +98,7 @@ public:
 	size					GetFrameByteStride(void);
 	size					GetFrameBitStride(void);
 
-	bool					IsSameFormat(Ptr<CSound> pcOther);
+	bool					IsSameFormat(Ptr<CSound> pOther);
 	bool					IsValid(lsize uiFrame);
 	CChannel*				GetChannel(size iChannel);
 	CChannel*				GetChannelAtIndex(size iIndex);

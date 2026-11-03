@@ -31,9 +31,9 @@ class CImageRecolourInvertBlackAndWhite : public CImageRecolour
 CONSTRUCTABLE(CImageRecolourInvertBlackAndWhite);
 DESTRUCTABLE(CImageRecolourInvertBlackAndWhite);
 public:
-	CImageColourARGB	cARGB0000;
-	CImageColourARGB	cARGB1111;
-	CImageColourARGB	cARGB0111;
+	CImageColourARGB	mcARGB0000;
+	CImageColourARGB	mcARGB1111;
+	CImageColourARGB	mcARGB0111;
 
 	void 				Init(CInt32Rect* pcRectangle = NULL);
 	void 				Class(void) override;

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddDebugChannel(Ptr<CImage> pcImage, EPrimitiveType eType, EChannel eChannel, bool bAddDebug)
+void AddDebugChannel(Ptr<CImage> pImage, EPrimitiveType eType, EChannel eChannel, bool bAddDebug)
 {
 	char* szShortName;
 	char* szLongName;
@@ -14,11 +14,11 @@ void AddDebugChannel(Ptr<CImage> pcImage, EPrimitiveType eType, EChannel eChanne
 	{
 		szShortName = gmiszImageChannelShortNames.Get((int)eChannel);
 		szLongName = gmiszImageChannelLongNames.Get((int)eChannel);
-		pcImage->AddChannel(eChannel, eType, szShortName, szLongName);
+		pImage->AddChannel(eChannel, eType, szShortName, szLongName);
 	}
 	else
 	{
-		pcImage->AddChannel(eChannel, eType);
+		pImage->AddChannel(eChannel, eType);
 	}
 }
 

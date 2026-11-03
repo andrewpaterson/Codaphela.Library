@@ -177,9 +177,9 @@ void CImageColour::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourRGB::Init(float32 r, float32 g, float32 b)
 {
-	this->r = r;
-	this->g = g;
-	this->b = b;
+	this->mfRed = r;
+	this->mfGreen = g;
+	this->mfBlue = b;
 }
 
 
@@ -191,15 +191,15 @@ float32 CImageColourRGB::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_DIFFUSE_RED)
 	{
-		return r;
+		return mfRed;
 	}
 	if (eChannel == IMAGE_DIFFUSE_GREEN)
 	{
-		return g;
+		return mfGreen;
 	}
 	if (eChannel == IMAGE_DIFFUSE_BLUE)
 	{
-		return b;
+		return mfBlue;
 	}
 	return gf32Nan;
 }
@@ -223,9 +223,9 @@ void CImageColourRGB::GetChannels(CArraySize* pai)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourRGB::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(r));
-	ReturnOnFalse(pcFile->WriteFloat(g));
-	ReturnOnFalse(pcFile->WriteFloat(b));
+	ReturnOnFalse(pcFile->WriteFloat(mfRed));
+	ReturnOnFalse(pcFile->WriteFloat(mfGreen));
+	ReturnOnFalse(pcFile->WriteFloat(mfBlue));
 	return true;
 }
 
@@ -236,9 +236,9 @@ bool CImageColourRGB::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourRGB::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&r));
-	ReturnOnFalse(pcFile->ReadFloat(&g));
-	ReturnOnFalse(pcFile->ReadFloat(&b));
+	ReturnOnFalse(pcFile->ReadFloat(&mfRed));
+	ReturnOnFalse(pcFile->ReadFloat(&mfGreen));
+	ReturnOnFalse(pcFile->ReadFloat(&mfBlue));
 	return true;}
 
 
@@ -248,10 +248,10 @@ bool CImageColourRGB::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourARGB::Init(float32 a, float32 r, float32 g, float32 b)
 {
-	this->a = a;
-	this->r = r;
-	this->g = g;
-	this->b = b;
+	this->mfAlpha = a;
+	this->mfRed = r;
+	this->mfGreen = g;
+	this->mfBlue = b;
 }
 
 
@@ -261,7 +261,7 @@ void CImageColourARGB::Init(float32 a, float32 r, float32 g, float32 b)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourARGB::Zero(void)
 {
-	a = r = g = b = 0.0f;
+	mfAlpha = mfRed = mfGreen = mfBlue = 0.0f;
 }
 
 
@@ -273,19 +273,19 @@ float32 CImageColourARGB::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
-		return a;
+		return mfAlpha;
 	}
 	if (eChannel == IMAGE_DIFFUSE_RED)
 	{
-		return r;
+		return mfRed;
 	}
 	if (eChannel == IMAGE_DIFFUSE_GREEN)
 	{
-		return g;
+		return mfGreen;
 	}
 	if (eChannel == IMAGE_DIFFUSE_BLUE)
 	{
-		return b;
+		return mfBlue;
 	}
 	return gf32Nan;
 }
@@ -310,10 +310,10 @@ void CImageColourARGB::GetChannels(CArraySize* pai)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourARGB::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(a));
-	ReturnOnFalse(pcFile->WriteFloat(r));
-	ReturnOnFalse(pcFile->WriteFloat(g));
-	ReturnOnFalse(pcFile->WriteFloat(b));
+	ReturnOnFalse(pcFile->WriteFloat(mfAlpha));
+	ReturnOnFalse(pcFile->WriteFloat(mfRed));
+	ReturnOnFalse(pcFile->WriteFloat(mfGreen));
+	ReturnOnFalse(pcFile->WriteFloat(mfBlue));
 	return true;
 }
 
@@ -324,10 +324,10 @@ bool CImageColourARGB::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourARGB::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&a));
-	ReturnOnFalse(pcFile->ReadFloat(&r));
-	ReturnOnFalse(pcFile->ReadFloat(&g));
-	ReturnOnFalse(pcFile->ReadFloat(&b));
+	ReturnOnFalse(pcFile->ReadFloat(&mfAlpha));
+	ReturnOnFalse(pcFile->ReadFloat(&mfRed));
+	ReturnOnFalse(pcFile->ReadFloat(&mfGreen));
+	ReturnOnFalse(pcFile->ReadFloat(&mfBlue));
 	return true;
 }
 
@@ -338,7 +338,7 @@ bool CImageColourARGB::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourOpacity::Init(float32 a)
 {
-	this->a = a;
+	this->mfOpacity = a;
 }
 
 
@@ -350,7 +350,7 @@ float32 CImageColourOpacity::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
-		return a;
+		return mfOpacity;
 	}
 	return gf32Nan;
 }
@@ -372,7 +372,7 @@ void CImageColourOpacity::GetChannels(CArraySize* pai)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourOpacity::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(a));
+	ReturnOnFalse(pcFile->WriteFloat(mfOpacity));
 	return true;
 }
 
@@ -383,7 +383,7 @@ bool CImageColourOpacity::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourOpacity::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&a));
+	ReturnOnFalse(pcFile->ReadFloat(&mfOpacity));
 	return true;
 }
 
@@ -394,7 +394,7 @@ bool CImageColourOpacity::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourSpecular::Init(float32 s)
 {
-	this->s = s;
+	this->mfSpecular = s;
 }
 
 
@@ -406,7 +406,7 @@ float32 CImageColourSpecular::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
-		return s;
+		return mfSpecular;
 	}
 	return gf32Nan;
 }
@@ -428,7 +428,7 @@ void CImageColourSpecular::GetChannels(CArraySize* pai)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourSpecular::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(s));
+	ReturnOnFalse(pcFile->WriteFloat(mfSpecular));
 	return true;
 }
 
@@ -439,7 +439,7 @@ bool CImageColourSpecular::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourSpecular::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&s));
+	ReturnOnFalse(pcFile->ReadFloat(&mfSpecular));
 	return true;
 }
 
@@ -450,9 +450,9 @@ bool CImageColourSpecular::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourNormal::Init(float32 x, float32 y, float32 z)
 {
-	this->x = x;
-	this->y = y;
-	this->z = z;
+	this->mfX = x;
+	this->mfY = y;
+	this->mfZ = z;
 }
 
 
@@ -464,15 +464,15 @@ float32 CImageColourNormal::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_NORMAL_X)
 	{
-		return x;
+		return mfX;
 	}
 	if (eChannel == IMAGE_NORMAL_Y)
 	{
-		return y;
+		return mfY;
 	}
 	if (eChannel == IMAGE_NORMAL_Z)
 	{
-		return z;
+		return mfZ;
 	}
 	return gf32Nan;
 }
@@ -496,9 +496,9 @@ void CImageColourNormal::GetChannels(CArraySize* pai)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourNormal::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(x));
-	ReturnOnFalse(pcFile->WriteFloat(y));
-	ReturnOnFalse(pcFile->WriteFloat(z));
+	ReturnOnFalse(pcFile->WriteFloat(mfX));
+	ReturnOnFalse(pcFile->WriteFloat(mfY));
+	ReturnOnFalse(pcFile->WriteFloat(mfZ));
 	return true;
 }
 
@@ -509,9 +509,9 @@ bool CImageColourNormal::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageColourNormal::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&x));
-	ReturnOnFalse(pcFile->ReadFloat(&y));
-	ReturnOnFalse(pcFile->ReadFloat(&z));
+	ReturnOnFalse(pcFile->ReadFloat(&mfX));
+	ReturnOnFalse(pcFile->ReadFloat(&mfY));
+	ReturnOnFalse(pcFile->ReadFloat(&mfZ));
 	return true;
 }
 
@@ -522,8 +522,8 @@ bool CImageColourNormal::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourCombo2::Init(CImageColour* pc1, CImageColour* pc2)
 {
-	cImageColours[0] = pc1;
-	cImageColours[1] = pc2;
+	mapcImageColours[0] = pc1;
+	mapcImageColours[1] = pc2;
 }
 
 
@@ -535,12 +535,12 @@ float32 CImageColourCombo2::GetValue(EChannel eChannel)
 {
 	float32	f;
 
-	f = cImageColours[0]->GetValue(eChannel);
+	f = mapcImageColours[0]->GetValue(eChannel);
 	if (!IsNotANumber(&f))
 	{
 		return f;
 	}
-	f = cImageColours[1]->GetValue(eChannel);
+	f = mapcImageColours[1]->GetValue(eChannel);
 	if (!IsNotANumber(&f))
 	{
 		return f;
@@ -555,6 +555,6 @@ float32 CImageColourCombo2::GetValue(EChannel eChannel)
 //////////////////////////////////////////////////////////////////////////
 void CImageColourCombo2::GetChannels(CArraySize* pai)
 {
-	cImageColours[0]->GetChannels(pai);
-	cImageColours[1]->GetChannels(pai);
+	mapcImageColours[0]->GetChannels(pai);
+	mapcImageColours[1]->GetChannels(pai);
 }

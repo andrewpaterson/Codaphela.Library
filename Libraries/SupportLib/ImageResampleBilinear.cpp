@@ -169,7 +169,7 @@ void ResampleBilinearFloats(float64* pafSource, uint32 uiSourceWidth, float64* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ResampleBilinear(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool ResampleBilinear(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	SBilinearAxis			sX;
 	SBilinearAxis			sY;
@@ -186,28 +186,28 @@ bool ResampleBilinear(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64*				pafDest;
 	bool					bResult;
 
-	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
+	if (!CImageResampleChannel::CanResample(pSource, pDest))
 	{
 		return false;
 	}
 
-	uiSourceWidth = pcSource->GetWidth();
-	uiDestWidth = pcDest->GetWidth();
-	uiDestHeight = pcDest->GetHeight();
-	if ((uiSourceWidth == 0) || (pcSource->GetHeight() == 0) || (uiDestWidth == 0) || (uiDestHeight == 0))
+	uiSourceWidth = pSource->GetWidth();
+	uiDestWidth = pDest->GetWidth();
+	uiDestHeight = pDest->GetHeight();
+	if ((uiSourceWidth == 0) || (pSource->GetHeight() == 0) || (uiDestWidth == 0) || (uiDestHeight == 0))
 	{
 		return true;
 	}
 
 	sX.Init(uiSourceWidth, uiDestWidth);
-	sY.Init(pcSource->GetHeight(), uiDestHeight);
+	sY.Init(pSource->GetHeight(), uiDestHeight);
 
 	bResult = true;
-	uiNumChannels = pcSource->NumChannels();
+	uiNumChannels = pSource->NumChannels();
 	for (uiChannel = 0; bResult && (uiChannel < uiNumChannels); uiChannel++)
 	{
-		cSourceChannel.Init(pcSource, uiChannel);
-		bResult = cDestChannel.Init(pcDest, uiChannel);
+		cSourceChannel.Init(pSource, uiChannel);
+		bResult = cDestChannel.Init(pDest, uiChannel);
 		if (bResult)
 		{
 			if (cSourceChannel.IsSmallInteger())

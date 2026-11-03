@@ -58,13 +58,13 @@ void CImageCelSourceRectangles::AddRectangle(CInt32Rect* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceRectangles::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
+void CImageCelSourceRectangles::Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 
 	cDivider.Init(pcImage, mpsTransparentColour, mbIgnoreEmpty, mbCropTransparentBorders);
 	cDivider.GenerateFromRectangles(&mcRectangles);
-	cDivider.CopyCellsTo(pcDestImageCels);
+	cDivider.CopyCellsTo(pDestImageCels);
 	cDivider.Kill();
 }
 

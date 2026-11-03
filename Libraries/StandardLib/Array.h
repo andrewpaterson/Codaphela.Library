@@ -33,7 +33,7 @@ public:
 	void			Init(void);
 
 	void			Add(Ptr<M> pObject);
-	void			AddAll(Ptr<CArrayCommonObject> pcArray);
+	void			AddAll(Ptr<CArrayCommonObject> pArray);
 	bool			Insert(size iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(size iIndex);
 	bool			Set(size iIndex, Ptr<M> pObject);
@@ -72,10 +72,10 @@ void CArray<M>::Add(Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::AddAll(Ptr<CArrayCommonObject> pcArray)
+void CArray<M>::AddAll(Ptr<CArrayCommonObject> pArray)
 {
-	pcArray->ClassName();
-	CArrayObject::AddAll((CArrayCommonObject*)pcArray.Dereference());
+	pArray->ClassName();
+	CArrayObject::AddAll((CArrayCommonObject*)pArray.Dereference());
 }
 
 

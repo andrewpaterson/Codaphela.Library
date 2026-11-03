@@ -144,7 +144,7 @@ protected:
 	lsize				muiFramesPlayed;
 
 public:
-	void			Init(Ptr<CModSong> pcSong, uint32 uiSampleRate = 44100, EModInterpolation eInterpolation = MI_Linear, float64 fStereoSeparation = 1.0);
+	void			Init(Ptr<CModSong> pSong, uint32 uiSampleRate = 44100, EModInterpolation eInterpolation = MI_Linear, float64 fStereoSeparation = 1.0);
 	void			Kill(void);
 
 	lsize			Render(float64* pfStereo, lsize uiNumFrames);

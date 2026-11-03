@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Writes RGB images as 24 bit, RGBA and grey with alpha as 32 bit (with an alpha mask) and grey as 8 bit with a grey palette.
-bool SaveBMP(Ptr<CImage> pcImage, char* szPathName);
+bool SaveBMP(Ptr<CImage> pImage, char* szPathName);
 
 
 #endif // __BMP_WRITER_H__

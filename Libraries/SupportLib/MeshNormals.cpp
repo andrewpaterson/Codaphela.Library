@@ -164,9 +164,9 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 		psNormal = mcNormals.InsertAt(iFaceNum);
 
 
-		psPosA = pcPositions->mcPositions.Get(psFace->asCorner[0]);
-		psPosB = pcPositions->mcPositions.Get(psFace->asCorner[1]);
-		psPosC = pcPositions->mcPositions.Get(psFace->asCorner[2]);
+		psPosA = pcPositions->mcPositions.Get(psFace->maiCorner[0]);
+		psPosB = pcPositions->mcPositions.Get(psFace->maiCorner[1]);
+		psPosC = pcPositions->mcPositions.Get(psFace->maiCorner[2]);
 
 		sVec1 = *psPosA - *psPosB;
 		sVec2 = *psPosC - *psPosB;

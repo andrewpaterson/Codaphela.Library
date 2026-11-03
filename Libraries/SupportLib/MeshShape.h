@@ -35,13 +35,13 @@ class CMeshShape : public CObject
 CONSTRUCTABLE(CMeshShape);
 DESTRUCTABLE(CMeshShape);
 public:
-	Ptr<CMesh>			mpcMesh;
+	Ptr<CMesh>			mpMesh;
 	CMeshTriangles		mcTriangles;		//Touched, Depends: Normals
 	CMeshLeaves			mcLeaves;			//Touched, Depends: Triangles
 	CMeshBoundingBox	mcBoundingBox;		//Touched, Optional Depends: Hull, Incompatible: Skin
 	CMeshConvexHull		mcHull;				//Touched, Incompatible: Skin
 
-	void 	Init(Ptr<CMesh> pcMesh);
+	void 	Init(Ptr<CMesh> pMesh);
 	void 	Free(void) override;
 	void	Class(void) override;
 

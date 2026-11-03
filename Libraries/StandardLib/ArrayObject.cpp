@@ -45,9 +45,9 @@ bool CArrayObject::Add(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
+bool CArrayObject::AddAll(Ptr<CArrayObject> pArray)
 {
-	return CArrayCommonObject::AddAll((CArrayCommonObject*)pcArray.Dereference());
+	return CArrayCommonObject::AddAll((CArrayCommonObject*)pArray.Dereference());
 }
 
 

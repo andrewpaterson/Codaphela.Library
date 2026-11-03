@@ -52,7 +52,7 @@ CONSTRUCTABLE(CImageResampler);
 DESTRUCTABLE(CImageResampler);
 private:
 	void			GetPowerOf2Size(EPow2Style eStyle, int32 iSourceWidth, int32 iSourceHeight, int32* piDestWidth, int32* piDestHeight);
-	Ptr<CImage>		ResampleTo(Ptr<CImage> pcSource);
+	Ptr<CImage>		ResampleTo(Ptr<CImage> pSource);
 
 public:
 	EImageResample	meResample;
@@ -63,7 +63,7 @@ public:
 	void			Init(EImageResample eResample, EPow2Style eStyle);
 	void			Init(EImageResample eResample, int iWidth, int iHeight);
 	void			Class(void) override;
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

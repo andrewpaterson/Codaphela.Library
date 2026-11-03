@@ -44,7 +44,7 @@ public:
 
 	void			Init(ERGBToGreyStyle eStyle);
 	void			Class(void) override;
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 
 private:
 	bool			AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);

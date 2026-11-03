@@ -100,7 +100,7 @@ bool BMPWriteHeaders(CFileWriter* pcFile, int iWidth, int iHeight, int iBitsPerP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
+bool SaveBMP(Ptr<CImage> pImage, char* szPathName)
 {
 	int				iWidth;
 	int				iHeight;
@@ -123,29 +123,29 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	uint			y;
 	bool			bResult;
 
-	if (pcImage.IsNull())
+	if (pImage.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write NULL image [", szPathName, "].", NULL);
 		return false;
 	}
 
-	iWidth = pcImage->GetWidth();
-	iHeight = pcImage->GetHeight();
+	iWidth = pImage->GetWidth();
+	iHeight = pImage->GetHeight();
 	if ((iWidth <= 0) || (iHeight <= 0))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot write empty image [", szPathName, "].", NULL);
 		return false;
 	}
 
-	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
+	if (pImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		bGrey = false;
-		bAlpha = pcImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
+		bAlpha = pImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
+	else if (pImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
 		bGrey = true;
-		bAlpha = pcImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
+		bAlpha = pImage->HasChannels(IMAGE_OPACITY, CHANNEL_STOP);
 	}
 	else
 	{
@@ -171,7 +171,7 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	{
 		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
-	cCopier.Init(pcImage, &cImageExport);
+	cCopier.Init(pImage, &cImageExport);
 	cCopier.Copy(0, 0);
 	cCopier.Kill();
 	cImageExport.Kill();

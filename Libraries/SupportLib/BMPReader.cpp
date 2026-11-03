@@ -488,7 +488,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	bool			bGrey;
 	bool			bAlpha;
 	size			i;
-	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pImage;
 
 	cNaiveFile.Init();
 	if (!cNaiveFile.Read(szFilename))
@@ -550,18 +550,18 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 
 	if (bGrey)
 	{
-		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_GREY, CHANNEL_STOP);
+		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_GREY, CHANNEL_STOP);
 	}
 	else if (bAlpha)
 	{
-		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 	else
 	{
-		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 
-	if ((pcImage->GetData() == NULL) || !CopyRGBAIntoImage(puiRGBA, bGrey, pcImage))
+	if ((pImage->GetData() == NULL) || !CopyRGBAIntoImage(puiRGBA, bGrey, pImage))
 	{
 		free(puiRGBA);
 		gcLogger.Error2(__METHOD__, " Could not create image for [", szFilename, "].", NULL);
@@ -569,5 +569,5 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	}
 	free(puiRGBA);
 
-	return pcImage;
+	return pImage;
 }

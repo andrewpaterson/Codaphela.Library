@@ -31,8 +31,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshCorner::Init(void)
 {
-	aiEdge.Init();
-	aiFace.Init();
+	maiEdge.Init();
+	maiFace.Init();
 }
 
 
@@ -42,8 +42,8 @@ void CMeshCorner::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshCorner::Kill(void)
 {
-	aiEdge.Kill();
-	aiFace.Kill();
+	maiEdge.Kill();
+	maiFace.Kill();
 }
 
 
@@ -53,8 +53,8 @@ void CMeshCorner::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCorner::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(aiEdge.Write(pcFile));
-	ReturnOnFalse(aiFace.Write(pcFile));
+	ReturnOnFalse(maiEdge.Write(pcFile));
+	ReturnOnFalse(maiFace.Write(pcFile));
 	return true;
 }
 
@@ -65,8 +65,8 @@ bool CMeshCorner::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCorner::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(aiEdge.Read(pcFile));
-	ReturnOnFalse(aiFace.Read(pcFile));
+	ReturnOnFalse(maiEdge.Read(pcFile));
+	ReturnOnFalse(maiFace.Read(pcFile));
 	return true;
 }
 

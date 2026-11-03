@@ -41,7 +41,7 @@ void CImageGreyToRGB::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pImage)
 {
 	CImageAccessor*		pcRed;
 	CImageAccessor*		pcGreen;
@@ -55,27 +55,27 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 	EPrimitiveType		eChannelType;
 	bool				bSuccess;
 
-	psGreyChannel = pcImage->GetChannel(IMAGE_DIFFUSE_GREY);
+	psGreyChannel = pImage->GetChannel(IMAGE_DIFFUSE_GREY);
 	if (psGreyChannel)
 	{
 		bSuccess = true;
 		eChannelType = psGreyChannel->eType;
-		bSuccess &= pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_DIFFUSE_RED);
-		pcImage->BeginChange();
-		pcImage->AddChannel(IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eChannelType);
-		bSuccess &= pcImage->EndChange();
+		bSuccess &= pImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_DIFFUSE_RED);
+		pImage->BeginChange();
+		pImage->AddChannel(IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eChannelType);
+		bSuccess &= pImage->EndChange();
 
 		if (!bSuccess)
 		{
 			return NULL;
 		}
 
-		pcRed = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_STOP);
-		pcGreen = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_GREEN, CHANNEL_STOP);
-		pcBlue = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pcRed = CImageAccessorCreator::Create(&pImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_STOP);
+		pcGreen = CImageAccessorCreator::Create(&pImage, eChannelType, IMAGE_DIFFUSE_GREEN, CHANNEL_STOP);
+		pcBlue = CImageAccessorCreator::Create(&pImage, eChannelType, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 
-		iHeight = pcImage->GetHeight();
-		iWidth = pcImage->GetWidth();
+		iHeight = pImage->GetHeight();
+		iWidth = pImage->GetWidth();
 		for (y = 0; y < (size)iHeight; y++)
 		{
 			for (x = 0; x < (size)iWidth; x++)
@@ -91,7 +91,7 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 		pcGreen->Kill();
 		pcBlue->Kill();
 
-		return pcImage;
+		return pImage;
 	}
 
 	return NULL;

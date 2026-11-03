@@ -38,12 +38,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFilename)
+bool LoadOBJ(Ptr<CMesh> pMesh, char *szFilename)
 {
 	CObjReader	cReader;
 	bool		bResult;
 
-	cReader.Init(pcMesh, szFilename);
+	cReader.Init(pMesh, szFilename);
 	bResult = cReader.Read();
 	cReader.Kill();
 
@@ -55,9 +55,9 @@ bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFilename)
+void CObjReader::Init(Ptr<CMesh> pMesh, char *szFilename)
 {
-	mcWrapper.Init(pcMesh);
+	mcWrapper.Init(pMesh);
 	mszFileName.Init(szFilename);
 }
 
@@ -66,9 +66,9 @@ void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMeshEditor> pcEditor, char *szFilename)
+void CObjReader::Init(Ptr<CMeshEditor> pEditor, char *szFilename)
 {
-	mcWrapper.Init(pcEditor);
+	mcWrapper.Init(pEditor);
 	mszFileName.Init(szFilename);
 
 	miMaterial = -1;
@@ -273,8 +273,8 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 			tResult = pcTextParser->GetInteger(&iUV);
 			if (tResult == TRITRUE)
 			{
-				psCorner->bUVCoord = true;
-				psCorner->iUVCoord = (int)iUV;
+				psCorner->mbUVCoord = true;
+				psCorner->miUVCoord = (int)iUV;
 			}
 
 			tResult = pcTextParser->GetExactCharacter('/', false);
@@ -283,8 +283,8 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 				tResult = pcTextParser->GetInteger(&iNormal);
 				if (tResult == TRITRUE)
 				{
-					psCorner->bNormal = true;
-					psCorner->iNormal = (int)iNormal;
+					psCorner->mbNormal = true;
+					psCorner->miNormal = (int)iNormal;
 				}
 			}
 		}
@@ -298,18 +298,18 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psCorner = asCorners.Get(i);
-		iCorner = psCorner->iVertex;
+		iCorner = psCorner->miVertex;
 		if (iCorner < 0)
 		{
 			iCorner = iNumCorners + iCorner;
 		}
 		aiCorners.SetValue(i, (int)iCorner);
 
-		if (!psCorner->bNormal)
+		if (!psCorner->mbNormal)
 		{
 			bNormals = false;
 		}
-		if (!psCorner->bUVCoord)
+		if (!psCorner->mbUVCoord)
 		{
 		}
 	}
@@ -325,25 +325,25 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 			{
 				r.Unpack1(&aiCornerIndices[0], &aiCornerIndices[1], &aiCornerIndices[2]);
 				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->iNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->miNormal;
 			}
 			else if (iNumFaces == 2)
 			{
 				psCorner = asCorners.Get(0);
 				r.Unpack1(&aiCornerIndices[0], &aiCornerIndices[1], &aiCornerIndices[2]);
 				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->iNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[0]] = iNumNormals + asCorners.Get(0)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[1]] = iNumNormals + asCorners.Get(1)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[2]] = iNumNormals + asCorners.Get(2)->miNormal;
 
 				psCorner = asCorners.Get(1);
 				r.Unpack2(&aiCornerIndices[3], &aiCornerIndices[4], &aiCornerIndices[5]);
 				psFaceNormal = mcWrapper.GetFaceNormal(r.miFirstFace);
-				psFaceNormal->aiCornerNormals[aiCornerIndices[3]] = iNumNormals + asCorners.Get(3)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[4]] = iNumNormals + asCorners.Get(4)->iNormal;
-				psFaceNormal->aiCornerNormals[aiCornerIndices[5]] = iNumNormals + asCorners.Get(5)->iNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[3]] = iNumNormals + asCorners.Get(3)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[4]] = iNumNormals + asCorners.Get(4)->miNormal;
+				psFaceNormal->aiCornerNormals[aiCornerIndices[5]] = iNumNormals + asCorners.Get(5)->miNormal;
 			}
 		}
 	}

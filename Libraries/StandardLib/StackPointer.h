@@ -17,7 +17,7 @@ class CCollection;
 class CEmbeddedObject;
 struct SStackPointer
 {
-	EStackPointerType	meType;
+	EStackPointerType	eType;
 	union
 	{
 		CPointer*		pcPointer;  //Pointer on the stack

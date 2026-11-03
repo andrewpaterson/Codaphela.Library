@@ -27,8 +27,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMeshFace
 {
 public:
-	int		asCorner[NUM_FACE_CORNERS];
-	int		asEdge[NUM_FACE_EDGES];
+	int		maiCorner[NUM_FACE_CORNERS];
+	int		maiEdge[NUM_FACE_EDGES];
 
 	void 	Init(void);
 	void 	Init(int iCorner1, int iCorner2, int iCorner3);

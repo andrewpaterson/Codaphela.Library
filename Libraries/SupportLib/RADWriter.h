@@ -26,8 +26,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-bool SaveRAD(Ptr<CImage> pcImage, char *szPathName);
-bool SaveRAW(Ptr<CImage> pcImage, char *szPathName);
+bool SaveRAD(Ptr<CImage> pImage, char *szPathName);
+bool SaveRAW(Ptr<CImage> pImage, char *szPathName);
 
 
 #endif // __RAD_WRITER_H__

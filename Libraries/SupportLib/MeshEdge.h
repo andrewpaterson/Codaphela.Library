@@ -30,8 +30,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMeshEdge
 {
 public:
-	int		aiCorner[NUM_EDGE_CORNERS];		//Corners on this edge.
-	int		aiFace[MAX_EDGE_FACES];			//Faces on this edge.  A Maximum of two is assumed.  Unused indices are set to -1.
+	int		maiCorner[NUM_EDGE_CORNERS];		//Corners on this edge.
+	int		maiFace[MAX_EDGE_FACES];			//Faces on this edge.  A Maximum of two is assumed.  Unused indices are set to -1.
 
 	void	Init(void);
 	bool 	Save(CFileWriter* pcFile);

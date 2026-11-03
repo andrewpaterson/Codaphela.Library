@@ -377,13 +377,13 @@ void CMeshSkin::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSource
 			iFaceIndex = paiSourceFaces->GetValue(i);
 			pcFace = pcConn->mcFaces.Get(iFaceIndex);
 
-			*paiDest = pcFace->asCorner[0];
+			*paiDest = pcFace->maiCorner[0];
 			paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 
-			*paiDest = pcFace->asCorner[1];
+			*paiDest = pcFace->maiCorner[1];
 			paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 
-			*paiDest = pcFace->asCorner[2];
+			*paiDest = pcFace->maiCorner[2];
 			paiDest = (int*)RemapSinglePointer(paiDest, iStride);
 		}
 	}

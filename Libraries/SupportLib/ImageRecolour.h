@@ -43,7 +43,7 @@ public:
 	void			Free(void) override;
 
 	void			AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewColour);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage);
 };
 
 

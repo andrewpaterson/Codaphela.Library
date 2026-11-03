@@ -30,9 +30,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshFace::Init(void)
 {
-	asEdge[0] = -1;
-	asEdge[1] = -1;
-	asEdge[2] = -1;
+	maiEdge[0] = -1;
+	maiEdge[1] = -1;
+	maiEdge[2] = -1;
 }
 
 
@@ -42,12 +42,12 @@ void CMeshFace::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFace::Init(int iCorner1, int iCorner2, int iCorner3)
 {
-	asCorner[0] = iCorner1;
-	asCorner[1] = iCorner2;
-	asCorner[2] = iCorner3;
-	asEdge[0] = -1;
-	asEdge[1] = -1;
-	asEdge[2] = -1;
+	maiCorner[0] = iCorner1;
+	maiCorner[1] = iCorner2;
+	maiCorner[2] = iCorner3;
+	maiEdge[0] = -1;
+	maiEdge[1] = -1;
+	maiEdge[2] = -1;
 }
 
 
@@ -57,8 +57,8 @@ void CMeshFace::Init(int iCorner1, int iCorner2, int iCorner3)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshFace::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteIntArray(asCorner, NUM_FACE_CORNERS));
-	ReturnOnFalse(pcFile->WriteIntArray(asEdge, NUM_FACE_EDGES));
+	ReturnOnFalse(pcFile->WriteIntArray(maiCorner, NUM_FACE_CORNERS));
+	ReturnOnFalse(pcFile->WriteIntArray(maiEdge, NUM_FACE_EDGES));
 	return true;
 }
 
@@ -69,8 +69,8 @@ bool CMeshFace::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshFace::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadIntArray(asCorner, NUM_FACE_CORNERS));
-	ReturnOnFalse(pcFile->ReadIntArray(asEdge, NUM_FACE_EDGES));
+	ReturnOnFalse(pcFile->ReadIntArray(maiCorner, NUM_FACE_CORNERS));
+	ReturnOnFalse(pcFile->ReadIntArray(maiEdge, NUM_FACE_EDGES));
 	return true;
 }
 
@@ -85,7 +85,7 @@ int CMeshFace::GetOffsetForCorner(int iCornerNum)
 
 	for (i = 0; i < NUM_FACE_CORNERS; i++)
 	{
-		if (asCorner[i] == iCornerNum)
+		if (maiCorner[i] == iCornerNum)
 		{
 			return (int)i;
 		}

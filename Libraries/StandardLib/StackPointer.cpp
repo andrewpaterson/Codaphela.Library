@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(void)
 {
-	msPointer.meType = SPT_Unknown;
+	msPointer.eType = SPT_Unknown;
 	msPointer.u.pcPointer = NULL;
 	mpcNext = NULL;
 }
@@ -21,7 +21,7 @@ void CStackPointer::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(CPointer* pcPointer)
 {
-	msPointer.meType = SPT_Pointer;
+	msPointer.eType = SPT_Pointer;
 	msPointer.u.pcPointer = pcPointer;
 	mpcNext = NULL;
 }
@@ -33,7 +33,7 @@ void CStackPointer::Init(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(CCollection* pcCollection)
 {
-	msPointer.meType = SPT_Collection;
+	msPointer.eType = SPT_Collection;
 	msPointer.u.pcCollection = pcCollection;
 	mpcNext = NULL;
 }
@@ -45,7 +45,7 @@ void CStackPointer::Init(CCollection* pcCollection)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Kill(void)
 {
-	msPointer.meType = SPT_Unknown;
+	msPointer.eType = SPT_Unknown;
 	msPointer.u.pcPointer = NULL;
 	mpcNext = NULL;
 }
@@ -148,7 +148,7 @@ CStackPointer* CStackPointer::Remove(EStackPointerType eType, void* pvPointer, C
 	while (pcNext != NULL)
 	{
 		pcThis = pcNext;
-		if ((pcThis->msPointer.meType == eType) && (pcThis->msPointer.u.pvPointer == pvPointer))
+		if ((pcThis->msPointer.eType == eType) && (pcThis->msPointer.u.pvPointer == pvPointer))
 		{
 			if (pcPrev)
 			{
@@ -210,7 +210,7 @@ void CStackPointer::RemoveAll(CFreeList* pcFreeList)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::ClearPointer(void)
 {
-	if (msPointer.meType == SPT_Pointer)
+	if (msPointer.eType == SPT_Pointer)
 	{
 		msPointer.u.pcPointer->UnsafeClearObject();
 	}
@@ -224,7 +224,7 @@ void CStackPointer::ClearPointer(void)
 CStackPointer* CStackPointer::ClearPointerGetNext(CEmbeddedObject* pcPointedTo)
 {
 	ClearPointer();
-	if (msPointer.meType == SPT_Collection)
+	if (msPointer.eType == SPT_Collection)
 	{
 		msPointer.u.pcCollection->RemovePointerTo(pcPointedTo);
 	}
@@ -238,7 +238,7 @@ CStackPointer* CStackPointer::ClearPointerGetNext(CEmbeddedObject* pcPointedTo)
 //////////////////////////////////////////////////////////////////////////
 EStackPointerType CStackPointer::GetType(void)
 {
-	return msPointer.meType;
+	return msPointer.eType;
 }
 
 

@@ -117,7 +117,7 @@ bool CImageDivider::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
+void CImageDivider::GenerateFromBorder(Ptr<CImage> pFillMask)
 {
 	CImageAccessor*		pcImageAccessor;
 	uint32				x, y;
@@ -134,7 +134,7 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	//The top left colour is the border colour.
 	pcImageAccessor->Get(0, 0, &cCellColour);
 
-	cFiller.Init(&cCellColour, pcImageAccessor, &pcFillMask);
+	cFiller.Init(&cCellColour, pcImageAccessor, &pFillMask);
 	iMask = 1;
 
 	iHeight = mpImage->GetImageHeight();
@@ -146,7 +146,7 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 			bResult = cFiller.Fill(x, y, &cFillBounds, iMask);
 			if (bResult)
 			{
-				AddImageCel(&cFillBounds, pcFillMask);
+				AddImageCel(&cFillBounds, pFillMask);
 				iMask++;
 			}
 		}
@@ -172,15 +172,15 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 
 	pcNumbers->Calculate(mpImage->GetImageWidth(), mpImage->GetImageHeight());
 
-	for (iRow = 0; iRow < (size)pcNumbers->iRowCount; iRow++)
+	for (iRow = 0; iRow < (size)pcNumbers->miRowCount; iRow++)
 	{
-		iTop = pcNumbers->iTopOffset + (int)iRow * (pcNumbers->iCelHeight + pcNumbers->iHeightSpacing);
+		iTop = pcNumbers->miTopOffset + (int)iRow * (pcNumbers->miCelHeight + pcNumbers->miHeightSpacing);
 
-		for (iColumn = 0; iColumn < (size)pcNumbers->iColumnCount; iColumn++)
+		for (iColumn = 0; iColumn < (size)pcNumbers->miColumnCount; iColumn++)
 		{
-			iLeft = pcNumbers->iLeftOffset + (int)iColumn * (pcNumbers->iCelWidth + pcNumbers->iWidthSpacing);
+			iLeft = pcNumbers->miLeftOffset + (int)iColumn * (pcNumbers->miCelWidth + pcNumbers->miWidthSpacing);
 			
-			cFillRect.Init(iLeft, iTop, iLeft + pcNumbers->iCelWidth, iTop + pcNumbers->iCelHeight);
+			cFillRect.Init(iLeft, iTop, iLeft + pcNumbers->miCelWidth, iTop + pcNumbers->miCelHeight);
 			AddImageCel(&cFillRect);
 		}
 	}
@@ -214,23 +214,23 @@ void CImageDivider::GenerateFromRectangles(CArrayInt32Rect* pacRectangles)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask)
+void CImageDivider::AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pFillMask)
 {
 	if (!((pcRect->GetWidth() == 0) && mbIgnoreEmpty))
 	{
 		if (!mbUseTransparentColour)
 		{
-			Ptr<CImageCelMask>	pcImageCel;
+			Ptr<CImageCelMask>	pImageCel;
 
-			pcImageCel = OMalloc<CImageCelMask>(mpImage, pcFillMask, pcRect);
-			mpDestImageCels->Add(pcImageCel);
+			pImageCel = OMalloc<CImageCelMask>(mpImage, pFillMask, pcRect);
+			mpDestImageCels->Add(pImageCel);
 		}
 		else
 		{
-			Ptr<CImageCelMaskTransparent>	pcImageCel;
+			Ptr<CImageCelMaskTransparent>	pImageCel;
 
-			pcImageCel = OMalloc<CImageCelMaskTransparent>(mpImage, &msTransparentColour, pcFillMask, pcRect);
-			mpDestImageCels->Add(pcImageCel);
+			pImageCel = OMalloc<CImageCelMaskTransparent>(mpImage, &msTransparentColour, pFillMask, pcRect);
+			mpDestImageCels->Add(pImageCel);
 		}
 	}
 }
@@ -246,13 +246,13 @@ void CImageDivider::AddImageCel(CInt32Rect* pcRect)
 	{
 		if (!mbUseTransparentColour)
 		{
-			Ptr<CImageCel>	pcImageCel = OMalloc<CImageCel>(mpImage, pcRect);
-			mpDestImageCels->Add(pcImageCel);
+			Ptr<CImageCel>	pImageCel = OMalloc<CImageCel>(mpImage, pcRect);
+			mpDestImageCels->Add(pImageCel);
 		}
 		else
 		{
-			Ptr<CImageCelTransparent> pcImageCel = OMalloc<CImageCelTransparent>(mpImage, &msTransparentColour, pcRect);
-			mpDestImageCels->Add(pcImageCel);
+			Ptr<CImageCelTransparent> pImageCel = OMalloc<CImageCelTransparent>(mpImage, &msTransparentColour, pcRect);
+			mpDestImageCels->Add(pImageCel);
 		}
 	}
 }
@@ -265,18 +265,18 @@ void CImageDivider::AddImageCel(CInt32Rect* pcRect)
 void CImageDivider::CropTransparentBorders(void)
 {
 	SSetIterator		sIter;
-	Ptr<CImageCel>		pcImageCel;
+	Ptr<CImageCel>		pImageCel;
 	bool				bExists;
 
 	if (mbCropTransparentBorders)
 	{
-		pcImageCel = mpDestImageCels->StartIteration(&sIter, &bExists);
+		pImageCel = mpDestImageCels->StartIteration(&sIter, &bExists);
 		while (bExists)
 		{
-			if (pcImageCel.IsNotNull())
+			if (pImageCel.IsNotNull())
 			{
-				pcImageCel->CropTransparentBorders();
-				pcImageCel = mpDestImageCels->Iterate(&sIter, &bExists);
+				pImageCel->CropTransparentBorders();
+				pImageCel = mpDestImageCels->Iterate(&sIter, &bExists);
 			}
 		}
 	}
@@ -287,9 +287,9 @@ void CImageDivider::CropTransparentBorders(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pcImageCels)
+void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pImageCels)
 {
-	pcImageCels->AddAll(mpDestImageCels);
+	pImageCels->AddAll(mpDestImageCels);
 }
 
 

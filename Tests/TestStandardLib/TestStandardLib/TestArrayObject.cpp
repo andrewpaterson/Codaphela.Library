@@ -168,7 +168,7 @@ void TestArrayObjectSneakyOnStack(void)
 	Ptr<CTestSimpleObject> pTestObject = OMalloc<CTestSimpleObject>(&sFreed, 23);
 	AssertSize(1, gcStackPointers.NumElements());
 	psPointer = gcStackPointers.Get(0)->Get();
-	AssertTrue(psPointer->meType == SPT_Pointer);
+	AssertTrue(psPointer->eType == SPT_Pointer);
 	pcObject = psPointer->u.pcPointer->BaseObject();
 	//The pointer 'pTestObject' is on the stack and pointes to a CTestSimpleObject.
 	AssertPointer(pTestObject.BaseObject(), pcObject);
@@ -209,7 +209,7 @@ void TestArrayObjectOnStackKill(void)
 	Ptr<CTestSimpleObject> pTestObject = OMalloc<CTestSimpleObject>(&sFreed, 23);
 	AssertSize(1, gcStackPointers.NumElements());
 	psPointer = gcStackPointers.Get(0)->Get();;
-	AssertTrue(psPointer->meType == SPT_Pointer);
+	AssertTrue(psPointer->eType == SPT_Pointer);
 	pcObject = psPointer->u.pcPointer->BaseObject();
 	//The pointer 'pTestObject' is on the stack and pointes to a CTestSimpleObject.
 	AssertPointer(pTestObject.BaseObject(), pcObject);
@@ -253,7 +253,7 @@ void TestArrayObjectOnStackRemoveObject(void)
 	AssertSize(1, gcStackPointers.NumElements());
 	AssertSize(1, gcObjects.NumMemoryIndexes());
 	psPointer = gcStackPointers.Get(0)->Get();;
-	AssertTrue(psPointer->meType == SPT_Pointer);
+	AssertTrue(psPointer->eType == SPT_Pointer);
 	pcObject = psPointer->u.pcPointer->BaseObject();
 	//The pointer 'pTestObject' is on the stack and pointes to a CTestSimpleObject.
 	AssertPointer(pTestObject.BaseObject(), pcObject);

@@ -79,23 +79,23 @@ void CImageChannelAdd::AddChannel(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageChannelAdd::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageChannelAdd::Modify(Ptr<CImage> pImage)
 {
 	size		i;
 	EChannel	eChannel;
 	size		uiNumElements;
 
-	pcImage->BeginChange();
+	pImage->BeginChange();
 
 	uiNumElements = maiChannels.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		eChannel = (EChannel)maiChannels.GetValue(i);
-		pcImage->AddChannel(eChannel, meType, miGroup);
+		pImage->AddChannel(eChannel, meType, miGroup);
 	}
 	
-	pcImage->EndChange();
+	pImage->EndChange();
 
-	return pcImage;
+	return pImage;
 }
 
