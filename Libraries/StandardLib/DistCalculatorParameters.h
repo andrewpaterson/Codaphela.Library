@@ -11,17 +11,31 @@ struct SDistToRoot
 {
 	CBaseObject*	pcObject;
 	int				iExpectedDist;
+	bool			bRemoved;
 };
 
 
-typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
+//A heap node orders by expected dist, then by when the object was first added (its index in the expected dists).
+struct SDistToRootHeapNode
+{
+	int				iExpectedDist;
+	uint32			uiIndex;
+};
+
+
+typedef CArrayTemplate<SDistToRoot>				CArrayDistToRoot;
+typedef CArrayTemplate<SDistToRootHeapNode>		CArrayDistToRootHeap;
 
 
 class CDistCalculatorParameters
 {
 private:
 	CArrayBaseObjectPtrE32		mapcTouched;
-	CArrayDistToRoot						macExpectedDists;
+	CArrayDistToRoot						macExpectedDists;  //In the order the objects were added; removed ones stay, marked.
+	size									muiRemovedExpectedDists;
+	CArrayDistToRootHeap					macExpectedDistsHeap;  //Lowest first; stale nodes are skipped.
+	uint32*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
+	size									muiExpectedDistsTableSize;
 	CArrayBaseObjectPtrE32		mapcDetachedFromRoot;
 
 	CArrayBaseObjectPtr					mapcCompletelyDetached;
@@ -37,6 +51,15 @@ public:
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
+protected:
+	size					FindExpectedDistIndex(CBaseObject* pcObject);
+	void					PutExpectedDistsTable(size uiIndex);
+	void					GrowExpectedDistsTable(void);
+	void					PushExpectedDistsHeap(int iExpectedDist, size uiIndex);
+	void					PopExpectedDistsHeap(void);
+	bool					IsExpectedDistsHeapNodeStale(SDistToRootHeapNode* psNode);
+	SDistToRoot*			GetLiveExpectedDist(size uiLiveIndex, size* puiIndex);
+public:
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);

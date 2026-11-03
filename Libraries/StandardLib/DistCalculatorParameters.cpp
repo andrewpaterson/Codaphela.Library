@@ -2,6 +2,9 @@
 #include "DistCalculatorParameters.h"
 
 
+#define EXPECTED_DISTS_LINEAR_SEARCH	16
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -9,6 +12,10 @@
 void CDistCalculatorParameters::Init(void)
 {
 	macExpectedDists.Init();
+	muiRemovedExpectedDists = 0;
+	macExpectedDistsHeap.Init();
+	mpuiExpectedDistsTable = NULL;
+	muiExpectedDistsTableSize = 0;
 	mapcDetachedFromRoot.Init();
 	mapcCompletelyDetached.Init();
 	mapcTouched.Init();
@@ -24,12 +31,17 @@ void CDistCalculatorParameters::Kill(void)
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
+	SafeFree(mpuiExpectedDistsTable);
+	muiExpectedDistsTableSize = 0;
+	macExpectedDistsHeap.Kill();
 	macExpectedDists.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each object is in the expected dists once (unless it has been removed);
+// adding it again only ever lowers its expected dist.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpectedDist)
@@ -37,76 +49,282 @@ void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpe
 	//This method is never called with an iExpectedDist less than ROOT_DIST_TO_ROOT
 
 	SDistToRoot*	psDistToRoot;
+	size			uiIndex;
 
-	psDistToRoot = GetExpectedDist(pcObject);
-
-	if (!psDistToRoot)
+	uiIndex = FindExpectedDistIndex(pcObject);
+	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		psDistToRoot = macExpectedDists.Add();
-		psDistToRoot->iExpectedDist = iExpectedDist;
-		psDistToRoot->pcObject = pcObject;
-	}
-	else
-	{
+		psDistToRoot = macExpectedDists.Get(uiIndex);
 		if (psDistToRoot->iExpectedDist > iExpectedDist)
 		{
 			psDistToRoot->iExpectedDist = iExpectedDist;
+			PushExpectedDistsHeap(iExpectedDist, uiIndex);
 		}
+		return;
 	}
+
+	uiIndex = macExpectedDists.NumElements();
+	psDistToRoot = macExpectedDists.Add();
+	psDistToRoot->iExpectedDist = iExpectedDist;
+	psDistToRoot->pcObject = pcObject;
+	psDistToRoot->bRemoved = false;
+	PushExpectedDistsHeap(iExpectedDist, uiIndex);
+	PutExpectedDistsTable(uiIndex);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index of the object's (not removed) expected dist.
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
+size CDistCalculatorParameters::FindExpectedDistIndex(CBaseObject* pcObject)
 {
 	size			i;
-	SDistToRoot*	psDistToRoot;
 	size			uiDists;
+	size			uiMask;
+	size			uiSlot;
+	uint32			uiEntry;
+	SDistToRoot*	psDistToRoot;
 
-	uiDists = macExpectedDists.NumElements();
-	for (i = 0; i < uiDists; i++)
+	if (mpuiExpectedDistsTable == NULL)
 	{
-		psDistToRoot = macExpectedDists.Get(i);
-		if (psDistToRoot->pcObject == pcObject)
+		uiDists = macExpectedDists.NumElements();
+		for (i = 0; i < uiDists; i++)
 		{
-			return psDistToRoot;
+			psDistToRoot = macExpectedDists.Get(i);
+			if ((psDistToRoot->pcObject == pcObject) && !psDistToRoot->bRemoved)
+			{
+				return i;
+			}
 		}
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	return NULL;
+	uiMask = muiExpectedDistsTableSize - 1;
+	uiSlot = (((size)pcObject) >> 4) & uiMask;
+	for (;;)
+	{
+		uiEntry = mpuiExpectedDistsTable[uiSlot];
+		if (uiEntry == 0)
+		{
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+		psDistToRoot = macExpectedDists.Get(uiEntry - 1);
+		if (psDistToRoot->pcObject == pcObject)
+		{
+			if (!psDistToRoot->bRemoved)
+			{
+				return uiEntry - 1;
+			}
+		}
+		uiSlot = (uiSlot + 1) & uiMask;
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Removed entries stay in the table (an object removed and added again is
+// in it twice); the table is only built once a linear search gets slow.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PutExpectedDistsTable(size uiIndex)
+{
+	size			uiMask;
+	size			uiSlot;
+	CBaseObject*	pcObject;
+
+	if (mpuiExpectedDistsTable == NULL)
+	{
+		if (macExpectedDists.NumElements() <= EXPECTED_DISTS_LINEAR_SEARCH)
+		{
+			return;
+		}
+		GrowExpectedDistsTable();
+		return;
+	}
+
+	if ((macExpectedDists.NumElements() * 2) > muiExpectedDistsTableSize)
+	{
+		GrowExpectedDistsTable();
+		return;
+	}
+
+	pcObject = macExpectedDists.Get(uiIndex)->pcObject;
+	uiMask = muiExpectedDistsTableSize - 1;
+	uiSlot = (((size)pcObject) >> 4) & uiMask;
+	while (mpuiExpectedDistsTable[uiSlot] != 0)
+	{
+		uiSlot = (uiSlot + 1) & uiMask;
+	}
+	mpuiExpectedDistsTable[uiSlot] = (uint32)(uiIndex + 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Rebuilds the table, at least four times the number of expected dists.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::GrowExpectedDistsTable(void)
+{
+	size			uiSize;
+	size			uiDists;
+	size			i;
+	size			uiMask;
+	size			uiSlot;
+	CBaseObject*	pcObject;
+
+	uiDists = macExpectedDists.NumElements();
+	uiSize = 64;
+	while (uiSize < (uiDists * 4))
+	{
+		uiSize *= 2;
+	}
+
+	SafeFree(mpuiExpectedDistsTable);
+	mpuiExpectedDistsTable = (uint32*)malloc(uiSize * sizeof(uint32));
+	memset(mpuiExpectedDistsTable, 0, uiSize * sizeof(uint32));
+	muiExpectedDistsTableSize = uiSize;
+
+	uiMask = uiSize - 1;
+	for (i = 0; i < uiDists; i++)
+	{
+		pcObject = macExpectedDists.Get(i)->pcObject;
+		uiSlot = (((size)pcObject) >> 4) & uiMask;
+		while (mpuiExpectedDistsTable[uiSlot] != 0)
+		{
+			uiSlot = (uiSlot + 1) & uiMask;
+		}
+		mpuiExpectedDistsTable[uiSlot] = (uint32)(i + 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool HeapNodeLess(SDistToRootHeapNode* psLeft, SDistToRootHeapNode* psRight)
+{
+	if (psLeft->iExpectedDist != psRight->iExpectedDist)
+	{
+		return psLeft->iExpectedDist < psRight->iExpectedDist;
+	}
+	return psLeft->uiIndex < psRight->uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PushExpectedDistsHeap(int iExpectedDist, size uiIndex)
+{
+	SDistToRootHeapNode*	psNode;
+	SDistToRootHeapNode		sNode;
+	size					uiChild;
+	size					uiParent;
+
+	sNode.iExpectedDist = iExpectedDist;
+	sNode.uiIndex = (uint32)uiIndex;
+
+	uiChild = macExpectedDistsHeap.NumElements();
+	macExpectedDistsHeap.Add();
+	while (uiChild > 0)
+	{
+		uiParent = (uiChild - 1) / 2;
+		psNode = macExpectedDistsHeap.Get(uiParent);
+		if (!HeapNodeLess(&sNode, psNode))
+		{
+			break;
+		}
+		*macExpectedDistsHeap.Get(uiChild) = *psNode;
+		uiChild = uiParent;
+	}
+	*macExpectedDistsHeap.Get(uiChild) = sNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PopExpectedDistsHeap(void)
+{
+	SDistToRootHeapNode		sLast;
+	SDistToRootHeapNode*	psChild;
+	size					uiNum;
+	size					uiParent;
+	size					uiChild;
+
+	uiNum = macExpectedDistsHeap.NumElements() - 1;
+	sLast = *macExpectedDistsHeap.Get(uiNum);
+	macExpectedDistsHeap.RemoveTail();
+	if (uiNum == 0)
+	{
+		return;
+	}
+
+	uiParent = 0;
+	for (;;)
+	{
+		uiChild = (uiParent * 2) + 1;
+		if (uiChild >= uiNum)
+		{
+			break;
+		}
+		psChild = macExpectedDistsHeap.Get(uiChild);
+		if ((uiChild + 1 < uiNum) && HeapNodeLess(macExpectedDistsHeap.Get(uiChild + 1), psChild))
+		{
+			uiChild++;
+			psChild = macExpectedDistsHeap.Get(uiChild);
+		}
+		if (!HeapNodeLess(psChild, &sLast))
+		{
+			break;
+		}
+		*macExpectedDistsHeap.Get(uiParent) = *psChild;
+		uiParent = uiChild;
+	}
+	*macExpectedDistsHeap.Get(uiParent) = sLast;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A node is stale when its expected dist was removed or lowered since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistCalculatorParameters::IsExpectedDistsHeapNodeStale(SDistToRootHeapNode* psNode)
+{
+	SDistToRoot*	psDistToRoot;
+
+	psDistToRoot = macExpectedDists.Get(psNode->uiIndex);
+	return psDistToRoot->bRemoved || (psDistToRoot->iExpectedDist != psNode->iExpectedDist);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lowest expected dist; of equal ones the first added.
 //
 //////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetLowestExpectedDist(void)
 {
-	size			i;
-	int				iMinDist;
-	SDistToRoot*	pcMinDistToRoot;
-	SDistToRoot*	psDistToRoot;
-	size			uiDists;
+	SDistToRootHeapNode*	psNode;
 
-	iMinDist = MAX_DIST_TO_ROOT;
-	pcMinDistToRoot = NULL;
-
-	uiDists = macExpectedDists.NumElements();
-	for (i = 0; i < uiDists; i++)
+	while (macExpectedDistsHeap.NumElements() > 0)
 	{
-		psDistToRoot = macExpectedDists.Get(i);
-		if (psDistToRoot->iExpectedDist < iMinDist)
+		psNode = macExpectedDistsHeap.Get(0);
+		if (!IsExpectedDistsHeapNodeStale(psNode))
 		{
-			iMinDist = psDistToRoot->iExpectedDist;
-			pcMinDistToRoot = psDistToRoot;
+			return macExpectedDists.Get(psNode->uiIndex);
 		}
+		PopExpectedDistsHeap();
 	}
-
-	return pcMinDistToRoot;
+	return NULL;
 }
 
 
@@ -116,7 +334,42 @@ SDistToRoot* CDistCalculatorParameters::GetLowestExpectedDist(void)
 //////////////////////////////////////////////////////////////////////////
 size CDistCalculatorParameters::NumExpectedDists(void)
 {
-	return macExpectedDists.NumElements();
+	return macExpectedDists.NumElements() - muiRemovedExpectedDists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uiLiveIndex'th expected dist not removed, in the order added.
+//
+//////////////////////////////////////////////////////////////////////////
+SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex, size* puiIndex)
+{
+	size			i;
+	size			uiDists;
+	SDistToRoot*	psDistToRoot;
+
+	if (muiRemovedExpectedDists == 0)
+	{
+		*puiIndex = uiLiveIndex;
+		return macExpectedDists.SafeGet(uiLiveIndex);
+	}
+
+	uiDists = macExpectedDists.NumElements();
+	for (i = 0; i < uiDists; i++)
+	{
+		psDistToRoot = macExpectedDists.Get(i);
+		if (!psDistToRoot->bRemoved)
+		{
+			if (uiLiveIndex == 0)
+			{
+				*puiIndex = i;
+				return psDistToRoot;
+			}
+			uiLiveIndex--;
+		}
+	}
+	return NULL;
 }
 
 
@@ -126,7 +379,30 @@ size CDistCalculatorParameters::NumExpectedDists(void)
 //////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetExpectedDist(int iIndex)
 {
-	return macExpectedDists.SafeGet(iIndex);
+	size	uiIndex;
+
+	if (iIndex < 0)
+	{
+		return NULL;
+	}
+	return GetLiveExpectedDist((size)iIndex, &uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
+{
+	size	uiIndex;
+
+	uiIndex = FindExpectedDistIndex(pcObject);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return NULL;
+	}
+	return macExpectedDists.Get(uiIndex);
 }
 
 
@@ -136,20 +412,32 @@ SDistToRoot* CDistCalculatorParameters::GetExpectedDist(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveExpectedDist(int iIndex)
 {
-	macExpectedDists.RemoveAt(iIndex);
+	SDistToRoot*	psDistToRoot;
+	size			uiIndex;
+
+	if (iIndex < 0)
+	{
+		return;
+	}
+	psDistToRoot = GetLiveExpectedDist((size)iIndex, &uiIndex);
+	RemoveExpectedDist(psDistToRoot);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Marked rather than removed: the heap and the table refer to entries by
+// index.  The heap skips it when it reaches it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 {
-	size	iIndex;
-	
-	iIndex = macExpectedDists.GetIndex(psDistToRoot);
-	macExpectedDists.RemoveAt(iIndex, true);  //Preserving order is (unfortunately) important.
+	if ((psDistToRoot == NULL) || psDistToRoot->bRemoved)
+	{
+		return;
+	}
+	psDistToRoot->bRemoved = true;
+	muiRemovedExpectedDists++;
 }
 
 
@@ -367,26 +655,34 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 	size			i;
 	size			iNum;
 	SDistToRoot*	psDistToRoot;
+	bool			bFirst;
 
+	bFirst = true;
 	iNum = pcArray->NumElements();
 	for (i = 0; i < iNum; i++)
 	{
-		if (!bCommaSeparate)
-		{
-			psz->Append("  ");
-		}
-
 		psDistToRoot = pcArray->Get(i);
-		psDistToRoot->pcObject->PrintObject(psz, false);
+		if (psDistToRoot->bRemoved)
+		{
+			continue;
+		}
 
 		if (bCommaSeparate)
 		{
-			if (i != iNum - 1)
+			if (!bFirst)
 			{
 				psz->Append(", ");
 			}
 		}
 		else
+		{
+			psz->Append("  ");
+		}
+		bFirst = false;
+
+		psDistToRoot->pcObject->PrintObject(psz, false);
+
+		if (!bCommaSeparate)
 		{
 			psz->AppendNewLine();
 		}
@@ -439,7 +735,7 @@ void CDistCalculatorParameters::Print(CChars* psz, bool bCommaSeparate)
 	psz->AppendNewLine();
 
 	psz->Append("ExpectedDists [");
-	psz->Append(macExpectedDists.NumElements());
+	psz->Append(NumExpectedDists());
 	psz->Append("]:  ");
 	if (!bCommaSeparate)
 	{
