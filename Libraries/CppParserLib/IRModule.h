@@ -78,12 +78,14 @@ protected:
 //What a symbol is defined as here; both NULL for a symbol from another unit.  bRestrict: the symbol is a pointer
 //variable declared restrict, so what is reached through its value is reached no other way (see SetRestrict).
 //bLocal: the symbol is the unit's own (a string, a static variable or function) even if nothing here defines it.
+//bRegisterCall: the symbol is a function a back end may pass arguments to in registers (see SetRegisterCall).
 struct SIRSymbolDefinition
 {
 	CIRFunction*	pcFunction;
 	CIRGlobal*		pcGlobal;
 	bool			bRestrict;
 	bool			bLocal;
+	bool			bRegisterCall;
 };
 
 
@@ -137,6 +139,8 @@ public:
 	bool			HasRestrict(void);
 	void			SetLocal(uint32 uiSymbol);
 	bool			IsLocal(uint32 uiSymbol);
+	void			SetRegisterCall(uint32 uiSymbol);
+	bool			IsRegisterCall(uint32 uiSymbol);
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);

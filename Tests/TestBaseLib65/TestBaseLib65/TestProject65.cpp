@@ -15,6 +15,7 @@
 #include "MicroprocessorLib/Fast65C816.h"
 #include "CppParserLib/CPP65Builder.h"
 #include "CppParserLib/CPP65Generator.h"
+#include "CppParserLib/IR816Backend.h"
 #include "ThreadLib/WorkerThreadJobs.h"
 #include "TestLib/Assert.h"
 #include "TestProject65.h"
@@ -727,6 +728,8 @@ void TestProject65RunTests(STestProject65* psProject)
 	}
 	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have X816.asm, not the assembly.
 	CCPP65Generator::SetW65C816Assembly(getenv("TEST_PROJECT65_CPP") == NULL);
+	//TEST_PROJECT65_STACK_ARGUMENTS=1: every W65C816 call pushes its arguments (no register arguments), to compare.
+	CIR816Backend::SetRegisterArguments(getenv("TEST_PROJECT65_STACK_ARGUMENTS") == NULL);
 	if (getenv("TEST_PROJECT65_LISTINGS"))
 	{
 		//TEST_PROJECT65_LISTINGS=directory: each unit's assembly with its C++ source lines as comments (Unit.lst).

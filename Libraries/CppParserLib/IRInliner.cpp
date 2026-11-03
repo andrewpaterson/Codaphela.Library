@@ -585,6 +585,10 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 		{
 			mpcModule->SetRestrict(sSymbol.Index());
 		}
+		if (mpcCalleeModule->IsRegisterCall(sValue.Index()))
+		{
+			mpcModule->SetRegisterCall(sSymbol.Index());
+		}
 		return sSymbol;
 	}
 	return sValue;

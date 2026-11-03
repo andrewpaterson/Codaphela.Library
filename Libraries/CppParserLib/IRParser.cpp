@@ -113,9 +113,13 @@ bool CIRParser::Parse(const char* szText)
 		{
 			bResult = ParseRestrict();
 		}
+		else if (GetKeyword("regcall"))
+		{
+			bResult = ParseRegisterCall();
+		}
 		else
 		{
-			bResult = ErrorAt(uiStart, "Expected space, global, function or restrict.");
+			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict or regcall.");
 		}
 		if (!bResult)
 		{
@@ -726,6 +730,24 @@ bool CIRParser::ParseRestrict(void)
 		return false;
 	}
 	mpcModule->SetRestrict(mpcModule->AddSymbol(mszName.Text()));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// regcall @name: the symbol is a function a back end may pass arguments to
+// in registers (CIRModule::SetRegisterCall).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParseRegisterCall(void)
+{
+	SkipSpace();
+	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
+	{
+		return false;
+	}
+	mpcModule->SetRegisterCall(mpcModule->AddSymbol(mszName.Text()));
 	return true;
 }
 

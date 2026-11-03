@@ -95,6 +95,15 @@ void CIRPrinter::PrintModule(void)
 			mpszDest->AppendNewLine();
 		}
 	}
+	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
+	{
+		if (mpcModule->IsRegisterCall((uint32)ui))
+		{
+			mpszDest->Append("regcall @");
+			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
+			mpszDest->AppendNewLine();
+		}
+	}
 	for (ui = 0; ui < mpcModule->NumGlobals(); ui++)
 	{
 		if (mpszDest->Length() != uiStart)

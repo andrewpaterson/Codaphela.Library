@@ -324,6 +324,7 @@ protected:
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);
 	SIRReference	Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* pcFrom1, SIRReference sValue1, CIRBlock* pcFrom2, SIRReference sValue2);
 	SIRReference	FunctionSymbol(SCPP65Function* psFunction);
+	void			MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiSymbol);
 	bool			FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			CallObject(SCPP65Function* psFunction, SIRReference sObject, SCPP65Class* psObjectClass, CArraySyntax* papcArguments, bool bVirtual);
 	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue);

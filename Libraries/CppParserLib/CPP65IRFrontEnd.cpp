@@ -205,6 +205,10 @@ void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLa
 	mcAddresses.Init(true);
 	mcAnonymousAddresses.Init(true);
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
+	if (psFunction)
+	{
+		MarkFunctionSymbol(psFunction, mpcFunction->muiSymbol);
+	}
 	msThis = IRNone();
 	msResult = IRNone();
 	msElide = IRNone();
@@ -6540,11 +6544,31 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(SCPP65Function* psFunction)
 	mpcGenerator->AppendFunctionLabel(&szLabel, psFunction);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
+	MarkFunctionSymbol(psFunction, sSymbol.Index());
+	return sSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks a function's symbol, where it is called and where it is defined:
+// the unit's own (a static function or a member of a class without a name)
+// and, for a function with C++ linkage that isn't variadic, that a back end
+// may pass its arguments in registers (CIRModule::SetRegisterCall: the
+// W65C816's).  extern "C" functions keep the stack: they are the ones
+// written in assembly (Libc65's) and called from it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiSymbol)
+{
 	if (mpcGenerator->IsUnitFunction(psFunction))
 	{
-		mcModule.SetLocal(sSymbol.Index());
+		mcModule.SetLocal(uiSymbol);
 	}
-	return sSymbol;
+	if (!psFunction->bCLinkage && !psFunction->bVariadic)
+	{
+		mcModule.SetRegisterCall(uiSymbol);
+	}
 }
 
 

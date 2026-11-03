@@ -421,6 +421,32 @@ bool CIRModule::IsLocal(uint32 uiSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Marks the symbol as a function whose arguments a back end may pass in
+// registers by its fixed rule (the W65C816's: CIR816Backend's register
+// arguments), given only the argument types.  The front end marks the
+// functions with C++ linkage that aren't variadic: extern "C" functions
+// (often written in assembly) and the runtime's keep the stack.  Every unit
+// that names the function marks it, so callers and the definition agree.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetRegisterCall(uint32 uiSymbol)
+{
+	masDefinitions.Get(uiSymbol)->bRegisterCall = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::IsRegisterCall(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bRegisterCall;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes)

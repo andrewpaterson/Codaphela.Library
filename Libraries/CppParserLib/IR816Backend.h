@@ -65,6 +65,25 @@ class CIR816LiveRanges;
 #define IR816_ALIGN_BIG_CYCLES	12
 
 
+//The registers arguments may be passed in (A, X and Y), and what a word in a register is called in a function's
+//register label (IR816AppendRegisterSuffix).
+#define IR816_ARGUMENT_REGISTERS	3
+#define IR816_REGISTER_LETTERS		"axy"
+
+
+//One argument of a call or parameter of a function (the hidden result pointer first) as the register arguments place
+//it: its words and the register of its first word (0 A, 1 X, 2 Y; its other words take the next ones), or -1 when it
+//is pushed.
+struct SIR816Argument
+{
+	int		iWords;
+	int		iRegister;
+};
+
+
+typedef CArrayTemplate<SIR816Argument>	CArrayIR816Arguments;
+
+
 //What AlignFrame needs of a function's frame, from GenerateFunction (GetFrame).
 struct SIR816Frame
 {
@@ -94,10 +113,21 @@ struct SIR816Frame
 //the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
 //in a call; D and the widths are kept.
+//
+//Register arguments (W65C816.txt): a function whose symbol is marked (CIRModule::SetRegisterCall: C++ linkage, not
+//variadic) takes its arguments, the hidden result pointer first, in A, X and Y by a fixed rule from their sizes
+//alone: each takes the next registers when all its words fit, else it is pushed as before.  Its code is at its label
+//and a suffix naming each argument word's place (_Add__Fii.ax; IR816AppendRegisterSuffix), so a caller and a
+//definition that don't agree don't link.  The prologue pushes the registers into the top of the frame.  The plain
+//label is a stub for callers that push everything (function pointers, vtables, thunks, assembly): it loads the
+//registers from the stack and goes on to the body.
 class CIR816Backend : public CIRBackend
 {
 protected:
 	CArrayChars				maszRuntime;		//The runtime routines used.
+	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
+	int						miRegisterWords;	//The words of them passed in registers (A, then X, then Y).
+	int32					miRegisterBase;		//Where the prologue pushes the register words (the frame's top), or -1.
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
 	CArrayTemplate<int32>	maiIncoming;		//Per phi: where its value is put on the way in, else -1.
 	CArrayTemplate<int32>	maiSlots;			//Per temporary made by slot: the slot's place, else -1.
@@ -125,6 +155,8 @@ public:
 	void			Init(CIRModule* pcModule, int* piLabels);
 
 	static void		IndexMnemonics(void);
+	static void		SetRegisterArguments(bool bRegisterArguments);
+	static bool		IsRegisterArguments(void);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);
@@ -173,6 +205,8 @@ protected:
 	void			ZeroWords(int32 iDestination, int iFirst, int iWords);
 	void			FillSign(int32 iDestination, int iFirst, int iWords);
 	void			PushValue(SIRReference sValue, SIRType sType);
+	void			PushWord(SIRReference sValue, int iWord);
+	int32			ArgumentPlace(SIR816Argument* psArgument, int32* piPushed);
 	void			PushFrameAddress(int32 iOffset);
 	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
 	void			FoldPointers(void);
@@ -220,6 +254,13 @@ protected:
 	void			WordInA(SIRInstruction* psInstruction, int iWord);
 	void			StoreMemory(SIRInstruction* psInstruction);
 	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
+	int32			PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
+	void			LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
+	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
+	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
+	bool			IsRegisterCall(SIRReference sCallee);
+	void			FunctionArguments(void);
+	void			RegisterStub(CChars* pszBodyLabel);
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
 	void			CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction);
 	void			FloatArithmetic(SIRInstruction* psInstruction);

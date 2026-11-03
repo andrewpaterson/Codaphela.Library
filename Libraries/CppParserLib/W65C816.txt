@@ -123,6 +123,38 @@ Calling convention:
 - Variadic arguments as on the 65C64 (float as double); va_arg stays Libc65's macro.
 - A, X, Y and the flags may change; D, DBR, S and the mode are kept.
 
+Register arguments (the user, 2026-11-02: a fixed rule, a label suffix, extern "C" on the
+stack, the C++ linkage assembly given register entries):
+
+- A function with C++ linkage that isn't variadic takes its arguments in registers.  The
+  IR front end marks its symbol wherever it is named (CIRModule::SetRegisterCall, IR text
+  "regcall @name"); extern "C" functions (Libc65's assembly, the kernal's) and the runtime
+  keep the stack.
+- The rule needs only the argument sizes, so every caller works it out alone: the
+  arguments in order, the hidden result pointer first, each take the next of A, X and Y
+  when all their words fit (a 32 bit value low word first), else they are pushed as
+  before (a later, smaller one may still fit).  this is A and X, unless the function
+  returns 64 bits (then the hidden result pointer is, and this is pushed).
+- The function's code is at its label plus a suffix naming each argument word's place:
+  a dot, then a, x or y for a register or s for a pushed word, without the pushed words
+  at the end (_Add__Fii.ax; _MemSwp16__FPvPvt.axssy).  No suffix when nothing is in a
+  register.  C++ labels have no dot, so the suffix can't clash, and a caller and a
+  definition that don't agree don't link.
+- The prologue pushes the register words into the top of the frame (phd, phy, phx, pha,
+  then the rest of the frame), so they are direct page places like the others; the
+  pushed arguments stay above the return address.
+- The plain label is a stub for callers that push everything (function pointers,
+  vtables, thunks, assembly): it loads the registers from the stack (lda [S + n], tay,
+  tax) and goes on to the body; when some arguments are pushed it pushes them again,
+  calls the body and removes them.
+- Assembly with C++ linkage defines the suffixed labels too: Libc65's string816.asm and
+  string816_16.asm (forwarding to the stack entries for now, but FindFirstClearBit(uint32)),
+  and BaseLib's Fat*816.asm (to do).
+- CIR816Backend::SetRegisterArguments(false) (TestProject65's TEST_PROJECT65_STACK_ARGUMENTS)
+  pushes every argument, to compare.
+- Cost: a register word is a load by the caller and a push by the callee (8 cycles, a pei
+  is 6), but the caller removes nothing after the call (10 to 13 cycles).
+
 Bank 0 (the user, 2026-10-25): "all that is allowed in bank zero is the stack and direct
 page variables.  Place no code there."  The hardware still needs the vectors at
 $00FFE4-$00FFFF, and an interrupt starts in bank 0 (the vectors are 16 bits, PBR becomes

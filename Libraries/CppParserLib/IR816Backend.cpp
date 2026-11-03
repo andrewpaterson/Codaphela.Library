@@ -463,6 +463,9 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
+	masArguments.Init();
+	miRegisterWords = 0;
+	miRegisterBase = -1;
 	miFused = 0;
 	miHiddenResult = -1;
 }
@@ -474,6 +477,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Kill(void)
 {
+	masArguments.Kill();
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
 	maiSlots.Kill();
@@ -607,6 +611,160 @@ int32 CIR816Backend::Allocate(int32* piNext, int32 iBytes)
 }
 
 
+bool	gbIR816RegisterArguments = true;		//SetRegisterArguments.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether register functions (CIRModule::SetRegisterCall) take their
+// arguments in registers (true, the default), or every call pushes them as
+// before, to compare the two.  Every unit of a program must be compiled
+// the same way.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SetRegisterArguments(bool bRegisterArguments)
+{
+	gbIR816RegisterArguments = bRegisterArguments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsRegisterArguments(void)
+{
+	return gbIR816RegisterArguments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The register arguments' fixed rule (W65C816.txt): the arguments in order
+// (the hidden result pointer first) each take the next of A, X and Y when
+// all their words fit, else they are pushed; a later, smaller one may still
+// fit.  Sets each one's iRegister and returns the register words used
+// (always A, then X, then Y).
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816AssignRegisters(CArrayIR816Arguments* pasArguments)
+{
+	size			ui;
+	int				iNext;
+	SIR816Argument*	psArgument;
+
+	iNext = 0;
+	for (ui = 0; ui < pasArguments->NumElements(); ui++)
+	{
+		psArgument = pasArguments->Get(ui);
+		if ((psArgument->iWords > 0) && (iNext + psArgument->iWords <= IR816_ARGUMENT_REGISTERS))
+		{
+			psArgument->iRegister = iNext;
+			iNext += psArgument->iWords;
+		}
+		else
+		{
+			psArgument->iRegister = -1;
+		}
+	}
+	return iNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends a register function's label suffix: a dot, then for each argument
+// word in order (the hidden result pointer's first) the register it is in
+// (a, x or y) or s when it is pushed, without the pushed words at the end.
+// Nothing when no word is in a register.  C++ names have no dot, so it
+// can't clash: _Add__Fii.ax, _Fill__FPcic.axy.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
+{
+	size			ui;
+	size			uiStart;
+	size			uiEnd;
+	int				i;
+	SIR816Argument*	psArgument;
+
+	uiStart = psz->Length();
+	uiEnd = uiStart;
+	psz->Append('.');
+	for (ui = 0; ui < pasArguments->NumElements(); ui++)
+	{
+		psArgument = pasArguments->Get(ui);
+		for (i = 0; i < psArgument->iWords; i++)
+		{
+			if (psArgument->iRegister >= 0)
+			{
+				psz->Append(IR816_REGISTER_LETTERS[psArgument->iRegister + i]);
+				uiEnd = psz->Length();
+			}
+			else
+			{
+				psz->Append('s');
+			}
+		}
+	}
+	psz->SetLength(uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's hidden result pointer (when it returns 64 bits) and
+// parameters as its callers pass them (masArguments, miRegisterWords): in
+// registers when its symbol is marked for them and it isn't variadic.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FunctionArguments(void)
+{
+	SIR816Argument*	psArgument;
+	size			ui;
+
+	masArguments.FakeSetUsedElements(0);
+	if (IsHiddenResult(mpcFunction->msReturnType))
+	{
+		psArgument = masArguments.Add();
+		psArgument->iWords = 2;
+		psArgument->iRegister = -1;
+	}
+	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		psArgument = masArguments.Add();
+		psArgument->iWords = Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
+		psArgument->iRegister = -1;
+	}
+	miRegisterWords = 0;
+	if (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !(mpcFunction->muiAttributes & IRA_Variadic))
+	{
+		miRegisterWords = IR816AssignRegisters(&masArguments);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An argument's place (D + offset): in the frame's top when it came in
+// registers (miRegisterBase, after Layout gives it), else the next pushed
+// one (*piPushed, moved past it).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::ArgumentPlace(SIR816Argument* psArgument, int32* piPushed)
+{
+	int32	iPlace;
+
+	if (psArgument->iRegister >= 0)
+	{
+		return miRegisterBase + 2 * psArgument->iRegister;
+	}
+	iPlace = *piPushed;
+	*piPushed += 2 * psArgument->iWords;
+	return iPlace;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The temporaries get places after the scratch bytes, shared by those that are never live at once; each phi's way
@@ -622,7 +780,9 @@ void CIR816Backend::Layout(void)
 	int32				iNext;
 	int32				iNone;
 	int32				iArgument;
+	int32				iPlace;
 	int32				iRest;
+	size				uiArgument;
 	CIRBlock*			pcBlock;
 	SIRPhi*				psPhi;
 	SIRInstruction*		psInstruction;
@@ -693,21 +853,26 @@ void CIR816Backend::Layout(void)
 			}
 		}
 	}
+	//The register arguments' words are the frame's top, the first lowest: the prologue pushes them there (Prologue).
+	miRegisterBase = (miRegisterWords > 0) ? Allocate(&iNext, 2 * miRegisterWords) : -1;
 	miFrameBytes = iNext - 1;
 
+	//The pushed arguments are above the frame, the saved D and the return address, in order.
 	iArgument = miFrameBytes + 1 + IR816_LINK_BYTES;
 	miHiddenResult = -1;
+	uiArgument = 0;
 	if (IsHiddenResult(mpcFunction->msReturnType))
 	{
-		miHiddenResult = iArgument;
-		iArgument += 4;
+		miHiddenResult = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
+		uiArgument++;
 	}
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 	{
 		sParameter = *mpcFunction->masParameters.Get(ui);
-		maiParameters.Add(&iArgument);
-		*maiOffsets.Get(sParameter.Index()) = iArgument;
-		iArgument += ValueBytes(mpcFunction->GetTemporaryType(sParameter));
+		iPlace = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
+		uiArgument++;
+		maiParameters.Add(&iPlace);
+		*maiOffsets.Get(sParameter.Index()) = iPlace;
 	}
 	miArgumentBytes = iArgument - (miFrameBytes + 1 + IR816_LINK_BYTES);
 
@@ -2549,20 +2714,31 @@ void CIR816Backend::PushValue(SIRReference sValue, SIRType sType)
 
 	for (i = Words(sType) - 1; i >= 0; i--)
 	{
-		if (sValue.IsTemporary() && (i < Words(mpcFunction->GetTemporaryType(sValue))) && ((OffsetOf(sValue) + 2 * i <= 255) || InX(sValue)))
-		{
-			//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
-			Operand("pei", sValue, i);
-		}
-		else if (sValue.IsTemporary())
-		{
-			Operand("lda", sValue, i);
-			Line("pha");
-		}
-		else
-		{
-			Operand("pea", sValue, i);
-		}
+		PushWord(sValue, i);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pushes word iWord of a temporary, constant or symbol.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PushWord(SIRReference sValue, int iWord)
+{
+	if (sValue.IsTemporary() && (iWord < Words(mpcFunction->GetTemporaryType(sValue))) && ((OffsetOf(sValue) + 2 * iWord <= 255) || InX(sValue)))
+	{
+		//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
+		Operand("pei", sValue, iWord);
+	}
+	else if (sValue.IsTemporary())
+	{
+		Operand("lda", sValue, iWord);
+		Line("pha");
+	}
+	else
+	{
+		Operand("pea", sValue, iWord);
 	}
 }
 
@@ -2937,6 +3113,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	pcFunction->ComputePredecessors();
 	mcDominators.Compute(pcFunction);
 	mcLoops.Compute(pcFunction, &mcDominators);
+	FunctionArguments();
 	Layout();
 	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
@@ -6162,12 +6339,154 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Prologue(const char* szLabel)
 {
+	CChars	szBody;
+	int		i;
+	int32	iRest;
+
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
 	mpszOut->AppendNewLine();
 	Line(".width (A, X), 16");
 	Line(".relax");
-	IR816AppendFrameEntry(mpszOut, miFrameBytes);
+	if (miRegisterWords == 0)
+	{
+		IR816AppendFrameEntry(mpszOut, miFrameBytes);
+		return;
+	}
+
+	//A register function: the plain label is the stub for callers that push everything, then the body's own label
+	//(visible to other objects when the plain one is).
+	szBody.Init(szLabel);
+	IR816AppendRegisterSuffix(&szBody, &masArguments);
+	RegisterStub(&szBody);
+	if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
+	{
+		mpszOut->Append("\t\t.global ");
+		mpszOut->Append(szBody);
+		mpszOut->AppendNewLine();
+	}
+	mpszOut->Append(szBody);
+	mpszOut->Append(':');
+	mpszOut->AppendNewLine();
+	szBody.Kill();
+
+	//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
+	Line("phd");
+	for (i = miRegisterWords - 1; i >= 0; i--)
+	{
+		Line((i == 2) ? "phy" : ((i == 1) ? "phx" : "pha"));
+	}
+	iRest = miFrameBytes - 2 * miRegisterWords;
+	Line("tsc");
+	if (iRest > 0)
+	{
+		Line("sec");
+		Line("sbc ", iRest);
+		Line("tcs");
+	}
+	Line("tcd");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A register function's plain label, for callers that push every argument
+// (function pointers, vtables, thunks, assembly): on entry argument word k
+// is at S + 4 + 2k (after the jsl's return address).  The registers' words
+// are loaded (Y's and X's through A, A's last) and it goes straight on to
+// the body when no argument is pushed.  Otherwise the pushed ones are
+// pushed again (the body wants them just above its return address), the
+// body is called, they are removed (A kept in Y, X kept) and it returns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
+{
+	CChars			sz;
+	int				aiWordOf[IR816_ARGUMENT_REGISTERS];
+	int				iWords;
+	int				iPushed;
+	int				iStacked;
+	int				iWord;
+	int				i;
+	int				k;
+	size			ui;
+	SIR816Argument*	psArgument;
+
+	//Each register's word, and the pushed words.
+	iWords = 0;
+	iStacked = 0;
+	for (ui = 0; ui < masArguments.NumElements(); ui++)
+	{
+		psArgument = masArguments.Get(ui);
+		for (i = 0; i < psArgument->iWords; i++)
+		{
+			if (psArgument->iRegister >= 0)
+			{
+				aiWordOf[psArgument->iRegister + i] = iWords;
+			}
+			else
+			{
+				iStacked++;
+			}
+			iWords++;
+		}
+	}
+
+	//The pushed words again, last first: each push moves the stack's words 2 further from S.
+	sz.Init();
+	iPushed = 0;
+	iWord = iWords;
+	for (ui = masArguments.NumElements(); ui > 0; ui--)
+	{
+		psArgument = masArguments.Get(ui - 1);
+		for (i = psArgument->iWords - 1; i >= 0; i--)
+		{
+			iWord--;
+			if (psArgument->iRegister < 0)
+			{
+				sz.Clear();
+				sz.Append("lda [S + ");
+				sz.Append(4 + 2 * iWord + 2 * iPushed);
+				sz.Append("]");
+				Line(sz.Text());
+				Line("pha");
+				iPushed++;
+			}
+		}
+	}
+
+	//Y's, X's, then A's.
+	for (k = miRegisterWords - 1; k >= 0; k--)
+	{
+		sz.Clear();
+		sz.Append("lda [S + ");
+		sz.Append(4 + 2 * aiWordOf[k] + 2 * iStacked);
+		sz.Append("]");
+		Line(sz.Text());
+		if (k == 2)
+		{
+			Line("tay");
+		}
+		else if (k == 1)
+		{
+			Line("tax");
+		}
+	}
+
+	if (iStacked > 0)
+	{
+		sz.Init("jsl ");
+		sz.Append(pszBodyLabel);
+		Line(sz.Text());
+		Line("tay");
+		Line("tsc");
+		Line("clc");
+		Line("adc ", 2 * iStacked);
+		Line("tcs");
+		Line("tya");
+		Line("rtl");
+	}
+	sz.Kill();
 }
 
 
@@ -8974,34 +9293,52 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
-	int32			iBytes;
-	size			ui;
-	SIRInstruction*	psArgument;
-	SIRReference	sCallee;
-	int32			iReturn;
-	int32			iCallee;
-	CChars			sz;
+	int32					iBytes;
+	size					ui;
+	SIRInstruction*			psArgument;
+	SIRReference			sCallee;
+	int32					iReturn;
+	int32					iCallee;
+	int						iRegisters;
+	CChars					sz;
+	CArrayIR816Arguments	asArguments;
+	SIR816Argument*			psPlaced;
 
-	iBytes = 0;
-	for (ui = mauiPendingArguments.NumElements(); ui > 0; ui--)
-	{
-		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui - 1));
-		PushValue(psArgument->asArguments[0], psArgument->sType);
-		iBytes += ValueBytes(psArgument->sType);
-	}
-	mauiPendingArguments.FakeSetUsedElements(0);
+	//The arguments as passed: the hidden result pointer first, each pushed unless a register function takes it in
+	//registers.
+	sCallee = psInstruction->asArguments[0];
+	asArguments.Init();
 	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
 	{
-		PushFrameAddress(OffsetOf(psInstruction->sResult));
-		iBytes += 4;
+		psPlaced = asArguments.Add();
+		psPlaced->iWords = 2;
+		psPlaced->iRegister = -1;
 	}
+	for (ui = 0; ui < mauiPendingArguments.NumElements(); ui++)
+	{
+		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui));
+		psPlaced = asArguments.Add();
+		psPlaced->iWords = Words(psArgument->sType);
+		psPlaced->iRegister = -1;
+	}
+	iRegisters = IsRegisterCall(sCallee) ? IR816AssignRegisters(&asArguments) : 0;
+
+	iBytes = PushArguments(pcBlock, psInstruction, &asArguments);
+	if (iRegisters > 0)
+	{
+		LoadRegisterArguments(pcBlock, psInstruction, &asArguments);
+	}
+	mauiPendingArguments.FakeSetUsedElements(0);
 
 	sz.Init();
-	sCallee = psInstruction->asArguments[0];
 	if (sCallee.IsSymbol())
 	{
 		sz.Append("jsl ");
 		sz.Append(mpcModule->GetSymbolName(sCallee.Index()));
+		if (iRegisters > 0)
+		{
+			IR816AppendRegisterSuffix(&sz, &asArguments);
+		}
 		Line(sz.Text());
 	}
 	else
@@ -9024,7 +9361,225 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 		Label(iReturn);
 	}
 	sz.Kill();
+	asArguments.Kill();
 	CallerCleanUp(iBytes, psInstruction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pushes the call's arguments that aren't in registers (pasArguments, as
+// Call places them), last first, then the hidden result pointer if it
+// isn't.  Returns the bytes pushed.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+{
+	int32			iBytes;
+	size			ui;
+	size			uiFirst;
+	SIRInstruction*	psArgument;
+
+	iBytes = 0;
+	uiFirst = pasArguments->NumElements() - mauiPendingArguments.NumElements();
+	for (ui = mauiPendingArguments.NumElements(); ui > 0; ui--)
+	{
+		if (pasArguments->Get(uiFirst + ui - 1)->iRegister >= 0)
+		{
+			continue;
+		}
+		psArgument = pcBlock->masInstructions.Get(*mauiPendingArguments.Get(ui - 1));
+		PushValue(psArgument->asArguments[0], psArgument->sType);
+		iBytes += ValueBytes(psArgument->sType);
+	}
+	if ((uiFirst == 1) && (pasArguments->Get(0)->iRegister < 0))
+	{
+		PushFrameAddress(OffsetOf(psInstruction->sResult));
+		iBytes += 4;
+	}
+	return iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the call's register argument word for iRegister comes from: its
+// value and word, or the hidden result pointer (*piHiddenResult its frame
+// offset, else -1).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayTemplate<size>* pauiPending, CArrayIR816Arguments* pasArguments, int iRegister, int32 iHiddenOffset, SIRReference* psValue, int* piWord, int32* piHiddenResult)
+{
+	size			ui;
+	size			uiFirst;
+	SIR816Argument*	psArgument;
+
+	uiFirst = pasArguments->NumElements() - pauiPending->NumElements();
+	*psValue = IRNone();
+	*piWord = 0;
+	*piHiddenResult = -1;
+	for (ui = 0; ui < pasArguments->NumElements(); ui++)
+	{
+		psArgument = pasArguments->Get(ui);
+		if ((psArgument->iRegister >= 0) && (iRegister >= psArgument->iRegister) && (iRegister < psArgument->iRegister + psArgument->iWords))
+		{
+			*piWord = iRegister - psArgument->iRegister;
+			if (ui < uiFirst)
+			{
+				*piHiddenResult = iHiddenOffset;
+			}
+			else
+			{
+				*psValue = pcBlock->masInstructions.Get(*pauiPending->Get(ui - uiFirst))->asArguments[0];
+			}
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts the call's register arguments in A, X and Y (after PushArguments has
+// pushed the others).  Straight from where they are when each can be
+// (LoadsRegisterDirectly): Y and X first and A last, unless A's value is
+// kept in X (then A first).  Otherwise they are pushed and pulled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
+{
+	SIRReference	asValues[IR816_ARGUMENT_REGISTERS];
+	int				aiWords[IR816_ARGUMENT_REGISTERS];
+	int32			aiHidden[IR816_ARGUMENT_REGISTERS];
+	int32			iHiddenOffset;
+	int				iRegisters;
+	int				i;
+	bool			bDirect;
+	bool			bAFirst;
+
+	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : OffsetOf(psInstruction->sResult);
+	iRegisters = 0;
+	bDirect = true;
+	for (i = 0; i < IR816_ARGUMENT_REGISTERS; i++)
+	{
+		IR816RegisterSource(pcBlock, psInstruction, &mauiPendingArguments, pasArguments, i, iHiddenOffset, &asValues[i], &aiWords[i], &aiHidden[i]);
+		if (asValues[i].IsNone() && (aiHidden[i] < 0))
+		{
+			break;
+		}
+		iRegisters++;
+		bDirect &= (aiHidden[i] >= 0) || LoadsRegisterDirectly(asValues[i], aiWords[i]);
+	}
+
+	if (bDirect)
+	{
+		bAFirst = (aiHidden[0] < 0) && (aiWords[0] == 0) && InX(asValues[0]);
+		if (bAFirst)
+		{
+			LoadRegisterWord(0, asValues[0], aiWords[0], aiHidden[0]);
+		}
+		for (i = iRegisters - 1; i > 0; i--)
+		{
+			LoadRegisterWord(i, asValues[i], aiWords[i], aiHidden[i]);
+		}
+		if (!bAFirst)
+		{
+			LoadRegisterWord(0, asValues[0], aiWords[0], aiHidden[0]);
+		}
+		return;
+	}
+
+	//Pushed Y's first, so A's is pulled first.
+	for (i = iRegisters - 1; i >= 0; i--)
+	{
+		if ((aiHidden[i] >= 0) && (aiWords[i] == 0))
+		{
+			Line("tdc");
+			Line("clc");
+			Line("adc ", aiHidden[i]);
+			Line("pha");
+		}
+		else if (aiHidden[i] >= 0)
+		{
+			Line("pea 0");
+		}
+		else
+		{
+			PushWord(asValues[i], aiWords[i]);
+		}
+	}
+	Line("pla");
+	if (iRegisters > 1)
+	{
+		Line("plx");
+	}
+	if (iRegisters > 2)
+	{
+		Line("ply");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a register argument's word can be loaded straight into A, X or Y
+// (LoadRegisterWord) without A or X: a constant, a symbol's address, a
+// value kept in X, or a word in the direct page.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::LoadsRegisterDirectly(SIRReference sValue, int iWord)
+{
+	if (!sValue.IsTemporary())
+	{
+		return true;
+	}
+	if ((iWord == 0) && InX(sValue))
+	{
+		return true;
+	}
+	return (iWord >= Words(mpcFunction->GetTemporaryType(sValue))) || (OffsetOf(sValue) + 2 * iWord <= 255);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads a register argument's word into A (iRegister 0), X (1) or Y (2):
+// the word of the hidden result pointer when iHiddenResult isn't -1 (its
+// frame offset; the high word is 0), else of sValue.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
+{
+	static const char*	aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
+	static const char*	aszZeros[IR816_ARGUMENT_REGISTERS] = { "lda 0", "ldx 0", "ldy 0" };
+
+	if ((iHiddenResult >= 0) && (iWord == 0))
+	{
+		//The hidden result pointer is the first argument: its low word is A's.
+		Line("tdc");
+		Line("clc");
+		Line("adc ", iHiddenResult);
+	}
+	else if (iHiddenResult >= 0)
+	{
+		Line(aszZeros[iRegister]);
+	}
+	else
+	{
+		Operand(aszLoads[iRegister], sValue, iWord);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a call of sCallee passes its arguments in registers: a symbol the
+// front end marked (CIRModule::SetRegisterCall).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsRegisterCall(SIRReference sCallee)
+{
+	return gbIR816RegisterArguments && sCallee.IsSymbol() && mpcModule->IsRegisterCall(sCallee.Index());
 }
 
 
