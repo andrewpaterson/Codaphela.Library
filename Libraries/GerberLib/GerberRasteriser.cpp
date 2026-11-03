@@ -204,8 +204,8 @@ void CGerberRasteriser::Composite(bool bDark)
 	int		x;
 	int		y;
 	int		iWidth;
-	int32	iCoverage;
-	int32	iDest;
+	size	uiCoverage;
+	size	uiDest;
 	uint8*	puiCoverage;
 	uint8*	puiDest;
 
@@ -217,13 +217,13 @@ void CGerberRasteriser::Composite(bool bDark)
 		puiDest = mpcRaster->GetData() + (size)(mcVector.GetTop() + y) * mpcRaster->GetWidth() + mcVector.GetLeft();
 		for (x = 0; x < iWidth; x++)
 		{
-			iCoverage = puiCoverage[(size)y * iWidth + x];
-			if (iCoverage == 0)
+			uiCoverage = puiCoverage[(size)y * iWidth + x];
+			if (uiCoverage == 0)
 			{
 				continue;
 			}
-			iDest = puiDest[x];
-			puiDest[x] = bDark ? BlendOverByte(iDest, iCoverage) : BlendEraseByte(iDest, iCoverage);
+			uiDest = puiDest[x];
+			puiDest[x] = bDark ? BlendOverByte(uiDest, uiCoverage) : BlendEraseByte(uiDest, uiCoverage);
 		}
 	}
 }

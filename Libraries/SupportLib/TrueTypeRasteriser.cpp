@@ -648,11 +648,11 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDest
 	CImageAccessor*			pcAccessor;
 	size					uiNumChannels;
 	size					i;
-	int32					aiColour[MAX_IMAGE_COLOUR_BYTES];
+	size					auiColour[MAX_IMAGE_COLOUR_BYTES];
 	uint8					auiPixel[MAX_IMAGE_COLOUR_BYTES];
 	uint					x;
 	uint					y;
-	int32					iCoverage;
+	size					uiCoverage;
 	int32					iColour;
 
 	aiChannels.Init();
@@ -671,7 +671,7 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDest
 			return false;
 		}
 		iColour = FloatToIntScaled(pcColour->GetValue((EChannel)aiChannels.GetValue(i)), 255);
-		aiColour[i] = (iColour < 0) ? 0 : ((iColour > 255) ? 255 : iColour);
+		auiColour[i] = (iColour < 0) ? 0 : ((iColour > 255) ? 255 : (size)iColour);
 	}
 
 	cCreator.Init(&pDest);
@@ -687,15 +687,15 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pDest, int iDestX, int iDest
 	{
 		for (x = 0; x < (uint)mcCoverage.GetWidth(); x++)
 		{
-			iCoverage = mcCoverage.GetCoverage()[(lsize)y * mcCoverage.GetWidth() + x];
-			if (iCoverage == 0)
+			uiCoverage = mcCoverage.GetCoverage()[(lsize)y * mcCoverage.GetWidth() + x];
+			if (uiCoverage == 0)
 			{
 				continue;
 			}
 			pcAccessor->Get(iDestX + x, iDestY + y, auiPixel);
 			for (i = 0; i < uiNumChannels; i++)
 			{
-				auiPixel[i] = BlendLerpByte(auiPixel[i], aiColour[i], iCoverage);
+				auiPixel[i] = BlendLerpByte(auiPixel[i], auiColour[i], uiCoverage);
 			}
 			pcAccessor->Set(iDestX + x, iDestY + y, auiPixel);
 		}

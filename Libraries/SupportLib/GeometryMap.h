@@ -136,7 +136,7 @@ protected:
 	void				AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	void				AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
-	void				BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha);
+	void				BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, size uiAlpha);
 };
 
 

@@ -37,13 +37,13 @@ bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDest
 	int32					iTop;
 	int32					iRight;
 	int32					iBottom;
-	uint32					x;
+	size					x;
 	uint32					y;
 	uint8*					puiSourceData;
 	uint8*					puiDestData;
 	uint8*					puiSourcePixel;
 	uint8*					puiDestPixel;
-	uint32					uiInverseAlpha;
+	size					uiInverseAlpha;
 	size					uiColour;
 
 	if ((pSource->GetColourBits() != CRGB_24bit) || (pDest->GetColourBits() != CRGB_24bit) ||
@@ -108,7 +108,7 @@ bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDest
 	{
 		puiSourcePixel = &puiSourceData[y * cContext.miSourceRowStride + iLeft * cContext.miSourcePixelStride];
 		puiDestPixel = &puiDestData[((int32)y + iDestY) * cContext.miDestRowStride + (iLeft + iDestX) * cContext.miDestPixelStride];
-		for (x = (uint32)iLeft; x < (uint32)iRight; x++)
+		for (x = (size)iLeft; x < (size)iRight; x++)
 		{
 			uiInverseAlpha = 255 - puiSourcePixel[cContext.muiSourceAlphaOffset];
 			for (uiColour = 0; uiColour < 3; uiColour++)

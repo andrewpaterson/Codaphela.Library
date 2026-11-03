@@ -389,8 +389,8 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 	lsize		uiCell;
 	bool		bExposure;
 	uint8*		puiPart;
-	int32		iPart;
-	int32		iPath;
+	size		uiPart;
+	size		uiPath;
 
 	miLeft = iLeft;
 	miTop = iTop;
@@ -460,9 +460,9 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 			puiPart = mcCoverage.GetCoverage();
 			for (uiCell = 0; uiCell < uiCells; uiCell++)
 			{
-				iPart = puiPart[uiCell];
-				iPath = mpuiPath[uiCell];
-				mpuiPath[uiCell] = bExposure ? BlendOverByte(iPath, iPart) : BlendEraseByte(iPath, iPart);
+				uiPart = puiPart[uiCell];
+				uiPath = mpuiPath[uiCell];
+				mpuiPath[uiCell] = bExposure ? BlendOverByte(uiPath, uiPart) : BlendEraseByte(uiPath, uiPart);
 			}
 		}
 		if (i < uiNumSegments)

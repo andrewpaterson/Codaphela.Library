@@ -311,7 +311,7 @@ ARGB32 BlendAlpha32BitColours(ARGB32 uiColour1, ARGB32 uiColour2)
 	auiDest[1] = (uint8)r2;
 	auiDest[2] = (uint8)g2;
 	auiDest[3] = (uint8)b2;
-	BlendStraightOverPixel(auiDest, auiSource, 256);
+	BlendStraightOverPixel(auiDest, auiSource, 255);
 
 	return Set32BitColour((uint32)auiDest[1], (uint32)auiDest[2], (uint32)auiDest[3], (uint32)auiDest[0]);
 }

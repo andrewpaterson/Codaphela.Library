@@ -333,8 +333,8 @@ void CCoverageRasteriser::Accumulate(void)
 	uint	x;
 	uint	y;
 	lsize	uiCell;
-	int64	iCover;
-	int64	iCoverage;
+	int32	iCover;
+	int32	iCoverage;
 
 	for (y = 0; y < (uint)miHeight; y++)
 	{
@@ -348,8 +348,12 @@ void CCoverageRasteriser::Accumulate(void)
 			{
 				iCoverage = -iCoverage;
 			}
-			iCoverage = DivideRound(iCoverage * 255, COVERAGE_FULL);
-			mpuiCoverage[uiCell] = (uint8)((iCoverage > 255) ? 255 : iCoverage);
+			if (iCoverage > COVERAGE_FULL)
+			{
+				iCoverage = COVERAGE_FULL;
+			}
+			//Rounded 255ths; COVERAGE_FULL is a power of two and clamped first, so this is a shift in 32 bits.
+			mpuiCoverage[uiCell] = (uint8)((iCoverage * 255 + COVERAGE_FULL / 2) >> (2 * COVERAGE_SUBPIXEL_BITS + 1));
 		}
 	}
 }

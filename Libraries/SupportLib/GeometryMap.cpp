@@ -663,8 +663,8 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 	size			x;
 	size			y;
 	uint8*			puiCoverage;
-	uint32			uiAlpha;
-	uint32			uiCoverage;
+	size			uiAlpha;
+	size			uiCoverage;
 
 	cPath.Init();
 	AddShapePath(&cPath, psCommand);
@@ -704,7 +704,7 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 			uiCoverage = puiCoverage[(lsize)y * pcRasteriser->GetWidth() + x];
 			if (uiCoverage > 0)
 			{
-				BlendPixel(psPixels, pcRasteriser->GetLeft() + (int)x, pcRasteriser->GetTop() + (int)y, psCommand->sColour, (uint32)DivideRound((uint64)uiAlpha * uiCoverage, 255));
+				BlendPixel(psPixels, pcRasteriser->GetLeft() + (int)x, pcRasteriser->GetTop() + (int)y, psCommand->sColour, (uiAlpha * uiCoverage + 127) / 255);
 			}
 		}
 	}
@@ -791,9 +791,9 @@ void CGeometryMap::AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand
 //////////////////////////////////////////////////////////////////////////
 void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour)
 {
-	uint32	uiAlpha;
-	uint32	x;
-	uint32	y;
+	size	uiAlpha;
+	size	x;
+	size	y;
 	uint8*	puiRow;
 	uint8*	puiPixel;
 	uint8	uiRed;
@@ -803,9 +803,9 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 	uiAlpha = Get8BitAlphaColour(sColour);
 	if (psPixels->pcAccessor || (uiAlpha != 255))
 	{
-		for (y = (uint32)iTop; y < (uint32)iBottom; y++)
+		for (y = (size)iTop; y < (size)iBottom; y++)
 		{
-			for (x = (uint32)iLeft; x < (uint32)iRight; x++)
+			for (x = (size)iLeft; x < (size)iRight; x++)
 			{
 				BlendPixel(psPixels, (int32)x, (int32)y, sColour, uiAlpha);
 			}
@@ -817,10 +817,10 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 	uiGreen = Get8BitGreenColour(sColour);
 	uiBlue = Get8BitBlueColour(sColour);
 	puiRow = psPixels->puiData + (lsize)iTop * psPixels->uiRowStride + (size)iLeft * psPixels->uiPixelStride;
-	for (y = (uint32)iTop; y < (uint32)iBottom; y++)
+	for (y = (size)iTop; y < (size)iBottom; y++)
 	{
 		puiPixel = puiRow;
-		for (x = (uint32)iLeft; x < (uint32)iRight; x++)
+		for (x = (size)iLeft; x < (size)iRight; x++)
 		{
 			puiPixel[psPixels->uiRed] = uiRed;
 			puiPixel[psPixels->uiGreen] = uiGreen;
@@ -842,7 +842,7 @@ void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 i
 // alpha, so a partly covered pixel of a shape gets less of it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeometryMap::BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha)
+void CGeometryMap::BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, size uiAlpha)
 {
 	uint8	auiPixel[4];
 	uint8*	puiPixel;

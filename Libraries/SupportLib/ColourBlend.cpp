@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FixedPoint.h"
 #include "ColourBlend.h"
 
 
@@ -31,9 +30,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 // stays opaque and a transparent source leaves the destination unchanged.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 BlendOverByte(uint32 uiDest, uint32 uiSource)
+uint8 BlendOverByte(size uiDest, size uiSource)
 {
-	return (uint8)(uiSource + DivideRound((int64)uiDest * (255 - uiSource), 255));
+	return (uint8)(uiSource + (uiDest * (255 - uiSource) + 127) / 255);
 }
 
 
@@ -45,9 +44,9 @@ uint8 BlendOverByte(uint32 uiDest, uint32 uiSource)
 // Erases the coverage from the destination: d (1 - c).
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 BlendEraseByte(uint32 uiDest, uint32 uiCoverage)
+uint8 BlendEraseByte(size uiDest, size uiCoverage)
 {
-	return (uint8)DivideRound((int64)uiDest * (255 - uiCoverage), 255);
+	return (uint8)((uiDest * (255 - uiCoverage) + 127) / 255);
 }
 
 
@@ -60,9 +59,9 @@ uint8 BlendEraseByte(uint32 uiDest, uint32 uiCoverage)
 // d (1 - c) + s c.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 BlendLerpByte(uint32 uiDest, uint32 uiSource, uint32 uiCoverage)
+uint8 BlendLerpByte(size uiDest, size uiSource, size uiCoverage)
 {
-	return (uint8)DivideRound((int64)uiDest * (255 - uiCoverage) + (int64)uiSource * uiCoverage, 255);
+	return (uint8)((uiDest * (255 - uiCoverage) + uiSource * uiCoverage + 127) / 255);
 }
 
 
@@ -72,9 +71,9 @@ uint8 BlendLerpByte(uint32 uiDest, uint32 uiSource, uint32 uiCoverage)
 // 255.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 BlendPremultipliedByte(uint32 uiSource, uint32 uiDest, uint32 uiInverseAlpha)
+uint8 BlendPremultipliedByte(size uiSource, size uiDest, size uiInverseAlpha)
 {
-	uint32	uiResult;
+	size	uiResult;
 
 	uiResult = uiSource + (uiDest * uiInverseAlpha + 127) / 255;
 	if (uiResult > 255)
@@ -87,23 +86,24 @@ uint8 BlendPremultipliedByte(uint32 uiSource, uint32 uiDest, uint32 uiInverseAlp
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Blends the source colour, iCoverage 256ths of it, over the destination.
+// Blends the source colour, uiCoverage 255ths of it, over the destination.
 // Both are opacity, red, green then blue and neither is multiplied by its
-// opacity.  The result is rounded to the nearest so drawing a colour over
-// itself doesn't change it.
+// opacity.  The destination's colour counts by the opacity of it the
+// source leaves showing, so drawing a colour over itself doesn't change it.
+// No sum passes 255 * 255 + 255, so it all fits in a 16 bit size.
 //
 //////////////////////////////////////////////////////////////////////////
-void BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, int iCoverage)
+void BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, size uiCoverage)
 {
-	int64	iSourceOpacity;  //In 65280ths (255 * 256).
-	int64	iDestOpacity;
-	int64	iOpacity;  //In 65280ths of 65280ths.
+	size	uiSourceOpacity;
+	size	uiDestOpacity;  //Of the destination, showing through the source.
+	size	uiOpacity;
 	size	i;
 
-	iSourceOpacity = (int64)puiSource[0] * iCoverage;
-	if ((puiDest[0] == 0) || (iSourceOpacity == 65280))
+	uiSourceOpacity = (puiSource[0] * uiCoverage + 127) / 255;
+	if ((puiDest[0] == 0) || (uiSourceOpacity == 255))
 	{
-		puiDest[0] = (uint8)((iSourceOpacity + 128) / 256);
+		puiDest[0] = (uint8)uiSourceOpacity;
 		for (i = 1; i < 4; i++)
 		{
 			puiDest[i] = puiSource[i];
@@ -111,16 +111,15 @@ void BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, int iCoverage)
 		return;
 	}
 
-	iDestOpacity = (int64)puiDest[0] * 256;
-	iOpacity = iSourceOpacity * 65280 + iDestOpacity * (65280 - iSourceOpacity);
-	if (iOpacity == 0)
+	uiDestOpacity = (puiDest[0] * (255 - uiSourceOpacity) + 127) / 255;
+	uiOpacity = uiSourceOpacity + uiDestOpacity;
+	if (uiOpacity == 0)
 	{
 		return;
 	}
 	for (i = 1; i < 4; i++)
 	{
-		puiDest[i] = (uint8)(((int64)puiSource[i] * iSourceOpacity * 65280 + (int64)puiDest[i] * iDestOpacity * (65280 - iSourceOpacity) + iOpacity / 2) / iOpacity);
+		puiDest[i] = (uint8)((puiSource[i] * uiSourceOpacity + puiDest[i] * uiDestOpacity + uiOpacity / 2) / uiOpacity);
 	}
-	puiDest[0] = (uint8)((iOpacity + 65280 * 128) / (65280 * 256));
+	puiDest[0] = (uint8)uiOpacity;
 }
-

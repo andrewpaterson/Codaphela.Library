@@ -15,7 +15,7 @@ void BlendRGBByteAlphaByte(CImageBlitterContext* pcContext, void* pvSourcePixel,
 	uint8*	puiDestColour;
 	size	uiSourceColourOffset;
 	size	uiDestColourOffset;
-	uint32	uiAlpha;
+	size	uiAlpha;
 	size	uiColourIndex;
 
 	puiAlpha = (uint8*)RemapSinglePointer(pvSourcePixel, pcContext->muiSourceAlphaOffset);
@@ -43,8 +43,8 @@ void BlendAlphaByte(CImageBlitterContext* pcContext, void* pvSourcePixel, void* 
 {
 	uint8*	puiSourceAlpha;
 	uint8*	puiDestAlpha;
-	uint32	uiSourceAlpha;
-	uint32	uiDestAlpha;
+	size	uiSourceAlpha;
+	size	uiDestAlpha;
 
 	//Source over destination: as + ad * (1 - as).
 	//The colour is still blended as if the destination were opaque (see BlendRGBByteAlphaByte).

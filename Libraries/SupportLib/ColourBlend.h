@@ -23,12 +23,13 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PrimitiveTypes.h"
 
 
-//Integer blends of 8 bit values where 0 is none and 255 is all.  Results are rounded to the nearest.
-uint8	BlendOverByte(uint32 uiDest, uint32 uiSource);
-uint8	BlendEraseByte(uint32 uiDest, uint32 uiCoverage);
-uint8	BlendLerpByte(uint32 uiDest, uint32 uiSource, uint32 uiCoverage);
-uint8	BlendPremultipliedByte(uint32 uiSource, uint32 uiDest, uint32 uiInverseAlpha);
-void	BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, int iCoverage);
+//Integer blends of 8 bit values where 0 is none and 255 is all.  Results are rounded to the nearest.  They are
+//worked out in size, the narrowest integer that holds 255 * 255: 16 bits on the W65C816.
+uint8	BlendOverByte(size uiDest, size uiSource);
+uint8	BlendEraseByte(size uiDest, size uiCoverage);
+uint8	BlendLerpByte(size uiDest, size uiSource, size uiCoverage);
+uint8	BlendPremultipliedByte(size uiSource, size uiDest, size uiInverseAlpha);
+void	BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, size uiCoverage);
 
 
 #endif // __COLOUR_BLEND_H__
