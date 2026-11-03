@@ -4740,6 +4740,7 @@ void TestCPP816(void)
 	NumberInit();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
+	if (getenv("TEMP_ONE")) { TestCPP816ConstantArguments(); TestCPP816WideMultiplies(); CW65C816InstructionFactory::GetInstance()->Kill(); NumberKill(); TypeConverterKill(); TypesKill(); TestStatistics(); return; }
 	TestCPP816Basics();
 	TestCPP816Functions();
 	TestCPP816Classes();

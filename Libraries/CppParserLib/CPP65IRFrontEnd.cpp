@@ -1506,6 +1506,7 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 	SIRType							sType;
 	CChars							szName;
 	CChars							szMarker;
+	CChars							szSection;
 	uint64							ulliValue;
 	uint32							uiSymbol;
 	size							uiParameter;
@@ -1516,6 +1517,7 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 	size							uk;
 	size							uiMarker;
 	size							uiMarkerLength;
+	size							uiSectionLength;
 	bool							bTaken;
 	bool							bAllConstant;
 	bool							bDone;
@@ -1647,7 +1649,7 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 				IRReplaceUses(pcCopy, *pcCopy->masParameters.Get(uiParameter), pcCopy->AddConstant(sType, ulliValue));
 				OptimiseSpecialised(pcCopy);
 
-				//Written after the function, in the same section (its marker straight after the function's).
+				//Written after the function (its marker straight after the function's), in a section of its own.
 				psWritten = masWritten.Add();
 				psWritten->pcFunction = pcCopy;
 				psWritten->szLabel.Init(szName.Text());
@@ -1661,7 +1663,9 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 				uiMarker = mpcGenerator->mszCode.Find(0, szMarker.Text());
 				uiMarkerLength = szMarker.Length();
 				szMarker.Kill();
-				szMarker.Init(IR65_FRONT_END_MARKER);
+				szMarker.Init();
+				mpcGenerator->AppendSection(&szMarker, "text", &szName, NULL);
+				szMarker.Append(IR65_FRONT_END_MARKER);
 				szMarker.Append((int)(masWritten.NumElements() - 1));
 				szMarker.Append(IR65_FRONT_END_MARKER);
 				if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
@@ -1688,15 +1692,36 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 			szName.Kill();
 		}
 
-		//Nothing calls the function now: it goes unless the generator's code names it (a table of functions).
+		//Nothing calls the function now: it goes, with its section line, unless the generator's code names it
+		//otherwise (a table of functions).
 		psWritten = masWritten.Get(uiCallee);
-		if (!IRLabelNamed(mpcGenerator->mszCode.Text(), psWritten->szLabel.Text()))
+		szSection.Init();
+		mpcGenerator->AppendSection(&szSection, "text", &psWritten->szLabel, NULL);
+		uiSectionLength = szSection.Length();
+		szSection.Append(IR65_FRONT_END_MARKER);
+		szSection.Append((int)uiCallee);
+		szSection.Append(IR65_FRONT_END_MARKER);
+		uiMarker = mpcGenerator->mszCode.Find(0, szSection.Text());
+		if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
+		{
+			mpcGenerator->mszCode.Remove(uiMarker, uiMarker + uiSectionLength);
+		}
+		if (IRLabelNamed(mpcGenerator->mszCode.Text(), psWritten->szLabel.Text()))
+		{
+			if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
+			{
+				szSection.SetLength(uiSectionLength);
+				mpcGenerator->mszCode.Insert(uiMarker, szSection.Text());
+			}
+		}
+		else
 		{
 			mcModule.RemoveFunction(psWritten->pcFunction);
 			psWritten->pcFunction = NULL;
 			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, uiCallee, "", 0, &psWritten->uiPieces);
 			*pabChanged->Get(uiCallee) = false;
 		}
+		szSection.Kill();
 	}
 	aulliValues.Kill();
 	asSites.Kill();
