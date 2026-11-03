@@ -822,6 +822,28 @@ void TestInputChordsCommonStart(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An input held only from the stack reads the devices' XML.  Its data
+// formats are in a collection embedded in an object embedded in its
+// devices, and used to be freed as they were added.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputReadHeldFromStack(void)
+{
+	Ptr<CInput>		pInput;
+	size			uiBefore;
+
+	uiBefore = gcObjects.NumMemoryIndexes();
+	pInput = OMalloc<CInput>((CNativeInput*)NULL);
+	AssertTrue(pInput->Read((char*)"../../../Libraries/WinInputLib/xml"));
+	AssertNotNull(pInput->GetDevices()->mcDataFormats.Get((char*)"WinRAW Mouse"));
+	gcObjects.ValidateObjectsConsistency();
+	pInput = NULL;
+	AssertLong(uiBefore, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestInputChords(void)
@@ -972,6 +994,7 @@ void TestInputChords(void)
 	TestInputChordsEvictionDelay();
 	TestInputChordsPrefix();
 	TestInputChordsCommonStart();
+	TestInputReadHeldFromStack();
 
 	TestStatistics();
 

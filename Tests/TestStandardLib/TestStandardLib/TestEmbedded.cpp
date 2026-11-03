@@ -6,6 +6,7 @@
 #include "BaseLib/SequenceFactory.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/PointerContainer.h"
+#include "StandardLib/Array.h"
 #include "TestLib/Assert.h"
 #include "TestBaseObject.h"
 #include "ObjectTestSetup.h"
@@ -714,6 +715,77 @@ void TestEmbeddedObjectPointedToNoRemove(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object embedded in an embedded object, with a collection.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestNestedCollectionInner : public CObject
+{
+CONSTRUCTABLE(CTestNestedCollectionInner);
+DESTRUCTABLE(CTestNestedCollectionInner);
+public:
+	CArray<CTestObject>	maObjects;
+
+	void Init(void) { PreInit(); maObjects.Init(); PostInit(); }
+	void Class(void) override { M_Embedded(maObjects); }
+	void Free(void) override {}
+	bool Save(CObjectWriter* pcFile) override { return false; }
+	bool Load(CObjectReader* pcFile) override { return false; }
+};
+
+
+class CTestNestedCollectionOuter : public CObject
+{
+CONSTRUCTABLE(CTestNestedCollectionOuter);
+DESTRUCTABLE(CTestNestedCollectionOuter);
+public:
+	CTestNestedCollectionInner	mcInner;
+
+	void Init(void) { PreInit(); mcInner.Init(); PostInit(); }
+	void Class(void) override { M_Embedded(mcInner); }
+	void Free(void) override {}
+	bool Save(CObjectWriter* pcFile) override { return false; }
+	bool Load(CObjectReader* pcFile) override { return false; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What only a collection two embeddings deep holds is reached from the
+// stack through the object they are embedded in.  It used to be freed:
+// only the object's own embedded objects were given its distance to the
+// stack, not theirs (CInput's data formats were freed this way).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedNestedCollectionHeldFromStack(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+
+	ObjectsInit();
+	{
+		Ptr<CTestNestedCollectionOuter>	pOuter;
+
+		pOuter = OMalloc<CTestNestedCollectionOuter>();
+		{
+			Ptr<CTestObject>	pObject;
+
+			pObject = OMalloc<CTestObject>(&sNotifier);
+			pOuter->mcInner.maObjects.Add(pObject);
+		}
+		AssertFalse(sNotifier.bFreed);
+		AssertSize(1, pOuter->mcInner.maObjects.NumElements());
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+		gcObjects.ValidateObjectsConsistency();
+
+		pOuter = NULL;
+		AssertTrue(sNotifier.bFreed);
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbedded(void)
@@ -736,6 +808,7 @@ void TestEmbedded(void)
 	TestEmbeddedObjectKillSanity();
 	TestEmbeddedObjectKillFreesEmbedded();
 	TestEmbeddedObjectPointedToNoRemove();
+	TestEmbeddedNestedCollectionHeldFromStack();
 
 	DataIOKill();
 	TypesKill();
