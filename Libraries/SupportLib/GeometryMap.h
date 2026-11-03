@@ -40,6 +40,7 @@ enum EGeometryCommand
 	GC_Polygon,
 	GC_Polyline,
 	GC_Sprite,
+	GC_Tile,
 };
 
 
@@ -61,7 +62,8 @@ enum EGeometryLineCap
 //half of pixels 1 and 5.
 //A sprite is a cel of premultiplied colours and opacity (an atlas holds many), blitted over what is there.  Its image
 //rectangle is drawn at the bounds, which are the position it was added at moved by the cel's top left offset.  The map
-//doesn't own it: it must last until the map is blitted.
+//doesn't own it: it must last until the map is blitted.  A tile is a cel that covers what is under it: its pixels are
+//copied, a row at a time when its image's pixels are laid out as the viewport's.
 struct SGeometryCommand
 {
 	EGeometryCommand	eType;
@@ -75,7 +77,7 @@ struct SGeometryCommand
 	size				uiFirstPoint;	//Polygon or polyline points in the map's point array.
 	size				uiNumPoints;
 	bool				bClosed;		//Polyline.
-	CImageCel*			pcSprite;		//Sprite.
+	CImageCel*			pcSprite;		//Sprite or tile.
 };
 
 
@@ -128,6 +130,7 @@ public:
 	void				AddPolygon(SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
 	void				AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bClosed, float64 fThickness, ARGB32 sColour);
 	void				AddSprite(CImageCel* pcSprite, int32 x, int32 y);
+	void				AddTile(CImageCel* pcTile, int32 x, int32 y);
 	bool				GetBounds(CInt32Rect* pcBounds);
 	void				AppendKey(CArrayTemplate<uint8>* pauiKey);
 	SFloat64Vec2*		GetPoint(size uiIndex);
@@ -149,6 +152,8 @@ protected:
 	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
 	void				BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, size uiAlpha);
 	void				BlitSprite(SGeometryPixels* psPixels, SGeometryCommand* psCommand, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, CInt32Rect* pcViewportRect);
+	void				BlitTile(SGeometryPixels* psPixels, SGeometryCommand* psCommand, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, CInt32Rect* pcViewportRect);
+	SGeometryCommand*	AddCel(EGeometryCommand eType, CImageCel* pcCel, int32 x, int32 y);
 };
 
 

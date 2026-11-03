@@ -809,6 +809,86 @@ void TestGeometryMapSprites(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tile covers what is under it: its pixels are copied, not blended, a
+// row at a time when laid out as the viewport is and a pixel at a time
+// when not.  The tile is the middle two columns of a four by two image.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGeometryMapTiles(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CImage>			pTileImage;
+		Ptr<CImageCel>		pTile;
+		Ptr<CImage>			pImage;
+		Ptr<CGeometryMap>	pMap;
+		CInt32Rect			cViewport;
+
+		//Green, half red (translucent: copied as it is), on rows of white and blue.
+		pTileImage = OMalloc<CImage>(4, 2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		pTileImage->Black();
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pTileImage);
+		pMap->AddRectangle(0, 0, 4, 1, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+		pMap->AddRectangle(0, 1, 4, 1, Set32BitColour((uint8)0, (uint8)0, (uint8)255));
+		pMap->AddRectangle(1, 0, 1, 1, Set32BitColour((uint8)0, (uint8)255, (uint8)0));
+		cViewport.Init(0, 0, 4, 2);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		pMap->Clear();
+		pMap->AddRectangle(2, 0, 1, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0, (uint8)128));
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(0, 255, 0, 255, pTileImage, 1, 0);
+		AssertGeometryPixel(255, 127, 127, 255, pTileImage, 2, 0);
+		pTile = OMalloc<CImageCel>(pTileImage, 1, 0, 3, 2);
+
+		//The same layout, with opacity: whole rows, clipped at the edges.
+		pImage = OMalloc<CImage>(5, 3, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		pImage->Black();
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddTile(&pTile, 1, 1);
+		pMap->AddTile(&pTile, -1, 0);
+		pMap->AddTile(&pTile, 4, 2);
+		cViewport.Init(0, 0, 5, 3);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(0, 255, 0, 255, pImage, 1, 1);
+		AssertGeometryPixel(255, 127, 127, 255, pImage, 2, 1);
+		AssertGeometryPixel(0, 0, 255, 255, pImage, 1, 2);
+		AssertGeometryPixel(0, 0, 0, 0, pImage, 3, 1);
+		AssertGeometryPixel(255, 127, 127, 255, pImage, 0, 0);
+		AssertGeometryPixel(0, 0, 0, 0, pImage, 1, 0);
+		AssertGeometryPixel(0, 255, 0, 255, pImage, 4, 2);
+
+		//Over something: copied, not blended.
+		pMap->Clear();
+		pMap->AddRectangle(0, 0, 5, 3, Set32BitColour((uint8)9, (uint8)9, (uint8)9));
+		pMap->AddTile(&pTile, 0, 0);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(255, 127, 127, 255, pImage, 1, 0);
+		AssertGeometryPixel(9, 9, 9, 255, pImage, 2, 0);
+
+		//Another layout, without opacity and blue first: a pixel at a time.
+		pImage = OMalloc<CImage>(2, 2, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_STOP);
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddTile(&pTile, 0, 0);
+		cViewport.Init(0, 0, 2, 2);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(0, 255, 0, 255, pImage, 0, 0);
+		AssertGeometryPixel(255, 127, 127, 255, pImage, 1, 0);
+		AssertGeometryPixel(0, 0, 255, 255, pImage, 0, 1);
+
+		pMap = NULL;
+		pImage = NULL;
+		pTile = NULL;
+		pTileImage = NULL;
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bounds are every pixel the shapes touch.  Maps with the same
 // shapes have the same key; a different colour or position is another.
 //
@@ -892,6 +972,7 @@ void TestGeometryMap(void)
 	TestGeometryMapPolylines();
 	TestGeometryMapShapeOpacityAndViewport();
 	TestGeometryMapSprites();
+	TestGeometryMapTiles();
 	TestGeometryMapBoundsAndKey();
 
 	DataIOKill();

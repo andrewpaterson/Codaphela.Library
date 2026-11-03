@@ -275,20 +275,44 @@ void CGeometryMap::AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bC
 //////////////////////////////////////////////////////////////////////////
 void CGeometryMap::AddSprite(CImageCel* pcSprite, int32 x, int32 y)
 {
+	AddCel(GC_Sprite, pcSprite, x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the cel pcTile, placed as AddSprite places a sprite, over what is
+// under it.  Its opacity, if it has any, is copied too.  The map doesn't
+// own the cel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::AddTile(CImageCel* pcTile, int32 x, int32 y)
+{
+	AddCel(GC_Tile, pcTile, x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SGeometryCommand* CGeometryMap::AddCel(EGeometryCommand eType, CImageCel* pcCel, int32 x, int32 y)
+{
 	SGeometryCommand*	psCommand;
 	CSubImage*			pcSubImage;
 	int32				iLeft;
 	int32				iTop;
 
-	pcSubImage = pcSprite->GetSubImage();
+	pcSubImage = pcCel->GetSubImage();
 	iLeft = x + pcSubImage->msOffsetTopLeft.x;
 	iTop = y + pcSubImage->msOffsetTopLeft.y;
 
 	psCommand = masCommands.Add();
 	memset(psCommand, 0, sizeof(SGeometryCommand));
-	psCommand->eType = GC_Sprite;
+	psCommand->eType = eType;
 	psCommand->cBounds.Init(iLeft, iTop, iLeft + pcSubImage->GetImageWidth(), iTop + pcSubImage->GetImageHeight());
-	psCommand->pcSprite = pcSprite;
+	psCommand->pcSprite = pcCel;
+	return psCommand;
 }
 
 
@@ -663,6 +687,10 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 			if (psCommand->eType == GC_Sprite)
 			{
 				BlitSprite(&sPixels, psCommand, iLeft, iTop, iRight, iBottom, pcViewportRect);
+			}
+			else if (psCommand->eType == GC_Tile)
+			{
+				BlitTile(&sPixels, psCommand, iLeft, iTop, iRight, iBottom, pcViewportRect);
 			}
 			else if (psCommand->eType == GC_Rectangle)
 			{
@@ -1084,6 +1112,90 @@ void CGeometryMap::BlitSprite(SGeometryPixels* psPixels, SGeometryCommand* psCom
 				auiPixel[3] = BlendPremultipliedByte(uiAlpha, auiPixel[3], uiInverse);
 			}
 			psPixels->pcAccessor->Set(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y, auiPixel);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the part of the command's tile in iLeft to iRight by iTop to
+// iBottom, map pixels clipped to the viewport.  Laid out as the viewport
+// is, each row is one copy; otherwise each pixel's colours (and opacity,
+// 255 if the tile has none) are copied.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::BlitTile(SGeometryPixels* psPixels, SGeometryCommand* psCommand, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, CInt32Rect* pcViewportRect)
+{
+	CImage*		pcTile;
+	CInt32Rect	cSource;
+	uint8*		puiTileData;
+	size		uiTileStride;
+	lsize		uiTileRowStride;
+	size		uiRed;
+	size		uiGreen;
+	size		uiBlue;
+	size		uiOpacity;
+	bool		bOpacity;
+	int32		x;
+	int32		y;
+	uint8*		puiSource;
+	uint8*		puiDest;
+	uint8		auiPixel[4];
+	size		uiRowBytes;
+
+	pcTile = &psCommand->pcSprite->GetSourceImage();
+	psCommand->pcSprite->GetSubImage()->GetImageSourceBounds(&cSource);
+	puiTileData = (uint8*)pcTile->GetData();
+	if ((puiTileData == NULL) ||
+		!GetSpriteChannelOffset(pcTile, IMAGE_DIFFUSE_RED, &uiRed) || !GetSpriteChannelOffset(pcTile, IMAGE_DIFFUSE_GREEN, &uiGreen) ||
+		!GetSpriteChannelOffset(pcTile, IMAGE_DIFFUSE_BLUE, &uiBlue))
+	{
+		return;
+	}
+	bOpacity = GetSpriteChannelOffset(pcTile, IMAGE_OPACITY, &uiOpacity);
+	uiTileStride = pcTile->GetPixelByteStride();
+	uiTileRowStride = uiTileStride * pcTile->GetWidth();
+
+	//Laid out as the viewport: whole rows.
+	if ((psPixels->pcAccessor == NULL) && (uiTileStride == psPixels->uiPixelStride) &&
+		(uiRed == psPixels->uiRed) && (uiGreen == psPixels->uiGreen) && (uiBlue == psPixels->uiBlue) &&
+		(bOpacity == psPixels->bOpacity) && (!bOpacity || (uiOpacity == psPixels->uiOpacity)))
+	{
+		uiRowBytes = (size)(iRight - iLeft) * uiTileStride;
+		for (y = iTop; y < iBottom; y++)
+		{
+			puiSource = puiTileData + (lsize)(cSource.msTopLeft.y + y - psCommand->cBounds.msTopLeft.y) * uiTileRowStride + (size)(cSource.msTopLeft.x + iLeft - psCommand->cBounds.msTopLeft.x) * uiTileStride;
+			puiDest = psPixels->puiData + (lsize)(y - pcViewportRect->msTopLeft.y) * psPixels->uiRowStride + (size)(iLeft - pcViewportRect->msTopLeft.x) * psPixels->uiPixelStride;
+			memcpy(puiDest, puiSource, uiRowBytes);
+		}
+		return;
+	}
+
+	for (y = iTop; y < iBottom; y++)
+	{
+		puiSource = puiTileData + (lsize)(cSource.msTopLeft.y + y - psCommand->cBounds.msTopLeft.y) * uiTileRowStride + (size)(cSource.msTopLeft.x + iLeft - psCommand->cBounds.msTopLeft.x) * uiTileStride;
+		for (x = iLeft; x < iRight; x++, puiSource += uiTileStride)
+		{
+			auiPixel[0] = puiSource[uiRed];
+			auiPixel[1] = puiSource[uiGreen];
+			auiPixel[2] = puiSource[uiBlue];
+			auiPixel[3] = bOpacity ? puiSource[uiOpacity] : 255;
+			if (psPixels->pcAccessor == NULL)
+			{
+				puiDest = psPixels->puiData + (lsize)(y - pcViewportRect->msTopLeft.y) * psPixels->uiRowStride + (size)(x - pcViewportRect->msTopLeft.x) * psPixels->uiPixelStride;
+				puiDest[psPixels->uiRed] = auiPixel[0];
+				puiDest[psPixels->uiGreen] = auiPixel[1];
+				puiDest[psPixels->uiBlue] = auiPixel[2];
+				if (psPixels->bOpacity)
+				{
+					puiDest[psPixels->uiOpacity] = auiPixel[3];
+				}
+			}
+			else
+			{
+				psPixels->pcAccessor->Set(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y, auiPixel);
+			}
 		}
 	}
 }
