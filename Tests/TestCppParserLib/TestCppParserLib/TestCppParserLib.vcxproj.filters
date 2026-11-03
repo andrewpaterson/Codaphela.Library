@@ -64,6 +64,15 @@
     <ClCompile Include="TestCPP65HeaderCache.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestIRImportsTurns.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestDefineMap.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPreprocessorHeaderCache.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPP65Jobs.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>

@@ -21,6 +21,9 @@ void TestCPP65LazyHeaders(void);
 void TestCPP65Spill(void);
 void TestCPP65Jobs(void);
 void TestCPP65HeaderCache(void);
+void TestIRImportsTurns(void);
+void TestDefineMap(void);
+void TestPreprocessorHeaderCache(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,11 +40,14 @@ int __cdecl main(void)
 	if (getenv("TEMP_ONLY")) { if (strstr(getenv("TEMP_ONLY"), "IR816")) TestIR816Backend(); if (strstr(getenv("TEMP_ONLY"), "CPP816")) TestCPP816(); if (strstr(getenv("TEMP_ONLY"), "IRTEST")) TestIR(); return TestTotalStatistics(); }
 	TestCppErrors();
 	TestPreprocessor();
+	TestDefineMap();
+	TestPreprocessorHeaderCache();
 	TestProject();
 	TestCppTokeniser();
 	TestCppParser();
 	TestCppHighlighter();
 	TestIR();
+	TestIRImportsTurns();
 	TestIR65Backend();
 	TestIR816Backend();
 	TestCPP816();

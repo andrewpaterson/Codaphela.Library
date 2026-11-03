@@ -108,7 +108,6 @@ public:
 protected:
 	bool			IsExportable(CIRModule* pcModule, CIRFunction* pcFunction);
 	bool			AnyFound(CArrayChars* paszNames);
-	bool			Unpark(void* pvUnit);
 	void			Exported(const char* szName);
 	bool			IsLocalSymbol(CIRModule* pcModule, SIRReference sValue);
 };

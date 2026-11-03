@@ -242,6 +242,9 @@
     <ClCompile Include="TestCPP65IR.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
     <ClCompile Include="TestCPP65HeaderCache.cpp" />
+    <ClCompile Include="TestIRImportsTurns.cpp" />
+    <ClCompile Include="TestDefineMap.cpp" />
+    <ClCompile Include="TestPreprocessorHeaderCache.cpp" />
     <ClCompile Include="TestCPP65Jobs.cpp" />
     <ClCompile Include="TestCPP65Spill.cpp" />
     <ClCompile Include="TestCppParser.cpp" />

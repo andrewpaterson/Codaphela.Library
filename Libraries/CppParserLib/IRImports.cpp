@@ -251,6 +251,7 @@ EIRArrival CIRImports::Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFou
 	SIRParkedUnit*	psParked;
 	CNameSet*		pcNotFound;
 	size			ui;
+	EIRArrival		eArrival;
 
 	pcNotFound = NULL;
 	if (paszNotFound && (paszNotFound->NumElements() > 0))
@@ -263,70 +264,34 @@ EIRArrival CIRImports::Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFou
 		}
 	}
 
+	//Checked and parked together: an export after the check tells the parked unit (CIRImports::Exported waits for
+	//the mutex), one before is found.  Once parked another thread may resume it (and free paszNotFound).
 	mcMutex.Lock();
+	eArrival = IRA_Parked;
 	if (muiTurn >= uiTurn)
 	{
-		mcMutex.Unlock();
-		if (pcNotFound)
-		{
-			pcNotFound->Kill();
-			free(pcNotFound);
-		}
-		return IRA_Turn;
+		eArrival = IRA_Turn;
 	}
-	psParked = masParked.Add();
-	psParked->uiTurn = uiTurn;
-	psParked->pvUnit = pvUnit;
-	psParked->pcNotFound = pcNotFound;
+	else if (pcNotFound && AnyFound(paszNotFound))
+	{
+		muiStale++;
+		eArrival = IRA_Stale;
+	}
+	else
+	{
+		psParked = masParked.Add();
+		psParked->uiTurn = uiTurn;
+		psParked->pvUnit = pvUnit;
+		psParked->pcNotFound = pcNotFound;
+	}
 	mcMutex.Unlock();
 
-	//Exported while it was working (before it was parked, so nothing told it).  Whoever unparks it resumes it.
-	if (pcNotFound && AnyFound(paszNotFound))
+	if ((eArrival != IRA_Parked) && pcNotFound)
 	{
-		if (Unpark(pvUnit))
-		{
-			mcMutex.Lock();
-			muiStale++;
-			mcMutex.Unlock();
-			return IRA_Stale;
-		}
+		pcNotFound->Kill();
+		free(pcNotFound);
 	}
-	return IRA_Parked;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes pvUnit out of the parked units.  False if it wasn't there (another
-// thread resumes it).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRImports::Unpark(void* pvUnit)
-{
-	size			ui;
-	SIRParkedUnit*	psParked;
-	CNameSet*		pcNotFound;
-
-	pcNotFound = NULL;
-	mcMutex.Lock();
-	for (ui = 0; ui < masParked.NumElements(); ui++)
-	{
-		psParked = masParked.Get(ui);
-		if (psParked->pvUnit == pvUnit)
-		{
-			pcNotFound = psParked->pcNotFound;
-			masParked.RemoveAt(ui);
-			mcMutex.Unlock();
-			if (pcNotFound)
-			{
-				pcNotFound->Kill();
-				free(pcNotFound);
-			}
-			return true;
-		}
-	}
-	mcMutex.Unlock();
-	return false;
+	return eArrival;
 }
 
 

@@ -1457,8 +1457,8 @@ void TestMapsTileLayerImageBounds(void)
 		cExpected.GrowToContain(&cCel);
 		AssertTrue(pLayer->GetImageDestBounds(&cBounds));
 		AssertTrue(cExpected.Equals(&cBounds));
-		AssertInt(16, cBounds.msTopLeft.x);
-		AssertInt(16, cBounds.msTopLeft.y);
+		AssertInt((int32)16, cBounds.msTopLeft.x);
+		AssertInt((int32)16, cBounds.msTopLeft.y);
 
 		//Taking the ends of the bottom row away shrinks the bounds back to the first tile.
 		AssertTrue(pLayer->SetTile(1, 3, pNoCel));
@@ -1504,8 +1504,8 @@ void TestMapsTileLayerResize(void)
 
 		//Growing keeps every tile, and the new rows and columns can be set.
 		pLayer->SetMapSize(SSizeVec2(6, 5));
-		AssertInt(6, pLayer->GetLayerSizeX());
-		AssertInt(5, pLayer->GetLayerSizeY());
+		AssertInt((int32)6, pLayer->GetLayerSizeX());
+		AssertInt((int32)5, pLayer->GetLayerSizeY());
 		AssertTrue(pLayer->GetTile(1, 0) == pacCels->Get(1));
 		AssertTrue(pLayer->GetTile(3, 1) == pacCels->Get(2));
 		AssertTrue(pLayer->GetTile(2, 2) == pacCels->Get(4));
