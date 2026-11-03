@@ -57,6 +57,7 @@ public:
 	void Run(void)
 	{
 		bool						bResult;
+		bool						bDone;
 		SSharedMemoryQueueElement	sConsumerData;
 		size							uiSize;
 		int							iTaken;
@@ -71,6 +72,9 @@ public:
 		iTaken = 0;
 		do
 		{
+			//Done is read before the pop: a pop that fails after the producers are done means the queue is empty.  Read
+			//after, a producer could push its last elements while this thread yields.
+			bDone = mpcProducersDone->miThreadsStopped.Get() >= 1;
 			bResult = cQueue.Pop(&sConsumerData, &uiSize, sizeof(SSharedMemoryQueueElement));
 			if (bResult)
 			{
@@ -81,7 +85,7 @@ public:
 			{
 				ThreadYield();
 			}
-		} while ((mpcProducersDone->miThreadsStopped.Get() < 1) || bResult);
+		} while (!bDone || bResult);
 		mpsResult->aiTaken[miProcessNum] = iTaken;
 
 		cQueue.Kill();

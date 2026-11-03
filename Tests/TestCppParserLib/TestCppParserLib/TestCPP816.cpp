@@ -4243,8 +4243,8 @@ namespace TestCPP816FloatNative
 	void Run(void) { TEST_CPP816_FLOAT_BODY }
 }
 
-#define TEST_CPP816_STRINGIZE2(x)	#x
-#define TEST_CPP816_STRINGIZE(x)	TEST_CPP816_STRINGIZE2(x)
+#define TEST_CPP816_STRINGIZE2(...)	#__VA_ARGS__
+#define TEST_CPP816_STRINGIZE(...)	TEST_CPP816_STRINGIZE2(__VA_ARGS__)
 
 
 //////////////////////////////////////////////////////////////////////////

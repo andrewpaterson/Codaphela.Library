@@ -7176,7 +7176,8 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 
 	if (iStacked > 0)
 	{
-		sz.Init("jsl ");
+		sz.Clear();
+		sz.Append("jsl ");
 		sz.Append(pszBodyLabel);
 		Line(sz.Text());
 		Line("tay");

@@ -17,6 +17,7 @@ int TestSharedMemoryQueue(char* szSharedQueueName, char* szSharedResultName, cha
 	CSharedMemory				cResult;
 	SProcessSharedQueueResult*	psResult;
 	bool						bResult;
+	bool						bDone;
 	SSharedMemoryQueueElement	sConsumerData;
 	size							uiSize;
 	CSharedMemoryQueue			cQueue;
@@ -34,6 +35,8 @@ int TestSharedMemoryQueue(char* szSharedQueueName, char* szSharedResultName, cha
 	iTaken = 0;
 	do
 	{
+		//Done is read before the pop: a pop that fails after the producers are done means the queue is empty.
+		bDone = cProcessesDone.IsDone(1);
 		bResult = cQueue.Pop(&sConsumerData, &uiSize, sizeof(SSharedMemoryQueueElement));
 		if (bResult)
 		{
@@ -44,7 +47,7 @@ int TestSharedMemoryQueue(char* szSharedQueueName, char* szSharedResultName, cha
 		{
 			ThreadYield();
 		}
-	} while ((!cProcessesDone.IsDone(1)) || bResult);
+	} while (!bDone || bResult);
 
 
 	cQueue.Kill();

@@ -4938,9 +4938,10 @@ bool CIROptimiser::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	sInitial = psCounter->asArguments.Get(uiOutside)->sValue;
 	if (!SignedRange(sInitial, &lliMin, &lliMax) || !SignedRange(sBound, &lliBoundMin, &lliBoundMax))
 	{
+		asExits.Kill();
 		return false;
 	}
-	bInclusive = (uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
+	bInclusive =(uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
 	bStartSpare = (!sCompared.Equals(sCounter) || (mcDefinitions.NumUses(sStepped) > (bRewritten ? 2u + asExits.NumElements() : 1u))) && !NarrowLoopGuarded(uiLoop, uiOpcode, sInitial, sBound);
 	if ((lliMin < -32768) || (lliMax > 32767) || (lliBoundMin < -32768) || (lliBoundMax > 32767) ||
 		(bUp && ((bStartSpare && (lliMax > 32766)) || (bInclusive && (lliBoundMax > 32766)))) ||
