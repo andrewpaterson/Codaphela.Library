@@ -52,7 +52,7 @@ void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImage
 
 	//As a button's: the corners are their tile's size and the edges are a tile thick and stretched along the face.  Every
 	//piece is transparent so what is behind shows through the rounded corners and any empty band.
-	cBorder.Init(Ptr<CGridContainer>(this));
+	cBorder.Init(this);
 	iTileSize = mpImages->GetTileSize();
 	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
 	{

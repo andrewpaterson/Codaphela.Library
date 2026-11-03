@@ -31,6 +31,8 @@ static SFileChooserType gasTestFileChooserTypes[] =
 //////////////////////////////////////////////////////////////////////////
 class CTestFileChooser : public CFileChooser
 {
+CONSTRUCTABLE(CTestFileChooser);
+DESTRUCTABLE(CTestFileChooser);
 public:
 	char*				GetDirectory(void) { return mszDirectory.Text(); }
 	Ptr<CListContainer>	GetList(void) { return mpList; }
@@ -115,7 +117,8 @@ void TestFileChooserBrowse(void)
 		Ptr<CTickTestRefWindow>		pTick;
 		SDataTestRefWindow			cData;
 		SDialogLook					sLook;
-		CTestFileChooser			cChooser;
+		Ptr<CWindowTheme>			pTheme;  //The look only points to it.
+		Ptr<CTestFileChooser>		pChooser;
 		CColourFormatHelper			cFormat;
 		Ptr<CImageCel>				pFolderIcon;
 		Ptr<CImageCel>				pFileIcon;
@@ -124,8 +127,9 @@ void TestFileChooserBrowse(void)
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("File Chooser Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
-		sLook.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
-		sLook.pDimFont = sLook.pTheme->GetFont();
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
 		sLook.sBackground = JEWEL_PANEL;
 		sLook.sDivider = JEWEL_SEPARATOR;
 		pTestWindow->GetColourFormat(&cFormat);
@@ -133,65 +137,69 @@ void TestFileChooserBrowse(void)
 		pFileIcon = CJewelImageGenerator::CreateFile(JEWEL_ICON, &cFormat);
 
 		//The folder first then the text files, the XML file filtered out.  The file started on is selected and named.
-		cChooser.Init(pTestWindow, &sLook, "Open File", false, szStart, gasTestFileChooserTypes, 2, pFolderIcon, pFileIcon);
-		AssertString(szFull.Text(), cChooser.GetDirectory());
-		AssertInt(3, cChooser.GetList()->NumRows());
-		AssertTrue(IsPathIn(cChooser.GetRowPath(0), szDirectory, "Sub"));
-		AssertTrue(IsPathIn(cChooser.GetRowPath(1), szDirectory, "a.txt"));
-		AssertTrue(IsPathIn(cChooser.GetRowPath(2), szDirectory, "b.txt"));
-		AssertInt(2, cChooser.GetList()->GetSelected());
-		AssertString("b.txt", cChooser.GetFileName()->GetText());
-		AssertString(szFull.Text(), cChooser.GetLookIn()->GetSelectedText());
+		pChooser = OMalloc<CTestFileChooser>(pTestWindow, &sLook, "Open File", false, szStart, gasTestFileChooserTypes, 2, pFolderIcon, pFileIcon);
+		ORoot()->Add(pChooser);
+		AssertString(szFull.Text(), pChooser->GetDirectory());
+		AssertInt(3, pChooser->GetList()->NumRows());
+		AssertTrue(IsPathIn(pChooser->GetRowPath(0), szDirectory, "Sub"));
+		AssertTrue(IsPathIn(pChooser->GetRowPath(1), szDirectory, "a.txt"));
+		AssertTrue(IsPathIn(pChooser->GetRowPath(2), szDirectory, "b.txt"));
+		AssertInt(2, pChooser->GetList()->GetSelected());
+		AssertString("b.txt", pChooser->GetFileName()->GetText());
+		AssertString(szFull.Text(), pChooser->GetLookIn()->GetSelectedText());
 
 		//Selecting a file names it; Open chooses it.
-		cChooser.GetList()->Select(1);
-		cChooser.SelectionChanged();
-		AssertString("a.txt", cChooser.GetFileName()->GetText());
-		AssertTrue(cChooser.Approve());
-		AssertTrue(IsPathIn(cChooser.GetChosen(), szDirectory, "a.txt"));
+		pChooser->GetList()->Select(1);
+		pChooser->SelectionChanged();
+		AssertString("a.txt", pChooser->GetFileName()->GetText());
+		AssertTrue(pChooser->Approve());
+		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "a.txt"));
 
 		//A file that doesn't exist can't be opened.
-		cChooser.GetFileName()->SetText("missing.txt");
-		AssertFalse(cChooser.Approve());
+		pChooser->GetFileName()->SetText("missing.txt");
+		AssertFalse(pChooser->Approve());
 
 		//Every file shows them all.
-		cChooser.GetFileType()->Select(1);
-		cChooser.ComboChanged(&cChooser.GetFileType());
-		AssertInt(4, cChooser.GetList()->NumRows());
-		AssertTrue(IsPathIn(cChooser.GetRowPath(3), szDirectory, "c.xml"));
+		pChooser->GetFileType()->Select(1);
+		pChooser->ComboChanged(&pChooser->GetFileType());
+		AssertInt(4, pChooser->GetList()->NumRows());
+		AssertTrue(IsPathIn(pChooser->GetRowPath(3), szDirectory, "c.xml"));
 
 		//A folder named in File Name is opened, not chosen.
-		cChooser.GetFileName()->SetText("Sub");
-		AssertFalse(cChooser.Approve());
-		AssertString(szFullSub.Text(), cChooser.GetDirectory());
-		AssertInt(0, cChooser.GetList()->NumRows());
-		AssertString("", cChooser.GetFileName()->GetText());
+		pChooser->GetFileName()->SetText("Sub");
+		AssertFalse(pChooser->Approve());
+		AssertString(szFullSub.Text(), pChooser->GetDirectory());
+		AssertInt(0, pChooser->GetList()->NumRows());
+		AssertString("", pChooser->GetFileName()->GetText());
 
 		//Up goes back with the folder come from selected.
-		cChooser.ButtonClicked(&cChooser.GetUp());
-		AssertString(szFull.Text(), cChooser.GetDirectory());
-		AssertInt(0, cChooser.GetList()->GetSelected());
+		pChooser->ButtonClicked(&pChooser->GetUp());
+		AssertString(szFull.Text(), pChooser->GetDirectory());
+		AssertInt(0, pChooser->GetList()->GetSelected());
 
 		//Activating a folder's row opens it.  The list is activated by a double click, not a click.
-		AssertTrue(cChooser.GetList()->IsDoubleClickActivates());
-		cChooser.ItemActivated();
-		AssertString(szFullSub.Text(), cChooser.GetDirectory());
+		AssertTrue(pChooser->GetList()->IsDoubleClickActivates());
+		pChooser->ItemActivated();
+		AssertString(szFullSub.Text(), pChooser->GetDirectory());
 
 		//New Folder's dialog isn't shown from the click, which is input, but on the chooser's next tick.
-		AssertFalse(cChooser.IsNewFolderPending());
-		cChooser.ButtonClicked(&cChooser.GetNewFolder());
-		AssertTrue(cChooser.IsNewFolderPending());
-		cChooser.Kill();
+		AssertFalse(pChooser->IsNewFolderPending());
+		pChooser->ButtonClicked(&pChooser->GetNewFolder());
+		AssertTrue(pChooser->IsNewFolderPending());
+		ORoot()->Remove(pChooser);
+		pChooser = NULL;
 
 		//Saving adds the type's extension.
-		cChooser.Init(pTestWindow, &sLook, "Save File", true, szStart, gasTestFileChooserTypes, 2, pFolderIcon, pFileIcon);
-		cChooser.GetFileName()->SetText("new");
-		AssertTrue(cChooser.Approve());
-		AssertTrue(IsPathIn(cChooser.GetChosen(), szDirectory, "new.txt"));
-		cChooser.GetFileName()->SetText("other.txt");
-		AssertTrue(cChooser.Approve());
-		AssertTrue(IsPathIn(cChooser.GetChosen(), szDirectory, "other.txt"));
-		cChooser.Kill();
+		pChooser = OMalloc<CTestFileChooser>(pTestWindow, &sLook, "Save File", true, szStart, gasTestFileChooserTypes, 2, pFolderIcon, pFileIcon);
+		ORoot()->Add(pChooser);
+		pChooser->GetFileName()->SetText("new");
+		AssertTrue(pChooser->Approve());
+		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "new.txt"));
+		pChooser->GetFileName()->SetText("other.txt");
+		AssertTrue(pChooser->Approve());
+		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "other.txt"));
+		ORoot()->Remove(pChooser);
+		pChooser = NULL;
 
 		pFolderIcon = NULL;
 		pFileIcon = NULL;

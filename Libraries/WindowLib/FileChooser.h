@@ -87,10 +87,13 @@ public:
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last
 //as long as the chooser; the first is chosen to start with.
-class CFileChooser : public CDialogApprover, public CDialogTicker
+class CFileChooser : public CObject, public CDialogApprover, public CDialogTicker
 {
+CONSTRUCTABLE(CFileChooser);
+DESTRUCTABLE(CFileChooser);
 protected:
-	CDialog						mcDialog;
+	Ptr<CDialog>				mpDialog;
+	Ptr<CDialog>				mpNewFolderDialog;  //While New Folder's dialog is shown.
 	Ptr<CComboBox>				mpLookIn;
 	Ptr<CButton>				mpUp;
 	Ptr<CButton>				mpHome;
@@ -116,7 +119,11 @@ protected:
 
 public:
 	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle, bool bSave, const char* szFilename, SFileChooserType* asTypes, size uiNumTypes, Ptr<CImageCel> pFolderIcon, Ptr<CImageCel> pFileIcon);
-	void			Kill(void);
+	void			Class(void) override;
+	void			Free(void) override;
+
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Show(void);
 	char*			GetChosen(void);

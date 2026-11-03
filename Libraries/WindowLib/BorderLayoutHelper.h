@@ -46,15 +46,14 @@ enum EBorderLayoutCell
 class CBorderLayoutHelper
 {
 protected:
-	Ptr<CGridContainer>	mpGrid;
+	CGridContainer*		mpcGrid;  //The caller holds the grid while it's laid out.
 
 public:
-	void					Init(Ptr<CWindow> pWindow);
-	void					Init(Ptr<CGridContainer> pGrid);
+	void					Init(CGridContainer* pcGrid);
 	void					Kill(void);
 
 	bool					AddComponent(Ptr<CComponent> pComponent, EBorderLayoutCell eCell);
-	Ptr<CGridContainer>		GetContainer(void);
+	CGridContainer*			GetContainer(void);
 };
 
 

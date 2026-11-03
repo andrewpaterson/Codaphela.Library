@@ -35,8 +35,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //What every dialog is drawn with, made once by its owner.
 struct SDialogLook
 {
-	Ptr<CWindowTheme>		pTheme;  //The widgets' look and the labels' font.
-	Ptr<CFont>				pDimFont;  //For a divider's title.
+	CWindowTheme*			pcTheme;  //The widgets' look and the labels' font.  Whoever fills the look in holds it.
+	CFont*					pcDimFont;  //For a divider's title.
 	ARGB32					sBackground;
 	ARGB32					sDivider;
 
@@ -86,10 +86,12 @@ public:
 //
 //OK can have another caption, like a file chooser's Open, and an approver, but it still closes the dialog as OK.
 //
-//The dialog's window is in the root while the dialog exists.
-class CDialog : public CButtonListener
+//A dialog is an object: make it with OMalloc and keep it in the root, or in an object that is, while it's shown.  It
+//holds its window.
+class CDialog : public CObject, public CButtonListener
 {
 CONSTRUCTABLE(CDialog);
+DESTRUCTABLE(CDialog);
 protected:
 	SDialogLook*		mpsLook;
 	Ptr<CWindow>			mpOwner;
@@ -103,11 +105,15 @@ protected:
 	Ptr<CComponent>			mpFirstEditor;  //Has focus when the dialog opens.
 	CDialogApprover*	mpcApprover;  //NULL if OK always closes the dialog.
 	CChars					mszClicked;
-	int						miRows;
+	int32					miRows;
 
 public:
 	void				Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle);
-	void				Kill(void);
+	void				Class(void) override;
+	void				Free(void) override;
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CTextField>		AddTextField(const char* szLabel, const char* szText);
 	Ptr<CCheckBox>		AddCheckBox(const char* szLabel, bool bTicked);

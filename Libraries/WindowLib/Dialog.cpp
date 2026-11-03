@@ -20,6 +20,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "ClearCanvasDraw.h"
 #include "FillContainer.h"
 #include "Label.h"
@@ -39,8 +41,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void SDialogLook::Kill(void)
 {
-	pTheme = NULL;
-	pDimFont = NULL;
+	pcTheme = NULL;
+	pcDimFont = NULL;
 }
 
 
@@ -105,6 +107,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	SInsets					sInsets;
 	int						aiInsets[4] = { DIALOG_INSET, DIALOG_INSET, DIALOG_INSET, DIALOG_INSET };
 
+	PreInit();
+
 	mpsLook = psLook;
 	mpOwner = pOwner;
 	mpcApprover = NULL;
@@ -113,7 +117,6 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 
 	mpTick = OMalloc<CDialogTick>();
 	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
-	ORoot()->Add(mpDialog);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);
 	sInsets.Init(aiInsets);
@@ -129,8 +132,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpForm->SetAlignment(CSH_Stretch, CSV_Top);
 	pGrid->AddComponent(mpForm, 0, 0, 1, 1, 1, 1);
 
-	mpOK = OMalloc<CButton>(mpDialog, psLook->pTheme, "OK");
-	mpCancel = OMalloc<CButton>(mpDialog, psLook->pTheme, "Cancel");
+	mpOK = OMalloc<CButton>(mpDialog, psLook->pcTheme, "OK");
+	mpCancel = OMalloc<CButton>(mpDialog, psLook->pcTheme, "Cancel");
 	mpOK->SetDesiredSize(72, -1);
 	mpCancel->SetDesiredSize(72, -1);
 	mpOK->AddListener(this);
@@ -144,6 +147,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpButtons->AddComponent(mpOK);
 	mpButtons->AddComponent(mpCancel);
 	pGrid->AddComponent(mpButtons, 0, 1, 1, 1, 1, 0);
+
+	PostInit();
 }
 
 
@@ -151,27 +156,54 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDialog::Kill(void)
+void CDialog::Class(void)
 {
-	mpOK->RemoveListener(this);
-	mpCancel->RemoveListener(this);
-	if (mpExtra.IsNotNull())
-	{
-		mpExtra->RemoveListener(this);
-	}
+	U_Pointer(mpsLook);
+	M_Pointer(mpOwner);
+	M_Pointer(mpDialog);
+	M_Pointer(mpTick);
+	M_Pointer(mpForm);
+	M_Pointer(mpButtons);
+	M_Pointer(mpOK);
+	M_Pointer(mpCancel);
+	M_Pointer(mpExtra);
+	M_Pointer(mpFirstEditor);
+	U_Pointer(mpcApprover);
+	U_String(mszClicked);
+	U_Int32(miRows);
+}
 
-	mpExtra = NULL;
-	mpFirstEditor = NULL;
-	mpcApprover = NULL;
-	mpOK = NULL;
-	mpCancel = NULL;
-	mpButtons = NULL;
-	mpForm = NULL;
-	mpTick->SetTicker(NULL);
-	mpTick = NULL;
-	ORoot()->Remove(mpDialog);
-	mpDialog = NULL;
-	mpOwner = NULL;
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A dialog isn't saved.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDialog::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDialog::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::Free(void)
+{
+	//An object's memory is freed without its destructor running so the dialog takes itself off its buttons, if they're
+	//still here.  The window, its widgets and the tick are freed with the dialog's pointers.
+	RemoveFromListenerCalls();
 	mszClicked.Kill();
 }
 
@@ -202,7 +234,7 @@ void CDialog::AddRow(const char* szLabel, Ptr<CComponent> pEditor)
 
 	if (szLabel)
 	{
-		pLabel = OMalloc<CLabel>(mpDialog, mpsLook->pTheme->GetFont(), szLabel);
+		pLabel = OMalloc<CLabel>(mpDialog, mpsLook->pcTheme->GetFont(), szLabel);
 		pLabel->SetDesiredSize(pLabel->GetRequiredSize().x + DIALOG_LABEL_GAP, -1);
 		pLabel->SetAlignment(CSH_Left, CSV_Center);
 		mpForm->AddComponent(pLabel, 0, miRows);
@@ -224,7 +256,7 @@ Ptr<CTextField> CDialog::AddTextField(const char* szLabel, const char* szText)
 {
 	Ptr<CTextField>		pField;
 
-	pField = OMalloc<CTextField>(mpDialog, mpsLook->pTheme, szText);
+	pField = OMalloc<CTextField>(mpDialog, mpsLook->pcTheme, szText);
 	pField->SetColumns(10);
 	pField->SelectAll();
 	pField->SetAlignment(CSH_Stretch, CSV_Center);
@@ -242,7 +274,7 @@ Ptr<CCheckBox> CDialog::AddCheckBox(const char* szLabel, bool bTicked)
 {
 	Ptr<CCheckBox>	pCheckBox;
 
-	pCheckBox = OMalloc<CCheckBox>(mpDialog, mpsLook->pTheme, szLabel, bTicked);
+	pCheckBox = OMalloc<CCheckBox>(mpDialog, mpsLook->pcTheme, szLabel, bTicked);
 	pCheckBox->SetAlignment(CSH_Left, CSV_Center);
 	AddRow("", pCheckBox);
 	return pCheckBox;
@@ -258,7 +290,7 @@ Ptr<CComboBox> CDialog::AddComboBox(const char* szLabel, const char** aszItems, 
 	Ptr<CComboBox>	pCombo;
 	size			i;
 
-	pCombo = OMalloc<CComboBox>(mpDialog, mpsLook->pTheme);
+	pCombo = OMalloc<CComboBox>(mpDialog, mpsLook->pcTheme);
 	for (i = 0; i < iNumItems; i++)
 	{
 		pCombo->AddItem(aszItems[i]);
@@ -299,7 +331,7 @@ void CDialog::AddDivider(const char* szTitle)
 	miRows++;
 
 	pDivider = OMalloc<CGridContainer>(mpDialog);
-	pTitle = OMalloc<CLabel>(mpDialog, mpsLook->pDimFont, szTitle);
+	pTitle = OMalloc<CLabel>(mpDialog, mpsLook->pcDimFont, szTitle);
 	pTitle->SetDesiredSize(pTitle->GetRequiredSize().x + 8, -1);
 	pTitle->SetAlignment(CSH_Left, CSV_Center);
 	pLine = OMalloc<CCanvas>(mpDialog, OMalloc<CClearCanvasDraw>(mpsLook->sDivider));
@@ -321,7 +353,7 @@ void CDialog::AddDivider(const char* szTitle)
 //////////////////////////////////////////////////////////////////////////
 void CDialog::AddExtraButton(const char* szCaption)
 {
-	mpExtra = OMalloc<CButton>(mpDialog, mpsLook->pTheme, szCaption);
+	mpExtra = OMalloc<CButton>(mpDialog, mpsLook->pcTheme, szCaption);
 	mpExtra->AddListener(this);
 	mpButtons->RemoveAllComponents();
 	mpButtons->AddComponent(mpExtra);

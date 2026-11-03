@@ -22,6 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/StringHelper.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "FillContainer.h"
 #include "RoundedBoxCanvasDraw.h"
 #include "IconComponent.h"
@@ -180,6 +182,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	CChars			szDirectory;
 	size			i;
 
+	PreInit();
+
 	mbSave = bSave;
 	mbNewFolderPending = false;
 	masTypes = asTypes;
@@ -195,12 +199,12 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mcComboListener.Init(this);
 	mcButtonListener.Init(this);
 
-	mcDialog.Init(pOwner, psLook, szTitle);
-	mcDialog.SetOKCaption(bSave ? "Save" : "Open");
-	mcDialog.SetApprover(this);
-	mcDialog.SetTicker(this);
+	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
+	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
+	mpDialog->SetApprover(this);
+	mpDialog->SetTicker(this);
 	pBody = CreateBody();
-	mcDialog.SetBody(pBody, mpFileName);
+	mpDialog->SetBody(pBody, mpFileName);
 
 	for (i = 0; i < muiNumTypes; i++)
 	{
@@ -231,6 +235,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	szDirectory.Kill();
 	szName.Kill();
 	szPath.Kill();
+
+	PostInit();
 }
 
 
@@ -238,26 +244,67 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileChooser::Kill(void)
+void CFileChooser::Class(void)
 {
-	mpLookIn->RemoveListener(&mcComboListener);
-	mpFileType->RemoveListener(&mcComboListener);
-	mpList->RemoveListener(&mcListListener);
-	mpUp->RemoveListener(&mcButtonListener);
-	mpHome->RemoveListener(&mcButtonListener);
-	mpNewFolder->RemoveListener(&mcButtonListener);
+	M_Pointer(mpDialog);
+	M_Pointer(mpNewFolderDialog);
+	M_Pointer(mpLookIn);
+	M_Pointer(mpUp);
+	M_Pointer(mpHome);
+	M_Pointer(mpNewFolder);
+	M_Pointer(mpScrollPane);
+	M_Pointer(mpList);
+	M_Pointer(mpFileName);
+	M_Pointer(mpFileType);
+	M_Pointer(mpFolderIcon);
+	M_Pointer(mpFileIcon);
+	U_Unknown(CFileChooserListListener, mcListListener);
+	U_Unknown(CFileChooserComboListener, mcComboListener);
+	U_Unknown(CFileChooserButtonListener, mcButtonListener);
+	U_String(mszDirectory);
+	U_Unknown(CArrayChars, maszLookIn);
+	U_Unknown(CArrayChars, maszRows);
+	U_Int32(miNumFolders);
+	U_String(mszChosen);
+	U_Bool(mbSave);
+	U_Bool(mbNewFolderPending);
+	U_Pointer(masTypes);
+	U_Data(size, muiNumTypes);
+}
 
-	mpFileIcon = NULL;
-	mpFolderIcon = NULL;
-	mpFileType = NULL;
-	mpFileName = NULL;
-	mpList = NULL;
-	mpScrollPane = NULL;
-	mpNewFolder = NULL;
-	mpHome = NULL;
-	mpUp = NULL;
-	mpLookIn = NULL;
-	mcDialog.Kill();
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chooser isn't saved.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileChooser::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileChooser::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::Free(void)
+{
+	//An object's memory is freed without its destructor running so the listeners take themselves off the widgets still
+	//here.  The dialog and widgets are freed with the chooser's pointers.
+	mcListListener.RemoveFromListenerCalls();
+	mcComboListener.RemoveFromListenerCalls();
+	mcButtonListener.RemoveFromListenerCalls();
 
 	mszChosen.Kill();
 	maszRows.Kill();
@@ -285,12 +332,12 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	int32					iLabelWidth;
 	int						iRow;
 
-	pWindow = mcDialog.GetWindow();
-	psLook = mcDialog.GetLook();
+	pWindow = mpDialog->GetWindow();
+	psLook = mpDialog->GetLook();
 	pBody = OMalloc<CGridContainer>(pWindow);
 
 	//Every label is as wide as the widest.
-	pLabel = OMalloc<CLabel>(pWindow, psLook->pTheme->GetFont(), "Files of Type:");
+	pLabel = OMalloc<CLabel>(pWindow, psLook->pcTheme->GetFont(), "Files of Type:");
 	iLabelWidth = pLabel->GetRequiredSize().x + FILE_CHOOSER_LABEL_GAP;
 
 	//Look In and its buttons are a row of their own, so the buttons don't widen the labels' column.
@@ -298,7 +345,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	pTop = OMalloc<CGridContainer>(pWindow);
 	pTop->SetAlignment(CSH_Stretch, CSV_Top);
 	pTop->AddComponent(CreateLabel(mbSave ? "Save In:" : "Look In:", iLabelWidth), 0, 0);
-	mpLookIn = OMalloc<CComboBox>(pWindow, psLook->pTheme);
+	mpLookIn = OMalloc<CComboBox>(pWindow, psLook->pcTheme);
 	mpLookIn->SetAlignment(CSH_Stretch, CSV_Center);
 	pTop->AddComponent(mpLookIn, 1, 0, 1, 1, 1, 0);
 	mpUp = CreateButton("Up");
@@ -318,11 +365,11 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	iRow++;
 
 	sInsets.Init(aiInsets);
-	mpList = OMalloc<CListContainer>(pWindow, psLook->pTheme);
-	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pTheme->GetListHoverColour(), 4, &sInsets));
+	mpList = OMalloc<CListContainer>(pWindow, psLook->pcTheme);
+	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListHoverColour(), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
 	mpList->SetDoubleClickActivates(true);
-	mpScrollPane = OMalloc<CScrollPane>(pWindow, psLook->pTheme);
+	mpScrollPane = OMalloc<CScrollPane>(pWindow, psLook->pcTheme);
 	mpScrollPane->SetContent(mpList);
 	mpScrollPane->SetAlignment(CSH_Stretch, CSV_Stretch);
 	pBody->AddComponent(mpScrollPane, 0, iRow, 3, 1, 1, 1);
@@ -334,7 +381,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	iRow++;
 
 	pBody->AddComponent(CreateLabel("File Name:", iLabelWidth), 0, iRow);
-	mpFileName = OMalloc<CTextField>(pWindow, psLook->pTheme, "");
+	mpFileName = OMalloc<CTextField>(pWindow, psLook->pcTheme, "");
 	mpFileName->SetColumns(10);
 	mpFileName->SetAlignment(CSH_Stretch, CSV_Center);
 	pBody->AddComponent(mpFileName, 1, iRow, 2, 1, 1, 0);
@@ -346,7 +393,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	iRow++;
 
 	pBody->AddComponent(CreateLabel("Files of Type:", iLabelWidth), 0, iRow);
-	mpFileType = OMalloc<CComboBox>(pWindow, psLook->pTheme);
+	mpFileType = OMalloc<CComboBox>(pWindow, psLook->pcTheme);
 	mpFileType->SetAlignment(CSH_Stretch, CSV_Center);
 	pBody->AddComponent(mpFileType, 1, iRow, 2, 1, 1, 0);
 	return pBody;
@@ -361,7 +408,7 @@ Ptr<CLabel> CFileChooser::CreateLabel(const char* szText, int32 iWidth)
 {
 	Ptr<CLabel>		pLabel;
 
-	pLabel = OMalloc<CLabel>(mcDialog.GetWindow(), mcDialog.GetLook()->pTheme->GetFont(), szText);
+	pLabel = OMalloc<CLabel>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme->GetFont(), szText);
 	pLabel->SetDesiredSize(iWidth, -1);
 	pLabel->SetAlignment(CSH_Left, CSV_Center);
 	return pLabel;
@@ -376,7 +423,7 @@ Ptr<CButton> CFileChooser::CreateButton(const char* szCaption)
 {
 	Ptr<CButton>	pButton;
 
-	pButton = OMalloc<CButton>(mcDialog.GetWindow(), mcDialog.GetLook()->pTheme, szCaption);
+	pButton = OMalloc<CButton>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, szCaption);
 	pButton->AddListener(&mcButtonListener);
 	pButton->SetAlignment(CSH_Center, CSV_Center);
 	return pButton;
@@ -392,7 +439,7 @@ void CFileChooser::AddButton(Ptr<CGridContainer> pRow, Ptr<CButton> pButton, int
 {
 	Ptr<CFillContainer>		pGap;
 
-	pGap = OMalloc<CFillContainer>(mcDialog.GetWindow());
+	pGap = OMalloc<CFillContainer>(mpDialog->GetWindow());
 	pGap->SetDesiredSize(iGap, 1);
 	pRow->AddComponent(pGap, iColumn - 1, 0);
 	pRow->AddComponent(pButton, iColumn, 0);
@@ -543,13 +590,13 @@ void CFileChooser::AddRow(const char* szPath, bool bFolder)
 	CChars					szName;
 	int32					iRow;
 
-	pWindow = mcDialog.GetWindow();
+	pWindow = mpDialog->GetWindow();
 	iRow = mpList->AddRow(true);
 	pIcon = OMalloc<CIconComponent>(pWindow, bFolder ? mpFolderIcon : mpFileIcon, FILE_CHOOSER_ICON_WIDTH, FILE_CHOOSER_ROW_HEIGHT);
 	pIcon->SetCelAlignment(CSH_Center, CSV_Center);
 	szName.Init();
 	cFileUtil.GetFileName(&szName, (char*)szPath);
-	pName = OMalloc<CLabel>(pWindow, mcDialog.GetLook()->pTheme->GetFont(), szName.Text());
+	pName = OMalloc<CLabel>(pWindow, mpDialog->GetLook()->pcTheme->GetFont(), szName.Text());
 	pName->SetAlignment(CSH_Left, CSV_Center);
 	szName.Kill();
 	mpList->AddToRow(iRow, pIcon, 0);
@@ -583,7 +630,7 @@ bool CFileChooser::IsShownFile(const char* szPath)
 //////////////////////////////////////////////////////////////////////////
 bool CFileChooser::Show(void)
 {
-	return mcDialog.Show(FILE_CHOOSER_WIDTH, FILE_CHOOSER_HEIGHT);
+	return mpDialog->Show(FILE_CHOOSER_WIDTH, FILE_CHOOSER_HEIGHT);
 }
 
 
@@ -708,7 +755,7 @@ void CFileChooser::ItemActivated(void)
 	}
 	else if (Approve())
 	{
-		mcDialog.Close("OK");
+		mpDialog->Close("OK");
 	}
 }
 
@@ -817,19 +864,19 @@ void CFileChooser::GoHome(void)
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::NewFolder(void)
 {
-	CDialog		cDialog;
-	Ptr<CTextField>		pName;
+	CTextField*			pcName;
 	CFileUtil			cFileUtil;
 	CChars				szPath;
 	CChars				szDirectory;
 
-	cDialog.Init(mcDialog.GetWindow(), mcDialog.GetLook(), "New Folder");
-	pName = cDialog.AddTextField("Name", "New Folder");
+	//The chooser holds its New Folder dialog while it's shown, and the dialog holds its text field.
+	mpNewFolderDialog = OMalloc<CDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), "New Folder");
+	pcName = &mpNewFolderDialog->AddTextField("Name", "New Folder");
 
-	if (cDialog.Show(NEW_FOLDER_DIALOG_WIDTH) && !StrEmpty(pName->GetText()))
+	if (mpNewFolderDialog->Show(NEW_FOLDER_DIALOG_WIDTH) && !StrEmpty(pcName->GetText()))
 	{
 		szPath.Init(mszDirectory);
-		cFileUtil.AppendToPath(&szPath, pName->GetText());
+		cFileUtil.AppendToPath(&szPath, pcName->GetText());
 		if (cFileUtil.MakeDir(szPath.Text()))
 		{
 			szDirectory.Init(mszDirectory);
@@ -839,8 +886,7 @@ void CFileChooser::NewFolder(void)
 		szPath.Kill();
 	}
 
-	pName = NULL;
-	cDialog.Kill();
+	mpNewFolderDialog = NULL;
 }
 
 

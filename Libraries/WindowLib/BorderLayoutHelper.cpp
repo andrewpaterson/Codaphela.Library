@@ -33,22 +33,12 @@ static EContainerStyleVertical gaeBorderVertical[9] = {		CSV_Bottom,	CSV_Bottom,
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CBorderLayoutHelper::Init(Ptr<CWindow> pWindow)
-{
-	mpGrid = OMalloc<CGridContainer>(pWindow);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Lays out an existing grid, such as one a component extends.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBorderLayoutHelper::Init(Ptr<CGridContainer> pGrid)
+void CBorderLayoutHelper::Init(CGridContainer* pcGrid)
 {
-	mpGrid = pGrid;
+	mpcGrid = pcGrid;
 }
 
 
@@ -58,7 +48,7 @@ void CBorderLayoutHelper::Init(Ptr<CGridContainer> pGrid)
 //////////////////////////////////////////////////////////////////////////
 void CBorderLayoutHelper::Kill(void)
 {
-	mpGrid = NULL;
+	mpcGrid = NULL;
 }
 
 
@@ -88,7 +78,7 @@ bool CBorderLayoutHelper::AddComponent(Ptr<CComponent> pComponent, EBorderLayout
 		iWeight = 0;
 		pComponent->SetAlignment(gaeBorderHorizontal[eCell], gaeBorderVertical[eCell]);
 	}
-	return mpGrid->AddComponent(pComponent, iColumn, iRow, 1, 1, iWeight, iWeight);
+	return mpcGrid->AddComponent(pComponent, iColumn, iRow, 1, 1, iWeight, iWeight);
 }
 
 
@@ -96,8 +86,8 @@ bool CBorderLayoutHelper::AddComponent(Ptr<CComponent> pComponent, EBorderLayout
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGridContainer> CBorderLayoutHelper::GetContainer(void)
+CGridContainer* CBorderLayoutHelper::GetContainer(void)
 {
-	return mpGrid;
+	return mpcGrid;
 }
 

@@ -74,8 +74,8 @@ void TestBorderLayoutHelperLayout(char* szDirectory, int32 iWidth, int32 iHeight
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
-		cBorder.Init(pTestWindow);
-		pGrid = cBorder.GetContainer();
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		cBorder.Init(&pGrid);
 		pTestWindow->SetContainer(pGrid);
 
 		for (i = 0; i < uiNumComponents; i++)
@@ -223,15 +223,13 @@ void AddBlueButtonPiece(CBorderLayoutHelper* pcBorder, Ptr<CWindow> pWindow, Ptr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas> CreateBlueButton(CBorderLayoutHelper* pcBorder, Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, EButtonState eState)
+Ptr<CCanvas> CreateBlueButton(CBorderLayoutHelper* pcBorder, Ptr<CGridContainer> pGrid, Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, EButtonState eState)
 {
-	Ptr<CGridContainer>	pGrid;
 	Ptr<CCanvas>		pFace;
 
 	//Like the old WindowLib's label: 8 x 8 corners, 8 pixel edges stretched along the sides and a 100 x 24 face filled
-	//with the colour the tiles fade into.  Returns the face.
-	pcBorder->Init(pWindow);
-	pGrid = pcBorder->GetContainer();
+	//with the colour the tiles fade into, laid out in pGrid, which the caller holds.  Returns the face.
+	pcBorder->Init(&pGrid);
 	pGrid->SetDesiredSize(116, 40);
 
 	AddBlueButtonPiece(pcBorder, pWindow, OMalloc<CImageCanvasDraw>(pImages->GetCel(eState, BBP_TopLeft)), BLC_TopLeft, -1, -1);
@@ -289,8 +287,9 @@ void TestBorderLayoutHelperBlueButtons(void)
 		pTestWindow->SetContainer(pColumn);
 		for (i = 0; i < 4; i++)
 		{
-			apFaces[i] = CreateBlueButton(&acBorders[i], pTestWindow, pImages, (EButtonState)i);
-			pColumn->AddComponent(acBorders[i].GetContainer(), 0, (int)i, 1, 1, 1, 1);
+			pButton = OMalloc<CGridContainer>(pTestWindow);
+			pColumn->AddComponent(pButton, 0, (int)i, 1, 1, 1, 1);
+			apFaces[i] = CreateBlueButton(&acBorders[i], pButton, pTestWindow, pImages, (EButtonState)i);
 		}
 
 		pTestWindow->Show();
