@@ -33,22 +33,25 @@ void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVe
 {
 	PreInit();
 
-	size	i;
-	size	iSize;
+	size			y;
+	STileLayerRow*	psRow;
 
 	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, iIdentifier, sPosition);
 
 	mpCache = NULL;
 	mpViewport = NULL;
 
+	masRows.Init();
+	for (y = 0; y < sMapSize.y; y++)
+	{
+		psRow = masRows.Add();
+		psRow->uiFirst = 0;
+		psRow->uiStart = 0;
+		psRow->uiEnd = 0;
+	}
+
 	maTiles.Init();
 	maBlitters.Init();
-
-	iSize = sMapSize.x * sMapSize.y;
-	for (i = 0; i < iSize; i++)
-	{
-		maTiles.Add(NULL);
-	}
 
 	PostInit();
 }
@@ -60,6 +63,7 @@ void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVe
 //////////////////////////////////////////////////////////////////////////
 void CTileLayerCel::Free(void)
 {
+	masRows.Kill();
 	CTileLayer::Free();
 }
 
@@ -71,6 +75,7 @@ void CTileLayerCel::Free(void)
 void CTileLayerCel::Class(void)
 {
 	CTileLayer::Class();
+	U_Data(CArrayTileLayerRow, masRows);
 	M_Embedded(maTiles);
 	M_Embedded(maBlitters);
 	M_Pointer(mpCache);
@@ -99,15 +104,184 @@ bool CTileLayerCel::Save(CObjectWriter* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The index in maTiles of the tile at x, y; MAX_SIZE when it is outside its
+// row's run (and so has no cel).
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileLayerCel::TileIndex(size x, size y)
+{
+	STileLayerRow*	psRow;
+
+	if (y >= msMapSize.y)
+	{
+		return MAX_SIZE;
+	}
+
+	psRow = masRows.Get(y);
+	if ((x < psRow->uiStart) || (x >= psRow->uiEnd))
+	{
+		return MAX_SIZE;
+	}
+	return psRow->uiFirst + (x - psRow->uiStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inserts uiCount NULL cels (and blitters) at uiIndex, in row y, and moves
+// the rows after it along.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::InsertCels(size y, size uiIndex, size uiCount)
+{
+	size				i;
+	Ptr<CImageCel>		pNoCel;
+	Ptr<CImageBlitter>	pNoBlitter;
+	bool				bBlitters;
+
+	bBlitters = !maBlitters.IsEmpty();
+	for (i = 0; i < uiCount; i++)
+	{
+		maTiles.Insert(uiIndex, pNoCel);
+		if (bBlitters)
+		{
+			maBlitters.Insert(uiIndex, pNoBlitter);
+		}
+	}
+
+	for (i = y + 1; i < msMapSize.y; i++)
+	{
+		masRows.Get(i)->uiFirst += uiCount;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removes the uiCount cels (and blitters) at uiIndex, in row y, and moves
+// the rows after it back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::RemoveCels(size y, size uiIndex, size uiCount)
+{
+	size	i;
+	bool	bBlitters;
+
+	bBlitters = !maBlitters.IsEmpty();
+	for (i = 0; i < uiCount; i++)
+	{
+		maTiles.RemoveAt(uiIndex);
+		if (bBlitters)
+		{
+			maBlitters.RemoveAt(uiIndex);
+		}
+	}
+
+	for (i = y + 1; i < msMapSize.y; i++)
+	{
+		masRows.Get(i)->uiFirst -= uiCount;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Drops the empty tiles at the start and end of row y's run so that a run
+// always starts and ends with a cel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::TrimRow(size y)
+{
+	STileLayerRow*	psRow;
+	size			uiLength;
+	size			uiLeading;
+	size			uiTrailing;
+
+	psRow = masRows.Get(y);
+	uiLength = psRow->uiEnd - psRow->uiStart;
+
+	uiLeading = 0;
+	while ((uiLeading < uiLength) && maTiles.Get(psRow->uiFirst + uiLeading).IsNull())
+	{
+		uiLeading++;
+	}
+	if (uiLeading == uiLength)
+	{
+		RemoveCels(y, psRow->uiFirst, uiLength);
+		psRow->uiStart = 0;
+		psRow->uiEnd = 0;
+		return;
+	}
+
+	uiTrailing = 0;
+	while (maTiles.Get(psRow->uiFirst + uiLength - 1 - uiTrailing).IsNull())
+	{
+		uiTrailing++;
+	}
+
+	if (uiTrailing > 0)
+	{
+		RemoveCels(y, psRow->uiFirst + uiLength - uiTrailing, uiTrailing);
+		psRow->uiEnd -= uiTrailing;
+	}
+	if (uiLeading > 0)
+	{
+		RemoveCels(y, psRow->uiFirst, uiLeading);
+		psRow->uiStart += uiLeading;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::SetTile(size x, size y, Ptr<CImageCel> pTile)
 {
-	size	iYOffset;
+	STileLayerRow*		psRow;
+	size				uiIndex;
+	Ptr<CImageBlitter>	pNoBlitter;
 
-	iYOffset = y * msMapSize.x;
-	return maTiles.Set(x + iYOffset, pTile);
+	if ((x >= msMapSize.x) || (y >= msMapSize.y))
+	{
+		return false;
+	}
+
+	psRow = masRows.Get(y);
+	if (pTile.IsNull())
+	{
+		uiIndex = TileIndex(x, y);
+		if (uiIndex != MAX_SIZE)
+		{
+			maTiles.Set(uiIndex, pTile);
+			if (!maBlitters.IsEmpty())
+			{
+				maBlitters.Set(uiIndex, pNoBlitter);
+			}
+			TrimRow(y);
+		}
+		return true;
+	}
+
+	if (psRow->uiStart == psRow->uiEnd)
+	{
+		InsertCels(y, psRow->uiFirst, 1);
+		psRow->uiStart = x;
+		psRow->uiEnd = x + 1;
+	}
+	else if (x < psRow->uiStart)
+	{
+		InsertCels(y, psRow->uiFirst, psRow->uiStart - x);
+		psRow->uiStart = x;
+	}
+	else if (x >= psRow->uiEnd)
+	{
+		InsertCels(y, psRow->uiFirst + (psRow->uiEnd - psRow->uiStart), x + 1 - psRow->uiEnd);
+		psRow->uiEnd = x + 1;
+	}
+
+	return maTiles.Set(psRow->uiFirst + (x - psRow->uiStart), pTile);
 }
 
 
@@ -117,7 +291,11 @@ bool CTileLayerCel::SetTile(size x, size y, Ptr<CImageCel> pTile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CTileLayerCel::GetTile(size uiIndex)
 {
-	return maTiles.Get(uiIndex);
+	if (msMapSize.x == 0)
+	{
+		return NULL;
+	}
+	return GetTile(uiIndex % msMapSize.x, uiIndex / msMapSize.x);
 }
 
 
@@ -127,10 +305,47 @@ Ptr<CImageCel> CTileLayerCel::GetTile(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CTileLayerCel::GetTile(size x, size y)
 {
-	size	iYOffset;
+	size	uiIndex;
 
-	iYOffset = y * msMapSize.x;
-	return maTiles.Get(x + iYOffset);
+	uiIndex = TileIndex(x, y);
+	if (uiIndex == MAX_SIZE)
+	{
+		return NULL;
+	}
+	return maTiles.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first x in row y with a cel (equal to GetRowEnd when it has none).
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileLayerCel::GetRowStart(size y)
+{
+	return masRows.Get(y)->uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One past the last x in row y with a cel.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileLayerCel::GetRowEnd(size y)
+{
+	return masRows.Get(y)->uiEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cels the rows' runs hold (including the empty tiles inside runs).
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileLayerCel::NumStoredTiles(void)
+{
+	return maTiles.NumElements();
 }
 
 
@@ -176,13 +391,13 @@ bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size ui
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
-	Ptr<CImageCel>				pCel;
 	size 						x, y;
 	Ptr<CImageCelBlitterCache>	pOldCache;
 	Ptr<CImage>					pOldViewport;
 	Ptr<CImage>					pImage;
 	Ptr<CImageBlitter>			pBlitter;
 	bool						bResult;
+	STileLayerRow*				psRow;
 
 	pOldViewport = mpViewport;
 	pOldCache = mpCache;
@@ -194,7 +409,8 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 
 	for (y = 0; y < msMapSize.y; y++)
 	{
-		for (x = 0; x < msMapSize.x; x++)
+		psRow = masRows.Get(y);
+		for (x = psRow->uiStart; x < psRow->uiEnd; x++)
 		{
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
@@ -218,43 +434,53 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// A NULL blitter for each of maTiles.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::FillBlitters(void)
+{
+	size				i;
+	size				uiNumTiles;
+	Ptr<CImageBlitter>	pNoBlitter;
+
+	maBlitters.Clear();
+	uiNumTiles = maTiles.NumElements();
+	for (i = 0; i < uiNumTiles; i++)
+	{
+		maBlitters.Add(pNoBlitter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::CreateCelBlitters(void)
 {
 	Ptr<CImageCel>		pCel;
-	size				x, y;
 	Ptr<CImageBlitter>	pBlitter;
-	size				iSize;
+	size				uiNumTiles;
 	size				i;
 
 	if (mpCache && mpViewport)
 	{
 		if (mpCache->GetDestImage() == mpViewport)
 		{
-			maBlitters.Clear();
-
-			iSize = msMapSize.x * msMapSize.y;
-			for (i = 0; i < iSize; i++)
+			FillBlitters();
+			uiNumTiles = maTiles.NumElements();
+			for (i = 0; i < uiNumTiles; i++)
 			{
-				maBlitters.Add(NULL);
-			}
-
-			for (y = 0; y < msMapSize.y; y++)
-			{
-				for (x = 0; x < msMapSize.x; x++)
+				pCel = maTiles.Get(i);
+				if (pCel)
 				{
-					pCel = GetTile(x, y);
-					if (pCel)
+					pBlitter = mpCache->CreateImageBlitter(pCel);
+					if (pBlitter.IsNull())
 					{
-						pBlitter = mpCache->CreateImageBlitter(pCel);
-						if (pBlitter.IsNull())
-						{
-							return false;
-						}
-						SetBlitter(x, y, pBlitter);
+						return false;
 					}
+					maBlitters.Set(i, pBlitter);
 				}
 			}
 			return true;
@@ -270,31 +496,24 @@ bool CTileLayerCel::CreateCelBlitters(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::HasCelBlitters(void)
 {
-	Ptr<CImageCel>		pCel;
-	size				x, y;
-	Ptr<CImageBlitter>	pBlitter;
-	size				iSize;
+	size	uiNumTiles;
+	size	i;
 
 	if (mpCache && mpViewport)
 	{
 		if (mpCache->GetDestImage() == mpViewport)
 		{
-			iSize = msMapSize.x * msMapSize.y;
-			if (maBlitters.NumElements() != iSize)
+			uiNumTiles = maTiles.NumElements();
+			if (maBlitters.NumElements() != uiNumTiles)
 			{
 				return false;
 			}
 
-			for (y = 0; y < msMapSize.y; y++)
+			for (i = 0; i < uiNumTiles; i++)
 			{
-				for (x = 0; x < msMapSize.x; x++)
+				if (maBlitters.Get(i).IsNull() && maTiles.Get(i).IsNotNull())
 				{
-					pBlitter = GetBlitter(x, y);
-					pCel = GetTile(x, y);
-					if (pBlitter.IsNull() && pCel.IsNotNull())
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 			return true;
@@ -325,15 +544,30 @@ void CTileLayerCel::ClearCelBlitters(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Only a tile inside its row's run can have a blitter; a NULL blitter is
+// always set.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter)
 {
-	size	iYOffset;
+	size	uiIndex;
 
-	iYOffset = y * msMapSize.x;
-	return maBlitters.Set(x + iYOffset, pBlitter);
+	uiIndex = TileIndex(x, y);
+	if (uiIndex == MAX_SIZE)
+	{
+		return pBlitter.IsNull();
+	}
+
+	if (maBlitters.IsEmpty())
+	{
+		if (pBlitter.IsNull())
+		{
+			return true;
+		}
+		FillBlitters();
+	}
+	return maBlitters.Set(uiIndex, pBlitter);
 }
 
 
@@ -343,10 +577,14 @@ bool CTileLayerCel::SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageBlitter> CTileLayerCel::GetBlitter(size x, size y)
 {
-	size	iYOffset;
+	size	uiIndex;
 
-	iYOffset = y * msMapSize.x;
-	return maBlitters.Get(x + iYOffset);
+	uiIndex = TileIndex(x, y);
+	if ((uiIndex == MAX_SIZE) || maBlitters.IsEmpty())
+	{
+		return NULL;
+	}
+	return maBlitters.Get(uiIndex);
 }
 
 
@@ -362,6 +600,7 @@ bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 	CInt32Rect		cCelRect;
 	bool			bFirst;
 	size 			x, y;
+	STileLayerRow*	psRow;
 
 	if (pcRect)
 	{
@@ -369,9 +608,10 @@ bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 		bFirst = true;
 		for (y = 0; y < msMapSize.y; y++)
 		{
-			for (x = 0; x < msMapSize.x; x++)
+			psRow = masRows.Get(y);
+			for (x = psRow->uiStart; x < psRow->uiEnd; x++)
 			{
-				pCel = GetTile(x, y);
+				pCel = maTiles.Get(psRow->uiFirst + (x - psRow->uiStart));
 				if (pCel)
 				{
 					pcSubImage = pCel->GetSubImage();
@@ -467,60 +707,65 @@ Ptr<CImageCelBlitterCache> CTileLayerCel::CreateBlitterCache(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Makes the blitters of the tiles in xStart..xStop, yStart..yStop match
+// their cels: a new blitter where a tile has none or its cel changed, none
+// where a tile has no cel.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int32 yStop)
 {
 	int32				x, y;
-	bool				bCreateBlitter;
+	int32				xRowStart;
+	int32				xRowStop;
+	size				uiIndex;
 	Ptr<CImageBlitter>	pBlitter;
-	bool				bResult;
 	Ptr<CImageCel>		pCel;
+	STileLayerRow*		psRow;
 
+	if (maTiles.IsEmpty())
+	{
+		return true;
+	}
+	if (maBlitters.NumElements() != maTiles.NumElements())
+	{
+		FillBlitters();
+	}
+
+	if (yStart < 0)
+	{
+		yStart = 0;
+	}
+	if (yStop > (int32)msMapSize.y)
+	{
+		yStop = (int32)msMapSize.y;
+	}
 	for (y = yStart; y < yStop; y++)
 	{
-		for (x = xStart; x < xStop; x++)
+		psRow = masRows.Get(y);
+		xRowStart = (xStart > (int32)psRow->uiStart) ? xStart : (int32)psRow->uiStart;
+		xRowStop = (xStop < (int32)psRow->uiEnd) ? xStop : (int32)psRow->uiEnd;
+		for (x = xRowStart; x < xRowStop; x++)
 		{
-			pBlitter = GetBlitter(x, y);
-			pCel = GetTile(x, y);
+			uiIndex = psRow->uiFirst + ((size)x - psRow->uiStart);
+			pCel = maTiles.Get(uiIndex);
+			pBlitter = maBlitters.Get(uiIndex);
 			if (pCel.IsNotNull())
 			{
-				if (pBlitter.IsNotNull() && (pBlitter->GetCel() != pCel))
-				{
-					bCreateBlitter = true;
-				}
-				else
-				{
-					bCreateBlitter = true;
-				}
-
-				if (bCreateBlitter)
+				if (pBlitter.IsNull() || (pBlitter->GetCel() != pCel))
 				{
 					pBlitter = mpCache->CreateImageBlitter(pCel);
 					if (pBlitter.IsNull())
 					{
 						return false;
 					}
-					bResult = SetBlitter(x, y, pBlitter);
-					if (!bResult)
-					{
-						return false;
-					}
+					maBlitters.Set(uiIndex, pBlitter);
 				}
 			}
-			else
+			else if (pBlitter.IsNotNull())
 			{
-				if (pBlitter.IsNotNull())
-				{
-					pBlitter = NULL;
-					SetBlitter(x, y, pBlitter);
-					bResult = SetBlitter(x, y, pBlitter);
-					if (!bResult)
-					{
-						return false;
-					}
-				}
+				pBlitter = NULL;
+				maBlitters.Set(uiIndex, pBlitter);
 			}
 		}
 	}
@@ -538,14 +783,17 @@ bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	int32 				xStop, yStop;
 	int32 				xStart, yStart;
 	int32 				xSize, ySize;
+	uint32				xRowStart;
+	uint32				xRowStop;
 	Ptr<CImageBlitter>	pBlitter;
 	bool				bResult;
 	int32				xOffset;
 	int32				yOffset;
+	STileLayerRow*		psRow;
 
 	if (bEnsureBlitters)
 	{
-		if (maBlitters.IsEmpty() && (msMapSize.x > 0) && (msMapSize.y > 0))
+		if (maBlitters.IsEmpty() && !maTiles.IsEmpty())
 		{
 			mpCache = CreateBlitterCache();
 			bResult = CreateCelBlitters();
@@ -589,23 +837,26 @@ bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		yStop = (int32)msMapSize.y;
 	}
 
+	if ((xStart >= xStop) || (yStart >= yStop))
+	{
+		return true;
+	}
+
 	if (bEnsureBlitters)
 	{
-		bResult = EnsureBlitters(xStart, xStop, yStart, yStop);
+		bResult = EnsureBlitters(xStart, yStart, xStop, yStop);
 		if (!bResult)
 		{
 			return false;
 		}
 	}
 
-	if ((xStart >= xStop) || (yStart >= yStop))
-	{
-		return true;
-	}
-
 	for (y = (uint32)yStart; y < (uint32)yStop; y++)
 	{
-		for (x = (uint32)xStart; x < (uint32)xStop; x++)
+		psRow = masRows.Get(y);
+		xRowStart = ((uint32)xStart > psRow->uiStart) ? (uint32)xStart : (uint32)psRow->uiStart;
+		xRowStop = ((uint32)xStop < psRow->uiEnd) ? (uint32)xStop : (uint32)psRow->uiEnd;
+		for (x = xRowStart; x < xRowStop; x++)
 		{
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())

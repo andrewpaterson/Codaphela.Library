@@ -440,6 +440,119 @@ void TestMapsSpriteMap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tile layer row only stores the run of cels from its first tile to its
+// last.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerRows(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CArrayImageCel>		pacCels;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CImageCel>			pCel1;
+		Ptr<CImageCel>			pCel2;
+		Ptr<CImageCel>			pCel3;
+		Ptr<CImageCel>			pCel4;
+		Ptr<CImageCel>			pNoCel;
+		size					y;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pCel1 = pacCels->Get(1);
+		pCel2 = pacCels->Get(2);
+		pCel3 = pacCels->Get(3);
+		pCel4 = pacCels->Get(4);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(8, 3), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+
+		//An empty layer stores nothing.
+		AssertSize(0, pLayer->NumStoredTiles());
+		for (y = 0; y < 3; y++)
+		{
+			AssertSize(pLayer->GetRowStart(y), pLayer->GetRowEnd(y));
+		}
+		AssertTrue(pLayer->GetTile(3, 1).IsNull());
+
+		//A row grows its run to the right and to the left.
+		AssertTrue(pLayer->SetTile(5, 1, pCel1));
+		AssertSize(5, pLayer->GetRowStart(1));
+		AssertSize(6, pLayer->GetRowEnd(1));
+		AssertSize(1, pLayer->NumStoredTiles());
+
+		AssertTrue(pLayer->SetTile(2, 1, pCel2));
+		AssertSize(2, pLayer->GetRowStart(1));
+		AssertSize(6, pLayer->GetRowEnd(1));
+		AssertSize(4, pLayer->NumStoredTiles());
+		AssertTrue(pLayer->GetTile(2, 1) == pCel2);
+		AssertTrue(pLayer->GetTile(3, 1).IsNull());
+		AssertTrue(pLayer->GetTile(5, 1) == pCel1);
+		AssertTrue(pLayer->GetTile(1, 1).IsNull());
+
+		AssertTrue(pLayer->SetTile(7, 1, pCel3));
+		AssertSize(8, pLayer->GetRowEnd(1));
+		AssertSize(6, pLayer->NumStoredTiles());
+
+		//A row before it moves its cels along; a row after it keeps its place.
+		AssertTrue(pLayer->SetTile(0, 0, pCel4));
+		AssertTrue(pLayer->SetTile(4, 2, pCel1));
+		AssertSize(8, pLayer->NumStoredTiles());
+		AssertTrue(pLayer->GetTile(0, 0) == pCel4);
+		AssertTrue(pLayer->GetTile(2, 1) == pCel2);
+		AssertTrue(pLayer->GetTile(5, 1) == pCel1);
+		AssertTrue(pLayer->GetTile(7, 1) == pCel3);
+		AssertTrue(pLayer->GetTile(4, 2) == pCel1);
+		AssertTrue(pLayer->GetTile(4 + 2 * 8) == pCel1);
+		AssertTrue(pLayer->GetTile(7 + 1 * 8) == pCel3);
+
+		//Clearing the ends of a run trims the empty tiles next to them.
+		AssertTrue(pLayer->SetTile(2, 1, pNoCel));
+		AssertSize(5, pLayer->GetRowStart(1));
+		AssertSize(8, pLayer->GetRowEnd(1));
+		AssertSize(5, pLayer->NumStoredTiles());
+
+		AssertTrue(pLayer->SetTile(7, 1, pNoCel));
+		AssertSize(5, pLayer->GetRowStart(1));
+		AssertSize(6, pLayer->GetRowEnd(1));
+		AssertSize(3, pLayer->NumStoredTiles());
+
+		//Clearing a tile outside the run changes nothing.
+		AssertTrue(pLayer->SetTile(1, 1, pNoCel));
+		AssertSize(3, pLayer->NumStoredTiles());
+
+		AssertTrue(pLayer->SetTile(5, 1, pNoCel));
+		AssertSize(pLayer->GetRowStart(1), pLayer->GetRowEnd(1));
+		AssertSize(2, pLayer->NumStoredTiles());
+		AssertTrue(pLayer->GetTile(0, 0) == pCel4);
+		AssertTrue(pLayer->GetTile(4, 2) == pCel1);
+
+		//A row that was emptied grows again where its cels belong.
+		AssertTrue(pLayer->SetTile(6, 1, pCel2));
+		AssertSize(3, pLayer->NumStoredTiles());
+		AssertTrue(pLayer->GetTile(6, 1) == pCel2);
+		AssertTrue(pLayer->GetTile(4, 2) == pCel1);
+
+		//Tiles outside the layer can't be set.
+		AssertFalse(pLayer->SetTile(8, 0, pCel1));
+		AssertFalse(pLayer->SetTile(0, 3, pCel1));
+		AssertTrue(pLayer->GetTile(8, 0).IsNull());
+
+		pLayer = NULL;
+		pTileMap = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMaps(void)
@@ -451,6 +564,7 @@ void TestMaps(void)
 	TestMapsTinySpriteMap();
 	TestMapsSpriteMapSharedCels();
 	TestMapsTileMap();
+	TestMapsTileLayerRows();
 	TestMapsSpriteMap();
 
 	DataIOKill();
