@@ -1125,7 +1125,7 @@ void CEmbeddedObject::ValidateFroms(void)
 	}
 
 	//A stack from is kept by the address of its pointer (or collection), so one that has been moved (copied in a
-	//CArrayTemplate that grew, memcpy) no longer points to this.  Pointers that aren't fields of objects must not move.
+	//CArrayTemplate that grew, memcpy) no longer points to this.  Pointers are only on the stack or fields of objects (CPointer).
 	for (pcStackPointer = mpcStackFroms; pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
 	{
 		psStackPointer = pcStackPointer->Get();

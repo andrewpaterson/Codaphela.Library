@@ -36,10 +36,15 @@ extern bool gbLogPointer;
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
-//CPointer (and friends) are either a field of a CObject (declared in its Class()) or a "stack" pointer: anything else, with a NULL embedding.
-//A stack pointer is known to the object it points to by its address, so it must never move: on the stack, in a CUnknown or a NewMalloc'd
-//class, or in a plain class or struct that is itself in one of those.  Never in an array that grows by copying its elements
-//(CArrayTemplate) or anything else that is memcpy'd.  Objects' ValidateFroms reports a stack pointer that has moved.
+//CPointer (and friends) are a field of a CObject (declared in its Class()) or, briefly, a local variable on the stack; nowhere else.
+//The root (ORoot()) is the source of memory management: objects are held by objects reachable from it, through a CObject's pointer fields
+//and collections (CArrayObject, CSetObject, CMapObject, CIndexObject).  An object with no more natural holder (a dialog, say) is OMalloc'd
+//and added to the root, and removed from the root when it is time to destroy it.  A class that holds a CPointer, an object or a collection
+//must itself be a CObject, even when it is on the stack.  Stack pointers are for using objects, not keeping them: they shouldn't live long
+//(nor should CObjects on the stack, which are only brief helpers or factories).
+//The only time the embedding is NULL is when this pointer is on the stack.  A stack pointer is known to the object it points to by its
+//address; ValidateFroms reports one that no longer points to it (a pointer kept somewhere it doesn't belong, such as an element of a
+//CArrayTemplate that grew, and so was moved).
 
 class CEmbeddedObject;
 class CObject;
