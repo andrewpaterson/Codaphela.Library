@@ -93,7 +93,7 @@ typedef CArrayTemplate<SPPSource> CArrayPPSources;
 struct SPPRecorder
 {
 	SPPCachedHeader*	psHeader;			//Being made.
-	CPPNameSet			cSeen;				//Names looked up or defined: only a name's first look up depends on the includer.
+	CNameSet			cSeen;				//Names looked up or defined: only a name's first look up depends on the includer.
 	CArrayPPHeaderFiles	apcPragmaSeen;		//Likewise #pragma once files.
 	size				uiStartToken;		//Where its output starts in the unit's.
 	size				uiStartExpansion;

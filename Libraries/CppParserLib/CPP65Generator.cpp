@@ -75,16 +75,13 @@ void CCPP65Generator::SetWarnNarrowing(bool bWarnNarrowing)
 //
 // Small functions of other units the IR front end's inliner may use; this
 // unit's are added to pcImports when it is finished (CCPP65IRFrontEnd::
-// FinishUnit), in its turn uiTurn (CIRImports::BeginTurn).  bRetryStale:
-// if it finds before its turn that it missed a function exported while it
-// inlined, it stops (MissedImports) to be generated again.
+// FinishUnit), in its turn uiTurn (CIRImports::BeginTurn).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn, bool bRetryStale)
+void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn)
 {
 	mpcImports = pcImports;
 	muiImportsTurn = uiTurn;
-	mbRetryStale = bRetryStale;
 }
 
 
@@ -93,14 +90,24 @@ void CCPP65Generator::SetImports(CIRImports* pcImports, size uiTurn, bool bRetry
 // After Generate: whether the IR front end missed a function another unit
 // exported while it was inlining, before the unit's turn (CIRImports::
 // Missed).  The unit must be generated again, with a new generator: it
-// still has its turn, so then it finds everything it would have.  (Or,
-// with SetImports' bRetryStale, it found it had missed one before its
-// turn: generated again it misses fewer.)
+// still has its turn, so then it finds everything it would have.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::MissedImports(void)
 {
 	return mbMissedImports;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After GenerateBeforeTurn: the functions the IR front end looked for in
+// the imports and didn't find, NULL if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CCPP65Generator::GetNotImported(void)
+{
+	return mpcIRFrontEnd ? mpcIRFrontEnd->GetNotImported() : NULL;
 }
 
 
@@ -207,7 +214,6 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcImports = NULL;
 	muiImportsTurn = 0;
 	mbMissedImports = false;
-	mbRetryStale = false;
 	mpcFrameProfile = NULL;
 	mbListing = false;
 	mbLineTable = false;
@@ -403,10 +409,23 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
 {
+	GenerateBeforeTurn();
+	return GenerateAfterTurn(pcDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first part of Generate, which can be done before the unit's turn with
+// the imports (SetImports): the functions are generated and inlined, with
+// the imports exported so far.  GenerateAfterTurn does the rest, in the
+// unit's turn.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GenerateBeforeTurn(void)
+{
 	CCPPSyntaxTranslationUnit*	pcRoot;
 	SCPP65Function*				psFunction;
-	CChars						szStrings;
-	CLargeChars*				pszText;
 
 	pcRoot = mpcTree->GetRoot();
 	if (pcRoot)
@@ -422,8 +441,30 @@ bool CCPP65Generator::Generate(CCPP65Assembly* pcDest)
 		GenerateFunction(psFunction);
 	}
 
-	//The IR front end inlines across the unit and writes the functions it kept.  If it missed a function another unit
-	//exported, the unit is generated again (MissedImports).
+	//The IR front end inlines across the unit.
+	if (mpcIRFrontEnd)
+	{
+		mpcIRFrontEnd->InlineUnit();
+	}
+	return mcErrors.NumErrors() == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rest of Generate, after GenerateBeforeTurn, in the unit's turn with
+// the imports: the IR front end exports the unit's small functions and
+// writes the functions it kept, then the rest of the unit is appended to
+// pcDest.  False, with MissedImports, if the unit missed a function another
+// unit exported since it inlined (it must be generated again).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GenerateAfterTurn(CCPP65Assembly* pcDest)
+{
+	CChars			szStrings;
+	CLargeChars*	pszText;
+
+	//If the IR front end missed a function another unit exported, the unit is generated again (MissedImports).
 	if (mpcIRFrontEnd)
 	{
 		if (!mpcIRFrontEnd->FinishUnit())

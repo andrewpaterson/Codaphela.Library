@@ -64,6 +64,8 @@ void CCPP65Builder::Init(void)
 	mszErrors.Init();
 	mszWarnings.Init();
 	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
+	mcImports.SetResume(ResumeUnit, this);
+	mpcUnitJobs = NULL;
 	mpcFrameProfile = NULL;
 	mszListings.Init();
 	mbLineTable = false;
@@ -531,7 +533,7 @@ size CCPP65Builder::NumImportsMissed(void)
 //
 // How many times a W65C816 unit found before its turn that it had missed
 // a function another unit exported while it inlined, and was generated
-// again then (CIRImports::BeginTurnUnlessStale).
+// again then (CIRImports::Arrive).
 //
 //////////////////////////////////////////////////////////////////////////
 size CCPP65Builder::NumImportsStale(void)
@@ -1276,6 +1278,7 @@ bool CCPP65Builder::CompileUnits(void)
 		cFileUtil.TouchDir(mszListings.Text());
 	}
 	pcJobs = UnitJobs(&cSerialJobs);
+	mpcUnitJobs = pcJobs;
 	uiMaxCompiling = (size)pcJobs->NumThreads() * 2;
 	mcImports.ResetTurns();
 	bResult = true;
@@ -1347,6 +1350,7 @@ bool CCPP65Builder::CompileUnits(void)
 		free(psUnit);
 	}
 	KillWorkspaces();
+	mpcUnitJobs = NULL;
 
 	if (apsUnits.NumElements() != muiUnits)
 	{
@@ -1403,6 +1407,8 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->pcSpillStore = bOwnSpillStore ? &psUnit->cSpillStore : mpcSpillStore;
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
+	psUnit->psCompile = NULL;
+	psUnit->eStage = CPP65US_Generating;
 }
 
 
@@ -1528,30 +1534,42 @@ void CCPP65Builder::CompileUnitAgainJob(void* pvUnit)
 //
 // Compiles psUnit into its object again, if it is to be (eAgain).  If it
 // calls only functions that weren't exported after the first pass, it
-// waits for its turn, when the units before it have exported theirs: it is
-// compiled again (in that turn, which it keeps) if one of them has been,
-// otherwise its object is as it was (eAgain is No).
+// decides in its turn, when the units before it have exported theirs
+// (DecideAgain; till then it waits without a thread, CIRImports::Arrive).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::CompileUnitAgain(SCPP65CompiledUnit* psUnit)
 {
 	if (psUnit->eAgain == CPP65CA_IfExported)
 	{
-		mcImports.BeginTurn(psUnit->uiTurn);
-		if (!CalleeExported(psUnit))
+		psUnit->eStage = CPP65US_Deciding;
+		if (mcImports.Arrive(psUnit->uiTurn, psUnit, NULL) == IRA_Turn)
 		{
-			mcImports.EndTurn(psUnit->uiTurn);
-			psUnit->eAgain = CPP65CA_No;
-			UnitFinished();
-			return;
+			DecideAgain(psUnit);
 		}
-		psUnit->eAgain = CPP65CA_Yes;
+		return;
 	}
+	CompileUnit(psUnit, false);
+}
 
-	//Preprocessed again: its errors and warnings were reported the first time.
-	psUnit->aszMissing.ReInit();
-	psUnit->pcObject->Kill();
-	psUnit->pcObject->Init(psUnit->pcFile->ShortName());
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In psUnit's turn: it is compiled again (in that turn, which it keeps) if
+// a unit before it has exported a function it calls, otherwise its object
+// is as it was (eAgain is No).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::DecideAgain(SCPP65CompiledUnit* psUnit)
+{
+	if (!CalleeExported(psUnit))
+	{
+		mcImports.EndTurn(psUnit->uiTurn);
+		psUnit->eAgain = CPP65CA_No;
+		UnitFinished();
+		return;
+	}
+	psUnit->eAgain = CPP65CA_Yes;
 	CompileUnit(psUnit, false);
 }
 
@@ -1632,23 +1650,31 @@ void CCPP65Builder::UnitFinished(void)
 //
 // Preprocesses and compiles psUnit's file into its object, then frees the
 // file's tokens and source.  Its errors and warnings go to the unit's (the
-// preprocessor's only if bReport), the functions it calls that weren't
-// found for inlining to its aszMissing.  The unit is counted as compiling
-// (muiCompiling) until it has finished.
+// preprocessor's only if bReport; compiled again, its object is made
+// again), the functions it calls that weren't found for inlining to its
+// aszMissing.  The unit is counted as compiling (muiCompiling) until it has
+// finished.  On the W65C816 it may wait for its turn with the imports
+// without holding the thread (StartGenerating): the rest is done later.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 {
-	CCPPTokeniser		cTokeniser;
-	CCPPSyntaxTree		cTree;
-	CCPPParser			cParser;
-	CCPP65Assembly		cAssembly;
-	CCPP65UnitWorkspace*	pcWorkspace;
+	SCPP65UnitCompile*	psCompile;
 	char*				szConfiguration;
 	bool				bResult;
 
-	pcWorkspace = TakeWorkspace();
-	psUnit->pcFile->GetTokens()->SetMallocators(pcWorkspace->GetPreprocessedTokensMallocators());
+	if (!bReport)
+	{
+		psUnit->aszMissing.ReInit();
+		psUnit->pcObject->Kill();
+		psUnit->pcObject->Init(psUnit->pcFile->ShortName());
+	}
+
+	psCompile = NewMalloc<SCPP65UnitCompile>();
+	psUnit->psCompile = psCompile;
+	psCompile->uiAttempts = 0;
+	psCompile->pcWorkspace = TakeWorkspace();
+	psUnit->pcFile->GetTokens()->SetMallocators(psCompile->pcWorkspace->GetPreprocessedTokensMallocators());
 
 	szConfiguration = (char*)GetCPPTarget(meTarget)->szName;
 	if (bReport)
@@ -1657,6 +1683,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	}
 	else
 	{
+		//Preprocessed again: its errors and warnings were reported the first time.
 		mcProject.ProcessUnit(psUnit->pcFile, szConfiguration);
 		bResult = true;
 	}
@@ -1666,19 +1693,148 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 		psUnit->cSpillStore.Init();
 	}
 
-	cTokeniser.Init(pcWorkspace->GetCPPTokensMallocator());
-	bResult &= cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
-	psUnit->szErrors.Append(cTokeniser.GetErrors()->Text());
-	cTree.Init(&cTokeniser, pcWorkspace->GetSyntaxTreeMallocators());
-	cParser.Init(&cTokeniser, &cTree);
+	psCompile->cTokeniser.Init(psCompile->pcWorkspace->GetCPPTokensMallocator());
+	bResult &= psCompile->cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
+	psUnit->szErrors.Append(psCompile->cTokeniser.GetErrors()->Text());
+	psCompile->cTree.Init(&psCompile->cTokeniser, psCompile->pcWorkspace->GetSyntaxTreeMallocators());
+	psCompile->cParser.Init(&psCompile->cTokeniser, &psCompile->cTree);
 	if (mbLazyHeaders)
 	{
-		cParser.SetHeaderIndex(&mcHeaderIndex);
+		psCompile->cParser.SetHeaderIndex(&mcHeaderIndex);
 	}
-	bResult &= cParser.Parse();
-	psUnit->szErrors.Append(cTree.GetErrors()->Text());
+	bResult &= psCompile->cParser.Parse();
+	psUnit->szErrors.Append(psCompile->cTree.GetErrors()->Text());
+	psCompile->bResult = bResult;
 
-	bResult &= GenerateUnit(psUnit, &cTree, &cAssembly, 0);
+	StartGenerating(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A generator for psUnit's syntax tree, into its assembly (which it
+// initialises).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
+{
+	SCPP65UnitCompile*	psCompile;
+
+	psCompile = psUnit->psCompile;
+	psCompile->cAssembly.Init(psUnit->pcSpillStore);
+	psCompile->cGenerator.Init(&psCompile->cTree, meTarget);
+	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore);
+	if (meTarget == CPPT_W65C816)
+	{
+		psCompile->cGenerator.SetImports(&mcImports, psUnit->uiTurn);
+		psCompile->cGenerator.SetFrameProfile(mpcFrameProfile);
+	}
+	psCompile->cGenerator.SetListing(!mszListings.Empty());
+	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generates psUnit up to its turn with the imports (CCPP65Generator::
+// GenerateBeforeTurn), then arrives at its turn: in it, generation goes on
+// (ContinueGenerating).  Before it the unit waits without a thread, and is
+// resumed in its turn, or as soon as a function it looked for and didn't
+// find is exported (it is generated again, up to CPP65_STALE_ATTEMPTS
+// times).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::StartGenerating(SCPP65CompiledUnit* psUnit)
+{
+	SCPP65UnitCompile*	psCompile;
+	EIRArrival			eArrival;
+
+	psCompile = psUnit->psCompile;
+	InitGenerator(psUnit);
+	psCompile->bGenerated = psCompile->cGenerator.GenerateBeforeTurn();
+	if (meTarget != CPPT_W65C816)
+	{
+		ContinueGenerating(psUnit);
+		return;
+	}
+
+	psUnit->eStage = CPP65US_Generating;
+	eArrival = mcImports.Arrive(psUnit->uiTurn, psUnit, (psCompile->uiAttempts < CPP65_STALE_ATTEMPTS) ? psCompile->cGenerator.GetNotImported() : NULL);
+	if (eArrival == IRA_Turn)
+	{
+		ContinueGenerating(psUnit);
+	}
+	else if (eArrival == IRA_Stale)
+	{
+		RestartGenerating(psUnit);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psUnit missed a function exported while it was generated: it is
+// generated again (its code in the spill store is replaced, by index).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::RestartGenerating(SCPP65CompiledUnit* psUnit)
+{
+	SCPP65UnitCompile*	psCompile;
+
+	psCompile = psUnit->psCompile;
+	psCompile->cGenerator.Kill();
+	psCompile->cAssembly.Kill();
+	psCompile->uiAttempts++;
+	StartGenerating(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In psUnit's turn (or with no turns): the rest of its generation
+// (CCPP65Generator::GenerateAfterTurn), then FinishCompile.  If it missed
+// a function exported since it inlined it is generated again, in its turn,
+// which it keeps (then it finds everything it would have).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ContinueGenerating(SCPP65CompiledUnit* psUnit)
+{
+	SCPP65UnitCompile*	psCompile;
+	bool				bGenerated;
+
+	psCompile = psUnit->psCompile;
+	bGenerated = psCompile->cGenerator.GenerateAfterTurn(&psCompile->cAssembly);
+	if (psCompile->cGenerator.MissedImports())
+	{
+		psCompile->cGenerator.Kill();
+		psCompile->cAssembly.Kill();
+		InitGenerator(psUnit);
+		psCompile->bGenerated = psCompile->cGenerator.GenerateBeforeTurn();
+		ContinueGenerating(psUnit);
+		return;
+	}
+	FinishCompile(psUnit, bGenerated && psCompile->bGenerated);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psUnit is generated (bGenerated if that went well): its turn ends, its
+// listing is written, it is assembled into its object, and what compiling
+// it needed is freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
+{
+	SCPP65UnitCompile*	psCompile;
+	bool				bResult;
+
+	psCompile = psUnit->psCompile;
+	bResult = psCompile->bResult && bGenerated;
+	psCompile->cGenerator.GetMissingCallees(&psUnit->aszMissing);
+	psUnit->szErrors.Append(psCompile->cGenerator.GetErrors()->Text());
+	psUnit->szWarnings.Append(psCompile->cGenerator.GetWarnings()->Text());
+	psCompile->cGenerator.Kill();
 	if (meTarget == CPPT_W65C816)
 	{
 		//Its turn is over even if it didn't get to it (an error before the unit was finished).
@@ -1686,18 +1842,18 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	}
 	if (!mszListings.Empty())
 	{
-		bResult &= WriteListing(psUnit->pcFile->ShortName(), &cAssembly, &psUnit->szErrors);
+		bResult &= WriteListing(psUnit->pcFile->ShortName(), &psCompile->cAssembly, &psUnit->szErrors);
 	}
-	psUnit->uiLazySkipped += cParser.NumLazySkipped();
-	psUnit->uiLazyLoaded += cParser.NumLazyLoaded();
-	cParser.Kill();
+	psUnit->uiLazySkipped += psCompile->cParser.NumLazySkipped();
+	psUnit->uiLazyLoaded += psCompile->cParser.NumLazyLoaded();
+	psCompile->cParser.Kill();
 
 	//The syntax tree and tokens aren't needed to assemble.
-	cTree.Kill();
-	cTokeniser.Kill();
+	psCompile->cTree.Kill();
+	psCompile->cTokeniser.Kill();
 
-	bResult &= Assemble(psUnit->pcObject, &cAssembly, NULL, &psUnit->szErrors);
-	cAssembly.Kill();
+	bResult &= Assemble(psUnit->pcObject, &psCompile->cAssembly, NULL, &psUnit->szErrors);
+	psCompile->cAssembly.Kill();
 	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
 	{
 		psUnit->cSpillStore.Kill();
@@ -1707,54 +1863,70 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	//The file's tokens and source are freed (the tokens' memory kept by the workspace for the next unit).
 	psUnit->pcFile->GetTokens()->SetMallocators(NULL);
 	psUnit->pcFile->Unload();
-	GiveBackWorkspace(pcWorkspace);
+	GiveBackWorkspace(psCompile->pcWorkspace);
+	free(psCompile);
+	psUnit->psCompile = NULL;
 	UnitFinished();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Generates psUnit's assembly from pcTree into pcAssembly (which it
-// initialises).  The functions it calls that weren't found for inlining
-// go to the unit's aszMissing, its errors and warnings to the unit's.  On
-// the W65C816 the unit's turn has started when it returns.  If the unit
-// missed a function another unit exported while it was inlining (before its
-// turn) it is generated again (CCPP65Generator::MissedImports): before its
-// turn if it found out then (up to CPP65_STALE_ATTEMPTS times, uiAttempt
-// counting them), otherwise in its turn.
+// CIRImports' resume function: a unit that waited for its turn is given to
+// the jobs, to go on in its turn or (bStale) to be generated again.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::GenerateUnit(SCPP65CompiledUnit* psUnit, CCPPSyntaxTree* pcTree, CCPP65Assembly* pcAssembly, size uiAttempt)
+void CCPP65Builder::ResumeUnit(void* pvBuilder, void* pvUnit, bool bStale)
 {
-	CCPP65Generator		cGenerator;
-	bool				bResult;
-	bool				bMissed;
+	CCPP65Builder*	pcBuilder;
 
-	pcAssembly->Init(psUnit->pcSpillStore);
-	cGenerator.Init(pcTree, meTarget);
-	cGenerator.SetSpillStore(psUnit->pcSpillStore);
-	if (meTarget == CPPT_W65C816)
-	{
-		cGenerator.SetImports(&mcImports, psUnit->uiTurn, uiAttempt < CPP65_STALE_ATTEMPTS);
-		cGenerator.SetFrameProfile(mpcFrameProfile);
-	}
-	cGenerator.SetListing(!mszListings.Empty());
-	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
-	bResult = cGenerator.Generate(pcAssembly);
-	bMissed = cGenerator.MissedImports();
-	if (!bMissed)
-	{
-		cGenerator.GetMissingCallees(&psUnit->aszMissing);
-		psUnit->szErrors.Append(cGenerator.GetErrors()->Text());
-		psUnit->szWarnings.Append(cGenerator.GetWarnings()->Text());
-	}
-	cGenerator.Kill();
+	pcBuilder = (CCPP65Builder*)pvBuilder;
+	pcBuilder->mpcUnitJobs->Run(bStale ? RestartUnitJob : ResumeUnitJob, pvUnit);
+}
 
-	if (bMissed)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A job: the unit goes on in its turn (Resume).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ResumeUnitJob(void* pvUnit)
+{
+	SCPP65CompiledUnit*	psUnit;
+
+	psUnit = (SCPP65CompiledUnit*)pvUnit;
+	psUnit->pcBuilder->Resume(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A job: the unit is generated again before its turn (RestartGenerating).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::RestartUnitJob(void* pvUnit)
+{
+	SCPP65CompiledUnit*	psUnit;
+
+	psUnit = (SCPP65CompiledUnit*)pvUnit;
+	psUnit->pcBuilder->RestartGenerating(psUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In psUnit's turn, after it waited for it: it goes on where it was
+// (eStage).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::Resume(SCPP65CompiledUnit* psUnit)
+{
+	if (psUnit->eStage == CPP65US_Deciding)
 	{
-		//The functions' code it put in the spill store is replaced (by index) as it is generated again.
-		pcAssembly->Kill();
-		return GenerateUnit(psUnit, pcTree, pcAssembly, uiAttempt + 1);
+		DecideAgain(psUnit);
 	}
-	return bResult;
+	else
+	{
+		ContinueGenerating(psUnit);
+	}
 }

@@ -104,7 +104,7 @@ uint64 CPreprocessor::DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding)
 	szPath.Init();
 	pcFile->Path(&szPath);
 	szPath.Replace('\\', '/');
-	uiHash = CPPNameSet::Hash(szPath.Text(), szPath.Length());
+	uiHash = CNameSet::Hash(szPath.Text(), szPath.Length());
 	szPath.Kill();
 	return (uiIncluding ^ uiHash) * 0x100000001B3ULL;
 }

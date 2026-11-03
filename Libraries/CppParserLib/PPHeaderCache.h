@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Mutex.h"
 #include "PreprocessedTokens.h"
 #include "PPDirective.h"
+#include "NameSet.h"
 
 
 class CHeaderFiles;
@@ -147,27 +148,6 @@ struct SPPCachedHeader
 	void	Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
 	void	Kill(void);
 	char*	AddString(const char* szText, size uiLength);
-};
-
-
-//Names, by their text: a small open addressed hash set.  It doesn't own the text.
-class CPPNameSet
-{
-protected:
-	SPPHeaderName*	masNames;
-	size			muiCapacity;	//A power of two.
-	size			muiNames;
-
-public:
-	void			Init(void);
-	void			Kill(void);
-	bool			Contains(const char* szName, size uiLength);
-	bool			Add(const char* szName, size uiLength);		//False if it was already in.
-
-	static uint64	Hash(const char* szName, size uiLength);
-
-protected:
-	void			Grow(void);
 };
 
 

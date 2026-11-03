@@ -516,6 +516,9 @@
     <ClCompile Include="ConditionalStack.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
+    <ClCompile Include="NameSet.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
     <ClCompile Include="PPHeaderCache.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
@@ -1113,6 +1116,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="ConditionalStack.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="NameSet.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PPHeaderCache.h">

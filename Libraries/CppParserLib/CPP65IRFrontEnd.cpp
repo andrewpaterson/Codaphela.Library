@@ -876,6 +876,18 @@ CArrayChars* CCPP65IRFrontEnd::GetMissingCallees(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The names the inliner looked for in the imports and didn't find
+// (InlineUnit), which the unit's turn checks (CIRImports::Missed).
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CCPP65IRFrontEnd::GetNotImported(void)
+{
+	return &maszNotImported;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcFunction may call itself: through the calls of the unit's
 // functions (calls of functions in other units are taken not to).
 //
@@ -948,13 +960,14 @@ bool CCPP65IRFrontEnd::IsRecursive(CIRFunction* pcFunction)
 // inlined too when the generator has imports (CCPP65Generator::SetImports),
 // and the unit's small functions are added to them at the end.
 //
-// The functions are inlined before the unit's turn with the imports, with
-// those exported so far.  In its turn it checks none it didn't find has
-// been exported since: if one has, it returns false, keeping its turn, and
-// the unit must be generated again (CCPP65Generator::MissedImports).
+// The functions are inlined (InlineUnit) before the unit's turn with the
+// imports, with those exported so far.  In its turn (FinishUnit) it checks
+// none it didn't find has been exported since: if one has, it returns
+// false, keeping its turn, and the unit must be generated again
+// (CCPP65Generator::MissedImports).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::FinishUnit(void)
+void CCPP65IRFrontEnd::InlineUnit(void)
 {
 	CIRInliner			cInliner;
 	CIROptimiser		cOptimiser;
@@ -963,7 +976,6 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	size				ui;
 	int					iRound;
 	bool				bResult;
-	CIRSourceMarkers	cMarkers;
 	CArrayTemplate<bool>	abChanged;
 	bool				bFalse;
 
@@ -1046,22 +1058,29 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	}
 	cInliner.Kill();
 	abChanged.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After InlineUnit, in the unit's turn (it waits for it, if the builder
+// hasn't, CIRImports::Arrive): the unit's small functions are exported,
+// and each function's code is finished.  False, with the turn kept, if the
+// unit missed a function exported since it inlined.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FinishUnit(void)
+{
+	CChars				szCode;
+	SCPP65IRWritten*	psWritten;
+	size				ui;
+	CIRSourceMarkers	cMarkers;
 
 	//In its turn the unit has found what it would have, as if the units were compiled one after another, unless a
-	//function it didn't find was exported since.  Found out before its turn, the unit can be generated again then.
+	//function it didn't find was exported since.
 	if (mpcGenerator->mpcImports)
 	{
-		if (mpcGenerator->mbRetryStale)
-		{
-			if (mpcGenerator->mpcImports->BeginTurnUnlessStale(&maszNotImported, mpcGenerator->muiImportsTurn))
-			{
-				return false;
-			}
-		}
-		else
-		{
-			mpcGenerator->mpcImports->BeginTurn(mpcGenerator->muiImportsTurn);
-		}
+		mpcGenerator->mpcImports->BeginTurn(mpcGenerator->muiImportsTurn);
 		if (mpcGenerator->mpcImports->Missed(&maszNotImported))
 		{
 			return false;

@@ -184,7 +184,9 @@ public:
 
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
+	void			InlineUnit(void);
 	bool			FinishUnit(void);
+	CArrayChars*	GetNotImported(void);
 	void			SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged);
 	int				WrittenIndex(uint32 uiSymbol);
 	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);

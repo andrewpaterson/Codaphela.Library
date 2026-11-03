@@ -332,6 +332,7 @@
     <ClCompile Include="DefineMap.cpp" />
     <ClCompile Include="DirectiveMap.cpp" />
     <ClCompile Include="PreprocessorLineTokeniser.cpp" />
+    <ClCompile Include="NameSet.cpp" />
     <ClCompile Include="PPHeaderCache.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="PreprocessorHeaderCache.cpp" />
@@ -540,6 +541,7 @@
     <ClInclude Include="DefineMap.h" />
     <ClInclude Include="NameMap.h" />
     <ClInclude Include="PreprocessorLineTokeniser.h" />
+    <ClInclude Include="NameSet.h" />
     <ClInclude Include="PPHeaderCache.h" />
     <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="PreprocessorParser.h" />

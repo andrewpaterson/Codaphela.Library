@@ -35,9 +35,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPP65Assembly.h"
 #include "CPPHeaderIndex.h"
 #include "CPP65UnitWorkspace.h"
+#include "CppTokeniser.h"
+#include "CppParser.h"
+#include "CPP65Generator.h"
 
 
-//How many times a W65C816 unit is generated again before its turn, having missed a function exported while it inlined.
+//How many times a W65C816 unit is generated again before its turn, having missed a function exported while it inlined
+//(after that it only waits for its turn).
 #define CPP65_STALE_ATTEMPTS	3
 
 
@@ -86,6 +90,30 @@ enum ECPP65CompileAgain
 };
 
 
+//Where a unit waiting for its turn without a thread (CIRImports::Arrive) is: generated up to its turn (it goes on in
+//it), or deciding whether it is compiled again (CompileUnitAgain).
+enum ECPP65UnitStage
+{
+	CPP65US_Generating,
+	CPP65US_Deciding,
+};
+
+
+//A unit being compiled (from CompileUnit to FinishCompile): kept while it waits for its turn.
+struct SCPP65UnitCompile
+{
+	CCPPTokeniser			cTokeniser;
+	CCPPSyntaxTree			cTree;
+	CCPPParser				cParser;
+	CCPP65Generator			cGenerator;
+	CCPP65Assembly			cAssembly;
+	CCPP65UnitWorkspace*	pcWorkspace;
+	bool					bResult;		//Preprocessed, tokenised and parsed.
+	bool					bGenerated;		//Its generation before its turn went well.
+	size					uiAttempts;		//Times it was generated again before its turn (stale).
+};
+
+
 //A translation unit compiled by CompileUnits: its object, and the functions it calls that no unit had exported
 //when it was compiled (it is compiled again if one is exported later).  What compiling it gives (its errors,
 //warnings and counts) is kept with it until it is added to the builder's, in the units' order.
@@ -104,6 +132,8 @@ struct SCPP65CompiledUnit
 	CMemorySpillStore	cSpillStore;
 	size				uiLazySkipped;
 	size				uiLazyLoaded;
+	SCPP65UnitCompile*	psCompile;		//While it is being compiled.
+	ECPP65UnitStage		eStage;			//While it waits for its turn.
 };
 
 
@@ -159,6 +189,7 @@ protected:
 	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
 	size							muiLazyLoaded;			//...and parsed when used.
 	CJobs*							mpcJobs;				//What compiles the units (SetJobs), or NULL for one at a time.
+	CJobs*							mpcUnitJobs;			//What CompileUnits is compiling the units with (units waiting for their turns are resumed on it).
 	CMutex							mcCompilingMutex;
 	CConditionVariable				mcCompiled;
 	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
@@ -230,7 +261,16 @@ protected:
 	bool			CalleeExported(SCPP65CompiledUnit* psUnit);
 	void			CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport);
 	void			CompileUnitAgain(SCPP65CompiledUnit* psUnit);
-	bool			GenerateUnit(SCPP65CompiledUnit* psUnit, CCPPSyntaxTree* pcTree, CCPP65Assembly* pcAssembly, size uiAttempt);
+	void			DecideAgain(SCPP65CompiledUnit* psUnit);
+	void			StartGenerating(SCPP65CompiledUnit* psUnit);
+	void			RestartGenerating(SCPP65CompiledUnit* psUnit);
+	void			ContinueGenerating(SCPP65CompiledUnit* psUnit);
+	void			FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated);
+	void			InitGenerator(SCPP65CompiledUnit* psUnit);
+	void			Resume(SCPP65CompiledUnit* psUnit);
+	static void		ResumeUnit(void* pvBuilder, void* pvUnit, bool bStale);
+	static void		ResumeUnitJob(void* pvUnit);
+	static void		RestartUnitJob(void* pvUnit);
 	void			UnitFinished(void);
 	CCPP65UnitWorkspace*	TakeWorkspace(void);
 	void			GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace);

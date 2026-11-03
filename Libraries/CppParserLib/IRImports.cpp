@@ -42,6 +42,9 @@ void CIRImports::Init(size uiMaxInstructions)
 	muiMissed = 0;
 	muiStale = 0;
 	mbForceMisses = false;
+	masParked.Init();
+	mfResume = NULL;
+	mpvResumeContext = NULL;
 	muiForcedTurn = SIZE_MAX;
 }
 
@@ -52,6 +55,7 @@ void CIRImports::Init(size uiMaxInstructions)
 //////////////////////////////////////////////////////////////////////////
 void CIRImports::Kill(void)
 {
+	masParked.Kill();
 	mcModuleLock.Kill();
 	mcTurnChanged.Kill();
 	mcMutex.Kill();
@@ -92,24 +96,54 @@ void CIRImports::BeginTurn(size uiTurn)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Ends turn uiTurn (waiting for it first): the next unit's begins.  A unit ends its turn when it has exported its
-// functions, and again when it has finished (it may have stopped before it took its turn); the second time does
-// nothing.
+// Ends turn uiTurn (waiting for it first): the next unit's begins (it is resumed if it was parked, Arrive).  A unit
+// ends its turn when it has exported its functions, and again when it has finished (it may have stopped before it
+// took its turn); the second time does nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRImports::EndTurn(size uiTurn)
 {
+	void*			pvNext;
+	CNameSet*		pcNotFound;
+	SIRParkedUnit*	psParked;
+	size			ui;
+
+	pcNotFound = NULL;
 	mcMutex.Lock();
 	while (muiTurn < uiTurn)
 	{
 		mcTurnChanged.Wait(&mcMutex);
 	}
+	pvNext = NULL;
 	if (muiTurn == uiTurn)
 	{
 		muiTurn++;
 		mcTurnChanged.WakeAll();
+
+		//The next unit, if it is parked, has its turn.
+		for (ui = 0; ui < masParked.NumElements(); ui++)
+		{
+			psParked = masParked.Get(ui);
+			if (psParked->uiTurn == muiTurn)
+			{
+				pvNext = psParked->pvUnit;
+				pcNotFound = psParked->pcNotFound;
+				masParked.RemoveAt(ui);
+				break;
+			}
+		}
 	}
 	mcMutex.Unlock();
+
+	if (pvNext)
+	{
+		if (pcNotFound)
+		{
+			pcNotFound->Kill();
+			free(pcNotFound);
+		}
+		mfResume(mpvResumeContext, pvNext, false);
+	}
 }
 
 
@@ -169,57 +203,176 @@ bool CIRImports::Missed(CArrayChars* paszNotFound)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Waits for turn uiTurn (as BeginTurn), unless a function named in
-// paszNotFound, which the unit looked for and didn't find, is exported
-// before then: true if one was (the turn hasn't begun), false when the
-// turn has (Missed tells it then).  Each turn that ends before is looked
-// at.
+// Arriving units are resumed by fResume (with pvContext): it mustn't wait
+// for the unit (it gives it to another thread, or runs it).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRImports::BeginTurnUnlessStale(CArrayChars* paszNotFound, size uiTurn)
+void CIRImports::SetResume(IRImportsResume fResume, void* pvContext)
 {
-	size	ui;
-	bool	bStale;
-	size	uiSeen;
-
-	mcMutex.Lock();
-	for (;;)
-	{
-		if (muiTurn >= uiTurn)
-		{
-			mcMutex.Unlock();
-			return false;
-		}
-		uiSeen = muiTurn;
-		mcMutex.Unlock();
-
-		bStale = false;
-		BeginRead();
-		for (ui = 0; (ui < paszNotFound->NumElements()) && !bStale; ui++)
-		{
-			bStale = Find(paszNotFound->GetText(ui)) != NULL;
-		}
-		EndRead();
-
-		mcMutex.Lock();
-		if (bStale)
-		{
-			muiStale++;
-			mcMutex.Unlock();
-			return true;
-		}
-		while (muiTurn == uiSeen)
-		{
-			mcTurnChanged.Wait(&mcMutex);
-		}
-	}
+	mfResume = fResume;
+	mpvResumeContext = pvContext;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many units found they had missed a function before their turn
-// (BeginTurnUnlessStale).
+// Whether a function named in paszNames has been exported.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRImports::AnyFound(CArrayChars* paszNames)
+{
+	size	ui;
+	bool	bFound;
+
+	bFound = false;
+	BeginRead();
+	for (ui = 0; (ui < paszNames->NumElements()) && !bFound; ui++)
+	{
+		bFound = Find(paszNames->GetText(ui)) != NULL;
+	}
+	EndRead();
+	return bFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit pvUnit arrives at turn uiTurn.  IRA_Turn if it is its turn (it
+// goes on).  Otherwise it is parked (IRA_Parked: the caller lets it go, and
+// the resume function gets it later), unless a function named in
+// paszNotFound (which it looked for and didn't find, NULL for none to
+// watch) has been exported already (IRA_Stale).  Parked, it is resumed in
+// its turn, or as stale as soon as one of them is exported.  Only one of
+// those resumes it.
+//
+//////////////////////////////////////////////////////////////////////////
+EIRArrival CIRImports::Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFound)
+{
+	SIRParkedUnit*	psParked;
+	CNameSet*		pcNotFound;
+	size			ui;
+
+	pcNotFound = NULL;
+	if (paszNotFound && (paszNotFound->NumElements() > 0))
+	{
+		pcNotFound = (CNameSet*)malloc(sizeof(CNameSet));
+		pcNotFound->Init();
+		for (ui = 0; ui < paszNotFound->NumElements(); ui++)
+		{
+			pcNotFound->Add(paszNotFound->GetText(ui), paszNotFound->Get(ui)->Length());
+		}
+	}
+
+	mcMutex.Lock();
+	if (muiTurn >= uiTurn)
+	{
+		mcMutex.Unlock();
+		if (pcNotFound)
+		{
+			pcNotFound->Kill();
+			free(pcNotFound);
+		}
+		return IRA_Turn;
+	}
+	psParked = masParked.Add();
+	psParked->uiTurn = uiTurn;
+	psParked->pvUnit = pvUnit;
+	psParked->pcNotFound = pcNotFound;
+	mcMutex.Unlock();
+
+	//Exported while it was working (before it was parked, so nothing told it).  Whoever unparks it resumes it.
+	if (pcNotFound && AnyFound(paszNotFound))
+	{
+		if (Unpark(pvUnit))
+		{
+			mcMutex.Lock();
+			muiStale++;
+			mcMutex.Unlock();
+			return IRA_Stale;
+		}
+	}
+	return IRA_Parked;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes pvUnit out of the parked units.  False if it wasn't there (another
+// thread resumes it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRImports::Unpark(void* pvUnit)
+{
+	size			ui;
+	SIRParkedUnit*	psParked;
+	CNameSet*		pcNotFound;
+
+	pcNotFound = NULL;
+	mcMutex.Lock();
+	for (ui = 0; ui < masParked.NumElements(); ui++)
+	{
+		psParked = masParked.Get(ui);
+		if (psParked->pvUnit == pvUnit)
+		{
+			pcNotFound = psParked->pcNotFound;
+			masParked.RemoveAt(ui);
+			mcMutex.Unlock();
+			if (pcNotFound)
+			{
+				pcNotFound->Kill();
+				free(pcNotFound);
+			}
+			return true;
+		}
+	}
+	mcMutex.Unlock();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szName was exported: the parked units that looked for it and didn't find
+// it are resumed, stale.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::Exported(const char* szName)
+{
+	size				ui;
+	SIRParkedUnit*		psParked;
+	CArrayTemplate<SIRParkedUnit>	asStale;
+	size				uiLength;
+
+	uiLength = strlen(szName);
+	asStale.Init();
+	mcMutex.Lock();
+	for (ui = masParked.NumElements(); ui > 0; ui--)
+	{
+		psParked = masParked.Get(ui - 1);
+		if (psParked->pcNotFound && psParked->pcNotFound->Contains(szName, uiLength))
+		{
+			asStale.Add(psParked);
+			masParked.RemoveAt(ui - 1);
+			muiStale++;
+		}
+	}
+	mcMutex.Unlock();
+
+	for (ui = 0; ui < asStale.NumElements(); ui++)
+	{
+		psParked = asStale.Get(ui);
+		psParked->pcNotFound->Kill();
+		free(psParked->pcNotFound);
+		mfResume(mpvResumeContext, psParked->pvUnit, true);
+	}
+	asStale.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times units found they had missed a function before their turn
+// (Arrive).
 //
 //////////////////////////////////////////////////////////////////////////
 size CIRImports::NumStale(void)
@@ -376,6 +529,10 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 		}
 	}
 	mcModuleLock.Unlock();
+	if (bResult)
+	{
+		Exported(pcModule->GetSymbolName(pcFunction->muiSymbol));
+	}
 	return bResult;
 }
 
