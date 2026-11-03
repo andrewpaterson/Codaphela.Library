@@ -27,6 +27,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CAction::Kill(void)
 {
+	//An unknown's memory is freed without its destructor running so it unhooks its listener here.
+	RemoveFromListenerCalls();
 	mszName.Kill();
 	mcFunction.Kill();
 	CUnknown::Kill();

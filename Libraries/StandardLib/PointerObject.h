@@ -36,8 +36,10 @@ extern bool gbLogPointer;
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
-//CPointer (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
-//this pointer is declared on the stack.
+//CPointer (and friends) are either a field of a CObject (declared in its Class()) or a "stack" pointer: anything else, with a NULL embedding.
+//A stack pointer is known to the object it points to by its address, so it must never move: on the stack, in a CUnknown or a NewMalloc'd
+//class, or in a plain class or struct that is itself in one of those.  Never in an array that grows by copying its elements
+//(CArrayTemplate) or anything else that is memcpy'd.  Objects' ValidateFroms reports a stack pointer that has moved.
 
 class CEmbeddedObject;
 class CObject;

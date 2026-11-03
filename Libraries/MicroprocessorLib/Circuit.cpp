@@ -22,6 +22,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/Logger.h"
+#include "CircuitSimulation.h"
 #include "Circuit.h"
 
 
@@ -29,10 +30,11 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuit::Init(void)
+void CCircuit::Init(Ptr<CCircuitSimulation> pSimulation)
 {
 	PreInit();
 
+	mpSimulation = pSimulation;
 	maIntegratedCircuits.Init();
 	maPassives.Init();
 	mapcTraces.Init();
@@ -50,6 +52,7 @@ void CCircuit::Class(void)
 	M_Embedded(maIntegratedCircuits);
 	M_Embedded(maPassives);
 	U_Data(CArrayTracePtr, mapcTraces);
+	Nes(M_Pointer(mpSimulation));
 }
 
 

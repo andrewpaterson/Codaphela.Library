@@ -31,8 +31,7 @@ class CX11Canvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CX11Canvas);
 protected:
-	uint8*			mpuiPixelData;
-	Ptr<CImage>		mpImage;  //Wraps mpuiPixelData, it does not own the memory.
+	uint8*			mpuiPixelData;  //The canvas holds the image that wraps it (CNativeCanvas::SetImage).
 
 public:
 	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);

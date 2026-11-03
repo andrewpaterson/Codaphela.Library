@@ -652,10 +652,10 @@ void TestProcessorChipsRemoveEvent(void)
 	AddChipClock(&cBoard, 10 * FREQUENCY_MHZ, &pcClock);
 	cBoard.Start();
 	AssertSize(1, pcClock->NumEvents());
-	AssertTrue(cBoard.mcSimulation.RemoveEvent(pcClock->GetEvent(0)));
+	AssertTrue(cBoard.mpSimulation->RemoveEvent(pcClock->GetEvent(0)));
 	AssertSize(0, pcClock->NumEvents());
-	AssertFalse(cBoard.mcSimulation.RunSimultaneous());
-	AssertLong(0, cBoard.mcSimulation.GetTime());
+	AssertFalse(cBoard.mpSimulation->RunSimultaneous());
+	AssertLong(0, cBoard.mpSimulation->GetTime());
 	cBoard.Kill();
 }
 

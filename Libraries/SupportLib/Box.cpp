@@ -347,6 +347,7 @@ bool CBox::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iN
 		mfMiddleLength = fXSize;
 	}
 
+	free(asTransformedPoints);
 	asPositions.Kill();
 
 	if (!bPointsExtreme)

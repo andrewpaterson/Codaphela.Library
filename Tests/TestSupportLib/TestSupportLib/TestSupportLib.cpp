@@ -56,6 +56,7 @@ void TestTriangleShape(void);
 void TestMeshFaceReturn(void);
 void TestMeshPolygons(void);
 void TestMeshShapes(void);
+void TestMeshCache(void);
 void TestMeshConnectivity(void);
 void TestNormalGeneration(void);
 void TestMeshOBJReader(void);
@@ -133,6 +134,7 @@ int __cdecl main(void)
 	TestMeshFaceReturn();
 	TestMeshPolygons();
 	//TestMeshShapes();  Write is not consistent.
+	TestMeshCache();
 	TestMeshConnectivity();
 	TestNormalGeneration();
 	//TestMeshOBJReader();  Source OBJ file is missing

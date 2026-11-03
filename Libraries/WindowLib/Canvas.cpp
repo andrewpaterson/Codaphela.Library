@@ -101,6 +101,7 @@ void CCanvas::Class(void)
 	U_Enum(meColourOrder);
 	U_Enum(meColourBits);
 	U_Enum(meAlphaBits);
+	M_Pointer(mpNativeImage);
 	M_Pointer(mpCanvasDraw);
 	M_Pointer(mpContainer);
 	U_Bool(mbTransparent);

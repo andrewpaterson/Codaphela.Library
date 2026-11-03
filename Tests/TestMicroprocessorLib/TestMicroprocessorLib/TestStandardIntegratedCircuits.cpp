@@ -237,7 +237,7 @@ void TestStandardRemoveComponent(void)
 	cBoard.Run();
 	AssertInt(TV_Low, cBoard.Value(pcNot));
 
-	pcCircuit = cBoard.mcSimulation.GetCircuit();
+	pcCircuit = cBoard.mpSimulation->GetCircuit();
 	pcGate = ((CPins*)pcAnd->GetConnectedPort(0)->GetHolder())->GetIntegratedCircuit();
 	AssertString(AND_GATE_TYPE, pcGate->GetType());
 	pcGate->Disconnect(cBoard.mpcTimeline);
@@ -312,7 +312,7 @@ void TestStandardDescriptions(void)
 	sz.Kill();
 
 	//Disconnecting the gate takes its own events off the timeline; it has none.
-	cBoard.mcSimulation.GetCircuit()->DisconnectComponent(pcGate, cBoard.mpcTimeline);
+	cBoard.mpSimulation->GetCircuit()->DisconnectComponent(pcGate, cBoard.mpcTimeline);
 	AssertSize(1, pcPins->GetOutput()->NumEvents());
 
 	cBoard.Kill();
@@ -1153,6 +1153,90 @@ void TestStandardCounter(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The objects in memory of the class.
+//
+//////////////////////////////////////////////////////////////////////////
+static size CountStandardObjects(const char* szClassName)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+	CPointer			p;
+	size				uiCount;
+
+	uiCount = 0;
+	oi = gcObjects.StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		p = gcObjects.TestGetFromMemory(oi);
+		if (StringCompare(p->ClassName(), szClassName) == 0)
+		{
+			uiCount++;
+		}
+		oi = gcObjects.IterateMemory(&sIter);
+	}
+	sIter.Kill();
+	p = NULL;
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A simulation taken out of the root, with its gates' events still on
+// its timeline, frees its circuit and gates and then itself; the gates
+// take their events off the timeline as they're freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStandardSimulationFreed(void)
+{
+	CTestBoard	cBoard;
+	size		uiObjects;
+
+	uiObjects = gcObjects.NumMemoryIndexes();
+	cBoard.Init();
+	cBoard.Probe(cBoard.Gate(G_Nand, cBoard.Input("A", true), cBoard.Input("B", true)));
+	cBoard.Probe(cBoard.Gate(G_Xor, cBoard.Input("C", true), cBoard.Input("D", false)));
+	cBoard.Start();
+	AssertTrue(cBoard.mpcTimeline->NumSimultaneousEvents() > 0);
+	AssertSize(1, CountStandardObjects("CCircuitSimulation"));
+	AssertSize(1, CountStandardObjects("CCircuit"));
+	AssertTrue(gcObjects.NumMemoryIndexes() > uiObjects + 2);
+
+	cBoard.Kill();
+	AssertSize(0, CountStandardObjects("CCircuitSimulation"));
+	AssertSize(0, CountStandardObjects("CCircuit"));
+	AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A simulation still in the root when the objects are killed is freed
+// after its circuit and gates there too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStandardSimulationFreedInObjectsKill(void)
+{
+	CTestBoard	cBoard;
+
+	cBoard.Init();
+	cBoard.Probe(cBoard.Gate(G_And, cBoard.Input("A", true), cBoard.Input("B", false)));
+	cBoard.Start();
+	AssertTrue(cBoard.mpcTimeline->NumSimultaneousEvents() > 0);
+
+	//Only the root holds the simulation now.
+	cBoard.mpSimulation = NULL;
+	AssertSize(1, CountStandardObjects("CCircuitSimulation"));
+	ObjectsKill(false);
+	ObjectsInit();
+	AssertSize(0, CountStandardObjects("CCircuitSimulation"));
+	AssertSize(0, CountStandardObjects("CCircuit"));
+	cBoard.mcStore.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStandardIntegratedCircuits(void)
@@ -1176,6 +1260,8 @@ void TestStandardIntegratedCircuits(void)
 	TestStandardClock();
 	TestStandardDFlipFlop();
 	TestStandardRippleCounter();
+	TestStandardSimulationFreed();
+	TestStandardSimulationFreedInObjectsKill();
 	TestStandardCounter();
 
 	TestStatistics();

@@ -56,6 +56,9 @@ protected:
 
 			SInt32Vec2	GetSize(void);
 			void		SetSize(int x, int y);
+
+			void		SetImage(Ptr<CImage> pImage);
+			Ptr<CImage>	GetImage(void);
 };
 
 

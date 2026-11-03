@@ -45,6 +45,8 @@ void SMeshFaceIndex::Init(int iFaceIndex)
 //////////////////////////////////////////////////////////////////////////
 void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset)
 {
+	PreInit();
+
 	mpVertexArray = pVertexArray;
 	miStride = iStride;
 	maVerts.Init(iStride);
@@ -75,6 +77,8 @@ void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int
 	{
 		miSkinOffset /= sizeof(int);
 	}
+
+	PostInit();
 }
 
 
@@ -82,10 +86,25 @@ void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshTypeIndices::Kill(void)
+void CMeshTypeIndices::Free(void)
 {
-	mpVertexArray = NULL;
 	maVerts.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshTypeIndices::Class(void)
+{
+	U_Int32(miStride);
+	M_Pointer(mpVertexArray);
+	U_Unknown(CArrayBlock, maVerts);
+	U_Int32(miNormalOffset);
+	U_Int32(miColourOffset);
+	U_Int32(miUVOffset);
+	U_Int32(miSkinOffset);
 }
 
 

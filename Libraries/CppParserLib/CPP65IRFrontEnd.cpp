@@ -2514,7 +2514,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		return true;
 	}
 	mpcGenerator->ConversionOverflow(pcInitialiser, psPlace->psType);
-	if (!Value(pcInitialiser, &sValue) || !Convert(&sValue, psPlace->psType))
+	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue) || !Convert(&sValue, psPlace->psType))
 	{
 		return false;
 	}
@@ -2633,7 +2633,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			pcElement = papcOne->GetPtr(0);
 		}
 		mpcGenerator->ConversionOverflow(pcElement, psElement);
-		if (!Value(pcElement, &sValue) || !Convert(&sValue, psElement))
+		if (!ValueFor(pcElement, psElement, &sValue) || !Convert(&sValue, psElement))
 		{
 			return false;
 		}
@@ -3030,7 +3030,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	else
 	{
 		mpcGenerator->ConversionOverflow(pcReturn->mpcValue, psReturn);
-		if (!Value(pcReturn->mpcValue, &sValue) || !Convert(&sValue, psReturn))
+		if (!ValueFor(pcReturn->mpcValue, psReturn, &sValue) || !Convert(&sValue, psReturn))
 		{
 			return false;
 		}
@@ -3150,6 +3150,31 @@ CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
+	return Value(pcExpression, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An expression's value for psTo (NULL when it isn't known): a function's name
+// for a pointer to a function is the address of the overload of that type,
+// otherwise as Value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue)
+{
+	CCPPSyntaxIdExpression*	pcFunction;
+
+	pcFunction = mpcGenerator->FunctionNameFor(pcExpression, psTo);
+	if (pcFunction)
+	{
+		if (!FunctionAddress(pcFunction, psTo->psBase, psValue))
+		{
+			return false;
+		}
+		psValue->psType = psTo;
+		return true;
+	}
 	return Value(pcExpression, psValue);
 }
 
@@ -3439,7 +3464,8 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 	{
 		psFound = mpcGenerator->FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
 	}
-	for (psFunction = mpcGenerator->FirstFunctionOfName(lliName); psFunction && !psFound && !bQualified; psFunction = psFunction->psNextOfName)
+	//Every function of the name is looked at (unless the class has one): the one of psTarget's type, else the only one.
+	for (psFunction = (psFound || bQualified) ? NULL : mpcGenerator->FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
 		if (!psFunction->psClass && !psFunction->psTemplate)
 		{
@@ -4191,7 +4217,8 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		psValue->psType = sPlace.psType;
 		return true;
 	}
-	if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace))
+	//f = g chooses the overload of g with the type of f (worked out without its code, as the right is first).
+	if (!ValueFor(pcBinary->mpcRight, (pcBinary->meOperator == CT_Assignment) ? mpcGenerator->PlaceTypeOf(pcBinary->mpcLeft) : NULL, &sRight) || !Place(pcBinary->mpcLeft, &sPlace))
 	{
 		return false;
 	}
@@ -5629,7 +5656,7 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 			}
 			sArgument.psType = psParameter;
 		}
-		else if (!Value(pcArgument, &sArgument) || !Convert(&sArgument, psParameter))
+		else if (!ValueFor(pcArgument, psParameter, &sArgument) || !Convert(&sArgument, psParameter))
 		{
 			asArguments.Kill();
 			asLoaded.Kill();
@@ -5753,13 +5780,8 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	{
 		return Unsupported(__LINE__);
 	}
-	pcFunction = mpcGenerator->SkipParentheses(pcOperand);
-	if ((pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
-	{
-		pcFunction = mpcGenerator->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
-	}
-	if ((pcFunction->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol->meKind == CPPSK_Function) &&
-		!psTo->IsMemberPointer() && psTo->IsPointer() && psTo->psBase->IsFunction())
+	pcFunction = mpcGenerator->FunctionNameFor(pcOperand, psTo);
+	if (pcFunction)
 	{
 		//(FPointer)&f chooses the overload of f with the pointer's type.  (MPointer)&Class::f is a member pointer
 		//converted below, (void*)&f the function's address.

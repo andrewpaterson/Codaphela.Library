@@ -35,7 +35,6 @@ void CX11Canvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
     CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mpuiPixelData = NULL;
-    mpImage = NULL;
 }
 
 
@@ -46,7 +45,7 @@ void CX11Canvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 void CX11Canvas::Kill(void)
 {
     //The image references the pixel memory so it must be released before the memory is freed.
-    mpImage = NULL;
+    SetImage(NULL);
     if (mpuiPixelData)
     {
         free(mpuiPixelData);
@@ -84,11 +83,11 @@ bool CX11Canvas::CreateNativeCanvas(void)
     //A transparent canvas uses X for its opacity and, like the reference canvas, holds its colours multiplied by it.
     if (mpcCanvas->IsTransparent())
     {
-        mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
+        SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP));
     }
     else
     {
-        mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
+        SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP));
     }
     SetSize(sSize.x, sSize.y);
     return true;
@@ -142,7 +141,7 @@ void CX11Canvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CX11Canvas::GetImageOrNull(void)
 {
-    return mpImage;
+    return GetImage();
 }
 
 
@@ -225,7 +224,7 @@ void CX11Canvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect*
     if (pcX11Source->mpcCanvas->IsTransparent())
     {
         //What the transparent canvas didn't cover must show through so it is blended rather than copied.
-        BlendPremultipliedImage(pcX11Source->mpImage, mpImage, iX, iY, &cDest);
+        BlendPremultipliedImage(pcX11Source->GetImage(), GetImage(), iX, iY, &cDest);
         return;
     }
 
@@ -256,12 +255,12 @@ void CX11Canvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect*
 //////////////////////////////////////////////////////////////////////////
 void CX11Canvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 {
-    if (pSource.IsNull() || mpImage.IsNull())
+    if (pSource.IsNull() || GetImage().IsNull())
     {
         return;
     }
 
-    CImageCopier::Copy(pSource, mpImage, iX, iY);
+    CImageCopier::Copy(pSource, GetImage(), iX, iY);
 }
 
 
@@ -271,12 +270,12 @@ void CX11Canvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 //////////////////////////////////////////////////////////////////////////
 void CX11Canvas::DrawImage(int iX, int iY, Ptr<CImage> pSource)
 {
-    if (pSource.IsNull() || mpImage.IsNull())
+    if (pSource.IsNull() || GetImage().IsNull())
     {
         return;
     }
 
-    CImageCopier::Copy(pSource, mpImage, iX, iY);
+    CImageCopier::Copy(pSource, GetImage(), iX, iY);
 }
 
 

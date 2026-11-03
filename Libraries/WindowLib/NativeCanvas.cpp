@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "NativeWindowFactory.h"
+#include "Canvas.h"
 #include "NativeCanvas.h"
 
 
@@ -42,6 +43,37 @@ void CNativeCanvas::Kill(void)
 {
 	mpcCanvas = NULL;
 	CNativeComponent::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The image of the native canvas's pixels (it doesn't own them), held by the
+// canvas: a CPointer is a field of an object or on the stack, so the native
+// canvas (which is neither) doesn't hold it.  NULL releases it; do that before
+// the pixels are freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeCanvas::SetImage(Ptr<CImage> pImage)
+{
+	if (mpcCanvas)
+	{
+		mpcCanvas->mpNativeImage = pImage;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CNativeCanvas::GetImage(void)
+{
+	if (mpcCanvas)
+	{
+		return mpcCanvas->mpNativeImage;
+	}
+	return Ptr<CImage>();
 }
 
 

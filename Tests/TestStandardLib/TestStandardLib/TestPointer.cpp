@@ -1,4 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/Objects.h"
@@ -415,6 +417,71 @@ void TestPointerValidatePtr(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestPointerMovedLogsError(char* szErrors, size uiSize)
+{
+	CMemoryFile		cMemory;
+	CFileBasic		cBasicMemory;
+	SLogConfig		sLogConfig;
+
+	memset(szErrors, 0, uiSize);
+	sLogConfig = gcLogger.SetSilent();
+	cMemory.Init();
+	gcLogger.AddOutput(&cMemory);
+	gcObjects.ValidateObjectsConsistency();
+	gcLogger.RemoveOutput(&cMemory);
+	gcLogger.SetConfig(&sLogConfig);
+
+	cMemory.Open(EFM_Read);
+	cBasicMemory.Init(&cMemory);
+	if (cBasicMemory.Size() > 0)
+	{
+		cBasicMemory.ReadStringChars(szErrors, (int)((cBasicMemory.Size() < (filePos)uiSize - 1) ? cBasicMemory.Size() : (filePos)uiSize - 1));
+	}
+	cMemory.Close();
+	cMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPointerMoved(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+	Ptr<CTestObject>*			pp;
+	char						acHolder[sizeof(Ptr<CTestObject>)];
+	char						acMoved[sizeof(Ptr<CTestObject>)];
+	char						szErrors[1024];
+
+	ObjectsInit();
+
+	//A stack pointer (one that isn't a field of an object) in memory that doesn't move.
+	pp = new (acHolder) Ptr<CTestObject>();
+	*pp = OMalloc<CTestObject>(&sNotifier);
+	TestPointerMovedLogsError(szErrors, sizeof(szErrors));
+	AssertString("", szErrors);
+
+	//Moved, as a CArrayTemplate moves its elements when it grows: the object still knows the pointer by its old address.
+	memcpy(acMoved, acHolder, sizeof(acHolder));
+	memset(acHolder, 0, sizeof(acHolder));
+	TestPointerMovedLogsError(szErrors, sizeof(szErrors));
+	AssertTrue(strstr(szErrors, "that no longer points to it.  Was the Pointer moved?") != NULL);
+
+	//Put back so it can be released.
+	memcpy(acHolder, acMoved, sizeof(acHolder));
+	pp->~Ptr<CTestObject>();
+	AssertTrue(sNotifier.bFreed);
+	AssertLong(0, gcObjects.NumMemoryIndexes());
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestPointer(void)
 {
 	BeginTests();
@@ -433,6 +500,7 @@ void TestPointer(void)
 	TestPointerCopy();
 	TestPointerStackWalkList();
 	TestPointerReturn();
+	TestPointerMoved();
 	TestPointerValidatePtr();
 
 	DataIOKill();

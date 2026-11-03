@@ -14,8 +14,8 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mhMemDC = NULL;
     mhMemBitmap = NULL;
+    mhOldBitmap = NULL;
     mpuiPixelData = NULL;
-    mpImage = NULL;
 }
 
 
@@ -28,13 +28,16 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 void CWinGDICanvas::Kill(void)
 {
     //The image references the DIB section memory so it must be released before the bitmap is deleted.
-    mpImage = NULL;
+    SetImage(NULL);
     if (mhMemDC)
     {
+        //A bitmap can't be deleted while it is selected into a DC so the DC's own bitmap is selected back in first.
+        SelectObject(mhMemDC, mhOldBitmap);
         DeleteObject(mhMemBitmap);
         DeleteDC(mhMemDC);
         mhMemDC = NULL;
         mhMemBitmap = NULL;
+        mhOldBitmap = NULL;
         mpuiPixelData = NULL;
     }
     CNativeCanvas::Kill();
@@ -75,7 +78,7 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
         mhMemBitmap = CreateDIBSection(hDC, &sBitmapInfo, DIB_RGB_COLORS, (void**)&mpuiPixelData, NULL, 0);
         if (mhMemBitmap)
         {
-            SelectObject(mhMemDC, mhMemBitmap);
+            mhOldBitmap = SelectObject(mhMemDC, mhMemBitmap);
             ReleaseDC(hWnd, hDC);
 
             //A 32 bit BI_RGB DIB section is laid out in memory as B, G, R, X.  A transparent canvas uses X for its opacity
@@ -83,11 +86,11 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
             //and transparent if the canvas is.
             if (mpcCanvas->IsTransparent())
             {
-                mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
+                SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP));
             }
             else
             {
-                mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
+                SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP));
             }
             SetSize(sSize.x, sSize.y);
             return true;
@@ -97,6 +100,7 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
     ReleaseDC(hWnd, hDC);
     mhMemDC = NULL;
     mhMemBitmap = NULL;
+    mhOldBitmap = NULL;
     mpuiPixelData = NULL;
     SetSize(-1, -1);
     return false;
@@ -161,7 +165,7 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CWinGDICanvas::GetImageOrNull(void)
 {
-    return mpImage;
+    return GetImage();
 }
 
 
@@ -251,7 +255,7 @@ void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Re
     }
     if (pcGDISource->mpcCanvas->IsTransparent())
     {
-        BlendPremultipliedImage(pcGDISource->mpImage, mpImage, iX, iY, &cDest);
+        BlendPremultipliedImage(pcGDISource->GetImage(), GetImage(), iX, iY, &cDest);
         return;
     }
 
@@ -279,12 +283,12 @@ void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Re
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 {
-    if (pSource.IsNull() || mpImage.IsNull())
+    if (pSource.IsNull() || GetImage().IsNull())
     {
         return;
     }
 
-    CImageCopier::Copy(pSource, mpImage, iX, iY);
+    CImageCopier::Copy(pSource, GetImage(), iX, iY);
 }
 
 
@@ -294,12 +298,12 @@ void CWinGDICanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::DrawImage(int iX, int iY, Ptr<CImage> pSource)
 {
-    if (pSource.IsNull() || mpImage.IsNull())
+    if (pSource.IsNull() || GetImage().IsNull())
     {
         return;
     }
 
-    CImageCopier::Copy(pSource, mpImage, iX, iY);
+    CImageCopier::Copy(pSource, GetImage(), iX, iY);
 }
 
 

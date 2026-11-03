@@ -35,8 +35,10 @@ class CCanvas : public CComponent
 {
 CONSTRUCTABLE(CCanvas);
 DESTRUCTABLE(CCanvas);
+friend class CNativeCanvas;
 protected:
 	CNativeCanvas*		mpcNativeCanvas;
+	Ptr<CImage>			mpNativeImage;  //The native canvas's pixels as an image, when it has one (CNativeCanvas::SetImage).  Held here, not by the native canvas, so the image is in the object graph.
 	EColourFormat		meColourFormat;
 	EColourOrder        meColourOrder;
 	ERGBColourBits      meColourBits;

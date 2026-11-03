@@ -236,6 +236,7 @@ void CMeshLeaves::Free(void)
 		pcLeaf = mcLeaves.Get(i);
 		pcLeaf->Kill();
 	}
+	mcLeaves.Kill();
 }
 
 

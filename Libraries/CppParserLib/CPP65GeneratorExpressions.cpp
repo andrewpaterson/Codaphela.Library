@@ -513,6 +513,78 @@ bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// f or &f (a function's name) when the value is for psTo, a pointer to a
+// function: its address is the overload of f with psTo's function type.  NULL
+// for any other expression or type.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+{
+	if (!pcExpression || !psTo || !psTo->IsPointer() || !psTo->psBase || !psTo->psBase->IsFunction() || psTo->IsMemberPointer())
+	{
+		return NULL;
+	}
+	return FunctionNameOf(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f or &f: the name of a function (overloaded or not), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression)
+{
+	CCPPSyntax*		pcFunction;
+	CCPPSymbol*		pcSymbol;
+
+	pcFunction = SkipParentheses(pcExpression);
+	if (pcFunction && (pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
+	{
+		pcFunction = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
+	}
+	if (!pcFunction || (pcFunction->GetKind() != CPPS_IdExpression))
+	{
+		return NULL;
+	}
+	pcSymbol = ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol;
+	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxIdExpression*)pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function of pcFunction's (unqualified) name has the function type
+// psPointer (a pointer to a function, or a reference to one) points to: an
+// overloaded name passed for a parameter of that type is that overload.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer)
+{
+	SCPP65Function*		psFunction;
+
+	psPointer = psPointer->IsReference() ? psPointer->psBase : psPointer;
+	if (!psPointer->IsPointer() || psPointer->IsMemberPointer() || !psPointer->psBase || !psPointer->psBase->IsFunction() || (pcFunction->mpcName->macpComponents.NumElements() != 1))
+	{
+		return false;
+	}
+	for (psFunction = FirstFunctionOfName(pcFunction->mpcName->mpcSymbol->mlliName); psFunction; psFunction = psFunction->psNextOfName)
+	{
+		if (!psFunction->psClass && !psFunction->psTemplate && psPointer->psBase->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A function's name used as a value is its address.  An overloaded name needs the
 // type of the function wanted (psTarget, from a cast to a pointer to a function).
 // Class::f and, in a member function, f may be a static member function (of the
@@ -549,7 +621,8 @@ SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, 
 		psFound = FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
 	}
 
-	for (psFunction = FirstFunctionOfName(lliName); psFunction && !psFound && !bQualified; psFunction = psFunction->psNextOfName)
+	//Every function of the name is looked at (unless the class has one): the one of psTarget's type, else the only one.
+	for (psFunction = (psFound || bQualified) ? NULL : FirstFunctionOfName(lliName); psFunction; psFunction = psFunction->psNextOfName)
 	{
 		if (!psFunction->psClass && !psFunction->psTemplate)
 		{
@@ -2154,14 +2227,10 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 	}
 
 	//(FPointer)&f chooses the overload of f with the pointer's type.
-	pcFunction = SkipParentheses(pcOperand);
-	if ((pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
+	pcFunction = FunctionNameFor(pcOperand, psTo);
+	if (pcFunction && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->macpComponents.NumElements() == 1))
 	{
-		pcFunction = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
-	}
-	pcSymbol = (pcFunction->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol : NULL;
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function) && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->macpComponents.NumElements() == 1) && psTo->IsPointer() && psTo->psBase->IsFunction())
-	{
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol;
 		return FunctionAddress(pcFunction, pcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}
 

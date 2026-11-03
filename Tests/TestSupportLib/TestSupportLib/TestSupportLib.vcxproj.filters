@@ -73,6 +73,9 @@
     <ClCompile Include="TestImage.cpp">
       <Filter>Source Files\Image</Filter>
     </ClCompile>
+    <ClCompile Include="TestMeshCache.cpp">
+      <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="TestMeshColour.cpp">
       <Filter>Source Files\Mesh</Filter>
     </ClCompile>

@@ -22,6 +22,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "CircuitSimulation.h"
 
 
@@ -46,9 +48,11 @@ void CCircuitSimulation::Init(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitSimulation::Init(int64 iID, const char* szName)
 {
+	PreInit();
+
 	mszName.Init(szName);
 	mcTimeline.Init(this);
-	mpCircuit = OMalloc<CCircuit>();
+	mpCircuit = OMalloc<CCircuit>(Ptr<CCircuitSimulation>(this));
 
 	miID = iID;
 	if (iID >= giNextCircuitSimulationID)
@@ -59,22 +63,36 @@ void CCircuitSimulation::Init(int64 iID, const char* szName)
 	mpcSubcircuitTopSimulation = NewMalloc<CSubcircuitTopSimulation>();
 	mpcSubcircuitTopSimulation->Init(this);
 	mapcInstanceSimulations.Init();
+
+	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The circuit, so its components can take their events off the
-// timeline, then the subcircuit simulations and the timeline.  Letting go
-// of the circuit frees it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitSimulation::Kill(void)
+void CCircuitSimulation::Class(void)
+{
+	M_Pointer(mpCircuit);
+	U_Unknown(CTimeline, mcTimeline);
+	U_Int64(miID);
+	U_String(mszName);
+	U_Pointer(mpcSubcircuitTopSimulation);
+	U_Unknown(CArraySubcircuitSimulationPtr, mapcInstanceSimulations);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The circuit and its components have been freed already, see the class
+// comment, so the subcircuit simulations and the timeline can go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitSimulation::Free(void)
 {
 	size					i;
 	CSubcircuitSimulation*	pcSubcircuitSimulation;
-
-	mpCircuit = NULL;
 
 	for (i = 0; i < mapcInstanceSimulations.NumElements(); i++)
 	{
@@ -86,6 +104,28 @@ void CCircuitSimulation::Kill(void)
 
 	mcTimeline.Kill();
 	mszName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A simulation is saved by LogicimLib's simulation state XML, not as an
+// object.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitSimulation::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitSimulation::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 

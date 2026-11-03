@@ -28,11 +28,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's CircuitSimulation, with its Simulation folded in: a circuit and the timeline it runs on.  Logicim's
 //Simulation only wraps the timeline; its GetTime, RunSimultaneous, RunToTime and RemoveEvent are here, and the events
 //that Logicim passes the Simulation are passed the timeline, whose context is the circuit simulation.  It owns both, its CSubcircuitTopSimulation, made in Init as Logicim's editor does, and the
-//CSubcircuitInstanceSimulations added to it.  The circuit is a CObject made in Init and kept by mpCircuit; Kill lets
-//go of it, which frees it and its components, before the timeline, so its components can take their events off it.  The timeline's context is the circuit simulation.  Every one gets the next id unless it is
-//given one.
-class CCircuitSimulation
+//CSubcircuitInstanceSimulations added to it.  It is a CObject: make it with OMalloc and keep it under the root.
+//
+//The circuit is a CObject made in Init and kept by mpCircuit.  The circuit needs (Nes) the simulation, so the
+//simulation is freed after the circuit and its components, which take their events off its timeline as they are
+//freed.  The timeline's context is the circuit simulation.  Every one gets the next id unless it is given one.
+class CCircuitSimulation : public CObject
 {
+CONSTRUCTABLE(CCircuitSimulation);
+DESTRUCTABLE(CCircuitSimulation);
 protected:
 	Ptr<CCircuit>					mpCircuit;
 	CTimeline						mcTimeline;
@@ -44,7 +48,11 @@ protected:
 public:
 	void							Init(const char* szName);
 	void							Init(int64 iID, const char* szName);
-	void							Kill(void);
+	void							Class(void) override;
+	void							Free(void) override;
+
+	bool							Save(CObjectWriter* pcFile) override;
+	bool							Load(CObjectReader* pcFile) override;
 
 	bool							Reset(void);
 	void							SimulationStarted(void);

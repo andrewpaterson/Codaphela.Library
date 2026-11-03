@@ -737,6 +737,9 @@ protected:
 	SCPP65Type*				StringLiteral(CCPPSyntaxStringExpression* pcString);
 	SCPP65Type*				IdExpression(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*				FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget = NULL);
+	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
+	bool					HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer);
 	SCPP65Function*			FindStaticFunction(SCPP65Class* psClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded);
 	SCPP65Type*				UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary);
 	SCPP65Type*				IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary);

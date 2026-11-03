@@ -7,24 +7,28 @@
 
 
 //Logicim's Circuit: the integrated circuits, passives and traces of a circuit; Logicim's traces are owned by its
-//editor.  A circuit is a CObject made with OMalloc and kept by its CCircuitSimulation.  Its pointers to its components
-//keep them alive, and removing a component frees it unless something else points to it.  It owns its traces.
+//editor.  A circuit is a CObject made with OMalloc by its CCircuitSimulation and kept by it.  Its pointers to its
+//components keep them alive, and removing a component frees it unless something else points to it.  It owns its
+//traces.
 //
 //Freeing the circuit frees its components and kills its traces, in no particular order: a trace that is killed
 //first lets go of the ports still on it, and a component freed first takes its ports off their traces.  Freeing
-//components takes their events off the timeline, so the circuit is freed before its timeline is killed, see
-//CCircuitSimulation.
+//components takes their events off the timeline, so the circuit is freed before its timeline is killed: it needs (Nes)
+//its simulation, which is then always freed after it and its components, see CCircuitSimulation.
 class CTimeline;
+class CCircuitSimulation;
 class CCircuit : public CObject
 {
 CONSTRUCTABLE(CCircuit);
+DESTRUCTABLE(CCircuit);
 protected:
 	CArray<CIntegratedCircuit>	maIntegratedCircuits;
 	CArray<CPassive>			maPassives;
 	CArrayTracePtr				mapcTraces;
+	Ptr<CCircuitSimulation>		mpSimulation;
 
 public:
-	void				Init(void);
+	void				Init(Ptr<CCircuitSimulation> pSimulation);
 	void				Class(void) override;
 	void				Free(void) override;
 

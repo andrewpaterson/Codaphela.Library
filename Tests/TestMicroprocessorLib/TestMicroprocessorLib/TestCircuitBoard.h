@@ -42,7 +42,7 @@ enum EGate
 class CTestBoard
 {
 public:
-	CCircuitSimulation					mcSimulation;
+	Ptr<CCircuitSimulation>				mpSimulation;
 	CFamilyVoltageConfigurationStore	mcStore;
 	CVoltageConfigurationSource*		mpcFamily;
 	CSubcircuitSimulation*				mpcTop;
@@ -60,9 +60,10 @@ public:
 		mcStore.Load("Input/PropagationTimes.csv");
 		mpcFamily = mcStore.Get("LVC");
 
-		mcSimulation.Init("Board");
-		mpcTop = mcSimulation.GetSubcircuitTopSimulation();
-		mpcTimeline = mcSimulation.GetTimeline();
+		mpSimulation = OMalloc<CCircuitSimulation>("Board");
+		ORoot()->Add(mpSimulation);
+		mpcTop = mpSimulation->GetSubcircuitTopSimulation();
+		mpcTimeline = mpSimulation->GetTimeline();
 		mpcVCC = NewTrace();
 		mpcGND = NewTrace();
 		pcPower = &OMalloc<CPowerSource>(mpcTop, "VCC", 3.3f);
@@ -73,13 +74,14 @@ public:
 
 	void Kill(void)
 	{
-		mcSimulation.Kill();
+		ORoot()->Remove(mpSimulation);
+		mpSimulation = NULL;
 		mcStore.Kill();
 	}
 
 	CTrace* NewTrace(void)
 	{
-		return mcSimulation.GetCircuit()->AddTrace();
+		return mpSimulation->GetCircuit()->AddTrace();
 	}
 
 	void Power(CIntegratedCircuit* pcIntegratedCircuit)
@@ -249,7 +251,7 @@ public:
 
 	void Start(void)
 	{
-		mcSimulation.SimulationStarted();
+		mpSimulation->SimulationStarted();
 	}
 
 	void Run(void)

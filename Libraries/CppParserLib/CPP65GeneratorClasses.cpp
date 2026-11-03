@@ -3355,7 +3355,14 @@ void CCPP65Generator::NoFunctionMatches(SCPP65Class* psClass, int64 lliName, ECP
 		{
 			szMessage.Append(", ");
 		}
-		apsArguments[i]->Append(&szMessage);
+		if (apsArguments[i])
+		{
+			apsArguments[i]->Append(&szMessage);
+		}
+		else
+		{
+			szMessage.Append("overloaded function");
+		}
 	}
 	szMessage.Append(")");
 	if (uiCandidates == 1)
@@ -3409,8 +3416,10 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
+		//An overloaded function's name has no type of its own (NULL): RankArguments matches it to a parameter
+		//that points to one of its overloads.
 		apsArguments[i] = TypeOf(papcArguments->GetPtr(i));
-		if (!apsArguments[i])
+		if (!apsArguments[i] && !FunctionNameOf(papcArguments->GetPtr(i)))
 		{
 			Expression(papcArguments->GetPtr(i));
 			return NULL;
@@ -3507,6 +3516,16 @@ bool CCPP65Generator::RankArguments(SCPP65Function* psFunction, SCPP65Type** aps
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
+		if (!apsArguments[i])
+		{
+			//An overloaded function's name (FindFunction) is an exact match for a pointer to one of its overloads.
+			aiRanks[i] = ((i < psFunction->mapsParameters.NumElements()) && HasOverloadOfType(FunctionNameOf(papcArguments->GetPtr(i)), psFunction->mapsParameters.GetPtr(i))) ? CPP65CR_Exact : CPP65CR_None;
+			if (aiRanks[i] == CPP65CR_None)
+			{
+				return false;
+			}
+			continue;
+		}
 		aiRanks[i] = (i < psFunction->mapsParameters.NumElements()) ? ConversionRank(psFunction->mapsParameters.GetPtr(i), apsArguments[i], papcArguments->GetPtr(i)) : CPP65CR_Ellipsis;
 		if (aiRanks[i] == CPP65CR_None)
 		{
@@ -5449,13 +5468,22 @@ SCPP65Function* CCPP65Generator::FindConversion(SCPP65Class* psClass, SCPP65Type
 //
 // The value of an expression that is converted to psTo: an object's conversion
 // function's result when psTo is not a class or a reference and the object has one
-// (explicit ones when bExplicit), else the expression's own value.
+// (explicit ones when bExplicit), the overload of a function's name with psTo's type
+// when psTo is a pointer to a function, else the expression's own value.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit)
 {
-	SCPP65Function*	psFunction;
-	SCPP65Class*	psClass;
+	SCPP65Function*				psFunction;
+	SCPP65Class*				psClass;
+	CCPPSyntaxIdExpression*		pcFunction;
+
+	//f for a pointer to a function is the overload of f with its type.
+	pcFunction = FunctionNameFor(pcExpression, psTo);
+	if (pcFunction)
+	{
+		return FunctionAddress(pcFunction, pcFunction->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
+	}
 
 	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && IsObject(pcExpression))
 	{

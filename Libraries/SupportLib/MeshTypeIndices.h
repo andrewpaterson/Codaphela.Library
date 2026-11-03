@@ -25,11 +25,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_TYPE_INDICES_H__
 #include "MeshDefines.h"
 #include "MeshIndexArray.h"
+#include "StandardLib/Array.h"
 #include "Mesh.h"
 
 
-class CMeshTypeIndices
+//The vertices of one face type: each vertex is the indices of its position, normal, colour, UVs and skin.  It is an
+//object because its vertex array is.
+class CMeshTypeIndices : public CObject
 {
+CONSTRUCTABLE(CMeshTypeIndices);
+DESTRUCTABLE(CMeshTypeIndices);
 public:
 	int						miStride;
 	Ptr<CMeshVertexArray>	mpVertexArray;
@@ -40,7 +45,8 @@ public:
 	int						miSkinOffset;
 
 	void	Init(Ptr<CMeshVertexArray> pVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
-	void	Kill(void);
+	void	Free(void) override;
+	void	Class(void) override;
 
 	bool	Generate(CArrayInt* paiFaces, void* pavFaceIndices);
 	void	SetVertIndex(int* piVertIndex, void* pvFaceVertIndex);
@@ -57,7 +63,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CMeshTypeIndices>	CArrayMeshTypeIndices;
+typedef CArray<CMeshTypeIndices>	CArrayMeshTypeIndices;
 
 
 #endif // __MESH_TYPE_INDICES_H__

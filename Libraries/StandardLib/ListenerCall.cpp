@@ -25,6 +25,108 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CListener::CListener(void)
+{
+	mapcCalls.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CListener::CListener(const CListener& cOther)
+{
+	//A copy is not in the calls the original is in.
+	mapcCalls.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CListener::~CListener(void)
+{
+	RemoveFromListenerCalls();
+	mapcCalls.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CListener& CListener::operator=(const CListener& cOther)
+{
+	//The listener stays in its own calls, not the other's.
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListener::RemoveFromListenerCalls(void)
+{
+	CListenerCall*	pcCall;
+
+	//RemoveListener takes the call out of mapcCalls.
+	while (mapcCalls.NumElements() > 0)
+	{
+		pcCall = mapcCalls.TailPtr();
+		if (!pcCall->RemoveListener(this))
+		{
+			RemoveListenerCall(pcCall);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CListener::NumListenerCalls(void)
+{
+	return mapcCalls.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListener::AddListenerCall(CListenerCall* pcCall)
+{
+	if (mapcCalls.Find(pcCall) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		mapcCalls.Add(pcCall);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListener::RemoveListenerCall(CListenerCall* pcCall)
+{
+	size	uiIndex;
+
+	uiIndex = mapcCalls.Find(pcCall);
+	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		mapcCalls.RemoveAt(uiIndex);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CListenerCall::Init(void)
 {
 	mcListeners.Init(1);
@@ -42,11 +144,18 @@ void CListenerCall::Kill(void)
 	size				uiDataSize;
 	bool				bContinue;
 	CArrayListenerPtr*	pcArray;
+	size				i;
+	size				uiNumElements;
 
 	bContinue = mcListeners.StartIteration(&sIter, NULL, NULL, &pvData, &uiDataSize);
 	while (bContinue)
 	{
 		pcArray = (CArrayListenerPtr*)pvData;
+		uiNumElements = pcArray->NumElements();
+		for (i = 0; i < uiNumElements; i++)
+		{
+			pcArray->GetPtr(i)->RemoveListenerCall(this);
+		}
 		pcArray->Kill();
 		bContinue = mcListeners.Iterate(&sIter, NULL, NULL, &pvData, &uiDataSize);
 	}
@@ -77,27 +186,46 @@ void CListenerCall::AddAllowedClassName(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CListenerCall::RemoveListener(CListener* pcRemoved)
 {
-	size				i;
+	size				uiIndex;
 	CArrayListenerPtr*	pcArray;
-	CListener*			pcListener;
 	SMapIterator		sIter;
-	bool				bResult;
-	size				uiNumElements;
+	bool				bContinue;
+	bool				bRemoved;
 
-	bResult = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
-	while (bResult)
+	//A listener can be in the call as more than one listener class.  It's taken out of all of them.
+	bRemoved = false;
+	bContinue = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
+	while (bContinue)
 	{
-		uiNumElements = pcArray->NumElements();
-		for (i = 0; i < uiNumElements; i++)
+		uiIndex = pcArray->Find(pcRemoved);
+		if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			pcListener = (*pcArray->Get(i));
-			if (pcListener == pcRemoved)
-			{
-				pcArray->RemoveAt(i);
-				return true;
-			}
+			pcArray->RemoveAt(uiIndex);
+			bRemoved = true;
 		}
-		bResult = mcListeners.Iterate(&sIter, NULL, NULL, (void**)&pcArray, NULL);
+		bContinue = mcListeners.Iterate(&sIter, NULL, NULL, (void**)&pcArray, NULL);
+	}
+
+	if (bRemoved)
+	{
+		pcRemoved->RemoveListenerCall(this);
+	}
+	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenerCall::IsListening(const char* szClassName, CListener* pcListener)
+{
+	CArrayListenerPtr*	pcArray;
+
+	pcArray = mcListeners.Get(szClassName);
+	if (pcArray)
+	{
+		return pcArray->Find(pcListener) != ARRAY_ELEMENT_NOT_FOUND;
 	}
 	return false;
 }
@@ -107,22 +235,74 @@ bool CListenerCall::RemoveListener(CListener* pcRemoved)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
+size CListenerCall::NumListeners(void)
 {
-	size				i;
-	CListener*			pcListener;
 	CArrayListenerPtr*	pcArray;
+	SMapIterator		sIter;
+	bool				bContinue;
+	size				uiCount;
+
+	uiCount = 0;
+	bContinue = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
+	while (bContinue)
+	{
+		uiCount += pcArray->NumElements();
+		bContinue = mcListeners.Iterate(&sIter, NULL, NULL, (void**)&pcArray, NULL);
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenerCall::StartCall(const char* szClassName, CArrayEmbeddedListenerPtr* papcCalled)
+{
+	//The listeners are copied before any is called because a listener may add or remove listeners while it's called.
+	CArrayListenerPtr*	pcArray;
+	size				i;
 	size				uiNumElements;
 
 	pcArray = mcListeners.Get(szClassName);
-	if (pcArray)
+	if (pcArray == NULL)
 	{
-		uiNumElements = pcArray->NumElements();
+		return false;
+	}
+
+	papcCalled->Init();
+	uiNumElements = pcArray->NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		papcCalled->Add(pcArray->GetPtr(i));
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
+{
+	size						i;
+	CListener*					pcListener;
+	CArrayEmbeddedListenerPtr	apcCalled;
+	size						uiNumElements;
+
+	if (StartCall(szClassName, &apcCalled))
+	{
+		uiNumElements = apcCalled.NumElements();
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcListener = *pcArray->Get(i);
-			(pcListener->*ListenerFunc)(pcSource, pvContext);
+			pcListener = apcCalled.GetPtr(i);
+			if (IsListening(szClassName, pcListener))
+			{
+				(pcListener->*ListenerFunc)(pcSource, pvContext);
+			}
 		}
+		apcCalled.Kill();
 	}
 }
 

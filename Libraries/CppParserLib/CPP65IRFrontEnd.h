@@ -263,6 +263,7 @@ protected:
 	CIRBlock*		GotoBlock(int iToken);
 	bool			Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
+	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	bool			ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);

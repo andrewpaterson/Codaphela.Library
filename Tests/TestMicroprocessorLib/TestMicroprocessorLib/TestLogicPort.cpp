@@ -174,7 +174,7 @@ public:
 class CTestLogicCircuit
 {
 public:
-	CCircuitSimulation			mcSimulation;
+	Ptr<CCircuitSimulation>		mpSimulation;
 	CTimeline*					mpcTimeline;
 	CCircuit*					mpcCircuit;
 	CSubcircuitSimulation*		mpcTop;
@@ -187,10 +187,11 @@ public:
 	{
 		CEvent::ResetNextID();
 		CTrace::ResetNextID();
-		mcSimulation.Init("Test");
-		mpcTimeline = mcSimulation.GetTimeline();
-		mpcCircuit = mcSimulation.GetCircuit();
-		mpcTop = mcSimulation.GetSubcircuitTopSimulation();
+		mpSimulation = OMalloc<CCircuitSimulation>("Test");
+		ORoot()->Add(mpSimulation);
+		mpcTimeline = mpSimulation->GetTimeline();
+		mpcCircuit = mpSimulation->GetCircuit();
+		mpcTop = mpSimulation->GetSubcircuitTopSimulation();
 		mpcVCC = mpcCircuit->AddTrace();
 		mpcGND = mpcCircuit->AddTrace();
 		AddPower("VCC", 4.0f)->GetPowerOutPort()->Connect(mpcVCC);
@@ -203,7 +204,8 @@ public:
 
 	void Kill(void)
 	{
-		mcSimulation.Kill();
+		ORoot()->Remove(mpSimulation);
+		mpSimulation = NULL;
 		mcFixed.Kill();
 		mszLog.Kill();
 	}
@@ -311,7 +313,7 @@ void TestLogicPortSlewAndTransition(void)
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
 	pcBuffer = cTest.AddBuffer("U1", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	AssertTrue(pcBuffer->IsPowered(0));
 
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
@@ -410,7 +412,7 @@ void TestLogicPortUndrivenToLow(void)
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
 	pcBuffer = cTest.AddBuffer("U1", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	pcA = cTest.mpcCircuit->AddTrace();
 	pcDriverOut->Connect(pcA);
@@ -452,7 +454,7 @@ void TestLogicPortImpedanceSeen(void)
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
 	pcBuffer = cTest.AddBuffer("U1", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	pcA = cTest.mpcCircuit->AddTrace();
 	pcDriverOut->Connect(pcA);
@@ -498,7 +500,7 @@ void TestLogicPortImpedance(void)
 
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	pcA = cTest.mpcCircuit->AddTrace();
 	pcDriverOut->Connect(pcA);
@@ -533,7 +535,7 @@ void TestLogicPortSlewInterrupted(void)
 
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	pcA = cTest.mpcCircuit->AddTrace();
 	pcDriverOut->Connect(pcA);
@@ -587,7 +589,7 @@ void TestLogicPortNoPower(void)
 	cFamily.Add(&cConfiguration, LOGIC_LEVEL_TTL);
 
 	pcDriver = &OMalloc<CTestBuffer>(cTest.mpcTop, "D", &cFamily, &cTest.mszLog);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	AssertFalse(pcDriver->IsPowered(0));
 
@@ -620,7 +622,7 @@ void TestLogicPortTraceConnected(void)
 
 	cTest.Init();
 	pcBuffer = cTest.AddBuffer("U1", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcBufferIn = pcBuffer->GetBufferPins()->mpcIn;
 
 	pcA = cTest.mpcCircuit->AddTrace();
@@ -655,7 +657,7 @@ void TestLogicPortDisconnect(void)
 	cTest.Init();
 	pcDriver = cTest.AddBuffer("D", &cTest.mcFixed);
 	pcBuffer = cTest.AddBuffer("U1", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	pcDriverOut = pcDriver->GetBufferPins()->mpcOut;
 	pcA = cTest.mpcCircuit->AddTrace();
 	pcDriverOut->Connect(pcA);
@@ -699,7 +701,7 @@ void TestLogicPortTick(void)
 	((CTestBufferPins*)pcClock->GetPins())->mpcOut->Connect(pcClockTrace);
 	pcBuffer->GetBufferPins()->mpcIn->Connect(pcClockTrace);
 
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	AssertSize(1, pcClock->NumEvents());
 
 	cTest.mpcTimeline->RunToTime(45000);
@@ -712,7 +714,7 @@ void TestLogicPortTick(void)
 	sz.Kill();
 
 	//Starting again resets what it remembers.
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	AssertSize(0, pcClock->muiTicks);
 	AssertFalse(pcClock->mbHigh);
 
@@ -748,7 +750,7 @@ void TestLogicPortPins(void)
 		apcBits[i]->GetBufferPins()->mpcOut->Connect(pcTrace);
 	}
 	pcSignals = cTest.AddBuffer("", &cTest.mcFixed);
-	cTest.mcSimulation.SimulationStarted();
+	cTest.mpSimulation->SimulationStarted();
 	AssertSize(8, cData.GetWidth());
 	AssertNull(cData.GetPort(8));
 

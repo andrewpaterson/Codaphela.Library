@@ -525,6 +525,48 @@ void TestCPP65IRDynamicCastUnits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An overloaded function's name for a pointer to a function is the overload
+// of the pointer's type: in global and local initialisers, an assignment, an
+// argument, a return and casts, whichever overload is declared first.  The
+// overload of the first declared used to be taken (a volatile global pointer
+// in TestCPP816StringRegisters called FindFirstClearBit(void*, size) for
+// FindFirstClearBit(uint32)).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IROverloadedFunctionPointers(void)
+{
+	AssertInt(511, TestCPP65IRMain(
+		"unsigned short F(void* p, unsigned short n) { return 1; }\n"
+		"unsigned short F(unsigned long u) { return 2; }\n"
+		"typedef unsigned short (*FLong)(unsigned long);\n"
+		"typedef unsigned short (*FArray)(void*, unsigned short);\n"
+		"FLong gpLong = F;\n"
+		"unsigned short (*volatile gpVolatile)(unsigned long) = &F;\n"
+		"FArray gpArray = F;\n"
+		"unsigned short Call(FLong p, unsigned long u) { return p(u); }\n"
+		"FLong Get(void) { return F; }\n"
+		"int main()\n"
+		"{\n"
+		"	FLong pLocal = F;\n"
+		"	FLong pAssigned;\n"
+		"	pAssigned = &F;\n"
+		"	int r = 0;\n"
+		"	if (gpLong(1) == 2) r |= 1;\n"
+		"	if (gpVolatile(1) == 2) r |= 2;\n"
+		"	if (gpArray(0, 0) == 1) r |= 4;\n"
+		"	if (pLocal(1) == 2) r |= 8;\n"
+		"	if (pAssigned(1) == 2) r |= 16;\n"
+		"	if (Call(F, 1) == 2) r |= 32;\n"
+		"	if (Get()(1) == 2) r |= 64;\n"
+		"	if (((FLong)&F)(1) == 2) r |= 128;\n"
+		"	if (((FArray)F)(0, 0) == 1) r |= 256;\n"
+		"	return r;\n"
+		"}\n", 8));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -549,6 +591,7 @@ void TestCPP65IR(void)
 	TestCPP65IRInlineConstants();
 	TestCPP65IRDynamicCast();
 	TestCPP65IRDynamicCastUnits();
+	TestCPP65IROverloadedFunctionPointers();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

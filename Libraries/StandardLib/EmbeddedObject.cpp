@@ -1,6 +1,7 @@
 #include "BaseLib/Logger.h"
 #include "Objects.h"
 #include "BaseObject.h"
+#include "Collection.h"
 #include "EmbeddedObject.h"
 
 
@@ -1109,6 +1110,8 @@ void CEmbeddedObject::ValidateFroms(void)
 	size				i;
 	CEmbeddedObject*	pcBaseObject;
 	size				uiHeapFroms;
+	CStackPointer*		pcStackPointer;
+	SStackPointer*		psStackPointer;
 
 	uiHeapFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiHeapFroms; i++)
@@ -1118,6 +1121,21 @@ void CEmbeddedObject::ValidateFroms(void)
 		if (pcBaseObject->IsBaseObject())
 		{
 			ValidateFrom((CBaseObject*)pcBaseObject);
+		}
+	}
+
+	//A stack from is kept by the address of its pointer (or collection), so one that has been moved (copied in a
+	//CArrayTemplate that grew, memcpy) no longer points to this.  Pointers that aren't fields of objects must not move.
+	for (pcStackPointer = mpcStackFroms; pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
+	{
+		psStackPointer = pcStackPointer->Get();
+		if ((psStackPointer->eType == SPT_Pointer) && (psStackPointer->u.pcPointer->Object() != this))
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a Stack-From Pointer [", PointerToString(psStackPointer->u.pvPointer), "] that no longer points to it.  Was the Pointer moved?", NULL);
+		}
+		else if ((psStackPointer->eType == SPT_Collection) && !((CBaseObject*)psStackPointer->u.pcCollection)->ContainsPointerTo(this))
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a Stack-From Collection that no longer contains it.  Was the Collection moved?", NULL);
 		}
 	}
 }

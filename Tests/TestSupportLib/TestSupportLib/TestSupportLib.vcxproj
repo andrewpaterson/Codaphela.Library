@@ -273,6 +273,7 @@
     <ClCompile Include="TestRectanglePow2Packer.cpp" />
     <ClCompile Include="TestRectangleLinePacker.cpp" />
     <ClCompile Include="TestRectangleBestPackerWithRotation.cpp" />
+    <ClCompile Include="TestMeshCache.cpp" />
     <ClCompile Include="TestMeshColour.cpp" />
     <ClCompile Include="TestMeshConnectivity.cpp" />
     <ClCompile Include="TestMeshFaceReturn.cpp" />

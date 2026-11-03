@@ -35,8 +35,8 @@ CONSTRUCTABLE(CWinGDICanvas);
 protected:
 	HDC				mhMemDC;
 	HBITMAP			mhMemBitmap;
-	uint8*			mpuiPixelData;
-	Ptr<CImage>		mpImage;  //Wraps mpuiPixelData (B8G8R8X8), it does not own the memory.
+	HGDIOBJ			mhOldBitmap;  //The DC's own bitmap, selected back in before mhMemBitmap is deleted.
+	uint8*			mpuiPixelData;  //B8G8R8X8.  The canvas holds the image that wraps it (CNativeCanvas::SetImage).
 
 public:
 	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);

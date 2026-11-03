@@ -33,7 +33,7 @@ void CMeshCacher::Init(CMesh* pcMesh)
 {
 	//This assumes the mesh has been touched.
 	mpcMesh = pcMesh;
-	mcTypeIndices.Init();
+	mpTypeIndices = OMalloc<CArrayMeshTypeIndices>();
 }
 
 
@@ -43,17 +43,8 @@ void CMeshCacher::Init(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::Kill(void)
 {
-	size				i;
-	CMeshTypeIndices*	pcType;
-	size				uiNumElements;
-
-	uiNumElements = mcTypeIndices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcType = mcTypeIndices.Get(i);
-		pcType->Kill();
-	}
-	mcTypeIndices.Kill();
+	//Freeing the array frees the type indices in it.
+	mpTypeIndices = NULL;
 }
 
 
@@ -111,7 +102,7 @@ bool CMeshCacher::Index(void)
 	void*					pvIndices;
 	int						iOffset;
 	int						iUVLayers;
-	CMeshTypeIndices*		pcMeshTypeIndices;
+	Ptr<CMeshTypeIndices>	pMeshTypeIndices;
 	int						iNormalOffset;
 	int						iColourOffset;
 	int						iUVOffset;
@@ -177,11 +168,11 @@ bool CMeshCacher::Index(void)
 			iOffset += (int)sizeof(int) * iMatricies;
 		}
 
-		pcMeshTypeIndices = mcTypeIndices.Add();
 		pVertexArray = mpcMesh->mcCache.AddVertexArray(*psFaceType);
-		pcMeshTypeIndices->Init(pVertexArray, iStride, iNormalOffset, iColourOffset, iUVOffset, iMatrixOffset);
+		pMeshTypeIndices = OMalloc<CMeshTypeIndices>(pVertexArray, iStride, iNormalOffset, iColourOffset, iUVOffset, iMatrixOffset);
+		mpTypeIndices->Add(pMeshTypeIndices);
 
-		pcMeshTypeIndices->Generate(&aiFaces, pvIndices);
+		pMeshTypeIndices->Generate(&aiFaces, pvIndices);
 
 		free(pvIndices);
 		aiFaces.Kill();
@@ -203,10 +194,10 @@ bool CMeshCacher::Vertex(void)
 	size					iUniqueTypes;
 	Ptr<CMeshVertexArray>	pVertexArray;
 
-	iUniqueTypes = mcTypeIndices.NumElements();
+	iUniqueTypes = mpTypeIndices->NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
-		pcTypeIndices = mcTypeIndices.Get(i);
+		pcTypeIndices = &mpTypeIndices->Get(i);
 
 		pVertexArray = mpcMesh->mcCache.GetVertexArray((int)i);
 		pVertexArray->GetVertexArray()->BeginChange();

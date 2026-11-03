@@ -52,6 +52,8 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Free(void)
 {
+	//An object's memory is freed without its destructor running so it unhooks its listener here.
+	RemoveFromListenerCalls();
 }
 
 

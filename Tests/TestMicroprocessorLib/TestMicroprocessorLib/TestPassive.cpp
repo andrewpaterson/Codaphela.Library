@@ -31,58 +31,62 @@ void TestPassiveResetIDs(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassiveCircuitSimulation(void)
 {
-	CCircuitSimulation		cSimulation;
-	CCircuitSimulation		cUnnamed;
+	Ptr<CCircuitSimulation>	pSimulation;
+	Ptr<CCircuitSimulation>	pUnnamed;
 	CSubcircuitSimulation*	pcTop;
 	CPowerSource*			pcPower;
 	CChars					sz;
 	SLogConfig				sLogConfig;
 
 	TestPassiveResetIDs();
-	cSimulation.Init("Main");
-	cUnnamed.Init(7, "");
-	AssertLong(1, cSimulation.GetID());
-	AssertLong(7, cUnnamed.GetID());
-	AssertString("Main", cSimulation.GetName());
-	AssertLong(0, cSimulation.GetTime());
-	AssertTrue(cSimulation.GetTimeline()->GetContext() == &cSimulation);
+	pSimulation = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pSimulation);
+	pUnnamed = OMalloc<CCircuitSimulation>(7, "");
+	ORoot()->Add(pUnnamed);
+	AssertLong(1, pSimulation->GetID());
+	AssertLong(7, pUnnamed->GetID());
+	AssertString("Main", pSimulation->GetName());
+	AssertLong(0, pSimulation->GetTime());
+	AssertTrue(pSimulation->GetTimeline()->GetContext() == &pSimulation);
 
 	sz.Init();
-	cSimulation.AppendDescription(&sz);
+	pSimulation->AppendDescription(&sz);
 	AssertString("Main (1)", sz.Text());
 	sz.Clear();
-	cUnnamed.AppendDescription(&sz);
+	pUnnamed->AppendDescription(&sz);
 	AssertString("7", sz.Text());
 	sz.Clear();
 
-	pcTop = cSimulation.GetSubcircuitTopSimulation();
+	pcTop = pSimulation->GetSubcircuitTopSimulation();
 	AssertTrue(pcTop->IsTop());
 	AssertFalse(pcTop->IsInstance());
 	AssertLong(1, pcTop->GetID());
-	AssertLong(2, cUnnamed.GetSubcircuitTopSimulation()->GetID());
-	AssertTrue(pcTop->GetCircuit() == cSimulation.GetCircuit());
-	AssertTrue(pcTop->GetTimeline() == cSimulation.GetTimeline());
+	AssertLong(2, pUnnamed->GetSubcircuitTopSimulation()->GetID());
+	AssertTrue(pcTop->GetCircuit() == pSimulation->GetCircuit());
+	AssertTrue(pcTop->GetTimeline() == pSimulation->GetTimeline());
 	AssertString("Main", pcTop->GetName());
 	pcTop->AppendDescription(&sz);
 	AssertString("Type[Top] ID[1] Simulation[Main (1)] ", sz.Text());
 	sz.Kill();
 
-	AssertTrue(cSimulation.GetCircuit()->IsEmpty());
+	AssertTrue(pSimulation->GetCircuit()->IsEmpty());
 	pcPower = &OMalloc<CPowerSource>(pcTop, "VCC", 5.0f);
-	AssertFalse(cSimulation.GetCircuit()->IsEmpty());
-	AssertSize(1, cSimulation.GetCircuit()->NumPassives());
+	AssertFalse(pSimulation->GetCircuit()->IsEmpty());
+	AssertSize(1, pSimulation->GetCircuit()->NumPassives());
 
 	sLogConfig = gcLogger.SetSilent();
-	AssertFalse(cSimulation.Reset());
+	AssertFalse(pSimulation->Reset());
 	gcLogger.SetConfig(&sLogConfig);
 
-	AssertTrue(cSimulation.GetCircuit()->Remove(pcPower));
-	AssertTrue(cSimulation.GetCircuit()->IsEmpty());
-	AssertTrue(cSimulation.Reset());
-	AssertTrue(cSimulation.GetTimeline()->GetContext() == &cSimulation);
+	AssertTrue(pSimulation->GetCircuit()->Remove(pcPower));
+	AssertTrue(pSimulation->GetCircuit()->IsEmpty());
+	AssertTrue(pSimulation->Reset());
+	AssertTrue(pSimulation->GetTimeline()->GetContext() == &pSimulation);
 
-	cSimulation.Kill();
-	cUnnamed.Kill();
+	ORoot()->Remove(pSimulation);
+	pSimulation = NULL;
+	ORoot()->Remove(pUnnamed);
+	pUnnamed = NULL;
 }
 
 
@@ -92,14 +96,15 @@ void TestPassiveCircuitSimulation(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassivePowerSource(void)
 {
-	CCircuitSimulation	cSimulation;
+	Ptr<CCircuitSimulation>	pSimulation;
 	CPowerSource*		pcPower;
 	CTrace*				pcTrace;
 	CChars				sz;
 
 	TestPassiveResetIDs();
-	cSimulation.Init("Main");
-	pcPower = &OMalloc<CPowerSource>(cSimulation.GetSubcircuitTopSimulation(), "Supply", 3.3f);
+	pSimulation = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pSimulation);
+	pcPower = &OMalloc<CPowerSource>(pSimulation->GetSubcircuitTopSimulation(), "Supply", 3.3f);
 	AssertString("Power Source", pcPower->GetType());
 	AssertString("Supply", pcPower->GetComponentName());
 	AssertSize(1, pcPower->NumPorts());
@@ -114,13 +119,14 @@ void TestPassivePowerSource(void)
 	AssertString("Power (3.3V)", sz.Text());
 	sz.Kill();
 
-	pcTrace = cSimulation.GetCircuit()->AddTrace();
+	pcTrace = pSimulation->GetCircuit()->AddTrace();
 	pcPower->GetPowerOutPort()->Connect(pcTrace);
 	AssertFloat(3.3f, pcTrace->GetVoltage(0), 3);
-	cSimulation.SimulationStarted();
+	pSimulation->SimulationStarted();
 	AssertFloat(3.3f, pcTrace->GetVoltage(0), 3);
 
-	cSimulation.Kill();
+	ORoot()->Remove(pSimulation);
+	pSimulation = NULL;
 }
 
 
@@ -130,7 +136,7 @@ void TestPassivePowerSource(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassivePin(void)
 {
-	CCircuitSimulation	cSimulation;
+	Ptr<CCircuitSimulation>	pSimulation;
 	CSubcircuitSimulation*	pcTop;
 	CPin*				pcPin;
 	CPowerSource*		pcPower;
@@ -139,8 +145,9 @@ void TestPassivePin(void)
 	SLogConfig			sLogConfig;
 
 	TestPassiveResetIDs();
-	cSimulation.Init("Main");
-	pcTop = cSimulation.GetSubcircuitTopSimulation();
+	pSimulation = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pSimulation);
+	pcTop = pSimulation->GetSubcircuitTopSimulation();
 	pcPin = &OMalloc<CPin>(pcTop, "Data", 4);
 	AssertString("Pin", pcPin->GetType());
 	AssertSize(4, pcPin->NumTracePorts());
@@ -159,24 +166,25 @@ void TestPassivePin(void)
 	gcLogger.SetConfig(&sLogConfig);
 
 	AssertFalse(IsVoltage(pcPin->GetVCC(0)));
-	pcVCC = cSimulation.GetCircuit()->AddTrace();
+	pcVCC = pSimulation->GetCircuit()->AddTrace();
 	pcPower = &OMalloc<CPowerSource>(pcTop, "VCC", 5.0f);
 	pcPower->GetPowerOutPort()->Connect(pcVCC);
 	pcPin->GetVoltageCommon()->Connect(pcVCC);
 	AssertFloat(5.0f, pcPin->GetVCC(0), 3);
 
 	//A trace port neither drives nor reads.
-	pcBit = cSimulation.GetCircuit()->AddTrace();
+	pcBit = pSimulation->GetCircuit()->AddTrace();
 	pcPin->GetTracePort(0)->Connect(pcBit);
 	AssertFalse(IsVoltage(pcBit->GetVoltage(0)));
 	AssertSize(1, pcBit->NumConnectedPorts());
 
 	//Removing the pin frees it, which disconnects its ports.
-	AssertTrue(cSimulation.GetCircuit()->Remove(pcPin));
+	AssertTrue(pSimulation->GetCircuit()->Remove(pcPin));
 	AssertSize(0, pcBit->NumConnectedPorts());
 	AssertSize(1, pcVCC->NumConnectedPorts());
 
-	cSimulation.Kill();
+	ORoot()->Remove(pSimulation);
+	pSimulation = NULL;
 }
 
 
@@ -186,20 +194,21 @@ void TestPassivePin(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassiveSplitter(void)
 {
-	CCircuitSimulation	cSimulation;
+	Ptr<CCircuitSimulation>	pSimulation;
 	CSplitter*			pcSplitter;
 	CArrayChars			aszStart;
 	CArrayChars			aszEnd;
 
 	TestPassiveResetIDs();
-	cSimulation.Init("Main");
+	pSimulation = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pSimulation);
 	aszStart.Init();
 	aszStart.Add("D0");
 	aszStart.Add("D1");
 	aszEnd.Init();
 	aszEnd.Add("D[0..1]");
 
-	pcSplitter = &OMalloc<CSplitter>(cSimulation.GetSubcircuitTopSimulation(), "Split", &aszStart, &aszEnd);
+	pcSplitter = &OMalloc<CSplitter>(pSimulation->GetSubcircuitTopSimulation(), "Split", &aszStart, &aszEnd);
 	aszStart.Kill();
 	aszEnd.Kill();
 
@@ -213,7 +222,8 @@ void TestPassiveSplitter(void)
 	AssertNull(pcSplitter->GetEndPort(1));
 	AssertTrue(pcSplitter->GetPort("D1") == pcSplitter->GetStartPort(1));
 
-	cSimulation.Kill();
+	ORoot()->Remove(pSimulation);
+	pSimulation = NULL;
 }
 
 
@@ -223,7 +233,7 @@ void TestPassiveSplitter(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassiveSubcircuitInstance(void)
 {
-	CCircuitSimulation				cSimulation;
+	Ptr<CCircuitSimulation>			pSimulation;
 	CSubcircuitInstance*			pcInstance;
 	CSubcircuitInstanceSimulation*	pcInstanceSimulation;
 	CArrayTracePortPtr*				papcPorts;
@@ -231,8 +241,9 @@ void TestPassiveSubcircuitInstance(void)
 	SLogConfig						sLogConfig;
 
 	TestPassiveResetIDs();
-	cSimulation.Init("Main");
-	pcInstance = &OMalloc<CSubcircuitInstance>(cSimulation.GetSubcircuitTopSimulation(), "ALU");
+	pSimulation = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pSimulation);
+	pcInstance = &OMalloc<CSubcircuitInstance>(pSimulation->GetSubcircuitTopSimulation(), "ALU");
 	AssertString("Subcircuit instance", pcInstance->GetType());
 
 	papcPorts = pcInstance->AddTracePorts("A", 8);
@@ -255,16 +266,16 @@ void TestPassiveSubcircuitInstance(void)
 	AssertSize(9, pcInstance->NumPorts());
 
 	AssertNull(pcInstance->GetSubcircuitInstanceSimulation());
-	pcInstanceSimulation = cSimulation.AddInstanceSimulation(pcInstance);
+	pcInstanceSimulation = pSimulation->AddInstanceSimulation(pcInstance);
 	pcInstance->SetSubcircuitInstanceSimulation(pcInstanceSimulation);
 	AssertTrue(pcInstance->GetSubcircuitInstanceSimulation() == pcInstanceSimulation);
 	AssertTrue(pcInstanceSimulation->GetSubcircuitInstance() == pcInstance);
 	AssertTrue(pcInstanceSimulation->IsInstance());
 	AssertFalse(pcInstanceSimulation->IsTop());
 	AssertLong(2, pcInstanceSimulation->GetID());
-	AssertTrue(pcInstanceSimulation->GetCircuit() == cSimulation.GetCircuit());
-	AssertSize(1, cSimulation.NumInstanceSimulations());
-	AssertTrue(cSimulation.GetInstanceSimulation(0) == pcInstanceSimulation);
+	AssertTrue(pcInstanceSimulation->GetCircuit() == pSimulation->GetCircuit());
+	AssertSize(1, pSimulation->NumInstanceSimulations());
+	AssertTrue(pSimulation->GetInstanceSimulation(0) == pcInstanceSimulation);
 
 	sz.Init();
 	pcInstanceSimulation->AppendDescription(&sz);
@@ -272,12 +283,13 @@ void TestPassiveSubcircuitInstance(void)
 	sz.Kill();
 
 	//A loaded one is given its id; later ones come after it.
-	pcInstanceSimulation = cSimulation.AddInstanceSimulation(10);
+	pcInstanceSimulation = pSimulation->AddInstanceSimulation(10);
 	AssertLong(10, pcInstanceSimulation->GetID());
 	AssertNull(pcInstanceSimulation->GetSubcircuitInstance());
-	AssertLong(11, cSimulation.AddInstanceSimulation(pcInstance)->GetID());
+	AssertLong(11, pSimulation->AddInstanceSimulation(pcInstance)->GetID());
 
-	cSimulation.Kill();
+	ORoot()->Remove(pSimulation);
+	pSimulation = NULL;
 }
 
 
@@ -287,36 +299,38 @@ void TestPassiveSubcircuitInstance(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPassiveSubcircuitSimulations(void)
 {
-	CCircuitSimulation				cMain;
-	CCircuitSimulation				cOther;
+	Ptr<CCircuitSimulation>			pMain;
+	Ptr<CCircuitSimulation>			pOther;
 	CSubcircuitSimulations			cSimulations;
 	CSubcircuitInstanceSimulation*	pcInstance;
 	CArraySubcircuitSimulationPtr	apcSimulations;
 	SLogConfig						sLogConfig;
 
 	TestPassiveResetIDs();
-	cMain.Init("Main");
-	cOther.Init("Other");
-	pcInstance = cMain.AddInstanceSimulation((CSubcircuitInstance*)NULL);
+	pMain = OMalloc<CCircuitSimulation>("Main");
+	ORoot()->Add(pMain);
+	pOther = OMalloc<CCircuitSimulation>("Other");
+	ORoot()->Add(pOther);
+	pcInstance = pMain->AddInstanceSimulation((CSubcircuitInstance*)NULL);
 
 	cSimulations.Init();
-	AssertTrue(cSimulations.Add(cMain.GetSubcircuitTopSimulation()));
-	AssertTrue(cSimulations.Add(cOther.GetSubcircuitTopSimulation()));
+	AssertTrue(cSimulations.Add(pMain->GetSubcircuitTopSimulation()));
+	AssertTrue(cSimulations.Add(pOther->GetSubcircuitTopSimulation()));
 	AssertTrue(cSimulations.Add(pcInstance));
 	sLogConfig = gcLogger.SetSilent();
 	AssertFalse(cSimulations.Add(pcInstance));
 	gcLogger.SetConfig(&sLogConfig);
 
 	AssertSize(2, cSimulations.NumCircuitSimulations());
-	AssertTrue(cSimulations.GetCircuitSimulation(0) == &cMain);
-	AssertTrue(cSimulations.GetCircuitSimulation(1) == &cOther);
+	AssertTrue(cSimulations.GetCircuitSimulation(0) == &pMain);
+	AssertTrue(cSimulations.GetCircuitSimulation(1) == &pOther);
 	AssertNull(cSimulations.GetCircuitSimulation(2));
-	AssertSize(2, cSimulations.GetSubcircuitSimulations(&cMain)->NumElements());
+	AssertSize(2, cSimulations.GetSubcircuitSimulations(&pMain)->NumElements());
 
 	apcSimulations.Init();
 	cSimulations.GetSubcircuitTopSimulations(&apcSimulations);
 	AssertSize(2, apcSimulations.NumElements());
-	AssertTrue(apcSimulations.GetPtr(0) == cMain.GetSubcircuitTopSimulation());
+	AssertTrue(apcSimulations.GetPtr(0) == pMain->GetSubcircuitTopSimulation());
 	apcSimulations.ReInit();
 	cSimulations.GetSubcircuitInstanceSimulations(&apcSimulations);
 	AssertSize(1, apcSimulations.NumElements());
@@ -327,19 +341,21 @@ void TestPassiveSubcircuitSimulations(void)
 	apcSimulations.Kill();
 
 	//The last of a circuit simulation's drops it.
-	AssertTrue(cSimulations.Remove(cOther.GetSubcircuitTopSimulation()));
+	AssertTrue(cSimulations.Remove(pOther->GetSubcircuitTopSimulation()));
 	AssertSize(1, cSimulations.NumCircuitSimulations());
-	AssertNull(cSimulations.GetSubcircuitSimulations(&cOther));
+	AssertNull(cSimulations.GetSubcircuitSimulations(&pOther));
 	sLogConfig = gcLogger.SetSilent();
-	AssertFalse(cSimulations.Remove(cOther.GetSubcircuitTopSimulation()));
+	AssertFalse(cSimulations.Remove(pOther->GetSubcircuitTopSimulation()));
 	gcLogger.SetConfig(&sLogConfig);
 
 	cSimulations.Clear();
 	AssertSize(0, cSimulations.NumCircuitSimulations());
 	cSimulations.Kill();
 
-	cMain.Kill();
-	cOther.Kill();
+	ORoot()->Remove(pMain);
+	pMain = NULL;
+	ORoot()->Remove(pOther);
+	pOther = NULL;
 }
 
 

@@ -47,10 +47,8 @@ public:
 template <class M>
 void CClassFunctionsCall::Init(void)
 {
-	M	cTemp;
-	
 	mFunction = NULL;
-	CClassFunctionsCall::Init(cTemp.ClassName());
+	CClassFunctionsCall::Init(M::StaticClassName());
 }
 
 

@@ -29,8 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshCacher
 {
 public:
-	CMesh*						mpcMesh;
-	CArrayMeshTypeIndices		mcTypeIndices;
+	CMesh*							mpcMesh;
+	Ptr<CArrayMeshTypeIndices>		mpTypeIndices;
 
 	void	Init(CMesh* pcMesh);
 	void	Kill(void);
