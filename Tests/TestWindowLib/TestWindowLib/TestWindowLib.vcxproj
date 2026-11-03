@@ -262,6 +262,7 @@
     <ClCompile Include="TestTextField.cpp" />
     <ClCompile Include="TestSoundMixer.cpp" />
     <ClCompile Include="TestWindowRedraw.cpp" />
+    <ClCompile Include="TestWinGDICanvas.cpp" />
     <ClCompile Include="WaitTestRefWindow.cpp" />
     <ClCompile Include="TestCheckBox.cpp" />
     <ClCompile Include="TestComboBox.cpp" />
@@ -294,6 +295,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\Libraries\WinRefLib\WinRefLib.vcxproj">
       <Project>{5f0b57a7-0f29-4845-9320-14b4b27491f7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\WinGdiLib\WinGdiLib.vcxproj">
+      <Project>{d42e3a40-2620-4520-bea0-ce1f3e064e08}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowLib", "..\..\Librarie
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputLib", "..\..\Libraries\InputLib\InputLib.vcxproj", "{2F64AA34-F1CC-43FE-90EE-90E66824EE55}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinGdiLib", "..\..\Libraries\WinGdiLib\WinGdiLib.vcxproj", "{D42E3A40-2620-4520-BEA0-CE1F3E064E08}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -77,6 +79,14 @@ Global
 		{5F0B57A7-0F29-4845-9320-14B4B27491F7}.Release|Win32.Build.0 = Release|Win32
 		{5F0B57A7-0F29-4845-9320-14B4B27491F7}.Release|x64.ActiveCfg = Release|x64
 		{5F0B57A7-0F29-4845-9320-14B4B27491F7}.Release|x64.Build.0 = Release|x64
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Debug|Win32.Build.0 = Debug|Win32
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Debug|x64.ActiveCfg = Debug|x64
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Debug|x64.Build.0 = Debug|x64
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Release|Win32.ActiveCfg = Release|Win32
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Release|Win32.Build.0 = Release|Win32
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Release|x64.ActiveCfg = Release|x64
+		{D42E3A40-2620-4520-BEA0-CE1F3E064E08}.Release|x64.Build.0 = Release|x64
 		{B5D4C7AA-49EF-45D2-B970-0AB1F1184AE6}.Debug|Win32.ActiveCfg = Debug|Win32
 		{B5D4C7AA-49EF-45D2-B970-0AB1F1184AE6}.Debug|Win32.Build.0 = Debug|Win32
 		{B5D4C7AA-49EF-45D2-B970-0AB1F1184AE6}.Debug|x64.ActiveCfg = Debug|x64

@@ -26,6 +26,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowLib/NativeCanvas.h"
 
 
+//A canvas held in a DIB section.  Everything is drawn on its pixels directly, never with GDI: GDI queues its drawing and
+//would have to be flushed before every direct write, and there are hundreds a frame.  The only GDI that touches the DIB
+//is the window's present (CWinGDIWindow::Present), which reads it after the frame's drawing is done.  Keep it so.
 class CWinGDICanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinGDICanvas);
@@ -55,7 +58,8 @@ public:
 	void			DrawImage(int iX, int iY, Ptr<CImage> pSource);
 
 protected:
-	void			FillPremultiplied(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
+	uint32			GetPixel(ARGB32 sColour);
+	void			FillPixels(int iLeft, int iTop, int iRight, int iBottom, uint32 uiPixel);
 };
 
 

@@ -121,6 +121,9 @@
     <ClCompile Include="TestWindowRedraw.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TestWinGDICanvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="WaitTestRefWindow.cpp">
       <Filter>Source\TestCommon</Filter>
     </ClCompile>
