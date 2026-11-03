@@ -224,6 +224,9 @@ void CComboBox::Select(int32 iIndex)
 	}
 	miSelected = iIndex;
 	mpText->SetText(iIndex == -1 ? "" : GetItemText(iIndex));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -264,6 +267,9 @@ void CComboBox::SetPadding(int32 iHorizontal, int32 iVertical)
 {
 	msPadding.Init(iHorizontal, iVertical);
 	UpdateFaceSize();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

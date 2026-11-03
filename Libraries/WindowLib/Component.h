@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "FocusListener.h"
 #include "SupportLib/Int32Rect.h"
 #include "ContainerStyle.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "InputAction.h"
 
 
@@ -87,6 +88,8 @@ public:
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
 			Ptr<CComponent>		GetParent(void);
 			Ptr<CWindow>		GetWindow(void);
+	virtual	void				Invalidate(void);
+	virtual	void				InvalidateLayout(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);
 
 			void				SetActualSize(int iWidth, int iHeight);
@@ -115,6 +118,8 @@ public:
 			bool				CallInputActions(SComponentInputEvent* psEvent);
 
 protected:
+			void				SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds);
+			size				CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex, size* puiNumLogged);
 			Ptr<CInputAction>	MallocInputAction(void);
 			void				AddInputAction(Ptr<CInputAction> pAction);
 };

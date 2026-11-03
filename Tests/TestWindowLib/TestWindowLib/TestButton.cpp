@@ -453,8 +453,6 @@ public:
 
 	void Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) override
 	{
-		pWindow->Paint();
-
 		miFrame++;
 		if (miFrame == 1)
 		{

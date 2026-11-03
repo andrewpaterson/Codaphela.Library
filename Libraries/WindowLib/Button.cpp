@@ -170,6 +170,9 @@ void CButton::SetCaption(const char* szCaption)
 {
 	mpCaption->SetText(szCaption == NULL ? "" : szCaption);
 	UpdateContent();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -182,6 +185,9 @@ void CButton::SetIcon(Ptr<CImageCel> pIcon)
 {
 	mpIcon->SetCel(pIcon);
 	UpdateContent();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -193,6 +199,9 @@ void CButton::SetIconGap(int32 iIconGap)
 {
 	miIconGap = iIconGap;
 	UpdateContent();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -262,6 +271,9 @@ void CButton::SetPadding(int32 iHorizontal, int32 iVertical)
 {
 	msPadding.Init(iHorizontal, iVertical);
 	UpdateFaceSize();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

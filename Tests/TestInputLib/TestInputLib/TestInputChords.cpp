@@ -294,6 +294,89 @@ void TestInputChordsHeldAndEvicted(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How long until held inputs are evicted, so a window waiting for events
+// wakes in time to let them through.  Nothing is waiting while nothing is
+// held or something held is still down.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputChordsEvictionDelay(void)
+{
+	CInput						cInput;
+	CPlayer						cPlayer;
+	CProgramDeviceDetail*		pcDetail;
+	CInputVirtualDevice*		pcVirtual;
+	CInputDevice*				pcDevice;
+	CInputChord*				pcChord;
+	CGroupInputChordCriteria*	pcGroup;
+	COrderedInputChordCriteria*	pcOrdered;
+	CInputChords*				pcChords;
+	uint32						uiDelay;
+
+	cInput.Init(NULL);
+	pcDetail = AddProgrammaticDevice(cInput.GetProgramInput());
+	cInput.AddProgramInput();
+	cPlayer.Init();
+
+	pcDevice = cInput.GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(cInput.GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
+	pcVirtual = cInput.GetDevices()->CreateVirtualDevice("Delay");
+	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "Left Control", "Space", NULL));
+	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcGroup = pcChord->AsGroup();
+	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
+	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
+	AssertBool(true, pcChord->Done());
+
+	//Control tapped then Space: once control is let go the chord can still match, so control is held until it can't.
+	pcChord = pcVirtual->AddChordAction(cInput.GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcOrdered = pcChord->AsOrdered();
+	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
+	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
+	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
+	AssertBool(true, pcChord->Done());
+	pcVirtual->Enable();
+	pcChords = pcVirtual->GetChords();
+
+	//Nothing held.
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 0, "");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 1.0f, 10, "W 1");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "W", 0.0f, 20, "W 0");
+
+	//Held while it is down: it never ages.
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 1000, "");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 1500, "");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+
+	//Let go, the partial chord has 300ms from the release, so it is evicted by the update 301ms after it.
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 2000, "");
+	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
+	AssertInt(301, uiDelay);
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2100, "");
+	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
+	AssertInt(201, uiDelay);
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2300, "");
+	AssertTrue(pcChords->GetEvictionDelay(&uiDelay));
+	AssertInt(1, uiDelay);
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, NULL, 0.0f, 2301, "Left Control 1, Left Control 0");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+
+	//A completed chord leaves nothing to evict.
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 1.0f, 3000, "");
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 1.0f, 3010, "[Control Space]");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Space", 0.0f, 3020, "Space 0");
+	AssertChordsEvents(&cInput, pcDetail, pcVirtual, "Left Control", 0.0f, 3030, "Left Control 0");
+	AssertFalse(pcChords->GetEvictionDelay(&uiDelay));
+
+	cPlayer.Kill();
+	cInput.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A tapped key and then another, each chord with its own eviction age: a
 // partial chord waits as long as the longest of the chords that could
 // still match it, which can be shorter than the chords' 300ms.
@@ -873,6 +956,7 @@ void TestInputChords(void)
 
 	TestInputChordsHeldAndEvicted();
 	TestInputChordsEvictionAge();
+	TestInputChordsEvictionDelay();
 	TestInputChordsPrefix();
 	TestInputChordsCommonStart();
 

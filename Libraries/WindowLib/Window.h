@@ -30,6 +30,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Clipboard.h"
 
 
+#define WINDOW_DEFAULT_FRAMES_PER_SECOND	30
+
+
 class CWindowTick;
 class CNativeSoundFactory;
 class CComponentInput;
@@ -54,6 +57,13 @@ protected:
 	CArray<CPopup>			maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
 	Ptr<CSoundMixer>		mpSoundMixer;  //Only if the window was given a sound factory.  Mixed every tick.
 	Ptr<CClipboard>			mpClipboard;  //The system's clipboard.
+	bool					mbContinuous;  //Ticked and painted every pass, as a game is, rather than waiting for events.
+	bool					mbRedraw;  //Something has changed since the window was last painted.
+	bool					mbLayoutDirty;  //Something the layout depends on has changed since the window was last laid out.
+	bool					mbCheckLayoutCache;  //Lay out every paint anyway and log components that moved, see CheckLayoutCache.
+	uint32					muiFrameMilliseconds;  //The least time between paints while waiting for events, 0 for none.
+	int64					miLastPaintTime;  //GetDebugTickCount when last painted.
+	int64					miTickDelay;  //Milliseconds after this tick that another was asked for, -1 if none was.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -69,6 +79,13 @@ public:
 	void					SetWindowSize(int32 iWidth, int32 iHeight);
 	CNativeWindow*			GetNativeWindow(void);
 	void					Paint(void);
+	void					Invalidate(void) override;
+	void					InvalidateLayout(void) override;
+	void					RequestTick(uint32 uiMilliseconds);
+	void					SetContinuous(bool bContinuous);
+	bool					IsContinuous(void);
+	void					SetMaxFramesPerSecond(uint32 uiFramesPerSecond);
+	void					SetCheckLayoutCache(bool bCheckLayoutCache);
 	void					Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
 	void					Stop(void);
 	void					Layout(void);
@@ -117,6 +134,11 @@ public:
 	ERGBAlphaBits			GetAlphaBits(void);
 	void					GetColourFormat(CColourFormatHelper* pcHelper);
 
+protected:
+	void					LayoutIfChanged(void);
+	void					CheckLayoutCache(void);
+	int64					GetWaitMilliseconds(void);
+	bool					IsFrameDue(void);
 };
 
 

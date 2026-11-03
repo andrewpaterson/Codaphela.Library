@@ -78,7 +78,6 @@ void CDialogTick::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int
 	{
 		mpcTicker->DialogTick();
 	}
-	pWindow->Paint();
 }
 
 

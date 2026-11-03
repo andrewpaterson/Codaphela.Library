@@ -311,6 +311,6 @@ bool CTabComponent::IsSelected(void) { return mbSelected; }
 bool CTabComponent::IsClosable(void) { return mpClose.IsNotNull(); }
 bool CTabComponent::IsMouseOver(void) { return mbMouseOver; }
 char* CTabComponent::GetText(void) { return mpName->GetText(); }
-void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); }
+void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); InvalidateLayout(); }
 Ptr<CIconComponent> CTabComponent::GetIcon(void) { return mpIcon; }
 Ptr<CIconComponent> CTabComponent::GetClose(void) { return mpClose; }

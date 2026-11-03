@@ -72,6 +72,7 @@ public:
 	void			RemoveWindow(CX11Window* pcWindow);
 	CX11Window*		GetWindow(X11ID ulWindow);
 	void			ExecuteEvents(void);
+	void			WaitForEvents(int64 iMilliseconds);
 	X11ID			InternAtom(const char* szName);
 };
 

@@ -42,8 +42,6 @@ void CTickTestCanvas::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds,
 {
     SInt32Vec2  sPos;
 
-    pWindow->Paint();
-
     sPos = mpMaps->GetViewportPosition();
     sPos.x += 13;
     sPos.y += 9;

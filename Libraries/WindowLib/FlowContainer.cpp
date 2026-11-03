@@ -463,6 +463,9 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	meWrap = eW;
 	meDirection = eD;
 	meHorizontal = eA;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -475,6 +478,9 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	meWrap = eW;
 	meDirection = eD;
 	meVertical = eA;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -485,5 +491,8 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 void CFlowContainer::SetInsets(SInsets* psInsets)
 {
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 

@@ -47,6 +47,8 @@ public:
 
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
+	bool	CanWaitForEvents(void) override;
+	void	WaitForEvents(int64 iMilliseconds) override;
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
@@ -60,6 +62,7 @@ public:
 	void	MouseButton(HWND hWnd, WPARAM wParam, bool bPressed);
 	void	Activated(void);
 	void	Deactivated(void);
+	void	Resized(void);
 	HWND	GetHWnd(void);
 };
 

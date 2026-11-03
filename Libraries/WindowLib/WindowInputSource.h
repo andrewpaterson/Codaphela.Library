@@ -86,6 +86,7 @@ public:
 
 	void					Update(void);
 	size					NumEvents(void);
+	bool					GetEvictionDelay(uint32* puiMilliseconds);
 	SWindowInputEvent*		GetEvent(size uiIndex);
 
 	bool					AddDevice(CInputDevice* pcDevice);

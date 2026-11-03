@@ -27,8 +27,6 @@ void CTickTestRefWindow::Init(SDataTestRefWindow* pcData, int32 iStop)
 //////////////////////////////////////////////////////////////////////////
 void CTickTestRefWindow::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
-    pWindow->Paint();
-
     mpcData->iTick++;
     if (mpcData->iTick == mpcData->iStop)
     {

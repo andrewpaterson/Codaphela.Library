@@ -663,6 +663,35 @@ CArrayInputChordsEvent* CInputChords::GetEvents(void) { return &masEvents; }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How long after the last update the held inputs will be evicted, if
+// nothing else happens, so that an update then lets them through (see
+// Evict).  Returns false if nothing is waiting to be evicted: all the
+// history is carried, or something held is still down.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChords::GetEvictionDelay(uint32* puiMilliseconds)
+{
+	SInputDeviceTimeValue*	psNewest;
+	uint32					uiAge;
+
+	if (NumCarried() == macHistory.NumElements())
+	{
+		return false;
+	}
+	if (IsAnyStillDown())
+	{
+		return false;
+	}
+
+	psNewest = macHistory.Tail();
+	uiAge = muiTime - psNewest->uiTime;
+	*puiMilliseconds = (uiAge > muiPartialEvictionAge) ? 0 : (muiPartialEvictionAge - uiAge + 1);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CInputSourceEvaluator* CInputChords::AddEvaluator(void)

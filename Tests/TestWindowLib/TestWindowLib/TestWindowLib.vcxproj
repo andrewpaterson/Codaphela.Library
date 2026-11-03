@@ -261,6 +261,8 @@
     <ClCompile Include="TickTestRefWindow.cpp" />
     <ClCompile Include="TestTextField.cpp" />
     <ClCompile Include="TestSoundMixer.cpp" />
+    <ClCompile Include="TestWindowRedraw.cpp" />
+    <ClCompile Include="WaitTestRefWindow.cpp" />
     <ClCompile Include="TestCheckBox.cpp" />
     <ClCompile Include="TestComboBox.cpp" />
     <ClCompile Include="TestDialog.cpp" />
@@ -299,6 +301,7 @@
     <ClInclude Include="BorderCanvasDraw.h" />
     <ClInclude Include="DarkForest.h" />
     <ClInclude Include="NoImageRefWindowFactory.h" />
+    <ClInclude Include="WaitTestRefWindow.h" />
     <ClInclude Include="SpaceCrusade.h" />
     <ClInclude Include="TestRefWindowCanvasDraw.h" />
     <ClInclude Include="TickTestCanvas.h" />

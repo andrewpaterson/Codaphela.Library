@@ -209,6 +209,7 @@ bool CComponent::DrawChildren(void)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::AddComponent(Ptr<CComponent> pComponent)
 {
+	InvalidateLayout();
 	maChildren.Add(pComponent);
 	pComponent->mpParent = this;
 	return true;
@@ -232,6 +233,7 @@ bool CComponent::RemoveComponent(Ptr<CComponent> pComponent)
 	if (bResult)
 	{
 		pComponent->mpParent = NULL;
+		InvalidateLayout();
 	}
 	return bResult;
 }
@@ -257,6 +259,7 @@ bool CComponent::RemoveAllComponents(void)
 		}
 		pComponent->mpParent = NULL;
 	}
+	InvalidateLayout();
 	return maChildren.RemoveAll();
 }
 
@@ -532,12 +535,109 @@ void CComponent::PopupClosed(Ptr<CComponent> pContent) {}  //A popup this compon
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is painted again soon.  Input already does this; call it
+// when what a component shows changes without input, a simulation
+// running say.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::Invalidate(void)
+{
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->Invalidate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is laid out again before it is next painted, and painted.
+// The window keeps its layout between paints, so call it whenever a
+// component changes something its layout depends on without input: its
+// text, its size, its children...  Key, button and wheel input already
+// do this; pointer movement doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::InvalidateLayout(void)
+{
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends the position and size of this component and every component
+// under it, parents first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds)
+{
+	size		i;
+	SInt32Vec2	sPosition;
+	SInt32Vec2	sSize;
+
+	sPosition = GetPosition();
+	sSize = GetActualSize();
+	pasBounds->Add(&sPosition);
+	pasBounds->Add(&sSize);
+	for (i = 0; i < maChildren.Size(); i++)
+	{
+		maChildren.Get(i)->SaveLayout(pasBounds);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Logs each component, in SaveLayout's order from uiIndex, that has been
+// laid out somewhere other than where it was saved.  Returns the index
+// after the last component checked.
+//
+//////////////////////////////////////////////////////////////////////////
+size CComponent::CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex, size* puiNumLogged)
+{
+	size			i;
+	SInt32Vec2*		psPosition;
+	SInt32Vec2*		psSize;
+	SInt32Vec2		sPosition;
+	SInt32Vec2		sSize;
+
+	if (uiIndex + 1 >= pasBounds->NumElements())
+	{
+		return uiIndex;
+	}
+
+	psPosition = pasBounds->Get(uiIndex);
+	psSize = pasBounds->Get(uiIndex + 1);
+	sPosition = GetPosition();
+	sSize = GetActualSize();
+	if (((psPosition->x != sPosition.x) || (psPosition->y != sPosition.y) || (psSize->x != sSize.x) || (psSize->y != sSize.y)) && (*puiNumLogged < 8))
+	{
+		gcLogger.Error2(__METHOD__, " [", ClassName(), "] moved from [", IntToString(psPosition->x), ", ", IntToString(psPosition->y), "] size [", IntToString(psSize->x), " x ", IntToString(psSize->y),
+						"] to [", IntToString(sPosition.x), ", ", IntToString(sPosition.y), "] size [", IntToString(sSize.x), " x ", IntToString(sSize.y), "] but the layout wasn't invalidated.", NULL);
+		(*puiNumLogged)++;
+	}
+
+	uiIndex += 2;
+	for (i = 0; i < maChildren.Size(); i++)
+	{
+		uiIndex = maChildren.Get(i)->CheckLayout(pasBounds, uiIndex, puiNumLogged);
+	}
+	return uiIndex;
+}
 void CComponent::ScrollToShow(CInt32Rect* pcRect) { if (mpParent) { mpParent->ScrollToShow(pcRect); } }  //pcRect is in the window's space.  A component that scrolls its content, like a scroll pane, moves it to show the rect.
 bool CComponent::GetScrollView(CInt32Rect* pcDest) { if (mpParent) { return mpParent->GetScrollView(pcDest); } return false; }  //The part of the window the component is seen through when it is scrolled.  False if nothing scrolls it.
-void CComponent::SetDesiredSize(int iWidth, int iHeight) { msDesiredSize.Init(iWidth, iHeight); }
+void CComponent::SetDesiredSize(int iWidth, int iHeight) { msDesiredSize.Init(iWidth, iHeight); InvalidateLayout(); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
-void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; }
+void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; InvalidateLayout(); }
 EContainerStyleHorizontal CComponent::GetHorizontalAlignment(void) { return meHorizontalAlignment; }
 EContainerStyleVertical CComponent::GetVerticalAlignment(void) { return meVerticalAlignment; }
 

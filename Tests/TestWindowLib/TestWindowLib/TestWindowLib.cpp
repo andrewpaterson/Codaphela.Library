@@ -35,6 +35,7 @@ void TestComboBox(void);
 void TestDialog(void);
 void TestFileChooser(void);
 void TestSoundMixer(void);
+void TestWindowRedraw(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +85,7 @@ int __cdecl main(void)
 	TestDialog();
 	TestFileChooser();
 	TestSoundMixer();
+	TestWindowRedraw();
 
 	cFileUtil.RemoveDir("Output");
 

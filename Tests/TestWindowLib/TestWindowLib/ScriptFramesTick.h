@@ -9,7 +9,8 @@
 typedef bool (*ScriptFrameFunc)(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext);
 
 
-//Paints a frame, then lets the script change the window for the next one, until the script stops it.
+//The window paints a frame (a reference window paints every pass), then the script changes it for the next one, until
+//the script stops it.
 class CScriptFramesTick : public CWindowTick
 {
 CONSTRUCTABLE(CScriptFramesTick);
@@ -40,7 +41,6 @@ public:
 
 	void Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) override
 	{
-		pWindow->Paint();
 		if (!mfScript(pWindow, miFrame, mpvContext))
 		{
 			pWindow->Stop();

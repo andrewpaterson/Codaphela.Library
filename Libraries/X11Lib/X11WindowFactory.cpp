@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "X11WindowFactory.h"
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
+#include <poll.h>
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -272,6 +273,49 @@ void CX11WindowFactory::ExecuteEvents(void)
     {
         mapcWindows.GetPtr(i)->PresentIfPending();
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Presents what was painted since the events were executed, then sleeps
+// until the display has events or iMilliseconds pass (-1 for no limit).
+// Events already read from the connection don't wake poll, so they are
+// checked for first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11WindowFactory::WaitForEvents(int64 iMilliseconds)
+{
+    struct pollfd   sPoll;
+    int             iTimeout;
+    size            i;
+
+    for (i = 0; i < mapcWindows.NumElements(); i++)
+    {
+        mapcWindows.GetPtr(i)->PresentIfPending();
+    }
+    XFlush(mpsDisplay);
+    if (XPending(mpsDisplay) > 0)
+    {
+        return;
+    }
+
+    if (iMilliseconds < 0)
+    {
+        iTimeout = -1;
+    }
+    else if (iMilliseconds > 0x7FFFFFFF)
+    {
+        iTimeout = 0x7FFFFFFF;
+    }
+    else
+    {
+        iTimeout = (int)iMilliseconds;
+    }
+    sPoll.fd = ConnectionNumber(mpsDisplay);
+    sPoll.events = POLLIN;
+    sPoll.revents = 0;
+    poll(&sPoll, 1, iTimeout);
 }
 
 

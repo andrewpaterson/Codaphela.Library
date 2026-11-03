@@ -851,7 +851,7 @@ void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = b
 bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
 void CListContainer::SetDoubleClickActivates(bool bDoubleClickActivates) { mbDoubleClickActivates = bDoubleClickActivates; msDoubleClick.Forget(); }
 bool CListContainer::IsDoubleClickActivates(void) { return mbDoubleClickActivates; }
-void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; }
+void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; InvalidateLayout(); }
 Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
 Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }
 

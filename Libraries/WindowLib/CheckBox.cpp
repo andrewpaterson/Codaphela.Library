@@ -160,6 +160,9 @@ void CCheckBox::SetGap(int32 iGap)
 {
 	miGap = iGap;
 	UpdateGap();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -198,6 +201,9 @@ void CCheckBox::Toggle(void)
 void CCheckBox::SetCaption(const char* szCaption)
 {
 	mpCaption->SetText(szCaption == NULL ? "" : szCaption);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

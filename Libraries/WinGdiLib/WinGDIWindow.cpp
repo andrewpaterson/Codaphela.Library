@@ -173,12 +173,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         }
         case WM_PAINT:
         {
-            pcWindow->Present();
+            //Until the window is first painted there is nothing to show, but the paint must still be validated or
+            //Windows sends WM_PAINT again for ever.  Painting signals another present.
+            if (!pcWindow->Present())
+            {
+                ValidateRect(hWnd, NULL);
+            }
             return ERROR_SUCCESS;
         }
         case WM_ERASEBKGND:
         {
             return 1;
+        }
+        case WM_SIZE:
+        {
+            if (pcWindow)
+            {
+                pcWindow->Resized();
+            }
+            break;
         }
         case WM_INPUT:
         {
@@ -362,6 +375,42 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
         bHasMessage = PeekMessageA(&sMessage, NULL, 0, 0, PM_REMOVE);
     }
     return mhWnd != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::CanWaitForEvents(void)
+{
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Any message wakes it, raw input and WM_PAINT included, so a paint
+// signalled before waiting is presented straight away.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::WaitForEvents(int64 iMilliseconds)
+{
+    DWORD   dwTimeout;
+
+    if (iMilliseconds < 0)
+    {
+        dwTimeout = INFINITE;
+    }
+    else if (iMilliseconds >= (int64)INFINITE)
+    {
+        dwTimeout = INFINITE - 1;
+    }
+    else
+    {
+        dwTimeout = (DWORD)iMilliseconds;
+    }
+    MsgWaitForMultipleObjectsEx(0, NULL, dwTimeout, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 }
 
 
@@ -562,6 +611,17 @@ void CWinGDIWindow::Activated(void)
 void CWinGDIWindow::Deactivated(void)
 {
     mpcWindow->Deactivate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is laid out again at its new size.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Resized(void)
+{
+    mpcWindow->Invalidate();
 }
 
 

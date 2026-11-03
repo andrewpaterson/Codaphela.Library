@@ -142,6 +142,9 @@ void CScrollPane::SetContent(Ptr<CComponent> pContent)
 		maChildren.Remove(mpContent);
 		maChildren.Insert(0, mpContent);
 	}
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -171,6 +174,9 @@ void CScrollPane::SetPolicy(EScrollBarOrientation eOrientation, EScrollPanePolic
 	{
 		meVerticalPolicy = ePolicy;
 	}
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -201,6 +207,9 @@ void CScrollPane::SetScrollPosition(int32 x, int32 y)
 {
 	msScrollPosition.Init(x, y);
 	ClampScrollPosition();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -218,6 +227,9 @@ void CScrollPane::SetScrollPosition(EScrollBarOrientation eOrientation, int32 iP
 	{
 		SetScrollPosition(msScrollPosition.x, iPosition);
 	}
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -573,7 +585,7 @@ Ptr<CScrollBar> CScrollPane::GetScrollBar(EScrollBarOrientation eOrientation)
 
 
 Ptr<CComponent> CScrollPane::GetContent(void) { return mpContent; }
-void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; }
+void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; InvalidateLayout(); }
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
 int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
 SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }

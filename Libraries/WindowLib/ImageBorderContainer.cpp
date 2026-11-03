@@ -157,6 +157,9 @@ void CImageBorderContainer::SetImages(Ptr<CButtonImages> pImages)
 		mpImages = pImages;
 		UpdateBorder();
 	}
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

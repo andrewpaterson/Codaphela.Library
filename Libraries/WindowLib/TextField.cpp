@@ -235,6 +235,9 @@ void CTextField::SetText(const char* szText)
 	mcEditor.mszText.Replace('\r', ' ');
 	mcEditor.SetPosition(mcEditor.Length());
 	TextEdited();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -268,6 +271,9 @@ void CTextField::SetColumns(int32 iColumns)
 {
 	miColumns = iColumns;
 	UpdateFaceSize();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -279,6 +285,9 @@ void CTextField::SetPadding(int32 iHorizontal, int32 iVertical)
 {
 	msPadding.Init(iHorizontal, iVertical);
 	UpdateFaceSize();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -487,6 +496,9 @@ void CTextField::Select(size uiStart, size uiEnd)
 	mcEditor.SetPosition(uiStart);
 	muiDragAnchor = uiStart;
 	SelectTo(uiEnd);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -530,6 +542,9 @@ void CTextField::SetCaretPosition(size uiPosition)
 		uiPosition = mcEditor.Length();
 	}
 	mcEditor.SetPosition(uiPosition);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

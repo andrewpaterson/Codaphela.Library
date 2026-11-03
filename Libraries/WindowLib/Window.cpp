@@ -20,6 +20,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Timer.h"
 #include "BaseLib/DebugOutput.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "NativeWindowFactory.h"
@@ -28,6 +30,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Button.h"
 #include "NativeSoundFactory.h"
 #include "Window.h"
+
+
+//Debug builds lay out every paint and log components that moved without their layout being invalidated, unless a
+//window is told not to (see SetCheckLayoutCache).
+#ifdef _DEBUG
+#define WINDOW_CHECK_LAYOUT_CACHE	true
+#else
+#define WINDOW_CHECK_LAYOUT_CACHE	false
+#endif // _DEBUG
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,6 +87,13 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 
 	mFocus.Init(this);
 	mpClipboard = OMalloc<CClipboard>(this);
+	mbContinuous = false;
+	mbRedraw = true;
+	mbLayoutDirty = true;
+	mbCheckLayoutCache = WINDOW_CHECK_LAYOUT_CACHE;
+	SetMaxFramesPerSecond(WINDOW_DEFAULT_FRAMES_PER_SECOND);
+	miLastPaintTime = 0;
+	miTickDelay = -1;
 
 	PostInit();
 }
@@ -124,6 +142,13 @@ void CWindow::Class(void)
 	M_Embedded(maPopups);
 	M_Pointer(mpSoundMixer);
 	M_Pointer(mpClipboard);
+	U_Bool(mbContinuous);
+	U_Bool(mbRedraw);
+	U_Bool(mbLayoutDirty);
+	U_Bool(mbCheckLayoutCache);
+	U_UInt32(muiFrameMilliseconds);
+	U_Int64(miLastPaintTime);
+	U_Int64(miTickDelay);
 }
 
 
@@ -149,6 +174,14 @@ bool CWindow::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each pass executes the native window's events, updates the input, paints
+// the window if it has changed and then ticks it.  Between passes the
+// window sleeps until it has events or something is due: a paint held
+// back by the frame rate, a tick asked for with RequestTick, held chord
+// inputs to let through or sound to mix.  Input, the pointer, activation
+// and resizing mark the window changed; anything else that changes what
+// it shows calls Invalidate.  A continuous window, or one whose native
+// window can't wait, never sleeps and paints every pass.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::Show(void)
@@ -156,6 +189,8 @@ bool CWindow::Show(void)
 	bool	bCreated;
 	CTimer	cTimer;
 	bool	bResult;
+	bool	bContinuous;
+	bool	bFirst;
 
 	cTimer.Init();
 	bCreated = mpcNativeWindow->CreateNativeWindow();
@@ -164,20 +199,182 @@ bool CWindow::Show(void)
 		return false;
 	}
 
+	bContinuous = mbContinuous || !mpcNativeWindow->CanWaitForEvents();
 	bResult = true;
 	mbTicking = true;
+	mbRedraw = true;
+	miTickDelay = -1;
+	miLastPaintTime = GetDebugTickCount() - muiFrameMilliseconds;
+	bFirst = true;
 	while (mbTicking)
 	{
+		//The first pass paints the window straight away.
+		if (!bContinuous && !bFirst)
+		{
+			mpcNativeWindow->WaitForEvents(GetWaitMilliseconds());
+		}
+		bFirst = false;
+		bResult = mpcNativeWindow->ExecuteNativeWindow();
+		mbTicking &= bResult;
+		if (!mbTicking)
+		{
+			break;
+		}
+
 		cTimer.Update();
 		if (mpcComponentInput)
 		{
 			mpcComponentInput->Update();
 		}
+		if (bContinuous || (mbRedraw && IsFrameDue()))
+		{
+			Paint();
+		}
+		miTickDelay = -1;
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
-		bResult = mpcNativeWindow->ExecuteNativeWindow();
-		mbTicking &= bResult;
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The shorter of two waits, either of which can be -1 for forever.
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 ShorterWait(int64 iWait, int64 iOther)
+{
+	if (iOther < 0)
+	{
+		return iWait;
+	}
+	if ((iWait < 0) || (iOther < iWait))
+	{
+		return iOther;
+	}
+	return iWait;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long the window can sleep before something is due, -1 if nothing
+// is.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CWindow::GetWaitMilliseconds(void)
+{
+	int64	iWait;
+	int64	iFrameWait;
+	uint32	uiDelay;
+
+	iWait = -1;
+	if (mbRedraw)
+	{
+		iFrameWait = miLastPaintTime + muiFrameMilliseconds - GetDebugTickCount();
+		iWait = (iFrameWait > 0) ? iFrameWait : 0;
+	}
+	iWait = ShorterWait(iWait, miTickDelay);
+	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
+	{
+		iWait = ShorterWait(iWait, uiDelay);
+	}
+	if (mpSoundMixer.IsNotNull() && mpSoundMixer->GetMixDelay(&uiDelay))
+	{
+		iWait = ShorterWait(iWait, uiDelay);
+	}
+	return iWait;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A changed window is painted no more often than its frame rate.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsFrameDue(void)
+{
+	return (GetDebugTickCount() - miLastPaintTime) >= muiFrameMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window will be painted again, as soon as its frame rate allows.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Invalidate(void)
+{
+	mbRedraw = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window will be laid out and painted again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::InvalidateLayout(void)
+{
+	mbLayoutDirty = true;
+	mbRedraw = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ticks the window again within uiMilliseconds even if nothing else
+// happens; a running simulation asks every tick.  Only the next tick is
+// promised, so ask again each tick to keep ticking.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::RequestTick(uint32 uiMilliseconds)
+{
+	miTickDelay = ShorterWait(miTickDelay, uiMilliseconds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A continuous window doesn't wait for events: it is ticked and painted
+// as fast as it can be, as a game or an emulator is.  Windows aren't
+// continuous unless set.  Takes effect when the window is next shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetContinuous(bool bContinuous)
+{
+	mbContinuous = bContinuous;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 0 doesn't hold paints back at all.  Continuous windows paint every
+// pass whatever this is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetMaxFramesPerSecond(uint32 uiFramesPerSecond)
+{
+	muiFrameMilliseconds = (uiFramesPerSecond == 0) ? 0 : (1000 + uiFramesPerSecond - 1) / uiFramesPerSecond;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsContinuous(void) { return mbContinuous; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// On in Debug builds.  A test counting layouts turns it off: the check
+// lays the window out on every paint.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetCheckLayoutCache(bool bCheckLayoutCache)
+{
+	mbCheckLayoutCache = bCheckLayoutCache;
 }
 
 
@@ -253,14 +450,21 @@ void CWindow::SetWindowSize(int32 iWidth, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Paint(void)
 {
-	Layout();
+	LayoutIfChanged();
 	Draw();
 	mpcNativeWindow->SignalPresent();
+
+	//Anything changed while painting was painted.
+	mbRedraw = false;
+	miLastPaintTime = GetDebugTickCount();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Lays the window out in its client area whether it has changed or not.
+// Paint only lays it out when its size has changed or its layout was
+// invalidated.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Layout(void)
@@ -286,8 +490,58 @@ void CWindow::Layout(void)
 	}
 	mbLayoutAgain = false;
 
+	//Components invalidating their layout while they were laid out were laid out.
+	mbLayoutDirty = false;
+
 	//Components may have moved under the pointer.
 	mFocus.Refresh();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The layout is kept from the last paint unless the client area has
+// changed size or the layout was invalidated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::LayoutIfChanged(void)
+{
+	CInt32Rect	cRect;
+	SInt32Vec2	sSize;
+
+	mpcNativeWindow->GetRectangle(&cRect);
+	sSize = GetActualSize();
+	if (mbLayoutDirty || (cRect.GetWidth() != sSize.x) || (cRect.GetHeight() != sSize.y))
+	{
+		Layout();
+		return;
+	}
+
+	if (mbCheckLayoutCache)
+	{
+		CheckLayoutCache();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lays the window out anyway and logs the components that moved, which
+// changed without invalidating the layout.  The kept layout would have
+// been wrong.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CheckLayoutCache(void)
+{
+	CArrayTemplate<SInt32Vec2>	asBounds;
+	size						uiNumLogged;
+
+	asBounds.Init();
+	SaveLayout(&asBounds);
+	Layout();
+	uiNumLogged = 0;
+	CheckLayout(&asBounds, 0, &uiNumLogged);
+	asBounds.Kill();
 }
 
 
@@ -296,12 +550,32 @@ void CWindow::Layout(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
-void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); }
-void CWindow::PointerLeft(void) { mFocus.PointerLeft(); }
-void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput) { mFocus.Input(psWindowEvent, pcComponentInput); }
-void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); }
-void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); }
-void CWindow::Activate(void) { mFocus.Activate(); }
+//Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
+//the window looks like, so it is laid out again too.  The pointer moving only changes what it is over; a component
+//that moves things as it is dragged invalidates the layout itself.
+void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); Invalidate(); }
+void CWindow::PointerLeft(void) { mFocus.PointerLeft(); Invalidate(); }
+void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); InvalidateLayout(); }
+void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); InvalidateLayout(); }
+void CWindow::Activate(void) { mFocus.Activate(); InvalidateLayout(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
+{
+	mFocus.Input(psWindowEvent, pcComponentInput);
+	if (psWindowEvent->eType == WIET_Delta)
+	{
+		Invalidate();
+	}
+	else
+	{
+		InvalidateLayout();
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -311,6 +585,7 @@ void CWindow::Activate(void) { mFocus.Activate(); }
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Deactivate(void)
 {
+	InvalidateLayout();
 	mFocus.Deactivate();
 	if (mpcComponentInput)
 	{
@@ -381,6 +656,7 @@ Ptr<CPopup> CWindow::OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, P
 {
 	Ptr<CPopup>	pPopup;
 
+	InvalidateLayout();
 	pPopup = OMalloc<CPopup>(this, pContent, sPosition, pOwner);
 	maPopups.Add(pPopup);
 	mpCanvas->AddComponent(pPopup);
@@ -420,6 +696,8 @@ bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 	{
 		return false;
 	}
+
+	InvalidateLayout();
 
 	//An owner told its popup has closed may close others, so the popups are counted again each time.
 	while (maPopups.Size() > uiIndex)
@@ -547,6 +825,7 @@ void CWindow::Stop(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::SetContainer(Ptr<CContainer> pContainer)
 {
+	InvalidateLayout();
 	return mpCanvas->SetContainer(pContainer);
 }
 
@@ -557,6 +836,7 @@ bool CWindow::SetContainer(Ptr<CContainer> pContainer)
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::ClearContainer(void)
 {
+	InvalidateLayout();
 	return mpCanvas->ClearContainer();
 }
 

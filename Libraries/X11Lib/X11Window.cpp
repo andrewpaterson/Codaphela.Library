@@ -326,6 +326,29 @@ bool CX11Window::ExecuteNativeWindow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CX11Window::CanWaitForEvents(void)
+{
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::WaitForEvents(int64 iMilliseconds)
+{
+    CX11WindowFactory*  pcFactory;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    pcFactory->WaitForEvents(iMilliseconds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CX11Window::PresentIfPending(void)
 {
     if (mbPresentPending)
@@ -392,8 +415,10 @@ void CX11Window::HandleEvent(XEvent* puEvent)
         }
         case ConfigureNotify:
         {
+            //The window is laid out again at its new size.
             miWidth = puEvent->xconfigure.width;
             miHeight = puEvent->xconfigure.height;
+            mpcWindow->Invalidate();
             break;
         }
         case ClientMessage:

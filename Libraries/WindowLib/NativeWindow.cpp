@@ -78,31 +78,34 @@ void CNativeWindow::EndPresent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Shows the canvas in the native window.  Returns false if nothing was
+// shown: the window hasn't been painted yet, so its canvas has no native
+// canvas, or it is already presenting.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindow::Present(void)
 {
-	bool            bResult;
+	bool            bPresented;
 	CNativeCanvas*  pcNativeCanvas;
 	Ptr<CCanvas>    pCanvas;
-	SInt32Vec2           sSize;
+	SInt32Vec2      sSize;
 
-	bResult = BeginPresent();
-	if (bResult)
+	if (!BeginPresent())
 	{
-		pCanvas = mpcWindow->GetCanvas();
-
-		pcNativeCanvas = pCanvas->GetNativeCanvas();
-		if (pcNativeCanvas)
-		{
-			sSize = pCanvas->GetActualSize();
-			Present(pcNativeCanvas, sSize.x, sSize.y);
-		}
-
-		EndPresent();
-		return true;
+		return false;
 	}
-	return false;
+
+	bPresented = false;
+	pCanvas = mpcWindow->GetCanvas();
+	pcNativeCanvas = pCanvas->GetNativeCanvas();
+	if (pcNativeCanvas)
+	{
+		sSize = pCanvas->GetActualSize();
+		Present(pcNativeCanvas, sSize.x, sSize.y);
+		bPresented = true;
+	}
+	EndPresent();
+	return bPresented;
 }
 
 
@@ -147,6 +150,31 @@ void CNativeWindow::SetRequestedSize(int32 iWidth, int32 iHeight)
 void CNativeWindow::SetEnabled(bool bEnabled)
 {
 	mbEnabled = bEnabled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A native window that can sleep until it has events overrides this and
+// WaitForEvents.  One that can't, a reference window drawing off screen
+// say, is ticked and painted continuously.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::CanWaitForEvents(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns when the window has events to execute, or after iMilliseconds;
+// -1 waits until there are events.  Anything presented but not yet shown
+// is shown first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::WaitForEvents(int64 iMilliseconds)
+{
 }
 
 

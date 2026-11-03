@@ -118,6 +118,12 @@
     <ClCompile Include="TestSoundMixer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TestWindowRedraw.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WaitTestRefWindow.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
     <ClCompile Include="TestTextField.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
@@ -151,6 +157,9 @@
       <Filter>Source\TestCommon</Filter>
     </ClInclude>
     <ClInclude Include="NoImageRefWindowFactory.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="WaitTestRefWindow.h">
       <Filter>Source\TestCommon</Filter>
     </ClInclude>
     <ClInclude Include="SpaceCrusade.h">

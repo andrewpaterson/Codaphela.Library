@@ -216,6 +216,9 @@ void CTextArea::SetText(const char* szText)
 	miUpDownX = -1;
 	ReadText();
 	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -245,6 +248,9 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 void CTextArea::SetFont(Ptr<CFont> pWhiteFont)
 {
 	SetFontColours(OMalloc<CFontColours>(pWhiteFont));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -267,6 +273,9 @@ void CTextArea::SetFontFamily(Ptr<CFontFamily> pFamily)
 	mpFamily = pFamily;
 	ReadText();
 	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -281,6 +290,9 @@ void CTextArea::SetWordWrap(bool bWordWrap)
 		mbWordWrap = bWordWrap;
 		LayoutText();
 	}
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -298,6 +310,9 @@ void CTextArea::SetStyle(STextStyle* psStyle)
 	}
 	msStyle = *psStyle;
 	mbTextDirty = true;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -781,6 +796,9 @@ void CTextArea::SetTabWidth(int32 iTabWidth)
 		iTabWidth = 1;
 	}
 	miTabWidth = iTabWidth;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -810,6 +828,9 @@ void CTextArea::SetCaretPosition(size uiPosition)
 		uiPosition = mszText.Length();
 	}
 	MoveCaret(uiPosition, false);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -859,6 +880,9 @@ void CTextArea::Select(size uiStart, size uiEnd)
 	}
 	muiAnchor = uiStart;
 	MoveCaret(uiEnd, true);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

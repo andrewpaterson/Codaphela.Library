@@ -69,6 +69,7 @@ public:
 
 	void					Mix(void);
 	void					Mix(lsize uiFrames);
+	bool					GetMixDelay(uint32* puiMilliseconds);
 
 	bool					SetSampleRate(uint32 uiSampleRate);
 	uint32					GetSampleRate(void);

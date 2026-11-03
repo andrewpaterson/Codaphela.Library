@@ -189,6 +189,25 @@ void CSoundMixer::Mix(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// While voices are playing the mixer must be mixed again before the host
+// runs out of what it was given, so a window that waits for events wakes
+// after this long.  A quarter of the lead leaves room for slow ticks.
+// Returns false if nothing is playing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSoundMixer::GetMixDelay(uint32* puiMilliseconds)
+{
+	if ((mpcNativeMixer == NULL) || !mpcNativeMixer->IsOpen() || (maVoices.Size() == 0))
+	{
+		return false;
+	}
+	*puiMilliseconds = muiLeadMs / 4;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Mixes uiFrames and writes them to the host.
 //
 //////////////////////////////////////////////////////////////////////////

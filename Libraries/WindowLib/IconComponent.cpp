@@ -94,6 +94,9 @@ bool CIconComponent::Load(CObjectReader* pcFile)
 void CIconComponent::SetCel(Ptr<CImageCel> pCel)
 {
 	mpCelDraw->SetCel(pCel);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -104,6 +107,9 @@ void CIconComponent::SetCel(Ptr<CImageCel> pCel)
 void CIconComponent::SetCelAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical)
 {
 	mpCelDraw->SetCelAlignment(eHorizontal, eVertical);
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

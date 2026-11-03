@@ -52,6 +52,8 @@ public:
 			void			SetRequestedSize(int32 iWidth, int32 iHeight);
 			SInt32Vec2		GetRequestedSize(void);
 	virtual	void			SetEnabled(bool bEnabled);
+	virtual	bool			CanWaitForEvents(void);
+	virtual	void			WaitForEvents(int64 iMilliseconds);
 			bool			IsEnabled(void);
 
 protected:

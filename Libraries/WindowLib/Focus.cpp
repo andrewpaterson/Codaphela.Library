@@ -117,6 +117,9 @@ void CFocus::PointerMoved(int x, int y)
 		InitEvent(&sEvent, CIET_Command, true);
 		sEvent.eCommand = (meDrag == FD_Select) ? CIC_ContDragSelect : CIC_ContDragScroll;
 		Deliver(mpDragComponent, &sEvent);
+
+		//A drag is a command like any other: selecting and scrolling move what is laid out.
+		mpWindow->InvalidateLayout();
 	}
 }
 

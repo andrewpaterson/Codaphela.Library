@@ -238,6 +238,7 @@
     <ClCompile Include="TestImageSFTWriter.cpp" />
     <ClCompile Include="TestImageCelsFile.cpp" />
     <ClCompile Include="TestMaps.cpp" />
+    <ClCompile Include="TestColourBlend.cpp" />
     <ClCompile Include="TestGeometryMap.cpp" />
     <ClCompile Include="TestMapViewport.cpp" />
     <ClCompile Include="TestReadImage.cpp" />

@@ -110,6 +110,9 @@ void CPopup::SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets)
 	mbBackground = true;
 	mbBorder = true;
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -123,6 +126,9 @@ void CPopup::SetLook(ARGB32 sBackground, SInsets* psInsets)
 	mbBackground = true;
 	mbBorder = false;
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

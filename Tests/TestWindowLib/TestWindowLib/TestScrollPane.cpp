@@ -417,6 +417,93 @@ void TestScrollPaneDrag(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window keeps its layout between paints.  Dragging a thumb is only
+// pointer movement, which doesn't lay the window out again by itself, so
+// the drag must: each paint shows the content and thumb where they were
+// dragged to.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScrollPaneDragPaints(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "ScrollPaneDragPaints";
+
+	//The reference window writes each frame it paints here.
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CCanvas>			pContent;
+		Ptr<CScrollBar>			pVertical;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow		cData;
+		SInt32Vec2				sVec;
+		CPointer				pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, szDirectory);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Scroll Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pFill->AddComponent(pScrollPane);
+		pContent = OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)90, (uint8)30, (uint8)30)));
+		pContent->SetDesiredSize(400, 300);
+		pScrollPane->SetContent(pContent);
+		pVertical = pScrollPane->GetScrollBar(SBO_Vertical);
+		pTestWindow->Paint();
+		sVec = pContent->GetPosition();
+		AssertInt32Vec2(0, 0, &sVec);
+
+		//The vertical thumb is at 190, 2 to 198, 30, as in TestScrollPaneDrag.
+		pTestWindow->PointerMoved(194, 10);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertTrue(pVertical->IsDragging());
+		pTestWindow->Paint();
+
+		pTestWindow->PointerMoved(194, 39);
+		pTestWindow->Paint();
+		sVec = pContent->GetPosition();
+		AssertInt32Vec2(0, -100, &sVec);
+		AssertScrollThumb(190, 2 + 29, 198, 2 + 29 + 28, pVertical);
+
+		pTestWindow->PointerMoved(194, 25);
+		pTestWindow->Paint();
+		sVec = pContent->GetPosition();
+		AssertInt32Vec2(0, -52, &sVec);
+
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertFalse(pVertical->IsDragging());
+
+		//Scrolled by the program, not the pointer, it is laid out again too.
+		pScrollPane->SetScrollPosition(0, 150);
+		pTestWindow->Paint();
+		sVec = pContent->GetPosition();
+		AssertInt32Vec2(0, -150, &sVec);
+
+		pVertical = NULL;
+		pContent = NULL;
+		pScrollPane = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertScrollPaneObjectsRemoved();
+	cNativeFactory.Kill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The wheel scrolls the scroll pane under the pointer.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -645,6 +732,7 @@ void TestScrollPane(void)
 	TestScrollBarImages();
 	TestScrollPaneLayout();
 	TestScrollPaneDrag();
+	TestScrollPaneDragPaints();
 	TestScrollPaneWheel();
 	TestScrollPaneDraws();
 

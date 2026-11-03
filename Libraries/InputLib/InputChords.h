@@ -112,6 +112,7 @@ public:
 	void					BeginUpdate(uint32 uiTime);
 	void					EndUpdate(void);
 	CArrayInputChordsEvent*	GetEvents(void);
+	bool					GetEvictionDelay(uint32* puiMilliseconds);
 	bool					IsChordSource(SInputDeviceValue* psValue);
 
 protected:

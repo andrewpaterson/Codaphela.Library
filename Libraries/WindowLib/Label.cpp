@@ -117,6 +117,9 @@ void CLabel::SetText(const char* szText)
 	mszText.Kill();
 	mszText.Init(szText);
 	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -128,6 +131,9 @@ void CLabel::SetFont(Ptr<CFont> pFont)
 {
 	mpFont = pFont;
 	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 

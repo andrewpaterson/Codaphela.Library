@@ -140,5 +140,8 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 void CFillContainer::SetInsets(SInsets* psInsets)
 {
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 

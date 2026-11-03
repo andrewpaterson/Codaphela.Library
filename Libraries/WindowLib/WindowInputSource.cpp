@@ -451,5 +451,6 @@ void CWindowInputSource::RememberLetGo(void)
 char* CWindowInputSource::GetName(CInputSourceDesc* pcSource) { return pcSource->GetFriendlyName(); }
 bool CWindowInputSource::IsDelta(CInputSourceDesc* pcSource) { return pcSource->GetType() == ISET_Delta; }
 size CWindowInputSource::NumEvents(void) { return masEvents.NumElements(); }
+bool CWindowInputSource::GetEvictionDelay(uint32* puiMilliseconds) { return mpcVirtual->GetChords()->GetEvictionDelay(puiMilliseconds); }
 SWindowInputEvent* CWindowInputSource::GetEvent(size uiIndex) { return masEvents.Get(uiIndex); }
 CInputVirtualDevice* CWindowInputSource::GetVirtualDevice(void) { return mpcVirtual; }

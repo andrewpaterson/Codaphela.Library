@@ -83,6 +83,7 @@ public:
 	size		AddMice(char* szCategory = "Mouse");
 
 	void		Update(void);
+	bool		GetEvictionDelay(uint32* puiMilliseconds);
 	size		Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest);
 	void		ReleaseAll(void);
 	void		SetLocks(bool bCapsLock, bool bNumLock);

@@ -91,6 +91,9 @@ bool CButtonBar::Load(CObjectReader* pcFile)
 void CButtonBar::SetInsets(SInsets* psInsets)
 {
 	memcpy(&msInsets, psInsets, sizeof(SInsets));
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -104,6 +107,9 @@ void CButtonBar::SetInsets(int iTop, int iRight, int iBottom, int iLeft)
 	msInsets.aiWidths[BEI_Right] = iRight;
 	msInsets.aiWidths[BEI_Bottom] = iBottom;
 	msInsets.aiWidths[BEI_Left] = iLeft;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
@@ -222,8 +228,8 @@ SInt32Vec2 CButtonBar::GetRowSize(CArrayInt* paiWidths)
 }
 
 
-void CButtonBar::SetGap(int32 iGap) { miGap = iGap; }
+void CButtonBar::SetGap(int32 iGap) { miGap = iGap; InvalidateLayout(); }
 int32 CButtonBar::GetGap(void) { return miGap; }
-void CButtonBar::SetButtonAlignment(EContainerStyleHorizontal eAlignment) { meButtonAlignment = eAlignment; }
+void CButtonBar::SetButtonAlignment(EContainerStyleHorizontal eAlignment) { meButtonAlignment = eAlignment; InvalidateLayout(); }
 EContainerStyleHorizontal CButtonBar::GetButtonAlignment(void) { return meButtonAlignment; }
 

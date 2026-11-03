@@ -552,6 +552,18 @@ void CComponentInput::Update(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How long after this update held back chord inputs will be let through
+// if nothing else happens.  The window waits no longer than this.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::GetEvictionDelay(uint32* puiMilliseconds)
+{
+	return mpcSource->GetEvictionDelay(puiMilliseconds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent)

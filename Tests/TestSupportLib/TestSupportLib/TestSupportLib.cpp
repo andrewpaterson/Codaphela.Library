@@ -8,6 +8,7 @@
 
 
 void TestPlainTextEditor(void);
+void TestColourBlend(void);
 void TestBumpMapper(void);
 void TestImage(void);
 void TestImageOpacity(void);
@@ -105,6 +106,7 @@ int __cdecl main(void)
 	TestImageModifierStack();
 	TestImageResampler();
 	TestImageModifierDrawBox();
+	TestColourBlend();
 	TestImageDraw();
 	TestImageRecolour();
 	TestImageSwizzle();
