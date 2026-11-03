@@ -551,6 +551,50 @@ void TestArrayObjectKillAllWithNull(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Setting an element to the object it already holds leaves it with one
+// from (and attached), and setting another object releases it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectSetSameObjectAgain(void)
+{
+	STestObjectFreedNotifier	sNotifier1;
+	STestObjectFreedNotifier	sNotifier2;
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>			pArray;
+		Ptr<CTestObject>			pObject1;
+		Ptr<CTestObject>			pObject2;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		pObject1 = OMalloc<CTestObject>(&sNotifier1);
+		pObject2 = OMalloc<CTestObject>(&sNotifier2);
+
+		pArray->Add(pObject1);
+		AssertTrue(pArray->Set(0, pObject1));
+		gcObjects.ValidateObjectsConsistency();
+		AssertSize(1, pObject1->NumHeapFroms());
+		AssertInt(3, pObject1->GetDistToRoot());
+		pObject1 = NULL;
+		AssertFalse(sNotifier1.bFreed);
+
+		AssertTrue(pArray->Set(0, pObject2));
+		AssertTrue(sNotifier1.bFreed);
+		AssertSize(1, pObject2->NumHeapFroms());
+		AssertInt(3, pObject2->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		pObject2 = NULL;
+		AssertFalse(sNotifier2.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObjectConstructorExists(void)
@@ -1106,6 +1150,7 @@ void TestArrayObject(void)
 	TestArrayObjectOnStackKillContainedStackObject();
 	TestArrayObjectKillContainedHeap();
 	TestArrayObjectKillAllWithNull();
+	TestArrayObjectSetSameObjectAgain();
 	TestArrayObjectConstructorExists();
 	TestArrayObjectClassExists();
 	TestArrayObjectExternalSerialisation();

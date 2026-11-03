@@ -795,6 +795,61 @@ void TestMapObjectPutOverwrite(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting a key that is already in the map must not give the key another
+// from: the map holds it once, and removing it must free it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectPutSameKeyAgain(void)
+{
+	STestObjectFreedNotifier	sKeyNotifier;
+	STestObjectFreedNotifier	sValue1Notifier;
+	STestObjectFreedNotifier	sValue2Notifier;
+
+	ObjectsInit();
+	{
+		Ptr<CMapObject>				pMap;
+		Ptr<CTestObject>			pKey;
+		Ptr<CTestObject>			pValue1;
+		Ptr<CTestObject>			pValue2;
+
+		pMap = OMalloc<CMapObject>();
+		ORoot()->Add(pMap);
+
+		pKey = OMalloc<CTestObject>(&sKeyNotifier);
+		pValue1 = OMalloc<CTestObject>(&sValue1Notifier);
+		pValue2 = OMalloc<CTestObject>(&sValue2Notifier);
+
+		AssertTrue(pMap->Put(pKey, pValue1));
+		AssertTrue(pMap->Put(pKey, pValue2));
+		AssertTrue(pMap->Put(pKey, pValue2));
+		gcObjects.ValidateObjectsConsistency();
+		AssertSize(1, pMap->NumElements());
+		AssertSize(1, pKey->NumHeapFroms());
+		AssertSize(1, pValue2->NumHeapFroms());
+		AssertSize(0, pValue1->NumHeapFroms());
+		AssertInt(3, pKey->GetDistToRoot());
+		AssertInt(3, pValue2->GetDistToRoot());
+
+		pValue1 = NULL;
+		AssertTrue(sValue1Notifier.bFreed);
+		pValue2 = NULL;
+		AssertFalse(sValue2Notifier.bFreed);
+
+		AssertTrue(pMap->Remove(pKey));
+		AssertSize(0, pKey->NumHeapFroms());
+		AssertTrue(sValue2Notifier.bFreed);
+		AssertFalse(sKeyNotifier.bFreed);
+		pKey = NULL;
+		AssertTrue(sKeyNotifier.bFreed);
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMapObjectExternalSerialisation()
@@ -1569,6 +1624,7 @@ void TestMapObject(void)
 	TestMapObjectKillAllWithNull();
 	TestMapObjectPointerFromsStack();
 	TestMapObjectPutOverwrite();
+	TestMapObjectPutSameKeyAgain();
 	TestMapObjectExternalSerialisation();
 	TestMapObjectMorphInto();
 	TestMapObjectInternalSerialisation(4);

@@ -685,6 +685,50 @@ void TestIndexObjectPutOverwrite(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting the object a key already has again leaves it with one from (and
+// attached), and putting another object releases it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectPutSameObjectAgain(void)
+{
+	STestObjectFreedNotifier	sNotifier1;
+	STestObjectFreedNotifier	sNotifier2;
+
+	ObjectsInit();
+	{
+		Ptr<CIndexObject>			pIndex;
+		Ptr<CTestObject>			pObject1;
+		Ptr<CTestObject>			pObject2;
+
+		pIndex = OMalloc<CIndexObject>();
+		ORoot()->Add(pIndex);
+		pObject1 = OMalloc<CTestObject>(&sNotifier1);
+		pObject2 = OMalloc<CTestObject>(&sNotifier2);
+
+		AssertTrue(pIndex->Put("Key", pObject1));
+		AssertTrue(pIndex->Put("Key", pObject1));
+		gcObjects.ValidateObjectsConsistency();
+		AssertSize(1, pObject1->NumHeapFroms());
+		AssertInt(3, pObject1->GetDistToRoot());
+		pObject1 = NULL;
+		AssertFalse(sNotifier1.bFreed);
+
+		AssertTrue(pIndex->Put("Key", pObject2));
+		AssertTrue(sNotifier1.bFreed);
+		AssertSize(1, pObject2->NumHeapFroms());
+		AssertInt(3, pObject2->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		pObject2 = NULL;
+		AssertFalse(sNotifier2.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexObjectSerialisation()
@@ -1047,6 +1091,7 @@ void TestIndexObject(void)
 	TestIndexObjectOnStackKillContained();
 	TestIndexObjectKillContainedHeap();
 	TestIndexObjectPutOverwrite();
+	TestIndexObjectPutSameObjectAgain();
 	TestIndexObjectSerialisation();
 	TestIndexObjectMorphInto();
 	TestIndexObjectEmbeddedOnHeapKill();
