@@ -111,6 +111,9 @@ struct SCPP65IRWritten
 #define IR816_INLINE_LOOP_INSTRUCTIONS	128		//is inlined (measured 2026-10-31, TestBaseLib65 and TestStandardLib65: 16/32/24 to
 #define IR816_INLINE_CALLS				64		//32/64/32 -3.3% and -5.0%, then -2.0% and -3.5%; 96 ran one out of bank 0's stack).
 #define IR816_INLINE_HOT_INSTRUCTIONS	192		//With a profile: more than in a loop, or a profile would add nothing there.
+#define IR65_SPECIALISE_ROUNDS			3		//Interprocedural constant propagation (SpecialiseConstantArguments): rounds,
+#define IR65_SPECIALISE_VALUES			3		//the most values a parameter is specialised for (a copy each),
+#define IR65_SPECIALISE_INSTRUCTIONS	4000	//and the biggest function copied.
 
 
 typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
@@ -181,6 +184,12 @@ public:
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			FinishUnit(void);
+	void			SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged);
+	int				WrittenIndex(uint32 uiSymbol);
+	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);
+	bool			SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged);
+	CIRFunction*	CopyFunction(CIRFunction* pcFunction, const char* szName);
+	void			OptimiseSpecialised(CIRFunction* pcFunction);
 	void			SetUnsupported(int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);

@@ -4542,6 +4542,143 @@ void TestCPP816MathRegisters(void)
 }
 
 
+
+//A unit's functions only it calls, too big to inline, with constant arguments (TestCPP816ConstantArguments): Work
+//with two counts (a copy each), Once always with the same (its parameter the constant) and Taken, whose address is
+//taken (left as it is).
+#define TEST_CPP816_CONSTANT_ARGUMENTS_STEP(n) \
+	r ^= (x << iShift) + (x >> (iShift + n)); \
+	x = x * (n + 3) + (r >> (64 - iShift)); \
+	r += (x >> (iShift - 1)) ^ (unsigned long long)n;
+
+#define TEST_CPP816_CONSTANT_ARGUMENTS_FUNCTIONS \
+	static unsigned long long Work(unsigned long long x, int iShift) \
+	{ \
+		unsigned long long r = 0; \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(1) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(2) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(3) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(4) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(5) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(6) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(7) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(8) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(9) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(10) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(11) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(12) \
+		return r ^ x; \
+	} \
+	static unsigned long long Once(unsigned long long x, int iShift) \
+	{ \
+		unsigned long long r = 0; \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(1) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(2) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(3) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(4) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(5) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(6) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(7) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(8) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(9) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(10) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(11) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(12) \
+		return r + x; \
+	} \
+	static unsigned long long Taken(unsigned long long x, int iShift) \
+	{ \
+		unsigned long long r = 0; \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(1) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(2) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(3) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(4) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(5) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(6) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(7) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(8) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(9) \
+		TEST_CPP816_CONSTANT_ARGUMENTS_STEP(10) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(11) TEST_CPP816_CONSTANT_ARGUMENTS_STEP(12) \
+		return r - x; \
+	} \
+	unsigned long long (*volatile gpTaken)(unsigned long long, int) = Taken; \
+	volatile unsigned long long gx = 0x9ABCDEF123456789ULL; \
+	unsigned long long Run(void) \
+	{ \
+		return Work(gx, 12) ^ (Work(gx + 1, 40) << 1) ^ (Once(gx, 23) << 2) ^ (Once(gx + 5, 23) << 3) ^ (Taken(gx, 7) << 4) ^ (gpTaken(gx, 9) << 5); \
+	}
+
+namespace TestCPP816ConstantArgumentsNative
+{
+	TEST_CPP816_CONSTANT_ARGUMENTS_FUNCTIONS
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the listing defines a label starting szStart (a newline then
+// the name's start) that isn't a specialised copy (no __K in it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool TestCPP816Within(const char* szStart, const char* szEnd, const char* szFind);
+
+
+bool TestCPP816DefinesUnspecialised(const char* szListing, const char* szStart)
+{
+	const char*	szAt;
+	const char*	szEnd;
+	const char*	szColon;
+
+	for (szAt = strstr(szListing, szStart); szAt; szAt = strstr(szAt + 1, szStart))
+	{
+		szEnd = strchr(szAt + 1, '\n');
+		szColon = szEnd ? szEnd - 1 : NULL;
+		if (szColon && (*szColon == ':'))
+		{
+			if (!TestCPP816Within(szAt, szEnd, "__K"))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether szFind is in the text from szStart to szEnd.
+//
+//////////////////////////////////////////////////////////////////////////
+bool TestCPP816Within(const char* szStart, const char* szEnd, const char* szFind)
+{
+	size	uiFind;
+
+	uiFind = strlen(szFind);
+	for (; szStart + uiFind <= szEnd; szStart++)
+	{
+		if (strncmp(szStart, szFind, uiFind) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Interprocedural constant propagation (CCPP65IRFrontEnd::
+// SpecialiseConstantArguments): a function only its unit calls, with a
+// parameter that counts (a shift's count) a constant at every call, gets a
+// copy for each value (name__K<parameter>_<value>) and goes; with one
+// value its parameter is the constant; one whose address is taken is left.
+// The results are the same as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ConstantArguments(void)
+{
+	static const char*	aszUnits[] = { "Libc65/string816.asm", NULL };
+	CChars				szSource;
+	CChars				szListing;
+	uint64				ulliExpected;
+
+	ulliExpected = TestCPP816ConstantArgumentsNative::Run();
+	szSource.Init(TEST_CPP816_STRINGIZE(TEST_CPP816_CONSTANT_ARGUMENTS_FUNCTIONS));
+	szSource.Append("\nint main(void)\n{\n\tunsigned long long r = Run();\n\treturn (int)((r ^ (r >> 16) ^ (r >> 32) ^ (r >> 48)) & 0x7FFF);\n}\n");
+	AssertInt((int)((ulliExpected ^ (ulliExpected >> 16) ^ (ulliExpected >> 32) ^ (ulliExpected >> 48)) & 0x7FFF), TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, NULL, 0));
+
+	//Work's two copies, its own code gone; Once's parameter the constant (no copy); Taken as it is.
+	AssertTrue(szListing.Contains("__K1_12:"));
+	AssertTrue(szListing.Contains("__K1_40:"));
+	AssertFalse(TestCPP816DefinesUnspecialised(szListing.Text(), "\n_Work"));
+	AssertFalse(szListing.Contains("__K1_23"));
+	AssertTrue(TestCPP816DefinesUnspecialised(szListing.Text(), "\n_Once"));
+	AssertTrue(szListing.Contains("jsl _Once"));
+	AssertFalse(szListing.Contains("__K1_7"));
+	AssertFalse(szListing.Contains("__K1_9"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // 64 bit multiplies: of 32 bit halves (R816_UMulWide32, as softfloat's
@@ -4667,6 +4804,7 @@ void TestCPP816(void)
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();
+	TestCPP816ConstantArguments();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	NumberKill();

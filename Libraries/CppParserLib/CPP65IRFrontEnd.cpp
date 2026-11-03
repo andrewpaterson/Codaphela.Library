@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "IRParser.h"
 #include "BaseLib/StringHelper.h"
 #include "CTIdentifier.h"
 #include "CppTokeniser.h"
@@ -956,6 +957,10 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	int					iRound;
 	bool				bResult;
 	CIRSourceMarkers	cMarkers;
+	CArrayTemplate<bool>	abChanged;
+	bool				bFalse;
+
+	bFalse = false;
 
 	//The inliner's and optimiser's instructions have no source of their own.
 	mcModule.muiSource = 0;
@@ -979,24 +984,40 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	{
 		cInliner.SetProfile(this, (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) ? IR816_INLINE_HOT_INSTRUCTIONS : IR65_INLINE_HOT_INSTRUCTIONS);
 	}
+	abChanged.Init();
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		abChanged.Add(&bFalse);
+	}
+	if (sbInline && sbOptimise)
+	{
+		SpecialiseConstantArguments(&abChanged);
+	}
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
-		if (!cInliner.InlineCalls(psWritten->pcFunction))
+		if (!psWritten->pcFunction)
 		{
 			continue;
 		}
-		//Optimising can make an indirect call direct (a function pointer argument, a vtable entry), which is then
-		//inlined too.
-		for (iRound = 0; iRound < IR65_INLINE_ROUNDS; iRound++)
+		if (cInliner.InlineCalls(psWritten->pcFunction))
 		{
-			InitOptimiser(&cOptimiser);
-			cOptimiser.Optimise(psWritten->pcFunction);
-			cOptimiser.Kill();
-			if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
+			//Optimising can make an indirect call direct (a function pointer argument, a vtable entry), which is then
+			//inlined too.
+			for (iRound = 0; iRound < IR65_INLINE_ROUNDS; iRound++)
 			{
-				break;
+				InitOptimiser(&cOptimiser);
+				cOptimiser.Optimise(psWritten->pcFunction);
+				cOptimiser.Kill();
+				if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
+				{
+					break;
+				}
 			}
+		}
+		else if (!*abChanged.Get(ui - 1))
+		{
+			continue;
 		}
 		if (sbPrint)
 		{
@@ -1022,6 +1043,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szCode.Kill();
 	}
 	cInliner.Kill();
+	abChanged.Kill();
 
 	//The unit's small functions, as finished, for the units compiled after it.
 	for (ui = 0; mpcGenerator->mpcImports && (ui < masWritten.NumElements()); ui++)
@@ -1081,6 +1103,694 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		masWritten.Get(ui)->szLabel.Kill();
 	}
 	masWritten.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Interprocedural constant propagation (FinishUnit, before inlining).  A
+// function of the unit that only the unit calls (local, its address never
+// taken) whose parameter is a constant at every call is specialised for
+// it: with one value the parameter's uses are the constant; with up to
+// IR65_SPECIALISE_VALUES values each gets a copy of the function (named
+// with the parameter and the value) its calls go to, and the function goes
+// when nothing else names it.  Only parameters worth it are: those that
+// are (or something worked out from them is) a shift's count, a multiply's
+// or a divide's operand, or an argument of a specialisable parameter of
+// another (StrongParameters).  The copies' own calls then have constants
+// (softfloat.cpp's Add(..., iFraction) calls RoundPack(..., iFraction)), so
+// it goes round again, IR65_SPECIALISE_ROUNDS times at most.  pabChanged
+// (per written function) gets the functions whose code must be written
+// again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged)
+{
+	CArrayTemplate<uint32>	auiStrong;
+	size					ui;
+	int						iRound;
+	bool					bChanged;
+	bool					bAny;
+	uint32					uiStrong;
+	uint32					uiZero;
+
+	uiZero = 0;
+	auiStrong.Init();
+	for (iRound = 0; iRound < IR65_SPECIALISE_ROUNDS; iRound++)
+	{
+		//Which parameters are worth it, to a fixed point (a parameter passed on is as good as the one it is passed to).
+		auiStrong.FakeSetUsedElements(0);
+		for (ui = 0; ui < masWritten.NumElements(); ui++)
+		{
+			auiStrong.Add(&uiZero);
+		}
+		do
+		{
+			bChanged = false;
+			for (ui = 0; ui < masWritten.NumElements(); ui++)
+			{
+				if (masWritten.Get(ui)->pcFunction)
+				{
+					uiStrong = StrongParameters(masWritten.Get(ui)->pcFunction, &auiStrong);
+					if (uiStrong != *auiStrong.Get(ui))
+					{
+						*auiStrong.Get(ui) = uiStrong;
+						bChanged = true;
+					}
+				}
+			}
+		}
+		while (bChanged);
+
+		bAny = false;
+		for (ui = 0; ui < auiStrong.NumElements(); ui++)
+		{
+			if (*auiStrong.Get(ui) != 0)
+			{
+				bAny |= SpecialiseCallee(ui, *auiStrong.Get(ui), pabChanged);
+			}
+		}
+		if (!bAny)
+		{
+			break;
+		}
+	}
+	auiStrong.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The written function whose symbol is uiSymbol, as its index in
+// masWritten, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65IRFrontEnd::WrittenIndex(uint32 uiSymbol)
+{
+	size	ui;
+
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		if (masWritten.Get(ui)->pcFunction && (masWritten.Get(ui)->pcFunction->muiSymbol == uiSymbol))
+		{
+			return (int)ui;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction's result is worked out from its operands so
+// simply that a constant operand makes it a constant the back end does
+// better with (a count worked out from a parameter, say 61 - iFraction).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IRSpecialiseFollows(uint16 uiOpcode)
+{
+	switch (uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_Sub:
+	case IRO_Mul:
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Not:
+	case IRO_Neg:
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+	case IRO_ZExt:
+	case IRO_SExt:
+	case IRO_Trunc:
+	case IRO_Copy:
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameters of pcFunction (a bit each, the first 32) worth
+// specialising for a constant (SpecialiseConstantArguments): a value
+// worked out from one (IRSpecialiseFollows) is a shift's count, a
+// multiply's or divide's operand, or an argument for a parameter of a
+// written function that is worth it (pauiStrong, per written function).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65IRFrontEnd::StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong)
+{
+	CArrayTemplate<uint8>	abDerived;
+	size					uiParameter;
+	size					uiBlock;
+	size					ui;
+	size					uj;
+	size					uiFirst;
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psInstruction;
+	SIRPhi*					psPhi;
+	SIRReference			sValue;
+	uint32					uiStrong;
+	uint8					uiZero;
+	bool					bChanged;
+	bool					bStrong;
+	int						iCallee;
+
+	uiStrong = 0;
+	uiZero = 0;
+	abDerived.Init();
+	for (uiParameter = 0; (uiParameter < pcFunction->masParameters.NumElements()) && (uiParameter < 32); uiParameter++)
+	{
+		abDerived.FakeSetUsedElements(0);
+		for (ui = 0; ui < pcFunction->NumTemporaries(); ui++)
+		{
+			abDerived.Add(&uiZero);
+		}
+		sValue = *pcFunction->masParameters.Get(uiParameter);
+		if (!sValue.IsTemporary())
+		{
+			continue;
+		}
+		*abDerived.Get(sValue.Index()) = 1;
+
+		//What is worked out from it.
+		do
+		{
+			bChanged = false;
+			for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+			{
+				pcBlock = pcFunction->GetBlock(uiBlock);
+				for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+				{
+					psPhi = pcBlock->masPhis.Get(ui);
+					for (uj = 0; uj < psPhi->asArguments.NumElements(); uj++)
+					{
+						sValue = psPhi->asArguments.Get(uj)->sValue;
+						if (sValue.IsTemporary() && *abDerived.Get(sValue.Index()) && psPhi->sResult.IsTemporary() && !*abDerived.Get(psPhi->sResult.Index()))
+						{
+							*abDerived.Get(psPhi->sResult.Index()) = 1;
+							bChanged = true;
+						}
+					}
+				}
+				for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+				{
+					psInstruction = pcBlock->masInstructions.Get(ui);
+					if (!IRSpecialiseFollows(psInstruction->uiOpcode) || !psInstruction->sResult.IsTemporary() || *abDerived.Get(psInstruction->sResult.Index()))
+					{
+						continue;
+					}
+					for (uj = 0; uj < 2; uj++)
+					{
+						sValue = psInstruction->asArguments[uj];
+						if (sValue.IsTemporary() && *abDerived.Get(sValue.Index()))
+						{
+							*abDerived.Get(psInstruction->sResult.Index()) = 1;
+							bChanged = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		while (bChanged);
+
+		//Where it counts.
+		bStrong = false;
+		for (uiBlock = 0; (uiBlock < pcFunction->NumBlocks()) && !bStrong; uiBlock++)
+		{
+			pcBlock = pcFunction->GetBlock(uiBlock);
+			for (ui = 0; (ui < pcBlock->masInstructions.NumElements()) && !bStrong; ui++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(ui);
+				switch (psInstruction->uiOpcode)
+				{
+				case IRO_Shl:
+				case IRO_LShr:
+				case IRO_AShr:
+					sValue = psInstruction->asArguments[1];
+					bStrong = sValue.IsTemporary() && *abDerived.Get(sValue.Index());
+					break;
+				case IRO_Mul:
+				case IRO_UDiv:
+				case IRO_SDiv:
+				case IRO_URem:
+				case IRO_SRem:
+					for (uj = 0; uj < 2; uj++)
+					{
+						sValue = psInstruction->asArguments[uj];
+						bStrong |= sValue.IsTemporary() && *abDerived.Get(sValue.Index());
+					}
+					break;
+				case IRO_Call:
+					if (!psInstruction->asArguments[0].IsSymbol())
+					{
+						break;
+					}
+					iCallee = WrittenIndex(psInstruction->asArguments[0].Index());
+					if (iCallee < 0)
+					{
+						break;
+					}
+					for (uiFirst = ui; (uiFirst > 0) && (pcBlock->masInstructions.Get(uiFirst - 1)->uiOpcode == IRO_Arg); uiFirst--)
+					{
+					}
+					for (uj = uiFirst; (uj < ui) && (uj - uiFirst < 32); uj++)
+					{
+						sValue = pcBlock->masInstructions.Get(uj)->asArguments[0];
+						if (sValue.IsTemporary() && *abDerived.Get(sValue.Index()) && (*pauiStrong->Get((size)iCallee) & ((uint32)1 << (uj - uiFirst))))
+						{
+							bStrong = true;
+						}
+					}
+					break;
+				}
+			}
+		}
+		if (bStrong)
+		{
+			uiStrong |= (uint32)1 << uiParameter;
+		}
+	}
+	abDerived.Kill();
+	return uiStrong;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every use of sOld (an operand, a phi's argument, a branch's or return's
+// value) in pcFunction is sNew.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IRReplaceUses(CIRFunction* pcFunction, SIRReference sOld, SIRReference sNew)
+{
+	size			uiBlock;
+	size			ui;
+	size			uj;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+
+	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = pcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			psPhi = pcBlock->masPhis.Get(ui);
+			for (uj = 0; uj < psPhi->asArguments.NumElements(); uj++)
+			{
+				if (psPhi->asArguments.Get(uj)->sValue.Equals(sOld))
+				{
+					psPhi->asArguments.Get(uj)->sValue = sNew;
+				}
+			}
+		}
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			for (uj = 0; uj < 2; uj++)
+			{
+				if (psInstruction->asArguments[uj].Equals(sOld))
+				{
+					psInstruction->asArguments[uj] = sNew;
+				}
+			}
+		}
+		if (pcBlock->msJump.sArgument.Equals(sOld))
+		{
+			pcBlock->msJump.sArgument = sNew;
+		}
+	}
+}
+
+
+//A call of a function being specialised: the written function it is in, its block and its index there.
+struct SCPP65CallSite
+{
+	size		uiWritten;
+	CIRBlock*	pcBlock;
+	size		uiCall;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The argument for the callee's parameter uiParameter of the call at
+// psSite (the arg instructions straight before it), or none.
+//
+//////////////////////////////////////////////////////////////////////////
+static SIRReference IRCallArgument(SCPP65CallSite* psSite, size uiParameter)
+{
+	size	uiFirst;
+
+	for (uiFirst = psSite->uiCall; (uiFirst > 0) && (psSite->pcBlock->masInstructions.Get(uiFirst - 1)->uiOpcode == IRO_Arg); uiFirst--)
+	{
+	}
+	if (uiFirst + uiParameter >= psSite->uiCall)
+	{
+		return IRNone();
+	}
+	return psSite->pcBlock->masInstructions.Get(uiFirst + uiParameter)->asArguments[0];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether szLabel is named in szText (not as the start of a longer name).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IRLabelNamed(const char* szText, const char* szLabel)
+{
+	const char*	szAt;
+	size		uiLength;
+	char		c;
+
+	uiLength = strlen(szLabel);
+	for (szAt = strstr(szText, szLabel); szAt; szAt = strstr(szAt + 1, szLabel))
+	{
+		c = szAt[uiLength];
+		if (!(((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_') || (c == '.')))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Specialises the written function uiCallee for the first of its strong
+// parameters (uiStrong) that has a constant at every call
+// (SpecialiseConstantArguments).  True if it did.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged)
+{
+	CArrayTemplate<SCPP65CallSite>	asSites;
+	CArrayTemplate<uint64>			aulliValues;
+	SCPP65CallSite*					psSite;
+	SCPP65CallSite					sSite;
+	SCPP65IRWritten*				psWritten;
+	CIRFunction*					pcCallee;
+	CIRFunction*					pcFunction;
+	CIRFunction*					pcCopy;
+	CIRBlock*						pcBlock;
+	SIRInstruction*					psInstruction;
+	SIRReference					sArgument;
+	SIRType							sType;
+	CChars							szName;
+	CChars							szMarker;
+	uint64							ulliValue;
+	uint32							uiSymbol;
+	size							uiParameter;
+	size							uiWritten;
+	size							uiBlock;
+	size							ui;
+	size							uj;
+	size							uk;
+	size							uiMarker;
+	size							uiMarkerLength;
+	bool							bTaken;
+	bool							bAllConstant;
+	bool							bDone;
+	bool							bTrue;
+
+	bTrue = true;
+	psWritten = masWritten.Get(uiCallee);
+	pcCallee = psWritten->pcFunction;
+	if (!pcCallee || (pcCallee->NumBlocks() == 0) || (pcCallee->muiAttributes & IRA_Variadic) ||
+		!((pcCallee->muiAttributes & IRA_Local) || mcModule.IsLocal(pcCallee->muiSymbol)) ||
+		(CIRInliner::NumInstructions(pcCallee) > IR65_SPECIALISE_INSTRUCTIONS))
+	{
+		return false;
+	}
+
+	//Its calls; it mustn't be named otherwise (its address taken).
+	uiSymbol = pcCallee->muiSymbol;
+	asSites.Init();
+	bTaken = false;
+	for (uiWritten = 0; (uiWritten < masWritten.NumElements()) && !bTaken; uiWritten++)
+	{
+		pcFunction = masWritten.Get(uiWritten)->pcFunction;
+		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bTaken; uiBlock++)
+		{
+			pcBlock = pcFunction->GetBlock(uiBlock);
+			for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(ui);
+				for (uj = 0; uj < 2; uj++)
+				{
+					if (psInstruction->asArguments[uj].IsSymbol() && (psInstruction->asArguments[uj].Index() == uiSymbol))
+					{
+						if ((psInstruction->uiOpcode == IRO_Call) && (uj == 0))
+						{
+							sSite.uiWritten = uiWritten;
+							sSite.pcBlock = pcBlock;
+							sSite.uiCall = ui;
+							asSites.Add(&sSite);
+						}
+						else
+						{
+							bTaken = true;
+						}
+					}
+				}
+			}
+			for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+			{
+				for (uj = 0; uj < pcBlock->masPhis.Get(ui)->asArguments.NumElements(); uj++)
+				{
+					sArgument = pcBlock->masPhis.Get(ui)->asArguments.Get(uj)->sValue;
+					bTaken |= sArgument.IsSymbol() && (sArgument.Index() == uiSymbol);
+				}
+			}
+			bTaken |= pcBlock->msJump.sArgument.IsSymbol() && (pcBlock->msJump.sArgument.Index() == uiSymbol);
+		}
+	}
+	if (bTaken || (asSites.NumElements() == 0))
+	{
+		asSites.Kill();
+		return false;
+	}
+
+	//The first strong parameter that is a constant at every call, with few values.
+	aulliValues.Init();
+	bDone = false;
+	for (uiParameter = 0; (uiParameter < pcCallee->masParameters.NumElements()) && (uiParameter < 32) && !bDone; uiParameter++)
+	{
+		if (!(uiStrong & ((uint32)1 << uiParameter)))
+		{
+			continue;
+		}
+		sType = pcCallee->GetTemporaryType(*pcCallee->masParameters.Get(uiParameter));
+		aulliValues.FakeSetUsedElements(0);
+		bAllConstant = true;
+		for (ui = 0; (ui < asSites.NumElements()) && bAllConstant; ui++)
+		{
+			psSite = asSites.Get(ui);
+			sArgument = IRCallArgument(psSite, uiParameter);
+			if (!sArgument.IsConstant())
+			{
+				bAllConstant = false;
+				break;
+			}
+			ulliValue = masWritten.Get(psSite->uiWritten)->pcFunction->GetConstant(sArgument)->ulliBits;
+			for (uj = 0; (uj < aulliValues.NumElements()) && (*aulliValues.Get(uj) != ulliValue); uj++)
+			{
+			}
+			if (uj == aulliValues.NumElements())
+			{
+				aulliValues.Add(&ulliValue);
+			}
+		}
+		if (!bAllConstant || (aulliValues.NumElements() > IR65_SPECIALISE_VALUES))
+		{
+			continue;
+		}
+		bDone = true;
+
+		if (aulliValues.NumElements() == 1)
+		{
+			//One value: the parameter is that constant (the calls still pass it).
+			IRReplaceUses(pcCallee, *pcCallee->masParameters.Get(uiParameter), pcCallee->AddConstant(sType, *aulliValues.Get(0)));
+			OptimiseSpecialised(pcCallee);
+			*pabChanged->Get(uiCallee) = true;
+			break;
+		}
+
+		//A copy for each value, and its calls go to it.
+		for (uk = 0; uk < aulliValues.NumElements(); uk++)
+		{
+			ulliValue = *aulliValues.Get(uk);
+			szName.Init(mcModule.GetSymbolName(uiSymbol));
+			szName.Append("__K");
+			szName.Append((int)uiParameter);
+			szName.Append('_');
+			if ((int64)ulliValue < 0)
+			{
+				szName.Append('m');
+				szName.Append((int64)(0 - ulliValue));
+			}
+			else
+			{
+				szName.Append((int64)ulliValue);
+			}
+			pcCopy = CopyFunction(pcCallee, szName.Text());
+			if (pcCopy)
+			{
+				IRReplaceUses(pcCopy, *pcCopy->masParameters.Get(uiParameter), pcCopy->AddConstant(sType, ulliValue));
+				OptimiseSpecialised(pcCopy);
+
+				//Written after the function, in the same section (its marker straight after the function's).
+				psWritten = masWritten.Add();
+				psWritten->pcFunction = pcCopy;
+				psWritten->szLabel.Init(szName.Text());
+				psWritten->uiPieces = 0;
+				memset(&psWritten->sFrame, 0, sizeof(psWritten->sFrame));
+				psWritten->uiFingerprint = 0;
+				pabChanged->Add(&bTrue);
+				szMarker.Init(IR65_FRONT_END_MARKER);
+				szMarker.Append((int)uiCallee);
+				szMarker.Append(IR65_FRONT_END_MARKER);
+				uiMarker = mpcGenerator->mszCode.Find(0, szMarker.Text());
+				uiMarkerLength = szMarker.Length();
+				szMarker.Kill();
+				szMarker.Init(IR65_FRONT_END_MARKER);
+				szMarker.Append((int)(masWritten.NumElements() - 1));
+				szMarker.Append(IR65_FRONT_END_MARKER);
+				if (uiMarker != ARRAY_ELEMENT_NOT_FOUND)
+				{
+					mpcGenerator->mszCode.Insert(uiMarker + uiMarkerLength, szMarker.Text());
+				}
+				else
+				{
+					mpcGenerator->mszCode.Append(szMarker);
+				}
+				szMarker.Kill();
+
+				for (ui = 0; ui < asSites.NumElements(); ui++)
+				{
+					psSite = asSites.Get(ui);
+					sArgument = IRCallArgument(psSite, uiParameter);
+					if (masWritten.Get(psSite->uiWritten)->pcFunction->GetConstant(sArgument)->ulliBits == ulliValue)
+					{
+						psSite->pcBlock->masInstructions.Get(psSite->uiCall)->asArguments[0] = IRReference(IRRK_Symbol, pcCopy->muiSymbol);
+						*pabChanged->Get(psSite->uiWritten) = true;
+					}
+				}
+			}
+			szName.Kill();
+		}
+
+		//Nothing calls the function now: it goes unless the generator's code names it (a table of functions).
+		psWritten = masWritten.Get(uiCallee);
+		if (!IRLabelNamed(mpcGenerator->mszCode.Text(), psWritten->szLabel.Text()))
+		{
+			mcModule.RemoveFunction(psWritten->pcFunction);
+			psWritten->pcFunction = NULL;
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, uiCallee, "", 0, &psWritten->uiPieces);
+			*pabChanged->Get(uiCallee) = false;
+		}
+	}
+	aulliValues.Kill();
+	asSites.Kill();
+	return bDone;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A copy of pcFunction (through its text) named szName, in the unit, local
+// and taking register arguments as it does, or NULL if it couldn't be
+// made.  An existing function of that name is it.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CCPP65IRFrontEnd::CopyFunction(CIRFunction* pcFunction, const char* szName)
+{
+	CChars			szText;
+	CChars			szHeader;
+	CIRPrinter		cPrinter;
+	CIRParser		cParser;
+	CCPPErrors		cErrors;
+	int				iSymbol;
+	size			uiAt;
+	bool			bResult;
+	CIRFunction*	pcCopy;
+
+	iSymbol = mcModule.FindSymbol(szName);
+	if (iSymbol >= 0)
+	{
+		pcCopy = mcModule.FindFunction((uint32)iSymbol);
+		if (pcCopy)
+		{
+			return pcCopy;
+		}
+	}
+	szText.Init();
+	cPrinter.Init(&mcModule, &szText);
+	cPrinter.PrintFunction(pcFunction);
+	cPrinter.Kill();
+
+	//The function's own name (in its first line) is the copy's.
+	szHeader.Init("@");
+	szHeader.Append(mcModule.GetSymbolName(pcFunction->muiSymbol));
+	szHeader.Append('(');
+	uiAt = szText.Find(0, szHeader.Text());
+	if (uiAt == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		szHeader.Kill();
+		szText.Kill();
+		return NULL;
+	}
+	szText.Remove(uiAt + 1, uiAt + szHeader.Length() - 1);
+	szText.Insert(uiAt + 1, szName);
+	szHeader.Kill();
+
+	cErrors.Init();
+	cParser.Init(&mcModule, &cErrors, "specialised");
+	bResult = cParser.Parse(szText.Text());
+	cParser.Kill();
+	cErrors.Kill();
+	szText.Kill();
+	iSymbol = mcModule.FindSymbol(szName);
+	if (!bResult || (iSymbol < 0))
+	{
+		return NULL;
+	}
+	pcCopy = mcModule.FindFunction((uint32)iSymbol);
+	if (pcCopy)
+	{
+		mcModule.SetLocal((uint32)iSymbol);
+		if (mcModule.IsRegisterCall(pcFunction->muiSymbol))
+		{
+			mcModule.SetRegisterCall((uint32)iSymbol);
+		}
+	}
+	return pcCopy;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A specialised function optimised again (its constant folded through).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::OptimiseSpecialised(CIRFunction* pcFunction)
+{
+	CIROptimiser	cOptimiser;
+
+	if (sbOptimise)
+	{
+		InitOptimiser(&cOptimiser);
+		cOptimiser.Optimise(pcFunction);
+		cOptimiser.Kill();
+	}
 }
 
 
