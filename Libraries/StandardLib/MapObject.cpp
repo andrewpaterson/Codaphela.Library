@@ -532,7 +532,7 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot)
 {
 	CBaseObject*	pcContainer;
 	CBaseObject*	pcPointedToKey;
@@ -545,11 +545,11 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 	while (bExists)
 	{
 		pcContainer = pcPointedToKey->GetEmbeddingContainer();
-		pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
+		pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedDistToRoot);
 		if (pcPointedToValue)
 		{
 			pcContainer = pcPointedToValue->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
+			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedDistToRoot);
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}

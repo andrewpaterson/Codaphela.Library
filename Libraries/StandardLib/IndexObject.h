@@ -55,7 +55,7 @@ public:
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
 	void				RemoveAllPointerTosDontFree(void) override;
 	bool				RemoveAllPointerTosTryFree(void) override;
-	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
+	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot) override;
 
 	bool				Remove(const char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);

@@ -31,6 +31,7 @@ void TestNamedObject(void);
 void TestObjectsSimple(void);
 void TestRoot(void);
 void TestDistToRoot(void);
+void TestDistToRootUpdate(void);
 void TestDistToStack(void);
 void TestObjectGraphWriting(void);
 void TestArrayCommonObject(void);
@@ -93,6 +94,7 @@ int __cdecl main(void)
 	TestParameters();
 	TestClass();
 	TestDistToRoot();
+	TestDistToRootUpdate();
 	TestDistToStack();
 	TestObjectsSimple();
 	TestRoot();

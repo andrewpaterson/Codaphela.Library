@@ -82,8 +82,8 @@ public:
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
-	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot);
+	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot);
 	size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
@@ -105,7 +105,7 @@ protected:
 	bool				RemoveAllPointerTosTryFree(void);
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
-	CBaseObject*		GetClosestFromForCanFindRoot(void);
+	CBaseObject*		GetClosestFromForCanFindRoot(int iGoodEnoughDist) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

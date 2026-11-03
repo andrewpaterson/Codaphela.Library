@@ -226,7 +226,7 @@ void CEmbeddedObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CEmbeddedObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot)
 {
 }
 
@@ -601,8 +601,10 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
+CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(int iGoodEnoughDist)
 {
+	//Stops at the first from no further than iGoodEnoughDist.  A hub (a window, a list) can have thousands of
+	//froms, and the walk to root only needs a closer from, not the closest one.
 	int					iNearestRoot;
 	CEmbeddedObject*	pcNearestPointedFrom;
 	size				i;
@@ -623,6 +625,10 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 			{
 				iNearestRoot = iDistToRoot;
 				pcNearestPointedFrom = pcFrom;
+				if (iDistToRoot <= iGoodEnoughDist)
+				{
+					break;
+				}
 			}
 		}
 	}

@@ -34,6 +34,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
+//The objects that got closer to the root and whose pointer tos haven't been told yet (SetExpectedDistToRoot).
+CArrayBaseObjectPtr	gapcCloserToRoot;
+bool				gbCloserToRootDraining = false;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -535,10 +540,18 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 
 //////////////////////////////////////////////////////////////////////////
 //
+// iClearedFromDistToRoot is the distance the from that was just cleared
+// had.  A from no closer to root than this object (or not attached to it
+// at all) was never what it relied on, so this object need not be checked
+// (a window that every component points to would otherwise be checked
+// once for every cleared component).  MAX_DIST_TO_ROOT always checks: it
+// is used for the object whose from was removed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
 {
+	int		iDistToRoot;
+
 	if (IsEmbedded())
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
@@ -552,13 +565,22 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 
 	if (!(muiFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
 	{
-		if (!CanFindRootThroughValidPath())
+		iDistToRoot = miDistToRoot;
+		if ((iDistToRoot >= ROOT_DIST_TO_ROOT) && (iClearedFromDistToRoot != MAX_DIST_TO_ROOT))
+		{
+			if ((iClearedFromDistToRoot < ROOT_DIST_TO_ROOT) || (iDistToRoot <= iClearedFromDistToRoot))
+			{
+				return;
+			}
+		}
+
+		if (!HasCloserFrom())
 		{
 			pcParameters->AddTouched(this);
 			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
 			SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
-			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters);
+			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters, iDistToRoot);
 		}
 	}
 }
@@ -807,7 +829,7 @@ bool CBaseObject::CanFindRoot(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
-	pcPointedFrom = GetClosestFromForCanFindRoot();
+	pcPointedFrom = GetClosestFromForCanFindRoot(ROOT_DIST_TO_ROOT);
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
@@ -818,6 +840,37 @@ bool CBaseObject::CanFindRoot(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While clearing, an object keeps its distance when a from is closer to
+// root and not cleared.  That from is valid by the same rule: every
+// attached object had a closer from before the change, and clearing an
+// object rechecks everything it points to.  So no walk back to root is
+// needed (a walk that scanned hubs, like a window, on every step).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::HasCloserFrom(void)
+{
+	CEmbeddedObject*	pcPointedFrom;
+
+	if (IsRoot())
+	{
+		return true;
+	}
+	if (miDistToRoot <= ROOT_DIST_TO_ROOT)
+	{
+		return false;
+	}
+
+	pcPointedFrom = GetClosestFromForCanFindRoot(miDistToRoot - 1);
+	if (pcPointedFrom == NULL)
+	{
+		return false;
+	}
+	return pcPointedFrom->GetDistToRoot() < miDistToRoot;
 }
 
 
@@ -848,7 +901,7 @@ bool CBaseObject::CanFindRootThroughValidPath(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
-	pcPointedFrom = GetClosestFromForCanFindRoot();
+	pcPointedFrom = GetClosestFromForCanFindRoot(miDistToRoot - 1);
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
@@ -882,12 +935,61 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 	}
 
 	int		iBestDistToRoot;
+	int		iDistToRoot;
 
-	iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
-	if (SetDistToRoot(iBestDistToRoot))
+	if (iExpectedDistToRoot < ROOT_DIST_TO_ROOT)
 	{
-		SetPointerTosExpectedDistToRoot(iBestDistToRoot);
+		iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
+		if (SetDistToRoot(iBestDistToRoot))
+		{
+			SetPointerTosExpectedDistToRoot(iBestDistToRoot);
+		}
+		return;
 	}
+
+	//A pointer from an object iExpectedDistToRoot - 1 from the root can only bring this, and what it points to, closer.
+	//This object's distance is already the best of its froms', so only a shorter one changes anything.  The objects
+	//that got closer are queued and give their pointer tos their distance in turn, breadth first, so each gets its
+	//final distance the first time it's reached.
+	iDistToRoot = GetDistToRoot();
+	if ((iDistToRoot >= ROOT_DIST_TO_ROOT) && (iDistToRoot <= iExpectedDistToRoot))
+	{
+		return;
+	}
+
+	SetDistToRoot(iExpectedDistToRoot);
+	if (gbCloserToRootDraining)
+	{
+		gapcCloserToRoot.Add(this);
+	}
+	else
+	{
+		gapcCloserToRoot.Init();
+		gapcCloserToRoot.Add(this);
+		DrainCloserToRoot();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives each object that got closer to the root (in the order they did) its
+// distance's pointer tos.  Those that get closer are queued after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DrainCloserToRoot(void)
+{
+	CBaseObject*	pcCloser;
+	size			uiFirst;
+
+	gbCloserToRootDraining = true;
+	for (uiFirst = 0; uiFirst < gapcCloserToRoot.NumElements(); uiFirst++)
+	{
+		pcCloser = gapcCloserToRoot.GetPtr(uiFirst);
+		pcCloser->SetPointerTosExpectedDistToRoot(pcCloser->GetDistToRoot());
+	}
+	gapcCloserToRoot.Kill();
+	gbCloserToRootDraining = false;
 }
 
 

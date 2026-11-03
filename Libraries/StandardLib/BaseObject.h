@@ -149,7 +149,7 @@ public:
 			bool					TestedForRoot(void);
 			void					UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void					CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
-			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot = MAX_DIST_TO_ROOT);
 	virtual bool					IsDistToRootValid(void);
 			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 			size					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
@@ -174,6 +174,7 @@ public:
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
 			bool					CanFindRootThroughValidPath(void);
+			bool					HasCloserFrom(void);
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;
@@ -233,6 +234,7 @@ protected:
 			size					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			void					RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void					SetExpectedDistToRoot(int iExpectedDistToRoot);
+	static	void					DrainCloserToRoot(void);
 			void					SetCalculatedDistToRoot(void);
 			int						CalculateDistToRootFromPointedFroms(void);
 	virtual int						CalculateDistToRootFromPointedFroms(int iDistToRoot);

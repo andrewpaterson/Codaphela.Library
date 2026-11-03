@@ -537,7 +537,7 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot)
 {
 	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
@@ -550,7 +550,7 @@ void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcul
 		if (pcPointedTo)
 		{
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
+			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedDistToRoot);
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}

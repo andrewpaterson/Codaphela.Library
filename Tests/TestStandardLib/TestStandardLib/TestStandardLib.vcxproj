@@ -240,6 +240,7 @@
     <ClCompile Include="TestClass.cpp" />
     <ClCompile Include="TestDehollowfication.cpp" />
     <ClCompile Include="TestDistToRootCalculator.cpp" />
+    <ClCompile Include="TestDistToRootUpdate.cpp" />
     <ClCompile Include="TestDistToStackCalculator.cpp" />
     <ClCompile Include="TestEmbedded.cpp" />
     <ClCompile Include="TestEmbeddedObjectRemapTos.cpp" />

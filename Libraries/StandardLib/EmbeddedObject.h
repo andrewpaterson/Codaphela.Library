@@ -116,7 +116,7 @@ public:
 	virtual size				BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot);
 	virtual size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			bool				HasHeapFroms(void);
@@ -172,7 +172,7 @@ protected:
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
-	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
+	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(int iGoodEnoughDist);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 			void				ValidateObjectsConsistency(bool bValidate);
 };
