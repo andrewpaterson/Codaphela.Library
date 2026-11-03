@@ -34,8 +34,8 @@ void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators*
 	size				uiNumTokens;
 
 	mpcTokeniser = pcTokeniser;
-	mcMemory.Init(this, psMallocators ? psMallocators->pcSyntaxes : NULL);
-	mcSymbols.Init();
+	mcMemory.Init(this, psMallocators ? psMallocators->pcSyntaxes : NULL, psMallocators ? psMallocators->pcArena : NULL);
+	mcSymbols.Init(psMallocators ? psMallocators->pcArena : NULL);
 	mpcRoot = NULL;
 	mcErrors.Init();
 	mpcNodeArrays = (psMallocators && psMallocators->pcNodeArrays) ? psMallocators->pcNodeArrays : &gcSystemAllocator;

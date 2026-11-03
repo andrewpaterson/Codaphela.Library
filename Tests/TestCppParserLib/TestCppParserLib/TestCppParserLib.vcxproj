@@ -241,6 +241,7 @@
     <ClCompile Include="TestCPP816Volatile.cpp" />
     <ClCompile Include="TestCPP65IR.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
+    <ClCompile Include="TestCPP65HeaderCache.cpp" />
     <ClCompile Include="TestCPP65Jobs.cpp" />
     <ClCompile Include="TestCPP65Spill.cpp" />
     <ClCompile Include="TestCppParser.cpp" />

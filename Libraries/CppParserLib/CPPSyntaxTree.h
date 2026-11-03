@@ -54,6 +54,7 @@ struct SCPPSyntaxTreeMallocators
 	CMallocator*	pcSyntaxes;			//The list of nodes.
 	CMallocator*	pcTokenSymbols;		//What each token was found to be.
 	CMallocator*	pcNodeArrays;		//The nodes' own arrays (their children and the like).
+	CMallocator*	pcArena;			//The nodes, scopes and symbols: an arena (they are all freed with the tree).
 };
 
 

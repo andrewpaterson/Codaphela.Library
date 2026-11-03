@@ -30,11 +30,12 @@ class CCPPSyntaxMemory
 {
 protected:
 	CMemoryStackExtended	mcStack;
+	CMallocator*			mpcNodes;		//The nodes are allocated by it (an arena), or in mcStack if NULL.
 	CArraySyntax			mapcSyntaxes;
 	CCPPSyntaxTree*			mpcTree;
 
 public:
-	void							Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes = NULL);
+	void							Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes = NULL, CMallocator* pcNodes = NULL);
 	void							Kill(void);
 	size							NumSyntaxes(void);
 
@@ -51,7 +52,7 @@ M* CCPPSyntaxMemory::Create(CCPPSyntax* pcParent)
 {
 	M*	pcSyntax;
 
-	pcSyntax = New<M>((M*)mcStack.Add(sizeof(M)));
+	pcSyntax = New<M>((M*)(mpcNodes ? mpcNodes->Malloc(sizeof(M)) : mcStack.Add(sizeof(M))));
 	pcSyntax->Init(mpcTree, pcParent);
 	mapcSyntaxes.Add(pcSyntax);
 	return pcSyntax;

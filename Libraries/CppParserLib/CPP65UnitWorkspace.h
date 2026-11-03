@@ -26,10 +26,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxTree.h"
 
 
+//The most of its arena a workspace keeps from one unit to the next (a unit's syntax tree is mostly smaller).
+#define CPP65_WORKSPACE_KEPT_ARENA	(16 MB)
+
+
 //What compiling unit after unit (CCPP65Builder::CompileUnit) keeps from one unit to the next, so a unit's memory isn't
 //allocated again for every unit: allocators that keep the memory of its biggest arrays (its preprocessed tokens, its
-//C++ tokens and its syntax tree's), and an arena for its syntax tree's nodes' own arrays, emptied for each unit
-//(Begin).  Each thread compiling units has its own, so threads don't wait for each other's allocations.
+//C++ tokens and its syntax tree's), and an arena for its syntax tree's nodes, their own arrays, and its scopes and
+//symbols, emptied for each unit (Begin).  Each thread compiling units has its own, so threads don't wait for each
+//other's allocations.
 //
 //A unit's arrays are killed (their memory given back) before its workspace compiles another unit.
 class CCPP65UnitWorkspace

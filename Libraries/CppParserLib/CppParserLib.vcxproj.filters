@@ -516,7 +516,13 @@
     <ClCompile Include="ConditionalStack.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
+    <ClCompile Include="PPHeaderCache.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorHeaderCache.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor_Linux.cpp">
@@ -1107,6 +1113,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="ConditionalStack.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PPHeaderCache.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="Preprocessor.h">

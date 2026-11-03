@@ -59,6 +59,7 @@ public:
 
 	void*	Add(lsize uiSize);
 	void	Reset(void);
+	void	Recycle(lsize uiMaxKept);
 
 	lsize	GetMemorySize(void);
 	lsize	GetUsedSize(void);

@@ -61,6 +61,9 @@
     <ClCompile Include="TestCPP65LazyHeaders.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPP65HeaderCache.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPP65Jobs.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>

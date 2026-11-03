@@ -296,6 +296,8 @@ void ARRAY_BLOCK::Overflowed(void)
 //////////////////////////////////////////////////////////////////////////
 ASIZE ARRAY_BLOCK::AddNum(ASIZE iNumElements)
 {
+	ASIZE	iOldUsedElements;
+
 #ifdef ARRAY_CHECK_SIZE
 	if (iNumElements > ARRAY_SIZE_MAX - miUsedElements)
 	{
@@ -303,6 +305,14 @@ ASIZE ARRAY_BLOCK::AddNum(ASIZE iNumElements)
 		return 0;
 	}
 #endif // ARRAY_CHECK_SIZE
+
+	//Within the elements allocated nothing is reallocated (as Add).
+	if (miUsedElements + iNumElements <= miNumElements)
+	{
+		iOldUsedElements = miUsedElements;
+		miUsedElements += iNumElements;
+		return iOldUsedElements;
+	}
 	return SetUsedElements(miUsedElements + iNumElements);
 }
 

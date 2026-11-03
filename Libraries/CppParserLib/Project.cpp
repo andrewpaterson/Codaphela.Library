@@ -38,6 +38,21 @@ void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 	mbWritePostFile = bWritePostFile;
 	mcIncludeFiles.Init();
 	mcHeaderNames.Init();
+	mpcHeaderCache = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The units' preprocessors keep headers' output in pcHeaderCache, and a
+// unit that includes a header with the macros another unit did gets it
+// from there (CPreprocessor::SetHeaderCache).  The output is the same.
+// NULL preprocesses every header in every unit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CProject::SetHeaderCache(CPPHeaderCache* pcHeaderCache)
+{
+	mpcHeaderCache = pcHeaderCache;
 }
 
 
@@ -229,6 +244,7 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 	cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
 	cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 	cPreprocessor.LogDumping(mbDumpLogs);
+	cPreprocessor.SetHeaderCache(mpcHeaderCache);
 
 	bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 	if (pszErrors)

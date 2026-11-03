@@ -53,7 +53,7 @@ public:
 	CCPPScope*		mpcQualifier;		//A member function defined outside its class: the class is searched before the parent.
 	bool			mbDependent;		//A class whose bases or members depend on template parameters, so lookup can fail.
 
-	void			Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner);
+	void			Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner, CMallocator* pcMalloc = NULL);
 	void			Kill(void);
 
 	void			Add(CCPPSymbol* pcSymbol);

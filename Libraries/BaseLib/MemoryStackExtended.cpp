@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMemoryStackExtended::Init(lsize iChunkSize)
 {
 	mcStacks.Init();
+	mcSpares.Init();
 	muiElements = 0;
 	muiChunkSize = iChunkSize;
 }
@@ -83,6 +84,87 @@ void CMemoryStackExtended::Kill(void)
 		pcStack->Kill();
 	}
 	mcStacks.Kill();
+
+	uiNumElements = mcSpares.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcStack = mcSpares.Get(i);
+		pcStack->Kill();
+	}
+	mcSpares.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Everything added is given back, as Clear, but up to uiMaxKept bytes of
+// the chunks are kept (as spares) for the Adds after, not freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryStackExtended::Recycle(lsize uiMaxKept)
+{
+	size			i;
+	CMemoryStack*	pcStack;
+	size			uiNumElements;
+	lsize			uiKept;
+
+	uiKept = 0;
+	uiNumElements = mcSpares.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		uiKept += mcSpares.Get(i)->GetTotalMemory();
+	}
+
+	uiNumElements = mcStacks.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcStack = mcStacks.Get(i);
+		if ((pcStack->GetData() != NULL) && (pcStack->GetTotalMemory() == muiChunkSize) && (uiKept + muiChunkSize <= uiMaxKept))
+		{
+			pcStack->Clear();
+			mcSpares.Add(pcStack);
+			uiKept += muiChunkSize;
+		}
+		else
+		{
+			pcStack->Kill();
+		}
+	}
+	mcStacks.ReInit();
+	muiElements = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new chunk of muiChunkSize: a spare if there is one.
+//
+//////////////////////////////////////////////////////////////////////////
+CMemoryStack* CMemoryStackExtended::AddChunk(void)
+{
+	CMemoryStack*	pcStack;
+
+	pcStack = mcStacks.Add();
+	if (mcSpares.NumElements() > 0)
+	{
+		mcSpares.Pop(pcStack);
+	}
+	else
+	{
+		pcStack->Init(muiChunkSize);
+	}
+	return pcStack;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chunks kept by Recycle.
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryStackExtended::NumSpares(void)
+{
+	return mcSpares.NumElements();
 }
 
 
@@ -121,8 +203,7 @@ void* CMemoryStackExtended::Add(lsize uiSize)
 		while (i != 0);
 	}
 
-	pcStack = mcStacks.Add();
-	pcStack->Init(muiChunkSize);
+	pcStack = AddChunk();
 	muiElements++;
 	return pcStack->Add(uiSize);
 }

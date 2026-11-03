@@ -46,6 +46,7 @@ void CCPP65UnitWorkspace::Init(void)
 	msSyntaxTree.pcSyntaxes = &mcSyntaxes;
 	msSyntaxTree.pcTokenSymbols = &mcTokenSymbols;
 	msSyntaxTree.pcNodeArrays = &mcNodeArrays;
+	msSyntaxTree.pcArena = &mcNodeArrays;
 }
 
 
@@ -68,13 +69,14 @@ void CCPP65UnitWorkspace::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Another unit is to be compiled: the last one's syntax tree's node
-// arrays are let go all at once.
+// Another unit is to be compiled: the last one's syntax tree's nodes,
+// their arrays, scopes and symbols are let go all at once.  The arena's
+// chunks (up to CPP65_WORKSPACE_KEPT_ARENA bytes) are kept for the unit.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65UnitWorkspace::Begin(void)
 {
-	mcNodeArrays.GetScratchPad()->Reset();
+	mcNodeArrays.GetScratchPad()->Recycle(CPP65_WORKSPACE_KEPT_ARENA);
 }
 
 

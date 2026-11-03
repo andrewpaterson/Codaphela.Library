@@ -165,6 +165,7 @@ public:
 	SMacroExpansion*		GetExpansion(size iIndex);
 
 	void					AddInactiveLine(CSourceFile* pcFile, int iLine);
+	void					AddInactiveLines(CSourceFile* pcFile, int iStartLine, int iEndLine);
 	size					NumInactiveRegions(void);
 	SInactiveRegion*		GetInactiveRegion(size iIndex);
 

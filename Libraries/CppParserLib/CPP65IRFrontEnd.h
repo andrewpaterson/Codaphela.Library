@@ -159,6 +159,7 @@ protected:
 	CArraySyntax			mapcNone;			//No arguments.
 	CArrayChars				maszRuntime;		//Runtime routines called, given to the generator if the function is written.
 	CArrayChars				maszMissing;		//Named callees with no body in the unit or the imports (GetMissingCallees).
+	CArrayChars				maszNotImported;	//Every name the inliner looked for in the imports and didn't find (CIRImports::Missed).
 	CArrayUint8				mauiStringBytes;	//String literals, given to the generator if the function is written.
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
@@ -183,7 +184,7 @@ public:
 
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
-	void			FinishUnit(void);
+	bool			FinishUnit(void);
 	void			SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged);
 	int				WrittenIndex(uint32 uiSymbol);
 	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);

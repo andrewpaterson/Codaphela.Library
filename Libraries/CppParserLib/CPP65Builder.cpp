@@ -72,6 +72,8 @@ void CCPP65Builder::Init(void)
 	mpcSpillStore = &mcMemorySpillStore;
 	mbLazyHeaders = true;
 	mcHeaderIndex.Init();
+	mcHeaderCache.Init();
+	mcProject.SetHeaderCache(&mcHeaderCache);
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
 	mpcJobs = NULL;
@@ -100,6 +102,7 @@ void CCPP65Builder::Kill(void)
 	mcCompiled.Kill();
 	mcCompilingMutex.Kill();
 	mcMemorySpillStore.Kill();
+	mcHeaderCache.Kill();
 	mcHeaderIndex.Kill();
 	mszListings.Kill();
 	mcImports.Kill();
@@ -483,6 +486,69 @@ size CCPP65Builder::NumLazyLoaded(void)
 size CCPP65Builder::NumCompiledAgain(void)
 {
 	return muiCompiledAgain;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A header a unit preprocessed is kept, and the units after that include
+// it with the same macros get its output without preprocessing it
+// (CPreprocessor::SetHeaderCache).  The code is the same.  On by default;
+// false preprocesses every header in every unit.  Set it before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetHeaderCache(bool bHeaderCache)
+{
+	mcProject.SetHeaderCache(bHeaderCache ? &mcHeaderCache : NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The headers kept, and how often units found them (CPPHeaderCache).
+//
+//////////////////////////////////////////////////////////////////////////
+CPPHeaderCache* CCPP65Builder::GetHeaderCache(void)
+{
+	return &mcHeaderCache;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times a W65C816 unit, inlining before its turn, missed a
+// function another unit exported meanwhile, and was generated again in its
+// turn (CIRImports::Missed).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumImportsMissed(void)
+{
+	return mcImports.NumMissed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times a W65C816 unit found before its turn that it had missed
+// a function another unit exported while it inlined, and was generated
+// again then (CIRImports::BeginTurnUnlessStale).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumImportsStale(void)
+{
+	return mcImports.NumStale();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For testing: every W65C816 unit is generated twice, as if it missed an
+// imported function the first time.  The code is the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetForceImportsMissed(bool bForce)
+{
+	mcImports.SetForceMisses(bForce);
 }
 
 
@@ -1576,7 +1642,6 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	CCPPParser			cParser;
-	CCPP65Generator		cGenerator;
 	CCPP65Assembly		cAssembly;
 	CCPP65UnitWorkspace*	pcWorkspace;
 	char*				szConfiguration;
@@ -1613,17 +1678,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	bResult &= cParser.Parse();
 	psUnit->szErrors.Append(cTree.GetErrors()->Text());
 
-	cAssembly.Init(psUnit->pcSpillStore);
-	cGenerator.Init(&cTree, meTarget);
-	cGenerator.SetSpillStore(psUnit->pcSpillStore);
-	if (meTarget == CPPT_W65C816)
-	{
-		cGenerator.SetImports(&mcImports, psUnit->uiTurn);
-		cGenerator.SetFrameProfile(mpcFrameProfile);
-	}
-	cGenerator.SetListing(!mszListings.Empty());
-	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
-	bResult &= cGenerator.Generate(&cAssembly);
+	bResult &= GenerateUnit(psUnit, &cTree, &cAssembly, 0);
 	if (meTarget == CPPT_W65C816)
 	{
 		//Its turn is over even if it didn't get to it (an error before the unit was finished).
@@ -1633,10 +1688,6 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	{
 		bResult &= WriteListing(psUnit->pcFile->ShortName(), &cAssembly, &psUnit->szErrors);
 	}
-	cGenerator.GetMissingCallees(&psUnit->aszMissing);
-	psUnit->szErrors.Append(cGenerator.GetErrors()->Text());
-	psUnit->szWarnings.Append(cGenerator.GetWarnings()->Text());
-	cGenerator.Kill();
 	psUnit->uiLazySkipped += cParser.NumLazySkipped();
 	psUnit->uiLazyLoaded += cParser.NumLazyLoaded();
 	cParser.Kill();
@@ -1660,3 +1711,50 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	UnitFinished();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generates psUnit's assembly from pcTree into pcAssembly (which it
+// initialises).  The functions it calls that weren't found for inlining
+// go to the unit's aszMissing, its errors and warnings to the unit's.  On
+// the W65C816 the unit's turn has started when it returns.  If the unit
+// missed a function another unit exported while it was inlining (before its
+// turn) it is generated again (CCPP65Generator::MissedImports): before its
+// turn if it found out then (up to CPP65_STALE_ATTEMPTS times, uiAttempt
+// counting them), otherwise in its turn.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::GenerateUnit(SCPP65CompiledUnit* psUnit, CCPPSyntaxTree* pcTree, CCPP65Assembly* pcAssembly, size uiAttempt)
+{
+	CCPP65Generator		cGenerator;
+	bool				bResult;
+	bool				bMissed;
+
+	pcAssembly->Init(psUnit->pcSpillStore);
+	cGenerator.Init(pcTree, meTarget);
+	cGenerator.SetSpillStore(psUnit->pcSpillStore);
+	if (meTarget == CPPT_W65C816)
+	{
+		cGenerator.SetImports(&mcImports, psUnit->uiTurn, uiAttempt < CPP65_STALE_ATTEMPTS);
+		cGenerator.SetFrameProfile(mpcFrameProfile);
+	}
+	cGenerator.SetListing(!mszListings.Empty());
+	cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
+	bResult = cGenerator.Generate(pcAssembly);
+	bMissed = cGenerator.MissedImports();
+	if (!bMissed)
+	{
+		cGenerator.GetMissingCallees(&psUnit->aszMissing);
+		psUnit->szErrors.Append(cGenerator.GetErrors()->Text());
+		psUnit->szWarnings.Append(cGenerator.GetWarnings()->Text());
+	}
+	cGenerator.Kill();
+
+	if (bMissed)
+	{
+		//The functions' code it put in the spill store is replaced (by index) as it is generated again.
+		pcAssembly->Kill();
+		return GenerateUnit(psUnit, pcTree, pcAssembly, uiAttempt + 1);
+	}
+	return bResult;
+}

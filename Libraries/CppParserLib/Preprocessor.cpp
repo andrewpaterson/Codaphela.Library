@@ -56,6 +56,9 @@ void SPPSource::Init(EPPSourceType eType)
 	iConditionalDepth = 0;
 	bHeaderDirectory = false;
 	iCurrentLine = 0;
+	uiDirectory = 0;
+	uiDirectories = 0;
+	bRecorded = false;
 	lliDefineID = -1;
 }
 
@@ -110,6 +113,15 @@ void CPreprocessor::Kill(void)
 		macSources.Get(i)->Kill();
 	}
 	macSources.Kill();
+	for (i = 0; i < masRecorders.NumElements(); i++)
+	{
+		KillRecorder(masRecorders.Get(i), false);
+	}
+	masRecorders.Kill();
+	if (mpcHeaderCache)
+	{
+		mpcHeaderCache->Count(muiHeaderHits, muiHeaderMisses, muiReplayedTokens);
+	}
 	macPushedBack.Kill();
 	maiDisabledDefines.Kill();
 	mpcOutput = NULL;
@@ -210,6 +222,8 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 	CHeaderNameMapDirectory*	pcNewDirectory;
 	CChars						szPath;
 	CChars						szError;
+	uint64						uiIncludingDirectories;
+	uint64						uiDirectory;
 
 	if (miIncludeDepth >= MAX_INCLUDE_DEPTH)
 	{
@@ -227,10 +241,33 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 		return false;
 	}
 
+	uiIncludingDirectories = 0;
+	uiDirectory = 0;
+	if (mpcHeaderCache)
+	{
+		psSource = GetCurrentFileSource();
+		uiDirectory = DirectoriesHash(pcFile, 0);
+		if (!psSource)
+		{
+			uiIncludingDirectories = uiDirectory;
+		}
+		else if (psSource->uiDirectory == uiDirectory)
+		{
+			//Looking in a directory again finds nothing new.
+			uiIncludingDirectories = psSource->uiDirectories;
+		}
+		else
+		{
+			uiIncludingDirectories = DirectoriesHash(pcFile, psSource->uiDirectories);
+		}
+	}
+
 	psSource = macSources.Push();
 	psSource->Init(PPST_File);
 	psSource->pcFile = pcFile;
 	psSource->pcIncludingFile = mpcCurrentFile;
+	psSource->uiDirectories = uiIncludingDirectories;
+	psSource->uiDirectory = uiDirectory;
 	psSource->iConditionalDepth = mcConditionalStack.mcStack.NumElements();
 
 	if (pcHeaderNameMap)
@@ -302,6 +339,16 @@ bool CPreprocessor::PopSource(void)
 				mcConditionalStack.PopEndIf();
 			}
 			bResult = false;
+		}
+
+		//A header being kept for the header cache is finished (not kept if it ended in an error).
+		if (psSource->bRecorded)
+		{
+			if (!bResult || mbError)
+			{
+				InvalidateRecordings();
+			}
+			EndRecording();
 		}
 
 		if (psSource->bHeaderDirectory)
@@ -794,6 +841,14 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mcWarnings.Init();
 	mcHeaderNames.Init();
 	mcPragmaOnce.Init();
+	mpcHeaderCache = NULL;
+	masRecorders.Init();
+	muiIncludeDirectories = 0;
+	miLookAhead = 0;
+	mbReplaying = false;
+	muiHeaderHits = 0;
+	muiHeaderMisses = 0;
+	muiReplayedTokens = 0;
 
 	AddSpecialDefine("__DATE__");
 	AddSpecialDefine("__TIME__");
@@ -980,7 +1035,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenM
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
+bool CPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
 	CExternalString			cIdentifier;
 	bool					bResult;
@@ -1009,6 +1064,11 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 			mcDefines.Remove(&cIdentifier);
 		}
 		pcDefine = mcDefines.AddDefine(&cIdentifier);
+		if (masRecorders.NumElements() > 0)
+		{
+			NoteDefined(cIdentifier.msz, cIdentifier.miLen);
+			NoteEvent(PPHE_Define, mpcCurrentFile, pcDirective);
+		}
 
 		bResult = pcParser->GetExactDecorator('(', false);
 		if (bResult)
@@ -1022,6 +1082,7 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		
 		pcTokenMemory = GetTokenMemory();
 		pcDefine->SetFile(mpcCurrentFile);
+		pcDefine->SetPosition(pcDirective->Line(), pcDirective->Column());
 
 		iNumArguments = pcDefine->GetArguments()->NumElements();
 		iReplacementNum = 0;
@@ -1141,7 +1202,7 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
+bool CPreprocessor::ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
 	bool				bResult;
 	CExternalString		cIdentifier;
@@ -1151,6 +1212,11 @@ bool CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 	if (bResult)
 	{
 		mcDefines.Remove(&cIdentifier);
+		if (masRecorders.NumElements() > 0)
+		{
+			NoteDefined(cIdentifier.msz, cIdentifier.miLen);
+			NoteEvent(PPHE_Undef, mpcCurrentFile, pcDirective);
+		}
 	}
 
 	return true;
@@ -1436,6 +1502,10 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 		if (mpcCurrentFile && mpcCurrentFile->IsHeader())
 		{
 			mcPragmaOnce.Put(mpcCurrentFile, mpcCurrentFile);
+			if (masRecorders.NumElements() > 0)
+			{
+				NoteEvent(PPHE_PragmaOnce, mpcCurrentFile, NULL);
+			}
 		}
 	}
 	return true;
@@ -1683,7 +1753,10 @@ bool CPreprocessor::Next(SPreprocessedToken* psToken)
 			if (!mbInCondition && psToken->Is("_Pragma"))
 			{
 				uiSpacing = psToken->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE);
-				if (SkipPragmaOperator())
+				miLookAhead++;
+				bResult = SkipPragmaOperator();
+				miLookAhead--;
+				if (bResult)
 				{
 					muiPendingFlags |= uiSpacing;
 					continue;
@@ -1708,14 +1781,18 @@ bool CPreprocessor::Next(SPreprocessedToken* psToken)
 		acArguments.Init();
 		if (pcDefine->IsBracketed())
 		{
-			//A function-like macro name not followed by ( is not an invocation.
+			//A function-like macro name not followed by ( is not an invocation.  Reading what follows it (and its
+			//arguments) may read past the end of a header (miLookAhead).
+			miLookAhead++;
 			if (!PeekOpenParenthesis())
 			{
+				miLookAhead--;
 				acArguments.Kill();
 				return true;
 			}
 
 			bResult = CollectArguments(pcDefine, psToken, &acArguments);
+			miLookAhead--;
 		}
 		else
 		{
@@ -2377,6 +2454,8 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 	}
 	else if (strcmp(szName, "__COUNTER__") == 0)
 	{
+		//A header that counts, or tells the time, is preprocessed every time.
+		InvalidateRecordings();
 		sz.Append(miCounter);
 		miCounter++;
 	}
@@ -2397,6 +2476,7 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 	}
 	else if ((strcmp(szName, "__DATE__") == 0) || (strcmp(szName, "__TIME__") == 0) || (strcmp(szName, "__TIMESTAMP__") == 0))
 	{
+		InvalidateRecordings();
 		eKind = PTK_String;
 		tNow = time(NULL);
 		psTime = localtime(&tNow);
@@ -2485,10 +2565,28 @@ CArrayPreprocessedTokens* CPreprocessor::GetBody(CDefine* pcDefine)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CPreprocessor::GetDefine(SPreprocessedToken* psToken)
 {
-	CExternalString		cName;
+	return LookUpDefine(psToken->szText, psToken->uiLength);
+}
 
-	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-	return mcDefines.Get(&cName, true);
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The macro named szName (uiLength characters), NULL if there isn't one.
+// A header being kept depends on what it is (NoteLookUp).
+//
+//////////////////////////////////////////////////////////////////////////
+CDefine* CPreprocessor::LookUpDefine(const char* szName, size uiLength)
+{
+	CExternalString		cName;
+	CDefine*			pcDefine;
+
+	cName.Init((char*)szName, (int)uiLength);
+	pcDefine = mcDefines.Get(&cName, true);
+	if (masRecorders.NumElements() > 0)
+	{
+		NoteLookUp(szName, uiLength, pcDefine);
+	}
+	return pcDefine;
 }
 
 
@@ -2520,11 +2618,11 @@ bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
 	CExternalString		cName;
 
 	//The special operators, like __has_include, count as defined so that headers can test for them.
-	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
-	if (mcDefines.Get(&cName, true))
+	if (LookUpDefine(psToken->szText, psToken->uiLength))
 	{
 		return true;
 	}
+	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
 	return mcSpecialOperators.Get(&cName, true) != NULL;
 }
 
@@ -2694,11 +2792,11 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 	cParser.Init(pcDirective);
 	if (pcDirective->Is(PPD_define))
 	{
-		bResult = ProcessHashDefine(&cParser);
+		bResult = ProcessHashDefine(pcDirective, &cParser);
 	}
 	else if (pcDirective->Is(PPD_undef))
 	{
-		bResult = ProcessHashUndef(&cParser);
+		bResult = ProcessHashUndef(pcDirective, &cParser);
 	}
 	else if (pcDirective->Is(PPD_include))
 	{
@@ -3146,6 +3244,9 @@ bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 	size						i;
 	SPreprocessorPosition		sPos;
 	CChars						szError;
+	bool						bOnce;
+	bool						bCache;
+	uint64						uiContext;
 
 	acRaw.Init();
 	acExpanded.Init();
@@ -3188,7 +3289,12 @@ bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 	}
 	szName.Kill();
 
-	if (mcPragmaOnce.Get(pcIncludeFile))
+	bOnce = mcPragmaOnce.Get(pcIncludeFile) != NULL;
+	if (masRecorders.NumElements() > 0)
+	{
+		NotePragmaQuery(pcIncludeFile, bOnce);
+	}
+	if (bOnce)
 	{
 		miIncludeDepth++;
 		LogInclude(pcIncludeFile);
@@ -3196,10 +3302,21 @@ bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 		return true;
 	}
 
+	//A header another unit preprocessed with the same macros is replayed, otherwise it is preprocessed and kept.
+	bCache = CanUseHeaderCache();
+	if (bCache && ReplayCachedHeader(pcIncludeFile, pcHeaderNameMap))
+	{
+		return true;
+	}
+	uiContext = bCache ? HeaderContext() : 0;
 	bResult = PushFile(pcIncludeFile, pcHeaderNameMap);
 	if (bResult)
 	{
 		LogInclude(pcIncludeFile);
+		if (bCache)
+		{
+			BeginRecording(pcIncludeFile, pcHeaderNameMap, uiContext);
+		}
 	}
 	return bResult;
 }

@@ -30,16 +30,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 typedef CArrayTemplate<CMemoryStack> CArrayMemoryStack;
 
 
+//Memory added a piece at a time in chunks, and given back all at once (Clear, Recycle or Kill) or from the end (Remove,
+//Rollback).  Recycle keeps the chunks for the Adds after (spares), so memory used again and again isn't allocated
+//again.
 class CMemoryStackExtended
 {
 protected:
 	CArrayMemoryStack	mcStacks;
+	CArrayMemoryStack	mcSpares;		//Empty chunks (of muiChunkSize) kept by Recycle.
 	lsize				muiChunkSize;
 	size				muiElements;
 
 public:
 	void			Init(lsize iChunkSize);
 	void			Clear(void);
+	void			Recycle(lsize uiMaxKept);
 	void			Kill(void);
 
 	void*			Add(lsize iSize);
@@ -53,6 +58,10 @@ public:
 	CMemoryStack*	GetStack(size iIndex);
 	size			NumStacks(void);
 	size			NumElements(void);
+	size			NumSpares(void);
+
+protected:
+	CMemoryStack*	AddChunk(void);
 
 };
 

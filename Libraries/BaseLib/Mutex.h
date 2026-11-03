@@ -7,7 +7,8 @@
 #define MUTEX_HANDLE_SIZE		48
 
 
-//A mutex between the threads of one process.  It is not recursive.
+//A mutex between the threads of one process.  It is not recursive.  Readers may share it (LockShared) where the
+//platform can (Windows); elsewhere a shared lock is an exclusive one.
 class CMutex
 {
 friend class CConditionVariable;
@@ -20,6 +21,8 @@ public:
 
 	void	Lock(void);
 	void	Unlock(void);
+	void	LockShared(void);
+	void	UnlockShared(void);
 };
 
 

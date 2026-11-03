@@ -38,6 +38,11 @@ void CIRImports::Init(size uiMaxInstructions)
 	mcMutex.Init();
 	mcTurnChanged.Init();
 	muiTurn = 0;
+	mcModuleLock.Init();
+	muiMissed = 0;
+	muiStale = 0;
+	mbForceMisses = false;
+	muiForcedTurn = SIZE_MAX;
 }
 
 
@@ -47,6 +52,7 @@ void CIRImports::Init(size uiMaxInstructions)
 //////////////////////////////////////////////////////////////////////////
 void CIRImports::Kill(void)
 {
+	mcModuleLock.Kill();
 	mcTurnChanged.Kill();
 	mcMutex.Kill();
 	mcModule.Kill();
@@ -62,6 +68,7 @@ void CIRImports::ResetTurns(void)
 {
 	mcMutex.Lock();
 	muiTurn = 0;
+	muiForcedTurn = SIZE_MAX;
 	mcMutex.Unlock();
 }
 
@@ -103,6 +110,144 @@ void CIRImports::EndTurn(size uiTurn)
 		mcTurnChanged.WakeAll();
 	}
 	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Functions are found (and read) before the unit's turn, while the unit
+// whose turn it is may export: between BeginRead and EndRead they don't
+// change.  In its turn a unit needn't (only it exports).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::BeginRead(void)
+{
+	mcModuleLock.LockShared();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::EndRead(void)
+{
+	mcModuleLock.UnlockShared();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a unit's turn: whether a function named in paszNotFound, which the
+// unit looked for before its turn and didn't find, has been exported since
+// (the unit must do its work again, in its turn).  With SetForceMisses each
+// turn misses the first time it asks.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRImports::Missed(CArrayChars* paszNotFound)
+{
+	size	ui;
+	bool	bMissed;
+
+	bMissed = false;
+	if (mbForceMisses && (muiForcedTurn != muiTurn))
+	{
+		muiForcedTurn = muiTurn;
+		bMissed = true;
+	}
+	for (ui = 0; (ui < paszNotFound->NumElements()) && !bMissed; ui++)
+	{
+		bMissed = Find(paszNotFound->GetText(ui)) != NULL;
+	}
+	if (bMissed)
+	{
+		muiMissed++;
+	}
+	return bMissed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Waits for turn uiTurn (as BeginTurn), unless a function named in
+// paszNotFound, which the unit looked for and didn't find, is exported
+// before then: true if one was (the turn hasn't begun), false when the
+// turn has (Missed tells it then).  Each turn that ends before is looked
+// at.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRImports::BeginTurnUnlessStale(CArrayChars* paszNotFound, size uiTurn)
+{
+	size	ui;
+	bool	bStale;
+	size	uiSeen;
+
+	mcMutex.Lock();
+	for (;;)
+	{
+		if (muiTurn >= uiTurn)
+		{
+			mcMutex.Unlock();
+			return false;
+		}
+		uiSeen = muiTurn;
+		mcMutex.Unlock();
+
+		bStale = false;
+		BeginRead();
+		for (ui = 0; (ui < paszNotFound->NumElements()) && !bStale; ui++)
+		{
+			bStale = Find(paszNotFound->GetText(ui)) != NULL;
+		}
+		EndRead();
+
+		mcMutex.Lock();
+		if (bStale)
+		{
+			muiStale++;
+			mcMutex.Unlock();
+			return true;
+		}
+		while (muiTurn == uiSeen)
+		{
+			mcTurnChanged.Wait(&mcMutex);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many units found they had missed a function before their turn
+// (BeginTurnUnlessStale).
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRImports::NumStale(void)
+{
+	return muiStale;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times a unit's turn found it had missed a function (Missed).
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRImports::NumMissed(void)
+{
+	return muiMissed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For testing: every unit's turn takes it as having missed a function once
+// (the unit does its work again in its turn).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRImports::SetForceMisses(bool bForceMisses)
+{
+	mbForceMisses = bForceMisses;
 }
 
 
@@ -189,6 +334,7 @@ bool CIRImports::IsExportable(CIRModule* pcModule, CIRFunction* pcFunction)
 //
 // Copies pcFunction (of pcModule) in, through its text, if it can be
 // inlined in other units and isn't in already.  True if it was copied.
+// Only in the unit's turn (units reading before theirs wait for it).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
@@ -209,6 +355,7 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 	cPrinter.Init(pcModule, &szText);
 	cPrinter.PrintFunction(pcFunction);
 	cPrinter.Kill();
+	mcModuleLock.Lock();
 	cErrors.Init();
 	cParser.Init(&mcModule, &cErrors, "imports");
 	bResult = cParser.Parse(szText.Text());
@@ -228,6 +375,7 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 			}
 		}
 	}
+	mcModuleLock.Unlock();
 	return bResult;
 }
 

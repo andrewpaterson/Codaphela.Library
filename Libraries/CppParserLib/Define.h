@@ -45,6 +45,10 @@ protected:
 	uint32			miFlags;
 	CChars			mszName;
 	CSourceFile*	mpcFile;		//Where it was #defined, NULL for predefined and configuration macros.
+	int32			miLine;			//The #define's line and column in mpcFile.
+	int32			miColumn;
+	uint64			muiContentHash;	//Of the arguments and replacement (ContentHash), 0 until asked.
+	uint32			muiNameHash;	//CDefineMap's.
 	CArrayPreprocessedTokens	macBody;		//The replacement as preprocessed tokens, made when first expanded.
 	bool			mbBodyConverted;
 
@@ -56,6 +60,9 @@ public:
 	void 			AddReplacementToken(CPPToken* pcToken);
 	bool 			Equals(CDefine* pcOther);
 	char*			GetName(void);
+	size			GetNameLength(void);
+	uint32			GetNameHash(void);
+	void			SetNameHash(uint32 uiHash);
 	int64			GetID(void);
 	bool			IsBracketed(void);
 	bool			IsVariadic(void);
@@ -67,6 +74,10 @@ public:
 	CPPLine*		GetReplacement(void);
 	void			SetFile(CSourceFile* pcFile);
 	CSourceFile*	GetFile(void);
+	void			SetPosition(int iLine, int iColumn);
+	int				GetLine(void);
+	int				GetColumn(void);
+	uint64			ContentHash(void);
 	bool			IsBodyConverted(void);
 	CArrayPreprocessedTokens*	GetBody(void);
 	void			SetBodyConverted(void);

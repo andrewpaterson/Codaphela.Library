@@ -29,11 +29,12 @@ class CCPPSymbolTable
 {
 protected:
 	CMemoryStackExtended	mcMemory;
+	CMallocator*			mpcArena;		//The scopes, symbols and scopes' maps are allocated by it, or in mcMemory if NULL.
 	CArrayScopes			mapcScopes;
 	CCPPScope*				mpcGlobal;
 
 public:
-	void			Init(void);
+	void			Init(CMallocator* pcArena = NULL);
 	void			Kill(void);
 
 	CCPPScope*		CreateScope(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner);

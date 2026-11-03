@@ -32,9 +32,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //them by name).  Units add their functions after they are optimised (Export); a unit compiled before a function it
 //calls was exported can be compiled again (the builder's CompileUnits).
 //
-//Units compiled at the same time take turns (BeginTurn, EndTurn): each finds and exports functions only in its own
-//turn, its place in the order the units are compiled, so it sees what it would if they were compiled one after
-//another.
+//Units compiled at the same time take turns (BeginTurn, EndTurn): each exports functions only in its own turn, its
+//place in the order the units are compiled, so it is as if they were compiled one after another.  A unit may find
+//functions before its turn (between BeginRead and EndRead), keeping the names it didn't find: in its turn, if none
+//of them has been exported since (Missed), it found what it would have in its turn (an exported function never
+//changes).  Otherwise it does its work again, in its turn.  A unit waiting for its turn that finds it missed one
+//(BeginTurnUnlessStale) does its work again then, so it misses fewer in its turn.
 class CIRImports
 {
 protected:
@@ -43,6 +46,11 @@ protected:
 	CMutex				mcMutex;
 	CConditionVariable	mcTurnChanged;
 	size				muiTurn;		//The unit whose turn it is.
+	CMutex				mcModuleLock;	//Held shared by units finding functions before their turn, exclusive to export.
+	size				muiMissed;		//Turns a unit missed a function exported after it looked (Missed).
+	size				muiStale;		//Units that found they had missed one before their turn (BeginTurnUnlessStale).
+	bool				mbForceMisses;	//Every unit misses once (SetForceMisses), for testing.
+	size				muiForcedTurn;	//The turn last made to miss.
 
 public:
 	void			Init(size uiMaxInstructions);
@@ -51,6 +59,13 @@ public:
 	void			ResetTurns(void);
 	void			BeginTurn(size uiTurn);
 	void			EndTurn(size uiTurn);
+	void			BeginRead(void);
+	void			EndRead(void);
+	bool			Missed(CArrayChars* paszNotFound);
+	bool			BeginTurnUnlessStale(CArrayChars* paszNotFound, size uiTurn);
+	size			NumMissed(void);
+	size			NumStale(void);
+	void			SetForceMisses(bool bForceMisses);
 
 	bool			Export(CIRModule* pcModule, CIRFunction* pcFunction);
 	CIRFunction*	Find(const char* szName);

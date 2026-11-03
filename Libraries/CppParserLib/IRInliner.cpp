@@ -44,6 +44,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	msArguments = IRNone();
 	mpcImports = NULL;
 	mpaszMissing = NULL;
+	mpaszNotImported = NULL;
 	mpcCalleeModule = NULL;
 	mpcProfile = NULL;
 	muiHotInstructions = 0;
@@ -397,6 +398,29 @@ void CIRInliner::SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions)
 //////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 {
+	bool	bResult;
+
+	//Imports are read while other units may be exporting (CIRImports::BeginRead).
+	if (mpcImports)
+	{
+		mpcImports->BeginRead();
+	}
+	bResult = InlineCallsReading(pcCaller);
+	if (mpcImports)
+	{
+		mpcImports->EndRead();
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// InlineCalls, with the imports (if any) being read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::InlineCallsReading(CIRFunction* pcCaller)
+{
 	size			uiBlock;
 	size			uiInstruction;
 	size			uiInlines;
@@ -441,7 +465,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 //
 // The function a call of sSymbol calls: the module's, else (with no body
 // here) another unit's from mpcImports, else NULL.  bMissing adds the name
-// of one in neither to mpaszMissing.
+// of one in neither to mpaszMissing; mpaszNotImported gets it either way.
 //
 //////////////////////////////////////////////////////////////////////////
 CIRFunction* CIRInliner::Callee(SIRReference sSymbol, bool bMissing)
@@ -454,6 +478,10 @@ CIRFunction* CIRInliner::Callee(SIRReference sSymbol, bool bMissing)
 		return pcCallee;
 	}
 	pcCallee = mpcImports->Find(mpcModule->GetSymbolName(sSymbol.Index()));
+	if (!pcCallee && mpaszNotImported)
+	{
+		mpaszNotImported->AddIfUnique(mpcModule->GetSymbolName(sSymbol.Index()));
+	}
 	if (!pcCallee && bMissing && mpaszMissing)
 	{
 		mpaszMissing->AddIfUnique(mpcModule->GetSymbolName(sSymbol.Index()));
@@ -466,13 +494,15 @@ CIRFunction* CIRInliner::Callee(SIRReference sSymbol, bool bMissing)
 //
 // Callees with no body in the module are looked for in pcImports (other
 // units' functions); the names of those not there either are added to
-// paszMissing when it isn't NULL.
+// paszMissing when it isn't NULL (if the inliner was told to look for them),
+// and to paszNotImported when it isn't NULL (always).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRInliner::SetImports(CIRImports* pcImports, CArrayChars* paszMissing)
+void CIRInliner::SetImports(CIRImports* pcImports, CArrayChars* paszMissing, CArrayChars* paszNotImported)
 {
 	mpcImports = pcImports;
 	mpaszMissing = paszMissing;
+	mpaszNotImported = paszNotImported;
 }
 
 

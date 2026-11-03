@@ -40,6 +40,10 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 	mpcDefineMap = pcDefineMap;
 	mszName.Init(pcName);
 	mpcFile = NULL;
+	miLine = -1;
+	miColumn = -1;
+	muiContentHash = 0;
+	muiNameHash = 0;
 	macBody.Init();
 	mbBodyConverted = false;
 }
@@ -86,6 +90,113 @@ void CDefine::SetFile(CSourceFile* pcFile)
 CSourceFile* CDefine::GetFile(void)
 {
 	return mpcFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDefine::GetNameLength(void)
+{
+	return mszName.Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CDefine::GetNameHash(void)
+{
+	return muiNameHash;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDefine::SetNameHash(uint32 uiHash)
+{
+	muiNameHash = uiHash;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the #define is in its file (SetFile).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDefine::SetPosition(int iLine, int iColumn)
+{
+	miLine = iLine;
+	miColumn = iColumn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDefine::GetLine(void)
+{
+	return miLine;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDefine::GetColumn(void)
+{
+	return miColumn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hash (never 0) of what the macro is: its kind, arguments and
+// replacement.  Two macros with the same hash expand the same (except for
+// where their tokens say they are from: a #define's is its file's).
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CDefine::ContentHash(void)
+{
+	CChars	sz;
+	size	i;
+	uint64	uiHash;
+	size	uiLength;
+	char*	szText;
+
+	if (muiContentHash != 0)
+	{
+		return muiContentHash;
+	}
+
+	sz.Init();
+	sz.Append((int)(miFlags & (DEFINE_FLAGS_BRACKETED | DEFINE_FLAGS_SPECIAL | DEFINE_FLAGS_VARIADIC)));
+	for (i = 0; i < maszArguments.NumElements(); i++)
+	{
+		sz.Append(',');
+		sz.Append(maszArguments.GetText(i));
+	}
+	sz.Append(')');
+	mcReplacement.Print(&sz);
+
+	//FNV-1a.
+	uiHash = 0xCBF29CE484222325ULL;
+	szText = sz.Text();
+	uiLength = sz.Length();
+	for (i = 0; i < uiLength; i++)
+	{
+		uiHash ^= (uint8)szText[i];
+		uiHash *= 0x100000001B3ULL;
+	}
+	sz.Kill();
+	muiContentHash = (uiHash == 0) ? 1 : uiHash;
+	return muiContentHash;
 }
 
 

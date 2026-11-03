@@ -28,14 +28,23 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner)
+void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner, CMallocator* pcMalloc)
 {
 	meKind = eKind;
 	mpcParent = pcParent;
 	mpcOwner = pcOwner;
-	mcSymbols.Init(true);
-	mapcBases.Init();
-	mapcUsings.Init();
+	if (pcMalloc)
+	{
+		mcSymbols.Init(pcMalloc, true);
+		mapcBases.Init(pcMalloc);
+		mapcUsings.Init(pcMalloc);
+	}
+	else
+	{
+		mcSymbols.Init(true);
+		mapcBases.Init();
+		mapcUsings.Init();
+	}
 	mpcQualifier = NULL;
 	mbDependent = false;
 }

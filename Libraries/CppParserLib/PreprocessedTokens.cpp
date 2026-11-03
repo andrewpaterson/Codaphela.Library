@@ -296,6 +296,24 @@ void CPreprocessedTokens::AddInactiveLine(CSourceFile* pcFile, int iLine)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// As AddInactiveLine for each line from iStartLine to iEndLine.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::AddInactiveLines(CSourceFile* pcFile, int iStartLine, int iEndLine)
+{
+	SInactiveRegion*	psRegion;
+
+	AddInactiveLine(pcFile, iStartLine);
+	psRegion = macInactiveRegions.Tail();
+	if (iEndLine > psRegion->iEndLine)
+	{
+		psRegion->iEndLine = iEndLine;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////

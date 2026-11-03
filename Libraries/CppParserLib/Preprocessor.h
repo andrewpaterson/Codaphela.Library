@@ -39,6 +39,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HeaderNameMapStack.h"
 #include "PreprocessedTokens.h"
 #include "CPPErrors.h"
+#include "PPHeaderCache.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 
 
@@ -72,6 +73,9 @@ struct SPPSource
 	size						iConditionalDepth;		//Conditionals open when the file was entered.
 	bool						bHeaderDirectory;		//A directory was pushed onto the header stack for it.
 	int							iCurrentLine;			//Source line of the tokens in acTokens.
+	uint64						uiDirectory;			//The file's directory, hashed.
+	uint64						uiDirectories;			//The directories of the file and the files including it, hashed (a quoted #include looks in them).
+	bool						bRecorded;				//The file's output is being kept (CPreprocessor's BeginRecording).
 
 	//PPST_Macro.
 	int64						lliDefineID;			//The macro is not expanded again while this source is read.
@@ -82,6 +86,32 @@ struct SPPSource
 
 
 typedef CArrayTemplate<SPPSource> CArrayPPSources;
+
+
+//A header whose output is being kept for the header cache (CPPHeaderCache), as it is preprocessed.  Its output (in
+//the unit's) is in segments: runs of its own, and headers it included that are kept on their own.
+struct SPPRecorder
+{
+	SPPCachedHeader*	psHeader;			//Being made.
+	CPPNameSet			cSeen;				//Names looked up or defined: only a name's first look up depends on the includer.
+	CArrayPPHeaderFiles	apcPragmaSeen;		//Likewise #pragma once files.
+	size				uiStartToken;		//Where its output starts in the unit's.
+	size				uiStartExpansion;
+	size				uiStartInactive;
+	size				uiStartDirective;
+	size				uiSegmentToken;		//Where its current run of its own output starts in the unit's.
+	size				uiSegmentExpansion;
+	size				uiSegmentInactive;
+	size				uiSegmentDirective;
+	size				uiSegmentEvent;		//In psHeader's asEvents.
+	int32				iTailEndLine;		//The end of the inactive region before the run (it mustn't grow), -1 for none.
+	size				uiErrors;			//Errors and warnings before it (any made while it is read and it isn't kept).
+	size				uiWarnings;
+	bool				bValid;				//False if it can't be kept.
+};
+
+
+typedef CArrayTemplate<SPPRecorder> CArrayPPRecorders;
 
 
 class CPreprocessor
@@ -115,6 +145,14 @@ protected:
 	int								miCounter;
 	CCPPErrors						mcErrors;
 	CCPPErrors						mcWarnings;				//#warning's.
+	CPPHeaderCache*					mpcHeaderCache;			//Headers' output kept for all units (SetHeaderCache), NULL for none.
+	CArrayPPRecorders				masRecorders;			//The headers being kept, innermost last.
+	uint64							muiIncludeDirectories;	//The include directories, hashed (0 until a header is included).
+	int								miLookAhead;			//Reading past a token to see what follows (a macro's arguments).
+	bool							mbReplaying;			//A kept header is being replayed.
+	size							muiHeaderHits;
+	size							muiHeaderMisses;
+	size							muiReplayedTokens;
 
 public:
 	static bool			Preprocess(char* szSource, CChars* pszDest);
@@ -144,6 +182,7 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);
+	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
 
 protected:
 	//Sources.
@@ -179,9 +218,9 @@ protected:
 	//Directives.
 	bool				ProcessDirective(CPPDirective* pcDirective);
 	bool				ProcessConditional(CPPDirective* pcDirective);
-	bool 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
+	bool 				ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
 	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
-	bool 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
+	bool 				ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
 	bool 				ProcessHashInclude(CPPDirective* pcDirective, bool bNext);
 	bool 				ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning);
 	bool 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
@@ -205,6 +244,29 @@ protected:
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);
+	CDefine*			LookUpDefine(const char* szName, size uiLength);
+
+	//The header cache.  PreprocessorHeaderCache.cpp
+	bool				CanUseHeaderCache(void);
+	uint64				HeaderContext(void);
+	uint64				DirectoriesHash(CSourceFile* pcFile, uint64 uiIncluding);
+	bool				ReplayCachedHeader(CHeaderFile* pcFile, CHeaderFiles* pcHeaderNameMap);
+	bool				CachedHeaderMatches(SPPCachedHeader* psHeader);
+	void				ReplayHeader(SPPCachedHeader* psHeader);
+	void				ReplayEvent(SPPHeaderEvent* psEvent);
+	void				BeginRecording(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
+	void				EndRecording(void);
+	void				StartSegment(SPPRecorder* psRecorder);
+	void				EndSegment(SPPRecorder* psRecorder, size uiToken, size uiExpansion, size uiInactive, size uiDirective);
+	void				AddChildSegment(SPPRecorder* psRecorder, SPPCachedHeader* psChild, size uiToken, size uiExpansion, size uiInactive, size uiDirective);
+	void				KillRecorder(SPPRecorder* psRecorder, bool bKeep);
+	void				InvalidateRecordings(void);
+	SPPRecorder*		Recording(void);
+	void				NoteLookUp(const char* szName, size uiLength, CDefine* pcDefine);
+	void				NoteDefined(const char* szName, size uiLength);
+	void				NotePragmaQuery(CSourceFile* pcFile, bool bOnce);
+	void				NoteEvent(EPPHeaderEvent eType, CSourceFile* pcFile, CPPDirective* pcDirective);
+	static void			DefineIdentity(CDefine* pcDefine, SPPDefineIdentity* psIdentity);
 };
 
 

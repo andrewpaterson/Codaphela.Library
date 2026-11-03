@@ -88,6 +88,7 @@ void TestCPP65JobsProject(void)
 	CWorkerThreadJobs	cJobs;
 	CCPP65Builder		cSerial;
 	CCPP65Builder		cParallel;
+	CCPP65Builder		cForced;
 	STestCPP65Run		sRun;
 	ECPPTarget			eTarget;
 	int					i;
@@ -111,6 +112,23 @@ void TestCPP65JobsProject(void)
 
 		TestCPP65JobsAssertSame(&cSerial, &cParallel);
 		AssertSize((eTarget == CPPT_W65C816) ? 3 : 0, cParallel.NumCompiledAgain());
+
+		//Every W65C816 unit generated again in its turn, as if it had missed a function exported while it inlined.
+		TestCPP65JobsBegin(&cForced, eTarget, &cJobs, aszUnits);
+		cForced.SetForceImportsMissed(true);
+		AssertTrue(cForced.Link());
+		AssertString("", cForced.GetErrors());
+		TestCPP65JobsAssertSame(&cSerial, &cForced);
+		if (eTarget == CPPT_W65C816)
+		{
+			//Each of the four units' turns, and the three compiled again.
+			AssertSize(4 + 3, cForced.NumImportsMissed());
+		}
+		else
+		{
+			AssertSize(0, cForced.NumImportsMissed());
+		}
+		cForced.Kill();
 
 		if (bParallel && (eTarget == CPPT_65C64))
 		{

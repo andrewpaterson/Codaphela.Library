@@ -78,6 +78,7 @@ protected:
 	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
 	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
+	CArrayChars*			mpaszNotImported;			//Every name looked for in mpcImports and not found, NULL to not keep.
 	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
 	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
 	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
@@ -96,10 +97,11 @@ public:
 	bool			InlinedRecursive(CIRFunction* pcCallee);
 	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0, size uiHotLimit = 0);
 	bool			InlineCalls(CIRFunction* pcCaller);
-	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing);
+	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing, CArrayChars* paszNotImported = NULL);
 	void			SetProfile(CIRInlineProfile* pcProfile, size uiHotInstructions);
 
 protected:
+	bool			InlineCallsReading(CIRFunction* pcCaller);
 	void			FindLoops(void);
 	CIRFunction*	Callee(SIRReference sSymbol, bool bMissing);
 	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);

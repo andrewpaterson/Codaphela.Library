@@ -37,6 +37,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPP65UnitWorkspace.h"
 
 
+//How many times a W65C816 unit is generated again before its turn, having missed a function exported while it inlined.
+#define CPP65_STALE_ATTEMPTS	3
+
+
 struct SCPP65IncludeDirectory
 {
 	CChars	szDirectory;
@@ -151,6 +155,7 @@ protected:
 	CIndexTreeSpillStore			mcIndexTreeSpillStore;
 	bool							mbLazyHeaders;			//Header declarations are parsed when a unit first uses them (SetLazyHeaders).
 	CCPPHeaderIndex					mcHeaderIndex;			//The header declarations the units have parsed.
+	CPPHeaderCache					mcHeaderCache;			//Headers' preprocessed output (SetHeaderCache).
 	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
 	size							muiLazyLoaded;			//...and parsed when used.
 	CJobs*							mpcJobs;				//What compiles the units (SetJobs), or NULL for one at a time.
@@ -172,6 +177,11 @@ public:
 	size			NumLazySkipped(void);
 	size			NumLazyLoaded(void);
 	size			NumCompiledAgain(void);
+	void			SetHeaderCache(bool bHeaderCache);
+	CPPHeaderCache*	GetHeaderCache(void);
+	size			NumImportsMissed(void);
+	size			NumImportsStale(void);
+	void			SetForceImportsMissed(bool bForce);
 	void			SetLineTable(bool bLineTable);
 	CAsm65LineTable*	GetLineTable(void);
 
@@ -220,6 +230,7 @@ protected:
 	bool			CalleeExported(SCPP65CompiledUnit* psUnit);
 	void			CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport);
 	void			CompileUnitAgain(SCPP65CompiledUnit* psUnit);
+	bool			GenerateUnit(SCPP65CompiledUnit* psUnit, CCPPSyntaxTree* pcTree, CCPP65Assembly* pcAssembly, size uiAttempt);
 	void			UnitFinished(void);
 	CCPP65UnitWorkspace*	TakeWorkspace(void);
 	void			GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace);

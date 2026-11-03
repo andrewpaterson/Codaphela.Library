@@ -26,10 +26,18 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSymbolTable::Init(void)
+void CCPPSymbolTable::Init(CMallocator* pcArena)
 {
 	mcMemory.Init(16 KB);
-	mapcScopes.Init();
+	mpcArena = pcArena;
+	if (pcArena)
+	{
+		mapcScopes.Init(pcArena);
+	}
+	else
+	{
+		mapcScopes.Init();
+	}
 	mpcGlobal = CreateScope(CPPSC_Namespace, NULL, NULL);
 }
 
@@ -48,6 +56,7 @@ void CCPPSymbolTable::Kill(void)
 	}
 	mapcScopes.Kill();
 	mcMemory.Kill();
+	mpcArena = NULL;
 	mpcGlobal = NULL;
 }
 
@@ -60,8 +69,8 @@ CCPPScope* CCPPSymbolTable::CreateScope(ECPPScopeKind eKind, CCPPScope* pcParent
 {
 	CCPPScope*	pcScope;
 
-	pcScope = (CCPPScope*)mcMemory.Add(sizeof(CCPPScope));
-	pcScope->Init(eKind, pcParent, pcOwner);
+	pcScope = (CCPPScope*)(mpcArena ? mpcArena->Malloc(sizeof(CCPPScope)) : mcMemory.Add(sizeof(CCPPScope)));
+	pcScope->Init(eKind, pcParent, pcOwner, mpcArena);
 	mapcScopes.Add(pcScope);
 	return pcScope;
 }
@@ -75,7 +84,7 @@ CCPPSymbol* CCPPSymbolTable::CreateSymbol(int64 lliName, ECPPSymbolKind eKind, C
 {
 	CCPPSymbol*	pcSymbol;
 
-	pcSymbol = (CCPPSymbol*)mcMemory.Add(sizeof(CCPPSymbol));
+	pcSymbol = (CCPPSymbol*)(mpcArena ? mpcArena->Malloc(sizeof(CCPPSymbol)) : mcMemory.Add(sizeof(CCPPSymbol)));
 	pcSymbol->Init(lliName, eKind, pcDeclaration, pcScope);
 	return pcSymbol;
 }

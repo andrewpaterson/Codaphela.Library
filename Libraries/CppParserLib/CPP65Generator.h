@@ -466,6 +466,8 @@ protected:
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	size					muiImportsTurn;		//The unit's turn with them (CIRImports::BeginTurn).
+	bool					mbMissedImports;	//The unit must be generated again (MissedImports).
+	bool					mbRetryStale;		//Before its turn, the unit is generated again if it missed one (SetImports).
 	CAsm65816Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
@@ -493,7 +495,8 @@ public:
 	CCPPErrors*				GetWarnings(void);
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
-	void					SetImports(CIRImports* pcImports, size uiTurn);
+	void					SetImports(CIRImports* pcImports, size uiTurn, bool bRetryStale = false);
+	bool					MissedImports(void);
 	void					SetFrameProfile(CAsm65816Profile* pcProfile);
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);

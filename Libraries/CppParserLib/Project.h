@@ -46,6 +46,7 @@ protected:
 	bool					mbWritePostFile;	//Each unit's preprocessed text is written to Post\<unit> (WritePost).
 	CArrayHeaderNameMap		mcHeaderNames;
 	CHeaderFileMap			mcIncludeFiles;
+	CPPHeaderCache*			mpcHeaderCache;		//Headers' output kept for all units (SetHeaderCache), NULL for none.
 
 public:
 	void				Init(bool bDumpLogs = false, bool bWritePostFile = false);
@@ -55,6 +56,7 @@ public:
 	CLibrary*			GetLibrary(char* szLibrary);
 	bool				Process(char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	bool				ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
+	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);

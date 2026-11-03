@@ -726,6 +726,11 @@ void TestProject65RunTests(STestProject65* psProject)
 	{
 		cBuilder.SetJobs(&cJobs);
 	}
+	//TEST_PROJECT65_FORCE_MISSES=1: every W65C816 unit is generated a second time in its turn, as if it had missed an
+	//imported function inlining before it (it builds the same).
+	cBuilder.SetForceImportsMissed(getenv("TEST_PROJECT65_FORCE_MISSES") != NULL);
+	//TEST_PROJECT65_NO_HEADER_CACHE=1: every unit preprocesses every header it includes (it builds the same).
+	cBuilder.SetHeaderCache(getenv("TEST_PROJECT65_NO_HEADER_CACHE") == NULL);
 	//TEST_PROJECT65_CPP=1: the W65C816 build compiles the C++ of units that have X816.asm, not the assembly.
 	CCPP65Generator::SetW65C816Assembly(getenv("TEST_PROJECT65_CPP") == NULL);
 	//TEST_PROJECT65_STACK_ARGUMENTS=1: every W65C816 call pushes its arguments (no register arguments), to compare.
@@ -752,6 +757,12 @@ void TestProject65RunTests(STestProject65* psProject)
 	AssertString("", cBuilder.GetErrors());
 	AssertTrue(bCompiled);
 	printf("%s", cBuilder.GetWarnings());
+	if (getenv("TEST_PROJECT65_COMPILE_STATS"))
+	{
+		//TEST_PROJECT65_COMPILE_STATS: the W65C816 units generated again for a missed import, and compiled again.
+		printf("%d imports stale, %d missed, %d compiled again; headers: %d kept, %d replayed (%d tokens)\n", (int)cBuilder.NumImportsStale(), (int)cBuilder.NumImportsMissed(), (int)cBuilder.NumCompiledAgain(),
+			(int)cBuilder.GetHeaderCache()->NumHeaders(), (int)cBuilder.GetHeaderCache()->NumHits(), (int)cBuilder.GetHeaderCache()->NumReplayedTokens());
+	}
 
 	TestProject65TestDirectory(psProject, &szMainFile);
 	szMainFile.Append(_FS_);

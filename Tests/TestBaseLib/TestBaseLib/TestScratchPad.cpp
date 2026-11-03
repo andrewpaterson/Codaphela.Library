@@ -83,6 +83,54 @@ void TestScratchPadRollback(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Recycle empties the pad but keeps up to the given bytes of its chunks,
+// which the Adds after use before allocating more.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScratchPadRecycle(void)
+{
+	CScratchPad		cPad;
+	void*			apv[4];
+	void*			pv;
+	size			i;
+	size			uiChunk;
+
+	uiChunk = 100 + sizeof(SSPNode);
+	cPad.Init(uiChunk);
+	for (i = 0; i < 4; i++)
+	{
+		apv[i] = cPad.Add(100);
+		AssertNotNull(apv[i]);
+	}
+	AssertSize(4 * uiChunk, cPad.GetMemorySize());
+
+	//Two chunks are kept, the other two freed.
+	cPad.Recycle(2 * uiChunk);
+	AssertSize(0, cPad.GetMemorySize());
+	AssertSize(0, cPad.GetUsedSize());
+
+	//The kept chunks are used again (the last kept first), then a new one is allocated.
+	pv = cPad.Add(100);
+	AssertTrue((pv == apv[0]) || (pv == apv[1]));
+	pv = cPad.Add(100);
+	AssertTrue((pv == apv[0]) || (pv == apv[1]));
+	AssertSize(2 * uiChunk, cPad.GetMemorySize());
+	AssertNotNull(cPad.Add(100));
+	AssertSize(3 * uiChunk, cPad.GetMemorySize());
+	AssertSize(3 * uiChunk, cPad.GetUsedSize());
+
+	//Nothing kept.
+	cPad.Recycle(0);
+	AssertSize(0, cPad.GetMemorySize());
+	AssertNotNull(cPad.Add(100));
+	AssertSize(uiChunk, cPad.GetMemorySize());
+
+	cPad.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestScratchPad(void)
@@ -91,6 +139,7 @@ void TestScratchPad(void)
 
 	TestScratchPadAdd();
 	TestScratchPadRollback();
+	TestScratchPadRecycle();
 
 	TestStatistics();
 }

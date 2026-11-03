@@ -80,6 +80,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mapcNone.Init();
 	maszRuntime.Init();
 	maszMissing.Init();
+	maszNotImported.Init();
 	mauiStringBytes.Init();
 	mauiStringLengths.Init();
 	muiFirstString = 0;
@@ -99,6 +100,7 @@ void CCPP65IRFrontEnd::Kill(void)
 
 	mauiStringLengths.Kill();
 	mauiStringBytes.Kill();
+	maszNotImported.Kill();
 	maszMissing.Kill();
 	maszRuntime.Kill();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
@@ -946,8 +948,13 @@ bool CCPP65IRFrontEnd::IsRecursive(CIRFunction* pcFunction)
 // inlined too when the generator has imports (CCPP65Generator::SetImports),
 // and the unit's small functions are added to them at the end.
 //
+// The functions are inlined before the unit's turn with the imports, with
+// those exported so far.  In its turn it checks none it didn't find has
+// been exported since: if one has, it returns false, keeping its turn, and
+// the unit must be generated again (CCPP65Generator::MissedImports).
+//
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::FinishUnit(void)
+bool CCPP65IRFrontEnd::FinishUnit(void)
 {
 	CIRInliner			cInliner;
 	CIROptimiser		cOptimiser;
@@ -972,13 +979,8 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	{
 		cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
 	}
-	//Other units' functions are found, and this unit's added, in its turn: as if the units were compiled one after
-	//another.
-	if (mpcGenerator->mpcImports)
-	{
-		mpcGenerator->mpcImports->BeginTurn(mpcGenerator->muiImportsTurn);
-	}
-	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
+	//Other units' functions are found before the unit's turn, and checked in it (CIRImports::Missed).
+	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing, &maszNotImported);
 	mpcProfiledCaller = NULL;
 	if (InliningProfile())
 	{
@@ -1045,6 +1047,27 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	cInliner.Kill();
 	abChanged.Kill();
 
+	//In its turn the unit has found what it would have, as if the units were compiled one after another, unless a
+	//function it didn't find was exported since.  Found out before its turn, the unit can be generated again then.
+	if (mpcGenerator->mpcImports)
+	{
+		if (mpcGenerator->mbRetryStale)
+		{
+			if (mpcGenerator->mpcImports->BeginTurnUnlessStale(&maszNotImported, mpcGenerator->muiImportsTurn))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			mpcGenerator->mpcImports->BeginTurn(mpcGenerator->muiImportsTurn);
+		}
+		if (mpcGenerator->mpcImports->Missed(&maszNotImported))
+		{
+			return false;
+		}
+	}
+
 	//The unit's small functions, as finished, for the units compiled after it.
 	for (ui = 0; mpcGenerator->mpcImports && (ui < masWritten.NumElements()); ui++)
 	{
@@ -1103,6 +1126,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		masWritten.Get(ui)->szLabel.Kill();
 	}
 	masWritten.ReInit();
+	return true;
 }
 
 

@@ -24,13 +24,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pcSyntaxes allocates the list of nodes (NULL for the system allocator).
+// pcSyntaxes allocates the list of nodes (NULL for the system allocator),
+// pcNodes the nodes (NULL for chunks of the memory's own).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxMemory::Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes)
+void CCPPSyntaxMemory::Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes, CMallocator* pcNodes)
 {
 	mpcTree = pcTree;
 	mcStack.Init(64 KB);
+	mpcNodes = pcNodes;
 	if (pcSyntaxes)
 	{
 		mapcSyntaxes.Init(pcSyntaxes);
@@ -48,14 +50,21 @@ void CCPPSyntaxMemory::Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxMemory::Kill(void)
 {
-	size	i;
+	size		i;
+	CCPPSyntax*	pcSyntax;
 
 	for (i = 0; i < mapcSyntaxes.NumElements(); i++)
 	{
-		mapcSyntaxes.GetPtr(i)->Kill();
+		pcSyntax = mapcSyntaxes.GetPtr(i);
+		pcSyntax->Kill();
+		if (mpcNodes)
+		{
+			mpcNodes->Free(pcSyntax);
+		}
 	}
 	mapcSyntaxes.Kill();
 	mcStack.Kill();
+	mpcNodes = NULL;
 	mpcTree = NULL;
 }
 

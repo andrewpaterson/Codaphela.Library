@@ -20,6 +20,7 @@ void TestCPP65Generator(void);
 void TestCPP65LazyHeaders(void);
 void TestCPP65Spill(void);
 void TestCPP65Jobs(void);
+void TestCPP65HeaderCache(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,6 +51,7 @@ int __cdecl main(void)
 	TestCPP65LazyHeaders();
 	TestCPP65Spill();
 	TestCPP65Jobs();
+	TestCPP65HeaderCache();
 
 	iTotalTestsFailed = TestTotalStatistics();
 
