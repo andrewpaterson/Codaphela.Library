@@ -26,17 +26,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowLib/NativeCanvas.h"
 
 
-//A canvas held in a DIB section.  Everything is drawn on its pixels directly, never with GDI: GDI queues its drawing and
-//would have to be flushed before every direct write, and there are hundreds a frame.  The only GDI that touches the DIB
-//is the window's present (CWinGDIWindow::Present), which reads it after the frame's drawing is done.  Keep it so.
+//A canvas held in an image that owns its pixels (B8G8R8X8, the layout of a 32 bit BI_RGB DIB).  Everything is drawn on its
+//pixels directly, never with GDI: GDI queues its drawing and would have to be flushed before every direct write, and there
+//are hundreds a frame.  The only GDI that reads them is the window's present (Paint), after the frame's drawing is done.
+//The image owns the memory (not GDI) so whoever holds the image after the canvas is resized or freed holds valid pixels.
 class CWinGDICanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinGDICanvas);
 protected:
-	HDC				mhMemDC;
-	HBITMAP			mhMemBitmap;
-	HGDIOBJ			mhOldBitmap;  //The DC's own bitmap, selected back in before mhMemBitmap is deleted.
-	uint8*			mpuiPixelData;  //B8G8R8X8.  The canvas holds the image that wraps it (CNativeCanvas::SetImage).
+	uint8*			mpuiPixelData;  //The image's pixels.  The canvas holds the image (CNativeCanvas::SetImage).
 
 public:
 	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
@@ -46,7 +44,7 @@ public:
 
 	uint8*			GetPixelData(void);
 
-	HDC				GetMemDC(void);
+	void			Paint(HDC hDC, int32 iWidth, int32 iHeight);
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas);
 	Ptr<CImage>		GetImageOrNull(void);

@@ -44,13 +44,9 @@ void CX11Canvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 //////////////////////////////////////////////////////////////////////////
 void CX11Canvas::Kill(void)
 {
-    //The image references the pixel memory so it must be released before the memory is freed.
+    //The image owns the pixels; whoever else holds it keeps them.
     SetImage(NULL);
-    if (mpuiPixelData)
-    {
-        free(mpuiPixelData);
-        mpuiPixelData = NULL;
-    }
+    mpuiPixelData = NULL;
     CNativeCanvas::Kill();
 }
 
@@ -63,7 +59,8 @@ bool CX11Canvas::CreateNativeCanvas(void)
 {
     //This is split from .Init() so that it can fail on its own.
 
-    SInt32Vec2  sSize;
+    SInt32Vec2      sSize;
+    Ptr<CImage>     pImage;
 
     sSize = mpcCanvas->GetActualSize();
     if ((sSize.x <= 0) || (sSize.y <= 0))
@@ -72,23 +69,24 @@ bool CX11Canvas::CreateNativeCanvas(void)
         return false;
     }
 
-    //Like the GDI canvas' DIB section the pixels start all zero; black, and transparent if the canvas is.
-    mpuiPixelData = (uint8*)calloc((size_t)sSize.x * (size_t)sSize.y, 4);
-    if (mpuiPixelData == NULL)
+    //B, G, R, X as the window's XImage reads them.  A transparent canvas uses X for its opacity and, like the reference
+    //canvas, holds its colours multiplied by it.  The pixels start all zero; black, and transparent if the canvas is.
+    if (mpcCanvas->IsTransparent())
+    {
+        pImage = OMalloc<CImage>(sSize.x, sSize.y, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
+    }
+    else
+    {
+        pImage = OMalloc<CImage>(sSize.x, sSize.y, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
+    }
+    if (pImage.IsNull() || (pImage->GetData() == NULL))
     {
         SetSize(-1, -1);
         return false;
     }
-
-    //A transparent canvas uses X for its opacity and, like the reference canvas, holds its colours multiplied by it.
-    if (mpcCanvas->IsTransparent())
-    {
-        SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP));
-    }
-    else
-    {
-        SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP));
-    }
+    pImage->Black();
+    mpuiPixelData = (uint8*)pImage->GetData();
+    SetImage(pImage);
     SetSize(sSize.x, sSize.y);
     return true;
 }

@@ -113,7 +113,7 @@ void CWinGDIWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
     pcGDICanvas = (CWinGDICanvas*)pcNativeCanvas;
 
     hDC = BeginPaint(mhWnd, &sPaintStruct);
-    BitBlt(hDC, 0, 0, iWidth, iHeight, pcGDICanvas->GetMemDC(), 0, 0, SRCCOPY);
+    pcGDICanvas->Paint(hDC, iWidth, iHeight);
     EndPaint(mhWnd, &sPaintStruct);
 
     mhLastDC = hDC;

@@ -12,9 +12,6 @@
 void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
-    mhMemDC = NULL;
-    mhMemBitmap = NULL;
-    mhOldBitmap = NULL;
     mpuiPixelData = NULL;
 }
 
@@ -27,19 +24,9 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::Kill(void)
 {
-    //The image references the DIB section memory so it must be released before the bitmap is deleted.
+    //The image owns the pixels; whoever else holds it keeps them.
     SetImage(NULL);
-    if (mhMemDC)
-    {
-        //A bitmap can't be deleted while it is selected into a DC so the DC's own bitmap is selected back in first.
-        SelectObject(mhMemDC, mhOldBitmap);
-        DeleteObject(mhMemBitmap);
-        DeleteDC(mhMemDC);
-        mhMemDC = NULL;
-        mhMemBitmap = NULL;
-        mhOldBitmap = NULL;
-        mpuiPixelData = NULL;
-    }
+    mpuiPixelData = NULL;
     CNativeCanvas::Kill();
 }
 
@@ -52,68 +39,68 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
 {
     //This is split from .Init() so that it can fail on its own.
 
-    CWinGDIWindowFactory*   pcFactory; 
-    SInt32Vec2              sSize;
-    BITMAPINFO              sBitmapInfo;
-    HWND                    hWnd;
-    HDC                     hDC;
+    SInt32Vec2      sSize;
+    Ptr<CImage>     pImage;
 
-    pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();
-
-    hWnd = pcFactory->GetHWnd();
-    hDC = GetDC(hWnd);
-
-    memset(&sBitmapInfo, 0, sizeof(BITMAPINFO));
-    sBitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    sBitmapInfo.bmiHeader.biWidth = sSize.x;
-    sBitmapInfo.bmiHeader.biHeight = -sSize.y;
-    sBitmapInfo.bmiHeader.biPlanes = 1;
-    sBitmapInfo.bmiHeader.biBitCount = 32; // 32-bit ARGB
-    sBitmapInfo.bmiHeader.biCompression = BI_RGB;
-    
-    mhMemDC = CreateCompatibleDC(hDC);
-    if (mhMemDC)
+    if ((sSize.x <= 0) || (sSize.y <= 0))
     {
-        mhMemBitmap = CreateDIBSection(hDC, &sBitmapInfo, DIB_RGB_COLORS, (void**)&mpuiPixelData, NULL, 0);
-        if (mhMemBitmap)
-        {
-            mhOldBitmap = SelectObject(mhMemDC, mhMemBitmap);
-            ReleaseDC(hWnd, hDC);
-
-            //A 32 bit BI_RGB DIB section is laid out in memory as B, G, R, X.  A transparent canvas uses X for its opacity
-            //and, like the reference canvas, holds its colours multiplied by it.  The DIB section starts all zero; black,
-            //and transparent if the canvas is.
-            if (mpcCanvas->IsTransparent())
-            {
-                SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP));
-            }
-            else
-            {
-                SetImage(OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP));
-            }
-            SetSize(sSize.x, sSize.y);
-            return true;
-        }
-        DeleteDC(mhMemDC);
+        SetSize(-1, -1);
+        return false;
     }
-    ReleaseDC(hWnd, hDC);
-    mhMemDC = NULL;
-    mhMemBitmap = NULL;
-    mhOldBitmap = NULL;
-    mpuiPixelData = NULL;
-    SetSize(-1, -1);
-    return false;
+
+    //Laid out as a 32 bit BI_RGB DIB (B, G, R, X) so Paint can show it as it is.  A transparent canvas uses X for its
+    //opacity and, like the reference canvas, holds its colours multiplied by it.  It starts all zero; black, and
+    //transparent if the canvas is.
+    if (mpcCanvas->IsTransparent())
+    {
+        pImage = OMalloc<CImage>(sSize.x, sSize.y, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
+    }
+    else
+    {
+        pImage = OMalloc<CImage>(sSize.x, sSize.y, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
+    }
+    if (pImage.IsNull() || (pImage->GetData() == NULL))
+    {
+        SetSize(-1, -1);
+        return false;
+    }
+    pImage->Black();
+    mpuiPixelData = (uint8*)pImage->GetData();
+    SetImage(pImage);
+    SetSize(sSize.x, sSize.y);
+    return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Shows the canvas's pixels in hDC (the window's, while it paints), from
+// its top left, at most iWidth by iHeight of them.
 //
 //////////////////////////////////////////////////////////////////////////
-HDC CWinGDICanvas::GetMemDC(void)
+void CWinGDICanvas::Paint(HDC hDC, int32 iWidth, int32 iHeight)
 {
-    return mhMemDC;
+    BITMAPINFO  sBitmapInfo;
+
+    if (mpuiPixelData == NULL)
+    {
+        return;
+    }
+    iWidth = (iWidth < msSize.x) ? iWidth : msSize.x;
+    iHeight = (iHeight < msSize.y) ? iHeight : msSize.y;
+
+    //Top down (a negative height): the first row in memory is the top of the window.
+    memset(&sBitmapInfo, 0, sizeof(BITMAPINFO));
+    sBitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    sBitmapInfo.bmiHeader.biWidth = msSize.x;
+    sBitmapInfo.bmiHeader.biHeight = -msSize.y;
+    sBitmapInfo.bmiHeader.biPlanes = 1;
+    sBitmapInfo.bmiHeader.biBitCount = 32;
+    sBitmapInfo.bmiHeader.biCompression = BI_RGB;
+
+    //With a top down DIB the first scan line is the top row, so all msSize.y rows are given and the destination clips.
+    SetDIBitsToDevice(hDC, 0, 0, iWidth, iHeight, 0, 0, 0, msSize.y, mpuiPixelData, &sBitmapInfo, DIB_RGB_COLORS);
 }
 
 
