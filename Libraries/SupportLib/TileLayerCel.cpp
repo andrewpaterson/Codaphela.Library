@@ -386,49 +386,147 @@ bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size ui
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Removes every tile in row y.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::ClearRow(size y)
+{
+	STileLayerRow*	psRow;
+
+	if (y >= msMapSize.y)
+	{
+		return;
+	}
+
+	psRow = masRows.Get(y);
+	RemoveCels(y, psRow->uiFirst, psRow->uiEnd - psRow->uiStart);
+	psRow->uiStart = 0;
+	psRow->uiEnd = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removes every tile.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::Clear(void)
+{
+	size			y;
+	STileLayerRow*	psRow;
+
+	maTiles.Clear();
+	maBlitters.Clear();
+	for (y = 0; y < msMapSize.y; y++)
+	{
+		psRow = masRows.Get(y);
+		psRow->uiFirst = 0;
+		psRow->uiStart = 0;
+		psRow->uiEnd = 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Grows or shrinks the grid.  Tiles in it keep their places; tiles that
+// are no longer in it are removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::SetMapSize(SSizeVec2 sMapSize)
+{
+	size			y;
+	size			uiFirst;
+	STileLayerRow*	psRow;
+
+	//Rows below the new bottom go, and their cels with them.
+	for (y = sMapSize.y; y < msMapSize.y; y++)
+	{
+		ClearRow(y);
+	}
+	if (sMapSize.y < msMapSize.y)
+	{
+		masRows.RemoveRange(sMapSize.y, msMapSize.y);
+
+		//RemoveCels moves the rows after the one it is in along, so it must only see the rows that are left.
+		msMapSize.y = sMapSize.y;
+	}
+
+	//Columns right of the new right go.
+	if (sMapSize.x < msMapSize.x)
+	{
+		for (y = 0; y < msMapSize.y; y++)
+		{
+			psRow = masRows.Get(y);
+			if (psRow->uiEnd > sMapSize.x)
+			{
+				if (psRow->uiStart >= sMapSize.x)
+				{
+					ClearRow(y);
+				}
+				else
+				{
+					RemoveCels(y, psRow->uiFirst + (sMapSize.x - psRow->uiStart), psRow->uiEnd - sMapSize.x);
+					psRow->uiEnd = sMapSize.x;
+					TrimRow(y);
+				}
+			}
+		}
+	}
+
+	//New rows at the bottom are empty; their cels would go after all the others.
+	uiFirst = maTiles.NumElements();
+	for (y = msMapSize.y; y < sMapSize.y; y++)
+	{
+		psRow = masRows.Add();
+		psRow->uiFirst = uiFirst;
+		psRow->uiStart = 0;
+		psRow->uiEnd = 0;
+	}
+	msMapSize = sMapSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws every tile into a new image the size of the layer.  Its blitters
+// are its own: the layer's blitters, cache and viewport are left as they
+// are.
+//
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
 	size 						x, y;
-	Ptr<CImageCelBlitterCache>	pOldCache;
-	Ptr<CImage>					pOldViewport;
+	Ptr<CImageCelBlitterCache>	pCache;
 	Ptr<CImage>					pImage;
 	Ptr<CImageBlitter>			pBlitter;
-	bool						bResult;
+	Ptr<CImageCel>				pCel;
 	STileLayerRow*				psRow;
 
-	pOldViewport = mpViewport;
-	pOldCache = mpCache;
-
 	pImage = CreateViewportImage();
-	mpViewport = pImage;
-	mpCache = CreateBlitterCache();
-	CreateCelBlitters();
+	if (pImage.IsNull())
+	{
+		return NULL;
+	}
+	pCache = OMalloc<CImageCelBlitterCache>(pImage);
 
 	for (y = 0; y < msMapSize.y; y++)
 	{
 		psRow = masRows.Get(y);
 		for (x = psRow->uiStart; x < psRow->uiEnd; x++)
 		{
-			pBlitter = GetBlitter(x, y);
-			if (pBlitter.IsNotNull())
+			pCel = maTiles.Get(psRow->uiFirst + (x - psRow->uiStart));
+			if (pCel.IsNotNull())
 			{
-				bResult = pBlitter->Blit((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y);
-				if (!bResult)
+				pBlitter = pCache->CreateImageBlitter(pCel);
+				if (pBlitter.IsNull() || !pBlitter->Blit((int32)x * (int32)msCelSize.x, (int32)y * (int32)msCelSize.y))
 				{
-					mpViewport = pOldViewport;
-					mpCache = pOldCache;
 					return NULL;
 				}
 			}
 		}
 	}
-
-	mpViewport = pOldViewport;
-	mpCache = pOldCache;
-
 	return pImage;
 }
 

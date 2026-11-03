@@ -52,6 +52,8 @@ public:
 
 			int32	GetLayerSizeX(void);
 			int32	GetLayerSizeY(void);
+			SSizeVec2	GetCelSize(void);
+			void	SetCelSize(SSizeVec2 sCelSize);
 
 			bool	IsIdentifier(int iIdentifier);
 			int		GetIdentifier(void);

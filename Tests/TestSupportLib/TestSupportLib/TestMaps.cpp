@@ -1,7 +1,17 @@
+#include <ctype.h>
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "SupportLib/ImageWriter.h"
 #include "SupportLib/Maps.h"
 #include "SupportLib/TileLayerCel.h"
+#include "SupportLib/TileTextWriter.h"
+#include "SupportLib/ImageCelBlitterCache.h"
+#include "SupportLib/SimpleTextReader.h"
+#include "SupportLib/TextLayout.h"
+#include "SupportLib/MapFontDraw.h"
+#include "SupportLib/SpriteMap.h"
+#include "BaseLib/UTF8.h"
+#include "SupportLib/FontColours.h"
+#include "SupportLib/ColourARGB32.h"
 #include "SupportLib/ImageWriter.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
@@ -551,6 +561,989 @@ void TestMapsTileLayerRows(void)
 }
 
 
+Ptr<CFont> CreateWhiteTrueTypeFontFrom(char* szFontName, char* szCharacters, float32 fPixelSize);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool TestMapsIsKeyword(const char* szWord, size uiLength)
+{
+	static const char*	aszKeywords[] = { "int", "for", "return", NULL };
+	size				i;
+
+	for (i = 0; aszKeywords[i] != NULL; i++)
+	{
+		if ((strlen(aszKeywords[i]) == uiLength) && (memcmp(aszKeywords[i], szWord, uiLength) == 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A monospaced font in a tile layer: each character is a tile, the glyph's
+// cel (which is already as big as the cell: its advance by the line height)
+// from the font of its colour.  Keywords are blue, the rest grey.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerText(void)
+{
+	static const char*	aszLines[] = {	"int Sum(int* aiValues, int iCount)",
+										"{",
+										"    int iTotal = 0;",
+										"    for (int i = 0; i < iCount; i++)",
+										"    {",
+										"        iTotal += aiValues[i];",
+										"    }",
+										"    return iTotal;",
+										"}",
+										NULL };
+	char				szDirectory[] = "Output" _FS_ "MapsTileText";
+	CFileUtil			cFileUtil;
+
+	AssertTrue(cFileUtil.RemoveDir(szDirectory));
+	AssertTrue(cFileUtil.TouchDir(szDirectory));
+
+	ObjectsInit();
+	{
+		Ptr<CFont>				pWhite;
+		Ptr<CFontColours>		pColours;
+		Ptr<CFont>				pKeywordFont;
+		Ptr<CFont>				pTextFont;
+		Ptr<CGlyph>				pGlyph;
+		Ptr<CImageCel>			pCel;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CTileTextWriter>	pWriter;
+		Ptr<CImage>				pImage;
+		CChars					szText;
+		CArrayTileTextSpan		asSpans;
+		STileTextSpan*			psSpan;
+		ARGB32					sKeywordColour;
+		ARGB32					sTextColour;
+		CChars					szInputFilename;
+		CChars					szOutputFilename;
+		const char*				szLine;
+		size					uiLine;
+		size					x;
+		size					uiWordStart;
+		size					uiLength;
+		size					uiCellWidth;
+		size					uiCellHeight;
+		size					uiStoredTiles;
+		size					uiFirst;
+		size					uiLast;
+
+		ImageChannelDescriptorInit();
+
+		pWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", 16.0f);
+		AssertTrue(pWhite.IsNotNull());
+		AssertTrue(pWhite->IsFixedWidth());
+
+		pColours = OMalloc<CFontColours>(pWhite);
+		sKeywordColour = Set32BitColour((uint8)86, (uint8)156, (uint8)214, (uint8)255);
+		sTextColour = Set32BitColour((uint8)212, (uint8)212, (uint8)212, (uint8)255);
+		pKeywordFont = pColours->GetFont(sKeywordColour);
+		pTextFont = pColours->GetFont(sTextColour);
+
+		//A glyph's cel is its advance wide and the line high, so it fills a cell.
+		pGlyph = pWhite->GetGlyph((uint8*)"A", 1);
+		uiCellWidth = (size)pGlyph->GetFullWidth();
+		uiCellHeight = (size)pWhite->GetLineHeight();
+		AssertSize(10, uiCellWidth);
+		AssertSize((size)pGlyph->GetFullHeight(), uiCellHeight);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Text", SSizeVec2(36, 9), SSizeVec2(uiCellWidth, uiCellHeight), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+
+		//The lines in one text, and a span for each keyword.
+		szText.Init();
+		asSpans.Init();
+		for (uiLine = 0; aszLines[uiLine] != NULL; uiLine++)
+		{
+			if (uiLine > 0)
+			{
+				szText.Append('\n');
+			}
+			szLine = aszLines[uiLine];
+			uiLength = strlen(szLine);
+			for (x = 0; x < uiLength; x++)
+			{
+				if (((x == 0) || !(isalnum((uint8)szLine[x - 1]) || (szLine[x - 1] == '_'))) && (isalnum((uint8)szLine[x]) || (szLine[x] == '_')))
+				{
+					uiWordStart = x;
+					while ((uiWordStart < uiLength) && (isalnum((uint8)szLine[uiWordStart]) || (szLine[uiWordStart] == '_')))
+					{
+						uiWordStart++;
+					}
+					if (TestMapsIsKeyword(&szLine[x], uiWordStart - x))
+					{
+						psSpan = asSpans.Add();
+						psSpan->uiStart = szText.Length() + x;
+						psSpan->uiLength = uiWordStart - x;
+						psSpan->sColour = sKeywordColour;
+					}
+				}
+			}
+			szText.Append(szLine);
+		}
+
+		pWriter = OMalloc<CTileTextWriter>(pLayer, pColours, sTextColour);
+		AssertTrue(pWriter->IsValid());
+		AssertTrue(pWriter->Write(szText.Text(), &asSpans));
+		asSpans.Kill();
+		szText.Kill();
+
+		uiStoredTiles = 0;
+		for (uiLine = 0; aszLines[uiLine] != NULL; uiLine++)
+		{
+			szLine = aszLines[uiLine];
+			uiLength = strlen(szLine);
+
+			//Every glyph fills its cell.
+			for (x = 0; x < uiLength; x++)
+			{
+				pCel = pLayer->GetTile(x, uiLine);
+				AssertBool(szLine[x] != ' ', pCel.IsNotNull());
+				if (pCel.IsNotNull())
+				{
+					AssertSize(uiCellWidth, pCel->GetSubImage()->GetFullWidth());
+					AssertSize(uiCellHeight, pCel->GetSubImage()->GetFullHeight());
+				}
+			}
+
+			//A row only keeps the tiles from its first character to its last.
+			uiFirst = 0;
+			while (szLine[uiFirst] == ' ')
+			{
+				uiFirst++;
+			}
+			uiLast = uiLength - 1;
+			AssertSize(uiFirst, pLayer->GetRowStart(uiLine));
+			AssertSize(uiLast + 1, pLayer->GetRowEnd(uiLine));
+			uiStoredTiles += uiLast + 1 - uiFirst;
+		}
+		AssertSize(uiStoredTiles, pLayer->NumStoredTiles());
+
+		//The spaces between words are empty tiles; the same character in the same colour is the same cel.
+		AssertTrue(pLayer->GetTile(3, 0).IsNull());
+		AssertTrue(pLayer->GetTile(0, 0) == pKeywordFont->GetGlyph((uint8*)"i", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(4, 2) == pLayer->GetTile(0, 0));
+		AssertTrue(pLayer->GetTile(4, 0) == pTextFont->GetGlyph((uint8*)"S", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(8, 2) == pTextFont->GetGlyph((uint8*)"i", 1)->GetCel());
+		AssertFalse(pLayer->GetTile(8, 2) == pLayer->GetTile(0, 0));
+
+		pImage = pLayer->WriteToImage();
+		AssertTrue(pImage.IsNotNull());
+
+		szOutputFilename.Init(szDirectory);
+		cFileUtil.AppendToPath(&szOutputFilename, "TileText.png");
+		AssertTrue(WriteImage(pImage, szOutputFilename.Text(), IT_PNG));
+
+		szInputFilename.Init(szOutputFilename);
+		szInputFilename.Replace("Output", "Input");
+		AssertFile(szInputFilename.Text(), szOutputFilename.Text());
+
+		szOutputFilename.Kill();
+		szInputFilename.Kill();
+
+		pImage = NULL;
+		pWriter = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pGlyph = NULL;
+		pCel = NULL;
+		pTextFont = NULL;
+		pKeywordFont = NULL;
+		pColours = NULL;
+		pWhite = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tabs, carriage returns, cut off text, characters the font hasn't got,
+// colour spans and rewriting a row.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileTextWriter(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CFont>				pWhite;
+		Ptr<CFontColours>		pColours;
+		Ptr<CFont>				pText;
+		Ptr<CFont>				pRed;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CTileLayerCel>		pWrongLayer;
+		Ptr<CTileTextWriter>	pWriter;
+		Ptr<CTileTextWriter>	pWrongWriter;
+		CArrayTileTextSpan		asSpans;
+		STileTextSpan*			psSpan;
+		ARGB32					sText;
+		ARGB32					sRed;
+		size					uiCellWidth;
+		size					uiCellHeight;
+
+		ImageChannelDescriptorInit();
+
+		pWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", 16.0f);
+		pColours = OMalloc<CFontColours>(pWhite);
+		sText = Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)255);
+		sRed = Set32BitColour((uint8)255, (uint8)0, (uint8)0, (uint8)255);
+		pText = pColours->GetFont(sText);
+		pRed = pColours->GetFont(sRed);
+		uiCellWidth = pWhite->GetAverageWidth();
+		uiCellHeight = (size)pWhite->GetLineHeight();
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Text", SSizeVec2(8, 3), SSizeVec2(uiCellWidth, uiCellHeight), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		pWriter = OMalloc<CTileTextWriter>(pLayer, pColours, sText, 4);
+		AssertTrue(pWriter->IsValid());
+
+		//The layer's cells must be the font's.
+		pWrongLayer = OMalloc<CTileLayerCel>(pTileMap, "Wrong", SSizeVec2(8, 3), SSizeVec2(uiCellWidth + 1, uiCellHeight), 1, SInt32Vec2(0, 0));
+		pWrongWriter = OMalloc<CTileTextWriter>(pWrongLayer, pColours, sText, 4);
+		AssertFalse(pWrongWriter->IsValid());
+
+		//A tab goes to the next tab stop and a carriage return is ignored.
+		AssertTrue(pWriter->Write("ab\tc\r\nd"));
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"a", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"b", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(2, 0).IsNull());
+		AssertTrue(pLayer->GetTile(3, 0).IsNull());
+		AssertTrue(pLayer->GetTile(4, 0) == pText->GetGlyph((uint8*)"c", 1)->GetCel());
+		AssertSize(5, pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(0, 1) == pText->GetGlyph((uint8*)"d", 1)->GetCel());
+		AssertSize(1, pLayer->GetRowEnd(1));
+		AssertSize(pLayer->GetRowStart(2), pLayer->GetRowEnd(2));
+		AssertSize(6, pLayer->NumStoredTiles());  //Row 0 keeps the empty tiles of its tab.
+
+		//Writing again replaces everything.  A tab from the middle of a stop goes to the next one, which for "abcde\t" is
+		//column 8, past the layer, so the f is cut off.
+		AssertFalse(pWriter->Write("a\tb\nabcde\tf"));
+		AssertTrue(pLayer->GetTile(4, 0) == pText->GetGlyph((uint8*)"b", 1)->GetCel());
+		AssertSize(5, pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(4, 1) == pText->GetGlyph((uint8*)"e", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(5, 1).IsNull());
+		AssertTrue(pLayer->GetTile(8 - 1, 1).IsNull());
+		AssertTrue(pLayer->GetTile(0, 2).IsNull());
+
+		//A trailing new line is an empty line.
+		AssertTrue(pWriter->Write("a\nb\n"));
+		AssertSize(2, pLayer->NumStoredTiles());
+
+		//What is past the right or the bottom is cut off.
+		AssertFalse(pWriter->Write("0123456789"));
+		AssertSize(0, pLayer->GetRowStart(0));
+		AssertSize(8, pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(7, 0) == pText->GetGlyph((uint8*)"7", 1)->GetCel());
+		AssertFalse(pWriter->Write("a\nb\nc\nd"));
+		AssertTrue(pLayer->GetTile(0, 2) == pText->GetGlyph((uint8*)"c", 1)->GetCel());
+		AssertSize(3, pLayer->NumStoredTiles());
+
+		//A character the font hasn't got is a '?', one column wide.
+		AssertTrue(pWriter->Write("\xC3\xA9!"));
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"?", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"!", 1)->GetCel());
+		AssertSize(2, pLayer->GetRowEnd(0));
+
+		//Spans colour bytes of the whole text, across lines.
+		asSpans.Init();
+		psSpan = asSpans.Add();
+		psSpan->uiStart = 1;
+		psSpan->uiLength = 2;
+		psSpan->sColour = sRed;
+		psSpan = asSpans.Add();
+		psSpan->uiStart = 6;
+		psSpan->uiLength = 1;
+		psSpan->sColour = sRed;
+		AssertTrue(pWriter->Write("abcd\nxy", &asSpans));
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"a", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pRed->GetGlyph((uint8*)"b", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(2, 0) == pRed->GetGlyph((uint8*)"c", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(3, 0) == pText->GetGlyph((uint8*)"d", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(0, 1) == pText->GetGlyph((uint8*)"x", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 1) == pRed->GetGlyph((uint8*)"y", 1)->GetCel());
+
+		//Rewriting one row: shorter, and coloured from where it is in the text.
+		AssertTrue(pWriter->WriteRow(0, "pq", 2, 5, &asSpans));
+		AssertSize(2, pLayer->GetRowEnd(0));
+		AssertTrue(pLayer->GetTile(0, 0) == pText->GetGlyph((uint8*)"p", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 0) == pRed->GetGlyph((uint8*)"q", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(1, 1) == pRed->GetGlyph((uint8*)"y", 1)->GetCel());
+		AssertSize(4, pLayer->NumStoredTiles());
+		asSpans.Kill();
+
+		pWrongWriter = NULL;
+		pWrongLayer = NULL;
+		pWriter = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pRed = NULL;
+		pText = NULL;
+		pColours = NULL;
+		pWhite = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pixels of pViewport that differ from pReference's at xView, yView
+// (black where pReference doesn't reach).
+//
+//////////////////////////////////////////////////////////////////////////
+size TestMapsCountDifferences(Ptr<CImage> pViewport, Ptr<CImage> pReference, int32 xView, int32 yView)
+{
+	uint8*	puiView;
+	uint8*	puiReference;
+	int32	iViewWidth;
+	int32	iViewHeight;
+	int32	iReferenceWidth;
+	int32	iReferenceHeight;
+	size	uiPixelBytes;
+	int32	x, y;
+	int32	xReference, yReference;
+	size	uiDifferences;
+	uint8	auiBlack[16];
+
+	iViewWidth = (int32)pViewport->GetWidth();
+	iViewHeight = (int32)pViewport->GetHeight();
+	iReferenceWidth = (int32)pReference->GetWidth();
+	iReferenceHeight = (int32)pReference->GetHeight();
+	uiPixelBytes = (size)(pViewport->GetByteSize() / ((lsize)iViewWidth * (lsize)iViewHeight));
+	if ((uiPixelBytes == 0) || (uiPixelBytes > 16) || (uiPixelBytes != (size)(pReference->GetByteSize() / ((lsize)iReferenceWidth * (lsize)iReferenceHeight))))
+	{
+		return MAX_SIZE;
+	}
+
+	memset(auiBlack, 0, sizeof(auiBlack));
+	puiView = (uint8*)pViewport->GetData();
+	puiReference = (uint8*)pReference->GetData();
+	uiDifferences = 0;
+	for (y = 0; y < iViewHeight; y++)
+	{
+		for (x = 0; x < iViewWidth; x++)
+		{
+			xReference = x + xView;
+			yReference = y + yView;
+			if ((xReference >= 0) && (xReference < iReferenceWidth) && (yReference >= 0) && (yReference < iReferenceHeight))
+			{
+				if (memcmp(&puiView[(y * iViewWidth + x) * uiPixelBytes], &puiReference[(yReference * iReferenceWidth + xReference) * uiPixelBytes], uiPixelBytes) != 0)
+				{
+					uiDifferences++;
+				}
+			}
+			else if (memcmp(&puiView[(y * iViewWidth + x) * uiPixelBytes], auiBlack, uiPixelBytes) != 0)
+			{
+				uiDifferences++;
+			}
+		}
+	}
+	return uiDifferences;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blits the maps through the viewport at x, y (making the blitters it
+// needs) and checks it shows what the layer written to a new image does.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsAssertViewport(CMaps* pcMaps, Ptr<CImage> pViewport, Ptr<CTileLayerCel> pLayer, int32 x, int32 y)
+{
+	Ptr<CImage>	pReference;
+
+	pcMaps->SetViewportPosition(x, y);
+	pViewport->Black();
+	AssertTrue(pcMaps->Blit(true));
+
+	pReference = pLayer->WriteToImage();
+	AssertTrue(pReference.IsNotNull());
+	AssertSize(0, TestMapsCountDifferences(pViewport, pReference, x, y));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Rows with runs that start and end at different places, gaps and empty
+// rows.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsSetSparseTiles(Ptr<CTileLayerCel> pLayer, Ptr<CArrayImageCel> pacCels)
+{
+	pLayer->SetTile(2, 0, pacCels->Get(1));
+	pLayer->SetTile(3, 0, pacCels->Get(2));
+	pLayer->SetTile(5, 0, pacCels->Get(3));
+	pLayer->SetTiles(0, 2, pacCels, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+	pLayer->SetTile(9, 3, pacCels->Get(14));
+	pLayer->SetTile(3, 4, pacCels->Get(15));
+	pLayer->SetTile(7, 4, pacCels->Get(16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Changing tiles after they have blitters: the blitters stay with their
+// tiles as runs grow and shrink, and a changed cel gets a new blitter.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerBlitAfterEdits(void)
+{
+	ObjectsInit();
+	{
+		CMaps						cMaps;
+		Ptr<CArrayImageCel>			pacCels;
+		Ptr<CImage>					pViewport;
+		Ptr<CImageCelBlitterCache>	pCache;
+		Ptr<CTileMap>				pTileMap;
+		Ptr<CTileLayerCel>			pLayer;
+		Ptr<CImageCel>				pNoCel;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pViewport = OMalloc<CImage>(160, 96, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pCache = OMalloc<CImageCelBlitterCache>(pViewport);
+		cMaps.Init(pCache, pViewport);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(10, 6), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		cMaps.AddMap(pTileMap);
+
+		TestMapsSetSparseTiles(pLayer, pacCels);
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+
+		//A run grows to the left and to the right of tiles that have blitters.
+		AssertTrue(pLayer->SetTile(0, 0, pacCels->Get(20)));
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+		AssertTrue(pLayer->SetTile(9, 4, pacCels->Get(21)));
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+
+		//A tile's cel changes.
+		AssertTrue(pLayer->SetTile(5, 2, pacCels->Get(22)));
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->GetBlitter(5, 2)->GetCel() == pacCels->Get(22));
+
+		//A run is trimmed, a row is cleared and an empty row between others is filled.
+		AssertTrue(pLayer->SetTile(5, 0, pNoCel));
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+		pLayer->ClearRow(2);
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+		AssertTrue(pLayer->SetTile(1, 1, pacCels->Get(23)));
+		AssertTrue(pLayer->SetTile(2, 1, pacCels->Get(24)));
+		AssertTrue(pLayer->SetTile(3, 1, pacCels->Get(25)));
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+
+		//Everything is cleared and set again.
+		pLayer->Clear();
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		TestMapsSetSparseTiles(pLayer, pacCels);
+		TestMapsAssertViewport(&cMaps, pViewport, pLayer, 0, 0);
+		AssertTrue(pLayer->HasCelBlitters());
+
+		cMaps.Kill();
+		pLayer = NULL;
+		pTileMap = NULL;
+		pCache = NULL;
+		pViewport = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A viewport smaller than the layer, scrolled over it (and past its edges),
+// only shows the tiles of the rows' runs it covers.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerBlitScrolled(void)
+{
+	static const int32	aiX[] = { -20, -8, 0, 7, 16, 33, 90, 125, 150 };
+	static const int32	aiY[] = { -13, 0, 9, 30, 50, 75, 90 };
+
+	ObjectsInit();
+	{
+		CMaps						cMaps;
+		Ptr<CArrayImageCel>			pacCels;
+		Ptr<CImage>					pViewport;
+		Ptr<CImageCelBlitterCache>	pCache;
+		Ptr<CTileMap>				pTileMap;
+		Ptr<CTileLayerCel>			pLayer;
+		size						i;
+		size						j;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pViewport = OMalloc<CImage>(40, 24, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pCache = OMalloc<CImageCelBlitterCache>(pViewport);
+		cMaps.Init(pCache, pViewport);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(10, 6), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		cMaps.AddMap(pTileMap);
+		TestMapsSetSparseTiles(pLayer, pacCels);
+
+		for (j = 0; j < sizeof(aiY) / sizeof(aiY[0]); j++)
+		{
+			for (i = 0; i < sizeof(aiX) / sizeof(aiX[0]); i++)
+			{
+				TestMapsAssertViewport(&cMaps, pViewport, pLayer, aiX[i], aiY[j]);
+			}
+		}
+
+		cMaps.Kill();
+		pLayer = NULL;
+		pTileMap = NULL;
+		pCache = NULL;
+		pViewport = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Text in a tile layer looks the same as the same text laid out by
+// CTextLayout into a sprite map, with the same fonts.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileTextMatchesSpriteText(void)
+{
+	static const char	szText[] = "int Sum(int* aiValues, int iCount)\n"
+								   "{\n"
+								   "    int iTotal = 0;\n"
+								   "    for (int i = 0; i < iCount; i++)\n"
+								   "    {\n"
+								   "        iTotal += aiValues[i];\n"
+								   "    }\n"
+								   "    return iTotal;\n"
+								   "}";
+
+	ObjectsInit();
+	{
+		Ptr<CFont>					pWhite;
+		Ptr<CFontColours>			pColours;
+		Ptr<CFont>					pKeywordFont;
+		Ptr<CFont>					pTextFont;
+		ARGB32						sKeywordColour;
+		ARGB32						sTextColour;
+		CArrayTileTextSpan			asSpans;
+		STileTextSpan*				psSpan;
+		CArrayTextFontChange		asChanges;
+		size						uiLength;
+		size						x;
+		size						uiEnd;
+		size						uiCellWidth;
+		size						uiCellHeight;
+		CMaps						cTileMaps;
+		Ptr<CImage>					pTileViewport;
+		Ptr<CTileMap>				pTileMap;
+		Ptr<CTileLayerCel>			pLayer;
+		Ptr<CTileTextWriter>		pWriter;
+		CMaps						cSpriteMaps;
+		Ptr<CImage>					pSpriteViewport;
+		Ptr<CSpriteMap>				pSpriteMap;
+		Ptr<CMapFontDraw>			pFontDraw;
+		Ptr<CTextLayout>			pLayout;
+		Ptr<CText>					pText;
+		CSimpleTextReader			cReader;
+		CUTF8						cUTF8;
+
+		ImageChannelDescriptorInit();
+
+		pWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", 16.0f);
+		pColours = OMalloc<CFontColours>(pWhite);
+		sKeywordColour = Set32BitColour((uint8)86, (uint8)156, (uint8)214, (uint8)255);
+		sTextColour = Set32BitColour((uint8)212, (uint8)212, (uint8)212, (uint8)255);
+		pKeywordFont = pColours->GetFont(sKeywordColour);
+		pTextFont = pColours->GetFont(sTextColour);
+		uiCellWidth = pWhite->GetAverageWidth();
+		uiCellHeight = (size)pWhite->GetLineHeight();
+
+		//A span for each keyword, and the font changes the same colours are for the text reader.
+		asSpans.Init();
+		asChanges.Init();
+		uiLength = strlen(szText);
+		for (x = 0; x < uiLength; x++)
+		{
+			if (((x == 0) || !(isalnum((uint8)szText[x - 1]) || (szText[x - 1] == '_'))) && (isalnum((uint8)szText[x]) || (szText[x] == '_')))
+			{
+				uiEnd = x;
+				while ((uiEnd < uiLength) && (isalnum((uint8)szText[uiEnd]) || (szText[uiEnd] == '_')))
+				{
+					uiEnd++;
+				}
+				if (TestMapsIsKeyword(&szText[x], uiEnd - x))
+				{
+					psSpan = asSpans.Add();
+					psSpan->uiStart = x;
+					psSpan->uiLength = uiEnd - x;
+					psSpan->sColour = sKeywordColour;
+					asChanges.Add()->Init(x, &pKeywordFont);
+					asChanges.Add()->Init(uiEnd, &pTextFont);
+				}
+			}
+		}
+
+		//The text in a tile layer.
+		pTileViewport = OMalloc<CImage>(360, 198, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		cTileMaps.Init(OMalloc<CImageCelBlitterCache>(pTileViewport), pTileViewport);
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Text", SSizeVec2(36, 9), SSizeVec2(uiCellWidth, uiCellHeight), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		cTileMaps.AddMap(pTileMap);
+		pWriter = OMalloc<CTileTextWriter>(pLayer, pColours, sTextColour);
+		AssertTrue(pWriter->Write(szText, &asSpans));
+
+		//The text laid out into a sprite map.
+		pSpriteViewport = OMalloc<CImage>(360, 198, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		cSpriteMaps.Init(OMalloc<CImageCelBlitterCache>(pSpriteViewport), pSpriteViewport);
+		pSpriteMap = OMalloc<CSpriteMap>();
+		cSpriteMaps.AddMap(pSpriteMap);
+		cUTF8.Init(szText);
+		cReader.Init(&pTextFont);
+		pText = cReader.Read(&cUTF8, true, &asChanges);
+		cReader.Kill();
+		cUTF8.Kill();
+		AssertTrue(pText.IsNotNull());
+		pFontDraw = OMalloc<CMapFontDraw>(pSpriteMap);
+		pLayout = OMalloc<CTextLayout>();
+		pSpriteMap->BeginChange();
+		pLayout->Layout(pFontDraw, pText);
+		pSpriteMap->EndChange();
+
+		pTileViewport->Black();
+		AssertTrue(cTileMaps.Blit(true));
+		pSpriteViewport->Black();
+		AssertTrue(cSpriteMaps.Blit(true));
+		AssertSize(0, TestMapsCountDifferences(pTileViewport, pSpriteViewport, 0, 0));
+
+		//And the text isn't just black.
+		pSpriteViewport->Black();
+		AssertTrue(TestMapsCountDifferences(pTileViewport, pSpriteViewport, 0, 0) > 1000);
+
+		asChanges.Kill();
+		asSpans.Kill();
+		cSpriteMaps.Kill();
+		cTileMaps.Kill();
+		pText->Kill();
+		pText = NULL;
+		pLayout = NULL;
+		pFontDraw = NULL;
+		pSpriteMap = NULL;
+		pSpriteViewport = NULL;
+		pWriter = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pTileViewport = NULL;
+		pTextFont = NULL;
+		pKeywordFont = NULL;
+		pColours = NULL;
+		pWhite = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cel of the UTF-8 character szCharacter in pFont (found by code
+// point, as CTextLayout and CTileTextWriter find it).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> TestMapsGlyphCel(Ptr<CFont> pFont, const char* szCharacter)
+{
+	CUTF8		cUTF8;
+	Ptr<CGlyph>	pGlyph;
+
+	cUTF8.Init(szCharacter);
+	pGlyph = pFont->GetGlyph(&cUTF8);
+	cUTF8.Kill();
+	if (pGlyph.IsNull())
+	{
+		return NULL;
+	}
+	return pGlyph->GetCel();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Rows past the bottom, lines with new lines and terminators in them, UTF-8
+// characters of 2, 3 and 4 bytes, bytes that aren't UTF-8 and a span that
+// starts inside a character.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileTextWriterCharacters(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CFont>				pWhite;
+		Ptr<CFontColours>		pColours;
+		Ptr<CFont>				pText;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		Ptr<CTileTextWriter>	pWriter;
+		CArrayTileTextSpan		asSpans;
+		STileTextSpan*			psSpan;
+		ARGB32					sText;
+		ARGB32					sRed;
+		Ptr<CImageCel>			pQuestion;
+
+		ImageChannelDescriptorInit();
+
+		//The font has e acute (2 bytes) and the euro sign (3 bytes) but no emoji (4 bytes).
+		pWhite = CreateWhiteTrueTypeFontFrom("JetBrainsMonoNL-Regular.ttf", "?!abcdx\xC3\xA9\xE2\x82\xAC", 16.0f);
+		AssertTrue(pWhite->IsFixedWidth());
+		pColours = OMalloc<CFontColours>(pWhite);
+		sText = Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)255);
+		sRed = Set32BitColour((uint8)255, (uint8)0, (uint8)0, (uint8)255);
+		pText = pColours->GetFont(sText);
+		pQuestion = pText->GetGlyph((uint8*)"?", 1)->GetCel();
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Text", SSizeVec2(8, 3), SSizeVec2(pWhite->GetAverageWidth(), (size)pWhite->GetLineHeight()), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		pWriter = OMalloc<CTileTextWriter>(pLayer, pColours, sText, 4);
+		AssertTrue(pWriter->IsValid());
+
+		//A row past the bottom takes nothing.
+		AssertFalse(pWriter->WriteRow(3, "a", 1));
+		AssertTrue(pWriter->WriteRow(3, "", 0));
+		AssertSize(0, pLayer->NumStoredTiles());
+
+		//A row stops at a new line or a terminator.
+		AssertTrue(pWriter->WriteRow(0, "ab\ncd", 5));
+		AssertSize(2, pLayer->GetRowEnd(0));
+		AssertTrue(pWriter->WriteRow(1, "ab\0cd", 5));
+		AssertSize(2, pLayer->GetRowEnd(1));
+
+		//Each character is a column, however many bytes it is.
+		AssertTrue(TestMapsGlyphCel(pText, "\xC3\xA9").IsNotNull());
+		AssertTrue(TestMapsGlyphCel(pText, "\xE2\x82\xAC").IsNotNull());
+		AssertTrue(pWriter->Write("\xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80!"));
+		AssertTrue(pLayer->GetTile(0, 0) == TestMapsGlyphCel(pText, "\xC3\xA9"));
+		AssertTrue(pLayer->GetTile(1, 0) == TestMapsGlyphCel(pText, "\xE2\x82\xAC"));
+		AssertFalse(pLayer->GetTile(0, 0) == pQuestion);
+		AssertFalse(pLayer->GetTile(1, 0) == pQuestion);
+		AssertTrue(pLayer->GetTile(2, 0) == pQuestion);
+		AssertTrue(pLayer->GetTile(3, 0) == pText->GetGlyph((uint8*)"!", 1)->GetCel());
+		AssertSize(4, pLayer->GetRowEnd(0));
+
+		//A byte that doesn't start a character, a lead byte cut short and a character cut off by the end of the text are
+		//each a '?'.
+		AssertTrue(pWriter->Write("\xFF" "a\xC3" "b\xE2\x82"));
+		AssertTrue(pLayer->GetTile(0, 0) == pQuestion);
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"a", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(2, 0) == pQuestion);
+		AssertTrue(pLayer->GetTile(3, 0) == pText->GetGlyph((uint8*)"b", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(4, 0) == pQuestion);
+		AssertTrue(pLayer->GetTile(5, 0) == pQuestion);
+		AssertSize(6, pLayer->GetRowEnd(0));
+
+		//A character is the colour of the span its first byte is in: one starting inside e acute doesn't colour it.
+		asSpans.Init();
+		psSpan = asSpans.Add();
+		psSpan->uiStart = 1;
+		psSpan->uiLength = 1;
+		psSpan->sColour = sRed;
+		psSpan = asSpans.Add();
+		psSpan->uiStart = 3;
+		psSpan->uiLength = 1;
+		psSpan->sColour = sRed;
+		AssertTrue(pWriter->Write("\xC3\xA9xd", &asSpans));
+		AssertTrue(pLayer->GetTile(0, 0) == TestMapsGlyphCel(pText, "\xC3\xA9"));
+		AssertTrue(pLayer->GetTile(1, 0) == pText->GetGlyph((uint8*)"x", 1)->GetCel());
+		AssertTrue(pLayer->GetTile(2, 0) == pColours->GetFont(sRed)->GetGlyph((uint8*)"d", 1)->GetCel());
+		asSpans.Kill();
+
+		pWriter = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pQuestion = NULL;
+		pText = NULL;
+		pColours = NULL;
+		pWhite = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bounds of a sparse layer's pixels are those of the tiles in its
+// rows' runs.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerImageBounds(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CArrayImageCel>		pacCels;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+		CInt32Rect				cBounds;
+		CInt32Rect				cExpected;
+		CInt32Rect				cCel;
+		Ptr<CImageCel>			pNoCel;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(10, 6), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+
+		//No tiles have no bounds.
+		cExpected.Init();
+		AssertTrue(pLayer->GetImageDestBounds(&cBounds));
+		AssertTrue(cExpected.Equals(&cBounds));
+
+		//One tile, then tiles in two rows with an empty row above and between them.
+		AssertTrue(pLayer->SetTile(4, 1, pacCels->Get(1)));
+		pacCels->Get(1)->GetImageDestBounds(4 * 16, 1 * 16, &cExpected);
+		AssertTrue(pLayer->GetImageDestBounds(&cBounds));
+		AssertTrue(cExpected.Equals(&cBounds));
+
+		AssertTrue(pLayer->SetTile(1, 3, pacCels->Get(2)));
+		AssertTrue(pLayer->SetTile(8, 3, pacCels->Get(3)));
+		pacCels->Get(2)->GetImageDestBounds(1 * 16, 3 * 16, &cCel);
+		cExpected.GrowToContain(&cCel);
+		pacCels->Get(3)->GetImageDestBounds(8 * 16, 3 * 16, &cCel);
+		cExpected.GrowToContain(&cCel);
+		AssertTrue(pLayer->GetImageDestBounds(&cBounds));
+		AssertTrue(cExpected.Equals(&cBounds));
+		AssertInt(16, cBounds.msTopLeft.x);
+		AssertInt(16, cBounds.msTopLeft.y);
+
+		//Taking the ends of the bottom row away shrinks the bounds back to the first tile.
+		AssertTrue(pLayer->SetTile(1, 3, pNoCel));
+		AssertTrue(pLayer->SetTile(8, 3, pNoCel));
+		pacCels->Get(1)->GetImageDestBounds(4 * 16, 1 * 16, &cExpected);
+		AssertTrue(pLayer->GetImageDestBounds(&cBounds));
+		AssertTrue(cExpected.Equals(&cBounds));
+
+		pLayer = NULL;
+		pTileMap = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A layer grows and shrinks keeping the tiles still in it; the columns of
+// text go by the tile writer's rules.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsTileLayerResize(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CArrayImageCel>		pacCels;
+		Ptr<CTileMap>			pTileMap;
+		Ptr<CTileLayerCel>		pLayer;
+
+		ImageChannelDescriptorInit();
+
+		pacCels = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(4, 3), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		AssertTrue(pLayer->SetTile(1, 0, pacCels->Get(1)));
+		AssertTrue(pLayer->SetTile(3, 1, pacCels->Get(2)));
+		AssertTrue(pLayer->SetTile(0, 2, pacCels->Get(3)));
+		AssertTrue(pLayer->SetTile(2, 2, pacCels->Get(4)));
+
+		//Growing keeps every tile, and the new rows and columns can be set.
+		pLayer->SetMapSize(SSizeVec2(6, 5));
+		AssertInt(6, pLayer->GetLayerSizeX());
+		AssertInt(5, pLayer->GetLayerSizeY());
+		AssertTrue(pLayer->GetTile(1, 0) == pacCels->Get(1));
+		AssertTrue(pLayer->GetTile(3, 1) == pacCels->Get(2));
+		AssertTrue(pLayer->GetTile(2, 2) == pacCels->Get(4));
+		AssertTrue(pLayer->SetTile(5, 4, pacCels->Get(5)));
+		AssertTrue(pLayer->SetTile(5, 0, pacCels->Get(6)));
+		AssertTrue(pLayer->GetTile(5, 4) == pacCels->Get(5));
+		AssertTrue(pLayer->GetTile(1, 0) == pacCels->Get(1));
+		AssertSize(5 + 1 + 3 + 1, pLayer->NumStoredTiles());
+
+		//Shrinking takes away the tiles outside and trims the rows that are left.
+		pLayer->SetMapSize(SSizeVec2(2, 3));
+		AssertTrue(pLayer->GetTile(1, 0) == pacCels->Get(1));
+		AssertSize(2, pLayer->GetRowEnd(0));
+		AssertSize(pLayer->GetRowStart(1), pLayer->GetRowEnd(1));
+		AssertTrue(pLayer->GetTile(0, 2) == pacCels->Get(3));
+		AssertSize(1, pLayer->GetRowEnd(2));
+		AssertSize(2, pLayer->NumStoredTiles());
+		AssertFalse(pLayer->SetTile(2, 0, pacCels->Get(1)));
+		AssertFalse(pLayer->SetTile(0, 3, pacCels->Get(1)));
+
+		//A smaller cel size keeps the tiles where they are in the grid.
+		pLayer->SetCelSize(SSizeVec2(8, 8));
+		AssertSize(8, pLayer->GetCelSize().x);
+		AssertTrue(pLayer->GetTile(0, 2) == pacCels->Get(3));
+
+		pLayer = NULL;
+		pTileMap = NULL;
+		pacCels = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+
+	//Columns: a tab goes to the next stop, a carriage return takes none, a character of any length takes one.
+	AssertSize(3, TileTextColumns("abc", 3, 0, 4));
+	AssertSize(5, TileTextColumns("a\tb", 3, 0, 4));
+	AssertSize(8, TileTextColumns("\t", 1, 4, 4));
+	AssertSize(8, TileTextColumns("\t", 1, 7, 4));
+	AssertSize(2, TileTextColumns("a\rb", 3, 0, 4));
+	AssertSize(2, TileTextColumns("\xC3\xA9\xE2\x82\xAC", 5, 0, 4));
+	AssertSize(1, TileTextColumns("a\nbc", 4, 0, 4));
+	AssertSize(3, TileTextColumns("\t", 1, 2, 3));
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -565,6 +1558,14 @@ void TestMaps(void)
 	TestMapsSpriteMapSharedCels();
 	TestMapsTileMap();
 	TestMapsTileLayerRows();
+	TestMapsTileLayerText();
+	TestMapsTileTextWriter();
+	TestMapsTileLayerBlitAfterEdits();
+	TestMapsTileLayerBlitScrolled();
+	TestMapsTileTextMatchesSpriteText();
+	TestMapsTileTextWriterCharacters();
+	TestMapsTileLayerImageBounds();
+	TestMapsTileLayerResize();
 	TestMapsSpriteMap();
 
 	DataIOKill();

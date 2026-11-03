@@ -14,6 +14,7 @@
 
 Ptr<CFont> ReadLabelFont(void);
 int32 TextAreaWidth(Ptr<CFont> pFont, const char* szText);
+Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
 void LayoutTextAreaText(Ptr<CTextLayout> pLayout, Ptr<CGlyphListFontDraw> pDraw, Ptr<CFont> pFont, const char* szText);
 
 
@@ -738,6 +739,140 @@ void TestTextAreaEditScrollPane(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// A fixed width font as tiles: the caret, the pointer and the text's size
+// go by columns, tabs go to tab stops and a character the font hasn't got
+// takes a column.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditTiles(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CFontFamily>			pFamily;
+		Ptr<CTextArea>				pTextArea;
+		Ptr<CFont>					pFont;
+		CInt32Rect					cCaret;
+		SInt32Vec2					sSize;
+		int32						iCell;
+		int32						iLine;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pFamily = CreateMonoTextAreaFamily(15.0f);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "a\tb\ncd");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		pFont = pTextArea->GetFont();
+		AssertTrue(pFont->IsFixedWidth());
+		iCell = (int32)pFont->GetAverageWidth();
+		iLine = pFont->GetLineHeight();
+
+		//Tiles are only used when they are asked for.
+		AssertFalse(pTextArea->IsDrawnAsTiles());
+		pTextArea->SetTiledText(true);
+		AssertTrue(pTextArea->IsTiledText());
+		AssertTrue(pTextArea->IsDrawnAsTiles());
+
+		//The tab goes to column 4: b is at x 4 cells, the text is 5 columns wide and 2 lines high.
+		pTextArea->SetCaretPosition(2);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(4 * iCell, cCaret.GetLeft());
+		AssertInt(0, cCaret.GetTop());
+		AssertInt(iLine, cCaret.GetHeight());
+		pTextArea->SetCaretPosition(3);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(5 * iCell, cCaret.GetLeft());
+		sSize = pTextArea->GetTextSize();
+		AssertInt(5 * iCell, sSize.x);
+		AssertInt(2 * iLine, sSize.y);
+
+		//The pointer finds the gap nearest it; over the tab is either side of it.
+		AssertSize(2, pTextArea->FindPositionAt(4 * iCell + 1, 1));
+		AssertSize(1, pTextArea->FindPositionAt(iCell + 2, 1));
+		AssertSize(5, pTextArea->FindPositionAt(iCell + 1, iLine + 1));
+		AssertSize(6, pTextArea->FindPositionAt(1000, iLine + 1));
+
+		//A bigger tab width moves b along.
+		pTextArea->SetTabWidth(8);
+		pTextArea->SetCaretPosition(2);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(8 * iCell, cCaret.GetLeft());
+		pTextArea->SetTabWidth(4);
+
+		//Down and up keep the column across a tab.
+		pTextArea->SetText("\tx\nabcdefgh");
+		pTextArea->SetCaretPosition(1);
+		pTextArea->Down();
+		AssertSize(3 + 4, pTextArea->GetCaretPosition());
+		pTextArea->Right();
+		pTextArea->Up();
+		AssertSize(2, pTextArea->GetCaretPosition());
+
+		//A character the font hasn't got is a column, like the others.
+		pTextArea->SetText("\xC3\xA9" "ab");
+		pTextArea->SetCaretPosition(2);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(iCell, cCaret.GetLeft());
+		AssertInt(3 * iCell, pTextArea->GetTextSize().x);
+
+		//Editing as tiles.
+		pTextArea->SetText("ab");
+		pTextArea->DocumentEnd();
+		pTextArea->Printable('c', true);
+		pTextArea->Enter();
+		pTextArea->Printable('d', true);
+		AssertString("abc\nd", pTextArea->GetText());
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(iCell, cCaret.GetLeft());
+		AssertInt(iLine, cCaret.GetTop());
+		AssertInt(3 * iCell, pTextArea->GetTextSize().x);
+		AssertInt(2 * iLine, pTextArea->GetTextSize().y);
+		pTextArea->Backspace();
+		pTextArea->Backspace();
+		AssertString("abc", pTextArea->GetText());
+		AssertInt(iLine, pTextArea->GetTextSize().y);
+
+		//Word wrap needs sprites; turning it off again goes back to tiles.
+		pTextArea->SetWordWrap(true);
+		AssertTrue(pTextArea->IsTiledText());
+		AssertFalse(pTextArea->IsDrawnAsTiles());
+		pTextArea->SetWordWrap(false);
+		AssertTrue(pTextArea->IsDrawnAsTiles());
+
+		//A font that isn't fixed width is drawn as sprites.
+		pTextArea->SetFont(ReadLabelFont());
+		AssertFalse(pTextArea->GetFont()->IsFixedWidth());
+		AssertFalse(pTextArea->IsDrawnAsTiles());
+
+		pFont = NULL;
+		pTextArea = NULL;
+		pFamily = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
 void TestTextAreaEdit(void)
 {
 	BeginTests();
@@ -749,6 +884,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditModification();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
+	TestTextAreaEditTiles();
 
 	ObjectsFlush();
 	ObjectsKill();

@@ -31,6 +31,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/GeometryMap.h"
 #include "SupportLib/MapFontDraw.h"
 #include "SupportLib/Maps.h"
+#include "SupportLib/TileMap.h"
+#include "SupportLib/TileLayerCel.h"
+#include "SupportLib/TileTextWriter.h"
 #include "Canvas.h"
 #include "ComponentInputEvent.h"
 
@@ -92,6 +95,16 @@ protected:
 	bool				mbWordWrap;
 	SInt32Vec2			msTextSize;
 
+	//A fixed width font can be drawn as tiles instead of sprites: each character in a cell of a tile layer, the lines
+	//and stops worked out from the columns instead of by mpLayout.
+	bool					mbTiledText;  //Tiles were asked for; they are only used with a fixed width font and no word wrap.
+	bool					mbTiled;  //The text was last read as tiles.
+	Ptr<CTileMap>			mpTileMap;
+	Ptr<CTileLayerCel>		mpTileLayer;
+	Ptr<CTileTextWriter>	mpTileWriter;
+	CArrayTextLayoutLine	masTileLines;
+	CArrayTextLayoutStop	masTileStops;
+
 	Ptr<CGeometryMap>	mpSelectionMap;  //Under the text.
 	Ptr<CGeometryMap>	mpCaretMap;  //Over the text.
 	ARGB32				msSelectionColour;
@@ -127,6 +140,9 @@ public:
 	Ptr<CFontFamily>	GetFontFamily(void);
 	void				SetWordWrap(bool bWordWrap);
 	bool				IsWordWrap(void);
+	void				SetTiledText(bool bTiledText);
+	bool				IsTiledText(void);
+	bool				IsDrawnAsTiles(void);
 
 	void				SetStyle(STextStyle* psStyle);
 	void				GetStyle(STextStyle* psStyle);
@@ -225,6 +241,22 @@ protected:
 	void				UpdateSize(void);
 	int32				GetWrapWidth(void);
 	void				FindStopStarts(void);
+
+	//The text as tiles.
+	bool				UseTiles(void);
+	void				ReadTiles(void);
+	void				LayoutTiles(void);
+	STextStyle*			MakeTileStyles(void);
+	void				MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans);
+	void				DecorateTiles(STextStyle* psStyles);
+	void				DecorateTileStretch(uint8 uiDecoration, STextStyle* psStyles, size uiRow, size uiFirstStop, size uiEndStop);
+	STextStyle*			GetTileStyle(STextStyle* psStyles, size uiStop);
+
+	//The lines and stops the text is laid out in, by mpLayout or as tiles.
+	size				NumLayoutLines(void);
+	size				NumLayoutStops(void);
+	STextLayoutLine*	GetLayoutLine(size uiLine);
+	STextLayoutStop*	GetLayoutStop(size uiStop);
 
 	//Characters and lines of the text.
 	size				CharacterLength(size uiPosition);

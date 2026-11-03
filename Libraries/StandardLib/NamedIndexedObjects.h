@@ -55,7 +55,7 @@ public:
 	CBaseObject*		Iterate(SIndexesIterator* psIter);
 
 	bool				ValidateNoDirty(void);
-	bool				FreeObjects(void);
+	void				FreeObjects(CArrayBaseObjectPtr* papcObjects);
 	bool				RemoveIdentifiers(CBaseObject* pcObject);
 	void				FreeObject(CBaseObject* pcObject);
 

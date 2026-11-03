@@ -386,25 +386,21 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::FreeObjects(void)
+void CNamedIndexedObjects::FreeObjects(CArrayBaseObjectPtr* papcObjects)
 {
-	SIndexesIterator	sIter;
-	OIndex				oi;
-	CBaseObject*		pcObject;
+	//The Objects must already have been freed (FreeInternal and DoneKill).  They are left in memory for Kill.
 
-	oi = mcMemoryIndexedObjects.StartIteration(&sIter);
-	while (oi != INVALID_O_INDEX)
+	size			i;
+	size			uiNumElements;
+	CBaseObject*	pcObject;
+
+	uiNumElements = papcObjects->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = Get(oi);
-
-		pcObject->FreeInternal();
-		pcObject->DoneKill(true);
+		pcObject = papcObjects->GetPtr(i);
 		pcObject->FreeIdentifiers();
 		pcObject->FreePointers();
-
-		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
-	return true;
 }
 
 

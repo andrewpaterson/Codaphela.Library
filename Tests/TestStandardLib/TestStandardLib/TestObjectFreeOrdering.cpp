@@ -383,6 +383,107 @@ void TestObjectFreeOrderingCollection(bool bExplicitKill)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingObjectsKill(bool bHolderFirst)
+{
+	STestObjectFreedNotifier	sFreeNotifierObject;
+	STestObjectFreedNotifier	sFreeNotifierHolder;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pObject;
+
+		//Rooted so both are still alive when Objects is killed.
+		TestObjectFreeOrderingAllocate(bHolderFirst, pObject, &sFreeNotifierObject, &sFreeNotifierHolder);
+		ORoot()->Add(pObject);
+	}
+	AssertFalse(sFreeNotifierObject.bFreed);
+	AssertFalse(sFreeNotifierHolder.bFreed);
+
+	ObjectsFlush();
+	ObjectsKill();
+
+	//The holder has a Nes pointer to the Object so it must be freed first, whatever the order they were allocated in.
+	AssertTrue(sFreeNotifierObject.bFreed);
+	AssertTrue(sFreeNotifierHolder.bFreed);
+	AssertFalse(sFreeNotifierHolder.bDependsOnFreedFirst);
+	//Nothing is deallocated until every Object has been freed so the Object still points to the holder.
+	AssertFalse(sFreeNotifierObject.bObjectNullWhenFreed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingEvictInMemory(bool bHolderFirst)
+{
+	STestObjectFreedNotifier	sFreeNotifierObject;
+	STestObjectFreedNotifier	sFreeNotifierHolder;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pObject;
+
+		TestObjectFreeOrderingAllocate(bHolderFirst, pObject, &sFreeNotifierObject, &sFreeNotifierHolder);
+		ORoot()->Add(pObject);
+	}
+	AssertFalse(sFreeNotifierObject.bFreed);
+	AssertFalse(sFreeNotifierHolder.bFreed);
+
+	gcObjects.EvictInMemory();
+
+	AssertTrue(sFreeNotifierObject.bFreed);
+	AssertTrue(sFreeNotifierHolder.bFreed);
+	AssertFalse(sFreeNotifierHolder.bDependsOnFreedFirst);
+	AssertFalse(sFreeNotifierObject.bObjectNullWhenFreed);
+	AssertSize(0, gcObjects.NumMemoryIndexes());
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingObjectsKillNestedRemoval(void)
+{
+	STestObjectFreedNotifier	sNotifierObject;
+	STestObjectFreedNotifier	sNotifierHolder;
+	STestObjectFreedNotifier	sNotifierReleased;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>					pObject;
+		Ptr<CTestNesHolderReleaseObject>	pHolder;
+		Ptr<CTestObject>					pReleased;
+
+		//As TestObjectFreeOrderingNestedRemoval but everything is still rooted when Objects is killed.
+		//Releasing an Object while Objects is being killed must not remove it a second time.
+		pObject = OMalloc<CTestObject>(&sNotifierObject);
+		pHolder = OMalloc<CTestNesHolderReleaseObject>(&sNotifierHolder, pObject);
+		pReleased = OMalloc<CTestObject>(&sNotifierReleased);
+		pHolder->mpReleasedOnFree = pReleased;
+		pReleased->mpTest = pObject;
+		pObject->mpObject = pHolder;
+		ORoot()->Add(pObject);
+	}
+	AssertSize(5, gcObjects.NumMemoryIndexes());
+
+	ObjectsFlush();
+	ObjectsKill();
+
+	AssertTrue(sNotifierObject.bFreed);
+	AssertTrue(sNotifierHolder.bFreed);
+	AssertTrue(sNotifierReleased.bFreed);
+	AssertFalse(sNotifierHolder.bDependsOnFreedFirst);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestObjectFreeOrdering(void)
 {
 	BeginTests();
@@ -402,6 +503,11 @@ void TestObjectFreeOrdering(void)
 	TestObjectFreeOrderingExplicitKillEmbeddedPointer();
 	TestObjectFreeOrderingExplicitKillSurvivor();
 	TestObjectFreeOrderingNestedRemoval();
+	TestObjectFreeOrderingObjectsKill(false);
+	TestObjectFreeOrderingObjectsKill(true);
+	TestObjectFreeOrderingEvictInMemory(false);
+	TestObjectFreeOrderingEvictInMemory(true);
+	TestObjectFreeOrderingObjectsKillNestedRemoval();
 
 	DataIOKill();
 	TypesKill();

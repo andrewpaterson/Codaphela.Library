@@ -1382,6 +1382,130 @@ void TestTextAreaUnderlineOverlineFillContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// Cascadia Mono, fixed width, with the characters the tile tests use.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize)
+{
+	Ptr<CFontFamily>	pFamily;
+
+	pFamily = OMalloc<CFontFamily>("Cascadia Mono", " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", fDefaultPixelSize, CCO_RGB);
+	AssertTrue(pFamily->SetFace(FS_Regular, "Input" _FS_ "Fonts" _FS_ "CascadiaMono.ttf"));
+	return pFamily;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws a text area in a fixed width font, with colour spans,
+// decorations and a selection, into szDirectory, as tiles or as sprites.
+//
+//////////////////////////////////////////////////////////////////////////
+void DrawMonoTextArea(char* szDirectory, bool bTiles)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFontFamily>		pFamily;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CClearCanvasDraw>	pBackground;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		const char*				szText;
+		STextStyleOverride		sOverride;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 320, 140, szDirectory);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		pFamily = CreateMonoTextAreaFamily(15.0f);
+		szText = "int Sum(int* aiValues, int iCount)\n{\n    int iTotal = 0;\n    return iTotal;\n}";
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, szText);
+		pTextArea->SetTiledText(bTiles);
+		pTextArea->SetAlignment(CSH_Left, CSV_Top);
+		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
+		AssertTrue(pTextArea->AddSpan(0, 3, Set32BitColour((uint8)0x56, (uint8)0x9C, (uint8)0xD6)));		//int
+		AssertTrue(pTextArea->AddSpan(4, 3, Set32BitColour((uint8)0xDC, (uint8)0xDC, (uint8)0xAA)));		//Sum
+		AssertTrue(pTextArea->AddSpan(8, 3, Set32BitColour((uint8)0x56, (uint8)0x9C, (uint8)0xD6)));		//int
+		AssertTrue(pTextArea->AddSpan(41, 3, Set32BitColour((uint8)0x56, (uint8)0x9C, (uint8)0xD6)));		//int
+		AssertTrue(pTextArea->AddSpan(54, 1, Set32BitColour((uint8)0xB5, (uint8)0xCE, (uint8)0xA8)));		//0
+		AssertTrue(pTextArea->AddSpan(61, 6, Set32BitColour((uint8)0xC5, (uint8)0x86, (uint8)0xC0)));		//return
+		AssertTrue(pTextArea->AddSpan(23, 3, Set32BitColour((uint8)0x56, (uint8)0x9C, (uint8)0xD6)));		//int
+
+		//Decorations, across words and colours: aiValues, int underlined (blue under the int), Sum underlined, iTotal
+		//struck through and return overlined.
+		sOverride.Init();
+		sOverride.SetUnderline(true);
+		AssertTrue(pTextArea->AddSpan(13, 13, &sOverride));
+		AssertTrue(pTextArea->AddSpan(4, 3, &sOverride));
+		sOverride.Init();
+		sOverride.SetStrikethrough(true);
+		AssertTrue(pTextArea->AddSpan(45, 6, &sOverride));
+		sOverride.Init();
+		sOverride.SetOverline(true);
+		AssertTrue(pTextArea->AddSpan(61, 6, &sOverride));
+
+		pTextArea->Select(13, 40);
+		pFill->AddComponent(pTextArea);
+
+		pTestWindow->Show();
+		AssertBool(bTiles, pTextArea->IsDrawnAsTiles());
+
+		pTextArea = NULL;
+		pFamily = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pBackground = NULL;
+	}
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A fixed width font drawn as tiles looks the same as drawn as sprites:
+// the glyphs, the colours of the spans, the decorations and the selection.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaTilesMatchSprites(void)
+{
+	char		szSprites[] = "Output" _FS_ "TextAreaMonoSprites";
+	char		szTiles[] = "Output" _FS_ "TextAreaMonoTiles";
+	CFileUtil	cFileUtil;
+
+	CArrayChars	aszFrames;
+
+	DrawMonoTextArea(szSprites, false);
+	DrawMonoTextArea(szTiles, true);
+
+	//Frames were drawn, and they are the same.
+	aszFrames.Init();
+	AssertTrue(cFileUtil.FindAllFiles(szTiles, &aszFrames));
+	AssertTrue(aszFrames.NumElements() > 0);
+	aszFrames.Kill();
+	AssertDirectory(szSprites, szTiles);
+
+	if (!getenv("TEST_TEXT_AREA_KEEP_MONO"))
+	{
+		cFileUtil.RemoveDir(szSprites);
+		cFileUtil.RemoveDir(szTiles);
+	}
+}
+
+
 void TestTextArea(void)
 {
 	BeginTests();
@@ -1399,6 +1523,7 @@ void TestTextArea(void)
 	TestTextAreaScriptsFillContainer();
 	TestTextAreaDecorationsFillContainer();
 	TestTextAreaUnderlineOverlineFillContainer();
+	TestTextAreaTilesMatchSprites();
 
 	ObjectsFlush();
 	ObjectsKill();

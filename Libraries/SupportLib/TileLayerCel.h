@@ -74,6 +74,9 @@ public:
 	size						NumStoredTiles(void);
 
 	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
+	void						ClearRow(size y);
+	void						Clear(void);
+	void						SetMapSize(SSizeVec2 sMapSize);
 
 	bool						Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
 

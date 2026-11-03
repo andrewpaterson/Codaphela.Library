@@ -32,6 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HollowEmbeddedObject.h"
 #include "FreeObjects.h"
 #include "StackPointers.h"
+#include "KillOrderCalculator.h"
 #include "Objects.h"
 
 
@@ -169,10 +170,10 @@ void CObjects::Kill(void)
 {
 	mbInitialised = false;
 
-	mcRemovalContext.Kill();
-
 	mcMemory.ValidateNoDirty();
-	mcMemory.FreeObjects();
+	FreeAllInKillOrder(false);
+
+	mcRemovalContext.Kill();
 
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
@@ -786,43 +787,88 @@ bool CObjects::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::EvictInMemory(void)
 {
-	SIndexesIterator		sIter;
-	OIndex					oi;
-	CBaseObject*			pcBaseObject;
-	CArrayBaseObjectPtr	apcBaseObjects;
-	size					iCount;
-
-	apcBaseObjects.Init();
-	oi = StartMemoryIteration(&sIter);
-
-	iCount = 0;
-	while (oi != INVALID_O_INDEX)
-	{
-		pcBaseObject = GetFromMemory(oi);
-		apcBaseObjects.Add(pcBaseObject);
-		iCount++;
-
-		if (iCount == CLEAR_MEMORY_CHUNK_SIZE)
-		{
-			FreeInternal(&apcBaseObjects);
-			DoneKill(&apcBaseObjects);
-			KillObjects(&apcBaseObjects);
-
-			iCount = 0;
-			apcBaseObjects.ReInit();
-		}
-
-		oi = IterateMemory(&sIter);
-	}
-
-	FreeInternal(&apcBaseObjects);
-	DoneKill(&apcBaseObjects);
-	KillObjects(&apcBaseObjects);
-
-	apcBaseObjects.Kill();
+	FreeAllInKillOrder(true);
 
 	mcMemory.ReInit();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeAllInKillOrder(bool bDeallocate)
+{
+	//Frees every Object in memory the way a garbage collected batch is freed: Objects with Nes pointers to them are freed
+	//after the Objects that depend on them and nothing is deallocated until every Object has been freed.
+	//If bDeallocate is false the Objects are left allocated for Kill (they are released with the Unknowns).
+
+	SIndexesIterator		sIter;
+	OIndex					oi;
+	CArrayBaseObjectPtr		apcAll;
+	CArrayBaseObjectPtr		apcDependents;
+	CArrayBaseObjectPtr*	papcNes;
+	CArrayBaseObjectPtr*	papcRemaining;
+	CKillOrderCalculator	cKillOrder;
+
+	if (mcRemovalContext.IsBusy())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot free all Objects whilst performing a removal.", NULL);
+		return;
+	}
+
+	apcAll.Init();
+	oi = StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		apcAll.Add(GetFromMemory(oi));
+		oi = IterateMemory(&sIter);
+	}
+
+	if (apcAll.IsEmpty())
+	{
+		apcAll.Kill();
+		return;
+	}
+
+	//Removals started while the Objects are freed (e.g. a Free that clears a pointer) are pushed onto the context instead of
+	//being performed.  Objects in apcAll are skipped when the context is drained so none are freed twice.
+	mcRemovalContext.Start(&apcAll);
+
+	//The kill order must be calculated before anything is freed; freeing clears the Nes pointers it looks for.
+	apcDependents.Init();
+	apcDependents.InsertArrayAfterEnd(&apcAll);
+	cKillOrder.Init(&apcDependents);
+	papcNes = cKillOrder.Calculate();
+
+	FreeInternal(&apcDependents);
+	FreeInternal(papcNes);
+	DoneKill(&apcAll);
+
+	cKillOrder.Kill();
+	apcDependents.Kill();
+
+	if (bDeallocate)
+	{
+		KillObjects(&apcAll);
+	}
+	else
+	{
+		mcMemory.FreeObjects(&apcAll);
+	}
+
+	papcRemaining = mcRemovalContext.Done();
+	while (papcRemaining != NULL)
+	{
+		if (papcRemaining->IsNotEmpty())
+		{
+			RemoveBatch(papcRemaining);
+		}
+		papcRemaining = mcRemovalContext.Done();
+	}
+
+	apcAll.Kill();
 }
 
 
@@ -966,6 +1012,20 @@ void CObjects::KillObjects(CArrayBaseObjectPtr* papcObjectPts)
 		cArray.Fake(pvData, iNumElements);
 		mpcUnknownsAllocatingFrom->RemoveInKill(&cArray);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
+{
+	DoneKill(papcObjectPts);
+	FreeInternal(papcObjectPts);
+	RemoveAllPointerTos(papcObjectPts);
+	RemoveAllHeapFroms(papcObjectPts);
+	KillObjects(papcObjectPts);
 }
 
 
@@ -1552,11 +1612,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 				return false;
 			}
 
-			DoneKill(papcContextKill);
-			FreeInternal(papcContextKill);
-			RemoveAllPointerTos(papcContextKill);
-			RemoveAllHeapFroms(papcContextKill);
-			KillObjects(papcContextKill);
+			RemoveBatch(papcContextKill);
 
 			iCount++;
 			papcContextKill = mcRemovalContext.Done();

@@ -277,6 +277,59 @@ void TestPointerCopy(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestPointerStackWalkList(void)
+{
+	STestObjectFreedNotifier	sNotifier1;
+	STestObjectFreedNotifier	sNotifier2;
+	STestObjectFreedNotifier	sNotifier3;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pTest;
+		Ptr<CTestObject>	pTest2;
+		Ptr<CTestObject>	pTest3;
+
+		pTest = OMalloc<CTestObject>(&sNotifier1);
+		pTest2 = OMalloc<CTestObject>(&sNotifier2);
+		pTest3 = OMalloc<CTestObject>(&sNotifier3);
+		pTest->mpTest = pTest2;
+		pTest2->mpTest = pTest3;
+		pTest2 = NULL;
+		pTest3 = NULL;
+		AssertLong(3, gcObjects.NumMemoryIndexes());
+
+		//pTest is the only thing holding the list 1 -> 2 -> 3.  Walking it must free only the object walked off.
+		pTest = pTest->mpTest;
+		AssertTrue(sNotifier1.bFreed);
+		AssertFalse(sNotifier2.bFreed);
+		AssertFalse(sNotifier3.bFreed);
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+		AssertSize(1, pTest->NumStackFroms());
+		AssertSize(0, pTest->NumHeapFroms());
+		AssertInt(0x07070707, pTest->mi);
+
+		pTest = pTest->mpTest;
+		AssertTrue(sNotifier2.bFreed);
+		AssertFalse(sNotifier3.bFreed);
+		AssertLong(1, gcObjects.NumMemoryIndexes());
+		AssertSize(1, pTest->NumStackFroms());
+		AssertSize(0, pTest->NumHeapFroms());
+		AssertInt(0x07070707, pTest->mi);
+
+		pTest = pTest->mpTest;
+		AssertTrue(sNotifier3.bFreed);
+		AssertTrue(pTest.IsNull());
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestPointer(void)
 {
 	BeginTests();
@@ -293,6 +346,7 @@ void TestPointer(void)
 	TestPointerNegation();
 	TestPointerHeapNotInGraphFreeStack();
 	TestPointerCopy();
+	TestPointerStackWalkList();
 
 	DataIOKill();
 	TypesKill();

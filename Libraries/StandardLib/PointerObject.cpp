@@ -413,14 +413,16 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		}
 		else
 		{
-			if (pcOldObject)
-			{
-				pcOldObject->RemoveStackFromTryFree(this);
-			}
-
+			//Add the new stack from before removing the old one.  The new object may only be reachable through the old
+			//object (p = p->mpNext) and would otherwise be freed with it.
 			if (mpcObject)
 			{
 				mpcObject->AddStackFrom(this, false);
+			}
+
+			if (pcOldObject)
+			{
+				pcOldObject->RemoveStackFromTryFree(this);
 			}
 		}
 	}

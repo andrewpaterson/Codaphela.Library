@@ -93,8 +93,17 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpSelectionMap = OMalloc<CGeometryMap>();
 	mpCaretMap = OMalloc<CGeometryMap>();
 	mpMaps = OMalloc<CMaps>();
+	mbTiledText = false;
+	mbTiled = false;
+	mpTileMap = OMalloc<CTileMap>();
+	mpTileLayer = OMalloc<CTileLayerCel>(mpTileMap, "Text", SSizeVec2(0, 0), SSizeVec2(1, 1), 0, SInt32Vec2(0, 0));
+	mpTileMap->AddLayer(mpTileLayer);
+	mpTileWriter = OMalloc<CTileTextWriter>(mpTileLayer, Ptr<CFontColours>(), msStyle.sColour, (size)4);
+	masTileLines.Init();
+	masTileStops.Init();
 	mpMaps->AddMap(mpSelectionMap);
 	mpMaps->AddMap(mpSpriteMap);
+	mpMaps->AddMap(mpTileMap);
 	mpMaps->AddMap(mpGeometryMap);
 	mpMaps->AddMap(mpCaretMap);
 	mpMaps->SetViewportPosition(0, 0);
@@ -134,6 +143,8 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Free(void)
 {
+	masTileStops.Kill();
+	masTileLines.Kill();
 	mauiStopStarts.Kill();
 	masSpans.Kill();
 	mszText.Kill();
@@ -163,6 +174,13 @@ void CTextArea::Class(void)
 	M_Pointer(mpMaps);
 	U_Bool(mbWordWrap);
 	U_2Int32(msTextSize);
+	U_Bool(mbTiledText);
+	U_Bool(mbTiled);
+	M_Pointer(mpTileMap);
+	M_Pointer(mpTileLayer);
+	M_Pointer(mpTileWriter);
+	U_Data(CArrayTextLayoutLine, masTileLines);
+	U_Data(CArrayTextLayoutStop, masTileStops);
 	M_Pointer(mpSelectionMap);
 	M_Pointer(mpCaretMap);
 	U_UInt32(msSelectionColour);
@@ -288,6 +306,7 @@ void CTextArea::SetWordWrap(bool bWordWrap)
 	if (mbWordWrap != bWordWrap)
 	{
 		mbWordWrap = bWordWrap;
+		ReadText();
 		LayoutText();
 	}
 
@@ -463,7 +482,7 @@ void CTextArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	CCanvas::Layout(sPosition, sAreaSize);
 
-	if (mbTextDirty || (mpLayout->GetWidth() != GetWrapWidth()))
+	if (mbTextDirty || (!mbTiled && (mpLayout->GetWidth() != GetWrapWidth())))
 	{
 		//Wrapped to a new width, or in new styles, the text can be a different size so the window must lay its
 		//components out again.
@@ -559,6 +578,17 @@ void CTextArea::ReadText(void)
 	mbSizeDirty = false;
 	FindStopStarts();
 
+	mbTiled = UseTiles();
+	if (mbTiled)
+	{
+		ReadTiles();
+		return;
+	}
+	if (mpTileLayer->NumStoredTiles() > 0)
+	{
+		mpTileLayer->Clear();
+	}
+
 	pFont = mpFamily->GetRunFont(&msStyle, &iBaselineShift);
 	if (pFont.IsNull())
 	{
@@ -653,6 +683,12 @@ void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDe
 void CTextArea::LayoutText(void)
 {
 	Ptr<CFont>	pFont;
+
+	if (mbTiled)
+	{
+		LayoutTiles();
+		return;
+	}
 
 	mpLayout->SetWidth(GetWrapWidth());
 
@@ -797,6 +833,13 @@ void CTextArea::SetTabWidth(int32 iTabWidth)
 	}
 	miTabWidth = iTabWidth;
 
+	//Tiles put tabs at tab stops, so the text is laid out again.
+	if (mbTiled)
+	{
+		ReadText();
+		LayoutText();
+	}
+
 	//What it is laid out from has changed.
 	InvalidateLayout();
 }
@@ -921,7 +964,7 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 		return;
 	}
 
-	psLine = mpLayout->GetLine(GetCaretRow());
+	psLine = GetLayoutLine(GetCaretRow());
 	x = GetCaretX();
 	if ((mcActualBounds.GetWidth() > 0) && (x > mcActualBounds.GetWidth() - 1))
 	{
@@ -1997,7 +2040,7 @@ bool CTextArea::IsWordChar(char c)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::HasStops(void)
 {
-	return mpText.IsNotNull() && (mpLayout->NumLines() > 0) && (mpLayout->NumStops() == mauiStopStarts.NumElements());
+	return (mbTiled || mpText.IsNotNull()) && (NumLayoutLines() > 0) && (NumLayoutStops() == mauiStopStarts.NumElements());
 }
 
 
@@ -2041,11 +2084,11 @@ bool CTextArea::IsRowWrapped(size uiRow)
 	STextLayoutLine*	psLine;
 	size				uiLast;
 
-	if (uiRow + 1 >= mpLayout->NumLines())
+	if (uiRow + 1 >= NumLayoutLines())
 	{
 		return false;
 	}
-	psLine = mpLayout->GetLine(uiRow);
+	psLine = GetLayoutLine(uiRow);
 	uiLast = psLine->uiFirstStop + psLine->uiNumStops - 1;
 	return mszText.GetChar(*mauiStopStarts.Get(uiLast)) != '\n';
 }
@@ -2061,7 +2104,7 @@ size CTextArea::FindRow(size uiPosition, bool bRowEnd)
 {
 	size	uiRow;
 
-	uiRow = mpLayout->GetStop(FindStop(uiPosition))->uiLine;
+	uiRow = GetLayoutStop(FindStop(uiPosition))->uiLine;
 	if (bRowEnd && (uiRow > 0) && (GetRowStart(uiRow) == uiPosition) && IsRowWrapped(uiRow - 1))
 	{
 		uiRow--;
@@ -2076,7 +2119,7 @@ size CTextArea::FindRow(size uiPosition, bool bRowEnd)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::GetRowStart(size uiRow)
 {
-	return *mauiStopStarts.Get(mpLayout->GetLine(uiRow)->uiFirstStop);
+	return *mauiStopStarts.Get(GetLayoutLine(uiRow)->uiFirstStop);
 }
 
 
@@ -2091,12 +2134,12 @@ size CTextArea::GetRowEnd(size uiRow, bool* pbRowEnd)
 	STextLayoutLine*	psLine;
 
 	*pbRowEnd = false;
-	if (uiRow + 1 >= mpLayout->NumLines())
+	if (uiRow + 1 >= NumLayoutLines())
 	{
 		return mszText.Length();
 	}
 
-	psLine = mpLayout->GetLine(uiRow);
+	psLine = GetLayoutLine(uiRow);
 	if (IsRowWrapped(uiRow))
 	{
 		*pbRowEnd = true;
@@ -2116,8 +2159,8 @@ int32 CTextArea::GetRowRight(size uiRow)
 	STextLayoutLine*	psLine;
 	STextLayoutStop*	psStop;
 
-	psLine = mpLayout->GetLine(uiRow);
-	psStop = mpLayout->GetStop(psLine->uiFirstStop + psLine->uiNumStops - 1);
+	psLine = GetLayoutLine(uiRow);
+	psStop = GetLayoutStop(psLine->uiFirstStop + psLine->uiNumStops - 1);
 	if (IsRowWrapped(uiRow))
 	{
 		return psStop->x + psStop->iWidth;
@@ -2138,10 +2181,10 @@ size CTextArea::FindRowAt(int32 y)
 	size				uiNumRows;
 	STextLayoutLine*	psLine;
 
-	uiNumRows = mpLayout->NumLines();
+	uiNumRows = NumLayoutLines();
 	for (uiRow = 0; uiRow < uiNumRows - 1; uiRow++)
 	{
-		psLine = mpLayout->GetLine(uiRow);
+		psLine = GetLayoutLine(uiRow);
 		if (y < psLine->iTop + psLine->iHeight)
 		{
 			break;
@@ -2167,13 +2210,13 @@ size CTextArea::FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd)
 	int32				iDistance;
 	bool				bRowEnd;
 
-	psLine = mpLayout->GetLine(uiRow);
+	psLine = GetLayoutLine(uiRow);
 	uiEnd = psLine->uiFirstStop + psLine->uiNumStops;
 	uiBest = psLine->uiFirstStop;
-	iBestDistance = abs(mpLayout->GetStop(uiBest)->x - x);
+	iBestDistance = abs(GetLayoutStop(uiBest)->x - x);
 	for (uiStop = uiBest + 1; uiStop < uiEnd; uiStop++)
 	{
-		iDistance = abs(mpLayout->GetStop(uiStop)->x - x);
+		iDistance = abs(GetLayoutStop(uiStop)->x - x);
 		if (iDistance < iBestDistance)
 		{
 			uiBest = uiStop;
@@ -2207,11 +2250,11 @@ int32 CTextArea::GetPositionX(size uiPosition, bool bRowEnd)
 
 	uiStop = FindStop(uiPosition);
 	uiRow = FindRow(uiPosition, bRowEnd);
-	if (uiRow != mpLayout->GetStop(uiStop)->uiLine)
+	if (uiRow != GetLayoutStop(uiStop)->uiLine)
 	{
 		return GetRowRight(uiRow);
 	}
-	return mpLayout->GetStop(uiStop)->x;
+	return GetLayoutStop(uiStop)->x;
 }
 
 
@@ -2353,7 +2396,7 @@ void CTextArea::MoveUpDown(bool bDown, bool bPage, bool bSelect)
 		miUpDownX = GetCaretX();
 	}
 	uiRow = GetCaretRow();
-	uiLastRow = mpLayout->NumLines() - 1;
+	uiLastRow = NumLayoutLines() - 1;
 	if ((!bDown && (uiRow == 0)) || (bDown && (uiRow == uiLastRow)))
 	{
 		if (!bPage)
@@ -2366,10 +2409,10 @@ void CTextArea::MoveUpDown(bool bDown, bool bPage, bool bSelect)
 	if (bPage)
 	{
 		iPage = GetPageHeight();
-		psLine = mpLayout->GetLine(uiRow);
+		psLine = GetLayoutLine(uiRow);
 		iTop = psLine->iTop;
 		uiRow = FindRowAt(psLine->iTop + psLine->iHeight / 2 + (bDown ? iPage : -iPage));
-		ScrollBy(mpLayout->GetLine(uiRow)->iTop - iTop);
+		ScrollBy(GetLayoutLine(uiRow)->iTop - iTop);
 	}
 	else
 	{
@@ -2783,7 +2826,7 @@ void CTextArea::UpdateMarks(void)
 		uiEndRow = FindRow(uiEnd, true);
 		for (uiRow = uiStartRow; uiRow <= uiEndRow; uiRow++)
 		{
-			psLine = mpLayout->GetLine(uiRow);
+			psLine = GetLayoutLine(uiRow);
 			iLeft = (uiRow == uiStartRow) ? GetPositionX(uiStart, false) : 0;
 			if (uiRow == uiEndRow)
 			{
@@ -2814,3 +2857,469 @@ void CTextArea::UpdateMarks(void)
 
 bool CTextArea::IsEditable(void) { return mbEditable; }
 size CTextArea::GetCaretPosition(void) { return muiCaret; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws a fixed width font as tiles, each character in a cell of a tile
+// layer, instead of as sprites.  Only used without word wrap.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetTiledText(bool bTiledText)
+{
+	if (mbTiledText != bTiledText)
+	{
+		mbTiledText = bTiledText;
+		ReadText();
+		LayoutText();
+
+		//What it is laid out from has changed.
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::IsTiledText(void)
+{
+	return mbTiledText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tiles were asked for and the font and word wrap allow them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::IsDrawnAsTiles(void)
+{
+	return mbTiled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::UseTiles(void)
+{
+	Ptr<CFont>	pFont;
+
+	if (!mbTiledText || mbWordWrap || mpFamily.IsNull())
+	{
+		return false;
+	}
+	pFont = GetFont();
+	return pFont.IsNotNull() && pFont->IsFixedWidth();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text as tiles: the lines and stops from the columns of the
+// characters (as the tile writer puts them: a tab to the next tab stop,
+// every other character a column) and the characters written into the
+// tile layer in the colours of the spans.  Only the colours of the spans
+// are used; tiles are all the size of the text area's font.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ReadTiles(void)
+{
+	Ptr<CFontColours>	pColours;
+	Ptr<CFont>			pWhite;
+	size				uiCellWidth;
+	size				uiCellHeight;
+	size				uiNumStops;
+	size				ui;
+	size				uiStart;
+	size				uiEnd;
+	size				uiColumn;
+	size				uiNextColumn;
+	size				uiColumns;
+	size				uiRow;
+	size				uiLength;
+	char*				szText;
+	STextLayoutLine*	psLine;
+	STextLayoutStop*	psStop;
+	CArrayTileTextSpan	asSpans;
+	STextStyle*			psStyles;
+
+	//The sprites of the text read before are gone.
+	mpText = NULL;
+
+	pColours = GetFontColours();
+	pWhite = pColours->GetWhite();
+	uiCellWidth = pWhite->GetAverageWidth();
+	uiCellHeight = (size)pWhite->GetLineHeight();
+
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	masTileLines.ReInit();
+	masTileStops.ReInit();
+	psLine = masTileLines.Add();
+	psLine->iTop = 0;
+	psLine->iHeight = (int32)uiCellHeight;
+	psLine->iBaseline = pWhite->GetAscent();  //Below the top of the text, as CTextLayout's are.
+	psLine->uiFirstStop = 0;
+	psLine->uiNumStops = 0;
+
+	uiColumn = 0;
+	uiColumns = 0;
+	uiRow = 0;
+	uiNumStops = mauiStopStarts.NumElements();
+	for (ui = 0; ui < uiNumStops; ui++)
+	{
+		uiStart = *mauiStopStarts.Get(ui);
+		uiEnd = (ui + 1 < uiNumStops) ? *mauiStopStarts.Get(ui + 1) : uiLength;
+
+		psStop = masTileStops.Add();
+		psStop->x = (int32)(uiColumn * uiCellWidth);
+		psStop->iWidth = 0;
+		psStop->uiLine = uiRow;
+		masTileLines.Get(uiRow)->uiNumStops++;
+
+		if (uiStart < uiLength)
+		{
+			if (szText[uiStart] == '\n')
+			{
+				//The line feed is the last stop of its row.
+				uiRow++;
+				uiColumn = 0;
+				psLine = masTileLines.Add();
+				psLine->iTop = (int32)(uiRow * uiCellHeight);
+				psLine->iHeight = (int32)uiCellHeight;
+				psLine->iBaseline = (int32)(uiRow * uiCellHeight) + pWhite->GetAscent();
+				psLine->uiFirstStop = ui + 1;
+				psLine->uiNumStops = 0;
+			}
+			else
+			{
+				uiNextColumn = TileTextColumns(&szText[uiStart], uiEnd - uiStart, uiColumn, (size)miTabWidth);
+				psStop->iWidth = (int32)((uiNextColumn - uiColumn) * uiCellWidth);
+				uiColumn = uiNextColumn;
+			}
+		}
+		if (uiColumn > uiColumns)
+		{
+			uiColumns = uiColumn;
+		}
+	}
+	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)((uiRow + 1) * uiCellHeight));
+
+	mpTileLayer->SetCelSize(SSizeVec2(uiCellWidth, uiCellHeight));
+	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, uiRow + 1));
+	mpTileWriter->SetColours(pColours, msStyle.sColour);
+	mpTileWriter->SetTabWidth((size)miTabWidth);
+
+	psStyles = MakeTileStyles();
+	asSpans.Init();
+	MakeTileSpans(psStyles, &asSpans);
+	mpTileWriter->Write(szText, &asSpans);
+	asSpans.Kill();
+
+	//The lines along the text are drawn over the tiles, so they can go past a cell into the ones next to it.
+	mpFontDraw->Begin();
+	DecorateTiles(psStyles);
+	mpFontDraw->End();
+	SafeFree(psStyles);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tiles were laid out when they were read.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::LayoutTiles(void)
+{
+	Ptr<CFont>	pFont;
+
+	pFont = GetFont();
+	if (pFont.IsNotNull() && (msTextSize.y < pFont->GetLineHeight()))
+	{
+		msTextSize.y = pFont->GetLineHeight();
+	}
+	UpdateMarks();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The style of each byte of the text: the text area's style with the
+// spans over it (later spans over earlier ones).  NULL if there are no
+// spans, when every byte is in the text area's style.  Free it.
+//
+//////////////////////////////////////////////////////////////////////////
+STextStyle* CTextArea::MakeTileStyles(void)
+{
+	size			uiTextLength;
+	size			i;
+	size			uiPosition;
+	size			uiEnd;
+	STextStyle*		psStyles;
+	STextAreaSpan*	psSpan;
+
+	uiTextLength = mszText.Length();
+	if ((masSpans.NumElements() == 0) || (uiTextLength == 0))
+	{
+		return NULL;
+	}
+
+	psStyles = (STextStyle*)malloc(uiTextLength * sizeof(STextStyle));
+	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
+	{
+		psStyles[uiPosition] = msStyle;
+	}
+	for (i = 0; i < masSpans.NumElements(); i++)
+	{
+		psSpan = masSpans.Get(i);
+		uiEnd = psSpan->uiStart + psSpan->uiLength;
+		for (uiPosition = psSpan->uiStart; (uiPosition < uiEnd) && (uiPosition < uiTextLength); uiPosition++)
+		{
+			psSpan->sOverride.ApplyTo(&psStyles[uiPosition]);
+		}
+	}
+	return psStyles;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes coloured differently from the text area's style, as sorted
+// spans that don't overlap.  Only the colours of the styles are used:
+// every tile is the size of the text area's font.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans)
+{
+	size			uiTextLength;
+	size			uiPosition;
+	size			uiStart;
+	STileTextSpan*	psTileSpan;
+	ARGB32			sColour;
+
+	if (psStyles == NULL)
+	{
+		return;
+	}
+
+	uiTextLength = mszText.Length();
+	uiPosition = 0;
+	while (uiPosition < uiTextLength)
+	{
+		sColour = psStyles[uiPosition].sColour;
+		if (sColour == msStyle.sColour)
+		{
+			uiPosition++;
+			continue;
+		}
+		uiStart = uiPosition;
+		while ((uiPosition < uiTextLength) && (psStyles[uiPosition].sColour == sColour))
+		{
+			uiPosition++;
+		}
+		psTileSpan = pasSpans->Add();
+		psTileSpan->uiStart = uiStart;
+		psTileSpan->uiLength = uiPosition - uiStart;
+		psTileSpan->sColour = sColour;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The style of the character at stop uiStop: the style of its first byte.
+//
+//////////////////////////////////////////////////////////////////////////
+STextStyle* CTextArea::GetTileStyle(STextStyle* psStyles, size uiStop)
+{
+	if (psStyles == NULL)
+	{
+		return &msStyle;
+	}
+	return &psStyles[*mauiStopStarts.Get(uiStop)];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The underlines, overlines and strike throughs of the tiles, as
+// CTextLayout draws them: each stretch of decorated characters on a row
+// is one line, in the colours of its characters, and the spaces and tabs
+// at the end of a row aren't decorated.  They are drawn over the tiles
+// and aren't kept inside the cells.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::DecorateTiles(STextStyle* psStyles)
+{
+	uint8				auiDecorations[3] = { TD_Underline, TD_Overline, TD_Strikethrough };
+	size				uiRow;
+	size				uiNumRows;
+	STextLayoutLine*	psLine;
+	size				uiFirst;
+	size				uiEnd;
+	size				uiStop;
+	size				uiStretch;
+	size				uiDecoration;
+	uint8				uiFlag;
+	char				c;
+	bool				bAny;
+
+	//Nothing to draw unless some text is decorated.
+	bAny = (msStyle.GetDecorations() != 0);
+	if (!bAny && psStyles)
+	{
+		for (uiStop = 0; (uiStop < mszText.Length()) && !bAny; uiStop++)
+		{
+			bAny = (psStyles[uiStop].GetDecorations() != 0);
+		}
+	}
+	if (!bAny)
+	{
+		return;
+	}
+
+	uiNumRows = masTileLines.NumElements();
+	for (uiRow = 0; uiRow < uiNumRows; uiRow++)
+	{
+		psLine = masTileLines.Get(uiRow);
+		uiFirst = psLine->uiFirstStop;
+		uiEnd = psLine->uiFirstStop + psLine->uiNumStops;
+
+		//The row's line feed or the end of the text, and the spaces and tabs before it, aren't decorated.
+		while (uiEnd > uiFirst)
+		{
+			if (*mauiStopStarts.Get(uiEnd - 1) >= mszText.Length())
+			{
+				uiEnd--;
+				continue;
+			}
+			c = mszText.GetChar(*mauiStopStarts.Get(uiEnd - 1));
+			if ((c == '\n') || (c == ' ') || (c == '\t'))
+			{
+				uiEnd--;
+				continue;
+			}
+			break;
+		}
+
+		for (uiDecoration = 0; uiDecoration < 3; uiDecoration++)
+		{
+			uiFlag = auiDecorations[uiDecoration];
+			uiStop = uiFirst;
+			while (uiStop < uiEnd)
+			{
+				if (GetTileStyle(psStyles, uiStop)->GetDecorations() & uiFlag)
+				{
+					uiStretch = uiStop;
+					while ((uiStop < uiEnd) && (GetTileStyle(psStyles, uiStop)->GetDecorations() & uiFlag))
+					{
+						uiStop++;
+					}
+					DecorateTileStretch(uiFlag, psStyles, uiRow, uiStretch, uiStop);
+				}
+				else
+				{
+					uiStop++;
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One decoration along stops uiFirstStop to uiEndStop (exclusive) of row
+// uiRow, a rectangle for each run of the same colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::DecorateTileStretch(uint8 uiDecoration, STextStyle* psStyles, size uiRow, size uiFirstStop, size uiEndStop)
+{
+	Ptr<CFontDescription>	pDescription;
+	STextLayoutLine*		psLine;
+	STextLayoutStop*		psFirst;
+	STextLayoutStop*		psLast;
+	size					uiStop;
+	size					uiColourStart;
+	int32					y;
+	int32					iThickness;
+	ARGB32					sColour;
+
+	pDescription = GetFont()->GetDescription();
+	psLine = masTileLines.Get(uiRow);
+	if (uiDecoration == TD_Underline)
+	{
+		y = psLine->iBaseline + pDescription->GetUnderlineTop();
+		iThickness = pDescription->GetUnderlineThickness();
+	}
+	else if (uiDecoration == TD_Overline)
+	{
+		y = psLine->iBaseline - pDescription->GetAscent();
+		iThickness = pDescription->GetUnderlineThickness();
+	}
+	else
+	{
+		y = psLine->iBaseline + pDescription->GetStrikeoutTop();
+		iThickness = pDescription->GetStrikeoutThickness();
+	}
+
+	uiStop = uiFirstStop;
+	while (uiStop < uiEndStop)
+	{
+		uiColourStart = uiStop;
+		sColour = GetTileStyle(psStyles, uiStop)->sColour;
+		while ((uiStop < uiEndStop) && (GetTileStyle(psStyles, uiStop)->sColour == sColour))
+		{
+			uiStop++;
+		}
+		psFirst = masTileStops.Get(uiColourStart);
+		psLast = masTileStops.Get(uiStop - 1);
+		mpFontDraw->Rectangle(psFirst->x, y, psLast->x + psLast->iWidth - psFirst->x, iThickness, sColour);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines and stops of the text as it was last laid out: by mpLayout,
+// or from the columns when it is tiles.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumLayoutLines(void)
+{
+	return mbTiled ? masTileLines.NumElements() : mpLayout->NumLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumLayoutStops(void)
+{
+	return mbTiled ? masTileStops.NumElements() : mpLayout->NumStops();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STextLayoutLine* CTextArea::GetLayoutLine(size uiLine)
+{
+	return mbTiled ? masTileLines.Get(uiLine) : mpLayout->GetLine(uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STextLayoutStop* CTextArea::GetLayoutStop(size uiStop)
+{
+	return mbTiled ? masTileStops.Get(uiStop) : mpLayout->GetStop(uiStop);
+}

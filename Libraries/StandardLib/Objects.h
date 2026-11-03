@@ -38,7 +38,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ROOT_NAME					"GraphRoot"
 #define FREE_OBJECTS_NAME			"GraphFreeObjects"
-#define CLEAR_MEMORY_CHUNK_SIZE		16384
 
 
 Ptr<CRoot> ORoot(void);
@@ -197,6 +196,8 @@ protected:
 						void					RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts);
 						void					DoneKill(CArrayBaseObjectPtr* papcObjectPts);
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
+						void					FreeAllInKillOrder(bool bDeallocate);
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded, bool bPointerMemory);

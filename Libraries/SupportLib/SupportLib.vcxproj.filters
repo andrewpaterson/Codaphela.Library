@@ -759,6 +759,9 @@
     <ClInclude Include="TileLayerCel.h">
       <Filter>Source\Map\Tile\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="TileTextWriter.h">
+      <Filter>Source\Map\Tile\Specific</Filter>
+    </ClInclude>
     <ClInclude Include="FontFactory.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1500,6 +1503,9 @@
       <Filter>Source\Map\Tile\Specific</Filter>
     </ClCompile>
     <ClCompile Include="TileLayerCel.cpp">
+      <Filter>Source\Map\Tile\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="TileTextWriter.cpp">
       <Filter>Source\Map\Tile\Specific</Filter>
     </ClCompile>
     <ClCompile Include="FontFactory.cpp">

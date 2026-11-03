@@ -433,6 +433,7 @@
     <ClInclude Include="TileMap.h" />
     <ClInclude Include="TileLayerBoolean.h" />
     <ClInclude Include="TileLayerCel.h" />
+    <ClInclude Include="TileTextWriter.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="ConvexHull.h" />
     <ClInclude Include="HalfSpace.h" />
@@ -679,6 +680,7 @@
     <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="TileLayerBoolean.cpp" />
     <ClCompile Include="TileLayerCel.cpp" />
+    <ClCompile Include="TileTextWriter.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="ConvexHull.cpp" />
     <ClCompile Include="HalfSpace.cpp" />
