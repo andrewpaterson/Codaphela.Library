@@ -748,17 +748,16 @@ bool CListContainer::IsHoverShown(void)
 void CListContainer::UpdateHighlights(void)
 {
 	LayoutHighlight(mpSelectedHighlight, miSelected);
-	if (IsHoverShown())
-	{
-		LayoutHighlight(mpHoverHighlight, miHover);
-	}
+	LayoutHighlight(mpHoverHighlight, IsHoverShown() ? miHover : -1);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The highlight covers the row from the left to the right of the list.
-// Before the list has been laid out there is no row to cover.
+// A highlight that marks no row (iRow -1, or the list hasn't been laid
+// out yet) has no size at the list's top left, wherever it was.  Laying
+// the list out again then puts it where the row changes put it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
@@ -768,17 +767,16 @@ void CListContainer::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
 	SInt32Vec2	sPosition;
 	SInt32Vec2	sSize;
 
-	if (iRow < 0)
+	if ((iRow >= 0) && GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
 	{
-		return;
+		sPosition.Init(GetPosition().x, iTop);
+		sSize.Init(GetActualSize().x, iHeight);
 	}
-	if (!GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
+	else
 	{
-		return;
+		sPosition = GetPosition();
+		sSize.Init(0, 0);
 	}
-
-	sPosition.Init(GetPosition().x, iTop);
-	sSize.Init(GetActualSize().x, iHeight);
 	LayoutComponentInArea(pHighlight, sPosition, sSize);
 }
 
