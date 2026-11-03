@@ -233,7 +233,7 @@ void TestImagePNGWrite(void)
 	AssertPNGWrittenAsExpected("Input" _FS_ "PNG" _FS_ "interlaced1x1-expected.png", "1x1");
 	AssertPNGWrittenAsExpected("Input" _FS_ "PNG" _FS_ "interlaced3x2-expected.png", "3x2");
 	AssertPNGWrittenAsExpected("Input" _FS_ "Adelle.png", "Adelle");
-	AssertPNGWrittenAsExpected("Input" _FS_ "Heightmap.png", "HeightMap");
+	AssertPNGWrittenAsExpected("Input" _FS_ "HeightMap.png", "HeightMap");
 	AssertPNGWrittenAsExpected("Input" _FS_ "MakiStand.png", "MakiStand");
 	AssertPNGWrittenAsExpected("Input" _FS_ "Fighting320.png", "Fighting320");
 }

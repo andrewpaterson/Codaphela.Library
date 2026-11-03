@@ -8,19 +8,27 @@
 #define SAFE_ARRAY_ADDS_PER_THREAD	10000
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddToSafeArrayBlock(int iThreadId, void* pvArray)
+//A pool thread can run more than one job so each job carries its own index.
+struct SSafeArrayJob
 {
 	CSafeArrayBlock*	pcArray;
-	int					i;
+	int					iJob;
+};
 
-	pcArray = (CSafeArrayBlock*)pvArray;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AddToSafeArrayBlock(int iThreadId, void* pvJob)
+{
+	SSafeArrayJob*	psJob;
+	int				i;
+
+	psJob = (SSafeArrayJob*)pvJob;
 	for (i = 0; i < SAFE_ARRAY_ADDS_PER_THREAD; i++)
 	{
-		pcArray->Add(&iThreadId);
+		psJob->pcArray->Add(&psJob->iJob);
 	}
 }
 
@@ -33,6 +41,7 @@ void TestSafeArrayBlockThreads(void)
 {
 	CSafeArrayBlock		cArray;
 	CWorkerThreadPool	cPool;
+	SSafeArrayJob		asJobs[SAFE_ARRAY_THREADS];
 	int					aiCount[SAFE_ARRAY_THREADS];
 	int					i;
 	int					iValue;
@@ -44,7 +53,9 @@ void TestSafeArrayBlockThreads(void)
 	cPool.Init(SAFE_ARRAY_THREADS);
 	for (i = 0; i < SAFE_ARRAY_THREADS; i++)
 	{
-		cPool.Push(AddToSafeArrayBlock, &cArray);
+		asJobs[i].pcArray = &cArray;
+		asJobs[i].iJob = i;
+		cPool.Push(AddToSafeArrayBlock, &asJobs[i]);
 	}
 	cPool.Stop(true);
 	cPool.Kill();

@@ -8,22 +8,30 @@
 #define SAFE_LIST_ADDS_PER_THREAD	10000
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddToSafeLinkedListBlock(int iThreadId, void* pvList)
+//A pool thread can run more than one job so each job carries its own index.
+struct SSafeListJob
 {
 	CSafeLinkedListBlock*	pcList;
-	int*					pi;
-	int						i;
+	int						iJob;
+};
 
-	pcList = (CSafeLinkedListBlock*)pvList;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AddToSafeLinkedListBlock(int iThreadId, void* pvJob)
+{
+	SSafeListJob*	psJob;
+	int*			pi;
+	int				i;
+
+	psJob = (SSafeListJob*)pvJob;
 	for (i = 0; i < SAFE_LIST_ADDS_PER_THREAD; i++)
 	{
 		//Only this thread uses the new node so it can be set after the list is unlocked.
-		pi = (int*)pcList->InsertAfterTail(sizeof(int));
-		*pi = iThreadId;
+		pi = (int*)psJob->pcList->InsertAfterTail(sizeof(int));
+		*pi = psJob->iJob;
 	}
 }
 
@@ -36,6 +44,7 @@ void TestSafeLinkedListBlockThreads(void)
 {
 	CSafeLinkedListBlock	cList;
 	CWorkerThreadPool		cPool;
+	SSafeListJob			asJobs[SAFE_LIST_THREADS];
 	int						aiCount[SAFE_LIST_THREADS];
 	int						i;
 	int*					pi;
@@ -48,7 +57,9 @@ void TestSafeLinkedListBlockThreads(void)
 	cPool.Init(SAFE_LIST_THREADS);
 	for (i = 0; i < SAFE_LIST_THREADS; i++)
 	{
-		cPool.Push(AddToSafeLinkedListBlock, &cList);
+		asJobs[i].pcList = &cList;
+		asJobs[i].iJob = i;
+		cPool.Push(AddToSafeLinkedListBlock, &asJobs[i]);
 	}
 	cPool.Stop(true);
 	cPool.Kill();

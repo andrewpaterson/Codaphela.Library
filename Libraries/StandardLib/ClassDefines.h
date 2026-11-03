@@ -1,5 +1,6 @@
 #ifndef __CLASS_DEFINES_H__
 #define __CLASS_DEFINES_H__
+#include "BaseLib/PrimitiveTypes.h"  // SIZE_IS_LSIZE
 
 
 #define M_Pointer(name)		Pointer(name.This(), #name)

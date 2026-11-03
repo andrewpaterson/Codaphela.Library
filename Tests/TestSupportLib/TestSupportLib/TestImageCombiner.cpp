@@ -71,7 +71,7 @@ void TestImageCombinerStarControl(void)
 	bool					bResult;
 	Ptr<CArrayImageCel>		pacCels;
 	Ptr<CArrayImageCel>		pacLoadedCels;
-	size					uiMaxDebugAllocatorSize;
+	lsize					uiMaxDebugAllocatorSize;
 	int32					iWidth;
 	int32					iHeight;
 

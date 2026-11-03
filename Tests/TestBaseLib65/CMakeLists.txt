@@ -40,6 +40,7 @@ set(TESTLIB_DIR "${COMMON_DIR}/TestLib")
 set(STANDARDLIB_DIR "${COMMON_DIR}/StandardLib")
 set(CPPPARSERLIB_DIR "${COMMON_DIR}/CppParserLib")
 set(MICROPROCESSORLIB_DIR "${COMMON_DIR}/MicroprocessorLib")
+set(THREADLIB_DIR "${COMMON_DIR}/ThreadLib")
 # Assembler65Lib (and Libc65) are in the HCP65 repository, beside CommonLibraries.
 set(HCP65_LIBRARIES_DIR "${CODAPHELA_ROOT}/HCP65/Libraries")
 set(ASSEMBLER65LIB_DIR "${HCP65_LIBRARIES_DIR}/Assembler65Lib")
@@ -97,6 +98,8 @@ vcxproj_sources(STANDARDLIB_SOURCES "${STANDARDLIB_DIR}/StandardLib.vcxproj")
 vcxproj_sources(CPPPARSERLIB_SOURCES "${CPPPARSERLIB_DIR}/CppParserLib.vcxproj")
 
 vcxproj_sources(MICROPROCESSORLIB_SOURCES "${MICROPROCESSORLIB_DIR}/MicroprocessorLib.vcxproj")
+
+vcxproj_sources(THREADLIB_SOURCES "${THREADLIB_DIR}/ThreadLib.vcxproj")
 
 vcxproj_sources(ASSEMBLER65LIB_SOURCES "${ASSEMBLER65LIB_DIR}/Assembler65Lib.vcxproj")
 
@@ -186,7 +189,11 @@ target_link_libraries(StandardLib PUBLIC BaseLib)
 target_compile_definitions(StandardLib PRIVATE $<$<CONFIG:Debug>:DEBUG_POINTER>)
 
 add_library(CppParserLib STATIC ${CPPPARSERLIB_SOURCES})
-target_link_libraries(CppParserLib PUBLIC Assembler65Lib MicroprocessorLib StandardLib BaseLib)
+target_link_libraries(CppParserLib PUBLIC Assembler65Lib MicroprocessorLib ThreadLib StandardLib BaseLib)
+
+# CPP65Builder compiles units on worker threads (CWorkerThreadJobs).
+add_library(ThreadLib STATIC ${THREADLIB_SOURCES})
+target_link_libraries(ThreadLib PUBLIC BaseLib)
 
 add_library(MicroprocessorLib STATIC ${MICROPROCESSORLIB_SOURCES})
 target_link_libraries(MicroprocessorLib PUBLIC StandardLib BaseLib)
