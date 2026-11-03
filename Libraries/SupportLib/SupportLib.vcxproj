@@ -225,7 +225,6 @@
     <ClInclude Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h" />
     <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="MapViewport.h" />
-    <ClInclude Include="MultiImageCopier.h" />
     <ClInclude Include="SimpleTextReader.h" />
     <ClInclude Include="TextBuilder.h" />
     <ClInclude Include="TextBuilderUTF16Long.h" />
@@ -495,7 +494,6 @@
     <ClCompile Include="BaseMap.cpp" />
     <ClCompile Include="GeometryMap.cpp" />
     <ClCompile Include="BlockMap.cpp" />
-    <ClCompile Include="MultiImageCopier.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SFTCommon.cpp" />

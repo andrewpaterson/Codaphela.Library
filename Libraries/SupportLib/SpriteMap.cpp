@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
 #include "StandardLib/Objects.h"
-#include "MultiImageCopier.h"
 #include "ImageCelBlitterCache.h"
 #include "SpriteMap.h"
 
