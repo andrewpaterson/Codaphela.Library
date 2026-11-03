@@ -1070,7 +1070,7 @@ DriveReturn:
 ; entries are unchanged.
 
 		.global _CFatSectorCache__Init.ax, _CFatSectorCache__GetCache.ax, _CFatSectorCache__Lock.ax, _CFatSectorCache__Unlock.ax, _CFatSectorCache__Dirty.ax, _CFatInfoSectorCache__Init.axssy
-		.global _CFatInfoSectorCache__Kill.ax, _CFatInfoSectorCache__ReadSector.ax, _CFatInfoSectorCache__ValidateTimeStamp.ax, _CFatInfoSectorCache__Lock.ax, _CFatInfoSectorCache__Unlock.ax, _CFatInfoSectorCache__Dirty.ax
+		.global _CFatInfoSectorCache__Kill.ax, _CFatInfoSectorCache__ReadSector.ax
 		.global _CFatInfoSectorCache__AddNewCache.ax, _CFatInfoSectorCache__GetOrCacheSector.ax, _CFatInfoSectorCache__Unlock__1.ax, _CFatInfoSectorCache__FindCachedSector.ax, _CFatInfoSectorCache__Flush.ax, _CFatInfoSectorCache__GetNumAllocatedSectors.ax
 		.global _CFatInfoSectorCache__GetNumCachedSectors.ax, _CFatInfoSectorCache__GetLockedCachedSectors.ax, _CFatInfoSectorCache__InitialiseCache.ax, _CFatInfoSectorCache__FlushCache.ax
 
@@ -1113,26 +1113,6 @@ _CFatInfoSectorCache__Kill.ax:
 _CFatInfoSectorCache__ReadSector.ax:
 		.width (A, X), 16
 		ldy _CFatInfoSectorCache__ReadSector & 0xFFFF
-		brl RegisterEntry_ax_4
-
-_CFatInfoSectorCache__ValidateTimeStamp.ax:
-		.width (A, X), 16
-		ldy _CFatInfoSectorCache__ValidateTimeStamp & 0xFFFF
-		brl RegisterEntry_ax_4
-
-_CFatInfoSectorCache__Lock.ax:
-		.width (A, X), 16
-		ldy _CFatInfoSectorCache__Lock & 0xFFFF
-		brl RegisterEntry_ax_4
-
-_CFatInfoSectorCache__Unlock.ax:
-		.width (A, X), 16
-		ldy _CFatInfoSectorCache__Unlock & 0xFFFF
-		brl RegisterEntry_ax_4
-
-_CFatInfoSectorCache__Dirty.ax:
-		.width (A, X), 16
-		ldy _CFatInfoSectorCache__Dirty & 0xFFFF
 		brl RegisterEntry_ax_4
 
 _CFatInfoSectorCache__AddNewCache.ax:

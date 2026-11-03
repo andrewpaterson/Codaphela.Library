@@ -1879,7 +1879,7 @@ SetLabel:
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
 		jsr PushLabel
-		jsl _CChars__Init__6
+		jsl _CChars__Init__7
 		tsc
 		clc
 		adc 12
@@ -6237,7 +6237,7 @@ GetEntryOf:
 		.global _CFatVolume__GetNoOfDataSectors.ax, _CFatVolume__GetNumClusters.ax, _CFatVolume__GetNextFreeCluster.ax, _CFatVolume__GetTotalFreeClusters.ax, _CFatVolume__GetFileSystemInfoSector.ax, _CFatVolume__GetFileDrive.ax
 		.global _CFatVolume__GetRootDirectorySectors.ax, _CFatVolume__GetFileSystemType.ax, _CFatVolume__IsUseLongFilenames.ax, _CFatVolume__GetNoOfFatTables.ax, _CFatVolume__GetSectorCache.ax, _CFatVolume__GetLabel.ax
 		.global _CFatVolume__GetPageSize.ax, _CFatVolume__FatIsEOFEntry.ax, _CFatVolume__GetEndOfClusterMarker.ax, _CFatVolume__GetBadClusterMarker.ax, _CFatVolume__GetClusterEntryMask.ax, _CFatVolume__GetEntryCluster.ax
-		.global _CFatVolume__CalculateFirstSectorOfCluster.ax, _CFatVolume__CalculateFATIndexAndOffset.ax, _CFatVolume__ReadSector.axssssy, _CFatVolume__DirtySector.ax, _CFatVolume__ValidateFatCache.ax, _CFatVolume__ReadFatEntry.ax
+		.global _CFatVolume__CalculateFirstSectorOfCluster.ax, _CFatVolume__CalculateFATIndexAndOffset.ax, _CFatVolume__ReadSector.axssssy, _CFatVolume__ReadFatEntry.ax
 		.global _CFatVolume__GetNextClusterEntry.ax, _CFatVolume__SetClusterEntry.ax, _CFatVolume__Flush.ax, _CFatVolume__Erase.ax, _CFatVolume__Mount.ax, _CFatVolume__Unmount.ax
 		.global _CFatVolume__FillDirectoryEntryFromRawEntry.ax, _CFatVolume__FindFirstFATEntry.axssy, _CFatVolume__FindNextFATEntry.ax, _CFatVolume__GetFileEntry.ax, _CFatVolume__SeekByClusterCount.axssy, _CFatVolume__FreeChain.ax
 		.global _CFatVolume__FreeDirectoryEntry.ax, _CFatVolume__UpdateDirectoryEntry.ax, _CFatVolume__AllocateClusters.ax, _CFatVolume__CreateFATEntry.axssssy, _CFatVolume__CreateDirectory.ax, _CFatVolume__Delete.ax
@@ -6378,16 +6378,6 @@ _CFatVolume__ReadSector.axssssy:
 		phy
 		ldy _CFatVolume__ReadSector & 0xFFFF
 		brl RegisterEntry_axssssy_4
-
-_CFatVolume__DirtySector.ax:
-		.width (A, X), 16
-		ldy _CFatVolume__DirtySector & 0xFFFF
-		brl RegisterEntry_ax_4
-
-_CFatVolume__ValidateFatCache.ax:
-		.width (A, X), 16
-		ldy _CFatVolume__ValidateFatCache & 0xFFFF
-		brl RegisterEntry_ax_4
 
 _CFatVolume__ReadFatEntry.ax:
 		.width (A, X), 16

@@ -7564,19 +7564,32 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(SCPP65Function* psFunction)
 //
 // Marks a function's symbol, where it is called and where it is defined:
 // the unit's own (a static function or a member of a class without a name)
-// and, for a function with C++ linkage that isn't variadic, that a back end
+// and, for a function that isn't variadic (C linkage too), that a back end
 // may pass its arguments in registers (CIRModule::SetRegisterCall: the
-// W65C816's).  extern "C" functions keep the stack: they are the ones
-// written in assembly (Libc65's) and called from it.
+// W65C816's).  Not one with an object passed by value: as its bytes
+// (AddPieces) the called function takes the object's address (IRO_ArgAddress
+// of its first piece), so its pieces must stay together where the caller
+// pushed them, and the register rule would put the first piece (or two) in
+// registers.  Any object parameter counts (not only those passed as their
+// bytes), so every unit decides the same from the declaration alone, even
+// where the class isn't complete.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiSymbol)
 {
+	size	ui;
+	bool	bPieces;
+
 	if (mpcGenerator->IsUnitFunction(psFunction))
 	{
 		mcModule.SetLocal(uiSymbol);
 	}
-	if (!psFunction->bVariadic)
+	bPieces = false;
+	for (ui = 0; ui < psFunction->mapsParameters.NumElements(); ui++)
+	{
+		bPieces |= psFunction->mapsParameters.GetPtr(ui)->IsClass();
+	}
+	if (!psFunction->bVariadic && !bPieces)
 	{
 		//C linkage too: this compiler is the only one that sees the source (the user, 2026-11-03).
 		mcModule.SetRegisterCall(uiSymbol);

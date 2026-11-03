@@ -754,6 +754,12 @@ void TestProject65RunTests(STestProject65* psProject)
 	cBuilder.SetLineTable(gpcTestProject65Measure != NULL);
 	TestProject65AddProjects(psProject, &cBuilder);
 	bCompiled = cBuilder.Compile();
+	//The errors are printed (and flushed) before the assert, which breaks before stdout is written.
+	if (!bCompiled || (cBuilder.GetErrors()[0] != '\0'))
+	{
+		fprintf(stderr, "COMPILE FAILED (compiled %d):\n%s\nEND COMPILE ERRORS\n", (int)bCompiled, cBuilder.GetErrors());
+		fflush(stderr);
+	}
 	AssertString("", cBuilder.GetErrors());
 	AssertTrue(bCompiled);
 	printf("%s", cBuilder.GetWarnings());

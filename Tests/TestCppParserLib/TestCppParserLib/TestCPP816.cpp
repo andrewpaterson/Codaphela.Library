@@ -18,6 +18,7 @@
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppParserLib/CPP65Builder.h"
 #include "CppParserLib/IR816Backend.h"
+#include "CppParserLib/CPP65IRFrontEnd.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -4110,12 +4111,63 @@ void TestCPP816SizeLsizeBugs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Builds szSource with aszUnits for the W65C816 keeping its listing (Test.lst, into pszListing) and runs it.
-// Returns main's int; puiResults gets uiResults longs from TEST_CPP816_RESULTS.
+// The profile counts a register function's calls at its register entry
+// (name.ax, after its stack entry), not only at its section's start: called
+// straight and through a pointer (its stack entry, which calls the
+// register entry: one call, not two, and not recursion).  A recursive one
+// is recursive.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults)
+void TestCPP816ProfileRegisterEntries(void)
 {
+	static const char*	szSource =
+		"int Twice(int a, int b) { return a * 2 + b; }\n"
+		"int Down(int n) { return (n == 0) ? 0 : 1 + Down(n - 1); }\n"
+		"int (*volatile gpTwice)(int, int) = Twice;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tint r = 0;\n"
+		"\tfor (int i = 0; i < 5; i++) { r += Twice(i, r & 7); }\n"
+		"\tfor (int i = 0; i < 3; i++) { r += gpTwice(i, 1); }\n"
+		"\treturn r + Down(4);\n"
+		"}\n";
+	CAsm65816Profile			cProfile;
+	SAsm65816FunctionProfile*	psTwice;
+	SAsm65816FunctionProfile*	psDown;
+	uint64						uiCycles;
+	bool						bInline;
+
+	//Not inlined: the calls are what is counted.
+	bInline = CCPP65IRFrontEnd::sbInline;
+	CCPP65IRFrontEnd::sbInline = false;
+	cProfile.Init();
+	TestCPP816RunProfiled(szSource, NULL, &cProfile, &uiCycles);
+	CCPP65IRFrontEnd::sbInline = bInline;
+	psTwice = cProfile.Get("_Twice__Fss");
+	psDown = cProfile.Get("_Down__Fs");
+	AssertNotNull((void*)psTwice);
+	AssertNotNull((void*)psDown);
+	AssertLong(8, psTwice ? (int64)psTwice->ulliCalls : 0);
+	AssertFalse(psTwice ? psTwice->bRecursive : true);
+	AssertLong(5, psDown ? (int64)psDown->ulliCalls : 0);
+	AssertTrue(psDown ? psDown->bRecursive : false);
+	cProfile.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Builds szSource with aszUnits for the W65C816 keeping its listing (Test.lst, into pszListing) and runs it.
+// Returns main's int (or A where it stopped); puiResults gets uiResults longs from TEST_CPP816_RESULTS.  The stack
+// must be back at its top unless !bReturns (a program that stops inside a function: _Exit).  The names nothing linked
+// defines (stubbed with stp) are left in gszTestCPP816Missing.
+//
+//////////////////////////////////////////////////////////////////////////
+char	gszTestCPP816Missing[1024];
+
+
+int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults, bool bReturns = true)
+{
+	CChars				szMissing;
 	CCPP65Builder	cBuilder;
 	CAsm65Memory	cMemory;
 	CFast65C816		cFast;
@@ -4140,6 +4192,10 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	TestCPP65AddUnits(&cBuilder, aszUnits, false);
 	AssertTrue(cBuilder.Link());
 	AssertString("", cBuilder.GetErrors());
+	szMissing.Init();
+	cBuilder.GetMissingNames(&szMissing);
+	StrCpySafe(gszTestCPP816Missing, szMissing.Text(), sizeof(gszTestCPP816Missing));
+	szMissing.Kill();
 
 	cFile.Init();
 	AssertTrue(cFile.Read("Output" _FS_ "CPP816Listing" _FS_ "Test.lst"));
@@ -4156,7 +4212,10 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	if (cFast.IsStopped())
 	{
 		iResult = (int16)cFast.GetC();
-		AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+		if (bReturns)
+		{
+			AssertIntHex(GetCPPTarget(CPPT_W65C816)->uiStackTop, (uint32)cFast.GetS());
+		}
 	}
 	for (i = 0; i < uiResults; i++)
 	{
@@ -4389,33 +4448,73 @@ void TestCPP816FrameOperandFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer to a function initialised or assigned from an overloaded
-// function's name (f or &f) takes the overload of the pointer's type: a
-// global's (R_Initialise), a volatile one's and a local's.
+// Functions with an object passed by value keep their arguments on the
+// stack (CCPP65IRFrontEnd::MarkFunctionSymbol): its pieces stay together
+// where the caller pushed them, the called function taking its address.
+// One first, then arguments that would fit in A, X and Y (as BaseLib's
+// PrivateAssertFile(CChars, CChars, const char*, size, const char*)), a 6
+// byte one whose last piece would fit in Y, and a member function, called
+// straight and through pointers.  A function without one still takes
+// registers.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816OverloadedFunctionAddresses(void)
+void TestCPP816ObjectArguments(void)
 {
 	static const char*	aszNone[] = { NULL };
 	static const char*	szSource =
-		"unsigned short F(void* p, unsigned short n) { return 1; }\n"
-		"unsigned short F(unsigned long u) { return 2; }\n"
-		"unsigned short (*volatile gp)(unsigned long) = F;\n"
-		"unsigned short (*gq)(unsigned long) = &F;\n"
-		"unsigned short (*volatile gr)(void*, unsigned short) = F;\n"
+		"struct SBig { long a; long b; int c; char* p; };\n"
+		"struct SSix { long a; int b; };\n"
+		"int Big(SBig s, SBig t, const char* sz, unsigned short n, const char* sz2) { return (int)(s.a + s.b * 2 + s.c * 3 + s.p[0] + t.a * 5 + t.c) + sz[1] * 7 + n + sz2[0]; }\n"
+		"int Six(int i, SSix s) { return i * 100 + (int)s.a * 10 + s.b; }\n"
+		"class CHolder { public: int miBase; int Add(SSix s, int i) { return miBase + (int)s.a + s.b + i; } };\n"
+		"int Plain(int i, int j) { return i - j; }\n"
+		"int (*volatile gpBig)(SBig, SBig, const char*, unsigned short, const char*) = Big;\n"
+		"int (*volatile gpSix)(int, SSix) = Six;\n"
 		"int main(void)\n"
 		"{\n"
-		"\tunsigned short (*pl)(unsigned long) = F;\n"
-		"\tunsigned short (*pm)(void*, unsigned short);\n"
-		"\tpm = &F;\n"
-		"\treturn gp(5) * 10000 + gq(5) * 1000 + gr(0, 0) * 100 + pl(5) * 10 + pm(0, 0);\n"
+		"\tSBig s; SBig t; SSix x; CHolder c; int r;\n"
+		"\ts.a = 1; s.b = 2; s.c = 3; s.p = (char*)\"A\"; t.a = 4; t.b = 0; t.c = 6; t.p = 0;\n"
+		"\tx.a = 7; x.b = 8; c.miBase = 1000;\n"
+		"\tr = Big(s, t, \"xy\", 9, \"B\") - gpBig(s, t, \"xy\", 9, \"B\");\n"
+		"\tr += Six(3, x) - gpSix(3, x);\n"
+		"\treturn r * 10000 + Big(s, t, \"xy\", 9, \"B\") + Six(3, x) + c.Add(x, 5) + Plain(9, 4);\n"
 		"}\n";
 	CChars				szListing;
+	int					iBig;
+	bool				bInline;
 
-	AssertInt(22121, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
+	//1 + 4 + 9 + 65 + 20 + 6 + 121 * 7 + 9 + 66 = 1027; 300 + 70 + 8 = 378; 1000 + 7 + 8 + 5 = 1020; 5.
+	iBig = 1 + 2 * 2 + 3 * 3 + 'A' + 4 * 5 + 6 + 'y' * 7 + 9 + 'B';
+	//Not inlined: the calls are what is tested.
+	bInline = CCPP65IRFrontEnd::sbInline;
+	CCPP65IRFrontEnd::sbInline = false;
+	AssertInt(iBig + 378 + 1020 + 5, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
+	CCPP65IRFrontEnd::sbInline = bInline;
+	AssertTrue(szListing.Contains("jsl _Big__FC4SBigC4SBigPctPc\n"));
+	AssertTrue(szListing.Contains("jsl _Six__FsC4SSix\n"));
+	AssertTrue(szListing.Contains("jsl _Plain__Fss.ax"));
 	szListing.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// C's _Exit(int) stops at once with its argument in A: called straight
+// (the start up's register entry, __Exit.a) and through a pointer (__Exit).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816Exit(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szListing;
+
+	AssertInt(37, TestCPP816RunListed("extern \"C\" void _Exit(int iStatus);\nint main(void) { _Exit(37); return 1; }\n", aszNone, &szListing, NULL, 0, false));
+	AssertTrue(szListing.Contains("jsl __Exit.a"));
+	AssertString("", gszTestCPP816Missing);
+	szListing.Kill();
+	AssertInt(41, TestCPP816RunListed("extern \"C\" void _Exit(int iStatus);\nvoid (*volatile gpExit)(int) = _Exit;\nint main(void) { gpExit(41); return 1; }\n", aszNone, &szListing, NULL, 0, false));
+	AssertString("", gszTestCPP816Missing);
+	szListing.Kill();
+}
 
 //The C string functions (string816.asm's register entries, and through function pointers their stack entries),
 //compiled natively for the expected results and for the W65C816 (TestCPP816StringRegisters).
@@ -4907,6 +5006,7 @@ void TestCPP816(void)
 	TestCPP816OverloadedFunctionPointers();
 	TestCPP816VariadicObjectParameters();
 	TestCPP816ProfileGuidedInlining();
+	TestCPP816ProfileRegisterEntries();
 	TestCPP816ProfileGuidedDivisionTables();
 	TestCPP816BiasedIndices();
 	TestCPP816BCDBuiltins();
@@ -4929,7 +5029,8 @@ void TestCPP816(void)
 	TestCPP816AlignedFrameUnreadArguments();
 	TestCPP816RegisterArguments();
 	TestCPP816FrameOperandFloats();
-	TestCPP816OverloadedFunctionAddresses();
+	TestCPP816ObjectArguments();
+	TestCPP816Exit();
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();

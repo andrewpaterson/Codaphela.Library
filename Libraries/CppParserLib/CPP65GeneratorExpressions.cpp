@@ -535,8 +535,9 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameFor(CCPPSyntax* pcExpressio
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression)
 {
-	CCPPSyntax*		pcFunction;
-	CCPPSymbol*		pcSymbol;
+	CCPPSyntax*				pcFunction;
+	CCPPSyntaxIdExpression*	pcId;
+	CCPPSymbol*				pcSymbol;
 
 	pcFunction = SkipParentheses(pcExpression);
 	if (pcFunction && (pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
@@ -547,12 +548,13 @@ CCPPSyntaxIdExpression* CCPP65Generator::FunctionNameOf(CCPPSyntax* pcExpression
 	{
 		return NULL;
 	}
-	pcSymbol = ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol;
+	pcId = (CCPPSyntaxIdExpression*)pcFunction;
+	pcSymbol = pcId->mpcName->mpcSymbol;
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
 		return NULL;
 	}
-	return (CCPPSyntaxIdExpression*)pcFunction;
+	return pcId;
 }
 
 
@@ -2210,10 +2212,9 @@ SCPP65Type* CCPP65Generator::ThisExpression(CCPPSyntax* pcThis)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
 {
-	SCPP65Type*		psTo;
-	SCPP65Type*		psFrom;
-	CCPPSyntax*		pcFunction;
-	CCPPSymbol*		pcSymbol;
+	SCPP65Type*				psTo;
+	SCPP65Type*				psFrom;
+	CCPPSyntaxIdExpression*	pcFunction;
 
 	psTo = GetTypeIdType(pcTypeId);
 	if (!psTo)
@@ -2228,10 +2229,9 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 
 	//(FPointer)&f chooses the overload of f with the pointer's type.
 	pcFunction = FunctionNameFor(pcOperand, psTo);
-	if (pcFunction && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->macpComponents.NumElements() == 1))
+	if (pcFunction && (pcFunction->mpcName->macpComponents.NumElements() == 1))
 	{
-		pcSymbol = ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol;
-		return FunctionAddress(pcFunction, pcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
+		return FunctionAddress(pcFunction, pcFunction->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}
 
 	psFrom = ValueFor(pcOperand, psTo, true);
