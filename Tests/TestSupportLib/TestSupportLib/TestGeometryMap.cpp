@@ -4,6 +4,7 @@
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/GeometryMap.h"
 #include "SupportLib/Maps.h"
+#include "SupportLib/ImageCel.h"
 #include "TestLib/Assert.h"
 
 
@@ -674,6 +675,204 @@ void TestGeometryMapPolylines(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A map drawn onto transparent black leaves premultiplied pixels: a
+// sprite, a cel of an atlas.  Opaque red, half red and nothing, at 2, 1
+// on an atlas whose other pixels are opaque white, which mustn't be
+// drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CImageCel> MakeTestSprite(void)
+{
+	Ptr<CImage>			pAtlas;
+	Ptr<CGeometryMap>	pMap;
+	CInt32Rect			cViewport;
+
+	pAtlas = OMalloc<CImage>(6, 3, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pAtlas->Black();
+	pMap = OMalloc<CGeometryMap>();
+	pMap->SetViewport(pAtlas);
+	cViewport.Init(0, 0, 6, 3);
+	pMap->AddRectangle(0, 0, 6, 1, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	pMap->AddRectangle(0, 2, 6, 1, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	pMap->AddRectangle(0, 1, 2, 1, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	pMap->AddRectangle(5, 1, 1, 1, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	pMap->AddRectangle(2, 1, 1, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0));
+	pMap->AddRectangle(3, 1, 1, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0, (uint8)128));
+	AssertTrue(pMap->Blit(&cViewport, false));
+	AssertGeometryPixel(255, 0, 0, 255, pAtlas, 2, 1);
+	AssertGeometryPixel(128, 0, 0, 128, pAtlas, 3, 1);
+	AssertGeometryPixel(0, 0, 0, 0, pAtlas, 4, 1);
+	AssertGeometryPixel(255, 255, 255, 255, pAtlas, 1, 1);
+	return OMalloc<CImageCel>(pAtlas, 2, 1, 5, 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A sprite is blitted in its turn with the other shapes: its colours
+// over what is there as premultiplied colours are, clipped to the
+// viewport.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGeometryMapSprites(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CImageCel>		pSprite;
+		Ptr<CImageCel>		pOffset;
+		Ptr<CImage>			pImage;
+		Ptr<CGeometryMap>	pMap;
+		CInt32Rect			cViewport;
+
+		pSprite = MakeTestSprite();
+
+		//Onto an opaque viewport without opacity: 128 + 10 * 127 / 255 and so on, rounded.
+		pImage = OMalloc<CImage>(6, 3, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddRectangle(0, 0, 6, 3, Set32BitColour((uint8)10, (uint8)20, (uint8)30));
+		pMap->AddSprite(&pSprite, 1, 1);
+		pMap->AddSprite(&pSprite, -1, 2);
+		pMap->AddSprite(&pSprite, 5, 0);
+		AssertSize(4, pMap->NumCommands());
+		cViewport.Init(0, 0, 6, 3);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(10, 20, 30, 255, pImage, 0, 1);
+		AssertGeometryPixel(255, 0, 0, 255, pImage, 1, 1);
+		AssertGeometryPixel(133, 10, 15, 255, pImage, 2, 1);
+		AssertGeometryPixel(10, 20, 30, 255, pImage, 3, 1);
+
+		//Clipped on the left: its middle pixel at 0, its last (nothing) at 1.
+		AssertGeometryPixel(133, 10, 15, 255, pImage, 0, 2);
+		AssertGeometryPixel(10, 20, 30, 255, pImage, 1, 2);
+
+		//Clipped on the right: only its first pixel.
+		AssertGeometryPixel(10, 20, 30, 255, pImage, 4, 0);
+		AssertGeometryPixel(255, 0, 0, 255, pImage, 5, 0);
+
+		//Drawn in order: a shape after a sprite is over it.
+		pMap->Clear();
+		pMap->AddSprite(&pSprite, 0, 0);
+		pMap->AddRectangle(0, 0, 1, 1, Set32BitColour((uint8)0, (uint8)255, (uint8)0));
+		cViewport.Init(0, 0, 6, 3);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(0, 255, 0, 255, pImage, 0, 0);
+
+		//Onto a transparent viewport with opacity the sprite is copied, and over half blue its opacity is added.
+		pImage = OMalloc<CImage>(3, 2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		pImage->Black();
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddRectangle(1, 1, 1, 1, Set32BitColour((uint8)0, (uint8)0, (uint8)255, (uint8)128));
+		pMap->AddSprite(&pSprite, 0, 0);
+		pMap->AddSprite(&pSprite, 0, 1);
+		cViewport.Init(0, 0, 3, 2);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(255, 0, 0, 255, pImage, 0, 0);
+		AssertGeometryPixel(128, 0, 0, 128, pImage, 1, 0);
+		AssertGeometryPixel(0, 0, 0, 0, pImage, 2, 0);
+		AssertGeometryPixel(128, 0, 64, 192, pImage, 1, 1);
+
+		//Through a viewport rectangle that isn't at the image's top left.
+		pImage = OMalloc<CImage>(2, 1, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddRectangle(10, 5, 2, 1, Set32BitColour((uint8)0, (uint8)0, (uint8)0));
+		pMap->AddSprite(&pSprite, 10, 5);
+		cViewport.Init(10, 5, 12, 6);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(255, 0, 0, 255, pImage, 0, 0);
+		AssertGeometryPixel(128, 0, 0, 255, pImage, 1, 0);
+
+		//A cel's top left offset moves it, as a sprite map draws it.
+		pOffset = OMalloc<CImageCel>(&pSprite->GetSourceImage(), 2, 1, 5, 2, 1, 1, 0, 0);
+		pImage = OMalloc<CImage>(4, 3, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pMap = OMalloc<CGeometryMap>();
+		pMap->SetViewport(pImage);
+		pMap->AddRectangle(0, 0, 4, 3, Set32BitColour((uint8)0, (uint8)0, (uint8)0));
+		pMap->AddSprite(&pOffset, 0, 0);
+		cViewport.Init(0, 0, 4, 3);
+		AssertTrue(pMap->Blit(&cViewport, false));
+		AssertGeometryPixel(0, 0, 0, 255, pImage, 0, 0);
+		AssertGeometryPixel(0, 0, 0, 255, pImage, 0, 1);
+		AssertGeometryPixel(255, 0, 0, 255, pImage, 1, 1);
+		AssertGeometryPixel(128, 0, 0, 255, pImage, 2, 1);
+
+		pOffset = NULL;
+		pMap = NULL;
+		pImage = NULL;
+		pSprite = NULL;
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bounds are every pixel the shapes touch.  Maps with the same
+// shapes have the same key; a different colour or position is another.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGeometryMapBoundsAndKey(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CGeometryMap>		pMap;
+		Ptr<CGeometryMap>		pSame;
+		CInt32Rect				cBounds;
+		CArrayTemplate<uint8>	auiKey;
+		CArrayTemplate<uint8>	auiSameKey;
+
+		pMap = OMalloc<CGeometryMap>();
+		AssertFalse(pMap->GetBounds(&cBounds));
+		auiKey.Init();
+		pMap->AppendKey(&auiKey);
+		AssertSize(0, auiKey.NumElements());
+
+		pMap->AddRectangle(2, 3, 4, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0));
+		pMap->AddFilledCircle(-1.0, 10.0, 2.0, Set32BitColour((uint8)0, (uint8)255, (uint8)0));
+		AssertTrue(pMap->GetBounds(&cBounds));
+		AssertLong(-3, cBounds.msTopLeft.x);
+		AssertLong(3, cBounds.msTopLeft.y);
+		AssertLong(6, cBounds.msBottomRight.x);
+		AssertLong(13, cBounds.msBottomRight.y);
+
+		pSame = OMalloc<CGeometryMap>();
+		pSame->AddRectangle(2, 3, 4, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0));
+		pSame->AddFilledCircle(-1.0, 10.0, 2.0, Set32BitColour((uint8)0, (uint8)255, (uint8)0));
+		pMap->AppendKey(&auiKey);
+		auiSameKey.Init();
+		pSame->AppendKey(&auiSameKey);
+		AssertTrue(auiKey.NumElements() > 0);
+		AssertTrue(auiKey.Equals(&auiSameKey));
+
+		//Another colour.
+		pSame->Clear();
+		pSame->AddRectangle(2, 3, 4, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0));
+		pSame->AddFilledCircle(-1.0, 10.0, 2.0, Set32BitColour((uint8)0, (uint8)254, (uint8)0));
+		auiSameKey.ReInit();
+		pSame->AppendKey(&auiSameKey);
+		AssertFalse(auiKey.Equals(&auiSameKey));
+
+		//A quarter of a pixel over.
+		pSame->Clear();
+		pSame->AddRectangle(2, 3, 4, 1, Set32BitColour((uint8)255, (uint8)0, (uint8)0));
+		pSame->AddFilledCircle(-0.75, 10.0, 2.0, Set32BitColour((uint8)0, (uint8)255, (uint8)0));
+		auiSameKey.ReInit();
+		pSame->AppendKey(&auiSameKey);
+		AssertFalse(auiKey.Equals(&auiSameKey));
+
+		auiSameKey.Kill();
+		auiKey.Kill();
+		pSame = NULL;
+		pMap = NULL;
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestGeometryMap(void)
@@ -692,6 +891,8 @@ void TestGeometryMap(void)
 	TestGeometryMapPolygons();
 	TestGeometryMapPolylines();
 	TestGeometryMapShapeOpacityAndViewport();
+	TestGeometryMapSprites();
+	TestGeometryMapBoundsAndKey();
 
 	DataIOKill();
 

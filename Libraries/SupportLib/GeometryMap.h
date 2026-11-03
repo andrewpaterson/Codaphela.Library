@@ -28,6 +28,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseMap.h"
 
 
+class CImageCel;
+
+
 enum EGeometryCommand
 {
 	GC_Rectangle,
@@ -36,6 +39,7 @@ enum EGeometryCommand
 	GC_FilledCircle,
 	GC_Polygon,
 	GC_Polyline,
+	GC_Sprite,
 };
 
 
@@ -55,6 +59,9 @@ enum EGeometryLineCap
 //Lines and circles are anti-aliased and placed by points where a whole number is the centre of a pixel; a square
 //capped line from (1, 2) to (5, 2) one pixel thick covers pixels 1 to 5 of row 2 exactly, a butt capped one covers
 //half of pixels 1 and 5.
+//A sprite is a cel of premultiplied colours and opacity (an atlas holds many), blitted over what is there.  Its image
+//rectangle is drawn at the bounds, which are the position it was added at moved by the cel's top left offset.  The map
+//doesn't own it: it must last until the map is blitted.
 struct SGeometryCommand
 {
 	EGeometryCommand	eType;
@@ -68,6 +75,7 @@ struct SGeometryCommand
 	size				uiFirstPoint;	//Polygon or polyline points in the map's point array.
 	size				uiNumPoints;
 	bool				bClosed;		//Polyline.
+	CImageCel*			pcSprite;		//Sprite.
 };
 
 
@@ -119,6 +127,9 @@ public:
 	void				AddFilledCircle(float64 x, float64 y, float64 fRadius, ARGB32 sColour);
 	void				AddPolygon(SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
 	void				AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bClosed, float64 fThickness, ARGB32 sColour);
+	void				AddSprite(CImageCel* pcSprite, int32 x, int32 y);
+	bool				GetBounds(CInt32Rect* pcBounds);
+	void				AppendKey(CArrayTemplate<uint8>* pauiKey);
 	SFloat64Vec2*		GetPoint(size uiIndex);
 	size				NumCommands(void);
 	SGeometryCommand*	GetCommand(size uiIndex);
@@ -137,6 +148,7 @@ protected:
 	void				AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
 	void				BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, size uiAlpha);
+	void				BlitSprite(SGeometryPixels* psPixels, SGeometryCommand* psCommand, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, CInt32Rect* pcViewportRect);
 };
 
 

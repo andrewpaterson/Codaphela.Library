@@ -25,6 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageAccessorCreator.h"
 #include "ColourBlend.h"
 #include "VectorShapes.h"
+#include "ImageCel.h"
 #include "GeometryMap.h"
 
 
@@ -121,6 +122,10 @@ void CGeometryMap::AddRectangle(int32 iLeft, int32 iTop, int32 iWidth, int32 iHe
 	psCommand->fRadius = 0;
 	psCommand->fThickness = 0;
 	psCommand->eCap = GLC_Butt;
+	psCommand->uiFirstPoint = 0;
+	psCommand->uiNumPoints = 0;
+	psCommand->bClosed = false;
+	psCommand->pcSprite = NULL;
 }
 
 
@@ -258,6 +263,114 @@ void CGeometryMap::AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bC
 		psCommand->cBounds.Init(0, 0, 0, 0);
 	}
 	cPath.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blits the cel pcSprite, premultiplied colours and opacity, as a sprite
+// map would draw it at x, y in map pixels: its image rectangle moved by
+// its top left offset.  The map doesn't own the cel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::AddSprite(CImageCel* pcSprite, int32 x, int32 y)
+{
+	SGeometryCommand*	psCommand;
+	CSubImage*			pcSubImage;
+	int32				iLeft;
+	int32				iTop;
+
+	pcSubImage = pcSprite->GetSubImage();
+	iLeft = x + pcSubImage->msOffsetTopLeft.x;
+	iTop = y + pcSubImage->msOffsetTopLeft.y;
+
+	psCommand = masCommands.Add();
+	memset(psCommand, 0, sizeof(SGeometryCommand));
+	psCommand->eType = GC_Sprite;
+	psCommand->cBounds.Init(iLeft, iTop, iLeft + pcSubImage->GetImageWidth(), iTop + pcSubImage->GetImageHeight());
+	psCommand->pcSprite = pcSprite;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pixel any shape touches.  Returns false if there are no shapes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGeometryMap::GetBounds(CInt32Rect* pcBounds)
+{
+	size				i;
+	SGeometryCommand*	psCommand;
+	bool				bAny;
+
+	bAny = false;
+	for (i = 0; i < masCommands.NumElements(); i++)
+	{
+		psCommand = masCommands.Get(i);
+		if (!bAny)
+		{
+			pcBounds->Init(&psCommand->cBounds);
+			bAny = true;
+		}
+		else
+		{
+			pcBounds->GrowToContain(&psCommand->cBounds);
+		}
+	}
+	return bAny;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends each field that decides what the shapes draw.  Maps with the
+// same key draw the same pixels.  Padding isn't included, nor are
+// sprites' pixels (only where their images are).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendBytes(CArrayTemplate<uint8>* pauiKey, const void* pvData, size uiSize)
+{
+	pauiKey->InsertBlockAfterEnd((uint8*)pvData, uiSize);
+}
+
+
+void CGeometryMap::AppendKey(CArrayTemplate<uint8>* pauiKey)
+{
+	size				i;
+	SGeometryCommand*	psCommand;
+	uint8				uiType;
+	uint8				uiCap;
+	uint8				uiClosed;
+	uint32				uiNumPoints;
+
+	for (i = 0; i < masCommands.NumElements(); i++)
+	{
+		psCommand = masCommands.Get(i);
+		uiType = (uint8)psCommand->eType;
+		uiCap = (uint8)psCommand->eCap;
+		uiClosed = psCommand->bClosed ? 1 : 0;
+		uiNumPoints = (uint32)psCommand->uiNumPoints;
+		AppendBytes(pauiKey, &uiType, sizeof(uint8));
+		AppendBytes(pauiKey, &psCommand->cBounds.msTopLeft.x, sizeof(int32));
+		AppendBytes(pauiKey, &psCommand->cBounds.msTopLeft.y, sizeof(int32));
+		AppendBytes(pauiKey, &psCommand->cBounds.msBottomRight.x, sizeof(int32));
+		AppendBytes(pauiKey, &psCommand->cBounds.msBottomRight.y, sizeof(int32));
+		AppendBytes(pauiKey, &psCommand->sColour, sizeof(ARGB32));
+		AppendBytes(pauiKey, &psCommand->sStart.x, sizeof(float64));
+		AppendBytes(pauiKey, &psCommand->sStart.y, sizeof(float64));
+		AppendBytes(pauiKey, &psCommand->sEnd.x, sizeof(float64));
+		AppendBytes(pauiKey, &psCommand->sEnd.y, sizeof(float64));
+		AppendBytes(pauiKey, &psCommand->fRadius, sizeof(float64));
+		AppendBytes(pauiKey, &psCommand->fThickness, sizeof(float64));
+		AppendBytes(pauiKey, &uiCap, sizeof(uint8));
+		AppendBytes(pauiKey, &uiClosed, sizeof(uint8));
+		AppendBytes(pauiKey, &psCommand->pcSprite, sizeof(CImageCel*));
+		AppendBytes(pauiKey, &uiNumPoints, sizeof(uint32));
+		if (psCommand->uiNumPoints > 0)
+		{
+			AppendBytes(pauiKey, masPoints.Get(psCommand->uiFirstPoint), psCommand->uiNumPoints * sizeof(SFloat64Vec2));
+		}
+	}
 }
 
 
@@ -489,6 +602,7 @@ SGeometryCommand* CGeometryMap::AddShape(EGeometryCommand eType, float64 fLeft, 
 	psCommand->uiFirstPoint = 0;
 	psCommand->uiNumPoints = 0;
 	psCommand->bClosed = false;
+	psCommand->pcSprite = NULL;
 	return psCommand;
 }
 
@@ -546,7 +660,11 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		iBottom = (psCommand->cBounds.msBottomRight.y < iViewportBottom) ? psCommand->cBounds.msBottomRight.y : iViewportBottom;
 		if ((iLeft < iRight) && (iTop < iBottom))
 		{
-			if (psCommand->eType == GC_Rectangle)
+			if (psCommand->eType == GC_Sprite)
+			{
+				BlitSprite(&sPixels, psCommand, iLeft, iTop, iRight, iBottom, pcViewportRect);
+			}
+			else if (psCommand->eType == GC_Rectangle)
 			{
 				FillRectangle(&sPixels,
 							  iLeft - pcViewportRect->msTopLeft.x, iTop - pcViewportRect->msTopLeft.y,
@@ -564,6 +682,26 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	cRasteriser.Kill();
 	KillPixels(&sPixels);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As GetByteChannelOffset, for a cel's image the map doesn't hold a
+// pointer to.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool GetSpriteChannelOffset(CImage* pcImage, size iChannel, size* puiOffset)
+{
+	CChannel*	pcChannel;
+
+	pcChannel = pcImage->GetChannel(iChannel);
+	if ((pcChannel == NULL) || (pcChannel->eType != PT_uint8) || !pcChannel->Is8BitAligned())
+	{
+		return false;
+	}
+	*puiOffset = pcChannel->miByteOffset;
+	return true;
 }
 
 
@@ -869,6 +1007,85 @@ void CGeometryMap::BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB3
 		auiPixel[3] = BlendOverByte(auiPixel[3], uiAlpha);
 	}
 	psPixels->pcAccessor->Set(x, y, auiPixel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blits the part of the command's sprite in iLeft to iRight by iTop to
+// iBottom, map pixels clipped to the viewport, over the viewport: its
+// premultiplied colours over what is there and, where the viewport has
+// opacity, its opacity over the viewport's.  The sprite's pixels are its
+// cel's rectangle of its source image.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::BlitSprite(SGeometryPixels* psPixels, SGeometryCommand* psCommand, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, CInt32Rect* pcViewportRect)
+{
+	CImage*		pcSprite;
+	CInt32Rect	cSource;
+	uint8*		puiSpriteData;
+	size		uiSpriteStride;
+	lsize		uiSpriteRowStride;
+	size		uiRed;
+	size		uiGreen;
+	size		uiBlue;
+	size		uiOpacity;
+	int32		x;
+	int32		y;
+	uint8*		puiSource;
+	uint8*		puiDest;
+	uint8		auiPixel[4];
+	size		uiAlpha;
+	size		uiInverse;
+
+	pcSprite = &psCommand->pcSprite->GetSourceImage();
+	psCommand->pcSprite->GetSubImage()->GetImageSourceBounds(&cSource);
+	puiSpriteData = (uint8*)pcSprite->GetData();
+	if ((puiSpriteData == NULL) ||
+		!GetSpriteChannelOffset(pcSprite, IMAGE_DIFFUSE_RED, &uiRed) || !GetSpriteChannelOffset(pcSprite, IMAGE_DIFFUSE_GREEN, &uiGreen) ||
+		!GetSpriteChannelOffset(pcSprite, IMAGE_DIFFUSE_BLUE, &uiBlue) || !GetSpriteChannelOffset(pcSprite, IMAGE_OPACITY, &uiOpacity))
+	{
+		return;
+	}
+	uiSpriteStride = pcSprite->GetPixelByteStride();
+	uiSpriteRowStride = uiSpriteStride * pcSprite->GetWidth();
+
+	for (y = iTop; y < iBottom; y++)
+	{
+		puiSource = puiSpriteData + (lsize)(cSource.msTopLeft.y + y - psCommand->cBounds.msTopLeft.y) * uiSpriteRowStride + (size)(cSource.msTopLeft.x + iLeft - psCommand->cBounds.msTopLeft.x) * uiSpriteStride;
+		for (x = iLeft; x < iRight; x++, puiSource += uiSpriteStride)
+		{
+			uiAlpha = puiSource[uiOpacity];
+			if (uiAlpha == 0)
+			{
+				continue;
+			}
+			uiInverse = 255 - uiAlpha;
+
+			if (psPixels->pcAccessor == NULL)
+			{
+				puiDest = psPixels->puiData + (lsize)(y - pcViewportRect->msTopLeft.y) * psPixels->uiRowStride + (size)(x - pcViewportRect->msTopLeft.x) * psPixels->uiPixelStride;
+				puiDest[psPixels->uiRed] = BlendPremultipliedByte(puiSource[uiRed], puiDest[psPixels->uiRed], uiInverse);
+				puiDest[psPixels->uiGreen] = BlendPremultipliedByte(puiSource[uiGreen], puiDest[psPixels->uiGreen], uiInverse);
+				puiDest[psPixels->uiBlue] = BlendPremultipliedByte(puiSource[uiBlue], puiDest[psPixels->uiBlue], uiInverse);
+				if (psPixels->bOpacity)
+				{
+					puiDest[psPixels->uiOpacity] = BlendPremultipliedByte(uiAlpha, puiDest[psPixels->uiOpacity], uiInverse);
+				}
+				continue;
+			}
+
+			psPixels->pcAccessor->Get(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y, auiPixel);
+			auiPixel[0] = BlendPremultipliedByte(puiSource[uiRed], auiPixel[0], uiInverse);
+			auiPixel[1] = BlendPremultipliedByte(puiSource[uiGreen], auiPixel[1], uiInverse);
+			auiPixel[2] = BlendPremultipliedByte(puiSource[uiBlue], auiPixel[2], uiInverse);
+			if (psPixels->bOpacity)
+			{
+				auiPixel[3] = BlendPremultipliedByte(uiAlpha, auiPixel[3], uiInverse);
+			}
+			psPixels->pcAccessor->Set(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y, auiPixel);
+		}
+	}
 }
 
 
