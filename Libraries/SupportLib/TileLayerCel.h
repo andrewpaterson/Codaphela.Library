@@ -24,25 +24,30 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_LAYER_CEL_H__
 #define __TILE_LAYER_CEL_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/MapPrimitiveTemplate.h"
 #include "ImageCel.h"
 #include "ImageBlitter.h"
 #include "TileMap.h"
 #include "TileLayer.h"
 
 
-//A row keeps only the run of cels from its first to its last tile; the cels outside it are NULL and not stored.  The
-//runs are stored one after the other, top row first, in maTiles (and maBlitters when there are blitters).
+//A row keeps only the run of tiles from its first cel to its last; the tiles outside it are empty and not stored.  The
+//runs are stored one after the other, top row first, in mauiTiles.
 struct STileLayerRow
 {
-	size	uiFirst;	//The index in maTiles of the cel at uiStart (where the row's cels go when it has none).
+	size	uiFirst;	//The index in mauiTiles of the tile at uiStart (where the row's tiles go when it has none).
 	size	uiStart;	//The first x with a cel.
 	size	uiEnd;		//One past the last x with a cel.  uiStart == uiEnd when the row has no cels.
 };
 
 
-typedef CArrayTemplate<STileLayerRow>	CArrayTileLayerRow;
+typedef CArrayTemplate<STileLayerRow>				CArrayTileLayerRow;
+typedef CArrayTemplate<uint32>						CArrayTileLayerTile;
+typedef CMapPrimitiveTemplate<CImageCel*, size>		CMapTileLayerCelIndex;
 
 
+//A grid of cels.  A tile is plain data, the index (plus one, 0 for none) of its cel in maCels, which holds each cel
+//once however many tiles show it, so setting a tile doesn't change what points to the cel.  Each cel has one blitter.
 class CImageCelBlitterCache;
 class CTileLayerCel : public CTileLayer
 {
@@ -50,8 +55,10 @@ CONSTRUCTABLE(CTileLayerCel);
 DESTRUCTABLE(CTileLayerCel);
 protected:
 	CArrayTileLayerRow			masRows;
-	CArrayImageCel				maTiles;		//Each row's run of cels, NULL for an empty tile inside a run.
-	CArrayImageBlitter			maBlitters;		//Empty, or a blitter (or NULL) for each of maTiles.
+	CArrayTileLayerTile			mauiTiles;		//Each row's run of tiles: a cel's index plus one, or 0 for an empty tile.
+	CArrayImageCel				maCels;			//Each cel the tiles show, once.
+	CArrayImageBlitter			maBlitters;		//The blitter of the cel at the same index in maCels, NULL until made.
+	CMapTileLayerCelIndex		mcCelIndices;	//A cel's index in maCels.
 	Ptr<CImageCelBlitterCache>	mpCache;
 	Ptr<CImage>					mpViewport;
 
@@ -72,6 +79,7 @@ public:
 	size						GetRowStart(size y);
 	size						GetRowEnd(size y);
 	size						NumStoredTiles(void);
+	size						NumCels(void);
 
 	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
 	void						ClearRow(size y);
@@ -92,7 +100,6 @@ public:
 	bool						HasCelBlitters(void) override;
 	bool						UsesCelBlitters(void) override;
 
-	bool						SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter);
 	Ptr<CImageBlitter>			GetBlitter(size x, size y);
 	void						ClearCelBlitters(void) override;
 
@@ -100,10 +107,11 @@ public:
 
 protected:
 	size						TileIndex(size x, size y);
-	void						InsertCels(size y, size uiIndex, size uiCount);
-	void						RemoveCels(size y, size uiIndex, size uiCount);
+	uint32						AddCel(Ptr<CImageCel> pCel);
+	bool						CreateCelBlitter(size uiCel);
+	void						InsertTiles(size y, size uiIndex, size uiCount);
+	void						RemoveTiles(size y, size uiIndex, size uiCount);
 	void						TrimRow(size y);
-	void						FillBlitters(void);
 };
 
 

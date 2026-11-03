@@ -3262,7 +3262,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
-			return Unsupported(__LINE__);
+			return DynamicCastExpression(pcNamedCast, psValue);
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
 	default:
@@ -5791,6 +5791,198 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// dynamic_cast<T*>(p) and dynamic_cast<void*>(p).  A cast to the class or one
+// of its bases is a conversion; any other looks up the object's type info.
+// dynamic_cast<T&> (which would need exceptions) is not supported.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue)
+{
+	SCPP65Type*		psTo;
+	SCPP65Class*	psFrom;
+	SCPP65Class*	psTarget;
+
+	psTo = mpcGenerator->GetTypeIdType(pcCast->mpcType);
+	if (!psTo)
+	{
+		return Unsupported(__LINE__);
+	}
+	if (psTo->IsReference())
+	{
+		mpcGenerator->ReportError(pcCast, "dynamic_cast to a reference is not supported");
+		return Unsupported(__LINE__);
+	}
+	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
+	{
+		mpcGenerator->ReportError(pcCast, "dynamic_cast needs a pointer to a class or to void");
+		return Unsupported(__LINE__);
+	}
+	if (!Value(pcCast->mpcOperand, psValue))
+	{
+		return false;
+	}
+	if (!psValue->psType->IsPointer() || !psValue->psType->psBase->IsClass())
+	{
+		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
+		return Unsupported(__LINE__);
+	}
+
+	psFrom = psValue->psType->psBase->psClass;
+	if (!mpcGenerator->CompleteClass(psFrom, pcCast))
+	{
+		return Unsupported(__LINE__);
+	}
+	psTarget = NULL;
+	if (psTo->psBase->IsClass())
+	{
+		psTarget = psTo->psBase->psClass;
+		if (!mpcGenerator->CompleteClass(psTarget, pcCast))
+		{
+			return Unsupported(__LINE__);
+		}
+		if (mpcGenerator->IsDerived(psFrom, psTarget, NULL))
+		{
+			return Convert(psValue, psTo);
+		}
+	}
+	if (!mpcGenerator->IsPolymorphic(psFrom))
+	{
+		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
+		return Unsupported(__LINE__);
+	}
+
+	psValue->sValue = DynamicCast(psValue->sValue, psFrom, psTarget);
+	psValue->psType = psTo;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object sAddress (a psFrom, NULL stays NULL) as a psTo, NULL if it isn't
+// one, or ambiguously one.  A NULL psTo gives the start of the whole object
+// (dynamic_cast<void*>).  The vtable pointer finds the start and the type info
+// (see CCPP65Generator::AppendVtableHeader); the type info lists every subobject.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* psFrom, SCPP65Class* psTo)
+{
+	CIRBlock*		pcStart;
+	CIRBlock*		pcLook;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcCheck;
+	CIRBlock*		pcMatch;
+	CIRBlock*		pcFirst;
+	CIRBlock*		pcNext;
+	CIRBlock*		pcEnd;
+	SIRType			sPointer;
+	SIRType			sOffset;
+	SIRReference	sNullPointer;
+	SIRReference	sCondition;
+	SIRReference	sVtablePointer;
+	SIRReference	sVtable;
+	SIRReference	sTop;
+	SIRReference	sInfo;
+	SIRReference	sTarget;
+	SIRReference	sEntry;
+	SIRReference	sFound;
+	SIRReference	sClass;
+	SIRReference	sCandidate;
+	SIRReference	sNextEntry;
+	SIRReference	sNextFound;
+	SIRReference	sResult;
+	SIRPhi*			psPhi;
+	size			uiEntryPhi;
+	size			uiFoundPhi;
+	CChars			szLabel;
+
+	sPointer = IRType(IRTK_Pointer);
+	sOffset = IRIntegerType(mcModule.GetPointerSize(0));
+	sNullPointer = mpcFunction->AddConstant(sPointer, 0);
+	pcLook = NewBlock();
+	pcEnd = NewBlock();
+
+	pcStart = mpcBlock;
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sAddress, sNullPointer);
+	mpcBlock->Branch(sCondition, pcEnd, pcLook);
+
+	//The start of the whole object.
+	StartBlock(pcLook);
+	sVtablePointer = AddressAt(sAddress, mpcGenerator->VtablePointerOffset(psFrom));
+	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
+	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(4), AddressAt(sVtable, -8)), IRIntegerType(4), sOffset, true);
+	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
+	if (!psTo)
+	{
+		JumpTo(pcEnd);
+		StartBlock(pcEnd);
+		return Phi(pcEnd, sPointer, pcStart, sNullPointer, pcLook, sTop);
+	}
+
+	mpcGenerator->EnsureTypeInfo(psTo);
+	szLabel.Init();
+	mpcGenerator->AppendClassLabel(&szLabel, psTo, "3");
+	sTarget = mcModule.Symbol(szLabel.Text());
+	szLabel.Kill();
+	if (psTo->lliName < 0)
+	{
+		mcModule.SetLocal(sTarget.Index());
+	}
+	sInfo = mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, -4));
+
+	//Each entry is a subobject's class's type info then its offset; a zero ends them.  sFound is the match so far.
+	pcLoop = NewBlock();
+	pcCheck = NewBlock();
+	pcMatch = NewBlock();
+	pcFirst = NewBlock();
+	pcNext = NewBlock();
+	JumpTo(pcLoop);
+
+	StartBlock(pcLoop);
+	//Adding a phi can move the block's others, so they are found again by index.
+	sEntry = mpcFunction->AddTemporary(sPointer);
+	uiEntryPhi = pcLoop->masPhis.NumElements();
+	pcLoop->AddPhiArgument(pcLoop->AddPhi(sPointer, sEntry), pcLook, sInfo);
+	sFound = mpcFunction->AddTemporary(sPointer);
+	uiFoundPhi = pcLoop->masPhis.NumElements();
+	pcLoop->AddPhiArgument(pcLoop->AddPhi(sPointer, sFound), pcLook, sNullPointer);
+	sClass = mpcFunction->Load(mpcBlock, sPointer, sEntry);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sNullPointer);
+	mpcBlock->Branch(sCondition, pcEnd, pcCheck);
+
+	StartBlock(pcCheck);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sTarget);
+	mpcBlock->Branch(sCondition, pcMatch, pcNext);
+
+	//A second match: the class is an ambiguous base of the object.
+	StartBlock(pcMatch);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sPointer, sFound, sNullPointer);
+	mpcBlock->Branch(sCondition, pcEnd, pcFirst);
+
+	StartBlock(pcFirst);
+	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(4), AddressAt(sEntry, 4)), IRIntegerType(4), sOffset, true);
+	sCandidate = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sCandidate);
+	JumpTo(pcNext);
+
+	StartBlock(pcNext);
+	sNextFound = Phi(pcNext, sPointer, pcCheck, sFound, pcFirst, sCandidate);
+	sNextEntry = AddressAt(sEntry, 8);
+	JumpTo(pcLoop);
+	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiEntryPhi), pcNext, sNextEntry);
+	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiFoundPhi), pcNext, sNextFound);
+
+	StartBlock(pcEnd);
+	sResult = mpcFunction->AddTemporary(sPointer);
+	psPhi = pcEnd->AddPhi(sPointer, sResult);
+	pcEnd->AddPhiArgument(psPhi, pcStart, sNullPointer);
+	pcEnd->AddPhiArgument(psPhi, pcLoop, sFound);
+	pcEnd->AddPhiArgument(psPhi, pcMatch, sNullPointer);
+	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Converts a value to psTo, as the generator's Convert does.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -6933,6 +7125,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 	for (ui = 0; ui < psClass->macVtables.NumElements(); ui++)
 	{
 		psVtable = psClass->macVtables.Get(ui);
+		iEntry += 2;  //The secondary vtable's header (CCPP65Generator::AppendVtableHeader).
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), AddressAt(sLabel, 4 * iEntry), AddressAt(sObject, psVtable->iOffset + psVtable->psOwner->iVtableOffset));
 		iEntry += (int)psVtable->mapsFunctions.NumElements();
 	}
@@ -6967,11 +7160,29 @@ void CCPP65IRFrontEnd::DescribeVtable(SCPP65Class* psClass, uint32 uiSymbol)
 	for (i = 0; i < psClass->macVtables.NumElements(); i++)
 	{
 		psVtable = psClass->macVtables.Get(i);
+		AddVtableHeader(pcVtable, psClass, psVtable->iOffset + psVtable->psOwner->iVtableOffset);
 		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
 		{
 			AddVtableEntry(pcVtable, psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A secondary vtable's header, as CCPP65Generator::AppendVtableHeader writes it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::AddVtableHeader(CIRGlobal* pcVtable, SCPP65Class* psClass, int iVtablePointer)
+{
+	CChars	szLabel;
+
+	pcVtable->AddValue(IRIntegerType(4), (uint64)(int64)(-iVtablePointer));
+	szLabel.Init();
+	mpcGenerator->AppendClassLabel(&szLabel, psClass, "3");
+	pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
+	szLabel.Kill();
 }
 
 
@@ -7891,6 +8102,10 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		}
 		else
 		{
+			if (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)
+			{
+				mpcGenerator->ReportError(pcExpression, "dynamic_cast to a reference is not supported");
+			}
 			return Unsupported(__LINE__);
 		}
 		psType = mpcGenerator->GetTypeIdType(pcType);

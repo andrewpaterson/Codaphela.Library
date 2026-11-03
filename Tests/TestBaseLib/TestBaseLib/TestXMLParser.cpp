@@ -368,6 +368,63 @@ void TestXMLParserLogisimFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whitespace before the end of a tag, as Visual Studio writes its
+// projects: <ClCompile Include="Main.cpp" />.
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE ParseXMLParserText(char* szXML)
+{
+	TRISTATE		tResult;
+	CMarkup			cMarkup;
+	CXMLParser		cXMLParser;
+
+	cMarkup.Init();
+	cXMLParser.Init(szXML, "", &cMarkup, NULL);
+	tResult = cXMLParser.Parse();
+	cXMLParser.Kill();
+	cMarkup.Kill();
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestXMLParserSpaceBeforeTagEnd(void)
+{
+	TRISTATE		tResult;
+	CMarkup			cMarkup;
+	CXMLParser		cXMLParser;
+	CMarkupTag*		pcTag;
+	CMarkupTag*		pcChildTag;
+	char			szXML[] = "<ItemGroup >\n  <ClCompile Include=\"Main.cpp\" />\n  <ClInclude Include=\"Main.h\"\t/>\n  <None />\n  <Text a=\"1\" >Notes</Text>\n</ItemGroup>";
+
+	cMarkup.Init();
+	cXMLParser.Init(szXML, "", &cMarkup, NULL);
+	tResult = cXMLParser.Parse();
+	cXMLParser.Kill();
+	AssertTritrue(tResult);
+
+	pcTag = cMarkup.GetRootTag();
+	AssertTrue(pcTag->Is("ItemGroup"));
+	pcChildTag = pcTag->GetTag("ClCompile");
+	AssertString("Main.cpp", pcChildTag->GetStringAttribute("Include"));
+	pcChildTag = pcTag->GetTag("ClInclude");
+	AssertString("Main.h", pcChildTag->GetStringAttribute("Include"));
+	AssertNotNull(pcTag->GetTag("None"));
+	AssertNotNull(pcTag->GetTag("Text"));
+	cMarkup.Kill();
+
+	//The / and > of an empty tag can't be apart.
+	AssertTristate(TRIERROR, ParseXMLParserText("<A / >"));
+	AssertTritrue(ParseXMLParserText("<A/>"));
+	AssertTritrue(ParseXMLParserText("<A />"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestXMLParser(void)
@@ -382,6 +439,7 @@ void TestXMLParser(void)
 	TestXMLParserNamedReferences();
 	TestXMLParserErrors();
 	TestXMLParserLogisimFile();
+	TestXMLParserSpaceBeforeTagEnd();
 
 	DataMemoryKill();
 	TestStatistics();

@@ -244,6 +244,13 @@ bool CChannels::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::BeginChange(void)
 {
+	if (IsChanging())
+	{
+		//Replacing the change in progress would leak it and lose its changes.
+		gcLogger.Error2(__METHOD__, " Channels are already changing.  Call EndChange before calling BeginChange again.", NULL);
+		return;
+	}
+
 	mpsChangingDesc = (SChannelsChangingDesc*)malloc(sizeof(SChannelsChangingDesc));
 	mpsChangingDesc->Init();
 	mpsChangingDesc->iSize = miSize;

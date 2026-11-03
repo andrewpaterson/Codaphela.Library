@@ -123,7 +123,12 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
-			Error(pcExpression, "dynamic_cast is not supported by the compiler");
+			//The IR front end writes dynamic_cast (CCPP65IRFrontEnd::DynamicCastExpression); here only its type is wanted.
+			if (miTypeOf > 0)
+			{
+				return GetTypeIdType(pcNamedCast->mpcType);
+			}
+			Error(pcExpression, "dynamic_cast is only supported by the IR front end");
 			return NULL;
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);

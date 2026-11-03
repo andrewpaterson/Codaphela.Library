@@ -49,13 +49,13 @@ public:
 
 	explicit operator bool() const;
 
+	bool			IsInstanceOfTemplateClass(void);
 	const char*		TemplateClassName(void);
 };
 
 
-bool IsValidPointerClassAllowNull(char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
 bool FailValidPointerClassAllowNull(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
-#define ValidatePtr(p) if (!IsValidPointerClassAllowNull(#p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName())) FailValidPointerClassAllowNull(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
+#define ValidatePtr(p) if (!p.IsInstanceOfTemplateClass()) FailValidPointerClassAllowNull(__METHOD__, #p, p->ClassName(), p.TemplateClassName());
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,13 +136,24 @@ Ptr<M>::operator bool() const
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+bool Ptr<M>::IsInstanceOfTemplateClass(void)
+{
+	//True if the object is an M (or a class derived from M), or there is no object.  A hollow object is loaded first.
+	CEmbeddedObject*	pcObject;
+
+	pcObject = Dereference();
+	return (pcObject == NULL) || (dynamic_cast<M*>(pcObject) != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 const char* Ptr<M>::TemplateClassName(void)
 {
-	const char* szClassName;
-	M			m;
-
-	szClassName = m.ClassName();
-	return szClassName;
+	return M::StaticClassName();
 }
 
 #endif // __POINTER_H__

@@ -471,6 +471,60 @@ void TestCPP65IRInlineConstants(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// dynamic_cast: down from a first and a second base, across, to void*, a NULL
+// pointer, up (a conversion), to a class the object isn't, and an ambiguous
+// base (a diamond) which gives NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRDynamicCast(void)
+{
+	AssertInt(8191, TestCPP65IRMain(
+		"struct CBase { int mi; virtual int Who() { return 1; } };\n"
+		"struct CListener { int ml; virtual int Heard() { return 3; } };\n"
+		"struct CDerived : CBase, CListener { int mj; virtual int Who() { return 2; } };\n"
+		"struct COther : CBase { int mo; };\n"
+		"struct CDeeper : CDerived { int mk; };\n"
+		"struct CLeft : CBase { int mx; };\n"
+		"struct CRight : CBase { int my; };\n"
+		"struct CDiamond : CLeft, CRight, CListener { int mz; };\n"
+		"int main()\n"
+		"{\n"
+		"	CDerived d; COther o; CDeeper e; CDiamond a; int r = 0;\n"
+		"	CBase* pb = &d; CListener* pl = &d; CBase* pe = &e; CDerived* pde = &e; CBase* pn = 0; CListener* pal = &a;\n"
+		"	if (dynamic_cast<CDerived*>(pb) == &d) r += 1;\n"
+		"	if (dynamic_cast<COther*>(pb) == 0) r += 2;\n"
+		"	if (dynamic_cast<CDerived*>(pl) == &d) r += 4;\n"
+		"	if (dynamic_cast<CListener*>(pb) == pl) r += 8;\n"
+		"	if (dynamic_cast<void*>(pl) == (void*)&d) r += 16;\n"
+		"	if (dynamic_cast<CDerived*>(pn) == 0) r += 32;\n"
+		"	if (dynamic_cast<CDerived*>(pe) == pde) r += 64;\n"
+		"	if (dynamic_cast<CBase*>(&d) == pb) r += 128;\n"
+		"	if (dynamic_cast<CDeeper*>(pb) == 0) r += 256;\n"
+		"	if (dynamic_cast<CBase*>(pal) == 0) r += 512;\n"
+		"	if (dynamic_cast<CLeft*>(pal) == (CLeft*)&a) r += 1024;\n"
+		"	if (dynamic_cast<CDerived*>(pl)->Who() == 2) r += 2048;\n"
+		"	if (dynamic_cast<CDerived*>((CBase*)&o) == 0) r += 4096;\n"
+		"	return r;\n"
+		"}\n", 12));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// dynamic_cast across units: both write CSquare's vtable and type info and the
+// linker keeps one of each, so the type info compared against is the object's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRDynamicCastUnits(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/DynamicCastProject/Main.cpp", "Input/CPP65/DynamicCastProject/Square.cpp", NULL };
+
+	AssertInt(1 + 400 + 1000, TestCPP65RunProject(aszUnits, ""));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -493,6 +547,8 @@ void TestCPP65IR(void)
 	TestCPP65IRStringCompare();
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();
+	TestCPP65IRDynamicCast();
+	TestCPP65IRDynamicCastUnits();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

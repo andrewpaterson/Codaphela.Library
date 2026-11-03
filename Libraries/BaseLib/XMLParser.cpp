@@ -596,6 +596,8 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 		}
 	}
 
+	//Whitespace is allowed before the end of a tag: <Tag a="1" /> and <Tag >.  The / and > of an empty tag aren't apart.
+	mcParser.SkipWhitespace();
 	tEmpty =  mcParser.GetExactCharacter('/', false);
 	if (tEmpty == TRIERROR)
 	{

@@ -7,6 +7,7 @@
 #include "ObjectTestClasses.h"
 #include "ChunkFileObjectWriterTestClasses.h"
 #include "EmbeddedObjectTestClasses.h"
+#include "ObjectTestSetup.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -330,6 +331,90 @@ void TestPointerStackWalkList(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestPointerReturn(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+	CTestObject*				pcTest;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pTest;
+
+		//Returning a NULL Pointer returns NULL.
+		AssertNull(pTest.Return());
+		AssertTrue(pTest.IsNull());
+
+		//Returning an Object removes the Pointer's stack from without freeing the Object.
+		pTest = OMalloc<CTestObject>(&sNotifier);
+		pcTest = (CTestObject*)pTest.Return();
+		AssertNotNull(pcTest);
+		AssertTrue(pTest.IsNull());
+		AssertFalse(sNotifier.bFreed);
+		AssertSize(0, pcTest->NumStackFroms());
+		AssertLong(1, gcObjects.NumMemoryIndexes());
+
+		//Pointing to it again frees it when the Pointer is cleared.
+		pTest = pcTest;
+		pTest = NULL;
+		AssertTrue(sNotifier.bFreed);
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ValidatePtr checks with dynamic_cast: an object of the Pointer's class or of
+// a class derived from it (the class can be abstract) is valid, as is NULL; an
+// object of another class is not.  The class names need no objects made.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPointerValidatePtr(void)
+{
+	SLogConfig	sLogConfig;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>		pTest;
+		Ptr<CPlayerVehicle>		pVehicle;
+		Ptr<CTestObject>		pWrong;
+		CPointer				pSaveable;
+
+		AssertTrue(pTest.IsInstanceOfTemplateClass());
+		pTest = OMalloc<CTestObject>();
+		AssertTrue(pTest.IsInstanceOfTemplateClass());
+
+		pVehicle = OMalloc<CJeep>(Ptr<CGameWorld>());
+		AssertTrue(pVehicle.IsInstanceOfTemplateClass());
+		AssertString("CPlayerVehicle", pVehicle.TemplateClassName());
+		AssertString("CJeep", pVehicle->ClassName());
+
+		pSaveable = OMalloc<CTestSaveableObject1>();
+		pWrong = pSaveable;
+		AssertFalse(pWrong.IsInstanceOfTemplateClass());
+		AssertString("CTestObject", pWrong.TemplateClassName());
+
+		sLogConfig = gcLogger.SetSilent();
+		ValidatePtr(pWrong);
+		gcLogger.SetConfig(&sLogConfig);
+
+		pTest = NULL;
+		pVehicle = NULL;
+		pWrong = NULL;
+		pSaveable = NULL;
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestPointer(void)
 {
 	BeginTests();
@@ -347,6 +432,8 @@ void TestPointer(void)
 	TestPointerHeapNotInGraphFreeStack();
 	TestPointerCopy();
 	TestPointerStackWalkList();
+	TestPointerReturn();
+	TestPointerValidatePtr();
 
 	DataIOKill();
 	TypesKill();

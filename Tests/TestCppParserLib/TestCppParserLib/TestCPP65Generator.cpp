@@ -2958,6 +2958,10 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 31): A static local variable needs a constant initialiser in the compiler yet [a]\n", "int f(int a) { static int s = a; return s; }");
 	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the class template matches equally [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The member template has not been defined [c]\n", "struct C { template<class T> int F(T t); }; int main() { C c; return c.F(1); }");
+	AssertCPP65Error("Generated.cpp (1, 67): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; Q* f(P* p) { return dynamic_cast<Q*>(p); }");
+	AssertCPP65Error("Generated.cpp (1, 91): dynamic_cast to a reference is not supported [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; int g(B& b) { return dynamic_cast<D&>(b).y; }");
+	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
+	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");
 }
 

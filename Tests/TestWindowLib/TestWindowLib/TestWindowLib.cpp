@@ -28,6 +28,7 @@ void TestInputSourceChannel(void);
 void TestButton(void);
 void TestButtonBar(void);
 void TestList(void);
+void TestTree(void);
 void TestMenu(void);
 void TestTextField(void);
 void TestCheckBox(void);
@@ -81,6 +82,7 @@ int __cdecl main(void)
 	TestButton();
 	TestButtonBar();
 	TestList();
+	TestTree();
 	TestMenu();
 	TestTextField();
 	TestCheckBox();

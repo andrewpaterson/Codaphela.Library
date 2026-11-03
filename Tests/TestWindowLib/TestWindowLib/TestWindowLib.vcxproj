@@ -243,6 +243,7 @@
     <ClCompile Include="TestButton.cpp" />
     <ClCompile Include="TestButtonBar.cpp" />
     <ClCompile Include="TestList.cpp" />
+    <ClCompile Include="TestTree.cpp" />
     <ClCompile Include="TestComponentInput.cpp" />
     <ClCompile Include="TestComponentInputDevices.cpp" />
     <ClCompile Include="TestInputAction.cpp" />

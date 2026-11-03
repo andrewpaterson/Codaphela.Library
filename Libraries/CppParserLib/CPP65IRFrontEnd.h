@@ -300,6 +300,8 @@ protected:
 	bool			ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, SCPP65Class* psObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone());
 	bool			CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
+	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);
+	SIRReference	DynamicCast(SIRReference sAddress, SCPP65Class* psFrom, SCPP65Class* psTo);
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue);
 	void			NarrowCount(bool bLeading, SIRReference* psValue, SIRReference* psCount, int* piBits, SIRType sInt);
@@ -331,6 +333,7 @@ protected:
 	bool			StoreVtables(SIRReference sObject, SCPP65Class* psClass);
 	void			DescribeVtable(SCPP65Class* psClass, uint32 uiSymbol);
 	void			AddVtableEntry(CIRGlobal* pcVtable, SCPP65Function* psFunction, int iAdjust);
+	void			AddVtableHeader(CIRGlobal* pcVtable, SCPP65Class* psClass, int iVtablePointer);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
 	bool			ConstructClass(SCPP65IRPlace* psPlace, SCPP65Class* psClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);

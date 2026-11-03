@@ -53,6 +53,10 @@ public:
 
 #define CONSTRUCTABLE(c) \
 public:\
+static const char* StaticClassName(void)\
+{\
+	return #c;\
+}\
 const char* ClassName(void)\
 {\
 	return #c;\

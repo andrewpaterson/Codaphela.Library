@@ -54,6 +54,7 @@ SCPP65Class* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 	psClass->iAlign = 1;
 	psClass->bUnion = false;
 	psClass->bVtable = false;
+	psClass->bTypeInfo = false;
 	psClass->bConstructors = false;
 	psClass->psInheritedBase = NULL;
 	psClass->psDestructor = NULL;
@@ -2961,6 +2962,7 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	szLabel.Kill();
 	mszData.Append("\t\t.align 4");
 	mszData.AppendNewLine();
+	AppendVtableHeader(psClass, psClass->iVtableOffset == -1 ? 0 : psClass->iVtableOffset);
 	AppendClassLabel(&mszData, psClass, "2");
 	mszData.Append(':');
 	mszData.AppendNewLine();
@@ -2971,11 +2973,128 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	for (i = 0; i < psClass->macVtables.NumElements(); i++)
 	{
 		psVtable = psClass->macVtables.Get(i);
+		AppendVtableHeader(psClass, psVtable->iOffset + psVtable->psOwner->iVtableOffset);
 		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
 		{
 			AppendVtableEntry(psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
 		}
 	}
+
+	EnsureTypeInfo(psClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The two words before each part of a vtable, for dynamic_cast: how far the
+// object's start is from the vtable pointer using that part (iVtablePointer is
+// where that pointer is in the object), then the class's type info.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendVtableHeader(SCPP65Class* psClass, int iVtablePointer)
+{
+	mszData.Append("\t\t.long ");
+	mszData.Append(-iVtablePointer);
+	mszData.AppendNewLine();
+	mszData.Append("\t\t.long ");
+	AppendClassLabel(&mszData, psClass, "3");
+	mszData.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _Class__3: the class's type info, for dynamic_cast.  Every subobject of an
+// object of the class, the object itself first: the subobject class's type info
+// and its offset in the object.  A zero ends it.  Each unit that needs it writes
+// it in a COMDAT section (the linker keeps one) so its address identifies the
+// class.  The type infos of the bases are written too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
+{
+	CChars	szLabel;
+	size	i;
+
+	if (psClass->bTypeInfo)
+	{
+		return;
+	}
+	psClass->bTypeInfo = true;
+
+	szLabel.Init();
+	AppendClassLabel(&szLabel, psClass, "3");
+	if (!Emit(&szLabel))
+	{
+		szLabel.Kill();
+		return;
+	}
+	if (psClass->lliName < 0)
+	{
+		AppendSection(&mszData, "rodata", &szLabel, NULL);
+	}
+	else
+	{
+		AppendSection(&mszData, "rodata", &szLabel, ", comdat");
+		AppendGlobal(&mszData, &szLabel);
+	}
+	szLabel.Kill();
+	mszData.Append("\t\t.align 4");
+	mszData.AppendNewLine();
+	AppendClassLabel(&mszData, psClass, "3");
+	mszData.Append(':');
+	mszData.AppendNewLine();
+	AppendTypeInfoBases(psClass, 0);
+	mszData.Append("\t\t.long 0");
+	mszData.AppendNewLine();
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		EnsureTypeInfo(psClass->macBases.Get(i)->psClass);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type info entries for the class's subobject at iOffset and all its bases'.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendTypeInfoBases(SCPP65Class* psClass, int iOffset)
+{
+	SCPP65Base*	psBase;
+	size		i;
+
+	mszData.Append("\t\t.long ");
+	AppendClassLabel(&mszData, psClass, "3");
+	mszData.AppendNewLine();
+	mszData.Append("\t\t.long ");
+	mszData.Append(iOffset);
+	mszData.AppendNewLine();
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = psClass->macBases.Get(i);
+		AppendTypeInfoBases(psBase->psClass, iOffset + psBase->iOffset);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a vtable pointer is in an object of a polymorphic class: its own, else
+// the first secondary one's.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::VtablePointerOffset(SCPP65Class* psClass)
+{
+	SCPP65Vtable*	psVtable;
+
+	if (psClass->iVtableOffset != -1)
+	{
+		return psClass->iVtableOffset;
+	}
+	psVtable = psClass->macVtables.Get(0);
+	return psVtable->iOffset + psVtable->psOwner->iVtableOffset;
 }
 
 
@@ -3066,6 +3185,7 @@ void CCPP65Generator::StoreVtables(SCPP65Class* psClass, const char* szValue, co
 	for (i = 0; i < psClass->macVtables.NumElements(); i++)
 	{
 		psVtable = psClass->macVtables.Get(i);
+		iEntry += 2;  //The secondary vtable's header (AppendVtableHeader).
 		Line("cpy ")->Append(szValue)->Append(", ");
 		AppendClassLabel(mpszOut, psClass, "2");
 		mpszOut->Append(" + ")->Append(4 * iEntry)->AppendNewLine();

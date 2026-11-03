@@ -596,6 +596,42 @@ void TestChannelsCopier24bitTo8bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChannelsBeginChangeTwice(void)
+{
+	ObjectsInit();
+
+	CChannels	cChannels;
+	SLogConfig	sLogConfig;
+
+	cChannels.Init();
+	cChannels.BeginChange();
+	cChannels.SetSize(2);
+	cChannels.AddChannel(0, PT_uint8);
+
+	//A second BeginChange is an error.  It must not replace (and leak) the change in progress.
+	sLogConfig = gcLogger.SetSilent();
+	cChannels.BeginChange();
+	gcLogger.SetConfig(&sLogConfig);
+	AssertTrue(cChannels.IsChanging());
+
+	cChannels.AddChannel(1, PT_uint8);
+	AssertTrue(cChannels.EndChange());
+	AssertFalse(cChannels.IsChanging());
+	AssertSize(2, cChannels.GetNumChannels());
+	AssertTrue(cChannels.HasChannel(0));
+	AssertTrue(cChannels.HasChannel(1));
+	AssertSize(2 * 2, cChannels.GetByteSize());
+
+	cChannels.Kill();
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChannels(void)
 {
 	BeginTests();
@@ -607,6 +643,7 @@ void TestChannels(void)
 	TestChannelsStuff();
 	TestChannelsRemoveBeforeSize();
 	TestChannelsAddDuplicate();
+	TestChannelsBeginChangeTwice();
 	TestChannelsLoad();
 	TestChannelsCopier16bitTo8bit();
 	TestChannelsCopier24bitTo8bit();

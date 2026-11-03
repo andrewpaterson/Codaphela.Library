@@ -64,6 +64,9 @@
     <ClCompile Include="TestList.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestTree.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestLabel.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

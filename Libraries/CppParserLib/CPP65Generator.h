@@ -251,6 +251,7 @@ struct SCPP65Class
 	int							iAlign;
 	bool						bUnion;
 	bool						bVtable;			//The vtable has been written.
+	bool						bTypeInfo;			//The type info (for dynamic_cast) has been written.
 	bool						bConstructors;		//The class declares a constructor.
 	SCPP65Class*				psInheritedBase;	//The base whose constructors are inherited (using Base::Base), or NULL.
 	SCPP65Function*				psDestructor;
@@ -644,6 +645,10 @@ protected:
 	bool					IsPolymorphic(SCPP65Class* psClass);
 	bool					IsAbstract(SCPP65Class* psClass);
 	void					EnsureVtable(SCPP65Class* psClass);
+	void					EnsureTypeInfo(SCPP65Class* psClass);
+	void					AppendTypeInfoBases(SCPP65Class* psClass, int iOffset);
+	void					AppendVtableHeader(SCPP65Class* psClass, int iVtablePointer);
+	int						VtablePointerOffset(SCPP65Class* psClass);
 	void					AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunction);
 	void					AppendVtableEntry(SCPP65Function* psFunction, int iAdjust);
 	void					StoreVtables(SCPP65Class* psClass, const char* szValue, const char* szObject);

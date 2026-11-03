@@ -111,7 +111,7 @@ public:
 	void			MovedOutof(void) override;
 	void			MovedOver(int x, int y) override;
 	void			CommandAction(SComponentInputEvent* psEvent);
-	void			ActivateComponent(int x, int y);
+	virtual void	ActivateComponent(int x, int y);
 	void			ExecuteComponent(int x, int y);
 	void			Up(void);
 	void			Down(void);

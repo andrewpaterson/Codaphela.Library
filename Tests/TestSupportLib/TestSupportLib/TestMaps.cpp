@@ -482,6 +482,7 @@ void TestMapsTileLayerRows(void)
 
 		//An empty layer stores nothing.
 		AssertSize(0, pLayer->NumStoredTiles());
+		AssertSize(0, pLayer->NumCels());
 		for (y = 0; y < 3; y++)
 		{
 			AssertSize(pLayer->GetRowStart(y), pLayer->GetRowEnd(y));
@@ -506,6 +507,9 @@ void TestMapsTileLayerRows(void)
 		AssertTrue(pLayer->SetTile(7, 1, pCel3));
 		AssertSize(8, pLayer->GetRowEnd(1));
 		AssertSize(6, pLayer->NumStoredTiles());
+
+		//The same cel in many tiles is stored once.
+		AssertSize(3, pLayer->NumCels());
 
 		//A row before it moves its cels along; a row after it keeps its place.
 		AssertTrue(pLayer->SetTile(0, 0, pCel4));
@@ -730,6 +734,9 @@ void TestMapsTileLayerText(void)
 			uiStoredTiles += uiLast + 1 - uiFirst;
 		}
 		AssertSize(uiStoredTiles, pLayer->NumStoredTiles());
+
+		//Each character in each colour is one cel however many tiles show it.
+		AssertSize(35, pLayer->NumCels());
 
 		//The spaces between words are empty tiles; the same character in the same colour is the same cel.
 		AssertTrue(pLayer->GetTile(3, 0).IsNull());

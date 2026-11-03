@@ -12,22 +12,4 @@ bool FailValidPointerClassAllowNull(char* szMethod, char* szParameter, const cha
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool IsValidPointerClassAllowNull(char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName)
-{
-	//AllowNull is on the szInstanceClassName.
-	//Not sure why szExpectedClassName is checked.
-
-	if (szExpectedClassName && szInstanceClassName && StringCompare(szExpectedClassName, szInstanceClassName) != 0)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
 
