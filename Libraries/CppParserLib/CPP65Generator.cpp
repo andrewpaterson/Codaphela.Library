@@ -669,7 +669,8 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest, ECPPTarget eTarget)
 // native mode with 16 bit registers, sets S to the target's stack top and D to 0, clears bss, calls the init table's routines
 // (each global's R_Initialise, in link order), calls main, Libc65's __RunAtExit when stdlib.cpp is linked (a weak
 // reference), the fini table's routines last first, and stops with main's result in A.  The table walks keep a far
-// pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A.
+// pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A (__Exit.a, the
+// register entry the compiler's callers use, and __Exit, the stack entry).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendStartUp816(CChars* pszDest)
@@ -811,10 +812,12 @@ void CCPP65Generator::AppendStartUp816(CChars* pszDest)
 	pszDest->Append("\t\trtl\n");
 	pszDest->Append("StartCallReturn:\n");
 	pszDest->Append("\t\trts\n");
-	pszDest->Append("\t\t.global __Exit\n");
+	//_Exit's stack entry, and its register entry (iStatus in A, as the compiler's callers pass it).
+	pszDest->Append("\t\t.global __Exit, __Exit.a\n");
 	pszDest->Append("__Exit:\n");
 	pszDest->Append("\t\t.width (A, X), 16\n");
 	pszDest->Append("\t\tlda [S + 4]\n");
+	pszDest->Append("__Exit.a:\n");
 	pszDest->Append("\t\tstp\n");
 	pszDest->AppendNewLine();
 }

@@ -4387,6 +4387,36 @@ void TestCPP816FrameOperandFloats(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer to a function initialised or assigned from an overloaded
+// function's name (f or &f) takes the overload of the pointer's type: a
+// global's (R_Initialise), a volatile one's and a local's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816OverloadedFunctionAddresses(void)
+{
+	static const char*	aszNone[] = { NULL };
+	static const char*	szSource =
+		"unsigned short F(void* p, unsigned short n) { return 1; }\n"
+		"unsigned short F(unsigned long u) { return 2; }\n"
+		"unsigned short (*volatile gp)(unsigned long) = F;\n"
+		"unsigned short (*gq)(unsigned long) = &F;\n"
+		"unsigned short (*volatile gr)(void*, unsigned short) = F;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tunsigned short (*pl)(unsigned long) = F;\n"
+		"\tunsigned short (*pm)(void*, unsigned short);\n"
+		"\tpm = &F;\n"
+		"\treturn gp(5) * 10000 + gq(5) * 1000 + gr(0, 0) * 100 + pl(5) * 10 + pm(0, 0);\n"
+		"}\n";
+	CChars				szListing;
+
+	AssertInt(22121, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
+	szListing.Kill();
+}
+
+
 //The C string functions (string816.asm's register entries, and through function pointers their stack entries),
 //compiled natively for the expected results and for the W65C816 (TestCPP816StringRegisters).
 #define TEST_CPP816_STRING_GLOBALS \
@@ -4899,6 +4929,7 @@ void TestCPP816(void)
 	TestCPP816AlignedFrameUnreadArguments();
 	TestCPP816RegisterArguments();
 	TestCPP816FrameOperandFloats();
+	TestCPP816OverloadedFunctionAddresses();
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();

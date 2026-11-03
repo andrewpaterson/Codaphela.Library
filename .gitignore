@@ -21,3 +21,6 @@ us.stackdump
 !/Tests/TestJavaParserLib/TestJavaParserLib/Post/
 /Tests/TestStandardLib/TestStandardLib120427.vsp
 /Tests/TestStandardLib/TestStandardLib.psess
+/Tests/TestBaseLib65/TestBaseLib65/Log_816.txt
+/Tests/TestBaseLib65/TestBaseLib65/Log_65C64.txt
+/Tests/TestCppParserLib/TestCppParserLib/TempMap.txt

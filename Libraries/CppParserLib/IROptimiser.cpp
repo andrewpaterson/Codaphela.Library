@@ -1551,6 +1551,7 @@ bool CIROptimiser::JoinBlocks(void)
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcNext;
 	SIRPhi*			psPhi;
+	bool			bPhis;
 
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -1561,6 +1562,7 @@ bool CIROptimiser::JoinBlocks(void)
 			continue;
 		}
 
+		bPhis = pcNext->masPhis.NumElements() != 0;
 		for (uiInstruction = 0; uiInstruction < pcNext->masPhis.NumElements(); uiInstruction++)
 		{
 			psPhi = pcNext->masPhis.Get(uiInstruction);
@@ -1578,6 +1580,12 @@ bool CIROptimiser::JoinBlocks(void)
 		pcNext->Unreachable();
 		mpcFunction->ComputePredecessors();
 		mpcFunction->RemoveBlock(pcNext);
+
+		//The phis' uses are their values now: the steps after this one (ThreadPhis' OnlyUsedInBlock) count uses.
+		if (bPhis)
+		{
+			ApplyReplacements();
+		}
 		return true;
 	}
 	return false;

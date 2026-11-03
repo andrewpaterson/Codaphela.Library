@@ -932,6 +932,42 @@ void TestIROptimiserConstantsRight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two inlined calls with a constant argument (SignBit and MaxExponent of a
+// specialised DefaultNaN, softfloat): each is a branch on a constant to a
+// phi, the second's blocks after the first's join, which is a phi of one
+// argument.  It all folds to the constant, nothing left using a phi that's
+// gone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserFoldedInlinedPhis(void)
+{
+	static const char*	szText =
+		"function i64 @_DefaultNaN__Fs__K0_52(i16 %0)\n{\n"
+		"0:\n\tjmp 2\n"
+		"1:\n\t%1 = phi i64 [4, %4]\n\tjmp 6\n"
+		"2:\n\t%2 = eq i16 52, 23\n\tbrif %2, 4, 3\n"
+		"3:\n\tjmp 4\n"
+		"4:\n\t%3 = phi i64 [3, 63], [2, 31]\n\t%4 = shl i64 1, %3\n\tjmp 1\n"
+		"5:\n\t%5 = phi i16 [7, 2047], [8, 255]\n\t%6 = sext i16 %5 to i64\n\t%7 = shl i64 %6, 52\n\t%8 = or i64 %1, %7\n\t%9 = or i64 %8, 2251799813685248\n\tret i64 %9\n"
+		"6:\n\t%10 = eq i16 52, 23\n\tbrif %10, 8, 7\n"
+		"7:\n\tjmp 5\n"
+		"8:\n\tjmp 5\n"
+		"}\n";
+	CChars				szFloat;
+
+	AssertIROptimised(
+		"function i64 @_DefaultNaN__Fs__K0_52(i16 %0)\n{\n0:\n\tret i64 -2251799813685248\n}\n", szText);
+
+	szFloat.Init(szText);
+	szFloat.Replace("2251799813685248", "4194304");
+	szFloat.Replace("52", "23");
+	AssertIROptimised(
+		"function i64 @_DefaultNaN__Fs__K0_23(i16 %0)\n{\n0:\n\tret i64 4290772992\n}\n", szFloat.Text());
+	szFloat.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A loop with a branch on a value that is the same each time round is two loops, the preheader choosing
 // (UnswitchLoops), the sum after them a phi of both; an address p + (a + i) in a loop with p and a the same each
 // time round is (p + a) + i, p + a before the loop (SplitLoopAddresses).
@@ -4127,6 +4163,7 @@ void TestIR(void)
 	TestIRLoops();
 	TestIROptimiser();
 	TestIROptimiserConstantsRight();
+	TestIROptimiserFoldedInlinedPhis();
 	TestIROptimiserLoopInvariants();
 	TestIROptimiserRestrict();
 	TestIROptimiserRestrictParameters();
