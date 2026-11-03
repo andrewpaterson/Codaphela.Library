@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include "IRParser.h"
 #include "IRLoops.h"
 #include "IR816Backend.h"
@@ -45,7 +46,9 @@ struct SIR816Routine
 	const char*	szName;
 	const char*	szText;
 	bool		bScratch;	//Takes its operands in the caller's scratch bytes (IR816ScratchRoutine), not pushed.
-	const char*	szCalls;	//The runtime routine it jumps to, which must be in the unit too, or NULL.
+	const char*	szCalls;	//The runtime routines it calls or jumps to (separated by spaces), which must be in the unit too, or NULL.
+	void		(*pfAppend)(CChars* pszDest);	//Writes its text, when szText is NULL.
+	bool		bIndexed;	//Works on the caller's frame at D + X (the 64 bit shifts): it may read any of it.
 };
 
 
@@ -312,6 +315,547 @@ struct SIR816Routine
 	"\t\tlda 0\n\t\trol A\n" CARRY_OUT \
 	"\t\tpld\n\t\trtl\n"
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The runtime routines written by code rather than as text (pfAppend):
+// an instruction line, then a label line.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AsmLine(CChars* psz, const char* szFormat, ...)
+{
+	char	sz[160];
+	va_list	vaMarker;
+
+	va_start(vaMarker, szFormat);
+	vsnprintf(sz, sizeof(sz), szFormat, vaMarker);
+	va_end(vaMarker);
+	psz->Append("\t\t")->Append(sz)->AppendNewLine();
+}
+
+
+static void IR816AsmLabel(CChars* psz, const char* szFormat, ...)
+{
+	char	sz[160];
+	va_list	vaMarker;
+
+	va_start(vaMarker, szFormat);
+	vsnprintf(sz, sizeof(sz), szFormat, vaMarker);
+	va_end(vaMarker);
+	psz->Append(sz)->Append(":\n");
+}
+
+
+#define IR816_SHIFT_SHL		0
+#define IR816_SHIFT_LSHR	1
+#define IR816_SHIFT_ASHR	2
+#define IR816_SHIFT_FILL	13		//AShr's sign word ($FFFF or 0), in the caller's scratch count word.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A shift routine's operand for the value's byte iByte: [D + iByte + X]
+// for the 64 bit ones (the value in the caller's frame at D + X), the
+// caller's scratch argument for the 32 bit ones.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816ShiftOperand(char* szDest, int iByte, bool bIndexed)
+{
+	if (!bIndexed)
+	{
+		snprintf(szDest, 32, "[D + %d]", IR816_SCRATCH_ARGUMENT_A + iByte);
+	}
+	else if (iByte == 0)
+	{
+		snprintf(szDest, 32, "[D + X]");
+	}
+	else
+	{
+		snprintf(szDest, 32, "[D + %d + X]", iByte);
+	}
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The way out of a shift routine: rtl for the 64 bit ones (the value is
+// shifted where it is), to _Done for the 32 bit ones (it returns the value
+// in A and X).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816ShiftExit(CChars* psz, const char* szName, bool bIndexed)
+{
+	if (bIndexed)
+	{
+		IR816AsmLine(psz, "rtl");
+	}
+	else
+	{
+		IR816AsmLine(psz, "brl %s_Done", szName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R816_Shl64, R816_LShr64 and R816_AShr64 shift the 64 bit value in the
+// caller's frame at D + X where it is; R816_Shl32, R816_LShr32 and
+// R816_AShr32 the 32 bit value at the caller's scratch argument a (D + 15)
+// and return it in A (low) and X (high).  The count is in A (its low 6
+// bits; a 32 bit value shifted 32 or more is filled).  The whole words go
+// first (q = count / 16, so only the words left, m of them, are shifted
+// further: a shift by 52 shifts one word 4 bits), then a byte (a word read
+// a byte along), then the 1 to 7 bits left: one word in A and the others
+// rolled in memory, counted down in Y (64 bits: X is the value's place), or
+// jumped into an unrolled run of 7 steps (32 bits).  AShr's sign word is
+// worked out first, in the caller's scratch count word.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendShift(CChars* psz, const char* szName, int iKind, int iWords)
+{
+	char	szA[32];
+	char	szB[32];
+	bool	bIndexed;
+	bool	bLeft;
+	int		q;
+	int		m;
+	int		k;
+	int		i;
+	int		iLive;	//The word kept in A for the bits: the lowest left for shl, the highest for shr.
+
+	bIndexed = iWords == 4;
+	bLeft = iKind == IR816_SHIFT_SHL;
+
+	IR816AsmLine(psz, ".width (A, X), 16");
+	IR816AsmLine(psz, ".relax");
+	IR816AsmLine(psz, "and 63");
+	IR816AsmLine(psz, "bne %s_Some", szName);
+	IR816ShiftExit(psz, szName, bIndexed);
+	IR816AsmLabel(psz, "%s_Some", szName);
+	if (iKind == IR816_SHIFT_ASHR)
+	{
+		IR816AsmLine(psz, "tay");
+		IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * iWords - 2, bIndexed));
+		IR816AsmLine(psz, "cmp 0x8000");
+		IR816AsmLine(psz, "lda 0");
+		IR816AsmLine(psz, "bcc %s_Sign", szName);
+		IR816AsmLine(psz, "dec A");
+		IR816AsmLabel(psz, "%s_Sign", szName);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SHIFT_FILL);
+		IR816AsmLine(psz, "tya");
+	}
+	IR816AsmLine(psz, "cmp 32");
+	IR816AsmLine(psz, "bcs %s_Q%s", szName, (iWords == 4) ? "23" : "2");
+	IR816AsmLine(psz, "cmp 16");
+	IR816AsmLine(psz, "bcs %s_Q1", szName);
+
+	for (q = 0; q <= iWords; q++)
+	{
+		if ((iWords == 4) && (q == 2))
+		{
+			IR816AsmLabel(psz, "%s_Q23", szName);
+			IR816AsmLine(psz, "cmp 48");
+			IR816AsmLine(psz, "bcs %s_Q3", szName);
+		}
+		if (q > 0)
+		{
+			IR816AsmLabel(psz, "%s_Q%d", szName, q);
+		}
+		if (q == iWords)
+		{
+			//32 bits shifted 32 or more: all filled.
+			if (iKind == IR816_SHIFT_ASHR)
+			{
+				IR816AsmLine(psz, "lda [D + %d]", IR816_SHIFT_FILL);
+			}
+			for (i = 0; i < iWords; i++)
+			{
+				IR816AsmLine(psz, "%s %s", (iKind == IR816_SHIFT_ASHR) ? "sta" : "stz", IR816ShiftOperand(szA, 2 * i, bIndexed));
+			}
+			IR816ShiftExit(psz, szName, bIndexed);
+			continue;
+		}
+
+		//The whole words: q of them shifted in (0, or the sign).
+		if (q > 0)
+		{
+			IR816AsmLine(psz, "tay");
+			if (bLeft)
+			{
+				for (i = iWords - 1; i >= q; i--)
+				{
+					IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * (i - q), bIndexed));
+					IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * i, bIndexed));
+				}
+				for (i = q - 1; i >= 0; i--)
+				{
+					IR816AsmLine(psz, "stz %s", IR816ShiftOperand(szA, 2 * i, bIndexed));
+				}
+			}
+			else
+			{
+				for (i = 0; i < iWords - q; i++)
+				{
+					IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * (i + q), bIndexed));
+					IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * i, bIndexed));
+				}
+				if (iKind == IR816_SHIFT_ASHR)
+				{
+					IR816AsmLine(psz, "lda [D + %d]", IR816_SHIFT_FILL);
+				}
+				for (i = iWords - q; i < iWords; i++)
+				{
+					IR816AsmLine(psz, "%s %s", (iKind == IR816_SHIFT_ASHR) ? "sta" : "stz", IR816ShiftOperand(szA, 2 * i, bIndexed));
+				}
+			}
+			IR816AsmLine(psz, "tya");
+			IR816AsmLine(psz, "and 15");
+			IR816AsmLine(psz, "bne %s_B%d", szName, q);
+			IR816ShiftExit(psz, szName, bIndexed);
+			IR816AsmLabel(psz, "%s_B%d", szName, q);
+		}
+
+		//A byte: the m words left read a byte along.
+		m = iWords - q;
+		iLive = bLeft ? q : iWords - 1 - q;
+		IR816AsmLine(psz, "cmp 8");
+		IR816AsmLine(psz, "bcc %s_R%d", szName, q);
+		IR816AsmLine(psz, "tay");
+		if (bLeft)
+		{
+			for (k = iWords - 1; k > q; k--)
+			{
+				IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * k - 1, bIndexed));
+				IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * k, bIndexed));
+			}
+			IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * q, bIndexed));
+			IR816AsmLine(psz, "xba");
+			IR816AsmLine(psz, "and 0xFF00");
+			IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * q, bIndexed));
+		}
+		else
+		{
+			for (k = 0; k < iLive; k++)
+			{
+				IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * k + 1, bIndexed));
+				IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * k, bIndexed));
+			}
+			IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * iLive, bIndexed));
+			IR816AsmLine(psz, "xba");
+			IR816AsmLine(psz, "and 0xFF");
+			if (iKind == IR816_SHIFT_ASHR)
+			{
+				IR816AsmLine(psz, "eor 0x80");
+				IR816AsmLine(psz, "sec");
+				IR816AsmLine(psz, "sbc 0x80");
+			}
+			IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szA, 2 * iLive, bIndexed));
+		}
+		IR816AsmLine(psz, "tya");
+		IR816AsmLine(psz, "and 7");
+		IR816AsmLine(psz, "bne %s_R%d", szName, q);
+		IR816ShiftExit(psz, szName, bIndexed);
+
+		//The 1 to 7 bits left, with the live word in A.
+		IR816AsmLabel(psz, "%s_R%d", szName, q);
+		if (bIndexed)
+		{
+			IR816AsmLine(psz, "tay");
+			IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * iLive, bIndexed));
+			IR816AsmLabel(psz, "%s_L%d", szName, q);
+		}
+		else
+		{
+			IR816AsmLine(psz, "asl A");
+			IR816AsmLine(psz, "tax");
+			IR816AsmLine(psz, "lda %s", IR816ShiftOperand(szA, 2 * iLive, bIndexed));
+			IR816AsmLine(psz, "jmp [%s_T%d + X]", szName, q);
+			IR816AsmLabel(psz, "%s_T%d", szName, q);
+			for (i = 0; i <= IR816_SHIFT_STEPS; i++)
+			{
+				if (i == 0)
+				{
+					IR816AsmLine(psz, ".word %s_E%d & 0xFFFF", szName, q);
+				}
+				else
+				{
+					IR816AsmLine(psz, ".word %s_S%d_%d & 0xFFFF", szName, q, IR816_SHIFT_STEPS - i);
+				}
+			}
+		}
+		for (i = 0; i < (bIndexed ? 1 : IR816_SHIFT_STEPS); i++)
+		{
+			if (!bIndexed)
+			{
+				IR816AsmLabel(psz, "%s_S%d_%d", szName, q, i);
+			}
+			if (bLeft)
+			{
+				IR816AsmLine(psz, "asl A");
+				for (k = q + 1; k < iWords; k++)
+				{
+					IR816AsmLine(psz, "rol %s", IR816ShiftOperand(szA, 2 * k, bIndexed));
+				}
+			}
+			else
+			{
+				if (iKind == IR816_SHIFT_ASHR)
+				{
+					IR816AsmLine(psz, "cmp 0x8000");
+					IR816AsmLine(psz, "ror A");
+				}
+				else
+				{
+					IR816AsmLine(psz, "lsr A");
+				}
+				for (k = iLive - 1; k >= 0; k--)
+				{
+					IR816AsmLine(psz, "ror %s", IR816ShiftOperand(szA, 2 * k, bIndexed));
+				}
+			}
+		}
+		if (bIndexed)
+		{
+			IR816AsmLine(psz, "dey");
+			IR816AsmLine(psz, "bne %s_L%d", szName, q);
+		}
+		else
+		{
+			IR816AsmLabel(psz, "%s_E%d", szName, q);
+		}
+		IR816AsmLine(psz, "sta %s", IR816ShiftOperand(szB, 2 * iLive, bIndexed));
+		IR816ShiftExit(psz, szName, bIndexed);
+	}
+
+	if (!bIndexed)
+	{
+		IR816AsmLabel(psz, "%s_Done", szName);
+		IR816AsmLine(psz, "ldx [D + %d]", IR816_SCRATCH_ARGUMENT_A + 2);
+		IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_ARGUMENT_A);
+		IR816AsmLine(psz, "rtl");
+	}
+}
+
+
+static void IR816AppendShl64(CChars* psz)	{ IR816AppendShift(psz, "R816_Shl64", IR816_SHIFT_SHL, 4); }
+static void IR816AppendLShr64(CChars* psz)	{ IR816AppendShift(psz, "R816_LShr64", IR816_SHIFT_LSHR, 4); }
+static void IR816AppendAShr64(CChars* psz)	{ IR816AppendShift(psz, "R816_AShr64", IR816_SHIFT_ASHR, 4); }
+static void IR816AppendShl32(CChars* psz)	{ IR816AppendShift(psz, "R816_Shl32", IR816_SHIFT_SHL, 2); }
+static void IR816AppendLShr32(CChars* psz)	{ IR816AppendShift(psz, "R816_LShr32", IR816_SHIFT_LSHR, 2); }
+static void IR816AppendAShr32(CChars* psz)	{ IR816AppendShift(psz, "R816_AShr32", IR816_SHIFT_ASHR, 2); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A carry out of an add into the 64 bit product at D + 5 goes into its
+// byte iByte (a word inc, and the next word's when that wraps); none past
+// the product (the sum never is bigger than the whole product).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendProductCarry(CChars* psz, const char* szName, int iRow, int iCarry, int iByte)
+{
+	if (iByte > 7)
+	{
+		return;
+	}
+	IR816AsmLine(psz, "bcc %s_C%d_%d", szName, iRow, iCarry);
+	for (; iByte <= 7; iByte += 2)
+	{
+		IR816AsmLine(psz, "inc [D + %d]", IR816_SCRATCH_RESULT + iByte);
+		if (iByte + 2 <= 7)
+		{
+			IR816AsmLine(psz, "bne %s_C%d_%d", szName, iRow, iCarry);
+		}
+	}
+	IR816AsmLabel(psz, "%s_C%d_%d", szName, iRow, iCarry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Row i of R816_UMulWide32 (Y is a's byte i * 512, its bank in szTable):
+// the byte products of b's bytes (each doubled, on the stack at S + 1, 3,
+// 5 and 7) and a's byte i, read from Garth Wilson's table (the word at
+// MathMult + ((x << 8) | y) * 2 is x * y) and added to the product a byte
+// apart: the even ones (b0 and b2) as a 32 bit word pair at byte i, the
+// odd ones (b1 and b3) at byte i + 1.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendProductRow(CChars* psz, const char* szName, const char* szTable, int iRow, int iBank)
+{
+	static const int aiOrder[4] = { 0, 2, 1, 3 };
+	int		i;
+	int		j;
+
+	for (i = 0; i < 4; i++)
+	{
+		j = aiOrder[i];
+		IR816AsmLine(psz, "tya");
+		IR816AsmLine(psz, "ora [S + %d]", 1 + 2 * j);
+		IR816AsmLine(psz, "tax");
+		IR816AsmLine(psz, "lda [%s + X]:24", szTable);
+		if (j < 2)
+		{
+			IR816AsmLine(psz, "clc");
+		}
+		IR816AsmLine(psz, "adc [D + %d]", IR816_SCRATCH_RESULT + iRow + j);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_RESULT + iRow + j);
+		if (j >= 2)
+		{
+			IR816AppendProductCarry(psz, szName, 2 * iRow + iBank, j - 2, iRow + j + 2);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R816_UMulWide32: the 64 bit product of the 32 bit a (D + 15) and b
+// (D + 19), at D + 5 (a scratch routine: the caller's scratch bytes; A, X
+// and Y changed).  b's bytes doubled are pushed; each row (a byte of a that
+// isn't 0) has a's byte * 512 in Y and the table's bank by its top bit, so
+// a byte product is tya, ora, tax and a long load.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendUMulWide32(CChars* psz)
+{
+	const char*	szName = "R816_UMulWide32";
+	int			i;
+
+	IR816AsmLine(psz, ".width (A, X), 16");
+	IR816AsmLine(psz, ".relax");
+	for (i = 3; i >= 0; i--)
+	{
+		IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_ARGUMENT_B + i);
+		IR816AsmLine(psz, "and 0xFF");
+		IR816AsmLine(psz, "asl A");
+		IR816AsmLine(psz, "pha");
+	}
+	for (i = 0; i < 4; i++)
+	{
+		IR816AsmLine(psz, "stz [D + %d]", IR816_SCRATCH_RESULT + 2 * i);
+	}
+	for (i = 0; i < 4; i++)
+	{
+		IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_ARGUMENT_A + i);
+		IR816AsmLine(psz, "and 0xFF");
+		IR816AsmLine(psz, "beq %s_Next%d", szName, i);
+		IR816AsmLine(psz, "xba");
+		IR816AsmLine(psz, "asl A");
+		IR816AsmLine(psz, "tay");
+		IR816AsmLine(psz, "bcs %s_High%d", szName, i);
+		IR816AppendProductRow(psz, szName, "MathMult", i, 0);
+		IR816AsmLine(psz, "brl %s_Next%d", szName, i);
+		IR816AsmLabel(psz, "%s_High%d", szName, i);
+		IR816AppendProductRow(psz, szName, "MathMult + 0x10000", i, 1);
+		IR816AsmLabel(psz, "%s_Next%d", szName, i);
+	}
+	IR816AsmLine(psz, "tsc");
+	IR816AsmLine(psz, "clc");
+	IR816AsmLine(psz, "adc 8");
+	IR816AsmLine(psz, "tcs");
+	IR816AsmLine(psz, "rtl");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R816_Mul64: the low 64 bits of a * b, with the compiler's convention (the
+// result's pointer pushed last, then a, then b; D pointed at its own frame
+// of 26 bytes, scratch bytes and the cross products' sum at D + 23).  aL *
+// bL (R816_UMulWide32) plus (aL * bH + aH * bL) (R816_Mul32, each skipped
+// when the high word is 0) 32 bits up.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendMul64(CChars* psz)
+{
+	const char*	szName = "R816_Mul64";
+	int			iA;
+	int			iB;
+	int			iPointer;
+	int			i;
+
+	iPointer = 26 + IR816_LINK_BYTES + 1;
+	iA = iPointer + 4;
+	iB = iA + 8;
+	IR816AsmLine(psz, ".width (A, X), 16");
+	IR816AsmLine(psz, ".relax");
+	IR816AsmLine(psz, "phd");
+	IR816AsmLine(psz, "tsc");
+	IR816AsmLine(psz, "sec");
+	IR816AsmLine(psz, "sbc 26");
+	IR816AsmLine(psz, "tcs");
+	IR816AsmLine(psz, "tcd");
+	IR816AsmLine(psz, "stz [D + 23]");
+	IR816AsmLine(psz, "stz [D + 25]");
+
+	//aL * bH.
+	IR816AsmLine(psz, "lda [D + %d]", iB + 4);
+	IR816AsmLine(psz, "ora [D + %d]", iB + 6);
+	IR816AsmLine(psz, "beq %s_NoHighB", szName);
+	for (i = 0; i < 2; i++)
+	{
+		IR816AsmLine(psz, "lda [D + %d]", iA + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_A + 2 * i);
+		IR816AsmLine(psz, "lda [D + %d]", iB + 4 + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_B + 2 * i);
+	}
+	IR816AsmLine(psz, "jsl R816_Mul32");
+	IR816AsmLine(psz, "sta [D + 23]");
+	IR816AsmLine(psz, "stx [D + 25]");
+	IR816AsmLabel(psz, "%s_NoHighB", szName);
+
+	//aH * bL.
+	IR816AsmLine(psz, "lda [D + %d]", iA + 4);
+	IR816AsmLine(psz, "ora [D + %d]", iA + 6);
+	IR816AsmLine(psz, "beq %s_NoHighA", szName);
+	for (i = 0; i < 2; i++)
+	{
+		IR816AsmLine(psz, "lda [D + %d]", iA + 4 + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_A + 2 * i);
+		IR816AsmLine(psz, "lda [D + %d]", iB + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_B + 2 * i);
+	}
+	IR816AsmLine(psz, "jsl R816_Mul32");
+	IR816AsmLine(psz, "clc");
+	IR816AsmLine(psz, "adc [D + 23]");
+	IR816AsmLine(psz, "sta [D + 23]");
+	IR816AsmLine(psz, "txa");
+	IR816AsmLine(psz, "adc [D + 25]");
+	IR816AsmLine(psz, "sta [D + 25]");
+	IR816AsmLabel(psz, "%s_NoHighA", szName);
+
+	//aL * bL, and the cross products 32 bits up.
+	for (i = 0; i < 2; i++)
+	{
+		IR816AsmLine(psz, "lda [D + %d]", iA + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_A + 2 * i);
+		IR816AsmLine(psz, "lda [D + %d]", iB + 2 * i);
+		IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_ARGUMENT_B + 2 * i);
+	}
+	IR816AsmLine(psz, "jsl R816_UMulWide32");
+	IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_RESULT + 4);
+	IR816AsmLine(psz, "clc");
+	IR816AsmLine(psz, "adc [D + 23]");
+	IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_RESULT + 4);
+	IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_RESULT + 6);
+	IR816AsmLine(psz, "adc [D + 25]");
+	IR816AsmLine(psz, "sta [D + %d]", IR816_SCRATCH_RESULT + 6);
+	for (i = 0; i < 4; i++)
+	{
+		IR816AsmLine(psz, "ldy %d", 2 * i);
+		IR816AsmLine(psz, "lda [D + %d]", IR816_SCRATCH_RESULT + 2 * i);
+		IR816AsmLine(psz, "sta [[D + %d]:24 + Y]", iPointer);
+	}
+	IR816AsmLine(psz, "tsc");
+	IR816AsmLine(psz, "clc");
+	IR816AsmLine(psz, "adc 26");
+	IR816AsmLine(psz, "tcs");
+	IR816AsmLine(psz, "pld");
+	IR816AsmLine(psz, "rtl");
+}
+
+
 static const SIR816Routine gasIR816Routines[] =
 {
 	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18"), false, NULL },
@@ -379,6 +923,14 @@ static const SIR816Routine gasIR816Routines[] =
 		"R816_Mul32_XDone:\n"
 		"\t\trep m\n"
 		"\t\tlda [D + 7]\n\t\ttax\n\t\tlda [D + 5]\n\t\trtl\n", true, NULL },
+	{ "R816_Mul64", NULL, false, "R816_Mul32 R816_UMulWide32", IR816AppendMul64, false },
+	{ "R816_UMulWide32", NULL, true, NULL, IR816AppendUMulWide32, false },
+	{ "R816_Shl64", NULL, false, NULL, IR816AppendShl64, true },
+	{ "R816_LShr64", NULL, false, NULL, IR816AppendLShr64, true },
+	{ "R816_AShr64", NULL, false, NULL, IR816AppendAShr64, true },
+	{ "R816_Shl32", NULL, true, NULL, IR816AppendShl32, false },
+	{ "R816_LShr32", NULL, true, NULL, IR816AppendLShr32, false },
+	{ "R816_AShr32", NULL, true, NULL, IR816AppendAShr32, false },
 	{ "R816_BcdAdd", IR816_BCD("R816_BcdAdd", "", "adc", ""), false, NULL },
 	{ "R816_BcdSubtract", IR816_BCD("R816_BcdSubtract", "\t\teor 1\n", "sbc", "\t\teor 1\n"), false, NULL },
 	{ NULL, NULL, false, NULL }
@@ -2805,6 +3357,36 @@ static void IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A register function's frame set up as Prologue writes it (after its
+// body's label): D saved, the register words pushed (Y's, X's, then A's,
+// so A's is lowest) to be the frame's top, S moved down the rest of the
+// frame and D pointed at it.  AlignFrame finds and replaces it.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes)
+{
+	int		i;
+	int32	iRest;
+
+	psz->Append("\t\tphd\n");
+	for (i = iRegisterWords - 1; i >= 0; i--)
+	{
+		psz->Append((i == 2) ? "\t\tphy\n" : ((i == 1) ? "\t\tphx\n" : "\t\tpha\n"));
+	}
+	psz->Append("\t\ttsc\n");
+	iRest = iFrameBytes - 2 * iRegisterWords;
+	if (iRest > 0)
+	{
+		psz->Append("\t\tsec\n\t\tsbc ");
+		psz->Append(iRest);
+		psz->Append("\n\t\ttcs\n");
+	}
+	psz->Append("\t\ttcd\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The frame's removal as Epilogue writes it (before the rtl): A kept in Y
 // while S moves back up iFrameBytes, then D restored.  DropFrame and
 // AlignFrame find and replace it by this text.
@@ -2938,7 +3520,10 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	CChars					szAligned;
 	CChars					szAlignedEpilogue;
 	CChars					szCall;
+	CChars					szBody;
 	const char*				szCode;
+	const char*				szBodyLabel;
+	int32					iRegisterWords;
 	int32					iTop;
 	int32					iWords;
 	int32					iSavedS;
@@ -2952,17 +3537,21 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	bool					bAllRead;
 	uint8					abRead[IR816_DIRECT_PAGE];
 	bool					abCopy[IR816_DIRECT_PAGE / 2];
+	bool					abCopyRegister[IR816_ARGUMENT_REGISTERS];
 
 	iTop = psFrame->iFrameBytes + IR816_LINK_BYTES + psFrame->iArgumentBytes;
 	iWords = (psFrame->iArgumentBytes + 1) / 2;
+	iRegisterWords = psFrame->iRegisterWords;
 	szCode = pszCode->Text();
+	szBodyLabel = NULL;
 	bBig = iTop > 255;
-	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
+	if ((psFrame->iFrameBytes == 0) || (bBig && ((psFrame->iSavedS < 0) || (iRegisterWords > 0))) || psFrame->bVariadic || bRecursive)
 	{
 		return false;
 	}
 
-	//Argument words nothing reads aren't copied into the frame (a frame past the page pushes them all into place).
+	//Argument words nothing reads aren't copied into the frame (a frame past the page pushes them all into place);
+	//nor are register words.
 	iFirst = psFrame->iFrameBytes + 1 + IR816_LINK_BYTES;
 	bAllRead = bBig || IR816FindReads(szCode, abRead);
 	iCopied = bBig ? iWords : 0;
@@ -2971,12 +3560,35 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		abCopy[i] = bAllRead || abRead[iFirst + 2 * i] || abRead[iFirst + 2 * i + 1];
 		iCopied += abCopy[i] ? 1 : 0;
 	}
+	for (i = 0; i < iRegisterWords; i++)
+	{
+		abCopyRegister[i] = bAllRead || abRead[psFrame->iRegisterBase + 2 * i] || abRead[psFrame->iRegisterBase + 2 * i + 1];
+		iCopied += abCopyRegister[i] ? 1 : 0;
+	}
 
-	//A call of itself is recursion.
+	//A call of itself is recursion: of its body, for a register function (its stub, before the body, calls it too).
 	szCall.Init("jsl ");
 	szCall.Append(szLabel);
-	szCall.AppendNewLine();
-	bRecursive = strstr(szCode, szCall.Text()) != NULL;
+	if (iRegisterWords > 0)
+	{
+		szBody.Init("\n");
+		szBody.Append(szLabel);
+		szBody.Append('.');
+		szBodyLabel = strstr(szCode, szBody.Text());
+		szBody.Kill();
+		if (szBodyLabel == NULL)
+		{
+			szCall.Kill();
+			return false;
+		}
+		szCall.Append('.');
+		bRecursive = strstr(szBodyLabel, szCall.Text()) != NULL;
+	}
+	else
+	{
+		szCall.AppendNewLine();
+		bRecursive = strstr(szCode, szCall.Text()) != NULL;
+	}
 	szCall.Kill();
 	if (bRecursive)
 	{
@@ -2987,7 +3599,18 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	if (pcProfile)
 	{
 		//Measured: never seen recursing, and the accesses well past the cost of its calls.
-		psProfile = pcProfile->Get(szLabel);
+		psProfile = NULL;
+		if (szBodyLabel)
+		{
+			//The body's label (to the colon).
+			szBody.Init(szBodyLabel + 1, 0, (int)(strchr(szBodyLabel + 1, ':') - (szBodyLabel + 1)));
+			psProfile = pcProfile->Get(szBody.Text());
+			szBody.Kill();
+		}
+		if (psProfile == NULL)
+		{
+			psProfile = pcProfile->Get(szLabel);
+		}
 		bWorth = psProfile && !psProfile->bRecursive && (psProfile->ulliCalls > 0) &&
 				 (psProfile->ulliDirectPage >= IR816_ALIGN_GAIN * ulliCost * psProfile->ulliCalls) &&
 				 (psProfile->ulliDirectPage - ulliCost * psProfile->ulliCalls >= pcProfile->NumCycles() / IR816_ALIGN_SHARE);
@@ -3004,7 +3627,14 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 
 	iSavedS = bBig ? psFrame->iSavedS : psFrame->iFrameBytes + 1;
 	szPrologue.Init();
-	IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
+	if (iRegisterWords > 0)
+	{
+		IR816AppendRegisterFrameEntry(&szPrologue, iRegisterWords, psFrame->iFrameBytes);
+	}
+	else
+	{
+		IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
+	}
 	szEpilogue.Init();
 	IR816AppendFrameExit(&szEpilogue, psFrame->iFrameBytes);
 	if (strstr(szCode, szPrologue.Text()) == NULL)
@@ -3014,13 +3644,32 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		return false;
 	}
 
-	//S goes down before anything is written below where it was (an interrupt pushes there).
-	szAligned.Init("\t\tphd\n\t\ttsc\n\t\ttax\n\t\tsec\n\t\tsbc ");
+	//S goes down before anything is written below where it was (an interrupt pushes there).  A register function's
+	//register words are pushed first, as its prologue pushes them (X is then S below them), and copied to the frame's
+	//top with the arguments.
+	szAligned.Init("\t\tphd\n");
+	for (i = iRegisterWords - 1; i >= 0; i--)
+	{
+		szAligned.Append((i == 2) ? "\t\tphy\n" : ((i == 1) ? "\t\tphx\n" : "\t\tpha\n"));
+	}
+	szAligned.Append("\t\ttsc\n\t\ttax\n\t\tsec\n\t\tsbc ");
 	szAligned.Append(iTop);
 	szAligned.Append("\n\t\tand 0xFF00\n");
 	if (!bBig)
 	{
 		szAligned.Append("\t\ttcs\n\t\ttcd\n");
+		for (i = 0; i < iRegisterWords; i++)
+		{
+			if (!abCopyRegister[i])
+			{
+				continue;
+			}
+			szAligned.Append("\t\tlda [");
+			szAligned.Append(1 + 2 * i);
+			szAligned.Append(" + X]:24\n\t\tsta [D + ");
+			szAligned.Append(psFrame->iRegisterBase + 2 * i);
+			szAligned.Append("]\n");
+		}
 		for (i = 0; i < iWords; i++)
 		{
 			if (!abCopy[i])
@@ -3028,7 +3677,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 				continue;
 			}
 			szAligned.Append("\t\tlda [");
-			szAligned.Append(1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append(1 + 2 * iRegisterWords + IR816_LINK_BYTES + 2 * i);
 			szAligned.Append(" + X]:24\n\t\tsta [D + ");
 			szAligned.Append(psFrame->iFrameBytes + 1 + IR816_LINK_BYTES + 2 * i);
 			szAligned.Append("]\n");
@@ -3052,7 +3701,17 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		}
 		szAligned.Append("\t\ttdc\n\t\ttcs\n");
 	}
-	szAligned.Append("\t\tstx [D + ");
+	if (iRegisterWords > 0)
+	{
+		//S as it was after phd, above the register words.
+		szAligned.Append("\t\ttxa\n\t\tclc\n\t\tadc ");
+		szAligned.Append(2 * iRegisterWords);
+		szAligned.Append("\n\t\tsta [D + ");
+	}
+	else
+	{
+		szAligned.Append("\t\tstx [D + ");
+	}
 	szAligned.Append(iSavedS);
 	szAligned.Append("]\n");
 	szAlignedEpilogue.Init("\t\ttay\n\t\tlda [D + ");
@@ -3149,6 +3808,8 @@ void CIR816Backend::GetFrame(SIR816Frame* psFrame)
 	psFrame->iDirectPageWeight = miDirectPageWeight;
 	psFrame->bLoops = mbLoops;
 	psFrame->bVariadic = (mpcFunction->muiAttributes & IRA_Variadic) != 0;
+	psFrame->iRegisterWords = miRegisterWords;
+	psFrame->iRegisterBase = miRegisterBase;
 }
 
 
@@ -6175,6 +6836,9 @@ static bool IR816MovesS(const char* szLine)
 // address may be passed on), unless only to move S (IR816MovesS).
 //
 //////////////////////////////////////////////////////////////////////////
+static bool IR816IndexedRoutine(const char* szOperand, size uiOperand);
+
+
 static bool IR816FindReads(const char* szLine, uint8* abRead)
 {
 	SIR816Line	sLine;
@@ -6201,6 +6865,10 @@ static bool IR816FindReads(const char* szLine, uint8* abRead)
 		}
 		if ((sLine.uiMnemonic == IR816M_Jsl) && (strncmp(sLine.szOperand, IR816_RUNTIME_PREFIX, IR816_RUNTIME_PREFIX_LENGTH) == 0))
 		{
+			if (IR816IndexedRoutine(sLine.szOperand, sLine.uiOperand))
+			{
+				return true;
+			}
 			memset(&abRead[IR816_SCRATCH_FIRST], 1, IR816_SCRATCH_END - IR816_SCRATCH_FIRST);
 			continue;
 		}
@@ -6340,8 +7008,6 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 void CIR816Backend::Prologue(const char* szLabel)
 {
 	CChars	szBody;
-	int		i;
-	int32	iRest;
 
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
@@ -6371,20 +7037,7 @@ void CIR816Backend::Prologue(const char* szLabel)
 	szBody.Kill();
 
 	//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
-	Line("phd");
-	for (i = miRegisterWords - 1; i >= 0; i--)
-	{
-		Line((i == 2) ? "phy" : ((i == 1) ? "phx" : "pha"));
-	}
-	iRest = miFrameBytes - 2 * miRegisterWords;
-	Line("tsc");
-	if (iRest > 0)
-	{
-		Line("sec");
-		Line("sbc ", iRest);
-		Line("tcs");
-	}
-	Line("tcd");
+	IR816AppendRegisterFrameEntry(mpszOut, miRegisterWords, miFrameBytes);
 }
 
 
@@ -7333,7 +7986,7 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Line("tax");
 		return;
 	}
-	if (BitShift(psInstruction) || ShiftTwoWords(psInstruction))
+	if (BitShift(psInstruction) || ShiftTwoWords(psInstruction) || ShiftCall(psInstruction))
 	{
 		return;
 	}
@@ -7381,6 +8034,56 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Mask(sType);
 		Frame("sta", iResult);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 32 or 64 bit shift by a count known when it runs calls a runtime
+// routine (IR816AppendShift), the count in A: a 32 bit value is copied to
+// the scratch argument a and comes back in A and X; a 64 bit one is copied
+// to the result and shifted there (its place in X).  False, with nothing
+// written, for any other shift.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::ShiftCall(SIRInstruction* psInstruction)
+{
+	CChars	szName;
+	int		iWords;
+
+	iWords = Words(psInstruction->sType);
+	if (psInstruction->asArguments[1].IsConstant() || ((iWords != 2) && (iWords != 4)) || psInstruction->sResult.IsNone())
+	{
+		return false;
+	}
+	szName.Init(IR816_RUNTIME_PREFIX);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Shl:	szName.Append("Shl");	break;
+	case IRO_LShr:	szName.Append("LShr");	break;
+	default:		szName.Append("AShr");	break;
+	}
+	szName.Append(16 * iWords);
+	UseRuntime(szName.Text());
+	if (iWords == 2)
+	{
+		CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
+		Operand("lda", psInstruction->asArguments[1], 0);
+	}
+	else
+	{
+		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], 4);
+		Operand("lda", psInstruction->asArguments[1], 0);
+		Line("ldx ", OffsetOf(psInstruction->sResult));
+	}
+	szName.Insert(0, "jsl ");
+	Line(szName.Text());
+	szName.Kill();
+	if (iWords == 2)
+	{
+		CallerCleanUp(0, psInstruction);
+	}
+	return true;
 }
 
 
@@ -8041,6 +8744,28 @@ static const SIR816Routine* IR816FindRoutine(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the routine a jsl's operand (uiOperand characters) names works
+// on the caller's frame at D + X (SIR816Routine::bIndexed): it may read
+// and write any of it.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IndexedRoutine(const char* szOperand, size uiOperand)
+{
+	size	ui;
+
+	for (ui = 0; gasIR816Routines[ui].szName; ui++)
+	{
+		if (gasIR816Routines[ui].bIndexed && (strlen(gasIR816Routines[ui].szName) == uiOperand) && (strncmp(gasIR816Routines[ui].szName, szOperand, uiOperand) == 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A runtime routine's or table's start: its own COMDAT section (each unit
 // that uses it writes it), in szSection ("text." or "rodata."), and its
 // global label.
@@ -8133,7 +8858,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		return Error("Multiply and divide are for i8 to i64");
 	}
 	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
-	if (TableDivide(psInstruction, bSigned) || ByteMultiply(psInstruction))
+	if (TableDivide(psInstruction, bSigned) || ByteMultiply(psInstruction) || WideMultiply(psInstruction))
 	{
 		return true;
 	}
@@ -8175,6 +8900,112 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	Line(szName.Text());
 	szName.Kill();
 	CallerCleanUp(iBytes, psInstruction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction that works out the temporary sValue, or NULL (a
+// parameter, a phi, or not a temporary).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIR816Backend::FindDefinition(SIRReference sValue)
+{
+	size			uiBlock;
+	size			ui;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+
+	if (!sValue.IsTemporary())
+	{
+		return NULL;
+	}
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (psInstruction->sResult.Equals(sValue))
+			{
+				return psInstruction;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the 64 bit sValue's high 32 bits are known to be 0: a constant
+// under 2^32, a zext of 32 bits or fewer, an and with one, or an lshr by
+// 32 or more.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsHighHalfZero(SIRReference sValue, int iDepth)
+{
+	SIRInstruction*	psDefinition;
+	uint64			ulliAmount;
+
+	if (sValue.IsConstant())
+	{
+		return (mpcFunction->GetConstant(sValue)->ulliBits >> 32) == 0;
+	}
+	psDefinition = FindDefinition(sValue);
+	if ((psDefinition == NULL) || (iDepth > 2))
+	{
+		return false;
+	}
+	switch (psDefinition->uiOpcode)
+	{
+	case IRO_ZExt:
+		return !psDefinition->asArguments[0].IsTemporary() || (mpcFunction->GetTemporaryType(psDefinition->asArguments[0]).Bits() <= 32);
+	case IRO_And:
+		return IsHighHalfZero(psDefinition->asArguments[0], iDepth + 1) || IsHighHalfZero(psDefinition->asArguments[1], iDepth + 1);
+	case IRO_LShr:
+		if (!psDefinition->asArguments[1].IsConstant())
+		{
+			return false;
+		}
+		ulliAmount = mpcFunction->GetConstant(psDefinition->asArguments[1])->ulliBits & 63;
+		return ulliAmount >= 32;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 64 bit multiply of two values whose high halves are 0 (IsHighHalfZero:
+// softfloat's 32 bit halves of a fraction) is R816_UMulWide32 of their low
+// halves, much faster than R816_Mul64.  False, with nothing written, for
+// any other multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::WideMultiply(SIRInstruction* psInstruction)
+{
+	int		i;
+
+	if ((psInstruction->uiOpcode != IRO_Mul) || (Words(psInstruction->sType) != 4) ||
+		!IsHighHalfZero(psInstruction->asArguments[0], 0) || !IsHighHalfZero(psInstruction->asArguments[1], 0))
+	{
+		return false;
+	}
+	CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
+	CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], 2);
+	UseRuntime(IR816_RUNTIME_PREFIX "UMulWide32");
+	Line("jsl " IR816_RUNTIME_PREFIX "UMulWide32");
+	if (!psInstruction->sResult.IsNone())
+	{
+		for (i = 0; i < 4; i++)
+		{
+			Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
+			Store(psInstruction->sResult, i);
+		}
+	}
 	return true;
 }
 
@@ -9585,6 +10416,32 @@ bool CIR816Backend::IsRegisterCall(SIRReference sCallee)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the runtime routines in szCalls (names separated by spaces) to
+// paszNames, each once.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816AddCalls(CArrayChars* paszNames, const char* szCalls)
+{
+	CChars		szName;
+	const char*	szEnd;
+
+	while (*szCalls)
+	{
+		szEnd = strchr(szCalls, ' ');
+		if (szEnd == NULL)
+		{
+			szEnd = szCalls + strlen(szCalls);
+		}
+		szName.Init(szCalls, 0, (int)(szEnd - szCalls));
+		paszNames->AddIfUnique(szName.Text());
+		szName.Kill();
+		szCalls = (*szEnd == ' ') ? szEnd + 1 : szEnd;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Generates the runtime routines named in paszRuntime (and those they call) from their IR.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -9624,7 +10481,7 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 		psRoutine = IR816FindRoutine(szName);
 		if (psRoutine && psRoutine->szCalls)
 		{
-			aszNames.AddIfUnique((char*)psRoutine->szCalls);
+			IR816AddCalls(&aszNames, psRoutine->szCalls);
 		}
 		else if (IR816StartsWith(szName, IR816_RUNTIME_PREFIX "SDiv") || IR816StartsWith(szName, IR816_RUNTIME_PREFIX "SRem"))
 		{
@@ -9651,7 +10508,14 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 		if (psRoutine)
 		{
 			IR816RuntimeHeader(pszDest, "text.", szName);
-			pszDest->Append(psRoutine->szText);
+			if (psRoutine->szText)
+			{
+				pszDest->Append(psRoutine->szText);
+			}
+			else
+			{
+				psRoutine->pfAppend(pszDest);
+			}
 			pszDest->AppendNewLine();
 			continue;
 		}

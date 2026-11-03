@@ -93,6 +93,8 @@ struct SIR816Frame
 	int32	iDirectPageWeight;	//The direct page accesses, weighted by the loops they are in.
 	bool	bLoops;
 	bool	bVariadic;
+	int32	iRegisterWords;		//The arguments' words that came in registers (pushed by the prologue to the frame's top).
+	int32	iRegisterBase;		//Where they are in the frame, or -1.
 };
 
 
@@ -223,6 +225,7 @@ protected:
 	void			Shift(SIRInstruction* psInstruction);
 	bool			BitShift(SIRInstruction* psInstruction);
 	bool			ShiftTwoWords(SIRInstruction* psInstruction);
+	bool			ShiftCall(SIRInstruction* psInstruction);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
@@ -230,6 +233,9 @@ protected:
 	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
 	void			SignExtendInA(int iSignBit);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
+	bool			WideMultiply(SIRInstruction* psInstruction);
+	bool			IsHighHalfZero(SIRReference sValue, int iDepth);
+	SIRInstruction*	FindDefinition(SIRReference sValue);
 	void			RuntimeName(CChars* pszName, SIRInstruction* psInstruction);
 	bool			IsScratchCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);

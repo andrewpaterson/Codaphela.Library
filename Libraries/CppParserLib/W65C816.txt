@@ -148,8 +148,12 @@ stack, the C++ linkage assembly given register entries):
   tax) and goes on to the body; when some arguments are pushed it pushes them again,
   calls the body and removes them.
 - Assembly with C++ linkage defines the suffixed labels too: Libc65's string816.asm and
-  string816_16.asm (forwarding to the stack entries for now, but FindFirstClearBit(uint32)),
-  and BaseLib's Fat*816.asm (to do).
+  string816_16.asm (the register entries are the real ones, pushing what the code wants
+  in memory; the plain labels load the registers and call or go on to them), and
+  BaseLib's Fat*816.asm.
+- AlignFrame aligns register functions too: it pushes the register words as the prologue
+  does, then copies them (those read) to the frame's top with the pushed arguments.  Not
+  for a frame past the page.
 - CIR816Backend::SetRegisterArguments(false) (TestProject65's TEST_PROJECT65_STACK_ARGUMENTS)
   pushes every argument, to compare.
 - Cost: a register word is a load by the caller and a push by the callee (8 cycles, a pei
@@ -277,6 +281,25 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	compile time bounds (an UpperBound in the back end, R816_Mul32x8) was tried and
 	removed: -0.19% wasn't worth a second UpperBound (user, 2026-10-29).  R816_Mul32
 	checks b < 256 at run time instead (a's bytes times b): -0.26%.
+	2026-11-03, from the softfloat profile (compiled softfloat 5x the assembly's: 64 bit
+	multiplies of 32 bit halves and variable 64 bit shifts):
+	- R816_UMulWide32 (scratch: a at D + 15, b at D + 19, the 64 bit product at D + 5):
+	  16 byte products from MathMult, a row per byte of a (skipped when 0) with that byte
+	  * 512 in Y and b's bytes doubled on the stack (tya, ora [S + n], tax, a long load).
+	  A mul i64 of two values whose high halves are known 0 (a constant, a zext of 32 bits,
+	  an and with one, an lshr by 32 or more: IsHighHalfZero) calls it (WideMultiply).
+	- R816_Mul64 is assembly: aL * bL (R816_UMulWide32) plus aL * bH + aH * bL
+	  (R816_Mul32, skipped for a 0 high half) 32 bits up; still pushed, with the hidden
+	  result pointer.  It was a shift and add loop in IR (about 4,700 cycles).
+	- Shifts by a count known only at run time call R816_Shl/LShr/AShr32 and 64
+	  (ShiftCall; IR816AppendShift writes them), the count in A.  64 bits: the value is
+	  copied to the result and shifted there, its place in X ([D + n + X]; any frame).  32
+	  bits: the value in the scratch argument a, returned in A and X.  Whole words first
+	  (only the words left are shifted further: a shift by 52 shifts one word 4 bits),
+	  then a byte (a word read a byte along), then 1 to 7 bits with one word in A (64
+	  bits: a loop counted in Y; 32 bits: a jump into 7 unrolled steps).  A 64 bit shift
+	  routine may read and write any of the caller's frame (SIR816Routine::bIndexed),
+	  which IR816FindReads knows.  16 bit variable shifts stay inline.
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call

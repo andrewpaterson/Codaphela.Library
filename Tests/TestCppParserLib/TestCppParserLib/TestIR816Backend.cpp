@@ -1156,6 +1156,125 @@ void TestIR816BackendWide(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The shift runtime routines (R816_Shl64, R816_LShr64, R816_AShr64 on the
+// caller's frame at D + X; R816_Shl32, R816_LShr32 and R816_AShr32 in the
+// scratch bytes): every count, from a function taking the count so it is
+// only known when it runs.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendShiftRoutines(void)
+{
+	static const char*	aszOpcodes[] = { "shl", "lshr", "ashr" };
+	static const uint64	aulliValues[] = { 0x923456789ABCDEF1ULL, 0x5A5A00FF8001C3E7ULL };
+	char				sz[768];
+	CChars				szAssembly;
+	size				i;
+	size				j;
+	size				k;
+	int64				lliExpected;
+	uint64				ulliValue;
+	uint32				uiValue;
+
+	for (k = 0; k < 2; k++)
+	{
+		ulliValue = aulliValues[k];
+		for (j = 0; j < 3; j++)
+		{
+			for (i = 0; i < 64; i++)
+			{
+				lliExpected = (j == 0) ? (int64)(ulliValue << i) : ((j == 1) ? (int64)(ulliValue >> i) : ((int64)ulliValue >> i));
+				snprintf(sz, sizeof(sz), "function i64 @_S__Fy(i64 %%v, i32 %%n), local\n{\nb:\n\t%%m = zext i32 %%n to i64\n\t%%r = %s i64 %%v, %%m\n\tret i64 %%r\n}\n\n"
+					"function i64 @_main()\n{\nb:\n\t%%r = call i64 @_S__Fy(i64 %lld, i32 %d)\n\tret i64 %%r\n}\n", aszOpcodes[j], (int64)ulliValue, (int)i);
+				szAssembly.Init();
+				AssertLong(lliExpected, TestIR816Run(sz, (i % 9) == 0, &szAssembly));
+				AssertTrue(szAssembly.Contains("jsl R816_"));
+				szAssembly.Kill();
+			}
+
+			uiValue = (uint32)(ulliValue >> 13);
+			for (i = 0; i < 32; i++)
+			{
+				lliExpected = (j == 0) ? (int32)(uiValue << i) : ((j == 1) ? (int32)(uiValue >> i) : ((int32)uiValue >> i));
+				snprintf(sz, sizeof(sz), "function i32 @_S__Fl(i32 %%v, i32 %%n), local\n{\nb:\n\t%%r = %s i32 %%v, %%n\n\tret i32 %%r\n}\n\n"
+					"function i32 @_main()\n{\nb:\n\t%%r = call i32 @_S__Fl(i32 %d, i32 %d)\n\tret i32 %%r\n}\n", aszOpcodes[j], (int32)uiValue, (int)i);
+				szAssembly.Init();
+				AssertLong(lliExpected, TestIR816Run(sz, (i % 7) == 0, &szAssembly));
+				AssertTrue(szAssembly.Contains("jsl R816_"));
+				szAssembly.Kill();
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 64 bit multiplies: of two values whose high halves are 0 (an and with
+// 0xFFFFFFFF, an lshr by 32, a zext: R816_UMulWide32) and of any two
+// (R816_Mul64), pseudo random values hashed.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* gszTestIR816Multiply64 =
+	"function i64 @_M__Fyy(i64 %a, i64 %b), local\n{\nb:\n$BODY\tret i64 %m\n}\n\n"
+	"function i64 @_main()\n{\n"
+	"entry:\n\tjmp loop\n"
+	"loop:\n\t%i = phi i16 [entry, 0], [body, %i2]\n\t%x = phi i64 [entry, 1234567], [body, %x2]\n\t%y = phi i64 [entry, 89101112], [body, %y2]\n\t%h = phi i64 [entry, 0], [body, %h3]\n"
+	"\t%done = eq i16 %i, 300\n\tbrif %done, exit, body\n"
+	"body:\n"
+	"\t%xm = mul i64 %x, 6364136223846793005\n\t%x2 = add i64 %xm, 1442695040888963407\n\t%ym = mul i64 %y, 2862933555777941757\n\t%y2 = add i64 %ym, 3037000493\n"
+	"\t%m = call i64 @_M__Fyy(i64 %x2, i64 %y2)\n"
+	"\t%hs = shl i64 %h, 5\n\t%ha = add i64 %hs, %h\n\t%h3 = xor i64 %ha, %m\n"
+	"\t%i2 = add i16 %i, 1\n\tjmp loop\n"
+	"exit:\n\tret i64 %h\n}\n";
+
+void TestIR816BackendMultiply64(void)
+{
+	uint64		x;
+	uint64		y;
+	uint64		h;
+	uint64		m;
+	int			i;
+	int			iKind;
+	CChars		szIR;
+	CChars		szAssembly;
+	const char*	aszBodies[] = {
+		"\t%m = mul i64 %a, %b\n",
+		"\t%la = and i64 %a, 4294967295\n\t%lb = and i64 %b, 4294967295\n\t%m = mul i64 %la, %lb\n",
+		"\t%ha = lshr i64 %a, 32\n\t%lb = and i64 %b, 4294967295\n\t%m = mul i64 %ha, %lb\n",
+		"\t%ta = trunc i64 %a to i32\n\t%za = zext i32 %ta to i64\n\t%hb = lshr i64 %b, 40\n\t%m = mul i64 %za, %hb\n" };
+
+	for (iKind = 0; iKind < 4; iKind++)
+	{
+		x = 1234567;
+		y = 89101112;
+		h = 0;
+		for (i = 0; i < 300; i++)
+		{
+			x = x * 6364136223846793005ULL + 1442695040888963407ULL;
+			y = y * 2862933555777941757ULL + 3037000493ULL;
+			switch (iKind)
+			{
+			case 0:		m = x * y;									break;
+			case 1:		m = (x & 0xFFFFFFFF) * (y & 0xFFFFFFFF);	break;
+			case 2:		m = (x >> 32) * (y & 0xFFFFFFFF);			break;
+			default:	m = (uint64)(uint32)x * (y >> 40);			break;
+			}
+			h = ((h << 5) + h) ^ m;
+		}
+		szIR.Init(gszTestIR816Multiply64);
+		szIR.Replace("$BODY", aszBodies[iKind]);
+		szAssembly.Init();
+		AssertLong((int64)h, TestIR816Run(szIR.Text(), false, &szAssembly));
+		AssertTrue(szAssembly.Contains((iKind == 0) ? "jsl R816_Mul64" : "jsl R816_UMulWide32"));
+		szAssembly.Kill();
+		AssertLong((int64)h, TestIR816Run(szIR.Text(), true));
+		szIR.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Narrow memory, slots, recursion, a variadic function, a function pointer and a thiscall.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1886,6 +2005,8 @@ void TestIR816Backend(void)
 	TestIR816BackendShifts();
 	TestIR816BackendX();
 	TestIR816BackendWide();
+	TestIR816BackendShiftRoutines();
+	TestIR816BackendMultiply64();
 	TestIR816BackendMemoryAndCalls();
 	TestIR816BackendIndexed();
 	TestIR816BackendBranches();

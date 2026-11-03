@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "BaseLib/LeakDetector.h"
 #include "TestLib/Assert.h"
 
@@ -31,6 +32,8 @@ int __cdecl main(void)
 	BreakOnAllocation(0);
 	InitTotalStatistics();
 
+	if (getenv("TEMP_IR816_ONLY")) { TestIR816Backend(); return TestTotalStatistics(); }
+	if (getenv("TEMP_IR816_ONLY")) { TestIR816Backend(); return TestTotalStatistics(); }
 	TestCppErrors();
 	TestPreprocessor();
 	TestProject();
