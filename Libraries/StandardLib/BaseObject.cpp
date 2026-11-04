@@ -479,67 +479,6 @@ void CBaseObject::DoneKill(bool bAllocatedInObjects)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters)
-{
-	//It is assumed at this point that all the tos and froms have been updated.
-	//This method will only be called on an object that can find Root.
-
-	if (IsEmbedded())
-	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
-		return;
-	}
-
-	size									i;
-	CArrayBaseObjectPtrE32		apcFroms;
-	CBaseObject*							pcFrom;
-	CBaseObject*							pcContainer;
-	size									uiNumFroms;
-
-	if (IsRoot())
-	{
-		return;
-	}
-
-	if (!IsDistToRootValid())
-	{
-		pcParameters->AddTouched(this);
-		SetDistToRoot(CLEARED_DIST_TO_ROOT);
-		SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, true);
-
-		apcFroms.Init();
-		GetHeapFroms(&apcFroms);
-
-		uiNumFroms = apcFroms.NumElements();
-		if (uiNumFroms != 0)
-		{
-			for (i = 0; i < uiNumFroms; i ++)
-			{
-				pcFrom = *apcFroms.Get(i);
-				pcContainer = pcFrom->GetEmbeddingContainer();
-				if (!(pcContainer->muiFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT))
-				{
-					pcContainer->CollectValidDistStartingObjectsAndSetClearedToRoot(this, pcParameters);
-				}
-			}
-		}
-
-		apcFroms.Kill();
-	}
-	else
-	{
-		if (pcTo != NULL)
-		{
-			pcParameters->AddExpectedDist(pcTo, miDistToRoot + 1);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Clears this object's distance to the root if it can't still be found
 // from the root, and so on for what it points to, depth first.  The walk
 // keeps its own stack (the parameters' clear candidates): a recursive one
@@ -1006,54 +945,6 @@ bool CBaseObject::HasCloserFrom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::CanFindRootThroughValidPath(void)
-{
-	if (IsEmbedded())
-	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
-		return false;
-	}
-
-	CEmbeddedObject*	pcPointedFrom;
-	bool				bResult;
-	int					iFromDistToRoot;
-
-	if (IsRoot())
-	{
-		return true;
-	}
-	if (miDistToRoot < ROOT_DIST_TO_ROOT)
-	{
-		return false;
-	}
-
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
-
-	pcPointedFrom = GetClosestFromForCanFindRoot();
-	if (pcPointedFrom == NULL)
-	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
-		return false;
-	}
-
-	iFromDistToRoot = pcPointedFrom->GetDistToRoot();
-	if (iFromDistToRoot >= miDistToRoot)
-	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
-		return false;
-	}
-
-	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRootThroughValidPath();
-
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
 	if (IsEmbedded())
@@ -1224,7 +1115,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 		return;
 	}
 
-	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, false);
+	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, false);
 }
 
 
@@ -1234,7 +1125,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::HasDistTouchedFlag(void)
 {
-	return FixBool(muiFlags & (OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT));
+	return FixBool(muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
 }
 
 
@@ -2442,10 +2333,6 @@ void CBaseObject::PrintFlags(CChars* psz)
 	{
 		psz->Append("CALLED_CLASS, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT)
-	{
-		psz->Append("CLEARED_DIST_TO_ROOT, ");
-	}
 	if (muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT)
 	{
 		psz->Append("UPDATED_TOS_DIST_TO_ROOT, ");
@@ -2623,7 +2510,6 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
-	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, "OBJECT_FLAGS_CLEARED_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, "OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, "OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");

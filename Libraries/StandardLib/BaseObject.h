@@ -53,12 +53,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_CLASS				 0x800
 #define OBJECT_FLAGS_CALLED_KILL				 0x001
 
-#define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT		0x1000
 #define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT	0x2000
 #define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED	0x4000
 #define OBJECT_FLAGS_DIST_FROM_WALKED			0x8000
 
-//All flags are used!  You'll need to make miFlags bigger if you need more.
+//0x1000 is free.  Otherwise all flags are used; you'll need to make miFlags bigger if you need more.
 
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
@@ -148,7 +147,6 @@ public:
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
 			bool					TestedForRoot(void);
 			void					UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-			void					CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot = MAX_DIST_TO_ROOT);
 			void					ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
 	virtual bool					IsDistToRootValid(void);
@@ -175,7 +173,6 @@ public:
 	virtual void					SetFlag(uint16 iFlag, uint16 iFlagValue);
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
-			bool					CanFindRootThroughValidPath(void);
 			bool					HasCloserFrom(void);
 			bool					IsHeldFromStackOrRoot(void);
 			void					StopDestructor(void);

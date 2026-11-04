@@ -11,6 +11,9 @@
 #include "EmbeddedObjectTestClasses.h"
 
 
+void AssertDistToRoot(void);  //TestDistToRootUpdate.cpp: every object's distance against a search from the root.
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -45,6 +48,7 @@ void TestClearDistToRootToValidDistComplex(void)
 		Ptr<CPointerContainer>		p9c;
 
 		CDistCalculatorParameters	cDistParameters;
+		CDistToRootCalculator	cDistCalculator;
 
 		pRoot = ORoot();
 		p1 = ONMalloc<CPointerContainer>("Fred's");
@@ -162,22 +166,12 @@ void TestClearDistToRootToValidDistComplex(void)
 		AssertInt(24, (int)gcObjects.NumMemoryIndexes());
 		AssertSize(2, pTest1b->NumHeapFroms());
 
+		//Recalculated as removing the from would, then every distance checked against a search from the root.
 		cDistParameters.Init();
-		pTest1b->CollectValidDistStartingObjectsAndSetClearedToRoot(NULL, &cDistParameters);
-
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest1a->GetDistToRoot());
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest1b->GetDistToRoot());
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest1c->GetDistToRoot());
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest2d->GetDistToRoot());
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest2e->GetDistToRoot());
-
-		AssertSize(2, cDistParameters.NumExpectedDists());
-		AssertPointer(pTest1a.BaseObject(), cDistParameters.GetExpectedDist(0)->pcObject);
-		AssertPointer(pTest1c.BaseObject(), cDistParameters.GetExpectedDist(1)->pcObject);
-		AssertSize(9, cDistParameters.GetExpectedDist(0)->iExpectedDist);
-		AssertInt(12, cDistParameters.GetExpectedDist(1)->iExpectedDist);
-
+		cDistCalculator.Calculate(pTest1b.BaseObject(), &cDistParameters);
+		cDistParameters.ClearTouchedFlags();
 		cDistParameters.Kill();
+		AssertDistToRoot();
 	}
 	ObjectsFlush();
 	ObjectsKill();
@@ -271,6 +265,7 @@ void TestClearDistToRootToValidDistSimpleRight(void)
 		Ptr<CTestObject>			pTest3;
 
 		CDistCalculatorParameters		cDistParameters;
+		CDistToRootCalculator	cDistCalculator;
 
 		pRoot = ORoot();
 		p1 = ONMalloc<CPointerContainer>("III");
@@ -309,17 +304,12 @@ void TestClearDistToRootToValidDistSimpleRight(void)
 		pTest3->TestRemoveHeapFrom(pTest1.BaseObject());
 		AssertSize(1, pTest3->NumHeapFroms());
 
+		//Recalculated as removing the from would, then every distance checked against a search from the root.
 		cDistParameters.Init();
-
-		pTest3->CollectValidDistStartingObjectsAndSetClearedToRoot(NULL, &cDistParameters);
-
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest3->GetDistToRoot());
-
-		AssertSize(1, cDistParameters.NumExpectedDists());
-		AssertPointer(pTest3.BaseObject(), cDistParameters.GetExpectedDist(0)->pcObject);
-		AssertSize(5, cDistParameters.GetExpectedDist(0)->iExpectedDist);
-
+		cDistCalculator.Calculate(pTest3.BaseObject(), &cDistParameters);
+		cDistParameters.ClearTouchedFlags();
 		cDistParameters.Kill();
+		AssertDistToRoot();
 	}
 	ObjectsFlush();
 	ObjectsKill();
@@ -526,7 +516,6 @@ void TestUpdateAttachedTosDistToRootSimpleLeft(void)
 		AssertInt(4, pTest3->GetDistToRoot());
 
 		iFlags = pTest3->GetFlags();
-		AssertFalse(iFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT);
 		AssertFalse(iFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
 
 		gcObjects.ValidateObjectsConsistency();
@@ -1775,7 +1764,7 @@ void TestClearDistToRootToValidDistBroken(void)
 
 
 		CDistCalculatorParameters	cDistParameters;
-		SDistToRoot* psDistToRoot;
+		CDistToRootCalculator	cDistCalculator;
 
 		pRoot = ORoot();
 		p6b = OMalloc<CPointerContainer>();
@@ -1838,23 +1827,12 @@ void TestClearDistToRootToValidDistBroken(void)
 		p6c->mp.UnsafeClearObject();
 		pTest1b->TestRemoveHeapFrom(p6c.BaseObject());
 
+		//Recalculated as removing the from would, then every distance checked against a search from the root.
 		cDistParameters.Init();
-		pTest1b->CollectValidDistStartingObjectsAndSetClearedToRoot(NULL, &cDistParameters);
-
-		AssertSize(1, cDistParameters.NumExpectedDists());
-		psDistToRoot = cDistParameters.GetLowestExpectedDist();
-		AssertLong(6LL, psDistToRoot->pcObject->GetIndex());
-		AssertInt(4, psDistToRoot->iExpectedDist);
-
-		AssertInt(2, p6b->GetDistToRoot());
-		AssertInt(2, p6c->GetDistToRoot());
-		AssertInt(3, pTest1a->GetDistToRoot());
-		AssertInt(CLEARED_DIST_TO_ROOT, pTest1b->GetDistToRoot());
-		AssertInt(4, pTest2a->GetDistToRoot());
-		AssertInt(4, pTest2b->GetDistToRoot());
-		AssertInt(5, pTest3a->GetDistToRoot());
-
+		cDistCalculator.Calculate(pTest1b.BaseObject(), &cDistParameters);
+		cDistParameters.ClearTouchedFlags();
 		cDistParameters.Kill();
+		AssertDistToRoot();
 	}
 	ObjectsFlush();
 	ObjectsKill();
@@ -2091,9 +2069,7 @@ void TestDistToRootLinearToStackScenarioA(void)
 		AssertInt(UNATTACHED_DIST_TO_ROOT, pc1->GetDistToRoot());
 		AssertInt(UNATTACHED_DIST_TO_ROOT, pc2->GetDistToRoot());
 		AssertFalse(pc1->CanFindRoot());
-		AssertFalse(pc1->CanFindRootThroughValidPath());
 		AssertFalse(pc2->CanFindRoot());
-		AssertFalse(pc2->CanFindRootThroughValidPath());
 
 		cDistParameters.Kill();
 	}
@@ -2180,9 +2156,7 @@ void TestDistToRootLinearToStackScenarioB(void)
 		AssertInt(UNATTACHED_DIST_TO_ROOT, pc1->GetDistToRoot());
 		AssertInt(UNATTACHED_DIST_TO_ROOT, pc2->GetDistToRoot());
 		AssertFalse(pc1->CanFindRoot());
-		AssertFalse(pc1->CanFindRootThroughValidPath());
 		AssertFalse(pc2->CanFindRoot());
-		AssertFalse(pc2->CanFindRootThroughValidPath());
 
 		cDistParameters.Kill();
 	}
@@ -2237,7 +2211,7 @@ void TestDistToRootToUpdated(void)
 		pcTest2	= &pTest2;
 		pcTest3	= &pTest3;
 
-		AssertTrue(pTest3->CanFindRootThroughValidPath());
+		AssertTrue(pTest3->CanFindRoot());
 
 		pTest2 = NULL;
 		pTest3 = NULL;
