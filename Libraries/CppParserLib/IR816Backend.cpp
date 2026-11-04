@@ -4229,6 +4229,12 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 	//The passes after Peephole leave stores and loads it would have taken out.
 	RemoveDeadStores(mpszOut, uiStart);
+
+	//Then those dead on every way on from them (the lda that fed one may be loaded over unread now).
+	if (RemoveFlowDeadStores(mpszOut, uiStart))
+	{
+		RemoveDeadStores(mpszOut, uiStart);
+	}
 }
 
 
@@ -7058,6 +7064,649 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 		szOut.Kill();
 	}
 	while (bRemoved);
+}
+
+
+//The direct page bytes RemoveFlowDeadStores tracks, a bit each.
+struct SIR816LiveBytes
+{
+	uint64	aulli[IR816_DIRECT_PAGE / 64];
+};
+
+
+//What a line of the code is to RemoveFlowDeadStores.
+#define IR816FL_OTHER			0	//A comment, a blank line or a directive.
+#define IR816FL_LABEL			1
+#define IR816FL_INSTRUCTION		2
+
+
+//A line of the code RemoveFlowDeadStores works on.
+struct SIR816FlowLine
+{
+	const char*	szLine;
+	const char*	szEnd;
+	SIR816Line	sLine;
+	int			iKind;		//IR816FL_.
+	int			iBytes;		//A direct page store's bytes: 2, 1, or 0 when the width isn't known here.
+	bool		bRuntime;	//A call to a runtime routine: it reads the scratch bytes.
+	bool		bPointer;	//Reads through the pointer at [[D + iPointer]...]: its three bytes.
+	int32		iPointer;
+};
+
+
+//A block of RemoveFlowDeadStores' lines: from a label, or after a line that may go elsewhere, to the next.
+struct SIR816FlowBlock
+{
+	size			uiFirst;
+	size			uiEnd;
+	int				aiNext[2];	//The blocks it goes on to, -1 for none.
+	bool			bLeavesAll;	//It leaves the code with every byte live (a tail call, stp, the code's end).
+	bool			bEntered;	//It may be gone to from outside the code (a function's entry, an indirect call's return).
+	SIR816LiveBytes	sIn;
+	SIR816LiveBytes	sOut;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iBytes bytes from iByte set live (bLive) or dead, or whether any is.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816SetLive(SIR816LiveBytes* psLive, int32 iByte, int iBytes, bool bLive)
+{
+	int		i;
+	int32	iBit;
+
+	for (i = 0; i < iBytes; i++)
+	{
+		iBit = iByte + i;
+		if ((iBit < 0) || (iBit >= IR816_DIRECT_PAGE))
+		{
+			continue;
+		}
+		if (bLive)
+		{
+			psLive->aulli[iBit / 64] |= (uint64)1 << (iBit % 64);
+		}
+		else
+		{
+			psLive->aulli[iBit / 64] &= ~((uint64)1 << (iBit % 64));
+		}
+	}
+}
+
+
+static bool IR816AnyLive(SIR816LiveBytes* psLive, int32 iByte, int iBytes)
+{
+	int		i;
+	int32	iBit;
+
+	for (i = 0; i < iBytes; i++)
+	{
+		iBit = iByte + i;
+		if ((iBit >= 0) && (iBit < IR816_DIRECT_PAGE) && (psLive->aulli[iBit / 64] & ((uint64)1 << (iBit % 64))))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+static bool IR816NoneLive(SIR816LiveBytes* psLive)
+{
+	size	ui;
+
+	for (ui = 0; ui < IR816_DIRECT_PAGE / 64; ui++)
+	{
+		if (psLive->aulli[ui] != 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes live before the line, from those live after it: a direct page
+// store's bytes are dead (but only the low one when its width isn't known),
+// a read's ([D + n]: two, [[D + n]:24 ...]: the pointer's three, a runtime
+// routine: the scratch bytes) live.  Before the direct page moves (pld, tcd)
+// none are live if none are after, else all are (the bytes after are
+// another frame's).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816FlowBack(SIR816FlowLine* psLine, SIR816LiveBytes* psLive)
+{
+	if (psLine->iKind != IR816FL_INSTRUCTION)
+	{
+		return;
+	}
+	if (psLine->sLine.uiFlags & IR816MF_SETS_D)
+	{
+		if (!IR816NoneLive(psLive))
+		{
+			memset(psLive, 0xFF, sizeof(SIR816LiveBytes));
+		}
+		return;
+	}
+	if (psLine->bRuntime)
+	{
+		IR816SetLive(psLive, IR816_SCRATCH_FIRST, IR816_SCRATCH_END - IR816_SCRATCH_FIRST, true);
+		return;
+	}
+	if (psLine->bPointer)
+	{
+		IR816SetLive(psLive, psLine->iPointer, 3, true);
+	}
+	if (psLine->sLine.bDirect)
+	{
+		if (psLine->sLine.uiFlags & IR816MF_STORE)
+		{
+			IR816SetLive(psLive, psLine->sLine.iOffset, (psLine->iBytes == 2) ? 2 : 1, false);
+		}
+		else
+		{
+			IR816SetLive(psLive, psLine->sLine.iOffset, 2, true);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operand is exactly [D + n], or starts [[D + n] (a pointer's),
+// with n in *piOffset; any other mention of the direct page ([D + X],
+// [D + n + X], [D + n + m]) is neither.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816PlainDirect(const char* szOperand, size uiOperand, size uiFrom, int32* piOffset)
+{
+	size	ui;
+
+	if ((uiOperand < uiFrom + 6) || (strncmp(&szOperand[uiFrom], "[D + ", 5) != 0))
+	{
+		return false;
+	}
+	for (ui = uiFrom + 5; (ui < uiOperand) && (szOperand[ui] >= '0') && (szOperand[ui] <= '9'); ui++)
+	{
+	}
+	if ((ui == uiFrom + 5) || (ui >= uiOperand) || (szOperand[ui] != ']'))
+	{
+		return false;
+	}
+	if ((uiFrom == 0) && (ui + 1 != uiOperand))
+	{
+		return false;
+	}
+	*piOffset = atoi(&szOperand[uiFrom + 5]);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line of pasLines labelled szLabel (uiLabel characters), or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLine>* pasLines, const char* szLabel, size uiLabel)
+{
+	size			ui;
+	SIR816FlowLine*	psLine;
+
+	for (ui = 0; ui < pasLines->NumElements(); ui++)
+	{
+		psLine = pasLines->Get(ui);
+		if ((psLine->iKind == IR816FL_LABEL) && ((size)(psLine->szEnd - psLine->szLine) == uiLabel + 1) && (strncmp(psLine->szLine, szLabel, uiLabel) == 0))
+		{
+			return (int)ui;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's code from szText as lines and blocks (from a label, or
+// after a line that may go elsewhere, to the next; a call comes back) and
+// where each block goes.  False if it can't be followed (a jump table, an
+// unknown instruction or jump, a branch to a label it doesn't have), or,
+// with bStores, if the direct page might be reached other than as [D + n]
+// and through pointers at [D + n] (as IR816FindReads: D's value taken or
+// pushed, the direct page indexed, frame operand calls, indexed runtime
+// routines), when what writes and reads it can't be known.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
+{
+	SIR816FlowLine*		psLine;
+	SIR816FlowLine*		psLast;
+	SIR816FlowLine*		psPrevious;
+	SIR816FlowBlock*	psBlock;
+	const char*			szLine;
+	const char*			szEnd;
+	const char*			szOperand;
+	size				ui;
+	size				uj;
+	size				uiLabel;
+	int					iTarget;
+	int					iWidthA;
+	int					iWidthX;
+	int					i;
+	bool				bFrame;
+
+	//The lines, what each reads and writes, and the widths.
+	iWidthA = 16;
+	iWidthX = 16;
+	bFrame = false;
+	for (szLine = szText; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	{
+		szEnd = IR816LineEnd(szLine);
+		psLine = pasLines->Add();
+		memset(psLine, 0, sizeof(SIR816FlowLine));
+		psLine->szLine = szLine;
+		psLine->szEnd = szEnd;
+		psLine->iKind = IR816FL_OTHER;
+		if ((szLine[0] != '\t') && (szEnd > szLine + 1) && (szEnd[-1] == ':'))
+		{
+			psLine->iKind = IR816FL_LABEL;
+			iWidthA = 0;
+			iWidthX = 0;
+			continue;
+		}
+		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] == '.'))
+		{
+			if (strncmp(szLine, "\t\t.width (A, X), 16", 19) == 0)
+			{
+				iWidthA = 16;
+				iWidthX = 16;
+			}
+			else if (strncmp(szLine, "\t\t.width A, 8", 13) == 0)
+			{
+				iWidthA = 8;
+			}
+			else if (strncmp(szLine, "\t\t.width", 8) == 0)
+			{
+				iWidthA = 0;
+				iWidthX = 0;
+			}
+			continue;
+		}
+		if (!IR816IsInstruction(szLine) || (szLine[2] == ';') || (szEnd - szLine < 3))
+		{
+			continue;
+		}
+		psLine->iKind = IR816FL_INSTRUCTION;
+		IR816Decode(szLine, &psLine->sLine);
+		szOperand = psLine->sLine.szOperand;
+		if ((psLine->sLine.uiMnemonic == IR816M_Unknown) || (psLine->sLine.uiFlags & IR816MF_INTERRUPT))
+		{
+			return false;
+		}
+
+		//D's value pushed once it is the frame's (phd) or taken (tdc, but to move S) may be passed on as a pointer.
+		if (bStores && (((psLine->sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine)) || ((psLine->sLine.uiMnemonic == IR816M_Phd) && bFrame)))
+		{
+			return false;
+		}
+		if (psLine->sLine.uiMnemonic == IR816M_Tcd)
+		{
+			bFrame = true;
+		}
+		if (psLine->sLine.uiFlags & IR816MF_CALL)
+		{
+			if (bStores && (psLine->sLine.uiOperand > 3) && (strncmp(&szOperand[psLine->sLine.uiOperand - 3], IR816_FRAME_OPERANDS, 3) == 0))
+			{
+				return false;
+			}
+			if (strncmp(szOperand, IR816_RUNTIME_PREFIX, IR816_RUNTIME_PREFIX_LENGTH) == 0)
+			{
+				if (bStores && IR816IndexedRoutine(szOperand, psLine->sLine.uiOperand))
+				{
+					return false;
+				}
+				psLine->bRuntime = true;
+			}
+		}
+
+		//The direct page only as [D + n] or a pointer there.
+		if (psLine->sLine.bDirect)
+		{
+			if (!IR816PlainDirect(szOperand, psLine->sLine.uiOperand, 0, &psLine->sLine.iOffset) || (psLine->sLine.iOffset + 1 >= IR816_DIRECT_PAGE))
+			{
+				if (bStores)
+				{
+					return false;
+				}
+				psLine->sLine.bDirect = false;
+			}
+			if (psLine->sLine.uiFlags & IR816MF_STORE)
+			{
+				i = ((psLine->sLine.uiMnemonic == IR816M_Stx) || (psLine->sLine.uiMnemonic == IR816M_Sty)) ? iWidthX : iWidthA;
+				psLine->iBytes = (i == 16) ? 2 : (i == 8) ? 1 : 0;
+			}
+		}
+		else if ((psLine->sLine.uiOperand > 1) && (szOperand[0] == '[') && (szOperand[1] == '['))
+		{
+			if (!IR816PlainDirect(szOperand, psLine->sLine.uiOperand, 1, &psLine->iPointer) || (psLine->iPointer + 2 >= IR816_DIRECT_PAGE))
+			{
+				if (bStores)
+				{
+					return false;
+				}
+			}
+			else
+			{
+				psLine->bPointer = true;
+			}
+		}
+		else if (bStores)
+		{
+			for (ui = 0; ui + 5 <= psLine->sLine.uiOperand; ui++)
+			{
+				if (strncmp(&szOperand[ui], "[D + ", 5) == 0)
+				{
+					return false;
+				}
+			}
+		}
+
+		//The widths after it.
+		if (psLine->sLine.uiFlags & IR816MF_WIDTH)
+		{
+			for (ui = 0; ui < psLine->sLine.uiOperand; ui++)
+			{
+				if (szOperand[ui] == 'm')
+				{
+					iWidthA = (psLine->sLine.uiMnemonic == IR816M_Sep) ? 8 : 16;
+				}
+				else if (szOperand[ui] == 'x')
+				{
+					iWidthX = (psLine->sLine.uiMnemonic == IR816M_Sep) ? 8 : 16;
+				}
+				else if ((szOperand[ui] >= '0') && (szOperand[ui] <= '9'))
+				{
+					iWidthA = 0;
+					iWidthX = 0;
+				}
+			}
+		}
+		else if ((psLine->sLine.uiMnemonic == IR816M_Plp) || (psLine->sLine.uiMnemonic == IR816M_Xce) || (psLine->sLine.uiMnemonic == IR816M_Rti))
+		{
+			iWidthA = 0;
+			iWidthX = 0;
+		}
+	}
+
+	//The blocks.  One starting at a label that isn't a local one (Ln) may also be entered from outside the code.
+	psBlock = NULL;
+	for (ui = 0; ui < pasLines->NumElements(); ui++)
+	{
+		psLine = pasLines->Get(ui);
+		if (!psBlock || (psLine->iKind == IR816FL_LABEL))
+		{
+			if (psBlock)
+			{
+				psBlock->uiEnd = ui;
+			}
+			psBlock = pasBlocks->Add();
+			memset(psBlock, 0, sizeof(SIR816FlowBlock));
+			psBlock->uiFirst = ui;
+			psBlock->aiNext[0] = -1;
+			psBlock->aiNext[1] = -1;
+			psBlock->bEntered = (ui == 0) || ((psLine->iKind == IR816FL_LABEL) && !((psLine->szLine[0] == 'L') && (psLine->szLine[1] >= '0') && (psLine->szLine[1] <= '9')));
+		}
+		i = (int)pasBlocks->NumElements() - 1;
+		paiBlockOf->Add(&i);
+		if ((psLine->iKind == IR816FL_INSTRUCTION) && (psLine->sLine.uiFlags & (IR816MF_LEAVES | IR816MF_ENDS_FLOW)) && !(psLine->sLine.uiFlags & IR816MF_CALL) && (psLine->sLine.uiMnemonic != IR816M_Bit))
+		{
+			psBlock->uiEnd = ui + 1;
+			psBlock = NULL;
+		}
+	}
+	if (psBlock)
+	{
+		psBlock->uiEnd = pasLines->NumElements();
+	}
+
+	//An indirect call pushes where it comes back to (per Ln - 1), then the address it goes to, and goes there with an
+	//rtl: that label is gone to from outside the code.
+	for (ui = 0; ui < pasLines->NumElements(); ui++)
+	{
+		psLine = pasLines->Get(ui);
+		if ((psLine->iKind == IR816FL_INSTRUCTION) && (psLine->sLine.uiMnemonic == IR816M_Per))
+		{
+			szOperand = psLine->sLine.szOperand;
+			for (uiLabel = 0; (uiLabel < psLine->sLine.uiOperand) && (szOperand[uiLabel] != ' '); uiLabel++)
+			{
+			}
+			iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLines, szOperand, uiLabel) : -1;
+			if (iTarget < 0)
+			{
+				return false;
+			}
+			pasBlocks->Get(*paiBlockOf->Get(iTarget))->bEntered = true;
+		}
+	}
+
+	//Where each block goes.
+	for (ui = 0; ui < pasBlocks->NumElements(); ui++)
+	{
+		psBlock = pasBlocks->Get(ui);
+		psLast = NULL;
+		psPrevious = NULL;
+		for (uj = psBlock->uiFirst; uj < psBlock->uiEnd; uj++)
+		{
+			if (pasLines->Get(uj)->iKind == IR816FL_INSTRUCTION)
+			{
+				psPrevious = psLast;
+				psLast = pasLines->Get(uj);
+			}
+		}
+		if (!psLast || !(psLast->sLine.uiFlags & (IR816MF_LEAVES | IR816MF_ENDS_FLOW)) || (psLast->sLine.uiFlags & IR816MF_CALL) || (psLast->sLine.uiMnemonic == IR816M_Bit))
+		{
+			//Falls through to the next block, or off the end of the code.
+			if (ui + 1 < pasBlocks->NumElements())
+			{
+				psBlock->aiNext[0] = (int)ui + 1;
+			}
+			else
+			{
+				psBlock->bLeavesAll = true;
+			}
+			continue;
+		}
+		szOperand = psLast->sLine.szOperand;
+		for (uiLabel = 0; (uiLabel < psLast->sLine.uiOperand) && (szOperand[uiLabel] != ' '); uiLabel++)
+		{
+		}
+		iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLines, szOperand, uiLabel) : -1;
+		if (psLast->sLine.uiFlags & IR816MF_BRANCH)
+		{
+			if (iTarget < 0)
+			{
+				return false;
+			}
+			psBlock->aiNext[0] = *paiBlockOf->Get(iTarget);
+			if (!(psLast->sLine.uiFlags & IR816MF_ENDS_FLOW))
+			{
+				if (ui + 1 < pasBlocks->NumElements())
+				{
+					psBlock->aiNext[1] = (int)ui + 1;
+				}
+				else
+				{
+					psBlock->bLeavesAll = true;
+				}
+			}
+		}
+		else if ((psLast->sLine.uiMnemonic == IR816M_Rtl) || (psLast->sLine.uiMnemonic == IR816M_Rts) || (psLast->sLine.uiMnemonic == IR816M_Rti))
+		{
+			//A return after the caller's D is pulled back (pld) in code that pointed D at a frame of its own: the frame
+			//is dead.  Any other rtl may be an indirect call (pha, rtl) or code without a frame (D the caller's).
+			psBlock->bLeavesAll = !(bFrame && psPrevious && (psPrevious->sLine.uiMnemonic == IR816M_Pld));
+		}
+		else if (((psLast->sLine.uiMnemonic == IR816M_Jml) || (psLast->sLine.uiMnemonic == IR816M_Jmp)) && (iTarget >= 0))
+		{
+			psBlock->aiNext[0] = *paiBlockOf->Get(iTarget);
+		}
+		else if ((psLast->sLine.uiMnemonic == IR816M_Stp) || ((psLast->sLine.uiMnemonic == IR816M_Jml) && (psLast->sLine.uiOperand > 0) && (szOperand[0] != '[')))
+		{
+			psBlock->bLeavesAll = true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return pasBlocks->NumElements() > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines of pasLines but those abRemove marks, as the code from uiStart.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816WriteFlow(CChars* pszDest, size uiStart, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<bool>* pabRemove)
+{
+	CChars			szOut;
+	size			ui;
+	SIR816FlowLine*	psLine;
+
+	szOut.Init();
+	for (ui = 0; ui < pasLines->NumElements(); ui++)
+	{
+		if (!*pabRemove->Get(ui))
+		{
+			psLine = pasLines->Get(ui);
+			szOut.Append(psLine->szLine, (size)(psLine->szEnd - psLine->szLine));
+			szOut.AppendNewLine();
+		}
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut.Text(), szOut.Length());
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stores to a direct page word that no way on from them reads before it is
+// written again or the function returns, across the function's branches
+// and labels (RemoveDeadStores only sees straight line code, and
+// RemoveUnreadStores only words nothing reads): the frame is dead after the
+// rtl, and a place shared by values is often stored for one that the code
+// after a branch doesn't use.  Liveness of each byte of the direct page,
+// back over the code's blocks (IR816BuildFlow) until nothing changes.
+// True if any went.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
+{
+	CArrayTemplate<SIR816FlowLine>	asLines;
+	CArrayTemplate<SIR816FlowBlock>	asBlocks;
+	CArrayTemplate<int>				aiBlockOf;
+	CArrayTemplate<bool>			abRemove;
+	SIR816FlowLine*					psLine;
+	SIR816FlowBlock*				psBlock;
+	SIR816FlowBlock*				psNext;
+	SIR816LiveBytes					sLive;
+	size							ui;
+	size							uj;
+	int								i;
+	bool							bChanged;
+	bool							bRemoved;
+	bool							bFalse;
+
+	asLines.Init();
+	asBlocks.Init();
+	aiBlockOf.Init();
+	if (!IR816BuildFlow(pszDest->Text() + uiStart, true, &asLines, &asBlocks, &aiBlockOf))
+	{
+		aiBlockOf.Kill();
+		asBlocks.Kill();
+		asLines.Kill();
+		return false;
+	}
+
+	//Liveness back over the blocks until it settles.
+	do
+	{
+		bChanged = false;
+		for (ui = asBlocks.NumElements(); ui > 0; ui--)
+		{
+			psBlock = asBlocks.Get(ui - 1);
+			if (psBlock->bLeavesAll)
+			{
+				memset(&sLive, 0xFF, sizeof(SIR816LiveBytes));
+			}
+			else
+			{
+				memset(&sLive, 0, sizeof(SIR816LiveBytes));
+			}
+			for (i = 0; i < 2; i++)
+			{
+				if (psBlock->aiNext[i] >= 0)
+				{
+					psNext = asBlocks.Get(psBlock->aiNext[i]);
+					for (uj = 0; uj < IR816_DIRECT_PAGE / 64; uj++)
+					{
+						sLive.aulli[uj] |= psNext->sIn.aulli[uj];
+					}
+				}
+			}
+			psBlock->sOut = sLive;
+			for (uj = psBlock->uiEnd; uj > psBlock->uiFirst; uj--)
+			{
+				IR816FlowBack(asLines.Get(uj - 1), &sLive);
+			}
+			if (memcmp(&sLive, &psBlock->sIn, sizeof(SIR816LiveBytes)) != 0)
+			{
+				psBlock->sIn = sLive;
+				bChanged = true;
+			}
+		}
+	}
+	while (bChanged);
+
+	//The stores none of whose bytes are live after them.
+	abRemove.Init();
+	bFalse = false;
+	for (ui = 0; ui < asLines.NumElements(); ui++)
+	{
+		abRemove.Add(&bFalse);
+	}
+	bRemoved = false;
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		psBlock = asBlocks.Get(ui);
+		sLive = psBlock->sOut;
+		for (uj = psBlock->uiEnd; uj > psBlock->uiFirst; uj--)
+		{
+			psLine = asLines.Get(uj - 1);
+			if ((psLine->iKind == IR816FL_INSTRUCTION) && psLine->sLine.bDirect && (psLine->sLine.uiFlags & IR816MF_STORE) &&
+				!IR816AnyLive(&sLive, psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2))
+			{
+				*abRemove.Get(uj - 1) = true;
+				bRemoved = true;
+				continue;
+			}
+			IR816FlowBack(psLine, &sLive);
+		}
+	}
+	if (bRemoved)
+	{
+		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
+	}
+	abRemove.Kill();
+	aiBlockOf.Kill();
+	asBlocks.Kill();
+	asLines.Kill();
+	return bRemoved;
 }
 
 

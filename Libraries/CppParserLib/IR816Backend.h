@@ -177,6 +177,7 @@ public:
 	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
 	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
+	static bool		RemoveFlowDeadStores(CChars* pszDest, size uiStart);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
