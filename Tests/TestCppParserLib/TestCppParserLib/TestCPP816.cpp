@@ -4600,12 +4600,12 @@ void TestCPP816AlignedBigFrameArguments(void)
 	b[30] = 0; \
 	strcpy(c, "abcabc"); \
 	PutI((long)strlen(a)); PutI((long)gpStrlen(b)); PutI((long)strlen("")); \
-	PutI((long)memcpy(a + 1, b + 2, 10) - (long)a); PutS(a); gpMemcpy(a + 3, b, 5); PutS(a); \
+	PutI((long)((char*)memcpy(a + 1, b + 2, 10) - a)); PutS(a); gpMemcpy(a + 3, b, 5); PutS(a); \
 	memmove(a + 2, a, 20); PutS(a); memmove(a, a + 5, 20); PutS(a); gpMemmove(a + 1, a, 7); PutS(a); \
-	PutI((long)memset(a + 4, 'z', 9) - (long)a); PutS(a); gpMemset(a + 10, gi, 3); PutS(a); memset(a, 'q', 0); PutS(a); \
+	PutI((long)((char*)memset(a + 4, 'z', 9) - a)); PutS(a); gpMemset(a + 10, gi, 3); PutS(a); memset(a, 'q', 0); PutS(a); \
 	PutI(memcmp(a, b, 5) < 0); PutI(gpMemcmp(a, a, 30)); PutI(memcmp(b, a, 5) > 0); PutI(memcmp(a, b, 0)); PutI(memcmp(a + 1, b + 1, 1) != 0); \
 	PutI((long)((char*)memchr(a, 'z', 30) - a)); PutI(gpMemchr(a, '#', 30) == 0); PutI((long)((char*)gpMemchr(a, gi, 30) - a)); \
-	PutI((long)strcpy(b + 40, "hello") - (long)b); PutS(b + 40); gpStrcpy(b + 50, "abc"); PutS(b + 50); \
+	PutI((long)(strcpy(b + 40, "hello") - b)); PutS(b + 40); gpStrcpy(b + 50, "abc"); PutS(b + 50); \
 	strncpy(b + 40, "xy", 5); PutI(b[44]); PutS(b + 40); gpStrncpy(b + 40, "longer", 3); PutS(b + 40); \
 	strcat(b + 40, "end"); PutS(b + 40); gpStrcat(b + 40, "!"); PutS(b + 40); strncat(b + 40, "12345", 2); PutS(b + 40); gpStrncat(b + 40, "9", 5); PutS(b + 40); \
 	PutI(strcmp("abc", "abd") < 0); PutI(gpStrcmp("abc", "abc")); PutI(strcmp("b", "a") > 0); PutI(strncmp("abcx", "abcy", 3)); PutI(gpStrncmp("abcx", "abcy", 4) < 0); \
