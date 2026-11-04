@@ -46,7 +46,6 @@ public:
 	size 				NonNullElements(void) override;
 	bool				IsEmpty(void) override;
 
-	void				SetPointerTosExpectedDistToRoot(int iDistToRoot) override;
 
 	size 				NumPointerTos(void) override;
 	size 				BaseNumPointerTos(void)  override;

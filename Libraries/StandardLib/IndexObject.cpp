@@ -265,48 +265,6 @@ CPointer CIndexObject::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
-{
-	CBaseObject*				pcPointedTo;
-	CBaseObject*				pcContainer;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-	CPointer					pObject;
-
-	pObject = StartIteration(&sIter, NULL, NULL, 0, &bExists);
-	while (bExists)
-	{
-		pcPointedTo = (CBaseObject*)pObject.Object();
-		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-		{
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-			}
-		}
-		else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-		{
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetCalculatedDistToRoot();
-			}
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-		}
-
-		pObject = Iterate(&sIter, NULL, NULL, 0, &bExists);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIterator)
 {
 	CBaseObject*	pcObject;
