@@ -518,7 +518,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
+bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	return true;
 }

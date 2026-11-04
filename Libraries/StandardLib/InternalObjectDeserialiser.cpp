@@ -290,7 +290,7 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
+bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CPointer		pExisitingInDatabase;
 	CBaseObject*	pcExistingObject;

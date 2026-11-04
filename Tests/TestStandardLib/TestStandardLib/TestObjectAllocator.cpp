@@ -866,18 +866,19 @@ void TestObjectAllocatorOverwrittensFlushedObjects(void)
 		AssertLong(2, gcObjects.NumMemoryIndexes());
 		AssertLong(1, gcObjects.NumMemoryNames());
 
+		//Loaded by name, the root's graph is not in memory: nothing attaches them.
 		pNamed2 = gcObjects.Get("Virgil Mallin");
 		AssertSize(0, pNamed2.NumHeapFroms());
-		AssertInt(4, pNamed2.GetDistToRoot());
+		AssertInt(-1, pNamed2.GetDistToRoot());
 		pNamed4 = gcObjects.Get("Henry Lindsey");
 		AssertSize(0, pNamed4.NumHeapFroms());
-		AssertInt(3, pNamed4.GetDistToRoot());
+		AssertInt(-1, pNamed4.GetDistToRoot());
 		pNamed5 = gcObjects.Get("Wilfrid Stanley");
 		AssertSize(0, pNamed5.NumHeapFroms());
-		AssertInt(3, pNamed5.GetDistToRoot());
+		AssertInt(-1, pNamed5.GetDistToRoot());
 		pNamed7 = gcObjects.Get("Matt Hudson");
 		AssertSize(1, pNamed7.NumHeapFroms());
-		AssertInt(4, pNamed7.GetDistToRoot());
+		AssertInt(-1, pNamed7.GetDistToRoot());
 		pNamed8 = gcObjects.Get("Kiva Charity");
 		AssertSize(0, pNamed8.NumHeapFroms());
 		AssertInt(-1, pNamed8.GetDistToRoot());

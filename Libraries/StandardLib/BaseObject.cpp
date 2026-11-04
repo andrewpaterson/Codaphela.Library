@@ -1619,12 +1619,8 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	size			i;
 	size			uiNumElements;
 	CBaseObject*	pcHeapFrom;
-	int32			iDistToRoot;
 
-	iDistToRoot = GetDistToRoot();
-	bResult = pcFile->WriteInt32(iDistToRoot);
-	ReturnOnFalse(bResult);
-
+	//Distances to the root are not saved.  They describe the objects in memory and are worked out from the froms there.
 	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
@@ -1637,8 +1633,6 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	{
 		pcHeapFrom = CEmbeddedObject::GetHeapFrom(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom, false);
-		iDistToRoot = pcHeapFrom->GetDistToRoot();
-		bResult &= pcFile->WriteInt32(iDistToRoot);
 		ReturnOnFalse(bResult);
 	}
 	
@@ -1986,16 +1980,10 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
 	bool				bResult;
-	int32				iDistToRoot;
-	
-	bResult = pcFile->ReadInt32(&iDistToRoot);
-	ReturnOnFalse(bResult);
-
-	miDistToRoot = iDistToRoot;
-
 	size				i;
 	size				uiNumElements;
 
+	//The distance to the root is not loaded.  It is the one the replaced hollow had from its froms in memory (unattached if none).
 	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 

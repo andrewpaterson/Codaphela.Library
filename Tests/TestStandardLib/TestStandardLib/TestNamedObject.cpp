@@ -132,7 +132,8 @@ void TestNamedObjectName(void)
 
 	AssertTrue(pSet.IsNotNull());
 	AssertFalse(pSet.IsHollow());
-	AssertInt(1, pSet.GetDistToRoot());
+	//Loaded without the root: nothing in memory attaches it.
+	AssertInt(-1, pSet.GetDistToRoot());
 
 	AssertSize(1, pSet->NumElements());
 	pResult3 = pSet->UnsafeGet(0);
