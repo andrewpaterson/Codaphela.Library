@@ -25,6 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //The most differences Match looks through; past it the lines from before are only found one after another.
 #define IR_SOURCE_MARKERS_MAX_DIFFERENCES	4000
 
+//The fewest lines in a run found out of order (MatchMoved); fewer could be a few common lines that only look the same.
+#define IR_SOURCE_MARKERS_MIN_MOVED			3
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -100,19 +103,21 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 //
 // Puts the markers Take took out back into the code from uiStart: the
-// passes keep the order of the lines they leave, so the lines from before
-// are found as the longest run of them in order (Match); between two
-// found, the lines not found are paired in order with
-// the lines now there (as a pass rewrites a line in place).  A marker goes
-// before the first line it was before that has a place now.  Of markers
-// that go before one line only the last stays (the code of the others
-// went).
+// passes mostly keep the order of the lines they leave, so the lines from
+// before are found as the longest run of them in order (Match), then the
+// blocks a pass moved are found wherever they went (MatchMoved); between
+// two found, the lines not found are paired in order with the lines now
+// there (as a pass rewrites a line in place).  A marker goes before the
+// first line it was before that has a place now.  Of markers that go
+// before one line only the last stays (the code of the others went).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 {
 	CArrayChars				aszLines;
 	CArrayTemplate<int32>	aiFound;		//Per line from before: where it is now, or -1.
+	CArrayTemplate<int32>	aiMoved;		//Per line from before: where it was moved to, or -1.
+	CArrayTemplate<int32>	aiOwner;		//Per line now: the line from before found there, or -1.
 	CArrayTemplate<int32>	aiMarker;		//Per line now (and one past the end): the marker that goes before it, or -1.
 	size					ui;
 	int32					iFound;
@@ -137,8 +142,22 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 
 	aiFound.Init();
 	Match(&aszLines, &aiFound);
+	aiOwner.Init();
+	aiOwner.GrowToAtLeastNumElements(aszLines.NumElements(), true, -1);
+	for (ui = 0; ui < maszLines.NumElements(); ui++)
+	{
+		iFound = *aiFound.Get(ui);
+		if (iFound >= 0)
+		{
+			iBefore = (int32)ui;
+			aiOwner.Set((size)iFound, &iBefore);
+		}
+	}
+	aiMoved.Init();
+	MatchMoved(&aszLines, &aiFound, &aiOwner, &aiMoved);
 
-	//Between two lines found, the lines not found are taken to be the ones there now, in order (a pass rewrote them).
+	//Between two lines found in order, the lines not found are taken to be the ones there now that no line was found
+	//at, in order (a pass rewrote them).
 	iPrevious = -1;
 	uiGapStart = 0;
 	for (ui = 0; ui <= maszLines.NumElements(); ui++)
@@ -149,12 +168,33 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 			continue;
 		}
 		iNew = iPrevious + 1;
-		for (uiGap = uiGapStart; (uiGap < ui) && (iNew < iFound); uiGap++, iNew++)
+		for (uiGap = uiGapStart; uiGap < ui; uiGap++)
 		{
-			aiFound.Set(uiGap, &iNew);
+			while ((iNew < iFound) && (*aiOwner.Get((size)iNew) >= 0))
+			{
+				iNew++;
+			}
+			if (iNew >= iFound)
+			{
+				break;
+			}
+			if (*aiMoved.Get(uiGap) < 0)
+			{
+				aiFound.Set(uiGap, &iNew);
+				iNew++;
+			}
 		}
 		iPrevious = iFound;
 		uiGapStart = ui + 1;
+	}
+
+	//The moved lines are where they went.
+	for (ui = 0; ui < maszLines.NumElements(); ui++)
+	{
+		if (*aiMoved.Get(ui) >= 0)
+		{
+			aiFound.Set(ui, aiMoved.Get(ui));
+		}
 	}
 
 	aiMarker.Init();
@@ -194,8 +234,80 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 		}
 	}
 	aiMarker.Kill();
+	aiMoved.Kill();
+	aiOwner.Kill();
 	aiFound.Kill();
 	aszLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Finds the blocks a pass moved: runs of at least
+// IR_SOURCE_MARKERS_MIN_MOVED lines from before that Match didn't find,
+// the same and in the same order as lines now that no line was found at.
+// The longest run is taken, the first of equals.  paiMoved gets per line
+// from before where it went, or -1; paiOwner (per line now, the line from
+// before found there) gets the runs too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRSourceMarkers::MatchMoved(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound, CArrayTemplate<int32>* paiOwner, CArrayTemplate<int32>* paiMoved)
+{
+	size	uiBefore;
+	size	uiNow;
+	size	uiLength;
+	size	uiBest;
+	size	uiBestLength;
+	size	uiNumBefore;
+	size	uiNumNow;
+	size	ui;
+	int32	iValue;
+
+	uiNumBefore = maszLines.NumElements();
+	uiNumNow = pasLines->NumElements();
+	paiMoved->GrowToAtLeastNumElements(uiNumBefore, true, -1);
+
+	uiBefore = 0;
+	while (uiBefore < uiNumBefore)
+	{
+		if (*paiFound->Get(uiBefore) >= 0)
+		{
+			uiBefore++;
+			continue;
+		}
+
+		uiBest = 0;
+		uiBestLength = 0;
+		for (uiNow = 0; uiNow < uiNumNow; uiNow++)
+		{
+			for (uiLength = 0; (uiBefore + uiLength < uiNumBefore) && (uiNow + uiLength < uiNumNow); uiLength++)
+			{
+				if ((*paiFound->Get(uiBefore + uiLength) >= 0) || (*paiOwner->Get(uiNow + uiLength) >= 0) || !maszLines.Get(uiBefore + uiLength)->Equals(pasLines->Get(uiNow + uiLength)))
+				{
+					break;
+				}
+			}
+			if (uiLength > uiBestLength)
+			{
+				uiBest = uiNow;
+				uiBestLength = uiLength;
+			}
+		}
+
+		if (uiBestLength < IR_SOURCE_MARKERS_MIN_MOVED)
+		{
+			uiBefore++;
+			continue;
+		}
+		for (ui = 0; ui < uiBestLength; ui++)
+		{
+			iValue = (int32)(uiBest + ui);
+			paiMoved->Set(uiBefore + ui, &iValue);
+			iValue = (int32)(uiBefore + ui);
+			paiOwner->Set(uiBest + ui, &iValue);
+		}
+		uiBefore += uiBestLength;
+	}
 }
 
 

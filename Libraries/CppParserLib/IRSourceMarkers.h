@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The source markers (IR_SOURCE_MARKER lines) of a function's code, taken out before a back end's text passes so the
 //passes see the code they would without them (a listing's code is the same as the one without), and put back after:
-//each before the first line it was before that is still there.
+//each before the first line it was before that is still there, wherever a pass moved it.
 class CIRSourceMarkers
 {
 protected:
@@ -43,6 +43,7 @@ public:
 
 protected:
 	void	Match(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound);
+	void	MatchMoved(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound, CArrayTemplate<int32>* paiOwner, CArrayTemplate<int32>* paiMoved);
 };
 
 

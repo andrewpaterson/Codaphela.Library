@@ -1445,6 +1445,74 @@ void TestIRSourceMarkers(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// A block a pass moves keeps its marker: line 6's code moved to the end
+// is still line 6's, not lost to line 7's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRSourceMarkersMovedBlock(void)
+{
+	CIRSourceMarkers	cMarkers;
+	CChars				sz;
+
+	sz.Init(
+		"_F:\n"
+		"\t\t;@5\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [0 + W], A\n"
+		"\t\t;@6\n"
+		"L1:\n"
+		"\t\tcpy A, 5\n"
+		"\t\tadd A, 6\n"
+		"\t\tcpy [2], A\n"
+		"\t\t;@7\n"
+		"\t\tcpy A, 1\n"
+		"\t\tcpy [4], A\n"
+		"\t\tret\n");
+	cMarkers.Init();
+	cMarkers.Take(&sz, 0);
+
+	//The passes: the + W goes and L1's block goes to the end.  The block is longer than the code left in place, so
+	//it's the code left in place that's found out of order.
+	sz.Kill();
+	sz.Init(
+		"_F:\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [0], A\n"
+		"\t\tbra L1\n"
+		"L2:\n"
+		"\t\tcpy A, 1\n"
+		"\t\tcpy [4], A\n"
+		"\t\tret\n"
+		"L1:\n"
+		"\t\tcpy A, 5\n"
+		"\t\tadd A, 6\n"
+		"\t\tcpy [2], A\n"
+		"\t\tbra L2\n");
+	cMarkers.Put(&sz, 0);
+	AssertString(
+		"_F:\n"
+		"\t\t;@5\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [0], A\n"
+		"\t\tbra L1\n"
+		"L2:\n"
+		"\t\t;@7\n"
+		"\t\tcpy A, 1\n"
+		"\t\tcpy [4], A\n"
+		"\t\tret\n"
+		"\t\t;@6\n"
+		"L1:\n"
+		"\t\tcpy A, 5\n"
+		"\t\tadd A, 6\n"
+		"\t\tcpy [2], A\n"
+		"\t\tbra L2\n", sz.Text());
+	cMarkers.Kill();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void TestIR65BackendPeepholeJumps(void)
 {
 	TestIR65PeepholeOptimise(
@@ -1532,6 +1600,7 @@ void TestIR65Backend(void)
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIRSourceMarkers();
+	TestIRSourceMarkersMovedBlock();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();
