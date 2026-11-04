@@ -942,6 +942,16 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		}
 	}
 
+	U16(Add((uint16)masDeclared.NumElements()));
+	for (i = 0; i < masDeclared.NumElements(); i++)
+	{
+		psDeclared = masDeclared.Get(i);
+		U8((psDeclared->bAlias ? 1 : 0) | (psDeclared->uiReuse << 1));
+		U16(Scope(psDeclared->pcScope));
+		U16(Name(psDeclared->lliName));
+		U16(Symbol(psDeclared->pcSymbol));
+	}
+
 	for (i = 0; i < mapcScopes.NumElements(); i++)
 	{
 		pcScope = mapcScopes.GetPtr(i);
@@ -988,15 +998,6 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		U16(NodeIndex(pcSymbol->mpcLazy));
 	}
 
-	U16(Add((uint16)masDeclared.NumElements()));
-	for (i = 0; i < masDeclared.NumElements(); i++)
-	{
-		psDeclared = masDeclared.Get(i);
-		U8(psDeclared->bAlias ? 1 : 0);
-		U16(Scope(psDeclared->pcScope));
-		U16(Name(psDeclared->lliName));
-		U16(Symbol(psDeclared->pcSymbol));
-	}
 
 	cFields.mpcWriting = this;
 	for (i = 0; i < mapcNodes.NumElements(); i++)
@@ -1092,6 +1093,18 @@ ECPPSyntaxBlock CCPPSyntaxBlockWriter::Write(CCPPSyntaxTree* pcTree, CCPPSyntax*
 			psDeclared->lliName = pcSymbol->mlliName;
 			psDeclared->pcSymbol = pcSymbol;
 			psDeclared->bAlias = false;
+			psDeclared->uiReuse = 0;
+			if (pcSymbol->IsClass() && pcSymbol->mpcDeclaration)
+			{
+				if (pcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier)
+				{
+					psDeclared->uiReuse = CPP_SYNTAX_BLOCK_REUSE_DEFINITION;
+				}
+				else if (pcSymbol->mpcDeclaration->GetKind() == CPPS_ElaboratedTypeSpecifier)
+				{
+					psDeclared->uiReuse = CPP_SYNTAX_BLOCK_REUSE_ELABORATED;
+				}
+			}
 		}
 	}
 	for (i = 0; !pasDeclared && (cWriting.meResult == CPPSB_Written) && (i < cWriting.mapcScopes.NumElements()); i++)
@@ -1111,6 +1124,7 @@ ECPPSyntaxBlock CCPPSyntaxBlockWriter::Write(CCPPSyntaxTree* pcTree, CCPPSyntax*
 				psDeclared->lliName = *plliName;
 				psDeclared->pcSymbol = *ppcSymbol;
 				psDeclared->bAlias = true;
+				psDeclared->uiReuse = 0;
 			}
 		}
 	}
@@ -1688,6 +1702,11 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	SCPPSyntaxBlockString*		psString;
 	CArraySyntaxBlockDeclared	asDeclared;
 	SCPPSyntaxBlockDeclared*	psDeclared;
+	CArraySymbols				apcOwn;			//Its own symbols as made (a reused class's record is read into it).
+	CArrayTemplate<CCPPSymbol*>	apcRecords;		//By declared: the own symbol whose record a reused class takes, or NULL.
+	CCPPSymbol*					pcRecord;
+	uint16						uiSymbol;
+	uint8						uiFlags;
 	uint16						uiNodes;
 	uint16						uiNames;
 	uint16						uiExternals;
@@ -1707,10 +1726,14 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 
 	cReading.Init(puiBlock, uiLength, pcTree, iFirstToken);
 	asDeclared.Init();
+	apcOwn.Init();
+	apcRecords.Init();
 	pcSymbols = pcTree->GetSymbols();
 	if (cReading.U32() != CPP_SYNTAX_BLOCK_MAGIC)
 	{
 		asDeclared.Kill();
+		apcRecords.Kill();
+		apcOwn.Kill();
 		cReading.Kill();
 		return NULL;
 	}
@@ -1753,7 +1776,9 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	}
 	for (i = 0; i < uiSymbols; i++)
 	{
-		cReading.mapcSymbols.Add(pcSymbols->CreateSymbol(-1, CPPSK_Variable, NULL, NULL));
+		pcSymbol = pcSymbols->CreateSymbol(-1, CPPSK_Variable, NULL, NULL);
+		cReading.mapcSymbols.Add(pcSymbol);
+		apcOwn.Add(pcSymbol);
 	}
 
 	//The externals, each found from those before it.
@@ -1792,6 +1817,36 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		cReading.mapcExternalSymbols.Add(pcSymbol);
 	}
 
+	//What it put in scopes outside it, put there again (or given) once the block is read.  A class it declares is, as
+	//parsing does, the class of its name already in the scope if there is one: the block's references to it are to that
+	//class, and its symbol's record is only read (a definition's declaration and members are the class's when the block
+	//is read; an elaborated declaration only names the class).
+	uiCount = cReading.U16();
+	for (i = 0; (i < uiCount) && !cReading.mbError; i++)
+	{
+		psDeclared = asDeclared.Add();
+		uiFlags = cReading.U8();
+		psDeclared->bAlias = (uiFlags & 1) != 0;
+		psDeclared->uiReuse = uiFlags >> 1;
+		psDeclared->pcScope = cReading.Scope(cReading.U16());
+		psDeclared->lliName = cReading.Name(cReading.U16());
+		uiSymbol = cReading.U16();
+		psDeclared->pcSymbol = cReading.Symbol(uiSymbol);
+		cReading.mbError |= !psDeclared->pcScope || !psDeclared->pcSymbol;
+		pcRecord = NULL;
+		if (!cReading.mbError && !pasDeclared && (psDeclared->uiReuse != 0) && !(uiSymbol & CPP_SYNTAX_BLOCK_EXTERNAL))
+		{
+			pcSymbol = psDeclared->pcScope->FindHere(psDeclared->lliName);
+			if (pcSymbol && pcSymbol->IsClass() && ((psDeclared->uiReuse == CPP_SYNTAX_BLOCK_REUSE_ELABORATED) || !(pcSymbol->mpcMembers && (pcSymbol->mpcMembers->mpcOwner != pcSymbol))))
+			{
+				pcRecord = apcOwn.GetPtr(uiSymbol);
+				cReading.mapcSymbols.SetPtr(uiSymbol, pcSymbol);
+				psDeclared->pcSymbol = pcSymbol;
+			}
+		}
+		apcRecords.Add(&pcRecord);
+	}
+
 	for (i = 0; (i < uiScopes) && !cReading.mbError; i++)
 	{
 		pcScope = cReading.mapcScopes.GetPtr(i);
@@ -1821,7 +1876,7 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 
 	for (i = 0; (i < uiSymbols) && !cReading.mbError; i++)
 	{
-		pcSymbol = cReading.mapcSymbols.GetPtr(i);
+		pcSymbol = apcOwn.GetPtr(i);
 		pcSymbol->mlliName = cReading.Name(cReading.U16());
 		pcSymbol->meKind = (ECPPSymbolKind)cReading.U8();
 		pcSymbol->mpcDeclaration = cReading.Node(cReading.U16());
@@ -1832,17 +1887,6 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		pcSymbol->mpcLoader = pcSymbol->mpcLazy ? pcLoader : NULL;
 	}
 
-	//What it put in scopes outside it, put there again (or given) once the block is read.
-	uiCount = cReading.U16();
-	for (i = 0; (i < uiCount) && !cReading.mbError; i++)
-	{
-		psDeclared = asDeclared.Add();
-		psDeclared->bAlias = cReading.U8() != 0;
-		psDeclared->pcScope = cReading.Scope(cReading.U16());
-		psDeclared->lliName = cReading.Name(cReading.U16());
-		psDeclared->pcSymbol = cReading.Symbol(cReading.U16());
-		cReading.mbError |= !psDeclared->pcScope || !psDeclared->pcSymbol;
-	}
 
 	cFields.mpcReading = &cReading;
 	for (i = 0; (i < uiNodes) && !cReading.mbError; i++)
@@ -1869,9 +1913,19 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	for (i = 0; pcDeclaration && (i < asDeclared.NumElements()); i++)
 	{
 		psDeclared = asDeclared.Get(i);
+		pcSymbol = *apcRecords.Get(i);
 		if (pasDeclared)
 		{
 			pasDeclared->Add(psDeclared);
+		}
+		else if (pcSymbol)
+		{
+			//The class there already: defined by the block, or only named.
+			if (psDeclared->uiReuse == CPP_SYNTAX_BLOCK_REUSE_DEFINITION)
+			{
+				psDeclared->pcSymbol->mpcDeclaration = pcSymbol->mpcDeclaration;
+				psDeclared->pcSymbol->mpcMembers = pcSymbol->mpcMembers;
+			}
 		}
 		else if (psDeclared->bAlias)
 		{
@@ -1884,6 +1938,8 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		}
 	}
 	asDeclared.Kill();
+	apcRecords.Kill();
+	apcOwn.Kill();
 	cReading.Kill();
 	return pcDeclaration;
 }

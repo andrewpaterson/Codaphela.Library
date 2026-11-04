@@ -30,13 +30,18 @@ class CCPPLazyLoader;
 
 
 //What a block's declaration put in a scope outside it: a symbol of its own declared there (CCPPScope::Add), or a
-//name of the scope that finds its symbol (CCPPScope::AddAlias, as an unscoped enum's enumerators are found).
+//name of the scope that finds its symbol (CCPPScope::AddAlias, as an unscoped enum's enumerators are found).  A class
+//is, as parsing does, the class of its name already there if there is one (uiReuse): a class definition's (as after
+//class X;; it then has the definition and its members), or an elaborated declaration's (class X; or friend class X;).
+#define CPP_SYNTAX_BLOCK_REUSE_DEFINITION	1
+#define CPP_SYNTAX_BLOCK_REUSE_ELABORATED	2
 struct SCPPSyntaxBlockDeclared
 {
 	CCPPScope*		pcScope;
 	int64			lliName;
 	CCPPSymbol*		pcSymbol;
 	bool			bAlias;
+	uint8			uiReuse;		//0, or CPP_SYNTAX_BLOCK_REUSE_DEFINITION or _ELABORATED.
 };
 
 
@@ -56,11 +61,12 @@ typedef CArrayTemplate<SCPPSyntaxBlockDeclared>	CArraySyntaxBlockDeclared;
 //  externals   u8 kind: global scope; members of (u16 symbol); symbol (u16 scope, u16 name, and where its declaration
 //              starts: u16 file's name, u32 line, u16 column);
 //              parent of (u16 scope: a class template's parameters are its members' parent)
+//  declared    u16 count + (u8 alias 1 | reuse << 1, u16 scope, u16 name, u16 symbol): what it put in scopes outside
+//              it, in order: its own symbols declared there (added when read; a class reuses the class there), and
+//              names there finding its symbols (aliases).  Before the scopes and symbols that may be a reused class.
 //  scopes      u8 kind, u16 parent, u16 owner, u8 dependent, u16 qualifier, u16 count + bases, u16 count + usings,
 //              u16 count + names (u16 name, u16 symbol)
 //  symbols     u16 name, u8 kind, u16 declaration, u16 scope, u16 members, u16 next, u16 lazy declaration
-//  declared    u16 count + (u8 alias, u16 scope, u16 name, u16 symbol): what it put in scopes outside it, in order: its
-//              own symbols declared there (added when read), and names there finding its symbols (aliases)
 //  nodes       u16 parent, u16 first token, u16 last token, then its fields
 //  tokens      u16 symbol, u8 role
 //
