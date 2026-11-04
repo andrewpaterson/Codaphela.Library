@@ -114,6 +114,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mauiStopStarts.Init();
 	mauiLineStarts.Init();
 	masGaps.Init();
+	muiNextGapId = 1;
 	FindLineStarts();
 	muiChangeCount = 0;
 	muiCaret = 0;
@@ -195,6 +196,7 @@ void CTextArea::Class(void)
 	U_Data(CArrayTextAreaStopStart, mauiStopStarts);
 	U_Data(CArrayTextAreaLineStart, mauiLineStarts);
 	U_Data(CArrayTextLayoutGap, masGaps);
+	U_UInt32(muiNextGapId);
 	U_Size(muiCaret);
 	U_Size(muiAnchor);
 	U_Bool(mbCaretAtRowEnd);
@@ -1114,9 +1116,117 @@ bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
 		psGap = masGaps.InsertAt(uiGap);
 		psGap->uiLine = uiLine;
 		psGap->iHeight = iHeight;
+		psGap->uiId = muiNextGapId;
+		muiNextGapId++;
 	}
 	GapsChanged();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The id of line uiLine's gap, 0 if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CTextArea::GetLineGapId(size uiLine)
+{
+	size			uiGap;
+	STextLayoutGap*	psGap;
+
+	uiGap = FindGap(uiLine);
+	if (uiGap >= masGaps.NumElements())
+	{
+		return 0;
+	}
+	psGap = masGaps.Get(uiGap);
+	return (psGap->uiLine == uiLine) ? psGap->uiId : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line the gap with id uiId is below, MAX_SIZE if it has gone.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::FindLineGap(uint32 uiId)
+{
+	size			i;
+	STextLayoutGap*	psGap;
+
+	for (i = 0; i < masGaps.NumElements(); i++)
+	{
+		psGap = masGaps.Get(i);
+		if (psGap->uiId == uiId)
+		{
+			return psGap->uiLine;
+		}
+	}
+	return MAX_SIZE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gaps, sorted by line.  Don't change them.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayTextLayoutGap* CTextArea::GetLineGaps(void)
+{
+	return &masGaps;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gaps become a copy of pasGaps (sorted by line, at most one a line,
+// with their ids), such as another text area's, laid out again only if
+// their lines or heights changed.  Gaps past the last line are ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetLineGaps(CArrayTextLayoutGap* pasGaps)
+{
+	size			i;
+	size			uiNumGaps;
+	STextLayoutGap*	psGap;
+	STextLayoutGap*	psOther;
+	bool			bSame;
+
+	uiNumGaps = 0;
+	for (i = 0; i < pasGaps->NumElements(); i++)
+	{
+		if (pasGaps->Get(i)->uiLine < NumLines())
+		{
+			uiNumGaps++;
+		}
+	}
+
+	bSame = (uiNumGaps == masGaps.NumElements());
+	for (i = 0; bSame && (i < uiNumGaps); i++)
+	{
+		psGap = masGaps.Get(i);
+		psOther = pasGaps->Get(i);
+		bSame = (psGap->uiLine == psOther->uiLine) && (psGap->iHeight == psOther->iHeight);
+	}
+	if (bSame)
+	{
+		return;
+	}
+
+	masGaps.ReInit();
+	for (i = 0; i < pasGaps->NumElements(); i++)
+	{
+		psOther = pasGaps->Get(i);
+		if ((psOther->uiLine < NumLines()) && (psOther->iHeight > 0))
+		{
+			*masGaps.Add() = *psOther;
+			if (psOther->uiId >= muiNextGapId)
+			{
+				muiNextGapId = psOther->uiId + 1;
+			}
+		}
+	}
+	GapsChanged();
 }
 
 

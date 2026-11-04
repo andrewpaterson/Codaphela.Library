@@ -81,7 +81,8 @@ typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
 //text area to draw something in, such as the code a line compiled to.  A gap goes under the last row of a wrapped
 //line; in tiles it is rounded up to whole rows.  The caret and selection go over gaps as if they weren't there.  A gap
 //stays with its line as text is edited: it moves down with a line pushed down by line feeds put in at its start, and
-//goes with a line that is deleted or joined onto the line above.
+//goes with a line that is deleted or joined onto the line above.  Each gap has an id (GetLineGapId) for finding the
+//line it is with after edits (FindLineGap); it keeps it while it is there, through changes of height too.
 class CTextArea : public CCanvas
 {
 CONSTRUCTABLE(CTextArea);
@@ -120,6 +121,7 @@ protected:
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
 	CArrayTextAreaLineStart	mauiLineStarts;  //The first byte of each line, kept as the text is edited.
 	CArrayTextLayoutGap	masGaps;  //Sorted by line, at most one a line.
+	uint32				muiNextGapId;  //The id the next new gap gets, from 1.
 	size				muiCaret;
 	size				muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
 	bool				mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
@@ -187,6 +189,10 @@ public:
 	size				NumLineGaps(void);
 	void				ClearLineGaps(void);
 	bool				GetLineGapBounds(size uiLine, CInt32Rect* pcDest);
+	uint32				GetLineGapId(size uiLine);
+	size				FindLineGap(uint32 uiId);
+	CArrayTextLayoutGap*	GetLineGaps(void);
+	void				SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
 	//The functions of a CTextEditor.
 	void				Up(void);

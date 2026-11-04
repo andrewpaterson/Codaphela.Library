@@ -93,11 +93,12 @@ struct STextLayoutLine
 
 
 //Space left empty below a line of the text (one ended by a line feed, or the last), under its last row when it is
-//wrapped.  uiLine counts the line feeds before the line.
+//wrapped.  uiLine counts the line feeds before the line.  uiId is the gap's owner's, the layout doesn't use it.
 struct STextLayoutGap
 {
 	size		uiLine;
 	int32		iHeight;
+	uint32		uiId;
 };
 
 
