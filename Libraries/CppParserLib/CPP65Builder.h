@@ -238,6 +238,8 @@ public:
 	char*			GetMap(void);
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);
+	size			NumUnitObjects(void);
+	CAsm65Object*	GetUnitObject(size uiIndex);
 	void			GetMissingNames(CChars* pszDest);
 	size			NumUnits(void);
 	bool			GetSymbol(const char* szName, int64* plliValue);
