@@ -7264,22 +7264,81 @@ static bool IR816PlainDirect(const char* szOperand, size uiOperand, size uiFrom,
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// The line of pasLines labelled szLabel (uiLabel characters), or -1.
-//
-//////////////////////////////////////////////////////////////////////////
-static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLine>* pasLines, const char* szLabel, size uiLabel)
+//A label of the code (IR816BuildFlow): its name (uiLength characters, without the ':') and its line.
+struct SIR816FlowLabel
 {
-	size			ui;
-	SIR816FlowLine*	psLine;
+	const char*	szLabel;
+	size		uiLength;
+	int			iLine;
+};
 
-	for (ui = 0; ui < pasLines->NumElements(); ui++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Orders labels by name (then line, so the first of a name comes first).
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816CompareFlowLabels(const void* pv1, const void* pv2)
+{
+	const SIR816FlowLabel*	ps1;
+	const SIR816FlowLabel*	ps2;
+	int						iResult;
+
+	ps1 = (const SIR816FlowLabel*)pv1;
+	ps2 = (const SIR816FlowLabel*)pv2;
+	iResult = memcmp(ps1->szLabel, ps2->szLabel, (ps1->uiLength < ps2->uiLength) ? ps1->uiLength : ps2->uiLength);
+	if (iResult == 0)
 	{
-		psLine = pasLines->Get(ui);
-		if ((psLine->iKind == IR816FL_LABEL) && ((size)(psLine->szEnd - psLine->szLine) == uiLabel + 1) && (strncmp(psLine->szLine, szLabel, uiLabel) == 0))
+		iResult = (ps1->uiLength < ps2->uiLength) ? -1 : ((ps1->uiLength > ps2->uiLength) ? 1 : 0);
+	}
+	if (iResult == 0)
+	{
+		iResult = ps1->iLine - ps2->iLine;
+	}
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first line labelled szLabel (uiLabel characters), or -1, in pasLabels
+// (sorted by IR816CompareFlowLabels).
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLabel>* pasLabels, const char* szLabel, size uiLabel)
+{
+	size				uiLow;
+	size				uiHigh;
+	size				uiMiddle;
+	SIR816FlowLabel*	psLabel;
+	int					iResult;
+
+	uiLow = 0;
+	uiHigh = pasLabels->NumElements();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = (uiLow + uiHigh) / 2;
+		psLabel = pasLabels->Get(uiMiddle);
+		iResult = memcmp(psLabel->szLabel, szLabel, (psLabel->uiLength < uiLabel) ? psLabel->uiLength : uiLabel);
+		if (iResult == 0)
 		{
-			return (int)ui;
+			iResult = (psLabel->uiLength < uiLabel) ? -1 : ((psLabel->uiLength > uiLabel) ? 1 : 0);
+		}
+		if (iResult < 0)
+		{
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
+	}
+	if (uiLow < pasLabels->NumElements())
+	{
+		psLabel = pasLabels->Get(uiLow);
+		if ((psLabel->uiLength == uiLabel) && (memcmp(psLabel->szLabel, szLabel, uiLabel) == 0))
+		{
+			return psLabel->iLine;
 		}
 	}
 	return -1;
@@ -7390,11 +7449,13 @@ static int32 IR816LoadedX(SIR816FlowLine* psLine)
 // what writes and reads it can't be known.  A pointer into the frame
 // (bFrameAddress) and [D + n + X] after ldx m ([D + n + m], or past the
 // direct page) are known, as are an indexed runtime routine's bytes
-// (bIndexedFrame, after ldx m).
+// (bIndexedFrame, after ldx m).  pasLabels (empty)
+// gets the code's labels, sorted to find where a branch goes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
+static bool IR816BuildFlowLabelled(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf, CArrayTemplate<SIR816FlowLabel>* pasLabels)
 {
+	SIR816FlowLabel*	psLabel;
 	SIR816FlowLine*		psLine;
 	SIR816FlowLine*		psLast;
 	SIR816FlowLine*		psPrevious;
@@ -7592,6 +7653,20 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 		iBefore = (int)pasLines->NumElements() - 1;
 	}
 
+	//The labels, by name.
+	for (ui = 0; ui < pasLines->NumElements(); ui++)
+	{
+		psLine = pasLines->Get(ui);
+		if (psLine->iKind == IR816FL_LABEL)
+		{
+			psLabel = pasLabels->Add();
+			psLabel->szLabel = psLine->szLine;
+			psLabel->uiLength = (size)(psLine->szEnd - psLine->szLine) - 1;
+			psLabel->iLine = (int)ui;
+		}
+	}
+	pasLabels->QuickSort(&IR816CompareFlowLabels);
+
 	//The blocks.  One starting at a label that isn't a local one (Ln) may also be entered from outside the code.
 	psBlock = NULL;
 	for (ui = 0; ui < pasLines->NumElements(); ui++)
@@ -7634,7 +7709,7 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 			for (uiLabel = 0; (uiLabel < psLine->sLine.uiOperand) && (szOperand[uiLabel] != ' '); uiLabel++)
 			{
 			}
-			iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLines, szOperand, uiLabel) : -1;
+			iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLabels, szOperand, uiLabel) : -1;
 			if (iTarget < 0)
 			{
 				return false;
@@ -7674,7 +7749,7 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 		for (uiLabel = 0; (uiLabel < psLast->sLine.uiOperand) && (szOperand[uiLabel] != ' '); uiLabel++)
 		{
 		}
-		iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLines, szOperand, uiLabel) : -1;
+		iTarget = (uiLabel > 0) ? IR816FindFlowLabel(pasLabels, szOperand, uiLabel) : -1;
 		if (psLast->sLine.uiFlags & IR816MF_BRANCH)
 		{
 			if (iTarget < 0)
@@ -7714,6 +7789,23 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 		}
 	}
 	return pasBlocks->NumElements() > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IR816BuildFlowLabelled with a table of the labels of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
+{
+	CArrayTemplate<SIR816FlowLabel>	asLabels;
+	bool							bResult;
+
+	asLabels.Init();
+	bResult = IR816BuildFlowLabelled(szText, bStores, pasLines, pasBlocks, paiBlockOf, &asLabels);
+	asLabels.Kill();
+	return bResult;
 }
 
 
@@ -7997,6 +8089,9 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	CArrayTemplate<SIR816Held>		asIn;		//Three per block: what A, X and Y hold at its start.
 	CArrayTemplate<SIR816Held>		asOut;		//And at its end.
 	CArrayTemplate<bool>			abDone;		//Whether its end is worked out yet.
+	CArrayTemplate<int>				aiFromStart;	//Per block (and one more): where its blocks gone to from start in aiFrom.
+	CArrayTemplate<int>				aiFrom;
+	CArrayTemplate<int>				aiFill;
 	SIR816FlowLine*					psLine;
 	SIR816FlowBlock*				psBlock;
 	SIR816Held						asHeld[3];
@@ -8005,6 +8100,8 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	size							uj;
 	int								i;
 	int								iRegister;
+	int								iTo;
+	int								iFrom;
 	bool							bChanged;
 	bool							bRemoved;
 	bool							bFalse;
@@ -8037,6 +8134,43 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 		abDone.Add(&bFalse);
 	}
 
+	//The blocks going to each block, in block order: block ui's are aiFrom[aiFromStart[ui]] up to aiFromStart[ui + 1].
+	aiFromStart.Init();
+	aiFrom.Init();
+	aiFromStart.GrowToAtLeastNumElements(asBlocks.NumElements() + 1, true, 0);
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		psBlock = asBlocks.Get(ui);
+		for (i = 0; i < 2; i++)
+		{
+			if ((psBlock->aiNext[i] >= 0) && ((i == 0) || (psBlock->aiNext[1] != psBlock->aiNext[0])))
+			{
+				(*aiFromStart.Get(psBlock->aiNext[i] + 1))++;
+			}
+		}
+	}
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		*aiFromStart.Get(ui + 1) += *aiFromStart.Get(ui);
+	}
+	aiFrom.GrowToAtLeastNumElements(*aiFromStart.Get(asBlocks.NumElements()), true, 0);
+	aiFill.Init();
+	aiFill.GrowToAtLeastNumElements(asBlocks.NumElements(), true, 0);
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		psBlock = asBlocks.Get(ui);
+		for (i = 0; i < 2; i++)
+		{
+			if ((psBlock->aiNext[i] >= 0) && ((i == 0) || (psBlock->aiNext[1] != psBlock->aiNext[0])))
+			{
+				iTo = psBlock->aiNext[i];
+				*aiFrom.Get(*aiFromStart.Get(iTo) + *aiFill.Get(iTo)) = (int)ui;
+				(*aiFill.Get(iTo))++;
+			}
+		}
+	}
+	aiFill.Kill();
+
 	//Forward over the blocks until it settles: each starts with what all the blocks worked out so far that go to it
 	//end with (nothing, if one may be entered from outside).
 	do
@@ -8051,9 +8185,10 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 				memcpy(asHeld, asNone, sizeof(asHeld));
 				bFirst = false;
 			}
-			for (uj = 0; uj < asBlocks.NumElements(); uj++)
+			for (iFrom = *aiFromStart.Get(ui); iFrom < *aiFromStart.Get(ui + 1); iFrom++)
 			{
-				if (!*abDone.Get(uj) || ((asBlocks.Get(uj)->aiNext[0] != (int)ui) && (asBlocks.Get(uj)->aiNext[1] != (int)ui)))
+				uj = (size)*aiFrom.Get(iFrom);
+				if (!*abDone.Get(uj))
 				{
 					continue;
 				}
@@ -8133,6 +8268,8 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
 	}
 	abRemove.Kill();
+	aiFrom.Kill();
+	aiFromStart.Kill();
 	abDone.Kill();
 	asOut.Kill();
 	asIn.Kill();
