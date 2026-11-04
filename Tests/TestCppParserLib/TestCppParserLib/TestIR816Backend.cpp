@@ -1832,6 +1832,97 @@ void TestIR816BackendRemoveDeadStores(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// RemoveFlowDeadStores (as a TestIR816TextPass).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIR816RemoveFlowDeadStores(CChars* pszDest, size uiStart)
+{
+	CIR816Backend::RemoveFlowDeadStores(pszDest, uiStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// RemoveFlowDeadStores in a function whose frame is reached other than as
+// [D + n]: a pointer into the frame (tdc, clc, adc n) keeps the stores from
+// n on but not those below; [D + X] after ldx m is [D + m] (or past the
+// direct page); a 64 bit shift routine after ldx m reads the eight bytes at
+// m.  An X not loaded just before still makes it give up.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendRemoveFlowDeadStores(void)
+{
+	TestIR816TextPass	fPass;
+	CChars				szCode;
+	CChars				szExpected;
+	const char*			szEntry;
+	const char*			szExit;
+
+	fPass = TestIR816RemoveFlowDeadStores;
+	szEntry = "\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc 40\n\t\ttcs\n\t\ttcd\n";
+	szExit = "\t\ttdc\n\t\tclc\n\t\tadc 40\n\t\ttcs\n\t\tpld\n\t\trtl\n";
+
+	//A pointer to D + 30 is pushed for _F: the store to 23, below it, is dead; the one to 31 might be read through it.
+	szCode.Init(szEntry);
+	szCode.Append("\t\ttdc\n\t\tclc\n\t\tadc 30\n\t\tsta [D + 3]\n\t\tstz [D + 5]\n\t\tlda 7\n\t\tsta [D + 23]\n\t\tsta [D + 31]\n\t\tpei [D + 5]\n\t\tpei [D + 3]\n\t\tjsl _F\n");
+	szCode.Append(szExit);
+	szExpected.Init(szEntry);
+	szExpected.Append("\t\ttdc\n\t\tclc\n\t\tadc 30\n\t\tsta [D + 3]\n\t\tstz [D + 5]\n\t\tlda 7\n\t\tsta [D + 31]\n\t\tpei [D + 5]\n\t\tpei [D + 3]\n\t\tjsl _F\n");
+	szExpected.Append(szExit);
+	AssertIR816Pass(szExpected.Text(), szCode.Text(), fPass);
+	szExpected.Kill();
+	szCode.Kill();
+
+	//[D + X] after ldx 300 is past the direct page, after ldx 23 it reads [D + 23]: the stores to 25 and 27 go.
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 23]\n\t\tsta [D + 25]\n\t\tldx 300\n\t\tlda [D + X]\n\t\tldx 23\n\t\tadc [D + X]\n\t\tsta [D + 27]\n");
+	szCode.Append(szExit);
+	szExpected.Init(szEntry);
+	szExpected.Append("\t\tlda 7\n\t\tsta [D + 23]\n\t\tldx 300\n\t\tlda [D + X]\n\t\tldx 23\n\t\tadc [D + X]\n");
+	szExpected.Append(szExit);
+	AssertIR816Pass(szExpected.Text(), szCode.Text(), fPass);
+	szExpected.Kill();
+	szCode.Kill();
+
+	//R816_LShr64 after ldx 31 reads bytes 31 to 38: the store to 33 stays, the one to 27 goes.
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 33]\n\t\tsta [D + 27]\n\t\tlda 3\n\t\tldx 31\n\t\tjsl R816_LShr64\n");
+	szCode.Append(szExit);
+	szExpected.Init(szEntry);
+	szExpected.Append("\t\tlda 7\n\t\tsta [D + 33]\n\t\tlda 3\n\t\tldx 31\n\t\tjsl R816_LShr64\n");
+	szExpected.Append(szExit);
+	AssertIR816Pass(szExpected.Text(), szCode.Text(), fPass);
+	szExpected.Kill();
+	szCode.Kill();
+
+	//An X loaded before a branch to L1 or before a call, not just before [D + X]: nothing goes.
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 23]\n\t\tsta [D + 27]\n\t\tldx 23\n\t\tbne L1\n\t\tldx 25\nL1:\n\t\tlda [D + X]\n");
+	szCode.Append(szExit);
+	AssertIR816Pass(szCode.Text(), szCode.Text(), fPass);
+	szCode.Kill();
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 27]\n\t\tldx 23\n\t\tjsl _F\n\t\tlda [D + X]\n");
+	szCode.Append(szExit);
+	AssertIR816Pass(szCode.Text(), szCode.Text(), fPass);
+	szCode.Kill();
+
+	//[D + X] with X not loaded just before (tax), and tdc that isn't clc, adc n: nothing goes.
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 27]\n\t\ttax\n\t\tlda [D + X]\n");
+	szCode.Append(szExit);
+	AssertIR816Pass(szCode.Text(), szCode.Text(), fPass);
+	szCode.Kill();
+	szCode.Init(szEntry);
+	szCode.Append("\t\tlda 7\n\t\tsta [D + 27]\n\t\ttdc\n\t\tpha\n\t\tjsl _F\n");
+	szCode.Append(szExit);
+	AssertIR816Pass(szCode.Text(), szCode.Text(), fPass);
+	szCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // PeepholeMasks: an "and 0xFF" goes when only clc, sec, adc, sbc, ora, eor,
 // and or asl A come before the next "and 0xFF" (A's low byte doesn't depend
 // on the high byte through them), and no carry they leave is read after it
@@ -2015,6 +2106,7 @@ void TestIR816Backend(void)
 	TestIR816BackendRemoveUnreadStores();
 	TestIR816BackendPeephole();
 	TestIR816BackendRemoveDeadStores();
+	TestIR816BackendRemoveFlowDeadStores();
 	TestIR816BackendPeepholeMasks();
 	TestIR816BackendPeepholeStores();
 	TestIR816BackendPeepholeTransfers();

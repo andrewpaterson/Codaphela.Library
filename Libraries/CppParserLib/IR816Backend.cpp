@@ -7102,6 +7102,9 @@ struct SIR816FlowLine
 	bool		bRuntime;	//A call to a runtime routine: it reads the scratch bytes.
 	bool		bPointer;	//Reads through the pointer at [[D + iPointer]...]: its three bytes.
 	int32		iPointer;
+	bool		bFrameAddress;	//tdc, clc, adc iFrame: a pointer to the frame at D + iFrame, through which any byte from there may be reached.
+	bool		bIndexedFrame;	//A 64 bit shift routine's call, on the eight bytes at D + iFrame (X, from the ldx before it).
+	int32		iFrame;
 };
 
 
@@ -7206,6 +7209,10 @@ static void IR816FlowBack(SIR816FlowLine* psLine, SIR816LiveBytes* psLive)
 	if (psLine->bRuntime)
 	{
 		IR816SetLive(psLive, IR816_SCRATCH_FIRST, IR816_SCRATCH_END - IR816_SCRATCH_FIRST, true);
+		if (psLine->bIndexedFrame)
+		{
+			IR816SetLive(psLive, psLine->iFrame, 8, true);
+		}
 		return;
 	}
 	if (psLine->bPointer)
@@ -7281,14 +7288,109 @@ static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLine>* pasLines, const ch
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the tdc at szLine takes a pointer to the frame (clc, adc n with
+// no tcs after: not IR816MovesS), with n in *piFrame.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816FrameAddress(const char* szLine, int32* piFrame)
+{
+	SIR816Line	sLine;
+
+	szLine = IR816NextLine(szLine);
+	if (!szLine || !IR816IsInstruction(szLine))
+	{
+		return false;
+	}
+	IR816Decode(szLine, &sLine);
+	if (sLine.uiMnemonic != IR816M_Clc)
+	{
+		return false;
+	}
+	szLine = IR816NextLine(szLine);
+	if (!szLine || !IR816IsInstruction(szLine))
+	{
+		return false;
+	}
+	IR816Decode(szLine, &sLine);
+	if ((sLine.uiMnemonic != IR816M_Adc) || (sLine.uiOperand == 0) || (sLine.szOperand[0] < '0') || (sLine.szOperand[0] > '9'))
+	{
+		return false;
+	}
+	*piFrame = atoi(sLine.szOperand);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operand is exactly [D + X] or [D + n + X], with n (or 0) in
+// *piOffset.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IndexedDirect(const char* szOperand, size uiOperand, int32* piOffset)
+{
+	size	ui;
+
+	if ((uiOperand == 7) && (strncmp(szOperand, "[D + X]", 7) == 0))
+	{
+		*piOffset = 0;
+		return true;
+	}
+	if ((uiOperand < 11) || (strncmp(szOperand, "[D + ", 5) != 0) || (strncmp(&szOperand[uiOperand - 5], " + X]", 5) != 0))
+	{
+		return false;
+	}
+	for (ui = 5; ui < uiOperand - 5; ui++)
+	{
+		if ((szOperand[ui] < '0') || (szOperand[ui] > '9'))
+		{
+			return false;
+		}
+	}
+	*piOffset = atoi(&szOperand[5]);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The constant an ldx (psLine, the instruction before the one using X)
+// loads into X, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 IR816LoadedX(SIR816FlowLine* psLine)
+{
+	size	ui;
+
+	if (!psLine || (psLine->sLine.uiMnemonic != IR816M_Ldx) || (psLine->sLine.uiOperand == 0))
+	{
+		return -1;
+	}
+	for (ui = 0; ui < psLine->sLine.uiOperand; ui++)
+	{
+		if ((psLine->sLine.szOperand[ui] < '0') || (psLine->sLine.szOperand[ui] > '9'))
+		{
+			return -1;
+		}
+	}
+	return atoi(psLine->sLine.szOperand);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's code from szText as lines and blocks (from a label, or
 // after a line that may go elsewhere, to the next; a call comes back) and
 // where each block goes.  False if it can't be followed (a jump table, an
 // unknown instruction or jump, a branch to a label it doesn't have), or,
 // with bStores, if the direct page might be reached other than as [D + n]
-// and through pointers at [D + n] (as IR816FindReads: D's value taken or
-// pushed, the direct page indexed, frame operand calls, indexed runtime
-// routines), when what writes and reads it can't be known.
+// and through pointers at [D + n] (as IR816FindReads: D's value pushed or
+// taken other than as a pointer into the frame, the direct page indexed by
+// an X not loaded with a constant just before, frame operand calls), when
+// what writes and reads it can't be known.  A pointer into the frame
+// (bFrameAddress) and [D + n + X] after ldx m ([D + n + m], or past the
+// direct page) are known, as are an indexed runtime routine's bytes
+// (bIndexedFrame, after ldx m).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
@@ -7307,12 +7409,16 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 	int					iWidthA;
 	int					iWidthX;
 	int					i;
+	int32				iX;
 	bool				bFrame;
+	bool				bIndexed;
+	int					iBefore;	//The instruction before's line, with no label between, or -1.
 
 	//The lines, what each reads and writes, and the widths.
 	iWidthA = 16;
 	iWidthX = 16;
 	bFrame = false;
+	iBefore = -1;
 	for (szLine = szText; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
 		szEnd = IR816LineEnd(szLine);
@@ -7326,6 +7432,7 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 			psLine->iKind = IR816FL_LABEL;
 			iWidthA = 0;
 			iWidthX = 0;
+			iBefore = -1;
 			continue;
 		}
 		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] == '.'))
@@ -7358,10 +7465,19 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 			return false;
 		}
 
-		//D's value pushed once it is the frame's (phd) or taken (tdc, but to move S) may be passed on as a pointer.
-		if (bStores && (((psLine->sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine)) || ((psLine->sLine.uiMnemonic == IR816M_Phd) && bFrame)))
+		//D's value pushed once it is the frame's (phd) may be passed on as a pointer, and taken (tdc, but to move S) as
+		//one unless it is a pointer into the frame (clc, adc n): the bytes from n on may be reached through that.
+		if (bStores && (psLine->sLine.uiMnemonic == IR816M_Phd) && bFrame)
 		{
 			return false;
+		}
+		if (bStores && (psLine->sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine))
+		{
+			if (!IR816FrameAddress(szLine, &psLine->iFrame))
+			{
+				return false;
+			}
+			psLine->bFrameAddress = true;
 		}
 		if (psLine->sLine.uiMnemonic == IR816M_Tcd)
 		{
@@ -7377,14 +7493,37 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 			{
 				if (bStores && IR816IndexedRoutine(szOperand, psLine->sLine.uiOperand))
 				{
-					return false;
+					psLine->iFrame = IR816LoadedX((iBefore >= 0) ? pasLines->Get(iBefore) : NULL);
+					if (psLine->iFrame < 0)
+					{
+						return false;
+					}
+					psLine->bIndexedFrame = true;
 				}
 				psLine->bRuntime = true;
 			}
 		}
 
+		//[D + n + X] after ldx m is [D + n + m]: a frame place in the direct page, or past it (big frames).
+		bIndexed = bStores && IR816IndexedDirect(szOperand, psLine->sLine.uiOperand, &iX);
+		if (bIndexed)
+		{
+			if (IR816LoadedX((iBefore >= 0) ? pasLines->Get(iBefore) : NULL) < 0)
+			{
+				return false;
+			}
+			iX += IR816LoadedX(pasLines->Get(iBefore));
+			psLine->sLine.bDirect = iX < IR816_DIRECT_PAGE;
+			psLine->sLine.iOffset = iX;
+			if (psLine->sLine.bDirect && (psLine->sLine.uiFlags & IR816MF_STORE))
+			{
+				i = ((psLine->sLine.uiMnemonic == IR816M_Stx) || (psLine->sLine.uiMnemonic == IR816M_Sty)) ? iWidthX : iWidthA;
+				psLine->iBytes = (i == 16) ? 2 : (i == 8) ? 1 : 0;
+			}
+		}
+
 		//The direct page only as [D + n] or a pointer there.
-		if (psLine->sLine.bDirect)
+		else if (psLine->sLine.bDirect)
 		{
 			if (!IR816PlainDirect(szOperand, psLine->sLine.uiOperand, 0, &psLine->sLine.iOffset) || (psLine->sLine.iOffset + 1 >= IR816_DIRECT_PAGE))
 			{
@@ -7450,6 +7589,7 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 			iWidthA = 0;
 			iWidthX = 0;
 		}
+		iBefore = (int)pasLines->NumElements() - 1;
 	}
 
 	//The blocks.  One starting at a label that isn't a local one (Ln) may also be entered from outside the code.
@@ -7632,6 +7772,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	bool							bChanged;
 	bool							bRemoved;
 	bool							bFalse;
+	int32							iReached;	//The lowest byte a pointer into the frame may reach (bFrameAddress).
 
 	asLines.Init();
 	asBlocks.Init();
@@ -7684,6 +7825,17 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	}
 	while (bChanged);
 
+	//The bytes from the lowest pointer into the frame on may be read through it: their stores stay.
+	iReached = IR816_DIRECT_PAGE;
+	for (ui = 0; ui < asLines.NumElements(); ui++)
+	{
+		psLine = asLines.Get(ui);
+		if (psLine->bFrameAddress && (psLine->iFrame < iReached))
+		{
+			iReached = (psLine->iFrame < 0) ? 0 : psLine->iFrame;
+		}
+	}
+
 	//The stores none of whose bytes are live after them.
 	abRemove.Init();
 	bFalse = false;
@@ -7700,7 +7852,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 		{
 			psLine = asLines.Get(uj - 1);
 			if ((psLine->iKind == IR816FL_INSTRUCTION) && psLine->sLine.bDirect && (psLine->sLine.uiFlags & IR816MF_STORE) &&
-				!IR816AnyLive(&sLive, psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2))
+				(psLine->sLine.iOffset + 2 <= iReached) && !IR816AnyLive(&sLive, psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2))
 			{
 				*abRemove.Get(uj - 1) = true;
 				bRemoved = true;
