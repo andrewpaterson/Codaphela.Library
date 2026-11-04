@@ -268,6 +268,7 @@ protected:
 	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	int32			PushArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
 	void			LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments);
+	void			LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters);
 	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
 	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
 	bool			IsRegisterCall(SIRReference sCallee);

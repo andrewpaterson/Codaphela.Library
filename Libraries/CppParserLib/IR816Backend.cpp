@@ -12053,9 +12053,7 @@ static void IR816RegisterSource(CIRBlock* pcBlock, SIRInstruction* psInstruction
 //////////////////////////////////////////////////////////////////////////
 //
 // Puts the call's register arguments in A, X and Y (after PushArguments has
-// pushed the others).  Straight from where they are when each can be
-// (LoadsRegisterDirectly): Y and X first and A last, unless A's value is
-// kept in X (then A first).  Otherwise they are pushed and pulled.
+// pushed the others): LoadRegisters.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psInstruction, CArrayIR816Arguments* pasArguments)
@@ -12066,12 +12064,9 @@ void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psI
 	int32			iHiddenOffset;
 	int				iRegisters;
 	int				i;
-	bool			bDirect;
-	bool			bAFirst;
 
 	iHiddenOffset = psInstruction->sResult.IsNone() ? -1 : OffsetOf(psInstruction->sResult);
 	iRegisters = 0;
-	bDirect = true;
 	for (i = 0; i < IR816_ARGUMENT_REGISTERS; i++)
 	{
 		IR816RegisterSource(pcBlock, psInstruction, &mauiPendingArguments, pasArguments, i, iHiddenOffset, &asValues[i], &aiWords[i], &aiHidden[i]);
@@ -12080,6 +12075,30 @@ void CIR816Backend::LoadRegisterArguments(CIRBlock* pcBlock, SIRInstruction* psI
 			break;
 		}
 		iRegisters++;
+	}
+	LoadRegisters(asValues, aiWords, aiHidden, iRegisters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads the first iRegisters of A, X and Y with their words: word
+// aiWords[i] of asValues[i], or of the hidden result pointer when
+// aiHidden[i] isn't -1 (its frame offset).  Straight from where they are
+// when each can be (LoadsRegisterDirectly): Y and X first and A last,
+// unless A's value is kept in X (then A first).  Otherwise they are pushed
+// and pulled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters)
+{
+	int		i;
+	bool	bDirect;
+	bool	bAFirst;
+
+	bDirect = true;
+	for (i = 0; i < iRegisters; i++)
+	{
 		bDirect &= (aiHidden[i] >= 0) || LoadsRegisterDirectly(asValues[i], aiWords[i]);
 	}
 
