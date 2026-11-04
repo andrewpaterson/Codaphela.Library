@@ -980,6 +980,9 @@ void TestTextAreaEditLineGaps(void)
 		Ptr<CTextArea>				pTextArea;
 		CInt32Rect					cRect;
 		CChars						szCut;
+		uint32						uiId;
+		CArrayTextLayoutGap			asGaps;
+		STextLayoutGap*				psGap;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -1145,6 +1148,65 @@ void TestTextAreaEditLineGaps(void)
 		pTextArea->ClearLineGaps();
 		AssertSize(0, pTextArea->NumLineGaps());
 		AssertInt(2 * 24, pTextArea->GetTextSize().y);
+
+		//A gap keeps its id through edits and changes of height, so its line can be found; a new gap gets a new id.
+		//Lines ending in a carriage return and line feed.
+		pTextArea->SetText("a\r\nb\r\nc");
+		AssertTextAreaLineStarts(pTextArea);
+		AssertSize(3, pTextArea->NumLines());
+		AssertTrue(pTextArea->SetLineGap(1, 10));
+		uiId = pTextArea->GetLineGapId(1);
+		AssertTrue(uiId != 0);
+		AssertInt(0, pTextArea->GetLineGapId(0));
+		AssertTrue(pTextArea->SetLineGap(1, 20));
+		AssertInt(uiId, pTextArea->GetLineGapId(1));
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Enter();
+		AssertSize(2, pTextArea->FindLineGap(uiId));
+		AssertTrue(pTextArea->GetLineGapBounds(2, &cRect));
+		AssertInt(3 * 24, cRect.GetTop());
+		AssertInt(3 * 24 + 20, cRect.GetBottom());
+		AssertTrue(pTextArea->SetLineGap(0, 5));
+		AssertTrue(pTextArea->GetLineGapId(0) > uiId);
+		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
+		pTextArea->DeleteLine();
+		AssertString("\na\r\nc", pTextArea->GetText());
+		AssertSize(MAX_SIZE, pTextArea->FindLineGap(uiId));
+		AssertSize(1, pTextArea->NumLineGaps());
+
+		//Copied gaps keep their ids; gaps of no height or past the last line are left out.  New ids are past the kept
+		//ones'.
+		asGaps.Init();
+		psGap = asGaps.Add();
+		psGap->uiLine = 0;
+		psGap->iHeight = 7;
+		psGap->uiId = 100;
+		psGap = asGaps.Add();
+		psGap->uiLine = 1;
+		psGap->iHeight = 0;
+		psGap->uiId = 101;
+		psGap = asGaps.Add();
+		psGap->uiLine = 9;
+		psGap->iHeight = 3;
+		psGap->uiId = 102;
+		pTextArea->SetLineGaps(&asGaps);
+		AssertSize(1, pTextArea->NumLineGaps());
+		AssertInt(7, pTextArea->GetLineGap(0));
+		AssertInt(100, pTextArea->GetLineGapId(0));
+		AssertInt(3 * 24 + 7, pTextArea->GetTextSize().y);
+		pTextArea->SetLineGaps(&asGaps);
+		AssertSize(1, pTextArea->NumLineGaps());
+		AssertTrue(pTextArea->SetLineGap(1, 4));
+		AssertTrue(pTextArea->GetLineGapId(1) > 100);
+		asGaps.Kill();
+
+		//Empty text is a line, which can have a gap.
+		pTextArea->SetText("");
+		AssertSize(1, pTextArea->NumLines());
+		AssertTrue(pTextArea->SetLineGap(0, 10));
+		AssertInt(24 + 10, pTextArea->GetTextSize().y);
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cRect));
+		AssertInt(24, cRect.GetTop());
 
 		pTextArea = NULL;
 		pFont = NULL;

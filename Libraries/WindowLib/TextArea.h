@@ -271,6 +271,8 @@ protected:
 	void				FindStopStarts(void);
 	void				FindLineStarts(void);
 	size				FindGap(size uiLine);
+	STextLayoutGap*		GetGap(size uiLine);
+	bool				IsGapKept(STextLayoutGap* psGap);
 	size				FindLastRow(size uiLine);
 	void				GapsChanged(void);
 	void				LinesInserted(size uiPosition, const char* szText, size uiLength);
