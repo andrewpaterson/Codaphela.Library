@@ -91,6 +91,7 @@ enum EComponentInputCommand
 	//Code
 	CIC_GoToDefinition,  //F12.
 	CIC_FindReferences,  //Shift+F12.
+	CIC_Build,  //Control+Shift+B.
 
 	//Components
 	CIC_ActivateComponent,
