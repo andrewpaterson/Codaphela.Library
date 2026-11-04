@@ -217,6 +217,52 @@ const char* gsz = \"a\\\nb\";\n", &sz));
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A skipped group is inactive from the line after the directive that
+// starts skipping to the line before the one that stops it: its comment
+// lines and the conditionals nested in it too.  Blank lines have no
+// span.  A comment after skipped code keeps its own span.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppHighlighterInactiveGroups(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	AssertString("\
+1:1 3 keyword\n\
+1:5 1 variable declaration\n\
+1:6 1 operator\n\
+2:1 11 directive\n\
+3:1 6 inactive\n\
+4:1 12 inactive\n\
+5:1 5 inactive\n\
+6:1 18 inactive\n\
+6:8 11 comment\n\
+7:1 6 inactive\n\
+9:1 6 inactive\n\
+10:1 5 directive\n\
+11:1 3 keyword\n\
+11:5 1 variable declaration\n\
+11:6 1 operator\n\
+12:1 6 directive\n", HighlightText("\
+int a;\n\
+#ifdef NOPE\n\
+int b;\n\
+// a comment\n\
+#if 1\n\
+int x; // trailing\n\
+#endif\n\
+\n\
+int c;\n\
+#else\n\
+int e;\n\
+#endif\n", &sz));
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Namespaces, typedefs, type parameters, built-in types with identifier
 // names and identifiers the parser does not look up (attribute names).
 // override and final are keywords where they are specifiers, and names
@@ -331,6 +377,7 @@ void TestCppHighlighter(void)
 
 	TestCppHighlighterSource();
 	TestCppHighlighterSplices();
+	TestCppHighlighterInactiveGroups();
 	TestCppHighlighterNames();
 
 	NumberKill();

@@ -513,7 +513,7 @@ bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psTok
 		{
 			if (!mcConditionalStack.IsParsing())
 			{
-				mpcOutput->AddInactiveLine(pcFile, pcToken->Line());
+				AddInactiveLine(pcFile, pcToken->Line());
 				continue;
 			}
 
@@ -825,6 +825,8 @@ void CPreprocessor::Init(CConfig* pcConfig)
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
+	mpcSkipFile = NULL;
+	miSkipStartLine = 0;
 	mcHeadersStack.Init();  //Current file should be included in the stack.
 
 	macSources.Init();
@@ -2773,17 +2775,21 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 {
 	CPreprocessorTokenParser	cParser;
 	bool						bResult;
+	bool						bParsing;
 
 	if (pcDirective->IsConditional())
 	{
 		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), true);
-		return ProcessConditional(pcDirective);
+		bParsing = mcConditionalStack.IsParsing();
+		bResult = ProcessConditional(pcDirective);
+		NoteSkipping(pcDirective, bParsing);
+		return bResult;
 	}
 
 	if (!mcConditionalStack.IsParsing())
 	{
 		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), false);
-		mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+		AddInactiveLine(mpcCurrentFile, pcDirective->Line());
 		return true;
 	}
 	mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), true);
@@ -2824,6 +2830,52 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// A skipped line.  While a group of the current file is being skipped
+// its lines are added together when it ends (NoteSkipping); a region is
+// only ever added after the others, as the header cache records them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::AddInactiveLine(CSourceFile* pcFile, int iLine)
+{
+	if ((mpcSkipFile == pcFile) && (iLine >= miSkipStartLine))
+	{
+		return;
+	}
+	mpcOutput->AddInactiveLine(pcFile, iLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A skipped group's lines are inactive, comments and blank lines too, so
+// from the line after the directive that starts skipping to the line
+// before the one that stops it.  bWasParsing is what the conditional
+// stack was before pcDirective.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::NoteSkipping(CPPDirective* pcDirective, bool bWasParsing)
+{
+	bool	bParsing;
+
+	bParsing = mcConditionalStack.IsParsing();
+	if (bWasParsing && !bParsing)
+	{
+		mpcSkipFile = mpcCurrentFile;
+		miSkipStartLine = pcDirective->Line() + 1;
+	}
+	else if (!bWasParsing && bParsing)
+	{
+		if ((mpcSkipFile == mpcCurrentFile) && (mpcSkipFile != NULL) && (pcDirective->Line() > miSkipStartLine))
+		{
+			mpcOutput->AddInactiveLines(mpcSkipFile, miSkipStartLine, pcDirective->Line() - 1);
+		}
+		mpcSkipFile = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -2843,12 +2895,12 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 	{
 		if (!mcConditionalStack.IsParsing())
 		{
-			mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+			AddInactiveLine(mpcCurrentFile, pcDirective->Line());
 		}
 	}
 	else if (!mcConditionalStack.IsParentParsing())
 	{
-		mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+		AddInactiveLine(mpcCurrentFile, pcDirective->Line());
 	}
 
 	psSource = GetCurrentFileSource();

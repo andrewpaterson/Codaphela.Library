@@ -419,6 +419,7 @@ void CCPPHighlighter::Sort(void)
 	macHighlights.QuickSort(&CompareHighlights);
 
 	//A macro argument used more than once in the body gives the same token more than once.  The more specific kind sorts first and is kept.
+	//A line of a skipped group that is all comment is inactive: the group is skipped whatever is in it.
 	iKept = 0;
 	for (i = 1; i < macHighlights.NumElements(); i++)
 	{
@@ -431,6 +432,10 @@ void CCPPHighlighter::Sort(void)
 			{
 				*macHighlights.Get(iKept) = *psHighlight;
 			}
+		}
+		else if (psHighlight->uiKind == CPPH_Inactive)
+		{
+			*psKept = *psHighlight;
 		}
 	}
 	macHighlights.SetUsedElements(iKept + 1);

@@ -119,6 +119,8 @@ class CPreprocessor
 protected:
 	CConditionalStack				mcConditionalStack;
 	CSourceFile*					mpcCurrentFile;
+	CSourceFile*					mpcSkipFile;			//The file whose group is being skipped, NULL while parsing.
+	int								miSkipStartLine;		//The first line after the directive that started skipping.
 	CDefineMap						mcDefines;
 	CPPTokenMemory					mcDefineReplacementMemory;
 	CMemoryStackExtended			mcDefineStrings;
@@ -198,6 +200,8 @@ protected:
 	bool				Next(SPreprocessedToken* psToken);
 	bool				PeekOpenParenthesis(void);
 	bool				CollectArguments(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments);
+	void				NoteSkipping(CPPDirective* pcDirective, bool bWasParsing);
+	void				AddInactiveLine(CSourceFile* pcFile, int iLine);
 	bool				ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments);
 	void				ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded);
 	void				ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest);
