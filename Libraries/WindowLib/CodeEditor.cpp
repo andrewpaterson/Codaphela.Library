@@ -56,10 +56,14 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mpGutter->SetCanGetFocus(false);
 	mpGutter->SetColour(JEWEL_LINE_NUMBER);
 	mpGutter->SetAlignment(CSH_Left, CSV_Top);
+	mpGutterDraw = OMalloc<CClearCanvasDraw>(JEWEL_PANEL);
+	mpGutterBackground = OMalloc<CCanvas>(pWindow, mpGutterDraw);
 
-	//Line components are added after the code so they are drawn over it, and found under the pointer first.
-	AddComponent(mpGutter);
+	//Line components are drawn over the code, and the gutter, on its background, over both: later children are
+	//drawn over earlier ones and found under the pointer first.
 	AddComponent(mpTextArea);
+	AddComponent(mpGutterBackground);
+	AddComponent(mpGutter);
 	UpdateGutter();
 
 	//A press on the gutter (or what isn't the code's) focuses the code editor, which gives the focus to its code.
@@ -92,6 +96,8 @@ void CCodeEditor::Class(void)
 {
 	CContainer::Class();
 	M_Pointer(mpGutter);
+	M_Pointer(mpGutterBackground);
+	M_Pointer(mpGutterDraw);
 	M_Pointer(mpTextArea);
 	M_Embedded(maLineComponents);
 	U_Data(CArrayCodeEditorGapIds, mauiGapIds);
@@ -166,6 +172,7 @@ bool CCodeEditor::AddLineComponent(size uiLine, Ptr<CComponent> pComponent)
 	*mauiGapIds.Add() = mpTextArea->GetLineGapId(uiLine);
 	*mauiLines.Add() = uiLine;
 	AddComponent(pComponent);
+	BringGutterToFront();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -305,7 +312,8 @@ SInt32Vec2 CCodeEditor::GetDesiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The gutter on the left, the code filling the rest of the area (or more
-// if it needs it), and each line component in its line's gap.
+// if it needs it), and each line component in its line's gap.  Scrolled
+// sideways in a scroll pane, the gutter is at the view's left.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -313,7 +321,9 @@ void CCodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int32				iGutter;
 	SInt32Vec2			sText;
 	SInt32Vec2			sTextPosition;
+	SInt32Vec2			sGutterPosition;
 	SInt32Vec2			sSize;
+	CInt32Rect			cView;
 	size				i;
 	size				uiLine;
 	CInt32Rect			cGap;
@@ -327,7 +337,13 @@ void CCodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sSize.x = (sText.x > sAreaSize.x - iGutter) ? sText.x : sAreaSize.x - iGutter;
 	sSize.y = (sText.y > sAreaSize.y) ? sText.y : sAreaSize.y;
 	sTextPosition.Init(sPosition.x + iGutter, sPosition.y);
-	mpGutter->Layout(sPosition, SInt32Vec2(iGutter, sSize.y));
+	sGutterPosition = sPosition;
+	if (GetScrollView(&cView) && (cView.GetLeft() > sGutterPosition.x))
+	{
+		sGutterPosition.x = cView.GetLeft();
+	}
+	mpGutterBackground->Layout(sGutterPosition, SInt32Vec2(iGutter, sSize.y));
+	mpGutter->Layout(sGutterPosition, SInt32Vec2(iGutter, sSize.y));
 	mpTextArea->Layout(sTextPosition, sSize);
 
 	for (i = 0; i < maLineComponents.Size(); i++)
@@ -604,16 +620,64 @@ void CCodeEditor::ClearLineMarks(void)
 void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 {
 	size	uiLine;
+	int32	x;
+	int32	y;
 
 	mpWindow->GetFocus()->SetFocus(mpTextArea);
-	if ((psEvent->x < 0) || (psEvent->x >= mpGutter->GetActualSize().x))
+
+	//The press is relative to the code editor; the gutter can be scrolled along it.
+	x = GetPosition().x + psEvent->x;
+	y = GetPosition().y + psEvent->y;
+	if (!mpGutter->IsPointIn(x, y))
 	{
 		return;
 	}
 
 	//The gutter's rows are the code's, and so are its lines.
-	uiLine = mpGutter->FindLine(mpGutter->FindPositionAt(psEvent->x, psEvent->y));
+	uiLine = mpGutter->FindLine(mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y));
 	mcListeners.CallListeners(&CCodeEditorListener::GutterClicked, this, &uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcRect (in the window) is shown right of the gutter, which is over the
+// code's left when it is scrolled sideways.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ScrollToShow(CInt32Rect* pcRect)
+{
+	CInt32Rect	cRect;
+
+	cRect.Init(pcRect);
+	cRect.msTopLeft.x -= mpGutter->GetActualSize().x;
+	CContainer::ScrollToShow(&cRect);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The colour the gutter is drawn on, over the code scrolled under it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetGutterBackground(ARGB32 sColour)
+{
+	mpGutterDraw->SetColour(sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gutter's background and the gutter are the last children, so they
+// are drawn over line components added since.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::BringGutterToFront(void)
+{
+	RemoveComponent(mpGutter);
+	RemoveComponent(mpGutterBackground);
+	AddComponent(mpGutterBackground);
+	AddComponent(mpGutter);
 }
 
 

@@ -462,6 +462,107 @@ void TestCodeEditorGutterMarks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Scrolled sideways the gutter stays at the view's left, on its
+// background, over the code (and line components) scrolled under it,
+// and still says which line it was clicked next to.  A caret moved to a
+// line's start is shown right of the gutter.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorScrolledSideways(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CScrollPane>			pScroll;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pTextArea;
+		Ptr<CTextArea>				pGutter;
+		Ptr<CFillContainer>			pZone;
+		CTestCodeEditorListener		cListener;
+		CChars						szText;
+		int32						iGutter;
+		int32						iLine;
+		int32						iLeft;
+		int32						iTop;
+		CInt32Rect					cGap;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
+		pTestWindow->SetContainer(pScroll);
+
+		//A line far wider than the view.
+		szText.Init("a\n");
+		szText.Append('x', 60);
+		szText.Append("\nc");
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), szText.Text());
+		szText.Kill();
+		pScroll->SetContent(pEditor);
+		pTextArea = pEditor->GetTextArea();
+		pGutter = pEditor->GetGutter();
+		pTestWindow->Layout();
+		iGutter = pEditor->GetGutterWidth();
+		iLine = pTextArea->GetFont()->GetLineHeight();
+		iLeft = pScroll->GetPosition().x;
+		iTop = pEditor->GetPosition().y;
+		AssertInt(iLeft, pGutter->GetPosition().x);
+		AssertInt(iLeft + iGutter, pTextArea->GetPosition().x);
+
+		pScroll->SetScrollPosition(50, 0);
+		pTestWindow->Layout();
+		AssertInt(50, pScroll->GetScrollPosition().x);
+		AssertInt(iLeft, pGutter->GetPosition().x);
+		AssertInt(iLeft + iGutter - 50, pTextArea->GetPosition().x);
+		AssertTrue(pTestWindow->FindComponentAt(iLeft + 2, iTop + iLine + iLine / 2) == pGutter);
+
+		//Next to line 2.
+		cListener.Init();
+		AssertTrue(pEditor->AddListener(&cListener));
+		pTestWindow->PointerMoved(iLeft + 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(1, cListener.muiClicks);
+		AssertSize(1, cListener.muiLine);
+
+		//A line component added since is under the gutter too.
+		pZone = CreateCodeEditorLineComponent(pTestWindow, iLine);
+		AssertTrue(pEditor->AddLineComponent(0, pZone));
+		pTestWindow->Layout();
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cGap));
+		AssertTrue(pZone->GetPosition().x < iLeft + iGutter);
+		AssertTrue(pTestWindow->FindComponentAt(iLeft + 2, pTextArea->GetPosition().y + cGap.GetTop() + 1) == pGutter);
+
+		//The caret at a line's start scrolls the code back out from under the gutter.
+		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
+		pTestWindow->Layout();
+		AssertInt(0, pScroll->GetScrollPosition().x);
+		AssertInt(iLeft + iGutter, pTextArea->GetPosition().x);
+		AssertTrue(pEditor->RemoveListener(&cListener));
+
+		pZone = NULL;
+		pGutter = NULL;
+		pTextArea = NULL;
+		pEditor = NULL;
+		pScroll = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditor(void)
@@ -474,6 +575,7 @@ void TestCodeEditor(void)
 	TestCodeEditorLineComponents(true);
 	TestCodeEditorScrollPane();
 	TestCodeEditorGutterMarks();
+	TestCodeEditorScrolledSideways();
 
 	ObjectsFlush();
 	ObjectsKill();

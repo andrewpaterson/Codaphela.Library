@@ -24,6 +24,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ListenerCall.h"
 #include "SupportLib/FontFamily.h"
 #include "Container.h"
+#include "Canvas.h"
+#include "ClearCanvasDraw.h"
 #include "TextArea.h"
 #include "CodeEditorListener.h"
 
@@ -41,13 +43,17 @@ typedef CArrayTemplate<char>	CArrayCodeEditorMarks;
 //match.  The gutter's first column has a mark for each line (SetLineMark), a space unless set; marks are by line
 //number, so they don't move with the lines as the code is edited.  Clicking the gutter tells the listeners which line
 //it was next to, and an edit tells them the code changed.  The code editor is meant to be the content of a
-//CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.
+//CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
+//the gutter stays at the view's left, on its own background over the code, which goes under it; the caret is kept
+//in view right of it.
 class CCodeEditor : public CContainer
 {
 CONSTRUCTABLE(CCodeEditor);
 DESTRUCTABLE(CCodeEditor);
 protected:
 	Ptr<CTextArea>			mpGutter;
+	Ptr<CCanvas>			mpGutterBackground;
+	Ptr<CClearCanvasDraw>	mpGutterDraw;
 	Ptr<CTextArea>			mpTextArea;
 	CArray<CComponent>		maLineComponents;
 	CArrayCodeEditorGapIds	mauiGapIds;  //Of each line component's gap in the text area.  Ascending: a new gap's id is the largest.
@@ -69,6 +75,7 @@ public:
 	Ptr<CTextArea>		GetTextArea(void);
 	Ptr<CTextArea>		GetGutter(void);
 	void				SetGutterColour(ARGB32 sColour);
+	void				SetGutterBackground(ARGB32 sColour);
 	int32				GetGutterWidth(void);
 
 	bool				AddLineComponent(size uiLine, Ptr<CComponent> pComponent);
@@ -89,8 +96,10 @@ public:
 	void				SetRequiredSize(void) override;
 	SInt32Vec2			GetDesiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	void				ScrollToShow(CInt32Rect* pcRect) override;
 
 protected:
+	void				BringGutterToFront(void);
 	size				FindLineComponent(Ptr<CComponent> pComponent);
 	size				FindGapId(uint32 uiId);
 	void				RemoveLineComponentAt(size uiIndex);
