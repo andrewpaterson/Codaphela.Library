@@ -595,6 +595,46 @@ void TestArrayObjectSetSameObjectAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Setting an element again through a pointer held by the object itself:
+// nothing else holds it, so taking its from away before setting it back
+// would free it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectSetSameObjectFromItsOwnPointer(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>			pArray;
+		Ptr<CTestObject>			pObject;
+		CTestObject*				pcObject;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		pObject = OMalloc<CTestObject>(&sNotifier);
+		pObject->mpTest = pObject;
+		pArray->Add(pObject);
+		pcObject = &pObject;
+		pObject = NULL;
+
+		AssertTrue(pArray->Set(0, pcObject->mpTest));
+		AssertFalse(sNotifier.bFreed);
+		AssertPointer(pcObject, pArray->Get(0).Object());
+		AssertSize(2, pcObject->NumHeapFroms());
+		AssertInt(3, pcObject->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pArray->Remove(0));
+		AssertTrue(sNotifier.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObjectConstructorExists(void)
@@ -1151,6 +1191,7 @@ void TestArrayObject(void)
 	TestArrayObjectKillContainedHeap();
 	TestArrayObjectKillAllWithNull();
 	TestArrayObjectSetSameObjectAgain();
+	TestArrayObjectSetSameObjectFromItsOwnPointer();
 	TestArrayObjectConstructorExists();
 	TestArrayObjectClassExists();
 	TestArrayObjectExternalSerialisation();

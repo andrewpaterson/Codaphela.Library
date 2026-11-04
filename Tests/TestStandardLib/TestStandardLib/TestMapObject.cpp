@@ -850,6 +850,52 @@ void TestMapObjectPutSameKeyAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting a value again through a pointer held by the value itself:
+// nothing else holds it, so taking its from away before putting it back
+// would free it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectPutSameValueFromItsOwnPointer(void)
+{
+	STestObjectFreedNotifier	sKeyNotifier;
+	STestObjectFreedNotifier	sValueNotifier;
+
+	ObjectsInit();
+	{
+		Ptr<CMapObject>				pMap;
+		Ptr<CTestObject>			pKey;
+		Ptr<CTestObject>			pValue;
+		CTestObject*				pcValue;
+
+		pMap = OMalloc<CMapObject>();
+		ORoot()->Add(pMap);
+		pKey = OMalloc<CTestObject>(&sKeyNotifier);
+		pValue = OMalloc<CTestObject>(&sValueNotifier);
+		pValue->mpTest = pValue;
+		AssertTrue(pMap->Put(pKey, pValue));
+		pcValue = &pValue;
+		pValue = NULL;
+
+		AssertTrue(pMap->Put(pKey, pcValue->mpTest));
+		AssertFalse(sValueNotifier.bFreed);
+		AssertPointer(pcValue, pMap->Get(pKey).Object());
+		AssertSize(2, pcValue->NumHeapFroms());
+		AssertSize(1, pKey->NumHeapFroms());
+		AssertInt(3, pcValue->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pMap->Remove(pKey));
+		AssertTrue(sValueNotifier.bFreed);
+		pKey = NULL;
+		AssertTrue(sKeyNotifier.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMapObjectExternalSerialisation()
@@ -1625,6 +1671,7 @@ void TestMapObject(void)
 	TestMapObjectPointerFromsStack();
 	TestMapObjectPutOverwrite();
 	TestMapObjectPutSameKeyAgain();
+	TestMapObjectPutSameValueFromItsOwnPointer();
 	TestMapObjectExternalSerialisation();
 	TestMapObjectMorphInto();
 	TestMapObjectInternalSerialisation(4);

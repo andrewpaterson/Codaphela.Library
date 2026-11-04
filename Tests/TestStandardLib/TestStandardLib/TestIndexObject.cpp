@@ -729,6 +729,46 @@ void TestIndexObjectPutSameObjectAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Putting an object again through a pointer held by the object itself:
+// nothing else holds it, so taking its from away before putting it back
+// would free it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectPutSameObjectFromItsOwnPointer(void)
+{
+	STestObjectFreedNotifier	sNotifier;
+
+	ObjectsInit();
+	{
+		Ptr<CIndexObject>			pIndex;
+		Ptr<CTestObject>			pObject;
+		CTestObject*				pcObject;
+
+		pIndex = OMalloc<CIndexObject>();
+		ORoot()->Add(pIndex);
+		pObject = OMalloc<CTestObject>(&sNotifier);
+		pObject->mpTest = pObject;
+		AssertTrue(pIndex->Put("Key", pObject));
+		pcObject = &pObject;
+		pObject = NULL;
+
+		AssertTrue(pIndex->Put("Key", pcObject->mpTest));
+		AssertFalse(sNotifier.bFreed);
+		AssertPointer(pcObject, pIndex->Get("Key").Object());
+		AssertSize(2, pcObject->NumHeapFroms());
+		AssertInt(3, pcObject->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		AssertTrue(pIndex->Remove("Key"));
+		AssertTrue(sNotifier.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexObjectSerialisation()
@@ -1092,6 +1132,7 @@ void TestIndexObject(void)
 	TestIndexObjectKillContainedHeap();
 	TestIndexObjectPutOverwrite();
 	TestIndexObjectPutSameObjectAgain();
+	TestIndexObjectPutSameObjectFromItsOwnPointer();
 	TestIndexObjectSerialisation();
 	TestIndexObjectMorphInto();
 	TestIndexObjectEmbeddedOnHeapKill();
