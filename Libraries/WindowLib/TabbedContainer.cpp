@@ -167,8 +167,9 @@ Ptr<CTabComponent> CTabbedContainer::AddTab(const char* szName, Ptr<CComponent> 
 //////////////////////////////////////////////////////////////////////////
 bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 {
-	size	uiIndex;
-	bool	bWasSelected;
+	size			uiIndex;
+	bool			bWasSelected;
+	Ptr<CComponent>	pPage;
 
 	uiIndex = IndexOf(pTab);
 	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
@@ -186,9 +187,12 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 		mpSelected = NULL;
 	}
 
+	//The page is held while the listeners hear of it.
+	pPage = maPages.Get(uiIndex);
 	mpBar->RemoveComponent(pTab);
 	maTabs.RemoveAt(uiIndex);
 	maPages.RemoveAt(uiIndex);
+	mcListeners.CallListeners(&CTabbedContainerListener::TabRemoved, &pTab, &pPage);
 
 	if (bWasSelected && (maTabs.Size() > 0))
 	{
@@ -240,6 +244,7 @@ void CTabbedContainer::Select(size uiIndex)
 	mpSelected = maTabs.Get(uiIndex);
 	mpSelected->SetSelected(true);
 	mpPage->AddComponent(maPages.Get(uiIndex));
+	mcListeners.CallListeners(&CTabbedContainerListener::TabSelected, &mpSelected, NULL);
 }
 
 
