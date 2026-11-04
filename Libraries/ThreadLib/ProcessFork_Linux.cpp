@@ -30,17 +30,10 @@ static void ReapProcess(void* pvProcess)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
+bool GetThisExecutable(CChars* pszDest)
 {
-    char            szExecutable[PATH_MAX + 1];
-    ssize_t         iLength;
-    char**          aszArguments;
-    CStackMemory<>  cArguments;
-    size            uiNumParameters;
-    size            i;
-    pid_t           iProcess;
-    int             iResult;
-    CNativeThread   cReaper;
+    char        szExecutable[PATH_MAX + 1];
+    ssize_t     iLength;
 
     iLength = readlink("/proc/self/exe", szExecutable, PATH_MAX);
     if (iLength == -1)
@@ -49,11 +42,37 @@ bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
         return false;
     }
     szExecutable[iLength] = '\0';
+    pszDest->Append(szExecutable);
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
+{
+    CChars          szExecutable;
+    char**          aszArguments;
+    CStackMemory<>  cArguments;
+    size            uiNumParameters;
+    size            i;
+    pid_t           iProcess;
+    int             iResult;
+    CNativeThread   cReaper;
+
+    szExecutable.Init();
+    if (!GetThisExecutable(&szExecutable))
+    {
+        szExecutable.Kill();
+        return false;
+    }
 
     //argv is the program followed by the parameters, and ends with NULL.
     uiNumParameters = paszParameters->NumElements();
     aszArguments = (char**)cArguments.Init((uiNumParameters + 2) * sizeof(char*));
-    aszArguments[0] = szExecutable;
+    aszArguments[0] = szExecutable.Text();
     for (i = 0; i < uiNumParameters; i++)
     {
         aszArguments[i + 1] = paszParameters->GetText(i);
@@ -61,8 +80,9 @@ bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
     aszArguments[uiNumParameters + 1] = NULL;
 
     // Start the child process.
-    iResult = posix_spawn(&iProcess, szExecutable, NULL, NULL, aszArguments, environ);
+    iResult = posix_spawn(&iProcess, szExecutable.Text(), NULL, NULL, aszArguments, environ);
     cArguments.Kill();
+    szExecutable.Kill();
     if (iResult != 0)
     {
         gcLogger.Error2(__METHOD__, "posix_spawn failed [", LinuxErrorCodeToString(iResult), "].", NULL);

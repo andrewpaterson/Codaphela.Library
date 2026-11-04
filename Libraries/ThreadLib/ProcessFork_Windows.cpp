@@ -55,17 +55,12 @@ void AppendQuotedArgument(CChars* psz, char* szArgument)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
+bool GetThisExecutable(CChars* pszDest)
 {
-    CStackMemory<>          cTemp;
-    unsigned long           uiSize;
-    unsigned long           uiLength;
-    CChars                  szCommandLine;
-    char*                   sz;
-    size                    uiNumParameters;
-    size                    i;
-    STARTUPINFO             sStartUpInfo;
-    PROCESS_INFORMATION     sProcessInformation;
+    CStackMemory<>  cTemp;
+    unsigned long   uiSize;
+    unsigned long   uiLength;
+    char*           sz;
 
     //GetModuleFileName fills the whole buffer when the path does not fit.
     uiSize = (unsigned long)cTemp.GetStackSize();
@@ -73,6 +68,12 @@ bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
     for (;;)
     {
         uiLength = GetModuleFileName(NULL, sz, uiSize);
+        if (uiLength == 0)
+        {
+            cTemp.Kill();
+            gcLogger.Error2(__METHOD__, "GetModuleFileName failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+            return false;
+        }
         if (uiLength < uiSize)
         {
             break;
@@ -81,10 +82,34 @@ bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
         uiSize *= 2;
         sz = (char*)cTemp.Init(uiSize);
     }
-
-    szCommandLine.Init();
-    AppendQuotedArgument(&szCommandLine, sz);
+    pszDest->Append(sz);
     cTemp.Kill();
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
+{
+    CChars                  szExecutable;
+    CChars                  szCommandLine;
+    size                    uiNumParameters;
+    size                    i;
+    STARTUPINFO             sStartUpInfo;
+    PROCESS_INFORMATION     sProcessInformation;
+
+    szExecutable.Init();
+    if (!GetThisExecutable(&szExecutable))
+    {
+        szExecutable.Kill();
+        return false;
+    }
+    szCommandLine.Init();
+    AppendQuotedArgument(&szCommandLine, szExecutable.Text());
+    szExecutable.Kill();
 
     ZeroMemory(&sStartUpInfo, sizeof(STARTUPINFO));
     sStartUpInfo.cb = sizeof(STARTUPINFO);
