@@ -85,6 +85,7 @@ public:
 	void				Highlight(CSourceFile* pcFile, CPreprocessedTokens* pcPreprocessed, CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 
 	SCPPHighlight*		Get(size iIndex);
+	size				NumHighlights(void);
 	char*				Print(CChars* psz);
 	static char*		GetKindName(ECPPHighlight eKind);
 
