@@ -869,7 +869,7 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 	bool					bCounted;
 
 	bChanged = false;
-	aiMentions.Init();
+	aiMentions.Init(CIR816Backend::GetScratch());
 	bCounted = false;
 	for (ui = 0; ui + 1 < paszLines->NumElements(); ui++)
 	{
@@ -1100,14 +1100,14 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	int						iPass;
 	bool					bChanged;
 
-	aszLines.Init();
+	aszLines.Init(CIR816Backend::GetScratch());
 	aszLines.Split(pszDest->Text() + uiStart, '\n');
 	if ((aszLines.NumElements() > 0) && aszLines.Tail()->Empty())
 	{
 		aszLines.RemoveTail();
 	}
-	abUsed.Init();
-	auiLabelLines.Init();
+	abUsed.Init(CIR816Backend::GetScratch());
+	auiLabelLines.Init(CIR816Backend::GetScratch());
 	for (iPass = 0; iPass < 8; iPass++)
 	{
 		bChanged = false;
@@ -1233,7 +1233,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 		}
 	}
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
 	{
 		psz = aszLines.Get(ui);
@@ -1561,7 +1561,7 @@ void CIR816Backend::PeepholeStores(CChars* pszDest, size uiStart)
 	SIR816Line	sLine;
 	bool		bDirect;
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
 		szEnd = IR816LineEnd(szLine);
@@ -1691,7 +1691,7 @@ void CIR816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
 	const char*	szTransfer;
 	SIR816Line	sLine;
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	szTransfer = NULL;
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
@@ -1991,7 +1991,7 @@ void CIR816Backend::PeepholeRegisters(CChars* pszDest, size uiStart)
 	SIR816Held	asHeld[3];
 	int			iRegister;
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	IR816ForgetHeld(asHeld, 0, 2);
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
@@ -2032,7 +2032,7 @@ void CIR816Backend::PeepholeMasks(CChars* pszDest, size uiStart)
 	const char*	szLine;
 	const char*	szEnd;
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
 		szEnd = IR816LineEnd(szLine);
@@ -2255,7 +2255,7 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 	bool		bKeep;
 
 	szText = pszDest->Text() + uiStart;
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	szA[0] = '\0';
 	szY[0] = '\0';
 	szKept[0] = '\0';
@@ -2545,7 +2545,7 @@ void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 	{
 		return;
 	}
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
 		szEnd = IR816LineEnd(szLine);
@@ -2588,7 +2588,7 @@ void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 	do
 	{
 		bRemoved = false;
-		szOut.Init();
+		szOut.Init(CIR816Backend::GetScratch());
 		for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 		{
 			szEnd = IR816LineEnd(szLine);

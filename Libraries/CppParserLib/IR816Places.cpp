@@ -209,8 +209,8 @@ void CIR816Backend::FoldPointers(void)
 	masFoldBase.FakeSetUsedElements(0);
 	maiFoldOffset.FakeSetUsedElements(0);
 	masFoldIndex.FakeSetUsedElements(0);
-	aiAddressUses.Init();
-	aiUses.Init();
+	aiAddressUses.Init(CIR816Backend::GetScratch());
+	aiUses.Init(CIR816Backend::GetScratch());
 	maiCountUses.FakeSetUsedElements(0);
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
@@ -343,11 +343,11 @@ void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
 	psNull = NULL;
 	iZero = 0;
 	uiFalse = 0;
-	apsDefinitions.Init();
-	aiWordUses.Init();
-	aiPairUses.Init();
-	aiFoldedUses.Init();
-	abBase.Init();
+	apsDefinitions.Init(CIR816Backend::GetScratch());
+	aiWordUses.Init(CIR816Backend::GetScratch());
+	aiPairUses.Init(CIR816Backend::GetScratch());
+	aiFoldedUses.Init(CIR816Backend::GetScratch());
+	abBase.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		apsDefinitions.Add(&psNull);
@@ -610,26 +610,26 @@ void CIR816LiveRanges::Init(size uiTemporaries)
 	int32	iNone;
 
 	iNone = -1;
-	maiFirst.Init();
-	maiLast.Init();
-	maiPairFirst.Init();
+	maiFirst.Init(CIR816Backend::GetScratch());
+	maiLast.Init(CIR816Backend::GetScratch());
+	maiPairFirst.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		maiFirst.Add(&iNone);
 		maiLast.Add(&iNone);
 		maiPairFirst.Add(&iNone);
 	}
-	maiStart.Init();
-	maiEnd.Init();
-	maiNext.Init();
-	maiPairNext.Init();
-	maiPairOther.Init();
-	maiPairPosition.Init();
-	maiPairWeight.Init();
-	maiWordFirst.Init();
-	maiOccupantNext.Init();
-	maiOccupant.Init();
-	masRegions.Init();
+	maiStart.Init(CIR816Backend::GetScratch());
+	maiEnd.Init(CIR816Backend::GetScratch());
+	maiNext.Init(CIR816Backend::GetScratch());
+	maiPairNext.Init(CIR816Backend::GetScratch());
+	maiPairOther.Init(CIR816Backend::GetScratch());
+	maiPairPosition.Init(CIR816Backend::GetScratch());
+	maiPairWeight.Init(CIR816Backend::GetScratch());
+	maiWordFirst.Init(CIR816Backend::GetScratch());
+	maiOccupantNext.Init(CIR816Backend::GetScratch());
+	maiOccupant.Init(CIR816Backend::GetScratch());
+	masRegions.Init(CIR816Backend::GetScratch());
 }
 
 
@@ -1242,14 +1242,14 @@ int32 CIR816Backend::PackTemporaries(void)
 	uiBlocks = mpcFunction->NumBlocks();
 	iNone = -1;
 	cRanges.Init(uiTemporaries);
-	asEvents.Init();
-	asLoadPairs.Init();
-	aiBlockEvents.Init();
-	aiBlockStart.Init();
-	aiBlockEnd.Init();
+	asEvents.Init(CIR816Backend::GetScratch());
+	asLoadPairs.Init(CIR816Backend::GetScratch());
+	aiBlockEvents.Init(CIR816Backend::GetScratch());
+	aiBlockStart.Init(CIR816Backend::GetScratch());
+	aiBlockEnd.Init(CIR816Backend::GetScratch());
 
 	//Each block's loop depth, for choosing between pairs.
-	aiDepths.Init();
+	aiDepths.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiBlocks; ui++)
 	{
 		iDepth = mcLoops.Depth(mpcFunction->GetBlock(ui));
@@ -1364,10 +1364,10 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 
 	//Each block's use and def sets.
-	auiUse.Init();
-	auiDef.Init();
-	auiIn.Init();
-	auiOut.Init();
+	auiUse.Init(CIR816Backend::GetScratch());
+	auiDef.Init(CIR816Backend::GetScratch());
+	auiIn.Init(CIR816Backend::GetScratch());
+	auiOut.Init(CIR816Backend::GetScratch());
 	auiUse.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
 	auiDef.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
 	auiIn.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
@@ -1429,9 +1429,9 @@ int32 CIR816Backend::PackTemporaries(void)
 	while (bChanged);
 
 	//The ranges: in each block from the start (live in) or the definition, to the end (live out) or the last use.
-	aiOpen.Init();
-	aiLastUse.Init();
-	aiOpened.Init();
+	aiOpen.Init(CIR816Backend::GetScratch());
+	aiLastUse.Init(CIR816Backend::GetScratch());
+	aiOpened.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		aiOpen.Add(&iNone);
@@ -1487,13 +1487,13 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 
 	//Placed in the order they start (but the parameters).
-	abParameter.Init();
+	abParameter.Init(CIR816Backend::GetScratch());
 	abParameter.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
 	{
 		*abParameter.Get(mpcFunction->masParameters.Get(ui)->Index()) = true;
 	}
-	aiOrder.Init();
+	aiOrder.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iTemporary = (int32)ui;
@@ -1777,11 +1777,11 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	uiTemporaries = mpcFunction->NumTemporaries();
 	mabInX.FakeSetUsedElements(0);
 	mabInX.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	aiScore.Init();
+	aiScore.Init(CIR816Backend::GetScratch());
 	aiScore.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	abCandidate.Init();
+	abCandidate.Init(CIR816Backend::GetScratch());
 	abCandidate.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
-	aiClobbers.Init();
+	aiClobbers.Init(CIR816Backend::GetScratch());
 
 	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
 	iPosition = 0;
@@ -1862,7 +1862,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	}
 
 	//The candidates, best first.
-	aiOrder.Init();
+	aiOrder.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		iTemporary = (int32)ui;
@@ -1882,7 +1882,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 		*aiOrder.Get(uj) = iTemporary;
 	}
 
-	aiInX.Init();
+	aiInX.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < aiOrder.NumElements(); ui++)
 	{
 		iTemporary = *aiOrder.Get(ui);

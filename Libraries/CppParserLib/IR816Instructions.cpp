@@ -656,7 +656,7 @@ int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, S
 	int32					iBytes;
 	CChars					sz;
 
-	asArguments.Init();
+	asArguments.Init(CIR816Backend::GetScratch());
 	if (bHidden)
 	{
 		psArgument = asArguments.Add();
@@ -811,7 +811,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	iTrue = NewLabel();
 	iFalse = NewLabel();
 	iEnd = NewLabel();
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	Frame("lda", IR816_SCRATCH_RESULT);
 	for (i = 0; i < iValues; i++)
 	{
@@ -862,7 +862,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	bSigned = false;
 	sFrom = mpcFunction->TypeOf(sValue);
 	sTo = psInstruction->sType;
-	szName.Init();
+	szName.Init(CIR816Backend::GetScratch());
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_FExt:
@@ -2421,7 +2421,7 @@ void CIR816Backend::Compare(SIRInstruction* psInstruction)
 	iTrue = NewLabel();
 	iFalse = NewLabel();
 	iEnd = NewLabel();
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	switch (uiOpcode)
 	{
 	case IRO_Eq:
@@ -3026,7 +3026,7 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 	{
 	case IRO_Load:
 		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
-		sz.Init();
+		sz.Init(CIR816Backend::GetScratch());
 		if (szSymbol)
 		{
 			sz.Append("lda [");
@@ -3095,7 +3095,7 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 	CChars	sz;
 
 	PointerPlace(psInstruction->asArguments[1], &iPlace, &szSymbol, &iOffset);
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	if (psInstruction->sType.Is(IRTK_I8))
 	{
 		Line("sep m");
@@ -3155,7 +3155,7 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	//The arguments as passed: the hidden result pointer first, each pushed unless a register function takes it in
 	//registers.
 	sCallee = psInstruction->asArguments[0];
-	asArguments.Init();
+	asArguments.Init(CIR816Backend::GetScratch());
 	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
 	{
 		psPlaced = asArguments.Add();
@@ -3178,7 +3178,7 @@ void CIR816Backend::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	}
 	mauiPendingArguments.FakeSetUsedElements(0);
 
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	if (sCallee.IsSymbol())
 	{
 		sz.Append("jsl ");

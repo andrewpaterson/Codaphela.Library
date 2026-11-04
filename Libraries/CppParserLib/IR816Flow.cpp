@@ -751,7 +751,7 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 	CArrayTemplate<SIR816FlowLabel>	asLabels;
 	bool							bResult;
 
-	asLabels.Init();
+	asLabels.Init(CIR816Backend::GetScratch());
 	bResult = IR816BuildFlowLabelled(szText, bStores, pasLines, pasBlocks, paiBlockOf, &asLabels);
 	asLabels.Kill();
 	return bResult;
@@ -769,7 +769,7 @@ static void IR816WriteFlow(CChars* pszDest, size uiStart, CArrayTemplate<SIR816F
 	size			ui;
 	SIR816FlowLine*	psLine;
 
-	szOut.Init();
+	szOut.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < pasLines->NumElements(); ui++)
 	{
 		if (!*pabRemove->Get(ui))
@@ -815,9 +815,9 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	bool							bFalse;
 	int32							iReached;	//The lowest byte a pointer into the frame may reach (bFrameAddress).
 
-	asLines.Init();
-	asBlocks.Init();
-	aiBlockOf.Init();
+	asLines.Init(CIR816Backend::GetScratch());
+	asBlocks.Init(CIR816Backend::GetScratch());
+	aiBlockOf.Init(CIR816Backend::GetScratch());
 	if (!IR816BuildFlow(pszDest->Text() + uiStart, true, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
@@ -878,7 +878,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	}
 
 	//The stores none of whose bytes are live after them.
-	abRemove.Init();
+	abRemove.Init(CIR816Backend::GetScratch());
 	bFalse = false;
 	for (ui = 0; ui < asLines.NumElements(); ui++)
 	{
@@ -1056,9 +1056,9 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	bool							bFalse;
 	bool							bFirst;
 
-	asLines.Init();
-	asBlocks.Init();
-	aiBlockOf.Init();
+	asLines.Init(CIR816Backend::GetScratch());
+	asBlocks.Init(CIR816Backend::GetScratch());
+	aiBlockOf.Init(CIR816Backend::GetScratch());
 	if (!IR816BuildFlow(pszDest->Text() + uiStart, false, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
@@ -1069,9 +1069,9 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 
 	memset(asNone, 0, sizeof(asNone));
 	IR816ForgetHeld(asNone, 0, 2);
-	asIn.Init();
-	asOut.Init();
-	abDone.Init();
+	asIn.Init(CIR816Backend::GetScratch());
+	asOut.Init(CIR816Backend::GetScratch());
+	abDone.Init(CIR816Backend::GetScratch());
 	bFalse = false;
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1084,8 +1084,8 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	}
 
 	//The blocks going to each block, in block order: block ui's are aiFrom[aiFromStart[ui]] up to aiFromStart[ui + 1].
-	aiFromStart.Init();
-	aiFrom.Init();
+	aiFromStart.Init(CIR816Backend::GetScratch());
+	aiFrom.Init(CIR816Backend::GetScratch());
 	aiFromStart.GrowToAtLeastNumElements(asBlocks.NumElements() + 1, true, 0);
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1103,7 +1103,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 		*aiFromStart.Get(ui + 1) += *aiFromStart.Get(ui);
 	}
 	aiFrom.GrowToAtLeastNumElements(*aiFromStart.Get(asBlocks.NumElements()), true, 0);
-	aiFill.Init();
+	aiFill.Init(CIR816Backend::GetScratch());
 	aiFill.GrowToAtLeastNumElements(asBlocks.NumElements(), true, 0);
 	for (ui = 0; ui < asBlocks.NumElements(); ui++)
 	{
@@ -1182,7 +1182,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	while (bChanged);
 
 	//The loads of what the register holds.
-	abRemove.Init();
+	abRemove.Init(CIR816Backend::GetScratch());
 	for (ui = 0; ui < asLines.NumElements(); ui++)
 	{
 		abRemove.Add(&bFalse);

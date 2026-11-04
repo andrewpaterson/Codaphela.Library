@@ -137,6 +137,19 @@ void CCPP65Generator::SetListing(bool bListing)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The arena the W65C816 back end's working arrays and strings are in while
+// it writes a function (CCPP65IRFrontEnd::GenerateCode, CIR816Backend::
+// SetScratch).
+//
+//////////////////////////////////////////////////////////////////////////
+CScratchPadAllocator* CCPP65Generator::GetBackendScratch(void)
+{
+	return &mcBackendScratch;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Where each function's code waits (in pieces) until the unit is assembled,
 // NULL for the generator's own memory.  Set it before generating.
 //
@@ -210,6 +223,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mszThunks.Init();
 	maszRuntime.Init();
 	mszBody.Init();
+	mcBackendScratch.Init((size)CPP65_BACKEND_SCRATCH_CHUNK);
 	mpszOut = &mszCode;
 	mpcImports = NULL;
 	muiImportsTurn = 0;
@@ -296,6 +310,7 @@ void CCPP65Generator::Kill(void)
 	SafeKill(mpcIRFrontEnd);
 	FreeVariables(&mapsLocals);
 	mapsLocals.Kill();
+	mcBackendScratch.Kill();
 
 	for (i = 0; i < maszStrings.NumElements(); i++)
 	{

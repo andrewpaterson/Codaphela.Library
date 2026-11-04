@@ -30,10 +30,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_INLINE_ZERO			64		//Value initialised objects up to this size are zeroed in place, bigger ones with memset.
 #define CPP65_W65C816_ASSEMBLY		1		//1: a W65C816 build links X816.asm in place of the parts of X.cpp it replaces (they are left out with #ifndef __W65C816_ASSEMBLY__); 0: the C++ (SetW65C816Assembly changes it at run time).
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
+#define CPP65_BACKEND_SCRATCH_CHUNK	(256 KB)	//The W65C816 back end's arena (CCPP65Generator::GetBackendScratch) grows by chunks this big...
+#define CPP65_BACKEND_SCRATCH_KEPT	(1 MB)		//...and keeps this much of them from one function to the next.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/ScratchPadAllocator.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayInt64.h"
 #include "BaseLib/MapLongTemplate.h"
@@ -474,6 +477,7 @@ protected:
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore).
 	CMemorySpillStore		mcMemorySpillStore;	//The spill store when none is set.
+	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIR816Backend::SetScratch).
 	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
 
 public:
@@ -505,6 +509,7 @@ public:
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetSpillStore(CSpillStore* pcStore);
 	CSpillStore*			GetSpillStore(void);
+	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:

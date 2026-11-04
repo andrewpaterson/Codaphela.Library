@@ -35,23 +35,23 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 {
 	CIRBackend::Init(pcModule, piLabels);
-	maszRuntime.Init();
-	maiOffsets.Init();
-	maiIncoming.Init();
-	maiSlots.Init();
-	maiParameters.Init();
-	mauiPendingArguments.Init();
-	masFoldBase.Init();
-	maiFoldOffset.Init();
-	masFoldIndex.Init();
+	maszRuntime.Init(CIR816Backend::GetScratch());
+	maiOffsets.Init(CIR816Backend::GetScratch());
+	maiIncoming.Init(CIR816Backend::GetScratch());
+	maiSlots.Init(CIR816Backend::GetScratch());
+	maiParameters.Init(CIR816Backend::GetScratch());
+	mauiPendingArguments.Init(CIR816Backend::GetScratch());
+	masFoldBase.Init(CIR816Backend::GetScratch());
+	maiFoldOffset.Init(CIR816Backend::GetScratch());
+	masFoldIndex.Init(CIR816Backend::GetScratch());
 	mcDominators.Init();
 	mcLoops.Init();
 	mpcDominators = NULL;
-	maiUses.Init();
-	maiCountUses.Init();
-	maiUseBlock.Init();
-	mabInX.Init();
-	masArguments.Init();
+	maiUses.Init(CIR816Backend::GetScratch());
+	maiCountUses.Init(CIR816Backend::GetScratch());
+	maiUseBlock.Init(CIR816Backend::GetScratch());
+	mabInX.Init(CIR816Backend::GetScratch());
+	masArguments.Init(CIR816Backend::GetScratch());
 	miRegisterWords = 0;
 	miRegisterBase = -1;
 	miFused = 0;
@@ -188,6 +188,7 @@ bool CIR816Backend::IsHiddenResult(SIRType sType)
 
 bool	gbIR816RegisterArguments = true;		//SetRegisterArguments.
 bool	gbIR816SoftFloatInFrame = true;			//SetSoftFloatInFrame.
+thread_local CMallocator*	gpcIR816Scratch = NULL;	//SetScratch: this thread's, else NULL.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,6 +226,36 @@ void CIR816Backend::SetRegisterArguments(bool bRegisterArguments)
 bool CIR816Backend::IsRegisterArguments(void)
 {
 	return gbIR816RegisterArguments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The back end's passes on this thread allocate their working arrays and
+// strings with pcScratch (an arena, CCPP65IRFrontEnd::GenerateCode's for
+// one function), or with the system allocator when it is NULL.  Nothing
+// they allocate with it outlives the back end.  Returns the one it was, to
+// set again after.
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CIR816Backend::SetScratch(CMallocator* pcScratch)
+{
+	CMallocator*	pcOld;
+
+	pcOld = gpcIR816Scratch;
+	gpcIR816Scratch = pcScratch;
+	return pcOld;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mallocator for the back end's working arrays and strings (SetScratch).
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CIR816Backend::GetScratch(void)
+{
+	return gpcIR816Scratch ? gpcIR816Scratch : &gcSystemAllocator;
 }
 
 
@@ -384,7 +415,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	//A function that only passes its arguments on to another (a wrapper) jumps to it.
 	CChars	szJump;
 
-	szJump.Init();
+	szJump.Init(CIR816Backend::GetScratch());
 	if (Forwarder(&szJump))
 	{
 		GenerateForwarder(szLabel, &szJump);
@@ -399,7 +430,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	{
 		CChars	szBytes;
 
-		szBytes.Init();
+		szBytes.Init(CIR816Backend::GetScratch());
 		szBytes.Append(miFrameBytes);
 		Error("The frame is too big for the W65C816's stack (bytes)", szBytes.Text());
 		szBytes.Kill();
@@ -834,7 +865,7 @@ void CIR816Backend::FindSingleUses(void)
 	size					uiIndex;
 	size					uiArgument;
 
-	aiCount.Init();
+	aiCount.Init(CIR816Backend::GetScratch());
 	aiCount.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
 	maiUseBlock.FakeSetUsedElements(0);
 	maiUseBlock.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0xFF);
@@ -948,8 +979,8 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	}
 
 	//The callee's arguments as Call places them, and where each comes from.
-	asCallee.Init();
-	aiSource.Init();
+	asCallee.Init(CIR816Backend::GetScratch());
+	aiSource.Init(CIR816Backend::GetScratch());
 	bResult = true;
 	if (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType))
 	{
@@ -991,7 +1022,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	//The pushed words line up: the callee's pushed arguments are this function's pushed ones, in order.
 	uiOwnFirst = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0;
 	uiFirst = asCallee.NumElements() - (pcBlock->masInstructions.NumElements() - 1);
-	aiPushed.Init();
+	aiPushed.Init(CIR816Backend::GetScratch());
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		if (asCallee.Get(ui)->iRegister < 0)
@@ -1018,7 +1049,7 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 	bResult = bResult && (uiPushed == aiPushed.NumElements());
 
 	//The register ones: in the same register here, or a constant loaded.
-	szLoads.Init();
+	szLoads.Init(CIR816Backend::GetScratch());
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		psPlaced = asCallee.Get(ui);

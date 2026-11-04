@@ -823,15 +823,21 @@ int CCPP65IRFrontEnd::PieceBytes(int iLeft)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame)
 {
-	CIR65Backend	cBackend;
-	CIR816Backend	cBackend816;
-	CCPPErrors		cErrors;
-	CArrayChars*	paszRuntime;
-	size			ui;
-	bool			bResult;
+	CIR65Backend			cBackend;
+	CIR816Backend			cBackend816;
+	CCPPErrors				cErrors;
+	CArrayChars*			paszRuntime;
+	size					ui;
+	bool					bResult;
+	CScratchPadAllocator*	pcScratch;
+	CMallocator*			pcOldScratch;
 
 	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 	{
+		//The back end's working arrays and strings are in the generator's arena, emptied when it has finished.
+		pcScratch = mpcGenerator->GetBackendScratch();
+		pcOldScratch = CIR816Backend::SetScratch(pcScratch);
+
 		//The back end's errors (a frame too big ...) are why the function wasn't written.
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
@@ -849,6 +855,12 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 			mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
 		}
 		cBackend816.Kill();
+
+		CIR816Backend::SetScratch(pcOldScratch);
+		if (pcOldScratch != pcScratch)
+		{
+			pcScratch->GetScratchPad()->Recycle((lsize)CPP65_BACKEND_SCRATCH_KEPT);
+		}
 		return bResult;
 	}
 

@@ -148,9 +148,9 @@ void CIR816Backend::DropFrame(size uiStart)
 			return;
 		}
 	}
-	szPrologue.Init();
+	szPrologue.Init(CIR816Backend::GetScratch());
 	IR816AppendFrameEntry(&szPrologue, miFrameBytes);
-	szEpilogue.Init();
+	szEpilogue.Init(CIR816Backend::GetScratch());
 	IR816AppendFrameExit(&szEpilogue, miFrameBytes);
 	iEpilogues = 0;
 	for (szAt = strstr(szCode, szEpilogue.Text()); szAt; szAt = strstr(szAt + 1, szEpilogue.Text()))
@@ -171,7 +171,7 @@ void CIR816Backend::DropFrame(size uiStart)
 
 	//Without D + anything it needn't set D either.
 	bUsesD = strstr(szCode, "D + ") != NULL;
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	while (*szCode)
 	{
 		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)
@@ -338,7 +338,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	}
 
 	iSavedS = bBig ? psFrame->iSavedS : psFrame->iFrameBytes + 1;
-	szPrologue.Init();
+	szPrologue.Init(CIR816Backend::GetScratch());
 	if (iRegisterWords > 0)
 	{
 		IR816AppendRegisterFrameEntry(&szPrologue, iRegisterWords, psFrame->iFrameBytes);
@@ -347,7 +347,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	{
 		IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
 	}
-	szEpilogue.Init();
+	szEpilogue.Init(CIR816Backend::GetScratch());
 	IR816AppendFrameExit(&szEpilogue, psFrame->iFrameBytes);
 	if (strstr(szCode, szPrologue.Text()) == NULL)
 	{
@@ -443,7 +443,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	szAlignedEpilogue.Append(iSavedS);
 	szAlignedEpilogue.Append("]\n\t\ttcs\n\t\ttya\n\t\tpld\n");
 
-	sz.Init();
+	sz.Init(CIR816Backend::GetScratch());
 	while (*szCode)
 	{
 		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)

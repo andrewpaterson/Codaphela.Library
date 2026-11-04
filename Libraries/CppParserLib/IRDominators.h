@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __I_R_DOMINATORS_H__
 #define __I_R_DOMINATORS_H__
+#include "BaseLib/ReuseAllocator.h"
 #include "IRFunction.h"
 
 
@@ -35,6 +36,10 @@ struct SIRSearch
 
 
 typedef CArrayTemplate<SIRSearch>	CArrayIRSearches;
+
+
+//CIRDominators's arrays, each with its own allocator.
+#define IR_DOMINATOR_ARRAYS		10
 
 
 //The dominator tree of a function's reachable blocks (Cooper, Harvey and Kennedy, "A Simple, Fast Dominance
@@ -55,6 +60,8 @@ protected:
 	CArrayIRBlocks			mapcFrontiers;		//Dominance frontiers (ComputeFrontiers), per block from maiFrontierStarts.
 	CArrayIRBlockNumbers	maiFrontierStarts;	//Per block index + 1.
 	CArrayIRSearches		masStack;
+	CReuseAllocator			macMallocs[IR_DOMINATOR_ARRAYS];	//Per array: one block, never made smaller, so computing again
+																//(the optimiser does after its passes change the blocks) reuses it.
 
 public:
 	void		Init(void);

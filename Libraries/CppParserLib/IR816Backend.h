@@ -160,6 +160,8 @@ public:
 	static void		IndexMnemonics(void);
 	static void		SetRegisterArguments(bool bRegisterArguments);
 	static bool		IsRegisterArguments(void);
+	static CMallocator*	SetScratch(CMallocator* pcScratch);
+	static CMallocator*	GetScratch(void);
 	static void		SetSoftFloatInFrame(bool bInFrame);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);

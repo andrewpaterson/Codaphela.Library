@@ -27,18 +27,24 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CIRDominators::Init(void)
 {
+	size	i;
+
 	mpcFunction = NULL;
 	mbLastFirst = false;
-	maiImmediate.Init();
-	maiPostOrder.Init();
-	mapcReversePostOrder.Init();
-	maiTreePre.Init();
-	maiTreePost.Init();
-	maiChildStart.Init();
-	maiChildren.Init();
-	mapcFrontiers.Init();
-	maiFrontierStarts.Init();
-	masStack.Init();
+	for (i = 0; i < IR_DOMINATOR_ARRAYS; i++)
+	{
+		macMallocs[i].Init(0);
+	}
+	maiImmediate.Init(&macMallocs[0]);
+	maiPostOrder.Init(&macMallocs[1]);
+	mapcReversePostOrder.Init(&macMallocs[2]);
+	maiTreePre.Init(&macMallocs[3]);
+	maiTreePost.Init(&macMallocs[4]);
+	maiChildStart.Init(&macMallocs[5]);
+	maiChildren.Init(&macMallocs[6]);
+	mapcFrontiers.Init(&macMallocs[7]);
+	maiFrontierStarts.Init(&macMallocs[8]);
+	masStack.Init(&macMallocs[9]);
 }
 
 
@@ -48,6 +54,8 @@ void CIRDominators::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRDominators::Kill(void)
 {
+	size	i;
+
 	masStack.Kill();
 	maiFrontierStarts.Kill();
 	mapcFrontiers.Kill();
@@ -58,6 +66,10 @@ void CIRDominators::Kill(void)
 	mapcReversePostOrder.Kill();
 	maiPostOrder.Kill();
 	maiImmediate.Kill();
+	for (i = 0; i < IR_DOMINATOR_ARRAYS; i++)
+	{
+		macMallocs[i].Kill();
+	}
 }
 
 
