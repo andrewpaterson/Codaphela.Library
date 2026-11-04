@@ -29,6 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define IR816_KEEP_IN_A	" ;A"		//Ends a store Peephole may leave the value in A for (Store).
 #define IR816_ROUND		" ;R"		//Ends a bra round a loop (JumpTo), for PeepholeBranches.
+#define IR816_ARGUMENT_STANDIN	0x4000		//PackTemporaries' stand-in places for the pushed parameters' (Layout gives them their offsets).
 #define IR816_SHIFT_STEPS	7			//The one bit steps a variable shift jumps into, after its byte and word moves.
 #define IR816_SHIFT_LOOP_BELOW	5		//Variable shifts by fewer bits loop a bit at a time instead.
 
@@ -1352,11 +1353,13 @@ void CIR816Backend::Layout(void)
 	int32				iArgument;
 	int32				iPlace;
 	int32				iRest;
+	bool				bStandin;
 	size				uiArgument;
 	CIRBlock*			pcBlock;
 	SIRPhi*				psPhi;
 	SIRInstruction*		psInstruction;
 	SIRReference		sParameter;
+	CArrayTemplate<bool>	abStandin;	//Per temporary: PackTemporaries gave it a pushed parameter's stand-in place.
 
 	iNone = -1;
 	maiOffsets.FakeSetUsedElements(0);
@@ -1374,6 +1377,12 @@ void CIR816Backend::Layout(void)
 	//slots, each a place of its own.
 	FoldPointers();
 	iNext = PackTemporaries();
+	abStandin.Init();
+	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
+	{
+		bStandin = *maiOffsets.Get(ui) >= IR816_ARGUMENT_STANDIN;
+		abStandin.Add(&bStandin);
+	}
 
 	//A frame (with its arguments) past the page keeps S, as it was when aligned (AlignFrame), in two bytes in the page.
 	iRest = IR816_LINK_BYTES + (IsHiddenResult(mpcFunction->msReturnType) ? 4 : 0);
@@ -1445,6 +1454,23 @@ void CIR816Backend::Layout(void)
 		*maiOffsets.Get(sParameter.Index()) = iPlace;
 	}
 	miArgumentBytes = iArgument - (miFrameBytes + 1 + IR816_LINK_BYTES);
+
+	//The temporaries PackTemporaries gave a pushed parameter's stand-in place (and the coalesced phis' ways in, which
+	//are their phis' places) get the parameter's place.  Only those: a big frame's other places may be past the
+	//stand-ins' start.
+	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
+	{
+		if (!*abStandin.Get(ui) || (*maiOffsets.Get(ui) < IR816_ARGUMENT_STANDIN))
+		{
+			continue;
+		}
+		if (*maiIncoming.Get(ui) == *maiOffsets.Get(ui))
+		{
+			*maiIncoming.Get(ui) += miFrameBytes + 1 + IR816_LINK_BYTES - IR816_ARGUMENT_STANDIN;
+		}
+		*maiOffsets.Get(ui) += miFrameBytes + 1 + IR816_LINK_BYTES - IR816_ARGUMENT_STANDIN;
+	}
+	abStandin.Kill();
 
 	//Frame reaches past the direct page through X, so nothing is kept in X then.
 	if (iArgument > 255)
@@ -2289,7 +2315,13 @@ static bool IR816CanShareArgument(uint16 uiOpcode, int iArgument)
 // argument, or a load's pointer: a one word load's, or one a phi joins them
 // by, p = p->psNext) at exactly the same place.  Each temporary, in the
 // order they start, is placed at a pair's place when it can be, else at the
-// first place free.  Returns the first byte after them.
+// first place free.  A pushed parameter's place may be a pair's too: the
+// callee owns its pushed arguments, so once a parameter is dead a temporary
+// paired with it (a field masked out of it, a copy) may take its place.
+// Before the frame's size is known those places are stand-ins from
+// IR816_ARGUMENT_STANDIN (Layout gives them their offsets); not when a
+// parameter's address is taken or the function is variadic.  Returns the
+// first byte after the temporaries in the frame.
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CIR816Backend::PackTemporaries(void)
@@ -2343,8 +2375,11 @@ int32 CIR816Backend::PackTemporaries(void)
 	int32						iDepth;
 	int32						iBestDepth;
 	int32						iBestOffset;
+	int32						iPushed;
 	CArrayTemplate<SIR816LoadPair>	asLoadPairs;
 	SIR816LoadPair*				psLoadPair;
+	SIR816Argument*				psPlaced;
+	bool						bShareParameters;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
 	uiWords = (uiTemporaries + 31) / 32;
@@ -2621,6 +2656,51 @@ int32 CIR816Backend::PackTemporaries(void)
 		*aiOrder.Get(uj) = iTemporary;
 	}
 
+	//The pushed parameters at their stand-in places, in the order ArgumentPlace gives them theirs (the hidden result
+	//pointer first), taken while they are live.
+	iPushed = 0;
+	bShareParameters = !(mpcFunction->muiAttributes & IRA_Variadic);
+	for (ui = 0; bShareParameters && (ui < uiBlocks); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			if (pcBlock->masInstructions.Get(uj)->uiOpcode == IRO_ArgAddress)
+			{
+				bShareParameters = false;
+				break;
+			}
+		}
+	}
+	if (bShareParameters)
+	{
+		uk = 0;
+		if (IsHiddenResult(mpcFunction->msReturnType))
+		{
+			psPlaced = masArguments.Get(uk);
+			if (psPlaced->iRegister < 0)
+			{
+				iPushed += 2 * psPlaced->iWords;
+			}
+			uk++;
+		}
+		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++, uk++)
+		{
+			psPlaced = masArguments.Get(uk);
+			if (psPlaced->iRegister >= 0)
+			{
+				continue;
+			}
+			iTemporary = (int32)mpcFunction->masParameters.Get(ui)->Index();
+			*maiOffsets.Get(iTemporary) = IR816_ARGUMENT_STANDIN + iPushed;
+			if (cRanges.Start(iTemporary) >= 0)
+			{
+				cRanges.Take(iTemporary, IR816_ARGUMENT_STANDIN + iPushed, 2 * psPlaced->iWords);
+			}
+			iPushed += 2 * psPlaced->iWords;
+		}
+	}
+
 	iNext = IR816_FIRST_TEMPORARY;
 	for (ui = 0; ui < aiOrder.NumElements(); ui++)
 	{
@@ -2628,14 +2708,15 @@ int32 CIR816Backend::PackTemporaries(void)
 		iBytes = (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
 
 		//A pair's place (the one where they meet in the deepest loop: the copy saved is done most), then the first
-		//place free.
+		//place free.  A pushed parameter's must hold all of it: past the pushed arguments is the caller's.
 		bFree = false;
 		iBestDepth = -1;
 		iBestOffset = -1;
 		for (iPair = *cRanges.maiPairFirst.Get(iTemporary); iPair != -1; iPair = *cRanges.maiPairNext.Get(iPair))
 		{
 			iOffset = *maiOffsets.Get(*cRanges.maiPairOther.Get(iPair));
-			if ((iOffset >= IR816_FIRST_TEMPORARY) && cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
+			if ((iOffset >= IR816_FIRST_TEMPORARY) && ((iOffset < IR816_ARGUMENT_STANDIN) || (iOffset + iBytes <= IR816_ARGUMENT_STANDIN + iPushed)) &&
+				cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
 			{
 				iDepth = *cRanges.maiPairWeight.Get(iPair);
 				if (iDepth > iBestDepth)
@@ -2660,7 +2741,7 @@ int32 CIR816Backend::PackTemporaries(void)
 		}
 		cRanges.Take(iTemporary, iOffset, iBytes);
 		*maiOffsets.Get(iTemporary) = iOffset;
-		if (iOffset + iBytes > iNext)
+		if ((iOffset < IR816_ARGUMENT_STANDIN) && (iOffset + iBytes > iNext))
 		{
 			iNext = iOffset + iBytes;
 		}

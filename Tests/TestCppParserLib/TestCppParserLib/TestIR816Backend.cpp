@@ -1156,6 +1156,51 @@ void TestIR816BackendWide(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pushed parameter's place, once the parameter is dead, may be a
+// temporary's (CIR816Backend::PackTemporaries): a 64 bit field masked out
+// of it and set again (a soft float's significand) is worked out in the
+// parameter's place (its top word), no copy of it made.  A
+// temporary wider than the last pushed parameter it pairs with (an i1's
+// zext to i32) doesn't take its place: past the pushed arguments is the
+// caller's (the stack is as it was after, TestIR816Run).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendParameterPlaces(void)
+{
+	CChars		szAssembly;
+	char*		szF;
+	char*		szMain;
+	char*		szAt;
+	int			iStores;
+
+	szAssembly.Init();
+	//The significand (and with 0x000FFFFFFFFFFFFF, or with 0x0010000000000000) in a's place: only its top word is
+	//stored there, and the two of the result pointer's place (in the scratch bytes) to write the result through it.
+	AssertLong(0x001FFFFFFFFFFFFFLL, TestIR816Run(
+		"function i64 @_F__Fy(i64 %a), local\n{\nb:\n\t%m = and i64 %a, 4503599627370495\n\t%n = or i64 %m, 4503599627370496\n\tret i64 %n\n}\n\n"
+		"function i64 @_main()\n{\nb:\n\t%r = call i64 @_F__Fy(i64 -1)\n\tret i64 %r\n}\n", false, &szAssembly));
+	szF = strstr(szAssembly.Text(), "_F__Fy:\n");
+	szMain = strstr(szAssembly.Text(), "_main:\n");
+	AssertNotNull(szF);
+	AssertNotNull(szMain);
+	iStores = 0;
+	for (szAt = szF ? strstr(szF, "\t\tsta [D + ") : NULL; szAt && (szAt < szMain); szAt = strstr(szAt + 1, "\t\tsta [D + "))
+	{
+		iStores++;
+	}
+	AssertInt(3, iStores);
+	szAssembly.Kill();
+
+	AssertLong(1110, TestIR816Run(
+		"function i32 @_G__Fcsc(i8 %a, i16 %b, i8 %c), local\n{\nb:\n\t%1 = slt i8 %a, %c\n\t%2 = slt i16 %b, 0\n\t%3 = sgt i8 %c, 0\n"
+		"\t%z1 = zext i1 %1 to i32\n\t%z2 = zext i1 %2 to i32\n\t%z3 = zext i1 %3 to i32\n"
+		"\t%m1 = mul i32 %z1, 1000\n\t%m2 = mul i32 %z2, 100\n\t%m3 = mul i32 %z3, 10\n\t%s1 = add i32 %m1, %m2\n\t%s2 = add i32 %s1, %m3\n\tret i32 %s2\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_G__Fcsc(i8 -1, i16 -2, i8 3)\n\tret i32 %r\n}\n", false));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The shift runtime routines (R816_Shl64, R816_LShr64, R816_AShr64 on the
 // caller's frame at D + X; R816_Shl32, R816_LShr32 and R816_AShr32 in the
 // scratch bytes): every count, from a function taking the count so it is
@@ -2096,6 +2141,7 @@ void TestIR816Backend(void)
 	TestIR816BackendShifts();
 	TestIR816BackendX();
 	TestIR816BackendWide();
+	TestIR816BackendParameterPlaces();
 	TestIR816BackendShiftRoutines();
 	TestIR816BackendMultiply64();
 	TestIR816BackendMemoryAndCalls();
