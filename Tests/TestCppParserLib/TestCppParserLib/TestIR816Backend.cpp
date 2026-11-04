@@ -1255,9 +1255,12 @@ void TestIR816BackendParameterPlaces(void)
 // frame, the saved D and the return address) and D + 12 is main's frame.
 // A store to its argument is its own, one a word higher is main's frame's
 // (found).  A routine that doesn't move D (a runtime routine) works on its
-// caller's frame, so its stores aren't checked.  (A caller without a frame
-// has its return address checked instead: TestIR816BackendParameterPlaces'
-// G, had its i1 zext overrun its last argument.)
+// caller's frame, so its stores aren't checked.  _Entered makes its frame
+// with a jsr to a helper that comes back with S moved (as the FAT assembly's
+// Enter does), and stores to its own argument: the helper's call ended when
+// it returned, though S didn't come back.  (A caller without a frame has its
+// return address checked instead: TestIR816BackendParameterPlaces' G, had
+// its i1 zext overrun its last argument.)
 //
 //////////////////////////////////////////////////////////////////////////
 static const char* gszTestIR816FrameCheck =
@@ -1271,6 +1274,9 @@ static const char* gszTestIR816FrameCheck =
 	"\t\tjsl _Bad\n"
 	"\t\tply\n"
 	"\t\tjsl _Runtime\n"
+	"\t\tpea 9\n"
+	"\t\tjsl _Entered\n"
+	"\t\tply\n"
 	"\t\ttdc\n\t\tclc\n\t\tadc 8\n\t\ttcs\n\t\tpld\n\t\trtl\n"
 	"_Bad:\n"
 	"\t\t.width (A, X), 16\n"
@@ -1278,6 +1284,18 @@ static const char* gszTestIR816FrameCheck =
 	"\t\tlda 3\n"
 	"\t\tsta [D + OFFSET]\n"
 	"\t\ttdc\n\t\tclc\n\t\tadc 4\n\t\ttcs\n\t\tpld\n\t\trtl\n"
+	"_Entered:\n"
+	"\t\t.width (A, X), 16\n"
+	"\t\tjsr EnterFrame\n"
+	"\t\tlda 4\n"
+	"\t\tsta [D + 10]\n"
+	"\t\ttdc\n\t\tclc\n\t\tadc 4\n\t\ttcs\n\t\tpld\n\t\trtl\n"
+	"EnterFrame:\n"
+	"\t\t.width (A, X), 16\n"
+	"\t\tplx\n"
+	"\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc 4\n\t\ttcs\n\t\ttcd\n"
+	"\t\tphx\n"
+	"\t\trts\n"
 	"_Runtime:\n"
 	"\t\t.width (A, X), 16\n"
 	"\t\tlda 5\n"

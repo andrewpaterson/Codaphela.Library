@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "Assembler65Lib/Asm65816FrameCheck.h"
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
@@ -522,10 +523,57 @@ static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Runs the linked program.  pszConsole gets what it printed.  Returns true if main returned.
+// Runs a W65C816 program (pcMPU reset on pcMemory) up to uiMaxSteps
+// instructions, a million at a time (Run takes a size, which is 32 bits in
+// a 32 bit build).  With pszFaults, every function's direct page stores are
+// checked (CAsm65816FrameCheck) and pszFaults gets those to a caller's
+// stack, each at its function (pcBuilder's map).  Returns the steps run, to
+// the million.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder, CChars* pszConsole)
+static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, CFast65C816* pcMPU, uint64 uiMaxSteps, CChars* pszFaults)
+{
+	CAsm65816FrameCheck	cCheck;
+	uint64				uiSteps;
+	size				ui;
+
+	if (pszFaults)
+	{
+		cCheck.Init(pcMemory, pcMPU);
+	}
+	for (uiSteps = 0; (uiSteps < uiMaxSteps) && !pcMPU->IsStopped(); uiSteps += 1000000)
+	{
+		if (pszFaults)
+		{
+			cCheck.Run(1000000);
+		}
+		else
+		{
+			pcMPU->Run(1000000);
+		}
+	}
+	if (pszFaults)
+	{
+		for (ui = 0; ui < cCheck.NumWrites(); ui++)
+		{
+			TestProject65AppendSymbol(pcBuilder, cCheck.GetWrite(ui)->uiAddress, pszFaults);
+			CAsm65816FrameCheck::AppendWrite(cCheck.GetWrite(ui), pszFaults);
+		}
+		cCheck.Kill();
+	}
+	return uiSteps;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the linked program.  pszConsole gets what it printed, and pszFaults
+// a W65C816 program's stores to a caller's stack (TestProject65RunW65C816;
+// not when it is timed, TEST_PROJECT65_RUN_TIME).  Returns true if main
+// returned.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder, CChars* pszConsole, CChars* pszFaults)
 {
 	CAsm65Memory*		pcMemory;
 	CAsm65HostFiles		cHostFiles;
@@ -562,7 +610,6 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	//TEST_PROJECT65_RUN_TIME prints how long each program ran on the host (not its compiling or linking).
 	iStart = clock();
 
-	//Run takes a size, which is 32 bits in a 32 bit build.
 	if (bW65C816)
 	{
 		pcMemory->InitFast65816(&cMPU816);
@@ -601,10 +648,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		}
 		else
 		{
-			for (uiSteps = 0; (uiSteps < uiMaxSteps) && !cMPU816.IsStopped(); uiSteps += 1000000)
-			{
-				cMPU816.Run(1000000);
-			}
+			uiSteps = TestProject65RunW65C816(pcBuilder, pcMemory, &cMPU816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
 		}
 		bReturned = cMPU816.IsStopped() && (cMPU816.GetS() == GetCPPTarget(CPPT_W65C816)->uiStackTop);
 		if (getenv("TEST_PROJECT65_CYCLES"))
@@ -696,6 +740,7 @@ void TestProject65RunTests(STestProject65* psProject)
 	CChars			szMain;
 	CChars			szMainFile;
 	CChars			szConsole;
+	CChars			szFaults;
 	CChars			szMissing;
 	CChars			szExpected;
 	CChars			szActual;
@@ -819,6 +864,7 @@ void TestProject65RunTests(STestProject65* psProject)
 		szExpected.Init(aszTests.GetText(i));
 		szActual.Init(aszTests.GetText(i));
 		szConsole.Init();
+		szFaults.Init();
 		if (!bLinked)
 		{
 			szActual.Append(" did not link: ");
@@ -832,18 +878,20 @@ void TestProject65RunTests(STestProject65* psProject)
 		else
 		{
 			uiPrograms++;
-			bReturned = TestProject65Run(psProject, &cBuilder, &szConsole);
+			bReturned = TestProject65Run(psProject, &cBuilder, &szConsole, &szFaults);
 			iRun = TestProject65ConsoleNumber(&szConsole, "Total Tests Run: ");
 			iFailed = TestProject65ConsoleNumber(&szConsole, "Total Failed: ");
-			if (!bReturned || (iFailed > 0))
+			if (!bReturned || (iFailed > 0) || !szFaults.Empty())
 			{
 				szActual.Append(bReturned ? " failed:\n" : " did not finish:\n");
+				szActual.Append(szFaults);
 				szActual.Append(szConsole);
 			}
 			iTotalRun += (iRun > 0) ? iRun : 0;
 		}
 		AssertString(szExpected.Text(), szActual.Text());
 		szMissing.Kill();
+		szFaults.Kill();
 		szConsole.Kill();
 		szActual.Kill();
 		szExpected.Kill();
