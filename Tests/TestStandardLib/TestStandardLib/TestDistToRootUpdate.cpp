@@ -22,6 +22,19 @@
 #define DIST_TO_ROOT_RANDOM_ARRAYS		6
 #define DIST_TO_ROOT_FREEING_MAX		80
 
+//The 65C64 and W65C816 run these too, smaller: they get 4G instructions each.
+//The distance to the stack calculator recurses once per object along a chain held from the stack, so the W65C816's
+//stack only fits a short one (and the host's not one of 100000).
+#ifndef __LIBC65__
+#define DIST_TO_ROOT_RANDOM_STEPS		1500
+#define DIST_TO_ROOT_SPEED_DEPTH		6
+#define DIST_TO_ROOT_MAX_UNROOTED_CHAIN	16384
+#else
+#define DIST_TO_ROOT_RANDOM_STEPS		100
+#define DIST_TO_ROOT_SPEED_DEPTH		3
+#define DIST_TO_ROOT_MAX_UNROOTED_CHAIN	32
+#endif // !__LIBC65__
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -73,12 +86,11 @@ size CountWrongDistToRoot(void)
 {
 	CArrayBaseObjectPtr		apcObjects;
 	CArrayInt				aiDist;
-	CArrayBaseObjectPtr		apcQueue;
+	CArrayInt				aiQueue;
 	CArrayEmbeddedObjectPtr	apcTos;
 	SIndexesIterator		sIter;
 	CBaseObject*			pcObject;
 	CBaseObject*			pcTo;
-	CBaseObject*			pcRoot;
 	size					i;
 	size					j;
 	size					k;
@@ -99,26 +111,20 @@ size CountWrongDistToRoot(void)
 	}
 	uiNumObjects = apcObjects.NumElements();
 
-	apcQueue.Init();
-	pcRoot = NULL;
+	aiQueue.Init();
 	for (i = 0; i < uiNumObjects; i++)
 	{
 		if (apcObjects.GetPtr(i)->IsRoot())
 		{
-			pcRoot = apcObjects.GetPtr(i);
 			aiDist.SetValue(i, ROOT_DIST_TO_ROOT);
-			apcQueue.Add(pcRoot);
+			aiQueue.Add((int)i);
 		}
 	}
 
-	uiFirst = 0;
-	while (uiFirst < apcQueue.NumElements())
+	for (uiFirst = 0; uiFirst < aiQueue.NumElements(); uiFirst++)
 	{
-		pcObject = apcQueue.GetPtr(uiFirst);
-		uiFirst++;
-		for (i = 0; apcObjects.GetPtr(i) != pcObject; i++)
-		{
-		}
+		i = (size)aiQueue.GetValue(uiFirst);
+		pcObject = apcObjects.GetPtr(i);
 		iDist = aiDist.GetValue(i);
 
 		apcTos.Init();
@@ -133,7 +139,7 @@ size CountWrongDistToRoot(void)
 					if (aiDist.GetValue(k) == UNATTACHED_DIST_TO_ROOT)
 					{
 						aiDist.SetValue(k, iDist + 1);
-						apcQueue.Add(pcTo);
+						aiQueue.Add((int)k);
 					}
 					break;
 				}
@@ -160,7 +166,7 @@ size CountWrongDistToRoot(void)
 		}
 	}
 
-	apcQueue.Kill();
+	aiQueue.Kill();
 	aiDist.Kill();
 	apcObjects.Kill();
 	return uiWrong;
@@ -730,6 +736,105 @@ void TestDistToRootUpdateBackPointersToHub(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The objects and collections in memory, gathered at the start of a step
+// (raw pointers: they are gone by the end of it).
+//
+//////////////////////////////////////////////////////////////////////////
+struct SDistToRootLiveObjects
+{
+	CArrayTemplatePtr<CTestObject>	apcObjects;
+	CArrayTemplatePtr<CArrayObject>	apcArrays;
+	CArrayTemplatePtr<CSetObject>	apcSets;
+	CArrayTemplatePtr<CIndexObject>	apcIndices;
+	CArrayTemplatePtr<CMapObject>	apcMaps;
+	CArrayTemplatePtr<CCollection>	apcCollections;
+
+	void Init(void);
+	void Kill(void);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SDistToRootLiveObjects::Init(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcObject;
+
+	apcObjects.Init();
+	apcArrays.Init();
+	apcSets.Init();
+	apcIndices.Init();
+	apcMaps.Init();
+	apcCollections.Init();
+
+	pcObject = gcObjects.GetMemory()->StartIteration(&sIter);
+	while (pcObject)
+	{
+		if (dynamic_cast<CTestObject*>(pcObject))
+		{
+			apcObjects.Add((CTestObject*)pcObject);
+		}
+		else if ((pcObject != ORoot()->TestGetSet()) && dynamic_cast<CCollection*>(pcObject))
+		{
+			apcCollections.Add((CCollection*)pcObject);
+			if (dynamic_cast<CArrayObject*>(pcObject))
+			{
+				apcArrays.Add((CArrayObject*)pcObject);
+			}
+			else if (dynamic_cast<CSetObject*>(pcObject))
+			{
+				apcSets.Add((CSetObject*)pcObject);
+			}
+			else if (dynamic_cast<CIndexObject*>(pcObject))
+			{
+				apcIndices.Add((CIndexObject*)pcObject);
+			}
+			else if (dynamic_cast<CMapObject*>(pcObject))
+			{
+				apcMaps.Add((CMapObject*)pcObject);
+			}
+		}
+		pcObject = gcObjects.GetMemory()->Iterate(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SDistToRootLiveObjects::Kill(void)
+{
+	apcCollections.Kill();
+	apcMaps.Kill();
+	apcIndices.Kill();
+	apcSets.Kill();
+	apcArrays.Kill();
+	apcObjects.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A random element, NULL if there are none.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* RandomElement(CRandom* pcRandom, CArrayTemplatePtr<M>* papc)
+{
+	if (papc->NumElements() == 0)
+	{
+		return NULL;
+	}
+	return papc->GetPtr((size)pcRandom->Next(0, (int32)papc->NumElements() - 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Random changes where nothing is held on the stack between steps, so
 // every object cut off from the root is freed.  The graph runs through
 // arrays, a set, an index and a map as well as object pointers.
@@ -738,14 +843,7 @@ void TestDistToRootUpdateBackPointersToHub(void)
 void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 {
 	CRandom							cRandom;
-	SIndexesIterator				sIter;
-	CBaseObject*					pcObject;
-	CArrayTemplatePtr<CTestObject>	apcObjects;
-	CArrayTemplatePtr<CArrayObject>	apcArrays;
-	CArrayTemplatePtr<CSetObject>	apcSets;
-	CArrayTemplatePtr<CIndexObject>	apcIndices;
-	CArrayTemplatePtr<CMapObject>	apcMaps;
-	CArrayTemplatePtr<CCollection>	apcCollections;
+	SDistToRootLiveObjects			sLive;
 	size							uiStep;
 	int								iOperation;
 	size							uiWrong;
@@ -773,66 +871,23 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 		uiUnattached = 0;
 		for (uiStep = 0; (uiStep < uiSteps) && (uiWrong == 0) && (uiUnattached == 0); uiStep++)
 		{
-			apcObjects.Init();
-			apcArrays.Init();
-			apcSets.Init();
-			apcIndices.Init();
-			apcMaps.Init();
-			apcCollections.Init();
-			pcObject = gcObjects.GetMemory()->StartIteration(&sIter);
-			while (pcObject)
-			{
-				if (dynamic_cast<CTestObject*>(pcObject))
-				{
-					apcObjects.Add((CTestObject*)pcObject);
-				}
-				else if ((pcObject != ORoot()->TestGetSet()) && dynamic_cast<CCollection*>(pcObject))
-				{
-					apcCollections.Add((CCollection*)pcObject);
-					if (dynamic_cast<CArrayObject*>(pcObject))
-					{
-						apcArrays.Add((CArrayObject*)pcObject);
-					}
-					else if (dynamic_cast<CSetObject*>(pcObject))
-					{
-						apcSets.Add((CSetObject*)pcObject);
-					}
-					else if (dynamic_cast<CIndexObject*>(pcObject))
-					{
-						apcIndices.Add((CIndexObject*)pcObject);
-					}
-					else if (dynamic_cast<CMapObject*>(pcObject))
-					{
-						apcMaps.Add((CMapObject*)pcObject);
-					}
-				}
-				pcObject = gcObjects.GetMemory()->Iterate(&sIter);
-			}
+			sLive.Init();
 
-			pcA = NULL;
-			pcB = NULL;
-			if (apcObjects.NumElements() > 0)
-			{
-				pcA = apcObjects.GetPtr(cRandom.Next(0, (int32)apcObjects.NumElements() - 1));
-				pcB = apcObjects.GetPtr(cRandom.Next(0, (int32)apcObjects.NumElements() - 1));
-			}
-			pcCollection = NULL;
-			if (apcCollections.NumElements() > 0)
-			{
-				pcCollection = apcCollections.GetPtr(cRandom.Next(0, (int32)apcCollections.NumElements() - 1));
-			}
+			pcA = RandomElement(&cRandom, &sLive.apcObjects);
+			pcB = RandomElement(&cRandom, &sLive.apcObjects);
+			pcCollection = RandomElement(&cRandom, &sLive.apcCollections);
 			sprintf(szKey, "k%i", cRandom.Next(0, 9));
 
 			iOperation = cRandom.Next(0, 14);
-			if ((pcA == NULL) || ((iOperation == 0) && (apcObjects.NumElements() < DIST_TO_ROOT_FREEING_MAX)))
+			if ((pcA == NULL) || ((iOperation == 0) && (sLive.apcObjects.NumElements() < DIST_TO_ROOT_FREEING_MAX)))
 			{
 				Ptr<CTestObject>	pNew;
 
 				//A new object somewhere reachable (or not, then it is freed straight away).
 				pNew = OMalloc<CTestObject>();
-				if (apcArrays.NumElements() > 0)
+				if (sLive.apcArrays.NumElements() > 0)
 				{
-					apcArrays.GetPtr(cRandom.Next(0, (int32)apcArrays.NumElements() - 1))->Add(pNew);
+					RandomElement(&cRandom, &sLive.apcArrays)->Add(pNew);
 				}
 				else if (pcA)
 				{
@@ -871,17 +926,17 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 					}
 					break;
 				case 5:
-					if (apcArrays.NumElements() > 0)
+					if (sLive.apcArrays.NumElements() > 0)
 					{
-						apcArrays.GetPtr(cRandom.Next(0, (int32)apcArrays.NumElements() - 1))->Add(pA);
+						RandomElement(&cRandom, &sLive.apcArrays)->Add(pA);
 					}
 					break;
 				case 6:
-					if (apcArrays.NumElements() > 0)
+					if (sLive.apcArrays.NumElements() > 0)
 					{
 						CArrayObject*	pcArray;
 
-						pcArray = apcArrays.GetPtr(cRandom.Next(0, (int32)apcArrays.NumElements() - 1));
+						pcArray = RandomElement(&cRandom, &sLive.apcArrays);
 						if (pcArray->NumElements() > 0)
 						{
 							pcArray->Remove((size)cRandom.Next(0, (int32)pcArray->NumElements() - 1));
@@ -889,45 +944,45 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 					}
 					break;
 				case 7:
-					if (apcSets.NumElements() > 0)
+					if (sLive.apcSets.NumElements() > 0)
 					{
-						if (apcSets.GetPtr(0)->Contains(pA))
+						if (sLive.apcSets.GetPtr(0)->Contains(pA))
 						{
-							apcSets.GetPtr(0)->Remove(pA);
+							sLive.apcSets.GetPtr(0)->Remove(pA);
 						}
 						else
 						{
-							apcSets.GetPtr(0)->Add(pA);
+							sLive.apcSets.GetPtr(0)->Add(pA);
 						}
 					}
 					break;
 				case 8:
-					if (apcIndices.NumElements() > 0)
+					if (sLive.apcIndices.NumElements() > 0)
 					{
-						apcIndices.GetPtr(0)->Put(szKey, pA);
+						sLive.apcIndices.GetPtr(0)->Put(szKey, pA);
 					}
 					break;
 				case 9:
-					if (apcIndices.NumElements() > 0)
+					if (sLive.apcIndices.NumElements() > 0)
 					{
-						if (apcIndices.GetPtr(0)->Get(szKey).IsNotNull())
+						if (sLive.apcIndices.GetPtr(0)->Get(szKey).IsNotNull())
 						{
-							apcIndices.GetPtr(0)->Remove(szKey);
+							sLive.apcIndices.GetPtr(0)->Remove(szKey);
 						}
 					}
 					break;
 				case 10:
-					if (apcMaps.NumElements() > 0)
+					if (sLive.apcMaps.NumElements() > 0)
 					{
-						apcMaps.GetPtr(0)->Put(pA, pB);
+						sLive.apcMaps.GetPtr(0)->Put(pA, pB);
 					}
 					break;
 				case 11:
-					if (apcMaps.NumElements() > 0)
+					if (sLive.apcMaps.NumElements() > 0)
 					{
-						if (apcMaps.GetPtr(0)->Get(pA).IsNotNull())
+						if (sLive.apcMaps.GetPtr(0)->Get(pA).IsNotNull())
 						{
-							apcMaps.GetPtr(0)->Remove(pA);
+							sLive.apcMaps.GetPtr(0)->Remove(pA);
 						}
 					}
 					break;
@@ -961,12 +1016,7 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 				}
 			}
 
-			apcCollections.Kill();
-			apcMaps.Kill();
-			apcIndices.Kill();
-			apcSets.Kill();
-			apcArrays.Kill();
-			apcObjects.Kill();
+			sLive.Kill();
 
 			uiWrong = CountWrongDistToRoot();
 			uiUnattached = CountUnattached();
@@ -1193,6 +1243,42 @@ float TestDistToRootUpdateFocusInWindow(size uiDepth, size uiBranching, bool bVa
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The speed tests' tree depth: DIST_TO_ROOT_TREE_DEPTH makes them bigger
+// when measuring on the host (and logs how long they took).
+//
+//////////////////////////////////////////////////////////////////////////
+size DistToRootTreeDepth(void)
+{
+#ifndef __LIBC65__
+	char*	szDepth;
+
+	szDepth = getenv("DIST_TO_ROOT_TREE_DEPTH");
+	if (szDepth)
+	{
+		return (size)atoi(szDepth);
+	}
+#endif // !__LIBC65__
+	return DIST_TO_ROOT_SPEED_DEPTH;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void LogDistToRootSpeed(const char* szWhat, size uiDepth, float fMilliseconds)
+{
+#ifndef __LIBC65__
+	if (getenv("DIST_TO_ROOT_TREE_DEPTH"))
+	{
+		gcLogger.Info2(szWhat, " of depth ", IntToString((int)uiDepth), ": ", IntToString((int)fMilliseconds), " ms", NULL);
+	}
+#endif // !__LIBC65__
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A focus moving across a big tree (a window's worth of components) must
 // stay fast: each move used to recalculate every node's distance through
 // CanFindRoot, many times over.  DIST_TO_ROOT_TREE_DEPTH can make it
@@ -1204,12 +1290,9 @@ void TestDistToRootUpdateFocusSpeed(void)
 	size		uiDepth;
 	float		fMilliseconds;
 
-	uiDepth = getenv("DIST_TO_ROOT_TREE_DEPTH") ? (size)atoi(getenv("DIST_TO_ROOT_TREE_DEPTH")) : 6;
+	uiDepth = DistToRootTreeDepth();
 	fMilliseconds = TestDistToRootUpdateFocusInWindow(uiDepth, 3, false);
-	if (getenv("DIST_TO_ROOT_TREE_DEPTH"))
-	{
-		gcLogger.Info2("Focus across a window tree of depth ", IntToString((int)uiDepth), ": ", IntToString((int)fMilliseconds), " ms", NULL);
-	}
+	LogDistToRootSpeed("Focus across a window tree", uiDepth, fMilliseconds);
 	AssertTrue(fMilliseconds < 10000.0f);
 }
 
@@ -1287,12 +1370,106 @@ void TestDistToRootUpdateReattachSpeed(void)
 	size		uiDepth;
 	float		fMilliseconds;
 
-	uiDepth = getenv("DIST_TO_ROOT_TREE_DEPTH") ? (size)atoi(getenv("DIST_TO_ROOT_TREE_DEPTH")) : 6;
+	uiDepth = DistToRootTreeDepth();
 	fMilliseconds = TestDistToRootUpdateReattachTree(uiDepth, 3, false);
-	if (getenv("DIST_TO_ROOT_TREE_DEPTH"))
+	LogDistToRootSpeed("Reattach a tree", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Components built before they are added to a window: a chain of objects
+// held from the stack, each pointing at a hub on the root that already
+// has many froms.  Every pointer change in the chain works out its
+// distance to the stack; none of it can change the hub's distance to the
+// root.  Returns the milliseconds the chain took to build.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateBuildUnrooted(size uiAttached, size uiBuilt, bool bValidate)
+{
+	Ptr<CTestObject>	pHub;
+	Ptr<CArrayObject>	pAttached;
+	Ptr<CTestObject>	pFirst;
+	Ptr<CTestObject>	pLast;
+	Ptr<CTestObject>	pObject;
+	CTimer				cTimer;
+	float				fMilliseconds;
+	size				i;
+
+	ObjectsInit();
+	if (!bValidate)
 	{
-		gcLogger.Info2("Reattach a tree of depth ", IntToString((int)uiDepth), ": ", IntToString((int)fMilliseconds), " ms", NULL);
+		gcObjects.DisableValidation();
 	}
+	{
+		pHub = OMalloc<CTestObject>();
+		pAttached = OMalloc<CArrayObject>();
+		ORoot()->Add(pHub);
+		pHub->mpObject = pAttached;
+		for (i = 0; i < uiAttached; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pObject->mpObject = pHub;
+			pAttached->Add(pObject);
+		}
+
+		cTimer.Init();
+		pFirst = OMalloc<CTestObject>();
+		pFirst->mpObject = pHub;
+		pLast = pFirst;
+		for (i = 1; i < uiBuilt; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pObject->mpObject = pHub;
+			pLast->mpTest = pObject;
+			pLast = pObject;
+		}
+		pObject = NULL;
+		pLast = NULL;
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		AssertInt(UNATTACHED_DIST_TO_ROOT, pFirst->GetDistToRoot());
+		AssertInt(2, pHub->GetDistToRoot());
+		AssertSize((size)(uiAttached + uiBuilt + 1), pHub->NumHeapFroms());
+		AssertDistToRoot();
+
+		pFirst = NULL;
+		AssertSize(uiAttached + 1, pHub->NumHeapFroms());
+		AssertDistToRoot();
+
+		ORoot()->RemoveAll();
+		pHub = NULL;
+		pAttached = NULL;
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateBuildUnrootedSpeed(void)
+{
+	size		uiDepth;
+	size		uiChain;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	uiChain = (size)1 << (uiDepth + 4);
+	if (uiChain > DIST_TO_ROOT_MAX_UNROOTED_CHAIN)
+	{
+		uiChain = DIST_TO_ROOT_MAX_UNROOTED_CHAIN;
+	}
+	fMilliseconds = TestDistToRootUpdateBuildUnrooted((size)1 << (uiDepth + 5), uiChain, false);
+	LogDistToRootSpeed("Build unrooted next to a hub", uiDepth, fMilliseconds);
 	AssertTrue(fMilliseconds < 10000.0f);
 }
 
@@ -1315,20 +1492,22 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateFocusInWindow(3, 3, true);
 	TestDistToRootUpdateFocusInWindow(4, 2, true);
 	TestDistToRootUpdateEmbeddedCollections();
-	TestDistToRootUpdateRandom(1, 1500);
-	TestDistToRootUpdateRandom(2, 1500);
-	TestDistToRootUpdateRandom(3, 1500);
+	TestDistToRootUpdateRandom(1, DIST_TO_ROOT_RANDOM_STEPS);
+	TestDistToRootUpdateRandom(2, DIST_TO_ROOT_RANDOM_STEPS);
+	TestDistToRootUpdateRandom(3, DIST_TO_ROOT_RANDOM_STEPS);
 	TestDistToRootUpdateAlternatePaths();
 	TestDistToRootUpdateBackPointersToHub();
 	TestDistToRootUpdateUnattachedPointingAtHub();
-	TestDistToRootUpdateRandomFreeing(1, 1500);
-	TestDistToRootUpdateRandomFreeing(2, 1500);
-	TestDistToRootUpdateRandomFreeing(3, 1500);
+	TestDistToRootUpdateRandomFreeing(1, DIST_TO_ROOT_RANDOM_STEPS);
+	TestDistToRootUpdateRandomFreeing(2, DIST_TO_ROOT_RANDOM_STEPS);
+	TestDistToRootUpdateRandomFreeing(3, DIST_TO_ROOT_RANDOM_STEPS);
 	TestDistToRootUpdateFocusInWindow(4, 3, true);
 	TestDistToRootUpdateFocusSpeed();
 	TestDistToRootUpdateReattachTree(3, 3, true);
 	TestDistToRootUpdateReattachTree(5, 2, true);
 	TestDistToRootUpdateReattachSpeed();
+	TestDistToRootUpdateBuildUnrooted(20, 10, true);
+	TestDistToRootUpdateBuildUnrootedSpeed();
 
 	DataIOKill();
 	TypesKill();
