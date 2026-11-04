@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "StandardLib/ClassDefines.h"
 #include "JewelColours.h"
+#include "Window.h"
 #include "CodeEditor.h"
 
 
@@ -38,12 +39,19 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mauiGapIds.Init();
 	mauiLines.Init();
 	muiGutterLines = 0;
+	macMarks.Init();
+	mbMarksChanged = false;
+	mcListeners.Init();
+	mcListeners.AddAllowedClass<CCodeEditorListener>();
 	CContainer::Init(pWindow);
 
 	mpTextArea = OMalloc<CTextArea>(pWindow, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
+
+	//The gutter is only to read: a press in it passes to the code editor.
 	mpGutter = OMalloc<CTextArea>(pWindow, pFamily, "");
 	mpGutter->SetEditable(false);
+	mpGutter->SetSelectable(false);
 	mpGutter->SetCanGetFocus(false);
 	mpGutter->SetColour(JEWEL_LINE_NUMBER);
 	mpGutter->SetAlignment(CSH_Left, CSV_Top);
@@ -52,6 +60,10 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	AddComponent(mpGutter);
 	AddComponent(mpTextArea);
 	UpdateGutter();
+
+	//A press on the gutter (or what isn't the code's) focuses the code editor, which gives the focus to its code.
+	SetCanGetFocus(true);
+	AddInputAction(CIC_ActivateComponent, this, &CCodeEditor::ClickAction);
 
 	PostInit();
 }
@@ -63,6 +75,8 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Free(void)
 {
+	mcListeners.Kill();
+	macMarks.Kill();
 	mauiLines.Kill();
 	mauiGapIds.Kill();
 	CContainer::Free();
@@ -82,6 +96,9 @@ void CCodeEditor::Class(void)
 	U_Data(CArrayCodeEditorGapIds, mauiGapIds);
 	U_Data(CArrayCodeEditorLines, mauiLines);
 	U_Size(muiGutterLines);
+	U_Data(CArrayCodeEditorMarks, macMarks);
+	U_Bool(mbMarksChanged);
+	U_Data(CListenerCall, mcListeners);
 }
 
 
@@ -458,7 +475,7 @@ size CCodeEditor::FindGapId(uint32 uiId)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A row for each line of the code: a column for marks, the line's number
+// A row for each line of the code: its mark (or a space), its number
 // (from 1) right aligned, and a space.  Drawn as tiles if the code is.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -466,10 +483,9 @@ void CCodeEditor::UpdateGutter(void)
 {
 	size	uiLines;
 	size	uiDigits;
-	size	uiNumber;
-	size	uiWidth;
 	size	uiLine;
-	CChars	szNumbers;
+	char	cMark;
+	CChars	szRows;
 
 	if (mpGutter->IsTiledText() != mpTextArea->IsTiledText())
 	{
@@ -477,35 +493,137 @@ void CCodeEditor::UpdateGutter(void)
 	}
 
 	uiLines = mpTextArea->NumLines();
-	if (uiLines != muiGutterLines)
+	if ((uiLines != muiGutterLines) || mbMarksChanged)
 	{
-		uiDigits = 1;
-		for (uiNumber = uiLines; uiNumber >= 10; uiNumber /= 10)
+		uiDigits = CountDigits(uiLines);
+		szRows.Init();
+		for (uiLine = 0; uiLine < uiLines; uiLine++)
 		{
-			uiDigits++;
-		}
-
-		szNumbers.Init();
-		for (uiLine = 1; uiLine <= uiLines; uiLine++)
-		{
-			uiWidth = 1;
-			for (uiNumber = uiLine; uiNumber >= 10; uiNumber /= 10)
+			cMark = GetLineMark(uiLine);
+			szRows.Append((cMark != '\0') ? cMark : ' ');
+			szRows.Append(' ', (int)(uiDigits - CountDigits(uiLine + 1)));
+			szRows.Append((int)(uiLine + 1));
+			szRows.Append(' ');
+			if (uiLine + 1 < uiLines)
 			{
-				uiWidth++;
-			}
-			szNumbers.Append(' ', (int)(1 + uiDigits - uiWidth));
-			szNumbers.Append((int)uiLine);
-			szNumbers.Append(' ');
-			if (uiLine < uiLines)
-			{
-				szNumbers.Append('\n');
+				szRows.Append('\n');
 			}
 		}
-		mpGutter->SetText(szNumbers.Text());
-		szNumbers.Kill();
+		mpGutter->SetText(szRows.Text());
+		szRows.Kill();
 		muiGutterLines = uiLines;
+		mbMarksChanged = false;
 	}
 	mpGutter->SetLineGaps(mpTextArea->GetLineGaps());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The digits uiNumber is written in.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCodeEditor::CountDigits(size uiNumber)
+{
+	size	uiDigits;
+
+	for (uiDigits = 1; uiNumber >= 10; uiNumber /= 10)
+	{
+		uiDigits++;
+	}
+	return uiDigits;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// cMark is shown next to line uiLine's number ('\0' for none).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetLineMark(size uiLine, char cMark)
+{
+	if (GetLineMark(uiLine) == cMark)
+	{
+		return;
+	}
+	while (macMarks.NumElements() <= uiLine)
+	{
+		*macMarks.Add() = '\0';
+	}
+	*macMarks.Get(uiLine) = cMark;
+	mbMarksChanged = true;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mark next to line uiLine, '\0' if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+char CCodeEditor::GetLineMark(size uiLine)
+{
+	return (uiLine < macMarks.NumElements()) ? *macMarks.Get(uiLine) : '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ClearLineMarks(void)
+{
+	if (macMarks.NumElements() > 0)
+	{
+		macMarks.ReInit();
+		mbMarksChanged = true;
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A press that came to the code editor (it focussed it) gives the focus to
+// the code, so what is typed goes there.  A press in the gutter tells the
+// listeners the line it was next to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
+{
+	size	uiLine;
+
+	mpWindow->GetFocus()->SetFocus(mpTextArea);
+	if ((psEvent->x < 0) || (psEvent->x >= mpGutter->GetActualSize().x))
+	{
+		return;
+	}
+
+	//The gutter's rows are the code's, and so are its lines.
+	uiLine = mpGutter->FindLine(mpGutter->FindPositionAt(psEvent->x, psEvent->y));
+	mcListeners.CallListeners(&CCodeEditorListener::GutterClicked, this, &uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodeEditor::AddListener(CCodeEditorListener* pcListener)
+{
+	return mcListeners.AddListener(pcListener);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodeEditor::RemoveListener(CCodeEditorListener* pcListener)
+{
+	return mcListeners.RemoveListener(pcListener);
 }
 
 

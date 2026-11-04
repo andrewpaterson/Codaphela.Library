@@ -258,6 +258,7 @@
     <ClInclude Include="SoundStreamVoice.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="CodeEditor.h" />
+    <ClInclude Include="CodeEditorListener.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />

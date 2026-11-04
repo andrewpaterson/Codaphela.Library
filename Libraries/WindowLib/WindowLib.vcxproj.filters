@@ -315,6 +315,9 @@
     <ClInclude Include="CodeEditor.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="CodeEditorListener.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component\Widgets\Button</Filter>
     </ClInclude>

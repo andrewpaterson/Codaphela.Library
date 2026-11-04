@@ -30,6 +30,28 @@ Ptr<CFillContainer> CreateCodeEditorLineComponent(Ptr<CWindow> pWindow, int32 iH
 }
 
 
+//Keeps the lines the gutter was clicked next to.
+class CTestCodeEditorListener : public CCodeEditorListener
+{
+CONSTRUCTABLE(CTestCodeEditorListener);
+public:
+	size	muiClicks;
+	size	muiLine;
+
+	void Init(void)
+	{
+		muiClicks = 0;
+		muiLine = MAX_SIZE;
+	}
+
+	void GutterClicked(CUnknown* pcSource, void* pvContext) override
+	{
+		muiClicks++;
+		muiLine = *(size*)pvContext;
+	}
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The top of line uiLine of pTextArea, relative to the window.
@@ -339,6 +361,107 @@ void TestCodeEditorScrollPane(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A mark is shown in the gutter's first column, next to its line's number.
+// A press in the gutter tells the listeners the line it was next to (one
+// in a line component's gap is the line above it) and doesn't select in
+// the gutter; a press in the code is the code's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorGutterMarks(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pTextArea;
+		Ptr<CTextArea>				pGutter;
+		CTestCodeEditorListener		cListener;
+		int32						iLine;
+		int32						iTop;
+		int32						iLeft;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pTextArea = pEditor->GetTextArea();
+		pGutter = pEditor->GetGutter();
+		pTestWindow->Layout();
+		iLine = pTextArea->GetFont()->GetLineHeight();
+		iTop = pEditor->GetPosition().y;
+		iLeft = pEditor->GetPosition().x;
+
+		pEditor->SetLineMark(1, '+');
+		pTestWindow->Layout();
+		AssertString(" 1 \n+2 \n 3 ", pGutter->GetText());
+		AssertInt('+', pEditor->GetLineMark(1));
+		AssertInt('\0', pEditor->GetLineMark(0));
+		AssertInt('\0', pEditor->GetLineMark(9));
+		pEditor->SetLineMark(1, '-');
+		pEditor->SetLineMark(2, '+');
+		pTestWindow->Layout();
+		AssertString(" 1 \n-2 \n+3 ", pGutter->GetText());
+
+		//Next to line 2.
+		cListener.Init();
+		AssertTrue(pEditor->AddListener(&cListener));
+		pTestWindow->PointerMoved(iLeft + 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(1, cListener.muiClicks);
+		AssertSize(1, cListener.muiLine);
+		AssertSize(0, pGutter->GetCaretPosition());
+		AssertFalse(pGutter->IsSelectable());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pTextArea);
+
+		//In line 1's gap, next to it.
+		AssertTrue(pEditor->AddLineComponent(0, CreateCodeEditorLineComponent(pTestWindow, 2 * iLine)));
+		pTestWindow->Layout();
+		pTestWindow->PointerMoved(iLeft + 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(2, cListener.muiClicks);
+		AssertSize(0, cListener.muiLine);
+
+		//The code takes its own presses: its caret moves to line 3 (below the gap).
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 2, iTop + 4 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(2, cListener.muiClicks);
+		AssertSize(4, pTextArea->GetCaretPosition());
+
+		pEditor->ClearLineMarks();
+		pTestWindow->Layout();
+		AssertString(" 1 \n 2 \n 3 ", pGutter->GetText());
+		AssertTrue(pEditor->RemoveListener(&cListener));
+
+		pGutter = NULL;
+		pTextArea = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditor(void)
@@ -350,6 +473,7 @@ void TestCodeEditor(void)
 	TestCodeEditorLineComponents(false);
 	TestCodeEditorLineComponents(true);
 	TestCodeEditorScrollPane();
+	TestCodeEditorGutterMarks();
 
 	ObjectsFlush();
 	ObjectsKill();

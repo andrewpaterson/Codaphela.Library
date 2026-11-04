@@ -21,13 +21,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CODE_EDITOR_H__
 #define __CODE_EDITOR_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "StandardLib/ListenerCall.h"
 #include "SupportLib/FontFamily.h"
 #include "Container.h"
 #include "TextArea.h"
+#include "CodeEditorListener.h"
 
 
 typedef CArrayTemplate<uint32>	CArrayCodeEditorGapIds;
 typedef CArrayTemplate<size>	CArrayCodeEditorLines;
+typedef CArrayTemplate<char>	CArrayCodeEditorMarks;
 
 
 //Source code to edit: a gutter of line numbers on the left of a text area (GetTextArea) of the code, and components
@@ -35,8 +38,10 @@ typedef CArrayTemplate<size>	CArrayCodeEditorLines;
 //code and as high as the component wants.  A line component stays with its line as the code is edited and goes when
 //its line is deleted.  The gutter is a text area too, in the code's font with the same gaps, so its numbers are on
 //the code's rows; the code isn't word wrapped and its spans shouldn't change the font's size or the rows wouldn't
-//match.  The gutter's first column is left for marks next to the numbers.  The code editor is meant to be the content
-//of a CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.
+//match.  The gutter's first column has a mark for each line (SetLineMark), a space unless set; marks are by line
+//number, so they don't move with the lines as the code is edited.  Clicking the gutter tells the listeners which line
+//it was next to.  The code editor is meant to be the content of a CScrollPane: it is as big as the gutter and code
+//need, and the text area keeps its caret in view.
 class CCodeEditor : public CContainer
 {
 CONSTRUCTABLE(CCodeEditor);
@@ -48,6 +53,9 @@ protected:
 	CArrayCodeEditorGapIds	mauiGapIds;  //Of each line component's gap in the text area.  Ascending: a new gap's id is the largest.
 	CArrayCodeEditorLines	mauiLines;  //Each line component's line, as of the last update.
 	size					muiGutterLines;  //The lines the gutter was last numbered for.
+	CArrayCodeEditorMarks	macMarks;  //By line; lines past its end, and '\0's, have none.
+	bool					mbMarksChanged;  //Since the gutter was last numbered.
+	CListenerCall			mcListeners;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText);
@@ -70,6 +78,13 @@ public:
 	size				GetLineOf(Ptr<CComponent> pComponent);
 	Ptr<CComponent>		GetComponentOn(size uiLine);
 
+	void				SetLineMark(size uiLine, char cMark);
+	char				GetLineMark(size uiLine);
+	void				ClearLineMarks(void);
+	bool				AddListener(CCodeEditorListener* pcListener);
+	bool				RemoveListener(CCodeEditorListener* pcListener);
+	void				ClickAction(SComponentInputEvent* psEvent);
+
 	void				SetRequiredSize(void) override;
 	SInt32Vec2			GetDesiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
@@ -82,6 +97,7 @@ protected:
 	void				Update(void);
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
+	size				CountDigits(size uiNumber);
 };
 
 
