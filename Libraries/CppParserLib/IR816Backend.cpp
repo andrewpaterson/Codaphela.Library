@@ -52,10 +52,8 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiUseBlock.Init(CIR816Backend::GetScratch());
 	mabInX.Init(CIR816Backend::GetScratch());
 	masArguments.Init(CIR816Backend::GetScratch());
-	miRegisterWords = 0;
-	miRegisterBase = -1;
+	msFrame.Init(0, false);
 	miFused = 0;
-	miHiddenResult = -1;
 }
 
 
@@ -335,14 +333,17 @@ void IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's hidden result pointer (when it returns 64 bits) and
-// parameters as its callers pass them (masArguments, miRegisterWords): in
-// registers when its symbol is marked for them and it isn't variadic.
+// parameters as its callers pass them (masArguments, the frame's register
+// words): in registers when its symbol is marked for them and it isn't
+// variadic.  The frame starts empty.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::FunctionArguments(void)
 {
 	SIR816Argument*	psArgument;
 	size			ui;
+	int32			iRegisterWords;
+	bool			bVariadic;
 
 	masArguments.FakeSetUsedElements(0);
 	if (IsHiddenResult(mpcFunction->msReturnType))
@@ -357,19 +358,51 @@ void CIR816Backend::FunctionArguments(void)
 		psArgument->iWords = Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui)));
 		psArgument->iRegister = -1;
 	}
-	miRegisterWords = 0;
-	if (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !(mpcFunction->muiAttributes & IRA_Variadic))
-	{
-		miRegisterWords = IR816AssignRegisters(&masArguments);
-	}
+	bVariadic = (mpcFunction->muiAttributes & IRA_Variadic) != 0;
+	iRegisterWords = (IsRegisterCall(IRReference(IRRK_Symbol, mpcFunction->muiSymbol)) && !bVariadic) ? IR816AssignRegisters(&masArguments) : 0;
+	msFrame.Init(iRegisterWords, bVariadic);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An empty frame: none of its parts placed.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIR816Frame::Init(int32 iRegisterWordsIn, bool bVariadicIn)
+{
+	iFrameBytes = 0;
+	iSavedS = -1;
+	iRegisterWords = iRegisterWordsIn;
+	iRegisterBase = -1;
+	iArgumentBytes = 0;
+	iHiddenResult = -1;
+	iDirectPageWeight = 0;
+	bLoops = false;
+	bVariadic = bVariadicIn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part of iBytes (in whole words) on the frame's top.  Returns its place.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 SIR816Frame::Add(int32 iBytes)
+{
+	int32	iPlace;
+
+	iPlace = iFrameBytes + 1;
+	iFrameBytes += (iBytes + 1) & ~1;
+	return iPlace;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // An argument's place (D + offset): in the frame's top when it came in
-// registers (miRegisterBase, after Layout gives it), else the next pushed
-// one (*piPushed, moved past it).
+// registers (once Layout has placed the register words), else the next
+// pushed one (*piPushed, moved past it).
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CIR816Backend::ArgumentPlace(SIR816Argument* psArgument, int32* piPushed)
@@ -378,7 +411,7 @@ int32 CIR816Backend::ArgumentPlace(SIR816Argument* psArgument, int32* piPushed)
 
 	if (psArgument->iRegister >= 0)
 	{
-		return miRegisterBase + 2 * psArgument->iRegister;
+		return msFrame.RegisterWord(psArgument->iRegister);
 	}
 	iPlace = *piPushed;
 	*piPushed += 2 * psArgument->iWords;
@@ -426,12 +459,12 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	szJump.Kill();
 
 	Layout();
-	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
+	if (msFrame.iFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
 		CChars	szBytes;
 
 		szBytes.Init(CIR816Backend::GetScratch());
-		szBytes.Append(miFrameBytes);
+		szBytes.Append(msFrame.iFrameBytes);
 		Error("The frame is too big for the W65C816's stack (bytes)", szBytes.Text());
 		szBytes.Kill();
 		return false;
@@ -454,14 +487,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::GetFrame(SIR816Frame* psFrame)
 {
-	psFrame->iFrameBytes = miFrameBytes;
-	psFrame->iArgumentBytes = miArgumentBytes;
-	psFrame->iSavedS = miSavedS;
-	psFrame->iDirectPageWeight = miDirectPageWeight;
-	psFrame->bLoops = mbLoops;
-	psFrame->bVariadic = (mpcFunction->muiAttributes & IRA_Variadic) != 0;
-	psFrame->iRegisterWords = miRegisterWords;
-	psFrame->iRegisterBase = miRegisterBase;
+	*psFrame = msFrame;
 }
 
 
@@ -762,8 +788,6 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 	FindSingleUses();
 	mpcDominators = &mcDominators;
-	miDirectPageWeight = 0;
-	mbLoops = false;
 	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -800,10 +824,10 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		iWeight = 1;
 		for (iDepth = mcLoops.Depth(pcBlock); iDepth > 0; iDepth--)
 		{
-			mbLoops = true;
+			msFrame.bLoops = true;
 			iWeight *= (iDepth <= IR816_ALIGN_MAX_DEPTH) ? IR816_ALIGN_LOOP_WEIGHT : 1;
 		}
-		miDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
+		msFrame.iDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
 	}
 	miBlock = -1;
 	mpcDominators = NULL;
@@ -1103,26 +1127,20 @@ bool CIR816Backend::Forwarder(CChars* pszJump)
 //
 // A wrapper (Forwarder): its label, a register function's stub and body
 // label as Prologue writes them, then the jump (pszJump) instead of a
-// frame and body.  It has no frame (AlignFrame leaves it).
+// frame and body.  It has no frame (FunctionArguments' empty one, which
+// AlignFrame leaves).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
 {
 	CChars	szBody;
 
-	miFrameBytes = 0;
-	miArgumentBytes = 0;
-	miSavedS = -1;
-	miDirectPageWeight = 0;
-	mbLoops = false;
-	miRegisterBase = 0;
-
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
 	mpszOut->AppendNewLine();
 	Line(".width (A, X), 16");
 	Line(".relax");
-	if (miRegisterWords > 0)
+	if (msFrame.iRegisterWords > 0)
 	{
 		szBody.Init(szLabel);
 		IR816AppendRegisterSuffix(&szBody, &masArguments);
@@ -1156,9 +1174,9 @@ void CIR816Backend::Prologue(const char* szLabel)
 	mpszOut->AppendNewLine();
 	Line(".width (A, X), 16");
 	Line(".relax");
-	if (miRegisterWords == 0)
+	if (msFrame.iRegisterWords == 0)
 	{
-		IR816AppendFrameEntry(mpszOut, miFrameBytes);
+		IR816AppendFrameEntry(mpszOut, msFrame.iFrameBytes);
 		return;
 	}
 
@@ -1179,7 +1197,7 @@ void CIR816Backend::Prologue(const char* szLabel)
 	szBody.Kill();
 
 	//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
-	IR816AppendRegisterFrameEntry(mpszOut, miRegisterWords, miFrameBytes);
+	IR816AppendRegisterFrameEntry(mpszOut, msFrame.iRegisterWords, msFrame.iFrameBytes);
 }
 
 
@@ -1236,14 +1254,14 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 
 	//A's word is moved over when its place is one the pushed words go to.
 	bKeepA = (iMoved > 0) && (aiWordOf[0] < iStacked);
-	if (bKeepA && (miRegisterWords == IR816_ARGUMENT_REGISTERS))
+	if (bKeepA && (msFrame.iRegisterWords == IR816_ARGUMENT_REGISTERS))
 	{
 		RegisterStubCall(pszBodyLabel, aiWordOf, iWords, iStacked);
 		return;
 	}
 
 	//Y's and X's words, and A's into Y when the moves go over it.
-	RegisterStubLoad(aiWordOf, miRegisterWords - 1, 1, 0);
+	RegisterStubLoad(aiWordOf, msFrame.iRegisterWords - 1, 1, 0);
 	if (bKeepA)
 	{
 		RegisterStubLoad(aiWordOf, 0, 0, 0);
@@ -1344,7 +1362,7 @@ void CIR816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iW
 		}
 	}
 
-	RegisterStubLoad(aiWordOf, miRegisterWords - 1, 0, iStacked);
+	RegisterStubLoad(aiWordOf, msFrame.iRegisterWords - 1, 0, iStacked);
 
 	sz.Init("jsl ");
 	sz.Append(pszBodyLabel);
@@ -1385,7 +1403,7 @@ void CIR816Backend::StackLine(const char* szInstruction, int iOffset)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Epilogue(void)
 {
-	IR816AppendFrameExit(mpszOut, miFrameBytes);
+	IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
 	Line("rtl");
 }
 
@@ -1404,11 +1422,11 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 	if (!psJump->sType.IsNone())
 	{
 		iWords = Words(psJump->sType);
-		if (miHiddenResult >= 0)
+		if (msFrame.iHiddenResult >= 0)
 		{
-			Frame("lda", miHiddenResult);
+			Frame("lda", msFrame.iHiddenResult);
 			Frame("sta", IR816_SCRATCH_POINTER);
-			Frame("lda", miHiddenResult + 2);
+			Frame("lda", msFrame.iHiddenResult + 2);
 			Frame("sta", IR816_SCRATCH_POINTER + 2);
 			for (i = 0; i < iWords; i++)
 			{

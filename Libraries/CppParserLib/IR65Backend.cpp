@@ -150,6 +150,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	masMoves.Init();
 	masStubs.Init();
 	muiSaved = 0;
+	miFrameBytes = 0;
 	miArguments = 0;
 	miThisOffset = -1;
 	miReturnLabel = 0;

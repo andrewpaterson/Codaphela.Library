@@ -31,22 +31,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CIR816Backend::Allocate(int32* piNext, int32 iBytes)
-{
-	int32	iOffset;
-
-	iOffset = *piNext;
-	*piNext += (iBytes + 1) & ~1;
-	return iOffset;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The temporaries get places after the scratch bytes, shared by those that are never live at once; each phi's way
-// in and slot gets its own place after them.  The arguments are above the frame, the saved D and the return address:
+// The frame (msFrame), its parts added in order: the temporaries after the scratch bytes, shared by those that are
+// never live at once; then each phi's way in and slot its own place.  The arguments are above the frame and the link:
 // the hidden result pointer first, then the parameters in order.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -55,7 +41,6 @@ void CIR816Backend::Layout(void)
 	size				ui;
 	size				uiBlock;
 	size				uiInstruction;
-	int32				iNext;
 	int32				iNone;
 	int32				iArgument;
 	int32				iPlace;
@@ -81,7 +66,7 @@ void CIR816Backend::Layout(void)
 	//The temporaries share places when they aren't live at once (PackTemporaries); then the phis' ways in and the
 	//slots, each a place of its own.
 	FoldPointers();
-	iNext = PackTemporaries();
+	msFrame.iFrameBytes = PackTemporaries() - 1;
 
 	//A frame (with its arguments) past the page keeps S, as it was when aligned (AlignFrame), in two bytes in the page.
 	iRest = IR816_LINK_BYTES + (IsHiddenResult(mpcFunction->msReturnType) ? 4 : 0);
@@ -105,7 +90,7 @@ void CIR816Backend::Layout(void)
 			}
 		}
 	}
-	miSavedS = ((iNext + iRest > 256) && (iNext + 2 <= 256)) ? Allocate(&iNext, 2) : -1;
+	msFrame.iSavedS = ((msFrame.Link() + iRest > 256) && (msFrame.Link() + 2 <= 256)) ? msFrame.Add(2) : -1;
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
@@ -119,7 +104,7 @@ void CIR816Backend::Layout(void)
 			}
 			else
 			{
-				*maiIncoming.Get(psPhi->sResult.Index()) = Allocate(&iNext, ValueBytes(psPhi->sType));
+				*maiIncoming.Get(psPhi->sResult.Index()) = msFrame.Add(ValueBytes(psPhi->sType));
 			}
 		}
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
@@ -127,21 +112,19 @@ void CIR816Backend::Layout(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if (psInstruction->uiOpcode == IRO_Slot)
 			{
-				*maiSlots.Get(psInstruction->sResult.Index()) = Allocate(&iNext, (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
+				*maiSlots.Get(psInstruction->sResult.Index()) = msFrame.Add((int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
 			}
 		}
 	}
 	//The register arguments' words are the frame's top, the first lowest: the prologue pushes them there (Prologue).
-	miRegisterBase = (miRegisterWords > 0) ? Allocate(&iNext, 2 * miRegisterWords) : -1;
-	miFrameBytes = iNext - 1;
+	msFrame.iRegisterBase = (msFrame.iRegisterWords > 0) ? msFrame.Add(2 * msFrame.iRegisterWords) : -1;
 
-	//The pushed arguments are above the frame, the saved D and the return address, in order.
-	iArgument = miFrameBytes + 1 + IR816_LINK_BYTES;
-	miHiddenResult = -1;
+	//The pushed arguments are above the frame and the link, in order.
+	iArgument = msFrame.Arguments();
 	uiArgument = 0;
 	if (IsHiddenResult(mpcFunction->msReturnType))
 	{
-		miHiddenResult = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
+		msFrame.iHiddenResult = ArgumentPlace(masArguments.Get(uiArgument), &iArgument);
 		uiArgument++;
 	}
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
@@ -152,7 +135,7 @@ void CIR816Backend::Layout(void)
 		maiParameters.Add(&iPlace);
 		*maiOffsets.Get(sParameter.Index()) = iPlace;
 	}
-	miArgumentBytes = iArgument - (miFrameBytes + 1 + IR816_LINK_BYTES);
+	msFrame.iArgumentBytes = iArgument - msFrame.Arguments();
 
 	//The temporaries at a pushed parameter's stand-in place (AddRegions), and the coalesced phis' ways in that are their
 	//phis' places, get the parameter's place: no frame reaches IR816_ARGUMENT_STANDIN.
@@ -160,11 +143,11 @@ void CIR816Backend::Layout(void)
 	{
 		if (*maiOffsets.Get(ui) >= IR816_ARGUMENT_STANDIN)
 		{
-			*maiOffsets.Get(ui) += miFrameBytes + 1 + IR816_LINK_BYTES - IR816_ARGUMENT_STANDIN;
+			*maiOffsets.Get(ui) += msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
 		}
 		if (*maiIncoming.Get(ui) >= IR816_ARGUMENT_STANDIN)
 		{
-			*maiIncoming.Get(ui) += miFrameBytes + 1 + IR816_LINK_BYTES - IR816_ARGUMENT_STANDIN;
+			*maiIncoming.Get(ui) += msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
 		}
 	}
 

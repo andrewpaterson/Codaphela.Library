@@ -157,6 +157,7 @@ protected:
 	CArrayIR65Moves			masMoves;
 	CArrayIR65Stubs			masStubs;
 	uint32					muiSaved;			//The [$80 + W] units used, a bit each.
+	int32					miFrameBytes;
 	int32					miArguments;		//Where the arguments start: 1 + frame + 8.
 	int32					miThisOffset;		//A thiscall's this in the frame, for an argaddr of it; -1 for none.
 	int32					miReturnLabel;

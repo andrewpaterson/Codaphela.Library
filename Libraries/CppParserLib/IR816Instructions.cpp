@@ -2959,7 +2959,7 @@ bool CIR816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstructi
 	SIRInstruction*	psChained;
 	int				i;
 
-	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (miHiddenResult >= 0) ||
+	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (msFrame.iHiddenResult >= 0) ||
 		!psInstruction->sResult.IsTemporary() || (Words(psInstruction->sType) != 2) || psInstruction->sType.IsFloat() ||
 		(*maiUseBlock.Get(psInstruction->sResult.Index()) != miBlock))
 	{

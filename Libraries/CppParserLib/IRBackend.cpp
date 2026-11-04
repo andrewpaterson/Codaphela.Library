@@ -39,7 +39,6 @@ void CIRBackend::Init(CIRModule* pcModule, int* piLabels)
 	mpcErrors = NULL;
 	mbResult = true;
 	maiBlockLabels.Init();
-	miFrameBytes = 0;
 	mszSectionOptions = "";
 }
 

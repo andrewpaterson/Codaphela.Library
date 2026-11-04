@@ -137,21 +137,21 @@ void CIR816Backend::DropFrame(size uiStart)
 	bool		bUsesD;
 
 	szCode = mpszOut->Text() + uiStart;
-	if ((miFrameBytes == 0) || (strstr(szCode, "[D + X]") != NULL) || IR816PassesFrameOffsets(szCode))
+	if ((msFrame.iFrameBytes == 0) || (strstr(szCode, "[D + X]") != NULL) || IR816PassesFrameOffsets(szCode))
 	{
 		return;
 	}
 	for (szAt = strstr(szCode, "D + "); szAt; szAt = strstr(szAt + 4, "D + "))
 	{
-		if (atoi(szAt + 4) <= miFrameBytes)
+		if (atoi(szAt + 4) <= msFrame.iFrameBytes)
 		{
 			return;
 		}
 	}
 	szPrologue.Init(CIR816Backend::GetScratch());
-	IR816AppendFrameEntry(&szPrologue, miFrameBytes);
+	IR816AppendFrameEntry(&szPrologue, msFrame.iFrameBytes);
 	szEpilogue.Init(CIR816Backend::GetScratch());
-	IR816AppendFrameExit(&szEpilogue, miFrameBytes);
+	IR816AppendFrameExit(&szEpilogue, msFrame.iFrameBytes);
 	iEpilogues = 0;
 	for (szAt = strstr(szCode, szEpilogue.Text()); szAt; szAt = strstr(szAt + 1, szEpilogue.Text()))
 	{
@@ -188,7 +188,7 @@ void CIR816Backend::DropFrame(size uiStart)
 		{
 			iOffset = atoi(szCode + 4);
 			sz.Append("D + ");
-			sz.Append(iOffset - miFrameBytes);
+			sz.Append(iOffset - msFrame.iFrameBytes);
 			for (szCode += 4; (*szCode >= '0') && (*szCode <= '9'); szCode++)
 			{
 			}
@@ -224,7 +224,7 @@ void CIR816Backend::DropFrame(size uiStart)
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile)
+bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile)
 {
 	CChars					sz;
 	CChars					szPrologue;
@@ -239,7 +239,6 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	int32					iTop;
 	int32					iWords;
 	int32					iSavedS;
-	int32					iFirst;
 	int32					iCopied;
 	int32					i;
 	uint64					ulliCost;
@@ -251,7 +250,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	bool					abCopy[IR816_DIRECT_PAGE / 2];
 	bool					abCopyRegister[IR816_ARGUMENT_REGISTERS];
 
-	iTop = psFrame->iFrameBytes + IR816_LINK_BYTES + psFrame->iArgumentBytes;
+	iTop = psFrame->Top();
 	iWords = (psFrame->iArgumentBytes + 1) / 2;
 	iRegisterWords = psFrame->iRegisterWords;
 	szCode = pszCode->Text();
@@ -264,17 +263,16 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 
 	//Argument words nothing reads aren't copied into the frame (a frame past the page pushes them all into place);
 	//nor are register words.
-	iFirst = psFrame->iFrameBytes + 1 + IR816_LINK_BYTES;
 	bAllRead = bBig || IR816FindReads(szCode, abRead);
 	iCopied = bBig ? iWords : 0;
 	for (i = 0; !bBig && (i < iWords); i++)
 	{
-		abCopy[i] = bAllRead || abRead[iFirst + 2 * i] || abRead[iFirst + 2 * i + 1];
+		abCopy[i] = bAllRead || abRead[psFrame->ArgumentWord(i)] || abRead[psFrame->ArgumentWord(i) + 1];
 		iCopied += abCopy[i] ? 1 : 0;
 	}
 	for (i = 0; i < iRegisterWords; i++)
 	{
-		abCopyRegister[i] = bAllRead || abRead[psFrame->iRegisterBase + 2 * i] || abRead[psFrame->iRegisterBase + 2 * i + 1];
+		abCopyRegister[i] = bAllRead || abRead[psFrame->RegisterWord(i)] || abRead[psFrame->RegisterWord(i) + 1];
 		iCopied += abCopyRegister[i] ? 1 : 0;
 	}
 
@@ -337,7 +335,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 		return false;
 	}
 
-	iSavedS = bBig ? psFrame->iSavedS : psFrame->iFrameBytes + 1;
+	iSavedS = bBig ? psFrame->iSavedS : psFrame->Link();
 	szPrologue.Init(CIR816Backend::GetScratch());
 	if (iRegisterWords > 0)
 	{
@@ -379,7 +377,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 			szAligned.Append("\t\tlda [");
 			szAligned.Append(1 + 2 * i);
 			szAligned.Append(" + X]:24\n\t\tsta [D + ");
-			szAligned.Append(psFrame->iRegisterBase + 2 * i);
+			szAligned.Append(psFrame->RegisterWord(i));
 			szAligned.Append("]\n");
 		}
 		for (i = 0; i < iWords; i++)
@@ -391,7 +389,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 			szAligned.Append("\t\tlda [");
 			szAligned.Append(1 + 2 * iRegisterWords + IR816_LINK_BYTES + 2 * i);
 			szAligned.Append(" + X]:24\n\t\tsta [D + ");
-			szAligned.Append(psFrame->iFrameBytes + 1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append(psFrame->ArgumentWord(i));
 			szAligned.Append("]\n");
 		}
 	}

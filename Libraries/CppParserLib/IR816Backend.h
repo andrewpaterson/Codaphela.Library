@@ -84,17 +84,29 @@ struct SIR816Argument
 typedef CArrayTemplate<SIR816Argument>	CArrayIR816Arguments;
 
 
-//What AlignFrame needs of a function's frame, from GenerateFunction (GetFrame).
+//A function's frame (D + offset), as Layout lays it out, lowest first: the temporaries from IR816_FIRST_TEMPORARY;
+//where an aligned frame past the page keeps S; the phis' ways in and the slots; the register words, at the frame's
+//top.  Above it the link (the caller's D and the return address), then the pushed arguments, the hidden result
+//pointer first.  AlignFrame gets it from GenerateFunction (GetFrame), with how the function uses the direct page.
 struct SIR816Frame
 {
-	int32	iFrameBytes;
-	int32	iArgumentBytes;
+	int32	iFrameBytes;		//D + 1 to D + iFrameBytes.
 	int32	iSavedS;			//Where an aligned frame past the page keeps S, or -1.
+	int32	iRegisterWords;		//The arguments' words that came in registers (pushed by the prologue to the frame's top).
+	int32	iRegisterBase;		//Where they are in the frame, or -1.
+	int32	iArgumentBytes;		//The pushed arguments' bytes (the hidden result pointer's too).
+	int32	iHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
 	int32	iDirectPageWeight;	//The direct page accesses, weighted by the loops they are in.
 	bool	bLoops;
 	bool	bVariadic;
-	int32	iRegisterWords;		//The arguments' words that came in registers (pushed by the prologue to the frame's top).
-	int32	iRegisterBase;		//Where they are in the frame, or -1.
+
+	void	Init(int32 iRegisterWordsIn, bool bVariadicIn);
+	int32	Add(int32 iBytes);
+	int32	Link(void) const { return iFrameBytes + 1; }
+	int32	Arguments(void) const { return Link() + IR816_LINK_BYTES; }
+	int32	Top(void) const { return Arguments() + iArgumentBytes - 1; }
+	int32	RegisterWord(int32 iWord) const { return iRegisterBase + 2 * iWord; }
+	int32	ArgumentWord(int32 iWord) const { return Arguments() + 2 * iWord; }
 };
 
 
@@ -128,18 +140,12 @@ class CIR816Backend : public CIRBackend
 protected:
 	CArrayChars				maszRuntime;		//The runtime routines used.
 	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
-	int						miRegisterWords;	//The words of them passed in registers (A, then X, then Y).
-	int32					miRegisterBase;		//Where the prologue pushes the register words (the frame's top), or -1.
+	SIR816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
 	CArrayTemplate<int32>	maiIncoming;		//Per phi: where its value is put on the way in, else -1.
 	CArrayTemplate<int32>	maiSlots;			//Per temporary made by slot: the slot's place, else -1.
 	CArrayTemplate<int32>	maiParameters;		//Per parameter: its place (D + offset).
 	CArrayTemplate<size>	mauiPendingArguments;	//Instruction indices of the args before a call.
-	int32					miHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
-	int32					miArgumentBytes;	//The arguments' bytes (the hidden result pointer's too) above the frame.
-	int32					miSavedS;			//Where an aligned frame past the page keeps S (Layout), or -1.
-	int32					miDirectPageWeight;	//The direct page accesses, weighted by the loops they are in (AlignFrame).
-	bool					mbLoops;
 	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
 	CArrayTemplate<SIRReference>	masFoldIndex;	//Per temporary: the i16 a folded pointer adds in Y instead (its offset is 0), else none.
@@ -164,7 +170,7 @@ public:
 	static CMallocator*	GetScratch(void);
 	static void		SetSoftFloatInFrame(bool bInFrame);
 	void			GetFrame(SIR816Frame* psFrame);
-	static bool		AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
+	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateBody(const char* szLabel, size uiStart);
@@ -202,7 +208,6 @@ protected:
 	int32			PackTemporaries(void);
 	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);
-	int32			Allocate(int32* piNext, int32 iBytes);
 	int32			OffsetOf(SIRReference sTemporary);
 
 	void			Frame(const char* szMnemonic, int32 iOffset);
