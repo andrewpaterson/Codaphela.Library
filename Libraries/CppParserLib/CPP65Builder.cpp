@@ -79,7 +79,6 @@ void CCPP65Builder::Init(void)
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
 	muiLazyRead = 0;
-	muiReadHere = 0;
 	mpcJobs = NULL;
 	mcCompilingMutex.Init();
 	mcCompiled.Init();
@@ -525,18 +524,6 @@ size CCPP65Builder::NumLazyLoaded(void)
 size CCPP65Builder::NumLazyRead(void)
 {
 	return muiLazyRead;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// How many header declarations that couldn't be left unparsed (a class
-// defined after class X;) were read where they are, not parsed.
-//
-//////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumReadHere(void)
-{
-	return muiReadHere;
 }
 
 
@@ -1491,7 +1478,6 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
 	psUnit->uiLazyRead = 0;
-	psUnit->uiReadHere = 0;
 	psUnit->psCompile = NULL;
 	psUnit->eStage = CPP65US_Generating;
 }
@@ -1583,11 +1569,9 @@ void CCPP65Builder::FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings)
 	muiLazySkipped += psUnit->uiLazySkipped;
 	muiLazyLoaded += psUnit->uiLazyLoaded;
 	muiLazyRead += psUnit->uiLazyRead;
-	muiReadHere += psUnit->uiReadHere;
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
 	psUnit->uiLazyRead = 0;
-	psUnit->uiReadHere = 0;
 }
 
 
@@ -1955,7 +1939,6 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psUnit->uiLazySkipped += psCompile->cParser.NumLazySkipped();
 	psUnit->uiLazyLoaded += psCompile->cParser.NumLazyLoaded();
 	psUnit->uiLazyRead += psCompile->cParser.NumLazyRead();
-	psUnit->uiReadHere += psCompile->cParser.NumReadHere();
 	psCompile->cParser.Kill();
 
 	//The syntax tree and tokens aren't needed to assemble.

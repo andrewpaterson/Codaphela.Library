@@ -115,7 +115,6 @@ protected:
 	size					muiLazySkipped;			//Header declarations left unparsed...
 	size					muiLazyLoaded;			//...and how many of them were parsed when used...
 	size					muiLazyRead;			//...or read as parsed before (CPPSyntaxBlock).
-	size					muiReadHere;			//Header declarations not left unparsed but read where they are.
 
 public:
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
@@ -129,7 +128,6 @@ public:
 	size							NumLazySkipped(void);
 	size							NumLazyLoaded(void);
 	size							NumLazyRead(void);
-	size							NumReadHere(void);
 
 protected:
 	//Lazy header declarations.  CppParserLazy.cpp
@@ -138,7 +136,6 @@ protected:
 	void							RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclaration* pcDeclaration, CArrayTemplate<CCPPSymbol*>* papcDeclared);
 	void							LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy);
 	bool							ReadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy);
-	bool							ReadHere(SCPPHeaderDeclaration* psRecord, CArraySyntax* papcDeclarations, CCPPSyntax* pcParent, int iFirst, int iLast);
 	void							LoadMembers(CCPPSyntaxLazyDeclaration* pcLazy);
 	CCPPSymbol*						MemberDefinitionClass(CCPPSyntaxDeclaration* pcDeclaration);
 	CCPPSyntaxLazyDeclaration*		UnloadedClass(const char* szName);
