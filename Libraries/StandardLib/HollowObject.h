@@ -46,7 +46,6 @@ public:
 			bool				IsCollection(void) override;
 			bool				IsObject(void) override;
 
-			size				NumPointerTos(void);
 
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
@@ -54,8 +53,6 @@ public:
 
 			size				NumHeapFroms(void);
 			size				NumStackFroms(void);
-			void				RemoveAllPointerTosDontFree(void);
-			bool				RemoveAllPointerTosTryFree(void);
 			void				ValidateConsistency(void);
 
 			bool				HasNes(void) override;
@@ -69,8 +66,6 @@ protected:
 
 			void				FreePointers(void) override;
 			void				Free(void) override;
-			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-			void				RemovePointerTo(CEmbeddedObject* pcTo);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(size iIndex);
 };
 

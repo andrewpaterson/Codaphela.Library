@@ -222,8 +222,8 @@ protected:
 			EFreeResult				TryFree(bool bHeapFromChanged);
 			void					RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled);
 
-	virtual void					RemoveAllPointerTosDontFree(void) =0;
-	virtual bool					RemoveAllPointerTosTryFree(void) =0;
+	virtual void					RemoveAllPointerTosDontFree(void);
+	virtual bool					RemoveAllPointerTosTryFree(void);
 
 			bool					SaveManaged(CObjectWriter* pcFile);
 			bool					LoadManaged(CObjectReader* pcFile);
@@ -231,7 +231,6 @@ protected:
 			bool					SaveHeapFroms(CObjectWriter* pcFile);
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
-			size					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			void					RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void					SetExpectedDistToRoot(int iExpectedDistToRoot);
 	static	void					DrainCloserToRoot(void);

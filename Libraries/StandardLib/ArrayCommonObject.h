@@ -55,7 +55,6 @@ public:
 	size 					NonNullElements(void) override;
 	bool					IsEmpty(void) override;
 
-	size 					NumPointerTos(void) override;
 	size 					BaseNumPointerTos(void)  override;
 	void					BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	void					RemoveAllPointerTosDontFree(void) override;

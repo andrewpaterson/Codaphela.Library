@@ -13,7 +13,6 @@ public:
 	void				DoneKill(bool bAllocatedInObjects) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
-	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
 	bool				SetDistToRoot(int iDistToRoot) override;
@@ -24,7 +23,6 @@ public:
 	size				GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjectsThisIn(void);
-	size				NumPointerTos(void);
 	void				ValidateConsistency(void);
 	bool				IsInitialised(void);
 	bool				IsDirty(void);

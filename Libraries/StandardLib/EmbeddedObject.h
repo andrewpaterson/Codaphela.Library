@@ -91,7 +91,7 @@ public:
 	virtual void				SetDirty(bool bDirty) =0;
 			void				LogicalDirty(void);
 	virtual bool				IsBaseObject(void);
-	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
+	virtual void				RemovePointerTo(CEmbeddedObject* pcTo);
 			CBaseObject*		GetEmbeddingContainer(void);
 			bool				IsEmbeddingContainerAllocatedInObjects(void);
 			bool				IsEmbedded(void);
@@ -111,7 +111,7 @@ public:
 			void				ValidatePointerTo(CEmbeddedObject* pcPointedTo);
 	virtual void				ValidatePointerTos(void);
 
-	virtual size				NumPointerTos(void) =0;
+	virtual size				NumPointerTos(void);
 	virtual size				BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //This object's pointer tos and those of the objects embedded in it.
 	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //Only this object's own.  The one walk each kind of object writes.
