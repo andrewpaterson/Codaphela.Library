@@ -19,6 +19,9 @@
 #include "ChunkFileObjectWriterTestClasses.h"
 
 
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp: what validating every object logs.
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1027,6 +1030,58 @@ void TestDehollowficationStackPointerToEmbeddedHollow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object loaded by name, without the root, is consistent: validating
+// reports nothing, before and after its pointer changes.  Its hollow goes
+// when the pointer does, and it goes when the stack lets go of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadedByName(void)
+{
+	ForceFatHollows();
+
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Database8";
+	char			szErrors[1024];
+
+	cFileUtil.RemoveDir(szDirectory);
+	SaveDehollowficationEmbeddedPointers(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CPointerContainer>		pPtr1;
+
+		pPtr1 = gcObjects.Get("1");
+		AssertString("CHollowObject", pPtr1->mp.ClassName());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pPtr1->mp = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("Embedded").Object());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pPtr1 = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("1").Object());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	UnforceFatHollows();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1045,6 +1100,7 @@ void TestDehollowfication(void)
 	TestDehollowficationFatHeldOnlyThroughEmbedded();
 	TestDehollowficationEmbeddedPointerToLoadedObject();
 	TestDehollowficationStackPointerToEmbeddedHollow();
+	TestDehollowficationLoadedByName();
 
 	DataIOKill();
 	TypesKill();
