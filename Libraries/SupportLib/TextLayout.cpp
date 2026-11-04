@@ -27,6 +27,9 @@ void CTextLayout::Init(int32 iWidth)
 	masStops.Init();
 	masLines.Init();
 	muiLineFirstStop = 0;
+	masGaps.Init();
+	muiTextLine = 0;
+	muiNextGap = 0;
 
 	PostInit();
 }
@@ -54,6 +57,9 @@ void CTextLayout::Class(void)
 	U_Data(CArrayTextLayoutStop, masStops);
 	U_Data(CArrayTextLayoutLine, masLines);
 	U_Size(muiLineFirstStop);
+	U_Data(CArrayTextLayoutGap, masGaps);
+	U_Size(muiTextLine);
+	U_Size(muiNextGap);
 }
 
 
@@ -63,6 +69,7 @@ void CTextLayout::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::Free(void)
 {
+	masGaps.Kill();
 	masLines.Kill();
 	masStops.Kill();
 }
@@ -91,7 +98,8 @@ bool CTextLayout::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 //
 // Runs in different fonts share a baseline on each line.  Each line's
-// glyphs are drawn when the line ends, once its ascent is known.
+// glyphs are drawn when the line ends, once its ascent is known.  The
+// gaps (SetLineGaps) go below their lines, before the rows after them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
@@ -119,6 +127,8 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	masStops.ReInit();
 	masLines.ReInit();
 	muiLineFirstStop = 0;
+	muiTextLine = 0;
+	muiNextGap = 0;
 	miWordWidth = 0;
 	pcFont = NULL;
 	msRunStyle.pcFont = NULL;
@@ -159,13 +169,15 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 				EndWord();
 				AddStop(0);
 				NewLine();
+				msPosition.y += TakeGap();
+				muiTextLine++;
 			}
 		}
 	}
 	EndWord();
 	AddStop(0);
 	EndLine();
-	msSize.y = msPosition.y + miRowAscent + miRowDescent;
+	msSize.y = msPosition.y + miRowAscent + miRowDescent + TakeGap();
 	masLine.Kill();
 	masWord.Kill();
 	mcUTF16.Kill();
@@ -587,6 +599,50 @@ void CTextLayout::NewLine(void)
 void CTextLayout::SetWidth(int32 iWidth)
 {
 	miWidth = iWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The space to leave below lines of the text, used from the next time it
+// is laid out.  pasGaps is copied; it must be sorted by line with at most
+// one gap a line.  NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::SetLineGaps(CArrayTextLayoutGap* pasGaps)
+{
+	masGaps.ReInit();
+	if (pasGaps)
+	{
+		masGaps.Copy(pasGaps);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The height of the gap below the line just ended (muiTextLine), 0 if it
+// has none.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextLayout::TakeGap(void)
+{
+	STextLayoutGap*	psGap;
+
+	while (muiNextGap < masGaps.NumElements())
+	{
+		psGap = masGaps.Get(muiNextGap);
+		if (psGap->uiLine > muiTextLine)
+		{
+			return 0;
+		}
+		muiNextGap++;
+		if (psGap->uiLine == muiTextLine)
+		{
+			return psGap->iHeight;
+		}
+	}
+	return 0;
 }
 
 

@@ -92,10 +92,20 @@ struct STextLayoutLine
 };
 
 
+//Space left empty below a line of the text (one ended by a line feed, or the last), under its last row when it is
+//wrapped.  uiLine counts the line feeds before the line.
+struct STextLayoutGap
+{
+	size		uiLine;
+	int32		iHeight;
+};
+
+
 typedef CArrayTemplate<STextLayoutGlyph>		CArrayTextLayoutGlyph;
 typedef CArrayTemplate<STextLayoutLineGlyph>	CArrayTextLayoutLineGlyph;
 typedef CArrayTemplate<STextLayoutStop>			CArrayTextLayoutStop;
 typedef CArrayTemplate<STextLayoutLine>			CArrayTextLayoutLine;
+typedef CArrayTemplate<STextLayoutGap>			CArrayTextLayoutGap;
 
 
 class CTextLayout : public CObject
@@ -119,6 +129,9 @@ protected:
 	CArrayTextLayoutStop	masStops;  //Of the text last laid out, and one more after its last character.
 	CArrayTextLayoutLine	masLines;
 	size			muiLineFirstStop;  //Of the line being laid out.
+	CArrayTextLayoutGap		masGaps;  //Sorted by line, at most one a line (SetLineGaps).
+	size			muiTextLine;  //The line feeds laid out so far.
+	size			muiNextGap;  //The first of masGaps not yet passed.
 
 public:
 	void			Init(void);
@@ -133,6 +146,7 @@ public:
 	SInt32Vec2		GetSize(void);
 	void			SetWidth(int32 iWidth);
 	int32			GetWidth(void);
+	void			SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
 	size			NumStops(void);
 	STextLayoutStop*	GetStop(size uiIndex);
@@ -148,6 +162,7 @@ protected:
 	void			DecorateStretch(uint8 uiDecoration, int32 iBaseline, size uiFirst, size uiEnd);
 	void			EndWord(void);
 	void			NewLine(void);
+	int32			TakeGap(void);
 
 	void			Layout(CFont* pcFont, CTextUTF16Short* pcUTFShort);
 	void			Layout(CFont* pcFont, CTextUTF16Long* pcUTFLong);
