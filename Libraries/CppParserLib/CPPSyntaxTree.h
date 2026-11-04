@@ -49,12 +49,17 @@ typedef CArrayTemplate<SCPPTokenSymbol>	CArrayTokenSymbols;
 
 //Where a syntax tree is allocated (CCPPSyntaxTree::Init): a builder compiling unit after unit on a thread gives it
 //allocators that keep their memory for the next unit (CCPP65UnitWorkspace).
+//A syntax block's reading's working arrays (CCPPSyntaxBlockReader::Read), each with its own mallocator.
+#define CPP_SYNTAX_BLOCK_READING_ARRAYS		10
+
+
 struct SCPPSyntaxTreeMallocators
 {
 	CMallocator*	pcSyntaxes;			//The list of nodes.
 	CMallocator*	pcTokenSymbols;		//What each token was found to be.
 	CMallocator*	pcNodeArrays;		//The nodes' own arrays (their children and the like).
 	CMallocator*	pcArena;			//The nodes, scopes and symbols: an arena (they are all freed with the tree).
+	CMallocator*	apcBlockReading[CPP_SYNTAX_BLOCK_READING_ARRAYS];	//A block's reading's arrays: grow only, kept from one read to the next.
 };
 
 
@@ -69,6 +74,7 @@ protected:
 	CCPPErrors					mcErrors;
 	CArrayTokenSymbols			masTokenSymbols;
 	CMallocator*				mpcNodeArrays;
+	CMallocator*				mapcBlockReading[CPP_SYNTAX_BLOCK_READING_ARRAYS];
 
 public:
 	void						Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators* psMallocators = NULL);
@@ -77,6 +83,7 @@ public:
 	CCPPTokeniser*				GetTokeniser(void);
 	CCPPSyntaxMemory*			GetMemory(void);
 	CMallocator*				GetNodeArrayMallocator(void);
+	CMallocator*				GetBlockReadingMallocator(size uiArray);
 	CCPPSymbolTable*			GetSymbols(void);
 	CCPPSyntaxTranslationUnit*	GetRoot(void);
 	void						SetRoot(CCPPSyntaxTranslationUnit* pcRoot);

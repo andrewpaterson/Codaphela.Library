@@ -48,6 +48,7 @@ protected:
 	CReuseAllocator					mcSyntaxes;
 	CReuseAllocator					mcTokenSymbols;
 	CScratchPadAllocator			mcNodeArrays;
+	CReuseAllocator					macBlockReading[CPP_SYNTAX_BLOCK_READING_ARRAYS];	//A syntax block's reading's arrays (CCPPSyntaxBlockReader::Read).
 	SPreprocessedTokensMallocators	msPreprocessedTokens;
 	SCPPSyntaxTreeMallocators		msSyntaxTree;
 

@@ -1239,13 +1239,13 @@ void CCPPSyntaxBlockReading::Init(uint8* puiBlock, size uiLength, CCPPSyntaxTree
 	mpcTree = pcTree;
 	miFirstToken = iFirstToken;
 	miTokens = 0;
-	mapcNodes.Init();
-	masStrings.Init();
-	malliNames.Init();
-	mapcScopes.Init();
-	mapcSymbols.Init();
-	mapcExternalScopes.Init();
-	mapcExternalSymbols.Init();
+	mapcNodes.Init(pcTree->GetBlockReadingMallocator(0));
+	masStrings.Init(pcTree->GetBlockReadingMallocator(1));
+	malliNames.Init(pcTree->GetBlockReadingMallocator(2));
+	mapcScopes.Init(pcTree->GetBlockReadingMallocator(3));
+	mapcSymbols.Init(pcTree->GetBlockReadingMallocator(4));
+	mapcExternalScopes.Init(pcTree->GetBlockReadingMallocator(5));
+	mapcExternalSymbols.Init(pcTree->GetBlockReadingMallocator(6));
 }
 
 
@@ -1725,9 +1725,9 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	size						j;
 
 	cReading.Init(puiBlock, uiLength, pcTree, iFirstToken);
-	asDeclared.Init();
-	apcOwn.Init();
-	apcRecords.Init();
+	asDeclared.Init(pcTree->GetBlockReadingMallocator(7));
+	apcOwn.Init(pcTree->GetBlockReadingMallocator(8));
+	apcRecords.Init(pcTree->GetBlockReadingMallocator(9));
 	pcSymbols = pcTree->GetSymbols();
 	if (cReading.U32() != CPP_SYNTAX_BLOCK_MAGIC)
 	{

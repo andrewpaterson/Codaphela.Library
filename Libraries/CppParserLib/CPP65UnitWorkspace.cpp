@@ -29,6 +29,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCPP65UnitWorkspace::Init(void)
 {
+	size	i;
+
 	mcTokens.Init(0);
 	mcExpansions.Init(0);
 	mcInactiveRegions.Init(0);
@@ -47,6 +49,11 @@ void CCPP65UnitWorkspace::Init(void)
 	msSyntaxTree.pcTokenSymbols = &mcTokenSymbols;
 	msSyntaxTree.pcNodeArrays = &mcNodeArrays;
 	msSyntaxTree.pcArena = &mcNodeArrays;
+	for (i = 0; i < CPP_SYNTAX_BLOCK_READING_ARRAYS; i++)
+	{
+		macBlockReading[i].Init(0);
+		msSyntaxTree.apcBlockReading[i] = &macBlockReading[i];
+	}
 }
 
 
@@ -56,6 +63,12 @@ void CCPP65UnitWorkspace::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65UnitWorkspace::Kill(void)
 {
+	size	i;
+
+	for (i = 0; i < CPP_SYNTAX_BLOCK_READING_ARRAYS; i++)
+	{
+		macBlockReading[i].Kill();
+	}
 	mcNodeArrays.Kill();
 	mcTokenSymbols.Kill();
 	mcSyntaxes.Kill();

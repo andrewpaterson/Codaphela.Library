@@ -32,6 +32,7 @@ void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators*
 {
 	SCPPTokenSymbol*	psTokenSymbols;
 	size				uiNumTokens;
+	size				i;
 
 	mpcTokeniser = pcTokeniser;
 	mcMemory.Init(this, psMallocators ? psMallocators->pcSyntaxes : NULL, psMallocators ? psMallocators->pcArena : NULL);
@@ -39,6 +40,10 @@ void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators*
 	mpcRoot = NULL;
 	mcErrors.Init();
 	mpcNodeArrays = (psMallocators && psMallocators->pcNodeArrays) ? psMallocators->pcNodeArrays : &gcSystemAllocator;
+	for (i = 0; i < CPP_SYNTAX_BLOCK_READING_ARRAYS; i++)
+	{
+		mapcBlockReading[i] = (psMallocators && psMallocators->apcBlockReading[i]) ? psMallocators->apcBlockReading[i] : &gcSystemAllocator;
+	}
 
 	if (psMallocators && psMallocators->pcTokenSymbols)
 	{
@@ -82,6 +87,18 @@ void CCPPSyntaxTree::Kill(void)
 CMallocator* CCPPSyntaxTree::GetNodeArrayMallocator(void)
 {
 	return mpcNodeArrays;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mallocator of a syntax block's reading's working array uiArray (of
+// CPP_SYNTAX_BLOCK_READING_ARRAYS), the system allocator if none was given.
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CCPPSyntaxTree::GetBlockReadingMallocator(size uiArray)
+{
+	return mapcBlockReading[uiArray];
 }
 
 
