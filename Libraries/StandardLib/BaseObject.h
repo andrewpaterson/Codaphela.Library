@@ -238,9 +238,6 @@ protected:
 			void					RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void					SetExpectedDistToRoot(int iExpectedDistToRoot);
 	static	void					DrainCloserToRoot(void);
-			void					SetCalculatedDistToRoot(void);
-			int						CalculateDistToRootFromPointedFroms(void);
-	virtual int						CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			bool					IsBaseObject(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);

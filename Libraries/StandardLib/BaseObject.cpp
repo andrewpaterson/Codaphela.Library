@@ -1062,16 +1062,11 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 		return;
 	}
 
-	int		iBestDistToRoot;
 	int		iDistToRoot;
 
 	if (iExpectedDistToRoot < ROOT_DIST_TO_ROOT)
 	{
-		iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
-		if (SetDistToRoot(iBestDistToRoot))
-		{
-			SetPointerTosExpectedDistToRoot(iBestDistToRoot);
-		}
+		gcLogger.Error2(__METHOD__, " Cannot expect dist to root [", IntToString(iExpectedDistToRoot), "]; only a from attached to the root gives one.", NULL);
 		return;
 	}
 
@@ -1125,33 +1120,6 @@ void CBaseObject::DrainCloserToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetCalculatedDistToRoot(void)
-{
-	if (IsEmbedded())
-	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
-		return;
-	}
-	if (!IsInitialised())
-	{
-		FailExpectedToBeInitialised(__METHOD__);
-		return;
-	}
-
-	int		iBestDistToRoot;
-
-	iBestDistToRoot = CalculateDistToRootFromPointedFroms();
-	if (SetDistToRoot(iBestDistToRoot))
-	{
-		SetPointerTosExpectedDistToRoot(iBestDistToRoot);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SetDistToRoot(int iDistToRoot)
 {
 	if (miDistToRoot != iDistToRoot)
@@ -1185,61 +1153,6 @@ bool CBaseObject::SetDistToStack(int iDistToStack)
 void CBaseObject::InitDistToStack(void)
 {
 	miDistToStack = UNKNOWN_DIST_TO_STACK;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::CalculateDistToRootFromPointedFroms(void)
-{
-	int		iDistToRoot;
-
-	iDistToRoot = CalculateDistToRootFromPointedFroms(MAX_DIST_TO_ROOT);
-	if (iDistToRoot != MAX_DIST_TO_ROOT)
-	{
-		return iDistToRoot;
-	}
-	else
-	{
-		return UNATTACHED_DIST_TO_ROOT;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
-{
-	size				uiNumFroms;
-	size				i;
-	CEmbeddedObject*	pcFrom;
-	int					iBestDistToRoot;
-
-	iBestDistToRoot = iDistToRoot;
-	uiNumFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < uiNumFroms; i++)
-	{
-		pcFrom = CEmbeddedObject::GetHeapFrom(i);
-		if (pcFrom)
-		{
-			iDistToRoot = pcFrom->GetDistToRoot();
-			if (iDistToRoot < iBestDistToRoot)
-			{
-				if (pcFrom->GetEmbeddingContainer()->CanFindRoot())
-				{
-					if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-					{
-						iBestDistToRoot = iDistToRoot  + 1;
-					}
-				}
-			}
-		}
-	}
-	return iBestDistToRoot;
 }
 
 

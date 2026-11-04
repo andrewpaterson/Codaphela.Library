@@ -109,7 +109,6 @@ protected:
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	bool				SetDistToRoot(int iDistToRoot) override;
 	bool				SetDistToStack(int iDistToStack) override;

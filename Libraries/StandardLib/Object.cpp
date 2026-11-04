@@ -458,47 +458,10 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 			}
 		}
 	}
-	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-	{
-		uiNumPointers = mapPointers.NumElements();
-		for (i = 0; i < uiNumPointers; i++)
-		{
-			ppPointer = mapPointers.Get(i);
-			pcPointedTo = (**ppPointer).BaseObject();
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetCalculatedDistToRoot();
-			}
-		}
-	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	iDistToRoot = CBaseObject::CalculateDistToRootFromPointedFroms(iDistToRoot);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		iDistToRoot = pcEmbedded->CalculateDistToRootFromPointedFroms(iDistToRoot);
-	}
-
-	return iDistToRoot;
 }
 
 

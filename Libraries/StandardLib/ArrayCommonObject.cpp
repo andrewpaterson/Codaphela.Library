@@ -581,18 +581,6 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 			}
 		}
 	}
-	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-	{
-		for (i = 0; i < uiNumElements; i++)
-		{
-			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetCalculatedDistToRoot();
-			}
-		}
-	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);

@@ -713,19 +713,6 @@ void CIndexObject::SetPointedTosDistToRoot(int iDistToRoot)
 			bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 		}
 	}
-	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-	{
-		bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-		while (bExists)
-		{
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetCalculatedDistToRoot();
-			}
-			bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-		}
-	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);

@@ -804,22 +804,6 @@ void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
 			bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 		}
 	}
-	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-	{
-		bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-		while (bExists)
-		{
-			pcContainer = pcPointedToKey->GetEmbeddingContainer();
-			pcContainer->SetCalculatedDistToRoot();
-
-			if (pcPointedToValue)
-			{
-				pcContainer = pcPointedToValue->GetEmbeddingContainer();
-				pcContainer->SetCalculatedDistToRoot();
-			}
-			bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-		}
-	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
