@@ -32,7 +32,7 @@ struct SDistToRootClearCandidate
 
 
 typedef CArrayTemplate<SDistToRoot>				CArrayDistToRoot;
-typedef CArrayTemplate<SDistToRootClearCandidate>	CArrayDistToRootClearCandidates;
+typedef CArrayLargeTemplate<SDistToRootClearCandidate>	CArrayDistToRootClearCandidates;  //Large: freeing a big graph queues one per object.
 typedef CArrayTemplate<SDistToRootHeapNode>		CArrayDistToRootHeap;
 
 
