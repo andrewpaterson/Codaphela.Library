@@ -1,15 +1,21 @@
 #include "BaseObject.h"
+#include "DistToRootCalculator.h"
 #include "DistToStackCalculator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A stack from of pcFromRemoved went.  Clears the distances to the root
+// that can't be found any more (an object loaded without the root may
+// have none to clear), then finds what can't be reached at all.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::Calculate(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters)
+void CDistToStackCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculatorParameters* pcParameters)
 {
-	pcFromChanged->CollectAndClearInvalidDistToRootObjects(pcParameters);
-	ResetObjectsToUnattachedDistToRoot(pcParameters);
+	CDistToRootCalculator	cDistToRootCalculator;
+
+	cDistToRootCalculator.CollectAndClearInvalidDistToRoot(pcFromRemoved, pcParameters);
+	cDistToRootCalculator.ResetClearedToUnattached(pcParameters);
 	CalculateFromTouched(pcParameters);
 	pcParameters->ClearTouchedFlags();
 }
@@ -21,16 +27,16 @@ void CDistToStackCalculator::Calculate(CBaseObject* pcFromChanged, CDistCalculat
 //////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::CalculateFromTouched(CDistCalculatorParameters* pcParameters)
 {
-	size	iNumWithStackPointers;
+	size	uiNumWithStackPointers;
 
-	iNumWithStackPointers = CollectDetachedAndSetDistToStackZero(pcParameters);
+	uiNumWithStackPointers = CollectDetachedAndSetDistToStackZero(pcParameters);
 
-	if (iNumWithStackPointers == 0)
+	if (uiNumWithStackPointers == 0)
 	{
 		//Kill them all!
 		pcParameters->CopyRootDetachedToCompletelyDetached();
 	}
-	else if (iNumWithStackPointers == pcParameters->NumDetachedFromRoot())
+	else if (uiNumWithStackPointers == pcParameters->NumDetachedFromRoot())
 	{
 		//Kill none of them.
 	}
@@ -44,21 +50,192 @@ void CDistToStackCalculator::CalculateFromTouched(CDistCalculatorParameters* pcP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Collects the touched objects, and the objects that point to them (and to
+// them...), that are detached from the root.  Returns how many of them are
+// pointed to from the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
+{
+	size					i;
+	CBaseObject*			pcBaseObject;
+	size					uiNumWithStackPointers;
+	CArrayBaseObjectPtr		apcFroms;
+
+	uiNumWithStackPointers = 0;
+	apcFroms.Init();
+	for (i = 0; i < pcParameters->NumTouched(); i++)
+	{
+		pcBaseObject = pcParameters->GetTouched(i);
+		//I'm not sure if this is the right way to detect that object was declared on the stack.
+		//And if on the stack it should not (ultimately) be attempted to be freed from Objects.
+		if (pcBaseObject->IsAllocatedInObjects())
+		{
+			uiNumWithStackPointers += CollectDetachedAndSetDistToStackZero(pcBaseObject, pcParameters, &apcFroms);
+		}
+	}
+	apcFroms.Kill();
+
+	return uiNumWithStackPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Collects pcObject and the objects that point to it (and to them...) that
+// are detached from the root, depth first.  Returns how many of them are
+// pointed to from the stack.  The walk keeps its own stack (papcFroms,
+// empty on entry and exit): a recursive one overflowed the W65C816's stack
+// on a chain a hundred objects long.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms)
+{
+	size	uiNumWithStackPointers;
+
+	uiNumWithStackPointers = 0;
+	papcFroms->Add(pcObject);
+	while (papcFroms->NumElements() > 0)
+	{
+		pcObject = papcFroms->Pop();
+		if (CollectDetached(pcObject, pcParameters, papcFroms))
+		{
+			uiNumWithStackPointers++;
+		}
+	}
+	return uiNumWithStackPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Collects pcObject if it is detached and not yet walked, and adds the
+// objects that point to it to papcFroms (reversed, so the first is walked
+// first).  Returns whether it was collected and is pointed to from the
+// stack.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistToStackCalculator::CollectDetached(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms)
+{
+	size			uiFirst;
+	size			uiLast;
+	CBaseObject*	pcSwap;
+	bool			bHasStackFroms;
+
+	if (pcObject->IsEmbedded())
+	{
+		pcObject->FailNotExpectedToBeEmbedded(__METHOD__);
+		return false;
+	}
+
+	if (pcObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT)
+	{
+		return false;
+	}
+
+	//Walked already, or in the batch being freed (gone already: neither collected nor walked through).
+	if (pcObject->GetFlags() & (OBJECT_FLAGS_DIST_FROM_WALKED | OBJECT_FLAGS_FREED))
+	{
+		return false;
+	}
+
+	pcParameters->AddDetachedFromRoot(pcObject);
+
+	bHasStackFroms = pcObject->HasStackFroms();
+	if (bHasStackFroms && pcObject->IsAllocatedInObjects())
+	{
+		pcObject->SetDistToStack(MIN_HEAP_DIST_TO_STACK);
+	}
+
+	if (!(pcObject->GetFlags() & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
+	{
+		pcObject->SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
+		pcParameters->AddTouched(pcObject);
+	}
+
+	pcObject->SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, true);
+
+	uiFirst = papcFroms->NumElements();
+	pcObject->AddHeapFromContainers(papcFroms);
+	uiLast = papcFroms->NumElements();
+	while (uiLast > uiFirst + 1)
+	{
+		uiLast--;
+		pcSwap = papcFroms->GetPtr(uiFirst);
+		*papcFroms->Get(uiFirst) = papcFroms->GetPtr(uiLast);
+		*papcFroms->Get(uiLast) = pcSwap;
+		uiFirst++;
+	}
+	return bHasStackFroms;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether something that points to pcObject (or to what points to it...)
+// is pointed to from the stack or attached to the root.  Then a stack
+// pointer to pcObject going frees nothing, and the full distance to the
+// stack walk (everything below it, then everything above that) isn't
+// needed.  Breadth first, so the holder nearest is found first: building a
+// component under a parent held on the stack finds it straight away.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistToStackCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
+{
+	CArrayBaseObjectPtr		apcFroms;
+	CBaseObject*			pcFrom;
+	size					uiFirst;
+	size					i;
+	bool					bHeld;
+
+	bHeld = false;
+	apcFroms.Init();
+	pcObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
+	apcFroms.Add(pcObject);
+	pcObject->AddHeapFromContainers(&apcFroms);
+	for (uiFirst = 1; uiFirst < apcFroms.NumElements(); uiFirst++)
+	{
+		pcFrom = apcFroms.GetPtr(uiFirst);
+		if (pcFrom->GetFlags() & (OBJECT_FLAGS_TESTED_FOR_ROOT | OBJECT_FLAGS_FREED))
+		{
+			continue;
+		}
+		if ((pcFrom->GetDistToRoot() >= ROOT_DIST_TO_ROOT) || pcFrom->HasStackFroms())
+		{
+			bHeld = true;
+			break;
+		}
+		pcFrom->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
+		pcFrom->AddHeapFromContainers(&apcFroms);
+	}
+
+	//Everything walked (and only that) was flagged, and every flagged object is in the array.
+	for (i = 0; i < apcFroms.NumElements(); i++)
+	{
+		apcFroms.GetPtr(i)->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
+	}
+	apcFroms.Kill();
+	return bHeld;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters)
 {
 	size			i;
-	size			iNumDetached;
+	size			uiNumDetached;
 	CBaseObject*	pcBaseObject;
 
-	iNumDetached = pcParameters->NumDetachedFromRoot();
-	for (i = 0; i < iNumDetached; i++)
+	uiNumDetached = pcParameters->NumDetachedFromRoot();
+	for (i = 0; i < uiNumDetached; i++)
 	{
 		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
 		if (pcBaseObject->GetDistToStack() == UNKNOWN_DIST_TO_STACK)
 		{
-			//Copy everything with no stack dist into completely detached.  
+			//Copy everything with no stack dist into completely detached.
 			//They'll be moved out as the stack dists are updated.
 			pcParameters->AddCompletelyDetached(pcBaseObject);
 		}
@@ -70,32 +247,23 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcUpdated)
+void CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcUpdated)
 {
 	size				i;
-	size				iNumDetached;
 	CBaseObject*		pcBaseObject;
-	int					iClosestFrom;
 	CEmbeddedObject*	pcClosest;
-	int					iNumUpdated;
 
-	iNumDetached = pcParameters->NumCompletelyDetached();
-	iNumUpdated = 0;
-	for (i = iNumDetached; i > 0; i--)
+	for (i = pcParameters->NumCompletelyDetached(); i > 0; i--)
 	{
 		pcBaseObject = pcParameters->GetCompletelyDetached(i - 1);
 		pcClosest = pcBaseObject->GetClosestHeapFromToStack();
 		if (pcClosest != NULL)
 		{
-			iNumUpdated++;
-			iClosestFrom = pcClosest->GetDistToStack();
-			pcBaseObject->SetDistToStack(iClosestFrom + 1);
+			pcBaseObject->SetDistToStack(pcClosest->GetDistToStack() + 1);
 			pcParameters->RemoveCompletelyDetached(i - 1);
 			papcUpdated->Add(pcBaseObject);
 		}
 	}
-
-	return iNumUpdated;
 }
 
 
@@ -111,7 +279,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters)
 {
 	CArrayBaseObjectPtr			apcReached;
-	CArrayEmbeddedObjectPtr		apcTos;
+	CArrayEmbeddedObjectPtr*	papcTos;
 	CBaseObject*				pcReached;
 	CBaseObject*				pcTo;
 	size						uiFirst;
@@ -127,12 +295,12 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 		pcReached = apcReached.GetPtr(uiFirst);
 		iDistToStack = pcReached->GetDistToStack();
 
-		apcTos.Init();
-		pcReached->GetPointerTos(&apcTos);
-		uiNumTos = apcTos.NumElements();
+		papcTos = pcParameters->StartPointerTos();
+		pcReached->GetPointerTos(papcTos);
+		uiNumTos = papcTos->NumElements();
 		for (i = 0; i < uiNumTos; i++)
 		{
-			pcTo = apcTos.GetPtr(i)->GetEmbeddingContainer();
+			pcTo = papcTos->GetPtr(i)->GetEmbeddingContainer();
 
 			//Only objects this walk found detached from the root (the others are attached, or being freed).
 			if ((pcTo->GetFlags() & OBJECT_FLAGS_DIST_FROM_WALKED) && (pcTo->GetDistToStack() == UNKNOWN_DIST_TO_STACK))
@@ -141,7 +309,6 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 				apcReached.Add(pcTo);
 			}
 		}
-		apcTos.Kill();
 	}
 	apcReached.Kill();
 
@@ -159,68 +326,19 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
-{
-	size			i;
-	CBaseObject*	pcBaseObject;
-	size			iNumWithStackPointers;
-
-	iNumWithStackPointers = 0;
-	for (i = 0; i < pcParameters->NumTouched(); i++)
-	{
-		pcBaseObject = pcParameters->GetTouched(i);
-		//I'm not sure if this is the right way to detect that object was declared on the stack.
-		//And if on the stack it should not (ultimately) be attempted to be freed from Objects.
-		if (pcBaseObject->IsAllocatedInObjects())
-		{
-			iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
-		}
-	}
-
-	return iNumWithStackPointers;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcParameters)
 {
 	size			i;
-	size			iNumDetached;
+	size			uiNumDetached;
 	CBaseObject*	pcBaseObject;
 
-	iNumDetached = pcParameters->NumDetachedFromRoot();
-	for (i = 0; i < iNumDetached; i++)
+	uiNumDetached = pcParameters->NumDetachedFromRoot();
+	for (i = 0; i < uiNumDetached; i++)
 	{
 		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
 		if (pcBaseObject->IsAllocatedInObjects())
 		{
 			pcBaseObject->SetDistToStack(UNKNOWN_DIST_TO_STACK);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters)
-{
-	size			i;
-	size			iNumTouched;
-	CBaseObject*	pcBaseObject;
-
-	iNumTouched = pcParameters->NumTouched();
-
-	for (i = 0; i < iNumTouched; i++)
-	{
-		pcBaseObject = pcParameters->GetTouched(i);
-		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
-		{
-			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 		}
 	}
 }

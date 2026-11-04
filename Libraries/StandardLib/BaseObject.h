@@ -149,20 +149,13 @@ public:
 
 			size					NumEmbedded(void);
 
-			void					SetPointerTosExpectedDistToRoot(int iDistToRoot, CArrayEmbeddedObjectPtr* papcTos);
 			void					SetDirty(bool bDirty);
 			int						GetDistToRoot(void);
 			int						GetDistToStack(void);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
 			bool					TestedForRoot(void);
-			void					UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot = MAX_DIST_TO_ROOT);
-			void					ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
-			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
-			void					CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
-			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
+			void					AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms);
 
-			void					AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void					ClearDistTouchedFlags(void);
 			bool					HasDistTouchedFlag(void);
 
@@ -181,13 +174,11 @@ public:
 	virtual void					SetFlag(uint16 iFlag, uint16 iFlagValue);
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
-			bool					HasCloserFrom(void);
 			CBaseObject*			GetClosestFromToRoot(void);
 			CBaseObject*			GetClosestFromForCanFindRoot(void);
 			CBaseObject*			GetClosestHeapFromToStack(void);
 			CBaseObject*			GetClosestHeapFrom(EClosestHeapFrom eClosest);
 			size					NumHeapFromHolders(void);
-			bool					IsHeldFromStackOrRoot(void);
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;
@@ -245,8 +236,6 @@ protected:
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
 			void					RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
-			void					SetExpectedDistToRoot(int iExpectedDistToRoot);
-	static	void					DrainCloserToRoot(void);
 			bool					IsBaseObject(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);

@@ -332,8 +332,8 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
-	CBaseObject*	pcEmbedding;
-	int				iDistToRoot;
+	CDistToRootCalculator	cDistToRootCalculator;
+	int						iDistToRoot;
 
 	if (pcFromObject != NULL)
 	{
@@ -341,8 +341,7 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 		AddHeapPointer(pcFromObject);
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			pcEmbedding = GetEmbeddingContainer();
-			pcEmbedding->SetExpectedDistToRoot(iDistToRoot + 1);
+			cDistToRootCalculator.FromAdded(GetEmbeddingContainer(), iDistToRoot + 1);
 		}
 
 #ifdef _DEBUG

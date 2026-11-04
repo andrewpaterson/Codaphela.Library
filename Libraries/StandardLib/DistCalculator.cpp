@@ -70,7 +70,7 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcF
 	{
 		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
 	}
-	else if (pcFromChanged->IsHeldFromStackOrRoot())
+	else if (mcDistToStackCalculator.IsHeldFromStackOrRoot(pcFromChanged))
 	{
 		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
 	}

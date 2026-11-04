@@ -3,16 +3,24 @@
 #include "DistCalculatorParameters.h"
 
 
+//Keeps the distances to the root exact (a breadth first search from the root) as heap froms change.  Objects only give
+//access to their froms, tos, distances and flags; the walks are here.
 class CDistToRootCalculator
 {
-friend class CDistCalculator;
 public:
-	void	Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
+	void	Calculate(CBaseObject* pcFromRemoved, CDistCalculatorParameters* pcParameters);
+	void	CollectAndClearInvalidDistToRoot(CBaseObject* pcFromRemoved, CDistCalculatorParameters* pcParameters);
+	void	ResetClearedToUnattached(CDistCalculatorParameters* pcParameters);
+
+	void	FromAdded(CBaseObject* pcObject, int iExpectedDistToRoot);
 
 protected:
-	void	CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
+	void	ClearInvalidDistToRoot(CBaseObject* pcObject, int iClearedFromDistToRoot, CDistCalculatorParameters* pcParameters);
+	bool	HasCloserFrom(CBaseObject* pcObject);
+
 	void	UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-	void	ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
+	void	UpdateAttachedTosDistToRoot(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
+	void	AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 };
 
 
