@@ -937,6 +937,96 @@ void TestDehollowficationEmbeddedPointerToLoadedObject(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer on the stack to an embedded hollow points to the real embedded
+// object once the hollow is loaded.  A hollow held only by a stack pointer
+// to one of its embedded hollows is kept, and loads through it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationStackPointerToEmbeddedHollow(void)
+{
+	ForceFatHollows();
+
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Database7";
+
+	cFileUtil.RemoveDir(szDirectory);
+	SaveDehollowficationEmbeddedPointers(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CPointerContainer>		pPtr1;
+		Ptr<CPointerContainer>		pPtr2;
+		CPointer					pOnStack;
+		CEmbeddedObject*			pcHollowEmbedded;
+		Ptr<CTestEmbeddedStrings>	pContainer;
+
+		pPtr2 = gcObjects.Get("2");
+		pPtr1 = gcObjects.Get("1");
+		pcHollowEmbedded = pPtr2->mp.Object();
+		AssertTrue(pcHollowEmbedded->IsHollow());
+		pOnStack = pcHollowEmbedded;
+		AssertSize(1, pcHollowEmbedded->NumStackFroms());
+
+		&(pPtr1->mp);
+		pContainer = pPtr1->mp;
+		AssertString("CTestEmbeddedStrings", pContainer.ClassName());
+		AssertPointer(&pContainer->mString2, pPtr2->mp.Object());
+		AssertPointer(&pContainer->mString2, pOnStack.Object());
+		AssertSize(1, pContainer->mString2.NumStackFroms());
+		pOnStack = NULL;
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CPointerContainer>		pPtr2;
+		Ptr<CString>				pOnStack;
+		CEmbeddedObject*			pcHollowEmbedded;
+		CBaseObject*				pcHollow;
+
+		pPtr2 = gcObjects.Get("2");
+		pcHollowEmbedded = pPtr2->mp.Object();
+		AssertTrue(pcHollowEmbedded->IsHollow());
+		pcHollow = pcHollowEmbedded->GetEmbeddingContainer();
+		pOnStack = pPtr2->mp;
+
+		//Only the stack pointer to the embedded hollow is left.
+		pPtr2->mp = NULL;
+		AssertPointer(pcHollow, gcObjects.TestGetFromMemory("Embedded").Object());
+		AssertPointer(pcHollowEmbedded, pOnStack.Object());
+
+		AssertString("Jane is great", pOnStack->Text());
+		AssertString("CString", pOnStack.ClassName());
+		AssertFalse(pOnStack.Object()->IsHollow());
+		pOnStack = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("Embedded").Object());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	UnforceFatHollows();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -954,6 +1044,7 @@ void TestDehollowfication(void)
 	TestDehollowficationFatFromDatabaseEmbeddedPointer();
 	TestDehollowficationFatHeldOnlyThroughEmbedded();
 	TestDehollowficationEmbeddedPointerToLoadedObject();
+	TestDehollowficationStackPointerToEmbeddedHollow();
 
 	DataIOKill();
 	TypesKill();
