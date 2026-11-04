@@ -545,11 +545,11 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 	while (bExists)
 	{
 		pcContainer = pcPointedToKey->GetEmbeddingContainer();
-		pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
+		pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
 		if (pcPointedToValue)
 		{
 			pcContainer = pcPointedToValue->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
+			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}

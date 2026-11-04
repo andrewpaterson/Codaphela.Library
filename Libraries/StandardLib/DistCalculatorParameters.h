@@ -23,7 +23,16 @@ struct SDistToRootHeapNode
 };
 
 
+//An object to check while clearing distances to the root, and the distance the cleared object that points to it had.
+struct SDistToRootClearCandidate
+{
+	CBaseObject*	pcObject;
+	int				iClearedFromDistToRoot;
+};
+
+
 typedef CArrayTemplate<SDistToRoot>				CArrayDistToRoot;
+typedef CArrayTemplate<SDistToRootClearCandidate>	CArrayDistToRootClearCandidates;
 typedef CArrayTemplate<SDistToRootHeapNode>		CArrayDistToRootHeap;
 
 
@@ -36,6 +45,7 @@ private:
 	CArrayDistToRootHeap					macExpectedDistsHeap;  //Lowest first; stale nodes are skipped.
 	size*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
 	size									muiExpectedDistsTableSize;
+	CArrayDistToRootClearCandidates			macClearCandidates;  //A stack, so clearing walks depth first without recursing.
 	CArrayBaseObjectPtrE32		mapcDetachedFromRoot;
 
 	CArrayBaseObjectPtr					mapcCompletelyDetached;
@@ -51,6 +61,11 @@ public:
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
+
+	void					AddClearCandidate(CBaseObject* pcObject, int iClearedFromDistToRoot);
+	bool					PopClearCandidate(CBaseObject** ppcObject, int* piClearedFromDistToRoot);
+	size					NumClearCandidates(void);
+	void					ReverseClearCandidates(size uiFirst);
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);

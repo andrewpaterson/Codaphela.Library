@@ -692,7 +692,7 @@ void CObject::BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcula
 		if (pcPointedTo)
 		{
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
+			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
 		}
 	}
 }
@@ -723,23 +723,20 @@ void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+void CObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 {
 	size				uiNumEmbedded;
 	size				i;
 	CEmbeddedObject*	pcEmbedded;
-	size				iNumWithStackPointers;
 
-	iNumWithStackPointers = CBaseObject::CollectDetachedFroms(pcParameters);
+	CBaseObject::CollectDetachedFroms(papcFroms);
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		iNumWithStackPointers += pcEmbedded->CollectDetachedFroms(pcParameters);
+		pcEmbedded->CollectDetachedFroms(papcFroms);
 	}
-
-	return iNumWithStackPointers;
 }
 
 

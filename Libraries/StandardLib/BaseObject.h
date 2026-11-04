@@ -150,9 +150,11 @@ public:
 			void					UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void					CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot = MAX_DIST_TO_ROOT);
+			void					ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
 	virtual bool					IsDistToRootValid(void);
 			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
-			size					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+			void					CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
+			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
 
 			void					AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void					ClearDistTouchedFlags(void);

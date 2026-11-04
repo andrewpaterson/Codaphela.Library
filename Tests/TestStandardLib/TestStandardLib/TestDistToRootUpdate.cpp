@@ -22,9 +22,8 @@
 #define DIST_TO_ROOT_RANDOM_ARRAYS		6
 #define DIST_TO_ROOT_FREEING_MAX		80
 
-//The 65C64 and W65C816 run these too, smaller: they get 4G instructions each.
-//The distance to the stack calculator recurses once per object along a chain held from the stack, so the W65C816's
-//stack only fits a short one (and the host's not one of 100000).
+//The 65C64 and W65C816 run these too, smaller: they get 4G instructions each.  Building a chain held only from the
+//stack walks up the chain on every pointer change, so that chain is kept shorter.
 #ifndef __LIBC65__
 #define DIST_TO_ROOT_RANDOM_STEPS		1500
 #define DIST_TO_ROOT_SPEED_DEPTH		6
@@ -34,6 +33,13 @@
 #define DIST_TO_ROOT_SPEED_DEPTH		3
 #define DIST_TO_ROOT_MAX_UNROOTED_CHAIN	32
 #endif // !__LIBC65__
+
+//Arrays counted with a 16 bit size (the W65C816's) can't list 100000 objects.
+#if defined(__LIBC65__) || defined(SIZE_16)
+#define DIST_TO_ROOT_LONG_CHAIN			1000
+#else
+#define DIST_TO_ROOT_LONG_CHAIN			100000
+#endif // __LIBC65__ || SIZE_16
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1476,6 +1482,56 @@ void TestDistToRootUpdateBuildUnrootedSpeed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A long chain taken off the root while its head and tail are held from
+// the stack: clearing its distances to the root walks down its whole
+// length, and letting go of the tail walks back up it to the head to find
+// the tail's distance to the stack (both used to recurse, once per
+// object).  Then letting go of the head frees all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateLongChain(size uiLength)
+{
+	Ptr<CTestObject>			pFirst;
+	Ptr<CTestObject>			pLast;
+	Ptr<CTestObject>			pObject;
+	STestObjectFreedNotifier	sLastNotifier;
+	size						i;
+
+	ObjectsInit();
+	gcObjects.DisableValidation();
+	{
+		pFirst = OMalloc<CTestObject>();
+		ORoot()->Add(pFirst);
+		pLast = pFirst;
+		for (i = 1; i < uiLength; i++)
+		{
+			pObject = OMalloc<CTestObject>((i == uiLength - 1) ? &sLastNotifier : NULL);
+			pLast->mpTest = pObject;
+			pLast = pObject;
+		}
+		AssertInt((int)uiLength + 1, pLast->GetDistToRoot());
+		pObject = NULL;
+
+		ORoot()->Remove(pFirst);
+		AssertInt(UNATTACHED_DIST_TO_ROOT, pFirst->GetDistToRoot());
+		AssertInt(UNATTACHED_DIST_TO_ROOT, pLast->GetDistToRoot());
+
+		pLast = NULL;
+		AssertFalse(sLastNotifier.bFreed);
+		AssertLong(2 + (int64)uiLength, gcObjects.NumMemoryIndexes());
+
+		pFirst = NULL;
+		AssertTrue(sLastNotifier.bFreed);
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+	}
+	gcObjects.EnableValidation();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdate(void)
@@ -1508,6 +1564,7 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateReattachSpeed();
 	TestDistToRootUpdateBuildUnrooted(20, 10, true);
 	TestDistToRootUpdateBuildUnrootedSpeed();
+	TestDistToRootUpdateLongChain(DIST_TO_ROOT_LONG_CHAIN);
 
 	DataIOKill();
 	TypesKill();

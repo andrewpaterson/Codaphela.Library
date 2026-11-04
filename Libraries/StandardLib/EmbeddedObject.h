@@ -117,7 +117,7 @@ public:
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
-	virtual size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
+	virtual void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms) =0;
 
 			bool				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);

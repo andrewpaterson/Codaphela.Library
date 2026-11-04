@@ -84,7 +84,7 @@ public:
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
 	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
-	size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+	void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 
 	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
 	size				GetNumFieldPointerTos(void);

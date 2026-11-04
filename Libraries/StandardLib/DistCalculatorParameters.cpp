@@ -16,6 +16,7 @@ void CDistCalculatorParameters::Init(void)
 	macExpectedDistsHeap.Init();
 	mpuiExpectedDistsTable = NULL;
 	muiExpectedDistsTableSize = 0;
+	macClearCandidates.Init();
 	mapcDetachedFromRoot.Init();
 	mapcCompletelyDetached.Init();
 	mapcTouched.Init();
@@ -31,6 +32,7 @@ void CDistCalculatorParameters::Kill(void)
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
+	macClearCandidates.Kill();
 	SafeFree(mpuiExpectedDistsTable);
 	muiExpectedDistsTableSize = 0;
 	macExpectedDistsHeap.Kill();
@@ -435,6 +437,72 @@ void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 	}
 	psDistToRoot->bRemoved = true;
 	muiRemovedExpectedDists++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::AddClearCandidate(CBaseObject* pcObject, int iClearedFromDistToRoot)
+{
+	SDistToRootClearCandidate*	psCandidate;
+
+	psCandidate = macClearCandidates.Add();
+	psCandidate->pcObject = pcObject;
+	psCandidate->iClearedFromDistToRoot = iClearedFromDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last candidate added; false when there are none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistCalculatorParameters::PopClearCandidate(CBaseObject** ppcObject, int* piClearedFromDistToRoot)
+{
+	SDistToRootClearCandidate	sCandidate;
+
+	if (!macClearCandidates.Pop(&sCandidate))
+	{
+		return false;
+	}
+	*ppcObject = sCandidate.pcObject;
+	*piClearedFromDistToRoot = sCandidate.iClearedFromDistToRoot;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDistCalculatorParameters::NumClearCandidates(void)
+{
+	return macClearCandidates.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The candidates added since uiFirst are reversed, so the first added is
+// popped first (the order a recursive walk would check them in).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::ReverseClearCandidates(size uiFirst)
+{
+	size						uiLast;
+	SDistToRootClearCandidate	sSwap;
+
+	uiLast = macClearCandidates.NumElements();
+	while (uiLast > uiFirst + 1)
+	{
+		uiLast--;
+		sSwap = *macClearCandidates.Get(uiFirst);
+		*macClearCandidates.Get(uiFirst) = *macClearCandidates.Get(uiLast);
+		*macClearCandidates.Get(uiLast) = sSwap;
+		uiFirst++;
+	}
 }
 
 

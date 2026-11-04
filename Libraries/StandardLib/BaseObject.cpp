@@ -540,17 +540,39 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Clears this object's distance to the root if it can't still be found
+// from the root, and so on for what it points to, depth first.  The walk
+// keeps its own stack (the parameters' clear candidates): a recursive one
+// overflowed the W65C816's stack on a chain a hundred objects long.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
+{
+	CBaseObject*	pcObject;
+
+	pcParameters->AddClearCandidate(this, iClearedFromDistToRoot);
+	while (pcParameters->PopClearCandidate(&pcObject, &iClearedFromDistToRoot))
+	{
+		pcObject->ClearInvalidDistToRoot(pcParameters, iClearedFromDistToRoot);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // iClearedFromDistToRoot is the distance the from that was just cleared
 // had.  A from no closer to root than this object (or not attached to it
 // at all) was never what it relied on, so this object need not be checked
 // (a window that every component points to would otherwise be checked
 // once for every cleared component).  MAX_DIST_TO_ROOT always checks: it
-// is used for the object whose from was removed.
+// is used for the object whose from was removed.  When this is cleared,
+// what it points to are added as candidates, to be checked in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
+void CBaseObject::ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
 {
 	int		iDistToRoot;
+	size	uiFirst;
 
 	if (IsEmbedded())
 	{
@@ -580,7 +602,9 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
 			SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
+			uiFirst = pcParameters->NumClearCandidates();
 			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters, iDistToRoot);
+			pcParameters->ReverseClearCandidates(uiFirst);
 		}
 	}
 }
@@ -588,17 +612,51 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Collects this object and the objects that point to it (and to them...)
+// that are detached from the root, depth first.  Returns how many of them
+// are pointed to from the stack.  The walk keeps its own stack: a
+// recursive one overflowed the W65C816's stack on a chain a hundred
+// objects long.
 //
 //////////////////////////////////////////////////////////////////////////
 size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
+	CArrayBaseObjectPtr		apcFroms;
+	CBaseObject*			pcObject;
+	size					iNumWithStackPointers;
+
+	iNumWithStackPointers = 0;
+	apcFroms.Init();
+	apcFroms.Add(this);
+	while (apcFroms.NumElements() > 0)
+	{
+		pcObject = apcFroms.Pop();
+		iNumWithStackPointers += pcObject->CollectDetachedAndSetDistToStackZero(pcParameters, &apcFroms);
+	}
+	apcFroms.Kill();
+	return iNumWithStackPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Collects this object if it is detached and not yet walked, and adds the
+// objects that point to it to papcFroms (reversed, so the first is walked
+// first).  Returns 1 if it is pointed to from the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms)
+{
 	if (IsEmbedded())
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
-		return ARRAY_ELEMENT_NOT_FOUND;
+		return 0;
 	}
 
-	size	iNumWithStackPointers;
+	size			iNumWithStackPointers;
+	size			uiFirst;
+	size			uiLast;
+	CBaseObject*	pcSwap;
 
 	iNumWithStackPointers = 0;
 
@@ -631,36 +689,38 @@ size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters
 
 	SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, true);
 
-	iNumWithStackPointers += CollectDetachedFroms(pcParameters);
+	uiFirst = papcFroms->NumElements();
+	CollectDetachedFroms(papcFroms);
+	uiLast = papcFroms->NumElements();
+	while (uiLast > uiFirst + 1)
+	{
+		uiLast--;
+		pcSwap = papcFroms->GetPtr(uiFirst);
+		*papcFroms->Get(uiFirst) = papcFroms->GetPtr(uiLast);
+		*papcFroms->Get(uiLast) = pcSwap;
+		uiFirst++;
+	}
 	return iNumWithStackPointers;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the objects this object's heap froms are in.
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+void CBaseObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 {
 	size				i;
 	size				uiNumFroms;
 	CEmbeddedObject*	pcEmbedded;
-	CBaseObject*		pcBaseObject;
-	size				iNumWithStackPointers;
 
-	iNumWithStackPointers = 0;
 	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
 		pcEmbedded = CEmbeddedObject::GetHeapFrom(i);
-		pcBaseObject = pcEmbedded->GetEmbeddingContainer();
-
-		iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
+		papcFroms->Add(pcEmbedded->GetEmbeddingContainer());
 	}
-
-	return iNumWithStackPointers;
-
 }
 
 

@@ -650,7 +650,7 @@ void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDist
 		if (pcPointedTo)
 		{
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
+			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
 		}
 	}
 }

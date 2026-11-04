@@ -550,7 +550,7 @@ void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcul
 		if (pcPointedTo)
 		{
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
+			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}
