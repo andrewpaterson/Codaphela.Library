@@ -62,7 +62,7 @@ public:
 	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
 	void					RemoveAllPointerTosDontFree(void) override;
 	bool					RemoveAllPointerTosTryFree(void) override;
-	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot) override;
+	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot) override;
 
 	void					GrowTo(size iNumElements);
 

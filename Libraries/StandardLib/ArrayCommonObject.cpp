@@ -636,7 +636,7 @@ void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedDistToRoot)
+void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
 {
 	CEmbeddedObject*	pcPointedTo;
 	size 				i;
@@ -650,7 +650,7 @@ void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDist
 		if (pcPointedTo)
 		{
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedDistToRoot);
+			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
 		}
 	}
 }
