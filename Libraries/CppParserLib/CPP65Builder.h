@@ -193,6 +193,7 @@ protected:
 	CMutex							mcCompilingMutex;
 	CConditionVariable				mcCompiled;
 	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
+	size							muiUnitsFinished;		//Units that have finished compiling (NumUnitsFinished).
 	CArrayTemplatePtr<CCPP65UnitWorkspace>	mapcWorkspaces;	//Those no unit is being compiled with (TakeWorkspace).
 	size							muiCompiledAgain;		//W65C816 units compiled a second time.
 
@@ -220,6 +221,7 @@ public:
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			AddMathTables(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
+	bool			AddDefine(const char* szLibrary, const char* szDefine);
 	void			SetStubMissing(bool bStubMissing);
 	void			SetRemoveUnused(bool bRemoveUnused);
 	void			SetLazy(uint32 uiSectorSize, uint32 uiFirstSector);
@@ -242,6 +244,8 @@ public:
 	CAsm65Object*	GetUnitObject(size uiIndex);
 	void			GetMissingNames(CChars* pszDest);
 	size			NumUnits(void);
+	size			NumUnitsToCompile(void);
+	size			NumUnitsFinished(void);
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 

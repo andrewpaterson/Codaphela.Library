@@ -82,6 +82,7 @@ void CCPP65Builder::Init(void)
 	mcCompilingMutex.Init();
 	mcCompiled.Init();
 	muiCompiling = 0;
+	muiUnitsFinished = 0;
 	muiCompiledAgain = 0;
 	mapcWorkspaces.Init();
 }
@@ -304,6 +305,29 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szDefine ("NAME" or "NAME=value") is defined for the library
+// szLibrary's units, as well as the target's own defines; a project's
+// defines, say.  False if no unit of szLibrary has been added.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
+{
+	CLibrary*	pcLibrary;
+	CConfig*	pcConfig;
+
+	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
+	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)GetCPPTarget(meTarget)->szName) : NULL;
+	if (!pcConfig)
+	{
+		return false;
+	}
+	pcConfig->AddDefine((char*)szDefine);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A project's unit X.cpp may have W65C816 assembly next to it, X816.asm,
 // with the functions X.cpp leaves out on the W65C816 (#ifndef
 // __W65C816_ASSEMBLY__).  It is added with it, unless the C++ is used
@@ -386,6 +410,17 @@ void CCPP65Builder::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
 size CCPP65Builder::NumUnits(void)
 {
 	return mcLinker.NumUnits();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The C++ translation units added (AddUnit), which Compile compiles.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumUnitsToCompile(void)
+{
+	return muiUnits;
 }
 
 
@@ -1663,8 +1698,27 @@ void CCPP65Builder::UnitFinished(void)
 {
 	mcCompilingMutex.Lock();
 	muiCompiling--;
+	muiUnitsFinished++;
 	mcCompiled.WakeAll();
 	mcCompilingMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times a unit has finished compiling, for showing progress from
+// another thread while Compile runs.  A W65C816 unit compiled again counts
+// twice, so it can pass NumUnitsToCompile.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumUnitsFinished(void)
+{
+	size	uiFinished;
+
+	mcCompilingMutex.Lock();
+	uiFinished = muiUnitsFinished;
+	mcCompilingMutex.Unlock();
+	return uiFinished;
 }
 
 
