@@ -49,12 +49,13 @@ void CLineZoneListener::ButtonClicked(CUnknown* pcSource, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 //
 // The header in pTitleFont over the text in pTextFamily's fixed width
-// font (as tiles), on sBackground so it stands apart from the code.  The
+// font (as tiles) in sText, on sBackground so it stands apart from the
+// code.  The
 // < and > come first, while there are pages to step through: the zone is
 // as wide as the code, which can be wider than the view.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground)
+void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground, ARGB32 sText)
 {
 	Ptr<CCanvas>	pBackground;
 
@@ -68,6 +69,7 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	muiPage = 0;
 	mszTitle.Init();
 	mbOutOfDate = false;
+	msText = sText;
 
 	mpTitle = OMalloc<CLabel>(pWindow, pTitleFont, "");
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
@@ -123,6 +125,7 @@ void CLineZone::Class(void)
 	U_Size(muiPage);
 	U_String(mszTitle);
 	U_Bool(mbOutOfDate);
+	U_UInt32(msText);
 }
 
 
@@ -208,7 +211,7 @@ void CLineZone::SetOutOfDate(bool bOutOfDate)
 	if (mbOutOfDate != bOutOfDate)
 	{
 		mbOutOfDate = bOutOfDate;
-		mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : JEWEL_TEXT);
+		mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : msText);
 		ShowTitle();
 	}
 }
@@ -243,7 +246,7 @@ void CLineZone::ShowPage(void)
 		mpcSource->GetText(muiLine, muiPage, &szText);
 	}
 	mpText->SetText(szText.Text());
-	mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : JEWEL_TEXT);
+	mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : msText);
 	szText.Kill();
 	ShowTitle();
 	ShowButtons();

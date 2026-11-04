@@ -56,10 +56,10 @@ void CLineZonesListener::CodeChanged(CUnknown* pcSource, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 //
 // pCodeEditor's lines get zones, their headers in pTitleFont over text in
-// pTextFamily's fixed width font, on sBackground.
+// pTextFamily's fixed width font in sText, on sBackground.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineZones::Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground)
+void CLineZones::Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground, ARGB32 sText)
 {
 	PreInit();
 
@@ -68,6 +68,7 @@ void CLineZones::Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Pt
 	mpTitleFont = pTitleFont;
 	mpTextFamily = pTextFamily;
 	msBackground = sBackground;
+	msText = sText;
 	mcListener.Init(this);
 	mpcSource = NULL;
 	mbOutOfDate = false;
@@ -89,6 +90,7 @@ void CLineZones::Class(void)
 	M_Pointer(mpTitleFont);
 	M_Pointer(mpTextFamily);
 	U_UInt32(msBackground);
+	U_UInt32(msText);
 	U_Unknown(CLineZonesListener, mcListener);
 	U_Pointer(mpcSource);
 	U_Bool(mbOutOfDate);
@@ -197,7 +199,7 @@ bool CLineZones::Toggle(size uiLine)
 		return false;
 	}
 
-	pZone = OMalloc<CLineZone>(mpCodeEditor->GetWindow(), mpTheme, mpTitleFont, mpTextFamily, msBackground);
+	pZone = OMalloc<CLineZone>(mpCodeEditor->GetWindow(), mpTheme, mpTitleFont, mpTextFamily, msBackground, msText);
 	pZone->SetSource(mpcSource, uiLine);
 	maZones.Add(pZone);
 	mpCodeEditor->AddLineComponent(uiLine, pZone);

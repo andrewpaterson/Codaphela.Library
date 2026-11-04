@@ -63,13 +63,14 @@ protected:
 	Ptr<CFont>			mpTitleFont;
 	Ptr<CFontFamily>	mpTextFamily;
 	ARGB32				msBackground;
+	ARGB32				msText;
 	CLineZonesListener	mcListener;
 	CLineZoneSource*	mpcSource;		//NULL for none; whatever set it keeps it.
 	bool				mbOutOfDate;	//The code was edited since the source was set.
 	CArray<CLineZone>	maZones;
 
 public:
-	void				Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground);
+	void				Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground, ARGB32 sText);
 	void				Class(void) override;
 	void				Free(void) override;
 

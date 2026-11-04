@@ -134,7 +134,7 @@ void TestLineZonesShow(void)
 		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne");
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
-		pZones = OMalloc<CLineZones>(pEditor, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f), JEWEL_PANEL);
+		pZones = OMalloc<CLineZones>(pEditor, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f), JEWEL_PANEL, JEWEL_TEXT);
 		pTestWindow->Layout();
 		iLine = pEditor->GetTextArea()->GetFont()->GetLineHeight();
 
@@ -250,7 +250,7 @@ void TestLineZonesOutOfDate(void)
 		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pEditor);
 		pTextArea = pEditor->GetTextArea();
-		pZones = OMalloc<CLineZones>(pEditor, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f), JEWEL_PANEL);
+		pZones = OMalloc<CLineZones>(pEditor, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f), JEWEL_PANEL, JEWEL_TEXT);
 		pTestWindow->Layout();
 
 		cSource.Init();
