@@ -201,11 +201,12 @@ protected:
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded, bool bPointerMemory);
+						void					GetObjectsInMemory(CArrayBaseObjectPtr* papcObjects);
 						void					ValidateSceneGraph(void);
-						void					ValidateIndexedObjects(void);
-						void					ClearValidationFlags(void);
-						void					ValidateObjectInternals(void);
-						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
+						void					ValidateSceneGraphObject(CBaseObject* pcBaseObject, CArrayBaseObjectPtr* papcStack);
+						void					ValidateIndexedObjects(CArrayBaseObjectPtr* papcObjects);
+						void					ClearValidationFlags(CArrayBaseObjectPtr* papcObjects);
+						void					ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi, uint16 uiFatSize);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);

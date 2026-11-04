@@ -156,6 +156,50 @@ OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The objects themselves, read with their indexes rather than looked up
+// again by them.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CIndexedObjects::StartIterationObject(SIndexesIterator* psIterator)
+{
+	bool			bResult;
+	OIndex			oi;
+	size			iKeyLength;
+	CBaseObject*	pcObject;
+	size			uiDataSize;
+
+	bResult = mcIndexes.StartIteration(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), &pcObject, &uiDataSize, sizeof(pcObject));
+	if (bResult && (uiDataSize == sizeof(pcObject)))
+	{
+		return pcObject;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CIndexedObjects::IterateObject(SIndexesIterator* psIterator)
+{
+	bool			bResult;
+	OIndex			oi;
+	size			iKeyLength;
+	CBaseObject*	pcObject;
+	size			uiDataSize;
+
+	bResult = mcIndexes.Iterate(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), &pcObject, &uiDataSize, sizeof(pcObject));
+	if (bResult && (uiDataSize == sizeof(pcObject)))
+	{
+		return pcObject;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIndexedObjects::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)

@@ -314,17 +314,7 @@ CIndexTreeMemory* CNamedIndexedObjects::GetNames(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::StartIteration(SIndexesIterator* psIter)
 {
-	OIndex		oi;
-
-	oi = mcMemoryIndexedObjects.StartIteration(psIter);
-	if (oi != INVALID_O_INDEX)
-	{
-		return Get(oi);
-	}
-	else
-	{
-		return NULL;
-	}
+	return mcMemoryIndexedObjects.StartIterationObject(psIter);
 }
 
 
@@ -334,17 +324,7 @@ CBaseObject* CNamedIndexedObjects::StartIteration(SIndexesIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::Iterate(SIndexesIterator* psIter)
 {
-	OIndex		oi;
-
-	oi = mcMemoryIndexedObjects.Iterate(psIter);
-	if (oi != INVALID_O_INDEX)
-	{
-		return Get(oi);
-	}
-	else
-	{
-		return NULL;
-	}
+	return mcMemoryIndexedObjects.IterateObject(psIter);
 }
 
 

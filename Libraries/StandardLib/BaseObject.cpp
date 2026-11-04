@@ -2556,6 +2556,12 @@ void CBaseObject::ValidateFlagSet(uint16 iFlag, const char* szFlag)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Checks the distance to the root against the froms', without walking to
+// the root (a walk that scanned hubs' froms for every object): an attached
+// object's closest attached from is exactly one closer to the root, and an
+// unattached object has no attached froms.  Checked for every object, that
+// is the same as each attached object finding the root, and its distance
+// being the shortest.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateCanFindRoot(void)
@@ -2566,15 +2572,21 @@ void CBaseObject::ValidateCanFindRoot(void)
 		return;
 	}
 
-	bool	bCanFindRoot;
+	CEmbeddedObject*	pcClosest;
+	int					iClosestDistToRoot;
 
 	if (miDistToRoot > ROOT_DIST_TO_ROOT)
 	{
-		bCanFindRoot = CanFindRoot();
-
-		if (!bCanFindRoot)
+		pcClosest = GetClosestFromToRoot();
+		if (pcClosest == NULL)
 		{
 			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a positive dist to root and should be able to find the Root object.", NULL);
+			return;
+		}
+		iClosestDistToRoot = pcClosest->GetDistToRoot();
+		if (iClosestDistToRoot != miDistToRoot - 1)
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has dist to root [", IntToString(miDistToRoot), "] but its closest from has [", IntToString(iClosestDistToRoot), "].", NULL);
 		}
 	}
 	else if (miDistToRoot == ROOT_DIST_TO_ROOT)
@@ -2586,9 +2598,8 @@ void CBaseObject::ValidateCanFindRoot(void)
 	}
 	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
-		bCanFindRoot = CanFindRoot();
-
-		if (bCanFindRoot)
+		pcClosest = GetClosestFromToRoot();
+		if (pcClosest != NULL)
 		{
 			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has an [UNATTACHED_DIST_TO_ROOT] dist to root should not be able to find the Root object.", NULL);
 		}

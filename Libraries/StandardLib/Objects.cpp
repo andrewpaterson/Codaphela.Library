@@ -562,6 +562,8 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Validates every object in memory.  Memory is walked once, into an array
+// the passes then use: the walk costs more than most of the checks.
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateObjectsConsistency(void)
@@ -569,14 +571,21 @@ void CObjects::ValidateObjectsConsistency(void)
 	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef _DEBUG
 	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
 
+	CArrayBaseObjectPtr		apcObjects;
+
 	//Objects being Removed are flagged FREED but are still in memory while their Free() runs.  If Free() 
 	//causes other objects to be killed (e.g. RemoveFreeObject) the graph is not yet consistent.
 	if (mbValidateConsistency && !mcRemovalContext.IsBusy())
 	{
+		apcObjects.Init();
+		GetObjectsInMemory(&apcObjects);
+
 		ValidateSceneGraph();
-		ValidateIndexedObjects();
-		ClearValidationFlags();
-		ValidateObjectInternals();
+		ValidateIndexedObjects(&apcObjects);
+		ClearValidationFlags(&apcObjects);
+		ValidateObjectInternals(&apcObjects);
+
+		apcObjects.Kill();
 	}
 }
 
@@ -585,7 +594,7 @@ void CObjects::ValidateObjectsConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ValidateIndexedObjects(void)
+void CObjects::GetObjectsInMemory(CArrayBaseObjectPtr* papcObjects)
 {
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
@@ -593,21 +602,33 @@ void CObjects::ValidateIndexedObjects(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
+		papcObjects->Add(pcBaseObject);
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Validates the objects the scene graph didn't reach.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ValidateIndexedObjects(CArrayBaseObjectPtr* papcObjects)
+{
+	size			i;
+	size			uiNumObjects;
+	CBaseObject*	pcBaseObject;
+
+	uiNumObjects = papcObjects->NumElements();
+	for (i = 0; i < uiNumObjects; i++)
+	{
+		pcBaseObject = papcObjects->GetPtr(i);
 		if (!(pcBaseObject->muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
 		{
 			pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, true);
 
 			pcBaseObject->ValidateConsistency();
 		}
-
-		pcBaseObject = mcMemory.Iterate(&sIter);
-	}
-
-	pcBaseObject = mcMemory.StartIteration(&sIter);
-	while (pcBaseObject)
-	{
-		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
-		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
 
@@ -616,16 +637,15 @@ void CObjects::ValidateIndexedObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ClearValidationFlags(void)
+void CObjects::ClearValidationFlags(CArrayBaseObjectPtr* papcObjects)
 {
-	SIndexesIterator	sIter;
-	CBaseObject*		pcBaseObject;
+	size	i;
+	size	uiNumObjects;
 
-	pcBaseObject = mcMemory.StartIteration(&sIter);
-	while (pcBaseObject)
+	uiNumObjects = papcObjects->NumElements();
+	for (i = 0; i < uiNumObjects; i++)
 	{
-		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
-		pcBaseObject = mcMemory.Iterate(&sIter);
+		papcObjects->GetPtr(i)->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
 	}
 }
 
@@ -634,47 +654,58 @@ void CObjects::ClearValidationFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ValidateObjectInternals(void)
+void CObjects::ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects)
 {
-	SIndexesIterator	sIter;
-	CBaseObject*		pcBaseObject;
+	size	i;
+	size	uiNumObjects;
 
-	pcBaseObject = mcMemory.StartIteration(&sIter);
-	while (pcBaseObject)
+	uiNumObjects = papcObjects->NumElements();
+	for (i = 0; i < uiNumObjects; i++)
 	{
-		pcBaseObject->ValidateInternalConsistency();
-		pcBaseObject = mcMemory.Iterate(&sIter);
+		papcObjects->GetPtr(i)->ValidateInternalConsistency();
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Validates the objects reachable from the root, depth first.  It keeps
+// its own stack: a long chain overflowed the program's.
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateSceneGraph(void)
 {
-	CRoot* pcRoot;
+	CRoot*					pcRoot;
+	CArrayBaseObjectPtr		apcStack;
+	CBaseObject*			pcBaseObject;
 
 	pcRoot = (CRoot*)GetFromMemory(ROOT_NAME);
 	if (pcRoot != NULL)
 	{
-		RecurseValidateSceneGraph(pcRoot);
+		apcStack.Init();
+		apcStack.Add(pcRoot);
+		while (apcStack.NumElements() > 0)
+		{
+			pcBaseObject = apcStack.Pop();
+			ValidateSceneGraphObject(pcBaseObject, &apcStack);
+		}
+		apcStack.Kill();
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Validates the object (unless already validated) and adds what it points
+// to to papcStack, reversed so they are validated in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
+void CObjects::ValidateSceneGraphObject(CBaseObject* pcBaseObject, CArrayBaseObjectPtr* papcStack)
 {
 	CArrayEmbeddedObjectPtr		apcTos;
-	size								i;
-	CEmbeddedObject*					pcToObject;
-	CBaseObject*						pcToContainerObject;
-	size								uiNumTos;
+	size						i;
+	CEmbeddedObject*			pcToObject;
+	size						uiNumTos;
 
 	if (pcBaseObject->IsEmbedded())
 	{
@@ -690,11 +721,10 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 		apcTos.Init();
 		pcBaseObject->GetPointerTos(&apcTos);
 		uiNumTos = apcTos.NumElements();
-		for (i = 0; i < uiNumTos; i++)
+		for (i = uiNumTos; i > 0; i--)
 		{
-			pcToObject = *apcTos.Get(i);
-			pcToContainerObject = pcToObject->GetEmbeddingContainer();
-			RecurseValidateSceneGraph(pcToContainerObject);
+			pcToObject = *apcTos.Get(i - 1);
+			papcStack->Add(pcToObject->GetEmbeddingContainer());
 		}
 
 		apcTos.Kill();

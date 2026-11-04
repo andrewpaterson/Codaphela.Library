@@ -48,6 +48,8 @@ public:
 
 	OIndex				StartIteration(SIndexesIterator* psIterator);
 	OIndex				Iterate(SIndexesIterator* psIterator);
+	CBaseObject*		StartIterationObject(SIndexesIterator* psIterator);
+	CBaseObject*		IterateObject(SIndexesIterator* psIterator);
 
 	CIndexTreeMemory*	GetIndexes(void);
 };
