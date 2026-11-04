@@ -171,6 +171,9 @@
     <ClCompile Include="IRSourceMarkers.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65ListingIndex.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRBlock.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -789,6 +792,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRSourceMarkers.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65ListingIndex.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRBlock.h">

@@ -240,6 +240,7 @@
     <ClCompile Include="TestCPP816.cpp" />
     <ClCompile Include="TestCPP816Assembly.cpp" />
     <ClCompile Include="TestCPP816Interprocedural.cpp" />
+    <ClCompile Include="TestCPP65ListingIndex.cpp" />
     <ClCompile Include="TestCPP816Volatile.cpp" />
     <ClCompile Include="TestCPP65IR.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
