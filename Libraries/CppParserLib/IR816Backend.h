@@ -196,6 +196,7 @@ protected:
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
 	void			Layout(void);
+	void			AddRegions(CIR816LiveRanges* pcRanges);
 	int32			PackTemporaries(void);
 	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);
