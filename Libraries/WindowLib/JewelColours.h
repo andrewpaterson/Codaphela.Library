@@ -39,6 +39,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define JEWEL_ICON				Set32BitColour((uint8)0xCE, (uint8)0xD0, (uint8)0xD6)  //Icons, chevrons and the caret.
 #define JEWEL_TEXT				Set32BitColour((uint8)0xDF, (uint8)0xE1, (uint8)0xE5)
 #define JEWEL_WHITE				Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)  //A tick.
+#define JEWEL_LINE_NUMBER		Set32BitColour((uint8)0x4B, (uint8)0x50, (uint8)0x59)  //The editor's line numbers.
 
 
 #endif // __JEWEL_COLOURS_H__

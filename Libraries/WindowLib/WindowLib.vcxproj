@@ -257,6 +257,7 @@
     <ClInclude Include="SoundCelVoice.h" />
     <ClInclude Include="SoundStreamVoice.h" />
     <ClInclude Include="TextArea.h" />
+    <ClInclude Include="CodeEditor.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />
@@ -320,6 +321,7 @@
     <ClCompile Include="ScrollPane.cpp" />
     <ClCompile Include="Label.cpp" />
     <ClCompile Include="TextArea.cpp" />
+    <ClCompile Include="CodeEditor.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeClipboard.cpp" />

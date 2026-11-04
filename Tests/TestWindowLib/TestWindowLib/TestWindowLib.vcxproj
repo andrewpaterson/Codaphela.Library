@@ -239,6 +239,7 @@
     <ClCompile Include="TestLabel.cpp" />
     <ClCompile Include="TestTextArea.cpp" />
     <ClCompile Include="TestTextAreaEdit.cpp" />
+    <ClCompile Include="TestCodeEditor.cpp" />
     <ClCompile Include="TestScrollPane.cpp" />
     <ClCompile Include="TestButton.cpp" />
     <ClCompile Include="TestButtonBar.cpp" />

@@ -312,6 +312,9 @@
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="CodeEditor.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component\Widgets\Button</Filter>
     </ClInclude>
@@ -522,6 +525,9 @@
       <Filter>Source\Component\Widgets\Label</Filter>
     </ClCompile>
     <ClCompile Include="TextArea.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="CodeEditor.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">
