@@ -37,6 +37,7 @@ public:
 
 	void 		_Init(void);
 	void 		Init(void);
+	void 		Init(CMallocator* pcMalloc);
 	void 		Init(const char* szFirst, ...);
 	void 		Init(CArrayChars* pasz);
 	void 		Fake(void);
@@ -83,6 +84,10 @@ public:
 	void		Finalise(void);
 	void		Print(CChars* psz);
 	void		Dump(void);
+
+protected:
+	CMallocator*	StringMallocator(void);
+	void			InitChars(CChars* pszChars, const char* szText, size uiLength);
 };
 
 

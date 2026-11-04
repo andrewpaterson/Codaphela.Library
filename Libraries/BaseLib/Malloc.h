@@ -18,6 +18,8 @@ public:
 
 	bool	IsMallocInitialised(void);
 	bool	IsMalloc(CMallocator* pcMalloc);
+
+	CMallocator*	GetMallocator(void);
 };
 
 

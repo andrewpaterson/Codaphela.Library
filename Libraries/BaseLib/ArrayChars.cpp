@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "SystemAllocator.h"
 #include "ArrayChars.h"
 
 
@@ -42,6 +43,58 @@ void CArrayChars::Init(void)
 {
 	mcArray.Init();
 	mbFaked = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The array and the strings added to it are allocated by pcMalloc (an arena
+// or a grow only mallocator, for an array of short lived strings).
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayChars::Init(CMallocator* pcMalloc)
+{
+	if ((pcMalloc == NULL) || (pcMalloc == &gcSystemAllocator))
+	{
+		//The system allocator's strings are made as Init(void)'s are.
+		Init();
+		return;
+	}
+	mcArray.Init(pcMalloc);
+	mbFaked = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mallocator the strings are allocated by when it isn't the system
+// allocator (Init(CMallocator*)), else NULL: each string allocates as
+// Init(void)'s do.
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CArrayChars::StringMallocator(void)
+{
+	if (mbFaked || mcArray.IsMalloc(&gcSystemAllocator))
+	{
+		return NULL;
+	}
+	return mcArray.GetMallocator();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pszChars made a copy of szText's first uiLength characters, allocated by
+// the array's mallocator.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayChars::InitChars(CChars* pszChars, const char* szText, size uiLength)
+{
+	pszChars->Init(mcArray.GetMallocator());
+	if (uiLength != 0)
+	{
+		pszChars->AppendSubString(szText, uiLength);
+	}
 }
 
 
@@ -134,8 +187,18 @@ void CArrayChars::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::ReInit(void)
 {
+	CMallocator*	pcMalloc;
+
+	pcMalloc = StringMallocator();
 	Kill();
-	Init();
+	if (pcMalloc)
+	{
+		Init(pcMalloc);
+	}
+	else
+	{
+		Init();
+	}
 }
 
 
@@ -148,7 +211,11 @@ CChars* CArrayChars::Add(CChars cChars)
 	CChars*		pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		InitChars(pcChars2, cChars.Text(), cChars.Length());
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->Init(cChars);
 	}
@@ -169,7 +236,11 @@ CChars* CArrayChars::Add(CChars* pcChars)
 	CChars* pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		InitChars(pcChars2, pcChars->Text(), pcChars->Length());
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->Init(pcChars);
 	}
@@ -189,7 +260,11 @@ CChars* CArrayChars::Add(const char* szString)
 	CChars* pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		InitChars(pcChars2, szString, szString ? (size)strlen(szString) : 0);
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->Init(szString);
 	}
@@ -210,7 +285,11 @@ CChars* CArrayChars::AddLength(size uiLength)
 	CChars* pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		pcChars2->InitLength(StringMallocator(), uiLength);
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->InitLength(uiLength);
 	}
@@ -231,7 +310,11 @@ CChars* CArrayChars::Add(const char* szString, size iStartInclusive, size iEndEx
 	CChars*		pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		InitChars(pcChars2, &szString[iStartInclusive], (iEndExclusive > iStartInclusive) ? iEndExclusive - iStartInclusive : 0);
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->Init(szString, iStartInclusive, iEndExclusive);
 	}
@@ -252,7 +335,11 @@ CChars* CArrayChars::Add(const char* szText, char* szLastCharInclusive)
 	CChars*		pcChars2;
 
 	pcChars2 = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		InitChars(pcChars2, szText, (size)(szLastCharInclusive-szText)+1);
+	}
+	else if (!mbFaked)
 	{
 		pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
 	}
@@ -377,7 +464,14 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 	{
 		szLastCharInclusive[1] = c;
 		pcChars2 = mcArray.InsertAt(iIndex);
-		pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
+		if (StringMallocator())
+		{
+			InitChars(pcChars2, szText, (size)(szLastCharInclusive-szText)+1);
+		}
+		else
+		{
+			pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
+		}
 		return pcChars2;	
 	}
 }
@@ -401,7 +495,14 @@ CChars* CArrayChars::InsertIntoSorted(CChars* psz)
 	else
 	{
 		pcChars2 = mcArray.InsertAt(iIndex);
-		pcChars2->Init(psz);
+		if (StringMallocator())
+		{
+			InitChars(pcChars2, psz->Text(), psz->Length());
+		}
+		else
+		{
+			pcChars2->Init(psz);
+		}
 		return pcChars2;
 	}
 }
@@ -416,7 +517,11 @@ CChars*	CArrayChars::Add(void)
 	CChars*		pcChars;
 
 	pcChars = mcArray.Add();
-	if (!mbFaked)
+	if (StringMallocator())
+	{
+		pcChars->Init(StringMallocator());
+	}
+	else if (!mbFaked)
 	{
 		pcChars->Init();
 	}
@@ -861,7 +966,15 @@ bool CArrayChars::Split(const char* szString, char cSplitter)
 {
 	CChars	szTemp;
 
-	szTemp.Init(szString);
+	if (StringMallocator())
+	{
+		szTemp.Init(StringMallocator());
+		szTemp.Append(szString);
+	}
+	else
+	{
+		szTemp.Init(szString);
+	}
 	if (!szTemp.Empty())
 	{
 		szTemp.Split(this, cSplitter);
@@ -870,6 +983,7 @@ bool CArrayChars::Split(const char* szString, char cSplitter)
 	}
 	else
 	{
+		szTemp.Kill();
 		return false;
 	}
 }

@@ -2,6 +2,8 @@
 #include "BaseLib/MemoryFile.h"
 #include "BaseLib/ScratchPadAllocator.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayChars.h"
+#include "BaseLib/SystemAllocator.h"
 #include "TestLib/Assert.h"
 #include "ConstructorsTestClasses.h"
 
@@ -144,6 +146,56 @@ void TestScratchPadAllocatorRealloc(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A CArrayChars initialised with the allocator keeps its strings in it as
+// well as its array, and its strings work as any others do.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScratchPadAllocatorArrayChars(void)
+{
+	MemoryInit();
+
+	CScratchPadAllocator	cAlloc;
+	CArrayChars				asz;
+	lsize					uiUsed;
+
+	cAlloc.Init();
+	asz.Init(&cAlloc);
+	asz.Add("one");
+	uiUsed = cAlloc.GetScratchPad()->GetUsedSize();
+	AssertTrue(uiUsed > 0);
+	asz.Add("two", 0, 2);
+	asz.Add()->Append("three");
+	AssertTrue(cAlloc.GetScratchPad()->GetUsedSize() > uiUsed);
+	AssertSize(3, asz.NumElements());
+	AssertString("one", asz.GetText(0));
+	AssertString("tw", asz.GetText(1));
+	AssertString("three", asz.GetText(2));
+	asz.ReInit();
+	AssertSize(0, asz.NumElements());
+	uiUsed = cAlloc.GetScratchPad()->GetUsedSize();
+	AssertTrue(asz.Split("a,,bc", ','));
+	AssertTrue(cAlloc.GetScratchPad()->GetUsedSize() > uiUsed);
+	AssertSize(3, asz.NumElements());
+	AssertString("a", asz.GetText(0));
+	AssertString("", asz.GetText(1));
+	AssertString("bc", asz.GetText(2));
+	asz.Kill();
+
+	uiUsed = cAlloc.GetScratchPad()->GetUsedSize();
+	asz.Init(&gcSystemAllocator);
+	asz.Add("system");
+	AssertString("system", asz.GetText(0));
+	AssertSize(uiUsed, cAlloc.GetScratchPad()->GetUsedSize());
+	asz.Kill();
+
+	cAlloc.Kill();
+
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestScratchPadAllocator(void)
@@ -153,6 +205,7 @@ void TestScratchPadAllocator(void)
 	TestScratchPadAllocatorPop();
 	TestScratchPadAllocatorReadWrite();
 	TestScratchPadAllocatorRealloc();
+	TestScratchPadAllocatorArrayChars();
 
 	TestStatistics();
 }
