@@ -892,6 +892,98 @@ bool CIROptimiser::HasEffect(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// HasEffect, except a call to a function that writes no memory its callers
+// can see (CIRModule::IsNoWrites): what is known to be in memory is still
+// so after it.  (Stores are the caller's to look at: this says only that
+// the instruction isn't some other write.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::MayWriteMemory(SIRInstruction* psInstruction)
+{
+	if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && mpcModule->IsNoWrites(psInstruction->asArguments[0].Index()))
+	{
+		return false;
+	}
+	return HasEffect(psInstruction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sAddress (through ptradds, any offset) is in the function's own
+// frame: a slot or a parameter's argaddr, gone when it returns.  Needs
+// FindDefinitions.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsOwnFrame(SIRReference sAddress)
+{
+	SIRInstruction*	psDefinition;
+	int				iSteps;
+
+	for (iSteps = 0; iSteps < 64; iSteps++)
+	{
+		psDefinition = mcDefinitions.Instruction(sAddress);
+		if (psDefinition == NULL)
+		{
+			return false;
+		}
+		if ((psDefinition->uiOpcode == IRO_Slot) || (psDefinition->uiOpcode == IRO_ArgAddress))
+		{
+			return true;
+		}
+		if (psDefinition->uiOpcode != IRO_PtrAdd)
+		{
+			return false;
+		}
+		sAddress = psDefinition->asArguments[0];
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction may write memory its callers can see: a store not to
+// its own frame, a volatile load or store, a call to a function not known
+// to write nothing (CIRModule::IsNoWrites), an indirect call, or anything
+// else with an effect.  CCPP65IRFrontEnd::MarkNoWrites works the unit's
+// functions out with it, together.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::WritesMemory(CIRFunction* pcFunction)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	bool			bWrites;
+
+	mpcFunction = pcFunction;
+	FindDefinitions();
+	bWrites = false;
+	for (uiBlock = 0; (uiBlock < pcFunction->NumBlocks()) && !bWrites; uiBlock++)
+	{
+		pcBlock = pcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bWrites; uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (psInstruction->uiOpcode == IRO_Store)
+			{
+				bWrites = (psInstruction->uiFlags & IRF_Volatile) || !IsOwnFrame(psInstruction->asArguments[1]);
+			}
+			else if (psInstruction->uiOpcode != IRO_Arg)
+			{
+				bWrites = MayWriteMemory(psInstruction);
+			}
+		}
+	}
+	mpcFunction = NULL;
+	return bWrites;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::SimplifyCFG(void)
@@ -3755,7 +3847,7 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 					AddAvailable(&asAvailable, sRoot, lliOffset, psInstruction->sType, psInstruction->asArguments[0]);
 				}
 			}
-			else if (HasEffect(psInstruction) && (psInstruction->uiOpcode != IRO_Arg))
+			else if (MayWriteMemory(psInstruction) && (psInstruction->uiOpcode != IRO_Arg))
 			{
 				asAvailable.FakeSetUsedElements(0);
 			}
@@ -5248,7 +5340,7 @@ bool CIROptimiser::WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, SI
 				return true;
 			}
 		}
-		else if (HasEffect(psInstruction))
+		else if (MayWriteMemory(psInstruction))
 		{
 			return true;
 		}
@@ -6490,7 +6582,7 @@ bool CIROptimiser::HoistInvariants(void)
 					AddAvailable(&asStores, sRoot, lliOffset, psInstruction->sType, IRNone());
 					bCalls |= asStores.NumElements() >= IR_AVAILABLE_LIMIT;
 				}
-				else if (HasEffect(psInstruction) && (psInstruction->uiOpcode != IRO_Arg))
+				else if (MayWriteMemory(psInstruction) && (psInstruction->uiOpcode != IRO_Arg))
 				{
 					bCalls = true;
 				}

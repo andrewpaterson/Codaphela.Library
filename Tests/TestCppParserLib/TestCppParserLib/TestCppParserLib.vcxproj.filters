@@ -55,6 +55,9 @@
     <ClCompile Include="TestCPP816Assembly.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPP816Interprocedural.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPP816Volatile.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>

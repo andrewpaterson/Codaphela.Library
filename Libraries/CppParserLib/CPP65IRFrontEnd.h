@@ -188,6 +188,7 @@ public:
 	bool			FinishUnit(void);
 	CArrayChars*	GetNotImported(void);
 	void			SpecialiseConstantArguments(CArrayTemplate<bool>* pabChanged);
+	void			MarkNoWrites(CArrayTemplate<bool>* pabCalls);
 	int				WrittenIndex(uint32 uiSymbol);
 	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);
 	bool			SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged);

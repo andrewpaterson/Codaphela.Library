@@ -977,6 +977,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	int					iRound;
 	bool				bResult;
 	CArrayTemplate<bool>	abChanged;
+	CArrayTemplate<bool>	abCallsNoWrites;
 	bool				bFalse;
 
 	bFalse = false;
@@ -1003,9 +1004,11 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	{
 		abChanged.Add(&bFalse);
 	}
+	abCallsNoWrites.Init();
 	if (sbInline && sbOptimise)
 	{
 		SpecialiseConstantArguments(&abChanged);
+		MarkNoWrites(&abCallsNoWrites);
 	}
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
 	{
@@ -1028,6 +1031,13 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 					break;
 				}
 			}
+		}
+		else if ((ui - 1 < abCallsNoWrites.NumElements()) && *abCallsNoWrites.Get(ui - 1))
+		{
+			//What is in memory is still known after its calls to functions that write nothing (MarkNoWrites).
+			InitOptimiser(&cOptimiser);
+			cOptimiser.Optimise(psWritten->pcFunction);
+			cOptimiser.Kill();
 		}
 		else if (!*abChanged.Get(ui - 1))
 		{
@@ -1057,7 +1067,78 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		szCode.Kill();
 	}
 	cInliner.Kill();
+	abCallsNoWrites.Kill();
 	abChanged.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Mod/ref summaries (InlineUnit, before inlining): which of the unit's
+// functions write no memory their callers can see (CIROptimiser::
+// WritesMemory), marked on their symbols (CIRModule::SetNoWrites) so the
+// optimiser keeps what it knows is in memory across calls to them.  Each
+// is taken to write nothing until it is seen to (a store outside its
+// frame, a call to one that writes), again until none changes, so
+// functions that call each other and store nothing are marked too.
+// pabCalls (per written function) gets those that call one of them, to be
+// optimised again.  Functions of other units are taken to write.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MarkNoWrites(CArrayTemplate<bool>* pabCalls)
+{
+	CIROptimiser		cOptimiser;
+	SCPP65IRWritten*	psWritten;
+	CIRFunction*		pcFunction;
+	CIRBlock*			pcBlock;
+	SIRInstruction*		psInstruction;
+	size				ui;
+	size				uiBlock;
+	size				uiInstruction;
+	bool				bChanged;
+	bool				bCalls;
+
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		psWritten = masWritten.Get(ui);
+		if (psWritten->pcFunction)
+		{
+			mcModule.SetNoWrites(psWritten->pcFunction->muiSymbol, true);
+		}
+	}
+
+	InitOptimiser(&cOptimiser);
+	do
+	{
+		bChanged = false;
+		for (ui = 0; ui < masWritten.NumElements(); ui++)
+		{
+			pcFunction = masWritten.Get(ui)->pcFunction;
+			if (pcFunction && mcModule.IsNoWrites(pcFunction->muiSymbol) && cOptimiser.WritesMemory(pcFunction))
+			{
+				mcModule.SetNoWrites(pcFunction->muiSymbol, false);
+				bChanged = true;
+			}
+		}
+	}
+	while (bChanged);
+	cOptimiser.Kill();
+
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		pcFunction = masWritten.Get(ui)->pcFunction;
+		bCalls = false;
+		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bCalls; uiBlock++)
+		{
+			pcBlock = pcFunction->GetBlock(uiBlock);
+			for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bCalls; uiInstruction++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+				bCalls = (psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && mcModule.IsNoWrites(psInstruction->asArguments[0].Index());
+			}
+		}
+		pabCalls->Add(&bCalls);
+	}
 }
 
 

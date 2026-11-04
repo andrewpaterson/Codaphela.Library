@@ -150,6 +150,29 @@ void TestIRRoundTripRegisterCall(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A symbol marked as writing no memory its callers can see (CIRModule::
+// SetNoWrites) is printed and parsed as nowrites, after the regcalls.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRRoundTripNoWrites(void)
+{
+	AssertIRRoundTrip(
+		"space default 4\n"
+		"regcall @_F__Fi\n"
+		"nowrites @_F__Fi\n"
+		"nowrites @_G__Fv\n"
+		"\n"
+		"function i32 @_F__Fi(i32 %a)\n"
+		"{\n"
+		"entry:\n"
+		"\t%s = add i32 %a, 1\n"
+		"\tret i32 %s\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIRRoundTripEverything(void)
@@ -534,7 +557,7 @@ void TestIRLarge(void)
 //////////////////////////////////////////////////////////////////////////
 void TestIRParserErrors(void)
 {
-	AssertIRErrors("(1, 1): Expected space, global, function, restrict or regcall. [fun]\n", "fun");
+	AssertIRErrors("(1, 1): Expected space, global, function, restrict, regcall or nowrites. [fun]\n", "fun");
 	AssertIRErrors("(4, 7): Expected an opcode with a result. [plus]\n",
 		"function void @f()\n{\nb:\n\t%x = plus i32 1, 2\n\tret\n}\n");
 	AssertIRErrors("(4, 2): Expected a block label. [%x]\n",
@@ -1579,6 +1602,59 @@ void TestIROptimiserLoopCounters(void)
 		"\t%w = zext i16 %x to i32\n\t%a = ptradd ptr %p, %w\n\tstore i8 7, %a\n"
 		"\t%x2 = add i16 %x, 1\n\t%c2 = add i16 %c, 1\n\t%d = ult i16 %c2, %n\n\tbrif %d, loop, exit\n"
 		"exit:\n\tret\n}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A load after a call to a function that writes nothing its callers can
+// see (nowrites) is what was loaded before it; after a call to any other
+// function it is loaded again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserNoWritesCalls(void)
+{
+	static const char*	szText =
+		"space default 4\n"
+		"NOWRITES"
+		"\n"
+		"function i32 @_F__Fi(i32 %a)\n{\nentry:\n"
+		"\t%x = load i32 @G\n"
+		"\t%c = call i32 @_Callee__Fi(i32 %a)\n"
+		"\t%y = load i32 @G\n"
+		"\t%s = add i32 %x, %y\n"
+		"\t%t = add i32 %s, %c\n"
+		"\tret i32 %t\n}\n";
+	CChars				szNoWrites;
+	CChars				szWrites;
+
+	szNoWrites.Init(szText);
+	szNoWrites.Replace("NOWRITES", "nowrites @_Callee__Fi\n");
+	AssertIROptimised(
+		"space default 4\n"
+		"nowrites @_Callee__Fi\n"
+		"\n"
+		"function i32 @_F__Fi(i32 %a)\n{\nentry:\n"
+		"\t%x = load i32 @G\n"
+		"\t%c = call i32 @_Callee__Fi(i32 %a)\n"
+		"\t%s = add i32 %x, %x\n"
+		"\t%t = add i32 %s, %c\n"
+		"\tret i32 %t\n}\n", szNoWrites.Text());
+	szNoWrites.Kill();
+
+	szWrites.Init(szText);
+	szWrites.Replace("NOWRITES", "");
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function i32 @_F__Fi(i32 %a)\n{\nentry:\n"
+		"\t%x = load i32 @G\n"
+		"\t%c = call i32 @_Callee__Fi(i32 %a)\n"
+		"\t%y = load i32 @G\n"
+		"\t%s = add i32 %x, %y\n"
+		"\t%t = add i32 %s, %c\n"
+		"\tret i32 %t\n}\n", szWrites.Text());
+	szWrites.Kill();
 }
 
 
@@ -4150,6 +4226,7 @@ void TestIR(void)
 
 	TestIRRoundTripLoop();
 	TestIRRoundTripRegisterCall();
+	TestIRRoundTripNoWrites();
 	TestIRRoundTripEverything();
 	TestIRRoundTripSpaces();
 	TestIRBuild();
@@ -4173,6 +4250,7 @@ void TestIR(void)
 	TestIROptimiserZeroExtendedCounters();
 	TestIROptimiserSharedDivisions();
 	TestIROptimiserSinkLoads();
+	TestIROptimiserNoWritesCalls();
 	TestIROptimiserExitValues();
 	TestIROptimiserSinkAndHoist();
 	TestIROptimiserReduceMultiplies();

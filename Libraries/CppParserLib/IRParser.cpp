@@ -117,9 +117,13 @@ bool CIRParser::Parse(const char* szText)
 		{
 			bResult = ParseRegisterCall();
 		}
+		else if (GetKeyword("nowrites"))
+		{
+			bResult = ParseNoWrites();
+		}
 		else
 		{
-			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict or regcall.");
+			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall or nowrites.");
 		}
 		if (!bResult)
 		{
@@ -748,6 +752,24 @@ bool CIRParser::ParseRegisterCall(void)
 		return false;
 	}
 	mpcModule->SetRegisterCall(mpcModule->AddSymbol(mszName.Text()));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// nowrites @name: the symbol is a function that writes no memory its
+// callers can see (CIRModule::SetNoWrites).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParseNoWrites(void)
+{
+	SkipSpace();
+	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
+	{
+		return false;
+	}
+	mpcModule->SetNoWrites(mpcModule->AddSymbol(mszName.Text()), true);
 	return true;
 }
 

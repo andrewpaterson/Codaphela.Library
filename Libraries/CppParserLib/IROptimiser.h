@@ -311,6 +311,7 @@ public:
 	void			Kill(void);
 
 	bool			Optimise(CIRFunction* pcFunction);
+	bool			WritesMemory(CIRFunction* pcFunction);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
@@ -399,6 +400,8 @@ protected:
 	bool			NextUse(SIRUse* psUse);
 	void			SetUse(SIRUse* psUse, SIRReference sNew);
 	bool			HasEffect(SIRInstruction* psInstruction);
+	bool			MayWriteMemory(SIRInstruction* psInstruction);
+	bool			IsOwnFrame(SIRReference sAddress);
 	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
 	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
 	void			RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);

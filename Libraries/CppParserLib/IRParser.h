@@ -83,6 +83,7 @@ protected:
 	bool	ParseGlobal(void);
 	bool	ParseRestrict(void);
 	bool	ParseRegisterCall(void);
+	bool	ParseNoWrites(void);
 	bool	ParseGlobalItem(CIRGlobal* pcGlobal);
 	bool	ParseFunction(void);
 	bool	ParseBody(void);

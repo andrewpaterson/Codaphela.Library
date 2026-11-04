@@ -79,6 +79,7 @@ protected:
 //variable declared restrict, so what is reached through its value is reached no other way (see SetRestrict).
 //bLocal: the symbol is the unit's own (a string, a static variable or function) even if nothing here defines it.
 //bRegisterCall: the symbol is a function a back end may pass arguments to in registers (see SetRegisterCall).
+//bNoWrites: the symbol is a function that writes no memory its callers can see (see SetNoWrites).
 struct SIRSymbolDefinition
 {
 	CIRFunction*	pcFunction;
@@ -86,6 +87,7 @@ struct SIRSymbolDefinition
 	bool			bRestrict;
 	bool			bLocal;
 	bool			bRegisterCall;
+	bool			bNoWrites;
 };
 
 
@@ -141,6 +143,8 @@ public:
 	bool			IsLocal(uint32 uiSymbol);
 	void			SetRegisterCall(uint32 uiSymbol);
 	bool			IsRegisterCall(uint32 uiSymbol);
+	void			SetNoWrites(uint32 uiSymbol, bool bNoWrites);
+	bool			IsNoWrites(uint32 uiSymbol);
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);

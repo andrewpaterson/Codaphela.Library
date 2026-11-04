@@ -447,6 +447,31 @@ bool CIRModule::IsRegisterCall(uint32 uiSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the symbol is a function that writes no memory its callers can
+// see: only its own frame, no volatile access, and it calls only such
+// functions (CCPP65IRFrontEnd::MarkNoWrites works it out for the unit's
+// functions).  A call to it is no barrier to what the optimiser knows is
+// in memory (CIROptimiser::MayWriteMemory).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetNoWrites(uint32 uiSymbol, bool bNoWrites)
+{
+	masDefinitions.Get(uiSymbol)->bNoWrites = bNoWrites;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::IsNoWrites(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bNoWrites;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes)

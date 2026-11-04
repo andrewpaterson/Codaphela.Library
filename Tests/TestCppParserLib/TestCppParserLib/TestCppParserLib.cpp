@@ -13,6 +13,7 @@ void TestIR65Backend(void);
 void TestIR816Backend(void);
 void TestCPP816(void);
 void TestCPP816Assembly(void);
+void TestCPP816Interprocedural(void);
 void TestCPP816Volatile(void);
 void TestCPP65IR(void);
 void TestCPP65Generator(void);
@@ -49,6 +50,7 @@ int __cdecl main(void)
 	TestIR65Backend();
 	TestIR816Backend();
 	TestCPP816Assembly();
+	TestCPP816Interprocedural();
 	TestCPP816();
 	TestCPP816Volatile();
 	TestCPP65Generator();
