@@ -27,13 +27,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP_SYNTAX_BLOCK_GLOBAL		0		//The global scope.
 #define CPP_SYNTAX_BLOCK_MEMBERS	1		//The members of a symbol.
 #define CPP_SYNTAX_BLOCK_SYMBOL		2		//A name in a scope (the first, second... symbol of the name there).
+#define CPP_SYNTAX_BLOCK_PARENT		3		//The parent of a scope (a class template's parameters: its members' parent).
 
 
 //A symbol or scope outside the block that it refers to.
 struct SCPPSyntaxBlockExternal
 {
 	uint8	uiKind;
-	uint16	uiScope;	//The scope of a symbol.
+	uint16	uiScope;	//The scope of a symbol, or the scope whose parent this is.
 	uint16	uiSymbol;	//The symbol whose members a scope is.
 	uint16	uiName;
 	uint16	uiWhich;	//Which of the symbols of the name in the scope (0 the first).
@@ -94,6 +95,7 @@ public:
 	uint16	NodeIndex(CCPPSyntax* pcNode);
 	bool	IsOwn(CCPPScope* pcScope);
 	bool	IsOwn(CCPPSymbol* pcSymbol);
+	CCPPSymbol*	TemplateClass(CCPPScope* pcScope);
 	uint16	Name(int64 lliName);
 	uint16	Scope(CCPPScope* pcScope);
 	uint16	Symbol(CCPPSymbol* pcSymbol);
@@ -484,10 +486,54 @@ bool CCPPSyntaxBlockWriting::IsOwn(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class template whose parameters pcScope is (its members' parent), or
+// NULL: the template declaration that made the scope, found from one of the
+// scope's parameters, declares the class.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPSyntaxBlockWriting::TemplateClass(CCPPScope* pcScope)
+{
+	SMapIterator					sIterator;
+	CCPPSymbol**					ppcSymbol;
+	CCPPSyntax*						pcNode;
+	CCPPSyntaxTemplateDeclaration*	pcTemplate;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntax*						pcType;
+	CCPPSymbol*						pcClass;
+
+	if ((pcScope->meKind != CPPSC_Template) || !pcScope->mcSymbols.StartIteration(&sIterator, NULL, NULL, (void**)&ppcSymbol, NULL) || !*ppcSymbol)
+	{
+		return NULL;
+	}
+	for (pcNode = (*ppcSymbol)->mpcDeclaration; pcNode; pcNode = pcNode->mpcParent)
+	{
+		if ((pcNode->GetKind() == CPPS_TemplateDeclaration) && (((CCPPSyntaxTemplateDeclaration*)pcNode)->mpcScope == pcScope))
+		{
+			break;
+		}
+	}
+	pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcNode;
+	if (!pcTemplate || !pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return NULL;
+	}
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcTemplate->mpcDeclaration;
+	pcType = pcSimple->mpcSpecifiers ? pcSimple->mpcSpecifiers->mpcType : NULL;
+	if (!pcType || (pcType->GetKind() != CPPS_ClassSpecifier))
+	{
+		return NULL;
+	}
+	pcClass = ((CCPPSyntaxClassSpecifier*)pcType)->mpcSymbol;
+	return (pcClass && pcClass->mpcMembers && (pcClass->mpcMembers->mpcParent == pcScope)) ? pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The reference of pcScope: the block's own scope (IsOwn), an external's
-// (the global scope, or the members of a symbol), or CPP_SYNTAX_BLOCK_
-// NULL.  The block's own scope's parent, owner, bases, usings, qualifier
-// and names get references too.
+// (the global scope, the members of a symbol, or a class template's
+// parameters), or CPP_SYNTAX_BLOCK_NULL.  The block's own scope's parent,
+// owner, bases, usings, qualifier and names get references too.
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
@@ -497,6 +543,7 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 	SCPPSyntaxBlockExternal		sExternal;
 	SMapIterator				sIterator;
 	CCPPSymbol**				ppcSymbol;
+	CCPPSymbol*					pcClass;
 	size						i;
 	bool						bMore;
 
@@ -542,6 +589,11 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 	{
 		sExternal.uiKind = CPP_SYNTAX_BLOCK_MEMBERS;
 		sExternal.uiSymbol = Symbol(pcScope->mpcOwner);
+	}
+	else if ((pcClass = TemplateClass(pcScope)) != NULL)
+	{
+		sExternal.uiKind = CPP_SYNTAX_BLOCK_PARENT;
+		sExternal.uiScope = Scope(pcClass->mpcMembers);
 	}
 	else
 	{
@@ -740,6 +792,10 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		if (psExternal->uiKind == CPP_SYNTAX_BLOCK_MEMBERS)
 		{
 			U16(psExternal->uiSymbol);
+		}
+		else if (psExternal->uiKind == CPP_SYNTAX_BLOCK_PARENT)
+		{
+			U16(psExternal->uiScope);
 		}
 		else if (psExternal->uiKind == CPP_SYNTAX_BLOCK_SYMBOL)
 		{
@@ -1412,6 +1468,11 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 			pcSymbol = cReading.Symbol(cReading.U16());
 			pcScope = pcSymbol ? pcSymbol->mpcMembers : NULL;
 			pcSymbol = NULL;
+		}
+		else if (uiKind == CPP_SYNTAX_BLOCK_PARENT)
+		{
+			pcScope = cReading.Scope(cReading.U16());
+			pcScope = pcScope ? pcScope->mpcParent : NULL;
 		}
 		else if (uiKind == CPP_SYNTAX_BLOCK_SYMBOL)
 		{

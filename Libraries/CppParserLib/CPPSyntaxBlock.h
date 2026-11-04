@@ -31,14 +31,16 @@ class CCPPLazyLoader;
 
 //A declaration of a syntax tree as a block of bytes, the tree's form on disk: its nodes (each kind's fields, as its
 //VisitFields gives them), the scopes and symbols it declares, the symbols and scopes outside it that it refers to (by
-//name: the global scope, the members of a symbol, a name in a scope), and what each of its tokens was found to be.
+//name: the global scope, the members of a symbol, a name in a scope, a class template's parameters), and what each of
+//its tokens was found to be.
 //Nodes, scopes and symbols are referred to by 16 bit indices within the block, and tokens from the declaration's
 //first, so a block can be read into any tree with the same tokens anywhere.  Little endian, fixed widths.
 //
 //  u32 magic, u16 nodes, u16 strings, u16 externals, u16 scopes, u16 symbols, u16 tokens
 //  kinds       u8 per node (so every node can be made before any record that refers to one is read)
 //  strings     u16 length, the characters (names)
-//  externals   u8 kind: global scope; members of (u16 symbol); symbol (u16 scope, u16 name, u16 which of the name's)
+//  externals   u8 kind: global scope; members of (u16 symbol); symbol (u16 scope, u16 name, u16 which of the name's);
+//              parent of (u16 scope: a class template's parameters are its members' parent)
 //  scopes      u8 kind, u16 parent, u16 owner, u8 dependent, u16 qualifier, u16 count + bases, u16 count + usings,
 //              u16 count + names (u16 name, u16 symbol)
 //  symbols     u16 name, u8 kind, u16 declaration, u16 scope, u16 members, u16 next, u16 lazy declaration
