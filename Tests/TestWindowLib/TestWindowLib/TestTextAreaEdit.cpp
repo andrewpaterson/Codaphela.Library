@@ -873,6 +873,438 @@ void TestTextAreaEditTiles(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The text area's line starts are those of its text.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextAreaLineStarts(Ptr<CTextArea> pTextArea)
+{
+	char*	szText;
+	size	uiLength;
+	size	uiPosition;
+	size	uiLine;
+
+	szText = pTextArea->GetText();
+	uiLength = StrLen(szText);
+	uiLine = 0;
+	AssertSize(0, pTextArea->GetLineStart(0));
+	for (uiPosition = 0; uiPosition < uiLength; uiPosition++)
+	{
+		AssertSize(uiLine, pTextArea->FindLine(uiPosition));
+		if (szText[uiPosition] == '\n')
+		{
+			uiLine++;
+			AssertSize(uiPosition + 1, pTextArea->GetLineStart(uiLine));
+		}
+	}
+	AssertSize(uiLine + 1, pTextArea->NumLines());
+	AssertSize(uiLength, pTextArea->GetLineStart(uiLine + 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A layout leaves the gaps below their lines (counted by line feeds, not
+// wrapped rows), the last line's too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditLayoutGaps(void)
+{
+	{
+		Ptr<CFont>					pFont;
+		Ptr<CTextLayout>			pLayout;
+		Ptr<CGlyphListFontDraw>		pDraw;
+		CArrayTextLayoutGap			asGaps;
+		STextLayoutGap*				psGap;
+
+		pFont = ReadLabelFont();
+		pLayout = OMalloc<CTextLayout>();
+		pDraw = OMalloc<CGlyphListFontDraw>();
+
+		asGaps.Init();
+		psGap = asGaps.Add();
+		psGap->uiLine = 0;
+		psGap->iHeight = 10;
+		psGap = asGaps.Add();
+		psGap->uiLine = 2;
+		psGap->iHeight = 7;
+		pLayout->SetLineGaps(&asGaps);
+		asGaps.Kill();
+
+		LayoutTextAreaText(pLayout, pDraw, pFont, "ab\ncd\nef");
+		AssertSize(3, pLayout->NumLines());
+		AssertInt(0, pLayout->GetLine(0)->iTop);
+		AssertInt(24 + 10, pLayout->GetLine(1)->iTop);
+		AssertInt(24 + 10 + 24, pLayout->GetLine(2)->iTop);
+		AssertInt(24 + 10 + 24 + 24 + 7, pLayout->GetSize().y);
+
+		//Line 0 wraps onto two rows: its gap is under the second.
+		pLayout->SetWidth(TextAreaWidth(pFont, "aaa bbb"));
+		LayoutTextAreaText(pLayout, pDraw, pFont, "aaa bbb ccc\nd");
+		AssertSize(3, pLayout->NumLines());
+		AssertInt(24, pLayout->GetLine(1)->iTop);
+		AssertInt(48 + 10, pLayout->GetLine(2)->iTop);
+
+		//No gaps.
+		pLayout->SetLineGaps(NULL);
+		pLayout->SetWidth(-1);
+		LayoutTextAreaText(pLayout, pDraw, pFont, "ab\ncd");
+		AssertInt(24, pLayout->GetLine(1)->iTop);
+		AssertInt(48, pLayout->GetSize().y);
+
+		pDraw = NULL;
+		pLayout = NULL;
+		pFont = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gaps below lines: the rows after are moved down, the caret and the
+// pointer skip them, and they stay with their lines as text is edited.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditLineGaps(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CFont>					pFont;
+		Ptr<CTextArea>				pTextArea;
+		CInt32Rect					cRect;
+		CChars						szCut;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pFont = ReadLabelFont();
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "ab\ncd\nef");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		//The lines, and which a position is on: a line feed is on the line it ends.
+		AssertTextAreaLineStarts(pTextArea);
+		AssertSize(3, pTextArea->NumLines());
+		AssertSize(3, pTextArea->GetLineStart(1));
+		AssertSize(0, pTextArea->FindLine(2));
+		AssertSize(1, pTextArea->FindLine(3));
+		AssertSize(2, pTextArea->FindLine(8));
+
+		//A gap below line 0 moves the rows after it down.
+		AssertFalse(pTextArea->SetLineGap(3, 10));
+		AssertTrue(pTextArea->SetLineGap(0, 50));
+		AssertInt(50, pTextArea->GetLineGap(0));
+		AssertInt(0, pTextArea->GetLineGap(1));
+		AssertTrue(pTextArea->GetLineBounds(0, &cRect));
+		AssertInt(0, cRect.GetTop());
+		AssertInt(24, cRect.GetBottom());
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cRect));
+		AssertInt(24, cRect.GetTop());
+		AssertInt(24 + 50, cRect.GetBottom());
+		AssertFalse(pTextArea->GetLineGapBounds(1, &cRect));
+		AssertTrue(pTextArea->GetLineBounds(1, &cRect));
+		AssertInt(24 + 50, cRect.GetTop());
+		AssertInt(3 * 24 + 50, pTextArea->GetTextSize().y);
+
+		//The caret is drawn below the gap, and down goes over it.
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Down();
+		AssertSize(3, pTextArea->GetCaretPosition());
+		pTextArea->GetCaretBounds(&cRect);
+		AssertInt(24 + 50, cRect.GetTop());
+		pTextArea->Up();
+		AssertSize(0, pTextArea->GetCaretPosition());
+
+		//The pointer in a gap is on the line above it.
+		AssertSize(2, pTextArea->FindPositionAt(1000, 24 + 10));
+		AssertSize(2, pTextArea->FindPositionAt(1000, 24 + 49));
+		AssertSize(5, pTextArea->FindPositionAt(1000, 24 + 50));
+
+		//The last line's gap is below the text.
+		AssertTrue(pTextArea->SetLineGap(2, 7));
+		AssertSize(2, pTextArea->NumLineGaps());
+		AssertTrue(pTextArea->GetLineGapBounds(2, &cRect));
+		AssertInt(3 * 24 + 50, cRect.GetTop());
+		AssertInt(3 * 24 + 57, cRect.GetBottom());
+		AssertInt(3 * 24 + 57, pTextArea->GetTextSize().y);
+
+		//0 removes a gap; new text removes them all.
+		AssertTrue(pTextArea->SetLineGap(0, 0));
+		AssertSize(1, pTextArea->NumLineGaps());
+		AssertTrue(pTextArea->GetLineGapBounds(2, &cRect));
+		AssertInt(3 * 24, cRect.GetTop());
+		pTextArea->SetText("ab\ncd\nef");
+		AssertSize(0, pTextArea->NumLineGaps());
+		AssertInt(3 * 24, pTextArea->GetTextSize().y);
+
+		//A line feed at the end of a line leaves the gap under it; at its start the line and its gap go down.
+		pTextArea->SetLineGap(1, 30);
+		pTextArea->SetCaretPosition(5);
+		pTextArea->Enter();
+		AssertString("ab\ncd\n\nef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(30, pTextArea->GetLineGap(1));
+		AssertSize(1, pTextArea->NumLineGaps());
+		pTextArea->Backspace();
+		AssertString("ab\ncd\nef", pTextArea->GetText());
+		AssertInt(30, pTextArea->GetLineGap(1));
+		pTextArea->SetCaretPosition(3);
+		pTextArea->Enter();
+		AssertString("ab\n\ncd\nef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(0, pTextArea->GetLineGap(1));
+		AssertInt(30, pTextArea->GetLineGap(2));
+		AssertTrue(pTextArea->GetLineGapBounds(2, &cRect));
+		AssertInt(3 * 24, cRect.GetTop());
+
+		//Removing the empty line before it brings it back up.
+		pTextArea->Backspace();
+		AssertString("ab\ncd\nef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(30, pTextArea->GetLineGap(1));
+
+		//Typing on the line keeps its gap.
+		pTextArea->SetCaretPosition(4);
+		pTextArea->Printable('x', true);
+		AssertString("ab\ncxd\nef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(30, pTextArea->GetLineGap(1));
+
+		//Deleting the line before it moves it up a line.
+		pTextArea->SetCaretPosition(0);
+		pTextArea->DeleteLine();
+		AssertString("cxd\nef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(30, pTextArea->GetLineGap(0));
+		AssertSize(1, pTextArea->NumLineGaps());
+
+		//Joining a line onto the one above loses its gap; the line above keeps its own.
+		pTextArea->SetLineGap(1, 20);
+		pTextArea->SetCaretPosition(3);
+		pTextArea->Delete();
+		AssertString("cxdef", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(30, pTextArea->GetLineGap(0));
+		AssertSize(1, pTextArea->NumLineGaps());
+
+		//Cutting the line with a gap takes it with it.
+		szCut.Init();
+		pTextArea->SetText("x\ny\nz");
+		pTextArea->SetLineGap(1, 10);
+		pTextArea->SetCaretPosition(2);
+		pTextArea->CutLine(&szCut);
+		AssertString("y\n", szCut.Text());
+		AssertString("x\nz", pTextArea->GetText());
+		AssertSize(0, pTextArea->NumLineGaps());
+		szCut.Kill();
+
+		//Pasting lines at the start of a line pushes it and its gap down.
+		pTextArea->SetText("x\ny");
+		pTextArea->SetLineGap(1, 10);
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Paste((char*)"1\n2\n");
+		AssertString("1\n2\nx\ny", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(10, pTextArea->GetLineGap(3));
+		AssertSize(1, pTextArea->NumLineGaps());
+
+		//Deleting from inside one line to inside another loses the gaps of the lines after the first, and moves
+		//the gaps below up.
+		pTextArea->SetText("a\nb\nc\nd");
+		pTextArea->SetLineGap(0, 5);
+		pTextArea->SetLineGap(1, 6);
+		pTextArea->SetLineGap(2, 7);
+		pTextArea->SetLineGap(3, 8);
+		pTextArea->Select(1, 5);
+		pTextArea->Delete();
+		AssertString("a\nd", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertSize(2, pTextArea->NumLineGaps());
+		AssertInt(5, pTextArea->GetLineGap(0));
+		AssertInt(8, pTextArea->GetLineGap(1));
+
+		//Indenting lines (no line feeds) moves no gaps.
+		pTextArea->SelectAll();
+		pTextArea->Tab(true);
+		AssertString("    a\n    d", pTextArea->GetText());
+		AssertTextAreaLineStarts(pTextArea);
+		AssertInt(5, pTextArea->GetLineGap(0));
+		AssertInt(8, pTextArea->GetLineGap(1));
+
+		pTextArea->ClearLineGaps();
+		AssertSize(0, pTextArea->NumLineGaps());
+		AssertInt(2 * 24, pTextArea->GetTextSize().y);
+
+		pTextArea = NULL;
+		pFont = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A wrapped line's gap is under its last row.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditLineGapsWrapped(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CFont>				pFont;
+	int32					iWidth;
+
+	pFont = ReadLabelFont();
+	iWidth = TextAreaWidth(pFont, "aaa bbb");
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		CInt32Rect					cRect;
+
+		cNativeFactory.Init(&gcMemoryAllocator, iWidth, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFont, "aaa bbb ccc\nd");
+		pTextArea->SetWordWrap(true);
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		pTextArea->SetLineGap(0, 10);
+		pTestWindow->Layout();
+		AssertTrue(pTextArea->GetLineBounds(0, &cRect));
+		AssertInt(0, cRect.GetTop());
+		AssertInt(48, cRect.GetBottom());
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cRect));
+		AssertInt(48, cRect.GetTop());
+		AssertInt(58, cRect.GetBottom());
+		AssertTrue(pTextArea->GetLineBounds(1, &cRect));
+		AssertInt(58, cRect.GetTop());
+		AssertInt(3 * 24 + 10, pTextArea->GetTextSize().y);
+
+		//Down from the first row goes to the second, not over the gap.
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Down();
+		AssertSize(8, pTextArea->GetCaretPosition());
+		pTextArea->Down();
+		AssertSize(12, pTextArea->GetCaretPosition());
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	pFont = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In tiles a gap is whole rows, at least as high as asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditLineGapsTiles(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CFontFamily>			pFamily;
+		Ptr<CTextArea>				pTextArea;
+		CInt32Rect					cRect;
+		int32						iLine;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pFamily = CreateMonoTextAreaFamily(15.0f);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, "ab\ncd");
+		pTextArea->SetTiledText(true);
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+		AssertTrue(pTextArea->IsDrawnAsTiles());
+		iLine = pTextArea->GetFont()->GetLineHeight();
+
+		//A bit more than a row is two rows.
+		pTextArea->SetLineGap(0, iLine + 1);
+		AssertTrue(pTextArea->IsDrawnAsTiles());
+		AssertInt(iLine + 1, pTextArea->GetLineGap(0));
+		AssertTrue(pTextArea->GetLineGapBounds(0, &cRect));
+		AssertInt(iLine, cRect.GetTop());
+		AssertInt(3 * iLine, cRect.GetBottom());
+		AssertInt(4 * iLine, pTextArea->GetTextSize().y);
+		pTextArea->SetCaretPosition(4);
+		pTextArea->GetCaretBounds(&cRect);
+		AssertInt(3 * iLine, cRect.GetTop());
+		AssertSize(4, pTextArea->FindPositionAt(pTextArea->GetFont()->GetAverageWidth() + 1, 3 * iLine + 1));
+		AssertSize(1, pTextArea->FindPositionAt(pTextArea->GetFont()->GetAverageWidth() + 1, 2 * iLine));
+
+		//Exactly a row is one; the last line's gap is rows below the text.
+		pTextArea->SetLineGap(0, iLine);
+		pTextArea->SetLineGap(1, 1);
+		AssertTrue(pTextArea->GetLineBounds(1, &cRect));
+		AssertInt(2 * iLine, cRect.GetTop());
+		AssertTrue(pTextArea->GetLineGapBounds(1, &cRect));
+		AssertInt(3 * iLine, cRect.GetTop());
+		AssertInt(4 * iLine, cRect.GetBottom());
+		AssertInt(4 * iLine, pTextArea->GetTextSize().y);
+
+		pTextArea = NULL;
+		pFamily = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
 {
 	BeginTests();
@@ -885,6 +1317,10 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();
+	TestTextAreaEditLayoutGaps();
+	TestTextAreaEditLineGaps();
+	TestTextAreaEditLineGapsWrapped();
+	TestTextAreaEditLineGapsTiles();
 
 	ObjectsFlush();
 	ObjectsKill();

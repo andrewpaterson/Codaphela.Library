@@ -112,6 +112,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	msSelectionColour = JEWEL_SELECTION;
 	msCaretColour = JEWEL_ICON;
 	mauiStopStarts.Init();
+	mauiLineStarts.Init();
+	masGaps.Init();
+	FindLineStarts();
 	muiChangeCount = 0;
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
@@ -146,6 +149,8 @@ void CTextArea::Free(void)
 {
 	masTileStops.Kill();
 	masTileLines.Kill();
+	masGaps.Kill();
+	mauiLineStarts.Kill();
 	mauiStopStarts.Kill();
 	masSpans.Kill();
 	mszText.Kill();
@@ -188,6 +193,8 @@ void CTextArea::Class(void)
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
 	U_Data(CArrayTextAreaStopStart, mauiStopStarts);
+	U_Data(CArrayTextAreaLineStart, mauiLineStarts);
+	U_Data(CArrayTextLayoutGap, masGaps);
 	U_Size(muiCaret);
 	U_Size(muiAnchor);
 	U_Bool(mbCaretAtRowEnd);
@@ -221,15 +228,17 @@ bool CTextArea::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The spans are removed; they were ranges of the old text.  The caret goes
-// to the start and nothing is selected.
+// The spans and line gaps are removed; they were of the old text.  The
+// caret goes to the start and nothing is selected.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetText(const char* szText)
 {
 	mszText.Kill();
 	mszText.Init(szText);
+	FindLineStarts();
 	masSpans.ReInit();
+	masGaps.ReInit();
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -253,6 +262,7 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 
 	uiStart = mszText.Length();
 	mszText.Append(szText);
+	FindLineStarts();
 	AddSpan(uiStart, mszText.Length() - uiStart, sColour);
 	ReadText();
 	LayoutText();
@@ -693,6 +703,7 @@ void CTextArea::LayoutText(void)
 	}
 
 	mpLayout->SetWidth(GetWrapWidth());
+	mpLayout->SetLineGaps(&masGaps);
 
 	mpFontDraw->Begin();
 	if (mpText.IsNotNull())
@@ -974,6 +985,212 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 		x = mcActualBounds.GetWidth() - 1;
 	}
 	pcDest->Init(x, psLine->iTop, x + 1, psLine->iTop + psLine->iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines are ended by line feeds; there is always at least one.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumLines(void)
+{
+	return mauiLineStarts.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first byte of line uiLine, or the end of the text past the last.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::GetLineStart(size uiLine)
+{
+	if (uiLine >= mauiLineStarts.NumElements())
+	{
+		return mszText.Length();
+	}
+	return *mauiLineStarts.Get(uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line uiPosition (a byte of the text) is on.  A line feed is on the
+// line it ends.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::FindLine(size uiPosition)
+{
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+
+	//The last line starting at or before uiPosition.
+	uiLow = 0;
+	uiHigh = mauiLineStarts.NumElements() - 1;
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = (uiLow + uiHigh + 1) / 2;
+		if (*mauiLineStarts.Get(uiMiddle) <= uiPosition)
+		{
+			uiLow = uiMiddle;
+		}
+		else
+		{
+			uiHigh = uiMiddle - 1;
+		}
+	}
+	return uiLow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pixels of line uiLine's rows, relative to the text area's top left,
+// as wide as the text area or its text, whichever is wider.  Not its gap.
+// False if there is no such line or the text isn't laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::GetLineBounds(size uiLine, CInt32Rect* pcDest)
+{
+	STextLayoutLine*	psFirst;
+	STextLayoutLine*	psLast;
+	int32				iWidth;
+
+	if ((uiLine >= NumLines()) || !HasStops())
+	{
+		return false;
+	}
+
+	psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
+	psLast = GetLayoutLine(FindLastRow(uiLine));
+	iWidth = (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+	pcDest->Init(0, psFirst->iTop, iWidth, psLast->iTop + psLast->iHeight);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Leaves iHeight pixels empty below line uiLine, under its last row, and
+// lays the text out again.  0 removes the gap.  False if there is no such
+// line.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
+{
+	size			uiGap;
+	STextLayoutGap*	psGap;
+
+	if (uiLine >= NumLines())
+	{
+		return false;
+	}
+
+	uiGap = FindGap(uiLine);
+	psGap = (uiGap < masGaps.NumElements()) ? masGaps.Get(uiGap) : NULL;
+	if (psGap && (psGap->uiLine == uiLine))
+	{
+		if (psGap->iHeight == iHeight)
+		{
+			return true;
+		}
+		if (iHeight <= 0)
+		{
+			masGaps.RemoveAt(uiGap, true);
+		}
+		else
+		{
+			psGap->iHeight = iHeight;
+		}
+	}
+	else
+	{
+		if (iHeight <= 0)
+		{
+			return true;
+		}
+		psGap = masGaps.InsertAt(uiGap);
+		psGap->uiLine = uiLine;
+		psGap->iHeight = iHeight;
+	}
+	GapsChanged();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The height asked for below line uiLine (SetLineGap), 0 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextArea::GetLineGap(size uiLine)
+{
+	size			uiGap;
+	STextLayoutGap*	psGap;
+
+	uiGap = FindGap(uiLine);
+	if (uiGap >= masGaps.NumElements())
+	{
+		return 0;
+	}
+	psGap = masGaps.Get(uiGap);
+	return (psGap->uiLine == uiLine) ? psGap->iHeight : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumLineGaps(void)
+{
+	return masGaps.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ClearLineGaps(void)
+{
+	if (masGaps.NumElements() > 0)
+	{
+		masGaps.ReInit();
+		GapsChanged();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pixels of line uiLine's gap as laid out, relative to the text area's
+// top left and as wide as GetLineBounds.  In tiles it can be higher than
+// was asked for.  False if the line has no gap or the text isn't laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
+{
+	size				uiRow;
+	STextLayoutLine*	psLine;
+	int32				iTop;
+	int32				iBottom;
+	int32				iWidth;
+
+	if ((GetLineGap(uiLine) <= 0) || (uiLine >= NumLines()) || !HasStops())
+	{
+		return false;
+	}
+
+	uiRow = FindLastRow(uiLine);
+	psLine = GetLayoutLine(uiRow);
+	iTop = psLine->iTop + psLine->iHeight;
+	iBottom = (uiRow + 1 < NumLayoutLines()) ? GetLayoutLine(uiRow + 1)->iTop : msTextSize.y;
+	iWidth = (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+	pcDest->Init(0, iTop, iWidth, iBottom);
+	return true;
 }
 
 
@@ -1745,6 +1962,197 @@ void CTextArea::FindStopStarts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The start of each line, from the text: 0 and each byte after a line
+// feed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::FindLineStarts(void)
+{
+	size	uiPosition;
+	size	uiLength;
+	char*	szText;
+
+	mauiLineStarts.ReInit();
+	*mauiLineStarts.Add() = 0;
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	for (uiPosition = 0; uiPosition < uiLength; uiPosition++)
+	{
+		if (szText[uiPosition] == '\n')
+		{
+			*mauiLineStarts.Add() = uiPosition + 1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first gap at or below line uiLine, or the number of gaps.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::FindGap(size uiLine)
+{
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+
+	uiLow = 0;
+	uiHigh = masGaps.NumElements();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = (uiLow + uiHigh) / 2;
+		if (masGaps.Get(uiMiddle)->uiLine < uiLine)
+		{
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
+	}
+	return uiLow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row line uiLine ends on: the row of its line feed, or the last row.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::FindLastRow(size uiLine)
+{
+	if (uiLine + 1 < NumLines())
+	{
+		return GetLayoutStop(FindStop(GetLineStart(uiLine + 1) - 1))->uiLine;
+	}
+	return NumLayoutLines() - 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gaps are laid out again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::GapsChanged(void)
+{
+	ReadText();
+	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before szText (uiLength bytes) goes in at uiPosition: the lines after
+// it move along and its line feeds start new lines.  The gaps of the
+// lines after it move down, and so does the gap of the line it is put at
+// the start of: that line is pushed down.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::LinesInserted(size uiPosition, const char* szText, size uiLength)
+{
+	size			uiLine;
+	size			uiNewLines;
+	size			i;
+	bool			bLineStart;
+	STextLayoutGap*	psGap;
+
+	uiLine = FindLine(uiPosition);
+	bLineStart = (*mauiLineStarts.Get(uiLine) == uiPosition);
+	for (i = uiLine + 1; i < mauiLineStarts.NumElements(); i++)
+	{
+		*mauiLineStarts.Get(i) += uiLength;
+	}
+	uiNewLines = 0;
+	for (i = 0; i < uiLength; i++)
+	{
+		if (szText[i] == '\n')
+		{
+			uiNewLines++;
+			*mauiLineStarts.InsertAt(uiLine + uiNewLines) = uiPosition + i + 1;
+		}
+	}
+
+	if (uiNewLines == 0)
+	{
+		return;
+	}
+	for (i = 0; i < masGaps.NumElements(); i++)
+	{
+		psGap = masGaps.Get(i);
+		if ((psGap->uiLine > uiLine) || ((psGap->uiLine == uiLine) && bLineStart))
+		{
+			psGap->uiLine += uiNewLines;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before uiStart to uiEnd is removed: the lines that started in it go, the
+// ones after move back.  A line that goes takes its gap with it, unless it
+// is removed from its start to the start of a later line: then that line
+// takes its place, and its gap.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::LinesRemoved(size uiStart, size uiEnd)
+{
+	size			uiFirst;
+	size			uiLast;
+	size			uiRemoved;
+	size			uiLength;
+	size			i;
+	bool			bWhole;
+	STextLayoutGap*	psGap;
+
+	uiFirst = FindLine(uiStart);
+	uiLast = FindLine(uiEnd);
+	uiRemoved = uiLast - uiFirst;
+	uiLength = uiEnd - uiStart;
+	bWhole = (uiRemoved > 0) && (*mauiLineStarts.Get(uiFirst) == uiStart) && (*mauiLineStarts.Get(uiLast) == uiEnd);
+
+	if (uiRemoved > 0)
+	{
+		mauiLineStarts.RemoveRange(uiFirst + 1, uiLast + 1, true);
+	}
+	for (i = uiFirst + 1; i < mauiLineStarts.NumElements(); i++)
+	{
+		*mauiLineStarts.Get(i) -= uiLength;
+	}
+
+	if (uiRemoved == 0)
+	{
+		return;
+	}
+	i = masGaps.NumElements();
+	while (i > 0)
+	{
+		i--;
+		psGap = masGaps.Get(i);
+		if (psGap->uiLine > uiLast)
+		{
+			psGap->uiLine -= uiRemoved;
+		}
+		else if (bWhole && (psGap->uiLine == uiLast))
+		{
+			//Going back through the gaps, uiFirst's (removed next) is still to come.
+			psGap->uiLine = uiFirst;
+		}
+		else if (bWhole ? (psGap->uiLine >= uiFirst) : (psGap->uiLine > uiFirst))
+		{
+			masGaps.RemoveAt(i, true);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bytes in the character at uiPosition: a code point, or a sequence
 // of them joined by ZWJs.  A byte that doesn't start valid UTF8 is a
 // character by itself.
@@ -2175,20 +2583,18 @@ int32 CTextArea::GetRowRight(size uiRow)
 //////////////////////////////////////////////////////////////////////////
 //
 // The row y (relative to the text area's top) is in.  Above the text it
-// is the first, below it the last.
+// is the first, below it the last.  In a line's gap it is the row above.
 //
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::FindRowAt(int32 y)
 {
 	size				uiRow;
 	size				uiNumRows;
-	STextLayoutLine*	psLine;
 
 	uiNumRows = NumLayoutLines();
 	for (uiRow = 0; uiRow < uiNumRows - 1; uiRow++)
 	{
-		psLine = GetLayoutLine(uiRow);
-		if (y < psLine->iTop + psLine->iHeight)
+		if (y < GetLayoutLine(uiRow + 1)->iTop)
 		{
 			break;
 		}
@@ -2514,6 +2920,7 @@ void CTextArea::InsertText(size uiPosition, const char* szText)
 		return;
 	}
 
+	LinesInserted(uiPosition, szText, uiLength);
 	mszText.Insert(uiPosition, szText);
 	for (i = 0; i < masSpans.NumElements(); i++)
 	{
@@ -2558,6 +2965,7 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 	}
 
 	uiLength = uiEnd - uiStart;
+	LinesRemoved(uiStart, uiEnd);
 	mszText.Remove(uiStart, uiEnd);
 	i = masSpans.NumElements();
 	while (i > 0)
@@ -2927,29 +3335,33 @@ bool CTextArea::UseTiles(void)
 // characters (as the tile writer puts them: a tab to the next tab stop,
 // every other character a column) and the characters written into the
 // tile layer in the colours of the spans.  Only the colours of the spans
-// are used; tiles are all the size of the text area's font.
+// are used; tiles are all the size of the text area's font.  A line's gap
+// is the fewest empty rows at least as high as it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ReadTiles(void)
 {
-	Ptr<CFontColours>	pColours;
-	Ptr<CFont>			pWhite;
-	size				uiCellWidth;
-	size				uiCellHeight;
-	size				uiNumStops;
-	size				ui;
-	size				uiStart;
-	size				uiEnd;
-	size				uiColumn;
-	size				uiNextColumn;
-	size				uiColumns;
-	size				uiRow;
-	size				uiLength;
-	char*				szText;
-	STextLayoutLine*	psLine;
-	STextLayoutStop*	psStop;
-	CArrayTileTextSpan	asSpans;
-	STextStyle*			psStyles;
+	Ptr<CFontColours>		pColours;
+	Ptr<CFont>				pWhite;
+	size					uiCellWidth;
+	size					uiCellHeight;
+	size					uiNumStops;
+	size					ui;
+	size					uiStart;
+	size					uiEnd;
+	size					uiColumn;
+	size					uiNextColumn;
+	size					uiColumns;
+	size					uiRow;
+	size					uiTileRow;
+	size					uiTextLine;
+	size					uiLength;
+	char*					szText;
+	STextLayoutLine*		psLine;
+	STextLayoutStop*		psStop;
+	CArrayTileTextSpan		asSpans;
+	CArrayTileTextLineRows	auiLineRows;
+	STextStyle*				psStyles;
 
 	//The sprites of the text read before are gone.
 	mpText = NULL;
@@ -2973,6 +3385,10 @@ void CTextArea::ReadTiles(void)
 	uiColumn = 0;
 	uiColumns = 0;
 	uiRow = 0;
+	uiTileRow = 0;
+	uiTextLine = 0;
+	auiLineRows.Init();
+	*auiLineRows.Add() = 0;
 	uiNumStops = mauiStopStarts.NumElements();
 	for (ui = 0; ui < uiNumStops; ui++)
 	{
@@ -2989,13 +3405,16 @@ void CTextArea::ReadTiles(void)
 		{
 			if (szText[uiStart] == '\n')
 			{
-				//The line feed is the last stop of its row.
+				//The line feed is the last stop of its row.  The line's gap is rows of no text.
+				uiTileRow += 1 + ((size)GetLineGap(uiTextLine) + uiCellHeight - 1) / uiCellHeight;
+				uiTextLine++;
+				*auiLineRows.Add() = uiTileRow;
 				uiRow++;
 				uiColumn = 0;
 				psLine = masTileLines.Add();
-				psLine->iTop = (int32)(uiRow * uiCellHeight);
+				psLine->iTop = (int32)(uiTileRow * uiCellHeight);
 				psLine->iHeight = (int32)uiCellHeight;
-				psLine->iBaseline = (int32)(uiRow * uiCellHeight) + pWhite->GetAscent();
+				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
 				psLine->uiFirstStop = ui + 1;
 				psLine->uiNumStops = 0;
 			}
@@ -3011,18 +3430,20 @@ void CTextArea::ReadTiles(void)
 			uiColumns = uiColumn;
 		}
 	}
-	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)((uiRow + 1) * uiCellHeight));
+	uiTileRow += 1 + ((size)GetLineGap(uiTextLine) + uiCellHeight - 1) / uiCellHeight;
+	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)(uiTileRow * uiCellHeight));
 
 	mpTileLayer->SetCelSize(SSizeVec2(uiCellWidth, uiCellHeight));
-	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, uiRow + 1));
+	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, uiTileRow));
 	mpTileWriter->SetColours(pColours, msStyle.sColour);
 	mpTileWriter->SetTabWidth((size)miTabWidth);
 
 	psStyles = MakeTileStyles();
 	asSpans.Init();
 	MakeTileSpans(psStyles, &asSpans);
-	mpTileWriter->Write(szText, &asSpans);
+	mpTileWriter->Write(szText, &asSpans, &auiLineRows);
 	asSpans.Kill();
+	auiLineRows.Kill();
 
 	//The lines along the text are drawn over the tiles, so they can go past a cell into the ones next to it.
 	mpFontDraw->Begin();

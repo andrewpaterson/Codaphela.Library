@@ -1403,7 +1403,7 @@ Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize)
 // decorations and a selection, into szDirectory, as tiles or as sprites.
 //
 //////////////////////////////////////////////////////////////////////////
-void DrawMonoTextArea(char* szDirectory, bool bTiles)
+void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 {
 	CWinRefWindowFactory	cNativeFactory;
 	CFileUtil				cFileUtil;
@@ -1457,6 +1457,12 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles)
 		AssertTrue(pTextArea->AddSpan(61, 6, &sOverride));
 
 		pTextArea->Select(13, 40);
+
+		//A gap of whole rows below the "{" line is the same as tiles and as sprites.
+		if (iGapRows > 0)
+		{
+			AssertTrue(pTextArea->SetLineGap(1, iGapRows * pTextArea->GetFont()->GetLineHeight()));
+		}
 		pFill->AddComponent(pTextArea);
 
 		pTestWindow->Show();
@@ -1477,10 +1483,11 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles)
 //////////////////////////////////////////////////////////////////////////
 //
 // A fixed width font drawn as tiles looks the same as drawn as sprites:
-// the glyphs, the colours of the spans, the decorations and the selection.
+// the glyphs, the colours of the spans, the decorations and the selection,
+// and with iGapRows rows left empty below a line.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestTextAreaTilesMatchSprites(void)
+void TestTextAreaTilesMatchSprites(int32 iGapRows)
 {
 	char		szSprites[] = "Output" _FS_ "TextAreaMonoSprites";
 	char		szTiles[] = "Output" _FS_ "TextAreaMonoTiles";
@@ -1488,8 +1495,8 @@ void TestTextAreaTilesMatchSprites(void)
 
 	CArrayChars	aszFrames;
 
-	DrawMonoTextArea(szSprites, false);
-	DrawMonoTextArea(szTiles, true);
+	DrawMonoTextArea(szSprites, false, iGapRows);
+	DrawMonoTextArea(szTiles, true, iGapRows);
 
 	//Frames were drawn, and they are the same.
 	aszFrames.Init();
@@ -1523,7 +1530,8 @@ void TestTextArea(void)
 	TestTextAreaScriptsFillContainer();
 	TestTextAreaDecorationsFillContainer();
 	TestTextAreaUnderlineOverlineFillContainer();
-	TestTextAreaTilesMatchSprites();
+	TestTextAreaTilesMatchSprites(0);
+	TestTextAreaTilesMatchSprites(2);
 
 	ObjectsFlush();
 	ObjectsKill();
