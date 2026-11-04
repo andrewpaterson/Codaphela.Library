@@ -65,6 +65,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
 	muiLazyRead = 0;
+	muiReadHere = 0;
 }
 
 

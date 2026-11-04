@@ -133,6 +133,7 @@ struct SCPP65CompiledUnit
 	size				uiLazySkipped;
 	size				uiLazyLoaded;
 	size				uiLazyRead;
+	size				uiReadHere;
 	SCPP65UnitCompile*	psCompile;		//While it is being compiled.
 	ECPP65UnitStage		eStage;			//While it waits for its turn.
 };
@@ -190,6 +191,7 @@ protected:
 	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
 	size							muiLazyLoaded;			//...and loaded when used...
 	size							muiLazyRead;			//...of them read as parsed before, not parsed again.
+	size							muiReadHere;			//Header declarations not left unparsed but read where they are.
 	CJobs*							mpcJobs;				//What compiles the units (SetJobs), or NULL for one at a time.
 	CJobs*							mpcUnitJobs;			//What CompileUnits is compiling the units with (units waiting for their turns are resumed on it).
 	CMutex							mcCompilingMutex;
@@ -211,6 +213,7 @@ public:
 	size			NumLazySkipped(void);
 	size			NumLazyLoaded(void);
 	size			NumLazyRead(void);
+	size			NumReadHere(void);
 	size			NumCompiledAgain(void);
 	void			SetHeaderCache(bool bHeaderCache);
 	CPPHeaderCache*	GetHeaderCache(void);

@@ -76,6 +76,41 @@ size CCPPParser::NumLazyRead(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many header declarations that aren't lazy were read where they are
+// (ReadHere), not parsed.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPParser::NumReadHere(void)
+{
+	return muiReadHere;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the declaration defines a class (class X { ... }; or a template of
+// one) and declares nothing else.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool CPPParserIsClassDefinition(CCPPSyntaxDeclaration* pcDeclaration)
+{
+	CCPPSyntax*						pcInner;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+
+	for (pcInner = pcDeclaration; pcInner && (pcInner->GetKind() == CPPS_TemplateDeclaration); pcInner = ((CCPPSyntaxTemplateDeclaration*)pcInner)->mpcDeclaration)
+	{
+	}
+	if (!pcInner || (pcInner->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return false;
+	}
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcInner;
+	return (pcSimple->macpDeclarators.NumElements() == 0) && pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the tokens iFirst to iLast (inclusive) are a header's own (tokens
 // made by macros are allowed after the first), and a hash of their text.
 //
@@ -232,8 +267,9 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		psRecord->aiKinds.Add((int)pcSymbol->meKind);
 	}
 
-	//A declaration later units leave unparsed is kept as it was parsed here, to be read where one of them uses it.
-	if (bLazy)
+	//A declaration later units leave unparsed is kept as it was parsed here, to be read where one of them uses it; a
+	//class definition that can't be left unparsed (its class was declared before, class X;) to be read where it is.
+	if (bLazy || CPPParserIsClassDefinition(pcDeclaration))
 	{
 		CCPPSyntaxBlockWriter::Write(mpcTree, pcDeclaration, mpcSymbols->GetGlobalScope(), &psRecord->auiBlock);
 	}
@@ -295,17 +331,21 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 			break;
 		}
 	}
-	if (!psRecord || !psRecord->bLazy)
+	if (!psRecord)
 	{
 		return false;
 	}
+	if (!psRecord->bLazy)
+	{
+		return ReadHere(psRecord, papcDeclarations, pcParent, iFirst, iLast);
+	}
 	//A class declared here before (class X;) may have been kept by whatever found it, which would not
-	//parse the definition when it needs the members.
+	//parse the definition when it needs the members: it is read (or parsed) here.
 	for (i = 0; i < psRecord->aszNames.NumElements(); i++)
 	{
 		if (((psRecord->aiKinds.GetValue(i) == CPPSK_Class) || (psRecord->aiKinds.GetValue(i) == CPPSK_ClassTemplate)) && HasParsedSymbol(psRecord->aszNames.GetText(i)))
 		{
-			return false;
+			return ReadHere(psRecord, papcDeclarations, pcParent, iFirst, iLast);
 		}
 	}
 	pcClass = NULL;
@@ -345,6 +385,37 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 	}
 
 	muiLazySkipped++;
+	sEnd.iToken = iLast + 1;
+	sEnd.bHalf = false;
+	Rewind(sEnd);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The header declaration iFirst to iLast, that isn't left unparsed, read
+// as it was parsed before (psRecord's block) in place of parsing it: it is
+// added to papcDeclarations, and parsing goes on after it.  False if there
+// is no block or it can't be read here (it is parsed).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::ReadHere(SCPPHeaderDeclaration* psRecord, CArraySyntax* papcDeclarations, CCPPSyntax* pcParent, int iFirst, int iLast)
+{
+	CCPPSyntax*				pcDeclaration;
+	SCPPParserPosition		sEnd;
+
+	if (psRecord->auiBlock.NumElements() == 0)
+	{
+		return false;
+	}
+	pcDeclaration = CCPPSyntaxBlockReader::Read(psRecord->auiBlock.GetData(), psRecord->auiBlock.NumElements(), mpcTree, iFirst, mpcSymbols->GetGlobalScope(), pcParent, this);
+	if (!pcDeclaration || (pcDeclaration->miLastToken != iLast))
+	{
+		return false;
+	}
+	papcDeclarations->Add(pcDeclaration);
+	muiReadHere++;
 	sEnd.iToken = iLast + 1;
 	sEnd.bHalf = false;
 	Rewind(sEnd);
