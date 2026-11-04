@@ -60,7 +60,7 @@ struct SIR816Routine
 #define IR816_SIGNED_TABLE			"R816_STable"
 #define IR816_UNSIGNED_TABLE		"R816_UTable"
 #define IR816_TABLE_LENGTH			11
-#define IR816_BITS_TABLE			"R816_Bits"		//R816_Bits16 and R816_Bits32: 1 << k for k from 0 to 63 (0 past the width).
+#define IR816_BITS_TABLE			"R816_Bits"		//R816_Bits16, R816_Bits32 and R816_Bits64: 1 << k for k from 0 to 63 (0 past the width).
 #define IR816_BITS_TABLE_LENGTH		9
 #define IR816_FRAME_OPERANDS		".dp"	//A soft float frame operand entry's label suffix (FrameOperandCall).
 #define IR816_DIRECT_PAGE			256		//The bytes [D + n] reaches (IR816FindReads).
@@ -8441,10 +8441,12 @@ bool CIR816Backend::ShiftTwoWords(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 1 << n of 16 or 32 bits, n known when it runs, looked up in R816_Bits16
-// or R816_Bits32 (AppendBitsTable) at n * 2 or n * 4 in X instead of a
-// shift: bitmaps' masks.  False, with nothing written, for any other
-// shift, or a result past the direct page (Frame would use X).
+// 1 << n of 16, 32 or 64 bits, n known when it runs, looked up in
+// R816_Bits16, R816_Bits32 or R816_Bits64 (AppendBitsTable) at n * 2, 4 or
+// 8 in X instead of a shift: bitmaps' masks, and soft float's rounding
+// masks ((1 << n) - 1, the subtract after).  False, with nothing written,
+// for any other shift, or a result past the direct page (Frame would use
+// X).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
@@ -8452,10 +8454,11 @@ bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
 	CChars	szTable;
 	int32	iResult;
 	int		iWords;
+	int		i;
 
 	iWords = Words(psInstruction->sType);
 	if ((psInstruction->uiOpcode != IRO_Shl) || psInstruction->asArguments[1].IsConstant() || !psInstruction->asArguments[0].IsConstant() ||
-		(mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits != 1) || !(psInstruction->sType.Is(IRTK_I16) || psInstruction->sType.Is(IRTK_I32)) ||
+		(mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits != 1) || !(psInstruction->sType.Is(IRTK_I16) || psInstruction->sType.Is(IRTK_I32) || psInstruction->sType.Is(IRTK_I64)) ||
 		InX(psInstruction->sResult) || psInstruction->sResult.IsNone())
 	{
 		return false;
@@ -8470,18 +8473,20 @@ bool CIR816Backend::BitShift(SIRInstruction* psInstruction)
 	UseRuntime(szTable.Text());
 	Operand("lda", psInstruction->asArguments[1], 0);
 	Line("and 63");
-	Line("asl A");
-	if (iWords == 2)
+	for (i = 1; i < 2 * iWords; i *= 2)
 	{
 		Line("asl A");
 	}
 	Line("tax");
-	mpszOut->Append("\t\tlda [")->Append(szTable)->Append(" + X]:24\n");
-	Frame("sta", iResult);
-	if (iWords == 2)
+	for (i = 0; i < iWords; i++)
 	{
-		mpszOut->Append("\t\tlda [")->Append(szTable)->Append(" + 2 + X]:24\n");
-		Frame("sta", iResult + 2);
+		mpszOut->Append("\t\tlda [")->Append(szTable);
+		if (i > 0)
+		{
+			mpszOut->Append(" + ")->Append(2 * i);
+		}
+		mpszOut->Append(" + X]:24\n");
+		Frame("sta", iResult + 2 * i);
 	}
 	szTable.Kill();
 	return true;
@@ -9382,17 +9387,22 @@ void CIR816Backend::AppendBitsTable(CChars* pszDest, const char* szName)
 {
 	int		iBits;
 	int		i;
-	uint32	uiBit;
+	int		iWord;
+	uint64	ulliBit;
 
 	iBits = atoi(&szName[IR816_BITS_TABLE_LENGTH]);
 	IR816RuntimeHeader(pszDest, "rodata.", szName);
 	for (i = 0; i < 64; i++)
 	{
-		uiBit = (i < iBits) ? ((uint32)1 << i) : 0;
-		pszDest->Append("\t\t.word ")->Append((int)(uiBit & 0xFFFF));
-		if (iBits == 32)
+		ulliBit = (i < iBits) ? ((uint64)1 << i) : 0;
+		pszDest->Append("\t\t.word ");
+		for (iWord = 0; iWord < iBits / 16; iWord++)
 		{
-			pszDest->Append(", ")->Append((int)(uiBit >> 16));
+			if (iWord > 0)
+			{
+				pszDest->Append(", ");
+			}
+			pszDest->Append((int)((ulliBit >> (16 * iWord)) & 0xFFFF));
 		}
 		pszDest->AppendNewLine();
 	}

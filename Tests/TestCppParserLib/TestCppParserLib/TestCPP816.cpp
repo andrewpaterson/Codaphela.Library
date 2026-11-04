@@ -576,6 +576,46 @@ void TestCPP816BitTables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// 64 bit 1 << n looked up in R816_Bits64 (CIR816Backend::BitShift), and the
+// masks soft float rounds with ((1 << n) - 1, 1 << (n - 1)), for every
+// count, against doubling; nothing calls R816_Shl64.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults, bool bReturns);
+void TestCPP816BitTable64(void)
+{
+	static const char*	aszNoUnits[] = { NULL };
+	CChars				szListing;
+
+	szListing.Init();
+	AssertInt(1, TestCPP816RunListed(
+		"volatile int giCount;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tint\t\t\t\t\ti;\n"
+		"\tint\t\t\t\t\tj;\n"
+		"\tint\t\t\t\t\tn;\n"
+		"\tunsigned long long\tull;\n"
+		"\tfor (i = 0; i < 64; i++)\n"
+		"\t{\n"
+		"\t\tgiCount = i;\n"
+		"\t\tn = giCount;\n"
+		"\t\tull = 1;\n"
+		"\t\tfor (j = 0; j < i; j++) { ull += ull; }\n"
+		"\t\tif (((unsigned long long)1 << n) != ull) { return 100 + i; }\n"
+		"\t\tif ((((unsigned long long)1 << n) - 1) != (ull - 1)) { return 200 + i; }\n"
+		"\t\tif ((i > 0) && (((unsigned long long)1 << (n - 1)) != (ull >> 1))) { return 300 + i; }\n"
+		"\t}\n"
+		"\treturn 1;\n"
+		"}\n", aszNoUnits, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("R816_Bits64"));
+	AssertFalse(szListing.Contains("jsl R816_Shl64"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Shifts by constants of 16 bits or more (whole words moved, then bits):
 // 32 and 64 bit shl, lshr and ashr, against one bit shifts repeated.
 //
@@ -5027,6 +5067,7 @@ void TestCPP816(void)
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();
 	TestCPP816BitTables();
+	TestCPP816BitTable64();
 	TestCPP816IndexedWords();
 	TestCPP816SmallShifts();
 	TestCPP816ScratchOperands();
