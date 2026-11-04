@@ -4235,6 +4235,9 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	{
 		RemoveDeadStores(mpszOut, uiStart);
 	}
+
+	//The loads of what a register holds, known across labels.
+	PeepholeFlowRegisters(mpszOut, uiStart);
 }
 
 
@@ -7703,6 +7706,276 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
 	}
 	abRemove.Kill();
+	aiBlockOf.Kill();
+	asBlocks.Kill();
+	asLines.Kill();
+	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What A, X and Y hold after the line (IR816UpdateHeld), but a branch or a
+// jump to a label changes nothing (the block it goes to starts with what
+// is known there), and a label or a directive forgets all.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816FlowHeld(SIR816FlowLine* psLine, SIR816Held* asHeld)
+{
+	if (psLine->iKind == IR816FL_INSTRUCTION)
+	{
+		if (!(psLine->sLine.uiFlags & IR816MF_BRANCH) && !(((psLine->sLine.uiMnemonic == IR816M_Jml) || (psLine->sLine.uiMnemonic == IR816M_Jmp)) && (psLine->sLine.uiOperand > 0) && (psLine->sLine.szOperand[0] == 'L')))
+		{
+			IR816UpdateHeld(asHeld, &psLine->sLine);
+		}
+	}
+	else if ((psLine->iKind == IR816FL_LABEL) || ((psLine->szLine[0] == '\t') && (psLine->szLine[1] == '\t') && (psLine->szLine[2] == '.')))
+	{
+		IR816ForgetHeld(asHeld, 0, 2);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What both hold, in asHeld: each register keeps only the operands psOther
+// knows it holds too.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR816MeetHeld(SIR816Held* asHeld, SIR816Held* asOther)
+{
+	int		i;
+	int		j;
+	int		k;
+	bool	bBoth;
+
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < IR816_HELD; j++)
+		{
+			if (asHeld[i].aszOperand[j][0] == '\0')
+			{
+				continue;
+			}
+			bBoth = false;
+			for (k = 0; k < IR816_HELD; k++)
+			{
+				bBoth |= (strcmp(asHeld[i].aszOperand[j], asOther[i].aszOperand[k]) == 0);
+			}
+			if (!bBoth)
+			{
+				memset(asHeld[i].aszOperand[j], 0, IR816_HELD_LENGTH);
+				asHeld[i].aiOffset[j] = -1;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether every register holds the same operands in both (in any order).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816SameHeld(SIR816Held* asHeld, SIR816Held* asOther)
+{
+	int		i;
+	int		j;
+	int		k;
+	int		iHeld;
+	int		iOther;
+	bool	bBoth;
+
+	for (i = 0; i < 3; i++)
+	{
+		iHeld = 0;
+		iOther = 0;
+		for (j = 0; j < IR816_HELD; j++)
+		{
+			iOther += (asOther[i].aszOperand[j][0] != '\0') ? 1 : 0;
+			if (asHeld[i].aszOperand[j][0] == '\0')
+			{
+				continue;
+			}
+			iHeld++;
+			bBoth = false;
+			for (k = 0; k < IR816_HELD; k++)
+			{
+				bBoth |= (strcmp(asHeld[i].aszOperand[j], asOther[i].aszOperand[k]) == 0);
+			}
+			if (!bBoth)
+			{
+				return false;
+			}
+		}
+		if (iHeld != iOther)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PeepholeRegisters across labels: a block starts with what A, X and Y
+// hold at the end of every block that goes to it (the same direct page
+// word or constant), worked out forward over the blocks (IR816BuildFlow)
+// until nothing changes, where PeepholeRegisters knows nothing after a
+// label.  A block a label outside the code may go to (a function's entry)
+// starts with nothing known.  Then the loads of what the register holds go
+// (but before something reads the N and Z they set).  True if any went.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
+{
+	CArrayTemplate<SIR816FlowLine>	asLines;
+	CArrayTemplate<SIR816FlowBlock>	asBlocks;
+	CArrayTemplate<int>				aiBlockOf;
+	CArrayTemplate<bool>			abRemove;
+	CArrayTemplate<SIR816Held>		asIn;		//Three per block: what A, X and Y hold at its start.
+	CArrayTemplate<SIR816Held>		asOut;		//And at its end.
+	CArrayTemplate<bool>			abDone;		//Whether its end is worked out yet.
+	SIR816FlowLine*					psLine;
+	SIR816FlowBlock*				psBlock;
+	SIR816Held						asHeld[3];
+	SIR816Held						asNone[3];
+	size							ui;
+	size							uj;
+	int								i;
+	int								iRegister;
+	bool							bChanged;
+	bool							bRemoved;
+	bool							bFalse;
+	bool							bFirst;
+
+	asLines.Init();
+	asBlocks.Init();
+	aiBlockOf.Init();
+	if (!IR816BuildFlow(pszDest->Text() + uiStart, false, &asLines, &asBlocks, &aiBlockOf))
+	{
+		aiBlockOf.Kill();
+		asBlocks.Kill();
+		asLines.Kill();
+		return false;
+	}
+
+	memset(asNone, 0, sizeof(asNone));
+	IR816ForgetHeld(asNone, 0, 2);
+	asIn.Init();
+	asOut.Init();
+	abDone.Init();
+	bFalse = false;
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		for (i = 0; i < 3; i++)
+		{
+			asIn.Add(&asNone[i]);
+			asOut.Add(&asNone[i]);
+		}
+		abDone.Add(&bFalse);
+	}
+
+	//Forward over the blocks until it settles: each starts with what all the blocks worked out so far that go to it
+	//end with (nothing, if one may be entered from outside).
+	do
+	{
+		bChanged = false;
+		for (ui = 0; ui < asBlocks.NumElements(); ui++)
+		{
+			psBlock = asBlocks.Get(ui);
+			bFirst = true;
+			if (psBlock->bEntered)
+			{
+				memcpy(asHeld, asNone, sizeof(asHeld));
+				bFirst = false;
+			}
+			for (uj = 0; uj < asBlocks.NumElements(); uj++)
+			{
+				if (!*abDone.Get(uj) || ((asBlocks.Get(uj)->aiNext[0] != (int)ui) && (asBlocks.Get(uj)->aiNext[1] != (int)ui)))
+				{
+					continue;
+				}
+				if (bFirst)
+				{
+					memcpy(asHeld, asOut.Get(uj * 3), sizeof(asHeld));
+					bFirst = false;
+				}
+				else
+				{
+					IR816MeetHeld(asHeld, asOut.Get(uj * 3));
+				}
+			}
+			if (bFirst)
+			{
+				memcpy(asHeld, asNone, sizeof(asHeld));
+			}
+			memcpy(asIn.Get(ui * 3), asHeld, sizeof(asHeld));
+			for (uj = psBlock->uiFirst; uj < psBlock->uiEnd; uj++)
+			{
+				psLine = asLines.Get(uj);
+				if ((uj == psBlock->uiFirst) && (psLine->iKind == IR816FL_LABEL))
+				{
+					continue;
+				}
+				IR816FlowHeld(psLine, asHeld);
+			}
+			//Once worked out, a block's end only loses what it holds (a register holds two operands at most, so knowing more
+			//at its start may leave less known at its end): the loop settles.  Dropping what is known is always safe.
+			if (*abDone.Get(ui))
+			{
+				IR816MeetHeld(asHeld, asOut.Get(ui * 3));
+			}
+			if (!*abDone.Get(ui) || !IR816SameHeld(asOut.Get(ui * 3), asHeld))
+			{
+				memcpy(asOut.Get(ui * 3), asHeld, sizeof(asHeld));
+				*abDone.Get(ui) = true;
+				bChanged = true;
+			}
+		}
+	}
+	while (bChanged);
+
+	//The loads of what the register holds.
+	abRemove.Init();
+	for (ui = 0; ui < asLines.NumElements(); ui++)
+	{
+		abRemove.Add(&bFalse);
+	}
+	bRemoved = false;
+	for (ui = 0; ui < asBlocks.NumElements(); ui++)
+	{
+		psBlock = asBlocks.Get(ui);
+		memcpy(asHeld, asIn.Get(ui * 3), sizeof(asHeld));
+		for (uj = psBlock->uiFirst; uj < psBlock->uiEnd; uj++)
+		{
+			psLine = asLines.Get(uj);
+			if ((uj == psBlock->uiFirst) && (psLine->iKind == IR816FL_LABEL))
+			{
+				continue;
+			}
+			if (psLine->iKind == IR816FL_INSTRUCTION)
+			{
+				iRegister = (psLine->sLine.uiMnemonic == IR816M_Lda) ? 0 : (psLine->sLine.uiMnemonic == IR816M_Ldx) ? 1 : (psLine->sLine.uiMnemonic == IR816M_Ldy) ? 2 : -1;
+				if ((iRegister >= 0) && IR816Holds(asHeld, iRegister, &psLine->sLine) && !IR816ZNReadAfter(psLine->szLine))
+				{
+					*abRemove.Get(uj) = true;
+					bRemoved = true;
+					continue;
+				}
+			}
+			IR816FlowHeld(psLine, asHeld);
+		}
+	}
+	if (bRemoved)
+	{
+		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
+	}
+	abRemove.Kill();
+	abDone.Kill();
+	asOut.Kill();
+	asIn.Kill();
 	aiBlockOf.Kill();
 	asBlocks.Kill();
 	asLines.Kill();
