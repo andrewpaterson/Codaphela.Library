@@ -138,6 +138,12 @@
     <ClCompile Include="CPPHighlighter.cpp">
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
+    <ClCompile Include="CPPSymbolKey.cpp">
+      <Filter>Source\Highlighter</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPIndex.cpp">
+      <Filter>Source\Highlighter</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65IRFrontEnd.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -750,6 +756,12 @@
       <Filter>Source\General</Filter>
     </ClInclude>
     <ClInclude Include="CPPHighlighter.h">
+      <Filter>Source\Highlighter</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSymbolKey.h">
+      <Filter>Source\Highlighter</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPIndex.h">
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPP65IRFrontEnd.h">

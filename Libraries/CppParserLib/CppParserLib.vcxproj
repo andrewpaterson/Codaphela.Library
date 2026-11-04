@@ -187,6 +187,8 @@
     <ClCompile Include="CPPErrors.cpp" />
     <ClCompile Include="CPPHeaderIndex.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
+    <ClCompile Include="CPPSymbolKey.cpp" />
+    <ClCompile Include="CPPIndex.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
     <ClCompile Include="CppParserLazy.cpp" />
     <ClCompile Include="CPPSyntaxLazyDeclaration.cpp" />
@@ -397,6 +399,8 @@
     <ClInclude Include="CPPErrors.h" />
     <ClInclude Include="CPPHeaderIndex.h" />
     <ClInclude Include="CPPHighlighter.h" />
+    <ClInclude Include="CPPSymbolKey.h" />
+    <ClInclude Include="CPPIndex.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
     <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />

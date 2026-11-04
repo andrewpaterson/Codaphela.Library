@@ -8,6 +8,7 @@ void TestProject(void);
 void TestCppTokeniser(void);
 void TestCppParser(void);
 void TestCppHighlighter(void);
+void TestCppIndex(void);
 void TestIR(void);
 void TestIR65Backend(void);
 void TestIR816Backend(void);
@@ -45,6 +46,7 @@ int __cdecl main(void)
 	TestCppTokeniser();
 	TestCppParser();
 	TestCppHighlighter();
+	TestCppIndex();
 	TestIR();
 	TestIRImportsTurns();
 	TestIR65Backend();

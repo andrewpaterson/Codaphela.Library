@@ -251,6 +251,7 @@
     <ClCompile Include="TestCPP65Spill.cpp" />
     <ClCompile Include="TestCppParser.cpp" />
     <ClCompile Include="TestCppHighlighter.cpp" />
+    <ClCompile Include="TestCppIndex.cpp" />
     <ClCompile Include="TestCPP65Context.cpp" />
     <ClCompile Include="TestCPP65Generator.cpp" />
     <ClCompile Include="TestUnit1.cpp" />

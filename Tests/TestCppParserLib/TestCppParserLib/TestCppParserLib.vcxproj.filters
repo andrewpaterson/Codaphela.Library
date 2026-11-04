@@ -97,6 +97,9 @@
     <ClCompile Include="TestCppHighlighter.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCppIndex.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestUnit3.cpp">
       <Filter>Source\Project</Filter>
     </ClCompile>
