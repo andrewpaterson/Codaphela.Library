@@ -766,8 +766,8 @@ void TestProject65RunTests(STestProject65* psProject)
 	if (getenv("TEST_PROJECT65_COMPILE_STATS"))
 	{
 		//TEST_PROJECT65_COMPILE_STATS: the W65C816 units generated again for a missed import, and compiled again.
-		printf("%d imports stale, %d missed, %d compiled again; headers: %d kept, %d replayed (%d tokens)\n", (int)cBuilder.NumImportsStale(), (int)cBuilder.NumImportsMissed(), (int)cBuilder.NumCompiledAgain(),
-			(int)cBuilder.GetHeaderCache()->NumHeaders(), (int)cBuilder.GetHeaderCache()->NumHits(), (int)cBuilder.GetHeaderCache()->NumReplayedTokens());
+		printf("%d imports stale, %d missed, %d compiled again; headers: %d kept, %d replayed (%d tokens); lazy declarations: %d skipped, %d loaded (%d read)\n", (int)cBuilder.NumImportsStale(), (int)cBuilder.NumImportsMissed(), (int)cBuilder.NumCompiledAgain(),
+			(int)cBuilder.GetHeaderCache()->NumHeaders(), (int)cBuilder.GetHeaderCache()->NumHits(), (int)cBuilder.GetHeaderCache()->NumReplayedTokens(), (int)cBuilder.NumLazySkipped(), (int)cBuilder.NumLazyLoaded(), (int)cBuilder.NumLazyRead());
 	}
 
 	TestProject65TestDirectory(psProject, &szMainFile);

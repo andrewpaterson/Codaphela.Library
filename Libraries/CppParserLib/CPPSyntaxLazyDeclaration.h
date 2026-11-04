@@ -24,18 +24,20 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CCPPScope;
+struct SCPPHeaderDeclaration;
 
 
 //A header declaration that has not been parsed (CCPPHeaderIndex): its names are lazy
-//symbols, and the first lookup of one of them parses it (CCPPParser::LoadLazy), replacing
-//this node in mpapcOwner with the declaration.  A member function defined outside its
-//class declares no name: it waits in the class's mpcMembers and is parsed after the
-//class.  An unloaded one generates nothing.
+//symbols, and the first lookup of one of them parses it, or reads it as parsed before
+//(CCPPParser::LoadLazy), replacing this node in mpapcOwner with the declaration.  A member
+//function defined outside its class declares no name: it waits in the class's mpcMembers
+//and is parsed after the class.  An unloaded one generates nothing.
 class CCPPSyntaxLazyDeclaration : public CCPPSyntaxDeclaration
 {
 public:
 	CArraySyntax*		mpapcOwner;		//The declarations it is in, at muiIndex.
 	size				muiIndex;
+	SCPPHeaderDeclaration*	mpsRecord;	//The header index's record of it (with its block, if it has one).
 	CCPPScope*			mpcScope;		//The namespace scope it was skipped in.
 	int					miPack;			//The #pragma pack where it was skipped.
 	bool				mbLoaded;

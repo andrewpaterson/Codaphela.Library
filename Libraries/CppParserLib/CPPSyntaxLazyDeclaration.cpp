@@ -30,6 +30,7 @@ void CCPPSyntaxLazyDeclaration::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParen
 	CCPPSyntaxDeclaration::Init(pcTree, pcParent);
 	mpapcOwner = NULL;
 	muiIndex = 0;
+	mpsRecord = NULL;
 	mpcScope = NULL;
 	miPack = 0;
 	mbLoaded = false;
@@ -67,7 +68,7 @@ void CCPPSyntaxLazyDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxLazyDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	//mpapcOwner and muiIndex aren't fields: where it is in its owner's list, set when it is made.
+	//mpapcOwner and muiIndex aren't fields: where it is in its owner's list, set when it is made; nor is mpsRecord.
 	pcFields->UsedScope(&mpcScope);
 	pcFields->Integer(&miPack);
 	pcFields->Bool(&mbLoaded);

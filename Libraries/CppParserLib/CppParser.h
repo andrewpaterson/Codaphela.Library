@@ -113,7 +113,8 @@ protected:
 	CArrayTemplate<CCPPSymbol*>*	mpapcRecorded;	//The symbols the namespace declaration being parsed declares, for the index.
 	CCPPScope*				mpcRecordScope;
 	size					muiLazySkipped;			//Header declarations left unparsed...
-	size					muiLazyLoaded;			//...and how many of them were parsed when used.
+	size					muiLazyLoaded;			//...and how many of them were parsed when used...
+	size					muiLazyRead;			//...or read as parsed before (CPPSyntaxBlock).
 
 public:
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
@@ -126,6 +127,7 @@ public:
 	void							LoadLazy(CCPPScope* pcScope, int64 lliName) override;
 	size							NumLazySkipped(void);
 	size							NumLazyLoaded(void);
+	size							NumLazyRead(void);
 
 protected:
 	//Lazy header declarations.  CppParserLazy.cpp
@@ -133,6 +135,8 @@ protected:
 	bool							SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent);
 	void							RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclaration* pcDeclaration, CArrayTemplate<CCPPSymbol*>* papcDeclared);
 	void							LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy);
+	bool							ReadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy);
+	void							LoadMembers(CCPPSyntaxLazyDeclaration* pcLazy);
 	CCPPSymbol*						MemberDefinitionClass(CCPPSyntaxDeclaration* pcDeclaration);
 	CCPPSyntaxLazyDeclaration*		UnloadedClass(const char* szName);
 	bool							HasParsedSymbol(const char* szName);

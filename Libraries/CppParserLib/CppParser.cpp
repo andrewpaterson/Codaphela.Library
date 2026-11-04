@@ -64,6 +64,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	mpcRecordScope = NULL;
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
+	muiLazyRead = 0;
 }
 
 

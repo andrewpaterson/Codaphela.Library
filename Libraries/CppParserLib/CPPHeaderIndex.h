@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/Mutex.h"
@@ -38,6 +39,7 @@ struct SCPPHeaderDeclaration
 	CArrayChars	aszNames;
 	CArrayInt	aiKinds;		//ECPPSymbolKind of each name.
 	CChars		szClass;		//A member function defined outside its class (which is in the same namespace): the class.
+	CArrayUint8	auiBlock;		//A lazy one as parsed (CPPSyntaxBlock), read where it is used, or empty to parse it there.
 
 	SCPPHeaderDeclaration*	psNext;		//Another declaration starting at the same place (a header included again with other macros).
 };

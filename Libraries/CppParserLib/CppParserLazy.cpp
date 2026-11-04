@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "CppParser.h"
 #include "CPPSyntaxes.h"
+#include "CPPSyntaxBlock.h"
 #include "SourceFile.h"
 
 
@@ -58,6 +59,18 @@ size CCPPParser::NumLazySkipped(void)
 size CCPPParser::NumLazyLoaded(void)
 {
 	return muiLazyLoaded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the lazy declarations used were read as parsed before (their
+// blocks), not parsed.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPParser::NumLazyRead(void)
+{
+	return muiLazyRead;
 }
 
 
@@ -218,6 +231,12 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		psRecord->aszNames.Add(szName);
 		psRecord->aiKinds.Add((int)pcSymbol->meKind);
 	}
+
+	//A declaration later units leave unparsed is kept as it was parsed here, to be read where one of them uses it.
+	if (bLazy)
+	{
+		CCPPSyntaxBlockWriter::Write(mpcTree, pcDeclaration, mpcSymbols->GetGlobalScope(), &psRecord->auiBlock);
+	}
 	mpcHeaderIndex->Publish(uiKey, psRecord);
 }
 
@@ -304,6 +323,7 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 	pcLazy->SetTokens(iFirst, iLast);
 	pcLazy->mpapcOwner = papcDeclarations;
 	pcLazy->muiIndex = papcDeclarations->NumElements();
+	pcLazy->mpsRecord = psRecord;
 	pcLazy->mpcScope = mpcScope;
 	pcLazy->miPack = miPack;
 	papcDeclarations->Add(pcLazy);
@@ -418,9 +438,39 @@ void CCPPParser::LoadLazy(CCPPScope* pcScope, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Parses a lazy declaration where it was in its namespace, with the parser
-// as it was there, and puts it in place of the placeholder.  The parser is
-// put back as it was.
+// Reads a lazy declaration as it was parsed before (its block, kept by the
+// header index), in place of the placeholder.  False if it has no block, or
+// the block can't be read here (it is parsed instead).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::ReadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
+{
+	CArrayUint8*	pauiBlock;
+	CCPPSyntax*		pcDeclaration;
+
+	pauiBlock = pcLazy->mpsRecord ? &pcLazy->mpsRecord->auiBlock : NULL;
+	if (!pauiBlock || (pauiBlock->NumElements() == 0))
+	{
+		return false;
+	}
+	pcDeclaration = CCPPSyntaxBlockReader::Read(pauiBlock->GetData(), pauiBlock->NumElements(), mpcTree, pcLazy->miFirstToken, mpcSymbols->GetGlobalScope(), pcLazy->mpcParent, this);
+	if (!pcDeclaration || (pcDeclaration->miLastToken != pcLazy->miLastToken))
+	{
+		return false;
+	}
+	pcLazy->mpapcOwner->SetPtr(pcLazy->muiIndex, pcDeclaration);
+	muiLazyRead++;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads a lazy declaration as it was parsed before if it can be
+// (ReadDeclaration), otherwise parses it where it was in its namespace,
+// with the parser as it was there, and puts it in place of the
+// placeholder.  The parser is put back as it was.  Then its class's member
+// functions defined outside it are loaded.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
@@ -439,10 +489,14 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
 	CCPPScope*						pcRecordScope;
 	CCPPSyntaxDeclaration*			pcDeclaration;
-	CCPPSyntaxLazyDeclaration*		pcMember;
 
 	pcLazy->mbLoaded = true;
 	muiLazyLoaded++;
+	if (ReadDeclaration(pcLazy))
+	{
+		LoadMembers(pcLazy);
+		return;
+	}
 
 	sPosition = Mark();
 	pcScope = mpcScope;
@@ -491,6 +545,19 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	miClassDepth = iClassDepth;
 	mpcScope = pcScope;
 	Rewind(sPosition);
+
+	LoadMembers(pcLazy);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member functions of a lazy class defined outside it, loaded after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::LoadMembers(CCPPSyntaxLazyDeclaration* pcLazy)
+{
+	CCPPSyntaxLazyDeclaration*	pcMember;
 
 	for (pcMember = pcLazy->mpcMembers; pcMember; pcMember = pcMember->mpcNextMember)
 	{

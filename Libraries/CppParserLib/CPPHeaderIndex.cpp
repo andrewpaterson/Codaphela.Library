@@ -50,6 +50,7 @@ void CCPPHeaderIndex::Kill(void)
 		psDeclaration->aszNames.Kill();
 		psDeclaration->aiKinds.Kill();
 		psDeclaration->szClass.Kill();
+		psDeclaration->auiBlock.Kill();
 		SafeFree(psDeclaration);
 	}
 	mapsDeclarations.Kill();
@@ -107,6 +108,7 @@ SCPPHeaderDeclaration* CCPPHeaderIndex::New(void)
 	psDeclaration->aszNames.Init();
 	psDeclaration->aiKinds.Init();
 	psDeclaration->szClass.Init();
+	psDeclaration->auiBlock.Init();
 	psDeclaration->psNext = NULL;
 	return psDeclaration;
 }
@@ -138,6 +140,7 @@ void CCPPHeaderIndex::Publish(uint64 uiKey, SCPPHeaderDeclaration* psDeclaration
 				psDeclaration->aszNames.Kill();
 				psDeclaration->aiKinds.Kill();
 				psDeclaration->szClass.Kill();
+				psDeclaration->auiBlock.Kill();
 				free(psDeclaration);
 				return;
 			}

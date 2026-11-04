@@ -78,6 +78,7 @@ void CCPP65Builder::Init(void)
 	mcProject.SetHeaderCache(&mcHeaderCache);
 	muiLazySkipped = 0;
 	muiLazyLoaded = 0;
+	muiLazyRead = 0;
 	mpcJobs = NULL;
 	mcCompilingMutex.Init();
 	mcCompiled.Init();
@@ -511,6 +512,18 @@ size CCPP65Builder::NumLazySkipped(void)
 size CCPP65Builder::NumLazyLoaded(void)
 {
 	return muiLazyLoaded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the lazy declarations loaded were read as parsed before (in
+// an earlier unit), not parsed again.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumLazyRead(void)
+{
+	return muiLazyRead;
 }
 
 
@@ -1464,6 +1477,7 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->pcSpillStore = bOwnSpillStore ? &psUnit->cSpillStore : mpcSpillStore;
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
+	psUnit->uiLazyRead = 0;
 	psUnit->psCompile = NULL;
 	psUnit->eStage = CPP65US_Generating;
 }
@@ -1554,8 +1568,10 @@ void CCPP65Builder::FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings)
 	psUnit->szWarnings.ReInit();
 	muiLazySkipped += psUnit->uiLazySkipped;
 	muiLazyLoaded += psUnit->uiLazyLoaded;
+	muiLazyRead += psUnit->uiLazyRead;
 	psUnit->uiLazySkipped = 0;
 	psUnit->uiLazyLoaded = 0;
+	psUnit->uiLazyRead = 0;
 }
 
 
@@ -1922,6 +1938,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	}
 	psUnit->uiLazySkipped += psCompile->cParser.NumLazySkipped();
 	psUnit->uiLazyLoaded += psCompile->cParser.NumLazyLoaded();
+	psUnit->uiLazyRead += psCompile->cParser.NumLazyRead();
 	psCompile->cParser.Kill();
 
 	//The syntax tree and tokens aren't needed to assemble.
