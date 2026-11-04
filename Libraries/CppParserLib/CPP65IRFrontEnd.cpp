@@ -1008,6 +1008,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 	if (sbInline && sbOptimise)
 	{
 		SpecialiseConstantArguments(&abChanged);
+		RemoveDeadArguments(&abChanged);
 		MarkNoWrites(&abCallsNoWrites);
 	}
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
@@ -1940,6 +1941,244 @@ void CCPP65IRFrontEnd::OptimiseSpecialised(CIRFunction* pcFunction)
 		cOptimiser.Optimise(pcFunction);
 		cOptimiser.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameters (the first 32) pcFunction never reads, as bits: no use of
+// its temporary.  None if anything takes a parameter's address (argaddr):
+// an object passed by value in pieces is reached through its first's.  A
+// member function's this stays (IRA_ThisCall: the 65C64 passes it in X).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65IRFrontEnd::DeadParameters(CIRFunction* pcFunction)
+{
+	CArrayTemplate<uint8>	abUsed;
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psInstruction;
+	SIRPhi*					psPhi;
+	SIRReference			sValue;
+	size					uiBlock;
+	size					ui;
+	size					uj;
+	size					uiParameters;
+	uint32					uiDead;
+	uint8					uiZero;
+
+	uiParameters = pcFunction->masParameters.NumElements();
+	if (uiParameters > 32)
+	{
+		uiParameters = 32;
+	}
+
+	//Which temporaries are read.
+	uiZero = 0;
+	abUsed.Init();
+	abUsed.GrowToAtLeastNumElements(pcFunction->NumTemporaries(), true, 0);
+	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = pcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (psInstruction->uiOpcode == IRO_ArgAddress)
+			{
+				abUsed.Kill();
+				return 0;
+			}
+			for (uj = 0; uj < 2; uj++)
+			{
+				sValue = psInstruction->asArguments[uj];
+				if (sValue.IsTemporary() && (sValue.Index() < abUsed.NumElements()))
+				{
+					*abUsed.Get(sValue.Index()) = 1;
+				}
+			}
+		}
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			psPhi = pcBlock->masPhis.Get(ui);
+			for (uj = 0; uj < psPhi->asArguments.NumElements(); uj++)
+			{
+				sValue = psPhi->asArguments.Get(uj)->sValue;
+				if (sValue.IsTemporary() && (sValue.Index() < abUsed.NumElements()))
+				{
+					*abUsed.Get(sValue.Index()) = 1;
+				}
+			}
+		}
+		sValue = pcBlock->msJump.sArgument;
+		if (sValue.IsTemporary() && (sValue.Index() < abUsed.NumElements()))
+		{
+			*abUsed.Get(sValue.Index()) = 1;
+		}
+	}
+
+	uiDead = 0;
+	for (ui = (pcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0; ui < uiParameters; ui++)
+	{
+		sValue = *pcFunction->masParameters.Get(ui);
+		if (sValue.IsTemporary() && (sValue.Index() < abUsed.NumElements()) && !*abUsed.Get(sValue.Index()))
+		{
+			uiDead |= (uint32)1 << ui;
+		}
+	}
+	abUsed.Kill();
+	return uiDead;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Dead argument removal (InlineUnit, after SpecialiseConstantArguments): a
+// function of the unit that only the unit calls (local, its address never
+// taken, not variadic) loses the parameters it never reads
+// (DeadParameters), and its calls their arguments, so they aren't worked
+// out, loaded or pushed (a parameter specialised for its one value is one
+// such).  The callee and its callers are optimised again (what only made
+// an argument goes) and get pabChanged (per written function) so their
+// code is written again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::RemoveDeadArguments(CArrayTemplate<bool>* pabChanged)
+{
+	CArrayTemplate<SCPP65CallSite>	asSites;
+	CArrayTemplate<bool>			abOptimise;
+	SCPP65CallSite*					psSite;
+	SCPP65CallSite					sSite;
+	CIRFunction*					pcCallee;
+	CIRFunction*					pcFunction;
+	CIRBlock*						pcBlock;
+	SIRInstruction*					psInstruction;
+	SIRReference					sArgument;
+	uint32							uiSymbol;
+	uint32							uiDead;
+	size							uiCallee;
+	size							uiWritten;
+	size							uiBlock;
+	size							uiParameters;
+	size							uiFirst;
+	size							ui;
+	size							uj;
+	size							uk;
+	bool							bTaken;
+	bool							bFalse;
+
+	if (!sbOptimise)
+	{
+		return;
+	}
+	bFalse = false;
+	abOptimise.Init();
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		abOptimise.Add(&bFalse);
+	}
+	asSites.Init();
+	for (uiCallee = 0; uiCallee < masWritten.NumElements(); uiCallee++)
+	{
+		pcCallee = masWritten.Get(uiCallee)->pcFunction;
+		if (!pcCallee || (pcCallee->NumBlocks() == 0) || (pcCallee->muiAttributes & IRA_Variadic) ||
+			!((pcCallee->muiAttributes & IRA_Local) || mcModule.IsLocal(pcCallee->muiSymbol)))
+		{
+			continue;
+		}
+		uiDead = DeadParameters(pcCallee);
+		if (uiDead == 0)
+		{
+			continue;
+		}
+
+		//Its calls, each with an argument per parameter; it mustn't be named otherwise (its address taken).
+		uiSymbol = pcCallee->muiSymbol;
+		uiParameters = pcCallee->masParameters.NumElements();
+		asSites.FakeSetUsedElements(0);
+		bTaken = false;
+		for (uiWritten = 0; (uiWritten < masWritten.NumElements()) && !bTaken; uiWritten++)
+		{
+			pcFunction = masWritten.Get(uiWritten)->pcFunction;
+			for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bTaken; uiBlock++)
+			{
+				pcBlock = pcFunction->GetBlock(uiBlock);
+				for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+				{
+					psInstruction = pcBlock->masInstructions.Get(ui);
+					for (uj = 0; uj < 2; uj++)
+					{
+						if (psInstruction->asArguments[uj].IsSymbol() && (psInstruction->asArguments[uj].Index() == uiSymbol))
+						{
+							if ((psInstruction->uiOpcode == IRO_Call) && (uj == 0) && !(psInstruction->uiFlags & IRF_Variadic))
+							{
+								for (uiFirst = ui; (uiFirst > 0) && (pcBlock->masInstructions.Get(uiFirst - 1)->uiOpcode == IRO_Arg); uiFirst--)
+								{
+								}
+								bTaken |= (ui - uiFirst) != uiParameters;
+								sSite.uiWritten = uiWritten;
+								sSite.pcBlock = pcBlock;
+								sSite.uiCall = ui;
+								asSites.Add(&sSite);
+							}
+							else
+							{
+								bTaken = true;
+							}
+						}
+					}
+				}
+				for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+				{
+					for (uj = 0; uj < pcBlock->masPhis.Get(ui)->asArguments.NumElements(); uj++)
+					{
+						sArgument = pcBlock->masPhis.Get(ui)->asArguments.Get(uj)->sValue;
+						bTaken |= sArgument.IsSymbol() && (sArgument.Index() == uiSymbol);
+					}
+				}
+				bTaken |= pcBlock->msJump.sArgument.IsSymbol() && (pcBlock->msJump.sArgument.Index() == uiSymbol);
+			}
+		}
+		if (bTaken || (asSites.NumElements() == 0))
+		{
+			continue;
+		}
+
+		//The calls' arguments for them, last call first (the sites before a removal keep their places), last
+		//parameter first.
+		for (ui = asSites.NumElements(); ui > 0; ui--)
+		{
+			psSite = asSites.Get(ui - 1);
+			uiFirst = psSite->uiCall - uiParameters;
+			for (uk = uiParameters; uk > 0; uk--)
+			{
+				if ((uk <= 32) && (uiDead & ((uint32)1 << (uk - 1))))
+				{
+					psSite->pcBlock->masInstructions.RemoveAt(uiFirst + uk - 1, true);
+				}
+			}
+			*abOptimise.Get(psSite->uiWritten) = true;
+		}
+
+		//The parameters, last first.
+		for (uk = uiParameters; uk > 0; uk--)
+		{
+			if ((uk <= 32) && (uiDead & ((uint32)1 << (uk - 1))))
+			{
+				pcCallee->masParameters.RemoveAt(uk - 1, true);
+			}
+		}
+		*abOptimise.Get(uiCallee) = true;
+	}
+	asSites.Kill();
+
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		if (*abOptimise.Get(ui))
+		{
+			OptimiseSpecialised(masWritten.Get(ui)->pcFunction);
+			*pabChanged->Get(ui) = true;
+		}
+	}
+	abOptimise.Kill();
 }
 
 
