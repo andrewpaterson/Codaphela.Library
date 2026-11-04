@@ -251,6 +251,7 @@
     <ClCompile Include="TestCPP65Jobs.cpp" />
     <ClCompile Include="TestCPP65Spill.cpp" />
     <ClCompile Include="TestCppParser.cpp" />
+    <ClCompile Include="TestCPPSyntaxBlock.cpp" />
     <ClCompile Include="TestCppHighlighter.cpp" />
     <ClCompile Include="TestCppIndex.cpp" />
     <ClCompile Include="TestCPP65Context.cpp" />

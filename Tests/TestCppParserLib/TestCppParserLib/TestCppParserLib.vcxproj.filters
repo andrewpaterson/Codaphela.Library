@@ -91,6 +91,9 @@
     <ClCompile Include="TestCppParser.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPPSyntaxBlock.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPP65Context.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>

@@ -504,6 +504,9 @@
     <ClCompile Include="CPPSyntaxBinaryExpression.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="CPPSyntaxBlock.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
     <ClCompile Include="CPPSyntaxBaseSpecifier.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
@@ -1113,6 +1116,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxBinaryExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxBlock.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxBaseSpecifier.h">

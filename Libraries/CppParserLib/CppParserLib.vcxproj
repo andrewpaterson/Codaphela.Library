@@ -319,6 +319,7 @@
     <ClCompile Include="CPPSyntaxCallExpression.cpp" />
     <ClCompile Include="CPPSyntaxBreakStatement.cpp" />
     <ClCompile Include="CPPSyntaxBinaryExpression.cpp" />
+    <ClCompile Include="CPPSyntaxBlock.cpp" />
     <ClCompile Include="CPPSyntaxBaseSpecifier.cpp" />
     <ClCompile Include="CPPSyntaxAttribute.cpp" />
     <ClCompile Include="CPPSyntaxArraySuffix.cpp" />
@@ -524,6 +525,7 @@
     <ClInclude Include="CPPSyntaxCallExpression.h" />
     <ClInclude Include="CPPSyntaxBreakStatement.h" />
     <ClInclude Include="CPPSyntaxBinaryExpression.h" />
+    <ClInclude Include="CPPSyntaxBlock.h" />
     <ClInclude Include="CPPSyntaxBaseSpecifier.h" />
     <ClInclude Include="CPPSyntaxAttribute.h" />
     <ClInclude Include="CPPSyntaxArraySuffix.h" />

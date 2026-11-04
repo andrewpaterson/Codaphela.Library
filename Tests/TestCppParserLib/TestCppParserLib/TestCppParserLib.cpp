@@ -7,6 +7,7 @@ void TestPreprocessor(void);
 void TestProject(void);
 void TestCppTokeniser(void);
 void TestCppParser(void);
+void TestCPPSyntaxBlock(void);
 void TestCppHighlighter(void);
 void TestCppIndex(void);
 void TestIR(void);
@@ -46,6 +47,7 @@ int __cdecl main(void)
 	TestProject();
 	TestCppTokeniser();
 	TestCppParser();
+	TestCPPSyntaxBlock();
 	TestCppHighlighter();
 	TestCppIndex();
 	TestIR();
