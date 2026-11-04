@@ -1,5 +1,4 @@
 #include "StandardLib/Objects.h"
-#include "StandardLib/FreeObjects.h"
 #include "SupportLib/ImageAccessorCreator.h"
 #include "SupportLib/ImageCopier.h"
 #include "SupportLib/ImagePremultipliedBlend.h"
@@ -16,7 +15,6 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mpcImage = NULL;
-    mpcCel = NULL;
     msLastColour = 0xffffffff;
 }
 
@@ -27,17 +25,13 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::Kill(void)
 {
+    //The image is held by the canvas, like the X11 and GDI canvases' images.
     if (mpcImage)
     {
         mcDraw.Kill();
-        if (mpcCel)
-        {
-            gcObjects.RemoveFreeObject(mpcCel);
-            mpcCel = NULL;
-        }
-        gcObjects.RemoveFreeObject(mpcImage);
         mpcImage = NULL;
     }
+    SetImage(NULL);
     CNativeCanvas::Kill();
 }
 
@@ -56,7 +50,6 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     ERGBColourBits          eColourBits;
     ERGBAlphaBits           eAlphaBits;
     Ptr<CImage>             pImage;
-    Ptr<CImageCel>          pCel;
 
     sSize = mpcCanvas->GetActualSize();
 
@@ -66,19 +59,15 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     eAlphaBits = mpcCanvas->GetAlphaBits();
 
     pImage = OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits);
-    mpcImage = gcObjects.AddFreeObject<CImage>(pImage);
-
-    if (mpcImage == NULL)
+    if (pImage.IsNull())
     {
         SetSize(-1, -1);
         return false;
     }
 
-    mpcImage->Black();
-
-    //The cel covers the whole image so that this canvas can be blitted onto another.
-    pCel = OMalloc<CImageCel>(pImage);
-    mpcCel = gcObjects.AddFreeObject<CImageCel>(pCel);
+    pImage->Black();
+    SetImage(pImage);
+    mpcImage = &pImage;
 
     SetSize(sSize.x, sSize.y);
     mcDraw.Init(mpcImage);
@@ -101,26 +90,6 @@ uint8* CWinRefCanvas::GetPixelData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CWinRefCanvas::GetImage(void)
-{
-    return mpcImage;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CWinRefCanvas::GetCel(void)
-{
-    return mpcCel;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 {
 }
@@ -133,7 +102,19 @@ void CWinRefCanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CWinRefCanvas::GetImageOrNull(void)
 {
-    return mpcImage;
+    return GetImage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The canvas's pixels, even when GetImageOrNull hides them (a test canvas
+// pretending to have no native image still has its frames saved).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CWinRefCanvas::GetNativeImage(void)
+{
+    return GetImage();
 }
 
 
@@ -165,18 +146,46 @@ void CWinRefCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect* pcClip)
 {
-    CWinRefCanvas*   pcRefSource;
+    CWinRefCanvas*  pcRefSource;
+    CInt32Rect      cDest;
+    CInt32Rect      cCanvas;
+    CInt32Rect      cSource;
 
     pcRefSource = (CWinRefCanvas*)pcSource;
+    if ((pcRefSource == NULL) || (pcRefSource->mpcImage == NULL) || (mpcImage == NULL))
+    {
+        return;
+    }
+
     if (pcRefSource->mpcCanvas->IsTransparent())
     {
         //What the transparent canvas didn't cover must show through so it is blended rather than copied.
         BlendPremultipliedImage(pcRefSource->mpcImage, mpcImage, iX, iY, pcClip);
+        return;
     }
-    else
+
+    //A canvas in another format can't be drawn onto this (as a cel blitter wouldn't).
+    if (!mpcImage->IsSameFormat(pcRefSource->mpcImage))
     {
-        mcDraw.DrawCel(iX, iY, pcRefSource->GetCel(), pcClip);
+        gcLogger.Error2(__METHOD__, " Cannot draw canvas, the source and destination image formats do not match.", NULL);
+        return;
     }
+
+    //Only the part of the source inside the clip and this canvas is copied.
+    cDest.Init(iX, iY, iX + pcRefSource->mpcImage->GetWidth(), iY + pcRefSource->mpcImage->GetHeight());
+    if (pcClip)
+    {
+        cDest.ClipTo(pcClip);
+    }
+    cCanvas.Init(0, 0, mpcImage->GetWidth(), mpcImage->GetHeight());
+    cDest.ClipTo(&cCanvas);
+    if ((cDest.GetWidth() <= 0) || (cDest.GetHeight() <= 0))
+    {
+        return;
+    }
+
+    cSource.Init(cDest.GetLeft() - iX, cDest.GetTop() - iY, cDest.GetRight() - iX, cDest.GetBottom() - iY);
+    CImageCopier::Copy(pcRefSource->mpcImage, mpcImage, cDest.GetLeft(), cDest.GetTop(), &cSource);
 }
 
 

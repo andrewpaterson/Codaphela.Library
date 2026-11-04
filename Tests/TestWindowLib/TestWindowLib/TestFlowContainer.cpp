@@ -357,7 +357,7 @@ void TestFlowContainerRightCenteredContinue(void)
 		pFlow = NULL;
 
 		pTestWindow->Show();
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 
 		AssertSize(1, pTestWindow.NumStackFroms());
 		apcStackFroms.Init();
@@ -376,7 +376,7 @@ void TestFlowContainerRightCenteredContinue(void)
 		apcHeapFroms.Kill();
 
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -462,11 +462,11 @@ void TestFlowContainerRightTopContinue(void)
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pFlow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -552,11 +552,11 @@ void TestFlowContainerRightBottomContinue(void)
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pFlow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -642,11 +642,11 @@ void TestFlowContainerRightTopWrap(void)
 		pTestWindow->Show();
 
 
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pTestWindow = NULL;
-		AssertSize(uiStartObjects + 2 + 57, gcObjects.NumMemoryIndexes());  //+2 for GraphFreeObjects and its Set.  +1 for the window's clipboard.  Each of the 11 native canvases holds a CImageCel over its image, and the window's image holds a blitter cache with a blitter for each of the 10 canvases drawn onto it.
+		AssertSize(uiStartObjects + 35, gcObjects.NumMemoryIndexes());  //+1 for the window's clipboard.  The native canvases' images are held by their canvases.
 		pFlow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -736,7 +736,7 @@ void TestFlowContainer(char* szDirectory, int32 iWidth, int32 iHeight, uint32 iR
 		pTestWindow = NULL;
 		pTick = NULL;
 		pFlow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -952,7 +952,7 @@ void TestFlowContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, 
 		pTestWindow = NULL;
 		pTick = NULL;
 		pFlow = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 	}
 
 	AssertFlowContainerObjectsRemoved();
@@ -1328,7 +1328,7 @@ void TestFlowContainerNested(void)
 		pInnerFlow = NULL;
 		pRowFlow = NULL;
 		pHolder = NULL;
-		AssertSize(uiStartObjects + 2, gcObjects.NumMemoryIndexes());  //GraphFreeObjects and its Set.
+		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 	}
 
 	AssertFlowContainerObjectsRemoved();

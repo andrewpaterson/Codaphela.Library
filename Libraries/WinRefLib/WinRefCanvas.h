@@ -30,8 +30,7 @@ class CWinRefCanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinRefCanvas);
 protected:
-	CImage*			mpcImage;
-	CImageCel*		mpcCel;
+	CImage*			mpcImage;  //The canvas holds the image (SetImage); this is just quick to get at.
 	CImageDraw		mcDraw;
 	ARGB32			msLastColour;
 
@@ -42,11 +41,10 @@ public:
 	bool			CreateNativeCanvas(void) override;
 
 	uint8*			GetPixelData(void);
-	Ptr<CImage>		GetImage(void);
-	Ptr<CImageCel>	GetCel(void);
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas) override;
 	Ptr<CImage>		GetImageOrNull(void);
+	Ptr<CImage>		GetNativeImage(void);
 
 	void			DrawBox(CInt32Rect* pcRectangle, bool bFilled, ARGB32 sColour) override;
 	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour) override;

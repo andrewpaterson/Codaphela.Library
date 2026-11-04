@@ -252,8 +252,6 @@ void TestCanvasImageConvert2(void)
 		Ptr<CArrayImageCel>			paBackgroundCels;
 		Ptr<CMaps>					pMaps;
 		CColourFormatHelper			cHelper;
-		Ptr<CFreeObjects>			pFree;
-		CImage*						pcNativeCanvasImage;
 
 		pFloorPlanImage = ReadSpaceImage("SpaceCrusade", "FloorPlan.png");
 
@@ -303,23 +301,9 @@ void TestCanvasImageConvert2(void)
 		pRoot->Remove(pTileMapGenerator);
 		pRoot->Remove(pTestWindow);
 
-		AssertSize(1, pRoot->NumObjects());
-		pFree = pRoot->Get(FREE_OBJECTS_NAME);
-		AssertTrue(pFree.IsNotNull());
-
-		//The native canvas holds its image and a CImageCel over that image.
-		AssertSize(2, pFree->NumObjects());
-		if (StringCompare(pFree->UnsafeGetObject(0)->ClassName(), "CImage") == 0)
-		{
-			pcNativeCanvasImage = (CImage*)pFree->UnsafeGetObject(0);
-			AssertString("CImageCel", pFree->UnsafeGetObject(1)->ClassName());
-		}
-		else
-		{
-			pcNativeCanvasImage = (CImage*)pFree->UnsafeGetObject(1);
-			AssertString("CImageCel", pFree->UnsafeGetObject(0)->ClassName());
-		}
-		AssertString("CImage", pcNativeCanvasImage->ClassName());
+		//The native canvas's image was held by its canvas, so went with the window (it used to be left in the root's
+		//free objects).
+		AssertSize(0, pRoot->NumObjects());
 
 		gcObjects.EnableValidation();
 	}

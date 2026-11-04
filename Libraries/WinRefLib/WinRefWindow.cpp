@@ -111,7 +111,7 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
     szFileName.Append(".png");
 
     //You should create a new image here and size to iWidth and iHeight before calling Save.
-    SavePNG(pcRefCanvas->GetImage(), szFileName.Text());
+    SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
     szFileName.Kill();
 
     muiFrame++;
