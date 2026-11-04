@@ -46,7 +46,6 @@ public:
 			bool				IsCollection(void) override;
 			bool				IsObject(void) override;
 
-			void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 			size				NumPointerTos(void);
 
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex);

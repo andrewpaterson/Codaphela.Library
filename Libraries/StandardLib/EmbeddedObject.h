@@ -113,8 +113,8 @@ public:
 
 	virtual size				NumPointerTos(void) =0;
 	virtual size				BaseNumPointerTos(void);
-	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //This object's pointer tos and those of the objects embedded in it.
+	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //Only this object's own.  The one walk each kind of object writes.
 	virtual void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms) =0;
 
 			bool				HasHeapFroms(void);

@@ -356,7 +356,7 @@ size CIndexObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
@@ -371,16 +371,6 @@ void CIndexObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
-{
-	GetPointerTos(papcTos);
 }
 
 

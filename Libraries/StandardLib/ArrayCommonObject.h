@@ -57,7 +57,6 @@ public:
 
 	size 					NumPointerTos(void) override;
 	size 					BaseNumPointerTos(void)  override;
-	void					GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	void					BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	void					RemoveAllPointerTosDontFree(void) override;
 	bool					RemoveAllPointerTosTryFree(void) override;

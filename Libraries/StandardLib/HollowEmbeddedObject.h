@@ -24,7 +24,6 @@ public:
 	size				GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjectsThisIn(void);
-	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	size				NumPointerTos(void);
 	void				ValidateConsistency(void);
 	bool				IsInitialised(void);

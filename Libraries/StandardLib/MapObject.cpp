@@ -332,7 +332,7 @@ size CMapObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
@@ -350,16 +350,6 @@ void CMapObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
-{
-	GetPointerTos(papcTos);
 }
 
 

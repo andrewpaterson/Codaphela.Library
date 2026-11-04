@@ -537,7 +537,7 @@ void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CEmbeddedObject*	pcPointedTo;
 	size 				i;
@@ -552,16 +552,6 @@ void CArrayCommonObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 			papcTos->Add(pcPointedTo);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
-{
-	GetPointerTos(papcTos);
 }
 
 
