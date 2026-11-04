@@ -3841,6 +3841,20 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	mcDominators.Compute(pcFunction);
 	mcLoops.Compute(pcFunction, &mcDominators);
 	FunctionArguments();
+
+	//A function that only passes its arguments on to another (a wrapper) jumps to it.
+	CChars	szJump;
+
+	szJump.Init();
+	if (Forwarder(&szJump))
+	{
+		GenerateForwarder(szLabel, &szJump);
+		szJump.Kill();
+		pszDest->AppendNewLine();
+		return mbResult;
+	}
+	szJump.Kill();
+
 	Layout();
 	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
 	{
@@ -8277,6 +8291,237 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	asBlocks.Kill();
 	asLines.Kill();
 	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function only calls another with its own arguments and
+// returns what that returns (a wrapper): one block of args, a call of a
+// symbol and a return of its result (or of nothing).  Each of the callee's
+// arguments must already be where the callee wants it: the hidden result
+// pointer and each parameter in the same register or in the same place
+// among the pushed words (the pushed words the same, in the same order).
+// A constant the callee takes in a register is loaded into it.  Then
+// pszJump gets those loads and a jml to the callee: it returns to this
+// function's caller, the pushed words where its caller left them.  False,
+// with nothing in pszJump, for any other function.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::Forwarder(CChars* pszJump)
+{
+	static const char*		aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psCall;
+	SIRInstruction*			psArgument;
+	SIRReference			sCallee;
+	CArrayIR816Arguments	asCallee;
+	CArrayTemplate<int>		aiSource;		//Per callee argument: -1 the hidden result pointer, -2 a constant, else the parameter's index.
+	CArrayTemplate<int>		aiPushed;		//The callee's pushed arguments' sources, in order.
+	SIR816Argument*			psPlaced;
+	SIR816Argument*			psOwn;
+	size					ui;
+	size					uj;
+	size					uiFirst;
+	size					uiOwnFirst;
+	size					uiPushed;
+	int						iSource;
+	int						iRegisters;
+	int						i;
+	uint64					ulliBits;
+	bool					bResult;
+	CChars					szLoads;
+
+	if ((mpcFunction->NumBlocks() != 1) || (mpcFunction->muiAttributes & IRA_Variadic))
+	{
+		return false;
+	}
+	pcBlock = mpcFunction->GetBlock(0);
+	if ((pcBlock->masPhis.NumElements() != 0) || (pcBlock->masInstructions.NumElements() == 0) || (pcBlock->msJump.uiKind != IRJ_Return))
+	{
+		return false;
+	}
+	psCall = pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1);
+	sCallee = psCall->asArguments[0];
+	if ((psCall->uiOpcode != IRO_Call) || !sCallee.IsSymbol() || (sCallee.Index() == mpcFunction->muiSymbol) || (psCall->uiFlags & IRF_Variadic))
+	{
+		return false;
+	}
+
+	//It returns the call's result, of its own type, or nothing.
+	if (mpcFunction->msReturnType.IsNone())
+	{
+		if (!pcBlock->msJump.sArgument.IsNone() || (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType)))
+		{
+			return false;
+		}
+	}
+	else if (psCall->sResult.IsNone() || !pcBlock->msJump.sArgument.Equals(psCall->sResult) || !psCall->sType.Equals(mpcFunction->msReturnType))
+	{
+		return false;
+	}
+
+	//The callee's arguments as Call places them, and where each comes from.
+	asCallee.Init();
+	aiSource.Init();
+	bResult = true;
+	if (!psCall->sResult.IsNone() && IsHiddenResult(psCall->sType))
+	{
+		psPlaced = asCallee.Add();
+		psPlaced->iWords = 2;
+		psPlaced->iRegister = -1;
+		iSource = -1;
+		aiSource.Add(&iSource);
+	}
+	for (ui = 0; bResult && (ui + 1 < pcBlock->masInstructions.NumElements()); ui++)
+	{
+		psArgument = pcBlock->masInstructions.Get(ui);
+		if (psArgument->uiOpcode != IRO_Arg)
+		{
+			bResult = false;
+			break;
+		}
+		psPlaced = asCallee.Add();
+		psPlaced->iWords = Words(psArgument->sType);
+		psPlaced->iRegister = -1;
+		iSource = -3;
+		if (psArgument->asArguments[0].IsConstant())
+		{
+			iSource = -2;
+		}
+		for (uj = 0; uj < mpcFunction->masParameters.NumElements(); uj++)
+		{
+			if (psArgument->asArguments[0].Equals(*mpcFunction->masParameters.Get(uj)) &&
+				(Words(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uj))) == psPlaced->iWords))
+			{
+				iSource = (int)uj;
+			}
+		}
+		bResult = iSource != -3;
+		aiSource.Add(&iSource);
+	}
+	iRegisters = (bResult && IsRegisterCall(sCallee)) ? IR816AssignRegisters(&asCallee) : 0;
+
+	//The pushed words line up: the callee's pushed arguments are this function's pushed ones, in order.
+	uiOwnFirst = IsHiddenResult(mpcFunction->msReturnType) ? 1 : 0;
+	uiFirst = asCallee.NumElements() - (pcBlock->masInstructions.NumElements() - 1);
+	aiPushed.Init();
+	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
+	{
+		if (asCallee.Get(ui)->iRegister < 0)
+		{
+			if (*aiSource.Get(ui) == -2)
+			{
+				bResult = false;
+			}
+			aiPushed.Add(aiSource.Get(ui));
+		}
+	}
+	uiPushed = 0;
+	for (ui = 0; bResult && (ui < masArguments.NumElements()); ui++)
+	{
+		psOwn = masArguments.Get(ui);
+		if (psOwn->iRegister >= 0)
+		{
+			continue;
+		}
+		iSource = (ui < uiOwnFirst) ? -1 : (int)(ui - uiOwnFirst);
+		bResult = (uiPushed < aiPushed.NumElements()) && (*aiPushed.Get(uiPushed) == iSource);
+		uiPushed++;
+	}
+	bResult = bResult && (uiPushed == aiPushed.NumElements());
+
+	//The register ones: in the same register here, or a constant loaded.
+	szLoads.Init();
+	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
+	{
+		psPlaced = asCallee.Get(ui);
+		if (psPlaced->iRegister < 0)
+		{
+			continue;
+		}
+		iSource = *aiSource.Get(ui);
+		if (iSource == -2)
+		{
+			ulliBits = mpcFunction->GetConstant(pcBlock->masInstructions.Get(ui - uiFirst)->asArguments[0])->ulliBits;
+			for (i = 0; i < psPlaced->iWords; i++)
+			{
+				szLoads.Append("\t\t");
+				szLoads.Append(aszLoads[psPlaced->iRegister + i]);
+				szLoads.Append(' ');
+				szLoads.Append((int)((ulliBits >> (16 * i)) & 0xFFFF));
+				szLoads.AppendNewLine();
+			}
+			continue;
+		}
+		if ((iSource == -1) && (uiOwnFirst == 0))
+		{
+			bResult = false;
+			break;
+		}
+		psOwn = masArguments.Get((iSource == -1) ? 0 : (uiOwnFirst + (size)iSource));
+		bResult = (psOwn->iRegister == psPlaced->iRegister) && (psOwn->iWords == psPlaced->iWords);
+	}
+
+	if (bResult)
+	{
+		pszJump->Append(szLoads);
+		pszJump->Append("\t\tjml ");
+		pszJump->Append(mpcModule->GetSymbolName(sCallee.Index()));
+		if (iRegisters > 0)
+		{
+			IR816AppendRegisterSuffix(pszJump, &asCallee);
+		}
+		pszJump->AppendNewLine();
+	}
+	szLoads.Kill();
+	aiPushed.Kill();
+	aiSource.Kill();
+	asCallee.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A wrapper (Forwarder): its label, a register function's stub and body
+// label as Prologue writes them, then the jump (pszJump) instead of a
+// frame and body.  It has no frame (AlignFrame leaves it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
+{
+	CChars	szBody;
+
+	miFrameBytes = 0;
+	miArgumentBytes = 0;
+	miSavedS = -1;
+	miDirectPageWeight = 0;
+	mbLoops = false;
+	miRegisterBase = 0;
+
+	mpszOut->Append(szLabel);
+	mpszOut->Append(':');
+	mpszOut->AppendNewLine();
+	Line(".width (A, X), 16");
+	Line(".relax");
+	if (miRegisterWords > 0)
+	{
+		szBody.Init(szLabel);
+		IR816AppendRegisterSuffix(&szBody, &masArguments);
+		RegisterStub(&szBody);
+		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
+		{
+			mpszOut->Append("\t\t.global ");
+			mpszOut->Append(szBody);
+			mpszOut->AppendNewLine();
+		}
+		mpszOut->Append(szBody);
+		mpszOut->Append(':');
+		mpszOut->AppendNewLine();
+		szBody.Kill();
+	}
+	mpszOut->Append(*pszJump);
 }
 
 

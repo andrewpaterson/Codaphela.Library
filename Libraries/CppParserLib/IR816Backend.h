@@ -273,6 +273,8 @@ protected:
 	bool			IsRegisterCall(SIRReference sCallee);
 	void			FunctionArguments(void);
 	void			RegisterStub(CChars* pszBodyLabel);
+	bool			Forwarder(CChars* pszJump);
+	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
 	bool			OnlyCounts(SIRReference sValue);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);

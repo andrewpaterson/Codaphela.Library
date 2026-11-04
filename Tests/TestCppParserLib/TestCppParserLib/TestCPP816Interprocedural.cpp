@@ -151,6 +151,125 @@ void TestCPP816ListingInlinedFromUnit(void)
 }
 
 
+//The functions of TestCPP816Forwarders, natively for the expected result and (extern "C", for their labels) for the
+//W65C816.  The workers do enough (TEST_CPP816_FORWARD_BULK, masked to come out the same in 16 and 32 bits) not to be
+//inlined into the wrappers, as softfloat's aren't.
+#define TEST_CPP816_FORWARD_STEP(u, v) u = ((u * 5u) ^ ((unsigned)(v) & 0xFFu)) & 0x3FFFu; if (u & 8u) { u = (u + 7u) & 0x3FFFu; } else { u = (u + 3u) & 0x3FFFu; } u = ((u << 2) | (u >> 11)) & 0x3FFFu;
+#define TEST_CPP816_FORWARD_BULK(u, v) unsigned int u = 1u; TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) \
+	TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v) \
+	TEST_CPP816_FORWARD_STEP(u, v) TEST_CPP816_FORWARD_STEP(u, v)
+#define TEST_CPP816_FORWARD_FUNCTIONS \
+	volatile int giFwd = 3; \
+	unsigned long long FwdWork(unsigned long long a, unsigned long long b, int k) { TEST_CPP816_FORWARD_BULK(u, k) if (k <= 0) { return u; } return FwdWork(a, b, k - 1) * 3 + (a ^ (b >> k)) + u; } \
+	unsigned long long FwdMul(unsigned long long a, unsigned long long b) { return FwdWork(a, b, 5); } \
+	unsigned long long FwdBoth(unsigned long long a, unsigned long long b, bool s) { TEST_CPP816_FORWARD_BULK(u, b) if (b == 0) { return a + u; } return FwdBoth(s ? a - b : a + b, b >> 1, s) ^ u; } \
+	unsigned long long FwdAdd(unsigned long long a, unsigned long long b) { return FwdBoth(a, b, false); } \
+	unsigned long long FwdSub(unsigned long long a, unsigned long long b) { return FwdBoth(a, b, true); } \
+	int FwdPair(int x, int y) { TEST_CPP816_FORWARD_BULK(u, x + y) if (x <= 0) { return (int)(u & 7u); } return (y ^ x) + FwdPair(x - 1, y) + (int)(u & 7u); } \
+	int FwdSame(int x, int y) { return FwdPair(x, y); } \
+	int FwdSwap(int x, int y) { return FwdPair(y, x); } \
+	int FwdPlus(int x, int y) { return FwdPair(x + 1, y); } \
+	int FwdFour(int p, int q, int r, int k) { TEST_CPP816_FORWARD_BULK(u, p + k) if (k <= 0) { return (int)(u & 7u); } return p * k + q - r + FwdFour(p, q, r, k - 1) + (int)(u & 7u); } \
+	int FwdThree(int p, int q, int r) { return FwdFour(p, q, r, 9); } \
+	unsigned long long (*volatile gpFwdMul)(unsigned long long, unsigned long long) = FwdMul; \
+	unsigned long long (*volatile gpFwdAdd)(unsigned long long, unsigned long long) = FwdAdd; \
+	unsigned long long (*volatile gpFwdSub)(unsigned long long, unsigned long long) = FwdSub; \
+	int (*volatile gpFwdSame)(int, int) = FwdSame; \
+	int (*volatile gpFwdThree)(int, int, int) = FwdThree; \
+	unsigned long long FwdRun(void) \
+	{ \
+		unsigned long long w = 0; \
+		for (int i = 0; i < 6; i++) \
+		{ \
+			unsigned long long a = giFwd * 1000003ULL + i; \
+			unsigned long long b = giFwd + i * 7; \
+			w = w * 7 + FwdMul(a, b) + gpFwdMul(b, a) + FwdAdd(a, b) + gpFwdAdd(a, i) + FwdSub(a, b) + gpFwdSub(b, i) + FwdWork(a, b, i) + FwdBoth(a, b, (i & 1) != 0); \
+			w += FwdSame(i, giFwd) + gpFwdSame(giFwd, i) + FwdSwap(i, giFwd) + FwdPlus(i, giFwd) + FwdThree(i, giFwd, 2) + gpFwdThree(giFwd, i, 1) + FwdFour(i, 2, giFwd, i) + FwdPair(i, i); \
+		} \
+		return w; \
+	}
+
+#define TEST_CPP816_FORWARD_STRINGIZE2(...)	#__VA_ARGS__
+#define TEST_CPP816_FORWARD_STRINGIZE(...)	TEST_CPP816_FORWARD_STRINGIZE2(__VA_ARGS__)
+
+namespace TestCPP816ForwardNative
+{
+	TEST_CPP816_FORWARD_FUNCTIONS
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether szListing's szLabel (a function's register entry) is only loads
+// of constants and a jml to a label starting szCallee.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCPP816JumpsTo(const char* szListing, const char* szLabel, const char* szCallee)
+{
+	CChars		szFind;
+	const char*	szAt;
+
+	szFind.Init("\n");
+	szFind.Append(szLabel);
+	szFind.Append(":\n");
+	szAt = strstr(szListing, szFind.Text());
+	if (szAt)
+	{
+		szAt += szFind.Length();
+		while ((strncmp(szAt, "\t\tlda ", 6) == 0) || (strncmp(szAt, "\t\tldx ", 6) == 0) || (strncmp(szAt, "\t\tldy ", 6) == 0))
+		{
+			szAt = strchr(szAt, '\n') + 1;
+		}
+		szFind.Kill();
+		szFind.Init("\t\tjml ");
+		szFind.Append(szCallee);
+		if (strncmp(szAt, szFind.Text(), szFind.Length()) != 0)
+		{
+			szAt = NULL;
+		}
+	}
+	szFind.Kill();
+	return szAt != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function that only passes its arguments on to another (a wrapper,
+// CIR816Backend::Forwarder) jumps to it: those whose arguments are already
+// where the callee wants them, with constants the callee takes in Y loaded
+// (FwdMul's 5, FwdAdd's false, FwdSub's true), or none (FwdSame).  Not
+// when the arguments swap (FwdSwap), change (FwdPlus) or a constant must
+// be pushed (FwdThree's 9).  Each is called directly and through a pointer
+// (its stub, then the jump).  The results are as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816Forwarders(void)
+{
+	static const char*	aszNoUnits[] = { NULL };
+	CChars				szSource;
+	CChars				szListing;
+	unsigned long long	ullExpected;
+
+	ullExpected = TestCPP816ForwardNative::FwdRun();
+	szSource.Init("extern \"C\"\n{\n");
+	szSource.Append(TEST_CPP816_FORWARD_STRINGIZE(TEST_CPP816_FORWARD_FUNCTIONS));
+	szSource.Append("\n}\nint main(void) { unsigned long long w = FwdRun(); return (int)((w ^ (w >> 16) ^ (w >> 32) ^ (w >> 48)) & 0x7FFF); }\n");
+
+	szListing.Init();
+	AssertInt((int)((ullExpected ^ (ullExpected >> 16) ^ (ullExpected >> 32) ^ (ullExpected >> 48)) & 0x7FFF), TestCPP816RunListed(szSource.Text(), aszNoUnits, &szListing, NULL, 0, true));
+	AssertTrue(TestCPP816JumpsTo(szListing.Text(), "_FwdMul.ax", "_FwdWork"));
+	AssertTrue(TestCPP816JumpsTo(szListing.Text(), "_FwdAdd.ax", "_FwdBoth"));
+	AssertTrue(TestCPP816JumpsTo(szListing.Text(), "_FwdSub.ax", "_FwdBoth"));
+	AssertTrue(TestCPP816JumpsTo(szListing.Text(), "_FwdSame.ax", "_FwdPair"));
+	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdSwap.ax", "_FwdPair"));
+	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdPlus.ax", "_FwdPair"));
+	AssertFalse(TestCPP816JumpsTo(szListing.Text(), "_FwdThree.axy", "_FwdFour"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -162,6 +281,7 @@ void TestCPP816Interprocedural(void)
 	TestCPP816NoWritesCalls();
 	TestCPP816DeadArguments();
 	TestCPP816ListingInlinedFromUnit();
+	TestCPP816Forwarders();
 
 	TestStatistics();
 }
