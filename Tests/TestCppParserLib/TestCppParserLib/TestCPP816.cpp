@@ -4390,6 +4390,8 @@ void TestCPP816RegisterArguments(void)
 	q = (long long)(g * 1e12f); PutI((long)q); PutI((long)(q >> 32)); \
 	PutF((float)a); PutF((float)c); PutD((double)f); PutD((double)h);
 
+//The native results are IEEE's: the project's /fp:fast lets an optimised build fold n == n (a NaN) to true.
+#pragma float_control(precise, on, push)
 namespace TestCPP816FloatNative
 {
 	uint32	gauiResults[256];
@@ -4400,6 +4402,7 @@ namespace TestCPP816FloatNative
 	TEST_CPP816_FLOAT_GLOBALS
 	void Run(void) { TEST_CPP816_FLOAT_BODY }
 }
+#pragma float_control(pop)
 
 #define TEST_CPP816_STRINGIZE2(...)	#__VA_ARGS__
 #define TEST_CPP816_STRINGIZE(...)	TEST_CPP816_STRINGIZE2(__VA_ARGS__)
