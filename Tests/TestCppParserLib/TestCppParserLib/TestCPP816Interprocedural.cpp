@@ -116,7 +116,9 @@ void TestCPP816DeadArguments(void)
 // Main.cpp(27), the call.  CIRImports::Export copies functions as IR text
 // without their source tokens, so imported code has none (a token of
 // Maths.cpp would mean another line of Main.cpp).  Main.cpp is padded so
-// such a token would be one of its declarations.
+// such a token would be one of its declarations.  A line that is only the
+// call (Twice's y = Triple(y, 1)) is listed too, though nothing but
+// Triple's code is left of it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816ListingInlinedFromUnit(void)
@@ -145,6 +147,7 @@ void TestCPP816ListingInlinedFromUnit(void)
 	//Triple is inlined, its code listed under the call and none as Main.cpp's padding or Maths.cpp.
 	AssertTrue(strstr(szListing, "jsl _Triple") == NULL);
 	AssertTrue(strstr(szListing, "; Main.cpp(27): int r = Triple(gi, 5);") != NULL);
+	AssertTrue(strstr(szListing, "; Main.cpp(34): y = Triple(y, 1);") != NULL);
 	AssertTrue(strstr(szListing, "Maths.cpp") == NULL);
 	AssertTrue(strstr(szListing, "): int giPad") == NULL);
 	cFile.Kill();

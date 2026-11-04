@@ -80,6 +80,7 @@ protected:
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
 	CArrayChars*			mpaszNotImported;			//Every name looked for in mpcImports and not found, NULL to not keep.
 	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
+	uint32					muiImportSource;			//The call's source when the callee is another unit's: its sources are that unit's tokens.
 	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
 	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
 	CArrayIRReferences		masArguments;				//The call's arguments, in order.

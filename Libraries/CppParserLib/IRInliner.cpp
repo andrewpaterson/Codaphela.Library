@@ -46,6 +46,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mpaszMissing = NULL;
 	mpaszNotImported = NULL;
 	mpcCalleeModule = NULL;
+	muiImportSource = 0;
 	mpcProfile = NULL;
 	muiHotInstructions = 0;
 }
@@ -742,6 +743,10 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	}
 	sCall = *pcBlock->masInstructions.Get(uiCall);
 
+	//Another unit's function's sources are its tokens, not this unit's: its copy is the call's line's code (a listing
+	//shows it under the call).
+	muiImportSource = mpcCalleeModule ? sCall.uiSource : 0;
+
 	//The parameters are the arguments; the callee's other temporaries get copies when they are first met.
 	masMap.FakeSetUsedElements(0);
 	masMap.GrowToAtLeastNumElements(pcCallee->NumTemporaries(), true, 0);
@@ -836,6 +841,10 @@ void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pc
 	{
 		psInstruction = pcFrom->masInstructions.Get(ui);
 		sCopy = *psInstruction;
+		if (mpcCalleeModule)
+		{
+			sCopy.uiSource = muiImportSource;
+		}
 		if ((psInstruction->uiOpcode == IRO_ArgAddress) && !msArguments.IsNone())
 		{
 			//A parameter's address is its place in the arguments' slot.
@@ -870,5 +879,9 @@ void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pc
 	default:
 		pcCopy->Unreachable();
 		break;
+	}
+	if (mpcCalleeModule)
+	{
+		pcCopy->msJump.uiSource = muiImportSource;
 	}
 }

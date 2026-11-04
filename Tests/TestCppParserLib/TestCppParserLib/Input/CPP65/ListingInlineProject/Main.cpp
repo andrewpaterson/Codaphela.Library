@@ -27,3 +27,10 @@ int main(void)
 	int r = Triple(gi, 5);
 	return r;
 }
+
+int Twice(int x)
+{
+	int y = x + gi;
+	y = Triple(y, 1);
+	return y;
+}
