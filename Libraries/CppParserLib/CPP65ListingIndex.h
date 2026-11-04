@@ -62,6 +62,7 @@ struct SCPP65ListingPlace
 typedef CArrayTemplate<SCPP65Listing>		CArrayCPP65Listings;
 typedef CArrayTemplate<SCPP65ListingRange>	CArrayCPP65ListingRanges;
 typedef CArrayTemplate<SCPP65ListingPlace>	CArrayCPP65ListingPlaces;
+typedef CArrayTemplate<size>				CArrayCPP65ListingLines;
 
 
 //Where each line of the source went in the generated assembly: read from listings written with the line table on
@@ -88,6 +89,7 @@ public:
 	void				AddListing(const char* szName, const char* szText);
 
 	void				GetPlaces(const char* szSourceFile, size uiLine, CArrayCPP65ListingPlaces* pasDest);
+	void				GetLines(const char* szSourceFile, CArrayCPP65ListingLines* pauiDest);
 	void				AppendLines(size uiListing, size uiFirstLine, size uiEndLine, CChars* pszDest);
 
 	size				NumListings(void);
@@ -102,6 +104,8 @@ public:
 protected:
 	void				IndexListing(size uiListing);
 	size				AddFile(const char* szFile);
+	size				FindFile(const char* szSourceFile);
+	size				FindFirstRange(size uiFile, size uiLine);
 	size				AddFunction(const char* szFunction, size uiLength);
 	void				EndRange(SCPP65ListingRange* psRange, bool bInRange);
 	void				Sort(void);

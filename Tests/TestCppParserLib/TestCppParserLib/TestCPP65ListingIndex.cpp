@@ -77,6 +77,7 @@ void TestCPP65ListingIndexText(void)
 	CArrayCPP65ListingPlaces	asPlaces;
 	SCPP65ListingPlace*			psPlace;
 	CChars						szLines;
+	CArrayCPP65ListingLines		auiLines;
 
 	cIndex.Init();
 	asPlaces.Init();
@@ -129,6 +130,19 @@ void TestCPP65ListingIndexText(void)
 	psPlace = asPlaces.Get(0);
 	AssertString("_k", cIndex.GetFunction(psPlace->uiFunction));
 	AssertListingRange(3, 4, &cIndex, psPlace, 0);
+
+	//The lines with code, each once and in order.
+	auiLines.Init();
+	cIndex.GetLines("C:\\Src\\A.cpp", &auiLines);
+	AssertSize(2, auiLines.NumElements());
+	AssertSize(2, *auiLines.Get(0));
+	AssertSize(3, *auiLines.Get(1));
+	cIndex.GetLines("c:/src/head.h", &auiLines);
+	AssertSize(1, auiLines.NumElements());
+	AssertSize(9, *auiLines.Get(0));
+	cIndex.GetLines("C:\\Src\\None.cpp", &auiLines);
+	AssertSize(0, auiLines.NumElements());
+	auiLines.Kill();
 
 	//Lines with no code, and files that aren't in any listing, have no places.
 	cIndex.GetPlaces("C:\\Src\\A.cpp", 0, &asPlaces);

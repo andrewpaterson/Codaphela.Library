@@ -324,35 +324,23 @@ bool CCPP65ListingIndex::ReadLineDirective(const char* szText, const char* szEnd
 //////////////////////////////////////////////////////////////////////////
 void CCPP65ListingIndex::GetPlaces(const char* szSourceFile, size uiLine, CArrayCPP65ListingPlaces* pasDest)
 {
-	CChars				szFile;
-	size*				puiFile;
-	SCPP65ListingRange	sFind;
+	size				uiFile;
 	size				uiRange;
 	SCPP65ListingRange*	psRange;
 	SCPP65ListingPlace*	psPlace;
 
 	pasDest->ReInit();
-	szFile.Init(szSourceFile);
-	NormaliseFile(&szFile);
-	puiFile = mcFileIndices.Get(szFile.Text());
-	szFile.Kill();
-	if (!puiFile)
+	uiFile = FindFile(szSourceFile);
+	if (uiFile == MAX_SIZE)
 	{
 		return;
 	}
-	Sort();
-
-	//The first range of the line: the first at or after the smallest key with its file and line.
-	memset(&sFind, 0, sizeof(sFind));
-	sFind.uiFile = *puiFile;
-	sFind.uiLine = uiLine;
-	masRanges.FindInSorted(&sFind, CompareCPP65ListingRange, &uiRange);
 
 	psPlace = NULL;
-	for (; uiRange < masRanges.NumElements(); uiRange++)
+	for (uiRange = FindFirstRange(uiFile, uiLine); uiRange < masRanges.NumElements(); uiRange++)
 	{
 		psRange = masRanges.Get(uiRange);
-		if ((psRange->uiFile != *puiFile) || (psRange->uiLine != uiLine))
+		if ((psRange->uiFile != uiFile) || (psRange->uiLine != uiLine))
 		{
 			break;
 		}
@@ -366,6 +354,79 @@ void CCPP65ListingIndex::GetPlaces(const char* szSourceFile, size uiLine, CArray
 		}
 		psPlace->uiNumRanges++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines (from 0) of szSourceFile that have code in the listings, in
+// order, replacing pauiDest's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65ListingIndex::GetLines(const char* szSourceFile, CArrayCPP65ListingLines* pauiDest)
+{
+	size				uiFile;
+	size				uiRange;
+	SCPP65ListingRange*	psRange;
+
+	pauiDest->ReInit();
+	uiFile = FindFile(szSourceFile);
+	if (uiFile == MAX_SIZE)
+	{
+		return;
+	}
+
+	for (uiRange = FindFirstRange(uiFile, 0); uiRange < masRanges.NumElements(); uiRange++)
+	{
+		psRange = masRanges.Get(uiRange);
+		if (psRange->uiFile != uiFile)
+		{
+			break;
+		}
+		if ((pauiDest->NumElements() == 0) || (*pauiDest->Tail() != psRange->uiLine))
+		{
+			*pauiDest->Add() = psRange->uiLine;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of szSourceFile, whatever its case and slashes, MAX_SIZE if
+// no listing has its code.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65ListingIndex::FindFile(const char* szSourceFile)
+{
+	CChars	szFile;
+	size*	puiFile;
+
+	szFile.Init(szSourceFile);
+	NormaliseFile(&szFile);
+	puiFile = mcFileIndices.Get(szFile.Text());
+	szFile.Kill();
+	return puiFile ? *puiFile : MAX_SIZE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first range of line uiLine of file uiFile, or the one it would be
+// before: the ranges are sorted by file and line.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65ListingIndex::FindFirstRange(size uiFile, size uiLine)
+{
+	SCPP65ListingRange	sFind;
+	size				uiRange;
+
+	Sort();
+	memset(&sFind, 0, sizeof(sFind));
+	sFind.uiFile = uiFile;
+	sFind.uiLine = uiLine;
+	masRanges.FindInSorted(&sFind, CompareCPP65ListingRange, &uiRange);
+	return uiRange;
 }
 
 
