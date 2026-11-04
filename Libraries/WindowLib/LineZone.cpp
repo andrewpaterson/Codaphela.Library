@@ -50,8 +50,8 @@ void CLineZoneListener::ButtonClicked(CUnknown* pcSource, void* pvContext)
 //
 // The header in pTitleFont over the text in pTextFamily's fixed width
 // font (as tiles), on sBackground so it stands apart from the code.  The
-// < and > come first: the zone is as wide as the code, which can be wider
-// than the view.
+// < and > come first, while there are pages to step through: the zone is
+// as wide as the code, which can be wider than the view.
 //
 //////////////////////////////////////////////////////////////////////////
 void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground)
@@ -71,10 +71,8 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 
 	mpTitle = OMalloc<CLabel>(pWindow, pTitleFont, "");
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
-	mpPrevious = OMalloc<CButton>(pWindow, pTheme, "<");
-	mpPrevious->AddListener(&mcListener);
-	mpNext = OMalloc<CButton>(pWindow, pTheme, ">");
-	mpNext->AddListener(&mcListener);
+	mpPrevious = CreateButton(pWindow, pTheme, "<");
+	mpNext = CreateButton(pWindow, pTheme, ">");
 	mpText = OMalloc<CTextArea>(pWindow, pTextFamily, "");
 	mpText->SetEditable(false);
 	mpText->SetTiledText(true);
@@ -84,12 +82,26 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 
 	SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pBackground, 0, 0, 3, 2, 1, 1);
-	AddComponent(mpPrevious, 0, 0);
-	AddComponent(mpNext, 1, 0);
 	AddComponent(mpTitle, 2, 0, 1, 1, 1, 0);
 	AddComponent(mpText, 0, 1, 3, 1, 1, 1);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A small < or > button, so it doesn't crowd the title.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CButton> CLineZone::CreateButton(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption)
+{
+	Ptr<CButton>	pButton;
+
+	pButton = OMalloc<CButton>(pWindow, pTheme, BL_Small, Ptr<CImageCel>(), szCaption);
+	pButton->SetPadding(4, 0);
+	pButton->AddListener(&mcListener);
+	return pButton;
 }
 
 
@@ -234,8 +246,13 @@ void CLineZone::ShowPage(void)
 	mpText->SetColour(mbOutOfDate ? JEWEL_LINE_NUMBER : JEWEL_TEXT);
 	szText.Kill();
 	ShowTitle();
+	ShowButtons();
 
-	iHeader = (mpTitle->GetDesiredSize().y > mpNext->GetDesiredSize().y) ? mpTitle->GetDesiredSize().y : mpNext->GetDesiredSize().y;
+	iHeader = mpTitle->GetDesiredSize().y;
+	if (HasButtons() && (mpNext->GetDesiredSize().y > iHeader))
+	{
+		iHeader = mpNext->GetDesiredSize().y;
+	}
 	SetDesiredSize(-1, iHeader + mpText->GetTextSize().y);
 }
 
@@ -266,6 +283,32 @@ void CLineZone::ShowTitle(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The < and > if there is more than one page, none otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLineZone::ShowButtons(void)
+{
+	if ((muiPages > 1) == HasButtons())
+	{
+		return;
+	}
+
+	if (HasButtons())
+	{
+		RemoveComponent(mpPrevious);
+		RemoveComponent(mpNext);
+	}
+	else
+	{
+		AddComponent(mpPrevious, 0, 0);
+		AddComponent(mpNext, 1, 0);
+	}
+}
+
+
+bool CLineZone::HasButtons(void) { return mpNext->GetParent().IsNotNull(); }
 size CLineZone::NumPages(void) { return muiPages; }
 size CLineZone::GetPage(void) { return muiPage; }
 char* CLineZone::GetTitle(void) { return mpTitle->GetText(); }

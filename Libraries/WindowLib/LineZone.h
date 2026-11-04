@@ -84,12 +84,15 @@ public:
 	char*			GetTitle(void);
 	char*			GetText(void);
 	bool			IsOutOfDate(void);
+	bool			HasButtons(void);
 	Ptr<CButton>	GetPreviousButton(void);
 	Ptr<CButton>	GetNextButton(void);
 
 protected:
+	Ptr<CButton>	CreateButton(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption);
 	void			ShowPage(void);
 	void			ShowTitle(void);
+	void			ShowButtons(void);
 };
 
 

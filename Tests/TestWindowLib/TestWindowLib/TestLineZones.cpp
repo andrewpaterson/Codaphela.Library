@@ -123,6 +123,7 @@ void TestLineZonesShow(void)
 		CTestLineZoneSource			cSource;
 		int32						iLine;
 		CInt32Rect					cGap;
+		SInt32Vec2					sCaption;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 400, 400, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -162,6 +163,12 @@ void TestLineZonesShow(void)
 		AssertInt(pEditor->GetTextArea()->GetPosition().y + cGap.GetTop(), pZone->GetPosition().y);
 		AssertTrue(cGap.GetHeight() >= iLine);
 
+		//The buttons are small: four pixel borders, and four pixels either side of the caption.
+		sCaption = pZone->GetNextButton()->GetCaptionLabel()->GetActualSize();
+		AssertInt(sCaption.x + 16, pZone->GetNextButton()->GetActualSize().x);
+		AssertInt(sCaption.y + 8, pZone->GetNextButton()->GetActualSize().y);
+		AssertTrue(pZone->HasButtons());
+
 		//> and < step through the pages, round.
 		TestLineZonesClick(pTestWindow, pZone->GetNextButton());
 		AssertSize(1, pZone->GetPage());
@@ -172,11 +179,13 @@ void TestLineZonesShow(void)
 		TestLineZonesClick(pTestWindow, pZone->GetPreviousButton());
 		AssertSize(1, pZone->GetPage());
 
-		//A line with one page: stepping stays on it.
+		//A line with one page has no < and >, and stepping stays on it.
 		TestLineZonesClickGutter(pTestWindow, pEditor, 3);
 		AssertSize(2, pZones->NumZones());
 		AssertString("Line 4 page 1 - 1 of 1", pZones->FindZone(3)->GetTitle());
-		TestLineZonesClick(pTestWindow, pZones->FindZone(3)->GetNextButton());
+		AssertFalse(pZones->FindZone(3)->HasButtons());
+		AssertTrue(pZones->FindZone(3)->GetNextButton()->GetParent().IsNull());
+		pZones->FindZone(3)->Step(1);
 		AssertSize(0, pZones->FindZone(3)->GetPage());
 
 		//Clicking the open mark hides the pages, and the line is marked as having them again.
