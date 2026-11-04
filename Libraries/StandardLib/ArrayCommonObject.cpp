@@ -569,29 +569,6 @@ void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
-{
-	CEmbeddedObject*	pcPointedTo;
-	size 				i;
-	size 				uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if ((pcPointedTo) && (pcPointedTo == pcEmbedded))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CBaseObject* CArrayCommonObject::UnsafeGetObject(size iIndex)
 {
 	return (CBaseObject*)mcArray.UnsafeGet(iIndex);
@@ -643,28 +620,6 @@ CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(size iIndex)
 	}
 
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::ValidatePointerTos(void)
-{
-	CEmbeddedObject*	pcPointedTo;
-	SSetIterator		sIter;
-	bool				bExists;
-
-	bExists = mcArray.StartIteration(&sIter, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if (pcPointedTo)
-		{
-			ValidatePointerTo(pcPointedTo);
-		}
-		bExists = (CEmbeddedObject*)mcArray.Iterate(&sIter, (CUnknown**)&pcPointedTo);
-	}
 }
 
 

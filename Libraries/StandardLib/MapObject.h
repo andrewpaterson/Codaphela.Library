@@ -51,7 +51,6 @@ public:
 	size 				BaseNumPointerTos(void)  override;
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
-	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
 	void				RemoveAllPointerTosDontFree(void) override;
 	bool				RemoveAllPointerTosTryFree(void) override;
 
@@ -76,7 +75,6 @@ public:
 	void				KillAll(void) override;
 
 	CEmbeddedObject*	GetEmbeddedObject(size iMap) override;
-	void				ValidatePointerTos(void) override;
 	CMapUnknownUnknown*	GetUnknownMap(void);
 
 	bool				IsSorted(void);

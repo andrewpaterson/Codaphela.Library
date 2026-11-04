@@ -53,7 +53,6 @@ public:
 			void			MakeSubRoot(void);
 			bool			IsSubRoot(void);
 
-			void			BaseValidatePointerTos(void) override;
 			void			ValidateConsistency(void);
 
 protected:

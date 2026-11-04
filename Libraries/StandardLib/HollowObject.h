@@ -57,7 +57,6 @@ public:
 			size				NumStackFroms(void);
 			void				RemoveAllPointerTosDontFree(void);
 			bool				RemoveAllPointerTosTryFree(void);
-			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
 
 			bool				HasNes(void) override;

@@ -311,31 +311,6 @@ CPointer CIndexObject::IteratePointer(SIndexTreeMemoryIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::ValidatePointerTos(void)
-{
-	size 						iCount;
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-
-	iCount = 0;
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if (pcPointedTo)
-		{
-			ValidatePointerTo(pcPointedTo);
-		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-		iCount++;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CIndexUnknown* CIndexObject::GetIndexForTesting(void)
 {
 	return &mcIndex;
@@ -406,30 +381,6 @@ void CIndexObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
-{
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if ((pcPointedTo) && (pcPointedTo == pcEmbedded))
-		{
-			sIter.Kill();
-			return true;
-		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	}
-	return false;
 }
 
 

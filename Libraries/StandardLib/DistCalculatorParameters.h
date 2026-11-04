@@ -66,7 +66,6 @@ public:
 	CArrayEmbeddedObjectPtr*	StartPointerTos(void);
 	void					AddClearCandidate(CBaseObject* pcObject, int iClearedFromDistToRoot);
 	bool					PopClearCandidate(CBaseObject** ppcObject, int* piClearedFromDistToRoot);
-	size					NumClearCandidates(void);
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);

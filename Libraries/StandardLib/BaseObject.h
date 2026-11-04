@@ -166,7 +166,7 @@ public:
 			CClass*					CompleteClass(CClasses* pcClasses);
 			void					CopyFields(CEmbeddedObject* pcOther) override;
 
-	virtual bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+			bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);
 			size 					TestGetNumEmbeddedFromFlags(void);
 			void					ClearFlagNumEmbedded(void);
@@ -254,7 +254,6 @@ protected:
 			bool					LoadUnmanaged(CObjectReader* pcFile);
 			bool					LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
-	virtual void					BaseValidatePointerTos(void) =0;
 
 			void					Nes(CPointerField* pcField);
 

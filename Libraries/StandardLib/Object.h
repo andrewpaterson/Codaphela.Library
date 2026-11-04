@@ -80,7 +80,6 @@ public:
 	size				BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 
 	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
@@ -111,7 +110,6 @@ protected:
 	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
 	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);
 	CPointer*			RecurseGetFieldPointerTo(size iIndex, size* piCount);
-	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	bool				IsDistToRootValid(void);
 	void				EmbedPointerFields(void);

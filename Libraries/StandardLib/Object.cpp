@@ -556,35 +556,6 @@ void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
-{
-	size				uiNumPointers;
-	size				i;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			if (pcPointedTo == pcEmbedded)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 {
 	size				uiNumEmbedded;
@@ -1290,43 +1261,20 @@ bool CObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseValidatePointerTos(void)
-{
-	size				i;
-	CEmbeddedObject*	pcPointedTo;
-	CPointer**			ppPointer;
-	size				uiNumPointers;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			ValidatePointerTo(pcPointedTo);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::ValidatePointerTos(void)
 {
 	size			i;
 	size			uiNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	BaseValidatePointerTos();
+	//Each embedded object fully, so objects embedded in those are validated too.
+	CEmbeddedObject::ValidatePointerTos();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->BaseValidatePointerTos();
+		pcEmbedded->ValidatePointerTos();
 	}
 }
 

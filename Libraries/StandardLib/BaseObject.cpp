@@ -1409,11 +1409,31 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(size iToIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether one of this object's own pointers (not those of the objects
+// embedded in it) points to pcEmbedded.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
-	return false;
+	CArrayEmbeddedObjectPtr		apcTos;
+	size						i;
+	size						uiNumTos;
+	bool						bContains;
+
+	bContains = false;
+	apcTos.Init();
+	BaseGetPointerTos(&apcTos);
+	uiNumTos = apcTos.NumElements();
+	for (i = 0; i < uiNumTos; i++)
+	{
+		if (apcTos.GetPtr(i) == pcEmbedded)
+		{
+			bContains = true;
+			break;
+		}
+	}
+	apcTos.Kill();
+	return bContains;
 }
 
 

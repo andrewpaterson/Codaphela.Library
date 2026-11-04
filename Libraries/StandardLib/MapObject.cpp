@@ -287,33 +287,6 @@ CMapEntry CMapObject::Iterate(SMapIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::ValidatePointerTos(void)
-{
-	size 			iCount;
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-
-	iCount = 0;
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		ValidatePointerTo(pcPointedToKey);
-		if (pcPointedToValue)
-		{
-			ValidatePointerTo(pcPointedToValue);
-		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-		iCount++;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CMapUnknownUnknown* CMapObject::GetUnknownMap(void)
 {
 	return &mcMap;
@@ -387,35 +360,6 @@ void CMapObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMapObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
-{
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-
-	//No need to EnsureSorted().
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		if (pcPointedToKey == pcEmbedded)
-		{
-			return true;
-		}
-		if ((pcPointedToValue) && (pcPointedToValue == pcEmbedded))
-		{
-			return true;
-		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	}
-	return false;
 }
 
 

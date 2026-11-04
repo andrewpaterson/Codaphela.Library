@@ -1134,10 +1134,24 @@ void CEmbeddedObject::ValidateFroms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each of this object's own pointers points to an object with a from back
+// to this.
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidatePointerTos(void)
 {
+	CArrayEmbeddedObjectPtr		apcTos;
+	size						i;
+	size						uiNumTos;
+
+	apcTos.Init();
+	BaseGetPointerTos(&apcTos);
+	uiNumTos = apcTos.NumElements();
+	for (i = 0; i < uiNumTos; i++)
+	{
+		ValidatePointerTo(apcTos.GetPtr(i));
+	}
+	apcTos.Kill();
 }
 
 
