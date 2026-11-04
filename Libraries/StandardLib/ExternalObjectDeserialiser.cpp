@@ -391,6 +391,7 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
 	CBaseObject*			pvObject;
+	CEmbeddedObject*		pcEmbeddedObject;
 
 	oiNew = GetNewIndexFromOld(pcDependentReadPointer->moiPointedTo);
 	pcBaseObject = mpcMemory->Get(oiNew);
@@ -410,8 +411,14 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		}
 	}
 
-	*pcDependentReadPointer->mppcPointedFrom = pcBaseObject;
-	AddHeapFrom(pcBaseObject, pcDependentReadPointer->mpcContaining);
+	//The pointer may be to one of the object's embedded objects (or, if it is hollow, its embedded hollow).
+	pcEmbeddedObject = pcBaseObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
+	if (pcEmbeddedObject == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcBaseObject), "} has no embedded object [", IntToString(pcDependentReadPointer->miEmbeddedIndex), "].", NULL);
+	}
+	*pcDependentReadPointer->mppcPointedFrom = pcEmbeddedObject;
+	AddHeapFrom(pcEmbeddedObject, pcDependentReadPointer->mpcContaining);
 	return true;
 }
 

@@ -762,6 +762,105 @@ void TestDehollowficationFatFromDatabaseEmbeddedPointer(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Saves "Embedded" (strings) with "1" pointing to it and "2" to its
+// second string, both on the root.
+//
+//////////////////////////////////////////////////////////////////////////
+void SaveDehollowficationEmbeddedPointers(char* szDirectory)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.AddConstructor<CTestEmbeddedStrings>();
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CTestEmbeddedStrings>	pContainer;
+		Ptr<CPointerContainer>		pPtr1;
+		Ptr<CPointerContainer>		pPtr2;
+
+		pRoot = ORoot();
+		pContainer = ONMalloc<CTestEmbeddedStrings>("Embedded");
+		pPtr1 = ONMalloc<CPointerContainer>("1");
+		pPtr2 = ONMalloc<CPointerContainer>("2");
+		pRoot->Add(pPtr1);
+		pRoot->Add(pPtr2);
+
+		pPtr1->mp = &pContainer;
+		pPtr2->mp = &pContainer->mString2;
+		pContainer->mString2.Set("Jane is great");
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer to an embedded object read after its object is already in
+// memory (loaded, not hollow) points to that embedded object, not the
+// object.  Then letting go of both pointers frees the object.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationEmbeddedPointerToLoadedObject(void)
+{
+	ForceFatHollows();
+
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Database6";
+
+	cFileUtil.RemoveDir(szDirectory);
+	SaveDehollowficationEmbeddedPointers(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CTestEmbeddedStrings>	pContainer;
+		Ptr<CPointerContainer>		pPtr1;
+		Ptr<CPointerContainer>		pPtr2;
+
+		pContainer = gcObjects.Get("Embedded");
+		AssertString("CTestEmbeddedStrings", pContainer.ClassName());
+		pPtr2 = gcObjects.Get("2");
+		AssertPointer(&pContainer->mString2, pPtr2->mp.Object());
+		AssertSize(1, pContainer->mString2.NumHeapFroms());
+		AssertString("Jane is great", pContainer->mString2.Text());
+
+		pPtr1 = gcObjects.Get("1");
+		AssertPointer(&pContainer, pPtr1->mp.Object());
+		gcObjects.ValidateObjectsConsistency();
+
+		pContainer = NULL;
+		pPtr1->mp = NULL;
+		AssertNotNull(gcObjects.TestGetFromMemory("Embedded").Object());
+		pPtr2->mp = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("Embedded").Object());
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	UnforceFatHollows();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -777,6 +876,7 @@ void TestDehollowfication(void)
 	TestDehollowficationFromChunkFileSource();
 	TestDehollowficationFatFromDatabaseSimple();
 	TestDehollowficationFatFromDatabaseEmbeddedPointer();
+	TestDehollowficationEmbeddedPointerToLoadedObject();
 
 	DataIOKill();
 	TypesKill();
