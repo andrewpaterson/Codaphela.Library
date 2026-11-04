@@ -112,6 +112,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	msSelectionColour = JEWEL_SELECTION;
 	msCaretColour = JEWEL_ICON;
 	mauiStopStarts.Init();
+	muiChangeCount = 0;
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -166,6 +167,7 @@ void CTextArea::Class(void)
 	U_Data(CArrayTextAreaSpan, masSpans);
 	U_Bool(mbTextDirty);
 	U_Bool(mbSizeDirty);
+	U_Data(size, muiChangeCount);
 	M_Pointer(mpText);
 	M_Pointer(mpLayout);
 	M_Pointer(mpSpriteMap);
@@ -801,6 +803,7 @@ Ptr<CFont> CTextArea::GetFont(void)
 
 
 char* CTextArea::GetText(void) { return mszText.Text(); }
+size CTextArea::GetChangeCount(void) { return muiChangeCount; }  //Each edit counts one more, so the text's owner can tell it changed since it last looked.
 Ptr<CFontFamily> CTextArea::GetFontFamily(void) { return mpFamily; }
 bool CTextArea::IsWordWrap(void) { return mbWordWrap; }
 ARGB32 CTextArea::GetColour(void) { return msStyle.sColour; }
@@ -2758,6 +2761,7 @@ void CTextArea::TextChanged(void)
 {
 	SInt32Vec2	sTextSize;
 
+	muiChangeCount++;
 	sTextSize = msTextSize;
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;

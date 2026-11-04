@@ -86,6 +86,7 @@ protected:
 	CArrayTextAreaSpan	masSpans;
 	bool				mbTextDirty;  //The spans or style changed since the text was last read.
 	bool				mbSizeDirty;  //Reading the text again can change its size.
+	size				muiChangeCount;  //How many times the text has been edited (GetChangeCount).
 	Ptr<CText>			mpText;
 	Ptr<CTextLayout>	mpLayout;
 	Ptr<CSpriteMap>		mpSpriteMap;
@@ -132,6 +133,7 @@ public:
 	void				SetText(const char* szText);
 	void				AppendText(const char* szText, ARGB32 sColour);
 	char*				GetText(void);
+	size				GetChangeCount(void);
 	void				SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>			GetFont(void);
 	void				SetFontColours(Ptr<CFontColours> pColours);
