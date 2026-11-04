@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/MapLongTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbolTable.h"
 #include "CPPSyntaxBlock.h"
@@ -45,6 +44,28 @@ typedef CArrayTemplate<SCPPSyntaxBlockExternal>	CArraySyntaxBlockExternals;
 typedef CArrayTemplatePtr<CCPPSymbol>			CArraySymbols;
 
 
+//Keys (addresses, or names + 1: never 0) and their 16 bit values, by open addressing: what the writer looks up for
+//every field, which a sorted map made slow for big declarations.
+class CCPPSyntaxBlockIndex
+{
+protected:
+	uint64*		mauiKeys;
+	uint16*		mauiValues;
+	size		muiCapacity;	//A power of 2, or 0.
+	size		muiUsed;
+
+public:
+	void	Init(void);
+	void	Kill(void);
+	uint16*	Get(uint64 uiKey);
+	void	Put(uint64 uiKey, uint16 uiValue);
+
+protected:
+	size	Slot(uint64 uiKey);
+	void	Grow(void);
+};
+
+
 //A declaration being written as a block: its nodes, scopes, symbols and externals, each given its index as found.
 class CCPPSyntaxBlockWriting
 {
@@ -54,15 +75,15 @@ public:
 	int							miFirstToken;
 	int							miTokens;
 	CArraySyntax				mapcNodes;
-	CMapLongTemplate<uint16>	mcNodes;		//By address: its index.
+	CCPPSyntaxBlockIndex		mcNodes;		//By address: its index.
 	CArrayScopes				mapcScopes;		//The block's own.
 	CArraySymbols				mapcSymbols;	//The block's own.
-	CMapLongTemplate<uint16>	mcScopes;		//By address: a reference (the block's own index, or an external's).
-	CMapLongTemplate<uint16>	mcSymbols;
-	CMapLongTemplate<uint8>		mcOwnScopes;	//The scopes the block's nodes have: the block's own.
+	CCPPSyntaxBlockIndex		mcScopes;		//By address: a reference (the block's own index, or an external's).
+	CCPPSyntaxBlockIndex		mcSymbols;
+	CCPPSyntaxBlockIndex		mcOwnScopes;	//The scopes the block's nodes have: the block's own.
 	CArraySyntaxBlockExternals	masExternals;
 	CArrayTemplate<int64>		malliNames;
-	CMapLongTemplate<uint16>	mcNames;
+	CCPPSyntaxBlockIndex		mcNames;		//By name + 1: its string's index.
 	ECPPSyntaxBlock				meResult;
 	CArrayUint8*				mpauiDest;
 
@@ -109,14 +130,11 @@ public:
 	void	SymbolField(CCPPSymbol** ppcSymbol) override	{ if (!mbOwnScopes) { mpcWriting->Symbol(*ppcSymbol); } }
 	void	ScopeField(CCPPScope** ppcScope) override
 	{
-		uint8	uiOwn;
-
 		if (mbOwnScopes)
 		{
-			uiOwn = 1;
 			if (*ppcScope)
 			{
-				mpcWriting->mcOwnScopes.Put((int64)(ptr)*ppcScope, &uiOwn);
+				mpcWriting->mcOwnScopes.Put((uint64)(ptr)*ppcScope, 1);
 			}
 		}
 		else
@@ -156,6 +174,123 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxBlockIndex::Init(void)
+{
+	mauiKeys = NULL;
+	mauiValues = NULL;
+	muiCapacity = 0;
+	muiUsed = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxBlockIndex::Kill(void)
+{
+	free(mauiKeys);
+	free(mauiValues);
+	Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where uiKey is, or the empty slot it would go in (the capacity isn't 0).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntaxBlockIndex::Slot(uint64 uiKey)
+{
+	size	uiSlot;
+
+	uiSlot = (size)((uiKey * 0x9E3779B97F4A7C15ULL) >> 32) & (muiCapacity - 1);
+	while ((mauiKeys[uiSlot] != 0) && (mauiKeys[uiSlot] != uiKey))
+	{
+		uiSlot = (uiSlot + 1) & (muiCapacity - 1);
+	}
+	return uiSlot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiKey's value, or NULL if it hasn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16* CCPPSyntaxBlockIndex::Get(uint64 uiKey)
+{
+	size	uiSlot;
+
+	if (muiCapacity == 0)
+	{
+		return NULL;
+	}
+	uiSlot = Slot(uiKey);
+	return (mauiKeys[uiSlot] == uiKey) ? &mauiValues[uiSlot] : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiKey's value is uiValue.  The table is kept at most half full.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxBlockIndex::Put(uint64 uiKey, uint16 uiValue)
+{
+	size	uiSlot;
+
+	if ((muiUsed + 1) * 2 > muiCapacity)
+	{
+		Grow();
+	}
+	uiSlot = Slot(uiKey);
+	if (mauiKeys[uiSlot] == 0)
+	{
+		mauiKeys[uiSlot] = uiKey;
+		muiUsed++;
+	}
+	mauiValues[uiSlot] = uiValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Twice the capacity (64 at first), the keys put again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxBlockIndex::Grow(void)
+{
+	uint64*		auiKeys;
+	uint16*		auiValues;
+	size		uiCapacity;
+	size		uiSlot;
+	size		i;
+
+	auiKeys = mauiKeys;
+	auiValues = mauiValues;
+	uiCapacity = muiCapacity;
+	muiCapacity = (uiCapacity == 0) ? 64 : uiCapacity * 2;
+	mauiKeys = (uint64*)calloc(muiCapacity, sizeof(uint64));
+	mauiValues = (uint16*)malloc(muiCapacity * sizeof(uint16));
+	for (i = 0; i < uiCapacity; i++)
+	{
+		if (auiKeys[i] != 0)
+		{
+			uiSlot = Slot(auiKeys[i]);
+			mauiKeys[uiSlot] = auiKeys[i];
+			mauiValues[uiSlot] = auiValues[i];
+		}
+	}
+	free(auiKeys);
+	free(auiValues);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxBlockWriting::Init(CCPPSyntaxTree* pcTree, CCPPScope* pcGlobal, CArrayUint8* pauiDest)
 {
 	mpcTree = pcTree;
@@ -163,15 +298,15 @@ void CCPPSyntaxBlockWriting::Init(CCPPSyntaxTree* pcTree, CCPPScope* pcGlobal, C
 	miFirstToken = -1;
 	miTokens = 0;
 	mapcNodes.Init();
-	mcNodes.Init(true);
+	mcNodes.Init();
 	mapcScopes.Init();
 	mapcSymbols.Init();
-	mcScopes.Init(true);
-	mcSymbols.Init(true);
-	mcOwnScopes.Init(true);
+	mcScopes.Init();
+	mcSymbols.Init();
+	mcOwnScopes.Init();
 	masExternals.Init();
 	malliNames.Init();
-	mcNames.Init(true);
+	mcNames.Init();
 	meResult = CPPSB_Written;
 	mpauiDest = pauiDest;
 }
@@ -227,7 +362,7 @@ void CCPPSyntaxBlockWriting::CollectNodes(CCPPSyntax* pcDeclaration)
 	{
 		pcNode = apcStack.GetPtr(apcStack.NumElements() - 1);
 		apcStack.RemoveTail();
-		if (mcNodes.Get((int64)(ptr)pcNode))
+		if (mcNodes.Get((uint64)(ptr)pcNode))
 		{
 			continue;
 		}
@@ -237,7 +372,7 @@ void CCPPSyntaxBlockWriting::CollectNodes(CCPPSyntax* pcDeclaration)
 			break;
 		}
 		uiIndex = (uint16)mapcNodes.NumElements();
-		mcNodes.Put((int64)(ptr)pcNode, &uiIndex);
+		mcNodes.Put((uint64)(ptr)pcNode, uiIndex);
 		mapcNodes.Add(pcNode);
 
 		apcChildren.ReInit();
@@ -266,7 +401,7 @@ uint16 CCPPSyntaxBlockWriting::NodeIndex(CCPPSyntax* pcNode)
 	{
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
-	puiIndex = mcNodes.Get((int64)(ptr)pcNode);
+	puiIndex = mcNodes.Get((uint64)(ptr)pcNode);
 	return puiIndex ? *puiIndex : CPP_SYNTAX_BLOCK_OUTSIDE;
 }
 
@@ -286,14 +421,14 @@ uint16 CCPPSyntaxBlockWriting::Name(int64 lliName)
 	{
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
-	puiIndex = mcNames.Get(lliName);
+	puiIndex = mcNames.Get((uint64)lliName + 1);
 	if (puiIndex)
 	{
 		return *puiIndex;
 	}
 	uiIndex = Add((uint16)malliNames.NumElements());
 	malliNames.Add(&lliName);
-	mcNames.Put(lliName, &uiIndex);
+	mcNames.Put((uint64)lliName + 1, uiIndex);
 	return uiIndex;
 }
 
@@ -323,11 +458,11 @@ uint16 CCPPSyntaxBlockWriting::Add(uint16 uiCount)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSyntaxBlockWriting::IsOwn(CCPPScope* pcScope)
 {
-	if (mcOwnScopes.Get((int64)(ptr)pcScope))
+	if (mcOwnScopes.Get((uint64)(ptr)pcScope))
 	{
 		return true;
 	}
-	return pcScope->mpcOwner && (pcScope->mpcOwner->mpcMembers == pcScope) && pcScope->mpcOwner->mpcDeclaration && mcNodes.Get((int64)(ptr)pcScope->mpcOwner->mpcDeclaration);
+	return pcScope->mpcOwner && (pcScope->mpcOwner->mpcMembers == pcScope) && pcScope->mpcOwner->mpcDeclaration && mcNodes.Get((uint64)(ptr)pcScope->mpcOwner->mpcDeclaration);
 }
 
 
@@ -339,7 +474,7 @@ bool CCPPSyntaxBlockWriting::IsOwn(CCPPScope* pcScope)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSyntaxBlockWriting::IsOwn(CCPPSymbol* pcSymbol)
 {
-	if (pcSymbol->mpcDeclaration && mcNodes.Get((int64)(ptr)pcSymbol->mpcDeclaration))
+	if (pcSymbol->mpcDeclaration && mcNodes.Get((uint64)(ptr)pcSymbol->mpcDeclaration))
 	{
 		return true;
 	}
@@ -369,7 +504,7 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 	{
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
-	puiReference = mcScopes.Get((int64)(ptr)pcScope);
+	puiReference = mcScopes.Get((uint64)(ptr)pcScope);
 	if (puiReference)
 	{
 		return *puiReference;
@@ -378,7 +513,7 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 	if (IsOwn(pcScope))
 	{
 		uiReference = Add((uint16)mapcScopes.NumElements());
-		mcScopes.Put((int64)(ptr)pcScope, &uiReference);
+		mcScopes.Put((uint64)(ptr)pcScope, uiReference);
 		mapcScopes.Add(pcScope);
 		Scope(pcScope->mpcParent);
 		Symbol(pcScope->mpcOwner);
@@ -414,7 +549,7 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
 	uiReference = Add((uint16)masExternals.NumElements()) | CPP_SYNTAX_BLOCK_EXTERNAL;
-	mcScopes.Put((int64)(ptr)pcScope, &uiReference);
+	mcScopes.Put((uint64)(ptr)pcScope, uiReference);
 	masExternals.Add(&sExternal);
 	return uiReference;
 }
@@ -439,7 +574,7 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 	{
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
-	puiReference = mcSymbols.Get((int64)(ptr)pcSymbol);
+	puiReference = mcSymbols.Get((uint64)(ptr)pcSymbol);
 	if (puiReference)
 	{
 		return *puiReference;
@@ -448,7 +583,7 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 	if (IsOwn(pcSymbol))
 	{
 		uiReference = Add((uint16)mapcSymbols.NumElements());
-		mcSymbols.Put((int64)(ptr)pcSymbol, &uiReference);
+		mcSymbols.Put((uint64)(ptr)pcSymbol, uiReference);
 		mapcSymbols.Add(pcSymbol);
 		Name(pcSymbol->mlliName);
 		Scope(pcSymbol->mpcScope);
@@ -475,7 +610,7 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
 	uiReference = Add((uint16)masExternals.NumElements()) | CPP_SYNTAX_BLOCK_EXTERNAL;
-	mcSymbols.Put((int64)(ptr)pcSymbol, &uiReference);
+	mcSymbols.Put((uint64)(ptr)pcSymbol, uiReference);
 	masExternals.Add(&sExternal);
 	return uiReference;
 }
