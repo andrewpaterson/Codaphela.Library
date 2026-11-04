@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "SourceFile.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbolTable.h"
 #include "CPPSyntaxBlock.h"
@@ -26,8 +27,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //The kinds of a block's externals.
 #define CPP_SYNTAX_BLOCK_GLOBAL		0		//The global scope.
 #define CPP_SYNTAX_BLOCK_MEMBERS	1		//The members of a symbol.
-#define CPP_SYNTAX_BLOCK_SYMBOL		2		//A name in a scope (the first, second... symbol of the name there).
+#define CPP_SYNTAX_BLOCK_SYMBOL		2		//A name in a scope, the symbol of it declared at a place in a file.
 #define CPP_SYNTAX_BLOCK_PARENT		3		//The parent of a scope (a class template's parameters: its members' parent).
+#define CPP_SYNTAX_BLOCK_NO_LINE	0xFFFFFFFF	//A symbol with no declaration (a compiler type).
 
 
 //A symbol or scope outside the block that it refers to.
@@ -37,12 +39,54 @@ struct SCPPSyntaxBlockExternal
 	uint16	uiScope;	//The scope of a symbol, or the scope whose parent this is.
 	uint16	uiSymbol;	//The symbol whose members a scope is.
 	uint16	uiName;
-	uint16	uiWhich;	//Which of the symbols of the name in the scope (0 the first).
+	uint16	uiFile;		//Where a symbol's declaration starts: the file's string, its line and column.
+	uint32	uiLine;
+	uint16	uiColumn;
+};
+
+
+//A string of a block (a name or a file's): its characters and how many.
+struct SCPPSyntaxBlockString
+{
+	const char*	sz;
+	int			iLength;
 };
 
 
 typedef CArrayTemplate<SCPPSyntaxBlockExternal>	CArraySyntaxBlockExternals;
+typedef CArrayTemplate<SCPPSyntaxBlockString>	CArraySyntaxBlockStrings;
 typedef CArrayTemplatePtr<CCPPSymbol>			CArraySymbols;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where pcSymbol's declaration starts in pcTree's tokens (its file, line
+// and column), or false if it has none.  Symbols outside a block are found
+// by it, the same in any tree with the declaration.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool CPPSyntaxBlockPosition(CCPPSyntaxTree* pcTree, CCPPSymbol* pcSymbol, CSourceFile** ppcFile, int* piLine, int* piColumn)
+{
+	CCPPTokeniser*			pcTokeniser;
+	CCPPToken*				pcToken;
+	SPreprocessedToken*		psSource;
+
+	if (!pcSymbol->mpcDeclaration || (pcSymbol->mpcDeclaration->miFirstToken < 0))
+	{
+		return false;
+	}
+	pcTokeniser = pcTree->GetTokeniser();
+	pcToken = pcTokeniser->Get(pcSymbol->mpcDeclaration->miFirstToken);
+	psSource = pcToken ? pcTokeniser->GetSource(pcToken) : NULL;
+	if (!psSource || !psSource->pcFile)
+	{
+		return false;
+	}
+	*ppcFile = psSource->pcFile;
+	*piLine = psSource->iLine;
+	*piColumn = psSource->iColumn;
+	return true;
+}
 
 
 //Keys (addresses, or names + 1: never 0) and their 16 bit values, by open addressing: what the writer looks up for
@@ -83,8 +127,10 @@ public:
 	CCPPSyntaxBlockIndex		mcSymbols;
 	CCPPSyntaxBlockIndex		mcOwnScopes;	//The scopes the block's nodes have: the block's own.
 	CArraySyntaxBlockExternals	masExternals;
-	CArrayTemplate<int64>		malliNames;
+	CArraySyntaxBlockStrings	masStrings;
 	CCPPSyntaxBlockIndex		mcNames;		//By name + 1: its string's index.
+	CCPPSyntaxBlockIndex		mcFiles;		//By the file's address: its name's string's index.
+	CArraySyntaxBlockDeclared	masDeclared;	//What it put in scopes outside it (put there again when read).
 	ECPPSyntaxBlock				meResult;
 	CArrayUint8*				mpauiDest;
 
@@ -95,8 +141,11 @@ public:
 	uint16	NodeIndex(CCPPSyntax* pcNode);
 	bool	IsOwn(CCPPScope* pcScope);
 	bool	IsOwn(CCPPSymbol* pcSymbol);
+	bool	IsDeclared(CCPPSymbol* pcSymbol);
 	CCPPSymbol*	TemplateClass(CCPPScope* pcScope);
+	uint16	String(const char* sz, int iLength);
 	uint16	Name(int64 lliName);
+	uint16	File(CSourceFile* pcFile);
 	uint16	Scope(CCPPScope* pcScope);
 	uint16	Symbol(CCPPSymbol* pcSymbol);
 	uint16	Token(int iToken);
@@ -307,8 +356,10 @@ void CCPPSyntaxBlockWriting::Init(CCPPSyntaxTree* pcTree, CCPPScope* pcGlobal, C
 	mcSymbols.Init();
 	mcOwnScopes.Init();
 	masExternals.Init();
-	malliNames.Init();
+	masStrings.Init();
 	mcNames.Init();
+	mcFiles.Init();
+	masDeclared.Init();
 	meResult = CPPSB_Written;
 	mpauiDest = pauiDest;
 }
@@ -320,8 +371,10 @@ void CCPPSyntaxBlockWriting::Init(CCPPSyntaxTree* pcTree, CCPPScope* pcGlobal, C
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxBlockWriting::Kill(void)
 {
+	masDeclared.Kill();
+	mcFiles.Kill();
 	mcNames.Kill();
-	malliNames.Kill();
+	masStrings.Kill();
 	masExternals.Kill();
 	mcOwnScopes.Kill();
 	mcSymbols.Kill();
@@ -410,6 +463,24 @@ uint16 CCPPSyntaxBlockWriting::NodeIndex(CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A new string's index.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CCPPSyntaxBlockWriting::String(const char* sz, int iLength)
+{
+	SCPPSyntaxBlockString*	psString;
+	uint16					uiIndex;
+
+	uiIndex = Add((uint16)masStrings.NumElements());
+	psString = masStrings.Add();
+	psString->sz = sz;
+	psString->iLength = iLength;
+	return uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The index of a name's string (CPP_SYNTAX_BLOCK_NULL for a name that
 // isn't an identifier).
 //
@@ -418,8 +489,11 @@ uint16 CCPPSyntaxBlockWriting::Name(int64 lliName)
 {
 	uint16*	puiIndex;
 	uint16	uiIndex;
+	char*	szName;
+	int		iLength;
 
-	if ((lliName < 0) || !mpcTree->GetTokeniser()->GetIdentifier(lliName))
+	szName = (lliName >= 0) ? mpcTree->GetTokeniser()->GetIdentifier(lliName, &iLength) : NULL;
+	if (!szName)
 	{
 		return CPP_SYNTAX_BLOCK_NULL;
 	}
@@ -428,9 +502,31 @@ uint16 CCPPSyntaxBlockWriting::Name(int64 lliName)
 	{
 		return *puiIndex;
 	}
-	uiIndex = Add((uint16)malliNames.NumElements());
-	malliNames.Add(&lliName);
+	uiIndex = String(szName, iLength);
 	mcNames.Put((uint64)lliName + 1, uiIndex);
+	return uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of a file's full name's string.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CCPPSyntaxBlockWriting::File(CSourceFile* pcFile)
+{
+	uint16*	puiIndex;
+	uint16	uiIndex;
+	char*	szName;
+
+	puiIndex = mcFiles.Get((uint64)(ptr)pcFile);
+	if (puiIndex)
+	{
+		return *puiIndex;
+	}
+	szName = pcFile->FullName();
+	uiIndex = String(szName, (int)strlen(szName));
+	mcFiles.Put((uint64)(ptr)pcFile, uiIndex);
 	return uiIndex;
 }
 
@@ -481,6 +577,19 @@ bool CCPPSyntaxBlockWriting::IsOwn(CCPPSymbol* pcSymbol)
 		return true;
 	}
 	return pcSymbol->mpcScope && IsOwn(pcSymbol->mpcScope);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the block's own symbol is declared in a scope outside it: its
+// place among the scope's symbols of its name isn't the block's (it is
+// added to the scope when the block is read, as parsing would).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxBlockWriting::IsDeclared(CCPPSymbol* pcSymbol)
+{
+	return pcSymbol->mpcScope && !IsOwn(pcSymbol->mpcScope);
 }
 
 
@@ -610,8 +719,9 @@ uint16 CCPPSyntaxBlockWriting::Scope(CCPPScope* pcScope)
 //////////////////////////////////////////////////////////////////////////
 //
 // The reference of pcSymbol: the block's own symbol (IsOwn), an external's
-// (found by its name in its scope), or CPP_SYNTAX_BLOCK_NULL.  The block's
-// own symbol's scopes and next get references too.
+// (found by its name in its scope and where its declaration is), or CPP_
+// SYNTAX_BLOCK_NULL.  The block's own symbol's scopes, and next if it is
+// in the block's own scope, get references too.
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
@@ -621,6 +731,14 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 	SCPPSyntaxBlockExternal		sExternal;
 	CCPPSymbol**				ppcFirst;
 	CCPPSymbol*					pcOther;
+	CSourceFile*				pcFile;
+	CSourceFile*				pcOtherFile;
+	int							iLine;
+	int							iColumn;
+	int							iOtherLine;
+	int							iOtherColumn;
+	bool						bPosition;
+	bool						bOtherPosition;
 
 	if (!pcSymbol)
 	{
@@ -640,20 +758,37 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 		Name(pcSymbol->mlliName);
 		Scope(pcSymbol->mpcScope);
 		Scope(pcSymbol->mpcMembers);
-		Symbol(pcSymbol->mpcNext);
+		if (!IsDeclared(pcSymbol))
+		{
+			Symbol(pcSymbol->mpcNext);
+		}
 		return uiReference;
 	}
 
+	//The first parsed symbol of its name in its scope declared where it is: in a unit with more or fewer declarations
+	//of the name, or lazy ones, it is still found.
 	memset(&sExternal, 0, sizeof(SCPPSyntaxBlockExternal));
 	sExternal.uiKind = CPP_SYNTAX_BLOCK_SYMBOL;
 	sExternal.uiScope = Scope(pcSymbol->mpcScope);
 	sExternal.uiName = Name(pcSymbol->mlliName);
+	bPosition = CPPSyntaxBlockPosition(mpcTree, pcSymbol, &pcFile, &iLine, &iColumn);
+	sExternal.uiFile = bPosition ? File(pcFile) : CPP_SYNTAX_BLOCK_NULL;
+	sExternal.uiLine = bPosition ? (uint32)iLine : CPP_SYNTAX_BLOCK_NO_LINE;
+	sExternal.uiColumn = bPosition ? (uint16)iColumn : CPP_SYNTAX_BLOCK_NULL;
 	ppcFirst = pcSymbol->mpcScope ? pcSymbol->mpcScope->mcSymbols.Get(pcSymbol->mlliName) : NULL;
-	for (pcOther = ppcFirst ? *ppcFirst : NULL; pcOther && (pcOther != pcSymbol); pcOther = pcOther->mpcNext)
+	for (pcOther = ppcFirst ? *ppcFirst : NULL; pcOther; pcOther = pcOther->mpcNext)
 	{
-		sExternal.uiWhich++;
+		if (pcOther->mpcLazy)
+		{
+			continue;
+		}
+		bOtherPosition = CPPSyntaxBlockPosition(mpcTree, pcOther, &pcOtherFile, &iOtherLine, &iOtherColumn);
+		if ((bOtherPosition == bPosition) && (!bPosition || ((pcOtherFile == pcFile) && (iOtherLine == iLine) && (iOtherColumn == iColumn))))
+		{
+			break;
+		}
 	}
-	if (!pcOther || (sExternal.uiScope == CPP_SYNTAX_BLOCK_NULL) || (sExternal.uiName == CPP_SYNTAX_BLOCK_NULL))
+	if ((pcOther != pcSymbol) || (bPosition && (iColumn > CPP_SYNTAX_BLOCK_MOST)) ||(sExternal.uiScope == CPP_SYNTAX_BLOCK_NULL) || (sExternal.uiName == CPP_SYNTAX_BLOCK_NULL))
 	{
 		if (meResult == CPPSB_Written)
 		{
@@ -756,8 +891,8 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 	SMapIterator				sIterator;
 	CCPPSymbol**				ppcSymbol;
 	int64*						plliName;
-	char*						szName;
-	int							iLength;
+	SCPPSyntaxBlockString*		psString;
+	SCPPSyntaxBlockDeclared*	psDeclared;
 	size						uiStart;
 	size						uiEntries;
 	size						uiCount;
@@ -767,7 +902,7 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 
 	U32(CPP_SYNTAX_BLOCK_MAGIC);
 	U16((uint16)mapcNodes.NumElements());
-	U16((uint16)malliNames.NumElements());
+	U16((uint16)masStrings.NumElements());
 	U16((uint16)masExternals.NumElements());
 	U16((uint16)mapcScopes.NumElements());
 	U16((uint16)mapcSymbols.NumElements());
@@ -778,11 +913,11 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		U8((uint8)mapcNodes.GetPtr(i)->GetKind());
 	}
 
-	for (i = 0; i < malliNames.NumElements(); i++)
+	for (i = 0; i < masStrings.NumElements(); i++)
 	{
-		szName = mpcTree->GetTokeniser()->GetIdentifier(*malliNames.Get(i), &iLength);
-		U16((uint16)iLength);
-		Bytes(szName, iLength);
+		psString = masStrings.Get(i);
+		U16((uint16)psString->iLength);
+		Bytes((void*)psString->sz, psString->iLength);
 	}
 
 	for (i = 0; i < masExternals.NumElements(); i++)
@@ -801,7 +936,9 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		{
 			U16(psExternal->uiScope);
 			U16(psExternal->uiName);
-			U16(psExternal->uiWhich);
+			U16(psExternal->uiFile);
+			U32(psExternal->uiLine);
+			U16(psExternal->uiColumn);
 		}
 	}
 
@@ -847,8 +984,18 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		U16(NodeIndex(pcSymbol->mpcDeclaration));
 		U16(Scope(pcSymbol->mpcScope));
 		U16(Scope(pcSymbol->mpcMembers));
-		U16(Symbol(pcSymbol->mpcNext));
+		U16(IsDeclared(pcSymbol) ? CPP_SYNTAX_BLOCK_NULL : Symbol(pcSymbol->mpcNext));
 		U16(NodeIndex(pcSymbol->mpcLazy));
+	}
+
+	U16(Add((uint16)masDeclared.NumElements()));
+	for (i = 0; i < masDeclared.NumElements(); i++)
+	{
+		psDeclared = masDeclared.Get(i);
+		U8(psDeclared->bAlias ? 1 : 0);
+		U16(Scope(psDeclared->pcScope));
+		U16(Name(psDeclared->lliName));
+		U16(Symbol(psDeclared->pcSymbol));
 	}
 
 	cFields.mpcWriting = this;
@@ -874,17 +1021,29 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 //
 // Writes pcDeclaration (a node of pcTree) to pauiDest, appended, as a
 // block whose externals are found from pcGlobal.  CPPSB_Written if it could
-// be (otherwise pauiDest is as it was).
+// be (otherwise pauiDest is as it was).  What it put in scopes outside it
+// is found from their names: its own symbols declared in them, and the
+// names of its own scopes their parents outside it have too (aliases);
+// or is pasDeclared, if it is given (as a block read with it gives them).
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntaxBlock CCPPSyntaxBlockWriter::Write(CCPPSyntaxTree* pcTree, CCPPSyntax* pcDeclaration, CCPPScope* pcGlobal, CArrayUint8* pauiDest)
+ECPPSyntaxBlock CCPPSyntaxBlockWriter::Write(CCPPSyntaxTree* pcTree, CCPPSyntax* pcDeclaration, CCPPScope* pcGlobal, CArrayUint8* pauiDest, CArraySyntaxBlockDeclared* pasDeclared)
 {
 	CCPPSyntaxBlockWriting		cWriting;
 	CCPPSyntaxBlockReferences	cReferences;
 	SCPPTokenSymbol*			psTokenSymbol;
 	ECPPSyntaxBlock				eResult;
+	CCPPSymbol*					pcSymbol;
+	CCPPSymbol**				ppcFirst;
+	CCPPSymbol*					pcOther;
+	CCPPScope*					pcScope;
+	SCPPSyntaxBlockDeclared*	psDeclared;
+	SMapIterator				sIterator;
+	CCPPSymbol**				ppcSymbol;
+	int64*						plliName;
 	size						uiStart;
 	size						i;
+	bool						bMore;
 
 	uiStart = pauiDest->NumElements();
 	cWriting.Init(pcTree, pcGlobal, pauiDest);
@@ -907,6 +1066,61 @@ ECPPSyntaxBlock CCPPSyntaxBlockWriter::Write(CCPPSyntaxTree* pcTree, CCPPSyntax*
 	{
 		psTokenSymbol = pcTree->GetTokenSymbol(cWriting.miFirstToken + (int)i);
 		cWriting.Symbol(psTokenSymbol ? psTokenSymbol->pcSymbol : NULL);
+	}
+
+	//What the declaration put in scopes outside it: its own symbols declared there, then the names of its own scopes
+	//found from their parents outside it (an unscoped enum's enumerators), in the order they were found.
+	if (pasDeclared)
+	{
+		cWriting.masDeclared.Copy(pasDeclared);
+	}
+	for (i = 0; !pasDeclared && (cWriting.meResult == CPPSB_Written) && (i < cWriting.mapcSymbols.NumElements()); i++)
+	{
+		pcSymbol = cWriting.mapcSymbols.GetPtr(i);
+		if (!cWriting.IsDeclared(pcSymbol))
+		{
+			continue;
+		}
+		ppcFirst = pcSymbol->mpcScope->mcSymbols.Get(pcSymbol->mlliName);
+		for (pcOther = ppcFirst ? *ppcFirst : NULL; pcOther && (pcOther != pcSymbol); pcOther = pcOther->mpcNext)
+		{
+		}
+		if (pcOther)
+		{
+			psDeclared = cWriting.masDeclared.Add();
+			psDeclared->pcScope = pcSymbol->mpcScope;
+			psDeclared->lliName = pcSymbol->mlliName;
+			psDeclared->pcSymbol = pcSymbol;
+			psDeclared->bAlias = false;
+		}
+	}
+	for (i = 0; !pasDeclared && (cWriting.meResult == CPPSB_Written) && (i < cWriting.mapcScopes.NumElements()); i++)
+	{
+		pcScope = cWriting.mapcScopes.GetPtr(i);
+		if (!pcScope->mpcParent || cWriting.IsOwn(pcScope->mpcParent))
+		{
+			continue;
+		}
+		for (bMore = pcScope->mcSymbols.StartIteration(&sIterator, (void**)&plliName, NULL, (void**)&ppcSymbol, NULL); bMore; bMore = pcScope->mcSymbols.Iterate(&sIterator, (void**)&plliName, NULL, (void**)&ppcSymbol, NULL))
+		{
+			ppcFirst = pcScope->mpcParent->mcSymbols.Get(*plliName);
+			if (ppcFirst && (*ppcFirst == *ppcSymbol))
+			{
+				psDeclared = cWriting.masDeclared.Add();
+				psDeclared->pcScope = pcScope->mpcParent;
+				psDeclared->lliName = *plliName;
+				psDeclared->pcSymbol = *ppcSymbol;
+				psDeclared->bAlias = true;
+			}
+		}
+	}
+	//Their scopes, names and symbols have references before the bytes are written.
+	for (i = 0; (cWriting.meResult == CPPSB_Written) && (i < cWriting.masDeclared.NumElements()); i++)
+	{
+		psDeclared = cWriting.masDeclared.Get(i);
+		cWriting.Scope(psDeclared->pcScope);
+		cWriting.Name(psDeclared->lliName);
+		cWriting.Symbol(psDeclared->pcSymbol);
 	}
 
 	if (cWriting.meResult == CPPSB_Written)
@@ -934,8 +1148,9 @@ public:
 	CCPPSyntaxTree*			mpcTree;
 	int						miFirstToken;
 	int						miTokens;
-	CArraySyntax			mapcNodes;
-	CArrayTemplate<int64>	malliNames;
+	CArraySyntax				mapcNodes;
+	CArraySyntaxBlockStrings	masStrings;
+	CArrayTemplate<int64>		malliNames;		//By string: its identifier, -2 until it is a name.
 	CArrayScopes			mapcScopes;
 	CArraySymbols			mapcSymbols;
 	CArrayScopes			mapcExternalScopes;		//By external: the scope it is, or NULL.
@@ -950,6 +1165,8 @@ public:
 	void			Bytes(void* pv, size uiSize);
 	CCPPSyntax*		Node(uint16 uiIndex);
 	int64			Name(uint16 uiIndex);
+	bool			IsFile(uint16 uiIndex, CSourceFile* pcFile);
+	CCPPSymbol*		FindExternal(CCPPScope* pcScope, int64 lliName, uint16 uiFile, uint32 uiLine, uint16 uiColumn);
 	CCPPScope*		Scope(uint16 uiReference);
 	CCPPSymbol*		Symbol(uint16 uiReference);
 	int				Token(uint16 uiToken);
@@ -1009,6 +1226,7 @@ void CCPPSyntaxBlockReading::Init(uint8* puiBlock, size uiLength, CCPPSyntaxTree
 	miFirstToken = iFirstToken;
 	miTokens = 0;
 	mapcNodes.Init();
+	masStrings.Init();
 	malliNames.Init();
 	mapcScopes.Init();
 	mapcSymbols.Init();
@@ -1028,6 +1246,7 @@ void CCPPSyntaxBlockReading::Kill(void)
 	mapcSymbols.Kill();
 	mapcScopes.Kill();
 	malliNames.Kill();
+	masStrings.Kill();
 	mapcNodes.Kill();
 }
 
@@ -1116,16 +1335,91 @@ CCPPSyntax* CCPPSyntaxBlockReading::Node(uint16 uiIndex)
 //////////////////////////////////////////////////////////////////////////
 int64 CCPPSyntaxBlockReading::Name(uint16 uiIndex)
 {
+	SCPPSyntaxBlockString*	psString;
+	int64*					plliName;
+	CChars					szName;
+
 	if (uiIndex == CPP_SYNTAX_BLOCK_NULL)
 	{
 		return -1;
 	}
-	if (uiIndex >= malliNames.NumElements())
+	if (uiIndex >= masStrings.NumElements())
 	{
 		mbError = true;
 		return -1;
 	}
-	return *malliNames.Get(uiIndex);
+	plliName = malliNames.Get(uiIndex);
+	if (*plliName == -2)
+	{
+		psString = masStrings.Get(uiIndex);
+		szName.Init(psString->sz, 0, psString->iLength);
+		*plliName = mpcTree->GetTokeniser()->GetIdentifierID(szName.Text());
+		szName.Kill();
+	}
+	return *plliName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the string is pcFile's full name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxBlockReading::IsFile(uint16 uiIndex, CSourceFile* pcFile)
+{
+	SCPPSyntaxBlockString*	psString;
+	char*					szName;
+
+	if (uiIndex >= masStrings.NumElements())
+	{
+		return false;
+	}
+	psString = masStrings.Get(uiIndex);
+	szName = pcFile->FullName();
+	return ((int)strlen(szName) == psString->iLength) && (memcmp(szName, psString->sz, psString->iLength) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first parsed symbol of lliName in pcScope declared at the place (or
+// with no declaration if uiLine is CPP_SYNTAX_BLOCK_NO_LINE).  The name's
+// lazy declarations there are parsed first (CCPPScope::FindHere), as
+// looking it up while parsing would.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPSyntaxBlockReading::FindExternal(CCPPScope* pcScope, int64 lliName, uint16 uiFile, uint32 uiLine, uint16 uiColumn)
+{
+	CCPPSymbol*		pcSymbol;
+	CSourceFile*	pcFile;
+	int				iLine;
+	int				iColumn;
+	bool			bPosition;
+
+	if (!pcScope || (lliName < 0))
+	{
+		return NULL;
+	}
+	for (pcSymbol = pcScope->FindHere(lliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		if (pcSymbol->mpcLazy)
+		{
+			continue;
+		}
+		bPosition = CPPSyntaxBlockPosition(mpcTree, pcSymbol, &pcFile, &iLine, &iColumn);
+		if (uiLine == CPP_SYNTAX_BLOCK_NO_LINE)
+		{
+			if (!bPosition)
+			{
+				return pcSymbol;
+			}
+		}
+		else if (bPosition && ((uint32)iLine == uiLine) && (iColumn == uiColumn) && IsFile(uiFile, pcFile))
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
 }
 
 
@@ -1377,27 +1671,33 @@ static CCPPSyntax* CPPSyntaxBlockCreate(CCPPSyntaxMemory* pcMemory, ECPPSyntax e
 // from iFirstToken, its externals found from pcGlobal: its declaration,
 // whose parent is pcParent, or NULL if the block is wrong or an external
 // isn't found.  Its lazy declarations are parsed by pcLoader.  Its own
-// symbols are in its own scopes (and not added to the scopes outside it).
+// symbols declared in scopes outside it are added to them (as parsing would
+// declare them), and the aliases it made are made again; or if pasDeclared
+// is given, they are only given to it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSyntaxTree* pcTree, int iFirstToken, CCPPScope* pcGlobal, CCPPSyntax* pcParent, CCPPLazyLoader* pcLoader)
+CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSyntaxTree* pcTree, int iFirstToken, CCPPScope* pcGlobal, CCPPSyntax* pcParent, CCPPLazyLoader* pcLoader, CArraySyntaxBlockDeclared* pasDeclared)
 {
 	CCPPSyntaxBlockReading		cReading;
 	CCPPSyntaxBlockFieldReader	cFields;
 	CCPPSymbolTable*			pcSymbols;
 	CCPPScope*					pcScope;
 	CCPPSymbol*					pcSymbol;
-	CCPPSymbol**				ppcFirst;
 	CCPPSyntax*					pcNode;
 	CCPPSyntax*					pcDeclaration;
-	CChars						szName;
+	SCPPSyntaxBlockString*		psString;
+	CArraySyntaxBlockDeclared	asDeclared;
+	SCPPSyntaxBlockDeclared*	psDeclared;
 	uint16						uiNodes;
 	uint16						uiNames;
 	uint16						uiExternals;
 	uint16						uiScopes;
 	uint16						uiSymbols;
 	uint16						uiCount;
-	uint16						uiWhich;
+	uint16						uiName;
+	uint16						uiFile;
+	uint32						uiLine;
+	uint16						uiColumn;
 	uint16						uiParent;
 	uint8						uiKind;
 	uint8						uiRole;
@@ -1406,9 +1706,11 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	size						j;
 
 	cReading.Init(puiBlock, uiLength, pcTree, iFirstToken);
+	asDeclared.Init();
 	pcSymbols = pcTree->GetSymbols();
 	if (cReading.U32() != CPP_SYNTAX_BLOCK_MAGIC)
 	{
+		asDeclared.Kill();
 		cReading.Kill();
 		return NULL;
 	}
@@ -1427,7 +1729,8 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		cReading.mapcNodes.Add(pcNode);
 	}
 
-	//The names, as the tree's tokeniser's identifiers.
+	//The strings, each made an identifier of the tree's tokeniser when it is used as a name.
+	lliName = -2;
 	for (i = 0; (i < uiNames) && !cReading.mbError; i++)
 	{
 		uiCount = cReading.U16();
@@ -1436,9 +1739,9 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 			cReading.mbError = true;
 			break;
 		}
-		szName.Init((char*)&puiBlock[cReading.muiPosition], 0, uiCount);
-		lliName = pcTree->GetTokeniser()->GetIdentifierID(szName.Text());
-		szName.Kill();
+		psString = cReading.masStrings.Add();
+		psString->sz = (char*)&puiBlock[cReading.muiPosition];
+		psString->iLength = uiCount;
 		cReading.malliNames.Add(&lliName);
 		cReading.muiPosition += uiCount;
 	}
@@ -1477,13 +1780,11 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		else if (uiKind == CPP_SYNTAX_BLOCK_SYMBOL)
 		{
 			pcScope = cReading.Scope(cReading.U16());
-			lliName = cReading.Name(cReading.U16());
-			uiWhich = cReading.U16();
-			ppcFirst = pcScope ? pcScope->mcSymbols.Get(lliName) : NULL;
-			for (pcSymbol = ppcFirst ? *ppcFirst : NULL; pcSymbol && (uiWhich > 0); pcSymbol = pcSymbol->mpcNext)
-			{
-				uiWhich--;
-			}
+			uiName = cReading.U16();
+			uiFile = cReading.U16();
+			uiLine = cReading.U32();
+			uiColumn = cReading.U16();
+			pcSymbol = cReading.FindExternal(pcScope, cReading.Name(uiName), uiFile, uiLine, uiColumn);
 			pcScope = NULL;
 		}
 		cReading.mbError |= !pcScope && !pcSymbol;
@@ -1531,6 +1832,18 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		pcSymbol->mpcLoader = pcSymbol->mpcLazy ? pcLoader : NULL;
 	}
 
+	//What it put in scopes outside it, put there again (or given) once the block is read.
+	uiCount = cReading.U16();
+	for (i = 0; (i < uiCount) && !cReading.mbError; i++)
+	{
+		psDeclared = asDeclared.Add();
+		psDeclared->bAlias = cReading.U8() != 0;
+		psDeclared->pcScope = cReading.Scope(cReading.U16());
+		psDeclared->lliName = cReading.Name(cReading.U16());
+		psDeclared->pcSymbol = cReading.Symbol(cReading.U16());
+		cReading.mbError |= !psDeclared->pcScope || !psDeclared->pcSymbol;
+	}
+
 	cFields.mpcReading = &cReading;
 	for (i = 0; (i < uiNodes) && !cReading.mbError; i++)
 	{
@@ -1553,6 +1866,24 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	}
 
 	pcDeclaration = (!cReading.mbError && (cReading.muiPosition == uiLength) && (uiNodes > 0)) ? cReading.mapcNodes.GetPtr(0) : NULL;
+	for (i = 0; pcDeclaration && (i < asDeclared.NumElements()); i++)
+	{
+		psDeclared = asDeclared.Get(i);
+		if (pasDeclared)
+		{
+			pasDeclared->Add(psDeclared);
+		}
+		else if (psDeclared->bAlias)
+		{
+			psDeclared->pcScope->AddAlias(psDeclared->lliName, psDeclared->pcSymbol);
+		}
+		else
+		{
+			psDeclared->pcSymbol->mpcNext = NULL;
+			psDeclared->pcScope->Add(psDeclared->pcSymbol);
+		}
+	}
+	asDeclared.Kill();
 	cReading.Kill();
 	return pcDeclaration;
 }

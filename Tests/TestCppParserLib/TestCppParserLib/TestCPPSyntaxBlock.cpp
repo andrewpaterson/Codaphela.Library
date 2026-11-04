@@ -100,6 +100,7 @@ void TestCPPSyntaxBlockRoundTrip(void)
 {
 	STestSyntaxBlock	sBlock;
 	CArraySyntax		apcDeclarations;
+	CArraySyntaxBlockDeclared	asDeclared;
 	CArrayUint8			auiWritten;
 	CArrayUint8			auiAgain;
 	CCPPSyntax*			pcDeclaration;
@@ -151,11 +152,12 @@ int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int
 		auiWritten.Init();
 		auiAgain.Init();
 		AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cTree, pcDeclaration, pcGlobal, &auiWritten));
-		pcRead = CCPPSyntaxBlockReader::Read(auiWritten.GetData(), auiWritten.NumElements(), &sBlock.cRead, pcDeclaration->miFirstToken, pcGlobal, NULL, NULL);
+		asDeclared.Init();
+		pcRead = CCPPSyntaxBlockReader::Read(auiWritten.GetData(), auiWritten.NumElements(), &sBlock.cRead, pcDeclaration->miFirstToken, pcGlobal, NULL, NULL, &asDeclared);
 		AssertNotNull(pcRead);
 		if (pcRead)
 		{
-			AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cRead, pcRead, pcGlobal, &auiAgain));
+			AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cRead, pcRead, pcGlobal, &auiAgain, &asDeclared));
 			AssertSize(auiWritten.NumElements(), auiAgain.NumElements());
 			if ((auiWritten.NumElements() == auiAgain.NumElements()) && (memcmp(auiWritten.GetData(), auiAgain.GetData(), auiWritten.NumElements()) == 0))
 			{
@@ -175,6 +177,7 @@ int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int
 			szRead.Kill();
 			szWritten.Kill();
 		}
+		asDeclared.Kill();
 		auiAgain.Kill();
 		auiWritten.Kill();
 	}

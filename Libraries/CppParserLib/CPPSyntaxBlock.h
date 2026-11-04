@@ -29,6 +29,20 @@ class CCPPScope;
 class CCPPLazyLoader;
 
 
+//What a block's declaration put in a scope outside it: a symbol of its own declared there (CCPPScope::Add), or a
+//name of the scope that finds its symbol (CCPPScope::AddAlias, as an unscoped enum's enumerators are found).
+struct SCPPSyntaxBlockDeclared
+{
+	CCPPScope*		pcScope;
+	int64			lliName;
+	CCPPSymbol*		pcSymbol;
+	bool			bAlias;
+};
+
+
+typedef CArrayTemplate<SCPPSyntaxBlockDeclared>	CArraySyntaxBlockDeclared;
+
+
 //A declaration of a syntax tree as a block of bytes, the tree's form on disk: its nodes (each kind's fields, as its
 //VisitFields gives them), the scopes and symbols it declares, the symbols and scopes outside it that it refers to (by
 //name: the global scope, the members of a symbol, a name in a scope, a class template's parameters), and what each of
@@ -38,12 +52,15 @@ class CCPPLazyLoader;
 //
 //  u32 magic, u16 nodes, u16 strings, u16 externals, u16 scopes, u16 symbols, u16 tokens
 //  kinds       u8 per node (so every node can be made before any record that refers to one is read)
-//  strings     u16 length, the characters (names)
-//  externals   u8 kind: global scope; members of (u16 symbol); symbol (u16 scope, u16 name, u16 which of the name's);
+//  strings     u16 length, the characters (names, and files')
+//  externals   u8 kind: global scope; members of (u16 symbol); symbol (u16 scope, u16 name, and where its declaration
+//              starts: u16 file's name, u32 line, u16 column);
 //              parent of (u16 scope: a class template's parameters are its members' parent)
 //  scopes      u8 kind, u16 parent, u16 owner, u8 dependent, u16 qualifier, u16 count + bases, u16 count + usings,
 //              u16 count + names (u16 name, u16 symbol)
 //  symbols     u16 name, u8 kind, u16 declaration, u16 scope, u16 members, u16 next, u16 lazy declaration
+//  declared    u16 count + (u8 alias, u16 scope, u16 name, u16 symbol): what it put in scopes outside it, in order: its
+//              own symbols declared there (added when read), and names there finding its symbols (aliases)
 //  nodes       u16 parent, u16 first token, u16 last token, then its fields
 //  tokens      u16 symbol, u8 role
 //
@@ -71,14 +88,14 @@ enum ECPPSyntaxBlock
 class CCPPSyntaxBlockWriter
 {
 public:
-	static ECPPSyntaxBlock	Write(CCPPSyntaxTree* pcTree, CCPPSyntax* pcDeclaration, CCPPScope* pcGlobal, CArrayUint8* pauiDest);
+	static ECPPSyntaxBlock	Write(CCPPSyntaxTree* pcTree, CCPPSyntax* pcDeclaration, CCPPScope* pcGlobal, CArrayUint8* pauiDest, CArraySyntaxBlockDeclared* pasDeclared = NULL);
 };
 
 
 class CCPPSyntaxBlockReader
 {
 public:
-	static CCPPSyntax*		Read(uint8* puiBlock, size uiLength, CCPPSyntaxTree* pcTree, int iFirstToken, CCPPScope* pcGlobal, CCPPSyntax* pcParent, CCPPLazyLoader* pcLoader);
+	static CCPPSyntax*		Read(uint8* puiBlock, size uiLength, CCPPSyntaxTree* pcTree, int iFirstToken, CCPPScope* pcGlobal, CCPPSyntax* pcParent, CCPPLazyLoader* pcLoader, CArraySyntaxBlockDeclared* pasDeclared = NULL);
 };
 
 
