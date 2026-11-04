@@ -585,6 +585,12 @@ void CBaseObject::ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters
 		return;
 	}
 
+	//Objects in the batch being freed are gone already.
+	if (muiFlags & OBJECT_FLAGS_FREED)
+	{
+		return;
+	}
+
 	if (!(muiFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
 	{
 		iDistToRoot = miDistToRoot;
@@ -666,6 +672,12 @@ size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters
 	}
 
 	if (muiFlags & OBJECT_FLAGS_DIST_FROM_WALKED)
+	{
+		return 0;
+	}
+
+	//Objects in the batch being freed are gone already: neither collected nor walked through.
+	if (muiFlags & OBJECT_FLAGS_FREED)
 	{
 		return 0;
 	}
@@ -773,6 +785,13 @@ EFreeResult CBaseObject::TryFree(bool bHeapFromChanged)
 	EFreeResult				eResult;
 	
 	if (IsRoot())
+	{
+		return FR_NotFreed;
+	}
+
+	//Already in the batch being freed (a pointer changed in a Free()).  Working out what this detaches would find the
+	//whole batch again, for every such change.
+	if (muiFlags & OBJECT_FLAGS_FREED)
 	{
 		return FR_NotFreed;
 	}

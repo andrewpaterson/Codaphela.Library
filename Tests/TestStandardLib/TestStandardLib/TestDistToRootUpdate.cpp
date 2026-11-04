@@ -81,6 +81,33 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Its Free() lets go of a shared object through a stack pointer (as a
+// canvas's Free() hands its image to SetImage).
+//
+//////////////////////////////////////////////////////////////////////////
+class CDistToRootFreeingHolder : public CObject
+{
+CONSTRUCTABLE(CDistToRootFreeingHolder);
+DESTRUCTABLE(CDistToRootFreeingHolder);
+public:
+	Ptr<CTestObject>	mpShared;
+
+	void Init(Ptr<CTestObject> pShared) { PreInit(); mpShared = pShared; PostInit(); }
+	void Class(void) override { M_Pointer(mpShared); }
+	void Free(void) override
+	{
+		Ptr<CTestObject>	pShared;
+
+		pShared = mpShared;
+		mpShared = NULL;
+	}
+	bool Save(CObjectWriter* pcFile) override { return false; }
+	bool Load(CObjectReader* pcFile) override { return false; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every object in memory's distance to the root, worked out with a breadth
 // first search from the root through the objects' pointers (and their
 // embedded objects' and collections'), is the distance it holds.  Objects
@@ -1532,6 +1559,77 @@ void TestDistToRootUpdateLongChain(size uiLength)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A batch of objects freed together, each of which changes pointers in its
+// Free().  Those changes must not each work out again what the whole batch
+// detaches (it took over a minute for an IDE window).  Returns the
+// milliseconds freeing took.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateFreeBatchChangingPointers(size uiHolders, bool bValidate)
+{
+	Ptr<CArrayObject>			pHolders;
+	Ptr<CTestObject>			pShared;
+	STestObjectFreedNotifier	sSharedNotifier;
+	CTimer						cTimer;
+	float						fMilliseconds;
+	size						i;
+
+	ObjectsInit();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	{
+		pHolders = OMalloc<CArrayObject>();
+		ORoot()->Add(pHolders);
+		pShared = OMalloc<CTestObject>(&sSharedNotifier);
+		for (i = 0; i < uiHolders; i++)
+		{
+			Ptr<CDistToRootFreeingHolder>	pHolder;
+
+			pHolder = OMalloc<CDistToRootFreeingHolder>(pShared);
+			pHolders->Add(pHolder);
+		}
+		pShared = NULL;
+		AssertLong(4 + (int64)uiHolders, gcObjects.NumMemoryIndexes());
+		AssertFalse(sSharedNotifier.bFreed);
+
+		cTimer.Init();
+		ORoot()->Remove(pHolders);
+		pHolders = NULL;
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		AssertTrue(sSharedNotifier.bFreed);
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+		gcObjects.EnableValidation();
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateFreeBatchSpeed(void)
+{
+	size		uiDepth;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	fMilliseconds = TestDistToRootUpdateFreeBatchChangingPointers((size)1 << (uiDepth + 6), false);
+	LogDistToRootSpeed("Free a batch changing pointers", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdate(void)
@@ -1565,6 +1663,8 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateBuildUnrooted(20, 10, true);
 	TestDistToRootUpdateBuildUnrootedSpeed();
 	TestDistToRootUpdateLongChain(DIST_TO_ROOT_LONG_CHAIN);
+	TestDistToRootUpdateFreeBatchChangingPointers(5, true);
+	TestDistToRootUpdateFreeBatchSpeed();
 
 	DataIOKill();
 	TypesKill();
