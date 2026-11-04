@@ -803,6 +803,82 @@ void SaveDehollowficationEmbeddedPointers(char* szDirectory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A fat hollow pointed to only through one of its embedded hollows (once
+// the pointer to the hollow itself goes) is still reached from the root:
+// it keeps its distance to the root and isn't freed, and loading it gives
+// the pointer the real embedded object.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationFatHeldOnlyThroughEmbedded(void)
+{
+	ForceFatHollows();
+
+	CCodabase*					pcDatabase;
+	CSequence*					pcSequence;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Database5";
+
+	cFileUtil.RemoveDir(szDirectory);
+	SaveDehollowficationEmbeddedPointers(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CPointerContainer>		pPtr1;
+		Ptr<CPointerContainer>		pPtr2;
+		Ptr<CString>				pString2;
+		CEmbeddedObject*			pcHollowEmbedded;
+		CBaseObject*				pcHollow;
+
+		pRoot = ORoot();
+		pRoot->TouchAll();
+		pPtr1 = gcObjects.Get("1");
+		pPtr2 = gcObjects.Get("2");
+
+		pcHollowEmbedded = pPtr2->mp.Object();
+		AssertTrue(pcHollowEmbedded->IsHollow());
+		pcHollow = pcHollowEmbedded->GetEmbeddingContainer();
+		AssertPointer(pPtr1->mp.Object(), pcHollow);
+		AssertInt(3, pcHollow->GetDistToRoot());
+		AssertSize(1, pcHollow->CEmbeddedObject::NumHeapFroms());
+		AssertSize(1, pcHollowEmbedded->CEmbeddedObject::NumHeapFroms());
+		AssertSize(2, pcHollow->NumHeapFroms());
+		gcObjects.ValidateObjectsConsistency();
+
+		//Only "2"'s pointer to its embedded hollow is left.
+		pPtr1->mp = NULL;
+		AssertSize(0, pcHollow->CEmbeddedObject::NumHeapFroms());
+		AssertPointer(pcHollowEmbedded, pPtr2->mp.Object());
+		AssertPointer(pcHollow, gcObjects.TestGetFromMemory("Embedded").Object());
+		AssertInt(3, pcHollow->GetDistToRoot());
+		gcObjects.ValidateObjectsConsistency();
+
+		pString2 = pPtr2->mp;
+		AssertString("Jane is great", pString2->Text());
+
+		//The loaded object has taken the hollow's place; nothing else holds it once "2" lets go.
+		pString2 = NULL;
+		pPtr2->mp = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("Embedded").Object());
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	UnforceFatHollows();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A pointer to an embedded object read after its object is already in
 // memory (loaded, not hollow) points to that embedded object, not the
 // object.  Then letting go of both pointers frees the object.
@@ -876,6 +952,7 @@ void TestDehollowfication(void)
 	TestDehollowficationFromChunkFileSource();
 	TestDehollowficationFatFromDatabaseSimple();
 	TestDehollowficationFatFromDatabaseEmbeddedPointer();
+	TestDehollowficationFatHeldOnlyThroughEmbedded();
 	TestDehollowficationEmbeddedPointerToLoadedObject();
 
 	DataIOKill();

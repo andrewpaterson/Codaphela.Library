@@ -351,6 +351,46 @@ size CHollowObject::NumStackFroms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// This hollow's heap froms and its hollow embedded objects' (as
+// NumHeapFroms counts them).
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	CEmbeddedObject::GetHeapFroms(papcFroms);
+	uiNumEmbedded = NumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
+	{
+		GetEmbeddedObject(i)->GetHeapFroms(papcFroms);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This hollow's stack froms and its hollow embedded objects' (as
+// NumStackFroms counts them).
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	CEmbeddedObject::GetStackFroms(papcFroms);
+	uiNumEmbedded = NumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
+	{
+		GetEmbeddedObject(i)->GetStackFroms(papcFroms);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::ValidateConsistency(void)

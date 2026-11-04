@@ -157,6 +157,10 @@ public:
 
 			void				DumpHeapFroms(void);
 
+public:
+	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);  //This object's stack froms and those of the objects embedded in it.
+	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);  //This object's heap froms and those of the objects embedded in it.
+
 protected:
 			bool				LinkStackFrom(CStackPointer* pcStackPointer);
 	virtual void				Allocate(CObjects* pcObjects);
@@ -164,8 +168,6 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
-	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
-	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
 			void				ValidateObjectsConsistency(bool bValidate);
 };

@@ -712,8 +712,8 @@ bool CBaseObject::IsHeldFromStackOrRoot(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // How many objects have heap froms for this: this and the objects embedded
-// in it (GetEmbeddedObject).  A hollow object's hollow embedded objects'
-// froms are not counted (as they never have been).
+// in it (GetEmbeddedObject), a hollow object's hollow embedded objects too
+// (something may point only to one of those).
 //
 //////////////////////////////////////////////////////////////////////////
 size CBaseObject::NumHeapFromHolders(void)
@@ -725,10 +725,6 @@ size CBaseObject::NumHeapFromHolders(void)
 	if (uiNumEmbedded == 0)
 	{
 		uiNumEmbedded = NumEmbedded();
-	}
-	if ((uiNumEmbedded > 1) && IsHollow())
-	{
-		return 1;
 	}
 	return uiNumEmbedded;
 }
