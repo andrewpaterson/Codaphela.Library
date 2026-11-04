@@ -88,7 +88,6 @@ public:
 
 	void				CopyFields(CEmbeddedObject* pcOther) override;
 
-	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
 
 protected:

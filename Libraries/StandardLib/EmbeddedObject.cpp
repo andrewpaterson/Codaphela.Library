@@ -1146,7 +1146,8 @@ void CEmbeddedObject::ValidateFroms(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Each of this object's own pointers points to an object with a from back
-// to this.
+// to this.  Embedded objects check their own (ValidateEmbeddedConsistency
+// goes through them all).
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidatePointerTos(void)

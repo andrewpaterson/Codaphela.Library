@@ -1261,28 +1261,6 @@ bool CObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::ValidatePointerTos(void)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	//Each embedded object fully, so objects embedded in those are validated too.
-	CEmbeddedObject::ValidatePointerTos();
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidatePointerTos();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::ValidateEmbeddedConsistency(void)
 {
 	size			i;

@@ -7,6 +7,9 @@
 #include "StandardLib/Objects.h"
 #include "StandardLib/PointerContainer.h"
 #include "StandardLib/Array.h"
+#include "StandardLib/MapObject.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/FileBasic.h"
 #include "TestLib/Assert.h"
 #include "TestBaseObject.h"
 #include "ObjectTestSetup.h"
@@ -809,6 +812,211 @@ void TestEmbeddedNestedCollectionHeldFromStack(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object with a pointer of its own and an embedded object holding a
+// collection.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestEnumeratedOuter : public CObject
+{
+CONSTRUCTABLE(CTestEnumeratedOuter);
+DESTRUCTABLE(CTestEnumeratedOuter);
+public:
+	Ptr<CTestObject>			mpOwn;
+	CTestNestedCollectionInner	mcInner;
+
+	void Init(void) { PreInit(); mcInner.Init(); PostInit(); }
+	void Class(void) override { M_Pointer(mpOwn); M_Embedded(mcInner); }
+	void Free(void) override {}
+	bool Save(CObjectWriter* pcFile) override { return false; }
+	bool Load(CObjectReader* pcFile) override { return false; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether apcTos is exactly the objects given, in order.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertPointerTos(CArrayEmbeddedObjectPtr* papcTos, CEmbeddedObject* pc1 = NULL, CEmbeddedObject* pc2 = NULL, CEmbeddedObject* pc3 = NULL)
+{
+	CEmbeddedObject*	apcExpected[3];
+	size				uiExpected;
+	size				i;
+
+	apcExpected[0] = pc1;
+	apcExpected[1] = pc2;
+	apcExpected[2] = pc3;
+	for (uiExpected = 0; (uiExpected < 3) && (apcExpected[uiExpected] != NULL); uiExpected++)
+	{
+	}
+	AssertSize(uiExpected, papcTos->NumElements());
+	for (i = 0; (i < uiExpected) && (i < papcTos->NumElements()); i++)
+	{
+		AssertPointer(apcExpected[i], papcTos->GetPtr(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GetPointerTos lists an object's pointer tos and its embedded objects'
+// (however deep), BaseGetPointerTos only its own, NULLs never.  A map
+// lists each key then its value.  ContainsPointerTo looks at an object's
+// own pointers only.  The distance walks and validation all use these.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedPointerTosListing(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestEnumeratedOuter>	pOuter;
+		Ptr<CTestObject>			pOwn;
+		Ptr<CTestObject>			pA;
+		Ptr<CTestObject>			pB;
+		Ptr<CTestObject>			pNull;
+		Ptr<CMapObject>				pMap;
+		CArrayEmbeddedObjectPtr		apcTos;
+
+		pOuter = OMalloc<CTestEnumeratedOuter>();
+		pOwn = OMalloc<CTestObject>();
+		pA = OMalloc<CTestObject>();
+		pB = OMalloc<CTestObject>();
+		pOuter->mpOwn = pOwn;
+		pOuter->mcInner.maObjects.Add(pA);
+		pOuter->mcInner.maObjects.Add(pNull);
+		pOuter->mcInner.maObjects.Add(pB);
+
+		apcTos.Init();
+		pOuter->GetPointerTos(&apcTos);
+		AssertPointerTos(&apcTos, &pOwn, &pA, &pB);
+		apcTos.Kill();
+
+		apcTos.Init();
+		pOuter->BaseGetPointerTos(&apcTos);
+		AssertPointerTos(&apcTos, &pOwn);
+		apcTos.Kill();
+
+		apcTos.Init();
+		pOuter->mcInner.GetPointerTos(&apcTos);
+		AssertPointerTos(&apcTos, &pA, &pB);
+		apcTos.Kill();
+
+		apcTos.Init();
+		pOuter->mcInner.BaseGetPointerTos(&apcTos);
+		AssertPointerTos(&apcTos);
+		apcTos.Kill();
+
+		apcTos.Init();
+		pOuter->mcInner.maObjects.BaseGetPointerTos(&apcTos);
+		AssertPointerTos(&apcTos, &pA, &pB);
+		apcTos.Kill();
+
+		AssertTrue(pOuter->ContainsPointerTo(&pOwn));
+		AssertFalse(pOuter->ContainsPointerTo(&pA));
+		AssertFalse(pOuter->mcInner.ContainsPointerTo(&pA));
+		AssertTrue(pOuter->mcInner.maObjects.ContainsPointerTo(&pA));
+		AssertFalse(pOuter->mcInner.maObjects.ContainsPointerTo(&pOwn));
+
+		pMap = OMalloc<CMapObject>();
+		pMap->Put(pA, pNull);
+		pMap->Put(pB, pOwn);
+		apcTos.Init();
+		pMap->GetPointerTos(&apcTos);
+		AssertSize(3, apcTos.NumElements());
+		if (apcTos.GetPtr(0) == &pA)
+		{
+			AssertPointerTos(&apcTos, &pA, &pB, &pOwn);
+		}
+		else
+		{
+			AssertPointerTos(&apcTos, &pB, &pOwn, &pA);
+		}
+		apcTos.Kill();
+
+		pMap = NULL;
+		pOuter = NULL;
+		pOwn = NULL;
+		pA = NULL;
+		pB = NULL;
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What validating every object logs (truncated to uiSize).
+//
+//////////////////////////////////////////////////////////////////////////
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize)
+{
+	CMemoryFile		cMemory;
+	CFileBasic		cBasicMemory;
+	SLogConfig		sLogConfig;
+
+	memset(szErrors, 0, uiSize);
+	sLogConfig = gcLogger.SetSilent();
+	cMemory.Init();
+	gcLogger.AddOutput(&cMemory);
+	gcObjects.ValidateObjectsConsistency();
+	gcLogger.RemoveOutput(&cMemory);
+	gcLogger.SetConfig(&sLogConfig);
+
+	cMemory.Open(EFM_Read);
+	cBasicMemory.Init(&cMemory);
+	if (cBasicMemory.Size() > 0)
+	{
+		cBasicMemory.ReadStringChars(szErrors, (size)((cBasicMemory.Size() < (filePos)uiSize - 1) ? cBasicMemory.Size() : (filePos)uiSize - 1));
+	}
+	cMemory.Close();
+	cMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer two embeddings deep whose object has no from back to it is
+// reported, once (each embedded object checks only its own pointers).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedNestedPointerValidated(void)
+{
+	char	szErrors[1024];
+	char*	pcError;
+
+	ObjectsInit();
+	{
+		Ptr<CTestNestedCollectionOuter>	pOuter;
+		Ptr<CTestObject>				pObject;
+
+		pOuter = OMalloc<CTestNestedCollectionOuter>();
+		pObject = OMalloc<CTestObject>();
+		pOuter->mcInner.maObjects.Add(pObject);
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		AssertTrue(pObject->TestRemoveHeapFrom(&pOuter->mcInner.maObjects));
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		pcError = strstr(szErrors, "does not have a from pointing to");
+		AssertNotNull(pcError);
+		AssertNull(strstr(pcError + 1, "does not have a from pointing to"));
+
+		pObject->AddHeapFrom(&pOuter->mcInner.maObjects, false);
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pOuter = NULL;
+		pObject = NULL;
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbedded(void)
@@ -833,6 +1041,8 @@ void TestEmbedded(void)
 	TestEmbeddedObjectPointedToNoRemove();
 	TestEmbeddedNestedCollectionHeldFromStack();
 	TestEmbeddedNestedDistToStackStartsUnknown();
+	TestEmbeddedPointerTosListing();
+	TestEmbeddedNestedPointerValidated();
 
 	DataIOKill();
 	TypesKill();
