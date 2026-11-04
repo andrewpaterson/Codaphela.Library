@@ -616,6 +616,73 @@ void TestCPP816BitTable64(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An int count of 64 bit shifts, extended to 64 bits for the IR, has only
+// its low word worked out (CIR816Backend::Extend, OnlyCounts): the shift
+// routines read only its 6 bits.  Its sign words aren't, here or in the
+// shifts by a signed count, and the results are as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ShiftCounts(void)
+{
+	static const char*	aszNoUnits[] = { NULL };
+	static const char*	aszLines[] = { "ullSum += gullValue >> n;", "ullSum ^= gullValue << n;", "ullSum += (unsigned long long)((long long)gullValue >> n);", NULL };
+	CChars				szListing;
+	char*				szShift;
+	char*				szCall;
+	char*				szEnd;
+	unsigned long long	ullValue;
+	unsigned long long	ullSum;
+	int					i;
+
+	ullValue = 0x923456789ABCDEF1ULL;
+	ullSum = 0;
+	for (i = 0; i < 64; i++)
+	{
+		ullSum += ullValue >> i;
+		ullSum ^= ullValue << i;
+		ullSum += (unsigned long long)((long long)ullValue >> i);
+	}
+
+	szListing.Init();
+	AssertInt((int)((ullSum ^ (ullSum >> 16) ^ (ullSum >> 32) ^ (ullSum >> 48)) & 0x7FFF), TestCPP816RunListed(
+		"volatile int giCount;\n"
+		"unsigned long long gullValue = 0x923456789ABCDEF1ULL;\n"
+		"int main(void)\n"
+		"{\n"
+		"\tunsigned long long ullSum = 0;\n"
+		"\tint i;\n"
+		"\tfor (i = 0; i < 64; i++)\n"
+		"\t{\n"
+		"\t\tgiCount = i;\n"
+		"\t\tint n = giCount;\n"
+		"\t\tullSum += gullValue >> n;\n"
+		"\t\tullSum ^= gullValue << n;\n"
+		"\t\tullSum += (unsigned long long)((long long)gullValue >> n);\n"
+		"\t}\n"
+		"\treturn (int)((ullSum ^ (ullSum >> 16) ^ (ullSum >> 32) ^ (ullSum >> 48)) & 0x7FFF);\n"
+		"}\n", aszNoUnits, &szListing, NULL, 0, true));
+
+	//From each shift's line to its call, nothing works out a sign.
+	for (i = 0; aszLines[i]; i++)
+	{
+		szShift = strstr(szListing.Text(), aszLines[i]);
+		AssertNotNull(szShift);
+		szCall = szShift ? strstr(szShift, "jsl R816_") : NULL;
+		AssertNotNull(szCall);
+		if (szShift && szCall)
+		{
+			for (szEnd = szShift; szEnd < szCall; szEnd++)
+			{
+				AssertFalse((strncmp(szEnd, "eor 0xFFFF", 10) == 0) || (strncmp(szEnd, "adc 0xFFFF", 10) == 0));
+			}
+		}
+	}
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Shifts by constants of 16 bits or more (whole words moved, then bits):
 // 32 and 64 bit shl, lshr and ashr, against one bit shifts repeated.
 //
@@ -5068,6 +5135,7 @@ void TestCPP816(void)
 	TestCPP816Divide64();
 	TestCPP816BitTables();
 	TestCPP816BitTable64();
+	TestCPP816ShiftCounts();
 	TestCPP816IndexedWords();
 	TestCPP816SmallShifts();
 	TestCPP816ScratchOperands();

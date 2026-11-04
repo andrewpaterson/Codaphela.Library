@@ -1014,6 +1014,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	mcLoops.Init();
 	mpcDominators = NULL;
 	maiUses.Init();
+	maiCountUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
 	masArguments.Init();
@@ -1037,6 +1038,7 @@ void CIR816Backend::Kill(void)
 	maiIncoming.Kill();
 	mabInX.Kill();
 	maiUseBlock.Kill();
+	maiCountUses.Kill();
 	maiUses.Kill();
 	masFoldIndex.Kill();
 	maiFoldOffset.Kill();
@@ -1487,8 +1489,10 @@ void CIR816Backend::FoldPointers(void)
 	masFoldIndex.FakeSetUsedElements(0);
 	aiAddressUses.Init();
 	aiUses.Init();
+	maiCountUses.FakeSetUsedElements(0);
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
+		maiCountUses.Add(&iZero);
 		masFoldBase.Add(&sNone);
 		maiFoldOffset.Add(&iZero);
 		masFoldIndex.Add(&sNone);
@@ -1522,6 +1526,10 @@ void CIR816Backend::FoldPointers(void)
 					if (((psInstruction->uiOpcode == IRO_Load) && (uk == 0)) || ((psInstruction->uiOpcode == IRO_Store) && (uk == 1)))
 					{
 						(*aiAddressUses.Get(psInstruction->asArguments[uk].Index()))++;
+					}
+					if ((uk == 1) && ((psInstruction->uiOpcode == IRO_Shl) || (psInstruction->uiOpcode == IRO_LShr) || (psInstruction->uiOpcode == IRO_AShr)))
+					{
+						(*maiCountUses.Get(psInstruction->asArguments[uk].Index()))++;
 					}
 				}
 			}
@@ -10766,6 +10774,13 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 	iWords = Words(sType);
 	iCopied = (iSourceWords < iWords) ? iSourceWords : iWords;
 
+	//Only shifts' counts: they read the low word, and only its 6 bits, which extending 8 bits or more doesn't change.
+	if (((psInstruction->uiOpcode == IRO_SExt) || (psInstruction->uiOpcode == IRO_ZExt)) && !sSource.Is(IRTK_I1) && OnlyCounts(psInstruction->sResult))
+	{
+		CopyWords(iResult, sValue, 1);
+		return;
+	}
+
 	if (psInstruction->uiOpcode == IRO_SExt)
 	{
 		if (sSource.Is(IRTK_I1))
@@ -10809,6 +10824,26 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 		Line("and 0xFF");
 		Frame("sta", iResult + 2);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a temporary is used, and only as the count of shifts by a count
+// known when they run (all of which read just its low word: BitShift,
+// ShiftInA, ShiftInMemory, ShiftCall).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::OnlyCounts(SIRReference sValue)
+{
+	size	ui;
+
+	if (!sValue.IsTemporary())
+	{
+		return false;
+	}
+	ui = sValue.Index();
+	return (ui < maiCountUses.NumElements()) && (ui < maiUses.NumElements()) && (*maiCountUses.Get(ui) > 0) && (*maiCountUses.Get(ui) == *maiUses.Get(ui));
 }
 
 

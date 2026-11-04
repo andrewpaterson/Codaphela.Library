@@ -144,6 +144,7 @@ protected:
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
 	CArrayTemplate<SIRReference>	masFoldIndex;	//Per temporary: the i16 a folded pointer adds in Y instead (its offset is 0), else none.
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
+	CArrayTemplate<int32>	maiCountUses;		//Per temporary: how many of those are as the count of a shift by a count known when it runs.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
 	CIRDominators			mcDominators;		//The function's, worked out once (GenerateFunction)...
@@ -272,6 +273,7 @@ protected:
 	bool			IsRegisterCall(SIRReference sCallee);
 	void			FunctionArguments(void);
 	void			RegisterStub(CChars* pszBodyLabel);
+	bool			OnlyCounts(SIRReference sValue);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
 	void			StackLine(const char* szInstruction, int iOffset);
