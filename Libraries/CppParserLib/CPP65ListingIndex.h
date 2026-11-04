@@ -36,13 +36,15 @@ struct SCPP65Listing
 
 
 //Listing lines uiFirstLine to uiEndLine (exclusive, from 0) of listing uiListing are code for line uiLine (from 0) of
-//source file uiFile, in function (label) uiFunction.
+//source file uiFile, in function (label) uiFunction.  The labels just before its .line, lines uiFirstLabel to the .line
+//(uiFirstLine - 1), are where it is jumped to; uiFirstLabel is the .line's if there are none.
 struct SCPP65ListingRange
 {
 	size	uiFile;
 	size	uiLine;
 	size	uiListing;
 	size	uiFunction;
+	size	uiFirstLabel;
 	size	uiFirstLine;
 	size	uiEndLine;
 };
@@ -91,6 +93,7 @@ public:
 	void				GetPlaces(const char* szSourceFile, size uiLine, CArrayCPP65ListingPlaces* pasDest);
 	void				GetLines(const char* szSourceFile, CArrayCPP65ListingLines* pauiDest);
 	void				AppendLines(size uiListing, size uiFirstLine, size uiEndLine, CChars* pszDest);
+	void				AppendRange(SCPP65ListingRange* psRange, CChars* pszDest);
 
 	size				NumListings(void);
 	char*				GetListingName(size uiListing);

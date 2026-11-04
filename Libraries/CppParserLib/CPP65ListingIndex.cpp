@@ -163,8 +163,10 @@ void CCPP65ListingIndex::AddListing(const char* szName, const char* szText)
 //
 // A source line's code runs from the line after its .line to the next
 // .line, .section or .fingerprint (labels in it are kept), less blank
-// lines at its end.  Its function is its section's name less "text.".
-// Code before a section's first .line has no source line.
+// lines at its end.  Labels just before a .line are its line's, not the
+// code's before: they are where the line's code is jumped to.  Its
+// function is its section's name less "text.".  Code before a section's
+// first .line has no source line.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65ListingIndex::IndexListing(size uiListing)
@@ -178,6 +180,9 @@ void CCPP65ListingIndex::IndexListing(size uiListing)
 	const char*			szName;
 	SCPP65ListingRange	sRange;
 	bool				bInRange;
+	size				uiCodeEnd;
+	size				uiFirstLabel;
+	size				uiSourceLine;
 	CChars				szFile;
 
 	psListing = masListings.Get(uiListing);
@@ -186,6 +191,8 @@ void CCPP65ListingIndex::IndexListing(size uiListing)
 	sRange.uiListing = uiListing;
 	sRange.uiFunction = MAX_SIZE;
 	bInRange = false;
+	uiCodeEnd = 0;
+	uiFirstLabel = MAX_SIZE;
 	for (uiLine = 0; uiLine < psListing->auiLineStarts.NumElements(); uiLine++)
 	{
 		szLine = szText + *psListing->auiLineStarts.Get(uiLine);
@@ -205,37 +212,70 @@ void CCPP65ListingIndex::IndexListing(size uiListing)
 		//Directives are indented; a line at the start is a label, kept in the range like an instruction.
 		if ((szTrimmed == szLine) || !(StartsWith(szTrimmed, szEnd, CPP65_LISTING_LINE) || StartsWith(szTrimmed, szEnd, CPP65_LISTING_SECTION) || StartsWith(szTrimmed, szEnd, CPP65_LISTING_FINGERPRINT)))
 		{
-			//A line that isn't blank is the last of the range so far.
-			if (bInRange && (szTrimmed < szEnd))
+			if (szTrimmed < szEnd)
 			{
+				//A label starts or adds to the labels since the last instruction.
+				if (szTrimmed == szLine)
+				{
+					if (uiFirstLabel == MAX_SIZE)
+					{
+						uiFirstLabel = uiLine;
+					}
+				}
+				else
+				{
+					uiFirstLabel = MAX_SIZE;
+					uiCodeEnd = uiLine + 1;
+				}
+
+				//A line that isn't blank is the last of the range so far.
 				sRange.uiEndLine = uiLine + 1;
 			}
 			continue;
 		}
 
-		EndRange(&sRange, bInRange);
-		bInRange = false;
 		if (StartsWith(szTrimmed, szEnd, CPP65_LISTING_LINE))
 		{
 			szFile.Init();
-			if (ReadLineDirective(szTrimmed + strlen(CPP65_LISTING_LINE), szEnd, &szFile, &sRange.uiLine))
+			if (ReadLineDirective(szTrimmed + strlen(CPP65_LISTING_LINE), szEnd, &szFile, &uiSourceLine))
 			{
+				//The labels before the .line go with it.
+				if (uiFirstLabel != MAX_SIZE)
+				{
+					sRange.uiEndLine = uiCodeEnd;
+				}
+				EndRange(&sRange, bInRange);
+
+				sRange.uiLine = uiSourceLine;
 				sRange.uiFile = AddFile(szFile.Text());
+				sRange.uiFirstLabel = (uiFirstLabel != MAX_SIZE) ? uiFirstLabel : uiLine;
 				sRange.uiFirstLine = uiLine + 1;
 				sRange.uiEndLine = uiLine + 1;
+				uiCodeEnd = uiLine + 1;
 				bInRange = true;
+			}
+			else
+			{
+				EndRange(&sRange, bInRange);
+				bInRange = false;
 			}
 			szFile.Kill();
 		}
-		else if (StartsWith(szTrimmed, szEnd, CPP65_LISTING_SECTION))
+		else
 		{
-			szName = szTrimmed + strlen(CPP65_LISTING_SECTION);
-			if (StartsWith(szName, szEnd, CPP65_LISTING_TEXT_SECTION))
+			EndRange(&sRange, bInRange);
+			bInRange = false;
+			if (StartsWith(szTrimmed, szEnd, CPP65_LISTING_SECTION))
 			{
-				szName += strlen(CPP65_LISTING_TEXT_SECTION);
+				szName = szTrimmed + strlen(CPP65_LISTING_SECTION);
+				if (StartsWith(szName, szEnd, CPP65_LISTING_TEXT_SECTION))
+				{
+					szName += strlen(CPP65_LISTING_TEXT_SECTION);
+				}
+				sRange.uiFunction = AddFunction(szName, (size)(szEnd - szName));
 			}
-			sRange.uiFunction = AddFunction(szName, (size)(szEnd - szName));
 		}
+		uiFirstLabel = MAX_SIZE;
 	}
 	EndRange(&sRange, bInRange);
 	mbSorted = false;
@@ -461,6 +501,18 @@ void CCPP65ListingIndex::AppendLines(size uiListing, size uiFirstLine, size uiEn
 	{
 		pszDest->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends psRange's labels and then its code, without its .line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65ListingIndex::AppendRange(SCPP65ListingRange* psRange, CChars* pszDest)
+{
+	AppendLines(psRange->uiListing, psRange->uiFirstLabel, psRange->uiFirstLine - 1, pszDest);
+	AppendLines(psRange->uiListing, psRange->uiFirstLine, psRange->uiEndLine, pszDest);
 }
 
 

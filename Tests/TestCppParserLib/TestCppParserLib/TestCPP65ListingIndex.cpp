@@ -93,24 +93,32 @@ void TestCPP65ListingIndexText(void)
 	AssertString("C:\\Src\\A.cpp", cIndex.GetFile(0));
 	AssertSize(6, cIndex.NumRanges());
 
-	//A.cpp's line 3 (2 from 0) is two pieces of _f, the label between them kept.
+	//A.cpp's line 3 (2 from 0) is two pieces of _f, without the label after the first: it's line 4's.
 	cIndex.GetPlaces("C:\\Src\\A.cpp", 2, &asPlaces);
 	AssertSize(1, asPlaces.NumElements());
 	psPlace = asPlaces.Get(0);
 	AssertSize(0, psPlace->uiListing);
 	AssertString("_f", cIndex.GetFunction(psPlace->uiFunction));
 	AssertSize(2, psPlace->uiNumRanges);
-	AssertListingRange(6, 9, &cIndex, psPlace, 0);
+	AssertListingRange(6, 8, &cIndex, psPlace, 0);
 	AssertListingRange(14, 16, &cIndex, psPlace, 1);
+	AssertSize(5, cIndex.GetRange(psPlace->uiFirstRange)->uiFirstLabel);
 	szLines.Init();
-	cIndex.AppendLines(0, 6, 9, &szLines);
-	AssertString("\t\t; A.cpp(3): for (i = 0; i < n; i++)\n\t\tlda 0\nL1:\n", szLines.Text());
+	cIndex.AppendRange(cIndex.GetRange(psPlace->uiFirstRange), &szLines);
+	AssertString("\t\t; A.cpp(3): for (i = 0; i < n; i++)\n\t\tlda 0\n", szLines.Text());
 	szLines.Kill();
 
-	//Line 4 without the blank line after it; the file found whatever its case and slashes.
+	//Line 4 with the label before its .line, and without the blank line after it; the file found whatever its case
+	//and slashes.
 	cIndex.GetPlaces("c:/src/a.CPP", 3, &asPlaces);
 	AssertSize(1, asPlaces.NumElements());
-	AssertListingRange(10, 12, &cIndex, asPlaces.Get(0), 0);
+	psPlace = asPlaces.Get(0);
+	AssertListingRange(10, 12, &cIndex, psPlace, 0);
+	AssertSize(8, cIndex.GetRange(psPlace->uiFirstRange)->uiFirstLabel);
+	szLines.Init();
+	cIndex.AppendRange(cIndex.GetRange(psPlace->uiFirstRange), &szLines);
+	AssertString("L1:\n\t\t; A.cpp(4): s += i;\n\t\tclc\n", szLines.Text());
+	szLines.Kill();
 
 	//The header's line is in both units, in the order they were added.
 	cIndex.GetPlaces("C:\\Src\\Head.h", 9, &asPlaces);
@@ -204,7 +212,7 @@ void TestCPP65ListingIndexBuild(void)
 	AssertString("_main", cIndex.GetFunction(psPlace->uiFunction));
 	psRange = cIndex.GetRange(psPlace->uiFirstRange);
 	szLines.Init();
-	cIndex.AppendLines(psPlace->uiListing, psRange->uiFirstLine, psRange->uiEndLine, &szLines);
+	cIndex.AppendRange(psRange, &szLines);
 	AssertTrue(szLines.StartsWith("\t\t; Main.cpp(27): int r = Triple(gi, 5);\n"));
 	AssertTrue(szLines.Contains("\t\trtl\n"));
 	szLines.Kill();
