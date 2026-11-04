@@ -14,7 +14,6 @@
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/TextFile.h"
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
-#include "Assembler65Lib/Asm65816Lockstep.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppParserLib/CPP65Builder.h"
 #include "CppParserLib/IR816Backend.h"
@@ -169,7 +168,6 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 	CCPP65Builder	cBuilder;
 	CAsm65Memory	cMemory;
 	CFast65C816		cFast;
-	CAsm65816Lockstep	cLockstep;
 	CChars			szMissing;
 	CChars			szProject;
 	CFileUtil		cFileUtil;
@@ -232,10 +230,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 		cFast.Reset();
 		if (bLockstep)
 		{
-			cLockstep.Init(&cMemory, &cFast);
-			uiSteps = cLockstep.Run(uiMaxSteps, 64);
-			AssertString("", cLockstep.GetDifferences());
-			cLockstep.Kill();
+			uiSteps = TestCPP816RunLockstepChecked(&cMemory, &cFast, uiMaxSteps);
 		}
 		else if (getenv("CPP816_PROFILE"))
 		{
@@ -243,7 +238,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 		}
 		else
 		{
-			uiSteps = cFast.Run(uiMaxSteps);
+			uiSteps = TestCPP816RunChecked(&cMemory, &cFast, uiMaxSteps);
 		}
 		AssertTrue(uiSteps < uiMaxSteps);
 		if (getenv("CPP816_STEPS"))
@@ -2235,7 +2230,7 @@ int32 TestCPP816RunProfiled(const char* szSource, CAsm65816Profile* pcProfile, C
 	}
 	else
 	{
-		cFast.Run(TEST_CPP816_STEPS);
+		TestCPP816RunChecked(&cMemory, &cFast, TEST_CPP816_STEPS);
 	}
 	AssertTrue(cFast.IsStopped());
 	if (cFast.IsStopped())
@@ -3737,7 +3732,7 @@ int32 TestCPP816RunFrames(const char* szSource, CAsm65816Profile* pcProfile, CAs
 	}
 	else
 	{
-		cFast.Run(TEST_CPP816_STEPS);
+		TestCPP816RunChecked(&cMemory, &cFast, TEST_CPP816_STEPS);
 	}
 	AssertTrue(cFast.IsStopped());
 	if (cFast.IsStopped())
@@ -3895,7 +3890,7 @@ void TestCPP816AlignedFrameUnreadArguments(void)
 
 	cMemory.InitFast65816(&cFast);
 	cFast.Reset();
-	cFast.Run(TEST_CPP816_STEPS);
+	TestCPP816RunChecked(&cMemory, &cFast, TEST_CPP816_STEPS);
 	AssertTrue(cFast.IsStopped());
 	AssertInt(7, (int16)cFast.GetC());
 	cFast.Kill();
@@ -4318,7 +4313,7 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	cMemory.Load(cBuilder.GetOutput());
 	cMemory.InitFast65816(&cFast);
 	cFast.Reset();
-	AssertTrue(cFast.Run(TEST_CPP816_SLOW_STEPS) < TEST_CPP816_SLOW_STEPS);
+	AssertTrue(TestCPP816RunChecked(&cMemory, &cFast, TEST_CPP816_SLOW_STEPS) < TEST_CPP816_SLOW_STEPS);
 	AssertTrue(cFast.IsStopped());
 	AssertInt(0, (int)cMemory.NumBadAccesses());
 	if (cFast.IsStopped())

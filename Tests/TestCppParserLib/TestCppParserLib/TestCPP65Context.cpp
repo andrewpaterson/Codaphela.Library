@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Assembler65Lib/Asm65C64Lockstep.h"
+#include "Assembler65Lib/Asm65816FrameCheck.h"
+#include "Assembler65Lib/Asm65816Lockstep.h"
 #include "TestCPP65Context.h"
 #include "Assembler65Lib/Asm65C64Assembler.h"
 #include "BaseLib/TextFile.h"
@@ -563,3 +565,47 @@ int32 TestCPP65MainFloat(const char* szSource)
 	return TestCPP65RunProject(aszUnits, "", 20000000, szSource);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a W65C816 program (pcFast reset on pcMemory) up to uiMaxSteps
+// instructions, as CFast65C816::Run, checking that no function writes its
+// caller's frame through the direct page (CAsm65816FrameCheck).  Returns
+// the steps run.
+//
+//////////////////////////////////////////////////////////////////////////
+size TestCPP816RunChecked(CAsm65Memory* pcMemory, CFast65C816* pcFast, size uiMaxSteps)
+{
+	CAsm65816FrameCheck	cCheck;
+	size				uiSteps;
+
+	cCheck.Init(pcMemory, pcFast);
+	uiSteps = cCheck.Run(uiMaxSteps);
+	AssertString("", cCheck.GetWrites());
+	cCheck.Kill();
+	return uiSteps;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TestCPP816RunChecked on the W65C816 simulator and CFast65C816 in
+// lockstep (CAsm65816Lockstep): no step may differ either.
+//
+//////////////////////////////////////////////////////////////////////////
+size TestCPP816RunLockstepChecked(CAsm65Memory* pcMemory, CFast65C816* pcFast, size uiMaxSteps)
+{
+	CAsm65816Lockstep	cLockstep;
+	CAsm65816FrameCheck	cCheck;
+	size				uiSteps;
+
+	cLockstep.Init(pcMemory, pcFast);
+	cCheck.Init(pcMemory, pcFast);
+	cLockstep.SetFrameCheck(&cCheck);
+	uiSteps = cLockstep.Run(uiMaxSteps, 64);
+	AssertString("", cLockstep.GetDifferences());
+	AssertString("", cCheck.GetWrites());
+	cCheck.Kill();
+	cLockstep.Kill();
+	return uiSteps;
+}

@@ -1,6 +1,7 @@
 #ifndef __TEST_CPP65_CONTEXT_H__
 #define __TEST_CPP65_CONTEXT_H__
 #include "MicroprocessorLib/Fast65C64.h"
+#include "MicroprocessorLib/Fast65C816.h"
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayChars.h"
@@ -47,6 +48,8 @@ int32		TestCPP65RunProjectLockstep(const char** aszUnits, const char* szStubs, s
 int32		TestCPP65RunProjectLazy(const char** aszUnits, const char* szStubs, size* puiUnits, size* puiLoads, const char* szSource = NULL);
 int32		TestCPP65MainFloat(const char* szSource);
 size		TestCPP65CompileLibrary(const char* szLibrary, CChars* pszErrors);
+size		TestCPP816RunChecked(CAsm65Memory* pcMemory, CFast65C816* pcFast, size uiMaxSteps);
+size		TestCPP816RunLockstepChecked(CAsm65Memory* pcMemory, CFast65C816* pcFast, size uiMaxSteps);
 
 
 #endif // __TEST_CPP65_CONTEXT_H__

@@ -8,7 +8,7 @@
 #include "MicroprocessorLib/W65C816InstructionFactory.h"
 #include "MicroprocessorLib/65C64InstructionFactory.h"
 #include "Assembler65Lib/Asm65816Assembler.h"
-#include "Assembler65Lib/Asm65816Lockstep.h"
+#include "Assembler65Lib/Asm65816FrameCheck.h"
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Assembler65Lib/Asm65Library.h"
 #include "Assembler65Lib/Asm65Memory.h"
@@ -16,6 +16,7 @@
 #include "CppParserLib/IRVerifier.h"
 #include "CppParserLib/IR816Backend.h"
 #include "TestLib/Assert.h"
+#include "TestCPP65Context.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,6 +123,57 @@ static CAsm65Library* TestIR816MathTables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Assembles szCode (which has _main) with the start up, runs it with the
+// frame check (CAsm65816FrameCheck) and gives the stores to callers' frames
+// it found in pszWrites.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIR816FrameWrites(const char* szCode, CChars* pszWrites)
+{
+	CChars				szStartUp;
+	CAsm65Object		acObjects[2];
+	CAsm65Linker		cLinker;
+	CAsm65Memory		cMemory;
+	CFast65C816			cFast;
+	CAsm65816FrameCheck	cCheck;
+	int					i;
+
+	szStartUp.Init(gszTestIR816StartUp);
+	szStartUp.Replace("RESULT", "");
+	pszWrites->Init();
+	if (TestIR816Assemble(&acObjects[0], "startup", szStartUp.Text()) && TestIR816Assemble(&acObjects[1], "code", szCode))
+	{
+		cLinker.Init();
+		cLinker.SetBankSize(0x10000);
+		cLinker.SetAddress(ASK65_Text, 0x010000);
+		for (i = 0; i < 2; i++)
+		{
+			cLinker.AddObject(&acObjects[i]);
+		}
+		AssertTrue(cLinker.Link());
+		cMemory.Init(TEST_IR816_MEMORY);
+		cMemory.Load(cLinker.GetOutput());
+		cMemory.InitFast65816(&cFast);
+		cFast.Reset();
+		cCheck.Init(&cMemory, &cFast);
+		AssertTrue(cCheck.Run(TEST_IR816_STEPS) < TEST_IR816_STEPS);
+		AssertTrue(cFast.IsStopped());
+		pszWrites->Append(cCheck.GetWrites());
+		cCheck.Kill();
+		cFast.Kill();
+		cMemory.Kill();
+		cLinker.Kill();
+	}
+	for (i = 0; i < 2; i++)
+	{
+		acObjects[i].Kill();
+	}
+	szStartUp.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Parses and verifies szIR, generates it (and the runtime routines it uses) with the W65C816 back end, links it
 // with the start up and runs it.  Returns main's result, sign extended from its type.
 //
@@ -141,7 +193,6 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 	CAsm65Linker	cLinker;
 	CAsm65Memory	cMemory;
 	CFast65C816		cFast;
-	CAsm65816Lockstep	cLockstep;
 	CIRFunction*	pcMain;
 	SIRType			sReturn;
 	int64			iResult;
@@ -204,14 +255,11 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 		cFast.Reset();
 		if (bLockstep)
 		{
-			cLockstep.Init(&cMemory, &cFast);
-			uiSteps = cLockstep.Run(TEST_IR816_STEPS, 64);
-			AssertString("", cLockstep.GetDifferences());
-			cLockstep.Kill();
+			uiSteps = TestCPP816RunLockstepChecked(&cMemory, &cFast, TEST_IR816_STEPS);
 		}
 		else
 		{
-			uiSteps = cFast.Run(TEST_IR816_STEPS);
+			uiSteps = TestCPP816RunChecked(&cMemory, &cFast, TEST_IR816_STEPS);
 		}
 		AssertTrue(uiSteps < TEST_IR816_STEPS);
 		AssertTrue(cFast.IsStopped());
@@ -1201,6 +1249,64 @@ void TestIR816BackendParameterPlaces(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The frame check (CAsm65816FrameCheck, which TestIR816Run and the C++
+// tests run their programs with): _main pushes an argument for _Bad, which
+// has a frame of 4 bytes, so its argument is D + 10 and D + 11 (past its
+// frame, the saved D and the return address) and D + 12 is main's frame.
+// A store to its argument is its own, one a word higher is main's frame's
+// (found).  A routine that doesn't move D (a runtime routine) works on its
+// caller's frame, so its stores aren't checked.  (A caller without a frame
+// has its return address checked instead: TestIR816BackendParameterPlaces'
+// G, had its i1 zext overrun its last argument.)
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* gszTestIR816FrameCheck =
+	"\t\t.section text._main\n"
+	".global _main\n"
+	"_main:\n"
+	"\t\t.width (A, X), 16\n"
+	"\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc 8\n\t\ttcs\n\t\ttcd\n"
+	"\t\tstz [D + 1]\n"
+	"\t\tpea 7\n"
+	"\t\tjsl _Bad\n"
+	"\t\tply\n"
+	"\t\tjsl _Runtime\n"
+	"\t\ttdc\n\t\tclc\n\t\tadc 8\n\t\ttcs\n\t\tpld\n\t\trtl\n"
+	"_Bad:\n"
+	"\t\t.width (A, X), 16\n"
+	"\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc 4\n\t\ttcs\n\t\ttcd\n"
+	"\t\tlda 3\n"
+	"\t\tsta [D + OFFSET]\n"
+	"\t\ttdc\n\t\tclc\n\t\tadc 4\n\t\ttcs\n\t\tpld\n\t\trtl\n"
+	"_Runtime:\n"
+	"\t\t.width (A, X), 16\n"
+	"\t\tlda 5\n"
+	"\t\tsta [D + 1]\n"
+	"\t\trtl\n";
+
+void TestIR816BackendFrameCheck(void)
+{
+	CChars	szCode;
+	CChars	szWrites;
+
+	szCode.Init(gszTestIR816FrameCheck);
+	szCode.Replace("OFFSET", "10");
+	TestIR816FrameWrites(szCode.Text(), &szWrites);
+	AssertString("", szWrites.Text());
+	szWrites.Kill();
+	szCode.Kill();
+
+	szCode.Init(gszTestIR816FrameCheck);
+	szCode.Replace("OFFSET", "12");
+	TestIR816FrameWrites(szCode.Text(), &szWrites);
+	AssertTrue(szWrites.Contains("its caller's stack"));
+	szWrites.Kill();
+	szCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The shift runtime routines (R816_Shl64, R816_LShr64, R816_AShr64 on the
 // caller's frame at D + X; R816_Shl32, R816_LShr32 and R816_AShr32 in the
 // scratch bytes): every count, from a function taking the count so it is
@@ -2141,6 +2247,7 @@ void TestIR816Backend(void)
 	TestIR816BackendShifts();
 	TestIR816BackendX();
 	TestIR816BackendWide();
+	TestIR816BackendFrameCheck();
 	TestIR816BackendParameterPlaces();
 	TestIR816BackendShiftRoutines();
 	TestIR816BackendMultiply64();
