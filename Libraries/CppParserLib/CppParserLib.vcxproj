@@ -195,9 +195,12 @@
     <ClCompile Include="IRBackend.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
     <ClCompile Include="IR816Backend.cpp" />
+    <ClCompile Include="IR816Branches.cpp" />
+    <ClCompile Include="IR816DeadStores.cpp" />
     <ClCompile Include="IR816Flow.cpp" />
     <ClCompile Include="IR816Frames.cpp" />
     <ClCompile Include="IR816Instructions.cpp" />
+    <ClCompile Include="IR816Lines.cpp" />
     <ClCompile Include="IR816Peephole.cpp" />
     <ClCompile Include="IR816Places.cpp" />
     <ClCompile Include="IR816Runtime.cpp" />

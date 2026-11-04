@@ -225,15 +225,23 @@ void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 
-//IR816Peephole.cpp: assembly lines decoded, and what A, X and Y are known to hold.
+//IR816Lines.cpp: assembly lines decoded, and what A, X and Y are known to hold.
 bool		IR816IsInstruction(const char* szLine);
 void		IR816Decode(const char* szLine, SIR816Line* psLine);
+bool		IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand);
+bool		IR816LeavesA(SIR816Line* psLine);
+const char*	IR816InvertedBranch(uint16 uiMnemonic);
+bool		IR816IsDecimal(const char* szOperand);
 const char*	IR816NextLine(const char* szLine);
 const char*	IR816LineEnd(const char* szLine);
 bool		IR816ZNReadAfter(const char* szLine);
 void		IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast);
 bool		IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine);
 void		IR816UpdateHeld(SIR816Held* asHeld, SIR816Line* psLine);
+
+//IR816DeadStores.cpp: stores nothing reads, and what the code reads of the frame.
+bool		IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
+bool		IR816DeadStore(const char* szLine, const char* szWord, size uiWord);
 bool		IR816MovesS(const char* szLine);
 bool		IR816FindReads(const char* szLine, uint8* abRead);
 

@@ -156,6 +156,12 @@
     <ClCompile Include="IR816Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR816Branches.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816DeadStores.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR816Flow.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -163,6 +169,9 @@
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IR816Instructions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Lines.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IR816Peephole.cpp">
