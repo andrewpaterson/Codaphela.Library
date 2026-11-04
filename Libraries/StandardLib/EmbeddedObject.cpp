@@ -717,16 +717,6 @@ bool CEmbeddedObject::LinkStackFrom(CStackPointer* pcStackPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsInStack(void)
-{
-	return GetDistToStack() == 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 {
 	bool	bRemoved;
@@ -931,7 +921,6 @@ char* CEmbeddedObject::PrintObject(CChars* psz)
 char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMemory)
 {
 	int		iDistToRoot;
-	int		iDistToStack;
 
 	if (bPointerMemory)
 	{
@@ -945,11 +934,9 @@ char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMem
 		psz->Append(" ");
 	}
 	psz->Append(iDistToRoot);
-	iDistToStack = GetDistToStack();
-	if (iDistToStack != UNKNOWN_DIST_TO_STACK)
+	if (!IsAllocatedInObjects())
 	{
-		psz->Append(",");
-		psz->Append(iDistToStack);
+		psz->Append(",0");
 	}
 	psz->Append("]:");
 

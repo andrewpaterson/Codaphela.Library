@@ -83,6 +83,7 @@ protected:
 	
 	bool					mbValidateConsistency;
 	CObjectRemovalContext	mcRemovalContext;
+	uint32					muiWalkStamp;  //The base of the last walk started.  See WALK_STAMP_STEP.
 
 public:
 												CObjects();
@@ -128,6 +129,9 @@ public:
 
 						bool					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
 						bool					TestRemoveMemoryIdentifiers(CBaseObject* pvObject);
+
+						uint32					StartWalk(void);
+						void					TestSetWalkStamp(uint32 uiWalkStamp);
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);

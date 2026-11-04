@@ -12,15 +12,14 @@ public:
 	void	CalculateFromTouched(CDistCalculatorParameters* pcParameters);
 	bool	IsHeldFromStackOrRoot(CBaseObject* pcObject);
 
-	void	ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcParameters);
-
 protected:
-	size	CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
-	size	CollectDetachedAndSetDistToStackZero(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
+	size	CollectDetachedFromRoot(CDistCalculatorParameters* pcParameters);
+	size	CollectDetachedFromRoot(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
 	bool	CollectDetached(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
 	void	InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters);
-	void	UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcUpdated);
-	void	UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters);
+	void	MarkPointedToFromReached(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcReached);
+	bool	HasFromReachedFromStack(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
+	void	MarkReachedFromStack(CDistCalculatorParameters* pcParameters);
 };
 
 

@@ -134,6 +134,7 @@ CObjects::CObjects()
 	mpcUnknownsAllocatingFrom = NULL;
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
+	muiWalkStamp = 0;
 }
 
 
@@ -207,6 +208,46 @@ void CObjects::ValidateEmpty(void)
 		gcLogger.Error(sz.Text());
 		sz.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The base for a new walk.  When the count wraps the stamps of the objects
+// in memory are cleared, so no old stamp can look like a new walk's.
+// Objects not allocated in Objects aren't cleared; they don't live long.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CObjects::StartWalk(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+
+	muiWalkStamp += WALK_STAMP_STEP;
+	if (muiWalkStamp == 0)
+	{
+		if (mbInitialised)
+		{
+			pcBaseObject = mcMemory.StartIteration(&sIter);
+			while (pcBaseObject)
+			{
+				pcBaseObject->SetWalkStamp(0);
+				pcBaseObject = mcMemory.Iterate(&sIter);
+			}
+		}
+		muiWalkStamp = WALK_STAMP_STEP;
+	}
+	return muiWalkStamp;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::TestSetWalkStamp(uint32 uiWalkStamp)
+{
+	muiWalkStamp = uiWalkStamp;
 }
 
 

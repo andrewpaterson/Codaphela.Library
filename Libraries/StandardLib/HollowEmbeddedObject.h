@@ -13,7 +13,6 @@ public:
 	void				DoneKill(bool bAllocatedInObjects) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
-	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
 	bool				SetDistToRoot(int iDistToRoot) override;
 	size				NumEmbedded(void);

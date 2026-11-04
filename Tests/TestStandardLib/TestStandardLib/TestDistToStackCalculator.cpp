@@ -25,9 +25,6 @@ void TestDistToStackSimpleOneStep(void)
 	AssertSize(0, p2->NumHeapFroms());
 	AssertSize(0, p1->NumHeapFroms());
 	AssertSize(0, p3->NumHeapFroms());
-	AssertInt(UNKNOWN_DIST_TO_STACK, p1.Object()->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, p2.Object()->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, p3.Object()->GetDistToStack());
 
 	//  
 	//  x   x   x
@@ -186,8 +183,6 @@ void TestDistToStackSimpleHeap(void)
 	pc3 = &p3;
 	pc2 = &p2;
 
-	AssertInt(UNKNOWN_DIST_TO_STACK, pc2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pc3->GetDistToStack());
 
 	p2.BaseObject()->TestRemoveStackFrom(p2.This());
 	p2.UnsafeClearObject();
@@ -212,8 +207,8 @@ void TestDistToStackSimpleHeap(void)
 	//  . 	   . 
 	//
 
-	AssertInt(2, pc2->GetDistToStack());
-	AssertInt(1, pc3->GetDistToStack());
+	AssertTrue(cParameters.IsReachedFromStack(pc2));
+	AssertTrue(cParameters.IsReachedFromStack(pc3));
 
 	cParameters.Kill();
 
@@ -1144,98 +1139,68 @@ void TestDistToStackCyclicWithScenarioA(void)
 	//
 
 	// Test from pTest1
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest1->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 	cParameters.Init();
 	cDistToStackCalculator.Calculate(pcTest1, &cParameters);
 	
-	AssertInt(1, pcTest1->GetDistToStack());
-	AssertInt(2, pcTest2->GetDistToStack());
-	AssertInt(2, pcTest3->GetDistToStack());
-	AssertInt(3, pcTest4->GetDistToStack());
-	AssertInt(3, pcTest5->GetDistToStack());
+	AssertTrue(cParameters.IsReachedFromStack(pcTest1));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest2));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest3));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest4));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest5));
 
-	cDistToStackCalculator.ResetObjectsToUnknownDistToStack(&cParameters);
 	cParameters.Kill();
 
 	// Test from pTest2
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest1->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 	cParameters.Init();
 	cDistToStackCalculator.Calculate(pcTest2, &cParameters);
 
-	AssertInt(1, pcTest1->GetDistToStack());
-	AssertInt(2, pcTest2->GetDistToStack());
-	AssertInt(2, pcTest3->GetDistToStack());
-	AssertInt(3, pcTest4->GetDistToStack());
-	AssertInt(3, pcTest5->GetDistToStack());
+	AssertTrue(cParameters.IsReachedFromStack(pcTest1));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest2));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest3));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest4));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest5));
 
-	cDistToStackCalculator.ResetObjectsToUnknownDistToStack(&cParameters);
 	cParameters.Kill();
 
 	// Test from pTest3
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest1->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 	cParameters.Init();
 	cDistToStackCalculator.Calculate(pcTest3, &cParameters);
 
-	AssertInt(1, pcTest1->GetDistToStack());
-	AssertInt(2, pcTest2->GetDistToStack());
-	AssertInt(2, pcTest3->GetDistToStack());
-	AssertInt(3, pcTest4->GetDistToStack());
-	AssertInt(3, pcTest5->GetDistToStack());
+	AssertTrue(cParameters.IsReachedFromStack(pcTest1));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest2));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest3));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest4));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest5));
 
-	cDistToStackCalculator.ResetObjectsToUnknownDistToStack(&cParameters);
 	cParameters.Kill();
 
 	// Test from pTest4
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest1->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 	cParameters.Init();
 	cDistToStackCalculator.Calculate(pcTest4, &cParameters);
 
-	AssertInt(1, pcTest1->GetDistToStack());
-	AssertInt(2, pcTest2->GetDistToStack());
-	AssertInt(2, pcTest3->GetDistToStack());
-	AssertInt(3, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());  //Removing a stack pointer to 4 should be unable to effect 5 in any way.
+	AssertTrue(cParameters.IsReachedFromStack(pcTest1));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest2));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest3));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest4));
+	AssertFalse(cParameters.IsReachedFromStack(pcTest5));  //Removing a stack pointer to 4 should be unable to effect 5 in any way.
 
-	cDistToStackCalculator.ResetObjectsToUnknownDistToStack(&cParameters);
 	cParameters.Kill();
 
 	// Test from pTest5
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest1->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 	cParameters.Init();
 	cDistToStackCalculator.Calculate(pcTest5, &cParameters);
 
-	AssertInt(1, pcTest1->GetDistToStack());
-	AssertInt(2, pcTest2->GetDistToStack());
-	AssertInt(2, pcTest3->GetDistToStack());
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());  //Removing a stack pointer to 5 should be unable to effect 4 in any way.
-	AssertInt(3, pcTest5->GetDistToStack());
+	AssertTrue(cParameters.IsReachedFromStack(pcTest1));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest2));
+	AssertTrue(cParameters.IsReachedFromStack(pcTest3));
+	AssertFalse(cParameters.IsReachedFromStack(pcTest4));  //Removing a stack pointer to 5 should be unable to effect 4 in any way.
+	AssertTrue(cParameters.IsReachedFromStack(pcTest5));
 
-	cDistToStackCalculator.ResetObjectsToUnknownDistToStack(&cParameters);
 	cParameters.Kill();
 
 	pTest1 = NULL;
@@ -1348,17 +1313,9 @@ void TestDistToStackRemoveUnbalancedLargeBroken(void)
 		//      Root(0)
 		//
 
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 		pSet->Remove(pcTest2);
 
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest2->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest3->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest4->GetDistToStack());
-		AssertInt(UNKNOWN_DIST_TO_STACK, pcTest5->GetDistToStack());
 
 		gcObjects.ValidateObjectsConsistency();
 
@@ -1380,50 +1337,47 @@ void TestDistToStackRemoveUnbalancedLargeBroken(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object pointed to only into one of its embedded objects, from an
+// object reached from the stack, is reached too.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestDistToStackClosestHeapFromToStackEmbedded(void)
+void TestDistToStackReachedThroughEmbedded(void)
 {
+	CDistToStackCalculator		cDistToStackCalculator;
+	CDistCalculatorParameters	cParameters;
+
 	ObjectsInit();
 	{
 		Ptr<CEmbeddedContainer>	pContainer;
-		Ptr<CPointerContainer>	pFar;
 		Ptr<CPointerContainer>	pNear;
-		CBaseObject*			pcFar;
-		CBaseObject*			pcNear;
-		CBaseObject*			pcClosest;
+		CBaseObject*			pcContainer;
 
 		pContainer = OMalloc<CEmbeddedContainer>();
-		pFar = OMalloc<CPointerContainer>();
 		pNear = OMalloc<CPointerContainer>();
 
 		//
-		//  Far[3]  Near[1]
-		//    |       |
-		//    |     mcOne
-		//    |       |
-		//   Container
+		//  Near
+		//    |
+		//  mcOne
+		//    |
+		//  Container
 		//
 
-		pFar->mp = pContainer;
 		pNear->mp = pContainer->GetOne();
-		AssertSize(2, pContainer->NumHeapFroms());
+		AssertSize(1, pContainer->NumHeapFroms());  //Its embedded objects' froms too.
 		AssertSize(1, pContainer->mcOne.NumHeapFroms());
 
-		pcFar = &pFar;
-		pcNear = &pNear;
-		AssertInt(UNATTACHED_DIST_TO_ROOT, pcFar->GetDistToRoot());
-		AssertInt(UNATTACHED_DIST_TO_ROOT, pcNear->GetDistToRoot());
+		//Held by Near, so letting go of it frees nothing.
+		pcContainer = &pContainer;
+		pContainer = NULL;
+		AssertSize(0, pcContainer->NumStackFroms());
 
-		pcFar->SetDistToStack(3);
-		pcNear->SetDistToStack(1);
-
-		//The from to the embedded object is closer to the stack than the from to the container.
-		pcClosest = pContainer->GetClosestHeapFromToStack();
-		AssertPointer(pcNear, pcClosest);
-
-		pcFar->SetDistToStack(UNKNOWN_DIST_TO_STACK);
-		pcNear->SetDistToStack(UNKNOWN_DIST_TO_STACK);
+		cParameters.Init();
+		cDistToStackCalculator.Calculate(pcContainer, &cParameters);
+		AssertTrue(cParameters.IsReachedFromStack(pcContainer));
+		AssertTrue(cParameters.IsReachedFromStack(&pNear));
+		AssertSize(0, cParameters.NumCompletelyDetached());
+		cParameters.Kill();
 
 		gcObjects.ValidateObjectsConsistency();
 	}
@@ -1460,7 +1414,7 @@ void TestDistToStack(void)
 	TestDistToStackCyclicWithScenarioA();
 	TestDistToStackSetBroken();
 	TestDistToStackRemoveUnbalancedLargeBroken();
-	TestDistToStackClosestHeapFromToStackEmbedded();
+	TestDistToStackReachedThroughEmbedded();
 
 	DataIOKill();
 	TypesKill();

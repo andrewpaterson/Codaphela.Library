@@ -94,7 +94,7 @@ void TestEmbeddedStackPointersEmbeddedDistPassThruPointer(void)
 	cComplex.mai[0] = 1234;
 	cComplex.mai[1] = 7890;
 
-	AssertInt(0, cComplex.GetDistToStack());
+	AssertFalse(cComplex.IsAllocatedInObjects());
 	AssertSize(0, cComplex.NumStackFroms());
 
 	Ptr<CEmbeddedComplex> pComplex;
@@ -104,19 +104,17 @@ void TestEmbeddedStackPointersEmbeddedDistPassThruPointer(void)
 	AssertInt((int32)1234, pComplex->mai[0]);
 	AssertInt((int32)7890, pComplex->mai[1]);
 
-	AssertInt(0, cComplex.GetDistToStack());
+	AssertFalse(cComplex.IsAllocatedInObjects());
 
 	pTest = OMalloc<CEmbeddedTest>();
 	pcTest = (CEmbeddedTest*)pTest.Object();
 
 	cComplex.mpTest = pTest;
 
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest->GetDistToStack());
 	AssertSize(2, pComplex->mpTest->NumStackFroms());
 	AssertSize(1, cComplex.NumStackFroms());
 
 	pTest = NULL;
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest->GetDistToStack());
 	AssertLong(1, gcObjects.NumMemoryIndexes());
 	AssertSize(1, pComplex->mpTest->NumStackFroms());
 	AssertSize(1, cComplex.NumStackFroms());
@@ -144,7 +142,7 @@ void TestEmbeddedStackPointersEmbeddedDistDirect(void)
 	cComplex.mai[0] = 1234;
 	cComplex.mai[1] = 7890;
 
-	AssertInt(0, cComplex.GetDistToStack());
+	AssertFalse(cComplex.IsAllocatedInObjects());
 	AssertSize(0, cComplex.NumStackFroms());
 
 	Ptr<CEmbeddedComplex> pComplex;
@@ -154,14 +152,13 @@ void TestEmbeddedStackPointersEmbeddedDistDirect(void)
 	AssertInt((int32)1234, pComplex->mai[0]);
 	AssertInt((int32)7890, pComplex->mai[1]);
 
-	AssertInt(0, cComplex.GetDistToStack());
+	AssertFalse(cComplex.IsAllocatedInObjects());
 
 	cComplex.mpTest = OMalloc<CEmbeddedTest>();
 	AssertSize(1, pComplex->mpTest->NumStackFroms());
 	AssertSize(1, cComplex.NumStackFroms());
 
 	pcTest = (CEmbeddedTest*)cComplex.mpTest.Object();
-	AssertInt(UNKNOWN_DIST_TO_STACK, pcTest->GetDistToStack());
 	AssertLong(1, gcObjects.NumMemoryIndexes());
 
 	cComplex.Kill();
@@ -206,9 +203,9 @@ void TestEmbeddedStackPointersComplex(void)
 		pTestObject1 = OMalloc<CTestObject>(&sFreedNotifier1);
 		pTestObject2 = OMalloc<CTestObject>(&sFreedNotifier2);
 
-		AssertInt(0, cComplexOnStack1.GetDistToStack());
+		AssertFalse(cComplexOnStack1.IsAllocatedInObjects());
 		AssertSize(0, cComplexOnStack1.NumStackFroms());
-		AssertInt(0, cComplexOnStack2.GetDistToStack());
+		AssertFalse(cComplexOnStack2.IsAllocatedInObjects());
 		AssertSize(0, cComplexOnStack2.NumStackFroms());
 
 		cComplexOnStack1.mpTest = &cComplexOnStack2;
@@ -216,10 +213,10 @@ void TestEmbeddedStackPointersComplex(void)
 		cComplexOnStack1.mcContainer.mcOne.mpTest = pTestObject1;
 		cComplexOnStack2.mcContainer.mcOne.mpTest = pTestObject1;
 
-		AssertInt(0, cComplexOnStack1.GetDistToStack());
+		AssertFalse(cComplexOnStack1.IsAllocatedInObjects());
 		AssertSize(0, cComplexOnStack1.NumStackFroms());
 		AssertSize(3, cComplexOnStack1.NumPointerTos());
-		AssertInt(0, cComplexOnStack2.GetDistToStack());
+		AssertFalse(cComplexOnStack2.IsAllocatedInObjects());
 		AssertSize(2, cComplexOnStack2.NumStackFroms());
 		AssertSize(1, cComplexOnStack2.NumPointerTos());
 
@@ -229,9 +226,9 @@ void TestEmbeddedStackPointersComplex(void)
 		AssertFalse(sFreedNotifier1.bFreed);
 		AssertFalse(sFreedNotifier2.bFreed);
 
-		AssertInt(0, cComplexOnStack1.GetDistToStack());
+		AssertFalse(cComplexOnStack1.IsAllocatedInObjects());
 		AssertSize(0, cComplexOnStack1.NumStackFroms());
-		AssertInt(0, cComplexOnStack2.GetDistToStack());
+		AssertFalse(cComplexOnStack2.IsAllocatedInObjects());
 		AssertSize(2, cComplexOnStack2.NumStackFroms());
 	}
 

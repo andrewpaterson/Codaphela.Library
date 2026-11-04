@@ -95,7 +95,6 @@ public:
 	bool				IsHollow(void);
 	bool				Load(CObjectReader* pcFile);
 	int					GetDistToRoot(void);
-	int					GetDistToStack(void);
 	OIndex				GetIndex(void);
 	char*				GetName(void);
 	bool				IsNamed(void);

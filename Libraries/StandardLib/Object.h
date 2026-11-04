@@ -99,8 +99,6 @@ protected:
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	bool				SetDistToRoot(int iDistToRoot) override;
-	void				SetDistToStack(int iDistToStack) override;
-	void				InitDistToStack(void);
 	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
 	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);

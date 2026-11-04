@@ -368,50 +368,6 @@ bool CObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::InitDistToStack(void)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcBaseObject;
-
-	CBaseObject::InitDistToStack();
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
-		pcBaseObject->CBaseObject::InitDistToStack();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToStack(int iDistToStack)
-{
-	size				i;
-	size				uiNumEmbedded;
-	CBaseObject*		pcBaseObject;
-
-	CBaseObject::SetDistToStack(iDistToStack);
-
-	//Virtual, so an object embedded in an embedded object (and the collections in it) gets it too.  Otherwise what only
-	//such a collection holds has no distance to the stack and is freed while it can still be reached from the stack.
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
-		pcBaseObject->SetDistToStack(iDistToStack);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	size			i;

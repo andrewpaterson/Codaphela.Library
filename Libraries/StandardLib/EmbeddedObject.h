@@ -16,9 +16,6 @@
 #define CLEARED_DIST_TO_ROOT		-2
 #define MAX_DIST_TO_ROOT			 MAX_INT
 
-#define MIN_STACK_DIST_TO_STACK		 0
-#define MIN_HEAP_DIST_TO_STACK		 1
-#define UNKNOWN_DIST_TO_STACK		-2
 
 
 enum EFreeResult
@@ -82,7 +79,6 @@ public:
 	virtual bool				SetDistToRoot(int iDistToRoot) =0;
 	virtual bool				TestedForRoot(void) =0;
 	virtual int					GetDistToRoot(void) =0;
-	virtual int					GetDistToStack(void) =0;
 	virtual OIndex				GetIndex(void);
 	virtual bool				IsNamed(void);
 	virtual char*				GetName(void);
@@ -97,7 +93,6 @@ public:
 			bool				IsEmbedded(void);
 			bool				IsNotEmbedded(void);
 	virtual bool				IsInitialised(void) =0;
-			bool				IsInStack(void);
 	virtual bool				IsRoot(void) =0;
 	virtual size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual size				NumEmbedded(void) =0;

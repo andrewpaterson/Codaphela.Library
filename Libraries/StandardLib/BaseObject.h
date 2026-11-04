@@ -62,12 +62,21 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
 
+//An object's walk stamp is the base of the walk that last reached it plus what that walk found (the low bits).  Each
+//walk takes a new base (CObjects::StartWalk), so a stamp from an older walk reads as not reached and nothing needs
+//clearing afterwards.
+#define WALK_STAMP_STEP			8
+#define WALK_STAMP_STATE_MASK	(WALK_STAMP_STEP - 1)
+
+//What a distance calculation found an object to be (the low bits of its walk stamp).
+#define WALK_STATE_REACHED_FROM_STACK	4
+
+
 //Which distance GetClosestHeapFrom looks for.
 enum EClosestHeapFrom
 {
 	CHF_Root,
-	CHF_RootUntested,
-	CHF_Stack
+	CHF_RootUntested
 };
 
 
@@ -98,7 +107,7 @@ protected:
 	CObjects*			mpcObjectsThisIn;
 	CClass*				mpcClass;
 	int					miDistToRoot;
-	int					miDistToStack;
+	uint32				muiWalkStamp;
 	uint16				muiFlags;
 	uint16				muiNumEmbedded;
 	uint16				muiPreInits;
@@ -151,7 +160,8 @@ public:
 
 			void					SetDirty(bool bDirty);
 			int						GetDistToRoot(void);
-			int						GetDistToStack(void);
+			uint32					GetWalkStamp(void);
+			void					SetWalkStamp(uint32 uiWalkStamp);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
 			bool					TestedForRoot(void);
 			void					AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms);
@@ -162,8 +172,6 @@ public:
 			bool					TestedForSanity(void);
 			CObjects*				GetObjectsThisIn(void);
 			CClasses*				GetClasses(void);
-	virtual void					SetDistToStack(int iDistToStack);
-	virtual void					InitDistToStack(void);
 			CClass*					CompleteClass(CClasses* pcClasses);
 			void					CopyFields(CEmbeddedObject* pcOther) override;
 
@@ -176,7 +184,6 @@ public:
 			bool					CanFindRoot(void);
 			CBaseObject*			GetClosestFromToRoot(void);
 			CBaseObject*			GetClosestFromForCanFindRoot(void);
-			CBaseObject*			GetClosestHeapFromToStack(void);
 			CBaseObject*			GetClosestHeapFrom(EClosestHeapFrom eClosest);
 			size					NumHeapFromHolders(void);
 			void					StopDestructor(void);

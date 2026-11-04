@@ -39,6 +39,7 @@ typedef CArrayTemplate<SDistToRootHeapNode>		CArrayDistToRootHeap;
 class CDistCalculatorParameters
 {
 private:
+	uint32						muiWalk;  //This calculation's walk stamp base.
 	CArrayBaseObjectPtrE32		mapcTouched;
 	CArrayDistToRoot						macExpectedDists;  //In the order the objects were added; removed ones stay, marked.
 	size									muiRemovedExpectedDists;
@@ -78,6 +79,9 @@ public:
 	void					RemoveCompletelyDetached(size iIndex);
 	void					CopyRootDetachedToCompletelyDetached(void);
 	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
+
+	void					MarkReachedFromStack(CBaseObject* pcObject);
+	bool					IsReachedFromStack(CBaseObject* pcObject);
 
 	void					AddTouched(CBaseObject* pcObject);
 	size					NumTouched(void);

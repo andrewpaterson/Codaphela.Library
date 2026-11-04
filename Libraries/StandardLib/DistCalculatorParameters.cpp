@@ -1,4 +1,5 @@
 #include "BaseObject.h"
+#include "Objects.h"
 #include "DistCalculatorParameters.h"
 
 
@@ -11,6 +12,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Init(void)
 {
+	muiWalk = gcObjects.StartWalk();
 	macExpectedDists.Init();
 	muiRemovedExpectedDists = 0;
 	macExpectedDistsHeap.Init();
@@ -734,6 +736,29 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 			psz->AppendNewLine();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object is detached from the root but can be reached from the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::MarkReachedFromStack(CBaseObject* pcObject)
+{
+	pcObject->SetWalkStamp(muiWalk | WALK_STATE_REACHED_FROM_STACK);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// (Heap froms are only ever objects allocated in Objects: pointers and
+// collections in an object on the stack are stack froms.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistCalculatorParameters::IsReachedFromStack(CBaseObject* pcObject)
+{
+	return pcObject->GetWalkStamp() == (muiWalk | WALK_STATE_REACHED_FROM_STACK);
 }
 
 

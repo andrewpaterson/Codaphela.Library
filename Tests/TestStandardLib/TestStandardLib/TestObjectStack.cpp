@@ -24,7 +24,7 @@ void TestObjectStackInit(void)
 	AssertFalse(cObject.GetFlags() & OBJECT_FLAGS_CALLED_ALLOCATE);
 	AssertFalse(cObject.GetFlags() & OBJECT_FLAGS_CALLED_INIT);
 	AssertFalse(cObject.GetFlags() & OBJECT_FLAGS_CALLED_CLASS);
-	AssertInt(0, cObject.GetDistToStack());
+	AssertFalse(cObject.IsAllocatedInObjects());
 	AssertInt(UNATTACHED_DIST_TO_ROOT, cObject.GetDistToRoot());
 
 	pcClass = cObject.GetClass();

@@ -782,6 +782,45 @@ void TestObjectsFlushRemovesStackPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// When the walk count wraps the stamps of the objects in memory are
+// cleared, so an old stamp can't look like it is from a new walk.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsWalkStampWrap(void)
+{
+	Ptr<CRoot>		pRoot;
+	Ptr<CString>	pString;
+	uint32			uiWalk;
+
+	ObjectsInit();
+
+	pRoot = ORoot();
+	pString = OMalloc<CString>("Walked");
+	pRoot->Add(pString);
+
+	gcObjects.TestSetWalkStamp(0xFFFFFFF0);
+	uiWalk = gcObjects.StartWalk();
+	AssertInt((int)0xFFFFFFF8, (int)uiWalk);
+	pRoot.BaseObject()->SetWalkStamp(uiWalk | 1);
+	pString.BaseObject()->SetWalkStamp(uiWalk | 3);
+
+	uiWalk = gcObjects.StartWalk();
+	AssertInt(WALK_STAMP_STEP, (int)uiWalk);
+	AssertInt(0, (int)pRoot.BaseObject()->GetWalkStamp());
+	AssertInt(0, (int)pString.BaseObject()->GetWalkStamp());
+
+	pString.BaseObject()->SetWalkStamp(uiWalk | 2);
+	uiWalk = gcObjects.StartWalk();
+	AssertInt(2 * WALK_STAMP_STEP, (int)uiWalk);
+	AssertInt(WALK_STAMP_STEP | 2, (int)pString.BaseObject()->GetWalkStamp());
+
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjects(void)
@@ -803,6 +842,7 @@ void TestObjects(void)
 	TestObjectsFlushDurable();
 	TestObjectsEvict();
 	TestObjectDehollowfication();
+	TestObjectsWalkStampWrap();
 
 	DataIOKill();
 	TypesKill();

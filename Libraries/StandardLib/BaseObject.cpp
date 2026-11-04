@@ -44,7 +44,7 @@ CBaseObject::CBaseObject()
 	mpcObjectsThisIn = NULL;
 	mpcClass = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
-	miDistToStack = MIN_STACK_DIST_TO_STACK;
+	muiWalkStamp = 0;
 	moi = INVALID_O_INDEX;
 	mon._Init();
 	muiFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;
@@ -77,9 +77,9 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 	//Allocate is only called if an object is allocated in Objects.
 	CEmbeddedObject::Allocate(pcObjects);
 	mpcObjectsThisIn = pcObjects;
+	muiWalkStamp = 0;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, true);
 	PreClass();
-	InitDistToStack();
 }
 
 
@@ -396,7 +396,7 @@ void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
 	moi = pcBaseObject->moi;
 	mon = pcBaseObject->mon;
 	miDistToRoot = pcBaseObject->miDistToRoot;
-	miDistToStack = pcBaseObject->miDistToStack;
+	muiWalkStamp = pcBaseObject->muiWalkStamp;
 	muiNumEmbedded = pcBaseObject->muiNumEmbedded;
 	muiPreInits = 1;
 	muiPostInits = 1;
@@ -497,7 +497,7 @@ size CBaseObject::NumHeapFromHolders(void)
 //
 // Of the heap froms of this and the objects embedded in it, the first that
 // is closest to the root (attached to it; CHF_RootUntested also skips
-// froms CanFindRoot has been through) or to the stack (CHF_Stack).  The
+// froms CanFindRoot has been through).  The
 // froms are read where they are rather than copied: a hub has thousands.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -523,7 +523,7 @@ CBaseObject* CBaseObject::GetClosestHeapFrom(EClosestHeapFrom eClosest)
 		for (i = 0; i < uiNumFroms; i++)
 		{
 			pcFrom = pcHolder->CEmbeddedObject::GetHeapFrom(i);
-			iDist = (eClosest == CHF_Stack) ? pcFrom->GetDistToStack() : pcFrom->GetDistToRoot();
+			iDist = pcFrom->GetDistToRoot();
 			if ((iDist >= 0) && (iDist < iNearest))
 			{
 				//Asked only of a from that would be nearest: most of a hub's froms aren't attached.
@@ -557,16 +557,6 @@ CBaseObject* CBaseObject::GetClosestFromToRoot(void)
 CBaseObject* CBaseObject::GetClosestFromForCanFindRoot(void)
 {
 	return GetClosestHeapFrom(CHF_RootUntested);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::GetClosestHeapFromToStack(void)
-{
-	return GetClosestHeapFrom(CHF_Stack);
 }
 
 
@@ -772,26 +762,6 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDistToStack(int iDistToStack)
-{
-	miDistToStack = iDistToStack;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::InitDistToStack(void)
-{
-	miDistToStack = UNKNOWN_DIST_TO_STACK;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearDistTouchedFlags(void)
 {
 	if (IsEmbedded())
@@ -980,9 +950,19 @@ int CBaseObject::GetDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetDistToStack(void)
+uint32 CBaseObject::GetWalkStamp(void)
 {
-	return miDistToStack;
+	return muiWalkStamp;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetWalkStamp(uint32 uiWalkStamp)
+{
+	muiWalkStamp = uiWalkStamp;
 }
 
 
@@ -1926,17 +1906,13 @@ void CBaseObject::PrintState(CChars* psz)
 		psz->Append("x");
 	}
 	psz->Append(" S");
-	if (miDistToStack>= 0)
+	if (!IsAllocatedInObjects())
 	{
-		psz->Append(miDistToStack);
-	}
-	else if (miDistToStack == UNKNOWN_DIST_TO_STACK)
-	{
-		psz->Append("u");
+		psz->Append("0");
 	}
 	else
 	{
-		psz->Append("x");
+		psz->Append("u");
 	}
 
 	psz->Append(" (");
@@ -2238,19 +2214,14 @@ void CBaseObject::ValidateFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateAllocation(void)
 {
-	bool	bDistToStackZero;
 	bool	bAllocateCalled;
 	bool	bInObjects;
-	bool	bAllSame;
 
-	bDistToStackZero = GetDistToStack() == 0;
 	bAllocateCalled = FixBool(muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE);
 	bInObjects = IsAllocatedInObjects();
-	bAllSame = (!bDistToStackZero == bAllocateCalled) && (bAllocateCalled == bInObjects);
-
-	if (!bAllSame)
+	if (bAllocateCalled != bInObjects)
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
 	}
 }
 
@@ -2374,7 +2345,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		else
 		{
 			szName = GetName();
-			if (IsInStack())
+			if (!IsAllocatedInObjects())
 			{
 				gcLogger.Error2(__METHOD__, " Named Object {", ObjectToString(this), "} should not have a name [", szName, "] as it's on the stack.", NULL);
 				return;
@@ -2392,7 +2363,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 	if (!IsEmbedded())
 	{
 		oi = GetIndex();
-		if (!IsInStack())
+		if (IsAllocatedInObjects())
 		{
 			if (!IsValidIndex(oi))
 			{
