@@ -135,6 +135,15 @@
     <ClCompile Include="ProcessFork_Linux.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
+    <ClCompile Include="Process.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process_Windows.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="Process_Linux.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
     <ClCompile Include="MainProcessDirector.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
@@ -237,6 +246,9 @@
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="ProcessFork.h">
+      <Filter>Source\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
       <Filter>Source\Process</Filter>
     </ClInclude>
     <ClInclude Include="MainProcessDirector.h">

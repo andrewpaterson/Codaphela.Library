@@ -197,6 +197,7 @@
     <ClInclude Include="ProcessChannel.h" />
     <ClInclude Include="SharedMemoryChannel.h" />
     <ClInclude Include="ProcessFork.h" />
+    <ClInclude Include="Process.h" />
     <ClInclude Include="ResizableSharedMemory.h" />
     <ClInclude Include="InterProcessMutex.h" />
     <ClInclude Include="InterProcessSignal.h" />
@@ -231,6 +232,9 @@
     <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="ProcessFork_Windows.cpp" />
     <ClCompile Include="ProcessFork_Linux.cpp" />
+    <ClCompile Include="Process.cpp" />
+    <ClCompile Include="Process_Windows.cpp" />
+    <ClCompile Include="Process_Linux.cpp" />
     <ClCompile Include="SharedMemoryResult.cpp" />
     <ClCompile Include="ResizableSharedMemory.cpp" />
     <ClCompile Include="InterProcessMutex_Windows.cpp" />

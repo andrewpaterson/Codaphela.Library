@@ -222,6 +222,7 @@
     <ClCompile Include="TestProcessForkMain.cpp" />
     <ClCompile Include="TestMainProcessDirector.cpp" />
     <ClCompile Include="TestProcessFork.cpp" />
+    <ClCompile Include="TestProcess.cpp" />
     <ClCompile Include="TestSafeLinkedListBlock.cpp" />
     <ClCompile Include="TestSharedMemory.cpp" />
     <ClCompile Include="TestSharedMemoryMain.cpp" />

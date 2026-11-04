@@ -66,6 +66,9 @@
     <ClCompile Include="TestProcessFork.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
+    <ClCompile Include="TestProcess.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
     <ClCompile Include="TestProcessForkMain.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>

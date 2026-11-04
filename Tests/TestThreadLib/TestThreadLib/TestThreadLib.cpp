@@ -11,6 +11,7 @@ int TestClientProcessMain(int argc, char* argv[]);
 int TestSharedMemoryProcessMain(int argc, char* argv[]);
 int TestSharedQueueProcessMain(int argc, char* argv[]);
 int TestProcessChannelMain(int argc, char* argv[]);
+int TestProcessOutputMain(int argc, char* argv[]);
 
 void TestMainProcessDirector(int argc, char* argv[]);
 void TestReferences(void);
@@ -22,6 +23,7 @@ void TestWorkerThreadJobs(void);
 void TestThread(void);
 void TestThreadPool(void);
 void TestProcessFork(void);
+void TestProcess(void);
 void TestSharedMemory(void);
 void TestSharedMemoryQueue(void);
 void TestProcessChannel(void);
@@ -43,6 +45,7 @@ int TestThreadLib(int argc, char* argv[])
 	TestSafeLinkedListBlock();
 	TestThreadPool();
 	TestProcessFork();
+	TestProcess();
 	TestSharedMemory();
 	TestSharedMemoryQueue();
 	TestProcessChannel();
@@ -68,6 +71,7 @@ int __cdecl main(int argc, char* argv[])
 	cDirector.AddRedirect("test-shared-memory", TestSharedMemoryProcessMain);
 	cDirector.AddRedirect("test-shared-queue", TestSharedQueueProcessMain);
 	cDirector.AddRedirect("test-channel", TestProcessChannelMain);
+	cDirector.AddRedirect("test-process-output", TestProcessOutputMain);
 	
 	bMainRan = cDirector.Run(argc, argv);
 	if (!bMainRan)
