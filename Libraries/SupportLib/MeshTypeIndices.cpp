@@ -98,13 +98,13 @@ void CMeshTypeIndices::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshTypeIndices::Class(void)
 {
-	U_SInt(miStride);
+	U_Int32(miStride);
 	M_Pointer(mpVertexArray);
 	U_Unknown(CArrayBlock, maVerts);
-	U_SInt(miNormalOffset);
-	U_SInt(miColourOffset);
-	U_SInt(miUVOffset);
-	U_SInt(miSkinOffset);
+	U_Int32(miNormalOffset);
+	U_Int32(miColourOffset);
+	U_Int32(miUVOffset);
+	U_Int32(miSkinOffset);
 }
 
 
