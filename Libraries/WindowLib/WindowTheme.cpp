@@ -35,6 +35,7 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	mpFont = pFont;
 	mpButtonImages = NULL;
 	mpDefaultButtonImages = NULL;
+	mpSmallButtonImages = NULL;
 	mpToolButtonImages = NULL;
 	mpCheckBoxImages = NULL;
 	mpMenuStyle = NULL;
@@ -65,6 +66,7 @@ void CWindowTheme::Class(void)
 	M_Pointer(mpFont);
 	M_Pointer(mpButtonImages);
 	M_Pointer(mpDefaultButtonImages);
+	M_Pointer(mpSmallButtonImages);
 	M_Pointer(mpToolButtonImages);
 	M_Pointer(mpCheckBoxImages);
 	M_Pointer(mpMenuStyle);
@@ -180,6 +182,7 @@ void CWindowTheme::SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARG
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A small button is a normal one if the theme hasn't small images.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CButtonImages> CWindowTheme::GetButtonImages(EButtonLook eLook)
@@ -188,18 +191,23 @@ Ptr<CButtonImages> CWindowTheme::GetButtonImages(EButtonLook eLook)
 	{
 		return mpToolButtonImages;
 	}
+	if ((eLook == BL_Small) && mpSmallButtonImages.IsNotNull())
+	{
+		return mpSmallButtonImages;
+	}
 	return mpButtonImages;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A tool button is never drawn as a default button.
+// Only a normal button is drawn as a default button: small and tool
+// buttons' images haven't the default images' tile size.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CButtonImages> CWindowTheme::GetDefaultButtonImages(EButtonLook eLook)
 {
-	if (eLook == BL_Flat)
+	if (GetButtonImages(eLook) != mpButtonImages)
 	{
 		return NULL;
 	}
@@ -212,6 +220,7 @@ Ptr<CButtonImages> CWindowTheme::GetDefaultButtonImages(EButtonLook eLook)
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindowTheme::SetFont(Ptr<CFont> pFont) { mpFont = pFont; }
+void CWindowTheme::SetSmallButtonImages(Ptr<CButtonImages> pImages) { mpSmallButtonImages = pImages; }
 void CWindowTheme::SetToolButtonImages(Ptr<CButtonImages> pImages) { mpToolButtonImages = pImages; }
 void CWindowTheme::SetCheckBoxImages(Ptr<CCheckBoxImages> pImages) { mpCheckBoxImages = pImages; }
 void CWindowTheme::SetMenuStyle(Ptr<CMenuStyle> pStyle) { mpMenuStyle = pStyle; }

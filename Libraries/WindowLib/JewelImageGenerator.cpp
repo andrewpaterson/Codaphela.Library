@@ -185,6 +185,54 @@ Ptr<CButtonImages> CJewelImageGenerator::CreateDefaultButtonImages(CColourFormat
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The outlined button made small, for buttons crowded in with text.  Its
+// border is at the tiles' edges, not in by the focus ring's two pixels, so
+// selected it has a blue border instead.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CButtonImages> CJewelImageGenerator::CreateSmallButtonImages(CColourFormatHelper* pcFormat)
+{
+	ARGB32			sFace;
+	Ptr<CImage>		pNormal;
+	Ptr<CImage>		pMouseOver;
+	Ptr<CImage>		pSelected;
+	Ptr<CImage>		pPushed;
+
+	sFace = JEWEL_PANEL;
+	pNormal = DrawSmallStrip(JEWEL_BORDER, sFace, pcFormat);
+	pMouseOver = DrawSmallStrip(JEWEL_BORDER_HOVER, sFace, pcFormat);
+	pSelected = DrawSmallStrip(JEWEL_BLUE, sFace, pcFormat);
+	pPushed = DrawSmallStrip(JEWEL_BORDER_PUSHED, sFace, pcFormat);
+	return OMalloc<CButtonImages>(pNormal, pMouseOver, pSelected, pPushed, sFace);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A strip of 4 x 4 tiles for a small button: a one pixel border with
+// corners four round, as the outlined button's, around the face with
+// corners three round.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CJewelImageGenerator::DrawSmallStrip(ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>		pImage;
+	CImageDraw		cDraw;
+
+	pImage = OMalloc<CImage>(4, 32, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	DrawLayer(&cDraw, 4, 0, 4, sBorder);
+	DrawLayer(&cDraw, 4, 1, 3, sFace);
+	cDraw.Kill();
+
+	return CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A strip of 7 x 7 tiles for a flat button, like the main menu and toolbar
 // buttons of IntelliJ IDEA's new UI.  Filled, the tiles are a rectangle
 // with corners four round, two pixels in from the outside so neighbouring

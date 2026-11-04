@@ -30,10 +30,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MenuStyle.h"
 
 
-//What a button looks like: a normal (outlined) one, or a flat one for a toolbar.
+//What a button looks like: a normal (outlined) one, a small one crowded in with text, or a flat one for a toolbar.
 enum EButtonLook
 {
 	BL_Normal,
+	BL_Small,
 	BL_Flat,
 };
 
@@ -52,6 +53,7 @@ protected:
 	Ptr<CFont>				mpFont;  //Of captions, text fields and combo boxes.
 	Ptr<CButtonImages>		mpButtonImages;
 	Ptr<CButtonImages>		mpDefaultButtonImages;  //Drawn instead while a button is its window's default.  Optional.
+	Ptr<CButtonImages>		mpSmallButtonImages;  //Optional, small buttons are normal without them.
 	Ptr<CButtonImages>		mpToolButtonImages;
 	Ptr<CCheckBoxImages>	mpCheckBoxImages;
 	Ptr<CMenuStyle>			mpMenuStyle;  //The menu bar and its menus.
@@ -79,6 +81,7 @@ public:
 
 	void					SetFont(Ptr<CFont> pFont);
 	void					SetButtonImages(Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages);
+	void					SetSmallButtonImages(Ptr<CButtonImages> pImages);
 	void					SetToolButtonImages(Ptr<CButtonImages> pImages);
 	void					SetCheckBoxImages(Ptr<CCheckBoxImages> pImages);
 	void					SetMenuStyle(Ptr<CMenuStyle> pStyle);

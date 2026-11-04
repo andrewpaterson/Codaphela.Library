@@ -36,6 +36,7 @@ class CJewelImageGenerator
 public:
 	static Ptr<CButtonImages>	CreateButtonImages(CColourFormatHelper* pcFormat);  //The outlined button.
 	static Ptr<CButtonImages>	CreateDefaultButtonImages(CColourFormatHelper* pcFormat);  //The blue filled default button.
+	static Ptr<CButtonImages>	CreateSmallButtonImages(CColourFormatHelper* pcFormat);  //The outlined button on small tiles, without a focus ring.
 	static Ptr<CButtonImages>	CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat);  //No border, a small rounded block under the pointer.
 	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
 	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
@@ -47,6 +48,7 @@ public:
 
 protected:
 	static Ptr<CImage>			DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
+	static Ptr<CImage>			DrawSmallStrip(ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);
 	static Ptr<CImageCel>		DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat);
 	static void					SetColour(CImageDraw* pcDraw, ARGB32 sColour);

@@ -40,6 +40,7 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 
 	pTheme = OMalloc<CWindowTheme>(pFont);
 	pTheme->SetButtonImages(CJewelImageGenerator::CreateButtonImages(&cFormat), CJewelImageGenerator::CreateDefaultButtonImages(&cFormat));
+	pTheme->SetSmallButtonImages(CJewelImageGenerator::CreateSmallButtonImages(&cFormat));
 	pTheme->SetToolButtonImages(CJewelImageGenerator::CreateFlatButtonImages(JEWEL_PANEL, JEWEL_HOVER, JEWEL_SEPARATOR, &cFormat));
 	pTheme->SetCheckBoxImages(CJewelImageGenerator::CreateCheckBoxImages(&cFormat));
 	pTheme->SetMenuStyle(OMalloc<CMenuStyle>(pWindow, pFont));
