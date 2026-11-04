@@ -750,6 +750,29 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An allocated object's embedded objects, however deep, start with its
+// distance to the stack (unknown), not the stack constructor's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedNestedDistToStackStartsUnknown(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestNestedCollectionOuter>	pOuter;
+
+		pOuter = OMalloc<CTestNestedCollectionOuter>();
+		AssertInt(UNKNOWN_DIST_TO_STACK, pOuter->GetDistToStack());
+		AssertInt(UNKNOWN_DIST_TO_STACK, pOuter->mcInner.GetDistToStack());
+		AssertInt(UNKNOWN_DIST_TO_STACK, pOuter->mcInner.maObjects.GetDistToStack());
+		pOuter = NULL;
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What only a collection two embeddings deep holds is reached from the
 // stack through the object they are embedded in.  It used to be freed:
 // only the object's own embedded objects were given its distance to the
@@ -809,6 +832,7 @@ void TestEmbedded(void)
 	TestEmbeddedObjectKillFreesEmbedded();
 	TestEmbeddedObjectPointedToNoRemove();
 	TestEmbeddedNestedCollectionHeldFromStack();
+	TestEmbeddedNestedDistToStackStartsUnknown();
 
 	DataIOKill();
 	TypesKill();
