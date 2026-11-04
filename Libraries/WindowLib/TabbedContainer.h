@@ -34,8 +34,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //A bar of tabs over a page, like IntelliJ IDEA's editor tabs.  Each tab has its own page; the selected tab's page
 //fills the area under the bar and the others are kept, not shown.  The first tab added is selected.  A closable tab's
-//cross removes it and its page; the tab after it (or before, if it was the last) is selected if it was.  Double
-//clicking a tab tells the listeners, see CTabbedContainerListener.
+//cross removes it and its page; the tab after it (or before, if it was the last) is selected if it was.  The listeners
+//(see CTabbedContainerListener) are told when a tab is selected, removed or double clicked.
 class CTabbedContainer : public CGridContainer
 {
 CONSTRUCTABLE(CTabbedContainer);

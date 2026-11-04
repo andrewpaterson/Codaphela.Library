@@ -1,3 +1,4 @@
+#include <string.h>
 #include "BaseLib/GlobalMemory.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
@@ -14,23 +15,58 @@
 Ptr<CFont> ReadLabelFont(void);
 
 
+//Keeps what it was told: the tabs and, in szEvents, the order (S selected, R removed, D double clicked).
 class CTestTabbedContainerListener : public CTabbedContainerListener
 {
 CONSTRUCTABLE(CTestTabbedContainerListener);
 public:
 	CTabComponent*	mpcDoubleClicked;
+	CTabComponent*	mpcSelected;
+	CTabComponent*	mpcRemoved;
+	CComponent*		mpcRemovedPage;
 	int				miDoubleClicks;
+	char			mszEvents[32];
 
 	void Init(void)
 	{
 		mpcDoubleClicked = NULL;
+		mpcSelected = NULL;
+		mpcRemoved = NULL;
+		mpcRemovedPage = NULL;
 		miDoubleClicks = 0;
+		mszEvents[0] = '\0';
+	}
+
+	void Event(char c)
+	{
+		size	uiLength;
+
+		uiLength = strlen(mszEvents);
+		if (uiLength + 1 < sizeof(mszEvents))
+		{
+			mszEvents[uiLength] = c;
+			mszEvents[uiLength + 1] = '\0';
+		}
+	}
+
+	void TabSelected(CUnknown* pcSource, void* pvContext) override
+	{
+		mpcSelected = (CTabComponent*)pcSource;
+		Event('S');
+	}
+
+	void TabRemoved(CUnknown* pcSource, void* pvContext) override
+	{
+		mpcRemoved = (CTabComponent*)pcSource;
+		mpcRemovedPage = (CComponent*)pvContext;
+		Event('R');
 	}
 
 	void TabDoubleClicked(CUnknown* pcSource, void* pvContext) override
 	{
 		mpcDoubleClicked = (CTabComponent*)pcSource;
 		miDoubleClicks++;
+		Event('D');
 	}
 };
 
@@ -152,6 +188,12 @@ void TestTabbedContainerTabs(void)
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 		AssertInt(1, cListener.miDoubleClicks);
 
+		//The first press selected the input tab; pressing a selected tab doesn't select it again.
+		AssertString("SD", cListener.mszEvents);
+		AssertTrue(cListener.mpcSelected == &pInputTab);
+		pTabbed->Select((size)0);
+		AssertString("SD", cListener.mszEvents);
+
 		//Renaming a tab resizes it.
 		iEditorWidth = pEditorTab->GetActualSize().x;
 		pEditorTab->SetText("Editor 2");
@@ -177,6 +219,20 @@ void TestTabbedContainerTabs(void)
 		AssertTrue(pFile->GetParent().IsNull());
 		AssertTrue(pFileTab->GetParent().IsNull());
 		AssertInt(1, cListener.miDoubleClicks);
+
+		//The listeners heard the file tab selected, then removed, then the editor tab selected in its place.
+		AssertString("SDSRS", cListener.mszEvents);
+		AssertTrue(cListener.mpcRemoved == &pFileTab);
+		AssertTrue(cListener.mpcRemovedPage == &pFile);
+		AssertTrue(cListener.mpcSelected == &pEditorTab);
+
+		//Removing a tab that isn't selected only tells of its removal.
+		pFileTab = pTabbed->AddTab("Removed", pFile, NULL, true);
+		AssertString("SDSRS", cListener.mszEvents);
+		AssertTrue(pTabbed->RemoveTab(pFileTab));
+		AssertString("SDSRSR", cListener.mszEvents);
+		AssertTrue(cListener.mpcRemoved == &pFileTab);
+		AssertTrue(pTabbed->GetSelected() == pEditorTab);
 		AssertTrue(pTabbed->RemoveListener(&cListener));
 
 		//A tab added after a closed one goes after the others.

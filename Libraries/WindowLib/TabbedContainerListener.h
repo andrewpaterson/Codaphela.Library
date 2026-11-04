@@ -24,8 +24,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Unknown.h"
 
 
-//pcSource is the CTabComponent that was double clicked, selected or removed.  A removed tab's pvContext is its page,
-//the CComponent it showed; the listeners hear it before another tab is selected in its place.
+//Hears a CTabbedContainer's tabs.  pcSource is the CTabComponent that was double clicked, selected (only when the
+//selection changes) or removed.  A removed tab's pvContext is its page, the CComponent it showed; neither is the
+//container's any more, and the listeners hear of it before another tab is selected in its place.
 class CTabbedContainerListener : public CListener
 {
 CONSTRUCTABLE(CTabbedContainerListener);

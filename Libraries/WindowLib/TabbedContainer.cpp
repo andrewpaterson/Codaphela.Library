@@ -160,9 +160,9 @@ Ptr<CTabComponent> CTabbedContainer::AddTab(const char* szName, Ptr<CComponent> 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Removes the tab and its page.  If it was selected the tab after it, or
-// before it if it was the last, is selected.  Returns false if the tab
-// isn't this container's.
+// Removes the tab and its page and tells the listeners.  If it was
+// selected the tab after it, or before it if it was the last, is selected
+// next.  Returns false if the tab isn't this container's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
@@ -226,11 +226,19 @@ void CTabbedContainer::Select(Ptr<CTabComponent> pTab)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The listeners are told when the selected tab changes.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Select(size uiIndex)
 {
+	Ptr<CTabComponent>	pTab;
+
 	if (uiIndex >= maTabs.Size())
+	{
+		return;
+	}
+	pTab = maTabs.Get(uiIndex);
+	if (mpSelected == pTab)
 	{
 		return;
 	}
@@ -241,10 +249,10 @@ void CTabbedContainer::Select(size uiIndex)
 	}
 	mpPage->RemoveAllComponents();
 
-	mpSelected = maTabs.Get(uiIndex);
+	mpSelected = pTab;
 	mpSelected->SetSelected(true);
 	mpPage->AddComponent(maPages.Get(uiIndex));
-	mcListeners.CallListeners(&CTabbedContainerListener::TabSelected, &mpSelected, NULL);
+	mcListeners.CallListeners(&CTabbedContainerListener::TabSelected, &pTab, NULL);
 }
 
 
