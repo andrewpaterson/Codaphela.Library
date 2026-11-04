@@ -325,6 +325,63 @@ void TestCPP816AssemblyLargeBitFinders(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// string816.asm's memcpy copies up to 32 bytes itself and more with the
+// block move: every size either side of that, odd and even, from odd and
+// even addresses, with the bytes either side of the destination left; one
+// through its stack entry (a pointer), one across a bank (the small copy
+// indexes long pointers) and one long.  Each bit of the result is one
+// that went wrong.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816AssemblyMemcpySizes(void)
+{
+	AssertInt(0, TestCPP816Run(
+		"#include <string.h>\n"
+		"volatile unsigned int guiMost = 40;\n"
+		"unsigned char gaucSource[48];\n"
+		"unsigned char gaucDest[48];\n"
+		"void* (*volatile gpMemcpy)(void*, const void*, size_t) = memcpy;\n"
+		"int Check(unsigned int uiAt, unsigned int uiFrom, unsigned int n)\n"
+		"{\n"
+		"\tunsigned int i;\n"
+		"\tfor (i = 0; i < 48; i++)\n"
+		"\t{\n"
+		"\t\tif (gaucDest[i] != (((i >= uiAt) && (i < uiAt + n)) ? gaucSource[i - uiAt + uiFrom] : 0xEE)) { return 1; }\n"
+		"\t}\n"
+		"\treturn 0;\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"\tint w = 0;\n"
+		"\tunsigned int i, n, o;\n"
+		"\tunsigned char* pucSource = (unsigned char*)0x13FFF0;\n"
+		"\tunsigned char* pucDest = (unsigned char*)0x14FFF5;\n"
+		"\tfor (i = 0; i < 48; i++) { gaucSource[i] = (unsigned char)(i * 7 + 1); }\n"
+		"\tfor (o = 0; o < 2; o++)\n"
+		"\t{\n"
+		"\t\tfor (n = 0; n <= guiMost; n++)\n"
+		"\t\t{\n"
+		"\t\t\tmemset(gaucDest, 0xEE, 48);\n"
+		"\t\t\tif (memcpy(gaucDest + o + 1, gaucSource + 1 - o, n) != gaucDest + o + 1) { w |= 1; }\n"
+		"\t\t\tw |= Check(o + 1, 1 - o, n) << 1;\n"
+		"\t\t}\n"
+		"\t}\n"
+		"\tmemset(gaucDest, 0xEE, 48);\n"
+		"\tif (gpMemcpy(gaucDest + 2, gaucSource + 5, 3) != gaucDest + 2) { w |= 4; }\n"
+		"\tw |= Check(2, 5, 3) << 3;\n"
+		"\tfor (i = 0; i < 32; i++) { pucSource[i] = (unsigned char)(i + 3); pucDest[i] = 0; }\n"
+		"\tmemcpy(pucDest, pucSource, 31);\n"
+		"\tfor (i = 0; i < 32; i++) { if (pucDest[i] != ((i < 31) ? i + 3 : 0)) { w |= 16; } }\n"
+		"\tmemset(gaucDest, 0xEE, 48);\n"
+		"\tmemcpy(gaucDest + 1, gaucSource, 46);\n"
+		"\tw |= Check(1, 0, 46) << 5;\n"
+		"\treturn w;\n"
+		"}\n", false));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The W65C816 assembly that stands in for C++ against the compiler: its
 // names compared without running anything, and the entries no other test
 // runs run once, so it's quick, where TestSupportLib65 and TestBaseLib65
@@ -338,6 +395,7 @@ void TestCPP816Assembly(void)
 	TestCPP816AssemblyStringEntries();
 	TestCPP816AssemblyReplacesCPlusPlus();
 	TestCPP816AssemblyLargeBitFinders();
+	TestCPP816AssemblyMemcpySizes();
 
 	TestStatistics();
 }
