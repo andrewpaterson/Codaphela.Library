@@ -70,7 +70,7 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters)
+int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcUpdated)
 {
 	size				i;
 	size				iNumDetached;
@@ -91,6 +91,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 			iClosestFrom = pcClosest->GetDistToStack();
 			pcBaseObject->SetDistToStack(iClosestFrom + 1);
 			pcParameters->RemoveCompletelyDetached(i - 1);
+			papcUpdated->Add(pcBaseObject);
 		}
 	}
 
@@ -100,16 +101,56 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Finds the completely detached objects that can still be reached from
+// the stack.  First those pointed to from something with a distance to the
+// stack, then what they point to, breadth first.  (Going over the
+// detached objects again and again until none changed took a pass per
+// object along a chain.)
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters)
 {
-	int iNumUpdated;
+	CArrayBaseObjectPtr			apcReached;
+	CArrayEmbeddedObjectPtr		apcTos;
+	CBaseObject*				pcReached;
+	CBaseObject*				pcTo;
+	size						uiFirst;
+	size						i;
+	size						uiNumTos;
+	int							iDistToStack;
 
-	iNumUpdated = -1;
-	while (iNumUpdated != 0)
+	apcReached.Init();
+	UpdateDistToStackForObjectsWithFromStackDist(pcParameters, &apcReached);
+
+	for (uiFirst = 0; uiFirst < apcReached.NumElements(); uiFirst++)
 	{
-		iNumUpdated = UpdateDistToStackForObjectsWithFromStackDist(pcParameters);
+		pcReached = apcReached.GetPtr(uiFirst);
+		iDistToStack = pcReached->GetDistToStack();
+
+		apcTos.Init();
+		pcReached->GetPointerTos(&apcTos);
+		uiNumTos = apcTos.NumElements();
+		for (i = 0; i < uiNumTos; i++)
+		{
+			pcTo = apcTos.GetPtr(i)->GetEmbeddingContainer();
+
+			//Only objects this walk found detached from the root (the others are attached, or being freed).
+			if ((pcTo->GetFlags() & OBJECT_FLAGS_DIST_FROM_WALKED) && (pcTo->GetDistToStack() == UNKNOWN_DIST_TO_STACK))
+			{
+				pcTo->SetDistToStack(iDistToStack + 1);
+				apcReached.Add(pcTo);
+			}
+		}
+		apcTos.Kill();
+	}
+	apcReached.Kill();
+
+	for (i = pcParameters->NumCompletelyDetached(); i > 0; i--)
+	{
+		if (pcParameters->GetCompletelyDetached(i - 1)->GetDistToStack() != UNKNOWN_DIST_TO_STACK)
+		{
+			pcParameters->RemoveCompletelyDetached(i - 1);
+		}
 	}
 }
 

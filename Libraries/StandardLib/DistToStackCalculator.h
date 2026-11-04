@@ -15,7 +15,7 @@ public:
 protected:
 	size			CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters);
-	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters);
+	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcUpdated);
 	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters);
 	void			ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
 };

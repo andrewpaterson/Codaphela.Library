@@ -718,6 +718,55 @@ size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether something that points to this (or to what points to it...) is
+// pointed to from the stack or attached to the root.  Then a stack pointer
+// to this going frees nothing, and the full distance to the stack walk
+// (everything below this, then everything above that) isn't needed.  Breadth
+// first, so the holder nearest is found first: building a component under
+// a parent held on the stack finds it straight away.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::IsHeldFromStackOrRoot(void)
+{
+	CArrayBaseObjectPtr		apcFroms;
+	CBaseObject*			pcFrom;
+	size					uiFirst;
+	size					i;
+	bool					bHeld;
+
+	bHeld = false;
+	apcFroms.Init();
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
+	apcFroms.Add(this);
+	CollectDetachedFroms(&apcFroms);
+	for (uiFirst = 1; uiFirst < apcFroms.NumElements(); uiFirst++)
+	{
+		pcFrom = apcFroms.GetPtr(uiFirst);
+		if (pcFrom->muiFlags & (OBJECT_FLAGS_TESTED_FOR_ROOT | OBJECT_FLAGS_FREED))
+		{
+			continue;
+		}
+		if ((pcFrom->GetDistToRoot() >= ROOT_DIST_TO_ROOT) || pcFrom->HasStackFroms())
+		{
+			bHeld = true;
+			break;
+		}
+		pcFrom->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
+		pcFrom->CollectDetachedFroms(&apcFroms);
+	}
+
+	//Everything walked (and only that) was flagged, and every flagged object is in the array.
+	for (i = 0; i < apcFroms.NumElements(); i++)
+	{
+		apcFroms.GetPtr(i)->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
+	}
+	apcFroms.Kill();
+	return bHeld;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Adds the objects this object's heap froms are in.
 //
 //////////////////////////////////////////////////////////////////////////

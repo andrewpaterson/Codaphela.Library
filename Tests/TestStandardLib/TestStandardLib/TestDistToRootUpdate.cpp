@@ -1509,6 +1509,86 @@ void TestDistToRootUpdateBuildUnrootedSpeed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tree built before it is rooted, each node's children added while a
+// stack pointer holds the node.  Moving the stack pointer off a child
+// finds the node holding it straight away.  Letting go of a node part way
+// down frees nothing (its parent holds it); letting go of the top frees
+// the lot.  Returns the milliseconds building took.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateBuildUnrootedTree(size uiDepth, size uiBranching, bool bValidate)
+{
+	Ptr<CTestTriPointerObject>	pTop;
+	CArrayBaseObjectPtr			apcNodes;
+	CTimer						cTimer;
+	float						fMilliseconds;
+	size						uiNodes;
+
+	ObjectsInit();
+	apcNodes.Init();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	{
+		Ptr<CTestTriPointerObject>	pWindow;
+
+		pWindow = OMalloc<CTestTriPointerObject>();
+		ORoot()->Add(pWindow);
+
+		cTimer.Init();
+		pTop = OMalloc<CTestTriPointerObject>();
+		BuildDistToRootWindowTree(pWindow, pTop, uiDepth, uiBranching, &apcNodes);
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		uiNodes = apcNodes.NumElements();
+		AssertLong(3 + (int64)uiNodes + (int64)(uiNodes - 1) / (int64)uiBranching, gcObjects.NumMemoryIndexes());
+		AssertInt(UNATTACHED_DIST_TO_ROOT, pTop->GetDistToRoot());
+		AssertDistToRoot();
+		gcObjects.ValidateObjectsConsistency();
+
+		{
+			Ptr<CTestTriPointerObject>	pMiddle;
+
+			pMiddle = (CTestTriPointerObject*)apcNodes.GetPtr(1);
+			pMiddle = NULL;
+		}
+		AssertLong(3 + (int64)uiNodes + (int64)(uiNodes - 1) / (int64)uiBranching, gcObjects.NumMemoryIndexes());
+
+		apcNodes.Kill();
+		pTop = NULL;
+		AssertLong(3, gcObjects.NumMemoryIndexes());
+		ORoot()->RemoveAll();
+		pWindow = NULL;
+		AssertLong(2, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateBuildUnrootedTreeSpeed(void)
+{
+	size		uiDepth;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	fMilliseconds = TestDistToRootUpdateBuildUnrootedTree(uiDepth, 3, false);
+	LogDistToRootSpeed("Build an unrooted tree", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A long chain taken off the root while its head and tail are held from
 // the stack: clearing its distances to the root walks down its whole
 // length, and letting go of the tail walks back up it to the head to find
@@ -1663,6 +1743,8 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateBuildUnrooted(20, 10, true);
 	TestDistToRootUpdateBuildUnrootedSpeed();
 	TestDistToRootUpdateLongChain(DIST_TO_ROOT_LONG_CHAIN);
+	TestDistToRootUpdateBuildUnrootedTree(3, 3, true);
+	TestDistToRootUpdateBuildUnrootedTreeSpeed();
 	TestDistToRootUpdateFreeBatchChangingPointers(5, true);
 	TestDistToRootUpdateFreeBatchSpeed();
 

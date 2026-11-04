@@ -177,6 +177,7 @@ public:
 			bool					CanFindRoot(void);
 			bool					CanFindRootThroughValidPath(void);
 			bool					HasCloserFrom(void);
+			bool					IsHeldFromStackOrRoot(void);
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;
