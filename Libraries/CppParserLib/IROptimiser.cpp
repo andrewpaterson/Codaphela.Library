@@ -71,6 +71,8 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mcDominators.Init();
 	mcDefinitions.Init();
 	mcLoops.Init();
+	mabReached.Init();
+	maiReachSearch.Init();
 	masReplacements.Init();
 	mauiUses.Init();
 	masPromotions.Init();
@@ -100,6 +102,8 @@ void CIROptimiser::Kill(void)
 	masPromotions.Kill();
 	mauiUses.Kill();
 	masReplacements.Kill();
+	maiReachSearch.Kill();
+	mabReached.Kill();
 	mcLoops.Kill();
 	mcDefinitions.Kill();
 	mcDominators.Kill();
@@ -1114,26 +1118,63 @@ void CIROptimiser::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* 
 //////////////////////////////////////////////////////////////////////////
 //
 // Blocks the entry can't reach go; their arguments to reachable blocks' phis
-// too.
+// too.  The blocks must be numbered (CIRFunction::Renumber); the entry is
+// the first.  A search from the entry finds the reachable ones: the
+// dominators aren't needed.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::RemoveUnreachable(void)
 {
 	size			ui;
 	size			uiSuccessor;
+	size			uiBlocks;
+	size			uiReached;
+	size			uiTop;
 	CIRBlock*		pcBlock;
+	CIRBlock*		pcSuccessor;
 	CArrayIRBlocks	apcUnreachable;
 
-	mcDominators.Compute(mpcFunction);
-	if (mcDominators.NumReachable() == mpcFunction->NumBlocks())
+	uiBlocks = mpcFunction->NumBlocks();
+	if (uiBlocks == 0)
 	{
 		return false;
 	}
+
+	//Each block is put on the search once, when it is first reached, so the search needs no more than a place per block.
+	mabReached.FakeSetUsedElements(0);
+	mabReached.GrowToAtLeastNumElements(uiBlocks, true, 0);
+	maiReachSearch.FakeSetUsedElements(0);
+	maiReachSearch.GrowToAtLeastNumElements(uiBlocks);
+	*mabReached.Get(0) = 1;
+	*maiReachSearch.Get(0) = 0;
+	uiTop = 1;
+	uiReached = 1;
+	while (uiTop > 0)
+	{
+		uiTop--;
+		pcBlock = mpcFunction->GetBlock(*maiReachSearch.Get(uiTop));
+		for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
+		{
+			pcSuccessor = pcBlock->GetSuccessor(uiSuccessor);
+			if (pcSuccessor && (*mabReached.Get(pcSuccessor->muiIndex) == 0))
+			{
+				*mabReached.Get(pcSuccessor->muiIndex) = 1;
+				*maiReachSearch.Get(uiTop) = (int32)pcSuccessor->muiIndex;
+				uiTop++;
+				uiReached++;
+			}
+		}
+	}
+	if (uiReached == uiBlocks)
+	{
+		return false;
+	}
+
 	apcUnreachable.Init();
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < uiBlocks; ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		if (!mcDominators.IsReachable(pcBlock))
+		if (*mabReached.Get(ui) == 0)
 		{
 			apcUnreachable.Add(pcBlock);
 			for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)

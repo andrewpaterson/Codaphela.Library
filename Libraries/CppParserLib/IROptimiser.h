@@ -295,6 +295,8 @@ protected:
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
 	CIRLoops				mcLoops;			//The loops (ComputeLoops).
+	CArrayTemplate<uint8>	mabReached;			//RemoveUnreachable: per block, whether the entry reaches it...
+	CArrayTemplate<int32>	maiReachSearch;		//...and the blocks found and not yet searched from (each at most once).
 	CArrayIRReferences		masReplacements;	//Per temporary: what to use instead, IRNone to keep it.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary.
 	CArrayIRPromotions		masPromotions;
