@@ -282,6 +282,7 @@ protected:
 	void			StackLine(const char* szInstruction, int iOffset);
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
 	void			CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction);
+	int32			SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset);
 	void			FloatArithmetic(SIRInstruction* psInstruction);
 	void			FloatCompare(SIRInstruction* psInstruction);
 	void			FloatConversion(SIRInstruction* psInstruction);

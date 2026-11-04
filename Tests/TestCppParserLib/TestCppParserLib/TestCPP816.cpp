@@ -19,6 +19,7 @@
 #include "CppParserLib/CPP65Builder.h"
 #include "CppParserLib/IR816Backend.h"
 #include "CppParserLib/CPP65IRFrontEnd.h"
+#include "CppParserLib/CPP65Generator.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -4562,6 +4563,60 @@ void TestCPP816FrameOperandFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With softfloat.cpp compiled in place of softfloat816.asm (CCPP65Generator
+// ::SetW65C816Assembly(false)) the float instructions call its functions'
+// register entries (CIR816Backend::SoftFloatCall), not their stubs: every
+// result the same, bit for bit, as natively.  _SoftDoubleCompare takes
+// nothing in registers (its plain label), _SoftFloatFromInt's int would
+// (it is pushed, extended to 32 bits, to the plain label).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816RegisterFloats(void)
+{
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/string816.asm", NULL };
+	CChars				szSource;
+	CChars				szListing;
+	uint32				auiResults[256];
+	int					i;
+	bool				bWasAssembly;
+
+	TestCPP816FloatNative::giResults = 0;
+	TestCPP816FloatNative::Run();
+
+	szSource.Init("#define __cdecl\n#include <string.h>\n");
+	szSource.Append("unsigned long* gpuiResult = (unsigned long*)0x100000;\n");
+	szSource.Append("void PutD(double d) { unsigned long long u; memcpy(&u, &d, 8); *gpuiResult++ = (unsigned long)u; *gpuiResult++ = (unsigned long)(u >> 32); }\n");
+	szSource.Append("void PutF(float x) { unsigned long u; memcpy(&u, &x, 4); *gpuiResult++ = u; }\n");
+	szSource.Append("void PutI(long l) { *gpuiResult++ = (unsigned long)l; }\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_FLOAT_GLOBALS));
+	szSource.Append("\nint main(void)\n{\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_FLOAT_BODY));
+	szSource.Append("\n\treturn (int)(gpuiResult - (unsigned long*)0x100000);\n}\n");
+
+	bWasAssembly = CCPP65Generator::IsW65C816Assembly();
+	CCPP65Generator::SetW65C816Assembly(false);
+	szListing.Init();
+	AssertInt(TestCPP816FloatNative::giResults, TestCPP816RunListed(szSource.Text(), aszUnits, &szListing, auiResults, TestCPP816FloatNative::giResults));
+	CCPP65Generator::SetW65C816Assembly(bWasAssembly);
+	for (i = 0; i < TestCPP816FloatNative::giResults; i++)
+	{
+		AssertIntHex(TestCPP816FloatNative::gauiResults[i], auiResults[i]);
+	}
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleAdd", ".ax"));
+	AssertFalse(TestCPP816Calls(szListing.Text(), "_SoftDoubleAdd", ""));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftFloatAdd", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftFloatCompare", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleCompare", ""));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftDoubleFromLongLong", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_SoftFloatToInt", ".ax"));
+	AssertFalse(TestCPP816Calls(szListing.Text(), "_SoftDoubleAdd", ".dp"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Functions with an object passed by value keep their arguments on the
 // stack (CCPP65IRFrontEnd::MarkFunctionSymbol): its pieces stay together
 // where the caller pushed them, the called function taking its address.
@@ -5194,6 +5249,7 @@ void TestCPP816(void)
 	TestCPP816AlignedFrameUnreadArguments();
 	TestCPP816RegisterArguments();
 	TestCPP816FrameOperandFloats();
+	TestCPP816RegisterFloats();
 	TestCPP816ObjectArguments();
 	TestCPP816Exit();
 	TestCPP816StringRegisters();

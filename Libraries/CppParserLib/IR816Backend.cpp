@@ -9224,9 +9224,13 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 {
-	CChars	szName;
-	int32	iFirst;
-	int32	iSecond;
+	CChars			szName;
+	int32			iFirst;
+	int32			iSecond;
+	int32			iBytes;
+	SIRReference	asValues[2];
+	SIRType			asTypes[2];
+	bool			bHidden;
 
 	szName.Init(psInstruction->sType.Is(IRTK_F64) ? "_SoftDouble" : "_SoftFloat");
 	switch (psInstruction->uiOpcode)
@@ -9244,9 +9248,13 @@ void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 	}
 	else
 	{
-		PushValue(psInstruction->asArguments[1], psInstruction->sType);
-		PushValue(psInstruction->asArguments[0], psInstruction->sType);
-		CallFunction(szName.Text(), 2 * ValueBytes(psInstruction->sType), psInstruction);
+		asValues[0] = psInstruction->asArguments[0];
+		asValues[1] = psInstruction->asArguments[1];
+		asTypes[0] = psInstruction->sType;
+		asTypes[1] = psInstruction->sType;
+		bHidden = IsHiddenResult(psInstruction->sType);
+		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+		CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }
@@ -9332,6 +9340,125 @@ void CIR816Backend::CallFunction(const char* szName, int32 iBytes, SIRInstructio
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Calls softfloat.cpp's (compiled) szName with asValues (of asTypes; the
+// one at iExtended, if not -1, extended to 32 bits as PushInt32 does) where
+// its register entry takes them: placed as Call places a register
+// function's arguments (IR816AssignRegisters, the hidden result pointer
+// first when bHidden; it points at the frame's iHiddenOffset), the pushed
+// ones pushed, the others loaded (LoadRegisters), then a jsl to its
+// suffixed label, so not through its stub.  When registers aren't used
+// (SetRegisterArguments) or the extended value would go in them, all are
+// pushed and the plain label is called.  Returns the bytes pushed, for the
+// caller to remove.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
+{
+	CArrayIR816Arguments	asArguments;
+	SIR816Argument*			psArgument;
+	SIRReference			asRegisters[IR816_ARGUMENT_REGISTERS];
+	int						aiWords[IR816_ARGUMENT_REGISTERS];
+	int32					aiHidden[IR816_ARGUMENT_REGISTERS];
+	int						iFirst;
+	int						iRegisters;
+	int						i;
+	size					ui;
+	int32					iBytes;
+	CChars					sz;
+
+	asArguments.Init();
+	if (bHidden)
+	{
+		psArgument = asArguments.Add();
+		psArgument->iWords = 2;
+		psArgument->iRegister = -1;
+	}
+	for (i = 0; i < iValues; i++)
+	{
+		psArgument = asArguments.Add();
+		psArgument->iWords = (i == iExtended) ? 2 : Words(asTypes[i]);
+		psArgument->iRegister = -1;
+	}
+	iFirst = bHidden ? 1 : 0;
+	iRegisters = gbIR816RegisterArguments ? IR816AssignRegisters(&asArguments) : 0;
+	if ((iExtended >= 0) && (asArguments.Get(iFirst + iExtended)->iRegister >= 0))
+	{
+		iRegisters = 0;
+		for (ui = 0; ui < asArguments.NumElements(); ui++)
+		{
+			asArguments.Get(ui)->iRegister = -1;
+		}
+	}
+
+	//The pushed ones, last first, then the hidden result pointer.
+	iBytes = 0;
+	for (i = iValues - 1; i >= 0; i--)
+	{
+		psArgument = asArguments.Get(iFirst + i);
+		if (psArgument->iRegister >= 0)
+		{
+			continue;
+		}
+		if (i == iExtended)
+		{
+			PushInt32(asValues[i], asTypes[i], bSigned);
+		}
+		else
+		{
+			PushValue(asValues[i], asTypes[i]);
+		}
+		iBytes += 2 * psArgument->iWords;
+	}
+	if (bHidden && (asArguments.Get(0)->iRegister < 0))
+	{
+		PushFrameAddress(iHiddenOffset);
+		iBytes += 4;
+	}
+
+	//The registers' words.
+	for (i = 0; i < iRegisters; i++)
+	{
+		asRegisters[i] = IRNone();
+		aiWords[i] = 0;
+		aiHidden[i] = -1;
+		for (ui = 0; ui < asArguments.NumElements(); ui++)
+		{
+			psArgument = asArguments.Get(ui);
+			if ((psArgument->iRegister >= 0) && (i >= psArgument->iRegister) && (i < psArgument->iRegister + psArgument->iWords))
+			{
+				aiWords[i] = i - psArgument->iRegister;
+				if ((int)ui < iFirst)
+				{
+					aiHidden[i] = iHiddenOffset;
+				}
+				else
+				{
+					asRegisters[i] = asValues[(int)ui - iFirst];
+				}
+			}
+		}
+	}
+	if (iRegisters > 0)
+	{
+		LoadRegisters(asRegisters, aiWords, aiHidden, iRegisters);
+	}
+
+	UseRuntime(szName);
+	sz.Init("jsl ");
+	sz.Append(szName);
+	if (iRegisters > 0)
+	{
+		IR816AppendRegisterSuffix(&sz, &asArguments);
+	}
+	Line(sz.Text());
+	sz.Kill();
+	asArguments.Kill();
+	return iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // _SoftFloatCompare gives -1, 0 or 1, or 2 when either is a NaN, in A: each comparison is true for some of those.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -9339,6 +9466,9 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 {
 	int					aiValues[2];
 	int					iValues;
+	int32				iBytes;
+	SIRReference		asValues[2];
+	SIRType				asTypes[2];
 	bool				bNot;
 	int32				iTrue;
 	int32				iFalse;
@@ -9358,15 +9488,19 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	}
 	else
 	{
-		PushValue(psInstruction->asArguments[1], sType);
-		PushValue(psInstruction->asArguments[0], sType);
-		UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare");
-		Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" : "jsl _SoftFloatCompare");
+		asValues[0] = psInstruction->asArguments[0];
+		asValues[1] = psInstruction->asArguments[1];
+		asTypes[0] = sType;
+		asTypes[1] = sType;
+		iBytes = SoftFloatCall(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare", asValues, asTypes, 2, -1, false, false, -1);
 		Frame("sta", IR816_SCRATCH_RESULT);
-		Line("tsc");
-		Line("clc");
-		Line("adc ", 2 * ValueBytes(sType));
-		Line("tcs");
+		if (iBytes > 0)
+		{
+			Line("tsc");
+			Line("clc");
+			Line("adc ", iBytes);
+			Line("tcs");
+		}
 	}
 
 	//The compare's results that make it true (or false, for fne and fordered).
@@ -9427,11 +9561,15 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	SIRType			sTo;
 	SIRReference	sValue;
 	bool			bSigned;
+	bool			bHidden;
 	CChars			szName;
 	int32			iBytes;
 	int32			iFirst;
+	int				iExtended;	//The value extended to 32 bits (SoftFloatCall), or -1.
 
 	sValue = psInstruction->asArguments[0];
+	iExtended = -1;
+	bSigned = false;
 	sFrom = mpcFunction->TypeOf(sValue);
 	sTo = psInstruction->sType;
 	szName.Init();
@@ -9440,11 +9578,6 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	case IRO_FExt:
 	case IRO_FTrunc:
 		szName.Append(sTo.Is(IRTK_F64) ? "_SoftFloatToDouble" : "_SoftDoubleToFloat");
-		if (!gbIR816SoftFloatInFrame)
-		{
-			PushValue(sValue, sFrom);
-		}
-		iBytes = ValueBytes(sFrom);
 		break;
 	case IRO_SIToF:
 	case IRO_UIToF:
@@ -9453,20 +9586,11 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 		if (sFrom.Is(IRTK_I64))
 		{
 			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-			if (!gbIR816SoftFloatInFrame)
-			{
-				PushValue(sValue, sFrom);
-			}
-			iBytes = 8;
 		}
 		else
 		{
 			szName.Append((bSigned || (sFrom.IntegerBits() < 32)) ? "Int" : "Unsigned");
-			if (!gbIR816SoftFloatInFrame)
-			{
-				PushInt32(sValue, sFrom, bSigned);
-			}
-			iBytes = 4;
+			iExtended = 0;
 		}
 		break;
 	default:
@@ -9480,11 +9604,6 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 		{
 			szName.Append((bSigned || (sTo.IntegerBits() < 32)) ? "Int" : "Unsigned");
 		}
-		if (!gbIR816SoftFloatInFrame)
-		{
-			PushValue(sValue, sFrom);
-		}
-		iBytes = ValueBytes(sFrom);
 		break;
 	}
 	if (gbIR816SoftFloatInFrame)
@@ -9524,7 +9643,9 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	}
 	else
 	{
-		CallFunction(szName.Text(), iBytes, psInstruction);
+		bHidden = IsHiddenResult(sTo);
+		iBytes = SoftFloatCall(szName.Text(), &sValue, &sFrom, 1, iExtended, bSigned, bHidden, psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : OffsetOf(psInstruction->sResult));
+		CallerCleanUp(iBytes, psInstruction);
 	}
 	szName.Kill();
 }
