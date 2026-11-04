@@ -47,6 +47,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 
 	mpTextArea = OMalloc<CTextArea>(pWindow, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
+	muiSeenChanges = mpTextArea->GetChangeCount();
 
 	//The gutter is only to read: a press in it passes to the code editor.
 	mpGutter = OMalloc<CTextArea>(pWindow, pFamily, "");
@@ -98,6 +99,7 @@ void CCodeEditor::Class(void)
 	U_Size(muiGutterLines);
 	U_Data(CArrayCodeEditorMarks, macMarks);
 	U_Bool(mbMarksChanged);
+	U_Size(muiSeenChanges);
 	U_Data(CListenerCall, mcListeners);
 }
 
@@ -378,13 +380,21 @@ int32 CCodeEditor::GetGapHeight(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Catches up with edits to the code: line components whose lines went are
-// removed, the others' gaps are as high as they want, and the gutter is
-// numbered and gapped like the code.
+// Catches up with edits to the code: the listeners are told of them,
+// line components whose lines went are removed, the others' gaps are as
+// high as they want, and the gutter is numbered and gapped like the code.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Update(void)
 {
+	size	uiChanges;
+
+	uiChanges = mpTextArea->GetChangeCount();
+	if (uiChanges != muiSeenChanges)
+	{
+		muiSeenChanges = uiChanges;
+		mcListeners.CallListeners(&CCodeEditorListener::CodeChanged, this, NULL);
+	}
 	UpdateLineComponents();
 	UpdateGutter();
 }

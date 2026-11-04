@@ -25,12 +25,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Hears a CCodeEditor.  pcSource is the code editor; GutterClicked's pvContext is the line clicked next to (a size*,
-//from 0).
+//from 0).  CodeChanged is told when the code editor is next laid out after its code was edited.
 class CCodeEditorListener : public CListener
 {
 CONSTRUCTABLE(CCodeEditorListener);
 public:
 	virtual void	GutterClicked(CUnknown* pcSource, void* pvContext) {};
+	virtual void	CodeChanged(CUnknown* pcSource, void* pvContext) {};
 };
 
 

@@ -40,8 +40,8 @@ typedef CArrayTemplate<char>	CArrayCodeEditorMarks;
 //the code's rows; the code isn't word wrapped and its spans shouldn't change the font's size or the rows wouldn't
 //match.  The gutter's first column has a mark for each line (SetLineMark), a space unless set; marks are by line
 //number, so they don't move with the lines as the code is edited.  Clicking the gutter tells the listeners which line
-//it was next to.  The code editor is meant to be the content of a CScrollPane: it is as big as the gutter and code
-//need, and the text area keeps its caret in view.
+//it was next to, and an edit tells them the code changed.  The code editor is meant to be the content of a
+//CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.
 class CCodeEditor : public CContainer
 {
 CONSTRUCTABLE(CCodeEditor);
@@ -55,6 +55,7 @@ protected:
 	size					muiGutterLines;  //The lines the gutter was last numbered for.
 	CArrayCodeEditorMarks	macMarks;  //By line; lines past its end, and '\0's, have none.
 	bool					mbMarksChanged;  //Since the gutter was last numbered.
+	size					muiSeenChanges;  //The text area's change count when the listeners were last told of an edit.
 	CListenerCall			mcListeners;
 
 public:
