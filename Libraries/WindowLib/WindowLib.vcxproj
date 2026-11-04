@@ -259,6 +259,9 @@
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="CodeEditor.h" />
     <ClInclude Include="CodeEditorListener.h" />
+    <ClInclude Include="LineZone.h" />
+    <ClInclude Include="LineZones.h" />
+    <ClInclude Include="LineZoneSource.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />
@@ -323,6 +326,8 @@
     <ClCompile Include="Label.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="CodeEditor.cpp" />
+    <ClCompile Include="LineZone.cpp" />
+    <ClCompile Include="LineZones.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeClipboard.cpp" />

@@ -19,6 +19,7 @@ void TestLabel(void);
 void TestTextArea(void);
 void TestTextAreaEdit(void);
 void TestCodeEditor(void);
+void TestLineZones(void);
 void TestScrollPane(void);
 void TestComponentInput(void);
 void TestComponentInputDevices(void);
@@ -74,6 +75,7 @@ int __cdecl main(void)
 	TestTextArea();
 	TestTextAreaEdit();
 	TestCodeEditor();
+	TestLineZones();
 	TestScrollPane();
 	TestComponentInput();
 	TestComponentInputDevices();

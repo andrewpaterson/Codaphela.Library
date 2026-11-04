@@ -318,6 +318,15 @@
     <ClInclude Include="CodeEditorListener.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="LineZone.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
+    <ClInclude Include="LineZones.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
+    <ClInclude Include="LineZoneSource.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component\Widgets\Button</Filter>
     </ClInclude>
@@ -531,6 +540,12 @@
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="CodeEditor.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="LineZone.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="LineZones.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">

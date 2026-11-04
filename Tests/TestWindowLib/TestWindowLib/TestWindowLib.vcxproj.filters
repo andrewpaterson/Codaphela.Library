@@ -79,6 +79,9 @@
     <ClCompile Include="TestCodeEditor.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestLineZones.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestScrollPane.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
