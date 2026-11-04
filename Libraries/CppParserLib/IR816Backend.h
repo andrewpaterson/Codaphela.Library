@@ -270,6 +270,9 @@ protected:
 	bool			IsRegisterCall(SIRReference sCallee);
 	void			FunctionArguments(void);
 	void			RegisterStub(CChars* pszBodyLabel);
+	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
+	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
+	void			StackLine(const char* szInstruction, int iOffset);
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
 	void			CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction);
 	void			FloatArithmetic(SIRInstruction* psInstruction);

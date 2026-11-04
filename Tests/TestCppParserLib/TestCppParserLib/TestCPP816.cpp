@@ -3248,7 +3248,11 @@ void TestCPP816MergeLoop(void)
 		}
 	}
 	AssertInt((int16)uiHash, TestCPP816RunProfiled(szSource, NULL, NULL, &uiCycles));
-	AssertTrue(uiCycles < 1095000);	//1032421 in the blocks' order, 1173183 in reverse post order; +15.4K clearing the arrays (bss) at start up.
+	//1032421 in the blocks' order, 1173183 in reverse post order; +15.4K clearing the arrays (bss) at start up: 1087842 with
+	//every argument pushed.  Register arguments made it 1220702: Compare (two pointers, one in A and X, one pushed) is
+	//only called through a pointer, so through its plain label, which pushed the pushed one again and called the body;
+	//it moves it down instead now, 1177778.
+	AssertTrue(uiCycles < 1200000);
 }
 
 

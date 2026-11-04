@@ -7106,29 +7106,32 @@ void CIR816Backend::Prologue(const char* szLabel)
 //
 // A register function's plain label, for callers that push every argument
 // (function pointers, vtables, thunks, assembly): on entry argument word k
-// is at S + 4 + 2k (after the jsl's return address).  The registers' words
-// are loaded (Y's and X's through A, A's last) and it goes straight on to
-// the body when no argument is pushed.  Otherwise the pushed ones are
-// pushed again (the body wants them just above its return address), the
-// body is called, they are removed (A kept in Y, X kept) and it returns.
+// is at S + 4 + 2k (after the jsl's return address).  The body wants its
+// pushed words just above its return address (S + 4 on), in order, so they
+// are moved down there (over the register words, read first) and it goes
+// straight on to the body; the words left above them are the caller's to
+// remove, as they always are.  Y's and X's words are loaded through A, then
+// A's (kept in Y while the words move when its place is moved over).  When
+// all three registers hold arguments and A's place is moved over there is
+// nowhere to keep it: the pushed words are pushed again instead, the body
+// is called, they are removed (A kept in Y, X kept) and it returns.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 {
-	CChars			sz;
 	int				aiWordOf[IR816_ARGUMENT_REGISTERS];
 	int				iWords;
-	int				iPushed;
 	int				iStacked;
-	int				iWord;
+	int				iMoved;
 	int				i;
-	int				k;
 	size			ui;
 	SIR816Argument*	psArgument;
+	bool			bKeepA;
 
-	//Each register's word, and the pushed words.
+	//Each register's word, the pushed words, and how many of those aren't already where the body wants them.
 	iWords = 0;
 	iStacked = 0;
+	iMoved = 0;
 	for (ui = 0; ui < masArguments.NumElements(); ui++)
 	{
 		psArgument = masArguments.Get(ui);
@@ -7140,14 +7143,109 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 			}
 			else
 			{
+				if (iWords != iStacked)
+				{
+					iMoved++;
+				}
 				iStacked++;
 			}
 			iWords++;
 		}
 	}
 
-	//The pushed words again, last first: each push moves the stack's words 2 further from S.
-	sz.Init();
+	//A's word is moved over when its place is one the pushed words go to.
+	bKeepA = (iMoved > 0) && (aiWordOf[0] < iStacked);
+	if (bKeepA && (miRegisterWords == IR816_ARGUMENT_REGISTERS))
+	{
+		RegisterStubCall(pszBodyLabel, aiWordOf, iWords, iStacked);
+		return;
+	}
+
+	//Y's and X's words, and A's into Y when the moves go over it.
+	RegisterStubLoad(aiWordOf, miRegisterWords - 1, 1, 0);
+	if (bKeepA)
+	{
+		RegisterStubLoad(aiWordOf, 0, 0, 0);
+		Line("tay");
+	}
+
+	//The pushed words down to S + 4 on, first first: each goes to a lower place than any still to be read.
+	iStacked = 0;
+	iWords = 0;
+	for (ui = 0; ui < masArguments.NumElements(); ui++)
+	{
+		psArgument = masArguments.Get(ui);
+		for (i = 0; i < psArgument->iWords; i++)
+		{
+			if (psArgument->iRegister < 0)
+			{
+				if (iWords != iStacked)
+				{
+					StackLine("lda", 4 + 2 * iWords);
+					StackLine("sta", 4 + 2 * iStacked);
+				}
+				iStacked++;
+			}
+			iWords++;
+		}
+	}
+
+	//A's word, then on to the body (its label is next).
+	if (bKeepA)
+	{
+		Line("tya");
+	}
+	else
+	{
+		RegisterStubLoad(aiWordOf, 0, 0, 0);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads the register words iHigh down to iLow (2 Y, 1 X, 0 A) from the
+// plain label's arguments, iPushed words further from S than on entry: Y's
+// and X's through A.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed)
+{
+	int		k;
+
+	for (k = iHigh; k >= iLow; k--)
+	{
+		StackLine("lda", 4 + 2 * aiWordOf[k] + 2 * iPushed);
+		if (k == 2)
+		{
+			Line("tay");
+		}
+		else if (k == 1)
+		{
+			Line("tax");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// RegisterStub when the pushed words can't be moved down (all three
+// registers hold arguments and A's place is moved over): they are pushed
+// again, last first (each push moves the stack's words 2 further from S),
+// the registers are loaded, the body is called, they are removed (A kept
+// in Y, X kept) and it returns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked)
+{
+	CChars			sz;
+	int				iPushed;
+	int				iWord;
+	int				i;
+	size			ui;
+	SIR816Argument*	psArgument;
+
 	iPushed = 0;
 	iWord = iWords;
 	for (ui = masArguments.NumElements(); ui > 0; ui--)
@@ -7158,49 +7256,42 @@ void CIR816Backend::RegisterStub(CChars* pszBodyLabel)
 			iWord--;
 			if (psArgument->iRegister < 0)
 			{
-				sz.Clear();
-				sz.Append("lda [S + ");
-				sz.Append(4 + 2 * iWord + 2 * iPushed);
-				sz.Append("]");
-				Line(sz.Text());
+				StackLine("lda", 4 + 2 * iWord + 2 * iPushed);
 				Line("pha");
 				iPushed++;
 			}
 		}
 	}
 
-	//Y's, X's, then A's.
-	for (k = miRegisterWords - 1; k >= 0; k--)
-	{
-		sz.Clear();
-		sz.Append("lda [S + ");
-		sz.Append(4 + 2 * aiWordOf[k] + 2 * iStacked);
-		sz.Append("]");
-		Line(sz.Text());
-		if (k == 2)
-		{
-			Line("tay");
-		}
-		else if (k == 1)
-		{
-			Line("tax");
-		}
-	}
+	RegisterStubLoad(aiWordOf, miRegisterWords - 1, 0, iStacked);
 
-	if (iStacked > 0)
-	{
-		sz.Clear();
-		sz.Append("jsl ");
-		sz.Append(pszBodyLabel);
-		Line(sz.Text());
-		Line("tay");
-		Line("tsc");
-		Line("clc");
-		Line("adc ", 2 * iStacked);
-		Line("tcs");
-		Line("tya");
-		Line("rtl");
-	}
+	sz.Init("jsl ");
+	sz.Append(pszBodyLabel);
+	Line(sz.Text());
+	Line("tay");
+	Line("tsc");
+	Line("clc");
+	Line("adc ", 2 * iStacked);
+	Line("tcs");
+	Line("tya");
+	Line("rtl");
+	sz.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szInstruction [S + iOffset]: a stack relative load or store.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::StackLine(const char* szInstruction, int iOffset)
+{
+	CChars	sz;
+
+	sz.Init(szInstruction);
+	sz.Append(" [S + ");
+	sz.Append(iOffset);
+	sz.Append("]");
+	Line(sz.Text());
 	sz.Kill();
 }
 

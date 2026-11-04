@@ -147,8 +147,12 @@ see this source is this one", so extern "C" functions take them too):
   pushed arguments stay above the return address.
 - The plain label is a stub for callers that push everything (function pointers,
   vtables, thunks, assembly): it loads the registers from the stack (lda [S + n], tay,
-  tax) and goes on to the body; when some arguments are pushed it pushes them again,
-  calls the body and removes them.
+  tax) and goes on to the body.  Pushed arguments are moved down to just above the
+  return address (lda [S + n], sta [S + m]), where the body wants them, first; the words
+  left above them are the caller's to remove, as always.  Only when A, X and Y all hold
+  arguments and A's place is moved over (nowhere to keep it) does it push them again,
+  call the body and remove them.  (TestCPP816MergeLoop, a comparator of two pointers
+  called through a pointer: 1220702 cycles pushing again, 1177778 moving down; 1087842 with every argument pushed.)
 - Assembly defines the suffixed labels too, its plain labels being stack entries (load the
   registers from the stack and call or go on to the register entries):
   - Libc65's string816.asm and string816_16.asm: the register entries are the real code
