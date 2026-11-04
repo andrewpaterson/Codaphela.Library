@@ -4516,6 +4516,54 @@ void TestCPP816Exit(void)
 	szListing.Kill();
 }
 
+//The functions of TestCPP816AlignedBigFrameArguments, natively for the expected result and for the W65C816.
+#define TEST_CPP816_BIG_FRAME_FUNCTIONS \
+	long Spread(int n, long add, long more, int k, char c) { int a[180]; for (int i = 0; i < 180; i++) { a[i] = i * k + n + c; } long s = add - more; for (int i = 0; i < 180; i++) { s += a[i]; } return s; } \
+	long Pushed(long one, long two, long three, int k) { int a[180]; for (int i = 0; i < 180; i++) { a[i] = (int)(i + one) ^ k; } long s = two * 3 - three; for (int i = 0; i < 180; i++) { s += a[i]; } return s; } \
+	long Run(void) { long w = 0; for (int i = 0; i < 12; i++) { w += gpSpread(i, 1000L + i, 7L * i, 3 + i, (char)(i * 5)); w += gpPushed(i * 11L, 100000L - i, 9L, i); } return w; }
+
+namespace TestCPP816AlignedBigFrameNative
+{
+	long Spread(int n, long add, long more, int k, char c);
+	long Pushed(long one, long two, long three, int k);
+	long (*volatile gpSpread)(int, long, long, int, char) = Spread;
+	long (*volatile gpPushed)(long, long, long, int) = Pushed;
+	TEST_CPP816_BIG_FRAME_FUNCTIONS
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A frame past the page with register arguments and pushed ones gets D on a
+// page: the pushed arguments, then (below the link bytes) the register words
+// at the frame's top, are pushed into place (CIR816Backend::AlignFrame).
+// Spread takes A, X and Y and has two words pushed; Pushed has only its
+// first argument in registers.  The results are as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816AlignedBigFrameArguments(void)
+{
+	static const char*	aszPrefixes[] = { "_Spread", "_Pushed", NULL };
+	CChars				szSource;
+	CAsm65816Profile	cProfile;
+	uint64				uiCycles;
+	bool				abAligned[2];
+	long				lExpected;
+
+	lExpected = TestCPP816AlignedBigFrameNative::Run();
+	szSource.Init("long Spread(int n, long add, long more, int k, char c);\nlong Pushed(long one, long two, long three, int k);\n");
+	szSource.Append("long (*volatile gpSpread)(int, long, long, int, char) = Spread;\nlong (*volatile gpPushed)(long, long, long, int) = Pushed;\n");
+	szSource.Append(TEST_CPP816_STRINGIZE(TEST_CPP816_BIG_FRAME_FUNCTIONS));
+	szSource.Append("\nint main() { long w = Run(); return (int)((w ^ (w >> 16)) & 0x7FFF); }\n");
+
+	cProfile.Init();
+	AssertInt((int)((lExpected ^ (lExpected >> 16)) & 0x7FFF), TestCPP816RunFrames(szSource.Text(), NULL, &cProfile, &uiCycles, aszPrefixes, abAligned));
+	AssertTrue(abAligned[0]);
+	AssertTrue(abAligned[1]);
+	cProfile.Kill();
+	szSource.Kill();
+}
+
 //The C string functions (string816.asm's register entries, and through function pointers their stack entries),
 //compiled natively for the expected results and for the W65C816 (TestCPP816StringRegisters).
 #define TEST_CPP816_STRING_GLOBALS \
@@ -5026,6 +5074,7 @@ void TestCPP816(void)
 	TestCPP816IntIndexPointers();
 	TestCPP816NarrowCounters();
 	TestCPP816AlignedFrames();
+	TestCPP816AlignedBigFrameArguments();
 	TestCPP816AlignedFrameUnreadArguments();
 	TestCPP816RegisterArguments();
 	TestCPP816FrameOperandFloats();

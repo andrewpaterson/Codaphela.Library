@@ -3592,7 +3592,7 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 	szCode = pszCode->Text();
 	szBodyLabel = NULL;
 	bBig = iTop > 255;
-	if ((psFrame->iFrameBytes == 0) || (bBig && ((psFrame->iSavedS < 0) || (iRegisterWords > 0))) || psFrame->bVariadic || bRecursive)
+	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
 	{
 		return false;
 	}
@@ -3730,21 +3730,34 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, SIR816Frame
 			szAligned.Append("]\n");
 		}
 	}
-	else if (iWords == 0)
+	else if ((iWords == 0) && (iRegisterWords == 0))
 	{
 		szAligned.Append("\t\ttcs\n\t\ttcd\n");
 	}
 	else
 	{
-		//Past the page the arguments are pushed into place, last first, from S at their top; then S is D.
+		//Past the page the arguments are pushed into place, last first, from S at their top; below them the link
+		//bytes are passed and a register function's register words (the frame's top) pushed the same way; then S is D.
 		szAligned.Append("\t\ttcd\n\t\tclc\n\t\tadc ");
 		szAligned.Append(iTop);
 		szAligned.Append("\n\t\ttcs\n");
 		for (i = iWords - 1; i >= 0; i--)
 		{
 			szAligned.Append("\t\tlda [");
-			szAligned.Append(1 + IR816_LINK_BYTES + 2 * i);
+			szAligned.Append(1 + 2 * iRegisterWords + IR816_LINK_BYTES + 2 * i);
 			szAligned.Append(" + X]:24\n\t\tpha\n");
+		}
+		if (iRegisterWords > 0)
+		{
+			szAligned.Append("\t\ttsc\n\t\tsec\n\t\tsbc ");
+			szAligned.Append(IR816_LINK_BYTES);
+			szAligned.Append("\n\t\ttcs\n");
+			for (i = iRegisterWords - 1; i >= 0; i--)
+			{
+				szAligned.Append("\t\tlda [");
+				szAligned.Append(1 + 2 * i);
+				szAligned.Append(" + X]:24\n\t\tpha\n");
+			}
 		}
 		szAligned.Append("\t\ttdc\n\t\ttcs\n");
 	}
