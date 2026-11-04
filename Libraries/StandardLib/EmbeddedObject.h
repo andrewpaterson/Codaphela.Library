@@ -172,7 +172,7 @@ protected:
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
-	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(int iGoodEnoughDist);
+	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 			void				ValidateObjectsConsistency(bool bValidate);
 };

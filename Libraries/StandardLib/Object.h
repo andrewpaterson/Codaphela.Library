@@ -105,7 +105,7 @@ protected:
 	bool				RemoveAllPointerTosTryFree(void);
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
-	CBaseObject*		GetClosestFromForCanFindRoot(int iGoodEnoughDist) override;
+	CBaseObject*		GetClosestFromForCanFindRoot(void);
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

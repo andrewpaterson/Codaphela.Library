@@ -829,7 +829,7 @@ bool CBaseObject::CanFindRoot(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
-	pcPointedFrom = GetClosestFromForCanFindRoot(ROOT_DIST_TO_ROOT);
+	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
@@ -865,7 +865,7 @@ bool CBaseObject::HasCloserFrom(void)
 		return false;
 	}
 
-	pcPointedFrom = GetClosestFromForCanFindRoot(miDistToRoot - 1);
+	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
 		return false;
@@ -901,7 +901,7 @@ bool CBaseObject::CanFindRootThroughValidPath(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
-	pcPointedFrom = GetClosestFromForCanFindRoot(miDistToRoot - 1);
+	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);

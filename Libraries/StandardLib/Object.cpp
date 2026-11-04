@@ -546,7 +546,7 @@ CBaseObject* CObject::GetClosestFromToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObject::GetClosestFromForCanFindRoot(int iGoodEnoughDist)
+CBaseObject* CObject::GetClosestFromForCanFindRoot(void)
 {
 	size				i;
 	size				uiNumEmbedded;
@@ -554,18 +554,13 @@ CBaseObject* CObject::GetClosestFromForCanFindRoot(int iGoodEnoughDist)
 	CEmbeddedObject*	pcNearesetPointedFrom;
 	CEmbeddedObject*	pcEmbeddedNearesetPointedFrom;
 
-	pcNearesetPointedFrom = CEmbeddedObject::GetClosestFromForCanFindRoot(iGoodEnoughDist);
+	pcNearesetPointedFrom = CEmbeddedObject::GetClosestFromForCanFindRoot();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		if ((pcNearesetPointedFrom != NULL) && (pcNearesetPointedFrom->GetDistToRoot() <= iGoodEnoughDist))
-		{
-			break;
-		}
-
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestFromForCanFindRoot(iGoodEnoughDist);
+		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestFromForCanFindRoot();
 
 		if (pcNearesetPointedFrom == NULL)
 		{
