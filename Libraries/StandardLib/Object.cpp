@@ -389,14 +389,13 @@ void CObject::InitDistToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObject::SetDistToStack(int iDistToStack)
+void CObject::SetDistToStack(int iDistToStack)
 {
 	size				i;
 	size				uiNumEmbedded;
 	CBaseObject*		pcBaseObject;
-	bool				bStable;
 
-	bStable = CBaseObject::SetDistToStack(iDistToStack);
+	CBaseObject::SetDistToStack(iDistToStack);
 
 	//Virtual, so an object embedded in an embedded object (and the collections in it) gets it too.  Otherwise what only
 	//such a collection holds has no distance to the stack and is freed while it can still be reached from the stack.
@@ -404,10 +403,8 @@ bool CObject::SetDistToStack(int iDistToStack)
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
-		bStable &= pcBaseObject->SetDistToStack(iDistToStack);
+		pcBaseObject->SetDistToStack(iDistToStack);
 	}
-	
-	return bStable;
 }
 
 
@@ -1085,34 +1082,6 @@ void CObject::CopyFields(CEmbeddedObject* pcOther)
 {
 
 	CBaseObject::CopyFields(pcOther);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObject::IsDistToRootValid(void)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	if (CBaseObject::IsDistToRootValid())
-	{
-		return true;
-	}
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		if (pcEmbedded->IsDistToRootValid())
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 

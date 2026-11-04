@@ -71,19 +71,6 @@ void CDistToRootCalculator::ResetObjectsToUnattachedDistToRoot(CDistCalculatorPa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ValidateExpectedDistStartingObjects(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
-{
-	if (pcParameters->NumExpectedDists() == 0) 
-	{
-		gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", ObjectToString(pcObject, false), NULL);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	SDistToRoot*	psLowestDistToRoot;

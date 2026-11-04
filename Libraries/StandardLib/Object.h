@@ -99,14 +99,13 @@ protected:
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	bool				SetDistToRoot(int iDistToRoot) override;
-	bool				SetDistToStack(int iDistToStack) override;
+	void				SetDistToStack(int iDistToStack) override;
 	void				InitDistToStack(void);
 	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
 	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);
 	CPointer*			RecurseGetFieldPointerTo(size iIndex, size* piCount);
 	void				ValidateEmbeddedConsistency(void);
-	bool				IsDistToRootValid(void);
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 	void				ClassNotImplemented(void);

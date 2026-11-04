@@ -158,7 +158,6 @@ public:
 			void					UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void					CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot = MAX_DIST_TO_ROOT);
 			void					ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
-	virtual bool					IsDistToRootValid(void);
 			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 			void					CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 			size					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters, CArrayBaseObjectPtr* papcFroms);
@@ -170,7 +169,7 @@ public:
 			bool					TestedForSanity(void);
 			CObjects*				GetObjectsThisIn(void);
 			CClasses*				GetClasses(void);
-	virtual bool					SetDistToStack(int iDistToStack);
+	virtual void					SetDistToStack(int iDistToStack);
 	virtual void					InitDistToStack(void);
 			CClass*					CompleteClass(CClasses* pcClasses);
 			void					CopyFields(CEmbeddedObject* pcOther) override;

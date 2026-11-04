@@ -23,29 +23,6 @@ void CDistCalculator::Kill(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CompareBaseObjectPtr(const CBaseObject* pvArg1, const CBaseObject* pvArg2)
-{
-
-
-	
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CompareBaseObjectPtrPtr(const void* ppvArg1, const void* ppvArg2)
-{
-	return CompareBaseObjectPtr((CBaseObject*)*((void**)ppvArg1), (CBaseObject*)*((void**)ppvArg2));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
@@ -93,19 +70,15 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcF
 	{
 		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
 	}
-	else if (pcFromChanged->IsDistToRootValid())
-	{
-		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
-	}
 	else if (pcFromChanged->IsHeldFromStackOrRoot())
 	{
 		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
 	}
 	else
 	{
+		//Calculate clears the touched flags.
 		mcDistToStackCalculator.Calculate(pcFromChanged, &mcParameters);
 		mcDistToStackCalculator.ResetObjectsToUnknownDistToStack(&mcParameters);
-		mcParameters.ClearTouchedFlags();
 		return mcParameters.GetCompletelyDetachedArray();
 	}
 }

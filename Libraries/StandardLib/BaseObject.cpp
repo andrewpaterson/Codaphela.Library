@@ -838,36 +838,6 @@ void CBaseObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsDistToRootValid(void)
-{
-	size				i;
-	CEmbeddedObject*	pcBaseObject;
-	int					iExpectedDistToRoot;
-	size				uiNumFroms;
-
-	if (miDistToRoot < ROOT_DIST_TO_ROOT)
-	{
-		return false;
-	}
-
-	uiNumFroms = CEmbeddedObject::NumHeapFroms();
-	iExpectedDistToRoot = miDistToRoot - 1;
-	for (i = 0; i < uiNumFroms; i++)
-	{
-		pcBaseObject = CEmbeddedObject::GetHeapFrom(i);
-		if (pcBaseObject->GetDistToRoot() == iExpectedDistToRoot)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 EFreeResult CBaseObject::TryFree(bool bHeapFromChanged)
 {
 	if (IsEmbedded())
@@ -1167,14 +1137,9 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::SetDistToStack(int iDistToStack)
+void CBaseObject::SetDistToStack(int iDistToStack)
 {
-	if (miDistToStack != iDistToStack)
-	{
-		miDistToStack = iDistToStack;
-		return false;
-	}
-	return true;
+	miDistToStack = iDistToStack;
 }
 
 
