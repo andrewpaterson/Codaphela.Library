@@ -148,9 +148,9 @@ static bool TestCPP816AssemblyHasBase(CArrayChars* pasz, const char* szBase)
 // itself, and a function it lacks that is called fails to link.  The soft
 // float's frame operand entries (.dp) are the assembly's own, and the
 // runtime routines (R816_) go with whatever code uses them.  And the C++
-// functions the assembly calls are ones the C++ calls too, or defines: an
-// overload numbered name (_CChars__Init__7) that went stale when an
-// overload was added is listed.
+// functions the assembly calls are ones the C++ calls too, or defines: a
+// name that went stale (a member's, when a second overload of it gives it
+// its parameters, _CChars__Init__FPctt) is listed.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPP816AssemblyReplaces(const char** aszCPlusPlus, const char** aszAssembly)

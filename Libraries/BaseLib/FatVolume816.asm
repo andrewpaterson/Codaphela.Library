@@ -1879,7 +1879,7 @@ SetLabel:
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
 		jsr PushLabel
-		jsl _CChars__Init__7
+		jsl _CChars__Init__FPctt
 		tsc
 		clc
 		adc 12
@@ -3707,8 +3707,8 @@ AC_NEW			= F_ARGUMENT + 8
 AC_PREVIOUS		= F_ARGUMENT + 12
 AC_PAGE			= F_LOCALS
 AC_RESULT		= F_LOCALS + 4
-		.global _CFatVolume__AllocateClusters
-_CFatVolume__AllocateClusters:
+		.global _CFatVolume__AllocateClusters__FjjPjj
+_CFatVolume__AllocateClusters__FjjPjj:
 		.width (A, X), 16
 		jsr Enter
 		jsr PageSize
@@ -5461,8 +5461,8 @@ LongNameCharacterPlaces:
 ; EFatCode CFatVolume::CreateDirectory(const char* szDirectory)
 CD_PATH			= F_ARGUMENT
 CD_ENTRY		= F_LOCALS			; SFatDirectoryEntry (below the frame).
-		.global _CFatVolume__CreateDirectory
-_CFatVolume__CreateDirectory:
+		.global _CFatVolume__CreateDirectory__FPc
+_CFatVolume__CreateDirectory__FPc:
 		.width (A, X), 16
 		jsr Enter
 		tsc
@@ -6240,7 +6240,7 @@ GetEntryOf:
 		.global _CFatVolume__CalculateFirstSectorOfCluster.ax, _CFatVolume__CalculateFATIndexAndOffset.ax, _CFatVolume__ReadSector.axssssy, _CFatVolume__ReadFatEntry.ax
 		.global _CFatVolume__GetNextClusterEntry.ax, _CFatVolume__SetClusterEntry.ax, _CFatVolume__Flush.ax, _CFatVolume__Erase.ax, _CFatVolume__Mount.ax, _CFatVolume__Unmount.ax
 		.global _CFatVolume__FillDirectoryEntryFromRawEntry.ax, _CFatVolume__FindFirstFATEntry.axssy, _CFatVolume__FindNextFATEntry.ax, _CFatVolume__GetFileEntry.ax, _CFatVolume__SeekByClusterCount.axssy, _CFatVolume__FreeChain.ax
-		.global _CFatVolume__FreeDirectoryEntry.ax, _CFatVolume__UpdateDirectoryEntry.ax, _CFatVolume__AllocateClusters.ax, _CFatVolume__CreateFATEntry.axssssy, _CFatVolume__CreateDirectory.ax, _CFatVolume__Delete.ax
+		.global _CFatVolume__FreeDirectoryEntry.ax, _CFatVolume__UpdateDirectoryEntry.ax, _CFatVolume__AllocateClusters__FjjPjj.ax, _CFatVolume__CreateFATEntry.axssssy, _CFatVolume__CreateDirectory__FPc.ax, _CFatVolume__Delete.ax
 		.global _CFatVolume__Rename.ax
 
 _CFatVolume__GetID.ax:
@@ -6456,9 +6456,9 @@ _CFatVolume__UpdateDirectoryEntry.ax:
 		ldy _CFatVolume__UpdateDirectoryEntry & 0xFFFF
 		brl RegisterEntry_ax_8
 
-_CFatVolume__AllocateClusters.ax:
+_CFatVolume__AllocateClusters__FjjPjj.ax:
 		.width (A, X), 16
-		ldy _CFatVolume__AllocateClusters & 0xFFFF
+		ldy _CFatVolume__AllocateClusters__FjjPjj & 0xFFFF
 		brl RegisterEntry_ax_8
 
 _CFatVolume__CreateFATEntry.axssssy:
@@ -6467,9 +6467,9 @@ _CFatVolume__CreateFATEntry.axssssy:
 		ldy _CFatVolume__CreateFATEntry & 0xFFFF
 		brl RegisterEntry_axssssy_8
 
-_CFatVolume__CreateDirectory.ax:
+_CFatVolume__CreateDirectory__FPc.ax:
 		.width (A, X), 16
-		ldy _CFatVolume__CreateDirectory & 0xFFFF
+		ldy _CFatVolume__CreateDirectory__FPc & 0xFFFF
 		brl RegisterEntry_ax_2
 
 _CFatVolume__Delete.ax:

@@ -248,12 +248,14 @@ add, sub and cmp can't address memory with V (only W, X and Y), so a local used 
 right operand is loaded into B first.
 
 C++ names are labels with an underscore in front (_main, _gTable).  Members are
-_Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
-an overload has __n on the end (_Counter__0__1 is the second constructor), and a
-thunk __t and how far it moves this.  A function that is not a member has its
+_Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2,
+and a thunk __t and how far it moves this.  A function that is not a member has its
 parameters' types after __F (_Add__Fii, _Call__FPC1A), as units can declare different
 sets of overloads of it; one without parameters, main, extern "C" functions and the
 global operator new and delete (which the generator calls by name) are just their names.
+An overloaded member has its parameters the same way (_Counter__0__Fi is the
+constructor taking an int, _Counter__0 the one taking none), so hand-written assembly
+names an overload by its parameters, never by its place among the others.
 An instance of a function template (or member template) has its parameters' types too,
 as overloaded templates can have the same template arguments (_C__Add__T_i and
 _C__Add__T_i__Fi), and __K first if it is a const member function.  A class without a name is the unit's

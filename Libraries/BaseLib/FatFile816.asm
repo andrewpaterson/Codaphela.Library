@@ -477,8 +477,8 @@ CacheFlush:
 
 
 ; EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags)
-		.global _CFatFile__Open
-_CFatFile__Open:
+		.global _CFatFile__Open__FPch
+_CFatFile__Open__FPch:
 		.width (A, X), 16
 		jsr Enter
 		lda 0
@@ -673,8 +673,8 @@ OpenCopiedName:
 
 
 ; EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
-		.global _CFatFile__Open__1
-_CFatFile__Open__1:
+		.global _CFatFile__Open__FPC18SFatDirectoryEntryh
+_CFatFile__Open__FPC18SFatDirectoryEntryh:
 		.width (A, X), 16
 		jsr Enter
 		jsr CacheInitialise
@@ -1089,7 +1089,7 @@ AllocateFileMore:
 		pei [D + F_WORK]
 		pei [D + F_VOLUME + 2]
 		pei [D + F_VOLUME]
-		jsl _CFatVolume__AllocateClusters
+		jsl _CFatVolume__AllocateClusters__FjjPjj
 		ldx 20
 		jsr Drop
 		cmp FAT_SUCCESS
@@ -1747,7 +1747,7 @@ Getter8:
 ; caller pushed) and calls it in this bank.  Made from the compiled C++'s labels by a script; the stack
 ; entries are unchanged.
 
-		.global _CFatFile__Init.ax, _FindBackslash__FPcPPc.ax, _CFatFile__Open.axssy, _CFatFile__Open__1.axssy, _CFatFile__CalculateFirstCluster.ax, _CFatFile__Seek.axssy
+		.global _CFatFile__Init.ax, _FindBackslash__FPcPPc.ax, _CFatFile__Open__FPch.axssy, _CFatFile__Open__FPC18SFatDirectoryEntryh.axssy, _CFatFile__CalculateFirstCluster.ax, _CFatFile__Seek.axssy
 		.global _CFatFile__AllocateClusters.ax, _CFatFile__Write.ax, _CFatFile__Read.ax, _CFatFile__Flush.ax, _CFatFile__Truncate.ax, _CFatFile__Close.ax
 		.global _CFatFile__Size.ax, _CFatFile__Tell.ax, _CFatFile__IsBusy.ax, _CFatFile__GetAccessFlags.ax
 
@@ -1761,16 +1761,16 @@ _FindBackslash__FPcPPc.ax:
 		ldy _FindBackslash__FPcPPc & 0xFFFF
 		brl RegisterEntry_ax_2
 
-_CFatFile__Open.axssy:
+_CFatFile__Open__FPch.axssy:
 		.width (A, X), 16
 		phy
-		ldy _CFatFile__Open & 0xFFFF
+		ldy _CFatFile__Open__FPch & 0xFFFF
 		brl RegisterEntry_axssy_2
 
-_CFatFile__Open__1.axssy:
+_CFatFile__Open__FPC18SFatDirectoryEntryh.axssy:
 		.width (A, X), 16
 		phy
-		ldy _CFatFile__Open__1 & 0xFFFF
+		ldy _CFatFile__Open__FPC18SFatDirectoryEntryh & 0xFFFF
 		brl RegisterEntry_axssy_2
 
 _CFatFile__CalculateFirstCluster.ax:

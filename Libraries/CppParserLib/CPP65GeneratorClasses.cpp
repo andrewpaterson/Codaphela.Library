@@ -4039,9 +4039,10 @@ bool CCPP65Generator::NeedsDestructor(SCPP65Class* psClass)
 //
 // Functions are _name, operators _opName.  Members are _Class__name, constructors
 // _Class__0 and destructors _Class__1; the vtable is _Class__2.  A template
-// instance's class is Class__T and its arguments, mangled.  An overload has __n on
-// the end.  C++ names cannot contain __ and cannot start with a digit, so none can
-// clash.
+// instance's class is Class__T and its arguments, mangled.  An overloaded member
+// has its parameters on the end, as a function that is not a member always does,
+// so adding an overload never moves another's label.  C++ names cannot contain __
+// and cannot start with a digit, so none can clash.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunction)
@@ -4083,12 +4084,13 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 		psz->Append("__T");
 		psz->Append(&psFunction->mszArguments);
 	}
-	if (((!psFunction->psClass && !psFunction->psTemplate) || (psFunction->mszArguments.Length() > 0)) && !psFunction->bCLinkage && !bPlainName)
+	if (((!psFunction->psClass && !psFunction->psTemplate) || (psFunction->mszArguments.Length() > 0) || IsOverloaded(psFunction)) && !psFunction->bCLinkage && !bPlainName)
 	{
 		//A function that is not a member has its parameters in its label, as units can declare different sets of
 		//overloads.  Without parameters (only one such overload can exist) or with C linkage it is just its name.
-		//So does an instance of a function template, as Add<M>(void) and Add<M>(size) are both Add__T_..., and a
-		//const member function template's instance ends in K.
+		//So does an instance of a function template, as Add<M>(void) and Add<M>(size) are both Add__T_..., and an
+		//overloaded member (hand-written assembly calls it by a label that doesn't depend on the order of its
+		//overloads); a const one ends in K.
 		if (psFunction->bConstThis)
 		{
 			psz->Append("__K");
@@ -4107,11 +4109,27 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 			}
 		}
 	}
-	else if (psFunction->iOverload > 0)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Another function (not a template) of the same class (or none), kind and
+// name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsOverloaded(SCPP65Function* psFunction)
+{
+	SCPP65Function*	psOther;
+
+	for (psOther = FirstFunctionOfName(psFunction->lliName); psOther; psOther = psOther->psNextOfName)
 	{
-		psz->Append("__");
-		psz->Append(psFunction->iOverload);
+		if ((psOther != psFunction) && (psOther->psClass == psFunction->psClass) && (psOther->eKind == psFunction->eKind) && !psOther->psTemplate)
+		{
+			return true;
+		}
 	}
+	return false;
 }
 
 

@@ -135,7 +135,6 @@ struct SCPP65Function
 	bool							bVirtual;
 	bool							bPure;
 	int								iSlot;			//A virtual function's place in the vtable.
-	int								iOverload;		//Other functions with the same name before this one.
 	bool							bCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							bExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							bConstThis;		//A const member function: an overload of the same function without const.
@@ -531,6 +530,7 @@ protected:
 	SCPP65Function*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, SCPP65Class* psClass, bool bPure, SCPP65Template* psTemplate = NULL, CChars* pszArguments = NULL);
 	SCPP65Function*			AddFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type* psReturn);
 	SCPP65Function*			FirstFunctionOfName(int64 lliName);
+	bool					IsOverloaded(SCPP65Function* psFunction);
 	bool					SameParameters(SCPP65Function* psFunction, SCPP65Function* psOther);
 	void					RequireFunction(SCPP65Function* psFunction);
 	bool					Emit(CChars* pszLabel);

@@ -1812,7 +1812,6 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type* psReturn)
 {
 	SCPP65Function*			psFunction;
-	SCPP65Function*			psOther;
 	SCPP65FunctionsOfName*	psOfName;
 	SCPP65FunctionsOfName	sOfName;
 
@@ -1827,7 +1826,6 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->bVirtual = false;
 	psFunction->bPure = false;
 	psFunction->iSlot = -1;
-	psFunction->iOverload = 0;
 	psFunction->bCLinkage = false;
 	psFunction->bExplicit = false;
 	psFunction->bConstThis = false;
@@ -1845,13 +1843,6 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->psTemplate = NULL;
 	psFunction->mszArguments.Init();
 	psFunction->psNextOfName = NULL;
-	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
-	{
-		if ((psOther->psClass == psClass) && (psOther->eKind == eKind) && !psOther->psTemplate)
-		{
-			psFunction->iOverload++;
-		}
-	}
 	mapsFunctions.Add(psFunction);
 
 	psOfName = mcFunctionsOfNames.Get(lliName);

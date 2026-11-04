@@ -925,8 +925,8 @@ _CFatClusterCache__Flush:
 
 
 ; bool CFatClusterCache::Flush(SClusterCache* psCluster): writes each run of dirty sectors.
-		.global _CFatClusterCache__Flush__1
-_CFatClusterCache__Flush__1:
+		.global _CFatClusterCache__Flush__FPC13SClusterCache
+_CFatClusterCache__Flush__FPC13SClusterCache:
 		jsr Enter
 		jsr ArgumentCluster
 FlushCluster:
@@ -1039,7 +1039,7 @@ _CFatClusterCache__FlushAndInvalidate:
 		pei [D + F_ARGUMENT1]
 		pei [D + F_THIS + 2]
 		pei [D + F_THIS]
-		jsl _CFatClusterCache__Flush__1
+		jsl _CFatClusterCache__Flush__FPC13SClusterCache
 		sta [D + F_INDEX]
 		jsl _CFatClusterCache__Invalidate
 		ply
@@ -1261,7 +1261,7 @@ SetSectorClear:
 ; entries are unchanged.
 
 		.global _CFatClusterCache__Init.axssy, _CFatClusterCache__Kill.ax, _CFatClusterCache__LastSectorBefore.axy, _CFatClusterCache__Read.axssssssy, _CFatClusterCache__Write.axssssssy, _CFatClusterCache__Flush.ax
-		.global _CFatClusterCache__Flush__1.ax, _CFatClusterCache__FlushAndInvalidate.ax, _CFatClusterCache__IsCached.ax, _CFatClusterCache__CacheSector.ax, _CFatClusterCache__Clear.ax, _CFatClusterCache__Invalidate.ax
+		.global _CFatClusterCache__Flush__FPC13SClusterCache.ax, _CFatClusterCache__FlushAndInvalidate.ax, _CFatClusterCache__IsCached.ax, _CFatClusterCache__CacheSector.ax, _CFatClusterCache__Clear.ax, _CFatClusterCache__Invalidate.ax
 		.global _CFatClusterCache__GetCache.ax, _CFatClusterCache__IsSectorDirty.axy, _CFatClusterCache__IsSectorCached.axy, _CFatClusterCache__GetSectorsPerCluster.ax, _CFatClusterCache__SetCachedSector.axy, _CFatClusterCache__SetDirtySector.axy
 
 _CFatClusterCache__Init.axssy:
@@ -1298,9 +1298,9 @@ _CFatClusterCache__Flush.ax:
 		ldy _CFatClusterCache__Flush & 0xFFFF
 		brl RegisterEntry_ax_0
 
-_CFatClusterCache__Flush__1.ax:
+_CFatClusterCache__Flush__FPC13SClusterCache.ax:
 		.width (A, X), 16
-		ldy _CFatClusterCache__Flush__1 & 0xFFFF
+		ldy _CFatClusterCache__Flush__FPC13SClusterCache & 0xFFFF
 		brl RegisterEntry_ax_2
 
 _CFatClusterCache__FlushAndInvalidate.ax:
