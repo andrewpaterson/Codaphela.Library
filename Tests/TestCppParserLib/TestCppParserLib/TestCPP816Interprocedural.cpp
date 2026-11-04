@@ -1,6 +1,10 @@
 #include <string.h>
 #include "BaseLib/Chars.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/TextFile.h"
+#include "CppParserLib/CPP65Builder.h"
 #include "TestLib/Assert.h"
+#include "TestCPP65Context.h"
 
 
 int32	TestCPP816Run(const char* szSource, bool bLockstep);
@@ -107,6 +111,48 @@ void TestCPP816DeadArguments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function inlined from another unit is listed as the line that calls
+// it: Main.cpp inlines Maths.cpp's Triple, and its code is under
+// Main.cpp(27), the call.  CIRImports::Export copies functions as IR text
+// without their source tokens, so imported code has none (a token of
+// Maths.cpp would mean another line of Main.cpp).  Main.cpp is padded so
+// such a token would be one of its declarations.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ListingInlinedFromUnit(void)
+{
+	static const char*	aszUnits[] = { "Input/CPP65/ListingInlineProject/Maths.cpp", "Input/CPP65/ListingInlineProject/Main.cpp", NULL };
+	CCPP65Builder		cBuilder;
+	CFileUtil			cFileUtil;
+	CTextFile			cFile;
+	const char*			szListing;
+
+	cFileUtil.RemoveDir("Output" _FS_ "CPP816InlineListing");
+	cBuilder.Init();
+	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetListingDirectory("Output" _FS_ "CPP816InlineListing");
+	cBuilder.SetLineTable(true);
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	TestCPP65AddUnits(&cBuilder, aszUnits, false);
+	cBuilder.Compile();
+	AssertString("", cBuilder.GetErrors());
+	cBuilder.Kill();
+
+	cFile.Init();
+	AssertTrue(cFile.Read("Output" _FS_ "CPP816InlineListing" _FS_ "Main.lst"));
+	szListing = cFile.Text() ? cFile.Text() : "";
+
+	//Triple is inlined, its code listed under the call and none as Main.cpp's padding or Maths.cpp.
+	AssertTrue(strstr(szListing, "jsl _Triple") == NULL);
+	AssertTrue(strstr(szListing, "; Main.cpp(27): int r = Triple(gi, 5);") != NULL);
+	AssertTrue(strstr(szListing, "Maths.cpp") == NULL);
+	AssertTrue(strstr(szListing, "): int giPad") == NULL);
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Interprocedural(void)
@@ -115,6 +161,7 @@ void TestCPP816Interprocedural(void)
 
 	TestCPP816NoWritesCalls();
 	TestCPP816DeadArguments();
+	TestCPP816ListingInlinedFromUnit();
 
 	TestStatistics();
 }
