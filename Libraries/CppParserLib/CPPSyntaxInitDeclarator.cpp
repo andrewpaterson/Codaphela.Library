@@ -87,24 +87,12 @@ void CCPPSyntaxInitDeclarator::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxInitDeclarator::NumChildren(void)
+void CCPPSyntaxInitDeclarator::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxInitDeclarator::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, mpcBitField, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcDeclarator);
+	pcFields->Child(&mpcBitField);
+	pcFields->Child(&mpcInitializer);
+	pcFields->Enum(&meInitializer);
+	pcFields->Symbol(&mpcSymbol);
 }
 

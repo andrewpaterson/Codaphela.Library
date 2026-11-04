@@ -36,7 +36,35 @@ class CCPPSymbol;
 typedef CArrayTemplatePtr<CCPPSyntax>	CArraySyntax;
 
 
+//What a node's fields are given to, one at a time in the order they are declared (CCPPSyntax::VisitFields): each kind
+//of field has its own function, which does nothing unless overridden.  A node's children are its Child and Children
+//fields; a Link is a node that isn't its child.  Tokens are indices into the tree's tokeniser.  Its tree, parent and
+//tokens (CCPPSyntax's own) aren't given.
+class CCPPSyntaxFields
+{
+public:
+	virtual void			NodeField(CCPPSyntax** ppcNode) {}
+	virtual void			NodesField(CArraySyntax* papcNodes) {}
+	virtual void			LinkField(CCPPSyntax** ppcNode) {}
+	virtual void			SymbolField(CCPPSymbol** ppcSymbol) {}
+	virtual void			ScopeField(CCPPScope** ppcScope) {}
+	virtual void			TokenField(int32* piToken) {}
+	virtual void			ValueField(void* pvValue, size uiSize) {}
+
+	template<class M> void	Child(M** ppcNode)					{ NodeField((CCPPSyntax**)ppcNode); }
+	void					Children(CArraySyntax* papcNodes)	{ NodesField(papcNodes); }
+	template<class M> void	Link(M** ppcNode)					{ LinkField((CCPPSyntax**)ppcNode); }
+	void					Symbol(CCPPSymbol** ppcSymbol)		{ SymbolField(ppcSymbol); }
+	void					Scope(CCPPScope** ppcScope)			{ ScopeField(ppcScope); }
+	void					Token(int32* piToken)				{ TokenField(piToken); }
+	void					Bool(bool* pbValue)					{ ValueField(pbValue, sizeof(bool)); }
+	template<class E> void	Enum(E* peValue)					{ ValueField(peValue, sizeof(E)); }
+	template<class I> void	Integer(I* piValue)					{ ValueField(piValue, sizeof(I)); }
+};
+
+
 //A node of the abstract syntax tree.  Nodes know the tokens they were parsed from, so they can be found in the source.
+//Each kind of node gives its fields to a CCPPSyntaxFields (VisitFields); its children are found from them.
 class CCPPSyntax
 {
 public:
@@ -51,8 +79,9 @@ public:
 	virtual ECPPSyntax	GetKind(void) =0;
 	virtual void		PrettyPrint(CChars* pszDest, int iDepth) =0;
 	virtual void		TypePrint(CChars* pszDest, int iDepth);
-	virtual size		NumChildren(void);
-	virtual CCPPSyntax*	GetChild(size iIndex);
+	virtual void		VisitFields(CCPPSyntaxFields* pcFields);
+			size		NumChildren(void);
+			CCPPSyntax*	GetChild(size iIndex);
 
 			char*		GetType(void);
 			void		SetTokens(int iFirstToken, int iLastToken);
@@ -70,8 +99,6 @@ protected:
 			void		PrintStatements(CChars* pszDest, CArraySyntax* papcNodes, int iDepth);
 			void		PrintCondition(CChars* pszDest, CCPPSyntax* pcCondition, int iDepth);
 			void		PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int iDepth);
-			bool		IsChild(size* piIndex, CCPPSyntax* pcNode, CCPPSyntax** ppcChild);
-			bool		IsChild(size* piIndex, CArraySyntax* papcNodes, CCPPSyntax** ppcChild);
 };
 
 

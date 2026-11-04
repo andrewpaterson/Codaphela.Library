@@ -161,25 +161,102 @@ char* CCPPSyntax::GetType(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CCPPSyntax::NumChildren(void)
+//Counts a node's children (CCPPSyntax::NumChildren): one for each Child field (even if NULL), and the nodes in each
+//Children field.
+class CCPPSyntaxChildCounter : public CCPPSyntaxFields
 {
-	//Leaf nodes have no children.
-	return 0;
+public:
+	size	muiChildren;
+
+	void	NodeField(CCPPSyntax** ppcNode) override		{ muiChildren++; }
+	void	NodesField(CArraySyntax* papcNodes) override	{ muiChildren += papcNodes->NumElements(); }
+};
+
+
+//Finds a node's child by index (CCPPSyntax::GetChild), counting as CCPPSyntaxChildCounter does.
+class CCPPSyntaxChildFinder : public CCPPSyntaxFields
+{
+public:
+	size		muiIndex;		//The children still to pass.
+	bool		mbFound;
+	CCPPSyntax*	mpcChild;
+
+	void	NodeField(CCPPSyntax** ppcNode) override
+	{
+		if (!mbFound)
+		{
+			if (muiIndex == 0)
+			{
+				mpcChild = *ppcNode;
+				mbFound = true;
+			}
+			else
+			{
+				muiIndex--;
+			}
+		}
+	}
+
+	void	NodesField(CArraySyntax* papcNodes) override
+	{
+		if (!mbFound)
+		{
+			if (muiIndex < papcNodes->NumElements())
+			{
+				mpcChild = papcNodes->GetPtr(muiIndex);
+				mbFound = true;
+			}
+			else
+			{
+				muiIndex -= papcNodes->NumElements();
+			}
+		}
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives the node's fields to pcFields, in the order they are declared.
+// A node with no fields of its own gives none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntax::VisitFields(CCPPSyntaxFields* pcFields)
+{
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The node's children, from its fields: each Child field is one (even if
+// it is NULL), and each Children field is as many as it holds.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntax::NumChildren(void)
+{
+	CCPPSyntaxChildCounter	cCounter;
+
+	cCounter.muiChildren = 0;
+	VisitFields(&cCounter);
+	return cCounter.muiChildren;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node's iIndex'th child (NULL if its field is NULL, or there are
+// fewer children).
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPSyntax::GetChild(size iIndex)
 {
-	//Leaf nodes have no children.
-	return NULL;
+	CCPPSyntaxChildFinder	cFinder;
+
+	cFinder.muiIndex = iIndex;
+	cFinder.mbFound = false;
+	cFinder.mpcChild = NULL;
+	VisitFields(&cFinder);
+	return cFinder.mpcChild;
 }
 
 
@@ -395,40 +472,5 @@ void CCPPSyntax::PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int
 	{
 		pcStatement->PrettyPrint(pszDest, iDepth + 1);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsChild(size* piIndex, CCPPSyntax* pcNode, CCPPSyntax** ppcChild)
-{
-	//GetChild walks a node's children in order, one member at a time.  pcNode is one child, which may be NULL.  True
-	//if *piIndex is it, otherwise *piIndex is moved past it.
-	if (*piIndex == 0)
-	{
-		*ppcChild = pcNode;
-		return true;
-	}
-	(*piIndex)--;
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPSyntax::IsChild(size* piIndex, CArraySyntax* papcNodes, CCPPSyntax** ppcChild)
-{
-	//As above for a list of children.  True if *piIndex is in papcNodes, otherwise *piIndex is moved past them.
-	if (*piIndex < papcNodes->NumElements())
-	{
-		*ppcChild = papcNodes->GetPtr(*piIndex);
-		return true;
-	}
-	*piIndex -= papcNodes->NumElements();
-	return false;
 }
 

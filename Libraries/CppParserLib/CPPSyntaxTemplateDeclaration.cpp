@@ -84,24 +84,12 @@ void CCPPSyntaxTemplateDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxTemplateDeclaration::NumChildren(void)
+void CCPPSyntaxTemplateDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpParameters.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxTemplateDeclaration::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpParameters, &pcChild) || IsChild(&iIndex, mpcDeclaration, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbExtern);
+	pcFields->Bool(&mbInstantiation);
+	pcFields->Children(&macpParameters);
+	pcFields->Child(&mpcDeclaration);
+	pcFields->Scope(&mpcScope);
 }
 

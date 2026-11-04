@@ -82,32 +82,6 @@ void CCPPSyntaxName::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxName::NumChildren(void)
-{
-	return macpComponents.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxName::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpComponents, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CCPPSyntaxNameComponent* CCPPSyntaxName::GetLast(void)
 {
 	size	uiNumElements;
@@ -136,5 +110,17 @@ bool CCPPSyntaxName::IsSimple(void)
 	}
 	pcComponent = GetLast();
 	return (pcComponent->meKind == CPPNC_Identifier) && !pcComponent->mbTemplateArguments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxName::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Bool(&mbGlobal);
+	pcFields->Children(&macpComponents);
+	pcFields->Symbol(&mpcSymbol);
 }
 

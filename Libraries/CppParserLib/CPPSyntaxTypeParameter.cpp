@@ -74,24 +74,12 @@ void CCPPSyntaxTypeParameter::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxTypeParameter::NumChildren(void)
+void CCPPSyntaxTypeParameter::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxTypeParameter::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcDefault, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbTypename);
+	pcFields->Bool(&mbPack);
+	pcFields->Token(&miName);
+	pcFields->Child(&mpcDefault);
+	pcFields->Symbol(&mpcSymbol);
 }
 

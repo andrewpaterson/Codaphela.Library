@@ -88,24 +88,12 @@ void CCPPSyntaxForStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxForStatement::NumChildren(void)
+void CCPPSyntaxForStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxForStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcInitialiser, &pcChild) || IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcIncrement, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcInitialiser);
+	pcFields->Child(&mpcCondition);
+	pcFields->Child(&mpcIncrement);
+	pcFields->Child(&mpcBody);
+	pcFields->Scope(&mpcScope);
 }
 

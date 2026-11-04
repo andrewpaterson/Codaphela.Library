@@ -60,24 +60,9 @@ void CCPPSyntaxDecltypeSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxDecltypeSpecifier::NumChildren(void)
+void CCPPSyntaxDecltypeSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxDecltypeSpecifier::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcOperand, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meKeyword);
+	pcFields->Child(&mpcOperand);
 }
 

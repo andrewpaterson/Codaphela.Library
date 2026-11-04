@@ -60,24 +60,9 @@ void CCPPSyntaxSubscriptExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxSubscriptExpression::NumChildren(void)
+void CCPPSyntaxSubscriptExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxSubscriptExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcArray, &pcChild) || IsChild(&iIndex, mpcIndex, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcArray);
+	pcFields->Child(&mpcIndex);
 }
 

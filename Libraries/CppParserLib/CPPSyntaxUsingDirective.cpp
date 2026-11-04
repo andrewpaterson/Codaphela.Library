@@ -59,24 +59,8 @@ void CCPPSyntaxUsingDirective::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxUsingDirective::NumChildren(void)
+void CCPPSyntaxUsingDirective::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxUsingDirective::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcName, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcName);
 }
 

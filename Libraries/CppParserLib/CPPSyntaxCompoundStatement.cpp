@@ -72,24 +72,9 @@ void CCPPSyntaxCompoundStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxCompoundStatement::NumChildren(void)
+void CCPPSyntaxCompoundStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpStatements.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxCompoundStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpStatements, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Children(&macpStatements);
+	pcFields->Scope(&mpcScope);
 }
 

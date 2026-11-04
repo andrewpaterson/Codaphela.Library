@@ -106,32 +106,6 @@ void CCPPSyntaxDeclarator::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxDeclarator::NumChildren(void)
-{
-	return macpPrefix.NumElements() + 1 + 1 + macpSuffixes.NumElements() + macpAttributes.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxDeclarator::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpPrefix, &pcChild) || IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcNested, &pcChild) || IsChild(&iIndex, &macpSuffixes, &pcChild) || IsChild(&iIndex, &macpAttributes, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CCPPSyntaxDeclarator::IsEmpty(void)
 {
 	return (macpPrefix.NumElements() == 0) && !mbPack && (mpcName == NULL) && (mpcNested == NULL) && (macpSuffixes.NumElements() == 0) && (macpAttributes.NumElements() == 0);
@@ -193,5 +167,20 @@ CCPPSyntaxName* CCPPSyntaxDeclarator::GetName(void)
 		return mpcNested->GetName();
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxDeclarator::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Children(&macpPrefix);
+	pcFields->Bool(&mbPack);
+	pcFields->Child(&mpcName);
+	pcFields->Child(&mpcNested);
+	pcFields->Children(&macpSuffixes);
+	pcFields->Children(&macpAttributes);
 }
 

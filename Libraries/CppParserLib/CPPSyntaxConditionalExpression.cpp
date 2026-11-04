@@ -62,24 +62,10 @@ void CCPPSyntaxConditionalExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxConditionalExpression::NumChildren(void)
+void CCPPSyntaxConditionalExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxConditionalExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcTrue, &pcChild) || IsChild(&iIndex, mpcFalse, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcCondition);
+	pcFields->Child(&mpcTrue);
+	pcFields->Child(&mpcFalse);
 }
 

@@ -106,24 +106,15 @@ void CCPPSyntaxFunctionDefinition::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxFunctionDefinition::NumChildren(void)
+void CCPPSyntaxFunctionDefinition::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + macpMemberInitializers.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxFunctionDefinition::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, &macpMemberInitializers, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcSpecifiers);
+	pcFields->Child(&mpcDeclarator);
+	pcFields->Children(&macpMemberInitializers);
+	pcFields->Child(&mpcBody);
+	pcFields->Enum(&meBody);
+	pcFields->Token(&miBodyStart);
+	pcFields->Token(&miBodyEnd);
+	pcFields->Scope(&mpcScope);
 }
 

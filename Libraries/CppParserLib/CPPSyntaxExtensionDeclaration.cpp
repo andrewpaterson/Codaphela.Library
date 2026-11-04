@@ -59,24 +59,8 @@ void CCPPSyntaxExtensionDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxExtensionDeclaration::NumChildren(void)
+void CCPPSyntaxExtensionDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxExtensionDeclaration::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcDeclaration, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcDeclaration);
 }
 

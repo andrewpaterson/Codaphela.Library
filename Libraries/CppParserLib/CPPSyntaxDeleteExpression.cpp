@@ -68,24 +68,10 @@ void CCPPSyntaxDeleteExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxDeleteExpression::NumChildren(void)
+void CCPPSyntaxDeleteExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxDeleteExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcOperand, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbGlobal);
+	pcFields->Bool(&mbArray);
+	pcFields->Child(&mpcOperand);
 }
 

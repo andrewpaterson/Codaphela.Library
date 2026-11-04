@@ -76,24 +76,10 @@ void CCPPSyntaxElaboratedTypeSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxElaboratedTypeSpecifier::NumChildren(void)
+void CCPPSyntaxElaboratedTypeSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpAttributes.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxElaboratedTypeSpecifier::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, mpcName, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meKey);
+	pcFields->Children(&macpAttributes);
+	pcFields->Child(&mpcName);
 }
 

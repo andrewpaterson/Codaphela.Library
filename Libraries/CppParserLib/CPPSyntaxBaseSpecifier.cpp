@@ -79,24 +79,11 @@ void CCPPSyntaxBaseSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxBaseSpecifier::NumChildren(void)
+void CCPPSyntaxBaseSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxBaseSpecifier::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcName, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meAccess);
+	pcFields->Bool(&mbVirtual);
+	pcFields->Bool(&mbPack);
+	pcFields->Child(&mpcName);
 }
 

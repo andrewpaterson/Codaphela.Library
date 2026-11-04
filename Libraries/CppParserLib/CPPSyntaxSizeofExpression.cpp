@@ -77,24 +77,12 @@ void CCPPSyntaxSizeofExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxSizeofExpression::NumChildren(void)
+void CCPPSyntaxSizeofExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxSizeofExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, mpcOperand, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meKeyword);
+	pcFields->Bool(&mbPack);
+	pcFields->Token(&miPack);
+	pcFields->Child(&mpcType);
+	pcFields->Child(&mpcOperand);
 }
 

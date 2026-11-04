@@ -69,24 +69,11 @@ void CCPPSyntaxIfStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxIfStatement::NumChildren(void)
+void CCPPSyntaxIfStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxIfStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcThen, &pcChild) || IsChild(&iIndex, mpcElse, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcCondition);
+	pcFields->Child(&mpcThen);
+	pcFields->Child(&mpcElse);
+	pcFields->Scope(&mpcScope);
 }
 

@@ -60,24 +60,10 @@ void CCPPSyntaxMemberExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxMemberExpression::NumChildren(void)
+void CCPPSyntaxMemberExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxMemberExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcObject, &pcChild) || IsChild(&iIndex, mpcName, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcObject);
+	pcFields->Bool(&mbArrow);
+	pcFields->Child(&mpcName);
 }
 

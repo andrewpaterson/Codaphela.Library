@@ -62,24 +62,10 @@ void CCPPSyntaxSwitchStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxSwitchStatement::NumChildren(void)
+void CCPPSyntaxSwitchStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxSwitchStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcCondition);
+	pcFields->Child(&mpcBody);
+	pcFields->Scope(&mpcScope);
 }
 

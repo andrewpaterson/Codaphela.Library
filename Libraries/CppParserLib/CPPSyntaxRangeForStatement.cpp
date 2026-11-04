@@ -68,24 +68,12 @@ void CCPPSyntaxRangeForStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxRangeForStatement::NumChildren(void)
+void CCPPSyntaxRangeForStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1 + 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxRangeForStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, mpcDeclarator, &pcChild) || IsChild(&iIndex, mpcRange, &pcChild) || IsChild(&iIndex, mpcBody, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcSpecifiers);
+	pcFields->Child(&mpcDeclarator);
+	pcFields->Child(&mpcRange);
+	pcFields->Child(&mpcBody);
+	pcFields->Scope(&mpcScope);
 }
 

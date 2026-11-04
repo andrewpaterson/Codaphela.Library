@@ -51,3 +51,13 @@ void CCPPSyntaxLiteralExpression::PrettyPrint(CChars* pszDest, int iDepth)
 	AppendToken(pszDest, miLiteral);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxLiteralExpression::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Token(&miLiteral);
+}
+

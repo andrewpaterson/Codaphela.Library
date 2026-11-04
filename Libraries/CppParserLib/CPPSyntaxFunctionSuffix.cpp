@@ -113,24 +113,16 @@ void CCPPSyntaxFunctionSuffix::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxFunctionSuffix::NumChildren(void)
+void CCPPSyntaxFunctionSuffix::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpParameters.NumElements() + macpQualifiers.NumElements() + 1 + macpAttributes.NumElements() + 1 + macpVirtSpecifiers.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxFunctionSuffix::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpParameters, &pcChild) || IsChild(&iIndex, &macpQualifiers, &pcChild) || IsChild(&iIndex, mpcExceptionSpecification, &pcChild) || IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, mpcTrailingReturn, &pcChild) || IsChild(&iIndex, &macpVirtSpecifiers, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Children(&macpParameters);
+	pcFields->Bool(&mbVariadic);
+	pcFields->Bool(&mbVariadicComma);
+	pcFields->Children(&macpQualifiers);
+	pcFields->Child(&mpcExceptionSpecification);
+	pcFields->Children(&macpAttributes);
+	pcFields->Child(&mpcTrailingReturn);
+	pcFields->Children(&macpVirtSpecifiers);
+	pcFields->Scope(&mpcScope);
 }
 

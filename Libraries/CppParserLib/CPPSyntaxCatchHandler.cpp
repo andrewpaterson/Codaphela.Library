@@ -69,24 +69,10 @@ void CCPPSyntaxCatchHandler::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxCatchHandler::NumChildren(void)
+void CCPPSyntaxCatchHandler::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxCatchHandler::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcParameter, &pcChild) || IsChild(&iIndex, mpcBlock, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcParameter);
+	pcFields->Child(&mpcBlock);
+	pcFields->Scope(&mpcScope);
 }
 

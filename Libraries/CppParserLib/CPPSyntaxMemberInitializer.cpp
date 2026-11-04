@@ -58,24 +58,9 @@ void CCPPSyntaxMemberInitializer::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxMemberInitializer::NumChildren(void)
+void CCPPSyntaxMemberInitializer::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxMemberInitializer::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcName);
+	pcFields->Child(&mpcInitializer);
 }
 

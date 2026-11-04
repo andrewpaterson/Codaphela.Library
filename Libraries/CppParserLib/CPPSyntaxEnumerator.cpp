@@ -63,24 +63,10 @@ void CCPPSyntaxEnumerator::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxEnumerator::NumChildren(void)
+void CCPPSyntaxEnumerator::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxEnumerator::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcValue, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Token(&miName);
+	pcFields->Child(&mpcValue);
+	pcFields->Symbol(&mpcSymbol);
 }
 

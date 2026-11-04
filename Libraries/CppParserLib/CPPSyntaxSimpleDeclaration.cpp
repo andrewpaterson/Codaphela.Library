@@ -79,24 +79,10 @@ void CCPPSyntaxSimpleDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxSimpleDeclaration::NumChildren(void)
+void CCPPSyntaxSimpleDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + macpDeclarators.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxSimpleDeclaration::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcSpecifiers, &pcChild) || IsChild(&iIndex, &macpDeclarators, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcSpecifiers);
+	pcFields->Children(&macpDeclarators);
+	pcFields->Bool(&mbNoSemicolon);
 }
 

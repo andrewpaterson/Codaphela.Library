@@ -93,24 +93,12 @@ void CCPPSyntaxNamespace::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxNamespace::NumChildren(void)
+void CCPPSyntaxNamespace::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpAttributes.NumElements() + macpDeclarations.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxNamespace::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpAttributes, &pcChild) || IsChild(&iIndex, &macpDeclarations, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbInline);
+	pcFields->Token(&miName);
+	pcFields->Children(&macpAttributes);
+	pcFields->Children(&macpDeclarations);
+	pcFields->Scope(&mpcScope);
 }
 

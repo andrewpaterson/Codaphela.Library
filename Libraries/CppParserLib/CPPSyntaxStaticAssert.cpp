@@ -65,24 +65,9 @@ void CCPPSyntaxStaticAssert::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxStaticAssert::NumChildren(void)
+void CCPPSyntaxStaticAssert::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxStaticAssert::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, mpcMessage, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcCondition);
+	pcFields->Child(&mpcMessage);
 }
 

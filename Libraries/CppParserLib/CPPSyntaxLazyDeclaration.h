@@ -46,6 +46,7 @@ public:
 	void				Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	ECPPSyntax			GetKind(void) override;
 	void				PrettyPrint(CChars* pszDest, int iDepth) override;
+	void				VisitFields(CCPPSyntaxFields* pcFields) override;
 };
 
 

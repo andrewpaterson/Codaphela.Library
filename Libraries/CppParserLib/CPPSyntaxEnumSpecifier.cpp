@@ -99,32 +99,6 @@ void CCPPSyntaxEnumSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxEnumSpecifier::NumChildren(void)
-{
-	return 1 + 1 + macpEnumerators.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxEnumSpecifier::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcName, &pcChild) || IsChild(&iIndex, mpcBase, &pcChild) || IsChild(&iIndex, &macpEnumerators, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxEnumSpecifier::PrintEnumerators(CChars* pszDest, int iDepth)
 {
 	size	i;
@@ -141,5 +115,23 @@ void CCPPSyntaxEnumSpecifier::PrintEnumerators(CChars* pszDest, int iDepth)
 		}
 		pszDest->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxEnumSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Bool(&mbScoped);
+	pcFields->Enum(&meScopeKey);
+	pcFields->Child(&mpcName);
+	pcFields->Child(&mpcBase);
+	pcFields->Bool(&mbBody);
+	pcFields->Bool(&mbTrailingComma);
+	pcFields->Children(&macpEnumerators);
+	pcFields->Scope(&mpcScope);
+	pcFields->Symbol(&mpcSymbol);
 }
 

@@ -91,24 +91,10 @@ void CCPPSyntaxPointerOperator::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxPointerOperator::NumChildren(void)
+void CCPPSyntaxPointerOperator::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + macpQualifiers.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxPointerOperator::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcClass, &pcChild) || IsChild(&iIndex, &macpQualifiers, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meKind);
+	pcFields->Child(&mpcClass);
+	pcFields->Children(&macpQualifiers);
 }
 

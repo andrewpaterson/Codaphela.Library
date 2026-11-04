@@ -53,3 +53,13 @@ void CCPPSyntaxAccessSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 	pszDest->Append(":\n");
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxAccessSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Enum(&meAccess);
+}
+

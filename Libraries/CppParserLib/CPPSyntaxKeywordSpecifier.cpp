@@ -51,3 +51,13 @@ void CCPPSyntaxKeywordSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 	AppendToken(pszDest, miFirstToken);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxKeywordSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Enum(&meKeyword);
+}
+

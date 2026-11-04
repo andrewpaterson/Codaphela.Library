@@ -85,24 +85,11 @@ void CCPPSyntaxExceptionSpecification::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxExceptionSpecification::NumChildren(void)
+void CCPPSyntaxExceptionSpecification::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + macpTypes.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxExceptionSpecification::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCondition, &pcChild) || IsChild(&iIndex, &macpTypes, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbNoexcept);
+	pcFields->Bool(&mbParentheses);
+	pcFields->Child(&mpcCondition);
+	pcFields->Children(&macpTypes);
 }
 

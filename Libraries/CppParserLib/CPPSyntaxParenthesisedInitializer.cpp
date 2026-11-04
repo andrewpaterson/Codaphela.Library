@@ -69,24 +69,8 @@ void CCPPSyntaxParenthesisedInitializer::PrettyPrint(CChars* pszDest, int iDepth
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxParenthesisedInitializer::NumChildren(void)
+void CCPPSyntaxParenthesisedInitializer::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpElements.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxParenthesisedInitializer::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpElements, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Children(&macpElements);
 }
 

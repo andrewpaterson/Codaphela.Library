@@ -54,3 +54,13 @@ void CCPPSyntaxGotoStatement::PrettyPrint(CChars* pszDest, int iDepth)
 	pszDest->Append(";\n");
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxGotoStatement::VisitFields(CCPPSyntaxFields* pcFields)
+{
+	pcFields->Token(&miLabel);
+}
+

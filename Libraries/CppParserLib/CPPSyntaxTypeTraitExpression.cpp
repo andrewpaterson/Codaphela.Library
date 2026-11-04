@@ -72,24 +72,9 @@ void CCPPSyntaxTypeTraitExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxTypeTraitExpression::NumChildren(void)
+void CCPPSyntaxTypeTraitExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpArguments.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxTypeTraitExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpArguments, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Token(&miName);
+	pcFields->Children(&macpArguments);
 }
 

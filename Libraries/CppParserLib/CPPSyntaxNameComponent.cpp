@@ -101,24 +101,14 @@ void CCPPSyntaxNameComponent::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxNameComponent::NumChildren(void)
+void CCPPSyntaxNameComponent::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpTemplateArguments.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxNameComponent::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpTemplateArguments, &pcChild) || IsChild(&iIndex, mpcConversionType, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meKind);
+	pcFields->Bool(&mbTemplateKeyword);
+	pcFields->Token(&miName);
+	pcFields->Bool(&mbTemplateArguments);
+	pcFields->Children(&macpTemplateArguments);
+	pcFields->Child(&mpcConversionType);
+	pcFields->Symbol(&mpcSymbol);
 }
 

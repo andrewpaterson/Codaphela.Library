@@ -73,24 +73,10 @@ void CCPPSyntaxBinaryExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxBinaryExpression::NumChildren(void)
+void CCPPSyntaxBinaryExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxBinaryExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcLeft, &pcChild) || IsChild(&iIndex, mpcRight, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meOperator);
+	pcFields->Child(&mpcLeft);
+	pcFields->Child(&mpcRight);
 }
 

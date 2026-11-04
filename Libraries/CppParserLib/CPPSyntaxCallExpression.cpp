@@ -71,24 +71,9 @@ void CCPPSyntaxCallExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxCallExpression::NumChildren(void)
+void CCPPSyntaxCallExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1 + macpArguments.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxCallExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcCallee, &pcChild) || IsChild(&iIndex, &macpArguments, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Child(&mpcCallee);
+	pcFields->Children(&macpArguments);
 }
 

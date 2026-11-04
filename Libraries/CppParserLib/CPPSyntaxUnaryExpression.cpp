@@ -67,24 +67,10 @@ void CCPPSyntaxUnaryExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxUnaryExpression::NumChildren(void)
+void CCPPSyntaxUnaryExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxUnaryExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcOperand, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Enum(&meOperator);
+	pcFields->Bool(&mbPostfix);
+	pcFields->Child(&mpcOperand);
 }
 

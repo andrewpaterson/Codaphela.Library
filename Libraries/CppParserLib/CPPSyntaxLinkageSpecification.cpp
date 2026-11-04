@@ -85,24 +85,10 @@ void CCPPSyntaxLinkageSpecification::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxLinkageSpecification::NumChildren(void)
+void CCPPSyntaxLinkageSpecification::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpDeclarations.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxLinkageSpecification::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpDeclarations, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Token(&miLanguage);
+	pcFields->Bool(&mbBraced);
+	pcFields->Children(&macpDeclarations);
 }
 

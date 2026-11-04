@@ -63,24 +63,10 @@ void CCPPSyntaxAliasDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxAliasDeclaration::NumChildren(void)
+void CCPPSyntaxAliasDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxAliasDeclaration::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcType, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Token(&miName);
+	pcFields->Child(&mpcType);
+	pcFields->Symbol(&mpcSymbol);
 }
 

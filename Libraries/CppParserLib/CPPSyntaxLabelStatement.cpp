@@ -59,24 +59,9 @@ void CCPPSyntaxLabelStatement::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxLabelStatement::NumChildren(void)
+void CCPPSyntaxLabelStatement::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxLabelStatement::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, mpcStatement, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Token(&miName);
+	pcFields->Child(&mpcStatement);
 }
 

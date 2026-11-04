@@ -41,8 +41,7 @@ public:
 	void					Kill(void) override;
 	ECPPSyntax				GetKind(void) override;
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
-	size					NumChildren(void) override;
-	CCPPSyntax*				GetChild(size iIndex) override;
+	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 	bool					IsEmpty(void);
 	bool					IsFunction(void);
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);

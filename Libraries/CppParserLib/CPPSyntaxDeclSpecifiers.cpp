@@ -71,24 +71,12 @@ void CCPPSyntaxDeclSpecifiers::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxDeclSpecifiers::NumChildren(void)
+void CCPPSyntaxDeclSpecifiers::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpSpecifiers.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxDeclSpecifiers::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpSpecifiers, &pcChild) || IsChild(&iIndex, mpcType, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Children(&macpSpecifiers);
+	pcFields->Integer(&muiFlags);
+	pcFields->Integer(&muiTypeKeywords);
+	pcFields->Integer(&miLongs);
+	pcFields->Child(&mpcType);
 }
 

@@ -102,24 +102,14 @@ void CCPPSyntaxNewExpression::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxNewExpression::NumChildren(void)
+void CCPPSyntaxNewExpression::VisitFields(CCPPSyntaxFields* pcFields)
 {
-	return macpPlacement.NumElements() + 1 + macpArraySizes.NumElements() + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPSyntaxNewExpression::GetChild(size iIndex)
-{
-	CCPPSyntax*	pcChild;
-
-	if (IsChild(&iIndex, &macpPlacement, &pcChild) || IsChild(&iIndex, mpcType, &pcChild) || IsChild(&iIndex, &macpArraySizes, &pcChild) || IsChild(&iIndex, mpcInitializer, &pcChild))
-	{
-		return pcChild;
-	}
-	return NULL;
+	pcFields->Bool(&mbGlobal);
+	pcFields->Children(&macpPlacement);
+	pcFields->Bool(&mbPlacement);
+	pcFields->Bool(&mbParenthesisedType);
+	pcFields->Child(&mpcType);
+	pcFields->Children(&macpArraySizes);
+	pcFields->Child(&mpcInitializer);
 }
 
