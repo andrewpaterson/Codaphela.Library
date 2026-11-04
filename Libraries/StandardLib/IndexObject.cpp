@@ -495,30 +495,6 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
-{
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-	CBaseObject*				pcContainer;
-
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
-		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Save(CObjectWriter* pcFile)
 {
 	CBaseObject*				pcPointedTo;
@@ -688,56 +664,4 @@ size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNe
 	return iCount;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexObject::SetPointedTosDistToRoot(int iDistToRoot)
-{
-	CBaseObject*				pcPointedTo;
-	CBaseObject*				pcContainer;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-
-	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-	{
-		bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-		while (bExists)
-		{
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-			}
-			bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-		}
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if (pcPointedTo)
-		{
-			AddExpectedDistToRoot(pcPointedTo, iExpectedDist + 1, pcParameters);
-		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	}
-}
 

@@ -487,34 +487,6 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
-{
-	CBaseObject*	pcContainer;
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-
-	//No need to EnsureSorted().
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		pcContainer = pcPointedToKey->GetEmbeddingContainer();
-		pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
-		if (pcPointedToValue)
-		{
-			pcContainer = pcPointedToValue->GetEmbeddingContainer();
-			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
-		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CMapObject::Save(CObjectWriter* pcFile)
 {
 	void*						pvKey;
@@ -773,65 +745,6 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 	return iCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
-{
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-	CBaseObject*	pcContainer;
-
-	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-	{
-		bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-		while (bExists)
-		{
-			pcContainer = pcPointedToKey->GetEmbeddingContainer();
-			pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-
-			if (pcPointedToValue)
-			{
-				pcContainer = pcPointedToValue->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-			}
-			bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-		}
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		AddExpectedDistToRoot(pcPointedToKey, iExpectedDist + 1, pcParameters);
-		if (pcPointedToValue)
-		{
-			AddExpectedDistToRoot(pcPointedToValue, iExpectedDist + 1, pcParameters);
-		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	}
 }
 
 

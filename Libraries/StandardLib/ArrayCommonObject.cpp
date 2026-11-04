@@ -527,64 +527,9 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-	size 				i;
-	CEmbeddedObject*	pcPointedTo;
-	size 				uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		AddExpectedDistToRoot(pcPointedTo, iExpectedDist + 1, pcParameters);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
 	mcArray.Remove((CUnknown*)pcTo);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
-{
-	CBaseObject*	pcPointedTo;
-	CBaseObject*	pcContainer;
-	size			i;
-	size 			uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-
-#ifdef _DEBUG
-	Validate((uiNumElements != 0xCCCCCCCC));
-#endif // _DEBUG
-
-	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-	{
-		for (i = 0; i < uiNumElements; i++)
-		{
-			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-			}
-		}
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-	}
 }
 
 
@@ -617,30 +562,6 @@ void CArrayCommonObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
-{
-	CEmbeddedObject*	pcPointedTo;
-	size 				i;
-	size 				uiNumElements;
-	CBaseObject*		pcContainer;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
-		}
-	}
 }
 
 

@@ -148,16 +148,6 @@ CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
-{
-	NotImplemented(__METHOD__);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
 {
 	NotImplemented(__METHOD__);
@@ -207,15 +197,6 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
 }
 
 

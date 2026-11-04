@@ -344,27 +344,6 @@ void CObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	SetPointedTosDistToRoot(iDistToRoot);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetPointerTosExpectedDistToRoot(iDistToRoot);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CObject::SetDistToRoot(int iDistToRoot)
 {
 	size			i;
@@ -429,39 +408,6 @@ bool CObject::SetDistToStack(int iDistToStack)
 	}
 	
 	return bStable;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::SetPointedTosDistToRoot(int iDistToRoot)
-{
-	size			i;
-	CBaseObject*	pcPointedTo;
-	CPointer**		ppPointer;
-	size			uiNumPointers;
-	CBaseObject*	pcContainer;
-
-	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
-	{
-		uiNumPointers = mapPointers.NumElements();
-		for (i = 0; i < uiNumPointers; i++)
-		{
-			ppPointer = mapPointers.Get(i);
-			pcPointedTo = (**ppPointer).BaseObject();
-			if (pcPointedTo)
-			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
-			}
-		}
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-	}
 }
 
 
@@ -639,53 +585,6 @@ bool CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
-{
-	size				uiNumPointers;
-	size				i;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcContainer;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcParameters->AddClearCandidate(pcContainer, iClearedFromDistToRoot);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
-{
-	size				i;
-	size				uiNumEmbedded;
-	CEmbeddedObject*	pcEmbedded;
-
-	BaseCollectAndClearPointerTosInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters, iClearedFromDistToRoot);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 {
 	size				uiNumEmbedded;
@@ -789,48 +688,6 @@ bool CObject::RemoveAllPointerTosTryFree(void)
 	}
 
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-	size				i;
-	size				uiNumPointers;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		AddExpectedDistToRoot(pcPointedTo, iExpectedDist + 1, pcParameters);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iExpectedDist);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iExpectedDist);
-	}
 }
 
 

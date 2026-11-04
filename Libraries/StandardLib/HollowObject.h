@@ -46,7 +46,6 @@ public:
 			bool				IsCollection(void) override;
 			bool				IsObject(void) override;
 
-			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 			size				NumPointerTos(void);
 
@@ -75,7 +74,6 @@ protected:
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemovePointerTo(CEmbeddedObject* pcTo);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(size iIndex);
-			void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 };
 
 

@@ -510,8 +510,9 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot)
 {
-	int		iDistToRoot;
-	size	uiFirst;
+	int							iDistToRoot;
+	CArrayEmbeddedObjectPtr*	papcTos;
+	size						i;
 
 	if (IsEmbedded())
 	{
@@ -547,9 +548,13 @@ void CBaseObject::ClearInvalidDistToRoot(CDistCalculatorParameters* pcParameters
 			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
 			SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
-			uiFirst = pcParameters->NumClearCandidates();
-			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters, iDistToRoot);
-			pcParameters->ReverseClearCandidates(uiFirst);
+			//What this (and the objects embedded in it) points to, added last first so the first is checked first.
+			papcTos = pcParameters->StartPointerTos();
+			GetPointerTos(papcTos);
+			for (i = papcTos->NumElements(); i > 0; i--)
+			{
+				pcParameters->AddClearCandidate(papcTos->GetPtr(i - 1)->GetEmbeddingContainer(), iDistToRoot);
+			}
 		}
 	}
 }
@@ -987,21 +992,52 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Everything this object (and the objects embedded in it) points to can
+// be iDistToRoot + 1 from the root.  papcTos is the caller's to reuse (it
+// is emptied, and its memory kept, for each object).
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetPointerTosExpectedDistToRoot(int iDistToRoot, CArrayEmbeddedObjectPtr* papcTos)
+{
+	size	i;
+	size	uiNumTos;
+
+	if (iDistToRoot < ROOT_DIST_TO_ROOT)
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
+		return;
+	}
+
+	papcTos->FakeSetUsedElements(0);
+	GetPointerTos(papcTos);
+	uiNumTos = papcTos->NumElements();
+	for (i = 0; i < uiNumTos; i++)
+	{
+		papcTos->GetPtr(i)->GetEmbeddingContainer()->SetExpectedDistToRoot(iDistToRoot + 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Gives each object that got closer to the root (in the order they did) its
 // distance's pointer tos.  Those that get closer are queued after it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DrainCloserToRoot(void)
 {
-	CBaseObject*	pcCloser;
-	size			uiFirst;
+	CBaseObject*				pcCloser;
+	size						uiFirst;
+	CArrayEmbeddedObjectPtr		apcTos;
 
 	gbCloserToRootDraining = true;
+	apcTos.Init();
 	for (uiFirst = 0; uiFirst < gapcCloserToRoot.NumElements(); uiFirst++)
 	{
 		pcCloser = gapcCloserToRoot.GetPtr(uiFirst);
-		pcCloser->SetPointerTosExpectedDistToRoot(pcCloser->GetDistToRoot());
+		pcCloser->SetPointerTosExpectedDistToRoot(pcCloser->GetDistToRoot(), &apcTos);
 	}
+	apcTos.Kill();
 	gapcCloserToRoot.Kill();
 	gbCloserToRootDraining = false;
 }
@@ -1059,8 +1095,11 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 		return;
 	}
 
-	CEmbeddedObject*	pcClosestToRoot;
-	int					iClosestToRoot;
+	CEmbeddedObject*			pcClosestToRoot;
+	int							iClosestToRoot;
+	CArrayEmbeddedObjectPtr*	papcTos;
+	size						i;
+	size						uiNumTos;
 
 	pcClosestToRoot = GetClosestFromToRoot();
 	iClosestToRoot = pcClosestToRoot->GetDistToRoot() + 1;
@@ -1069,7 +1108,14 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 	SetDistToRoot(iClosestToRoot);
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, true);
 
-	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iClosestToRoot);
+	//What this (and the objects embedded in it) points to can be one further.
+	papcTos = pcParameters->StartPointerTos();
+	GetPointerTos(papcTos);
+	uiNumTos = papcTos->NumElements();
+	for (i = 0; i < uiNumTos; i++)
+	{
+		AddExpectedDistToRoot(papcTos->GetPtr(i), iClosestToRoot + 1, pcParameters);
+	}
 }
 
 

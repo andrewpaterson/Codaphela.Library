@@ -68,8 +68,6 @@ protected:
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);
 
-	virtual	void			SetPointedTosDistToRoot(int iDistToRoot) =0;
-			void			SetPointerTosExpectedDistToRoot(int iDistToRoot);
 };
 
 

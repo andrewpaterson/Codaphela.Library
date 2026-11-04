@@ -17,7 +17,6 @@ public:
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
 	bool				SetDistToRoot(int iDistToRoot) override;
-	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 	size				NumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	bool				IsHollow(void);
@@ -38,7 +37,6 @@ public:
 	bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 protected:
-	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 };
 

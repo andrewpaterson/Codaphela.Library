@@ -140,7 +140,7 @@ public:
 
 			size					NumEmbedded(void);
 
-	virtual void					SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
+			void					SetPointerTosExpectedDistToRoot(int iDistToRoot, CArrayEmbeddedObjectPtr* papcTos);
 			void					SetDirty(bool bDirty);
 			int						GetDistToRoot(void);
 			int						GetDistToStack(void);

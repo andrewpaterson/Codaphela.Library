@@ -80,7 +80,6 @@ public:
 	virtual bool				IsHollow(void) =0;
 	virtual size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual bool				SetDistToRoot(int iDistToRoot) =0;
-	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 	virtual bool				TestedForRoot(void) =0;
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
@@ -116,7 +115,6 @@ public:
 	virtual size				BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot);
 	virtual void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms) =0;
 
 			bool				HasHeapFroms(void);
@@ -173,7 +171,6 @@ protected:
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
-	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 			void				ValidateObjectsConsistency(bool bValidate);
 };
 

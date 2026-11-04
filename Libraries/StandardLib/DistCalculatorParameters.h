@@ -46,6 +46,7 @@ private:
 	size*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
 	size									muiExpectedDistsTableSize;
 	CArrayDistToRootClearCandidates			macClearCandidates;  //A stack, so clearing walks depth first without recursing.
+	CArrayEmbeddedObjectPtr					mapcTos;  //One object's pointer tos at a time, its memory kept between them.
 	CArrayBaseObjectPtrE32		mapcDetachedFromRoot;
 
 	CArrayBaseObjectPtr					mapcCompletelyDetached;
@@ -62,10 +63,10 @@ public:
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
 
+	CArrayEmbeddedObjectPtr*	StartPointerTos(void);
 	void					AddClearCandidate(CBaseObject* pcObject, int iClearedFromDistToRoot);
 	bool					PopClearCandidate(CBaseObject** ppcObject, int* piClearedFromDistToRoot);
 	size					NumClearCandidates(void);
-	void					ReverseClearCandidates(size uiFirst);
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);

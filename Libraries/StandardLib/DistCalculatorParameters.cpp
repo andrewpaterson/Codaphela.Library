@@ -17,6 +17,7 @@ void CDistCalculatorParameters::Init(void)
 	mpuiExpectedDistsTable = NULL;
 	muiExpectedDistsTableSize = 0;
 	macClearCandidates.Init();
+	mapcTos.Init();
 	mapcDetachedFromRoot.Init();
 	mapcCompletelyDetached.Init();
 	mapcTouched.Init();
@@ -32,6 +33,7 @@ void CDistCalculatorParameters::Kill(void)
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
+	mapcTos.Kill();
 	macClearCandidates.Kill();
 	SafeFree(mpuiExpectedDistsTable);
 	muiExpectedDistsTableSize = 0;
@@ -442,6 +444,19 @@ void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An empty array for one object's pointer tos.  The same one each time, so
+// walking many objects doesn't allocate for each.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayEmbeddedObjectPtr* CDistCalculatorParameters::StartPointerTos(void)
+{
+	mapcTos.FakeSetUsedElements(0);
+	return &mapcTos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::AddClearCandidate(CBaseObject* pcObject, int iClearedFromDistToRoot)
@@ -480,29 +495,6 @@ bool CDistCalculatorParameters::PopClearCandidate(CBaseObject** ppcObject, int* 
 size CDistCalculatorParameters::NumClearCandidates(void)
 {
 	return macClearCandidates.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The candidates added since uiFirst are reversed, so the first added is
-// popped first (the order a recursive walk would check them in).
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::ReverseClearCandidates(size uiFirst)
-{
-	size						uiLast;
-	SDistToRootClearCandidate	sSwap;
-
-	uiLast = macClearCandidates.NumElements();
-	while (uiLast > uiFirst + 1)
-	{
-		uiLast--;
-		sSwap = *macClearCandidates.Get(uiFirst);
-		*macClearCandidates.Get(uiFirst) = *macClearCandidates.Get(uiLast);
-		*macClearCandidates.Get(uiLast) = sSwap;
-		uiFirst++;
-	}
 }
 
 

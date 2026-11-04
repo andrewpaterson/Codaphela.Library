@@ -54,7 +54,6 @@ public:
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
 	void				RemoveAllPointerTosDontFree(void) override;
 	bool				RemoveAllPointerTosTryFree(void) override;
-	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters, int iClearedFromDistToRoot) override;
 
 	bool				Remove(CPointer& pKey);
 
@@ -89,9 +88,7 @@ protected:
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
-	void				SetPointedTosDistToRoot(int iDistToRoot);
 
-	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) override;
 
 	void				EnsureSorted(void);
 };
