@@ -40,6 +40,7 @@ struct STileTextSpan
 
 
 typedef CArrayTemplate<STileTextSpan>	CArrayTileTextSpan;
+typedef CArrayTemplate<size>			CArrayTileTextLineRows;
 
 
 //Writes UTF-8 text into a tile layer with a fixed width font: each character is a tile (the glyph's cel, which is
@@ -69,7 +70,7 @@ public:
 	void		SetColours(Ptr<CFontColours> pColours, ARGB32 sColour);
 	void		SetTabWidth(size uiTabWidth);
 	bool		IsValid(void);
-	bool		Write(const char* szText, CArrayTileTextSpan* pasSpans = NULL);
+	bool		Write(const char* szText, CArrayTileTextSpan* pasSpans = NULL, CArrayTileTextLineRows* pauiLineRows = NULL);
 	bool		WriteRow(size y, const char* szLine, size uiLength, size uiLineStart = 0, CArrayTileTextSpan* pasSpans = NULL);
 
 	size		GetTabWidth(void);

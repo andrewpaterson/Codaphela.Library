@@ -234,16 +234,20 @@ bool CTileTextWriter::IsValid(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Replaces the layer's tiles with szText, its first line in the top row.
-// False if any of it was cut off.
+// Replaces the layer's tiles with szText, its first line in the top row
+// and each line in the row after, or with pauiLineRows in the row it gives
+// for the line (rows the text skips are left empty).  A line past the end
+// of pauiLineRows goes in the row after the line before.  False if any of
+// it was cut off.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileTextWriter::Write(const char* szText, CArrayTileTextSpan* pasSpans)
+bool CTileTextWriter::Write(const char* szText, CArrayTileTextSpan* pasSpans, CArrayTileTextLineRows* pauiLineRows)
 {
 	size	uiPosition;
 	size	uiEnd;
 	size	uiTextLength;
 	size	y;
+	size	uiLine;
 	size	uiRows;
 	bool	bFitted;
 
@@ -253,8 +257,17 @@ bool CTileTextWriter::Write(const char* szText, CArrayTileTextSpan* pasSpans)
 	uiRows = (size)mpLayer->GetLayerSizeY();
 	bFitted = true;
 	uiPosition = 0;
-	for (y = 0; ; y++)
+	y = 0;
+	for (uiLine = 0; ; uiLine++)
 	{
+		if (pauiLineRows && (uiLine < pauiLineRows->NumElements()))
+		{
+			y = *pauiLineRows->Get(uiLine);
+		}
+		else if (uiLine > 0)
+		{
+			y++;
+		}
 		uiEnd = uiPosition;
 		while ((uiEnd < uiTextLength) && (szText[uiEnd] != '\n'))
 		{
