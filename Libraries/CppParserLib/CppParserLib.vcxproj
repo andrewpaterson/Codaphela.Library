@@ -195,6 +195,12 @@
     <ClCompile Include="IRBackend.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
     <ClCompile Include="IR816Backend.cpp" />
+    <ClCompile Include="IR816Flow.cpp" />
+    <ClCompile Include="IR816Frames.cpp" />
+    <ClCompile Include="IR816Instructions.cpp" />
+    <ClCompile Include="IR816Peephole.cpp" />
+    <ClCompile Include="IR816Places.cpp" />
+    <ClCompile Include="IR816Runtime.cpp" />
     <ClCompile Include="CPPTarget.cpp" />
     <ClCompile Include="IR65Code.cpp" />
     <ClCompile Include="IR65Flags.cpp" />
@@ -408,6 +414,7 @@
     <ClInclude Include="IRBackend.h" />
     <ClInclude Include="IR65Backend.h" />
     <ClInclude Include="IR816Backend.h" />
+    <ClInclude Include="IR816BackendInternal.h" />
     <ClInclude Include="CPPTarget.h" />
     <ClInclude Include="IR65Code.h" />
     <ClInclude Include="IR65Flags.h" />

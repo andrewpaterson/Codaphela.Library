@@ -156,6 +156,24 @@
     <ClCompile Include="IR816Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR816Flow.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Frames.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Instructions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Peephole.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Places.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR816Runtime.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Code.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -780,6 +798,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR816Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR816BackendInternal.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Code.h">
