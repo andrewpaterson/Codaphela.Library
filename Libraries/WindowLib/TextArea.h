@@ -128,6 +128,7 @@ protected:
 	int32				miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
 	int32				miTabWidth;  //In spaces.
 	bool				mbEditable;
+	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool				mbFocussed;
 	bool				mbDragging;
 
@@ -170,6 +171,8 @@ public:
 
 	void				SetEditable(bool bEditable);
 	bool				IsEditable(void);
+	void				SetSelectable(bool bSelectable);
+	bool				IsSelectable(void);
 	void				SetTabWidth(int32 iTabWidth);
 	void				SetMarkColours(ARGB32 sSelection, ARGB32 sCaret);
 	size				GetCaretPosition(void);
@@ -340,6 +343,7 @@ protected:
 	void				IndentLines(size uiStart, size uiEnd);
 	void				OutdentLines(size uiStart, size uiEnd);
 	void				TextChanged(void);
+	bool				IsPointerCommand(EComponentInputCommand eCommand);
 
 	void				ShowCaret(void);
 	void				UpdateMarks(void);

@@ -123,6 +123,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	miUpDownX = -1;
 	miTabWidth = 4;
 	mbEditable = true;
+	mbSelectable = true;
 	mbFocussed = false;
 	mbDragging = false;
 
@@ -203,6 +204,7 @@ void CTextArea::Class(void)
 	U_Int32(miUpDownX);
 	U_Int32(miTabWidth);
 	U_Bool(mbEditable);
+	U_Bool(mbSelectable);
 	U_Bool(mbFocussed);
 	U_Bool(mbDragging);
 }
@@ -842,6 +844,30 @@ size CTextArea::NumSpans(void) { return masSpans.NumElements(); }
 void CTextArea::SetEditable(bool bEditable)
 {
 	mbEditable = bEditable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text area that isn't selectable passes the pointer's presses and
+// drags to its parent, which can act on them; give it focus not either
+// (SetCanGetFocus) and it is only something to read.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetSelectable(bool bSelectable)
+{
+	mbSelectable = bSelectable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer's commands: presses, releases and dragging to select.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::IsPointerCommand(EComponentInputCommand eCommand)
+{
+	return (eCommand == CIC_ActivateComponent) || (eCommand == CIC_ExecuteComponent) || (eCommand == CIC_StartDragSelect) || (eCommand == CIC_ContDragSelect) || (eCommand == CIC_StopDragSelect);
 }
 
 
@@ -1871,6 +1897,13 @@ void CTextArea::FocusLost(void)
 void CTextArea::CommandAction(SComponentInputEvent* psEvent)
 {
 	CChars	szClipboard;
+
+	//A text area that isn't selectable, like a code editor's line numbers, leaves the pointer to its parent.
+	if (!mbSelectable && IsPointerCommand(psEvent->eCommand))
+	{
+		psEvent->bPass = true;
+		return;
+	}
 
 	switch (psEvent->eCommand)
 	{
@@ -3412,6 +3445,7 @@ void CTextArea::UpdateMarks(void)
 
 
 bool CTextArea::IsEditable(void) { return mbEditable; }
+bool CTextArea::IsSelectable(void) { return mbSelectable; }
 size CTextArea::GetCaretPosition(void) { return muiCaret; }
 
 
