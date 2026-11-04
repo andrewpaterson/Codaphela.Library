@@ -52,6 +52,7 @@ public:
 			void				Unlock(void);
 			void				Load(void);
 			void				Unload(void);
+			void				ClearContents(void);
 			void				SetContents(const char* sz);
 			bool				IsLoaded(void);
 			bool				IsNamed(char* szName);
