@@ -38,8 +38,9 @@ typedef CArrayTemplatePtr<CCPPSyntax>	CArraySyntax;
 
 //What a node's fields are given to, one at a time in the order they are declared (CCPPSyntax::VisitFields): each kind
 //of field has its own function, which does nothing unless overridden.  A node's children are its Child and Children
-//fields; a Link is a node that isn't its child.  Tokens are indices into the tree's tokeniser.  Its tree, parent and
-//tokens (CCPPSyntax's own) aren't given.
+//fields; a Link is a node that isn't its child.  A Scope is one the node made (its members, parameters or block's);
+//a UsedScope one it refers to (the scope it is in, or another node's).  Tokens are indices into the tree's tokeniser.
+//Its tree, parent and tokens (CCPPSyntax's own) aren't given.
 class CCPPSyntaxFields
 {
 public:
@@ -47,7 +48,7 @@ public:
 	virtual void			NodesField(CArraySyntax* papcNodes) {}
 	virtual void			LinkField(CCPPSyntax** ppcNode) {}
 	virtual void			SymbolField(CCPPSymbol** ppcSymbol) {}
-	virtual void			ScopeField(CCPPScope** ppcScope) {}
+	virtual void			ScopeField(CCPPScope** ppcScope, bool bMade) {}
 	virtual void			TokenField(int32* piToken) {}
 	virtual void			ValueField(void* pvValue, size uiSize) {}
 
@@ -55,7 +56,8 @@ public:
 	void					Children(CArraySyntax* papcNodes)	{ NodesField(papcNodes); }
 	template<class M> void	Link(M** ppcNode)					{ LinkField((CCPPSyntax**)ppcNode); }
 	void					Symbol(CCPPSymbol** ppcSymbol)		{ SymbolField(ppcSymbol); }
-	void					Scope(CCPPScope** ppcScope)			{ ScopeField(ppcScope); }
+	void					Scope(CCPPScope** ppcScope)			{ ScopeField(ppcScope, true); }
+	void					UsedScope(CCPPScope** ppcScope)		{ ScopeField(ppcScope, false); }
 	void					Token(int32* piToken)				{ TokenField(piToken); }
 	void					Bool(bool* pbValue)					{ ValueField(pbValue, sizeof(bool)); }
 	template<class E> void	Enum(E* peValue)					{ ValueField(peValue, sizeof(E)); }

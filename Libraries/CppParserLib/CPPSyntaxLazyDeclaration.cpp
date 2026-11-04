@@ -68,7 +68,7 @@ void CCPPSyntaxLazyDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 void CCPPSyntaxLazyDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	//mpapcOwner and muiIndex aren't fields: where it is in its owner's list, set when it is made.
-	pcFields->Scope(&mpcScope);
+	pcFields->UsedScope(&mpcScope);
 	pcFields->Integer(&miPack);
 	pcFields->Bool(&mbLoaded);
 	pcFields->Link(&mpcMembers);

@@ -115,6 +115,6 @@ void CCPPSyntaxFunctionDefinition::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Enum(&meBody);
 	pcFields->Token(&miBodyStart);
 	pcFields->Token(&miBodyEnd);
-	pcFields->Scope(&mpcScope);
+	pcFields->UsedScope(&mpcScope);
 }
 

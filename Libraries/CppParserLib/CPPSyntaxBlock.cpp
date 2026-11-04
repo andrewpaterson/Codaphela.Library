@@ -120,7 +120,7 @@ public:
 
 
 //Gives the block's nodes' scopes and symbols their references (CCPPSyntaxBlockWriting::Scope and Symbol), or finds
-//the scopes that are the block's own.
+//the scopes that are the block's own: those its nodes made (not those they are in, as a lazy declaration's).
 class CCPPSyntaxBlockReferences : public CCPPSyntaxFields
 {
 public:
@@ -128,11 +128,11 @@ public:
 	bool					mbOwnScopes;
 
 	void	SymbolField(CCPPSymbol** ppcSymbol) override	{ if (!mbOwnScopes) { mpcWriting->Symbol(*ppcSymbol); } }
-	void	ScopeField(CCPPScope** ppcScope) override
+	void	ScopeField(CCPPScope** ppcScope, bool bMade) override
 	{
 		if (mbOwnScopes)
 		{
-			if (*ppcScope)
+			if (*ppcScope && bMade)
 			{
 				mpcWriting->mcOwnScopes.Put((uint64)(ptr)*ppcScope, 1);
 			}
@@ -164,7 +164,7 @@ public:
 	}
 	void	LinkField(CCPPSyntax** ppcNode) override		{ mpcWriting->U16(mpcWriting->NodeIndex(*ppcNode)); }
 	void	SymbolField(CCPPSymbol** ppcSymbol) override	{ mpcWriting->U16(mpcWriting->Symbol(*ppcSymbol)); }
-	void	ScopeField(CCPPScope** ppcScope) override		{ mpcWriting->U16(mpcWriting->Scope(*ppcScope)); }
+	void	ScopeField(CCPPScope** ppcScope, bool bMade) override	{ mpcWriting->U16(mpcWriting->Scope(*ppcScope)); }
 	void	TokenField(int32* piToken) override				{ mpcWriting->U16(mpcWriting->Token(*piToken)); }
 	void	ValueField(void* pvValue, size uiSize) override	{ mpcWriting->Bytes(pvValue, uiSize); }
 };
@@ -933,7 +933,7 @@ public:
 	}
 	void	LinkField(CCPPSyntax** ppcNode) override		{ *ppcNode = mpcReading->Node(mpcReading->U16()); }
 	void	SymbolField(CCPPSymbol** ppcSymbol) override	{ *ppcSymbol = mpcReading->Symbol(mpcReading->U16()); }
-	void	ScopeField(CCPPScope** ppcScope) override		{ *ppcScope = mpcReading->Scope(mpcReading->U16()); }
+	void	ScopeField(CCPPScope** ppcScope, bool bMade) override	{ *ppcScope = mpcReading->Scope(mpcReading->U16()); }
 	void	TokenField(int32* piToken) override				{ *piToken = mpcReading->Token(mpcReading->U16()); }
 	void	ValueField(void* pvValue, size uiSize) override	{ mpcReading->Bytes(pvValue, uiSize); }
 };
