@@ -27,6 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 typedef CArrayTemplate<uint32>	CArrayCodeEditorGapIds;
+typedef CArrayTemplate<size>	CArrayCodeEditorLines;
 
 
 //Source code to edit: a gutter of line numbers on the left of a text area (GetTextArea) of the code, and components
@@ -44,7 +45,8 @@ protected:
 	Ptr<CTextArea>			mpGutter;
 	Ptr<CTextArea>			mpTextArea;
 	CArray<CComponent>		maLineComponents;
-	CArrayCodeEditorGapIds	mauiGapIds;  //Of each line component's gap in the text area.
+	CArrayCodeEditorGapIds	mauiGapIds;  //Of each line component's gap in the text area.  Ascending: a new gap's id is the largest.
+	CArrayCodeEditorLines	mauiLines;  //Each line component's line, as of the last update.
 	size					muiGutterLines;  //The lines the gutter was last numbered for.
 
 public:
@@ -74,6 +76,8 @@ public:
 
 protected:
 	size				FindLineComponent(Ptr<CComponent> pComponent);
+	size				FindGapId(uint32 uiId);
+	void				RemoveLineComponentAt(size uiIndex);
 	int32				GetGapHeight(Ptr<CComponent> pComponent);
 	void				Update(void);
 	void				UpdateLineComponents(void);

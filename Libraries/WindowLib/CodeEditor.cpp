@@ -36,6 +36,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 
 	maLineComponents.Init();
 	mauiGapIds.Init();
+	mauiLines.Init();
 	muiGutterLines = 0;
 	CContainer::Init(pWindow);
 
@@ -62,6 +63,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Free(void)
 {
+	mauiLines.Kill();
 	mauiGapIds.Kill();
 	CContainer::Free();
 }
@@ -78,6 +80,7 @@ void CCodeEditor::Class(void)
 	M_Pointer(mpTextArea);
 	M_Embedded(maLineComponents);
 	U_Data(CArrayCodeEditorGapIds, mauiGapIds);
+	U_Data(CArrayCodeEditorLines, mauiLines);
 	U_Size(muiGutterLines);
 }
 
@@ -142,6 +145,7 @@ bool CCodeEditor::AddLineComponent(size uiLine, Ptr<CComponent> pComponent)
 	mpTextArea->SetLineGap(uiLine, GetGapHeight(pComponent));
 	maLineComponents.Add(pComponent);
 	*mauiGapIds.Add() = mpTextArea->GetLineGapId(uiLine);
+	*mauiLines.Add() = uiLine;
 	AddComponent(pComponent);
 
 	//What it is laid out from has changed.
@@ -172,13 +176,29 @@ bool CCodeEditor::RemoveLineComponent(Ptr<CComponent> pComponent)
 	{
 		mpTextArea->SetLineGap(uiLine, 0);
 	}
-	maLineComponents.RemoveAt(uiIndex);
-	mauiGapIds.RemoveAt(uiIndex, true);
-	RemoveComponent(pComponent);
+	RemoveLineComponentAt(uiIndex);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Forgets line component uiIndex and takes it out of the code editor.
+// Its gap is left as it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::RemoveLineComponentAt(size uiIndex)
+{
+	Ptr<CComponent>	pComponent;
+
+	pComponent = maLineComponents.Get(uiIndex);
+	maLineComponents.RemoveAt(uiIndex);
+	mauiGapIds.RemoveAt(uiIndex, true);
+	mauiLines.RemoveAt(uiIndex, true);
+	RemoveComponent(pComponent);
 }
 
 
@@ -294,7 +314,7 @@ void CCodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	for (i = 0; i < maLineComponents.Size(); i++)
 	{
 		pComponent = maLineComponents.Get(i);
-		uiLine = mpTextArea->FindLineGap(*mauiGapIds.Get(i));
+		uiLine = *mauiLines.Get(i);
 		if (mpTextArea->GetLineGapBounds(uiLine, &cGap))
 		{
 			pComponent->Layout(SInt32Vec2(sTextPosition.x + cGap.GetLeft(), sTextPosition.y + cGap.GetTop()), SInt32Vec2(cGap.GetWidth(), cGap.GetHeight()));
@@ -355,31 +375,84 @@ void CCodeEditor::Update(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each line component's line is found from its gap, in one pass through
+// the text area's gaps.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::UpdateLineComponents(void)
 {
-	size				i;
-	size				uiLine;
-	Ptr<CComponent>		pComponent;
+	size					i;
+	size					uiIndex;
+	size					uiLine;
+	CArrayTextLayoutGap*	pasGaps;
+	STextLayoutGap*			psGap;
 
+	for (i = 0; i < mauiLines.NumElements(); i++)
+	{
+		*mauiLines.Get(i) = MAX_SIZE;
+	}
+	pasGaps = mpTextArea->GetLineGaps();
+	for (i = 0; i < pasGaps->NumElements(); i++)
+	{
+		psGap = pasGaps->Get(i);
+		uiIndex = FindGapId(psGap->uiId);
+		if (uiIndex != MAX_SIZE)
+		{
+			*mauiLines.Get(uiIndex) = psGap->uiLine;
+		}
+	}
+
+	//Changing a gap's height doesn't move the gaps; removing a component only changes the arrays after it.
 	i = maLineComponents.Size();
 	while (i > 0)
 	{
 		i--;
-		pComponent = maLineComponents.Get(i);
-		uiLine = mpTextArea->FindLineGap(*mauiGapIds.Get(i));
+		uiLine = *mauiLines.Get(i);
 		if (uiLine == MAX_SIZE)
 		{
-			maLineComponents.RemoveAt(i);
-			mauiGapIds.RemoveAt(i, true);
-			RemoveComponent(pComponent);
+			RemoveLineComponentAt(i);
 		}
 		else
 		{
-			mpTextArea->SetLineGap(uiLine, GetGapHeight(pComponent));
+			mpTextArea->SetLineGap(uiLine, GetGapHeight(maLineComponents.Get(i)));
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of the line component whose gap has id uiId, MAX_SIZE if
+// none has.  The ids are ascending.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCodeEditor::FindGapId(uint32 uiId)
+{
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+	uint32	uiMiddleId;
+
+	uiLow = 0;
+	uiHigh = mauiGapIds.NumElements();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = (uiLow + uiHigh) / 2;
+		uiMiddleId = *mauiGapIds.Get(uiMiddle);
+		if (uiMiddleId == uiId)
+		{
+			return uiMiddle;
+		}
+		if (uiMiddleId < uiId)
+		{
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
+	}
+	return MAX_SIZE;
 }
 
 
