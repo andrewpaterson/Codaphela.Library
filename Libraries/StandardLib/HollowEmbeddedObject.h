@@ -34,7 +34,6 @@ public:
 	bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 protected:
-	void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 };
 
 

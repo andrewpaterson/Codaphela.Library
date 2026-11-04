@@ -74,13 +74,10 @@ public:
 	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
 	void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
-	CBaseObject*		GetClosestFromToRoot(void);
-	CBaseObject*		GetClosestHeapFromToStack(void);
 	size				NumPointerTos(void);
 	size				BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms);
 
 	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
 	size				GetNumFieldPointerTos(void);
@@ -100,7 +97,6 @@ protected:
 	bool				RemoveAllPointerTosTryFree(void);
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
-	CBaseObject*		GetClosestFromForCanFindRoot(void);
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	bool				SetDistToRoot(int iDistToRoot) override;
 	bool				SetDistToStack(int iDistToStack) override;

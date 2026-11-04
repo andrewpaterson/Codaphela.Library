@@ -62,6 +62,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
 
+//Which distance GetClosestHeapFrom looks for.
+enum EClosestHeapFrom
+{
+	CHF_Root,
+	CHF_RootUntested,
+	CHF_Stack
+};
+
+
 class CObjectReader;
 class CObjectWriter;
 class CObjects;
@@ -174,6 +183,11 @@ public:
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
 			bool					HasCloserFrom(void);
+			CBaseObject*			GetClosestFromToRoot(void);
+			CBaseObject*			GetClosestFromForCanFindRoot(void);
+			CBaseObject*			GetClosestHeapFromToStack(void);
+			CBaseObject*			GetClosestHeapFrom(EClosestHeapFrom eClosest);
+			size					NumHeapFromHolders(void);
 			bool					IsHeldFromStackOrRoot(void);
 			void					StopDestructor(void);
 

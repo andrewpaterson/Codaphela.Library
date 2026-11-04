@@ -711,20 +711,129 @@ bool CBaseObject::IsHeldFromStackOrRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds the objects this object's heap froms are in.
+// How many objects have heap froms for this: this and the objects embedded
+// in it (GetEmbeddedObject).  A hollow object's hollow embedded objects'
+// froms are not counted (as they never have been).
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseObject::NumHeapFromHolders(void)
+{
+	size	uiNumEmbedded;
+
+	//The count is kept once worked out; asking for it is a virtual call for every object walked.
+	uiNumEmbedded = muiNumEmbedded;
+	if (uiNumEmbedded == 0)
+	{
+		uiNumEmbedded = NumEmbedded();
+	}
+	if ((uiNumEmbedded > 1) && IsHollow())
+	{
+		return 1;
+	}
+	return uiNumEmbedded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Of the heap froms of this and the objects embedded in it, the first that
+// is closest to the root (attached to it; CHF_RootUntested also skips
+// froms CanFindRoot has been through) or to the stack (CHF_Stack).  The
+// froms are read where they are rather than copied: a hub has thousands.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::GetClosestHeapFrom(EClosestHeapFrom eClosest)
+{
+	CEmbeddedObject*	pcHolder;
+	CBaseObject*		pcNearest;
+	CBaseObject*		pcFrom;
+	int					iNearest;
+	int					iDist;
+	size				uiHolder;
+	size				uiNumHolders;
+	size				i;
+	size				uiNumFroms;
+
+	iNearest = MAX_DIST_TO_ROOT;
+	pcNearest = NULL;
+	uiNumHolders = NumHeapFromHolders();
+	for (uiHolder = 0; uiHolder < uiNumHolders; uiHolder++)
+	{
+		pcHolder = (uiHolder == 0) ? this : GetEmbeddedObject(uiHolder);
+		uiNumFroms = pcHolder->CEmbeddedObject::NumHeapFroms();
+		for (i = 0; i < uiNumFroms; i++)
+		{
+			pcFrom = pcHolder->CEmbeddedObject::GetHeapFrom(i);
+			iDist = (eClosest == CHF_Stack) ? pcFrom->GetDistToStack() : pcFrom->GetDistToRoot();
+			if ((iDist >= 0) && (iDist < iNearest))
+			{
+				//Asked only of a from that would be nearest: most of a hub's froms aren't attached.
+				if ((eClosest == CHF_RootUntested) && pcFrom->TestedForRoot())
+				{
+					continue;
+				}
+				iNearest = iDist;
+				pcNearest = pcFrom;
+			}
+		}
+	}
+	return pcNearest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::GetClosestFromToRoot(void)
+{
+	return GetClosestHeapFrom(CHF_Root);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::GetClosestFromForCanFindRoot(void)
+{
+	return GetClosestHeapFrom(CHF_RootUntested);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::GetClosestHeapFromToStack(void)
+{
+	return GetClosestHeapFrom(CHF_Stack);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the objects holding the heap froms of this and the objects embedded
+// in it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms)
 {
+	CEmbeddedObject*	pcHolder;
+	size				uiHolder;
+	size				uiNumHolders;
 	size				i;
 	size				uiNumFroms;
-	CEmbeddedObject*	pcEmbedded;
 
-	uiNumFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < uiNumFroms; i++)
+	uiNumHolders = NumHeapFromHolders();
+	for (uiHolder = 0; uiHolder < uiNumHolders; uiHolder++)
 	{
-		pcEmbedded = CEmbeddedObject::GetHeapFrom(i);
-		papcFroms->Add(pcEmbedded->GetEmbeddingContainer());
+		pcHolder = (uiHolder == 0) ? this : GetEmbeddedObject(uiHolder);
+		uiNumFroms = pcHolder->CEmbeddedObject::NumHeapFroms();
+		for (i = 0; i < uiNumFroms; i++)
+		{
+			papcFroms->Add(pcHolder->CEmbeddedObject::GetHeapFrom(i)->GetEmbeddingContainer());
+		}
 	}
 }
 

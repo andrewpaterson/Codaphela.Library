@@ -115,7 +115,6 @@ public:
 	virtual size				BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //This object's pointer tos and those of the objects embedded in it.
 	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);  //Only this object's own.  The one walk each kind of object writes.
-	virtual void				CollectDetachedFroms(CArrayBaseObjectPtr* papcFroms) =0;
 
 			bool				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);
@@ -136,11 +135,9 @@ public:
 			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
-	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);
 
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
-	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 	virtual CClass*				GetClass(void) =0;
 	virtual	void				CopyFields(CEmbeddedObject* pcOther);
 	virtual bool				HasNes(void) =0;
@@ -170,7 +167,6 @@ protected:
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
-	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 			void				ValidateObjectsConsistency(bool bValidate);
 };
 
