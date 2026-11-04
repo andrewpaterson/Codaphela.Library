@@ -82,9 +82,8 @@ size CDistCalculatorParameters::FindExpectedDistIndex(CBaseObject* pcObject)
 {
 	size			i;
 	size			uiDists;
-	size			uiMask;
 	size			uiSlot;
-	uint32			uiEntry;
+	size			uiEntry;
 	SDistToRoot*	psDistToRoot;
 
 	if (mpuiExpectedDistsTable == NULL)
@@ -101,8 +100,7 @@ size CDistCalculatorParameters::FindExpectedDistIndex(CBaseObject* pcObject)
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	uiMask = muiExpectedDistsTableSize - 1;
-	uiSlot = (((size)pcObject) >> 4) & uiMask;
+	uiSlot = ExpectedDistsTableSlot(pcObject);
 	for (;;)
 	{
 		uiEntry = mpuiExpectedDistsTable[uiSlot];
@@ -111,15 +109,42 @@ size CDistCalculatorParameters::FindExpectedDistIndex(CBaseObject* pcObject)
 			return ARRAY_ELEMENT_NOT_FOUND;
 		}
 		psDistToRoot = macExpectedDists.Get(uiEntry - 1);
-		if (psDistToRoot->pcObject == pcObject)
+		if ((psDistToRoot->pcObject == pcObject) && !psDistToRoot->bRemoved)
 		{
-			if (!psDistToRoot->bRemoved)
-			{
-				return uiEntry - 1;
-			}
+			return uiEntry - 1;
 		}
-		uiSlot = (uiSlot + 1) & uiMask;
+		uiSlot = (uiSlot + 1) & (muiExpectedDistsTableSize - 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the object's entries start in the table.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDistCalculatorParameters::ExpectedDistsTableSlot(CBaseObject* pcObject)
+{
+	return (size)((((ptr)pcObject) >> 4) & (muiExpectedDistsTableSize - 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts the expected dist at uiIndex in the first free slot from its
+// object's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::InsertExpectedDistsTable(size uiIndex)
+{
+	size	uiSlot;
+
+	uiSlot = ExpectedDistsTableSlot(macExpectedDists.Get(uiIndex)->pcObject);
+	while (mpuiExpectedDistsTable[uiSlot] != 0)
+	{
+		uiSlot = (uiSlot + 1) & (muiExpectedDistsTableSize - 1);
+	}
+	mpuiExpectedDistsTable[uiSlot] = uiIndex + 1;
 }
 
 
@@ -131,34 +156,24 @@ size CDistCalculatorParameters::FindExpectedDistIndex(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::PutExpectedDistsTable(size uiIndex)
 {
-	size			uiMask;
-	size			uiSlot;
-	CBaseObject*	pcObject;
+	size	uiDists;
 
+	uiDists = macExpectedDists.NumElements();
 	if (mpuiExpectedDistsTable == NULL)
 	{
-		if (macExpectedDists.NumElements() <= EXPECTED_DISTS_LINEAR_SEARCH)
+		if (uiDists > EXPECTED_DISTS_LINEAR_SEARCH)
 		{
-			return;
+			GrowExpectedDistsTable();
 		}
-		GrowExpectedDistsTable();
-		return;
 	}
-
-	if ((macExpectedDists.NumElements() * 2) > muiExpectedDistsTableSize)
+	else if ((uiDists * 2) > muiExpectedDistsTableSize)
 	{
 		GrowExpectedDistsTable();
-		return;
 	}
-
-	pcObject = macExpectedDists.Get(uiIndex)->pcObject;
-	uiMask = muiExpectedDistsTableSize - 1;
-	uiSlot = (((size)pcObject) >> 4) & uiMask;
-	while (mpuiExpectedDistsTable[uiSlot] != 0)
+	else
 	{
-		uiSlot = (uiSlot + 1) & uiMask;
+		InsertExpectedDistsTable(uiIndex);
 	}
-	mpuiExpectedDistsTable[uiSlot] = (uint32)(uiIndex + 1);
 }
 
 
@@ -169,12 +184,9 @@ void CDistCalculatorParameters::PutExpectedDistsTable(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::GrowExpectedDistsTable(void)
 {
-	size			uiSize;
-	size			uiDists;
-	size			i;
-	size			uiMask;
-	size			uiSlot;
-	CBaseObject*	pcObject;
+	size	uiSize;
+	size	uiDists;
+	size	i;
 
 	uiDists = macExpectedDists.NumElements();
 	uiSize = 64;
@@ -184,20 +196,13 @@ void CDistCalculatorParameters::GrowExpectedDistsTable(void)
 	}
 
 	SafeFree(mpuiExpectedDistsTable);
-	mpuiExpectedDistsTable = (uint32*)malloc(uiSize * sizeof(uint32));
-	memset(mpuiExpectedDistsTable, 0, uiSize * sizeof(uint32));
+	mpuiExpectedDistsTable = (size*)malloc(uiSize * sizeof(size));
+	memset(mpuiExpectedDistsTable, 0, uiSize * sizeof(size));
 	muiExpectedDistsTableSize = uiSize;
 
-	uiMask = uiSize - 1;
 	for (i = 0; i < uiDists; i++)
 	{
-		pcObject = macExpectedDists.Get(i)->pcObject;
-		uiSlot = (((size)pcObject) >> 4) & uiMask;
-		while (mpuiExpectedDistsTable[uiSlot] != 0)
-		{
-			uiSlot = (uiSlot + 1) & uiMask;
-		}
-		mpuiExpectedDistsTable[uiSlot] = (uint32)(i + 1);
+		InsertExpectedDistsTable(i);
 	}
 }
 
@@ -228,13 +233,13 @@ void CDistCalculatorParameters::PushExpectedDistsHeap(int iExpectedDist, size ui
 	size					uiParent;
 
 	sNode.iExpectedDist = iExpectedDist;
-	sNode.uiIndex = (uint32)uiIndex;
+	sNode.uiIndex = uiIndex;
 
 	uiChild = macExpectedDistsHeap.NumElements();
 	macExpectedDistsHeap.Add();
 	while (uiChild > 0)
 	{
-		uiParent = (uiChild - 1) / 2;
+		uiParent = (size)((uiChild - 1) / 2);
 		psNode = macExpectedDistsHeap.Get(uiParent);
 		if (!HeapNodeLess(&sNode, psNode))
 		{
@@ -270,7 +275,7 @@ void CDistCalculatorParameters::PopExpectedDistsHeap(void)
 	uiParent = 0;
 	for (;;)
 	{
-		uiChild = (uiParent * 2) + 1;
+		uiChild = (size)((uiParent * 2) + 1);
 		if (uiChild >= uiNum)
 		{
 			break;
@@ -343,7 +348,7 @@ size CDistCalculatorParameters::NumExpectedDists(void)
 // The uiLiveIndex'th expected dist not removed, in the order added.
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex, size* puiIndex)
+SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex)
 {
 	size			i;
 	size			uiDists;
@@ -351,7 +356,6 @@ SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex, si
 
 	if (muiRemovedExpectedDists == 0)
 	{
-		*puiIndex = uiLiveIndex;
 		return macExpectedDists.SafeGet(uiLiveIndex);
 	}
 
@@ -363,7 +367,6 @@ SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex, si
 		{
 			if (uiLiveIndex == 0)
 			{
-				*puiIndex = i;
 				return psDistToRoot;
 			}
 			uiLiveIndex--;
@@ -379,13 +382,11 @@ SDistToRoot* CDistCalculatorParameters::GetLiveExpectedDist(size uiLiveIndex, si
 //////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetExpectedDist(int iIndex)
 {
-	size	uiIndex;
-
 	if (iIndex < 0)
 	{
 		return NULL;
 	}
-	return GetLiveExpectedDist((size)iIndex, &uiIndex);
+	return GetLiveExpectedDist((size)iIndex);
 }
 
 
@@ -412,15 +413,11 @@ SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveExpectedDist(int iIndex)
 {
-	SDistToRoot*	psDistToRoot;
-	size			uiIndex;
-
 	if (iIndex < 0)
 	{
 		return;
 	}
-	psDistToRoot = GetLiveExpectedDist((size)iIndex, &uiIndex);
-	RemoveExpectedDist(psDistToRoot);
+	RemoveExpectedDist(GetLiveExpectedDist((size)iIndex));
 }
 
 

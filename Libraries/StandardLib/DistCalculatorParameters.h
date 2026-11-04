@@ -19,7 +19,7 @@ struct SDistToRoot
 struct SDistToRootHeapNode
 {
 	int				iExpectedDist;
-	uint32			uiIndex;
+	size			uiIndex;
 };
 
 
@@ -34,7 +34,7 @@ private:
 	CArrayDistToRoot						macExpectedDists;  //In the order the objects were added; removed ones stay, marked.
 	size									muiRemovedExpectedDists;
 	CArrayDistToRootHeap					macExpectedDistsHeap;  //Lowest first; stale nodes are skipped.
-	uint32*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
+	size*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
 	size									muiExpectedDistsTableSize;
 	CArrayBaseObjectPtrE32		mapcDetachedFromRoot;
 
@@ -51,15 +51,6 @@ public:
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
-protected:
-	size					FindExpectedDistIndex(CBaseObject* pcObject);
-	void					PutExpectedDistsTable(size uiIndex);
-	void					GrowExpectedDistsTable(void);
-	void					PushExpectedDistsHeap(int iExpectedDist, size uiIndex);
-	void					PopExpectedDistsHeap(void);
-	bool					IsExpectedDistsHeapNodeStale(SDistToRootHeapNode* psNode);
-	SDistToRoot*			GetLiveExpectedDist(size uiLiveIndex, size* puiIndex);
-public:
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
@@ -85,6 +76,17 @@ public:
 	void					PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate);
 	void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate);
 	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray, bool bCommaSeparate);
+
+protected:
+	size					FindExpectedDistIndex(CBaseObject* pcObject);
+	size					ExpectedDistsTableSlot(CBaseObject* pcObject);
+	void					InsertExpectedDistsTable(size uiIndex);
+	void					PutExpectedDistsTable(size uiIndex);
+	void					GrowExpectedDistsTable(void);
+	void					PushExpectedDistsHeap(int iExpectedDist, size uiIndex);
+	void					PopExpectedDistsHeap(void);
+	bool					IsExpectedDistsHeapNodeStale(SDistToRootHeapNode* psNode);
+	SDistToRoot*			GetLiveExpectedDist(size uiLiveIndex);
 };
 
 
