@@ -49,6 +49,20 @@ struct SCodeEditorChangeBar
 typedef CArrayTemplate<SCodeEditorChangeBar>	CArrayCodeEditorChangeBars;
 
 
+//A line's glyph in the gutter's glyph column (SetGlyphColumn), such as a debugger's breakpoint: a character in
+//sColour, on a cell of sBackground when bBackground.  A cGlyph of '\0' is none.
+struct SCodeEditorGlyph
+{
+	char	cGlyph;
+	ARGB32	sColour;
+	ARGB32	sBackground;
+	bool	bBackground;
+};
+
+
+typedef CArrayTemplate<SCodeEditorGlyph>	CArrayCodeEditorGlyphs;
+
+
 #define CODE_EDITOR_REMOVED_THICKNESS	2
 
 
@@ -74,6 +88,10 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
 //the gutter stays at the view's left, on its own background over the code, which goes under it; the caret is kept
 //in view right of it.
+//
+//With a glyph column (SetGlyphColumn) the gutter's first column is a glyph for each line (SetLineGlyph), as Visual
+//Studio's margin shows breakpoints and the current line, and the marks are the second.  Glyphs are by line number too.
+//Clicking the glyph column calls the glyph click event with the line, not the gutter click event.
 class CCodeEditor : public CContainer
 {
 CONSTRUCTABLE(CCodeEditor);
@@ -91,6 +109,9 @@ protected:
 	bool					mbMarksChanged;  //Since the gutter was last numbered.
 	CArrayCodeEditorChangeBars	masChangeBars;
 	bool					mbChangeBarsChanged;  //Since they were last drawn on the gutter.
+	bool					mbGlyphColumn;  //The gutter's first column is the glyphs'.
+	CArrayCodeEditorGlyphs	masGlyphs;  //By line, as the marks are.
+	CGutterClickEvent		mcGlyphClicked;
 	ARGB32					msBandNumberColour;  //Line numbers on a change band.
 	size					muiSeenChanges;  //The text area's change count when the change event was last called.
 	CGutterClickEvent		mcGutterClicked;
@@ -128,8 +149,16 @@ public:
 	void				SetBandNumberColour(ARGB32 sColour);
 	size				NumChangeBars(void);
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
+	void				SetGlyphColumn(bool bGlyphColumn);
+	bool				HasGlyphColumn(void);
+	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour);
+	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground);
+	SCodeEditorGlyph*	GetLineGlyph(size uiLine);
+	void				ClearLineGlyphs(void);
+
 	CGutterClickEvent*	GetGutterClickEvent(void);
 	CGutterClickEvent*	GetChangeBarClickEvent(void);
+	CGutterClickEvent*	GetGlyphClickEvent(void);
 	CComponentEvent<CCodeEditor>*	GetChangeEvent(void);
 	void				ClickAction(SComponentInputEvent* psEvent);
 
@@ -147,6 +176,9 @@ protected:
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
 	void				DrawChangeBars(size uiDigits);
+	void				DrawGlyphs(void);
+	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
+	size				GetMarkColumn(void);
 	bool				IsChangeBarAt(size uiLine);
 	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour, bool bBand);
 	size				CountDigits(size uiNumber);

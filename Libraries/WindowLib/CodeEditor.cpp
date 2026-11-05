@@ -43,6 +43,9 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mbMarksChanged = false;
 	masChangeBars.Init();
 	mbChangeBarsChanged = false;
+	mbGlyphColumn = false;
+	masGlyphs.Init();
+	mcGlyphClicked.Init();
 	msBandNumberColour = JEWEL_LINE_NUMBER_ACTIVE;
 	mcGutterClicked.Init();
 	mcChangeBarClicked.Init();
@@ -88,6 +91,8 @@ void CCodeEditor::Free(void)
 	mcChanged.Kill();
 	mcGutterClicked.Kill();
 	mcChangeBarClicked.Kill();
+	mcGlyphClicked.Kill();
+	masGlyphs.Kill();
 	masChangeBars.Kill();
 	macMarks.Kill();
 	mauiLines.Kill();
@@ -115,6 +120,9 @@ void CCodeEditor::Class(void)
 	U_Bool(mbMarksChanged);
 	U_Data(CArrayCodeEditorChangeBars, masChangeBars);
 	U_Bool(mbChangeBarsChanged);
+	U_Bool(mbGlyphColumn);
+	U_Data(CArrayCodeEditorGlyphs, masGlyphs);
+	U_Data(CGutterClickEvent, mcGlyphClicked);
 	U_UInt32(msBandNumberColour);
 	U_Size(muiSeenChanges);
 	U_Data(CGutterClickEvent, mcGutterClicked);
@@ -528,6 +536,11 @@ void CCodeEditor::UpdateGutter(void)
 		szRows.Init();
 		for (uiLine = 0; uiLine < uiLines; uiLine++)
 		{
+			if (mbGlyphColumn)
+			{
+				cMark = GetLineGlyph(uiLine) ? GetLineGlyph(uiLine)->cGlyph : '\0';
+				szRows.Append((cMark != '\0') ? cMark : ' ');
+			}
 			cMark = GetLineMark(uiLine);
 			szRows.Append((cMark != '\0') ? cMark : ' ');
 			szRows.Append(' ', (int)(uiDigits - CountDigits(uiLine + 1)));
@@ -574,8 +587,9 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 
 	mpGutter->ClearBackgrounds();
 	mpGutter->ClearSpans();
+	DrawGlyphs();
 	uiLines = mpGutter->NumLines();
-	uiColumn = 1 + uiDigits;
+	uiColumn = GetMarkColumn() + 1 + uiDigits;
 	for (i = 0; i < masChangeBars.NumElements(); i++)
 	{
 		psBar = masChangeBars.Get(i);
@@ -592,7 +606,7 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 			}
 			for (uiLine = psBar->uiStartLine; uiLine < uiEnd; uiLine++)
 			{
-				mpGutter->AddSpan(mpGutter->GetLineStart(uiLine), uiColumn, msBandNumberColour);
+				mpGutter->AddSpan(mpGutter->GetLineStart(uiLine) + GetMarkColumn(), uiColumn - GetMarkColumn(), msBandNumberColour);
 			}
 		}
 		else
@@ -670,6 +684,144 @@ void CCodeEditor::ClearLineMarks(void)
 		mbMarksChanged = true;
 		InvalidateLayout();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the gutter's first column is the lines' glyphs (SetLineGlyph).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetGlyphColumn(bool bGlyphColumn)
+{
+	if (mbGlyphColumn != bGlyphColumn)
+	{
+		mbGlyphColumn = bGlyphColumn;
+		mbMarksChanged = true;
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// cGlyph in sColour is shown in the glyph column beside line uiLine ('\0'
+// for none), on a cell of sBackground if given.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour)
+{
+	SetLineGlyph(uiLine, cGlyph, sColour, 0, false);
+}
+void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground)
+{
+	SetLineGlyph(uiLine, cGlyph, sColour, sBackground, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground)
+{
+	SCodeEditorGlyph*	psGlyph;
+
+	psGlyph = GetLineGlyph(uiLine);
+	if (psGlyph && (psGlyph->cGlyph == cGlyph) && (psGlyph->sColour == sColour) && (psGlyph->bBackground == bBackground) && (!bBackground || (psGlyph->sBackground == sBackground)))
+	{
+		return;
+	}
+	if ((psGlyph == NULL) && (cGlyph == '\0'))
+	{
+		return;
+	}
+	while (masGlyphs.NumElements() <= uiLine)
+	{
+		psGlyph = masGlyphs.Add();
+		psGlyph->cGlyph = '\0';
+		psGlyph->sColour = 0;
+		psGlyph->sBackground = 0;
+		psGlyph->bBackground = false;
+	}
+	psGlyph = masGlyphs.Get(uiLine);
+	psGlyph->cGlyph = cGlyph;
+	psGlyph->sColour = sColour;
+	psGlyph->sBackground = sBackground;
+	psGlyph->bBackground = bBackground;
+	mbMarksChanged = true;
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Line uiLine's glyph, NULL if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+SCodeEditorGlyph* CCodeEditor::GetLineGlyph(size uiLine)
+{
+	SCodeEditorGlyph*	psGlyph;
+
+	psGlyph = masGlyphs.SafeGet(uiLine);
+	return (psGlyph && (psGlyph->cGlyph != '\0')) ? psGlyph : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ClearLineGlyphs(void)
+{
+	if (masGlyphs.NumElements() > 0)
+	{
+		masGlyphs.ReInit();
+		mbMarksChanged = true;
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The glyphs' colours and cells, on the gutter numbered for them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::DrawGlyphs(void)
+{
+	size				uiLine;
+	size				uiStart;
+	SCodeEditorGlyph*	psGlyph;
+
+	if (!mbGlyphColumn)
+	{
+		return;
+	}
+	for (uiLine = 0; (uiLine < masGlyphs.NumElements()) && (uiLine < mpGutter->NumLines()); uiLine++)
+	{
+		psGlyph = GetLineGlyph(uiLine);
+		if (psGlyph)
+		{
+			uiStart = mpGutter->GetLineStart(uiLine);
+			if (psGlyph->bBackground)
+			{
+				mpGutter->AddBackground(uiStart, uiStart + 1, psGlyph->sBackground);
+			}
+			mpGutter->AddSpan(uiStart, 1, psGlyph->sColour);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gutter's column of marks: after the glyphs' when there are glyphs.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCodeEditor::GetMarkColumn(void)
+{
+	return mbGlyphColumn ? 1 : 0;
 }
 
 
@@ -786,6 +938,8 @@ bool CCodeEditor::IsChangeBarAt(size uiLine)
 
 
 CGutterClickEvent* CCodeEditor::GetChangeBarClickEvent(void) { return &mcChangeBarClicked; }
+CGutterClickEvent* CCodeEditor::GetGlyphClickEvent(void) { return &mcGlyphClicked; }
+bool CCodeEditor::HasGlyphColumn(void) { return mbGlyphColumn; }
 size CCodeEditor::NumChangeBars(void) { return masChangeBars.NumElements(); }
 SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChangeBars.SafeGet(uiIndex); }
 
@@ -814,10 +968,16 @@ void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 		return;
 	}
 
-	//The gutter's rows are the code's, and so are its lines.  The last column (after the number) is the change bars'.
+	//The gutter's rows are the code's, and so are its lines.  The first column is the glyphs' when there are glyphs,
+	//and the last (after the number) is the change bars'.
 	uiPosition = mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y);
 	uiLine = mpGutter->FindLine(uiPosition);
-	if (((uiPosition - mpGutter->GetLineStart(uiLine)) >= 1 + CountDigits(mpTextArea->NumLines())) && IsChangeBarAt(uiLine))
+	if (mbGlyphColumn && (uiPosition == mpGutter->GetLineStart(uiLine)))
+	{
+		mcGlyphClicked.Call(this, uiLine);
+		return;
+	}
+	if (((uiPosition - mpGutter->GetLineStart(uiLine)) >= GetMarkColumn() + 1 + CountDigits(mpTextArea->NumLines())) && IsChangeBarAt(uiLine))
 	{
 		mcChangeBarClicked.Call(this, uiLine);
 		return;

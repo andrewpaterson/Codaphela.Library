@@ -767,6 +767,124 @@ void TestCodeEditorChangeBarClicks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With a glyph column the gutter's first column is the lines' glyphs and
+// the marks are the second.  A press on a glyph's column calls the glyph
+// click event; on the number, the gutter click event; on the last column
+// beside a change bar, the change bar click event.  Without a glyph column
+// glyphs aren't shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorGlyphs(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pGutter;
+		CTestCodeEditorListener		cGutter;
+		CTestCodeEditorListener		cGlyphs;
+		CTestCodeEditorListener		cBars;
+		SCodeEditorGlyph*			psGlyph;
+		int32						iLine;
+		int32						iCell;
+		int32						iTop;
+		int32						iLeft;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pGutter = pEditor->GetGutter();
+
+		//Not shown without the column.
+		pEditor->SetLineGlyph(0, '*', TEST_CHANGE_ADDED, TEST_CHANGE_REMOVED);
+		pTestWindow->Layout();
+		AssertFalse(pEditor->HasGlyphColumn());
+		AssertString(" 1 \n 2 \n 3 ", pGutter->GetText());
+
+		pEditor->SetGlyphColumn(true);
+		pEditor->SetLineGlyph(2, 'o', TEST_CHANGE_MODIFIED);
+		pEditor->SetLineMark(2, '+');
+		pEditor->AddChangeBar(1, 2, TEST_CHANGE_MODIFIED);
+		pTestWindow->Layout();
+		AssertTrue(pEditor->HasGlyphColumn());
+		AssertString("* 1 \n  2 \no+3 ", pGutter->GetText());
+		psGlyph = pEditor->GetLineGlyph(0);
+		AssertTrue(psGlyph != NULL);
+		AssertInt('*', psGlyph->cGlyph);
+		AssertTrue(psGlyph->bBackground);
+		AssertInt(TEST_CHANGE_REMOVED, psGlyph->sBackground);
+		AssertInt('o', pEditor->GetLineGlyph(2)->cGlyph);
+		AssertFalse(pEditor->GetLineGlyph(2)->bBackground);
+		AssertTrue(pEditor->GetLineGlyph(1) == NULL);
+		AssertTrue(pEditor->GetLineGlyph(9) == NULL);
+
+		iLine = pGutter->GetFont()->GetLineHeight();
+		iCell = (int32)pGutter->GetFont()->GetAverageWidth();
+		iTop = pEditor->GetPosition().y;
+		iLeft = pEditor->GetPosition().x;
+		cGutter.Init();
+		cGlyphs.Init();
+		cBars.Init();
+		pEditor->GetGutterClickEvent()->Add(&cGutter, &CTestCodeEditorListener::GutterClicked);
+		pEditor->GetGlyphClickEvent()->Add(&cGlyphs, &CTestCodeEditorListener::GutterClicked);
+		pEditor->GetChangeBarClickEvent()->Add(&cBars, &CTestCodeEditorListener::GutterClicked);
+
+		//Rows are "o+3 ": the glyph, the mark, the number and the bar.
+		pTestWindow->PointerMoved(iLeft + iCell / 2, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cGlyphs.muiClicks);
+		AssertSize(2, cGlyphs.muiLine);
+		AssertSize(0, cGutter.muiClicks);
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cGutter.muiClicks);
+		AssertSize(1, cGutter.muiLine);
+		pTestWindow->PointerMoved(iLeft + 3 * iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cBars.muiClicks);
+		AssertSize(1, cBars.muiLine);
+		AssertSize(1, cGlyphs.muiClicks);
+
+		pEditor->SetLineGlyph(2, '\0', 0);
+		pTestWindow->Layout();
+		AssertString("* 1 \n  2 \n +3 ", pGutter->GetText());
+		pEditor->ClearLineGlyphs();
+		pTestWindow->Layout();
+		AssertString("  1 \n  2 \n +3 ", pGutter->GetText());
+		pEditor->SetGlyphColumn(false);
+		pTestWindow->Layout();
+		AssertString(" 1 \n 2 \n+3 ", pGutter->GetText());
+
+		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cGutter));
+		AssertTrue(pEditor->GetGlyphClickEvent()->Remove(&cGlyphs));
+		AssertTrue(pEditor->GetChangeBarClickEvent()->Remove(&cBars));
+		pGutter = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Change bars drawn: modified and added lines' bars beside their numbers,
 // and lines removed at the top and after the last.
 //
@@ -835,6 +953,7 @@ void TestCodeEditor(void)
 	TestCodeEditorScrolledSideways();
 	TestCodeEditorChangeBars();
 	TestCodeEditorChangeBarClicks();
+	TestCodeEditorGlyphs();
 	TestCodeEditorChangeBarsDrawn();
 
 	ObjectsFlush();
