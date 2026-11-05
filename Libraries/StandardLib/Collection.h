@@ -65,6 +65,7 @@ protected:
 
 			bool			UnlinkFrom(CEmbeddedObject* pcObject);
 			bool			UnlinkFromUnlessFreed(CEmbeddedObject* pcObject);
+			void			MembersChanged(void);
 			void			AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);

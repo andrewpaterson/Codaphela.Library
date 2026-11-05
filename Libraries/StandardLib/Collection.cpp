@@ -188,6 +188,7 @@ bool CCollection::RemoveAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 {
+	MembersChanged();
 	if (pcObject == NULL)
 	{
 		return;
@@ -200,6 +201,22 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 	else
 	{
 		pcObject->AddStackFrom(this, bValidate);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member (or an empty place) was added or taken out: what's saved has
+// changed.  Every change goes through AddObjectFrom or
+// RemoveObjectTryFree; loading doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::MembersChanged(void)
+{
+	if (IsEmbeddingContainerAllocatedInObjects())
+	{
+		GetEmbeddingContainer()->SetDirty(true);
 	}
 }
 
@@ -253,6 +270,7 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 	CObjects*	pcObjectsThisIn;
 #endif // _DEBUG
 
+	MembersChanged();
 	if (pcObject == NULL)
 	{
 		return true;

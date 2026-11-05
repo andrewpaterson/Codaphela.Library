@@ -267,6 +267,7 @@
     <ClCompile Include="TestObjectGraphDeserialiser.cpp" />
     <ClCompile Include="TestExternalObjectDeserialiser.cpp" />
     <ClCompile Include="TestObjectReadFailure.cpp" />
+    <ClCompile Include="TestCollectionDirty.cpp" />
     <ClCompile Include="TestObjectGraphWriting.cpp" />
     <ClCompile Include="TestObjectReaderChunked.cpp" />
     <ClCompile Include="TestObjectReaderSimple.cpp" />

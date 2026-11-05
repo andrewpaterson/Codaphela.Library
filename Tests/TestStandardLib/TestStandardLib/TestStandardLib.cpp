@@ -49,6 +49,7 @@ void TestObjectReaderChunked(void);
 void TestObjectGraphDeserialiser(void);
 void TestExternalObjectDeserialiser(void);
 void TestObjectReadFailure(void);
+void TestCollectionDirty(void);
 void TestObjectReaderSimple(void);
 void TestObjects(void);
 void TestObjectsEvictVsKill(void);
@@ -122,6 +123,7 @@ int __cdecl main(void)
 	TestObjectGraphDeserialiser();
 	TestExternalObjectDeserialiser();
 	TestObjectReadFailure();
+	TestCollectionDirty();
 	TestObjectConverter();
 	TestObjects();
 	TestStackPointers();
