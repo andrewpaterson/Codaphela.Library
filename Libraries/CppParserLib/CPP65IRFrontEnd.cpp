@@ -1721,7 +1721,8 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 	//The first strong parameter that is a constant at every call, with few values.
 	aulliValues.Init();
 	bDone = false;
-	for (uiParameter = 0; (uiParameter < pcCallee->masParameters.NumElements()) && (uiParameter < 32) && !bDone; uiParameter++)
+	//bDone first: the specialised callee may have been removed (freed).
+	for (uiParameter = 0; !bDone && (uiParameter < pcCallee->masParameters.NumElements()) && (uiParameter < 32); uiParameter++)
 	{
 		if (!(uiStrong & ((uint32)1 << uiParameter)))
 		{
