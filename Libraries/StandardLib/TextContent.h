@@ -79,6 +79,7 @@ public:
 	lsize				GetLineStart(lsize uiLine);
 	lsize				GetLineEnd(lsize uiLine);
 	ETextLineSeparator	GetLineSeparator(lsize uiLine);
+	lsize				FindLine(lsize uiOffset);
 
 protected:
 	void				SplitLines(void);

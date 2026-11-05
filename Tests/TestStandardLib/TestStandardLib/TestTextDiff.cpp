@@ -2,6 +2,7 @@
 #include "BaseLib/StdRandom.h"
 #include "StandardLib/MyersDiff.h"
 #include "StandardLib/TextDiffProducer.h"
+#include "StandardLib/TextDiffLineMapper.h"
 #include "TestLib/Assert.h"
 
 
@@ -44,6 +45,8 @@ void TestTextContentLines(void)
 	AssertString("", cContent.GetTitle());
 	AssertLSize(0, cContent.Length());
 	AssertLSize(0, cContent.NumLines());
+	AssertLSize(0, cContent.FindLine(0));
+	AssertLSize(0, cContent.FindLine(5));
 	cContent.Kill();
 
 	cContent.Init("T", "a\r\nbb\n\nccc\rd");
@@ -66,6 +69,18 @@ void TestTextContentLines(void)
 	AssertTrue(TLS_None == cContent.GetLineSeparator(4));
 	AssertTrue('d' == *cContent.GetLineText(4));
 	AssertLSize(11, cContent.GetLine(4)->uiStart);
+
+	//The line an offset is in; a separator is its line's, and past the end is the last line.
+	AssertLSize(0, cContent.FindLine(0));
+	AssertLSize(0, cContent.FindLine(2));
+	AssertLSize(1, cContent.FindLine(3));
+	AssertLSize(1, cContent.FindLine(5));
+	AssertLSize(2, cContent.FindLine(6));
+	AssertLSize(3, cContent.FindLine(7));
+	AssertLSize(3, cContent.FindLine(10));
+	AssertLSize(4, cContent.FindLine(11));
+	AssertLSize(4, cContent.FindLine(12));
+	AssertLSize(4, cContent.FindLine(100));
 
 	//A final separator doesn't start another line.
 	cContent.Set("U", "a\n");
@@ -849,6 +864,69 @@ void TestMyersDiffRandom(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Maps lines between the two sides of szText1 and szText2's diff: the
+// first iLeftToRight of afLeft map to the same of afRight, then the next
+// iRightToLeft of afRight map to the same of afLeft.  Mapping isn't always
+// reversible: a block that is a point on one side maps all its lines on
+// the other to that point.
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTextDiffLineMap(const char* szText1, const char* szText2, float64* afLeft, float64* afRight, int iLeftToRight, int iRightToLeft, size iLine)
+{
+	CSimpleTextDiff		cDiff;
+	CTextDiffProducer	cProducer;
+	CTextDiffLineMapper	cMapper;
+	int					i;
+
+	cDiff.Init("Diff");
+	cProducer.Init(TDW_Default, TDH_Lines);
+	cProducer.ProduceFromText(&cDiff, "A", szText1, "B", szText2);
+	cMapper.Init(&cDiff);
+	for (i = 0; i < iLeftToRight; i++)
+	{
+		Validate(PrivateAssertDouble(afRight[i], cMapper.TransferLine(TDS_Left, afLeft[i]), 6, NULL, iLine, __FILE__));
+	}
+	for (i = 0; i < iRightToLeft; i++)
+	{
+		Validate(PrivateAssertDouble(afLeft[iLeftToRight + i], cMapper.TransferLine(TDS_Right, afRight[iLeftToRight + i]), 6, NULL, iLine, __FILE__));
+	}
+	cMapper.Kill();
+	cProducer.Kill();
+	cDiff.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Unchanged lines map one to one, shifted by the blocks before them.
+// Inside a block a line maps proportionally; a block empty on one side is
+// a point there and its lines on the other side are skipped over.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextDiffLineMapper(void)
+{
+	//The first iLeftToRight pairs map left to right, the rest right to left.
+	float64	afSameLeft[] =		{ 0, 1.5, 7, 2.25 };
+	float64	afSameRight[] =		{ 0, 1.5, 7, 2.25 };
+	float64	afInsertLeft[] =	{ 0, 0.5, 1, 1.5, 0, 1, 1, 1, 1.5 };
+	float64	afInsertRight[] =	{ 0, 0.5, 3, 3.5, 0, 1, 2, 3, 3.5 };
+	float64	afModifyLeft[] =	{ 1, 2, 2.5, 3, 4, 2, 3, 5 };
+	float64	afModifyRight[] =	{ 1, 3, 4, 5, 6, 3, 5, 7 };
+	float64	afStartLeft[] =		{ 0, 0.5, 0, 0, 0.5 };
+	float64	afStartRight[] =	{ 2, 2.5, 0, 1.5, 2.5 };
+	float64	afEndLeft[] =		{ 0, 1, 2, 3, 0.5, 2, 3 };
+	float64	afEndRight[] =		{ 0, 1, 1, 2, 0.5, 1, 2 };
+
+	AssertTextDiffLineMap("a\nb\nc\n", "a\nb\nc\n", afSameLeft, afSameRight, 2, 2, __LINE__);
+	AssertTextDiffLineMap("a\nb\n", "a\nX\nY\nb\n", afInsertLeft, afInsertRight, 4, 5, __LINE__);
+	AssertTextDiffLineMap("a\nb\nc\nd\n", "a\nX\nY\nZ\nW\nd\n", afModifyLeft, afModifyRight, 5, 3, __LINE__);
+	AssertTextDiffLineMap("", "a\nb\n", afStartLeft, afStartRight, 2, 3, __LINE__);
+	AssertTextDiffLineMap("a\nb\n", "a\n", afEndLeft, afEndRight, 4, 3, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextDiff(void)
@@ -871,6 +949,7 @@ void TestTextDiff(void)
 	TestTextDiffBigBlock();
 	TestTextDiffManyLines();
 	TestTextDiffFiles();
+	TestTextDiffLineMapper();
 	TestMyersDiffEdges();
 	TestMyersDiffRandom();
 

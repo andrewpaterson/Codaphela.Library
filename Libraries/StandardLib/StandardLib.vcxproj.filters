@@ -555,6 +555,9 @@
     <ClInclude Include="TextDiffProducer.h">
       <Filter>Source\Diff</Filter>
     </ClInclude>
+    <ClInclude Include="TextDiffLineMapper.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
     <ClInclude Include="Orderer.h">
       <Filter>Source\Dependency</Filter>
     </ClInclude>
@@ -930,6 +933,9 @@
       <Filter>Source\Diff</Filter>
     </ClCompile>
     <ClCompile Include="TextDiffProducer.cpp">
+      <Filter>Source\Diff</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDiffLineMapper.cpp">
       <Filter>Source\Diff</Filter>
     </ClCompile>
     <ClCompile Include="Orderer.cpp">

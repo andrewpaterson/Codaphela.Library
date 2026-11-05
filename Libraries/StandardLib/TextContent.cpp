@@ -293,3 +293,41 @@ ETextLineSeparator CTextContent::GetLineSeparator(lsize uiLine)
 {
 	return macLines.Get(uiLine)->eSeparator;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line the character at uiOffset is in, its separator counting as
+// the line's.  An offset at or past the end is in the last line; empty
+// text's offsets are in line 0.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::FindLine(lsize uiOffset)
+{
+	lsize	uiLow;
+	lsize	uiHigh;
+	lsize	uiMiddle;
+
+	if (macLines.NumElements() == 0)
+	{
+		return 0;
+	}
+
+	//The last line starting at or before uiOffset.
+	uiLow = 0;
+	uiHigh = macLines.NumElements() - 1;
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = uiLow + (uiHigh - uiLow + 1) / 2;
+		if (macLines.Get(uiMiddle)->uiStart <= uiOffset)
+		{
+			uiLow = uiMiddle;
+		}
+		else
+		{
+			uiHigh = uiMiddle - 1;
+		}
+	}
+	return uiLow;
+}
+

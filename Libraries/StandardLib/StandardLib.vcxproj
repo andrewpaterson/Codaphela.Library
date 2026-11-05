@@ -213,6 +213,7 @@
     <ClInclude Include="TextContent.h" />
     <ClInclude Include="TextDiffPolicies.h" />
     <ClInclude Include="TextDiffProducer.h" />
+    <ClInclude Include="TextDiffLineMapper.h" />
     <ClInclude Include="OrdererHolder.h" />
     <ClInclude Include="MapEntry.h" />
     <ClInclude Include="MapObject.h" />
@@ -349,6 +350,7 @@
     <ClCompile Include="TextComparison.cpp" />
     <ClCompile Include="TextContent.cpp" />
     <ClCompile Include="TextDiffProducer.cpp" />
+    <ClCompile Include="TextDiffLineMapper.cpp" />
     <ClCompile Include="OrdererHolder.cpp" />
     <ClCompile Include="MapEntry.cpp" />
     <ClCompile Include="MapObject.cpp" />
