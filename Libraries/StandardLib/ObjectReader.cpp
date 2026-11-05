@@ -311,6 +311,8 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 	CPointerHeader	cHeader;
 	bool			bResult;
 
+	//A NULL pointer is read as NULL too: the place it's read into (an array's element) needn't be cleared already.
+	*ppcObjectPtr = NULL;
 	bResult = ReadIdentifier(&cHeader);
 	if (bResult)
 	{
@@ -319,7 +321,6 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 			bResult = ReadInt16(&cHeader.miNumEmbedded);
 			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
 
-			*ppcObjectPtr = NULL;
 			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
 			cHeader.Kill();
 			return bResult;
