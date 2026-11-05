@@ -583,6 +583,7 @@ static bool TestFast65C64RunSame(CFast65C64* pcStep, CFast65C64* pcRun, CTest65C
 	pcRun->AppendDifference(&sz, "Waiting", pcStep->IsWaiting(), pcRun->IsWaiting());
 	pcRun->AppendDifference(&sz, "PendingEdges", pcStep->GetPendingEdges(), pcRun->GetPendingEdges());
 	pcRun->AppendDifference(&sz, "Cycles", pcStep->NumCycles(), pcRun->NumCycles());
+	pcRun->AppendDifference(&sz, "AtBreakpoint", pcStep->IsAtBreakpoint(), pcRun->IsAtBreakpoint());
 	pcRun->AppendDifference(&sz, "BadAccesses", pcStepContext->muiBadAccesses, pcRunContext->muiBadAccesses);
 	if ((memcmp(pcStepContext->mauiLow, pcRunContext->mauiLow, TEST_65C64_LOW_SIZE) != 0) ||
 		(memcmp(pcStepContext->mauiHigh, pcRunContext->mauiHigh, TEST_65C64_HIGH_SIZE) != 0))
@@ -620,10 +621,11 @@ static void TestFast65C64RunInputs(CFast65C64* pcFast, size uiChunk)
 //////////////////////////////////////////////////////////////////////////
 //
 // Run does what as many Steps do: edge and level interrupts, brk, rti and stp waiting for an interrupt, with
-// the inputs changed between Runs of different lengths.
+// the inputs changed between Runs of different lengths.  With bBreakpoints, Run and Step both return at
+// breakpoints at the start and in the interrupt handlers (a disabled one is passed).
 //
 //////////////////////////////////////////////////////////////////////////
-void TestFast65C64Run(void)
+void TestFast65C64Run(bool bBreakpoints)
 {
 	CTest65C64Context*	pcStepContext;
 	CTest65C64Context*	pcRunContext;
@@ -633,6 +635,7 @@ void TestFast65C64Run(void)
 	size				uiLength;
 	size				uiStepped;
 	size				uiRun;
+	size				uiBreaks;
 	static size			auiLengths[] = { 1, 2, 3, 1, 4, 2, 7, 1, 5, 3 };
 
 	pcStepContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
@@ -645,6 +648,18 @@ void TestFast65C64Run(void)
 	cRun.Init(TestFast65C64ContextReadWord, TestFast65C64ContextWriteByte, pcRunContext, pcRunContext->mauiLow, TEST_65C64_LOW_SIZE);
 	cStep.Reset();
 	cRun.Reset();
+	if (bBreakpoints)
+	{
+		cStep.GetBreakpoints()->Add(0x1000, true);
+		cStep.GetBreakpoints()->Add(0x1200, true);
+		cStep.GetBreakpoints()->Add(0x1300, false);
+		cStep.GetBreakpoints()->Add(0x1400, true);
+		cRun.GetBreakpoints()->Add(0x1000, true);
+		cRun.GetBreakpoints()->Add(0x1200, true);
+		cRun.GetBreakpoints()->Add(0x1300, false);
+		cRun.GetBreakpoints()->Add(0x1400, true);
+	}
+	uiBreaks = 0;
 
 	for (uiChunk = 0; (uiChunk < 60) && !cStep.IsStopped(); uiChunk++)
 	{
@@ -657,10 +672,18 @@ void TestFast65C64Run(void)
 			uiStepped++;
 			if (!cStep.Step())
 			{
+				if (cStep.IsAtBreakpoint())
+				{
+					uiStepped--;
+				}
 				break;
 			}
 		}
 		uiRun = cRun.Run(uiLength);
+		if (cRun.IsAtBreakpoint())
+		{
+			uiBreaks++;
+		}
 
 		if (!TestFast65C64RunSame(&cStep, &cRun, pcStepContext, pcRunContext, uiStepped, uiRun, uiChunk))
 		{
@@ -669,11 +692,79 @@ void TestFast65C64Run(void)
 	}
 	AssertTrue(cRun.IsStopped());
 	AssertSize(1, cRun.Run(10));
+	if (bBreakpoints)
+	{
+		AssertTrue(uiBreaks >= 3);
+	}
+	else
+	{
+		AssertSize(0, uiBreaks);
+	}
 
 	cRun.Kill();
 	cStep.Kill();
 	free(pcRunContext);
 	free(pcStepContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A breakpoint at a block copy stops before the copy, not before each of
+// its steps.  Run, then Step.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFast65C64BreakpointBlock(void)
+{
+	CTest65C64Context*	pcContext;
+	CFast65C64			cFast;
+	uint32				uiBcpy;
+	size				i;
+
+	pcContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+	for (i = 0; i < 2; i++)
+	{
+		pcContext->Init(0x1000);
+		pcContext->Op(Op65Wth(R65_X, 2));
+		pcContext->Op(Op65RI(C65_CPY, R65_X, 2), 0xBEEF);
+		pcContext->Op(Op65RI(C65_CPY, R65_V, 2), 0x2001);
+		pcContext->Op(Op65RE(C65_CPY, R65_A, 2));
+		pcContext->Op(Op65RR(C65_CPY, R65_Y, R65_Zero));
+		uiBcpy = pcContext->Here();
+		pcContext->Op(Op65Block(0, false, false, 0, R65_X));
+		pcContext->Op(Op65Stp());
+
+		cFast.Init(TestFast65C64ContextReadWord, TestFast65C64ContextWriteByte, pcContext, pcContext->mauiLow, TEST_65C64_LOW_SIZE);
+		cFast.Reset();
+		AssertTrue(cFast.GetBreakpoints()->Add(uiBcpy, true));
+
+		if (i == 0)
+		{
+			AssertSize(5, cFast.Run(100));
+			AssertTrue(cFast.IsAtBreakpoint());
+			AssertIntHex(uiBcpy, cFast.GetProgramCounter());
+			AssertSize(4, cFast.Run(100));
+		}
+		else
+		{
+			AssertSize(5, cFast.Run(5));
+			AssertFalse(cFast.IsAtBreakpoint());
+			AssertFalse(cFast.Step());
+			AssertTrue(cFast.IsAtBreakpoint());
+			AssertTrue(cFast.Step());
+			AssertTrue(cFast.Step());
+			AssertTrue(cFast.Step());
+			AssertIntHex(uiBcpy + 2, cFast.GetProgramCounter());
+			AssertFalse(cFast.Step());
+		}
+		AssertFalse(cFast.IsAtBreakpoint());
+		AssertTrue(cFast.IsStopped());
+		AssertIntHex(0x2007, cFast.GetV());
+		AssertIntHex(0xEF, pcContext->mauiLow[0x2001]);
+		AssertIntHex(0xBE, pcContext->mauiLow[0x2006]);
+		cFast.Kill();
+	}
+	free(pcContext);
 }
 
 
@@ -859,7 +950,9 @@ void TestFast65C64(void)
 
 	TestFast65C64Unaligned();
 	TestFast65C64Interrupts();
-	TestFast65C64Run();
+	TestFast65C64Run(false);
+	TestFast65C64Run(true);
+	TestFast65C64BreakpointBlock();
 	TestFast65C64RunDevice();
 	TestFast65C64Fuzz(true, 0x6502C64ULL);
 	TestFast65C64Fuzz(false, 0x65C816ULL);

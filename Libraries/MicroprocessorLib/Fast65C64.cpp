@@ -256,6 +256,10 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 
 	muiCycles = 0;
 
+	mcBreakpoints.Init();
+	mbAtBreakpoint = false;
+	mbRepeating = false;
+
 	mfReadWord = fReadWord;
 	mfWriteByte = fWriteByte;
 	mpvContext = pvContext;
@@ -284,6 +288,7 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 //////////////////////////////////////////////////////////////////////////
 void CFast65C64::Kill(void)
 {
+	mcBreakpoints.Kill();
 	mfReadWord = NULL;
 	mfWriteByte = NULL;
 	mpvContext = NULL;
@@ -314,6 +319,8 @@ void CFast65C64::Reset(void)
 	mbWaiting = false;
 	muiWakeMask = 0;
 	muiPendingEdges = 0;
+	mbAtBreakpoint = false;
+	mbRepeating = false;
 
 	memset(mauiRegisters, 0, sizeof(mauiRegisters));
 	mauiRegisters[R65_S] = RESET_65C64_STACK_POINTER;
@@ -328,8 +335,39 @@ void CFast65C64::Reset(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An enabled breakpoint at the next instruction, unless it is the next step
+// of a block, vector, multiply or divide instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C64::IsBreakpointNext(void)
+{
+	return mcBreakpoints.AnyEnabled() && !mbRepeating && mcBreakpoints.IsEnabledNext(muiC);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether to return before the next instruction, at a breakpoint.  Not if
+// the last Step or Run returned there (it's executed now).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C64::Breaks(void)
+{
+	if (mbAtBreakpoint)
+	{
+		mbAtBreakpoint = false;
+		return false;
+	}
+	mbAtBreakpoint = IsBreakpointNext();
+	return mbAtBreakpoint;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // One C65C64Meta::TickInstruction: an instruction (or a step of one) then an interrupt if one is taken, or a
-// cycle while stp waits.  Returns false if the processor stopped.
+// cycle while stp waits.  Returns false if the processor stopped, or if the next instruction is at an enabled
+// breakpoint (IsAtBreakpoint).  That instruction isn't executed and nothing changes; the next Step executes it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFast65C64::Step(void)
@@ -351,6 +389,10 @@ bool CFast65C64::Step(void)
 		return true;
 	}
 
+	if (Breaks())
+	{
+		return false;
+	}
 	Execute();
 	if (mbStopped)
 	{
@@ -378,12 +420,15 @@ FORCE_INLINE bool CFast65C64::NeedsDeciding(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Steps until the processor stops.  Returns the number of steps, counting the one that stopped.
+// Steps until the processor stops or the next instruction is at an enabled breakpoint.  Returns the number of
+// steps, counting the one that stopped but not a breakpoint's (it executes nothing).
 //
 // It does what that many Steps do.  While a Step would only execute its instruction (not NeedsDeciding) the
 // instructions are executed one after another without the rest of Step.  When an instruction changes that
 // (stp, or a callback setting an interrupt input) the end of its Step is done, and Step does the steps after
-// it until the next would only execute again.
+// it until the next would only execute again.  While a breakpoint is enabled the instructions are checked
+// here as Step checks them; returning before one is the end of the Step before (which, with nothing to
+// decide, does nothing more).
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C64::Run(size uiMaxInstructions)
@@ -393,18 +438,27 @@ size CFast65C64::Run(size uiMaxInstructions)
 	i = 0;
 	while (i < uiMaxInstructions)
 	{
-		if (NeedsDeciding())
+		if (NeedsDeciding() || mbAtBreakpoint)
 		{
-			i++;
 			if (!Step())
 			{
+				if (!mbAtBreakpoint)
+				{
+					i++;
+				}
 				return i;
 			}
+			i++;
 			continue;
 		}
 
 		do
 		{
+			if (IsBreakpointNext())
+			{
+				mbAtBreakpoint = true;
+				return i;
+			}
 			Execute();
 			i++;
 		}
@@ -421,6 +475,30 @@ size CFast65C64::Run(size uiMaxInstructions)
 		}
 	}
 	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Add, remove, enable and disable breakpoints here at any time, also from
+// the callbacks.
+//
+//////////////////////////////////////////////////////////////////////////
+CBreakpoints* CFast65C64::GetBreakpoints(void)
+{
+	return &mcBreakpoints;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last Step or Run returned before the instruction at a breakpoint
+// (GetProgramCounter).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C64::IsAtBreakpoint(void)
+{
+	return mbAtBreakpoint;
 }
 
 
@@ -506,6 +584,7 @@ void CFast65C64::StartInterrupt(uint16 uiVector, uint16 uiDisable)
 	muiP |= uiDisable;
 	muiInterruptDepth++;
 	mbWaiting = false;
+	mbRepeating = false;	//An interrupted step's instruction starts again as a new one after the return.
 	muiC = ReadVector(uiVector);
 }
 
@@ -842,7 +921,8 @@ inline void CFast65C64::BlockStep(uint8 uiBytes, bool bVector, bool bDecrement, 
 		}
 	}
 
-	if (!bNegative && !bStop)
+	mbRepeating = !bNegative && !bStop;
+	if (mbRepeating)
 	{
 		muiC -= 2;
 	}
@@ -1566,7 +1646,8 @@ void CFast65C64::Multiply(void)
 	bDone = mauiRegisters[R65_W] >= uiNybbles;
 	SetFlag(STATUS65_OVERFLOW, bDone);
 	SetFlag(STATUS65_ZERO, (mauiRegisters[R65_Y] & mauiMasks[R65_Y]) == 0);
-	if (!bDone)
+	mbRepeating = !bDone;
+	if (mbRepeating)
 	{
 		muiC -= 2;
 	}
@@ -1631,7 +1712,8 @@ void CFast65C64::Divide(void)
 	SetFlag(STATUS65_OVERFLOW, bDone);
 	SetFlag(STATUS65_ZERO, (mauiRegisters[R65_Y] & mauiMasks[R65_Y]) == 0);
 	SetFlag(STATUS65_CARRY, (mauiRegisters[R65_B] & mauiMasks[R65_B]) != 0);
-	if (!bDone)
+	mbRepeating = !bDone;
+	if (mbRepeating)
 	{
 		muiC -= 2;
 	}
@@ -2130,6 +2212,8 @@ void CFast65C64::TestSetRegister(E65Register eRegister, uint64 uiValue)
 void CFast65C64::TestSetProgramCounter(uint32 uiC)
 {
 	muiC = uiC;
+	mbAtBreakpoint = false;
+	mbRepeating = false;
 }
 
 

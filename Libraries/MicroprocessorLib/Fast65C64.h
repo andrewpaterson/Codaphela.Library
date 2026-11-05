@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Chars.h"
 #include "65C64.h"
+#include "Breakpoints.h"
 
 
 //Memory outside the flat block.  ReadWord is given the aligned address the bus would carry and returns the
@@ -39,6 +40,10 @@ typedef void(*CFast65C64WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiVa
 //
 //Memory is a flat block at 0000:0000 (puiMemory, uiMemorySize bytes, read and written directly) and the
 //callbacks for every other address, and for a hole in the block (SetHole, where devices are).  The host must be little endian.
+//
+//Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
+//(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
+//breakpoint is enabled.
 struct SFast65C64Op;
 class CFast65C64
 {
@@ -69,6 +74,10 @@ protected:
 	CFast65C64WriteByte	mfWriteByte;
 	void*				mpvContext;
 
+	CBreakpoints		mcBreakpoints;
+	bool				mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
+	bool				mbRepeating;		//The next instruction is the next step of a block, vector, multiply or divide.
+
 public:
 	void		Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
@@ -76,6 +85,8 @@ public:
 	void		SetHole(uint32 uiStart, uint32 uiEnd);
 	void		Reset(void);
 	bool		Step(void);
+	CBreakpoints*	GetBreakpoints(void);
+	bool			IsAtBreakpoint(void);
 	size		Run(size uiMaxInstructions);
 
 	void		SetEdgeInterrupt(size uiInterrupt, bool bLow);
@@ -108,6 +119,8 @@ public:
 protected:
 	void		Execute(void);
 	bool		NeedsDeciding(void);
+	bool		IsBreakpointNext(void);
+	bool		Breaks(void);
 	void		SetWidths(void);
 	void		SetRegister(uint8 uiRegister, uint64 uiValue, uint8 uiBytes);
 	uint32		GetRegisterAddress(uint8 uiRegister);
