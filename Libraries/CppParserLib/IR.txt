@@ -451,7 +451,16 @@ loop is entered with a bra to the test and each time round takes one branch.  A 
 whose else block comes next branches to its then block and falls through.  The block
 order (OrderBlocks), the tests moved (MoveLoopTests), loads moved down to their use
 (SinkLoads) and loop steps moved down (SinkSteps) are CIRBackendPasses
-(IRBackendPasses.h/.cpp), for any back end (2026-11-05).
+(IRBackendPasses.h/.cpp), for any back end (2026-11-05).  The W65C816 back end runs
+OrderBlocks too, with each loop's blocks kept together (bLoopsTogether: the search takes
+a block's ways out of its loops first, so they go after the loop): its PackTemporaries
+places values in the order they start, and a latch left at the end of the function
+broke the pairs that let a loop's phis share places (2026-11-05).  PackTemporaries
+weighs a phi copy by the innermost loop both ends of its edge are in (a way out of a
+loop counts as the loop outside), places a value with a heavier pair where it starts
+first (two phis given one value on the way out of a block: the one round the loop
+wins), and reads a brif's condition before the copies on the way out.  TestBaseLib65
+-0.75%, TestStandardLib65 -0.96% on the W65C816; the 65C64's code is the same.
 
 Values left in A.  A result only the next instruction uses, and takes from A (its first
 operand, its second for the instructions that copy it to B or swap it in, a load's

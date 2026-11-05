@@ -437,6 +437,9 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	muiSource = 0;
 
 	ExpandMultiplies();
+	pcFunction->Renumber();
+	pcFunction->ComputePredecessors();
+	mcBackendPasses.OrderBlocks(pcFunction, true);
 	mcBackendPasses.SinkSteps(pcFunction);
 	pcFunction->Renumber();
 

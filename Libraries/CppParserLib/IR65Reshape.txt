@@ -163,3 +163,13 @@ identical on both targets; TestCppParserLib 83262/83262.
 
 Loop weights: done 2026-11-05 (above).  Listings of TestBaseLib65 and TestStandardLib65 are identical
 on both targets; TestCppParserLib 83264/83264.
+
+Block order on the W65C816: done 2026-11-05.  It runs OrderBlocks with bLoopsTogether (a block's ways out
+of its loops searched first, so a loop's blocks stay together; the 65C64 passes false and its code is the
+same); MoveLoopTests changes nothing measurable there, so it doesn't run it.  Plain reverse post order cost
+it +0.1% on TestBaseLib65 (TimSort's merge +33%): a latch at the end of the function broke PackTemporaries'
+phi pairs.  With the pairs weighed by the loop both ends of an edge are in, ties placed heaviest first and
+a brif's condition read before the copies: TestBaseLib65 -0.75%, TestStandardLib65 -0.96%.  PackTemporaries
+places greedily (in start order, pairs only to partners already placed); coalescing pairs heaviest first
+before placing is the fix for the copies left (TestArrayTemplate +0.7%, TestCPP816 MergeLoop 1,198,120 of
+its 1,200,000).
