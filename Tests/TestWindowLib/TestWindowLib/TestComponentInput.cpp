@@ -14,6 +14,31 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Counts a window's activation event's calls.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestActivationCounter
+{
+public:
+	size		muiCalls;
+	CWindow*	mpcWindow;
+
+	void Init(void)
+	{
+		muiCalls = 0;
+		mpcWindow = NULL;
+	}
+
+	void Activated(CWindow* pcWindow)
+	{
+		muiCalls++;
+		mpcWindow = pcWindow;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The window is 96x32 with a grid of three equal columns:
 //
 //   A [0..32)  can focus, entirely covered by its child 'a' which can't.
@@ -250,6 +275,7 @@ void TestComponentInputActivation(void)
 		Ptr<CTickTestRefWindow>			pTick;
 		SDataTestRefWindow			cData;
 		CPointer					pNull;
+		CTestActivationCounter		cActivations;
 		CChars						szLog;
 
 		szLog.Init();
@@ -272,7 +298,10 @@ void TestComponentInputActivation(void)
 		AssertLog("B:Into;B:Gained;B:StartDragSelect(8,10);");
 
 		//Deactivating stops the drag.
+		cActivations.Init();
+		pTestWindow->GetActivationEvent()->Add(&cActivations, &CTestActivationCounter::Activated);
 		pTestWindow->Deactivate();
+		AssertSize(0, cActivations.muiCalls);
 		AssertLog("B:StopDragSelect(8,10);B:Outof;B:Lost;");
 		AssertFalse(pFocus->IsActive());
 		AssertTrue(pFocus->GetFocussedComponent() == pB);
@@ -289,6 +318,11 @@ void TestComponentInputActivation(void)
 		AssertLog("B:Gained;");
 		pTestWindow->InputCommand(CIC_Up, true);
 		AssertLog("B:Up;");
+
+		//Activating calls the activation event, as the window is.
+		AssertSize(1, cActivations.muiCalls);
+		AssertTrue(cActivations.mpcWindow == &pTestWindow);
+		AssertTrue(pTestWindow->GetActivationEvent()->Remove(&cActivations));
 
 		//A press outside the window, on its title bar say, isn't for any component.
 		pTestWindow->PointerLeft();

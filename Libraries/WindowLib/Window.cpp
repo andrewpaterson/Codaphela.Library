@@ -115,6 +115,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mbRedraw = true;
 	mbLayoutDirty = true;
 	mbCheckLayoutCache = WINDOW_CHECK_LAYOUT_CACHE;
+	mcActivated.Init();
 	SetMaxFramesPerSecond(WINDOW_DEFAULT_FRAMES_PER_SECOND);
 	miLastPaintTime = 0;
 	miTickDelay = -1;
@@ -133,6 +134,7 @@ void CWindow::Free(void)
 	mpcNativeWindow = NULL;
 
 	mszWindowTitle.Kill();
+	mcActivated.Kill();
 
 	CComponent::Free();
 }
@@ -164,6 +166,7 @@ void CWindow::Class(void)
 	U_Bool(mbRedraw);
 	U_Bool(mbLayoutDirty);
 	U_Bool(mbCheckLayoutCache);
+	U_Data(CComponentEvent<CWindow>, mcActivated);
 	U_UInt32(muiFrameMilliseconds);
 	U_Int64(miLastPaintTime);
 	U_Int64(miTickDelay);
@@ -575,7 +578,24 @@ void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); Invalidate
 void CWindow::PointerLeft(void) { mFocus.PointerLeft(); Invalidate(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); InvalidateLayout(); }
 void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); InvalidateLayout(); }
-void CWindow::Activate(void) { mFocus.Activate(); InvalidateLayout(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window became the active window (the platform's focus came to it):
+// the activation event is called, as for an IDE to see whether its files
+// were changed while it wasn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Activate(void)
+{
+	mFocus.Activate();
+	InvalidateLayout();
+	mcActivated.Call(this);
+}
+
+
+CComponentEvent<CWindow>* CWindow::GetActivationEvent(void) { return &mcActivated; }
 
 
 //////////////////////////////////////////////////////////////////////////

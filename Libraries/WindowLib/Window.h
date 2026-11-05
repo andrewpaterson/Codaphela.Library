@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Popup.h"
 #include "SoundMixer.h"
 #include "Clipboard.h"
+#include "ComponentEvent.h"
 
 
 #define WINDOW_DEFAULT_FRAMES_PER_SECOND	30
@@ -60,6 +61,7 @@ protected:
 	bool					mbRedraw;  //Something has changed since the window was last painted.
 	bool					mbLayoutDirty;  //Something the layout depends on has changed since the window was last laid out.
 	bool					mbCheckLayoutCache;  //Lay out every paint anyway and log components that moved, see CheckLayoutCache.
+	CComponentEvent<CWindow>	mcActivated;  //Called when the window becomes the active window again.
 	uint32					muiFrameMilliseconds;  //The least time between paints while waiting for events, 0 for none.
 	int64					miLastPaintTime;  //GetDebugTickCount when last painted.
 	int64					miTickDelay;  //Milliseconds after this tick that another was asked for, -1 if none was.
@@ -99,6 +101,7 @@ public:
 	void					InputCommand(EComponentInputCommand eCommand, bool bInsert);
 	void					InputPrintable(char c, bool bInsert);
 	void					Activate(void);
+	CComponentEvent<CWindow>*	GetActivationEvent(void);
 	void					Deactivate(void);
 
 	void					SetComponentInput(CComponentInput* pcComponentInput);
