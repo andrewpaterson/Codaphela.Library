@@ -17,6 +17,7 @@
 #include "WindowLib/DockFloatingWindow.h"
 #include "WindowLib/DockGuides.h"
 #include "WindowLib/AutoHide.h"
+#include "WindowLib/AutoHideFlyout.h"
 #include "WindowLib/MenuContainer.h"
 #include "WindowLib/MenuItem.h"
 #include "WinRefLib/WinRefWindowFactory.h"

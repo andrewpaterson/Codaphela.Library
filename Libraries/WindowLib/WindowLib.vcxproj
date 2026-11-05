@@ -230,6 +230,7 @@
     <ClInclude Include="ComponentEvent.h" />
     <ClInclude Include="TabComponent.h" />
     <ClInclude Include="AutoHide.h" />
+    <ClInclude Include="AutoHideFlyout.h" />
     <ClInclude Include="DockArea.h" />
     <ClInclude Include="DockColour.h" />
     <ClInclude Include="DockDrag.h" />
@@ -299,6 +300,7 @@
     <ClCompile Include="InputAction.cpp" />
     <ClCompile Include="TabComponent.cpp" />
     <ClCompile Include="AutoHide.cpp" />
+    <ClCompile Include="AutoHideFlyout.cpp" />
     <ClCompile Include="DockArea.cpp" />
     <ClCompile Include="DockDrag.cpp" />
     <ClCompile Include="DockEdge.cpp" />

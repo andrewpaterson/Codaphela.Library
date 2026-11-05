@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockEdge.h"
 #include "DockGuides.h"
 #include "AutoHide.h"
+#include "AutoHideFlyout.h"
 #include "DockManager.h"
 #include "DockDrag.h"
 #include "DockTree.h"

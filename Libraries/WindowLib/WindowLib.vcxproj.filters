@@ -297,6 +297,9 @@
     <ClInclude Include="AutoHide.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="AutoHideFlyout.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
     <ClInclude Include="DockArea.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
@@ -582,6 +585,9 @@
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClCompile>
     <ClCompile Include="AutoHide.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoHideFlyout.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockArea.cpp">

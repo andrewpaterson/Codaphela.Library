@@ -35,7 +35,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_HIDE_TAB_GAP		10	//Before and after a strip tab's text.
 #define AUTO_HIDE_TAB_SPACING	4	//Between a strip's tabs.
 #define AUTO_HIDE_LINE			3	//A strip tab's line along the strip's outer side.
-#define AUTO_HIDE_EDGE			4	//A flyout's inner edge, dragged to resize it.
 
 
 //A label whose one line of text reads top to bottom, drawn with a font turned clockwise (FT_Clockwise): Visual Studio's
@@ -123,45 +122,6 @@ public:
 	Ptr<CAutoHideTab>	GetTab(size uiIndex);
 	Ptr<CAutoHideTab>	FindTab(Ptr<CDockPane> pPane);
 	EDockSide			GetSide(void);
-};
-
-
-//An auto hidden pane slid out over the main window from its strip: a title bar with the pin (to dock it back) and the
-//close cross over the pane's content, and an edge on the side away from the strip that is dragged to resize it.  It is
-//a popup, so a press anywhere else slides it back.
-class CAutoHideFlyout : public CContainer, public CDockEdgeOwner
-{
-CONSTRUCTABLE(CAutoHideFlyout);
-DESTRUCTABLE(CAutoHideFlyout);
-protected:
-	Ptr<CDockManager>		mpManager;
-	Ptr<CDockPane>			mpPane;
-	EDockSide				meSide;
-	Ptr<CDockTitleBar>		mpTitleBar;
-	Ptr<CDockEdge>			mpEdge;
-	Ptr<CCanvas>			mpBackground;
-	int32					miStartSize;
-	SInt32Vec2				msStartPointer;
-
-public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr<CDockPane> pPane);
-	void				Class(void) override;
-	void				Free(void) override;
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
-	void				SetRequiredSize(void) override;
-	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	Ptr<CDockPane>		GetPane(void);
-	Ptr<CDockTitleBar>	GetTitleBar(void);
-	Ptr<CDockEdge>		GetEdge(void);
-	EDockSide			GetSide(void);
-	void				Place(CInt32Rect* pcRootBounds, SInt32Vec2* psPosition);
-	void				Detach(void);
-	void				PinPressed(CDockTitleBar* pcTitleBar);
-	void				ClosePressed(CDockTitleBar* pcTitleBar);
-	void				EdgeDragStarted(CDockEdge* pcEdge, SInt32Vec2 sScreen) override;
-	void				EdgeDragged(CDockEdge* pcEdge, SInt32Vec2 sScreen) override;
-	void				EdgeReleased(CDockEdge* pcEdge) override;
 };
 
 
