@@ -247,6 +247,7 @@ public:
 	void						DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSide eSide, int32 iSize);
 	void						RemoveNode(Ptr<CDockNode> pNode);
 	void						Tidy(Ptr<CDockNode> pNode);
+	void						Flatten(Ptr<CDockSplit> pSplit);
 	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
 	Ptr<CDockFloatingWindow>	CreateFloating(CInt32Rect* pcScreenRectangle);
 	void						WatchFocus(Ptr<CWindow> pWindow);
@@ -264,6 +265,7 @@ protected:
 	void						DockDefault(Ptr<CDockPane> pPane);
 	Ptr<CDockGroup>				GatherInto(Ptr<CDockNode> pNode, bool bDocuments);
 	void						ReplaceInParent(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew);
+	void						MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild);
 	void						SetStates(Ptr<CDockNode> pNode, EDockPaneState eState);
 	void						SetActivePane(Ptr<CDockPane> pPane);
 	void						SetActiveDocument(Ptr<CDockPane> pPane);

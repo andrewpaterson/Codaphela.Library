@@ -495,6 +495,8 @@ Ptr<CDockNode> CDockManager::ReadNode(CMarkupTag* pcTag, Ptr<CWindow> pWindow, b
 			pOnly->SetDockSize(iSize);
 			return pOnly;
 		}
+		//A split read in a split of the same direction gives its nodes to it.
+		Flatten(pSplit);
 		pSplit->SetDockSize(iSize);
 		return pSplit;
 	}

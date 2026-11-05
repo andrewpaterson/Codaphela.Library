@@ -2,6 +2,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/XMLWriter.h"
+#include "BaseLib/TextFile.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/Canvas.h"
@@ -888,6 +889,193 @@ void TestDockingNarrowToolTabs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if no split in the tree under pNode has a split of its own
+// direction as a node.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsFlat(Ptr<CDockNode> pNode)
+{
+	CDockSplit*		pcSplit;
+	CDocumentWell*	pcWell;
+	Ptr<CDockNode>	pChild;
+	CDockSplit*		pcChildSplit;
+	size			i;
+
+	pcWell = dynamic_cast<CDocumentWell*>(&pNode);
+	if (pcWell)
+	{
+		return pcWell->GetRoot().IsNull() || IsFlat(pcWell->GetRoot());
+	}
+	pcSplit = dynamic_cast<CDockSplit*>(&pNode);
+	if (pcSplit == NULL)
+	{
+		return true;
+	}
+	for (i = 0; i < pcSplit->NumNodes(); i++)
+	{
+		pChild = pcSplit->GetNode(i);
+		pcChildSplit = dynamic_cast<CDockSplit*>(&pChild);
+		if (pcChildSplit && (pcChildSplit->IsHorizontal() == pcSplit->IsHorizontal()))
+		{
+			return false;
+		}
+		if (!IsFlat(pChild))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The root split, NULL if the root isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CDockSplit> GetRootSplit(Ptr<CDockManager> pManager)
+{
+	return Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pManager->GetArea()->GetRoot()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A split never holds a split of its own direction: docking along the
+// area's edge, beside a group, a split left with one node, and a layout
+// read with nested splits all leave one split for each direction.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingSplitsMerged(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	CTextFile				cFile;
+
+	cFileUtil.MakeDir("Output" _FS_ "Docking");
+	{
+		SDockTest				sTest;
+		SDockTarget				sTarget;
+		Ptr<CDockPane>			pLeft;
+		Ptr<CDockPane>			pTop;
+		Ptr<CDockPane>			pTop2;
+		Ptr<CDockPane>			pBelow;
+		Ptr<CDockPane>			pRight;
+		Ptr<CDockSplit>			pRoot;
+		Ptr<CDockGroup>			pExplorerGroup;
+		SDockPlace				sPlace;
+
+		sTest.Init(&cNativeFactory);
+		sPlace.Hidden();
+		pLeft = sTest.pManager->AddPane("Left", "Left", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pTop = sTest.pManager->AddPane("Top", "Top", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pTop2 = sTest.pManager->AddPane("Top2", "Top 2", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pBelow = sTest.pManager->AddPane("Below", "Below", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pRight = sTest.pManager->AddPane("Right", "Right", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		AssertTrue(IsFlat(sTest.pManager->GetArea()->GetRoot()));
+
+		//Along the area's left edge: the horizontal root takes it first, it isn't split again.
+		sTarget.Init();
+		sTarget.eKind = DTK_AreaEdge;
+		sTarget.eSide = DS_Left;
+		sTarget.pcArea = &sTest.pManager->GetArea();
+		sTarget.cPreview.Init(0, 0, 100, 600);
+		AssertTrue(sTest.pManager->DockPaneAt(pLeft, &sTarget));
+		sTest.pWindow->Layout();
+		pRoot = GetRootSplit(sTest.pManager);
+		AssertTrue(pRoot->IsHorizontal());
+		AssertSize(4, pRoot->NumNodes());
+		AssertTrue(pRoot->GetNode(0) == pLeft->GetGroup());
+		AssertTrue(IsFlat(pRoot));
+		AssertInt(100, pRoot->GetNodeSize(0));
+
+		//Along the top: a vertical root over the horizontal one, and the next along the top joins it.
+		sTarget.eSide = DS_Top;
+		sTarget.cPreview.Init(0, 0, 800, 80);
+		AssertTrue(sTest.pManager->DockPaneAt(pTop, &sTarget));
+		AssertTrue(sTest.pManager->DockPaneAt(pTop2, &sTarget));
+		sTest.pWindow->Layout();
+		pRoot = GetRootSplit(sTest.pManager);
+		AssertFalse(pRoot->IsHorizontal());
+		AssertSize(3, pRoot->NumNodes());
+		AssertTrue(pRoot->GetNode(0) == pTop2->GetGroup());
+		AssertTrue(pRoot->GetNode(1) == pTop->GetGroup());
+		AssertTrue(IsFlat(pRoot));
+
+		//Below Explorer, then right of it: a horizontal split in the vertical one beside Explorer.
+		pExplorerGroup = sTest.pExplorer->GetGroup();
+		sTarget.Init();
+		sTarget.eKind = DTK_Group;
+		sTarget.eSide = DS_Bottom;
+		sTarget.pcArea = &sTest.pManager->GetArea();
+		sTarget.pcNode = &pExplorerGroup;
+		sTarget.cPreview.Init(0, 300, 200, 600);
+		AssertTrue(sTest.pManager->DockPaneAt(pBelow, &sTarget));
+		sTarget.eSide = DS_Right;
+		sTarget.cPreview.Init(100, 0, 200, 300);
+		AssertTrue(sTest.pManager->DockPaneAt(pRight, &sTarget));
+		sTest.pWindow->Layout();
+		AssertTrue(IsFlat(sTest.pManager->GetArea()->GetRoot()));
+		AssertTrue(pRight->GetGroup()->GetParentSplit() == pExplorerGroup->GetParentSplit());
+		AssertTrue(pRight->GetGroup()->GetParentSplit()->IsHorizontal());
+
+		//With Below hidden its vertical split has one node, the horizontal split, which joins the horizontal one above.
+		sTest.pManager->Hide(pBelow);
+		sTest.pWindow->Layout();
+		AssertTrue(IsFlat(sTest.pManager->GetArea()->GetRoot()));
+		pRoot = pExplorerGroup->GetParentSplit();
+		AssertTrue(pRoot->IsHorizontal());
+		AssertTrue(pRoot == pLeft->GetGroup()->GetParentSplit());
+		AssertSize(5, pRoot->NumNodes());
+		AssertTrue(pRoot->GetNode(1) == pExplorerGroup);
+		AssertTrue(pRoot->GetNode(2) == pRight->GetGroup());
+
+		//A layout with a horizontal split in a horizontal split is read as one split.  Output, which it doesn't name, goes
+		//under the well as it does by default.
+		cFile.Init();
+		cFile.mcText.Append("<DockLayout Version=\"1\" NextGroup=\"10\">\n");
+		cFile.mcText.Append("  <MainWindow X=\"0\" Y=\"0\" Width=\"800\" Height=\"600\">\n");
+		cFile.mcText.Append("    <Split Direction=\"Horizontal\">\n");
+		cFile.mcText.Append("      <Group ID=\"1\" Kind=\"Tool\" Size=\"200\"><Pane ID=\"Explorer\"/></Group>\n");
+		cFile.mcText.Append("      <Split Direction=\"Horizontal\">\n");
+		cFile.mcText.Append("        <DocumentWell/>\n");
+		cFile.mcText.Append("        <Group ID=\"2\" Kind=\"Tool\" Size=\"150\"><Pane ID=\"Properties\"/></Group>\n");
+		cFile.mcText.Append("      </Split>\n");
+		cFile.mcText.Append("    </Split>\n");
+		cFile.mcText.Append("  </MainWindow>\n");
+		cFile.mcText.Append("</DockLayout>\n");
+		AssertTrue(cFile.Write("Output" _FS_ "Docking" _FS_ "Nested.xml"));
+		cFile.Kill();
+		AssertTrue(sTest.pManager->LoadLayout("Output" _FS_ "Docking" _FS_ "Nested.xml"));
+		sTest.pWindow->Layout();
+		pRoot = GetRootSplit(sTest.pManager);
+		AssertTrue(pRoot->IsHorizontal());
+		AssertSize(3, pRoot->NumNodes());
+		AssertTrue(pRoot->GetNode(0) == sTest.pExplorer->GetGroup());
+		AssertTrue(pRoot->GetNode(1)->ContainsDocumentWell());
+		AssertTrue(IsFlat(pRoot));
+		AssertTrue(pRoot->GetNode(2) == sTest.pProperties->GetGroup());
+		AssertInt(200, pRoot->GetNodeSize(0));
+		AssertInt(150, pRoot->GetNodeSize(2));
+
+		pLeft = NULL;
+		pTop = NULL;
+		pTop2 = NULL;
+		pBelow = NULL;
+		pRight = NULL;
+		pRoot = NULL;
+		pExplorerGroup = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A pane's content moves to the floating window with everything of it,
 // tab pages not shown included.
 //
@@ -1034,6 +1222,7 @@ void TestDocking(void)
 	TestDockingHideFloatAutoHide();
 	TestDockingDrag();
 	TestDockingNarrowToolTabs();
+	TestDockingSplitsMerged();
 	TestDockingMoveToWindow();
 	TestDockingLayoutFile();
 	ValidateLabelObjects();

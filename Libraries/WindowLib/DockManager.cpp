@@ -790,10 +790,18 @@ void CDockManager::DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDoc
 	pNode->SetDockSize(iSize);
 
 	pParent = pTarget->GetParentSplit();
-	if (pParent.IsNotNull() && (pParent->IsHorizontal() == bHorizontal))
+	if (pTarget->IsSplit() && (Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pTarget))->IsHorizontal() == bHorizontal))
+	{
+		//Beside a split of the same direction is its first or last node.
+		pSplit = Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pTarget));
+		pSplit->InsertNode(pNode, bAfter ? pSplit->NumNodes() : 0);
+		Flatten(pSplit);
+	}
+	else if (pParent.IsNotNull() && (pParent->IsHorizontal() == bHorizontal))
 	{
 		uiIndex = pParent->IndexOf(pTarget);
 		pParent->InsertNode(pNode, bAfter ? uiIndex + 1 : uiIndex);
+		Flatten(pParent);
 	}
 	else
 	{
@@ -810,6 +818,7 @@ void CDockManager::DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDoc
 			pSplit->AddNode(pNode);
 			pSplit->AddNode(pTarget);
 		}
+		Flatten(pSplit);
 	}
 	LayoutChanged();
 }
@@ -911,8 +920,6 @@ void CDockManager::Tidy(Ptr<CDockNode> pNode)
 	Ptr<CDockSplit>	pSplit;
 	Ptr<CDockSplit>	pParent;
 	Ptr<CDockNode>	pOnly;
-	Ptr<CDockNode>	pChild;
-	size			uiIndex;
 	int32			iSize;
 
 	if (pNode.IsNull() || !pNode->IsSplit())
@@ -927,25 +934,98 @@ void CDockManager::Tidy(Ptr<CDockNode> pNode)
 	}
 	if (pSplit->NumNodes() == 1)
 	{
+		//The node left takes the split's place, and joins its new parent if it is a split of the same direction.
 		pOnly = pSplit->GetNode(0);
 		iSize = pSplit->GetDockSize();
 		pSplit->RemoveNode(pOnly);
 		ReplaceInParent(pSplit, pOnly);
 		pOnly->SetDockSize(iSize);
-		Tidy(pOnly->GetParentSplit());
+		pParent = pOnly->GetParentSplit();
+		if (pParent.IsNotNull())
+		{
+			Flatten(pParent);
+		}
 		return;
+	}
+	pParent = pSplit->GetParentSplit();
+	Flatten(pParent.IsNotNull() ? pParent : pSplit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every node of pSplit that is a split of the same direction gives its
+// nodes to pSplit, in its place, and pSplit gives its own to its parent
+// if that is one: a split never holds a split of its direction.  The
+// nodes keep the sizes they were last laid out at, so nothing moves.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::Flatten(Ptr<CDockSplit> pSplit)
+{
+	Ptr<CDockSplit>	pParent;
+	Ptr<CDockNode>	pNode;
+	CDockSplit*		pcChild;
+	size			i;
+
+	if (pSplit.IsNull())
+	{
+		return;
+	}
+	for (i = 0; i < pSplit->NumNodes();)
+	{
+		pNode = pSplit->GetNode(i);
+		pcChild = dynamic_cast<CDockSplit*>(&pNode);
+		if (pcChild && (pcChild->IsHorizontal() == pSplit->IsHorizontal()))
+		{
+			//Its nodes take its place; they are looked at in turn, in case one is a split too.
+			MergeSplit(pSplit, pcChild);
+		}
+		else
+		{
+			i++;
+		}
 	}
 	pParent = pSplit->GetParentSplit();
 	if (pParent.IsNotNull() && (pParent->IsHorizontal() == pSplit->IsHorizontal()))
 	{
-		uiIndex = pParent->IndexOf(pSplit);
-		pParent->RemoveNode(pSplit);
-		while (pSplit->NumNodes() > 0)
+		MergeSplit(pParent, pSplit);
+		Flatten(pParent);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pChild, a node of pParent of the same direction, is replaced by its
+// nodes.  A node laid out keeps its laid out size as its dock size.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild)
+{
+	Ptr<CDockNode>	pNode;
+	size			uiIndex;
+	size			i;
+	int32			iSize;
+
+	uiIndex = pParent->IndexOf(pChild);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return;
+	}
+	for (i = 0; i < pChild->NumNodes(); i++)
+	{
+		iSize = pChild->GetNodeSize(i);
+		if (iSize > 0)
 		{
-			pChild = pSplit->GetNode(pSplit->NumNodes() - 1);
-			pSplit->RemoveNode(pChild);
-			pParent->InsertNode(pChild, uiIndex);
+			pChild->GetNode(i)->SetDockSize(iSize);
 		}
+	}
+	pParent->RemoveNode(pChild);
+	while (pChild->NumNodes() > 0)
+	{
+		pNode = pChild->GetNode(pChild->NumNodes() - 1);
+		pChild->RemoveNode(pNode);
+		pParent->InsertNode(pNode, uiIndex);
 	}
 }
 
