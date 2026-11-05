@@ -55,6 +55,7 @@ struct SHeapFromHub
 {
 	CPointerLocations	cLocations;		//Each from's index: an Object's index * 2, a Collection's index * 2 + 1.
 	CBaseObject*		pcCloserFrom;	//A from that was closer to root than 'this' when last asked.  NULL if none is known.
+	size				uiScanFrom;		//Where looking for a closer from starts: where the last one was found.
 };
 
 

@@ -581,13 +581,17 @@ bool CEmbeddedObject::UnlinkHubHeapFrom(CBaseObject* pcFrom)
 //
 // Whether one of this object's own heap froms (not those of the objects
 // embedded in it) is attached and closer to root than iDistToRoot.  A hub
-// remembers the one it found.
+// remembers the one it found, and the next look starts where it was found,
+// going round to the start: clearing a hub's froms one after another
+// (taking an array of them off the root) asks again after each, and would
+// otherwise pass all those already cleared every time.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::HasOwnHeapFromCloserThan(int iDistToRoot)
 {
 	size			i;
 	size			uiNumFroms;
+	size			uiStep;
 	CBaseObject*	pcFrom;
 	int				iDist;
 
@@ -601,7 +605,12 @@ bool CEmbeddedObject::HasOwnHeapFromCloserThan(int iDistToRoot)
 	}
 
 	uiNumFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < uiNumFroms; i++)
+	i = 0;
+	if ((mpsHub != NULL) && (mpsHub->uiScanFrom < uiNumFroms))
+	{
+		i = mpsHub->uiScanFrom;
+	}
+	for (uiStep = 0; uiStep < uiNumFroms; uiStep++)
 	{
 		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		iDist = pcFrom->GetDistToRoot();
@@ -610,8 +619,14 @@ bool CEmbeddedObject::HasOwnHeapFromCloserThan(int iDistToRoot)
 			if (mpsHub != NULL)
 			{
 				mpsHub->pcCloserFrom = pcFrom;
+				mpsHub->uiScanFrom = i;
 			}
 			return true;
+		}
+		i++;
+		if (i == uiNumFroms)
+		{
+			i = 0;
 		}
 	}
 	return false;
@@ -630,6 +645,7 @@ void CEmbeddedObject::MakeHeapFromHub(void)
 	mpsHub = NewMalloc<SHeapFromHub>();
 	mpsHub->cLocations.Init();
 	mpsHub->pcCloserFrom = NULL;
+	mpsHub->uiScanFrom = 0;
 
 	uiNumFroms = mapHeapFromObjects.NumElements();
 	for (i = 0; i < uiNumFroms; i++)
