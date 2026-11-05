@@ -40,6 +40,8 @@ public:
 
 	bool	StartIteration(SPointerLocationsIterator* psIter, void* pvPointer, ptr* puiLocation);
 	bool	Iterate(SPointerLocationsIterator* psIter, ptr* puiLocation);
+	bool	StartAllIteration(SPointerLocationsIterator* psIter, void** ppvPointer, ptr* puiLocation);
+	bool	IterateAll(SPointerLocationsIterator* psIter, void** ppvPointer, ptr* puiLocation);
 
 	size	MovePointer(void* pvOld, void* pvNew);
 	void	MoveLocations(ptr uiFrom, ptrdiff iBy);

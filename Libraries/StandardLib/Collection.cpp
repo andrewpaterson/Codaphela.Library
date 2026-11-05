@@ -22,6 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Collection.h"
 
 
+//A collection holding at least this many members keeps where each is, once it has to find one.
+#define COLLECTION_MEMBER_LOCATIONS_THRESHOLD	64
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -103,6 +107,7 @@ void CCollection::EmbedFields(void)
 void CCollection::PreFields(void)
 {
 	mbSubRoot = false;
+	mpcMemberLocations = NULL;
 }
 
 
@@ -304,6 +309,137 @@ void CCollection::ValidateConsistency(void)
 {
 	ValidateEmbeddedConsistency();
 	ValidateCanFindRoot();
+	ValidateMemberLocations();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where each member is, so a member can be found without searching them
+// all.  Made the first time it is asked for once there are many members;
+// NULL while there are few (searching them is quicker), or if this kind of
+// collection doesn't keep them.  Once made, every change to the members
+// keeps it up to date.
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerLocations* CCollection::GetMemberLocations(void)
+{
+	if (mpcMemberLocations != NULL)
+	{
+		return mpcMemberLocations;
+	}
+	if (!CanLocateMembers() || (NumElements() < COLLECTION_MEMBER_LOCATIONS_THRESHOLD))
+	{
+		return NULL;
+	}
+
+	mpcMemberLocations = NewMalloc<CPointerLocations>();
+	mpcMemberLocations->Init();
+	AddMemberLocations(mpcMemberLocations);
+	return mpcMemberLocations;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Forgets where the members are (when they all go, or are loaded anew).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::KillMemberLocations(void)
+{
+	SPointerLocationsIterator	sIter;
+	void*						pvMember;
+	ptr							uiLocation;
+	bool						bExists;
+
+	if (mpcMemberLocations == NULL)
+	{
+		return;
+	}
+
+	bExists = mpcMemberLocations->StartAllIteration(&sIter, &pvMember, &uiLocation);
+	while (bExists)
+	{
+		FreeMemberLocation(uiLocation);
+		bExists = mpcMemberLocations->IterateAll(&sIter, &pvMember, &uiLocation);
+	}
+	mpcMemberLocations->Kill();
+	SafeFree(mpcMemberLocations);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this kind of collection keeps where its members are.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::CanLocateMembers(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds where every member is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::AddMemberLocations(CPointerLocations* pcLocations)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A location may own memory (an index's copy of a key).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::FreeMemberLocation(ptr uiLocation)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every location kept holds its member, and every member is kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::ValidateMemberLocations(void)
+{
+	SPointerLocationsIterator	sIter;
+	void*						pvMember;
+	ptr							uiLocation;
+	bool						bExists;
+
+	if (mpcMemberLocations == NULL)
+	{
+		return;
+	}
+
+	if (mpcMemberLocations->NumLocations() != NonNullElements())
+	{
+		gcLogger.Error2(__METHOD__, " Collection {", ObjectToString(this), "} keeps [", SizeToString(mpcMemberLocations->NumLocations()), "] member locations but has [", SizeToString(NonNullElements()), "] members.", NULL);
+	}
+
+	bExists = mpcMemberLocations->StartAllIteration(&sIter, &pvMember, &uiLocation);
+	while (bExists)
+	{
+		if (!IsMemberAt((CEmbeddedObject*)pvMember, uiLocation))
+		{
+			gcLogger.Error2(__METHOD__, " Collection {", ObjectToString(this), "} keeps a location for member {", ObjectToString((CEmbeddedObject*)pvMember), "} that it isn't at.", NULL);
+		}
+		bExists = mpcMemberLocations->IterateAll(&sIter, &pvMember, &uiLocation);
+	}
 }
 
 

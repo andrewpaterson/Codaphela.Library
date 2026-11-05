@@ -6,6 +6,9 @@
 #include "TestIndexObject.h"
 
 
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1108,6 +1111,79 @@ void TestIndexObjectEmbeddedInObjectsKill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An index with many members keeps where each is (its keys), once it has
+// to find one: killing a member, an object under three keys, replacing and
+// removing keys and removing them all must keep it right, which validating
+// checks.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectMemberLocations(void)
+{
+	char				szKey[32];
+	char				szErrors[1024];
+	size				i;
+	CBaseObject*		pcKilled;
+	CBaseObject*		pcShared;
+	size				uiRootOnly;
+
+	ObjectsInit();
+	{
+		Ptr<CIndexObject>	pIndex;
+		Ptr<CTestObject>	pMember;
+
+		ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		pIndex = OMalloc<CIndexObject>();
+		ORoot()->Add(pIndex);
+		for (i = 0; i < 100; i++)
+		{
+			sprintf(szKey, "k%i", (int)i);
+			pIndex->Put(szKey, OMalloc<CTestObject>());
+		}
+		pMember = OMalloc<CTestObject>();
+		pIndex->Put("Shared1", pMember);
+		pIndex->Put("Shared2", pMember);
+		pIndex->Put("Shared3", pMember);
+		pcShared = pMember.BaseObject();
+		pMember = NULL;
+		AssertSize(103, pIndex->NumElements());
+
+		//Finding the member killed builds the locations.
+		pcKilled = pIndex->Get("k10").BaseObject();
+		pcKilled->Kill();
+		AssertTrue(pIndex->Get("k10").IsNull());
+		AssertSize(102, pIndex->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pIndex->Put("k20", OMalloc<CTestObject>());
+		pIndex->Put("k21", pIndex->Get("k22"));
+		AssertTrue(pIndex->Remove("k30"));
+		AssertSize(101, pIndex->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Killing the shared member removes all three of its keys.
+		pcShared->Kill();
+		AssertTrue(pIndex->Get("Shared1").IsNull());
+		AssertTrue(pIndex->Get("Shared3").IsNull());
+		AssertSize(98, pIndex->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pIndex->RemoveAll();
+		AssertSize(0, pIndex->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		AssertSize(uiRootOnly + 1, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The typed getters give the member as the type asked for.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1177,6 +1253,7 @@ void TestIndexObject(void)
 	TestIndexObjectMorphInto();
 	TestIndexObjectEmbeddedOnHeapKill();
 	TestIndexObjectTypedGet();
+	TestIndexObjectMemberLocations();
 	TestIndexObjectEmbeddedOnStackKill();
 	TestIndexObjectEmbeddedInObjectsKill();
 

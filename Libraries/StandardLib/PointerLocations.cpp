@@ -191,6 +191,45 @@ bool CPointerLocations::Iterate(SPointerLocationsIterator* psIter, ptr* puiLocat
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every pointer's every location, in no order.  The table mustn't change
+// while iterating.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointerLocations::StartAllIteration(SPointerLocationsIterator* psIter, void** ppvPointer, ptr* puiLocation)
+{
+	psIter->pvPointer = NULL;
+	psIter->uiSlot = 0;
+	if (muiNumSlots == 0)
+	{
+		return false;
+	}
+	psIter->uiSlot = muiNumSlots;
+	return IterateAll(psIter, ppvPointer, puiLocation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointerLocations::IterateAll(SPointerLocationsIterator* psIter, void** ppvPointer, ptr* puiLocation)
+{
+	while (psIter->uiSlot > 0)
+	{
+		psIter->uiSlot--;
+		if (masSlots[psIter->uiSlot].pvPointer != NULL)
+		{
+			*ppvPointer = masSlots[psIter->uiSlot].pvPointer;
+			*puiLocation = masSlots[psIter->uiSlot].uiLocation;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // pvOld's locations become pvNew's (a hollow object replaced by the
 // object loaded for it).  Returns how many there were.
 //

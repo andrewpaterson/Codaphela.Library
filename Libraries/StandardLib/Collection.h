@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __COLLECTION_H__
 #include "BaseObject.h"
 #include "StackPointers.h"
+#include "PointerLocations.h"
 #include "StandardLib/SetIterator.h"
 
 
@@ -31,7 +32,8 @@ class CCollection : public CBaseObject
 {
 CONSTRUCTABLE(CCollection)
 protected:
-	bool	mbSubRoot;
+	bool				mbSubRoot;
+	CPointerLocations*	mpcMemberLocations;  //Where each member is, once there are many to find one in.  NULL until then.
 
 public:
 			void			Init(void);
@@ -54,6 +56,7 @@ public:
 			bool			IsSubRoot(void);
 
 			void			ValidateConsistency(void);
+			void			ValidateMemberLocations(void);
 
 protected:
 			void			Class(void) override;
@@ -65,6 +68,13 @@ protected:
 			bool			AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);
+
+			CPointerLocations*	GetMemberLocations(void);
+			void			KillMemberLocations(void);
+	virtual bool			CanLocateMembers(void);
+	virtual void			AddMemberLocations(CPointerLocations* pcLocations);
+	virtual void			FreeMemberLocation(ptr uiLocation);
+	virtual bool			IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation);
 
 };
 

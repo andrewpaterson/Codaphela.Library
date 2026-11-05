@@ -86,6 +86,13 @@ protected:
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 
+	bool				CanLocateMembers(void) override;
+	void				AddMemberLocations(CPointerLocations* pcLocations) override;
+	void				FreeMemberLocation(ptr uiLocation) override;
+	bool				IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation) override;
+	void				AddMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
+	void				RemoveMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
+
 };
 
 

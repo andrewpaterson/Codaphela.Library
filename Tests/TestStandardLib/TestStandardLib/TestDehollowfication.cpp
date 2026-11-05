@@ -7,12 +7,14 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "BaseLib/Timer.h"
+#include "BaseLib/DataOrderers.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/ObjectConverterText.h"
 #include "StandardLib/ObjectConverterNative.h"
 #include "StandardLib/String.h"
 #include "StandardLib/PointerContainer.h"
 #include "StandardLib/ArrayObject.h"
+#include "StandardLib/IndexObject.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/FatHollowConfiguration.h"
@@ -1243,6 +1245,84 @@ void TestDehollowficationLoadArrayMembersSpeed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loading the hollow members of a big index saved: each loaded object
+// replaces its hollow under every key (one member is under two), which the
+// index finds through where it keeps its members.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadIndexMembers(void)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "BigIndex";
+	char			szKey[32];
+	char			szErrors[1024];
+	size			i;
+
+	cFileUtil.RemoveDir(szDirectory);
+	DataOrderersInit();
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CIndexObject>	pIndex;
+		Ptr<CString>		pString;
+
+		pIndex = ONMalloc<CIndexObject>("Index");
+		ORoot()->Add(pIndex);
+		for (i = 0; i < 100; i++)
+		{
+			sprintf(szKey, "k%i", (int)i);
+			pString = OMalloc<CString>();
+			pString->Set(szKey);
+			pIndex->Put(szKey, pString);
+		}
+		pIndex->Put("Again", pString);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CIndexObject>	pIndex;
+		Ptr<CString>		pString;
+
+		pIndex = gcObjects.Get("Index");
+		AssertSize(101, pIndex->NumElements());
+		for (i = 0; i < 100; i++)
+		{
+			sprintf(szKey, "k%i", (int)i);
+			pString = pIndex->Get<CString>(szKey);
+			AssertString(szKey, pString->Text());
+		}
+		AssertPointer(pString.Object(), pIndex->Get("Again").Object());
+		pString = NULL;
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	DataOrderersKill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1264,6 +1344,7 @@ void TestDehollowfication(void)
 	TestDehollowficationLoadedByName();
 	TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow();
 	TestDehollowficationLoadArrayMembersSpeed();
+	TestDehollowficationLoadIndexMembers();
 
 	DataIOKill();
 	TypesKill();
