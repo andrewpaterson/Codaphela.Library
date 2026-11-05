@@ -1,0 +1,152 @@
+Diff View Plan
+==============
+
+A side-by-side text diff component in WindowLib, modelled on IntelliJ IDEA's diff viewer.  It shows a
+CSimpleTextDiff (StandardLib, made by CTextDiffProducer) and reuses CCodeEditor, gutter and all, for its left and
+right panes.
+
+
+Decisions (user, 2026-11-05)
+----------------------------
+
+- Unaligned, as IntelliJ shows it by default.  No blank spacers: each pane shows its text with its own line numbers,
+  scrolling one scrolls the other through the changed blocks, and the divider between them draws curved shapes
+  joining each block's lines on the left to its lines on the right.
+- Read-only first.  Both panes can be selected and copied, but not edited.  An editable right side comes later.
+
+
+Structure
+---------
+
+CDiffView : CContainer, a grid of:
+
+    [ left title           ] [       ] [ right title          ]
+    [ CScrollPane          ] [divider] [ CScrollPane          ]
+    [   CCodeEditor (left) ] [       ] [   CCodeEditor (right)]
+
+- Titles come from CTextContent::GetTitle (a file name, later a file name and revision).
+- Each pane is an unchanged CScrollPane holding an unchanged CCodeEditor: gutter of line numbers, code text area,
+  gutter kept at the view's left when scrolled sideways.  The code editors are SetEditable(false) and selectable.
+- The divider (CDiffDivider) is a canvas a few dozen pixels wide.  It draws each block's shape for the panes' current
+  scroll positions.
+- CDiffView owns a CSimpleTextDiff and a CTextDiffProducer (plain classes inside a CObject).  Whatever makes the view
+  fills the diff through the producer (ProduceFromText, ProduceFromFiles, later a git revision) and calls Update.
+  Changing the whitespace or highlight policy calls Produce and Update; the text isn't reloaded.
+- The view only reads CSimpleTextDiff.  It doesn't compare anything itself.
+
+
+Text in the panes
+-----------------
+
+CTextContent splits lines at LF, CRLF and CR, and a CTextArea splits only at LF.  Each pane is given its content's
+lines joined with LF so the text area's line n is the content's line n, whatever the file's separators.
+
+Fragments are offsets into the content's text.  An offset maps to the text area by:
+  line = CTextContent::FindLine(offset)            (new: binary search over the lines)
+  column = offset - line start, at most the line's length + 1 (an offset in a CRLF lands on the LF)
+  position = CTextArea::GetLineStart(line) + column
+
+Syntax highlighting spans (AddSpan) can still be added by the IDE, as in an editor tab; the diff colours are
+backgrounds, so the two don't fight.
+
+
+Colours
+-------
+
+From a CDiffViewColours given by whoever makes the view (as CLineZones takes its background and text colours), with
+IntelliJ's dark theme as the default:
+- A block's lines get a band in its type's colour: inserted (green), deleted (grey), modified (blue).
+- Each fragment gets a stronger shade of its block's colour over its characters.
+- A block with no lines on one side (inserted or deleted) gets a thin line in its colour on that side, at the row
+  boundary where its lines would be.
+- The gutters get the same bands over the line numbers: the gutter is a CTextArea, so it gets the background layer
+  (below) for free.
+- The divider fills each block's shape in its colour with a darker outline.
+
+
+New general features (not diff-only)
+------------------------------------
+
+1. CTextArea background layer.  Today the only thing drawn under the text is the selection (mpSelectionMap, a
+   CGeometryMap).  Add a background map under it:
+     AddLineBackground(uiStartLine, uiEndLine, sColour)   full-width bands over whole lines
+     AddBackground(uiStart, uiEnd, sColour)               character ranges, drawn as the selection is
+     AddLineBoundary(uiLine, sColour)                     a thin line above line uiLine (NumLines for the end)
+     ClearBackgrounds()
+   Kept by line and position, redrawn whenever the layout changes, as the selection is.  The IDE can use it for the
+   current line, find results and breakpoints.
+
+2. CScrollPane scroll listener.  CScrollPaneListener::Scrolled(pcSource, pvContext) whenever the scroll position
+   changes (drag, wheel, track jump, SetScrollPosition, ScrollToShow).  CScrollPane has a CListenerCall like
+   CCodeEditor's.
+
+3. CTextContent::FindLine(lsize uiOffset), in StandardLib.
+
+4. CVectorPath::CubicTo(control1, control2, point), in SupportLib: a cubic Bezier flattened into line segments, so
+   the divider's curves rasterise with the existing CVectorRasteriser.
+
+
+Scroll synchronisation
+----------------------
+
+IntelliJ maps lines across the blocks.  Put the mapping in StandardLib next to the diff (CTextDiffLineMapper) so it
+can be tested without any windows:
+
+  float64 TransferLine(ETextDiffSide eFrom, float64 fLine)
+    - before or between blocks: shift by the difference in line numbers built up by the blocks so far.
+    - inside a block: proportional, start + (fLine - fromStart) * (toLength / fromLength).
+    - a block that's empty on the from side is a point; on the to side its lines are skipped over.
+
+When a pane scrolls (its CScrollPaneListener::Scrolled), the view:
+  - finds the fractional line at the vertical middle of that pane's view (scroll position plus half the view height,
+    over the row height; rows are equal as the code isn't wrapped and spans don't change the font's size),
+  - transfers it to the other side,
+  - sets the other pane's vertical scroll position so that line is at its middle, clamped,
+  - copies the horizontal scroll position across unchanged,
+  - guards against the other pane's Scrolled call coming back (mbSyncing).
+The divider is redrawn after any scroll or layout.
+
+
+The divider
+-----------
+
+For each block whose lines are in view on either side:
+  left top/bottom = the y of the block's first row and of the row after it in the left pane, minus its scroll
+  right top/bottom = the same in the right pane
+  shape = MoveTo(0, leftTop), CubicTo((w/2, leftTop), (w/2, rightTop), (w, rightTop)),
+          LineTo(w, rightBottom), CubicTo((w/2, rightBottom), (w/2, leftBottom), (0, leftBottom)), close
+An empty side has top == bottom, so the shape pinches to a point there.  Row y values come from
+CTextArea::GetLineBounds; the row after the last line is the bottom of the last line; an empty text is y 0.
+Coverage from CVectorRasteriser is blended onto the divider's canvas in the block's colour.
+
+
+Steps
+-----
+
+Each step is tested before the next.  Pixel tests compare against Input images in TestWindowLib, as the scroll pane
+and code editor tests do.
+
+1. CTextContent::FindLine + tests (TestStandardLib).
+2. CTextDiffLineMapper + tests: unchanged, inserted, deleted, modified with unequal sizes, blocks at the start and
+   end, empty texts (TestStandardLib).
+3. CTextArea background layer + tests: bands, ranges across lines, boundaries, scrolled, with tiled text, cleared
+   (TestWindowLib).
+4. CScrollPaneListener + tests: each way of scrolling tells listeners exactly once (TestWindowLib).
+5. CVectorPath::CubicTo + tests (TestSupportLib).
+6. CDiffDivider + CDiffViewColours + pixel tests of the shapes for given scroll positions.
+7. CDiffView: panes, titles, colours from a CSimpleTextDiff, sync scrolling, policy changes, pixel tests
+   (TestWindowLib).
+8. IDE: a "Compare With..." entry that opens a diff view in an editor tab (HCP65-IDE).
+
+
+Later
+-----
+
+- Next/previous difference (F7 / Shift+F7) and a "n differences" label.
+- Whitespace and highlight combos in a small toolbar.
+- Editable right side: CCodeEditorListener::CodeChanged -> CTextContent::Set from the text area -> Produce ->
+  Update, delayed like the IDE's 400 ms recolour.
+- IntelliJ's "Align changes" mode: blank spacers under the shorter side (CCodeEditor line gaps plus a gap above line
+  0), straight divider bands, and identical scroll positions.
+- Apply/revert arrows on the divider's shapes, once the right side is editable.
+- A git revision source for CTextDiffProducer.
