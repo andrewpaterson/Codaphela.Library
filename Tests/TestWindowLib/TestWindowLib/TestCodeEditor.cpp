@@ -647,7 +647,15 @@ void TestCodeEditorChangeBars(void)
 		AssertSize(2, pGutter->NumBackgrounds());
 		AssertTextAreaBackground(TAB_Lines, 1, 3, pGutter->GetBackground(0));
 		AssertTextAreaBackground(TAB_Boundary, 4, 4, pGutter->GetBackground(1));
+
+		//The band's numbers are brighter, so they can be read on it: a span over each of its rows' numbers.
+		AssertSize(2, pGutter->NumSpans());
+		pEditor->SetBandNumberColour(TEST_CHANGE_ADDED);
+		pTestWindow->Layout();
+		AssertSize(2, pGutter->NumSpans());
 		pEditor->ClearChangeBars();
+		pTestWindow->Layout();
+		AssertSize(0, pGutter->NumSpans());
 
 		pGutter = NULL;
 		pEditor = NULL;

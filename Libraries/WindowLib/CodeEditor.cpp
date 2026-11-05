@@ -43,6 +43,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mbMarksChanged = false;
 	masChangeBars.Init();
 	mbChangeBarsChanged = false;
+	msBandNumberColour = JEWEL_LINE_NUMBER_ACTIVE;
 	mcGutterClicked.Init();
 	mcChanged.Init();
 	CContainer::Init(pWindow);
@@ -112,6 +113,7 @@ void CCodeEditor::Class(void)
 	U_Bool(mbMarksChanged);
 	U_Data(CArrayCodeEditorChangeBars, masChangeBars);
 	U_Bool(mbChangeBarsChanged);
+	U_UInt32(msBandNumberColour);
 	U_Size(muiSeenChanges);
 	U_Data(CGutterClickEvent, mcGutterClicked);
 	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
@@ -553,8 +555,9 @@ void CCodeEditor::UpdateGutter(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Each changed line's row has its last column, after its number, in its
-// bar's colour, or the whole row for a band.  Removed lines are a line at
-// the top of the row below them.  Bars past the last line are cut off.
+// bar's colour, or the whole row for a band with its number in the band
+// number colour.  Removed lines are a line at the top of the row below
+// them.  Bars past the last line are cut off.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::DrawChangeBars(size uiDigits)
@@ -567,6 +570,7 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 	SCodeEditorChangeBar*	psBar;
 
 	mpGutter->ClearBackgrounds();
+	mpGutter->ClearSpans();
 	uiLines = mpGutter->NumLines();
 	uiColumn = 1 + uiDigits;
 	for (i = 0; i < masChangeBars.NumElements(); i++)
@@ -582,6 +586,10 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 			if (psBar->uiStartLine < uiEnd)
 			{
 				mpGutter->AddLineBackground(psBar->uiStartLine, uiEnd, psBar->sColour);
+			}
+			for (uiLine = psBar->uiStartLine; uiLine < uiEnd; uiLine++)
+			{
+				mpGutter->AddSpan(mpGutter->GetLineStart(uiLine), uiColumn, msBandNumberColour);
 			}
 		}
 		else
@@ -717,6 +725,23 @@ void CCodeEditor::ClearChangeBars(void)
 	if (masChangeBars.NumElements() > 0)
 	{
 		masChangeBars.ReInit();
+		mbChangeBarsChanged = true;
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The colour of the line numbers on change bands; the editor's caret line
+// number colour unless set.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetBandNumberColour(ARGB32 sColour)
+{
+	if (msBandNumberColour != sColour)
+	{
+		msBandNumberColour = sColour;
 		mbChangeBarsChanged = true;
 		InvalidateLayout();
 	}

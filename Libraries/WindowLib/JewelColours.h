@@ -40,6 +40,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define JEWEL_TEXT				Set32BitColour((uint8)0xDF, (uint8)0xE1, (uint8)0xE5)
 #define JEWEL_WHITE				Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)  //A tick.
 #define JEWEL_LINE_NUMBER		Set32BitColour((uint8)0x4B, (uint8)0x50, (uint8)0x59)  //The editor's line numbers.
+#define JEWEL_LINE_NUMBER_ACTIVE	Set32BitColour((uint8)0xA1, (uint8)0xA3, (uint8)0xAB)  //The caret's line's number, and numbers on a change's band.
 
 
 #endif // __JEWEL_COLOURS_H__

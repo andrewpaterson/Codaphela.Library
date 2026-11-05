@@ -65,7 +65,8 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //match.  The gutter's first column has a mark for each line (SetLineMark), a space unless set; marks are by line
 //number, so they don't move with the lines as the code is edited.  Change bars (AddChangeBar) colour the gutter's last
 //column beside lines that changed, or draw a line between rows where lines were removed; they are by line number too.
-//Change bands (AddChangeBand) colour the gutter's whole rows instead.
+//Change bands (AddChangeBand) colour the gutter's whole rows instead, with their numbers brighter so they can be read
+//(SetBandNumberColour).
 //Clicking the gutter calls the gutter click event
 //with the line it was next to, and an edit calls the change event.  The code editor is meant to be the content of a
 //CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
@@ -88,6 +89,7 @@ protected:
 	bool					mbMarksChanged;  //Since the gutter was last numbered.
 	CArrayCodeEditorChangeBars	masChangeBars;
 	bool					mbChangeBarsChanged;  //Since they were last drawn on the gutter.
+	ARGB32					msBandNumberColour;  //Line numbers on a change band.
 	size					muiSeenChanges;  //The text area's change count when the change event was last called.
 	CGutterClickEvent		mcGutterClicked;
 	CComponentEvent<CCodeEditor>	mcChanged;
@@ -120,6 +122,7 @@ public:
 	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour);
 	void				AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour);
 	void				ClearChangeBars(void);
+	void				SetBandNumberColour(ARGB32 sColour);
 	size				NumChangeBars(void);
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
 	CGutterClickEvent*	GetGutterClickEvent(void);
