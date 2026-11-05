@@ -24,8 +24,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The W65C816 back end: a function's code from its IR (GenerateFunction, GenerateBody), its arguments' places
 //(the register rule, FunctionArguments), its entry and exit (Prologue, RegisterStub, Forwarder, Epilogue) and its
-//blocks' jumps and phis.  The rest is in IR816Places, IR816Instructions, IR816Frames, IR816Lines, IR816Branches,
-//IR816Peephole, IR816DeadStores, IR816Flow and IR816Runtime, and what they share in IR816BackendInternal.h.
+//blocks' jumps and phis.  The rest is in IR816Places, IR816Instructions (with IR816Floats, IR816Shifts,
+//IR816Multiplies, IR816Compares, IR816Fusion and IR816Calls), IR816Frames, IR816Lines, IR816Branches, IR816Peephole,
+//IR816DeadStores, IR816Flow and IR816Runtime, and what they share in IR816BackendInternal.h.
 
 
 //////////////////////////////////////////////////////////////////////////

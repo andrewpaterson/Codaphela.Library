@@ -205,6 +205,12 @@
     <ClCompile Include="IR816Flow.cpp" />
     <ClCompile Include="IR816Frames.cpp" />
     <ClCompile Include="IR816Instructions.cpp" />
+    <ClCompile Include="IR816Floats.cpp" />
+    <ClCompile Include="IR816Shifts.cpp" />
+    <ClCompile Include="IR816Multiplies.cpp" />
+    <ClCompile Include="IR816Compares.cpp" />
+    <ClCompile Include="IR816Fusion.cpp" />
+    <ClCompile Include="IR816Calls.cpp" />
     <ClCompile Include="IR816Lines.cpp" />
     <ClCompile Include="IR816Peephole.cpp" />
     <ClCompile Include="IR816Places.cpp" />
