@@ -157,11 +157,8 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 		return false;
 	}
 
-	if (mpcMemberLocations != NULL)
-	{
-		RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
-		AddMemberKey(pvObject, pvKey, iKeySize);
-	}
+	RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
+	AddMemberKey(pvObject, pvKey, iKeySize);
 
 	AddObjectFrom(pvObject, pcPointedTo == NULL);
 	return RemoveObjectTryFree(pcPointedTo, true);
@@ -195,10 +192,7 @@ bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
 		return false;
 	}
 
-	if (mpcMemberLocations != NULL)
-	{
-		RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
-	}
+	RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
 	return RemoveObjectTryFree(pcPointedTo, true);
 }
 
@@ -591,24 +585,13 @@ void CIndexObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
-	CPointerLocations*			pcLocations;
-	SPointerLocationsIterator	sIter;
-	ptr							uiLocation;
-	SIndexMemberKey*			psKey;
-
-	pcLocations = GetMemberLocations();
-	if (pcLocations == NULL)
+	if (GetMemberLocations() == NULL)
 	{
 		mcIndex.Remove(pcTo);
-		return;
 	}
-
-	while (pcLocations->StartIteration(&sIter, pcTo, &uiLocation))
+	else
 	{
-		psKey = (SIndexMemberKey*)uiLocation;
-		mcIndex.Remove(psKey->auiKey, psKey->uiKeySize);
-		pcLocations->Remove(pcTo, uiLocation);
-		free(psKey);
+		RemoveLocatedMember(pcTo);
 	}
 }
 
@@ -619,27 +602,15 @@ void CIndexObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	CPointerLocations*				pcLocations;
-	SPointerLocationsIterator		sKeyIter;
-	ptr								uiLocation;
-	SIndexMemberKey*				psKey;
 	bool							bExists;
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	CIndexTreeNodeMemory*			pcNode;
 	size 							iCount;
 
-	pcLocations = GetMemberLocations();
-	if (pcLocations != NULL)
+	if (GetMemberLocations() != NULL)
 	{
-		bExists = pcLocations->StartIteration(&sKeyIter, pcOld, &uiLocation);
-		while (bExists)
-		{
-			psKey = (SIndexMemberKey*)uiLocation;
-			mcIndex.Put(psKey->auiKey, psKey->uiKeySize, (CUnknown*)pcNew);
-			bExists = pcLocations->Iterate(&sKeyIter, &uiLocation);
-		}
-		return pcLocations->MovePointer(pcOld, pcNew);
+		return RemapLocatedMember(pcOld, pcNew);
 	}
 
 	iCount = 0;
@@ -655,6 +626,33 @@ size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNe
 		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcPointedTo);
 	}
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiLocation is the member's key.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexObject::RemoveMemberAt(ptr uiLocation)
+{
+	SIndexMemberKey*	psKey;
+
+	psKey = (SIndexMemberKey*)uiLocation;
+	mcIndex.Remove(psKey->auiKey, psKey->uiKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexObject::ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember)
+{
+	SIndexMemberKey*	psKey;
+
+	psKey = (SIndexMemberKey*)uiLocation;
+	mcIndex.Put(psKey->auiKey, psKey->uiKeySize, (CUnknown*)pcMember);
 }
 
 
@@ -718,12 +716,13 @@ bool CIndexObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Keeps that pcMember is under the key (if there is one).
+// Keeps that pcMember is under the key (if there is one, and the member
+// keys are kept: they aren't until the index is big).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::AddMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize)
 {
-	if (pcMember != NULL)
+	if ((mpcMemberLocations != NULL) && (pcMember != NULL))
 	{
 		mpcMemberLocations->Add(pcMember, (ptr)NewIndexMemberKey(pvKey, uiKeySize));
 	}
@@ -742,7 +741,7 @@ void CIndexObject::RemoveMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size
 	bool						bExists;
 	SIndexMemberKey*			psKey;
 
-	if (pcMember == NULL)
+	if ((mpcMemberLocations == NULL) || (pcMember == NULL))
 	{
 		return;
 	}

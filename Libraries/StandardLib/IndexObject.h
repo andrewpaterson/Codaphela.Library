@@ -90,6 +90,8 @@ protected:
 	void				AddMemberLocations(CPointerLocations* pcLocations) override;
 	void				FreeMemberLocation(ptr uiLocation) override;
 	bool				IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation) override;
+	void				RemoveMemberAt(ptr uiLocation) override;
+	void				ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember) override;
 	void				AddMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
 	void				RemoveMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize);
 

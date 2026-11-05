@@ -71,11 +71,15 @@ protected:
 
 			CPointerLocations*	GetMemberLocations(void);
 			void			KillMemberLocations(void);
+			size			RemoveLocatedMember(CEmbeddedObject* pcMember);
+			size			RemapLocatedMember(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	virtual bool			CanLocateMembers(void);
 	virtual void			AddMemberLocations(CPointerLocations* pcLocations);
 	virtual void			FreeMemberLocation(ptr uiLocation);
 	virtual bool			IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation);
 	virtual size			NumLocatedMembers(void);
+	virtual void			RemoveMemberAt(ptr uiLocation);
+	virtual void			ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember);
 	virtual bool			HaveMembersMoved(void);
 
 };

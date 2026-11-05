@@ -98,6 +98,8 @@ protected:
 	bool					CanLocateMembers(void) override;
 	void					AddMemberLocations(CPointerLocations* pcLocations) override;
 	bool					IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation) override;
+	void					RemoveMemberAt(ptr uiLocation) override;
+	void					ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember) override;
 	bool					HaveMembersMoved(void) override;
 	CPointerLocations*		CurrentMemberLocations(void);
 	void					MemberAdded(CEmbeddedObject* pcMember, size uiIndex);

@@ -560,14 +560,11 @@ CBaseObject* CArrayCommonObject::UnsafeGetObject(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	size 						iCount;
-	CEmbeddedObject**			ppcPointedTo;
-	size 						i;
-	size 						uiNumElements;
-	CPointerLocations*			pcLocations;
-	SPointerLocationsIterator	sIter;
-	ptr							uiIndex;
-	bool						bExists;
+	size 				iCount;
+	CEmbeddedObject**	ppcPointedTo;
+	size 				i;
+	size 				uiNumElements;
+	CPointerLocations*	pcLocations;
 
 	if (pcOld == pcNew)
 	{
@@ -591,15 +588,7 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 	}
 	else
 	{
-		//Nothing moves: pcNew is where pcOld was.
-		bExists = pcLocations->StartIteration(&sIter, pcOld, &uiIndex);
-		while (bExists)
-		{
-			mcArray.UnsafeSet((size)uiIndex, pcNew);
-			iCount++;
-			bExists = pcLocations->Iterate(&sIter, &uiIndex);
-		}
-		pcLocations->MovePointer(pcOld, pcNew);
+		iCount = RemapLocatedMember(pcOld, pcNew);
 	}
 
 	if (iCount > 0)
@@ -930,13 +919,7 @@ size CArrayCommonObject::RemoveCopies(CEmbeddedObject* pcObject)
 		return mcArray.Remove(pcObject);
 	}
 
-	uiRemoved = 0;
-	while (pcLocations->StartIteration(&sIter, pcObject, &uiIndex))
-	{
-		pcLocations->Remove(pcObject, uiIndex);
-		mcArray.Remove((size)uiIndex, false);
-		uiRemoved++;
-	}
+	uiRemoved = RemoveLocatedMember(pcObject);
 	mcArray.CleanNullsIfNecessary();
 	return uiRemoved;
 }
@@ -987,6 +970,28 @@ bool CArrayCommonObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 		return false;
 	}
 	return mcArray.UnsafeGet((size)uiLocation) == pcMember;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only an array that ignores NULLs is removed from by location: a NULL is
+// left in the slot, so nothing else moves.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveMemberAt(ptr uiLocation)
+{
+	mcArray.Remove((size)uiLocation, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember)
+{
+	mcArray.UnsafeSet((size)uiLocation, pcMember);
 }
 
 

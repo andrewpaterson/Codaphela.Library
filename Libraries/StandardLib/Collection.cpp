@@ -384,6 +384,55 @@ void CCollection::KillMemberLocations(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes pcMember out of every location kept for it (RemoveMemberAt) and
+// forgets them.  The member locations must be kept.  Returns how many
+// there were.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCollection::RemoveLocatedMember(CEmbeddedObject* pcMember)
+{
+	SPointerLocationsIterator	sIter;
+	ptr							uiLocation;
+	size						uiRemoved;
+
+	uiRemoved = 0;
+	while (mpcMemberLocations->StartIteration(&sIter, pcMember, &uiLocation))
+	{
+		mpcMemberLocations->Remove(pcMember, uiLocation);
+		RemoveMemberAt(uiLocation);
+		FreeMemberLocation(uiLocation);
+		uiRemoved++;
+	}
+	return uiRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts pcNew in every location kept for pcOld (a hollow object replaced by
+// the object loaded for it): nothing moves, so the locations become
+// pcNew's.  The member locations must be kept.  Returns how many there
+// were.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCollection::RemapLocatedMember(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+{
+	SPointerLocationsIterator	sIter;
+	ptr							uiLocation;
+	bool						bExists;
+
+	bExists = mpcMemberLocations->StartIteration(&sIter, pcOld, &uiLocation);
+	while (bExists)
+	{
+		ReplaceMemberAt(uiLocation, pcNew);
+		bExists = mpcMemberLocations->Iterate(&sIter, &uiLocation);
+	}
+	return mpcMemberLocations->MovePointer(pcOld, pcNew);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether this kind of collection keeps where its members are.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -420,6 +469,27 @@ void CCollection::FreeMemberLocation(ptr uiLocation)
 bool CCollection::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the member at uiLocation out (see RemoveLocatedMember).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::RemoveMemberAt(ptr uiLocation)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts pcMember at uiLocation in place of what is there (see
+// RemapLocatedMember).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::ReplaceMemberAt(ptr uiLocation, CEmbeddedObject* pcMember)
+{
 }
 
 
