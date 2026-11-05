@@ -50,7 +50,7 @@ enum EInputActionFilter
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void InputActionCallPointer(void* pvObject, uint8* pucFunction, void* pvArgument)
+void InputActionCallPointer(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue)
 {
 	void(M::*fFunction)(int x, int y);
 	SComponentInputEvent*	psEvent;

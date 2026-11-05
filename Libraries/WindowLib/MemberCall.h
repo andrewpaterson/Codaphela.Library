@@ -28,8 +28,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MEMBER_CALL_FUNCTION_SIZE	32
 
 
-//Calls the member function kept in pucFunction on pvObject, giving it what it needs of pvArgument.
-typedef void (*MemberCallThunk)(void* pvObject, uint8* pucFunction, void* pvArgument);
+//Calls the member function kept in pucFunction on pvObject, giving it what it needs of pvArgument and of the value
+//pvValue points to.
+typedef void (*MemberCallThunk)(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,7 +39,7 @@ typedef void (*MemberCallThunk)(void* pvObject, uint8* pucFunction, void* pvArgu
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void MemberCallPlain(void* pvObject, uint8* pucFunction, void* pvArgument)
+void MemberCallPlain(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue)
 {
 	void(M::*fFunction)(void);
 
@@ -53,12 +54,28 @@ void MemberCallPlain(void* pvObject, uint8* pucFunction, void* pvArgument)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M, class A>
-void MemberCallWith(void* pvObject, uint8* pucFunction, void* pvArgument)
+void MemberCallWith(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue)
 {
 	void(M::*fFunction)(A*);
 
 	memcpy(&fFunction, pucFunction, sizeof(fFunction));
 	(((M*)pvObject)->*fFunction)((A*)pvArgument);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A thunk for a member function of M that takes the argument, an A, and
+// the value, a V.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class A, class V>
+void MemberCallWithValue(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue)
+{
+	void(M::*fFunction)(A*, V);
+
+	memcpy(&fFunction, pucFunction, sizeof(fFunction));
+	(((M*)pvObject)->*fFunction)((A*)pvArgument, *(V*)pvValue);
 }
 
 
@@ -78,10 +95,12 @@ struct SMemberCall
 	void	Init(O* pcObject, void(M::*fFunction)(void));
 	template<class M, class A, class O>
 	void	Init(O* pcObject, void(M::*fFunction)(A*));
+	template<class M, class A, class V, class O>
+	void	Init(O* pcObject, void(M::*fFunction)(A*, V));
 	template<class M, class F>
 	void	Init(M* pcObject, F fFunction, MemberCallThunk fCaller);
 
-	void	Call(void* pvArgument);
+	void	Call(void* pvArgument, void* pvValue = NULL);
 	bool	IsOn(void* pvObject);
 	bool	Equals(SMemberCall* psOther);
 };
@@ -111,6 +130,17 @@ void SMemberCall::Init(O* pcObject, void(M::*fFunction)(A*))
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class A, class V, class O>
+void SMemberCall::Init(O* pcObject, void(M::*fFunction)(A*, V))
+{
+	Init<M>(pcObject, fFunction, &MemberCallWithValue<M, A, V>);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // For a function of some other shape, with a thunk that calls it.
 // pcObject is already the function's class, so the thunk can cast the
 // kept void* straight back to it.
@@ -132,9 +162,9 @@ void SMemberCall::Init(M* pcObject, F fFunction, MemberCallThunk fCaller)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline void SMemberCall::Call(void* pvArgument)
+inline void SMemberCall::Call(void* pvArgument, void* pvValue)
 {
-	fThunk(pvObject, aucFunction, pvArgument);
+	fThunk(pvObject, aucFunction, pvArgument, pvValue);
 }
 
 

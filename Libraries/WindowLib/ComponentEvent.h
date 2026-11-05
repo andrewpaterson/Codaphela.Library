@@ -48,7 +48,22 @@ public:
 	void	Call(S* pcSource);
 
 protected:
+	void	CallWith(S* pcSource, void* pvValue);
 	bool	Contains(SMemberCall* psCall);
+};
+
+
+//A component event that also gives a value of class V, like the page of a tab that was removed.  A function takes the
+//component and the value, or just the component, or nothing.
+template<class S, class V>
+class CComponentValueEvent : public CComponentEvent<S>
+{
+public:
+	using CComponentEvent<S>::Add;
+	template<class M, class O>
+	void	Add(O* pcObject, void(M::*fFunction)(S* pcSource, V xValue));
+
+	void	Call(S* pcSource, V xValue);
 };
 
 
@@ -145,6 +160,19 @@ size CComponentEvent<S>::NumCalls(void)
 template<class S>
 void CComponentEvent<S>::Call(S* pcSource)
 {
+	CallWith(pcSource, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pvValue points to the value of a CComponentValueEvent, NULL for a
+// CComponentEvent's functions, which don't take one.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class S>
+void CComponentEvent<S>::CallWith(S* pcSource, void* pvValue)
+{
 	CArrayTemplate<SMemberCall>	asCalls;
 	SMemberCall*				psCall;
 	size						i;
@@ -156,7 +184,7 @@ void CComponentEvent<S>::Call(S* pcSource)
 		psCall = asCalls.Get(i);
 		if (Contains(psCall))
 		{
-			psCall->Call(pcSource);
+			psCall->Call(pcSource, pvValue);
 		}
 	}
 	asCalls.Kill();
@@ -180,6 +208,31 @@ bool CComponentEvent<S>::Contains(SMemberCall* psCall)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class S, class V>
+template<class M, class O>
+void CComponentValueEvent<S, V>::Add(O* pcObject, void(M::*fFunction)(S* pcSource, V xValue))
+{
+	this->masCalls.Add()->Init(pcObject, fFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls each function as CComponentEvent::Call does, with xValue for the
+// ones that take it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class S, class V>
+void CComponentValueEvent<S, V>::Call(S* pcSource, V xValue)
+{
+	this->CallWith(pcSource, &xValue);
 }
 
 

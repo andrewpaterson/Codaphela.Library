@@ -854,6 +854,64 @@ void TestButtonClickEvent(void)
 }
 
 
+//Logs what a value event gives its functions.
+class CTestValueEventListener
+{
+public:
+	CChars*		mpszLog;
+
+	void WithValue(STestEventSource* psSource, int iValue)
+	{
+		mpszLog->Append(psSource->szName);
+		mpszLog->Append(":");
+		mpszLog->Append(iValue);
+		mpszLog->Append(";");
+	}
+
+	void WithSource(STestEventSource* psSource)
+	{
+		mpszLog->Append(psSource->szName);
+		mpszLog->Append(";");
+	}
+
+	void Plain(void)
+	{
+		mpszLog->Append("Plain;");
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A value event gives its functions the component and the value, or just
+// the component, or nothing, as they take.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestButtonValueEvent(void)
+{
+	CComponentValueEvent<STestEventSource, int>	cEvent;
+	STestEventSource							sSource;
+	CTestValueEventListener						cListener;
+	CChars										szLog;
+
+	szLog.Init();
+	cEvent.Init();
+	sSource.szName = "Tab";
+	cListener.mpszLog = &szLog;
+
+	cEvent.Add(&cListener, &CTestValueEventListener::WithValue);
+	cEvent.Add(&cListener, &CTestValueEventListener::WithSource);
+	cEvent.Add(&cListener, &CTestValueEventListener::Plain);
+	cEvent.Call(&sSource, 42);
+	AssertLog("Tab:42;Tab;Plain;");
+	AssertTrue(cEvent.Remove(&cListener));
+	AssertSize(0, cEvent.NumCalls());
+
+	cEvent.Kill();
+	szLog.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -864,6 +922,7 @@ void TestButton(void)
 	ObjectsInit();
 
 	TestButtonClickEvent();
+	TestButtonValueEvent();
 	TestButtonInput();
 	TestButtonDefault();
 	TestButtonIcons();
