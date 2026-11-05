@@ -2813,6 +2813,63 @@ void TestDistToRootCanFindRootStopsOnCycle(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A container's closest from points to an object embedded in it.  Losing
+// a farther from of the container itself changes nothing: HasCloserFrom
+// finds the embedded object's from, so nothing is cleared and rechecked
+// (skipping the embedded objects' froms would still end at the right
+// distances, only after touching the container).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootCloserFromOnEmbeddedObject(void)
+{
+	ObjectsInit();
+	gcObjects.AddConstructor<CEmbeddedTest>();
+	gcObjects.AddConstructor<CEmbeddedContainer>();
+	{
+		CDistCalculator				cDistCalculator;
+		Ptr<CRoot>					pRoot;
+		Ptr<CEmbeddedContainer>		pContainer;
+		Ptr<CPointerContainer>		pNear;
+		Ptr<CPointerContainer>		pFar;
+		Ptr<CArrayObject>			pArray;
+
+		pRoot = ORoot();
+		pContainer = OMalloc<CEmbeddedContainer>();
+		pNear = OMalloc<CPointerContainer>();
+		pFar = OMalloc<CPointerContainer>();
+		pArray = OMalloc<CArrayObject>();
+		pRoot->Add(pNear);
+		pRoot->Add(pArray);
+		pArray->Add(pFar);
+		pNear->mp = &pContainer->mcOne;
+		pFar->mp = pContainer;
+
+		//
+		//   pNear(2) --> mcOne    pFar(3)
+		//                  \       /
+		//                pContainer(3)
+		//
+		AssertInt(2, pNear->GetDistToRoot());
+		AssertInt(3, pFar->GetDistToRoot());
+		AssertInt(3, pContainer->GetDistToRoot());
+
+		pFar->mp.UnsafeClearObject();
+		pContainer->TestRemoveHeapFrom(pFar.BaseObject());
+
+		cDistCalculator.Init();
+		cDistCalculator.CalculateDistToRoot(pContainer.BaseObject());
+		AssertInt(3, pContainer->GetDistToRoot());
+		AssertSize(0, cDistCalculator.NumTouched());
+		cDistCalculator.Kill();
+		AssertDistToRoot();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRoot(void)
@@ -2852,6 +2909,7 @@ void TestDistToRoot(void)
 	TestDistToRootTwoPointersFromTwoEmbeddedObjects();
 	TestDistToRootBackPointerToRootedObject();
 	TestDistToRootCanFindRootStopsOnCycle();
+	TestDistToRootCloserFromOnEmbeddedObject();
 
 	DataIOKill();
 	TypesKill();
