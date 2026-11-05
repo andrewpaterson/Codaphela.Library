@@ -92,6 +92,10 @@ enum EComponentInputCommand
 	CIC_Save,  //Control+S.
 	CIC_SaveAll,  //Control+Shift+S.
 
+	//Differences
+	CIC_NextDifference,  //F7.
+	CIC_PreviousDifference,  //Shift+F7.
+
 	//Code
 	CIC_GoToDefinition,  //F12.
 	CIC_FindReferences,  //Shift+F12.

@@ -69,6 +69,7 @@ public:
 		mpcKeyboard->AddSource("Numpad 8");
 		mpcKeyboard->AddSource("Numpad 0");
 		mpcKeyboard->AddSource("F1");
+		mpcKeyboard->AddSource("F7");
 
 		mpcMouse->AddSource("Button 1");
 		mpcMouse->AddSource("Button 2");
@@ -231,6 +232,13 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Shift");
 		cDevices.Release("Left Control");
 		AssertLog("B:Save;B:SaveAll;");
+
+		//F7 goes to the next difference; with shift, the previous.
+		cDevices.Tap("F7");
+		cDevices.Press("Left Shift");
+		cDevices.Tap("F7");
+		cDevices.Release("Left Shift");
+		AssertLog("B:NextDifference;B:PreviousDifference;");
 
 		//Nothing is mapped with alt.
 		cDevices.Press("Left Alt");

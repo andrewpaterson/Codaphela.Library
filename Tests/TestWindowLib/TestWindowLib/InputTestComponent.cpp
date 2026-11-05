@@ -8,7 +8,7 @@
 static EComponentInputCommand	gaeInputTestCommands[] =
 {
 	CIC_Up, CIC_Left, CIC_WordLeft, CIC_End, CIC_LineUp, CIC_LineDown, CIC_SelectUp, CIC_SelectAll,
-	CIC_Space, CIC_Tab, CIC_BackTab, CIC_Enter, CIC_EndEnter, CIC_Copy, CIC_Paste, CIC_Save, CIC_SaveAll,
+	CIC_Space, CIC_Tab, CIC_BackTab, CIC_Enter, CIC_EndEnter, CIC_Copy, CIC_Paste, CIC_Save, CIC_SaveAll, CIC_NextDifference, CIC_PreviousDifference,
 	CIC_ActivateComponent, CIC_ExecuteComponent, CIC_ContextMenu,
 	CIC_StartDragScroll, CIC_ContDragScroll, CIC_StopDragScroll, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect,
 	CIC_Hover,
@@ -121,6 +121,8 @@ void CInputTestComponent::CommandAction(SComponentInputEvent* psEvent)
 	case CIC_Copy:				Log("Copy");							break;
 	case CIC_Save:				Log("Save");							break;
 	case CIC_SaveAll:			Log("SaveAll");						break;
+	case CIC_NextDifference:	Log("NextDifference");				break;
+	case CIC_PreviousDifference:	Log("PreviousDifference");		break;
 	case CIC_ActivateComponent:	Log("Activate", x, y);					break;
 	case CIC_ExecuteComponent:	Log("Execute", x, y);					break;
 	case CIC_ContextMenu:		Log("ContextMenu", x, y);				break;

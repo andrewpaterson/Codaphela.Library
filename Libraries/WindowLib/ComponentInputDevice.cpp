@@ -123,14 +123,15 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddPrintable("Numpad +", '+', '+', '+', '+');
 
 	//Function keys don't type anything.  As in Visual Studio F12 goes to the definition of what is at the caret, F5
-	//starts debugging (or continues), F9 toggles a breakpoint, F10 steps over and F11 steps into.
+	//starts debugging (or continues), F9 toggles a breakpoint, F10 steps over and F11 steps into.  As in IntelliJ IDEA
+	//F7 goes to the next difference in a diff.
 	AddCommand("F1", CIC_Ignored);
 	AddCommand("F2", CIC_Ignored);
 	AddCommand("F3", CIC_Ignored);
 	AddCommand("F4", CIC_Ignored);
 	AddCommand("F5", CIC_StartDebugging);
 	AddCommand("F6", CIC_Ignored);
-	AddCommand("F7", CIC_Ignored);
+	AddCommand("F7", CIC_NextDifference);
 	AddCommand("F8", CIC_Ignored);
 	AddCommand("F9", CIC_ToggleBreakpoint);
 	AddCommand("F10", CIC_StepOver);
