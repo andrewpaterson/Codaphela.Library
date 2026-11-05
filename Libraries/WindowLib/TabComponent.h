@@ -61,6 +61,7 @@ public:
 	bool				IsClosable(void);
 	char*				GetText(void);
 	void				SetText(const char* szName);
+	void				SetTextFont(Ptr<CFont> pFont);
 	Ptr<CIconComponent>	GetIcon(void);
 	Ptr<CIconComponent>	GetClose(void);
 
