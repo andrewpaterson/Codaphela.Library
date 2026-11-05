@@ -38,8 +38,7 @@ void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpStyle = pTheme->GetMenuStyle();
 	maItems.Init();
 	mpOpenItem = NULL;
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CMenuListener>();
+	mcItemClicked.Init();
 
 	//Like a list's highlights the background is the first component, so the buttons are drawn over it, in the top left
 	//cell with no size of its own.  It is moved over the whole bar after the bar is laid out.
@@ -69,7 +68,7 @@ void CMenuBar::Class(void)
 	M_Pointer(mpFiller);
 	M_Embedded(maItems);
 	M_Pointer(mpOpenItem);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CMenuItem>, mcItemClicked);
 }
 
 
@@ -79,7 +78,7 @@ void CMenuBar::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuBar::Free(void)
 {
-	mcListeners.Kill();
+	mcItemClicked.Kill();
 	CGridContainer::Free();
 }
 
@@ -243,27 +242,19 @@ void CMenuBar::MenuClosed(Ptr<CMenuBarItem> pItem)
 //////////////////////////////////////////////////////////////////////////
 void CMenuBar::MenuItemClicked(Ptr<CMenuItem> pItem)
 {
-	mcListeners.CallListeners(&CMenuListener::MenuItemClicked, &pItem, NULL);
+	mcItemClicked.Call(&pItem);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when an item in any of the bar's menus is clicked, with the item:
+// pMenuBar->GetItemClickEvent()->Add(this, &CMyContent::MenuItemClicked).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMenuBar::AddListener(CMenuListener* pcListener)
+CComponentEvent<CMenuItem>* CMenuBar::GetItemClickEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMenuBar::RemoveListener(CMenuListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcItemClicked;
 }
 
 

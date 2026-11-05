@@ -249,9 +249,6 @@
     <ClInclude Include="MenuItem.h">
       <Filter>Source\Component\Widgets\Menu</Filter>
     </ClInclude>
-    <ClInclude Include="MenuListener.h">
-      <Filter>Source\Component\Widgets\Menu</Filter>
-    </ClInclude>
     <ClInclude Include="MenuStyle.h">
       <Filter>Source\Component\Widgets\Menu</Filter>
     </ClInclude>

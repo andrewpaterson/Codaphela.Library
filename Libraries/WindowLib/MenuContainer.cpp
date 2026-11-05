@@ -53,8 +53,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 	PreInit();
 
 	CListContainer::Init(pWindow, pTheme);
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CMenuListener>();
+	mcItemClicked.Init();
 	mpStyle = pStyle;
 	maItems.Init();
 	maiItemRows.Init();
@@ -82,7 +81,7 @@ void CMenuContainer::Class(void)
 {
 	CListContainer::Class();
 
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CMenuItem>, mcItemClicked);
 	M_Pointer(mpStyle);
 	M_Embedded(maItems);
 	U_Data(CArrayInt, maiItemRows);
@@ -99,7 +98,7 @@ void CMenuContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::Free(void)
 {
-	mcListeners.Kill();
+	mcItemClicked.Kill();
 	maiItemRows.Kill();
 	CListContainer::Free();
 }
@@ -371,21 +370,13 @@ void CMenuContainer::SetMenuBar(Ptr<CMenuBar> pMenuBar)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when an item in the menu, or in a menu opened from it, is
+// clicked, with the item, if the menu wasn't itself opened from another.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMenuContainer::AddListener(CMenuListener* pcListener)
+CComponentEvent<CMenuItem>* CMenuContainer::GetItemClickEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMenuContainer::RemoveListener(CMenuListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcItemClicked;
 }
 
 
@@ -523,9 +514,10 @@ void CMenuContainer::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every menu from the first one the item was reached from closes before
-// the listeners are told.  The component that opened the first menu, a
-// combo box say, is told too.  It is found through the object graph, not
-// a listener, so it needs nothing removed when it is freed.
+// that menu's item click event is called.  The component that opened the
+// first menu, a combo box say, is told too.  It is found through the
+// object graph, not an event, so it needs nothing removed when it is
+// freed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
@@ -549,7 +541,7 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 	pPopup = NULL;
 
 	pRoot->Close();
-	pRoot->mcListeners.CallListeners(&CMenuListener::MenuItemClicked, &pItem, NULL);
+	pRoot->mcItemClicked.Call(&pItem);
 	if (pRoot->mpMenuBar.IsNotNull())
 	{
 		pRoot->mpMenuBar->MenuItemClicked(pItem);

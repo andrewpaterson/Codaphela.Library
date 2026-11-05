@@ -29,9 +29,8 @@ void ValidateLabelObjects(void);
 // Logs "Clicked:text;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestMenuListener : public CMenuListener
+class CTestMenuListener
 {
-CONSTRUCTABLE(CTestMenuListener);
 public:
 	CChars*		mpszLog;
 
@@ -40,10 +39,10 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void MenuItemClicked(CUnknown* pcSource, void* pvContext) override
+	void MenuItemClicked(CMenuItem* pcItem)
 	{
 		mpszLog->Append("Clicked:");
-		mpszLog->Append(((CMenuItem*)pcSource)->GetText());
+		mpszLog->Append(pcItem->GetText());
 		mpszLog->Append(";");
 	}
 };
@@ -343,7 +342,7 @@ void TestMenuBarPointer(void)
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestMenus(pTestWindow, &sMenus);
-		AssertTrue(sMenus.pBar->AddListener(&cListener));
+		sMenus.pBar->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
 		pTestWindow->Layout();
 
 		//The bar is across the window, as tall as its buttons, with the buttons on its left.
@@ -467,7 +466,7 @@ void TestMenuBarPointer(void)
 
 		ValidateLabelObjects();
 
-		AssertTrue(sMenus.pBar->RemoveListener(&cListener));
+		AssertTrue(sMenus.pBar->GetItemClickEvent()->Remove(&cListener));
 		pPopup = NULL;
 		pSubPopup = NULL;
 		pFocus = NULL;
@@ -507,7 +506,7 @@ void TestMenuBarKeys(void)
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestMenus(pTestWindow, &sMenus);
-		AssertTrue(sMenus.pBar->AddListener(&cListener));
+		sMenus.pBar->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
 		pTestWindow->Layout();
 
 		//A focussed bar button moves along the bar with left and right, round from one end to the other.
@@ -584,7 +583,7 @@ void TestMenuBarKeys(void)
 
 		ValidateLabelObjects();
 
-		AssertTrue(sMenus.pBar->RemoveListener(&cListener));
+		AssertTrue(sMenus.pBar->GetItemClickEvent()->Remove(&cListener));
 		pFocus = NULL;
 		sMenus.Kill();
 		ORoot()->Remove(pTestWindow);

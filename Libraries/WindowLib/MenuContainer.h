@@ -21,12 +21,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MENU_CONTAINER_H__
 #define __MENU_CONTAINER_H__
 #include "BaseLib/ArrayInt.h"
-#include "StandardLib/ListenerCall.h"
 #include "ListContainer.h"
 #include "Popup.h"
 #include "MenuItem.h"
 #include "MenuStyle.h"
-#include "MenuListener.h"
 
 
 class CMenuBar;
@@ -38,14 +36,14 @@ class CMenuBar;
 //closes a menu opened from another and goes back to that one.  On a menu from a menu bar left and right open the
 //bar's neighbouring menus.
 //
-//Clicking an item closes every menu it was opened from and tells the listeners of the first of them, and of its menu
-//bar if it has one, see CMenuListener.
+//Clicking an item closes every menu it was opened from and calls the item click event of the first of them, and of its
+//menu bar if it has one, with the item.
 class CMenuContainer : public CListContainer
 {
 CONSTRUCTABLE(CMenuContainer);
 DESTRUCTABLE(CMenuContainer);
 protected:
-	CListenerCall		mcListeners;
+	CComponentEvent<CMenuItem>	mcItemClicked;
 	Ptr<CMenuStyle>		mpStyle;
 	CArray<CMenuItem>	maItems;
 	CArrayInt			maiItemRows;  //The row of each item in maItems.
@@ -81,8 +79,7 @@ public:
 	Ptr<CMenuBar>		GetMenuBar(void);
 	Ptr<CMenuStyle>		GetStyle(void);
 
-	bool				AddListener(CMenuListener* pcListener);
-	bool				RemoveListener(CMenuListener* pcListener);
+	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
 
 	void				MovedOver(int x, int y) override;
 	void				Left(void);

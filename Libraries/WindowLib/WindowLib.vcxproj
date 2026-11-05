@@ -201,7 +201,6 @@
     <ClInclude Include="IconComponent.h" />
     <ClInclude Include="Popup.h" />
     <ClInclude Include="RoundedBoxCanvasDraw.h" />
-    <ClInclude Include="MenuListener.h" />
     <ClInclude Include="MenuStyle.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuContainer.h" />

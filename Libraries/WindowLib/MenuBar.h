@@ -20,13 +20,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MENU_BAR_H__
 #define __MENU_BAR_H__
-#include "StandardLib/ListenerCall.h"
 #include "GridContainer.h"
 #include "ClearCanvasDraw.h"
 #include "IconComponent.h"
 #include "MenuStyle.h"
 #include "WindowTheme.h"
-#include "MenuListener.h"
 #include "MenuBarItem.h"
 #include "MenuContainer.h"
 
@@ -34,7 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //A row of buttons along the top of a window, each opening a menu below it.  The buttons sit on the left; the bar is
 //filled with the style's bar colour across whatever width it is given.  At most one of its menus is open at a time.
 //
-//Clicking an item in any of its menus, or their sub menus, tells the bar's listeners, see CMenuListener.
+//Clicking an item in any of its menus, or their sub menus, calls the bar's item click event, with the item.
 class CMenuBar : public CGridContainer
 {
 CONSTRUCTABLE(CMenuBar);
@@ -46,7 +44,7 @@ protected:
 	Ptr<CIconComponent>		mpFiller;  //Takes the spare width to the right of the buttons.
 	CArray<CMenuBarItem>	maItems;
 	Ptr<CMenuBarItem>		mpOpenItem;
-	CListenerCall			mcListeners;
+	CComponentEvent<CMenuItem>	mcItemClicked;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -68,8 +66,7 @@ public:
 	void				MenuClosed(Ptr<CMenuBarItem> pItem);
 	void				MenuItemClicked(Ptr<CMenuItem> pItem);
 
-	bool				AddListener(CMenuListener* pcListener);
-	bool				RemoveListener(CMenuListener* pcListener);
+	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
 
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
