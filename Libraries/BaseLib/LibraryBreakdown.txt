@@ -1,193 +1,83 @@
 -- BaseLib --
 
+The areas below follow the project's filter tree (BaseLib.vcxproj.filters).
+
+Primitive and basic types
+  Primitive types (PrimitiveTypes.h), data types, IntAndPointer
+  Strings: CChars, immutable and external strings, helpers
+  Date and DateTime
+  GUIDs
+  Type names, type conversion, type parsing, data I/O
+  Pointer functions and remapping
+
 Collections
-  Array
-  List
-  Index
-  Map
-  Tree
-  Enumerator (Deprecated)
-  
+  Arrays: block, template, primitive, embedded, bit, sorted, dense/sparse, red-black tree
+  Lists and linked lists (including free-list linked lists)
+  Indexes: memory index trees, accessors, data orderers
+  Maps: block, primitive and string maps
+  Sets
+  Trees
+  Searching (binary) and sorting (bubble, quick, Tim)
+
 Geometric types
+  Vec2/Vec3/Vec4 in each primitive width, 4x4 matrices, quaternions
+  Lines: buckets, overlap, splitting, minimising
 
-Memory Allocation
+Memory
+  Mallocators, memory manager, global and data memory
+  Free lists, slab, reuse, scratch pad, stack and temporary memory
+  Memory caches and circular lists
+  Leak detection, counting and tracking allocators
 
-Document Markup
+Object life cycle
+  Constructors, Killable, LifeCycle, Refered
 
-Basic types
-  String
-  Date
-  Primitive wrappers
-  Boolean
-  Pointer
+Files
+  File chains: disk, memory, buffered, hash/MD5, debug and stderr output
+  File I/O, readers and writers
+  Chunked, packed and naive files
+  Copying and comparing
+  CSV, text, Intel hex, properties and XML files
+  File names, iteration, file systems, file utilities
+  Durable files and the durable controller
+  Log files
+  Indexed data: index tree files, evicting caches, descriptors, named indexes
 
-Logging and Errors
+File systems
+  FAT32 (also hand-written as W65C816 assembly in Fat*816.asm / Fat816.inc)
+  Underlying drives: file and memory
 
-Intrinsics
+Database
+  Codabase with ACID transactions (see CodabaseTransactions.txt)
+  Sequences
 
-
-#defines
-  Windows
-
-File Handling
-  Disk, Memory, Buffered
-  Md5 Hashing
-  Chunked
-  Packed
-  Copy, Compare
-  CSV
+Text
+  Text parser and parser configs for C++, JSON and XML
+  Markup documents
+  Unicode encodings (UTF-8, UTF-16, Latin-1)
+  Plain text editor
+  Escape codes
 
 Math
+  Integer, float, character and fixed point helpers
+  Arbitrary precision numbers, packed floats
+  Random numbers (Mersenne Twister, std)
+  Calculator: expression parsing and evaluation
 
-Collections
-  Array
+Errors and logging
+  Logger, log configs, error handling, debug output, printf redirection
+  Windows and Linux error strings
 
-GUIDs
+Platform
+  Threads, mutexes, condition variables, jobs
+  Sockets
+  Timers
+  Windows headers, defines and version
 
-Basic types
-  Primitive conversion
-  Parsing
-  Type information
+Function calling
+  FunctionCaller (generated *_Call.inl files)
 
+Validation
 
-File Handling
-  Durable
-  Directory Iteration
-  Key/Value store
-  IO log
-  Properties file
-  XML
-
-Operators
-  Arithmetic
-  Assignment
-  Bitwise
-  Logical
-  Relational
-
-Text Parsing
-  Math
-  Markup
-  XML
-
-Text Editing
-
-Windows
-  Thread
-  Timer
-  Configuration
-  Window Initialisation
-
-
-
--- StandardLib --
-Actions and Events
-
-Unmanaged Objects (Unknown)
-  Collections
-    Array
-    Map
-    Set
-
-Managed Objects (Object)
-  Collections
-    Array
-    Set
-  Hollow, Named, Indexed
-  Input/Output
-  
-
-Memory Management
-
-Object Database
-
-Timer
-
-Trackers (Deprecated)
-
-
-
--- SupportLib --
-Animation
-
-Copy and Paste
-
-Image
-  Channel conversions
-  Image Packer
-  Sub-images, Cels, Groups
-  Combination and division
-  Colour
-  Font
-  Input/Output
-  Modifiers
-    Bump mapping
-	Resampling
-	Recolouring
-  Functions
-    Box
-    Copy
-
-Image Formats
-  PNG
-  TGA
-  RAW (Justin)
-
-Instance (Deprecated?)
-
-Scene Primitives
-  Camera
-  Light
-  Material
-
-Mesh
-  Connectivity
-  Colours, Normals, Skinning, UV coordinates, Materials
-  Input/Output
-  Modifiers
-    Normal generation
-	Polygons
-	Edge visibility
-  Functions
-    Disc
-	Plane
-	Ring
-	Cone
-	Cylinder
-	Tube
-	Sphere
-	Geosphere
-	Box
-	Torus
-  Selection
-    Face, Edge, Vertex
-  Geometry shape
-    Bounding box
-	Convex hull
-	Bounding sphere hierarchy
-
-Scene (Deprecated)
-  Trackers
-
-Shape
-  Box
-  Convex hull
-  Half-space
-  Line
-  Ray
-  Line segment
-  Plane
-  Polygon
-  Sphere
-  Triangle
-
-Tiles
-  Maps
-  Layers
-  XML
-
--- InputLib --
-
--- WindowLib -- (Depends on DirectXLib and WorldLib ?!?)
-
--- WorldLib -- (DirectX specific stuff mushed in with things like Particle System)
+Aardvark
+  Preprocessor correctness test for compilers
