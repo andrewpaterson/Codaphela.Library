@@ -2982,6 +2982,9 @@
     <None Include="CodabaseTransactions.txt">
       <Filter>Source\Database\Codabase</Filter>
     </None>
+    <None Include="CodabaseLayers.txt">
+      <Filter>Source\Database\Codabase</Filter>
+    </None>
     <None Include="ArrayBlockClass.inl">
       <Filter>Source\Data\Array\Basic</Filter>
     </None>

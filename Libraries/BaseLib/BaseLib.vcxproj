@@ -1072,6 +1072,7 @@
     <None Include="TypeConverter_Mapping.inl" />
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />
+    <None Include="CodabaseLayers.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

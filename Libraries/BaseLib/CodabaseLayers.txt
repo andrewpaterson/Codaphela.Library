@@ -1,0 +1,88 @@
+Codabase Layers
+===============
+
+Design notes for layered Codabases and for freeing objects before they are flushed.  Discussed 2026-11-05.  Nothing here is implemented yet.
+
+
+What Codabase is for
+--------------------
+
+Codabase must serve three uses, often at the same time:
+
+  - Virtual memory for objects.  A game running in limited RAM pages changed parts of its world (say the map) out to disk and back in.  No transactions and no write-through are needed for this.
+  - A document store.  The initial game level, saved by the artist who made it.  The game never changes it.
+  - A fully transactional (ACID) database, changed only at transaction boundaries.  See CodabaseTransactions.txt.
+
+Today only the tests use a database-backed CObjects.  Every application (LogiCim, HCP65 emulator, tester, IDE, WindowInputTester) calls ObjectsInit() with no data connection and saves in its own formats.
+
+
+Free before flush (decided)
+---------------------------
+
+A dirty object is flushed before it is freed.  Freeing never discards changes to an object that can still be reached from the database.
+
+Only real garbage (objects nothing in the store can reach any more) may be dropped without saving.  Whether garbage is ever deleted from the database is still to be checked.
+
+A database can be opened read-only (the document store as the game sees it).  A read-only database refuses writes.  What happens to a refused write is still open; the options were:
+  1. Fail when the object is marked dirty (earliest, points at the code making the change).
+  2. Fail at flush or free and discard the change.
+  3. Keep the dirty object in memory (cannot be freed).
+  4. Allow changes in memory only; a freed dirty object loses its change.
+With layering (below) the game never writes to the read-only level database, so a refused write should only happen on a bug.
+
+
+The three stores in the game case
+---------------------------------
+
+  - Initial game database.  Unchanging.  Opened read-only.
+  - Virtual memory database.  Writable, discarded on shutdown.  Holds exactly the objects changed since the level was loaded (only dirty objects are flushed into it; clean objects are freed and reloaded from the level).
+  - Save game database.  May or may not be a Codabase at all.
+
+
+Layered connection (proposed)
+-----------------------------
+
+A stack of layers that CObjects sees as one CDataConnection.  The layering lives below CObjects (BaseLib / Codabase) so that "flush before free" stays "write to the connection".
+
+  - Reads go to the top layer first and fall through to lower layers.
+  - Writes (including flush before free) go to the top writable layer.
+  - Deletes in a top layer are tombstones ("did not exist"), so a deleted lower-layer object does not reappear.  CodabaseVersions chain entries already have a "did not exist" entry.
+  - Names resolve top down, with tombstones for removed names.
+
+The virtual memory layer needs no durability (no Begin/End brackets, no fsync).  It is the same component as a spillable transaction write set (deferred in CodabaseTransactions.txt).
+
+  Use                     Layers (top first)                                  Top layer at the end
+  Game                    virtual memory (writable, not durable) -> level     discarded at shutdown
+  Artist editing level    level (writable)                                    -
+  Transaction             write set (spillable) -> base                       commit merges into base; abort drops it
+
+
+Database ID in the OIndex (decided)
+-----------------------------------
+
+The top 8 bits of an OIndex hold the ID of the database that created the object.
+
+  - IDs are 0x00 to 0x7F.  OIndex stays a signed int64, so the value is never negative.  0xFF is never used as an ID (INVALID_O_INDEX is -1).
+  - ID 0 is existing databases: current files and test data need no format change.
+  - Database k starts its sequence at (k << 56) + 1.  (k << 56) itself is never handed out, so NULL_O_INDEX (0) stays unambiguous.
+  - Nothing else is encoded in an OIndex today.  It is a plain CSequence counter.  The class is stored as a name string in the object header, and embedded objects have no OIndex of their own (container OIndex + embedded index).
+
+The ID says which database created an object, not where its newest version is.  A level object changed by the game keeps its ID 0 OIndex but its current copy lives in the virtual memory layer, so lookups by OIndex still try the top layer first.  The ID gives shortcuts:
+  - An object created in the virtual memory layer never needs a lookup in the level database.
+  - Anything not found in the layer that owns its ID does not exist.
+  - A replayed save game already says which database each OIndex belongs to.
+
+
+Dirty detection (idea, not decided)
+-----------------------------------
+
+Managed fields (M_*) and Ptr assignments mark objects dirty themselves.  Unmanaged fields (U_*) need SetDirty by hand.  Proposal: hash each object's U_* fields (known from Class()) when it is loaded or saved; at flush and at free, re-hash objects that are not marked dirty and treat a mismatch as dirty.  Fallback: a debug-only check that catches missed SetDirty calls.
+
+
+Open questions
+--------------
+
+  - Save game: the difference from the level (small, tied to that level version) or a full serialisation of everything reachable (large, independent of the level)?
+  - What a read-only database does with a refused write (options above).
+  - Whether new objects in a read-only session are an error, or allowed until one has to be written.
+  - Whether write-through (IWT_Yes) becomes "autocommit per change".
