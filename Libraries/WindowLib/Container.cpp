@@ -110,17 +110,6 @@ void CContainer::SetClipsChildren(bool bClipsChildren)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
-{
-	// This intentionally does not call CComponent::Layout 
-	// because a container must fully implement it's own Layout.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A container sized by its content, like a button, keeps the size its
 // components need unless a desired size is set on an axis.  Otherwise an
 // axis without a desired size is variable sized and takes the space it is
