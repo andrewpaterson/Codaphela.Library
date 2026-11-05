@@ -241,6 +241,7 @@
     <ClCompile Include="TestDehollowfication.cpp" />
     <ClCompile Include="TestDistToRootCalculator.cpp" />
     <ClCompile Include="TestDistToRootUpdate.cpp" />
+    <ClCompile Include="TestPointerLocations.cpp" />
     <ClCompile Include="TestDistToStackCalculator.cpp" />
     <ClCompile Include="TestEmbedded.cpp" />
     <ClCompile Include="TestEmbeddedObjectRemapTos.cpp" />

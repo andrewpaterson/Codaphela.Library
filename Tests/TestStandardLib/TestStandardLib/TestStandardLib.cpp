@@ -3,6 +3,7 @@
 
 
 void TestStackPointers(void);
+void TestPointerLocations(void);
 void TestArrayType(void);
 void TestArrayUnknown(void);
 void TestUnknowns(void);
@@ -95,6 +96,7 @@ int __cdecl main(void)
 	TestParameters();
 	TestClass();
 	TestDistToRoot();
+	TestPointerLocations();
 	TestDistToRootUpdate();
 	TestDistToStack();
 	TestObjectsSimple();

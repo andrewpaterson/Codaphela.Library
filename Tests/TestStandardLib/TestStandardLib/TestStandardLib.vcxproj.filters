@@ -246,6 +246,9 @@
     <ClCompile Include="TestDistToRootUpdate.cpp">
       <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>
+    <ClCompile Include="TestPointerLocations.cpp">
+      <Filter>Source\Object\Object\Distance</Filter>
+    </ClCompile>
     <ClCompile Include="TestDistToStackCalculator.cpp">
       <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>

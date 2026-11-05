@@ -399,6 +399,9 @@
     <ClInclude Include="DistToRootExpectedDists.h">
       <Filter>Source\Object\Object\Distance\Heap</Filter>
     </ClInclude>
+    <ClInclude Include="PointerLocations.h">
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClInclude>
     <ClInclude Include="DistCalculator.h">
       <Filter>Source\Object\Object\Distance</Filter>
     </ClInclude>
@@ -795,6 +798,9 @@
       <Filter>Source\Object\Object\Distance\Heap</Filter>
     </ClCompile>
     <ClCompile Include="DistToRootExpectedDists.cpp">
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerLocations.cpp">
       <Filter>Source\Object\Object\Distance\Heap</Filter>
     </ClCompile>
     <ClCompile Include="DistToStack.cpp">
