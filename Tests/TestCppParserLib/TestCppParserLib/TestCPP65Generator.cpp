@@ -413,6 +413,60 @@ void TestCPP65GeneratorConvention(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The types of the operators (CCPP65Types: Operation, Conditional,
+// PointerDifference), which the type checker and the IR front end both use, with
+// int 4 bytes (the 65C64) and 2 (the W65C816).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorOperatorTypes(void)
+{
+	CCPP65Types		cTypes;
+	SCPP65Type*		psPointer;
+	SCPP65Type*		psVoidPointer;
+	int				iIntBytes;
+
+	for (iIntBytes = 4; iIntBytes >= 2; iIntBytes -= 2)
+	{
+		cTypes.Init(iIntBytes);
+		psPointer = cTypes.Pointer(&cTypes.msShort);
+		psVoidPointer = cTypes.Pointer(&cTypes.msVoid);
+
+		//The usual arithmetic conversions; a shift is its left operand's promoted type.
+		AssertPointer(&cTypes.msInt, cTypes.Operation(CT_Add, &cTypes.msChar, &cTypes.msShort));
+		AssertPointer(&cTypes.msUnsignedInt, cTypes.Operation(CT_Add, &cTypes.msInt, &cTypes.msUnsignedInt));
+		AssertPointer(&cTypes.msUnsignedInt, cTypes.Operation(CT_Modulus, &cTypes.msUnsignedInt, &cTypes.msBool));
+		AssertPointer(&cTypes.msLongLong, cTypes.Operation(CT_Multiply, &cTypes.msUnsignedInt, &cTypes.msLongLong));
+		AssertPointer(&cTypes.msInt, cTypes.Operation(CT_LeftShift, &cTypes.msChar, &cTypes.msLongLong));
+		AssertPointer((iIntBytes == 2) ? &cTypes.msLong : &cTypes.msUnsignedInt, cTypes.Operation(CT_Add, &cTypes.msLong, &cTypes.msUnsignedInt));
+
+		//Floats: + - * / only, at the wider float; an integer takes the float's type.
+		AssertPointer(&cTypes.msDouble, cTypes.Operation(CT_Divide, &cTypes.msFloat, &cTypes.msDouble));
+		AssertPointer(&cTypes.msFloat, cTypes.Operation(CT_Subtract, &cTypes.msLongLong, &cTypes.msFloat));
+		AssertNull(cTypes.Operation(CT_Modulus, &cTypes.msFloat, &cTypes.msInt));
+		AssertNull(cTypes.Operation(CT_Add, &cTypes.msFloat, psPointer));
+
+		//Pointers: + and - with an integer; pointer - pointer is as wide as a pointer.
+		AssertPointer(psPointer, cTypes.Operation(CT_Add, psPointer, &cTypes.msChar));
+		AssertPointer(psPointer, cTypes.Operation(CT_Add, &cTypes.msInt, psPointer));
+		AssertPointer(psPointer, cTypes.Operation(CT_Subtract, psPointer, &cTypes.msInt));
+		AssertNull(cTypes.Operation(CT_Subtract, &cTypes.msInt, psPointer));
+		AssertNull(cTypes.Operation(CT_Multiply, psPointer, &cTypes.msInt));
+		AssertPointer(cTypes.PointerDifference(), cTypes.Operation(CT_Subtract, psPointer, psPointer));
+		AssertInt(4, cTypes.PointerDifference()->iBytes);
+		AssertTrue(cTypes.PointerDifference()->bSigned);
+
+		//c ? x : y.
+		AssertPointer(&cTypes.msDouble, cTypes.Conditional(&cTypes.msInt, &cTypes.msDouble));
+		AssertPointer(&cTypes.msUnsignedInt, cTypes.Conditional(&cTypes.msShort, &cTypes.msUnsignedInt));
+		AssertPointer(&cTypes.msVoid, cTypes.Conditional(&cTypes.msVoid, psPointer));
+		AssertPointer(psVoidPointer, cTypes.Conditional(&cTypes.msInt, psVoidPointer));
+		cTypes.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorOperators(void)
@@ -3126,6 +3180,7 @@ void TestCPP65Generator(void)
 
 	TestCPP65GeneratorAssembly();
 	TestCPP65GeneratorConvention();
+	TestCPP65GeneratorOperatorTypes();
 	TestCPP65GeneratorOperators();
 	TestCPP65GeneratorConversions();
 	TestCPP65GeneratorStatements();

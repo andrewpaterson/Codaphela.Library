@@ -4622,18 +4622,17 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	sRight = *psRight;
 	if (sLeft.psType->IsFloat() || sRight.psType->IsFloat())
 	{
-		if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
+		psType = mpcTypes->Operation(eOperator, sLeft.psType, sRight.psType);
+		if (!psType)
 		{
 			return Unsupported(__LINE__);
 		}
-		psType = mpcGenerator->FloatArithmetic(sLeft.psType, sRight.psType);
 		switch (eOperator)
 		{
 		case CT_Add:		uiOpcode = IRO_FAdd;	break;
 		case CT_Subtract:	uiOpcode = IRO_FSub;	break;
 		case CT_Multiply:	uiOpcode = IRO_FMul;	break;
-		case CT_Divide:		uiOpcode = IRO_FDiv;	break;
-		default:			return Unsupported(__LINE__);
+		default:			uiOpcode = IRO_FDiv;	break;
 		}
 		if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 		{
@@ -4684,25 +4683,17 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 			{
 				sDifference = mpcFunction->Add(mpcBlock, IRO_SDiv, sOffset, sDifference, mpcFunction->AddInteger(sOffset, iBytes));
 			}
-			//ptrdiff_t: as wide as a pointer (int on the 65C64, long on the W65C816).
 			psResult->sValue = sDifference;
-			psResult->psType = mpcTypes->Integer(mcModule.GetPointerSize(0), true);
+			psResult->psType = mpcTypes->PointerDifference();
 			return true;
 		}
 		return Unsupported(__LINE__);
 	}
 
-	if (!sLeft.psType->IsInteger() || !sRight.psType->IsInteger())
+	psType = mpcTypes->Operation(eOperator, sLeft.psType, sRight.psType);
+	if (!psType)
 	{
 		return Unsupported(__LINE__);
-	}
-	if ((eOperator == CT_LeftShift) || (eOperator == CT_RightShift))
-	{
-		psType = mpcTypes->Promote(sLeft.psType);
-	}
-	else
-	{
-		psType = mpcTypes->Arithmetic(sLeft.psType, sRight.psType);
 	}
 	if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 	{
@@ -4754,7 +4745,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		{
 			return Unsupported(__LINE__);
 		}
-		psType = mpcGenerator->FloatArithmetic(sLeft.psType, sRight.psType);
+		psType = mpcTypes->FloatArithmetic(sLeft.psType, sRight.psType);
 		bFloat = true;
 	}
 	else if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
@@ -4979,29 +4970,10 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	{
 		return Unsupported(__LINE__);
 	}
-	if ((psTrue->IsFloat() && psFalse->IsScalar() && !psFalse->IsPointer()) || (psFalse->IsFloat() && psTrue->IsScalar() && !psTrue->IsPointer()))
-	{
-		psType = mpcGenerator->FloatArithmetic(psTrue, psFalse);
-	}
-	else if ((psTrue == psFalse) && psTrue->pcEnum)
-	{
-		psType = psTrue;
-	}
-	else if (psTrue->IsInteger() && psFalse->IsInteger())
-	{
-		psType = mpcTypes->Arithmetic(psTrue, psFalse);
-	}
-	else if (psTrue->IsVoid() || psFalse->IsVoid())
-	{
-		psType = &mpcTypes->msVoid;
-	}
-	else if (psTrue->IsArray() || psFalse->IsArray())
+	psType = mpcTypes->Conditional(psTrue, psFalse);
+	if (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray()))
 	{
 		return Unsupported(__LINE__);
-	}
-	else
-	{
-		psType = psTrue->IsPointer() ? psTrue : psFalse;
 	}
 
 	pcTrue = NewBlock();

@@ -721,3 +721,128 @@ SCPP65Type* CCPP65Types::Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight)
 	}
 	return Integer(psLeft->iBytes, psLeft->bSigned && psRight->bSigned);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a floating point operation: long double if either operand is, then
+// double, otherwise float (an integer operand takes the other's type).  [expr] 10
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::FloatArithmetic(SCPP65Type* psLeft, SCPP65Type* psRight)
+{
+	if ((psLeft && psLeft->bLongDouble) || (psRight && psRight->bLongDouble))
+	{
+		return LongDouble();
+	}
+	if ((psLeft && psLeft->IsFloat() && (psLeft->iBytes == 8)) || (psRight && psRight->IsFloat() && (psRight->iBytes == 8)))
+	{
+		return Float(8);
+	}
+	return Float(4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ptrdiff_t, pointer - pointer: a signed integer as wide as a pointer (int on the
+// 65C64, long on the W65C816).  [expr.add] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::PointerDifference(void)
+{
+	return Integer(Pointer(&msVoid)->iBytes, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of left op right for the arithmetic, bitwise and shift operators, or NULL
+// when the operator doesn't take these operands.  Floats: + - * and / at the wider
+// float type (an integer operand is converted to it).  Pointers: pointer + integer,
+// integer + pointer and pointer - integer are the pointer, pointer - pointer their
+// difference.  Integers: the usual arithmetic conversions, and a shift is its left
+// operand's promoted type.  [expr.mul] [expr.add] [expr.shift] [expr.bit.and]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Operation(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight)
+{
+	if (psLeft->IsFloat() || psRight->IsFloat())
+	{
+		if (((eOperator != CT_Add) && (eOperator != CT_Subtract) && (eOperator != CT_Multiply) && (eOperator != CT_Divide)) ||
+			!(psLeft->IsInteger() || psLeft->IsFloat()) || !(psRight->IsInteger() || psRight->IsFloat()))
+		{
+			return NULL;
+		}
+		return FloatArithmetic(psLeft, psRight);
+	}
+
+	if (psLeft->IsPointer() || psRight->IsPointer())
+	{
+		if (((eOperator == CT_Add) || (eOperator == CT_Subtract)) && psLeft->IsPointer() && psRight->IsInteger())
+		{
+			return psLeft;
+		}
+		if ((eOperator == CT_Add) && psLeft->IsInteger() && psRight->IsPointer())
+		{
+			return psRight;
+		}
+		if ((eOperator == CT_Subtract) && psLeft->IsPointer() && psRight->IsPointer())
+		{
+			return PointerDifference();
+		}
+		return NULL;
+	}
+
+	if (!psLeft->IsInteger() || !psRight->IsInteger())
+	{
+		return NULL;
+	}
+	switch (eOperator)
+	{
+	case CT_LeftShift:
+	case CT_RightShift:
+		return Promote(psLeft);
+	case CT_Add:
+	case CT_Subtract:
+	case CT_Multiply:
+	case CT_Divide:
+	case CT_Modulus:
+	case CT_BitwiseAnd:
+	case CT_BitwiseOr:
+	case CT_BitwiseXor:
+		return Arithmetic(psLeft, psRight);
+	default:
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y for scalar (or void) x and y: a float with a number is the
+// float arithmetic's type, the same enum stays that enum, integers take the usual
+// arithmetic conversions, a void side makes it void, and otherwise it is the
+// pointer's type.  [expr.cond]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Conditional(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	if ((psTrue->IsFloat() && psFalse->IsScalar() && !psFalse->IsPointer()) || (psFalse->IsFloat() && psTrue->IsScalar() && !psTrue->IsPointer()))
+	{
+		return FloatArithmetic(psTrue, psFalse);
+	}
+	if ((psTrue == psFalse) && psTrue->pcEnum)
+	{
+		return psTrue;
+	}
+	if (psTrue->IsInteger() && psFalse->IsInteger())
+	{
+		return Arithmetic(psTrue, psFalse);
+	}
+	if (psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return &msVoid;
+	}
+	return psTrue->IsPointer() ? psTrue : psFalse;
+}
