@@ -854,12 +854,15 @@ void CIR816LiveRanges::AddRegion(int32 iStart, int32 iEnd)
 {
 	SIR816Region*	psRegion;
 	SIR816Region*	psLast;
+	int32			iFirstWord;
 
+	//The first word comes from the last region before Add, which may move the array.
 	psLast = (masRegions.NumElements() > 0) ? masRegions.Tail() : NULL;
+	iFirstWord = psLast ? psLast->iFirstWord + (psLast->iEnd - psLast->iStart + 1) / 2 : 0;
 	psRegion = masRegions.Add();
 	psRegion->iStart = iStart;
 	psRegion->iEnd = iEnd;
-	psRegion->iFirstWord = psLast ? psLast->iFirstWord + (psLast->iEnd - psLast->iStart + 1) / 2 : 0;
+	psRegion->iFirstWord = iFirstWord;
 }
 
 
