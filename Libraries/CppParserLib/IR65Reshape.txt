@@ -187,7 +187,10 @@ The jobs left in two shapes (2026-11-05):
   the front end collects them from either.  The 65C64's signed divides stay flags (the generator writes them).
 - Compare and branch: the comparison a block's brif branches on is CIRBackend::BranchComparison for both
   (FusedComparison, IsFusedCompare, the W65C816's integer ones only).  How each writes it stays its own, as do the
-  65C64's flags kept from the block before (FlagsKnown).
+  65C64's flags kept from the block before (FlagsKnown).  The W65C816 has FlagsKnown too since 2026-11-05: an eq
+  or ne block with nothing else, entered only from a block whose fused comparison of the same operands left Z set
+  exactly when they are equal (LeavesEqualityInZ: not the 16 bit signed SignedLessFlags), branches on the flags
+  it comes in with.  TestBaseLib65 -0.41%, TestStandardLib65 -0.04%, every program faster.
 - Phi copies on jumps: shared.  CIRBackend::ParallelCopy orders a jump's copies (CopyOverlaps, CopySamePlace),
   saving a value to break a cycle: the 65C64 in B, the W65C816 in IR816_SCRATCH_RESULT.  The W65C816 no longer
   gives a block whose phis take each other's values ways in and copies as it starts: every jump puts the values
