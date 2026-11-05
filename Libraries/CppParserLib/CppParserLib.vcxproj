@@ -228,6 +228,16 @@
     <ClCompile Include="IRLiveSets.cpp" />
     <ClCompile Include="IRModule.cpp" />
     <ClCompile Include="IROptimiser.cpp" />
+    <ClCompile Include="IROptimiserAddresses.cpp" />
+    <ClCompile Include="IROptimiserBlocks.cpp" />
+    <ClCompile Include="IROptimiserCounters.cpp" />
+    <ClCompile Include="IROptimiserDivisions.cpp" />
+    <ClCompile Include="IROptimiserFolding.cpp" />
+    <ClCompile Include="IROptimiserIdioms.cpp" />
+    <ClCompile Include="IROptimiserLoops.cpp" />
+    <ClCompile Include="IROptimiserMemory.cpp" />
+    <ClCompile Include="IROptimiserPromotion.cpp" />
+    <ClCompile Include="IROptimiserRanges.cpp" />
     <ClCompile Include="IROpcode.cpp" />
     <ClCompile Include="IRParser.cpp" />
     <ClCompile Include="IRPrinter.cpp" />
@@ -446,6 +456,7 @@
     <ClInclude Include="IRLiveSets.h" />
     <ClInclude Include="IRModule.h" />
     <ClInclude Include="IROptimiser.h" />
+    <ClInclude Include="IROptimiserInternal.h" />
     <ClInclude Include="IROpcode.h" />
     <ClInclude Include="IRParser.h" />
     <ClInclude Include="IRPrinter.h" />

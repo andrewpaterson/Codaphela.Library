@@ -215,7 +215,7 @@ struct SIRIdiomAddress
 };
 
 
-#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions); the other limits are in IROptimiser.cpp.
+#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions); the other limits are in IROptimiserInternal.h.
 
 
 //The mid level passes (IR.txt Passes), run on a function until nothing changes:

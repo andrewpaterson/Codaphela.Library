@@ -252,6 +252,36 @@
     <ClCompile Include="IROptimiser.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IROptimiserAddresses.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserBlocks.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserCounters.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserDivisions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserFolding.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserIdioms.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserLoops.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserMemory.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserPromotion.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiserRanges.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRModule.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -891,6 +921,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IROptimiser.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiserInternal.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRModule.h">

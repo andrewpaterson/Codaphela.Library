@@ -127,9 +127,10 @@ Step 4: done 2026-11-05.  CIRBackendPasses (IRBackendPasses.h/.cpp) has OrderBlo
 SinkToEnd, which the 65C64 runs after it); CIR65Backend runs them.  The 65C64's AdjustComparisons,
 PreferSingleBranches, PairDivides, SinkToEnd and CopyAddresses stay in IR65Passes.cpp: they serve
 its instructions (cmp with a constant, braso, one div for both, add Y, 1, [8 + X]).  Listings
-identical to step 3's, TestCppParserLib 83262/83262.  Left for later, as they change the W65C816's
-code and need its cycles measured: the W65C816 running CIRBackendPasses, and one loop step pass for
-SinkToEnd and SinkSteps.
+identical to step 3's, TestCppParserLib 83262/83262.  Left for later then, as they change the
+W65C816's code and need its cycles measured: the W65C816 running CIRBackendPasses, and one loop step
+pass for SinkToEnd and SinkSteps.  Both since done: see Loop steps and Block order on the W65C816
+below (the W65C816 runs OrderBlocks and SinkSteps, not MoveLoopTests or SinkLoads).
 
 Step 5: done 2026-11-05.  CIR65Backend::Call is CallArguments (the arg instructions before it),
 PushArguments, CalleeOperand (where it jumps to, or loaded into A), LoadRegisterArguments (a
