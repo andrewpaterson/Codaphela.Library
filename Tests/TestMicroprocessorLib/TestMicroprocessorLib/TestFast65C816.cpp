@@ -986,6 +986,7 @@ static bool TestFast65C816RunSame(CFast65C816* pcStep, CFast65C816* pcRun, uint8
 	pcRun->AppendDifference(&sz, "Stopped", pcStep->IsStopped(), pcRun->IsStopped());
 	pcRun->AppendDifference(&sz, "Waiting", pcStep->IsWaiting(), pcRun->IsWaiting());
 	pcRun->AppendDifference(&sz, "Cycles", pcStep->NumCycles(), pcRun->NumCycles());
+	pcRun->AppendDifference(&sz, "AtBreakpoint", pcStep->IsAtBreakpoint(), pcRun->IsAtBreakpoint());
 	if (memcmp(puiStepMemory, puiRunMemory, TEST_FAST_65C816_FUZZ_SIZE) != 0)
 	{
 		sz.Append(" Memory differs");
@@ -1008,10 +1009,11 @@ static bool TestFast65C816RunSame(CFast65C816* pcStep, CFast65C816* pcRun, uint8
 //
 // Run does what as many Steps do: interrupts taken (IRQB set by an instruction's own write and between Runs,
 // NMIB pulsed), IRQB low while I is set, BRK, COP, WAI and STP.  Runs of different lengths start and end
-// anywhere in that.
+// anywhere in that.  With bBreakpoints, Run and Step both return at breakpoints in the program and the
+// interrupt handler (a disabled one is passed).
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestFast65C816Run(bool bEmulation, bool bStop)
+static void TestFast65C816Run(bool bEmulation, bool bStop, bool bBreakpoints)
 {
 	uint8*						puiStepMemory;
 	uint8*						puiRunMemory;
@@ -1023,6 +1025,7 @@ static void TestFast65C816Run(bool bEmulation, bool bStop)
 	size						uiLength;
 	size						uiStepped;
 	size						uiRun;
+	size						uiBreaks;
 	size						i;
 	static size					auiLengths[] = { 1, 2, 3, 5, 8, 13, 1, 4, 7, 21, 2, 6 };
 	static uint8				auiProgram[] = {
@@ -1087,6 +1090,16 @@ static void TestFast65C816Run(bool bEmulation, bool bStop)
 	cRun.TestSetS(0x1F0);
 	cStep.TestSetProgramCounter(0, 0x1000);
 	cRun.TestSetProgramCounter(0, 0x1000);
+	if (bBreakpoints)
+	{
+		cStep.GetBreakpoints()->Add(0x1006, true);		//The first NOP, where BRA goes.
+		cStep.GetBreakpoints()->Add(0x1007, false);
+		cStep.GetBreakpoints()->Add(0x2000, true);		//The handler.
+		cRun.GetBreakpoints()->Add(0x1006, true);
+		cRun.GetBreakpoints()->Add(0x1007, false);
+		cRun.GetBreakpoints()->Add(0x2000, true);
+	}
+	uiBreaks = 0;
 
 	for (uiChunk = 0; uiChunk < 400; uiChunk++)
 	{
@@ -1105,10 +1118,18 @@ static void TestFast65C816Run(bool bEmulation, bool bStop)
 			uiStepped++;
 			if (!cStep.Step())
 			{
+				if (cStep.IsAtBreakpoint())
+				{
+					uiStepped--;
+				}
 				break;
 			}
 		}
 		uiRun = cRun.Run(uiLength);
+		if (cRun.IsAtBreakpoint())
+		{
+			uiBreaks++;
+		}
 
 		if (!TestFast65C816RunSame(&cStep, &cRun, puiStepMemory, puiRunMemory, uiStepped, uiRun, uiChunk))
 		{
@@ -1125,11 +1146,255 @@ static void TestFast65C816Run(bool bEmulation, bool bStop)
 		AssertFalse(cRun.IsStopped());
 		AssertTrue(cRun.GetX() > 10);
 	}
+	if (bBreakpoints && !bStop)
+	{
+		AssertTrue(uiBreaks > 10);
+	}
+	else
+	{
+		AssertSize(0, uiBreaks);
+	}
 
 	cRun.Kill();
 	cStep.Kill();
 	free(puiRunMemory);
 	free(puiStepMemory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CBreakpoints on its own: enabled and disabled breakpoints, 32 bit
+// addresses, and the counts.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816Breakpoints(void)
+{
+	CBreakpoints	cBreakpoints;
+
+	cBreakpoints.Init();
+	AssertFalse(cBreakpoints.AnyEnabled());
+	AssertFalse(cBreakpoints.Contains(0x1000));
+	AssertFalse(cBreakpoints.IsEnabled(0x1000));
+	AssertFalse(cBreakpoints.Remove(0x1000));
+	AssertFalse(cBreakpoints.Enable(0x1000, true));
+	cBreakpoints.EnableAll(true);
+	AssertSize(0, cBreakpoints.NumBreakpoints());
+
+	AssertTrue(cBreakpoints.Add(0x1000, true));
+	AssertFalse(cBreakpoints.Add(0x1000, false));
+	AssertTrue(cBreakpoints.IsEnabled(0x1000));
+	AssertTrue(cBreakpoints.AnyEnabled());
+	AssertTrue(cBreakpoints.IsEnabledNext(0x1000));
+	AssertFalse(cBreakpoints.IsEnabledNext(0x1001));
+	AssertFalse(cBreakpoints.Contains(0x011000));
+	AssertFalse(cBreakpoints.Contains(0x01001000));
+
+	AssertTrue(cBreakpoints.Add(0x12345678, false));
+	AssertTrue(cBreakpoints.Contains(0x12345678));
+	AssertFalse(cBreakpoints.IsEnabled(0x12345678));
+	AssertFalse(cBreakpoints.Contains(0x12345679));
+	AssertSize(2, cBreakpoints.NumBreakpoints());
+	AssertSize(1, cBreakpoints.NumEnabled());
+
+	AssertTrue(cBreakpoints.Enable(0x12345678, true));
+	AssertTrue(cBreakpoints.Enable(0x12345678, true));
+	AssertSize(2, cBreakpoints.NumEnabled());
+	AssertTrue(cBreakpoints.IsEnabledNext(0x12345678));
+
+	cBreakpoints.EnableAll(false);
+	AssertFalse(cBreakpoints.AnyEnabled());
+	AssertSize(0, cBreakpoints.NumEnabled());
+	AssertSize(2, cBreakpoints.NumBreakpoints());
+	AssertTrue(cBreakpoints.Contains(0x1000));
+	AssertTrue(cBreakpoints.Contains(0x12345678));
+	AssertFalse(cBreakpoints.IsEnabled(0x1000));
+
+	cBreakpoints.EnableAll(true);
+	AssertSize(2, cBreakpoints.NumEnabled());
+	AssertTrue(cBreakpoints.IsEnabled(0x1000));
+	AssertTrue(cBreakpoints.IsEnabled(0x12345678));
+
+	AssertTrue(cBreakpoints.Enable(0x1000, false));
+	AssertSize(1, cBreakpoints.NumEnabled());
+	AssertTrue(cBreakpoints.Remove(0x1000));
+	AssertFalse(cBreakpoints.Remove(0x1000));
+	AssertSize(1, cBreakpoints.NumBreakpoints());
+	AssertSize(1, cBreakpoints.NumEnabled());
+	AssertTrue(cBreakpoints.Remove(0x12345678));
+	AssertSize(0, cBreakpoints.NumBreakpoints());
+	AssertSize(0, cBreakpoints.NumEnabled());
+	AssertFalse(cBreakpoints.AnyEnabled());
+
+	AssertTrue(cBreakpoints.Add(0xFFFFFFFF, true));
+	AssertTrue(cBreakpoints.IsEnabledNext(0xFFFFFFFF));
+	cBreakpoints.Clear();
+	AssertSize(0, cBreakpoints.NumBreakpoints());
+	AssertFalse(cBreakpoints.Contains(0xFFFFFFFF));
+	AssertTrue(cBreakpoints.Add(0x2000, true));
+
+	cBreakpoints.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Run and Step return before the instruction at a breakpoint and execute it
+// next time.  Disabled breakpoints are kept and passed; the bank counts.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816BreakpointRun(void)
+{
+	uint8*						puiMemory;
+	STestFast65C816RunContext	sContext;
+	CFast65C816					cFast;
+	CBreakpoints*				pcBreakpoints;
+	uint64						uiCycles;
+	size						i;
+	static uint8				auiLoop[] = {
+		0xE8,				//INX
+		0xE8,				//INX
+		0xE8,				//INX
+		0xC8,				//INY: the breakpoint
+		0x80, 0xFA };		//BRA to the first INX
+
+	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	memcpy(&puiMemory[0x1000], auiLoop, sizeof(auiLoop));
+	sContext.puiMemory = puiMemory;
+	sContext.pcFast = &cFast;
+	cFast.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+	cFast.TestSetS(0x1F0);
+	cFast.TestSetX(0);
+	cFast.TestSetY(0);
+	cFast.TestSetProgramCounter(0, 0x1000);
+	pcBreakpoints = cFast.GetBreakpoints();
+	AssertTrue(pcBreakpoints->Add(0x1003, true));
+
+	//Run stops before INY.
+	AssertSize(3, cFast.Run(100));
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertInt(0x1003, cFast.GetProgramAddress());
+	AssertInt(3, cFast.GetX());
+	AssertInt(0, cFast.GetY());
+
+	//And runs it next time, round the loop to it again.
+	AssertSize(5, cFast.Run(100));
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertInt(0x1003, cFast.GetProgramAddress());
+	AssertInt(6, cFast.GetX());
+	AssertInt(1, cFast.GetY());
+
+	//Step does the same.  Returning at the breakpoint takes no cycles.
+	AssertTrue(cFast.Step());
+	AssertFalse(cFast.IsAtBreakpoint());
+	AssertInt(2, cFast.GetY());
+	for (i = 0; i < 4; i++)
+	{
+		AssertTrue(cFast.Step());
+	}
+	uiCycles = cFast.NumCycles();
+	AssertFalse(cFast.Step());
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertLong(uiCycles, cFast.NumCycles());
+	AssertInt(0x1003, cFast.GetProgramAddress());
+	AssertInt(9, cFast.GetX());
+	AssertInt(2, cFast.GetY());
+
+	//Disabled, it's kept and passed.  100 instructions is 20 times round, back to INY.
+	AssertTrue(pcBreakpoints->Enable(0x1003, false));
+	AssertSize(100, cFast.Run(100));
+	AssertFalse(cFast.IsAtBreakpoint());
+	AssertInt(0x1003, cFast.GetProgramAddress());
+	AssertInt(22, cFast.GetY());
+	AssertTrue(pcBreakpoints->Contains(0x1003));
+
+	//Enabled again, with INY next.
+	AssertTrue(pcBreakpoints->Enable(0x1003, true));
+	AssertSize(0, cFast.Run(100));
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertInt(22, cFast.GetY());
+
+	//The same address in another bank doesn't stop it.
+	AssertTrue(pcBreakpoints->Remove(0x1003));
+	AssertTrue(pcBreakpoints->Add(0x011003, true));
+	AssertSize(100, cFast.Run(100));
+	AssertFalse(cFast.IsAtBreakpoint());
+
+	//Nor does a breakpoint at an operand.
+	pcBreakpoints->Clear();
+	AssertTrue(pcBreakpoints->Add(0x1005, true));
+	AssertSize(100, cFast.Run(100));
+	AssertFalse(cFast.IsAtBreakpoint());
+
+	cFast.Kill();
+	free(puiMemory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A breakpoint at MVN stops before the move, not before each byte.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816BreakpointBlockMove(void)
+{
+	uint8*						puiMemory;
+	STestFast65C816RunContext	sContext;
+	CFast65C816					cFast;
+	size						i;
+	static uint8				auiMove[] = {
+		0x54, 0x00, 0x00,	//MVN 00,00: the breakpoint
+		0xDB };				//STP
+
+	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	sContext.puiMemory = puiMemory;
+	sContext.pcFast = &cFast;
+	cFast.Init(TestFast65C816RunRead, TestFast65C816RunWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	AssertTrue(cFast.GetBreakpoints()->Add(0x1000, true));
+
+	//Run, then Step.
+	for (i = 0; i < 2; i++)
+	{
+		memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+		memcpy(&puiMemory[0x1000], auiMove, sizeof(auiMove));
+		puiMemory[0x40] = 0x11;
+		puiMemory[0x41] = 0x22;
+		puiMemory[0x42] = 0x33;
+		cFast.Reset();
+		cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+		cFast.TestSetS(0x1F0);
+		cFast.TestSetC(2);
+		cFast.TestSetX(0x40);
+		cFast.TestSetY(0x80);
+		cFast.TestSetProgramCounter(0, 0x1000);
+
+		if (i == 0)
+		{
+			AssertSize(0, cFast.Run(100));
+			AssertTrue(cFast.IsAtBreakpoint());
+			AssertSize(4, cFast.Run(100));
+		}
+		else
+		{
+			AssertFalse(cFast.Step());
+			AssertTrue(cFast.IsAtBreakpoint());
+			AssertTrue(cFast.Step());
+			AssertTrue(cFast.Step());
+			AssertTrue(cFast.Step());
+			AssertInt(0x1003, cFast.GetProgramAddress());
+			AssertFalse(cFast.Step());
+		}
+		AssertFalse(cFast.IsAtBreakpoint());
+		AssertTrue(cFast.IsStopped());
+		AssertInt(0x11, puiMemory[0x80]);
+		AssertInt(0x22, puiMemory[0x81]);
+		AssertInt(0x33, puiMemory[0x82]);
+	}
+
+	cFast.Kill();
+	free(puiMemory);
 }
 
 
@@ -1151,10 +1416,16 @@ void TestFast65C816(void)
 	TestFast65C816Fuzz(false, 0x816816ULL);
 	TestFast65C816Interrupts(false);
 	TestFast65C816Interrupts(true);
-	TestFast65C816Run(false, false);
-	TestFast65C816Run(true, false);
-	TestFast65C816Run(false, true);
-	TestFast65C816Run(true, true);
+	TestFast65C816Run(false, false, false);
+	TestFast65C816Run(true, false, false);
+	TestFast65C816Run(false, true, false);
+	TestFast65C816Run(true, true, false);
+	TestFast65C816Run(false, false, true);
+	TestFast65C816Run(true, false, true);
+	TestFast65C816Run(false, true, true);
+	TestFast65C816Breakpoints();
+	TestFast65C816BreakpointRun();
+	TestFast65C816BreakpointBlockMove();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 

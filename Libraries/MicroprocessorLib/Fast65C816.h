@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Chars.h"
 #include "W65C816.h"
+#include "Breakpoints.h"
 
 
 //Memory outside the flat block.  Each is one bus cycle the W65C816S drives with VDA or VPA high.
@@ -57,6 +58,10 @@ typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
 //
 //Memory is a flat block at 00:0000 (puiMemory, uiMemorySize bytes, read and written directly) and the
 //callbacks for every other address, and for a hole in the block (SetHole, where devices are).
+//
+//Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
+//(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
+//breakpoint is enabled.
 class CFast65C816
 {
 protected:
@@ -92,6 +97,10 @@ protected:
 	void*					mpvContext;
 	CFast65C816Signal		mfSignal;	//NULL if no one is listening.
 
+	CBreakpoints			mcBreakpoints;
+	bool					mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
+	bool					mbMoving;			//The next instruction is the rest of a block move.
+
 public:
 	void		Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
@@ -104,6 +113,9 @@ public:
 
 	void		SetIRQ(bool bLow);
 	void		SetNMI(bool bLow);
+
+	CBreakpoints*	GetBreakpoints(void);
+	bool			IsAtBreakpoint(void);
 
 	uint16		GetC(void);
 	uint16		GetX(void);
@@ -138,6 +150,8 @@ protected:
 	void		SetBanks(void);
 	void		SetProgramBank(uint8 uiBank);
 	bool		NeedsDeciding(void);
+	bool		IsBreakpointNext(void);
+	bool		Breaks(void);
 	void		Decide(void);
 	void		Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bool bHardware);
 

@@ -88,6 +88,10 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 	muiHoleSize = 0;
 	muiPBR = 0;
 	SetBanks();
+
+	mcBreakpoints.Init();
+	mbAtBreakpoint = false;
+	mbMoving = false;
 }
 
 
@@ -97,6 +101,7 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 //////////////////////////////////////////////////////////////////////////
 void CFast65C816::Kill(void)
 {
+	mcBreakpoints.Kill();
 	mfReadByte = NULL;
 	mfWriteByte = NULL;
 	mpvContext = NULL;
@@ -183,6 +188,8 @@ void CFast65C816::Reset(void)
 	mbStopped = false;
 	mbWaiting = false;
 	mbNmiPending = false;
+	mbAtBreakpoint = false;
+	mbMoving = false;
 
 	mbE = true;
 	muiP = (uint8)((muiP | FAST_816_M | FAST_816_X | FAST_816_I) & ~FAST_816_D);
@@ -207,7 +214,40 @@ void CFast65C816::Reset(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// One CW65CMeta::TickInstruction.  Returns false if the processor stopped.
+// An enabled breakpoint at the next instruction, unless it is the rest of a
+// block move (MVN and MVP execute again for each byte).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C816::IsBreakpointNext(void)
+{
+	return mcBreakpoints.AnyEnabled() && !mbMoving && mcBreakpoints.IsEnabledNext(((uint32)muiPBR << 16) | muiPC);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether to return before the next instruction, at a breakpoint.  Not if
+// the last Step or Run returned there (it's executed now).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C816::Breaks(void)
+{
+	if (mbAtBreakpoint)
+	{
+		mbAtBreakpoint = false;
+		return false;
+	}
+	mbAtBreakpoint = IsBreakpointNext();
+	return mbAtBreakpoint;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One CW65CMeta::TickInstruction.  Returns false if the processor stopped,
+// or if the next instruction is at an enabled breakpoint (IsAtBreakpoint).
+// That instruction isn't executed and nothing changes; the next Step
+// executes it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFast65C816::Step(void)
@@ -232,6 +272,10 @@ bool CFast65C816::Step(void)
 
 	if (muiNext == FAST_65C816_NEXT_INSTRUCTION)
 	{
+		if (Breaks())
+		{
+			return false;
+		}
 		Execute();
 	}
 	else if (muiNext == FAST_65C816_NEXT_NMI)
@@ -276,12 +320,15 @@ FORCE_INLINE bool CFast65C816::NeedsDeciding(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Steps until the processor stops.  Returns the number of steps, counting the one that stopped.
+// Steps until the processor stops or the next instruction is at an enabled breakpoint.  Returns the number of
+// steps, counting the one that stopped but not a breakpoint's (it executes nothing).
 //
 // It does what that many Steps do.  While nothing needs deciding (not stopped or waiting, IRQB and NMIB not
 // low or pending, so Decide would keep muiNext the next instruction) the instructions are executed one after
 // another without the rest of Step.  When an instruction changes that (STP, WAI, or a callback setting IRQB or
 // NMIB) the end of its Step is done, and Step does the steps after it until nothing needs deciding again.
+// While a breakpoint is enabled the instructions are checked here as Step checks them; returning before one
+// is the end of the Step before (which, with nothing to decide, would leave muiNext as it is).
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C816::Run(size uiMaxInstructions)
@@ -291,18 +338,27 @@ size CFast65C816::Run(size uiMaxInstructions)
 	i = 0;
 	while (i < uiMaxInstructions)
 	{
-		if (NeedsDeciding() || (muiNext != FAST_65C816_NEXT_INSTRUCTION))
+		if (NeedsDeciding() || (muiNext != FAST_65C816_NEXT_INSTRUCTION) || mbAtBreakpoint)
 		{
-			i++;
 			if (!Step())
 			{
+				if (!mbAtBreakpoint)
+				{
+					i++;
+				}
 				return i;
 			}
+			i++;
 			continue;
 		}
 
 		do
 		{
+			if (IsBreakpointNext())
+			{
+				mbAtBreakpoint = true;
+				return i;
+			}
 			Execute();
 			if (mbE)
 			{
@@ -354,6 +410,30 @@ void CFast65C816::SetNMI(bool bLow)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Add, remove, enable and disable breakpoints here at any time, also from
+// the callbacks.
+//
+//////////////////////////////////////////////////////////////////////////
+CBreakpoints* CFast65C816::GetBreakpoints(void)
+{
+	return &mcBreakpoints;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last Step or Run returned before the instruction at a breakpoint
+// (GetProgramAddress).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C816::IsAtBreakpoint(void)
+{
+	return mbAtBreakpoint;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the next Step does, from the inputs at the end of this one.  NMI before IRQ.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -387,6 +467,8 @@ void CFast65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, boo
 	uint8	uiHigh;
 	uint16	uiVector;
 
+	//A block move is interrupted between bytes; after RTI it starts again as a new instruction.
+	mbMoving = false;
 	if (bHardware)
 	{
 		//The opcode is fetched and ignored.
@@ -1537,7 +1619,8 @@ void CFast65C816::BlockMove(int iStep)
 	muiC--;
 	muiX = (uint16)((muiX + iStep) & uiMask);
 	muiY = (uint16)((muiY + iStep) & uiMask);
-	if (muiC != 0xFFFF)
+	mbMoving = muiC != 0xFFFF;
+	if (mbMoving)
 	{
 		muiPC -= 3;
 	}
@@ -2072,6 +2155,8 @@ void CFast65C816::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCou
 {
 	SetProgramBank(uiProgramBank);
 	muiPC = uiProgramCounter;
+	mbAtBreakpoint = false;
+	mbMoving = false;
 }
 
 
