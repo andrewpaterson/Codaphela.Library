@@ -129,6 +129,7 @@ public:
 protected:
 			void				SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds);
 			size				CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex, size* puiNumLogged);
+			void				LetGo(Ptr<CComponent> pComponent);
 			Ptr<CInputAction>	MallocInputAction(void);
 			void				AddInputAction(Ptr<CInputAction> pAction);
 };

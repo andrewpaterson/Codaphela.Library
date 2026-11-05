@@ -249,20 +249,14 @@ bool CComponent::AddComponent(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::RemoveComponent(Ptr<CComponent> pComponent)
 {
-	bool	bResult;
-
-	if (mpWindow)
+	if (!maChildren.Remove(pComponent))
 	{
-		mpWindow->GetFocus()->Forget(pComponent);
+		return false;
 	}
 
-	bResult = maChildren.Remove(pComponent);
-	if (bResult)
-	{
-		pComponent->mpParent = NULL;
-		InvalidateLayout();
-	}
-	return bResult;
+	LetGo(pComponent);
+	InvalidateLayout();
+	return true;
 }
 
 
@@ -280,14 +274,26 @@ bool CComponent::RemoveAllComponents(void)
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		if (mpWindow)
-		{
-			mpWindow->GetFocus()->Forget(pComponent);
-		}
-		pComponent->mpParent = NULL;
+		LetGo(pComponent);
 	}
 	InvalidateLayout();
 	return maChildren.RemoveAll();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A child being removed: nothing in it stays hovered, focussed or
+// dragging, and it has no parent.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::LetGo(Ptr<CComponent> pComponent)
+{
+	if (mpWindow)
+	{
+		mpWindow->GetFocus()->Forget(pComponent);
+	}
+	pComponent->mpParent = NULL;
 }
 
 
