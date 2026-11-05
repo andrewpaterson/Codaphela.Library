@@ -862,9 +862,14 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		return bResult;
 	}
 
-	cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
+	cBackend.Init(&mcModule, &mpcGenerator->miLabels);
 	cBackend.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
 	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
+	paszRuntime = cBackend.GetRuntime();
+	for (ui = 0; ui < paszRuntime->NumElements(); ui++)
+	{
+		mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
+	}
 	mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
 	mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
 	cBackend.Kill();

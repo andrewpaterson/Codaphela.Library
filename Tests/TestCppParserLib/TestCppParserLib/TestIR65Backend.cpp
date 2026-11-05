@@ -89,7 +89,6 @@ int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = N
 	CIRVerifier		cVerifier;
 	CIR65Backend	cBackend;
 	CChars			szCode;
-	CArrayChars		aszRuntime;
 	int				iLabels;
 	CCPP65Builder	cBuilder;
 	CFileUtil		cFileUtil;
@@ -110,9 +109,8 @@ int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = N
 	AssertString("", cErrors.Text());
 
 	szCode.Init();
-	aszRuntime.Init();
 	iLabels = 0;
-	cBackend.Init(&cModule, &iLabels, &aszRuntime);
+	cBackend.Init(&cModule, &iLabels);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
 	AssertString("", cErrors.Text());
 	if (cBackend.UsesSignedDivide())
@@ -154,7 +152,6 @@ int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = N
 		TestCPP65End(&sRun);
 	}
 	cBuilder.Kill();
-	aszRuntime.Kill();
 	szCode.Kill();
 	cErrors.Kill();
 	cModule.Kill();

@@ -180,7 +180,6 @@ struct SIR65Frame
 class CIR65Backend : public CIRBackend
 {
 protected:
-	CArrayChars*			mpaszRuntime;
 	bool					mbSignedDivide;
 	bool					mbSignedDivide64;
 	CIRDominators			mcDominators;
@@ -214,7 +213,7 @@ protected:
 	CIRBackendPasses		mcBackendPasses;
 
 public:
-	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);
+	void				Init(CIRModule* pcModule, int* piLabels);
 	void				Kill(void);
 
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);

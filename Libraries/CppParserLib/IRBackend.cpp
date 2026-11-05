@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 // Function sections have no options until a back end sets them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::Init(CIRModule* pcModule, int* piLabels)
+void CIRBackend::Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator)
 {
 	mpcModule = pcModule;
 	mpiLabels = piLabels;
@@ -40,6 +40,7 @@ void CIRBackend::Init(CIRModule* pcModule, int* piLabels)
 	mbResult = true;
 	maiBlockLabels.Init();
 	mszSectionOptions = "";
+	maszRuntime.Init(pcMallocator);
 }
 
 
@@ -49,8 +50,33 @@ void CIRBackend::Init(CIRModule* pcModule, int* piLabels)
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::Kill(void)
 {
+	maszRuntime.Kill();
 	maiBlockLabels.Kill();
 	mcSourceMarkers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The runtime routines the functions written called (UseRuntime), for the
+// generator to link or write.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CIRBackend::GetRuntime(void)
+{
+	return &maszRuntime;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Notes that the code calls the runtime routine szName (once each), for
+// GetRuntime.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::UseRuntime(const char* szName)
+{
+	maszRuntime.AddIfUnique((char*)szName);
 }
 
 

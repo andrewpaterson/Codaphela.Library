@@ -26,14 +26,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// piLabels is the counter labels are numbered from (the generator's), and
-// paszRuntime the list the soft float routines' labels are added to.
+// piLabels is the counter labels are numbered from (the generator's).  The
+// soft float routines' labels the code calls are GetRuntime's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime)
+void CIR65Backend::Init(CIRModule* pcModule, int* piLabels)
 {
 	CIRBackend::Init(pcModule, piLabels);
-	mpaszRuntime = paszRuntime;
 	mbSignedDivide = false;
 	mbSignedDivide64 = false;
 	mcDominators.Init();
@@ -365,10 +364,7 @@ void CIR65Backend::CallRuntime(const char* szName, int iBytes)
 
 	szLabel.Init("_");
 	szLabel.Append(szName);
-	if (mpaszRuntime)
-	{
-		mpaszRuntime->AddIfUnique(szLabel);
-	}
+	UseRuntime(szLabel.Text());
 	Line("jsr ")->Append(szLabel)->AppendNewLine();
 	szLabel.Kill();
 	RemoveArguments(iBytes);

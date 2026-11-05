@@ -34,8 +34,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 {
-	CIRBackend::Init(pcModule, piLabels);
-	maszRuntime.Init(CIR816Backend::GetScratch());
+	CIRBackend::Init(pcModule, piLabels, CIR816Backend::GetScratch());
 	maiOffsets.Init(CIR816Backend::GetScratch());
 	maiIncoming.Init(CIR816Backend::GetScratch());
 	maiSlots.Init(CIR816Backend::GetScratch());
@@ -80,19 +79,7 @@ void CIR816Backend::Kill(void)
 	mcLoops.Kill();
 	mcBackendPasses.Kill();
 	mcDominators.Kill();
-	maszRuntime.Kill();
 	CIRBackend::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The runtime routines GenerateModule's functions called.
-//
-//////////////////////////////////////////////////////////////////////////
-CArrayChars* CIR816Backend::GetRuntime(void)
-{
-	return &maszRuntime;
 }
 
 
@@ -119,18 +106,6 @@ void CIR816Backend::Line(const char* szText, int64 lliValue)
 	mpszOut->Append(szText);
 	mpszOut->Append(lliValue);
 	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Notes that the function calls the runtime routine szName (once each),
-// for GetRuntime and GenerateRuntime.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::UseRuntime(const char* szName)
-{
-	maszRuntime.AddIfUnique((char*)szName);
 }
 
 

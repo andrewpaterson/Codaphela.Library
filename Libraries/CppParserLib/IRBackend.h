@@ -21,14 +21,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __I_R_BACKEND_H__
 #define __I_R_BACKEND_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayChars.h"
 #include "CPPErrors.h"
 #include "IRModule.h"
 #include "IRSourceMarkers.h"
 
 
 //What the 65C64 (CIR65Backend) and W65C816 (CIR816Backend) back ends share: the module and the label counter, the
-//function being written and the text it goes to, its source markers, errors and block labels, and writing a module
-//as sections (each function and global a section of its own), its globals' data, labels and errors.
+//function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
+//its code calls, and writing a module as sections (each function and global a section of its own), its globals'
+//data, labels and errors.
 class CIRBackend
 {
 protected:
@@ -43,6 +45,7 @@ protected:
 	bool					mbResult;
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the W65C816's runtime.
+	CArrayChars				maszRuntime;		//The runtime routines' labels the code calls (UseRuntime), once each.
 
 public:
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
@@ -50,15 +53,17 @@ public:
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	void			SetSourceMarkers(bool bSourceMarkers);
+	CArrayChars*	GetRuntime(void);
 
 protected:
-	void			Init(CIRModule* pcModule, int* piLabels);
+	void			Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator = NULL);
 	void			Kill(void);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	bool			Error(const char* szMessage, const char* szDetail = NULL);
 	void			Source(uint32 uiSource);
 	int32			NewLabel(void);
+	void			UseRuntime(const char* szName);
 	void			Label(int32 iLabel);
 };
 

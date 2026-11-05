@@ -139,7 +139,6 @@ struct SIR816Frame
 class CIR816Backend : public CIRBackend
 {
 protected:
-	CArrayChars				maszRuntime;		//The runtime routines used.
 	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
 	SIR816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
@@ -180,7 +179,6 @@ public:
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
-	CArrayChars*	GetRuntime(void);
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
@@ -199,7 +197,6 @@ public:
 protected:
 	void			Line(const char* szText);
 	void			Line(const char* szText, int64 lliValue);
-	void			UseRuntime(const char* szName);
 
 	int				ValueBytes(SIRType sType);
 	int				Words(SIRType sType);
