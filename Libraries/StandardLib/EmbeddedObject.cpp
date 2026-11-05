@@ -405,29 +405,19 @@ void CEmbeddedObject::GetHeapFromPointers(CArrayHeapFromPointer* pacPointers)
 	//Adds every pointer field, in every Object on the heap, that points to this.
 
 	size			i;
-	size			j;
 	size			uiNumFroms;
 	CBaseObject*	pcFrom;
-	bool			bAlreadyAdded;
+	uint32			uiAdded;
 
+	//An Object with more than one pointer to this is in the heap froms more than once; it is stamped the first time.
+	uiAdded = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
 	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
 		pcFrom = CEmbeddedObject::GetHeapFrom(i);
-
-		//An Object with more than one pointer to this is in the heap froms more than once.
-		bAlreadyAdded = false;
-		for (j = 0; j < i; j++)
+		if (pcFrom->GetWalkStamp() != uiAdded)
 		{
-			if (CEmbeddedObject::GetHeapFrom(j) == pcFrom)
-			{
-				bAlreadyAdded = true;
-				break;
-			}
-		}
-
-		if (!bAlreadyAdded)
-		{
+			pcFrom->SetWalkStamp(uiAdded);
 			pcFrom->GetPointerFieldsTo(this, pacPointers);
 		}
 	}

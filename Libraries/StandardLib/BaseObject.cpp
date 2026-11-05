@@ -317,6 +317,8 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 	size					i;
 	size					uiNumEmbedded;
 	size					uiNumPointers;
+	size					uiNumKilled;
+	uint32					uiKilled;
 
 	if (IsAllocatedInObjects())
 	{
@@ -335,13 +337,21 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		cDistCalculator.Init();
 		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
-		//Put back the pointers from Objects that are killed with this.  They must still be valid when those Objects are freed, as they are in TryFree.
+		//The objects killed with this are stamped, so whether a pointer's object is one of them is one comparison.
+		uiKilled = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+		uiNumKilled = papcKilled->NumElements();
+		for (i = 0; i < uiNumKilled; i++)
+		{
+			papcKilled->GetPtr(i)->SetWalkStamp(uiKilled);
+		}
+
+		//Put back the pointers from Objects that are killed with this.  They must still be valid when those Objects are freed, as they are in FromRemoved.
 		uiNumPointers = acHeapFromPointers.NumElements();
 		for (i = 0; i < uiNumPointers; i++)
 		{
 			psHeapFromPointer = acHeapFromPointers.Get(i);
 			pcFromContainer = psHeapFromPointer->pcFrom->GetEmbeddingContainer();
-			if (papcKilled->ContainsVoidPtr(pcFromContainer))
+			if (pcFromContainer->GetWalkStamp() == uiKilled)
 			{
 				psHeapFromPointer->pcPointer->UnsafePointTo(psHeapFromPointer->pcTo);
 				psHeapFromPointer->pcTo->AddHeapPointerForRemap(psHeapFromPointer->pcFrom);
