@@ -31,14 +31,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
 #define OBJECT_FLAGS_DIRTY						  0x08
 
-//Debug flag marking whether or not an object has had Free called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
+//Set when an object's Free has been called: it is in the batch being freed.  The distance walks pass over it and
+//TryFree leaves it.  An object that is killed should be removed from Memory, so one still there with this set is broken.
 #define OBJECT_FLAGS_FREED						  0x10
 
 //Debug flag marking whether or not an object has had it's graph dumped yet.
 #define OBJECT_FLAGS_DUMPED						  0x20
-
-//This object cannot be reached and is marked for killing.
-#define OBJECT_FLAGS_UNREACHABLE				  0x40
 
 // Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
@@ -50,7 +48,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_CLASS				 0x800
 #define OBJECT_FLAGS_CALLED_KILL				 0x001
 
-//0x1000, 0x2000, 0x4000 and 0x8000 are free.
+//0x0002, 0x0040, 0x1000, 0x2000, 0x4000 and 0x8000 are free.  The distance calculations keep what they find in the
+//walk stamp (WALK_STATE_...), not in flags.
 
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
@@ -228,7 +227,6 @@ protected:
 			bool					IsBaseObject(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);
-			bool					IsMarkedUnreachable(void);
 			void					ReplaceOneWithX(char* szDest, char* szMask);
 			void					ContainerPreInit(void);
 			void					ContainerPostInit(void);

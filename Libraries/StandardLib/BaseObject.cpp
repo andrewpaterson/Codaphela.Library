@@ -1609,16 +1609,6 @@ CClasses* CBaseObject::GetClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsMarkedUnreachable(void)
-{
-	return FixBool(muiFlags & OBJECT_FLAGS_UNREACHABLE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CBaseObject::HasClass(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_CLASS);
@@ -1939,10 +1929,6 @@ void CBaseObject::PrintFlags(CChars* psz)
 	{
 		psz->Append("DUMPED, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_UNREACHABLE)
-	{
-		psz->Append("UNREACHABLE, ");
-	}
 	if (muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
 	{
 		psz->Append("TESTED_FOR_SANITY, ");
@@ -2126,7 +2112,6 @@ void CBaseObject::ValidateFlags(void)
 {
 	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
-	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_ALLOCATE, "OBJECT_FLAGS_CALLED_ALLOCATE");
 

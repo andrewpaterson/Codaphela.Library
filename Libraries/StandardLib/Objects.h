@@ -75,8 +75,6 @@ protected:
 	CDataConnection*		mpcDataConnection;
 	CSequenceConnection*	mpcSequenceConnection;
 
-	CDistCalculator			mcDistCalculator;
-
 	AllocationCallback		mAllocationCallback;
 	HollocationCallback		mHollocationCallback;
 	DestructionCallback		mDestructionCallback;
