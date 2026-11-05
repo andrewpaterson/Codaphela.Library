@@ -27,6 +27,7 @@ void TestComponentInput(void);
 void TestComponentInputDevices(void);
 void TestInputAction(void);
 void TestTabbedContainer(void);
+void TestDocking(void);
 void TestComponentInputWinRaw(void);
 void TestInputSourceChannel(void);
 void TestButton(void);
@@ -85,6 +86,7 @@ int __cdecl main(void)
 	TestComponentInputDevices();
 	TestInputAction();
 	TestTabbedContainer();
+	TestDocking();
 	TestComponentInputWinRaw();
 	TestInputSourceChannel();
 	TestButton();

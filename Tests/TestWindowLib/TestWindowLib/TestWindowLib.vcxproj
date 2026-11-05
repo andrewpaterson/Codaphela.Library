@@ -251,6 +251,7 @@
     <ClCompile Include="TestComponentInput.cpp" />
     <ClCompile Include="TestComponentInputDevices.cpp" />
     <ClCompile Include="TestInputAction.cpp" />
+    <ClCompile Include="TestDocking.cpp" />
     <ClCompile Include="TestTabbedContainer.cpp" />
     <ClCompile Include="TestComponentInputWinRaw.cpp" />
     <ClCompile Include="TestInputSourceChannel.cpp" />

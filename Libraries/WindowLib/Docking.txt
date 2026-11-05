@@ -15,7 +15,31 @@ Decisions (user, 2026-11-05)
   top.
 - The layout is saved as XML through BaseLib's CXMLWriter and read through CXMLFile / CMarkupTag.  CObject Save and
   Load still work for the components as they do now; they are not how a layout is kept.
-- Design note first; nothing is implemented yet.
+- Design note first, then the whole plan, and the HCP65 IDE moved onto it (2026-11-05).
+- The open questions, answered with their recommendations: sashes resize live; floating windows have no platform frame
+  (WindowLib draws it); documents are in the layout file; documents can float.
+
+
+Status (2026-11-05)
+-------------------
+
+Everything in Steps is built: CDockManager, CDockPane, CDockNode with CDockSplit/CDockSash, CDockGroup, CDocumentWell,
+CDockArea, CDockTitleBar, CDockGuides, CDockFloatingWindow, CDockEdge, CDockDragTracker and the auto hide classes
+(AutoHide.h), with TestWindowLib's TestDocking.  The HCP65 IDE uses it: its tool windows and documents are panes and its
+layout is kept in <solution>.layout.user.  Checked on Linux with the reference and X11 windows; the WinGDI side is
+written but not built or run.
+
+Built differently from the sections below:
+- A tab or title bar pulled a few pixels floats what it drags straight away, as Visual Studio does, and every drag is
+  then of a floating window (CDockManager::BeginPaneDrag); Escape docks a torn off pane back.
+- Holding Control to keep the guides away, Shift+Escape and Control+F4 aren't done: the input has no Control state or
+  commands for them.  CDockManager::SetDragNoDock is there for when it has.
+- The layout file has a <Panes> list of every pane's state and restore place instead of <Hidden> and <Restore>; see the
+  comment at the top of DockManagerLayout.cpp.  The main window's rectangle is read but not applied
+  (GetLayoutWindowRectangle).
+- A pane remembers the well as its neighbour when the node beside it holds the well (DOCK_WELL_NEIGHBOUR); restoring
+  climbs from the neighbour to the node in a split of the same direction and docks beside that.
+- Tabs that don't fit a document group's bar go to the overflow menu; a selected one is moved to the front.
 
 
 Words
@@ -242,10 +266,10 @@ every screen is moved onto the main one.  An unknown element or attribute is ski
 things.  A file that doesn't read (bad XML, Version newer than known) leaves the default layout and logs why.
 
 
-What WindowLib doesn't have yet
--------------------------------
+What WindowLib didn't have (all added 2026-11-05)
+-------------------------------------------------
 
-Found while writing this; each is needed by some step below.
+Found while writing this; each was needed by some step below.
 - Pointer cursor shapes: none at all.  Sashes need the resize cursors; dragging could use the move cursor.
   CNativeWindow::SetCursor, done in WinGdiLib (SetCursor / WM_SETCURSOR) and X11Lib (XCreateFontCursor, XDefineCursor).
 - Modeless secondary windows.  CWindow has Show (the main window) and ShowModal (a dialog from a tick).  Floating

@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Source\Component\Docking">
+      <UniqueIdentifier>{e9883f32-2e01-4c5e-bde3-bff35151b1a1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{db0bcee9-4054-4f84-b2d9-2ff5dd7e69d8}</UniqueIdentifier>
     </Filter>
@@ -291,6 +294,45 @@
     <ClInclude Include="ScrollPane.h">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClInclude>
+    <ClInclude Include="AutoHide.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockArea.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockEdge.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockFloatingWindow.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockGroup.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockGuides.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockManager.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockNode.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockPane.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockSplit.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockTitleBar.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DocumentWell.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeCursor.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
     <ClInclude Include="TabbedContainer.h">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>
@@ -526,6 +568,48 @@
     </ClCompile>
     <ClCompile Include="ScrollPane.cpp">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoHide.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockArea.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockEdge.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockFloatingWindow.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockGroup.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockGuides.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockManager.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockManagerDrag.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockManagerLayout.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockNode.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockPane.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockSplit.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockTitleBar.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DocumentWell.cpp">
+      <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="TabbedContainer.cpp">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>

@@ -614,3 +614,57 @@ Ptr<CCheckBoxImages> CJewelImageGenerator::CreateCheckBoxImages(CColourFormatHel
 	}
 	return pImages;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Visual Studio's push pin on a tool window's title bar: upright, its
+// needle down, while the window is docked, and on its side, the needle to
+// the left, while it auto hides.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreatePin(ARGB32 sColour, bool bPinned, CColourFormatHelper* pcFormat)
+{
+	static float64	aafStrokes[][4] =
+	{
+		{ 5.0, 2.5, 11.0, 2.5 },	//The head.
+		{ 6.5, 3.0, 6.5, 9.0 },		//The body's sides.
+		{ 9.5, 3.0, 9.5, 9.0 },
+		{ 4.0, 9.5, 12.0, 9.5 },	//The base.
+		{ 8.0, 10.0, 8.0, 14.5 },	//The needle.
+	};
+	Ptr<CImage>		pImage;
+	CImageDraw		cDraw;
+	size			i;
+	float64			x0;
+	float64			y0;
+	float64			x1;
+	float64			y1;
+
+	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	for (i = 0; i < sizeof(aafStrokes) / sizeof(aafStrokes[0]); i++)
+	{
+		x0 = aafStrokes[i][0];
+		y0 = aafStrokes[i][1];
+		x1 = aafStrokes[i][2];
+		y1 = aafStrokes[i][3];
+		if (!bPinned)
+		{
+			//Turned a quarter clockwise about the middle: down becomes left.
+			cDraw.DrawStroke(16.0 - y0, x0, 16.0 - y1, x1, 1.0);
+		}
+		else
+		{
+			cDraw.DrawStroke(x0, y0, x1, y1, 1.0);
+		}
+	}
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
