@@ -45,8 +45,7 @@ set(TESTBASELIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/TestBaseLib")
 
 # Reads <ClCompile Include="..."/> entries from a .vcxproj and resolves them
 # against the files on disk case-insensitively (Windows paths are not
-# case-sensitive, e.g. the project says CPPWhitespace.cpp but the file is
-# CPPWhiteSpace.cpp).  Files named in EXCLUDE (paths relative to the project,
+# case-sensitive, so a project entry may differ in case from its file).  Files named in EXCLUDE (paths relative to the project,
 # any case) are left out.
 function(vcxproj_sources OUT_VAR VCXPROJ)
 	cmake_parse_arguments(ARG "" "" "EXCLUDE" ${ARGN})

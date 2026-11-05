@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "TextParser.h"
 #include "EscapeCodes.h"
-#include "CPPWhiteSpace.h"
+#include "CPPWhitespace.h"
 #include "CPPString.h"
 #include "CPPIdentifier.h"
 
