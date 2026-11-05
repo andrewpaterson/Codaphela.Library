@@ -1115,7 +1115,9 @@ void CObjects::RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts)
 {
-	//Must be called after RemoveAllPointerTos.  Any heap froms left are from objects not being killed with these and their pointers to these must be cleared.
+	//Must be called after RemoveAllPointerTos.  Any heap froms left are from objects not being killed with these, whose
+	//pointers to these must be cleared, or from objects killed with these (they don't unlink from each other), whose
+	//pointers are cleared already.
 
 	size			i;
 	size			iNumElements;

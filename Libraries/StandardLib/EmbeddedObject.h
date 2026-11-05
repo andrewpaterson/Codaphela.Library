@@ -124,6 +124,7 @@ public:
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackFroms(void);
 			bool				UnlinkHeapFrom(CBaseObject* pcFrom);  //These only unlink; they never free.  See CObjects::FromRemoved.
+			bool				IsBeingFreed(void);
 			bool				UnlinkStackFrom(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);
 			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer);

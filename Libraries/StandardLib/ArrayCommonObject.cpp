@@ -428,7 +428,7 @@ bool CArrayCommonObject::ClearPointerTos(bool bFree)
 		}
 		else
 		{
-			bResult &= ((pcPointedTo == NULL) || UnlinkFrom(pcPointedTo));
+			bResult &= UnlinkFromUnlessFreed(pcPointedTo);
 		}
 	}
 	mcArray.ReInit();

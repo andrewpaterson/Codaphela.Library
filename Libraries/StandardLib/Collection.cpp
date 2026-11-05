@@ -216,6 +216,22 @@ bool CCollection::UnlinkFrom(CEmbeddedObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For a collection freed with other objects: those freed with it drop
+// their froms anyway, so only the others are unlinked.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::UnlinkFromUnlessFreed(CEmbeddedObject* pcObject)
+{
+	if ((pcObject == NULL) || pcObject->IsBeingFreed())
+	{
+		return true;
+	}
+	return UnlinkFrom(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // If bResult (the collection let go of pcObject), unlinks its from and
 // frees pcObject if nothing else reaches it.
 //

@@ -432,8 +432,9 @@ bool CObject::ClearPointerTos(bool bFree)
 		}
 		else
 		{
-			//An object pointed to may be killed with this, or be an embedded hollow object: both have this as a heap from.
-			if (pcPointer->Object())
+			//An object freed with this drops its froms anyway: unlinking from a hub (one search of its froms for each
+			//object freed with it) was the cost of freeing them together.  Others, embedded hollow objects too, keep living.
+			if (pcPointer->Object() && !pcPointer->Object()->IsBeingFreed())
 			{
 				pcPointer->Object()->UnlinkHeapFrom(this);
 			}

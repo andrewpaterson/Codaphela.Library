@@ -61,6 +61,7 @@ protected:
 			void			EmbedFields(void);
 
 			bool			UnlinkFrom(CEmbeddedObject* pcObject);
+			bool			UnlinkFromUnlessFreed(CEmbeddedObject* pcObject);
 			bool			AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);
