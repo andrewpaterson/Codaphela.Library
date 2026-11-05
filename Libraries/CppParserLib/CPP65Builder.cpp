@@ -216,8 +216,20 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	}
 	else
 	{
-		pcLibrary->AddTranslationUnit((char*)szFile);
-		muiUnits++;
+		//A C++ unit is found from its library's directory (the first unit's): one that isn't there is an error, not a
+		//unit compiled to nothing.
+		szPath.Init(pcLibrary->GetBaseDir());
+		cFileUtil.AppendToPath(&szPath, szFile);
+		if (cFileUtil.Exists(szPath.Text()))
+		{
+			pcLibrary->AddTranslationUnit((char*)szFile);
+			muiUnits++;
+		}
+		else
+		{
+			mszErrors.Append("Could not read ")->Append(szPath.Text())->Append(".\n");
+		}
+		szPath.Kill();
 	}
 	szName.Kill();
 }
