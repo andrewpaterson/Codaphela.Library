@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FileUtil.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
@@ -7,12 +8,20 @@
 #include "WindowLib/CodeEditor.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
+#include "TestLib/AssertFile.h"
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
 
 
 Ptr<CFont> ReadLabelFont(void);
 Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
+void AssertTextAreaBackground(ETextAreaBackground eType, size uiStart, size uiEnd, STextAreaBackground* psBackground);
+void AssertLabelObjectsRemoved(void);
+
+
+#define TEST_CHANGE_MODIFIED	Set32BitColour((uint8)0x37, (uint8)0x5F, (uint8)0xAD)
+#define TEST_CHANGE_ADDED		Set32BitColour((uint8)0x54, (uint8)0x91, (uint8)0x59)
+#define TEST_CHANGE_REMOVED		Set32BitColour((uint8)0x86, (uint8)0x8A, (uint8)0x91)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -562,6 +571,143 @@ void TestCodeEditorScrolledSideways(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A change bar colours the gutter's last column beside each of its lines;
+// removed lines are a boundary between rows.  They are by line number, and
+// stay when the gutter is numbered again with wider numbers.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorChangeBars(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pGutter;
+		SCodeEditorChangeBar*		psBar;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne\nf");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pGutter = pEditor->GetGutter();
+
+		//Rows are " 1 \n", four characters each: the bar's column is the third.
+		pEditor->AddChangeBar(1, 3, TEST_CHANGE_MODIFIED);
+		pEditor->AddChangeBar(4, 5, TEST_CHANGE_ADDED);
+		pEditor->AddChangeBar(0, 0, TEST_CHANGE_REMOVED);
+		pEditor->AddChangeBar(6, 6, TEST_CHANGE_REMOVED);
+		pEditor->AddChangeBar(5, 9, TEST_CHANGE_ADDED);
+		pEditor->AddChangeBar(3, 2, TEST_CHANGE_ADDED);
+		AssertSize(5, pEditor->NumChangeBars());
+		psBar = pEditor->GetChangeBar(1);
+		AssertSize(4, psBar->uiStartLine);
+		AssertSize(5, psBar->uiEndLine);
+		AssertNull(pEditor->GetChangeBar(5));
+		pTestWindow->Layout();
+		AssertString(" 1 \n 2 \n 3 \n 4 \n 5 \n 6 ", pGutter->GetText());
+		AssertSize(6, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Range, 6, 7, pGutter->GetBackground(0));
+		AssertTextAreaBackground(TAB_Range, 10, 11, pGutter->GetBackground(1));
+		AssertTextAreaBackground(TAB_Range, 18, 19, pGutter->GetBackground(2));
+		AssertTextAreaBackground(TAB_Boundary, 0, 0, pGutter->GetBackground(3));
+		AssertTextAreaBackground(TAB_Boundary, 6, 6, pGutter->GetBackground(4));
+		AssertTextAreaBackground(TAB_Range, 22, 23, pGutter->GetBackground(5));
+
+		//Ten lines need two digits: rows are "  1 \n", five characters, and the bars stay on their lines.  The last bar
+		//isn't cut off at line 6 now.
+		pEditor->GetTextArea()->SetText("a\nb\nc\nd\ne\nf\ng\nh\ni\nj");
+		pTestWindow->Layout();
+		AssertSize(9, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Range, 8, 9, pGutter->GetBackground(0));
+		AssertTextAreaBackground(TAB_Range, 13, 14, pGutter->GetBackground(1));
+		AssertTextAreaBackground(TAB_Range, 23, 24, pGutter->GetBackground(2));
+		AssertTextAreaBackground(TAB_Range, 28, 29, pGutter->GetBackground(5));
+		AssertTextAreaBackground(TAB_Range, 43, 44, pGutter->GetBackground(8));
+
+		pEditor->ClearChangeBars();
+		pTestWindow->Layout();
+		AssertSize(0, pEditor->NumChangeBars());
+		AssertSize(0, pGutter->NumBackgrounds());
+
+		pGutter = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Change bars drawn: modified and added lines' bars beside their numbers,
+// and lines removed at the top and after the last.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorChangeBarsDrawn(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char*					szDirectory;
+
+	szDirectory = (char*)"Output" _FS_ "CodeEditorChangeBars";
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 120, szDirectory);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "int a;\nint b;\nint c;\nint d;\nint e;");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pEditor->GetTextArea()->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
+		pEditor->AddChangeBar(0, 0, TEST_CHANGE_REMOVED);
+		pEditor->AddChangeBar(1, 3, TEST_CHANGE_MODIFIED);
+		pEditor->AddChangeBar(3, 4, TEST_CHANGE_ADDED);
+		pEditor->AddChangeBar(5, 5, TEST_CHANGE_REMOVED);
+		pFill->AddComponent(pEditor);
+
+		pTestWindow->Show();
+
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertDirectory("Input" _FS_ "CodeEditorChangeBars", szDirectory);
+	AssertLabelObjectsRemoved();
+	cNativeFactory.Kill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditor(void)
@@ -575,6 +721,8 @@ void TestCodeEditor(void)
 	TestCodeEditorScrollPane();
 	TestCodeEditorGutterMarks();
 	TestCodeEditorScrolledSideways();
+	TestCodeEditorChangeBars();
+	TestCodeEditorChangeBarsDrawn();
 
 	ObjectsFlush();
 	ObjectsKill();

@@ -41,6 +41,8 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	muiGutterLines = 0;
 	macMarks.Init();
 	mbMarksChanged = false;
+	masChangeBars.Init();
+	mbChangeBarsChanged = false;
 	mcGutterClicked.Init();
 	mcChanged.Init();
 	CContainer::Init(pWindow);
@@ -83,6 +85,7 @@ void CCodeEditor::Free(void)
 {
 	mcChanged.Kill();
 	mcGutterClicked.Kill();
+	masChangeBars.Kill();
 	macMarks.Kill();
 	mauiLines.Kill();
 	mauiGapIds.Kill();
@@ -107,6 +110,8 @@ void CCodeEditor::Class(void)
 	U_Size(muiGutterLines);
 	U_Data(CArrayCodeEditorMarks, macMarks);
 	U_Bool(mbMarksChanged);
+	U_Data(CArrayCodeEditorChangeBars, masChangeBars);
+	U_Bool(mbChangeBarsChanged);
 	U_Size(muiSeenChanges);
 	U_Data(CGutterClickEvent, mcGutterClicked);
 	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
@@ -494,7 +499,8 @@ size CCodeEditor::FindGapId(uint32 uiId)
 //////////////////////////////////////////////////////////////////////////
 //
 // A row for each line of the code: its mark (or a space), its number
-// (from 1) right aligned, and a space.  Drawn as tiles if the code is.
+// (from 1) right aligned, and a space for the change bars.  Drawn as
+// tiles if the code is.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::UpdateGutter(void)
@@ -511,9 +517,9 @@ void CCodeEditor::UpdateGutter(void)
 	}
 
 	uiLines = mpTextArea->NumLines();
+	uiDigits = CountDigits(uiLines);
 	if ((uiLines != muiGutterLines) || mbMarksChanged)
 	{
-		uiDigits = CountDigits(uiLines);
 		szRows.Init();
 		for (uiLine = 0; uiLine < uiLines; uiLine++)
 		{
@@ -531,8 +537,54 @@ void CCodeEditor::UpdateGutter(void)
 		szRows.Kill();
 		muiGutterLines = uiLines;
 		mbMarksChanged = false;
+
+		//Setting the text cleared them.
+		mbChangeBarsChanged = true;
+	}
+	if (mbChangeBarsChanged)
+	{
+		DrawChangeBars(uiDigits);
+		mbChangeBarsChanged = false;
 	}
 	mpGutter->SetLineGaps(mpTextArea->GetLineGaps());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each changed line's row has its last column, after its number, in its
+// bar's colour.  Removed lines are a line at the top of the row below
+// them.  Bars past the last line are cut off.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::DrawChangeBars(size uiDigits)
+{
+	size					i;
+	size					uiLine;
+	size					uiEnd;
+	size					uiColumn;
+	size					uiLines;
+	SCodeEditorChangeBar*	psBar;
+
+	mpGutter->ClearBackgrounds();
+	uiLines = mpGutter->NumLines();
+	uiColumn = 1 + uiDigits;
+	for (i = 0; i < masChangeBars.NumElements(); i++)
+	{
+		psBar = masChangeBars.Get(i);
+		if (psBar->uiStartLine == psBar->uiEndLine)
+		{
+			mpGutter->AddLineBoundary((psBar->uiStartLine < uiLines) ? psBar->uiStartLine : uiLines, CODE_EDITOR_REMOVED_THICKNESS, psBar->sColour);
+		}
+		else
+		{
+			uiEnd = (psBar->uiEndLine < uiLines) ? psBar->uiEndLine : uiLines;
+			for (uiLine = psBar->uiStartLine; uiLine < uiEnd; uiLine++)
+			{
+				mpGutter->AddBackground(mpGutter->GetLineStart(uiLine) + uiColumn, mpGutter->GetLineStart(uiLine) + uiColumn + 1, psBar->sColour);
+			}
+		}
+	}
 }
 
 
@@ -600,6 +652,49 @@ void CCodeEditor::ClearLineMarks(void)
 		InvalidateLayout();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lines uiStartLine up to uiEndLine changed, or with uiStartLine equal to
+// uiEndLine, lines were removed above line uiStartLine (the number of
+// lines for after the last).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour)
+{
+	SCodeEditorChangeBar*	psBar;
+
+	if (uiEndLine < uiStartLine)
+	{
+		return;
+	}
+	psBar = masChangeBars.Add();
+	psBar->uiStartLine = uiStartLine;
+	psBar->uiEndLine = uiEndLine;
+	psBar->sColour = sColour;
+	mbChangeBarsChanged = true;
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ClearChangeBars(void)
+{
+	if (masChangeBars.NumElements() > 0)
+	{
+		masChangeBars.ReInit();
+		mbChangeBarsChanged = true;
+		InvalidateLayout();
+	}
+}
+
+
+size CCodeEditor::NumChangeBars(void) { return masChangeBars.NumElements(); }
+SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChangeBars.SafeGet(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////
