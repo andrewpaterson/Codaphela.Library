@@ -86,7 +86,7 @@ Ptr<CCanvas> CreateTabbedPage(Ptr<CWindow> pWindow)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The window is 200x100.  The tabs are on a bar along the top and the
+// The window is 240x100, wide enough for its tabs.  The tabs are on a bar along the top and the
 // selected tab's page fills the rest.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ void TestTabbedContainerTabs(void)
 		int32						iEditorWidth;
 		CTestTabbedContainerListener	cListener;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		cNativeFactory.Init(&gcMemoryAllocator, 240, 100, NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Tabbed Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
@@ -146,7 +146,7 @@ void TestTabbedContainerTabs(void)
 		AssertTrue(pInput->GetParent().IsNotNull());
 		AssertTrue(pEditor->GetParent().IsNull());
 		AssertInt(iBarHeight + 1, pInput->GetPosition().y);
-		AssertInt(200, pInput->GetActualSize().x);
+		AssertInt(240, pInput->GetActualSize().x);
 		AssertInt(100 - iBarHeight - 1, pInput->GetActualSize().y);
 
 		//The icon is left of the name, the cross right of it.

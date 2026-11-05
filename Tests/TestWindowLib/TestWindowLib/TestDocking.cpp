@@ -777,6 +777,117 @@ void TestDockingDrag(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tool group too narrow for its tabs: they keep their widths, side by
+// side from its left, and the ones past its right edge are cut off.  A
+// press past the edge, on the sash beside it, doesn't reach them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingNarrowToolTabs(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		SDockPlace				sPlace;
+		Ptr<CDockGroup>			pGroup;
+		Ptr<CTabbedContainer>	pTabs;
+		Ptr<CTabComponent>		pTab;
+		Ptr<CTabComponent>		pPrevious;
+		Ptr<CTabComponent>		pSelected;
+		Ptr<CTabComponent>		pCutOff;
+		Ptr<CComponent>			pOver;
+		CInt32Rect				cScreen;
+		CInt32Rect				cGroup;
+		CInt32Rect				cTab;
+		CInt32Rect				cPrevious;
+		int32					iGroupRight;
+		int32					y;
+		size					i;
+
+		sTest.Init(&cNativeFactory);
+		sPlace.WithPane("Output");
+		sTest.pManager->AddPane("Find", "Find Results", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		sTest.pManager->AddPane("Watch", "Watch Window", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pGroup = sTest.pOutput->GetGroup();
+		pTabs = pGroup->GetTabs();
+		AssertSize(4, pTabs->NumTabs());
+		pTabs->Select((size)0);
+
+		//The window narrowed: the well, with Output's group under it, is left 160 pixels.
+		cScreen.Init(0, 0, 520, 600);
+		sTest.pWindow->SetScreenRectangle(&cScreen);
+		sTest.pWindow->Layout();
+		pGroup->GetActualBounds(&cGroup);
+		AssertInt(520 - 200 - 150 - 2 * DOCK_SASH_SIZE, cGroup.GetWidth());
+		iGroupRight = cGroup.GetLeft() + cGroup.GetWidth();
+		AssertTrue(pTabs->IsBarShown());
+
+		//The tabs keep their widths and don't overlap, the first at the group's left.
+		pPrevious = NULL;
+		for (i = 0; i < pTabs->NumTabs(); i++)
+		{
+			pTab = pTabs->GetTab(i);
+			pTab->GetActualBounds(&cTab);
+			AssertInt(pTab->GetDesiredSize().x, cTab.GetWidth());
+			if (pPrevious.IsNull())
+			{
+				AssertInt(cGroup.GetLeft(), cTab.GetLeft());
+			}
+			else
+			{
+				pPrevious->GetActualBounds(&cPrevious);
+				AssertInt(cPrevious.GetLeft() + cPrevious.GetWidth(), cTab.GetLeft());
+			}
+			if ((pCutOff.IsNull()) && (cTab.GetLeft() + cTab.GetWidth() > iGroupRight))
+			{
+				pCutOff = pTab;
+			}
+			pPrevious = pTab;
+		}
+
+		//Some tab runs past the group's right edge.
+		AssertTrue(pCutOff.IsNotNull());
+		AssertTrue(pCutOff != pTabs->GetSelected());
+		pCutOff->GetActualBounds(&cTab);
+		y = cTab.GetTop() + cTab.GetHeight() / 2;
+
+		//A press just past the edge is on the sash, not the cut off tab, which stays unselected.
+		pSelected = pTabs->GetSelected();
+		DockPress(sTest.pWindow, iGroupRight + 1, y);
+		pOver = sTest.pWindow->GetFocus()->GetMouseOverComponent();
+		AssertTrue(pOver != pCutOff);
+		AssertTrue(dynamic_cast<CDockSash*>(&pOver) != NULL);
+		DockRelease(sTest.pWindow);
+		AssertTrue(pTabs->GetSelected() == pSelected);
+		AssertFalse(pCutOff->IsSelected());
+
+		//A press on the part of it that shows still selects it.
+		if (cTab.GetLeft() < iGroupRight - 2)
+		{
+			DockPress(sTest.pWindow, iGroupRight - 2, y);
+			AssertTrue(sTest.pWindow->GetFocus()->GetMouseOverComponent() == pCutOff);
+			DockRelease(sTest.pWindow);
+			AssertTrue(pTabs->GetSelected() == pCutOff);
+		}
+
+		pGroup = NULL;
+		pTabs = NULL;
+		pTab = NULL;
+		pPrevious = NULL;
+		pSelected = NULL;
+		pCutOff = NULL;
+		pOver = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A pane's content moves to the floating window with everything of it,
 // tab pages not shown included.
 //
@@ -922,6 +1033,7 @@ void TestDocking(void)
 	TestDockingDefaults();
 	TestDockingHideFloatAutoHide();
 	TestDockingDrag();
+	TestDockingNarrowToolTabs();
 	TestDockingMoveToWindow();
 	TestDockingLayoutFile();
 	ValidateLabelObjects();

@@ -59,7 +59,7 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpBarBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 
 	mpBar = OMalloc<CGridContainer>(pWindow);
-	mpBar->SetAlignment(CSH_Stretch, CSV_Top);
+	SetBarFit(false);
 	mpFiller = OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), 0, 0);
 
 	mpSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabSeparatorColour()));
@@ -522,7 +522,33 @@ void CTabbedContainer::SetOverflowMenu(bool bOverflow)
 		mpOverflow = NULL;
 		mpOverflowMenu = NULL;
 	}
+	SetBarFit(bOverflow);
 	PlaceTabs();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the overflow menu the bar stretches across the container and only
+// the tabs that fit are on it (see Layout).  Without it the bar is as wide
+// as its tabs, from the left, and a container too narrow for them cuts the
+// last ones off: it clips them, so they are neither drawn nor hit past its
+// edge.  A grid bar stretched across too little space would squeeze every
+// tab's column and the tabs, centred in them, would overlap.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::SetBarFit(bool bStretch)
+{
+	if (bStretch)
+	{
+		mpBar->SetSizedByContent(false);
+		mpBar->SetAlignment(CSH_Stretch, CSV_Top);
+	}
+	else
+	{
+		mpBar->SetSizedByContent(true);
+		mpBar->SetAlignment(CSH_Left, CSV_Top);
+	}
 }
 
 
