@@ -174,6 +174,7 @@ void TestMemoryDrive(void);
 void TestFatCache(void);
 void TestFat32(void);
 void TestFat16(void);
+void TestFatImageFile(void);
 void TestFatBench(void);
 void TestFatStress(void);
 void TestFat32Bugs(void);
@@ -366,6 +367,7 @@ int __cdecl main(void)
 	TestFatCache();
 	TestFat32();
 	TestFat16();
+	TestFatImageFile();
 	TestFatBench();
 	TestFat32Bugs();
 	TestFatStress();

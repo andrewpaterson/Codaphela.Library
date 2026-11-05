@@ -552,6 +552,7 @@
     <ClInclude Include="FatDebug.h" />
     <ClInclude Include="FatAbstractFile.h" />
     <ClInclude Include="FatFile.h" />
+    <ClInclude Include="FatImageFile.h" />
     <ClInclude Include="FatFilenameHelper.h" />
     <ClInclude Include="FatFormat.h" />
     <ClInclude Include="FatInfoSectorCache.h" />
@@ -953,6 +954,7 @@
     <ClCompile Include="FatDebug.cpp" />
     <ClCompile Include="FatAbstractFile.cpp" />
     <ClCompile Include="FatFile.cpp" />
+    <ClCompile Include="FatImageFile.cpp" />
     <ClCompile Include="FatFilenameHelper.cpp" />
     <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FatInfoSectorCache.cpp" />

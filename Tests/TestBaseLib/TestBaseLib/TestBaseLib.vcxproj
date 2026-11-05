@@ -375,6 +375,7 @@
     <ClCompile Include="TestTransactionHelper.cpp" />
     <ClCompile Include="TestFat32.cpp" />
     <ClCompile Include="TestFat16.cpp" />
+    <ClCompile Include="TestFatImageFile.cpp" />
     <ClCompile Include="TestFat32Common.cpp" />
     <ClCompile Include="TestFatCache.cpp" />
     <ClCompile Include="TestFatBench.cpp" />
