@@ -1380,6 +1380,56 @@ void TestDistToStackReachedThroughEmbedded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object is held when something pointing to it (or to what points to
+// it...) is pointed to from the stack or attached to the root; never by
+// itself.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToStackIsHeldFromStackOrRoot(void)
+{
+	CDistToStackCalculator	cDistToStackCalculator;
+
+	ObjectsInit();
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CPointerContainer>		pA;
+		Ptr<CPointerContainer>		pB;
+		Ptr<CPointerContainer>		pC;
+		CBaseObject*				pcA;
+		CBaseObject*				pcB;
+
+		pRoot = ORoot();
+		pA = OMalloc<CPointerContainer>();
+		pB = OMalloc<CPointerContainer>();
+		pcA = &pA;
+		pcB = &pB;
+
+		//  B -> A, B on the stack.
+		pB->mp = pA;
+		AssertTrue(cDistToStackCalculator.IsHeldFromStackOrRoot(pcA));
+
+		//  A <-> B, only A on the stack.  B is held through A; A only by itself.
+		pA->mp = pB;
+		pB = NULL;
+		AssertTrue(cDistToStackCalculator.IsHeldFromStackOrRoot(pcB));
+		AssertFalse(cDistToStackCalculator.IsHeldFromStackOrRoot(pcA));
+
+		//  Root -> C -> A.  A is held through the root.
+		pC = OMalloc<CPointerContainer>();
+		pRoot->Add(pC);
+		pC->mp = pA;
+		pC = NULL;
+		AssertTrue(cDistToStackCalculator.IsHeldFromStackOrRoot(pcA));
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToStack(void)
@@ -1407,6 +1457,7 @@ void TestDistToStack(void)
 	TestDistToStackSetBroken();
 	TestDistToStackRemoveUnbalancedLargeBroken();
 	TestDistToStackReachedThroughEmbedded();
+	TestDistToStackIsHeldFromStackOrRoot();
 
 	DataIOKill();
 	TypesKill();

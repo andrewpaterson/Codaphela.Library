@@ -1,4 +1,5 @@
 #include "BaseObject.h"
+#include "Objects.h"
 #include "DistToRootCalculator.h"
 #include "DistToStackCalculator.h"
 
@@ -178,7 +179,9 @@ bool CDistToStackCalculator::CollectDetached(CBaseObject* pcObject, CDistCalcula
 // pointer to pcObject going frees nothing, and the full distance to the
 // stack walk (everything below it, then everything above that) isn't
 // needed.  Breadth first, so the holder nearest is found first: building a
-// component under a parent held on the stack finds it straight away.
+// component under a parent held on the stack finds it straight away.  It is
+// a walk of its own: the objects it tests are stamped, so nothing needs
+// clearing afterwards.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDistToStackCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
@@ -186,18 +189,19 @@ bool CDistToStackCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
 	CArrayBaseObjectPtr		apcFroms;
 	CBaseObject*			pcFrom;
 	size					uiFirst;
-	size					i;
 	bool					bHeld;
+	uint32					uiTested;
+
+	uiTested = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
 
 	bHeld = false;
 	apcFroms.Init();
-	pcObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
-	apcFroms.Add(pcObject);
+	pcObject->SetWalkStamp(uiTested);
 	pcObject->AddHeapFromContainers(&apcFroms);
-	for (uiFirst = 1; uiFirst < apcFroms.NumElements(); uiFirst++)
+	for (uiFirst = 0; uiFirst < apcFroms.NumElements(); uiFirst++)
 	{
 		pcFrom = apcFroms.GetPtr(uiFirst);
-		if (pcFrom->GetFlags() & (OBJECT_FLAGS_TESTED_FOR_ROOT | OBJECT_FLAGS_FREED))
+		if ((pcFrom->GetWalkStamp() == uiTested) || (pcFrom->GetFlags() & OBJECT_FLAGS_FREED))
 		{
 			continue;
 		}
@@ -206,14 +210,8 @@ bool CDistToStackCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
 			bHeld = true;
 			break;
 		}
-		pcFrom->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
+		pcFrom->SetWalkStamp(uiTested);
 		pcFrom->AddHeapFromContainers(&apcFroms);
-	}
-
-	//Everything walked (and only that) was flagged, and every flagged object is in the array.
-	for (i = 0; i < apcFroms.NumElements(); i++)
-	{
-		apcFroms.GetPtr(i)->SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
 	}
 	apcFroms.Kill();
 	return bHeld;
