@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define IR816_ARGUMENT_STANDIN	0x10000		//The pushed parameters' stand-in places while temporaries are placed (AddRegions), past any frame.
+#define IR816_PAIR_WEIGHT(iDepth, bCopy)	(2 * (iDepth) + ((bCopy) ? 1 : 0))	//A pair's weight: the loops it is in, and of two in as many a phi's copy (a whole copy saved) first.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -550,7 +551,7 @@ public:
 	CArrayTemplate<int32>	maiPairNext;
 	CArrayTemplate<int32>	maiPairOther;	//Per pair: the other temporary...
 	CArrayTemplate<int32>	maiPairPosition;	//...where they meet...
-	CArrayTemplate<int32>	maiPairWeight;		//...and how many loops the copy sharing a place saves is in.
+	CArrayTemplate<int32>	maiPairWeight;		//...and how much sharing a place saves (IR816_PAIR_WEIGHT).
 	CArrayTemplate<int32>	maiWordFirst;		//Per word of the regions: its first occupant (or -1), a list through maiOccupantNext.
 	CArrayTemplate<int32>	maiOccupantNext;
 	CArrayTemplate<int32>	maiOccupant;		//Per occupant: the temporary placed on the word.
@@ -1263,7 +1264,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 					{
 						iCallPosition = iPosition + (int32)(uk - uj);
-						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, *aiDepths.Get(ui));
+						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false));
 						break;
 					}
 				}
@@ -1283,7 +1284,7 @@ int32 CIR816Backend::PackTemporaries(void)
 				{
 					if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 					{
-						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, *aiDepths.Get(ui));
+						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false));
 					}
 				}
 				if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && FoldedBase(psInstruction->asArguments[0]).IsTemporary())
@@ -1294,7 +1295,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					psLoadPair->sResult = psInstruction->sResult;
 					psLoadPair->sPointer = FoldedBase(psInstruction->asArguments[0]);
 					psLoadPair->iPosition = iPosition;
-					psLoadPair->iDepth = *aiDepths.Get(ui);
+					psLoadPair->iDepth = IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false);
 					psLoadPair->bWide = Words(psInstruction->sType) > 1;
 				}
 			}
@@ -1324,7 +1325,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					{
 						//The copy is made going that way: as often as the innermost loop both blocks are in goes round
 						//(once per loop for a way out of it).
-						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, SharedLoopDepth(pcBlock, pcSuccessor));
+						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true));
 					}
 				}
 			}
