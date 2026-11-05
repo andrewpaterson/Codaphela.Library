@@ -134,6 +134,7 @@ public:
 	void					GetColourFormat(CColourFormatHelper* pcDest);
 
 protected:
+	bool					FindPopup(Ptr<CComponent> pContent, size* puiIndex);
 	void					LayoutIfChanged(void);
 	void					CheckLayoutCache(void);
 	int64					GetWaitMilliseconds(void);

@@ -699,25 +699,12 @@ Ptr<CPopup> CWindow::OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, P
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 {
-	size			i;
 	size			uiIndex;
-	bool			bFound;
 	Ptr<CPopup>		pPopup;
 	Ptr<CComponent>	pClosedContent;
 	Ptr<CComponent>	pOwner;
 
-	bFound = false;
-	uiIndex = 0;
-	for (i = 0; i < maPopups.Size(); i++)
-	{
-		if (maPopups.Get(i)->GetContent() == pContent)
-		{
-			uiIndex = i;
-			bFound = true;
-			break;
-		}
-	}
-	if (!bFound)
+	if (!FindPopup(pContent, &uiIndex))
 	{
 		return false;
 	}
@@ -789,16 +776,35 @@ void CWindow::ClosePopupsOutside(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CPopup> CWindow::GetPopup(Ptr<CComponent> pContent)
 {
+	size	uiIndex;
+
+	if (FindPopup(pContent, &uiIndex))
+	{
+		return maPopups.Get(uiIndex);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where in maPopups the popup holding pContent is.  False if pContent
+// isn't in an open popup.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::FindPopup(Ptr<CComponent> pContent, size* puiIndex)
+{
 	size	i;
 
 	for (i = 0; i < maPopups.Size(); i++)
 	{
 		if (maPopups.Get(i)->GetContent() == pContent)
 		{
-			return maPopups.Get(i);
+			*puiIndex = i;
+			return true;
 		}
 	}
-	return NULL;
+	return false;
 }
 
 
