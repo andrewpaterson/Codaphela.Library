@@ -271,7 +271,6 @@
     <ClInclude Include="CheckBoxListener.h" />
     <ClInclude Include="CheckBoxImages.h" />
     <ClInclude Include="ComboBox.h" />
-    <ClInclude Include="ComboBoxListener.h" />
     <ClInclude Include="WindowTheme.h" />
     <ClInclude Include="JewelTheme.h" />
     <ClInclude Include="JewelColours.h" />

@@ -20,14 +20,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMBO_BOX_H__
 #define __COMBO_BOX_H__
-#include "StandardLib/ListenerCall.h"
 #include "SupportLib/Font.h"
 #include "ImageBorderContainer.h"
 #include "IconComponent.h"
 #include "Label.h"
 #include "MenuContainer.h"
 #include "WindowTheme.h"
-#include "ComboBoxListener.h"
+#include "ComponentEvent.h"
 
 
 //Shows one of a list of items and opens the list below itself to choose another, like IntelliJ's combo box.  It is a
@@ -38,8 +37,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //open.
 //
 //Like a button it is hit as a whole.  Pressing it opens the list, or closes it if it is open; space opens it too.
-//Choosing an item closes the list and, if it is another item, tells the listeners.  Up and down choose the item before
-//or after while the list is closed.  It doesn't want enter, so enter still clicks the window's default button.
+//Choosing an item closes the list and, if it is another item, calls the selection event.  Up and down choose the item
+//before or after while the list is closed.  It doesn't want enter, so enter still clicks the window's default button.
 //
 //It is as wide as its widest item, plus the chevron, unless a desired width is set.
 class CComboBox : public CImageBorderContainer
@@ -53,7 +52,7 @@ protected:
 	Ptr<CLabel>				mpText;
 	Ptr<CIconComponent>		mpChevron;
 	Ptr<CMenuContainer>		mpMenu;
-	CListenerCall			mcListeners;
+	CComponentEvent<CComboBox>	mcSelectionChanged;
 	int32					miSelected;  //-1 if no item is chosen.
 
 public:
@@ -78,8 +77,7 @@ public:
 	Ptr<CMenuContainer>	GetMenu(void);
 	Ptr<CLabel>			GetTextLabel(void);
 
-	bool				AddListener(CComboBoxListener* pcListener);
-	bool				RemoveListener(CComboBoxListener* pcListener);
+	CComponentEvent<CComboBox>*	GetSelectionEvent(void);
 
 	bool				WantsEnter(void) override;
 	void				PopupClosed(Ptr<CComponent> pContent) override;

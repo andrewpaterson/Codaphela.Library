@@ -40,8 +40,7 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), 6, 2);
 	mpStyle = pTheme->GetComboMenuStyle();
 	mpFont = pTheme->GetFont();
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CComboBoxListener>();
+	mcSelectionChanged.Init();
 	miSelected = -1;
 	SetCanGetFocus(true);
 
@@ -83,7 +82,7 @@ void CComboBox::Class(void)
 	M_Pointer(mpText);
 	M_Pointer(mpChevron);
 	M_Pointer(mpMenu);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CComboBox>, mcSelectionChanged);
 	U_Int32(miSelected);
 }
 
@@ -94,7 +93,7 @@ void CComboBox::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::Free(void)
 {
-	mcListeners.Kill();
+	mcSelectionChanged.Kill();
 	CImageBorderContainer::Free();
 }
 
@@ -138,8 +137,8 @@ size CComboBox::AddItem(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Leaves nothing chosen.  The listeners aren't told.  It can be called
-// while the listeners are told of a choice, to show other items.
+// Leaves nothing chosen.  The selection event isn't called.  It can be
+// called from the selection event, to show other items.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::RemoveAllItems(void)
@@ -176,7 +175,7 @@ char* CComboBox::GetItemText(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// -1 chooses nothing.  The listeners aren't told.
+// -1 chooses nothing.  The selection event isn't called.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::Select(int32 iIndex)
@@ -195,7 +194,7 @@ void CComboBox::Select(int32 iIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Chooses the item and tells the listeners if it is another one.
+// Chooses the item and calls the selection event if it is another one.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::Choose(int32 iIndex)
@@ -203,7 +202,7 @@ void CComboBox::Choose(int32 iIndex)
 	if (iIndex != miSelected)
 	{
 		Select(iIndex);
-		mcListeners.CallListeners(&CComboBoxListener::SelectionChanged, this, NULL);
+		mcSelectionChanged.Call(this);
 	}
 }
 
@@ -338,21 +337,14 @@ void CComboBox::PopupClosed(Ptr<CComponent> pContent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when another item is chosen, from the list or with up and down,
+// with the combo box: pCombo->GetSelectionEvent()->Add(this,
+// &CMyContent::TypeChosen).  Select doesn't call it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComboBox::AddListener(CComboBoxListener* pcListener)
+CComponentEvent<CComboBox>* CComboBox::GetSelectionEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CComboBox::RemoveListener(CComboBoxListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcSelectionChanged;
 }
 
 

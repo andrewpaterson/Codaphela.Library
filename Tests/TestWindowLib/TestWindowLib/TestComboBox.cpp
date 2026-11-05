@@ -28,9 +28,8 @@ void			Click(Ptr<CWindow> pWindow);
 // Logs "Chose:text;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestComboBoxListener : public CComboBoxListener
+class CTestComboBoxListener
 {
-CONSTRUCTABLE(CTestComboBoxListener);
 public:
 	CChars*		mpszLog;
 
@@ -39,10 +38,10 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void SelectionChanged(CUnknown* pcSource, void* pvContext) override
+	void SelectionChanged(CComboBox* pcCombo)
 	{
 		mpszLog->Append("Chose:");
-		mpszLog->Append(((CComboBox*)pcSource)->GetSelectedText());
+		mpszLog->Append(pcCombo->GetSelectedText());
 		mpszLog->Append(";");
 	}
 };
@@ -106,7 +105,7 @@ void TestComboBoxChoosing(void)
 		pFocus = pTestWindow->GetFocus();
 		pCombo = CreateTestComboBox(pTestWindow);
 		pMenu = pCombo->GetMenu();
-		AssertTrue(pCombo->AddListener(&cListener));
+		pCombo->GetSelectionEvent()->Add(&cListener, &CTestComboBoxListener::SelectionChanged);
 		pTestWindow->Layout();
 
 		//The first item is chosen.
@@ -185,7 +184,7 @@ void TestComboBoxChoosing(void)
 
 		ValidateLabelObjects();
 
-		pCombo->RemoveListener(&cListener);
+		AssertTrue(pCombo->GetSelectionEvent()->Remove(&cListener));
 		pPopup = NULL;
 		pMenu = NULL;
 		pCombo = NULL;

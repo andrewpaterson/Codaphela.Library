@@ -161,7 +161,7 @@ void TestFileChooserBrowse(void)
 
 		//Every file shows them all.
 		pChooser->GetFileType()->Select(1);
-		pChooser->ComboChanged(&pChooser->GetFileType());
+		pChooser->FileTypeChosen();
 		AssertInt(4, pChooser->GetList()->NumRows());
 		AssertTrue(IsPathIn(pChooser->GetRowPath(3), szDirectory, "c.xml"));
 

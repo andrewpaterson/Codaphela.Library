@@ -97,26 +97,6 @@ static bool HasExtension(const char* szPath, const char* szExtension)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserComboListener::Init(CFileChooser* pcChooser)
-{
-	mpcChooser = pcChooser;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserComboListener::SelectionChanged(CUnknown* pcSource, void* pvContext)
-{
-	mpcChooser->ComboChanged(pcSource);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Starts in the folder of szFilename with the file selected and its name
 // in File Name, or in the current folder if that folder doesn't exist.
 // asTypes are Files of Type's choices.  The icons are shown beside the
@@ -145,7 +125,6 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	maszRows.Init();
 	miNumFolders = 0;
 	mszChosen.Init();
-	mcComboListener.Init(this);
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
@@ -159,8 +138,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 		mpFileType->AddItem(masTypes[i].szDescription);
 	}
 	mpFileType->Select(0);
-	mpFileType->AddListener(&mcComboListener);
-	mpLookIn->AddListener(&mcComboListener);
+	mpFileType->GetSelectionEvent()->Add(this, &CFileChooser::FileTypeChosen);
+	mpLookIn->GetSelectionEvent()->Add(this, &CFileChooser::LookInChosen);
 	mpList->GetSelectionEvent()->Add(this, &CFileChooser::SelectionChanged);
 	mpList->GetActivationEvent()->Add(this, &CFileChooser::ItemActivated);
 
@@ -207,7 +186,6 @@ void CFileChooser::Class(void)
 	M_Pointer(mpFileType);
 	M_Pointer(mpFolderIcon);
 	M_Pointer(mpFileIcon);
-	U_Unknown(CFileChooserComboListener, mcComboListener);
 	U_String(mszDirectory);
 	U_Unknown(CArrayChars, maszLookIn);
 	U_Unknown(CArrayChars, maszRows);
@@ -247,9 +225,16 @@ bool CFileChooser::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::Free(void)
 {
-	//An object's memory is freed without its destructor running so the chooser and its listener take themselves off
-	//the widgets still here.  The dialog and widgets are freed with the chooser's pointers.
-	mcComboListener.RemoveFromListenerCalls();
+	//An object's memory is freed without its destructor running so the chooser takes itself off the widgets still
+	//here.  The dialog and widgets are freed with the chooser's pointers.
+	if (mpFileType.IsNotNull())
+	{
+		mpFileType->GetSelectionEvent()->Remove(this);
+	}
+	if (mpLookIn.IsNotNull())
+	{
+		mpLookIn->GetSelectionEvent()->Remove(this);
+	}
 	if (mpList.IsNotNull())
 	{
 		mpList->GetSelectionEvent()->Remove(this);
@@ -717,25 +702,29 @@ void CFileChooser::ItemActivated(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Look In opens the folder chosen; Files of Type shows its files.
+// Look In opens the folder chosen.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileChooser::ComboChanged(CUnknown* pcSource)
+void CFileChooser::LookInChosen(void)
 {
 	int32	iIndex;
 
-	if (&mpLookIn == pcSource)
+	iIndex = mpLookIn->GetSelected();
+	if ((iIndex >= 0) && (iIndex < (int32)maszLookIn.NumElements()))
 	{
-		iIndex = mpLookIn->GetSelected();
-		if ((iIndex >= 0) && (iIndex < (int32)maszLookIn.NumElements()))
-		{
-			Open(maszLookIn.GetText(iIndex), NULL);
-		}
+		Open(maszLookIn.GetText(iIndex), NULL);
 	}
-	else if (&mpFileType == pcSource)
-	{
-		FillList(NULL);
-	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Files of Type shows the folder's files of the type chosen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::FileTypeChosen(void)
+{
+	FillList(NULL);
 }
 
 

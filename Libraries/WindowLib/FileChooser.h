@@ -22,13 +22,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __FILE_CHOOSER_H__
 #include "BaseLib/ArrayChars.h"
 #include "ListContainer.h"
-#include "ComboBoxListener.h"
 #include "ScrollPane.h"
 #include "Label.h"
 #include "Dialog.h"
-
-
-class CFileChooser;
 
 
 //A Files of Type choice.
@@ -36,18 +32,6 @@ struct SFileChooserType
 {
 	const char*		szDescription;
 	const char*		szExtension;  //Without the dot, NULL for every file.
-};
-
-
-//Passes on what the chooser's combo boxes say, so the chooser needn't be a CComboBoxListener itself.
-class CFileChooserComboListener : public CComboBoxListener
-{
-CONSTRUCTABLE(CFileChooserComboListener);
-public:
-	CFileChooser*	mpcChooser;
-
-	void	Init(CFileChooser* pcChooser);
-	void	SelectionChanged(CUnknown* pcSource, void* pvContext) override;
 };
 
 
@@ -79,7 +63,6 @@ protected:
 	Ptr<CComboBox>				mpFileType;
 	Ptr<CImageCel>				mpFolderIcon;
 	Ptr<CImageCel>				mpFileIcon;
-	CFileChooserComboListener	mcComboListener;
 	CChars						mszDirectory;  //The folder shown, a whole path.
 	CArrayChars					maszLookIn;  //Each of Look In's folders, the root first.
 	CArrayChars					maszRows;  //Each row's whole path.
@@ -105,7 +88,8 @@ public:
 	void			DialogTick(void) override;
 	void			SelectionChanged(void);
 	void			ItemActivated(void);
-	void			ComboChanged(CUnknown* pcSource);
+	void			LookInChosen(void);
+	void			FileTypeChosen(void);
 	void			GoUp(void);
 	void			NewFolderClicked(void);
 
