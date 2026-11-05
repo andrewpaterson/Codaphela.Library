@@ -225,6 +225,12 @@
     <ClInclude Include="ListenerCall.h">
       <Filter>Source\Action</Filter>
     </ClInclude>
+    <ClInclude Include="MemberCalls.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="MemberCall.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
     <ClInclude Include="TimerAlarm.h">
       <Filter>Source\Timer</Filter>
     </ClInclude>
@@ -639,6 +645,9 @@
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="ListenerCall.cpp">
+      <Filter>Source\Action</Filter>
+    </ClCompile>
+    <ClCompile Include="MemberCalls.cpp">
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="TimerAlarm.cpp">

@@ -2,20 +2,20 @@
 
 Copyright (c) 2026 Andrew Paterson
 
-This file is part of The Codaphela Project: Codaphela WindowLib
+This file is part of The Codaphela Project: Codaphela StandardLib
 
-Codaphela WindowLib is free software: you can redistribute it and/or modify
+Codaphela StandardLib is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Codaphela WindowLib is distributed in the hope that it will be useful,
+Codaphela StandardLib is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #ifndef __MEMBER_CALL_H__
@@ -95,9 +95,9 @@ void MemberCallWithValue(void* pvObject, uint8* pucFunction, void* pvArgument, v
 }
 
 
-//A member function and the object it is called on, as an input action or a component event keeps them.  The object
-//isn't held, so it must outlive the call or be removed from what holds it.  The object can be of a class derived from
-//the function's, as when a component adds a function it inherits.
+//A member function and the object it is called on, as an action, an input action or a component event keeps them.
+//The object isn't held, so it must outlive the call or be removed from what holds it.  The object can be of a class
+//derived from the function's, as when a component adds a function it inherits.
 //
 //The member function pointer is kept as bytes with a thunk that knows its class; casting it to some other class's
 //member pointer would lose the parts multiple inheritance adds.

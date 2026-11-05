@@ -20,19 +20,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_EVENT_H__
 #define __COMPONENT_EVENT_H__
-#include "BaseLib/ArrayTemplate.h"
-#include "MemberCall.h"
+#include "StandardLib/MemberCalls.h"
 
 
 //Something that happens to a component of class S, like a button being clicked, and the member functions called when
-//it does (see SMemberCall).  A function takes the component it happened to, or nothing.
+//it does (see CMemberCalls).  A function takes the component it happened to, or nothing.
 //
 //The functions' objects aren't held, so an object removes its functions (Remove(this)) before it goes.
 template<class S>
 class CComponentEvent
 {
 protected:
-	CArrayTemplate<SMemberCall>	masCalls;
+	CMemberCalls	mcCalls;
 
 public:
 	void	Init(void);
@@ -46,10 +45,6 @@ public:
 	size	NumCalls(void);
 
 	void	Call(S* pcSource);
-
-protected:
-	void	CallWith(S* pcSource, void* pvValue);
-	bool	Contains(SMemberCall* psCall);
 };
 
 
@@ -74,7 +69,7 @@ public:
 template<class S>
 void CComponentEvent<S>::Init(void)
 {
-	masCalls.Init();
+	mcCalls.Init();
 }
 
 
@@ -85,7 +80,7 @@ void CComponentEvent<S>::Init(void)
 template<class S>
 void CComponentEvent<S>::Kill(void)
 {
-	masCalls.Kill();
+	mcCalls.Kill();
 }
 
 
@@ -98,7 +93,7 @@ template<class S>
 template<class M, class O>
 void CComponentEvent<S>::Add(O* pcObject, void(M::*fFunction)(S* pcSource))
 {
-	masCalls.Add()->Init(pcObject, fFunction);
+	mcCalls.Add()->Init(pcObject, fFunction);
 }
 
 
@@ -110,7 +105,7 @@ template<class S>
 template<class M, class O>
 void CComponentEvent<S>::Add(O* pcObject, void(M::*fFunction)(void))
 {
-	masCalls.Add()->Init(pcObject, fFunction);
+	mcCalls.Add()->Init(pcObject, fFunction);
 }
 
 
@@ -123,19 +118,7 @@ void CComponentEvent<S>::Add(O* pcObject, void(M::*fFunction)(void))
 template<class S>
 bool CComponentEvent<S>::Remove(void* pvObject)
 {
-	size	i;
-	bool	bRemoved;
-
-	bRemoved = false;
-	for (i = masCalls.NumElements(); i > 0; i--)
-	{
-		if (masCalls.Get(i - 1)->IsOn(pvObject))
-		{
-			masCalls.RemoveAt(i - 1);
-			bRemoved = true;
-		}
-	}
-	return bRemoved;
+	return mcCalls.Remove(pvObject);
 }
 
 
@@ -146,68 +129,20 @@ bool CComponentEvent<S>::Remove(void* pvObject)
 template<class S>
 size CComponentEvent<S>::NumCalls(void)
 {
-	return masCalls.NumElements();
+	return mcCalls.NumCalls();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Calls each function in the order they were added.  A function can add
-// or remove functions; one removed before its turn isn't called, and one
-// added isn't called until the next time.
+// Calls each function in the order they were added (see
+// CMemberCalls::Call).
 //
 //////////////////////////////////////////////////////////////////////////
 template<class S>
 void CComponentEvent<S>::Call(S* pcSource)
 {
-	CallWith(pcSource, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pvValue points to the value of a CComponentValueEvent, NULL for a
-// CComponentEvent's functions, which don't take one.
-//
-//////////////////////////////////////////////////////////////////////////
-template<class S>
-void CComponentEvent<S>::CallWith(S* pcSource, void* pvValue)
-{
-	CArrayTemplate<SMemberCall>	asCalls;
-	SMemberCall*				psCall;
-	size						i;
-
-	asCalls.Init();
-	asCalls.Copy(&masCalls);
-	for (i = 0; i < asCalls.NumElements(); i++)
-	{
-		psCall = asCalls.Get(i);
-		if (Contains(psCall))
-		{
-			psCall->Call(pcSource, pvValue);
-		}
-	}
-	asCalls.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class S>
-bool CComponentEvent<S>::Contains(SMemberCall* psCall)
-{
-	size	i;
-
-	for (i = 0; i < masCalls.NumElements(); i++)
-	{
-		if (masCalls.Get(i)->Equals(psCall))
-		{
-			return true;
-		}
-	}
-	return false;
+	mcCalls.Call(pcSource, NULL);
 }
 
 
@@ -219,7 +154,7 @@ template<class S, class V>
 template<class M, class O>
 void CComponentValueEvent<S, V>::Add(O* pcObject, void(M::*fFunction)(S* pcSource, V xValue))
 {
-	this->masCalls.Add()->Init(pcObject, fFunction);
+	this->mcCalls.Add()->Init(pcObject, fFunction);
 }
 
 
@@ -232,8 +167,9 @@ void CComponentValueEvent<S, V>::Add(O* pcObject, void(M::*fFunction)(S* pcSourc
 template<class S, class V>
 void CComponentValueEvent<S, V>::Call(S* pcSource, V xValue)
 {
-	this->CallWith(pcSource, &xValue);
+	this->mcCalls.Call(pcSource, &xValue);
 }
 
 
 #endif // __COMPONENT_EVENT_H__
+

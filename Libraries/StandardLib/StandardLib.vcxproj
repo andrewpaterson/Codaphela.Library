@@ -306,6 +306,8 @@
     <ClInclude Include="ClassFunctionsCall.h" />
     <ClInclude Include="Listener.h" />
     <ClInclude Include="ListenerCall.h" />
+    <ClInclude Include="MemberCalls.h" />
+    <ClInclude Include="MemberCall.h" />
     <ClInclude Include="TimerAlarm.h" />
     <ClInclude Include="TimerListener.h" />
     <ClInclude Include="Channel.h" />
@@ -436,6 +438,7 @@
     <ClCompile Include="Actions.cpp" />
     <ClCompile Include="ClassFunctionsCall.cpp" />
     <ClCompile Include="ListenerCall.cpp" />
+    <ClCompile Include="MemberCalls.cpp" />
     <ClCompile Include="TimerAlarm.cpp" />
     <ClCompile Include="Channel.cpp" />
     <ClCompile Include="ChannelPadder.cpp" />

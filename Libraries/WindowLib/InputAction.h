@@ -22,8 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __INPUT_ACTION_H__
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
+#include "StandardLib/MemberCall.h"
 #include "ComponentInputEvent.h"
-#include "MemberCall.h"
 
 
 //Which inputs an action is called for.  Keys have no modifiers; a key with a modifier held is a chord.

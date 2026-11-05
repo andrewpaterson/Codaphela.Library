@@ -20,6 +20,7 @@ void TestSingleChannelAccessor(void);
 void TestCompressionZLib(void);
 void TestActionEvent(void);
 void TestEvent(void);
+void TestMemberCalls(void);
 void TestObjectGraphSerialiser(void);
 void TestPointer(void);
 void TestObjectConverter(void);
@@ -92,6 +93,7 @@ int __cdecl main(void)
 	TestMapUnknownUnknown();
 	TestIndexUnknown();
 	TestEvent();
+	TestMemberCalls();
 	TestActionEvent();
 	TestParameters();
 	TestClass();

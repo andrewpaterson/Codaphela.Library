@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DIALOG_H__
 #define __DIALOG_H__
+#include "StandardLib/MemberCall.h"
 #include "SupportLib/Font.h"
 #include "Window.h"
 #include "WindowTick.h"
@@ -30,7 +31,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CheckBox.h"
 #include "ComboBox.h"
 #include "WindowTheme.h"
-#include "MemberCall.h"
 
 
 //What every dialog is drawn with, made once by its owner.
