@@ -22,6 +22,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/ColourFormat.h"
+#include "Window.h"
+#include "FillContainer.h"
+#include "JewelColours.h"
+#include "JewelImageGenerator.h"
 #include "DiffView.h"
 
 
@@ -48,6 +53,7 @@ void CDiffView::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mcProducer.Init();
 	mcMapper.Init(&mcDiff);
 	memset(&msScrolls, 0, sizeof(SDiffViewScrolls));
+	muiCurrentBlock = DIFF_VIEW_NO_BLOCK;
 
 	mpLeftTitle = OMalloc<CLabel>(pWindow, pTitleFont, "");
 	mpLeftTitle->SetAlignment(CSH_Left, CSV_Center);
@@ -75,11 +81,15 @@ void CDiffView::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mpDivider->SetDesiredSize(DIFF_VIEW_DIVIDER_WIDTH, 1);
 	mpDivider->SetAlignment(CSH_Stretch, CSV_Stretch);
 
-	AddComponent(mpLeftTitle, 0, 0, 1, 1, 1, 0);
-	AddComponent(mpRightTitle, 2, 0, 1, 1, 1, 0);
-	AddComponent(mpLeftPane, 0, 1, 1, 1, 1, 1);
-	AddComponent(mpDivider, 1, 1, 1, 1, 0, 1);
-	AddComponent(mpRightPane, 2, 1, 1, 1, 1, 1);
+	mpToolbar = CreateToolbar(pWindow, pTheme);
+	AddComponent(mpToolbar, 0, 0, 3, 1, 1, 0);
+	AddComponent(mpLeftTitle, 0, 1, 1, 1, 1, 0);
+	AddComponent(mpRightTitle, 2, 1, 1, 1, 1, 0);
+	AddComponent(mpLeftPane, 0, 2, 1, 1, 1, 1);
+	AddComponent(mpDivider, 1, 2, 1, 1, 0, 1);
+	AddComponent(mpRightPane, 2, 2, 1, 1, 1, 1);
+	AddInputAction(CIC_NextDifference, this, &CDiffView::DifferenceAction);
+	AddInputAction(CIC_PreviousDifference, this, &CDiffView::DifferenceAction);
 
 	PostInit();
 }
@@ -106,6 +116,13 @@ void CDiffView::Class(void)
 	U_Unknown(CTextDiffProducer, mcProducer);
 	U_Unknown(CTextDiffLineMapper, mcMapper);
 	U_Data(SDiffViewScrolls, msScrolls);
+	U_LSize(muiCurrentBlock);
+	M_Pointer(mpToolbar);
+	M_Pointer(mpPreviousButton);
+	M_Pointer(mpNextButton);
+	M_Pointer(mpWhitespaceBox);
+	M_Pointer(mpHighlightBox);
+	M_Pointer(mpCountLabel);
 }
 
 
@@ -124,6 +141,22 @@ void CDiffView::Free(void)
 	if (mpRightPane.IsNotNull())
 	{
 		mpRightPane->GetScrollEvent()->Remove(this);
+	}
+	if (mpPreviousButton.IsNotNull())
+	{
+		mpPreviousButton->GetClickEvent()->Remove(this);
+	}
+	if (mpNextButton.IsNotNull())
+	{
+		mpNextButton->GetClickEvent()->Remove(this);
+	}
+	if (mpWhitespaceBox.IsNotNull())
+	{
+		mpWhitespaceBox->GetSelectionEvent()->Remove(this);
+	}
+	if (mpHighlightBox.IsNotNull())
+	{
+		mpHighlightBox->GetSelectionEvent()->Remove(this);
 	}
 	mcMapper.Kill();
 	mcProducer.Kill();
@@ -223,6 +256,8 @@ void CDiffView::Update(void)
 		ShowBlock(mcDiff.GetBlock(uiBlock));
 	}
 	memset(&msScrolls, 0, sizeof(SDiffViewScrolls));
+	muiCurrentBlock = DIFF_VIEW_NO_BLOCK;
+	UpdateToolbar();
 	InvalidateLayout();
 }
 
@@ -389,6 +424,7 @@ bool CDiffView::ScrollToBlock(lsize uiBlock)
 	}
 	msScrolls.bToBlock = true;
 	msScrolls.uiBlock = uiBlock;
+	muiCurrentBlock = uiBlock;
 	InvalidateLayout();
 	return true;
 }
@@ -464,6 +500,9 @@ void CDiffView::Scrolled(CScrollPane* pcPane)
 			return;
 		}
 	}
+
+	//The user scrolled: the next difference is found from where the sides are now.
+	muiCurrentBlock = DIFF_VIEW_NO_BLOCK;
 	ScrollToMatch(eSide);
 }
 
@@ -581,6 +620,243 @@ int32 CDiffView::GetRowHeight(ETextDiffSide eSide)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// New texts for the sides, as when one is edited: the titles stay, and
+// the sides stay where they are scrolled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::SetTexts(const char* szText1, const char* szText2)
+{
+	CChars	szTitle1;
+	CChars	szTitle2;
+
+	szTitle1.Init(mcDiff.GetContent1()->GetTitle());
+	szTitle2.Init(mcDiff.GetContent2()->GetTitle());
+	mcProducer.ProduceFromText(&mcDiff, szTitle1.Text(), szText1, szTitle2.Text(), szText2);
+	szTitle2.Kill();
+	szTitle1.Kill();
+	Update();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Scrolls to the difference after the one scrolled to last, or after the
+// line a quarter of the way down the left side once the user has
+// scrolled.  False if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDiffView::NextDifference(void)
+{
+	lsize	uiBlock;
+	float64	fFocus;
+
+	if (muiCurrentBlock != DIFF_VIEW_NO_BLOCK)
+	{
+		return ScrollToBlock(muiCurrentBlock + 1);
+	}
+
+	fFocus = GetFocusLine();
+	for (uiBlock = 0; uiBlock < mcDiff.NumBlocks(); uiBlock++)
+	{
+		if ((float64)mcDiff.GetBlock(uiBlock)->uiStartLine1 > fFocus)
+		{
+			return ScrollToBlock(uiBlock);
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As NextDifference, the one before.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDiffView::PreviousDifference(void)
+{
+	lsize	uiBlock;
+	float64	fFocus;
+
+	if (muiCurrentBlock != DIFF_VIEW_NO_BLOCK)
+	{
+		if (muiCurrentBlock == 0)
+		{
+			return false;
+		}
+		return ScrollToBlock(muiCurrentBlock - 1);
+	}
+
+	fFocus = GetFocusLine();
+	for (uiBlock = mcDiff.NumBlocks(); uiBlock > 0; uiBlock--)
+	{
+		if ((float64)mcDiff.GetBlock(uiBlock - 1)->uiStartLine1 < fFocus)
+		{
+			return ScrollToBlock(uiBlock - 1);
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The fractional line a quarter of the way down the left side, where a
+// difference scrolled to is put.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 CDiffView::GetFocusLine(void)
+{
+	return (mpLeftPane->GetScrollPosition().y + mpLeftPane->GetActualSize().y / 4) / (float64)GetRowHeight(TDS_Left);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The toolbar: previous and next difference, whitespace, highlighting,
+// and (at the right) how many differences there are.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGridContainer> CDiffView::CreateToolbar(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
+{
+	Ptr<CGridContainer>		pToolbar;
+	Ptr<CFillContainer>		pGap;
+	Ptr<CFillContainer>		pSpace;
+	CColourFormatHelper		cFormat;
+
+	pWindow->GetColourFormat(&cFormat);
+	pToolbar = OMalloc<CGridContainer>(pWindow);
+	pToolbar->SetDesiredSize(-1, DIFF_VIEW_TOOLBAR_HEIGHT);
+	pToolbar->SetAlignment(CSH_Stretch, CSV_Stretch);
+
+	mpPreviousButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, CJewelImageGenerator::CreateArrow(JEWEL_ICON, true, &cFormat), "");
+	mpPreviousButton->SetAlignment(CSH_Left, CSV_Center);
+	mpPreviousButton->GetClickEvent()->Add(this, &CDiffView::PreviousClicked);
+	mpNextButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, CJewelImageGenerator::CreateArrow(JEWEL_ICON, false, &cFormat), "");
+	mpNextButton->SetAlignment(CSH_Left, CSV_Center);
+	mpNextButton->GetClickEvent()->Add(this, &CDiffView::NextClicked);
+
+	mpWhitespaceBox = OMalloc<CComboBox>(pWindow, pTheme);
+	mpWhitespaceBox->AddItem("Do not ignore");
+	mpWhitespaceBox->AddItem("Trim whitespaces");
+	mpWhitespaceBox->AddItem("Ignore whitespaces");
+	mpWhitespaceBox->Select(TDW_Default);
+	mpWhitespaceBox->SetAlignment(CSH_Left, CSV_Center);
+	mpWhitespaceBox->GetSelectionEvent()->Add(this, &CDiffView::WhitespaceChosen);
+	mpHighlightBox = OMalloc<CComboBox>(pWindow, pTheme);
+	mpHighlightBox->AddItem("Highlight lines");
+	mpHighlightBox->AddItem("Highlight words");
+	mpHighlightBox->AddItem("Highlight characters");
+	mpHighlightBox->Select(TDH_Words);
+	mpHighlightBox->SetAlignment(CSH_Left, CSV_Center);
+	mpHighlightBox->GetSelectionEvent()->Add(this, &CDiffView::HighlightChosen);
+
+	mpCountLabel = OMalloc<CLabel>(pWindow, pTheme->GetFont(), "No differences");
+	mpCountLabel->SetAlignment(CSH_Right, CSV_Center);
+
+	pToolbar->AddComponent(mpPreviousButton, 0, 0, 1, 1, 0, 1);
+	pToolbar->AddComponent(mpNextButton, 1, 0, 1, 1, 0, 1);
+	pGap = OMalloc<CFillContainer>(pWindow);
+	pGap->SetDesiredSize(8, 1);
+	pToolbar->AddComponent(pGap, 2, 0, 1, 1, 0, 1);
+	pToolbar->AddComponent(mpWhitespaceBox, 3, 0, 1, 1, 0, 1);
+	pToolbar->AddComponent(mpHighlightBox, 4, 0, 1, 1, 0, 1);
+	pSpace = OMalloc<CFillContainer>(pWindow);
+	pSpace->SetDesiredSize(1, 1);
+	pToolbar->AddComponent(pSpace, 5, 0, 1, 1, 1, 1);
+	pToolbar->AddComponent(mpCountLabel, 6, 0, 1, 1, 0, 1);
+	pGap = OMalloc<CFillContainer>(pWindow);
+	pGap->SetDesiredSize(8, 1);
+	pToolbar->AddComponent(pGap, 7, 0, 1, 1, 0, 1);
+	return pToolbar;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many differences, and the policies the diff was made with.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::UpdateToolbar(void)
+{
+	CChars	szCount;
+	lsize	uiBlocks;
+
+	uiBlocks = mcDiff.NumBlocks();
+	szCount.Init();
+	if (uiBlocks == 0)
+	{
+		szCount.Append("No differences");
+	}
+	else
+	{
+		szCount.Append((uint32)uiBlocks);
+		szCount.Append((uiBlocks == 1) ? " difference" : " differences");
+	}
+	if (!szCount.Equals(mpCountLabel->GetText()))
+	{
+		mpCountLabel->SetText(szCount.Text());
+	}
+	szCount.Kill();
+
+	mpWhitespaceBox->Select(mcDiff.GetWhitespace());
+	mpHighlightBox->Select(mcDiff.GetHighlight());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// F7 and Shift+F7, from wherever the focus is in the view.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::DifferenceAction(SComponentInputEvent* psEvent)
+{
+	if (psEvent->eCommand == CIC_NextDifference)
+	{
+		NextDifference();
+	}
+	else
+	{
+		PreviousDifference();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::WhitespaceChosen(void)
+{
+	if (mpWhitespaceBox->GetSelected() >= 0)
+	{
+		SetWhitespace((ETextDiffWhitespace)mpWhitespaceBox->GetSelected());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::HighlightChosen(void)
+{
+	if (mpHighlightBox->GetSelected() >= 0)
+	{
+		SetHighlight((ETextDiffHighlight)mpHighlightBox->GetSelected());
+	}
+}
+
+
+void CDiffView::PreviousClicked(void) { PreviousDifference(); }
+void CDiffView::NextClicked(void) { NextDifference(); }
+lsize CDiffView::GetCurrentBlock(void) { return muiCurrentBlock; }
+Ptr<CButton> CDiffView::GetPreviousButton(void) { return mpPreviousButton; }
+Ptr<CButton> CDiffView::GetNextButton(void) { return mpNextButton; }
+Ptr<CComboBox> CDiffView::GetWhitespaceBox(void) { return mpWhitespaceBox; }
+Ptr<CComboBox> CDiffView::GetHighlightBox(void) { return mpHighlightBox; }
+Ptr<CLabel> CDiffView::GetCountLabel(void) { return mpCountLabel; }
 CSimpleTextDiff* CDiffView::GetDiff(void) { return &mcDiff; }
 CTextDiffProducer* CDiffView::GetProducer(void) { return &mcProducer; }
 CTextContent* CDiffView::GetContent(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mcDiff.GetContent1() : mcDiff.GetContent2(); }

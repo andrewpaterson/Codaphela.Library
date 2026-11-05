@@ -26,6 +26,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/FontFamily.h"
 #include "GridContainer.h"
 #include "Label.h"
+#include "Button.h"
+#include "ComboBox.h"
 #include "Canvas.h"
 #include "ScrollPane.h"
 #include "CodeEditor.h"
@@ -36,6 +38,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define DIFF_VIEW_DIVIDER_WIDTH		40	//Pixels between the two sides.
 #define DIFF_VIEW_BOUNDARY			2	//Pixels of the line where an empty side's lines would be.
+#define DIFF_VIEW_TOOLBAR_HEIGHT	32	//A grid in a grid has no height of its own.
+#define DIFF_VIEW_NO_BLOCK			((lsize)-1)
 
 
 //Where the view scrolled each side to (by ETextDiffSide), so that side's scroll there isn't taken for the user's.
@@ -50,12 +54,16 @@ struct SDiffViewScrolls
 
 //Two texts side by side with their differences shown, as IntelliJ IDEA's diff viewer shows them (its default,
 //unaligned): the old text on the left and the new on the right, each in a code editor (line numbers in its gutter) in
-//its own scroll pane under its title, with a divider between them.  It is read only; the texts can be selected and
-//copied.
+//its own scroll pane under its title, with a divider between them, under a toolbar.  It is read only; the texts can be
+//selected and copied.
+//
+//The toolbar, as IntelliJ's: previous and next difference (also Shift+F7 and F7), how whitespace is compared and how
+//changes are highlighted, and how many differences there are.
 //
 //The view owns its diff (GetDiff) and the producer that makes it (GetProducer).  ShowTexts and ShowFiles make the diff
 //and show it; Update shows the diff again after whatever made it changed it.  Changing the whitespace or highlight
-//policy makes the diff again from the texts it has.  Syntax highlighting is up to whatever shows the texts: spans added
+//policy makes the diff again from the texts it has.  SetTexts gives new texts (a side edited) and keeps the titles and
+//where the sides are scrolled.  Syntax highlighting is up to whatever shows the texts: spans added
 //to a side's text area (GetEditor) stay until that side's text changes.
 //
 //Each changed block's lines have a band behind them, the line numbers too, in its kind's colour (inserted, deleted or
@@ -64,7 +72,8 @@ struct SDiffViewScrolls
 //the left to its lines on the right.
 //
 //Showing texts (ShowTexts, ShowFiles) scrolls to the first change, a quarter of the way down each side, as IntelliJ
-//does; ScrollToBlock scrolls to any change.
+//does; ScrollToBlock scrolls to any change.  The next and previous differences are from the one scrolled to last, or
+//from a quarter of the way down the left side once the user has scrolled.
 //
 //Scrolling either side scrolls the other: the line at the middle of the scrolled side is mapped across the blocks
 //(CTextDiffLineMapper) and the other side is scrolled to put that line at its middle; sideways the other side is
@@ -87,6 +96,13 @@ protected:
 	CTextDiffProducer		mcProducer;
 	CTextDiffLineMapper		mcMapper;
 	SDiffViewScrolls		msScrolls;
+	lsize					muiCurrentBlock;	//The block scrolled to last, DIFF_VIEW_NO_BLOCK once scrolled away.
+	Ptr<CGridContainer>		mpToolbar;
+	Ptr<CButton>			mpPreviousButton;
+	Ptr<CButton>			mpNextButton;
+	Ptr<CComboBox>			mpWhitespaceBox;	//Items by ETextDiffWhitespace.
+	Ptr<CComboBox>			mpHighlightBox;		//Items by ETextDiffHighlight.
+	Ptr<CLabel>				mpCountLabel;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pFamily, SDiffViewColours* psColours = NULL);
@@ -97,11 +113,15 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				ShowTexts(const char* szTitle1, const char* szText1, const char* szTitle2, const char* szText2);
+	void				SetTexts(const char* szText1, const char* szText2);
 	bool				ShowFiles(const char* szFilename1, const char* szFilename2);
 	void				SetWhitespace(ETextDiffWhitespace eWhitespace);
 	void				SetHighlight(ETextDiffHighlight eHighlight);
 	void				Update(void);
 	bool				ScrollToBlock(lsize uiBlock);
+	bool				NextDifference(void);
+	bool				PreviousDifference(void);
+	lsize				GetCurrentBlock(void);
 
 	CSimpleTextDiff*	GetDiff(void);
 	CTextDiffProducer*	GetProducer(void);
@@ -110,9 +130,19 @@ public:
 	Ptr<CLabel>			GetTitle(ETextDiffSide eSide);
 	Ptr<CDiffDividerDraw>	GetDividerDraw(void);
 	float64				GetMiddleLine(ETextDiffSide eSide);
+	Ptr<CButton>		GetPreviousButton(void);
+	Ptr<CButton>		GetNextButton(void);
+	Ptr<CComboBox>		GetWhitespaceBox(void);
+	Ptr<CComboBox>		GetHighlightBox(void);
+	Ptr<CLabel>			GetCountLabel(void);
 
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void				Scrolled(CScrollPane* pcPane);
+	void				DifferenceAction(SComponentInputEvent* psEvent);
+	void				PreviousClicked(void);
+	void				NextClicked(void);
+	void				WhitespaceChosen(void);
+	void				HighlightChosen(void);
 
 protected:
 	void				ShowSide(ETextDiffSide eSide);
@@ -126,6 +156,9 @@ protected:
 	void				ScrollSide(ETextDiffSide eSide, int32 x, int32 y);
 	void				ScrollToBlockNow(void);
 	void				UpdateDivider(void);
+	void				UpdateToolbar(void);
+	Ptr<CGridContainer>	CreateToolbar(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
+	float64				GetFocusLine(void);
 };
 
 

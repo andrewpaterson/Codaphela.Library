@@ -8,6 +8,7 @@
 #include "WindowLib/DiffViewColours.h"
 #include "WindowLib/DiffView.h"
 #include "WindowLib/ScrollBarImages.h"
+#include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertFile.h"
 #include "TestLib/AssertGeometric.h"
@@ -135,13 +136,13 @@ void TestDiffViewShown(void)
 		Ptr<CTextArea>				pLeft;
 		Ptr<CTextArea>				pRight;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 560, 180, szDirectory);
+		cNativeFactory.Init(&gcMemoryAllocator, 760, 220, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Diff View Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pView = OMalloc<CDiffView>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f));
+		pView = OMalloc<CDiffView>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f));
 		pView->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pView);
 		pLeft = pView->GetEditor(TDS_Left)->GetTextArea();
@@ -158,6 +159,9 @@ void TestDiffViewShown(void)
 		AssertString("#include \"Engine.h\"\n\nvoid Run(int iCount)\n{\n\tStart();\n\tStop();\n}", pLeft->GetText());
 		AssertSize(3, pView->GetDiff()->NumBlocks());
 		AssertFalse(pLeft->IsEditable());
+		AssertString("3 differences", pView->GetCountLabel()->GetText());
+		AssertInt(TDW_Default, pView->GetWhitespaceBox()->GetSelected());
+		AssertInt(TDH_Words, pView->GetHighlightBox()->GetSelected());
 
 		//Left: a line where the inserted line would be, the modified line and its changed word, the deleted line.
 		AssertSize(4, pLeft->NumBackgrounds());
@@ -178,6 +182,25 @@ void TestDiffViewShown(void)
 		pView->SetWhitespace(TDW_Ignore);
 		AssertSize(1, pLeft->NumSpans());
 		AssertSize(4, pLeft->NumBackgrounds());
+		AssertInt(TDW_Ignore, pView->GetWhitespaceBox()->GetSelected());
+
+		//Chosen in the toolbar.
+		pView->GetHighlightBox()->Select(TDH_Lines);
+		pView->HighlightChosen();
+		AssertInt(TDH_Lines, pView->GetDiff()->GetHighlight());
+		AssertSize(0, pView->GetDiff()->NumFragments());
+		pView->GetWhitespaceBox()->Select(TDW_Default);
+		pView->WhitespaceChosen();
+		AssertInt(TDW_Default, pView->GetDiff()->GetWhitespace());
+		pView->SetHighlight(TDH_Words);
+		AssertInt(TDH_Words, pView->GetHighlightBox()->GetSelected());
+
+		//New texts keep the titles.
+		pView->SetTexts("int a;\nint c;\n", "int a;\n");
+		AssertString("Old.cpp", pView->GetTitle(TDS_Left)->GetText());
+		AssertString("1 difference", pView->GetCountLabel()->GetText());
+		pView->SetTexts("x\n", "x\n");
+		AssertString("No differences", pView->GetCountLabel()->GetText());
 		pView->ShowTexts("Old.cpp", "int a;\n", "New.cpp", "int b;\n");
 		AssertSize(0, pLeft->NumSpans());
 		AssertSize(2, pLeft->NumBackgrounds());
@@ -252,7 +275,7 @@ void TestDiffViewScrolling(void)
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
-		pView = OMalloc<CDiffView>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f));
+		pView = OMalloc<CDiffView>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f));
 		pView->SetAlignment(CSH_Stretch, CSV_Stretch);
 		pFill->AddComponent(pView);
 
@@ -284,6 +307,7 @@ void TestDiffViewScrolling(void)
 		AssertInt32Vec2(0, 40 * iRow - iQuarter, &sVec);
 
 		//The second change: lines removed on the left, a point on the right.  Neither side follows the other.
+		AssertSize(0, pView->GetCurrentBlock());
 		AssertTrue(pView->ScrollToBlock(1));
 		AssertFalse(pView->ScrollToBlock(2));
 		pTestWindow->Layout();
@@ -291,6 +315,38 @@ void TestDiffViewScrolling(void)
 		AssertInt32Vec2(0, 80 * iRow - iQuarter, &sVec);
 		sVec = pRight->GetScrollPosition();
 		AssertInt32Vec2(0, 110 * iRow - iQuarter, &sVec);
+		AssertSize(1, pView->GetCurrentBlock());
+
+		//Next and previous go from the difference scrolled to; F7 and Shift+F7 from in the view.
+		AssertFalse(pView->NextDifference());
+		AssertTrue(pView->PreviousDifference());
+		pTestWindow->Layout();
+		AssertSize(0, pView->GetCurrentBlock());
+		sVec = pLeft->GetScrollPosition();
+		AssertInt32Vec2(0, 40 * iRow - iQuarter, &sVec);
+		AssertFalse(pView->PreviousDifference());
+		pTestWindow->GetFocus()->SetFocus(pView->GetEditor(TDS_Left)->GetTextArea());
+		pTestWindow->InputCommand(CIC_NextDifference, true);
+		pTestWindow->Layout();
+		AssertSize(1, pView->GetCurrentBlock());
+		pTestWindow->InputCommand(CIC_PreviousDifference, true);
+		pTestWindow->Layout();
+		AssertSize(0, pView->GetCurrentBlock());
+
+		//Scrolled by the user, they go from a quarter of the way down the left side.
+		pLeft->SetScrollPosition(0, 60 * iRow);
+		pTestWindow->Layout();
+		AssertSize(DIFF_VIEW_NO_BLOCK, pView->GetCurrentBlock());
+		AssertTrue(pView->NextDifference());
+		AssertSize(1, pView->GetCurrentBlock());
+		pTestWindow->Layout();
+		pLeft->SetScrollPosition(0, 60 * iRow);
+		pTestWindow->Layout();
+		AssertSize(DIFF_VIEW_NO_BLOCK, pView->GetCurrentBlock());
+		AssertTrue(pView->PreviousDifference());
+		AssertSize(0, pView->GetCurrentBlock());
+		pTestWindow->Layout();
+		AssertString("2 differences", pView->GetCountLabel()->GetText());
 
 		//Before the blocks the sides line up.
 		pLeft->SetScrollPosition(7, 10 * iRow);

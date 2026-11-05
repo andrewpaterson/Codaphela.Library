@@ -152,7 +152,9 @@ Differences from the plan: the divider is a canvas draw given its shapes by the 
 works them out; and a side scrolled by the view is recognised by the position it was scrolled to (mbSyncing can't work,
 as the scroll event comes later, while the window is laid out).
 
-Showing texts scrolls to the first change, as IntelliJ does (ScrollToBlock goes to any).  Tabs go to tab stops in text
+Showing texts scrolls to the first change, as IntelliJ does (ScrollToBlock goes to any).  A toolbar has previous and
+next difference (also Shift+F7 and F7), the whitespace and highlight choices and the number of differences.  SetTexts
+shows new texts in place (the IDE uses it to follow edits and new commits).  Tabs go to tab stops in text
 drawn as sprites as well as tiles (CTextLayout::SetTabWidth).  (Line numbers on the bands are in Jewel's caret line number colour, as IntelliJ
 shows them, so they can be read.  The IDE highlights both sides' syntax as spans, which the view keeps while a side's
 text is unchanged.)
@@ -161,8 +163,6 @@ text is unchanged.)
 Later
 -----
 
-- Next/previous difference (F7 / Shift+F7) and a "n differences" label.
-- Whitespace and highlight combos in a small toolbar.
 - Editable right side: CCodeEditor::GetChangeEvent -> CTextContent::Set from the text area -> Produce ->
   Update, delayed like the IDE's 400 ms recolour.
 - IntelliJ's "Align changes" mode: blank spacers under the shorter side (CCodeEditor line gaps plus a gap above line
