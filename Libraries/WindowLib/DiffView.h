@@ -43,6 +43,8 @@ struct SDiffViewScrolls
 {
 	SInt32Vec2	asExpected[2];
 	bool		abExpecting[2];
+	bool		bToBlock;		//Scroll to uiBlock when next laid out.
+	lsize		uiBlock;
 };
 
 
@@ -53,12 +55,16 @@ struct SDiffViewScrolls
 //
 //The view owns its diff (GetDiff) and the producer that makes it (GetProducer).  ShowTexts and ShowFiles make the diff
 //and show it; Update shows the diff again after whatever made it changed it.  Changing the whitespace or highlight
-//policy makes the diff again from the texts it has.
+//policy makes the diff again from the texts it has.  Syntax highlighting is up to whatever shows the texts: spans added
+//to a side's text area (GetEditor) stay until that side's text changes.
 //
 //Each changed block's lines have a band behind them, the line numbers too, in its kind's colour (inserted, deleted or
 //modified, from SDiffViewColours); the characters that changed in a modified block are a stronger shade.  A side with
 //no lines in a block has a thin line where they would be.  On the divider each block is a shape joining its lines on
 //the left to its lines on the right.
+//
+//Showing texts (ShowTexts, ShowFiles) scrolls to the first change, a quarter of the way down each side, as IntelliJ
+//does; ScrollToBlock scrolls to any change.
 //
 //Scrolling either side scrolls the other: the line at the middle of the scrolled side is mapped across the blocks
 //(CTextDiffLineMapper) and the other side is scrolled to put that line at its middle; sideways the other side is
@@ -95,6 +101,7 @@ public:
 	void				SetWhitespace(ETextDiffWhitespace eWhitespace);
 	void				SetHighlight(ETextDiffHighlight eHighlight);
 	void				Update(void);
+	bool				ScrollToBlock(lsize uiBlock);
 
 	CSimpleTextDiff*	GetDiff(void);
 	CTextDiffProducer*	GetProducer(void);
@@ -116,6 +123,8 @@ protected:
 	int32				GetRowHeight(ETextDiffSide eSide);
 	float64				GetLineTop(ETextDiffSide eSide, lsize uiLine);
 	void				ScrollToMatch(ETextDiffSide eFrom);
+	void				ScrollSide(ETextDiffSide eSide, int32 x, int32 y);
+	void				ScrollToBlockNow(void);
 	void				UpdateDivider(void);
 };
 

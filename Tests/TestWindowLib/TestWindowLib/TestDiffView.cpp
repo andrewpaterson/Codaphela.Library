@@ -173,6 +173,15 @@ void TestDiffViewShown(void)
 		pTestWindow->Show();
 		AssertSize(3, pView->GetDividerDraw()->NumShapes());
 
+		//Spans (syntax highlighting) stay when the diff is made again from the same texts, and go with a new text.
+		AssertTrue(pLeft->AddSpan(0, 8, Set32BitColour((uint8)0xB3, (uint8)0xAE, (uint8)0x60)));
+		pView->SetWhitespace(TDW_Ignore);
+		AssertSize(1, pLeft->NumSpans());
+		AssertSize(4, pLeft->NumBackgrounds());
+		pView->ShowTexts("Old.cpp", "int a;\n", "New.cpp", "int b;\n");
+		AssertSize(0, pLeft->NumSpans());
+		AssertSize(2, pLeft->NumBackgrounds());
+
 		pLeft = NULL;
 		pRight = NULL;
 		pView = NULL;
@@ -208,6 +217,7 @@ void AppendTestDiffLines(CChars* psz, const char* szPrefix, size uiStart, size u
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Shown, the sides are at the first change, and can be scrolled to any.
 // Scrolling one side scrolls the other to match: unchanged lines line up,
 // shifted by the 30 lines inserted on the right before them; a middle
 // inside the inserted lines maps to where they would be on the left.
@@ -232,6 +242,7 @@ void TestDiffViewScrolling(void)
 		CChars						szRight;
 		int32						iRow;
 		int32						iHalf;
+		int32						iQuarter;
 		SDiffDividerShape*			psShape;
 		SInt32Vec2					sVec;
 
@@ -263,7 +274,23 @@ void TestDiffViewScrolling(void)
 		pRight = pView->GetPane(TDS_Right);
 		iRow = pView->GetEditor(TDS_Left)->GetTextArea()->GetFont()->GetLineHeight();
 		iHalf = pLeft->GetActualSize().y / 2;
+		iQuarter = pLeft->GetActualSize().y / 4;
 		AssertTrue(pLeft->GetActualSize().y < 20 * iRow);
+
+		//Shown, each side is at the first change: its lines a quarter of the way down.
+		sVec = pLeft->GetScrollPosition();
+		AssertInt32Vec2(0, 40 * iRow - iQuarter, &sVec);
+		sVec = pRight->GetScrollPosition();
+		AssertInt32Vec2(0, 40 * iRow - iQuarter, &sVec);
+
+		//The second change: lines removed on the left, a point on the right.  Neither side follows the other.
+		AssertTrue(pView->ScrollToBlock(1));
+		AssertFalse(pView->ScrollToBlock(2));
+		pTestWindow->Layout();
+		sVec = pLeft->GetScrollPosition();
+		AssertInt32Vec2(0, 80 * iRow - iQuarter, &sVec);
+		sVec = pRight->GetScrollPosition();
+		AssertInt32Vec2(0, 110 * iRow - iQuarter, &sVec);
 
 		//Before the blocks the sides line up.
 		pLeft->SetScrollPosition(7, 10 * iRow);

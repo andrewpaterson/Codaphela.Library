@@ -161,6 +161,7 @@ void CDiffView::ShowTexts(const char* szTitle1, const char* szText1, const char*
 {
 	mcProducer.ProduceFromText(&mcDiff, szTitle1, szText1, szTitle2, szText2);
 	Update();
+	ScrollToBlock(0);
 }
 
 
@@ -176,6 +177,7 @@ bool CDiffView::ShowFiles(const char* szFilename1, const char* szFilename2)
 
 	bResult = mcProducer.ProduceFromFiles(&mcDiff, szFilename1, szFilename2);
 	Update();
+	ScrollToBlock(0);
 	return bResult;
 }
 
@@ -228,7 +230,9 @@ void CDiffView::Update(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The side's lines joined with line feeds, whatever ended them, so the
-// text area's line n is the content's line n.
+// text area's line n is the content's line n.  Text that hasn't changed
+// is kept, with its spans (syntax highlighting), and only its colours for
+// the diff are cleared.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDiffView::ShowSide(ETextDiffSide eSide)
@@ -236,6 +240,7 @@ void CDiffView::ShowSide(ETextDiffSide eSide)
 	CTextContent*	pcContent;
 	CChars			szText;
 	lsize			uiLine;
+	Ptr<CTextArea>	pTextArea;
 
 	pcContent = GetContent(eSide);
 	szText.Init();
@@ -247,7 +252,15 @@ void CDiffView::ShowSide(ETextDiffSide eSide)
 		}
 		szText.Append(pcContent->GetLineText(uiLine), (size)pcContent->GetLineLength(uiLine));
 	}
-	GetEditor(eSide)->GetTextArea()->SetText(szText.Text());
+	pTextArea = GetEditor(eSide)->GetTextArea();
+	if (szText.Equals(pTextArea->GetText()))
+	{
+		pTextArea->ClearBackgrounds();
+	}
+	else
+	{
+		pTextArea->SetText(szText.Text());
+	}
 	GetEditor(eSide)->ClearChangeBars();
 	GetTitle(eSide)->SetText(pcContent->GetTitle());
 	szText.Kill();
@@ -353,7 +366,80 @@ size CDiffView::MapOffset(ETextDiffSide eSide, lsize uiOffset)
 void CDiffView::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	CGridContainer::Layout(sPosition, sAreaSize);
+	if (msScrolls.bToBlock && (mpLeftPane->GetActualSize().y > 0))
+	{
+		ScrollToBlockNow();
+	}
 	UpdateDivider();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Scrolls both sides to the block uiBlock when the view is next laid out
+// (when the sides' heights are known): its first lines a quarter of the
+// way down each side.  False if there is no such block.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDiffView::ScrollToBlock(lsize uiBlock)
+{
+	if (uiBlock >= mcDiff.NumBlocks())
+	{
+		return false;
+	}
+	msScrolls.bToBlock = true;
+	msScrolls.uiBlock = uiBlock;
+	InvalidateLayout();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each side is scrolled itself, rather than one following the other: a
+// block with no lines on one side would put that side after the block's
+// lines on the other.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::ScrollToBlockNow(void)
+{
+	STextDiffBlock*	psBlock;
+	int32			x;
+
+	//The diff may have been made again since it was asked for.
+	msScrolls.bToBlock = false;
+	if (msScrolls.uiBlock >= mcDiff.NumBlocks())
+	{
+		return;
+	}
+	psBlock = mcDiff.GetBlock(msScrolls.uiBlock);
+	x = mpLeftPane->GetScrollPosition().x;
+	ScrollSide(TDS_Left, x, (int32)psBlock->uiStartLine1 * GetRowHeight(TDS_Left) - mpLeftPane->GetActualSize().y / 4);
+	ScrollSide(TDS_Right, x, (int32)psBlock->uiStartLine2 * GetRowHeight(TDS_Right) - mpRightPane->GetActualSize().y / 4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The side is scrolled (as far as it can be), and its scroll is known to
+// be the view's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiffView::ScrollSide(ETextDiffSide eSide, int32 x, int32 y)
+{
+	Ptr<CScrollPane>	pPane;
+	SInt32Vec2			sBefore;
+	SInt32Vec2			sAfter;
+
+	pPane = GetPane(eSide);
+	sBefore = pPane->GetScrollPosition();
+	pPane->SetScrollPosition(x, y);
+	sAfter = pPane->GetScrollPosition();
+	if ((sAfter.x != sBefore.x) || (sAfter.y != sBefore.y))
+	{
+		msScrolls.abExpecting[eSide] = true;
+		msScrolls.asExpected[eSide] = sAfter;
+	}
 }
 
 
@@ -393,8 +479,6 @@ void CDiffView::ScrollToMatch(ETextDiffSide eFrom)
 	ETextDiffSide		eTo;
 	Ptr<CScrollPane>	pTo;
 	float64				fLine;
-	SInt32Vec2			sBefore;
-	SInt32Vec2			sAfter;
 	int32				x;
 	int32				y;
 
@@ -403,15 +487,7 @@ void CDiffView::ScrollToMatch(ETextDiffSide eFrom)
 	fLine = mcMapper.TransferLine(eFrom, GetMiddleLine(eFrom));
 	x = GetPane(eFrom)->GetScrollPosition().x;
 	y = (int32)floor(fLine * GetRowHeight(eTo) - pTo->GetActualSize().y / 2.0 + 0.5);
-
-	sBefore = pTo->GetScrollPosition();
-	pTo->SetScrollPosition(x, y);
-	sAfter = pTo->GetScrollPosition();
-	if ((sAfter.x != sBefore.x) || (sAfter.y != sBefore.y))
-	{
-		msScrolls.abExpecting[eTo] = true;
-		msScrolls.asExpected[eTo] = sAfter;
-	}
+	ScrollSide(eTo, x, y);
 }
 
 
