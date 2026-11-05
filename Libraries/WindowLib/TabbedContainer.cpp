@@ -41,8 +41,9 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maPages.Init();
 	mpSelected = NULL;
 	miNextColumn = 0;
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CTabbedContainerListener>();
+	mcSelected.Init();
+	mcRemoved.Init();
+	mcDoubleClicked.Init();
 	msDoubleClick.Init();
 
 	//The background is in the bar's cell first so the bar is drawn over it.
@@ -85,7 +86,9 @@ void CTabbedContainer::Class(void)
 	M_Embedded(maPages);
 	M_Pointer(mpSelected);
 	U_Int32(miNextColumn);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CTabComponent>, mcSelected);
+	U_Data(CTabRemovedEvent, mcRemoved);
+	U_Data(CComponentEvent<CTabComponent>, mcDoubleClicked);
 	U_Data(SDoubleClick, msDoubleClick);
 }
 
@@ -96,7 +99,9 @@ void CTabbedContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Free(void)
 {
-	mcListeners.Kill();
+	mcDoubleClicked.Kill();
+	mcRemoved.Kill();
+	mcSelected.Kill();
 	CGridContainer::Free();
 }
 
@@ -160,7 +165,7 @@ Ptr<CTabComponent> CTabbedContainer::AddTab(const char* szName, Ptr<CComponent> 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Removes the tab and its page and tells the listeners.  If it was
+// Removes the tab and its page and calls the removal event.  If it was
 // selected the tab after it, or before it if it was the last, is selected
 // next.  Returns false if the tab isn't this container's.
 //
@@ -187,12 +192,12 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 		mpSelected = NULL;
 	}
 
-	//The page is held while the listeners hear of it.
+	//The page is held while the removal event is called.
 	pPage = maPages.Get(uiIndex);
 	mpBar->RemoveComponent(pTab);
 	maTabs.RemoveAt(uiIndex);
 	maPages.RemoveAt(uiIndex);
-	mcListeners.CallListeners(&CTabbedContainerListener::TabRemoved, &pTab, &pPage);
+	mcRemoved.Call(&pTab, &pPage);
 
 	if (bWasSelected && (maTabs.Size() > 0))
 	{
@@ -226,7 +231,7 @@ void CTabbedContainer::Select(Ptr<CTabComponent> pTab)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The listeners are told when the selected tab changes.
+// The selection event is called when the selected tab changes.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Select(size uiIndex)
@@ -252,7 +257,7 @@ void CTabbedContainer::Select(size uiIndex)
 	mpSelected = pTab;
 	mpSelected->SetSelected(true);
 	mpPage->AddComponent(maPages.Get(uiIndex));
-	mcListeners.CallListeners(&CTabbedContainerListener::TabSelected, &pTab, NULL);
+	mcSelected.Call(&pTab);
 }
 
 
@@ -289,21 +294,36 @@ Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiI
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called with the tab when another tab is selected:
+// pTabbed->GetSelectionEvent()->Add(this, &CMyContent::TabSelected).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTabbedContainer::AddListener(CTabbedContainerListener* pcListener)
+CComponentEvent<CTabComponent>* CTabbedContainer::GetSelectionEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
+	return &mcSelected;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called with the tab, and its page if a function takes it, after a tab
+// is removed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTabbedContainer::RemoveListener(CTabbedContainerListener* pcListener)
+CTabRemovedEvent* CTabbedContainer::GetRemovalEvent(void)
 {
-	return mcListeners.RemoveListener(pcListener);
+	return &mcRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called with the tab when it is double clicked.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentEvent<CTabComponent>* CTabbedContainer::GetDoubleClickEvent(void)
+{
+	return &mcDoubleClicked;
 }
 
 
@@ -311,8 +331,8 @@ bool CTabbedContainer::RemoveListener(CTabbedContainerListener* pcListener)
 //
 // Called by a tab when button one is released on it, x and y relative to
 // its top left; bClick is false on its cross.  A double click (see
-// SDoubleClick) tells the listeners.  They are told after the release so
-// a dialog they open doesn't take it.
+// SDoubleClick) calls the double click event.  It is called after the
+// release so a dialog it opens doesn't take it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick)
@@ -328,7 +348,7 @@ void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool b
 
 	if (msDoubleClick.Released((int32)uiIndex, x, y))
 	{
-		mcListeners.CallListeners(&CTabbedContainerListener::TabDoubleClicked, &pTab, NULL);
+		mcDoubleClicked.Call(&pTab);
 	}
 }
 

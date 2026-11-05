@@ -16,9 +16,8 @@ Ptr<CFont> ReadLabelFont(void);
 
 
 //Keeps what it was told: the tabs and, in szEvents, the order (S selected, R removed, D double clicked).
-class CTestTabbedContainerListener : public CTabbedContainerListener
+class CTestTabbedContainerListener
 {
-CONSTRUCTABLE(CTestTabbedContainerListener);
 public:
 	CTabComponent*	mpcDoubleClicked;
 	CTabComponent*	mpcSelected;
@@ -49,22 +48,22 @@ public:
 		}
 	}
 
-	void TabSelected(CUnknown* pcSource, void* pvContext) override
+	void TabSelected(CTabComponent* pcTab)
 	{
-		mpcSelected = (CTabComponent*)pcSource;
+		mpcSelected = pcTab;
 		Event('S');
 	}
 
-	void TabRemoved(CUnknown* pcSource, void* pvContext) override
+	void TabRemoved(CTabComponent* pcTab, CComponent* pcPage)
 	{
-		mpcRemoved = (CTabComponent*)pcSource;
-		mpcRemovedPage = (CComponent*)pvContext;
+		mpcRemoved = pcTab;
+		mpcRemovedPage = pcPage;
 		Event('R');
 	}
 
-	void TabDoubleClicked(CUnknown* pcSource, void* pvContext) override
+	void TabDoubleClicked(CTabComponent* pcTab)
 	{
-		mpcDoubleClicked = (CTabComponent*)pcSource;
+		mpcDoubleClicked = pcTab;
 		miDoubleClicks++;
 		Event('D');
 	}
@@ -174,7 +173,9 @@ void TestTabbedContainerTabs(void)
 
 		//Pressing and releasing a tab twice quickly is a double click, which tells the listeners.  The cross isn't.
 		cListener.Init();
-		AssertTrue(pTabbed->AddListener(&cListener));
+		pTabbed->GetSelectionEvent()->Add(&cListener, &CTestTabbedContainerListener::TabSelected);
+		pTabbed->GetRemovalEvent()->Add(&cListener, &CTestTabbedContainerListener::TabRemoved);
+		pTabbed->GetDoubleClickEvent()->Add(&cListener, &CTestTabbedContainerListener::TabDoubleClicked);
 		pTestWindow->Layout();
 		pTestWindow->PointerMoved(pInputTab->GetPosition().x + 10, 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
@@ -233,7 +234,9 @@ void TestTabbedContainerTabs(void)
 		AssertString("SDSRSR", cListener.mszEvents);
 		AssertTrue(cListener.mpcRemoved == &pFileTab);
 		AssertTrue(pTabbed->GetSelected() == pEditorTab);
-		AssertTrue(pTabbed->RemoveListener(&cListener));
+		AssertTrue(pTabbed->GetSelectionEvent()->Remove(&cListener));
+		AssertTrue(pTabbed->GetRemovalEvent()->Remove(&cListener));
+		AssertTrue(pTabbed->GetDoubleClickEvent()->Remove(&cListener));
 
 		//A tab added after a closed one goes after the others.
 		pFileTab = pTabbed->AddTab("Again", pFile, NULL, true);

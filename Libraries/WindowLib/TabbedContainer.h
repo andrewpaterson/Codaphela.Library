@@ -20,7 +20,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TABBED_CONTAINER_H__
 #define __TABBED_CONTAINER_H__
-#include "StandardLib/ListenerCall.h"
 #include "GridContainer.h"
 #include "FillContainer.h"
 #include "IconComponent.h"
@@ -29,13 +28,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DoubleClick.h"
 #include "WindowTheme.h"
 #include "TabComponent.h"
-#include "TabbedContainerListener.h"
+#include "ComponentEvent.h"
+
+
+//A tab that was removed, and its page.
+typedef CComponentValueEvent<CTabComponent, CComponent*>	CTabRemovedEvent;
 
 
 //A bar of tabs over a page, like IntelliJ IDEA's editor tabs.  Each tab has its own page; the selected tab's page
 //fills the area under the bar and the others are kept, not shown.  The first tab added is selected.  A closable tab's
-//cross removes it and its page; the tab after it (or before, if it was the last) is selected if it was.  The listeners
-//(see CTabbedContainerListener) are told when a tab is selected, removed or double clicked.
+//cross removes it and its page; the tab after it (or before, if it was the last) is selected if it was.  Its events are
+//called with the tab when a tab is selected, removed (with its page too) or double clicked.
 class CTabbedContainer : public CGridContainer
 {
 CONSTRUCTABLE(CTabbedContainer);
@@ -49,7 +52,9 @@ protected:
 	CArray<CComponent>		maPages;  //By tab.
 	Ptr<CTabComponent>		mpSelected;
 	int						miNextColumn;  //The bar's column for the next tab; a closed tab's stays, empty.
-	CListenerCall			mcListeners;
+	CComponentEvent<CTabComponent>	mcSelected;
+	CTabRemovedEvent		mcRemoved;
+	CComponentEvent<CTabComponent>	mcDoubleClicked;
 	SDoubleClick			msDoubleClick;  //Keyed by tab index, positions relative to the tab.
 
 public:
@@ -67,8 +72,9 @@ public:
 	size					NumTabs(void);
 	Ptr<CTabComponent>		GetTab(size uiIndex);
 	Ptr<CComponent>			GetPage(size uiIndex);
-	bool					AddListener(CTabbedContainerListener* pcListener);
-	bool					RemoveListener(CTabbedContainerListener* pcListener);
+	CComponentEvent<CTabComponent>*	GetSelectionEvent(void);
+	CTabRemovedEvent*		GetRemovalEvent(void);
+	CComponentEvent<CTabComponent>*	GetDoubleClickEvent(void);
 	void					TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick);
 
 protected:
