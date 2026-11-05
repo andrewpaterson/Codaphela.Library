@@ -239,7 +239,6 @@
     <ClInclude Include="FillContainer.h" />
     <ClInclude Include="FlowContainer.h" />
     <ClInclude Include="Focus.h" />
-    <ClInclude Include="FocusListener.h" />
     <ClInclude Include="GridCell.h" />
     <ClInclude Include="GridContainer.h" />
     <ClInclude Include="BorderLayoutHelper.h" />

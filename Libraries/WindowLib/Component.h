@@ -27,7 +27,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 #include "SupportLib/ColourFormat.h"
 #include "Focus.h"
-#include "FocusListener.h"
 #include "SupportLib/Int32Rect.h"
 #include "ContainerStyle.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -36,7 +35,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CWindow;
 //Input reaches a component through the input actions added to it (see AddInputAction), given by the window's focus.
-class CComponent : public CObject, public CFocusListener
+class CComponent : public CObject
 {
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
@@ -83,10 +82,11 @@ public:
 			bool				IsFocussed(void);
 			bool				HasFocus(void);
 			bool				IsMouseOver(void);
-			void				FocusGained(void) override;
-			void				FocusLost(void) override;
-			void				MovedInto(void) override;
-			void				MovedOutof(void) override;
+	virtual	void				FocusGained(void);
+	virtual	void				FocusLost(void);
+	virtual	void				MovedInto(void);
+	virtual	void				MovedOutof(void);
+	virtual	void				MovedOver(int x, int y);
 	virtual	void				FocusOrMouseOverChanged(void);
 			bool				CanGetFocus(void);
 			void				SetCanGetFocus(bool bCanGetFocus);

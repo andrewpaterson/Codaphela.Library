@@ -53,8 +53,6 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Free(void)
 {
-	//An object's memory is freed without its destructor running so it unhooks its listener here.
-	RemoveFromListenerCalls();
 }
 
 
@@ -569,16 +567,22 @@ bool CComponent::IsMouseOver(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each tells FocusOrMouseOverChanged, for a component whose look only
-// depends on HasFocus and IsMouseOver.  The focus has already changed when
-// they are called, so those say what is now true.  A component overriding
-// one calls it too if it uses FocusOrMouseOverChanged.
+// The focus tells a component it has gained or lost focus and that the
+// pointer has moved into, out of or over it; MovedOver's x and y are
+// relative to the component's top left.
+//
+// All but MovedOver tell FocusOrMouseOverChanged, for a component whose
+// look only depends on HasFocus and IsMouseOver.  The focus has already
+// changed when they are called, so those say what is now true.  A
+// component overriding one calls it too if it uses
+// FocusOrMouseOverChanged.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::FocusGained(void) { FocusOrMouseOverChanged(); }
 void CComponent::FocusLost(void) { FocusOrMouseOverChanged(); }
 void CComponent::MovedInto(void) { FocusOrMouseOverChanged(); }
 void CComponent::MovedOutof(void) { FocusOrMouseOverChanged(); }
+void CComponent::MovedOver(int x, int y) {}
 void CComponent::FocusOrMouseOverChanged(void) {}
 
 

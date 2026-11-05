@@ -135,9 +135,6 @@
     <ClInclude Include="Focus.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
-    <ClInclude Include="FocusListener.h">
-      <Filter>Source\Event</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentInput.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
