@@ -488,7 +488,7 @@ void CTreeContainer::UpdateRows(void)
 	if (iSelected != iOldSelected)
 	{
 		RowSelected(iRow);
-		mcListeners.CallListeners(&CListListener::SelectionChanged, this, NULL);
+		mcSelectionChanged.Call(this);
 	}
 }
 

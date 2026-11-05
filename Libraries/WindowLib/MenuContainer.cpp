@@ -53,6 +53,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 	PreInit();
 
 	CListContainer::Init(pWindow, pTheme);
+	mcListeners.Init();
 	mcListeners.AddAllowedClass<CMenuListener>();
 	mpStyle = pStyle;
 	maItems.Init();
@@ -81,6 +82,7 @@ void CMenuContainer::Class(void)
 {
 	CListContainer::Class();
 
+	U_Data(CListenerCall, mcListeners);
 	M_Pointer(mpStyle);
 	M_Embedded(maItems);
 	U_Data(CArrayInt, maiItemRows);
@@ -97,6 +99,7 @@ void CMenuContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::Free(void)
 {
+	mcListeners.Kill();
 	maiItemRows.Kill();
 	CListContainer::Free();
 }

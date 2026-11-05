@@ -207,7 +207,6 @@
     <ClInclude Include="MenuContainer.h" />
     <ClInclude Include="MenuBarItem.h" />
     <ClInclude Include="MenuBar.h" />
-    <ClInclude Include="ListListener.h" />
     <ClInclude Include="ButtonImages.h" />
     <ClInclude Include="JewelImageGenerator.h" />
     <ClInclude Include="ScrollBarImages.h" />

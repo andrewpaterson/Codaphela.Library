@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MENU_CONTAINER_H__
 #define __MENU_CONTAINER_H__
 #include "BaseLib/ArrayInt.h"
+#include "StandardLib/ListenerCall.h"
 #include "ListContainer.h"
 #include "Popup.h"
 #include "MenuItem.h"
@@ -44,6 +45,7 @@ class CMenuContainer : public CListContainer
 CONSTRUCTABLE(CMenuContainer);
 DESTRUCTABLE(CMenuContainer);
 protected:
+	CListenerCall		mcListeners;
 	Ptr<CMenuStyle>		mpStyle;
 	CArray<CMenuItem>	maItems;
 	CArrayInt			maiItemRows;  //The row of each item in maItems.
@@ -79,8 +81,6 @@ public:
 	Ptr<CMenuBar>		GetMenuBar(void);
 	Ptr<CMenuStyle>		GetStyle(void);
 
-	using CListContainer::AddListener;
-	using CListContainer::RemoveListener;
 	bool				AddListener(CMenuListener* pcListener);
 	bool				RemoveListener(CMenuListener* pcListener);
 

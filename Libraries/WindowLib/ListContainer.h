@@ -21,14 +21,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __LIST_CONTAINER_H__
 #define __LIST_CONTAINER_H__
 #include "BaseLib/ArrayBit.h"
-#include "StandardLib/ListenerCall.h"
 #include "SupportLib/ColourARGB32.h"
 #include "GridContainer.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
 #include "DoubleClick.h"
 #include "WindowTheme.h"
-#include "ListListener.h"
+#include "ComponentEvent.h"
 
 
 //Rows one below the other that one row at a time can be selected in; what menus, combo boxes and list boxes are made
@@ -57,7 +56,8 @@ protected:
 	Ptr<CClearCanvasDraw>	mpHoverDraw;
 	Ptr<CCanvas>			mpHoverHighlight;
 	CArrayBit				mabEnabled;  //One for each row.
-	CListenerCall			mcListeners;
+	CComponentEvent<CListContainer>	mcSelectionChanged;
+	CComponentEvent<CListContainer>	mcActivated;
 	int32					miSelected;  //-1 if no row is selected.
 	int32					miHover;  //The row under the pointer, -1 if the pointer isn't over a row.
 	int32					miPageRows;  //How far page up and page down move the selection.
@@ -98,8 +98,8 @@ public:
 	Ptr<CCanvas>	GetSelectedHighlight(void);
 	Ptr<CCanvas>	GetHoverHighlight(void);
 
-	bool			AddListener(CListListener* pcListener);
-	bool			RemoveListener(CListListener* pcListener);
+	CComponentEvent<CListContainer>*	GetSelectionEvent(void);
+	CComponentEvent<CListContainer>*	GetActivationEvent(void);
 
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool			Draw(void) override;

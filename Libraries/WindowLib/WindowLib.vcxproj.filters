@@ -198,9 +198,6 @@
     <ClInclude Include="TreeContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="ListListener.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="Popup.h">
       <Filter>Source\Component</Filter>
     </ClInclude>

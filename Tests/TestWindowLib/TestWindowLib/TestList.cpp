@@ -19,9 +19,8 @@
 // Logs "Selected:row;" and "Activated:row;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestListListener : public CListListener
+class CTestListListener
 {
-CONSTRUCTABLE(CTestListListener);
 public:
 	CChars*		mpszLog;
 
@@ -30,17 +29,17 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void SelectionChanged(CUnknown* pcSource, void* pvContext) override
+	void SelectionChanged(CListContainer* pcList)
 	{
 		mpszLog->Append("Selected:");
-		mpszLog->Append(((CListContainer*)pcSource)->GetSelected());
+		mpszLog->Append(pcList->GetSelected());
 		mpszLog->Append(";");
 	}
 
-	void ItemActivated(CUnknown* pcSource, void* pvContext) override
+	void ItemActivated(CListContainer* pcList)
 	{
 		mpszLog->Append("Activated:");
-		mpszLog->Append(((CListContainer*)pcSource)->GetSelected());
+		mpszLog->Append(pcList->GetSelected());
 		mpszLog->Append(";");
 	}
 };
@@ -97,7 +96,8 @@ void TestListInput(void)
 		pFocus = pTestWindow->GetFocus();
 
 		pList = OMalloc<CListContainer>(pTestWindow, OMalloc<CWindowTheme>(Ptr<CFont>()));
-		AssertTrue(pList->AddListener(&cListener));
+		pList->GetSelectionEvent()->Add(&cListener, &CTestListListener::SelectionChanged);
+		pList->GetActivationEvent()->Add(&cListener, &CTestListListener::ItemActivated);
 		pTestWindow->SetContainer(pList);
 		for (i = 0; i < 5; i++)
 		{
@@ -314,7 +314,8 @@ void TestListInput(void)
 		pTestWindow->InputCommand(CIC_Down, true);
 		AssertLog("Selected:0;");
 
-		AssertTrue(pList->RemoveListener(&cListener));
+		AssertTrue(pList->GetSelectionEvent()->Remove(&cListener));
+		AssertTrue(pList->GetActivationEvent()->Remove(&cListener));
 
 		pList = NULL;
 		pFocus = NULL;

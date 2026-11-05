@@ -39,8 +39,8 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	SetSizedByContent(true);
 	SetHitAsWhole(true);
 	mabEnabled.Init();
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CListListener>();
+	mcSelectionChanged.Init();
+	mcActivated.Init();
 	miSelected = -1;
 	miHover = -1;
 	miPageRows = 10;
@@ -85,7 +85,8 @@ void CListContainer::Class(void)
 	M_Pointer(mpHoverDraw);
 	M_Pointer(mpHoverHighlight);
 	U_Data(CArrayBit, mabEnabled);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CListContainer>, mcSelectionChanged);
+	U_Data(CComponentEvent<CListContainer>, mcActivated);
 	U_Int32(miSelected);
 	U_Int32(miHover);
 	U_Int32(miPageRows);
@@ -102,7 +103,8 @@ void CListContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Free(void)
 {
-	mcListeners.Kill();
+	mcActivated.Kill();
+	mcSelectionChanged.Kill();
 	mabEnabled.Kill();
 	CGridContainer::Free();
 }
@@ -277,7 +279,7 @@ bool CListContainer::Select(int32 iRow)
 		miSelected = iRow;
 		UpdateHighlights();
 		RowSelected(iRow);
-		mcListeners.CallListeners(&CListListener::SelectionChanged, this, NULL);
+		mcSelectionChanged.Call(this);
 	}
 	return true;
 }
@@ -292,7 +294,7 @@ void CListContainer::Activate(void)
 	if (miSelected >= 0)
 	{
 		RowActivated(miSelected);
-		mcListeners.CallListeners(&CListListener::ItemActivated, this, NULL);
+		mcActivated.Call(this);
 	}
 }
 
@@ -360,21 +362,25 @@ void CListContainer::SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called after the selected row changes, as it is cleared too, with the
+// list: pList->GetSelectionEvent()->Add(this, &CMyContent::RowChosen).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListContainer::AddListener(CListListener* pcListener)
+CComponentEvent<CListContainer>* CListContainer::GetSelectionEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
+	return &mcSelectionChanged;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when the selected row is activated: by enter or space, by a
+// click, or by a double click if double clicks activate.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListContainer::RemoveListener(CListListener* pcListener)
+CComponentEvent<CListContainer>* CListContainer::GetActivationEvent(void)
 {
-	return mcListeners.RemoveListener(pcListener);
+	return &mcActivated;
 }
 
 

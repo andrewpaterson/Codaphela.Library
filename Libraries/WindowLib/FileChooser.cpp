@@ -99,36 +99,6 @@ static bool HasExtension(const char* szPath, const char* szExtension)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileChooserListListener::Init(CFileChooser* pcChooser)
-{
-	mpcChooser = pcChooser;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserListListener::SelectionChanged(CUnknown* pcSource, void* pvContext)
-{
-	mpcChooser->SelectionChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserListListener::ItemActivated(CUnknown* pcSource, void* pvContext)
-{
-	mpcChooser->ItemActivated();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CFileChooserComboListener::Init(CFileChooser* pcChooser)
 {
 	mpcChooser = pcChooser;
@@ -175,7 +145,6 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	maszRows.Init();
 	miNumFolders = 0;
 	mszChosen.Init();
-	mcListListener.Init(this);
 	mcComboListener.Init(this);
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
@@ -192,7 +161,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mpFileType->Select(0);
 	mpFileType->AddListener(&mcComboListener);
 	mpLookIn->AddListener(&mcComboListener);
-	mpList->AddListener(&mcListListener);
+	mpList->GetSelectionEvent()->Add(this, &CFileChooser::SelectionChanged);
+	mpList->GetActivationEvent()->Add(this, &CFileChooser::ItemActivated);
 
 	szPath.Init(szFilename);
 	if (!szPath.Empty())
@@ -237,7 +207,6 @@ void CFileChooser::Class(void)
 	M_Pointer(mpFileType);
 	M_Pointer(mpFolderIcon);
 	M_Pointer(mpFileIcon);
-	U_Unknown(CFileChooserListListener, mcListListener);
 	U_Unknown(CFileChooserComboListener, mcComboListener);
 	U_String(mszDirectory);
 	U_Unknown(CArrayChars, maszLookIn);
@@ -278,10 +247,14 @@ bool CFileChooser::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::Free(void)
 {
-	//An object's memory is freed without its destructor running so the listeners take themselves off the widgets still
-	//here.  The dialog and widgets are freed with the chooser's pointers.
-	mcListListener.RemoveFromListenerCalls();
+	//An object's memory is freed without its destructor running so the chooser and its listener take themselves off
+	//the widgets still here.  The dialog and widgets are freed with the chooser's pointers.
 	mcComboListener.RemoveFromListenerCalls();
+	if (mpList.IsNotNull())
+	{
+		mpList->GetSelectionEvent()->Remove(this);
+		mpList->GetActivationEvent()->Remove(this);
+	}
 	RemoveFromButton(mpUp);
 	RemoveFromButton(mpHome);
 	RemoveFromButton(mpNewFolder);
@@ -519,7 +492,8 @@ void CFileChooser::FillList(const char* szSelect)
 	size			i;
 	int32			iSelect;
 
-	mpList->RemoveListener(&mcListListener);
+	//The chooser doesn't hear the rows it takes away and puts back.
+	mpList->GetSelectionEvent()->Remove(this);
 	mpList->RemoveAllComponents();
 	maszRows.ReInit();
 
@@ -553,7 +527,7 @@ void CFileChooser::FillList(const char* szSelect)
 	aszFolders.Kill();
 
 	mpList->Select(iSelect);
-	mpList->AddListener(&mcListListener);
+	mpList->GetSelectionEvent()->Add(this, &CFileChooser::SelectionChanged);
 }
 
 

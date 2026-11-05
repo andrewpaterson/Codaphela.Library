@@ -17,9 +17,8 @@ Ptr<CFont> ReadLabelFont(void);
 // Logs the selection changing and nodes being activated.
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestTreeListener : public CListListener
+class CTestTreeListener
 {
-CONSTRUCTABLE(CTestTreeListener);
 public:
 	CChars*		mpszLog;
 
@@ -28,12 +27,12 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void SelectionChanged(CUnknown* pcSource, void* pvContext) override
+	void SelectionChanged(void)
 	{
 		mpszLog->Append("Selected;");
 	}
 
-	void ItemActivated(CUnknown* pcSource, void* pvContext) override
+	void ItemActivated(void)
 	{
 		mpszLog->Append("Activated;");
 	}
@@ -101,7 +100,8 @@ void TestTreeNodes(void)
 		ORoot()->Add(pTestWindow);
 
 		pTree = OMalloc<CTreeContainer>(pTestWindow, OMalloc<CWindowTheme>(ReadLabelFont()));
-		AssertTrue(pTree->AddListener(&cListener));
+		pTree->GetSelectionEvent()->Add(&cListener, &CTestTreeListener::SelectionChanged);
+		pTree->GetActivationEvent()->Add(&cListener, &CTestTreeListener::ItemActivated);
 		pTestWindow->SetContainer(pTree);
 
 		iProject = pTree->AddNode(TREE_NO_NODE, "Project", NULL, 100);
@@ -205,7 +205,8 @@ void TestTreeNodes(void)
 		AssertInt(0, pTree->NumRows());
 		AssertInt(TREE_NO_NODE, pTree->GetSelectedNode());
 
-		pTree->RemoveListener(&cListener);
+		pTree->GetSelectionEvent()->Remove(&cListener);
+		pTree->GetActivationEvent()->Remove(&cListener);
 		pTree = NULL;
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
