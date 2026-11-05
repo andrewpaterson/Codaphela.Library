@@ -29,28 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockNode.h"
 #include "DockPane.h"
 #include "DockGroup.h"
-
-
-//The dock manager's colours, from JetBrains' Jewel dark theme until changed (SetColour).
-enum EDockColour
-{
-	DC_TitleBar,			//A tool group's title bar.
-	DC_ActiveTitleBar,		//The active pane's group's title bar.
-	DC_Sash,				//Between a split's nodes.
-	DC_Background,			//The empty document well, and behind the dock area.
-	DC_Strip,				//An auto hide strip.
-	DC_StripTab,			//A tab on an auto hide strip.
-	DC_StripTabHover,
-	DC_StripTabLine,		//Along the strip side of a strip's tab.
-	DC_Guide,				//A docking guide's face.
-	DC_GuideBorder,
-	DC_GuideHover,			//The guide under the pointer.
-	DC_GuideArrow,
-	DC_Preview,				//Where a pane would go, drawn over the window (with its opacity).
-	DC_PreviewBorder,
-	DC_FrameBorder,			//A floating window's edge.
-	DC_NumColours,
-};
+#include "DockTree.h"
 
 
 enum EDockImage
@@ -79,6 +58,7 @@ class CDockArea;
 class CDocumentWell;
 class CDockFloatingWindow;
 class CDockDragTracker;
+class CDockDrag;
 class CDockGuides;
 class CAutoHideFlyout;
 class CMarkupTag;
@@ -128,12 +108,15 @@ class CDockManager : public CObject
 {
 CONSTRUCTABLE(CDockManager);
 DESTRUCTABLE(CDockManager);
+friend class CDockDrag;
+friend class CDockTree;
+friend class CDockLayoutWriter;
+friend class CDockLayoutReader;
 protected:
 	Ptr<CWindow>				mpWindow;  //The main window.
 	Ptr<CWindowTheme>			mpTheme;
 	Ptr<CFont>					mpFont;
 	Ptr<CFont>					mpTurnedFont;  //For the left and right auto hide strips, NULL for upright text.
-	ARGB32						masColours[DC_NumColours];
 	CArray<CImageCel>			maImages;  //By EDockImage.
 	Ptr<CDockArea>				mpArea;
 	Ptr<CDocumentWell>			mpWell;
@@ -145,17 +128,8 @@ protected:
 	Ptr<CDockGroup>				mpDocumentGroup;  //The well's group documents are added to.
 	CDockManagerListener*		mpcListener;
 
-	//A drag.
-	Ptr<CDockFloatingWindow>	mpDragFloating;
-	Ptr<CWindow>				mpDragSource;  //The window the drag started in; it has the pointer.
-	Ptr<CDockDragTracker>		mpTracker;
-	SInt32Vec2					msDragGrab;  //The pointer relative to the floating window's top left.
-	CInt32Rect					mcDragStart;  //Where the floating window was when the drag started.
-	bool						mbDragTornOff;  //The drag floated what it drags, Escape docks it back.
-	bool						mbDragCancelled;
-	bool						mbDragNoDock;  //Dropped without docking, see SetDragNoDock.
-	SDockTarget					msTarget;
-	Ptr<CDockArea>				mpGuidesArea;  //The area showing the guides.
+	Ptr<CDockDrag>				mpDrag;
+	CDockTree					mcTree;  //The trees' edits.
 
 	//Auto hide.
 	Ptr<CAutoHideFlyout>		mpFlyout;
@@ -212,6 +186,8 @@ public:
 	Ptr<CDockFloatingWindow>	FindFloating(Ptr<CDockPane> pPane);
 	Ptr<CDockGroup>				FindGroup(int32 iID);
 	Ptr<CDockGroup>				CreateGroup(bool bDocuments, int32 iID = 0);
+	void						PlaceInGroup(Ptr<CDockGroup> pGroup, Ptr<CDockPane> pPane, size uiIndex = MAX_SIZE);
+	bool						IsInWell(Ptr<CDockNode> pNode);
 
 	//Called by the groups, title bars, flyouts and the drag tracker.
 	void						PaneSelected(Ptr<CDockPane> pPane);
@@ -219,16 +195,17 @@ public:
 	void						BeginPaneDrag(Ptr<CDockPane> pPane);
 	void						BeginGroupDrag(Ptr<CDockGroup> pGroup);
 	void						BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating);
-	void						DragMoved(void);
-	void						DragDropped(void);
-	void						DragCancelled(void);
 	void						SetDragNoDock(bool bNoDock);
 	bool						IsDragging(void);
 	SDockTarget*				GetTarget(void);
-	void						FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget);
+	Ptr<CDockDrag>				GetDrag(void);
 	void						RestoreFocus(Ptr<CWindow> pWindow);
 	void						LayoutChanged(void);
 	void						FocusChanged(CFocus* pcFocus);
+	bool						IsFocusOutsideFlyout(Ptr<CComponent> pFocussed);
+	void						PaneChanged(Ptr<CDockPane> pPane);
+	void						CloseActiveDocument(void);
+	void						HideActiveTool(void);
 	void						FloatingWindowClosed(CWindow* pcWindow);
 	void						ShowFlyout(Ptr<CDockPane> pPane);
 	void						CloseFlyout(void);
@@ -244,12 +221,10 @@ public:
 	bool						GetLayoutWindowRectangle(CInt32Rect* pcDest);
 
 	//The tree, for the layout file and tests.
-	void						DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSide eSide, int32 iSize);
-	void						RemoveNode(Ptr<CDockNode> pNode);
-	void						Tidy(Ptr<CDockNode> pNode);
-	void						Flatten(Ptr<CDockSplit> pSplit);
+	void						RemoveFloating(Ptr<CDockFloatingWindow> pFloating);
 	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
 	Ptr<CDockFloatingWindow>	CreateFloating(CInt32Rect* pcScreenRectangle);
+	void						KeepOnScreen(CInt32Rect* pcRect);
 	void						WatchFocus(Ptr<CWindow> pWindow);
 	void						UnwatchFocus(Ptr<CWindow> pWindow);
 	void						SetNextGroupID(int32 iID);
@@ -259,33 +234,19 @@ protected:
 	void						CreateImages(void);
 	void						TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore);
 	void						RecordRestore(Ptr<CDockPane> pPane);
-	bool						GetGroupRestore(Ptr<CDockGroup> pGroup, int32* piGroup, CChars* pszNeighbour, EDockSide* peSide, int32* piSize, bool* pbInWell);
+	bool						GetGroupRestore(Ptr<CDockGroup> pGroup, SDockRestore* psDest);
+	void						GiveGroupRestore(Ptr<CDockGroup> pGroup);
 	void						Restore(Ptr<CDockPane> pPane);
-	Ptr<CDockNode>				ClimbToSplit(Ptr<CDockNode> pStart, bool bHorizontal);
+	void						RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int iDepth);
 	void						DockDefault(Ptr<CDockPane> pPane);
-	Ptr<CDockGroup>				GatherInto(Ptr<CDockNode> pNode, bool bDocuments);
-	void						ReplaceInParent(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew);
-	void						MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild);
 	void						SetStates(Ptr<CDockNode> pNode, EDockPaneState eState);
 	void						SetActivePane(Ptr<CDockPane> pPane);
 	void						SetActiveDocument(Ptr<CDockPane> pPane);
-	void						StartDrag(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<CWindow> pSource, bool bTornOff);
-	void						EndDrag(void);
-	void						ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient);
-	void						HideGuides(void);
-	bool						IsDraggingDocuments(void);
-	Ptr<CDockNode>				GetDraggedNode(void);
 	void						FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pPane, CInt32Rect* pcDest);
 	EDockSide					NearestEdge(Ptr<CDockGroup> pGroup);
-	EDockSide					SideOfWell(Ptr<CDockNode> pNode);
 	Ptr<CComponent>				FindFocusable(Ptr<CComponent> pComponent);
 	void						FocusPane(Ptr<CDockPane> pPane);
-	void						WriteNode(CXMLWriter* pcWriter, Ptr<CDockNode> pNode);
-	Ptr<CDockNode>				ReadNode(CMarkupTag* pcTag, Ptr<CWindow> pWindow, bool bInWell);
-	void						ReadRestore(CMarkupTag* pcTag, Ptr<CDockPane> pPane);
-	void						WriteRestore(CXMLWriter* pcWriter, Ptr<CDockPane> pPane);
 	void						ClearLayout(void);
-	Ptr<CDockPane>				ReadPane(CMarkupTag* pcTag);
 };
 
 

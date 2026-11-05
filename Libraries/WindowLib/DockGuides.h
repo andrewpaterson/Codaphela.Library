@@ -29,6 +29,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define DOCK_GUIDE_SIZE		30	//A guide's square.
 #define DOCK_GUIDE_STEP		32	//From one guide of a compass to the next.
 #define DOCK_GUIDE_INSET	8	//An edge marker from the dock area's edge.
+#define DOCK_GUIDE_ARROW_LENGTH	6	//A guide's arrow, from its tip to its widest.
+#define DOCK_GUIDE_ARROW_TIP	3	//From a guide's middle to its arrow's tip.
+#define DOCK_GUIDE_ICON_INSET	8	//A centre guide's window from the guide's edge.
+#define DOCK_GUIDE_ICON_TITLE	3	//The window's title bar.
+#define DOCK_GUIDE_BAR_INSET	5	//An outer guide's bar from the edge it is along.
+#define DOCK_GUIDE_BAR_WIDTH	2
+#define DOCK_GUIDE_BAR_END		7	//The bar's ends from the guide's other edges.
 
 
 //One square of the docking guides: where it is, in window client space, and what dropping on it does.  The node is a
@@ -97,6 +104,9 @@ public:
 
 protected:
 	void				AddGuide(int x, int y, EDockTargetKind eKind, EDockSide eSide, CDockNode* pcNode, bool bOuter);
+	CDockNode*			FindCompassNode(int x, int y, bool* pbInWell);
+	void				AddEdgeMarkers(void);
+	void				AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments);
 	void				AddCompass(CInt32Rect* pcBounds, EDockTargetKind eSideKind, EDockTargetKind eCentreKind, CDockNode* pcNode, bool bSides, bool bCentre, int iRing, bool bOuter);
 	void				PreviewFor(SDockGuide* psGuide, SInt32Vec2 sDraggedSize, CInt32Rect* pcDest);
 	void				DrawArrow(Ptr<CCanvas> pCanvas, CInt32Rect* pcRect, EDockSide eSide, ARGB32 sColour);

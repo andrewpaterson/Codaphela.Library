@@ -52,6 +52,21 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	msTabSeparator = JEWEL_SEPARATOR;
 	mpTabClose = NULL;
 	mpTabCloseHover = NULL;
+	masDockColours[DC_TitleBar] = JEWEL_PANEL;
+	masDockColours[DC_ActiveTitleBar] = JEWEL_SELECTION;
+	masDockColours[DC_Sash] = JEWEL_EDITOR;
+	masDockColours[DC_Background] = JEWEL_EDITOR;
+	masDockColours[DC_Strip] = JEWEL_BAR_BACKGROUND;
+	masDockColours[DC_StripTab] = JEWEL_PANEL;
+	masDockColours[DC_StripTabHover] = JEWEL_HOVER;
+	masDockColours[DC_StripTabLine] = JEWEL_BORDER;
+	masDockColours[DC_Guide] = JEWEL_PANEL;
+	masDockColours[DC_GuideBorder] = JEWEL_BORDER_HOVER;
+	masDockColours[DC_GuideHover] = JEWEL_SELECTION;
+	masDockColours[DC_GuideArrow] = JEWEL_BLUE;
+	masDockColours[DC_Preview] = Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50);
+	masDockColours[DC_PreviewBorder] = JEWEL_BLUE;
+	masDockColours[DC_FrameBorder] = JEWEL_SEPARATOR;
 
 	PostInit();
 }
@@ -83,6 +98,7 @@ void CWindowTheme::Class(void)
 	U_UInt32(msTabSeparator);
 	M_Pointer(mpTabClose);
 	M_Pointer(mpTabCloseHover);
+	U_UInt32Array(masDockColours, DC_NumColours);
 }
 
 
@@ -239,6 +255,8 @@ ARGB32 CWindowTheme::GetTabBarColour(void) { return msTabBar; }
 ARGB32 CWindowTheme::GetTabHoverColour(void) { return msTabHover; }
 ARGB32 CWindowTheme::GetTabUnderlineColour(void) { return msTabUnderline; }
 ARGB32 CWindowTheme::GetTabSeparatorColour(void) { return msTabSeparator; }
+void CWindowTheme::SetDockColour(EDockColour eColour, ARGB32 sColour) { masDockColours[eColour] = sColour; }
+ARGB32 CWindowTheme::GetDockColour(EDockColour eColour) { return masDockColours[eColour]; }
 Ptr<CImageCel> CWindowTheme::GetTabClose(void) { return mpTabClose; }
 Ptr<CImageCel> CWindowTheme::GetTabCloseHover(void) { return mpTabCloseHover; }
 

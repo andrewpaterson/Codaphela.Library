@@ -200,43 +200,16 @@ void CDockGuides::AddCompass(CInt32Rect* pcBounds, EDockTargetKind eSideKind, ED
 //////////////////////////////////////////////////////////////////////////
 //
 // The guides for something dragged to x, y in window client space;
-// bDocuments if it holds documents.
+// bDocuments if it holds documents.  They are only built again when the
+// pointer goes over another group.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockGuides::Build(int x, int y, bool bDocuments, SInt32Vec2 sDraggedSize)
 {
-	CInt32Rect			cRoot;
-	CInt32Rect			cBounds;
-	Ptr<CDockGroup>		pGroup;
-	Ptr<CDocumentWell>	pWell;
-	bool				bInWell;
-	int					iHalf;
-	CDockNode*			pcCompass;
+	CDockNode*	pcCompass;
+	bool		bInWell;
 
-	iHalf = DOCK_GUIDE_SIZE / 2;
-	mpArea->GetRootBounds(&cRoot);
-	pWell = mpManager->GetWell();
-
-	pGroup = mpArea->FindGroupAt(x, y);
-	bInWell = false;
-	pcCompass = NULL;
-	if (mpArea->IsMain() && pWell->IsPointIn(x, y))
-	{
-		if (pWell->GetRoot().IsNull())
-		{
-			pcCompass = &pWell;
-		}
-		else if (pGroup.IsNotNull())
-		{
-			pcCompass = &pGroup;
-			bInWell = true;
-		}
-	}
-	else if (pGroup.IsNotNull())
-	{
-		pcCompass = &pGroup;
-	}
-
+	pcCompass = FindCompassNode(x, y, &bInWell);
 	if ((pcCompass == mpcCompassNode) && (masGuides.NumElements() > 0))
 	{
 		return;
@@ -249,43 +222,101 @@ void CDockGuides::Build(int x, int y, bool bDocuments, SInt32Vec2 sDraggedSize)
 	//Tools dock along the main area's edges.
 	if (mpArea->IsMain() && !bDocuments)
 	{
-		AddGuide(cRoot.GetLeft() + DOCK_GUIDE_INSET, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Left, NULL, false);
-		AddGuide(cRoot.GetLeft() + cRoot.GetWidth() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Right, NULL, false);
-		AddGuide(cRoot.GetLeft() + cRoot.GetWidth() / 2 - iHalf, cRoot.GetTop() + DOCK_GUIDE_INSET, DTK_AreaEdge, DS_Top, NULL, false);
-		AddGuide(cRoot.GetLeft() + cRoot.GetWidth() / 2 - iHalf, cRoot.GetTop() + cRoot.GetHeight() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE, DTK_AreaEdge, DS_Bottom, NULL, false);
+		AddEdgeMarkers();
 	}
-
-	if (pcCompass == NULL)
+	if (pcCompass)
 	{
-		Invalidate();
-		return;
-	}
-
-	if (pcCompass == &pWell)
-	{
-		//The empty well: its centre takes documents and tools alike; tools can dock beside it.
-		pWell->GetActualBounds(&cBounds);
-		AddCompass(&cBounds, DTK_WellOuter, DTK_WellCentre, pcCompass, !bDocuments, true, 1, true);
-	}
-	else if (bInWell)
-	{
-		pGroup->GetActualBounds(&cBounds);
-		AddCompass(&cBounds, DTK_Group, DTK_Group, pcCompass, true, true, 1, false);
-		if (!bDocuments)
-		{
-			AddCompass(&cBounds, DTK_WellOuter, DTK_WellOuter, &pWell, true, false, 2, true);
-		}
-	}
-	else
-	{
-		//A tool group, in the main area or a floating one: documents only go with documents.
-		pGroup->GetActualBounds(&cBounds);
-		if (!bDocuments || pGroup->IsDocumentGroup())
-		{
-			AddCompass(&cBounds, DTK_Group, DTK_Group, pcCompass, true, true, 1, false);
-		}
+		AddCompassFor(pcCompass, bInWell, bDocuments);
 	}
 	Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the compass is over at x, y: the group there, or the empty well.
+// *pbInWell if it is a group in the well.  NULL over neither.
+//
+//////////////////////////////////////////////////////////////////////////
+CDockNode* CDockGuides::FindCompassNode(int x, int y, bool* pbInWell)
+{
+	Ptr<CDockGroup>		pGroup;
+	Ptr<CDocumentWell>	pWell;
+
+	*pbInWell = false;
+	pWell = mpManager->GetWell();
+	pGroup = mpArea->FindGroupAt(x, y);
+	if (mpArea->IsMain() && pWell->IsPointIn(x, y))
+	{
+		if (pWell->GetRoot().IsNull())
+		{
+			return &pWell;
+		}
+		*pbInWell = pGroup.IsNotNull();
+	}
+	return pGroup.IsNotNull() ? &pGroup : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A marker in the middle of each of the area's edges.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGuides::AddEdgeMarkers(void)
+{
+	CInt32Rect	cRoot;
+	int			iHalf;
+	int			iLeft;
+	int			iTop;
+	int			iRight;
+	int			iBottom;
+
+	iHalf = DOCK_GUIDE_SIZE / 2;
+	mpArea->GetRootBounds(&cRoot);
+	iLeft = cRoot.GetLeft() + DOCK_GUIDE_INSET;
+	iTop = cRoot.GetTop() + DOCK_GUIDE_INSET;
+	iRight = cRoot.GetLeft() + cRoot.GetWidth() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE;
+	iBottom = cRoot.GetTop() + cRoot.GetHeight() - DOCK_GUIDE_INSET - DOCK_GUIDE_SIZE;
+	AddGuide(iLeft, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Left, NULL, false);
+	AddGuide(iRight, cRoot.GetTop() + cRoot.GetHeight() / 2 - iHalf, DTK_AreaEdge, DS_Right, NULL, false);
+	AddGuide(cRoot.GetLeft() + cRoot.GetWidth() / 2 - iHalf, iTop, DTK_AreaEdge, DS_Top, NULL, false);
+	AddGuide(cRoot.GetLeft() + cRoot.GetWidth() / 2 - iHalf, iBottom, DTK_AreaEdge, DS_Bottom, NULL, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The compass over pcNode.  Over the empty well its centre takes
+// documents and tools alike, and tools can dock beside it.  Over a group
+// in the well a second ring docks tools beside the whole well.  Over any
+// other group documents only go with documents.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGuides::AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments)
+{
+	CInt32Rect		cBounds;
+	CDockGroup*		pcGroup;
+
+	pcNode->GetActualBounds(&cBounds);
+	if (pcNode->IsDocumentWell())
+	{
+		AddCompass(&cBounds, DTK_WellOuter, DTK_WellCentre, pcNode, !bDocuments, true, 1, true);
+		return;
+	}
+	pcGroup = dynamic_cast<CDockGroup*>(pcNode);
+	if (bInWell)
+	{
+		AddCompass(&cBounds, DTK_Group, DTK_Group, pcNode, true, true, 1, false);
+		if (!bDocuments)
+		{
+			AddCompass(&cBounds, DTK_WellOuter, DTK_WellOuter, &mpManager->GetWell(), true, false, 2, true);
+		}
+	}
+	else if (!bDocuments || pcGroup->IsDocumentGroup())
+	{
+		AddCompass(&cBounds, DTK_Group, DTK_Group, pcNode, true, true, 1, false);
+	}
 }
 
 
@@ -450,22 +481,23 @@ void CDockGuides::DrawArrow(Ptr<CCanvas> pCanvas, CInt32Rect* pcRect, EDockSide 
 
 	cx = pcRect->GetLeft() + pcRect->GetWidth() / 2;
 	cy = pcRect->GetTop() + pcRect->GetHeight() / 2;
-	iLength = 6;
+	//A line a pixel thick for each step back from the tip, one pixel longer each side than the last.
+	iLength = DOCK_GUIDE_ARROW_LENGTH;
 	for (i = 0; i < iLength; i++)
 	{
 		switch (eSide)
 		{
 		case DS_Left:
-			DrawBoxClipped(pCanvas, cx - 3 + i, cy - i, cx - 2 + i, cy + i + 1, true, sColour);
+			DrawBoxClipped(pCanvas, cx - DOCK_GUIDE_ARROW_TIP + i, cy - i, cx - DOCK_GUIDE_ARROW_TIP + 1 + i, cy + i + 1, true, sColour);
 			break;
 		case DS_Right:
-			DrawBoxClipped(pCanvas, cx + 2 - i, cy - i, cx + 3 - i, cy + i + 1, true, sColour);
+			DrawBoxClipped(pCanvas, cx + DOCK_GUIDE_ARROW_TIP - 1 - i, cy - i, cx + DOCK_GUIDE_ARROW_TIP - i, cy + i + 1, true, sColour);
 			break;
 		case DS_Top:
-			DrawBoxClipped(pCanvas, cx - i, cy - 3 + i, cx + i + 1, cy - 2 + i, true, sColour);
+			DrawBoxClipped(pCanvas, cx - i, cy - DOCK_GUIDE_ARROW_TIP + i, cx + i + 1, cy - DOCK_GUIDE_ARROW_TIP + 1 + i, true, sColour);
 			break;
 		default:
-			DrawBoxClipped(pCanvas, cx - i, cy + 2 - i, cx + i + 1, cy + 3 - i, true, sColour);
+			DrawBoxClipped(pCanvas, cx - i, cy + DOCK_GUIDE_ARROW_TIP - 1 - i, cx + i + 1, cy + DOCK_GUIDE_ARROW_TIP - i, true, sColour);
 			break;
 		}
 	}
@@ -517,8 +549,8 @@ void CDockGuides::DrawGuides(Ptr<CCanvas> pCanvas)
 		DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, sBorder);
 		if (psGuide->eSide == DS_Centre)
 		{
-			DrawBoxClipped(pCanvas, iLeft + 8, iTop + 8, iRight - 8, iBottom - 8, false, sArrow);
-			DrawBoxClipped(pCanvas, iLeft + 8, iTop + 8, iRight - 8, iTop + 11, true, sArrow);
+			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iBottom - DOCK_GUIDE_ICON_INSET, false, sArrow);
+			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET + DOCK_GUIDE_ICON_TITLE, true, sArrow);
 		}
 		else
 		{
@@ -528,16 +560,16 @@ void CDockGuides::DrawGuides(Ptr<CCanvas> pCanvas)
 				switch (psGuide->eSide)
 				{
 				case DS_Left:
-					DrawBoxClipped(pCanvas, iLeft + 5, iTop + 7, iLeft + 7, iBottom - 7, true, sArrow);
+					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_INSET, iTop + DOCK_GUIDE_BAR_END, iLeft + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
 					break;
 				case DS_Right:
-					DrawBoxClipped(pCanvas, iRight - 7, iTop + 7, iRight - 5, iBottom - 7, true, sArrow);
+					DrawBoxClipped(pCanvas, iRight - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iTop + DOCK_GUIDE_BAR_END, iRight - DOCK_GUIDE_BAR_INSET, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
 					break;
 				case DS_Top:
-					DrawBoxClipped(pCanvas, iLeft + 7, iTop + 5, iRight - 7, iTop + 7, true, sArrow);
+					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET, iRight - DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, true, sArrow);
 					break;
 				default:
-					DrawBoxClipped(pCanvas, iLeft + 7, iBottom - 7, iRight - 7, iBottom - 5, true, sArrow);
+					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iRight - DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET, true, sArrow);
 					break;
 				}
 			}

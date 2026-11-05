@@ -32,11 +32,13 @@ written but not built or run.
 Built differently from the sections below:
 - A tab or title bar pulled a few pixels floats what it drags straight away, as Visual Studio does, and every drag is
   then of a floating window (CDockManager::BeginPaneDrag); Escape docks a torn off pane back.
-- Holding Control to keep the guides away, Shift+Escape and Control+F4 aren't done: the input has no Control state or
-  commands for them.  CDockManager::SetDragNoDock is there for when it has.
+- Holding Control keeps the guides away (the component input's Control state); Shift+Escape (CIC_HideToolWindow) and
+  Control+F4 (CIC_CloseDocument) are taken by the dock area and the flyout.
 - The layout file has a <Panes> list of every pane's state and restore place instead of <Hidden> and <Restore>; see the
-  comment at the top of DockManagerLayout.cpp.  The main window's rectangle is read but not applied
-  (GetLayoutWindowRectangle).
+  comment at the top of DockLayoutFile.cpp.  The main window's rectangle is applied only when the layout is read
+  before the window is shown; floating windows are kept on the screen when its area is known.
+- A pane whose neighbour isn't docked goes where that neighbour would go back to (CDockManager::RestoreFrom).
+- The dock colours are the window theme's (CWindowTheme::GetDockColour).
 - A pane remembers the well as its neighbour when the node beside it holds the well (DOCK_WELL_NEIGHBOUR); restoring
   climbs from the neighbour to the node in a split of the same direction and docks beside that.
 - Tabs that don't fit a document group's bar go to the overflow menu; a selected one is moved to the front.

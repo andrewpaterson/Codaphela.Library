@@ -367,3 +367,22 @@ CComponentEvent<CDockTitleBar>*	CDockTitleBar::GetDragEvent(void) { return &mcDr
 CComponentEvent<CDockTitleBar>*	CDockTitleBar::GetDoubleClickEvent(void) { return &mcDoubleClicked; }
 CComponentEvent<CDockTitleBar>*	CDockTitleBar::GetButtonEvent(EDockTitleButton eButton) { return &macButtonPressed[eButton]; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every function pvListener added to the bar's events is taken off, as
+// the listener goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockTitleBar::RemoveListener(void* pvListener)
+{
+	int		i;
+
+	mcDragged.Remove(pvListener);
+	mcDoubleClicked.Remove(pvListener);
+	for (i = 0; i < DTB_NumButtons; i++)
+	{
+		macButtonPressed[i].Remove(pvListener);
+	}
+}
+

@@ -32,7 +32,10 @@ class CDockGuides;
 //The root of a window's docking: a node (a split, a group, or the document well) filling it.  The main window's area
 //has an auto hide strip on each edge, shown while it has tabs, and always has the document well somewhere in its tree.
 //While a pane is dragged over it the area shows the docking guides over everything else.
-class CDockArea : public CContainer
+class CDockFloatingWindow;
+
+
+class CDockArea : public CContainer, public CDockNodeHolder
 {
 CONSTRUCTABLE(CDockArea);
 DESTRUCTABLE(CDockArea);
@@ -46,6 +49,7 @@ protected:
 	Ptr<CAutoHideStrip>		mpTopStrip;
 	Ptr<CAutoHideStrip>		mpBottomStrip;
 	Ptr<CDockGuides>		mpGuides;  //Over everything while a drag is over the area, otherwise NULL.
+	Ptr<CDockFloatingWindow>	mpFloating;  //The floating window the area fills, NULL for the main window's.
 	CInt32Rect				mcRootBounds;  //Where the root was last laid out, in window client space.
 
 public:
@@ -57,6 +61,10 @@ public:
 	void					Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	void					SetRoot(Ptr<CDockNode> pRoot);
+	bool					ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
+	bool					RemoveNode(Ptr<CDockNode> pNode) override;
+	void					SetFloating(Ptr<CDockFloatingWindow> pFloating);
+	Ptr<CDockFloatingWindow>	GetFloating(void);
 	Ptr<CDockNode>			GetRoot(void);
 	bool					IsMain(void);
 	Ptr<CAutoHideStrip>		GetStrip(EDockSide eSide);

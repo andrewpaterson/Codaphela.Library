@@ -21,32 +21,110 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
+#include "ComponentInput.h"
 #include "DockArea.h"
 #include "DockSplit.h"
 #include "DocumentWell.h"
 #include "DockFloatingWindow.h"
 #include "DockEdge.h"
 #include "DockGuides.h"
-#include "AutoHide.h"
 #include "DockManager.h"
+#include "DockDrag.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The drag tracker takes the drag going on in pSource, before what is
-// dragged is torn off and the tab or title bar that started it goes.
-// Returns false if no drag is going on there.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool HandOverToTracker(Ptr<CWindow> pSource, Ptr<CDockDragTracker> pTracker)
+void CDockDrag::Init(Ptr<CDockManager> pManager)
 {
-	Ptr<CFocus>	pFocus;
+	PreInit();
+
+	mpManager = pManager;
+	mpFloating = NULL;
+	mpSource = NULL;
+	mpTracker = NULL;
+	msGrab.Init(0, 0);
+	mcStart.Init(0, 0, 0, 0);
+	mbTornOff = false;
+	mbCancelled = false;
+	mbNoDock = false;
+	msTarget.Init();
+	mpGuidesArea = NULL;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockDrag::Class(void)
+{
+	M_Pointer(mpManager);
+	M_Pointer(mpFloating);
+	M_Pointer(mpSource);
+	M_Pointer(mpTracker);
+	U_2Int32(msGrab);
+	U_Data(CInt32Rect, mcStart);
+	U_Bool(mbTornOff);
+	U_Bool(mbCancelled);
+	U_Bool(mbNoDock);
+	U_Data(SDockTarget, msTarget);
+	M_Pointer(mpGuidesArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockDrag::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockDrag::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockDrag::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A drag tracker takes the drag going on in pSource, before what is
+// dragged is torn off and the tab or title bar that started it goes.
+// Returns false, keeping nothing, if no drag is going on there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockDrag::Take(Ptr<CWindow> pSource)
+{
+	Ptr<CFocus>				pFocus;
+	Ptr<CDockDragTracker>	pTracker;
 
 	pFocus = pSource->GetFocus();
 	if (pFocus->GetDrag() != FD_Select)
 	{
 		return false;
 	}
+	pTracker = OMalloc<CDockDragTracker>(pSource, mpManager);
+	mpTracker = pTracker;
+	mpSource = pSource;
 	pFocus->SetFocus(pTracker);
 	pFocus->HandOverDrag(pTracker);
 	return true;
@@ -59,7 +137,7 @@ static bool HandOverToTracker(Ptr<CWindow> pSource, Ptr<CDockDragTracker> pTrack
 // floating window is dragged.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane)
+void CDockDrag::BeginPane(Ptr<CDockPane> pPane)
 {
 	Ptr<CDockFloatingWindow>	pFloating;
 	Ptr<CWindow>				pSource;
@@ -73,30 +151,27 @@ void CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane)
 	{
 		return;
 	}
-	pFloating = FindFloating(pPane);
+	pFloating = mpManager->FindFloating(pPane);
 	if (pFloating.IsNotNull() && pFloating->GetRoot()->IsGroup() && (pFloating->GetRoot()->GetFirstGroup()->NumPanes() == 1))
 	{
-		BeginFloatingDrag(pFloating);
+		BeginFloating(pFloating);
 		return;
 	}
 
 	pSource = pPane->GetGroup()->GetWindow();
-	mpTracker = OMalloc<CDockDragTracker>(pSource, Ptr<CDockManager>(this));
-	if (!HandOverToTracker(pSource, mpTracker))
+	if (!Take(pSource))
 	{
-		mpTracker = NULL;
 		return;
 	}
-	mpDragSource = pSource;
 
 	pSource->GetPointerScreenPosition(&sPointer);
-	FloatRectangleFor(pPane->GetGroup(), NULL, &cRect);
+	mpManager->FloatRectangleFor(pPane->GetGroup(), NULL, &cRect);
 	iWidth = cRect.GetWidth();
 	iHeight = cRect.GetHeight();
-	sGrab.Init((iWidth > 80) ? 40 : iWidth / 2, DOCK_FRAME_BORDER + DOCK_TITLE_BAR_HEIGHT / 2);
+	sGrab.Init((iWidth > 2 * DOCK_GRAB_LEFT) ? DOCK_GRAB_LEFT : iWidth / 2, DOCK_FRAME_BORDER + DOCK_TITLE_BAR_HEIGHT / 2);
 	cRect.Init(sPointer.x - sGrab.x, sPointer.y - sGrab.y, sPointer.x - sGrab.x + iWidth, sPointer.y - sGrab.y + iHeight);
-	Float(pPane, &cRect);
-	StartDrag(FindFloating(pPane), sGrab, pSource, true);
+	mpManager->Float(pPane, &cRect);
+	Start(mpManager->FindFloating(pPane), sGrab, pSource, true);
 }
 
 
@@ -106,7 +181,7 @@ void CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane)
 // is dragged.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup)
+void CDockDrag::BeginGroup(Ptr<CDockGroup> pGroup)
 {
 	Ptr<CDockFloatingWindow>	pFloating;
 	Ptr<CWindow>				pSource;
@@ -118,27 +193,24 @@ void CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup)
 	{
 		return;
 	}
-	pFloating = FindFloating(pGroup->GetPane(0));
+	pFloating = mpManager->FindFloating(pGroup->GetPane(0));
 	if (pFloating.IsNotNull() && (pFloating->GetRoot() == pGroup))
 	{
-		BeginFloatingDrag(pFloating);
+		BeginFloating(pFloating);
 		return;
 	}
 
 	pSource = pGroup->GetWindow();
-	mpTracker = OMalloc<CDockDragTracker>(pSource, Ptr<CDockManager>(this));
-	if (!HandOverToTracker(pSource, mpTracker))
+	if (!Take(pSource))
 	{
-		mpTracker = NULL;
 		return;
 	}
-	mpDragSource = pSource;
 
 	pSource->GetPointerScreenPosition(&sPointer);
-	FloatRectangleFor(pGroup, NULL, &cRect);
+	mpManager->FloatRectangleFor(pGroup, NULL, &cRect);
 	sGrab.Init(sPointer.x - cRect.GetLeft(), sPointer.y - cRect.GetTop());
-	FloatGroup(pGroup, &cRect);
-	StartDrag(FindFloating(pGroup->GetPane(0)), sGrab, pSource, true);
+	mpManager->FloatGroup(pGroup, &cRect);
+	Start(mpManager->FindFloating(pGroup->GetPane(0)), sGrab, pSource, true);
 }
 
 
@@ -147,9 +219,8 @@ void CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup)
 // A floating window's title bar pulled: the window is dragged.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating)
+void CDockDrag::BeginFloating(Ptr<CDockFloatingWindow> pFloating)
 {
-	Ptr<CWindow>	pSource;
 	SInt32Vec2		sPointer;
 	CInt32Rect		cRect;
 	SInt32Vec2		sGrab;
@@ -158,21 +229,14 @@ void CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating)
 	{
 		return;
 	}
-	if (mpTracker.IsNull())
+	if (mpTracker.IsNull() && !Take(pFloating->GetWindow()))
 	{
-		pSource = pFloating->GetWindow();
-		mpTracker = OMalloc<CDockDragTracker>(pSource, Ptr<CDockManager>(this));
-		if (!HandOverToTracker(pSource, mpTracker))
-		{
-			mpTracker = NULL;
-			return;
-		}
-		mpDragSource = pSource;
+		return;
 	}
-	mpDragSource->GetPointerScreenPosition(&sPointer);
+	mpSource->GetPointerScreenPosition(&sPointer);
 	pFloating->GetRectangle(&cRect);
 	sGrab.Init(sPointer.x - cRect.GetLeft(), sPointer.y - cRect.GetTop());
-	StartDrag(pFloating, sGrab, mpDragSource, false);
+	Start(pFloating, sGrab, mpSource, false);
 }
 
 
@@ -182,23 +246,23 @@ void CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating)
 // at sGrab, until it is dropped.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::StartDrag(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<CWindow> pSource, bool bTornOff)
+void CDockDrag::Start(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<CWindow> pSource, bool bTornOff)
 {
 	if (pFloating.IsNull())
 	{
-		EndDrag();
+		End();
 		return;
 	}
-	mpDragFloating = pFloating;
-	mpDragSource = pSource;
-	msDragGrab = sGrab;
-	mbDragTornOff = bTornOff;
-	mbDragCancelled = false;
-	mbDragNoDock = false;
+	mpFloating = pFloating;
+	mpSource = pSource;
+	msGrab = sGrab;
+	mbTornOff = bTornOff;
+	mbCancelled = false;
+	mbNoDock = false;
 	msTarget.Init();
-	pFloating->GetRectangle(&mcDragStart);
+	pFloating->GetRectangle(&mcStart);
 	pFloating->GetWindow()->Raise();
-	DragMoved();
+	Moved();
 }
 
 
@@ -206,7 +270,7 @@ void CDockManager::StartDrag(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGra
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDockManager::IsDragging(void)
+bool CDockDrag::IsDragging(void)
 {
 	return mpTracker.IsNotNull();
 }
@@ -217,24 +281,24 @@ bool CDockManager::IsDragging(void)
 // While set, dropping leaves what is dragged floating.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::SetDragNoDock(bool bNoDock)
+void CDockDrag::SetNoDock(bool bNoDock)
 {
-	mbDragNoDock = bNoDock;
+	mbNoDock = bNoDock;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What the drag holds: the floating window's root.
+// Control is held: the drag shows no guides and doesn't dock, as in
+// Visual Studio, so a window can be floated over the others.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CDockNode> CDockManager::GetDraggedNode(void)
+bool CDockDrag::IsControlHeld(void)
 {
-	if (mpDragFloating.IsNull())
-	{
-		return NULL;
-	}
-	return mpDragFloating->GetRoot();
+	CComponentInput*	pcInput;
+
+	pcInput = mpSource.IsNotNull() ? mpSource->GetComponentInput() : NULL;
+	return (pcInput != NULL) && pcInput->IsControl();
 }
 
 
@@ -242,9 +306,9 @@ Ptr<CDockNode> CDockManager::GetDraggedNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDockManager::IsDraggingDocuments(void)
+bool CDockDrag::IsDraggingDocuments(void)
 {
-	return mpDragFloating.IsNotNull() && mpDragFloating->HasDocuments();
+	return mpFloating.IsNotNull() && mpFloating->HasDocuments();
 }
 
 
@@ -254,24 +318,24 @@ bool CDockManager::IsDraggingDocuments(void)
 // window under it show where it would go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::DragMoved(void)
+void CDockDrag::Moved(void)
 {
 	SInt32Vec2	sPointer;
 	CInt32Rect	cRect;
 	int32		iWidth;
 	int32		iHeight;
 
-	if (mpDragFloating.IsNull() || mpDragSource.IsNull())
+	if (mpFloating.IsNull() || mpSource.IsNull())
 	{
 		return;
 	}
-	mpDragSource->GetPointerScreenPosition(&sPointer);
-	mpDragFloating->GetRectangle(&cRect);
+	mpSource->GetPointerScreenPosition(&sPointer);
+	mpFloating->GetRectangle(&cRect);
 	iWidth = cRect.GetWidth();
 	iHeight = cRect.GetHeight();
-	cRect.Init(sPointer.x - msDragGrab.x, sPointer.y - msDragGrab.y, sPointer.x - msDragGrab.x + iWidth, sPointer.y - msDragGrab.y + iHeight);
-	mpDragFloating->Move(&cRect);
-	if (mbDragNoDock)
+	cRect.Init(sPointer.x - msGrab.x, sPointer.y - msGrab.y, sPointer.x - msGrab.x + iWidth, sPointer.y - msGrab.y + iHeight);
+	mpFloating->Move(&cRect);
+	if (mbNoDock || IsControlHeld())
 	{
 		HideGuides();
 		msTarget.Init();
@@ -287,7 +351,7 @@ void CDockManager::DragMoved(void)
 // shows its guides; psTarget is the guide under the pointer, if any.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
+void CDockDrag::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 {
 	size						i;
 	Ptr<CDockFloatingWindow>	pFloating;
@@ -295,10 +359,10 @@ void CDockManager::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 	SInt32Vec2					sClient;
 
 	psTarget->Init();
-	for (i = maFloating.Size(); i > 0; i--)
+	for (i = mpManager->maFloating.Size(); i > 0; i--)
 	{
-		pFloating = maFloating.Get(i - 1);
-		if ((pFloating == mpDragFloating) || !pFloating->IsShown())
+		pFloating = mpManager->maFloating.Get(i - 1);
+		if ((pFloating == mpFloating) || !pFloating->IsShown())
 		{
 			continue;
 		}
@@ -310,13 +374,13 @@ void CDockManager::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 			return;
 		}
 	}
-	mpWindow->GetScreenRectangle(&cScreen);
+	mpManager->mpWindow->GetScreenRectangle(&cScreen);
 	if (cScreen.ContainsPoint(sScreen.x, sScreen.y))
 	{
 		sClient.Init(sScreen.x - cScreen.GetLeft(), sScreen.y - cScreen.GetTop());
-		if (mpArea->IsPointIn(sClient.x, sClient.y))
+		if (mpManager->mpArea->IsPointIn(sClient.x, sClient.y))
 		{
-			ShowGuides(psTarget, mpArea, sClient);
+			ShowGuides(psTarget, mpManager->mpArea, sClient);
 			return;
 		}
 	}
@@ -329,7 +393,7 @@ void CDockManager::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 // The area's guides for the pointer at sClient in its window.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient)
+void CDockDrag::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient)
 {
 	Ptr<CDockGuides>	pGuides;
 	CInt32Rect			cRect;
@@ -338,13 +402,13 @@ void CDockManager::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt3
 	if (mpGuidesArea != pArea)
 	{
 		HideGuides();
-		pGuides = OMalloc<CDockGuides>(pArea->GetWindow(), Ptr<CDockManager>(this), pArea);
+		pGuides = OMalloc<CDockGuides>(pArea->GetWindow(), mpManager, pArea);
 		pArea->ShowGuides(pGuides);
 		mpGuidesArea = pArea;
 		pArea->GetWindow()->Layout();
 	}
 	pGuides = pArea->GetGuides();
-	mpDragFloating->GetRectangle(&cRect);
+	mpFloating->GetRectangle(&cRect);
 	sDragged.Init(cRect.GetWidth(), cRect.GetHeight());
 	pGuides->Build(sClient.x, sClient.y, IsDraggingDocuments(), sDragged);
 	pGuides->Hit(sClient.x, sClient.y, psTarget, sDragged);
@@ -356,7 +420,7 @@ void CDockManager::ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::HideGuides(void)
+void CDockDrag::HideGuides(void)
 {
 	if (mpGuidesArea.IsNotNull())
 	{
@@ -372,9 +436,9 @@ void CDockManager::HideGuides(void)
 // Escape: what is dragged goes back where it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::DragCancelled(void)
+void CDockDrag::Cancelled(void)
 {
-	mbDragCancelled = true;
+	mbCancelled = true;
 }
 
 
@@ -383,7 +447,7 @@ void CDockManager::DragCancelled(void)
 // The tracker lets go of the drag.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::EndDrag(void)
+void CDockDrag::End(void)
 {
 	Ptr<CFocus>				pFocus;
 	Ptr<CDockDragTracker>	pTracker;
@@ -391,8 +455,8 @@ void CDockManager::EndDrag(void)
 	HideGuides();
 	pTracker = mpTracker;
 	mpTracker = NULL;
-	mpDragFloating = NULL;
-	mpDragSource = NULL;
+	mpFloating = NULL;
+	mpSource = NULL;
 	msTarget.Init();
 	if (pTracker.IsNotNull())
 	{
@@ -416,7 +480,7 @@ void CDockManager::EndDrag(void)
 // anywhere else it stays floating; cancelled, it goes back.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::DragDropped(void)
+void CDockDrag::Dropped(void)
 {
 	Ptr<CDockFloatingWindow>	pFloating;
 	SDockTarget					sTarget;
@@ -426,19 +490,17 @@ void CDockManager::DragDropped(void)
 	Ptr<CDockPane>				pSelected;
 	Ptr<CDockGroup>				pGroup;
 	CInt32Rect					cRect;
-	CArray<CDockPane>			aPanes;
-	size						i;
 
 	if (!IsDragging())
 	{
 		return;
 	}
-	pFloating = mpDragFloating;
+	pFloating = mpFloating;
 	sTarget = msTarget;
-	bCancelled = mbDragCancelled;
-	bTornOff = mbDragTornOff;
-	cRect.Init(&mcDragStart);
-	EndDrag();
+	bCancelled = mbCancelled;
+	bTornOff = mbTornOff;
+	cRect.Init(&mcStart);
+	End();
 	if (pFloating.IsNull() || pFloating->GetRoot().IsNull())
 	{
 		return;
@@ -453,7 +515,7 @@ void CDockManager::DragDropped(void)
 	{
 		if (bTornOff)
 		{
-			DockFloating(pFloating);
+			mpManager->DockFloating(pFloating);
 		}
 		else
 		{
@@ -463,191 +525,22 @@ void CDockManager::DragDropped(void)
 	else if (sTarget.IsValid())
 	{
 		pRoot = pFloating->TakeRoot();
-		pFloating->Close();
-		maFloating.Remove(pFloating);
-		DockNodeAt(pRoot, &sTarget);
+		mpManager->RemoveFloating(pFloating);
+		mpManager->DockNodeAt(pRoot, &sTarget);
 	}
 	else
 	{
 		pFloating->GetRectangle(&cRect);
-		aPanes.Init();
-		pFloating->GetRoot()->GetPanes(&aPanes);
-		for (i = 0; i < aPanes.Size(); i++)
-		{
-			aPanes.Get(i)->SetFloatRectangle(&cRect);
-		}
-		aPanes.Kill();
+		pFloating->GetRoot()->SetPaneFloatRectangles(&cRect);
 	}
-	LayoutChanged();
+	mpManager->LayoutChanged();
 	if (pSelected.IsNotNull() && pSelected->IsShown())
 	{
-		Activate(pSelected);
+		mpManager->Activate(pSelected);
 	}
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// The pane is docked at the target as a group of its own, or as a tab in
-// the target's group.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockManager::DockPaneAt(Ptr<CDockPane> pPane, SDockTarget* psTarget)
-{
-	Ptr<CDockGroup>	pGroup;
-
-	if (pPane.IsNull() || !psTarget->IsValid())
-	{
-		return false;
-	}
-	TakeOut(pPane, true);
-	pGroup = CreateGroup(pPane->IsDocument());
-	pGroup->AddPane(pPane);
-	return DockNodeAt(pGroup, psTarget);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Docks pNode, which isn't in a tree, at the target: along the area's
-// edge, beside or into a group, beside the document well or into the
-// empty well.  Anything going into the well becomes a document group.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockManager::DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
-{
-	Ptr<CDockArea>		pArea;
-	Ptr<CWindow>		pWindow;
-	EDockPaneState		eState;
-	CArray<CDockPane>	aPanes;
-	size				i;
-	Ptr<CDockPane>		pPane;
-	Ptr<CDockGroup>		pGroup;
-	Ptr<CDockGroup>		pFirst;
-	Ptr<CDockPane>		pSelected;
-	Ptr<CDockNode>		pRoot;
-	Ptr<CDockNode>		pDocked;
-	int32				iSize;
-	bool				bInWell;
-	bool				bResult;
-
-	if (pNode.IsNull() || !psTarget->IsValid())
-	{
-		return false;
-	}
-	pArea = psTarget->pcArea;
-	pWindow = pArea->GetWindow();
-	eState = pArea->IsMain() ? DPS_Docked : DPS_Floating;
-	if (pNode->GetWindow() != pWindow)
-	{
-		pNode->MoveToWindow(pWindow);
-	}
-	aPanes.Init();
-	pNode->GetPanes(&aPanes);
-	pFirst = pNode->GetFirstGroup();
-	if (pFirst.IsNotNull())
-	{
-		pSelected = pFirst->GetSelectedPane();
-	}
-	iSize = IsHorizontalDockSide(psTarget->eSide) ? psTarget->cPreview.GetWidth() : psTarget->cPreview.GetHeight();
-
-	bResult = true;
-	pDocked = pNode;
-	switch (psTarget->eKind)
-	{
-	case DTK_AreaEdge:
-		pRoot = pArea->GetRoot();
-		if (pRoot.IsNull())
-		{
-			pArea->SetRoot(pNode);
-		}
-		else
-		{
-			DockBeside(pRoot, pNode, psTarget->eSide, iSize);
-		}
-		break;
-
-	case DTK_Group:
-		pGroup = Ptr<CDockGroup>(dynamic_cast<CDockGroup*>(psTarget->pcNode));
-		bInWell = pGroup->IsWithin(mpWell);
-		if (psTarget->eSide == DS_Centre)
-		{
-			for (i = 0; i < aPanes.Size(); i++)
-			{
-				pPane = aPanes.Get(i);
-				pPane->GetGroup()->TakePane(pPane);
-				pGroup->AddPane(pPane);
-			}
-			pDocked = pGroup;
-			if (bInWell)
-			{
-				mpDocumentGroup = pGroup;
-			}
-		}
-		else if (bInWell)
-		{
-			pDocked = GatherInto(pNode, true);
-			DockBeside(pGroup, pDocked, psTarget->eSide, iSize);
-		}
-		else if (!pNode->HasDocuments() || pGroup->IsDocumentGroup())
-		{
-			DockBeside(pGroup, pNode, psTarget->eSide, iSize);
-		}
-		else
-		{
-			bResult = false;
-		}
-		break;
-
-	case DTK_WellOuter:
-		if (pNode->HasDocuments())
-		{
-			bResult = false;
-			break;
-		}
-		DockBeside(mpWell, pNode, psTarget->eSide, iSize);
-		break;
-
-	case DTK_WellCentre:
-		pDocked = GatherInto(pNode, true);
-		if (mpWell->GetRoot().IsNull())
-		{
-			mpWell->SetRoot(pDocked);
-		}
-		else
-		{
-			pGroup = mpWell->GetFirstGroup();
-			for (i = 0; i < aPanes.Size(); i++)
-			{
-				pPane = aPanes.Get(i);
-				pPane->GetGroup()->TakePane(pPane);
-				pGroup->AddPane(pPane);
-			}
-			pDocked = pGroup;
-		}
-		mpDocumentGroup = pDocked->GetFirstGroup();
-		break;
-
-	default:
-		bResult = false;
-		break;
-	}
-
-	if (!bResult)
-	{
-		aPanes.Kill();
-		return false;
-	}
-	for (i = 0; i < aPanes.Size(); i++)
-	{
-		aPanes.Get(i)->SetState(eState);
-	}
-	aPanes.Kill();
-	if (pSelected.IsNotNull() && pSelected->GetGroup().IsNotNull())
-	{
-		pSelected->GetGroup()->SelectPane(pSelected);
-	}
-	LayoutChanged();
-	return true;
-}
+SDockTarget*				CDockDrag::GetTarget(void) { return &msTarget; }
+Ptr<CDockFloatingWindow>	CDockDrag::GetFloating(void) { return mpFloating; }
 

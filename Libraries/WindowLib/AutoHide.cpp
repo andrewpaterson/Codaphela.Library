@@ -38,22 +38,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CTurnedLabel::Init(Ptr<CWindow> pWindow, Ptr<CFont> pTurnedFont, const char* szText)
 {
-	Ptr<CMapsCanvasDraw>	pDraw;
-
 	PreInit();
-
-	mszText.Init(szText);
-	mpFont = pTurnedFont;
-	mpSpriteMap = OMalloc<CSpriteMap>();
-	mpMaps = OMalloc<CMaps>();
-	mpMaps->AddMap(mpSpriteMap);
-	mpMaps->SetViewportPosition(0, 0);
-	msRequiredSize.Init(0, 0);
-	pDraw = OMalloc<CMapsCanvasDraw>(mpMaps);
-	CCanvas::Init(pWindow, pDraw);
-	SetTransparent(true);
-	LayoutText();
-
+	CLabel::Init(pWindow, pTurnedFont, szText);
 	PostInit();
 }
 
@@ -64,24 +50,7 @@ void CTurnedLabel::Init(Ptr<CWindow> pWindow, Ptr<CFont> pTurnedFont, const char
 //////////////////////////////////////////////////////////////////////////
 void CTurnedLabel::Class(void)
 {
-	CCanvas::Class();
-
-	U_String(mszText);
-	M_Pointer(mpFont);
-	M_Pointer(mpSpriteMap);
-	M_Pointer(mpMaps);
-	U_2Int32(msRequiredSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTurnedLabel::Free(void)
-{
-	mszText.Kill();
-	CCanvas::Free();
+	CLabel::Class();
 }
 
 
@@ -102,19 +71,6 @@ bool CTurnedLabel::Save(CObjectWriter* pcFile)
 bool CTurnedLabel::Load(CObjectReader* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTurnedLabel::SetText(const char* szText)
-{
-	mszText.Kill();
-	mszText.Init(szText);
-	LayoutText();
-	InvalidateLayout();
 }
 
 
@@ -154,30 +110,6 @@ void CTurnedLabel::LayoutText(void)
 	mpSpriteMap->EndChange();
 	msRequiredSize.Init(mpFont->GetLineHeight(), iPen);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CTurnedLabel::GetDesiredSize(void)
-{
-	SInt32Vec2	sSize;
-
-	sSize = msRequiredSize;
-	if (msDesiredSize.x >= 0)
-	{
-		sSize.x = msDesiredSize.x;
-	}
-	if (msDesiredSize.y >= 0)
-	{
-		sSize.y = msDesiredSize.y;
-	}
-	return sSize;
-}
-
-
-char* CTurnedLabel::GetText(void) { return mszText.Text(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -277,13 +209,11 @@ int32 CAutoHideTab::GetLength(void)
 {
 	SInt32Vec2	sText;
 
+	//Down a side strip the tab is as long as its text is tall: turned text's length.  Without a turned font the
+	//upright text is cut off by the strip's width.
 	sText = mpText->GetDesiredSize();
 	if (IsVertical())
 	{
-		if (mpManager->GetTurnedFont().IsNotNull())
-		{
-			return sText.y + 2 * AUTO_HIDE_TAB_GAP;
-		}
 		return sText.y + 2 * AUTO_HIDE_TAB_GAP;
 	}
 	return sText.x + 2 * AUTO_HIDE_TAB_GAP;
@@ -364,19 +294,7 @@ void CAutoHideTab::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 void CAutoHideTab::TitleChanged(void)
 {
-	CLabel*			pcLabel;
-	CTurnedLabel*	pcTurned;
-
-	pcLabel = dynamic_cast<CLabel*>(&mpText);
-	pcTurned = dynamic_cast<CTurnedLabel*>(&mpText);
-	if (pcLabel)
-	{
-		pcLabel->SetText(mpPane->GetTitle());
-	}
-	else if (pcTurned)
-	{
-		pcTurned->SetText(mpPane->GetTitle());
-	}
+	mpText->SetText(mpPane->GetTitle());
 	InvalidateLayout();
 }
 
@@ -463,6 +381,17 @@ void CAutoHideTab::PopupClosed(Ptr<CComponent> pContent)
 
 
 Ptr<CDockPane> CAutoHideTab::GetPane(void) { return mpPane; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The title shown, turned or upright.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CAutoHideTab::GetText(void)
+{
+	return mpText->GetText();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -670,6 +599,9 @@ void CAutoHideFlyout::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr
 	AddComponent(mpTitleBar);
 	AddComponent(pPane->GetContent());
 	AddComponent(mpEdge);
+	//A popup isn't in the dock area: Shift+Escape and Control+F4 are taken here too.
+	AddInputAction(CIC_CloseDocument, &pManager, &CDockManager::CloseActiveDocument);
+	AddInputAction(CIC_HideToolWindow, &pManager, &CDockManager::HideActiveTool);
 
 	PostInit();
 }
@@ -702,8 +634,7 @@ void CAutoHideFlyout::Free(void)
 {
 	if (mpTitleBar.IsNotNull())
 	{
-		mpTitleBar->GetButtonEvent(DTB_Pin)->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Close)->Remove(this);
+		mpTitleBar->RemoveListener(this);
 	}
 	CContainer::Free();
 }

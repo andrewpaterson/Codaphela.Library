@@ -31,6 +31,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockGuides.h"
 #include "AutoHide.h"
 #include "DockManager.h"
+#include "DockDrag.h"
+#include "DockTree.h"
+#include "DockLayoutFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,21 +86,6 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 	mpTheme = pTheme;
 	mpFont = pTheme->GetFont();
 	mpTurnedFont = pTurnedFont;
-	masColours[DC_TitleBar] = JEWEL_PANEL;
-	masColours[DC_ActiveTitleBar] = JEWEL_SELECTION;
-	masColours[DC_Sash] = JEWEL_EDITOR;
-	masColours[DC_Background] = JEWEL_EDITOR;
-	masColours[DC_Strip] = JEWEL_BAR_BACKGROUND;
-	masColours[DC_StripTab] = JEWEL_PANEL;
-	masColours[DC_StripTabHover] = JEWEL_HOVER;
-	masColours[DC_StripTabLine] = JEWEL_BORDER;
-	masColours[DC_Guide] = JEWEL_PANEL;
-	masColours[DC_GuideBorder] = JEWEL_BORDER_HOVER;
-	masColours[DC_GuideHover] = JEWEL_SELECTION;
-	masColours[DC_GuideArrow] = JEWEL_BLUE;
-	masColours[DC_Preview] = Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50);
-	masColours[DC_PreviewBorder] = JEWEL_BLUE;
-	masColours[DC_FrameBorder] = JEWEL_SEPARATOR;
 	maImages.Init();
 	CreateImages();
 
@@ -108,20 +96,12 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 	mpActiveDocument = NULL;
 	mpDocumentGroup = NULL;
 	mpcListener = NULL;
-	mpDragFloating = NULL;
-	mpDragSource = NULL;
-	mpTracker = NULL;
-	msDragGrab.Init(0, 0);
-	mcDragStart.Init(0, 0, 0, 0);
-	mbDragTornOff = false;
-	mbDragCancelled = false;
-	mbDragNoDock = false;
-	msTarget.Init();
-	mpGuidesArea = NULL;
 	mpFlyout = NULL;
 	mcLayoutWindow.Init(0, 0, 0, 0);
 	mbLayoutWindow = false;
 
+	mpDrag = OMalloc<CDockDrag>(Ptr<CDockManager>(this));
+	mcTree.Init(this);
 	mpArea = OMalloc<CDockArea>(pWindow, Ptr<CDockManager>(this), true);
 	mpWell = OMalloc<CDocumentWell>(pWindow, Ptr<CDockManager>(this), GetColour(DC_Background));
 	mpArea->SetRoot(mpWell);
@@ -158,7 +138,6 @@ void CDockManager::Class(void)
 	M_Pointer(mpTheme);
 	M_Pointer(mpFont);
 	M_Pointer(mpTurnedFont);
-	U_Data(ARGB32[DC_NumColours], masColours);
 	M_Embedded(maImages);
 	M_Pointer(mpArea);
 	M_Pointer(mpWell);
@@ -169,16 +148,8 @@ void CDockManager::Class(void)
 	M_Pointer(mpActiveDocument);
 	M_Pointer(mpDocumentGroup);
 	U_Pointer(mpcListener);
-	M_Pointer(mpDragFloating);
-	M_Pointer(mpDragSource);
-	M_Pointer(mpTracker);
-	U_2Int32(msDragGrab);
-	U_Data(CInt32Rect, mcDragStart);
-	U_Bool(mbDragTornOff);
-	U_Bool(mbDragCancelled);
-	U_Bool(mbDragNoDock);
-	U_Data(SDockTarget, msTarget);
-	M_Pointer(mpGuidesArea);
+	M_Pointer(mpDrag);
+	U_Data(CDockTree, mcTree);
 	M_Pointer(mpFlyout);
 	U_Data(CInt32Rect, mcLayoutWindow);
 	U_Bool(mbLayoutWindow);
@@ -202,6 +173,7 @@ void CDockManager::Free(void)
 	{
 		UnwatchFocus(mpWindow);
 	}
+	mcTree.Kill();
 }
 
 
@@ -314,6 +286,7 @@ Ptr<CDockPane> CDockManager::AddPane(const char* szID, const char* szTitle, Ptr<
 	pContent->SetAlignment(CSH_Stretch, CSV_Stretch);
 	pPane = OMalloc<CDockPane>(szID, szTitle, pIcon, pContent, eKind, psDefault);
 	pPane->SetState(DPS_Hidden);
+	pPane->SetManager(this);
 	maPanes.Add(pPane);
 	if (bShow && (pPane->GetDefaultKind() != DPL_Hidden))
 	{
@@ -345,6 +318,7 @@ bool CDockManager::RemovePane(Ptr<CDockPane> pPane)
 		mpActiveDocument = NULL;
 	}
 	pPane->SetState(DPS_Removed);
+	pPane->SetManager(NULL);
 	maPanes.Remove(pPane);
 	LayoutChanged();
 	return true;
@@ -440,7 +414,7 @@ void CDockManager::TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore)
 			{
 				mpDocumentGroup = NULL;
 			}
-			RemoveNode(pGroup);
+			mcTree.RemoveNode(pGroup);
 		}
 	}
 	pPane->SetGroup(NULL);
@@ -460,32 +434,28 @@ void CDockManager::TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore)
 // false for a group that isn't docked in the main area.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDockManager::GetGroupRestore(Ptr<CDockGroup> pGroup, int32* piGroup, CChars* pszNeighbour, EDockSide* peSide, int32* piSize, bool* pbInWell)
+bool CDockManager::GetGroupRestore(Ptr<CDockGroup> pGroup, SDockRestore* psDest)
 {
 	Ptr<CDockSplit>		pSplit;
-	Ptr<CDockNode>		pChild;
 	Ptr<CDockNode>		pSibling;
 	Ptr<CDockGroup>		pSiblingGroup;
 	size				uiIndex;
 	bool				bAfter;
 	SInt32Vec2			sSize;
-	Ptr<CDockPane>		pNeighbour;
 
-	*piGroup = pGroup->GetID();
-	pszNeighbour->Kill();
-	pszNeighbour->Init();
-	*peSide = DS_None;
-	*piSize = 0;
-	*pbInWell = pGroup->IsWithin(mpWell);
+	psDest->iGroup = pGroup->GetID();
+	psDest->iIndex = 0;
+	psDest->SetNeighbour(NULL);
+	psDest->eSide = DS_None;
+	psDest->iSize = 0;
+	psDest->bInWell = IsInWell(pGroup);
 
-	//Up to the first split, keeping the child of it the group is in.
-	pChild = pGroup;
-	pSplit = pChild->GetParentSplit();
-	while (pSplit.IsNull())
+	pSplit = pGroup->GetParentSplit();
+	if (pSplit.IsNull())
 	{
 		return pGroup->IsWithin(mpArea);
 	}
-	uiIndex = pSplit->IndexOf(pChild);
+	uiIndex = pSplit->IndexOf(pGroup);
 	if (uiIndex + 1 < pSplit->NumNodes())
 	{
 		pSibling = pSplit->GetNode(uiIndex + 1);
@@ -501,31 +471,55 @@ bool CDockManager::GetGroupRestore(Ptr<CDockGroup> pGroup, int32* piGroup, CChar
 		return true;
 	}
 
-	sSize = pChild->GetActualSize();
-	*piSize = pSplit->IsHorizontal() ? sSize.x : sSize.y;
+	sSize = pGroup->GetActualSize();
+	psDest->iSize = pSplit->IsHorizontal() ? sSize.x : sSize.y;
 	if (pSplit->IsHorizontal())
 	{
-		*peSide = bAfter ? DS_Right : DS_Left;
+		psDest->eSide = bAfter ? DS_Right : DS_Left;
 	}
 	else
 	{
-		*peSide = bAfter ? DS_Bottom : DS_Top;
+		psDest->eSide = bAfter ? DS_Bottom : DS_Top;
 	}
 
 	//The well, if the node beside holds it, as it is never hidden; otherwise a pane in it.  Restore climbs from
 	//there back up to the node beside.
 	if (pSibling->ContainsDocumentWell())
 	{
-		pszNeighbour->Append(DOCK_WELL_NEIGHBOUR);
+		psDest->SetNeighbour(DOCK_WELL_NEIGHBOUR);
 		return true;
 	}
 	pSiblingGroup = pSibling->GetFirstGroup();
 	if (pSiblingGroup.IsNotNull() && (pSiblingGroup->NumPanes() > 0))
 	{
-		pNeighbour = pSiblingGroup->GetPane(0);
-		pszNeighbour->Append(pNeighbour->GetID());
+		psDest->SetNeighbour(pSiblingGroup->GetPane(0)->GetID());
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pane in the group remembers the group's place, as a whole, with
+// its own tab's place in it: so the first docked back brings the group
+// back and the others join it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::GiveGroupRestore(Ptr<CDockGroup> pGroup)
+{
+	SDockRestore	sRestore;
+	size			i;
+
+	sRestore.Init();
+	if (GetGroupRestore(pGroup, &sRestore))
+	{
+		for (i = 0; i < pGroup->NumPanes(); i++)
+		{
+			sRestore.iIndex = (int32)i;
+			pGroup->GetPane(i)->SetRestore(&sRestore);
+		}
+	}
+	sRestore.Kill();
 }
 
 
@@ -540,12 +534,7 @@ void CDockManager::RecordRestore(Ptr<CDockPane> pPane)
 {
 	Ptr<CDockGroup>	pGroup;
 	size			uiIndex;
-	Ptr<CDockPane>	pNeighbour;
-	int32			iGroup;
-	CChars			szNeighbour;
-	EDockSide		eSide;
-	int32			iSize;
-	bool			bInWell;
+	SDockRestore	sRestore;
 
 	pGroup = pPane->GetGroup();
 	if (pGroup.IsNull())
@@ -553,18 +542,22 @@ void CDockManager::RecordRestore(Ptr<CDockPane> pPane)
 		return;
 	}
 	uiIndex = pGroup->IndexOfPane(pPane);
+	sRestore.Init();
 	if (pGroup->NumPanes() > 1)
 	{
-		pNeighbour = pGroup->GetPane((uiIndex > 0) ? uiIndex - 1 : 1);
-		pPane->SetRestore(pGroup->GetID(), (int32)uiIndex, pNeighbour->GetID(), DS_Centre, 0, pGroup->IsWithin(mpWell));
-		return;
+		sRestore.iGroup = pGroup->GetID();
+		sRestore.iIndex = (int32)uiIndex;
+		sRestore.SetNeighbour(pGroup->GetPane((uiIndex > 0) ? uiIndex - 1 : 1)->GetID());
+		sRestore.eSide = DS_Centre;
+		sRestore.bInWell = IsInWell(pGroup);
+		pPane->SetRestore(&sRestore);
 	}
-	szNeighbour.Init();
-	if (GetGroupRestore(pGroup, &iGroup, &szNeighbour, &eSide, &iSize, &bInWell))
+	else if (GetGroupRestore(pGroup, &sRestore))
 	{
-		pPane->SetRestore(iGroup, (int32)uiIndex, szNeighbour.Empty() ? NULL : szNeighbour.Text(), eSide, iSize, bInWell);
+		sRestore.iIndex = (int32)uiIndex;
+		pPane->SetRestore(&sRestore);
 	}
-	szNeighbour.Kill();
+	sRestore.Kill();
 }
 
 
@@ -577,6 +570,20 @@ void CDockManager::RecordRestore(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Restore(Ptr<CDockPane> pPane)
 {
+	RestoreFrom(pPane, pPane, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts pPane where pFrom remembers being docked.  When pFrom's neighbour
+// isn't docked either, auto hidden or hidden say, pPane goes where that
+// neighbour would go back to, a few neighbours along at most: a pane
+// hidden with the rest of its group comes back where the group was.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int iDepth)
+{
 	Ptr<CDockGroup>	pGroup;
 	Ptr<CDockPane>	pNeighbour;
 	Ptr<CDockGroup>	pNeighbourGroup;
@@ -585,27 +592,27 @@ void CDockManager::Restore(Ptr<CDockPane> pPane)
 	EDockSide		eSide;
 	int32			iSize;
 	bool			bInWell;
+	SDockRestore*	psFrom;
 
-	pGroup = FindGroup(pPane->GetRestoreGroup());
+	psFrom = pFrom->GetRestore();
+	pGroup = FindGroup(psFrom->iGroup);
 	if (pGroup.IsNotNull() && pGroup->IsWithin(mpArea) && (pGroup->IsDocumentGroup() || !pPane->IsDocument()))
 	{
-		pGroup->AddPane(pPane, (size)pPane->GetRestoreIndex());
-		pPane->SetState(DPS_Docked);
+		PlaceInGroup(pGroup, pPane, (size)pPane->GetRestore()->iIndex);
 		return;
 	}
 
-	eSide = pPane->GetRestoreSide();
-	iSize = pPane->GetRestoreSize();
-	if ((StringCompare(pPane->GetRestoreNeighbour(), DOCK_WELL_NEIGHBOUR) == 0) && (eSide != DS_None) && (eSide != DS_Centre))
+	eSide = psFrom->eSide;
+	iSize = psFrom->iSize;
+	if (psFrom->IsBesideWell())
 	{
-		pBeside = ClimbToSplit(mpWell, IsHorizontalDockSide(eSide));
-		pNew = CreateGroup(pBeside->IsWithin(mpWell) && (pBeside != mpWell), pPane->GetRestoreGroup());
-		pNew->AddPane(pPane);
-		DockBeside(pBeside, pNew, eSide, iSize);
-		pPane->SetState(DPS_Docked);
+		pBeside = mcTree.ClimbToSplit(mpWell, eSide);
+		pNew = CreateGroup(IsInWell(pBeside), psFrom->iGroup);
+		PlaceInGroup(pNew, pPane);
+		mcTree.DockBeside(pBeside, pNew, eSide, iSize);
 		return;
 	}
-	pNeighbour = GetPane(pPane->GetRestoreNeighbour());
+	pNeighbour = GetPane(psFrom->szNeighbour.Text());
 	if (pNeighbour.IsNotNull() && (pNeighbour != pPane) && (pNeighbour->GetState() == DPS_Docked))
 	{
 		pNeighbourGroup = pNeighbour->GetGroup();
@@ -613,61 +620,31 @@ void CDockManager::Restore(Ptr<CDockPane> pPane)
 		{
 			if (pNeighbourGroup->IsDocumentGroup() || !pPane->IsDocument())
 			{
-				pNeighbourGroup->AddPane(pPane, (size)pPane->GetRestoreIndex());
-				pPane->SetState(DPS_Docked);
+				PlaceInGroup(pNeighbourGroup, pPane, (size)pPane->GetRestore()->iIndex);
 				return;
 			}
 		}
 		else
 		{
-			pBeside = ClimbToSplit(pNeighbourGroup, IsHorizontalDockSide(eSide));
-			bInWell = pBeside->IsWithin(mpWell) && (pBeside != mpWell);
-			pNew = CreateGroup(bInWell, pPane->GetRestoreGroup());
-			pNew->AddPane(pPane);
-			DockBeside(pBeside, pNew, eSide, iSize);
-			pPane->SetState(DPS_Docked);
+			pBeside = mcTree.ClimbToSplit(pNeighbourGroup, eSide);
+			bInWell = IsInWell(pBeside);
+			pNew = CreateGroup(bInWell, psFrom->iGroup);
+			PlaceInGroup(pNew, pPane);
+			mcTree.DockBeside(pBeside, pNew, eSide, iSize);
 			return;
 		}
 	}
-	if (pPane->IsRestoreInWell() || pPane->IsDocument())
+	else if (pNeighbour.IsNotNull() && (pNeighbour != pPane) && (pNeighbour != pFrom) && pNeighbour->HasRestore() && (iDepth < DOCK_RESTORE_DEPTH))
+	{
+		RestoreFrom(pPane, pNeighbour, iDepth + 1);
+		return;
+	}
+	if (psFrom->bInWell || pPane->IsDocument())
 	{
 		AddToWell(pPane);
 		return;
 	}
 	DockDefault(pPane);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pStart, or the first node up from it that is in a split of the
-// direction: what a group was docked beside when it was in such a split
-// with pStart's node.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CDockNode> CDockManager::ClimbToSplit(Ptr<CDockNode> pStart, bool bHorizontal)
-{
-	Ptr<CDockNode>		pNode;
-	Ptr<CDockSplit>		pSplit;
-	Ptr<CComponent>		pParent;
-	CDockNode*			pcParentNode;
-
-	pNode = pStart;
-	for (;;)
-	{
-		pSplit = pNode->GetParentSplit();
-		if (pSplit.IsNotNull() && (pSplit->IsHorizontal() == bHorizontal))
-		{
-			return pNode;
-		}
-		pParent = pNode->GetParent();
-		pcParentNode = dynamic_cast<CDockNode*>(&pParent);
-		if (pcParentNode == NULL)
-		{
-			return pNode;
-		}
-		pNode = pcParentNode;
-	}
 }
 
 
@@ -688,17 +665,15 @@ void CDockManager::DockDefault(Ptr<CDockPane> pPane)
 		pWith = GetPane(pPane->GetDefaultPane());
 		if (pWith.IsNotNull() && (pWith != pPane) && (pWith->GetState() == DPS_Docked) && (pWith->GetGroup()->IsDocumentGroup() || !pPane->IsDocument()))
 		{
-			pWith->GetGroup()->AddPane(pPane);
-			pPane->SetState(DPS_Docked);
+			PlaceInGroup(pWith->GetGroup(), pPane);
 			return;
 		}
 		if (pWith.IsNotNull() && (pWith != pPane) && (pWith->GetState() == DPS_Hidden || pWith->GetState() == DPS_Removed) && (pWith->GetDefaultKind() == DPL_BesideWell))
 		{
 			pGroup = CreateGroup(false);
-			pGroup->AddPane(pPane);
+			PlaceInGroup(pGroup, pPane);
 			iSize = pWith->GetDefaultSize();
-			DockBeside(mpWell, pGroup, pWith->GetDefaultSide(), (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
-			pPane->SetState(DPS_Docked);
+			mcTree.DockBeside(mpWell, pGroup, pWith->GetDefaultSide(), (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
 			return;
 		}
 		break;
@@ -717,10 +692,9 @@ void CDockManager::DockDefault(Ptr<CDockPane> pPane)
 		return;
 	}
 	pGroup = CreateGroup(false);
-	pGroup->AddPane(pPane);
+	PlaceInGroup(pGroup, pPane);
 	iSize = pPane->GetDefaultSize();
-	DockBeside(mpWell, pGroup, (pPane->GetDefaultKind() == DPL_BesideWell) ? pPane->GetDefaultSide() : DS_Left, (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
-	pPane->SetState(DPS_Docked);
+	mcTree.DockBeside(mpWell, pGroup, (pPane->GetDefaultKind() == DPL_BesideWell) ? pPane->GetDefaultSide() : DS_Left, (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
 }
 
 
@@ -732,11 +706,11 @@ void CDockManager::DockDefault(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup)
 {
-	if (pGroup.IsNull() || !pGroup->IsWithin(mpWell))
+	if (pGroup.IsNull() || !IsInWell(pGroup))
 	{
 		pGroup = mpDocumentGroup;
 	}
-	if (pGroup.IsNull() || !pGroup->IsWithin(mpWell))
+	if (pGroup.IsNull() || !IsInWell(pGroup))
 	{
 		pGroup = mpWell->GetFirstGroup();
 	}
@@ -745,288 +719,21 @@ void CDockManager::AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup)
 		pGroup = CreateGroup(true);
 		mpWell->SetRoot(pGroup);
 	}
-	pGroup->AddPane(pPane);
+	PlaceInGroup(pGroup, pPane);
 	mpDocumentGroup = pGroup;
-	pPane->SetState(DPS_Docked);
 	LayoutChanged();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pNode goes beside pTarget on eSide, iSize pixels across (0 for half).
-// In a split of the same direction it goes next to pTarget; otherwise
-// pTarget is split.  pNode must be of the target's window and not in a
-// tree.
+// The floating window comes off the screen and out of the manager.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSide eSide, int32 iSize)
+void CDockManager::RemoveFloating(Ptr<CDockFloatingWindow> pFloating)
 {
-	bool			bHorizontal;
-	bool			bAfter;
-	Ptr<CDockSplit>	pParent;
-	Ptr<CDockSplit>	pSplit;
-	size			uiIndex;
-	SInt32Vec2		sSize;
-	int32			iTarget;
-
-	if ((eSide == DS_Centre) || (eSide == DS_None))
-	{
-		eSide = DS_Left;
-	}
-	bHorizontal = IsHorizontalDockSide(eSide);
-	bAfter = (eSide == DS_Right) || (eSide == DS_Bottom);
-	if (pNode->GetWindow() != pTarget->GetWindow())
-	{
-		pNode->MoveToWindow(pTarget->GetWindow());
-	}
-
-	sSize = pTarget->GetActualSize();
-	iTarget = bHorizontal ? sSize.x : sSize.y;
-	if (iSize <= 0)
-	{
-		iSize = (iTarget > 0) ? iTarget / 2 : DOCK_DEFAULT_SIZE;
-	}
-	pNode->SetDockSize(iSize);
-
-	pParent = pTarget->GetParentSplit();
-	if (pTarget->IsSplit() && (Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pTarget))->IsHorizontal() == bHorizontal))
-	{
-		//Beside a split of the same direction is its first or last node.
-		pSplit = Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pTarget));
-		pSplit->InsertNode(pNode, bAfter ? pSplit->NumNodes() : 0);
-		Flatten(pSplit);
-	}
-	else if (pParent.IsNotNull() && (pParent->IsHorizontal() == bHorizontal))
-	{
-		uiIndex = pParent->IndexOf(pTarget);
-		pParent->InsertNode(pNode, bAfter ? uiIndex + 1 : uiIndex);
-		Flatten(pParent);
-	}
-	else
-	{
-		pSplit = OMalloc<CDockSplit>(pTarget->GetWindow(), Ptr<CDockManager>(this), bHorizontal, GetColour(DC_Sash));
-		ReplaceInParent(pTarget, pSplit);
-		pTarget->SetDockSize((iTarget > iSize) ? iTarget - iSize - DOCK_SASH_SIZE : 0);
-		if (bAfter)
-		{
-			pSplit->AddNode(pTarget);
-			pSplit->AddNode(pNode);
-		}
-		else
-		{
-			pSplit->AddNode(pNode);
-			pSplit->AddNode(pTarget);
-		}
-		Flatten(pSplit);
-	}
-	LayoutChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pNew takes pOld's place in its split, well or area.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::ReplaceInParent(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew)
-{
-	Ptr<CComponent>		pParent;
-	CDockSplit*			pcSplit;
-	CDocumentWell*		pcWell;
-	CDockArea*			pcArea;
-
-	pParent = pOld->GetParent();
-	pcSplit = dynamic_cast<CDockSplit*>(&pParent);
-	pcWell = dynamic_cast<CDocumentWell*>(&pParent);
-	pcArea = dynamic_cast<CDockArea*>(&pParent);
-	if (pcSplit)
-	{
-		pcSplit->ReplaceNode(pOld, pNew);
-	}
-	else if (pcWell)
-	{
-		pNew->SetDockSize(pOld->GetDockSize());
-		pcWell->SetRoot(pNew);
-	}
-	else if (pcArea)
-	{
-		pNew->SetDockSize(pOld->GetDockSize());
-		pcArea->SetRoot(pNew);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes the node out of its split, well or area, and tidies what is left.
-// A floating window left empty closes.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::RemoveNode(Ptr<CDockNode> pNode)
-{
-	Ptr<CComponent>				pParent;
-	CDockSplit*					pcSplit;
-	CDocumentWell*				pcWell;
-	CDockArea*					pcArea;
-	Ptr<CDockSplit>				pSplit;
-	size						i;
-	Ptr<CDockFloatingWindow>	pFloating;
-
-	pParent = pNode->GetParent();
-	pcSplit = dynamic_cast<CDockSplit*>(&pParent);
-	pcWell = dynamic_cast<CDocumentWell*>(&pParent);
-	pcArea = dynamic_cast<CDockArea*>(&pParent);
-	pNode->GetWindow()->GetFocus()->Forget(pNode);
-	if (pcSplit)
-	{
-		pSplit = pcSplit;
-		pSplit->RemoveNode(pNode);
-		Tidy(pSplit);
-	}
-	else if (pcWell)
-	{
-		pcWell->SetRoot(NULL);
-	}
-	else if (pcArea)
-	{
-		pcArea->SetRoot(NULL);
-		for (i = 0; i < maFloating.Size(); i++)
-		{
-			pFloating = maFloating.Get(i);
-			if (&pFloating->GetArea() == pcArea)
-			{
-				if (pFloating != mpDragFloating)
-				{
-					pFloating->Close();
-					maFloating.Remove(pFloating);
-				}
-				break;
-			}
-		}
-	}
-	LayoutChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A split with no nodes is removed; with one it is replaced by it; a
-// split in a split of the same direction gives its nodes to its parent.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::Tidy(Ptr<CDockNode> pNode)
-{
-	Ptr<CDockSplit>	pSplit;
-	Ptr<CDockSplit>	pParent;
-	Ptr<CDockNode>	pOnly;
-	int32			iSize;
-
-	if (pNode.IsNull() || !pNode->IsSplit())
-	{
-		return;
-	}
-	pSplit = Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&pNode));
-	if (pSplit->NumNodes() == 0)
-	{
-		RemoveNode(pSplit);
-		return;
-	}
-	if (pSplit->NumNodes() == 1)
-	{
-		//The node left takes the split's place, and joins its new parent if it is a split of the same direction.
-		pOnly = pSplit->GetNode(0);
-		iSize = pSplit->GetDockSize();
-		pSplit->RemoveNode(pOnly);
-		ReplaceInParent(pSplit, pOnly);
-		pOnly->SetDockSize(iSize);
-		pParent = pOnly->GetParentSplit();
-		if (pParent.IsNotNull())
-		{
-			Flatten(pParent);
-		}
-		return;
-	}
-	pParent = pSplit->GetParentSplit();
-	Flatten(pParent.IsNotNull() ? pParent : pSplit);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Every node of pSplit that is a split of the same direction gives its
-// nodes to pSplit, in its place, and pSplit gives its own to its parent
-// if that is one: a split never holds a split of its direction.  The
-// nodes keep the sizes they were last laid out at, so nothing moves.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::Flatten(Ptr<CDockSplit> pSplit)
-{
-	Ptr<CDockSplit>	pParent;
-	Ptr<CDockNode>	pNode;
-	CDockSplit*		pcChild;
-	size			i;
-
-	if (pSplit.IsNull())
-	{
-		return;
-	}
-	for (i = 0; i < pSplit->NumNodes();)
-	{
-		pNode = pSplit->GetNode(i);
-		pcChild = dynamic_cast<CDockSplit*>(&pNode);
-		if (pcChild && (pcChild->IsHorizontal() == pSplit->IsHorizontal()))
-		{
-			//Its nodes take its place; they are looked at in turn, in case one is a split too.
-			MergeSplit(pSplit, pcChild);
-		}
-		else
-		{
-			i++;
-		}
-	}
-	pParent = pSplit->GetParentSplit();
-	if (pParent.IsNotNull() && (pParent->IsHorizontal() == pSplit->IsHorizontal()))
-	{
-		MergeSplit(pParent, pSplit);
-		Flatten(pParent);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pChild, a node of pParent of the same direction, is replaced by its
-// nodes.  A node laid out keeps its laid out size as its dock size.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild)
-{
-	Ptr<CDockNode>	pNode;
-	size			uiIndex;
-	size			i;
-	int32			iSize;
-
-	uiIndex = pParent->IndexOf(pChild);
-	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
-	{
-		return;
-	}
-	for (i = 0; i < pChild->NumNodes(); i++)
-	{
-		iSize = pChild->GetNodeSize(i);
-		if (iSize > 0)
-		{
-			pChild->GetNode(i)->SetDockSize(iSize);
-		}
-	}
-	pParent->RemoveNode(pChild);
-	while (pChild->NumNodes() > 0)
-	{
-		pNode = pChild->GetNode(pChild->NumNodes() - 1);
-		pChild->RemoveNode(pNode);
-		pParent->InsertNode(pNode, uiIndex);
-	}
+	pFloating->Close();
+	maFloating.Remove(pFloating);
 }
 
 
@@ -1038,61 +745,7 @@ void CDockManager::MergeSplit(Ptr<CDockSplit> pParent, Ptr<CDockSplit> pChild)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::SetStates(Ptr<CDockNode> pNode, EDockPaneState eState)
 {
-	CArray<CDockPane>	aPanes;
-	size				i;
-
-	aPanes.Init();
-	pNode->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
-	{
-		aPanes.Get(i)->SetState(eState);
-	}
-	aPanes.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A group of the kind holding every pane in pNode, which is let go.  A
-// group of the kind already is returned as it is.  pNode isn't in a tree.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CDockGroup> CDockManager::GatherInto(Ptr<CDockNode> pNode, bool bDocuments)
-{
-	Ptr<CDockGroup>		pGroup;
-	CArray<CDockPane>	aPanes;
-	size				i;
-	Ptr<CDockPane>		pPane;
-	Ptr<CDockPane>		pSelected;
-
-	if (pNode->IsGroup())
-	{
-		pGroup = pNode->GetFirstGroup();
-		if (pGroup->IsDocumentGroup() == bDocuments)
-		{
-			return pGroup;
-		}
-		pSelected = pGroup->GetSelectedPane();
-	}
-	pGroup = CreateGroup(bDocuments);
-	if (pNode->GetWindow() != mpWindow)
-	{
-		pGroup->MoveToWindow(pNode->GetWindow());
-	}
-	aPanes.Init();
-	pNode->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
-	{
-		pPane = aPanes.Get(i);
-		pPane->GetGroup()->TakePane(pPane);
-		pGroup->AddPane(pPane);
-	}
-	aPanes.Kill();
-	if (pSelected.IsNotNull())
-	{
-		pGroup->SelectPane(pSelected);
-	}
-	return pGroup;
+	pNode->SetPaneStates(eState);
 }
 
 
@@ -1158,7 +811,6 @@ Ptr<CComponent> CDockManager::FindFocusable(Ptr<CComponent> pComponent)
 {
 	size			i;
 	Ptr<CComponent>	pFound;
-	CArray<CComponent>	aChildren;
 
 	if (pComponent->CanGetFocus())
 	{
@@ -1301,20 +953,78 @@ void CDockManager::FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> 
 		return;
 	}
 	mpWindow->GetScreenRectangle(&cScreen);
-	pcDest->Init(cScreen.GetLeft() + 100, cScreen.GetTop() + 100, cScreen.GetLeft() + 100 + iWidth, cScreen.GetTop() + 100 + iHeight);
+	pcDest->Init(cScreen.GetLeft() + DOCK_FLOAT_OFFSET, cScreen.GetTop() + DOCK_FLOAT_OFFSET, cScreen.GetLeft() + DOCK_FLOAT_OFFSET + iWidth, cScreen.GetTop() + DOCK_FLOAT_OFFSET + iHeight);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A floating window, at pcScreenRectangle, not yet shown.
+// Moves, and if it must shrinks, pcRect onto the screen.  Nothing is done
+// if the screen's area isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::KeepOnScreen(CInt32Rect* pcRect)
+{
+	CInt32Rect	cScreen;
+	int32		iLeft;
+	int32		iTop;
+	int32		iWidth;
+	int32		iHeight;
+	int32		iScreenRight;
+	int32		iScreenBottom;
+
+	if (!mpWindow->GetScreenArea(&cScreen))
+	{
+		return;
+	}
+	iWidth = pcRect->GetWidth();
+	iHeight = pcRect->GetHeight();
+	if (iWidth > cScreen.GetWidth())
+	{
+		iWidth = cScreen.GetWidth();
+	}
+	if (iHeight > cScreen.GetHeight())
+	{
+		iHeight = cScreen.GetHeight();
+	}
+	iScreenRight = cScreen.GetLeft() + cScreen.GetWidth();
+	iScreenBottom = cScreen.GetTop() + cScreen.GetHeight();
+	iLeft = pcRect->GetLeft();
+	iTop = pcRect->GetTop();
+	if (iLeft + iWidth > iScreenRight)
+	{
+		iLeft = iScreenRight - iWidth;
+	}
+	if (iTop + iHeight > iScreenBottom)
+	{
+		iTop = iScreenBottom - iHeight;
+	}
+	if (iLeft < cScreen.GetLeft())
+	{
+		iLeft = cScreen.GetLeft();
+	}
+	if (iTop < cScreen.GetTop())
+	{
+		iTop = cScreen.GetTop();
+	}
+	pcRect->Init(iLeft, iTop, iLeft + iWidth, iTop + iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A floating window, at pcScreenRectangle, not yet shown.  It is kept on
+// the screen.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CDockFloatingWindow> CDockManager::CreateFloating(CInt32Rect* pcScreenRectangle)
 {
 	Ptr<CDockFloatingWindow>	pFloating;
+	CInt32Rect					cRect;
 
-	pFloating = OMalloc<CDockFloatingWindow>(Ptr<CDockManager>(this), pcScreenRectangle);
+	cRect.Init(pcScreenRectangle);
+	KeepOnScreen(&cRect);
+	pFloating = OMalloc<CDockFloatingWindow>(Ptr<CDockManager>(this), &cRect);
 	maFloating.Add(pFloating);
 	return pFloating;
 }
@@ -1382,13 +1092,7 @@ void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectan
 {
 	CInt32Rect					cRect;
 	Ptr<CDockFloatingWindow>	pFloating;
-	int32						iGroup;
-	CChars						szNeighbour;
-	EDockSide					eSide;
-	int32						iSize;
-	bool						bInWell;
 	size						i;
-	Ptr<CDockPane>				pPane;
 
 	if (pGroup.IsNull() || (pGroup->NumPanes() == 0))
 	{
@@ -1415,22 +1119,13 @@ void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectan
 	CloseFlyout();
 	if (pGroup->IsWithin(mpArea))
 	{
-		szNeighbour.Init();
-		if (GetGroupRestore(pGroup, &iGroup, &szNeighbour, &eSide, &iSize, &bInWell))
-		{
-			for (i = 0; i < pGroup->NumPanes(); i++)
-			{
-				pPane = pGroup->GetPane(i);
-				pPane->SetRestore(iGroup, (int32)i, szNeighbour.Empty() ? NULL : szNeighbour.Text(), eSide, iSize, bInWell);
-			}
-		}
-		szNeighbour.Kill();
+		GiveGroupRestore(pGroup);
 	}
 	if (mpDocumentGroup == pGroup)
 	{
 		mpDocumentGroup = NULL;
 	}
-	RemoveNode(pGroup);
+	mcTree.RemoveNode(pGroup);
 
 	pFloating = CreateFloating(&cRect);
 	pGroup->MoveToWindow(pFloating->GetWindow());
@@ -1502,7 +1197,7 @@ EDockSide CDockManager::NearestEdge(Ptr<CDockGroup> pGroup)
 	if ((cGroup.GetWidth() <= 0) || (cGroup.GetHeight() <= 0))
 	{
 		//Not laid out yet: the side of the well it is on.
-		return SideOfWell(pGroup);
+		return mcTree.SideOfWell(pGroup);
 	}
 	iLeft = cGroup.GetLeft() - cRoot.GetLeft();
 	iRight = (cRoot.GetLeft() + cRoot.GetWidth()) - (cGroup.GetLeft() + cGroup.GetWidth());
@@ -1543,46 +1238,6 @@ EDockSide CDockManager::NearestEdge(Ptr<CDockGroup> pGroup)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The side of the document well the node is on, from the tree: in the
-// first split up from it that also holds the well, before or after the
-// well's part.  Left if it is in no such split.
-//
-//////////////////////////////////////////////////////////////////////////
-EDockSide CDockManager::SideOfWell(Ptr<CDockNode> pNode)
-{
-	Ptr<CDockNode>		pChild;
-	Ptr<CDockSplit>		pSplit;
-	size				uiChild;
-	size				i;
-
-	pChild = pNode;
-	pSplit = pChild->GetParentSplit();
-	while (pSplit.IsNotNull())
-	{
-		if (pSplit->ContainsDocumentWell() && !pChild->ContainsDocumentWell())
-		{
-			uiChild = pSplit->IndexOf(pChild);
-			for (i = 0; i < pSplit->NumNodes(); i++)
-			{
-				if (pSplit->GetNode(i)->ContainsDocumentWell())
-				{
-					if (pSplit->IsHorizontal())
-					{
-						return (uiChild < i) ? DS_Left : DS_Right;
-					}
-					return (uiChild < i) ? DS_Top : DS_Bottom;
-				}
-			}
-		}
-		pChild = pSplit;
-		pSplit = pChild->GetParentSplit();
-	}
-	return DS_Left;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A docked tool goes to a tab on the main window's edge nearest it.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1599,7 +1254,7 @@ void CDockManager::AutoHide(Ptr<CDockPane> pPane)
 		return;
 	}
 	pGroup = pPane->GetGroup();
-	if (pGroup->IsWithin(mpWell))
+	if (IsInWell(pGroup))
 	{
 		return;
 	}
@@ -1634,23 +1289,16 @@ void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 	EDockSide				eSide;
 	int32					iSize;
 	SInt32Vec2				sSize;
-	int32					iGroup;
-	CChars					szNeighbour;
-	EDockSide				eRestoreSide;
-	int32					iRestoreSize;
-	bool					bInWell;
-	bool					bRestore;
 	Ptr<CAutoHideStrip>		pStrip;
 
-	if (pGroup.IsNull() || pGroup->IsDocumentGroup() || !pGroup->IsWithin(mpArea) || pGroup->IsWithin(mpWell))
+	if (pGroup.IsNull() || pGroup->IsDocumentGroup() || !pGroup->IsWithin(mpArea) || IsInWell(pGroup))
 	{
 		return;
 	}
 	eSide = NearestEdge(pGroup);
 	sSize = pGroup->GetActualSize();
 	iSize = IsHorizontalDockSide(eSide) ? sSize.x : sSize.y;
-	szNeighbour.Init();
-	bRestore = GetGroupRestore(pGroup, &iGroup, &szNeighbour, &eRestoreSide, &iRestoreSize, &bInWell);
+	GiveGroupRestore(pGroup);
 
 	aPanes.Init();
 	pGroup->GetPanes(&aPanes);
@@ -1659,10 +1307,6 @@ void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 	{
 		pPane = aPanes.Get(i);
 		TakeOut(pPane, false);
-		if (bRestore)
-		{
-			pPane->SetRestore(iGroup, (int32)i, szNeighbour.Empty() ? NULL : szNeighbour.Text(), eRestoreSide, iRestoreSize, bInWell);
-		}
 		pPane->SetAutoHide(eSide, (iSize > DOCK_MINIMUM_SIZE) ? iSize : DOCK_DEFAULT_SIZE);
 		pStrip->AddPane(pPane);
 		pPane->SetState(DPS_AutoHidden);
@@ -1672,7 +1316,6 @@ void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 		}
 	}
 	aPanes.Kill();
-	szNeighbour.Kill();
 	mpArea->StripsChanged();
 	LayoutChanged();
 }
@@ -1770,8 +1413,7 @@ void CDockManager::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
 	pRoot = pFloating->GetRoot();
 	if (pRoot.IsNull())
 	{
-		pFloating->Close();
-		maFloating.Remove(pFloating);
+		RemoveFloating(pFloating);
 		return;
 	}
 	aPanes.Init();
@@ -1890,7 +1532,7 @@ void CDockManager::PaneSelected(Ptr<CDockPane> pPane)
 	}
 	if (pPane->IsDocument() || (pGroup.IsNotNull() && pGroup->IsDocumentGroup()))
 	{
-		if (pGroup.IsNotNull() && pGroup->IsWithin(mpWell))
+		if (pGroup.IsNotNull() && IsInWell(pGroup))
 		{
 			mpDocumentGroup = pGroup;
 		}
@@ -1900,6 +1542,72 @@ void CDockManager::PaneSelected(Ptr<CDockPane> pPane)
 	if (pFloating.IsNotNull())
 	{
 		pFloating->UpdateTitle();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane's title, icon or tab font changed: its tab and title bar, its
+// auto hide tab and flyout and its floating window show it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::PaneChanged(Ptr<CDockPane> pPane)
+{
+	Ptr<CAutoHideStrip>			pStrip;
+	Ptr<CAutoHideTab>			pTab;
+	Ptr<CDockFloatingWindow>	pFloating;
+
+	if (pPane->GetGroup().IsNotNull())
+	{
+		pPane->GetGroup()->PaneChanged(pPane);
+	}
+	if (pPane->GetState() == DPS_AutoHidden)
+	{
+		pStrip = mpArea->GetStrip(pPane->GetAutoHideSide());
+		pTab = pStrip.IsNotNull() ? pStrip->FindTab(pPane) : Ptr<CAutoHideTab>();
+		if (pTab.IsNotNull())
+		{
+			pTab->TitleChanged();
+		}
+	}
+	if (mpFlyout.IsNotNull() && (mpFlyout->GetPane() == pPane))
+	{
+		mpFlyout->GetTitleBar()->SetTitle(pPane->GetTitle());
+	}
+	pFloating = FindFloating(pPane);
+	if (pFloating.IsNotNull())
+	{
+		pFloating->UpdateTitle();
+	}
+	mpWindow->InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Control+F4: the active document closes, as Close closes it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::CloseActiveDocument(void)
+{
+	if (mpActiveDocument.IsNotNull())
+	{
+		Close(mpActiveDocument);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shift+Escape: the active pane, if it is a tool, is hidden.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::HideActiveTool(void)
+{
+	if (mpActivePane.IsNotNull() && mpActivePane->IsTool())
+	{
+		Hide(mpActivePane);
 	}
 }
 
@@ -1919,6 +1627,10 @@ void CDockManager::FocusChanged(CFocus* pcFocus)
 		return;
 	}
 	pFocussed = pcFocus->GetFocussedComponent();
+	if (mpFlyout.IsNotNull() && pFocussed.IsNotNull() && IsFocusOutsideFlyout(pFocussed))
+	{
+		CloseFlyout();
+	}
 	pPane = FindPane(pFocussed);
 	if (pPane.IsNotNull())
 	{
@@ -1928,6 +1640,37 @@ void CDockManager::FocusChanged(CFocus* pcFocus)
 			SetActiveDocument(pPane);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys have gone somewhere that slides the flyout back, as Visual
+// Studio's does when its window loses focus: anywhere but the flyout, a
+// popup (its pane's menu, say) or the strip tab of its pane, which slides
+// it back itself.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::IsFocusOutsideFlyout(Ptr<CComponent> pFocussed)
+{
+	Ptr<CComponent>	pTop;
+	CAutoHideTab*	pcTab;
+
+	if (pFocussed->IsWithin(mpFlyout))
+	{
+		return false;
+	}
+	pcTab = dynamic_cast<CAutoHideTab*>(&pFocussed);
+	if (pcTab && (pcTab->GetPane() == mpFlyout->GetPane()))
+	{
+		return false;
+	}
+	pTop = pFocussed;
+	while (pTop->GetParent().IsNotNull())
+	{
+		pTop = pTop->GetParent();
+	}
+	return dynamic_cast<CPopup*>(&pTop) == NULL;
 }
 
 
@@ -2137,9 +1880,7 @@ void CDockManager::ClearLayout(void)
 	}
 	while (maFloating.Size() > 0)
 	{
-		pFloating = maFloating.Get(maFloating.Size() - 1);
-		pFloating->Close();
-		maFloating.RemoveAt(maFloating.Size() - 1);
+		RemoveFloating(maFloating.Get(maFloating.Size() - 1));
 	}
 	mpWell->SetRoot(NULL);
 	mpArea->SetRoot(mpWell);
@@ -2161,8 +1902,8 @@ void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpcListe
 Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
 Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
-ARGB32						CDockManager::GetColour(EDockColour eColour) { return masColours[eColour]; }
-void						CDockManager::SetColour(EDockColour eColour, ARGB32 sColour) { masColours[eColour] = sColour; }
+ARGB32						CDockManager::GetColour(EDockColour eColour) { return mpTheme->GetDockColour(eColour); }
+void						CDockManager::SetColour(EDockColour eColour, ARGB32 sColour) { mpTheme->SetDockColour(eColour, sColour); }
 Ptr<CImageCel>				CDockManager::GetImage(EDockImage eImage) { return maImages.Get(eImage); }
 size						CDockManager::NumPanes(void) { return maPanes.Size(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }
@@ -2171,7 +1912,149 @@ Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpActiveDocumen
 size						CDockManager::NumFloating(void) { return maFloating.Size(); }
 Ptr<CDockFloatingWindow>	CDockManager::GetFloating(size uiIndex) { return maFloating.Get(uiIndex); }
 Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpFlyout; }
-SDockTarget*				CDockManager::GetTarget(void) { return &msTarget; }
+SDockTarget*				CDockManager::GetTarget(void) { return mpDrag->GetTarget(); }
+Ptr<CDockDrag>				CDockManager::GetDrag(void) { return mpDrag; }
+bool						CDockManager::IsDragging(void) { return mpDrag->IsDragging(); }
+void						CDockManager::SetDragNoDock(bool bNoDock) { mpDrag->SetNoDock(bNoDock); }
+void						CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane) { mpDrag->BeginPane(pPane); }
+void						CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup) { mpDrag->BeginGroup(pGroup); }
+void						CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating) { mpDrag->BeginFloating(pFloating); }
 void						CDockManager::SetNextGroupID(int32 iID) { miNextGroupID = iID; }
 int32						CDockManager::GetNextGroupID(void) { return miNextGroupID; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node is in the document well's tree.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::IsInWell(Ptr<CDockNode> pNode)
+{
+	return pNode.IsNotNull() && (pNode != mpWell) && pNode->IsWithin(mpWell);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane is docked at the target as a group of its own, or as a tab in
+// the target's group.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::DockPaneAt(Ptr<CDockPane> pPane, SDockTarget* psTarget)
+{
+	Ptr<CDockGroup>	pGroup;
+
+	if (pPane.IsNull() || !psTarget->IsValid())
+	{
+		return false;
+	}
+	TakeOut(pPane, true);
+	pGroup = CreateGroup(pPane->IsDocument());
+	pGroup->AddPane(pPane);
+	return DockNodeAt(pGroup, psTarget);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// See CDockTree::DockAt.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
+{
+	return mcTree.DockAt(pNode, psTarget);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The main window's client area on the screen in the last layout read.
+// Returns false if there wasn't one.  ReadLayout applies it if the main
+// window isn't shown yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::GetLayoutWindowRectangle(CInt32Rect* pcDest)
+{
+	pcDest->Init(&mcLayoutWindow);
+	return mbLayoutWindow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the layout to szFileName, see CDockLayoutWriter.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::SaveLayout(const char* szFileName)
+{
+	CDockLayoutWriter	cWriter;
+	bool				bResult;
+
+	cWriter.Init(this);
+	bResult = cWriter.Save(szFileName);
+	cWriter.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::WriteLayout(CXMLWriter* pcWriter)
+{
+	CDockLayoutWriter	cWriter;
+
+	cWriter.Init(this);
+	cWriter.Write(pcWriter);
+	cWriter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the layout from szFileName, see CDockLayoutReader.  A file that
+// isn't there, or doesn't read, leaves the layout as it is and returns
+// false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::LoadLayout(const char* szFileName)
+{
+	CDockLayoutReader	cReader;
+	bool				bResult;
+
+	cReader.Init(this);
+	bResult = cReader.Load(szFileName);
+	cReader.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::ReadLayout(CMarkupTag* pcRoot)
+{
+	CDockLayoutReader	cReader;
+	bool				bResult;
+
+	cReader.Init(this);
+	bResult = cReader.Read(pcRoot);
+	cReader.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane becomes a tab of the group: docked in the main window's area,
+// floating in a floating window's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockManager::PlaceInGroup(Ptr<CDockGroup> pGroup, Ptr<CDockPane> pPane, size uiIndex)
+{
+	pGroup->AddPane(pPane, uiIndex);
+	pPane->SetState((pGroup->GetWindow() == mpWindow) ? DPS_Docked : DPS_Floating);
+}
 

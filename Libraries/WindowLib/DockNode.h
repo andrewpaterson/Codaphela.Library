@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DOCK_NODE_H__
 #define __DOCK_NODE_H__
+#include "SupportLib/Int32Rect.h"
 #include "Container.h"
 
 
@@ -29,6 +30,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define DOCK_DRAG_DISTANCE		6	//Pixels a title bar is pulled before it is dragged.
 #define DOCK_FLOAT_WIDTH		360	//A pane floated with no size of its own.
 #define DOCK_FLOAT_HEIGHT		420
+#define DOCK_FLOAT_OFFSET		100	//A pane floated from nowhere, from the main window's top left.
+#define DOCK_GRAB_LEFT			40	//A tab torn off is held this far into its floating window's title.
+#define DOCK_RESTORE_DEPTH		4	//Neighbours followed back to find where a pane goes.
 #define DOCK_WELL_NEIGHBOUR		"#DocumentWell"	//A pane's restore neighbour when it was beside the document well.
 
 
@@ -42,6 +46,16 @@ enum EDockSide
 	DS_Bottom,
 	DS_Centre,
 	DS_None,
+};
+
+
+enum EDockPaneState
+{
+	DPS_Docked,		//In a group in the main window's dock area.
+	DPS_Floating,	//In a group in a floating window.
+	DPS_AutoHidden,	//A tab on one of the main window's edges.
+	DPS_Hidden,		//Closed; it keeps where to go back to.
+	DPS_Removed,	//Not in the manager.
 };
 
 
@@ -59,6 +73,18 @@ class CDockGroup;
 class CDockSplit;
 class CDockArea;
 class CDocumentWell;
+
+
+class CDockNode;
+
+
+//What holds a node: a split, the document well or a dock area.  The new node takes the old one's dock size.
+class CDockNodeHolder
+{
+public:
+	virtual bool	ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) =0;
+	virtual bool	RemoveNode(Ptr<CDockNode> pNode) =0;
+};
 
 
 //A piece of a dock area's tree: a split of other nodes, a group of panes shown as tabs, or the document well.  Its
@@ -80,22 +106,30 @@ public:
 	virtual	EDockNodeKind		GetKind(void) =0;
 	virtual	bool				ContainsDocumentWell(void);
 	virtual	void				GetPanes(CArray<CDockPane>* paPanes) =0;
+	virtual	size				CountPanes(void) =0;
+	virtual	Ptr<CDockPane>		GetTreePane(size uiIndex) =0;
 	virtual	Ptr<CDockGroup>		FindGroupAt(int x, int y);
 	virtual	Ptr<CDockGroup>		GetFirstGroup(void) =0;
 			void				SetDockSize(int32 iSize);
 			int32				GetDockSize(void);
 			Ptr<CDockManager>	GetManager(void);
 			Ptr<CDockSplit>		GetParentSplit(void);
+			CDockNodeHolder*	GetHolder(void);
+			Ptr<CDockSplit>		AsSplit(void);
+			Ptr<CDockGroup>		AsGroup(void);
 			bool				IsSplit(void);
 			bool				IsGroup(void);
 			bool				IsDocumentWell(void);
 			bool				HasDocuments(void);
 			bool				IsEmpty(void);
+			void				SetPaneStates(EDockPaneState eState);
+			void				SetPaneFloatRectangles(CInt32Rect* pcRectangle);
 };
 
 
 EDockSide	OppositeDockSide(EDockSide eSide);
 bool		IsHorizontalDockSide(EDockSide eSide);
+bool		IsAfterDockSide(EDockSide eSide);
 const char*	DockSideToString(EDockSide eSide);
 EDockSide	StringToDockSide(const char* szSide);
 

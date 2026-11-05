@@ -60,8 +60,7 @@ protected:
 	bool					mbActive;
 	Ptr<CDockTitleBar>		mpTitleBar;  //NULL for a document group.
 	Ptr<CTabbedContainer>	mpTabs;
-	CArray<CDockPane>		maPanes;  //By tab.
-	CArray<CMenuContainer>	maMenus;  //Each pane's window position menu, by tab.
+	CArray<CDockPane>		maPanes;  //Not in tab order: the tabbed container moves tabs itself.  GetPane is by tab.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iID, bool bDocuments);
@@ -69,6 +68,8 @@ public:
 	void					Free(void) override;
 	EDockNodeKind			GetKind(void) override;
 	void					GetPanes(CArray<CDockPane>* paPanes) override;
+	size					CountPanes(void) override;
+	Ptr<CDockPane>			GetTreePane(size uiIndex) override;
 	Ptr<CDockGroup>			FindGroupAt(int x, int y) override;
 	Ptr<CDockGroup>			GetFirstGroup(void) override;
 	void					SetRequiredSize(void) override;
@@ -108,6 +109,8 @@ public:
 
 protected:
 	Ptr<CMenuContainer>		CreateMenu(Ptr<CDockPane> pPane);
+	void					AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem);
+	size					SlotOf(Ptr<CDockPane> pPane);
 	size					FindTab(CTabComponent* pcTab);
 	void					UpdateTitle(void);
 };

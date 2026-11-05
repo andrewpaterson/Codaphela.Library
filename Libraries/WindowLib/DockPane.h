@@ -35,14 +35,6 @@ enum EDockPaneKind
 };
 
 
-enum EDockPaneState
-{
-	DPS_Docked,		//In a group in the main window's dock area.
-	DPS_Floating,	//In a group in a floating window.
-	DPS_AutoHidden,	//A tab on one of the main window's edges.
-	DPS_Hidden,		//Closed; it keeps where to go back to.
-	DPS_Removed,	//Not in the manager.
-};
 
 
 //Where a pane goes when nothing better is known, see CDockManager::AddPane.  Beside the document well on a side, in
@@ -70,6 +62,27 @@ struct SDockPlace
 };
 
 
+//Where a pane goes back to when it is docked again: the group it was in (by ID) and its tab's place there, and a pane
+//near it (by ID, or DOCK_WELL_NEIGHBOUR) with the side of that pane's node it was on, centre for in its group, and its
+//size along that side.  bInWell if it was in the document well.
+struct SDockRestore
+{
+	int32		iGroup;  //0 for none.
+	int32		iIndex;
+	CChars		szNeighbour;  //Empty for none.
+	EDockSide	eSide;
+	int32		iSize;  //0 for the default.
+	bool		bInWell;
+
+	void	Init(void);
+	void	Kill(void);
+	void	Copy(SDockRestore* psSource);
+	void	SetNeighbour(const char* szNeighbour);
+	bool	IsSet(void);
+	bool	IsBesideWell(void);
+};
+
+
 //One dockable thing: a component (its content), an ID unique in its manager, a title and an icon.  A tool pane or a
 //document pane.  The content is shown by whichever group, flyout or floating window it is in; it is never in two
 //places.  When a docked pane leaves its group, to float, to auto hide or to be hidden, it remembers where it was so
@@ -88,6 +101,7 @@ protected:
 	bool				mbClosable;
 	EDockPaneState		meState;
 	Ptr<CDockGroup>		mpGroup;  //While docked or floating.
+	Ptr<CDockManager>	mpManager;  //Told when the title or icon changes.
 
 	//The default place.
 	EDockPlaceKind		meDefaultKind;
@@ -95,13 +109,7 @@ protected:
 	int32				miDefaultSize;
 	CChars				mszDefaultPane;
 
-	//Where it was last docked, to go back to.
-	int32				miRestoreGroup;  //The group's ID, 0 for none.
-	int32				miRestoreIndex;  //Its tab's index in the group.
-	CChars				mszRestoreNeighbour;  //A pane near it, empty for none.
-	EDockSide			meRestoreSide;  //Of the neighbour's group it was on, centre for in it.
-	int32				miRestoreSize;  //Along the side, 0 for the default.
-	bool				mbRestoreInWell;  //It was in the document well.
+	SDockRestore		msRestore;  //Where it was last docked, to go back to.
 
 	//Where it last floated, empty before it has.
 	CInt32Rect			mcFloatRectangle;
@@ -134,6 +142,7 @@ public:
 	void				SetState(EDockPaneState eState);
 	Ptr<CDockGroup>		GetGroup(void);
 	void				SetGroup(Ptr<CDockGroup> pGroup);
+	void				SetManager(Ptr<CDockManager> pManager);
 	bool				IsShown(void);
 
 	EDockPlaceKind		GetDefaultKind(void);
@@ -141,14 +150,9 @@ public:
 	int32				GetDefaultSize(void);
 	const char*			GetDefaultPane(void);
 
-	void				SetRestore(int32 iGroup, int32 iIndex, const char* szNeighbour, EDockSide eSide, int32 iSize, bool bInWell);
+	void				SetRestore(SDockRestore* psRestore);
+	SDockRestore*		GetRestore(void);
 	void				ClearRestore(void);
-	int32				GetRestoreGroup(void);
-	int32				GetRestoreIndex(void);
-	const char*			GetRestoreNeighbour(void);
-	EDockSide			GetRestoreSide(void);
-	int32				GetRestoreSize(void);
-	bool				IsRestoreInWell(void);
 	bool				HasRestore(void);
 
 	void				SetFloatRectangle(CInt32Rect* pcRectangle);
@@ -158,6 +162,9 @@ public:
 	EDockSide			GetAutoHideSide(void);
 	int32				GetAutoHideSize(void);
 	void				SetAutoHideSize(int32 iSize);
+
+protected:
+	void				Changed(void);
 };
 
 

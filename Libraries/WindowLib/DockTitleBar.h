@@ -94,6 +94,7 @@ public:
 	CComponentEvent<CDockTitleBar>*	GetDragEvent(void);
 	CComponentEvent<CDockTitleBar>*	GetDoubleClickEvent(void);
 	CComponentEvent<CDockTitleBar>*	GetButtonEvent(EDockTitleButton eButton);
+	void				RemoveListener(void* pvListener);
 
 protected:
 	void				PlaceButtons(void);

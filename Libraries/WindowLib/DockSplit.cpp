@@ -488,22 +488,11 @@ void CDockSplit::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockSplit::WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes)
 {
-	size	i;
-	size	uiNumNodes;
 	size	uiFill;
-	int32	iSize;
-	int32	iTotal;
-	int32	iFixed;
-	int32	iDefault;
-	int32	iNeeded;
-	int32	iSpare;
-	int64	iScaled;
-	int32	iUsed;
 
-	uiNumNodes = maNodes.Size();
 	paiSizes->Kill();
 	paiSizes->Init();
-	if (uiNumNodes == 0)
+	if (maNodes.Size() == 0)
 	{
 		return;
 	}
@@ -511,83 +500,138 @@ void CDockSplit::WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes)
 	{
 		iAvailable = 0;
 	}
+	uiFill = StartSizes(iAvailable, paiSizes);
+	if (uiFill != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		FillSize(iAvailable, uiFill, paiSizes);
+	}
+	else
+	{
+		ScaleSizes(iAvailable, paiSizes);
+	}
+	KeepMinimums(paiSizes);
+}
 
-	iDefault = iAvailable / (int32)uiNumNodes;
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each node's dock size, or an even share for a node without one.
+// Returns the index of the node with the document well, if any.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockSplit::StartSizes(int32 iAvailable, CArrayInt* paiSizes)
+{
+	size	i;
+	size	uiFill;
+	int32	iSize;
+	int32	iShare;
+
+	iShare = iAvailable / (int32)maNodes.Size();
 	uiFill = ARRAY_ELEMENT_NOT_FOUND;
-	iTotal = 0;
-	for (i = 0; i < uiNumNodes; i++)
+	for (i = 0; i < maNodes.Size(); i++)
 	{
 		iSize = maNodes.Get(i)->GetDockSize();
-		if (iSize <= 0)
-		{
-			iSize = iDefault;
-		}
-		paiSizes->Add(iSize);
-		iTotal += iSize;
+		paiSizes->Add((iSize > 0) ? iSize : iShare);
 		if ((uiFill == ARRAY_ELEMENT_NOT_FOUND) && maNodes.Get(i)->ContainsDocumentWell())
 		{
 			uiFill = i;
 		}
 	}
+	return uiFill;
+}
 
-	if (uiFill != ARRAY_ELEMENT_NOT_FOUND)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node at uiFill takes what the others leave.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockSplit::FillSize(int32 iAvailable, size uiFill, CArrayInt* paiSizes)
+{
+	size	i;
+	int32	iOthers;
+
+	iOthers = 0;
+	for (i = 0; i < paiSizes->NumElements(); i++)
 	{
-		iFixed = iTotal - paiSizes->GetValue(uiFill);
-		paiSizes->SetValue(uiFill, iAvailable - iFixed);
-	}
-	else if (iTotal > 0)
-	{
-		iUsed = 0;
-		for (i = 0; i < uiNumNodes; i++)
+		if (i != uiFill)
 		{
-			if (i + 1 == uiNumNodes)
-			{
-				paiSizes->SetValue(i, iAvailable - iUsed);
-			}
-			else
-			{
-				iScaled = ((int64)paiSizes->GetValue(i) * iAvailable) / iTotal;
-				paiSizes->SetValue(i, (int32)iScaled);
-				iUsed += (int32)iScaled;
-			}
+			iOthers += paiSizes->GetValue(i);
 		}
 	}
+	paiSizes->SetValue(uiFill, iAvailable - iOthers);
+}
 
-	//Nodes under the minimum take from the largest others while they can.
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every node is scaled by its size to fill iAvailable; the last takes
+// what rounding leaves.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockSplit::ScaleSizes(int32 iAvailable, CArrayInt* paiSizes)
+{
+	size	i;
+	size	uiNumNodes;
+	int32	iTotal;
+	int32	iUsed;
+	int64	iScaled;
+
+	uiNumNodes = paiSizes->NumElements();
+	iTotal = 0;
 	for (i = 0; i < uiNumNodes; i++)
 	{
-		iSize = paiSizes->GetValue(i);
-		if (iSize >= DOCK_MINIMUM_SIZE)
+		iTotal += paiSizes->GetValue(i);
+	}
+	if (iTotal <= 0)
+	{
+		return;
+	}
+	iUsed = 0;
+	for (i = 0; i < uiNumNodes; i++)
+	{
+		if (i + 1 == uiNumNodes)
 		{
-			continue;
+			paiSizes->SetValue(i, iAvailable - iUsed);
 		}
-		iNeeded = DOCK_MINIMUM_SIZE - iSize;
+		else
+		{
+			iScaled = ((int64)paiSizes->GetValue(i) * iAvailable) / iTotal;
+			paiSizes->SetValue(i, (int32)iScaled);
+			iUsed += (int32)iScaled;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nodes under the minimum take from the largest others while they can.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockSplit::KeepMinimums(CArrayInt* paiSizes)
+{
+	size	i;
+	size	uiLargest;
+	int32	iNeeded;
+	int32	iSpare;
+
+	for (i = 0; i < paiSizes->NumElements(); i++)
+	{
+		iNeeded = DOCK_MINIMUM_SIZE - paiSizes->GetValue(i);
 		while (iNeeded > 0)
 		{
-			size	j;
-			size	uiLargest;
-			int32	iLargest;
-
-			uiLargest = ARRAY_ELEMENT_NOT_FOUND;
-			iLargest = DOCK_MINIMUM_SIZE;
-			for (j = 0; j < uiNumNodes; j++)
-			{
-				if ((j != i) && (paiSizes->GetValue(j) > iLargest))
-				{
-					iLargest = paiSizes->GetValue(j);
-					uiLargest = j;
-				}
-			}
+			uiLargest = FindLargestOther(paiSizes, i);
 			if (uiLargest == ARRAY_ELEMENT_NOT_FOUND)
 			{
 				break;
 			}
-			iSpare = iLargest - DOCK_MINIMUM_SIZE;
+			iSpare = paiSizes->GetValue(uiLargest) - DOCK_MINIMUM_SIZE;
 			if (iSpare > iNeeded)
 			{
 				iSpare = iNeeded;
 			}
-			paiSizes->SetValue(uiLargest, iLargest - iSpare);
+			paiSizes->SetValue(uiLargest, paiSizes->GetValue(uiLargest) - iSpare);
 			paiSizes->SetValue(i, paiSizes->GetValue(i) + iSpare);
 			iNeeded -= iSpare;
 		}
@@ -596,6 +640,32 @@ void CDockSplit::WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes)
 			paiSizes->SetValue(i, 0);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The largest node other than uiExcept that is over the minimum,
+// ARRAY_ELEMENT_NOT_FOUND if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockSplit::FindLargestOther(CArrayInt* paiSizes, size uiExcept)
+{
+	size	i;
+	size	uiLargest;
+	int32	iLargest;
+
+	uiLargest = ARRAY_ELEMENT_NOT_FOUND;
+	iLargest = DOCK_MINIMUM_SIZE;
+	for (i = 0; i < paiSizes->NumElements(); i++)
+	{
+		if ((i != uiExcept) && (paiSizes->GetValue(i) > iLargest))
+		{
+			iLargest = paiSizes->GetValue(i);
+			uiLargest = i;
+		}
+	}
+	return uiLargest;
 }
 
 
@@ -723,4 +793,70 @@ Ptr<CDockNode>		CDockSplit::GetNode(size uiIndex) { return maNodes.Get(uiIndex);
 bool				CDockSplit::IsHorizontal(void) { return mbHorizontal; }
 Ptr<CDockSash>		CDockSplit::GetSash(size uiIndex) { return maSashes.Get(uiIndex); }
 int32				CDockSplit::GetNodeSize(size uiIndex) { return (uiIndex < maiSizes.NumElements()) ? maiSizes.GetValue(uiIndex) : 0; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockSplit::CountPanes(void)
+{
+	size	i;
+	size	uiCount;
+
+	uiCount = 0;
+	for (i = 0; i < maNodes.Size(); i++)
+	{
+		uiCount += maNodes.Get(i)->CountPanes();
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane at uiIndex counting through the nodes in order.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockPane> CDockSplit::GetTreePane(size uiIndex)
+{
+	size			i;
+	size			uiCount;
+	Ptr<CDockNode>	pNode;
+
+	for (i = 0; i < maNodes.Size(); i++)
+	{
+		pNode = maNodes.Get(i);
+		uiCount = pNode->CountPanes();
+		if (uiIndex < uiCount)
+		{
+			return pNode->GetTreePane(uiIndex);
+		}
+		uiIndex -= uiCount;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Something docked on eSide of a node in the split would be next to it
+// in the split: left and right in a horizontal split, top and bottom in a
+// vertical one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockSplit::IsAlong(EDockSide eSide)
+{
+	return mbHorizontal == IsHorizontalDockSide(eSide);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockSplit::IsSameDirection(Ptr<CDockSplit> pOther)
+{
+	return pOther.IsNotNull() && (pOther->IsHorizontal() == mbHorizontal);
+}
 

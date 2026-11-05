@@ -150,3 +150,38 @@ void CDocumentWell::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDocumentWell::ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew)
+{
+	if (pOld != mpRoot)
+	{
+		return false;
+	}
+	pNew->SetDockSize(pOld->GetDockSize());
+	SetRoot(pNew);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDocumentWell::RemoveNode(Ptr<CDockNode> pNode)
+{
+	if (pNode != mpRoot)
+	{
+		return false;
+	}
+	SetRoot(NULL);
+	return true;
+}
+
+
+size			CDocumentWell::CountPanes(void) { return mpRoot.IsNotNull() ? mpRoot->CountPanes() : 0; }
+Ptr<CDockPane>	CDocumentWell::GetTreePane(size uiIndex) { return mpRoot.IsNotNull() ? mpRoot->GetTreePane(uiIndex) : Ptr<CDockPane>(); }
+

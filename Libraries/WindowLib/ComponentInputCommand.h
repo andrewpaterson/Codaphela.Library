@@ -116,6 +116,8 @@ enum EComponentInputCommand
 	CIC_ExecuteComponent,
 	CIC_ContextMenu,  //The right button: a click, so the component under the pointer is focussed first.
 	CIC_ContextMenuKey,  //The Menu key or Shift+F10: for the focussed component.
+	CIC_CloseDocument,  //Control+F4: the active document closes.
+	CIC_HideToolWindow,  //Shift+Escape: the active tool window is hidden.
 	CIC_StartDragScroll,
 	CIC_ContDragScroll,  //The pointer moved during a drag; only CFocus gives these, to the drag component.
 	CIC_StopDragScroll,

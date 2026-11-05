@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockGroup.h"
 #include "AutoHide.h"
 #include "DockGuides.h"
+#include "DockFloatingWindow.h"
 #include "DockArea.h"
 
 
@@ -41,6 +42,7 @@ void CDockArea::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, bool bMai
 	mpRoot = NULL;
 	mbMain = bMain;
 	mpGuides = NULL;
+	mpFloating = NULL;
 	mcRootBounds.Init(0, 0, 0, 0);
 	SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)));
@@ -60,6 +62,8 @@ void CDockArea::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, bool bMai
 		mpBottomStrip = NULL;
 	}
 	PlaceChildren();
+	AddInputAction(CIC_CloseDocument, &pManager, &CDockManager::CloseActiveDocument);
+	AddInputAction(CIC_HideToolWindow, &pManager, &CDockManager::HideActiveTool);
 
 	PostInit();
 }
@@ -82,6 +86,7 @@ void CDockArea::Class(void)
 	M_Pointer(mpTopStrip);
 	M_Pointer(mpBottomStrip);
 	M_Pointer(mpGuides);
+	M_Pointer(mpFloating);
 	U_Data(CInt32Rect, mcRootBounds);
 }
 
@@ -329,4 +334,39 @@ void CDockArea::HideGuides(void)
 Ptr<CDockNode>		CDockArea::GetRoot(void) { return mpRoot; }
 bool				CDockArea::IsMain(void) { return mbMain; }
 Ptr<CDockGuides>	CDockArea::GetGuides(void) { return mpGuides; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockArea::ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew)
+{
+	if (pOld != mpRoot)
+	{
+		return false;
+	}
+	pNew->SetDockSize(pOld->GetDockSize());
+	SetRoot(pNew);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockArea::RemoveNode(Ptr<CDockNode> pNode)
+{
+	if (pNode != mpRoot)
+	{
+		return false;
+	}
+	SetRoot(NULL);
+	return true;
+}
+
+
+void						CDockArea::SetFloating(Ptr<CDockFloatingWindow> pFloating) { mpFloating = pFloating; }
+Ptr<CDockFloatingWindow>	CDockArea::GetFloating(void) { return mpFloating; }
 

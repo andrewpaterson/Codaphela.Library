@@ -61,7 +61,7 @@ public:
 //
 //A split left with one node is replaced by that node, and a node that is a split of the same direction is merged into
 //its parent; the dock manager keeps them so (see CDockManager::Tidy).
-class CDockSplit : public CDockNode
+class CDockSplit : public CDockNode, public CDockNodeHolder
 {
 CONSTRUCTABLE(CDockSplit);
 DESTRUCTABLE(CDockSplit);
@@ -79,17 +79,21 @@ public:
 	EDockNodeKind		GetKind(void) override;
 	bool				ContainsDocumentWell(void) override;
 	void				GetPanes(CArray<CDockPane>* paPanes) override;
+	size				CountPanes(void) override;
+	Ptr<CDockPane>		GetTreePane(size uiIndex) override;
 	Ptr<CDockGroup>		FindGroupAt(int x, int y) override;
 	Ptr<CDockGroup>		GetFirstGroup(void) override;
 
 	void				InsertNode(Ptr<CDockNode> pNode, size uiIndex);
 	void				AddNode(Ptr<CDockNode> pNode);
-	bool				RemoveNode(Ptr<CDockNode> pNode);
-	bool				ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew);
+	bool				RemoveNode(Ptr<CDockNode> pNode) override;
+	bool				ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
 	size				NumNodes(void);
 	Ptr<CDockNode>		GetNode(size uiIndex);
 	size				IndexOf(Ptr<CDockNode> pNode);
 	bool				IsHorizontal(void);
+	bool				IsAlong(EDockSide eSide);
+	bool				IsSameDirection(Ptr<CDockSplit> pOther);
 	void				SetHorizontal(bool bHorizontal);
 	Ptr<CDockSash>		GetSash(size uiIndex);
 	int32				GetNodeSize(size uiIndex);
@@ -101,6 +105,11 @@ public:
 protected:
 	void				PlaceChildren(void);
 	void				WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes);
+	size				StartSizes(int32 iAvailable, CArrayInt* paiSizes);
+	void				FillSize(int32 iAvailable, size uiFill, CArrayInt* paiSizes);
+	void				ScaleSizes(int32 iAvailable, CArrayInt* paiSizes);
+	void				KeepMinimums(CArrayInt* paiSizes);
+	size				FindLargestOther(CArrayInt* paiSizes, size uiExcept);
 	int32				GetAlong(SInt32Vec2 sSize);
 };
 

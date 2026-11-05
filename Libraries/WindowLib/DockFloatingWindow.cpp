@@ -55,7 +55,7 @@ void CDockFloatingWindow::Init(Ptr<CDockManager> pManager, CInt32Rect* pcScreenR
 
 	pMain = pManager->GetWindow();
 	pMain->GetColourFormat(&cFormat);
-	mpWindow = OMalloc<CWindow>("Floating", pMain->GetFactory(), pNoTick, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)), &cFormat);
+	mpWindow = OMalloc<CWindow>("", pMain->GetFactory(), pNoTick, OMalloc<CClearCanvasDraw>(pManager->GetColour(DC_Background)), &cFormat);
 	mpWindow->GetClosedEvent()->Add(this, &CDockFloatingWindow::WindowClosed);
 
 	//A border of edges around the inside: a title bar over the area.
@@ -81,6 +81,7 @@ void CDockFloatingWindow::Init(Ptr<CDockManager> pManager, CInt32Rect* pcScreenR
 	mpTitleBar->GetButtonEvent(DTB_Menu)->Add(this, &CDockFloatingWindow::MenuPressed);
 
 	mpArea = OMalloc<CDockArea>(&mpWindow, pManager, false);
+	mpArea->SetFloating(this);
 	mpInner->AddComponent(mpArea, 0, 1, 1, 1, 1, 1);
 	mpWindow->SetContainer(mpFrame);
 	UpdateTitle();
@@ -132,10 +133,7 @@ void CDockFloatingWindow::Free(void)
 {
 	if (mpTitleBar.IsNotNull())
 	{
-		mpTitleBar->GetDragEvent()->Remove(this);
-		mpTitleBar->GetDoubleClickEvent()->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Close)->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Menu)->Remove(this);
+		mpTitleBar->RemoveListener(this);
 	}
 	if (mpWindow.IsNotNull())
 	{
@@ -274,8 +272,9 @@ bool CDockFloatingWindow::HasDocuments(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The title bar shows the first group's selected pane, and is left out
-// while a single tool group's title bar does its job.
+// The title bar, and the platform's title of the window, show the first
+// group's selected pane.  The title bar is left out while a single tool
+// group's title bar does its job.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockFloatingWindow::UpdateTitle(void)
@@ -296,6 +295,7 @@ void CDockFloatingWindow::UpdateTitle(void)
 		}
 	}
 	mpTitleBar->SetTitle(pPane.IsNotNull() ? pPane->GetTitle() : "");
+	mpWindow->SetWindowTitle(pPane.IsNotNull() ? pPane->GetTitle() : "");
 	bShow = !IsSingleToolGroup();
 	if (bShow != mbTitleShown)
 	{
@@ -475,20 +475,12 @@ void CDockFloatingWindow::EdgeDragged(CDockEdge* pcEdge, SInt32Vec2 sScreen)
 //////////////////////////////////////////////////////////////////////////
 void CDockFloatingWindow::EdgeReleased(CDockEdge* pcEdge)
 {
-	CArray<CDockPane>	aPanes;
-	size				i;
 	Ptr<CDockNode>		pRoot;
 
 	pRoot = mpArea->GetRoot();
 	if (pRoot.IsNotNull())
 	{
-		aPanes.Init();
-		pRoot->GetPanes(&aPanes);
-		for (i = 0; i < aPanes.Size(); i++)
-		{
-			aPanes.Get(i)->SetFloatRectangle(&mcRectangle);
-		}
-		aPanes.Kill();
+		pRoot->SetPaneFloatRectangles(&mcRectangle);
 	}
 	mpManager->LayoutChanged();
 }

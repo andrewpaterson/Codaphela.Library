@@ -45,7 +45,6 @@ void CDockGroup::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iI
 	mbDocuments = bDocuments;
 	mbActive = false;
 	maPanes.Init();
-	maMenus.Init();
 
 	mpTabs = OMalloc<CTabbedContainer>(pWindow, pManager->GetTheme());
 	mpTabs->SetAlignment(CSH_Stretch, CSV_Stretch);
@@ -91,7 +90,6 @@ void CDockGroup::Class(void)
 	M_Pointer(mpTitleBar);
 	M_Pointer(mpTabs);
 	M_Embedded(maPanes);
-	M_Embedded(maMenus);
 }
 
 
@@ -101,11 +99,16 @@ void CDockGroup::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::Free(void)
 {
-	size	i;
+	size				i;
+	Ptr<CMenuContainer>	pMenu;
 
-	for (i = 0; i < maMenus.Size(); i++)
+	for (i = 0; i < maPanes.Size(); i++)
 	{
-		maMenus.Get(i)->GetItemClickEvent()->Remove(this);
+		pMenu = GetMenu(maPanes.Get(i));
+		if (pMenu.IsNotNull())
+		{
+			pMenu->GetItemClickEvent()->Remove(this);
+		}
 	}
 	if (mpTabs.IsNotNull())
 	{
@@ -116,11 +119,7 @@ void CDockGroup::Free(void)
 	}
 	if (mpTitleBar.IsNotNull())
 	{
-		mpTitleBar->GetDragEvent()->Remove(this);
-		mpTitleBar->GetDoubleClickEvent()->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Menu)->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Pin)->Remove(this);
-		mpTitleBar->GetButtonEvent(DTB_Close)->Remove(this);
+		mpTitleBar->RemoveListener(this);
 	}
 	CDockNode::Free();
 }
@@ -144,9 +143,9 @@ void CDockGroup::GetPanes(CArray<CDockPane>* paPanes)
 {
 	size	i;
 
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < NumPanes(); i++)
 	{
-		paPanes->Add(maPanes.Get(i));
+		paPanes->Add(GetPane(i));
 	}
 }
 
@@ -227,9 +226,8 @@ void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 		uiIndex = maPanes.Size();
 	}
 	bClosable = mbDocuments && pPane->IsClosable();
-	maPanes.Insert(uiIndex, pPane);
+	maPanes.Add(pPane);
 	pMenu = CreateMenu(pPane);
-	maMenus.Insert(uiIndex, pMenu);
 	pPane->SetGroup(this);
 	pTab = mpTabs->InsertTab(uiIndex, pPane->GetTitle(), pPane->GetContent(), pPane->GetIcon(), bClosable);
 	pTab->SetContextMenu(pMenu);
@@ -251,19 +249,18 @@ void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CDockGroup::TakePane(Ptr<CDockPane> pPane)
 {
-	size				uiIndex;
+	size				uiSlot;
 	Ptr<CTabComponent>	pTab;
 
-	uiIndex = IndexOfPane(pPane);
-	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	uiSlot = SlotOf(pPane);
+	pTab = GetTab(pPane);
+	if ((uiSlot == ARRAY_ELEMENT_NOT_FOUND) || pTab.IsNull())
 	{
 		return false;
 	}
-	pTab = mpTabs->GetTab(uiIndex);
+	pTab->GetContextMenu()->GetItemClickEvent()->Remove(this);
 	pTab->SetContextMenu(NULL);
-	maMenus.Get(uiIndex)->GetItemClickEvent()->Remove(this);
-	maPanes.RemoveAt(uiIndex);
-	maMenus.RemoveAt(uiIndex);
+	maPanes.RemoveAt(uiSlot);
 	mpTabs->TakeTab(pTab);
 	if (pPane->GetGroup() == this)
 	{
@@ -299,19 +296,13 @@ void CDockGroup::SelectPane(Ptr<CDockPane> pPane)
 Ptr<CDockPane> CDockGroup::GetSelectedPane(void)
 {
 	Ptr<CTabComponent>	pTab;
-	size				uiIndex;
 
 	pTab = mpTabs->GetSelected();
 	if (pTab.IsNull())
 	{
 		return NULL;
 	}
-	uiIndex = mpTabs->IndexOf(pTab);
-	if (uiIndex >= maPanes.Size())
-	{
-		return NULL;
-	}
-	return maPanes.Get(uiIndex);
+	return GetPane(mpTabs->IndexOf(pTab));
 }
 
 
@@ -320,6 +311,22 @@ Ptr<CDockPane> CDockGroup::GetSelectedPane(void)
 //
 //////////////////////////////////////////////////////////////////////////
 size CDockGroup::IndexOfPane(Ptr<CDockPane> pPane)
+{
+	if (SlotOf(pPane) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+	return mpTabs->IndexOfPage(pPane->GetContent());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the pane is in maPanes, which isn't in tab order:
+// the tabbed container moves tabs itself, to show the selected one.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockGroup::SlotOf(Ptr<CDockPane> pPane)
 {
 	size	i;
 
@@ -336,33 +343,45 @@ size CDockGroup::IndexOfPane(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pane on the tab at uiIndex, in the order the tabs are on the bar.
+// NULL past the last.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockPane> CDockGroup::GetPane(size uiIndex)
+{
+	Ptr<CComponent>	pPage;
+	size			i;
+
+	if (uiIndex >= mpTabs->NumTabs())
+	{
+		return NULL;
+	}
+	pPage = mpTabs->GetPage(uiIndex);
+	for (i = 0; i < maPanes.Size(); i++)
+	{
+		if (maPanes.Get(i)->GetContent() == pPage)
+		{
+			return maPanes.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDockGroup::MovePane(Ptr<CDockPane> pPane, size uiIndex)
 {
-	size				uiOld;
-	Ptr<CMenuContainer>	pMenu;
+	Ptr<CTabComponent>	pTab;
 
-	uiOld = IndexOfPane(pPane);
-	if (uiOld == ARRAY_ELEMENT_NOT_FOUND)
+	pTab = GetTab(pPane);
+	if (pTab.IsNull())
 	{
 		return false;
 	}
-	if (uiIndex >= maPanes.Size())
-	{
-		uiIndex = maPanes.Size() - 1;
-	}
-	if (uiIndex == uiOld)
-	{
-		return true;
-	}
-	pMenu = maMenus.Get(uiOld);
-	mpTabs->MoveTab(mpTabs->GetTab(uiOld), uiIndex);
-	maPanes.RemoveAt(uiOld);
-	maMenus.RemoveAt(uiOld);
-	maPanes.Insert(uiIndex, pPane);
-	maMenus.Insert(uiIndex, pMenu);
-	return true;
+	return mpTabs->MoveTab(pTab, uiIndex);
 }
 
 
@@ -373,15 +392,13 @@ bool CDockGroup::MovePane(Ptr<CDockPane> pPane, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::PaneChanged(Ptr<CDockPane> pPane)
 {
-	size				uiIndex;
 	Ptr<CTabComponent>	pTab;
 
-	uiIndex = IndexOfPane(pPane);
-	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	pTab = GetTab(pPane);
+	if (pTab.IsNull())
 	{
 		return;
 	}
-	pTab = mpTabs->GetTab(uiIndex);
 	if (StringCompare(pTab->GetText(), pPane->GetTitle()) != 0)
 	{
 		pTab->SetText(pPane->GetTitle());
@@ -453,21 +470,32 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 	Ptr<CMenuContainer>	pMenu;
 
 	pMenu = OMalloc<CMenuContainer>(mpWindow, mpManager->GetTheme());
-	pMenu->AddItem(gaszDockMenuItems[DMI_Float]);
-	pMenu->AddItem(gaszDockMenuItems[DMI_Dock]);
+	AddMenuItem(pMenu, DMI_Float);
+	AddMenuItem(pMenu, DMI_Dock);
 	if (pPane->IsDocument())
 	{
 		pMenu->AddSeparator();
-		pMenu->AddItem(gaszDockMenuItems[DMI_Close]);
+		AddMenuItem(pMenu, DMI_Close);
 	}
 	else
 	{
-		pMenu->AddItem(gaszDockMenuItems[DMI_DockAsDocument]);
-		pMenu->AddItem(gaszDockMenuItems[DMI_AutoHide]);
-		pMenu->AddItem(gaszDockMenuItems[DMI_Hide]);
+		AddMenuItem(pMenu, DMI_DockAsDocument);
+		AddMenuItem(pMenu, DMI_AutoHide);
+		AddMenuItem(pMenu, DMI_Hide);
 	}
 	pMenu->GetItemClickEvent()->Add(this, &CDockGroup::MenuItemClicked);
 	return pMenu;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The item is tagged with what it does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGroup::AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem)
+{
+	pMenu->AddItem(gaszDockMenuItems[eItem])->SetTag(eItem);
 }
 
 
@@ -477,14 +505,14 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMenuContainer> CDockGroup::GetMenu(Ptr<CDockPane> pPane)
 {
-	size	uiIndex;
+	Ptr<CTabComponent>	pTab;
 
-	uiIndex = IndexOfPane(pPane);
-	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	pTab = GetTab(pPane);
+	if (pTab.IsNull())
 	{
 		return NULL;
 	}
-	return maMenus.Get(uiIndex);
+	return pTab->GetContextMenu();
 }
 
 
@@ -542,9 +570,9 @@ void CDockGroup::TabSelected(CTabComponent* pcTab)
 
 	UpdateTitle();
 	uiIndex = FindTab(pcTab);
-	if (uiIndex < maPanes.Size())
+	if (uiIndex < NumPanes())
 	{
-		mpManager->PaneSelected(maPanes.Get(uiIndex));
+		mpManager->PaneSelected(GetPane(uiIndex));
 	}
 }
 
@@ -559,9 +587,9 @@ void CDockGroup::TabDragged(CTabComponent* pcTab)
 	size	uiIndex;
 
 	uiIndex = FindTab(pcTab);
-	if (uiIndex < maPanes.Size())
+	if (uiIndex < NumPanes())
 	{
-		mpManager->BeginPaneDrag(maPanes.Get(uiIndex));
+		mpManager->BeginPaneDrag(GetPane(uiIndex));
 	}
 }
 
@@ -576,9 +604,9 @@ void CDockGroup::TabDoubleClicked(CTabComponent* pcTab)
 	size	uiIndex;
 
 	uiIndex = FindTab(pcTab);
-	if (uiIndex < maPanes.Size())
+	if (uiIndex < NumPanes())
 	{
-		mpManager->ToggleFloat(maPanes.Get(uiIndex));
+		mpManager->ToggleFloat(GetPane(uiIndex));
 	}
 }
 
@@ -593,9 +621,9 @@ void CDockGroup::TabCloseRequested(CTabComponent* pcTab)
 	size	uiIndex;
 
 	uiIndex = FindTab(pcTab);
-	if (uiIndex < maPanes.Size())
+	if (uiIndex < NumPanes())
 	{
-		mpManager->Close(maPanes.Get(uiIndex));
+		mpManager->Close(GetPane(uiIndex));
 	}
 }
 
@@ -679,37 +707,20 @@ void CDockGroup::CloseButtonPressed(CDockTitleBar* pcTitleBar)
 void CDockGroup::MenuItemClicked(CMenuItem* pcItem)
 {
 	size				i;
-	size				uiItem;
-	Ptr<CMenuContainer>	pMenu;
 	Ptr<CDockPane>		pPane;
-	int					iItem;
-	char*				szText;
+	Ptr<CMenuContainer>	pMenu;
+	int32				iItem;
 
-	for (i = 0; i < maMenus.Size(); i++)
-	{
-		pMenu = maMenus.Get(i);
-		for (uiItem = 0; uiItem < pMenu->NumItems(); uiItem++)
-		{
-			if (&pMenu->GetItem(uiItem) == pcItem)
-			{
-				pPane = maPanes.Get(i);
-				break;
-			}
-		}
-		if (pPane.IsNotNull())
-		{
-			break;
-		}
-	}
-	if (pPane.IsNull())
+	iItem = pcItem->GetTag();
+	if ((iItem < 0) || (iItem >= DMI_NumItems))
 	{
 		return;
 	}
-
-	szText = pcItem->GetText();
-	for (iItem = 0; iItem < DMI_NumItems; iItem++)
+	for (i = 0; i < NumPanes(); i++)
 	{
-		if (StringCompare(szText, gaszDockMenuItems[iItem]) == 0)
+		pPane = GetPane(i);
+		pMenu = GetMenu(pPane);
+		if (pMenu.IsNotNull() && pcItem->IsWithin(pMenu))
 		{
 			mpManager->MenuChosen(pPane, (EDockMenuItem)iItem);
 			return;
@@ -723,11 +734,14 @@ void CDockGroup::MenuItemClicked(CMenuItem* pcItem)
 //
 //////////////////////////////////////////////////////////////////////////
 size					CDockGroup::NumPanes(void) { return maPanes.Size(); }
-Ptr<CDockPane>			CDockGroup::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }
 bool					CDockGroup::IsActive(void) { return mbActive; }
 int32					CDockGroup::GetID(void) { return miID; }
 void					CDockGroup::SetID(int32 iID) { miID = iID; }
 bool					CDockGroup::IsDocumentGroup(void) { return mbDocuments; }
 Ptr<CTabbedContainer>	CDockGroup::GetTabs(void) { return mpTabs; }
 Ptr<CDockTitleBar>		CDockGroup::GetTitleBar(void) { return mpTitleBar; }
+
+
+size					CDockGroup::CountPanes(void) { return NumPanes(); }
+Ptr<CDockPane>			CDockGroup::GetTreePane(size uiIndex) { return GetPane(uiIndex); }
 

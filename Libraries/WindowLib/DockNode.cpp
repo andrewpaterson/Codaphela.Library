@@ -106,23 +106,16 @@ Ptr<CDockGroup> CDockNode::FindGroupAt(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 bool CDockNode::HasDocuments(void)
 {
-	CArray<CDockPane>	aPanes;
-	size				i;
-	bool				bDocuments;
+	size	i;
 
-	aPanes.Init();
-	GetPanes(&aPanes);
-	bDocuments = false;
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < CountPanes(); i++)
 	{
-		if (aPanes.Get(i)->IsDocument())
+		if (GetTreePane(i)->IsDocument())
 		{
-			bDocuments = true;
-			break;
+			return true;
 		}
 	}
-	aPanes.Kill();
-	return bDocuments;
+	return false;
 }
 
 
@@ -132,14 +125,40 @@ bool CDockNode::HasDocuments(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDockNode::IsEmpty(void)
 {
-	CArray<CDockPane>	aPanes;
-	bool				bEmpty;
+	return CountPanes() == 0;
+}
 
-	aPanes.Init();
-	GetPanes(&aPanes);
-	bEmpty = aPanes.Size() == 0;
-	aPanes.Kill();
-	return bEmpty;
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pane in the node takes the state, docked in the main area or
+// floating.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockNode::SetPaneStates(EDockPaneState eState)
+{
+	size	i;
+
+	for (i = 0; i < CountPanes(); i++)
+	{
+		GetTreePane(i)->SetState(eState);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pane in the node remembers it floated at pcRectangle.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockNode::SetPaneFloatRectangles(CInt32Rect* pcRectangle)
+{
+	size	i;
+
+	for (i = 0; i < CountPanes(); i++)
+	{
+		GetTreePane(i)->SetFloatRectangle(pcRectangle);
+	}
 }
 
 
@@ -150,7 +169,43 @@ bool CDockNode::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CDockSplit> CDockNode::GetParentSplit(void)
 {
-	return Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(&mpParent));
+	CDockNode*	pcParent;
+
+	pcParent = dynamic_cast<CDockNode*>(&mpParent);
+	return (pcParent != NULL) ? pcParent->AsSplit() : Ptr<CDockSplit>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The split, well or area the node is in, NULL if it is in none.
+//
+//////////////////////////////////////////////////////////////////////////
+CDockNodeHolder* CDockNode::GetHolder(void)
+{
+	return dynamic_cast<CDockNodeHolder*>(&mpParent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node as a split, NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockSplit> CDockNode::AsSplit(void)
+{
+	return Ptr<CDockSplit>(dynamic_cast<CDockSplit*>(this));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node as a group, NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockGroup> CDockNode::AsGroup(void)
+{
+	return Ptr<CDockGroup>(dynamic_cast<CDockGroup*>(this));
 }
 
 
@@ -192,6 +247,17 @@ EDockSide OppositeDockSide(EDockSide eSide)
 bool IsHorizontalDockSide(EDockSide eSide)
 {
 	return (eSide == DS_Left) || (eSide == DS_Right);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Right and bottom come after what they are beside in its split.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsAfterDockSide(EDockSide eSide)
+{
+	return (eSide == DS_Right) || (eSide == DS_Bottom);
 }
 
 

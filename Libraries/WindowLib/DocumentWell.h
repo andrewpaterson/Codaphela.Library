@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //Where documents are, in the main window's dock area; tool panes dock around it.  It holds its own tree of splits and
 //document groups (Visual Studio's New Horizontal and Vertical Tab Groups), or nothing, when it shows its background.
 //It is always in the main dock area, even empty, and takes whatever space the panes around it leave.
-class CDocumentWell : public CDockNode
+class CDocumentWell : public CDockNode, public CDockNodeHolder
 {
 CONSTRUCTABLE(CDocumentWell);
 DESTRUCTABLE(CDocumentWell);
@@ -42,11 +42,15 @@ public:
 	EDockNodeKind		GetKind(void) override;
 	bool				ContainsDocumentWell(void) override;
 	void				GetPanes(CArray<CDockPane>* paPanes) override;
+	size				CountPanes(void) override;
+	Ptr<CDockPane>		GetTreePane(size uiIndex) override;
 	Ptr<CDockGroup>		FindGroupAt(int x, int y) override;
 	Ptr<CDockGroup>		GetFirstGroup(void) override;
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void				SetRoot(Ptr<CDockNode> pRoot);
+	bool				ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
+	bool				RemoveNode(Ptr<CDockNode> pNode) override;
 	Ptr<CDockNode>		GetRoot(void);
 };
 

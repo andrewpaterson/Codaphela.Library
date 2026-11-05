@@ -38,31 +38,20 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_HIDE_EDGE			4	//A flyout's inner edge, dragged to resize it.
 
 
-//One line of text read top to bottom, drawn with a font turned clockwise (FT_Clockwise): Visual Studio's auto hide tabs
-//on the left and right edges.  Its required size is the line height across and the text's length down.
-class CTurnedLabel : public CCanvas
+//A label whose one line of text reads top to bottom, drawn with a font turned clockwise (FT_Clockwise): Visual Studio's
+//auto hide tabs on the left and right edges.  Its required size is the line height across and the text's length down.
+class CTurnedLabel : public CLabel
 {
 CONSTRUCTABLE(CTurnedLabel);
 DESTRUCTABLE(CTurnedLabel);
-protected:
-	CChars				mszText;
-	Ptr<CFont>			mpFont;
-	Ptr<CSpriteMap>		mpSpriteMap;
-	Ptr<CMaps>			mpMaps;
-	SInt32Vec2			msRequiredSize;
-
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CFont> pTurnedFont, const char* szText);
 	void			Class(void) override;
-	void 			Free(void) override;
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
-	void			SetText(const char* szText);
-	char*			GetText(void);
-	SInt32Vec2		GetDesiredSize(void) override;
 
 protected:
-	void			LayoutText(void);
+	void			LayoutText(void) override;
 };
 
 
@@ -85,7 +74,7 @@ protected:
 	Ptr<CCanvas>			mpBackground;
 	Ptr<CClearCanvasDraw>	mpLineDraw;
 	Ptr<CCanvas>			mpLine;
-	Ptr<CCanvas>			mpText;  //A CLabel or a CTurnedLabel.
+	Ptr<CLabel>				mpText;  //A CTurnedLabel on a side strip with a turned font.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr<CDockPane> pPane, EDockSide eSide);
@@ -98,6 +87,7 @@ public:
 	bool				IsVertical(void);
 	int32				GetLength(void);
 	void				TitleChanged(void);
+	char*				GetText(void);
 	void				FocusOrMouseOverChanged(void) override;
 	void				ActivateComponent(int x, int y);
 	void				Hover(void);

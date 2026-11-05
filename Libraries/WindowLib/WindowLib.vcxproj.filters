@@ -300,6 +300,12 @@
     <ClInclude Include="DockArea.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="DockColour.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockDrag.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
     <ClInclude Include="DockEdge.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
@@ -312,6 +318,9 @@
     <ClInclude Include="DockGuides.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="DockLayoutFile.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
     <ClInclude Include="DockManager.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
@@ -322,6 +331,9 @@
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
     <ClInclude Include="DockSplit.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockTree.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
     <ClInclude Include="DockTitleBar.h">
@@ -575,6 +587,9 @@
     <ClCompile Include="DockArea.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
+    <ClCompile Include="DockDrag.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
     <ClCompile Include="DockEdge.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
@@ -587,13 +602,10 @@
     <ClCompile Include="DockGuides.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
+    <ClCompile Include="DockLayoutFile.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
     <ClCompile Include="DockManager.cpp">
-      <Filter>Source\Component\Docking</Filter>
-    </ClCompile>
-    <ClCompile Include="DockManagerDrag.cpp">
-      <Filter>Source\Component\Docking</Filter>
-    </ClCompile>
-    <ClCompile Include="DockManagerLayout.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockNode.cpp">
@@ -603,6 +615,9 @@
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockSplit.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockTree.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockTitleBar.cpp">

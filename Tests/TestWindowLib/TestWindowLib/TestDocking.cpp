@@ -17,9 +17,12 @@
 #include "WindowLib/DockFloatingWindow.h"
 #include "WindowLib/DockGuides.h"
 #include "WindowLib/AutoHide.h"
+#include "WindowLib/MenuContainer.h"
+#include "WindowLib/MenuItem.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
+#include "ScriptFramesTick.h"
 #include "DataTestRefWindow.h"
 
 
@@ -259,7 +262,7 @@ struct SDockTest
 	Ptr<CDockPane>				pFirstDoc;
 	Ptr<CDockPane>				pSecondDoc;
 
-	void Init(CWinRefWindowFactory* pcFactory);
+	void Init(CWinRefWindowFactory* pcFactory, char* szImagePath = NULL);
 	void Kill(void);
 };
 
@@ -271,12 +274,12 @@ struct SDockTest
 // documents.
 //
 //////////////////////////////////////////////////////////////////////////
-void SDockTest::Init(CWinRefWindowFactory* pcFactory)
+void SDockTest::Init(CWinRefWindowFactory* pcFactory, char* szImagePath)
 {
 	CPointer	pNull;
 	SDockPlace	sPlace;
 
-	pcFactory->Init(&gcMemoryAllocator, 800, 600, NULL);
+	pcFactory->Init(&gcMemoryAllocator, 800, 600, szImagePath);
 	pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 	pWindow = OMalloc<CWindow>("Docking", pcFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(pWindow);
@@ -464,8 +467,8 @@ void TestDockingHideFloatAutoHide(void)
 		AssertTrue(sTest.pExplorer->GetContent()->GetParent().IsNull());
 		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
 		AssertInt(0, cBounds.GetLeft());
-		AssertString(DOCK_WELL_NEIGHBOUR, sTest.pExplorer->GetRestoreNeighbour());
-		AssertInt(DS_Left, sTest.pExplorer->GetRestoreSide());
+		AssertString(DOCK_WELL_NEIGHBOUR, sTest.pExplorer->GetRestore()->szNeighbour.Text());
+		AssertInt(DS_Left, sTest.pExplorer->GetRestore()->eSide);
 		sTest.pManager->Show(sTest.pExplorer);
 		sTest.pWindow->Layout();
 		AssertInt(DPS_Docked, sTest.pExplorer->GetState());
@@ -476,8 +479,8 @@ void TestDockingHideFloatAutoHide(void)
 		//Errors hidden from Output's group goes back into it, where it was.
 		sTest.pManager->Hide(sTest.pErrors);
 		AssertSize(1, pOutputGroup->NumPanes());
-		AssertString("Output", sTest.pErrors->GetRestoreNeighbour());
-		AssertInt(DS_Centre, sTest.pErrors->GetRestoreSide());
+		AssertString("Output", sTest.pErrors->GetRestore()->szNeighbour.Text());
+		AssertInt(DS_Centre, sTest.pErrors->GetRestore()->eSide);
 		sTest.pManager->Show(sTest.pErrors);
 		AssertTrue(sTest.pErrors->GetGroup() == pOutputGroup);
 		AssertSize(1, pOutputGroup->IndexOfPane(sTest.pErrors));
@@ -1076,6 +1079,473 @@ void TestDockingSplitsMerged(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pane's new title shows on its tab and title bar, on its auto hide tab
+// and flyout, and on its floating window's title bar and title.  The dock
+// colours are the theme's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingTitlesAndColours(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest					sTest;
+		Ptr<CAutoHideStrip>			pStrip;
+		Ptr<CDockFloatingWindow>	pFloating;
+		CInt32Rect					cRect;
+		ARGB32						sColour;
+
+		sTest.Init(&cNativeFactory);
+
+		sTest.pManager->Activate(sTest.pExplorer);
+		sTest.pExplorer->SetTitle("Explorer 2");
+		AssertString("Explorer 2", sTest.pExplorer->GetGroup()->GetTitleBar()->GetTitle());
+		AssertString("Explorer 2", sTest.pExplorer->GetGroup()->GetTab(sTest.pExplorer)->GetText());
+
+		sTest.pManager->AutoHide(sTest.pExplorer);
+		pStrip = sTest.pManager->GetArea()->GetStrip(DS_Left);
+		sTest.pExplorer->SetTitle("Explorer 3");
+		AssertString("Explorer 3", pStrip->FindTab(sTest.pExplorer)->GetText());
+		sTest.pManager->ShowFlyout(sTest.pExplorer);
+		sTest.pExplorer->SetTitle("Explorer 4");
+		AssertString("Explorer 4", sTest.pManager->GetFlyout()->GetTitleBar()->GetTitle());
+		AssertString("Explorer 4", pStrip->FindTab(sTest.pExplorer)->GetText());
+		sTest.pManager->Dock(sTest.pExplorer);
+
+		//A floating window's title is its selected pane's, on its own title bar when it has one too.
+		cRect.Init(100, 100, 400, 400);
+		sTest.pManager->Float(sTest.pFirstDoc, &cRect);
+		pFloating = sTest.pManager->FindFloating(sTest.pFirstDoc);
+		AssertString("First.cpp", pFloating->GetWindow()->GetWindowTitle());
+		sTest.pFirstDoc->SetTitle("First.cpp*");
+		AssertString("First.cpp*", pFloating->GetWindow()->GetWindowTitle());
+		AssertString("First.cpp*", pFloating->GetTitleBar()->GetTitle());
+		AssertString("First.cpp*", sTest.pFirstDoc->GetGroup()->GetTab(sTest.pFirstDoc)->GetText());
+
+		//The colours are the theme's, and setting them sets the theme's.
+		AssertInt(sTest.pTheme->GetDockColour(DC_ActiveTitleBar), sTest.pManager->GetColour(DC_ActiveTitleBar));
+		sColour = Set32BitColour((uint8)1, (uint8)2, (uint8)3);
+		sTest.pTheme->SetDockColour(DC_Sash, sColour);
+		AssertInt(sColour, sTest.pManager->GetColour(DC_Sash));
+		sTest.pManager->SetColour(DC_Guide, sColour);
+		AssertInt(sColour, sTest.pTheme->GetDockColour(DC_Guide));
+
+		pStrip = NULL;
+		pFloating = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tab's window position menu does what its items are tagged with,
+// whatever their text says; each pane's menu acts on that pane.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingMenus(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		Ptr<CDockGroup>			pGroup;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CMenuContainer>		pOtherMenu;
+		Ptr<CMenuItem>			pItem;
+		CInt32Rect				cBounds;
+		size					i;
+
+		sTest.Init(&cNativeFactory);
+		pGroup = sTest.pOutput->GetGroup();
+		pMenu = pGroup->GetMenu(sTest.pErrors);
+		pOtherMenu = pGroup->GetMenu(sTest.pOutput);
+		AssertTrue(pMenu.IsNotNull());
+		AssertTrue(pMenu != pOtherMenu);
+		AssertTrue(pGroup->GetTab(sTest.pErrors)->GetContextMenu() == pMenu);
+
+		//The Hide item, renamed, still hides Errors and only Errors.
+		pItem = NULL;
+		for (i = 0; i < pMenu->NumItems(); i++)
+		{
+			if (pMenu->GetItem(i)->GetTag() == DMI_Hide)
+			{
+				pItem = pMenu->GetItem(i);
+			}
+		}
+		AssertTrue(pItem.IsNotNull());
+		pItem->SetText("Verstecken");
+		pGroup->OpenMenu(sTest.pErrors, SInt32Vec2(300, 200));
+		sTest.pWindow->Layout();
+		pItem->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 10, cBounds.GetTop() + cBounds.GetHeight() / 2);
+		DockRelease(sTest.pWindow);
+		AssertInt(DPS_Hidden, sTest.pErrors->GetState());
+		AssertInt(DPS_Docked, sTest.pOutput->GetState());
+
+		//A document's menu floats it.
+		pGroup = sTest.pFirstDoc->GetGroup();
+		pMenu = pGroup->GetMenu(sTest.pFirstDoc);
+		AssertInt(DMI_Float, pMenu->GetItem(0)->GetTag());
+		pGroup->OpenMenu(sTest.pFirstDoc, SInt32Vec2(300, 200));
+		sTest.pWindow->Layout();
+		pMenu->GetItem(0)->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 10, cBounds.GetTop() + cBounds.GetHeight() / 2);
+		DockRelease(sTest.pWindow);
+		AssertInt(DPS_Floating, sTest.pFirstDoc->GetState());
+		AssertInt(DPS_Docked, sTest.pSecondDoc->GetState());
+
+		pGroup = NULL;
+		pMenu = NULL;
+		pOtherMenu = NULL;
+		pItem = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Control+F4 closes the active document and Shift+Escape hides the active
+// tool window, from anywhere in the dock area.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingKeys(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		CInt32Rect				cBounds;
+
+		sTest.Init(&cNativeFactory);
+
+		//The focus on the Second.cpp's tab, in the dock area.
+		sTest.pFirstDoc->GetGroup()->GetTab(sTest.pSecondDoc)->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pManager->GetActiveDocument() == sTest.pSecondDoc);
+		sTest.pWindow->InputCommand(CIC_CloseDocument, true);
+		AssertInt(DPS_Removed, sTest.pSecondDoc->GetState());
+		AssertInt(1, sTest.cListener.miClosed);
+		AssertTrue(sTest.pManager->GetActiveDocument() == sTest.pFirstDoc);
+
+		//Output active, the focus on its tab.
+		sTest.pManager->Activate(sTest.pOutput);
+		sTest.pOutput->GetGroup()->GetTab(sTest.pOutput)->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pManager->GetActivePane() == sTest.pOutput);
+		sTest.pWindow->InputCommand(CIC_HideToolWindow, true);
+		AssertInt(DPS_Hidden, sTest.pOutput->GetState());
+
+		//Neither touches a document as the active pane: Shift+Escape on a document does nothing.
+		sTest.pManager->Activate(sTest.pFirstDoc);
+		sTest.pWindow->InputCommand(CIC_HideToolWindow, true);
+		AssertInt(DPS_Docked, sTest.pFirstDoc->GetState());
+
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A selected tab cut off past a narrow tool group's edge is moved to the
+// front; the flyout slides back when the focus goes elsewhere; a pane
+// whose neighbour is hidden comes back where the neighbour would; a drag
+// that shouldn't dock (Control held) floats.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingBehaviour(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		SDockPlace				sPlace;
+		Ptr<CDockPane>			pFind;
+		Ptr<CDockPane>			pWatch;
+		Ptr<CDockPane>			pExtra;
+		Ptr<CTabbedContainer>	pTabs;
+		CInt32Rect				cScreen;
+		CInt32Rect				cGroup;
+		CInt32Rect				cBounds;
+		CInt32Rect				cWell;
+		SDockTarget				sTarget;
+		Ptr<CDockGroup>			pOutputGroup;
+		SInt32Vec2				sStart;
+
+		sTest.Init(&cNativeFactory);
+
+		//The last tab of a narrow tool group, selected, comes to the front where it shows.
+		sPlace.WithPane("Output");
+		pFind = sTest.pManager->AddPane("Find", "Find Results", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pWatch = sTest.pManager->AddPane("Watch", "Watch Window", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		pOutputGroup = sTest.pOutput->GetGroup();
+		pTabs = pOutputGroup->GetTabs();
+		cScreen.Init(0, 0, 520, 600);
+		sTest.pWindow->SetScreenRectangle(&cScreen);
+		sTest.pManager->Show(sTest.pOutput);
+		sTest.pWindow->Layout();
+		sTest.pManager->Show(pWatch);
+		sTest.pWindow->Layout();
+		AssertSize(0, pOutputGroup->IndexOfPane(pWatch));
+		AssertTrue(pOutputGroup->GetSelectedPane() == pWatch);
+		pOutputGroup->GetActualBounds(&cGroup);
+		pOutputGroup->GetTab(pWatch)->GetActualBounds(&cBounds);
+		AssertInt(cGroup.GetLeft(), cBounds.GetLeft());
+		AssertTrue(pOutputGroup->GetPane(0) == pWatch);
+		AssertTrue(pWatch->GetGroup()->GetTabs()->GetPage(0) == pWatch->GetContent());
+		cScreen.Init(0, 0, 800, 600);
+		sTest.pWindow->SetScreenRectangle(&cScreen);
+		sTest.pWindow->Layout();
+
+		//The flyout slides back when a title bar elsewhere takes the focus.
+		sTest.pManager->AutoHide(sTest.pExplorer);
+		sTest.pManager->ShowFlyout(sTest.pExplorer);
+		sTest.pWindow->Layout();
+		AssertTrue(sTest.pManager->GetFlyout().IsNotNull());
+		sTest.pProperties->GetGroup()->GetTitleBar()->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 10, cBounds.GetTop() + 5);
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pManager->GetFlyout().IsNull());
+		sTest.pManager->Dock(sTest.pExplorer);
+
+		//Extra, docked into Output's group, is hidden, then the rest of the group.  Shown again it goes under the well,
+		//where its neighbour would go back, not to its own default on the right.
+		sPlace.BesideWell(DS_Right, 100);
+		pExtra = sTest.pManager->AddPane("Extra", "Extra", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
+		sTarget.Init();
+		sTarget.eKind = DTK_Group;
+		sTarget.eSide = DS_Centre;
+		sTarget.pcArea = &sTest.pManager->GetArea();
+		sTarget.pcNode = &pOutputGroup;
+		AssertTrue(sTest.pManager->DockPaneAt(pExtra, &sTarget));
+		AssertTrue(pExtra->GetGroup() == pOutputGroup);
+		sTest.pWindow->Layout();
+		sTest.pManager->Hide(pExtra);
+		sTest.pManager->Hide(pFind);
+		sTest.pManager->Hide(pWatch);
+		sTest.pManager->Hide(sTest.pErrors);
+		sTest.pManager->Hide(sTest.pOutput);
+		sTest.pWindow->Layout();
+		sTest.pManager->Show(pExtra);
+		sTest.pWindow->Layout();
+		pExtra->GetGroup()->GetActualBounds(&cBounds);
+		sTest.pManager->GetWell()->GetActualBounds(&cWell);
+		AssertTrue(cBounds.GetTop() >= cWell.GetTop() + cWell.GetHeight());
+		AssertInt(cWell.GetLeft(), cBounds.GetLeft());
+		sTest.pManager->Show(sTest.pOutput);
+		AssertTrue(sTest.pOutput->GetGroup() == pExtra->GetGroup());
+
+		//A drag that isn't to dock, as with Control held, floats where it is let go even over a guide.
+		sTest.pWindow->Layout();
+		pExtra->GetGroup()->GetTitleBar()->GetActualBounds(&cBounds);
+		sStart.Init(cBounds.GetLeft() + 20, cBounds.GetTop() + 5);
+		DockPress(sTest.pWindow, sStart.x, sStart.y);
+		DockMove(sTest.pWindow, sStart.x + 10, sStart.y - 10);
+		AssertTrue(sTest.pManager->IsDragging());
+		sTest.pManager->SetDragNoDock(true);
+		DockMove(sTest.pWindow, 8 + DOCK_GUIDE_SIZE / 2, 300);
+		AssertFalse(sTest.pManager->GetTarget()->IsValid());
+		AssertTrue(sTest.pManager->GetArea()->GetGuides().IsNull());
+		DockRelease(sTest.pWindow);
+		AssertInt(DPS_Floating, pExtra->GetState());
+
+		pFind = NULL;
+		pWatch = NULL;
+		pExtra = NULL;
+		pTabs = NULL;
+		pOutputGroup = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Floating windows are kept on the screen; a layout read before the main
+// window is shown puts it where it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingScreen(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	CTextFile				cFile;
+
+	cFileUtil.MakeDir("Output" _FS_ "Docking");
+	{
+		SDockTest				sTest;
+		CInt32Rect				cRect;
+		CInt32Rect				cScreen;
+
+		sTest.Init(&cNativeFactory);
+
+		//Without a screen nothing is moved.
+		cRect.Init(900, 600, 1200, 900);
+		sTest.pManager->Float(sTest.pProperties, &cRect);
+		sTest.pManager->FindFloating(sTest.pProperties)->GetRectangle(&cRect);
+		AssertInt(900, cRect.GetLeft());
+		sTest.pManager->Dock(sTest.pProperties);
+
+		//On a 1000 x 700 screen it is moved back onto it, and shrunk to fit.
+		cScreen.Init(0, 0, 1000, 700);
+		cNativeFactory.SetScreenArea(&cScreen);
+		cRect.Init(900, 600, 1200, 900);
+		sTest.pManager->Float(sTest.pProperties, &cRect);
+		sTest.pManager->FindFloating(sTest.pProperties)->GetRectangle(&cRect);
+		AssertInt(700, cRect.GetLeft());
+		AssertInt(400, cRect.GetTop());
+		AssertInt(300, cRect.GetWidth());
+		sTest.pManager->Dock(sTest.pProperties);
+		cRect.Init(-50, -20, 1500, 400);
+		sTest.pManager->Float(sTest.pProperties, &cRect);
+		sTest.pManager->FindFloating(sTest.pProperties)->GetRectangle(&cRect);
+		AssertInt(0, cRect.GetLeft());
+		AssertInt(0, cRect.GetTop());
+		AssertInt(1000, cRect.GetWidth());
+		sTest.pManager->Dock(sTest.pProperties);
+
+		//The main window, not shown yet, goes where the layout says, kept on the screen.
+		cFile.Init();
+		cFile.mcText.Append("<DockLayout Version=\"1\" NextGroup=\"10\">\n");
+		cFile.mcText.Append("  <MainWindow X=\"50\" Y=\"40\" Width=\"700\" Height=\"500\">\n");
+		cFile.mcText.Append("    <DocumentWell/>\n");
+		cFile.mcText.Append("  </MainWindow>\n");
+		cFile.mcText.Append("</DockLayout>\n");
+		AssertTrue(cFile.Write("Output" _FS_ "Docking" _FS_ "Window.xml"));
+		cFile.Kill();
+		AssertFalse(sTest.pWindow->IsShown());
+		AssertTrue(sTest.pManager->LoadLayout("Output" _FS_ "Docking" _FS_ "Window.xml"));
+		sTest.pWindow->GetScreenRectangle(&cRect);
+		AssertInt(50, cRect.GetLeft());
+		AssertInt(40, cRect.GetTop());
+		AssertInt(700, cRect.GetWidth());
+		AssertInt(500, cRect.GetHeight());
+
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//Records how a dialog shown over a floating window left the windows.
+struct SFloatingDialogCheck
+{
+	CWindow*	pcMain;
+	CWindow*	pcFloating;
+	bool		bMainEnabled;
+	bool		bFloatingEnabled;
+	bool		bOverFloating;
+	int			iFrames;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The dialog's first frame looks at the windows and stops it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool FloatingDialogFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	SFloatingDialogCheck*	psCheck;
+
+	psCheck = (SFloatingDialogCheck*)pvContext;
+	psCheck->iFrames++;
+	psCheck->bMainEnabled = psCheck->pcMain->GetNativeWindow()->IsEnabled();
+	psCheck->bFloatingEnabled = psCheck->pcFloating->GetNativeWindow()->IsEnabled();
+	psCheck->bOverFloating = pWindow->GetNativeWindow()->GetOwner() == psCheck->pcFloating->GetNativeWindow();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A dialog shown over a floating window is over it, and the main window
+// and every floating window are disabled while it is shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingDialogOverFloating(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "DockingDialog";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+	{
+		SDockTest					sTest;
+		CInt32Rect					cRect;
+		Ptr<CDockFloatingWindow>	pFloating;
+		Ptr<CDockFloatingWindow>	pOther;
+		Ptr<CWindow>				pDialog;
+		Ptr<CScriptFramesTick>		pDialogTick;
+		SFloatingDialogCheck		sCheck;
+		CPointer					pNull;
+
+		sTest.Init(&cNativeFactory, szDirectory);
+		cRect.Init(100, 100, 400, 400);
+		sTest.pManager->Float(sTest.pProperties, &cRect);
+		cRect.Init(450, 100, 700, 400);
+		sTest.pManager->Float(sTest.pOutput, &cRect);
+		pFloating = sTest.pManager->FindFloating(sTest.pProperties);
+		pOther = sTest.pManager->FindFloating(sTest.pOutput);
+
+		memset(&sCheck, 0, sizeof(sCheck));
+		sCheck.pcMain = &sTest.pWindow;
+		sCheck.pcFloating = &pFloating->GetWindow();
+		sCheck.bMainEnabled = true;
+		sCheck.bFloatingEnabled = true;
+		pDialogTick = OMalloc<CScriptFramesTick>(FloatingDialogFrames, &sCheck);
+		pDialog = OMalloc<CWindow>("Dialog", &cNativeFactory, pDialogTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pDialog);
+		AssertTrue(pDialog->ShowModal(pFloating->GetWindow()));
+		AssertInt(1, sCheck.iFrames);
+		AssertFalse(sCheck.bMainEnabled);
+		AssertFalse(sCheck.bFloatingEnabled);
+		AssertTrue(sCheck.bOverFloating);
+		AssertTrue(sTest.pWindow->GetNativeWindow()->IsEnabled());
+		AssertTrue(pFloating->GetWindow()->GetNativeWindow()->IsEnabled());
+		AssertTrue(pOther->GetWindow()->GetNativeWindow()->IsEnabled());
+
+		ORoot()->Remove(pDialog);
+		pDialog = NULL;
+		pDialogTick = NULL;
+		pFloating = NULL;
+		pOther = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A pane's content moves to the floating window with everything of it,
 // tab pages not shown included.
 //
@@ -1223,6 +1693,12 @@ void TestDocking(void)
 	TestDockingDrag();
 	TestDockingNarrowToolTabs();
 	TestDockingSplitsMerged();
+	TestDockingTitlesAndColours();
+	TestDockingKeys();
+	TestDockingMenus();
+	TestDockingBehaviour();
+	TestDockingScreen();
+	TestDockingDialogOverFloating();
 	TestDockingMoveToWindow();
 	TestDockingLayoutFile();
 	ValidateLabelObjects();

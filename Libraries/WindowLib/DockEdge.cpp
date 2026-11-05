@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "Window.h"
 #include "DockManager.h"
+#include "DockDrag.h"
 #include "DockEdge.h"
 
 
@@ -247,7 +248,7 @@ void CDockDragTracker::ExecuteComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CDockDragTracker::ContDragSelect(int x, int y)
 {
-	mpManager->DragMoved();
+	mpManager->GetDrag()->Moved();
 }
 
 
@@ -257,7 +258,7 @@ void CDockDragTracker::ContDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CDockDragTracker::StopDragSelect(int x, int y)
 {
-	mpManager->DragDropped();
+	mpManager->GetDrag()->Dropped();
 }
 
 
@@ -268,7 +269,7 @@ void CDockDragTracker::StopDragSelect(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CDockDragTracker::Cancel(void)
 {
-	mpManager->DragCancelled();
+	mpManager->GetDrag()->Cancelled();
 	mpWindow->GetFocus()->StopDrag(FD_Select);
 }
 

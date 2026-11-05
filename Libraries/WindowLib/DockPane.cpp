@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "DockGroup.h"
+#include "DockManager.h"
 #include "DockPane.h"
 
 
@@ -78,6 +79,85 @@ void SDockPlace::Hidden(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Nowhere: no group, no neighbour.
+//
+//////////////////////////////////////////////////////////////////////////
+void SDockRestore::Init(void)
+{
+	iGroup = 0;
+	iIndex = 0;
+	szNeighbour.Init();
+	eSide = DS_None;
+	iSize = 0;
+	bInWell = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SDockRestore::Kill(void)
+{
+	szNeighbour.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The restore must be Init'ed.
+//
+//////////////////////////////////////////////////////////////////////////
+void SDockRestore::Copy(SDockRestore* psSource)
+{
+	iGroup = psSource->iGroup;
+	iIndex = psSource->iIndex;
+	SetNeighbour(psSource->szNeighbour.Text());
+	eSide = psSource->eSide;
+	iSize = psSource->iSize;
+	bInWell = psSource->bInWell;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void SDockRestore::SetNeighbour(const char* szNew)
+{
+	szNeighbour.Kill();
+	szNeighbour.Init();
+	if (szNew)
+	{
+		szNeighbour.Append(szNew);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SDockRestore::IsSet(void)
+{
+	return (iGroup != 0) || !szNeighbour.Empty() || bInWell;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Beside the document well on a side.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SDockRestore::IsBesideWell(void)
+{
+	return szNeighbour.Equals(DOCK_WELL_NEIGHBOUR) && (eSide != DS_None) && (eSide != DS_Centre);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // psDefault can be NULL: a tool goes beside the well on the left, a
 // document in the well.
 //
@@ -95,6 +175,7 @@ void CDockPane::Init(const char* szID, const char* szTitle, Ptr<CImageCel> pIcon
 	mbClosable = true;
 	meState = DPS_Removed;
 	mpGroup = NULL;
+	mpManager = NULL;
 
 	mszDefaultPane.Init();
 	if (psDefault)
@@ -120,8 +201,7 @@ void CDockPane::Init(const char* szID, const char* szTitle, Ptr<CImageCel> pIcon
 		miDefaultSize = 0;
 	}
 
-	mszRestoreNeighbour.Init();
-	ClearRestore();
+	msRestore.Init();
 	mcFloatRectangle.Init(0, 0, 0, 0);
 	meAutoHideSide = DS_None;
 	miAutoHideSize = 0;
@@ -145,16 +225,17 @@ void CDockPane::Class(void)
 	U_Bool(mbClosable);
 	U_Enum(meState);
 	M_Pointer(mpGroup);
+	M_Pointer(mpManager);
 	U_Enum(meDefaultKind);
 	U_Enum(meDefaultSide);
 	U_Int32(miDefaultSize);
 	U_String(mszDefaultPane);
-	U_Int32(miRestoreGroup);
-	U_Int32(miRestoreIndex);
-	U_String(mszRestoreNeighbour);
-	U_Enum(meRestoreSide);
-	U_Int32(miRestoreSize);
-	U_Bool(mbRestoreInWell);
+	U_Int32(msRestore.iGroup);
+	U_Int32(msRestore.iIndex);
+	U_String(msRestore.szNeighbour);
+	U_Enum(msRestore.eSide);
+	U_Int32(msRestore.iSize);
+	U_Bool(msRestore.bInWell);
 	U_Data(CInt32Rect, mcFloatRectangle);
 	U_Enum(meAutoHideSide);
 	U_Int32(miAutoHideSize);
@@ -170,7 +251,7 @@ void CDockPane::Free(void)
 	mszID.Kill();
 	mszTitle.Kill();
 	mszDefaultPane.Kill();
-	mszRestoreNeighbour.Kill();
+	msRestore.Kill();
 }
 
 
@@ -197,17 +278,15 @@ bool CDockPane::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The group shows the new title on its tab and title bar.
+// Everything showing the pane shows its new title: its tab and title
+// bar, its auto hide tab and flyout, its floating window's title.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockPane::SetTitle(const char* szTitle)
 {
 	mszTitle.Kill();
 	mszTitle.Init(szTitle);
-	if (mpGroup.IsNotNull())
-	{
-		mpGroup->PaneChanged(this);
-	}
+	Changed();
 }
 
 
@@ -218,10 +297,7 @@ void CDockPane::SetTitle(const char* szTitle)
 void CDockPane::SetIcon(Ptr<CImageCel> pIcon)
 {
 	mpIcon = pIcon;
-	if (mpGroup.IsNotNull())
-	{
-		mpGroup->PaneChanged(this);
-	}
+	Changed();
 }
 
 
@@ -238,10 +314,7 @@ void CDockPane::SetTabFont(Ptr<CFont> pFont)
 		return;
 	}
 	mpTabFont = pFont;
-	if (mpGroup.IsNotNull())
-	{
-		mpGroup->PaneChanged(this);
-	}
+	Changed();
 }
 
 
@@ -250,22 +323,12 @@ Ptr<CFont> CDockPane::GetTabFont(void) { return mpTabFont; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// iGroup 0 for no group, szNeighbour NULL for no neighbour.
+// A copy of psRestore is kept.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockPane::SetRestore(int32 iGroup, int32 iIndex, const char* szNeighbour, EDockSide eSide, int32 iSize, bool bInWell)
+void CDockPane::SetRestore(SDockRestore* psRestore)
 {
-	miRestoreGroup = iGroup;
-	miRestoreIndex = iIndex;
-	mszRestoreNeighbour.Kill();
-	mszRestoreNeighbour.Init();
-	if (szNeighbour)
-	{
-		mszRestoreNeighbour.Append(szNeighbour);
-	}
-	meRestoreSide = eSide;
-	miRestoreSize = iSize;
-	mbRestoreInWell = bInWell;
+	msRestore.Copy(psRestore);
 }
 
 
@@ -275,13 +338,8 @@ void CDockPane::SetRestore(int32 iGroup, int32 iIndex, const char* szNeighbour, 
 //////////////////////////////////////////////////////////////////////////
 void CDockPane::ClearRestore(void)
 {
-	miRestoreGroup = 0;
-	miRestoreIndex = 0;
-	mszRestoreNeighbour.Kill();
-	mszRestoreNeighbour.Init();
-	meRestoreSide = DS_None;
-	miRestoreSize = 0;
-	mbRestoreInWell = false;
+	msRestore.Kill();
+	msRestore.Init();
 }
 
 
@@ -337,13 +395,8 @@ EDockPlaceKind		CDockPane::GetDefaultKind(void) { return meDefaultKind; }
 EDockSide			CDockPane::GetDefaultSide(void) { return meDefaultSide; }
 int32				CDockPane::GetDefaultSize(void) { return miDefaultSize; }
 const char*			CDockPane::GetDefaultPane(void) { return mszDefaultPane.Text(); }
-int32				CDockPane::GetRestoreGroup(void) { return miRestoreGroup; }
-int32				CDockPane::GetRestoreIndex(void) { return miRestoreIndex; }
-const char*			CDockPane::GetRestoreNeighbour(void) { return mszRestoreNeighbour.Text(); }
-EDockSide			CDockPane::GetRestoreSide(void) { return meRestoreSide; }
-int32				CDockPane::GetRestoreSize(void) { return miRestoreSize; }
-bool				CDockPane::IsRestoreInWell(void) { return mbRestoreInWell; }
-bool				CDockPane::HasRestore(void) { return (miRestoreGroup != 0) || !mszRestoreNeighbour.Empty() || mbRestoreInWell; }
+bool				CDockPane::HasRestore(void) { return msRestore.IsSet(); }
+SDockRestore*		CDockPane::GetRestore(void) { return &msRestore; }
 EDockSide			CDockPane::GetAutoHideSide(void) { return meAutoHideSide; }
 int32				CDockPane::GetAutoHideSize(void) { return miAutoHideSize; }
 void				CDockPane::SetAutoHideSize(int32 iSize) { miAutoHideSize = iSize; }
@@ -369,4 +422,25 @@ const char* DockPaneStateToString(EDockPaneState eState)
 		return "Removed";
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its title, icon or tab font changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockPane::Changed(void)
+{
+	if (mpManager.IsNotNull())
+	{
+		mpManager->PaneChanged(this);
+	}
+	else if (mpGroup.IsNotNull())
+	{
+		mpGroup->PaneChanged(this);
+	}
+}
+
+
+void CDockPane::SetManager(Ptr<CDockManager> pManager) { mpManager = pManager; }
 

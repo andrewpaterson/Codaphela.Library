@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CheckBoxImages.h"
 #include "ScrollBarImages.h"
 #include "MenuStyle.h"
+#include "DockColour.h"
 
 
 //What a button looks like: a normal (outlined) one, a small one crowded in with text, or a flat one for a toolbar.
@@ -68,6 +69,7 @@ protected:
 	ARGB32					msTabHover;  //Behind a tab under the pointer.
 	ARGB32					msTabUnderline;  //Under the selected tab.
 	ARGB32					msTabSeparator;  //The line between the tabs and the page.
+	ARGB32					masDockColours[DC_NumColours];  //Docking's, by EDockColour.
 	Ptr<CImageCel>			mpTabClose;  //A tab's close cross, NULL for none.
 	Ptr<CImageCel>			mpTabCloseHover;  //The cross under the pointer.
 
@@ -107,6 +109,8 @@ public:
 	ARGB32					GetTabHoverColour(void);
 	ARGB32					GetTabUnderlineColour(void);
 	ARGB32					GetTabSeparatorColour(void);
+	void					SetDockColour(EDockColour eColour, ARGB32 sColour);
+	ARGB32					GetDockColour(EDockColour eColour);
 	Ptr<CImageCel>			GetTabClose(void);
 	Ptr<CImageCel>			GetTabCloseHover(void);
 };
