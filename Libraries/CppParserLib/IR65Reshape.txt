@@ -202,3 +202,20 @@ The jobs left in two shapes (2026-11-05):
   only a pointer whose uses are all addresses folds).  Following chains of them (p + 4 + 8 to p + 12, as the
   W65C816 does) was tried on the 65C64 and dropped: TestBaseLib65 +0.03%, the intermediate kept in a register
   being cheaper than reloading the base from memory at each access.
+
+Passes over the text, the W65C816's toward the 65C64's shape: done 2026-11-05.  CIR816Code (IR816Code.h/.cpp) is a
+function's code a line at a time, each line decoded once (IR816Decode), with its kind (label, tabbed, other); lines
+are changed (Set), taken out (Remove, RemoveMarked), put in (Insert, Append) through it.  The lines stay where they
+are made and the code is their order, so taking lines out moves only the order.  GenerateBody loads it once after
+the body is written, runs every pass on it (Peephole, PeepholeMasks, PeepholeStores, PeepholeTransfers,
+PeepholeBranches, PeepholeRegisters, RemoveUnreadStores, RemoveDeadStores, RemoveFlowDeadStores,
+PeepholeFlowRegisters) and writes it once; each pass keeps a text entry point for the tests.  The lookahead helpers
+(IR816DeadStore, IR816ZNReadAfter, IR816MovesS, IR816FindReads ...) take a line number, not a pointer into the text;
+a pass decides from the code as it was when it began, marking what goes, or writes new code when it puts lines in.
+The code written is the same (every TestBaseLib65 and TestStandardLib65 unit); the compile takes as long.
+
+Signed divides through the runtime list: done 2026-11-05.  The 65C64 back end notes R_DivideSigned and
+R_DivideSigned64 with UseRuntime, as any runtime routine (were the flags UsesSignedDivide and UsesSignedDivide64);
+the generator writes them when its runtime list names them (AppendRuntime), and GetExternals leaves out the
+routines the unit writes itself (R_ and the W65C816's R816_ ones, which it listed before), as its comment always
+said.  The code written is the same on both targets.
