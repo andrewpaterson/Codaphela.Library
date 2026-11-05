@@ -255,7 +255,6 @@
     <ClInclude Include="SoundStreamVoice.h" />
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="CodeEditor.h" />
-    <ClInclude Include="CodeEditorListener.h" />
     <ClInclude Include="LineZone.h" />
     <ClInclude Include="LineZones.h" />
     <ClInclude Include="LineZoneSource.h" />

@@ -41,8 +41,8 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	muiGutterLines = 0;
 	macMarks.Init();
 	mbMarksChanged = false;
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CCodeEditorListener>();
+	mcGutterClicked.Init();
+	mcChanged.Init();
 	CContainer::Init(pWindow);
 	SetSizedByContent(true);
 
@@ -81,7 +81,8 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Free(void)
 {
-	mcListeners.Kill();
+	mcChanged.Kill();
+	mcGutterClicked.Kill();
 	macMarks.Kill();
 	mauiLines.Kill();
 	mauiGapIds.Kill();
@@ -107,7 +108,8 @@ void CCodeEditor::Class(void)
 	U_Data(CArrayCodeEditorMarks, macMarks);
 	U_Bool(mbMarksChanged);
 	U_Size(muiSeenChanges);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CGutterClickEvent, mcGutterClicked);
+	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
 }
 
 
@@ -386,7 +388,7 @@ int32 CCodeEditor::GetGapHeight(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Catches up with edits to the code: the listeners are told of them,
+// Catches up with edits to the code: the change event is called,
 // line components whose lines went are removed, the others' gaps are as
 // high as they want, and the gutter is numbered and gapped like the code.
 //
@@ -399,7 +401,7 @@ void CCodeEditor::Update(void)
 	if (uiChanges != muiSeenChanges)
 	{
 		muiSeenChanges = uiChanges;
-		mcListeners.CallListeners(&CCodeEditorListener::CodeChanged, this, NULL);
+		mcChanged.Call(this);
 	}
 	UpdateLineComponents();
 	UpdateGutter();
@@ -603,8 +605,8 @@ void CCodeEditor::ClearLineMarks(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A press that came to the code editor (it focussed it) gives the focus to
-// the code, so what is typed goes there.  A press in the gutter tells the
-// listeners the line it was next to.
+// the code, so what is typed goes there.  A press in the gutter calls the
+// gutter click event with the line it was next to.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
@@ -625,7 +627,7 @@ void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 
 	//The gutter's rows are the code's, and so are its lines.
 	uiLine = mpGutter->FindLine(mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y));
-	mcListeners.CallListeners(&CCodeEditorListener::GutterClicked, this, &uiLine);
+	mcGutterClicked.Call(this, uiLine);
 }
 
 
@@ -673,21 +675,26 @@ void CCodeEditor::BringGutterToFront(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when the gutter is pressed, with the code editor and the line
+// the press was next to:
+// pEditor->GetGutterClickEvent()->Add(this, &CMyContent::LineChosen).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodeEditor::AddListener(CCodeEditorListener* pcListener)
+CGutterClickEvent* CCodeEditor::GetGutterClickEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
+	return &mcGutterClicked;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called with the code editor when it catches up with an edit to the
+// code, before its line components and gutter are updated.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodeEditor::RemoveListener(CCodeEditorListener* pcListener)
+CComponentEvent<CCodeEditor>* CCodeEditor::GetChangeEvent(void)
 {
-	return mcListeners.RemoveListener(pcListener);
+	return &mcChanged;
 }
 
 

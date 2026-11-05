@@ -25,36 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CLineZonesListener::Init(CLineZones* pcZones)
-{
-	mpcZones = pcZones;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLineZonesListener::GutterClicked(CUnknown* pcSource, void* pvContext)
-{
-	mpcZones->Toggle(*(size*)pvContext);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLineZonesListener::CodeChanged(CUnknown* pcSource, void* pvContext)
-{
-	mpcZones->CodeChanged();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // pCodeEditor's lines get zones, their headers in pTitleFont over text in
 // pTextFamily's fixed width font in sText, on sBackground.
 //
@@ -69,11 +39,11 @@ void CLineZones::Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Pt
 	mpTextFamily = pTextFamily;
 	msBackground = sBackground;
 	msText = sText;
-	mcListener.Init(this);
 	mpcSource = NULL;
 	mbOutOfDate = false;
 	maZones.Init();
-	mpCodeEditor->AddListener(&mcListener);
+	mpCodeEditor->GetGutterClickEvent()->Add(this, &CLineZones::GutterClicked);
+	mpCodeEditor->GetChangeEvent()->Add(this, &CLineZones::CodeChanged);
 
 	PostInit();
 }
@@ -91,7 +61,6 @@ void CLineZones::Class(void)
 	M_Pointer(mpTextFamily);
 	U_UInt32(msBackground);
 	U_UInt32(msText);
-	U_Unknown(CLineZonesListener, mcListener);
 	U_Pointer(mpcSource);
 	U_Bool(mbOutOfDate);
 	M_Embedded(maZones);
@@ -104,7 +73,22 @@ void CLineZones::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CLineZones::Free(void)
 {
-	mcListener.RemoveFromListenerCalls();
+	if (mpCodeEditor.IsNotNull())
+	{
+		mpCodeEditor->GetGutterClickEvent()->Remove(this);
+		mpCodeEditor->GetChangeEvent()->Remove(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A click on the line's mark in the gutter shows or hides its pages.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLineZones::GutterClicked(CCodeEditor* pcEditor, size uiLine)
+{
+	Toggle(uiLine);
 }
 
 

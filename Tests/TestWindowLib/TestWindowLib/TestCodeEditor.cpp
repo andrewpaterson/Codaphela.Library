@@ -31,9 +31,8 @@ Ptr<CFillContainer> CreateCodeEditorLineComponent(Ptr<CWindow> pWindow, int32 iH
 
 
 //Keeps the lines the gutter was clicked next to.
-class CTestCodeEditorListener : public CCodeEditorListener
+class CTestCodeEditorListener
 {
-CONSTRUCTABLE(CTestCodeEditorListener);
 public:
 	size	muiClicks;
 	size	muiLine;
@@ -44,10 +43,10 @@ public:
 		muiLine = MAX_SIZE;
 	}
 
-	void GutterClicked(CUnknown* pcSource, void* pvContext) override
+	void GutterClicked(CCodeEditor* pcEditor, size uiLine)
 	{
 		muiClicks++;
-		muiLine = *(size*)pvContext;
+		muiLine = uiLine;
 	}
 };
 
@@ -414,7 +413,7 @@ void TestCodeEditorGutterMarks(void)
 
 		//Next to line 2.
 		cListener.Init();
-		AssertTrue(pEditor->AddListener(&cListener));
+		pEditor->GetGutterClickEvent()->Add(&cListener, &CTestCodeEditorListener::GutterClicked);
 		pTestWindow->PointerMoved(iLeft + 2, iTop + iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
@@ -443,7 +442,7 @@ void TestCodeEditorGutterMarks(void)
 		pEditor->ClearLineMarks();
 		pTestWindow->Layout();
 		AssertString(" 1 \n 2 \n 3 ", pGutter->GetText());
-		AssertTrue(pEditor->RemoveListener(&cListener));
+		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cListener));
 
 		pGutter = NULL;
 		pTextArea = NULL;
@@ -523,7 +522,7 @@ void TestCodeEditorScrolledSideways(void)
 
 		//Next to line 2.
 		cListener.Init();
-		AssertTrue(pEditor->AddListener(&cListener));
+		pEditor->GetGutterClickEvent()->Add(&cListener, &CTestCodeEditorListener::GutterClicked);
 		pTestWindow->PointerMoved(iLeft + 2, iTop + iLine + iLine / 2);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
@@ -543,7 +542,7 @@ void TestCodeEditorScrolledSideways(void)
 		pTestWindow->Layout();
 		AssertInt(0, pScroll->GetScrollPosition().x);
 		AssertInt(iLeft + iGutter, pTextArea->GetPosition().x);
-		AssertTrue(pEditor->RemoveListener(&cListener));
+		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cListener));
 
 		pZone = NULL;
 		pGutter = NULL;

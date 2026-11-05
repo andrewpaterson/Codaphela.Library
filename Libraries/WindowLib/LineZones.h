@@ -23,29 +23,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
 #include "CodeEditor.h"
-#include "CodeEditorListener.h"
 #include "LineZone.h"
 #include "LineZoneSource.h"
 
 
 #define LINE_ZONES_MARK			'+'		//In the gutter: the line has pages.
 #define LINE_ZONES_OPEN_MARK	'-'		//And they are shown under it.
-
-
-class CLineZones;
-
-
-//Hears the code editor: a click in its gutter, and edits.
-class CLineZonesListener : public CCodeEditorListener
-{
-CONSTRUCTABLE(CLineZonesListener);
-public:
-	CLineZones*	mpcZones;
-
-	void	Init(CLineZones* pcZones);
-	void	GutterClicked(CUnknown* pcSource, void* pvContext) override;
-	void	CodeChanged(CUnknown* pcSource, void* pvContext) override;
-};
 
 
 //A code editor's lines' pages from a source (SetSource), such as a build's listings: each line with pages is marked
@@ -64,7 +47,6 @@ protected:
 	Ptr<CFontFamily>	mpTextFamily;
 	ARGB32				msBackground;
 	ARGB32				msText;
-	CLineZonesListener	mcListener;
 	CLineZoneSource*	mpcSource;		//NULL for none; whatever set it keeps it.
 	bool				mbOutOfDate;	//The code was edited since the source was set.
 	CArray<CLineZone>	maZones;
@@ -79,6 +61,7 @@ public:
 
 	void				SetSource(CLineZoneSource* pcSource);
 	bool				Toggle(size uiLine);
+	void				GutterClicked(CCodeEditor* pcEditor, size uiLine);
 	void				CodeChanged(void);
 
 	Ptr<CLineZone>		FindZone(size uiLine);

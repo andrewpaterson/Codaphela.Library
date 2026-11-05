@@ -297,9 +297,6 @@
     <ClInclude Include="CodeEditor.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
-    <ClInclude Include="CodeEditorListener.h">
-      <Filter>Source\Component\Widgets\TextArea</Filter>
-    </ClInclude>
     <ClInclude Include="LineZone.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
