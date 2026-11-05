@@ -94,7 +94,7 @@ public:
 	void					SetScreenRectangle(CInt32Rect* pcRectangle);
 	void					GetScreenRectangle(CInt32Rect* pcDest);
 	void					GetPointerScreenPosition(SInt32Vec2* psDest);
-	void					GetScreenArea(CInt32Rect* pcDest);
+	bool					GetScreenArea(CInt32Rect* pcDest);
 	void					UpdateCursor(void);
 	void					Raise(void);
 	void					SetWindowSize(int32 iWidth, int32 iHeight);
@@ -126,6 +126,7 @@ public:
 	CComponentInput*		GetComponentInput(void);
 
 	const char*				GetWindowTitle(void);
+	void					SetWindowTitle(const char* szTitle);
 	Ptr<CCanvas>			GetCanvas(void);
 	Ptr<CFocus>				GetFocus(void);
 	Ptr<CSoundMixer>		GetSoundMixer(void);

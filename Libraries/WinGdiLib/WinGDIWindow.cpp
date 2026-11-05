@@ -755,7 +755,7 @@ bool CWinGDIWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
 // The whole virtual screen, every monitor.
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::GetScreenArea(CInt32Rect* pcDest)
+bool CWinGDIWindow::GetScreenArea(CInt32Rect* pcDest)
 {
     int     iLeft;
     int     iTop;
@@ -763,6 +763,7 @@ void CWinGDIWindow::GetScreenArea(CInt32Rect* pcDest)
     iLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
     iTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
     pcDest->Init(iLeft, iTop, iLeft + GetSystemMetrics(SM_CXVIRTUALSCREEN), iTop + GetSystemMetrics(SM_CYVIRTUALSCREEN));
+    return true;
 }
 
 
@@ -830,4 +831,17 @@ void CWinGDIWindow::Raise(void)
 
 
 bool CWinGDIWindow::IsCreated(void) { return mhWnd != NULL; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::TitleChanged(void)
+{
+    if (mhWnd)
+    {
+        SetWindowTextA(mhWnd, mpcWindow->GetWindowTitle());
+    }
+}
 

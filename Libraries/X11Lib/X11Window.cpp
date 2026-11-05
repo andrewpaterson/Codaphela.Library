@@ -809,7 +809,7 @@ bool CX11Window::GetPointerScreenPosition(SInt32Vec2* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CX11Window::GetScreenArea(CInt32Rect* pcDest)
+bool CX11Window::GetScreenArea(CInt32Rect* pcDest)
 {
     CX11WindowFactory*  pcFactory;
     Display*            psDisplay;
@@ -818,10 +818,10 @@ void CX11Window::GetScreenArea(CInt32Rect* pcDest)
     psDisplay = pcFactory->GetDisplay();
     if (psDisplay == NULL)
     {
-        CNativeWindow::GetScreenArea(pcDest);
-        return;
+        return CNativeWindow::GetScreenArea(pcDest);
     }
     pcDest->Init(0, 0, DisplayWidth(psDisplay, pcFactory->GetScreen()), DisplayHeight(psDisplay, pcFactory->GetScreen()));
+    return true;
 }
 
 
@@ -898,4 +898,21 @@ void CX11Window::Raise(void)
 
 
 bool CX11Window::IsCreated(void) { return mulWindow != 0; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::TitleChanged(void)
+{
+    CX11WindowFactory*  pcFactory;
+
+    if (mulWindow)
+    {
+        pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+        XStoreName(pcFactory->GetDisplay(), mulWindow, mpcWindow->GetWindowTitle());
+        XFlush(pcFactory->GetDisplay());
+    }
+}
 

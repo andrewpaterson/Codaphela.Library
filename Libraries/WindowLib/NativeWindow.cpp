@@ -256,12 +256,14 @@ bool CNativeWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The screen's area, for keeping floating windows on it.
+// The screen's area, for keeping floating windows on it.  Returns false
+// if the platform can't say; nothing is kept on the screen then.
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::GetScreenArea(CInt32Rect* pcDest)
+bool CNativeWindow::GetScreenArea(CInt32Rect* pcDest)
 {
-	pcDest->Init(0, 0, 1920, 1080);
+	pcDest->Init(0, 0, 0, 0);
+	return false;
 }
 
 
@@ -300,4 +302,15 @@ void CNativeWindow::Raise(void)
 
 bool CNativeWindow::IsTool(void) { return mbTool; }
 ENativeCursor CNativeWindow::GetCursor(void) { return meCursor; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window's title changed (CWindow::SetWindowTitle).  A native window
+// with a title of its own on the screen overrides this.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::TitleChanged(void)
+{
+}
 

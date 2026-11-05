@@ -65,11 +65,12 @@ public:
 	virtual	void			SetScreenRectangle(CInt32Rect* pcRectangle);
 	virtual	bool			GetScreenRectangle(CInt32Rect* pcDest);
 	virtual	bool			GetPointerScreenPosition(SInt32Vec2* psDest);
-	virtual	void			GetScreenArea(CInt32Rect* pcDest);
+	virtual	bool			GetScreenArea(CInt32Rect* pcDest);
 	virtual	void			SetCursor(ENativeCursor eCursor);
 			ENativeCursor	GetCursor(void);
 	virtual	bool			IsCreated(void);
 	virtual	void			Raise(void);
+	virtual	void			TitleChanged(void);
 
 protected:
 			bool	BeginPresent(void);

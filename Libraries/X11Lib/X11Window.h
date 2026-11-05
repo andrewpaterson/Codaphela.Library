@@ -59,10 +59,11 @@ public:
 	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
 	bool	GetScreenRectangle(CInt32Rect* pcDest) override;
 	bool	GetPointerScreenPosition(SInt32Vec2* psDest) override;
-	void	GetScreenArea(CInt32Rect* pcDest) override;
+	bool	GetScreenArea(CInt32Rect* pcDest) override;
 	void	SetCursor(ENativeCursor eCursor) override;
 	bool	IsCreated(void) override;
 	void	Raise(void) override;
+	void	TitleChanged(void) override;
 
 	void	HandleEvent(_XEvent* puEvent);
 	void	PresentIfPending(void);

@@ -15,10 +15,13 @@ protected:
 	CInt32Rect	mcWindowBounds;
 	CChars		mszImagePath;
 	CChars		mszClipboardText;  //The reference system's clipboard, shared by every window the factory makes.
+	CInt32Rect	mcScreenArea;  //The reference screen, empty until set: its size isn't known.
 
 public:
 	void			Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath);
 	void			Kill(void);
+	void			SetScreenArea(CInt32Rect* pcArea);
+	bool			GetScreenArea(CInt32Rect* pcDest);
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;

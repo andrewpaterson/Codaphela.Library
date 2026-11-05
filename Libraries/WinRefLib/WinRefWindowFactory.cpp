@@ -14,6 +14,7 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
     mcWindowBounds.Init(iWidth, iHeight);
     mszImagePath.Init(szImagePath);
     mszClipboardText.Init();
+    mcScreenArea.Init(0, 0, 0, 0);
 }
 
 
@@ -111,5 +112,28 @@ int32 CWinRefWindowFactory::GetWidth(void)
 int32 CWinRefWindowFactory::GetHeight(void)
 {
     return mcWindowBounds.GetHeight();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The screen the reference windows are on, for floating windows to be
+// kept on.  Without one it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindowFactory::SetScreenArea(CInt32Rect* pcArea)
+{
+    mcScreenArea.Init(pcArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindowFactory::GetScreenArea(CInt32Rect* pcDest)
+{
+    pcDest->Init(&mcScreenArea);
+    return (mcScreenArea.GetWidth() > 0) && (mcScreenArea.GetHeight() > 0);
 }
 

@@ -159,3 +159,13 @@ bool CWinRefWindow::IsCreated(void)
     return mbCreated;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindow::GetScreenArea(CInt32Rect* pcDest)
+{
+    return ((CWinRefWindowFactory*)mpcWindowFactory)->GetScreenArea(pcDest);
+}
+

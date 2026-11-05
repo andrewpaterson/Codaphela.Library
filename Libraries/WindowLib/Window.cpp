@@ -421,7 +421,9 @@ void CWindow::SetCheckLayoutCache(bool bCheckLayoutCache)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Shows the window as a dialog over pOwner and returns once it stops.
+// Shows the window as a dialog over pOwner and returns once it stops.  A
+// floating tool window can be the owner: the window it floats over and
+// every tool window over that are disabled too.
 // While it is shown the owner can't be used: it gets no keys or pointer
 // and isn't ticked, though it is still drawn.  The owner's component
 // input, if it has one, comes to the dialog until it closes.  The dialog
@@ -436,12 +438,19 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	CComponentInput*	pcComponentInput;
 	CNativeWindow*		pcOwnerNative;
 	bool				bResult;
+	Ptr<CWindow>		pRoot;
 
+	//A dialog over a floating tool window disables the main window it floats over and all its tool windows.
+	pRoot = pOwner;
+	while (pRoot->mpOwner.IsNotNull())
+	{
+		pRoot = pRoot->mpOwner;
+	}
 	pOwner->CloseAllPopups();
 	pOwner->Deactivate();
 	pcOwnerNative = pOwner->GetNativeWindow();
-	pcOwnerNative->SetEnabled(false);
-	pOwner->SetOwnedEnabled(false);
+	pRoot->GetNativeWindow()->SetEnabled(false);
+	pRoot->SetOwnedEnabled(false);
 
 	pcComponentInput = pOwner->GetComponentInput();
 	if (pcComponentInput)
@@ -458,8 +467,8 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	mFocus.Deactivate();
 
 	//The owner is enabled before the dialog goes so that the owner is the window activated.
-	pcOwnerNative->SetEnabled(true);
-	pOwner->SetOwnedEnabled(true);
+	pRoot->GetNativeWindow()->SetEnabled(true);
+	pRoot->SetOwnedEnabled(true);
 	mpcNativeWindow->DestroyNativeWindow();
 	mpcNativeWindow->SetOwner(NULL);
 
@@ -1144,9 +1153,9 @@ void CWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::GetScreenArea(CInt32Rect* pcDest)
+bool CWindow::GetScreenArea(CInt32Rect* pcDest)
 {
-	mpcNativeWindow->GetScreenArea(pcDest);
+	return mpcNativeWindow->GetScreenArea(pcDest);
 }
 
 
@@ -1196,4 +1205,20 @@ Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
 size CWindow::NumOwned(void) { return maOwned.Size(); }
 Ptr<CWindow> CWindow::GetOwned(size uiIndex) { return maOwned.Get(uiIndex); }
 CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The platform shows the new title, if the window is on the screen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetWindowTitle(const char* szTitle)
+{
+	if (mszWindowTitle.Equals(szTitle))
+	{
+		return;
+	}
+	mszWindowTitle.Set(szTitle);
+	mpcNativeWindow->TitleChanged();
+}
 

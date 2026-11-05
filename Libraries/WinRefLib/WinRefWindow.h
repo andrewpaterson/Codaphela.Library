@@ -48,6 +48,7 @@ public:
 	void	SignalPresent(void) override;
 	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
 	bool	IsCreated(void) override;
+	bool	GetScreenArea(CInt32Rect* pcDest) override;
 };
 
 
