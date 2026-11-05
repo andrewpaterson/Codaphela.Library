@@ -52,6 +52,16 @@ typedef CArrayTemplate<size>			CArrayTextAreaStopStart;
 typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
 
 
+//Where up and down move the caret: a row or a page of rows.
+enum ETextAreaMove
+{
+	TAM_RowUp,
+	TAM_RowDown,
+	TAM_PageUp,
+	TAM_PageDown,
+};
+
+
 //Lines of text drawn with a CMapsCanvasDraw.  Line feeds start
 //new lines and, with word wrap on (it is off by default), lines are also broken at spaces to fit the width the text
 //area is laid out to.  A word too wide for a line by itself is broken between glyphs.  Like a label the text area is
@@ -335,7 +345,7 @@ protected:
 	//Moving the caret.
 	bool				IsSelected(void);
 	void				MoveCaret(size uiPosition, bool bSelect, bool bRowEnd = false, bool bKeepUpDown = false);
-	void				MoveUpDown(bool bDown, bool bPage, bool bSelect);
+	void				MoveUpDown(ETextAreaMove eMove, bool bSelect);
 	void				MoveHome(bool bSelect);
 	void				MoveEnd(bool bSelect);
 	void				ScrollBy(int32 iDown);

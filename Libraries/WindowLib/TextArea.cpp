@@ -1370,8 +1370,8 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 // Navigation.  Moving without selecting clears the selection.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Up(void) { MoveUpDown(false, false, false); }
-void CTextArea::Down(void) { MoveUpDown(true, false, false); }
+void CTextArea::Up(void) { MoveUpDown(TAM_RowUp, false); }
+void CTextArea::Down(void) { MoveUpDown(TAM_RowDown, false); }
 void CTextArea::Left(void) { MoveCaret(PreviousPosition(muiCaret), false); }
 void CTextArea::Right(void) { MoveCaret(NextPosition(muiCaret), false); }
 void CTextArea::WordLeft(void) { MoveCaret(FindWordLeft(muiCaret), false); }
@@ -1380,8 +1380,8 @@ void CTextArea::Home(void) { MoveHome(false); }
 void CTextArea::End(void) { MoveEnd(false); }
 void CTextArea::DocumentHome(void) { MoveCaret(0, false); }
 void CTextArea::DocumentEnd(void) { MoveCaret(mszText.Length(), false); }
-void CTextArea::PageUp(void) { MoveUpDown(false, true, false); }
-void CTextArea::PageDown(void) { MoveUpDown(true, true, false); }
+void CTextArea::PageUp(void) { MoveUpDown(TAM_PageUp, false); }
+void CTextArea::PageDown(void) { MoveUpDown(TAM_PageDown, false); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1389,8 +1389,8 @@ void CTextArea::PageDown(void) { MoveUpDown(true, true, false); }
 // Selection.  The selection is from where it started to the caret.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::SelectUp(void) { MoveUpDown(false, false, true); }
-void CTextArea::SelectDown(void) { MoveUpDown(true, false, true); }
+void CTextArea::SelectUp(void) { MoveUpDown(TAM_RowUp, true); }
+void CTextArea::SelectDown(void) { MoveUpDown(TAM_RowDown, true); }
 void CTextArea::SelectLeft(void) { MoveCaret(PreviousPosition(muiCaret), true); }
 void CTextArea::SelectRight(void) { MoveCaret(NextPosition(muiCaret), true); }
 void CTextArea::SelectWordLeft(void) { MoveCaret(FindWordLeft(muiCaret), true); }
@@ -1399,8 +1399,8 @@ void CTextArea::SelectHome(void) { MoveHome(true); }
 void CTextArea::SelectEnd(void) { MoveEnd(true); }
 void CTextArea::SelectDocumentHome(void) { MoveCaret(0, true); }
 void CTextArea::SelectDocumentEnd(void) { MoveCaret(mszText.Length(), true); }
-void CTextArea::SelectPageUp(void) { MoveUpDown(false, true, true); }
-void CTextArea::SelectPageDown(void) { MoveUpDown(true, true, true); }
+void CTextArea::SelectPageUp(void) { MoveUpDown(TAM_PageUp, true); }
+void CTextArea::SelectPageDown(void) { MoveUpDown(TAM_PageDown, true); }
 void CTextArea::SelectAll(void) { Select(0, mszText.Length()); }
 
 
@@ -2951,7 +2951,7 @@ void CTextArea::MoveCaret(size uiPosition, bool bSelect, bool bRowEnd, bool bKee
 // far as the caret moved so it stays where it was in the view.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::MoveUpDown(bool bDown, bool bPage, bool bSelect)
+void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
 {
 	size				uiRow;
 	size				uiLastRow;
@@ -2982,7 +2982,11 @@ void CTextArea::MoveUpDown(bool bDown, bool bPage, bool bSelect)
 	}
 
 	if (bPage)
+	bool				bDown;
+	bool				bPage;
 	{
+	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
+	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
 		iPage = GetPageHeight();
 		psLine = GetLayoutLine(uiRow);
 		iTop = psLine->iTop;
