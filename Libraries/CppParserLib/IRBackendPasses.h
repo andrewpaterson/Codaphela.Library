@@ -27,8 +27,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Rewrites of a function's IR that a back end may make before writing it, for any target: the blocks in the order they
 //are written (OrderBlocks), loops' tests moved after their bodies (MoveLoopTests: block layout only, unlike
-//CIROptimiser's RotateLoops, which copies a loop's head) and loads moved down to their only use (SinkLoads).  The
-//65C64 back end (CIR65Backend) uses them.
+//CIROptimiser's RotateLoops, which copies a loop's head), loads moved down to their only use (SinkLoads) and loop
+//steps moved past their phi's last reads (SinkSteps).  The 65C64 back end (CIR65Backend) uses them all, the W65C816's
+//(CIR816Backend) SinkSteps.
 class CIRBackendPasses
 {
 protected:
@@ -43,6 +44,10 @@ public:
 	void	OrderBlocks(CIRFunction* pcFunction);
 	void	MoveLoopTests(CIRFunction* pcFunction);
 	void	SinkLoads(CIRFunction* pcFunction);
+	void	SinkSteps(CIRFunction* pcFunction);
+
+protected:
+	void	SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRReference sPhi);
 };
 
 

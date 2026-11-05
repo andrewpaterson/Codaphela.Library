@@ -449,8 +449,9 @@ Layout.  A loop's test is moved after its body (a block that branches into the b
 after it or out of the loop goes after the last block that jumps back to it), so the
 loop is entered with a bra to the test and each time round takes one branch.  A brif
 whose else block comes next branches to its then block and falls through.  The block
-order (OrderBlocks), the tests moved (MoveLoopTests) and loads moved down to their use
-(SinkLoads) are CIRBackendPasses (IRBackendPasses.h/.cpp), for any back end (2026-11-05).
+order (OrderBlocks), the tests moved (MoveLoopTests), loads moved down to their use
+(SinkLoads) and loop steps moved down (SinkSteps) are CIRBackendPasses
+(IRBackendPasses.h/.cpp), for any back end (2026-11-05).
 
 Values left in A.  A result only the next instruction uses, and takes from A (its first
 operand, its second for the instructions that copy it to B or swap it in, a load's
@@ -516,9 +517,12 @@ the same place are one instruction on memory (add [4 + X], 1), but not with V (a
 sub, shl and shr) and with a shift's amount only in A, B or 1 to 8.
 
 Before allocation, a load used once later in its block moves down to just before its
-use, and an add, sub or ptradd whose result only a successor's phi takes (p + 1 for the
-next time round a loop) moves to the end of its block when an operand of it is used
-later in the block, so that operand dies there and the result shares its home (add Y, 1).
+use, and a loop's step p2 = p + q (p a phi taking p2: p + 1 for the next time round)
+moves down past the instructions after it that read p (SinkSteps, shared with the
+W65C816 since 2026-11-05), so p dies there and p2 shares its home (add Y, 1).  Not past
+a use of p2 nor among a call's args; past a comparison of p the brif takes, though it is
+then not fused: the shared home is worth more (StandardLib on the 65C64 0.19% fewer
+cycles than stopping before it, 2026-11-05).
 
 A function with nothing in the frame doesn't set V up when it is a leaf (no calls: S
 doesn't move) or when the parameters left where they arrived are only

@@ -54,10 +54,9 @@ What belongs in shared code
   loop's test moved after its body) don't depend on the target, and the W65C816 has nothing
   like them.  (Not CIROptimiser::RotateLoops: that copies a loop's head, up to 8
   instructions; the back end's moves blocks, and catches the loops the optimiser leaves.)
-- Loop steps.  CIR65Backend::SinkToEnd and CIR816Backend::SinkSteps both move a loop's step
+- Loop steps.  CIR65Backend::SinkToEnd and CIR816Backend::SinkSteps both moved a loop's step
   (p + 1 a phi takes) down past the instructions reading p so the two can share a place,
-  with different rules: the 65C64's to the block's end when an operand is read later, the
-  W65C816's past the readers of a phi p only.  One pass would change one target's code.
+  with different rules.  Done 2026-11-05: one CIRBackendPasses::SinkSteps (below).
 - Use counts.  CIR816Backend::FoldPointers (IR816Places.cpp) counts uses by hand: that is
   CIRFunction::CountUses, which the 65C64 already calls.
 - Liveness.  CIR816Backend::PackTemporaries runs its own bit set liveness and builds its own
@@ -135,3 +134,23 @@ thiscall's this in X), jsr and CallerCleanUp (RemoveArguments, then the result k
 CIR816Backend's Call, PushArguments, LoadRegisterArguments and CallerCleanUp; CallRuntime removes
 its arguments with RemoveArguments too.  Listings identical to step 4's (66k jsr), TestCppParserLib
 83262/83262.
+
+Loop steps: done 2026-11-05.  CIRBackendPasses::SinkSteps replaces CIR65Backend::SinkToEnd and
+CIR816Backend::SinkSteps.  A step p2 = p + q (add, sub, ptradd; p the phi taking p2, either operand
+of an add) moves past the readers of p after it: not past a use of p2, not among a call's args (a
+read of p there is at the call, so after the call), past the brif's comparison of p.  First tried:
+any operand's readers (an 816 test showed it: moving s2 = s + i past i2 = i + 1 keeps i alive, so i
+and i2 can't share X), and stopping before the comparison (cost the 816 0.07%: sharing beats fusing).
+Measured with TestBaseLib65 and TestStandardLib65 from snapshots of HEAD, each case run in a folder of
+the same path length (the paths are compiled in, and their length moves the 816's data and so its
+page crossings):
+
+                          old              new              change
+  65C64 TestBaseLib65     8,341,141,590    8,340,798,639    -0.004%
+  65C64 TestStandardLib65 14,823,099,112   14,794,599,103   -0.192%
+  816 TestBaseLib65       19,770,759,126   19,770,761,525   +0.000%
+  816 TestStandardLib65   22,002,894,218   22,002,445,302   -0.002%
+
+The phi as an add's second operand and a q that isn't constant change nothing measurable; a step
+left among the args breaks the 65C64's calls (TestIndexUnknown).  All tests pass on both targets;
+TestCppParserLib 83262/83262.

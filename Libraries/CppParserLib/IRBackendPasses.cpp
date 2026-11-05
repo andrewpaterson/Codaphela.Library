@@ -220,3 +220,149 @@ void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A loop's step p2 = p + q (add, sub or ptradd; p a phi and p2 the value it
+// takes from round the loop: *p++, i + 1) moves down its block past the
+// instructions after it that read p, so p dies where p2 is made and the two
+// can share a place (the 65C64's add Y, 1, the W65C816's StepInPlace)
+// instead of p2 being copied back to p each time round.  Never past a use
+// of p2.  Past a comparison of p the block's brif takes, though that is
+// then not fused (written last, as both back ends need): sharing the place
+// is worth more on both (measured 2026-11-05).  p read by a call's arg is
+// read where the call is, so the step goes after the call, never among the
+// args (the 65C64 needs them together).  Moving an add, sub or ptradd
+// changes nothing else: they don't touch memory.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackendPasses::SinkSteps(CIRFunction* pcFunction)
+{
+	CArrayTemplate<int32>	aiDefinitionBlocks;	//Per temporary: the block defining it, else -1.
+	size					ui;
+	size					uiBlock;
+	size					uiPhi;
+	size					uiArgument;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcHead;
+	SIRPhi*					psPhi;
+	SIRInstruction*			psInstruction;
+	int32					iNone;
+	SIRReference			sValue;
+
+	mpcFunction = pcFunction;
+	iNone = -1;
+	aiDefinitionBlocks.Init();
+	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
+	{
+		aiDefinitionBlocks.Add(&iNone);
+	}
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if (psInstruction->sResult.IsTemporary() && (psInstruction->sResult.Index() < aiDefinitionBlocks.NumElements()))
+			{
+				*aiDefinitionBlocks.Get(psInstruction->sResult.Index()) = (int32)uiBlock;
+			}
+		}
+	}
+
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcHead = mpcFunction->GetBlock(uiBlock);
+		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
+		{
+			psPhi = pcHead->masPhis.Get(uiPhi);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
+				if (!sValue.IsTemporary() || (sValue.Index() >= aiDefinitionBlocks.NumElements()) || (*aiDefinitionBlocks.Get(sValue.Index()) < 0))
+				{
+					continue;
+				}
+				SinkStep(mpcFunction->GetBlock((size)*aiDefinitionBlocks.Get(sValue.Index())), sValue, psPhi->sResult);
+			}
+		}
+	}
+	aiDefinitionBlocks.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// SinkSteps for the instruction in pcBlock making sStep, when it is a step
+// of the phi sPhi.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackendPasses::SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRReference sPhi)
+{
+	size			uiStep;
+	size			uiLater;
+	size			uiLast;
+	SIRInstruction*	psStep;
+	SIRInstruction*	psLater;
+	SIRInstruction	sMoved;
+	bool			bStep;
+
+	for (uiStep = 0; (uiStep < pcBlock->masInstructions.NumElements()) && !pcBlock->masInstructions.Get(uiStep)->sResult.Equals(sStep); uiStep++)
+	{
+	}
+	if (uiStep >= pcBlock->masInstructions.NumElements())
+	{
+		return;
+	}
+	psStep = pcBlock->masInstructions.Get(uiStep);
+	switch (psStep->uiOpcode)
+	{
+	case IRO_Add:
+		bStep = psStep->asArguments[0].Equals(sPhi) || psStep->asArguments[1].Equals(sPhi);
+		break;
+	case IRO_Sub:
+	case IRO_PtrAdd:
+		bStep = psStep->asArguments[0].Equals(sPhi);
+		break;
+	default:
+		bStep = false;
+		break;
+	}
+	if (!bStep || psStep->asArguments[0].Equals(psStep->asArguments[1]))
+	{
+		return;
+	}
+
+
+	//The last instruction after it that reads p, with none between using p2; a call's arg is read at the call.
+	uiLast = uiStep;
+	for (uiLater = uiStep + 1; uiLater < pcBlock->masInstructions.NumElements(); uiLater++)
+	{
+		psLater = pcBlock->masInstructions.Get(uiLater);
+		if (psLater->asArguments[0].Equals(sStep) || psLater->asArguments[1].Equals(sStep))
+		{
+			break;
+		}
+		if (psLater->asArguments[0].Equals(sPhi) || psLater->asArguments[1].Equals(sPhi))
+		{
+			uiLast = uiLater;
+		}
+	}
+	while ((uiLast > uiStep) && (pcBlock->masInstructions.Get(uiLast)->uiOpcode == IRO_Arg))
+	{
+		psLater = pcBlock->masInstructions.SafeGet(uiLast + 1);
+		if ((psLater == NULL) || psLater->asArguments[0].Equals(sStep) || psLater->asArguments[1].Equals(sStep))
+		{
+			return;
+		}
+		uiLast++;
+	}
+	if (uiLast == uiStep)
+	{
+		return;
+	}
+	sMoved = *psStep;
+	pcBlock->masInstructions.RemoveAt(uiStep, true);
+	pcBlock->masInstructions.InsertAt(&sMoved, uiLast);
+}

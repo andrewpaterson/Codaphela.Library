@@ -155,11 +155,8 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcBackendPasses.MoveLoopTests(pcFunction);
 	PairDivides();
 	mcBackendPasses.SinkLoads(pcFunction);
+	mcBackendPasses.SinkSteps(pcFunction);
 	mpcFunction->CountUses(&mauiUses);
-	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
-	{
-		SinkToEnd(pcFunction->GetBlock(ui));
-	}
 	CopyAddresses();
 	mpcFunction->CountUses(&mauiUses);
 	FindNarrowOnly();

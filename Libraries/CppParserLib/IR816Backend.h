@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "Assembler65Lib/Asm65816Profile.h"
 #include "IRBackend.h"
+#include "IRBackendPasses.h"
 #include "IRDominators.h"
 #include "IRLoops.h"
 
@@ -155,6 +156,7 @@ protected:
 	int32					miBlock;			//The block being written.
 	CIRDominators			mcDominators;		//The function's, worked out once (GenerateFunction)...
 	CIRLoops				mcLoops;			//...and its loops: each block's depth (PackTemporaries, AllocateX, GenerateBody).
+	CIRBackendPasses		mcBackendPasses;	//SinkSteps.
 	CIRDominators*			mpcDominators;		//While the body is written: which jumps go round loops (JumpTo).
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
@@ -177,7 +179,6 @@ public:
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
-	void			SinkSteps(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	CArrayChars*	GetRuntime(void);
 

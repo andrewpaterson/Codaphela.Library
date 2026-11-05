@@ -46,6 +46,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	masFoldIndex.Init(CIR816Backend::GetScratch());
 	mcDominators.Init();
 	mcLoops.Init();
+	mcBackendPasses.Init();
 	mpcDominators = NULL;
 	maiUses.Init(CIR816Backend::GetScratch());
 	maiCountUses.Init(CIR816Backend::GetScratch());
@@ -77,6 +78,7 @@ void CIR816Backend::Kill(void)
 	masFoldBase.Kill();
 	maiOffsets.Kill();
 	mcLoops.Kill();
+	mcBackendPasses.Kill();
 	mcDominators.Kill();
 	maszRuntime.Kill();
 	CIRBackend::Kill();
@@ -435,7 +437,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	muiSource = 0;
 
 	ExpandMultiplies();
-	SinkSteps();
+	mcBackendPasses.SinkSteps(pcFunction);
 	pcFunction->Renumber();
 
 	//The blocks' dominators and loops, for Layout (the loop depths PackTemporaries and AllocateX weigh by) and
@@ -515,92 +517,6 @@ static int IR816ShiftAddCost(int iWords, int iShift, int iAdds)
 		iCost = 5 * iWords + 12 * iWords * (iShift / 8) + 7 * iWords * (iShift % 8);
 	}
 	return iCost + 12 * iWords * iAdds;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A loop's step p2 = p + c (add, sub or ptradd of a constant; p a phi and
-// p2 the value it takes from round the loop) is moved down its block past
-// the instructions after it that read p (*p++ reads p after working out
-// p + 1).  Then p's place is free when p2 is made, so PackTemporaries can
-// give them one place (a phi and its value) and StepInPlace step it there,
-// instead of copying p2 back to p each time round.  Only past instructions
-// that don't use p2.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::SinkSteps(void)
-{
-	CIRBlock*		pcBlock;
-	CIRBlock*		pcHead;
-	SIRInstruction*	psStep;
-	SIRInstruction*	psLater;
-	SIRInstruction	sMoved;
-	SIRPhi*			psPhi;
-	size			ui;
-	size			uj;
-	size			uiStep;
-	size			uiLater;
-	size			uiLast;
-	size			uiPhi;
-	size			uiArgument;
-	bool			bStep;
-
-	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
-	{
-		pcHead = mpcFunction->GetBlock(ui);
-		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
-		{
-			psPhi = pcHead->masPhis.Get(uiPhi);
-			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
-			{
-				//The step making the phi's argument: in which block, and where.
-				psStep = NULL;
-				pcBlock = NULL;
-				uiStep = 0;
-				for (uj = 0; (uj < mpcFunction->NumBlocks()) && !psStep; uj++)
-				{
-					pcBlock = mpcFunction->GetBlock(uj);
-					for (uiStep = 0; uiStep < pcBlock->masInstructions.NumElements(); uiStep++)
-					{
-						if (pcBlock->masInstructions.Get(uiStep)->sResult.Equals(psPhi->asArguments.Get(uiArgument)->sValue))
-						{
-							psStep = pcBlock->masInstructions.Get(uiStep);
-							break;
-						}
-					}
-				}
-				bStep = psStep && ((psStep->uiOpcode == IRO_Add) || (psStep->uiOpcode == IRO_Sub) || (psStep->uiOpcode == IRO_PtrAdd)) &&
-						psStep->asArguments[0].Equals(psPhi->sResult) && psStep->asArguments[1].IsConstant() && psStep->sResult.IsTemporary();
-				if (!bStep)
-				{
-					continue;
-				}
-
-				//The last instruction after it that reads p, with none between using p2.
-				uiLast = uiStep;
-				for (uiLater = uiStep + 1; uiLater < pcBlock->masInstructions.NumElements(); uiLater++)
-				{
-					psLater = pcBlock->masInstructions.Get(uiLater);
-					if (psLater->asArguments[0].Equals(psStep->sResult) || psLater->asArguments[1].Equals(psStep->sResult))
-					{
-						break;
-					}
-					if (psLater->asArguments[0].Equals(psPhi->sResult) || psLater->asArguments[1].Equals(psPhi->sResult))
-					{
-						uiLast = uiLater;
-					}
-				}
-				if (uiLast == uiStep)
-				{
-					continue;
-				}
-				sMoved = *psStep;
-				pcBlock->masInstructions.RemoveAt(uiStep, true);
-				pcBlock->masInstructions.InsertAt(&sMoved, uiLast);
-			}
-		}
-	}
 }
 
 

@@ -226,7 +226,6 @@ protected:
 	void				PreferSingleBranches(void);
 	void				PairDivides(void);
 	bool				DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner);
-	void				SinkToEnd(CIRBlock* pcBlock);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);
 	void				MarkFolded(void);
