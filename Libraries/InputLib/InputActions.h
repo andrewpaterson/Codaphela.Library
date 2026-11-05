@@ -23,11 +23,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_ACTIONS_H__
 #define __INPUT_ACTIONS_H__
 #include "StandardLib/Actions.h"
-#include "InputDeviceVariableListener.h"
+
+
+//The action whose chords change a device's variables (see CInputDevice::VariableAction).
+#define INPUT_DEVICE_VARIABLE_ACTION "Variable Action"
 
 
 class CInputDevices;
-class CInputActions : public CInputDeviceVariableListener
+class CInputActions
 {
 public:
 	CActions			mcActions;
@@ -37,38 +40,26 @@ public:
 	void 		Kill(void);
 	CAction*	GetAction(char* szName);
 
-	template <class M>
-	CAction*	AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
+	CAction*	AddAction(char* szName);
+	template<class M, class O>
+	CAction*	AddAction(char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
 
-	template <class M>
-	CAction*	AddActionWithListener(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener);
-
-	void		VariableAction(CUnknown* pcSource, void* pvContext);
+	void		VariableAction(CAction* pcAction, void* pvContext);
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An action that calls pcObject's fFunction.
 //
 //////////////////////////////////////////////////////////////////////////
-template <class M>
-CAction* CInputActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
-{
-	return mcActions.AddAction(szName, ActionFunc);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template <class M>
-CAction* CInputActions::AddActionWithListener(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener)
+template<class M, class O>
+CAction* CInputActions::AddAction(char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
 {
 	CAction*	pcAction;
 
-	pcAction = mcActions.AddAction(szName, ActionFunc);
-	pcAction->AddListener(pcListener);
+	pcAction = AddAction(szName);
+	pcAction->Add(pcObject, fFunction);
 	return pcAction;
 }
 

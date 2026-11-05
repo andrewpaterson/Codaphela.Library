@@ -24,9 +24,9 @@ void CPlayer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlayer::Up(CUnknown* pcSource, void* pvContext) 
+void CPlayer::Up(CAction* pcAction, void* pvContext) 
 {
-	RecordAction((CAction*)pcSource, "Up", pvContext);
+	RecordAction(pcAction, "Up", pvContext);
 }
 
 
@@ -34,9 +34,9 @@ void CPlayer::Up(CUnknown* pcSource, void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlayer::Down(CUnknown* pcSource, void* pvContext) 
+void CPlayer::Down(CAction* pcAction, void* pvContext) 
 {
-	RecordAction((CAction*)pcSource, "Down", pvContext);
+	RecordAction(pcAction, "Down", pvContext);
 }
 
 
@@ -44,9 +44,9 @@ void CPlayer::Down(CUnknown* pcSource, void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlayer::Left(CUnknown* pcSource, void* pvContext)
+void CPlayer::Left(CAction* pcAction, void* pvContext)
 {
-	RecordAction((CAction*)pcSource, "Left", pvContext);
+	RecordAction(pcAction, "Left", pvContext);
 }
 
 
@@ -54,9 +54,9 @@ void CPlayer::Left(CUnknown* pcSource, void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlayer::Right(CUnknown* pcSource, void* pvContext)
+void CPlayer::Right(CAction* pcAction, void* pvContext)
 {
-	RecordAction((CAction*)pcSource, "Right", pvContext);
+	RecordAction(pcAction, "Right", pvContext);
 }
 
 
@@ -64,9 +64,9 @@ void CPlayer::Right(CUnknown* pcSource, void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlayer::Fire(CUnknown* pcSource, void* pvContext)
+void CPlayer::Fire(CAction* pcAction, void* pvContext)
 {
-	RecordAction((CAction*)pcSource, "Fire", pvContext);
+	RecordAction(pcAction, "Fire", pvContext);
 }
 
 

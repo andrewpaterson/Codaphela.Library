@@ -22,6 +22,10 @@ static const char* gaszTestStandardLib65Excluded[] =
 	"TestSetObject",
 	"TestMapObject",
 
+	//Uses SMemberCall::Init's overloads, which differ only in their function's type; CPP65 chooses a member template
+	//by its number of arguments, so it calls the wrong one.  TestActionEvent covers CMemberCalls here.
+	"TestMemberCalls",
+
 	NULL
 };
 

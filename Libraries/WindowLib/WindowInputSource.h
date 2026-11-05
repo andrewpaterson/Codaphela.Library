@@ -23,7 +23,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Timer.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "StandardLib/Object.h"
-#include "StandardLib/Listener.h"
 #include "InputLib/Input.h"
 
 
@@ -47,15 +46,6 @@ struct SWindowInputEvent
 
 
 typedef CArrayTemplate<SWindowInputEvent>	CArrayWindowInputEvent;
-
-
-//A chord's action calls its listeners when it matches, though the queue is the way to hear of it.
-class CWindowInputChordListener : public CListener
-{
-CONSTRUCTABLE(CWindowInputChordListener);
-public:
-	virtual void Chord(CUnknown* pcSource, void* pvContext) {}
-};
 
 
 //The only part of WindowLib that uses InputLib.  Every keyboard, mouse, joystick and gamepad's sources are in one

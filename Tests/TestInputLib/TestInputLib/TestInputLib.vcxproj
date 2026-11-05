@@ -220,7 +220,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Player.h" />
-    <ClInclude Include="PlayerListener.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

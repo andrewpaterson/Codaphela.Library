@@ -23,7 +23,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Timer.h"
 #include "BaseLib/Define.h"
 #include "Action.h"
-#include "TimerListener.h"
+
+
+//The context a timer alarm's action is called with.
+struct STimerData
+{
+	char*		szTimerName;
+	float		fOversleep;
+};
 
 
 class CTimerAlarm

@@ -2,23 +2,21 @@
 #define __TEST_PLAYER_H__
 #include "BaseLib/ArrayChars.h"
 #include "StandardLib/Action.h"
-#include "PlayerListener.h"
 
 
-class CPlayer : public CPlayerListener
+class CPlayer
 {
-CONSTRUCTABLE(CPlayer);
 protected:
 	CArrayChars		maszEvents;
 
 public:
 	void 			Init(void);
 	void 			Kill(void);
-	void 			Up(CUnknown* pcSource, void* pvContext);
-	void 			Down(CUnknown* pcSource, void* pvContext);
-	void 			Left(CUnknown* pcSource, void* pvContext);
-	void 			Right(CUnknown* pcSource, void* pvContext);
-	void 			Fire(CUnknown* pcSource, void* pvContext);
+	void 			Up(CAction* pcAction, void* pvContext);
+	void 			Down(CAction* pcAction, void* pvContext);
+	void 			Left(CAction* pcAction, void* pvContext);
+	void 			Right(CAction* pcAction, void* pvContext);
+	void 			Fire(CAction* pcAction, void* pvContext);
 	void 			RecordAction(CAction* pcAction, char* szText, void* pvContext);
 	CArrayChars*	GetEvents(void);
 };

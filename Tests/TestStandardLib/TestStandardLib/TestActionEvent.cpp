@@ -2,9 +2,8 @@
 #include "StandardLib/Action.h"
 
 
-class CTargetForAction : public CListener
+class CTargetForAction
 {
-CONSTRUCTABLE(CTargetForAction)
 public:
 	int		miCorrectCode;
 
@@ -18,7 +17,7 @@ public:
 		miCorrectCode = 0;
 	}
 
-	void Dingo(CUnknown* pcUnknown, void* pvContext)
+	void Dingo(CAction* pcAction, void* pvContext)
 	{
 		char* szCode;
 
@@ -34,12 +33,12 @@ public:
 		}
 	};
 
-	void Coyote(CUnknown* pcUnknown, void* pvContext)
+	void Coyote(CAction* pcAction, void* pvContext)
 	{
 		miCorrectCode = 1;
 	};
 
-	void Sydney(CUnknown* pcUnknown, void* pvContext)
+	void Sydney(CAction* pcAction, void* pvContext)
 	{
 		float fValue;
 
@@ -54,7 +53,19 @@ public:
 		}
 	};
 
-	void Nabia(CUnknown* pcUnknown, void* pvContext)
+	void Named(CAction* pcAction, void* pvContext)
+	{
+		if (pcAction->Is("Frisky"))
+		{
+			miCorrectCode = 5;
+		}
+		else
+		{
+			miCorrectCode = 6;
+		}
+	};
+
+	void Nabia(CAction* pcAction, void* pvContext)
 	{
 		if (pvContext == NULL)
 		{
@@ -81,24 +92,24 @@ void TestActionEvent(void)
 	float				f;
 
 	cTarget.Init();
-	cEvent.Init("Frisky", &CTargetForAction::Dingo);
-	cEvent.AddListener(&cTarget);
+	cEvent.Init("Frisky");
+	cEvent.Add(&cTarget, &CTargetForAction::Dingo);
 	cEvent.Call((void*)"Eustance");
 	cEvent.Kill();
 	AssertInt(7, cTarget.miCorrectCode);
 	cTarget.Kill();
 
 	cTarget.Init();
-	cEvent.Init("Frisky", &CTargetForAction::Coyote);
-	cEvent.AddListener(&cTarget);
+	cEvent.Init("Frisky");
+	cEvent.Add(&cTarget, &CTargetForAction::Coyote);
 	cEvent.Call(NULL);
 	cEvent.Kill();
 	AssertInt(1, cTarget.miCorrectCode);
 	cTarget.Kill();
 
 	cTarget.Init();
-	cEvent.Init("Frisky", &CTargetForAction::Sydney);
-	cEvent.AddListener(&cTarget);
+	cEvent.Init("Frisky");
+	cEvent.Add(&cTarget, &CTargetForAction::Sydney);
 	f = 0.753f;
 	cEvent.Call(&f);
 	cEvent.Kill();
@@ -106,11 +117,24 @@ void TestActionEvent(void)
 	cTarget.Kill();
 
 	cTarget.Init();
-	cEvent.Init("Frisky", &CTargetForAction::Nabia);
-	cEvent.AddListener(&cTarget);
+	cEvent.Init("Frisky");
+	cEvent.Add(&cTarget, &CTargetForAction::Nabia);
 	cEvent.Call((void*)NULL);
 	cEvent.Kill();
 	AssertInt(3, cTarget.miCorrectCode);
+	cTarget.Kill();
+
+	cTarget.Init();
+	cEvent.Init("Frisky");
+	cEvent.Add(&cTarget, &CTargetForAction::Named);
+	cEvent.Call(NULL);
+	AssertInt(5, cTarget.miCorrectCode);
+	AssertTrue(cEvent.Remove(&cTarget));
+	AssertSize(0, cEvent.NumCalls());
+	cTarget.miCorrectCode = 0;
+	cEvent.Call(NULL);
+	AssertInt(0, cTarget.miCorrectCode);
+	cEvent.Kill();
 	cTarget.Kill();
 
 	TestStatistics();

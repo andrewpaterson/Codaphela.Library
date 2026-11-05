@@ -278,7 +278,6 @@
     <ClInclude Include="InputDeviceVariable.h" />
     <ClInclude Include="InputDeviceVariableCondition.h" />
     <ClInclude Include="InputDeviceVariableDesc.h" />
-    <ClInclude Include="InputDeviceVariableListener.h" />
     <ClInclude Include="InputDeviceVariables.h" />
     <ClInclude Include="InputDeviceVariableValue.h" />
     <ClInclude Include="InputDeviceVariableValueConditionDesc.h" />

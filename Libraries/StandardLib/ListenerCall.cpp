@@ -279,30 +279,3 @@ bool CListenerCall::StartCall(const char* szClassName, CArrayEmbeddedListenerPtr
 	return true;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
-{
-	size						i;
-	CListener*					pcListener;
-	CArrayEmbeddedListenerPtr	apcCalled;
-	size						uiNumElements;
-
-	if (StartCall(szClassName, &apcCalled))
-	{
-		uiNumElements = apcCalled.NumElements();
-		for (i = 0; i < uiNumElements; i++)
-		{
-			pcListener = apcCalled.GetPtr(i);
-			if (IsListening(szClassName, pcListener))
-			{
-				(pcListener->*ListenerFunc)(pcSource, pvContext);
-			}
-		}
-		apcCalled.Kill();
-	}
-}
-

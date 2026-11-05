@@ -35,25 +35,9 @@ public:
 	void 		Init(void);
 	void 		Kill(void);
 
-	template <class M>
-	CAction*	AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
+	CAction*	AddAction(char* szName);
 	CAction*	GetAction(char* szName);
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template <class M>
-CAction* CActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
-{
-	CAction*		pcAction;
-
-	pcAction = mlcActions.Add();
-	pcAction->Init(szName, ActionFunc);
-	return pcAction;
-}
 
 
 #endif // __ACTIONABLE_H__

@@ -33,7 +33,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef CArrayTemplatePtr<CListener>			CArrayListenerPtr;
 typedef CArrayTemplateEmbeddedPtr<CListener, 8>	CArrayEmbeddedListenerPtr;
-typedef void (CListener::*ListenerFunc)(CUnknown*, void*);
 
 
 //Calls its listeners, by the listener class they were added as.  A listener is added once per class and is told which
@@ -55,7 +54,6 @@ public:
 	bool			AddListener(M* pcListener);
 	template <class M>
 	void			CallListeners(void(M::* ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
-	void			CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
 	bool			RemoveListener(CListener* pcRemoved);
 	bool			IsListening(const char* szClassName, CListener* pcListener);
 	size			NumListeners(void);

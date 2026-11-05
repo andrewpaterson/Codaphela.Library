@@ -256,7 +256,8 @@ CInputChord* CWindowInputSource::AddChord(char* szName)
 {
 	CAction*	pcAction;
 
-	pcAction = mpInput->GetActions()->AddAction(szName, &CWindowInputChordListener::Chord);
+	//The action calls nothing; the queue is the way to hear of the chord.
+	pcAction = mpInput->GetActions()->AddAction(szName);
 	return mpcVirtual->AddChordAction(pcAction);
 }
 

@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_CHORDS_H__
 #define __INPUT_CHORDS_H__
 #include "StandardLib/SetType.h"
-#include "StandardLib/ClassFunctionsCall.h"
 #include "InputLib/InputListener.h"
 #include "InputSourceEvaluator.h"
 #include "InputChord.h"

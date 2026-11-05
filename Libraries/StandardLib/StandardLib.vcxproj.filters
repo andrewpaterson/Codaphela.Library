@@ -216,9 +216,6 @@
     <ClInclude Include="Actions.h">
       <Filter>Source\Action</Filter>
     </ClInclude>
-    <ClInclude Include="ClassFunctionsCall.h">
-      <Filter>Source\Action</Filter>
-    </ClInclude>
     <ClInclude Include="Listener.h">
       <Filter>Source\Action</Filter>
     </ClInclude>
@@ -232,9 +229,6 @@
       <Filter>Source\Action</Filter>
     </ClInclude>
     <ClInclude Include="TimerAlarm.h">
-      <Filter>Source\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="TimerListener.h">
       <Filter>Source\Timer</Filter>
     </ClInclude>
     <ClInclude Include="Channel.h">
@@ -639,9 +633,6 @@
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="Actions.cpp">
-      <Filter>Source\Action</Filter>
-    </ClCompile>
-    <ClCompile Include="ClassFunctionsCall.cpp">
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="ListenerCall.cpp">

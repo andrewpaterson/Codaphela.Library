@@ -33,7 +33,7 @@ void CInputActions::Init(CInputDevices* pcInputDevices)
 {
 	mpcInputDevices = pcInputDevices;
 	mcActions.Init();
-	AddActionWithListener<CInputDeviceVariableListener>(INPUT_DEVICE_VARIABLE_ACTION, (ListenerFunc)&CInputActions::VariableAction, this);
+	AddAction(INPUT_DEVICE_VARIABLE_ACTION, this, &CInputActions::VariableAction);
 }
 
 
@@ -46,6 +46,16 @@ void CInputActions::Kill(void)
 	mcActions.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Add functions to the action for it to call.
+//
+//////////////////////////////////////////////////////////////////////////
+CAction* CInputActions::AddAction(char* szName)
+{
+	return mcActions.AddAction(szName);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,7 +72,7 @@ CAction* CInputActions::GetAction(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputActions::VariableAction(CUnknown* pcSource, void* pvContext)
+void CInputActions::VariableAction(CAction* pcAction, void* pvContext)
 {
 	SChordInputEvent*		psChordInputEvent;
 

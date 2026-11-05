@@ -20,53 +20,52 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ACTION_H__
 #define __ACTION_H__
+#include "BaseLib/Chars.h"
 #include "Unknown.h"
-#include "ClassFunctionsCall.h"
+#include "MemberCalls.h"
 
 
-//Remember, an action can only be invoked by one specific listener class.
-//For instance: A timer alarm cannot invoke an action that expects an input event.
-class CAction : public CUnknown, public CListener
+//Something named that can happen, like a chord being pressed or a timer going off, and the member functions called
+//when it does (see CMemberCalls).  A function takes the action and a context that depends on what made it happen,
+//like an input chord's event or a timer's STimerData.
+//
+//The functions' objects aren't held, so an object removes its functions (Remove(this)) before it goes.
+class CAction : public CUnknown
 {
 CONSTRUCTABLE(CAction)
 protected:
-	CClassFunctionsCall		mcFunction;
-	CChars					mszName;
+	CMemberCalls	mcCalls;
+	CChars			mszName;
 
 public:
-	template <class M>
-	void 	Init(const char* szName, void(M::*ActionFunc)(CUnknown*, void*));
+	void 	Init(const char* szName);
 	void 	Kill(void);
-	bool	Is(const char* szName);
-	void	Call(void *pvContext);
 
-	template <class M>
-	bool	AddListener(M* pcListener);
+	template<class M, class O>
+	void	Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
+	bool	Remove(void* pvObject);
+	size	NumCalls(void);
+
+	void	Call(void* pvContext);
+
+	bool	Is(const char* szName);
 	char*	GetName(void);
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject is usually the object adding it, this.  The thunk is given
+// rather than left to SMemberCall::Init's overloads, which differ only in
+// their function's type: CPP65 chooses a member template by its number
+// of arguments, so StandardLib compiled for the 65C64 or the W65C816
+// would get the wrong one.
 //
 //////////////////////////////////////////////////////////////////////////
-template <class M>
-void CAction::Init(const char* szName, void(M::*ActionFunc)(CUnknown*, void*))
+template<class M, class O>
+void CAction::Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
 {
-	mcFunction.Init<M>();
-	mcFunction.SetFunction(ActionFunc);
-	mszName.Init(szName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template <class M>
-bool CAction::AddListener(M* pcListener)
-{
-	return mcFunction.AddListener(pcListener);
+	mcCalls.Add()->Init<M>(pcObject, fFunction, &MemberCallWithValue<M, CAction, void*>);
 }
 
 

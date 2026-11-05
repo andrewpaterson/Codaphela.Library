@@ -299,9 +299,6 @@
     <ClInclude Include="InputDeviceVariableDesc.h">
       <Filter>Source\Variable</Filter>
     </ClInclude>
-    <ClInclude Include="InputDeviceVariableListener.h">
-      <Filter>Source\Variable</Filter>
-    </ClInclude>
     <ClInclude Include="InputDeviceVariables.h">
       <Filter>Source\Variable</Filter>
     </ClInclude>

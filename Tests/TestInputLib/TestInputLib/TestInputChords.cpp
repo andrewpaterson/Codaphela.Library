@@ -198,14 +198,14 @@ void TestInputChordsHeldAndEvicted(void)
 	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Held");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "Left Control", "Space", NULL));
 
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("Control Space", &cPlayer, &CPlayer::Up));
 	pcGroup = pcChord->AsGroup();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
 	AssertBool(true, pcChord->Done());
 
 	//Tap control then Space: control is let go before the chord ends.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("Tap Control Space", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
@@ -324,14 +324,14 @@ void TestInputChordsEvictionDelay(void)
 	pcDevice = pInput->GetDevices()->GetFirstVirtualDeviceInCategoryKeyboard(pInput->GetProgramInput()->GetCategoryName(), false)->GetDefaultDevice();
 	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Delay");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "Left Control", "Space", NULL));
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("Control Space", &cPlayer, &CPlayer::Up));
 	pcGroup = pcChord->AsGroup();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Space"), ICT_Toggle));
 	AssertBool(true, pcChord->Done());
 
 	//Control tapped then Space: once control is let go the chord can still match, so control is held until it can't.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("Tap Control Space", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("Tap Control Space", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
@@ -392,7 +392,7 @@ void AddTapChord(CInput* pcInput, CPlayer* pcPlayer, CInputVirtualDevice* pcVirt
 	CInputChord*				pcChord;
 	COrderedInputChordCriteria*	pcOrdered;
 
-	pcChord = pcVirtual->AddChordAction(pcInput->GetActions()->AddActionWithListener(szName, &CPlayerListener::Up, (CPlayerListener*)pcPlayer));
+	pcChord = pcVirtual->AddChordAction(pcInput->GetActions()->AddAction(szName, pcPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource(szTapped), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource(szTapped), ICT_Toggle));
@@ -481,7 +481,7 @@ void AddControlsChord(CInput* pcInput, CInputVirtualDevice* pcVirtual, CInputDev
 	COrderedInputChordCriteria*	pcOrdered;
 	CGroupInputChordCriteria*	pcGroup;
 
-	pcChord = pcVirtual->AddChordAction(pcInput->GetActions()->AddActionWithListener(szName, &CPlayerListener::Up, (CPlayerListener*)pcPlayer));
+	pcChord = pcVirtual->AddChordAction(pcInput->GetActions()->AddAction(szName, pcPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
@@ -638,7 +638,7 @@ void TestInputChordsCommonStart(void)
 	pcVirtual = pInput->GetDevices()->CreateVirtualDevice("Common Start");
 	AssertBool(true, pcVirtual->AddSources(pcDevice, "W", "A", "B", "Left Control", "Left Shift", NULL));
 
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("CS A", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	AddControlShiftGroup(pcOrdered, pcChord, pcDevice);
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("A"), ICT_Toggle));
@@ -646,7 +646,7 @@ void TestInputChordsCommonStart(void)
 	AssertNull(pcMatching);
 	AssertSize(3, pcChord->GetTotalCriteria());
 
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A+B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("CS A+B", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	AddControlShiftGroup(pcOrdered, pcChord, pcDevice);
 	pcGroup = pcOrdered->AddGroupAction();
@@ -657,7 +657,7 @@ void TestInputChordsCommonStart(void)
 	pcAPlusB = pcChord;
 
 	//ctrl, shift, a then b: (a+b) matches that too so both would be called.  The new chord isn't added.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A then B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("CS A then B", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcInner = pcOrdered->AddOrderedAction();
 	AddControlShiftGroup(pcInner, pcChord, pcDevice);
@@ -667,7 +667,7 @@ void TestInputChordsCommonStart(void)
 	AssertPointer(pcAPlusB, pcMatching);
 
 	//The same chord written the other way round.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("SC B+A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("SC B+A", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Shift"), ICT_Toggle));
@@ -679,7 +679,7 @@ void TestInputChordsCommonStart(void)
 	AssertPointer(pcAPlusB, pcMatching);
 
 	//Four long but b can't be second, so nothing else matches it.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("C B S A", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("C B S A", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Left Control"), ICT_Toggle));
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("B"), ICT_Toggle));
@@ -690,7 +690,7 @@ void TestInputChordsCommonStart(void)
 	pcVirtual->GetChords()->RemoveChord(pcChord);
 
 	//The inner ordered criteria are made before anything follows them in the outer.
-	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddActionWithListener("CS A, B", &CPlayerListener::Up, (CPlayerListener*)&cPlayer));
+	pcChord = pcVirtual->AddChordAction(pInput->GetActions()->AddAction("CS A, B", &cPlayer, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcInner = pcOrdered->AddOrderedAction();
 	AddControlShiftGroup(pcInner, pcChord, pcDevice);
@@ -881,10 +881,10 @@ void TestInputChords(void)
 	bResult = pcPlayer1->AddSources(pcDevice, "W", "A", "S", "D", "Left Control", NULL);
 	AssertBool(true, bResult);
 
-	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer1), "W", "W", NULL);
-	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer1), "S", "W", "W", "W", NULL);
-	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Left", &CPlayerListener::Left, (CPlayerListener*)&cPlayer1), "A", "D", "A", "A", NULL);
-	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddActionWithListener("Player 1 Right", &CPlayerListener::Right, (CPlayerListener*)&cPlayer1), "A", "D", "A", "D", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddAction("Player 1 Up", &cPlayer1, &CPlayer::Up), "W", "W", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddAction("Player 1 Down", &cPlayer1, &CPlayer::Down), "S", "W", "W", "W", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddAction("Player 1 Left", &cPlayer1, &CPlayer::Left), "A", "D", "A", "A", NULL);
+	pcPlayer1->AddOrderedAction(pInput->GetActions()->AddAction("Player 1 Right", &cPlayer1, &CPlayer::Right), "A", "D", "A", "D", NULL);
 
 	pcPlayer1->Enable();
 
@@ -931,7 +931,7 @@ void TestInputChords(void)
 	bResult = pcPlayer2->AddSources(pcDevice, "Cursor Up", "Cursor Left", "Cursor Down", "Cursor Right", "Right Control", NULL);
 	AssertBool(true, bResult);
 
-	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddActionWithListener("Player 2 Up", &CPlayerListener::Up, (CPlayerListener*)&cPlayer2));
+	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddAction("Player 2 Up", &cPlayer2, &CPlayer::Up));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Left"), ICT_Toggle));
@@ -942,7 +942,7 @@ void TestInputChords(void)
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Up"), ICT_Toggle));
 	pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Up"), ICT_Toggle));
 	pcChord->Done();
-	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddActionWithListener("Player 2 Down", &CPlayerListener::Down, (CPlayerListener*)&cPlayer2));
+	pcChord = pcPlayer2->AddChordAction(pInput->GetActions()->AddAction("Player 2 Down", &cPlayer2, &CPlayer::Down));
 	pcOrdered = pcChord->AsOrdered();
 	pcGroup = pcOrdered->AddGroupAction();
 	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcDevice, pcDevice->GetSource("Cursor Left"), ICT_Toggle));
