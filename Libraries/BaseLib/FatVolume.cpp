@@ -318,6 +318,8 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes what is cached to the drive (FAT32's free cluster count too)
+// and lets the volume go.
 //
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Unmount(void)
@@ -340,10 +342,11 @@ EFatCode CFatVolume::Unmount(void)
 		psFileSystemInfo->uiTrailSignature = 0xAA550000;
 
 		DirtySector(sBuffer);
-
-		eResult = Flush();
-		RETURN_ON_FAT_FAILURE(eResult);
 	}
+
+	//Every file system's changed sectors (a FAT16 root directory's entries among them) go to the drive.
+	eResult = Flush();
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	mszLabel.Kill();
 	bResult = mcSectorCache.Kill();
