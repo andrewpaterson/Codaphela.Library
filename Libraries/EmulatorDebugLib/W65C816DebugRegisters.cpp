@@ -88,3 +88,34 @@ bool Set65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister, uint64 uiV
 	default:		return false;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// brk and cop return (rti) past their signature byte.
+//
+//////////////////////////////////////////////////////////////////////////
+EDebugInstruction Get65C816Instruction(uint8 uiOpcode, size* puiCallLength)
+{
+	*puiCallLength = 0;
+	switch (uiOpcode)
+	{
+	case 0x20:	//jsr a
+	case 0xFC:	//jsr (a,x)
+		*puiCallLength = 3;
+		return DI_Call;
+	case 0x22:	//jsl al
+		*puiCallLength = 4;
+		return DI_Call;
+	case 0x00:	//brk
+	case 0x02:	//cop
+		*puiCallLength = 2;
+		return DI_Call;
+	case 0x60:	//rts
+	case 0x6B:	//rtl
+	case 0x40:	//rti
+		return DI_Return;
+	default:
+		return DI_Other;
+	}
+}

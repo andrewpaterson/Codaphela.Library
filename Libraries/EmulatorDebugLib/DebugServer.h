@@ -33,7 +33,7 @@ enum EDebugServerState
 {
 	DSS_Stopped,
 	DSS_Running,
-	DSS_Stepping,	//A DM_StepRange, over as many Ticks as it takes.
+	DSS_Stepping,	//A DM_StepRange, DM_StepOver or DM_StepOut, over as many Ticks as it takes.
 };
 
 
@@ -41,13 +41,15 @@ typedef CArrayTemplate<SDebugRange>	CArrayDebugRanges;
 
 
 //The emulator's end of a debugging connection: it does what the debugger's messages ask to a CDebugTarget and
-//tells the debugger when the target stops.  The channel is connected before Init and is not owned.
+//tells the debugger when the target stops.  The channel is connected before Init or Attach and is not owned; with
+//none the target just runs (or holds stopped) until a debugger is attached.
 //
 //The emulator calls Tick as often as it would run the processor (each window tick), with the budget it would
 //run it for.  Tick reads the messages that have arrived, then runs the target for the budget if it is running,
-//or carries on a DM_StepRange.  It never waits.  A server starts stopped.
+//or carries on a step.  It never waits.  A server starts stopped (bStopped) or running.
 //
-//If the debugger detaches or its channel closes the breakpoints are cleared and the target runs on.
+//If the debugger detaches or its channel closes the breakpoints are cleared and the target runs on; another
+//channel can then be attached.
 class CDebugServer
 {
 protected:
@@ -62,11 +64,14 @@ protected:
 
 	CArrayDebugRanges	masRanges;		//A DM_StepRange's.
 	bool				mbOver;
-	uint32				muiDepth;		//The stack pointer at the last instruction in a range.
+	bool				mbOut;			//A DM_StepOut: steps until a return of its own takes the stack above muiDepth.
+	uint32				muiDepth;		//The stack pointer at the last instruction in a range, or where a step out started.
+	size				muiCalls;		//Calls a step out has made that haven't returned.
 
 public:
-	void				Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget);
+	void				Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool bStopped = true);
 	void				Kill(void);
+	void				Attach(CProcessChannel* pcChannel);
 
 	void				Tick(uint64 uiBudget);
 	void				Poll(void);
@@ -84,6 +89,10 @@ protected:
 	void				Pause(void);
 	void				Step(void* pvData, size uiSize);
 	void				StartStepRange(void* pvData, size uiSize);
+	void				StepOver(void);
+	void				StepOut(void);
+	void				StartStepping(bool bOver, bool bOut);
+	bool				StepOutStep(bool bForce);
 	void				StepRange(size uiMaxSteps);
 	bool				IsInRanges(uint32 uiAddress);
 	void				Reset(void);

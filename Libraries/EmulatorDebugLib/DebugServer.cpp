@@ -27,19 +27,35 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget)
+void CDebugServer::Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool bStopped)
 {
 	mpcChannel = pcChannel;
 	mpcTarget = pcTarget;
 	mpuiMessage = (uint8*)malloc(DEBUG_MAX_MESSAGE);
-	meState = DSS_Stopped;
+	meState = bStopped ? DSS_Stopped : DSS_Running;
 	mbStepped = false;
 	mbConnected = false;
 	mbClosed = false;
 	mbQuit = false;
 	masRanges.Init();
 	mbOver = false;
+	mbOut = false;
 	muiDepth = 0;
+	muiCalls = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A debugger's channel, when there was none or the last one closed.  It
+// sends DM_Hello first, as on a channel given to Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::Attach(CProcessChannel* pcChannel)
+{
+	mpcChannel = pcChannel;
+	mbConnected = false;
+	mbClosed = false;
 }
 
 
@@ -91,7 +107,7 @@ void CDebugServer::Poll(void)
 	uint32			uiType;
 	size			uiSize;
 
-	while (!mbClosed)
+	while (!mbClosed && (mpcChannel != NULL))
 	{
 		eResult = mpcChannel->Receive(&uiType, mpuiMessage, DEBUG_MAX_MESSAGE, &uiSize, 0);
 		if (eResult == CR_Message)
@@ -241,6 +257,14 @@ void CDebugServer::Handle(uint32 uiType, void* pvData, size uiSize)
 		mbQuit = true;
 		break;
 
+	case DM_StepOver:
+		StepOver();
+		break;
+
+	case DM_StepOut:
+		StepOut();
+		break;
+
 	default:
 		Error(uiType, "Unknown message.");
 		break;
@@ -380,8 +404,6 @@ void CDebugServer::Step(void* pvData, size uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The first instruction is executed even at a breakpoint, then StepRange
-// carries on over as many Ticks as it takes.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StartStepRange(void* pvData, size uiSize)
@@ -404,10 +426,73 @@ void CDebugServer::StartStepRange(void* pvData, size uiSize)
 	{
 		masRanges.Add(&asRange[i]);
 	}
-	mbOver = psStepRange->uiOver != 0;
+	StartStepping(psStepRange->uiOver != 0, false);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call is stepped as a range of just itself, stepping over: until it
+// returns to the instruction after it.  Anything else is one step.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::StepOver(void)
+{
+	uint32			uiAddress;
+	size			uiLength;
+	SDebugRange		sRange;
+
+	uiAddress = mpcTarget->GetProgramAddress();
+	if (mpcTarget->GetInstruction(uiAddress, &uiLength) != DI_Call)
+	{
+		ForceStep();
+		StopAfterStep();
+		return;
+	}
+
+	sRange.uiStart = uiAddress;
+	sRange.uiEnd = uiAddress + (uint32)uiLength;
+	masRanges.Kill();
+	masRanges.Init();
+	masRanges.Add(&sRange);
+	StartStepping(true, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Until a return that isn't of a call made since takes the stack above
+// where it is now (the function's own pushes and pulls don't count).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::StepOut(void)
+{
+	masRanges.Kill();
+	masRanges.Init();
+	StartStepping(false, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first instruction is executed even at a breakpoint, then StepRange
+// carries on, over as many Ticks as it takes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::StartStepping(bool bOver, bool bOut)
+{
+	mbOver = bOver;
+	mbOut = bOut;
 	muiDepth = mpcTarget->GetStackPointer();
-	if (!ForceStep())
+	muiCalls = 0;
+	if (bOut)
+	{
+		if (!StepOutStep(true))
+		{
+			return;
+		}
+	}
+	else if (!ForceStep())
 	{
 		StopAfterStep();
 		return;
@@ -419,8 +504,57 @@ void CDebugServer::StartStepRange(void* pvData, size uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One instruction of a step out, counting the calls it makes and their
+// returns.  False when it has stopped: out of the function, at a
+// breakpoint (bForce steps past one) or because the processor stopped.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::StepOutStep(bool bForce)
+{
+	EDebugInstruction	eInstruction;
+	size				uiLength;
+	bool				bStepped;
+
+	eInstruction = mpcTarget->GetInstruction(mpcTarget->GetProgramAddress(), &uiLength);
+	bStepped = bForce ? ForceStep() : mpcTarget->Step();
+	if (!bStepped)
+	{
+		if (mpcTarget->IsAtBreakpoint())
+		{
+			Stop(DS_Breakpoint);
+		}
+		else
+		{
+			StopAfterStep();
+		}
+		return false;
+	}
+
+	if (eInstruction == DI_Call)
+	{
+		muiCalls++;
+	}
+	else if (eInstruction == DI_Return)
+	{
+		if (muiCalls > 0)
+		{
+			muiCalls--;
+		}
+		else if (mpcTarget->GetStackPointer() > muiDepth)
+		{
+			Stop(DS_Step);
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Steps while the program address is in the ranges, or (stepping over)
-// while the stack is deeper than at the last instruction in them.
+// while the stack is deeper than at the last instruction in them.  A step
+// out steps until it returns (StepOutStep).
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StepRange(size uiMaxSteps)
@@ -430,6 +564,15 @@ void CDebugServer::StepRange(size uiMaxSteps)
 
 	for (i = 0; i < uiMaxSteps; i++)
 	{
+		if (mbOut)
+		{
+			if (!StepOutStep(false))
+			{
+				return;
+			}
+			continue;
+		}
+
 		uiStack = mpcTarget->GetStackPointer();
 		if (IsInRanges(mpcTarget->GetProgramAddress()))
 		{
@@ -771,7 +914,7 @@ void CDebugServer::Error(uint32 uiRequest, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Send(uint32 uiType, size uiSize)
 {
-	if (!mbClosed)
+	if (!mbClosed && (mpcChannel != NULL))
 	{
 		mpcChannel->Send(uiType, mpuiMessage, uiSize);
 	}

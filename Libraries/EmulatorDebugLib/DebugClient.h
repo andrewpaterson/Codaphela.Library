@@ -78,6 +78,8 @@ public:
 	bool				Pause(void);
 	bool				Step(uint32 uiInstructions);
 	bool				StepRange(SDebugRange* asRanges, size uiCount, bool bOver);
+	bool				StepOver(void);
+	bool				StepOut(void);
 	bool				Reset(void);
 	bool				Load(uint32 uiAddress, void* pvData, size uiSize);
 	bool				SetProgramAddress(uint32 uiAddress);

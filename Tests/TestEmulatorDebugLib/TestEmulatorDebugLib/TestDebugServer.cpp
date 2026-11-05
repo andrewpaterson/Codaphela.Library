@@ -274,6 +274,24 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
 	AssertLongLongIntHex(15, pcClient->GetRegisterValue(D816R_X));
 
+	//Step over the JSR: the instruction after it.
+	AssertTrue(pcClient->Step(4));
+	TestDebugWaitForStop(psLink, DS_Step, 0x1002);
+	AssertTrue(pcClient->StepOver());
+	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
+	AssertLongLongIntHex(18, pcClient->GetRegisterValue(D816R_X));
+
+	//Into it; over an INX and a PHA (one instruction each, though PHA moves the stack), then out of it.
+	AssertTrue(pcClient->Step(5));
+	TestDebugWaitForStop(psLink, DS_Step, 0x2000);
+	AssertTrue(pcClient->StepOver());
+	TestDebugWaitForStop(psLink, DS_Step, 0x2001);
+	AssertTrue(pcClient->StepOver());
+	TestDebugWaitForStop(psLink, DS_Step, 0x2002);
+	AssertTrue(pcClient->StepOut());
+	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
+	AssertLongLongIntHex(21, pcClient->GetRegisterValue(D816R_X));
+
 	//A breakpoint in a function being stepped over stops it.
 	AssertTrue(pcClient->AddBreakpoint(0x2001, true));
 	AssertTrue(pcClient->Step(2));
@@ -423,6 +441,19 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 	AssertLongLongIntHex(9, pcClient->GetRegisterValue(F64R_X));
 	AssertLongLongIntHex(0x1FFFF, pcClient->GetRegisterValue(F64R_S));
 
+	//Over the jsr, then into it and out.
+	AssertTrue(pcClient->Step(3));
+	TestDebugWaitForStop(psLink, DS_Step, 0x1002);
+	AssertTrue(pcClient->StepOver());
+	TestDebugWaitForStop(psLink, DS_Step, uiAddY);
+	AssertLongLongIntHex(12, pcClient->GetRegisterValue(F64R_X));
+	AssertTrue(pcClient->Step(4));
+	TestDebugWaitForStop(psLink, DS_Step, 0x1100);
+	AssertTrue(pcClient->StepOut());
+	TestDebugWaitForStop(psLink, DS_Step, uiAddY);
+	AssertLongLongIntHex(15, pcClient->GetRegisterValue(F64R_X));
+	AssertLongLongIntHex(0x1FFFF, pcClient->GetRegisterValue(F64R_S));
+
 	//A breakpoint at a 32 bit address past the memory is kept and never hit.
 	AssertTrue(pcClient->AddBreakpoint(0xFFFF0000, true));
 	AssertTrue(pcClient->Continue());
@@ -480,6 +511,88 @@ static void TestDebugServerHello(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A server that starts running, with no debugger: it runs the target until
+// one is attached, which is told it is running.  After it detaches another
+// can attach.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDebugServerAttach(void)
+{
+	CFlat65C816DebugTarget	cTarget;
+	STestDebugLink			sLink;
+	STestDebugLink*			psLink;
+	CSharedMemoryChannel	cServerShared;
+	CSharedMemoryChannel	cClientShared;
+	uint64					uiX;
+	int						i;
+	static uint8			auiMain[] = { 0xE8, 0xE8, 0x20, 0x00, 0x20, 0xC8, 0x80, 0xF8 };
+	static uint8			auiFunction[] = { 0xE8, 0x48, 0x68, 0x60 };
+
+	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	memcpy(&cTarget.GetMemory()[0x1000], auiMain, sizeof(auiMain));
+	memcpy(&cTarget.GetMemory()[0x2000], auiFunction, sizeof(auiFunction));
+	cTarget.SetProgramAddress(0x1000);
+	psLink = &sLink;
+	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
+
+	//Running, with no channel.
+	psLink->cServer.Kill();
+	psLink->cServer.Init(NULL, &cTarget, false);
+	for (i = 0; i < 10; i++)
+	{
+		psLink->cServer.Tick(TEST_DEBUG_BUDGET);
+	}
+	AssertInt(DSS_Running, psLink->cServer.GetState());
+	uiX = cTarget.GetMPU()->NumCycles();
+	AssertTrue(uiX > 1000);
+	AssertFalse(psLink->cServer.IsConnected());
+
+	//Attached while it runs, then paused somewhere in the loop.
+	psLink->cServer.Attach(psLink->pcServer);
+	AssertTrue(psLink->cClient.Hello());
+	TestDebugWaitForRunning(psLink);
+	AssertString("W65C816", psLink->cClient.GetProcessorName());
+	AssertTrue(cTarget.GetMPU()->NumCycles() > uiX);
+	AssertTrue(psLink->cClient.Pause());
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumStops, 1));
+	AssertInt(DS_Pause, psLink->cClient.GetStopReason());
+
+	//Detached, it runs on.
+	AssertTrue(psLink->cClient.Detach());
+	for (i = 0; (i < TEST_DEBUG_TIMEOUT) && !psLink->cServer.IsClosed(); i++)
+	{
+		psLink->cServer.Tick(TEST_DEBUG_BUDGET);
+	}
+	AssertTrue(psLink->cServer.IsClosed());
+	AssertInt(DSS_Running, psLink->cServer.GetState());
+
+	//Another debugger attaches on a new channel.
+	psLink->cClient.Kill();
+	cServerShared.Init();
+	cClientShared.Init();
+	AssertTrue(cServerShared.Create("TestDebugAttach"));
+	AssertTrue(cClientShared.Connect("TestDebugAttach"));
+	psLink->cServer.Attach(&cServerShared);
+	psLink->cClient.Init(&cClientShared);
+	AssertFalse(psLink->cServer.IsClosed());
+	AssertTrue(psLink->cClient.Hello());
+	TestDebugWaitForRunning(psLink);
+	AssertTrue(psLink->cClient.Pause());
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumStops, 1));
+	AssertInt(DS_Pause, psLink->cClient.GetStopReason());
+	AssertTrue(psLink->cServer.IsConnected());
+
+	psLink->cClient.Kill();
+	psLink->cClient.Init(psLink->pcClient);
+	TestDebugLinkKill(psLink, TDT_SharedMemory);
+	cClientShared.Kill();
+	cServerShared.Kill();
+	cTarget.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDebugServer(void)
@@ -491,6 +604,7 @@ void TestDebugServer(void)
 	TestDebugServer65C816(TDT_Network);
 	TestDebugServer65C64(TDT_SharedMemory);
 	TestDebugServer65C64(TDT_Network);
+	TestDebugServerAttach();
 
 	TestStatistics();
 }

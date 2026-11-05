@@ -129,3 +129,20 @@ uint8 CFlat65C816DebugTarget::ReadByte(void* pvContext, uint32 uiAddress)
 void CFlat65C816DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EDebugInstruction CFlat65C816DebugTarget::GetInstruction(uint32 uiAddress, size* puiCallLength)
+{
+	uint8	uiOpcode;
+
+	*puiCallLength = 0;
+	if (PeekMemory(uiAddress, &uiOpcode, 1) != 1)
+	{
+		return DI_Other;
+	}
+	return Get65C816Instruction(uiOpcode, puiCallLength);
+}

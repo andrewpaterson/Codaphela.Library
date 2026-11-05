@@ -36,6 +36,15 @@ enum EDebugRegisterKind
 };
 
 
+//What an instruction does to the flow, for stepping over and out of calls.
+enum EDebugInstruction
+{
+	DI_Other,
+	DI_Call,		//It returns to the instruction after it (a subroutine call, or a software interrupt).
+	DI_Return,		//From a subroutine or an interrupt.
+};
+
+
 //One of a processor's registers, as the debugger shows it.
 struct SDebugRegister
 {
@@ -78,6 +87,10 @@ public:
 	//Without side effects: devices are not read or written.  Return how many bytes there were memory for.
 	virtual size			PeekMemory(uint32 uiAddress, void* pvDest, size uiSize) =0;
 	virtual size			PokeMemory(uint32 uiAddress, void* pvSource, size uiSize) =0;
+
+	//Whether the instruction at uiAddress calls or returns.  A call's length (it returns after it) is in
+	//puiCallLength.  For stepping over and out of calls.
+	virtual EDebugInstruction	GetInstruction(uint32 uiAddress, size* puiCallLength) =0;
 };
 
 

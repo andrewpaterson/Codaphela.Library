@@ -177,3 +177,25 @@ uint16 CFlat65C64DebugTarget::ReadWord(void* pvContext, uint32 uiAddress)
 void CFlat65C64DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 uiValue)
 {
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EDebugInstruction CFlat65C64DebugTarget::GetInstruction(uint32 uiAddress, size* puiCallLength)
+{
+	uint16	uiOpcode;
+
+	*puiCallLength = 0;
+	if (PeekMemory(uiAddress, &uiOpcode, 2) != 2)
+	{
+		return DI_Other;
+	}
+	*puiCallLength = CFast65C64::CallLength(uiOpcode);
+	if (*puiCallLength != 0)
+	{
+		return DI_Call;
+	}
+	return CFast65C64::IsReturn(uiOpcode) ? DI_Return : DI_Other;
+}

@@ -29,7 +29,8 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //written (every field is aligned to its size).  Lists follow their struct, their count in it.
 //
 //The client sends DM_Hello first.  The server answers DM_Welcome, then DM_Stopped or DM_Running.  A server
-//starts stopped, so the debugger can set breakpoints and Load before anything runs.
+//that starts stopped (an emulator told to wait for its debugger) lets the debugger set breakpoints and Load before
+//anything runs; one that starts running can be attached to while it runs.
 
 
 #define DEBUG_PROTOCOL_VERSION		1
@@ -63,6 +64,8 @@ enum EDebugMessage
 	DM_WriteMemory,				//SDebugMemory then the bytes.
 	DM_Detach,					//Nothing: the breakpoints are cleared and it runs on without a debugger.
 	DM_Quit,					//Nothing: the emulator exits.
+	DM_StepOver,				//Nothing: one instruction, or the whole of a call (and what it calls).
+	DM_StepOut,					//Nothing: until the function it is in returns (the stack is above where it was).
 
 	//Emulator to debugger.
 	DM_Welcome = 64,			//SDebugWelcome then SDebugRegister[uiNumRegisters].
@@ -77,7 +80,7 @@ enum EDebugMessage
 //Why the processor stopped.
 enum EDebugStop
 {
-	DS_Start,		//The server starts stopped.
+	DS_Start,		//The server started stopped, before the first instruction.
 	DS_Breakpoint,
 	DS_Step,		//A DM_Step or DM_StepRange finished.
 	DS_Pause,
