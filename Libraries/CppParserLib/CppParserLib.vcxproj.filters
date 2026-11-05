@@ -195,6 +195,9 @@
     <ClCompile Include="IR816Branches.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR816Code.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR816DeadStores.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -903,6 +906,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR816Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR816Code.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR816BackendInternal.h">

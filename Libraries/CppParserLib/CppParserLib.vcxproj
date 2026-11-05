@@ -207,6 +207,7 @@
     <ClCompile Include="IR65Places.cpp" />
     <ClCompile Include="IR816Backend.cpp" />
     <ClCompile Include="IR816Branches.cpp" />
+    <ClCompile Include="IR816Code.cpp" />
     <ClCompile Include="IR816DeadStores.cpp" />
     <ClCompile Include="IR816Flow.cpp" />
     <ClCompile Include="IR816Frames.cpp" />
@@ -448,6 +449,7 @@
     <ClInclude Include="IR65Backend.h" />
     <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IR816Backend.h" />
+    <ClInclude Include="IR816Code.h" />
     <ClInclude Include="IR816BackendInternal.h" />
     <ClInclude Include="CPPTarget.h" />
     <ClInclude Include="IR65Code.h" />
