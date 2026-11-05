@@ -31,7 +31,8 @@ void CComponentInputDevice::Init(CInputDevice* pcDevice, CComponentInput* pcComp
 	mpcComponentInput = pcComponentInput;
 	mpcDevice = pcDevice;
 	masPrintables.Init();
-	masCommands.Init();
+	masPressedCommands.Init();
+	masReleasedCommands.Init();
 	masNumKeys.Init();
 	masKeys.Init();
 	mbMouse = false;
@@ -46,7 +47,8 @@ void CComponentInputDevice::Kill(void)
 {
 	masKeys.Kill();
 	masNumKeys.Kill();
-	masCommands.Kill();
+	masReleasedCommands.Kill();
+	masPressedCommands.Kill();
 	masPrintables.Kill();
 	mpcDevice = NULL;
 }
@@ -211,8 +213,8 @@ CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, ECompo
 	pcSource = GetSource(szFriendlyName);
 	if (pcSource)
 	{
-		psCommand = masCommands.Add();
-		psCommand->Init(eCommand, pcSource, bPressed);
+		psCommand = bPressed ? masPressedCommands.Add() : masReleasedCommands.Add();
+		psCommand->Init(eCommand, pcSource);
 	}
 	return pcSource;
 }
@@ -283,52 +285,6 @@ CInputSourceDesc* CComponentInputDevice::AddKey(char* szFriendlyName, EComponent
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* pcSource)
-{
-	CComponentInputPrintable*	psPrintable;
-	size						i;
-	size						uiNumElements;
-
-	uiNumElements = masPrintables.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psPrintable = masPrintables.Get(i);
-		if (psPrintable->mpcSource == pcSource)
-		{
-			return psPrintable;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSource, bool bPressed)
-{
-	CComponentInputCommand*		psCommand;
-	size						i;
-	size						uiNumElements;
-
-	uiNumElements = masCommands.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psCommand = masCommands.Get(i);
-		if ((psCommand->mpcSource == pcSource) && (psCommand->mbPressed == bPressed))
-		{
-			return psCommand;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if a key of this kind on the device is down.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -355,52 +311,11 @@ bool CComponentInputDevice::IsKeyDown(EComponentInputKey eKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentInputNumKey* CComponentInputDevice::GetNumKeyRemap(CInputSourceDesc* pcSource)
-{
-	CComponentInputNumKey*		psNumKey;
-	size						i;
-	size						uiNumElements;
-
-	uiNumElements = masNumKeys.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psNumKey = masNumKeys.Get(i);
-		if (psNumKey->mpcSource == pcSource)
-		{
-			return psNumKey;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputKey* CComponentInputDevice::GetKey(CInputSourceDesc* pcSource)
-{
-	CComponentInputKey*		psKey;
-	size					i;
-	size					uiNumElements;
-
-	uiNumElements = masKeys.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psKey = masKeys.Get(i);
-		if (psKey->mpcSource == pcSource)
-		{
-			return psKey;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
+CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masPrintables, pcSource); }
+CComponentInputCommand* CComponentInputDevice::GetPressedCommand(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masPressedCommands, pcSource); }
+CComponentInputCommand* CComponentInputDevice::GetReleasedCommand(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masReleasedCommands, pcSource); }
+CComponentInputNumKey* CComponentInputDevice::GetNumKeyRemap(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masNumKeys, pcSource); }
+CComponentInputKey* CComponentInputDevice::GetKey(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masKeys, pcSource); }
 CInputDevice* CComponentInputDevice::GetDevice(void) { return mpcDevice; }
 bool CComponentInputDevice::IsMouse(void) { return mbMouse; }
 

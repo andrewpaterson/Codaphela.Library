@@ -37,7 +37,8 @@ protected:
 	CComponentInput*					mpcComponentInput;
 	CInputDevice*						mpcDevice;
 	CArrayComponentInputPrintable		masPrintables;
-	CArrayComponentInputCommand			masCommands;
+	CArrayComponentInputCommand			masPressedCommands;
+	CArrayComponentInputCommand			masReleasedCommands;
 	CArrayComponentInputNumKey			masNumKeys;
 	CArrayComponentInputKey				masKeys;
 	bool								mbMouse;
@@ -50,11 +51,12 @@ public:
 	void						InitMouse(void);
 
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
-	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bPressed);
-	bool						IsKeyDown(EComponentInputKey eKey);
-	bool						IsMouse(void);
+	CComponentInputCommand*		GetPressedCommand(CInputSourceDesc* pcSource);
+	CComponentInputCommand*		GetReleasedCommand(CInputSourceDesc* pcSource);
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputKey*			GetKey(CInputSourceDesc* pcSource);
+	bool						IsKeyDown(EComponentInputKey eKey);
+	bool						IsMouse(void);
 	CInputDevice*				GetDevice(void);
 
 	CInputSourceDesc*			AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
@@ -62,10 +64,32 @@ public:
 	CInputSourceDesc*			AddNumKeyRemap(char* szFriendlyName, char* szYesNumLockRemap, char* szNoNumLockRemap);
 	CInputSourceDesc*			AddKey(char* szFriendlyName, EComponentInputKey eKey);
 
-protected:
-public:
 	CInputSourceDesc*			GetSource(char* szFriendlyName);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The meaning in pasMeanings of pcSource, NULL if it has none there.  M
+// is any of the meanings, all of which have the source as mpcSource.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* FindComponentInputMeaning(CArrayTemplate<M>* pasMeanings, CInputSourceDesc* pcSource)
+{
+	size	i;
+	M*		psMeaning;
+
+	for (i = 0; i < pasMeanings->NumElements(); i++)
+	{
+		psMeaning = pasMeanings->Get(i);
+		if (psMeaning->mpcSource == pcSource)
+		{
+			return psMeaning;
+		}
+	}
+	return NULL;
+}
 
 
 typedef CArrayTemplate<CComponentInputDevice>	CArrayComponentInputDevice;

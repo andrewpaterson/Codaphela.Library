@@ -118,9 +118,34 @@ protected:
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputKey*			GetKey(CInputSourceDesc* pcSource);
+	template<class M>
+	M*							FindInDevices(M* (CComponentInputDevice::*fFind)(CInputSourceDesc*), CInputSourceDesc* pcSource);
 	void						AddPressed(CInputSourceDesc* pcSource, EComponentInputCommand eReleased);
 	bool						RemovePressed(CInputSourceDesc* pcSource, SComponentInputPressed* psDest);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The meaning fFind gives pcSource on the first device that has one.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CComponentInput::FindInDevices(M* (CComponentInputDevice::*fFind)(CInputSourceDesc*), CInputSourceDesc* pcSource)
+{
+	size	i;
+	M*		psMeaning;
+
+	for (i = 0; i < macDevices.NumElements(); i++)
+	{
+		psMeaning = (macDevices.Get(i)->*fFind)(pcSource);
+		if (psMeaning)
+		{
+			return psMeaning;
+		}
+	}
+	return NULL;
+}
 
 
 #endif // __COMPONENT_INPUT_H__

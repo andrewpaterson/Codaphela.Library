@@ -121,16 +121,15 @@ enum EComponentInputCommand
 };
 
 
-//The command a source gives when it is pressed (or released) with exactly these modifiers held.
+//The command a source gives when it is pressed, or when it is released; a device keeps them apart.
 class CInputSourceDesc;
 class CComponentInputCommand
 {
 public:
 	EComponentInputCommand		meCommand;
 	CInputSourceDesc*			mpcSource;
-	bool						mbPressed;
 
-	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bPressed);
+	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource);
 	void Kill(void);
 };
 

@@ -884,94 +884,16 @@ bool CComponentInput::RemovePressed(CInputSourceDesc* pcSource, SComponentInputP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What pcSource means, from the first device that gives it a meaning.
 //
 //////////////////////////////////////////////////////////////////////////
 CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, bool bPressed)
 {
-	CComponentInputCommand*		psCommand;
-	size						i;
-	size						uiNumElements;
-
-	uiNumElements = macDevices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psCommand = macDevices.Get(i)->GetCommand(pcSource, bPressed);
-		if (psCommand)
-		{
-			return psCommand;
-		}
-	}
-	return NULL;
+	return FindInDevices(bPressed ? &CComponentInputDevice::GetPressedCommand : &CComponentInputDevice::GetReleasedCommand, pcSource);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputPrintable* CComponentInput::GetPrintable(CInputSourceDesc* pcSource)
-{
-	CComponentInputPrintable*	psPrintable;
-	size						i;
-	size						uiNumElements;
-
-	uiNumElements = macDevices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psPrintable = macDevices.Get(i)->GetPrintable(pcSource);
-		if (psPrintable)
-		{
-			return psPrintable;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputNumKey* CComponentInput::GetNumKeyRemap(CInputSourceDesc* pcSource)
-{
-	CComponentInputNumKey*	psNumKey;
-	size					i;
-	size					uiNumElements;
-
-	uiNumElements = macDevices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psNumKey = macDevices.Get(i)->GetNumKeyRemap(pcSource);
-		if (psNumKey)
-		{
-			return psNumKey;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CComponentInputKey* CComponentInput::GetKey(CInputSourceDesc* pcSource)
-{
-	CComponentInputKey*		psKey;
-	size					i;
-	size					uiNumElements;
-
-	uiNumElements = macDevices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		psKey = macDevices.Get(i)->GetKey(pcSource);
-		if (psKey)
-		{
-			return psKey;
-		}
-	}
-	return NULL;
-}
+CComponentInputPrintable* CComponentInput::GetPrintable(CInputSourceDesc* pcSource) { return FindInDevices(&CComponentInputDevice::GetPrintable, pcSource); }
+CComponentInputNumKey* CComponentInput::GetNumKeyRemap(CInputSourceDesc* pcSource) { return FindInDevices(&CComponentInputDevice::GetNumKeyRemap, pcSource); }
+CComponentInputKey* CComponentInput::GetKey(CInputSourceDesc* pcSource) { return FindInDevices(&CComponentInputDevice::GetKey, pcSource); }
 
 
 //////////////////////////////////////////////////////////////////////////
