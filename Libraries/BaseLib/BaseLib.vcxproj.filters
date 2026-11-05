@@ -783,6 +783,9 @@
     <ClInclude Include="LinkedListTemplate.h">
       <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
+    <ClInclude Include="LinkedListTemplateFreeList.h">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClInclude>
     <ClInclude Include="LinkedListBlockAligned.h">
       <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
@@ -2983,6 +2986,24 @@
     </None>
     <None Include="CodabaseLayers.txt">
       <Filter>Source\Database\Codabase</Filter>
+    </None>
+    <None Include="Fat816.inc">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </None>
+    <None Include="FatClusterCache816.asm">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </None>
+    <None Include="FatFile816.asm">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </None>
+    <None Include="FatFilenameHelper816.asm">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </None>
+    <None Include="FatInfoSectorCache816.asm">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </None>
+    <None Include="FatVolume816.asm">
+      <Filter>Source\FileSystem\Fat32</Filter>
     </None>
     <None Include="ArrayBlockClass.inl">
       <Filter>Source\Data\Array\Basic</Filter>

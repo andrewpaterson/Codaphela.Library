@@ -359,6 +359,7 @@
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="SafeLinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
+    <ClInclude Include="LinkedListTemplateFreeList.h" />
     <ClInclude Include="ListBlock.h" />
     <ClInclude Include="ListTemplate.h" />
     <ClInclude Include="ListTemplateMinimal.h" />
@@ -1072,6 +1073,12 @@
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />
     <None Include="CodabaseLayers.txt" />
+    <None Include="Fat816.inc" />
+    <None Include="FatClusterCache816.asm" />
+    <None Include="FatFile816.asm" />
+    <None Include="FatFilenameHelper816.asm" />
+    <None Include="FatInfoSectorCache816.asm" />
+    <None Include="FatVolume816.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
