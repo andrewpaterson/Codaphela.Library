@@ -2287,6 +2287,64 @@ void CIR816Backend::SignedLessFlags(SIRReference* psArguments, bool bSwapped)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the flags a block is entered with already answer its fused eq or
+// ne (FusedBranch skips CompareFlags): the block has no phis (nothing is
+// copied on the way in) and nothing but the comparison, and its only
+// predecessor branched on a fused comparison of the same operands, in
+// either order, that leaves Z set when they are equal (LeavesEqualityInZ).
+// The branches between change no flags.  As the 65C64's FlagsKnown.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::FlagsKnown(CIRBlock* pcBlock)
+{
+	SIRInstruction*	psCompare;
+	SIRInstruction*	psBefore;
+	CIRBlock*		pcPredecessor;
+
+	if ((pcBlock->masPhis.NumElements() != 0) || (pcBlock->masInstructions.NumElements() != 1) || (pcBlock->mapcPredecessors.NumElements() != 1) ||
+		!IsFusedCompare(pcBlock, 0))
+	{
+		return false;
+	}
+	psCompare = pcBlock->masInstructions.Get(0);
+	if ((psCompare->uiOpcode != IRO_Eq) && (psCompare->uiOpcode != IRO_Ne))
+	{
+		return false;
+	}
+	pcPredecessor = pcBlock->mapcPredecessors.GetPtr(0);
+	if ((pcPredecessor == pcBlock) || (pcPredecessor->masInstructions.NumElements() == 0) ||
+		!IsFusedCompare(pcPredecessor, pcPredecessor->masInstructions.NumElements() - 1))
+	{
+		return false;
+	}
+	psBefore = pcPredecessor->masInstructions.Tail();
+	if (!psBefore->sType.Equals(psCompare->sType) || !LeavesEqualityInZ(psBefore))
+	{
+		return false;
+	}
+	return (psBefore->asArguments[0].Equals(psCompare->asArguments[0]) && psBefore->asArguments[1].Equals(psCompare->asArguments[1])) ||
+		   (psBefore->asArguments[0].Equals(psCompare->asArguments[1]) && psBefore->asArguments[1].Equals(psCompare->asArguments[0]));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the code FusedBranch writes for a comparison leaves Z set exactly
+// when its operands are equal: CompareFlags does (high words first, each
+// cmp only reached while the ones before were equal; a signed one flips
+// both sign bits), as does an lda of a value against 0.  Not a 16 bit
+// signed comparison of two values (SignedLessFlags): its eor 0x8000 after
+// an overflow can leave 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::LeavesEqualityInZ(SIRInstruction* psInstruction)
+{
+	return !(IsIRSignedComparison(psInstruction->uiOpcode) && psInstruction->sType.Is(IRTK_I16) && !psInstruction->asArguments[1].IsConstant());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the instruction at uiIndex is an integer comparison the block's
 // branch works out itself: the block's last instruction, whose result only
 // the branch uses.
@@ -2328,7 +2386,7 @@ bool CIR816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 // leaves them).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel)
+void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown)
 {
 	int32	iSkip;
 	uint16	uiOpcode;
@@ -2368,7 +2426,10 @@ void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32
 		Branch(((uiOpcode == IRO_SLt) || (uiOpcode == IRO_SGt)) ? "bmi" : "bpl", iLabel);
 		return;
 	}
-	CompareFlags(psInstruction->asArguments[0], psInstruction->asArguments[1], psInstruction->sType, IsIRSignedComparison(psInstruction->uiOpcode));
+	if (!bFlagsKnown)
+	{
+		CompareFlags(psInstruction->asArguments[0], psInstruction->asArguments[1], psInstruction->sType, IsIRSignedComparison(psInstruction->uiOpcode));
+	}
 	switch (uiOpcode)
 	{
 	case IRO_Eq:

@@ -1572,7 +1572,7 @@ void CIR816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 {
 	if ((pcBlock->masInstructions.NumElements() > 0) && IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
-		FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel);
+		FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, FlagsKnown(pcBlock));
 	}
 	else
 	{

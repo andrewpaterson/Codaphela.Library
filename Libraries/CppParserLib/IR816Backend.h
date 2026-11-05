@@ -259,7 +259,9 @@ protected:
 	bool			IsScratchCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
 	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
-	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel);
+	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel, bool bFlagsKnown);
+	bool			FlagsKnown(CIRBlock* pcBlock);
+	bool			LeavesEqualityInZ(SIRInstruction* psInstruction);
 	void			Branch(const char* szMnemonic, int32 iLabel);
 	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
