@@ -759,8 +759,8 @@ void CWindow::CloseAllPopups(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Called when the pointer is pressed on pComponent, which can be NULL.
-// Unless it is in a popup, or in a component that opened one, every popup
-// is closed.
+// Unless it is in a popup, or in a component that opened one that a press
+// on its owner keeps open, every popup is closed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::ClosePopupsOutside(Ptr<CComponent> pComponent)
@@ -773,7 +773,7 @@ void CWindow::ClosePopupsOutside(Ptr<CComponent> pComponent)
 		for (i = 0; i < maPopups.Size(); i++)
 		{
 			pPopup = maPopups.Get(i);
-			if (pComponent->IsWithin(pPopup) || pComponent->IsWithin(pPopup->GetOwner()))
+			if (pComponent->IsWithin(pPopup) || (pPopup->IsOwnerPressKeepsOpen() && pComponent->IsWithin(pPopup->GetOwner())))
 			{
 				return;
 			}

@@ -12,6 +12,7 @@
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/MenuBar.h"
+#include "WindowLib/TextArea.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -765,6 +766,177 @@ void TestPopupDraw(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A context menu on a grid opens over the text area in it (which has no
+// menu of its own) with the right button at the pointer, and with the
+// Menu key or Shift+F10 under the text area's caret.  The keys are in the
+// menu while it is open and back in the text area when it closes, however
+// it closes: escape, an item clicked, or a press outside it, in its owner
+// too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuContextMenu(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CMenuStyle>			pStyle;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CMenuContainer>		pMore;
+		Ptr<CMenuContainer>		pEmpty;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CTextArea>			pText;
+		Ptr<CPopup>				pPopup;
+		Ptr<CFocus>				pFocus;
+		CTestMenuListener		cListener;
+		CPointer				pNull;
+		CChars					szLog;
+		SInt32Vec2				sPointer;
+		SInt32Vec2				sVec;
+		CInt32Rect				cCaret;
+		size					uiActions;
+
+		szLog.Init();
+		cListener.Init(&szLog);
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFocus = pTestWindow->GetFocus();
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+
+		pMore = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pMore->AddItem("One");
+		pMore->AddItem("Two");
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pMenu->AddItem("Cut");
+		pMenu->AddItem("Copy");
+		pMenu->AddSeparator();
+		pMenu->AddItem("More", NULL, pMore);
+		pMenu->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
+		pMore->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
+
+		pText = OMalloc<CTextArea>(pTestWindow, pStyle->GetFont(), "The quick brown fox\njumps over the lazy dog.");
+		pText->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pGrid->AddComponent(pText, 0, 0, 1, 1, 1, 1);
+		pTestWindow->SetContainer(pGrid);
+		uiActions = pGrid->NumInputActions();
+		pGrid->SetContextMenu(pMenu);
+		AssertTrue(pGrid->GetContextMenu() == pMenu);
+		AssertSize(uiActions + 2, pGrid->NumInputActions());
+		pTestWindow->Layout();
+
+		//The right button over the text area focusses it, then the grid opens its menu at the pointer, the keys in it.
+		sPointer = SInt32Vec2(40, 30);
+		MoveTo(pTestWindow, sPointer);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		pPopup = pTestWindow->GetPopup(pMenu);
+		sVec = pPopup->GetPosition();
+		AssertInt32Vec2(40, 30, &sVec);
+		AssertTrue(pFocus->GetFocussedComponent() == pMenu);
+
+		//Escape closes it and the keys go back to the text area.
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pMenu->IsOpen());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//An item clicked with the keys closes the menu, then calls the menu's item click event.
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Clicked:Copy;");
+		AssertFalse(pMenu->IsOpen());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//An item in a sub menu clicked with the pointer closes them both.
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, MenuRowCentre(pMenu, 3));
+		Click(pTestWindow);
+		AssertTrue(pMore->IsOpen());
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, MenuRowCentre(pMore, 1));
+		Click(pTestWindow);
+		AssertLog("Clicked:Two;");
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//A press in the text area, which is in the menu's owner, closes it too.  The right button again opens it again
+		//where the pointer now is.
+		MoveTo(pTestWindow, sPointer);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		MoveTo(pTestWindow, SInt32Vec2(10, 10));
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertFalse(pMenu->IsOpen());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(1, pTestWindow->NumPopups());
+		pPopup = pTestWindow->GetPopup(pMenu);
+		sVec = pPopup->GetPosition();
+		AssertInt32Vec2(10, 10, &sVec);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//The Menu key (or Shift+F10) opens it under the text area's caret, not at the pointer.
+		pText->DocumentEnd();
+		pTestWindow->Layout();
+		pTestWindow->InputCommand(CIC_ContextMenuKey, true);
+		AssertTrue(pMenu->IsOpen());
+		pText->GetCaretBounds(&cCaret);
+		pPopup = pTestWindow->GetPopup(pMenu);
+		sVec = pPopup->GetPosition();
+		AssertInt32Vec2(pText->GetPosition().x + cCaret.GetLeft(), pText->GetPosition().y + cCaret.GetBottom(), &sVec);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//A menu with no items doesn't open.
+		pEmpty = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pGrid->SetContextMenu(pEmpty);
+		AssertSize(uiActions + 2, pGrid->NumInputActions());
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//Without a menu the right button does nothing, and the grid's actions for it are gone.
+		pGrid->SetContextMenu(NULL);
+		AssertTrue(pGrid->GetContextMenu().IsNull());
+		AssertSize(uiActions, pGrid->NumInputActions());
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertLog("");
+
+		pMenu->GetItemClickEvent()->Remove(&cListener);
+		pMore->GetItemClickEvent()->Remove(&cListener);
+		pPopup = NULL;
+		pFocus = NULL;
+		pEmpty = NULL;
+		pText = NULL;
+		pGrid = NULL;
+		pMenu = NULL;
+		pMore = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -777,6 +949,7 @@ void TestMenu(void)
 	TestMenuBarKeys();
 	TestMenuBarFrames();
 	TestPopupDraw();
+	TestMenuContextMenu();
 
 	ObjectsFlush();
 	ObjectsKill();

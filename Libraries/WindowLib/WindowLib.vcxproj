@@ -200,6 +200,7 @@
     <ClInclude Include="TreeContainer.h" />
     <ClInclude Include="IconComponent.h" />
     <ClInclude Include="Popup.h" />
+    <ClInclude Include="ContextMenu.h" />
     <ClInclude Include="RoundedBoxCanvasDraw.h" />
     <ClInclude Include="DiffDividerDraw.h" />
     <ClInclude Include="DiffViewColours.h" />
@@ -307,6 +308,7 @@
     <ClCompile Include="TreeContainer.cpp" />
     <ClCompile Include="IconComponent.cpp" />
     <ClCompile Include="Popup.cpp" />
+    <ClCompile Include="ContextMenu.cpp" />
     <ClCompile Include="RoundedBoxCanvasDraw.cpp" />
     <ClCompile Include="DiffDividerDraw.cpp" />
     <ClCompile Include="DiffViewColours.cpp" />

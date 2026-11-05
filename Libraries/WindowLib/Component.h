@@ -34,7 +34,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CWindow;
+class CMenuContainer;
+class CContextMenu;
 //Input reaches a component through the input actions added to it (see AddInputAction), given by the window's focus.
+//
+//A component can have a context menu (SetContextMenu), opened by the right button or the Menu key, see CContextMenu.
 class CComponent : public CObject
 {
 CONSTRUCTABLE(CComponent);
@@ -50,6 +54,7 @@ protected:
 	CArray<CComponent>	maChildren;
 	Ptr<CWindow>		mpWindow;
 	CArray<CInputAction>	maInputActions;
+	Ptr<CContextMenu>	mpContextMenu;  //NULL for none.
 
 public:
 			void				Init(Ptr<CWindow> pWindow);
@@ -92,7 +97,7 @@ public:
 			void				SetCanGetFocus(bool bCanGetFocus);
 			void				SetHitAsWhole(bool bHitAsWhole);
 	virtual	bool				WantsEnter(void);
-	virtual	void				PopupClosed(Ptr<CComponent> pContent);
+	virtual	void				PopupClosed(Ptr<CComponent> pContent);  //Overrides call it.
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
 			Ptr<CComponent>		GetParent(void);
 			Ptr<CWindow>		GetWindow(void);
@@ -125,6 +130,11 @@ public:
 			size				NumInputActions(void);
 			void				SetInputActionsEnabled(EComponentInputCommand eCommand, bool bEnabled);
 			bool				CallInputActions(SComponentInputEvent* psEvent);
+
+			void				SetContextMenu(Ptr<CMenuContainer> pMenu);
+			Ptr<CMenuContainer>	GetContextMenu(void);
+			bool				OpenContextMenu(SInt32Vec2 sPosition);
+	virtual	SInt32Vec2			GetContextMenuPosition(void);
 
 protected:
 			void				SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds);

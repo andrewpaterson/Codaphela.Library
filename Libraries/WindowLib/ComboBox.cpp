@@ -328,6 +328,7 @@ void CComboBox::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::PopupClosed(Ptr<CComponent> pContent)
 {
+	CImageBorderContainer::PopupClosed(pContent);
 	if (pContent == mpMenu)
 	{
 		mpWindow->GetFocus()->SetFocus(this);

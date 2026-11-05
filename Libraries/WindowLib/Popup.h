@@ -34,7 +34,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //the popup shows wherever its content doesn't draw.
 //
 //The owner is the component that opened it.  A press on the owner, or in any popup, leaves the popups open; a press
-//anywhere else closes them.  The owner is told when its popup closes.
+//anywhere else closes them.  A popup whose owner is large, like a context menu's page, closes on a press on its owner
+//too (SetOwnerPressKeepsOpen).  The owner is told when its popup closes.
 class CPopup : public CContainer
 {
 CONSTRUCTABLE(CPopup);
@@ -48,6 +49,7 @@ protected:
 	ARGB32				msBorder;
 	bool				mbBackground;  //False until a look is set, then nothing is drawn behind the content.
 	bool				mbBorder;
+	bool				mbOwnerPressKeepsOpen;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
@@ -57,6 +59,8 @@ public:
 
 	Ptr<CComponent>		GetContent(void);
 	Ptr<CComponent>		GetOwner(void);
+	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
+	bool				IsOwnerPressKeepsOpen(void);
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);
 	void				SetLook(ARGB32 sBackground, SInsets* psInsets);
 

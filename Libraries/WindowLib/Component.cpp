@@ -21,6 +21,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
+#include "MenuContainer.h"
+#include "ContextMenu.h"
 #include "Component.h"
 
 
@@ -42,6 +44,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	mbHitAsWhole = false;
 	mpParent = NULL;
 	mpWindow = pWindow;
+	mpContextMenu = NULL;
 
 	PostInit();
 }
@@ -72,6 +75,7 @@ void CComponent::Class(void)
 		M_Embedded(maChildren);
 	Nes(M_Pointer(mpWindow));
 		M_Embedded(maInputActions);
+		M_Pointer(mpContextMenu);
 }
 
 
@@ -599,7 +603,6 @@ bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
 void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
-void CComponent::PopupClosed(Ptr<CComponent> pContent) {}  //A popup this component opened, see CWindow::OpenPopup, has closed.
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }
@@ -708,4 +711,88 @@ SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
 void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; InvalidateLayout(); }
 EContainerStyleHorizontal CComponent::GetHorizontalAlignment(void) { return meHorizontalAlignment; }
 EContainerStyleVertical CComponent::GetVerticalAlignment(void) { return meVerticalAlignment; }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A popup this component opened, see CWindow::OpenPopup, has closed.  If
+// it is the context menu the keys go back where they were.  Overrides
+// call it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::PopupClosed(Ptr<CComponent> pContent)
+{
+	if (mpContextMenu.IsNotNull())
+	{
+		mpContextMenu->PopupClosed(pContent);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pMenu opens on this component, and the components in it without menus
+// of their own, with the right button, the Menu key or Shift+F10 (see
+// CContextMenu).  NULL for none.  Its items' clicks are heard through its
+// item click event.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SetContextMenu(Ptr<CMenuContainer> pMenu)
+{
+	if (mpContextMenu.IsNotNull())
+	{
+		mpContextMenu->RemoveActions();
+		mpContextMenu = NULL;
+	}
+	if (pMenu.IsNotNull())
+	{
+		mpContextMenu = OMalloc<CContextMenu>(this, pMenu);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMenuContainer> CComponent::GetContextMenu(void)
+{
+	if (mpContextMenu.IsNull())
+	{
+		return NULL;
+	}
+	return mpContextMenu->GetMenu();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Opens the context menu with its top left at sPosition, in window client
+// space, as the right button does.  False if there is none or it has no
+// items.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::OpenContextMenu(SInt32Vec2 sPosition)
+{
+	if (mpContextMenu.IsNull())
+	{
+		return false;
+	}
+	return mpContextMenu->Open(sPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a context menu opened from the keys (the Menu key or Shift+F10)
+// has its top left, in window client space, while this component has the
+// keys.  Its top left; a text area says its caret.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CComponent::GetContextMenuPosition(void)
+{
+	return GetPosition();
+}
 

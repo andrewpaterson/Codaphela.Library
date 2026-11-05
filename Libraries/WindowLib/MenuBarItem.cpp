@@ -173,6 +173,7 @@ void CMenuBarItem::Right(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuBarItem::PopupClosed(Ptr<CComponent> pContent)
 {
+	CButton::PopupClosed(pContent);
 	if (pContent == mpMenu)
 	{
 		mpMenuBar->MenuClosed(this);

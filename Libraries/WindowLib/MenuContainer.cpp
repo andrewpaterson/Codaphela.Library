@@ -449,6 +449,7 @@ void CMenuContainer::Right(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::PopupClosed(Ptr<CComponent> pContent)
 {
+	CListContainer::PopupClosed(pContent);
 	if (pContent == mpOpenSubMenu)
 	{
 		mpOpenSubMenu = NULL;

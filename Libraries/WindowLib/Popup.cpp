@@ -44,6 +44,7 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	msBorder = 0;
 	mbBackground = false;
 	mbBorder = false;
+	mbOwnerPressKeepsOpen = true;
 	AddComponent(pContent);
 
 	PostInit();
@@ -66,6 +67,7 @@ void CPopup::Class(void)
 	U_UInt32(msBorder);
 	U_Bool(mbBackground);
 	U_Bool(mbBorder);
+	U_Bool(mbOwnerPressKeepsOpen);
 }
 
 
@@ -230,4 +232,6 @@ bool CPopup::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CComponent> CPopup::GetContent(void) { return mpContent; }
 Ptr<CComponent> CPopup::GetOwner(void) { return mpOwner; }
+void CPopup::SetOwnerPressKeepsOpen(bool bKeepsOpen) { mbOwnerPressKeepsOpen = bKeepsOpen; }  //True, as it starts, for a small owner like a combo box: pressing it again toggles the popup itself.
+bool CPopup::IsOwnerPressKeepsOpen(void) { return mbOwnerPressKeepsOpen; }
 

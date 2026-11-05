@@ -148,6 +148,7 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddCommand("Page Up", CIC_PageUp);
 	AddCommand("Page Down", CIC_PageDown);
 	AddCommand("Escape", CIC_ClearSelection);
+	AddCommand("Menu", CIC_ContextMenuKey);
 
 	AddCommand("Space", CIC_Space);
 	AddCommand("Tab", CIC_Tab);

@@ -2102,6 +2102,45 @@ bool CTextArea::WantsEnter(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A context menu opened from the keys opens under the caret, as Visual
+// Studio's does, kept in the part of the text that is seen.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CTextArea::GetContextMenuPosition(void)
+{
+	CInt32Rect	cCaret;
+	CInt32Rect	cView;
+	SInt32Vec2	sPosition;
+
+	GetCaretBounds(&cCaret);
+	sPosition = GetPosition();
+	sPosition.x += cCaret.GetLeft();
+	sPosition.y += cCaret.GetBottom();
+	if (GetScrollView(&cView))
+	{
+		if (sPosition.x < cView.GetLeft())
+		{
+			sPosition.x = cView.GetLeft();
+		}
+		else if (sPosition.x > cView.GetRight())
+		{
+			sPosition.x = cView.GetRight();
+		}
+		if (sPosition.y < cView.GetTop())
+		{
+			sPosition.y = cView.GetTop();
+		}
+		else if (sPosition.y > cView.GetBottom())
+		{
+			sPosition.y = cView.GetBottom();
+		}
+	}
+	return sPosition;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::FocusGained(void)
