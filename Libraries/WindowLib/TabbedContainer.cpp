@@ -871,10 +871,27 @@ void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 			PlaceTabs();
 		}
 	}
-	else if (muiShownTabs != MAX_SIZE)
+	else
 	{
-		muiShownTabs = MAX_SIZE;
-		PlaceTabs();
+		if (muiShownTabs != MAX_SIZE)
+		{
+			muiShownTabs = MAX_SIZE;
+			PlaceTabs();
+		}
+		//The tabs past the edge are cut off; a selected one among them is moved to the front so it shows.
+		if (mbBarShown && mpSelected.IsNotNull())
+		{
+			uiSelected = IndexOf(mpSelected);
+			iUsed = 0;
+			for (i = 0; (uiSelected != ARRAY_ELEMENT_NOT_FOUND) && (i <= uiSelected); i++)
+			{
+				iUsed += maTabs.Get(i)->GetDesiredSize().x;
+			}
+			if ((uiSelected != ARRAY_ELEMENT_NOT_FOUND) && (uiSelected > 0) && (iUsed > sAreaSize.x))
+			{
+				MoveTab(mpSelected, 0);
+			}
+		}
 	}
 	CGridContainer::Layout(sPosition, sAreaSize);
 }

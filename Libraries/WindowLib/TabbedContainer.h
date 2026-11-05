@@ -56,7 +56,7 @@ class CMenuItem;
 //Studio's tool windows have it.  With the overflow menu (SetOverflowMenu) a chevron at the bar's right lists every tab;
 //choosing one moves it to the front and selects it.  With it, only the tabs that fit on the bar are shown, as in
 //Visual Studio; a selected tab that doesn't fit is moved to the front.  Without it, tabs that don't fit are cut off at
-//the container's right edge.  A tab pulled a few
+//the container's right edge, and a selected one is moved to the front too.  A tab pulled a few
 //pixels along while pressed calls the drag event, once, with the tab: a dock group listens to it to tear the tab off.
 //The drag event's listener takes over the rest of the drag (see CFocus::HandOverDrag).  While something listens to the
 //close request event a tab's cross calls it instead of removing the tab, so the listener can decide.
