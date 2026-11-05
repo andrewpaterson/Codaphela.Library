@@ -189,8 +189,8 @@ void CDistToRootExpectedDists::GrowTable(void)
 	}
 
 	SafeFree(mpuiTable);
-	mpuiTable = (size*)malloc(uiSize * sizeof(size));
-	memset(mpuiTable, 0, uiSize * sizeof(size));
+	mpuiTable = (size*)malloc((lsize)uiSize * sizeof(size));
+	memset(mpuiTable, 0, (lsize)uiSize * sizeof(size));
 	muiTableSize = uiSize;
 
 	for (i = 0; i < uiDists; i++)
