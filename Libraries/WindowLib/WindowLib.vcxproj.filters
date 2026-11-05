@@ -339,6 +339,15 @@
     <ClInclude Include="DockTree.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="DockRestorer.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockMover.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
+    <ClInclude Include="DockFocus.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
     <ClInclude Include="DockTitleBar.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
@@ -624,6 +633,15 @@
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockTree.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockRestorer.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockMover.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockFocus.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockTitleBar.cpp">

@@ -30,6 +30,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockPane.h"
 #include "DockGroup.h"
 #include "DockTree.h"
+#include "DockRestorer.h"
+#include "DockMover.h"
+#include "DockFocus.h"
 
 
 enum EDockImage
@@ -110,6 +113,9 @@ CONSTRUCTABLE(CDockManager);
 DESTRUCTABLE(CDockManager);
 friend class CDockDrag;
 friend class CDockTree;
+friend class CDockRestorer;
+friend class CDockMover;
+friend class CDockFocus;
 friend class CDockLayoutWriter;
 friend class CDockLayoutReader;
 protected:
@@ -130,6 +136,9 @@ protected:
 
 	Ptr<CDockDrag>				mpDrag;
 	CDockTree					mcTree;  //The trees' edits.
+	CDockRestorer				mcRestorer;  //Where panes go back to.
+	CDockMover					mcMover;  //Floating, docking and auto hiding.
+	CDockFocus					mcFocus;  //The active pane and the flyout.
 
 	//Auto hide.
 	Ptr<CAutoHideFlyout>		mpFlyout;
@@ -201,8 +210,6 @@ public:
 	Ptr<CDockDrag>				GetDrag(void);
 	void						RestoreFocus(Ptr<CWindow> pWindow);
 	void						LayoutChanged(void);
-	void						FocusChanged(CFocus* pcFocus);
-	bool						IsFocusOutsideFlyout(Ptr<CComponent> pFocussed);
 	void						PaneChanged(Ptr<CDockPane> pPane);
 	void						CloseActiveDocument(void);
 	void						HideActiveTool(void);
@@ -223,8 +230,6 @@ public:
 	//The tree, for the layout file and tests.
 	void						RemoveFloating(Ptr<CDockFloatingWindow> pFloating);
 	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
-	Ptr<CDockFloatingWindow>	CreateFloating(CInt32Rect* pcScreenRectangle);
-	void						KeepOnScreen(CInt32Rect* pcRect);
 	void						WatchFocus(Ptr<CWindow> pWindow);
 	void						UnwatchFocus(Ptr<CWindow> pWindow);
 	void						SetNextGroupID(int32 iID);
@@ -233,19 +238,7 @@ public:
 protected:
 	void						CreateImages(void);
 	void						TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore);
-	void						RecordRestore(Ptr<CDockPane> pPane);
-	bool						GetGroupRestore(Ptr<CDockGroup> pGroup, SDockRestore* psDest);
-	void						GiveGroupRestore(Ptr<CDockGroup> pGroup);
-	void						Restore(Ptr<CDockPane> pPane);
-	void						RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int iDepth);
-	void						DockDefault(Ptr<CDockPane> pPane);
 	void						SetStates(Ptr<CDockNode> pNode, EDockPaneState eState);
-	void						SetActivePane(Ptr<CDockPane> pPane);
-	void						SetActiveDocument(Ptr<CDockPane> pPane);
-	void						FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pPane, CInt32Rect* pcDest);
-	EDockSide					NearestEdge(Ptr<CDockGroup> pGroup);
-	Ptr<CComponent>				FindFocusable(Ptr<CComponent> pComponent);
-	void						FocusPane(Ptr<CDockPane> pPane);
 	void						ClearLayout(void);
 };
 

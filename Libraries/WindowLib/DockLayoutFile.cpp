@@ -546,7 +546,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadMainWindow(CMarkupTag* pcMain, CArray<CDoc
 		//Read as the application starts, before its window is shown: the window goes where it was.  A layout read
 		//later, another solution's say, leaves the window where the user has it.
 		cRect.Init(&mpcManager->mcLayoutWindow);
-		mpcManager->KeepOnScreen(&cRect);
+		mpcManager->mcMover.KeepOnScreen(&cRect);
 		mpcManager->mpWindow->SetScreenRectangle(&cRect);
 	}
 
@@ -663,7 +663,7 @@ void CDockLayoutReader::ReadFloatingWindows(CMarkupTag* pcRoot)
 	{
 		if (ReadRectangle(pcTag, &cRect, ""))
 		{
-			pFloating = mpcManager->CreateFloating(&cRect);
+			pFloating = mpcManager->mcMover.CreateFloating(&cRect);
 			pRoot = ReadFirstNode(pcTag, pFloating->GetWindow(), false);
 			if (pRoot.IsNotNull())
 			{
@@ -700,11 +700,11 @@ void CDockLayoutReader::PlaceTheRest(CArray<CDockPane>* paMentioned, CArray<CDoc
 		}
 		if (paMentioned->Contains(pPane) && pPane->HasRestore())
 		{
-			mpcManager->Restore(pPane);
+			mpcManager->mcRestorer.Restore(pPane);
 		}
 		else if (pPane->GetDefaultKind() != DPL_Hidden)
 		{
-			mpcManager->DockDefault(pPane);
+			mpcManager->mcRestorer.DockDefault(pPane);
 		}
 	}
 }
