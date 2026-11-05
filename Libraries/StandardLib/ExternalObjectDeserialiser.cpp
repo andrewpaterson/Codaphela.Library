@@ -13,8 +13,10 @@ void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNa
 {
 	CDependentReadObjects::Init();
 	mcIndexRemap.Init();
-	miGetIndex = 0;
+	mcNewIndices.Init(true);
 	mcReadObjects.Init();
+	mcReadObjectPositions.Init(false);
+	maoiUnread.Init();
 	mcPointers.Init();
 	mpcReader = pcReader;
 	mpcObjects = pcObjects;
@@ -37,6 +39,7 @@ void CExternalObjectDeserialiser::Kill(void)
 	mpcMemory = NULL;
 
 	mcIndexRemap.Kill();
+	mcNewIndices.Kill();
 	mcPointers.Kill();
 
 	uiReadObjects = mcReadObjects.NumElements();
@@ -46,6 +49,8 @@ void CExternalObjectDeserialiser::Kill(void)
 		pcDependent->Kill();
 	}
 	mcReadObjects.Kill();
+	mcReadObjectPositions.Kill();
+	maoiUnread.Kill();
 
 	CDependentReadObjects::Kill();
 }
@@ -53,47 +58,57 @@ void CExternalObjectDeserialiser::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads szObjectName and everything it points to.  The reader is ended
+// whether or not that worked.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::Read(const char* szObjectName)
 {
-	bool				bResult;
-	CBaseObject*		pvObject;
-	CSerialisedObject*	pcSerialised;
-	
-	bResult = mpcReader->Begin();
-	if (!bResult)
+	CBaseObject*	pvObject;
+
+	if (!mpcReader->Begin())
 	{
 		return NULL;
 	}
+
+	pvObject = ReadObjectAndDependents(szObjectName);
+	if (!mpcReader->End())
+	{
+		return NULL;
+	}
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CExternalObjectDeserialiser::ReadObjectAndDependents(const char* szObjectName)
+{
+	CBaseObject*		pvObject;
+	CSerialisedObject*	pcSerialised;
 
 	pcSerialised = mpcReader->Read(szObjectName);
 	if (!pcSerialised)
 	{
 		return NULL;
 	}
+
 	pvObject = ReadSerialsed(pcSerialised);
 	SafeFree(pcSerialised);
-
 	if (pvObject == NULL)
 	{
 		return NULL;
 	}
 
-	bResult = ReadDependentObjects();
-	if (!bResult)
+	if (!ReadDependentObjects())
 	{
 		return NULL;
 	}
-
-	bResult = mpcReader->End();
-	if (!bResult)
-	{
-		return NULL;
-	}
-
 	return pvObject;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,7 +181,7 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 		pcSerialised = mpcReader->Read(szObjectName);
 		if (!pcSerialised)
 		{
-			return false;
+			return gcLogger.Error2(__METHOD__, " Could not read object named [", szObjectName, "] that another object points to.", NULL);
 		}
 	}
 	else
@@ -174,7 +189,7 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 		pcSerialised = mpcReader->Read(oiOld);
 		if (!pcSerialised)
 		{
-			return false;
+			return gcLogger.Error2(__METHOD__, " Could not read object with index [", IndexToString(oiOld), "] that another object points to.", NULL);
 		}
 	}
 
@@ -219,6 +234,8 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 
 	if (pvObject)
 	{
+		//Read objects are new to the database (the object reader marks them clean, as if loaded from it).
+		pvObject->SetDirty(true);
 		MarkRead(oiOld);
 
 		oiNew = pvObject->GetIndex();
@@ -260,25 +277,21 @@ bool CExternalObjectDeserialiser::Mark(OIndex oi)
  
 //////////////////////////////////////////////////////////////////////////
 //
+// The object found with (old) index oi, NULL if none was.
 //
 //////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CExternalObjectDeserialiser::GetObject(OIndex oi)
 {
-	CDependentReadObject	cObject;
-	size					iIndex;
-	bool					bResult;
-	CDependentReadObject*	pcDependent;
+	int64*	piPosition;
 
-	cObject.moi = oi;
-
-	bResult = mcReadObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
-	if (!bResult)
+	piPosition = mcReadObjectPositions.Get(oi);
+	if (piPosition == NULL)
 	{
 		return NULL;
 	}
-	pcDependent = mcReadObjects.Get(iIndex);
-	return pcDependent;
+	return mcReadObjects.Get((size)*piPosition);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -314,25 +327,22 @@ size CExternalObjectDeserialiser::NumObjects(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index the object read with (old) index oiOld was given,
+// INVALID_O_INDEX if it hasn't been read.
 //
 //////////////////////////////////////////////////////////////////////////
 OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
-	size			i;
-	CIndexNewOld*	pcRemap;
-	size			uiIndices;
+	int64*	poiNew;
 
-	uiIndices = mcIndexRemap.NumElements();
-	for (i = 0; i < uiIndices; i++)
+	poiNew = mcNewIndices.Get(oiOld);
+	if (poiNew == NULL)
 	{
-		pcRemap = mcIndexRemap.Get(i);
-		if (pcRemap->moiOld == oiOld)
-		{
-			return pcRemap->moiNew;
-		}
+		return INVALID_O_INDEX;
 	}
-	return INVALID_O_INDEX;
+	return *poiNew;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -345,6 +355,7 @@ void CExternalObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 
 	pcNewOld = mcIndexRemap.Add();
 	pcNewOld->Init(oiNew, oiOld);
+	mcNewIndices.Put(oiOld, oiNew);
 }
 
 
@@ -383,32 +394,43 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Points the pointer that was read at the object it pointed to, now it has
+// been read (or, for a named object not read, a hollow for it).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
+	OIndex					oiOld;
 	OIndex					oiNew;
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CBaseObject*			pvObject;
 	CEmbeddedObject*		pcEmbeddedObject;
 
-	oiNew = GetNewIndexFromOld(pcDependentReadPointer->moiPointedTo);
-	pcBaseObject = mpcMemory->Get(oiNew);
-
-	if (!pcBaseObject)
+	oiOld = pcDependentReadPointer->moiPointedTo;
+	oiNew = GetNewIndexFromOld(oiOld);
+	pcBaseObject = NULL;
+	if (oiNew != INVALID_O_INDEX)
 	{
-		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
-		if (pcDependentReadObject->meType == OBJECT_POINTER_NAMED)
+		pcBaseObject = mpcMemory->Get(oiNew);
+	}
+
+	if (pcBaseObject == NULL)
+	{
+		pcDependentReadObject = GetObject(oiOld);
+		if (pcDependentReadObject == NULL)
 		{
-			pvObject = mpcObjects->GetNamedOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
-			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
-			pcBaseObject = pvObject;
+			return gcLogger.Error2(__METHOD__, " Pointer to object with index [", IndexToString(oiOld), "] that was never found.", NULL);
 		}
-		else if (pcDependentReadObject->meType == OBJECT_POINTER_ID)
+		if (pcDependentReadObject->meType != OBJECT_POINTER_NAMED)
 		{
-			return false;
+			return gcLogger.Error2(__METHOD__, " Object with index [", IndexToString(oiOld), "] was not read.", NULL);
 		}
+		pcBaseObject = mpcObjects->GetNamedOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
+		if (pcBaseObject == NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Could not get or allocate object named [", pcDependentReadObject->mszObjectName.Text(), "].", NULL);
+		}
+		AddIndexRemap(pcBaseObject->GetIndex(), oiOld);
 	}
 
 	//The pointer may be to one of the object's embedded objects (or, if it is hollow, its embedded hollow).
@@ -421,6 +443,7 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	AddHeapFrom(pcEmbeddedObject, pcDependentReadPointer->mpcContaining);
 	return true;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -469,8 +492,6 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
-	bool					bOiExistsInDependents;
-	size					iIndex;
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
 
@@ -488,8 +509,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 
 	cDependent.Init(pcObjectIdentifier);
 
-	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
-	if (!bOiExistsInDependents)
+	if (!mcReadObjectPositions.HasKey(pcObjectIdentifier->moi))
 	{
 		if (pcObjectIdentifier->IsNamed())
 		{
@@ -500,7 +520,9 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 			}
 		}
 
-		mcReadObjects.InsertAt(&cDependent, iIndex);
+		mcReadObjectPositions.Put(pcObjectIdentifier->moi, (int64)mcReadObjects.NumElements());
+		PushUnread(pcObjectIdentifier->moi);
+		mcReadObjects.Add(&cDependent);
 	}
 	else
 	{
@@ -526,40 +548,97 @@ bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjec
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The unread object with the smallest old index, NULL if all are read: the
+// objects read are given new indices in the order of their old ones.
 //
 //////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CExternalObjectDeserialiser::GetUnread(void)
 {
-	size					iOldIndex;
-	CDependentReadObject*	psObject;
+	CDependentReadObject*	pcDependent;
 
-	if (mcReadObjects.NumElements() == 0)
+	while (maoiUnread.NumElements() > 0)
 	{
-		return NULL;
+		pcDependent = GetObject(PopUnread());
+		if (!pcDependent->IsRead())
+		{
+			return pcDependent;
+		}
 	}
+	return NULL;
+}
 
-	iOldIndex = miGetIndex;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CExternalObjectDeserialiser::PushUnread(OIndex oi)
+{
+	size	i;
+	size	uiParent;
+	OIndex*	paoi;
+
+	maoiUnread.Push(&oi);
+	paoi = maoiUnread.GetData();
+	i = maoiUnread.NumElements() - 1;
+	while (i > 0)
+	{
+		uiParent = (i - 1) / 2;
+		if (paoi[uiParent] <= oi)
+		{
+			break;
+		}
+		paoi[i] = paoi[uiParent];
+		i = uiParent;
+	}
+	paoi[i] = oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The smallest old index.  There must be one.
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CExternalObjectDeserialiser::PopUnread(void)
+{
+	size	i;
+	size	uiChild;
+	size	uiNum;
+	OIndex*	paoi;
+	OIndex	oiSmallest;
+	OIndex	oiLast;
+
+	oiSmallest = *maoiUnread.Get(0);
+	maoiUnread.Pop(&oiLast);
+	uiNum = maoiUnread.NumElements();
+	paoi = maoiUnread.GetData();  //After the pop: it can move the array.
+
+	//The last goes where the smallest was and moves down past smaller children.
+	i = 0;
 	for (;;)
 	{
-		if (miGetIndex >= mcReadObjects.NumElements() - 1)
+		uiChild = i * 2 + 1;
+		if (uiChild >= uiNum)
 		{
-			miGetIndex = 0;
+			break;
 		}
-		else
+		if ((uiChild + 1 < uiNum) && (paoi[uiChild + 1] < paoi[uiChild]))
 		{
-			miGetIndex++;
+			uiChild++;
 		}
-
-		psObject = mcReadObjects.Get(miGetIndex);
-		if (!psObject->IsRead())
+		if (oiLast <= paoi[uiChild])
 		{
-			return psObject;
+			break;
 		}
-
-		if (miGetIndex == iOldIndex)
-		{
-			return NULL;
-		}
+		paoi[i] = paoi[uiChild];
+		i = uiChild;
 	}
+	if (uiNum > 0)
+	{
+		paoi[i] = oiLast;
+	}
+	return oiSmallest;
 }
+
 

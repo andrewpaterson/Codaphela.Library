@@ -4,6 +4,8 @@
 #include "ExternalObjectReader.h"
 #include "Pointer.h"
 #include "DependentReadObjects.h"
+#include "BaseLib/MapLongLong.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "NamedIndexedObjects.h"
 
 
@@ -17,11 +19,12 @@ class CIndexGenerator;
 class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
-	CArrayDependentReadObject	mcReadObjects;
+	CArrayDependentReadObject	mcReadObjects;		//In the order they were found.
+	CMapLongLong				mcReadObjectPositions;	//Old index -> position in mcReadObjects.
+	CArrayTemplate<OIndex>		maoiUnread;			//A min-heap of the old indices found: read smallest first.  Read ones are skipped when they come up.
 	CArrayDependentReadPointer	mcPointers;
 	CArrayIndexNewOld			mcIndexRemap;
-
-	size						miGetIndex;  //The index of the next object to 'gotten' for reading.
+	CMapLongLong				mcNewIndices;		//Old index -> new index, as mcIndexRemap.
 
 	CExternalObjectReader*		mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjects*					mpcObjects;
@@ -43,6 +46,7 @@ public:
 	CArrayIndexNewOld*		GetArrayIndexNewOld(void);
 
 protected:
+	CBaseObject*			ReadObjectAndDependents(const char* szObjectName);
 	CBaseObject*			ReadSerialsed(CSerialisedObject* pcSerialised);
 	bool					ReadDependentObjects(void);
 	bool					ReadUnread(CDependentReadObject* pcDependent);
@@ -53,6 +57,8 @@ protected:
 	bool					AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
 
 	CDependentReadObject*	GetUnread(void);
+	void					PushUnread(OIndex oi);
+	OIndex					PopUnread(void);
 	bool					Mark(OIndex oi);
 
 	CDependentReadObject*	GetObject(OIndex oi);

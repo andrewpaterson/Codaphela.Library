@@ -47,6 +47,7 @@ void TestClass(void);
 void TestChunkFileObjectWriter(void);
 void TestObjectReaderChunked(void);
 void TestObjectGraphDeserialiser(void);
+void TestExternalObjectDeserialiser(void);
 void TestObjectReaderSimple(void);
 void TestObjects(void);
 void TestObjectsEvictVsKill(void);
@@ -118,6 +119,7 @@ int __cdecl main(void)
 	TestObjectReaderChunked();
 	TestObjectStackPointers();
 	TestObjectGraphDeserialiser();
+	TestExternalObjectDeserialiser();
 	TestObjectConverter();
 	TestObjects();
 	TestStackPointers();

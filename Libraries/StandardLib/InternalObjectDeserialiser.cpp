@@ -249,16 +249,13 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	}
 
 	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
-	if (pcEmbeddedObject)
+	if (pcEmbeddedObject == NULL)
 	{
-		*ppcPtrToBeUpdated = pcEmbeddedObject;
-		AddHeapFrom(pcEmbeddedObject, pcObjectContainingPtrToBeUpdated);
-		return true;
+		return gcLogger.Error2(__METHOD__, " Hollow object {", ObjectToString(pcHollowObject), "} has no embedded object [", IntToString(iEmbeddedIndex), "].", NULL);
 	}
-	else
-	{
-		return false;
-	}
+	*ppcPtrToBeUpdated = pcEmbeddedObject;
+	AddHeapFrom(pcEmbeddedObject, pcObjectContainingPtrToBeUpdated);
+	return true;
 }
 
 
