@@ -190,6 +190,13 @@
     <ClCompile Include="CPPSymbolKey.cpp" />
     <ClCompile Include="CPPIndex.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
+    <ClCompile Include="CPP65IRFrontEndUnit.cpp" />
+    <ClCompile Include="CPP65IRFrontEndStatements.cpp" />
+    <ClCompile Include="CPP65IRFrontEndValues.cpp" />
+    <ClCompile Include="CPP65IRFrontEndOperators.cpp" />
+    <ClCompile Include="CPP65IRFrontEndConversions.cpp" />
+    <ClCompile Include="CPP65IRFrontEndCalls.cpp" />
+    <ClCompile Include="CPP65IRFrontEndObjects.cpp" />
     <ClCompile Include="CppParserLazy.cpp" />
     <ClCompile Include="CPPSyntaxLazyDeclaration.cpp" />
     <ClCompile Include="IRBackend.cpp" />

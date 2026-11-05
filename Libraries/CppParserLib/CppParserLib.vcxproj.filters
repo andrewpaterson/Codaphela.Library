@@ -150,6 +150,27 @@
     <ClCompile Include="CPP65IRFrontEnd.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndUnit.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndStatements.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndValues.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndOperators.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndConversions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndCalls.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndObjects.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRBackend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
