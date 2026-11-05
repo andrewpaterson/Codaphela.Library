@@ -26,12 +26,13 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetDebugRegister(SDebugRegister* psDest, const char* szName, uint8 uiBits, EDebugRegisterKind eKind)
+void SetDebugRegister(SDebugRegister* psDest, const char* szName, uint8 uiBits, EDebugRegisterKind eKind, const char* szFlags)
 {
 	memset(psDest, 0, sizeof(SDebugRegister));
 	strncpy(psDest->szName, szName, DEBUG_REGISTER_NAME_SIZE - 1);
 	psDest->uiBits = uiBits;
 	psDest->uiKind = (uint8)eKind;
+	strncpy(psDest->szFlags, szFlags, DEBUG_REGISTER_FLAGS_SIZE - 1);
 }
 
 
@@ -50,4 +51,39 @@ size ClampDebugMemory(uint32 uiAddress, size uiSize, uint32 uiMemorySize)
 		return uiMemorySize - uiAddress;
 	}
 	return uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size DecodeDebugInstructions(CDebugTarget* pcTarget, uint32 uiAddress, size uiCount, SDebugInstruction* asDest)
+{
+	CDebugDecoder*	pcDecoder;
+
+	pcDecoder = pcTarget->GetDecoder();
+	if (pcDecoder == NULL)
+	{
+		return 0;
+	}
+	return pcDecoder->Decode(pcTarget, uiAddress, uiCount, asDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void StartDebugInstruction(SDebugInstruction* psDest, CDebugTarget* pcTarget, uint32 uiAddress, size uiLength)
+{
+	memset(psDest, 0, sizeof(SDebugInstruction));
+	if (uiLength > DEBUG_INSTRUCTION_BYTES)
+	{
+		uiLength = DEBUG_INSTRUCTION_BYTES;
+	}
+	psDest->uiAddress = uiAddress;
+	psDest->uiLength = (uint8)uiLength;
+	psDest->uiKind = DI_Other;
+	pcTarget->PeekMemory(uiAddress, psDest->auiBytes, uiLength);
 }

@@ -9,6 +9,12 @@
     <ClCompile Include="DebugClient.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="DebugFormat.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Fast65C64DebugDecoder.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="DebugServer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -27,6 +33,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugClient.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugFormat.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLaunch.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Fast65C64DebugDecoder.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="DebugProtocol.h">

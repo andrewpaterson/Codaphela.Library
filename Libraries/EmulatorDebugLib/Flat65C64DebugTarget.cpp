@@ -34,6 +34,7 @@ void CFlat65C64DebugTarget::Init(uint32 uiMemorySize)
 	mpuiMemory = (uint8*)malloc(uiMemorySize);
 	memset(mpuiMemory, 0, uiMemorySize);
 	mcMPU.Init(ReadWord, WriteByte, this, mpuiMemory, uiMemorySize);
+	mpcDecoder = &mcDecoder;
 }
 
 
@@ -85,7 +86,7 @@ void CFlat65C64DebugTarget::GetRegister(size uiRegister, SDebugRegister* psDest)
 	case F64R_V:	SetDebugRegister(psDest, "V", 32, DRK_Address);	break;
 	case F64R_W:	SetDebugRegister(psDest, "W", 32, DRK_Value);		break;
 	case F64R_C:	SetDebugRegister(psDest, "C", 32, DRK_Address);	break;
-	case F64R_P:	SetDebugRegister(psDest, "P", 16, DRK_Flags);		break;
+	case F64R_P:	SetDebugRegister(psDest, "P", 16, DRK_Flags, "ELFGNVZC");	break;
 	default:		SetDebugRegister(psDest, "", 0, DRK_Value);		break;
 	}
 }
@@ -183,19 +184,11 @@ void CFlat65C64DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EDebugInstruction CFlat65C64DebugTarget::GetInstruction(uint32 uiAddress, size* puiCallLength)
+void CFlat65C64DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
 {
-	uint16	uiOpcode;
-
-	*puiCallLength = 0;
-	if (PeekMemory(uiAddress, &uiOpcode, 2) != 2)
-	{
-		return DI_Other;
-	}
-	*puiCallLength = CFast65C64::CallLength(uiOpcode);
-	if (*puiCallLength != 0)
-	{
-		return DI_Call;
-	}
-	return CFast65C64::IsReturn(uiOpcode) ? DI_Return : DI_Other;
+	mpcDecoder = pcDecoder;
 }
+
+
+CDebugDecoder* CFlat65C64DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
+EDebugAddressFormat CFlat65C64DebugTarget::GetAddressFormat(void)	{ return DAF_Flat; }

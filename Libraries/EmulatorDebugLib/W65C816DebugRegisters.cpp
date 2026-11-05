@@ -37,8 +37,8 @@ void Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest)
 	case D816R_DBR:	SetDebugRegister(psDest, "DBR", 8, DRK_Value);		break;
 	case D816R_PBR:	SetDebugRegister(psDest, "PBR", 8, DRK_Value);		break;
 	case D816R_PC:	SetDebugRegister(psDest, "PC", 16, DRK_Address);	break;
-	case D816R_P:	SetDebugRegister(psDest, "P", 8, DRK_Flags);		break;
-	case D816R_E:	SetDebugRegister(psDest, "E", 1, DRK_Flags);		break;
+	case D816R_P:	SetDebugRegister(psDest, "P", 8, DRK_Flags, "NVMXDIZC");	break;
+	case D816R_E:	SetDebugRegister(psDest, "E", 1, DRK_Flags, "E");			break;
 	default:		SetDebugRegister(psDest, "", 0, DRK_Value);		break;
 	}
 }
@@ -86,36 +86,5 @@ bool Set65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister, uint64 uiV
 	case D816R_P:	pcMPU->TestSetP((uint8)uiValue, pcMPU->IsEmulation());						return true;
 	case D816R_E:	pcMPU->TestSetP(pcMPU->GetP(), uiValue != 0);								return true;
 	default:		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// brk and cop return (rti) past their signature byte.
-//
-//////////////////////////////////////////////////////////////////////////
-EDebugInstruction Get65C816Instruction(uint8 uiOpcode, size* puiCallLength)
-{
-	*puiCallLength = 0;
-	switch (uiOpcode)
-	{
-	case 0x20:	//jsr a
-	case 0xFC:	//jsr (a,x)
-		*puiCallLength = 3;
-		return DI_Call;
-	case 0x22:	//jsl al
-		*puiCallLength = 4;
-		return DI_Call;
-	case 0x00:	//brk
-	case 0x02:	//cop
-		*puiCallLength = 2;
-		return DI_Call;
-	case 0x60:	//rts
-	case 0x6B:	//rtl
-	case 0x40:	//rti
-		return DI_Return;
-	default:
-		return DI_Other;
 	}
 }

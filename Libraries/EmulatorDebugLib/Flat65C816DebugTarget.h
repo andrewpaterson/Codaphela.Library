@@ -26,13 +26,15 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 
 
 //A CFast65C816 with nothing but memory: a flat block at 00:0000, uiMemorySize bytes.  Reads past it are $FF and
-//writes are ignored.  Run's budget is instructions.
+//writes are ignored.  Run's budget is instructions.  It has no decoder unless it is given one (SetDecoder): the
+//W65C816's instructions are known where its assembler is.
 class CFlat65C816DebugTarget : public CDebugTarget
 {
 protected:
 	CFast65C816		mcMPU;
 	uint8*			mpuiMemory;
 	uint32			muiMemorySize;
+	CDebugDecoder*	mpcDecoder;
 
 public:
 	void			Init(uint32 uiMemorySize);
@@ -40,9 +42,11 @@ public:
 
 	CFast65C816*	GetMPU(void);
 	uint8*			GetMemory(void);
+	void			SetDecoder(CDebugDecoder* pcDecoder);
 
 	const char*		GetProcessorName(void) override;
 	size			NumAddressBits(void) override;
+	EDebugAddressFormat	GetAddressFormat(void) override;
 	size			NumRegisters(void) override;
 	void			GetRegister(size uiRegister, SDebugRegister* psDest) override;
 	uint64			GetRegisterValue(size uiRegister) override;
@@ -62,7 +66,7 @@ public:
 
 	size			PeekMemory(uint32 uiAddress, void* pvDest, size uiSize) override;
 	size			PokeMemory(uint32 uiAddress, void* pvSource, size uiSize) override;
-	EDebugInstruction	GetInstruction(uint32 uiAddress, size* puiCallLength) override;
+	CDebugDecoder*	GetDecoder(void) override;
 
 protected:
 	static uint8	ReadByte(void* pvContext, uint32 uiAddress);

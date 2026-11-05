@@ -22,6 +22,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #define __FLAT_65C64_DEBUG_TARGET_H__
 #include "MicroprocessorLib/Fast65C64.h"
 #include "DebugTarget.h"
+#include "Fast65C64DebugDecoder.h"
 
 
 enum EFlat65C64Register
@@ -41,13 +42,16 @@ enum EFlat65C64Register
 
 
 //A CFast65C64 with nothing but memory: a flat block at 0000:0000, uiMemorySize bytes.  Reads past it are $FFFF
-//and writes are ignored.  Run's budget is instructions.
+//and writes are ignored.  Run's budget is instructions.  Its decoder is MicroprocessorLib's (CFast65C64DebugDecoder)
+//unless it is given another.
 class CFlat65C64DebugTarget : public CDebugTarget
 {
 protected:
 	CFast65C64		mcMPU;
 	uint8*			mpuiMemory;
 	uint32			muiMemorySize;
+	CFast65C64DebugDecoder	mcDecoder;
+	CDebugDecoder*	mpcDecoder;
 
 public:
 	void			Init(uint32 uiMemorySize);
@@ -55,9 +59,11 @@ public:
 
 	CFast65C64*		GetMPU(void);
 	uint8*			GetMemory(void);
+	void			SetDecoder(CDebugDecoder* pcDecoder);
 
 	const char*		GetProcessorName(void) override;
 	size			NumAddressBits(void) override;
+	EDebugAddressFormat	GetAddressFormat(void) override;
 	size			NumRegisters(void) override;
 	void			GetRegister(size uiRegister, SDebugRegister* psDest) override;
 	uint64			GetRegisterValue(size uiRegister) override;
@@ -77,7 +83,7 @@ public:
 
 	size			PeekMemory(uint32 uiAddress, void* pvDest, size uiSize) override;
 	size			PokeMemory(uint32 uiAddress, void* pvSource, size uiSize) override;
-	EDebugInstruction	GetInstruction(uint32 uiAddress, size* puiCallLength) override;
+	CDebugDecoder*	GetDecoder(void) override;
 
 protected:
 	static uint16	ReadWord(void* pvContext, uint32 uiAddress);

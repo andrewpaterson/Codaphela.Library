@@ -46,9 +46,5 @@ void	Get65C816DebugRegister(size uiRegister, SDebugRegister* psDest);
 uint64	Get65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister);
 bool	Set65C816DebugRegisterValue(CFast65C816* pcMPU, size uiRegister, uint64 uiValue);
 
-//What a W65C816 instruction starting with uiOpcode does to the flow: jsr, jsl, brk and cop call (each returns
-//after its puiCallLength bytes); rts, rtl and rti return.
-EDebugInstruction	Get65C816Instruction(uint8 uiOpcode, size* puiCallLength);
-
 
 #endif // __W65C816_DEBUG_REGISTERS_H__

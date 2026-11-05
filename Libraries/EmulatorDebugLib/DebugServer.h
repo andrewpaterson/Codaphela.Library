@@ -55,12 +55,14 @@ class CDebugServer
 protected:
 	CProcessChannel*	mpcChannel;
 	CDebugTarget*		mpcTarget;
-	uint8*				mpuiMessage;	//DEBUG_MAX_MESSAGE bytes, for each message received and sent.
+	uint8*				mpuiMessage;	//DEBUG_MAX_MESSAGE bytes, for each message received and sent: the header then the body.
 	EDebugServerState	meState;
 	bool				mbStepped;		//The last stop was the end of a step: Continue executes that instruction first.
 	bool				mbConnected;	//DM_Hello has been received.
 	bool				mbClosed;		//The channel closed or the debugger detached.
 	bool				mbQuit;
+	uint32				muiRequest;			//The ID of the request being handled.
+	uint32				muiMotionRequest;	//The ID of the last request that moved the processor: its state messages have it.
 
 	CArrayDebugRanges	masRanges;		//A DM_StepRange's.
 	bool				mbOver;
@@ -82,7 +84,8 @@ public:
 	bool				IsQuitting(void);
 
 protected:
-	void				Handle(uint32 uiType, void* pvData, size uiSize);
+	void				Handle(uint32 uiType, uint8* puiData, size uiSize);
+	void				HandleBody(uint32 uiType, void* pvData, size uiSize);
 	void				Hello(void* pvData, size uiSize);
 	void				SetBreakpoints(void* pvData, size uiSize);
 	void				Continue(void);
@@ -95,22 +98,25 @@ protected:
 	bool				StepOutStep(bool bForce);
 	void				StepRange(size uiMaxSteps);
 	bool				IsInRanges(uint32 uiAddress);
-	void				Reset(void);
-	void				WriteMemory(uint32 uiRequest, void* pvData, size uiSize);
+	void				Reset(void* pvData, size uiSize);
+	void				WriteMemory(uint32 uiType, void* pvData, size uiSize);
 	void				ReadMemory(void* pvData, size uiSize);
 	void				WriteRegister(void* pvData, size uiSize);
+	void				Disassemble(void* pvData, size uiSize);
 	void				Detach(void);
 
 	bool				ForceStep(void);
 	void				CheckRun(void);
 	void				Stop(EDebugStop eReason);
 	void				StopAfterStep(void);
+	void				SendRunning(bool bStepping);
 	void				SendWelcome(void);
 	void				SendState(void);
 	void				SendRegisters(void);
 	size				AppendRegisters(uint64* puiDest);
-	void				Error(uint32 uiRequest, const char* szText);
-	void				Send(uint32 uiType, size uiSize);
+	void				Error(uint32 uiType, const char* szText);
+	uint8*				GetBody(void);
+	void				Send(uint32 uiType, uint32 uiRequest, size uiBodySize);
 };
 
 

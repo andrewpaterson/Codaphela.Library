@@ -188,6 +188,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DebugClient.cpp" />
+    <ClCompile Include="DebugFormat.cpp" />
+    <ClCompile Include="Fast65C64DebugDecoder.cpp" />
     <ClCompile Include="DebugServer.cpp" />
     <ClCompile Include="DebugTarget.cpp" />
     <ClCompile Include="Flat65C64DebugTarget.cpp" />
@@ -196,6 +198,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugClient.h" />
+    <ClInclude Include="DebugFormat.h" />
+    <ClInclude Include="DebugLaunch.h" />
+    <ClInclude Include="Fast65C64DebugDecoder.h" />
     <ClInclude Include="DebugProtocol.h" />
     <ClInclude Include="DebugServer.h" />
     <ClInclude Include="DebugTarget.h" />

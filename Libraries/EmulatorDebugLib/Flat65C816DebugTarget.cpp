@@ -30,6 +30,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //////////////////////////////////////////////////////////////////////////
 void CFlat65C816DebugTarget::Init(uint32 uiMemorySize)
 {
+	mpcDecoder = NULL;
 	muiMemorySize = uiMemorySize;
 	mpuiMemory = (uint8*)malloc(uiMemorySize);
 	memset(mpuiMemory, 0xEA, uiMemorySize);
@@ -135,14 +136,11 @@ void CFlat65C816DebugTarget::WriteByte(void* pvContext, uint32 uiAddress, uint8 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EDebugInstruction CFlat65C816DebugTarget::GetInstruction(uint32 uiAddress, size* puiCallLength)
+void CFlat65C816DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
 {
-	uint8	uiOpcode;
-
-	*puiCallLength = 0;
-	if (PeekMemory(uiAddress, &uiOpcode, 1) != 1)
-	{
-		return DI_Other;
-	}
-	return Get65C816Instruction(uiOpcode, puiCallLength);
+	mpcDecoder = pcDecoder;
 }
+
+
+CDebugDecoder* CFlat65C816DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
+EDebugAddressFormat CFlat65C816DebugTarget::GetAddressFormat(void)	{ return DAF_Bank; }

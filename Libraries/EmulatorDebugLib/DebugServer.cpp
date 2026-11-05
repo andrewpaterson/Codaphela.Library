@@ -37,25 +37,13 @@ void CDebugServer::Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool
 	mbConnected = false;
 	mbClosed = false;
 	mbQuit = false;
+	muiRequest = 0;
+	muiMotionRequest = 0;
 	masRanges.Init();
 	mbOver = false;
 	mbOut = false;
 	muiDepth = 0;
 	muiCalls = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A debugger's channel, when there was none or the last one closed.  It
-// sends DM_Hello first, as on a channel given to Init.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDebugServer::Attach(CProcessChannel* pcChannel)
-{
-	mpcChannel = pcChannel;
-	mbConnected = false;
-	mbClosed = false;
 }
 
 
@@ -70,6 +58,21 @@ void CDebugServer::Kill(void)
 	mpuiMessage = NULL;
 	mpcTarget = NULL;
 	mpcChannel = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A debugger's channel, when there was none or the last one closed.  It
+// sends DM_Hello first, as on a channel given to Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::Attach(CProcessChannel* pcChannel)
+{
+	mpcChannel = pcChannel;
+	mbConnected = false;
+	mbClosed = false;
+	muiMotionRequest = 0;
 }
 
 
@@ -116,6 +119,7 @@ void CDebugServer::Poll(void)
 		}
 		else if (eResult == CR_TooLarge)
 		{
+			muiRequest = 0;
 			Error(uiType, "Message too large.");
 		}
 		else if (eResult == CR_Closed)
@@ -132,9 +136,30 @@ void CDebugServer::Poll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The header gives the request's ID, then the body is handled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::Handle(uint32 uiType, void* pvData, size uiSize)
+void CDebugServer::Handle(uint32 uiType, uint8* puiData, size uiSize)
+{
+	SDebugHeader*	psHeader;
+
+	muiRequest = 0;
+	if (uiSize < sizeof(SDebugHeader))
+	{
+		Error(uiType, "Message too short.");
+		return;
+	}
+	psHeader = (SDebugHeader*)puiData;
+	muiRequest = psHeader->uiRequest;
+	HandleBody(uiType, &puiData[sizeof(SDebugHeader)], uiSize - sizeof(SDebugHeader));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 {
 	SDebugBreakpoint*	psBreakpoint;
 	SDebugAddress*		psAddress;
@@ -202,23 +227,38 @@ void CDebugServer::Handle(uint32 uiType, void* pvData, size uiSize)
 		break;
 
 	case DM_Continue:
+		muiMotionRequest = muiRequest;
 		Continue();
 		break;
 
 	case DM_Pause:
+		muiMotionRequest = muiRequest;
 		Pause();
 		break;
 
 	case DM_Step:
+		muiMotionRequest = muiRequest;
 		Step(pvData, uiSize);
 		break;
 
 	case DM_StepRange:
+		muiMotionRequest = muiRequest;
 		StartStepRange(pvData, uiSize);
 		break;
 
+	case DM_StepOver:
+		muiMotionRequest = muiRequest;
+		StepOver();
+		break;
+
+	case DM_StepOut:
+		muiMotionRequest = muiRequest;
+		StepOut();
+		break;
+
 	case DM_Reset:
-		Reset();
+		muiMotionRequest = muiRequest;
+		Reset(pvData, uiSize);
 		break;
 
 	case DM_Load:
@@ -249,20 +289,16 @@ void CDebugServer::Handle(uint32 uiType, void* pvData, size uiSize)
 		ReadMemory(pvData, uiSize);
 		break;
 
+	case DM_Disassemble:
+		Disassemble(pvData, uiSize);
+		break;
+
 	case DM_Detach:
 		Detach();
 		break;
 
 	case DM_Quit:
 		mbQuit = true;
-		break;
-
-	case DM_StepOver:
-		StepOver();
-		break;
-
-	case DM_StepOut:
-		StepOut();
 		break;
 
 	default:
@@ -274,6 +310,7 @@ void CDebugServer::Handle(uint32 uiType, void* pvData, size uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Answered by the welcome and the state, with the hello's ID.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Hello(void* pvData, size uiSize)
@@ -293,6 +330,7 @@ void CDebugServer::Hello(void* pvData, size uiSize)
 	}
 
 	mbConnected = true;
+	muiMotionRequest = muiRequest;
 	SendWelcome();
 	SendState();
 }
@@ -337,6 +375,7 @@ void CDebugServer::Continue(void)
 {
 	if (meState == DSS_Running)
 	{
+		SendRunning(false);
 		return;
 	}
 
@@ -356,20 +395,18 @@ void CDebugServer::Continue(void)
 	}
 
 	meState = DSS_Running;
-	Send(DM_Running, 0);
+	SendRunning(false);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Answered by a stop even when it is already stopped.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Pause(void)
 {
-	if (meState != DSS_Stopped)
-	{
-		Stop(DS_Pause);
-	}
+	Stop(DS_Pause);
 }
 
 
@@ -433,17 +470,18 @@ void CDebugServer::StartStepRange(void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 //
 // A call is stepped as a range of just itself, stepping over: until it
-// returns to the instruction after it.  Anything else is one step.
+// returns to the instruction after it.  Anything else (or anything, if
+// the target has no decoder) is one step.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StepOver(void)
 {
-	uint32			uiAddress;
-	size			uiLength;
-	SDebugRange		sRange;
+	SDebugInstruction	sInstruction;
+	SDebugRange			sRange;
+	uint32				uiAddress;
 
 	uiAddress = mpcTarget->GetProgramAddress();
-	if (mpcTarget->GetInstruction(uiAddress, &uiLength) != DI_Call)
+	if ((DecodeDebugInstructions(mpcTarget, uiAddress, 1, &sInstruction) != 1) || (sInstruction.uiKind != DI_Call))
 	{
 		ForceStep();
 		StopAfterStep();
@@ -451,7 +489,7 @@ void CDebugServer::StepOver(void)
 	}
 
 	sRange.uiStart = uiAddress;
-	sRange.uiEnd = uiAddress + (uint32)uiLength;
+	sRange.uiEnd = uiAddress + sInstruction.uiLength;
 	masRanges.Kill();
 	masRanges.Init();
 	masRanges.Add(&sRange);
@@ -467,6 +505,11 @@ void CDebugServer::StepOver(void)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StepOut(void)
 {
+	if (mpcTarget->GetDecoder() == NULL)
+	{
+		Error(DM_StepOut, "The emulator can't decode instructions.");
+		return;
+	}
 	masRanges.Kill();
 	masRanges.Init();
 	StartStepping(false, true);
@@ -476,7 +519,8 @@ void CDebugServer::StepOut(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The first instruction is executed even at a breakpoint, then StepRange
-// carries on, over as many Ticks as it takes.
+// carries on, over as many Ticks as it takes.  If it doesn't stop now the
+// debugger is told it is stepping.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StartStepping(bool bOver, bool bOut)
@@ -499,6 +543,10 @@ void CDebugServer::StartStepping(bool bOver, bool bOut)
 	}
 	meState = DSS_Stepping;
 	StepRange(DEBUG_STEPS_PER_TICK);
+	if (meState == DSS_Stepping)
+	{
+		SendRunning(true);
+	}
 }
 
 
@@ -511,11 +559,13 @@ void CDebugServer::StartStepping(bool bOver, bool bOut)
 //////////////////////////////////////////////////////////////////////////
 bool CDebugServer::StepOutStep(bool bForce)
 {
-	EDebugInstruction	eInstruction;
-	size				uiLength;
+	SDebugInstruction	sInstruction;
 	bool				bStepped;
 
-	eInstruction = mpcTarget->GetInstruction(mpcTarget->GetProgramAddress(), &uiLength);
+	if (DecodeDebugInstructions(mpcTarget, mpcTarget->GetProgramAddress(), 1, &sInstruction) != 1)
+	{
+		sInstruction.uiKind = DI_Other;
+	}
 	bStepped = bForce ? ForceStep() : mpcTarget->Step();
 	if (!bStepped)
 	{
@@ -530,11 +580,11 @@ bool CDebugServer::StepOutStep(bool bForce)
 		return false;
 	}
 
-	if (eInstruction == DI_Call)
+	if (sInstruction.uiKind == DI_Call)
 	{
 		muiCalls++;
 	}
-	else if (eInstruction == DI_Return)
+	else if (sInstruction.uiKind == DI_Return)
 	{
 		if (muiCalls > 0)
 		{
@@ -616,12 +666,31 @@ bool CDebugServer::IsInRanges(uint32 uiAddress)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Stops at the reset, or runs on from it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::Reset(void)
+void CDebugServer::Reset(void* pvData, size uiSize)
 {
+	SDebugReset*	psReset;
+
+	if (uiSize < sizeof(SDebugReset))
+	{
+		Error(DM_Reset, "Message too short.");
+		return;
+	}
+	psReset = (SDebugReset*)pvData;
+
 	mpcTarget->Reset();
-	Stop(DS_Reset);
+	mbStepped = false;
+	if (psReset->uiRun)
+	{
+		meState = DSS_Running;
+		SendRunning(false);
+	}
+	else
+	{
+		Stop(DS_Reset);
+	}
 }
 
 
@@ -631,7 +700,7 @@ void CDebugServer::Reset(void)
 // running or not.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::WriteMemory(uint32 uiRequest, void* pvData, size uiSize)
+void CDebugServer::WriteMemory(uint32 uiType, void* pvData, size uiSize)
 {
 	SDebugMemory*	psMemory;
 	size			uiWritten;
@@ -639,14 +708,14 @@ void CDebugServer::WriteMemory(uint32 uiRequest, void* pvData, size uiSize)
 	psMemory = (SDebugMemory*)pvData;
 	if ((uiSize < sizeof(SDebugMemory)) || (uiSize < sizeof(SDebugMemory) + (size)psMemory->uiSize))
 	{
-		Error(uiRequest, "Message too short.");
+		Error(uiType, "Message too short.");
 		return;
 	}
 
 	uiWritten = mpcTarget->PokeMemory(psMemory->uiAddress, &psMemory[1], psMemory->uiSize);
 	if (uiWritten != psMemory->uiSize)
 	{
-		Error(uiRequest, "Not all of it is memory.");
+		Error(uiType, "Not all of it is memory.");
 	}
 }
 
@@ -678,10 +747,10 @@ void CDebugServer::ReadMemory(void* pvData, size uiSize)
 	//The request is in the buffer the reply is built in.
 	uiAddress = psRequest->uiAddress;
 	uiLength = psRequest->uiSize;
-	psReply = (SDebugMemory*)mpuiMessage;
+	psReply = (SDebugMemory*)GetBody();
 	psReply->uiAddress = uiAddress;
 	psReply->uiSize = (uint32)mpcTarget->PeekMemory(uiAddress, &psReply[1], uiLength);
-	Send(DM_Memory, sizeof(SDebugMemory) + psReply->uiSize);
+	Send(DM_Memory, muiRequest, sizeof(SDebugMemory) + psReply->uiSize);
 }
 
 
@@ -703,6 +772,67 @@ void CDebugServer::WriteRegister(void* pvData, size uiSize)
 	{
 		Error(DM_WriteRegister, "Register can't be written.");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The target's decoder's instructions, answered with DM_Disassembly.  If
+// none of them starts at uiLand they start at uiLand instead.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::Disassemble(void* pvData, size uiSize)
+{
+	SDebugDisassemble*	psRequest;
+	SDebugDisassembly*	psReply;
+	SDebugInstruction*	asInstructions;
+	uint32				uiAddress;
+	uint32				uiCount;
+	uint32				uiLand;
+	size				uiDecoded;
+	size				i;
+	bool				bLanded;
+
+	if (uiSize < sizeof(SDebugDisassemble))
+	{
+		Error(DM_Disassemble, "Message too short.");
+		return;
+	}
+	if (mpcTarget->GetDecoder() == NULL)
+	{
+		Error(DM_Disassemble, "The emulator can't decode instructions.");
+		return;
+	}
+
+	//The request is in the buffer the reply is built in.
+	psRequest = (SDebugDisassemble*)pvData;
+	uiAddress = psRequest->uiAddress;
+	uiCount = psRequest->uiCount;
+	uiLand = psRequest->uiLand;
+	if (uiCount > DEBUG_MAX_DISASSEMBLY)
+	{
+		uiCount = DEBUG_MAX_DISASSEMBLY;
+	}
+
+	psReply = (SDebugDisassembly*)GetBody();
+	asInstructions = (SDebugInstruction*)&psReply[1];
+	uiDecoded = DecodeDebugInstructions(mpcTarget, uiAddress, uiCount, asInstructions);
+	if (uiLand != DEBUG_NO_ADDRESS)
+	{
+		bLanded = false;
+		for (i = 0; i < uiDecoded; i++)
+		{
+			bLanded |= asInstructions[i].uiAddress == uiLand;
+		}
+		if (!bLanded)
+		{
+			uiDecoded = DecodeDebugInstructions(mpcTarget, uiLand, uiCount, asInstructions);
+		}
+	}
+
+	psReply->uiCount = (uint32)uiDecoded;
+	psReply->uiPadding = 0;
+	Send(DM_Disassembly, muiRequest, sizeof(SDebugDisassembly) + uiDecoded * sizeof(SDebugInstruction));
 }
 
 
@@ -778,7 +908,7 @@ void CDebugServer::StopAfterStep(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The target is stopped; the debugger is told why, where, and the
-// registers.
+// registers, with the ID of the request that last moved it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Stop(EDebugStop eReason)
@@ -792,12 +922,30 @@ void CDebugServer::Stop(EDebugStop eReason)
 		return;
 	}
 
-	psStopped = (SDebugStopped*)mpuiMessage;
+	psStopped = (SDebugStopped*)GetBody();
 	memset(psStopped, 0, sizeof(SDebugStopped));
 	psStopped->uiReason = eReason;
 	psStopped->uiAddress = mpcTarget->GetProgramAddress();
 	psStopped->uiNumRegisters = (uint32)AppendRegisters((uint64*)&psStopped[1]);
-	Send(DM_Stopped, sizeof(SDebugStopped) + psStopped->uiNumRegisters * sizeof(uint64));
+	Send(DM_Stopped, muiMotionRequest, sizeof(SDebugStopped) + psStopped->uiNumRegisters * sizeof(uint64));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::SendRunning(bool bStepping)
+{
+	SDebugRunning*	psRunning;
+
+	if (!mbConnected)
+	{
+		return;
+	}
+	psRunning = (SDebugRunning*)GetBody();
+	psRunning->uiStepping = bStepping;
+	Send(DM_Running, muiMotionRequest, sizeof(SDebugRunning));
 }
 
 
@@ -818,10 +966,12 @@ void CDebugServer::SendWelcome(void)
 		uiNumRegisters = DEBUG_MAX_REGISTERS;
 	}
 
-	psWelcome = (SDebugWelcome*)mpuiMessage;
+	psWelcome = (SDebugWelcome*)GetBody();
 	memset(psWelcome, 0, sizeof(SDebugWelcome));
 	psWelcome->uiVersion = DEBUG_PROTOCOL_VERSION;
 	psWelcome->uiAddressBits = (uint32)mpcTarget->NumAddressBits();
+	psWelcome->uiAddressFormat = (uint32)mpcTarget->GetAddressFormat();
+	psWelcome->uiCapabilities = (mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0;
 	psWelcome->uiNumRegisters = (uint32)uiNumRegisters;
 	strncpy(psWelcome->szProcessor, mpcTarget->GetProcessorName(), DEBUG_PROCESSOR_NAME_SIZE - 1);
 
@@ -831,7 +981,7 @@ void CDebugServer::SendWelcome(void)
 		memset(&asRegister[i], 0, sizeof(SDebugRegister));
 		mpcTarget->GetRegister(i, &asRegister[i]);
 	}
-	Send(DM_Welcome, sizeof(SDebugWelcome) + uiNumRegisters * sizeof(SDebugRegister));
+	Send(DM_Welcome, muiRequest, sizeof(SDebugWelcome) + uiNumRegisters * sizeof(SDebugRegister));
 }
 
 
@@ -848,7 +998,7 @@ void CDebugServer::SendState(void)
 	}
 	else
 	{
-		Send(DM_Running, 0);
+		SendRunning(meState == DSS_Stepping);
 	}
 }
 
@@ -861,10 +1011,10 @@ void CDebugServer::SendRegisters(void)
 {
 	SDebugRegisters*	psRegisters;
 
-	psRegisters = (SDebugRegisters*)mpuiMessage;
+	psRegisters = (SDebugRegisters*)GetBody();
 	memset(psRegisters, 0, sizeof(SDebugRegisters));
 	psRegisters->uiNumRegisters = (uint32)AppendRegisters((uint64*)&psRegisters[1]);
-	Send(DM_Registers, sizeof(SDebugRegisters) + psRegisters->uiNumRegisters * sizeof(uint64));
+	Send(DM_Registers, muiRequest, sizeof(SDebugRegisters) + psRegisters->uiNumRegisters * sizeof(uint64));
 }
 
 
@@ -893,31 +1043,50 @@ size CDebugServer::AppendRegisters(uint64* puiDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With the ID of the request being handled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::Error(uint32 uiRequest, const char* szText)
+void CDebugServer::Error(uint32 uiType, const char* szText)
 {
 	SDebugError*	psError;
 
-	psError = (SDebugError*)mpuiMessage;
+	psError = (SDebugError*)GetBody();
 	memset(psError, 0, sizeof(SDebugError));
-	psError->uiRequest = uiRequest;
+	psError->uiType = uiType;
 	strncpy(psError->szText, szText, DEBUG_MAX_TEXT - 1);
-	Send(DM_Error, sizeof(SDebugError));
+	Send(DM_Error, muiRequest, sizeof(SDebugError));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Sends the uiSize bytes built in mpuiMessage.
+// Where a reply's struct is built, after its header.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::Send(uint32 uiType, size uiSize)
+uint8* CDebugServer::GetBody(void)
 {
-	if (!mbClosed && (mpcChannel != NULL))
+	return &mpuiMessage[sizeof(SDebugHeader)];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sends the uiBodySize bytes built at GetBody, after a header with
+// uiRequest.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::Send(uint32 uiType, uint32 uiRequest, size uiBodySize)
+{
+	SDebugHeader*	psHeader;
+
+	if (mbClosed || (mpcChannel == NULL))
 	{
-		mpcChannel->Send(uiType, mpuiMessage, uiSize);
+		return;
 	}
+	psHeader = (SDebugHeader*)mpuiMessage;
+	psHeader->uiRequest = uiRequest;
+	psHeader->uiReserved = 0;
+	mpcChannel->Send(uiType, mpuiMessage, sizeof(SDebugHeader) + uiBodySize);
 }
 
 

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "BaseLib/ListenSocket.h"
@@ -8,6 +9,7 @@
 #include "EmulatorDebugLib/DebugClient.h"
 #include "EmulatorDebugLib/Flat65C816DebugTarget.h"
 #include "EmulatorDebugLib/Flat65C64DebugTarget.h"
+#include "EmulatorDebugLib/DebugFormat.h"
 #include "TestLib/Assert.h"
 #include "../../TestMicroprocessorLib/TestMicroprocessorLib/Test65C64Context.h"
 
@@ -40,6 +42,60 @@ struct STestDebugLink
 
 
 static int	giTestDebugChannels = 0;
+
+
+//The few W65C816 instructions the tests' programs use.  The real decoder is with the W65C816's assembler, in the
+//HCP65 repository; EmulatorDebugLib has none of its own.
+class CTestDebug816Decoder : public CDebugDecoder
+{
+public:
+	size Decode(CDebugTarget* pcTarget, uint32 uiAddress, size uiCount, SDebugInstruction* asDest) override
+	{
+		size				i;
+		uint8				uiOpcode;
+		SDebugInstruction*	psInstruction;
+
+		for (i = 0; i < uiCount; i++)
+		{
+			if (pcTarget->PeekMemory(uiAddress, &uiOpcode, 1) != 1)
+			{
+				break;
+			}
+			psInstruction = &asDest[i];
+			StartDebugInstruction(psInstruction, pcTarget, uiAddress, ((uiOpcode == 0x20) ? 3 : ((uiOpcode == 0x80) ? 2 : 1)));
+			switch (uiOpcode)
+			{
+			case 0xE8:	strcpy(psInstruction->szText, "inx");	break;
+			case 0xC8:	strcpy(psInstruction->szText, "iny");	break;
+			case 0x48:	strcpy(psInstruction->szText, "pha");	break;
+			case 0x68:	strcpy(psInstruction->szText, "pla");	break;
+			case 0xDB:	strcpy(psInstruction->szText, "stp");	break;
+			case 0xEA:	strcpy(psInstruction->szText, "nop");	break;
+			case 0x60:
+				strcpy(psInstruction->szText, "rts");
+				psInstruction->uiKind = DI_Return;
+				break;
+			case 0x20:
+				psInstruction->uiKind = DI_Call;
+				psInstruction->uiTarget = (uiAddress & 0xFF0000) | psInstruction->auiBytes[1] | (psInstruction->auiBytes[2] << 8);
+				psInstruction->uiHasTarget = true;
+				sprintf(psInstruction->szText, "jsr $%04X", psInstruction->uiTarget & 0xFFFF);
+				break;
+			case 0x80:
+				psInstruction->uiKind = DI_Jump;
+				psInstruction->uiTarget = (uiAddress & 0xFF0000) | ((uiAddress + 2 + (int8)psInstruction->auiBytes[1]) & 0xFFFF);
+				psInstruction->uiHasTarget = true;
+				sprintf(psInstruction->szText, "bra $%04X", psInstruction->uiTarget & 0xFFFF);
+				break;
+			default:
+				strcpy(psInstruction->szText, "?");
+				break;
+			}
+			uiAddress += psInstruction->uiLength;
+		}
+		return i;
+	}
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -193,10 +249,14 @@ static void TestDebugSync(STestDebugLink* psLink)
 static void TestDebugServer65C816(ETestDebugTransport eTransport)
 {
 	CFlat65C816DebugTarget	cTarget;
+	CTestDebug816Decoder	cDecoder;
 	STestDebugLink			sLink;
 	STestDebugLink*			psLink;
 	CDebugClient*			pcClient;
 	SDebugBreakpoint		sBreakpoint;
+	SDebugInstruction*		psInstruction;
+	uint32					uiRequest;
+	CChars					sz;
 	SDebugRange				sLine;
 	SDebugRange				sFunction;
 	SDebugRegister*			psRegister;
@@ -206,15 +266,23 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	static uint8			auiStop[] = { 0xDB };
 
 	cTarget.Init(TEST_DEBUG_816_MEMORY);
+	cTarget.SetDecoder(&cDecoder);
 	psLink = &sLink;
 	AssertTrue(TestDebugLinkInit(psLink, eTransport, &cTarget));
 	pcClient = &psLink->cClient;
 
-	//Welcomed, and stopped from the start.
-	AssertTrue(pcClient->Hello());
+	//Welcomed, and stopped from the start.  The hello is a request answered by the state.
+	uiRequest = pcClient->Hello();
+	AssertInt(1, uiRequest);
+	AssertTrue(pcClient->IsBusy());
 	TestDebugWaitForStop(psLink, DS_Start, 0);
+	AssertFalse(pcClient->IsBusy());
 	AssertString("W65C816", pcClient->GetProcessorName());
 	AssertSize(24, pcClient->NumAddressBits());
+	AssertInt(DAF_Bank, pcClient->GetAddressFormat());
+	AssertTrue(pcClient->CanDecode());
+	AssertString("NVMXDIZC", pcClient->GetRegister(D816R_P)->szFlags);
+	AssertString("", pcClient->GetRegister(D816R_C)->szFlags);
 	AssertSize(D816R_NumRegisters, pcClient->NumRegisters());
 	psRegister = pcClient->GetRegister(D816R_PC);
 	AssertString("PC", psRegister->szName);
@@ -292,6 +360,59 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
 	AssertLongLongIntHex(21, pcClient->GetRegisterValue(D816R_X));
 
+	//The emulator's decoder disassembles: the call's and the branch's targets, and the flow they make.
+	uiRequest = pcClient->Disassemble(0x1000, 5);
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 1));
+	AssertInt(uiRequest, pcClient->GetDisassemblyRequest());
+	AssertSize(5, pcClient->NumInstructions());
+	psInstruction = pcClient->GetInstruction(2);
+	AssertIntHex(0x1002, psInstruction->uiAddress);
+	AssertInt(3, psInstruction->uiLength);
+	AssertInt(DI_Call, psInstruction->uiKind);
+	AssertIntHex(0x2000, psInstruction->uiTarget);
+	AssertString("jsr $2000", psInstruction->szText);
+	AssertIntHex(0x20, psInstruction->auiBytes[0]);
+	AssertIntHex(0x1006, pcClient->GetInstruction(4)->uiAddress);
+	AssertString("bra $1000", pcClient->GetInstruction(4)->szText);
+	AssertInt(DI_Jump, pcClient->GetInstruction(4)->uiKind);
+	AssertNull(pcClient->GetInstruction(5));
+
+	//From the middle of the jsr the instructions are wrong; landing on $1005 starts them there instead.
+	AssertTrue(pcClient->Disassemble(0x1003, 3, 0x1005));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 2));
+	AssertIntHex(0x1005, pcClient->GetInstruction(0)->uiAddress);
+	AssertString("iny", pcClient->GetInstruction(0)->szText);
+
+	//Instructions that end before the address landed on start there too; ones that include it are kept.
+	AssertTrue(pcClient->Disassemble(0x1000, 2, 0x2000));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 3));
+	AssertIntHex(0x2000, pcClient->GetInstruction(0)->uiAddress);
+	AssertTrue(pcClient->Disassemble(0x1000, 4, 0x1002));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 4));
+	AssertIntHex(0x1000, pcClient->GetInstruction(0)->uiAddress);
+
+	//Pause answers even when it is already stopped; a step's answer clears busy.
+	uiRequest = pcClient->Pause();
+	AssertTrue(pcClient->IsBusy());
+	TestDebugWaitForStop(psLink, DS_Pause, 0x1005);
+	AssertFalse(pcClient->IsBusy());
+	AssertTrue(pcClient->Step(1));
+	AssertTrue(pcClient->IsBusy());
+	TestDebugWaitForStop(psLink, DS_Step, 0x1006);
+	AssertFalse(pcClient->IsBusy());
+
+	//Addresses and registers written as the welcome describes them.
+	sz.Init();
+	pcClient->AppendAddress(&sz, 0x016590);
+	AssertString("$01:6590", sz.Text());
+	sz.Kill();
+	sz.Init();
+	AppendDebugRegisterValue(&sz, pcClient->GetRegister(D816R_P), 0x34);
+	AssertString("$34 nvMXdIzc", sz.Text());
+	sz.Kill();
+	AssertTrue(pcClient->Step(8));
+	TestDebugWaitForStop(psLink, DS_Step, 0x1005);
+
 	//A breakpoint in a function being stepped over stops it.
 	AssertTrue(pcClient->AddBreakpoint(0x2001, true));
 	AssertTrue(pcClient->Step(2));
@@ -328,9 +449,11 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertTrue(pcClient->ReadMemory(TEST_DEBUG_816_MEMORY - 2, 16));
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 3));
 	AssertSize(2, pcClient->GetMemorySize());
-	AssertTrue(pcClient->RemoveBreakpoint(0x9999));
+	uiRequest = pcClient->RemoveBreakpoint(0x9999);
+	AssertTrue(uiRequest != 0);
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 1));
-	AssertInt(DM_RemoveBreakpoint, pcClient->GetErrorRequest());
+	AssertInt(DM_RemoveBreakpoint, pcClient->GetErrorType());
+	AssertInt(uiRequest, pcClient->GetErrorRequest());
 	AssertString("No breakpoint there.", pcClient->GetError());
 
 	//The breakpoints replaced by one at $1000.
@@ -349,9 +472,18 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertTrue(cTarget.IsStopped());
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Stopped, 0x1001);
-	AssertTrue(pcClient->Reset());
+	AssertTrue(pcClient->Reset(false));
 	TestDebugWaitForStop(psLink, DS_Reset, 0xEAEA);
 	AssertFalse(cTarget.IsStopped());
+
+	//Reset and run on: answered as running.
+	uiRequest = pcClient->Reset(true);
+	TestDebugWaitForRunning(psLink);
+	AssertFalse(pcClient->IsBusy());
+	AssertFalse(pcClient->IsStepping());
+	AssertTrue(pcClient->Pause());
+	TestDebugWait(psLink, &CDebugClient::NumStops, pcClient->NumStops() + 1);
+	AssertInt(DS_Pause, pcClient->GetStopReason());
 
 	//Detached: the breakpoints go and it runs on (round the loop, without the STP).
 	AssertTrue(pcClient->Load(0x1000, auiMain, sizeof(auiMain)));
@@ -387,6 +519,7 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 	SDebugRange				sFunction;
 	uint32					uiAddY;
 	uint32					uiFunctionEnd;
+	CChars					sz;
 
 	pcProgram = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
 	pcProgram->Init(0x1000);
@@ -409,10 +542,30 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 	TestDebugWaitForStop(psLink, DS_Start, 0);
 	AssertString("65C64", pcClient->GetProcessorName());
 	AssertSize(32, pcClient->NumAddressBits());
+	AssertInt(DAF_Flat, pcClient->GetAddressFormat());
+	AssertTrue(pcClient->CanDecode());
 	AssertString("C", pcClient->GetRegister(F64R_C)->szName);
+	AssertString("ELFGNVZC", pcClient->GetRegister(F64R_P)->szFlags);
+	sz.Init();
+	pcClient->AppendAddress(&sz, 0x1000);
+	AssertString("$00001000", sz.Text());
+	sz.Kill();
 
 	AssertTrue(pcClient->Load(0, pcProgram->mauiLow, TEST_65C64_LOW_SIZE));
 	AssertTrue(pcClient->SetProgramAddress(0x1000));
+
+	//MicroprocessorLib's decoding: the jsr is a call of its words' length, the function's ret a return.
+	AssertTrue(pcClient->Disassemble(0x1000, 2));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 1));
+	AssertSize(2, pcClient->NumInstructions());
+	AssertInt(2, pcClient->GetInstruction(0)->uiLength);
+	AssertIntHex(0x1002, pcClient->GetInstruction(1)->uiAddress);
+	AssertInt(DI_Call, pcClient->GetInstruction(1)->uiKind);
+	AssertIntHex(uiAddY, (uint32)(0x1002 + pcClient->GetInstruction(1)->uiLength));
+	AssertTrue(strncmp(pcClient->GetInstruction(1)->szText, ".word $", 7) == 0);
+	AssertTrue(pcClient->Disassemble(0x1102, 1));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumDisassemblies, 2));
+	AssertInt(DI_Return, pcClient->GetInstruction(0)->uiKind);
 	AssertTrue(pcClient->AddBreakpoint(uiAddY, true));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, uiAddY);
@@ -483,21 +636,36 @@ static void TestDebugServerHello(void)
 	STestDebugLink*			psLink;
 	CDebugClient*			pcClient;
 	SDebugHello				sHello;
+	uint32					uiRequest;
+	struct
+	{
+		SDebugHeader	sHeader;
+		SDebugHello		sHello;
+	}						sOldHello;
 
 	cTarget.Init(TEST_DEBUG_816_MEMORY);
 	psLink = &sLink;
 	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
 	pcClient = &psLink->cClient;
 
-	AssertTrue(pcClient->Continue());
+	uiRequest = pcClient->Continue();
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 1));
-	AssertInt(DM_Continue, pcClient->GetErrorRequest());
+	AssertInt(DM_Continue, pcClient->GetErrorType());
+	AssertInt(uiRequest, pcClient->GetErrorRequest());
+	AssertFalse(pcClient->IsBusy());
 	AssertInt(DSS_Stopped, psLink->cServer.GetState());
 
 	sHello.uiVersion = DEBUG_PROTOCOL_VERSION + 1;
-	AssertTrue(psLink->pcClient->Send(DM_Hello, &sHello, sizeof(sHello)));
+	sOldHello.sHeader.uiRequest = 99;
+	sOldHello.sHeader.uiReserved = 0;
+	sOldHello.sHello.uiVersion = 1;
+	AssertTrue(psLink->pcClient->Send(DM_Hello, &sOldHello, sizeof(sOldHello)));
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 2));
-	AssertInt(DM_Hello, pcClient->GetErrorRequest());
+	AssertInt(DM_Hello, pcClient->GetErrorType());
+	AssertInt(99, pcClient->GetErrorRequest());
+	AssertTrue(psLink->pcClient->Send(DM_Hello, &sHello, sizeof(sHello)));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 3));
+	AssertString("Message too short.", pcClient->GetError());
 	AssertFalse(psLink->cServer.IsConnected());
 
 	AssertTrue(pcClient->Hello());

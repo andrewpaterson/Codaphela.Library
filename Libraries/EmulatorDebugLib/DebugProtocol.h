@@ -25,21 +25,29 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 
 
 //The messages between a debugger (CDebugClient) and an emulator (CDebugServer) over a CProcessChannel.  Each is
-//a CProcessChannel message: an EDebugMessage type and one of the structs below, little endian, laid out as
-//written (every field is aligned to its size).  Lists follow their struct, their count in it.
+//a CProcessChannel message: an EDebugMessage type, an SDebugHeader, then one of the structs below, little endian,
+//laid out as written (every field is aligned to its size).  Lists follow their struct, their count in it.
 //
-//The client sends DM_Hello first.  The server answers DM_Welcome, then DM_Stopped or DM_Running.  A server
-//that starts stopped (an emulator told to wait for its debugger) lets the debugger set breakpoints and Load before
+//Each request has an ID (SDebugHeader::uiRequest, counting up from 1); the reply to it, or the DM_Error if it
+//failed, has the same ID.  A request that moves the processor (DM_Continue, DM_Pause, DM_Step, DM_StepRange,
+//DM_StepOver, DM_StepOut, DM_Reset) is always answered by DM_Stopped or DM_Running with its ID, and later stops
+//have the ID of the last such request.  So the debugger knows what the processor is doing without guessing.
+//
+//The client sends DM_Hello first.  The server answers DM_Welcome, then DM_Stopped or DM_Running.  A server that
+//starts stopped (an emulator told to wait for its debugger) lets the debugger set breakpoints and Load before
 //anything runs; one that starts running can be attached to while it runs.
-
-
-#define DEBUG_PROTOCOL_VERSION		1
+//
+//The emulator describes itself: its registers (with their flags' letters), how its addresses are written, and
+//(DM_Disassembly) its instructions.  A debugger needs no knowledge of the processor.
+#define DEBUG_PROTOCOL_VERSION		2
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
 #define DEBUG_MAX_LIST				0x1000		//The most breakpoints or step ranges in one message.
+#define DEBUG_MAX_DISASSEMBLY		64			//The most instructions in one DM_Disassembly.
 #define DEBUG_MAX_TEXT				256
-#define DEBUG_MAX_MESSAGE			(sizeof(SDebugMemory) + DEBUG_MAX_MEMORY)
+#define DEBUG_MAX_MESSAGE			(sizeof(SDebugHeader) + sizeof(SDebugMemory) + DEBUG_MAX_MEMORY)
+#define DEBUG_NO_ADDRESS			0xFFFFFFFF
 
 
 enum EDebugMessage
@@ -55,7 +63,7 @@ enum EDebugMessage
 	DM_Pause,					//Nothing.
 	DM_Step,					//SDebugStep.
 	DM_StepRange,				//SDebugStepRange then SDebugRange[uiCount].
-	DM_Reset,					//Nothing.
+	DM_Reset,					//SDebugReset.
 	DM_Load,					//SDebugMemory then the bytes: written to memory (stopped or not).
 	DM_SetProgramAddress,		//SDebugAddress.
 	DM_ReadRegisters,			//Nothing; answered by DM_Registers.
@@ -65,15 +73,17 @@ enum EDebugMessage
 	DM_Detach,					//Nothing: the breakpoints are cleared and it runs on without a debugger.
 	DM_Quit,					//Nothing: the emulator exits.
 	DM_StepOver,				//Nothing: one instruction, or the whole of a call (and what it calls).
-	DM_StepOut,					//Nothing: until the function it is in returns (the stack is above where it was).
+	DM_StepOut,					//Nothing: until the function it is in returns.
+	DM_Disassemble,				//SDebugDisassemble; answered by DM_Disassembly.
 
 	//Emulator to debugger.
 	DM_Welcome = 64,			//SDebugWelcome then SDebugRegister[uiNumRegisters].
 	DM_Stopped,					//SDebugStopped then uint64[uiNumRegisters].
-	DM_Running,					//Nothing.
+	DM_Running,					//SDebugRunning.
 	DM_Registers,				//SDebugRegisters then uint64[uiNumRegisters].
 	DM_Memory,					//SDebugMemory then the bytes there were memory for (uiSize of them).
 	DM_Error,					//SDebugError.
+	DM_Disassembly,				//SDebugDisassembly then SDebugInstruction[uiCount].
 };
 
 
@@ -82,10 +92,22 @@ enum EDebugStop
 {
 	DS_Start,		//The server started stopped, before the first instruction.
 	DS_Breakpoint,
-	DS_Step,		//A DM_Step or DM_StepRange finished.
+	DS_Step,		//A step finished.
 	DS_Pause,
 	DS_Stopped,		//The processor stopped itself (STP).
 	DS_Reset,
+};
+
+
+//What a welcome says the emulator can do.
+#define DEBUG_CAN_DECODE			0x0001		//It decodes instructions: DM_Disassemble, and calls are stepped over.
+
+
+//Before every message's struct.
+struct SDebugHeader
+{
+	uint32	uiRequest;		//The request's ID; a reply's is the request's.  0 for none.
+	uint32	uiReserved;
 };
 
 
@@ -99,6 +121,8 @@ struct SDebugWelcome
 {
 	uint32	uiVersion;
 	uint32	uiAddressBits;
+	uint32	uiAddressFormat;	//EDebugAddressFormat.
+	uint32	uiCapabilities;		//DEBUG_CAN_*.
 	uint32	uiNumRegisters;
 	char	szProcessor[DEBUG_PROCESSOR_NAME_SIZE];
 };
@@ -153,6 +177,13 @@ struct SDebugStepRange
 };
 
 
+//With uiRun it runs again after the reset (answered DM_Running), otherwise it stops there (DM_Stopped).
+struct SDebugReset
+{
+	uint32	uiRun;
+};
+
+
 struct SDebugRegisterValue
 {
 	uint32	uiRegister;
@@ -168,12 +199,36 @@ struct SDebugMemory
 };
 
 
+//uiCount instructions from uiAddress.  If uiLand is an address and none of them starts there (they go past it, or
+//stop before it) they are decoded from uiLand instead: the program address is always among them, on an
+//instruction's start.
+struct SDebugDisassemble
+{
+	uint32	uiAddress;
+	uint32	uiCount;
+	uint32	uiLand;			//DEBUG_NO_ADDRESS for none.
+};
+
+
+struct SDebugDisassembly
+{
+	uint32	uiCount;
+	uint32	uiPadding;
+};
+
+
 struct SDebugStopped
 {
 	uint32	uiReason;		//EDebugStop.
 	uint32	uiAddress;		//The program address.
 	uint32	uiNumRegisters;
 	uint32	uiPadding;
+};
+
+
+struct SDebugRunning
+{
+	uint32	uiStepping;		//A step that takes longer than one message: it stops (DM_Stopped) when it is done.
 };
 
 
@@ -186,7 +241,7 @@ struct SDebugRegisters
 
 struct SDebugError
 {
-	uint32	uiRequest;		//The EDebugMessage that failed.
+	uint32	uiType;			//The EDebugMessage that failed (the header has its ID).
 	char	szText[DEBUG_MAX_TEXT];
 };
 
