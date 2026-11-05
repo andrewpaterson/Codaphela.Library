@@ -240,7 +240,6 @@
   <ItemGroup>
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyboardKeyList.h" />
-    <ClInclude Include="InputListener.h" />
     <ClInclude Include="InputActions.h" />
     <ClInclude Include="InputChord.h" />
     <ClInclude Include="InputChordCriteria.h" />

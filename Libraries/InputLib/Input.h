@@ -63,7 +63,7 @@ public:
 	void 				Step(void);
 	void 				ClearStateFlags(void);
 	void 				UpdateRestEvents(void);
-	void 				CallListeners(void);
+	void 				UpdateChords(void);
 	void 				ClearEvents(void);
 	void 				SortEvents(void);
 	void 				UpdateVirtualDevicesEvents(void);

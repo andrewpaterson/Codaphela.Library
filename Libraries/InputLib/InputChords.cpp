@@ -103,13 +103,10 @@ void CInputChords::Copy(CInputChords* pcSource, CInputDeviceCopyContext* pcConte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
+void CInputChords::InputEvent(CInputDeviceValue* psEvent)
 {
-	CInputDeviceValue*		psEvent;
 	SInputDeviceTimeValue*	psHistory;
 	SInputDeviceTimeValue	sValue;
-
-	psEvent = (CInputDeviceValue*)pvContext;
 
 	if ((psEvent->pcSource->GetType() == ISET_Delta) && !IsChordSource(psEvent))
 	{

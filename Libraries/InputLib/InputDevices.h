@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputActions;
 //The devices, their descriptions and the data formats they're read with.  It is held by CInput.
-class CInputDevices : public CObject, public CListener
+class CInputDevices : public CObject
 {
 CONSTRUCTABLE(CInputDevices);
 DESTRUCTABLE(CInputDevices);

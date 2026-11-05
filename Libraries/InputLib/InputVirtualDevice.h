@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_VIRTUAL_DEVICE_H__
 #define __INPUT_VIRTUAL_DEVICE_H__
 #include "StandardLib/SetType.h"
-#include "StandardLib/ListenerCall.h"
 
 #include "StandardLib/Actions.h"
 
@@ -44,7 +43,6 @@ protected:
 	CSetInputVirtualDeviceSource	mlcHistorySources;
 	CInputVirtualDeviceCommonality	mcCommonality;
 	CArrayInputDeviceValuePtr		mapcInputValues;
-	CListenerCall					mcListeners;
 	CInputChords					mcChords;
 	CArrayInputDevicePtr			mapcDevices;
 	bool							mbEnabled;
@@ -56,7 +54,7 @@ public:
 
 	void 						UpdateEvents(void);
 	void 						UpdateEvents(CInputDeviceValues* pcValues);
-	void 						CallListeners(void);
+	void 						UpdateChords(void);
 	void 						ClearEvents(void);
 	void 						SortEvents(void);
 	void						ToStringEvents(CChars* psz);
@@ -98,7 +96,6 @@ public:
 	void						AddRangeAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
 
 	CChars*						GetName(void);
-	CListenerCall*				GetListeners(void);
 
 	void						Dump(void);
 };

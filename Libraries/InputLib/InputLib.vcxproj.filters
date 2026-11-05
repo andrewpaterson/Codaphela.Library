@@ -185,9 +185,6 @@
     <ClInclude Include="KeyboardKeyList.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="InputListener.h">
-      <Filter>Source\Listeners</Filter>
-    </ClInclude>
     <ClInclude Include="InputActions.h">
       <Filter>Source\Actions</Filter>
     </ClInclude>

@@ -169,7 +169,7 @@ void CInput::Update(void)
 
 	mpDevices->UpdateVirtualDevicesEvents();
 
-	CallListeners();
+	UpdateChords();
 	Step();
 }
 
@@ -284,9 +284,11 @@ void CInput::UpdateRestEvents(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Gives each virtual device's chords the inputs its devices have just
+// given.
 //
 //////////////////////////////////////////////////////////////////////////
-void CInput::CallListeners(void)
+void CInput::UpdateChords(void)
 {
 	CInputVirtualDevice*	pcVirtual;
 	SSetIterator			sIter;
@@ -296,7 +298,7 @@ void CInput::CallListeners(void)
 	while (bExists)
 	{
 		pcVirtual->GetChords()->BeginUpdate(muiTime);
-		pcVirtual->CallListeners();
+		pcVirtual->UpdateChords();
 		pcVirtual->GetChords()->EndUpdate();
 		bExists = mpDevices->mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}

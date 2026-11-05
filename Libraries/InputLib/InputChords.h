@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_CHORDS_H__
 #define __INPUT_CHORDS_H__
 #include "StandardLib/SetType.h"
-#include "InputLib/InputListener.h"
 #include "InputSourceEvaluator.h"
 #include "InputChord.h"
 #include "InputDeviceValueHistory.h"
@@ -78,9 +77,8 @@ typedef CArrayTemplate<SInputChordsEvent>	CArrayInputChordsEvent;
 //when the longer chord stops matching or is evicted, and not at all if the longer one matches.  Movement (a delta)
 //that isn't part of a chord is let through straight away and doesn't stop a chord matching.  What is let through is
 //in the events until the next update.
-class CInputChords : public CInputListener
+class CInputChords
 {
-CONSTRUCTABLE(CInputChords);
 public:
 	CSetInputSourceEvaluators	mscEvaluators;
 	CSetInputChords				mlcChords;
@@ -99,7 +97,7 @@ public:
 	void					ToString(CChars* psz);
 	void					DumpHistory(void);
 
-	void 					InputEvent(CUnknown* pcSource, void* pvContext);
+	void 					InputEvent(CInputDeviceValue* psEvent);
 	CInputSourceEvaluator*	AddEvaluator(void);
 	CInputChord*			AddChord(CAction* pcAction, CInputChordDesc* pcDesc);
 	CInputChord*			FindMatchingChord(CInputChord* pcChord);

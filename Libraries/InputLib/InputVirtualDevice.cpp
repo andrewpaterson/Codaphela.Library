@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "InputDevice.h"
 #include "InputDevices.h"
 #include "InputDeviceValue.h"
-#include "InputListener.h"
 #include "InputVirtualDevice.h"
 
 
@@ -36,9 +35,6 @@ void CInputVirtualDevice::Init(char* szName)
 	mszName.Init(szName);
 	mlcHistorySources.Init(false);
 	mcCommonality.Init(this);
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CInputListener>();
-	mcListeners.AddListener((CInputListener*)&mcChords);
 	mapcInputValues.Init();
 	mcChords.Init();
 	mapcDevices.Init();
@@ -59,16 +55,17 @@ void CInputVirtualDevice::Kill(void)
 	mszName.Kill();
 	mcChords.Kill();
 	mapcInputValues.Kill();
-	mcListeners.Kill();
 	CUnknown::Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Gives the chords each of this update's input values, if the device is
+// enabled.
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::CallListeners(void)
+void CInputVirtualDevice::UpdateChords(void)
 {
 	CInputDeviceValue*	pcDeviceValue;
 	size				i;
@@ -80,7 +77,7 @@ void CInputVirtualDevice::CallListeners(void)
 		for (i = 0; i < uiNumElements; i++)
 		{
 			pcDeviceValue = *mapcInputValues.Get(i);
-			mcListeners.CallListeners(&CInputListener::InputEvent, this, (void*)pcDeviceValue);
+			mcChords.InputEvent(pcDeviceValue);
 		}
 	}
 }	
@@ -647,7 +644,6 @@ void CInputVirtualDevice::AddRangeAction(CAction* pcAction, CInputVirtualDeviceS
 //
 //////////////////////////////////////////////////////////////////////////
 CChars* CInputVirtualDevice::GetName(void) { return &mszName; }
-CListenerCall* CInputVirtualDevice::GetListeners(void) { return &mcListeners; }
 
 
 //////////////////////////////////////////////////////////////////////////

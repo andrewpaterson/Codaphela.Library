@@ -108,9 +108,7 @@ bool CInputDevices::Read(char* szDirectory)
 //////////////////////////////////////////////////////////////////////////
 void CInputDevices::Free(void)
 {
-	//Freed without its destructor, so it is taken out of any listener calls here.  The data formats are an embedded object.
-	RemoveFromListenerCalls();
-
+	//The data formats are an embedded object.
 	mlcVirtuals.Kill();
 	mlcVirtualsDescs.Kill();
 	mlcDevices.Kill();
