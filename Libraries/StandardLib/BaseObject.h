@@ -53,11 +53,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_CLASS				 0x800
 #define OBJECT_FLAGS_CALLED_KILL				 0x001
 
-#define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT	0x2000
-#define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED	0x4000
-#define OBJECT_FLAGS_DIST_FROM_WALKED			0x8000
-
-//0x1000 is free.  Otherwise all flags are used; you'll need to make miFlags bigger if you need more.
+//0x1000, 0x2000, 0x4000 and 0x8000 are free.
 
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
@@ -68,8 +64,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define WALK_STAMP_STEP			8
 #define WALK_STAMP_STATE_MASK	(WALK_STAMP_STEP - 1)
 
-//What a distance calculation found an object to be (the low bits of its walk stamp).
-#define WALK_STATE_REACHED_FROM_STACK	4
+//What a distance calculation found an object to be (the low bits of its walk stamp); 0 is not reached by this walk.
+#define WALK_STATE_TOUCHED				1  //Its distance to the root was cleared, or it was collected as detached.
+#define WALK_STATE_DETACHED_WALKED		2  //Found detached from the root; what points to it was walked.
+#define WALK_STATE_REACHED_FROM_STACK	3  //Detached from the root but reached from the stack (walked too).
 
 
 //Which distance GetClosestHeapFrom looks for.
@@ -141,7 +139,6 @@ public:
 			bool					IsNamed(void) override;
 			bool					IsInvalidated(void);
 			bool					IsDirty(void);
-			bool					IsUpdateAttachedPointerTosDistToRoot(void);
 			bool					IsInitialised(void);
 			bool					HasClass(void);
 			CClass*					GetClass(void);
@@ -166,8 +163,6 @@ public:
 			bool					TestedForRoot(void);
 			void					AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms);
 
-			void					ClearDistTouchedFlags(void);
-			bool					HasDistTouchedFlag(void);
 
 			bool					TestedForSanity(void);
 			CObjects*				GetObjectsThisIn(void);

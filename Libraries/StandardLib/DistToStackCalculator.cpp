@@ -17,7 +17,6 @@ void CDistToStackCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculat
 	cDistToRootCalculator.CollectAndClearInvalidDistToRoot(pcFromRemoved, pcParameters);
 	cDistToRootCalculator.ResetClearedToUnattached(pcParameters);
 	CalculateFromTouched(pcParameters);
-	pcParameters->ClearTouchedFlags();
 }
 
 
@@ -121,6 +120,7 @@ bool CDistToStackCalculator::CollectDetached(CBaseObject* pcObject, CDistCalcula
 	size			uiLast;
 	CBaseObject*	pcSwap;
 	bool			bHasStackFroms;
+	uint32			uiState;
 
 	if (pcObject->IsEmbedded())
 	{
@@ -134,26 +134,27 @@ bool CDistToStackCalculator::CollectDetached(CBaseObject* pcObject, CDistCalcula
 	}
 
 	//Walked already, or in the batch being freed (gone already: neither collected nor walked through).
-	if (pcObject->GetFlags() & (OBJECT_FLAGS_DIST_FROM_WALKED | OBJECT_FLAGS_FREED))
+	uiState = pcParameters->GetWalkState(pcObject);
+	if ((uiState >= WALK_STATE_DETACHED_WALKED) || (pcObject->GetFlags() & OBJECT_FLAGS_FREED))
 	{
 		return false;
 	}
 
 	pcParameters->AddDetachedFromRoot(pcObject);
+	if (uiState == 0)
+	{
+		pcParameters->AddTouched(pcObject);
+	}
 
 	bHasStackFroms = pcObject->HasStackFroms();
 	if (bHasStackFroms)
 	{
 		pcParameters->MarkReachedFromStack(pcObject);
 	}
-
-	if (!(pcObject->GetFlags() & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
+	else
 	{
-		pcObject->SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
-		pcParameters->AddTouched(pcObject);
+		pcParameters->SetWalkState(pcObject, WALK_STATE_DETACHED_WALKED);
 	}
-
-	pcObject->SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, true);
 
 	uiFirst = papcFroms->NumElements();
 	pcObject->AddHeapFromContainers(papcFroms);
@@ -329,7 +330,7 @@ void CDistToStackCalculator::MarkReachedFromStack(CDistCalculatorParameters* pcP
 			pcTo = papcTos->GetPtr(i)->GetEmbeddingContainer();
 
 			//Only objects this walk found detached from the root (the others are attached, or being freed).
-			if ((pcTo->GetFlags() & OBJECT_FLAGS_DIST_FROM_WALKED) && !pcParameters->IsReachedFromStack(pcTo))
+			if (pcParameters->GetWalkState(pcTo) == WALK_STATE_DETACHED_WALKED)
 			{
 				pcParameters->MarkReachedFromStack(pcTo);
 				apcReached.Add(pcTo);

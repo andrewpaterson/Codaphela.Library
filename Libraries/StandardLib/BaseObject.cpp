@@ -762,32 +762,6 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearDistTouchedFlags(void)
-{
-	if (IsEmbedded())
-	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
-		return;
-	}
-
-	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CBaseObject::HasDistTouchedFlag(void)
-{
-	return FixBool(muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 {
 	CBaseObject*	pcBaseObject;
@@ -1664,16 +1638,6 @@ bool CBaseObject::IsMarkedUnreachable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
-{
-	return FixBool(muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CBaseObject::HasClass(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_CLASS);
@@ -2022,18 +1986,6 @@ void CBaseObject::PrintFlags(CChars* psz)
 	{
 		psz->Append("CALLED_CLASS, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT)
-	{
-		psz->Append("UPDATED_TOS_DIST_TO_ROOT, ");
-	}
-	if (muiFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED)
-	{
-		psz->Append("DIST_CALCULATOR_TOUCHED, ");
-	}
-	if (muiFlags & OBJECT_FLAGS_DIST_FROM_WALKED)
-	{
-		psz->Append("DIST_FROM_WALKED, ");
-	}
 
 	if (psz->EndsWith(", "))
 	{
@@ -2199,8 +2151,6 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
-	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, "OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT");
-	ValidateFlagNotSet(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, "OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_ALLOCATE, "OBJECT_FLAGS_CALLED_ALLOCATE");
 

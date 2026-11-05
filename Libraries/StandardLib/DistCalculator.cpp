@@ -54,7 +54,6 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFr
 	mcDistToRootCalculator.Calculate(pcFromChanged, &mcParameters);
 
 	mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
-	mcParameters.ClearTouchedFlags();
 	return mcParameters.GetCompletelyDetachedArray();
 }
 
@@ -75,9 +74,8 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcF
 	}
 	else
 	{
-		//Calculate clears the touched flags.
 		mcDistToStackCalculator.Calculate(pcFromChanged, &mcParameters);
-			return mcParameters.GetCompletelyDetachedArray();
+		return mcParameters.GetCompletelyDetachedArray();
 	}
 }
 

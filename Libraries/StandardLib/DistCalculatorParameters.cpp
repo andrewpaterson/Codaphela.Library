@@ -596,10 +596,7 @@ CArrayBaseObjectPtr* CDistCalculatorParameters::GetCompletelyDetachedArray(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::AddTouched(CBaseObject* pcObject)
 {
-	if (!pcObject->HasDistTouchedFlag())
-	{
-		mapcTouched.Add(pcObject);
-	}
+	mapcTouched.Add(pcObject);
 }
 
 
@@ -741,12 +738,41 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What this calculation found the object to be (a WALK_STATE_...), or 0
+// if it hasn't reached it.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CDistCalculatorParameters::GetWalkState(CBaseObject* pcObject)
+{
+	uint32	uiStamp;
+
+	uiStamp = pcObject->GetWalkStamp();
+	if ((uiStamp & ~WALK_STAMP_STATE_MASK) != muiWalk)
+	{
+		return 0;
+	}
+	return uiStamp & WALK_STAMP_STATE_MASK;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::SetWalkState(CBaseObject* pcObject, uint32 uiState)
+{
+	pcObject->SetWalkStamp(muiWalk | uiState);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The object is detached from the root but can be reached from the stack.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::MarkReachedFromStack(CBaseObject* pcObject)
 {
-	pcObject->SetWalkStamp(muiWalk | WALK_STATE_REACHED_FROM_STACK);
+	SetWalkState(pcObject, WALK_STATE_REACHED_FROM_STACK);
 }
 
 
@@ -759,26 +785,6 @@ void CDistCalculatorParameters::MarkReachedFromStack(CBaseObject* pcObject)
 bool CDistCalculatorParameters::IsReachedFromStack(CBaseObject* pcObject)
 {
 	return pcObject->GetWalkStamp() == (muiWalk | WALK_STATE_REACHED_FROM_STACK);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::ClearTouchedFlags(void)
-{
-	size			i;
-	size			iNumTouched;
-	CBaseObject*	pcBaseObject;
-
-	iNumTouched = NumTouched();
-
-	for (i = 0; i < iNumTouched; i++)
-	{
-		pcBaseObject = GetTouched(i);
-		pcBaseObject->ClearDistTouchedFlags();
-	}
 }
 
 

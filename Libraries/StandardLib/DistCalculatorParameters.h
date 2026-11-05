@@ -80,6 +80,8 @@ public:
 	void					CopyRootDetachedToCompletelyDetached(void);
 	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 
+	uint32					GetWalkState(CBaseObject* pcObject);
+	void					SetWalkState(CBaseObject* pcObject, uint32 uiState);
 	void					MarkReachedFromStack(CBaseObject* pcObject);
 	bool					IsReachedFromStack(CBaseObject* pcObject);
 
@@ -87,7 +89,6 @@ public:
 	size					NumTouched(void);
 	CBaseObject*			GetTouched(size iIndex);
 
-	void					ClearTouchedFlags(void);
 
 	void					Print(CChars* psz, bool bCommaSeparate = true);
 	void					Dump(void);

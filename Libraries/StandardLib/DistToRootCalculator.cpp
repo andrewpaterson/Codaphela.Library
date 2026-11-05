@@ -87,7 +87,7 @@ void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iC
 	}
 
 	//Objects in the batch being freed are gone already; touched ones are cleared already.
-	if (pcObject->GetFlags() & (OBJECT_FLAGS_FREED | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
+	if ((pcObject->GetFlags() & OBJECT_FLAGS_FREED) || (pcParameters->GetWalkState(pcObject) != 0))
 	{
 		return;
 	}
@@ -107,7 +107,7 @@ void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iC
 	}
 
 	pcParameters->AddTouched(pcObject);
-	pcObject->SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
+	pcParameters->SetWalkState(pcObject, WALK_STATE_TOUCHED);
 	pcObject->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
 	//What it (and the objects embedded in it) points to, added last first so the first is checked first.
@@ -219,7 +219,6 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, C
 
 	pcParameters->AddTouched(pcObject);
 	pcObject->SetDistToRoot(iClosestToRoot);
-	pcObject->SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, true);
 
 	//What it (and the objects embedded in it) points to can be one further.
 	papcTos = pcParameters->StartPointerTos();
@@ -234,7 +233,8 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, C
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An object that still has a dist to root was not cleared so already has
+// An object that still has a dist to root was not cleared (or has been
+// given its distance back, closest first, so it is final) so already has
 // a valid path to the root.  Only a shorter path changes it; clearing it
 // would also clear the objects embedded in it that others are found from.
 //
@@ -253,11 +253,8 @@ void CDistToRootCalculator::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, 
 			return;
 		}
 
-		if (!pcPointedToContainer->IsUpdateAttachedPointerTosDistToRoot())
-		{
-			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
-			pcParameters->AddExpectedDist(pcPointedToContainer, iExpectedDist);
-		}
+		pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
+		pcParameters->AddExpectedDist(pcPointedToContainer, iExpectedDist);
 	}
 }
 
