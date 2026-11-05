@@ -544,14 +544,6 @@ void TestRootGraphRemoveComplex(void)
 		AssertSize(1, pTest4->NumHeapFroms());
 		AssertPointer(&pSet, pTest4->GetHeapFrom(0));
 
-		//Tested for root should never be true (outside of the CanFindRoot method).
-		AssertFalse(pSet->TestedForRoot());
-		AssertFalse(pTest2->TestedForRoot());
-		AssertFalse(pTest3->TestedForRoot());
-		AssertFalse(pTest4->TestedForRoot());
-		AssertFalse(pTop1->TestedForRoot());
-		AssertFalse(pTop2->TestedForRoot());
-
 		//   Top1====Top2
 		//            |
 		//          Test3
@@ -588,13 +580,6 @@ void TestRootGraphRemoveComplex(void)
 		AssertInt(3, pTest4->GetDistToRoot());
 		AssertInt(3, pTest2->GetDistToRoot());
 		AssertInt(2, pSet->GetDistToRoot());
-		AssertFalse(pSet->TestedForRoot());
-		AssertFalse(pTest2->TestedForRoot());
-		AssertFalse(pTest3->TestedForRoot());
-		AssertFalse(pTest4->TestedForRoot());
-		AssertFalse(pTest5->TestedForRoot());
-		AssertFalse(pTop1->TestedForRoot());
-		AssertFalse(pTop2->TestedForRoot());
 
 		//   Top1====Top2
 		//     |      |

@@ -77,7 +77,6 @@ public:
 	virtual bool				IsHollow(void) =0;
 	virtual size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual bool				SetDistToRoot(int iDistToRoot) =0;
-	virtual bool				TestedForRoot(void) =0;
 	virtual int					GetDistToRoot(void) =0;
 	virtual OIndex				GetIndex(void);
 	virtual bool				IsNamed(void);

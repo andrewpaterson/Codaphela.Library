@@ -27,7 +27,6 @@ public:
 	bool				IsDirty(void);
 	void				SetDirty(bool bDirty);
 	bool				IsRoot(void);
-	bool				TestedForRoot(void);
 	CClass*				GetClass(void);
 	bool				HasNes(void) override;
 	bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;

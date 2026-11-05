@@ -496,12 +496,13 @@ size CBaseObject::NumHeapFromHolders(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Of the heap froms of this and the objects embedded in it, the first that
-// is closest to the root (attached to it; CHF_RootUntested also skips
-// froms CanFindRoot has been through).  The
-// froms are read where they are rather than copied: a hub has thousands.
+// is closest to the root (attached to it), skipping froms whose object has
+// the walk stamp uiSkipWalkStamp (0 skips none: a walk's stamp never is).
+// The froms are read where they are rather than copied: a hub has
+// thousands.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::GetClosestHeapFrom(EClosestHeapFrom eClosest)
+CBaseObject* CBaseObject::GetClosestHeapFrom(uint32 uiSkipWalkStamp)
 {
 	CEmbeddedObject*	pcHolder;
 	CBaseObject*		pcNearest;
@@ -527,7 +528,7 @@ CBaseObject* CBaseObject::GetClosestHeapFrom(EClosestHeapFrom eClosest)
 			if ((iDist >= 0) && (iDist < iNearest))
 			{
 				//Asked only of a from that would be nearest: most of a hub's froms aren't attached.
-				if ((eClosest == CHF_RootUntested) && pcFrom->TestedForRoot())
+				if ((uiSkipWalkStamp != 0) && (pcFrom->GetEmbeddingContainer()->GetWalkStamp() == uiSkipWalkStamp))
 				{
 					continue;
 				}
@@ -546,17 +547,7 @@ CBaseObject* CBaseObject::GetClosestHeapFrom(EClosestHeapFrom eClosest)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::GetClosestFromToRoot(void)
 {
-	return GetClosestHeapFrom(CHF_Root);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::GetClosestFromForCanFindRoot(void)
-{
-	return GetClosestHeapFrom(CHF_RootUntested);
+	return GetClosestHeapFrom(0);
 }
 
 
@@ -710,36 +701,36 @@ uint16 CBaseObject::GetFlags(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Follows the closest attached from, then its, and so on, to the root.
+// Only that path is tried: it checks the distances, not every path.  The
+// objects on it are stamped so a cycle ends it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::CanFindRoot(void)
 {
+	CBaseObject*	pcObject;
+	CBaseObject*	pcClosestFrom;
+	uint32			uiTested;
+
 	if (IsEmbedded())
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
 		return false;
 	}
-	CEmbeddedObject*	pcPointedFrom;
-	bool				bResult;
 
-	if (IsRoot())
+	uiTested = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	pcObject = this;
+	while (!pcObject->IsRoot())
 	{
-		return true;
+		pcObject->SetWalkStamp(uiTested);
+		pcClosestFrom = pcObject->GetClosestHeapFrom(uiTested);
+		if (pcClosestFrom == NULL)
+		{
+			return false;
+		}
+		pcObject = pcClosestFrom->GetEmbeddingContainer();
 	}
-
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
-
-	pcPointedFrom = GetClosestFromForCanFindRoot();
-	if (pcPointedFrom == NULL)
-	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
-		return false;
-	}
-
-	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
-
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
-	return bResult;
+	return true;
 }
 
 
@@ -877,16 +868,6 @@ bool CBaseObject::IsInvalidated(void)
 bool CBaseObject::IsDirty(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_DIRTY);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CBaseObject::TestedForRoot(void)
-{
-	return FixBool(muiFlags & OBJECT_FLAGS_TESTED_FOR_ROOT);
 }
 
 
@@ -1938,10 +1919,6 @@ void CBaseObject::PrintFlagsShorthand(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::PrintFlags(CChars* psz)
 {
-	if (muiFlags & OBJECT_FLAGS_TESTED_FOR_ROOT)
-	{
-		psz->Append("TESTED_FOR_ROOT, ");
-	}
 	if (muiFlags & OBJECT_FLAGS_INVALIDATED)
 	{
 		psz->Append("INVALIDATED, ");
@@ -2147,7 +2124,6 @@ void CBaseObject::ValidateContainerFlag(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlags(void)
 {
-	ValidateFlagNotSet(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");

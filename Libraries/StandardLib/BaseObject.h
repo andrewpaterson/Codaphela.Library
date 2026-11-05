@@ -25,9 +25,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Class.h"
 
 
-// Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
-#define OBJECT_FLAGS_TESTED_FOR_ROOT			  0x02
-
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
 #define OBJECT_FLAGS_INVALIDATED				  0x04
 
@@ -68,14 +65,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define WALK_STATE_TOUCHED				1  //Its distance to the root was cleared, or it was collected as detached.
 #define WALK_STATE_DETACHED_WALKED		2  //Found detached from the root; what points to it was walked.
 #define WALK_STATE_REACHED_FROM_STACK	3  //Detached from the root but reached from the stack (walked too).
-
-
-//Which distance GetClosestHeapFrom looks for.
-enum EClosestHeapFrom
-{
-	CHF_Root,
-	CHF_RootUntested
-};
 
 
 class CObjectReader;
@@ -160,7 +149,6 @@ public:
 			uint32					GetWalkStamp(void);
 			void					SetWalkStamp(uint32 uiWalkStamp);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
-			bool					TestedForRoot(void);
 			void					AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms);
 
 
@@ -178,8 +166,7 @@ public:
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
 			CBaseObject*			GetClosestFromToRoot(void);
-			CBaseObject*			GetClosestFromForCanFindRoot(void);
-			CBaseObject*			GetClosestHeapFrom(EClosestHeapFrom eClosest);
+			CBaseObject*			GetClosestHeapFrom(uint32 uiSkipWalkStamp);
 			size					NumHeapFromHolders(void);
 			void					StopDestructor(void);
 

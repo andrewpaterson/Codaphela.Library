@@ -2798,6 +2798,45 @@ void TestDistToRootBackPointerToRootedObject(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CanFindRoot checks the distances.  Two objects pointing at each other
+// that claim a distance to the root, with nothing else pointing at them,
+// can't find it: the walk stops going around the cycle.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootCanFindRootStopsOnCycle(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CPointerContainer>		pA;
+		Ptr<CPointerContainer>		pB;
+
+		pRoot = ORoot();
+		pA = OMalloc<CPointerContainer>();
+		pB = OMalloc<CPointerContainer>();
+		pA->mp = pB;
+		pB->mp = pA;
+
+		pA.BaseObject()->SetDistToRoot(3);
+		pB.BaseObject()->SetDistToRoot(3);
+		AssertFalse(pA->CanFindRoot());
+		AssertFalse(pB->CanFindRoot());
+		pA.BaseObject()->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+		pB.BaseObject()->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+
+		pRoot->Add(pA);
+		AssertTrue(pA->CanFindRoot());
+		AssertTrue(pB->CanFindRoot());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRoot(void)
@@ -2836,6 +2875,7 @@ void TestDistToRoot(void)
 	TestDistToRootTwoPointersFromOneEmbeddedObject();
 	TestDistToRootTwoPointersFromTwoEmbeddedObjects();
 	TestDistToRootBackPointerToRootedObject();
+	TestDistToRootCanFindRootStopsOnCycle();
 
 	DataIOKill();
 	TypesKill();
