@@ -86,7 +86,6 @@ void TestEmbeddedStackPointersEmbeddedDistPassThruPointer(void)
 {
 	ObjectsInit();
 
-	CEmbeddedTest*		pcTest;
 	CEmbeddedComplex	cComplex;
 	Ptr<CEmbeddedTest>	pTest;
 	
@@ -107,7 +106,6 @@ void TestEmbeddedStackPointersEmbeddedDistPassThruPointer(void)
 	AssertFalse(cComplex.IsAllocatedInObjects());
 
 	pTest = OMalloc<CEmbeddedTest>();
-	pcTest = (CEmbeddedTest*)pTest.Object();
 
 	cComplex.mpTest = pTest;
 
@@ -135,7 +133,6 @@ void TestEmbeddedStackPointersEmbeddedDistDirect(void)
 {
 	ObjectsInit();
 
-	CEmbeddedTest*		pcTest;
 	CEmbeddedComplex	cComplex;
 
 	cComplex.Init();
@@ -158,7 +155,6 @@ void TestEmbeddedStackPointersEmbeddedDistDirect(void)
 	AssertSize(1, pComplex->mpTest->NumStackFroms());
 	AssertSize(1, cComplex.NumStackFroms());
 
-	pcTest = (CEmbeddedTest*)cComplex.mpTest.Object();
 	AssertLong(1, gcObjects.NumMemoryIndexes());
 
 	cComplex.Kill();

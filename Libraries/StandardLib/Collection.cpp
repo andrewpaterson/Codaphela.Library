@@ -239,7 +239,9 @@ bool CCollection::UnlinkFromUnlessFreed(CEmbeddedObject* pcObject)
 bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
 {
 	bool		bHeapFrom;
+#ifdef _DEBUG
 	CObjects*	pcObjectsThisIn;
+#endif // _DEBUG
 
 	if (!bResult || (pcObject == NULL))
 	{
@@ -251,7 +253,9 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, b
 		return gcLogger.Error2(__METHOD__, " Could not remove Collection {", ObjectToString(this), "} From from Object {", ObjectToString(pcObject), "}.", NULL);
 	}
 
+#ifdef _DEBUG
 	pcObjectsThisIn = GetObjectsThisIn();
+#endif // _DEBUG
 	bHeapFrom = IsEmbeddingContainerAllocatedInObjects();
 	bResult = gcObjects.FromRemoved(pcObject, bHeapFrom) != FR_Error;
 

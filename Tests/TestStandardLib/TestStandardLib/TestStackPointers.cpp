@@ -303,12 +303,7 @@ void TestStackPointersSorting1(void)
 		Ptr<CTestEmbeddedObjectWithFields>	pTest4;
 		Ptr<CTestEmbeddedObjectWithFields>	pTest5;
 		Ptr<CTestEmbeddedObjectWithFields>	pTest6;
-		CTestEmbeddedObjectWithFields*		pcTest1;
-		CTestEmbeddedObjectWithFields*		pcTest2;
-		CTestEmbeddedObjectWithFields*		pcTest3;
-		CTestEmbeddedObjectWithFields*		pcTest4;
 		CTestEmbeddedObjectWithFields*		pcTest5;
-		CTestEmbeddedObjectWithFields*		pcTest6;
 
 		pTest1 = OMalloc<CTestEmbeddedObjectWithFields>();
 		pTest2 = OMalloc<CTestEmbeddedObjectWithFields>();
@@ -316,12 +311,7 @@ void TestStackPointersSorting1(void)
 		pTest4 = OMalloc<CTestEmbeddedObjectWithFields>();
 		pTest5 = OMalloc<CTestEmbeddedObjectWithFields>();
 		pTest6 = OMalloc<CTestEmbeddedObjectWithFields>();
-		pcTest1 = &pTest1;
-		pcTest2 = &pTest2;
-		pcTest3 = &pTest3;
-		pcTest4 = &pTest4;
 		pcTest5 = &pTest5;
-		pcTest6 = &pTest6;
 
 
 		pTest1->mpObjectA = pTest2;

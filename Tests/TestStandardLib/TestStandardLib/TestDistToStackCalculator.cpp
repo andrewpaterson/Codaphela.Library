@@ -1216,9 +1216,6 @@ void TestDistToStackRemoveUnbalancedLargeBroken(void)
 		Ptr<CTestObject>			pTop1;
 		Ptr<CTestObject>			pTop2;
 		CTestObject* pcTest2;
-		CTestObject* pcTest3;
-		CTestObject* pcTest4;
-		CTestObject* pcTest5;
 		CArrayBaseObjectPtr* papcKilled;
 
 		pRoot = ORoot();
@@ -1257,9 +1254,6 @@ void TestDistToStackRemoveUnbalancedLargeBroken(void)
 		AssertSize(2, pSet->NumPointerTos());
 
 		pcTest2 = &pTest2;
-		pcTest3 = &pTest3;
-		pcTest4 = &pTest4;
-		pcTest5 = &pTest5;
 
 		pTest3 = NULL;
 		pTest4 = NULL;
