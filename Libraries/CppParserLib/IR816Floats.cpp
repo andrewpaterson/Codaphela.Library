@@ -125,30 +125,6 @@ void CIR816Backend::FrameOperandCall(const char* szName, SIRInstruction* psInstr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Pushes the hidden result pointer when the result is 64 bits, calls szName and removes the iBytes of arguments
-// already pushed (and the pointer), leaving the result in its place.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR816Backend::CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction)
-{
-	CChars	sz;
-
-	UseRuntime(szName);
-	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
-	{
-		PushFrameAddress(OffsetOf(psInstruction->sResult));
-		iBytes += 4;
-	}
-	sz.Init("jsl ");
-	sz.Append(szName);
-	Line(sz.Text());
-	sz.Kill();
-	CallerCleanUp(iBytes, psInstruction);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Calls softfloat.cpp's (compiled) szName with asValues (of asTypes; the
 // one at iExtended, if not -1, extended to 32 bits as PushInt32 does) where
 // its register entry takes them: placed as Call places a register
