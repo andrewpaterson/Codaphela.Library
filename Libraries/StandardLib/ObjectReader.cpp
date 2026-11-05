@@ -111,7 +111,7 @@ CBaseObject* CObjectReader::Read(void)
 		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
 		sHeader.Kill();
 		sz.Kill();
-		pcObject->Kill();
+		pcObject->GetObjectsThisIn()->ReplaceWithHollow(pcObject);
 		return NULL;
 	}
 
@@ -126,7 +126,7 @@ CBaseObject* CObjectReader::Read(void)
 		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
 		sHeader.Kill();
 		sz.Kill();
-		pcObject->Kill();
+		pcObject->GetObjectsThisIn()->ReplaceWithHollow(pcObject);
 		return NULL;
 	}
 

@@ -345,16 +345,23 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
 {
 	CEmbeddedObject*	pcOldObject;
+	CEmbeddedObject*	pcLoaded;
 
 	pcOldObject = *ppcObject;
 	if (pcOldObject)
 	{
-		*ppcObject = pcOldObject->Dehollow();
-		if (*ppcObject != pcOldObject)
+		//If it can't be loaded the element is left as the hollow, to try again.
+		pcLoaded = pcOldObject->Dehollow();
+		if (pcLoaded == NULL)
+		{
+			return NULL;
+		}
+		*ppcObject = pcLoaded;
+		if (pcLoaded != pcOldObject)
 		{
 			mbSorted = false;
 		}
-		return *ppcObject;
+		return pcLoaded;
 	}
 	else
 	{

@@ -195,6 +195,9 @@
     <ClCompile Include="TestExternalObjectDeserialiser.cpp">
       <Filter>Source\Object\Object\Serialisation\Graph</Filter>
     </ClCompile>
+    <ClCompile Include="TestObjectReadFailure.cpp">
+      <Filter>Source\Object\Object\Serialisation\Graph</Filter>
+    </ClCompile>
     <ClCompile Include="TestObjectReaderSimple.cpp">
       <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClCompile>

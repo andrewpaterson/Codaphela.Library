@@ -220,6 +220,7 @@ public:
 
 						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetNamedOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
+						void					ReplaceWithHollow(CBaseObject* pcObject);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi);

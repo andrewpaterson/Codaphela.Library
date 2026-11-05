@@ -140,6 +140,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 
 	if (!bResult)
 	{
+		mpcObjects->ReplaceWithHollow(pcBaseObject);
 		return NULL;
 	}
 

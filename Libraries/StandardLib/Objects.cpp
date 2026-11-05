@@ -1548,7 +1548,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const ch
 // one: everything pointing to the old one points to the new one.  The
 // name is the identity, so the new one keeps the old one's index: the
 // database still has the name under it, and what points to it there
-// still finds it.
+// still finds it.  That's so even if the old one can't be read.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const char* szObjectName)
@@ -1563,7 +1563,18 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 	{
 		pvOldObject = GetFromDatabase(szObjectName);
 	}
-	oi = (pvOldObject != NULL) ? pvOldObject->GetIndex() : GetNextIndex();
+	if (pvOldObject != NULL)
+	{
+		oi = pvOldObject->GetIndex();
+	}
+	else
+	{
+		oi = (mpcDataConnection != NULL) ? mpcDataConnection->GetIndex(szObjectName) : INVALID_O_INDEX;
+		if (oi == INVALID_O_INDEX)
+		{
+			oi = GetNextIndex();
+		}
+	}
 
 	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (!pcObject)
@@ -1766,6 +1777,51 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(char* szObjectName, size uiNumEm
 	}
 
 	return pcHollow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object that couldn't be read: what points to it (or its embedded
+// objects) points to a hollow with its index and name instead, so using
+// it tries to read it again, and the object is freed.  If nothing else
+// points to it the hollow is freed too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ReplaceWithHollow(CBaseObject* pcObject)
+{
+	CHollowObject*	pcHollow;
+	size			i;
+	size			uiNumEmbedded;
+	bool			bPointedTo;
+
+	uiNumEmbedded = pcObject->NumEmbedded();
+	pcHollow = AllocateHollow(uiNumEmbedded, pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	if (pcHollow == NULL)
+	{
+		pcObject->Kill();
+		return;
+	}
+	if (!ReplaceBaseObject(pcObject, pcHollow))
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
+		pcObject->Kill();
+		return;
+	}
+
+	bPointedTo = false;
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		if (pcHollow->GetEmbeddedObject(i)->HasHeapFroms() || pcHollow->GetEmbeddedObject(i)->HasStackFroms())
+		{
+			bPointedTo = true;
+			break;
+		}
+	}
+	if (!bPointedTo)
+	{
+		pcHollow->Kill();
+	}
 }
 
 

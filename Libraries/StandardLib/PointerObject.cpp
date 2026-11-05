@@ -600,10 +600,17 @@ CObject* CPointer::Embedding(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
+	CEmbeddedObject*	pcLoaded;
+
 	if (mpcObject)
 	{
-		mpcObject = mpcObject->Dehollow();
-		return mpcObject;
+		//If it can't be loaded the pointer is left pointing to the hollow, to try again.
+		pcLoaded = mpcObject->Dehollow();
+		if (pcLoaded != NULL)
+		{
+			mpcObject = pcLoaded;
+		}
+		return pcLoaded;
 	}
 	else
 	{
@@ -618,10 +625,16 @@ CEmbeddedObject* CPointer::Dereference(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::DereferenceArrow(void)
 {
+	CEmbeddedObject*	pcLoaded;
+
 	if (mpcObject)
 	{
-		mpcObject = mpcObject->Dehollow();
-		return mpcObject;
+		pcLoaded = mpcObject->Dehollow();
+		if (pcLoaded != NULL)
+		{
+			mpcObject = pcLoaded;
+		}
+		return pcLoaded;
 	}
 	else
 	{

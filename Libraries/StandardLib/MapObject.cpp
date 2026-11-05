@@ -473,11 +473,19 @@ void CMapObject::Sort(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CMapObject::Dereference(CEmbeddedObject** ppcObject)
 {
+	CEmbeddedObject*	pcLoaded;
+
 	if (*ppcObject)
 	{
-		*ppcObject = (*ppcObject)->Dehollow();
+		//If it can't be loaded it's left as the hollow, to try again.
+		pcLoaded = (*ppcObject)->Dehollow();
+		if (pcLoaded == NULL)
+		{
+			return NULL;
+		}
+		*ppcObject = pcLoaded;
 		mbSorted = false;
-		return *ppcObject;
+		return pcLoaded;
 	}
 	else
 	{

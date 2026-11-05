@@ -82,6 +82,10 @@ CBaseObject* CHollowEmbeddedObject::Dehollow(void)
 	iEmbeddedIndex = GetEmbeddedIndex();
 
 	pcEmbedding = mpcEmbedded->Dehollow();
+	if (pcEmbedding == NULL)
+	{
+		return NULL;
+	}
 	pcThisDehollowed = (CBaseObject*)pcEmbedding->GetEmbeddedObject(iEmbeddedIndex);
 	return pcThisDehollowed;
 }
