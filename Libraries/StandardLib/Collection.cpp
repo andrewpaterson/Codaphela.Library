@@ -197,21 +197,54 @@ bool CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bV
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Unlinks this collection's from on pcObject: a heap from when the
+// collection is allocated in Objects, otherwise a stack from.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::UnlinkFrom(CEmbeddedObject* pcObject)
+{
+	if (IsEmbeddingContainerAllocatedInObjects())
+	{
+		return pcObject->UnlinkHeapFrom(this);
+	}
+	else
+	{
+		return pcObject->UnlinkStackFrom(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If bResult (the collection let go of pcObject), unlinks its from and
+// frees pcObject if nothing else reaches it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
 {
-	if (bResult && pcObject)
+	bool		bHeapFrom;
+	CObjects*	pcObjectsThisIn;
+
+	if (!bResult || (pcObject == NULL))
 	{
-		if (IsEmbeddingContainerAllocatedInObjects())
-		{
-			bResult = pcObject->RemoveHeapFromTryFree(this, bValidate);
-		}
-		else
-		{
-			bResult = pcObject->RemoveStackFromTryFree(this);
-		}
+		return bResult;
 	}
+
+	if (!UnlinkFrom(pcObject))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not remove Collection {", ObjectToString(this), "} From from Object {", ObjectToString(pcObject), "}.", NULL);
+	}
+
+	pcObjectsThisIn = GetObjectsThisIn();
+	bHeapFrom = IsEmbeddingContainerAllocatedInObjects();
+	bResult = gcObjects.FromRemoved(pcObject, bHeapFrom) != FR_Error;
+
+#ifdef _DEBUG
+	if (bValidate && bHeapFrom && pcObjectsThisIn)
+	{
+		pcObjectsThisIn->ValidateObjectsConsistency();
+	}
+#endif // _DEBUG
 	return bResult;
 }
 
@@ -237,45 +270,9 @@ bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRe
 	bResult = true;
 	for (i = 1; i < uiRemoved; i++)
 	{
-		if (IsEmbeddingContainerAllocatedInObjects())
-		{
-			bResult &= pcObject->UnlinkHeapFrom(this);
-		}
-		else
-		{
-			bResult &= pcObject->UnlinkStackFrom(this);
-		}
+		bResult &= UnlinkFrom(pcObject);
 	}
 	return RemoveObjectTryFree(pcObject, bResult, bValidate);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCollection::RemovePointerToTryFree(CBaseObject* pcPointedTo)
-{
-	return RemoveObjectTryFree(pcPointedTo, true, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCollection::RemovePointerToDontFree(CBaseObject* pcPointedTo)
-{
-	if (IsEmbeddingContainerAllocatedInObjects())
-	{
-		RemoveToFromDontFree(pcPointedTo);
-		return true;
-	}
-	else
-	{
-		//I'm not sure if that can ever be called.
-		return gcLogger.Error2(__METHOD__, " is not yet implemented for Stack-Froms.", NULL);
-	}
 }
 
 

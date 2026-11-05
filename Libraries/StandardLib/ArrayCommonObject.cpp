@@ -424,11 +424,11 @@ bool CArrayCommonObject::ClearPointerTos(bool bFree)
 		mcArray.UnsafeSet(i, NULL);
 		if (bFree)
 		{
-			bResult &= RemovePointerToTryFree(pcPointedTo);
+			bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
 		}
 		else
 		{
-			bResult &= RemovePointerToDontFree(pcPointedTo);
+			bResult &= ((pcPointedTo == NULL) || UnlinkFrom(pcPointedTo));
 		}
 	}
 	mcArray.ReInit();
@@ -808,7 +808,7 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 			pcPointedTo = pObject.BaseObject();
 			if (pcPointedTo)
 			{
-				bResult &= RemovePointerToTryFree(pcPointedTo);
+				bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
 			}
 			pObject = pcArray->IteratePointer(&sIter, &bExists);
 		}

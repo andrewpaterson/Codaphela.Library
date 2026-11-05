@@ -369,13 +369,13 @@ bool CMapObject::ClearPointerTos(bool bFree)
 	{
 		if (bFree)
 		{
-			bResult &= RemovePointerToTryFree(pcPointedToKey);
-			bResult &= RemovePointerToTryFree(pcPointedToValue);
+			bResult &= RemoveObjectTryFree(pcPointedToKey, true, false);
+			bResult &= RemoveObjectTryFree(pcPointedToValue, true, false);
 		}
 		else
 		{
-			bResult &= RemovePointerToDontFree(pcPointedToKey);
-			bResult &= RemovePointerToDontFree(pcPointedToValue);
+			bResult &= ((pcPointedToKey == NULL) || UnlinkFrom(pcPointedToKey));
+			bResult &= ((pcPointedToValue == NULL) || UnlinkFrom(pcPointedToValue));
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}

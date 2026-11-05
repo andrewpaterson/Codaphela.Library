@@ -220,7 +220,6 @@ protected:
 			bool					SaveHeapFroms(CObjectWriter* pcFile);
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
-			void					RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			bool					IsBaseObject(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);

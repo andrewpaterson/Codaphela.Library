@@ -447,7 +447,7 @@ void CEmbeddedObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
+EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject)
 {
 	bool			bRemoved;
 	EFreeResult		eResult;
@@ -468,12 +468,9 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bo
 	eResult = gcObjects.FromRemoved(this, true);
 
 #ifdef _DEBUG
-	if (bValidate)
+	if (pcObjectsThisIn)
 	{
-		if (pcObjectsThisIn)
-		{
-			pcObjectsThisIn->ValidateObjectsConsistency();
-		}
+		pcObjectsThisIn->ValidateObjectsConsistency();
 	}
 #endif
 
@@ -723,25 +720,6 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 	if (!bRemoved)
 	{
 		gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
-		return FR_Error;
-	}
-
-	return gcObjects.FromRemoved(this, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcCollection)
-{
-	bool	bRemoved;
-
-	bRemoved = UnlinkStackFrom(pcCollection);
-	if (!bRemoved)
-	{
-		gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
 		return FR_Error;
 	}
 

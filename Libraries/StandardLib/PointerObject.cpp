@@ -402,7 +402,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 					mpcObject->SetDirty(true);
 				}
 				pcOldObject->SetDirty(true);
-				pcOldObject->RemoveHeapFromTryFree(mpcEmbedding, true);
+				pcOldObject->RemoveHeapFromTryFree(mpcEmbedding);
 			}
 			else if (mpcObject)
 			{

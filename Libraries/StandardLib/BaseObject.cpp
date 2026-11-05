@@ -653,20 +653,6 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
-{
-	//The object pointed to may be killed with this, or be an embedded hollow object: both have this as a heap from.
-	if (pcPointedTo)
-	{
-		pcPointedTo->UnlinkHeapFrom(this);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::StopDestructor(void)
 {
 	muiFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;

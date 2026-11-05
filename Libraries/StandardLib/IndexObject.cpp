@@ -388,11 +388,11 @@ bool CIndexObject::ClearPointerTos(bool bFree)
 	{
 		if (bFree)
 		{
-			bResult &= RemovePointerToTryFree(pcPointedTo);
+			bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
 		}
 		else
 		{
-			bResult &= RemovePointerToDontFree(pcPointedTo);
+			bResult &= ((pcPointedTo == NULL) || UnlinkFrom(pcPointedTo));
 		}
 		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcPointedTo);
 	}

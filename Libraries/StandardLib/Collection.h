@@ -60,9 +60,7 @@ protected:
 			void			PreFields(void) override;
 			void			EmbedFields(void);
 
-			bool			RemovePointerToTryFree(CBaseObject* pcPointedTo);
-			bool			RemovePointerToDontFree(CBaseObject* pcPointedTo);
-
+			bool			UnlinkFrom(CEmbeddedObject* pcObject);
 			bool			AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);

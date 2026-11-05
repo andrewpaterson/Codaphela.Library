@@ -112,7 +112,7 @@ public:
 
 			bool				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);
-			EFreeResult			RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate);
+			EFreeResult			RemoveHeapFromTryFree(CBaseObject* pcFromObject);  //Unlinks, then CObjects::FromRemoved.
 	virtual size				NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				AddHeapPointerForRemap(CBaseObject* pcFromObject);
@@ -127,7 +127,6 @@ public:
 			bool				UnlinkStackFrom(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);
 			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer);
-			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 

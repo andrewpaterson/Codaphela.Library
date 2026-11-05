@@ -432,7 +432,11 @@ bool CObject::ClearPointerTos(bool bFree)
 		}
 		else
 		{
-			RemoveToFromDontFree(pcPointer->Object());
+			//An object pointed to may be killed with this, or be an embedded hollow object: both have this as a heap from.
+			if (pcPointer->Object())
+			{
+				pcPointer->Object()->UnlinkHeapFrom(this);
+			}
 			pcPointer->UnsafeClearObject();
 		}
 	}
