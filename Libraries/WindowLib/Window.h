@@ -49,7 +49,6 @@ protected:
 	Ptr<CWindowTick>		mpWindowTick;
 	bool					mbTicking;
 	CFocus					mFocus;
-	CNativeWindowFactory*	mpcFactory;
 	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CButton>			mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 	Ptr<CButton>			mpCancelButton;  //Clicked by escape when no popup is open.

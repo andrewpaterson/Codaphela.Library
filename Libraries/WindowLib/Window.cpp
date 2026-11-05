@@ -88,7 +88,6 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 
 	mszWindowTitle.Init(szTitle);
 
-	mpcFactory = pcFactory;
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
 	
@@ -130,17 +129,12 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Free(void)
 {
-	CNativeWindowFactory*	pcNativeFactory;
-
-	pcNativeFactory = mpcNativeWindow->GetFactory();
-	pcNativeFactory->DestroyNativeWindow(mpcNativeWindow);
+	GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
 
 	mszWindowTitle.Kill();
 
 	CComponent::Free();
-
-	mpcFactory = NULL;
 }
 
 
@@ -159,7 +153,6 @@ void CWindow::Class(void)
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
 	M_Embedded(mFocus);
-	U_Pointer(mpcFactory);
 	U_Pointer(mpcComponentInput);
 	M_Pointer(mpDefaultButton);
 	M_Pointer(mpCancelButton);
@@ -895,6 +888,6 @@ Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
 Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
-CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }
+CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
 
