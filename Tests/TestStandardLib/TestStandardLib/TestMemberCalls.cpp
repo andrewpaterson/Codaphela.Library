@@ -195,7 +195,8 @@ void TestMemberCallsChangedWhileCalled(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function is called on the right part of an object whose class
-// derives from the function's after another base.
+// derives from the function's after another base.  Its calls are removed
+// with the object as it was given or as the function's class.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMemberCallsDerived(void)
@@ -210,6 +211,13 @@ void TestMemberCallsDerived(void)
 	cCalls.Add()->Init(&cDerived, &CTestMemberCallsDerived::Derived);
 	cCalls.Call(NULL, NULL);
 	AssertString("Plain Derived ", cDerived.mszCalled.Text());
+
+	AssertTrue(cCalls.Remove(&cDerived));
+	AssertSize(0, cCalls.NumCalls());
+
+	cCalls.Add()->Init(&cDerived, &CTestMemberCallsTarget::Plain);
+	AssertTrue(cCalls.Remove((CTestMemberCallsTarget*)&cDerived));
+	AssertSize(0, cCalls.NumCalls());
 
 	cDerived.Kill();
 	cCalls.Kill();

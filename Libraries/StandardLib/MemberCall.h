@@ -97,13 +97,15 @@ void MemberCallWithValue(void* pvObject, uint8* pucFunction, void* pvArgument, v
 
 //A member function and the object it is called on, as an action, an input action or a component event keeps them.
 //The object isn't held, so it must outlive the call or be removed from what holds it.  The object can be of a class
-//derived from the function's, as when a component adds a function it inherits.
+//derived from the function's, as when a component adds a function it inherits; if the function's class is a later base
+//the object is kept as both.
 //
 //The member function pointer is kept as bytes with a thunk that knows its class; casting it to some other class's
 //member pointer would lose the parts multiple inheritance adds.
 struct SMemberCall
 {
-	void*			pvObject;
+	void*			pvObject;  //As it was given.
+	void*			pvCalled;  //As the function's class, which the thunk is given.
 	MemberCallThunk	fThunk;
 	uint8			aucFunction[MEMBER_CALL_FUNCTION_SIZE];
 
@@ -115,14 +117,14 @@ struct SMemberCall
 	void	Init(O* pcObject, void(M::*fFunction)(A*));
 	template<class M, class A, class V, class O>
 	void	Init(O* pcObject, void(M::*fFunction)(A*, V));
-	template<class M, class F>
-	void	Init(M* pcObject, F fFunction, MemberCallThunk fCaller);
+	template<class M, class O, class F>
+	void	Init(O* pcObject, F fFunction, MemberCallThunk fCaller);
 
 	void	Clear(void);
 	bool	IsSet(void);
 	void	Call(void* pvArgument, void* pvValue = NULL);
 	bool	Ask(void);
-	bool	IsOn(void* pvObject);
+	bool	IsOn(void* pvOther);
 	bool	Equals(SMemberCall* psOther);
 };
 
@@ -173,18 +175,22 @@ void SMemberCall::Init(O* pcObject, void(M::*fFunction)(A*, V))
 
 //////////////////////////////////////////////////////////////////////////
 //
-// For a function of some other shape, with a thunk that calls it.
-// pcObject is already the function's class, so the thunk can cast the
-// kept void* straight back to it.
+// For a function of some other shape, with a thunk that calls it.  The
+// thunk is given the object as M, the function's class, so it can cast
+// the void* straight back to it.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class F>
-void SMemberCall::Init(M* pcObject, F fFunction, MemberCallThunk fCaller)
+template<class M, class O, class F>
+void SMemberCall::Init(O* pcObject, F fFunction, MemberCallThunk fCaller)
 {
+	M*	pcCalled;
+
 	static_assert(sizeof(F) <= MEMBER_CALL_FUNCTION_SIZE, "MEMBER_CALL_FUNCTION_SIZE is too small for this member function pointer.");
 
+	pcCalled = pcObject;
 	memset(this, 0, sizeof(SMemberCall));
 	pvObject = (void*)pcObject;
+	pvCalled = (void*)pcCalled;
 	fThunk = fCaller;
 	memcpy(aucFunction, &fFunction, sizeof(F));
 }
@@ -196,7 +202,7 @@ void SMemberCall::Init(M* pcObject, F fFunction, MemberCallThunk fCaller)
 //////////////////////////////////////////////////////////////////////////
 inline void SMemberCall::Call(void* pvArgument, void* pvValue)
 {
-	fThunk(pvObject, aucFunction, pvArgument, pvValue);
+	fThunk(pvCalled, aucFunction, pvArgument, pvValue);
 }
 
 
@@ -210,7 +216,7 @@ inline bool SMemberCall::Ask(void)
 	bool	bAnswer;
 
 	bAnswer = false;
-	fThunk(pvObject, aucFunction, NULL, &bAnswer);
+	fThunk(pvCalled, aucFunction, NULL, &bAnswer);
 	return bAnswer;
 }
 
@@ -238,11 +244,13 @@ inline bool SMemberCall::IsSet(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pvOther can be the object as it was given or as the function's class,
+// as when a base class removes its own functions (Remove(this)).
 //
 //////////////////////////////////////////////////////////////////////////
 inline bool SMemberCall::IsOn(void* pvOther)
 {
-	return pvObject == pvOther;
+	return (pvObject == pvOther) || (pvCalled == pvOther);
 }
 
 
