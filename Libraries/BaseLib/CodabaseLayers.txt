@@ -36,7 +36,7 @@ The three stores in the game case
 
   - Initial game database.  Unchanging.  Opened read-only.
   - Virtual memory database.  Writable, discarded on shutdown.  Holds exactly the objects changed since the level was loaded (only dirty objects are flushed into it; clean objects are freed and reloaded from the level).
-  - Save game database.  May or may not be a Codabase at all.
+  - Save game database.  Its own database (decided 2026-11-05), written by serialisation; see "Save games" below.
 
 
 Layered connection (proposed)
@@ -73,6 +73,22 @@ The ID says which database created an object, not where its newest version is.  
   - A replayed save game already says which database each OIndex belongs to.
 
 
+Save games (decided)
+--------------------
+
+A save game is a serialisation into its own database.  Decided 2026-11-05:
+  - What is saved comes from reachability, not from marking objects.  The game keeps a list of named roots (for example one per player or per world region); saving walks the object graph from each of them.
+  - References to unchanged level objects are acceptable, even desirable.  An unchanged object from a read-only database is written as a reference (its OIndex, whose top byte says which database it lives in), not copied.
+  - Changed and new objects are copied in full: objects in the virtual memory layer, objects dirty in memory, and anything whose OIndex has the virtual memory database's ID.  A level object the player changed (an opened door) is a changed ID 0 object and is copied.
+  - Only reachable objects are saved, so garbage never reaches a save.
+
+Proposed with it (not yet decided):
+  - Transient pointer fields (say M_TransientPointer(name) in Class()) that the walk never follows, for runtime-only state such as caches and UI.  They load as NULL and are rebuilt.
+  - Loading a game needs no replay.  The save database becomes a read-only layer: virtual memory (writable, empty) -> save game (read-only) -> level (read-only).  The next save walks the roots again, picking up changes from both the virtual memory layer and the previous save layer and dropping anything no longer reachable.
+
+Consequence: saves depend on level OIndexes staying stable.  Editing a level must never renumber existing objects; updating a released level may add objects but not rewrite existing ones.
+
+
 Dirty detection (idea, not decided)
 -----------------------------------
 
@@ -82,7 +98,6 @@ Managed fields (M_*) and Ptr assignments mark objects dirty themselves.  Unmanag
 Open questions
 --------------
 
-  - Save game: the difference from the level (small, tied to that level version) or a full serialisation of everything reachable (large, independent of the level)?
   - What a read-only database does with a refused write (options above).
   - Whether new objects in a read-only session are an error, or allowed until one has to be written.
   - Whether write-through (IWT_Yes) becomes "autocommit per change".
