@@ -232,7 +232,7 @@ public:
 						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
-						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi);
 						CBaseObject*			ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName);
 						void					RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded);
 };
@@ -314,7 +314,7 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(void)
 {
 	OIndex	oi;
 
-	oi = GetIndexGenerator()->GetNext();
+	oi = GetNextIndex();
 	return AllocateUninitialisedByTemplate<SpecificClass>(oi, 0);
 }
 

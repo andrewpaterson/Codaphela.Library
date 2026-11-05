@@ -2449,7 +2449,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi, OIndex* poiExisting)
+CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi)
 {
 	CBaseObject*	pcObject;
 	bool			bResult;
@@ -2466,7 +2466,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 			pcHollowObject = (CHollowObject*)pcObject;
 			if (pcHollowObject->GetIndex() != oi)
 			{
-				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongToString(oi), "] but expected index [", LongToString(pcHollowObject->GetIndex()), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongToString(pcHollowObject->GetIndex()), "] but expected index [", LongToString(oi), "].", NULL);
 				return NULL;
 			}
 			else
@@ -2599,7 +2599,6 @@ CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEm
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
-		mHollocationCallback(pcHollow);
 	}
 	else
 	{
@@ -2611,7 +2610,9 @@ CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEm
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
+		return NULL;
 	}
+	mHollocationCallback(pcHollow);
 	return pcHollow;
 }
 
@@ -2636,6 +2637,7 @@ CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(const char* szOb
 	if (StrEmpty(szObjectName))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate a named hollow object with no name.", NULL);
+		return NULL;
 	}
 
 	if (uiObjectSize == OBJECT_IDENTIFIER_SIZE_NOT_SET)
@@ -2663,7 +2665,7 @@ CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(const char* szOb
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
 		return NULL;
 	}
-
+	mHollocationCallback(pcHollow);
 	return pcHollow;
 }
 

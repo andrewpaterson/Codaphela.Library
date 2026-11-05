@@ -7,6 +7,8 @@
 #include "StandardLib/String.h"
 #include "StandardLib/Root.h"
 #include "StandardLib/PointerContainer.h"
+#include "StandardLib/HollowObject.h"
+#include "StandardLib/ObjectHeader.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 
@@ -186,6 +188,59 @@ void TestHollowObjectMemoryIteration(void)
 }
 
 
+size	guiHollowsAllocated;
+
+
+void TestHollowObjectCountHollow(CBaseObject* pcHollow)
+{
+	guiHollowsAllocated++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The deserialiser's hollows, with and without a name: each one in memory
+// is told to the hollow callback.  One whose index or name is already in
+// memory, or a named one with no name, isn't allocated (and isn't told).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHollowObjectInternalAllocation(void)
+{
+	CHollowObject*	pcHollow;
+	OIndex			oiUnnamed;
+	OIndex			oiNamed;
+	SLogConfig		sLogConfig;
+
+	ObjectsInit();
+	ORoot();
+	guiHollowsAllocated = 0;
+	gcObjects.SetHollocationCallback(&TestHollowObjectCountHollow);
+
+	oiUnnamed = gcObjects.GetIndexGenerator()->GetNext();
+	pcHollow = gcObjects.AllocateInternalHollowWithIndex(oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	AssertNotNull(pcHollow);
+	AssertLong(oiUnnamed, pcHollow->GetIndex());
+	AssertSize(1, guiHollowsAllocated);
+
+	oiNamed = gcObjects.GetIndexGenerator()->GetNext();
+	pcHollow = gcObjects.AllocateInternalHollowWithNameAndIndex("Hollow", oiNamed, 3, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	AssertNotNull(pcHollow);
+	AssertString("Hollow", pcHollow->GetName());
+	AssertSize(2, guiHollowsAllocated);
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertNull(gcObjects.AllocateInternalHollowWithIndex(oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
+	AssertNull(gcObjects.AllocateInternalHollowWithNameAndIndex("Hollow", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
+	AssertNull(gcObjects.AllocateInternalHollowWithNameAndIndex("", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertSize(2, guiHollowsAllocated);
+	AssertPointer(pcHollow, gcObjects.TestGetFromMemory("Hollow").Object());
+
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -199,6 +254,7 @@ void TestHollowObject(void)
 
 	TestHollowObjectAllocation();
 	TestHollowObjectMemoryIteration();
+	TestHollowObjectInternalAllocation();
 
 	DataIOKill();
 	TypesKill();

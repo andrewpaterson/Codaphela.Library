@@ -153,7 +153,6 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
-	OIndex	oiExisting;
 	char*	szName;
 	char*	szClassName;
 
@@ -173,7 +172,7 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			szName = pcHeader->mszObjectName.Text();
 			if (!StrEmpty(szName))
 			{
-				return mpcObjects->AllocateForInternalDeserialisationWithNameAndIndex(szClassName, szName, pcHeader->moi, &oiExisting);
+				return mpcObjects->AllocateForInternalDeserialisationWithNameAndIndex(szClassName, szName, pcHeader->moi);
 			}
 			else
 			{
