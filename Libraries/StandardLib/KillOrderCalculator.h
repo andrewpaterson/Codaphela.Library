@@ -14,6 +14,10 @@ public:
 	void					Kill(void);
 
 	CArrayBaseObjectPtr*	Calculate(void);
+
+protected:
+	void					OrderNesObjects(void);
+	bool					IsNesPointedToFromWaiting(CBaseObject* pcObject, uint32 uiWaiting);
 };
 
 

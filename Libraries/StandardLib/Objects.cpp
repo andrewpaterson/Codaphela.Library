@@ -266,8 +266,8 @@ EFreeResult CObjects::FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom)
 //////////////////////////////////////////////////////////////////////////
 //
 // Objects with Nes pointers to them are removed after the objects that
-// depend on them.  This is not a complete solution as the Nes objects
-// should be sorted before they are killed but it's good enough for now.
+// depend on them, in a batch of their own, each after the others in it
+// that hold Nes pointers to it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)

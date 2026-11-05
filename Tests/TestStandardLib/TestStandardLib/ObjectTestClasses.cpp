@@ -669,3 +669,44 @@ void CTestNesHolderReleaseObject::Free(void)
 	NotifyNesHolderFreed(mpsFreedNotifier, mpDependsOnForFree);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestNesChainObject::Init(STestObjectFreedNotifier* psFreedNotifier)
+{
+	PreInit();
+	mpsFreedNotifier = psFreedNotifier;
+	mpsFreedNotifier->bFreed = false;
+	mpsFreedNotifier->bDependsOnFreedFirst = false;
+	mpsFreedNotifier->uiFreedOrder = 0;
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestNesChainObject::Class(void)
+{
+	Nes(M_Pointer(mpNeeds));
+	U_Pointer(mpsFreedNotifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestNesChainObject::Free(void)
+{
+	if (mpNeeds.IsNotNull() && mpNeeds->mpsFreedNotifier->bFreed)
+	{
+		mpsFreedNotifier->bDependsOnFreedFirst = true;
+	}
+	mpsFreedNotifier->bFreed = true;
+	guiTestObjectsFreed++;
+	mpsFreedNotifier->uiFreedOrder = guiTestObjectsFreed;
+}

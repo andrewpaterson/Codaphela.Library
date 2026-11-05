@@ -218,6 +218,22 @@ public:
 };
 
 
+//Holds a Nes pointer to another of its kind, so they can make chains and cycles.  Its notifier records when it was
+//freed and, in bDependsOnFreedFirst, whether the one it needs had been freed already.
+class CTestNesChainObject : public CObject
+{
+CONSTRUCTABLE(CTestNesChainObject)
+DESTRUCTABLE(CTestNesChainObject)
+public:
+	Ptr<CTestNesChainObject>	mpNeeds;
+	STestObjectFreedNotifier*	mpsFreedNotifier;
+
+	void	Init(STestObjectFreedNotifier* psFreedNotifier);
+	void	Class(void) override;
+	void	Free(void) override;
+};
+
+
 class CTestEmbeddedTestObject : public CObject
 {
 CONSTRUCTABLE(CTestEmbeddedTestObject)
