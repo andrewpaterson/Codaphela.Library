@@ -347,6 +347,7 @@ protected:
 	bool				IsSelected(void);
 	void				MoveCaret(size uiPosition, bool bSelect, bool bRowEnd = false, bool bKeepUpDown = false);
 	void				MoveUpDown(ETextAreaMove eMove, bool bSelect);
+	size				ScrollPage(size uiRow, bool bDown);
 	void				MoveHome(bool bSelect);
 	void				MoveEnd(bool bSelect);
 	void				ScrollBy(int32 iDown);

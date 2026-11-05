@@ -2968,37 +2968,34 @@ void CTextArea::MoveCaret(size uiPosition, bool bSelect, bool bRowEnd, bool bKee
 //
 // To the row above or below, or a page of rows, as near the x up and
 // down started at as the row goes.  Up from the first row goes to the
-// start of the text and down from the last to its end.  A page up or down
-// from the first or last row doesn't move, otherwise the view scrolls as
-// far as the caret moved so it stays where it was in the view.
+// start of the text and down from the last to its end; a page up or down
+// from them doesn't move.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
 {
-	size				uiRow;
-	size				uiLastRow;
-	STextLayoutLine*	psLine;
-	int32				iPage;
-	int32				iTop;
-	size				uiPosition;
-	bool				bRowEnd;
-	bool				bDown;
-	bool				bPage;
+	size	uiRow;
+	size	uiPosition;
+	bool	bRowEnd;
+	bool	bDown;
+	bool	bPage;
+	bool	bAtEnd;
 
-	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
-	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
 	if (!HasStops())
 	{
 		return;
 	}
 
+	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
+	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
 	if (miUpDownX < 0)
 	{
 		miUpDownX = GetCaretX();
 	}
+
 	uiRow = GetCaretRow();
-	uiLastRow = NumLayoutLines() - 1;
-	if ((!bDown && (uiRow == 0)) || (bDown && (uiRow == uiLastRow)))
+	bAtEnd = bDown ? (uiRow + 1 == NumLayoutLines()) : (uiRow == 0);
+	if (bAtEnd)
 	{
 		if (!bPage)
 		{
@@ -3009,19 +3006,45 @@ void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
 
 	if (bPage)
 	{
-		iPage = GetPageHeight();
-		psLine = GetLayoutLine(uiRow);
-		iTop = psLine->iTop;
-		uiRow = FindRowAt(psLine->iTop + psLine->iHeight / 2 + (bDown ? iPage : -iPage));
-		ScrollBy(GetLayoutLine(uiRow)->iTop - iTop);
+		uiRow = ScrollPage(uiRow, bDown);
+	}
+	else if (bDown)
+	{
+		uiRow++;
 	}
 	else
 	{
-		uiRow = bDown ? uiRow + 1 : uiRow - 1;
+		uiRow--;
 	}
 
 	uiPosition = FindPositionInRow(uiRow, miUpDownX, &bRowEnd);
 	MoveCaret(uiPosition, bSelect, bRowEnd, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row a page of the view below or above uiRow.  The view scrolls as
+// far as that row is from uiRow, so the caret moved there stays where it
+// was in the view.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::ScrollPage(size uiRow, bool bDown)
+{
+	STextLayoutLine*	psLine;
+	int32				iTop;
+	int32				iMiddle;
+	int32				iPage;
+	size				uiPageRow;
+
+	psLine = GetLayoutLine(uiRow);
+	iTop = psLine->iTop;
+	iMiddle = psLine->iTop + psLine->iHeight / 2;
+	iPage = bDown ? GetPageHeight() : -GetPageHeight();
+
+	uiPageRow = FindRowAt(iMiddle + iPage);
+	ScrollBy(GetLayoutLine(uiPageRow)->iTop - iTop);
+	return uiPageRow;
 }
 
 
