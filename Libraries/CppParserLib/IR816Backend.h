@@ -206,6 +206,7 @@ protected:
 	void			Layout(void);
 	void			AddRegions(CIR816LiveRanges* pcRanges);
 	int32			PackTemporaries(void);
+	int32			SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);
 	int32			OffsetOf(SIRReference sTemporary);

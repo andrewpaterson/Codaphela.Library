@@ -1116,16 +1116,54 @@ void CIR816Backend::AddRegions(CIR816LiveRanges* pcRanges)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether iOne is placed after iOther (PackTemporaries): it starts later,
+// or with it but with a lighter pair there.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816PlacedAfter(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiStartWeights, int32 iOne, int32 iOther)
+{
+	if (pcRanges->Start(iOne) != pcRanges->Start(iOther))
+	{
+		return pcRanges->Start(iOne) > pcRanges->Start(iOther);
+	}
+	return *paiStartWeights->Get(iOne) < *paiStartWeights->Get(iOther);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The depth of the innermost loop both blocks are in, 0 when they share
+// none: how often a jump from one to the other is made.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
+{
+	int32	iLoop;
+
+	for (iLoop = mcLoops.Innermost(pcFrom); iLoop >= 0; iLoop = mcLoops.GetLoop(iLoop)->iParent)
+	{
+		if (mcLoops.Contains(iLoop, pcTo))
+		{
+			return mcLoops.GetLoop(iLoop)->iDepth;
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Gives the temporaries (but the parameters, which are the caller's
 // arguments) their places from IR816_FIRST_TEMPORARY on, sharing places
 // between temporaries that are never live at once.  Positions number the
-// phis, instructions and jump of each block in the order the blocks are
-// written.  A temporary is live from its definition, or the start of a block
-// it is live into, to its last use, or the end of a block it is live out of
-// (CIR816LiveRanges).  An argument is used where its call pushes it; a
-// phi's arguments at the end of their blocks and its result at the start of
-// its own, or also at the ends of its predecessors when they put its values
-// straight in its place (IsCoalescedPhiBlock).  Uses of an instruction's
+// phis, instructions, jump and end of each block in the order the blocks
+// are written.  A temporary is live from its definition, or the start of a
+// block it is live into, to its last use, or the end of a block it is live
+// out of (CIR816LiveRanges).  An argument is used where its call pushes it; a
+// phi's arguments at the end of their blocks (after the jump's argument: a
+// brif tests it before the copies) and its result at the start of its own,
+// or also at the ends of its predecessors when they put its values straight
+// in its place (IsCoalescedPhiBlock).  Uses of an instruction's
 // operands and its result's definition are at the same position, so they
 // only share a place when they are a pair (IR816CanShareArgument, a call's
 // argument, or a load's pointer: a one word load's, or one a phi joins them
@@ -1150,6 +1188,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	CArrayTemplate<int32>		aiLastUse;		//Per temporary: its last use or definition in that block.
 	CArrayTemplate<int32>		aiOpened;		//The temporaries with a range open in that block.
 	CArrayTemplate<int32>		aiOrder;
+	CArrayTemplate<int32>		aiStartWeights;	//Per temporary: the weight of its heaviest pair where it starts, or -1.
 	CArrayTemplate<bool>		abParameter;
 	CIRBlock*					pcBlock;
 	CIRBlock*					pcSuccessor;
@@ -1262,8 +1301,10 @@ int32 CIR816Backend::PackTemporaries(void)
 			iPosition++;
 		}
 
-		//The jump's argument and the phi arguments of the successors (copied on the way out).
+		//The jump's argument, then the phi arguments of the successors (copied on the way out, after a brif has tested
+		//its condition: Jump).
 		IR816AddEvent(&asEvents, pcBlock->msJump.sArgument, iPosition, IR816_EVENT_USE);
+		iPosition++;
 		for (uj = 0; uj < pcBlock->NumSuccessors(); uj++)
 		{
 			pcSuccessor = pcBlock->GetSuccessor(uj);
@@ -1281,13 +1322,9 @@ int32 CIR816Backend::PackTemporaries(void)
 					IR816AddEvent(&asEvents, psPhi->sResult, iPosition, IR816_EVENT_WRITE);
 					if (psArgument)
 					{
-						//The copy is made going that way: as often as the shallower block of the two.
-						iDepth = *aiDepths.Get(ui);
-						if (*aiDepths.Get(pcSuccessor->muiIndex) < iDepth)
-						{
-							iDepth = *aiDepths.Get(pcSuccessor->muiIndex);
-						}
-						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, iDepth);
+						//The copy is made going that way: as often as the innermost loop both blocks are in goes round
+						//(once per loop for a way out of it).
+						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, SharedLoopDepth(pcBlock, pcSuccessor));
 					}
 				}
 			}
@@ -1382,7 +1419,21 @@ int32 CIR816Backend::PackTemporaries(void)
 		}
 	}
 
-	//Placed in the order they start (but the parameters).
+	//Placed in the order they start (but the parameters); of those starting together, first the one with the heaviest
+	//pair there (two phis given the same value on the way out of a block: the one round a loop takes its place).
+	aiStartWeights.Init(CIR816Backend::GetScratch());
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		iDepth = -1;
+		for (iPair = *cRanges.maiPairFirst.Get(ui); iPair != -1; iPair = *cRanges.maiPairNext.Get(iPair))
+		{
+			if ((*cRanges.maiPairPosition.Get(iPair) == cRanges.Start((int32)ui)) && (*cRanges.maiPairWeight.Get(iPair) > iDepth))
+			{
+				iDepth = *cRanges.maiPairWeight.Get(iPair);
+			}
+		}
+		aiStartWeights.Add(&iDepth);
+	}
 	abParameter.Init(CIR816Backend::GetScratch());
 	abParameter.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
 	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
@@ -1401,7 +1452,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	for (ui = 1; ui < aiOrder.NumElements(); ui++)
 	{
 		iTemporary = *aiOrder.Get(ui);
-		for (uj = ui; (uj > 0) && (cRanges.Start(*aiOrder.Get(uj - 1)) > cRanges.Start(iTemporary)); uj--)
+		for (uj = ui; (uj > 0) && IR816PlacedAfter(&cRanges, &aiStartWeights, *aiOrder.Get(uj - 1), iTemporary); uj--)
 		{
 			*aiOrder.Get(uj) = *aiOrder.Get(uj - 1);
 		}
@@ -1468,6 +1519,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	asLoadPairs.Kill();
 	aiDepths.Kill();
 	abParameter.Kill();
+	aiStartWeights.Kill();
 	aiOrder.Kill();
 	aiOpened.Kill();
 	aiLastUse.Kill();
@@ -1738,6 +1790,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 		{
 			*aiScore.Get(pcBlock->msJump.sArgument.Index()) += 3 * iWeight;
 		}
+		iPosition++;
 		for (uj = 0; uj < pcBlock->NumSuccessors(); uj++)
 		{
 			pcSuccessor = pcBlock->GetSuccessor(uj);
