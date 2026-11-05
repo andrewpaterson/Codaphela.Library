@@ -104,6 +104,9 @@ public:
 //
 //Run and Step return at the processor's enabled breakpoints (GetBreakpoints) without executing the instruction
 //there; IsAtBreakpoint is then true and the next Run or Step executes it.  Stacks grow down.
+//
+//A target with more than one breakpoint space (a computer whose modes see different memory at the same address)
+//keeps a CBreakpoints for each and stops only at those of the mode it is in.  GetBreakpoints is the first space's.
 class CDebugTarget
 {
 public:
@@ -120,6 +123,9 @@ public:
 	virtual uint32				GetStackPointer(void) =0;
 
 	virtual CBreakpoints*		GetBreakpoints(void) =0;
+	virtual size				NumBreakpointSpaces(void);
+	virtual const char*			GetBreakpointSpaceName(size uiSpace);
+	virtual CBreakpoints*		GetSpaceBreakpoints(size uiSpace);
 	virtual bool				IsAtBreakpoint(void) =0;
 	virtual bool				IsStopped(void) =0;
 

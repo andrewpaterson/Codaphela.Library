@@ -88,6 +88,8 @@ protected:
 	void				HandleBody(uint32 uiType, void* pvData, size uiSize);
 	void				Hello(void* pvData, size uiSize);
 	void				SetBreakpoints(void* pvData, size uiSize);
+	bool				ChangeBreakpoint(uint32 uiType, SDebugBreakpoint* psBreakpoint);
+	void				ClearBreakpoints(void);
 	void				Continue(void);
 	void				Pause(void);
 	void				Step(void* pvData, size uiSize);

@@ -85,9 +85,9 @@ public:
 
 	uint32				Hello(void);
 	uint32				SetBreakpoints(SDebugBreakpoint* asBreakpoints, size uiCount);
-	uint32				AddBreakpoint(uint32 uiAddress, bool bEnabled);
-	uint32				RemoveBreakpoint(uint32 uiAddress);
-	uint32				EnableBreakpoint(uint32 uiAddress, bool bEnabled);
+	uint32				AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace = DEBUG_SPACE_ANY);
+	uint32				RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace = DEBUG_SPACE_ANY);
+	uint32				EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace = DEBUG_SPACE_ANY);
 	uint32				EnableAllBreakpoints(bool bEnabled);
 	uint32				Continue(void);
 	uint32				Pause(void);
@@ -118,6 +118,9 @@ public:
 	size				NumAddressBits(void);
 	EDebugAddressFormat	GetAddressFormat(void);
 	bool				CanDecode(void);
+	size				NumBreakpointSpaces(void);
+	const char*			GetBreakpointSpaceName(size uiIndex);
+	bool				FindBreakpointSpace(const char* szName, uint32* puiSpace);
 	size				NumRegisters(void);
 	SDebugRegister*		GetRegister(size uiRegister);
 	uint64				GetRegisterValue(size uiRegister);

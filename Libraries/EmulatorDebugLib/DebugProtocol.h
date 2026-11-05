@@ -39,7 +39,11 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //
 //The emulator describes itself: its registers (with their flags' letters), how its addresses are written, and
 //(DM_Disassembly) its instructions.  A debugger needs no knowledge of the processor.
-#define DEBUG_PROTOCOL_VERSION		2
+//
+//A breakpoint is in one of the target's breakpoint spaces, which the welcome names (a computer with a kernel and
+//user mode has "Kernel" and "User": a breakpoint in one stops only in that mode), or in every one (DEBUG_SPACE_ANY).
+//A message's uiSpace is DEBUG_SPACE_ANY or a space's index plus one.
+#define DEBUG_PROTOCOL_VERSION		3
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
@@ -48,6 +52,9 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #define DEBUG_MAX_TEXT				256
 #define DEBUG_MAX_MESSAGE			(sizeof(SDebugHeader) + sizeof(SDebugMemory) + DEBUG_MAX_MEMORY)
 #define DEBUG_NO_ADDRESS			0xFFFFFFFF
+#define DEBUG_MAX_SPACES			4
+#define DEBUG_SPACE_NAME_SIZE		16
+#define DEBUG_SPACE_ANY				0
 
 
 enum EDebugMessage
@@ -56,7 +63,7 @@ enum EDebugMessage
 	DM_Hello = 1,				//SDebugHello.
 	DM_SetBreakpoints,			//SDebugBreakpoints then SDebugBreakpoint[uiCount]: replaces them all.
 	DM_AddBreakpoint,			//SDebugBreakpoint.
-	DM_RemoveBreakpoint,		//SDebugAddress.
+	DM_RemoveBreakpoint,		//SDebugBreakpoint (uiEnabled unused).
 	DM_EnableBreakpoint,		//SDebugBreakpoint.
 	DM_EnableAllBreakpoints,	//SDebugFlag.
 	DM_Continue,				//Nothing.
@@ -125,6 +132,8 @@ struct SDebugWelcome
 	uint32	uiCapabilities;		//DEBUG_CAN_*.
 	uint32	uiNumRegisters;
 	char	szProcessor[DEBUG_PROCESSOR_NAME_SIZE];
+	uint32	uiNumSpaces;		//Breakpoint spaces, at least one.
+	char	aszSpaces[DEBUG_MAX_SPACES][DEBUG_SPACE_NAME_SIZE];
 };
 
 
@@ -144,6 +153,7 @@ struct SDebugBreakpoint
 {
 	uint32	uiAddress;
 	uint32	uiEnabled;
+	uint32	uiSpace;	//DEBUG_SPACE_ANY or a space's index plus one.
 };
 
 

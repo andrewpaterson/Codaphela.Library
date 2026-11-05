@@ -164,6 +164,7 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 	SDebugBreakpoint*	psBreakpoint;
 	SDebugAddress*		psAddress;
 	SDebugFlag*			psFlag;
+	size				i;
 
 	if (uiType == DM_Hello)
 	{
@@ -184,33 +185,18 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 
 	case DM_AddBreakpoint:
 	case DM_EnableBreakpoint:
+	case DM_RemoveBreakpoint:
 		if (uiSize < sizeof(SDebugBreakpoint))
 		{
 			Error(uiType, "Message too short.");
 			break;
 		}
 		psBreakpoint = (SDebugBreakpoint*)pvData;
-		if (uiType == DM_AddBreakpoint)
+		if (psBreakpoint->uiSpace > mpcTarget->NumBreakpointSpaces())
 		{
-			if (!mpcTarget->GetBreakpoints()->Add(psBreakpoint->uiAddress, psBreakpoint->uiEnabled != 0))
-			{
-				mpcTarget->GetBreakpoints()->Enable(psBreakpoint->uiAddress, psBreakpoint->uiEnabled != 0);
-			}
+			Error(uiType, "No such breakpoint space.");
 		}
-		else if (!mpcTarget->GetBreakpoints()->Enable(psBreakpoint->uiAddress, psBreakpoint->uiEnabled != 0))
-		{
-			Error(uiType, "No breakpoint there.");
-		}
-		break;
-
-	case DM_RemoveBreakpoint:
-		if (uiSize < sizeof(SDebugAddress))
-		{
-			Error(uiType, "Message too short.");
-			break;
-		}
-		psAddress = (SDebugAddress*)pvData;
-		if (!mpcTarget->GetBreakpoints()->Remove(psAddress->uiAddress))
+		else if (!ChangeBreakpoint(uiType, psBreakpoint) && (uiType != DM_AddBreakpoint))
 		{
 			Error(uiType, "No breakpoint there.");
 		}
@@ -223,7 +209,10 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 			break;
 		}
 		psFlag = (SDebugFlag*)pvData;
-		mpcTarget->GetBreakpoints()->EnableAll(psFlag->uiFlag != 0);
+		for (i = 0; i < mpcTarget->NumBreakpointSpaces(); i++)
+		{
+			mpcTarget->GetSpaceBreakpoints(i)->EnableAll(psFlag->uiFlag != 0);
+		}
 		break;
 
 	case DM_Continue:
@@ -344,7 +333,6 @@ void CDebugServer::SetBreakpoints(void* pvData, size uiSize)
 {
 	SDebugBreakpoints*	psBreakpoints;
 	SDebugBreakpoint*	asBreakpoint;
-	CBreakpoints*		pcBreakpoints;
 	uint32				i;
 
 	psBreakpoints = (SDebugBreakpoints*)pvData;
@@ -354,12 +342,79 @@ void CDebugServer::SetBreakpoints(void* pvData, size uiSize)
 		return;
 	}
 
-	pcBreakpoints = mpcTarget->GetBreakpoints();
-	pcBreakpoints->Clear();
+	ClearBreakpoints();
 	asBreakpoint = (SDebugBreakpoint*)&psBreakpoints[1];
 	for (i = 0; i < psBreakpoints->uiCount; i++)
 	{
-		pcBreakpoints->Add(asBreakpoint[i].uiAddress, asBreakpoint[i].uiEnabled != 0);
+		if (asBreakpoint[i].uiSpace > mpcTarget->NumBreakpointSpaces())
+		{
+			Error(DM_SetBreakpoints, "No such breakpoint space.");
+		}
+		else
+		{
+			ChangeBreakpoint(DM_AddBreakpoint, &asBreakpoint[i]);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds (DM_AddBreakpoint, enabling or disabling one already there),
+// enables or disables (DM_EnableBreakpoint) or removes
+// (DM_RemoveBreakpoint) the breakpoint in its space, or in each space for
+// DEBUG_SPACE_ANY.  False if there was none to change.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::ChangeBreakpoint(uint32 uiType, SDebugBreakpoint* psBreakpoint)
+{
+	CBreakpoints*	pcBreakpoints;
+	size			uiFirst;
+	size			uiEnd;
+	size			i;
+	bool			bChanged;
+	bool			bEnabled;
+
+	uiFirst = (psBreakpoint->uiSpace == DEBUG_SPACE_ANY) ? 0 : (size)(psBreakpoint->uiSpace - 1);
+	uiEnd = (psBreakpoint->uiSpace == DEBUG_SPACE_ANY) ? mpcTarget->NumBreakpointSpaces() : (uiFirst + 1);
+	bEnabled = psBreakpoint->uiEnabled != 0;
+	bChanged = false;
+	for (i = uiFirst; i < uiEnd; i++)
+	{
+		pcBreakpoints = mpcTarget->GetSpaceBreakpoints(i);
+		if (uiType == DM_AddBreakpoint)
+		{
+			if (!pcBreakpoints->Add(psBreakpoint->uiAddress, bEnabled))
+			{
+				pcBreakpoints->Enable(psBreakpoint->uiAddress, bEnabled);
+			}
+			bChanged = true;
+		}
+		else if (uiType == DM_EnableBreakpoint)
+		{
+			bChanged |= pcBreakpoints->Enable(psBreakpoint->uiAddress, bEnabled);
+		}
+		else
+		{
+			bChanged |= pcBreakpoints->Remove(psBreakpoint->uiAddress);
+		}
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every space's breakpoints.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::ClearBreakpoints(void)
+{
+	size	i;
+
+	for (i = 0; i < mpcTarget->NumBreakpointSpaces(); i++)
+	{
+		mpcTarget->GetSpaceBreakpoints(i)->Clear();
 	}
 }
 
@@ -843,7 +898,7 @@ void CDebugServer::Disassemble(void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Detach(void)
 {
-	mpcTarget->GetBreakpoints()->Clear();
+	ClearBreakpoints();
 	mbClosed = true;
 	mbConnected = false;
 	if (!mpcTarget->IsStopped())
@@ -974,6 +1029,15 @@ void CDebugServer::SendWelcome(void)
 	psWelcome->uiCapabilities = (mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0;
 	psWelcome->uiNumRegisters = (uint32)uiNumRegisters;
 	strncpy(psWelcome->szProcessor, mpcTarget->GetProcessorName(), DEBUG_PROCESSOR_NAME_SIZE - 1);
+	psWelcome->uiNumSpaces = (uint32)mpcTarget->NumBreakpointSpaces();
+	if (psWelcome->uiNumSpaces > DEBUG_MAX_SPACES)
+	{
+		psWelcome->uiNumSpaces = DEBUG_MAX_SPACES;
+	}
+	for (i = 0; i < psWelcome->uiNumSpaces; i++)
+	{
+		strncpy(psWelcome->aszSpaces[i], mpcTarget->GetBreakpointSpaceName(i), DEBUG_SPACE_NAME_SIZE - 1);
+	}
 
 	asRegister = (SDebugRegister*)&psWelcome[1];
 	for (i = 0; i < uiNumRegisters; i++)

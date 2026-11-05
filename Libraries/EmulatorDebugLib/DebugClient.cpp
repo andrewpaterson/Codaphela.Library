@@ -20,6 +20,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/StringHelper.h"
 #include "DebugFormat.h"
 #include "DebugClient.h"
 
@@ -133,12 +134,13 @@ uint32 CDebugClient::SetBreakpoints(SDebugBreakpoint* asBreakpoints, size uiCoun
 // If there is already a breakpoint at uiAddress it is enabled or disabled.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled)
+uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace)
 {
 	SDebugBreakpoint	sBreakpoint;
 
 	sBreakpoint.uiAddress = uiAddress;
 	sBreakpoint.uiEnabled = bEnabled;
+	sBreakpoint.uiSpace = uiSpace;
 	return Send(DM_AddBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
@@ -147,12 +149,14 @@ uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress)
+uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace)
 {
-	SDebugAddress	sAddress;
+	SDebugBreakpoint	sBreakpoint;
 
-	sAddress.uiAddress = uiAddress;
-	return Send(DM_RemoveBreakpoint, &sAddress, sizeof(sAddress));
+	sBreakpoint.uiAddress = uiAddress;
+	sBreakpoint.uiEnabled = false;
+	sBreakpoint.uiSpace = uiSpace;
+	return Send(DM_RemoveBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
 
@@ -160,12 +164,13 @@ uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::EnableBreakpoint(uint32 uiAddress, bool bEnabled)
+uint32 CDebugClient::EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace)
 {
 	SDebugBreakpoint	sBreakpoint;
 
 	sBreakpoint.uiAddress = uiAddress;
 	sBreakpoint.uiEnabled = bEnabled;
+	sBreakpoint.uiSpace = uiSpace;
 	return Send(DM_EnableBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
@@ -484,6 +489,7 @@ void CDebugClient::Welcome(void* pvData, size uiSize)
 {
 	SDebugWelcome*	psWelcome;
 	uint32			uiNumRegisters;
+	size			i;
 
 	if (uiSize < sizeof(SDebugWelcome))
 	{
@@ -498,6 +504,15 @@ void CDebugClient::Welcome(void* pvData, size uiSize)
 
 	memcpy(&msWelcome, psWelcome, sizeof(SDebugWelcome));
 	msWelcome.szProcessor[DEBUG_PROCESSOR_NAME_SIZE - 1] = '\0';
+	if ((msWelcome.uiNumSpaces == 0) || (msWelcome.uiNumSpaces > DEBUG_MAX_SPACES))
+	{
+		msWelcome.uiNumSpaces = 1;
+		msWelcome.aszSpaces[0][0] = '\0';
+	}
+	for (i = 0; i < DEBUG_MAX_SPACES; i++)
+	{
+		msWelcome.aszSpaces[i][DEBUG_SPACE_NAME_SIZE - 1] = '\0';
+	}
 	memset(masRegisters, 0, sizeof(masRegisters));
 	memcpy(masRegisters, &psWelcome[1], uiNumRegisters * sizeof(SDebugRegister));
 }
@@ -827,6 +842,50 @@ SDebugInstruction* CDebugClient::GetInstruction(size uiIndex)
 		return NULL;
 	}
 	return &masInstructions[uiIndex];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The emulator's breakpoint spaces (at least one): a breakpoint in one
+// stops only there (a computer's kernel or user mode).
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugClient::NumBreakpointSpaces(void)
+{
+	return (msWelcome.uiNumSpaces != 0) ? msWelcome.uiNumSpaces : 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CDebugClient::GetBreakpointSpaceName(size uiIndex)
+{
+	return (uiIndex < NumBreakpointSpaces()) ? msWelcome.aszSpaces[uiIndex] : "";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The space named szName (ignoring case) as a message's uiSpace: its
+// index plus one.  False if the emulator has none of that name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugClient::FindBreakpointSpace(const char* szName, uint32* puiSpace)
+{
+	size	i;
+
+	for (i = 0; i < NumBreakpointSpaces(); i++)
+	{
+		if ((msWelcome.aszSpaces[i][0] != '\0') && (StringInsensitiveCompare(msWelcome.aszSpaces[i], szName) == 0))
+		{
+			*puiSpace = (uint32)(i + 1);
+			return true;
+		}
+	}
+	return false;
 }
 
 
