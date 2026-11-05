@@ -41,6 +41,7 @@ public:
 	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
 	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
 	static Ptr<CImageCel>		CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat);  //A close cross, 16 x 16.
+	static Ptr<CImageCel>		CreateArrow(ARGB32 sColour, bool bUp, CColourFormatHelper* pcFormat);  //An up or down arrow, 16 x 16.
 	static Ptr<CImageCel>		CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined keyboard, 16 x 16.
 	static Ptr<CImageCel>		CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined folder, 16 x 16.
 	static Ptr<CImageCel>		CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined page, 16 x 16.

@@ -345,6 +345,39 @@ Ptr<CImageCel> CJewelImageGenerator::CreateDownChevron(ARGB32 sColour, CColourFo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// IntelliJ IDEA's previous and next difference arrows: a stem down the
+// middle of a 16 x 16 cel with a head at the top (bUp) or the bottom,
+// anti-aliased strokes.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelImageGenerator::CreateArrow(ARGB32 sColour, bool bUp, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+	float64				fTip;
+	float64				fBase;
+	float64				fHead;
+
+	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	fTip = bUp ? 3.0 : 13.0;
+	fBase = bUp ? 13.0 : 3.0;
+	fHead = bUp ? 7.5 : 8.5;
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	cDraw.DrawStroke(8, fBase, 8, fTip, 1.25);
+	cDraw.DrawStroke(8, fTip, 3.5, fHead, 1.25);
+	cDraw.DrawStroke(8, fTip, 12.5, fHead, 1.25);
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A tab's close cross, two anti-aliased strokes 8 pixels across in the
 // middle of a 16 x 16 cel.
 //
