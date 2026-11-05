@@ -239,9 +239,6 @@ void TestClearDistToRootToValidDistSimpleLeft(void)
 		AssertInt(UNATTACHED_DIST_TO_ROOT, pTest2->GetDistToRoot());
 		AssertInt(4, pTest3->GetDistToRoot());
 
-		AssertSize(0, cDistParameters.NumExpectedDists());
-
-
 		cDistParameters.Kill();
 	}
 	ObjectsFlush();

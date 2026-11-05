@@ -42,7 +42,6 @@ private:
 	uint32						muiWalk;  //This calculation's walk stamp base.
 	CArrayBaseObjectPtrE32		mapcTouched;
 	CArrayDistToRoot						macExpectedDists;  //In the order the objects were added; removed ones stay, marked.
-	size									muiRemovedExpectedDists;
 	CArrayDistToRootHeap					macExpectedDistsHeap;  //Lowest first; stale nodes are skipped.
 	size*									mpuiExpectedDistsTable;  //Open addressing, object -> index + 1.  Only once there are many.
 	size									muiExpectedDistsTableSize;
@@ -58,10 +57,6 @@ public:
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*			GetLowestExpectedDist(void);
-	size					NumExpectedDists(void);
-	SDistToRoot*			GetExpectedDist(int iIndex);
-	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
-	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
 
 	CArrayEmbeddedObjectPtr*	StartPointerTos(void);
@@ -106,7 +101,6 @@ protected:
 	void					PushExpectedDistsHeap(int iExpectedDist, size uiIndex);
 	void					PopExpectedDistsHeap(void);
 	bool					IsExpectedDistsHeapNodeStale(SDistToRootHeapNode* psNode);
-	SDistToRoot*			GetLiveExpectedDist(size uiLiveIndex);
 };
 
 
