@@ -76,8 +76,9 @@ New general features (not diff-only)
    Kept by line and position, redrawn whenever the layout changes, as the selection is.  The IDE can use it for the
    current line, find results and breakpoints.
 
-2. CScrollPane scroll event.  GetScrollEvent() is called whenever the laid out scroll position changes (drag, wheel,
-   track jump, SetScrollPosition, ScrollToShow), a CComponentEvent<CScrollPane> like CCodeEditor's change event.
+2. CScrollPane scroll event.  GetScrollEvent()->Add(this, &CDiffView::Scrolled) calls Scrolled(CScrollPane*,
+   SInt32Vec2) whenever the scroll position changes (drag, wheel, track jump, SetScrollPosition, ScrollToShow), like
+   CCodeEditor's events.
 
 3. CTextContent::FindLine(lsize uiOffset), in StandardLib.
 
@@ -96,7 +97,7 @@ can be tested without any windows:
     - inside a block: proportional, start + (fLine - fromStart) * (toLength / fromLength).
     - a block that's empty on the from side is a point; on the to side its lines are skipped over.
 
-When a pane scrolls (its scroll event), the view:
+When a pane scrolls (its scroll event calls CDiffView::Scrolled), the view:
   - finds the fractional line at the vertical middle of that pane's view (scroll position plus half the view height,
     over the row height; rows are equal as the code isn't wrapped and spans don't change the font's size),
   - transfers it to the other side,
@@ -143,7 +144,7 @@ Later
 
 - Next/previous difference (F7 / Shift+F7) and a "n differences" label.
 - Whitespace and highlight combos in a small toolbar.
-- Editable right side: CCodeEditor's change event -> CTextContent::Set from the text area -> Produce ->
+- Editable right side: CCodeEditor::GetChangeEvent -> CTextContent::Set from the text area -> Produce ->
   Update, delayed like the IDE's 400 ms recolour.
 - IntelliJ's "Align changes" mode: blank spacers under the shorter side (CCodeEditor line gaps plus a gap above line
   0), straight divider bands, and identical scroll positions.

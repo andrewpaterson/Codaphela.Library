@@ -88,7 +88,7 @@ void CScrollPane::Class(void)
 	U_2Int32(msLaidOutScroll);
 	U_Int32(miMargin);
 	U_Int32(miWheelStep);
-	U_Data(CComponentEvent<CScrollPane>, mcScrolled);
+	U_Data(CScrollEvent, mcScrolled);
 }
 
 
@@ -412,7 +412,7 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	if ((sScrollPosition.x != sPreviousScroll.x) || (sScrollPosition.y != sPreviousScroll.y))
 	{
-		mcScrolled.Call(this);
+		mcScrolled.Call(this, sScrollPosition);
 	}
 }
 
@@ -600,10 +600,21 @@ Ptr<CScrollBar> CScrollPane::GetScrollBar(EScrollBarOrientation eOrientation)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Add a function to scroll something with the scroll pane, as
+// pPane->GetScrollEvent()->Add(this, &CDiffView::Scrolled).
+//
+//////////////////////////////////////////////////////////////////////////
+CScrollEvent* CScrollPane::GetScrollEvent(void)
+{
+	return &mcScrolled;
+}
+
+
 Ptr<CComponent> CScrollPane::GetContent(void) { return mpContent; }
 void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; InvalidateLayout(); }
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
 int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
 SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }
-CComponentEvent<CScrollPane>* CScrollPane::GetScrollEvent(void) { return &mcScrolled; }
 
