@@ -20,19 +20,21 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "Window.h"
+#include "JewelImageGenerator.h"
+#include "MenuContainer.h"
+#include "MenuItem.h"
 #include "TabbedContainer.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bar is the theme's tab bar colour with a separator line under it.
+// The bar is the theme's tab bar colour with a separator line between it
+// and the page.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
-	Ptr<CCanvas>	pBackground;
-	Ptr<CCanvas>	pSeparator;
-
 	PreInit();
 
 	CGridContainer::Init(pWindow);
@@ -40,31 +42,35 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maTabs.Init();
 	maPages.Init();
 	mpSelected = NULL;
-	miNextColumn = 0;
+	meTabSide = TS_Top;
+	mbHideSingleTab = false;
+	mbBarShown = false;
+	muiShownTabs = MAX_SIZE;
 	mcSelected.Init();
 	mcRemoved.Init();
 	mcDoubleClicked.Init();
+	mcDragged.Init();
+	mcCloseRequested.Init();
 	msDoubleClick.Init();
+	mpOverflow = NULL;
+	mpOverflowMenu = NULL;
 
-	//The background is in the bar's cell first so the bar is drawn over it.
-	pBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour()));
-	pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
-	AddComponent(pBackground, 0, 0, 1, 1, 1, 0);
+	mpBarBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour()));
+	mpBarBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 
 	mpBar = OMalloc<CGridContainer>(pWindow);
 	mpBar->SetAlignment(CSH_Stretch, CSV_Top);
 	mpFiller = OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), 0, 0);
-	mpBar->AddComponent(mpFiller, 0, 0, 1, 1, 1, 0);
-	AddComponent(mpBar, 0, 0, 1, 1, 1, 0);
 
-	pSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabSeparatorColour()));
-	pSeparator->SetDesiredSize(-1, 1);
-	pSeparator->SetAlignment(CSH_Stretch, CSV_Stretch);
-	AddComponent(pSeparator, 0, 1, 1, 1, 1, 0);
+	mpSeparator = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabSeparatorColour()));
+	mpSeparator->SetDesiredSize(-1, 1);
+	mpSeparator->SetAlignment(CSH_Stretch, CSV_Stretch);
 
 	mpPage = OMalloc<CFillContainer>(pWindow);
 	mpPage->SetAlignment(CSH_Stretch, CSV_Stretch);
-	AddComponent(mpPage, 0, 2, 1, 1, 1, 1);
+
+	PlaceTabs();
+	PlaceRows();
 
 	PostInit();
 }
@@ -81,14 +87,23 @@ void CTabbedContainer::Class(void)
 	M_Pointer(mpTheme);
 	M_Pointer(mpBar);
 	M_Pointer(mpFiller);
+	M_Pointer(mpBarBackground);
+	M_Pointer(mpSeparator);
+	M_Pointer(mpOverflow);
+	M_Pointer(mpOverflowMenu);
 	M_Pointer(mpPage);
 	M_Embedded(maTabs);
 	M_Embedded(maPages);
 	M_Pointer(mpSelected);
-	U_Int32(miNextColumn);
+	U_Enum(meTabSide);
+	U_Bool(mbHideSingleTab);
+	U_Bool(mbBarShown);
+	U_Size(muiShownTabs);
 	U_Data(CComponentEvent<CTabComponent>, mcSelected);
 	U_Data(CTabRemovedEvent, mcRemoved);
 	U_Data(CComponentEvent<CTabComponent>, mcDoubleClicked);
+	U_Data(CComponentEvent<CTabComponent>, mcDragged);
+	U_Data(CComponentEvent<CTabComponent>, mcCloseRequested);
 	U_Data(SDoubleClick, msDoubleClick);
 }
 
@@ -99,6 +114,12 @@ void CTabbedContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Free(void)
 {
+	if (mpOverflowMenu.IsNotNull())
+	{
+		mpOverflowMenu->GetItemClickEvent()->Remove(this);
+	}
+	mcCloseRequested.Kill();
+	mcDragged.Kill();
 	mcDoubleClicked.Kill();
 	mcRemoved.Kill();
 	mcSelected.Kill();
@@ -128,6 +149,99 @@ bool CTabbedContainer::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bar (over its background), the separator and the page, in rows
+// from the top or the bottom.  The bar and separator are left out while
+// they are hidden.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::PlaceRows(void)
+{
+	bool	bShowBar;
+	int		iBarRow;
+	int		iSeparatorRow;
+	int		iPageRow;
+
+	bShowBar = !mbHideSingleTab || (maTabs.Size() > 1);
+	if ((NumComponents() > 0) && (bShowBar == mbBarShown))
+	{
+		return;
+	}
+	mbBarShown = bShowBar;
+
+	RemoveAllComponents();
+	if (!bShowBar)
+	{
+		AddComponent(mpPage, 0, 0, 1, 1, 1, 1);
+		InvalidateLayout();
+		return;
+	}
+
+	if (meTabSide == TS_Top)
+	{
+		iBarRow = 0;
+		iSeparatorRow = 1;
+		iPageRow = 2;
+	}
+	else
+	{
+		iPageRow = 0;
+		iSeparatorRow = 1;
+		iBarRow = 2;
+	}
+	//The background is in the bar's cell first so the bar is drawn over it.
+	AddComponent(mpBarBackground, 0, iBarRow, 1, 1, 1, 0);
+	AddComponent(mpBar, 0, iBarRow, 1, 1, 1, 0);
+	AddComponent(mpSeparator, 0, iSeparatorRow, 1, 1, 1, 0);
+	AddComponent(mpPage, 0, iPageRow, 1, 1, 1, 1);
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tabs in order along the bar, then the filler taking the spare width
+// and the overflow chevron at the right.  A grid is variable sized so the
+// bar is told how tall its tallest tab is, or its row would get no height.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::PlaceTabs(void)
+{
+	size	i;
+	int32	iHeight;
+	int32	iTabHeight;
+
+	size	uiShown;
+
+	mpBar->RemoveAllComponents();
+	iHeight = 0;
+	uiShown = (muiShownTabs < maTabs.Size()) ? muiShownTabs : maTabs.Size();
+	for (i = 0; i < maTabs.Size(); i++)
+	{
+		if (i < uiShown)
+		{
+			mpBar->AddComponent(maTabs.Get(i), (int)i, 0);
+		}
+		iTabHeight = maTabs.Get(i)->GetDesiredSize().y;
+		if (iTabHeight > iHeight)
+		{
+			iHeight = iTabHeight;
+		}
+	}
+	mpBar->AddComponent(mpFiller, (int)uiShown, 0, 1, 1, 1, 0);
+	if (mpOverflow.IsNotNull())
+	{
+		mpBar->AddComponent(mpOverflow, (int)uiShown + 1, 0, 1, 1, 0, 0);
+	}
+	if (iHeight > mpBar->GetDesiredSize().y)
+	{
+		mpBar->SetDesiredSize(-1, iHeight);
+	}
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The tab goes after the others on the bar, with pIcon (which can be
 // NULL) on its left and, if bClosable, a cross on its right.  The page
 // should stretch to fill the area under the bar.
@@ -135,31 +249,68 @@ bool CTabbedContainer::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CTabComponent> CTabbedContainer::AddTab(const char* szName, Ptr<CComponent> pPage, Ptr<CImageCel> pIcon, bool bClosable)
 {
+	return InsertTab(maTabs.Size(), szName, pPage, pIcon, bClosable);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As AddTab but the tab goes at uiIndex on the bar, or after the others
+// if uiIndex is past them.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTabComponent> CTabbedContainer::InsertTab(size uiIndex, const char* szName, Ptr<CComponent> pPage, Ptr<CImageCel> pIcon, bool bClosable)
+{
 	Ptr<CTabComponent>	pTab;
-	int32				iHeight;
 
 	pTab = OMalloc<CTabComponent>(mpWindow, mpTheme, Ptr<CTabbedContainer>(this), szName, pIcon, bClosable);
-
-	//A grid is variable sized so the bar is told how tall its tallest tab is, or its row would get no height.
-	iHeight = pTab->GetDesiredSize().y;
-	if (iHeight > mpBar->GetDesiredSize().y)
+	if (uiIndex > maTabs.Size())
 	{
-		mpBar->SetDesiredSize(-1, iHeight);
+		uiIndex = maTabs.Size();
 	}
-
-	//The filler always takes the column after the last tab.
-	mpBar->RemoveComponent(mpFiller);
-	mpBar->AddComponent(pTab, miNextColumn, 0);
-	mpBar->AddComponent(mpFiller, miNextColumn + 1, 0, 1, 1, 1, 0);
-	miNextColumn++;
-	maTabs.Add(pTab);
-	maPages.Add(pPage);
-
+	//The tabs after it move up an index.
+	msDoubleClick.Forget();
+	maTabs.Insert(uiIndex, pTab);
+	maPages.Insert(uiIndex, pPage);
+	PlaceTabs();
+	PlaceRows();
 	if (mpSelected.IsNull())
 	{
 		Select(pTab);
 	}
 	return pTab;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the tab at uiIndex and its page off the bar and returns the page.
+// The selected tab's page comes out of the page area.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CTabbedContainer::RemoveTabOnly(size uiIndex, bool* pbWasSelected)
+{
+	Ptr<CTabComponent>	pTab;
+	Ptr<CComponent>		pPage;
+
+	pTab = maTabs.Get(uiIndex);
+
+	//The tabs after it move down an index.
+	msDoubleClick.Forget();
+	*pbWasSelected = (mpSelected == pTab);
+	if (*pbWasSelected)
+	{
+		mpPage->RemoveAllComponents();
+		mpSelected = NULL;
+	}
+
+	pPage = maPages.Get(uiIndex);
+	mpBar->RemoveComponent(pTab);
+	maTabs.RemoveAt(uiIndex);
+	maPages.RemoveAt(uiIndex);
+	PlaceTabs();
+	PlaceRows();
+	return pPage;
 }
 
 
@@ -181,28 +332,76 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 	{
 		return false;
 	}
-
-	//The tabs after it move down an index.
-	msDoubleClick.Forget();
-
-	bWasSelected = (mpSelected == pTab);
-	if (bWasSelected)
-	{
-		mpPage->RemoveAllComponents();
-		mpSelected = NULL;
-	}
+	pPage = RemoveTabOnly(uiIndex, &bWasSelected);
 
 	//The page is held while the removal event is called.
-	pPage = maPages.Get(uiIndex);
-	mpBar->RemoveComponent(pTab);
-	maTabs.RemoveAt(uiIndex);
-	maPages.RemoveAt(uiIndex);
 	mcRemoved.Call(&pTab, &pPage);
+	if (bWasSelected && (maTabs.Size() > 0) && mpSelected.IsNull())
+	{
+		Select(uiIndex < maTabs.Size() ? uiIndex : maTabs.Size() - 1);
+	}
+	return true;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the tab off the bar and returns its page, without calling the
+// removal event: the page is going somewhere else, another tabbed
+// container say.  The next tab is selected as RemoveTab selects it.
+// Returns NULL if the tab isn't this container's.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CTabbedContainer::TakeTab(Ptr<CTabComponent> pTab)
+{
+	size			uiIndex;
+	bool			bWasSelected;
+	Ptr<CComponent>	pPage;
+
+	uiIndex = IndexOf(pTab);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return NULL;
+	}
+	pPage = RemoveTabOnly(uiIndex, &bWasSelected);
 	if (bWasSelected && (maTabs.Size() > 0))
 	{
 		Select(uiIndex < maTabs.Size() ? uiIndex : maTabs.Size() - 1);
 	}
+	return pPage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the tab, with its page, to uiIndex on the bar.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTabbedContainer::MoveTab(Ptr<CTabComponent> pTab, size uiIndex)
+{
+	size			uiOld;
+	Ptr<CComponent>	pPage;
+
+	uiOld = IndexOf(pTab);
+	if (uiOld == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+	if (uiIndex >= maTabs.Size())
+	{
+		uiIndex = maTabs.Size() - 1;
+	}
+	if (uiIndex == uiOld)
+	{
+		return true;
+	}
+	msDoubleClick.Forget();
+	pPage = maPages.Get(uiOld);
+	maTabs.RemoveAt(uiOld);
+	maPages.RemoveAt(uiOld);
+	maTabs.Insert(uiIndex, pTab);
+	maPages.Insert(uiIndex, pPage);
+	PlaceTabs();
 	return true;
 }
 
@@ -242,6 +441,7 @@ void CTabbedContainer::Select(size uiIndex)
 	{
 		return;
 	}
+
 	pTab = maTabs.Get(uiIndex);
 	if (mpSelected == pTab)
 	{
@@ -253,11 +453,169 @@ void CTabbedContainer::Select(size uiIndex)
 		mpSelected->SetSelected(false);
 	}
 	mpPage->RemoveAllComponents();
-
 	mpSelected = pTab;
 	mpSelected->SetSelected(true);
 	mpPage->AddComponent(maPages.Get(uiIndex));
+	InvalidateLayout();
 	mcSelected.Call(&pTab);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Visual Studio's tool windows have their tabs along the bottom.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::SetTabSide(ETabSide eSide)
+{
+	if (meTabSide != eSide)
+	{
+		meTabSide = eSide;
+		RemoveAllComponents();
+		PlaceRows();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With one tab or none the bar and its separator aren't shown, the page
+// takes the whole container, as a tool window on its own has no tabs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::SetHideSingleTab(bool bHide)
+{
+	if (mbHideSingleTab != bHide)
+	{
+		mbHideSingleTab = bHide;
+		RemoveAllComponents();
+		PlaceRows();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chevron at the bar's right opens a list of every tab.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::SetOverflowMenu(bool bOverflow)
+{
+	CColourFormatHelper	cFormat;
+
+	if (bOverflow == mpOverflow.IsNotNull())
+	{
+		return;
+	}
+	if (bOverflow)
+	{
+		mpWindow->GetColourFormat(&cFormat);
+		mpOverflow = OMalloc<CIconComponent>(mpWindow, CJewelImageGenerator::CreateDownChevron(mpTheme->GetCaretColour(), &cFormat), 24, -1);
+		mpOverflow->SetCanGetFocus(true);
+		mpOverflow->AddInputAction(CIC_ActivateComponent, this, &CTabbedContainer::OverflowPressed);
+		mpOverflowMenu = OMalloc<CMenuContainer>(mpWindow, mpTheme);
+		mpOverflowMenu->GetItemClickEvent()->Add(this, &CTabbedContainer::OverflowItemClicked);
+	}
+	else
+	{
+		mpOverflowMenu->GetItemClickEvent()->Remove(this);
+		mpOverflow = NULL;
+		mpOverflowMenu = NULL;
+	}
+	PlaceTabs();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::OverflowPressed(int x, int y)
+{
+	OpenOverflowMenu();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lists the tabs, in order, under the chevron.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::OpenOverflowMenu(void)
+{
+	size			i;
+	SInt32Vec2		sPosition;
+	Ptr<CIconComponent>	pIcon;
+	Ptr<CImageCel>	pCel;
+
+	if (mpOverflowMenu.IsNull() || (maTabs.Size() == 0))
+	{
+		return;
+	}
+	mpOverflowMenu->RemoveAllItems();
+	for (i = 0; i < maTabs.Size(); i++)
+	{
+		pIcon = maTabs.Get(i)->GetIcon();
+		pCel = pIcon.IsNotNull() ? pIcon->GetCel() : Ptr<CImageCel>();
+		mpOverflowMenu->AddItem(maTabs.Get(i)->GetText(), pCel);
+	}
+	sPosition = mpOverflow->GetPosition();
+	sPosition.y += mpOverflow->GetActualSize().y;
+	mpOverflowMenu->Open(sPosition, mpOverflow, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tab chosen from the overflow menu moves to the front, so it shows,
+// and is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::OverflowItemClicked(CMenuItem* pcItem)
+{
+	size				i;
+	Ptr<CTabComponent>	pTab;
+
+	for (i = 0; i < mpOverflowMenu->NumItems(); i++)
+	{
+		if (&mpOverflowMenu->GetItem(i) == pcItem)
+		{
+			if (i < maTabs.Size())
+			{
+				pTab = maTabs.Get(i);
+				MoveTab(pTab, 0);
+				Select(pTab);
+			}
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tab whose bounds hold x, y in window client space, NULL if none
+// does.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTabComponent> CTabbedContainer::FindTabAt(int x, int y)
+{
+	size				i;
+	Ptr<CTabComponent>	pTab;
+
+	if (!mbBarShown)
+	{
+		return NULL;
+	}
+	for (i = 0; i < maTabs.Size(); i++)
+	{
+		pTab = maTabs.Get(i);
+		if ((i < NumShownTabs()) && pTab->IsPointIn(x, y))
+		{
+			return pTab;
+		}
+	}
+	return NULL;
 }
 
 
@@ -286,10 +644,35 @@ size CTabbedContainer::IndexOf(Ptr<CTabComponent> pTab)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size CTabbedContainer::IndexOfPage(Ptr<CComponent> pPage)
+{
+	size	i;
+	size	uiNumTabs;
+
+	uiNumTabs = maPages.Size();
+	for (i = 0; i < uiNumTabs; i++)
+	{
+		if (maPages.Get(i) == pPage)
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CTabComponent> CTabbedContainer::GetSelected(void) { return mpSelected; }
 size CTabbedContainer::NumTabs(void) { return maTabs.Size(); }
 Ptr<CTabComponent> CTabbedContainer::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
 Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiIndex); }
+ETabSide CTabbedContainer::GetTabSide(void) { return meTabSide; }
+bool CTabbedContainer::IsBarShown(void) { return mbBarShown; }
+Ptr<CMenuContainer> CTabbedContainer::GetOverflowMenu(void) { return mpOverflowMenu; }
+Ptr<CIconComponent> CTabbedContainer::GetOverflowButton(void) { return mpOverflow; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -329,6 +712,59 @@ CComponentEvent<CTabComponent>* CTabbedContainer::GetDoubleClickEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called with the tab when it is pulled along while pressed.  Tabs can
+// only be dragged while something listens.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentEvent<CTabComponent>* CTabbedContainer::GetDragEvent(void)
+{
+	return &mcDragged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called with the tab when its cross is pressed, instead of the tab being
+// removed, while anything listens.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentEvent<CTabComponent>* CTabbedContainer::GetCloseRequestEvent(void)
+{
+	return &mcCloseRequested;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by a tab whose cross was pressed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::TabClosePressed(Ptr<CTabComponent> pTab)
+{
+	msDoubleClick.Forget();
+	if (mcCloseRequested.NumCalls() > 0)
+	{
+		mcCloseRequested.Call(&pTab);
+	}
+	else
+	{
+		RemoveTab(pTab);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTabbedContainer::IsTabDraggable(void)
+{
+	return mcDragged.NumCalls() > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Called by a tab when button one is released on it, x and y relative to
 // its top left; bClick is false on its cross.  A double click (see
 // SDoubleClick) calls the double click event.  It is called after the
@@ -351,4 +787,86 @@ void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool b
 		mcDoubleClicked.Call(&pTab);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by a tab pulled a few pixels while pressed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::TabDragged(Ptr<CTabComponent> pTab)
+{
+	msDoubleClick.Forget();
+	mcDragged.Call(&pTab);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the overflow menu only the tabs that fit on the bar are on it; the
+// selected tab is moved to the front if it wouldn't fit.  Without it every
+// tab is on the bar however narrow it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+{
+	size	i;
+	size	uiShown;
+	int32	iAvailable;
+	int32	iUsed;
+	size	uiSelected;
+
+	if (mpOverflow.IsNotNull() && mbBarShown)
+	{
+		iAvailable = sAreaSize.x - mpOverflow->GetDesiredSize().x;
+		uiShown = 0;
+		iUsed = 0;
+		for (i = 0; i < maTabs.Size(); i++)
+		{
+			iUsed += maTabs.Get(i)->GetDesiredSize().x;
+			if (iUsed > iAvailable)
+			{
+				break;
+			}
+			uiShown++;
+		}
+		if ((uiShown == 0) && (maTabs.Size() > 0))
+		{
+			uiShown = 1;
+		}
+		uiSelected = mpSelected.IsNotNull() ? IndexOf(mpSelected) : 0;
+		if ((uiSelected != ARRAY_ELEMENT_NOT_FOUND) && (uiSelected >= uiShown))
+		{
+			MoveTab(mpSelected, 0);
+		}
+		if (uiShown != muiShownTabs)
+		{
+			muiShownTabs = uiShown;
+			PlaceTabs();
+		}
+	}
+	else if (muiShownTabs != MAX_SIZE)
+	{
+		muiShownTabs = MAX_SIZE;
+		PlaceTabs();
+	}
+	CGridContainer::Layout(sPosition, sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tab is on the bar, not only in the overflow menu.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTabbedContainer::IsTabShown(Ptr<CTabComponent> pTab)
+{
+	size	uiIndex;
+
+	uiIndex = IndexOf(pTab);
+	return mbBarShown && (uiIndex != ARRAY_ELEMENT_NOT_FOUND) && (uiIndex < NumShownTabs());
+}
+
+
+size CTabbedContainer::NumShownTabs(void) { return (muiShownTabs < maTabs.Size()) ? muiShownTabs : maTabs.Size(); }
 

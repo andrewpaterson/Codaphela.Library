@@ -35,6 +35,7 @@ class CTabbedContainer;
 //optional close cross on the right, flat on the bar with the selected tab underlined.  The tab is lighter under the
 //pointer, as is the cross.  Pressing the cross closes the tab; pressing anywhere else, or space or enter while it has
 //focus, shows its page.  Releasing the pointer anywhere but the cross tells the tabbed container, for double clicks.
+//While its tabbed container has a drag listener, pulling a pressed tab a few pixels tells the container it is dragged.
 class CTabComponent : public CGridContainer
 {
 CONSTRUCTABLE(CTabComponent);
@@ -49,6 +50,8 @@ protected:
 	Ptr<CIconComponent>		mpClose;  //NULL if the tab can't be closed.
 	bool					mbSelected;
 	bool					mbOverClose;
+	bool					mbPressed;  //Button one went down on it, not its cross, and it may be dragged off.
+	SInt32Vec2				msPressed;  //Where, relative to the tab.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTabbedContainer> pTabbed, const char* szName, Ptr<CImageCel> pIcon, bool bClosable);
@@ -70,6 +73,8 @@ public:
 	void				ActivateComponent(int x, int y);
 	void				ExecuteComponent(int x, int y);
 	void				Select(void);
+	void				ContDragSelect(int x, int y);
+	void				StopDragSelect(int x, int y);
 
 protected:
 	bool				IsInClose(int x, int y);

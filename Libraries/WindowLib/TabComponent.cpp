@@ -18,9 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "TabbedContainer.h"
+#include "Window.h"
 #include "TabComponent.h"
 
 
@@ -30,6 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TAB_BOTTOM_GAP		4	//Above the underline.
 #define TAB_UNDERLINE		3
 #define TAB_ICON_SIZE		16
+#define TAB_DRAG_DISTANCE	6	//Pixels a pressed tab is pulled before it is dragged.
 
 
 //The tab's columns and rows.  The background spans them all, under everything else.
@@ -66,6 +69,8 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	mpTheme = pTheme;
 	mbSelected = false;
 	mbOverClose = false;
+	mbPressed = false;
+	msPressed.Init(0, 0);
 	SetCanGetFocus(true);
 
 	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour());
@@ -105,6 +110,8 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	AddInputAction(CIC_ExecuteComponent, this, &CTabComponent::ExecuteComponent);
 	AddInputAction(CIC_Space, this, &CTabComponent::Select);
 	AddInputAction(CIC_Enter, this, &CTabComponent::Select);
+	AddInputAction(CIC_ContDragSelect, this, &CTabComponent::ContDragSelect);
+	AddInputAction(CIC_StopDragSelect, this, &CTabComponent::StopDragSelect);
 
 	PostInit();
 }
@@ -127,6 +134,8 @@ void CTabComponent::Class(void)
 	M_Pointer(mpClose);
 	U_Bool(mbSelected);
 	U_Bool(mbOverClose);
+	U_Bool(mbPressed);
+	U_2Int32(msPressed);
 }
 
 
@@ -205,12 +214,52 @@ void CTabComponent::ActivateComponent(int x, int y)
 {
 	if (IsInClose(x, y))
 	{
-		mpTabbed->RemoveTab(this);
+		mpTabbed->TabClosePressed(this);
 	}
 	else
 	{
 		Select();
+		if (mpTabbed->IsTabDraggable())
+		{
+			mbPressed = true;
+			msPressed.Init(x, y);
+			mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pulled TAB_DRAG_DISTANCE pixels away from where it was pressed the tab
+// is dragged; the tabbed container's drag listener takes the rest of the
+// drag.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabComponent::ContDragSelect(int x, int y)
+{
+	int		iDistance;
+
+	if (!mbPressed)
+	{
+		return;
+	}
+	iDistance = abs(x - msPressed.x) + abs(y - msPressed.y);
+	if (iDistance >= TAB_DRAG_DISTANCE)
+	{
+		mbPressed = false;
+		mpTabbed->TabDragged(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabComponent::StopDragSelect(int x, int y)
+{
+	mbPressed = false;
 }
 
 
@@ -221,6 +270,11 @@ void CTabComponent::ActivateComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTabComponent::ExecuteComponent(int x, int y)
 {
+	if (mbPressed)
+	{
+		mbPressed = false;
+		mpWindow->GetFocus()->StopDrag(FD_Select);
+	}
 	mpTabbed->TabReleased(this, x, y, !IsInClose(x, y));
 }
 

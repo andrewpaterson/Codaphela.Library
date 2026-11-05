@@ -35,10 +35,30 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CComponentValueEvent<CTabComponent, CComponent*>	CTabRemovedEvent;
 
 
+//Where the bar of tabs is.  Visual Studio's tool windows have theirs along the bottom.
+enum ETabSide
+{
+	TS_Top,
+	TS_Bottom,
+};
+
+
+class CMenuContainer;
+class CMenuItem;
+
+
 //A bar of tabs over a page, like IntelliJ IDEA's editor tabs.  Each tab has its own page; the selected tab's page
 //fills the area under the bar and the others are kept, not shown.  The first tab added is selected.  A closable tab's
 //cross removes it and its page; the tab after it (or before, if it was the last) is selected if it was.  Its events are
 //called with the tab when a tab is selected, removed (with its page too) or double clicked.
+//
+//The bar can be along the bottom (SetTabSide) and hidden while there is only one tab (SetHideSingleTab), as Visual
+//Studio's tool windows have it.  With the overflow menu (SetOverflowMenu) a chevron at the bar's right lists every tab;
+//choosing one moves it to the front and selects it.  With it, only the tabs that fit on the bar are shown, as in
+//Visual Studio; a selected tab that doesn't fit is moved to the front.  A tab pulled a few
+//pixels along while pressed calls the drag event, once, with the tab: a dock group listens to it to tear the tab off.
+//The drag event's listener takes over the rest of the drag (see CFocus::HandOverDrag).  While something listens to the
+//close request event a tab's cross calls it instead of removing the tab, so the listener can decide.
 class CTabbedContainer : public CGridContainer
 {
 CONSTRUCTABLE(CTabbedContainer);
@@ -47,14 +67,23 @@ protected:
 	Ptr<CWindowTheme>		mpTheme;
 	Ptr<CGridContainer>		mpBar;
 	Ptr<CIconComponent>		mpFiller;  //The space after the last tab.
+	Ptr<CCanvas>			mpBarBackground;
+	Ptr<CCanvas>			mpSeparator;
+	Ptr<CIconComponent>		mpOverflow;  //The chevron opening the list of tabs, NULL without the overflow menu.
+	Ptr<CMenuContainer>		mpOverflowMenu;
 	Ptr<CFillContainer>		mpPage;
 	CArray<CTabComponent>	maTabs;
 	CArray<CComponent>		maPages;  //By tab.
 	Ptr<CTabComponent>		mpSelected;
-	int						miNextColumn;  //The bar's column for the next tab; a closed tab's stays, empty.
+	ETabSide				meTabSide;
+	bool					mbHideSingleTab;
+	bool					mbBarShown;
+	size					muiShownTabs;  //The tabs at the front of the bar that fit on it; the rest are only in the overflow menu.
 	CComponentEvent<CTabComponent>	mcSelected;
 	CTabRemovedEvent		mcRemoved;
 	CComponentEvent<CTabComponent>	mcDoubleClicked;
+	CComponentEvent<CTabComponent>	mcDragged;
+	CComponentEvent<CTabComponent>	mcCloseRequested;
 	SDoubleClick			msDoubleClick;  //Keyed by tab index, positions relative to the tab.
 
 public:
@@ -65,7 +94,24 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 
 	Ptr<CTabComponent>		AddTab(const char* szName, Ptr<CComponent> pPage, Ptr<CImageCel> pIcon = NULL, bool bClosable = false);
+	Ptr<CTabComponent>		InsertTab(size uiIndex, const char* szName, Ptr<CComponent> pPage, Ptr<CImageCel> pIcon = NULL, bool bClosable = false);
 	bool					RemoveTab(Ptr<CTabComponent> pTab);
+	Ptr<CComponent>			TakeTab(Ptr<CTabComponent> pTab);
+	bool					MoveTab(Ptr<CTabComponent> pTab, size uiIndex);
+	void					SetTabSide(ETabSide eSide);
+	ETabSide				GetTabSide(void);
+	void					SetHideSingleTab(bool bHide);
+	bool					IsBarShown(void);
+	void					SetOverflowMenu(bool bOverflow);
+	void					OpenOverflowMenu(void);
+	Ptr<CMenuContainer>		GetOverflowMenu(void);
+	Ptr<CIconComponent>		GetOverflowButton(void);
+	size					IndexOf(Ptr<CTabComponent> pTab);
+	size					IndexOfPage(Ptr<CComponent> pPage);
+	Ptr<CTabComponent>		FindTabAt(int x, int y);
+	bool					IsTabShown(Ptr<CTabComponent> pTab);
+	size					NumShownTabs(void);
+	void					Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void					Select(Ptr<CTabComponent> pTab);
 	void					Select(size uiIndex);
 	Ptr<CTabComponent>		GetSelected(void);
@@ -75,10 +121,19 @@ public:
 	CComponentEvent<CTabComponent>*	GetSelectionEvent(void);
 	CTabRemovedEvent*		GetRemovalEvent(void);
 	CComponentEvent<CTabComponent>*	GetDoubleClickEvent(void);
+	CComponentEvent<CTabComponent>*	GetDragEvent(void);
+	CComponentEvent<CTabComponent>*	GetCloseRequestEvent(void);
+	void					TabClosePressed(Ptr<CTabComponent> pTab);
 	void					TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick);
+	void					TabDragged(Ptr<CTabComponent> pTab);
+	bool					IsTabDraggable(void);
+	void					OverflowItemClicked(CMenuItem* pcItem);
 
 protected:
-	size					IndexOf(Ptr<CTabComponent> pTab);
+	void					PlaceRows(void);
+	void					PlaceTabs(void);
+	void					OverflowPressed(int x, int y);
+	Ptr<CComponent>			RemoveTabOnly(size uiIndex, bool* pbWasSelected);
 };
 
 
