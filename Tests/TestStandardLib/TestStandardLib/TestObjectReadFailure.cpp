@@ -271,7 +271,7 @@ void TestReadFailureAssertShared(Ptr<CTestSaveableObject1> pShared)
 	AssertFalse(pShared.IsHollow());
 	AssertString("Fail/Shared", pShared.GetName());
 	AssertLong(goiReadFailureShared, pShared.GetIndex());
-	AssertInt(89, pShared->miInt);
+	AssertInt((int32)89, pShared->miInt);
 	AssertString("Shared", pShared->mszString.Text());
 	pOther = pShared->mpObject;
 	AssertString("Other", pOther->Text());
@@ -532,8 +532,8 @@ void TestReadFailureEmbedded(ETestReadFailure eFailure)
 		AssertNotNull(pHolder->mp2.Dereference());
 		AssertFalse(pHolder->mp2.IsHollow());
 		pContainer = gcObjects.Get("Fail/Container");
-		AssertInt(42, pContainer->mi);
-		AssertInt(22, pContainer->mcTwo.miAmANumber);
+		AssertInt((int32)42, pContainer->mi);
+		AssertInt((int32)22, pContainer->mcTwo.miAmANumber);
 		AssertPointer(&pContainer->mcTwo, pHolder->mp2.Object());
 		ObjectsFlush();
 	}
@@ -830,7 +830,7 @@ void TestReadFailureReplacedByExternal(ETestReadFailure eFailure, bool bHolderLo
 
 		AssertTrue(pShared.IsNotNull());
 		AssertTrue(strstr(szLog, "already exists") == NULL);
-		AssertInt(7, pShared->miInt);
+		AssertInt((int32)7, pShared->miInt);
 		AssertString("Fail/Shared", pShared.GetName());
 		AssertLong(goiReadFailureShared, pShared.GetIndex());
 		AssertPointer(&pShared, gcObjects.GetMemory()->Get("Fail/Shared"));
@@ -862,7 +862,7 @@ void TestReadFailureReplacedByExternal(ETestReadFailure eFailure, bool bHolderLo
 		AssertTrue(pShared.IsNotNull());
 		AssertNotNull(pShared.Dereference());
 		AssertLong(goiReadFailureShared, pShared.GetIndex());
-		AssertInt(7, pShared->miInt);
+		AssertInt((int32)7, pShared->miInt);
 		AssertString("External", pShared->mszString.Text());
 		AssertPointer(&pShared, gcObjects.Get("Fail/Shared").Object());
 

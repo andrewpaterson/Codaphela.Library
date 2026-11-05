@@ -280,7 +280,7 @@ void TestExternalObjectDeserialiserAssertGraph(Ptr<CTestSaveableObject2> pStart)
 	pShared = pStart->mp1;
 	AssertTrue(pShared.IsNotNull());
 	AssertString("Ext/Shared", pShared.GetName());
-	AssertInt(89, pShared->miInt);
+	AssertInt((int32)89, pShared->miInt);
 	AssertString("Shared", pShared->mszString.Text());
 	AssertPointer(&pShared, &pShared->mpObject);
 
@@ -566,7 +566,7 @@ void TestExternalObjectDeserialiserNamedHollows(void)
 
 		//Using it loads it.
 		pShared = pStart->mp1;
-		AssertInt(89, pShared->miInt);
+		AssertInt((int32)89, pShared->miInt);
 		AssertFalse(pShared->IsHollow());
 		AssertString("Shared", pShared->mszString.Text());
 		AssertPointer(&pShared, &pShared->mpObject);
@@ -800,7 +800,7 @@ void TestExternalObjectDeserialiserReplacesInCodabase(void)
 		AssertString("Holder", pHolder->msz.Text());
 		pShared = pHolder->mp1;
 		AssertLong(oiOldShared, pShared->GetIndex());
-		AssertInt(89, pShared->miInt);
+		AssertInt((int32)89, pShared->miInt);
 		AssertString("Shared", pShared->mszString.Text());
 
 		pStart = gcObjects.Get("Ext/Start");
@@ -870,17 +870,17 @@ void TestExternalObjectDeserialiserEmbedded(void)
 		cReader.Kill();
 
 		AssertTrue(pContainer.IsNotNull());
-		AssertInt(1, pContainer->mi);
-		AssertInt(11, pContainer->mcOne.miAmANumber);
-		AssertInt(12, pContainer->mcTwo.miAmANumber);
+		AssertInt((int32)1, pContainer->mi);
+		AssertInt((int32)11, pContainer->mcOne.miAmANumber);
+		AssertInt((int32)12, pContainer->mcTwo.miAmANumber);
 		AssertPointer(&pContainer->mcTwo, &pContainer->mcOne.mpTest);
 		AssertTrue(pContainer->mpTest.IsNotNull());
 		AssertTrue(pContainer->mpTest.Object()->IsEmbedded());
 
 		pOther = pContainer->mpTest.Object()->GetEmbeddingContainer();
-		AssertInt(2, pOther->mi);
-		AssertInt(21, pOther->mcOne.miAmANumber);
-		AssertInt(22, pOther->mcTwo.miAmANumber);
+		AssertInt((int32)2, pOther->mi);
+		AssertInt((int32)21, pOther->mcOne.miAmANumber);
+		AssertInt((int32)22, pOther->mcTwo.miAmANumber);
 		AssertPointer(&pOther->mcTwo, &pContainer->mpTest);
 		AssertPointer(&pContainer, &pOther->mcOne.mpTest);
 		AssertPointer(&pContainer->mcOne, &pOther->mpTest);
@@ -898,11 +898,11 @@ void TestExternalObjectDeserialiserEmbedded(void)
 
 		pContainer = gcObjects.Get("Ext/Container");
 		AssertTrue(pContainer.IsNotNull());
-		AssertInt(1, pContainer->mi);
+		AssertInt((int32)1, pContainer->mi);
 		AssertPointer(&pContainer->mcTwo, &pContainer->mcOne.mpTest);
 		pOther = pContainer->mpTest.Object()->GetEmbeddingContainer();
-		AssertInt(2, pOther->mi);
-		AssertInt(22, pOther->mcTwo.miAmANumber);
+		AssertInt((int32)2, pOther->mi);
+		AssertInt((int32)22, pOther->mcTwo.miAmANumber);
 		AssertPointer(&pOther->mcTwo, &pContainer->mpTest);
 		AssertPointer(&pContainer, &pOther->mcOne.mpTest);
 		AssertPointer(&pContainer->mcOne, &pOther->mpTest);
@@ -1258,7 +1258,10 @@ void TestExternalObjectDeserialiser(void)
 	TestExternalObjectDeserialiserEmbedded();
 	TestExternalObjectDeserialiserBig(false, 300);
 	TestExternalObjectDeserialiserBig(true, 300);
+#ifndef SIZE_16
+	//A chunk index (24 bytes a chunk) counted with a 16 bit size holds at most about 2700 chunks.
 	TestExternalObjectDeserialiserBig(true, 5000);
+#endif // SIZE_16
 	TestExternalObjectDeserialiserInternalEmbeddedIndex();
 
 	cFileUtil.RemoveDir(EXTERNAL_DIRECTORY);
