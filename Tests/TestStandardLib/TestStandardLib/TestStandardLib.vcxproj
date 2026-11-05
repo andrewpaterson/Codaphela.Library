@@ -246,6 +246,7 @@
     <ClCompile Include="TestEmbeddedObjectRemapTos.cpp" />
     <ClCompile Include="TestFreeObjects.cpp" />
     <ClCompile Include="TestOrderer.cpp" />
+    <ClCompile Include="TestTextDiff.cpp" />
     <ClCompile Include="TestIndexObject.cpp" />
     <ClCompile Include="TestIndexUnknown.cpp" />
     <ClCompile Include="TestMapObject.cpp" />

@@ -37,6 +37,9 @@
     <Filter Include="Source\Timer">
       <UniqueIdentifier>{b1feb13a-7fbb-45ed-ba2d-7a44007b40ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Diff">
+      <UniqueIdentifier>{2fe0c904-6546-4ba7-b5ee-23a7ee4ed434}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Dependency">
       <UniqueIdentifier>{a55ee9f4-4820-4c58-b7db-d4b6eabc59eb}</UniqueIdentifier>
     </Filter>
@@ -546,6 +549,24 @@
     <ClInclude Include="KillOrderCalculator.h">
       <Filter>Source\Object\Object\Distance\Order</Filter>
     </ClInclude>
+    <ClInclude Include="MyersDiff.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleTextDiff.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
+    <ClInclude Include="TextComparison.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
+    <ClInclude Include="TextContent.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
+    <ClInclude Include="TextDiffPolicies.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
+    <ClInclude Include="TextDiffProducer.h">
+      <Filter>Source\Diff</Filter>
+    </ClInclude>
     <ClInclude Include="Orderer.h">
       <Filter>Source\Dependency</Filter>
     </ClInclude>
@@ -910,6 +931,21 @@
     </ClCompile>
     <ClCompile Include="KillOrderCalculator.cpp">
       <Filter>Source\Object\Object\Distance\Order</Filter>
+    </ClCompile>
+    <ClCompile Include="MyersDiff.cpp">
+      <Filter>Source\Diff</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleTextDiff.cpp">
+      <Filter>Source\Diff</Filter>
+    </ClCompile>
+    <ClCompile Include="TextComparison.cpp">
+      <Filter>Source\Diff</Filter>
+    </ClCompile>
+    <ClCompile Include="TextContent.cpp">
+      <Filter>Source\Diff</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDiffProducer.cpp">
+      <Filter>Source\Diff</Filter>
     </ClCompile>
     <ClCompile Include="Orderer.cpp">
       <Filter>Source\Dependency</Filter>

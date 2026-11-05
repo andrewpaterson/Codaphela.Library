@@ -64,6 +64,7 @@ void TestObjectFree(void);
 void TestObjectFreeOrdering(void);
 void TestFreeObjects(void);
 void TestOrderer(void);
+void TestTextDiff(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,6 +137,7 @@ int __cdecl main(void)
 	TestObjectFreeOrdering();
 	TestFreeObjects();
 	TestOrderer();
+	TestTextDiff();
 	TestExternalChannels();
 	TestExternalChannelPadder();
 	TestChannels();

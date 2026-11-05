@@ -1,0 +1,295 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela StandardLib
+
+Codaphela StandardLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela StandardLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/TextFile.h"
+#include "TextContent.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No title and no lines.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Init(void)
+{
+	Init("", "", 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Init(const char* szTitle, const char* szText)
+{
+	Init(szTitle, szText, (lsize)StrLen(szText));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text can hold zeros; it is copied.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Init(const char* szTitle, const char* szText, lsize uiLength)
+{
+	mszTitle.Init(szTitle);
+	mszText.Init();
+	if (uiLength > 0)
+	{
+		mszText.Append(szText, uiLength);
+	}
+	macLines.Init();
+	SplitLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Leaves the content empty, but initialised, if the file can't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextContent::InitFromFile(const char* szTitle, const char* szFilename)
+{
+	CTextFile	cFile;
+	bool		bResult;
+
+	cFile.Init();
+	bResult = cFile.Read(szFilename);
+	if (bResult)
+	{
+		Init(szTitle, cFile.Text(), cFile.Length());
+	}
+	else
+	{
+		Init(szTitle, "", 0);
+	}
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Kill(void)
+{
+	macLines.Kill();
+	mszText.Kill();
+	mszTitle.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the title and text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Set(const char* szTitle, const char* szText)
+{
+	Kill();
+	Init(szTitle, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::Set(const char* szTitle, const char* szText, lsize uiLength)
+{
+	Kill();
+	Init(szTitle, szText, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextContent::SetFromFile(const char* szTitle, const char* szFilename)
+{
+	Kill();
+	return InitFromFile(szTitle, szFilename);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextContent::SplitLines(void)
+{
+	char*		szText;
+	lsize		uiLength;
+	lsize		uiStart;
+	lsize		ui;
+	STextLine*	psLine;
+	char		c;
+
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	uiStart = 0;
+	ui = 0;
+	while (ui < uiLength)
+	{
+		c = szText[ui];
+		if ((c == '\n') || (c == '\r'))
+		{
+			psLine = macLines.Add();
+			psLine->uiStart = uiStart;
+			psLine->uiLength = ui - uiStart;
+			if (c == '\n')
+			{
+				psLine->eSeparator = TLS_LF;
+				ui++;
+			}
+			else if ((ui + 1 < uiLength) && (szText[ui + 1] == '\n'))
+			{
+				psLine->eSeparator = TLS_CRLF;
+				ui += 2;
+			}
+			else
+			{
+				psLine->eSeparator = TLS_CR;
+				ui++;
+			}
+			uiStart = ui;
+		}
+		else
+		{
+			ui++;
+		}
+	}
+
+	if (uiStart < uiLength)
+	{
+		psLine = macLines.Add();
+		psLine->uiStart = uiStart;
+		psLine->uiLength = uiLength - uiStart;
+		psLine->eSeparator = TLS_None;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextContent::GetTitle(void)
+{
+	return mszTitle.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextContent::Text(void)
+{
+	return mszText.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::Length(void)
+{
+	return mszText.Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::NumLines(void)
+{
+	return macLines.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STextLine* CTextContent::GetLine(lsize uiLine)
+{
+	return macLines.Get(uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Not terminated: the line runs for GetLineLength characters.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextContent::GetLineText(lsize uiLine)
+{
+	return mszText.Text(macLines.Get(uiLine)->uiStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::GetLineLength(lsize uiLine)
+{
+	return macLines.Get(uiLine)->uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::GetLineStart(lsize uiLine)
+{
+	return macLines.Get(uiLine)->uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The offset after the line's last character, before its separator.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTextContent::GetLineEnd(lsize uiLine)
+{
+	STextLine*	psLine;
+
+	psLine = macLines.Get(uiLine);
+	return psLine->uiStart + psLine->uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ETextLineSeparator CTextContent::GetLineSeparator(lsize uiLine)
+{
+	return macLines.Get(uiLine)->eSeparator;
+}

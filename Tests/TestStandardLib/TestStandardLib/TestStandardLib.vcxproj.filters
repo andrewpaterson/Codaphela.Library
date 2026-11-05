@@ -315,6 +315,9 @@
     <ClCompile Include="TestFreeObjects.cpp">
       <Filter>Source\Object\Object\Free</Filter>
     </ClCompile>
+    <ClCompile Include="TestTextDiff.cpp">
+      <Filter>Source\Dependency</Filter>
+    </ClCompile>
     <ClCompile Include="TestOrderer.cpp">
       <Filter>Source\Dependency</Filter>
     </ClCompile>
