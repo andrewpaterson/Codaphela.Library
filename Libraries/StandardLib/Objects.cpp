@@ -1545,7 +1545,10 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const ch
 //
 // A new uninitialised object named szObjectName that takes the place of
 // the object with that name (in memory or in the database) if there is
-// one: everything pointing to the old one points to the new one.
+// one: everything pointing to the old one points to the new one.  The
+// name is the identity, so the new one keeps the old one's index: the
+// database still has the name under it, and what points to it there
+// still finds it.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const char* szObjectName)
@@ -1560,7 +1563,7 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 	{
 		pvOldObject = GetFromDatabase(szObjectName);
 	}
-	oi = GetNextIndex();
+	oi = (pvOldObject != NULL) ? pvOldObject->GetIndex() : GetNextIndex();
 
 	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (!pcObject)
@@ -1595,9 +1598,12 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 //////////////////////////////////////////////////////////////////////////
 //
 // The object the InternalObjectDeserialiser is about to read: a hollow
-// already in memory for it (found by index: a named object is indexed
-// too) is replaced, or if fat becomes it in place.  An empty name is an
-// unnamed object; a name taken by another object fails to go into memory.
+// already in memory for it is replaced, or if fat (and with the same
+// index) becomes it in place.  The hollow is found by index, or for a
+// named object by name: a hollow made for a name alone (by an external
+// read) has an index of its own, and the object loaded for it takes the
+// database's.  An empty name is an unnamed object; a name taken by an
+// object that isn't hollow fails to go into memory.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi)
@@ -1606,6 +1612,14 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 	CHollowObject*	pcHollowObject;
 
 	pcObject = GetFromMemory(oi);
+	if ((pcObject == NULL) && !StrEmpty(szObjectName))
+	{
+		pcObject = GetFromMemory(szObjectName);
+		if ((pcObject != NULL) && !pcObject->IsHollow())
+		{
+			pcObject = NULL;
+		}
+	}
 
 	if (pcObject == NULL)
 	{
@@ -1629,7 +1643,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 	}
 
 	pcHollowObject = (CHollowObject*)pcObject;
-	if (pcHollowObject->IsFatHollow())
+	if (pcHollowObject->IsFatHollow() && (pcHollowObject->GetIndex() == oi))
 	{
 		return ConvertFatHollowToUninitialisedByClassName(pcHollowObject, szClassName);
 	}
@@ -1690,7 +1704,7 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 {
 	CHollowObject*	pcHollow;
 
-	if ((oi == INVALID_O_INDEX) || (oi == NULL_O_INDEX) || (oi == FIRST_O_INDEX))
+	if ((oi == INVALID_O_INDEX) || (oi == NULL_O_INDEX))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate a hollow object with index [", IndexToString(oi), "].", NULL);
 		return NULL;

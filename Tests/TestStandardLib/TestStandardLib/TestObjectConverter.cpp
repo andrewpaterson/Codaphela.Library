@@ -190,7 +190,7 @@ void TestObjectConverterDragonExistingHollows(void)
 
 		pcObject2 = pcObjectSource->Convert("NamedString 2");
 		AssertString("CTestNamedString", pcObject2.ClassName());
-		AssertLong(7, pcObject2.GetIndex());
+		AssertLong(3, pcObject2.GetIndex());  //It replaces the hollow named "NamedString 2" and keeps its index.
 		AssertTrue(pcObject2.IsNotNull());
 		pcObject = pcDoubleNamedString->mpSplit1;
 		AssertPointer(pcObject.Object(), pcObject2.Object());
@@ -201,7 +201,7 @@ void TestObjectConverterDragonExistingHollows(void)
 		AssertString("6789", pcTestNamedString2->mszString->Text());
 		AssertTrue(pcTestNamedString2->mpAnother.IsHollow());
 		AssertString("Diamond End", pcTestNamedString2->mpAnother.GetName());
-		AssertLong(9, pcTestNamedString2->mpAnother.GetIndex());
+		AssertLong(8, pcTestNamedString2->mpAnother.GetIndex());
 
 		oiNew = pcTestNamedString2->mpAnother.GetIndex();
 		pcEnd = (CTestNamedString*)gcObjects.TestGetFromMemory(oiNew).Object();
@@ -214,7 +214,7 @@ void TestObjectConverterDragonExistingHollows(void)
 		AssertString("World", pcTestNamedString3->mszString->Text());
 		AssertTrue(pcTestNamedString3->mpAnother.IsHollow());
 		AssertString("Diamond End", pcTestNamedString3->mpAnother.GetName());
-		AssertLong(9, pcTestNamedString3->mpAnother.GetIndex());
+		AssertLong(8, pcTestNamedString3->mpAnother.GetIndex());
 		AssertPointer(pcTestNamedString2->mpAnother.Object(), pcTestNamedString3->mpAnother.Object());
 		AssertTrue(pcTestNamedString2->mpAnother.IsHollow());
 

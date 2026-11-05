@@ -150,18 +150,20 @@ void TestRemappingOfOIs(CExternalObjectWriter* pcWriter, CExternalObjectReader* 
 		cDeserialiser.Init(pcReader, false, &gcObjects);
 	 	cStart1 = cDeserialiser.Read("Ow/Start 1");
 		AssertTrue(cStart1.IsNotNull());
-		AssertLong(29, cStart1->GetIndex());
+		AssertLong(3, cStart1->GetIndex());
 
 
+		//The named objects are already in the database: they're replaced and keep their indices (Start 1 was 3 and
+		//Shared was 5).  The unnamed string gets a new index.
 		AssertTrue(cStart1->mp1.IsNotNull());
 		AssertString("CTestSaveableObject1", cStart1->mp1->ClassName());
 		cShared = cStart1->mp1;
-		AssertLong(31, cShared->GetIndex());
+		AssertLong(5, cShared->GetIndex());
 
 		AssertTrue(cStart1->mp2.IsNotNull());
 		AssertString("CString", cStart1->mp2->ClassName());
 		cString1 = cStart1->mp2;
-		AssertLong(30, cString1->GetIndex());
+		AssertLong(29, cString1->GetIndex());
 
 		cDeserialiser.Kill();
 
@@ -170,7 +172,7 @@ void TestRemappingOfOIs(CExternalObjectWriter* pcWriter, CExternalObjectReader* 
 			szOne = OMalloc<CString>("Hello World ");
 			szOne->Append(i + 20);
 			cRoot->Add(szOne);
-			AssertLong(32LL + i, szOne->GetIndex());
+			AssertLong(30LL + i, szOne->GetIndex());
 		}
 
 		pcDatabase->ValidateIdentifiers();
@@ -262,7 +264,7 @@ void TestObjectGraphDeserialiserReuseName(void)
 		cDeserialiser.Init(&cReader, false, &gcObjects);
 		cStart1 = cDeserialiser.Read("Ow/Start 1");
 		AssertTrue(cStart1.IsNotNull());
-		AssertLong(4LL, cStart1->GetIndex());
+		AssertLong(3LL, cStart1->GetIndex());  //It replaces the object named "Ow/Start 1" and keeps its index.
 
 		cDeserialiser.Kill();
 
