@@ -281,6 +281,7 @@ public:
 
 protected:
 	void				ReadText(void);
+	STextStyle*			MakeStyles(void);
 	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift);
 	void				LayoutText(void);
 	void				UpdateText(void);
@@ -300,7 +301,7 @@ protected:
 	bool				UseTiles(void);
 	void				ReadTiles(void);
 	void				LayoutTiles(void);
-	STextStyle*			MakeTileStyles(void);
+
 	void				MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans);
 	void				DecorateTiles(STextStyle* psStyles);
 	void				DecorateTileStretch(uint8 uiDecoration, STextStyle* psStyles, size uiRow, size uiFirstStop, size uiEndStop);

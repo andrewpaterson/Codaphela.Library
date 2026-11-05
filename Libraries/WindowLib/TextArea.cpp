@@ -672,29 +672,24 @@ void CTextArea::ReadText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each byte of the text is given the text area's style with the spans
-// that cover it applied in the order they were added, then a font change
-// is made wherever the style changes.  Text before the first change is in
-// pDefaultFont.  A style the family has no font for is drawn in
-// pDefaultFont (the family logs an error).
+// The style of each byte of the text: the text area's style with the
+// spans over it, applied in the order they were added.  NULL if there are
+// no spans, when every byte is in the text area's style.  Free it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift)
+STextStyle* CTextArea::MakeStyles(void)
 {
-	size				uiTextLength;
-	size				i;
-	size				uiPosition;
-	size				uiEnd;
-	STextStyle*			psStyles;
-	STextAreaSpan*		psSpan;
-	STextStyle*			psCurrent;
-	Ptr<CFont>			pFont;
-	int16				iBaselineShift;
+	size			uiTextLength;
+	size			i;
+	size			uiPosition;
+	size			uiEnd;
+	STextStyle*		psStyles;
+	STextAreaSpan*	psSpan;
 
 	uiTextLength = mszText.Length();
 	if ((masSpans.NumElements() == 0) || (uiTextLength == 0))
 	{
-		return;
+		return NULL;
 	}
 
 	psStyles = (STextStyle*)malloc(uiTextLength * sizeof(STextStyle));
@@ -706,12 +701,39 @@ void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDe
 	{
 		psSpan = masSpans.Get(i);
 		uiEnd = psSpan->uiStart + psSpan->uiLength;
-		for (uiPosition = psSpan->uiStart; uiPosition < uiEnd; uiPosition++)
+		for (uiPosition = psSpan->uiStart; (uiPosition < uiEnd) && (uiPosition < uiTextLength); uiPosition++)
 		{
 			psSpan->sOverride.ApplyTo(&psStyles[uiPosition]);
 		}
 	}
+	return psStyles;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A font change is made wherever the style of the text (MakeStyles)
+// changes.  Text before the first change is in pDefaultFont.  A style the
+// family has no font for is drawn in pDefaultFont (the family logs an
+// error).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift)
+{
+	size				uiTextLength;
+	size				uiPosition;
+	STextStyle*			psStyles;
+	STextStyle*			psCurrent;
+	Ptr<CFont>			pFont;
+	int16				iBaselineShift;
+
+	psStyles = MakeStyles();
+	if (psStyles == NULL)
+	{
+		return;
+	}
+
+	uiTextLength = mszText.Length();
 	psCurrent = &msStyle;
 	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
 	{
@@ -2960,7 +2982,11 @@ void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
 	int32				iTop;
 	size				uiPosition;
 	bool				bRowEnd;
+	bool				bDown;
+	bool				bPage;
 
+	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
+	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
 	if (!HasStops())
 	{
 		return;
@@ -2982,11 +3008,7 @@ void CTextArea::MoveUpDown(ETextAreaMove eMove, bool bSelect)
 	}
 
 	if (bPage)
-	bool				bDown;
-	bool				bPage;
 	{
-	bDown = (eMove == TAM_RowDown) || (eMove == TAM_PageDown);
-	bPage = (eMove == TAM_PageUp) || (eMove == TAM_PageDown);
 		iPage = GetPageHeight();
 		psLine = GetLayoutLine(uiRow);
 		iTop = psLine->iTop;
@@ -3609,7 +3631,7 @@ void CTextArea::ReadTiles(void)
 	mpTileWriter->SetColours(pColours, msStyle.sColour);
 	mpTileWriter->SetTabWidth((size)miTabWidth);
 
-	psStyles = MakeTileStyles();
+	psStyles = MakeStyles();
 	asSpans.Init();
 	MakeTileSpans(psStyles, &asSpans);
 	mpTileWriter->Write(szText, &asSpans, &auiLineRows);
@@ -3639,46 +3661,6 @@ void CTextArea::LayoutTiles(void)
 		msTextSize.y = pFont->GetLineHeight();
 	}
 	UpdateMarks();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The style of each byte of the text: the text area's style with the
-// spans over it (later spans over earlier ones).  NULL if there are no
-// spans, when every byte is in the text area's style.  Free it.
-//
-//////////////////////////////////////////////////////////////////////////
-STextStyle* CTextArea::MakeTileStyles(void)
-{
-	size			uiTextLength;
-	size			i;
-	size			uiPosition;
-	size			uiEnd;
-	STextStyle*		psStyles;
-	STextAreaSpan*	psSpan;
-
-	uiTextLength = mszText.Length();
-	if ((masSpans.NumElements() == 0) || (uiTextLength == 0))
-	{
-		return NULL;
-	}
-
-	psStyles = (STextStyle*)malloc(uiTextLength * sizeof(STextStyle));
-	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
-	{
-		psStyles[uiPosition] = msStyle;
-	}
-	for (i = 0; i < masSpans.NumElements(); i++)
-	{
-		psSpan = masSpans.Get(i);
-		uiEnd = psSpan->uiStart + psSpan->uiLength;
-		for (uiPosition = psSpan->uiStart; (uiPosition < uiEnd) && (uiPosition < uiTextLength); uiPosition++)
-		{
-			psSpan->sOverride.ApplyTo(&psStyles[uiPosition]);
-		}
-	}
-	return psStyles;
 }
 
 
