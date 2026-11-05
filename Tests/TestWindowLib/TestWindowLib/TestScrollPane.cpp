@@ -724,6 +724,184 @@ void TestScrollPaneDraws(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// Counts a scroll pane's Scrolled calls, and scrolls another scroll pane
+// to the same position if it has one.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestScrollPaneListener : public CScrollPaneListener
+{
+CONSTRUCTABLE(CTestScrollPaneListener);
+public:
+	size			muiCalls;
+	SInt32Vec2		msPosition;
+	CScrollPane*	mpcFollower;
+
+	void Init(CScrollPane* pcFollower)
+	{
+		muiCalls = 0;
+		msPosition.Init(-1, -1);
+		mpcFollower = pcFollower;
+	}
+
+	void Scrolled(CUnknown* pcSource, void* pvContext) override
+	{
+		muiCalls++;
+		msPosition = *(SInt32Vec2*)pvContext;
+		if (mpcFollower)
+		{
+			mpcFollower->SetScrollPosition(msPosition.x, msPosition.y);
+		}
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Listeners are told once each time the content is laid out at a new
+// scroll position, however it was scrolled.  A listener can scroll another
+// scroll pane while the window is being laid out, whether that pane was
+// laid out before or after in the same pass.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScrollPaneListener(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CTestScrollPaneListener	cFirstListener;
+	CTestScrollPaneListener	cSecondListener;
+	CTestScrollPaneListener	cFollowFirst;
+	CTestScrollPaneListener	cFollowSecond;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CScrollPane>		pFirst;
+		Ptr<CScrollPane>		pSecond;
+		Ptr<CCanvas>			pFirstContent;
+		Ptr<CCanvas>			pSecondContent;
+		Ptr<CScrollBarImages>	pImages;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		SInt32Vec2				sVec;
+		CInt32Rect				cRect;
+		CPointer				pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Scroll Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//Two scroll panes over each other, the first laid out first.
+		pImages = CreateScrollBarImages();
+		pFirst = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(pImages));
+		pFirstContent = OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)90, (uint8)30, (uint8)30)));
+		pFirstContent->SetDesiredSize(400, 300);
+		pFirst->SetContent(pFirstContent);
+		pFill->AddComponent(pFirst);
+		pSecond = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(pImages));
+		pSecondContent = OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, (uint8)90, (uint8)30)));
+		pSecondContent->SetDesiredSize(400, 300);
+		pSecond->SetContent(pSecondContent);
+		pFill->AddComponent(pSecond);
+
+		cFirstListener.Init(NULL);
+		cSecondListener.Init(NULL);
+		AssertTrue(pFirst->AddListener(&cFirstListener));
+		AssertFalse(pFirst->AddListener(&cFirstListener));
+		AssertTrue(pSecond->AddListener(&cSecondListener));
+
+		//Laid out where it was is no scroll.
+		pTestWindow->Layout();
+		AssertSize(0, cFirstListener.muiCalls);
+
+		pFirst->SetScrollPosition(0, 50);
+		AssertSize(0, cFirstListener.muiCalls);
+		pTestWindow->Layout();
+		AssertSize(1, cFirstListener.muiCalls);
+		AssertInt32Vec2(0, 50, &cFirstListener.msPosition);
+
+		pFirst->SetScrollPosition(0, 50);
+		pTestWindow->Layout();
+		pTestWindow->Layout();
+		AssertSize(1, cFirstListener.muiCalls);
+
+		//Past the end is the end.
+		pFirst->SetScrollPosition(1000, 1000);
+		pTestWindow->Layout();
+		AssertSize(2, cFirstListener.muiCalls);
+		AssertInt32Vec2(200, 200, &cFirstListener.msPosition);
+
+		AssertTrue(pFirst->Wheel(0, -1));
+		pTestWindow->Layout();
+		AssertSize(3, cFirstListener.muiCalls);
+		AssertInt32Vec2(200, 152, &cFirstListener.msPosition);
+
+		//The content shrinking limits the position.
+		pFirstContent->SetDesiredSize(300, 200);
+		pTestWindow->Layout();
+		AssertSize(4, cFirstListener.muiCalls);
+		AssertInt32Vec2(100, 100, &cFirstListener.msPosition);
+
+		//Shown, the content moves to show it.
+		pFirst->SetScrollPosition(0, 0);
+		pTestWindow->Layout();
+		AssertSize(5, cFirstListener.muiCalls);
+		cRect.Init(10, 150, 20, 160);
+		pFirst->ScrollToShow(&cRect);
+		pTestWindow->Layout();
+		AssertSize(6, cFirstListener.muiCalls);
+		AssertInt32Vec2(0, 60, &cFirstListener.msPosition);
+
+		//The first scrolls the second, laid out after it in the same pass.
+		cFollowFirst.Init(&pSecond);
+		AssertTrue(pFirst->AddListener(&cFollowFirst));
+		AssertSize(0, cSecondListener.muiCalls);
+		pFirst->SetScrollPosition(30, 40);
+		pTestWindow->Layout();
+		AssertSize(7, cFirstListener.muiCalls);
+		AssertSize(1, cSecondListener.muiCalls);
+		AssertInt32Vec2(30, 40, &cSecondListener.msPosition);
+		sVec = pSecondContent->GetPosition();
+		AssertInt32Vec2(-30, -40, &sVec);
+		AssertTrue(pFirst->RemoveListener(&cFollowFirst));
+
+		//The second scrolls the first, laid out before it: the window lays out again.
+		cFollowSecond.Init(&pFirst);
+		AssertTrue(pSecond->AddListener(&cFollowSecond));
+		pSecond->SetScrollPosition(5, 6);
+		pTestWindow->Layout();
+		AssertSize(2, cSecondListener.muiCalls);
+		AssertSize(8, cFirstListener.muiCalls);
+		AssertInt32Vec2(5, 6, &cFirstListener.msPosition);
+		sVec = pFirstContent->GetPosition();
+		AssertInt32Vec2(-5, -6, &sVec);
+
+		//Removed, a listener isn't told.
+		AssertTrue(pFirst->RemoveListener(&cFirstListener));
+		AssertFalse(pFirst->RemoveListener(&cFirstListener));
+		pFirst->SetScrollPosition(0, 0);
+		pTestWindow->Layout();
+		AssertSize(8, cFirstListener.muiCalls);
+
+		pImages = NULL;
+		pFirstContent = NULL;
+		pSecondContent = NULL;
+		pFirst = NULL;
+		pSecond = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertScrollPaneObjectsRemoved();
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void TestScrollPane(void)
 {
 	BeginTests();
@@ -734,6 +912,7 @@ void TestScrollPane(void)
 	TestScrollPaneDrag();
 	TestScrollPaneDragPaints();
 	TestScrollPaneWheel();
+	TestScrollPaneListener();
 	TestScrollPaneDraws();
 
 	ObjectsFlush();

@@ -42,6 +42,8 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	msLaidOutScroll.Init(0, 0);
 	miMargin = 2;
 	miWheelStep = 48;
+	mcListeners.Init();
+	mcListeners.AddAllowedClass<CScrollPaneListener>();
 
 	//The scroll bars are the last children so they are drawn over the content and hit before it.
 	mpHorizontal = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pTheme->GetScrollBarImages(), SBO_Horizontal);
@@ -87,6 +89,18 @@ void CScrollPane::Class(void)
 	U_2Int32(msLaidOutScroll);
 	U_Int32(miMargin);
 	U_Int32(miWheelStep);
+	U_Data(CListenerCall, mcListeners);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollPane::Free(void)
+{
+	mcListeners.Kill();
+	CContainer::Free();
 }
 
 
@@ -195,11 +209,19 @@ EScrollPanePolicy CScrollPane::GetPolicy(EScrollBarOrientation eOrientation)
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::SetScrollPosition(int32 x, int32 y)
 {
+	SInt32Vec2	sPosition;
+
 	msScrollPosition.Init(x, y);
 	ClampScrollPosition();
 
-	//What it is laid out from has changed.
+	//What it is laid out from has changed.  A listener can scroll this pane while the window is being laid out, after
+	//it was laid out in this pass, so another pass is asked for when the position moves.
 	InvalidateLayout();
+	sPosition = GetScrollPosition();
+	if (mpWindow.IsNotNull() && ((sPosition.x != msLaidOutScroll.x) || (sPosition.y != msLaidOutScroll.y)))
+	{
+		mpWindow->LayoutAgain();
+	}
 }
 
 
@@ -217,9 +239,6 @@ void CScrollPane::SetScrollPosition(EScrollBarOrientation eOrientation, int32 iP
 	{
 		SetScrollPosition(msScrollPosition.x, iPosition);
 	}
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
 }
 
 
@@ -335,13 +354,15 @@ int32 CScrollPane::GetContentLength(int32 iDesired, int32 iView, EScrollPanePoli
 //////////////////////////////////////////////////////////////////////////
 //
 // The view is the whole area.  The content is laid out first, moved by the
-// scroll position, then the scroll bars over it.
+// scroll position, then the scroll bars over it.  Listeners are told if
+// the content was laid out at a new scroll position.
 //
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SInt32Vec2	sDesired;
 	SInt32Vec2	sScrollPosition;
+	SInt32Vec2	sPreviousScroll;
 	SInt32Vec2	sContentPosition;
 	SInt32Vec2	sTrackPosition;
 	SInt32Vec2	sTrackSize;
@@ -363,6 +384,7 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		msContentSize = sAreaSize;
 	}
 	sScrollPosition = GetScrollPosition();
+	sPreviousScroll = msLaidOutScroll;
 	msLaidOutScroll = sScrollPosition;
 
 	if (mpContent.IsNotNull())
@@ -388,6 +410,11 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sTrackPosition.Init(sPosition.x + sAreaSize.x - iThickness - miMargin, sPosition.y + miMargin);
 	sTrackSize.Init(iThickness, sAreaSize.y - miMargin * 2 - (bHorizontal ? iThickness + miMargin : 0));
 	mpVertical->Layout(sTrackPosition, sTrackSize);
+
+	if ((sScrollPosition.x != sPreviousScroll.x) || (sScrollPosition.y != sPreviousScroll.y))
+	{
+		mcListeners.CallListeners(&CScrollPaneListener::Scrolled, this, &sScrollPosition);
+	}
 }
 
 
@@ -579,4 +606,6 @@ void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; InvalidateLayou
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
 int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
 SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }
+bool CScrollPane::AddListener(CScrollPaneListener* pcListener) { return mcListeners.AddListener(pcListener); }
+bool CScrollPane::RemoveListener(CScrollPaneListener* pcListener) { return mcListeners.RemoveListener(pcListener); }
 

@@ -20,8 +20,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SCROLL_PANE_H__
 #define __SCROLL_PANE_H__
+#include "StandardLib/ListenerCall.h"
 #include "Container.h"
 #include "ScrollBar.h"
+#include "ScrollPaneListener.h"
 #include "WindowTheme.h"
 
 
@@ -44,6 +46,10 @@ enum EScrollPanePolicy
 //is inset from the edge by the margin and stops short of the other when both are shown.
 //
 //The wheel scrolls the scroll pane under the pointer by the wheel step, vertically or, with shift, horizontally.
+//
+//Listeners (AddListener) are told when the content has been laid out at a new scroll position, however it was
+//scrolled: a thumb dragged, the wheel, a track clicked, SetScrollPosition, ScrollToShow, or the position limited
+//because the content got smaller.  They can scroll other scroll panes then, while the window is being laid out.
 class CScrollPane : public CContainer
 {
 CONSTRUCTABLE(CScrollPane);
@@ -59,10 +65,12 @@ protected:
 	SInt32Vec2			msLaidOutScroll;  //The scroll position the content was last laid out at.
 	int32				miMargin;  //Between a scroll bar and the edge of the scroll pane.
 	int32				miWheelStep;  //How far one notch of the wheel scrolls.
+	CListenerCall		mcListeners;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -83,6 +91,9 @@ public:
 	SInt32Vec2			GetMaximumScrollPosition(void);
 	SInt32Vec2			GetContentSize(void);
 	Ptr<CScrollBar>		GetScrollBar(EScrollBarOrientation eOrientation);
+
+	bool				AddListener(CScrollPaneListener* pcListener);
+	bool				RemoveListener(CScrollPaneListener* pcListener);
 
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
