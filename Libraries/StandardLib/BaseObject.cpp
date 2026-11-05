@@ -509,44 +509,32 @@ size CBaseObject::NumHeapFromHolders(void)
 // Of the heap froms of this and the objects embedded in it, the first that
 // is closest to the root (attached to it), skipping froms whose object has
 // the walk stamp uiSkipWalkStamp (0 skips none: a walk's stamp never is).
-// The froms are read where they are rather than copied: a hub has
-// thousands.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::GetClosestHeapFrom(uint32 uiSkipWalkStamp)
 {
-	CEmbeddedObject*	pcHolder;
+	SHeapFromIterator	sIter;
 	CBaseObject*		pcNearest;
 	CBaseObject*		pcFrom;
 	int					iNearest;
 	int					iDist;
-	size				uiHolder;
-	size				uiNumHolders;
-	size				i;
-	size				uiNumFroms;
 
 	iNearest = MAX_DIST_TO_ROOT;
 	pcNearest = NULL;
-	uiNumHolders = NumHeapFromHolders();
-	for (uiHolder = 0; uiHolder < uiNumHolders; uiHolder++)
+	pcFrom = StartHeapFromIteration(&sIter);
+	while (pcFrom)
 	{
-		pcHolder = (uiHolder == 0) ? this : GetEmbeddedObject(uiHolder);
-		uiNumFroms = pcHolder->CEmbeddedObject::NumHeapFroms();
-		for (i = 0; i < uiNumFroms; i++)
+		iDist = pcFrom->GetDistToRoot();
+		if ((iDist >= 0) && (iDist < iNearest))
 		{
-			pcFrom = pcHolder->CEmbeddedObject::GetHeapFrom(i);
-			iDist = pcFrom->GetDistToRoot();
-			if ((iDist >= 0) && (iDist < iNearest))
+			//Asked only of a from that would be nearest: most of a hub's froms aren't attached.
+			if ((uiSkipWalkStamp == 0) || (pcFrom->GetEmbeddingContainer()->GetWalkStamp() != uiSkipWalkStamp))
 			{
-				//Asked only of a from that would be nearest: most of a hub's froms aren't attached.
-				if ((uiSkipWalkStamp != 0) && (pcFrom->GetEmbeddingContainer()->GetWalkStamp() == uiSkipWalkStamp))
-				{
-					continue;
-				}
 				iNearest = iDist;
 				pcNearest = pcFrom;
 			}
 		}
+		pcFrom = IterateHeapFrom(&sIter);
 	}
 	return pcNearest;
 }
@@ -564,27 +552,80 @@ CBaseObject* CBaseObject::GetClosestFromToRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds the objects holding the heap froms of this and the objects embedded
-// in it.
+// The first heap from of this or of the objects embedded in it (NULL if
+// there are none).  IterateHeapFrom gives the next.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::StartHeapFromIteration(SHeapFromIterator* psIter)
+{
+	psIter->pcHolder = this;
+	psIter->uiHolder = 0;
+	psIter->uiNumHolders = NumHeapFromHolders();
+	psIter->uiFrom = 0;
+	psIter->uiNumFroms = CEmbeddedObject::NumHeapFroms();
+	return IterateHeapFrom(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The next heap from (NULL when there are no more).
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CBaseObject::IterateHeapFrom(SHeapFromIterator* psIter)
+{
+	while (psIter->uiFrom >= psIter->uiNumFroms)
+	{
+		psIter->uiHolder++;
+		if (psIter->uiHolder >= psIter->uiNumHolders)
+		{
+			return NULL;
+		}
+		psIter->pcHolder = GetEmbeddedObject(psIter->uiHolder);
+		psIter->uiFrom = 0;
+		psIter->uiNumFroms = psIter->pcHolder->CEmbeddedObject::NumHeapFroms();
+	}
+
+	psIter->uiFrom++;
+	return psIter->pcHolder->CEmbeddedObject::GetHeapFrom(psIter->uiFrom - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the heap froms of this and of the objects embedded in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
+{
+	SHeapFromIterator	sIter;
+	CBaseObject*		pcFrom;
+
+	pcFrom = StartHeapFromIteration(&sIter);
+	while (pcFrom)
+	{
+		papcFroms->Add(pcFrom);
+		pcFrom = IterateHeapFrom(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the objects holding the heap froms of this and of the objects
+// embedded in it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms)
 {
-	CEmbeddedObject*	pcHolder;
-	size				uiHolder;
-	size				uiNumHolders;
-	size				i;
-	size				uiNumFroms;
+	SHeapFromIterator	sIter;
+	CBaseObject*		pcFrom;
 
-	uiNumHolders = NumHeapFromHolders();
-	for (uiHolder = 0; uiHolder < uiNumHolders; uiHolder++)
+	pcFrom = StartHeapFromIteration(&sIter);
+	while (pcFrom)
 	{
-		pcHolder = (uiHolder == 0) ? this : GetEmbeddedObject(uiHolder);
-		uiNumFroms = pcHolder->CEmbeddedObject::NumHeapFroms();
-		for (i = 0; i < uiNumFroms; i++)
-		{
-			papcFroms->Add(pcHolder->CEmbeddedObject::GetHeapFrom(i)->GetEmbeddingContainer());
-		}
+		papcFroms->Add(pcFrom->GetEmbeddingContainer());
+		pcFrom = IterateHeapFrom(&sIter);
 	}
 }
 

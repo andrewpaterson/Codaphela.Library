@@ -14,6 +14,7 @@
 #include "TestBaseObject.h"
 #include "ObjectTestSetup.h"
 #include "EmbeddedObjectTestClasses.h"
+#include "ObjectTestClasses.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -994,6 +995,53 @@ void TestEmbeddedNestedPointerValidated(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The heap from iteration walks an object's own froms, then each embedded
+// object's, in order.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedHeapFromIteration(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestEmbeddedStrings>	pStrings;
+		Ptr<CPointerContainer>		p1;
+		Ptr<CPointerContainer>		p2;
+		Ptr<CPointerContainer>		p3;
+		CBaseObject*				pcStrings;
+		SHeapFromIterator			sIter;
+		CArrayBaseObjectPtrE32		apcFroms;
+
+		pStrings = OMalloc<CTestEmbeddedStrings>();
+		pcStrings = &pStrings;
+		AssertNull(pcStrings->StartHeapFromIteration(&sIter));
+
+		p1 = OMalloc<CPointerContainer>();
+		p2 = OMalloc<CPointerContainer>();
+		p3 = OMalloc<CPointerContainer>();
+		p1->mp = pStrings;
+		p2->mp = &pStrings->mString3;
+		p3->mp = &pStrings->mString1;
+
+		AssertPointer(&p1, pcStrings->StartHeapFromIteration(&sIter));
+		AssertPointer(&p3, pcStrings->IterateHeapFrom(&sIter));
+		AssertPointer(&p2, pcStrings->IterateHeapFrom(&sIter));
+		AssertNull(pcStrings->IterateHeapFrom(&sIter));
+
+		apcFroms.Init();
+		pcStrings->GetHeapFroms(&apcFroms);
+		AssertSize(3, apcFroms.NumElements());
+		AssertPointer(&p1, apcFroms.GetPtr(0));
+		AssertPointer(&p3, apcFroms.GetPtr(1));
+		AssertPointer(&p2, apcFroms.GetPtr(2));
+		apcFroms.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbedded(void)
@@ -1003,6 +1051,7 @@ void TestEmbedded(void)
 	TypesInit();
 	DataIOInit();
 
+	TestEmbeddedHeapFromIteration();
 	TestEmbeddedFlags();
 	TestEmbeddedOjectIsAllocatedInObjects();
 	TestEmbeddedObjectAddDistToRoot();

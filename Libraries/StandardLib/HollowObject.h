@@ -53,7 +53,6 @@ public:
 
 			size				NumHeapFroms(void);
 			size				NumStackFroms(void);
-			void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms) override;
 			void				GetStackFroms(CArrayStackPointerE32* papcFroms) override;
 			void				ValidateConsistency(void);
 

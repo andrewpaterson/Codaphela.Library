@@ -72,7 +72,6 @@ public:
 	size				NumHeapFroms(void);
 	size				NumStackFroms(void);
 	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
-	void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	size				NumPointerTos(void);
 	size				BaseNumPointerTos(void);

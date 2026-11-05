@@ -536,27 +536,6 @@ size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void  CObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	CBaseObject::GetHeapFroms(papcFroms);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->GetHeapFroms(papcFroms);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CObject::IsDirty(void)
 {
 	size				i;

@@ -242,30 +242,22 @@ void CDistCalculator::InitialiseCompletelyDetached(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether something pointing to pcObject (or to an object embedded in it)
-// is reached from the stack.  The froms are read where they are rather
-// than copied: a hub has thousands.
+// is reached from the stack.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDistCalculator::HasFromReachedFromStack(CBaseObject* pcObject)
 {
-	CEmbeddedObject*	pcHolder;
-	size				uiHolder;
-	size				uiNumHolders;
-	size				i;
-	size				uiNumFroms;
+	SHeapFromIterator	sIter;
+	CBaseObject*		pcFrom;
 
-	uiNumHolders = pcObject->NumHeapFromHolders();
-	for (uiHolder = 0; uiHolder < uiNumHolders; uiHolder++)
+	pcFrom = pcObject->StartHeapFromIteration(&sIter);
+	while (pcFrom)
 	{
-		pcHolder = (uiHolder == 0) ? pcObject : pcObject->GetEmbeddedObject(uiHolder);
-		uiNumFroms = pcHolder->CEmbeddedObject::NumHeapFroms();
-		for (i = 0; i < uiNumFroms; i++)
+		if (IsReachedFromStack(pcFrom->GetEmbeddingContainer()))
 		{
-			if (IsReachedFromStack(pcHolder->CEmbeddedObject::GetHeapFrom(i)->GetEmbeddingContainer()))
-			{
-				return true;
-			}
+			return true;
 		}
+		pcFrom = pcObject->IterateHeapFrom(&sIter);
 	}
 	return false;
 }

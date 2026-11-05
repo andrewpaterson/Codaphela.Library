@@ -66,6 +66,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define WALK_STATE_REACHED_FROM_STACK	3  //Detached from the root but reached from the stack (walked too).
 
 
+//Walks the heap froms of an object and of the objects embedded in it (a hollow object's hollow embedded objects too),
+//reading them where they are: a hub has thousands.  See CBaseObject::StartHeapFromIteration.
+struct SHeapFromIterator
+{
+	CEmbeddedObject*	pcHolder;  //The object (or one embedded in it) whose froms are being walked.
+	size				uiHolder;
+	size				uiNumHolders;
+	size				uiFrom;  //The next of pcHolder's froms.
+	size				uiNumFroms;  //pcHolder's.
+};
+
+
 class CObjectReader;
 class CObjectWriter;
 class CObjects;
@@ -148,6 +160,9 @@ public:
 			uint32					GetWalkStamp(void);
 			void					SetWalkStamp(uint32 uiWalkStamp);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
+			CBaseObject*			StartHeapFromIteration(SHeapFromIterator* psIter);
+			CBaseObject*			IterateHeapFrom(SHeapFromIterator* psIter);
+			void					GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms) override;
 			void					AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms);
 
 
@@ -166,7 +181,6 @@ public:
 			bool					CanFindRoot(void);
 			CBaseObject*			GetClosestFromToRoot(void);
 			CBaseObject*			GetClosestHeapFrom(uint32 uiSkipWalkStamp);
-			size					NumHeapFromHolders(void);
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;
@@ -221,6 +235,7 @@ protected:
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
 			bool					IsBaseObject(void);
+			size					NumHeapFromHolders(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);
 			void					ReplaceOneWithX(char* szDest, char* szMask);
