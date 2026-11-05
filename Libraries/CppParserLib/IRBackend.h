@@ -27,9 +27,32 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRSourceMarkers.h"
 
 
+//A phi's copy on a jump (ParallelCopy): the phi, the value it takes, its type, and whether it reads the saved value.
+struct SIRCopy
+{
+	SIRReference	sDestination;
+	SIRReference	sSource;		//IRNone once written.
+	SIRType			sType;
+	bool			bSaved;			//The source was saved to break a cycle: the copy reads the saved value.
+};
+typedef CArrayTemplate<SIRCopy>	CArrayIRCopies;
+
+
+//A step of a parallel copy: a copy written (sDestination from sSource, or from the saved value), or a source saved.
+struct SIRCopyStep
+{
+	bool			bSave;			//Save sSource (to break a cycle), else write the copy.
+	SIRReference	sDestination;
+	SIRReference	sSource;
+	SIRType			sType;
+	bool			bSaved;
+};
+typedef CArrayTemplate<SIRCopyStep>	CArrayIRCopySteps;
+
+
 //What the 65C64 (CIR65Backend) and W65C816 (CIR816Backend) back ends share: the module and the label counter, the
 //function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
-//its code calls, and writing a module as sections (each function and global a section of its own), its globals'
+//its code calls, the order of the phis' copies on a jump (ParallelCopy), and writing a module as sections (each function and global a section of its own), its globals'
 //data, labels and errors.
 class CIRBackend
 {
@@ -65,6 +88,10 @@ protected:
 	int32			NewLabel(void);
 	void			UseRuntime(const char* szName);
 	SIRInstruction*	BranchComparison(CIRBlock* pcBlock);
+	bool			ParallelCopy(CArrayIRCopies* pasCopies, CArrayIRCopySteps* pasSteps);
+
+	virtual bool	CopyOverlaps(SIRReference sSource, SIRReference sDestination) = 0;
+	virtual bool	CopySamePlace(SIRReference sValue1, SIRReference sValue2) = 0;
 	void			Label(int32 iLabel);
 };
 

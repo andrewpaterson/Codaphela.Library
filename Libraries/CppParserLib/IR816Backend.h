@@ -86,7 +86,7 @@ typedef CArrayTemplate<SIR816Argument>	CArrayIR816Arguments;
 
 
 //A function's frame (D + offset), as Layout lays it out, lowest first: the temporaries from IR816_FIRST_TEMPORARY;
-//where an aligned frame past the page keeps S; the phis' ways in and the slots; the register words, at the frame's
+//where an aligned frame past the page keeps S; the slots; the register words, at the frame's
 //top.  Above it the link (the caller's D and the return address), then the pushed arguments, the hidden result
 //pointer first.  AlignFrame gets it from GenerateFunction (GetFrame), with how the function uses the direct page.
 struct SIR816Frame
@@ -142,7 +142,8 @@ protected:
 	CArrayIR816Arguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
 	SIR816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayTemplate<int32>	maiOffsets;			//Per temporary: its place in the frame (D + offset).
-	CArrayTemplate<int32>	maiIncoming;		//Per phi: where its value is put on the way in, else -1.
+	CArrayIRCopies			masCopies;			//A jump's phi copies (EdgeCopies)...
+	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayTemplate<int32>	maiSlots;			//Per temporary made by slot: the slot's place, else -1.
 	CArrayTemplate<int32>	maiParameters;		//Per parameter: its place (D + offset).
 	CArrayTemplate<size>	mauiPendingArguments;	//Instruction indices of the args before a call.
@@ -304,8 +305,9 @@ protected:
 	void			Epilogue(void);
 	void			Return(CIRBlock* pcBlock);
 	void			EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
-	void			PhiCopies(CIRBlock* pcBlock);
-	bool			IsCoalescedPhiBlock(CIRBlock* pcBlock);
+	void			AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument);
+	bool			CopyOverlaps(SIRReference sSource, SIRReference sDestination);
+	bool			CopySamePlace(SIRReference sValue1, SIRReference sValue2);
 	void			JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext);
 	void			Jump(CIRBlock* pcBlock, CIRBlock* pcNext);
 };

@@ -36,7 +36,8 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 {
 	CIRBackend::Init(pcModule, piLabels, CIR816Backend::GetScratch());
 	maiOffsets.Init(CIR816Backend::GetScratch());
-	maiIncoming.Init(CIR816Backend::GetScratch());
+	masCopies.Init(CIR816Backend::GetScratch());
+	masCopySteps.Init(CIR816Backend::GetScratch());
 	maiSlots.Init(CIR816Backend::GetScratch());
 	maiParameters.Init(CIR816Backend::GetScratch());
 	mauiPendingArguments.Init(CIR816Backend::GetScratch());
@@ -67,7 +68,8 @@ void CIR816Backend::Kill(void)
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
 	maiSlots.Kill();
-	maiIncoming.Kill();
+	masCopySteps.Kill();
+	masCopies.Kill();
 	mabInX.Kill();
 	maiUseBlock.Kill();
 	maiCountUses.Kill();
@@ -690,7 +692,6 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		miBlock = (int32)ui;
 		uiBlockStart = mpszOut->Length();
 		Label(*maiBlockLabels.Get(ui));
-		PhiCopies(pcBlock);
 		mauiPendingArguments.FakeSetUsedElements(0);
 		miFused = 0;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
@@ -1361,100 +1362,140 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A jump into a block with phis puts each phi's value in its way in; the block copies them to the phis as it starts,
-// so phis that take each other's values (a swap) are all read before any is written.  A block whose phis don't
-// (IsCoalescedPhiBlock) has each phi's place as its way in, and nothing to copy.
+// A jump into a block with phis puts each phi's value in its place, as one
+// parallel copy (ParallelCopy: phis that take each other's values, a swap,
+// are all read before any is written, a cycle broken through
+// IR816_SCRATCH_RESULT).  A phi kept in X is given its value last, so the
+// copies before it can still read a value in X.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	size			ui;
+	int				i;
 	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
 	SIRPhi*			psInX;
+	SIRCopyStep*	psStep;
 
-	//A phi kept in X is given its value last, so the copies before it can still read a value in X.
+	masCopies.FakeSetUsedElements(0);
 	psInX = NULL;
 	for (ui = 0; ui < pcTo->masPhis.NumElements(); ui++)
 	{
 		psPhi = pcTo->masPhis.Get(ui);
-		psArgument = pcTo->FindPhiArgument(psPhi, pcFrom);
-		if (psArgument && InX(psPhi->sResult) && IsCoalescedPhiBlock(pcTo))
+		if (pcTo->FindPhiArgument(psPhi, pcFrom))
 		{
-			psInX = psPhi;
-		}
-		else if (psArgument)
-		{
-			CopyWords(*maiIncoming.Get(psPhi->sResult.Index()), psArgument->sValue, Words(psPhi->sType));
+			if (InX(psPhi->sResult))
+			{
+				psInX = psPhi;
+			}
+			else
+			{
+				AddCopy(psPhi, pcTo->FindPhiArgument(psPhi, pcFrom));
+			}
 		}
 	}
 	if (psInX)
 	{
-		psArgument = pcTo->FindPhiArgument(psInX, pcFrom);
-		Operand("ldx", psArgument->sValue, 0);
+		AddCopy(psInX, pcTo->FindPhiArgument(psInX, pcFrom));
 	}
-}
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a block's phis can be given their values in their own places on
-// the way in: none of them takes another one's value (so writing one never
-// loses a value another still needs).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::IsCoalescedPhiBlock(CIRBlock* pcBlock)
-{
-	size			ui;
-	size			uj;
-	size			uk;
-	SIRPhi*			psPhi;
-	SIRReference	sValue;
-
-	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	ParallelCopy(&masCopies, &masCopySteps);
+	for (ui = 0; ui < masCopySteps.NumElements(); ui++)
 	{
-		psPhi = pcBlock->masPhis.Get(ui);
-		for (uj = 0; uj < psPhi->asArguments.NumElements(); uj++)
+		psStep = masCopySteps.Get(ui);
+		if (psStep->bSave)
 		{
-			sValue = psPhi->asArguments.Get(uj)->sValue;
-			for (uk = 0; uk < pcBlock->masPhis.NumElements(); uk++)
+			for (i = 0; i < Words(psStep->sType); i++)
 			{
-				if ((uk != ui) && sValue.Equals(pcBlock->masPhis.Get(uk)->sResult))
-				{
-					return false;
-				}
+				Operand("lda", psStep->sSource, i);
+				Frame("sta", IR816_SCRATCH_RESULT + 2 * i);
 			}
 		}
+		else if (InX(psStep->sDestination))
+		{
+			if (psStep->bSaved)
+			{
+				Frame("ldx", IR816_SCRATCH_RESULT);
+			}
+			else
+			{
+				Operand("ldx", psStep->sSource, 0);
+			}
+		}
+		else if (psStep->bSaved)
+		{
+			for (i = 0; i < Words(psStep->sType); i++)
+			{
+				Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
+				Frame("sta", OffsetOf(psStep->sDestination) + 2 * i);
+			}
+		}
+		else
+		{
+			CopyWords(OffsetOf(psStep->sDestination), psStep->sSource, Words(psStep->sType));
+		}
 	}
-	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A phi's copy on a jump, for EdgeCopies.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::PhiCopies(CIRBlock* pcBlock)
+void CIR816Backend::AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument)
 {
-	size		ui;
-	SIRPhi*		psPhi;
-	int			i;
-	int32		iIncoming;
+	SIRCopy*	psCopy;
 
-	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	psCopy = masCopies.Add();
+	psCopy->sDestination = psPhi->sResult;
+	psCopy->sSource = psArgument->sValue;
+	psCopy->sType = psPhi->sType;
+	psCopy->bSaved = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if writing sDestination's place changes sSource's (ParallelCopy): X
+// for a value kept in X, else the frame words.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestination)
+{
+	int32	iSource;
+	int32	iDestination;
+
+	if (!sSource.IsTemporary() || !FoldedBase(sSource).Equals(sSource))
 	{
-		psPhi = pcBlock->masPhis.Get(ui);
-		iIncoming = *maiIncoming.Get(psPhi->sResult.Index());
-		if (iIncoming == OffsetOf(psPhi->sResult))
-		{
-			continue;
-		}
-		for (i = 0; i < Words(psPhi->sType); i++)
-		{
-			Frame("lda", iIncoming + 2 * i);
-			Store(psPhi->sResult, i);
-		}
+		return false;
 	}
+	if (InX(sDestination) || InX(sSource))
+	{
+		return InX(sDestination) && InX(sSource);
+	}
+	iSource = OffsetOf(sSource);
+	iDestination = OffsetOf(sDestination);
+	return (iSource < iDestination + 2 * Words(mpcFunction->GetTemporaryType(sDestination))) && (iDestination < iSource + 2 * Words(mpcFunction->GetTemporaryType(sSource)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the two values are at one place (ParallelCopy).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
+{
+	if (!sValue1.IsTemporary() || !sValue2.IsTemporary() || !FoldedBase(sValue1).Equals(sValue1) || !FoldedBase(sValue2).Equals(sValue2))
+	{
+		return false;
+	}
+	if (InX(sValue1) || InX(sValue2))
+	{
+		return InX(sValue1) && InX(sValue2);
+	}
+	return OffsetOf(sValue1) == OffsetOf(sValue2);
 }
 
 

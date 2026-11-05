@@ -108,6 +108,115 @@ SIRInstruction* CIRBackend::BranchComparison(CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The order the phis' copies on a jump (pasCopies) are written in, as one
+// parallel copy (pasSteps): a copy is written once no copy still to be
+// written reads its destination (CopyOverlaps); when only cycles are left,
+// the value in the first copy's destination is saved and the copies that
+// read it read the saved value.  The copies are used up.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackend::ParallelCopy(CArrayIRCopies* pasCopies, CArrayIRCopySteps* pasSteps)
+{
+	size			ui;
+	size			uiOther;
+	SIRCopy*		psCopy;
+	SIRCopy*		psOther;
+	SIRCopyStep*	psStep;
+	SIRReference	sCycle;
+	bool			bBlocked;
+	bool			bProgress;
+	bool			bLeft;
+
+	pasSteps->FakeSetUsedElements(0);
+	for (;;)
+	{
+		bProgress = false;
+		bLeft = false;
+		for (ui = 0; ui < pasCopies->NumElements(); ui++)
+		{
+			psCopy = pasCopies->Get(ui);
+			if (psCopy->sSource.IsNone())
+			{
+				continue;
+			}
+			bLeft = true;
+
+			//A copy to where its value is already changes nothing, and goes in its turn.
+			bBlocked = false;
+			for (uiOther = 0; !CopySamePlace(psCopy->sSource, psCopy->sDestination) && (uiOther < pasCopies->NumElements()); uiOther++)
+			{
+				psOther = pasCopies->Get(uiOther);
+				if ((uiOther != ui) && !psOther->bSaved && !psOther->sSource.IsNone() && CopyOverlaps(psOther->sSource, psCopy->sDestination))
+				{
+					bBlocked = true;
+					break;
+				}
+			}
+			if (!bBlocked)
+			{
+				psStep = pasSteps->Add();
+				psStep->bSave = false;
+				psStep->sDestination = psCopy->sDestination;
+				psStep->sSource = psCopy->sSource;
+				psStep->sType = psCopy->sType;
+				psStep->bSaved = psCopy->bSaved;
+				psCopy->sSource = IRNone();
+				bProgress = true;
+			}
+		}
+		if (!bLeft)
+		{
+			return true;
+		}
+		if (!bProgress)
+		{
+			//Only cycles: the value in the first copy's destination is saved.
+			psCopy = NULL;
+			for (ui = 0; ui < pasCopies->NumElements(); ui++)
+			{
+				psCopy = pasCopies->Get(ui);
+				if (!psCopy->sSource.IsNone())
+				{
+					break;
+				}
+			}
+			if ((psCopy == NULL) || psCopy->sSource.IsNone())
+			{
+				return Error("Phi copies have no cycle to break.");
+			}
+			sCycle = IRNone();
+			for (uiOther = 0; uiOther < pasCopies->NumElements(); uiOther++)
+			{
+				psOther = pasCopies->Get(uiOther);
+				if (!psOther->sSource.IsNone() && CopyOverlaps(psOther->sSource, psCopy->sDestination))
+				{
+					if (sCycle.IsNone())
+					{
+						sCycle = psOther->sSource;
+						psStep = pasSteps->Add();
+						psStep->bSave = true;
+						psStep->sDestination = IRNone();
+						psStep->sSource = sCycle;
+						psStep->sType = psOther->sType;
+						psStep->bSaved = false;
+					}
+					if (CopySamePlace(psOther->sSource, sCycle))
+					{
+						psOther->bSaved = true;
+					}
+					else
+					{
+						return Error("Phi copies overlap.");
+					}
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every function (each a text section of its own, its name followed by
 // mszSectionOptions) and global (a data section) of the module, for the
 // target's assembler (AssembleObject).

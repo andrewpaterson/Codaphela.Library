@@ -34,7 +34,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The frame (msFrame), its parts added in order: the temporaries after the scratch bytes, shared by those that are
-// never live at once; then each phi's way in and slot its own place.  The arguments are above the frame and the link:
+// never live at once; then each slot its own place.  The arguments are above the frame and the link:
 // the hidden result pointer first, then the parameters in order.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -49,24 +49,21 @@ void CIR816Backend::Layout(void)
 	int32				iRest;
 	size				uiArgument;
 	CIRBlock*			pcBlock;
-	SIRPhi*				psPhi;
 	SIRInstruction*		psInstruction;
 	SIRReference		sParameter;
 
 	iNone = -1;
 	maiOffsets.FakeSetUsedElements(0);
-	maiIncoming.FakeSetUsedElements(0);
 	maiSlots.FakeSetUsedElements(0);
 	maiParameters.FakeSetUsedElements(0);
 	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
 	{
 		maiOffsets.Add(&iNone);
-		maiIncoming.Add(&iNone);
 		maiSlots.Add(&iNone);
 	}
 
-	//The temporaries share places when they aren't live at once (PackTemporaries); then the phis' ways in and the
-	//slots, each a place of its own.
+	//The temporaries share places when they aren't live at once (PackTemporaries); then the slots, each a place of its
+	//own.
 	FoldPointers();
 	msFrame.iFrameBytes = PackTemporaries() - 1;
 
@@ -96,19 +93,6 @@ void CIR816Backend::Layout(void)
 	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
-		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-		{
-			psPhi = pcBlock->masPhis.Get(ui);
-			if (IsCoalescedPhiBlock(pcBlock))
-			{
-				//The jumps in put the values straight in the phis' places.
-				*maiIncoming.Get(psPhi->sResult.Index()) = OffsetOf(psPhi->sResult);
-			}
-			else
-			{
-				*maiIncoming.Get(psPhi->sResult.Index()) = msFrame.Add(ValueBytes(psPhi->sType));
-			}
-		}
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -139,17 +123,13 @@ void CIR816Backend::Layout(void)
 	}
 	msFrame.iArgumentBytes = iArgument - msFrame.Arguments();
 
-	//The temporaries at a pushed parameter's stand-in place (AddRegions), and the coalesced phis' ways in that are their
-	//phis' places, get the parameter's place: no frame reaches IR816_ARGUMENT_STANDIN.
+	//The temporaries at a pushed parameter's stand-in place (AddRegions) get the parameter's place: no frame reaches
+	//IR816_ARGUMENT_STANDIN.
 	for (ui = 0; ui < mpcFunction->NumTemporaries(); ui++)
 	{
 		if (*maiOffsets.Get(ui) >= IR816_ARGUMENT_STANDIN)
 		{
 			*maiOffsets.Get(ui) += msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
-		}
-		if (*maiIncoming.Get(ui) >= IR816_ARGUMENT_STANDIN)
-		{
-			*maiIncoming.Get(ui) += msFrame.Arguments() - IR816_ARGUMENT_STANDIN;
 		}
 	}
 
@@ -1177,9 +1157,8 @@ int32 CIR816Backend::SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo)
 // block it is live into, to its last use, or the end of a block it is live
 // out of (CIR816LiveRanges).  An argument is used where its call pushes it; a
 // phi's arguments at the end of their blocks (after the jump's argument: a
-// brif tests it before the copies) and its result at the start of its own,
-// or also at the ends of its predecessors when they put its values straight
-// in its place (IsCoalescedPhiBlock).  Uses of an instruction's
+// brif tests it before the copies) and its result there too, as the jumps
+// put the values straight in its place (EdgeCopies, one parallel copy).  Uses of an instruction's
 // operands and its result's definition are at the same position, so they
 // only share a place when they are a pair (IR816CanShareArgument, a call's
 // argument, or a load's pointer: a one word load's, or one a phi joins them
@@ -1327,16 +1306,14 @@ int32 CIR816Backend::PackTemporaries(void)
 				{
 					IR816AddEvent(&asEvents, psArgument->sValue, iPosition, IR816_EVENT_USE);
 				}
-				if (IsCoalescedPhiBlock(pcSuccessor))
+
+				//Written here, on the way out.
+				IR816AddEvent(&asEvents, psPhi->sResult, iPosition, IR816_EVENT_WRITE);
+				if (psArgument)
 				{
-					//Written here, on the way out.
-					IR816AddEvent(&asEvents, psPhi->sResult, iPosition, IR816_EVENT_WRITE);
-					if (psArgument)
-					{
-						//The copy is made going that way: as often as the innermost loop both blocks are in goes round
-						//(once per loop for a way out of it).
-						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true, mcLoops.IsHead(pcSuccessor)));
-					}
+					//The copy is made going that way: as often as the innermost loop both blocks are in goes round (once
+					//per loop for a way out of it).
+					cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true, mcLoops.IsHead(pcSuccessor)));
 				}
 			}
 		}

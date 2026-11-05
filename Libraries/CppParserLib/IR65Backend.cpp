@@ -46,7 +46,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiChangesXY.Init();
 	maiChangesY.Init();
 	mauiUses.Init();
-	masMoves.Init();
+	masCopies.Init();
+	masCopySteps.Init();
 	masStubs.Init();
 	msFrame.Init();
 	miReturnLabel = 0;
@@ -83,7 +84,8 @@ void CIR65Backend::Kill(void)
 	mszDeferred.Kill();
 	masFused.Kill();
 	masStubs.Kill();
-	masMoves.Kill();
+	masCopySteps.Kill();
+	masCopies.Kill();
 	mauiUses.Kill();
 	maiChangesY.Kill();
 	maiChangesXY.Kill();
@@ -705,26 +707,19 @@ bool CIR65Backend::FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The copies pcTo's phis need from pcFrom, as one parallel copy: a copy is
-// made once nothing still to be copied reads its destination; when only
-// cycles are left, one value is copied to B and read from there.
+// The copies pcTo's phis need from pcFrom, as one parallel copy
+// (ParallelCopy): a cycle is broken through B.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Edge(CIRBlock* pcFrom, CIRBlock* pcTo)
 {
 	size			ui;
-	size			uiOther;
 	SIRPhi*			psPhi;
 	SIRPhiArgument*	psArgument;
-	SIR65Move*		psMove;
-	SIR65Move*		psOther;
-	SIR65Place*		psDestination;
-	SIRReference	sCycle;
-	bool			bBlocked;
-	bool			bProgress;
-	bool			bLeft;
+	SIRCopy*		psCopy;
+	SIRCopyStep*	psStep;
 
-	masMoves.FakeSetUsedElements(0);
+	masCopies.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcTo->masPhis.NumElements(); ui++)
 	{
 		psPhi = pcTo->masPhis.Get(ui);
@@ -738,89 +733,48 @@ void CIR65Backend::Edge(CIRBlock* pcFrom, CIRBlock* pcTo)
 		{
 			continue;
 		}
-		psMove = masMoves.Add();
-		psMove->sDestination = psPhi->sResult;
-		psMove->sSource = psArgument->sValue;
-		psMove->sType = psPhi->sType;
-		psMove->bFromB = false;
+		psCopy = masCopies.Add();
+		psCopy->sDestination = psPhi->sResult;
+		psCopy->sSource = psArgument->sValue;
+		psCopy->sType = psPhi->sType;
+		psCopy->bSaved = false;
 	}
 
-	for (;;)
+	ParallelCopy(&masCopies, &masCopySteps);
+	for (ui = 0; ui < masCopySteps.NumElements(); ui++)
 	{
-		bProgress = false;
-		bLeft = false;
-		for (ui = 0; ui < masMoves.NumElements(); ui++)
+		psStep = masCopySteps.Get(ui);
+		if (psStep->bSave)
 		{
-			psMove = masMoves.Get(ui);
-			if (psMove->sSource.IsNone())
-			{
-				continue;
-			}
-			bLeft = true;
-			psDestination = PlaceOf(psMove->sDestination);
-			bBlocked = false;
-			for (uiOther = 0; uiOther < masMoves.NumElements(); uiOther++)
-			{
-				psOther = masMoves.Get(uiOther);
-				if ((uiOther != ui) && !psOther->bFromB && psOther->sSource.IsTemporary() && Overlaps(PlaceOf(psOther->sSource), psDestination))
-				{
-					bBlocked = true;
-					break;
-				}
-			}
-			if (!bBlocked)
-			{
-				Move(psMove->sDestination, psMove->sSource, psMove->sType, psMove->bFromB);
-				psMove->sSource = IRNone();
-				bProgress = true;
-			}
+			LoadValue(psStep->sSource, "B", IR65E_Zero);
 		}
-		if (!bLeft)
+		else
 		{
-			break;
-		}
-		if (!bProgress)
-		{
-			//Only cycles: the value in the first copy's destination goes to B.
-			psMove = NULL;
-			for (ui = 0; ui < masMoves.NumElements(); ui++)
-			{
-				psMove = masMoves.Get(ui);
-				if (!psMove->sSource.IsNone())
-				{
-					break;
-				}
-			}
-			if ((psMove == NULL) || psMove->sSource.IsNone())
-			{
-				Error("Phi copies have no cycle to break.");
-				return;
-			}
-			psDestination = PlaceOf(psMove->sDestination);
-			sCycle = IRNone();
-			for (uiOther = 0; uiOther < masMoves.NumElements(); uiOther++)
-			{
-				psOther = masMoves.Get(uiOther);
-				if (!psOther->sSource.IsNone() && psOther->sSource.IsTemporary() && Overlaps(PlaceOf(psOther->sSource), psDestination))
-				{
-					if (sCycle.IsNone())
-					{
-						sCycle = psOther->sSource;
-						LoadValue(sCycle, "B", IR65E_Zero);
-					}
-					if (SamePlace(psOther->sSource, sCycle))
-					{
-						psOther->bFromB = true;
-					}
-					else
-					{
-						Error("Phi copies overlap.");
-						return;
-					}
-				}
-			}
+			Move(psStep->sDestination, psStep->sSource, psStep->sType, psStep->bSaved);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if writing sDestination's place changes sSource's (ParallelCopy).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CopyOverlaps(SIRReference sSource, SIRReference sDestination)
+{
+	return sSource.IsTemporary() && Overlaps(PlaceOf(sSource), PlaceOf(sDestination));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the two values are in one home (ParallelCopy).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CopySamePlace(SIRReference sValue1, SIRReference sValue2)
+{
+	return SamePlace(sValue1, sValue2);
 }
 
 

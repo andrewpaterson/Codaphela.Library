@@ -88,16 +88,8 @@ enum EIR65Extend
 
 
 //A copy a block's jump makes for a successor's phi (IR65Backend.cpp Edge).
-struct SIR65Move
-{
-	SIRReference	sDestination;	//The phi.
-	SIRReference	sSource;		//What it takes; IRNone once the copy is written.
-	SIRType			sType;
-	bool			bFromB;			//The source was copied to B to break a cycle.
-};
 
 
-typedef CArrayTemplate<SIR65Move>	CArrayIR65Moves;
 
 
 //An edge's phi copies written after the function's ret: a branch goes to iLabel, which copies then jumps on.
@@ -194,7 +186,8 @@ protected:
 	CArrayTemplate<int32>	maiChangesY;		//...and that change Y.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
-	CArrayIR65Moves			masMoves;
+	CArrayIRCopies			masCopies;			//A jump's phi copies (Edge)...
+	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayIR65Stubs			masStubs;
 	SIR65Frame				msFrame;			//The function's frame (Layout, Allocate and GenerateFunction).
 	int32					miReturnLabel;
@@ -311,6 +304,8 @@ protected:
 	bool				FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused);
 	void				Edge(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void				Move(SIRReference sDestination, SIRReference sSource, SIRType sType, bool bFromB);
+	bool				CopyOverlaps(SIRReference sSource, SIRReference sDestination);
+	bool				CopySamePlace(SIRReference sValue1, SIRReference sValue2);
 	void				TestZero(SIRReference sValue);
 	bool				Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psFused);
 	bool				Instruction(CIRBlock* pcBlock, size uiIndex);
