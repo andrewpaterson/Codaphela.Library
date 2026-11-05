@@ -49,13 +49,11 @@ DESTRUCTABLE(CComboBox);
 protected:
 	Ptr<CMenuStyle>			mpStyle;
 	Ptr<CFont>				mpFont;
-	Ptr<CFillContainer>		mpPadded;  //The face less its padding.
 	Ptr<CGridContainer>		mpContent;  //The text and the chevron.
 	Ptr<CLabel>				mpText;
 	Ptr<CIconComponent>		mpChevron;
 	Ptr<CMenuContainer>		mpMenu;
 	CListenerCall			mcListeners;
-	SInt32Vec2				msPadding;
 	int32					miSelected;  //-1 if no item is chosen.
 
 public:
@@ -73,7 +71,6 @@ public:
 	void				Select(int32 iIndex);
 	int32				GetSelected(void);
 	char*				GetSelectedText(void);
-	void				SetPadding(int32 iHorizontal, int32 iVertical);
 
 	void				Open(void);
 	void				Close(void);
@@ -96,7 +93,7 @@ public:
 protected:
 	void				Choose(int32 iIndex);
 	void				UpdateLook(void);
-	void				UpdateFaceSize(void);
+	SInt32Vec2				GetContentSize(void) override;
 };
 
 

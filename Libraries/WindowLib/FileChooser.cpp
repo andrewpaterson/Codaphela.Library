@@ -328,7 +328,6 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	Ptr<CFillContainer>		pGap;
 	Ptr<CLabel>				pLabel;
 	SInsets					sInsets;
-	int						aiInsets[4] = { 0, 4, 0, 4 };
 	int32					iLabelWidth;
 	int						iRow;
 
@@ -364,7 +363,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	pBody->AddComponent(pGap, 0, iRow);
 	iRow++;
 
-	sInsets.Init(aiInsets);
+	sInsets.Init(4, 0);
 	mpList = OMalloc<CListContainer>(pWindow, psLook->pcTheme);
 	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListHoverColour(), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);

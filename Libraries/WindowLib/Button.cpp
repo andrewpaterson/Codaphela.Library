@@ -70,10 +70,9 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 {
 	PreInit();
 
-	CImageBorderContainer::Init(pWindow, pImages);
+	CImageBorderContainer::Init(pWindow, pImages, 8, 2);
 	mpNormalImages = pImages;
 	mpDefaultImages = pDefaultImages;
-	msPadding.Init(8, 2);
 	miIconGap = 4;
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CButtonListener>();
@@ -84,9 +83,6 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mbHighlighted = false;
 	SetCanGetFocus(true);
 
-	mpPadded = OMalloc<CFillContainer>(pWindow);
-	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
-	mpFace->AddComponent(mpPadded);
 	mpContent = OMalloc<CGridContainer>(pWindow);
 	mpContent->SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpPadded->AddComponent(mpContent);
@@ -112,11 +108,9 @@ void CButton::Class(void)
 
 	M_Pointer(mpNormalImages);
 	M_Pointer(mpDefaultImages);
-	M_Pointer(mpPadded);
 	M_Pointer(mpContent);
 	M_Pointer(mpIcon);
 	M_Pointer(mpCaption);
-	U_2Int32(msPadding);
 	U_Int32(miIconGap);
 	U_Data(CListenerCall, mcListeners);
 	U_Enum(meState);
@@ -261,42 +255,14 @@ bool CButton::HasCaption(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The icon and the caption.  They are inset by the padding so an icon on
+// the left starts the padding in from the face's edge.
 //
 //////////////////////////////////////////////////////////////////////////
-void CButton::SetPadding(int32 iHorizontal, int32 iVertical)
+SInt32Vec2 CButton::GetContentSize(void)
 {
-	msPadding.Init(iHorizontal, iVertical);
-	UpdateFaceSize();
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The face's desired size is what the grid makes room for.  Being
-// stretched it still fills its cell.  The content is inset by the padding
-// so an icon on the left starts the padding in from the face's edge; the
-// face's background still covers the padding.
-//
-//////////////////////////////////////////////////////////////////////////
-void CButton::UpdateFaceSize(void)
-{
-	SInt32Vec2	sContent;
-	SInsets		sInsets;
-	int			aiInsets[4];
-
-	aiInsets[0] = msPadding.y;
-	aiInsets[1] = msPadding.x;
-	aiInsets[2] = msPadding.y;
-	aiInsets[3] = msPadding.x;
-	sInsets.Init(aiInsets);
-	mpPadded->SetInsets(&sInsets);
-
 	mpContent->SetRequiredSize();
-	sContent = mpContent->GetRequiredSize();
-	mpFace->SetDesiredSize(sContent.x + msPadding.x * 2, sContent.y + msPadding.y * 2);
+	return mpContent->GetRequiredSize();
 }
 
 

@@ -46,11 +46,9 @@ DESTRUCTABLE(CButton);
 protected:
 	Ptr<CButtonImages>			mpNormalImages;
 	Ptr<CButtonImages>			mpDefaultImages;  //Optional.
-	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
 	Ptr<CGridContainer>			mpContent;  //The icon and the caption, side by side, on the face.
 	Ptr<CIconComponent>			mpIcon;  //Shows nothing without a cel.
 	Ptr<CLabel>					mpCaption;
-	SInt32Vec2					msPadding;
 	int32						miIconGap;  //Between the icon and the caption.
 	CListenerCall				mcListeners;
 	EButtonState				meState;
@@ -76,7 +74,6 @@ public:
 	void				SetIconGap(int32 iIconGap);
 	Ptr<CIconComponent>	GetIconComponent(void);
 	Ptr<CLabel>			GetCaptionLabel(void);
-	void				SetPadding(int32 iHorizontal, int32 iVertical);
 
 	bool				AddListener(CButtonListener* pcListener);
 	bool				RemoveListener(CButtonListener* pcListener);
@@ -102,7 +99,7 @@ protected:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
 	void				UpdateState(void);
 	void				UpdateLook(void);
-	void				UpdateFaceSize(void);
+	SInt32Vec2				GetContentSize(void) override;
 	void				UpdateContent(void);
 	bool				HasCaption(void);
 };

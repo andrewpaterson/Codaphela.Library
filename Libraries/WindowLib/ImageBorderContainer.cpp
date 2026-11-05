@@ -33,7 +33,7 @@ static EBorderLayoutCell gaeImageBorderCell[NUM_BUTTON_BORDER_PIECES] = { BLC_To
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages)
+void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, int32 iHorizontalPadding, int32 iVerticalPadding)
 {
 	CBorderLayoutHelper		cBorder;
 	Ptr<CImageCanvasDraw>	pDraw;
@@ -80,6 +80,12 @@ void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImage
 	cBorder.AddComponent(mpFace, BLC_Center);
 	cBorder.Kill();
 
+	//The face's background covers the padding.
+	mpPadded = OMalloc<CFillContainer>(pWindow);
+	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpFace->AddComponent(mpPadded);
+	SetPaddedInsets(iHorizontalPadding, iVerticalPadding);
+
 	PostInit();
 }
 
@@ -96,6 +102,8 @@ void CImageBorderContainer::Class(void)
 	M_Embedded(maBorderDraws);
 	M_Pointer(mpFaceDraw);
 	M_Pointer(mpFace);
+	M_Pointer(mpPadded);
+	U_2Int32(msPadding);
 	U_Enum(meBorderState);
 }
 
@@ -208,7 +216,64 @@ Ptr<CComponent> CImageBorderContainer::FindComponentAt(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CImageBorderContainer::SetPadding(int32 iHorizontal, int32 iVertical)
+{
+	SetPaddedInsets(iHorizontal, iVertical);
+	UpdateFaceSize();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBorderContainer::SetPaddedInsets(int32 iHorizontal, int32 iVertical)
+{
+	SInsets		sInsets;
+
+	msPadding.Init(iHorizontal, iVertical);
+	sInsets.Init(iHorizontal, iVertical);
+	mpPadded->SetInsets(&sInsets);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The face's desired size is what the border's grid makes room for.
+// Being stretched it still fills its cell.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBorderContainer::UpdateFaceSize(void)
+{
+	SInt32Vec2	sContent;
+
+	sContent = GetContentSize();
+	mpFace->SetDesiredSize(sContent.x + msPadding.x * 2, sContent.y + msPadding.y * 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the padded face needs, without the padding.  Nothing unless the
+// container says otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CImageBorderContainer::GetContentSize(void)
+{
+	return SInt32Vec2(0, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CFillContainer> CImageBorderContainer::GetFace(void) { return mpFace; }
+Ptr<CFillContainer> CImageBorderContainer::GetPaddedFace(void) { return mpPadded; }
+SInt32Vec2 CImageBorderContainer::GetPadding(void) { return msPadding; }
 Ptr<CButtonImages> CImageBorderContainer::GetImages(void) { return mpImages; }
 EButtonState CImageBorderContainer::GetBorderState(void) { return meBorderState; }
 

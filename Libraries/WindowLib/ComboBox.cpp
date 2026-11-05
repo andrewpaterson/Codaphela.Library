@@ -37,18 +37,14 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
 	PreInit();
 
-	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal));
+	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), 6, 2);
 	mpStyle = pTheme->GetComboMenuStyle();
 	mpFont = pTheme->GetFont();
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CComboBoxListener>();
-	msPadding.Init(6, 2);
 	miSelected = -1;
 	SetCanGetFocus(true);
 
-	mpPadded = OMalloc<CFillContainer>(pWindow);
-	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
-	mpFace->AddComponent(mpPadded);
 	mpContent = OMalloc<CGridContainer>(pWindow);
 	mpContent->SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpPadded->AddComponent(mpContent);
@@ -83,13 +79,11 @@ void CComboBox::Class(void)
 
 	M_Pointer(mpStyle);
 	M_Pointer(mpFont);
-	M_Pointer(mpPadded);
 	M_Pointer(mpContent);
 	M_Pointer(mpText);
 	M_Pointer(mpChevron);
 	M_Pointer(mpMenu);
 	U_Data(CListenerCall, mcListeners);
-	U_2Int32(msPadding);
 	U_Int32(miSelected);
 }
 
@@ -230,38 +224,15 @@ char* CComboBox::GetSelectedText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::SetPadding(int32 iHorizontal, int32 iVertical)
-{
-	msPadding.Init(iHorizontal, iVertical);
-	UpdateFaceSize();
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The face is wide enough for the widest item, a gap and the chevron, and
 // a line high, plus the padding.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComboBox::UpdateFaceSize(void)
+SInt32Vec2 CComboBox::GetContentSize(void)
 {
-	SInsets		sInsets;
-	int			aiInsets[4];
 	size		i;
 	int32		iWidth;
 	int32		iMaxWidth;
-
-	aiInsets[0] = msPadding.y;
-	aiInsets[1] = msPadding.x;
-	aiInsets[2] = msPadding.y;
-	aiInsets[3] = msPadding.x;
-	sInsets.Init(aiInsets);
-	mpPadded->SetInsets(&sInsets);
 
 	iMaxWidth = 0;
 	for (i = 0; i < mpMenu->NumItems(); i++)
@@ -272,8 +243,7 @@ void CComboBox::UpdateFaceSize(void)
 			iMaxWidth = iWidth;
 		}
 	}
-
-	mpFace->SetDesiredSize(iMaxWidth + COMBO_BOX_CHEVRON_GAP + mpChevron->GetDesiredSize().x + msPadding.x * 2, mpFont->GetLineHeight() + msPadding.y * 2);
+	return SInt32Vec2(iMaxWidth + COMBO_BOX_CHEVRON_GAP + mpChevron->GetDesiredSize().x, mpFont->GetLineHeight());
 }
 
 

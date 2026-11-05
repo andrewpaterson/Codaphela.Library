@@ -49,12 +49,10 @@ DESTRUCTABLE(CTextField);
 protected:
 	CPlainTextEditor			mcEditor;
 	Ptr<CFont>					mpFont;
-	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
 	Ptr<CTextMarksCanvasDraw>	mpMarksDraw;
 	Ptr<CCanvas>				mpMarks;
 	Ptr<CLabel>					mpText;
 	CListenerCall				mcListeners;
-	SInt32Vec2					msPadding;
 	int32						miColumns;
 	int32						miScroll;  //How far the text is moved left to keep the caret in view.
 	size						muiDragAnchor;  //Where a drag's selection started.
@@ -76,7 +74,6 @@ public:
 	void						Select(size uiStart, size uiEnd);
 	void						SelectAll(void);
 	void						SetColumns(int32 iColumns);
-	void						SetPadding(int32 iHorizontal, int32 iVertical);
 	int32						GetScroll(void);
 	int32						GetCharacterX(size uiPosition);
 	size						FindPositionAt(int x);
@@ -112,7 +109,7 @@ public:
 
 protected:
 	void						TextEdited(void);
-	void						UpdateFaceSize(void);
+	SInt32Vec2						GetContentSize(void) override;
 	void						UpdateLook(void);
 	void						SelectTo(size uiPosition);
 	void						LayoutText(void);

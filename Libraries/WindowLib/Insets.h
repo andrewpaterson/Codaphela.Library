@@ -43,6 +43,8 @@ struct SInsets
 
 	void Init(void);
 	void Init(int* paiWidths);
+	void Init(int iTop, int iRight, int iBottom, int iLeft);
+	void Init(int iHorizontal, int iVertical);
 
 	int	GetLeftAndRight(void);
 	int	GetTopAndBottom(void);

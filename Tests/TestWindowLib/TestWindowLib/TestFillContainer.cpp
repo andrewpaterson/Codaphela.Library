@@ -797,6 +797,50 @@ void TestFillContainerImageCanvasPartialDesiredSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Insets are clockwise from the top.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFillContainerInsetsInit(void)
+{
+	SInsets		sInsets;
+	int			aiInsets[4] = { 1, 2, 3, 4 };
+	SInt32Vec2	sPosition;
+	SInt32Vec2	sSize;
+
+	sInsets.Init();
+	AssertInt(0, sInsets.GetLeftAndRight());
+	AssertInt(0, sInsets.GetTopAndBottom());
+
+	sInsets.Init(aiInsets);
+	AssertInt(1, sInsets.aiWidths[BEI_Top]);
+	AssertInt(2, sInsets.aiWidths[BEI_Right]);
+	AssertInt(3, sInsets.aiWidths[BEI_Bottom]);
+	AssertInt(4, sInsets.aiWidths[BEI_Left]);
+
+	sInsets.Init(5, 6, 7, 8);
+	AssertInt(5, sInsets.aiWidths[BEI_Top]);
+	AssertInt(6, sInsets.aiWidths[BEI_Right]);
+	AssertInt(7, sInsets.aiWidths[BEI_Bottom]);
+	AssertInt(8, sInsets.aiWidths[BEI_Left]);
+	sPosition.Init(10, 20);
+	sSize.Init(30, 40);
+	sInsets.Inset(&sPosition, &sSize);
+	AssertInt32Vec2(18, 25, &sPosition);
+	AssertInt32Vec2(16, 28, &sSize);
+
+	//Horizontal then vertical.
+	sInsets.Init(3, 1);
+	AssertInt(1, sInsets.aiWidths[BEI_Top]);
+	AssertInt(3, sInsets.aiWidths[BEI_Right]);
+	AssertInt(1, sInsets.aiWidths[BEI_Bottom]);
+	AssertInt(3, sInsets.aiWidths[BEI_Left]);
+	AssertInt(6, sInsets.GetLeftAndRight());
+	AssertInt(2, sInsets.GetTopAndBottom());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainer(void)
@@ -804,6 +848,7 @@ void TestFillContainer(void)
 	BeginTests();
 	ObjectsInit();
 
+	TestFillContainerInsetsInit();
 	TestFillContainerOverlayStretchInsets();
 	TestFillContainerOverlayCenterBottom();
 	TestFillContainerOverlayPartialDesiredSize();

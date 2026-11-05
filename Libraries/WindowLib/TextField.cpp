@@ -35,23 +35,19 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 {
 	PreInit();
 
-	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal));
+	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), 6, 2);
 	mcEditor.Init(szText == NULL ? "" : szText);
 	mcEditor.mbMultiLine = false;
 	mcEditor.SetPosition(mcEditor.Length());
 	mpFont = pTheme->GetFont();
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CTextFieldListener>();
-	msPadding.Init(6, 2);
 	miColumns = 20;
 	miScroll = 0;
 	muiDragAnchor = 0;
 	mbDragging = false;
 	SetCanGetFocus(true);
 
-	mpPadded = OMalloc<CFillContainer>(pWindow);
-	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
-	mpFace->AddComponent(mpPadded);
 
 	mpMarksDraw = OMalloc<CTextMarksCanvasDraw>(pTheme->GetTextSelectionColour(), pTheme->GetCaretColour());
 	mpMarks = OMalloc<CCanvas>(pWindow, mpMarksDraw);
@@ -169,12 +165,10 @@ void CTextField::Class(void)
 
 	U_Data(CPlainTextEditor, mcEditor);
 	M_Pointer(mpFont);
-	M_Pointer(mpPadded);
 	M_Pointer(mpMarksDraw);
 	M_Pointer(mpMarks);
 	M_Pointer(mpText);
 	U_Data(CListenerCall, mcListeners);
-	U_2Int32(msPadding);
 	U_Int32(miColumns);
 	U_Int32(miScroll);
 	U_Size(muiDragAnchor);
@@ -241,19 +235,9 @@ void CTextField::SetText(const char* szText)
 // line high, plus the padding.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::UpdateFaceSize(void)
+SInt32Vec2 CTextField::GetContentSize(void)
 {
-	SInsets		sInsets;
-	int			aiInsets[4];
-
-	aiInsets[0] = msPadding.y;
-	aiInsets[1] = msPadding.x;
-	aiInsets[2] = msPadding.y;
-	aiInsets[3] = msPadding.x;
-	sInsets.Init(aiInsets);
-	mpPadded->SetInsets(&sInsets);
-
-	mpFace->SetDesiredSize((int)(miColumns * mpFont->GetAverageWidth()) + msPadding.x * 2, mpFont->GetLineHeight() + msPadding.y * 2);
+	return SInt32Vec2((int)(miColumns * mpFont->GetAverageWidth()), mpFont->GetLineHeight());
 }
 
 
@@ -264,20 +248,6 @@ void CTextField::UpdateFaceSize(void)
 void CTextField::SetColumns(int32 iColumns)
 {
 	miColumns = iColumns;
-	UpdateFaceSize();
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::SetPadding(int32 iHorizontal, int32 iVertical)
-{
-	msPadding.Init(iHorizontal, iVertical);
 	UpdateFaceSize();
 
 	//What it is laid out from has changed.

@@ -49,7 +49,6 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CMenuStyle> pStyle)
 {
 	SInsets		sInsets;
-	int			aiInsets[4];
 
 	PreInit();
 
@@ -64,11 +63,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 	miOpenSubMenuRow = -1;
 	SetSelectOnHover(true);
 
-	aiInsets[0] = 0;
-	aiInsets[1] = pStyle->GetSelectionInset();
-	aiInsets[2] = 0;
-	aiInsets[3] = pStyle->GetSelectionInset();
-	sInsets.Init(aiInsets);
+	sInsets.Init(pStyle->GetSelectionInset(), 0);
 	SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(pStyle->GetSelected(), pStyle->GetSelectionRadius(), &sInsets),
 					  OMalloc<CRoundedBoxCanvasDraw>(pStyle->GetHover(), pStyle->GetSelectionRadius(), &sInsets));
 	AddInputAction(CIC_Left, this, &CMenuContainer::Left);
@@ -162,7 +157,6 @@ int32 CMenuContainer::AddSeparator(void)
 	Ptr<CRoundedBoxCanvasDraw>	pDraw;
 	Ptr<CCanvas>			pLine;
 	SInsets					sInsets;
-	int						aiInsets[4];
 
 	iRow = AddRow(false);
 
@@ -170,11 +164,7 @@ int32 CMenuContainer::AddSeparator(void)
 	//of the menu's sides.
 	pSpace = OMalloc<CIconComponent>(mpWindow, Ptr<CImageCel>(), 0, mpStyle->GetSeparatorHeight());
 	AddToRow(iRow, pSpace, 0, 1, 1);
-	aiInsets[0] = 0;
-	aiInsets[1] = mpStyle->GetSeparatorInset();
-	aiInsets[2] = 0;
-	aiInsets[3] = mpStyle->GetSeparatorInset();
-	sInsets.Init(aiInsets);
+	sInsets.Init(mpStyle->GetSeparatorInset(), 0);
 	pDraw = OMalloc<CRoundedBoxCanvasDraw>(mpStyle->GetSeparator(), 0, &sInsets);
 	pLine = OMalloc<CCanvas>(mpWindow, pDraw);
 	pLine->SetTransparent(true);

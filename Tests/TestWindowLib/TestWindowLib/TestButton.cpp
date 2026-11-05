@@ -115,6 +115,7 @@ void TestButtonInput(void)
 		CChars					szLog;
 		SInt32Vec2				sSize;
 		SInt32Vec2				sPosition;
+		CInt32Rect				cBounds;
 		int32					iCaptionWidth;
 		int32					iSpare;
 		int						x;
@@ -248,9 +249,27 @@ void TestButtonInput(void)
 		AssertString("Okay", pOK->GetCaption());
 		sSize = pOK->GetDesiredSize();
 		AssertInt32Vec2((int32)pFont->CalculateWidth("Okay") + 32, 44, &sSize);
+		sSize = pOK->GetPadding();
+		AssertInt32Vec2(8, 2, &sSize);
 		pOK->SetPadding(0, 0);
 		sSize = pOK->GetDesiredSize();
 		AssertInt32Vec2((int32)pFont->CalculateWidth("Okay") + 16, 40, &sSize);
+		sSize = pOK->GetPadding();
+		AssertInt32Vec2(0, 0, &sSize);
+
+		//The padded face is the face less the padding, the content is laid out in it.
+		pOK->SetPadding(5, 3);
+		pTestWindow->Layout();
+		AssertTrue(pOK->GetPaddedFace()->GetParent() == pOK->GetFace());
+		sPosition = pOK->GetPaddedFace()->GetPosition();
+		sSize = pOK->GetFace()->GetPosition();
+		AssertInt(sSize.x, sPosition.x);
+		AssertInt(sSize.y, sPosition.y);
+		AssertTrue(pOK->GetPaddedFace()->GetContainerBounds(&cBounds));
+		AssertInt(sSize.x + 5, cBounds.GetLeft());
+		AssertInt(sSize.y + 3, cBounds.GetTop());
+		AssertInt(pOK->GetFace()->GetActualSize().x - 10, cBounds.GetWidth());
+		AssertInt(pOK->GetFace()->GetActualSize().y - 6, cBounds.GetHeight());
 
 		ValidateLabelObjects();
 

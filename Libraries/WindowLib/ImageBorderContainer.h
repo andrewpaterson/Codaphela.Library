@@ -32,6 +32,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //fill container: the face.  The face is filled with the state's face colour and whatever is added to it is drawn over
 //that.
 //
+//What goes on the face is added to the padded face, the face less its padding.  The face's desired size is the
+//content's size (GetContentSize) with the padding round it; call UpdateFaceSize when the content's size changes.
+//
 //Like a button it is hit as a whole, so it and not its parts has the pointer over it and takes focus, and it keeps the
 //size its parts need unless a desired size is set on an axis.
 class CImageBorderContainer : public CGridContainer
@@ -43,10 +46,12 @@ protected:
 	CArray<CImageCanvasDraw>	maBorderDraws;  //One for each EButtonBorderPiece.
 	Ptr<CClearCanvasDraw>		mpFaceDraw;
 	Ptr<CFillContainer>			mpFace;
+	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
+	SInt32Vec2					msPadding;  //On each side of the content, horizontally and vertically.
 	EButtonState				meBorderState;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, int32 iHorizontalPadding, int32 iVerticalPadding);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -54,6 +59,9 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CFillContainer>	GetFace(void);
+	Ptr<CFillContainer>	GetPaddedFace(void);
+	void				SetPadding(int32 iHorizontal, int32 iVertical);
+	SInt32Vec2			GetPadding(void);
 	void				SetImages(Ptr<CButtonImages> pImages);
 	Ptr<CButtonImages>	GetImages(void);
 	void				SetBorderState(EButtonState eState);
@@ -64,6 +72,9 @@ public:
 
 protected:
 	void				UpdateBorder(void);
+	void				SetPaddedInsets(int32 iHorizontal, int32 iVertical);
+	void				UpdateFaceSize(void);
+	virtual SInt32Vec2	GetContentSize(void);
 };
 
 
