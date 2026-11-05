@@ -1430,6 +1430,49 @@ void TestDistToStackIsHeldFromStackOrRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Distance calculations either side of the walk count wrapping free what
+// they should: the stamps from before the wrap are cleared, not mistaken
+// for a new walk's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToStackAcrossWalkStampWrap(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CRoot>					pRoot;
+		Ptr<CPointerContainer>		pA;
+		Ptr<CPointerContainer>		pB;
+		size						uiRootOnly;
+
+		pRoot = ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		pA = OMalloc<CPointerContainer>();
+		pB = OMalloc<CPointerContainer>();
+		pA->mp = pB;
+		pB->mp = pA;
+		pRoot->Add(pA);
+
+		gcObjects.TestSetWalkStamp(0xFFFFFFF0);
+
+		//Detached from the root, held from the stack (the last walks before the wrap).
+		pRoot->Remove(pA);
+		AssertSize(uiRootOnly + 2, gcObjects.NumMemoryIndexes());
+		pA = NULL;
+		AssertSize(uiRootOnly + 2, gcObjects.NumMemoryIndexes());
+
+		//After the wrap: nothing holds them.
+		pB = NULL;
+		AssertSize(uiRootOnly, gcObjects.NumMemoryIndexes());
+
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToStack(void)
@@ -1458,6 +1501,7 @@ void TestDistToStack(void)
 	TestDistToStackRemoveUnbalancedLargeBroken();
 	TestDistToStackReachedThroughEmbedded();
 	TestDistToStackIsHeldFromStackOrRoot();
+	TestDistToStackAcrossWalkStampWrap();
 
 	DataIOKill();
 	TypesKill();
