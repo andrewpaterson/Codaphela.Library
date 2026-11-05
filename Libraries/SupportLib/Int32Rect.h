@@ -33,7 +33,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CInt32Rect : public CRectangle<SInt32Vec2, int32, int64>
 {
 public:
-	bool			ContainsPixel(int32 x, int32 y);
 	void			GrowToContain(int32 iXPos, int32 iYPos);
 	void			GrowToContain(CInt32Rect* pcOther);
 

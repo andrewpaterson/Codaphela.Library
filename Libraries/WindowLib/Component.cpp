@@ -405,7 +405,7 @@ bool CComponent::GetClip(CInt32Rect* pcClip)
 bool CComponent::IsPointIn(int x, int y)
 {
 	//x and y are in window client space.  The right and bottom edges belong to the next component over.
-	return mcActualBounds.ContainsPixel(x, y);
+	return mcActualBounds.ContainsPoint(x, y);
 }
 
 
@@ -433,7 +433,7 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	//Children are only found where they can be drawn.  The right and bottom edges belong to the next component over.
 	if (ClipsChildren() && GetContainerBounds(&cBounds))
 	{
-		if (!cBounds.ContainsPixel(x, y))
+		if (!cBounds.ContainsPoint(x, y))
 		{
 			return this;
 		}

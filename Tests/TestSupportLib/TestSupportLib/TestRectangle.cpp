@@ -74,25 +74,25 @@ void TestRectangleGetArea(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The right and bottom edges are in the rectangle for IsIn but not for
-// ContainsPixel.
+// ContainsPoint.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestRectangleContainsPixel(void)
+void TestRectangleContainsPoint(void)
 {
 	CInt32Rect	cRect;
 
 	cRect.Init(2, 3, 12, 8);
-	AssertTrue(cRect.ContainsPixel(2, 3));
-	AssertTrue(cRect.ContainsPixel(11, 7));
-	AssertFalse(cRect.ContainsPixel(12, 7));
-	AssertFalse(cRect.ContainsPixel(11, 8));
-	AssertFalse(cRect.ContainsPixel(1, 3));
-	AssertFalse(cRect.ContainsPixel(2, 2));
+	AssertTrue(cRect.ContainsPoint(2, 3));
+	AssertTrue(cRect.ContainsPoint(11, 7));
+	AssertFalse(cRect.ContainsPoint(12, 7));
+	AssertFalse(cRect.ContainsPoint(11, 8));
+	AssertFalse(cRect.ContainsPoint(1, 3));
+	AssertFalse(cRect.ContainsPoint(2, 2));
 	AssertTrue(cRect.IsIn(12, 8));
 
 	//An empty rectangle has no pixels.
 	cRect.Init(5, 5, 5, 5);
-	AssertFalse(cRect.ContainsPixel(5, 5));
+	AssertFalse(cRect.ContainsPoint(5, 5));
 }
 
 
@@ -133,6 +133,9 @@ void TestRectangleFloat64(void)
 	AssertTrue(cRect.IsValid());
 	AssertTrue(cRect.IsIn(0.5, -10.25));
 	AssertFalse(cRect.IsIn(17.5, 0.0));
+	AssertTrue(cRect.ContainsPoint(-1.778, -30.553733));
+	AssertTrue(cRect.IsIn(17.018003, 2.6162));
+	AssertFalse(cRect.ContainsPoint(17.018003, 2.6162));
 
 	//Moved so its top left is the origin, the size stays.
 	cRect.SetPos(0.0, 0.0);
@@ -164,7 +167,7 @@ void TestRectangle(void)
 
 	TestRectangleClipTo();
 	TestRectangleGetArea();
-	TestRectangleContainsPixel();
+	TestRectangleContainsPoint();
 	TestRectangleInt16();
 	TestRectangleFloat64();
 

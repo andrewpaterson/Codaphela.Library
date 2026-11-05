@@ -61,6 +61,7 @@ public:
 	bool	IsValid(void);
 	bool	IsIn(M x, M y);
 	bool	IsIn(M iLeft, M iTop, M iRight, M iBottom);
+	bool	ContainsPoint(M x, M y);
 	bool	Equals(CRectangle<V, M, N>* pcOther);
 	bool	Intersect(CRectangle<V, M, N>* pcOther);
 	bool	Inside(CRectangle<V, M, N>* pcOther);
@@ -370,6 +371,20 @@ template<class V, class M, class N>
 bool CRectangle<V, M, N>::IsIn(M iLeft, M iTop, M iRight, M iBottom)
 {
 	return (IsIn(iLeft, iTop) && IsIn(iRight, iBottom));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Unlike IsIn the right and bottom edges are outside; they belong to the
+// next rectangle over, so a point is in only one of rectangles that touch.
+// For pixels, the pixel below and right of x, y is in the rectangle.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class V, class M, class N>
+bool CRectangle<V, M, N>::ContainsPoint(M x, M y)
+{
+	return (x >= msTopLeft.x) && (x < msBottomRight.x) && (y >= msTopLeft.y) && (y < msBottomRight.y);
 }
 
 
