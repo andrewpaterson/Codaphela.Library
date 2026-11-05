@@ -101,10 +101,8 @@ public:
 	bool			AddListener(CListListener* pcListener);
 	bool			RemoveListener(CListListener* pcListener);
 
-	SInt32Vec2		GetDesiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool			Draw(void) override;
-	Ptr<CComponent>	FindComponentAt(int x, int y) override;
 	bool			WantsEnter(void) override;
 
 	void			FocusLost(void) override;

@@ -36,6 +36,8 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	SetSizedByContent(true);
+	SetHitAsWhole(true);
 	mabEnabled.Init();
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CListListener>();
@@ -378,18 +380,6 @@ bool CListContainer::RemoveListener(CListListener* pcListener)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Like a button a list keeps the size its rows need unless a desired size
-// is set on an axis.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CListContainer::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -438,21 +428,6 @@ bool CListContainer::Draw(void)
 		}
 	}
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// x and y are in window client space.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CListContainer::FindComponentAt(int x, int y)
-{
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
 }
 
 

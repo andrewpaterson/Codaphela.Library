@@ -32,6 +32,7 @@ void CButtonBar::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	CContainer::Init(pWindow);
+	SetSizedByContent(true);
 	SetInsets(8, 8, 8, 8);
 	miGap = 8;
 	meButtonAlignment = CSH_Right;
@@ -51,16 +52,6 @@ void CButtonBar::Class(void)
 	U_Data(SInsets, msInsets);
 	U_Int32(miGap);
 	U_Enum(meButtonAlignment);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CButtonBar::Free(void)
-{
-	CContainer::Free();
 }
 
 
@@ -110,18 +101,6 @@ void CButtonBar::SetInsets(int iTop, int iRight, int iBottom, int iLeft)
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Like a button the bar keeps the size its buttons need unless a desired
-// size is set on an axis.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CButtonBar::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
 }
 
 

@@ -47,7 +47,6 @@ protected:
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* szText, Ptr<CImageCel> pIcon, Ptr<CMenuContainer> pSubMenu);
 	void					Class(void) override;
-	void 					Free(void) override;
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
@@ -61,7 +60,6 @@ public:
 	Ptr<CLabel>				GetLabel(void);
 	Ptr<CIconComponent>		GetChevronComponent(void);
 
-	SInt32Vec2				GetDesiredSize(void) override;
 };
 
 #endif // __MENU_ITEM_H__

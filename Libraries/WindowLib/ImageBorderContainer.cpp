@@ -46,6 +46,8 @@ void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImage
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	SetSizedByContent(true);
+	SetHitAsWhole(true);
 	mpImages = pImages;
 	maBorderDraws.Init();
 	meBorderState = BS_Normal;
@@ -105,16 +107,6 @@ void CImageBorderContainer::Class(void)
 	M_Pointer(mpPadded);
 	U_2Int32(msPadding);
 	U_Enum(meBorderState);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageBorderContainer::Free(void)
-{
-	CGridContainer::Free();
 }
 
 
@@ -184,31 +176,6 @@ void CImageBorderContainer::UpdateBorder(void)
 		maBorderDraws.Get(i)->SetCel(mpImages->GetCel(meBorderState, (EButtonBorderPiece)i));
 	}
 	mpFaceDraw->SetColour(mpImages->GetFaceColour(meBorderState));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CImageBorderContainer::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// x and y are in window client space.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CImageBorderContainer::FindComponentAt(int x, int y)
-{
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
 }
 
 

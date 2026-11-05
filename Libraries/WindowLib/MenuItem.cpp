@@ -36,6 +36,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	SetSizedByContent(true);
 	mpStyle = pStyle;
 	mpSubMenu = pSubMenu;
 
@@ -74,16 +75,6 @@ void CMenuItem::Class(void)
 	M_Pointer(mpLabel);
 	M_Pointer(mpChevron);
 	M_Pointer(mpSubMenu);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMenuItem::Free(void)
-{
-	CGridContainer::Free();
 }
 
 
@@ -131,18 +122,6 @@ void CMenuItem::SetIcon(Ptr<CImageCel> pIcon)
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Like a label an item keeps the size its parts need unless a desired
-// size is set on an axis.  Being stretched it still fills its row.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CMenuItem::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
 }
 
 

@@ -38,7 +38,6 @@ protected:
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CImageCel> pCel, int32 iWidth = -1, int32 iHeight = -1);
 	void			Class(void) override;
-	void 			Free(void) override;
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 

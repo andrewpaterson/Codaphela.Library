@@ -41,7 +41,6 @@ protected:
 public:
 	void		Init(Ptr<CImageCel> pCel, bool bStretch = false);
 	void		Class(void) override;
-	void 		Free(void) override;
 
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;

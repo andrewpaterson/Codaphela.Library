@@ -32,16 +32,18 @@ protected:
 	CInt32Rect	mcContainerBounds;
 	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
 	bool		mbClipsChildren;  //Children are only drawn inside the container bounds.  True unless turned off, for an overlay say.
+	bool		mbSizedByContent;  //The desired size is the required size on an axis without one set, see SetSizedByContent.
 
 public:
 			void		Init(Ptr<CWindow> pWindow);
 			void		Class(void) override;
-			void 		Free(void) override;
 
 			bool		GetContainerBounds(CInt32Rect* pcDest);
 			void		SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 			bool		ClipsChildren(void) override;
 			void		SetClipsChildren(bool bClipsChildren);
+			void		SetSizedByContent(bool bSizedByContent);
+			SInt32Vec2	GetDesiredSize(void) override;
 
 			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 

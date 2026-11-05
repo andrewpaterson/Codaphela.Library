@@ -53,12 +53,9 @@ protected:
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTabbedContainer> pTabbed, const char* szName, Ptr<CImageCel> pIcon, bool bClosable);
 	void				Class(void) override;
-	void 				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	SInt32Vec2			GetDesiredSize(void) override;
-	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 	void				SetSelected(bool bSelected);
 	bool				IsSelected(void);
 	bool				IsClosable(void);

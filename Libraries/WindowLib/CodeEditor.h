@@ -94,7 +94,6 @@ public:
 	void				ClickAction(SComponentInputEvent* psEvent);
 
 	void				SetRequiredSize(void) override;
-	SInt32Vec2			GetDesiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void				ScrollToShow(CInt32Rect* pcRect) override;
 

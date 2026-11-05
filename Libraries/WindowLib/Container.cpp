@@ -34,18 +34,9 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	mcContainerBounds.Init(-1, -1, -1, -1);
 	msRequiredSize.Init(-1, -1);
 	mbClipsChildren = true;
+	mbSizedByContent = false;
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CContainer::Free(void)
-{
-	CComponent::Free();
 }
 
 
@@ -59,6 +50,7 @@ void CContainer::Class(void)
 	U_Data(CInt32Rect, mcContainerBounds);
 	U_2Int32(msRequiredSize);
 	U_Bool(mbClipsChildren);
+	U_Bool(mbSizedByContent);
 }
 
 
@@ -129,8 +121,36 @@ void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// For a container that keeps the size its components need unless a
-// desired size is set on an axis, like a button.
+// A container sized by its content, like a button, keeps the size its
+// components need unless a desired size is set on an axis.  Otherwise an
+// axis without a desired size is variable sized and takes the space it is
+// given.
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::SetSizedByContent(bool bSizedByContent)
+{
+	mbSizedByContent = bSizedByContent;
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CContainer::GetDesiredSize(void)
+{
+	if (mbSizedByContent)
+	{
+		return GetDesiredOrRequiredSize();
+	}
+	return CComponent::GetDesiredSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The desired size, with the required size on an axis without one.
 //
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CContainer::GetDesiredOrRequiredSize(void)

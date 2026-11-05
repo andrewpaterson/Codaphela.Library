@@ -34,6 +34,8 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	PreInit();
 
 	CContainer::Init(pWindow);
+	//A popup is always the size it needs, however big the window is.
+	SetSizedByContent(true);
 	mpContent = pContent;
 	mpOwner = pOwner;
 	msOpenPosition = sPosition;
@@ -64,16 +66,6 @@ void CPopup::Class(void)
 	U_UInt32(msBorder);
 	U_Bool(mbBackground);
 	U_Bool(mbBorder);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPopup::Free(void)
-{
-	CContainer::Free();
 }
 
 
@@ -129,17 +121,6 @@ void CPopup::SetLook(ARGB32 sBackground, SInsets* psInsets)
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A popup is always the size it needs, however big the window is.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CPopup::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
 }
 
 

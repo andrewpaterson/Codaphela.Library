@@ -38,7 +38,6 @@ protected:
 
 public:
 	void		Init(Ptr<CWindow> pWindow);
-	void		Free(void) override;
 	void		Class(void) override;
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;

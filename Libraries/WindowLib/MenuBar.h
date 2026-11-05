@@ -71,7 +71,6 @@ public:
 	bool				AddListener(CMenuListener* pcListener);
 	bool				RemoveListener(CMenuListener* pcListener);
 
-	SInt32Vec2			GetDesiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 protected:

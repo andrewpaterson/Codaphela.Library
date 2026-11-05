@@ -33,6 +33,8 @@ void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	//As tall as its buttons need, unless a desired height is set; it is usually stretched across its parent.
+	SetSizedByContent(true);
 	mpStyle = pTheme->GetMenuStyle();
 	maItems.Init();
 	mpOpenItem = NULL;
@@ -262,18 +264,6 @@ bool CMenuBar::AddListener(CMenuListener* pcListener)
 bool CMenuBar::RemoveListener(CMenuListener* pcListener)
 {
 	return mcListeners.RemoveListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The bar is as tall as its buttons need, unless a desired height is set,
-// and is usually stretched across its parent.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CMenuBar::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
 }
 
 

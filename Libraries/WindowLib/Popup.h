@@ -52,7 +52,6 @@ protected:
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
 	void				Class(void) override;
-	void 				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
@@ -61,7 +60,6 @@ public:
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);
 	void				SetLook(ARGB32 sBackground, SInsets* psInsets);
 
-	SInt32Vec2			GetDesiredSize(void) override;
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool				Draw(void) override;

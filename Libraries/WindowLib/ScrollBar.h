@@ -57,7 +57,6 @@ protected:
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CScrollBarImages> pImages, EScrollBarOrientation eOrientation);
 	void			Class(void) override;
-	void 			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

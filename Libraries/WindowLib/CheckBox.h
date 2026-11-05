@@ -73,8 +73,6 @@ public:
 	bool				AddListener(CCheckBoxListener* pcListener);
 	bool				RemoveListener(CCheckBoxListener* pcListener);
 
-	SInt32Vec2			GetDesiredSize(void) override;
-	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 
 	void				FocusOrMouseOverChanged(void) override;
 	void				ActivateComponent(int x, int y);

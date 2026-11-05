@@ -43,7 +43,6 @@ protected:
 public:
 	void		Init(ARGB32 sColour, int32 iRadius, SInsets* psInsets);
 	void		Class(void) override;
-	void 		Free(void) override;
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;
 

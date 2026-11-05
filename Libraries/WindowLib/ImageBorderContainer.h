@@ -53,7 +53,6 @@ protected:
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, int32 iHorizontalPadding, int32 iVerticalPadding);
 	void				Class(void) override;
-	void 				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -67,8 +66,6 @@ public:
 	void				SetBorderState(EButtonState eState);
 	EButtonState		GetBorderState(void);
 
-	SInt32Vec2			GetDesiredSize(void) override;
-	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 
 protected:
 	void				UpdateBorder(void);

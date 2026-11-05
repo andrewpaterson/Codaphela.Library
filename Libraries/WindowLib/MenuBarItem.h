@@ -42,7 +42,6 @@ protected:
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CMenuBar> pMenuBar, Ptr<CMenuStyle> pStyle, Ptr<CMenuContainer> pMenu, const char* szText, Ptr<CImageCel> pIcon);
 	void				Class(void) override;
-	void 				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 

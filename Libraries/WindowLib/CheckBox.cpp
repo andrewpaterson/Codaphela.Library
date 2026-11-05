@@ -34,6 +34,8 @@ void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char*
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	SetSizedByContent(true);
+	SetHitAsWhole(true);
 	mpImages = pTheme->GetCheckBoxImages();
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CCheckBoxListener>();
@@ -175,33 +177,6 @@ void CCheckBox::SetCaption(const char* szCaption)
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Like a label a check box keeps the size its parts need unless a desired
-// size is set on an axis.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CCheckBox::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// x and y are in window client space.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CCheckBox::FindComponentAt(int x, int y)
-{
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
 }
 
 

@@ -59,6 +59,9 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	SetSizedByContent(true);
+	//Not its parts, so it hears the pointer move over its cross.
+	SetHitAsWhole(true);
 	mpTabbed = pTabbed;
 	mpTheme = pTheme;
 	mbSelected = false;
@@ -131,16 +134,6 @@ void CTabComponent::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTabComponent::Free(void)
-{
-	CGridContainer::Free();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CTabComponent::Save(CObjectWriter* pcFile)
 {
 	return false;
@@ -154,33 +147,6 @@ bool CTabComponent::Save(CObjectWriter* pcFile)
 bool CTabComponent::Load(CObjectReader* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A tab is as big as its parts need, like a button.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CTabComponent::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The tab is hit as a whole, not its parts, so it hears the pointer move
-// over its cross.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CTabComponent::FindComponentAt(int x, int y)
-{
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
 }
 
 

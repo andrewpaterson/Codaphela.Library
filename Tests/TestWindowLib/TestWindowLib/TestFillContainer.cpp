@@ -797,6 +797,86 @@ void TestFillContainerImageCanvasPartialDesiredSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A container hit as a whole is found instead of its components.  One
+// sized by its content desires the size they need on an axis without a
+// desired size.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFillContainerHitAsWholeAndSizedByContent(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CCanvas>			pCanvas;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFillContainer>		pOuter;
+		Ptr<CFillContainer>		pFill;
+		SInsets					sInsets;
+		SInt32Vec2				sVec;
+		CPointer				pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 42, 16, NULL);
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pOuter = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pOuter);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		sInsets.Init(2, 1);
+		pFill->SetInsets(&sInsets);
+		pFill->SetAlignment(CSH_Left, CSV_Top);
+		pOuter->AddComponent(pFill);
+		pCanvas = OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pCanvas->SetDesiredSize(10, 6);
+		pCanvas->SetAlignment(CSH_Left, CSV_Top);
+		pFill->AddComponent(pCanvas);
+
+		//Not sized by its content the fill takes the whole window.
+		sVec = pFill->GetDesiredSize();
+		AssertInt32Vec2(-1, -1, &sVec);
+		pTestWindow->Layout();
+		sVec = pFill->GetActualSize();
+		AssertInt32Vec2(42, 16, &sVec);
+		AssertTrue(pTestWindow->FindComponentAt(5, 4) == pCanvas);
+
+		pFill->SetSizedByContent(true);
+		sVec = pFill->GetDesiredSize();
+		AssertInt32Vec2(14, 8, &sVec);
+		pTestWindow->Layout();
+		sVec = pFill->GetActualSize();
+		AssertInt32Vec2(14, 8, &sVec);
+
+		//A desired size on an axis wins on that axis.
+		pFill->SetDesiredSize(20, -1);
+		sVec = pFill->GetDesiredSize();
+		AssertInt32Vec2(20, 8, &sVec);
+
+		pFill->SetHitAsWhole(true);
+		AssertTrue(pTestWindow->FindComponentAt(5, 4) == pFill);
+		AssertTrue(pTestWindow->FindComponentAt(30, 4) == pOuter);
+		pFill->SetHitAsWhole(false);
+		AssertTrue(pTestWindow->FindComponentAt(5, 4) == pCanvas);
+
+		pCanvas = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pFill = NULL;
+		pOuter = NULL;
+	}
+
+	AssertFillContainerObjectsRemoved();
+
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Insets are clockwise from the top.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -866,6 +946,7 @@ void TestFillContainer(void)
 	TestFillContainerDarkForestLargerThanArea();
 	TestFillContainerDarkForestLargerThanAreaUnclipped();
 	TestFillContainerClipFindComponent();
+	TestFillContainerHitAsWholeAndSizedByContent();
 	TestFillContainerDarkForestCenterPastWindowEdges();
 	TestFillContainerImageCanvasPartialDesiredSize();
 

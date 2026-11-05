@@ -44,6 +44,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CCodeEditorListener>();
 	CContainer::Init(pWindow);
+	SetSizedByContent(true);
 
 	mpTextArea = OMalloc<CTextArea>(pWindow, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
@@ -295,17 +296,6 @@ void CCodeEditor::SetRequiredSize(void)
 	sText = mpTextArea->GetDesiredSize();
 	msRequiredSize.x = sGutter.x + ((sText.x > 0) ? sText.x : 0);
 	msRequiredSize.y = (sText.y > sGutter.y) ? sText.y : sGutter.y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The size the gutter and code need unless a desired size is set.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CCodeEditor::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
 }
 
 

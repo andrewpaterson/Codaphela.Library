@@ -39,6 +39,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	meHorizontalAlignment = CSH_Center;
 	meVerticalAlignment = CSV_Center;
 	mbCanGetFocus = false;
+	mbHitAsWhole = false;
 	mpParent = NULL;
 	mpWindow = pWindow;
 
@@ -68,6 +69,7 @@ void CComponent::Class(void)
 		U_Enum(meHorizontalAlignment);
 		U_Enum(meVerticalAlignment);
 		U_Bool(mbCanGetFocus);
+		U_Bool(mbHitAsWhole);
 		M_Pointer(mpParent);
 		M_Embedded(maChildren);
 	Nes(M_Pointer(mpWindow));
@@ -418,6 +420,10 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	{
 		return NULL;
 	}
+	if (mbHitAsWhole)
+	{
+		return this;
+	}
 
 	//Children are only found where they can be drawn.  The right and bottom edges belong to the next component over.
 	if (ClipsChildren() && GetContainerBounds(&cBounds))
@@ -583,6 +589,7 @@ void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosi
 SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
 bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
+void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 void CComponent::PopupClosed(Ptr<CComponent> pContent) {}  //A popup this component opened, see CWindow::OpenPopup, has closed.
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.

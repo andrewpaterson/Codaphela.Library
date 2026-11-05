@@ -47,6 +47,7 @@ void CScrollBar::Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CS
 
 	//The thumb is pressed and dragged so it takes focus, which is how the drag reaches it.
 	SetCanGetFocus(true);
+	SetHitAsWhole(true);
 
 	mpStart = CreatePiece(pWindow, SBP_Start);
 	mpMiddle = CreatePiece(pWindow, SBP_Middle);
@@ -82,16 +83,6 @@ void CScrollBar::Class(void)
 	U_Int32(miThumbLength);
 	U_Bool(mbDragging);
 	U_Int32(miGrab);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CScrollBar::Free(void)
-{
-	CContainer::Free();
 }
 
 
@@ -324,12 +315,7 @@ Ptr<CComponent> CScrollBar::FindComponentAt(int x, int y)
 	{
 		return NULL;
 	}
-
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
+	return CContainer::FindComponentAt(x, y);
 }
 
 
