@@ -211,7 +211,6 @@
     <ClInclude Include="ScrollBarImages.h" />
     <ClInclude Include="ScrollBar.h" />
     <ClInclude Include="ScrollPane.h" />
-    <ClInclude Include="ScrollPaneListener.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
     <ClInclude Include="Component.h" />

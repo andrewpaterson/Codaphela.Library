@@ -279,9 +279,6 @@
     <ClInclude Include="ScrollPane.h">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClInclude>
-    <ClInclude Include="ScrollPaneListener.h">
-      <Filter>Source\Component\Widgets\ScrollPane</Filter>
-    </ClInclude>
     <ClInclude Include="TabbedContainer.h">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>

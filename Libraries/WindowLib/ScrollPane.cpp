@@ -42,8 +42,7 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	msLaidOutScroll.Init(0, 0);
 	miMargin = 2;
 	miWheelStep = 48;
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CScrollPaneListener>();
+	mcScrolled.Init();
 
 	//The scroll bars are the last children so they are drawn over the content and hit before it.
 	mpHorizontal = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pTheme->GetScrollBarImages(), SBO_Horizontal);
@@ -89,7 +88,7 @@ void CScrollPane::Class(void)
 	U_2Int32(msLaidOutScroll);
 	U_Int32(miMargin);
 	U_Int32(miWheelStep);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CScrollPane>, mcScrolled);
 }
 
 
@@ -99,7 +98,7 @@ void CScrollPane::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::Free(void)
 {
-	mcListeners.Kill();
+	mcScrolled.Kill();
 	CContainer::Free();
 }
 
@@ -354,8 +353,8 @@ int32 CScrollPane::GetContentLength(int32 iDesired, int32 iView, EScrollPanePoli
 //////////////////////////////////////////////////////////////////////////
 //
 // The view is the whole area.  The content is laid out first, moved by the
-// scroll position, then the scroll bars over it.  Listeners are told if
-// the content was laid out at a new scroll position.
+// scroll position, then the scroll bars over it.  The scroll event is
+// called if the content was laid out at a new scroll position.
 //
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -413,7 +412,7 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	if ((sScrollPosition.x != sPreviousScroll.x) || (sScrollPosition.y != sPreviousScroll.y))
 	{
-		mcListeners.CallListeners(&CScrollPaneListener::Scrolled, this, &sScrollPosition);
+		mcScrolled.Call(this);
 	}
 }
 
@@ -606,6 +605,5 @@ void CScrollPane::SetMargin(int32 iMargin) { miMargin = iMargin; InvalidateLayou
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
 int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
 SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }
-bool CScrollPane::AddListener(CScrollPaneListener* pcListener) { return mcListeners.AddListener(pcListener); }
-bool CScrollPane::RemoveListener(CScrollPaneListener* pcListener) { return mcListeners.RemoveListener(pcListener); }
+CComponentEvent<CScrollPane>* CScrollPane::GetScrollEvent(void) { return &mcScrolled; }
 
