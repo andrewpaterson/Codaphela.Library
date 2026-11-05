@@ -76,9 +76,8 @@ New general features (not diff-only)
    Kept by line and position, redrawn whenever the layout changes, as the selection is.  The IDE can use it for the
    current line, find results and breakpoints.
 
-2. CScrollPane scroll listener.  CScrollPaneListener::Scrolled(pcSource, pvContext) whenever the scroll position
-   changes (drag, wheel, track jump, SetScrollPosition, ScrollToShow).  CScrollPane has a CListenerCall like
-   CCodeEditor's.
+2. CScrollPane scroll event.  GetScrollEvent() is called whenever the laid out scroll position changes (drag, wheel,
+   track jump, SetScrollPosition, ScrollToShow), a CComponentEvent<CScrollPane> like CCodeEditor's change event.
 
 3. CTextContent::FindLine(lsize uiOffset), in StandardLib.
 
@@ -97,13 +96,13 @@ can be tested without any windows:
     - inside a block: proportional, start + (fLine - fromStart) * (toLength / fromLength).
     - a block that's empty on the from side is a point; on the to side its lines are skipped over.
 
-When a pane scrolls (its CScrollPaneListener::Scrolled), the view:
+When a pane scrolls (its scroll event), the view:
   - finds the fractional line at the vertical middle of that pane's view (scroll position plus half the view height,
     over the row height; rows are equal as the code isn't wrapped and spans don't change the font's size),
   - transfers it to the other side,
   - sets the other pane's vertical scroll position so that line is at its middle, clamped,
   - copies the horizontal scroll position across unchanged,
-  - guards against the other pane's Scrolled call coming back (mbSyncing).
+  - guards against the other pane's scroll event coming back (mbSyncing).
 The divider is redrawn after any scroll or layout.
 
 
@@ -131,7 +130,7 @@ and code editor tests do.
    end, empty texts (TestStandardLib).
 3. CTextArea background layer + tests: bands, ranges across lines, boundaries, scrolled, with tiled text, cleared
    (TestWindowLib).
-4. CScrollPaneListener + tests: each way of scrolling tells listeners exactly once (TestWindowLib).
+4. CScrollPane scroll event + tests: each way of scrolling calls it exactly once (TestWindowLib).
 5. CVectorPath::CubicTo + tests (TestSupportLib).
 6. CDiffDivider + CDiffViewColours + pixel tests of the shapes for given scroll positions.
 7. CDiffView: panes, titles, colours from a CSimpleTextDiff, sync scrolling, policy changes, pixel tests
@@ -144,7 +143,7 @@ Later
 
 - Next/previous difference (F7 / Shift+F7) and a "n differences" label.
 - Whitespace and highlight combos in a small toolbar.
-- Editable right side: CCodeEditorListener::CodeChanged -> CTextContent::Set from the text area -> Produce ->
+- Editable right side: CCodeEditor's change event -> CTextContent::Set from the text area -> Produce ->
   Update, delayed like the IDE's 400 ms recolour.
 - IntelliJ's "Align changes" mode: blank spacers under the shorter side (CCodeEditor line gaps plus a gap above line
   0), straight divider bands, and identical scroll positions.
