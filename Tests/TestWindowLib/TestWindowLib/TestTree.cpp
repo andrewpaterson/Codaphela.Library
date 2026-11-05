@@ -75,6 +75,7 @@ void TestTreeNodes(void)
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTreeContainer>		pTree;
+		Ptr<CFont>				pFont;
 		Ptr<CTickTestRefWindow>	pTick;
 		SDataTestRefWindow		cData;
 		CTestTreeListener		cListener;
@@ -130,6 +131,17 @@ void TestTreeNodes(void)
 		AssertInt(iMain, pTree->FindNode(iSource, "Main.cpp"));
 		AssertInt(iHeader, pTree->FindNode(TREE_NO_NODE, "Header.h"));
 		AssertInt(TREE_NO_NODE, pTree->FindNode(iSource, "Header.h"));
+
+		//A node's name is in the theme's font unless it is given one; NULL gives it back.
+		pFont = ReadLabelFont();
+		AssertTrue(pTree->GetNodeFont(iMain).IsNull());
+		pTree->SetNodeFont(iMain, pFont);
+		AssertTrue(pTree->GetNodeFont(iMain) == pFont);
+		AssertTrue(pTree->GetNodeFont(iTile).IsNull());
+		pTree->SetNodeFont(iMain, NULL);
+		AssertTrue(pTree->GetNodeFont(iMain).IsNull());
+		pTree->SetNodeFont(42, pFont);
+		pFont = NULL;
 
 		//Closed, only the nodes at the top are rows.
 		AssertString("0,5", TreeRows(pTree, &sz));

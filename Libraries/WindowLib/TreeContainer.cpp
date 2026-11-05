@@ -53,6 +53,7 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	masNodes.Init();
 	mszTexts.Init();
 	maIcons.Init();
+	maFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
 	pWindow->GetColourFormat(&cFormat);
@@ -81,6 +82,7 @@ void CTreeContainer::Class(void)
 	U_Data(CArrayTreeNode, masNodes);
 	U_String(mszTexts);
 	M_Embedded(maIcons);
+	M_Embedded(maFonts);
 	U_Data(CArrayInt, maiRowNodes);
 	U_Data(CArrayInt, maiTopNodes);
 	M_Pointer(mpCollapsedChevron);
@@ -155,6 +157,7 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	psNode->bExpanded = false;
 	mszTexts.Append(szText);
 	maIcons.Add(pIcon);
+	maFonts.Add(NULL);
 
 	if (iParent == TREE_NO_NODE)
 	{
@@ -194,6 +197,7 @@ void CTreeContainer::RemoveAllNodes(void)
 	masNodes.ReInit();
 	mszTexts.Clear();
 	maIcons.RemoveAll();
+	maFonts.RemoveAll();
 	maiTopNodes.ReInit();
 	mbRowsDirty = true;
 	UpdateRows();
@@ -253,6 +257,37 @@ int32 CTreeContainer::FindNode(int32 iParent, const char* szText)
 		}
 	}
 	return TREE_NO_NODE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node's name is drawn in pFont, or the theme's font if it is NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::SetNodeFont(int32 iNode, Ptr<CFont> pFont)
+{
+	if ((iNode < 0) || (iNode >= NumNodes()) || (maFonts.Get(iNode) == pFont))
+	{
+		return;
+	}
+	maFonts.Set(iNode, pFont);
+	if (IsNodeVisible(iNode))
+	{
+		mbRowsDirty = true;
+		InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the node is in the theme's font.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFont> CTreeContainer::GetNodeFont(int32 iNode)
+{
+	return maFonts.Get(iNode);
 }
 
 
@@ -528,6 +563,7 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 	Ptr<CIconComponent>		pIcon;
 	Ptr<CLabel>				pLabel;
 	Ptr<CImageCel>			pCel;
+	Ptr<CFont>				pFont;
 	CChars					szText;
 	int32					iListRow;
 	int						iColumn;
@@ -565,9 +601,14 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 		iWidth += TREE_ICON_WIDTH;
 	}
 
+	pFont = maFonts.Get(iNode);
+	if (pFont.IsNull())
+	{
+		pFont = mpTheme->GetFont();
+	}
 	szText.Init();
 	GetNodeText(iNode, &szText);
-	pLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), szText.Text());
+	pLabel = OMalloc<CLabel>(mpWindow, pFont, szText.Text());
 	szText.Kill();
 	pLabel->SetAlignment(CSH_Left, CSV_Center);
 	pRow->AddComponent(pLabel, iColumn, 0, 1, 1, 1, 0);

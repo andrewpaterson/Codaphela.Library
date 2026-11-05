@@ -48,7 +48,8 @@ typedef CArrayTemplate<STreeNode>	CArrayTreeNode;
 
 
 //A tree, as Solution Explorer's: nodes with a chevron that opens and closes them when they have children, an icon and
-//a name, each indented by its depth.  The rows of the list are the nodes that can be seen: those at the top and those
+//a name, each indented by its depth.  A node's name is in the theme's font unless it is given its own (SetNodeFont),
+//like a file's in its version control status's colour.  The rows of the list are the nodes that can be seen: those at the top and those
 //in open nodes.  A double click (or enter) on a node with children opens or closes it; on one without, the listeners
 //are told it was activated.  A press on the chevron opens or closes its node.
 class CTreeContainer : public CListContainer
@@ -60,6 +61,7 @@ protected:
 	CArrayTreeNode		masNodes;
 	CChars				mszTexts;
 	CArray<CImageCel>	maIcons;		//One for each node, NULL for none.
+	CArray<CFont>		maFonts;		//One for each node, NULL for the theme's.
 	CArrayInt			maiRowNodes;	//The node of each row.
 	CArrayInt			maiTopNodes;	//The nodes at the top, in order.
 	Ptr<CImageCel>		mpCollapsedChevron;
@@ -81,6 +83,8 @@ public:
 	int32			NumNodes(void);
 	char*			GetNodeText(int32 iNode, CChars* pszDest);
 	int64			GetNodeData(int32 iNode);
+	void			SetNodeFont(int32 iNode, Ptr<CFont> pFont);
+	Ptr<CFont>		GetNodeFont(int32 iNode);
 	int32			GetNodeParent(int32 iNode);
 	int32			GetNodeDepth(int32 iNode);
 	int32			GetFirstChild(int32 iNode);
