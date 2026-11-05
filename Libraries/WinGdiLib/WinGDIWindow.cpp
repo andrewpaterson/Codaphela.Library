@@ -65,10 +65,19 @@ void CWinGDIWindow::Init(CWindow* pcWindow, CNativeWindowFactory * pcWindowFacto
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A window still open (its loop was stopped, not closed) is destroyed,
+// let go of first: a message it is sent now, say activation as another
+// program's window goes, must not reach this object.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Kill(void)
 {
+    if (mhWnd)
+    {
+        SetWindowLongPtrA(mhWnd, GWLP_USERDATA, 0);
+        DestroyWindow(mhWnd);
+        mhWnd = NULL;
+    }
     UnregisterClassA(mszWindowClass.Text(), mhInstance);
     mszWindowClass.Kill();
     CNativeWindow::Kill();
@@ -162,12 +171,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         }
         case WM_DESTROY:
         {
-            //Only the main window ends the message loop, a dialog closing just stops its own.
-            pcWindow->Destroyed();
-            pcWindow->Stop();
-            if (!pcWindow->GetOwner())
+            //Only the main window ends the message loop, a dialog closing just stops its own.  A window Kill
+            //destroys has already let go of its object.
+            if (pcWindow)
             {
-                PostQuitMessage(0);
+                pcWindow->Destroyed();
+                pcWindow->Stop();
+                if (!pcWindow->GetOwner())
+                {
+                    PostQuitMessage(0);
+                }
             }
             return ERROR_SUCCESS;
         }
@@ -175,7 +188,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         {
             //Until the window is first painted there is nothing to show, but the paint must still be validated or
             //Windows sends WM_PAINT again for ever.  Painting signals another present.
-            if (!pcWindow->Present())
+            if (!pcWindow || !pcWindow->Present())
             {
                 ValidateRect(hWnd, NULL);
             }
