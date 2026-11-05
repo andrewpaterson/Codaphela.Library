@@ -80,6 +80,10 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ true,  true,  "Y",			CIC_StepRedo,					CIC_Ignored },
 	{ false, true,  "F12",			CIC_FindReferences,				CIC_Ignored },
 	{ true,  true,  "B",			CIC_Build,						CIC_Ignored },
+	{ false, true,  "F5",			CIC_StopDebugging,				CIC_Ignored },
+	{ true,  true,  "F5",			CIC_RestartDebugging,			CIC_Ignored },
+	{ true,  false, "Pause",		CIC_BreakAll,					CIC_Ignored },
+	{ false, true,  "F11",			CIC_StepOut,					CIC_Ignored },
 };
 
 

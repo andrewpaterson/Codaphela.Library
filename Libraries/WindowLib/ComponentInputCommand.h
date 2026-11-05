@@ -93,6 +93,16 @@ enum EComponentInputCommand
 	CIC_FindReferences,  //Shift+F12.
 	CIC_Build,  //Control+Shift+B.
 
+	//Debugging, with Visual Studio's keys.
+	CIC_StartDebugging,  //F5: start, or continue.
+	CIC_StopDebugging,  //Shift+F5.
+	CIC_RestartDebugging,  //Control+Shift+F5.
+	CIC_BreakAll,  //Control+Pause (Control+Break).
+	CIC_ToggleBreakpoint,  //F9.
+	CIC_StepOver,  //F10.
+	CIC_StepInto,  //F11.
+	CIC_StepOut,  //Shift+F11.
+
 	//Components
 	CIC_ActivateComponent,
 	CIC_ExecuteComponent,

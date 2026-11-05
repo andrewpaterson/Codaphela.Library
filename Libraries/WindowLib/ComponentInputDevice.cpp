@@ -120,18 +120,19 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddPrintable("Numpad -", '-', '-', '-', '-');
 	AddPrintable("Numpad +", '+', '+', '+', '+');
 
-	//Function keys don't type anything.  F12 goes to the definition of what is at the caret, as in Visual Studio.
+	//Function keys don't type anything.  As in Visual Studio F12 goes to the definition of what is at the caret, F5
+	//starts debugging (or continues), F9 toggles a breakpoint, F10 steps over and F11 steps into.
 	AddCommand("F1", CIC_Ignored);
 	AddCommand("F2", CIC_Ignored);
 	AddCommand("F3", CIC_Ignored);
 	AddCommand("F4", CIC_Ignored);
-	AddCommand("F5", CIC_Ignored);
+	AddCommand("F5", CIC_StartDebugging);
 	AddCommand("F6", CIC_Ignored);
 	AddCommand("F7", CIC_Ignored);
 	AddCommand("F8", CIC_Ignored);
-	AddCommand("F9", CIC_Ignored);
-	AddCommand("F10", CIC_Ignored);
-	AddCommand("F11", CIC_Ignored);
+	AddCommand("F9", CIC_ToggleBreakpoint);
+	AddCommand("F10", CIC_StepOver);
+	AddCommand("F11", CIC_StepInto);
 	AddCommand("F12", CIC_GoToDefinition);
 
 	//The keys alone.  With control or shift they are chords, see CComponentInput's chord commands.
