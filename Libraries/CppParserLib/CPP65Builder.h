@@ -179,6 +179,8 @@ protected:
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
 	CAsm65816Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
+	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
+	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).

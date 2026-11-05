@@ -68,6 +68,8 @@ void CCPP65Builder::Init(void)
 	mpcUnitJobs = NULL;
 	mpcFrameProfile = NULL;
 	mszListings.Init();
+	maszOutsideProjects.Init();
+	maszOutsideLibraries.Init();
 	mbLineTable = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
@@ -108,6 +110,8 @@ void CCPP65Builder::Kill(void)
 	mcMemorySpillStore.Kill();
 	mcHeaderCache.Kill();
 	mcHeaderIndex.Kill();
+	maszOutsideLibraries.Kill();
+	maszOutsideProjects.Kill();
 	mszListings.Kill();
 	mcImports.Kill();
 	mszWarnings.Kill();
@@ -285,7 +289,9 @@ static bool IsExcluded(CArrayChars* paszExcluded, const char* szFile)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every C++ source of a Visual Studio project as a unit of the library szLibrary (AddUnit), except those named in
-// szExcluded (space separated).  Returns false if the project can't be read.
+// szExcluded (space separated).  A source outside the project's directory (..\Other\File.cpp) is a unit of a library
+// of its own directory, szLibrary.Other, linked as szLibrary is and given szLibrary's defines (AddDefine): a library's
+// units are found, and their listings named, from the library's directory.  Returns false if the project can't be read.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded)
@@ -293,6 +299,11 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 	CVisualStudioProject	cProject;
 	CArrayChars				aszExcluded;
 	CChars					szExclude;
+	CChars					szDirectory;
+	CChars					szFile;
+	CChars					szPath;
+	CChars					szUnitLibrary;
+	CFileUtil				cFileUtil;
 	size					i;
 	bool					bResult;
 
@@ -316,11 +327,40 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 		{
 			continue;
 		}
-		AddUnit(szLibrary, cProject.GetDirectory(), cProject.GetSource(i), bLinkAsLibrary);
+		szDirectory.Init(cProject.GetDirectory());
+		szFile.Init(cProject.GetSource(i));
+		szUnitLibrary.Init(szLibrary);
+		if (strstr(szFile.Text(), "..") != NULL)
+		{
+			szPath.Init(szDirectory);
+			cFileUtil.AppendToPath(&szPath, szFile.Text());
+			cFileUtil.CollapsePath(&szPath);
+			szFile.Kill();
+			szDirectory.Kill();
+			szFile.Init();
+			szDirectory.Init();
+			cFileUtil.SplitPath(szPath.Text(), &szFile, &szDirectory);
+			szPath.Kill();
+
+			szPath.Init(szDirectory);
+			cFileUtil.RemovePath(&szPath);
+			szUnitLibrary.Append('.');
+			szUnitLibrary.Append(szPath);
+			szPath.Kill();
+			if (!mcProject.GetLibrary(szUnitLibrary.Text()))
+			{
+				maszOutsideProjects.Add(szLibrary);
+				maszOutsideLibraries.Add(szUnitLibrary.Text());
+			}
+		}
+		AddUnit(szUnitLibrary.Text(), szDirectory.Text(), szFile.Text(), bLinkAsLibrary);
 		if (meTarget == CPPT_W65C816)
 		{
-			AddW65C816Assembly(szLibrary, cProject.GetDirectory(), cProject.GetSource(i), bLinkAsLibrary);
+			AddW65C816Assembly(szUnitLibrary.Text(), szDirectory.Text(), szFile.Text(), bLinkAsLibrary);
 		}
+		szUnitLibrary.Kill();
+		szFile.Kill();
+		szDirectory.Kill();
 	}
 	cProject.Kill();
 	aszExcluded.Kill();
@@ -339,6 +379,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 {
 	CLibrary*	pcLibrary;
 	CConfig*	pcConfig;
+	size		i;
 
 	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
 	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)GetCPPTarget(meTarget)->szName) : NULL;
@@ -347,6 +388,20 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 		return false;
 	}
 	pcConfig->AddDefine((char*)szDefine);
+
+	//And to the libraries of its project's sources in other directories (AddVisualStudioProject).
+	for (i = 0; i < maszOutsideProjects.NumElements(); i++)
+	{
+		if (StringCompare(maszOutsideProjects.GetText(i), szLibrary) == 0)
+		{
+			pcLibrary = mcProject.GetLibrary(maszOutsideLibraries.GetText(i));
+			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)GetCPPTarget(meTarget)->szName) : NULL;
+			if (pcConfig)
+			{
+				pcConfig->AddDefine((char*)szDefine);
+			}
+		}
+	}
 	return true;
 }
 
