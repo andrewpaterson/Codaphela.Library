@@ -129,7 +129,6 @@ protected:
 	int32				miTabWidth;  //In spaces.
 	bool				mbEditable;
 	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
-	bool				mbFocussed;
 	bool				mbDragging;
 
 public:

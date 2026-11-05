@@ -50,8 +50,6 @@ protected:
 	ECheckBoxState			meState;
 	int32					miGap;
 	bool					mbTicked;
-	bool					mbMouseOver;
-	bool					mbFocussed;
 	bool					mbPressed;
 
 public:
@@ -78,10 +76,7 @@ public:
 	SInt32Vec2			GetDesiredSize(void) override;
 	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 
-	void				FocusGained(void) override;
-	void				FocusLost(void) override;
-	void				MovedInto(void) override;
-	void				MovedOutof(void) override;
+	void				FocusOrMouseOverChanged(void) override;
 	void				ActivateComponent(int x, int y);
 	void				ExecuteComponent(int x, int y);
 

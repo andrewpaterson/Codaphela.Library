@@ -78,8 +78,6 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CButtonListener>();
 	meState = BS_Normal;
-	mbMouseOver = false;
-	mbFocussed = false;
 	mbPressed = false;
 	mbDefault = false;
 	mbShowsPushed = true;
@@ -122,8 +120,6 @@ void CButton::Class(void)
 	U_Int32(miIconGap);
 	U_Data(CListenerCall, mcListeners);
 	U_Enum(meState);
-	U_Bool(mbMouseOver);
-	U_Bool(mbFocussed);
 	U_Bool(mbPressed);
 	U_Bool(mbDefault);
 	U_Bool(mbShowsPushed);
@@ -365,43 +361,12 @@ void CButton::SetDefault(bool bDefault)
 // Losing focus, as when the window is deactivated, ends a press.
 //
 //////////////////////////////////////////////////////////////////////////
-void CButton::FocusGained(void)
+void CButton::FocusOrMouseOverChanged(void)
 {
-	mbFocussed = true;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CButton::FocusLost(void)
-{
-	mbFocussed = false;
-	mbPressed = false;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CButton::MovedInto(void)
-{
-	mbMouseOver = true;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CButton::MovedOutof(void)
-{
-	mbMouseOver = false;
+	if (!HasFocus())
+	{
+		mbPressed = false;
+	}
 	UpdateState();
 }
 
@@ -430,7 +395,7 @@ void CButton::ExecuteComponent(int x, int y)
 	{
 		mbPressed = false;
 		UpdateState();
-		if (mbMouseOver)
+		if (IsMouseOver())
 		{
 			Click();
 		}
@@ -460,15 +425,15 @@ void CButton::UpdateState(void)
 {
 	EButtonState	eState;
 
-	if (mbPressed && mbMouseOver && mbShowsPushed)
+	if (mbPressed && IsMouseOver() && mbShowsPushed)
 	{
 		eState = BS_Pushed;
 	}
-	else if (mbMouseOver || mbHighlighted)
+	else if (IsMouseOver() || mbHighlighted)
 	{
 		eState = BS_MouseOver;
 	}
-	else if (mbFocussed)
+	else if (HasFocus())
 	{
 		eState = BS_Focussed;
 	}

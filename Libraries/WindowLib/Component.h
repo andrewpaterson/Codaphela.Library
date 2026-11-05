@@ -71,7 +71,6 @@ public:
 			size				NumComponents(void);
 
 			bool				IsPointIn(int x, int y);
-			bool				HasFocus(void);
 	virtual	Ptr<CComponent>		FindComponentAt(int x, int y);
 			void				ToChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py);
 			void				FromChildSpace(Ptr<CComponent> pChildComponent, int x, int y, int* px, int* py);
@@ -81,6 +80,13 @@ public:
 			size				GetDepth(void);
 
 			bool				IsFocussed(void);
+			bool				HasFocus(void);
+			bool				IsMouseOver(void);
+			void				FocusGained(void) override;
+			void				FocusLost(void) override;
+			void				MovedInto(void) override;
+			void				MovedOutof(void) override;
+	virtual	void				FocusOrMouseOverChanged(void);
 			bool				CanGetFocus(void);
 			void				SetCanGetFocus(bool bCanGetFocus);
 	virtual	bool				WantsEnter(void);

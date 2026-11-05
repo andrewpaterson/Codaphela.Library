@@ -57,8 +57,6 @@ protected:
 	CListenerCall			mcListeners;
 	SInt32Vec2				msPadding;
 	int32					miSelected;  //-1 if no item is chosen.
-	bool					mbMouseOver;
-	bool					mbFocussed;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -90,10 +88,7 @@ public:
 	void				PopupClosed(Ptr<CComponent> pContent) override;
 	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) override;
 
-	void				FocusGained(void) override;
-	void				FocusLost(void) override;
-	void				MovedInto(void) override;
-	void				MovedOutof(void) override;
+	void				FocusOrMouseOverChanged(void) override;
 	void				ActivateComponent(int x, int y);
 	void				Up(void);
 	void				Down(void);

@@ -114,7 +114,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	miTabWidth = 4;
 	mbEditable = true;
 	mbSelectable = true;
-	mbFocussed = false;
 	mbDragging = false;
 
 	//The text is drawn over whatever is behind the text area.
@@ -248,7 +247,6 @@ void CTextArea::Class(void)
 	U_Int32(miTabWidth);
 	U_Bool(mbEditable);
 	U_Bool(mbSelectable);
-	U_Bool(mbFocussed);
 	U_Bool(mbDragging);
 }
 
@@ -1917,7 +1915,6 @@ bool CTextArea::WantsEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::FocusGained(void)
 {
-	mbFocussed = true;
 	UpdateMarks();
 }
 
@@ -1929,7 +1926,6 @@ void CTextArea::FocusGained(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::FocusLost(void)
 {
-	mbFocussed = false;
 	mbDragging = false;
 	UpdateMarks();
 }
@@ -3429,7 +3425,7 @@ void CTextArea::UpdateMarks(void)
 		}
 	}
 
-	if (mbFocussed)
+	if (HasFocus())
 	{
 		GetCaretBounds(&cCaret);
 		mpCaretMap->AddRectangle(cCaret.GetLeft(), cCaret.GetTop(), cCaret.GetWidth(), cCaret.GetHeight(), msCaretColour);

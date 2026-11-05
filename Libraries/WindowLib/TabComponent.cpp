@@ -62,7 +62,6 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	mpTabbed = pTabbed;
 	mpTheme = pTheme;
 	mbSelected = false;
-	mbMouseOver = false;
 	mbOverClose = false;
 	SetCanGetFocus(true);
 
@@ -124,7 +123,6 @@ void CTabComponent::Class(void)
 	M_Pointer(mpName);
 	M_Pointer(mpClose);
 	U_Bool(mbSelected);
-	U_Bool(mbMouseOver);
 	U_Bool(mbOverClose);
 }
 
@@ -200,23 +198,15 @@ void CTabComponent::SetSelected(bool bSelected)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Lighter under the pointer.  Leaving the tab leaves its cross too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTabComponent::MovedInto(void)
+void CTabComponent::FocusOrMouseOverChanged(void)
 {
-	mbMouseOver = true;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTabComponent::MovedOutof(void)
-{
-	mbMouseOver = false;
-	mbOverClose = false;
+	if (!IsMouseOver())
+	{
+		mbOverClose = false;
+	}
 	UpdateLook();
 }
 
@@ -311,8 +301,8 @@ bool CTabComponent::IsInClose(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTabComponent::UpdateLook(void)
 {
-	mpBackgroundDraw->SetColour(mbMouseOver ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour());
-	mpUnderlineDraw->SetColour(mbSelected ? mpTheme->GetTabUnderlineColour() : (mbMouseOver ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour()));
+	mpBackgroundDraw->SetColour(IsMouseOver() ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour());
+	mpUnderlineDraw->SetColour(mbSelected ? mpTheme->GetTabUnderlineColour() : (IsMouseOver() ? mpTheme->GetTabHoverColour() : mpTheme->GetTabBarColour()));
 	if (mpClose)
 	{
 		mpClose->SetCel(mbOverClose ? mpTheme->GetTabCloseHover() : mpTheme->GetTabClose());
@@ -326,7 +316,6 @@ void CTabComponent::UpdateLook(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTabComponent::IsSelected(void) { return mbSelected; }
 bool CTabComponent::IsClosable(void) { return mpClose.IsNotNull(); }
-bool CTabComponent::IsMouseOver(void) { return mbMouseOver; }
 char* CTabComponent::GetText(void) { return mpName->GetText(); }
 void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); InvalidateLayout(); }
 Ptr<CIconComponent> CTabComponent::GetIcon(void) { return mpIcon; }

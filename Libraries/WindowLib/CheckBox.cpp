@@ -40,8 +40,6 @@ void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char*
 	meState = CBS_Normal;
 	miGap = 6;
 	mbTicked = bTicked;
-	mbMouseOver = false;
-	mbFocussed = false;
 	mbPressed = false;
 	SetCanGetFocus(true);
 
@@ -77,8 +75,6 @@ void CCheckBox::Class(void)
 	U_Enum(meState);
 	U_Int32(miGap);
 	U_Bool(mbTicked);
-	U_Bool(mbMouseOver);
-	U_Bool(mbFocussed);
 	U_Bool(mbPressed);
 }
 
@@ -234,43 +230,12 @@ bool CCheckBox::RemoveListener(CCheckBoxListener* pcListener)
 // Losing focus, as when the window is deactivated, ends a press.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCheckBox::FocusGained(void)
+void CCheckBox::FocusOrMouseOverChanged(void)
 {
-	mbFocussed = true;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCheckBox::FocusLost(void)
-{
-	mbFocussed = false;
-	mbPressed = false;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCheckBox::MovedInto(void)
-{
-	mbMouseOver = true;
-	UpdateState();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCheckBox::MovedOutof(void)
-{
-	mbMouseOver = false;
+	if (!HasFocus())
+	{
+		mbPressed = false;
+	}
 	UpdateState();
 }
 
@@ -297,7 +262,7 @@ void CCheckBox::ExecuteComponent(int x, int y)
 	if (mbPressed)
 	{
 		mbPressed = false;
-		if (mbMouseOver)
+		if (IsMouseOver())
 		{
 			Toggle();
 		}
@@ -315,13 +280,13 @@ void CCheckBox::UpdateState(void)
 {
 	ECheckBoxState	eState;
 
-	if (mbFocussed)
+	if (HasFocus())
 	{
-		eState = mbMouseOver ? CBS_FocussedMouseOver : CBS_Focussed;
+		eState = IsMouseOver() ? CBS_FocussedMouseOver : CBS_Focussed;
 	}
 	else
 	{
-		eState = mbMouseOver ? CBS_MouseOver : CBS_Normal;
+		eState = IsMouseOver() ? CBS_MouseOver : CBS_Normal;
 	}
 
 	if (eState != meState)

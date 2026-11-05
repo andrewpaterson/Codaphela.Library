@@ -48,7 +48,6 @@ protected:
 	Ptr<CLabel>				mpName;
 	Ptr<CIconComponent>		mpClose;  //NULL if the tab can't be closed.
 	bool					mbSelected;
-	bool					mbMouseOver;
 	bool					mbOverClose;
 
 public:
@@ -63,14 +62,12 @@ public:
 	void				SetSelected(bool bSelected);
 	bool				IsSelected(void);
 	bool				IsClosable(void);
-	bool				IsMouseOver(void);
 	char*				GetText(void);
 	void				SetText(const char* szName);
 	Ptr<CIconComponent>	GetIcon(void);
 	Ptr<CIconComponent>	GetClose(void);
 
-	void				MovedInto(void) override;
-	void				MovedOutof(void) override;
+	void				FocusOrMouseOverChanged(void) override;
 	void				MovedOver(int x, int y) override;
 	void				ActivateComponent(int x, int y);
 	void				ExecuteComponent(int x, int y);

@@ -54,8 +54,6 @@ protected:
 	int32						miIconGap;  //Between the icon and the caption.
 	CListenerCall				mcListeners;
 	EButtonState				meState;
-	bool						mbMouseOver;
-	bool						mbFocussed;
 	bool						mbPressed;  //Pressed on and not yet released.
 	bool						mbDefault;
 	bool						mbShowsPushed;  //False keeps the mouse over look while pressed.
@@ -95,10 +93,7 @@ public:
 
 	bool				WantsEnter(void) override;
 
-	void				FocusGained(void) override;
-	void				FocusLost(void) override;
-	void				MovedInto(void) override;
-	void				MovedOutof(void) override;
+	void				FocusOrMouseOverChanged(void) override;
 	virtual void		ActivateComponent(int x, int y);
 	virtual void		ExecuteComponent(int x, int y);
 	virtual void		KeyClick(void);

@@ -46,8 +46,6 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	miColumns = 20;
 	miScroll = 0;
 	muiDragAnchor = 0;
-	mbFocussed = false;
-	mbMouseOver = false;
 	mbDragging = false;
 	SetCanGetFocus(true);
 
@@ -180,8 +178,6 @@ void CTextField::Class(void)
 	U_Int32(miColumns);
 	U_Int32(miScroll);
 	U_Size(muiDragAnchor);
-	U_Bool(mbFocussed);
-	U_Bool(mbMouseOver);
 	U_Bool(mbDragging);
 }
 
@@ -411,7 +407,7 @@ void CTextField::LayoutText(void)
 	iTop = iTop - sMarksPosition.y;
 	iBottom = iTop + sLabelSize.y - 1;
 	//Like IntelliJ's, a field without focus doesn't show its selection.
-	if (mbFocussed && GetSelection(&uiStart, &uiEnd))
+	if (HasFocus() && GetSelection(&uiStart, &uiEnd))
 	{
 		mpMarksDraw->SetSelection(GetCharacterX(uiStart) - miScroll, iTop, GetCharacterX(uiEnd) - miScroll - 1, iBottom);
 	}
@@ -420,7 +416,7 @@ void CTextField::LayoutText(void)
 		mpMarksDraw->HideSelection();
 	}
 
-	if (mbFocussed)
+	if (HasFocus())
 	{
 		iCaretX -= miScroll;
 		if (iCaretX > iWidth - 1)
@@ -568,6 +564,21 @@ bool CTextField::RemoveListener(CTextFieldListener* pcListener)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Losing focus ends a drag.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::FocusOrMouseOverChanged(void)
+{
+	if (!HasFocus())
+	{
+		mbDragging = false;
+	}
+	UpdateLook();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Enter clicks the window's default button.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -583,11 +594,11 @@ bool CTextField::WantsEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::UpdateLook(void)
 {
-	if (mbFocussed)
+	if (HasFocus())
 	{
 		SetBorderState(BS_Focussed);
 	}
-	else if (mbMouseOver)
+	else if (IsMouseOver())
 	{
 		SetBorderState(BS_MouseOver);
 	}
@@ -595,52 +606,6 @@ void CTextField::UpdateLook(void)
 	{
 		SetBorderState(BS_Normal);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::MovedInto(void)
-{
-	mbMouseOver = true;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::MovedOutof(void)
-{
-	mbMouseOver = false;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::FocusGained(void)
-{
-	mbFocussed = true;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Losing focus, as when the window is deactivated, ends a drag.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::FocusLost(void)
-{
-	mbFocussed = false;
-	mbDragging = false;
-	UpdateLook();
 }
 
 

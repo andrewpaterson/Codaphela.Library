@@ -218,16 +218,26 @@ void TestButtonInput(void)
 		pTestWindow->PointerMoved(x, y);
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertInt(BS_Pushed, pCancel->GetState());
+		AssertTrue(pCancel->HasFocus());
+		AssertTrue(pCancel->IsMouseOver());
 		pTestWindow->Deactivate();
 		AssertInt(BS_Normal, pCancel->GetState());
 		AssertFalse(pCancel->IsPressed());
+		//It keeps focus in the inactive window but doesn't have it.
+		AssertTrue(pCancel->IsFocussed());
+		AssertFalse(pCancel->HasFocus());
+		AssertFalse(pCancel->IsMouseOver());
 		//Focus comes back but the pointer isn't known until it moves.
 		pTestWindow->Activate();
 		AssertInt(BS_Focussed, pCancel->GetState());
+		AssertTrue(pCancel->HasFocus());
+		AssertFalse(pCancel->IsMouseOver());
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 		AssertLog("");
 		pTestWindow->PointerMoved(x, y);
 		AssertInt(BS_MouseOver, pCancel->GetState());
+		AssertTrue(pCancel->IsMouseOver());
+		AssertFalse(pGrid->IsMouseOver());
 
 		AssertTrue(pCancel->RemoveListener(&cListener));
 		pTestWindow->InputCommand(CIC_Enter, true);

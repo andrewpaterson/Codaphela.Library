@@ -44,8 +44,6 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mcListeners.AddAllowedClass<CComboBoxListener>();
 	msPadding.Init(6, 2);
 	miSelected = -1;
-	mbMouseOver = false;
-	mbFocussed = false;
 	SetCanGetFocus(true);
 
 	mpPadded = OMalloc<CFillContainer>(pWindow);
@@ -93,8 +91,6 @@ void CComboBox::Class(void)
 	U_Data(CListenerCall, mcListeners);
 	U_2Int32(msPadding);
 	U_Int32(miSelected);
-	U_Bool(mbMouseOver);
-	U_Bool(mbFocussed);
 }
 
 
@@ -392,6 +388,17 @@ bool CComboBox::RemoveListener(CComboBoxListener* pcListener)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Focus goes to the list while it is open.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComboBox::FocusOrMouseOverChanged(void)
+{
+	UpdateLook();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Enter clicks the window's default button.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -409,11 +416,11 @@ bool CComboBox::WantsEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::UpdateLook(void)
 {
-	if (mbFocussed || IsOpen())
+	if (HasFocus() || IsOpen())
 	{
 		SetBorderState(BS_Focussed);
 	}
-	else if (mbMouseOver)
+	else if (IsMouseOver())
 	{
 		SetBorderState(BS_MouseOver);
 	}
@@ -421,51 +428,6 @@ void CComboBox::UpdateLook(void)
 	{
 		SetBorderState(BS_Normal);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::FocusGained(void)
-{
-	mbFocussed = true;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Focus goes to the list while it is open.
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::FocusLost(void)
-{
-	mbFocussed = false;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::MovedInto(void)
-{
-	mbMouseOver = true;
-	UpdateLook();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::MovedOutof(void)
-{
-	mbMouseOver = false;
-	UpdateLook();
 }
 
 

@@ -58,8 +58,6 @@ protected:
 	int32						miColumns;
 	int32						miScroll;  //How far the text is moved left to keep the caret in view.
 	size						muiDragAnchor;  //Where a drag's selection started.
-	bool						mbFocussed;
-	bool						mbMouseOver;
 	bool						mbDragging;
 
 public:
@@ -91,10 +89,7 @@ public:
 	void						Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool						WantsEnter(void) override;
 
-	void						FocusGained(void) override;
-	void						FocusLost(void) override;
-	void						MovedInto(void) override;
-	void						MovedOutof(void) override;
+	void						FocusOrMouseOverChanged(void) override;
 	void						PrintableAction(SComponentInputEvent* psEvent);
 	void						SpaceAction(SComponentInputEvent* psEvent);
 	void						ActivateComponent(int x, int y);

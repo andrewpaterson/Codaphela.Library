@@ -159,13 +159,16 @@ void CFocus::Refresh(void)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::SetMouseOver(Ptr<CComponent> pComponent)
 {
+	Ptr<CComponent>	pLeft;
+
 	if (mpMouseOverComponent != pComponent)
 	{
-		if (mpMouseOverComponent)
-		{
-			mpMouseOverComponent->MovedOutof();
-		}
+		pLeft = mpMouseOverComponent;
 		mpMouseOverComponent = pComponent;
+		if (pLeft)
+		{
+			pLeft->MovedOutof();
+		}
 		if (mpMouseOverComponent)
 		{
 			mpMouseOverComponent->MovedInto();
@@ -196,18 +199,22 @@ void CFocus::Request(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Gives pComponent focus, or takes focus from everything if it is NULL,
-// as a menu does to take the keys once it opens.
+// as a menu does to take the keys once it opens.  The component losing
+// focus is told after it has gone, so it doesn't still seem focussed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::SetFocus(Ptr<CComponent> pComponent)
 {
+	Ptr<CComponent>	pLost;
+
 	if (pComponent != mpFocussedComponent)
 	{
-		if (mpFocussedComponent)
-		{
-			mpFocussedComponent->FocusLost();
-		}
+		pLost = mpFocussedComponent;
 		mpFocussedComponent = pComponent;
+		if (pLost)
+		{
+			pLost->FocusLost();
+		}
 		if (mpFocussedComponent)
 		{
 			mpFocussedComponent->FocusGained();
@@ -603,6 +610,8 @@ void CFocus::Deactivate(void)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Forget(Ptr<CComponent> pComponent)
 {
+	Ptr<CComponent>	pLost;
+
 	if (IsWithin(mpDragComponent, pComponent))
 	{
 		mpDragComponent = NULL;
@@ -614,11 +623,12 @@ void CFocus::Forget(Ptr<CComponent> pComponent)
 	}
 	if (IsWithin(mpFocussedComponent, pComponent))
 	{
+		pLost = mpFocussedComponent;
+		mpFocussedComponent = NULL;
 		if (mbActive)
 		{
-			mpFocussedComponent->FocusLost();
+			pLost->FocusLost();
 		}
-		mpFocussedComponent = NULL;
 	}
 }
 

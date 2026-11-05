@@ -406,16 +406,6 @@ bool CComponent::IsPointIn(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponent::HasFocus(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 {
 	size					i;
@@ -542,6 +532,44 @@ bool CComponent::IsFocussed(void)
 	}
 	return false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Focussed in the active window, so it gets the keys.  A component keeps
+// focus while its window is inactive, but it doesn't have it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::HasFocus(void)
+{
+	return IsFocussed() && mpWindow->GetFocus()->IsActive();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component is the one under the pointer, not one of its children.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::IsMouseOver(void)
+{
+	return mpWindow->GetFocus()->GetMouseOverComponent() == this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each tells FocusOrMouseOverChanged, for a component whose look only
+// depends on HasFocus and IsMouseOver.  The focus has already changed when
+// they are called, so those say what is now true.  A component overriding
+// one calls it too if it uses FocusOrMouseOverChanged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::FocusGained(void) { FocusOrMouseOverChanged(); }
+void CComponent::FocusLost(void) { FocusOrMouseOverChanged(); }
+void CComponent::MovedInto(void) { FocusOrMouseOverChanged(); }
+void CComponent::MovedOutof(void) { FocusOrMouseOverChanged(); }
+void CComponent::FocusOrMouseOverChanged(void) {}
 
 
 //////////////////////////////////////////////////////////////////////////
