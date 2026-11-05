@@ -295,6 +295,8 @@ void TestHollowObjectInternalAllocation(void)
 	OIndex			oiUnnamed;
 	OIndex			oiNamed;
 	SLogConfig		sLogConfig;
+	size			uiIndexes;
+	size			uiNames;
 
 	ObjectsInit();
 	ORoot();
@@ -313,11 +315,15 @@ void TestHollowObjectInternalAllocation(void)
 	AssertString("Hollow", pcHollow->GetName());
 	AssertSize(2, guiHollowsAllocated);
 
+	uiIndexes = gcObjects.NumMemoryIndexes();
+	uiNames = gcObjects.NumMemoryNames();
 	sLogConfig = gcLogger.SetSilent();
 	AssertNull(gcObjects.AllocateInternalHollow("", oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
 	AssertNull(gcObjects.AllocateInternalHollow("Hollow", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
 	gcLogger.SetConfig(&sLogConfig);
 	AssertSize(2, guiHollowsAllocated);
+	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
+	AssertSize(uiNames, gcObjects.NumMemoryNames());
 	AssertPointer(pcHollow, gcObjects.TestGetFromMemory("Hollow").Object());
 
 	ObjectsFlush();

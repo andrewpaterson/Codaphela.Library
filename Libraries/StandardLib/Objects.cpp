@@ -627,22 +627,15 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Into memory by index, and by name too if it has one.
+// Into memory by index, and by name too if it has one (see
+// CNamedIndexedObjects::Add).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::AddIntoMemory(CBaseObject* pcObject)
 {
 	bool	bResult;
 
-	if (pcObject->IsNamed())
-	{
-		bResult = mcMemory.AddIntoMemoryWithNameAndIndex(pcObject);
-	}
-	else
-	{
-		bResult = mcMemory.AddIntoMemoryWithIndex(pcObject);
-	}
-
+	bResult = mcMemory.Add(pcObject);
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pcObject);

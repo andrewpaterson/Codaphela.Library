@@ -191,79 +191,50 @@ bool CNamedIndexedObjects::RemoveName(char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// By index, and by name too if it has one.  Nothing is added if the index
+// or the name is taken.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::AddIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
 {
-	bool	bResult;
-	OIndex	oi;
-	bool	bHasObject;
-
-	oi = pvObject->GetIndex();
-	if (!IsValidIndex(oi))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with an invalid index [", IndexToString(oi), " ].", NULL);
-	}
-
-	bHasObject = Has(oi);
-	if (bHasObject)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with index[", IndexToString(oi), "].  It already exists.", NULL);
-	}
-
-	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
-{
-	bool					bResult;
-	bool					bHasObject;
 	OIndex					oi;
 	char*					szName;
+	bool					bNamed;
+	bool					bResult;
 	CIndexTreeMemoryAccess	cAccess;
 
-	oi = pvObject->GetIndex();
-	szName = pvObject->GetName();
-	if (StrEmpty(szName))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with an empty name.", NULL);
-	}
-
+	oi = pcObject->GetIndex();
+	szName = pcObject->GetName();
+	bNamed = !StrEmpty(szName);
 	if (!IsValidIndex(oi))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] with invalid index [", IndexToString(oi), " ].", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] with an invalid index [", IndexToString(oi), "].", NULL);
 	}
-
-
-	bHasObject = Has(szName);
-	if (bHasObject)
+	if (bNamed && Has(szName))
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 	}
-
-	bHasObject = Has(oi);
-	if (bHasObject)
+	if (Has(oi))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with index[", IndexToString(oi), "].  It already exists.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot add object with index [", IndexToString(oi), "].  It already exists.", NULL);
 	}
 
-	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
-	if (!bResult)
+	if (!mcMemoryIndexedObjects.Add(oi, pcObject))
 	{
 		return false;
 	}
-	
-	cAccess.Init(&mcMemoryNames);
-	szName = (char*)cAccess.PutStringLong(szName, oi);
-	bResult = szName != NULL;
-	cAccess.Kill();
+	if (!bNamed)
+	{
+		return true;
+	}
 
+	cAccess.Init(&mcMemoryNames);
+	bResult = cAccess.PutStringLong(szName, oi) != NULL;
+	cAccess.Kill();
+	if (!bResult)
+	{
+		mcMemoryIndexedObjects.Remove(oi);
+	}
 	return bResult;
 }
 

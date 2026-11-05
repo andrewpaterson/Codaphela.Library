@@ -42,8 +42,7 @@ public:
 	CBaseObject*		Get(const char* szObjectName, OIndex oi);
 	bool				Has(OIndex oi);
 	bool				Has(char* szName);
-	bool				AddIntoMemoryWithIndex(CBaseObject* pvObject);
-	bool				AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+	bool				Add(CBaseObject* pcObject);
 	bool				RemoveIndex(OIndex oi);
 	bool				RemoveName(char* szName);
 	size				NumIndexed(void);
