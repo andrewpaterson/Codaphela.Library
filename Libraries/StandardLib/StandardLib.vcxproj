@@ -223,6 +223,7 @@
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="DistCalculator.h" />
     <ClInclude Include="DistToRootCalculator.h" />
+    <ClInclude Include="DistToRootExpectedDists.h" />
     <ClInclude Include="DistCalculatorParameters.h" />
     <ClInclude Include="DistToStackCalculator.h" />
     <ClInclude Include="EmbeddedObject.h" />
@@ -357,6 +358,7 @@
     <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="DistCalculator.cpp" />
     <ClCompile Include="DistToRootCalculator.cpp" />
+    <ClCompile Include="DistToRootExpectedDists.cpp" />
     <ClCompile Include="DistCalculatorParameters.cpp" />
     <ClCompile Include="DistToStackCalculator.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />
