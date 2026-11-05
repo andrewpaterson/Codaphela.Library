@@ -504,6 +504,41 @@ bool CFast65C64::IsAtBreakpoint(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bytes of the instruction whose first word is uiOpcode if it calls a
+// subroutine (jsr, brsr): it returns to the address after them.  0 if it
+// doesn't.  For a debugger stepping over calls.
+//
+//////////////////////////////////////////////////////////////////////////
+size CFast65C64::CallLength(uint16 uiOpcode)
+{
+	SFast65C64Op*	psOp;
+
+	psOp = GetFast65C64Op(uiOpcode);
+	if ((psOp->uiInstruction == I65_Jsr) || (psOp->uiInstruction == I65_Brsr))
+	{
+		return 2 + 2 * (size)psOp->uiOperandWords;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction whose first word is uiOpcode returns from a subroutine
+// or an interrupt (ret, rti).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C64::IsReturn(uint16 uiOpcode)
+{
+	SFast65C64Op*	psOp;
+
+	psOp = GetFast65C64Op(uiOpcode);
+	return (psOp->uiInstruction == I65_Ret) || (psOp->uiInstruction == I65_Rti);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Edge interrupts are latched when their input falls.
 //
 //////////////////////////////////////////////////////////////////////////

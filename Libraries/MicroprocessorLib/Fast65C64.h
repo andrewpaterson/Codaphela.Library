@@ -87,6 +87,8 @@ public:
 	bool		Step(void);
 	CBreakpoints*	GetBreakpoints(void);
 	bool			IsAtBreakpoint(void);
+	static size		CallLength(uint16 uiOpcode);
+	static bool		IsReturn(uint16 uiOpcode);
 	size		Run(size uiMaxInstructions);
 
 	void		SetEdgeInterrupt(size uiInterrupt, bool bLow);
