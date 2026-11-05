@@ -241,6 +241,30 @@ void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Libc65's runtime for the W65C816 (its own assembly for string and soft
+// float), each unit linked only when it is used.  A program that calls
+// the C library or the compiler's runtime links with these.  The other
+// targets have none yet.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddLibc65(const char* szLibc65Directory)
+{
+	static const char* aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "string816.asm", "string816_16.asm", "softfloat816.asm", NULL };
+	size	i;
+
+	if (meTarget != CPPT_W65C816)
+	{
+		return;
+	}
+	for (i = 0; aszUnits[i]; i++)
+	{
+		AddUnit("Libc65", szLibc65Directory, aszUnits[i], true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IsExcluded(CArrayChars* paszExcluded, const char* szFile)

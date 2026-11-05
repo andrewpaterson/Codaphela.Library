@@ -223,6 +223,7 @@ public:
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			AddMathTables(const char* szLibc65Directory);
+	void			AddLibc65(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
 	bool			AddDefine(const char* szLibrary, const char* szDefine);
 	void			SetStubMissing(bool bStubMissing);
