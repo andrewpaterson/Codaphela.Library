@@ -287,7 +287,7 @@ void CDockLayoutWriter::WriteNode(CXMLWriter* pcWriter, Ptr<CDockNode> pNode)
 		break;
 
 	case DNK_DocumentWell:
-		pWell = Ptr<CDocumentWell>(dynamic_cast<CDocumentWell*>(&pNode));
+		pWell = pNode->AsWell();
 		pcWriter->Begin("DocumentWell");
 		if (pNode->GetDockSize() > 0)
 		{

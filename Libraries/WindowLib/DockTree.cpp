@@ -356,16 +356,14 @@ void CDockTree::RemoveNode(Ptr<CDockNode> pNode)
 	CDockNodeHolder*			pcHolder;
 	Ptr<CDockSplit>				pSplit;
 	Ptr<CDockArea>				pArea;
-	Ptr<CComponent>				pParent;
 
 	pcHolder = pNode->GetHolder();
 	if (pcHolder == NULL)
 	{
 		return;
 	}
-	pParent = pNode->GetParent();
 	pSplit = pNode->GetParentSplit();
-	pArea = Ptr<CDockArea>(dynamic_cast<CDockArea*>(&pParent));
+	pArea = pNode->GetParentArea();
 	pNode->GetWindow()->GetFocus()->Forget(pNode);
 	pcHolder->RemoveNode(pNode);
 	if (pSplit.IsNotNull())
@@ -512,8 +510,7 @@ Ptr<CDockNode> CDockTree::ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide)
 {
 	Ptr<CDockNode>		pNode;
 	Ptr<CDockSplit>		pSplit;
-	Ptr<CComponent>		pParent;
-	CDockNode*			pcParentNode;
+	Ptr<CDockNode>		pParent;
 
 	pNode = pStart;
 	for (;;)
@@ -523,14 +520,13 @@ Ptr<CDockNode> CDockTree::ClimbToSplit(Ptr<CDockNode> pStart, EDockSide eSide)
 		{
 			return pNode;
 		}
-		pParent = pNode->GetParent();
-		pcParentNode = dynamic_cast<CDockNode*>(&pParent);
-		if (pcParentNode == NULL)
+		pParent = pNode->GetParentNode();
+		if (pParent.IsNull())
 		{
 			//No split of the direction: beside pStart itself, which was what the group was beside.
 			return pStart;
 		}
-		pNode = pcParentNode;
+		pNode = pParent;
 	}
 }
 

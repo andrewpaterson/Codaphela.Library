@@ -113,10 +113,13 @@ public:
 			void				SetDockSize(int32 iSize);
 			int32				GetDockSize(void);
 			Ptr<CDockManager>	GetManager(void);
+			Ptr<CDockNode>		GetParentNode(void);
 			Ptr<CDockSplit>		GetParentSplit(void);
+			Ptr<CDockArea>		GetParentArea(void);
 			CDockNodeHolder*	GetHolder(void);
 			Ptr<CDockSplit>		AsSplit(void);
 			Ptr<CDockGroup>		AsGroup(void);
+			Ptr<CDocumentWell>	AsWell(void);
 			bool				IsSplit(void);
 			bool				IsGroup(void);
 			bool				IsDocumentWell(void);

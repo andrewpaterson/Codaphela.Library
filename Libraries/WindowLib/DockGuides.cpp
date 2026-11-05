@@ -296,7 +296,6 @@ void CDockGuides::AddEdgeMarkers(void)
 void CDockGuides::AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments)
 {
 	CInt32Rect		cBounds;
-	CDockGroup*		pcGroup;
 
 	pcNode->GetActualBounds(&cBounds);
 	if (pcNode->IsDocumentWell())
@@ -304,7 +303,6 @@ void CDockGuides::AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments
 		AddCompass(&cBounds, DTK_WellOuter, DTK_WellCentre, pcNode, !bDocuments, true, 1, true);
 		return;
 	}
-	pcGroup = dynamic_cast<CDockGroup*>(pcNode);
 	if (bInWell)
 	{
 		AddCompass(&cBounds, DTK_Group, DTK_Group, pcNode, true, true, 1, false);
@@ -313,7 +311,7 @@ void CDockGuides::AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments
 			AddCompass(&cBounds, DTK_WellOuter, DTK_WellOuter, &mpManager->GetWell(), true, false, 2, true);
 		}
 	}
-	else if (!bDocuments || pcGroup->IsDocumentGroup())
+	else if (!bDocuments || pcNode->AsGroup()->IsDocumentGroup())
 	{
 		AddCompass(&cBounds, DTK_Group, DTK_Group, pcNode, true, true, 1, false);
 	}

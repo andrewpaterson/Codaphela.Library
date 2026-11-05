@@ -25,6 +25,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockPane.h"
 #include "DockGroup.h"
 #include "DockSplit.h"
+#include "DockArea.h"
+#include "DocumentWell.h"
 #include "DockNode.h"
 
 
@@ -164,15 +166,38 @@ void CDockNode::SetPaneFloatRectangles(CInt32Rect* pcRectangle)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The split or well the node is in, NULL if its parent isn't a node (a
+// dock area, or nothing).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockNode> CDockNode::GetParentNode(void)
+{
+	return Ptr<CDockNode>(dynamic_cast<CDockNode*>(&mpParent));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NULL if the node's parent isn't a split.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CDockSplit> CDockNode::GetParentSplit(void)
 {
-	CDockNode*	pcParent;
+	Ptr<CDockNode>	pParent;
 
-	pcParent = dynamic_cast<CDockNode*>(&mpParent);
-	return (pcParent != NULL) ? pcParent->AsSplit() : Ptr<CDockSplit>();
+	pParent = GetParentNode();
+	return pParent.IsNotNull() ? pParent->AsSplit() : Ptr<CDockSplit>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The dock area the node is the root of, NULL if it isn't a root.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockArea> CDockNode::GetParentArea(void)
+{
+	return Ptr<CDockArea>(dynamic_cast<CDockArea*>(&mpParent));
 }
 
 
@@ -206,6 +231,17 @@ Ptr<CDockSplit> CDockNode::AsSplit(void)
 Ptr<CDockGroup> CDockNode::AsGroup(void)
 {
 	return Ptr<CDockGroup>(dynamic_cast<CDockGroup*>(this));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node as the document well, NULL if it isn't it.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDocumentWell> CDockNode::AsWell(void)
+{
+	return Ptr<CDocumentWell>(dynamic_cast<CDocumentWell*>(this));
 }
 
 
