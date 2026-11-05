@@ -1252,7 +1252,7 @@ void TestSetObjectMemberLocations(bool bSortPointers)
 		AssertString("", szErrors);
 
 		//Replacing a member remaps it: a sorted set is no longer sorted but nothing has moved.
-		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(2);
 		AssertTrue(pSet->Contains(pNamed));
 		AssertSize(2, pNamed->NumHeapFroms());
@@ -1320,7 +1320,7 @@ void TestSetObjectMemberLocations(bool bSortPointers)
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
 		AssertString("", szErrors);
 
-		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(3);
 		AssertTrue(pSet->Contains(pNamed));
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));

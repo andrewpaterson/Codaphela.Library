@@ -214,7 +214,7 @@ void TestHollowObjectInternalAllocation(void)
 	ObjectsInit();
 	ORoot();
 	guiHollowsAllocated = 0;
-	gcObjects.SetHollocationCallback(&TestHollowObjectCountHollow);
+	gcObjects.SetHollowAllocationCallback(&TestHollowObjectCountHollow);
 
 	oiUnnamed = gcObjects.GetIndexGenerator()->GetNext();
 	pcHollow = gcObjects.AllocateInternalHollow("", oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET);

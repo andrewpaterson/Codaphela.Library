@@ -401,7 +401,7 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->meType == OBJECT_POINTER_NAMED)
 		{
-			pvObject = mpcObjects->GetExternalNamedObjectInMemoryOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
+			pvObject = mpcObjects->GetNamedOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
 			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
@@ -448,7 +448,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			szName = pcHeader->mszObjectName.Text();
 			if (!StrEmpty(szName))
 			{
-				return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(szClassName, szName);
+				return mpcObjects->AllocateReplacingNamed(szClassName, szName);
 			}
 			else
 			{

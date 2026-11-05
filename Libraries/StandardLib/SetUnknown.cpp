@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CSetUnknown::Init(bool bSortPointers)
 {
 
-	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPoiners(bSortPointers));
+	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPointers(bSortPointers));
 }
 
 
@@ -40,7 +40,7 @@ void CSetUnknown::Init(bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPoiners(bSortPointers), iChunkSize);
+	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPointers(bSortPointers), iChunkSize);
 }
 
 
@@ -50,7 +50,7 @@ void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPoiners(bSortPointers), iChunkSize);
+	CArrayCommonUnknown::Init(false, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPointers(bSortPointers), iChunkSize);
 }
 
 

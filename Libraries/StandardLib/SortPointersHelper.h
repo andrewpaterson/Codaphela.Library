@@ -3,7 +3,7 @@
 #include "BaseLib/DataCompare.h"
 
 
-DataCompare CalculateDataCompareForSortPoiners(bool bSortPointers);
+DataCompare CalculateDataCompareForSortPointers(bool bSortPointers);
 
 
 

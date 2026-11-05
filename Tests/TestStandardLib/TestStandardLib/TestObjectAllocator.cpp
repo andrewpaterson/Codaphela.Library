@@ -137,7 +137,7 @@ void TestObjectAllocatorNamedOverwrite(void)
 		AssertLong(1, gcObjects.NumMemoryIndexes());
 		AssertLong(1, gcObjects.NumMemoryNames());
 
-		pNamed2 = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "My Object Name");
+		pNamed2 = gcObjects.AllocateReplacingNamed("CTestNamedObject", "My Object Name");
 		pNamed2->Init(2);
 		AssertNotNull(pNamed2.Object());
 		AssertLong(2LL, pNamed2.GetIndex());
@@ -290,7 +290,7 @@ void TestObjectAllocatorOverwriteFromRootCausesChildrenToBeDestroyed(void)
 
 		guiDestroyed = 0;
 
-		pNamedSmall = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObjectSmall", "2");
+		pNamedSmall = gcObjects.AllocateReplacingNamed("CTestNamedObjectSmall", "2");
 		AssertSize(2, guiDestroyed);
 		pNamedSmall->Init("ABC");
 
@@ -606,9 +606,9 @@ void TestObjectAllocatorOverwrittensParentMaintainsPointerToOverwritten(void)
 		pv3 = &pNamed3;
 		pv4 = &pNamed4;
 
-		pNamed3New = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "3");
+		pNamed3New = gcObjects.AllocateReplacingNamed("CTestNamedObject", "3");
 		pNamed3New->Init(33);
-		pNamed4New = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "4");
+		pNamed4New = gcObjects.AllocateReplacingNamed("CTestNamedObject", "4");
 		pNamed4New->Init(44);
 
 		AssertLong(8, gcObjects.NumMemoryIndexes());
@@ -689,9 +689,9 @@ void TestObjectAllocatorOverwrittensParentMaintainsPointerToOverwrittenWithEmbed
 		AssertInt(2, pNamed2->mNamedTest2.GetDistToRoot());
 
 
-		pNamed1 = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObjectWithEmbedded", "Agrarian");
+		pNamed1 = gcObjects.AllocateReplacingNamed("CTestNamedObjectWithEmbedded", "Agrarian");
 		pNamed1->Init(1012, 1013, 1014, 1015, Null(), Null());
-		pNamed2 = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObjectWithEmbedded", "Hydroponics");
+		pNamed2 = gcObjects.AllocateReplacingNamed("CTestNamedObjectWithEmbedded", "Hydroponics");
 		pNamed2->Init(2012, 2013, 2014, 2015, Null(), Null());
 
 		AssertLong(6, gcObjects.NumMemoryIndexes());

@@ -1223,7 +1223,7 @@ void TestArrayObjectOrderKeptAfterRemap(void)
 		}
 
 		sprintf(szName, "N%i", (int)j);
-		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", szName);
+		pReplaced = gcObjects.AllocateReplacingNamed("CTestNamedObject", szName);
 		pReplaced->Init((int)j);
 		pTemp = OMalloc<CTestNamedObject>(3);
 		pArray->Add(pTemp);
@@ -1327,7 +1327,7 @@ void TestArrayObjectMemberLocations(void)
 		pArray->Set(31, pNamed);
 		uiExpected = 101;
 
-		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(2);
 		AssertPointer(pNamed.Object(), pArray->Get(30).Object());
 		AssertPointer(pNamed.Object(), pArray->Get(31).Object());
@@ -1352,7 +1352,7 @@ void TestArrayObjectMemberLocations(void)
 		AssertString("", szErrors);
 
 		//Slots 10 and 20 were taken: Named moved from 30 and 31.  Remapping it makes the indices again.
-		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(3);
 		AssertPointer(pNamed.Object(), pArray->Get(28).Object());
 		AssertPointer(pNamed.Object(), pArray->Get(29).Object());
@@ -1367,7 +1367,7 @@ void TestArrayObjectMemberLocations(void)
 		uiExpected++;
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
 		AssertString("", szErrors);
-		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(4);
 		AssertPointer(pNamed.Object(), pArray->Get(29).Object());
 		AssertPointer(pNamed.Object(), pArray->Get(30).Object());

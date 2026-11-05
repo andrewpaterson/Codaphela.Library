@@ -2301,7 +2301,7 @@ void CBaseObject::ValidateKillCalled(void)
 {
 	if (!(GetFlags() & OBJECT_FLAGS_CALLED_KILL))
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has not been killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
 	}
 }
 

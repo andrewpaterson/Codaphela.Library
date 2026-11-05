@@ -68,7 +68,7 @@ void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrde
 	PreInit();
 	CCollection::Init();
 
-	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPoiners(bSortPointers));
+	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPointers(bSortPointers));
 	mbSorted = true;
 	PostInit();
 }

@@ -1784,12 +1784,12 @@ void TestMapObjectMemberLocationsReplacedNamed(void)
 		pValue->Kill();
 		pMap->Put(pKey, gcObjects.Get("Key"));
 
-		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Key");
+		pReplaced = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Key");
 		pReplaced->Init(2);
 		AssertPointer(pcValue, pMap->Get(pReplaced).Object());
 		AssertPointer(pReplaced.Object(), pMap->Get(pKey).Object());
 
-		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Self");
+		pReplaced = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Self");
 		pReplaced->Init(2);
 		AssertPointer(pReplaced.Object(), pMap->Get(pReplaced).Object());
 		AssertSize(103, pMap->NumElements());

@@ -174,7 +174,7 @@ bool CArrayCommonUnknown::ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
 
 	//These are all set to false because the flags will be fixed later.
-	Init(bTypeKnown, false, false, false, false, CalculateDataCompareForSortPoiners(bMustSort));
+	Init(bTypeKnown, false, false, false, false, CalculateDataCompareForSortPointers(bMustSort));
 	mcArray.SetAllocateSize(iChunkSize);
 	miNonNullElements = iNonNullElements;
 

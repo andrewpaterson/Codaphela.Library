@@ -54,7 +54,7 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
 
 typedef void (*AllocationCallback)(CBaseObject*);
-typedef void (*HollocationCallback)(CBaseObject*);
+typedef void (*HollowAllocationCallback)(CBaseObject*);
 typedef void (*DestructionCallback)(CBaseObject*);
 
 
@@ -76,7 +76,7 @@ protected:
 	CSequenceConnection*	mpcSequenceConnection;
 
 	AllocationCallback		mAllocationCallback;
-	HollocationCallback		mHollocationCallback;
+	HollowAllocationCallback	mHollowAllocationCallback;
 	DestructionCallback		mDestructionCallback;
 	
 	bool					mbValidateConsistency;
@@ -162,7 +162,7 @@ public:
 						void					ValidateObjectsConsistency(void);
 
 						void					SetAllocationCallback(AllocationCallback fAllocationCallback);
-						void					SetHollocationCallback(HollocationCallback fHollocationCallback);
+						void					SetHollowAllocationCallback(HollowAllocationCallback fHollowAllocationCallback);
 						void					SetDestructionCallback(DestructionCallback fDestructionCallback);
 
 						void					EnableValidation(void);
@@ -206,7 +206,7 @@ protected:
 						void					ClearValidationFlags(CArrayBaseObjectPtr* papcObjects);
 						void					ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
-						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
+						void					AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);
 						void					PrintMemoryUseRecursion(CChars* psz);
 						void					UnsetDumpFlags(void);
@@ -216,8 +216,8 @@ public:
 
 						CHollowObject*			AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
 
-						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(const char* szClassName, const char* szObjectName);
-						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
+						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
+						CBaseObject*			GetNamedOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi);

@@ -149,7 +149,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcData
 	mpcSequenceConnection = pcSequenceConnection;
 
 	mAllocationCallback = &ObjectCallbackNotSet;
-	mHollocationCallback = &ObjectCallbackNotSet;
+	mHollowAllocationCallback = &ObjectCallbackNotSet;
 	mDestructionCallback = &ObjectCallbackNotSet;
 
 	mcMemory.Init();
@@ -312,9 +312,9 @@ void CObjects::SetAllocationCallback(AllocationCallback fAllocationCallback)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::SetHollocationCallback(HollocationCallback fHollocationCallback)
+void CObjects::SetHollowAllocationCallback(HollowAllocationCallback fHollowAllocationCallback)
 {
-	mHollocationCallback = fHollocationCallback;
+	mHollowAllocationCallback = fHollowAllocationCallback;
 }
 
 
@@ -1026,27 +1026,16 @@ CBaseObject* CObjects::Dehollow(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(const char* szObjectName)
 {
-	CBaseObject*	pcObject;
-
 	//This does not check mcSources intentionally.
-
-	pcObject = mcMemory.Get(szObjectName);
-	if (pcObject)
+	if (mcMemory.Get(szObjectName) != NULL)
 	{
 		return true;
 	}
-	else
+	if (mpcDataConnection == NULL)
 	{
-		if (mpcDataConnection)
-		{
-			return mpcDataConnection->Contains(szObjectName);
-		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
-	return false;
+	return mpcDataConnection->Contains(szObjectName);
 }
 
 
@@ -1056,27 +1045,16 @@ bool CObjects::Contains(const char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(OIndex oi)
 {
-	CBaseObject* pcObject;
-
 	//This does not check mcSources intentionally.
-
-	pcObject = mcMemory.Get(oi);
-	if (pcObject)
+	if (mcMemory.Get(oi) != NULL)
 	{
 		return true;
 	}
-	else
+	if (mpcDataConnection == NULL)
 	{
-		if (mpcDataConnection)
-		{
-			return mpcDataConnection->Contains(oi);
-		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
-	return false;
+	return mpcDataConnection->Contains(oi);
 }
 
 
@@ -1099,67 +1077,47 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 	//Both batches are registered with the removal context before anything is freed.
 	//Freeing the objects in papcKilled can cause other objects to be removed (e.g. RemoveFreeObject) and the removal context must already know about the objects in papcKilledAfter so they are not killed twice.
 
-	size					iNumElements;
-	size					iNumAfterElements;
-	bool					bResult;
-	CArrayBaseObjectPtr*	papcContextKill;
-	size					iCount;
+	CArrayBaseObjectPtr*	papcBatch;
+	bool					bKilledAfter;
 
-	iNumElements = papcKilled->NumElements();
-	iNumAfterElements = 0;
-	if (papcKilledAfter)
-	{
-		iNumAfterElements = papcKilledAfter->NumElements();
-	}
-
-	if ((iNumElements == 0) && (iNumAfterElements == 0))
+	bKilledAfter = (papcKilledAfter != NULL) && papcKilledAfter->IsNotEmpty();
+	if (papcKilled->IsEmpty() && !bKilledAfter)
 	{
 		return true;
 	}
 
-	iCount = 0;
-	if (!mcRemovalContext.IsBusy())
+	//A removal already under way frees these when it gets to them.
+	if (mcRemovalContext.IsBusy())
 	{
-		papcContextKill = mcRemovalContext.Start(papcKilled);
-		if (iNumAfterElements != 0)
+		if (papcKilled->IsNotEmpty())
+		{
+			mcRemovalContext.Push(papcKilled);
+		}
+		if (bKilledAfter)
 		{
 			mcRemovalContext.Push(papcKilledAfter);
 		}
+		return true;
+	}
 
-		while (papcContextKill != NULL)
+	papcBatch = mcRemovalContext.Start(papcKilled);
+	if (bKilledAfter)
+	{
+		mcRemovalContext.Push(papcKilledAfter);
+	}
+	while (papcBatch != NULL)
+	{
+		if (papcBatch->IsNotEmpty())
 		{
-			iNumElements = papcContextKill->NumElements();
-			if (iNumElements == 0)
-			{
-				papcContextKill = mcRemovalContext.Done();
-				continue;
-			}
-
-			bResult = ValidateNoEmbedded(papcContextKill);
-			if (!bResult)
+			if (!ValidateNoEmbedded(papcBatch))
 			{
 				mcRemovalContext.Clear();
 				return false;
 			}
-
-			RemoveBatch(papcContextKill);
-
-			iCount++;
-			papcContextKill = mcRemovalContext.Done();
+			RemoveBatch(papcBatch);
 		}
+		papcBatch = mcRemovalContext.Done();
 	}
-	else
-	{
-		if (iNumElements != 0)
-		{
-			mcRemovalContext.Push(papcKilled);
-		}
-		if (iNumAfterElements != 0)
-		{
-			mcRemovalContext.Push(papcKilledAfter);
-		}
-	}
-
 	return true;
 }
 
@@ -1487,7 +1445,7 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 	}
 
 	pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
-	AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
+	AppendHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
 	return pcHollow;
 }
 
@@ -1496,7 +1454,7 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) 
+void CObjects::AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) 
 {
 	size					i;
 	CHollowEmbeddedObject*	pcEmbeddedObject;
@@ -1576,17 +1534,17 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const ch
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A new uninitialised object named szObjectName that takes the place of
+// the object with that name (in memory or in the database) if there is
+// one: everything pointing to the old one points to the new one.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(const char* szClassName, const char* szObjectName)
+CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pcObject;
 	OIndex			oi;
 	bool			bResult;
-
-	//This overwrites an existing object with a new object (with the same name).
-	//Only called by the ExternalObjectDeserialiser.
 
 	pvOldObject = GetFromMemory(szObjectName);
 	if (!pvOldObject)
@@ -1741,23 +1699,23 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
 		return NULL;
 	}
-	mHollocationCallback(pcHollow);
+	mHollowAllocationCallback(pcHollow);
 	return pcHollow;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object named szObjectName in memory, or a hollow for it (with the
+// next index) to be loaded later.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
+CBaseObject* CObjects::GetNamedOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
 	CBaseObject*	pvExisting;
 	OIndex			oi;
-
-	//Only called by the ExternalObjectDeserialiser.
 
 	if (StrEmpty(szObjectName))
 	{
