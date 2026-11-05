@@ -5,8 +5,6 @@
 #include "StackPointer.h"
 #include "StackPointers.h"
 #include "ObjectPointerArrays.h"
-#include "DistToRootCalculator.h"
-#include "DistToStackCalculator.h"
 #include "Primitive.h"
 #include "Unknown.h"
 

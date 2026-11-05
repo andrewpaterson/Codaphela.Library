@@ -14,7 +14,7 @@
 #include "ObjectTestClasses.h"
 
 
-//The distances to the root are kept up to date as pointers change (CDistToRootCalculator::FromAdded when one is added, the dist
+//The distances to the root are kept up to date as pointers change (CDistCalculator::FromAdded when one is added, the dist
 //calculator when one goes).  These tests check them against a breadth first search from the root after every change.
 
 

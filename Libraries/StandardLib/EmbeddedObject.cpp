@@ -2,6 +2,7 @@
 #include "Objects.h"
 #include "BaseObject.h"
 #include "Collection.h"
+#include "DistCalculator.h"
 #include "EmbeddedObject.h"
 
 
@@ -332,8 +333,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
-	CDistToRootCalculator	cDistToRootCalculator;
-	int						iDistToRoot;
+	int		iDistToRoot;
 
 	if (pcFromObject != NULL)
 	{
@@ -341,7 +341,7 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 		AddHeapPointer(pcFromObject);
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			cDistToRootCalculator.FromAdded(GetEmbeddingContainer(), iDistToRoot + 1);
+			CDistCalculator::FromAdded(GetEmbeddingContainer(), iDistToRoot + 1);
 		}
 
 #ifdef _DEBUG

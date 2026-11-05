@@ -1,7 +1,8 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseObject.h"
-#include "DistToRootCalculator.h"
+#include "Objects.h"
+#include "DistCalculator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -12,7 +13,7 @@
 // unattached.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculatorParameters* pcParameters)
+void CDistCalculator::CalculateDistToRoot(CBaseObject* pcFromRemoved)
 {
 	size						i;
 	size						uiNumTouched;
@@ -20,13 +21,13 @@ void CDistToRootCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculato
 	CEmbeddedObject*			pcClosestFrom;
 	CDistToRootExpectedDists	cExpectedDists;
 
-	CollectAndClearInvalidDistToRoot(pcFromRemoved, pcParameters);
+	CollectAndClearInvalidDistToRoot(pcFromRemoved);
 
 	cExpectedDists.Init();
-	uiNumTouched = pcParameters->NumTouched();
+	uiNumTouched = NumTouched();
 	for (i = 0; i < uiNumTouched; i++)
 	{
-		pcTouched = pcParameters->GetTouched(i);
+		pcTouched = GetTouched(i);
 		pcClosestFrom = pcTouched->GetClosestFromToRoot();
 		if (pcClosestFrom)
 		{
@@ -34,10 +35,10 @@ void CDistToRootCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculato
 		}
 	}
 
-	UpdateAttachedTosDistToRoot(pcParameters, &cExpectedDists);
+	UpdateAttachedTosDistToRoot(&cExpectedDists);
 	cExpectedDists.Kill();
 
-	ResetClearedToUnattached(pcParameters);
+	ResetClearedToUnattached();
 }
 
 
@@ -49,7 +50,7 @@ void CDistToRootCalculator::Calculate(CBaseObject* pcFromRemoved, CDistCalculato
 // W65C816's stack on a chain a hundred objects long.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::CollectAndClearInvalidDistToRoot(CBaseObject* pcFromRemoved, CDistCalculatorParameters* pcParameters)
+void CDistCalculator::CollectAndClearInvalidDistToRoot(CBaseObject* pcFromRemoved)
 {
 	CArrayDistToRootClearCandidates		acCandidates;
 	SDistToRootClearCandidate			sCandidate;
@@ -61,7 +62,7 @@ void CDistToRootCalculator::CollectAndClearInvalidDistToRoot(CBaseObject* pcFrom
 	psCandidate->iClearedFromDistToRoot = MAX_DIST_TO_ROOT;
 	while (acCandidates.Pop(&sCandidate))
 	{
-		ClearInvalidDistToRoot(sCandidate.pcObject, sCandidate.iClearedFromDistToRoot, pcParameters, &acCandidates);
+		ClearInvalidDistToRoot(sCandidate.pcObject, sCandidate.iClearedFromDistToRoot, &acCandidates);
 	}
 	acCandidates.Kill();
 }
@@ -78,7 +79,7 @@ void CDistToRootCalculator::CollectAndClearInvalidDistToRoot(CBaseObject* pcFrom
 // what it points to are added as candidates, to be checked in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iClearedFromDistToRoot, CDistCalculatorParameters* pcParameters, CArrayDistToRootClearCandidates* pacCandidates)
+void CDistCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iClearedFromDistToRoot, CArrayDistToRootClearCandidates* pacCandidates)
 {
 	int							iDistToRoot;
 	CArrayEmbeddedObjectPtr*	papcTos;
@@ -97,7 +98,7 @@ void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iC
 	}
 
 	//Objects in the batch being freed are gone already; touched ones are cleared already.
-	if ((pcObject->GetFlags() & OBJECT_FLAGS_FREED) || (pcParameters->GetWalkState(pcObject) != 0))
+	if ((pcObject->GetFlags() & OBJECT_FLAGS_FREED) || (GetWalkState(pcObject) != 0))
 	{
 		return;
 	}
@@ -116,12 +117,12 @@ void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iC
 		return;
 	}
 
-	pcParameters->AddTouched(pcObject);
-	pcParameters->SetWalkState(pcObject, WALK_STATE_TOUCHED);
+	AddTouched(pcObject);
+	SetWalkState(pcObject, WALK_STATE_TOUCHED);
 	pcObject->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
 	//What it (and the objects embedded in it) points to, added last first so the first is checked first.
-	papcTos = pcParameters->StartPointerTos();
+	papcTos = StartPointerTos();
 	pcObject->GetPointerTos(papcTos);
 	for (i = papcTos->NumElements(); i > 0; i--)
 	{
@@ -141,7 +142,7 @@ void CDistToRootCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iC
 // needed (a walk that scanned hubs, like a window, on every step).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDistToRootCalculator::HasCloserFrom(CBaseObject* pcObject)
+bool CDistCalculator::HasCloserFrom(CBaseObject* pcObject)
 {
 	CEmbeddedObject*	pcClosestFrom;
 	int					iDistToRoot;
@@ -166,16 +167,16 @@ bool CDistToRootCalculator::HasCloserFrom(CBaseObject* pcObject)
 // The touched objects still cleared couldn't find the root.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ResetClearedToUnattached(CDistCalculatorParameters* pcParameters)
+void CDistCalculator::ResetClearedToUnattached(void)
 {
 	size			i;
 	size			uiNumTouched;
 	CBaseObject*	pcBaseObject;
 
-	uiNumTouched = pcParameters->NumTouched();
+	uiNumTouched = NumTouched();
 	for (i = 0; i < uiNumTouched; i++)
 	{
-		pcBaseObject = pcParameters->GetTouched(i);
+		pcBaseObject = GetTouched(i);
 		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 		{
 			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
@@ -190,7 +191,7 @@ void CDistToRootCalculator::ResetClearedToUnattached(CDistCalculatorParameters* 
 // first, so each gets its final distance the first time.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters, CDistToRootExpectedDists* pcExpectedDists)
+void CDistCalculator::UpdateAttachedTosDistToRoot(CDistToRootExpectedDists* pcExpectedDists)
 {
 	SDistToRoot*	psLowestDistToRoot;
 	CBaseObject*	pcObject;
@@ -201,7 +202,7 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameter
 		pcObject = psLowestDistToRoot->pcObject;
 
 		pcExpectedDists->Remove(psLowestDistToRoot);
-		UpdateAttachedTosDistToRoot(pcObject, pcParameters, pcExpectedDists);
+		UpdateAttachedTosDistToRoot(pcObject, pcExpectedDists);
 
 		psLowestDistToRoot = pcExpectedDists->GetLowest();
 	}
@@ -212,7 +213,7 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameter
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters, CDistToRootExpectedDists* pcExpectedDists)
+void CDistCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, CDistToRootExpectedDists* pcExpectedDists)
 {
 	CEmbeddedObject*			pcClosestToRoot;
 	int							iClosestToRoot;
@@ -229,11 +230,11 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, C
 	pcClosestToRoot = pcObject->GetClosestFromToRoot();
 	iClosestToRoot = pcClosestToRoot->GetDistToRoot() + 1;
 
-	pcParameters->AddTouched(pcObject);
+	AddTouched(pcObject);
 	pcObject->SetDistToRoot(iClosestToRoot);
 
 	//What it (and the objects embedded in it) points to can be one further.
-	papcTos = pcParameters->StartPointerTos();
+	papcTos = StartPointerTos();
 	pcObject->GetPointerTos(papcTos);
 	uiNumTos = papcTos->NumElements();
 	for (i = 0; i < uiNumTos; i++)
@@ -251,7 +252,7 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CBaseObject* pcObject, C
 // would also clear the objects embedded in it that others are found from.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistToRootExpectedDists* pcExpectedDists)
+void CDistCalculator::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistToRootExpectedDists* pcExpectedDists)
 {
 	CBaseObject*	pcPointedToContainer;
 	int				iDistToRoot;
@@ -281,7 +282,7 @@ void CDistToRootCalculator::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, 
 // final distance the first time it's reached.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::FromAdded(CBaseObject* pcObject, int iExpectedDistToRoot)
+void CDistCalculator::FromAdded(CBaseObject* pcObject, int iExpectedDistToRoot)
 {
 	CArrayBaseObjectPtr			apcCloser;
 	CArrayEmbeddedObjectPtr		apcTos;
