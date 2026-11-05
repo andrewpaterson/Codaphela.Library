@@ -173,3 +173,11 @@ a brif's condition read before the copies: TestBaseLib65 -0.75%, TestStandardLib
 places greedily (in start order, pairs only to partners already placed); coalescing pairs heaviest first
 before placing is the fix for the copies left (TestArrayTemplate +0.7%, TestCPP816 MergeLoop 1,198,120 of
 its 1,200,000).
+
+PackTemporaries merges before placing: done 2026-11-05.  GroupTemporaries merges the paired temporaries
+heaviest pair first (IR816_PAIR_WEIGHT: 4 per loop, 2 for a phi's copy, 1 for a copy into a loop's head)
+when nothing of one group is live with anything of the other at one place; PlaceTemporaries places a group
+at a time.  The weights matter: by loop depth alone an instruction's pair beat a phi's copy (TestTrueMallocator
++3%), and a loop's entry value merged with its exit phi instead of the loop's phi (TestTextDiff +1.25%).
+TestBaseLib65 -0.24% (TestArrayTemplate -0.77%), TestStandardLib65 -0.10%, MergeLoop 1,176,798 cycles;
+TestCppParserLib 83264/83264.
