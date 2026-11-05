@@ -1710,6 +1710,79 @@ void TestDistToRootUpdateFreeBatchSpeed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Killing a hub that its children, reachable only through it, point back
+// to.  Each back pointer is put back for the child's Free (the children
+// die with the hub) and then cleared.  Remembering and putting back the
+// pointers used to search all the froms, and then all the killed objects,
+// for each one.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateKillHubWithBackPointers(size uiChildren, bool bValidate)
+{
+	Ptr<CTestObject>	pHub;
+	Ptr<CArrayObject>	pChildren;
+	Ptr<CTestObject>	pChild;
+	CTimer				cTimer;
+	float				fMilliseconds;
+	size				i;
+	size				uiRootOnly;
+
+	ObjectsInit();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	{
+		ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		pHub = OMalloc<CTestObject>();
+		pChildren = OMalloc<CArrayObject>();
+		ORoot()->Add(pHub);
+		pHub->mpObject = pChildren;
+		for (i = 0; i < uiChildren; i++)
+		{
+			pChild = OMalloc<CTestObject>();
+			pChild->mpObject = pHub;
+			pChildren->Add(pChild);
+		}
+		pChild = NULL;
+		pChildren = NULL;
+		AssertSize(uiChildren + 1, pHub->NumHeapFroms());
+
+		cTimer.Init();
+		pHub->Kill();
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		AssertSize(uiRootOnly, gcObjects.NumMemoryIndexes());
+		AssertDistToRoot();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateKillHubWithBackPointersSpeed(void)
+{
+	size		uiDepth;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	fMilliseconds = TestDistToRootUpdateKillHubWithBackPointers((size)1 << (uiDepth + 6), false);
+	LogDistToRootSpeed("Kill a hub with back pointers", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdate(void)
@@ -1747,6 +1820,8 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateBuildUnrootedTreeSpeed();
 	TestDistToRootUpdateFreeBatchChangingPointers(5, true);
 	TestDistToRootUpdateFreeBatchSpeed();
+	TestDistToRootUpdateKillHubWithBackPointers(5, true);
+	TestDistToRootUpdateKillHubWithBackPointersSpeed();
 
 	DataIOKill();
 	TypesKill();
