@@ -552,6 +552,33 @@ CBaseObject* CBaseObject::GetClosestFromToRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a heap from of this or of the objects embedded in it is
+// attached and closer to root than iDistToRoot.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::HasHeapFromCloserThan(int iDistToRoot)
+{
+	size	i;
+	size	uiNumHolders;
+
+	if (CEmbeddedObject::HasOwnHeapFromCloserThan(iDistToRoot))
+	{
+		return true;
+	}
+	uiNumHolders = NumHeapFromHolders();
+	for (i = 1; i < uiNumHolders; i++)
+	{
+		if (GetEmbeddedObject(i)->HasOwnHeapFromCloserThan(iDistToRoot))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The first heap from of this or of the objects embedded in it (NULL if
 // there are none).  IterateHeapFrom gives the next.
 //

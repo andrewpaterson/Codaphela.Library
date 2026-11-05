@@ -53,18 +53,18 @@ void TestObjectGraphSerialiserReachability(void)
 	pTest2b->mp2 = pTest1b;
 
 #ifdef BUILD_64
-	AssertLayoutSize(424, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
+	AssertLayoutSize(432, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
 #elif defined(__W65C816__)
-	AssertLayoutSize(192, sizeof(CTestSaveableObject1));
+	AssertLayoutSize(200, sizeof(CTestSaveableObject1));
 #else
-	AssertLayoutSize(224, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
+	AssertLayoutSize(232, sizeof(CTestSaveableObject1));  //If these sizes change the input test files will be wrong if the serialisation has changed.
 #endif // BUILD_64
 #ifdef BUILD_64
-	AssertLayoutSize(432, sizeof(CTestSaveableObject2));
+	AssertLayoutSize(440, sizeof(CTestSaveableObject2));
 #elif defined(__W65C816__)
-	AssertLayoutSize(200, sizeof(CTestSaveableObject2));
+	AssertLayoutSize(208, sizeof(CTestSaveableObject2));
 #else
-	AssertLayoutSize(232, sizeof(CTestSaveableObject2));
+	AssertLayoutSize(240, sizeof(CTestSaveableObject2));
 #endif // BUILD_64
 
 	cSimpleWriter.Init(szDirectory, "");

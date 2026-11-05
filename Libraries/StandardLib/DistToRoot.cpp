@@ -144,21 +144,14 @@ void CDistCalculator::ClearInvalidDistToRoot(CBaseObject* pcObject, int iCleared
 //////////////////////////////////////////////////////////////////////////
 bool CDistCalculator::HasCloserFrom(CBaseObject* pcObject)
 {
-	CEmbeddedObject*	pcClosestFrom;
-	int					iDistToRoot;
+	int		iDistToRoot;
 
 	iDistToRoot = pcObject->GetDistToRoot();
 	if (iDistToRoot <= ROOT_DIST_TO_ROOT)
 	{
 		return false;
 	}
-
-	pcClosestFrom = pcObject->GetClosestFromToRoot();
-	if (pcClosestFrom == NULL)
-	{
-		return false;
-	}
-	return pcClosestFrom->GetDistToRoot() < iDistToRoot;
+	return pcObject->HasHeapFromCloserThan(iDistToRoot);
 }
 
 

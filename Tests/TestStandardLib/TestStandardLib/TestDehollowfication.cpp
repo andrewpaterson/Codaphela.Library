@@ -1579,6 +1579,102 @@ void TestDehollowficationLoadArrayAndSetMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A hub loaded as a fat hollow (it is in a sorted set) gets its many froms
+// while hollow, then is loaded in place: it keeps where they are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadFatHub(void)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "FatHub";
+	char			szErrors[1024];
+	size			i;
+	OIndex			oiHub;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CSetObject>			pHubs;
+		Ptr<CArrayObject>		pHolders;
+		Ptr<CString>			pHub;
+		Ptr<CPointerContainer>	pHolder;
+
+		pHubs = ONMalloc<CSetObject>("Hubs");
+		pHolders = ONMalloc<CArrayObject>("Holders");
+		ORoot()->Add(pHubs);
+		ORoot()->Add(pHolders);
+		pHub = OMalloc<CString>();
+		pHub->Set("Hub");
+		pHubs->Add(pHub);
+		for (i = 0; i < 70; i++)
+		{
+			pHolder = OMalloc<CPointerContainer>(pHub);
+			pHolders->Add(pHolder);
+		}
+		oiHub = pHub.GetIndex();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CSetObject>			pHubs;
+		Ptr<CArrayObject>		pHolders;
+		Ptr<CPointerContainer>	pHolder;
+		Ptr<CString>			pHub;
+
+		pHubs = gcObjects.Get("Hubs");
+		pHolders = gcObjects.Get("Holders");
+		for (i = 0; i < 70; i++)
+		{
+			pHolder = pHolders->Get<CPointerContainer>(i);
+			AssertTrue(pHolder->mp.IsHollow());
+		}
+		pHolder = NULL;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		AssertNotNull(gcObjects.Dehollow(oiHub));
+		pHub = pHolders->Get<CPointerContainer>(0)->mp;
+		AssertFalse(pHub.IsHollow());
+		AssertString("Hub", pHub->Text());
+		AssertSize(71, pHub->NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Letting go of most of them unlinks through the locations kept.
+		for (i = 0; i < 60; i++)
+		{
+			pHolders->Get<CPointerContainer>(i)->Clear();
+		}
+		AssertSize(11, pHub->NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1603,6 +1699,7 @@ void TestDehollowfication(void)
 	TestDehollowficationLoadIndexMembers();
 	TestDehollowficationLoadMapMembers();
 	TestDehollowficationLoadArrayAndSetMembers();
+	TestDehollowficationLoadFatHub();
 
 	DataIOKill();
 	TypesKill();

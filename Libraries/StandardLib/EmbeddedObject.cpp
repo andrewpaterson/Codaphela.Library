@@ -1,4 +1,6 @@
 #include "BaseLib/Logger.h"
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "Objects.h"
 #include "BaseObject.h"
 #include "Collection.h"
@@ -16,6 +18,7 @@ CEmbeddedObject::CEmbeddedObject()
 	mapHeapFromCollections.Init();
 	mpcStackFroms = NULL;
 	mpcEmbedded = NULL;
+	mpsHub = NULL;
 }
 
 
@@ -67,6 +70,7 @@ void CEmbeddedObject::Allocate(CObjects* pcObjects)
 {
 	mapHeapFromObjects.Init();
 	mapHeapFromCollections.Init();
+	mpsHub = NULL;
 }
 
 
@@ -271,6 +275,7 @@ void CEmbeddedObject::SetEmbedding(CBaseObject* pcEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::FreePointers(void)
 {
+	KillHeapFromHub();
 	mapHeapFromObjects.Kill();
 	mapHeapFromCollections.Kill();
 }
@@ -282,6 +287,7 @@ void CEmbeddedObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::PostRemapFroms(void)
 {
+	KillHeapFromHub();
 	mapHeapFromObjects.ReInit();
 	mapHeapFromCollections.ReInit();
 	mpcStackFroms = NULL;
@@ -324,6 +330,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 
 		mapHeapFromCollections.ReInit();
 	}
+	KillHeapFromHub();
 }
 
 
@@ -375,13 +382,26 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
+	ptr		uiLocation;
+
 	if (pcFromObject->IsCollection())
 	{
 		mapHeapFromCollections.Add(pcFromObject);
+		uiLocation = (ptr)(mapHeapFromCollections.NumElements() - 1) * 2 + 1;
 	}
 	else
 	{
 		mapHeapFromObjects.Add(pcFromObject);
+		uiLocation = (ptr)(mapHeapFromObjects.NumElements() - 1) * 2;
+	}
+
+	if (mpsHub != NULL)
+	{
+		mpsHub->cLocations.Add(pcFromObject, uiLocation);
+	}
+	else if (CEmbeddedObject::NumHeapFroms() >= HEAP_FROM_HUB_MIN_FROMS)
+	{
+		MakeHeapFromHub();
 	}
 }
 
@@ -486,13 +506,166 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkHeapFrom(CBaseObject* pcFrom)
 {
-	if (pcFrom->IsCollection())
+	bool	bRemoved;
+
+	if (mpsHub != NULL)
+	{
+		bRemoved = UnlinkHubHeapFrom(pcFrom);
+		if (CEmbeddedObject::NumHeapFroms() < HEAP_FROM_HUB_MIN_FROMS / 2)
+		{
+			KillHeapFromHub();
+		}
+		return bRemoved;
+	}
+	else if (pcFrom->IsCollection())
 	{
 		return mapHeapFromCollections.Remove(&pcFrom, false);
 	}
 	else
 	{
 		return mapHeapFromObjects.Remove(&pcFrom, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The hub knows where pcFrom is.  The last from of its kind takes its
+// place, so nothing else moves.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::UnlinkHubHeapFrom(CBaseObject* pcFrom)
+{
+	SPointerLocationsIterator	sIter;
+	ptr							uiLocation;
+	ptr							uiLastLocation;
+	size						uiIndex;
+	size						uiLast;
+	CBaseObject**				ppcFroms;
+	CBaseObject*				pcLast;
+	bool						bCollection;
+
+	if (!mpsHub->cLocations.StartIteration(&sIter, pcFrom, &uiLocation))
+	{
+		return false;
+	}
+	mpsHub->cLocations.Remove(pcFrom, uiLocation);
+	if (mpsHub->pcCloserFrom == pcFrom)
+	{
+		mpsHub->pcCloserFrom = NULL;
+	}
+
+	uiIndex = (size)(uiLocation / 2);
+	bCollection = (uiLocation % 2) == 1;
+	if (bCollection)
+	{
+		ppcFroms = mapHeapFromCollections.GetData();
+		uiLast = mapHeapFromCollections.NumElements() - 1;
+	}
+	else
+	{
+		ppcFroms = mapHeapFromObjects.GetData();
+		uiLast = mapHeapFromObjects.NumElements() - 1;
+	}
+
+	if (uiIndex != uiLast)
+	{
+		pcLast = ppcFroms[uiLast];
+		uiLastLocation = (ptr)uiLast * 2 + (bCollection ? 1 : 0);
+		mpsHub->cLocations.Remove(pcLast, uiLastLocation);
+		mpsHub->cLocations.Add(pcLast, uiLocation);
+		ppcFroms[uiIndex] = pcLast;
+	}
+
+	if (bCollection)
+	{
+		mapHeapFromCollections.RemoveAt(uiLast, false);
+	}
+	else
+	{
+		mapHeapFromObjects.RemoveAt(uiLast, false);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether one of this object's own heap froms (not those of the objects
+// embedded in it) is attached and closer to root than iDistToRoot.  A hub
+// remembers the one it found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::HasOwnHeapFromCloserThan(int iDistToRoot)
+{
+	size			i;
+	size			uiNumFroms;
+	CBaseObject*	pcFrom;
+	int				iDist;
+
+	if ((mpsHub != NULL) && (mpsHub->pcCloserFrom != NULL))
+	{
+		iDist = mpsHub->pcCloserFrom->GetDistToRoot();
+		if ((iDist >= 0) && (iDist < iDistToRoot))
+		{
+			return true;
+		}
+	}
+
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
+		iDist = pcFrom->GetDistToRoot();
+		if ((iDist >= 0) && (iDist < iDistToRoot))
+		{
+			if (mpsHub != NULL)
+			{
+				mpsHub->pcCloserFrom = pcFrom;
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::MakeHeapFromHub(void)
+{
+	size	i;
+	size	uiNumFroms;
+
+	mpsHub = NewMalloc<SHeapFromHub>();
+	mpsHub->cLocations.Init();
+	mpsHub->pcCloserFrom = NULL;
+
+	uiNumFroms = mapHeapFromObjects.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		mpsHub->cLocations.Add(mapHeapFromObjects.GetPtr(i), (ptr)i * 2);
+	}
+	uiNumFroms = mapHeapFromCollections.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		mpsHub->cLocations.Add(mapHeapFromCollections.GetPtr(i), (ptr)i * 2 + 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::KillHeapFromHub(void)
+{
+	if (mpsHub != NULL)
+	{
+		mpsHub->cLocations.Kill();
+		SafeFree(mpsHub);
 	}
 }
 
@@ -833,6 +1006,7 @@ void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
 	mapHeapFromObjects = pcOther->mapHeapFromObjects;
 	mapHeapFromCollections = pcOther->mapHeapFromCollections;
 	mpcStackFroms = pcOther->mpcStackFroms;
+	mpsHub = pcOther->mpsHub;
 }
 
 
@@ -1021,6 +1195,58 @@ void CEmbeddedObject::ValidateFroms(void)
 		{
 			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a Stack-From Collection that no longer contains it.  Was the Collection moved?", NULL);
 		}
+	}
+
+	ValidateHeapFromHub();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hub knows where every heap from is, and its closer from is one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateHeapFromHub(void)
+{
+	size	i;
+	size	uiNumFroms;
+	size	uiMissing;
+
+	if (mpsHub == NULL)
+	{
+		return;
+	}
+
+	if (mpsHub->cLocations.NumLocations() != CEmbeddedObject::NumHeapFroms())
+	{
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} keeps [", SizeToString(mpsHub->cLocations.NumLocations()), "] heap from locations but has [", SizeToString(CEmbeddedObject::NumHeapFroms()), "] heap froms.", NULL);
+	}
+
+	uiMissing = 0;
+	uiNumFroms = mapHeapFromObjects.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		if (!mpsHub->cLocations.Contains(mapHeapFromObjects.GetPtr(i), (ptr)i * 2))
+		{
+			uiMissing++;
+		}
+	}
+	uiNumFroms = mapHeapFromCollections.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		if (!mpsHub->cLocations.Contains(mapHeapFromCollections.GetPtr(i), (ptr)i * 2 + 1))
+		{
+			uiMissing++;
+		}
+	}
+	if (uiMissing != 0)
+	{
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} keeps the wrong location for [", SizeToString(uiMissing), "] heap froms.", NULL);
+	}
+
+	if ((mpsHub->pcCloserFrom != NULL) && (mpsHub->cLocations.NumLocations(mpsHub->pcCloserFrom) == 0))
+	{
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} remembers a closer from {", ObjectToString(mpsHub->pcCloserFrom), "} that isn't one of its heap froms.", NULL);
 	}
 }
 

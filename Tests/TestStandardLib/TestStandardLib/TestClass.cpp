@@ -97,21 +97,21 @@ void TestClassDefinition(void)
 	pcField = pcTestClassClass->GetField("mDouble");
 	AssertTrue(pcField->IsPrimitive());
 #ifdef BUILD_64
-	AssertLayoutSize(OBJECT_SIZE + 400, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 408, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 200, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 208, pcField->GetOffset());
 #else
-	AssertLayoutSize(OBJECT_SIZE + 224, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 232, pcField->GetOffset());
 #endif // BUILD_64
 
 	pcField = pcTestClassClass->GetField("mauiData");
 	AssertTrue(pcField->IsUnmanaged());
 #ifdef BUILD_64
-	AssertLayoutSize(OBJECT_SIZE + 416, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 424, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 216, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 224, pcField->GetOffset());
 #else
-	AssertLayoutSize(OBJECT_SIZE + 240, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 248, pcField->GetOffset());
 #endif // BUILD_64
 
 	pTestClass = NULL;

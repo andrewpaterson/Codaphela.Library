@@ -9,6 +9,7 @@
 #include "StandardLib/Root.h"
 #include "StandardLib/ArrayObject.h"
 #include "TestLib/Assert.h"
+#include "TestBaseObject.h"
 #include "NamedObjectTestClasses.h"
 
 
@@ -28,13 +29,7 @@ void TestNamedObjectAddConstructors(void)
 //////////////////////////////////////////////////////////////////////////
 void TestNamedObjectSize(void)
 {
-#ifdef BUILD_64
-	AssertSize(344, sizeof(CObject));
-#elif defined(SIZE_16)
-	AssertSize(160, sizeof(CObject));
-#else
-	AssertSize(184, sizeof(CObject));
-#endif // BUILD_64
+	AssertLayoutSize(OBJECT_SIZE, sizeof(CObject));
 }
 
 

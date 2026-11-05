@@ -181,6 +181,7 @@ public:
 			bool					CanFindRoot(void);
 			CBaseObject*			GetClosestFromToRoot(void);
 			CBaseObject*			GetClosestHeapFrom(uint32 uiSkipWalkStamp);
+			bool					HasHeapFromCloserThan(int iDistToRoot);
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;

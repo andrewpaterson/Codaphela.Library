@@ -7,6 +7,7 @@
 #include "ObjectPointerArrays.h"
 #include "Primitive.h"
 #include "Unknown.h"
+#include "PointerLocations.h"
 
 
 #define ROOT_DIST_TO_ROOT			 0
@@ -44,6 +45,17 @@ struct SHeapFromPointer
 typedef CArrayTemplate<SHeapFromPointer>	CArrayHeapFromPointer;
 
 
+//An object with many heap froms (a hub, like a window's root component) keeps where each from is, so unlinking one
+//isn't a search of them all, and a from that was closer to root, so asking whether there is one isn't either.
+#define HEAP_FROM_HUB_MIN_FROMS		64
+
+struct SHeapFromHub
+{
+	CPointerLocations	cLocations;		//Each from's index: an Object's index * 2, a Collection's index * 2 + 1.
+	CBaseObject*		pcCloserFrom;	//A from that was closer to root than 'this' when last asked.  NULL if none is known.
+};
+
+
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
@@ -55,6 +67,7 @@ protected:
 																		//Heap froms are an in memory only concept with the exception that the closest from to the root is persistent.
 	CArrayTemplateEmbeddedPtr<CBaseObject, 2>		mapHeapFromCollections;	//Collections on the heap that 'this' is pointed to from.  NumHeapFroms and GetHeapFrom see the Objects first, then the Collections.
 	CStackPointer*								mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
+	SHeapFromHub*								mpsHub;			//Once 'this' has HEAP_FROM_HUB_MIN_FROMS heap froms, NULL until then (and again below half that).
 
 public:
 								CEmbeddedObject();
@@ -122,6 +135,7 @@ public:
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackFroms(void);
 			bool				UnlinkHeapFrom(CBaseObject* pcFrom);  //These only unlink; they never free.  See CObjects::FromRemoved.
+			bool				HasOwnHeapFromCloserThan(int iDistToRoot);
 			bool				IsBeingFreed(void);
 			bool				UnlinkStackFrom(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);
@@ -162,6 +176,12 @@ protected:
 	virtual void				RemoveAllStackFroms(void);
 			CStackPointers*		GetStackPointers(void);
 			void				ValidateObjectsConsistency(bool bValidate);
+
+private:
+			void				MakeHeapFromHub(void);
+			void				KillHeapFromHub(void);
+			bool				UnlinkHubHeapFrom(CBaseObject* pcFrom);
+			void				ValidateHeapFromHub(void);
 };
 
 

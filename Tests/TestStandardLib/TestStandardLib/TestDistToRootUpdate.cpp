@@ -14,6 +14,9 @@
 #include "ObjectTestClasses.h"
 
 
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
+
+
 //The distances to the root are kept up to date as pointers change (CDistCalculator::FromAdded when one is added, the dist
 //calculator when one goes).  These tests check them against a breadth first search from the root after every change.
 
@@ -2046,6 +2049,108 @@ void TestDistToRootUpdateCollectionSpeeds(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A hub (an object with many heap froms) keeps where each from is and a
+// from closer to root.  Its froms are objects (some pointing to it twice)
+// and collections; validating checks every location kept, and the
+// distances are checked against a search from the root.  Below half the
+// froms needed the hub stops keeping them, and starts again above.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateHubFroms(void)
+{
+	char					szErrors[1024];
+	size					i;
+	CArrayBaseObjectPtr		apcHolders;
+	CTestTriPointerObject*	pcHolder;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestTriPointerObject>();
+	apcHolders.Init();
+	{
+		Ptr<CTestObject>			pHub;
+		Ptr<CArrayObject>			pHolders;
+		Ptr<CSetObject>				pSet;
+		Ptr<CTestTriPointerObject>	pHolder;
+
+		pHub = OMalloc<CTestObject>();
+		pHolders = OMalloc<CArrayObject>();
+		pSet = OMalloc<CSetObject>();
+		ORoot()->Add(pHolders);
+		ORoot()->Add(pHub);
+		pHolders->Add(pSet);
+		pSet->Add(pHub);
+		pSet->Add(pHub);
+		for (i = 0; i < 80; i++)
+		{
+			pHolder = OMalloc<CTestTriPointerObject>();
+			pHolder->mpObject1 = pHub;
+			if (i % 5 == 0)
+			{
+				pHolder->mpObject3 = pHub;
+			}
+			pHolders->Add(pHolder);
+			apcHolders.Add(pHolder.BaseObject());
+		}
+		pHolder = NULL;
+		AssertSize(99, pHub->NumHeapFroms());
+		AssertDistToRoot();
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//The closest from goes: the hub is held through the holders and the set now.
+		ORoot()->Remove(pHub);
+		AssertSize(98, pHub->NumHeapFroms());
+		AssertDistToRoot();
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Holders let go from the middle and from the end, one pointer at a time.
+		for (i = 0; i < 70; i++)
+		{
+			pcHolder = (CTestTriPointerObject*)apcHolders.GetPtr((i % 2 == 0) ? (i / 2) : (79 - i / 2));
+			if (pcHolder->mpObject3.IsNotNull())
+			{
+				pcHolder->mpObject3 = NULL;
+			}
+			else
+			{
+				pcHolder->mpObject1 = NULL;
+			}
+			if (i % 10 == 9)
+			{
+				AssertDistToRoot();
+				ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+				AssertString("", szErrors);
+			}
+		}
+		AssertSize(98 - 70, pHub->NumHeapFroms());
+
+		pSet->Remove(pHub);
+		AssertDistToRoot();
+		for (i = 0; i < 80; i++)
+		{
+			pcHolder = (CTestTriPointerObject*)apcHolders.GetPtr(i);
+			pcHolder->mpObject2 = pHub;
+		}
+		AssertSize(98 - 70 - 2 + 80, pHub->NumHeapFroms());
+		AssertDistToRoot();
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pHolders->RemoveAll();
+		AssertSize(0, pHub->NumHeapFroms());
+		AssertDistToRoot();
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	apcHolders.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdate(void)
@@ -2090,6 +2195,8 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateKillCollectionMembers(SC_Map, 5, true);
 	TestDistToRootUpdateKillCollectionMembers(SC_Index, 5, true);
 	TestDistToRootUpdateLetGoOfLivingHub(5, true);
+	TestDistToRootUpdateLetGoOfLivingHub(100, true);
+	TestDistToRootUpdateHubFroms();
 	TestDistToRootUpdateFreeCollectionWithMembers(5, true);
 	TestDistToRootUpdateCollectionSpeeds();
 
