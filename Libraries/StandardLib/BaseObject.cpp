@@ -655,12 +655,10 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 {
-	CBaseObject*	pcBaseObject;
-
-	if ((pcPointedTo) && (pcPointedTo->IsBaseObject()))
+	//The object pointed to may be killed with this, or be an embedded hollow object: both have this as a heap from.
+	if (pcPointedTo)
 	{
-		pcBaseObject = (CBaseObject*)pcPointedTo;
-		pcBaseObject->UnlinkHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
+		pcPointedTo->UnlinkHeapFrom(this);
 	}
 }
 

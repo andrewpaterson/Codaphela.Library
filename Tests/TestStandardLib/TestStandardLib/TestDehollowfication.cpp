@@ -1082,6 +1082,62 @@ void TestDehollowficationLoadedByName(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object freed in a batch unlinks its froms from the objects it points
+// to, embedded hollow objects too: one left would point to freed memory.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow(void)
+{
+	ForceFatHollows();
+
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Database9";
+	char			szErrors[1024];
+
+	cFileUtil.RemoveDir(szDirectory);
+	SaveDehollowficationEmbeddedPointers(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CPointerContainer>		pPtr1;
+		Ptr<CPointerContainer>		pPtr2;
+		CEmbeddedObject*			pcHollowEmbedded;
+
+		pPtr1 = gcObjects.Get("1");
+		pPtr2 = gcObjects.Get("2");
+		pcHollowEmbedded = pPtr2->mp.Object();
+		AssertTrue(pcHollowEmbedded->IsHollow());
+		AssertSize(1, pcHollowEmbedded->CEmbeddedObject::NumHeapFroms());
+
+		//"2" goes; "1" keeps the hollow it points into.
+		pPtr2 = NULL;
+		AssertNull(gcObjects.TestGetFromMemory("2").Object());
+		AssertSize(0, pcHollowEmbedded->CEmbeddedObject::NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		&(pPtr1->mp);
+		AssertString("CTestEmbeddedStrings", pPtr1->mp.ClassName());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	UnforceFatHollows();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1101,6 +1157,7 @@ void TestDehollowfication(void)
 	TestDehollowficationEmbeddedPointerToLoadedObject();
 	TestDehollowficationStackPointerToEmbeddedHollow();
 	TestDehollowficationLoadedByName();
+	TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow();
 
 	DataIOKill();
 	TypesKill();
