@@ -176,15 +176,16 @@ void CIR816Backend::FoldPointers(void)
 {
 	CArrayTemplate<int32>	aiAddressUses;
 	CArrayTemplate<int32>	aiUses;
+	CArrayTemplate<uint32>	auiCounted;
 	size					uiTemporaries;
 	size					ui;
 	size					uj;
 	size					uk;
 	CIRBlock*				pcBlock;
 	SIRInstruction*			psInstruction;
-	SIRPhi*					psPhi;
 	SIRReference			sNone;
 	int32					iZero;
+	int32					iUses;
 	int64					lliOffset;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
@@ -195,6 +196,8 @@ void CIR816Backend::FoldPointers(void)
 	masFoldIndex.FakeSetUsedElements(0);
 	aiAddressUses.Init(CIR816Backend::GetScratch());
 	aiUses.Init(CIR816Backend::GetScratch());
+	auiCounted.Init(CIR816Backend::GetScratch());
+	mpcFunction->CountUses(&auiCounted);
 	maiCountUses.FakeSetUsedElements(0);
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
@@ -203,24 +206,15 @@ void CIR816Backend::FoldPointers(void)
 		maiFoldOffset.Add(&iZero);
 		masFoldIndex.Add(&sNone);
 		aiAddressUses.Add(&iZero);
-		aiUses.Add(&iZero);
+		iUses = (int32)*auiCounted.Get(ui);
+		aiUses.Add(&iUses);
 	}
+	auiCounted.Kill();
 
-	//How many uses each temporary has, and how many of them are loads' or stores' addresses.
+	//How many uses (CountUses) of each temporary are loads' or stores' addresses, and shifts' counts.
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
-		{
-			psPhi = pcBlock->masPhis.Get(uj);
-			for (uk = 0; uk < psPhi->asArguments.NumElements(); uk++)
-			{
-				if (psPhi->asArguments.Get(uk)->sValue.IsTemporary())
-				{
-					(*aiUses.Get(psPhi->asArguments.Get(uk)->sValue.Index()))++;
-				}
-			}
-		}
 		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uj);
@@ -228,7 +222,6 @@ void CIR816Backend::FoldPointers(void)
 			{
 				if (psInstruction->asArguments[uk].IsTemporary())
 				{
-					(*aiUses.Get(psInstruction->asArguments[uk].Index()))++;
 					if (((psInstruction->uiOpcode == IRO_Load) && (uk == 0)) || ((psInstruction->uiOpcode == IRO_Store) && (uk == 1)))
 					{
 						(*aiAddressUses.Get(psInstruction->asArguments[uk].Index()))++;
@@ -239,10 +232,6 @@ void CIR816Backend::FoldPointers(void)
 					}
 				}
 			}
-		}
-		if (pcBlock->msJump.sArgument.IsTemporary())
-		{
-			(*aiUses.Get(pcBlock->msJump.sArgument.Index()))++;
 		}
 	}
 
