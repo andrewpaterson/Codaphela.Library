@@ -194,6 +194,10 @@
     <ClCompile Include="CPPSyntaxLazyDeclaration.cpp" />
     <ClCompile Include="IRBackend.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
+    <ClCompile Include="IR65BackendPeephole.cpp" />
+    <ClCompile Include="IR65Instructions.cpp" />
+    <ClCompile Include="IR65Passes.cpp" />
+    <ClCompile Include="IR65Places.cpp" />
     <ClCompile Include="IR816Backend.cpp" />
     <ClCompile Include="IR816Branches.cpp" />
     <ClCompile Include="IR816DeadStores.cpp" />
@@ -417,6 +421,7 @@
     <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />
     <ClInclude Include="IR65Backend.h" />
+    <ClInclude Include="IR65BackendInternal.h" />
     <ClInclude Include="IR816Backend.h" />
     <ClInclude Include="IR816BackendInternal.h" />
     <ClInclude Include="CPPTarget.h" />

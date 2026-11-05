@@ -156,6 +156,18 @@
     <ClCompile Include="IR65Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR65BackendPeephole.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Instructions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Passes.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Places.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR816Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -810,6 +822,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65BackendInternal.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR816Backend.h">

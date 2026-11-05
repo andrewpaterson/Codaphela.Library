@@ -81,4 +81,14 @@ Steps
 Progress
 --------
 
-Nothing done yet.
+Step 1: done 2026-11-05.  IR65Backend.cpp is now:
+  IR65Backend.cpp          Init/Kill, GenerateFunction, Prologue/Epilogue, Line/Branch/CallRuntime, the
+                           blocks, jumps and phi copies (Block, Jump, Edge, Move, BranchOn, FlagsKnown ...)
+  IR65Passes.cpp           the IR rewrites before code (OrderBlocks ... CopyAddresses)
+  IR65Places.cpp           frame layout and register allocation (Layout, Allocate, MarkFolded, MarkInA,
+                           FindNarrowOnly, IsLeaf, NumSaved ...)
+  IR65Instructions.cpp     operands, loads and stores, each instruction's code, calls, compares
+  IR65BackendPeephole.cpp  CIR65Backend::Peephole and IR65PseudoWithoutW
+  IR65BackendInternal.h    the IR65F_ flags, IR65OpcodeFlags and IR65PseudoWithoutW (no longer static)
+Every line kept, in order, in its file.  TestCppParserLib Release x64: 83262/83262 pass.  The Windows
+(Visual Studio) build hasn't been tried.
