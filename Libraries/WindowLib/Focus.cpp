@@ -26,6 +26,35 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentInput.h"
 
 
+//What a drag's commands tell the component dragging: it started, the pointer moved, it stopped.
+enum EFocusDragStage
+{
+	FDS_Start,
+	FDS_Continue,
+	FDS_Stop,
+	NUM_FOCUS_DRAG_STAGES
+};
+
+
+//The commands of each stage of a select drag, then of a scroll drag.
+static EComponentInputCommand	gaaeFocusDragCommands[2][NUM_FOCUS_DRAG_STAGES] =
+{
+	{ CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect },
+	{ CIC_StartDragScroll, CIC_ContDragScroll, CIC_StopDragScroll },
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// eDrag is FD_Select or FD_Scroll.
+//
+//////////////////////////////////////////////////////////////////////////
+static EComponentInputCommand GetDragCommand(EFocusDrag eDrag, EFocusDragStage eStage)
+{
+	return gaaeFocusDragCommands[(eDrag == FD_Select) ? 0 : 1][eStage];
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -115,7 +144,7 @@ void CFocus::PointerMoved(int x, int y)
 	if (mpDragComponent)
 	{
 		InitEvent(&sEvent, CIET_Command, true);
-		sEvent.eCommand = (meDrag == FD_Select) ? CIC_ContDragSelect : CIC_ContDragScroll;
+		sEvent.eCommand = GetDragCommand(meDrag, FDS_Continue);
 		Deliver(mpDragComponent, &sEvent);
 
 		//A drag is a command like any other: selecting and scrolling move what is laid out.
@@ -529,7 +558,7 @@ void CFocus::StartDrag(EFocusDrag eDrag, int x, int y)
 	meDrag = eDrag;
 	mpDragComponent = mpFocussedComponent;
 	InitEvent(&sEvent, CIET_Command, true);
-	sEvent.eCommand = (eDrag == FD_Select) ? CIC_StartDragSelect : CIC_StartDragScroll;
+	sEvent.eCommand = GetDragCommand(eDrag, FDS_Start);
 	sEvent.x = x;
 	sEvent.y = y;
 	mpDragComponent->CallInputActions(&sEvent);
@@ -556,7 +585,7 @@ void CFocus::StopDrag(EFocusDrag eDrag)
 	meDrag = FD_None;
 
 	InitEvent(&sEvent, CIET_Command, true);
-	sEvent.eCommand = (eDrag == FD_Select) ? CIC_StopDragSelect : CIC_StopDragScroll;
+	sEvent.eCommand = GetDragCommand(eDrag, FDS_Stop);
 	Deliver(pComponent, &sEvent);
 }
 
@@ -612,16 +641,16 @@ void CFocus::Forget(Ptr<CComponent> pComponent)
 {
 	Ptr<CComponent>	pLost;
 
-	if (IsWithin(mpDragComponent, pComponent))
+	if (mpDragComponent && mpDragComponent->IsWithin(pComponent))
 	{
 		mpDragComponent = NULL;
 		meDrag = FD_None;
 	}
-	if (IsWithin(mpMouseOverComponent, pComponent))
+	if (mpMouseOverComponent && mpMouseOverComponent->IsWithin(pComponent))
 	{
 		SetMouseOver(NULL);
 	}
-	if (IsWithin(mpFocussedComponent, pComponent))
+	if (mpFocussedComponent && mpFocussedComponent->IsWithin(pComponent))
 	{
 		pLost = mpFocussedComponent;
 		mpFocussedComponent = NULL;
@@ -630,24 +659,6 @@ void CFocus::Forget(Ptr<CComponent> pComponent)
 			pLost->FocusLost();
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CFocus::IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor)
-{
-	while (pComponent)
-	{
-		if (pComponent == pAncestor)
-		{
-			return true;
-		}
-		pComponent = pComponent->GetParent();
-	}
-	return false;
 }
 
 

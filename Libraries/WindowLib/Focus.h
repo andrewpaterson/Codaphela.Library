@@ -22,8 +22,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __FOCUS_H__
 #include "SupportLib/Int32Rect.h"
 #include "ComponentInputCommand.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 #include "ComponentInputEvent.h"
-#include "Component.h"
 
 
 enum EFocusDrag
@@ -93,7 +94,6 @@ protected:
 	bool				IsClick(SComponentInputEvent* psEvent);
 	bool				GetWheel(EComponentInputCommand eCommand, int* piRight, int* piDown);
 	void				ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py);
-	bool				IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor);
 };
 
 
