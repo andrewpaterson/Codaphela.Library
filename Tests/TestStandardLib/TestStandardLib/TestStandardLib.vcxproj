@@ -286,7 +286,6 @@
     <ClCompile Include="TestSingleChannelAccessor.cpp" />
     <ClCompile Include="TestCompressionZLib.cpp" />
     <ClCompile Include="TestActionEvent.cpp" />
-    <ClCompile Include="TestEvent.cpp" />
     <ClCompile Include="TestMemberCalls.cpp" />
     <ClCompile Include="TestParameters.cpp" />
     <ClCompile Include="ObjectTestClasses.cpp" />

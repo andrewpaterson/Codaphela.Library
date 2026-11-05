@@ -19,7 +19,6 @@ void TestExternalChannels(void);
 void TestSingleChannelAccessor(void);
 void TestCompressionZLib(void);
 void TestActionEvent(void);
-void TestEvent(void);
 void TestMemberCalls(void);
 void TestObjectGraphSerialiser(void);
 void TestPointer(void);
@@ -92,7 +91,6 @@ int __cdecl main(void)
 	TestMapStringUnknown();
 	TestMapUnknownUnknown();
 	TestIndexUnknown();
-	TestEvent();
 	TestMemberCalls();
 	TestActionEvent();
 	TestParameters();

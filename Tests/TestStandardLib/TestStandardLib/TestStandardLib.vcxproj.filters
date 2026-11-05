@@ -129,9 +129,6 @@
     <ClCompile Include="TestActionEvent.cpp">
       <Filter>Source\Events</Filter>
     </ClCompile>
-    <ClCompile Include="TestEvent.cpp">
-      <Filter>Source\Events</Filter>
-    </ClCompile>
     <ClCompile Include="TestMemberCalls.cpp">
       <Filter>Source\Events</Filter>
     </ClCompile>

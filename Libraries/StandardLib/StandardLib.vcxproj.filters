@@ -216,12 +216,6 @@
     <ClInclude Include="Actions.h">
       <Filter>Source\Action</Filter>
     </ClInclude>
-    <ClInclude Include="Listener.h">
-      <Filter>Source\Action</Filter>
-    </ClInclude>
-    <ClInclude Include="ListenerCall.h">
-      <Filter>Source\Action</Filter>
-    </ClInclude>
     <ClInclude Include="MemberCalls.h">
       <Filter>Source\Action</Filter>
     </ClInclude>
@@ -633,9 +627,6 @@
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="Actions.cpp">
-      <Filter>Source\Action</Filter>
-    </ClCompile>
-    <ClCompile Include="ListenerCall.cpp">
       <Filter>Source\Action</Filter>
     </ClCompile>
     <ClCompile Include="MemberCalls.cpp">
