@@ -1336,8 +1336,8 @@ void TestTextAreaEditLineGapsTiles(void)
 		pTextArea->SetCaretPosition(4);
 		pTextArea->GetCaretBounds(&cRect);
 		AssertInt(3 * iLine, cRect.GetTop());
-		AssertSize(4, pTextArea->FindPositionAt(pTextArea->GetFont()->GetAverageWidth() + 1, 3 * iLine + 1));
-		AssertSize(1, pTextArea->FindPositionAt(pTextArea->GetFont()->GetAverageWidth() + 1, 2 * iLine));
+		AssertSize(4, pTextArea->FindPositionAt((int)pTextArea->GetFont()->GetAverageWidth() + 1, 3 * iLine + 1));
+		AssertSize(1, pTextArea->FindPositionAt((int)pTextArea->GetFont()->GetAverageWidth() + 1, 2 * iLine));
 
 		//Exactly a row is one; the last line's gap is rows below the text.
 		pTextArea->SetLineGap(0, iLine);
