@@ -29,6 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CIR816LiveRanges;
+class CIR816Code;
 class CIR816Groups;
 
 
@@ -185,15 +186,25 @@ public:
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
 	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
+	static void		Peephole(CIR816Code* pcCode);
 	static void		RemoveDeadStores(CChars* pszDest, size uiStart);
+	static void		RemoveDeadStores(CIR816Code* pcCode);
 	static bool		RemoveFlowDeadStores(CChars* pszDest, size uiStart);
+	static bool		RemoveFlowDeadStores(CIR816Code* pcCode);
 	static bool		PeepholeFlowRegisters(CChars* pszDest, size uiStart);
+	static bool		PeepholeFlowRegisters(CIR816Code* pcCode);
 	static void		PeepholeBranches(CChars* pszDest, size uiStart);
+	static void		PeepholeBranches(CIR816Code* pcCode);
 	static void		PeepholeMasks(CChars* pszDest, size uiStart);
+	static void		PeepholeMasks(CIR816Code* pcCode);
 	static void		PeepholeStores(CChars* pszDest, size uiStart);
+	static void		PeepholeStores(CIR816Code* pcCode);
 	static void		PeepholeTransfers(CChars* pszDest, size uiStart);
+	static void		PeepholeTransfers(CIR816Code* pcCode);
 	static void		PeepholeRegisters(CChars* pszDest, size uiStart);
+	static void		PeepholeRegisters(CIR816Code* pcCode);
 	static void		RemoveUnreadStores(CChars* pszDest, size uiStart);
+	static void		RemoveUnreadStores(CIR816Code* pcCode);
 
 protected:
 	void			Line(const char* szText);

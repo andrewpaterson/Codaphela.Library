@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
+#include "IR816Code.h"
 
 
 //The W65C816 back end's frames: the text of a function's frame entry and exit, taken out when nothing uses the
@@ -226,6 +227,7 @@ void CIR816Backend::DropFrame(size uiStart)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile)
 {
+	CIR816Code				cCode;
 	CChars					sz;
 	CChars					szPrologue;
 	CChars					szEpilogue;
@@ -263,7 +265,17 @@ bool CIR816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIR81
 
 	//Argument words nothing reads aren't copied into the frame (a frame past the page pushes them all into place);
 	//nor are register words.
-	bAllRead = bBig || IR816FindReads(szCode, abRead);
+	if (!bBig)
+	{
+		cCode.Init();
+		cCode.Load(pszCode, 0);
+		bAllRead = IR816FindReads(&cCode, 0, abRead);
+		cCode.Kill();
+	}
+	else
+	{
+		bAllRead = true;
+	}
 	iCopied = bBig ? iWords : 0;
 	for (i = 0; !bBig && (i < iWords); i++)
 	{

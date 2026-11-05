@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
+#include "IR816Code.h"
 
 
 //The W65C816 back end's assembly text as its passes read it: the lines decoded (IR816Decode), and what A, X and Y
@@ -371,50 +372,22 @@ bool IR816IsDecimal(const char* szOperand)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The line after the one at szLine; NULL at the end.
+// Whether N or Z may be read after line uiLine before an instruction sets
+// them again (stores, register pushes, clc and sec don't; a label or the
+// end might lead to a read).
 //
 //////////////////////////////////////////////////////////////////////////
-const char* IR816NextLine(const char* szLine)
-{
-	const char*	szEnd;
-
-	szEnd = strchr(szLine, '\n');
-	return (szEnd && szEnd[1]) ? szEnd + 1 : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The end of the line at szLine: its new line, or the end of the text.
-//
-//////////////////////////////////////////////////////////////////////////
-const char* IR816LineEnd(const char* szLine)
-{
-	const char*	szEnd;
-
-	szEnd = strchr(szLine, '\n');
-	return szEnd ? szEnd : szLine + StrLen(szLine);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether N or Z may be read after the line at szLine before an
-// instruction sets them again (stores, register pushes, clc and sec don't;
-// a label or the end might lead to a read).
-//
-//////////////////////////////////////////////////////////////////////////
-bool IR816ZNReadAfter(const char* szLine)
+bool IR816ZNReadAfter(CIR816Code* pcCode, size uiLine)
 {
 	SIR816Line	sLine;
+	size		ui;
 
-	for (szLine = IR816NextLine(szLine); szLine; szLine = IR816NextLine(szLine))
+	for (ui = uiLine + 1; ui < pcCode->NumLines(); ui++)
 	{
-		if (!IR816IsInstruction(szLine))
+		if (!pcCode->Instruction(ui, &sLine))
 		{
 			return true;
 		}
-		IR816Decode(szLine, &sLine);
 		if (sLine.uiFlags & IR816MF_BRANCH_ZN)
 		{
 			return true;

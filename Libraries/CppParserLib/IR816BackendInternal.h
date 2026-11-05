@@ -216,6 +216,9 @@ extern bool	gbIR816RegisterArguments;
 extern bool	gbIR816SoftFloatInFrame;
 
 
+class CIR816Code;
+
+
 //IR816Backend.cpp: the register rule: which arguments go in A, X and Y, and a register function's label suffix.
 int			IR816AssignRegisters(CArrayIR816Arguments* pasArguments);
 void		IR816AppendRegisterSuffix(CChars* psz, CArrayIR816Arguments* pasArguments);
@@ -232,18 +235,16 @@ bool		IR816OperandIs(SIR816Line* psLine, const char* szOperand, size uiOperand);
 bool		IR816LeavesA(SIR816Line* psLine);
 const char*	IR816InvertedBranch(uint16 uiMnemonic);
 bool		IR816IsDecimal(const char* szOperand);
-const char*	IR816NextLine(const char* szLine);
-const char*	IR816LineEnd(const char* szLine);
-bool		IR816ZNReadAfter(const char* szLine);
+bool		IR816ZNReadAfter(CIR816Code* pcCode, size uiLine);
 void		IR816ForgetHeld(SIR816Held* asHeld, int iFirst, int iLast);
 bool		IR816Holds(SIR816Held* asHeld, int iRegister, SIR816Line* psLine);
 void		IR816UpdateHeld(SIR816Held* asHeld, SIR816Line* psLine);
 
 //IR816DeadStores.cpp: stores nothing reads, and what the code reads of the frame.
 bool		IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset);
-bool		IR816DeadStore(const char* szLine, const char* szWord, size uiWord);
-bool		IR816MovesS(const char* szLine);
-bool		IR816FindReads(const char* szLine, uint8* abRead);
+bool		IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size uiWord);
+bool		IR816MovesS(CIR816Code* pcCode, size uiLine);
+bool		IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead);
 
 //IR816Runtime.cpp: how a runtime routine takes its operands.
 bool		IR816IndexedRoutine(const char* szOperand, size uiOperand);

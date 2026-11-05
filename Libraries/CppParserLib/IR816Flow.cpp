@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
+#include "IR816Code.h"
 
 
 //The W65C816 back end's passes over a function's blocks of assembly text (IR816BuildFlow): stores dead on every
@@ -296,30 +297,26 @@ static int IR816FindFlowLabel(CArrayTemplate<SIR816FlowLabel>* pasLabels, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the tdc at szLine takes a pointer to the frame (clc, adc n with
-// no tcs after: not IR816MovesS), with n in *piFrame.
+// Whether the tdc on line uiLine takes a pointer to the frame (clc, adc n
+// with no tcs after: not IR816MovesS), with n in *piFrame.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816FrameAddress(const char* szLine, int32* piFrame)
+static bool IR816FrameAddress(CIR816Code* pcCode, size uiLine, int32* piFrame)
 {
 	SIR816Line	sLine;
 
-	szLine = IR816NextLine(szLine);
-	if (!szLine || !IR816IsInstruction(szLine))
+	if ((uiLine + 1 >= pcCode->NumLines()) || !pcCode->Instruction(uiLine + 1, &sLine))
 	{
 		return false;
 	}
-	IR816Decode(szLine, &sLine);
 	if (sLine.uiMnemonic != IR816M_Clc)
 	{
 		return false;
 	}
-	szLine = IR816NextLine(szLine);
-	if (!szLine || !IR816IsInstruction(szLine))
+	if ((uiLine + 2 >= pcCode->NumLines()) || !pcCode->Instruction(uiLine + 2, &sLine))
 	{
 		return false;
 	}
-	IR816Decode(szLine, &sLine);
 	if ((sLine.uiMnemonic != IR816M_Adc) || (sLine.uiOperand == 0) || (sLine.szOperand[0] < '0') || (sLine.szOperand[0] > '9'))
 	{
 		return false;
@@ -387,7 +384,7 @@ static int32 IR816LoadedX(SIR816FlowLine* psLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function's code from szText as lines and blocks (from a label, or
+// The function's code as lines (one each of the code's) and blocks (from a label, or
 // after a line that may go elsewhere, to the next; a call comes back) and
 // where each block goes.  False if it can't be followed (a jump table, an
 // unknown instruction or jump, a branch to a label it doesn't have), or,
@@ -402,7 +399,7 @@ static int32 IR816LoadedX(SIR816FlowLine* psLine)
 // gets the code's labels, sorted to find where a branch goes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BuildFlowLabelled(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf, CArrayTemplate<SIR816FlowLabel>* pasLabels)
+static bool IR816BuildFlowLabelled(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf, CArrayTemplate<SIR816FlowLabel>* pasLabels)
 {
 	SIR816FlowLabel*	psLabel;
 	SIR816FlowLine*		psLine;
@@ -423,15 +420,17 @@ static bool IR816BuildFlowLabelled(const char* szText, bool bStores, CArrayTempl
 	bool				bFrame;
 	bool				bIndexed;
 	int					iBefore;	//The instruction before's line, with no label between, or -1.
+	size				uiLine;
 
 	//The lines, what each reads and writes, and the widths.
 	iWidthA = 16;
 	iWidthX = 16;
 	bFrame = false;
 	iBefore = -1;
-	for (szLine = szText; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	for (uiLine = 0; uiLine < pcCode->NumLines(); uiLine++)
 	{
-		szEnd = IR816LineEnd(szLine);
+		szLine = pcCode->Text(uiLine);
+		szEnd = szLine + pcCode->GetText(uiLine)->Length();
 		psLine = pasLines->Add();
 		memset(psLine, 0, sizeof(SIR816FlowLine));
 		psLine->szLine = szLine;
@@ -481,9 +480,9 @@ static bool IR816BuildFlowLabelled(const char* szText, bool bStores, CArrayTempl
 		{
 			return false;
 		}
-		if (bStores && (psLine->sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine))
+		if (bStores && (psLine->sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(pcCode, uiLine))
 		{
-			if (!IR816FrameAddress(szLine, &psLine->iFrame))
+			if (!IR816FrameAddress(pcCode, uiLine, &psLine->iFrame))
 			{
 				return false;
 			}
@@ -746,13 +745,13 @@ static bool IR816BuildFlowLabelled(const char* szText, bool bStores, CArrayTempl
 // IR816BuildFlowLabelled with a table of the labels of its own.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
+static bool IR816BuildFlow(CIR816Code* pcCode, bool bStores, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<SIR816FlowBlock>* pasBlocks, CArrayTemplate<int>* paiBlockOf)
 {
 	CArrayTemplate<SIR816FlowLabel>	asLabels;
 	bool							bResult;
 
 	asLabels.Init(CIR816Backend::GetScratch());
-	bResult = IR816BuildFlowLabelled(szText, bStores, pasLines, pasBlocks, paiBlockOf, &asLabels);
+	bResult = IR816BuildFlowLabelled(pcCode, bStores, pasLines, pasBlocks, paiBlockOf, &asLabels);
 	asLabels.Kill();
 	return bResult;
 }
@@ -760,28 +759,13 @@ static bool IR816BuildFlow(const char* szText, bool bStores, CArrayTemplate<SIR8
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lines of pasLines but those abRemove marks, as the code from uiStart.
+// The code's lines that abRemove marks taken out (the flow lines, which
+// point into them, aren't used after).
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816WriteFlow(CChars* pszDest, size uiStart, CArrayTemplate<SIR816FlowLine>* pasLines, CArrayTemplate<bool>* pabRemove)
+static void IR816WriteFlow(CIR816Code* pcCode, CArrayTemplate<bool>* pabRemove)
 {
-	CChars			szOut;
-	size			ui;
-	SIR816FlowLine*	psLine;
-
-	szOut.Init(CIR816Backend::GetScratch());
-	for (ui = 0; ui < pasLines->NumElements(); ui++)
-	{
-		if (!*pabRemove->Get(ui))
-		{
-			psLine = pasLines->Get(ui);
-			szOut.Append(psLine->szLine, (size)(psLine->szEnd - psLine->szLine));
-			szOut.AppendNewLine();
-		}
-	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut.Text(), szOut.Length());
-	szOut.Kill();
+	pcCode->RemoveMarked(pabRemove);
 }
 
 
@@ -798,6 +782,27 @@ static void IR816WriteFlow(CChars* pszDest, size uiStart, CArrayTemplate<SIR816F
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
+{
+	CIR816Code	cCode;
+	bool		bRemoved;
+
+	cCode.Init();
+	cCode.Load(pszDest, uiStart);
+	bRemoved = RemoveFlowDeadStores(&cCode);
+	if (bRemoved)
+	{
+		cCode.Write(pszDest, uiStart);
+	}
+	cCode.Kill();
+	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::RemoveFlowDeadStores(CIR816Code* pcCode)
 {
 	CArrayTemplate<SIR816FlowLine>	asLines;
 	CArrayTemplate<SIR816FlowBlock>	asBlocks;
@@ -818,7 +823,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	asLines.Init(CIR816Backend::GetScratch());
 	asBlocks.Init(CIR816Backend::GetScratch());
 	aiBlockOf.Init(CIR816Backend::GetScratch());
-	if (!IR816BuildFlow(pszDest->Text() + uiStart, true, &asLines, &asBlocks, &aiBlockOf))
+	if (!IR816BuildFlow(pcCode, true, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
 		asBlocks.Kill();
@@ -904,7 +909,7 @@ bool CIR816Backend::RemoveFlowDeadStores(CChars* pszDest, size uiStart)
 	}
 	if (bRemoved)
 	{
-		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
+		IR816WriteFlow(pcCode, &abRemove);
 	}
 	abRemove.Kill();
 	aiBlockOf.Kill();
@@ -1031,6 +1036,27 @@ static bool IR816SameHeld(SIR816Held* asHeld, SIR816Held* asOther)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 {
+	CIR816Code	cCode;
+	bool		bRemoved;
+
+	cCode.Init();
+	cCode.Load(pszDest, uiStart);
+	bRemoved = PeepholeFlowRegisters(&cCode);
+	if (bRemoved)
+	{
+		cCode.Write(pszDest, uiStart);
+	}
+	cCode.Kill();
+	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::PeepholeFlowRegisters(CIR816Code* pcCode)
+{
 	CArrayTemplate<SIR816FlowLine>	asLines;
 	CArrayTemplate<SIR816FlowBlock>	asBlocks;
 	CArrayTemplate<int>				aiBlockOf;
@@ -1059,7 +1085,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	asLines.Init(CIR816Backend::GetScratch());
 	asBlocks.Init(CIR816Backend::GetScratch());
 	aiBlockOf.Init(CIR816Backend::GetScratch());
-	if (!IR816BuildFlow(pszDest->Text() + uiStart, false, &asLines, &asBlocks, &aiBlockOf))
+	if (!IR816BuildFlow(pcCode, false, &asLines, &asBlocks, &aiBlockOf))
 	{
 		aiBlockOf.Kill();
 		asBlocks.Kill();
@@ -1202,7 +1228,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 			if (psLine->iKind == IR816FL_INSTRUCTION)
 			{
 				iRegister = (psLine->sLine.uiMnemonic == IR816M_Lda) ? 0 : (psLine->sLine.uiMnemonic == IR816M_Ldx) ? 1 : (psLine->sLine.uiMnemonic == IR816M_Ldy) ? 2 : -1;
-				if ((iRegister >= 0) && IR816Holds(asHeld, iRegister, &psLine->sLine) && !IR816ZNReadAfter(psLine->szLine))
+				if ((iRegister >= 0) && IR816Holds(asHeld, iRegister, &psLine->sLine) && !IR816ZNReadAfter(pcCode, uj))
 				{
 					*abRemove.Get(uj) = true;
 					bRemoved = true;
@@ -1214,7 +1240,7 @@ bool CIR816Backend::PeepholeFlowRegisters(CChars* pszDest, size uiStart)
 	}
 	if (bRemoved)
 	{
-		IR816WriteFlow(pszDest, uiStart, &asLines, &abRemove);
+		IR816WriteFlow(pcCode, &abRemove);
 	}
 	abRemove.Kill();
 	aiFrom.Kill();

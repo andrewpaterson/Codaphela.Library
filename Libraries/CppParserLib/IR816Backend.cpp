@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "IR816BackendInternal.h"
+#include "IR816Code.h"
 
 
 //The W65C816 back end: a function's code from its IR (GenerateFunction, GenerateBody), its arguments' places
@@ -667,6 +668,7 @@ static int32 IR816CountDirectPage(const char* szCode)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 {
+	CIR816Code		cCode;
 	size			ui;
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
@@ -731,25 +733,31 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	{
 		mcSourceMarkers.Take(mpszOut, uiStart);
 	}
-	Peephole(mpszOut, uiStart);
-	PeepholeMasks(mpszOut, uiStart);
-	PeepholeStores(mpszOut, uiStart);
-	PeepholeTransfers(mpszOut, uiStart);
-	PeepholeBranches(mpszOut, uiStart);
-	PeepholeRegisters(mpszOut, uiStart);
-	RemoveUnreadStores(mpszOut, uiStart);
+
+	//The passes over the code, decoded once (CIR816Code).
+	cCode.Init();
+	cCode.Load(mpszOut, uiStart);
+	Peephole(&cCode);
+	PeepholeMasks(&cCode);
+	PeepholeStores(&cCode);
+	PeepholeTransfers(&cCode);
+	PeepholeBranches(&cCode);
+	PeepholeRegisters(&cCode);
+	RemoveUnreadStores(&cCode);
 
 	//The passes after Peephole leave stores and loads it would have taken out.
-	RemoveDeadStores(mpszOut, uiStart);
+	RemoveDeadStores(&cCode);
 
 	//Then those dead on every way on from them (the lda that fed one may be loaded over unread now).
-	if (RemoveFlowDeadStores(mpszOut, uiStart))
+	if (RemoveFlowDeadStores(&cCode))
 	{
-		RemoveDeadStores(mpszOut, uiStart);
+		RemoveDeadStores(&cCode);
 	}
 
 	//The loads of what a register holds, known across labels.
-	PeepholeFlowRegisters(mpszOut, uiStart);
+	PeepholeFlowRegisters(&cCode);
+	cCode.Write(mpszOut, uiStart);
+	cCode.Kill();
 }
 
 

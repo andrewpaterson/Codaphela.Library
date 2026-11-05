@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "IR816BackendInternal.h"
+#include "IR816Code.h"
 
 
 //The W65C816 back end's stores nothing reads taken out (RemoveUnreadStores, RemoveDeadStores), and what the
@@ -71,25 +72,25 @@ bool IR816MentionsNear(const char* szOperand, size uiOperand, int32 iOffset)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a store to the direct page word szWord (as "[D + 12]") by the line
-// before szLine is never read: in straight line code (no label, jump, call
+// before line uiFrom is never read: in straight line code (no label, jump, call
 // or width change) the next instruction that names a byte near it, other
 // than a store to another direct page word, stores a word to it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
+bool IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size uiWord)
 {
 	SIR816Line	sLine;
 	int32		iOffset;
 	bool		bStore;
+	size		ui;
 
 	iOffset = atoi(szWord + 5);
-	for (; szLine; szLine = IR816NextLine(szLine))
+	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
-		if (!IR816IsInstruction(szLine))
+		if (!pcCode->Instruction(ui, &sLine))
 		{
 			return false;
 		}
-		IR816Decode(szLine, &sLine);
 		if (sLine.uiFlags & (IR816MF_LEAVES | IR816MF_WIDTH | IR816MF_BLOCK_MOVE | IR816MF_SETS_D | IR816MF_INTERRUPT))
 		{
 			return false;
@@ -115,22 +116,22 @@ bool IR816DeadStore(const char* szLine, const char* szWord, size uiWord)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an lda before the line at szLine is never read: in straight line
+// Whether an lda before line uiFrom is never read: in straight line
 // code, before anything reads A or the N and Z the lda set, an instruction
 // sets A again (only IR816LeavesA instructions come between).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816DeadLoad(const char* szLine)
+static bool IR816DeadLoad(CIR816Code* pcCode, size uiFrom)
 {
 	SIR816Line	sLine;
+	size		ui;
 
-	for (; szLine; szLine = IR816NextLine(szLine))
+	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
-		if (!IR816IsInstruction(szLine))
+		if (!pcCode->Instruction(ui, &sLine))
 		{
 			return false;
 		}
-		IR816Decode(szLine, &sLine);
 		if (sLine.uiFlags & IR816MF_LOADS_A)
 		{
 			return true;
@@ -146,18 +147,18 @@ static bool IR816DeadLoad(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the tdc at szLine only moves S: a tcs follows it, after nothing
+// Whether the tdc on line uiLine only moves S: a tcs follows it, after nothing
 // but a clc and an adc of a constant (a frame's exit).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816MovesS(const char* szLine)
+bool IR816MovesS(CIR816Code* pcCode, size uiLine)
 {
 	SIR816Line	sLine;
 	int			i;
+	size		ui;
 
-	for (i = 0, szLine = IR816NextLine(szLine); (i < 3) && szLine && IR816IsInstruction(szLine); i++, szLine = IR816NextLine(szLine))
+	for (i = 0, ui = uiLine + 1; (i < 3) && (ui < pcCode->NumLines()) && pcCode->Instruction(ui, &sLine); i++, ui++)
 	{
-		IR816Decode(szLine, &sLine);
 		if (sLine.uiMnemonic == IR816M_Tcs)
 		{
 			return true;
@@ -173,7 +174,7 @@ bool IR816MovesS(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The direct page bytes the function's code at szLine may read: for each
+// The direct page bytes the function's code from line uiFrom may read: for each
 // instruction mentioning [D + n] other than a store to it, the word's two
 // bytes ([D + n]), or a pointer's three ([[D + n]:24 ...]), and the
 // scratch bytes when it calls a runtime routine (they work in the caller's
@@ -182,23 +183,23 @@ bool IR816MovesS(const char* szLine)
 // address may be passed on), unless only to move S (IR816MovesS).
 //
 //////////////////////////////////////////////////////////////////////////
-bool IR816FindReads(const char* szLine, uint8* abRead)
+bool IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead)
 {
 	SIR816Line	sLine;
 	const char*	szOperand;
 	int32		iOffset;
 	int			iBytes;
 	int			i;
+	size		ui;
 
 	memset(abRead, 0, IR816_DIRECT_PAGE);
-	for (; szLine; szLine = IR816NextLine(szLine))
+	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
-		if (!IR816IsInstruction(szLine) || (szLine[2] == ';'))
+		if (!pcCode->Instruction(ui, &sLine) || (pcCode->Text(ui)[2] == ';'))
 		{
 			continue;
 		}
-		IR816Decode(szLine, &sLine);
-		if ((sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(szLine))
+		if ((sLine.uiMnemonic == IR816M_Tdc) && !IR816MovesS(pcCode, ui))
 		{
 			return true;
 		}
@@ -265,34 +266,45 @@ bool IR816FindReads(const char* szLine, uint8* abRead)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 {
-	CChars		szOut;
-	const char*	szLine;
-	const char*	szEnd;
-	SIR816Line	sLine;
-	uint8		abRead[IR816_DIRECT_PAGE];
+	CIR816Code	cCode;
 
-	if (IR816FindReads(pszDest->Text() + uiStart, abRead))
+	cCode.Init();
+	cCode.Load(pszDest, uiStart);
+	RemoveUnreadStores(&cCode);
+	cCode.Write(pszDest, uiStart);
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RemoveUnreadStores(CIR816Code* pcCode)
+{
+	SIR816Line				sLine;
+	uint8					abRead[IR816_DIRECT_PAGE];
+	size					ui;
+	CArrayTemplate<uint8>	abRemove;
+
+	if (IR816FindReads(pcCode, 0, abRead))
 	{
 		return;
 	}
-	szOut.Init(CIR816Backend::GetScratch());
-	for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+	abRemove.Init(CIR816Backend::GetScratch());
+	abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
+	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		szEnd = IR816LineEnd(szLine);
-		if (IR816IsInstruction(szLine) && (szLine[2] != ';'))
+		if (pcCode->Instruction(ui, &sLine) && (pcCode->Text(ui)[2] != ';'))
 		{
-			IR816Decode(szLine, &sLine);
 			if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && (sLine.iOffset < IR816_DIRECT_PAGE - 1) && !abRead[sLine.iOffset] && !abRead[sLine.iOffset + 1])
 			{
-				continue;
+				*abRemove.Get(ui) = 1;
 			}
 		}
-		szOut.Append(szLine, (size)(szEnd - szLine));
-		szOut.AppendNewLine();
 	}
-	pszDest->SetLength(uiStart);
-	pszDest->Append(szOut.Text(), szOut.Length());
-	szOut.Kill();
+	pcCode->RemoveMarked(&abRemove);
+	abRemove.Kill();
 }
 
 
@@ -308,40 +320,57 @@ void CIR816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 {
-	CChars		szOut;
-	const char*	szLine;
-	const char*	szEnd;
-	SIR816Line	sLine;
-	bool		bRemoved;
+	CIR816Code	cCode;
+
+	cCode.Init();
+	cCode.Load(pszDest, uiStart);
+	RemoveDeadStores(&cCode);
+	cCode.Write(pszDest, uiStart);
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each pass decides from the code as it was when the pass began (a line a
+// pass takes out still counts for the lines before it), then takes the
+// lines out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::RemoveDeadStores(CIR816Code* pcCode)
+{
+	CArrayTemplate<uint8>	abRemove;
+	SIR816Line				sLine;
+	size					ui;
+	bool					bRemoved;
 
 	//Again while any went: the lda that fed a store that went is loaded over unread now.
+	abRemove.Init(CIR816Backend::GetScratch());
 	do
 	{
 		bRemoved = false;
-		szOut.Init(CIR816Backend::GetScratch());
-		for (szLine = pszDest->Text() + uiStart; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
+		abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), false);
+		for (ui = 0; ui < pcCode->NumLines(); ui++)
 		{
-			szEnd = IR816LineEnd(szLine);
-			if ((szEnd - szLine >= 3) && IR816IsInstruction(szLine) && (*szEnd == '\n'))
+			*abRemove.Get(ui) = 0;
+			if ((pcCode->GetText(ui)->Length() >= 3) && pcCode->Instruction(ui, &sLine))
 			{
-				IR816Decode(szLine, &sLine);
-				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(szEnd + 1, sLine.szOperand, sLine.uiOperand))
+				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(pcCode, ui + 1, sLine.szOperand, sLine.uiOperand))
 				{
+					*abRemove.Get(ui) = 1;
 					bRemoved = true;
 					continue;
 				}
-				if ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || ((sLine.uiOperand > 0) && (sLine.szOperand[0] != '['))) && IR816DeadLoad(szEnd + 1))
+				if ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || ((sLine.uiOperand > 0) && (sLine.szOperand[0] != '['))) && IR816DeadLoad(pcCode, ui + 1))
 				{
+					*abRemove.Get(ui) = 1;
 					bRemoved = true;
 					continue;
 				}
 			}
-			szOut.Append(szLine, (size)(szEnd - szLine));
-			szOut.AppendNewLine();
 		}
-		pszDest->SetLength(uiStart);
-		pszDest->Append(szOut.Text(), szOut.Length());
-		szOut.Kill();
+		pcCode->RemoveMarked(&abRemove);
 	}
 	while (bRemoved);
+	abRemove.Kill();
 }
