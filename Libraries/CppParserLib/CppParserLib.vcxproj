@@ -197,6 +197,12 @@
     <ClCompile Include="IR65Backend.cpp" />
     <ClCompile Include="IR65BackendPeephole.cpp" />
     <ClCompile Include="IR65Instructions.cpp" />
+    <ClCompile Include="IR65Operands.cpp" />
+    <ClCompile Include="IR65Multiplies.cpp" />
+    <ClCompile Include="IR65Floats.cpp" />
+    <ClCompile Include="IR65Fusion.cpp" />
+    <ClCompile Include="IR65Calls.cpp" />
+    <ClCompile Include="IR65Compares.cpp" />
     <ClCompile Include="IR65Passes.cpp" />
     <ClCompile Include="IR65Places.cpp" />
     <ClCompile Include="IR816Backend.cpp" />

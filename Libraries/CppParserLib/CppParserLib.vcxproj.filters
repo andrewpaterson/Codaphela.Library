@@ -165,6 +165,24 @@
     <ClCompile Include="IR65Instructions.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR65Operands.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Multiplies.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Floats.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Fusion.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Calls.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Compares.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Passes.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
