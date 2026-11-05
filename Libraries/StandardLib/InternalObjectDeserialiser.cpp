@@ -165,19 +165,12 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 		szClassName = pcHeader->mszClassName.Text();
 		if (pcHeader->meType == OBJECT_POINTER_ID)
 		{
-			return mpcObjects->AllocateForInternalDeserialisationWithIndex(szClassName, pcHeader->moi);
+			return mpcObjects->AllocateForInternalDeserialisation(szClassName, "", pcHeader->moi);
 		}
 		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
 		{
 			szName = pcHeader->mszObjectName.Text();
-			if (!StrEmpty(szName))
-			{
-				return mpcObjects->AllocateForInternalDeserialisationWithNameAndIndex(szClassName, szName, pcHeader->moi);
-			}
-			else
-			{
-				return mpcObjects->AllocateForInternalDeserialisationWithIndex(szClassName, pcHeader->moi);
-			}
+			return mpcObjects->AllocateForInternalDeserialisation(szClassName, szName, pcHeader->moi);
 		}
 	}
 
@@ -220,10 +213,6 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	CEmbeddedObject*	pcEmbeddedObject;
 	CBaseObject*		pcHollowObject;
 	CBaseObject*		pcExistingObject;
-	OIndex				oiNew;
-	bool				bIsNamed;
-	const char*				szName;
-	uint16				uiFatSize;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
@@ -252,19 +241,7 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 		return true;
 	}
 
-	oiNew = pcObjectIdentifier->moi;
-	bIsNamed = pcObjectIdentifier->IsNamed();
-	uiFatSize = pcObjectIdentifier->GetFatSize();
-
-	if (bIsNamed)
-	{
-		szName = pcObjectIdentifier->GetName();
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, uiFatSize);
-	}
-	else
-	{
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, uiFatSize);
-	}
+	pcHollowObject = mpcObjects->AllocateInternalHollow(pcObjectIdentifier->IsNamed() ? pcObjectIdentifier->GetName() : "", pcObjectIdentifier->moi, iNumEmbedded, pcObjectIdentifier->GetFatSize());
 
 	if (!pcHollowObject)
 	{
@@ -294,9 +271,6 @@ bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjec
 	CPointer		pExisitingInDatabase;
 	CBaseObject*	pcExistingObject;
 	CBaseObject*	pcHollowObject;
-	OIndex			oiNew;
-	bool			bIsNamed;
-	const char*			szName;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
@@ -311,18 +285,7 @@ bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjec
 		return true;
 	}
 
-	oiNew = pcObjectIdentifier->moi;
-	bIsNamed = pcObjectIdentifier->IsNamed();
-
-	if (bIsNamed)
-	{
-		szName = pcObjectIdentifier->GetName();
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
-	}
-	else
-	{
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
-	}
+	pcHollowObject = mpcObjects->AllocateInternalHollow(pcObjectIdentifier->IsNamed() ? pcObjectIdentifier->GetName() : "", pcObjectIdentifier->moi, iNumEmbedded, pcObjectIdentifier->GetFatSize());
 
 	if (!pcHollowObject)
 	{

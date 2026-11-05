@@ -172,24 +172,18 @@ protected:
 						Ptr<CRoot>				GetRoot(void);
 						bool					HasRoot(void);
 
-						bool					AddIntoMemory(CBaseObject* pvObject);
-						bool					AddIntoMemoryWithIndex(CBaseObject* pvObject);
-						bool					AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+						bool					AddIntoMemory(CBaseObject* pcObject);
 
 	template<class M> 	Ptr<M>					PointTo(M* pcObject);
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
-	template<class M>	M*						AllocateUninitialisedByTemplate(void);
 	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName);
-	template<class M>	M*						AllocateUninitialisedByTemplate(OIndex oi, size uiAdditionalBytes);
 	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, size uiAdditionalBytes);
-						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, OIndex oi);
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi);
 						bool					ValidateCanAllocate(const char* szClassName);
 						bool					ValidateCanAllocate(void);
 
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(const char* szObjectName);
-						CBaseObject*			GetFromMemory(const char* szObjectName, OIndex oi);
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(const char* szObjectName);
 						CBaseObject*			GetFromSources(const char* szObjectName);
@@ -211,9 +205,6 @@ protected:
 						void					ValidateIndexedObjects(CArrayBaseObjectPtr* papcObjects);
 						void					ClearValidationFlags(CArrayBaseObjectPtr* papcObjects);
 						void					ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi, uint16 uiFatSize);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);
@@ -221,18 +212,15 @@ protected:
 						void					UnsetDumpFlags(void);
 
 public:
-						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName);
-						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName);
+						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName);
 
-						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
-						CHollowObject*			AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
-						CHollowObject*			AllocateInternalHollowWithNameAndIndex(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
+						CHollowObject*			AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
 
 						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
-						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi);
+						CBaseObject*			AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi);
 						CBaseObject*			ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName);
 						void					RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded);
 };
@@ -258,32 +246,6 @@ void LogObjectDestruction(CBaseObject* pcObject, const char* szMethod);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, size uiAdditionalBytes)
-{
-	SpecificClass*	pcObject;
-	bool			bResult;
-
-	bResult = ValidateCanAllocate();
-	if (!bResult)
-	{
-		return NULL;
-	}
-
-	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(uiAdditionalBytes);
-	if (pcObject)
-	{
-		pcObject->Allocate(this);
-		pcObject->InitIdentifiers("", oi);
-	}
-	return pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class SpecificClass>
 SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, size uiAdditionalBytes)
 {
 	SpecificClass*	pcObject;
@@ -302,20 +264,6 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectNam
 		pcObject->InitIdentifiers(szObjectName, oi);
 	}
 	return pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class SpecificClass>
-SpecificClass* CObjects::AllocateUninitialisedByTemplate(void)
-{
-	OIndex	oi;
-
-	oi = GetNextIndex();
-	return AllocateUninitialisedByTemplate<SpecificClass>(oi, 0);
 }
 
 
@@ -387,25 +335,7 @@ Ptr<SpecificClass> CObjects::PointToSetDirty(SpecificClass* pcObject)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(void)
 {
-	bool			bResult;
-	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>();
-	if (pcObject)
-	{
-		bResult = AddIntoMemoryWithIndex(pcObject);
-		if (bResult)
-		{
-			return PointToSetDirty(pcObject);
-		}
-		else
-		{
-			pcObject->KillInternal(false, true);
-			return NULL;
-		}
-	}
-	else
-	{
-		return NULL;
-	}
+	return Malloc<SpecificClass>("");
 }
 
 
@@ -420,7 +350,7 @@ Ptr<SpecificClass> CObjects::Malloc(const char* szObjectName)
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
 	if (pcObject)
 	{
-		bResult = AddIntoMemoryWithNameAndIndex(pcObject);
+		bResult = AddIntoMemory(pcObject);
 		if (bResult)
 		{
 			return PointToSetDirty(pcObject);

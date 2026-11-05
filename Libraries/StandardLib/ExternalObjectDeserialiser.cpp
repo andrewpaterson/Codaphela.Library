@@ -441,7 +441,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 		szClassName = pcHeader->mszClassName.Text();
 		if (pcHeader->meType == OBJECT_POINTER_ID)
 		{
-			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName);
+			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName, "");
 		}
 		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
 		{
@@ -452,7 +452,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			}
 			else
 			{
-				return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName);
+				return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName, "");
 			}
 		}
 	}

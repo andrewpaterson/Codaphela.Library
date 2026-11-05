@@ -46,7 +46,7 @@ void TestEmbeddedObjectRemapTosActual(void)
 	{
 		Ptr<CRoot>	pRoot = ORoot();
 
-		Ptr<CHollowObject>	pHollow = gcObjects.AllocateInternalHollowWithNameAndIndex("Name", gcObjects.GetIndexGenerator()->GetNext(), 3, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		Ptr<CHollowObject>	pHollow = gcObjects.AllocateInternalHollow("Name", gcObjects.GetIndexGenerator()->GetNext(), 3, OBJECT_IDENTIFIER_SIZE_NOT_SET);
 		AssertSize(3, pHollow.Object()->NumEmbedded());
 
 		Ptr<CEmbeddedObject> pHollowEmbedded1 = pHollow.Object()->GetEmbeddedObject(1);
