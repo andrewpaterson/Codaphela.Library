@@ -29,15 +29,17 @@ along with Codaphela ThreadLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The program writes its output and errors into one pipe this process
-// reads, and reads its input from nothing (NUL).  It has no console
-// window.
+// reads, or into a pipe each if they are captured, and reads its input
+// from nothing (NUL).  It has no console window.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory)
+bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory, bool bCapture)
 {
 	SECURITY_ATTRIBUTES		sInherited;
 	HANDLE					hRead;
 	HANDLE					hWrite;
+	HANDLE					hErrorsRead;
+	HANDLE					hErrorsWrite;
 	HANDLE					hNull;
 	STARTUPINFO				sStartUpInfo;
 	PROCESS_INFORMATION		sProcessInformation;
@@ -52,6 +54,19 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 	{
 		gcLogger.Error2(__METHOD__, "CreatePipe failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
 		return false;
+	}
+	hErrorsRead = NULL;
+	hErrorsWrite = hWrite;
+	if (bCapture)
+	{
+		if (!CreatePipe(&hErrorsRead, &hErrorsWrite, &sInherited, 0))
+		{
+			gcLogger.Error2(__METHOD__, "CreatePipe failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+			CloseHandle(hRead);
+			CloseHandle(hWrite);
+			return false;
+		}
+		SetHandleInformation(hErrorsRead, HANDLE_FLAG_INHERIT, 0);
 	}
 
 	//Only the program's end of the pipe is passed to it.
@@ -71,7 +86,7 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 	sStartUpInfo.dwFlags = STARTF_USESTDHANDLES;
 	sStartUpInfo.hStdInput = hNull;
 	sStartUpInfo.hStdOutput = hWrite;
-	sStartUpInfo.hStdError = hWrite;
+	sStartUpInfo.hStdError = hErrorsWrite;
 	ZeroMemory(&sProcessInformation, sizeof(sProcessInformation));
 	bResult = CreateProcess(NULL, szCommandLine.Text(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, szWorkingDirectory, &sStartUpInfo, &sProcessInformation) != 0;
 	if (!bResult)
@@ -82,6 +97,10 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 
 	//The program has its own copies; when it (and what it starts) closes them, the pipe ends.
 	CloseHandle(hWrite);
+	if (bCapture)
+	{
+		CloseHandle(hErrorsWrite);
+	}
 	if (hNull != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(hNull);
@@ -89,43 +108,55 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 	if (!bResult)
 	{
 		CloseHandle(hRead);
+		if (bCapture)
+		{
+			CloseHandle(hErrorsRead);
+		}
 		return false;
 	}
 
 	CloseHandle(sProcessInformation.hThread);
 	mpvProcess = sProcessInformation.hProcess;
 	mpvOutput = hRead;
+	mpvErrors = hErrorsRead;
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads what is in the pipe now, without waiting for more.
+// Reads what is in pvPipe now, without waiting for more.  0 if nothing
+// is, or pvPipe is NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-void CProcess::ReadAvailable(CArrayChars* paszLines)
+size CProcess::ReadPipe(void* pvPipe, char* pcBuffer, size uiMaxLength)
 {
-	char	acBuffer[4096];
 	DWORD	uiAvailable;
 	DWORD	uiRead;
 
-	if (!mpvOutput)
+	if (!pvPipe)
 	{
-		return;
+		return 0;
 	}
-	for (;;)
+	if (!PeekNamedPipe((HANDLE)pvPipe, NULL, 0, NULL, &uiAvailable, NULL) || (uiAvailable == 0))
 	{
-		if (!PeekNamedPipe((HANDLE)mpvOutput, NULL, 0, NULL, &uiAvailable, NULL) || (uiAvailable == 0))
-		{
-			return;
-		}
-		if (!ReadFile((HANDLE)mpvOutput, acBuffer, (uiAvailable < sizeof(acBuffer)) ? uiAvailable : sizeof(acBuffer), &uiRead, NULL) || (uiRead == 0))
-		{
-			return;
-		}
-		AppendOutput(acBuffer, uiRead, paszLines);
+		return 0;
 	}
+	if (!ReadFile((HANDLE)pvPipe, pcBuffer, (uiAvailable < uiMaxLength) ? uiAvailable : (DWORD)uiMaxLength, &uiRead, NULL))
+	{
+		return 0;
+	}
+	return (size)uiRead;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CProcess::ClosePipe(void* pvPipe)
+{
+	CloseHandle((HANDLE)pvPipe);
 }
 
 
@@ -166,8 +197,13 @@ void CProcess::CloseProcess(void)
 {
 	if (mpvOutput)
 	{
-		CloseHandle((HANDLE)mpvOutput);
+		ClosePipe(mpvOutput);
 		mpvOutput = NULL;
+	}
+	if (mpvErrors)
+	{
+		ClosePipe(mpvErrors);
+		mpvErrors = NULL;
 	}
 	if (mpvProcess)
 	{

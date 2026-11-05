@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 #include "BaseLib/NativeThread.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/Logger.h"
@@ -12,7 +16,9 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // The program TestProcess runs (this one, --test-process-output).  With
-// "wait" it says so and sleeps until it is stopped.  Otherwise it writes
+// "wait" it says so and sleeps until it is stopped.  With "bytes" it
+// writes bytes a line splitter would change: a '\0', a carriage return
+// and line feed, and a line feed, and an error.  Otherwise it writes
 // a line to its output, one to its errors, its working directory and its
 // arguments one a line, then "three" with no line end, and exits with
 // its first argument.
@@ -30,6 +36,17 @@ int TestProcessOutputMain(int argc, char* argv[])
 		fflush(stdout);
 		ThreadSleep(30000);
 		return 0;
+	}
+	if ((argc >= 1) && (strcmp(argv[0], "bytes") == 0))
+	{
+#ifdef _WIN32
+		_setmode(_fileno(stdout), _O_BINARY);
+#endif
+		fwrite("a\0b\r\nc\n", 1, 7, stdout);
+		fflush(stdout);
+		fprintf(stderr, "bad");
+		fflush(stderr);
+		return 1;
 	}
 
 	printf("one\n");
@@ -175,6 +192,70 @@ void TestProcessTerminate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Captured, the output is kept byte for byte and the errors apart from
+// it.  A process can capture one program and read the lines of the next.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestProcessCapture(void)
+{
+	CProcess		cProcess;
+	CArrayChars		aszArguments;
+	CArrayChars		aszLines;
+	CChars			szExecutable;
+	CChars			szOutput;
+	CChars			szErrors;
+
+	szExecutable.Init();
+	AssertTrue(GetThisExecutable(&szExecutable));
+	aszArguments.Init();
+	aszArguments.Add("--test-process-output");
+	aszArguments.Add("bytes");
+	szOutput.Init();
+	szErrors.Init();
+	cProcess.Init();
+	AssertTrue(cProcess.StartCapture(szExecutable.Text(), &aszArguments));
+	AssertTrue(cProcess.IsRunning());
+	AssertFalse(cProcess.StartCapture(szExecutable.Text(), &aszArguments));
+	cProcess.WaitCapture(&szOutput, &szErrors);
+	AssertFalse(cProcess.IsRunning());
+	AssertFalse(cProcess.PollCapture(&szOutput, &szErrors));
+	AssertInt(1, cProcess.GetExitCode());
+	AssertSize(7, szOutput.Length());
+	AssertMemory("a\0b\r\nc\n", szOutput.Text(), 7);
+	AssertString("bad", szErrors.Text());
+
+	//The next program's output and errors are lines again.
+	aszLines.Init();
+	aszArguments.ReInit();
+	aszArguments.Add("--test-process-output");
+	aszArguments.Add("0");
+	AssertTrue(cProcess.Start(szExecutable.Text(), &aszArguments));
+	cProcess.Wait(&aszLines);
+	AssertSize(4, aszLines.NumElements());
+	AssertString("two", aszLines.GetText(1));
+
+	//And captured again, its errors don't go into its output.
+	szOutput.Clear();
+	szErrors.Clear();
+	AssertTrue(cProcess.StartCapture(szExecutable.Text(), &aszArguments));
+	cProcess.WaitCapture(&szOutput, &szErrors);
+	AssertInt(0, cProcess.GetExitCode());
+	AssertTrue(szOutput.StartsWith("one"));
+	AssertTrue(szOutput.EndsWith("three"));
+	AssertTrue(szErrors.StartsWith("two"));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, szOutput.Find("two"));
+	cProcess.Kill();
+
+	aszLines.Kill();
+	szErrors.Kill();
+	szOutput.Kill();
+	aszArguments.Kill();
+	szExecutable.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A program that isn't there can't be started on Windows; on Linux it is
 // started and exits with 127, as a shell's does.
 //
@@ -212,6 +293,7 @@ void TestProcess(void)
 
 	TestProcessOutput();
 	TestProcessTerminate();
+	TestProcessCapture();
 	TestProcessMissing();
 
 	TestStatistics();

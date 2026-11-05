@@ -24,15 +24,17 @@ along with Codaphela ThreadLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 
 
-//Another program run with its output read back, like a compiler run by a build.  Its standard output and error are
-//one stream, read a line at a time without waiting (Poll) so whatever runs it can carry on, such as a window's tick.
-//Its standard input is empty.  Output after the program exits, from programs it started that are still running, isn't
-//waited for.
+//Another program run with its output read back, like a compiler run by a build.  Started with Start its standard
+//output and error are one stream, read a line at a time without waiting (Poll) so whatever runs it can carry on, such
+//as a window's tick.  Started with StartCapture its output is kept exactly as it was written, every byte, and its
+//errors apart from it (PollCapture), for output that is data, like a file's contents from git.  Its standard input is
+//empty.  Output after the program exits, from programs it started that are still running, isn't waited for.
 class CProcess
 {
 protected:
 	void*	mpvProcess;		//The process's handle (Windows) or id (Linux).
 	void*	mpvOutput;		//The read end of its output's pipe.
+	void*	mpvErrors;		//The read end of its errors' pipe, NULL unless captured.
 	CChars	mszPartial;		//Output after the last line end.
 	int		miExitCode;
 	bool	mbRunning;
@@ -44,18 +46,29 @@ public:
 	bool	Start(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory = NULL);
 	bool	Poll(CArrayChars* paszLines);
 	void	Wait(CArrayChars* paszLines);
+
+	bool	StartCapture(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory = NULL);
+	bool	PollCapture(CChars* pszOutput, CChars* pszErrors);
+	void	WaitCapture(CChars* pszOutput, CChars* pszErrors);
+
 	void	Terminate(void);
 
 	bool	IsRunning(void);
 	int		GetExitCode(void);
 
 protected:
+	bool	Start(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory, bool bCapture);
+	bool	Exited(void);
+	void	ReadLines(CArrayChars* paszLines);
+	void	ReadCaptured(CChars* pszOutput, CChars* pszErrors);
+	void	ReadAll(void* pvPipe, CChars* pszDest);
 	void	AppendOutput(const char* szOutput, size uiLength, CArrayChars* paszLines);
 	void	EndOutput(CArrayChars* paszLines);
 
 	//By platform.
-	bool	StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory);
-	void	ReadAvailable(CArrayChars* paszLines);
+	bool	StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory, bool bCapture);
+	size	ReadPipe(void* pvPipe, char* pcBuffer, size uiMaxLength);
+	void	ClosePipe(void* pvPipe);
 	bool	HasExited(int* piExitCode);
 	void	TerminateProcess(void);
 	void	CloseProcess(void);

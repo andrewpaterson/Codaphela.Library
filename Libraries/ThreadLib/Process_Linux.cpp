@@ -33,13 +33,15 @@ along with Codaphela ThreadLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The program writes its output and errors into one pipe this process
-// reads, and reads its input from /dev/null.  A program that can't be
-// run exits with 127, as a shell's does.
+// reads, or into a pipe each if they are captured, and reads its input
+// from /dev/null.  A program that can't be run exits with 127, as a
+// shell's does.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory)
+bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory, bool bCapture)
 {
 	int				aiPipe[2];
+	int				aiErrors[2];
 	int				iNull;
 	pid_t			iProcess;
 	char**			aszArguments;
@@ -50,6 +52,15 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 	if (pipe(aiPipe) != 0)
 	{
 		gcLogger.Error2(__METHOD__, "pipe failed [", LinuxErrorCodeToString(errno), "].", NULL);
+		return false;
+	}
+	aiErrors[0] = -1;
+	aiErrors[1] = -1;
+	if (bCapture && (pipe(aiErrors) != 0))
+	{
+		gcLogger.Error2(__METHOD__, "pipe failed [", LinuxErrorCodeToString(errno), "].", NULL);
+		close(aiPipe[0]);
+		close(aiPipe[1]);
 		return false;
 	}
 
@@ -74,9 +85,14 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 			close(iNull);
 		}
 		dup2(aiPipe[1], 1);
-		dup2(aiPipe[1], 2);
+		dup2(bCapture ? aiErrors[1] : aiPipe[1], 2);
 		close(aiPipe[0]);
 		close(aiPipe[1]);
+		if (bCapture)
+		{
+			close(aiErrors[0]);
+			close(aiErrors[1]);
+		}
 		if (szWorkingDirectory && (chdir(szWorkingDirectory) != 0))
 		{
 			_exit(127);
@@ -86,43 +102,63 @@ bool CProcess::StartProcess(const char* szExecutable, CArrayChars* paszArguments
 	}
 	cArguments.Kill();
 	close(aiPipe[1]);
+	if (bCapture)
+	{
+		close(aiErrors[1]);
+	}
 	if (iProcess < 0)
 	{
 		gcLogger.Error2(__METHOD__, "fork failed [", LinuxErrorCodeToString(errno), "].", NULL);
 		close(aiPipe[0]);
+		if (bCapture)
+		{
+			close(aiErrors[0]);
+		}
 		return false;
 	}
 
-	fcntl(aiPipe[0], F_SETFL, fcntl(aiPipe[0], F_GETFL) | O_NONBLOCK);
 	mpvProcess = (void*)(size_t)iProcess;
+	fcntl(aiPipe[0], F_SETFL, fcntl(aiPipe[0], F_GETFL) | O_NONBLOCK);
 	mpvOutput = (void*)(size_t)(aiPipe[0] + 1);  //+1 so file descriptor 0 isn't NULL.
+	if (bCapture)
+	{
+		fcntl(aiErrors[0], F_SETFL, fcntl(aiErrors[0], F_GETFL) | O_NONBLOCK);
+		mpvErrors = (void*)(size_t)(aiErrors[0] + 1);
+	}
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads what is in the pipe now, without waiting for more.
+// Reads what is in pvPipe now, without waiting for more.  0 if nothing
+// is, or pvPipe is NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-void CProcess::ReadAvailable(CArrayChars* paszLines)
+size CProcess::ReadPipe(void* pvPipe, char* pcBuffer, size uiMaxLength)
 {
-	char	acBuffer[4096];
 	ssize_t	iRead;
 
-	if (!mpvOutput)
+	if (!pvPipe)
 	{
-		return;
+		return 0;
 	}
-	for (;;)
+	iRead = read((int)(size_t)pvPipe - 1, pcBuffer, uiMaxLength);
+	if (iRead <= 0)
 	{
-		iRead = read((int)(size_t)mpvOutput - 1, acBuffer, sizeof(acBuffer));
-		if (iRead <= 0)
-		{
-			return;
-		}
-		AppendOutput(acBuffer, (size)iRead, paszLines);
+		return 0;
 	}
+	return (size)iRead;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CProcess::ClosePipe(void* pvPipe)
+{
+	close((int)(size_t)pvPipe - 1);
 }
 
 
@@ -166,8 +202,13 @@ void CProcess::CloseProcess(void)
 {
 	if (mpvOutput)
 	{
-		close((int)(size_t)mpvOutput - 1);
+		ClosePipe(mpvOutput);
 		mpvOutput = NULL;
+	}
+	if (mpvErrors)
+	{
+		ClosePipe(mpvErrors);
+		mpvErrors = NULL;
 	}
 	if (mpvProcess)
 	{
