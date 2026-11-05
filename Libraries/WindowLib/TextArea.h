@@ -48,6 +48,28 @@ struct STextAreaSpan
 
 
 typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
+
+
+enum ETextAreaBackground
+{
+	TAB_Range,  //Bytes [uiStart, uiEnd) of the UTF8 text, on each row as the selection is.
+	TAB_Lines,  //Lines [uiStart, uiEnd), across the text area's whole width.
+	TAB_Boundary  //A line iThickness high across the whole width, centred on the top of line uiStart (or the bottom of the last line, for NumLines), kept inside the text.
+};
+
+
+//A colour drawn under the text (see AddBackground, AddLineBackground and AddLineBoundary).
+struct STextAreaBackground
+{
+	ETextAreaBackground	eType;
+	size				uiStart;
+	size				uiEnd;
+	int32				iThickness;
+	ARGB32				sColour;
+};
+
+
+typedef CArrayTemplate<STextAreaBackground>	CArrayTextAreaBackground;
 typedef CArrayTemplate<size>			CArrayTextAreaStopStart;
 typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
 
@@ -93,6 +115,12 @@ enum ETextAreaMove
 //stays with its line as text is edited: it moves down with a line pushed down by line feeds put in at its start, and
 //goes with a line that is deleted or joined onto the line above.  Each gap has an id (GetLineGapId) for finding the
 //line it is with after edits (FindLineGap); it keeps it while it is there, through changes of height too.
+//
+//Colours can be drawn under the text, under the selection too: over ranges of the text (AddBackground), whole lines
+//across the text area's width (AddLineBackground) and thin lines between lines (AddLineBoundary), each drawn over the
+//ones added before it.  Line backgrounds don't cover the gaps below lines.  Ranges move with the text and grow with
+//text put strictly inside them; line backgrounds and boundaries stay with their lines as gaps do.  Setting the text
+//removes them.
 class CTextArea : public CCanvas
 {
 CONSTRUCTABLE(CTextArea);
@@ -124,6 +152,10 @@ protected:
 	CArrayTextLayoutLine	masTileLines;
 	CArrayTextLayoutStop	masTileStops;
 
+	Ptr<CGeometryMap>	mpBackgroundMap;  //Under the selection.
+	CArrayTextAreaBackground	masBackgrounds;
+	bool				mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
+	int32				miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>	mpSelectionMap;  //Under the text.
 	Ptr<CGeometryMap>	mpCaretMap;  //Over the text.
 	ARGB32				msSelectionColour;
@@ -175,6 +207,12 @@ public:
 	bool				AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride);
 	void				ClearSpans(void);
 	size				NumSpans(void);
+	bool				AddBackground(size uiStart, size uiEnd, ARGB32 sColour);
+	bool				AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	bool				AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour);
+	void				ClearBackgrounds(void);
+	size				NumBackgrounds(void);
+	STextAreaBackground*	GetBackground(size uiIndex);
 	void				GetStyleAt(size uiPosition, STextStyle* psStyle);
 	ARGB32				GetColourAt(size uiPosition);
 
@@ -296,6 +334,18 @@ protected:
 	void				GapsChanged(void);
 	void				LinesInserted(size uiPosition, const char* szText, size uiLength);
 	void				LinesRemoved(size uiStart, size uiEnd);
+
+	//The colours under the text.
+	void				UpdateBackgrounds(void);
+	void				AddLineBackgroundRectangles(STextAreaBackground* psBackground);
+	void				AddBoundaryRectangle(STextAreaBackground* psBackground);
+	void				AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour);
+	bool				GetLineRows(size uiLine, int32* piTop, int32* piBottom);
+	int32				GetFullWidth(void);
+	void				BackgroundsInserted(size uiPosition, size uiLength);
+	void				BackgroundsRemoved(size uiStart, size uiEnd);
+	void				BackgroundLinesInserted(size uiLine, bool bLineStart, size uiNewLines);
+	void				BackgroundLinesRemoved(size uiFirst, size uiLast, bool bWhole);
 
 	//The text as tiles.
 	bool				UseTiles(void);

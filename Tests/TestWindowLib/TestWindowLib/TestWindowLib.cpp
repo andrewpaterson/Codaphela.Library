@@ -17,6 +17,7 @@ void TestBorderLayoutHelper(void);
 void TestCanvas(void);
 void TestLabel(void);
 void TestTextArea(void);
+void TestTextAreaBackgrounds(void);
 void TestTextAreaEdit(void);
 void TestCodeEditor(void);
 void TestLineZones(void);
@@ -73,6 +74,7 @@ int __cdecl main(void)
 	TestCanvas();
 	TestLabel();
 	TestTextArea();
+	TestTextAreaBackgrounds();
 	TestTextAreaEdit();
 	TestCodeEditor();
 	TestLineZones();

@@ -238,6 +238,7 @@
     <ClCompile Include="TestFillContainer.cpp" />
     <ClCompile Include="TestLabel.cpp" />
     <ClCompile Include="TestTextArea.cpp" />
+    <ClCompile Include="TestTextAreaBackgrounds.cpp" />
     <ClCompile Include="TestTextAreaEdit.cpp" />
     <ClCompile Include="TestCodeEditor.cpp" />
     <ClCompile Include="TestLineZones.cpp" />

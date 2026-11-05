@@ -73,6 +73,9 @@
     <ClCompile Include="TestTextArea.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestTextAreaBackgrounds.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestTextAreaEdit.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>

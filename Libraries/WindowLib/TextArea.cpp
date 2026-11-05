@@ -80,6 +80,10 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpSpriteMap = OMalloc<CSpriteMap>();
 	mpGeometryMap = OMalloc<CGeometryMap>();
 	mpFontDraw = OMalloc<CMapFontDraw>(mpSpriteMap, mpGeometryMap);
+	mpBackgroundMap = OMalloc<CGeometryMap>();
+	masBackgrounds.Init();
+	mbBackgroundsDirty = false;
+	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
 	mpCaretMap = OMalloc<CGeometryMap>();
 	mpMaps = OMalloc<CMaps>();
@@ -91,6 +95,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpTileWriter = OMalloc<CTileTextWriter>(mpTileLayer, Ptr<CFontColours>(), msStyle.sColour, (size)4);
 	masTileLines.Init();
 	masTileStops.Init();
+	mpMaps->AddMap(mpBackgroundMap);
 	mpMaps->AddMap(mpSelectionMap);
 	mpMaps->AddMap(mpSpriteMap);
 	mpMaps->AddMap(mpTileMap);
@@ -196,6 +201,7 @@ void CTextArea::Free(void)
 	masGaps.Kill();
 	mauiLineStarts.Kill();
 	mauiStopStarts.Kill();
+	masBackgrounds.Kill();
 	masSpans.Kill();
 	mszText.Kill();
 	CCanvas::Free();
@@ -232,6 +238,10 @@ void CTextArea::Class(void)
 	M_Pointer(mpTileWriter);
 	U_Data(CArrayTextLayoutLine, masTileLines);
 	U_Data(CArrayTextLayoutStop, masTileStops);
+	M_Pointer(mpBackgroundMap);
+	U_Data(CArrayTextAreaBackground, masBackgrounds);
+	U_Bool(mbBackgroundsDirty);
+	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
 	M_Pointer(mpCaretMap);
 	U_UInt32(msSelectionColour);
@@ -273,8 +283,8 @@ bool CTextArea::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The spans and line gaps are removed; they were of the old text.  The
-// caret goes to the start and nothing is selected.
+// The spans, backgrounds and line gaps are removed; they were of the old
+// text.  The caret goes to the start and nothing is selected.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetText(const char* szText)
@@ -283,6 +293,8 @@ void CTextArea::SetText(const char* szText)
 	mszText.Init(szText);
 	FindLineStarts();
 	masSpans.ReInit();
+	masBackgrounds.ReInit();
+	mbBackgroundsDirty = true;
 	masGaps.ReInit();
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
@@ -492,6 +504,130 @@ void CTextArea::ClearSpans(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Colours bytes uiStart to uiEnd of the UTF8 text, under the selection.
+// False if the range isn't in the text; an empty range is ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::AddBackground(size uiStart, size uiEnd, ARGB32 sColour)
+{
+	STextAreaBackground*	psBackground;
+
+	if ((uiStart > uiEnd) || (uiEnd > mszText.Length()))
+	{
+		return false;
+	}
+	if (uiStart == uiEnd)
+	{
+		return true;
+	}
+
+	psBackground = masBackgrounds.Add();
+	psBackground->eType = TAB_Range;
+	psBackground->uiStart = uiStart;
+	psBackground->uiEnd = uiEnd;
+	psBackground->iThickness = 0;
+	psBackground->sColour = sColour;
+	mbBackgroundsDirty = true;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Colours lines uiStartLine to uiEndLine across the text area's whole
+// width, not the gaps below them.  False if they aren't lines of the text;
+// no lines are ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour)
+{
+	STextAreaBackground*	psBackground;
+
+	if ((uiStartLine > uiEndLine) || (uiEndLine > NumLines()))
+	{
+		return false;
+	}
+	if (uiStartLine == uiEndLine)
+	{
+		return true;
+	}
+
+	psBackground = masBackgrounds.Add();
+	psBackground->eType = TAB_Lines;
+	psBackground->uiStart = uiStartLine;
+	psBackground->uiEnd = uiEndLine;
+	psBackground->iThickness = 0;
+	psBackground->sColour = sColour;
+	mbBackgroundsDirty = true;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line iThickness pixels high across the text area's whole width,
+// centred on the top of line uiLine, or on the bottom of the last line
+// (below its gap) if uiLine is NumLines.  It stays above its line as the
+// text is edited.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour)
+{
+	STextAreaBackground*	psBackground;
+
+	if ((uiLine > NumLines()) || (iThickness <= 0))
+	{
+		return false;
+	}
+
+	psBackground = masBackgrounds.Add();
+	psBackground->eType = TAB_Boundary;
+	psBackground->uiStart = uiLine;
+	psBackground->uiEnd = uiLine;
+	psBackground->iThickness = iThickness;
+	psBackground->sColour = sColour;
+	mbBackgroundsDirty = true;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ClearBackgrounds(void)
+{
+	if (masBackgrounds.NumElements() > 0)
+	{
+		masBackgrounds.ReInit();
+		mbBackgroundsDirty = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::NumBackgrounds(void)
+{
+	return masBackgrounds.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In the order they were added, as they are now the text has been edited.
+//
+//////////////////////////////////////////////////////////////////////////
+STextAreaBackground* CTextArea::GetBackground(size uiIndex)
+{
+	return masBackgrounds.SafeGet(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The style of the byte at uiPosition of the UTF8 text: the text area's
 // style with every span that covers it applied in the order they were
 // added.
@@ -559,12 +695,17 @@ void CTextArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Spans or a style set since the text area was last laid out are drawn.
+// Spans or a style set since the text area was last laid out are drawn,
+// and the backgrounds as they are now.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::Draw(void)
 {
 	UpdateText();
+	if (mbBackgroundsDirty || (miBackgroundWidth != GetFullWidth()))
+	{
+		UpdateBackgrounds();
+	}
 	return CCanvas::Draw();
 }
 
@@ -800,6 +941,7 @@ void CTextArea::LayoutText(void)
 		msTextSize.y = pFont->GetLineHeight();
 	}
 
+	mbBackgroundsDirty = true;
 	UpdateMarks();
 }
 
@@ -1162,7 +1304,7 @@ bool CTextArea::GetLineBounds(size uiLine, CInt32Rect* pcDest)
 
 	psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
 	psLast = GetLayoutLine(FindLastRow(uiLine));
-	iWidth = (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+	iWidth = GetFullWidth();
 	pcDest->Init(0, psFirst->iTop, iWidth, psLast->iTop + psLast->iHeight);
 	return true;
 }
@@ -2277,6 +2419,7 @@ void CTextArea::LinesInserted(size uiPosition, const char* szText, size uiLength
 			psGap->uiLine += uiNewLines;
 		}
 	}
+	BackgroundLinesInserted(uiLine, bLineStart, uiNewLines);
 }
 
 
@@ -2336,6 +2479,7 @@ void CTextArea::LinesRemoved(size uiStart, size uiEnd)
 			masGaps.RemoveAt(i, true);
 		}
 	}
+	BackgroundLinesRemoved(uiFirst, uiLast, bWhole);
 }
 
 
@@ -3149,6 +3293,7 @@ void CTextArea::InsertText(size uiPosition, const char* szText)
 			psSpan->uiLength += uiLength;
 		}
 	}
+	BackgroundsInserted(uiPosition, uiLength);
 	if (muiCaret >= uiPosition)
 	{
 		muiCaret += uiLength;
@@ -3201,6 +3346,7 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 			psSpan->uiLength = uiSpanEnd - uiSpanStart;
 		}
 	}
+	BackgroundsRemoved(uiStart, uiEnd);
 
 	if (muiCaret >= uiEnd)
 	{
@@ -3423,22 +3569,15 @@ void CTextArea::ShowCaret(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The selection is a block on each row it is on, to the end of rows it
-// goes past and a space further where they end at a line feed.  The
-// caret is only drawn while the text area has focus.
+// The selection is drawn as a range (AddRangeRectangles).  The caret is
+// only drawn while the text area has focus.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateMarks(void)
 {
-	size				uiStart;
-	size				uiEnd;
-	size				uiRow;
-	size				uiStartRow;
-	size				uiEndRow;
-	int32				iLeft;
-	int32				iRight;
-	STextLayoutLine*	psLine;
-	CInt32Rect			cCaret;
+	size		uiStart;
+	size		uiEnd;
+	CInt32Rect	cCaret;
 
 	mpSelectionMap->Clear();
 	mpCaretMap->Clear();
@@ -3449,35 +3588,359 @@ void CTextArea::UpdateMarks(void)
 
 	if (GetSelection(&uiStart, &uiEnd))
 	{
-		uiStartRow = FindRow(uiStart, false);
-		uiEndRow = FindRow(uiEnd, true);
-		for (uiRow = uiStartRow; uiRow <= uiEndRow; uiRow++)
-		{
-			psLine = GetLayoutLine(uiRow);
-			iLeft = (uiRow == uiStartRow) ? GetPositionX(uiStart, false) : 0;
-			if (uiRow == uiEndRow)
-			{
-				iRight = GetPositionX(uiEnd, true);
-			}
-			else
-			{
-				iRight = GetRowRight(uiRow);
-				if (!IsRowWrapped(uiRow))
-				{
-					iRight += GetNewLineWidth();
-				}
-			}
-			if (iRight > iLeft)
-			{
-				mpSelectionMap->AddRectangle(iLeft, psLine->iTop, iRight - iLeft, psLine->iHeight, msSelectionColour);
-			}
-		}
+		AddRangeRectangles(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
 
 	if (HasFocus())
 	{
 		GetCaretBounds(&cCaret);
 		mpCaretMap->AddRectangle(cCaret.GetLeft(), cCaret.GetTop(), cCaret.GetWidth(), cCaret.GetHeight(), msCaretColour);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws the backgrounds into their map, each over the ones before it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::UpdateBackgrounds(void)
+{
+	size					i;
+	STextAreaBackground*	psBackground;
+
+	mpBackgroundMap->Clear();
+	miBackgroundWidth = GetFullWidth();
+	mbBackgroundsDirty = false;
+
+	for (i = 0; i < masBackgrounds.NumElements(); i++)
+	{
+		psBackground = masBackgrounds.Get(i);
+		if (psBackground->eType == TAB_Range)
+		{
+			if (HasStops())
+			{
+				AddRangeRectangles(mpBackgroundMap, psBackground->uiStart, psBackground->uiEnd, psBackground->sColour);
+			}
+		}
+		else if (psBackground->eType == TAB_Lines)
+		{
+			AddLineBackgroundRectangles(psBackground);
+		}
+		else
+		{
+			AddBoundaryRectangle(psBackground);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One rectangle for each run of lines without gaps between them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AddLineBackgroundRectangles(STextAreaBackground* psBackground)
+{
+	size	uiLine;
+	int32	iTop;
+	int32	iBottom;
+	int32	iRunTop;
+	int32	iRunBottom;
+
+	iRunTop = 0;
+	iRunBottom = -1;
+	for (uiLine = psBackground->uiStart; uiLine < psBackground->uiEnd; uiLine++)
+	{
+		if (!GetLineRows(uiLine, &iTop, &iBottom))
+		{
+			break;
+		}
+		if (iTop != iRunBottom)
+		{
+			if (iRunBottom > iRunTop)
+			{
+				mpBackgroundMap->AddRectangle(0, iRunTop, miBackgroundWidth, iRunBottom - iRunTop, psBackground->sColour);
+			}
+			iRunTop = iTop;
+		}
+		iRunBottom = iBottom;
+	}
+	if (iRunBottom > iRunTop)
+	{
+		mpBackgroundMap->AddRectangle(0, iRunTop, miBackgroundWidth, iRunBottom - iRunTop, psBackground->sColour);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Centred on the line's top, but kept inside the text, so boundaries
+// above the first line and below the last are whole.  A boundary with no
+// line laid out is at the top.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AddBoundaryRectangle(STextAreaBackground* psBackground)
+{
+	int32	iTop;
+	int32	iBottom;
+	int32	y;
+	size	uiLast;
+
+	y = 0;
+	if (psBackground->uiStart < NumLines())
+	{
+		if (GetLineRows(psBackground->uiStart, &iTop, &iBottom))
+		{
+			y = iTop;
+		}
+	}
+	else
+	{
+		uiLast = NumLines() - 1;
+		if (GetLineRows(uiLast, &iTop, &iBottom))
+		{
+			y = iBottom + GetLineGap(uiLast);
+		}
+	}
+
+	y -= psBackground->iThickness / 2;
+	if (y + psBackground->iThickness > msTextSize.y)
+	{
+		y = msTextSize.y - psBackground->iThickness;
+	}
+	if (y < 0)
+	{
+		y = 0;
+	}
+	mpBackgroundMap->AddRectangle(0, y, miBackgroundWidth, psBackground->iThickness, psBackground->sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A block on each row uiStart to uiEnd is on, to the end of rows it goes
+// past and a space further where they end at a line feed.  The text must
+// have stops.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour)
+{
+	size				uiRow;
+	size				uiStartRow;
+	size				uiEndRow;
+	int32				iLeft;
+	int32				iRight;
+	STextLayoutLine*	psLine;
+
+	uiStartRow = FindRow(uiStart, false);
+	uiEndRow = FindRow(uiEnd, true);
+	for (uiRow = uiStartRow; uiRow <= uiEndRow; uiRow++)
+	{
+		psLine = GetLayoutLine(uiRow);
+		iLeft = (uiRow == uiStartRow) ? GetPositionX(uiStart, false) : 0;
+		if (uiRow == uiEndRow)
+		{
+			iRight = GetPositionX(uiEnd, true);
+		}
+		else
+		{
+			iRight = GetRowRight(uiRow);
+			if (!IsRowWrapped(uiRow))
+			{
+				iRight += GetNewLineWidth();
+			}
+		}
+		if (iRight > iLeft)
+		{
+			pMap->AddRectangle(iLeft, psLine->iTop, iRight - iLeft, psLine->iHeight, sColour);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The top of line uiLine's first row and the bottom of its last, above
+// its gap.  Text with no characters has its one line laid out without
+// stops.  False if the line isn't laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::GetLineRows(size uiLine, int32* piTop, int32* piBottom)
+{
+	STextLayoutLine*	psFirst;
+	STextLayoutLine*	psLast;
+
+	if (uiLine >= NumLines())
+	{
+		return false;
+	}
+	if (HasStops())
+	{
+		psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
+		psLast = GetLayoutLine(FindLastRow(uiLine));
+	}
+	else if ((uiLine == 0) && (NumLayoutLines() > 0))
+	{
+		psFirst = GetLayoutLine(0);
+		psLast = psFirst;
+	}
+	else
+	{
+		return false;
+	}
+
+	*piTop = psFirst->iTop;
+	*piBottom = psLast->iTop + psLast->iHeight;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The width of the laid out text, or of the text area if that is wider.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextArea::GetFullWidth(void)
+{
+	return (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ranges move with the text after uiPosition and grow with text put
+// strictly inside them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BackgroundsInserted(size uiPosition, size uiLength)
+{
+	size					i;
+	STextAreaBackground*	psBackground;
+
+	for (i = 0; i < masBackgrounds.NumElements(); i++)
+	{
+		psBackground = masBackgrounds.Get(i);
+		if (psBackground->eType == TAB_Range)
+		{
+			if (uiPosition <= psBackground->uiStart)
+			{
+				psBackground->uiStart += uiLength;
+				psBackground->uiEnd += uiLength;
+				mbBackgroundsDirty = true;
+			}
+			else if (uiPosition < psBackground->uiEnd)
+			{
+				psBackground->uiEnd += uiLength;
+				mbBackgroundsDirty = true;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ranges shrink by what is removed from them and go if nothing is left.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BackgroundsRemoved(size uiStart, size uiEnd)
+{
+	size					i;
+	size					uiLength;
+	STextAreaBackground*	psBackground;
+
+	uiLength = uiEnd - uiStart;
+	i = masBackgrounds.NumElements();
+	while (i > 0)
+	{
+		i--;
+		psBackground = masBackgrounds.Get(i);
+		if (psBackground->eType == TAB_Range)
+		{
+			psBackground->uiStart = (psBackground->uiStart <= uiStart) ? psBackground->uiStart : ((psBackground->uiStart >= uiEnd) ? psBackground->uiStart - uiLength : uiStart);
+			psBackground->uiEnd = (psBackground->uiEnd <= uiStart) ? psBackground->uiEnd : ((psBackground->uiEnd >= uiEnd) ? psBackground->uiEnd - uiLength : uiStart);
+			if (psBackground->uiStart == psBackground->uiEnd)
+			{
+				masBackgrounds.RemoveAt(i, true);
+			}
+			mbBackgroundsDirty = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiNewLines lines were put in after line uiLine's start (at it, if
+// bLineStart).  Line backgrounds and boundaries move down with their
+// lines; a line background grows when lines are put in inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BackgroundLinesInserted(size uiLine, bool bLineStart, size uiNewLines)
+{
+	size					i;
+	STextAreaBackground*	psBackground;
+
+	for (i = 0; i < masBackgrounds.NumElements(); i++)
+	{
+		psBackground = masBackgrounds.Get(i);
+		if (psBackground->eType != TAB_Range)
+		{
+			if ((psBackground->uiStart > uiLine) || ((psBackground->uiStart == uiLine) && bLineStart))
+			{
+				psBackground->uiStart += uiNewLines;
+			}
+			if (psBackground->uiEnd > uiLine)
+			{
+				psBackground->uiEnd += uiNewLines;
+			}
+			if (psBackground->eType == TAB_Boundary)
+			{
+				psBackground->uiEnd = psBackground->uiStart;
+			}
+			mbBackgroundsDirty = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines after uiFirst up to uiLast were joined onto uiFirst, or if
+// bWhole lines uiFirst up to before uiLast were removed and uiLast took
+// uiFirst's place.  Line backgrounds and boundaries move up with their
+// lines; one on lines that are gone is gone with them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BackgroundLinesRemoved(size uiFirst, size uiLast, bool bWhole)
+{
+	size					i;
+	size					uiRemoved;
+	size					uiJoined;
+	STextAreaBackground*	psBackground;
+
+	uiRemoved = uiLast - uiFirst;
+	uiJoined = bWhole ? uiFirst : uiFirst + 1;
+	i = masBackgrounds.NumElements();
+	while (i > 0)
+	{
+		i--;
+		psBackground = masBackgrounds.Get(i);
+		if (psBackground->eType != TAB_Range)
+		{
+			psBackground->uiStart = (psBackground->uiStart <= uiFirst) ? psBackground->uiStart : ((psBackground->uiStart > uiLast) ? psBackground->uiStart - uiRemoved : uiJoined);
+			psBackground->uiEnd = (psBackground->uiEnd <= uiFirst) ? psBackground->uiEnd : ((psBackground->uiEnd > uiLast) ? psBackground->uiEnd - uiRemoved : uiJoined);
+			if (psBackground->eType == TAB_Boundary)
+			{
+				psBackground->uiEnd = psBackground->uiStart;
+			}
+			else if (psBackground->uiStart == psBackground->uiEnd)
+			{
+				masBackgrounds.RemoveAt(i, true);
+			}
+			mbBackgroundsDirty = true;
+		}
 	}
 }
 
@@ -3683,6 +4146,7 @@ void CTextArea::LayoutTiles(void)
 	{
 		msTextSize.y = pFont->GetLineHeight();
 	}
+	mbBackgroundsDirty = true;
 	UpdateMarks();
 }
 

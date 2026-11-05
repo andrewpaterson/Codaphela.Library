@@ -1400,7 +1400,8 @@ Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize)
 //////////////////////////////////////////////////////////////////////////
 //
 // Draws a text area in a fixed width font, with colour spans,
-// decorations and a selection, into szDirectory, as tiles or as sprites.
+// decorations, backgrounds and a selection, into szDirectory, as tiles or
+// as sprites.
 //
 //////////////////////////////////////////////////////////////////////////
 void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
@@ -1456,6 +1457,10 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 		sOverride.SetOverline(true);
 		AssertTrue(pTextArea->AddSpan(61, 6, &sOverride));
 
+		//Backgrounds under the selection: a line band, a range across lines and a boundary.
+		AssertTrue(pTextArea->AddLineBackground(2, 4, Set32BitColour((uint8)0x29, (uint8)0x44, (uint8)0x36)));
+		AssertTrue(pTextArea->AddBackground(30, 50, Set32BitColour((uint8)0x5A, (uint8)0x3E, (uint8)0x8C)));
+		AssertTrue(pTextArea->AddLineBoundary(1, 2, Set32BitColour((uint8)0x80, (uint8)0x80, (uint8)0x80)));
 		pTextArea->Select(13, 40);
 
 		//A gap of whole rows below the "{" line is the same as tiles and as sprites.
@@ -1483,8 +1488,8 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 //////////////////////////////////////////////////////////////////////////
 //
 // A fixed width font drawn as tiles looks the same as drawn as sprites:
-// the glyphs, the colours of the spans, the decorations and the selection,
-// and with iGapRows rows left empty below a line.
+// the glyphs, the colours of the spans, the decorations, the backgrounds
+// and the selection, and with iGapRows rows left empty below a line.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaTilesMatchSprites(int32 iGapRows)
