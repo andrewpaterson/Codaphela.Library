@@ -15,6 +15,7 @@
 #include "StandardLib/PointerContainer.h"
 #include "StandardLib/ArrayObject.h"
 #include "StandardLib/IndexObject.h"
+#include "StandardLib/MapObject.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/FatHollowConfiguration.h"
@@ -1323,6 +1324,128 @@ void TestDehollowficationLoadIndexMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the index of a hollow object, once.
+//
+//////////////////////////////////////////////////////////////////////////
+void AddHollowIndex(CArrayTemplate<OIndex>* paoiHollows, CBaseObject* pcObject)
+{
+	OIndex	oi;
+	size	i;
+
+	if ((pcObject == NULL) || !pcObject->IsHollow())
+	{
+		return;
+	}
+	oi = pcObject->GetIndex();
+	for (i = 0; i < paoiHollows->NumElements(); i++)
+	{
+		if (*paoiHollows->Get(i) == oi)
+		{
+			return;
+		}
+	}
+	paoiHollows->Add(&oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loading the hollow keys and values of a big map saved: each loaded
+// object replaces its hollow as a key and as a value (one is its own key's
+// value), which the map finds through where it keeps its values.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadMapMembers(void)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "BigMap";
+	char			szErrors[1024];
+	size			i;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CMapObject>		pMap;
+		Ptr<CString>		pKey;
+		Ptr<CString>		pValue;
+
+		pMap = ONMalloc<CMapObject>("Map");
+		ORoot()->Add(pMap);
+		pValue = OMalloc<CString>();
+		pValue->Set("Shared");
+		for (i = 0; i < 100; i++)
+		{
+			pKey = OMalloc<CString>();
+			pKey->Set("Key");
+			if (i < 3)
+			{
+				pMap->Put(pKey, pValue);
+			}
+			else
+			{
+				pMap->Put(pKey, OMalloc<CString>());
+			}
+		}
+		pMap->Put(pValue, pValue);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CMapObject>				pMap;
+		CMapEntry					cEntry;
+		SMapIterator				sIter;
+		CArrayTemplate<OIndex>		aoiHollows;
+
+		pMap = gcObjects.Get("Map");
+		AssertSize(101, pMap->NumElements());
+
+		//Loading a key moves its entry, so the hollows are found first and loaded after.
+		aoiHollows.Init();
+		cEntry = pMap->StartIteration(&sIter);
+		while (cEntry.Exists())
+		{
+			AddHollowIndex(&aoiHollows, cEntry.KeyObject());
+			AddHollowIndex(&aoiHollows, cEntry.ValueObject());
+			cEntry = pMap->Iterate(&sIter);
+		}
+		cEntry.Clear();
+		AssertSize(198, aoiHollows.NumElements());
+		for (i = 0; i < aoiHollows.NumElements(); i++)
+		{
+			AssertNotNull(gcObjects.Dehollow(*aoiHollows.Get(i)));
+		}
+		aoiHollows.Kill();
+		AssertSize(101, pMap->NumElements());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1345,6 +1468,7 @@ void TestDehollowfication(void)
 	TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow();
 	TestDehollowficationLoadArrayMembersSpeed();
 	TestDehollowficationLoadIndexMembers();
+	TestDehollowficationLoadMapMembers();
 
 	DataIOKill();
 	TypesKill();

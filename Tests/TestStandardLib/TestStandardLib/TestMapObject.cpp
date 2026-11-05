@@ -7,6 +7,10 @@
 #include "BaseLib/SequenceFactory.h"
 #include "TestLib/Assert.h"
 #include "TestMapObject.h"
+#include "NamedObjectTestClasses.h"
+
+
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1645,6 +1649,220 @@ void TestMapObjectKillContainedHeap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A map with many entries keeps where each value is (the keys it is
+// under), once it has to find one: killing a value under three keys, a key,
+// an object that is its own key's value, replacing and removing values must
+// keep it right, which validating checks.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectMemberLocations(void)
+{
+	char				szErrors[1024];
+	size				i;
+	CBaseObject*		pcShared;
+	CBaseObject*		pcKey;
+	CBaseObject*		pcSelf;
+	size				uiRootOnly;
+
+	ObjectsInit();
+	{
+		Ptr<CMapObject>		pMap;
+		Ptr<CTestObject>	pKey;
+		Ptr<CTestObject>	pShared;
+		Ptr<CTestObject>	pSelf;
+		CPointer			pRemoved;
+
+		ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		pMap = OMalloc<CMapObject>();
+		ORoot()->Add(pMap);
+		pShared = OMalloc<CTestObject>();
+		for (i = 0; i < 100; i++)
+		{
+			pKey = OMalloc<CTestObject>();
+			if (i < 3)
+			{
+				pMap->Put(pKey, pShared);
+			}
+			else
+			{
+				pMap->Put(pKey, OMalloc<CTestObject>());
+			}
+		}
+		pSelf = OMalloc<CTestObject>();
+		pMap->Put(pSelf, pSelf);
+		pcShared = pShared.BaseObject();
+		pcKey = pKey.BaseObject();
+		pcSelf = pSelf.BaseObject();
+		pShared = NULL;
+		pSelf = NULL;
+		AssertSize(101, pMap->NumElements());
+
+		//Killing the value under three keys leaves the keys without a value.
+		pcShared->Kill();
+		AssertSize(101, pMap->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Killing a key removes its entry.
+		pKey = NULL;
+		pcKey->Kill();
+		AssertSize(100, pMap->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pcSelf->Kill();
+		AssertSize(99, pMap->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pKey = OMalloc<CTestObject>();
+		pMap->Put(pKey, OMalloc<CTestObject>());
+		pMap->Put(pKey, OMalloc<CTestObject>());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		AssertTrue(pMap->Remove(pKey));
+		AssertSize(99, pMap->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pMap->RemoveAll();
+		AssertSize(0, pMap->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pKey = NULL;
+		AssertSize(uiRootOnly + 1, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Named objects replaced in memory by new ones with the same names are
+// remapped in a map with many entries: as a key (its entry is put again
+// under the new key), as a value and as their own key's value.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectMemberLocationsReplacedNamed(void)
+{
+	char				szErrors[1024];
+	size				i;
+	CBaseObject*		pcValue;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestNamedObject>();
+	{
+		Ptr<CMapObject>			pMap;
+		Ptr<CTestObject>		pKey;
+		Ptr<CTestObject>		pValue;
+		Ptr<CTestNamedObject>	pNamedKey;
+		Ptr<CTestNamedObject>	pSelf;
+		Ptr<CTestNamedObject>	pReplaced;
+
+		pMap = OMalloc<CMapObject>();
+		ORoot()->Add(pMap);
+		for (i = 0; i < 100; i++)
+		{
+			pMap->Put(OMalloc<CTestObject>(), OMalloc<CTestObject>());
+		}
+		pValue = OMalloc<CTestObject>();
+		pNamedKey = ONMalloc<CTestNamedObject>("Key", 1);
+		pSelf = ONMalloc<CTestNamedObject>("Self", 1);
+		pKey = OMalloc<CTestObject>();
+		pMap->Put(pNamedKey, pValue);
+		pMap->Put(pKey, pNamedKey);
+		pMap->Put(pSelf, pSelf);
+		pcValue = pValue.BaseObject();
+		pNamedKey = NULL;
+		pSelf = NULL;
+
+		//Killing a value makes the map keep where its values are.
+		pValue = OMalloc<CTestObject>();
+		pMap->Put(pKey, pValue);
+		pValue->Kill();
+		pMap->Put(pKey, gcObjects.Get("Key"));
+
+		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Key");
+		pReplaced->Init(2);
+		AssertPointer(pcValue, pMap->Get(pReplaced).Object());
+		AssertPointer(pReplaced.Object(), pMap->Get(pKey).Object());
+
+		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Self");
+		pReplaced->Init(2);
+		AssertPointer(pReplaced.Object(), pMap->Get(pReplaced).Object());
+		AssertSize(103, pMap->NumElements());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One call remaps every place an object is in a map.  (Replacing an object
+// calls it once for each of the object's froms, and a self entry is two of
+// them, so the second call would hide a first that only got half of it.)
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestRemapMapObject : public CMapObject
+{
+CONSTRUCTABLE(CTestRemapMapObject)
+DESTRUCTABLE(CTestRemapMapObject)
+public:
+	using CMapObject::RemapPointerTos;
+};
+
+
+void TestMapObjectRemapSelfEntry(size uiNumEntries)
+{
+	char				szErrors[1024];
+	size				i;
+	CEmbeddedObject*	pcSelf;
+	CEmbeddedObject*	pcOther;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestRemapMapObject>();
+	{
+		Ptr<CTestRemapMapObject>	pMap;
+		Ptr<CTestObject>			pSelf;
+		Ptr<CTestObject>			pOther;
+
+		pMap = OMalloc<CTestRemapMapObject>();
+		ORoot()->Add(pMap);
+		for (i = 0; i < uiNumEntries; i++)
+		{
+			pMap->Put(OMalloc<CTestObject>(), OMalloc<CTestObject>());
+		}
+		pSelf = OMalloc<CTestObject>();
+		pOther = OMalloc<CTestObject>();
+		pMap->Put(pSelf, pSelf);
+		pcSelf = pSelf.Object();
+		pcOther = pOther.Object();
+
+		AssertSize(2, pMap->RemapPointerTos(pcSelf, pcOther));
+		AssertPointer(pcOther, pMap->Get(pOther).Object());
+		AssertFalse(pMap->Contains(pSelf));
+
+		AssertSize(2, pMap->RemapPointerTos(pcOther, pcSelf));
+		AssertPointer(pcSelf, pMap->Get(pSelf).Object());
+		AssertFalse(pMap->Contains(pOther));
+		AssertSize(uiNumEntries + 1, pMap->NumElements());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMapObject(void)
@@ -1678,6 +1896,10 @@ void TestMapObject(void)
 	TestMapObjectInternalSerialisation(3000);
 	TestMapObjectEmbeddedOnHeapKill();
 	TestMapObjectEmbeddedOnStackKill();
+	TestMapObjectMemberLocations();
+	TestMapObjectMemberLocationsReplacedNamed();
+	TestMapObjectRemapSelfEntry(10);
+	TestMapObjectRemapSelfEntry(100);
 	TestMapObjectEmbeddedInObjectsKill();
 
 	DataIOKill();

@@ -411,6 +411,17 @@ bool CCollection::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many locations the members have: one for each non NULL member.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCollection::NumLocatedMembers(void)
+{
+	return NonNullElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every location kept holds its member, and every member is kept.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -426,9 +437,9 @@ void CCollection::ValidateMemberLocations(void)
 		return;
 	}
 
-	if (mpcMemberLocations->NumLocations() != NonNullElements())
+	if (mpcMemberLocations->NumLocations() != NumLocatedMembers())
 	{
-		gcLogger.Error2(__METHOD__, " Collection {", ObjectToString(this), "} keeps [", SizeToString(mpcMemberLocations->NumLocations()), "] member locations but has [", SizeToString(NonNullElements()), "] members.", NULL);
+		gcLogger.Error2(__METHOD__, " Collection {", ObjectToString(this), "} keeps [", SizeToString(mpcMemberLocations->NumLocations()), "] member locations but has [", SizeToString(NumLocatedMembers()), "] members.", NULL);
 	}
 
 	bExists = mpcMemberLocations->StartAllIteration(&sIter, &pvMember, &uiLocation);

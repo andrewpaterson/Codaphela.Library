@@ -124,6 +124,11 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 	{
 		return bResult;
 	}
+	if (mpcMemberLocations != NULL)
+	{
+		RemoveValueLocation(pcOldValue, pcKey);
+		AddValueLocation(pcValue, pcKey);
+	}
 
 	if (!bKeyExisted)
 	{
@@ -150,6 +155,10 @@ bool CMapObject::Remove(CPointer& pKey)
 	pcKey = (CBaseObject*)pKey.Object();
 	pcPointedTo = (CBaseObject*)mcMap.Get(pcKey);
 	bResult = mcMap.Remove(pcKey);
+	if (bResult && (mpcMemberLocations != NULL))
+	{
+		RemoveValueLocation(pcPointedTo, pcKey);
+	}
 	bResult = RemoveObjectTryFree(pcPointedTo, bResult, false);  
 	bResult = RemoveObjectTryFree(pcKey, bResult, true);
 	return bResult;
@@ -381,6 +390,7 @@ bool CMapObject::ClearPointerTos(bool bFree)
 	}
 
 	mcMap.ReInit();
+	KillMemberLocations();
 	return bResult;
 }
 
@@ -430,6 +440,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 	size				uiNumElements;
 	size				i;
 
+	KillMemberLocations();
 	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
@@ -568,87 +579,254 @@ void CMapObject::PreFields(void)
 void CMapObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
+	KillMemberLocations();
 	mcMap.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcTo is being killed.  It may be a key, a value or both.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
-	//pcTo is being killed.  It may be a key, a value or both.
-
-	CBaseObject*	pcKey;
-	CBaseObject*	pcValue;
-	SMapIterator	sIter;
-	bool			bExists;
-	bool			bRemoved;
+	CPointerLocations*			pcLocations;
+	SPointerLocationsIterator	sIter;
+	ptr							uiKey;
+	bool						bExists;
+	CBaseObject*				pcKey;
+	CBaseObject*				pcValue;
+	SMapIterator				sMapIter;
+	bool						bRemoved;
 
 	EnsureSorted();
 
 	//Entries where pcTo is the value keep their key but no longer have a value.
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
-	while (bExists)
+	pcLocations = GetMemberLocations();
+	if (pcLocations != NULL)
 	{
-		if ((pcValue == pcTo) && (pcKey != pcTo))
+		bExists = pcLocations->StartIteration(&sIter, pcTo, &uiKey);
+		while (bExists)
 		{
-			mcMap.SetValue(&sIter, NULL);
+			if ((CEmbeddedObject*)uiKey != pcTo)
+			{
+				mcMap.Put((CUnknown*)uiKey, NULL);
+				pcLocations->Remove(pcTo, uiKey);
+				bExists = pcLocations->StartIteration(&sIter, pcTo, &uiKey);
+			}
+			else
+			{
+				bExists = pcLocations->Iterate(&sIter, &uiKey);
+			}
 		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	}
+	else
+	{
+		bExists = mcMap.StartIteration(&sMapIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+		while (bExists)
+		{
+			if ((pcValue == pcTo) && (pcKey != pcTo))
+			{
+				mcMap.SetValue(&sMapIter, NULL);
+			}
+			bExists = mcMap.Iterate(&sMapIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+		}
 	}
 
 	//The entry where pcTo is the key is removed and its value is no longer pointed to from this map.
 	pcValue = (CBaseObject*)mcMap.Get((CUnknown*)pcTo);
 	bRemoved = mcMap.Remove((CUnknown*)pcTo);
+	if (bRemoved && (mpcMemberLocations != NULL))
+	{
+		RemoveValueLocation(pcValue, pcTo);
+	}
 	if (bRemoved && (pcValue != pcTo))
 	{
 		RemoveObjectTryFree(pcValue, true, false);
 	}
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
+// pcOld (a hollow object) is replaced by pcNew, as a key and as a value.
 //
 //////////////////////////////////////////////////////////////////////////
 size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-	size 			iCount;
+	CPointerLocations*			pcLocations;
+	SPointerLocationsIterator	sIter;
+	ptr							uiKey;
+	bool						bExists;
+	CBaseObject*				pcPointedToKey;
+	CBaseObject*				pcPointedToValue;
+	SMapIterator				sMapIter;
+	size 						iCount;
+	CEmbeddedObject*			pcValue;
 
+	if (pcOld == pcNew)
+	{
+		return 0;
+	}
+
+	EnsureSorted();
+	pcLocations = GetMemberLocations();
+	if (pcLocations == NULL)
+	{
+		iCount = 0;
+		bExists = mcMap.StartIteration(&sMapIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		while (bExists)
+		{
+			if (pcPointedToKey == pcOld)
+			{
+				mcMap.SetKey(&sMapIter, pcNew);
+				mbSorted = false;
+				iCount++;
+			}
+			if (pcPointedToValue == pcOld)
+			{
+				mcMap.SetValue(&sMapIter, pcNew);
+				iCount++;
+			}
+			bExists = mcMap.Iterate(&sMapIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		}
+		return iCount;
+	}
+
+	//Where pcOld is a value (under a key other than itself; that entry is re-keyed below).
 	iCount = 0;
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	bExists = pcLocations->StartIteration(&sIter, pcOld, &uiKey);
 	while (bExists)
 	{
-		if (pcPointedToKey == pcOld)
+		if ((CEmbeddedObject*)uiKey != pcOld)
 		{
-			if (pcOld != pcNew)
-			{
-				mcMap.SetKey(&sIter, pcNew);
-				mbSorted = false;
-			}
+			mcMap.Put((CUnknown*)uiKey, pcNew);
+			pcLocations->Remove(pcOld, uiKey);
+			pcLocations->Add(pcNew, uiKey);
+			iCount++;
+			bExists = pcLocations->StartIteration(&sIter, pcOld, &uiKey);
+		}
+		else
+		{
+			bExists = pcLocations->Iterate(&sIter, &uiKey);
+		}
+	}
+
+	//Where pcOld is a key: the entry is put again under pcNew, which keeps the map sorted.
+	if (mcMap.GetNode(pcOld) != NULL)
+	{
+		pcValue = (CEmbeddedObject*)mcMap.Get(pcOld);
+		mcMap.Remove(pcOld);
+		RemoveValueLocation(pcValue, pcOld);
+		if (pcValue == pcOld)
+		{
+			pcValue = pcNew;
 			iCount++;
 		}
-
-		if (pcPointedToValue == pcOld)
-		{
-			if (pcOld != pcNew)
-			{
-				mcMap.SetValue(&sIter, pcNew);
-			}
-			iCount++;
-		}
-
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		mcMap.Put(pcNew, pcValue);
+		AddValueLocation(pcValue, pcNew);
+		iCount++;
 	}
 	return iCount;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapObject::CanLocateMembers(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where each value is: the key it is under.  Keys are found by the map.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::AddMemberLocations(CPointerLocations* pcLocations)
+{
+	CBaseObject*	pcKey;
+	CBaseObject*	pcValue;
+	SMapIterator	sIter;
+	bool			bExists;
+
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	while (bExists)
+	{
+		if (pcValue != NULL)
+		{
+			pcLocations->Add(pcValue, (ptr)pcKey);
+		}
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
+{
+	EnsureSorted();
+	return (mcMap.GetNode((CUnknown*)uiLocation) != NULL) && (mcMap.Get((CUnknown*)uiLocation) == (CUnknown*)pcMember);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The non NULL values.
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapObject::NumLocatedMembers(void)
+{
+	CBaseObject*	pcKey;
+	CBaseObject*	pcValue;
+	SMapIterator	sIter;
+	bool			bExists;
+	size			uiCount;
+
+	uiCount = 0;
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	while (bExists)
+	{
+		if (pcValue != NULL)
+		{
+			uiCount++;
+		}
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::AddValueLocation(CEmbeddedObject* pcValue, CEmbeddedObject* pcKey)
+{
+	if (pcValue != NULL)
+	{
+		mpcMemberLocations->Add(pcValue, (ptr)pcKey);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::RemoveValueLocation(CEmbeddedObject* pcValue, CEmbeddedObject* pcKey)
+{
+	if (pcValue != NULL)
+	{
+		mpcMemberLocations->Remove(pcValue, (ptr)pcKey);
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -84,6 +84,13 @@ protected:
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 
+	bool				CanLocateMembers(void) override;
+	void				AddMemberLocations(CPointerLocations* pcLocations) override;
+	bool				IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation) override;
+	size				NumLocatedMembers(void) override;
+	void				AddValueLocation(CEmbeddedObject* pcValue, CEmbeddedObject* pcKey);
+	void				RemoveValueLocation(CEmbeddedObject* pcValue, CEmbeddedObject* pcKey);
+
 
 	void				EnsureSorted(void);
 };

@@ -75,6 +75,7 @@ protected:
 	virtual void			AddMemberLocations(CPointerLocations* pcLocations);
 	virtual void			FreeMemberLocation(ptr uiLocation);
 	virtual bool			IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation);
+	virtual size			NumLocatedMembers(void);
 
 };
 
