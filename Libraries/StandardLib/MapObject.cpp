@@ -101,7 +101,6 @@ void CMapObject::Free(void)
 bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 {
 	CBaseObject*		pcOldValue;
-	bool				bResult;
 	bool				bKeyExisted;
 	CBaseObject*		pcKey;
 	CBaseObject*		pcValue;
@@ -120,10 +119,9 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 		pcOldValue = (CBaseObject*)mcMap.Get(pcKey);
 	}
 
-	bResult = mcMap.Put(pcKey, pcValue);
-	if (!bResult)
+	if (!mcMap.Put(pcKey, pcValue))
 	{
-		return bResult;
+		return false;
 	}
 	if (mpcMemberLocations != NULL)
 	{
@@ -133,11 +131,10 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 
 	if (!bKeyExisted)
 	{
-		bResult = AddObjectFrom(pcKey, bResult, false);
+		AddObjectFrom(pcKey, false);
 	}
-	bResult = AddObjectFrom(pcValue, bResult, pcOldValue == NULL);
-	bResult = RemoveObjectTryFree(pcOldValue, bResult, true);
-	return bResult;
+	AddObjectFrom(pcValue, pcOldValue == NULL);
+	return RemoveObjectTryFree(pcOldValue, true);
 }
 
 
@@ -155,13 +152,17 @@ bool CMapObject::Remove(CPointer& pKey)
 
 	pcKey = (CBaseObject*)pKey.Object();
 	pcPointedTo = (CBaseObject*)mcMap.Get(pcKey);
-	bResult = mcMap.Remove(pcKey);
-	if (bResult && (mpcMemberLocations != NULL))
+	if (!mcMap.Remove(pcKey))
+	{
+		return false;
+	}
+
+	if (mpcMemberLocations != NULL)
 	{
 		RemoveValueLocation(pcPointedTo, pcKey);
 	}
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult, false);  
-	bResult = RemoveObjectTryFree(pcKey, bResult, true);
+	bResult = RemoveObjectTryFree(pcPointedTo, false);
+	bResult &= RemoveObjectTryFree(pcKey, true);
 	return bResult;
 }
 
@@ -379,8 +380,8 @@ bool CMapObject::ClearPointerTos(bool bFree)
 	{
 		if (bFree)
 		{
-			bResult &= RemoveObjectTryFree(pcPointedToKey, true, false);
-			bResult &= RemoveObjectTryFree(pcPointedToValue, true, false);
+			bResult &= RemoveObjectTryFree(pcPointedToKey, false);
+			bResult &= RemoveObjectTryFree(pcPointedToValue, false);
 		}
 		else
 		{
@@ -644,7 +645,7 @@ void CMapObject::RemovePointerTo(CEmbeddedObject* pcTo)
 	}
 	if (bRemoved && (pcValue != pcTo))
 	{
-		RemoveObjectTryFree(pcValue, true, false);
+		RemoveObjectTryFree(pcValue, false);
 	}
 }
 

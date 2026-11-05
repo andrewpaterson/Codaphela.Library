@@ -181,22 +181,26 @@ bool CCollection::RemoveAll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject (if not NULL) was put in this collection: it gets this as a
+// from, a heap from when the collection is allocated in Objects, otherwise
+// a stack from.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
+void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 {
-	if (bResult && pcObject)
+	if (pcObject == NULL)
 	{
-		if (IsEmbeddingContainerAllocatedInObjects())
-		{
-			pcObject->AddHeapFrom(this, bValidate);
-		}
-		else
-		{
-			pcObject->AddStackFrom(this, bValidate);
-		}
+		return;
 	}
-	return bResult;
+
+	if (IsEmbeddingContainerAllocatedInObjects())
+	{
+		pcObject->AddHeapFrom(this, bValidate);
+	}
+	else
+	{
+		pcObject->AddStackFrom(this, bValidate);
+	}
 }
 
 
@@ -237,20 +241,21 @@ bool CCollection::UnlinkFromUnlessFreed(CEmbeddedObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// If bResult (the collection let go of pcObject), unlinks its from and
-// frees pcObject if nothing else reaches it.
+// pcObject (if not NULL) was taken out of this collection: unlinks its
+// from and frees it if nothing else reaches it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
+bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 {
 	bool		bHeapFrom;
+	bool		bResult;
 #ifdef _DEBUG
 	CObjects*	pcObjectsThisIn;
 #endif // _DEBUG
 
-	if (!bResult || (pcObject == NULL))
+	if (pcObject == NULL)
 	{
-		return bResult;
+		return true;
 	}
 
 	if (!UnlinkFrom(pcObject))
@@ -297,7 +302,11 @@ bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRe
 	{
 		bResult &= UnlinkFrom(pcObject);
 	}
-	return RemoveObjectTryFree(pcObject, bResult, bValidate);
+	if (!bResult)
+	{
+		return false;
+	}
+	return RemoveObjectTryFree(pcObject, bValidate);
 }
 
 

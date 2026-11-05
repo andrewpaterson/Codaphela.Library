@@ -273,8 +273,8 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 	if (bAdded)
 	{
 		MemberAdded(pcObject, mcArray.UnsafeNumElements() - 1);
+		AddObjectFrom(pcObject, true);
 	}
-	bAdded = AddObjectFrom(pcObject, bAdded, true);
 	return bAdded;
 }
 
@@ -313,7 +313,6 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 {
 	CBaseObject*		pcPointedTo;
-	bool				bResult;
 	CEmbeddedObject*	pvObject;
 
 	if (iIndex >= mcArray.UnsafeNumElements())
@@ -327,15 +326,15 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 	//first would free.
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-	bResult = mcArray.Set(iIndex, pvObject);
-	if (bResult)
+	if (!mcArray.Set(iIndex, pvObject))
 	{
-		MemberRemoved(pcPointedTo, iIndex);
-		MemberAdded(pvObject, iIndex);
+		return false;
 	}
-	bResult = AddObjectFrom(pvObject, bResult, pcPointedTo == NULL);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);
-	return bResult;
+
+	MemberRemoved(pcPointedTo, iIndex);
+	MemberAdded(pvObject, iIndex);
+	AddObjectFrom(pvObject, pcPointedTo == NULL);
+	return RemoveObjectTryFree(pcPointedTo, true);
 }
 
 
@@ -439,7 +438,7 @@ bool CArrayCommonObject::ClearPointerTos(bool bFree)
 		mcArray.UnsafeSet(i, NULL);
 		if (bFree)
 		{
-			bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
+			bResult &= RemoveObjectTryFree(pcPointedTo, false);
 		}
 		else
 		{
@@ -758,8 +757,8 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 	if (bResult)
 	{
 		MemberAdded(pcObject, iIndex);
+		AddObjectFrom(pcObject, true);
 	}
-	bResult = AddObjectFrom(pcObject, bResult, true);
 	return bResult;
 }
 
@@ -772,20 +771,19 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 bool CArrayCommonObject::RemoveAt(size iIndex)
 {
 	CEmbeddedObject*	pcObject;
-	bool				bResult;
 
 	if (iIndex < mcArray.UnsafeNumElements())
 	{
 		EnsureSorted();
 
 		pcObject = UnsafeGetObject(iIndex);
-		bResult = mcArray.Remove(iIndex);
-		if (bResult)
+		if (!mcArray.Remove(iIndex))
 		{
-			MemberRemoved(pcObject, iIndex);
+			return false;
 		}
-		bResult = RemoveObjectTryFree(pcObject, bResult, true);
-		return bResult;
+
+		MemberRemoved(pcObject, iIndex);
+		return RemoveObjectTryFree(pcObject, true);
 	}
 	return false;
 }
@@ -812,7 +810,7 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 		{
 			pcObject = UnsafeGetObject(i);
 			MemberRemoved(pcObject, i);
-			bResult = RemoveObjectTryFree(pcObject, bResult, false);
+			bResult = RemoveObjectTryFree(pcObject, false);
 			if (!bResult)
 			{
 				break;

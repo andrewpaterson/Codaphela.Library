@@ -146,17 +146,15 @@ bool CIndexObject::Put(const char* szKey, const CPointer& pObject)
 bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 {
 	CBaseObject*		pcPointedTo;
-	bool				bResult;
 	CEmbeddedObject*	pvObject;
 
 	//The new object's from is added before the old one's is removed: they may be the same object, which removing
 	//first would free.
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
-	bResult = mcIndex.Put(pvKey, iKeySize, pvObject);
-	if (!bResult)
+	if (!mcIndex.Put(pvKey, iKeySize, pvObject))
 	{
-		return bResult;
+		return false;
 	}
 
 	if (mpcMemberLocations != NULL)
@@ -165,9 +163,8 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 		AddMemberKey(pvObject, pvKey, iKeySize);
 	}
 
-	bResult = AddObjectFrom(pvObject, bResult, pcPointedTo == NULL);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);
-	return bResult;
+	AddObjectFrom(pvObject, pcPointedTo == NULL);
+	return RemoveObjectTryFree(pcPointedTo, true);
 }
 
 
@@ -191,16 +188,18 @@ bool CIndexObject::Remove(const char* szKey)
 bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
 {
 	CBaseObject*	pcPointedTo;
-	bool			bResult;
 
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
-	bResult = mcIndex.Remove(pvKey, iKeySize);
-	if (bResult && (mpcMemberLocations != NULL))
+	if (!mcIndex.Remove(pvKey, iKeySize))
+	{
+		return false;
+	}
+
+	if (mpcMemberLocations != NULL)
 	{
 		RemoveMemberKey(pcPointedTo, pvKey, iKeySize);
 	}
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);
-	return bResult;
+	return RemoveObjectTryFree(pcPointedTo, true);
 }
 
 
@@ -432,7 +431,7 @@ bool CIndexObject::ClearPointerTos(bool bFree)
 	{
 		if (bFree)
 		{
-			bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
+			bResult &= RemoveObjectTryFree(pcPointedTo, false);
 		}
 		else
 		{
