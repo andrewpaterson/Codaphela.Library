@@ -396,6 +396,53 @@ void TestStackPointersRemoveMissing(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// FromRemoved, once a from is unlinked, frees what nothing reaches and
+// says so, and keeps what is still held.  An object on the stack is never
+// freed by it: it is killed when it goes out of scope.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStackPointersFromRemoved(void)
+{
+	STestObjectFreedNotifier	sFreedNotifier1;
+	STestObjectFreedNotifier	sFreedNotifierStack;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>	pTest1;
+		Ptr<CTestObject>	pTest2;
+		Ptr<CTestObject>	pStack;
+		CTestObject			cStack;
+
+		pTest1 = OMalloc<CTestObject>(&sFreedNotifier1);
+		pTest2 = pTest1;
+
+		//Still held by pTest2.
+		AssertTrue(pTest1->UnlinkStackFrom(pTest1.This()));
+		pTest1.UnsafeClearObject();
+		AssertTrue(FR_NotFreed == gcObjects.FromRemoved(pTest2.Object(), false));
+		AssertFalse(sFreedNotifier1.bFreed);
+
+		//Nothing holds it.
+		AssertTrue(pTest2->UnlinkStackFrom(pTest2.This()));
+		AssertTrue(FR_Freed == gcObjects.FromRemoved(pTest2.Object(), false));
+		pTest2.UnsafeClearObject();
+		AssertTrue(sFreedNotifier1.bFreed);
+		AssertLong(0, gcObjects.NumMemoryIndexes());
+
+		cStack.Init(&sFreedNotifierStack);
+		pStack = &cStack;
+		AssertTrue(cStack.UnlinkStackFrom(pStack.This()));
+		pStack.UnsafeClearObject();
+		AssertTrue(FR_NotFreed == gcObjects.FromRemoved(&cStack, false));
+		AssertFalse(sFreedNotifierStack.bFreed);
+		cStack.Kill();
+	}
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStackPointers(void)
@@ -411,6 +458,7 @@ void TestStackPointers(void)
 	TestStackPointersHeapKill();
 	TestStackPointersSorting1();
 	TestStackPointersRemoveMissing();
+	TestStackPointersFromRemoved();
 
 	DataIOKill();
 	TypesKill();

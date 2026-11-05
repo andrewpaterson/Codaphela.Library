@@ -349,7 +349,8 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		}
 		acHeapFromPointers.Kill();
 
-		RemoveInKillOrder(papcKilled);
+		//This can be freed by RemoveInKillOrder.
+		mpcObjectsThisIn->RemoveInKillOrder(papcKilled);
 		cDistCalculator.Kill();
 	}
 	else
@@ -582,107 +583,6 @@ void CBaseObject::AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFreeResult CBaseObject::TryFree(bool bHeapFromChanged)
-{
-	if (IsEmbedded())
-	{
-		FailNotExpectedToBeEmbedded(__METHOD__);
-		return FR_Error;
-	}
-
-	CDistCalculator			cDistCalculator;
-	CArrayBaseObjectPtr*	papcKilled;
-	CBaseObject*			pcKilled;
-	bool					bOnlyThisKilled;
-	EFreeResult				eResult;
-	
-	if (IsRoot())
-	{
-		return FR_NotFreed;
-	}
-
-	//Already in the batch being freed (a pointer changed in a Free()).  Working out what this detaches would find the
-	//whole batch again, for every such change.
-	if (muiFlags & OBJECT_FLAGS_FREED)
-	{
-		return FR_NotFreed;
-	}
-
-	if (miDistToRoot > 0 && !bHeapFromChanged)
-	{
-		return FR_NotFreed;
-	}
-
-	cDistCalculator.Init();
-	papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
-
-	if (papcKilled->NumElements() > 0)
-	{
-		eResult = FR_Freed;
-
-		if (!mpcObjectsThisIn)
-		{
-			bOnlyThisKilled = false;
-			if (papcKilled->NumElements() == 1)
-			{
-				pcKilled = *papcKilled->Get(0);
-				if (pcKilled == this)
-				{
-					bOnlyThisKilled = true;
-				}
-			}
-
-			if (!bOnlyThisKilled)
-			{
-				gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-				return FR_Error;
-			}
-		}
-		else
-		{
-			RemoveInKillOrder(papcKilled);
-		}
-	}
-	else
-	{
-		eResult = FR_NotFreed;
-	}
-
-	cDistCalculator.Kill();
-
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
-{
-	//Objects with Nes pointers to them are removed after the Objects that depend on them.
-	//This is not a complete solution as the Nes objects should be sorted before they are killed but it's good enough for now.
-
-	CKillOrderCalculator	cKillOrder;
-	CArrayBaseObjectPtr*	papcKilledNesObjects;
-	CObjects*				pcObjectsThisIn;
-
-	//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
-	cKillOrder.Init(papcKilled);
-	papcKilledNesObjects = cKillOrder.Calculate();
-
-	//This can be freed by Remove.
-	pcObjectsThisIn = mpcObjectsThisIn;
-	pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
-
-	cKillOrder.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
 {
 	::SetFlagShort(&muiFlags, iFlag, iFlagValue);
@@ -760,7 +660,7 @@ void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 	if ((pcPointedTo) && (pcPointedTo->IsBaseObject()))
 	{
 		pcBaseObject = (CBaseObject*)pcPointedTo;
-		pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
+		pcBaseObject->UnlinkHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
 	}
 }
 

@@ -213,6 +213,78 @@ void CObjects::ValidateEmpty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A from of pcTo (a heap from if bHeapFrom, otherwise a stack from) has
+// been unlinked.  Frees what can no longer be reached: the one place that
+// decides.
+//
+//////////////////////////////////////////////////////////////////////////
+EFreeResult CObjects::FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom)
+{
+	CBaseObject*			pcObject;
+	CDistCalculator			cDistCalculator;
+	CArrayBaseObjectPtr*	papcKilled;
+	EFreeResult				eResult;
+
+	pcObject = pcTo->GetEmbeddingContainer();
+	if (pcObject->IsRoot())
+	{
+		return FR_NotFreed;
+	}
+
+	//Already in the batch being freed (a pointer changed in a Free()).  Working out what this detaches would find the
+	//whole batch again, for every such change.
+	if (pcObject->GetFlags() & OBJECT_FLAGS_FREED)
+	{
+		return FR_NotFreed;
+	}
+
+	//Only a stack from went and it is still attached to the root.
+	if ((pcObject->GetDistToRoot() > ROOT_DIST_TO_ROOT) && !bHeapFrom)
+	{
+		return FR_NotFreed;
+	}
+
+	cDistCalculator.Init();
+	papcKilled = cDistCalculator.Calculate(pcObject, bHeapFrom);
+
+	//Only objects allocated in Objects are ever detached: an object on the stack is killed when it goes out of scope.
+	if (papcKilled->NumElements() == 0)
+	{
+		eResult = FR_NotFreed;
+	}
+	else
+	{
+		eResult = FR_Freed;
+		RemoveInKillOrder(papcKilled);
+	}
+
+	cDistCalculator.Kill();
+	return eResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects with Nes pointers to them are removed after the objects that
+// depend on them.  This is not a complete solution as the Nes objects
+// should be sorted before they are killed but it's good enough for now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
+{
+	CKillOrderCalculator	cKillOrder;
+	CArrayBaseObjectPtr*	papcKilledNesObjects;
+
+	//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
+	cKillOrder.Init(papcKilled);
+	papcKilledNesObjects = cKillOrder.Calculate();
+	Remove(papcKilled, papcKilledNesObjects);
+	cKillOrder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The base for a new walk.  When the count wraps the stamps of the objects
 // in memory are cleared, so no old stamp can look like a new walk's.
 // Objects not allocated in Objects aren't cleared; they don't live long.

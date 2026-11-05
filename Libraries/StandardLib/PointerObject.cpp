@@ -478,7 +478,7 @@ CEmbeddedObject* CPointer::Return(void)
 	pOldObject = mpcObject;
 	if (pOldObject)
 	{
-		pOldObject->PrivateRemoveStackFrom(this);
+		pOldObject->UnlinkStackFrom(this);
 		mpcObject = NULL;
 	}
 	return pOldObject;

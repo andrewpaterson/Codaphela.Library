@@ -239,11 +239,11 @@ bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRe
 	{
 		if (IsEmbeddingContainerAllocatedInObjects())
 		{
-			bResult &= pcObject->PrivateRemoveHeapFrom(this);
+			bResult &= pcObject->UnlinkHeapFrom(this);
 		}
 		else
 		{
-			bResult &= pcObject->PrivateRemoveStackFrom(this);
+			bResult &= pcObject->UnlinkStackFrom(this);
 		}
 	}
 	return RemoveObjectTryFree(pcObject, bResult, bValidate);

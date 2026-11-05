@@ -109,6 +109,8 @@ public:
 
 						bool					Remove(CArrayBaseObjectPtr* papcKilled);
 						bool					Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter);
+						EFreeResult				FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom);
+						void					RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled);
 
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);

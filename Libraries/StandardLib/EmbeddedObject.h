@@ -123,8 +123,9 @@ public:
 			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackFroms(void);
-			bool				PrivateRemoveStackFrom(CPointer* pcPointer);
-			bool				PrivateRemoveStackFrom(CCollection* pcCollection);
+			bool				UnlinkHeapFrom(CBaseObject* pcFrom);  //These only unlink; they never free.  See CObjects::FromRemoved.
+			bool				UnlinkStackFrom(CPointer* pcPointer);
+			bool				UnlinkStackFrom(CCollection* pcCollection);
 			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer);
 			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection);
 	virtual size				NumStackFroms(void);
@@ -161,7 +162,6 @@ protected:
 			void				AddHeapPointer(CBaseObject* pcFromObject);
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
-			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 			CStackPointers*		GetStackPointers(void);
 			void				ValidateObjectsConsistency(bool bValidate);
 };
