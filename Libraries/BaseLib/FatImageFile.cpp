@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "DiskFile.h"
 #include "MemoryDrive.h"
 #include "FatVolume.h"
@@ -49,6 +50,36 @@ bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, si
 	}
 	cDrive.Kill();
 	cImage.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False if szFile can't be read, or as FatPutFileOnImage.
+//
+//////////////////////////////////////////////////////////////////////////
+bool FatPutDiskFileOnImage(const char* szImage, const char* szName, const char* szFile)
+{
+	CDiskFile	cFile;
+	filePos		iSize;
+	void*		pvData;
+	bool		bResult;
+
+	cFile.Init(szFile);
+	if (!cFile.Open(EFM_Read))
+	{
+		cFile.Kill();
+		return false;
+	}
+	iSize = cFile.Size();
+	pvData = malloc((size_t)iSize + 1);
+	bResult = (iSize == 0) || (cFile.Read(pvData, (lsize)iSize, 1) == 1);
+	cFile.Close();
+	cFile.Kill();
+
+	bResult = bResult && FatPutFileOnImage(szImage, szName, pvData, (size)iSize);
+	free(pvData);
 	return bResult;
 }
 

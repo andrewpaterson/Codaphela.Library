@@ -88,6 +88,16 @@ void TestFatImageFilePut(void)
 	AssertTrue(FatPutFileOnImage(TEST_FAT_IMAGE_FILE, "\\boot.exe", auiSecond, sizeof(auiSecond)));
 	TestFatImageFileRead("\\boot.exe", auiSecond, sizeof(auiSecond));
 
+	//From a file on this computer.
+	cImage.Init("Output" _FS_ "Song.mod");
+	AssertTrue(cImage.Open(EFM_Write_Create));
+	AssertTrue(cImage.Write(auiFirst, sizeof(auiFirst), 1) == 1);
+	AssertTrue(cImage.Close());
+	cImage.Kill();
+	AssertTrue(FatPutDiskFileOnImage(TEST_FAT_IMAGE_FILE, "\\Song.mod", "Output" _FS_ "Song.mod"));
+	TestFatImageFileRead("\\Song.mod", auiFirst, sizeof(auiFirst));
+	AssertFalse(FatPutDiskFileOnImage(TEST_FAT_IMAGE_FILE, "\\Song.mod", "Output" _FS_ "Missing.mod"));
+
 	AssertFalse(FatPutFileOnImage("Output" _FS_ "Missing.img", "\\boot.exe", auiFirst, sizeof(auiFirst)));
 	cImage.Init("Output" _FS_ "NotFat.img");
 	AssertTrue(cImage.Open(EFM_Write_Create));

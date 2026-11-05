@@ -7,6 +7,9 @@
 //as an emulator uses it), replacing the file if it is there.  The image is read whole, changed and written back.
 bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, size uiSize);
 
+//The same with the bytes of the file szFile (a program built on this computer, a song).
+bool FatPutDiskFileOnImage(const char* szImage, const char* szName, const char* szFile);
+
 
 #endif // __FAT_IMAGE_FILE_H__
 
