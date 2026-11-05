@@ -29,14 +29,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
+void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat)
 {
 	PreInit();
 
-	meColourFormat = eFormat;
-	meColourOrder = eOrder;
-	meColourBits = eColourBits;
-	meAlphaBits = eAlphaBits;
+	mcFormat = *pcFormat;
 
 	mpcNativeCanvas = NULL;
 	CComponent::Init(pWindow);
@@ -56,10 +53,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
-	meColourFormat = pWindow->GetColourFormat();
-	meColourOrder = pWindow->GetColourOrder();
-	meColourBits = pWindow->GetColourBits();
-	meAlphaBits = pWindow->GetAlphaBits();
+	pWindow->GetColourFormat(&mcFormat);
 
 	mpcNativeCanvas = NULL;
 	CComponent::Init(pWindow);
@@ -79,10 +73,7 @@ void CCanvas::Free(void)
 {
 	DestroyNativeCanvas();
 
-	meColourFormat = CFT_Unknown;
-	meColourOrder = CCO_Unknown;
-	meColourBits = CRGB_Unknown;
-	meAlphaBits = ARGB_Unknown;
+	mcFormat.Init(CFT_Unknown, CCO_Unknown, CRGB_Unknown, ARGB_Unknown);
 
 	CComponent::Free();
 }
@@ -97,10 +88,7 @@ void CCanvas::Class(void)
 	CComponent::Class();
 
 	U_Pointer(mpcNativeCanvas);
-	U_Enum(meColourFormat);
-	U_Enum(meColourOrder);
-	U_Enum(meColourBits);
-	U_Enum(meAlphaBits);
+	U_Data(CColourFormatHelper, mcFormat);
 	M_Pointer(mpNativeImage);
 	M_Pointer(mpCanvasDraw);
 	M_Pointer(mpContainer);
@@ -329,7 +317,7 @@ void CCanvas::DrawImage(int iX, int iY, Ptr<CImage> pImage)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::IsValid(void)
 {
-	if (meColourFormat == CFT_Unknown)
+	if (mcFormat.meFormat == CFT_Unknown)
 	{
 		return false;
 	}
@@ -380,7 +368,6 @@ bool CCanvas::ClearContainer(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -410,7 +397,7 @@ SInt32Vec2 CCanvas::GetDesiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::SetTransparent(bool bTransparent)
 {
-	if (bTransparent && (meColourBits != CRGB_24bit))
+	if (bTransparent && (mcFormat.meColourBits != CRGB_24bit))
 	{
 		return gcLogger.Error2(__METHOD__, " Only a canvas with 8 bit colour channels can be transparent.", NULL);
 	}
@@ -433,7 +420,7 @@ bool CCanvas::SetTransparent(bool bTransparent)
 //////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetTransparentColourFormat(void)
 {
-	if ((meColourFormat == CFT_XRGB) || (meColourFormat == CFT_ARGB))
+	if ((mcFormat.meFormat == CFT_XRGB) || (mcFormat.meFormat == CFT_ARGB))
 	{
 		return CFT_ARGB;
 	}
@@ -453,7 +440,7 @@ EColourFormat CCanvas::GetColourFormat(void)
 	{
 		return GetTransparentColourFormat();
 	}
-	return meColourFormat;
+	return mcFormat.meFormat;
 }
 
 
@@ -467,12 +454,23 @@ ERGBAlphaBits CCanvas::GetAlphaBits(void)
 	{
 		return ARGB_8bit;
 	}
-	return meAlphaBits;
+	return mcFormat.meAlphaBits;
 }
 
 
-EColourOrder CCanvas::GetColourOrder(void) { return meColourOrder; }
-ERGBColourBits CCanvas::GetColourBits(void) { return meColourBits; }
+//////////////////////////////////////////////////////////////////////////
+//
+// The format of the canvas's image, as the four getters give it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::GetColourFormat(CColourFormatHelper* pcDest)
+{
+	pcDest->Init(GetColourFormat(), GetColourOrder(), GetColourBits(), GetAlphaBits());
+}
+
+
+EColourOrder CCanvas::GetColourOrder(void) { return mcFormat.meOrder; }
+ERGBColourBits CCanvas::GetColourBits(void) { return mcFormat.meColourBits; }
 bool CCanvas::IsTransparent(void) { return mbTransparent; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }

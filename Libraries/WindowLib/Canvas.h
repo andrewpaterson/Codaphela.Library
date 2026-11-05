@@ -39,16 +39,13 @@ friend class CNativeCanvas;
 protected:
 	CNativeCanvas*		mpcNativeCanvas;
 	Ptr<CImage>			mpNativeImage;  //The native canvas's pixels as an image, when it has one (CNativeCanvas::SetImage).  Held here, not by the native canvas, so the image is in the object graph.
-	EColourFormat		meColourFormat;
-	EColourOrder        meColourOrder;
-	ERGBColourBits      meColourBits;
-	ERGBAlphaBits       meAlphaBits;
+	CColourFormatHelper	mcFormat;  //As made; GetColourFormat and GetAlphaBits give the format with opacity while it is transparent.
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
 	bool				mbTransparent;  //What is behind the canvas shows through wherever it hasn't been drawn opaquely.
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw);
 	void				Class(void) override;
 	void 				Free(void) override;
@@ -60,6 +57,7 @@ public:
 	EColourOrder		GetColourOrder(void);
 	ERGBColourBits		GetColourBits(void);
 	ERGBAlphaBits		GetAlphaBits(void);
+	void				GetColourFormat(CColourFormatHelper* pcDest);
 	bool				IsValid(void);
 
 	bool				SetTransparent(bool bTransparent);

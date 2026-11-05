@@ -586,6 +586,7 @@ size DrawBorderCanvasInFormat(EColourOrder eCanvasOrder)
 		CPointer				pNull;
 		uint8*					puiData;
 		size					i;
+		CColourFormatHelper		cFormat;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 24, 16, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -595,7 +596,8 @@ size DrawBorderCanvasInFormat(EColourOrder eCanvasOrder)
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
 		pDraw = OMalloc<CBorderCanvasDraw>(Set32BitColour(1.0f, 0, 0));
-		pCanvas = OMalloc<CCanvas>(pTestWindow, pDraw, CFT_RGB, eCanvasOrder, CRGB_24bit, ARGB_None);
+		cFormat.Init(CFT_RGB, eCanvasOrder, CRGB_24bit, ARGB_None);
+		pCanvas = OMalloc<CCanvas>(pTestWindow, pDraw, &cFormat);
 		pFill->AddComponent(pCanvas);
 
 		sLogConfig = gcLogger.SetSilent();
@@ -781,6 +783,7 @@ void TestCanvasTransparent(void)
 		SDataTestRefWindow		cData;
 		uint8*					puiWindow;
 		uint8*					puiPixel;
+		CColourFormatHelper		cFormat;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -811,6 +814,11 @@ void TestCanvasTransparent(void)
 		AssertTrue(pTransparent->IsTransparent());
 		AssertInt(CFT_RGBA, pTransparent->GetColourFormat());
 		AssertInt(ARGB_8bit, pTransparent->GetAlphaBits());
+		pTransparent->GetColourFormat(&cFormat);
+		AssertInt(CFT_RGBA, cFormat.meFormat);
+		AssertInt(CCO_RGB, cFormat.meOrder);
+		AssertInt(CRGB_24bit, cFormat.meColourBits);
+		AssertInt(ARGB_8bit, cFormat.meAlphaBits);
 
 		//A transparent canvas with nothing drawn on it doesn't change what is behind it.
 		pEmpty = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
@@ -953,6 +961,66 @@ void TestCanvasResizeReleasesOldCels(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// A window made from another's colour format, as a dialog is, has the	//
+// same format, and so do canvases made without one.					//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasWindowColourFormat(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>			pOwner;
+		Ptr<CWindow>			pCopy;
+		Ptr<CCanvas>			pCanvas;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		CColourFormatHelper		cFormat;
+		CColourFormatHelper		cCopyFormat;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pOwner = OMalloc<CWindow>("Owner", &cNativeFactory, pTick, pNull, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
+		ORoot()->Add(pOwner);
+		pOwner->GetColourFormat(&cFormat);
+		AssertInt(CFT_RGBX, cFormat.meFormat);
+		AssertInt(CCO_BGR, cFormat.meOrder);
+		AssertInt(CRGB_24bit, cFormat.meColourBits);
+		AssertInt(ARGB_8bit, cFormat.meAlphaBits);
+		AssertInt(CCO_BGR, pOwner->GetColourOrder());
+
+		pCopy = OMalloc<CWindow>("Copy", &cNativeFactory, pTick, pNull, &cFormat);
+		ORoot()->Add(pCopy);
+		pCopy->GetColourFormat(&cCopyFormat);
+		AssertInt(CFT_RGBX, cCopyFormat.meFormat);
+		AssertInt(CCO_BGR, cCopyFormat.meOrder);
+		AssertInt(CRGB_24bit, cCopyFormat.meColourBits);
+		AssertInt(ARGB_8bit, cCopyFormat.meAlphaBits);
+
+		pCanvas = OMalloc<CCanvas>(pCopy, pNull);
+		AssertInt(CFT_RGBX, pCanvas->GetColourFormat());
+		AssertInt(CCO_BGR, pCanvas->GetColourOrder());
+		AssertInt(CRGB_24bit, pCanvas->GetColourBits());
+		AssertInt(ARGB_8bit, pCanvas->GetAlphaBits());
+
+		pCanvas = NULL;
+		ORoot()->Remove(pCopy);
+		ORoot()->Remove(pOwner);
+		pCopy = NULL;
+		pOwner = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -969,6 +1037,7 @@ void TestCanvas(void)
 	TestCanvasNested();
 	TestCanvasTransparent();
 	TestCanvasResizeReleasesOldCels();
+	TestCanvasWindowColourFormat();
 
 	TestStatistics();
 }

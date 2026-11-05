@@ -53,11 +53,36 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A window given a sound factory has a sound mixer, at the default
-// sample rate, that is mixed after each tick.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
+{
+	CColourFormatHelper	cFormat;
+
+	cFormat.Init(eFormat, eOrder, eColourBits, eAlphaBits);
+	Init(szTitle, pcFactory, pcSoundFactory, pTick, pDraw, &cFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Like another window's, a dialog's say: see GetColourFormat.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat)
+{
+	Init(szTitle, pcFactory, NULL, pTick, pDraw, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window given a sound factory has a sound mixer, at the default
+// sample rate, that is mixed after each tick.  The canvas the window is
+// drawn on is in pcFormat.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat)
 {
 	PreInit();
 
@@ -68,7 +93,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	CComponent::Init(this);
 	
 	mpWindowTick = pTick;
-	mpCanvas = OMalloc<CCanvas>(this, pDraw, eFormat, eOrder, eColourBits, eAlphaBits);
+	mpCanvas = OMalloc<CCanvas>(this, pDraw, pcFormat);
 	AddComponent(mpCanvas);
 	mbTicking = false;
 	mpcComponentInput = NULL;
@@ -845,9 +870,9 @@ bool CWindow::ClearContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
+void CWindow::GetColourFormat(CColourFormatHelper* pcDest)
 {
-	pcHelper->Init(GetColourFormat(), GetColourOrder(), GetColourBits(), GetAlphaBits());
+	mpCanvas->GetColourFormat(pcDest);
 }
 
 
@@ -865,8 +890,5 @@ Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }
-EColourFormat			CWindow::GetColourFormat(void) { return mpCanvas->GetColourFormat(); }
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
-ERGBColourBits			CWindow::GetColourBits(void) { return mpCanvas->GetColourBits(); }
-ERGBAlphaBits			CWindow::GetAlphaBits(void) { return mpCanvas->GetAlphaBits(); }
 

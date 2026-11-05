@@ -105,6 +105,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	Ptr<CFillContainer>		pFill;
 	Ptr<CGridContainer>		pGrid;
 	SInsets					sInsets;
+	CColourFormatHelper		cFormat;
 
 	PreInit();
 
@@ -115,7 +116,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	miRows = 0;
 
 	mpTick = OMalloc<CDialogTick>();
-	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->sBackground), pOwner->GetColourFormat(), pOwner->GetColourOrder(), pOwner->GetColourBits(), pOwner->GetAlphaBits());
+	pOwner->GetColourFormat(&cFormat);
+	mpDialog = OMalloc<CWindow>(szTitle, pOwner->GetFactory(), mpTick, OMalloc<CClearCanvasDraw>(psLook->sBackground), &cFormat);
 
 	pFill = OMalloc<CFillContainer>(mpDialog);
 	sInsets.Init(DIALOG_INSET, DIALOG_INSET);

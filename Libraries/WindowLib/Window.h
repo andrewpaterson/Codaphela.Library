@@ -68,6 +68,8 @@ protected:
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
+	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNativeSoundFactory* pcSoundFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
 	void					Class(void) override;
 	void 					Free(void) override;
 	
@@ -128,11 +130,8 @@ public:
 
 	CNativeWindowFactory*	GetFactory(void);
 
-	EColourFormat			GetColourFormat(void);
 	EColourOrder			GetColourOrder(void);
-	ERGBColourBits			GetColourBits(void);
-	ERGBAlphaBits			GetAlphaBits(void);
-	void					GetColourFormat(CColourFormatHelper* pcHelper);
+	void					GetColourFormat(CColourFormatHelper* pcDest);
 
 protected:
 	void					LayoutIfChanged(void);
