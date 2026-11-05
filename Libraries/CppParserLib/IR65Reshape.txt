@@ -181,3 +181,20 @@ at a time.  The weights matter: by loop depth alone an instruction's pair beat a
 +3%), and a loop's entry value merged with its exit phi instead of the loop's phi (TestTextDiff +1.25%).
 TestBaseLib65 -0.24% (TestArrayTemplate -0.77%), TestStandardLib65 -0.10%, MergeLoop 1,176,798 cycles;
 TestCppParserLib 83264/83264.
+
+The jobs left in two shapes (2026-11-05):
+- Runtime routines: shared.  CIRBackend keeps the labels the code calls (UseRuntime, GetRuntime) for both back ends;
+  the front end collects them from either.  The 65C64's signed divides stay flags (the generator writes them).
+- Compare and branch: the comparison a block's brif branches on is CIRBackend::BranchComparison for both
+  (FusedComparison, IsFusedCompare, the W65C816's integer ones only).  How each writes it stays its own, as do the
+  65C64's flags kept from the block before (FlagsKnown).
+- Phi copies on jumps: shared.  CIRBackend::ParallelCopy orders a jump's copies (CopyOverlaps, CopySamePlace),
+  saving a value to break a cycle: the 65C64 in B, the W65C816 in IR816_SCRATCH_RESULT.  The W65C816 no longer
+  gives a block whose phis take each other's values ways in and copies as it starts: every jump puts the values
+  straight in the phis' places.  65C64 code the same; W65C816 17 units changed, TestBaseLib65 -0.05%,
+  TestStandardLib65 -0.01%, none slower.
+- Pointer plus constant folded into addresses: left as each has it.  The rules differ for the targets' sake (the
+  65C64's [reg + n] is free, so every address use folds, copied before it; the W65C816 pays an ldy each access, so
+  only a pointer whose uses are all addresses folds).  Following chains of them (p + 4 + 8 to p + 12, as the
+  W65C816 does) was tried on the 65C64 and dropped: TestBaseLib65 +0.03%, the intermediate kept in a register
+  being cheaper than reloading the base from memory at each access.
