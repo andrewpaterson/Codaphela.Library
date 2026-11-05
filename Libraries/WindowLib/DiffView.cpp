@@ -123,6 +123,7 @@ void CDiffView::Class(void)
 	M_Pointer(mpWhitespaceBox);
 	M_Pointer(mpHighlightBox);
 	M_Pointer(mpCountLabel);
+	M_Pointer(mpCountBox);
 }
 
 
@@ -715,7 +716,11 @@ float64 CDiffView::GetFocusLine(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The toolbar: previous and next difference, whitespace, highlighting,
-// and (at the right) how many differences there are.
+// and (at the right) how many differences there are.  In a narrow view
+// the space before the count and then the count give way (they are the
+// weighted columns) before the buttons and combo boxes are squeezed; the
+// count is in a container of its own so it is cut off, not drawn over
+// the combo boxes.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGridContainer> CDiffView::CreateToolbar(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
@@ -765,7 +770,11 @@ Ptr<CGridContainer> CDiffView::CreateToolbar(Ptr<CWindow> pWindow, Ptr<CWindowTh
 	pSpace = OMalloc<CFillContainer>(pWindow);
 	pSpace->SetDesiredSize(1, 1);
 	pToolbar->AddComponent(pSpace, 5, 0, 1, 1, 1, 1);
-	pToolbar->AddComponent(mpCountLabel, 6, 0, 1, 1, 0, 1);
+	mpCountBox = OMalloc<CFillContainer>(pWindow);
+	mpCountBox->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpCountBox->AddComponent(mpCountLabel);
+	mpCountBox->SetDesiredSize(mpCountLabel->GetDesiredSize().x, 1);
+	pToolbar->AddComponent(mpCountBox, 6, 0, 1, 1, 1, 1);
 	pGap = OMalloc<CFillContainer>(pWindow);
 	pGap->SetDesiredSize(8, 1);
 	pToolbar->AddComponent(pGap, 7, 0, 1, 1, 0, 1);
@@ -797,6 +806,9 @@ void CDiffView::UpdateToolbar(void)
 	if (!szCount.Equals(mpCountLabel->GetText()))
 	{
 		mpCountLabel->SetText(szCount.Text());
+
+		//A container in a grid has no size of its own.
+		mpCountBox->SetDesiredSize(mpCountLabel->GetDesiredSize().x, 1);
 	}
 	szCount.Kill();
 

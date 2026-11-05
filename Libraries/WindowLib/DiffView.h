@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Label.h"
 #include "Button.h"
 #include "ComboBox.h"
+#include "FillContainer.h"
 #include "Canvas.h"
 #include "ScrollPane.h"
 #include "CodeEditor.h"
@@ -103,6 +104,7 @@ protected:
 	Ptr<CComboBox>			mpWhitespaceBox;	//Items by ETextDiffWhitespace.
 	Ptr<CComboBox>			mpHighlightBox;		//Items by ETextDiffHighlight.
 	Ptr<CLabel>				mpCountLabel;
+	Ptr<CFillContainer>		mpCountBox;			//Holds the count, cut off when the toolbar is too narrow for it.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pFamily, SDiffViewColours* psColours = NULL);
