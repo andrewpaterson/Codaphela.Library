@@ -142,6 +142,9 @@
     <ClCompile Include="TestImageDraw.cpp">
       <Filter>Source Files\Image\Draw</Filter>
     </ClCompile>
+    <ClCompile Include="TestVectorPath.cpp">
+      <Filter>Source Files\Image\Draw</Filter>
+    </ClCompile>
     <ClCompile Include="TestImageRecolour.cpp">
       <Filter>Source Files\Image\Modifiers</Filter>
     </ClCompile>

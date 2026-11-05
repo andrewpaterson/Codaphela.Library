@@ -47,9 +47,14 @@ struct SVectorSegment
 typedef CArrayTemplate<SVectorSegment>	CArrayVectorSegment;
 
 
+#define VECTOR_PATH_CUBIC_TOLERANCE	0.1		//How far a cubic's straight edges may stray from its curve.
+#define VECTOR_PATH_MAX_CUBIC_LINES	256
+
+
 //A 2D shape made of parts.  Each part is a set of closed contours of straight and circular edges filled with the
 //non-zero winding rule; holes wind the other way.  Parts with exposure off erase the earlier parts of the same path
-//only.  Arcs are counterclockwise or clockwise with y up; drawn y down they look the other way round.
+//only.  Arcs are counterclockwise or clockwise with y up; drawn y down they look the other way round.  Cubic Bezier
+//curves (CubicTo) are flattened into straight edges as they are added.
 class CVectorPath
 {
 protected:
@@ -67,6 +72,7 @@ public:
 	void				MoveTo(SFloat64Vec2* psPoint);
 	void				LineTo(SFloat64Vec2* psPoint);
 	void				ArcTo(SFloat64Vec2* psPoint, SFloat64Vec2* psCenter, bool bClockwise);
+	void				CubicTo(SFloat64Vec2* psControl1, SFloat64Vec2* psControl2, SFloat64Vec2* psPoint, float64 fTolerance = VECTOR_PATH_CUBIC_TOLERANCE);
 
 	void				AddCircle(SFloat64Vec2* psCenter, float64 fRadius, bool bClockwise);
 	void				AddPolygon(SFloat64Vec2* asPoints, size uiNumPoints, bool bReverse);

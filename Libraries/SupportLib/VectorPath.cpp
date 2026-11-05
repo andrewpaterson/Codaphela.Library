@@ -119,6 +119,63 @@ void CVectorPath::LineTo(SFloat64Vec2* psPoint)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A cubic Bezier curve from the last point to psPoint pulled towards
+// psControl1 and psControl2, added as straight edges no further than
+// fTolerance from the curve.  How many edges is Wang's formula: the
+// square root of 3/4 of the larger second difference of the control
+// points over the tolerance.  With no last point it is a move to psPoint.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVectorPath::CubicTo(SFloat64Vec2* psControl1, SFloat64Vec2* psControl2, SFloat64Vec2* psPoint, float64 fTolerance)
+{
+	SFloat64Vec2	sStart;
+	SFloat64Vec2	sPoint;
+	float64			fX;
+	float64			fY;
+	float64			fDifference1;
+	float64			fDifference2;
+	float64			fT;
+	float64			fU;
+	size			uiLines;
+	size			i;
+
+	if (masSegments.NumElements() == 0)
+	{
+		MoveTo(psPoint);
+		return;
+	}
+	sStart = masSegments.Get(masSegments.NumElements() - 1)->sPoint;
+
+	fX = sStart.x - 2 * psControl1->x + psControl2->x;
+	fY = sStart.y - 2 * psControl1->y + psControl2->y;
+	fDifference1 = sqrt(fX * fX + fY * fY);
+	fX = psControl1->x - 2 * psControl2->x + psPoint->x;
+	fY = psControl1->y - 2 * psControl2->y + psPoint->y;
+	fDifference2 = sqrt(fX * fX + fY * fY);
+	uiLines = (size)ceil(sqrt(0.75 * ((fDifference1 > fDifference2) ? fDifference1 : fDifference2) / fTolerance));
+	if (uiLines < 1)
+	{
+		uiLines = 1;
+	}
+	else if (uiLines > VECTOR_PATH_MAX_CUBIC_LINES)
+	{
+		uiLines = VECTOR_PATH_MAX_CUBIC_LINES;
+	}
+
+	for (i = 1; i < uiLines; i++)
+	{
+		fT = (float64)i / (float64)uiLines;
+		fU = 1 - fT;
+		sPoint.x = fU * fU * fU * sStart.x + 3 * fU * fU * fT * psControl1->x + 3 * fU * fT * fT * psControl2->x + fT * fT * fT * psPoint->x;
+		sPoint.y = fU * fU * fU * sStart.y + 3 * fU * fU * fT * psControl1->y + 3 * fU * fT * fT * psControl2->y + fT * fT * fT * psPoint->y;
+		LineTo(&sPoint);
+	}
+	LineTo(psPoint);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CVectorPath::ArcTo(SFloat64Vec2* psPoint, SFloat64Vec2* psCenter, bool bClockwise)

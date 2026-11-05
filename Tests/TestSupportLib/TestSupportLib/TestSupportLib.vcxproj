@@ -233,6 +233,7 @@
     <ClCompile Include="SupportAssert.cpp" />
     <ClCompile Include="TestFont.cpp" />
     <ClCompile Include="TestImageDraw.cpp" />
+    <ClCompile Include="TestVectorPath.cpp" />
     <ClCompile Include="TestImageOpacity.cpp" />
     <ClCompile Include="TestImageRGBAToR3G3B2A.cpp" />
     <ClCompile Include="TestImageSFTWriter.cpp" />

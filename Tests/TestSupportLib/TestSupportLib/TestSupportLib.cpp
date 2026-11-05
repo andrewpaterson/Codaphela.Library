@@ -23,6 +23,7 @@ void TestImageColour(void);
 void TestImageCombiner(void);
 void TestImageDivider(void);
 void TestImageDraw(void);
+void TestVectorPath(void);
 void TestImageModifierDrawBox(void);
 void TestImageGreyToRGB(void);
 void TestImageModifierStack(void);
@@ -109,6 +110,7 @@ int __cdecl main(void)
 	TestImageModifierDrawBox();
 	TestColourBlend();
 	TestImageDraw();
+	TestVectorPath();
 	TestImageRecolour();
 	TestImageSwizzle();
 	TestImageCombiner();
