@@ -241,6 +241,7 @@ public:
 	bool			LinkWith(const char* szName, const char* szSource);
 
 	CAsm65Output*	GetOutput(void);
+	CAsm65Linker*	GetLinker(void);
 	char*			GetErrors(void);
 	char*			GetWarnings(void);
 	char*			GetMap(void);
