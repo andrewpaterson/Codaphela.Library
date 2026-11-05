@@ -34,13 +34,15 @@ typedef CArrayTemplate<size>	CArrayCodeEditorLines;
 typedef CArrayTemplate<char>	CArrayCodeEditorMarks;
 
 
-//Lines that changed, like those changed since a file was committed, shown by a bar in the gutter.  Lines uiStartLine
-//up to uiEndLine changed; with uiStartLine equal to uiEndLine, lines were removed above line uiStartLine.
+//Lines that changed, like those changed since a file was committed, shown by a bar in the gutter, or by the whole of
+//their rows of the gutter (a band, as a diff view shows them).  Lines uiStartLine up to uiEndLine changed; with
+//uiStartLine equal to uiEndLine, lines were removed above line uiStartLine.
 struct SCodeEditorChangeBar
 {
 	size	uiStartLine;
 	size	uiEndLine;
 	ARGB32	sColour;
+	bool	bBand;
 };
 
 
@@ -63,6 +65,7 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //match.  The gutter's first column has a mark for each line (SetLineMark), a space unless set; marks are by line
 //number, so they don't move with the lines as the code is edited.  Change bars (AddChangeBar) colour the gutter's last
 //column beside lines that changed, or draw a line between rows where lines were removed; they are by line number too.
+//Change bands (AddChangeBand) colour the gutter's whole rows instead.
 //Clicking the gutter calls the gutter click event
 //with the line it was next to, and an edit calls the change event.  The code editor is meant to be the content of a
 //CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
@@ -115,6 +118,7 @@ public:
 	char				GetLineMark(size uiLine);
 	void				ClearLineMarks(void);
 	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	void				AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour);
 	void				ClearChangeBars(void);
 	size				NumChangeBars(void);
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
@@ -136,6 +140,7 @@ protected:
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
 	void				DrawChangeBars(size uiDigits);
+	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour, bool bBand);
 	size				CountDigits(size uiNumber);
 };
 

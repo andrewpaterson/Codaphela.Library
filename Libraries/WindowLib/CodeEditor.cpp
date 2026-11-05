@@ -553,8 +553,8 @@ void CCodeEditor::UpdateGutter(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Each changed line's row has its last column, after its number, in its
-// bar's colour.  Removed lines are a line at the top of the row below
-// them.  Bars past the last line are cut off.
+// bar's colour, or the whole row for a band.  Removed lines are a line at
+// the top of the row below them.  Bars past the last line are cut off.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::DrawChangeBars(size uiDigits)
@@ -575,6 +575,14 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 		if (psBar->uiStartLine == psBar->uiEndLine)
 		{
 			mpGutter->AddLineBoundary((psBar->uiStartLine < uiLines) ? psBar->uiStartLine : uiLines, CODE_EDITOR_REMOVED_THICKNESS, psBar->sColour);
+		}
+		else if (psBar->bBand)
+		{
+			uiEnd = (psBar->uiEndLine < uiLines) ? psBar->uiEndLine : uiLines;
+			if (psBar->uiStartLine < uiEnd)
+			{
+				mpGutter->AddLineBackground(psBar->uiStartLine, uiEnd, psBar->sColour);
+			}
 		}
 		else
 		{
@@ -663,6 +671,27 @@ void CCodeEditor::ClearLineMarks(void)
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour)
 {
+	AddChangeBar(uiStartLine, uiEndLine, sColour, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As AddChangeBar, but the lines' whole rows of the gutter are coloured.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour)
+{
+	AddChangeBar(uiStartLine, uiEndLine, sColour, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour, bool bBand)
+{
 	SCodeEditorChangeBar*	psBar;
 
 	if (uiEndLine < uiStartLine)
@@ -673,6 +702,7 @@ void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour)
 	psBar->uiStartLine = uiStartLine;
 	psBar->uiEndLine = uiEndLine;
 	psBar->sColour = sColour;
+	psBar->bBand = bBand;
 	mbChangeBarsChanged = true;
 	InvalidateLayout();
 }

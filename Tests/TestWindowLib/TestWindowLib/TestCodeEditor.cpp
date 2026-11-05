@@ -639,6 +639,16 @@ void TestCodeEditorChangeBars(void)
 		AssertSize(0, pEditor->NumChangeBars());
 		AssertSize(0, pGutter->NumBackgrounds());
 
+		//A band colours its lines' whole rows; an empty one is a boundary as a bar's is.
+		pEditor->AddChangeBand(1, 3, TEST_CHANGE_MODIFIED);
+		pEditor->AddChangeBand(4, 4, TEST_CHANGE_REMOVED);
+		pTestWindow->Layout();
+		AssertTrue(pEditor->GetChangeBar(0)->bBand);
+		AssertSize(2, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Lines, 1, 3, pGutter->GetBackground(0));
+		AssertTextAreaBackground(TAB_Boundary, 4, 4, pGutter->GetBackground(1));
+		pEditor->ClearChangeBars();
+
 		pGutter = NULL;
 		pEditor = NULL;
 		pFill = NULL;
