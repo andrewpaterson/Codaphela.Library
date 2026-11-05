@@ -25,10 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Logger.h"
 
 
-//A hash of zeros: the file or chunk was written without hashes.
-static const uint8 gauiChunkFileNoHash[16] = { 0 };
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -37,7 +33,6 @@ void CChunkFile::_Init(void)
 {
 	mpcHashFile = NULL;
 	mcChunkStack.Init();
-	mbLastHashCheck = false;
 	mmsziNames._Init();
 	memset(&msHeader, 0, sizeof(SChunkFileHeader));
 	miLastName = 0;
@@ -50,22 +45,21 @@ void CChunkFile::_Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CChunkFile::Init(CAbstractFile* pcFile)
 {
-	mpcHashFile = MD5HashFile(pcFile);
-	CFileBasic::Init(mpcHashFile);
-	mbLastHashCheck = true;
+	mpcHashFile = NULL;
+	CFileBasic::Init(pcFile);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
-// Without hashes: zeros are written for them and they aren't checked.	//
+// Writes an MD5 hash of each chunk and of the chunk names into their	//
+// headers (GetMD5Hash).  Reading doesn't check them.					//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CChunkFile::InitUnhashed(CAbstractFile* pcFile)
+void CChunkFile::InitHashed(CAbstractFile* pcFile)
 {
-	mpcHashFile = NULL;
-	CFileBasic::Init(pcFile);
-	mbLastHashCheck = true;
+	mpcHashFile = MD5HashFile(pcFile);
+	CFileBasic::Init(mpcHashFile);
 }
 
 
@@ -173,16 +167,8 @@ bool CChunkFile::ReadOpen(void)
 	{
 		return false;
 	}
-	
-	if (mpcHashFile)
-	{
-		mpcHashFile->StartHashing();
-	}
+
 	ReturnOnFalse(ReadChunkNames());
-	if (!HashMatches(msHeader.macMD5Hash))
-	{
-		return false;
-	}
 
 	CFileBasic::Seek(sizeof(SChunkFileHeader));
 	return __PrivateReadChunkBegin();
@@ -410,10 +396,6 @@ bool CChunkFile::__PrivateReadChunkBegin(void)
 			return false;
 		}
 	}
-	if (mpcHashFile)
-	{
-		mpcHashFile->StartHashing();
-	}
 	return true;
 }
 
@@ -603,31 +585,6 @@ bool CChunkFile::ReadChunkBegin(size iChunkIndex)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-// Stops hashing.  True if the hash since StartHashing is pvExpected, or
-// there is nothing to check: no hashing, or a file written without
-// hashes (zeros).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChunkFile::HashMatches(void* pvExpected)
-{
-	uint8	auiDigest[16];
-
-	if (!mpcHashFile)
-	{
-		return true;
-	}
-	mpcHashFile->StopHashing();
-	if (memcmp(pvExpected, gauiChunkFileNoHash, 16) == 0)
-	{
-		return true;
-	}
-	mpcHashFile->CopyDigestToDest(auiDigest);
-	return memcmp(auiDigest, pvExpected, 16) == 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -639,8 +596,6 @@ bool CChunkFile::ReadChunkEnd(void)
 	psElement = mcChunkStack.Tail();
 	if (psElement)
 	{
-		mbLastHashCheck = HashMatches(psElement->sHeader.macMD5Hash);
-
 		if (psElement->bContainsChunks)
 		{
 			iSeekPos = psElement->sHeader.miChunkIndexPos;

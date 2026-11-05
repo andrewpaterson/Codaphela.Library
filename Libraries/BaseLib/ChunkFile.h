@@ -32,27 +32,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "HashFile.h"
 
 
-//A file of named chunks.  Init hashes each chunk and the file with MD5 (written into the headers and checked when read);
-//InitUnhashed neither writes hashes (they are zeros) nor checks them, and doesn't link MD5.  A hashed reader accepts a
-//file written without hashes.
+//A file of named chunks.  Init writes zeros for the chunks' hashes and doesn't link MD5; InitHashed writes an MD5 hash of
+//each chunk and of the chunk names into their headers (GetMD5Hash).  Reading never checks hashes: a chunk is rarely read
+//from start to end, which is all a hash could check.
 class CChunkFile : public CFileBasic
 {
 protected:
 	CHashFile*			mpcHashFile;	//NULL without hashes.
 	CChunkStack			mcChunkStack;
-	bool				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
 	SChunkFileHeader	msHeader;
 	chunkName			miLastName;
 	
 	bool	__PrivateReadChunkBegin(void);
 	bool	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
-	bool	HashMatches(void* pvExpected);
 
 public:
 	void		_Init(void);
 	void		Init(CAbstractFile*	pcFile);
-	void		InitUnhashed(CAbstractFile* pcFile);
+	void		InitHashed(CAbstractFile* pcFile);
 	void		Kill(void);
 
 	bool		ReadOpen(void);

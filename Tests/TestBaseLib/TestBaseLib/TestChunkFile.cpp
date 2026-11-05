@@ -64,7 +64,7 @@ void TestChunkFileMD5ing(void)
 	iFoxLen = strlen(szFox);
 	iLoremLen = strlen(szLorem);
 
-	cChunkFile.Init(MemoryFile());
+	cChunkFile.InitHashed(MemoryFile());
 	AssertTrue(cChunkFile.WriteOpen());
 	AssertTrue(cChunkFile.WriteChunkBegin());
 	AssertTrue(cChunkFile.Write(szFox, 1, iFoxLen) > 0);
@@ -208,7 +208,7 @@ void TestChunkFileFileBasic(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Writes a chunk file to memory, hashed (Init) or not (InitUnhashed): an
+// Writes a chunk file to memory, hashed (InitHashed) or not (Init): an
 // "Outer" chunk holding some text and an "Inner" chunk.  The file's bytes
 // are copied to pacFile.
 //
@@ -224,11 +224,11 @@ static void TestChunkFileWriteHashing(bool bHashed, CArrayChar* pacFile)
 	pcMemoryFile->mbBasicFileMustFree = false;
 	if (bHashed)
 	{
-		cChunkFile.Init(pcMemoryFile);
+		cChunkFile.InitHashed(pcMemoryFile);
 	}
 	else
 	{
-		cChunkFile.InitUnhashed(pcMemoryFile);
+		cChunkFile.Init(pcMemoryFile);
 	}
 	AssertTrue(cChunkFile.WriteOpen());
 	AssertTrue(cChunkFile.WriteChunkBegin());
@@ -281,11 +281,11 @@ static void TestChunkFileReadHashing(bool bHashed, CArrayChar* pacFile, bool bZe
 
 	if (bHashed)
 	{
-		cChunkFile.Init(MemoryFile(pacFile->GetData(), pacFile->NumElements()));
+		cChunkFile.InitHashed(MemoryFile(pacFile->GetData(), pacFile->NumElements()));
 	}
 	else
 	{
-		cChunkFile.InitUnhashed(MemoryFile(pacFile->GetData(), pacFile->NumElements()));
+		cChunkFile.Init(MemoryFile(pacFile->GetData(), pacFile->NumElements()));
 	}
 	AssertTrue(cChunkFile.ReadOpen());
 	AssertBool(bZeroHashes, TestChunkFileHashIsZero(cChunkFile.GetMD5Hash()));
@@ -313,17 +313,15 @@ static void TestChunkFileReadHashing(bool bHashed, CArrayChar* pacFile, bool bZe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Chunk files with and without hashes, each read with and without
-// checking them: a file written without hashes has zeros for them and a
-// hashed reader accepts it; an unhashed reader reads a hashed file without
-// checking it, even when its hash is wrong (which a hashed reader refuses).
+// Chunk files with and without hashes, each read by a hashed and an
+// unhashed chunk file: a file written without hashes has zeros for them.
+// Reading never checks hashes, so a wrong one doesn't stop either.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChunkFileHashing(void)
 {
 	CArrayChar	acHashed;
 	CArrayChar	acUnhashed;
-	CChunkFile	cChunkFile;
 
 	TestChunkFileWriteHashing(true, &acHashed);
 	TestChunkFileWriteHashing(false, &acUnhashed);
@@ -338,10 +336,7 @@ void TestChunkFileHashing(void)
 
 	//The file's hash (in its header, after the user ID and the chunk names' position) made wrong.
 	acHashed.GetData()[16] ^= 0x5A;
-	cChunkFile.Init(MemoryFile(acHashed.GetData(), acHashed.NumElements()));
-	AssertFalse(cChunkFile.ReadOpen());
-	cChunkFile.ReadClose();
-	cChunkFile.Kill();
+	TestChunkFileReadHashing(true, &acHashed, false);
 	TestChunkFileReadHashing(false, &acHashed, false);
 
 	acUnhashed.Kill();

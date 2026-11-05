@@ -27,8 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //A file that hashes what goes through it (CMD5HashFile), as CChunkFile uses one.  CChunkFile only calls it through
-//this interface, so a program that only reads or writes chunk files without hashes (CChunkFile::InitUnhashed) doesn't
-//link the hashing.
+//this interface, so a program that only reads or writes chunk files without hashes (CChunkFile::Init, not InitHashed)
+//doesn't link the hashing.
 class CHashFile : public CAbstractFile
 {
 public:
