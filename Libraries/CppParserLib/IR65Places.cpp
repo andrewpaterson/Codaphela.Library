@@ -89,16 +89,47 @@ void CIR65Backend::MarkFolded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An empty frame, before Layout and Allocate fill it.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIR65Frame::Init(void)
+{
+	iFrameBytes = 0;
+	iThisOffset = -1;
+	uiSaved = 0;
+	bFrameless = false;
+	cRegister = 'V';
+	iArguments = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // iBytes more of the frame, at least 4 and a multiple of 4.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::AddFrame(int32 iBytes)
+int32 SIR65Frame::Add(int32 iBytes)
 {
 	int32	iOffset;
 
-	iOffset = miFrameBytes;
-	miFrameBytes += (iBytes < 4) ? 4 : ((iBytes + 3) & ~3);
+	iOffset = iFrameBytes;
+	iFrameBytes += (iBytes < 4) ? 4 : ((iBytes + 3) & ~3);
 	return iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether V is set up (GenerateFunction decides), and so the frame register
+// and where the arguments start: past the frame and the link, or from S past
+// the return address and the saved pseudo registers.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIR65Frame::SetFrameless(bool bFramelessIn)
+{
+	bFrameless = bFramelessIn;
+	cRegister = bFrameless ? 'S' : 'V';
+	iArguments = bFrameless ? (1 + 4 + 4 * NumSaved()) : (1 + iFrameBytes + 8);
 }
 
 
@@ -259,8 +290,7 @@ void CIR65Backend::Layout(void)
 	masPlaces.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
 	mauiAddressed.FakeSetUsedElements(0);
 	mauiAddressed.GrowToAtLeastNumElements(mpcFunction->masParameters.NumElements(), true, 0);
-	miFrameBytes = 0;
-	miThisOffset = -1;
+	msFrame.Init();
 	MarkFolded();
 	MarkInA();
 
@@ -279,7 +309,7 @@ void CIR65Backend::Layout(void)
 			{
 				psPlace->uiKind = IR65P_FrameAddress;
 				psPlace->iBytes = (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
-				psPlace->iOffset = AddFrame(psPlace->iBytes);
+				psPlace->iOffset = msFrame.Add(psPlace->iBytes);
 			}
 			else if (psInstruction->uiOpcode == IRO_ArgAddress)
 			{
@@ -290,12 +320,12 @@ void CIR65Backend::Layout(void)
 				}
 				else if ((iParameter == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
 				{
-					if (miThisOffset < 0)
+					if (msFrame.iThisOffset < 0)
 					{
-						miThisOffset = AddFrame(4);
+						msFrame.iThisOffset = msFrame.Add(4);
 					}
 					psPlace->uiKind = IR65P_FrameAddress;
-					psPlace->iOffset = miThisOffset;
+					psPlace->iOffset = msFrame.iThisOffset;
 				}
 				else
 				{
@@ -359,7 +389,6 @@ void CIR65Backend::Allocate(void)
 		psHome->asRanges.Init();
 		psHome->iOffset = -1;
 	}
-	muiSaved = 0;
 	FindChanges();
 
 	iNumTemporaries = (int32)mpcFunction->NumTemporaries();
@@ -865,7 +894,7 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 	iUnit = (uiWeight >= 8) ? FindUnits(IR65_HOME_SAVED, iUnits, iLeader) : -1;
 	if (iUnit >= 0)
 	{
-		muiSaved |= ((1u << iUnits) - 1) << iUnit;
+		msFrame.uiSaved |= ((1u << iUnits) - 1) << iUnit;
 		PlaceClass(iLeader, IR65P_Pseudo, 128 + 4 * iUnit, 4 * iUnits);
 		return;
 	}
@@ -882,7 +911,7 @@ void CIR65Backend::AllocateClass(int32 iLeader, uint32 uiWeight)
 			return;
 		}
 	}
-	iOffset = AddFrame(4 * iUnits);
+	iOffset = msFrame.Add(4 * iUnits);
 	iHome = (int32)masHomes.NumElements();
 	for (iUnit = 0; iUnit < iUnits; iUnit++)
 	{
@@ -1232,7 +1261,7 @@ bool CIR65Backend::IsArrivalPlace(SIRReference sValue)
 // The number of callee saved pseudo registers the prologue pushes.
 //
 //////////////////////////////////////////////////////////////////////////
-int CIR65Backend::NumSaved(void)
+int SIR65Frame::NumSaved(void) const
 {
 	int		iUnit;
 	int		iCount;
@@ -1240,7 +1269,7 @@ int CIR65Backend::NumSaved(void)
 	iCount = 0;
 	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
 	{
-		if (muiSaved & (1u << iUnit))
+		if (uiSaved & (1u << iUnit))
 		{
 			iCount++;
 		}

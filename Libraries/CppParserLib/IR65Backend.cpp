@@ -49,10 +49,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mauiUses.Init();
 	masMoves.Init();
 	masStubs.Init();
-	muiSaved = 0;
-	miFrameBytes = 0;
-	miArguments = 0;
-	miThisOffset = -1;
+	msFrame.Init();
 	miReturnLabel = 0;
 	msInA = IRNone();
 	msAvailable = IRNone();
@@ -63,8 +60,6 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mpcFlags = NULL;
 	mbFlagsKnown = false;
 	mbRightImmediate = false;
-	mbFrameless = false;
-	mcFrame = 'V';
 	mszAddress = "B";
 	mcFlags.Init();
 	mcWidths.Init();
@@ -168,9 +163,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 
 	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
 	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
-	mbFrameless = (miFrameBytes == 0) && (miThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst());
-	mcFrame = mbFrameless ? 'S' : 'V';
-	miArguments = mbFrameless ? (1 + 4 + 4 * NumSaved()) : (1 + miFrameBytes + 8);
+	msFrame.SetFrameless((msFrame.iFrameBytes == 0) && (msFrame.iThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst()));
 
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
@@ -231,18 +224,18 @@ void CIR65Backend::Prologue(const char* szLabel)
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
 	mpszOut->AppendNewLine();
-	if (!mbFrameless)
+	if (!msFrame.bFrameless)
 	{
 		Line("psh V")->AppendNewLine();
-		if (miFrameBytes > 0)
+		if (msFrame.iFrameBytes > 0)
 		{
-			Line("sub S, ")->Append(miFrameBytes)->AppendNewLine();
+			Line("sub S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
 		}
 		Line("cpy V, S")->AppendNewLine();
 	}
 	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
 	{
-		if (muiSaved & (1u << iUnit))
+		if (msFrame.uiSaved & (1u << iUnit))
 		{
 			Line("psh [")->Append(128 + 4 * iUnit)->Append(" + W]")->AppendNewLine();
 		}
@@ -256,9 +249,9 @@ void CIR65Backend::Prologue(const char* szLabel)
 		if ((ui == 0) && (mpcFunction->muiAttributes & IRA_ThisCall))
 		{
 			//this, in X.
-			if (miThisOffset >= 0)
+			if (msFrame.iThisOffset >= 0)
 			{
-				Line("cpy [")->Append(1 + miThisOffset)->Append(" + V], X")->AppendNewLine();
+				Line("cpy [")->Append(1 + msFrame.iThisOffset)->Append(" + V], X")->AppendNewLine();
 			}
 			if ((psPlace->uiKind == IR65P_Register) && (psPlace->iOffset == IR65R_Y))
 			{
@@ -305,16 +298,16 @@ void CIR65Backend::Epilogue(void)
 	Label(miReturnLabel);
 	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
 	{
-		if (muiSaved & (1u << iUnit))
+		if (msFrame.uiSaved & (1u << iUnit))
 		{
 			Line("pul [")->Append(128 + 4 * iUnit)->Append(" + W]")->AppendNewLine();
 		}
 	}
-	if (!mbFrameless)
+	if (!msFrame.bFrameless)
 	{
-		if (miFrameBytes > 0)
+		if (msFrame.iFrameBytes > 0)
 		{
-			Line("add S, ")->Append(miFrameBytes)->AppendNewLine();
+			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
 		}
 		Line("pul V")->AppendNewLine();
 	}

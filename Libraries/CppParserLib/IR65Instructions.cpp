@@ -116,11 +116,11 @@ void CIR65Backend::AppendPlace(CChars* psz, SIR65Place* psPlace)
 		break;
 	case IR65P_Frame:
 	case IR65P_FrameAddress:
-		psz->Append('[')->Append(1 + psPlace->iOffset)->Append(" + ")->Append(mcFrame)->Append(']');
+		psz->Append('[')->Append(1 + psPlace->iOffset)->Append(" + ")->Append(msFrame.cRegister)->Append(']');
 		break;
 	case IR65P_Argument:
 	case IR65P_ArgumentAddress:
-		psz->Append('[')->Append(miArguments + psPlace->iOffset)->Append(" + ")->Append(mcFrame)->Append(']');
+		psz->Append('[')->Append(msFrame.iArguments + psPlace->iOffset)->Append(" + ")->Append(msFrame.cRegister)->Append(']');
 		break;
 	}
 }
@@ -199,14 +199,14 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Frame:
-		if (bArithmetic && (mcFrame == 'S'))
+		if (bArithmetic && (msFrame.cRegister == 'S'))
 		{
 			return false;
 		}
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Argument:
-		if ((bArithmetic && (mcFrame == 'S')) || (psPlace->iBytes != 4))
+		if ((bArithmetic && (msFrame.cRegister == 'S')) || (psPlace->iBytes != 4))
 		{
 			return false;
 		}
@@ -444,7 +444,7 @@ void CIR65Backend::LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szR
 		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 		return;
 	}
-	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4) && (mcFrame == 'V'))
+	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4) && (msFrame.cRegister == 'V'))
 	{
 		//cpyx extends the argument into the 32 bit register (it can't address with S).
 		psz = Line("cpyx ")->Append(szRegister)->Append(", ");
@@ -565,8 +565,8 @@ void CIR65Backend::LoadValue(SIRReference sValue, const char* szRegister, EIR65E
 	{
 	case IR65P_FrameAddress:
 	case IR65P_ArgumentAddress:
-		Line("cpy ")->Append(szRegister)->Append(", ")->Append(mcFrame)->AppendNewLine();
-		Line("add ")->Append(szRegister)->Append(", ")->Append(((psPlace->uiKind == IR65P_ArgumentAddress) ? miArguments : 1) + psPlace->iOffset)->AppendNewLine();
+		Line("cpy ")->Append(szRegister)->Append(", ")->Append(msFrame.cRegister)->AppendNewLine();
+		Line("add ")->Append(szRegister)->Append(", ")->Append(((psPlace->uiKind == IR65P_ArgumentAddress) ? msFrame.iArguments : 1) + psPlace->iOffset)->AppendNewLine();
 		return;
 	case IR65P_Register:
 	case IR65P_Pseudo:
@@ -2110,7 +2110,7 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 	{
 		AppendPlace(&szCallee, PlaceOf(sCallee));
 	}
-	else if (sCallee.IsTemporary() && !IsInA(sCallee) && IsMemoryHome(PlaceOf(sCallee)) && ((PlaceOf(sCallee)->uiKind == IR65P_Pseudo) || !mbFrameless))
+	else if (sCallee.IsTemporary() && !IsInA(sCallee) && IsMemoryHome(PlaceOf(sCallee)) && ((PlaceOf(sCallee)->uiKind == IR65P_Pseudo) || !msFrame.bFrameless))
 	{
 		AppendPlace(&szCallee, PlaceOf(sCallee));
 	}

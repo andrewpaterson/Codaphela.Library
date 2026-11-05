@@ -92,3 +92,10 @@ Step 1: done 2026-11-05.  IR65Backend.cpp is now:
   IR65BackendInternal.h    the IR65F_ flags, IR65OpcodeFlags and IR65PseudoWithoutW (no longer static)
 Every line kept, in order, in its file.  TestCppParserLib Release x64: 83262/83262 pass.  The Windows
 (Visual Studio) build hasn't been tried.
+
+Step 2: done 2026-11-05.  SIR65Frame (IR65Backend.h) holds iFrameBytes, iThisOffset, uiSaved,
+bFrameless, cRegister and iArguments (were muiSaved, miFrameBytes, miThisOffset, mbFrameless, mcFrame,
+miArguments); AddFrame and NumSaved are its Add and NumSaved, Init empties it (Layout), SetFrameless sets V or
+S and where the arguments start (GenerateFunction).  TestCppParserLib 83262/83262.  The code written is the
+same: TestBaseLib65's 570 BaseLib/TestLib unit listings (TEST_PROJECT65_LISTINGS, TEST_PROJECT65_ONLY=none,
+1.97M lines) are identical to step 1's, once __FILE__ strings of the two run folders are made the same.

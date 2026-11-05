@@ -128,6 +128,24 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 #define IR65_HOME_FRAME			(IR65_HOME_SAVED + IR65_PSEUDO_UNITS)
 
 
+//A function's frame: [1 + offset + V] for offset from 0 to iFrameBytes - 1, then the link (8 bytes), then the
+//arguments.  A frameless function (no frame bytes, no this kept) doesn't set V up and finds its arguments from S.
+struct SIR65Frame
+{
+	int32	iFrameBytes;
+	int32	iThisOffset;	//A thiscall's this in the frame, for an argaddr of it; -1 for none.
+	uint32	uiSaved;		//The [$80 + W] units used, a bit each: the prologue pushes them.
+	bool	bFrameless;		//No frame: V isn't set up, the arguments are from S...
+	char	cRegister;		//...so the frame register is S, otherwise V.
+	int32	iArguments;		//Where the arguments start: 1 + frame + 8, or from S 1 + 4 + 4 per saved unit.
+
+	void	Init(void);
+	int32	Add(int32 iBytes);
+	int		NumSaved(void) const;
+	void	SetFrameless(bool bFramelessIn);
+};
+
+
 //Writes 65C64 assembly for IR functions.  Temporaries are given homes by register allocation (IR.txt 65C64 back
 //end): X or Y, a pseudo register ([$00 + W] to [$7F + W] if no call is made while it is live, [$80 + W] to
 //[$FF + W] if one is: the function keeps those), or the frame.  A phi shares its home with the values it takes
@@ -156,10 +174,7 @@ protected:
 	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
 	CArrayIR65Moves			masMoves;
 	CArrayIR65Stubs			masStubs;
-	uint32					muiSaved;			//The [$80 + W] units used, a bit each.
-	int32					miFrameBytes;
-	int32					miArguments;		//Where the arguments start: 1 + frame + 8.
-	int32					miThisOffset;		//A thiscall's this in the frame, for an argaddr of it; -1 for none.
+	SIR65Frame				msFrame;			//The function's frame (Layout, Allocate and GenerateFunction).
 	int32					miReturnLabel;
 	SIRReference			msInA;				//The temporary the last instruction left in A (or IRNone).
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
@@ -170,8 +185,6 @@ protected:
 	CIRBlock*				mpcFlags;
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
-	bool					mbFrameless;		//No frame: V isn't set up, the arguments are from S...
-	char					mcFrame;			//...so the frame register is S, otherwise V.
 	const char*				mszAddress;			//Where MemoryOperand puts an address it must load: B, or for a cpyx a free X or Y (not A).
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
@@ -206,7 +219,6 @@ protected:
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);
 	bool				IsNarrow(SIRType sType);
-	int32				AddFrame(int32 iBytes);
 	SIRInstruction*		FusedComparison(CIRBlock* pcBlock);
 	void				MarkInA(void);
 	bool				FoldedBase(SIRInstruction* psNext, SIRReference sValue);
@@ -244,7 +256,6 @@ protected:
 	bool				IsLeaf(void);
 	bool				ArgumentsReadFirst(void);
 	bool				IsArrivalPlace(SIRReference sValue);
-	int					NumSaved(void);
 	void				AppendPlace(CChars* psz, SIR65Place* psPlace);
 	void				AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend);
 	bool				Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend);
