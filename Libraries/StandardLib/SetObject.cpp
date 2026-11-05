@@ -84,9 +84,15 @@ void CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 
 	CBaseObject*	pcObject;
 	bool			bRemoved;
+	size			uiIndex;
 
-	pcObject = UnsafeGetObject(psIter->iIndex);
+	uiIndex = psIter->iIndex;
+	pcObject = UnsafeGetObject(uiIndex);
 	bRemoved = mcArray.RemoveDuringIteration(psIter);
+	if (bRemoved)
+	{
+		MemberRemoved(pcObject, uiIndex);
+	}
 	RemoveObjectTryFree(pcObject, bRemoved, true);
 }
 

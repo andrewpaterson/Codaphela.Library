@@ -31,9 +31,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMOM_IGNORE_NULL	0x0008
 #define ARRAY_COMMOM_PRESERVE_ORDER	0x0010
 #define ARRAY_COMMOM_TYPE_KNOWN		0x0020
+#define ARRAY_COMMOM_SLOTS_MOVED	0x0040
 
 // ARRAY_COMMOM_IS_PTR_SORTED  indicates if the array is sorted, not if it must be sorted.
 // ARRAY_COMMOM_IGNORE_NULL    determines if iterate skips NULL elements.  Will also cause NULL additions to fail.
+// ARRAY_COMMOM_SLOTS_MOVED    an element is at a different index than when ClearSlotsMoved was called (it is never saved).
 
 enum EArrayUnsetReturn
 {
@@ -111,6 +113,9 @@ public:
 			bool				IsKillElements(void);
 			bool				IsEmpty(void);
 			bool				IsNotEmpty(void);
+			bool				IsIgnoreNull(void);
+			bool				HaveSlotsMoved(void);
+			void				ClearSlotsMoved(void);
 
 			void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
 			CUnknown*			UnsafeGet(size iIndex);
@@ -131,6 +136,7 @@ protected:
 
 			bool				WriteElements(CFileWriter* pcFile);
 			bool				ReadElements(CFileReader* pcFile, size iNumElements);
+			void				SlotsMoved(void);
 };
 
 

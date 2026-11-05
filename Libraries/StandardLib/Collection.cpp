@@ -319,11 +319,16 @@ void CCollection::ValidateConsistency(void)
 // all.  Made the first time it is asked for once there are many members;
 // NULL while there are few (searching them is quicker), or if this kind of
 // collection doesn't keep them.  Once made, every change to the members
-// keeps it up to date.
+// keeps it up to date, unless they have moved (see HaveMembersMoved) when
+// it is made again.
 //
 //////////////////////////////////////////////////////////////////////////
 CPointerLocations* CCollection::GetMemberLocations(void)
 {
+	if (HaveMembersMoved())
+	{
+		KillMemberLocations();
+	}
 	if (mpcMemberLocations != NULL)
 	{
 		return mpcMemberLocations;
@@ -422,7 +427,22 @@ size CCollection::NumLocatedMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every location kept holds its member, and every member is kept.
+// Whether the members have moved to other locations since they were last
+// all added (an array's elements shift when one is inserted).  The
+// locations kept are stale then, and are thrown away when next wanted
+// rather than moved with every change.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::HaveMembersMoved(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every location kept holds its member, and every member is kept (unless
+// the members have moved, when the locations are made again).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCollection::ValidateMemberLocations(void)
@@ -432,7 +452,7 @@ void CCollection::ValidateMemberLocations(void)
 	ptr							uiLocation;
 	bool						bExists;
 
-	if (mpcMemberLocations == NULL)
+	if ((mpcMemberLocations == NULL) || HaveMembersMoved())
 	{
 		return;
 	}

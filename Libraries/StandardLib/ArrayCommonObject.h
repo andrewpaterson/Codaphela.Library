@@ -93,6 +93,15 @@ protected:
 	bool					InsertAt(size iIndex, CPointer& pObject);
 	bool					InsertAt(size iIndex, CEmbeddedObject* pcObject);
 	bool					RemoveAt(size iIndex);
+	size					RemoveCopies(CEmbeddedObject* pcObject);
+
+	bool					CanLocateMembers(void) override;
+	void					AddMemberLocations(CPointerLocations* pcLocations) override;
+	bool					IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation) override;
+	bool					HaveMembersMoved(void) override;
+	CPointerLocations*		CurrentMemberLocations(void);
+	void					MemberAdded(CEmbeddedObject* pcMember, size uiIndex);
+	void					MemberRemoved(CEmbeddedObject* pcMember, size uiIndex);
 };
 
 

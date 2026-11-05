@@ -9,6 +9,9 @@
 #include "TestArrayObject.h"
 
 
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1239,6 +1242,175 @@ void TestArrayObjectOrderKeptAfterRemap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// RemoveAll takes every copy of each of another array's objects out.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectRemoveAllOfAnother(void)
+{
+	char	szErrors[1024];
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CArrayObject>	pOther;
+		Ptr<CTestObject>	pX;
+		Ptr<CTestObject>	pY;
+		Ptr<CTestObject>	pZ;
+		Ptr<CTestObject>	pW;
+
+		pArray = OMalloc<CArrayObject>();
+		pOther = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		ORoot()->Add(pOther);
+		pX = OMalloc<CTestObject>();
+		pY = OMalloc<CTestObject>();
+		pZ = OMalloc<CTestObject>();
+		pW = OMalloc<CTestObject>();
+		pArray->Add(pX);
+		pArray->Add(pY);
+		pArray->Add(pZ);
+		pArray->Add(pY);
+		pOther->Add(pY);
+		pOther->Add(pW);
+
+		AssertTrue(pArray->RemoveAll(&pOther));
+		AssertSize(2, pArray->NumElements());
+		AssertPointer(pX.Object(), pArray->Get(0).Object());
+		AssertPointer(pZ.Object(), pArray->Get(1).Object());
+		AssertSize(1, pY->NumHeapFroms());
+		AssertSize(2, pOther->NumElements());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A big array keeps the index of each of its members once one is remapped
+// (as loading a hollow object does), and every change keeps it right:
+// validating checks every index kept.  Inserting moves the members after
+// it, so then the indices are made again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectMemberLocations(void)
+{
+	char				szErrors[1024];
+	size				i;
+	size				uiExpected;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestNamedObject>();
+	{
+		Ptr<CArrayObject>		pArray;
+		Ptr<CArrayObject>		pOther;
+		Ptr<CTestObject>		pShared;
+		Ptr<CTestObject>		pObject;
+		Ptr<CTestNamedObject>	pNamed;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		for (i = 0; i < 100; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pArray->Add(pObject);
+		}
+		pShared = OMalloc<CTestObject>();
+		pArray->Set(10, pShared);
+		pArray->Set(20, pShared);
+		pArray->Add(pShared);
+		pNamed = ONMalloc<CTestNamedObject>("Named", 1);
+		pArray->Set(30, pNamed);
+		pArray->Set(31, pNamed);
+		uiExpected = 101;
+
+		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed->Init(2);
+		AssertPointer(pNamed.Object(), pArray->Get(30).Object());
+		AssertPointer(pNamed.Object(), pArray->Get(31).Object());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Adding at the end, taking the last and setting move nothing.
+		pObject = OMalloc<CTestObject>();
+		pArray->Add(pObject);
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		AssertTrue(pArray->Remove(uiExpected));
+		pArray->Set(40, pObject);
+		AssertSize(uiExpected, pArray->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pShared->Kill();
+		uiExpected -= 3;
+		AssertSize(uiExpected, pArray->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Slots 10 and 20 were taken: Named moved from 30 and 31.  Remapping it makes the indices again.
+		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed->Init(3);
+		AssertPointer(pNamed.Object(), pArray->Get(28).Object());
+		AssertPointer(pNamed.Object(), pArray->Get(29).Object());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pArray->Insert(uiExpected, pObject);
+		uiExpected++;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pArray->Insert(5, pObject);
+		uiExpected++;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed->Init(4);
+		AssertPointer(pNamed.Object(), pArray->Get(29).Object());
+		AssertPointer(pNamed.Object(), pArray->Get(30).Object());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pArray->RemoveEnd(90);
+		uiExpected = 90;
+		AssertSize(uiExpected, pArray->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Removing the last member moves nothing.
+		pShared = OMalloc<CTestObject>();
+		pArray->Add(pShared);
+		AssertTrue(pArray->Remove(pShared));
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		AssertTrue(pArray->Remove(pObject));
+		uiExpected -= 2;
+		AssertSize(uiExpected, pArray->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pOther = OMalloc<CArrayObject>();
+		pOther->Add(pNamed);
+		pObject = pArray->Get(0);
+		pOther->Add(pObject);
+		AssertTrue(pArray->RemoveAll(&pOther));
+		uiExpected -= 3;
+		AssertSize(uiExpected, pArray->NumElements());
+		AssertFalse(pArray->Contains(pNamed));
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObject(void)
@@ -1273,6 +1445,8 @@ void TestArrayObject(void)
 	TestArrayObjectEmbeddedOnStackKill();
 	TestArrayObjectEmbeddedInObjectsKill();
 	TestArrayObjectOrderKeptAfterRemap();
+	TestArrayObjectRemoveAllOfAnother();
+	TestArrayObjectMemberLocations();
 
 	DataIOKill();
 	TypesKill();

@@ -131,6 +131,7 @@ void CArrayCommonUnknown::ReInit(void)
 {
 	PrivateKill();
 	mcArray.ReInit();
+	SlotsMoved();
 }
 
 
@@ -147,7 +148,7 @@ bool CArrayCommonUnknown::WriteArrayHeader(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
 	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
-	ReturnOnFalse(pcFile->WriteInt16(muiFlags));
+	ReturnOnFalse(pcFile->WriteInt16((uint16)(muiFlags & ~ARRAY_COMMOM_SLOTS_MOVED)));
 	ReturnOnFalse(pcFile->WriteBool(bMustSort));
 	return true;
 }
@@ -349,6 +350,7 @@ void CArrayCommonUnknown::Sort(void)
 {
 	mcArray.QuickSort(ComparePtrPtr);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
+	SlotsMoved();
 }
 
 
@@ -433,6 +435,8 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 {
+	size	uiIndex;
+
 	CleanNullsIfNecessary(bCleanNullsIfNecessary);
 
 	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
@@ -451,7 +455,11 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 	if (((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (mfCompare != NULL))
 	{
 		CleanNullsBeforeBinarySearch();
-		mcArray.InsertIntoSorted(mfCompare, &pcUnknown, false);
+		uiIndex = mcArray.InsertIntoSorted(mfCompare, &pcUnknown, false);
+		if (uiIndex + 1 != mcArray.NumElements())
+		{
+			SlotsMoved();
+		}
 		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
 	}
 	else
@@ -555,6 +563,10 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 		}
 	}
 	mcArray.InsertAt(&pcUnknown, iIndex);
+	if (iIndex + 1 != mcArray.NumElements())
+	{
+		SlotsMoved();
+	}
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 	if (pcUnknown != NULL)
 	{
@@ -579,6 +591,10 @@ size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnk
 
 	CleanNullsBeforeBinarySearch();
 	uiIndex = mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
+	if (uiIndex + 1 != mcArray.NumElements())
+	{
+		SlotsMoved();
+	}
 
 	if (pcUnknown != NULL)
 	{
@@ -687,6 +703,7 @@ void CArrayCommonUnknown::CleanNulls(void)
 			while (pcSource == NULL);
 			mcArray.Set(iDest, &pcSource);
 		}
+		SlotsMoved();
 	}
 	mcArray.SetUsedElements(miNonNullElements);
 }
@@ -796,6 +813,10 @@ bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
 	}
 	else if (eUnset == AUR_MustRemove)
 	{
+		if (iIndex + 1 != mcArray.NumElements())
+		{
+			SlotsMoved();
+		}
 		mcArray.RemoveAt(iIndex, muiFlags & ARRAY_COMMOM_PRESERVE_ORDER);
 		CleanNullsIfNecessary(bCleanNullsIfNecessary);
 		return true;
@@ -1235,6 +1256,51 @@ bool CArrayCommonUnknown::IsEmpty(void)
 bool CArrayCommonUnknown::IsNotEmpty(void)
 {
 	return NumElements() != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removing an element from an array that ignores NULLs leaves a NULL in
+// its place: the other elements stay where they are.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonUnknown::IsIgnoreNull(void)
+{
+	return FixBool(muiFlags & ARRAY_COMMOM_IGNORE_NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an element has moved to another index since ClearSlotsMoved:
+// sorting, inserting, removing from the middle and cleaning NULLs move
+// them.  Whoever keeps where the elements are knows its record is stale.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonUnknown::HaveSlotsMoved(void)
+{
+	return FixBool(muiFlags & ARRAY_COMMOM_SLOTS_MOVED);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::ClearSlotsMoved(void)
+{
+	SetFlagShort(&muiFlags, ARRAY_COMMOM_SLOTS_MOVED, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::SlotsMoved(void)
+{
+	SetFlagShort(&muiFlags, ARRAY_COMMOM_SLOTS_MOVED, true);
 }
 
 

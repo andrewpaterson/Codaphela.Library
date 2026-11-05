@@ -8,7 +8,11 @@
 #include "StandardLib/HollowObject.h"
 #include "StandardLib/Set.h"
 #include "TestLib/Assert.h"
+#include "NamedObjectTestClasses.h"
 #include "TestSetObject.h"
+
+
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1146,6 +1150,195 @@ void TestSetObjectTypedIteration(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The first or last slot of a set that isn't NULL (removing leaves NULLs)
+// or pcSkip.
+//
+//////////////////////////////////////////////////////////////////////////
+size TestSetObjectOccupiedSlot(CSetObject* pcSet, bool bLast, CEmbeddedObject* pcSkip)
+{
+	size				i;
+	size				uiOccupied;
+	CEmbeddedObject*	pcMember;
+
+	uiOccupied = ARRAY_ELEMENT_NOT_FOUND;
+	for (i = 0; i < pcSet->NumElements() * 4; i++)
+	{
+		pcMember = pcSet->UnsafeGetObject(i);
+		if ((pcMember != NULL) && (pcMember != pcSkip))
+		{
+			uiOccupied = i;
+			if (!bLast)
+			{
+				break;
+			}
+		}
+	}
+	return uiOccupied;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A big set keeps the index of each of its members once one is removed,
+// and every change keeps it right: validating checks every index kept.
+// Removing leaves a NULL so nothing moves, until the NULLs are cleaned or
+// a sorted set is sorted again; then the indices are made again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectMemberLocations(bool bSortPointers)
+{
+	char				szErrors[1024];
+	size				i;
+	size				uiExpected;
+	size				uiKilled;
+	size				uiToKill;
+	CEmbeddedObject*	apcToKill[120];
+	SSetIterator		sIter;
+	bool				bExists;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestNamedObject>();
+	{
+		Ptr<CSetObject>			pSet;
+		Ptr<CTestObject>		pShared;
+		Ptr<CTestObject>		pObject;
+		Ptr<CTestNamedObject>	pNamed;
+		CPointer				pMember;
+
+		pSet = OMalloc<CSetObject>(bSortPointers);
+		ORoot()->Add(pSet);
+		for (i = 0; i < 200; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pSet->Add(pObject);
+		}
+		pShared = OMalloc<CTestObject>();
+		pSet->Add(pShared);
+		pSet->Add(pShared);
+		pSet->Add(pShared);
+		pNamed = ONMalloc<CTestNamedObject>("Named", 1);
+		pSet->Add(pNamed);
+		pSet->Add(pNamed);
+		uiExpected = 205;
+		AssertSize(uiExpected, pSet->NumElements());
+
+		//Removing every copy of a member.
+		pShared->Kill();
+		uiExpected -= 3;
+		AssertSize(uiExpected, pSet->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		AssertTrue(pSet->Remove(pObject));
+		uiExpected--;
+		pObject = OMalloc<CTestObject>();
+		pSet->Add(pObject);
+		uiExpected++;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Taking the last member leaves no NULL between members, so adding another copy of the first is put in
+		//place in a sorted set: the members after it move.
+		pMember = pSet->UnsafeGet(TestSetObjectOccupiedSlot(&pSet, true, pNamed.Object()));
+		pMember.Kill();
+		uiExpected--;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pMember = pSet->UnsafeGet(TestSetObjectOccupiedSlot(&pSet, false, pNamed.Object()));
+		pSet->Add(pMember);
+		uiExpected++;
+		pMember = NULL;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Replacing a member remaps it: a sorted set is no longer sorted but nothing has moved.
+		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed->Init(2);
+		AssertTrue(pSet->Contains(pNamed));
+		AssertSize(2, pNamed->NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pObject = OMalloc<CTestObject>();
+		pSet->Add(pObject);
+		uiExpected++;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pObject->Kill();
+		uiExpected--;
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Every third member is removed while iterating.
+		i = 0;
+		pMember = pSet->StartIteration(&sIter);
+		bExists = pMember.IsNotNull();
+		while (bExists)
+		{
+			if ((i % 3 == 0) && (pMember.Object() != pNamed.Object()))
+			{
+				pSet->RemoveDuringIteration(&sIter);
+				uiExpected--;
+			}
+			i++;
+			pMember = pSet->Iterate(&sIter);
+			bExists = pMember.IsNotNull();
+		}
+		pMember = NULL;
+		AssertSize(uiExpected, pSet->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		//Killing most of the members leaves enough NULLs to be cleaned.
+		uiToKill = 0;
+		for (i = 0; (i <= TestSetObjectOccupiedSlot(&pSet, true, NULL)) && (uiToKill < 120); i++)
+		{
+			pMember = pSet->UnsafeGet(i);
+			if (pMember.IsNotNull() && (pMember.Object() != pNamed.Object()) && (pMember->NumHeapFroms() == 1))
+			{
+				apcToKill[uiToKill] = pMember.Object();
+				uiToKill++;
+			}
+		}
+		pMember = NULL;
+		AssertSize(120, uiToKill);
+		for (uiKilled = 0; uiKilled < uiToKill; uiKilled++)
+		{
+			apcToKill[uiKilled]->Kill();
+			uiExpected--;
+			if (uiKilled % 10 == 9)
+			{
+				ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+				AssertString("", szErrors);
+			}
+		}
+		AssertSize(uiExpected, pSet->NumElements());
+		AssertSize(2, pNamed->NumHeapFroms());
+
+		//Searching a sorted set cleans its NULLs first.
+		AssertTrue(pSet->Contains(pNamed));
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pNamed = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", "Named");
+		pNamed->Init(3);
+		AssertTrue(pSet->Contains(pNamed));
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pSet->RemoveAll();
+		AssertSize(0, pSet->NumElements());
+		AssertSize(0, pNamed->NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1175,6 +1368,8 @@ void TestSetObject(void)
 	TestSetObjectEmbeddedOnHeapKill();
 	TestSetObjectEmbeddedOnStackKill();
 	TestSetObjectEmbeddedInObjectsKill();
+	TestSetObjectMemberLocations(true);
+	TestSetObjectMemberLocations(false);
 
 	DataIOKill();
 	TypesKill();

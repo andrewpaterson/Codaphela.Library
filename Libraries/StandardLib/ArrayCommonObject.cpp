@@ -104,6 +104,7 @@ void CArrayCommonObject::PreFields(void)
 void CArrayCommonObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
+	KillMemberLocations();
 	mcArray.Kill();
 }
 
@@ -117,7 +118,7 @@ bool CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
 	//This is a test method.
 	if (pcObject)
 	{
-		if (mcArray.Remove(pcObject))
+		if (RemoveCopies(pcObject))
 		{
 			return true;
 		}
@@ -172,6 +173,7 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 	size 				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
 
+	KillMemberLocations();
 	ReturnOnFalse(mcArray.ReadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
@@ -267,6 +269,10 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 	EnsureSorted();
 
 	bAdded = mcArray.Add(pcObject);
+	if (bAdded)
+	{
+		MemberAdded(pcObject, mcArray.UnsafeNumElements() - 1);
+	}
 	bAdded = AddObjectFrom(pcObject, bAdded, true);
 	return bAdded;
 }
@@ -321,6 +327,11 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
 	bResult = mcArray.Set(iIndex, pvObject);
+	if (bResult)
+	{
+		MemberRemoved(pcPointedTo, iIndex);
+		MemberAdded(pvObject, iIndex);
+	}
 	bResult = AddObjectFrom(pvObject, bResult, pcPointedTo == NULL);
 	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);
 	return bResult;
@@ -392,7 +403,7 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 		EnsureSorted();
 
 		//Removes every copy of the Object in the array.
-		uiRemoved = mcArray.Remove(pcObject);
+		uiRemoved = RemoveCopies(pcObject);
 		if ((uiRemoved != 0) && (uiRemoved != ARRAY_ELEMENT_NOT_FOUND))
 		{
 			return RemoveObjectCopiesTryFree(pcObject, uiRemoved, true);
@@ -417,6 +428,7 @@ bool CArrayCommonObject::ClearPointerTos(bool bFree)
 	bool			bResult;
 
 	bResult = true;
+	KillMemberLocations();
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
@@ -506,7 +518,7 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
-	mcArray.Remove((CUnknown*)pcTo);
+	RemoveCopies(pcTo);
 }
 
 
@@ -548,18 +560,28 @@ CBaseObject* CArrayCommonObject::UnsafeGetObject(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	size 					iCount;
-	CEmbeddedObject**		ppcPointedTo;
-	size 					i;
-	size 					uiNumElements;
+	size 						iCount;
+	CEmbeddedObject**			ppcPointedTo;
+	size 						i;
+	size 						uiNumElements;
+	CPointerLocations*			pcLocations;
+	SPointerLocationsIterator	sIter;
+	ptr							uiIndex;
+	bool						bExists;
+
+	if (pcOld == pcNew)
+	{
+		return 0;
+	}
 
 	iCount = 0;
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
+	pcLocations = GetMemberLocations();
+	if (pcLocations == NULL)
 	{
-		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
-		if (*ppcPointedTo)
+		uiNumElements = mcArray.UnsafeNumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
+			ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 			if (*ppcPointedTo == pcOld)
 			{
 				*ppcPointedTo = pcNew;
@@ -567,6 +589,19 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 			}
 		}
 	}
+	else
+	{
+		//Nothing moves: pcNew is where pcOld was.
+		bExists = pcLocations->StartIteration(&sIter, pcOld, &uiIndex);
+		while (bExists)
+		{
+			mcArray.UnsafeSet((size)uiIndex, pcNew);
+			iCount++;
+			bExists = pcLocations->Iterate(&sIter, &uiIndex);
+		}
+		pcLocations->MovePointer(pcOld, pcNew);
+	}
+
 	if (iCount > 0)
 	{
 		mbSorted = false;
@@ -719,6 +754,10 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 	EnsureSorted();
 
 	bResult = mcArray.Insert(iIndex, pcObject);
+	if (bResult)
+	{
+		MemberAdded(pcObject, iIndex);
+	}
 	bResult = AddObjectFrom(pcObject, bResult, true);
 	return bResult;
 }
@@ -740,6 +779,10 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 
 		pcObject = UnsafeGetObject(iIndex);
 		bResult = mcArray.Remove(iIndex);
+		if (bResult)
+		{
+			MemberRemoved(pcObject, iIndex);
+		}
 		bResult = RemoveObjectTryFree(pcObject, bResult, true);
 		return bResult;
 	}
@@ -767,6 +810,7 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 		for (i = iIndexInclusive; i < uiNumElements; i++)
 		{
 			pcObject = UnsafeGetObject(i);
+			MemberRemoved(pcObject, i);
 			bResult = RemoveObjectTryFree(pcObject, bResult, false);
 			if (!bResult)
 			{
@@ -798,8 +842,13 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 	SSetIterator	sIter;
 	bool			bExists;
 	CPointer		pObject;
+	size			uiRemoved;
 
 	bResult = true;
+	if (pcArray == this)
+	{
+		return RemoveAll();
+	}
 	if (!pcArray->IsEmpty())
 	{
 		EnsureSorted();
@@ -810,7 +859,11 @@ bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 			pcPointedTo = pObject.BaseObject();
 			if (pcPointedTo)
 			{
-				bResult &= RemoveObjectTryFree(pcPointedTo, true, false);
+				uiRemoved = RemoveCopies(pcPointedTo);
+				if ((uiRemoved != 0) && (uiRemoved != ARRAY_ELEMENT_NOT_FOUND))
+				{
+					bResult &= RemoveObjectCopiesTryFree(pcPointedTo, uiRemoved, false);
+				}
 			}
 			pObject = pcArray->IteratePointer(&sIter, &bExists);
 		}
@@ -841,5 +894,159 @@ bool CArrayCommonObject::Contains(CPointer& pObject)
 
 	pcObject = pObject.Object();
 	return mcArray.Contains(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes every copy of pcObject out of the array (the caller looks after
+// its froms).  Returns how many there were, or ARRAY_ELEMENT_NOT_FOUND.
+// Where removing leaves a NULL behind the copies are found from the member
+// locations; elsewhere removing shifts the elements after it along anyway.
+//
+//////////////////////////////////////////////////////////////////////////
+size CArrayCommonObject::RemoveCopies(CEmbeddedObject* pcObject)
+{
+	CPointerLocations*			pcLocations;
+	SPointerLocationsIterator	sIter;
+	ptr							uiIndex;
+	size						uiRemoved;
+
+	if (!mcArray.IsIgnoreNull())
+	{
+		pcLocations = CurrentMemberLocations();
+		if (pcLocations != NULL)
+		{
+			while (pcLocations->StartIteration(&sIter, pcObject, &uiIndex))
+			{
+				pcLocations->Remove(pcObject, uiIndex);
+			}
+		}
+		return mcArray.Remove(pcObject);
+	}
+
+	pcLocations = GetMemberLocations();
+	if (pcLocations == NULL)
+	{
+		return mcArray.Remove(pcObject);
+	}
+
+	uiRemoved = 0;
+	while (pcLocations->StartIteration(&sIter, pcObject, &uiIndex))
+	{
+		pcLocations->Remove(pcObject, uiIndex);
+		mcArray.Remove((size)uiIndex, false);
+		uiRemoved++;
+	}
+	mcArray.CleanNullsIfNecessary();
+	return uiRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::CanLocateMembers(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where each member is: its index.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::AddMemberLocations(CPointerLocations* pcLocations)
+{
+	size				i;
+	size				uiNumElements;
+	CEmbeddedObject*	pcMember;
+
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcMember = (CEmbeddedObject*)mcArray.UnsafeGet(i);
+		if (pcMember != NULL)
+		{
+			pcLocations->Add(pcMember, i);
+		}
+	}
+	mcArray.ClearSlotsMoved();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
+{
+	if (uiLocation >= mcArray.UnsafeNumElements())
+	{
+		return false;
+	}
+	return mcArray.UnsafeGet((size)uiLocation) == pcMember;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::HaveMembersMoved(void)
+{
+	return mcArray.HaveSlotsMoved();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member locations if they are kept and none have moved, without
+// making them.
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerLocations* CArrayCommonObject::CurrentMemberLocations(void)
+{
+	if (HaveMembersMoved())
+	{
+		return NULL;
+	}
+	return mpcMemberLocations;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcMember was put at uiIndex without moving any other member.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::MemberAdded(CEmbeddedObject* pcMember, size uiIndex)
+{
+	CPointerLocations*	pcLocations;
+
+	pcLocations = CurrentMemberLocations();
+	if ((pcLocations != NULL) && (pcMember != NULL))
+	{
+		pcLocations->Add(pcMember, uiIndex);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcMember was taken from uiIndex without moving any other member.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::MemberRemoved(CEmbeddedObject* pcMember, size uiIndex)
+{
+	CPointerLocations*	pcLocations;
+
+	pcLocations = CurrentMemberLocations();
+	if ((pcLocations != NULL) && (pcMember != NULL))
+	{
+		pcLocations->Remove(pcMember, uiIndex);
+	}
 }
 

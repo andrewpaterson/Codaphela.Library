@@ -1789,6 +1789,7 @@ void TestDistToRootUpdateKillHubWithBackPointersSpeed(void)
 enum ESpeedCollection
 {
 	SC_Array,
+	SC_Set,
 	SC_Map,
 	SC_Index
 };
@@ -1818,6 +1819,7 @@ float TestDistToRootUpdateKillCollectionMembers(ESpeedCollection eCollection, si
 	apcMembers.Init();
 	{
 		Ptr<CArrayObject>		pArray;
+		Ptr<CSetObject>			pSet;
 		Ptr<CMapObject>			pMap;
 		Ptr<CIndexObject>		pIndex;
 		Ptr<CTestObject>		pMember;
@@ -1828,6 +1830,11 @@ float TestDistToRootUpdateKillCollectionMembers(ESpeedCollection eCollection, si
 		{
 			pArray = OMalloc<CArrayObject>();
 			ORoot()->Add(pArray);
+		}
+		else if (eCollection == SC_Set)
+		{
+			pSet = OMalloc<CSetObject>();
+			ORoot()->Add(pSet);
 		}
 		else if (eCollection == SC_Map)
 		{
@@ -1846,6 +1853,10 @@ float TestDistToRootUpdateKillCollectionMembers(ESpeedCollection eCollection, si
 			if (eCollection == SC_Array)
 			{
 				pArray->Add(pMember);
+			}
+			else if (eCollection == SC_Set)
+			{
+				pSet->Add(pMember);
 			}
 			else if (eCollection == SC_Map)
 			{
@@ -2011,6 +2022,10 @@ void TestDistToRootUpdateCollectionSpeeds(void)
 	LogDistToRootSpeed("Kill the members of a living array", uiDepth, fMilliseconds);
 	AssertTrue(fMilliseconds < 10000.0f);
 
+	fMilliseconds = TestDistToRootUpdateKillCollectionMembers(SC_Set, uiCount, false);
+	LogDistToRootSpeed("Kill the members of a living set", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+
 	fMilliseconds = TestDistToRootUpdateKillCollectionMembers(SC_Map, uiCount, false);
 	LogDistToRootSpeed("Kill the values of a living map", uiDepth, fMilliseconds);
 	AssertTrue(fMilliseconds < 10000.0f);
@@ -2071,6 +2086,7 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateKillHubWithBackPointers(5, true);
 	TestDistToRootUpdateKillHubWithBackPointersSpeed();
 	TestDistToRootUpdateKillCollectionMembers(SC_Array, 5, true);
+	TestDistToRootUpdateKillCollectionMembers(SC_Set, 5, true);
 	TestDistToRootUpdateKillCollectionMembers(SC_Map, 5, true);
 	TestDistToRootUpdateKillCollectionMembers(SC_Index, 5, true);
 	TestDistToRootUpdateLetGoOfLivingHub(5, true);

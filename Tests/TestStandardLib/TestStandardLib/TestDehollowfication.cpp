@@ -16,6 +16,7 @@
 #include "StandardLib/ArrayObject.h"
 #include "StandardLib/IndexObject.h"
 #include "StandardLib/MapObject.h"
+#include "StandardLib/SetObject.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/FatHollowConfiguration.h"
@@ -1446,6 +1447,138 @@ void TestDehollowficationLoadMapMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loading the hollow members of a big array and an unsorted set remaps
+// each through the indices the collection keeps.  (A sorted set's members
+// are fat hollows: they are loaded where they are and not remapped.)
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadArrayAndSetMembers(void)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "BigArray";
+	char			szErrors[1024];
+	char			szText[16];
+	size			i;
+	size			uiWrong;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CSetObject>		pSet;
+		Ptr<CString>		pShared;
+		Ptr<CString>		pString;
+
+		pArray = ONMalloc<CArrayObject>("Array");
+		pSet = ONMalloc<CSetObject>("Set", false);
+		ORoot()->Add(pArray);
+		ORoot()->Add(pSet);
+		pShared = OMalloc<CString>();
+		pShared->Set("Shared");
+		for (i = 0; i < 100; i++)
+		{
+			if (i % 30 == 7)
+			{
+				pArray->Add(pShared);
+				pSet->Add(pShared);
+			}
+			else
+			{
+				sprintf(szText, "M%i", (int)i);
+				pString = OMalloc<CString>();
+				pString->Set(szText);
+				pArray->Add(pString);
+				pString = OMalloc<CString>();
+				pString->Set(szText);
+				pSet->Add(pString);
+			}
+		}
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CArrayObject>			pArray;
+		Ptr<CSetObject>				pSet;
+		Ptr<CString>				pString;
+		CPointer					pMember;
+		CArrayTemplate<OIndex>		aoiHollows;
+
+		pArray = gcObjects.Get("Array");
+		AssertSize(100, pArray->NumElements());
+		uiWrong = 0;
+		for (i = 0; i < 100; i++)
+		{
+			if (i % 30 == 7)
+			{
+				strcpy(szText, "Shared");
+			}
+			else
+			{
+				sprintf(szText, "M%i", (int)i);
+			}
+			pString = pArray->Get<CString>(i);
+			if (!pString->Equals(szText))
+			{
+				uiWrong++;
+			}
+		}
+		pString = NULL;
+		AssertSize(0, uiWrong);
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pSet = gcObjects.Get("Set");
+		AssertSize(100, pSet->NumElements());
+		aoiHollows.Init();
+		for (i = 0; i < 100; i++)
+		{
+			pMember = pSet->UnsafeGet(i);
+			AddHollowIndex(&aoiHollows, pMember.BaseObject());
+		}
+		pMember = NULL;
+		AssertSize(96, aoiHollows.NumElements());
+		for (i = 0; i < aoiHollows.NumElements(); i++)
+		{
+			AssertNotNull(gcObjects.Dehollow(*aoiHollows.Get(i)));
+		}
+		aoiHollows.Kill();
+		AssertSize(100, pSet->NumElements());
+		for (i = 0; i < 100; i++)
+		{
+			pMember = pSet->UnsafeGet(i);
+			AssertFalse(pMember.IsHollow());
+		}
+		pMember = NULL;
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1469,6 +1602,7 @@ void TestDehollowfication(void)
 	TestDehollowficationLoadArrayMembersSpeed();
 	TestDehollowficationLoadIndexMembers();
 	TestDehollowficationLoadMapMembers();
+	TestDehollowficationLoadArrayAndSetMembers();
 
 	DataIOKill();
 	TypesKill();
