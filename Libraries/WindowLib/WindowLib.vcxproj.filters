@@ -264,9 +264,6 @@
     <ClInclude Include="CheckBox.h">
       <Filter>Source\Component\Widgets\ComboBox</Filter>
     </ClInclude>
-    <ClInclude Include="CheckBoxListener.h">
-      <Filter>Source\Component\Widgets\ComboBox</Filter>
-    </ClInclude>
     <ClInclude Include="ComboBox.h">
       <Filter>Source\Component\Widgets\ComboBox</Filter>
     </ClInclude>

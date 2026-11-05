@@ -268,7 +268,6 @@
     <ClInclude Include="TextFieldListener.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
     <ClInclude Include="CheckBox.h" />
-    <ClInclude Include="CheckBoxListener.h" />
     <ClInclude Include="CheckBoxImages.h" />
     <ClInclude Include="ComboBox.h" />
     <ClInclude Include="WindowTheme.h" />

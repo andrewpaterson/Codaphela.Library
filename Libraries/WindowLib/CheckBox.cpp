@@ -37,8 +37,7 @@ void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char*
 	SetSizedByContent(true);
 	SetHitAsWhole(true);
 	mpImages = pTheme->GetCheckBoxImages();
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CCheckBoxListener>();
+	mcChanged.Init();
 	meState = CBS_Normal;
 	miGap = 6;
 	mbTicked = bTicked;
@@ -73,7 +72,7 @@ void CCheckBox::Class(void)
 	M_Pointer(mpImages);
 	M_Pointer(mpBox);
 	M_Pointer(mpCaption);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CCheckBox>, mcChanged);
 	U_Enum(meState);
 	U_Int32(miGap);
 	U_Bool(mbTicked);
@@ -87,7 +86,7 @@ void CCheckBox::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CCheckBox::Free(void)
 {
-	mcListeners.Kill();
+	mcChanged.Kill();
 	CGridContainer::Free();
 }
 
@@ -141,7 +140,7 @@ void CCheckBox::SetGap(int32 iGap)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The listeners aren't told.
+// The change event isn't called.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCheckBox::SetTicked(bool bTicked)
@@ -156,14 +155,14 @@ void CCheckBox::SetTicked(bool bTicked)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As a click does: ticks or unticks the box and tells the listeners.
+// As a click does: ticks or unticks the box and calls the change event.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCheckBox::Toggle(void)
 {
 	mbTicked = !mbTicked;
 	UpdateLook();
-	mcListeners.CallListeners(&CCheckBoxListener::CheckBoxChanged, this, NULL);
+	mcChanged.Call(this);
 }
 
 
@@ -182,21 +181,13 @@ void CCheckBox::SetCaption(const char* szCaption)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when the box is ticked or unticked by a click or space, with the
+// check box: pCheckBox->GetChangeEvent()->Add(this, &CMyContent::Ticked).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCheckBox::AddListener(CCheckBoxListener* pcListener)
+CComponentEvent<CCheckBox>* CCheckBox::GetChangeEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCheckBox::RemoveListener(CCheckBoxListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcChanged;
 }
 
 

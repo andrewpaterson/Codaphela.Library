@@ -27,9 +27,8 @@ void			Click(Ptr<CWindow> pWindow);
 // Logs "Ticked:caption;" or "Unticked:caption;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestCheckBoxListener : public CCheckBoxListener
+class CTestCheckBoxListener
 {
-CONSTRUCTABLE(CTestCheckBoxListener);
 public:
 	CChars*		mpszLog;
 
@@ -38,11 +37,8 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void CheckBoxChanged(CUnknown* pcSource, void* pvContext) override
+	void CheckBoxChanged(CCheckBox* pcCheckBox)
 	{
-		CCheckBox*	pcCheckBox;
-
-		pcCheckBox = (CCheckBox*)pcSource;
 		mpszLog->Append(pcCheckBox->IsTicked() ? "Ticked:" : "Unticked:");
 		mpszLog->Append(pcCheckBox->GetCaption());
 		mpszLog->Append(";");
@@ -120,8 +116,8 @@ void TestCheckBoxClicks(void)
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestCheckBoxes(pTestWindow, &sBoxes);
-		AssertTrue(sBoxes.pInverse->AddListener(&cListener));
-		AssertTrue(sBoxes.pPower->AddListener(&cListener));
+		sBoxes.pInverse->GetChangeEvent()->Add(&cListener, &CTestCheckBoxListener::CheckBoxChanged);
+		sBoxes.pPower->GetChangeEvent()->Add(&cListener, &CTestCheckBoxListener::CheckBoxChanged);
 		pTestWindow->Layout();
 
 		//The box is 20 wide, then the gap, then the caption.
@@ -170,8 +166,8 @@ void TestCheckBoxClicks(void)
 
 		ValidateLabelObjects();
 
-		sBoxes.pInverse->RemoveListener(&cListener);
-		sBoxes.pPower->RemoveListener(&cListener);
+		AssertTrue(sBoxes.pInverse->GetChangeEvent()->Remove(&cListener));
+		AssertTrue(sBoxes.pPower->GetChangeEvent()->Remove(&cListener));
 		sBoxes.Kill();
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;

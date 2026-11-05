@@ -20,22 +20,21 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CHECK_BOX_H__
 #define __CHECK_BOX_H__
-#include "StandardLib/ListenerCall.h"
 #include "SupportLib/Font.h"
 #include "GridContainer.h"
 #include "IconComponent.h"
 #include "Label.h"
 #include "CheckBoxImages.h"
 #include "WindowTheme.h"
-#include "CheckBoxListener.h"
+#include "ComponentEvent.h"
 
 
 //A box that is ticked or not with a caption beside it, like IntelliJ's check box.  It is a grid of the box, an icon
 //on the left, and the caption, a label, centred beside it with a gap between them.
 //
 //Like a button it is hit as a whole so it, not its box or caption, has the pointer over it and takes focus.  Pressing
-//and releasing with the pointer over it, or space while it has focus, ticks or unticks it and tells the listeners.  It
-//doesn't want enter, so enter still clicks the window's default button.
+//and releasing with the pointer over it, or space while it has focus, ticks or unticks it and calls the change event.
+//It doesn't want enter, so enter still clicks the window's default button.
 //
 //The box keeps its focus ring while the pointer is over it, see ECheckBoxState.
 class CCheckBox : public CGridContainer
@@ -46,7 +45,7 @@ protected:
 	Ptr<CCheckBoxImages>	mpImages;
 	Ptr<CIconComponent>		mpBox;
 	Ptr<CLabel>				mpCaption;
-	CListenerCall			mcListeners;
+	CComponentEvent<CCheckBox>	mcChanged;
 	ECheckBoxState			meState;
 	int32					miGap;
 	bool					mbTicked;
@@ -70,8 +69,7 @@ public:
 	Ptr<CIconComponent>	GetBoxComponent(void);
 	Ptr<CLabel>			GetCaptionLabel(void);
 
-	bool				AddListener(CCheckBoxListener* pcListener);
-	bool				RemoveListener(CCheckBoxListener* pcListener);
+	CComponentEvent<CCheckBox>*	GetChangeEvent(void);
 
 
 	void				FocusOrMouseOverChanged(void) override;
