@@ -254,25 +254,36 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Translates a queued event (see CComponentInput::Translate) and gives
-// each event it means, in order, to DispatchEvent.  Once one is taken the
-// later ones aren't given, so a key taken by its key event isn't also a
-// command.  A click focusses the component under the pointer before
-// anything is given.
+// Translates a queued event (see CComponentInput::Translate) and
+// dispatches the events it means.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
 	SComponentInputEvent	asEvents[COMPONENT_INPUT_MAX_EVENTS];
 	size					uiNumEvents;
-	size					i;
 
-	if (!mbActive)
+	if (mbActive)
 	{
-		return;
+		uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
+		DispatchEvents(asEvents, uiNumEvents);
 	}
+}
 
-	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives each event, in order, to DispatchEvent.  Once one is taken the
+// later ones aren't given, so a key taken by its key event isn't also a
+// command.  If any is a click the component under the pointer is focussed
+// first, so all of them go to it; a click outside the window, on its
+// title bar say, isn't for any component so none are given.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents)
+{
+	size	i;
+
 	for (i = 0; i < uiNumEvents; i++)
 	{
 		if (IsClick(&asEvents[i]))
@@ -363,14 +374,6 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 			break;
 		default:
 			break;
-		}
-
-		if (IsClick(psEvent))
-		{
-			if (!FocusClick())
-			{
-				return true;
-			}
 		}
 
 		if ((psEvent->eCommand == CIC_StartDragSelect) || (psEvent->eCommand == CIC_StartDragScroll))
@@ -514,7 +517,7 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 	{
 		InitEvent(&sEvent, CIET_Command, bInsert);
 		sEvent.eCommand = eCommand;
-		DispatchEvent(&sEvent);
+		DispatchEvents(&sEvent, 1);
 	}
 }
 
@@ -531,7 +534,7 @@ void CFocus::Printable(char c, bool bInsert)
 	{
 		InitEvent(&sEvent, CIET_Printable, bInsert);
 		sEvent.cPrintable = c;
-		DispatchEvent(&sEvent);
+		DispatchEvents(&sEvent, 1);
 	}
 }
 

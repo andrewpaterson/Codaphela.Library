@@ -86,6 +86,7 @@ public:
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);
+	void				DispatchEvents(SComponentInputEvent* asEvents, size uiNumEvents);
 	bool				DispatchEvent(SComponentInputEvent* psEvent);
 	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
 	bool				Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
