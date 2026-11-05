@@ -169,6 +169,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	CFileUtil			cFileUtil;
 	CChars				szPath;
 	CChars				szName;
+	CChars				szSourceFile;
 
 	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
 	if (!pcLibrary)
@@ -193,15 +194,18 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 		{
 			cFile.PassifyNewlines();
 			pcLinkLibrary = GetLinkLibrary(pcLibrary);
+			//With a line table its lines that write bytes are source lines, as compiled code's .lines are.
+			szSourceFile.Init(szPath);
 			cFileUtil.RemoveLastFromPath(&szPath);
 			if (pcLinkLibrary)
 			{
-				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text());
+				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text(), mbLineTable ? szSourceFile.Text() : NULL);
 			}
 			else
 			{
-				AddObject(szFile, cFile.Text(), false, szPath.Text());
+				AddObject(szFile, cFile.Text(), false, szPath.Text(), mbLineTable ? szSourceFile.Text() : NULL);
 			}
+			szSourceFile.Kill();
 		}
 		else
 		{
@@ -717,7 +721,8 @@ bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize
 // The units are compiled with their C++ source lines and functions'
 // fingerprints (now as their compile time), so after Link the linker's
 // line table (GetLineTable) gives the source line of an address: a profile
-// by line.  The code is the same as without.  Set it before compiling.
+// by line.  Assembly units (.asm) give their lines that write bytes.  The
+// code is the same as without.  Set it before adding units.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLineTable(bool bLineTable)
@@ -1188,16 +1193,17 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 //////////////////////////////////////////////////////////////////////////
 //
 // Assembles one object and adds it to the link.  .inchex file names are
-// relative to szDirectory.
+// relative to szDirectory.  szSourceFile, the assembly's own file, makes
+// its lines that write bytes source lines (CAsm65BaseAssembler::SetSourceFile).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident, const char* szDirectory)
+bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident, const char* szDirectory, const char* szSourceFile)
 {
 	CAsm65TextSource	cSource;
 	bool				bResult;
 
 	cSource.Init(szAssembly);
-	bResult = AddObject(szName, &cSource, bResident, szDirectory);
+	bResult = AddObject(szName, &cSource, bResident, szDirectory, szSourceFile);
 	cSource.Kill();
 	return bResult;
 }
@@ -1207,14 +1213,14 @@ bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool bResident, const char* szDirectory)
+bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool bResident, const char* szDirectory, const char* szSourceFile)
 {
 	CAsm65Object*	pcObject;
 	SCPP65Object*	psObject;
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
-	bResult = Assemble(pcObject, pcSource, szDirectory, &mszErrors);
+	bResult = Assemble(pcObject, pcSource, szDirectory, &mszErrors, szSourceFile);
 	psObject = macObjects.Add();
 	psObject->pcObject = pcObject;
 	psObject->bResident = bResident;
@@ -1233,16 +1239,17 @@ bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool b
 //////////////////////////////////////////////////////////////////////////
 //
 // szDirectory is the directory .inchex file names are relative to (an
-// assembly unit's own).  The errors go to pszErrors.
+// assembly unit's own).  The errors go to pszErrors.  szSourceFile, the
+// assembly's own file, makes its lines that write bytes source lines.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory)
+bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory, const char* szSourceFile)
 {
 	CAsm65TextSource	cSource;
 	bool				bResult;
 
 	cSource.Init(szAssembly);
-	bResult = Assemble(pcObject, &cSource, szDirectory, &mszErrors);
+	bResult = Assemble(pcObject, &cSource, szDirectory, &mszErrors, szSourceFile);
 	cSource.Kill();
 	return bResult;
 }
@@ -1252,7 +1259,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors)
+bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile)
 {
 	CAsm65C64Assembler		cAssembler;
 	CAsm65816Assembler	cAssembler816;
@@ -1265,6 +1272,10 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, con
 		{
 			cAssembler816.SetDirectory(szDirectory);
 		}
+		if (szSourceFile)
+		{
+			cAssembler816.SetSourceFile(szSourceFile);
+		}
 		bResult = cAssembler816.AssembleObject(pcSource, pcObject);
 		pszErrors->Append(cAssembler816.GetErrors());
 		cAssembler816.Kill();
@@ -1274,6 +1285,10 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, con
 	if (szDirectory)
 	{
 		cAssembler.SetDirectory(szDirectory);
+	}
+	if (szSourceFile)
+	{
+		cAssembler.SetSourceFile(szSourceFile);
 	}
 	bResult = cAssembler.AssembleObject(pcSource, pcObject);
 	pszErrors->Append(cAssembler.GetErrors());

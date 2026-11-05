@@ -259,10 +259,10 @@ public:
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
-	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL);
-	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL);
-	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
-	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors);
+	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
+	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
+	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL, const char* szSourceFile = NULL);
+	bool			Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile = NULL);
 	void			AddW65C816Assembly(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
 	bool			CompileUnits(void);
 	CJobs*			UnitJobs(CSerialJobs* pcSerialJobs);
