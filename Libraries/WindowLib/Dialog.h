@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CheckBox.h"
 #include "ComboBox.h"
 #include "WindowTheme.h"
+#include "MemberCall.h"
 
 
 //What every dialog is drawn with, made once by its owner.
@@ -44,36 +45,22 @@ struct SDialogLook
 };
 
 
-//Called by a dialog's tick, outside of its input, so it can do what can't be done from an input listener, like show
-//another dialog over it (see CWindow::ShowModal).
-class CDialogTicker
-{
-public:
-	virtual void	DialogTick(void) = 0;
-};
-
-
-//Paints a dialog each tick, after calling its ticker if it has one.
+//Ticks a dialog, calling its ticker if it has one: a member function called outside of the dialog's input, so it can
+//do what can't be done from an input action, like show another dialog over it (see CWindow::ShowModal).
 class CDialogTick : public CWindowTick
 {
 CONSTRUCTABLE(CDialogTick);
 DESTRUCTABLE(CDialogTick);
 protected:
-	CDialogTicker*	mpcTicker;
+	SMemberCall		msTicker;  //Not set if there is none.
 
 public:
 	void	Init(void);
 	void	Class(void) override;
 	void	Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) override;
-	void	SetTicker(CDialogTicker* pcTicker);
-};
-
-
-//Asked whether OK may close a dialog, as a file chooser opens the folder typed in it instead.
-class CDialogApprover
-{
-public:
-	virtual bool	Approve(void) = 0;
+	template<class M, class O>
+	void	SetTicker(O* pcObject, void(M::*fTick)(void));
+	void	ClearTicker(void);
 };
 
 
@@ -103,7 +90,7 @@ protected:
 	Ptr<CButton>			mpCancel;
 	Ptr<CButton>			mpExtra;  //Like Save Defaults, NULL if there isn't one.
 	Ptr<CComponent>			mpFirstEditor;  //Has focus when the dialog opens.
-	CDialogApprover*	mpcApprover;  //NULL if OK always closes the dialog.
+	SMemberCall				msApprover;  //Asked whether OK may close the dialog, not set if OK always closes it.
 	CChars					mszClicked;
 	int32					miRows;
 
@@ -123,8 +110,12 @@ public:
 	void				AddExtraButton(const char* szCaption);
 	void				SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor);
 	void				SetOKCaption(const char* szCaption);
-	void				SetApprover(CDialogApprover* pcApprover);
-	void				SetTicker(CDialogTicker* pcTicker);
+	template<class M, class O>
+	void				SetApprover(O* pcObject, bool(M::*fApprove)(void));
+	void				ClearApprover(void);
+	template<class M, class O>
+	void				SetTicker(O* pcObject, void(M::*fTick)(void));
+	void				ClearTicker(void);
 
 	bool				Show(int32 iWidth);
 	bool				Show(int32 iWidth, int32 iHeight);
@@ -140,6 +131,47 @@ protected:
 	void				AddRow(const char* szLabel, Ptr<CComponent> pEditor);
 	void				RemoveFromButton(Ptr<CButton> pButton);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fTick is called each tick.  The object isn't held; it calls ClearTicker
+// before it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CDialogTick::SetTicker(O* pcObject, void(M::*fTick)(void))
+{
+	msTicker.Init(pcObject, fTick);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// OK, or enter, only closes the dialog if fApprove answers true, as a file
+// chooser opens the folder typed in it instead.  The object isn't held;
+// it calls ClearApprover before it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CDialog::SetApprover(O* pcObject, bool(M::*fApprove)(void))
+{
+	msApprover.Init(pcObject, fApprove);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fTick is called each tick while the dialog is shown, outside its input
+// (see CDialogTick).  The object isn't held; it calls ClearTicker before
+// it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CDialog::SetTicker(O* pcObject, void(M::*fTick)(void))
+{
+	mpTick->SetTicker(pcObject, fTick);
+}
 
 
 #endif // __DIALOG_H__

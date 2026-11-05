@@ -50,6 +50,22 @@ void MemberCallPlain(void* pvObject, uint8* pucFunction, void* pvArgument, void*
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A thunk for a member function of M that takes nothing and answers true
+// or false, which it puts in the bool pvValue points to.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void MemberCallAsk(void* pvObject, uint8* pucFunction, void* pvArgument, void* pvValue)
+{
+	bool(M::*fFunction)(void);
+
+	memcpy(&fFunction, pucFunction, sizeof(fFunction));
+	*(bool*)pvValue = (((M*)pvObject)->*fFunction)();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A thunk for a member function of M that takes the argument, an A.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -93,6 +109,8 @@ struct SMemberCall
 
 	template<class M, class O>
 	void	Init(O* pcObject, void(M::*fFunction)(void));
+	template<class M, class O>
+	void	Init(O* pcObject, bool(M::*fFunction)(void));
 	template<class M, class A, class O>
 	void	Init(O* pcObject, void(M::*fFunction)(A*));
 	template<class M, class A, class V, class O>
@@ -100,7 +118,10 @@ struct SMemberCall
 	template<class M, class F>
 	void	Init(M* pcObject, F fFunction, MemberCallThunk fCaller);
 
+	void	Clear(void);
+	bool	IsSet(void);
 	void	Call(void* pvArgument, void* pvValue = NULL);
+	bool	Ask(void);
 	bool	IsOn(void* pvObject);
 	bool	Equals(SMemberCall* psOther);
 };
@@ -114,6 +135,17 @@ template<class M, class O>
 void SMemberCall::Init(O* pcObject, void(M::*fFunction)(void))
 {
 	Init<M>(pcObject, fFunction, &MemberCallPlain<M>);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void SMemberCall::Init(O* pcObject, bool(M::*fFunction)(void))
+{
+	Init<M>(pcObject, fFunction, &MemberCallAsk<M>);
 }
 
 
@@ -165,6 +197,42 @@ void SMemberCall::Init(M* pcObject, F fFunction, MemberCallThunk fCaller)
 inline void SMemberCall::Call(void* pvArgument, void* pvValue)
 {
 	fThunk(pvObject, aucFunction, pvArgument, pvValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls a function that answers true or false, and gives its answer.
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool SMemberCall::Ask(void)
+{
+	bool	bAnswer;
+
+	bAnswer = false;
+	fThunk(pvObject, aucFunction, NULL, &bAnswer);
+	return bAnswer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No function; IsSet is false.
+//
+//////////////////////////////////////////////////////////////////////////
+inline void SMemberCall::Clear(void)
+{
+	memset(this, 0, sizeof(SMemberCall));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool SMemberCall::IsSet(void)
+{
+	return fThunk != NULL;
 }
 
 

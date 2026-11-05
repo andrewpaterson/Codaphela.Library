@@ -46,7 +46,7 @@ struct SFileChooserType
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last
 //as long as the chooser; the first is chosen to start with.
-class CFileChooser : public CObject, public CDialogApprover, public CDialogTicker
+class CFileChooser : public CObject
 {
 CONSTRUCTABLE(CFileChooser);
 DESTRUCTABLE(CFileChooser);
@@ -84,8 +84,8 @@ public:
 	bool			Show(void);
 	char*			GetChosen(void);
 
-	bool			Approve(void) override;
-	void			DialogTick(void) override;
+	bool			Approve(void);
+	void			DialogTick(void);
 	void			SelectionChanged(void);
 	void			ItemActivated(void);
 	void			LookInChosen(void);

@@ -54,7 +54,7 @@ void CDialogTick::Init(void)
 {
 	PreInit();
 	CWindowTick::Init();
-	mpcTicker = NULL;
+	msTicker.Clear();
 	PostInit();
 }
 
@@ -66,7 +66,7 @@ void CDialogTick::Init(void)
 void CDialogTick::Class(void)
 {
 	CWindowTick::Class();
-	U_Pointer(mpcTicker);
+	U_Data(SMemberCall, msTicker);
 }
 
 
@@ -76,21 +76,20 @@ void CDialogTick::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CDialogTick::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
-	if (mpcTicker)
+	if (msTicker.IsSet())
 	{
-		mpcTicker->DialogTick();
+		msTicker.Call(NULL);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDialogTick::SetTicker(CDialogTicker* pcTicker)
+void CDialogTick::ClearTicker(void)
 {
-	mpcTicker = pcTicker;
+	msTicker.Clear();
 }
 
 
@@ -111,7 +110,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 
 	mpsLook = psLook;
 	mpOwner = pOwner;
-	mpcApprover = NULL;
+	msApprover.Clear();
 	mszClicked.Init();
 	miRows = 0;
 
@@ -169,7 +168,7 @@ void CDialog::Class(void)
 	M_Pointer(mpCancel);
 	M_Pointer(mpExtra);
 	M_Pointer(mpFirstEditor);
-	U_Pointer(mpcApprover);
+	U_Data(SMemberCall, msApprover);
 	U_String(mszClicked);
 	U_Int32(miRows);
 }
@@ -406,23 +405,25 @@ void CDialog::SetOKCaption(const char* szCaption)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// OK, or enter, only closes the dialog if the approver approves.
+// OK always closes the dialog again.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDialog::SetApprover(CDialogApprover* pcApprover)
+void CDialog::ClearApprover(void)
 {
-	mpcApprover = pcApprover;
+	msApprover.Clear();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pcTicker is called each tick while the dialog is shown, NULL for none.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDialog::SetTicker(CDialogTicker* pcTicker)
+void CDialog::ClearTicker(void)
 {
-	mpTick->SetTicker(pcTicker);
+	if (mpTick.IsNotNull())
+	{
+		mpTick->ClearTicker();
+	}
 }
 
 
@@ -469,7 +470,7 @@ bool CDialog::Show(int32 iWidth, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CDialog::OKClicked(void)
 {
-	if ((mpcApprover == NULL) || mpcApprover->Approve())
+	if (!msApprover.IsSet() || msApprover.Ask())
 	{
 		Close("OK");
 	}

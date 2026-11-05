@@ -128,8 +128,8 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
-	mpDialog->SetApprover(this);
-	mpDialog->SetTicker(this);
+	mpDialog->SetApprover(this, &CFileChooser::Approve);
+	mpDialog->SetTicker(this, &CFileChooser::DialogTick);
 	pBody = CreateBody();
 	mpDialog->SetBody(pBody, mpFileName);
 
@@ -227,6 +227,11 @@ void CFileChooser::Free(void)
 {
 	//An object's memory is freed without its destructor running so the chooser takes itself off the widgets still
 	//here.  The dialog and widgets are freed with the chooser's pointers.
+	if (mpDialog.IsNotNull())
+	{
+		mpDialog->ClearApprover();
+		mpDialog->ClearTicker();
+	}
 	if (mpFileType.IsNotNull())
 	{
 		mpFileType->GetSelectionEvent()->Remove(this);
