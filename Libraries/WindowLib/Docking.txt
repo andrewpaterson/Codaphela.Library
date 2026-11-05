@@ -1,0 +1,299 @@
+Docking Plan
+============
+
+Movable, sizable, dockable panes in WindowLib, modelled on Visual Studio's tool windows and document well.  A pane can
+be a tab in a group, split beside another group, floated in a window of its own, collapsed to an auto hide tab on the
+window's edge, or hidden, and dragged between all of these.  The layout is written to and read from an XML file, as
+Visual Studio keeps its own per user state beside a project (.vcxproj.user), not with CObject Save and Load.
+
+
+Decisions (user, 2026-11-05)
+----------------------------
+
+- Visual Studio style: docking guides (the compass and the edge markers) while dragging, tool window title bars with
+  the window position menu, pin and close, tool window tabs along the bottom of their group, document tabs along the
+  top.
+- The layout is saved as XML through BaseLib's CXMLWriter and read through CXMLFile / CMarkupTag.  CObject Save and
+  Load still work for the components as they do now; they are not how a layout is kept.
+- Design note first; nothing is implemented yet.
+
+
+Words
+-----
+
+Pane          One dockable thing: a component (the content), an ID, a title and an icon.  A tool pane (Solution
+              Explorer, Build, References) or a document pane (an editor tab, a diff).
+Group         Panes shown as tabs, one at a time.  A tool group has a title bar showing the selected pane's title and
+              its tabs along the bottom (no tab strip when it holds one pane).  A document group has its tabs along
+              the top and no title bar.
+Split         Two or more children side by side (horizontal) or one above the other (vertical) with a sash between
+              each pair that can be dragged to resize them.  A child is a group, a split or the document well.
+Document well The one place documents live in a main window.  Inside it is its own tree of splits and document groups
+              (Visual Studio's "New Horizontal / Vertical Tab Group").  Tool panes dock around it.
+Dock area     The root of one window's tree: a split, a group or the document well, plus the window's auto hide
+              strips.
+Floating      A pane (or a whole group) in a window of its own.  A floating window holds a dock area of its own, so
+              panes can be docked together inside it, as in Visual Studio.
+Auto hide     A pane collapsed to a tab on one of the main window's four edges.  Hovering over or clicking the tab
+              slides the pane out over the other content; it slides back when it loses focus.
+Hidden        Closed tool panes.  They keep where they were so showing them again puts them back.
+
+
+Visual Studio behaviour to copy
+-------------------------------
+
+Dragging
+- Dragging a tab moves that pane.  Dragging a tool group's title bar moves the whole group.  A drag starts after the
+  pointer moves a few pixels with the button held, so clicks still select.
+- As soon as a docked pane leaves its group it floats under the pointer (shown as a floating window following the
+  pointer), and the docking guides appear.
+- The edge markers sit at the middle of the dock area's four edges: dropping on one docks the pane along that whole
+  edge, outside everything else.
+- The compass sits over the middle of the group (or document well) under the pointer: its centre adds the pane as a tab
+  in that group, its four arrows split that group and put the pane on that side.  Over the document well the compass
+  has a second ring of arrows: the inner ones split the document group (a new tab group), the outer ones dock beside
+  the whole well.
+- Hovering over any target shows a translucent preview of where the pane would go and how big it would be.
+- Dropping anywhere else leaves it floating where it is.  Holding Control while dragging hides the guides so a pane can
+  be floated over a dock area without docking.
+- Escape while dragging puts the pane back where it was.
+
+What may go where
+- A tool pane can dock in any tool group, beside anything, or in a document group ("Dock as Tabbed Document").
+- A document pane can only be in a document group, or floating.  Its compass over tool groups shows no targets.
+
+Title bar and window position menu
+- A tool group's title bar shows the selected pane's title, highlighted when the active pane is in the group, and three
+  buttons: the window position drop down (Float, Dock, Dock as Tabbed Document, Auto Hide, Hide), the pin (Auto Hide
+  toggled) and the close cross (Hide).
+- Double clicking a docked group's title bar floats it; double clicking a floating window's title bar docks it back
+  where it was last docked.  The same goes for a document tab.
+- Right clicking a tab shows the same menu for that pane.
+
+Closing
+- Closing a tool pane hides it.  Closing a document pane tells the application, which may refuse (unsaved changes) or
+  remove it.  Closing a floating window hides (or closes) everything in it.
+- Shift+Escape hides the active tool pane.  Control+F4 closes the active document.
+
+Sizes
+- A main window growing or shrinking gives the change to the document well: tool groups keep their sizes in pixels.
+  In a split that doesn't hold the well, its children share the change by their sizes.
+- Sashes stop at each child's minimum size.  A sash drag shows the bar moving and resizes on release (Visual Studio's
+  default), or live; see the open questions.
+
+Activation
+- Clicking in a pane, or focusing a component in it, makes it the active pane.  The active tool group's title bar is
+  highlighted (IntelliJ blue in the Jewel theme) and the active document's tab is drawn as selected and focused.
+
+
+Structure
+---------
+
+CDockManager : CObject
+    The application keeps one in its root.  It holds every pane, the main window's dock area, the floating windows,
+    the hidden panes and a drag while one is happening.  All moves go through it, by the API below, so dragging,
+    menus, the layout file and the application all do the same things.
+
+CDockPane : CObject
+    The content component, the ID (a string unique in the manager), the title, the icon, tool or document, closable,
+    its state (docked, floating, auto hidden, hidden) and where to put it back (see Restoring).  The content is a child
+    of whichever group (or flyout) shows it; it is never in two places.
+
+CDockArea : CContainer
+    The component put into a window's content (under the IDE's menu bar and toolbar, for instance).  It fills itself
+    with its root node and draws its four auto hide strips when they have tabs (main window only).
+
+CDockSplit : CContainer
+    Children with a sash (CDockSash, a thin canvas) between each pair.  Each child has a size in pixels along the
+    split's direction; the child that holds the document well (or, without one, every child by its share) takes up
+    the difference.  A split left with one child is replaced by that child; a child split with the same direction is
+    merged into its parent.
+
+CDockGroup : CContainer
+    A tool group or a document group.  Reuses CTabbedContainer for the tabs and pages, which gains:
+    - SetTabSide(top or bottom) and hiding the tab strip when there is one tab;
+    - a drag event when a tab is pulled a few pixels (it has TabReleased already);
+    - an overflow drop down listing all tabs when they don't fit (Visual Studio's "▾" at the end of the tabs).
+    A tool group adds CDockTitleBar (a grid: label, position button, pin, close) above it.
+
+CDocumentWell : CContainer
+    Holds its own tree of CDockSplit and document CDockGroups.  Always present in a main window, even empty (then it
+    draws the background only).  Floating windows have none.
+
+CDockGuides : CPopup over the dock area under the pointer
+    Draws the edge markers, the compass and the preview, and says which target is under the pointer.  The images come
+    from CJewelImageGenerator (drawn at runtime, as the jewel strips and arrows are) so they follow the theme.
+
+CDockFloatingWindow : CObject
+    A CWindow (native, modeless) holding a CDockArea, with its own title bar and borders drawn by WindowLib, so moving
+    it is a drag WindowLib sees and can show the guides for (a native frame moved by the window manager can't).
+
+CAutoHideStrip, CAutoHideFlyout
+    The tabs along an edge (rotated text on the left and right, as Visual Studio draws them) and the pane slid out
+    over the dock area as a popup with a sash on its inner side and a title bar with the pin.
+
+CDockLayoutWriter, CDockLayoutReader (plain classes)
+    Walk the manager and write the XML, and read it back into the manager.  See Layout file.
+
+Events on the manager, for the application:
+    the active pane changed;  a document pane wants closing (can refuse);  a pane was closed or hidden;  the layout
+    changed (to save it later);  a pane named in a layout file isn't known (see Layout file).
+
+
+API
+---
+
+    Ptr<CDockPane>  AddPane(const char* szID, const char* szTitle, Ptr<CImageCel> pIcon, Ptr<CComponent> pContent,
+                            EDockPaneKind eKind, SDockPlace* psDefault)
+    void            Dock(Ptr<CDockPane> pPane, SDockTarget* psTarget)  //Tab into a group, beside a group, at an edge.
+    void            DockGroup(Ptr<CDockGroup> pGroup, SDockTarget* psTarget)
+    void            Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRect)
+    void            AutoHide(Ptr<CDockPane> pPane, EDockSide eSide)
+    void            Hide(Ptr<CDockPane> pPane)
+    void            Show(Ptr<CDockPane> pPane)        //Puts it back where it was, selects it and activates it.
+    void            Close(Ptr<CDockPane> pPane)       //Documents: asks, then removes.
+    void            Activate(Ptr<CDockPane> pPane)
+    Ptr<CDockPane>  GetPane(const char* szID)
+    Ptr<CDockPane>  GetActivePane(void)
+    bool            SaveLayout(const char* szFileName)
+    bool            LoadLayout(const char* szFileName)
+    void            ResetLayout(void)                 //Every pane to its default place (Window, Reset Window Layout).
+
+SDockTarget is the group or node docked to, the side (left, right, top, bottom, or centre for a tab), and the size
+along that side.  SDockPlace is the default: beside the document well on a side with a size, or as a tab in the group
+of another pane by ID, or hidden.
+
+
+Restoring
+---------
+
+Every group has an ID (a number unique in the manager, written to the file).  When a pane leaves a docked group (to
+float, to auto hide, or hidden) it remembers:
+    1. the group's ID and its tab index,
+    2. a neighbour: another pane in that group, or failing that the pane beside the group, and the side,
+    3. its default place.
+Putting it back tries them in that order: the group if it still exists, else beside or with the neighbour if that is
+docked, else the default.  A floating pane also remembers its last floating rectangle, so Float puts it back there.
+These are written to the file too, so a hidden pane comes back in the right place after a restart.
+
+
+Layout file
+-----------
+
+The application chooses the file.  For the HCP65 IDE: one per solution beside it, <solution>.layout.user (like
+.vcxproj.user and .sln's .vs folder, never committed), and the defaults from the code when there isn't one.
+
+The writer writes only layout: windows, splits, sizes, groups, which panes are where and selected, auto hide, hidden
+panes and where to put them back.  It does not write a pane's contents (an editor's caret, a tree's expansion); an
+application that wants that writes it itself.
+
+Panes are named by ID.  Reading a pane ID that isn't added yet calls the manager's unknown pane event so the
+application can make it (the IDE opens the file for "Document:<path>"); if it doesn't, the pane is dropped and the
+layout around it closes up.  Panes that are added but not in the file go to their default places.
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <DockLayout Version="1">
+      <MainWindow X="40" Y="30" Width="1600" Height="1000" Maximised="false">
+        <Split Direction="Horizontal">
+          <Group ID="1" Kind="Tool" Size="300" Selected="SolutionExplorer">
+            <Pane ID="SolutionExplorer"/>
+            <Pane ID="ClassView"/>
+          </Group>
+          <Split Direction="Vertical">
+            <DocumentWell Active="Document:HCP65Lib/Kernal/Main.cpp">
+              <Split Direction="Horizontal">
+                <Group ID="2" Kind="Document" Size="700" Selected="Document:HCP65Lib/Kernal/Main.cpp">
+                  <Pane ID="Document:HCP65Lib/Kernal/Main.cpp"/>
+                  <Pane ID="Document:HCP65Lib/Kernal/Cop.cpp"/>
+                </Group>
+                <Group ID="3" Kind="Document" Size="600" Selected="Diff:HCP65Lib/Kernal/Main.cpp">
+                  <Pane ID="Diff:HCP65Lib/Kernal/Main.cpp"/>
+                </Group>
+              </Split>
+            </DocumentWell>
+            <Group ID="4" Kind="Tool" Size="250" Selected="Build">
+              <Pane ID="Build"/>
+              <Pane ID="References"/>
+              <Pane ID="Debug"/>
+            </Group>
+          </Split>
+        </Split>
+        <AutoHide Side="Right">
+          <Pane ID="Claude" Size="420"/>
+        </AutoHide>
+      </MainWindow>
+      <FloatingWindow X="1700" Y="100" Width="400" Height="600">
+        <Group ID="5" Kind="Tool" Selected="Registers">
+          <Pane ID="Registers"/>
+        </Group>
+      </FloatingWindow>
+      <Hidden>
+        <Pane ID="Output" Group="4" Index="1" Neighbour="Build" Side="Centre"/>
+      </Hidden>
+      <Restore>
+        <Pane ID="Registers" Group="4" Index="3" Neighbour="Debug" Side="Centre"/>
+        <Pane ID="Claude" Group="4" Index="3" Neighbour="Build" Side="Centre" FloatX="1500" FloatY="200"
+              FloatWidth="500" FloatHeight="700"/>
+      </Restore>
+    </DockLayout>
+
+Sizes are pixels along the parent split's direction.  Window positions are screen pixels; a window that would be off
+every screen is moved onto the main one.  An unknown element or attribute is skipped, so later versions can add
+things.  A file that doesn't read (bad XML, Version newer than known) leaves the default layout and logs why.
+
+
+What WindowLib doesn't have yet
+-------------------------------
+
+Found while writing this; each is needed by some step below.
+- Pointer cursor shapes: none at all.  Sashes need the resize cursors; dragging could use the move cursor.
+  CNativeWindow::SetCursor, done in WinGdiLib (SetCursor / WM_SETCURSOR) and X11Lib (XCreateFontCursor, XDefineCursor).
+- Modeless secondary windows.  CWindow has Show (the main window) and ShowModal (a dialog from a tick).  Floating
+  windows need a modeless Show with an owner (stays above the main window, no task bar button, closes with it).
+- Window positions: CNativeWindow::GetRectangle exists; setting a position and size, screen sizes, and undecorated
+  windows (WS_POPUP / _MOTIF_WM_HINTS) with WindowLib drawn frames and resize borders are not.
+- Pointer capture across windows: while dragging, the pointer must be followed outside the window it started in and
+  over other windows (SetCapture / XGrabPointer) in screen coordinates.
+- Rotated tab text for the left and right auto hide strips (FT_Clockwise fonts exist in SupportLib; CLabel doesn't use
+  them yet).
+- Popups that slide: CPopup is placed at once; the flyout's slide is optional (Visual Studio animates it briefly).
+
+
+Steps
+-----
+
+Each step is usable and tested (TestWindowLib drives the API and compares the written XML; drags are fed as pointer
+events) before the next.
+1. CDockSplit and CDockSash with pointer cursors: splits that resize, the fill rule, minimum sizes.
+2. CDockPane, CDockGroup (tool and document), CTabbedContainer's tab side, single tab and overflow; CDockTitleBar with
+   close and the position menu (Hide only, at first).
+3. CDockManager, CDockArea and CDocumentWell: the whole API without dragging (Dock, Hide, Show, Close, Activate,
+   restoring), ResetLayout.
+4. The layout file: writer, reader, unknown panes, defaults.
+5. Dragging inside the main window: tabs and title bars, CDockGuides, the preview, dropping, Escape, Control.
+   Dropping outside the dock area floats as a popup at this step.
+6. Auto hide: strips, flyout, pin.
+7. Floating windows: the native work above on X11 and Windows, CDockFloatingWindow, dragging between windows, double
+   click to dock back.
+8. The HCP65 IDE uses it: Solution Explorer, References, Build, Debug and Claude become tool panes, editor and diff
+   tabs become document panes, the layout is saved beside the solution, and Window gets Reset Window Layout.
+
+
+Not planned
+-----------
+
+- Ctrl+Tab's window switcher, pinned tabs, the preview tab, tab colouring by project.
+- More than one main window, or several document wells.
+- Saved named layouts (Window, Save Window Layout); the file format allows it later.
+
+
+Open questions
+--------------
+
+1. Sash drags: Visual Studio moves a bar and resizes on release.  Live resizing looks better but lays out the whole
+   tree every pointer move.  Recommended: live, since layout is cached; fall back to the bar if it's slow.
+2. Floating windows: undecorated with WindowLib drawn frames (as above, so the guides work uniformly on X11 and
+   Windows), or native frames with the guides only for tabs dragged out?  Recommended: undecorated.
+3. Should documents be in the layout file (reopened by the application through the unknown pane event, as Visual
+   Studio reopens a solution's files) or only tool panes?  Recommended: in the file.
+4. Should a document pane be allowed to float at all at first (step 7), or only tool panes?
