@@ -608,6 +608,12 @@
     <ClCompile Include="Objects.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectsPrint.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectsValidate.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
     <ClCompile Include="Root.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
