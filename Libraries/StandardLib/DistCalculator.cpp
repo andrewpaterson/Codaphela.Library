@@ -47,7 +47,7 @@ CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool
 		CalculateDistToRoot(pcFromChanged);
 		CalculateFromTouched();
 	}
-	else if (!pcFromChanged->HasStackFroms() && !IsHeldFromStackOrRoot(pcFromChanged))
+	else if (!pcFromChanged->HasStackFroms() && !RecalculateKnownHeldFromStack(pcFromChanged) && !IsHeldFromStackOrRoot(pcFromChanged))
 	{
 		CalculateDistToStack(pcFromChanged);
 	}

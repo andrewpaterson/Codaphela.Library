@@ -10,6 +10,9 @@
 #include "EmbeddedObjectTestClasses.h"
 
 
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1445,6 +1448,118 @@ void TestDistToStackAcrossWalkStampWrap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An unattached object is known held from the stack while it has a stack
+// from or an older from known held.  A chain grown at its tail, the stack
+// pointer moving along it, stays known held through the older links (no
+// walk back to its start); letting go of the start frees it all.  An older
+// object held only by a newer one isn't known held, but is still held.
+// A cycle held from the stack is freed when the stack lets go of it, and
+// attaching to the root replaces known held with a distance to the root.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToStackKnownHeld(void)
+{
+	char	szErrors[1024];
+	size	i;
+
+	ObjectsInit();
+	{
+		Ptr<CTestObject>		pFirst;
+		Ptr<CTestObject>		pLast;
+		Ptr<CTestObject>		pObject;
+		CTestObject*			apcLinks[5];
+		size					uiObjects;
+
+		ORoot();
+		uiObjects = gcObjects.NumMemoryIndexes();
+
+		//A chain grown at its tail.
+		pFirst = OMalloc<CTestObject>();
+		pLast = pFirst;
+		apcLinks[0] = &pFirst;
+		for (i = 1; i < 5; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pLast->mpTest = pObject;
+			pLast = pObject;
+			apcLinks[i] = &pObject;
+		}
+		pObject = NULL;
+		pLast = NULL;
+		for (i = 0; i < 5; i++)
+		{
+			AssertTrue(apcLinks[i]->IsKnownHeldFromStack());
+			AssertInt(UNATTACHED_DIST_TO_ROOT, apcLinks[i]->GetDistToRoot());
+			AssertSize(0, apcLinks[i]->NumStackFroms() - ((i == 0) ? 1 : 0));
+		}
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		AssertSize(uiObjects + 5, gcObjects.NumMemoryIndexes());
+		pFirst = NULL;
+		AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+
+		//An older object held only by a newer one.
+		{
+			Ptr<CTestObject>	pOlder;
+			Ptr<CTestObject>	pNewer;
+			Ptr<CTestObject>	pThird;
+
+			pOlder = OMalloc<CTestObject>();
+			pNewer = OMalloc<CTestObject>();
+			pNewer->mpTest = pOlder;
+			pOlder = NULL;
+			AssertFalse(apcLinks[0] == NULL);
+			AssertSize(uiObjects + 2, gcObjects.NumMemoryIndexes());
+			AssertTrue(pNewer->IsKnownHeldFromStack());
+			AssertFalse(pNewer->mpTest->IsKnownHeldFromStack());
+
+			//Another newer object known held pointing to it doesn't make it known held either.
+			pThird = OMalloc<CTestObject>();
+			pThird->mpObject = pNewer->mpTest;
+			AssertTrue(pThird->IsKnownHeldFromStack());
+			AssertFalse(pNewer->mpTest->IsKnownHeldFromStack());
+			ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+			AssertString("", szErrors);
+			pThird = NULL;
+		}
+		AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+
+		//A cycle held from the stack.
+		{
+			Ptr<CTestObject>	pA;
+			Ptr<CTestObject>	pB;
+
+			pA = OMalloc<CTestObject>();
+			pB = OMalloc<CTestObject>();
+			pA->mpTest = pB;
+			pB->mpTest = pA;
+			pB = NULL;
+			AssertTrue(pA->mpTest->IsKnownHeldFromStack());
+			AssertSize(uiObjects + 2, gcObjects.NumMemoryIndexes());
+			pA = NULL;
+			AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+		}
+
+		//Attached to the root.
+		pObject = OMalloc<CTestObject>();
+		AssertTrue(pObject->IsKnownHeldFromStack());
+		ORoot()->Add(pObject);
+		AssertFalse(pObject->IsKnownHeldFromStack());
+		AssertTrue(pObject->GetDistToRoot() > ROOT_DIST_TO_ROOT);
+		ORoot()->Remove(pObject);
+		AssertTrue(pObject->IsKnownHeldFromStack());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+		pObject = NULL;
+		AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToStack(void)
@@ -1474,6 +1589,7 @@ void TestDistToStack(void)
 	TestDistToStackReachedThroughEmbedded();
 	TestDistToStackIsHeldFromStackOrRoot();
 	TestDistToStackAcrossWalkStampWrap();
+	TestDistToStackKnownHeld();
 
 	DataIOKill();
 	TypesKill();

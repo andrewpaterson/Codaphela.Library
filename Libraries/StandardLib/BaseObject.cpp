@@ -854,12 +854,103 @@ void CBaseObject::SetDirty(bool bDirty)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::GetDistToRoot(void)
 {
+	int		iDistToRoot;
+
 	//Only an embedded object's own distance is read first: the common case touches nothing else.
-	if (miDistToRoot != EMBEDDED_DIST_TO_ROOT)
+	iDistToRoot = miDistToRoot;
+	if (iDistToRoot >= CLEARED_DIST_TO_ROOT)
 	{
-		return miDistToRoot;
+		return iDistToRoot;
 	}
-	return GetEmbeddingContainer()->miDistToRoot;
+	if (iDistToRoot == EMBEDDED_DIST_TO_ROOT)
+	{
+		iDistToRoot = GetEmbeddingContainer()->miDistToRoot;
+		if (iDistToRoot >= CLEARED_DIST_TO_ROOT)
+		{
+			return iDistToRoot;
+		}
+	}
+	//Known held from the stack: not attached to the root.
+	return UNATTACHED_DIST_TO_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this unattached object is known to be held from the stack: it
+// has a stack from, or a from that is known held and older (a smaller
+// index).  Following older froms always ends at an object held from the
+// stack, so it is held.  One not known held may be held too, but only a
+// walk can tell.  Objects are built from older ones (a child added to its
+// parent, a chain grown at its tail), so letting go of the stack pointer
+// that held one while it was built leaves it known held by the older one:
+// no walk back to what holds that.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::IsKnownHeldFromStack(void)
+{
+	return GetEmbeddingContainer()->miDistToRoot == HELD_FROM_STACK_DIST_TO_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only for an unattached object that is (see IsKnownHeldFromStack).
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetKnownHeldFromStack(void)
+{
+	GetEmbeddingContainer()->miDistToRoot = HELD_FROM_STACK_DIST_TO_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A stack from was added: an unattached object is known held.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::StackFromAdded(void)
+{
+	CBaseObject*	pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	if ((pcContainer->miDistToRoot == UNATTACHED_DIST_TO_ROOT) && !(pcContainer->muiFlags & OBJECT_FLAGS_FREED))
+	{
+		pcContainer->miDistToRoot = HELD_FROM_STACK_DIST_TO_ROOT;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A heap from from pcFrom was added: an unattached object is known held if
+// pcFrom is, and is older.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::HeapFromAdded(CBaseObject* pcFrom)
+{
+	CBaseObject*	pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	if ((pcContainer->miDistToRoot == UNATTACHED_DIST_TO_ROOT) && !(pcContainer->muiFlags & OBJECT_FLAGS_FREED))
+	{
+		if (pcFrom->IsKnownHeldFromStack() && pcFrom->IsOlderThan(pcContainer))
+		{
+			pcContainer->miDistToRoot = HELD_FROM_STACK_DIST_TO_ROOT;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this object (or the one it is embedded in) was allocated before
+// pcObject's: it has a smaller index.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::IsOlderThan(CBaseObject* pcObject)
+{
+	return GetEmbeddingContainer()->GetIndex() < pcObject->GetEmbeddingContainer()->GetIndex();
 }
 
 

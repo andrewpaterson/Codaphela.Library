@@ -68,8 +68,10 @@ void CBaseObject::ValidateCanFindRoot(void)
 
 	CEmbeddedObject*	pcClosest;
 	int					iClosestDistToRoot;
+	int					iDistToRoot;
 
-	if (miDistToRoot > ROOT_DIST_TO_ROOT)
+	iDistToRoot = GetDistToRoot();
+	if (iDistToRoot > ROOT_DIST_TO_ROOT)
 	{
 		pcClosest = GetClosestFromToRoot();
 		if (pcClosest == NULL)
@@ -78,19 +80,19 @@ void CBaseObject::ValidateCanFindRoot(void)
 			return;
 		}
 		iClosestDistToRoot = pcClosest->GetDistToRoot();
-		if (iClosestDistToRoot != miDistToRoot - 1)
+		if (iClosestDistToRoot != iDistToRoot - 1)
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has dist to root [", IntToString(miDistToRoot), "] but its closest from has [", IntToString(iClosestDistToRoot), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has dist to root [", IntToString(iDistToRoot), "] but its closest from has [", IntToString(iClosestDistToRoot), "].", NULL);
 		}
 	}
-	else if (miDistToRoot == ROOT_DIST_TO_ROOT)
+	else if (iDistToRoot == ROOT_DIST_TO_ROOT)
 	{
 		if (!IsRoot())
 		{
 			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a dist to root [0] but is not the Root object.", NULL);
 		}
 	}
-	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
 		pcClosest = GetClosestFromToRoot();
 		if (pcClosest != NULL)
@@ -98,13 +100,13 @@ void CBaseObject::ValidateCanFindRoot(void)
 			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has an [UNATTACHED_DIST_TO_ROOT] dist to root should not be able to find the Root object.", NULL);
 		}
 	}
-	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
+	else if (iDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
 		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have dist to root [CLEARED_DIST_TO_ROOT].", NULL);
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have dist to root [", IntToString(miDistToRoot), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have dist to root [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 
@@ -154,6 +156,36 @@ void CBaseObject::ValidateDistToRoot(void)
 	{
 		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to root of [", IntToString(iDistToRoot), "].", NULL);
 	}
+	ValidateKnownHeldFromStack();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object known held from the stack has a stack from, or a from that is
+// known held and older: following them always ends on the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateKnownHeldFromStack(void)
+{
+	SHeapFromIterator	sIter;
+	CBaseObject*		pcFrom;
+
+	if (!IsKnownHeldFromStack() || IsEmbedded() || HasStackFroms())
+	{
+		return;
+	}
+
+	pcFrom = StartHeapFromIteration(&sIter);
+	while (pcFrom)
+	{
+		if (pcFrom->IsKnownHeldFromStack() && pcFrom->IsOlderThan(this))
+		{
+			return;
+		}
+		pcFrom = IterateHeapFrom(&sIter);
+	}
+	gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} is known held from the stack but has no stack from and no older from known held.", NULL);
 }
 
 

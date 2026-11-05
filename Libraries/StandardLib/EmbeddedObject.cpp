@@ -350,6 +350,10 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 		{
 			CDistCalculator::FromAdded(GetEmbeddingContainer(), iDistToRoot + 1);
 		}
+		else
+		{
+			GetEmbeddingContainer()->HeapFromAdded(pcFromObject);
+		}
 
 #ifdef _DEBUG
 		ValidateObjectsConsistency(bValidate);
@@ -809,6 +813,10 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 	bool	bAdded;
 
 	bAdded = LinkStackFrom(GetStackPointers()->Add(pcPointer));
+	if (bAdded)
+	{
+		GetEmbeddingContainer()->StackFromAdded();
+	}
 
 #ifdef _DEBUG
 	if (bAdded)
@@ -830,6 +838,10 @@ bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 	bool	bAdded;
 
 	bAdded = LinkStackFrom(GetStackPointers()->Add(pcCollection));
+	if (bAdded)
+	{
+		GetEmbeddingContainer()->StackFromAdded();
+	}
 
 #ifdef _DEBUG
 	if (bAdded)

@@ -171,6 +171,144 @@ bool CDistCalculator::CollectDetached(CBaseObject* pcObject, CArrayBaseObjectPtr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A stack from of pcFromRemoved (unattached, with no stack froms left)
+// went.  If it was known held from the stack and no older from known held
+// holds it now (see CBaseObject::IsKnownHeldFromStack), it, and the newer
+// objects that were known held through it, are cleared; then those with an
+// older from still known held are known held again, and so on for the
+// newer ones they point to.  Returns whether pcFromRemoved is known held:
+// then nothing needs walking.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistCalculator::RecalculateKnownHeldFromStack(CBaseObject* pcFromRemoved)
+{
+	CArrayBaseObjectPtr		apcCandidates;
+	CArrayBaseObjectPtr		apcCleared;
+	CBaseObject*			pcObject;
+	uint32					uiCleared;
+
+	if (!pcFromRemoved->IsKnownHeldFromStack())
+	{
+		return false;
+	}
+	if (HasStackOrOlderKnownHeldFrom(pcFromRemoved))
+	{
+		return true;
+	}
+
+	//Clear what relied on it.
+	uiCleared = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	apcCandidates.Init();
+	apcCleared.Init();
+	apcCandidates.Add(pcFromRemoved);
+	while (apcCandidates.NumElements() > 0)
+	{
+		ClearKnownHeldFromStack(apcCandidates.Pop(), uiCleared, &apcCandidates, &apcCleared);
+	}
+
+	//Those still held by an older from known held are again, and then the newer ones they point to.
+	while (apcCleared.NumElements() > 0)
+	{
+		pcObject = apcCleared.Pop();
+		if ((pcObject->GetWalkStamp() == uiCleared) && HasStackOrOlderKnownHeldFrom(pcObject))
+		{
+			pcObject->SetWalkStamp(0);
+			pcObject->SetKnownHeldFromStack();
+			AddNewerTos(pcObject, &apcCleared);
+		}
+	}
+	apcCandidates.Kill();
+	apcCleared.Kill();
+
+	return pcFromRemoved->IsKnownHeldFromStack();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Clears pcObject's known held if nothing holds it any more, and adds the
+// newer objects it points to (that may have relied on it) as candidates.
+// As for distances to the root, a from that is cleared later rechecks what
+// it points to, so an older from known held and not (yet) cleared is
+// enough.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::ClearKnownHeldFromStack(CBaseObject* pcObject, uint32 uiCleared, CArrayBaseObjectPtr* papcCandidates, CArrayBaseObjectPtr* papcCleared)
+{
+	if (!pcObject->IsKnownHeldFromStack() || (pcObject->GetFlags() & OBJECT_FLAGS_FREED))
+	{
+		return;
+	}
+	if (HasStackOrOlderKnownHeldFrom(pcObject))
+	{
+		return;
+	}
+
+	pcObject->SetWalkStamp(uiCleared);
+	pcObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	papcCleared->Add(pcObject);
+	AddNewerTos(pcObject, papcCandidates);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds what pcObject (and the objects embedded in it) points to that is
+// newer than it: only those can be held through it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::AddNewerTos(CBaseObject* pcObject, CArrayBaseObjectPtr* papcObjects)
+{
+	CArrayEmbeddedObjectPtr		apcTos;
+	CBaseObject*				pcTo;
+	size						i;
+	size						uiNumTos;
+
+	apcTos.Init();
+	pcObject->GetPointerTos(&apcTos);
+	uiNumTos = apcTos.NumElements();
+	for (i = 0; i < uiNumTos; i++)
+	{
+		pcTo = apcTos.GetPtr(i)->GetEmbeddingContainer();
+		if (pcObject->IsOlderThan(pcTo))
+		{
+			papcObjects->Add(pcTo);
+		}
+	}
+	apcTos.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcObject is still known held: by a stack from, or by an older
+// from known held.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDistCalculator::HasStackOrOlderKnownHeldFrom(CBaseObject* pcObject)
+{
+	SHeapFromIterator	sIter;
+	CBaseObject*		pcFrom;
+
+	if (pcObject->HasStackFroms())
+	{
+		return true;
+	}
+	pcFrom = pcObject->StartHeapFromIteration(&sIter);
+	while (pcFrom)
+	{
+		if (pcFrom->IsKnownHeldFromStack() && pcFrom->IsOlderThan(pcObject))
+		{
+			return true;
+		}
+		pcFrom = pcObject->IterateHeapFrom(&sIter);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether something that points to pcObject (or to what points to it...)
 // is pointed to from the stack or attached to the root.  Then a stack
 // pointer to pcObject going frees nothing, and the full distance to the
@@ -178,7 +316,10 @@ bool CDistCalculator::CollectDetached(CBaseObject* pcObject, CArrayBaseObjectPtr
 // needed.  Breadth first, so the holder nearest is found first: building a
 // component under a parent held on the stack finds it straight away.  It is
 // a walk of its own: the objects it tests are stamped, so nothing needs
-// clearing afterwards.
+// clearing afterwards.  When pcObject has no stack froms, a from known
+// held from the stack is held (if that relies on pcObject, pcObject is
+// reached from the stack); while it has them, that may rely on them, so
+// only the walk can say.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDistCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
@@ -188,8 +329,10 @@ bool CDistCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
 	size					uiFirst;
 	bool					bHeld;
 	uint32					uiTested;
+	bool					bUseKnownHeld;
 
 	uiTested = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	bUseKnownHeld = !pcObject->HasStackFroms();
 
 	bHeld = false;
 	apcFroms.Init();
@@ -202,7 +345,7 @@ bool CDistCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
 		{
 			continue;
 		}
-		if ((pcFrom->GetDistToRoot() >= ROOT_DIST_TO_ROOT) || pcFrom->HasStackFroms())
+		if ((pcFrom->GetDistToRoot() >= ROOT_DIST_TO_ROOT) || pcFrom->HasStackFroms() || (bUseKnownHeld && pcFrom->IsKnownHeldFromStack()))
 		{
 			bHeld = true;
 			break;

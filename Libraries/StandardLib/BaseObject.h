@@ -161,6 +161,11 @@ public:
 
 			void					SetDirty(bool bDirty);
 			int						GetDistToRoot(void);
+			bool					IsKnownHeldFromStack(void);
+			void					SetKnownHeldFromStack(void);
+			void					StackFromAdded(void);
+			void					HeapFromAdded(CBaseObject* pcFrom);
+			bool					IsOlderThan(CBaseObject* pcObject);
 			uint32					GetWalkStamp(void);
 			void					SetWalkStamp(uint32 uiWalkStamp);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
@@ -203,6 +208,7 @@ public:
 			void					ValidateFlagNotSet(uint16 iFlag, const char* szFlag);
 			void					ValidateFlags(void);
 			void					ValidateDistToRoot(void);
+			void					ValidateKnownHeldFromStack(void);
 			void					ValidateIndex(void);
 			void					ValidateObjectsThisIn(void);
 			void					ValidateCanFindRoot(void);

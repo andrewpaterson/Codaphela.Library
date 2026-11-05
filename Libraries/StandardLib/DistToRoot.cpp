@@ -157,7 +157,8 @@ bool CDistCalculator::HasCloserFrom(CBaseObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The touched objects still cleared couldn't find the root.
+// The touched objects still cleared couldn't find the root.  Those pointed
+// to from the stack are known held from it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculator::ResetClearedToUnattached(void)
@@ -173,6 +174,10 @@ void CDistCalculator::ResetClearedToUnattached(void)
 		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 		{
 			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+			if (pcBaseObject->HasStackFroms())
+			{
+				pcBaseObject->SetKnownHeldFromStack();
+			}
 		}
 	}
 }

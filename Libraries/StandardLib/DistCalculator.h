@@ -40,6 +40,7 @@ public:
 			//The steps of Calculate, for tests.
 			void					CalculateDistToRoot(CBaseObject* pcFromRemoved);
 			void					CalculateDistToStack(CBaseObject* pcFromRemoved);
+			bool					RecalculateKnownHeldFromStack(CBaseObject* pcFromRemoved);
 			void					CalculateFromTouched(void);
 
 			size					NumTouched(void);
@@ -82,6 +83,9 @@ private:
 			bool					HasFromReachedFromStack(CBaseObject* pcObject);
 			void					MarkPointedToFromReached(CArrayBaseObjectPtr* papcReached);
 			void					FindReachedFromStack(void);
+	static	bool					HasStackOrOlderKnownHeldFrom(CBaseObject* pcObject);
+	static	void					ClearKnownHeldFromStack(CBaseObject* pcObject, uint32 uiCleared, CArrayBaseObjectPtr* papcCandidates, CArrayBaseObjectPtr* papcCleared);
+	static	void					AddNewerTos(CBaseObject* pcObject, CArrayBaseObjectPtr* papcObjects);
 
 			void					PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate);
 			void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate);
