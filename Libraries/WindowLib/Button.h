@@ -20,14 +20,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __BUTTON_H__
 #define __BUTTON_H__
-#include "StandardLib/ListenerCall.h"
 #include "SupportLib/Font.h"
 #include "ImageBorderContainer.h"
 #include "WindowTheme.h"
 #include "Label.h"
 #include "IconComponent.h"
 #include "ButtonImages.h"
-#include "ButtonListener.h"
+#include "ComponentEvent.h"
 
 
 //A button is a face inside a border of image pieces, see CImageBorderContainer.  The face is filled with the face
@@ -50,7 +49,7 @@ protected:
 	Ptr<CIconComponent>			mpIcon;  //Shows nothing without a cel.
 	Ptr<CLabel>					mpCaption;
 	int32						miIconGap;  //Between the icon and the caption.
-	CListenerCall				mcListeners;
+	CComponentEvent<CButton>	mcClicked;
 	EButtonState				meState;
 	bool						mbPressed;  //Pressed on and not yet released.
 	bool						mbDefault;
@@ -75,8 +74,7 @@ public:
 	Ptr<CIconComponent>	GetIconComponent(void);
 	Ptr<CLabel>			GetCaptionLabel(void);
 
-	bool				AddListener(CButtonListener* pcListener);
-	bool				RemoveListener(CButtonListener* pcListener);
+	CComponentEvent<CButton>*	GetClickEvent(void);
 	void				Click(void);
 
 	EButtonState		GetState(void);

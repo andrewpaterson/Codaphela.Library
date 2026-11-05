@@ -31,9 +31,8 @@ void ValidateLabelObjects(void);
 // Logs each click as "Caption:Clicked;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestButtonListener : public CButtonListener
+class CTestButtonListener
 {
-CONSTRUCTABLE(CTestButtonListener);
 public:
 	CChars*		mpszLog;
 
@@ -42,11 +41,8 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void ButtonClicked(CUnknown* pcSource, void* pvContext) override
+	void Clicked(CButton* pcButton)
 	{
-		CButton*	pcButton;
-
-		pcButton = (CButton*)pcSource;
 		mpszLog->Append(pcButton->GetCaption());
 		mpszLog->Append(":Clicked;");
 	}
@@ -137,8 +133,8 @@ void TestButtonInput(void)
 		pTheme = CreateButtonTheme(pFont, pImages, NULL);
 		pOK = OMalloc<CButton>(pTestWindow, pTheme, "OK");
 		pCancel = OMalloc<CButton>(pTestWindow, pTheme, "Cancel");
-		AssertTrue(pOK->AddListener(&cListener));
-		AssertTrue(pCancel->AddListener(&cListener));
+		pOK->GetClickEvent()->Add(&cListener, &CTestButtonListener::Clicked);
+		pCancel->GetClickEvent()->Add(&cListener, &CTestButtonListener::Clicked);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
 		AssertTrue(pGrid->AddComponent(pOK, 0, 0, 1, 1, 1, 1));
@@ -240,7 +236,7 @@ void TestButtonInput(void)
 		AssertTrue(pCancel->IsMouseOver());
 		AssertFalse(pGrid->IsMouseOver());
 
-		AssertTrue(pCancel->RemoveListener(&cListener));
+		AssertTrue(pCancel->GetClickEvent()->Remove(&cListener));
 		pTestWindow->InputCommand(CIC_Enter, true);
 		AssertLog("");
 
@@ -344,8 +340,8 @@ void TestButtonDefault(void)
 		pCancel = OMalloc<CButton>(pTestWindow, pTheme, "Cancel");
 		pName = OMalloc<CLabel>(pTestWindow, pFont, "Name");
 		pName->SetCanGetFocus(true);
-		AssertTrue(pOK->AddListener(&cListener));
-		AssertTrue(pCancel->AddListener(&cListener));
+		pOK->GetClickEvent()->Add(&cListener, &CTestButtonListener::Clicked);
+		pCancel->GetClickEvent()->Add(&cListener, &CTestButtonListener::Clicked);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
 		AssertTrue(pGrid->AddComponent(pOK, 0, 0, 1, 1, 1, 1));
@@ -736,6 +732,128 @@ void TestButtonIcons(void)
 }
 
 
+//What a component event is called with in TestButtonClickEvent; any class will do.
+struct STestEventSource
+{
+	const char*	szName;
+};
+
+
+//Logs the functions called.  One function removes another object's functions, or adds one, while it is called.
+class CTestEventListener
+{
+public:
+	CChars*									mpszLog;
+	const char*								mszName;
+	CComponentEvent<STestEventSource>*		mpcEvent;
+	CTestEventListener*						mpcOther;
+
+	void Init(CChars* pszLog, const char* szName, CComponentEvent<STestEventSource>* pcEvent)
+	{
+		mpszLog = pszLog;
+		mszName = szName;
+		mpcEvent = pcEvent;
+		mpcOther = NULL;
+	}
+
+	void Happened(STestEventSource* psSource)
+	{
+		mpszLog->Append(mszName);
+		mpszLog->Append("(");
+		mpszLog->Append(psSource->szName);
+		mpszLog->Append(");");
+	}
+
+	void Plain(void)
+	{
+		mpszLog->Append(mszName);
+		mpszLog->Append(";");
+	}
+
+	void RemoveOther(void)
+	{
+		Plain();
+		mpcEvent->Remove(mpcOther);
+	}
+
+	void AddOther(void)
+	{
+		Plain();
+		mpcEvent->Add(mpcOther, &CTestEventListener::Plain);
+	}
+};
+
+
+//Its functions are CTestEventListener's.
+class CTestDerivedEventListener : public CTestEventListener
+{
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A component event calls its functions in the order they were added,
+// with the component or with nothing.  Functions removed while it calls
+// aren't called; ones added are called the next time.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestButtonClickEvent(void)
+{
+	CComponentEvent<STestEventSource>	cEvent;
+	STestEventSource					sSource;
+	CTestEventListener					cA;
+	CTestEventListener					cB;
+	CTestDerivedEventListener			cDerived;
+	CChars								szLog;
+
+	szLog.Init();
+	cEvent.Init();
+	sSource.szName = "Button";
+	cA.Init(&szLog, "A", &cEvent);
+	cB.Init(&szLog, "B", &cEvent);
+	cDerived.Init(&szLog, "D", &cEvent);
+
+	cEvent.Add(&cA, &CTestEventListener::Happened);
+	cEvent.Add(&cB, &CTestEventListener::Plain);
+	cEvent.Add(&cDerived, &CTestEventListener::Happened);
+	AssertSize(3, cEvent.NumCalls());
+	cEvent.Call(&sSource);
+	AssertLog("A(Button);B;D(Button);");
+
+	//Remove takes all of an object's functions.
+	cEvent.Add(&cB, &CTestEventListener::Happened);
+	AssertTrue(cEvent.Remove(&cB));
+	AssertFalse(cEvent.Remove(&cB));
+	AssertSize(2, cEvent.NumCalls());
+	cEvent.Call(&sSource);
+	AssertLog("A(Button);D(Button);");
+
+	//A removes D before D's turn so D isn't called.
+	AssertTrue(cEvent.Remove(&cA));
+	cA.mpcOther = &cDerived;
+	cEvent.Add(&cA, &CTestEventListener::RemoveOther);
+	AssertTrue(cEvent.Remove(&cDerived));
+	cEvent.Add(&cDerived, &CTestEventListener::Plain);
+	cEvent.Add(&cA, &CTestEventListener::Plain);
+	AssertSize(3, cEvent.NumCalls());
+	cEvent.Call(&sSource);
+	AssertLog("A;A;");
+
+	//B added while A is called is called the next time.
+	AssertTrue(cEvent.Remove(&cA));
+	cA.mpcOther = &cB;
+	cEvent.Add(&cA, &CTestEventListener::AddOther);
+	cEvent.Call(&sSource);
+	AssertLog("A;");
+	AssertTrue(cEvent.Remove(&cA));
+	cEvent.Call(&sSource);
+	AssertLog("B;");
+
+	cEvent.Kill();
+	szLog.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -745,6 +863,7 @@ void TestButton(void)
 	BeginTests();
 	ObjectsInit();
 
+	TestButtonClickEvent();
 	TestButtonInput();
 	TestButtonDefault();
 	TestButtonIcons();

@@ -74,8 +74,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpNormalImages = pImages;
 	mpDefaultImages = pDefaultImages;
 	miIconGap = 4;
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CButtonListener>();
+	mcClicked.Init();
 	meState = BS_Normal;
 	mbPressed = false;
 	mbDefault = false;
@@ -112,7 +111,7 @@ void CButton::Class(void)
 	M_Pointer(mpIcon);
 	M_Pointer(mpCaption);
 	U_Int32(miIconGap);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CButton>, mcClicked);
 	U_Enum(meState);
 	U_Bool(mbPressed);
 	U_Bool(mbDefault);
@@ -127,7 +126,7 @@ void CButton::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CButton::Free(void)
 {
-	mcListeners.Kill();
+	mcClicked.Kill();
 	CImageBorderContainer::Free();
 }
 
@@ -268,21 +267,13 @@ SInt32Vec2 CButton::GetContentSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when the button is clicked, with the button:
+// pButton->GetClickEvent()->Add(this, &CMyContent::OKClicked).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CButton::AddListener(CButtonListener* pcListener)
+CComponentEvent<CButton>* CButton::GetClickEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CButton::RemoveListener(CButtonListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcClicked;
 }
 
 
@@ -292,7 +283,7 @@ bool CButton::RemoveListener(CButtonListener* pcListener)
 //////////////////////////////////////////////////////////////////////////
 void CButton::Click(void)
 {
-	mcListeners.CallListeners(&CButtonListener::ButtonClicked, this, NULL);
+	mcClicked.Call(this);
 }
 
 

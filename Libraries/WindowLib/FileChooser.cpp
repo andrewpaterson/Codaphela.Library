@@ -147,26 +147,6 @@ void CFileChooserComboListener::SelectionChanged(CUnknown* pcSource, void* pvCon
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserButtonListener::Init(CFileChooser* pcChooser)
-{
-	mpcChooser = pcChooser;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileChooserButtonListener::ButtonClicked(CUnknown* pcSource, void* pvContext)
-{
-	mpcChooser->ButtonClicked(pcSource);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Starts in the folder of szFilename with the file selected and its name
 // in File Name, or in the current folder if that folder doesn't exist.
 // asTypes are Files of Type's choices.  The icons are shown beside the
@@ -197,7 +177,6 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mszChosen.Init();
 	mcListListener.Init(this);
 	mcComboListener.Init(this);
-	mcButtonListener.Init(this);
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
@@ -260,7 +239,6 @@ void CFileChooser::Class(void)
 	M_Pointer(mpFileIcon);
 	U_Unknown(CFileChooserListListener, mcListListener);
 	U_Unknown(CFileChooserComboListener, mcComboListener);
-	U_Unknown(CFileChooserButtonListener, mcButtonListener);
 	U_String(mszDirectory);
 	U_Unknown(CArrayChars, maszLookIn);
 	U_Unknown(CArrayChars, maszRows);
@@ -304,7 +282,9 @@ void CFileChooser::Free(void)
 	//here.  The dialog and widgets are freed with the chooser's pointers.
 	mcListListener.RemoveFromListenerCalls();
 	mcComboListener.RemoveFromListenerCalls();
-	mcButtonListener.RemoveFromListenerCalls();
+	RemoveFromButton(mpUp);
+	RemoveFromButton(mpHome);
+	RemoveFromButton(mpNewFolder);
 
 	mszChosen.Kill();
 	maszRows.Kill();
@@ -350,6 +330,9 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpUp = CreateButton("Up");
 	mpHome = CreateButton("Home");
 	mpNewFolder = CreateButton("New Folder");
+	mpUp->GetClickEvent()->Add(this, &CFileChooser::GoUp);
+	mpHome->GetClickEvent()->Add(this, &CFileChooser::GoHome);
+	mpNewFolder->GetClickEvent()->Add(this, &CFileChooser::NewFolderClicked);
 	AddButton(pTop, mpUp, 2, FILE_CHOOSER_GAP);
 	AddButton(pTop, mpHome, 4, FILE_CHOOSER_GAP / 2);
 	AddButton(pTop, mpNewFolder, 6, FILE_CHOOSER_GAP / 2);
@@ -423,7 +406,6 @@ Ptr<CButton> CFileChooser::CreateButton(const char* szCaption)
 	Ptr<CButton>	pButton;
 
 	pButton = OMalloc<CButton>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, szCaption);
-	pButton->AddListener(&mcButtonListener);
 	pButton->SetAlignment(CSH_Center, CSV_Center);
 	return pButton;
 }
@@ -788,29 +770,42 @@ void CFileChooser::ComboChanged(CUnknown* pcSource)
 // Up opens the parent folder, the folder come from selected.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileChooser::ButtonClicked(CUnknown* pcSource)
+void CFileChooser::GoUp(void)
 {
 	CFileUtil	cFileUtil;
 	CChars		szParent;
 
-	if (&mpUp == pcSource)
+	if (!IsRootDirectory(&mszDirectory))
 	{
-		if (!IsRootDirectory(&mszDirectory))
-		{
-			szParent.Init(mszDirectory);
-			cFileUtil.RemoveLastFromPath(&szParent);
-			Open(szParent.Text(), mszDirectory.Text());
-			szParent.Kill();
-		}
+		szParent.Init(mszDirectory);
+		cFileUtil.RemoveLastFromPath(&szParent);
+		Open(szParent.Text(), mszDirectory.Text());
+		szParent.Kill();
 	}
-	else if (&mpHome == pcSource)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// New Folder's dialog is shown on the next tick; it can't be shown from
+// an input action, see CWindow::ShowModal.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::NewFolderClicked(void)
+{
+	mbNewFolderPending = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::RemoveFromButton(Ptr<CButton> pButton)
+{
+	if (pButton.IsNotNull())
 	{
-		GoHome();
-	}
-	else if (&mpNewFolder == pcSource)
-	{
-		//Its dialog can't be shown from an input listener, see CWindow::ShowModal.
-		mbNewFolderPending = true;
+		pButton->GetClickEvent()->Remove(this);
 	}
 }
 

@@ -209,7 +209,6 @@
     <ClInclude Include="MenuBar.h" />
     <ClInclude Include="ListListener.h" />
     <ClInclude Include="ButtonImages.h" />
-    <ClInclude Include="ButtonListener.h" />
     <ClInclude Include="JewelImageGenerator.h" />
     <ClInclude Include="ScrollBarImages.h" />
     <ClInclude Include="ScrollBar.h" />
@@ -227,6 +226,7 @@
     <ClInclude Include="ComponentInputEvent.h" />
     <ClInclude Include="InputAction.h" />
     <ClInclude Include="MemberCall.h" />
+    <ClInclude Include="ComponentEvent.h" />
     <ClInclude Include="TabComponent.h" />
     <ClInclude Include="TabbedContainer.h" />
     <ClInclude Include="TabbedContainerListener.h" />

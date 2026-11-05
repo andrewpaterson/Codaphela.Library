@@ -156,6 +156,9 @@
     <ClInclude Include="MemberCall.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentEvent.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentInputNumKey.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -259,9 +262,6 @@
       <Filter>Source\Component\Widgets\Button</Filter>
     </ClInclude>
     <ClInclude Include="ButtonBar.h">
-      <Filter>Source\Component\Widgets\Button</Filter>
-    </ClInclude>
-    <ClInclude Include="ButtonListener.h">
       <Filter>Source\Component\Widgets\Button</Filter>
     </ClInclude>
     <ClInclude Include="CheckBox.h">

@@ -28,9 +28,8 @@ void			Click(Ptr<CWindow> pWindow);
 // stop it and remember which was clicked.
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestDialog : public CButtonListener
+class CTestDialog
 {
-CONSTRUCTABLE(CTestDialog);
 public:
 	Ptr<CWindow>		pDialog;
 	Ptr<CWindow>		pOwner;
@@ -74,8 +73,8 @@ public:
 
 		pOK = OMalloc<CButton>(pDialog, pTheme, "OK");
 		pCancel = OMalloc<CButton>(pDialog, pTheme, "Cancel");
-		pOK->AddListener(this);
-		pCancel->AddListener(this);
+		pOK->GetClickEvent()->Add(this, &CTestDialog::Clicked);
+		pCancel->GetClickEvent()->Add(this, &CTestDialog::Clicked);
 		pDialog->SetDefaultButton(pOK);
 		pDialog->SetCancelButton(pCancel);
 		pBar = OMalloc<CButtonBar>(pDialog);
@@ -87,8 +86,8 @@ public:
 
 	void Kill(void)
 	{
-		pOK->RemoveListener(this);
-		pCancel->RemoveListener(this);
+		pOK->GetClickEvent()->Remove(this);
+		pCancel->GetClickEvent()->Remove(this);
 		pName = NULL;
 		pInverse = NULL;
 		pOK = NULL;
@@ -99,10 +98,10 @@ public:
 		szResult.Kill();
 	}
 
-	void ButtonClicked(CUnknown* pcSource, void* pvContext) override
+	void Clicked(CButton* pcButton)
 	{
 		szResult.Kill();
-		szResult.Init(((CButton*)pcSource)->GetCaption());
+		szResult.Init(pcButton->GetCaption());
 		pDialog->Stop();
 	}
 };

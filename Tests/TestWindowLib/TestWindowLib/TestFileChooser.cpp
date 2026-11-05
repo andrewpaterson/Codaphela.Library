@@ -173,7 +173,7 @@ void TestFileChooserBrowse(void)
 		AssertString("", pChooser->GetFileName()->GetText());
 
 		//Up goes back with the folder come from selected.
-		pChooser->ButtonClicked(&pChooser->GetUp());
+		pChooser->GetUp()->Click();
 		AssertString(szFull.Text(), pChooser->GetDirectory());
 		AssertInt(0, pChooser->GetList()->GetSelected());
 
@@ -184,7 +184,7 @@ void TestFileChooserBrowse(void)
 
 		//New Folder's dialog isn't shown from the click, which is input, but on the chooser's next tick.
 		AssertFalse(pChooser->IsNewFolderPending());
-		pChooser->ButtonClicked(&pChooser->GetNewFolder());
+		pChooser->GetNewFolder()->Click();
 		AssertTrue(pChooser->IsNewFolderPending());
 		ORoot()->Remove(pChooser);
 		pChooser = NULL;

@@ -137,8 +137,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	mpCancel = OMalloc<CButton>(mpDialog, psLook->pcTheme, "Cancel");
 	mpOK->SetDesiredSize(72, -1);
 	mpCancel->SetDesiredSize(72, -1);
-	mpOK->AddListener(this);
-	mpCancel->AddListener(this);
+	mpOK->GetClickEvent()->Add(this, &CDialog::OKClicked);
+	mpCancel->GetClickEvent()->Add(this, &CDialog::CloseClicked);
 	mpDialog->SetDefaultButton(mpOK);
 	mpDialog->SetCancelButton(mpCancel);
 
@@ -202,10 +202,25 @@ bool CDialog::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CDialog::Free(void)
 {
-	//An object's memory is freed without its destructor running so the dialog takes itself off its buttons, if they're
-	//still here.  The window, its widgets and the tick are freed with the dialog's pointers.
-	RemoveFromListenerCalls();
+	//The dialog takes itself off its buttons, if they're still here.  The window, its widgets and the tick are freed
+	//with the dialog's pointers.
+	RemoveFromButton(mpOK);
+	RemoveFromButton(mpCancel);
+	RemoveFromButton(mpExtra);
 	mszClicked.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::RemoveFromButton(Ptr<CButton> pButton)
+{
+	if (pButton.IsNotNull())
+	{
+		pButton->GetClickEvent()->Remove(this);
+	}
 }
 
 
@@ -355,7 +370,7 @@ void CDialog::AddDivider(const char* szTitle)
 void CDialog::AddExtraButton(const char* szCaption)
 {
 	mpExtra = OMalloc<CButton>(mpDialog, mpsLook->pcTheme, szCaption);
-	mpExtra->AddListener(this);
+	mpExtra->GetClickEvent()->Add(this, &CDialog::CloseClicked);
 	mpButtons->RemoveAllComponents();
 	mpButtons->AddComponent(mpExtra);
 	mpButtons->AddComponent(mpOK);
@@ -448,21 +463,27 @@ bool CDialog::Show(int32 iWidth, int32 iHeight)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every button closes the dialog, OK as "OK" whatever its caption unless
-// the approver stops it.
+// OK closes the dialog as "OK", whatever its caption, unless the approver
+// stops it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDialog::ButtonClicked(CUnknown* pcSource, void* pvContext)
+void CDialog::OKClicked(void)
 {
-	if (&mpOK == pcSource)
+	if ((mpcApprover == NULL) || mpcApprover->Approve())
 	{
-		if ((mpcApprover == NULL) || mpcApprover->Approve())
-		{
-			Close("OK");
-		}
-		return;
+		Close("OK");
 	}
-	Close(((CButton*)pcSource)->GetCaption());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Cancel and the extra button close the dialog as their captions.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::CloseClicked(CButton* pcButton)
+{
+	Close(pcButton->GetCaption());
 }
 
 

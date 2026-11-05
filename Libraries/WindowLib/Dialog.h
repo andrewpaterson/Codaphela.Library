@@ -88,7 +88,7 @@ public:
 //
 //A dialog is an object: make it with OMalloc and keep it in the root, or in an object that is, while it's shown.  It
 //holds its window.
-class CDialog : public CObject, public CButtonListener
+class CDialog : public CObject
 {
 CONSTRUCTABLE(CDialog);
 DESTRUCTABLE(CDialog);
@@ -133,10 +133,12 @@ public:
 	Ptr<CWindow>		GetWindow(void);
 	SDialogLook*	GetLook(void);
 
-	void				ButtonClicked(CUnknown* pcSource, void* pvContext) override;
+	void				OKClicked(void);
+	void				CloseClicked(CButton* pcButton);
 
 protected:
 	void				AddRow(const char* szLabel, Ptr<CComponent> pEditor);
+	void				RemoveFromButton(Ptr<CButton> pButton);
 };
 
 

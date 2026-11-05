@@ -28,26 +28,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CLineZoneListener::Init(CLineZone* pcZone)
-{
-	mpcZone = pcZone;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLineZoneListener::ButtonClicked(CUnknown* pcSource, void* pvContext)
-{
-	mpcZone->ButtonClicked(pcSource);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The header in pTitleFont over the text in pTextFamily's fixed width
 // font (as tiles) in sText, on sBackground so it stands apart from the
 // code.  The
@@ -62,7 +42,6 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	PreInit();
 
 	CGridContainer::Init(pWindow);
-	mcListener.Init(this);
 	mpcSource = NULL;
 	muiLine = 0;
 	muiPages = 0;
@@ -75,6 +54,8 @@ void CLineZone::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> 
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
 	mpPrevious = CreateButton(pWindow, pTheme, "<");
 	mpNext = CreateButton(pWindow, pTheme, ">");
+	mpPrevious->GetClickEvent()->Add(this, &CLineZone::StepPrevious);
+	mpNext->GetClickEvent()->Add(this, &CLineZone::StepNext);
 	mpText = OMalloc<CTextArea>(pWindow, pTextFamily, "");
 	mpText->SetEditable(false);
 	mpText->SetTiledText(true);
@@ -102,7 +83,6 @@ Ptr<CButton> CLineZone::CreateButton(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTh
 
 	pButton = OMalloc<CButton>(pWindow, pTheme, BL_Small, Ptr<CImageCel>(), szCaption);
 	pButton->SetPadding(4, 0);
-	pButton->AddListener(&mcListener);
 	return pButton;
 }
 
@@ -118,7 +98,6 @@ void CLineZone::Class(void)
 	M_Pointer(mpPrevious);
 	M_Pointer(mpNext);
 	M_Pointer(mpText);
-	U_Unknown(CLineZoneListener, mcListener);
 	U_Pointer(mpcSource);
 	U_Size(muiLine);
 	U_Size(muiPages);
@@ -135,7 +114,14 @@ void CLineZone::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CLineZone::Free(void)
 {
-	mcListener.RemoveFromListenerCalls();
+	if (mpPrevious.IsNotNull())
+	{
+		mpPrevious->GetClickEvent()->Remove(this);
+	}
+	if (mpNext.IsNotNull())
+	{
+		mpNext->GetClickEvent()->Remove(this);
+	}
 	mszTitle.Kill();
 	CGridContainer::Free();
 }
@@ -221,10 +207,8 @@ void CLineZone::SetOutOfDate(bool bOutOfDate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineZone::ButtonClicked(CUnknown* pcButton)
-{
-	Step((pcButton == &mpPrevious) ? -1 : 1);
-}
+void CLineZone::StepPrevious(void) { Step(-1); }  //The < button.
+void CLineZone::StepNext(void) { Step(1); }  //The > button.
 
 
 //////////////////////////////////////////////////////////////////////////
