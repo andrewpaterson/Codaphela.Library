@@ -201,6 +201,9 @@
     <ClInclude Include="IconComponent.h" />
     <ClInclude Include="Popup.h" />
     <ClInclude Include="RoundedBoxCanvasDraw.h" />
+    <ClInclude Include="DiffDividerDraw.h" />
+    <ClInclude Include="DiffViewColours.h" />
+    <ClInclude Include="DiffView.h" />
     <ClInclude Include="MenuStyle.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuContainer.h" />
@@ -305,6 +308,9 @@
     <ClCompile Include="IconComponent.cpp" />
     <ClCompile Include="Popup.cpp" />
     <ClCompile Include="RoundedBoxCanvasDraw.cpp" />
+    <ClCompile Include="DiffDividerDraw.cpp" />
+    <ClCompile Include="DiffViewColours.cpp" />
+    <ClCompile Include="DiffView.cpp" />
     <ClCompile Include="MenuStyle.cpp" />
     <ClCompile Include="MenuItem.cpp" />
     <ClCompile Include="MenuContainer.cpp" />

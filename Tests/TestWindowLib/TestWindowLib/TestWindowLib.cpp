@@ -20,6 +20,7 @@ void TestTextArea(void);
 void TestTextAreaBackgrounds(void);
 void TestTextAreaEdit(void);
 void TestCodeEditor(void);
+void TestDiffView(void);
 void TestLineZones(void);
 void TestScrollPane(void);
 void TestComponentInput(void);
@@ -77,6 +78,7 @@ int __cdecl main(void)
 	TestTextAreaBackgrounds();
 	TestTextAreaEdit();
 	TestCodeEditor();
+	TestDiffView();
 	TestLineZones();
 	TestScrollPane();
 	TestComponentInput();

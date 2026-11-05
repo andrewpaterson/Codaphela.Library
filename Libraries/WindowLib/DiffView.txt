@@ -139,6 +139,23 @@ and code editor tests do.
 8. IDE: a "Compare With..." entry that opens a diff view in an editor tab (HCP65-IDE).
 
 
+Status (2026-11-05)
+-------------------
+
+Steps 1 to 8 are done.  CTextContent::FindLine, CTextDiffLineMapper (StandardLib), CVectorPath::CubicTo (SupportLib),
+CDiffDividerDraw, SDiffViewColours and CDiffView (WindowLib), with tests in TestStandardLib, TestSupportLib and
+TestWindowLib (TestDiffView.cpp: the divider's shapes and a small diff drawn, and scrolling synchronised).  The gutters'
+bands are CCodeEditor change bands (AddChangeBand), which survive the gutter being numbered again.  The IDE's
+Git, Compare with HEAD opens the selected file's diff against its last commit in an editor tab (HCP65-IDE).
+
+Differences from the plan: the divider is a canvas draw given its shapes by the view, rather than a component that
+works them out; and a side scrolled by the view is recognised by the position it was scrolled to (mbSyncing can't work,
+as the scroll event comes later, while the window is laid out).
+
+Known gaps: line numbers are hard to read on the bands; the texts aren't syntax highlighted; tabs have no width in the
+text area, so indented lines start at the left.
+
+
 Later
 -----
 

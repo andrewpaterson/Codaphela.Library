@@ -201,6 +201,15 @@
     <ClInclude Include="RoundedBoxCanvasDraw.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="DiffDividerDraw.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="DiffViewColours.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="DiffView.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
@@ -411,6 +420,15 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="RoundedBoxCanvasDraw.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DiffDividerDraw.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DiffViewColours.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DiffView.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="CanvasDraw.cpp">
