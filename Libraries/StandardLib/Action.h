@@ -55,17 +55,13 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pcObject is usually the object adding it, this.  The thunk is given
-// rather than left to SMemberCall::Init's overloads, which differ only in
-// their function's type: CPP65 chooses a member template by its number
-// of arguments, so StandardLib compiled for the 65C64 or the W65C816
-// would get the wrong one.
+// pcObject is usually the object adding it, this.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M, class O>
 void CAction::Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
 {
-	mcCalls.Add()->Init<M>(pcObject, fFunction, &MemberCallWithValue<M, CAction, void*>);
+	mcCalls.Add()->Init(pcObject, fFunction);
 }
 
 
