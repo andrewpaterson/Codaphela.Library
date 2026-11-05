@@ -28,9 +28,14 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #define DEBUG_ARGUMENT_NETWORK			"--debug-tcp"		//Then a port (0 for any): the emulator listens on the loopback network.
 #define DEBUG_ARGUMENT_WAIT				"--debug-wait"		//Hold before the first instruction until a debugger continues it.
 #define DEBUG_ARGUMENT_EXIT_ON_DETACH	"--exit-on-detach"	//Close when the debugger detaches or goes.
+#define DEBUG_ARGUMENT_CARD				"--card"			//Then a disk image file: the card the computer boots from.
 
 //Printed on standard output, with the port, when the emulator listens: for a person attaching to a port it chose.
 #define DEBUG_PORT_LINE					"Debug port "
+
+
+//The value given after szArgument ("--card", "file.img"): NULL if szArgument isn't there, "" if nothing follows it.
+const char* DebugLaunchValue(int argc, char* argv[], const char* szArgument);
 
 
 #endif // __DEBUG_LAUNCH_H__

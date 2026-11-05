@@ -12,6 +12,9 @@
     <ClCompile Include="TestDebugServer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TestDebugLaunch.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\TestMicroprocessorLib\TestMicroprocessorLib\Test65C64Context.cpp">
       <Filter>Source</Filter>
     </ClCompile>

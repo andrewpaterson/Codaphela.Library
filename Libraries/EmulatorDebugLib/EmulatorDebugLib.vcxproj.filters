@@ -21,6 +21,9 @@
     <ClCompile Include="DebugTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="DebugLaunch.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Flat65C64DebugTarget.cpp">
       <Filter>Source</Filter>
     </ClCompile>

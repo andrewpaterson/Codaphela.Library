@@ -220,6 +220,7 @@
   <ItemGroup>
     <ClCompile Include="TestEmulatorDebugLib.cpp" />
     <ClCompile Include="TestDebugServer.cpp" />
+    <ClCompile Include="TestDebugLaunch.cpp" />
     <ClCompile Include="..\..\TestMicroprocessorLib\TestMicroprocessorLib\Test65C64Context.cpp" />
   </ItemGroup>
   <ItemGroup>

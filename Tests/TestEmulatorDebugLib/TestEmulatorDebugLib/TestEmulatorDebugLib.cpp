@@ -4,6 +4,7 @@
 
 
 void TestDebugServer(void);
+void TestDebugLaunch(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -19,6 +20,7 @@ int __cdecl main(void)
 	SocketsInit();
 
 	TestDebugServer();
+	TestDebugLaunch();
 
 	SocketsKill();
 	TypeConverterKill();
