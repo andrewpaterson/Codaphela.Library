@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define IR816_ARGUMENT_STANDIN	0x10000		//The pushed parameters' stand-in places while temporaries are placed (AddRegions), past any frame.
-#define IR816_PAIR_WEIGHT(iDepth, bCopy)	(2 * (iDepth) + ((bCopy) ? 1 : 0))	//A pair's weight: the loops it is in, and of two in as many a phi's copy (a whole copy saved) first.
+#define IR816_PAIR_WEIGHT(iDepth, bCopy, bIn)	(4 * (iDepth) + ((bCopy) ? 2 : 0) + ((bIn) ? 1 : 0))	//A pair's weight: the loops it is in, then a phi's copy (a whole copy saved), then a copy into a loop's head (made each time the loop is entered; each of its ways out only some of the times).
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1274,7 +1274,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 					{
 						iCallPosition = iPosition + (int32)(uk - uj);
-						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false));
+						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false, false));
 						break;
 					}
 				}
@@ -1294,7 +1294,7 @@ int32 CIR816Backend::PackTemporaries(void)
 				{
 					if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 					{
-						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false));
+						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false, false));
 					}
 				}
 				if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && FoldedBase(psInstruction->asArguments[0]).IsTemporary())
@@ -1305,7 +1305,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					psLoadPair->sResult = psInstruction->sResult;
 					psLoadPair->sPointer = FoldedBase(psInstruction->asArguments[0]);
 					psLoadPair->iPosition = iPosition;
-					psLoadPair->iDepth = IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false);
+					psLoadPair->iDepth = IR816_PAIR_WEIGHT(*aiDepths.Get(ui), false, false);
 					psLoadPair->bWide = Words(psInstruction->sType) > 1;
 				}
 			}
@@ -1335,7 +1335,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					{
 						//The copy is made going that way: as often as the innermost loop both blocks are in goes round
 						//(once per loop for a way out of it).
-						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true));
+						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, IR816_PAIR_WEIGHT(SharedLoopDepth(pcBlock, pcSuccessor), true, mcLoops.IsHead(pcSuccessor)));
 					}
 				}
 			}
@@ -1501,11 +1501,10 @@ int32 CIR816Backend::PackTemporaries(void)
 }
 
 
-//A pair GroupTemporaries may merge: its weight, where they meet, the lower temporary and the pair in its list.
+//A pair GroupTemporaries may merge: its weight, the lower temporary and the pair in its list.
 struct SIR816MergePair
 {
 	int32	iWeight;
-	int32	iPosition;
 	int32	iOne;
 	int32	iPair;
 };
@@ -1513,7 +1512,7 @@ struct SIR816MergePair
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Heaviest first, then where they meet, then in order (the same each time).
+// Heaviest first, then in order (the same each time).
 //
 //////////////////////////////////////////////////////////////////////////
 static int CompareIR816MergePair(const void* pvLeft, const void* pvRight)
@@ -1526,10 +1525,6 @@ static int CompareIR816MergePair(const void* pvLeft, const void* pvRight)
 	if (psLeft->iWeight != psRight->iWeight)
 	{
 		return (psLeft->iWeight > psRight->iWeight) ? -1 : 1;
-	}
-	if (psLeft->iPosition != psRight->iPosition)
-	{
-		return (psLeft->iPosition < psRight->iPosition) ? -1 : 1;
 	}
 	if (psLeft->iOne != psRight->iOne)
 	{
@@ -1625,8 +1620,7 @@ int32 CIR816Groups::Find(int32 iTemporary)
 //////////////////////////////////////////////////////////////////////////
 //
 // Merges the temporaries that are pairs into groups that will share a
-// place, the heaviest pairs first (IR816_PAIR_WEIGHT), of those the first
-// where they meet (a loop's way in before its ways out): two groups merge when
+// place, the heaviest pairs first (IR816_PAIR_WEIGHT): two groups merge when
 // none of one is live with any of the other at one place (Interferes: only
 // a pair meeting where one ends and the other starts), at most one pushed
 // parameter (whose place is fixed) between them, and everything fits at its
@@ -1688,7 +1682,6 @@ void CIR816Backend::GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* p
 			{
 				psMerge = asPairs.Add();
 				psMerge->iWeight = *pcRanges->maiPairWeight.Get(iPair);
-				psMerge->iPosition = *pcRanges->maiPairPosition.Get(iPair);
 				psMerge->iOne = iTemporary;
 				psMerge->iPair = iPair;
 			}
