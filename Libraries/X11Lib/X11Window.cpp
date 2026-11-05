@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
+#include <X11/cursorfont.h>
 
 
 #define X11_WINDOW_WIDTH        800
@@ -52,6 +53,7 @@ void CX11Window::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
     mbPointerKnown = false;
     miPointerX = 0;
     miPointerY = 0;
+    memset(maulCursors, 0, sizeof(maulCursors));
 }
 
 
@@ -87,6 +89,7 @@ void CX11Window::DestroyNativeWindow(void)
         }
 
         pcFactory->RemoveWindow(this);
+        FreeCursors();
         XFreeGC(psDisplay, mpsGC);
         XDestroyWindow(psDisplay, mulWindow);
         XFlush(psDisplay);
@@ -208,7 +211,8 @@ bool CX11Window::CreateNativeWindow(void)
     iHeight = (msRequestedSize.y > 0) ? msRequestedSize.y : X11_WINDOW_HEIGHT;
     mulWindow = XCreateWindow(psDisplay,
                               RootWindow(psDisplay, iScreen),
-                              0, 0,                                     // Position, the window manager places it
+                              mbScreenRectangle ? mcScreenRectangle.GetLeft() : 0,  // Position, the window manager places it
+                              mbScreenRectangle ? mcScreenRectangle.GetTop() : 0,   // unless one was set.
                               iWidth, iHeight,                          // Size
                               0,                                        // Border width
                               iDepth,
@@ -233,7 +237,11 @@ bool CX11Window::CreateNativeWindow(void)
 
     mpsGC = XCreateGC(psDisplay, mulWindow, 0, NULL);
 
-    if (mpcOwner)
+    if (mpcOwner && mbTool)
+    {
+        SetToolHints();
+    }
+    else if (mpcOwner)
     {
         SetDialogHints(iWidth, iHeight);
     }
@@ -301,6 +309,65 @@ void CX11Window::SetDialogHints(int iWidth, int iHeight)
         psHints->max_height = iHeight;
         XSetWMNormalHints(psDisplay, mulWindow, psHints);
         XFree(psHints);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tool window floats over its owner with no frame: WindowLib draws its
+// title and edges and moves it itself.  It isn't on the task bar.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::SetToolHints(void)
+{
+    CX11WindowFactory*      pcFactory;
+    Display*                psDisplay;
+    CX11Window*             pcOwner;
+    XSizeHints*             psHints;
+    Atom                    ulType;
+    Atom                    aulStates[1];
+    Atom                    ulMotif;
+    unsigned long           aulMotifHints[5];
+    XWMHints*               psWMHints;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    pcOwner = (CX11Window*)mpcOwner;
+    if (pcOwner->mulWindow)
+    {
+        XSetTransientForHint(psDisplay, mulWindow, pcOwner->mulWindow);
+    }
+    ulType = pcFactory->InternAtom("_NET_WM_WINDOW_TYPE_UTILITY");
+    XChangeProperty(psDisplay, mulWindow, pcFactory->InternAtom("_NET_WM_WINDOW_TYPE"), XA_ATOM, 32, PropModeReplace, (unsigned char*)&ulType, 1);
+    aulStates[0] = pcFactory->InternAtom("_NET_WM_STATE_SKIP_TASKBAR");
+    XChangeProperty(psDisplay, mulWindow, pcFactory->InternAtom("_NET_WM_STATE"), XA_ATOM, 32, PropModeReplace, (unsigned char*)aulStates, 1);
+
+    //_MOTIF_WM_HINTS: flags (2, decorations), functions, decorations (none), input mode, status.
+    ulMotif = pcFactory->InternAtom("_MOTIF_WM_HINTS");
+    memset(aulMotifHints, 0, sizeof(aulMotifHints));
+    aulMotifHints[0] = 2;
+    XChangeProperty(psDisplay, mulWindow, ulMotif, ulMotif, 32, PropModeReplace, (unsigned char*)aulMotifHints, 5);
+
+    //Placed where it was asked, not where the window manager would put it.
+    psHints = XAllocSizeHints();
+    if (psHints)
+    {
+        psHints->flags = USPosition | PPosition;
+        psHints->x = mcScreenRectangle.GetLeft();
+        psHints->y = mcScreenRectangle.GetTop();
+        XSetWMNormalHints(psDisplay, mulWindow, psHints);
+        XFree(psHints);
+    }
+
+    //Shown without the keys, as dragging a pane out of its owner shouldn't take them.
+    psWMHints = XAllocWMHints();
+    if (psWMHints)
+    {
+        psWMHints->flags = InputHint;
+        psWMHints->input = True;
+        XSetWMHints(psDisplay, mulWindow, psWMHints);
+        XFree(psWMHints);
     }
 }
 
@@ -482,8 +549,8 @@ void CX11Window::HandleEvent(XEvent* puEvent)
         }
         case MapNotify:
         {
-            //A dialog takes the keys from its owner.
-            if (mpcOwner)
+            //A dialog takes the keys from its owner.  A tool window appearing, dragged out of its owner say, doesn't.
+            if (mpcOwner && !mbTool)
             {
                 XSetInputFocus(pcFactory->GetDisplay(), mulWindow, RevertToParent, CurrentTime);
             }
@@ -649,3 +716,186 @@ X11ID CX11Window::GetXWindow(void)
 {
     return mulWindow;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves and resizes the client area, or says where it will be made.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::SetScreenRectangle(CInt32Rect* pcRectangle)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+    int                 iWidth;
+    int                 iHeight;
+
+    CNativeWindow::SetScreenRectangle(pcRectangle);
+    if (mulWindow == 0)
+    {
+        return;
+    }
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    iWidth = (pcRectangle->GetWidth() > 0) ? pcRectangle->GetWidth() : 1;
+    iHeight = (pcRectangle->GetHeight() > 0) ? pcRectangle->GetHeight() : 1;
+    XMoveResizeWindow(psDisplay, mulWindow, pcRectangle->GetLeft(), pcRectangle->GetTop(), iWidth, iHeight);
+    //The canvas is laid out at the new size straight away, not when the server says it has changed.
+    miWidth = iWidth;
+    miHeight = iHeight;
+    XFlush(psDisplay);
+    mpcWindow->Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CX11Window::GetScreenRectangle(CInt32Rect* pcDest)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+    Window              ulChild;
+    int                 x;
+    int                 y;
+
+    if (mulWindow == 0)
+    {
+        return CNativeWindow::GetScreenRectangle(pcDest);
+    }
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    x = 0;
+    y = 0;
+    XTranslateCoordinates(psDisplay, mulWindow, RootWindow(psDisplay, pcFactory->GetScreen()), 0, 0, &x, &y, &ulChild);
+    pcDest->Init(x, y, x + miWidth, y + miHeight);
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CX11Window::GetPointerScreenPosition(SInt32Vec2* psDest)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+    Window              ulRoot;
+    Window              ulChild;
+    int                 iRootX;
+    int                 iRootY;
+    int                 iWindowX;
+    int                 iWindowY;
+    unsigned int        uiMask;
+
+    if (mulWindow == 0)
+    {
+        return false;
+    }
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    if (!XQueryPointer(psDisplay, mulWindow, &ulRoot, &ulChild, &iRootX, &iRootY, &iWindowX, &iWindowY, &uiMask))
+    {
+        return false;
+    }
+    psDest->Init(iRootX, iRootY);
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::GetScreenArea(CInt32Rect* pcDest)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    if (psDisplay == NULL)
+    {
+        CNativeWindow::GetScreenArea(pcDest);
+        return;
+    }
+    pcDest->Init(0, 0, DisplayWidth(psDisplay, pcFactory->GetScreen()), DisplayHeight(psDisplay, pcFactory->GetScreen()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cursor font's shapes, made the first time each is shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::SetCursor(ENativeCursor eCursor)
+{
+    static unsigned int auiShapes[NC_NumCursors] = { XC_left_ptr, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_right_corner, XC_bottom_left_corner, XC_fleur };
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+
+    if ((eCursor == meCursor) || (eCursor < 0) || (eCursor >= NC_NumCursors))
+    {
+        return;
+    }
+    CNativeWindow::SetCursor(eCursor);
+    if (mulWindow == 0)
+    {
+        return;
+    }
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    if (maulCursors[eCursor] == 0)
+    {
+        maulCursors[eCursor] = XCreateFontCursor(psDisplay, auiShapes[eCursor]);
+    }
+    XDefineCursor(psDisplay, mulWindow, maulCursors[eCursor]);
+    XFlush(psDisplay);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::FreeCursors(void)
+{
+    CX11WindowFactory*  pcFactory;
+    Display*            psDisplay;
+    int                 i;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psDisplay = pcFactory->GetDisplay();
+    for (i = 0; i < NC_NumCursors; i++)
+    {
+        if (maulCursors[i])
+        {
+            XFreeCursor(psDisplay, maulCursors[i]);
+            maulCursors[i] = 0;
+        }
+    }
+    meCursor = NC_Arrow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::Raise(void)
+{
+    CX11WindowFactory*  pcFactory;
+
+    if (mulWindow)
+    {
+        pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+        XRaiseWindow(pcFactory->GetDisplay(), mulWindow);
+        XFlush(pcFactory->GetDisplay());
+    }
+}
+
+
+bool CX11Window::IsCreated(void) { return mulWindow != 0; }
+

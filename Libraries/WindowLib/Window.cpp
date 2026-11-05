@@ -119,6 +119,9 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	SetMaxFramesPerSecond(WINDOW_DEFAULT_FRAMES_PER_SECOND);
 	miLastPaintTime = 0;
 	miTickDelay = -1;
+	mpOwner = NULL;
+	maOwned.Init();
+	mcClosed.Init();
 
 	PostInit();
 }
@@ -130,6 +133,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Free(void)
 {
+	mcClosed.Kill();
 	GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
 
@@ -170,6 +174,9 @@ void CWindow::Class(void)
 	U_UInt32(muiFrameMilliseconds);
 	U_Int64(miLastPaintTime);
 	U_Int64(miTickDelay);
+	M_Pointer(mpOwner);
+	M_Embedded(maOwned);
+	U_Data(CComponentEvent<CWindow>, mcClosed);
 }
 
 
@@ -223,6 +230,7 @@ bool CWindow::Show(void)
 	bContinuous = mbContinuous || !mpcNativeWindow->CanWaitForEvents();
 	bResult = true;
 	mbTicking = true;
+	CreateOwned();
 	mbRedraw = true;
 	miTickDelay = -1;
 	miLastPaintTime = GetDebugTickCount() - muiFrameMilliseconds;
@@ -251,6 +259,7 @@ bool CWindow::Show(void)
 		{
 			Paint();
 		}
+		PaintOwned(bContinuous);
 		miTickDelay = -1;
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 	}
@@ -285,9 +294,11 @@ static int64 ShorterWait(int64 iWait, int64 iOther)
 //////////////////////////////////////////////////////////////////////////
 int64 CWindow::GetWaitMilliseconds(void)
 {
-	int64	iWait;
-	int64	iFrameWait;
-	uint32	uiDelay;
+	int64			iWait;
+	int64			iFrameWait;
+	uint32			uiDelay;
+	size			i;
+	Ptr<CWindow>	pOwned;
 
 	iWait = -1;
 	if (mbRedraw)
@@ -303,6 +314,15 @@ int64 CWindow::GetWaitMilliseconds(void)
 	if (mpSoundMixer.IsNotNull() && mpSoundMixer->GetMixDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
+	}
+	for (i = 0; i < maOwned.Size(); i++)
+	{
+		pOwned = maOwned.Get(i);
+		if (pOwned->mbRedraw)
+		{
+			iFrameWait = pOwned->miLastPaintTime + pOwned->muiFrameMilliseconds - GetDebugTickCount();
+			iWait = ShorterWait(iWait, (iFrameWait > 0) ? iFrameWait : 0);
+		}
 	}
 	return iWait;
 }
@@ -421,6 +441,7 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	pOwner->Deactivate();
 	pcOwnerNative = pOwner->GetNativeWindow();
 	pcOwnerNative->SetEnabled(false);
+	pOwner->SetOwnedEnabled(false);
 
 	pcComponentInput = pOwner->GetComponentInput();
 	if (pcComponentInput)
@@ -438,6 +459,7 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 
 	//The owner is enabled before the dialog goes so that the owner is the window activated.
 	pcOwnerNative->SetEnabled(true);
+	pOwner->SetOwnedEnabled(true);
 	mpcNativeWindow->DestroyNativeWindow();
 	mpcNativeWindow->SetOwner(NULL);
 
@@ -589,6 +611,7 @@ void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Activate(void)
 {
+	ClaimInput();
 	mFocus.Activate();
 	InvalidateLayout();
 	mcActivated.Call(this);
@@ -625,7 +648,8 @@ void CWindow::Deactivate(void)
 {
 	InvalidateLayout();
 	mFocus.Deactivate();
-	if (mpcComponentInput)
+	//A tool window of the same owner that took the input, by being pressed, keeps what is held.
+	if (mpcComponentInput && (mpcComponentInput->GetWindow() == this))
 	{
 		mpcComponentInput->ReleaseAll();
 	}
@@ -910,4 +934,266 @@ CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows the window as a tool window floating over pOwner, its client
+// area at pcScreenRectangle, and returns straight away; if pOwner isn't
+// shown yet, when it is.  It isn't modal:
+// the owner's loop lays it out and paints it with its own, and the
+// owner's component input comes to it while it is the active window.  It
+// has no frame; its content draws its title and edges.  It stays until
+// CloseOwned, or until the platform closes it, then the closed event is
+// called.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle)
+{
+	if (pOwner.IsNull() || (pOwner == this))
+	{
+		return false;
+	}
+	mpcNativeWindow->SetOwner(pOwner->GetNativeWindow());
+	mpcNativeWindow->SetTool(true);
+	mpcNativeWindow->SetScreenRectangle(pcScreenRectangle);
+	//An owner not on the screen yet, its layout read before it is shown say, makes it when it is.
+	if (pOwner->mbTicking && !mpcNativeWindow->CreateNativeWindow())
+	{
+		mpcNativeWindow->SetOwner(NULL);
+		return false;
+	}
+	mpOwner = pOwner;
+	pOwner->maOwned.Add(this);
+	SetComponentInput(pOwner->GetComponentInput());
+	mbTicking = true;
+	mbRedraw = true;
+	mbLayoutDirty = true;
+	miLastPaintTime = GetDebugTickCount() - muiFrameMilliseconds;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes a tool window off the screen.  Its owner gets the input back if
+// it had it.  It can be shown again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CloseOwned(void)
+{
+	Ptr<CWindow>	pOwner;
+
+	if (mpOwner.IsNull())
+	{
+		return;
+	}
+	pOwner = mpOwner;
+	CloseAllPopups();
+	mFocus.Deactivate();
+	if (mpcComponentInput && (mpcComponentInput->GetWindow() == this))
+	{
+		mpcComponentInput->SetWindow(&pOwner);
+	}
+	SetComponentInput(NULL);
+	mpcNativeWindow->DestroyNativeWindow();
+	mpcNativeWindow->SetOwner(NULL);
+	mpcNativeWindow->SetTool(false);
+	mbTicking = false;
+	mpOwner = NULL;
+	pOwner->maOwned.Remove(this);
+	pOwner->Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tool windows shown before this window was are put on the screen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CreateOwned(void)
+{
+	size			i;
+	Ptr<CWindow>	pOwned;
+
+	for (i = 0; i < maOwned.Size(); i++)
+	{
+		pOwned = maOwned.Get(i);
+		if (!pOwned->mpcNativeWindow->IsCreated())
+		{
+			pOwned->mpcNativeWindow->SetOwner(mpcNativeWindow);
+			pOwned->mpcNativeWindow->CreateNativeWindow();
+			pOwned->Invalidate();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lays out and paints the tool windows that have changed.  One the
+// platform closed is taken off and its closed event called.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PaintOwned(bool bContinuous)
+{
+	size			i;
+	Ptr<CWindow>	pOwned;
+
+	for (i = 0; i < maOwned.Size();)
+	{
+		pOwned = maOwned.Get(i);
+		if (!pOwned->mpcNativeWindow->IsCreated())
+		{
+			pOwned->CloseOwned();
+			pOwned->mcClosed.Call(&pOwned);
+			continue;
+		}
+		if (bContinuous || (pOwned->mbRedraw && pOwned->IsFrameDue()))
+		{
+			pOwned->Paint();
+		}
+		i++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A modal dialog disables its owner's tool windows too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetOwnedEnabled(bool bEnabled)
+{
+	size			i;
+	Ptr<CWindow>	pOwned;
+
+	for (i = 0; i < maOwned.Size(); i++)
+	{
+		pOwned = maOwned.Get(i);
+		if (!bEnabled)
+		{
+			pOwned->CloseAllPopups();
+			pOwned->Deactivate();
+		}
+		pOwned->mpcNativeWindow->SetEnabled(bEnabled);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component input, shared by a window and its tool windows, comes to
+// this window: it was activated or pressed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::ClaimInput(void)
+{
+	if (mpcComponentInput && (mpcComponentInput->GetWindow() != this))
+	{
+		mpcComponentInput->SetWindow(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The client area's place on the screen.  A window the platform can't
+// move, a reference window, is moved anyway as far as WindowLib knows.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
+{
+	mpcNativeWindow->SetScreenRectangle(pcRectangle);
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::GetScreenRectangle(CInt32Rect* pcDest)
+{
+	mpcNativeWindow->GetScreenRectangle(pcDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the platform says the pointer is or, if it can't, where the
+// window last saw it relative to its client area.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
+{
+	CInt32Rect	cScreen;
+	SInt32Vec2	sPointer;
+
+	if (mpcNativeWindow->GetPointerScreenPosition(psDest))
+	{
+		return;
+	}
+	mpcNativeWindow->GetScreenRectangle(&cScreen);
+	sPointer = mFocus.GetPointer();
+	psDest->Init(cScreen.GetLeft() + sPointer.x, cScreen.GetTop() + sPointer.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::GetScreenArea(CInt32Rect* pcDest)
+{
+	mpcNativeWindow->GetScreenArea(pcDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer takes the shape of the component dragging, or else of the
+// component under it or its nearest parent with a shape.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::UpdateCursor(void)
+{
+	Ptr<CComponent>	pComponent;
+	ENativeCursor	eCursor;
+
+	eCursor = NC_Arrow;
+	pComponent = mFocus.GetDragComponent();
+	if (pComponent.IsNull() || (pComponent->GetCursor() == NC_Arrow))
+	{
+		pComponent = mFocus.GetMouseOverComponent();
+	}
+	while (pComponent.IsNotNull())
+	{
+		eCursor = pComponent->GetCursor();
+		if (eCursor != NC_Arrow)
+		{
+			break;
+		}
+		pComponent = pComponent->GetParent();
+	}
+	mpcNativeWindow->SetCursor(eCursor);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Raise(void)
+{
+	mpcNativeWindow->Raise();
+}
+
+
+bool CWindow::IsShown(void) { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
+bool CWindow::HasInput(void) { return (mpcComponentInput != NULL) && (mpcComponentInput->GetWindow() == this); }
+Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
+size CWindow::NumOwned(void) { return maOwned.Size(); }
+Ptr<CWindow> CWindow::GetOwned(size uiIndex) { return maOwned.Get(uiIndex); }
+CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }
 

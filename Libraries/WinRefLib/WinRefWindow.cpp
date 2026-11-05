@@ -106,7 +106,7 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 
     //A dialog's frames are kept apart from its owner's.
     szFileName.Init(mszImagePath);
-    cFileUtil.AppendToPath(&szFileName, mpcOwner ? "DialogFrame" : "Frame");
+    cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
     szFileName.Append(muiFrame);
     szFileName.Append(".png");
 
@@ -135,5 +135,27 @@ void CWinRefWindow::SignalPresent(void)
 void CWinRefWindow::GetRectangle(CInt32Rect* pcDest)
 {
     pcDest->Init(&mcWindowBounds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The client area is the rectangle's size, at 0, 0 in the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
+{
+    CNativeWindow::SetScreenRectangle(pcRectangle);
+    mcWindowBounds.Init(0, 0, pcRectangle->GetWidth(), pcRectangle->GetHeight());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefWindow::IsCreated(void)
+{
+    return mbCreated;
 }
 

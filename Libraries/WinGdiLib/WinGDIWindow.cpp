@@ -160,6 +160,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         }
         case WM_CLOSE:
         {
+            //A tool window, a floating pane, is closed by its owner's loop seeing it has gone.
+            if (pcWindow && pcWindow->IsTool())
+            {
+                pcWindow->DestroyNativeWindow();
+                return 0;
+            }
             //A dialog's close button only stops it.  CWindow::ShowModal enables the owner before it destroys the dialog,
             //otherwise Windows would activate another application's window.
             if (pcWindow && pcWindow->GetOwner())
@@ -197,6 +203,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         case WM_ERASEBKGND:
         {
             return 1;
+        }
+        case WM_SETCURSOR:
+        {
+            //The class's arrow would be put back on every move.
+            if (pcWindow && (LOWORD(lParam) == HTCLIENT) && pcWindow->ShowCursor())
+            {
+                return TRUE;
+            }
+            break;
         }
         case WM_SIZE:
         {
@@ -312,7 +327,15 @@ bool CWinGDIWindow::CreateNativeWindow(void)
     }
 
     //The requested size is the client area's, the window is that plus its frame.
-    dwStyle = mpcOwner ? (WS_POPUP | WS_CAPTION | WS_SYSMENU) : WS_OVERLAPPEDWINDOW;
+    if (mpcOwner && mbTool)
+    {
+        //No frame: WindowLib draws the tool window's title and edges.
+        dwStyle = WS_POPUP;
+    }
+    else
+    {
+        dwStyle = mpcOwner ? (WS_POPUP | WS_CAPTION | WS_SYSMENU) : WS_OVERLAPPEDWINDOW;
+    }
     sRect.left = 0;
     sRect.top = 0;
     sRect.right = (msRequestedSize.x > 0) ? msRequestedSize.x : 800;
@@ -332,8 +355,13 @@ bool CWinGDIWindow::CreateNativeWindow(void)
         iX = sOwnerRect.left + (sOwnerRect.right - sOwnerRect.left - iWidth) / 2;
         iY = sOwnerRect.top + (sOwnerRect.bottom - sOwnerRect.top - iHeight) / 2;
     }
+    if (mbScreenRectangle)
+    {
+        iX = mcScreenRectangle.GetLeft();
+        iY = mcScreenRectangle.GetTop();
+    }
 
-    mhWnd = CreateWindowExA(mpcOwner ? WS_EX_DLGMODALFRAME : 0,  // Optional window styles
+    mhWnd = CreateWindowExA(mpcOwner ? (mbTool ? (WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE) : WS_EX_DLGMODALFRAME) : 0,  // Optional window styles
                             mszWindowClass.Text(),         // Window class
                             mpcWindow->GetWindowTitle(),   // Window title
                             dwStyle,                       // Window style
@@ -346,13 +374,23 @@ bool CWinGDIWindow::CreateNativeWindow(void)
     ERROR_CHECK(szError, mhWnd == NULL, "CreateWindowExA");
 
     //Only the main window is shown as the program was asked to start, maximised say.
-    bResult = ShowWindow(mhWnd, mpcOwner ? SW_SHOWNORMAL : miCmdShow);
+    //A tool window appears without taking the keys, dragged out of its owner say.  WS_EX_NOACTIVATE is only for
+    //showing it; it can be activated by clicking it after.
+    bResult = ShowWindow(mhWnd, mpcOwner ? (mbTool ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL) : miCmdShow);
     ERROR_CHECK(szError, bResult, "ShowWindow");
+    if (mbTool)
+    {
+        SetWindowLongPtrA(mhWnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+    }
 
     bResult = UpdateWindow(mhWnd);
     ERROR_CHECK(szError, !bResult, "UpdateWindow");
 
-    pcFactory->SetHWnd(mhWnd);
+    //Raw input and the canvases' compatible DCs stay the main window's, a tool window doesn't take them.
+    if (!mbTool)
+    {
+        pcFactory->SetHWnd(mhWnd);
+    }
 
     return true;
 }
@@ -459,7 +497,7 @@ void CWinGDIWindow::DestroyNativeWindow(void)
     mhWnd = NULL;
 
     pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
-    if (mpcOwner)
+    if (mpcOwner && !mbTool)
     {
         pcFactory->SetHWnd(((CWinGDIWindow*)mpcOwner)->mhWnd);
     }
@@ -647,4 +685,149 @@ HWND CWinGDIWindow::GetHWnd(void)
 {
     return mhWnd;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves and resizes the client area.  A tool window has no frame so its
+// window is its client area.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
+{
+    RECT    sRect;
+
+    CNativeWindow::SetScreenRectangle(pcRectangle);
+    if (mhWnd == NULL)
+    {
+        return;
+    }
+    sRect.left = pcRectangle->GetLeft();
+    sRect.top = pcRectangle->GetTop();
+    sRect.right = pcRectangle->GetLeft() + pcRectangle->GetWidth();
+    sRect.bottom = pcRectangle->GetTop() + pcRectangle->GetHeight();
+    AdjustWindowRectEx(&sRect, (DWORD)GetWindowLongPtrA(mhWnd, GWL_STYLE), FALSE, (DWORD)GetWindowLongPtrA(mhWnd, GWL_EXSTYLE));
+    SetWindowPos(mhWnd, NULL, sRect.left, sRect.top, sRect.right - sRect.left, sRect.bottom - sRect.top, SWP_NOZORDER | SWP_NOACTIVATE);
+    mpcWindow->Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::GetScreenRectangle(CInt32Rect* pcDest)
+{
+    POINT   sOrigin;
+    RECT    sClient;
+
+    if ((mhWnd == NULL) || !GetClientRect(mhWnd, &sClient))
+    {
+        return CNativeWindow::GetScreenRectangle(pcDest);
+    }
+    sOrigin.x = 0;
+    sOrigin.y = 0;
+    ClientToScreen(mhWnd, &sOrigin);
+    pcDest->Init(sOrigin.x, sOrigin.y, sOrigin.x + sClient.right, sOrigin.y + sClient.bottom);
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
+{
+    POINT   sPoint;
+
+    if (!GetCursorPos(&sPoint))
+    {
+        return false;
+    }
+    psDest->Init(sPoint.x, sPoint.y);
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The whole virtual screen, every monitor.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::GetScreenArea(CInt32Rect* pcDest)
+{
+    int     iLeft;
+    int     iTop;
+
+    iLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    iTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    pcDest->Init(iLeft, iTop, iLeft + GetSystemMetrics(SM_CXVIRTUALSCREEN), iTop + GetSystemMetrics(SM_CYVIRTUALSCREEN));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shown now if the pointer is over the window, and by WM_SETCURSOR after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::SetCursor(ENativeCursor eCursor)
+{
+    if (eCursor == meCursor)
+    {
+        return;
+    }
+    CNativeWindow::SetCursor(eCursor);
+    ShowCursor();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::ShowCursor(void)
+{
+    LPCSTR  szCursor;
+
+    switch (meCursor)
+    {
+    case NC_SizeWestEast:
+        szCursor = IDC_SIZEWE;
+        break;
+    case NC_SizeNorthSouth:
+        szCursor = IDC_SIZENS;
+        break;
+    case NC_SizeNorthWestSouthEast:
+        szCursor = IDC_SIZENWSE;
+        break;
+    case NC_SizeNorthEastSouthWest:
+        szCursor = IDC_SIZENESW;
+        break;
+    case NC_Move:
+        szCursor = IDC_SIZEALL;
+        break;
+    default:
+        szCursor = IDC_ARROW;
+        break;
+    }
+    ::SetCursor(LoadCursorA(NULL, szCursor));
+    return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Raise(void)
+{
+    if (mhWnd)
+    {
+        SetWindowPos(mhWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+}
+
+
+bool CWinGDIWindow::IsCreated(void) { return mhWnd != NULL; }
 

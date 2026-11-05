@@ -65,6 +65,9 @@ protected:
 	uint32					muiFrameMilliseconds;  //The least time between paints while waiting for events, 0 for none.
 	int64					miLastPaintTime;  //GetDebugTickCount when last painted.
 	int64					miTickDelay;  //Milliseconds after this tick that another was asked for, -1 if none was.
+	Ptr<CWindow>			mpOwner;  //The window a tool window floats over, see ShowOwned.  NULL for the others.
+	CArray<CWindow>			maOwned;  //Tool windows shown over this one, run by its loop.
+	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -79,6 +82,21 @@ public:
 	
 	bool					Show(void);
 	bool					ShowModal(Ptr<CWindow> pOwner);
+	bool					ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle);
+	void					CloseOwned(void);
+	bool					IsShown(void);
+	Ptr<CWindow>			GetOwner(void);
+	size					NumOwned(void);
+	Ptr<CWindow>			GetOwned(size uiIndex);
+	CComponentEvent<CWindow>*	GetClosedEvent(void);
+	void					ClaimInput(void);
+	bool					HasInput(void);
+	void					SetScreenRectangle(CInt32Rect* pcRectangle);
+	void					GetScreenRectangle(CInt32Rect* pcDest);
+	void					GetPointerScreenPosition(SInt32Vec2* psDest);
+	void					GetScreenArea(CInt32Rect* pcDest);
+	void					UpdateCursor(void);
+	void					Raise(void);
 	void					SetWindowSize(int32 iWidth, int32 iHeight);
 	CNativeWindow*			GetNativeWindow(void);
 	void					Paint(void);
@@ -141,6 +159,9 @@ protected:
 	void					CheckLayoutCache(void);
 	int64					GetWaitMilliseconds(void);
 	bool					IsFrameDue(void);
+	void					PaintOwned(bool bContinuous);
+	void					CreateOwned(void);
+	void					SetOwnedEnabled(bool bEnabled);
 };
 
 

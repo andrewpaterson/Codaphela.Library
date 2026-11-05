@@ -235,3 +235,15 @@ Ptr<CComponent> CPopup::GetOwner(void) { return mpOwner; }
 void CPopup::SetOwnerPressKeepsOpen(bool bKeepsOpen) { mbOwnerPressKeepsOpen = bKeepsOpen; }  //True, as it starts, for a small owner like a combo box: pressing it again toggles the popup itself.
 bool CPopup::IsOwnerPressKeepsOpen(void) { return mbOwnerPressKeepsOpen; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the popup; it is placed there when the window is next laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPopup::SetOpenPosition(SInt32Vec2 sPosition)
+{
+	msOpenPosition = sPosition;
+	InvalidateLayout();
+}
+

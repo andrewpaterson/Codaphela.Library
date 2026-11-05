@@ -38,6 +38,10 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 	msRequestedSize.Init(-1, -1);
 	mbPainting = false;
 	mbEnabled = true;
+	mbTool = false;
+	mcScreenRectangle.Init(0, 0, 0, 0);
+	mbScreenRectangle = false;
+	meCursor = NC_Arrow;
 }
 
 
@@ -185,3 +189,115 @@ void CNativeWindow::WaitForEvents(int64 iMilliseconds)
 CNativeWindow* CNativeWindow::GetOwner(void) { return mpcOwner; }
 SInt32Vec2 CNativeWindow::GetRequestedSize(void) { return msRequestedSize; }
 bool CNativeWindow::IsEnabled(void) { return mbEnabled; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set before the window is created, with an owner.  A tool window is a
+// floating window that stays over its owner without being modal: it has
+// no frame of its own (WindowLib draws its title and edges), isn't on the
+// task bar and doesn't take the keys when it appears.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetTool(bool bTool)
+{
+	mbTool = bTool;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The client area's place and size on the screen.  Before the window is
+// created it is where it will be made; after, the window is moved and
+// resized.  A native window that can move itself overrides this and calls
+// it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
+{
+	mcScreenRectangle = *pcRectangle;
+	mbScreenRectangle = true;
+	msRequestedSize.Init(pcRectangle->GetWidth(), pcRectangle->GetHeight());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The client area on the screen.  Returns false if it isn't known, then
+// pcDest is the client area at 0, 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::GetScreenRectangle(CInt32Rect* pcDest)
+{
+	CInt32Rect	cClient;
+
+	GetRectangle(&cClient);
+	if (mbScreenRectangle)
+	{
+		pcDest->Init(mcScreenRectangle.GetLeft(), mcScreenRectangle.GetTop(), mcScreenRectangle.GetLeft() + cClient.GetWidth(), mcScreenRectangle.GetTop() + cClient.GetHeight());
+		return true;
+	}
+	pcDest->Init(0, 0, cClient.GetWidth(), cClient.GetHeight());
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the pointer is on the screen.  Returns false if the platform
+// can't say; the window works it out from the client area then.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The screen's area, for keeping floating windows on it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::GetScreenArea(CInt32Rect* pcDest)
+{
+	pcDest->Init(0, 0, 1920, 1080);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A native window that can change the pointer's shape overrides this and
+// calls it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetCursor(ENativeCursor eCursor)
+{
+	meCursor = eCursor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is on the screen.  It isn't once it has been closed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::IsCreated(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts the window over its owner's other windows.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::Raise(void)
+{
+}
+
+
+bool CNativeWindow::IsTool(void) { return mbTool; }
+ENativeCursor CNativeWindow::GetCursor(void) { return meCursor; }
+

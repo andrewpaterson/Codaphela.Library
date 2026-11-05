@@ -39,6 +39,7 @@ protected:
 	bool			mbPointerKnown;  //miPointerX and miPointerY hold where the pointer last moved to.
 	int				miPointerX;
 	int				miPointerY;
+	X11ID			maulCursors[NC_NumCursors];  //Made when first shown, 0 until then.
 
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
@@ -55,6 +56,13 @@ public:
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
 	void	DestroyNativeWindow(void) override;
+	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
+	bool	GetScreenRectangle(CInt32Rect* pcDest) override;
+	bool	GetPointerScreenPosition(SInt32Vec2* psDest) override;
+	void	GetScreenArea(CInt32Rect* pcDest) override;
+	void	SetCursor(ENativeCursor eCursor) override;
+	bool	IsCreated(void) override;
+	void	Raise(void) override;
 
 	void	HandleEvent(_XEvent* puEvent);
 	void	PresentIfPending(void);
@@ -62,6 +70,8 @@ public:
 
 protected:
 	void	SetDialogHints(int iWidth, int iHeight);
+	void	SetToolHints(void);
+	void	FreeCursors(void);
 	void	MouseMoved(int x, int y);
 	void	MouseButton(unsigned int uiButton, unsigned int uiState, int x, int y, bool bPressed);
 	void	MouseLeft(unsigned int uiState);

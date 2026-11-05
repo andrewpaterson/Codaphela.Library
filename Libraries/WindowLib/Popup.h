@@ -59,6 +59,7 @@ public:
 
 	Ptr<CComponent>		GetContent(void);
 	Ptr<CComponent>		GetOwner(void);
+	void				SetOpenPosition(SInt32Vec2 sPosition);
 	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
 	bool				IsOwnerPressKeepsOpen(void);
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);

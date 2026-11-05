@@ -69,6 +69,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 	mbPointerIn = false;
 	mbActive = true;
 	meDrag = FD_None;
+	mcFocusChanged.Init();
 }
 
 
@@ -78,6 +79,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Free(void)
 {
+	mcFocusChanged.Kill();
 }
 
 
@@ -95,6 +97,7 @@ void CFocus::Class(void)
 	U_Bool(mbPointerIn);
 	U_Bool(mbActive);
 	U_Enum(meDrag);
+	U_Data(CComponentEvent<CFocus>, mcFocusChanged);
 }
 
 
@@ -202,6 +205,7 @@ void CFocus::SetMouseOver(Ptr<CComponent> pComponent)
 		{
 			mpMouseOverComponent->MovedInto();
 		}
+		mpWindow->UpdateCursor();
 	}
 }
 
@@ -248,6 +252,7 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 		{
 			mpFocussedComponent->FocusGained();
 		}
+		mcFocusChanged.Call(this);
 	}
 }
 
@@ -565,6 +570,7 @@ void CFocus::StartDrag(EFocusDrag eDrag, int x, int y)
 	sEvent.x = x;
 	sEvent.y = y;
 	mpDragComponent->CallInputActions(&sEvent);
+	mpWindow->UpdateCursor();
 }
 
 
@@ -590,6 +596,26 @@ void CFocus::StopDrag(EFocusDrag eDrag)
 	InitEvent(&sEvent, CIET_Command, true);
 	sEvent.eCommand = GetDragCommand(eDrag, FDS_Stop);
 	Deliver(pComponent, &sEvent);
+	mpWindow->UpdateCursor();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rest of the drag going on goes to pComponent instead of the
+// component that started it, which isn't told.  pComponent can be outside
+// the window's tree, a dock manager's drag tracker say, so the drag
+// survives the component that started it being removed.  The tracker
+// should be focussed too so the release that ends the drag reaches it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::HandOverDrag(Ptr<CComponent> pComponent)
+{
+	if (meDrag != FD_None)
+	{
+		mpDragComponent = pComponent;
+		mpWindow->UpdateCursor();
+	}
 }
 
 
@@ -684,6 +710,9 @@ void CFocus::ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py)
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CComponent>	CFocus::GetFocussedComponent(void) { return mpFocussedComponent; }
+Ptr<CComponent>	CFocus::GetDragComponent(void) { return mpDragComponent; }
+EFocusDrag		CFocus::GetDrag(void) { return meDrag; }
+CComponentEvent<CFocus>*	CFocus::GetFocusChangeEvent(void) { return &mcFocusChanged; }
 Ptr<CComponent>	CFocus::GetMouseOverComponent(void) { return mpMouseOverComponent; }
 SInt32Vec2		CFocus::GetPointer(void) { return msPointer; }
 bool			CFocus::IsPointerIn(void) { return mbPointerIn; }

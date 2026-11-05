@@ -31,6 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ContainerStyle.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "InputAction.h"
+#include "NativeCursor.h"
 
 
 class CWindow;
@@ -55,6 +56,7 @@ protected:
 	Ptr<CWindow>		mpWindow;
 	CArray<CInputAction>	maInputActions;
 	Ptr<CContextMenu>	mpContextMenu;  //NULL for none.
+	ENativeCursor		meCursor;  //The pointer's shape over the component, NC_Arrow for its parent's.
 
 public:
 			void				Init(Ptr<CWindow> pWindow);
@@ -74,6 +76,7 @@ public:
 	virtual	bool				RemoveComponent(Ptr<CComponent> pComponent);
 	virtual	bool				RemoveAllComponents(void);
 			size				NumComponents(void);
+			Ptr<CComponent>		GetComponent(size uiIndex);
 
 			bool				IsPointIn(int x, int y);
 	virtual	Ptr<CComponent>		FindComponentAt(int x, int y);
@@ -101,6 +104,9 @@ public:
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
 			Ptr<CComponent>		GetParent(void);
 			Ptr<CWindow>		GetWindow(void);
+			void				MoveToWindow(Ptr<CWindow> pWindow);
+			void				SetCursor(ENativeCursor eCursor);
+			ENativeCursor		GetCursor(void);
 	virtual	void				Invalidate(void);
 	virtual	void				InvalidateLayout(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);
@@ -115,6 +121,7 @@ public:
 	virtual	bool				GetScrollView(CInt32Rect* pcDest);
 			void				SetDesiredSize(int iWidth, int iHeight);
 			SInt32Vec2			GetActualSize(void);
+			void				GetActualBounds(CInt32Rect* pcDest);
 
 			void				SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
 			EContainerStyleHorizontal	GetHorizontalAlignment(void);

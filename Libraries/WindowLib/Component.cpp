@@ -45,6 +45,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	mpParent = NULL;
 	mpWindow = pWindow;
 	mpContextMenu = NULL;
+	meCursor = NC_Arrow;
 
 	PostInit();
 }
@@ -76,6 +77,7 @@ void CComponent::Class(void)
 	Nes(M_Pointer(mpWindow));
 		M_Embedded(maInputActions);
 		M_Pointer(mpContextMenu);
+		U_Enum(meCursor);
 }
 
 
@@ -157,22 +159,21 @@ void CComponent::SetInputActionsEnabled(EComponentInputCommand eCommand, bool bE
 //
 // Calls every action that matches, in the order they were added.  Returns
 // true if any did, then the event goes no further, unless every one that
-// did set the event's bPass.
+// did set the event's bPass.  An action can remove actions, as taking a
+// dragged tab off its group takes its context menu's away.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
 {
 	Ptr<CInputAction>	pAction;
 	size				i;
-	size				uiNumElements;
 	bool				bTaken;
 
 	bTaken = false;
-	uiNumElements = maInputActions.Size();
-	for (i = 0; i < uiNumElements; i++)
+	for (i = 0; i < maInputActions.Size(); i++)
 	{
 		pAction = maInputActions.Get(i);
-		if (pAction->Matches(psEvent))
+		if (pAction.IsNotNull() && pAction->Matches(psEvent))
 		{
 			psEvent->bPass = false;
 			pAction->Call(psEvent);
@@ -794,5 +795,124 @@ bool CComponent::OpenContextMenu(SInt32Vec2 sPosition)
 SInt32Vec2 CComponent::GetContextMenuPosition(void)
 {
 	return GetPosition();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcComponent is in a window's tree: its top parent is a window.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsInWindowTree(CComponent* pcComponent)
+{
+	Ptr<CComponent>	pTop;
+	Ptr<CComponent>	pParent;
+
+	pTop = pcComponent;
+	pParent = pTop->GetParent();
+	while (pParent.IsNotNull())
+	{
+		pTop = pParent;
+		pParent = pTop->GetParent();
+	}
+	return dynamic_cast<CWindow*>(&pTop) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component, and everything of it, now belongs to pWindow, as a
+// docked pane's content does when it is floated in a window of its own.
+// Remove it from its parent first.  Its children move, and so do the
+// components it points to that belong to its old window but aren't in
+// the rest of that window's tree: pages of tabs not shown, menus, scroll
+// bars not shown and the like.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::MoveToWindow(Ptr<CWindow> pWindow)
+{
+	Ptr<CWindow>				pOld;
+	CArrayTemplatePtr<CComponent>	apcToMove;
+	CArrayEmbeddedObjectPtr		apcTos;
+	CComponent*					pcComponent;
+	CComponent*					pcTo;
+	size						i;
+
+	pOld = mpWindow;
+	if (pOld == pWindow)
+	{
+		return;
+	}
+
+	apcToMove.Init();
+	apcToMove.Add(this);
+	while (apcToMove.NumElements() > 0)
+	{
+		pcComponent = apcToMove.GetPtr(apcToMove.NumElements() - 1);
+		apcToMove.RemoveTail();
+		if (pcComponent->mpWindow != pOld)
+		{
+			continue;
+		}
+		pcComponent->mpWindow = pWindow;
+
+		apcTos.Init();
+		pcComponent->GetPointerTos(&apcTos);
+		for (i = 0; i < apcTos.NumElements(); i++)
+		{
+			pcTo = dynamic_cast<CComponent*>(apcTos.GetPtr(i));
+			if ((pcTo == NULL) || (dynamic_cast<CWindow*>(pcTo) != NULL) || (pcTo->mpWindow != pOld))
+			{
+				continue;
+			}
+			if (pcTo->IsWithin(this) || !IsInWindowTree(pcTo))
+			{
+				apcToMove.Add(pcTo);
+			}
+		}
+		apcTos.Kill();
+	}
+	apcToMove.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer takes this shape over the component and its children that
+// have none of their own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SetCursor(ENativeCursor eCursor)
+{
+	meCursor = eCursor;
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->UpdateCursor();
+	}
+}
+
+
+ENativeCursor CComponent::GetCursor(void) { return meCursor; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the component was last laid out, in window client space.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::GetActualBounds(CInt32Rect* pcDest)
+{
+	pcDest->Init(&mcActualBounds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The child at uiIndex, in the order they are drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CComponent::GetComponent(size uiIndex)
+{
+	return maChildren.Get(uiIndex);
 }
 

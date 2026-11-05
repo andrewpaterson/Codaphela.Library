@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "SupportLib/Int32Rect.h"
 #include "NativeComponent.h"
+#include "NativeCursor.h"
 
 
 class CNativeWindowFactory;
@@ -39,6 +40,10 @@ protected:
 	SInt32Vec2		msRequestedSize;  //The client size to create the window with, -1 for the native default.
 	bool			mbPainting;
 	bool			mbEnabled;  //A disabled window, the owner of a modal dialog, ignores the keyboard and pointer.
+	bool			mbTool;  //Owned but not modal: a floating tool window with no frame, drawn by WindowLib, see SetTool.
+	CInt32Rect		mcScreenRectangle;  //Where the client area is on the screen, when known, see SetScreenRectangle.
+	bool			mbScreenRectangle;  //mcScreenRectangle has been set, or read from the platform.
+	ENativeCursor	meCursor;
 
 public:
 			void			Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
@@ -55,6 +60,16 @@ public:
 	virtual	bool			CanWaitForEvents(void);
 	virtual	void			WaitForEvents(int64 iMilliseconds);
 			bool			IsEnabled(void);
+			void			SetTool(bool bTool);
+			bool			IsTool(void);
+	virtual	void			SetScreenRectangle(CInt32Rect* pcRectangle);
+	virtual	bool			GetScreenRectangle(CInt32Rect* pcDest);
+	virtual	bool			GetPointerScreenPosition(SInt32Vec2* psDest);
+	virtual	void			GetScreenArea(CInt32Rect* pcDest);
+	virtual	void			SetCursor(ENativeCursor eCursor);
+			ENativeCursor	GetCursor(void);
+	virtual	bool			IsCreated(void);
+	virtual	void			Raise(void);
 
 protected:
 			bool	BeginPresent(void);

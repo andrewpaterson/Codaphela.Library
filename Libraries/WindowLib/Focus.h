@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
 #include "ComponentInputEvent.h"
+#include "ComponentEvent.h"
 
 
 enum EFocusDrag
@@ -52,6 +53,7 @@ protected:
 	bool				mbPointerIn;
 	bool				mbActive;  //An inactive window remembers its focussed component but sends it no commands.
 	EFocusDrag			meDrag;
+	CComponentEvent<CFocus>	mcFocusChanged;  //The focussed component changed, see GetFocusChangeEvent.
 
 public:
 	void 				Init(Ptr<CWindow> pWindow);
@@ -83,6 +85,10 @@ public:
 	//pointer's moves until it stops the drag.
 	void				StartDrag(EFocusDrag eDrag, int x, int y);
 	void				StopDrag(EFocusDrag eDrag);
+	void				HandOverDrag(Ptr<CComponent> pComponent);
+	Ptr<CComponent>		GetDragComponent(void);
+	EFocusDrag			GetDrag(void);
+	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);
