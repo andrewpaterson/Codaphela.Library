@@ -64,8 +64,10 @@ What belongs in shared code
   solve.  The live ranges stay each back end's: the 65C64 defines a result one position after its
   operands (an operand dying there can always share with it: add Y, 1), the W65C816 at the same
   position, sharing only explicit pairs, as it writes multi-word results a word at a time.
-- Loop weights.  "8 times more per loop" is CIRLiveness::LoopWeight (depth capped at 5) and
-  again inline in CIR816Backend::AllocateX (capped at 4).
+- Loop weights.  "8 times more per loop" was CIRLiveness::LoopWeight (depth capped at 5), and
+  again inline in CIR816Backend::AllocateX (capped at 4) and the W65C816's align estimate
+  (IR816_ALIGN_LOOP_WEIGHT, capped at 3).  Done 2026-11-05: CIRLoops::Weight(depth, cap), each
+  caller keeping its cap (AllocateX's 4 keeps a use under IR816_X_BAD's veto).
 
 
 Steps
@@ -158,3 +160,6 @@ TestCppParserLib 83262/83262.
 
 Liveness and use counts: done 2026-11-05 (above).  Listings of TestBaseLib65 and TestStandardLib65 are
 identical on both targets; TestCppParserLib 83262/83262.
+
+Loop weights: done 2026-11-05 (above).  Listings of TestBaseLib65 and TestStandardLib65 are identical
+on both targets; TestCppParserLib 83264/83264.
