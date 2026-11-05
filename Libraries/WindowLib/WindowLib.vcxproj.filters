@@ -153,6 +153,9 @@
     <ClInclude Include="InputAction.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="MemberCall.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentInputNumKey.h">
       <Filter>Source\Event</Filter>
     </ClInclude>

@@ -26,17 +26,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputAction::Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, void* pvObject, InputActionThunk fThunk, void* pvFunction, size uiFunctionSize)
+void CInputAction::Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, SMemberCall* psCall)
 {
 	PreInit();
 
 	meFilter = eFilter;
 	mszName.Init(szName);
 	meCommand = eCommand;
-	mpvObject = pvObject;
-	mfThunk = fThunk;
-	memset(maucFunction, 0, INPUT_ACTION_FUNCTION_SIZE);
-	memcpy(maucFunction, pvFunction, uiFunctionSize);
+	msCall = *psCall;
 	mbEnabled = true;
 
 	PostInit();
@@ -52,9 +49,7 @@ void CInputAction::Class(void)
 	U_Enum(meFilter);
 	U_String(mszName);
 	U_Enum(meCommand);
-	U_Pointer(mpvObject);
-	U_Pointer(mfThunk);
-	U_UInt8Array(maucFunction, INPUT_ACTION_FUNCTION_SIZE);
+	U_Data(SMemberCall, msCall);
 	U_Bool(mbEnabled);
 }
 
@@ -66,8 +61,7 @@ void CInputAction::Class(void)
 void CInputAction::Free(void)
 {
 	mszName.Kill();
-	mpvObject = NULL;
-	mfThunk = NULL;
+	memset(&msCall, 0, sizeof(SMemberCall));
 }
 
 
@@ -137,7 +131,7 @@ bool CInputAction::Matches(SComponentInputEvent* psEvent)
 //////////////////////////////////////////////////////////////////////////
 void CInputAction::Call(SComponentInputEvent* psEvent)
 {
-	mfThunk(mpvObject, maucFunction, psEvent);
+	msCall.Call(psEvent);
 }
 
 

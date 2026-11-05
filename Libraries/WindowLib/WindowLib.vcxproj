@@ -226,6 +226,7 @@
     <ClInclude Include="WindowInputSource.h" />
     <ClInclude Include="ComponentInputEvent.h" />
     <ClInclude Include="InputAction.h" />
+    <ClInclude Include="MemberCall.h" />
     <ClInclude Include="TabComponent.h" />
     <ClInclude Include="TabbedContainer.h" />
     <ClInclude Include="TabbedContainerListener.h" />
