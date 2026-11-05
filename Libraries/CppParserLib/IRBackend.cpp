@@ -82,6 +82,32 @@ void CIRBackend::UseRuntime(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The comparison a block's brif branches on when it is the block's last
+// instruction (a back end branches on it without making the i1 when the
+// brif is its only use), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIRBackend::BranchComparison(CIRBlock* pcBlock)
+{
+	SIRInstruction*		psLast;
+	const SIROpcode*	psOpcode;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcBlock->masInstructions.NumElements() == 0))
+	{
+		return NULL;
+	}
+	psLast = pcBlock->masInstructions.Tail();
+	psOpcode = GetIROpcode(psLast->uiOpcode);
+	if (psOpcode && (psOpcode->uiResult == IRRS_I1) && psLast->sResult.IsTemporary() && psLast->sResult.Equals(pcBlock->msJump.sArgument))
+	{
+		return psLast;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every function (each a text section of its own, its name followed by
 // mszSectionOptions) and global (a data section) of the module, for the
 // target's assembler (AssembleObject).

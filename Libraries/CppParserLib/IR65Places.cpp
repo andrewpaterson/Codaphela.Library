@@ -141,20 +141,10 @@ void SIR65Frame::SetFrameless(bool bFramelessIn)
 //////////////////////////////////////////////////////////////////////////
 SIRInstruction* CIR65Backend::FusedComparison(CIRBlock* pcBlock)
 {
-	SIRInstruction*		psLast;
-	const SIROpcode*	psOpcode;
+	SIRInstruction*	psLast;
 
-	if (pcBlock->msJump.uiKind != IRJ_Branch)
-	{
-		return NULL;
-	}
-	psLast = pcBlock->masInstructions.SafeGet(pcBlock->masInstructions.NumElements() - 1);
-	if (psLast == NULL)
-	{
-		return NULL;
-	}
-	psOpcode = GetIROpcode(psLast->uiOpcode);
-	if (psOpcode && (psOpcode->uiResult == IRRS_I1) && psLast->sResult.Equals(pcBlock->msJump.sArgument) && (*mauiUses.Get(psLast->sResult.Index()) == 1))
+	psLast = BranchComparison(pcBlock);
+	if (psLast && (*mauiUses.Get(psLast->sResult.Index()) == 1))
 	{
 		return psLast;
 	}

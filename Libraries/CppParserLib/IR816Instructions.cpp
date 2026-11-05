@@ -2296,11 +2296,11 @@ bool CIR816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
 
-	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (uiIndex + 1 != pcBlock->masInstructions.NumElements()))
+	psInstruction = BranchComparison(pcBlock);
+	if ((psInstruction == NULL) || (uiIndex + 1 != pcBlock->masInstructions.NumElements()))
 	{
 		return false;
 	}
-	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_Eq:
@@ -2317,8 +2317,7 @@ bool CIR816Backend::IsFusedCompare(CIRBlock* pcBlock, size uiIndex)
 	default:
 		return false;
 	}
-	return psInstruction->sResult.IsTemporary() && pcBlock->msJump.sArgument.Equals(psInstruction->sResult) &&
-		   (psInstruction->sResult.Index() < maiUses.NumElements()) && (*maiUses.Get(psInstruction->sResult.Index()) == 1);
+	return (psInstruction->sResult.Index() < maiUses.NumElements()) && (*maiUses.Get(psInstruction->sResult.Index()) == 1);
 }
 
 

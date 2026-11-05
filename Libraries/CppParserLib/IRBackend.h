@@ -64,6 +64,7 @@ protected:
 	void			Source(uint32 uiSource);
 	int32			NewLabel(void);
 	void			UseRuntime(const char* szName);
+	SIRInstruction*	BranchComparison(CIRBlock* pcBlock);
 	void			Label(int32 iLabel);
 };
 
