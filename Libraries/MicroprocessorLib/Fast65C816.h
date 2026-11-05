@@ -61,7 +61,7 @@ typedef void(*CFast65C816Signal)(void* pvContext, uint8 uiSignal);
 //
 //Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
 //(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
-//breakpoint is enabled.
+//breakpoint is enabled: without one its loop is a copy that doesn't look them up.
 class CFast65C816
 {
 protected:
