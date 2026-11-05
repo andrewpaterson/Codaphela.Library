@@ -780,63 +780,79 @@ bool CObjects::HasRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object with index oi, loaded: from memory (a hollow there is
+// loaded) or from the database.  NULL if there is none.
 //
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(OIndex oi)
 {
-	CBaseObject*	pcObject;
-	CPointer		pObject;
+	CPointer	pObject;
 
-	pcObject = mcMemory.Get(oi);
-	if (pcObject)
-	{
-		pObject.AssignObject(pcObject);
-		return pObject;
-	}
-
-	pcObject = GetFromDatabase(oi);
-	if (pcObject)
-	{
-		pObject.AssignObject(pcObject);
-		return pObject;
-	}
-
-	return Null();
+	pObject = GetPossiblyHollow(oi);
+	pObject.Dereference();
+	return pObject;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object with index oi as it is: a hollow in memory is left hollow
+// (looking at it doesn't load it; using it through a Ptr does).
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CObjects::GetPossiblyHollow(OIndex oi)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+
+	pcObject = mcMemory.Get(oi);
+	if (pcObject == NULL)
+	{
+		pcObject = GetFromDatabase(oi);
+	}
+	pObject.AssignObject(pcObject);
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object named szObjectName, loaded: from memory (a hollow there is
+// loaded), the database or the sources.  NULL if there is none.
 //
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(const char* szObjectName)
+{
+	CPointer	pObject;
+
+	pObject = GetPossiblyHollow(szObjectName);
+	pObject.Dereference();
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object named szObjectName as it is: a hollow in memory is left
+// hollow (looking at it doesn't load it; using it through a Ptr does).
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CObjects::GetPossiblyHollow(const char* szObjectName)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 
 	pcObject = GetFromMemory(szObjectName);
-	if (pcObject)
+	if (pcObject == NULL)
 	{
-		pObject.AssignObject(pcObject);
-		pObject.Dereference();
-		return pObject;
+		pcObject = GetFromDatabase(szObjectName);
 	}
-
-	pcObject = GetFromDatabase(szObjectName);
-	if (pcObject)
+	if (pcObject == NULL)
 	{
-		pObject.AssignObject(pcObject);
-		return pObject;
+		pcObject = GetFromSources(szObjectName);
 	}
-
-	pcObject = GetFromSources(szObjectName);
-	if (pcObject)
-	{
-		pObject.AssignObject(pcObject);
-		return pObject;
-	}
-
-	return Null();
+	pObject.AssignObject(pcObject);
+	return pObject;
 }
 
 

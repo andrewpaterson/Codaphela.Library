@@ -188,6 +188,91 @@ void TestHollowObjectMemoryIteration(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Get (by index or name) loads an object that is hollow in memory;
+// GetPossiblyHollow leaves it hollow.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHollowObjectGetLoads(void)
+{
+	CFileUtil			cFileUtil;
+	CCodabase*			pcDatabase;
+	CSequence*			pcSequence;
+	char				szDirectory[] = "Output" _FS_ "HollowObjectGet";
+	OIndex				oiMeninski;
+	OIndex				oiNed;
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.TouchDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestHollowObjectAddConstructors();
+	{
+		Ptr<CTestObject>	pPavel;
+		Ptr<CTestObject>	pMeninski;
+		Ptr<CTestObject>	pNed;
+
+		pPavel = ONMalloc<CTestObject>("Pavel");
+		pMeninski = ONMalloc<CTestObject>("Meninski");
+		pNed = ONMalloc<CTestObject>("Ned");
+		ORoot()->Add(pPavel);
+		pPavel->mpTest = pMeninski;
+		pMeninski->mpTest = pNed;
+		oiMeninski = pMeninski.GetIndex();
+		oiNed = pNed.GetIndex();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcSequence);
+	SafeKill(pcDatabase);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		CPointer	pPavel;
+		CPointer	pObject;
+
+		pPavel = gcObjects.Get("Pavel");
+		AssertFalse(pPavel.IsHollow());
+
+		//Pavel points to Meninski, so Meninski is a hollow in memory.
+		pObject = gcObjects.GetPossiblyHollow(oiMeninski);
+		AssertTrue(pObject.IsHollow());
+		pObject = gcObjects.GetPossiblyHollow("Meninski");
+		AssertTrue(pObject.IsHollow());
+		pObject = gcObjects.Get(oiMeninski);
+		AssertFalse(pObject.IsHollow());
+		AssertString("Meninski", pObject.GetName());
+
+		//Meninski points to Ned.
+		pObject = gcObjects.GetPossiblyHollow(oiNed);
+		AssertTrue(pObject.IsHollow());
+		pObject = gcObjects.Get("Ned");
+		AssertFalse(pObject.IsHollow());
+		AssertLong(oiNed, pObject.GetIndex());
+
+		pObject = gcObjects.GetPossiblyHollow("Nobody");
+		AssertTrue(pObject.IsNull());
+		pObject = gcObjects.Get("Nobody");
+		AssertTrue(pObject.IsNull());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcSequence);
+	SafeKill(pcDatabase);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
 size	guiHollowsAllocated;
 
 
@@ -254,6 +339,7 @@ void TestHollowObject(void)
 	TestHollowObjectAllocation();
 	TestHollowObjectMemoryIteration();
 	TestHollowObjectInternalAllocation();
+	TestHollowObjectGetLoads();
 
 	DataIOKill();
 	TypesKill();

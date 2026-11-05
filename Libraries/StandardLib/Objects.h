@@ -96,6 +96,8 @@ public:
 
 						CPointer				Get(OIndex oi);
 						CPointer				Get(const char* szObjectName);
+						CPointer				GetPossiblyHollow(OIndex oi);
+						CPointer				GetPossiblyHollow(const char* szObjectName);
 	template<class M> 	Ptr<M>					Get(OIndex oi);
 	template<class M>	Ptr<M>					Get(const char* szObjectName);
 						bool					Contains(const char* szObjectName);
@@ -375,8 +377,7 @@ Ptr<SpecificClass> CObjects::Malloc(const char* szObjectName)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Get(OIndex oi)
 {
-	SpecificClass* pcObject = (SpecificClass*)mcMemory.Get(oi);
-	return PointTo<SpecificClass>(pcObject);
+	return Get(oi);
 }
 
 
@@ -387,8 +388,7 @@ Ptr<SpecificClass> CObjects::Get(OIndex oi)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Get(const char* szObjectName)
 {
-	SpecificClass* pcObject = (SpecificClass*)mcMemory.Get(szObjectName);
-	return PointTo<SpecificClass>(pcObject);
+	return Get(szObjectName);
 }
 
 
