@@ -200,11 +200,13 @@ void CArrayCommonObject::Sort(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only a set sorted by pointer is put back in order: an array keeps the
+// order its objects were added in.
 //
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::EnsureSorted(void)
 {
-	if (!mbSorted)
+	if (!mbSorted && IsMustSort())
 	{
 		Sort();
 	}

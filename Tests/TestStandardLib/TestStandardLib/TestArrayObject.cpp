@@ -5,6 +5,7 @@
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
 #include "TestLib/Assert.h"
+#include "NamedObjectTestClasses.h"
 #include "TestArrayObject.h"
 
 
@@ -1167,6 +1168,77 @@ void TestArrayObjectEmbeddedInObjectsKill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An array keeps the order its objects were added in, even after one of
+// them is replaced (as loading a hollow object does).  Sorting it by
+// pointer is for sets only.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectOrderKeptAfterRemap(void)
+{
+	char	szName[8];
+	size	i;
+	size	j;
+
+	ObjectsInit();
+	gcObjects.AddConstructor<CTestNamedObject>();
+	{
+		Ptr<CArrayObject>		pArray;
+		Ptr<CTestNamedObject>	apNamed[3];
+		Ptr<CTestNamedObject>	pTemp;
+		Ptr<CTestNamedObject>	pReplaced;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		for (i = 0; i < 3; i++)
+		{
+			sprintf(szName, "N%i", (int)i);
+			apNamed[i] = ONMalloc<CTestNamedObject>(szName, (int)i);
+		}
+
+		//Highest address first, so the order isn't the pointers' order.
+		for (i = 0; i < 3; i++)
+		{
+			for (j = i + 1; j < 3; j++)
+			{
+				if (apNamed[j].Object() > apNamed[i].Object())
+				{
+					pTemp = apNamed[i];
+					apNamed[i] = apNamed[j];
+					apNamed[j] = pTemp;
+				}
+			}
+		}
+		pTemp = NULL;
+		for (i = 0; i < 3; i++)
+		{
+			pArray->Add(apNamed[i]);
+		}
+		j = (size)apNamed[1]->miNum;
+		for (i = 0; i < 3; i++)
+		{
+			apNamed[i] = NULL;
+		}
+
+		sprintf(szName, "N%i", (int)j);
+		pReplaced = gcObjects.GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName("CTestNamedObject", szName);
+		pReplaced->Init((int)j);
+		pTemp = OMalloc<CTestNamedObject>(3);
+		pArray->Add(pTemp);
+		pTemp = NULL;
+		pReplaced = NULL;
+
+		AssertSize(4, pArray->NumElements());
+		AssertTrue(pArray->Get<CTestNamedObject>(0).Object() > pArray->Get<CTestNamedObject>(2).Object());
+		AssertInt((int32)j, pArray->Get<CTestNamedObject>(1)->miNum);
+		AssertInt((int32)3, pArray->Get<CTestNamedObject>(3)->miNum);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObject(void)
@@ -1200,6 +1272,7 @@ void TestArrayObject(void)
 	TestArrayObjectEmbeddedOnHeapKill();
 	TestArrayObjectEmbeddedOnStackKill();
 	TestArrayObjectEmbeddedInObjectsKill();
+	TestArrayObjectOrderKeptAfterRemap();
 
 	DataIOKill();
 	TypesKill();
