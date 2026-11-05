@@ -2974,7 +2974,6 @@
     <None Include="lgpl.txt">
       <Filter>Source\License</Filter>
     </None>
-    <None Include="MemoryTodo.txt" />
     <None Include="TypeConverter_Mapping.inl">
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
