@@ -34,6 +34,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //A component with a desired size of -1 on an axis, or stretched on that axis, fills its cell on that axis, otherwise it
 //keeps its size and is placed in its cell by its own alignment.  Cells may overlap and are drawn in the order they were added.
+//In an unweighted column or row a container with a desired size of -1 needs its required size on that axis (see
+//CContainer::GetMeasuredSize): a grid in an unweighted row of another grid is as tall as its components need.  In a
+//weighted one it needs nothing and takes its share.
 class CGridContainer : public CContainer
 {
 CONSTRUCTABLE(CGridContainer);

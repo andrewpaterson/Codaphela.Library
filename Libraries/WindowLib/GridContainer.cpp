@@ -420,6 +420,25 @@ size CGridContainer::NumTracks(bool bColumns)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The size a component needs in a cell of weight iWeight on the axis
+// being worked out.  In a weighted cell a component without a desired
+// size needs nothing, it takes its share.  In an unweighted cell a
+// container without one needs its required size, or nothing would give it
+// any: a grid in an unweighted row of another grid had no height.
+//
+//////////////////////////////////////////////////////////////////////////
+static SInt32Vec2 GetCellComponentSize(Ptr<CComponent> pComponent, int32 iWeight)
+{
+	if (iWeight > 0)
+	{
+		return pComponent->GetDesiredSize();
+	}
+	return CContainer::GetMeasuredSize(pComponent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayInt* paiWeights)
@@ -459,9 +478,9 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		{
 			pComponent = maChildren.Get(i);
 			uiStart = (size)ContainerStyleMainAxis(&pcCell->msPosition, bColumns);
-			sDesired = pComponent->GetDesiredSize();
-			iRequired = ContainerStyleMainAxis(&sDesired, bColumns);
 			iWeight = ContainerStyleMainAxis(&pcCell->msWeight, bColumns);
+			sDesired = GetCellComponentSize(pComponent, iWeight);
+			iRequired = ContainerStyleMainAxis(&sDesired, bColumns);
 			if (iRequired > paiSizes->GetValue(uiStart))
 			{
 				paiSizes->SetValue(uiStart, iRequired);
@@ -490,7 +509,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 				{
 					ShareOut(paiWeights, uiStart, uiSpan, iWeight - iHave, paiWeights);
 				}
-				sDesired = pComponent->GetDesiredSize();
+				sDesired = GetCellComponentSize(pComponent, iWeight);
 				iRequired = ContainerStyleMainAxis(&sDesired, bColumns);
 				iHave = SumTracks(paiSizes, uiStart, uiSpan);
 				if (iRequired > iHave)

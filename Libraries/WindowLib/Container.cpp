@@ -217,3 +217,32 @@ void CContainer::LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sA
 	pComponent->Layout(sPosition, sSize);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size pComponent needs, for a container measuring its components: its
+// desired size or, on an axis without one, a container's required size.
+// A container without a desired size still fills the area it is given,
+// but it needs at least what its own components need, or a grid in an
+// unweighted row of another grid would get no height at all.  A component
+// that isn't a container keeps -1 there.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CContainer::GetMeasuredSize(Ptr<CComponent> pComponent)
+{
+	CContainer*	pcContainer;
+	SInt32Vec2	sSize;
+
+	sSize = pComponent->GetDesiredSize();
+	if ((sSize.x >= 0) && (sSize.y >= 0))
+	{
+		return sSize;
+	}
+	pcContainer = dynamic_cast<CContainer*>(&pComponent);
+	if (pcContainer == NULL)
+	{
+		return sSize;
+	}
+	return pcContainer->GetDesiredOrRequiredSize();
+}
+

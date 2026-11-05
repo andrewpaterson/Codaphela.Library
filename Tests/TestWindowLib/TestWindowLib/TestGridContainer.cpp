@@ -902,6 +902,89 @@ void TestGridContainerRelayout(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A grid in an unweighted row of another grid, with no desired size of
+// its own, gets the height its components need: the IDE's Claude tab's
+// request row was laid out 0 high under a weighted row.  The scroll pane
+// in the weighted row needs nothing and takes the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGridContainerNestedGridHeight(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		Ptr<CGridContainer>		pOuter;
+		Ptr<CGridContainer>		pInner;
+		Ptr<CCanvas>			pTop;
+		Ptr<CCanvas>			pShort;
+		Ptr<CCanvas>			pTall;
+		SInt32Vec2				sVec;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pOuter = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pOuter);
+		pTop = CreateGridTestCanvas(pTestWindow, -1, -1);
+		pTop->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pOuter->AddComponent(pTop, 0, 0, 1, 1, 1, 1);
+
+		//The inner grid's row is as tall as its tallest component.
+		pInner = OMalloc<CGridContainer>(pTestWindow);
+		pInner->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pShort = CreateGridTestCanvas(pTestWindow, 30, 12);
+		pTall = CreateGridTestCanvas(pTestWindow, 40, 25);
+		pInner->AddComponent(pShort, 0, 0);
+		pInner->AddComponent(pTall, 1, 0);
+		pOuter->AddComponent(pInner, 0, 1, 1, 1, 1, 0);
+
+		pTestWindow->Layout();
+		AssertInt(25, pInner->GetRequiredSize().y);
+		sVec = pInner->GetActualSize();
+		AssertInt32Vec2(200, 25, &sVec);
+		sVec = pInner->GetPosition();
+		AssertInt32Vec2(0, 75, &sVec);
+		sVec = pTop->GetActualSize();
+		AssertInt32Vec2(200, 75, &sVec);
+		//With no weighted columns the inner grid's columns are centred; the short canvas is centred in its row.
+		sVec = pShort->GetPosition();
+		AssertInt32Vec2(65, 75 + 6, &sVec);
+		sVec = pTall->GetPosition();
+		AssertInt32Vec2(95, 75, &sVec);
+
+		//A desired height still wins over what its components need.
+		pInner->SetDesiredSize(-1, 40);
+		pTestWindow->Layout();
+		sVec = pInner->GetActualSize();
+		AssertInt32Vec2(200, 40, &sVec);
+		sVec = pTop->GetActualSize();
+		AssertInt32Vec2(200, 60, &sVec);
+
+		pTop = NULL;
+		pShort = NULL;
+		pTall = NULL;
+		pInner = NULL;
+		pOuter = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainer(void)
@@ -931,6 +1014,7 @@ void TestGridContainer(void)
 	TestGridContainerNotAtOrigin();
 	TestGridContainerActualBounds();
 	TestGridContainerRelayout();
+	TestGridContainerNestedGridHeight();
 
 	TestStatistics();
 }
