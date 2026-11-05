@@ -47,8 +47,19 @@ processor stops.  The start up also defines _Exit.  The
 start up's object is linked first so it is at the start of the text, 0001:0000; the
 reset vector is left to the loader.
 
-Files: CPP65Generator.cpp (declarations, functions, statements),
-CPP65GeneratorExpressions.cpp (expressions, places, constants) and CPP65Type.cpp (types).
+Files: CPP65Generator.cpp (declarations, globals, functions), CPP65GeneratorClasses.cpp
+(classes, templates, overloads), CPP65GeneratorExpressions.cpp (constants, warnings and
+TypeOf), CPP65GeneratorObjects.cpp and CPP65GeneratorFloat.cpp, CPP65Type.cpp (types and
+the rules for the types of operators), CPP65TypeChecker.cpp (expressions' types and
+errors) and CPP65IRFrontEnd.cpp (every function body, as IR).
+
+An expression's type is worked out by CCPP65TypeChecker, without its code: TypeOf (and
+PlaceTypeOf) for the IR front end and overload resolution, and ReportTypeOf for the
+errors in an expression the IR front end couldn't write.  The checker walks an
+expression as the IR front end writes it, with the same names (Value, Place,
+CallExpression, Construct ...), and both take the type of an operator from
+CCPP65Types (Operation, Conditional, FloatArithmetic, PointerDifference), so the type
+the checker gives an expression is the type of its code.
 
 The memory map, register widths, argument sizes, W, V and this below are the user's
 (2026-10-23), as is cmp setting v like sub.  The rest are my choices.
@@ -161,6 +172,10 @@ set of hard arguments on the 65C64 against the same references.
 Registers (the user, 2026-10-23)
 --------------------------------
 
+This section and "Instructions used for operators" describe the code the generator wrote
+before the IR (IR.txt).  The 65C64 back end (CIR65Backend) keeps the calling convention,
+the places from V and the labels.
+
 A, B, X and Y stay 32 bits wide.  A 1 or 2 byte value is read or written with cpyx
 (2026-10-28), which extends it into the register or stores the register's low bits:
 
@@ -187,7 +202,7 @@ right in B, a constant (add A, 3) or a pseudo register (cmp A, [4]).
 
 W points at the pseudo registers, like the 6502's zero page and the 65816's direct
 page.  It is always 0 (the user, 2026-10-25: part of the calling convention), so the
-pseudo registers are $0000 to $00FF.  The direct generator writes them as [n]: add, sub,
+pseudo registers are $0000 to $00FF.  They are written as [n]: add, sub,
 cmp, shl, shr and cpyx address memory with V, X or Y but not W (the user, 2026-10-28).  mul
 and div count in W from 0 and leave it at twice their width in bytes, so it is set back
 straight after:

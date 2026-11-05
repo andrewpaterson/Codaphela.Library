@@ -275,7 +275,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	uiFingerprint = 0;
 	if (bResult)
 	{
-		//IR that doesn't verify is the front end's (or a pass's) mistake; the generator writes the function instead.
+		//IR that doesn't verify is the front end's (or a pass's) mistake: the function is an error.
 		Finish();
 		if (mpcGenerator->mbLineTable || InliningProfile())
 		{
@@ -342,7 +342,6 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		//As the generator's EndFunction leaves it.
-		mpcGenerator->mpszOut = &mpcGenerator->mszCode;
 		mpcGenerator->mpsFunction = NULL;
 		mpcGenerator->miThisOffset = -1;
 	}
@@ -751,9 +750,8 @@ bool CCPP65IRFrontEnd::Parameters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an object passed by value is passed by its address: on a target
-// without the direct generator, one whose copy isn't its bytes (it has a
-// copy constructor, or a base or field does).  The caller copies it to a
+// Whether an object passed by value is passed by its address: one whose
+// copy isn't its bytes (it has a copy constructor, or a base or field does).  The caller copies it to a
 // temporary, passes its address and destroys it at the end of the full
 // expression, as the Itanium C++ ABI does; others are their bytes, pushed.
 //

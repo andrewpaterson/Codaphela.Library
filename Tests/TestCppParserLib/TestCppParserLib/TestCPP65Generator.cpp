@@ -481,6 +481,15 @@ void TestCPP65GeneratorOperators(void)
 		AssertCPP65Operator64(aszOperators[i], "long long", true);
 		AssertCPP65Operator64(aszOperators[i], "unsigned long long", false);
 	}
+
+	//Pointer arithmetic steps by the size of the class pointed to (and pointer - pointer divides by it), also when
+	//it is the first thing in the program that needs the class laid out.
+	AssertInt(2 * 100 + 3 * 10 + 4, TestCPP65Main(
+		"struct SEntry { int a; int b; };\n"
+		"int Count(SEntry* psStart, SEntry* psEnd) { return (int)(psEnd - psStart); }\n"
+		"int Last(SEntry* p, int n) { int i; for (i = 0; i < n; i++) { if (i > 0) { p++; } } return p->b; }\n"
+		"int Skip(SEntry* p) { p += 2; return p->a; }\n"
+		"int main() { SEntry a[3]; a[0].b = 1; a[1].b = 2; a[2].b = 3; a[2].a = 4; return Count(&a[0], &a[2]) * 100 + Last(a, 3) * 10 + Skip(a); }\n"));
 }
 
 
@@ -3009,6 +3018,7 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 32): No function matches the arguments (): it takes (long) [f]\n", "int f(int a); int g() { return f(); }");
 	AssertCPP65Error("Generated.cpp (1, 16): break outside a loop or switch [break]\n", "void f(void) { break; }");
 	AssertCPP65Error("Generated.cpp (1, 33): __builtin_alloca is not supported [__builtin_alloca]\n", "int f(int n) { char* p = (char*)__builtin_alloca(n); return p[0]; }");
+	AssertCPP65Error("Generated.cpp (1, 41): __builtin_alloca is not supported [__builtin_alloca]\n", "int g(void* p); int f(int n) { return g(__builtin_alloca(n)); }");
 	AssertCPP65Error("Generated.cpp (1, 31): A static local variable needs a constant initialiser in the compiler yet [a]\n", "int f(int a) { static int s = a; return s; }");
 	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the class template matches equally [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The member template has not been defined [c]\n", "struct C { template<class T> int F(T t); }; int main() { C c; return c.F(1); }");

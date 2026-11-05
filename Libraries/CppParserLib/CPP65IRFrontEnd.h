@@ -125,11 +125,12 @@ typedef CArrayTemplate<SCPP65IRTemporary>	CArrayCPP65IRTemporaries;
 typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 
 
-//Writes function bodies as IR for the 65C64 generator and generates them with CIR65Backend (IR.txt step 2).  The
-//generator works out everything about the C++ (types, names, overloads, layouts) and sets up the function as it
-//does for its own code; Body then writes the function as IR if it supports everything in it, or returns false
-//(having changed nothing) so the generator writes it itself.  Locals are slots, read and written with load and
-//store; parameters are where their caller pushed them (argaddr).  What is supported is in IR.txt (Front end).
+//Writes every function body as IR and generates it with the target's back end (CIR65Backend or CIR816Backend).
+//The generator works out everything about the C++ (types with CCPP65TypeChecker, names, overloads, layouts) and
+//sets up the function; Body then writes the function as IR if it supports everything in it, or returns false
+//(having changed nothing) and the function is an error (CCPP65Generator::GenerateDefinition).  Locals are slots,
+//read and written with load and store; parameters are where their caller pushed them (argaddr).  What is
+//supported is in IR.txt (Front end).
 class CCPP65IRFrontEnd : public CIRInlineProfile
 {
 protected:
@@ -163,7 +164,7 @@ protected:
 	CArrayUint8				mauiStringBytes;	//String literals, given to the generator if the function is written.
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
-	bool					mbUnsupported;		//Something the front end can't write yet: the generator writes the function.
+	bool					mbUnsupported;		//Something the front end can't write yet: the function is an error.
 	int						miUnsupportedLine;	//The line of CPP65IRFrontEnd.cpp that last left a function to the generator.
 	char					mszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
 

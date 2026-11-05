@@ -132,6 +132,9 @@
     <ClCompile Include="CPP65Type.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65TypeChecker.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPErrors.cpp">
       <Filter>Source\General</Filter>
     </ClCompile>
@@ -783,6 +786,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65Type.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65TypeChecker.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPErrors.h">

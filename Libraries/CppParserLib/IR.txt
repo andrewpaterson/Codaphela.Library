@@ -10,11 +10,12 @@ CppParserLib; phi instructions; callee saved pseudo registers; signed overflow w
 around; on the W65C816 near inside a linker object and far calls at its boundaries;
 LLVM like text.  "The IR will be a black box to me": the rest are my choices.
 
-Today CCPP65Generator walks the syntax tree and writes 65C64 assembly as it goes: every
-value ends in A, every local has its own place from V and nothing sees further than one
-expression.  With the IR the generator keeps all of its C++ work (overloads,
-conversions, templates, temporaries, destructors, this adjustments, class layout,
-mangled names) but writes IR instead of assembly:
+Before the IR, CCPP65Generator walked the syntax tree and wrote 65C64 assembly as it
+went: every value ended in A, every local had its own place from V and nothing saw
+further than one expression.  With the IR the generator keeps all of its C++ work
+(overloads, conversions, templates, temporaries, destructors, this adjustments, class
+layout, mangled names) but writes IR instead of assembly (an expression's type is
+CCPP65TypeChecker's: see CPP65Generator.txt):
 
 	syntax tree
 	  -> front end (CCPP65Generator's C++ semantics)		writes IR, already in SSA

@@ -325,6 +325,30 @@ void TestCPP816Basics(void)
 		"	long l = -2147483647L - 1; s += l / 2 + l % 8;\n"
 		"	return ((s & 0xFFFFFFF) == 259971084L) ? 7 : 1;\n"
 		"}\n"));
+
+	//An expression's type is the one its code has.  int + unsigned int is an unsigned int, also when the unsigned
+	//int is a constant variable (they are the same width); pointer - pointer is as wide as a pointer, a long.  The
+	//overload called and sizeof both show it.
+	AssertInt(2 * 1000 + 3 * 100 + 2 * 10 + 4, TestCPP816Run(
+		"int F(int i) { return 1; }\n"
+		"int F(unsigned int u) { return 2; }\n"
+		"int F(long l) { return 3; }\n"
+		"int main(void)\n"
+		"{\n"
+		"\tconst unsigned int u = 5;\n"
+		"\tint x = 3;\n"
+		"\tchar a[4];\n"
+		"\treturn F(x + u) * 1000 + F(&a[3] - &a[0]) * 100 + sizeof(x + u) * 10 + sizeof(&a[3] - &a[0]);\n"
+		"}\n"));
+
+	//Pointer arithmetic steps by the size of the class pointed to (and pointer - pointer divides by it), also when
+	//it is the first thing in the program that needs the class laid out.
+	AssertInt(2 * 100 + 3 * 10 + 4, TestCPP816Run(
+		"struct SEntry { int a; int b; };\n"
+		"int Count(SEntry* psStart, SEntry* psEnd) { return (int)(psEnd - psStart); }\n"
+		"int Last(SEntry* p, int n) { int i; for (i = 0; i < n; i++) { if (i > 0) { p++; } } return p->b; }\n"
+		"int Skip(SEntry* p) { p += 2; return p->a; }\n"
+		"int main() { SEntry a[3]; a[0].b = 1; a[1].b = 2; a[2].b = 3; a[2].a = 4; return Count(&a[0], &a[2]) * 100 + Last(a, 3) * 10 + Skip(a); }\n"));
 }
 
 
