@@ -243,7 +243,6 @@ protected:
 			size					NumHeapFromHolders(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);
-			void					ReplaceOneWithX(char* szDest, char* szMask);
 			void					ContainerPreInit(void);
 			void					ContainerPostInit(void);
 

@@ -602,6 +602,12 @@
     <ClCompile Include="BaseObject.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
+    <ClCompile Include="BaseObjectPrint.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseObjectValidate.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
@@ -783,6 +789,12 @@
       <Filter>Source\Object\Object\Collection\Set</Filter>
     </ClCompile>
     <ClCompile Include="EmbeddedObject.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="EmbeddedObjectPrint.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="EmbeddedObjectValidate.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
     <ClCompile Include="StackPointers.cpp">
