@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{865ea844-3270-4144-9a2a-a1cc8756898c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DebugClient.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugServer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugTarget.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Flat65C64DebugTarget.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Flat65C816DebugTarget.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816DebugRegisters.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DebugClient.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugProtocol.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugServer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugTarget.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Flat65C64DebugTarget.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Flat65C816DebugTarget.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816DebugRegisters.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
