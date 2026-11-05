@@ -314,6 +314,7 @@ public:
 	void				SpaceAction(SComponentInputEvent* psEvent);
 	void				TabAction(SComponentInputEvent* psEvent);
 	void				ActivateComponent(int x, int y);
+	void				ContextMenuClick(SComponentInputEvent* psEvent);
 	void				ExecuteComponent(int x, int y);
 	void				StartDragSelect(int x, int y);
 	void				ContDragSelect(int x, int y);

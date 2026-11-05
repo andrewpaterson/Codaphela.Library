@@ -767,7 +767,8 @@ void TestPopupDraw(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A context menu on a grid opens over the text area in it (which has no
-// menu of its own) with the right button at the pointer, and with the
+// menu of its own) with the right button at the pointer, moving the text
+// area's caret there unless it is in the selection, and with the
 // Menu key or Shift+F10 under the text area's caret.  The keys are in the
 // menu while it is open and back in the text area when it closes, however
 // it closes: escape, an item clicked, or a press outside it, in its owner
@@ -796,6 +797,9 @@ void TestMenuContextMenu(void)
 		SInt32Vec2				sVec;
 		CInt32Rect				cCaret;
 		size					uiActions;
+		size					uiStart;
+		size					uiEnd;
+		size					i;
 
 		szLog.Init();
 		cListener.Init(&szLog);
@@ -839,10 +843,39 @@ void TestMenuContextMenu(void)
 		AssertInt32Vec2(40, 30, &sVec);
 		AssertTrue(pFocus->GetFocussedComponent() == pMenu);
 
-		//Escape closes it and the keys go back to the text area.
+		//Escape closes it and the keys go back to the text area.  The right button moved the text area's caret to the
+		//pointer, as Visual Studio's does.
 		pTestWindow->InputCommand(CIC_ClearSelection, true);
 		AssertFalse(pMenu->IsOpen());
 		AssertTrue(pFocus->GetFocussedComponent() == pText);
+		AssertSize(pText->FindPositionAt(40, 30), pText->GetCaretPosition());
+		AssertTrue(pText->GetCaretPosition() > 9);
+
+		//Pressed in the selection ("The quick") the selection is kept, so the menu acts on it.  Escape closes the menu
+		//and leaves the selection.
+		pText->DocumentHome();
+		for (i = 0; i < 9; i++)
+		{
+			pText->SelectRight();
+		}
+		MoveTo(pTestWindow, SInt32Vec2(3, 5));
+		AssertTrue(pText->FindPositionAt(3, 5) < 9);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		AssertTrue(pText->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+		AssertSize(9, uiEnd);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pMenu->IsOpen());
+		AssertTrue(pText->GetSelection(&uiStart, &uiEnd));
+
+		//Pressed outside it the caret moves there and nothing is selected.
+		MoveTo(pTestWindow, sPointer);
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		AssertFalse(pText->GetSelection(&uiStart, &uiEnd));
+		AssertSize(pText->FindPositionAt(40, 30), pText->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
 
 		//An item clicked with the keys closes the menu, then calls the menu's item click event.
 		pTestWindow->InputCommand(CIC_ContextMenu, true);

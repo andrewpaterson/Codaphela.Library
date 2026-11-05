@@ -132,6 +132,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 
 	AddInputAction(CIC_ActivateComponent, this, &CTextArea::ActivateComponent);
 	AddInputAction(CIC_ExecuteComponent, this, &CTextArea::ExecuteComponent);
+	AddInputAction(CIC_ContextMenu, this, &CTextArea::ContextMenuClick);
 	AddInputAction(CIC_StartDragSelect, this, &CTextArea::StartDragSelect);
 	AddInputAction(CIC_ContDragSelect, this, &CTextArea::ContDragSelect);
 	AddInputAction(CIC_StopDragSelect, this, &CTextArea::StopDragSelect);
@@ -2235,6 +2236,37 @@ void CTextArea::ActivateComponent(int x, int y)
 	}
 	MoveCaret(uiPosition, false, bRowEnd);
 	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The right button, as in Visual Studio: pressed in the selection it is
+// kept, so the context menu acts on it; anywhere else the caret moves
+// there and nothing is selected.  The press goes on up to the component
+// with the context menu.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ContextMenuClick(SComponentInputEvent* psEvent)
+{
+	size	uiPosition;
+	size	uiStart;
+	size	uiEnd;
+	bool	bRowEnd;
+
+	psEvent->bPass = true;
+
+	bRowEnd = false;
+	uiPosition = 0;
+	if (HasStops())
+	{
+		uiPosition = FindPositionInRow(FindRowAt(psEvent->y), psEvent->x, &bRowEnd);
+	}
+	if (GetSelection(&uiStart, &uiEnd) && (uiPosition >= uiStart) && (uiPosition < uiEnd))
+	{
+		return;
+	}
+	MoveCaret(uiPosition, false, bRowEnd);
 }
 
 
