@@ -20,7 +20,7 @@ struct SChunkFilenameIterator
 class CChunkFileFileSystem : public CFileIO
 {
 protected:
-	CArrayChars		maszOpenChunkNames;		//All the chunk names not including the last one.
+	CArrayChars		maszOpenChunkNames;		//The open chunks containing the last one, written or read (reads leave them open).
 	CChars			mszLastChunkName;		//The last open chunk name.
 	CChunkFile*		mpcChunkFile;
 
@@ -53,6 +53,10 @@ protected:
 	size		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
 	bool		WriteUnmatchedChunkEnds(size iMatchingOpen);
 	bool		WriteNewUnmatchedChunks(size iMatchingOpen, CArrayChars* paszChunkNames);
+
+	size		NumOpenOnPath(CArrayChars* paszChunkNames);
+	void		ReadOpenChunksEnd(size uiKeep);
+	bool		ReadChunkBeginFrom(CArrayChars* paszChunkNames, size uiDepth);
 
 	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
 	lsize		Read(void* pvDest, lsize iSize, lsize iCount);

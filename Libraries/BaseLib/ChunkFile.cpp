@@ -34,6 +34,7 @@ void CChunkFile::_Init(void)
 	mpcHashFile = NULL;
 	mcChunkStack.Init();
 	mmsziNames._Init();
+	muiIndicesRead = 0;
 	memset(&msHeader, 0, sizeof(SChunkFileHeader));
 	miLastName = 0;
 }
@@ -160,6 +161,7 @@ bool CChunkFile::ReadOpen(void)
 	mmsziNames.Init();
 	msHeader.miChunkNamesPos = -1;
 	miLastName = CFN_Error;
+	muiIndicesRead = 0;
 
 	ReturnOnFalse(CFileBasic::Open(EFM_Read));
 	ReturnOnFalse(CFileBasic::Read(&msHeader, sizeof(SChunkFileHeader), 1));
@@ -406,6 +408,7 @@ bool CChunkFile::__PrivateReadChunkBegin(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex)
 {
+	muiIndicesRead++;
 	CFileBasic::Seek(iIndexPos, EFSO_SET);
 	return pcIndex->mcChunkIndices.Read(this);
 }
@@ -709,6 +712,16 @@ bool CChunkFile::ContainsChunks(void)
 size CChunkFile::StackDepth(void)
 {
 	return mcChunkStack.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CChunkFile::NumIndicesRead(void)
+{
+	return muiIndicesRead;
 }
 
 

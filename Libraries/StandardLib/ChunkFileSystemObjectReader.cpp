@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/ChunkFileFile.h"
 #include "BaseLib/ChunkFileFileSystem.h"
@@ -100,6 +101,7 @@ CSerialisedObject* CChunkFileSystemObjectReader::Read(const char* szChunkName)
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;
 	CFileBasic			cFileBasic;
+	bool				bEnded;
 
 	if (!mcChunkFileFileSystem.ReadChunkBegin(szChunkName))
 	{
@@ -116,15 +118,10 @@ CSerialisedObject* CChunkFileSystemObjectReader::Read(const char* szChunkName)
 	cFileBasic.Kill();
 	cChunkFile.Kill();
 
-	if (!pcSerialised)
+	bEnded = mcChunkFileFileSystem.ReadChunkEnd();
+	if (!bEnded)
 	{
-		return NULL;
-	}
-
-	if (!mcChunkFileFileSystem.ReadChunkEnd())
-	{
-		free(pcSerialised);
-		return NULL;
+		SafeFree(pcSerialised);
 	}
 	return pcSerialised;
 }

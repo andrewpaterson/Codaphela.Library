@@ -444,6 +444,153 @@ void TestChunkFileFileSystemNameIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChunkFileFileSystemWriteText(CChunkFileFileSystem* pcFileSystem, const char* szName, const char* szText)
+{
+	AssertTrue(pcFileSystem->WriteChunkBegin(szName));
+	AssertTrue(pcFileSystem->WriteString(szText));
+	AssertTrue(pcFileSystem->WriteChunkEnd());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileFileSystemAssertText(CChunkFileFileSystem* pcFileSystem, const char* szName, const char* szExpected)
+{
+	CChars	szText;
+
+	AssertTrue(pcFileSystem->ReadChunkBegin(szName));
+	AssertTrue(szText.ReadChars(pcFileSystem));
+	AssertString(szExpected, szText.Text());
+	szText.Kill();
+	AssertTrue(pcFileSystem->ReadChunkEnd());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reading leaves the chunks containing the one read open, so reading many
+// from one container reads its index once.  A container written twice
+// ("Box") has two chunks with its name: what isn't in the open one is
+// looked for in the other.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileFileSystemReadingKeepsContainersOpen(void)
+{
+	CChunkFile				cChunkFile;
+	CChunkFileFileSystem	cChunkFileFileSystem;
+	SChunkFilenameIterator	sIter;
+	CChars					szName;
+	CChars					szText;
+	char*					szIterated;
+	size					i;
+	size					uiNumNames;
+	size					uiIndicesRead;
+	size					uiWrong;
+	CFileUtil				cFileUtil;
+
+	cFileUtil.RemoveDir("Output" _FS_ "ChunkFileFileSystem");
+	AssertTrue(cFileUtil.TouchDir("Output" _FS_ "ChunkFileFileSystem"));
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "ChunkFileFileSystem" _FS_ "Boxes.DRG"));
+	cChunkFileFileSystem.Init(&cChunkFile);
+	AssertTrue(cChunkFileFileSystem.WriteOpen());
+	for (i = 0; i < 200; i++)
+	{
+		szName.Init("Box/Leaf ");
+		szName.Append((int)i);
+		szText.Init("Text ");
+		szText.Append((int)i);
+		TestChunkFileFileSystemWriteText(&cChunkFileFileSystem, szName.Text(), szText.Text());
+		szText.Kill();
+		szName.Kill();
+	}
+	TestChunkFileFileSystemWriteText(&cChunkFileFileSystem, "Other/Deep/Thing", "Thing");
+	TestChunkFileFileSystemWriteText(&cChunkFileFileSystem, "Box/Late", "Late");
+	TestChunkFileFileSystemWriteText(&cChunkFileFileSystem, "Top", "Top");
+	AssertTrue(cChunkFileFileSystem.WriteClose());
+	cChunkFileFileSystem.Kill();
+	cChunkFile.Kill();
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "ChunkFileFileSystem" _FS_ "Boxes.DRG"));
+	cChunkFileFileSystem.Init(&cChunkFile);
+	AssertTrue(cChunkFileFileSystem.ReadOpen());
+	AssertFalse(cChunkFileFileSystem.ReadChunkEnd());
+
+	uiIndicesRead = cChunkFile.NumIndicesRead();
+	uiWrong = 0;
+	for (i = 0; i < 200; i++)
+	{
+		szName.Init("Box/Leaf ");
+		szName.Append((int)i);
+		AssertTrue(cChunkFileFileSystem.ReadChunkBegin(szName.Text()));
+		AssertTrue(szText.ReadChars(&cChunkFileFileSystem));
+		if (!szText.EndsWith(szName.Text() + 9) || !szText.StartsWith("Text "))
+		{
+			uiWrong++;
+		}
+		szText.Kill();
+		AssertTrue(cChunkFileFileSystem.ReadChunkEnd());
+		szName.Kill();
+	}
+	AssertSize(0, uiWrong);
+	AssertSize(uiIndicesRead + 1, cChunkFile.NumIndicesRead());
+	AssertFalse(cChunkFileFileSystem.ReadChunkEnd());
+
+	//Not in the open "Box": found in the other.
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Late", "Late");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Leaf 7", "Text 7");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Late", "Late");
+
+	//Other depths, and back.
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Top", "Top");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Other/Deep/Thing", "Thing");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Leaf 199", "Text 199");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Other/Deep/Thing", "Thing");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Top", "Top");
+
+	//Missing, then there.
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin("Box/Leaf 200"));
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin("Other/Thing"));
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin("Other/Deep/Thing/More"));
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin("Nothing"));
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin(""));
+	AssertFalse(cChunkFileFileSystem.ReadChunkBegin(NULL));
+	AssertFalse(cChunkFileFileSystem.ReadChunkEnd());
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Leaf 3", "Text 3");
+
+	//Containers ("Other/Deep") can be read as chunks too.
+	AssertTrue(cChunkFileFileSystem.ReadChunkBegin("Other/Deep"));
+	AssertTrue(cChunkFileFileSystem.ReadChunkEnd());
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Other/Deep/Thing", "Thing");
+
+	//Iterating names starts from the top, whatever was open.
+	AssertTrue(cChunkFileFileSystem.ReadChunkBegin("Box/Leaf 4"));
+	uiNumNames = 0;
+	szIterated = cChunkFileFileSystem.StartNameIteration(&sIter);
+	while (szIterated)
+	{
+		uiNumNames++;
+		szIterated = cChunkFileFileSystem.IterateName(&sIter);
+	}
+	cChunkFileFileSystem.StopIteration(&sIter);
+	AssertSize(203, uiNumNames);
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Late", "Late");
+	TestChunkFileFileSystemAssertText(&cChunkFileFileSystem, "Box/Leaf 0", "Text 0");
+
+	AssertTrue(cChunkFileFileSystem.ReadClose());
+	cChunkFileFileSystem.Kill();
+	cChunkFile.Kill();
+
+	cFileUtil.RemoveDir("Output" _FS_ "ChunkFileFileSystem");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChunkFileFileSystem(void)
 {
 	BeginTests();
@@ -452,6 +599,7 @@ void TestChunkFileFileSystem(void)
 	TestChunkFileFileSystemWriting();
 	TestChunkFileFileSystemReading();
 	TestChunkFileFileSystemNameIteration();
+	TestChunkFileFileSystemReadingKeepsContainersOpen();
 
 	MemoryKill();
 	TestStatistics();

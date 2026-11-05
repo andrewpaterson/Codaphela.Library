@@ -177,6 +177,7 @@ bool CChunkFileFileSystem::WriteChunkEnd(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFileFileSystem::ReadOpen(void)
 {
+	maszOpenChunkNames.ReInit();
 	return mpcChunkFile->ReadOpen();
 }
 
@@ -187,6 +188,7 @@ bool CChunkFileFileSystem::ReadOpen(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFileFileSystem::ReadClose(void)
 {
+	maszOpenChunkNames.ReInit();
 	return mpcChunkFile->ReadClose();
 }
 
@@ -247,89 +249,167 @@ bool CChunkFileFileSystem::WriteChunkEnd(const char* szChunkName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Opens the chunk at the path szChunkName ("Container/Chunk").  The chunks
+// containing the last one read are still open: those on the way to this
+// one are kept and searched first, so reading many chunks from one
+// container reads its index once.  Chunks can share a name (a container
+// written more than once), so if the chunk isn't under them every path is
+// searched from the start.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 {
 	CArrayChars	aszChunkNames;
-	size		iDepth;
-	CChars*		pszName;
-	size		iIndex;
-	bool*		abFoundFirst;
-	size		iLength;
+	size		uiKeep;
+	bool		bFound;
 
-	if (!szChunkName)
+	if (StrEmpty(szChunkName))
 	{
 		return false;
 	}
 
 	aszChunkNames.Init();
 	aszChunkNames.Split(szChunkName, '/');
-
-	iLength = aszChunkNames.NumElements();
-	if (iLength == 0)
+	if (aszChunkNames.NumElements() == 0)
 	{
 		aszChunkNames.Kill();
 		return false;
 	}
 
-	abFoundFirst = (bool*)malloc((lsize)sizeof(bool) * iLength);
-	memset(abFoundFirst, 0, (lsize)sizeof(bool) * iLength);
-
-	for (iDepth = 0;;)
+	uiKeep = NumOpenOnPath(&aszChunkNames);
+	ReadOpenChunksEnd(uiKeep);
+	bFound = ReadChunkBeginFrom(&aszChunkNames, uiKeep);
+	if (!bFound && (uiKeep > 0))
 	{
-		pszName = aszChunkNames.Get(iDepth);
-		if (!abFoundFirst[iDepth])
-		{
-			iIndex = mpcChunkFile->FindFirstChunkWithName(pszName->Text());
-			abFoundFirst[iDepth] = true;
-		}
-		else
-		{
-			iIndex = mpcChunkFile->FindNextChunkWithName();
-		}
-
-		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
-		{
-			abFoundFirst[iDepth] = false;
-			iDepth--;
-
-			if (iDepth == MAX_SIZE)
-			{
-				ReadChunkEnd();
-				aszChunkNames.Kill();
-				free(abFoundFirst);
-				return false;
-			}
-			mpcChunkFile->ReadChunkEnd();
-		}
-		else
-		{
-			mpcChunkFile->ReadChunkBegin(iIndex);
-			if (iDepth == iLength-1)
-			{
-				aszChunkNames.Kill();
-				free(abFoundFirst);
-				return true;
-			}
-			iDepth++;
-		}
+		ReadOpenChunksEnd(0);
+		bFound = ReadChunkBeginFrom(&aszChunkNames, 0);
 	}
 
+	if (bFound)
+	{
+		aszChunkNames.RemoveTail();
+		maszOpenChunkNames.ReInit();
+		maszOpenChunkNames.Copy(&aszChunkNames);
+	}
 	aszChunkNames.Kill();
-	free(abFoundFirst);
-
-	return WriteChunkBegin();
+	return bFound;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many of the open chunks are the first containers on the path.
+//
+//////////////////////////////////////////////////////////////////////////
+size CChunkFileFileSystem::NumOpenOnPath(CArrayChars* paszChunkNames)
+{
+	size	i;
+	size	uiContainers;
+	size	uiOpen;
+
+	uiContainers = paszChunkNames->NumElements() - 1;
+	uiOpen = maszOpenChunkNames.NumElements();
+	for (i = 0; (i < uiContainers) && (i < uiOpen); i++)
+	{
+		if (!paszChunkNames->Get(i)->Equals(maszOpenChunkNames.Get(i)))
+		{
+			break;
+		}
+	}
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ends every chunk open for reading but the first uiKeep containers (and
+// the file's own).
+//
+//////////////////////////////////////////////////////////////////////////
+void CChunkFileFileSystem::ReadOpenChunksEnd(size uiKeep)
+{
+	while (mpcChunkFile->StackDepth() > uiKeep + 1)
+	{
+		mpcChunkFile->ReadChunkEnd();
+	}
+	while (maszOpenChunkNames.NumElements() > uiKeep)
+	{
+		maszOpenChunkNames.RemoveTail();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Searches for the chunk at the path below the uiDepth chunks open on it,
+// trying every chunk with each name.  If it isn't found only those chunks
+// are open.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChunkFileFileSystem::ReadChunkBeginFrom(CArrayChars* paszChunkNames, size uiDepth)
+{
+	size		uiFrom;
+	size		uiLength;
+	size		uiIndex;
+	CChars*		pszName;
+	bool*		abFoundFirst;
+
+	uiFrom = uiDepth;
+	uiLength = paszChunkNames->NumElements();
+	abFoundFirst = (bool*)malloc((lsize)sizeof(bool) * uiLength);
+	memset(abFoundFirst, 0, (lsize)sizeof(bool) * uiLength);
+
+	for (;;)
+	{
+		pszName = paszChunkNames->Get(uiDepth);
+		if (!abFoundFirst[uiDepth])
+		{
+			uiIndex = mpcChunkFile->FindFirstChunkWithName(pszName->Text());
+			abFoundFirst[uiDepth] = true;
+		}
+		else
+		{
+			uiIndex = mpcChunkFile->FindNextChunkWithName();
+		}
+
+		if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			abFoundFirst[uiDepth] = false;
+			if (uiDepth == uiFrom)
+			{
+				free(abFoundFirst);
+				return false;
+			}
+			uiDepth--;
+			mpcChunkFile->ReadChunkEnd();
+		}
+		else
+		{
+			mpcChunkFile->ReadChunkBegin(uiIndex);
+			if (uiDepth == uiLength - 1)
+			{
+				free(abFoundFirst);
+				return true;
+			}
+			uiDepth++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ends the chunk ReadChunkBegin opened.  The chunks containing it are left
+// open for the next.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFileFileSystem::ReadChunkEnd(void)
 {
-	return mpcChunkFile->ReadChunkEndAll();
+	if (mpcChunkFile->StackDepth() <= maszOpenChunkNames.NumElements() + 1)
+	{
+		return false;
+	}
+	return mpcChunkFile->ReadChunkEnd();
 }
 
 
@@ -339,6 +419,7 @@ bool CChunkFileFileSystem::ReadChunkEnd(void)
 //////////////////////////////////////////////////////////////////////////
 char* CChunkFileFileSystem::StartNameIteration(SChunkFilenameIterator* psIter)
 {
+	ReadOpenChunksEnd(0);
 	psIter->Init();
 	psIter->aiIndex.Add(0);
 	return IterateName(psIter);

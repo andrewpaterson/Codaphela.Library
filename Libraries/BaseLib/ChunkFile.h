@@ -43,6 +43,7 @@ protected:
 	CMapStringInt		mmsziNames;
 	SChunkFileHeader	msHeader;
 	chunkName			miLastName;
+	size				muiIndicesRead;	//Since ReadOpen: how many chunk indices have been read from the file.
 	
 	bool	__PrivateReadChunkBegin(void);
 	bool	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
@@ -76,6 +77,7 @@ public:
 	bool		WriteChunkEnd(const char* szChunkName);
 
 	size		StackDepth(void);
+	size		NumIndicesRead(void);
 	filePos		ChunkSize(void);
 	filePos		ChunkStart(void);
 	
