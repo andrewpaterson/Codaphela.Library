@@ -49,8 +49,7 @@ public:
 
 	size 				BaseNumPointerTos(void)  override;
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
-	void				RemoveAllPointerTosDontFree(void) override;
-	bool				RemoveAllPointerTosTryFree(void) override;
+	bool				ClearPointerTos(bool bFree) override;
 
 	bool				Remove(const char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);

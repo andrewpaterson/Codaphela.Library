@@ -366,39 +366,12 @@ void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called by KillInternal and RemoveAll (bFree), and when killed with the
+// objects around it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::RemoveAllPointerTosDontFree(void)
+bool CIndexObject::ClearPointerTos(bool bFree)
 {
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-	bool						bResult;
-
-	if (mcIndex.NumElements() == 0)
-	{
-		return;
-	}
-
-	bResult = true;
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		bResult &= RemovePointerToDontFree(pcPointedTo);
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	}
-	mcIndex.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexObject::RemoveAllPointerTosTryFree(void)
-{
-	//Called by KillInternal and RemoveAll.
-
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	bool							bExists;
@@ -413,12 +386,19 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcPointedTo);
 	while (bExists)
 	{
-		bResult &= RemovePointerToTryFree(pcPointedTo);
+		if (bFree)
+		{
+			bResult &= RemovePointerToTryFree(pcPointedTo);
+		}
+		else
+		{
+			bResult &= RemovePointerToDontFree(pcPointedTo);
+		}
 		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcPointedTo);
 	}
 
 	mcIndex.ReInit();
-	return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
+	return bResult;  // This can return an error but ClearPointerTos callers don't handle it.
 }
 
 

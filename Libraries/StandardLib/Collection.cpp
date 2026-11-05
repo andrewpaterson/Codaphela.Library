@@ -164,7 +164,7 @@ bool CCollection::RemoveAll(void)
 {
 	bool	bResult;
 
-	bResult = RemoveAllPointerTosTryFree();
+	bResult = ClearPointerTos(true);
 
 #ifdef _DEBUG
 	ValidateObjectsConsistency(true);

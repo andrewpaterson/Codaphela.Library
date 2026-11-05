@@ -403,12 +403,12 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called by KillInternal and RemoveAll (bFree), and when killed with the
+// objects around it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::RemoveAllPointerTosTryFree(void)
+bool CArrayCommonObject::ClearPointerTos(bool bFree)
 {
-	//Called by KillInternal and RemoveAll.
-
 	CBaseObject*	pcPointedTo;
 	size 			i;
 	size 			uiNumElements;
@@ -422,32 +422,17 @@ bool CArrayCommonObject::RemoveAllPointerTosTryFree(void)
 		//array and mustn't find the ones already freed.
 		pcPointedTo = UnsafeGetObject(i);
 		mcArray.UnsafeSet(i, NULL);
-		bResult &= RemovePointerToTryFree(pcPointedTo);
+		if (bFree)
+		{
+			bResult &= RemovePointerToTryFree(pcPointedTo);
+		}
+		else
+		{
+			bResult &= RemovePointerToDontFree(pcPointedTo);
+		}
 	}
 	mcArray.ReInit();
-	return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllPointerTosDontFree(void)
-{
-	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			uiNumElements;
-	bool			bResult;
-
-	bResult = true;
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = UnsafeGetObject(i);
-		bResult &= RemovePointerToDontFree(pcPointedTo);
-	}
-	mcArray.ReInit();
+	return bResult;  // This can return an error but ClearPointerTos callers don't handle it.
 }
 
 

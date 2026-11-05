@@ -413,53 +413,28 @@ void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllPointerTosDontFree(void)
+bool CObject::ClearPointerTos(bool bFree)
 {
 	size				i;
 	size				uiNumEmbedded;
 	CBaseObject*		pcEmbedded;
 	size				uiNumPointers;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
+	CPointer*			pcPointer;
+	bool				bResult;
 
 	uiNumPointers = mapPointers.NumElements();
 	for (i = 0; i < uiNumPointers; i++)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		RemoveToFromDontFree(pcPointedTo);
-		(*ppPointer)->UnsafeClearObject();
-	}
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllPointerTosDontFree();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObject::RemoveAllPointerTosTryFree(void)
-{
-	//Called by KillInternal.
-
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-	size			uiNumPointers;
-	CPointer**		ppPointer;
-	bool			bResult;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		(*ppPointer)->PointToNull();
+		pcPointer = *mapPointers.Get(i);
+		if (bFree)
+		{
+			pcPointer->PointToNull();
+		}
+		else
+		{
+			RemoveToFromDontFree(pcPointer->Object());
+			pcPointer->UnsafeClearObject();
+		}
 	}
 
 	bResult = true;
@@ -467,9 +442,8 @@ bool CObject::RemoveAllPointerTosTryFree(void)
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		bResult &= pcEmbedded->RemoveAllPointerTosTryFree();
+		bResult &= pcEmbedded->ClearPointerTos(bFree);
 	}
-
 	return bResult;
 }
 

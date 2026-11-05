@@ -1104,7 +1104,7 @@ void CObjects::RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcKilled = *papcObjectPts->Get(i);
-		pcKilled->RemoveAllPointerTosDontFree();
+		pcKilled->ClearPointerTos(false);
 	}
 }
 

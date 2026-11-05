@@ -358,13 +358,13 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		if (IsNesPointedTo())
 		{
 			//Objects that depend on this to be freed must be freed before this, as they are when this is allocated in Objects.
-			RemoveAllPointerTosTryFree();  //Handles embedded objects.
+			ClearPointerTos(true);  //Handles embedded objects.
 			FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
 		}
 		else
 		{
 			FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
-			RemoveAllPointerTosTryFree();  //Handles embedded objects.
+			ClearPointerTos(true);  //Handles embedded objects.
 		}
 
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
@@ -883,19 +883,14 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(size iToIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Objects with no pointers (hollow ones) have none to remove.
+// Clears this object's pointers, one at a time, unlinking the froms they
+// gave.  With bFree what each pointed to is freed if nothing else reaches
+// it, before the next is cleared (the ones not cleared yet still hold
+// theirs).  Without, nothing is freed: the objects are being killed
+// together.  Objects with no pointers (hollow ones) have none to clear.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveAllPointerTosDontFree(void)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CBaseObject::RemoveAllPointerTosTryFree(void)
+bool CBaseObject::ClearPointerTos(bool bFree)
 {
 	return true;
 }

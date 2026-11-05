@@ -93,8 +93,7 @@ protected:
 	void				DoneKill(bool bAllocatedInObjects) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
-	void				RemoveAllPointerTosDontFree(void);
-	bool				RemoveAllPointerTosTryFree(void);
+	bool				ClearPointerTos(bool bFree) override;
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;

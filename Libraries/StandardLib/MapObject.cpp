@@ -345,42 +345,12 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called by KillInternal and RemoveAll (bFree), and when killed with the
+// objects around it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::RemoveAllPointerTosDontFree(void)
+bool CMapObject::ClearPointerTos(bool bFree)
 {
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bResult;
-	bool			bExists;
-
-	if (mcMap.NumElements() == 0)
-	{
-		return;
-	}
-
-	//No need to EnsureSorted().
-	bResult = true;
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		bResult &= RemovePointerToDontFree(pcPointedToKey);
-		bResult &= RemovePointerToDontFree(pcPointedToValue);
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	}
-	mcMap.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMapObject::RemoveAllPointerTosTryFree(void)
-{
-	//Called by KillInternal and RemoveAll.
-
 	bool			bResult;
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
@@ -397,8 +367,16 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
-		bResult &= RemovePointerToTryFree(pcPointedToKey);
-		bResult &= RemovePointerToTryFree(pcPointedToValue);
+		if (bFree)
+		{
+			bResult &= RemovePointerToTryFree(pcPointedToKey);
+			bResult &= RemovePointerToTryFree(pcPointedToValue);
+		}
+		else
+		{
+			bResult &= RemovePointerToDontFree(pcPointedToKey);
+			bResult &= RemovePointerToDontFree(pcPointedToValue);
+		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 

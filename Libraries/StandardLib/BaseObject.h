@@ -212,8 +212,7 @@ protected:
 			void					DoneKill(bool bAllocatedInObjects) override;
 			void					KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
 
-	virtual void					RemoveAllPointerTosDontFree(void);
-	virtual bool					RemoveAllPointerTosTryFree(void);
+	virtual bool					ClearPointerTos(bool bFree);
 
 			bool					SaveManaged(CObjectWriter* pcFile);
 			bool					LoadManaged(CObjectReader* pcFile);
