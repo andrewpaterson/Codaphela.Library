@@ -43,7 +43,7 @@ typedef void(*CFast65C64WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiVa
 //
 //Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
 //(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
-//breakpoint is enabled.
+//breakpoint is enabled: without one its loop is a copy that doesn't look them up.
 struct SFast65C64Op;
 class CFast65C64
 {

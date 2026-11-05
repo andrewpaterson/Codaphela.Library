@@ -428,7 +428,9 @@ FORCE_INLINE bool CFast65C64::NeedsDeciding(void)
 // (stp, or a callback setting an interrupt input) the end of its Step is done, and Step does the steps after
 // it until the next would only execute again.  While a breakpoint is enabled the instructions are checked
 // here as Step checks them; returning before one is the end of the Step before (which, with nothing to
-// decide, does nothing more).
+// decide, does nothing more).  Without one they run in a copy of the loop that doesn't look addresses up, so
+// breakpoints cost nothing until one is enabled.  Which loop is chosen each time something has been decided:
+// a breakpoint enabled from a callback counts from the next interrupt, wait or stop, or the next Run.
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C64::Run(size uiMaxInstructions)
@@ -452,17 +454,29 @@ size CFast65C64::Run(size uiMaxInstructions)
 			continue;
 		}
 
-		do
+		if (mcBreakpoints.AnyEnabled())
 		{
-			if (IsBreakpointNext())
+			do
 			{
-				mbAtBreakpoint = true;
-				return i;
+				if (!mbRepeating && mcBreakpoints.IsEnabledNext(muiC))
+				{
+					mbAtBreakpoint = true;
+					return i;
+				}
+				Execute();
+				i++;
 			}
-			Execute();
-			i++;
+			while ((i < uiMaxInstructions) && !NeedsDeciding());
 		}
-		while ((i < uiMaxInstructions) && !NeedsDeciding());
+		else
+		{
+			do
+			{
+				Execute();
+				i++;
+			}
+			while ((i < uiMaxInstructions) && !NeedsDeciding());
+		}
 
 		//The end of the last instruction's Step.
 		if (mbStopped)
@@ -481,7 +495,9 @@ size CFast65C64::Run(size uiMaxInstructions)
 //////////////////////////////////////////////////////////////////////////
 //
 // Add, remove, enable and disable breakpoints here at any time, also from
-// the callbacks.
+// the callbacks.  Step always looks; a breakpoint enabled from a callback
+// while none were is looked for by Run from the next interrupt, wait or
+// stop, or the next Run.
 //
 //////////////////////////////////////////////////////////////////////////
 CBreakpoints* CFast65C64::GetBreakpoints(void)
