@@ -53,9 +53,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	miReturnLabel = 0;
 	msInA = IRNone();
 	msAvailable = IRNone();
-	msDeferred = IRNone();
+	masFused.Init();
 	mszDeferred.Init();
-	mpsWritten = NULL;
 	mpsFlags = NULL;
 	mpcFlags = NULL;
 	mbFlagsKnown = false;
@@ -81,6 +80,7 @@ void CIR65Backend::Kill(void)
 	mcWidths.Kill();
 	mcFlags.Kill();
 	mszDeferred.Kill();
+	masFused.Kill();
 	masStubs.Kill();
 	masMoves.Kill();
 	mauiUses.Kill();
@@ -487,7 +487,10 @@ size CIR65Backend::NextWritten(CIRBlock* pcBlock, size uiAfter, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A block: its instructions and its jump.  A comparison used only by the
+// A block: its instructions and its jump.  An instruction CanFuse says
+// isn't written in its turn is written by the next one written, its
+// consumer (WriteInstruction), as the W65C816 back end's fused instructions
+// are; the block's jump writes those left.  A comparison used only by the
 // block's brif branches directly.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -496,14 +499,11 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	size			ui;
 	size			uiNumInstructions;
 	SIRInstruction*	psFused;
-	SIRInstruction*	psInstruction;
-	SIRReference	sDeferred;
 	bool			bResult;
 
 	msAvailable = IRNone();
 	msInA = IRNone();
-	msDeferred = IRNone();
-	mpsWritten = NULL;
+	masFused.FakeSetUsedElements(0);
 	Label(*maiBlockLabels.Get(pcBlock->muiIndex));
 
 	psFused = FusedComparison(pcBlock);
@@ -517,27 +517,18 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	bResult = true;
 	for (ui = 0; ui < uiNumInstructions; ui++)
 	{
-		psInstruction = pcBlock->masInstructions.Get(ui);
-		if (Skipped(psInstruction) || (psInstruction == mpsWritten))
+		if (Skipped(pcBlock->masInstructions.Get(ui)) || CanFuse(pcBlock, ui))
 		{
-			//Writes nothing (or was written with the instruction before), so A keeps what it had.
+			//Writes nothing, or its consumer writes it.
 			continue;
 		}
-		msAvailable = msInA;
-		msInA = IRNone();
-		sDeferred = msDeferred;
-		Source(psInstruction->uiSource);
-		bResult &= Instruction(pcBlock, ui);
-		if (!sDeferred.IsNone())
-		{
-			//The instruction after a deferred load has used it.
-			msDeferred = IRNone();
-		}
+		bResult &= WriteInstruction(pcBlock, ui);
 	}
-	msAvailable = msInA;
-	msInA = IRNone();
+	bResult &= WriteFused(pcBlock, masFused.NumElements());
+	NextInstruction();
 	Source(psFused ? psFused->uiSource : pcBlock->msJump.uiSource);
 	bResult &= Jump(pcBlock, pcNext, psFused);
+	masFused.FakeSetUsedElements(0);
 	mbFlagsKnown = false;
 	if (psFused && !psFused->sType.IsFloat())
 	{
@@ -546,8 +537,112 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 		mpcFlags = pcBlock;
 	}
 	msAvailable = IRNone();
-	msDeferred = IRNone();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Instruction uiIndex, the consumer of the instructions CanFuse left for it
+// (masFused): the ones it writes as part of itself first (a sext its load,
+// a div's partner the div, a store the operation it stores back: add
+// [4 + X], 1), else each written in order and then itself.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::WriteInstruction(CIRBlock* pcBlock, size uiIndex)
+{
+	SIRInstruction*	psInstruction;
+	SIR65Fused*		psLast;
+	size			uiBefore;
+	bool			bResult;
+
+	psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	psLast = (masFused.NumElements() > 0) ? masFused.Get(masFused.NumElements() - 1) : NULL;
+	bResult = true;
+	if (psLast)
+	{
+		uiBefore = masFused.NumElements() - 1;
+		if (psLast->uiKind == IR65FU_Extended)
+		{
+			bResult &= WriteFused(pcBlock, uiBefore);
+			Source(psLast->psInstruction->uiSource);
+			NextInstruction();
+			bResult &= Load(pcBlock, psLast->uiIndex, psInstruction);
+			masFused.FakeSetUsedElements(0);
+			return bResult;
+		}
+		if (psLast->uiKind == IR65FU_Paired)
+		{
+			bResult &= WriteFused(pcBlock, uiBefore);
+			Source(psLast->psInstruction->uiSource);
+			NextInstruction();
+			bResult &= Divide(psLast->psInstruction, psInstruction);
+			masFused.FakeSetUsedElements(0);
+			return bResult;
+		}
+		if ((psLast->uiKind == IR65FU_InA) && (psInstruction->uiOpcode == IRO_Store))
+		{
+			bResult &= WriteFused(pcBlock, uiBefore);
+			Source(psLast->psInstruction->uiSource);
+			NextInstruction();
+			if (ReadModifyWrite(psLast->psInstruction, psInstruction))
+			{
+				masFused.FakeSetUsedElements(0);
+				return bResult;
+			}
+			bResult &= Instruction(pcBlock, psLast->uiIndex);
+			masFused.FakeSetUsedElements(0);
+		}
+		//What is left (none after an operation the store couldn't write with itself) is written, then the consumer
+		//(which may read a deferred load among them).
+	}
+	bResult &= WriteFused(pcBlock, masFused.NumElements());
+	Source(psInstruction->uiSource);
+	NextInstruction();
+	bResult &= Instruction(pcBlock, uiIndex);
+	masFused.FakeSetUsedElements(0);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first uiCount instructions CanFuse left for the consumer, in order:
+// those it takes from A written, a deferred load (read later as an operand)
+// nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::WriteFused(CIRBlock* pcBlock, size uiCount)
+{
+	size		ui;
+	SIR65Fused*	psFused;
+	bool		bResult;
+
+	bResult = true;
+	for (ui = 0; ui < uiCount; ui++)
+	{
+		psFused = masFused.Get(ui);
+		Source(psFused->psInstruction->uiSource);
+		if (psFused->uiKind == IR65FU_InA)
+		{
+			NextInstruction();
+			bResult &= Instruction(pcBlock, psFused->uiIndex);
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before an instruction is written: what the one before left in A is what
+// A holds as it starts.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::NextInstruction(void)
+{
+	msAvailable = msInA;
+	msInA = IRNone();
 }
 
 

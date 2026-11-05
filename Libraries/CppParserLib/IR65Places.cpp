@@ -1020,12 +1020,26 @@ bool CIR65Backend::Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if sValue is a load the instruction before deferred (see Defer).
+// True if sValue is a load deferred for the instruction being written
+// (IR65FU_Deferred, CanDefer).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IsDeferred(SIRReference sValue)
 {
-	return sValue.IsTemporary() && msDeferred.Equals(sValue);
+	size	ui;
+
+	if (!sValue.IsTemporary())
+	{
+		return false;
+	}
+	for (ui = 0; ui < masFused.NumElements(); ui++)
+	{
+		if ((masFused.Get(ui)->uiKind == IR65FU_Deferred) && masFused.Get(ui)->psInstruction->sResult.Equals(sValue))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

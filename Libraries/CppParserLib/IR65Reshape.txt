@@ -68,9 +68,11 @@ Steps
 1. Split IR65Backend.cpp into files as the W65C816's is split, with an IR65BackendInternal.h
    for what the files share.  Mechanical: the code written is the same.
 2. The frame's members into one SIR65Frame, as SIR816Frame.  The code written is the same.
-3. Keeping values in A (msInA, msAvailable, msDeferred, mpsWritten) decided up front, as
-   CanFuse does, instead of state carried from one instruction to the next.  The heart of the
-   tangle.  Changes the code written: re-measure cycles.
+3. The instructions not written in their turn written by their consumer, as the W65C816's
+   fused ones are (the user chose the full W65C816 shape over a same-output tidy up,
+   2026-11-05).  Reading both back ends showed the W65C816 also decides in the writing loop
+   (CanFuse with mapsFused), and that msInA/msAvailable is mostly a record of what A holds
+   (a value just stored from A is still there), which stays.
 4. OrderBlocks and the IR rewrites that don't depend on the target into IR passes; drop
    RotateLoops from the back end (CIROptimiser's).  The code written should be the same.
 5. Call split into pushing the arguments, loading registers, the call and the clean up.
@@ -99,3 +101,15 @@ miArguments); AddFrame and NumSaved are its Add and NumSaved, Init empties it (L
 S and where the arguments start (GenerateFunction).  TestCppParserLib 83262/83262.  The code written is the
 same: TestBaseLib65's 570 BaseLib/TestLib unit listings (TEST_PROJECT65_LISTINGS, TEST_PROJECT65_ONLY=none,
 1.97M lines) are identical to step 1's, once __FILE__ strings of the two run folders are made the same.
+
+Step 3: done 2026-11-05.  CanFuse (IR65Instructions.cpp) leaves an instruction for the next one
+written, in masFused, as IR65FU_InA (bInA), IR65FU_Deferred (CanDefer, was Defer), IR65FU_Extended
+(ExtendOf: a narrow load its sext widens signed) or IR65FU_Paired (PairedDivide: a udiv or urem its
+partner gives with one div).  WriteInstruction (IR65Backend.cpp), the consumer, writes them: a store
+the read-modify-write (ReadModifyWrite(operation, store)), a sext its load (Load(..., psExtend)), a
+partner the div (Divide(first, partner)), else WriteFused writes each in order and then the consumer;
+the block's jump writes those left.  msDeferred and mpsWritten are gone: IsDeferred looks in
+masFused, and ReadModifyWrite, Load and Divide no longer look ahead for what they write with
+themselves.  The code written is the same after all: the 570 TestBaseLib65 listings (1,793 read
+modify writes, 676 signed widening loads, 69 shared divs, 70k deferred operands) are identical to
+step 2's, source comments too.  TestCppParserLib 83262/83262.

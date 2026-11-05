@@ -867,10 +867,6 @@ bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Xor:
 	case IRO_Shl:
 	case IRO_LShr:
-		if (ReadModifyWrite(pcBlock, uiIndex))
-		{
-			return true;
-		}
 		return Integer(psInstruction);
 
 	case IRO_Neg:
@@ -889,7 +885,8 @@ bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_UDiv:
 	case IRO_SRem:
 	case IRO_URem:
-		return Divide(psInstruction, (uiIndex + 1 < pcBlock->masInstructions.NumElements()) ? pcBlock->masInstructions.Get(uiIndex + 1) : NULL);
+		//A partner not written (its result isn't used) is still given its result (CanFuse pairs the others).
+		return Divide(psInstruction, PairedDivide(pcBlock, uiIndex));
 
 	case IRO_SExt:
 	case IRO_ZExt:
@@ -957,7 +954,7 @@ bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		return true;
 
 	case IRO_Load:
-		return Load(pcBlock, uiIndex);
+		return Load(pcBlock, uiIndex, NULL);
 	case IRO_Store:
 		return Store(pcBlock, uiIndex);
 	case IRO_Arg:
@@ -983,18 +980,16 @@ bool CIR65Backend::Commutes(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A deferred load, an operation on it and a store of the result back to the
-// same place is one instruction on memory: add [4 + X], 1 (the operand a
-// register or -8 to 8, 1 to 8 for a shift).  The store is then not written.
+// A deferred load, an operation on it (psInstruction, fused into the
+// store) and a store of the result back to the same place (psStore) is one
+// instruction on memory: add [4 + X], 1 (the operand a register or -8 to 8,
+// 1 to 8 for a shift).  The store writes it (WriteInstruction).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::ReadModifyWrite(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Backend::ReadModifyWrite(SIRInstruction* psInstruction, SIRInstruction* psStore)
 {
-	SIRInstruction*	psInstruction;
-	SIRInstruction*	psStore;
 	SIRReference	sMemory;
 	SIRReference	sOther;
-	size			uiNext;
 	CChars			szAddress;
 	CChars			szOperand;
 	char			cRegister;
@@ -1002,7 +997,19 @@ bool CIR65Backend::ReadModifyWrite(CIRBlock* pcBlock, size uiIndex)
 	bool			bResult;
 	CChars*			psz;
 
-	psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_Sub:
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Shl:
+	case IRO_LShr:
+		break;
+	default:
+		return false;
+	}
 	bShift = (psInstruction->uiOpcode == IRO_Shl) || (psInstruction->uiOpcode == IRO_LShr);
 	if (IsNarrow(psInstruction->sType) || IsWide(psInstruction->sType) || !psInstruction->sResult.IsTemporary() || !PlaceOf(psInstruction->sResult)->bInA)
 	{
@@ -1023,9 +1030,7 @@ bool CIR65Backend::ReadModifyWrite(CIRBlock* pcBlock, size uiIndex)
 		return false;
 	}
 
-	uiNext = NextWritten(pcBlock, uiIndex, pcBlock->masInstructions.NumElements());
-	psStore = pcBlock->masInstructions.SafeGet(uiNext);
-	if ((psStore == NULL) || (psStore->uiOpcode != IRO_Store) || !psStore->asArguments[0].Equals(psInstruction->sResult) || (psStore->uiFlags & IRF_Volatile) || !psStore->sType.Equals(psInstruction->sType))
+	if ((psStore->uiOpcode != IRO_Store) || !psStore->asArguments[0].Equals(psInstruction->sResult) || (psStore->uiFlags & IRF_Volatile) || !psStore->sType.Equals(psInstruction->sType))
 	{
 		return false;
 	}
@@ -1065,7 +1070,6 @@ bool CIR65Backend::ReadModifyWrite(CIRBlock* pcBlock, size uiIndex)
 		default:		psz = Line("shr ");	break;
 		}
 		psz->Append(szAddress)->Append(", ")->Append(szOperand)->AppendNewLine();
-		mpsWritten = psStore;
 		msInA = msAvailable;
 	}
 	szAddress.Kill();
@@ -1614,14 +1618,12 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		{
 			StoreResult(psInstruction->sResult, "Y");
 			StoreResult(psNext->sResult, "B");
-			mpsWritten = psNext;
 			return true;
 		}
 		if (!PlaceOf(psNext->sResult)->bInA)
 		{
 			StoreResult(psNext->sResult, "Y");
 			StoreResult(psInstruction->sResult, "B");
-			mpsWritten = psNext;
 			return true;
 		}
 	}
@@ -1781,13 +1783,154 @@ bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A 4 byte load left in A for the next instruction isn't written when its
-// address needs no instructions and uses no register the next instruction
-// changes before reading it: the next instruction reads memory itself
-// (add A, [8 + X]; cpy Y, [[4 + W]]).  Not before mul, div or ashr.
+// Whether instruction uiIndex of pcBlock isn't written in its turn, as the
+// W65C816 back end's CanFuse: the next instruction written (its consumer,
+// WriteInstruction) writes it.  A load it reads as a memory operand
+// (CanDefer), a narrow load its sext sign extends (ExtendOf), a div its
+// partner gives the other result of (PairedDivide), or a result only the
+// consumer uses, which it takes from A (bInA, MarkInA).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Defer(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
+{
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psPartner;
+	SIR65Fused*		psLast;
+
+	psLast = (masFused.NumElements() > 0) ? masFused.Get(masFused.NumElements() - 1) : NULL;
+	if (psLast && ((psLast->uiKind == IR65FU_Extended) || (psLast->uiKind == IR65FU_Paired)))
+	{
+		//The sext or partner that writes the instruction before it is written in its turn.
+		return false;
+	}
+	psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	if (psInstruction->uiOpcode == IRO_Load)
+	{
+		//PureMemoryOperand asks what A will hold when the consumer starts.
+		msAvailable = InAAfterFused();
+		if (CanDefer(pcBlock, uiIndex))
+		{
+			Fuse(pcBlock, uiIndex, IR65FU_Deferred);
+			return true;
+		}
+		if (ExtendOf(pcBlock, uiIndex))
+		{
+			Fuse(pcBlock, uiIndex, IR65FU_Extended);
+			return true;
+		}
+	}
+	psPartner = PairedDivide(pcBlock, uiIndex);
+	if (psPartner && !Skipped(psPartner))
+	{
+		Fuse(pcBlock, uiIndex, IR65FU_Paired);
+		return true;
+	}
+	if (psInstruction->sResult.IsTemporary() && PlaceOf(psInstruction->sResult)->bInA)
+	{
+		Fuse(pcBlock, uiIndex, IR65FU_InA);
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind)
+{
+	SIR65Fused*	psFused;
+
+	psFused = masFused.Add();
+	psFused->psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	psFused->uiIndex = uiIndex;
+	psFused->uiKind = uiKind;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What A holds when the consumer of the instructions CanFuse has left
+// starts: the last one taken from A, else what the last instruction
+// written left there (a deferred load doesn't change A).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIR65Backend::InAAfterFused(void)
+{
+	size	ui;
+
+	for (ui = masFused.NumElements(); ui > 0; ui--)
+	{
+		if (masFused.Get(ui - 1)->uiKind == IR65FU_InA)
+		{
+			return masFused.Get(ui - 1)->psInstruction->sResult;
+		}
+	}
+	return msInA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The sext just after the narrow load uiLoad when it is the load's only
+// use: the load is sign extended as it is widened, giving the sext's result
+// (Load).  NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIR65Backend::ExtendOf(CIRBlock* pcBlock, size uiLoad)
+{
+	SIRInstruction*	psLoad;
+	SIRInstruction*	psExtend;
+
+	psLoad = pcBlock->masInstructions.Get(uiLoad);
+	psExtend = pcBlock->masInstructions.SafeGet(uiLoad + 1);
+	if ((psLoad->uiOpcode != IRO_Load) || (ValueBytes(psLoad->sType) >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psLoad->sResult) ||
+		!psLoad->sResult.IsTemporary() || (*mauiUses.Get(psLoad->sResult.Index()) != 1) || IsWide(psExtend->sType) || Skipped(psExtend))
+	{
+		return NULL;
+	}
+	return psExtend;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The partner (DividePartner) just after the udiv or urem uiIndex that one
+// div gives the results of both, the one kept in Y not kept in A; NULL for
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIR65Backend::PairedDivide(CIRBlock* pcBlock, size uiIndex)
+{
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psPartner;
+
+	psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	psPartner = pcBlock->masInstructions.SafeGet(uiIndex + 1);
+	if ((psPartner == NULL) || !DividePartner(psInstruction, psPartner) || PlaceOf(psInstruction->sResult)->bInA)
+	{
+		return NULL;
+	}
+	if ((psInstruction->uiOpcode == IRO_URem) && PlaceOf(psPartner->sResult)->bInA)
+	{
+		return NULL;
+	}
+	return psPartner;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a 4 byte load left in A for the next instruction can be deferred
+// (IR65FU_Deferred): not written, its address needing no instructions and
+// using no register the next instruction changes before reading it, so the
+// next instruction reads memory itself (add A, [8 + X]; cpy Y, [[4 + W]]).
+// Not before mul, div or ashr, nor just after another deferred load.  Sets
+// mszDeferred.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CanDefer(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psLoad;
 	SIRInstruction*	psNext;
@@ -1799,7 +1942,7 @@ bool CIR65Backend::Defer(CIRBlock* pcBlock, size uiIndex)
 
 	psLoad = pcBlock->masInstructions.Get(uiIndex);
 	sResult = psLoad->sResult;
-	if (!msDeferred.IsNone() || !sResult.IsTemporary() || !PlaceOf(sResult)->bInA || (psLoad->uiFlags & IRF_Volatile) || (ValueBytes(psLoad->sType) != 4))
+	if (((masFused.NumElements() > 0) && (masFused.Get(masFused.NumElements() - 1)->uiKind == IR65FU_Deferred)) || !sResult.IsTemporary() || !PlaceOf(sResult)->bInA || (psLoad->uiFlags & IRF_Volatile) || (ValueBytes(psLoad->sType) != 4))
 	{
 		return false;
 	}
@@ -1828,8 +1971,6 @@ bool CIR65Backend::Defer(CIRBlock* pcBlock, size uiIndex)
 	mszDeferred.Kill();
 	mszDeferred.Init(&szOperand);
 	szOperand.Kill();
-	msDeferred = sResult;
-	msInA = msAvailable;
 	return true;
 }
 
@@ -1900,32 +2041,21 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Into the result's register (or A): narrow values read at their width
-// and widened, 8 byte values with A 64 bits wide.  A narrow load only a
-// sext just after it uses is sign extended as it is widened, giving the
-// sext's result.
+// and widened, 8 byte values with A 64 bits wide.  The load psExtend, the
+// sext just after it (ExtendOf), writes is sign extended as it is widened,
+// giving the sext's result.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
+bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExtend)
 {
 	SIRInstruction*	psInstruction;
-	SIRInstruction*	psExtend;
 	CChars			szOperand;
 	int				iBytes;
 	const char*		szWork;
 	bool			bCopyExtend;
 
 	psInstruction = pcBlock->masInstructions.Get(uiIndex);
-	if (Defer(pcBlock, uiIndex))
-	{
-		return true;
-	}
 	iBytes = ValueBytes(psInstruction->sType);
-	psExtend = pcBlock->masInstructions.SafeGet(uiIndex + 1);
-	if ((iBytes >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psInstruction->sResult) ||
-		!psInstruction->sResult.IsTemporary() || (*mauiUses.Get(psInstruction->sResult.Index()) != 1) || IsWide(psExtend->sType) || Skipped(psExtend))
-	{
-		psExtend = NULL;
-	}
 	szWork = WorkRegister(psExtend ? psExtend : psInstruction);
 	szOperand.Init();
 	bCopyExtend = false;
@@ -1967,7 +2097,6 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	if (psExtend)
 	{
 		StoreResult(psExtend->sResult, szWork);
-		mpsWritten = psExtend;
 		return true;
 	}
 	StoreResult(psInstruction->sResult, szWork, true);

@@ -455,6 +455,13 @@ operand, its second for the instructions that copy it to B or swap it in, a load
 address, a brif's condition or a return's value), is not kept anywhere.  A comparison
 only its block's brif uses branches directly.
 
+Such an instruction is written by its consumer, as the W65C816 back end's fused ones are
+(2026-11-05): in its turn CanFuse leaves it for the next instruction written (a value
+taken from A, a load read as a memory operand, a narrow load its sext widens signed, or a
+udiv or urem its partner gives with one div), and that one writes them (WriteInstruction):
+the store of an operation on a load from the same place as one instruction on memory, the
+sext the load, the partner the div, else each in order and then itself.
+
 Register allocation (2026-10-25).  CIRLiveness (IRLiveness.h/.cpp, not 65C64 specific)
 numbers the instructions in block order, finds what is live in and out of each block,
 and gives each temporary its live ranges (with holes, one per block at most), its loop

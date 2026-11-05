@@ -111,6 +111,28 @@ struct SIR65Stub
 typedef CArrayTemplate<SIR65Stub>	CArrayIR65Stubs;
 
 
+//How an instruction not written in its turn (CanFuse) is written by the next one written, its consumer, as the
+//W65C816 back end's fused instructions are.
+enum EIR65FusedKind
+{
+	IR65FU_InA,			//Written at the start of its consumer, which takes its result from A.
+	IR65FU_Deferred,	//A load its consumer reads as a memory operand (mszDeferred): add A, [8 + X].
+	IR65FU_Extended,	//A narrow load the sext after it writes, sign extending it as it widens it.
+	IR65FU_Paired,		//A udiv or urem its partner after it writes with itself (DividePartner): one div gives both.
+};
+
+
+struct SIR65Fused
+{
+	SIRInstruction*	psInstruction;
+	size			uiIndex;		//In its block.
+	uint8			uiKind;			//EIR65FusedKind.
+};
+
+
+typedef CArrayTemplate<SIR65Fused>	CArrayIR65Fused;
+
+
 //A class of temporaries sharing a home and how much they are used, for the order homes are given in.
 struct SIR65Weight
 {
@@ -178,9 +200,8 @@ protected:
 	int32					miReturnLabel;
 	SIRReference			msInA;				//The temporary the last instruction left in A (or IRNone).
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
-	SIRReference			msDeferred;			//A load the next instruction reads itself, from mszDeferred.
-	CChars					mszDeferred;
-	SIRInstruction*			mpsWritten;			//Written with the instruction before it: a store (ReadModifyWrite) or a div's partner (Divide).
+	CArrayIR65Fused			masFused;			//The instructions the next one written writes (CanFuse), in order.
+	CChars					mszDeferred;		//The memory operand of the IR65FU_Deferred load among them.
 	SIRInstruction*			mpsFlags;			//The last integer comparison a block (mpcFlags) jumped on: the flags its successors start with.
 	CIRBlock*				mpcFlags;
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
@@ -279,6 +300,14 @@ protected:
 	bool				Skipped(SIRInstruction* psInstruction);
 	size				NextWritten(CIRBlock* pcBlock, size uiAfter, size uiEnd);
 	bool				Block(CIRBlock* pcBlock, CIRBlock* pcNext);
+	bool				CanFuse(CIRBlock* pcBlock, size uiIndex);
+	SIRInstruction*		ExtendOf(CIRBlock* pcBlock, size uiLoad);
+	SIRInstruction*		PairedDivide(CIRBlock* pcBlock, size uiIndex);
+	SIRReference		InAAfterFused(void);
+	void				Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind);
+	bool				WriteInstruction(CIRBlock* pcBlock, size uiIndex);
+	bool				WriteFused(CIRBlock* pcBlock, size uiCount);
+	void				NextInstruction(void);
 	bool				BranchOn(SIRInstruction* psFused, SIRReference sCondition, bool bJumpIf, int32 iLabel);
 	bool				EnteredOnlyFrom(CIRBlock* pcBlock, CIRBlock* pcFrom);
 	bool				IsZero(SIRReference sValue);
@@ -289,7 +318,7 @@ protected:
 	bool				Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psFused);
 	bool				Instruction(CIRBlock* pcBlock, size uiIndex);
 	bool				Commutes(uint16 uiOpcode);
-	bool				ReadModifyWrite(CIRBlock* pcBlock, size uiIndex);
+	bool				ReadModifyWrite(SIRInstruction* psInstruction, SIRInstruction* psStore);
 	bool				Integer(SIRInstruction* psInstruction);
 	bool				IntegerWide(SIRInstruction* psInstruction);
 	bool				MultiplyInstruction(SIRInstruction* psInstruction);
@@ -299,9 +328,9 @@ protected:
 	bool				Conversion(SIRInstruction* psInstruction);
 	bool				FloatOperation(SIRInstruction* psInstruction);
 	bool				FloatConversion(SIRInstruction* psInstruction);
-	bool				Defer(CIRBlock* pcBlock, size uiIndex);
+	bool				CanDefer(CIRBlock* pcBlock, size uiIndex);
 	bool				PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, char* pcRegister);
-	bool				Load(CIRBlock* pcBlock, size uiIndex);
+	bool				Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExtend);
 	bool				Store(CIRBlock* pcBlock, size uiIndex);
 	bool				Call(CIRBlock* pcBlock, size uiIndex);
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
