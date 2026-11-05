@@ -50,7 +50,7 @@ public:
 template<class M>
 Ptr<M> CArrayObject::Get(size  iIndex)
 {
-	return (M*)Get(iIndex);
+	return Get(iIndex);
 }
 
 
