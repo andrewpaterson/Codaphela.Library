@@ -87,6 +87,7 @@ protected:
 	bool			RemoveFromHoldingArrays(void* pv);
 	bool			RemoveFromSortedArray(void* pv);
 	CArrayBlock*	GetArrayBlock(size iIndex);
+	void*			IterateFromCurrent(SArraySortedIterator* psIter);
 	bool			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
 };
 

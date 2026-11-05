@@ -544,13 +544,7 @@ void* CArrayBlockSorted::StartIteration(SArraySortedIterator* psIter)
 {
 	psIter->iArrayBlock = 0;
 	psIter->iIndex = 0;
-
-	if (NumElements() == 0)
-	{
-		return NULL;
-	}
-
-	return GetIterated(psIter);
+	return IterateFromCurrent(psIter);
 }
 
 
@@ -560,34 +554,40 @@ void* CArrayBlockSorted::StartIteration(SArraySortedIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlockSorted::Iterate(SArraySortedIterator* psIter)
 {
-	CArrayBlock*	paHoldingArray;
-
-	paHoldingArray = GetArrayBlock(psIter->iArrayBlock);
-	if (paHoldingArray)
-	{
-		psIter->iIndex++;
-		for (;;)
-		{
-			if (psIter->iIndex >= paHoldingArray->NumElements())
-			{
-				psIter->iArrayBlock++;
-				psIter->iIndex = 0;
-			}
-			else
-			{
-				return GetIterated(psIter);
-			}
-
-			paHoldingArray = GetArrayBlock(psIter->iArrayBlock);
-			if (!paHoldingArray)
-			{
-				return NULL;
-			}
-		}
-	}
-	else
+	if (GetArrayBlock(psIter->iArrayBlock) == NULL)
 	{
 		return NULL;
+	}
+
+	psIter->iIndex++;
+	return IterateFromCurrent(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The element at the iterator, or if its array has no more the first in
+// the next array that isn't empty.  Holding arrays can be empty with
+// ones after them that aren't: removing empties them.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::IterateFromCurrent(SArraySortedIterator* psIter)
+{
+	CArrayBlock*	paArray;
+
+	for (;;)
+	{
+		paArray = GetArrayBlock(psIter->iArrayBlock);
+		if (paArray == NULL)
+		{
+			return NULL;
+		}
+		if (psIter->iIndex < paArray->NumElements())
+		{
+			return paArray->Get(psIter->iIndex);
+		}
+		psIter->iArrayBlock++;
+		psIter->iIndex = 0;
 	}
 }
 

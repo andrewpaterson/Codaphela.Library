@@ -599,6 +599,61 @@ void TestArrayBlockSortedStaggeredRightDouble(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Iterating visits everything, even when the first holding buffer has
+// been emptied and the others haven't.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayBlockSortedIterateEmptyFirstBuffer(void)
+{
+	CArrayBlockSorted		avBlock;
+	SArraySortedIterator	sIter;
+	int*					pi;
+	int						i;
+	int						iSum;
+	size					uiCount;
+
+	avBlock.Init(sizeof(int), 4, 4, CompareInt);
+
+	ListAddInt(&avBlock, 1);
+	ListAddInt(&avBlock, 2);
+	ListAddInt(&avBlock, 3);
+	ListAddInt(&avBlock, 4);
+	ListAddInt(&avBlock, 5);
+	ListAddInt(&avBlock, 6);
+	AssertSize(0, avBlock.GetSortedSize());
+	AssertSize(6, avBlock.GetHoldingSize());
+
+	for (i = 1; i <= 4; i++)
+	{
+		AssertTrue(avBlock.Remove(&i));
+	}
+	AssertSize(2, avBlock.NumElements());
+
+	uiCount = 0;
+	iSum = 0;
+	pi = (int*)avBlock.StartIteration(&sIter);
+	while (pi)
+	{
+		uiCount++;
+		iSum += *pi;
+		pi = (int*)avBlock.Iterate(&sIter);
+	}
+	AssertSize(2, uiCount);
+	AssertInt(11, iSum);
+
+	//And with nothing left.
+	i = 5;
+	AssertTrue(avBlock.Remove(&i));
+	i = 6;
+	AssertTrue(avBlock.Remove(&i));
+	AssertNull(avBlock.StartIteration(&sIter));
+
+	avBlock.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayBlockSortedMultipleBuffers(void)
@@ -783,6 +838,7 @@ void TestArrayBlockSorted(void)
 	TestArrayBlockSortedStaggeredLeftDouble();
 	TestArrayBlockSortedStaggeredRightDouble();
 	TestArrayBlockSortedMultipleBuffers();
+	TestArrayBlockSortedIterateEmptyFirstBuffer();
 	TestArrayBlockSortedAddDuplicate();
 	TestArrayBlockReadWrite();
 
