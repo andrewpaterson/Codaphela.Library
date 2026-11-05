@@ -89,7 +89,8 @@ protected:
 	void				Hello(void* pvData, size uiSize);
 	void				SetBreakpoints(void* pvData, size uiSize);
 	void				ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpoint, uint32 uiType);
-	void				ClearBreakpoints(void);
+	void				SendProcess(uint32 uiType, SDebugProcess* psProcess);
+	void				SendProcessEvents(void);
 	void				Continue(void);
 	void				Pause(void);
 	void				Step(void* pvData, size uiSize);

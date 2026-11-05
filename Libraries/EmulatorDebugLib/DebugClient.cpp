@@ -34,6 +34,8 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 	mpcChannel = pcChannel;
 	mpuiMessage = (uint8*)malloc(DEBUG_MAX_MESSAGE);
 	meState = DCS_Connecting;
+	masProcesses.Init();
+	masProcessEvents.Init();
 	mbStepping = false;
 	muiNextRequest = 1;
 	muiMotionSent = 0;
@@ -72,6 +74,8 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CDebugClient::Kill(void)
 {
+	masProcessEvents.Kill();
+	masProcesses.Kill();
 	mszError.Kill();
 	free(mpuiMemory);
 	mpuiMemory = NULL;
@@ -134,13 +138,14 @@ uint32 CDebugClient::SetBreakpoints(SDebugBreakpoint* asBreakpoints, size uiCoun
 // If there is already a breakpoint at uiAddress it is enabled or disabled.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace)
+uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace, uint32 uiProcess)
 {
 	SDebugBreakpoint	sBreakpoint;
 
 	sBreakpoint.uiAddress = uiAddress;
 	sBreakpoint.uiEnabled = bEnabled;
 	sBreakpoint.uiSpace = uiSpace;
+	sBreakpoint.uiProcess = uiProcess;
 	return Send(DM_AddBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
@@ -149,13 +154,14 @@ uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace)
+uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace, uint32 uiProcess)
 {
 	SDebugBreakpoint	sBreakpoint;
 
 	sBreakpoint.uiAddress = uiAddress;
 	sBreakpoint.uiEnabled = false;
 	sBreakpoint.uiSpace = uiSpace;
+	sBreakpoint.uiProcess = uiProcess;
 	return Send(DM_RemoveBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
@@ -164,13 +170,14 @@ uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace)
+uint32 CDebugClient::EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace, uint32 uiProcess)
 {
 	SDebugBreakpoint	sBreakpoint;
 
 	sBreakpoint.uiAddress = uiAddress;
 	sBreakpoint.uiEnabled = bEnabled;
 	sBreakpoint.uiSpace = uiSpace;
+	sBreakpoint.uiProcess = uiProcess;
 	return Send(DM_EnableBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
 }
 
@@ -477,7 +484,48 @@ void CDebugClient::Handle(uint32 uiType, uint8* puiData, size uiSize)
 	case DM_Error:
 		Error(uiRequest, pvBody, uiSize);
 		break;
+	case DM_ProcessStarted:
+		Process(true, pvBody, uiSize);
+		break;
+	case DM_ProcessEnded:
+		Process(false, pvBody, uiSize);
+		break;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A process started (it is running) or ended (it isn't).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugClient::Process(bool bStarted, void* pvData, size uiSize)
+{
+	SDebugProcess*		psProcess;
+	SDebugProcessEvent*	psEvent;
+	size				i;
+
+	if (uiSize < sizeof(SDebugProcess))
+	{
+		return;
+	}
+	psProcess = (SDebugProcess*)pvData;
+	psProcess->szName[DEBUG_PROCESS_NAME_SIZE - 1] = '\0';
+	for (i = 0; i < masProcesses.NumElements(); i++)
+	{
+		if (masProcesses.Get(i)->uiProcess == psProcess->uiProcess)
+		{
+			masProcesses.RemoveAt(i);
+			break;
+		}
+	}
+	if (bStarted)
+	{
+		memcpy(masProcesses.Add(), psProcess, sizeof(SDebugProcess));
+	}
+	psEvent = masProcessEvents.Add();
+	psEvent->bStarted = bStarted;
+	memcpy(&psEvent->sProcess, psProcess, sizeof(SDebugProcess));
 }
 
 
@@ -811,6 +859,33 @@ const char* CDebugClient::GetProcessorName(void)		{ return msWelcome.szProcessor
 size CDebugClient::NumAddressBits(void)					{ return msWelcome.uiAddressBits; }
 EDebugAddressFormat CDebugClient::GetAddressFormat(void)	{ return (EDebugAddressFormat)msWelcome.uiAddressFormat; }
 bool CDebugClient::CanDecode(void)						{ return (msWelcome.uiCapabilities & DEBUG_CAN_DECODE) != 0; }
+bool CDebugClient::HasProcesses(void)					{ return (msWelcome.uiCapabilities & DEBUG_CAN_PROCESSES) != 0; }
+size CDebugClient::NumProcesses(void)					{ return masProcesses.NumElements(); }
+SDebugProcess* CDebugClient::GetProcess(size uiIndex)	{ return masProcesses.SafeGet(uiIndex); }
+size CDebugClient::NumProcessEvents(void)				{ return masProcessEvents.NumElements(); }
+SDebugProcessEvent* CDebugClient::GetProcessEvent(size uiIndex)	{ return masProcessEvents.SafeGet(uiIndex); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The running process whose name is szName (ignoring case: its program's
+// file, "\\boot.exe").  False if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugClient::FindProcess(const char* szName, uint32* puiProcess)
+{
+	size	i;
+
+	for (i = 0; i < masProcesses.NumElements(); i++)
+	{
+		if (StringInsensitiveCompare(masProcesses.Get(i)->szName, szName) == 0)
+		{
+			*puiProcess = masProcesses.Get(i)->uiProcess;
+			return true;
+		}
+	}
+	return false;
+}
 size CDebugClient::NumRegisters(void)					{ return msWelcome.uiNumRegisters; }
 EDebugStop CDebugClient::GetStopReason(void)			{ return meStopReason; }
 uint32 CDebugClient::GetStopAddress(void)				{ return muiStopAddress; }

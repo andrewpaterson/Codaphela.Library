@@ -43,7 +43,12 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //A breakpoint is in one of the target's breakpoint spaces, which the welcome names (a computer with a kernel and
 //user mode has "Kernel" and "User": a breakpoint in one stops only in that mode), or in every one (DEBUG_SPACE_ANY).
 //A message's uiSpace is DEBUG_SPACE_ANY or a space's index plus one.
-#define DEBUG_PROTOCOL_VERSION		3
+//
+//An emulator whose computer runs processes (DEBUG_CAN_PROCESSES) tells the debugger of those running when it says
+//hello, and of each one started (DM_ProcessStarted) and ended (DM_ProcessEnded).  A process started while running
+//stops it (DS_Process) before the process's first instruction, so the debugger can give it its breakpoints first: a
+//breakpoint's uiProcess is the process it stops in, or DEBUG_PROCESS_ANY.
+#define DEBUG_PROTOCOL_VERSION		4
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
@@ -91,6 +96,8 @@ enum EDebugMessage
 	DM_Memory,					//SDebugMemory then the bytes there were memory for (uiSize of them).
 	DM_Error,					//SDebugError.
 	DM_Disassembly,				//SDebugDisassembly then SDebugInstruction[uiCount].
+	DM_ProcessStarted,			//SDebugProcess.
+	DM_ProcessEnded,			//SDebugProcess, with its exit code.
 };
 
 
@@ -103,11 +110,13 @@ enum EDebugStop
 	DS_Pause,
 	DS_Stopped,		//The processor stopped itself (STP).
 	DS_Reset,
+	DS_Process,		//A process was started (DM_ProcessStarted): it hasn't run yet.
 };
 
 
 //What a welcome says the emulator can do.
 #define DEBUG_CAN_DECODE			0x0001		//It decodes instructions: DM_Disassemble, and calls are stepped over.
+#define DEBUG_CAN_PROCESSES			0x0002		//It runs processes: DM_ProcessStarted, DM_ProcessEnded, and breakpoints in one.
 
 
 //Before every message's struct.
@@ -154,6 +163,7 @@ struct SDebugBreakpoint
 	uint32	uiAddress;
 	uint32	uiEnabled;
 	uint32	uiSpace;	//DEBUG_SPACE_ANY or a space's index plus one.
+	uint32	uiProcess;	//DEBUG_PROCESS_ANY or the process it stops in.
 };
 
 

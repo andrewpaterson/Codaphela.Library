@@ -96,6 +96,7 @@ void CDebugServer::Tick(uint64 uiBudget)
 	{
 		StepRange(DEBUG_STEPS_PER_TICK);
 	}
+	SendProcessEvents();
 }
 
 
@@ -163,7 +164,6 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 {
 	SDebugAddress*		psAddress;
 	SDebugFlag*			psFlag;
-	size				i;
 
 	if (uiType == DM_Hello)
 	{
@@ -200,10 +200,7 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 			break;
 		}
 		psFlag = (SDebugFlag*)pvData;
-		for (i = 0; i < mpcTarget->NumBreakpointSpaces(); i++)
-		{
-			mpcTarget->GetSpaceBreakpoints(i)->EnableAll(psFlag->uiFlag != 0);
-		}
+		mpcTarget->EnableAllBreakpoints(psFlag->uiFlag != 0);
 		break;
 
 	case DM_Continue:
@@ -296,6 +293,8 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 void CDebugServer::Hello(void* pvData, size uiSize)
 {
 	SDebugHello*	psHello;
+	SDebugProcess	sProcess;
+	size			i;
 
 	if (uiSize < sizeof(SDebugHello))
 	{
@@ -312,6 +311,16 @@ void CDebugServer::Hello(void* pvData, size uiSize)
 	mbConnected = true;
 	muiMotionRequest = muiRequest;
 	SendWelcome();
+
+	//The processes running now, then each one started or ended from here.
+	for (i = 0; i < mpcTarget->NumProcesses(); i++)
+	{
+		if (mpcTarget->GetProcess(i, &sProcess))
+		{
+			SendProcess(DM_ProcessStarted, &sProcess);
+		}
+	}
+	mpcTarget->WatchProcesses(true);
 	SendState();
 }
 
@@ -333,7 +342,7 @@ void CDebugServer::SetBreakpoints(void* pvData, size uiSize)
 		return;
 	}
 
-	ClearBreakpoints();
+	mpcTarget->ClearBreakpoints();
 	asBreakpoint = (SDebugBreakpoint*)&psBreakpoints[1];
 	for (i = 0; i < psBreakpoints->uiCount; i++)
 	{
@@ -347,8 +356,9 @@ void CDebugServer::SetBreakpoints(void* pvData, size uiSize)
 // Adds (uiChange DM_AddBreakpoint, enabling or disabling one already
 // there), enables or disables (DM_EnableBreakpoint) or removes
 // (DM_RemoveBreakpoint) the breakpoint in its space, or in each space for
-// DEBUG_SPACE_ANY.  A space the target hasn't, or no breakpoint to enable
-// or remove, is an error of the message uiType.
+// DEBUG_SPACE_ANY, for its process (or every one).  A space the target
+// hasn't, a process it can't keep breakpoints for there, or no breakpoint
+// to enable or remove, is an error of the message uiType.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpoint, uint32 uiType)
@@ -372,7 +382,12 @@ void CDebugServer::ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpo
 	bChanged = false;
 	for (i = uiFirst; i < uiEnd; i++)
 	{
-		pcBreakpoints = mpcTarget->GetSpaceBreakpoints(i);
+		pcBreakpoints = (psBreakpoint->uiProcess == DEBUG_PROCESS_ANY) ? mpcTarget->GetSpaceBreakpoints(i) : mpcTarget->GetProcessBreakpoints(i, psBreakpoint->uiProcess);
+		if (pcBreakpoints == NULL)
+		{
+			Error(uiType, "No breakpoints for a process there.");
+			return;
+		}
 		if (uiChange == DM_AddBreakpoint)
 		{
 			if (!pcBreakpoints->Add(psBreakpoint->uiAddress, bEnabled))
@@ -399,16 +414,39 @@ void CDebugServer::ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every space's breakpoints.
+// DM_ProcessStarted or DM_ProcessEnded, with no request.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::ClearBreakpoints(void)
+void CDebugServer::SendProcess(uint32 uiType, SDebugProcess* psProcess)
 {
-	size	i;
+	memcpy(GetBody(), psProcess, sizeof(SDebugProcess));
+	((SDebugProcess*)GetBody())->szName[DEBUG_PROCESS_NAME_SIZE - 1] = '\0';
+	Send(uiType, 0, sizeof(SDebugProcess));
+}
 
-	for (i = 0; i < mpcTarget->NumBreakpointSpaces(); i++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The processes started and ended since the last tick, to the debugger.
+// One started while running stops it before it runs, so the debugger can
+// give it its breakpoints.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::SendProcessEvents(void)
+{
+	EDebugProcessEvent	eEvent;
+	SDebugProcess		sProcess;
+	bool				bStarted;
+
+	bStarted = false;
+	while (mbConnected && mpcTarget->TakeProcessEvent(&eEvent, &sProcess))
 	{
-		mpcTarget->GetSpaceBreakpoints(i)->Clear();
+		SendProcess((eEvent == DPE_Started) ? DM_ProcessStarted : DM_ProcessEnded, &sProcess);
+		bStarted |= eEvent == DPE_Started;
+	}
+	if (bStarted && (meState == DSS_Running))
+	{
+		Stop(DS_Process);
 	}
 }
 
@@ -892,7 +930,8 @@ void CDebugServer::Disassemble(void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Detach(void)
 {
-	ClearBreakpoints();
+	mpcTarget->ClearBreakpoints();
+	mpcTarget->WatchProcesses(false);
 	mbClosed = true;
 	mbConnected = false;
 	if (!mpcTarget->IsStopped())
@@ -1020,7 +1059,7 @@ void CDebugServer::SendWelcome(void)
 	psWelcome->uiVersion = DEBUG_PROTOCOL_VERSION;
 	psWelcome->uiAddressBits = (uint32)mpcTarget->NumAddressBits();
 	psWelcome->uiAddressFormat = (uint32)mpcTarget->GetAddressFormat();
-	psWelcome->uiCapabilities = (mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0;
+	psWelcome->uiCapabilities = ((mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0) | (mpcTarget->HasProcesses() ? DEBUG_CAN_PROCESSES : 0);
 	psWelcome->uiNumRegisters = (uint32)uiNumRegisters;
 	strncpy(psWelcome->szProcessor, mpcTarget->GetProcessorName(), DEBUG_PROCESSOR_NAME_SIZE - 1);
 	psWelcome->uiNumSpaces = (uint32)mpcTarget->NumBreakpointSpaces();

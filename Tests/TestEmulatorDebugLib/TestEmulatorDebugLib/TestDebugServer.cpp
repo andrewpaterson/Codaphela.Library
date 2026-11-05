@@ -456,9 +456,20 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertInt(uiRequest, pcClient->GetErrorRequest());
 	AssertString("No breakpoint there.", pcClient->GetError());
 
+	//A breakpoint for a process, on a processor with none.
+	uiRequest = pcClient->AddBreakpoint(0x1000, true, DEBUG_SPACE_ANY, 3);
+	AssertTrue(uiRequest != 0);
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 2));
+	AssertInt(DM_AddBreakpoint, pcClient->GetErrorType());
+	AssertString("No breakpoints for a process there.", pcClient->GetError());
+	AssertFalse(pcClient->HasProcesses());
+	AssertSize(0, pcClient->NumProcesses());
+
 	//The breakpoints replaced by one at $1000.
 	sBreakpoint.uiAddress = 0x1000;
 	sBreakpoint.uiEnabled = true;
+	sBreakpoint.uiSpace = DEBUG_SPACE_ANY;
+	sBreakpoint.uiProcess = DEBUG_PROCESS_ANY;
 	AssertTrue(pcClient->SetBreakpoints(&sBreakpoint, 1));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1000);

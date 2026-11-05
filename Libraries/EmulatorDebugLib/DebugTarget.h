@@ -99,6 +99,26 @@ public:
 };
 
 
+//A process the target's operating system runs (a kernal's program), as the debugger is told of it.  Its ID is the
+//target's own; the name is what the system ran (its program's file, "\\boot.exe").
+#define DEBUG_PROCESS_ANY			0xFFFFFFFF
+#define DEBUG_PROCESS_NAME_SIZE		64
+
+struct SDebugProcess
+{
+	uint32	uiProcess;
+	int32	iExitCode;		//Once it has ended.
+	char	szName[DEBUG_PROCESS_NAME_SIZE];
+};
+
+
+enum EDebugProcessEvent
+{
+	DPE_Started,
+	DPE_Ended,
+};
+
+
 //A processor (and the computer around it) that CDebugServer controls.  The server only uses this, so it works
 //the same for a W65C816, a 65C64 or anything else.  Addresses are the processor's, at most 32 bits.
 //
@@ -107,6 +127,10 @@ public:
 //
 //A target with more than one breakpoint space (a computer whose modes see different memory at the same address)
 //keeps a CBreakpoints for each and stops only at those of the mode it is in.  GetBreakpoints is the first space's.
+//
+//A target that runs processes (HasProcesses) tells of each one started and ended while they are watched, and can
+//keep breakpoints of a space for one process (GetProcessBreakpoints): they stop only while that process runs.  Its
+//processes' breakpoints go when the process ends (its ID may be given to another).
 class CDebugTarget
 {
 public:
@@ -126,6 +150,15 @@ public:
 	virtual size				NumBreakpointSpaces(void);
 	virtual const char*			GetBreakpointSpaceName(size uiSpace);
 	virtual CBreakpoints*		GetSpaceBreakpoints(size uiSpace);
+	virtual CBreakpoints*		GetProcessBreakpoints(size uiSpace, uint32 uiProcess);
+	virtual void				ClearBreakpoints(void);
+	virtual void				EnableAllBreakpoints(bool bEnabled);
+
+	virtual bool				HasProcesses(void);
+	virtual size				NumProcesses(void);
+	virtual bool				GetProcess(size uiIndex, SDebugProcess* psDest);
+	virtual void				WatchProcesses(bool bWatch);
+	virtual bool				TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest);
 	virtual bool				IsAtBreakpoint(void) =0;
 	virtual bool				IsStopped(void) =0;
 

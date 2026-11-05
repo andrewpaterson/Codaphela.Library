@@ -121,3 +121,58 @@ CBreakpoints* CDebugTarget::GetSpaceBreakpoints(size uiSpace)
 	return (uiSpace == 0) ? GetBreakpoints() : NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A target without processes has no process's breakpoints.
+//
+//////////////////////////////////////////////////////////////////////////
+CBreakpoints* CDebugTarget::GetProcessBreakpoints(size uiSpace, uint32 uiProcess)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every space's breakpoints (and its processes', for a target with
+// processes).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugTarget::ClearBreakpoints(void)
+{
+	size	i;
+
+	for (i = 0; i < NumBreakpointSpaces(); i++)
+	{
+		GetSpaceBreakpoints(i)->Clear();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugTarget::EnableAllBreakpoints(bool bEnabled)
+{
+	size	i;
+
+	for (i = 0; i < NumBreakpointSpaces(); i++)
+	{
+		GetSpaceBreakpoints(i)->EnableAll(bEnabled);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bare processor runs no processes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugTarget::HasProcesses(void)							{ return false; }
+size CDebugTarget::NumProcesses(void)							{ return 0; }
+bool CDebugTarget::GetProcess(size uiIndex, SDebugProcess* psDest)	{ return false; }
+void CDebugTarget::WatchProcesses(bool bWatch)					{ }
+bool CDebugTarget::TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest)	{ return false; }
+
