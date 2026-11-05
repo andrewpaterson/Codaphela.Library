@@ -1089,7 +1089,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
-		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall->macpArguments.NumElements());
+		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!psTemplate)
 		{
 			Error(pcCallee, "The function template has not been defined");
@@ -1559,7 +1559,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 	uiErrors = mpcGenerator->mcErrors.NumErrors();
 	pcComponent = pcName->GetLast();
 	iConstObject = pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis();
-	psTemplate = mpcGenerator->CompleteClass(psLookup, pcCall) ? mpcGenerator->FindMemberTemplate(psLookup, lliName, pcCall->macpArguments.NumElements(), iConstObject) : NULL;
+	psTemplate = mpcGenerator->CompleteClass(psLookup, pcCall) ? mpcGenerator->ChooseMemberTemplate(psLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConstObject) : NULL;
 	psFunction = NULL;
 	if (!psTemplate || !pcComponent->mbTemplateArguments)
 	{

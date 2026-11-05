@@ -5359,7 +5359,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	psFunction = NULL;
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall->macpArguments.NumElements());
+		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!psTemplate)
 		{
 			return Unsupported(__LINE__);
@@ -6800,7 +6800,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 
 	pcComponent = pcName->GetLast();
 	iConst = pcObject ? (bArrow ? mpcGenerator->IsConstPointer(pcObject) : mpcGenerator->IsConstObject(pcObject)) : mpcGenerator->IsConstThis();
-	psTemplate = mpcGenerator->CompleteClass(psLookup, pcCall) ? mpcGenerator->FindMemberTemplate(psLookup, lliName, pcCall->macpArguments.NumElements(), iConst) : NULL;
+	psTemplate = mpcGenerator->CompleteClass(psLookup, pcCall) ? mpcGenerator->ChooseMemberTemplate(psLookup, lliName, pcCall, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, iConst) : NULL;
 	psFunction = NULL;
 	if (!psTemplate || !pcComponent->mbTemplateArguments)
 	{

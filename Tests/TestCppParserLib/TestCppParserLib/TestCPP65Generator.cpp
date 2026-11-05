@@ -2370,6 +2370,56 @@ void TestCPP65GeneratorMemberPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Overloaded function and member templates that differ only in the type of
+// the member function a parameter points to are chosen by the argument's
+// type, with the member function's parameters deduced (A and V).  Member
+// templates defined outside their class take the definition written with
+// the same parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorTemplateOverloads(void)
+{
+	AssertInt(3214321, TestCPP65Main(
+		"struct SText { int m; };\n"
+		"struct STarget\n"
+		"{\n"
+		"\tint\tmiCalled;\n"
+		"\tvoid\tPlain(void) { miCalled += 1; }\n"
+		"\tbool\tAnswer(void) { return true; }\n"
+		"\tvoid\tWith(SText* p) { miCalled += 10 * p->m; }\n"
+		"\tvoid\tWithValue(SText* p, int i) { miCalled += 100 * i; }\n"
+		"};\n"
+		"template<class M> int Shape(void(M::*f)(void)) { return 1; }\n"
+		"template<class M> int Shape(bool(M::*f)(void)) { return 2; }\n"
+		"template<class M, class A> int Shape(void(M::*f)(A*)) { return 3; }\n"
+		"struct SCall\n"
+		"{\n"
+		"\tint\tmiShape;\n"
+		"\ttemplate<class M, class O> void Init(O* p, void(M::*f)(void));\n"
+		"\ttemplate<class M, class O> void Init(O* p, bool(M::*f)(void));\n"
+		"\ttemplate<class M, class A, class O> void Init(O* p, void(M::*f)(A*));\n"
+		"\ttemplate<class M, class A, class V, class O> void Init(O* p, void(M::*f)(A*, V));\n"
+		"};\n"
+		"template<class M, class O> void SCall::Init(O* p, void(M::*f)(void)) { miShape = 1; (((M*)p)->*f)(); }\n"
+		"template<class M, class O> void SCall::Init(O* p, bool(M::*f)(void)) { miShape = (((M*)p)->*f)() ? 2 : 0; }\n"
+		"template<class M, class A, class O> void SCall::Init(O* p, void(M::*f)(A*)) { A a; a.m = 3; miShape = 3; (((M*)p)->*f)(&a); }\n"
+		"template<class M, class A, class V, class O> void SCall::Init(O* p, void(M::*f)(A*, V)) { V v = 4; miShape = 4; (((M*)p)->*f)((A*)0, v); }\n"
+		"int main()\n"
+		"{\n"
+		"\tSTarget t; SCall c; int r;\n"
+		"\tt.miCalled = 0;\n"
+		"\tc.Init(&t, &STarget::Plain); r = c.miShape;\n"
+		"\tc.Init(&t, &STarget::Answer); r += c.miShape * 10;\n"
+		"\tc.Init(&t, &STarget::With); r += c.miShape * 100;\n"
+		"\tc.Init(&t, &STarget::WithValue); r += c.miShape * 1000;\n"
+		"\tr += Shape(&STarget::Plain) * 10000 + Shape(&STarget::Answer) * 100000 + Shape(&STarget::With) * 1000000;\n"
+		"\treturn (t.miCalled == 431) ? r : -t.miCalled;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Function templates with a parameter pack, forwarded with args... to a call, with
 // packs of zero, one and three types.
 //
@@ -3201,6 +3251,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorMemberTemplates();
 	TestCPP65GeneratorSpecialisation();
 	TestCPP65GeneratorMemberPointers();
+	TestCPP65GeneratorTemplateOverloads();
 	TestCPP65GeneratorVariadicTemplates();
 	TestCPP65GeneratorOverloadRanking();
 	TestCPP65GeneratorBaseLibConstructs();
