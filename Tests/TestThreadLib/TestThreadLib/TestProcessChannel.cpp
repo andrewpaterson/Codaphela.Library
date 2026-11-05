@@ -699,6 +699,29 @@ void TestChannelQueueMultiProcess(ETestTransport eTransport, bool bForkEarly)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A channel exists once it is created and not after it is closed, which
+// is found without a connect (that would log the failure).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelExists(void)
+{
+	CSharedMemoryChannel	cCreator;
+	CSharedMemoryChannel	cConnector;
+
+	AssertFalse(CSharedMemoryChannel::Exists("TestChannelExists"));
+	cCreator.Init();
+	AssertTrue(cCreator.Create("TestChannelExists"));
+	AssertTrue(CSharedMemoryChannel::Exists("TestChannelExists"));
+	cConnector.Init();
+	AssertTrue(cConnector.Connect("TestChannelExists"));
+	cConnector.Kill();
+	cCreator.Kill();
+	AssertFalse(CSharedMemoryChannel::Exists("TestChannelExists"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProcessChannel(ETestTransport eTransport)
@@ -723,6 +746,7 @@ void TestProcessChannel(void)
 
 	TestProcessChannel(TT_Network);
 	TestProcessChannel(TT_SharedMemory);
+	TestChannelExists();
 
 	SocketsKill();
 	TestStatistics();

@@ -134,6 +134,29 @@ void CSharedMemoryChannel::KillSignals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a channel named szName has been created, without logging that
+// it hasn't: for a process waiting for another to create the channel
+// before it Connects.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSharedMemoryChannel::Exists(char* szName)
+{
+	CChars				sz;
+	CSharedMemoryFile	cFile;
+	SSharedMemoryResult	sResult;
+
+	InterProcessName(&sz, INTER_PROCESS_CHANNEL_PREFIX, szName);
+	cFile.Init(sz.Text());
+	sz.Kill();
+	sResult = cFile.Open();
+	cFile.Close();
+	cFile.Kill();
+	return sResult.IsSuccess();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSharedMemoryChannel::Create(char* szName)

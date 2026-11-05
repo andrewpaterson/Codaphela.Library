@@ -64,6 +64,7 @@ public:
 
 	bool			Create(char* szName);
 	bool			Connect(char* szName);
+	static bool		Exists(char* szName);
 
 	using			CProcessChannel::Send;
 	bool			Send(uint32 uiType, void* pvData, size uiSize);
