@@ -99,6 +99,7 @@ protected:
 
 	CBreakpoints			mcBreakpoints;
 	CBreakpoints*			mpcBreakpoints;		//The ones looked at: mcBreakpoints unless UseBreakpoints chose others.
+	CBreakpoints*			mpcMoreBreakpoints;	//Looked at too (a process's, with its mode's), NULL for none.
 	bool					mbBreakpointsChanged;	//UseBreakpoints was called during Run: it chooses its loop again.
 	bool					mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool					mbMoving;			//The next instruction is the rest of a block move.
@@ -117,8 +118,9 @@ public:
 	void		SetNMI(bool bLow);
 
 	CBreakpoints*	GetBreakpoints(void);
-	void			UseBreakpoints(CBreakpoints* pcBreakpoints);
+	void			UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints = NULL);
 	CBreakpoints*	GetUsedBreakpoints(void);
+	CBreakpoints*	GetMoreUsedBreakpoints(void);
 	bool			IsAtBreakpoint(void);
 
 	uint16		GetC(void);
@@ -155,6 +157,8 @@ protected:
 	void		SetProgramBank(uint8 uiBank);
 	bool		NeedsDeciding(void);
 	bool		IsBreakpointNext(void);
+	bool		AnyBreakpoints(void);
+	bool		IsBreakpointAt(uint32 uiAddress);
 	bool		Breaks(void);
 	void		Decide(void);
 	void		Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bool bHardware);

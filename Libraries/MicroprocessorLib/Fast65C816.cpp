@@ -91,6 +91,7 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 
 	mcBreakpoints.Init();
 	mpcBreakpoints = &mcBreakpoints;
+	mpcMoreBreakpoints = NULL;
 	mbBreakpointsChanged = false;
 	mbAtBreakpoint = false;
 	mbMoving = false;
@@ -222,7 +223,34 @@ void CFast65C816::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFast65C816::IsBreakpointNext(void)
 {
-	return mpcBreakpoints->AnyEnabled() && !mbMoving && mpcBreakpoints->IsEnabledNext(((uint32)muiPBR << 16) | muiPC);
+	return AnyBreakpoints() && !mbMoving && IsBreakpointAt(((uint32)muiPBR << 16) | muiPC);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether any of the breakpoints looked at are enabled.
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C816::AnyBreakpoints(void)
+{
+	return mpcBreakpoints->AnyEnabled() || ((mpcMoreBreakpoints != NULL) && mpcMoreBreakpoints->AnyEnabled());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enabled breakpoint at uiAddress in either set looked at (each only
+// while it has any: only then has it banks to look in).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CFast65C816::IsBreakpointAt(uint32 uiAddress)
+{
+	if (mpcBreakpoints->AnyEnabled() && mpcBreakpoints->IsEnabledNext(uiAddress))
+	{
+		return true;
+	}
+	return (mpcMoreBreakpoints != NULL) && mpcMoreBreakpoints->AnyEnabled() && mpcMoreBreakpoints->IsEnabledNext(uiAddress);
 }
 
 
@@ -359,11 +387,11 @@ size CFast65C816::Run(size uiMaxInstructions)
 			continue;
 		}
 
-		if (mpcBreakpoints->AnyEnabled())
+		if (AnyBreakpoints())
 		{
 			do
 			{
-				if (!mbMoving && mpcBreakpoints->IsEnabledNext(((uint32)muiPBR << 16) | muiPC))
+				if (!mbMoving && IsBreakpointAt(((uint32)muiPBR << 16) | muiPC))
 				{
 					mbAtBreakpoint = true;
 					return i;
@@ -449,15 +477,18 @@ CBreakpoints* CFast65C816::GetBreakpoints(void)
 //
 // The breakpoints the processor looks at from the next instruction:
 // pcBreakpoints (kept by the caller, as a machine with a set for each of
-// its modes does), or its own (GetBreakpoints) for NULL.
+// its modes does), or its own (GetBreakpoints) for NULL; and
+// pcMoreBreakpoints too if it isn't NULL (the running process's own, as
+// well as its mode's).
 //
 //////////////////////////////////////////////////////////////////////////
-void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints)
+void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints)
 {
 	pcBreakpoints = pcBreakpoints ? pcBreakpoints : &mcBreakpoints;
-	if (pcBreakpoints != mpcBreakpoints)
+	if ((pcBreakpoints != mpcBreakpoints) || (pcMoreBreakpoints != mpcMoreBreakpoints))
 	{
 		mpcBreakpoints = pcBreakpoints;
+		mpcMoreBreakpoints = pcMoreBreakpoints;
 		mbBreakpointsChanged = true;
 	}
 }
@@ -470,6 +501,16 @@ void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints)
 CBreakpoints* CFast65C816::GetUsedBreakpoints(void)
 {
 	return mpcBreakpoints;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBreakpoints* CFast65C816::GetMoreUsedBreakpoints(void)
+{
+	return mpcMoreBreakpoints;
 }
 
 

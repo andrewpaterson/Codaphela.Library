@@ -1446,7 +1446,8 @@ static void TestFast65C816SwitchWrite(void* pvContext, uint32 uiAddress, uint8 u
 // count from the next instruction: from none (the loop that doesn't look
 // addresses up) to a set with one just after the switch, which stops it
 // there; and from a set with one to a set with none (no bank table), which
-// doesn't stop it at the first set's.
+// doesn't stop it at the first set's.  With a second set (more) it stops
+// at that set's too.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestFast65C816BreakpointSwitch(void)
@@ -1499,6 +1500,24 @@ static void TestFast65C816BreakpointSwitch(void)
 	AssertFalse(cFast.IsAtBreakpoint());
 	AssertTrue(cFast.IsStopped());
 	AssertTrue(cFast.GetUsedBreakpoints() == &cOther);
+
+	//Two sets looked at (a mode's and a process's): its own, empty, and more, with one at the instruction after the
+	//switch's store.
+	cOther.Clear();
+	AssertTrue(cOther.Add(0x1005, true));
+	cFast.GetBreakpoints()->Clear();
+	cFast.UseBreakpoints(NULL, &cOther);
+	AssertTrue(cFast.GetMoreUsedBreakpoints() == &cOther);
+	puiMemory[0x1003] = 0x00;	//STA $FF00: not the switch.
+	cFast.Reset();
+	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+	cFast.TestSetS(0x1F0);
+	cFast.TestSetProgramCounter(0, 0x1000);
+	AssertSize(2, cFast.Run(100));
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertInt(0x1005, cFast.GetProgramAddress());
+	cFast.UseBreakpoints(NULL);
+	AssertTrue(cFast.GetMoreUsedBreakpoints() == NULL);
 
 	cOther.Kill();
 	cFast.Kill();
