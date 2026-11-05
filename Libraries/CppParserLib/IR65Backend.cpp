@@ -33,8 +33,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CIR65Backend::Init(CIRModule* pcModule, int* piLabels)
 {
 	CIRBackend::Init(pcModule, piLabels);
-	mbSignedDivide = false;
-	mbSignedDivide64 = false;
 	mcDominators.Init();
 	mcLiveness.Init();
 	masPlaces.Init();
@@ -102,28 +100,6 @@ void CIR65Backend::Kill(void)
 	mcLiveness.Kill();
 	mcDominators.Kill();
 	CIRBackend::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if a function needs R_DivideSigned (or R_DivideSigned64), which the
-// generator adds to the unit.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::UsesSignedDivide(void)
-{
-	return mbSignedDivide;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::UsesSignedDivide64(void)
-{
-	return mbSignedDivide64;
 }
 
 

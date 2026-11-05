@@ -360,7 +360,7 @@ protected:
 	CChars					mszCode;
 	CChars					mszData;
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
-	CArrayChars				maszRuntime;		//The soft float runtime's labels the unit calls.
+	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
 	CCPPErrors				mcErrors;
 	CCPPErrors				mcWarnings;			//Each at most once (by token); they don't fail the unit.
 
@@ -397,8 +397,6 @@ protected:
 	bool					mbCLinkage;			//In extern "C": functions declared have C linkage.
 	int						miThisOffset;		//this's place in the frame of a member function, or -1.
 	int						miLabels;
-	bool					mbSignedDivide;
-	bool					mbSignedDivide64;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
 	CCPP65TypeChecker		mcTypeChecker;		//Works out expressions' types (TypeOf).
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.

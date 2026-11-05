@@ -274,8 +274,6 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbCLinkage = false;
 	miThisOffset = -1;
 	miLabels = 0;
-	mbSignedDivide = false;
-	mbSignedDivide64 = false;
 }
 
 
@@ -1083,10 +1081,14 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 		}
 	}
 
-	//The soft float runtime (Libc65/softfloat.cpp).
+	//The soft float runtime (Libc65/softfloat.cpp), not the routines AppendRuntime writes into the unit (R_DivideSigned
+	//and R_DivideSigned64, the W65C816's R816_ ones).
 	for (i = 0; i < maszRuntime.NumElements(); i++)
 	{
-		paszLabels->AddIfUnique(maszRuntime.GetText(i));
+		if ((strncmp(maszRuntime.GetText(i), "R_", 2) != 0) && (strncmp(maszRuntime.GetText(i), "R816_", 5) != 0))
+		{
+			paszLabels->AddIfUnique(maszRuntime.GetText(i));
+		}
 	}
 }
 
@@ -3223,7 +3225,7 @@ void CCPP65Generator::AppendRuntime(void)
 	bPure = mbPureVirtual && Emit(&szLabel);
 	szLabel.Kill();
 	szLabel.Init("R_DivideSigned");
-	bDivide = mbSignedDivide && Emit(&szLabel);
+	bDivide = maszRuntime.Contains("R_DivideSigned") && Emit(&szLabel);
 	szLabel.Kill();
 	if (bPure)
 	{
@@ -3238,7 +3240,7 @@ void CCPP65Generator::AppendRuntime(void)
 		AppendDivideSigned("R_DivideSigned", 4);
 	}
 	szLabel.Init("R_DivideSigned64");
-	bDivide64 = mbSignedDivide64 && Emit(&szLabel);
+	bDivide64 = maszRuntime.Contains("R_DivideSigned64") && Emit(&szLabel);
 	szLabel.Kill();
 	if (bDivide64)
 	{

@@ -113,11 +113,11 @@ int64 TestIR65Run(const char* szIR, bool bFloat = false, CChars* pszAssembly = N
 	cBackend.Init(&cModule, &iLabels);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
 	AssertString("", cErrors.Text());
-	if (cBackend.UsesSignedDivide())
+	if (cBackend.GetRuntime()->Contains("R_DivideSigned"))
 	{
 		szCode.Append(gszTestIR65DivideSigned);
 	}
-	if (cBackend.UsesSignedDivide64())
+	if (cBackend.GetRuntime()->Contains("R_DivideSigned64"))
 	{
 		szCode.Append(gszTestIR65DivideSigned64);
 	}

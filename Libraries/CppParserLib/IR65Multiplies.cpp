@@ -184,14 +184,7 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 		if (bSigned)
 		{
 			Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
-			if (bWide)
-			{
-				mbSignedDivide64 = true;
-			}
-			else
-			{
-				mbSignedDivide = true;
-			}
+			UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
 		}
 		else
 		{

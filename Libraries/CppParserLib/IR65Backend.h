@@ -172,8 +172,6 @@ struct SIR65Frame
 class CIR65Backend : public CIRBackend
 {
 protected:
-	bool					mbSignedDivide;
-	bool					mbSignedDivide64;
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
 	CArrayIR65Places		masPlaces;			//Per temporary.
@@ -210,8 +208,6 @@ public:
 	void				Kill(void);
 
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
-	bool				UsesSignedDivide(void);
-	bool				UsesSignedDivide64(void);
 
 protected:
 	void				AdjustComparisons(void);

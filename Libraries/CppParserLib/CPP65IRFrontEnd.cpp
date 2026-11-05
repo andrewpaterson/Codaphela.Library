@@ -870,8 +870,6 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 	{
 		mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
 	}
-	mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
-	mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
 	cBackend.Kill();
 	return bResult;
 }
