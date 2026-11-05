@@ -42,14 +42,27 @@ struct SChunkIndex
 typedef CArrayTemplate<SChunkIndex>	CChunkIndexArray;
 
 
+struct SChunkNamePosition
+{
+	chunkName	miName;
+	size		muiPosition;  //In mcChunkIndices.
+};
+
+
+typedef CArrayTemplate<SChunkNamePosition>	CChunkNamePositionArray;
+
+
+//A chunk's index of the chunks in it.  Finding chunks by name searches a copy of the names sorted by name and position,
+//made when first searched (and again if chunks have been added since).
 class CChunkIndex
 {
 protected:
-	chunkName	miSearchName;
-	size		miCurrChunkNum;
+	CChunkNamePositionArray	macNames;		//Sorted by name, then position.
+	chunkName				miSearchName;
+	size					muiNextName;	//Where in macNames FindNextChunkWithName looks next.
 
 public:
-	CChunkIndexArray	mcChunkIndices;
+	CChunkIndexArray		mcChunkIndices;
 
 	void	ReadInit(void);
 	void	WriteInit(void);
@@ -57,6 +70,10 @@ public:
 	size	FindFirstChunkWithName(chunkName iName);
 	size	FindNextChunkWithName(void);
 	size	GetNumChunksWithName(chunkName iName);
+
+protected:
+	void	SortNames(void);
+	size	FindFirstName(chunkName iName);
 };
 
 

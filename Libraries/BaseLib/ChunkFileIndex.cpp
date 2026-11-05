@@ -38,31 +38,35 @@ void SChunkIndex::Init(filePos iChunkDataPos, chunkName iName, filePos iChunkSiz
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::ReadInit(void)
 {
 	mcChunkIndices.Init();
+	macNames.Init();
+	miSearchName = 0;
+	muiNextName = 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::WriteInit(void)
 {
-	mcChunkIndices.Init();
+	ReadInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::Kill(void)
 {
+	macNames.Kill();
 	mcChunkIndices.Kill();
 }
 
@@ -71,26 +75,94 @@ void CChunkIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkIndex::FindFirstChunkWithName(chunkName iName)
+int CompareChunkNamePosition(const void* pvLeft, const void* pvRight)
 {
-	size		i;
-	chunkName	iTestName;
-	size		uiNumElements;
+	SChunkNamePosition*	psLeft;
+	SChunkNamePosition*	psRight;
 
-	miCurrChunkNum = 0;
-	miSearchName = iName;
-
-	uiNumElements = mcChunkIndices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	psLeft = (SChunkNamePosition*)pvLeft;
+	psRight = (SChunkNamePosition*)pvRight;
+	if (psLeft->miName != psRight->miName)
 	{
-		iTestName = mcChunkIndices.Get(i)->miName;
-		if (iTestName == iName)
+		return (psLeft->miName < psRight->miName) ? -1 : 1;
+	}
+	if (psLeft->muiPosition != psRight->muiPosition)
+	{
+		return (psLeft->muiPosition < psRight->muiPosition) ? -1 : 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sorts the names unless they already are (chunks are only ever added).
+//
+//////////////////////////////////////////////////////////////////////////
+void CChunkIndex::SortNames(void)
+{
+	size				i;
+	size				uiNumChunks;
+	SChunkNamePosition*	psName;
+
+	uiNumChunks = mcChunkIndices.NumElements();
+	if (macNames.NumElements() == uiNumChunks)
+	{
+		return;
+	}
+
+	macNames.ReInit();
+	for (i = 0; i < uiNumChunks; i++)
+	{
+		psName = macNames.Add();
+		psName->miName = mcChunkIndices.Get(i)->miName;
+		psName->muiPosition = i;
+	}
+	macNames.QuickSort(CompareChunkNamePosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where in macNames the first chunk named iName is, or would be.
+//
+//////////////////////////////////////////////////////////////////////////
+size CChunkIndex::FindFirstName(chunkName iName)
+{
+	size	uiLow;
+	size	uiHigh;
+	size	uiMiddle;
+
+	SortNames();
+	uiLow = 0;
+	uiHigh = macNames.NumElements();
+	while (uiLow < uiHigh)
+	{
+		uiMiddle = uiLow + (uiHigh - uiLow) / 2;
+		if (macNames.Get(uiMiddle)->miName < iName)
 		{
-			miCurrChunkNum = i + 1;
-			return i;
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
 		}
 	}
-	return ARRAY_ELEMENT_NOT_FOUND;
+	return uiLow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The position of the first chunk named iName (ARRAY_ELEMENT_NOT_FOUND if
+// there isn't one).  FindNextChunkWithName gives the others, in order.
+//
+//////////////////////////////////////////////////////////////////////////
+size CChunkIndex::FindFirstChunkWithName(chunkName iName)
+{
+	miSearchName = iName;
+	muiNextName = FindFirstName(iName);
+	return FindNextChunkWithName();
 }
 
 
@@ -100,19 +172,15 @@ size CChunkIndex::FindFirstChunkWithName(chunkName iName)
 //////////////////////////////////////////////////////////////////////////
 size CChunkIndex::FindNextChunkWithName(void)
 {
-	size i;
-	size	uiNumElements;
+	SChunkNamePosition*	psName;
 
-	uiNumElements = mcChunkIndices.NumElements();
-	for (i = miCurrChunkNum; i < uiNumElements; i++)
+	psName = macNames.SafeGet(muiNextName);
+	if ((psName == NULL) || (psName->miName != miSearchName))
 	{
-		if (mcChunkIndices.Get(i)->miName == miSearchName)
-		{
-			miCurrChunkNum = i + 1;
-			return i;
-		}
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-	return ARRAY_ELEMENT_NOT_FOUND;
+	muiNextName++;
+	return psName->muiPosition;
 }
 
 
@@ -122,20 +190,15 @@ size CChunkIndex::FindNextChunkWithName(void)
 //////////////////////////////////////////////////////////////////////////
 size CChunkIndex::GetNumChunksWithName(chunkName iName)
 {
+	size	uiFirst;
 	size	i;
-	size	iNumWithName;
-	size	uiNumElements;
+	size	uiNumNames;
 
-	iNumWithName = 0;
-
-	uiNumElements = mcChunkIndices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	uiFirst = FindFirstName(iName);
+	uiNumNames = macNames.NumElements();
+	for (i = uiFirst; (i < uiNumNames) && (macNames.Get(i)->miName == iName); i++)
 	{
-		if (mcChunkIndices.Get(i)->miName == iName)
-		{
-			iNumWithName++;
-		}
 	}
-	return iNumWithName;
+	return i - uiFirst;
 }
 

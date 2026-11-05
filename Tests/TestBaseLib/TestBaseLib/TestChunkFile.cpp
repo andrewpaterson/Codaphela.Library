@@ -348,6 +348,71 @@ void TestChunkFileHashing(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChunkFileIndexAdd(CChunkIndex* pcIndex, chunkName iName)
+{
+	pcIndex->mcChunkIndices.Add()->Init(0, iName, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Chunks found by name: every one with the name, in the order they're in,
+// and none for names that aren't there.  Chunks added after a search are
+// found by the next.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileIndexNames(void)
+{
+	CChunkIndex	cIndex;
+
+	cIndex.ReadInit();
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(5));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+
+	TestChunkFileIndexAdd(&cIndex, 5);
+	TestChunkFileIndexAdd(&cIndex, 3);
+	TestChunkFileIndexAdd(&cIndex, 5);
+	TestChunkFileIndexAdd(&cIndex, 9);
+	TestChunkFileIndexAdd(&cIndex, 3);
+	TestChunkFileIndexAdd(&cIndex, 5);
+
+	AssertSize(0, cIndex.FindFirstChunkWithName(5));
+	AssertSize(2, cIndex.FindNextChunkWithName());
+	AssertSize(5, cIndex.FindNextChunkWithName());
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+
+	AssertSize(1, cIndex.FindFirstChunkWithName(3));
+	AssertSize(4, cIndex.FindNextChunkWithName());
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+
+	AssertSize(3, cIndex.FindFirstChunkWithName(9));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(1));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(4));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(10));
+
+	AssertSize(3, cIndex.GetNumChunksWithName(5));
+	AssertSize(2, cIndex.GetNumChunksWithName(3));
+	AssertSize(1, cIndex.GetNumChunksWithName(9));
+	AssertSize(0, cIndex.GetNumChunksWithName(4));
+
+	TestChunkFileIndexAdd(&cIndex, 3);
+	AssertSize(1, cIndex.FindFirstChunkWithName(3));
+	AssertSize(4, cIndex.FindNextChunkWithName());
+	AssertSize(6, cIndex.FindNextChunkWithName());
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertSize(3, cIndex.GetNumChunksWithName(3));
+
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChunkFile(void)
 {
 	BeginTests();
@@ -358,6 +423,7 @@ void TestChunkFile(void)
 	TestChunkFilenameing();
 	TestChunkFileFileBasic();
 	TestChunkFileHashing();
+	TestChunkFileIndexNames();
 
 	MemoryKill();
 	TestStatistics();
