@@ -1237,20 +1237,6 @@ void TestSetObjectMemberLocations(bool bSortPointers)
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
 		AssertString("", szErrors);
 
-		//Taking the last member leaves no NULL between members, so adding another copy of the first is put in
-		//place in a sorted set: the members after it move.
-		pMember = pSet->UnsafeGet(TestSetObjectOccupiedSlot(&pSet, true, pNamed.Object()));
-		pMember.Kill();
-		uiExpected--;
-		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
-		AssertString("", szErrors);
-		pMember = pSet->UnsafeGet(TestSetObjectOccupiedSlot(&pSet, false, pNamed.Object()));
-		pSet->Add(pMember);
-		uiExpected++;
-		pMember = NULL;
-		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
-		AssertString("", szErrors);
-
 		//Replacing a member remaps it: a sorted set is no longer sorted but nothing has moved.
 		pNamed = gcObjects.AllocateReplacingNamed("CTestNamedObject", "Named");
 		pNamed->Init(2);
@@ -1339,6 +1325,62 @@ void TestSetObjectMemberLocations(bool bSortPointers)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A sorted set keeping where its members are.  Killing the member with the
+// highest address leaves its NULL at the end, so nothing moves and the
+// locations stay current; another copy of the member with the lowest
+// address is then put in near the start, and every member after it moves.
+// The members are chosen by address, not slot, so it doesn't matter where
+// they were allocated.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectSortedInsertMovesMembers(void)
+{
+	char	szErrors[1024];
+	size	i;
+
+	ObjectsInit();
+	{
+		Ptr<CSetObject>		pSet;
+		Ptr<CTestObject>	pObject;
+		Ptr<CTestObject>	pLowest;
+		Ptr<CTestObject>	pHighest;
+
+		pSet = OMalloc<CSetObject>(true);
+		ORoot()->Add(pSet);
+		for (i = 0; i < 100; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pSet->Add(pObject);
+			if (pLowest.IsNull() || (pObject.Object() < pLowest.Object()))
+			{
+				pLowest = pObject;
+			}
+			if (pHighest.IsNull() || (pObject.Object() > pHighest.Object()))
+			{
+				pHighest = pObject;
+			}
+		}
+		pObject = NULL;
+
+		pHighest->Kill();
+		pHighest = NULL;
+		AssertSize(99, pSet->NumElements());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+
+		pSet->Add(pLowest);
+		AssertSize(100, pSet->NumElements());
+		AssertSize(2, pLowest->NumHeapFroms());
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1370,6 +1412,7 @@ void TestSetObject(void)
 	TestSetObjectEmbeddedInObjectsKill();
 	TestSetObjectMemberLocations(true);
 	TestSetObjectMemberLocations(false);
+	TestSetObjectSortedInsertMovesMembers();
 
 	DataIOKill();
 	TypesKill();
