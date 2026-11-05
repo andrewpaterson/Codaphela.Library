@@ -115,6 +115,7 @@ CONSTRUCTABLE(CTextLayout);
 DESTRUCTABLE(CTextLayout);
 protected:
 	int32			miWidth;		//-1 for no max width, otherwise lines are wrapped at spaces to fit in it.
+	int32			miTabWidth;		//Pixels between tab stops, 0 for tabs with no width.
 	int16			miRowAscent;	//Of the glyphs on the line being laid out.
 	int16			miRowDescent;
 	int16			miFontAscent;	//Of the font of the run being laid out, moved by the run's baseline shift.
@@ -147,6 +148,8 @@ public:
 	SInt32Vec2		GetSize(void);
 	void			SetWidth(int32 iWidth);
 	int32			GetWidth(void);
+	void			SetTabWidth(int32 iTabWidth);
+	int32			GetTabWidth(void);
 	void			SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
 	size			NumStops(void);
@@ -158,6 +161,7 @@ protected:
 	void			Glyph(Ptr<CGlyph> pGlyph, bool bSpace);
 	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize, bool bSpace, STextLayoutRunStyle* psStyle);
 	void			AddStop(int32 iWidth);
+	void			Tab(void);
 	void			EndLine(void);
 	void			DecorateLine(int32 iBaseline);
 	void			DecorateStretch(uint8 uiDecoration, int32 iBaseline, size uiFirst, size uiEnd);

@@ -781,6 +781,23 @@ void TestTextAreaEditTiles(void)
 		iCell = (int32)pFont->GetAverageWidth();
 		iLine = pFont->GetLineHeight();
 
+		//As sprites too the tab goes to column 4: b is at x 4 cells and the text is 5 columns wide.  Mid line it goes
+		//to the next stop.
+		pTextArea->SetCaretPosition(2);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(4 * iCell, cCaret.GetLeft());
+		AssertInt(5 * iCell, pTextArea->GetTextSize().x);
+		AssertInt(4 * iCell, pTextArea->GetTabPixels());
+		pTextArea->SetText("abcde\tf");
+		pTextArea->SetCaretPosition(6);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(8 * iCell, cCaret.GetLeft());
+		pTextArea->SetTabWidth(2);
+		pTextArea->GetCaretBounds(&cCaret);
+		AssertInt(6 * iCell, cCaret.GetLeft());
+		pTextArea->SetTabWidth(4);
+		pTextArea->SetText("a\tb\ncd");
+
 		//Tiles are only used when they are asked for.
 		AssertFalse(pTextArea->IsDrawnAsTiles());
 		pTextArea->SetTiledText(true);

@@ -913,6 +913,7 @@ void CTextArea::LayoutText(void)
 
 	mpLayout->SetWidth(GetWrapWidth());
 	mpLayout->SetLineGaps(&masGaps);
+	mpLayout->SetTabWidth(GetTabPixels());
 
 	mpFontDraw->Begin();
 	if (mpText.IsNotNull())
@@ -1004,6 +1005,32 @@ SInt32Vec2 CTextArea::GetTextSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Pixels between tab stops when the text is laid out as sprites: the tab
+// width's spaces of the font.  0 (tabs have no width) without a font or a
+// space in it.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTextArea::GetTabPixels(void)
+{
+	Ptr<CFont>		pFont;
+	Ptr<CGlyph>		pSpace;
+
+	pFont = GetFont();
+	if (pFont.IsNull())
+	{
+		return 0;
+	}
+	pSpace = pFont->GetGlyph((uint16)' ', 1);
+	if (pSpace.IsNull())
+	{
+		return 0;
+	}
+	return miTabWidth * pSpace->GetFullWidth();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The colours of the text area's style's face and size.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1083,12 +1110,12 @@ void CTextArea::SetTabWidth(int32 iTabWidth)
 	}
 	miTabWidth = iTabWidth;
 
-	//Tiles put tabs at tab stops, so the text is laid out again.
+	//Tabs go to tab stops, as tiles or as sprites, so the text is laid out again.
 	if (mbTiled)
 	{
 		ReadText();
-		LayoutText();
 	}
+	LayoutText();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();

@@ -22,6 +22,7 @@ void CTextLayout::Init(int32 iWidth)
 	PreInit();
 
 	miWidth = iWidth;
+	miTabWidth = 0;
 	msSize.Init(0, 0);
 	miWordWidth = 0;
 	masStops.Init();
@@ -42,6 +43,7 @@ void CTextLayout::Init(int32 iWidth)
 void CTextLayout::Class(void)
 {
 	U_Int32(miWidth);
+	U_Int32(miTabWidth);
 	U_Int16(miRowAscent);
 	U_Int16(miRowDescent);
 	U_Int16(miFontAscent);
@@ -216,7 +218,11 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Short* pcUTFShort)
 	for (uiCharIndex = 0; uiCharIndex < uiNumChars; uiCharIndex++)
 	{
 		uiCodePoint16 = mcUTF16.GetCodePointUint16();
-		if (uiCodePoint16 != 0)
+		if (uiCodePoint16 == '\t')
+		{
+			Tab();
+		}
+		else if (uiCodePoint16 != 0)
 		{
 			if (!mcUTF16.IsTooSmall(uiCodePoint16))
 			{
@@ -258,7 +264,11 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Long* pcUTFLong)
 	for (uiCharIndex = 0; uiCharIndex < uiNumChars; uiCharIndex++)
 	{
 		uiCodePoint32 = mcUTF16.GetCodePointUint32();
-		if (!mcUTF16.IsError(uiCodePoint32))
+		if (uiCodePoint32 == '\t')
+		{
+			Tab();
+		}
+		else if (!mcUTF16.IsError(uiCodePoint32))
 		{
 			uiCodePointLength = mcUTF16.GetUnicodeCodePointLength(uiCodePoint32);
 			pGlyph = pcFont->GetGlyph(uiCodePoint32, uiCodePointLength);
@@ -669,6 +679,45 @@ void CTextLayout::AddStop(int32 iWidth)
 // last, so there is always at least one stop and one line.
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// A tab ends a word, as a space does, and moves to the next tab stop: a
+// whole number of tab widths from the line's start.  Like a space, one in
+// wrapped text doesn't make the text any wider.  With no tab width it has
+// no width.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::Tab(void)
+{
+	int32	iWidth;
+
+	EndWord();
+	iWidth = 0;
+	if (miTabWidth > 0)
+	{
+		iWidth = (msPosition.x / miTabWidth + 1) * miTabWidth - msPosition.x;
+	}
+	AddStop(iWidth);
+	msPosition.x += iWidth;
+	if ((miWidth < 0) && (msPosition.x > msSize.x))
+	{
+		msSize.x = msPosition.x;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iTabWidth pixels between tab stops; 0 for tabs with no width.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::SetTabWidth(int32 iTabWidth)
+{
+	miTabWidth = (iTabWidth > 0) ? iTabWidth : 0;
+}
+
+
+int32 CTextLayout::GetTabWidth(void) { return miTabWidth; }
 int32 CTextLayout::GetWidth(void) { return miWidth; }
 size CTextLayout::NumStops(void) { return masStops.NumElements(); }
 STextLayoutStop* CTextLayout::GetStop(size uiIndex) { return masStops.Get(uiIndex); }

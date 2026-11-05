@@ -189,6 +189,7 @@ public:
 	size				GetChangeCount(void);
 	void				SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>			GetFont(void);
+	int32				GetTabPixels(void);
 	void				SetFontColours(Ptr<CFontColours> pColours);
 	Ptr<CFontColours>	GetFontColours(void);
 	void				SetFontFamily(Ptr<CFontFamily> pFamily);
