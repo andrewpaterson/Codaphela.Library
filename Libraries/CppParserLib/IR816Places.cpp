@@ -565,6 +565,7 @@ public:
 	bool	IsPaired(int32 iOne, int32 iOther);
 	bool	Interferes(int32 iOne, int32 iOther, bool bSamePlace);
 	int32	Start(int32 iTemporary);
+	int32	End(int32 iTemporary);
 	void	AddRegion(int32 iStart, int32 iEnd);
 	bool	Fits(int32 iOffset, int32 iBytes);
 	int32	WordOf(int32 iOffset);
@@ -793,6 +794,20 @@ int32 CIR816LiveRanges::Start(int32 iTemporary)
 
 	iRange = *maiFirst.Get(iTemporary);
 	return (iRange == -1) ? -1 : *maiStart.Get(iRange);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last position a temporary is live at, or -1 when it never is.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816LiveRanges::End(int32 iTemporary)
+{
+	int32	iRange;
+
+	iRange = *maiLast.Get(iTemporary);
+	return (iRange == -1) ? -1 : *maiEnd.Get(iRange);
 }
 
 
@@ -1205,19 +1220,14 @@ int32 CIR816Backend::PackTemporaries(void)
 	int32						iPosition;
 	int32						iCallPosition;
 	int32						iNone;
-	int32						iBytes;
-	int32						iOffset;
 	int32						iNext;
 	int32						iTemporary;
 	int32						iEvent;
 	int32						iEnd;
 	int32						iPair;
 	int32						iArgument;
-	bool						bFree;
 	CArrayTemplate<int32>		aiDepths;		//Per block: how many loops it is in.
 	int32						iDepth;
-	int32						iBestDepth;
-	int32						iBestOffset;
 	CArrayTemplate<SIR816LoadPair>	asLoadPairs;
 	SIR816LoadPair*				psLoadPair;
 
@@ -1461,51 +1471,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 
 	AddRegions(&cRanges);
-
-	iNext = IR816_FIRST_TEMPORARY;
-	for (ui = 0; ui < aiOrder.NumElements(); ui++)
-	{
-		iTemporary = *aiOrder.Get(ui);
-		iBytes = (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
-
-		//A pair's place (the one where they meet in the deepest loop: the copy saved is done most), then the first
-		//place free.  IsFree keeps it inside its region: past the pushed arguments is the caller's.
-		bFree = false;
-		iBestDepth = -1;
-		iBestOffset = -1;
-		for (iPair = *cRanges.maiPairFirst.Get(iTemporary); iPair != -1; iPair = *cRanges.maiPairNext.Get(iPair))
-		{
-			iOffset = *maiOffsets.Get(*cRanges.maiPairOther.Get(iPair));
-			if (cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
-			{
-				iDepth = *cRanges.maiPairWeight.Get(iPair);
-				if (iDepth > iBestDepth)
-				{
-					iBestDepth = iDepth;
-					iBestOffset = iOffset;
-				}
-			}
-		}
-		if (iBestOffset >= 0)
-		{
-			iOffset = iBestOffset;
-			bFree = true;
-		}
-		if (!bFree)
-		{
-			iOffset = IR816_FIRST_TEMPORARY;
-			while (!cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
-			{
-				iOffset += 2;
-			}
-		}
-		cRanges.Take(iTemporary, iOffset, iBytes);
-		*maiOffsets.Get(iTemporary) = iOffset;
-		if ((iOffset < IR816_ARGUMENT_STANDIN) && (iOffset + iBytes > iNext))
-		{
-			iNext = iOffset + iBytes;
-		}
-	}
+	iNext = PlaceTemporaries(&cRanges, &aiOrder, &abParameter);
 
 	//A temporary with no definition or use still has a place (it is never live).
 	for (ui = 0; ui < uiTemporaries; ui++)
@@ -1531,6 +1497,453 @@ int32 CIR816Backend::PackTemporaries(void)
 	aiBlockEvents.Kill();
 	asEvents.Kill();
 	cRanges.Kill();
+	return iNext;
+}
+
+
+//A pair GroupTemporaries may merge: its weight, where they meet, the lower temporary and the pair in its list.
+struct SIR816MergePair
+{
+	int32	iWeight;
+	int32	iPosition;
+	int32	iOne;
+	int32	iPair;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Heaviest first, then where they meet, then in order (the same each time).
+//
+//////////////////////////////////////////////////////////////////////////
+static int CompareIR816MergePair(const void* pvLeft, const void* pvRight)
+{
+	SIR816MergePair*	psLeft;
+	SIR816MergePair*	psRight;
+
+	psLeft = (SIR816MergePair*)pvLeft;
+	psRight = (SIR816MergePair*)pvRight;
+	if (psLeft->iWeight != psRight->iWeight)
+	{
+		return (psLeft->iWeight > psRight->iWeight) ? -1 : 1;
+	}
+	if (psLeft->iPosition != psRight->iPosition)
+	{
+		return (psLeft->iPosition < psRight->iPosition) ? -1 : 1;
+	}
+	if (psLeft->iOne != psRight->iOne)
+	{
+		return (psLeft->iOne < psRight->iOne) ? -1 : 1;
+	}
+	if (psLeft->iPair != psRight->iPair)
+	{
+		return (psLeft->iPair < psRight->iPair) ? -1 : 1;
+	}
+	return 0;
+}
+
+
+//The temporaries PlaceTemporaries puts at one place, merged before any is placed (GroupTemporaries).
+class CIR816Groups
+{
+public:
+	CArrayTemplate<int32>	maiParent;		//Per temporary: its group (union-find), or -1 when it isn't grouped.
+	CArrayTemplate<int32>	maiNext;		//Per temporary: the next one in its group, or -1.
+	CArrayTemplate<int32>	maiLast;		//Per group: its last temporary.
+	CArrayTemplate<int32>	maiStart;		//Per group: the first and last positions any of it is live at.
+	CArrayTemplate<int32>	maiEnd;
+	CArrayTemplate<int32>	maiFixed;		//Per group: the place of the pushed parameter in it, or -1.
+
+	void	Init(size uiTemporaries);
+	void	Kill(void);
+	int32	Find(int32 iTemporary);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Groups::Init(size uiTemporaries)
+{
+	size	ui;
+	int32	iNone;
+
+	iNone = -1;
+	maiParent.Init(CIR816Backend::GetScratch());
+	maiNext.Init(CIR816Backend::GetScratch());
+	maiLast.Init(CIR816Backend::GetScratch());
+	maiStart.Init(CIR816Backend::GetScratch());
+	maiEnd.Init(CIR816Backend::GetScratch());
+	maiFixed.Init(CIR816Backend::GetScratch());
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		maiParent.Add(&iNone);
+		maiNext.Add(&iNone);
+		maiLast.Add(&iNone);
+		maiStart.Add(&iNone);
+		maiEnd.Add(&iNone);
+		maiFixed.Add(&iNone);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Groups::Kill(void)
+{
+	maiFixed.Kill();
+	maiEnd.Kill();
+	maiStart.Kill();
+	maiLast.Kill();
+	maiNext.Kill();
+	maiParent.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The group a grouped temporary is in (its first temporary).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Groups::Find(int32 iTemporary)
+{
+	int32	iParent;
+
+	while (*maiParent.Get(iTemporary) != iTemporary)
+	{
+		iParent = *maiParent.Get(*maiParent.Get(iTemporary));
+		*maiParent.Get(iTemporary) = iParent;
+		iTemporary = iParent;
+	}
+	return iTemporary;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Merges the temporaries that are pairs into groups that will share a
+// place, the heaviest pairs first (IR816_PAIR_WEIGHT), of those the first
+// where they meet (a loop's way in before its ways out): two groups merge when
+// none of one is live with any of the other at one place (Interferes: only
+// a pair meeting where one ends and the other starts), at most one pushed
+// parameter (whose place is fixed) between them, and everything fits at its
+// place.  The temporaries placed (paiOrder) and the pushed parameters with
+// stand-in places (AddRegions) are grouped, each alone to start with.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+{
+	CArrayTemplate<SIR816MergePair>	asPairs;
+	SIR816MergePair*		psMerge;
+	size					ui;
+	int32					iTemporary;
+	int32					iOther;
+	int32					iPair;
+	int32					iOne;
+	int32					iTwo;
+	int32					iA;
+	int32					iB;
+	bool					bMerge;
+
+	for (ui = 0; ui < paiOrder->NumElements(); ui++)
+	{
+		iTemporary = *paiOrder->Get(ui);
+		*pcGroups->maiParent.Get(iTemporary) = iTemporary;
+	}
+	for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+	{
+		iTemporary = (int32)mpcFunction->masParameters.Get(ui)->Index();
+		if ((*maiOffsets.Get(iTemporary) >= 0) && (pcRanges->Start(iTemporary) >= 0))
+		{
+			*pcGroups->maiParent.Get(iTemporary) = iTemporary;
+			*pcGroups->maiFixed.Get(iTemporary) = *maiOffsets.Get(iTemporary);
+		}
+	}
+	for (ui = 0; ui < pcGroups->maiParent.NumElements(); ui++)
+	{
+		iTemporary = (int32)ui;
+		if (*pcGroups->maiParent.Get(ui) == iTemporary)
+		{
+			*pcGroups->maiLast.Get(ui) = iTemporary;
+			*pcGroups->maiStart.Get(ui) = pcRanges->Start(iTemporary);
+			*pcGroups->maiEnd.Get(ui) = pcRanges->End(iTemporary);
+		}
+	}
+
+	asPairs.Init(CIR816Backend::GetScratch());
+	for (ui = 0; ui < pcGroups->maiParent.NumElements(); ui++)
+	{
+		iTemporary = (int32)ui;
+		if (*pcGroups->maiParent.Get(ui) == -1)
+		{
+			continue;
+		}
+		for (iPair = *pcRanges->maiPairFirst.Get(ui); iPair != -1; iPair = *pcRanges->maiPairNext.Get(iPair))
+		{
+			iOther = *pcRanges->maiPairOther.Get(iPair);
+			if ((iOther > iTemporary) && (*pcGroups->maiParent.Get(iOther) != -1))
+			{
+				psMerge = asPairs.Add();
+				psMerge->iWeight = *pcRanges->maiPairWeight.Get(iPair);
+				psMerge->iPosition = *pcRanges->maiPairPosition.Get(iPair);
+				psMerge->iOne = iTemporary;
+				psMerge->iPair = iPair;
+			}
+		}
+	}
+
+	asPairs.QuickSort(CompareIR816MergePair);
+	for (ui = 0; ui < asPairs.NumElements(); ui++)
+	{
+		psMerge = asPairs.Get(ui);
+		iPair = psMerge->iPair;
+		iOne = pcGroups->Find(psMerge->iOne);
+		iTwo = pcGroups->Find(*pcRanges->maiPairOther.Get(iPair));
+		if ((iOne == iTwo) || ((*pcGroups->maiFixed.Get(iOne) >= 0) && (*pcGroups->maiFixed.Get(iTwo) >= 0)))
+		{
+			continue;
+		}
+
+		//Nothing of one live with anything of the other (only when their spans meet).
+		bMerge = true;
+		if ((*pcGroups->maiStart.Get(iOne) <= *pcGroups->maiEnd.Get(iTwo)) && (*pcGroups->maiStart.Get(iTwo) <= *pcGroups->maiEnd.Get(iOne)))
+		{
+			for (iA = iOne; bMerge && (iA != -1); iA = *pcGroups->maiNext.Get(iA))
+			{
+				for (iB = iTwo; bMerge && (iB != -1); iB = *pcGroups->maiNext.Get(iB))
+				{
+					bMerge = !pcRanges->Interferes(iA, iB, true);
+				}
+			}
+		}
+
+		//A pushed parameter's place has room for all of them.
+		if (bMerge && ((*pcGroups->maiFixed.Get(iOne) >= 0) || (*pcGroups->maiFixed.Get(iTwo) >= 0)))
+		{
+			iOther = (*pcGroups->maiFixed.Get(iOne) >= 0) ? *pcGroups->maiFixed.Get(iOne) : *pcGroups->maiFixed.Get(iTwo);
+			for (iA = iOne; bMerge && (iA != -1); iA = *pcGroups->maiNext.Get(iA))
+			{
+				bMerge = *pabParameter->Get(iA) || pcRanges->Fits(iOther, PlaceBytes(iA));
+			}
+			for (iB = iTwo; bMerge && (iB != -1); iB = *pcGroups->maiNext.Get(iB))
+			{
+				bMerge = *pabParameter->Get(iB) || pcRanges->Fits(iOther, PlaceBytes(iB));
+			}
+		}
+		if (!bMerge)
+		{
+			continue;
+		}
+
+		*pcGroups->maiNext.Get(*pcGroups->maiLast.Get(iOne)) = iTwo;
+		*pcGroups->maiLast.Get(iOne) = *pcGroups->maiLast.Get(iTwo);
+		*pcGroups->maiParent.Get(iTwo) = iOne;
+		if (*pcGroups->maiStart.Get(iTwo) < *pcGroups->maiStart.Get(iOne))
+		{
+			*pcGroups->maiStart.Get(iOne) = *pcGroups->maiStart.Get(iTwo);
+		}
+		if (*pcGroups->maiEnd.Get(iTwo) > *pcGroups->maiEnd.Get(iOne))
+		{
+			*pcGroups->maiEnd.Get(iOne) = *pcGroups->maiEnd.Get(iTwo);
+		}
+		if (*pcGroups->maiFixed.Get(iTwo) >= 0)
+		{
+			*pcGroups->maiFixed.Get(iOne) = *pcGroups->maiFixed.Get(iTwo);
+		}
+	}
+	asPairs.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes a temporary's place takes: its value's, in whole words.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::PlaceBytes(int32 iTemporary)
+{
+	return (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether every temporary of a group (but its parameter, placed already)
+// may be at iOffset.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsGroupFree(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter)
+{
+	int32	iTemporary;
+
+	for (iTemporary = iGroup; iTemporary != -1; iTemporary = *pcGroups->maiNext.Get(iTemporary))
+	{
+		if (!*pabParameter->Get(iTemporary) && !pcRanges->IsFree(iTemporary, iOffset, PlaceBytes(iTemporary), &maiOffsets))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Places a temporary on its own: at a pair's place (the one where they
+// meet in the deepest loop: the copy saved is done most), else at the
+// first place free.  IsFree keeps it inside its region: past the pushed
+// arguments is the caller's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PlaceTemporary(CIR816LiveRanges* pcRanges, int32 iTemporary)
+{
+	int32	iBytes;
+	int32	iPair;
+	int32	iOffset;
+	int32	iDepth;
+	int32	iBestDepth;
+	int32	iBestOffset;
+
+	iBytes = PlaceBytes(iTemporary);
+	iBestDepth = -1;
+	iBestOffset = -1;
+	for (iPair = *pcRanges->maiPairFirst.Get(iTemporary); iPair != -1; iPair = *pcRanges->maiPairNext.Get(iPair))
+	{
+		iOffset = *maiOffsets.Get(*pcRanges->maiPairOther.Get(iPair));
+		if (pcRanges->IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
+		{
+			iDepth = *pcRanges->maiPairWeight.Get(iPair);
+			if (iDepth > iBestDepth)
+			{
+				iBestDepth = iDepth;
+				iBestOffset = iOffset;
+			}
+		}
+	}
+	iOffset = iBestOffset;
+	if (iOffset < 0)
+	{
+		iOffset = IR816_FIRST_TEMPORARY;
+		while (!pcRanges->IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
+		{
+			iOffset += 2;
+		}
+	}
+	pcRanges->Take(iTemporary, iOffset, iBytes);
+	*maiOffsets.Get(iTemporary) = iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Places the temporaries (paiOrder, in the order they start) a group at a
+// time (GroupTemporaries): at its pushed parameter's place, else at the
+// place of a group it is paired with (where they meet in the deepest loop),
+// else at the first place free for all of it.  A group that can't be at its
+// parameter's place is placed a temporary at a time.  Returns the first byte
+// after the temporaries in the frame.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR816Backend::PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
+{
+	CIR816Groups			cGroups;
+	CArrayTemplate<bool>	abPlaced;		//Per group.
+	size					ui;
+	int32					iTemporary;
+	int32					iGroup;
+	int32					iMember;
+	int32					iPair;
+	int32					iOther;
+	int32					iOffset;
+	int32					iDepth;
+	int32					iBestDepth;
+	int32					iBestOffset;
+	int32					iNext;
+
+	cGroups.Init(mpcFunction->NumTemporaries());
+	GroupTemporaries(pcRanges, &cGroups, paiOrder, pabParameter);
+	abPlaced.Init(CIR816Backend::GetScratch());
+	abPlaced.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+
+	for (ui = 0; ui < paiOrder->NumElements(); ui++)
+	{
+		iGroup = cGroups.Find(*paiOrder->Get(ui));
+		if (*abPlaced.Get(iGroup))
+		{
+			continue;
+		}
+		*abPlaced.Get(iGroup) = true;
+
+		iBestOffset = -1;
+		if (*cGroups.maiFixed.Get(iGroup) >= 0)
+		{
+			if (IsGroupFree(pcRanges, &cGroups, iGroup, *cGroups.maiFixed.Get(iGroup), pabParameter))
+			{
+				iBestOffset = *cGroups.maiFixed.Get(iGroup);
+			}
+			else
+			{
+				for (iMember = iGroup; iMember != -1; iMember = *cGroups.maiNext.Get(iMember))
+				{
+					if (!*pabParameter->Get(iMember))
+					{
+						PlaceTemporary(pcRanges, iMember);
+					}
+				}
+				continue;
+			}
+		}
+		else
+		{
+			iBestDepth = -1;
+			for (iMember = iGroup; iMember != -1; iMember = *cGroups.maiNext.Get(iMember))
+			{
+				for (iPair = *pcRanges->maiPairFirst.Get(iMember); iPair != -1; iPair = *pcRanges->maiPairNext.Get(iPair))
+				{
+					iOther = *pcRanges->maiPairOther.Get(iPair);
+					iOffset = *maiOffsets.Get(iOther);
+					iDepth = *pcRanges->maiPairWeight.Get(iPair);
+					if ((iOffset >= 0) && (iDepth > iBestDepth) && IsGroupFree(pcRanges, &cGroups, iGroup, iOffset, pabParameter))
+					{
+						iBestDepth = iDepth;
+						iBestOffset = iOffset;
+					}
+				}
+			}
+			if (iBestOffset < 0)
+			{
+				iBestOffset = IR816_FIRST_TEMPORARY;
+				while (!IsGroupFree(pcRanges, &cGroups, iGroup, iBestOffset, pabParameter))
+				{
+					iBestOffset += 2;
+				}
+			}
+		}
+		for (iMember = iGroup; iMember != -1; iMember = *cGroups.maiNext.Get(iMember))
+		{
+			if (!*pabParameter->Get(iMember))
+			{
+				pcRanges->Take(iMember, iBestOffset, PlaceBytes(iMember));
+				*maiOffsets.Get(iMember) = iBestOffset;
+			}
+		}
+	}
+
+	iNext = IR816_FIRST_TEMPORARY;
+	for (ui = 0; ui < paiOrder->NumElements(); ui++)
+	{
+		iTemporary = *paiOrder->Get(ui);
+		iOffset = *maiOffsets.Get(iTemporary);
+		if ((iOffset < IR816_ARGUMENT_STANDIN) && (iOffset + PlaceBytes(iTemporary) > iNext))
+		{
+			iNext = iOffset + PlaceBytes(iTemporary);
+		}
+	}
+	abPlaced.Kill();
+	cGroups.Kill();
 	return iNext;
 }
 

@@ -29,6 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CIR816LiveRanges;
+class CIR816Groups;
 
 
 //The frame's first bytes (direct page offsets) are scratch: a pointer loads and stores go through, a call's result,
@@ -207,6 +208,11 @@ protected:
 	void			AddRegions(CIR816LiveRanges* pcRanges);
 	int32			PackTemporaries(void);
 	int32			SharedLoopDepth(CIRBlock* pcFrom, CIRBlock* pcTo);
+	int32			PlaceTemporaries(CIR816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
+	void			GroupTemporaries(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter);
+	bool			IsGroupFree(CIR816LiveRanges* pcRanges, CIR816Groups* pcGroups, int32 iGroup, int32 iOffset, CArrayTemplate<bool>* pabParameter);
+	void			PlaceTemporary(CIR816LiveRanges* pcRanges, int32 iTemporary);
+	int32			PlaceBytes(int32 iTemporary);
 	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
 	bool			InX(SIRReference sValue);
 	int32			OffsetOf(SIRReference sTemporary);
