@@ -1783,6 +1783,254 @@ void TestDistToRootUpdateKillHubWithBackPointersSpeed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The kinds of collection the collection speed tests use.
+//
+//////////////////////////////////////////////////////////////////////////
+enum ESpeedCollection
+{
+	SC_Array,
+	SC_Map,
+	SC_Index
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Killing, one at a time, the members of a big collection that lives on.
+// The collection is only a from on each member, so it has to find each
+// one in itself.  A map's members are values; its keys live on.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateKillCollectionMembers(ESpeedCollection eCollection, size uiMembers, bool bValidate)
+{
+	CArrayBaseObjectPtr		apcMembers;
+	CTimer					cTimer;
+	float					fMilliseconds;
+	size					i;
+	size					uiRootOnly;
+	char					szKey[32];
+
+	ObjectsInit();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	apcMembers.Init();
+	{
+		Ptr<CArrayObject>		pArray;
+		Ptr<CMapObject>			pMap;
+		Ptr<CIndexObject>		pIndex;
+		Ptr<CTestObject>		pMember;
+
+		ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		if (eCollection == SC_Array)
+		{
+			pArray = OMalloc<CArrayObject>();
+			ORoot()->Add(pArray);
+		}
+		else if (eCollection == SC_Map)
+		{
+			pMap = OMalloc<CMapObject>();
+			ORoot()->Add(pMap);
+		}
+		else
+		{
+			pIndex = OMalloc<CIndexObject>();
+			ORoot()->Add(pIndex);
+		}
+
+		for (i = 0; i < uiMembers; i++)
+		{
+			pMember = OMalloc<CTestObject>();
+			if (eCollection == SC_Array)
+			{
+				pArray->Add(pMember);
+			}
+			else if (eCollection == SC_Map)
+			{
+				pMap->Put(OMalloc<CTestObject>(), pMember);
+			}
+			else
+			{
+				sprintf(szKey, "k%i", (int)i);
+				pIndex->Put(szKey, pMember);
+			}
+			apcMembers.Add(pMember.BaseObject());
+		}
+		pMember = NULL;
+
+		cTimer.Init();
+		for (i = 0; i < uiMembers; i++)
+		{
+			apcMembers.GetPtr(i)->Kill();
+		}
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		if (eCollection == SC_Map)
+		{
+			AssertSize(uiRootOnly + 1 + uiMembers, gcObjects.NumMemoryIndexes());
+		}
+		else
+		{
+			AssertSize(uiRootOnly + 1, gcObjects.NumMemoryIndexes());
+		}
+		AssertDistToRoot();
+	}
+	apcMembers.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects attached to the root letting go, one at a time, of a hub that
+// lives on.  The hub has to find each one in its froms.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateLetGoOfLivingHub(size uiHolders, bool bValidate)
+{
+	CArrayBaseObjectPtr		apcHolders;
+	CTimer					cTimer;
+	float					fMilliseconds;
+	size					i;
+
+	ObjectsInit();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	apcHolders.Init();
+	{
+		Ptr<CTestObject>		pHub;
+		Ptr<CArrayObject>		pHolders;
+		Ptr<CTestObject>		pHolder;
+
+		pHub = OMalloc<CTestObject>();
+		pHolders = OMalloc<CArrayObject>();
+		ORoot()->Add(pHub);
+		ORoot()->Add(pHolders);
+		for (i = 0; i < uiHolders; i++)
+		{
+			pHolder = OMalloc<CTestObject>();
+			pHolder->mpObject = pHub;
+			pHolders->Add(pHolder);
+			apcHolders.Add(pHolder.BaseObject());
+		}
+		pHolder = NULL;
+		AssertSize(uiHolders + 1, pHub->NumHeapFroms());
+
+		cTimer.Init();
+		for (i = 0; i < uiHolders; i++)
+		{
+			((CTestObject*)apcHolders.GetPtr(i))->mpObject = NULL;
+		}
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		AssertSize(1, pHub->NumHeapFroms());
+		AssertDistToRoot();
+	}
+	apcHolders.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Freeing a big array together with its members, by letting go of it.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDistToRootUpdateFreeCollectionWithMembers(size uiMembers, bool bValidate)
+{
+	CTimer				cTimer;
+	float				fMilliseconds;
+	size				i;
+	size				uiRootOnly;
+
+	ObjectsInit();
+	if (!bValidate)
+	{
+		gcObjects.DisableValidation();
+	}
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pMember;
+
+		ORoot();
+		uiRootOnly = gcObjects.NumMemoryIndexes();
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		for (i = 0; i < uiMembers; i++)
+		{
+			pMember = OMalloc<CTestObject>();
+			pArray->Add(pMember);
+		}
+		pMember = NULL;
+
+		cTimer.Init();
+		ORoot()->Remove(pArray);
+		pArray = NULL;
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+
+		gcObjects.EnableValidation();
+		AssertSize(uiRootOnly, gcObjects.NumMemoryIndexes());
+		AssertDistToRoot();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDistToRootUpdateCollectionSpeeds(void)
+{
+	size		uiDepth;
+	size		uiCount;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	uiCount = (size)1 << (uiDepth + 5);
+
+	fMilliseconds = TestDistToRootUpdateKillCollectionMembers(SC_Array, uiCount, false);
+	LogDistToRootSpeed("Kill the members of a living array", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+
+	fMilliseconds = TestDistToRootUpdateKillCollectionMembers(SC_Map, uiCount, false);
+	LogDistToRootSpeed("Kill the values of a living map", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+
+	fMilliseconds = TestDistToRootUpdateKillCollectionMembers(SC_Index, uiCount, false);
+	LogDistToRootSpeed("Kill the members of a living index", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+
+	fMilliseconds = TestDistToRootUpdateLetGoOfLivingHub(uiCount, false);
+	LogDistToRootSpeed("Let go of a living hub", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+
+	fMilliseconds = TestDistToRootUpdateFreeCollectionWithMembers(uiCount, false);
+	LogDistToRootSpeed("Free an array with its members", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdate(void)
@@ -1822,6 +2070,12 @@ void TestDistToRootUpdate(void)
 	TestDistToRootUpdateFreeBatchSpeed();
 	TestDistToRootUpdateKillHubWithBackPointers(5, true);
 	TestDistToRootUpdateKillHubWithBackPointersSpeed();
+	TestDistToRootUpdateKillCollectionMembers(SC_Array, 5, true);
+	TestDistToRootUpdateKillCollectionMembers(SC_Map, 5, true);
+	TestDistToRootUpdateKillCollectionMembers(SC_Index, 5, true);
+	TestDistToRootUpdateLetGoOfLivingHub(5, true);
+	TestDistToRootUpdateFreeCollectionWithMembers(5, true);
+	TestDistToRootUpdateCollectionSpeeds();
 
 	DataIOKill();
 	TypesKill();

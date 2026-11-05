@@ -6,11 +6,13 @@
 #include "BaseLib/Codabase.h"
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
+#include "BaseLib/Timer.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/ObjectConverterText.h"
 #include "StandardLib/ObjectConverterNative.h"
 #include "StandardLib/String.h"
 #include "StandardLib/PointerContainer.h"
+#include "StandardLib/ArrayObject.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
 #include "StandardLib/FatHollowConfiguration.h"
@@ -19,7 +21,9 @@
 #include "ChunkFileObjectWriterTestClasses.h"
 
 
-void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);  //TestEmbedded.cpp: what validating every object logs.
+void ValidateObjectsCapturingErrors(char* szErrors, size uiSize);
+size DistToRootTreeDepth(void);  //TestDistToRootUpdate.cpp
+void LogDistToRootSpeed(const char* szWhat, size uiDepth, float fMilliseconds);  //TestEmbedded.cpp: what validating every object logs.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1138,6 +1142,107 @@ void TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loading, one at a time, the members of a big array saved hollow.  Each
+// hollow loaded is replaced in the array: the array is only a from on it,
+// so it has to find it in itself.
+//
+//////////////////////////////////////////////////////////////////////////
+float TestDehollowficationLoadArrayMembers(size uiMembers)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "BigArray";
+	size			i;
+	size			uiLoaded;
+	CTimer			cTimer;
+	float			fMilliseconds;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CString>		pString;
+
+		pArray = ONMalloc<CArrayObject>("Array");
+		ORoot()->Add(pArray);
+		for (i = 0; i < uiMembers; i++)
+		{
+			pString = OMalloc<CString>();
+			pString->Set("Member");
+			pArray->Add(pString);
+		}
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.DisableValidation();
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CString>		pString;
+
+		pArray = gcObjects.Get("Array");
+		AssertSize(uiMembers, pArray->NumElements());
+
+		uiLoaded = 0;
+		cTimer.Init();
+		for (i = 0; i < uiMembers; i++)
+		{
+			pString = pArray->Get<CString>(i);
+			if (pString->Equals("Member"))
+			{
+				uiLoaded++;
+			}
+		}
+		pString = NULL;
+		cTimer.Update();
+		fMilliseconds = (float)cTimer.GetTotalTimeInMillieconds();
+		cTimer.Kill();
+		AssertSize(uiMembers, uiLoaded);
+
+		gcObjects.EnableValidation();
+		gcObjects.ValidateObjectsConsistency();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+	return fMilliseconds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDehollowficationLoadArrayMembersSpeed(void)
+{
+	size		uiDepth;
+	float		fMilliseconds;
+
+	uiDepth = DistToRootTreeDepth();
+	fMilliseconds = TestDehollowficationLoadArrayMembers((size)1 << (uiDepth + 5));
+	LogDistToRootSpeed("Load the members of a big array", uiDepth, fMilliseconds);
+	AssertTrue(fMilliseconds < 10000.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowfication(void)
@@ -1158,6 +1263,7 @@ void TestDehollowfication(void)
 	TestDehollowficationStackPointerToEmbeddedHollow();
 	TestDehollowficationLoadedByName();
 	TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow();
+	TestDehollowficationLoadArrayMembersSpeed();
 
 	DataIOKill();
 	TypesKill();
