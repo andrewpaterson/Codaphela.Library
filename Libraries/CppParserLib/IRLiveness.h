@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __I_R_LIVENESS_H__
 #include "IRFunction.h"
 #include "IRLoops.h"
+#include "IRLiveSets.h"
 
 
 //Positions [iFrom, iTo) a temporary is live over.
@@ -45,9 +46,7 @@ class CIRLiveness
 {
 protected:
 	CIRFunction*			mpcFunction;
-	size					muiWords;			//Words in a block's live in (or out) set.
-	CArrayTemplate<uint32>	mauiLiveIn;			//Per block index: muiWords words of bits, one per temporary.
-	CArrayTemplate<uint32>	mauiLiveOut;
+	CIRLiveSets				mcSets;				//What is live into and out of each block.
 	CArrayIRBlockNumbers	maiStarts;			//Per block index.
 	CIRLoops				mcLoops;
 	CArrayIRRanges			masRanges;			//Every temporary's ranges, in order, from maiFirstRanges.

@@ -38,9 +38,7 @@ struct SIRTemporaryRange
 void CIRLiveness::Init(void)
 {
 	mpcFunction = NULL;
-	muiWords = 0;
-	mauiLiveIn.Init();
-	mauiLiveOut.Init();
+	mcSets.Init();
 	maiStarts.Init();
 	mcLoops.Init();
 	masRanges.Init();
@@ -60,8 +58,7 @@ void CIRLiveness::Kill(void)
 	masRanges.Kill();
 	mcLoops.Kill();
 	maiStarts.Kill();
-	mauiLiveOut.Kill();
-	mauiLiveIn.Kill();
+	mcSets.Kill();
 }
 
 
@@ -110,7 +107,7 @@ void CIRLiveness::Number(void)
 //////////////////////////////////////////////////////////////////////////
 uint32* CIRLiveness::LiveIn(size uiBlock)
 {
-	return mauiLiveIn.Get(uiBlock * muiWords);
+	return mcSets.LiveIn(uiBlock);
 }
 
 
@@ -120,7 +117,7 @@ uint32* CIRLiveness::LiveIn(size uiBlock)
 //////////////////////////////////////////////////////////////////////////
 uint32* CIRLiveness::LiveOut(size uiBlock)
 {
-	return mauiLiveOut.Get(uiBlock * muiWords);
+	return mcSets.LiveOut(uiBlock);
 }
 
 
@@ -133,78 +130,37 @@ uint32* CIRLiveness::LiveOut(size uiBlock)
 //////////////////////////////////////////////////////////////////////////
 void CIRLiveness::ComputeSets(void)
 {
-	CArrayTemplate<uint32>	auiUsed;
-	CArrayTemplate<uint32>	auiDefined;
-	size					uiNumBlocks;
-	size					ui;
-	size					uiBlock;
-	size					uiInstruction;
-	size					uiArgument;
-	size					uiSuccessor;
-	size					uiWord;
-	CIRBlock*				pcBlock;
-	CIRBlock*				pcSuccessor;
-	SIRInstruction*			psInstruction;
-	SIRPhi*					psPhi;
-	SIRPhiArgument*			psArgument;
-	SIRReference			sValue;
-	uint32*					puiUsed;
-	uint32*					puiDefined;
-	uint32*					puiIn;
-	uint32*					puiOut;
-	uint32					uiIn;
-	bool					bChanged;
-
-	uiNumBlocks = mpcFunction->NumBlocks();
-	muiWords = (mpcFunction->NumTemporaries() + 31) / 32;
-	mauiLiveIn.FakeSetUsedElements(0);
-	mauiLiveIn.GrowToAtLeastNumElements(uiNumBlocks * muiWords, true, 0);
-	mauiLiveOut.FakeSetUsedElements(0);
-	mauiLiveOut.GrowToAtLeastNumElements(uiNumBlocks * muiWords, true, 0);
-	auiUsed.Init();
-	auiUsed.GrowToAtLeastNumElements(uiNumBlocks * muiWords, true, 0);
-	auiDefined.Init();
-	auiDefined.GrowToAtLeastNumElements(uiNumBlocks * muiWords, true, 0);
+	size			uiBlock;
+	size			ui;
+	size			uiInstruction;
+	size			uiArgument;
+	size			uiSuccessor;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcSuccessor;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
 
 	//What each block uses before defining (in SSA everything a block uses that it doesn't define), what it defines
 	//and the phi arguments it passes on.
-	for (uiBlock = 0; uiBlock < uiNumBlocks; uiBlock++)
+	mcSets.Start(mpcFunction);
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
 	{
 		pcBlock = mpcFunction->GetBlock(uiBlock);
-		puiUsed = auiUsed.Get(uiBlock * muiWords);
-		puiDefined = auiDefined.Get(uiBlock * muiWords);
-		puiOut = LiveOut(uiBlock);
 		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
 		{
-			sValue = pcBlock->masPhis.Get(ui)->sResult;
-			SetBit(sValue.Index(), puiDefined, true);
+			mcSets.Define(uiBlock, pcBlock->masPhis.Get(ui)->sResult);
 		}
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			for (uiArgument = 0; uiArgument < 2; uiArgument++)
 			{
-				sValue = psInstruction->asArguments[uiArgument];
-				if (sValue.IsTemporary())
-				{
-					SetBit(sValue.Index(), puiUsed, true);
-				}
+				mcSets.Use(uiBlock, psInstruction->asArguments[uiArgument]);
 			}
-			if (psInstruction->sResult.IsTemporary())
-			{
-				sValue = psInstruction->sResult;
-				SetBit(sValue.Index(), puiDefined, true);
-			}
+			mcSets.Define(uiBlock, psInstruction->sResult);
 		}
-		if (pcBlock->msJump.sArgument.IsTemporary())
-		{
-			sValue = pcBlock->msJump.sArgument;
-			SetBit(sValue.Index(), puiUsed, true);
-		}
-		for (uiWord = 0; uiWord < muiWords; uiWord++)
-		{
-			puiUsed[uiWord] &= ~puiDefined[uiWord];
-		}
+		mcSets.Use(uiBlock, pcBlock->msJump.sArgument);
 		for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
 		{
 			pcSuccessor = pcBlock->GetSuccessor(uiSuccessor);
@@ -212,48 +168,14 @@ void CIRLiveness::ComputeSets(void)
 			{
 				psPhi = pcSuccessor->masPhis.Get(ui);
 				psArgument = pcSuccessor->FindPhiArgument(psPhi, pcBlock);
-				if (psArgument && psArgument->sValue.IsTemporary())
+				if (psArgument)
 				{
-					sValue = psArgument->sValue;
-					SetBit(sValue.Index(), puiOut, true);
+					mcSets.PassOut(uiBlock, psArgument->sValue);
 				}
 			}
 		}
 	}
-
-	do
-	{
-		bChanged = false;
-		for (uiBlock = uiNumBlocks; uiBlock > 0; uiBlock--)
-		{
-			pcBlock = mpcFunction->GetBlock(uiBlock - 1);
-			puiOut = LiveOut(uiBlock - 1);
-			for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
-			{
-				puiIn = LiveIn(pcBlock->GetSuccessor(uiSuccessor)->muiIndex);
-				for (uiWord = 0; uiWord < muiWords; uiWord++)
-				{
-					puiOut[uiWord] |= puiIn[uiWord];
-				}
-			}
-			puiIn = LiveIn(uiBlock - 1);
-			puiUsed = auiUsed.Get((uiBlock - 1) * muiWords);
-			puiDefined = auiDefined.Get((uiBlock - 1) * muiWords);
-			for (uiWord = 0; uiWord < muiWords; uiWord++)
-			{
-				uiIn = puiUsed[uiWord] | (puiOut[uiWord] & ~puiDefined[uiWord]);
-				if (uiIn != puiIn[uiWord])
-				{
-					puiIn[uiWord] = uiIn;
-					bChanged = true;
-				}
-			}
-		}
-	}
-	while (bChanged);
-
-	auiDefined.Kill();
-	auiUsed.Kill();
+	mcSets.Solve();
 }
 
 
@@ -340,7 +262,7 @@ void CIRLiveness::BuildRanges(void)
 		aiTouched.FakeSetUsedElements(0);
 
 		puiOut = LiveOut(uiBlock);
-		for (uiWord = 0; uiWord < muiWords; uiWord++)
+		for (uiWord = 0; uiWord < mcSets.NumWords(); uiWord++)
 		{
 			for (uiBits = puiOut[uiWord]; uiBits != 0; uiBits &= uiBits - 1)
 			{

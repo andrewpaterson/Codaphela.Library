@@ -246,6 +246,9 @@
     <ClCompile Include="IRLiveness.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRLiveSets.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IROptimiser.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -882,6 +885,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRLiveness.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRLiveSets.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IROptimiser.h">

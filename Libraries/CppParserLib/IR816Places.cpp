@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "IR816BackendInternal.h"
+#include "IRLiveSets.h"
 
 
 //The W65C816 back end's places: the frame's layout (Layout), pointers folded into their loads and stores
@@ -984,27 +985,6 @@ static void IR816AddEvent(CArrayTemplate<SIR816Event>* pasEvents, SIRReference s
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A temporary used in a block (before the block defines it) is live in.
-//
-//////////////////////////////////////////////////////////////////////////
-static void IR816Use(uint32* puiUse, uint32* puiDef, SIRReference sValue)
-{
-	uint32	ui;
-
-	if (!sValue.IsTemporary())
-	{
-		return;
-	}
-	ui = sValue.Index();
-	if (!(puiDef[ui / 32] & (1u << (ui % 32))))
-	{
-		puiUse[ui / 32] |= 1u << (ui % 32);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether the instruction's result can have the place of its argument
 // iArgument when that argument dies there: true when each word of the
 // argument is read before that word of the result is written and never
@@ -1172,14 +1152,11 @@ void CIR816Backend::AddRegions(CIR816LiveRanges* pcRanges)
 int32 CIR816Backend::PackTemporaries(void)
 {
 	CIR816LiveRanges			cRanges;
+	CIRLiveSets					cSets;
 	CArrayTemplate<SIR816Event>	asEvents;
 	CArrayTemplate<int32>		aiBlockEvents;	//Per block: its first event, and one past the last block's last.
 	CArrayTemplate<int32>		aiBlockStart;
 	CArrayTemplate<int32>		aiBlockEnd;
-	CArrayTemplate<uint32>		auiUse;
-	CArrayTemplate<uint32>		auiDef;
-	CArrayTemplate<uint32>		auiIn;
-	CArrayTemplate<uint32>		auiOut;
 	CArrayTemplate<int32>		aiOpen;			//Per temporary: where its range in the block being scanned starts, or -1.
 	CArrayTemplate<int32>		aiLastUse;		//Per temporary: its last use or definition in that block.
 	CArrayTemplate<int32>		aiOpened;		//The temporaries with a range open in that block.
@@ -1192,7 +1169,6 @@ int32 CIR816Backend::PackTemporaries(void)
 	SIRPhiArgument*				psArgument;
 	SIR816Event*				psEvent;
 	size						uiTemporaries;
-	size						uiWords;
 	size						uiBlocks;
 	size						ui;
 	size						uj;
@@ -1208,13 +1184,6 @@ int32 CIR816Backend::PackTemporaries(void)
 	int32						iEnd;
 	int32						iPair;
 	int32						iArgument;
-	uint32*						puiUse;
-	uint32*						puiDef;
-	uint32*						puiIn;
-	uint32*						puiOut;
-	uint32*						puiSuccessorIn;
-	uint32						uiNew;
-	bool						bChanged;
 	bool						bFree;
 	CArrayTemplate<int32>		aiDepths;		//Per block: how many loops it is in.
 	int32						iDepth;
@@ -1224,7 +1193,6 @@ int32 CIR816Backend::PackTemporaries(void)
 	SIR816LoadPair*				psLoadPair;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
-	uiWords = (uiTemporaries + 31) / 32;
 	uiBlocks = mpcFunction->NumBlocks();
 	iNone = -1;
 	cRanges.Init(uiTemporaries);
@@ -1349,70 +1317,25 @@ int32 CIR816Backend::PackTemporaries(void)
 		}
 	}
 
-	//Each block's use and def sets.
-	auiUse.Init(CIR816Backend::GetScratch());
-	auiDef.Init(CIR816Backend::GetScratch());
-	auiIn.Init(CIR816Backend::GetScratch());
-	auiOut.Init(CIR816Backend::GetScratch());
-	auiUse.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
-	auiDef.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
-	auiIn.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
-	auiOut.GrowToAtLeastNumElements(uiBlocks * uiWords + 1, true, 0);
+	//Each block's uses and definitions, and from them what is live into and out of each block.
+	cSets.Init(CIR816Backend::GetScratch());
+	cSets.Start(mpcFunction);
 	for (ui = 0; ui < uiBlocks; ui++)
 	{
-		puiUse = auiUse.Get(ui * uiWords);
-		puiDef = auiDef.Get(ui * uiWords);
 		for (iEvent = *aiBlockEvents.Get(ui); iEvent < *aiBlockEvents.Get(ui + 1); iEvent++)
 		{
 			psEvent = asEvents.Get(iEvent);
 			if (psEvent->iKind == IR816_EVENT_USE)
 			{
-				IR816Use(puiUse, puiDef, IRReference(IRRK_Temporary, (uint32)psEvent->iTemporary));
+				cSets.Use(ui, IRReference(IRRK_Temporary, (uint32)psEvent->iTemporary));
 			}
 			else if (psEvent->iKind == IR816_EVENT_DEFINE)
 			{
-				puiDef[psEvent->iTemporary / 32] |= 1u << (psEvent->iTemporary % 32);
+				cSets.Define(ui, IRReference(IRRK_Temporary, (uint32)psEvent->iTemporary));
 			}
 		}
 	}
-
-	//Liveness: in = use | (out & ~def), out = the successors' ins (less their phis' results), until nothing changes.
-	do
-	{
-		bChanged = false;
-		for (ui = uiBlocks; ui > 0; ui--)
-		{
-			pcBlock = mpcFunction->GetBlock(ui - 1);
-			puiUse = auiUse.Get((ui - 1) * uiWords);
-			puiDef = auiDef.Get((ui - 1) * uiWords);
-			puiIn = auiIn.Get((ui - 1) * uiWords);
-			puiOut = auiOut.Get((ui - 1) * uiWords);
-			for (uj = 0; uj < pcBlock->NumSuccessors(); uj++)
-			{
-				pcSuccessor = pcBlock->GetSuccessor(uj);
-				puiSuccessorIn = auiIn.Get(pcSuccessor->muiIndex * uiWords);
-				for (uk = 0; uk < uiWords; uk++)
-				{
-					uiNew = puiOut[uk] | puiSuccessorIn[uk];
-					if (uiNew != puiOut[uk])
-					{
-						puiOut[uk] = uiNew;
-						bChanged = true;
-					}
-				}
-			}
-			for (uk = 0; uk < uiWords; uk++)
-			{
-				uiNew = puiUse[uk] | (puiOut[uk] & ~puiDef[uk]);
-				if (uiNew != puiIn[uk])
-				{
-					puiIn[uk] = uiNew;
-					bChanged = true;
-				}
-			}
-		}
-	}
-	while (bChanged);
+	cSets.Solve();
 
 	//The ranges: in each block from the start (live in) or the definition, to the end (live out) or the last use.
 	aiOpen.Init(CIR816Backend::GetScratch());
@@ -1425,11 +1348,9 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 	for (ui = 0; ui < uiBlocks; ui++)
 	{
-		puiIn = auiIn.Get(ui * uiWords);
-		puiOut = auiOut.Get(ui * uiWords);
 		for (uj = 0; uj < uiTemporaries; uj++)
 		{
-			if (puiIn[uj / 32] & (1u << (uj % 32)))
+			if (cSets.IsLiveIn(ui, uj))
 			{
 				iTemporary = (int32)uj;
 				*aiOpen.Get(uj) = *aiBlockStart.Get(ui);
@@ -1456,7 +1377,7 @@ int32 CIR816Backend::PackTemporaries(void)
 		for (uj = 0; uj < aiOpened.NumElements(); uj++)
 		{
 			iTemporary = *aiOpened.Get(uj);
-			iEnd = (puiOut[iTemporary / 32] & (1u << (iTemporary % 32))) ? *aiBlockEnd.Get(ui) : *aiLastUse.Get(iTemporary);
+			iEnd = cSets.IsLiveOut(ui, (size)iTemporary) ? *aiBlockEnd.Get(ui) : *aiLastUse.Get(iTemporary);
 			cRanges.Add(iTemporary, *aiOpen.Get(iTemporary), iEnd);
 			*aiOpen.Get(iTemporary) = -1;
 			*aiLastUse.Get(iTemporary) = -1;
@@ -1562,10 +1483,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	aiOpened.Kill();
 	aiLastUse.Kill();
 	aiOpen.Kill();
-	auiOut.Kill();
-	auiIn.Kill();
-	auiDef.Kill();
-	auiUse.Kill();
+	cSets.Kill();
 	aiBlockEnd.Kill();
 	aiBlockStart.Kill();
 	aiBlockEvents.Kill();
