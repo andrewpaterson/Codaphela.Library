@@ -448,7 +448,9 @@ CIR65Backend (IR65Backend.h/.cpp) writes 65C64 assembly for IR functions.
 Layout.  A loop's test is moved after its body (a block that branches into the block
 after it or out of the loop goes after the last block that jumps back to it), so the
 loop is entered with a bra to the test and each time round takes one branch.  A brif
-whose else block comes next branches to its then block and falls through.
+whose else block comes next branches to its then block and falls through.  The block
+order (OrderBlocks), the tests moved (MoveLoopTests) and loads moved down to their use
+(SinkLoads) are CIRBackendPasses (IRBackendPasses.h/.cpp), for any back end (2026-11-05).
 
 Values left in A.  A result only the next instruction uses, and takes from A (its first
 operand, its second for the instructions that copy it to B or swap it in, a load's

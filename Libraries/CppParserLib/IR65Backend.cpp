@@ -63,6 +63,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();
+	mcBackendPasses.Init();
 	mauiNarrowOnly.Init();
 }
 
@@ -77,6 +78,7 @@ void CIR65Backend::Kill(void)
 
 	mauiNarrowOnly.Kill();
 	mcPeephole.Kill();
+	mcBackendPasses.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
 	mszDeferred.Kill();
@@ -149,10 +151,15 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mpcFunction->CountUses(&mauiUses);
 	AdjustComparisons();
 	PreferSingleBranches();
-	OrderBlocks();
-	RotateLoops();
+	mcBackendPasses.OrderBlocks(pcFunction);
+	mcBackendPasses.MoveLoopTests(pcFunction);
 	PairDivides();
-	SinkLoads();
+	mcBackendPasses.SinkLoads(pcFunction);
+	mpcFunction->CountUses(&mauiUses);
+	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	{
+		SinkToEnd(pcFunction->GetBlock(ui));
+	}
 	CopyAddresses();
 	mpcFunction->CountUses(&mauiUses);
 	FindNarrowOnly();

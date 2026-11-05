@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IR65Widths.h"
 #include "IR65Peephole.h"
 #include "IRBackend.h"
+#include "IRBackendPasses.h"
 
 
 //Where a temporary is kept.
@@ -210,6 +211,7 @@ protected:
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 	CIR65Peephole			mcPeephole;
+	CIRBackendPasses		mcBackendPasses;
 
 public:
 	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);
@@ -220,13 +222,10 @@ public:
 	bool				UsesSignedDivide64(void);
 
 protected:
-	void				OrderBlocks(void);
-	void				RotateLoops(void);
 	void				AdjustComparisons(void);
 	void				PreferSingleBranches(void);
 	void				PairDivides(void);
 	bool				DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner);
-	void				SinkLoads(void);
 	void				SinkToEnd(CIRBlock* pcBlock);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);

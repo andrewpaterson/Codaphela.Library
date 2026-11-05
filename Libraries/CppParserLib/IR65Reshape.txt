@@ -50,8 +50,14 @@ thread jumps.
 What belongs in shared code
 ---------------------------
 
-- Loop rotation.  CIR65Backend::RotateLoops does what CIROptimiser::RotateLoops does for both
-  targets.  OrderBlocks doesn't depend on the target, and the W65C816 has nothing like it.
+- Block order and loop tests.  OrderBlocks and the back end's RotateLoops (block layout: a
+  loop's test moved after its body) don't depend on the target, and the W65C816 has nothing
+  like them.  (Not CIROptimiser::RotateLoops: that copies a loop's head, up to 8
+  instructions; the back end's moves blocks, and catches the loops the optimiser leaves.)
+- Loop steps.  CIR65Backend::SinkToEnd and CIR816Backend::SinkSteps both move a loop's step
+  (p + 1 a phi takes) down past the instructions reading p so the two can share a place,
+  with different rules: the 65C64's to the block's end when an operand is read later, the
+  W65C816's past the readers of a phi p only.  One pass would change one target's code.
 - Use counts.  CIR816Backend::FoldPointers (IR816Places.cpp) counts uses by hand: that is
   CIRFunction::CountUses, which the 65C64 already calls.
 - Liveness.  CIR816Backend::PackTemporaries runs its own bit set liveness and builds its own
@@ -73,8 +79,9 @@ Steps
    2026-11-05).  Reading both back ends showed the W65C816 also decides in the writing loop
    (CanFuse with mapsFused), and that msInA/msAvailable is mostly a record of what A holds
    (a value just stored from A is still there), which stays.
-4. OrderBlocks and the IR rewrites that don't depend on the target into IR passes; drop
-   RotateLoops from the back end (CIROptimiser's).  The code written should be the same.
+4. OrderBlocks and the IR rewrites that don't depend on the target into IR passes any back
+   end can run.  The code written should be the same.  (Was "drop RotateLoops for
+   CIROptimiser's": wrong, see above.)
 5. Call split into pushing the arguments, loading registers, the call and the clean up.
    May change the code written: re-measure cycles.
 6. The shared code above (use counts, liveness hooks, loop weights) for the W65C816.
@@ -113,3 +120,12 @@ masFused, and ReadModifyWrite, Load and Divide no longer look ahead for what the
 themselves.  The code written is the same after all: the 570 TestBaseLib65 listings (1,793 read
 modify writes, 676 signed widening loads, 69 shared divs, 70k deferred operands) are identical to
 step 2's, source comments too.  TestCppParserLib 83262/83262.
+
+Step 4: done 2026-11-05.  CIRBackendPasses (IRBackendPasses.h/.cpp) has OrderBlocks, MoveLoopTests
+(was CIR65Backend::RotateLoops, renamed so it isn't taken for CIROptimiser's) and SinkLoads (less
+SinkToEnd, which the 65C64 runs after it); CIR65Backend runs them.  The 65C64's AdjustComparisons,
+PreferSingleBranches, PairDivides, SinkToEnd and CopyAddresses stay in IR65Passes.cpp: they serve
+its instructions (cmp with a constant, braso, one div for both, add Y, 1, [8 + X]).  Listings
+identical to step 3's, TestCppParserLib 83262/83262.  Left for later, as they change the W65C816's
+code and need its cycles measured: the W65C816 running CIRBackendPasses, and one loop step pass for
+SinkToEnd and SinkSteps.
