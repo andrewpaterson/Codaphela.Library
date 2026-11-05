@@ -784,13 +784,23 @@ size CEmbeddedObject::NumTotalFroms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A hub looks the from up where it keeps them (ValidateHeapFromHub checks
+// those against the froms), so validating every pointer to a hub isn't a
+// search of all its froms each time.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 {
-	size				i;
-	size				uiNumFroms;
-	CEmbeddedObject*	pcFrom;
+	size						i;
+	size						uiNumFroms;
+	CEmbeddedObject*			pcFrom;
+	SPointerLocationsIterator	sIter;
+	ptr							uiLocation;
+
+	if (mpsHub != NULL)
+	{
+		return mpsHub->cLocations.StartIteration(&sIter, pcBaseObject, &uiLocation);
+	}
 
 	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
