@@ -128,6 +128,29 @@ size CComponent::NumInputActions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Turns the component's actions for eCommand off or on again.  While
+// they are off the command goes on to the parent, as if they weren't
+// there; a text area that isn't selectable passes the pointer this way.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::SetInputActionsEnabled(EComponentInputCommand eCommand, bool bEnabled)
+{
+	size				i;
+	Ptr<CInputAction>	pAction;
+
+	for (i = 0; i < maInputActions.Size(); i++)
+	{
+		pAction = maInputActions.Get(i);
+		if ((pAction->GetFilter() == IAF_Command) && (pAction->GetCommand() == eCommand))
+		{
+			pAction->SetEnabled(bEnabled);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Calls every action that matches, in the order they were added.  Returns
 // true if any did, then the event goes no further, unless every one that
 // did set the event's bPass.

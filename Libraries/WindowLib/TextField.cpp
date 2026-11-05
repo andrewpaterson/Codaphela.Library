@@ -25,16 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextField.h"
 
 
-static EComponentInputCommand	gaeTextFieldCommands[] =
-{
-	CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect,
-	CIC_Left, CIC_Right, CIC_WordLeft, CIC_WordRight, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd,
-	CIC_SelectLeft, CIC_SelectRight, CIC_SelectWordLeft, CIC_SelectWordRight, CIC_SelectHome, CIC_SelectEnd,
-	CIC_SelectDocumentHome, CIC_SelectDocumentEnd, CIC_SelectWholeWord, CIC_SelectAll, CIC_ClearSelection,
-	CIC_Space, CIC_Delete, CIC_Backspace, CIC_Cut, CIC_Copy, CIC_Paste, CIC_DeleteWordRemainingRight, CIC_DeleteWordRemainingLeft,
-};
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The theme's font is drawn as it is, so it should already be the text's
@@ -76,7 +66,41 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mpPadded->AddComponent(mpText);
 
 	UpdateFaceSize();
-	AddInputActions(gaeTextFieldCommands, sizeof(gaeTextFieldCommands) / sizeof(EComponentInputCommand), this, &CTextField::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CTextField::ActivateComponent);
+	AddInputAction(CIC_ExecuteComponent, this, &CTextField::ExecuteComponent);
+	AddInputAction(CIC_StartDragSelect, this, &CTextField::StartDragSelect);
+	AddInputAction(CIC_ContDragSelect, this, &CTextField::ContDragSelect);
+	AddInputAction(CIC_StopDragSelect, this, &CTextField::StopDragSelect);
+
+	//Moving the caret and selecting don't change the text, so the editor is given them.
+	AddInputAction(CIC_Left, &mcEditor, &CPlainTextEditor::Left);
+	AddInputAction(CIC_Right, &mcEditor, &CPlainTextEditor::Right);
+	AddInputAction(CIC_WordLeft, &mcEditor, &CPlainTextEditor::WordLeft);
+	AddInputAction(CIC_WordRight, &mcEditor, &CPlainTextEditor::WordRight);
+	AddInputAction(CIC_Home, &mcEditor, &CPlainTextEditor::Home);
+	AddInputAction(CIC_End, &mcEditor, &CPlainTextEditor::End);
+	AddInputAction(CIC_DocumentHome, &mcEditor, &CPlainTextEditor::DocumentHome);
+	AddInputAction(CIC_DocumentEnd, &mcEditor, &CPlainTextEditor::DocumentEnd);
+	AddInputAction(CIC_SelectLeft, &mcEditor, &CPlainTextEditor::SelectLeft);
+	AddInputAction(CIC_SelectRight, &mcEditor, &CPlainTextEditor::SelectRight);
+	AddInputAction(CIC_SelectWordLeft, &mcEditor, &CPlainTextEditor::SelectWordLeft);
+	AddInputAction(CIC_SelectWordRight, &mcEditor, &CPlainTextEditor::SelectWordRight);
+	AddInputAction(CIC_SelectHome, &mcEditor, &CPlainTextEditor::SelectHome);
+	AddInputAction(CIC_SelectEnd, &mcEditor, &CPlainTextEditor::SelectEnd);
+	AddInputAction(CIC_SelectDocumentHome, &mcEditor, &CPlainTextEditor::SelectDocumentHome);
+	AddInputAction(CIC_SelectDocumentEnd, &mcEditor, &CPlainTextEditor::SelectDocumentEnd);
+	AddInputAction(CIC_SelectWholeWord, &mcEditor, &CPlainTextEditor::SelectWholeWord);
+	AddInputAction(CIC_SelectAll, &mcEditor, &CPlainTextEditor::SelectAll);
+	AddInputAction(CIC_ClearSelection, &mcEditor, &CPlainTextEditor::ClearSelection);
+
+	AddInputAction(CIC_Space, this, &CTextField::SpaceAction);
+	AddInputAction(CIC_Delete, this, &CTextField::Delete);
+	AddInputAction(CIC_Backspace, this, &CTextField::Backspace);
+	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextField::DeleteWordRemainingRight);
+	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextField::DeleteWordRemainingLeft);
+	AddInputAction(CIC_Cut, this, &CTextField::CutToClipboard);
+	AddInputAction(CIC_Copy, this, &CTextField::CopyToClipboard);
+	AddInputAction(CIC_Paste, this, &CTextField::PasteFromClipboard);
 	AddInputAction(IAF_Printable, NULL, this, &CTextField::PrintableAction);
 
 	PostInit();
@@ -85,71 +109,45 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The input actions of gaeTextFieldCommands.  The clipboard is the
-// window's, the system's; cutting or copying nothing leaves it as it was.
+// The clipboard is the window's, the system's.  Cutting or copying
+// nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::CommandAction(SComponentInputEvent* psEvent)
-{
-	CChars	szClipboard;
+void CTextField::CutToClipboard(void) { ToClipboard(&CTextField::Cut); }
+void CTextField::CopyToClipboard(void) { ToClipboard(&CTextField::Copy); }
 
-	switch (psEvent->eCommand)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fTake is Cut or Copy.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::ToClipboard(void (CTextField::*fTake)(CChars* pszDest))
+{
+	CChars	szText;
+
+	szText.Init();
+	(this->*fTake)(&szText);
+	if (!szText.Empty())
 	{
-	case CIC_ActivateComponent:			ActivateComponent(psEvent->x, psEvent->y);	break;
-	case CIC_ExecuteComponent:			ExecuteComponent(psEvent->x, psEvent->y);	break;
-	case CIC_StartDragSelect:			StartDragSelect(psEvent->x, psEvent->y);	break;
-	case CIC_ContDragSelect:			ContDragSelect(psEvent->x, psEvent->y);		break;
-	case CIC_StopDragSelect:			StopDragSelect(psEvent->x, psEvent->y);		break;
-	case CIC_Left:						Left();						break;
-	case CIC_Right:						Right();					break;
-	case CIC_WordLeft:					WordLeft();					break;
-	case CIC_WordRight:					WordRight();				break;
-	case CIC_Home:						Home();						break;
-	case CIC_End:						End();						break;
-	case CIC_DocumentHome:				DocumentHome();				break;
-	case CIC_DocumentEnd:				DocumentEnd();				break;
-	case CIC_SelectLeft:				SelectLeft();				break;
-	case CIC_SelectRight:				SelectRight();				break;
-	case CIC_SelectWordLeft:			SelectWordLeft();			break;
-	case CIC_SelectWordRight:			SelectWordRight();			break;
-	case CIC_SelectHome:				SelectHome();				break;
-	case CIC_SelectEnd:					SelectEnd();				break;
-	case CIC_SelectDocumentHome:		SelectDocumentHome();		break;
-	case CIC_SelectDocumentEnd:			SelectDocumentEnd();		break;
-	case CIC_SelectWholeWord:			SelectWholeWord();			break;
-	case CIC_SelectAll:					SelectAll();				break;
-	case CIC_ClearSelection:			ClearSelection();			break;
-	case CIC_Space:						Space(psEvent->bInsert);	break;
-	case CIC_Delete:					Delete();					break;
-	case CIC_Backspace:					Backspace();				break;
-	case CIC_DeleteWordRemainingRight:	DeleteWordRemainingRight();	break;
-	case CIC_DeleteWordRemainingLeft:	DeleteWordRemainingLeft();	break;
-	case CIC_Cut:
-	case CIC_Copy:
-		szClipboard.Init();
-		if (psEvent->eCommand == CIC_Cut)
-		{
-			Cut(&szClipboard);
-		}
-		else
-		{
-			Copy(&szClipboard);
-		}
-		if (!szClipboard.Empty())
-		{
-			mpWindow->GetClipboard()->SetText(szClipboard.Text());
-		}
-		szClipboard.Kill();
-		break;
-	case CIC_Paste:
-		szClipboard.Init();
-		mpWindow->GetClipboard()->GetText(&szClipboard);
-		Paste(szClipboard.Text());
-		szClipboard.Kill();
-		break;
-	default:
-		break;
+		mpWindow->GetClipboard()->SetText(szText.Text());
 	}
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::PasteFromClipboard(void)
+{
+	CChars	szText;
+
+	szText.Init();
+	mpWindow->GetClipboard()->GetText(&szText);
+	Paste(szText.Text());
+	szText.Kill();
 }
 
 
@@ -726,27 +724,9 @@ void CTextField::StopDragSelect(int x, int y)
 // anything that can change the text.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::Left(void) { mcEditor.Left(); }
-void CTextField::Right(void) { mcEditor.Right(); }
-void CTextField::WordLeft(void) { mcEditor.WordLeft(); }
-void CTextField::WordRight(void) { mcEditor.WordRight(); }
-void CTextField::Home(void) { mcEditor.Home(); }
-void CTextField::End(void) { mcEditor.End(); }
-void CTextField::DocumentHome(void) { mcEditor.DocumentHome(); }
-void CTextField::DocumentEnd(void) { mcEditor.DocumentEnd(); }
-void CTextField::SelectLeft(void) { mcEditor.SelectLeft(); }
-void CTextField::SelectRight(void) { mcEditor.SelectRight(); }
-void CTextField::SelectWordLeft(void) { mcEditor.SelectWordLeft(); }
-void CTextField::SelectWordRight(void) { mcEditor.SelectWordRight(); }
-void CTextField::SelectHome(void) { mcEditor.SelectHome(); }
-void CTextField::SelectEnd(void) { mcEditor.SelectEnd(); }
-void CTextField::SelectDocumentHome(void) { mcEditor.SelectDocumentHome(); }
-void CTextField::SelectDocumentEnd(void) { mcEditor.SelectDocumentEnd(); }
-void CTextField::SelectWholeWord(void) { mcEditor.SelectWholeWord(); }
 void CTextField::SelectAll(void) { mcEditor.SelectAll(); }
-void CTextField::ClearSelection(void) { mcEditor.ClearSelection(); }
 void CTextField::Printable(char c, bool bInsert) { mcEditor.Printable(c, bInsert); TextEdited(); }
-void CTextField::Space(bool bInsert) { mcEditor.Printable(' ', bInsert); TextEdited(); }
+void CTextField::SpaceAction(SComponentInputEvent* psEvent) { Printable(' ', psEvent->bInsert); }
 void CTextField::Delete(void) { mcEditor.Delete(); TextEdited(); }
 void CTextField::Backspace(void) { mcEditor.Backspace(); TextEdited(); }
 

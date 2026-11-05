@@ -25,9 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CheckBox.h"
 
 
-static EComponentInputCommand	gaeCheckBoxCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Space };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -57,33 +54,11 @@ void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char*
 	AddComponent(mpBox, 0, 0);
 	AddComponent(mpCaption, 1, 0, 1, 1, 1, 0);
 	UpdateGap();
-	AddInputActions(gaeCheckBoxCommands, sizeof(gaeCheckBoxCommands) / sizeof(EComponentInputCommand), this, &CCheckBox::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CCheckBox::ActivateComponent);
+	AddInputAction(CIC_ExecuteComponent, this, &CCheckBox::ExecuteComponent);
+	AddInputAction(CIC_Space, this, &CCheckBox::Toggle);
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The input actions of gaeCheckBoxCommands.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCheckBox::CommandAction(SComponentInputEvent* psEvent)
-{
-	switch (psEvent->eCommand)
-	{
-	case CIC_ActivateComponent:
-		ActivateComponent(psEvent->x, psEvent->y);
-		break;
-	case CIC_ExecuteComponent:
-		ExecuteComponent(psEvent->x, psEvent->y);
-		break;
-	case CIC_Space:
-		Space(psEvent->bInsert);
-		break;
-	default:
-		break;
-	}
 }
 
 
@@ -327,16 +302,6 @@ void CCheckBox::ExecuteComponent(int x, int y)
 			Toggle();
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCheckBox::Space(bool bInsert)
-{
-	Toggle();
 }
 
 

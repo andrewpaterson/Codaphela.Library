@@ -42,7 +42,7 @@ enum EInputActionFilter
 };
 
 
-//Holds a member function pointer whatever its class's inheritance; MSVC's are up to 24 bytes.
+///Holds a member function pointer whatever its class's inheritance; MSVC's are up to 24 bytes.
 #define INPUT_ACTION_FUNCTION_SIZE	32
 
 
@@ -51,7 +51,8 @@ typedef void (*InputActionThunk)(void* pvObject, uint8* pucFunction, SComponentI
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Calls the member function of M kept in pucFunction on pvObject.
+// Calls the member function of M kept in pucFunction on pvObject, with
+// the event.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
@@ -64,8 +65,44 @@ void InputActionCall(void* pvObject, uint8* pucFunction, SComponentInputEvent* p
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// As InputActionCall, for a function that needs nothing from the event,
+// like a text area's Left.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void InputActionCallPlain(void* pvObject, uint8* pucFunction, SComponentInputEvent* psEvent)
+{
+	void(M::*fFunction)(void);
+
+	memcpy(&fFunction, pucFunction, sizeof(fFunction));
+	(((M*)pvObject)->*fFunction)();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As InputActionCall, for a function that only needs the pointer, like a
+// button's ActivateComponent.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void InputActionCallPointer(void* pvObject, uint8* pucFunction, SComponentInputEvent* psEvent)
+{
+	void(M::*fFunction)(int x, int y);
+
+	memcpy(&fFunction, pucFunction, sizeof(fFunction));
+	(((M*)pvObject)->*fFunction)(psEvent->x, psEvent->y);
+}
+
+
 //An input a component is listening for and the member function called with it.  The function's object isn't held by
 //the action (it is usually the component the action is on) so it must outlive the action.
+//
+//A command's function can take the event, nothing, or the pointer's x and y relative to the component; the others'
+//take the event.  The object can be of a class derived from the function's, as when a component adds an action for a
+//function it inherits.
 //
 //The member function pointer is kept as bytes with a function that knows its class; casting it to some other class's
 //member pointer would lose the parts multiple inheritance adds.
@@ -80,12 +117,17 @@ protected:
 	void*					mpvObject;
 	InputActionThunk		mfThunk;
 	uint8					maucFunction[INPUT_ACTION_FUNCTION_SIZE];
+	bool					mbEnabled;  //A disabled action matches nothing, so its input goes on to the parent.
 
 public:
-	template<class M>
-	void					Init(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
-	template<class M>
-	void					Init(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M, class O>
+	void					Init(EInputActionFilter eFilter, const char* szName, O* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M, class O>
+	void					Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M, class O>
+	void					Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(void));
+	template<class M, class O>
+	void					Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(int x, int y));
 	void					Class(void) override;
 	void					Free(void) override;
 	bool					Save(CObjectWriter* pcFile) override;
@@ -93,12 +135,16 @@ public:
 
 	bool					Matches(SComponentInputEvent* psEvent);
 	void					Call(SComponentInputEvent* psEvent);
+	void					SetEnabled(bool bEnabled);
+	bool					IsEnabled(void);
 
 	EInputActionFilter		GetFilter(void);
 	char*					GetActionName(void);
 	EComponentInputCommand	GetCommand(void);
 
 protected:
+	template<class M, class F>
+	void					Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, M* pcObject, F fFunction, InputActionThunk fThunk);
 	void					Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, void* pvObject, InputActionThunk fThunk, void* pvFunction, size uiFunctionSize);
 };
 
@@ -109,12 +155,10 @@ protected:
 // otherwise NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CInputAction::Init(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+template<class M, class O>
+void CInputAction::Init(EInputActionFilter eFilter, const char* szName, O* pcObject, void(M::*fFunction)(SComponentInputEvent*))
 {
-	static_assert(sizeof(fFunction) <= INPUT_ACTION_FUNCTION_SIZE, "INPUT_ACTION_FUNCTION_SIZE is too small for this member function pointer.");
-
-	Init(eFilter, szName, CIC_Ignored, pcObject, &InputActionCall<M>, &fFunction, sizeof(fFunction));
+	Init<M>(eFilter, szName, CIC_Ignored, pcObject, fFunction, &InputActionCall<M>);
 }
 
 
@@ -123,12 +167,39 @@ void CInputAction::Init(EInputActionFilter eFilter, const char* szName, M* pcObj
 // An IAF_Command action.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CInputAction::Init(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+template<class M, class O>
+void CInputAction::Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(SComponentInputEvent*))
 {
-	static_assert(sizeof(fFunction) <= INPUT_ACTION_FUNCTION_SIZE, "INPUT_ACTION_FUNCTION_SIZE is too small for this member function pointer.");
+	Init<M>(IAF_Command, NULL, eCommand, pcObject, fFunction, &InputActionCall<M>);
+}
 
-	Init(IAF_Command, NULL, eCommand, pcObject, &InputActionCall<M>, &fFunction, sizeof(fFunction));
+
+template<class M, class O>
+void CInputAction::Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(void))
+{
+	Init<M>(IAF_Command, NULL, eCommand, pcObject, fFunction, &InputActionCallPlain<M>);
+}
+
+
+template<class M, class O>
+void CInputAction::Init(EComponentInputCommand eCommand, O* pcObject, void(M::*fFunction)(int x, int y))
+{
+	Init<M>(IAF_Command, NULL, eCommand, pcObject, fFunction, &InputActionCallPointer<M>);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcObject is already the function's class, so the thunk can cast the
+// kept void* straight back to it.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class F>
+void CInputAction::Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, M* pcObject, F fFunction, InputActionThunk fThunk)
+{
+	static_assert(sizeof(F) <= INPUT_ACTION_FUNCTION_SIZE, "INPUT_ACTION_FUNCTION_SIZE is too small for this member function pointer.");
+
+	Init(eFilter, szName, eCommand, (void*)pcObject, fThunk, &fFunction, sizeof(F));
 }
 
 

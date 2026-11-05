@@ -321,7 +321,7 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 			pDefault = mpWindow->GetDefaultButton();
 			if (pDefault && !(mpFocussedComponent && mpFocussedComponent->WantsEnter()))
 			{
-				pDefault->Enter();
+				pDefault->KeyClick();
 				return true;
 			}
 			break;

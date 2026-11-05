@@ -27,7 +27,7 @@ void CInputTestComponent::Init(Ptr<CWindow> pWindow, const char* szName, CChars*
 	mszName.Init(szName);
 	mpszLog = pszLog;
 	SetCanGetFocus(bCanGetFocus);
-	AddInputActions(gaeInputTestCommands, sizeof(gaeInputTestCommands) / sizeof(EComponentInputCommand), this, &CInputTestComponent::CommandAction);
+	AddInputActions(gaeInputTestCommands, this, &CInputTestComponent::CommandAction);
 	AddInputAction(IAF_Printable, NULL, this, &CInputTestComponent::PrintableAction);
 	AddInputAction(IAF_Wheel, NULL, this, &CInputTestComponent::WheelAction);
 

@@ -27,9 +27,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define COMBO_BOX_CHEVRON_GAP	8  //The least space between the widest item's text and the chevron.
 
 
-static EComponentInputCommand	gaeComboBoxCommands[] = { CIC_ActivateComponent, CIC_Space, CIC_Up, CIC_Down };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The list is a menu in the theme's combo box menu style and the theme's
@@ -69,36 +66,12 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpMenu = OMalloc<CMenuContainer>(pWindow, pTheme, mpStyle);
 
 	UpdateFaceSize();
-	AddInputActions(gaeComboBoxCommands, sizeof(gaeComboBoxCommands) / sizeof(EComponentInputCommand), this, &CComboBox::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CComboBox::ActivateComponent);
+	AddInputAction(CIC_Space, this, &CComboBox::Open);
+	AddInputAction(CIC_Up, this, &CComboBox::Up);
+	AddInputAction(CIC_Down, this, &CComboBox::Down);
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The input actions of gaeComboBoxCommands.
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::CommandAction(SComponentInputEvent* psEvent)
-{
-	switch (psEvent->eCommand)
-	{
-	case CIC_ActivateComponent:
-		ActivateComponent(psEvent->x, psEvent->y);
-		break;
-	case CIC_Space:
-		Space(psEvent->bInsert);
-		break;
-	case CIC_Up:
-		Up();
-		break;
-	case CIC_Down:
-		Down();
-		break;
-	default:
-		break;
-	}
 }
 
 
@@ -512,16 +485,6 @@ void CComboBox::ActivateComponent(int x, int y)
 	{
 		Open();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComboBox::Space(bool bInsert)
-{
-	Open();
 }
 
 

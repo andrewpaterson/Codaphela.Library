@@ -99,11 +99,9 @@ public:
 	void				FocusLost(void) override;
 	void				MovedInto(void) override;
 	void				MovedOutof(void) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
 	virtual void		ActivateComponent(int x, int y);
 	virtual void		ExecuteComponent(int x, int y);
-	virtual void		Space(bool bInsert);
-	virtual void		Enter(void);
+	virtual void		KeyClick(void);
 
 protected:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);

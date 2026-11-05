@@ -103,7 +103,6 @@ public:
 	SInt32Vec2		GetDesiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void			ActivateComponent(int x, int y) override;
-	void			TreeCommandAction(SComponentInputEvent* psEvent);
 	void			Left(void);
 	void			Right(void);
 	bool			IsOverChevron(int32 iRow, int x);

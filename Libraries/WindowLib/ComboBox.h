@@ -94,9 +94,7 @@ public:
 	void				FocusLost(void) override;
 	void				MovedInto(void) override;
 	void				MovedOutof(void) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
 	void				ActivateComponent(int x, int y);
-	void				Space(bool bInsert);
 	void				Up(void);
 	void				Down(void);
 

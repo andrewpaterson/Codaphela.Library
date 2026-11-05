@@ -76,6 +76,7 @@ public:
 	void						SetCaretPosition(size uiPosition);
 	bool						GetSelection(size* puiStart, size* puiEnd);
 	void						Select(size uiStart, size uiEnd);
+	void						SelectAll(void);
 	void						SetColumns(int32 iColumns);
 	void						SetPadding(int32 iHorizontal, int32 iVertical);
 	int32						GetScroll(void);
@@ -94,35 +95,15 @@ public:
 	void						FocusLost(void) override;
 	void						MovedInto(void) override;
 	void						MovedOutof(void) override;
-	void						CommandAction(SComponentInputEvent* psEvent);
 	void						PrintableAction(SComponentInputEvent* psEvent);
+	void						SpaceAction(SComponentInputEvent* psEvent);
 	void						ActivateComponent(int x, int y);
 	void						ExecuteComponent(int x, int y);
 	void						StartDragSelect(int x, int y);
 	void						ContDragSelect(int x, int y);
 	void						StopDragSelect(int x, int y);
 
-	void						Left(void);
-	void						Right(void);
-	void						WordLeft(void);
-	void						WordRight(void);
-	void						Home(void);
-	void						End(void);
-	void						DocumentHome(void);
-	void						DocumentEnd(void);
-	void						SelectLeft(void);
-	void						SelectRight(void);
-	void						SelectWordLeft(void);
-	void						SelectWordRight(void);
-	void						SelectHome(void);
-	void						SelectEnd(void);
-	void						SelectDocumentHome(void);
-	void						SelectDocumentEnd(void);
-	void						SelectWholeWord(void);
-	void						SelectAll(void);
-	void						ClearSelection(void);
 	void						Printable(char c, bool bInsert);
-	void						Space(bool bInsert);
 	void						Delete(void);
 	void						Backspace(void);
 	void						Cut(CChars* pszDest);
@@ -130,6 +111,9 @@ public:
 	void						Paste(char* szSource);
 	void						DeleteWordRemainingRight(void);
 	void						DeleteWordRemainingLeft(void);
+	void						CutToClipboard(void);
+	void						CopyToClipboard(void);
+	void						PasteFromClipboard(void);
 
 protected:
 	void						TextEdited(void);
@@ -137,6 +121,7 @@ protected:
 	void						UpdateLook(void);
 	void						SelectTo(size uiPosition);
 	void						LayoutText(void);
+	void						ToClipboard(void (CTextField::*fTake)(CChars* pszDest));
 };
 
 

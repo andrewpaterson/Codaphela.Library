@@ -85,7 +85,6 @@ public:
 	bool				RemoveListener(CMenuListener* pcListener);
 
 	void				MovedOver(int x, int y) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
 	void				Left(void);
 	void				Right(void);
 	void				PopupClosed(Ptr<CComponent> pContent) override;

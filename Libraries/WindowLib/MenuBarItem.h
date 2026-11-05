@@ -52,10 +52,7 @@ public:
 	void				MovedInto(void) override;
 	void				ActivateComponent(int x, int y) override;
 	void				ExecuteComponent(int x, int y) override;
-	void				Space(bool bInsert) override;
-	void				Enter(void) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
-	void				Down(void);
+	void				KeyClick(void) override;
 	void				Left(void);
 	void				Right(void);
 	void				PopupClosed(Ptr<CComponent> pContent) override;

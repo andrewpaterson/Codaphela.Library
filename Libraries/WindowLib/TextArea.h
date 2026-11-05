@@ -226,7 +226,6 @@ public:
 	void				SelectAll(void);
 	void				ClearSelection(void);
 	void				Printable(char c, bool bInsert);
-	void				Space(bool bInsert);
 	void				Tab(bool bInsert);
 	void				BackTab(void);
 	void				Enter(void);
@@ -246,6 +245,12 @@ public:
 	void				LineUp(void);
 	void				LineDown(void);
 
+	//Cut, copy and paste with the window's clipboard.
+	void				CutToClipboard(void);
+	void				CopyToClipboard(void);
+	void				CutLineToClipboard(void);
+	void				PasteFromClipboard(void);
+
 	SInt32Vec2			GetTextSize(void);
 	SInt32Vec2			GetRequiredSize(void);
 	SInt32Vec2			GetDesiredSize(void) override;
@@ -256,8 +261,9 @@ public:
 
 	void				FocusGained(void) override;
 	void				FocusLost(void) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
 	void				PrintableAction(SComponentInputEvent* psEvent);
+	void				SpaceAction(SComponentInputEvent* psEvent);
+	void				TabAction(SComponentInputEvent* psEvent);
 	void				ActivateComponent(int x, int y);
 	void				ExecuteComponent(int x, int y);
 	void				StartDragSelect(int x, int y);
@@ -343,7 +349,7 @@ protected:
 	void				IndentLines(size uiStart, size uiEnd);
 	void				OutdentLines(size uiStart, size uiEnd);
 	void				TextChanged(void);
-	bool				IsPointerCommand(EComponentInputCommand eCommand);
+	void				ToClipboard(void (CTextArea::*fTake)(CChars* pszDest));
 
 	void				ShowCaret(void);
 	void				UpdateMarks(void);

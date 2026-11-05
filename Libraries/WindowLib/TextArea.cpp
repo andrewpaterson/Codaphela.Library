@@ -27,18 +27,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextArea.h"
 
 
-static EComponentInputCommand	gaeTextAreaCommands[] =
-{
-	CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect,
-	CIC_Up, CIC_Down, CIC_Left, CIC_Right, CIC_WordLeft, CIC_WordRight, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd,
-	CIC_PageUp, CIC_PageDown, CIC_LineUp, CIC_LineDown,
-	CIC_SelectUp, CIC_SelectDown, CIC_SelectLeft, CIC_SelectRight, CIC_SelectWordLeft, CIC_SelectWordRight, CIC_SelectHome,
-	CIC_SelectEnd, CIC_SelectDocumentHome, CIC_SelectDocumentEnd, CIC_SelectPageUp, CIC_SelectPageDown, CIC_SelectWholeWord,
-	CIC_SelectAll, CIC_ClearSelection,
-	CIC_Space, CIC_Tab, CIC_BackTab, CIC_Enter, CIC_HomeEnter, CIC_EndEnter,
-	CIC_Delete, CIC_Backspace, CIC_Cut, CIC_Copy, CIC_Paste, CIC_CutLine, CIC_Duplicate, CIC_DeleteWordRemainingLeft,
-	CIC_DeleteWordRemainingRight, CIC_DeleteLine,
-};
+//The pointer's commands: presses, releases and dragging to select.
+static EComponentInputCommand	gaeTextAreaPointerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,7 +126,60 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	ReadText();
 	LayoutText();
 
-	AddInputActions(gaeTextAreaCommands, sizeof(gaeTextAreaCommands) / sizeof(EComponentInputCommand), this, &CTextArea::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CTextArea::ActivateComponent);
+	AddInputAction(CIC_ExecuteComponent, this, &CTextArea::ExecuteComponent);
+	AddInputAction(CIC_StartDragSelect, this, &CTextArea::StartDragSelect);
+	AddInputAction(CIC_ContDragSelect, this, &CTextArea::ContDragSelect);
+	AddInputAction(CIC_StopDragSelect, this, &CTextArea::StopDragSelect);
+
+	AddInputAction(CIC_Up, this, &CTextArea::Up);
+	AddInputAction(CIC_Down, this, &CTextArea::Down);
+	AddInputAction(CIC_Left, this, &CTextArea::Left);
+	AddInputAction(CIC_Right, this, &CTextArea::Right);
+	AddInputAction(CIC_WordLeft, this, &CTextArea::WordLeft);
+	AddInputAction(CIC_WordRight, this, &CTextArea::WordRight);
+	AddInputAction(CIC_Home, this, &CTextArea::Home);
+	AddInputAction(CIC_End, this, &CTextArea::End);
+	AddInputAction(CIC_DocumentHome, this, &CTextArea::DocumentHome);
+	AddInputAction(CIC_DocumentEnd, this, &CTextArea::DocumentEnd);
+	AddInputAction(CIC_PageUp, this, &CTextArea::PageUp);
+	AddInputAction(CIC_PageDown, this, &CTextArea::PageDown);
+	AddInputAction(CIC_LineUp, this, &CTextArea::LineUp);
+	AddInputAction(CIC_LineDown, this, &CTextArea::LineDown);
+
+	AddInputAction(CIC_SelectUp, this, &CTextArea::SelectUp);
+	AddInputAction(CIC_SelectDown, this, &CTextArea::SelectDown);
+	AddInputAction(CIC_SelectLeft, this, &CTextArea::SelectLeft);
+	AddInputAction(CIC_SelectRight, this, &CTextArea::SelectRight);
+	AddInputAction(CIC_SelectWordLeft, this, &CTextArea::SelectWordLeft);
+	AddInputAction(CIC_SelectWordRight, this, &CTextArea::SelectWordRight);
+	AddInputAction(CIC_SelectHome, this, &CTextArea::SelectHome);
+	AddInputAction(CIC_SelectEnd, this, &CTextArea::SelectEnd);
+	AddInputAction(CIC_SelectDocumentHome, this, &CTextArea::SelectDocumentHome);
+	AddInputAction(CIC_SelectDocumentEnd, this, &CTextArea::SelectDocumentEnd);
+	AddInputAction(CIC_SelectPageUp, this, &CTextArea::SelectPageUp);
+	AddInputAction(CIC_SelectPageDown, this, &CTextArea::SelectPageDown);
+	AddInputAction(CIC_SelectWholeWord, this, &CTextArea::SelectWholeWord);
+	AddInputAction(CIC_SelectAll, this, &CTextArea::SelectAll);
+	AddInputAction(CIC_ClearSelection, this, &CTextArea::ClearSelection);
+
+	AddInputAction(CIC_Space, this, &CTextArea::SpaceAction);
+	AddInputAction(CIC_Tab, this, &CTextArea::TabAction);
+	AddInputAction(CIC_BackTab, this, &CTextArea::BackTab);
+	AddInputAction(CIC_Enter, this, &CTextArea::Enter);
+	AddInputAction(CIC_HomeEnter, this, &CTextArea::HomeEnter);
+	AddInputAction(CIC_EndEnter, this, &CTextArea::EndEnter);
+	AddInputAction(CIC_Delete, this, &CTextArea::Delete);
+	AddInputAction(CIC_Backspace, this, &CTextArea::Backspace);
+	AddInputAction(CIC_Duplicate, this, &CTextArea::Duplicate);
+	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextArea::DeleteWordRemainingLeft);
+	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextArea::DeleteWordRemainingRight);
+	AddInputAction(CIC_DeleteLine, this, &CTextArea::DeleteLine);
+
+	AddInputAction(CIC_Cut, this, &CTextArea::CutToClipboard);
+	AddInputAction(CIC_Copy, this, &CTextArea::CopyToClipboard);
+	AddInputAction(CIC_CutLine, this, &CTextArea::CutLineToClipboard);
+	AddInputAction(CIC_Paste, this, &CTextArea::PasteFromClipboard);
 	AddInputAction(IAF_Printable, NULL, this, &CTextArea::PrintableAction);
 
 	PostInit();
@@ -834,7 +877,6 @@ ARGB32 CTextArea::GetColour(void) { return msStyle.sColour; }
 size CTextArea::NumSpans(void) { return masSpans.NumElements(); }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A text area that isn't editable can still be navigated, selected and
@@ -856,18 +898,13 @@ void CTextArea::SetEditable(bool bEditable)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetSelectable(bool bSelectable)
 {
+	size	i;
+
 	mbSelectable = bSelectable;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The pointer's commands: presses, releases and dragging to select.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsPointerCommand(EComponentInputCommand eCommand)
-{
-	return (eCommand == CIC_ActivateComponent) || (eCommand == CIC_ExecuteComponent) || (eCommand == CIC_StartDragSelect) || (eCommand == CIC_ContDragSelect) || (eCommand == CIC_StopDragSelect);
+	for (i = 0; i < sizeof(gaeTextAreaPointerCommands) / sizeof(EComponentInputCommand); i++)
+	{
+		SetInputActionsEnabled(gaeTextAreaPointerCommands[i], bSelectable);
+	}
 }
 
 
@@ -1440,9 +1477,19 @@ void CTextArea::Printable(char c, bool bInsert)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::Space(bool bInsert)
+void CTextArea::SpaceAction(SComponentInputEvent* psEvent)
 {
-	Printable(' ', bInsert);
+	Printable(' ', psEvent->bInsert);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::TabAction(SComponentInputEvent* psEvent)
+{
+	Tab(psEvent->bInsert);
 }
 
 
@@ -1890,100 +1937,46 @@ void CTextArea::FocusLost(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The input actions of gaeTextAreaCommands.  The clipboard is the
-// window's, the system's; cutting or copying nothing leaves it as it was.
+// The clipboard is the window's, the system's.  Cutting or copying
+// nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::CommandAction(SComponentInputEvent* psEvent)
+void CTextArea::CutToClipboard(void) { ToClipboard(&CTextArea::Cut); }
+void CTextArea::CopyToClipboard(void) { ToClipboard(&CTextArea::Copy); }
+void CTextArea::CutLineToClipboard(void) { ToClipboard(&CTextArea::CutLine); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fTake is Cut, Copy or CutLine.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ToClipboard(void (CTextArea::*fTake)(CChars* pszDest))
 {
-	CChars	szClipboard;
+	CChars	szText;
 
-	//A text area that isn't selectable, like a code editor's line numbers, leaves the pointer to its parent.
-	if (!mbSelectable && IsPointerCommand(psEvent->eCommand))
+	szText.Init();
+	(this->*fTake)(&szText);
+	if (!szText.Empty())
 	{
-		psEvent->bPass = true;
-		return;
+		mpWindow->GetClipboard()->SetText(szText.Text());
 	}
+	szText.Kill();
+}
 
-	switch (psEvent->eCommand)
-	{
-	case CIC_ActivateComponent:			ActivateComponent(psEvent->x, psEvent->y);	break;
-	case CIC_ExecuteComponent:			ExecuteComponent(psEvent->x, psEvent->y);	break;
-	case CIC_StartDragSelect:			StartDragSelect(psEvent->x, psEvent->y);	break;
-	case CIC_ContDragSelect:			ContDragSelect(psEvent->x, psEvent->y);		break;
-	case CIC_StopDragSelect:			StopDragSelect(psEvent->x, psEvent->y);		break;
-	case CIC_Up:						Up();						break;
-	case CIC_Down:						Down();						break;
-	case CIC_Left:						Left();						break;
-	case CIC_Right:						Right();					break;
-	case CIC_WordLeft:					WordLeft();					break;
-	case CIC_WordRight:					WordRight();				break;
-	case CIC_Home:						Home();						break;
-	case CIC_End:						End();						break;
-	case CIC_DocumentHome:				DocumentHome();				break;
-	case CIC_DocumentEnd:				DocumentEnd();				break;
-	case CIC_PageUp:					PageUp();					break;
-	case CIC_PageDown:					PageDown();					break;
-	case CIC_LineUp:					LineUp();					break;
-	case CIC_LineDown:					LineDown();					break;
-	case CIC_SelectUp:					SelectUp();					break;
-	case CIC_SelectDown:				SelectDown();				break;
-	case CIC_SelectLeft:				SelectLeft();				break;
-	case CIC_SelectRight:				SelectRight();				break;
-	case CIC_SelectWordLeft:			SelectWordLeft();			break;
-	case CIC_SelectWordRight:			SelectWordRight();			break;
-	case CIC_SelectHome:				SelectHome();				break;
-	case CIC_SelectEnd:					SelectEnd();				break;
-	case CIC_SelectDocumentHome:		SelectDocumentHome();		break;
-	case CIC_SelectDocumentEnd:			SelectDocumentEnd();		break;
-	case CIC_SelectPageUp:				SelectPageUp();				break;
-	case CIC_SelectPageDown:			SelectPageDown();			break;
-	case CIC_SelectWholeWord:			SelectWholeWord();			break;
-	case CIC_SelectAll:					SelectAll();				break;
-	case CIC_ClearSelection:			ClearSelection();			break;
-	case CIC_Space:						Space(psEvent->bInsert);	break;
-	case CIC_Tab:						Tab(psEvent->bInsert);		break;
-	case CIC_BackTab:					BackTab();					break;
-	case CIC_Enter:						Enter();					break;
-	case CIC_HomeEnter:					HomeEnter();				break;
-	case CIC_EndEnter:					EndEnter();					break;
-	case CIC_Delete:					Delete();					break;
-	case CIC_Backspace:					Backspace();				break;
-	case CIC_Duplicate:					Duplicate();				break;
-	case CIC_DeleteWordRemainingRight:	DeleteWordRemainingRight();	break;
-	case CIC_DeleteWordRemainingLeft:	DeleteWordRemainingLeft();	break;
-	case CIC_DeleteLine:				DeleteLine();				break;
-	case CIC_Cut:
-	case CIC_Copy:
-	case CIC_CutLine:
-		szClipboard.Init();
-		if (psEvent->eCommand == CIC_Cut)
-		{
-			Cut(&szClipboard);
-		}
-		else if (psEvent->eCommand == CIC_CutLine)
-		{
-			CutLine(&szClipboard);
-		}
-		else
-		{
-			Copy(&szClipboard);
-		}
-		if (!szClipboard.Empty())
-		{
-			mpWindow->GetClipboard()->SetText(szClipboard.Text());
-		}
-		szClipboard.Kill();
-		break;
-	case CIC_Paste:
-		szClipboard.Init();
-		mpWindow->GetClipboard()->GetText(&szClipboard);
-		Paste(szClipboard.Text());
-		szClipboard.Kill();
-		break;
-	default:
-		break;
-	}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PasteFromClipboard(void)
+{
+	CChars	szText;
+
+	szText.Init();
+	mpWindow->GetClipboard()->GetText(&szText);
+	Paste(szText.Text());
+	szText.Kill();
 }
 
 

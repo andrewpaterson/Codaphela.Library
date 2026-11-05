@@ -74,7 +74,6 @@ public:
 	Ptr<CComponent>	FindComponentAt(int x, int y) override;
 
 	void			FocusLost(void) override;
-	void			CommandAction(SComponentInputEvent* psEvent);
 	void			ActivateComponent(int x, int y);
 	void			ExecuteComponent(int x, int y);
 	void			StartDragScroll(int x, int y);

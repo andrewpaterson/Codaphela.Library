@@ -4,6 +4,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/ImageCanvasDraw.h"
+#include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"

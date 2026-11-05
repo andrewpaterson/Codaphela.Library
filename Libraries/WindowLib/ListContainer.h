@@ -110,7 +110,6 @@ public:
 	void			FocusLost(void) override;
 	void			MovedOutof(void) override;
 	void			MovedOver(int x, int y) override;
-	void			CommandAction(SComponentInputEvent* psEvent);
 	virtual void	ActivateComponent(int x, int y);
 	void			ExecuteComponent(int x, int y);
 	void			Up(void);
@@ -121,8 +120,6 @@ public:
 	void			DocumentEnd(void);
 	void			PageUp(void);
 	void			PageDown(void);
-	void			Space(bool bInsert);
-	void			Enter(void);
 
 protected:
 	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.

@@ -107,14 +107,15 @@ public:
 			EContainerStyleHorizontal	GetHorizontalAlignment(void);
 			EContainerStyleVertical		GetVerticalAlignment(void);
 
-	template<class M>
-			Ptr<CInputAction>	AddInputAction(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
-	template<class M>
-			Ptr<CInputAction>	AddInputAction(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
-	template<class M>
-			void				AddInputActions(const EComponentInputCommand* aeCommands, size uiNumCommands, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M, class O>
+			Ptr<CInputAction>	AddInputAction(EInputActionFilter eFilter, const char* szName, O* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class O, class F>
+			Ptr<CInputAction>	AddInputAction(EComponentInputCommand eCommand, O* pcObject, F fFunction);
+	template<size N, class M, class O>
+			void				AddInputActions(const EComponentInputCommand (&aeCommands)[N], O* pcObject, void(M::*fFunction)(SComponentInputEvent*));
 			bool				RemoveInputAction(Ptr<CInputAction> pAction);
 			size				NumInputActions(void);
+			void				SetInputActionsEnabled(EComponentInputCommand eCommand, bool bEnabled);
 			bool				CallInputActions(SComponentInputEvent* psEvent);
 
 protected:
@@ -131,8 +132,8 @@ protected:
 // otherwise NULL.  pcObject is usually this component.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<CInputAction> CComponent::AddInputAction(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+template<class M, class O>
+Ptr<CInputAction> CComponent::AddInputAction(EInputActionFilter eFilter, const char* szName, O* pcObject, void(M::*fFunction)(SComponentInputEvent*))
 {
 	Ptr<CInputAction>	pAction;
 
@@ -145,11 +146,13 @@ Ptr<CInputAction> CComponent::AddInputAction(EInputActionFilter eFilter, const c
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An IAF_Command action.
+// An IAF_Command action.  F is a member function of pcObject's class, or
+// a class it derives from, taking the event, nothing, or the pointer's x
+// and y (see CInputAction).
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<CInputAction> CComponent::AddInputAction(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+template<class O, class F>
+Ptr<CInputAction> CComponent::AddInputAction(EComponentInputCommand eCommand, O* pcObject, F fFunction)
 {
 	Ptr<CInputAction>	pAction;
 
@@ -166,12 +169,12 @@ Ptr<CInputAction> CComponent::AddInputAction(EComponentInputCommand eCommand, M*
 // can switch on the event's command.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CComponent::AddInputActions(const EComponentInputCommand* aeCommands, size uiNumCommands, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+template<size N, class M, class O>
+void CComponent::AddInputActions(const EComponentInputCommand (&aeCommands)[N], O* pcObject, void(M::*fFunction)(SComponentInputEvent*))
 {
 	size	i;
 
-	for (i = 0; i < uiNumCommands; i++)
+	for (i = 0; i < N; i++)
 	{
 		AddInputAction(aeCommands[i], pcObject, fFunction);
 	}

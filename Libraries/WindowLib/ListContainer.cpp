@@ -25,9 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ListContainer.h"
 
 
-static EComponentInputCommand	gaeListContainerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Up, CIC_Down, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd, CIC_PageUp, CIC_PageDown, CIC_Space, CIC_Enter };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The highlights are the Jewel dark selection and hover colours.  Page up
@@ -56,60 +53,20 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpHoverDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListHoverColour());
 	mpHoverHighlight = CreateHighlight(mpHoverDraw);
 	AddHighlights();
-	AddInputActions(gaeListContainerCommands, sizeof(gaeListContainerCommands) / sizeof(EComponentInputCommand), this, &CListContainer::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CListContainer::ActivateComponent);
+	AddInputAction(CIC_ExecuteComponent, this, &CListContainer::ExecuteComponent);
+	AddInputAction(CIC_Up, this, &CListContainer::Up);
+	AddInputAction(CIC_Down, this, &CListContainer::Down);
+	AddInputAction(CIC_Home, this, &CListContainer::Home);
+	AddInputAction(CIC_End, this, &CListContainer::End);
+	AddInputAction(CIC_DocumentHome, this, &CListContainer::DocumentHome);
+	AddInputAction(CIC_DocumentEnd, this, &CListContainer::DocumentEnd);
+	AddInputAction(CIC_PageUp, this, &CListContainer::PageUp);
+	AddInputAction(CIC_PageDown, this, &CListContainer::PageDown);
+	AddInputAction(CIC_Space, this, &CListContainer::Activate);
+	AddInputAction(CIC_Enter, this, &CListContainer::Activate);
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The input actions of gaeListContainerCommands.
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::CommandAction(SComponentInputEvent* psEvent)
-{
-	switch (psEvent->eCommand)
-	{
-	case CIC_ActivateComponent:
-		ActivateComponent(psEvent->x, psEvent->y);
-		break;
-	case CIC_ExecuteComponent:
-		ExecuteComponent(psEvent->x, psEvent->y);
-		break;
-	case CIC_Up:
-		Up();
-		break;
-	case CIC_Down:
-		Down();
-		break;
-	case CIC_Home:
-		Home();
-		break;
-	case CIC_End:
-		End();
-		break;
-	case CIC_DocumentHome:
-		DocumentHome();
-		break;
-	case CIC_DocumentEnd:
-		DocumentEnd();
-		break;
-	case CIC_PageUp:
-		PageUp();
-		break;
-	case CIC_PageDown:
-		PageDown();
-		break;
-	case CIC_Space:
-		Space(psEvent->bInsert);
-		break;
-	case CIC_Enter:
-		Enter();
-		break;
-	default:
-		break;
-	}
 }
 
 
@@ -706,26 +663,6 @@ void CListContainer::PageDown(void)
 		iRow = FindEnabled(iTarget, 1);
 	}
 	SelectEnabled(iRow);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::Space(bool bInsert)
-{
-	Activate();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListContainer::Enter(void)
-{
-	Activate();
 }
 
 

@@ -37,6 +37,7 @@ void CInputAction::Init(EInputActionFilter eFilter, const char* szName, ECompone
 	mfThunk = fThunk;
 	memset(maucFunction, 0, INPUT_ACTION_FUNCTION_SIZE);
 	memcpy(maucFunction, pvFunction, uiFunctionSize);
+	mbEnabled = true;
 
 	PostInit();
 }
@@ -54,6 +55,7 @@ void CInputAction::Class(void)
 	U_Pointer(mpvObject);
 	U_Pointer(mfThunk);
 	U_UInt8Array(maucFunction, INPUT_ACTION_FUNCTION_SIZE);
+	U_Bool(mbEnabled);
 }
 
 
@@ -95,6 +97,11 @@ bool CInputAction::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CInputAction::Matches(SComponentInputEvent* psEvent)
 {
+	if (!mbEnabled)
+	{
+		return false;
+	}
+
 	switch (meFilter)
 	{
 	case IAF_AnyKeyDown:
@@ -138,6 +145,8 @@ void CInputAction::Call(SComponentInputEvent* psEvent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CInputAction::SetEnabled(bool bEnabled) { mbEnabled = bEnabled; }
+bool CInputAction::IsEnabled(void) { return mbEnabled; }
 EInputActionFilter CInputAction::GetFilter(void) { return meFilter; }
 char* CInputAction::GetActionName(void) { return mszName.Text(); }
 EComponentInputCommand CInputAction::GetCommand(void) { return meCommand; }

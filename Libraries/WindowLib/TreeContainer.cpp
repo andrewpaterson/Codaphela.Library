@@ -37,9 +37,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TREE_ROW_PADDING	4
 
 
-static EComponentInputCommand	gaeTreeContainerCommands[] = { CIC_Left, CIC_Right };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -66,7 +63,8 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + TREE_ROW_PADDING;
 	mbRowsDirty = false;
 	SetDoubleClickActivates(true);
-	AddInputActions(gaeTreeContainerCommands, sizeof(gaeTreeContainerCommands) / sizeof(EComponentInputCommand), this, &CTreeContainer::TreeCommandAction);
+	AddInputAction(CIC_Left, this, &CTreeContainer::Left);
+	AddInputAction(CIC_Right, this, &CTreeContainer::Right);
 
 	PostInit();
 }
@@ -643,26 +641,6 @@ void CTreeContainer::RowActivated(int32 iRow)
 	if ((iNode != TREE_NO_NODE) && HasChildren(iNode))
 	{
 		Toggle(iNode);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTreeContainer::TreeCommandAction(SComponentInputEvent* psEvent)
-{
-	switch (psEvent->eCommand)
-	{
-	case CIC_Left:
-		Left();
-		break;
-	case CIC_Right:
-		Right();
-		break;
-	default:
-		break;
 	}
 }
 

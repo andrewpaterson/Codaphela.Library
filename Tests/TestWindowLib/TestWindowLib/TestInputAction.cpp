@@ -188,6 +188,158 @@ void TestInputActionMatching(void)
 }
 
 
+//A command's function can take the event, nothing, or the pointer.  Its own functions and the ones it inherits from
+//CActionTestComponent can be given.
+class CActionShapeTestComponent : public CActionTestComponent
+{
+CONSTRUCTABLE(CActionShapeTestComponent);
+DESTRUCTABLE(CActionShapeTestComponent);
+public:
+	void Left(void)				{ mpszLog->Append("Left;"); }
+	void Press(int x, int y)	{ mpszLog->Append("Press("); mpszLog->Append(x); mpszLog->Append(","); mpszLog->Append(y); mpszLog->Append(");"); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentInputEvent* InitActionTestCommand(SComponentInputEvent* psEvent, EComponentInputCommand eCommand)
+{
+	InitActionTestEvent(psEvent, CIET_Command, NULL);
+	psEvent->eCommand = eCommand;
+	return psEvent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionShapes(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>						pTestWindow;
+		Ptr<CTickTestRefWindow>				pTick;
+		SDataTestRefWindow					cData;
+		CPointer							pNull;
+		Ptr<CActionShapeTestComponent>		pComponent;
+		CChars								szLog;
+		SComponentInputEvent				sEvent;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Shapes Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pComponent = OMalloc<CActionShapeTestComponent>(pTestWindow, &szLog);
+
+		pComponent->AddInputAction(CIC_Left, &pComponent, &CActionShapeTestComponent::Left);
+		pComponent->AddInputAction(CIC_ActivateComponent, &pComponent, &CActionShapeTestComponent::Press);
+		pComponent->AddInputAction(CIC_Copy, &pComponent, &CActionTestComponent::Copy);
+		AssertSize(3, pComponent->NumInputActions());
+
+		AssertTrue(pComponent->CallInputActions(InitActionTestCommand(&sEvent, CIC_Left)));
+		AssertLog("Left;");
+
+		InitActionTestCommand(&sEvent, CIC_ActivateComponent);
+		sEvent.x = 5;
+		sEvent.y = 7;
+		AssertTrue(pComponent->CallInputActions(&sEvent));
+		AssertLog("Press(5,7);");
+
+		AssertTrue(pComponent->CallInputActions(InitActionTestCommand(&sEvent, CIC_Copy)));
+		AssertLog("Copy;");
+
+		pComponent = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A component's actions for a command can be turned off.  The command
+// then goes to the parent, as if they weren't there.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionEnabled(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>					pTestWindow;
+		Ptr<CTickTestRefWindow>			pTick;
+		SDataTestRefWindow				cData;
+		CPointer						pNull;
+		Ptr<CGridContainer>				pGrid;
+		Ptr<CActionShapeTestComponent>	pChild;
+		Ptr<CInputAction>				pLeft;
+		CChars							szLog;
+		CActionTestCounter				cParentLefts;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Enabled Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pChild = OMalloc<CActionShapeTestComponent>(pTestWindow, &szLog);
+		AssertTrue(pGrid->AddComponent(pChild, 0, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+		cParentLefts.miCalls = 0;
+
+		pLeft = pChild->AddInputAction(CIC_Left, &pChild, &CActionShapeTestComponent::Left);
+		pChild->AddInputAction(CIC_Copy, &pChild, &CActionTestComponent::Copy);
+		pGrid->AddInputAction(CIC_Left, &cParentLefts, &CActionTestCounter::Count);
+		pTestWindow->GetFocus()->SetFocus(pChild);
+
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(0, cParentLefts.miCalls);
+
+		//Only left's actions are turned off.
+		pChild->SetInputActionsEnabled(CIC_Left, false);
+		AssertFalse(pLeft->IsEnabled());
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("");
+		AssertInt(1, cParentLefts.miCalls);
+		pTestWindow->InputCommand(CIC_Copy, true);
+		AssertLog("Copy;");
+
+		pChild->SetInputActionsEnabled(CIC_Left, true);
+		AssertTrue(pLeft->IsEnabled());
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(1, cParentLefts.miCalls);
+
+		pLeft = NULL;
+		pChild = NULL;
+		pGrid = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A programmatic keyboard and mouse with the sources the dispatch test
@@ -512,6 +664,8 @@ void TestInputAction(void)
 	ObjectsInit();
 
 	TestInputActionMatching();
+	TestInputActionShapes();
+	TestInputActionEnabled();
 	TestInputActionDispatch();
 	TestInputActionUndoChords(true);
 	TestInputActionUndoChords(false);

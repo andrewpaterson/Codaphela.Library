@@ -32,9 +32,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TAB_ICON_SIZE		16
 
 
-static EComponentInputCommand	gaeTabCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Space, CIC_Enter };
-
-
 //The tab's columns and rows.  The background spans them all, under everything else.
 enum ETabTrack
 {
@@ -102,7 +99,10 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	pUnderline->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pUnderline, 0, 3, TT_NumColumns, 1);
 
-	AddInputActions(gaeTabCommands, sizeof(gaeTabCommands) / sizeof(EComponentInputCommand), this, &CTabComponent::CommandAction);
+	AddInputAction(CIC_ActivateComponent, this, &CTabComponent::ActivateComponent);
+	AddInputAction(CIC_ExecuteComponent, this, &CTabComponent::ExecuteComponent);
+	AddInputAction(CIC_Space, this, &CTabComponent::Select);
+	AddInputAction(CIC_Enter, this, &CTabComponent::Select);
 
 	PostInit();
 }
@@ -241,25 +241,42 @@ void CTabComponent::MovedOver(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The input actions of gaeTabCommands.  Closing removes the tab from its
-// container, so nothing of it is used after.  A release on the cross isn't
-// a click, for double clicks.
+// Pressing the cross closes the tab, which removes it from its container,
+// so nothing of it is used after.  Pressing anywhere else selects it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTabComponent::CommandAction(SComponentInputEvent* psEvent)
+void CTabComponent::ActivateComponent(int x, int y)
 {
-	if (psEvent->eCommand == CIC_ExecuteComponent)
-	{
-		mpTabbed->TabReleased(this, psEvent->x, psEvent->y, !IsInClose(psEvent->x, psEvent->y));
-	}
-	else if ((psEvent->eCommand == CIC_ActivateComponent) && IsInClose(psEvent->x, psEvent->y))
+	if (IsInClose(x, y))
 	{
 		mpTabbed->RemoveTab(this);
 	}
 	else
 	{
-		mpTabbed->Select(this);
+		Select();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A release on the cross isn't a click, for double clicks.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabComponent::ExecuteComponent(int x, int y)
+{
+	mpTabbed->TabReleased(this, x, y, !IsInClose(x, y));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows the tab's page, as space and enter do while it has focus.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabComponent::Select(void)
+{
+	mpTabbed->Select(this);
 }
 
 

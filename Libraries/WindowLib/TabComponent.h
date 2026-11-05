@@ -72,7 +72,9 @@ public:
 	void				MovedInto(void) override;
 	void				MovedOutof(void) override;
 	void				MovedOver(int x, int y) override;
-	void				CommandAction(SComponentInputEvent* psEvent);
+	void				ActivateComponent(int x, int y);
+	void				ExecuteComponent(int x, int y);
+	void				Select(void);
 
 protected:
 	bool				IsInClose(int x, int y);
