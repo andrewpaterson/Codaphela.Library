@@ -69,6 +69,7 @@ protected:
 	bool						Take(Ptr<CWindow> pSource);
 	void						Start(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<CWindow> pSource, bool bTornOff);
 	void						End(void);
+	void						Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart);
 	void						ShowGuides(SDockTarget* psTarget, Ptr<CDockArea> pArea, SInt32Vec2 sClient);
 	void						HideGuides(void);
 	bool						IsDraggingDocuments(void);

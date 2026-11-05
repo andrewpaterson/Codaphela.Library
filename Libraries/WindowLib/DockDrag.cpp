@@ -486,7 +486,6 @@ void CDockDrag::Dropped(void)
 	SDockTarget					sTarget;
 	bool						bCancelled;
 	bool						bTornOff;
-	Ptr<CDockNode>				pRoot;
 	Ptr<CDockPane>				pSelected;
 	Ptr<CDockGroup>				pGroup;
 	CInt32Rect					cRect;
@@ -511,6 +510,27 @@ void CDockDrag::Dropped(void)
 		pSelected = pGroup->GetSelectedPane();
 	}
 
+	Drop(pFloating, &sTarget, bCancelled, bTornOff, &cRect);
+	mpManager->LayoutChanged();
+	if (pSelected.IsNotNull() && pSelected->IsShown())
+	{
+		mpManager->Activate(pSelected);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Puts the dropped floating window where the drag left it: back where it
+// started, or docked again if it was torn off, when cancelled (pcStart);
+// docked at a valid target; else it stays floating where it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockDrag::Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, bool bCancelled, bool bTornOff, CInt32Rect* pcStart)
+{
+	Ptr<CDockNode>	pRoot;
+	CInt32Rect		cRect;
+
 	if (bCancelled)
 	{
 		if (bTornOff)
@@ -519,24 +539,19 @@ void CDockDrag::Dropped(void)
 		}
 		else
 		{
-			pFloating->Move(&cRect);
+			pFloating->Move(pcStart);
 		}
 	}
-	else if (sTarget.IsValid())
+	else if (psTarget->IsValid())
 	{
 		pRoot = pFloating->TakeRoot();
 		mpManager->RemoveFloating(pFloating);
-		mpManager->DockNodeAt(pRoot, &sTarget);
+		mpManager->DockNodeAt(pRoot, psTarget);
 	}
 	else
 	{
 		pFloating->GetRectangle(&cRect);
 		pFloating->GetRoot()->SetPaneFloatRectangles(&cRect);
-	}
-	mpManager->LayoutChanged();
-	if (pSelected.IsNotNull() && pSelected->IsShown())
-	{
-		mpManager->Activate(pSelected);
 	}
 }
 

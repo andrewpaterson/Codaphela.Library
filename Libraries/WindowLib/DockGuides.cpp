@@ -504,16 +504,38 @@ void CDockGuides::DrawArrow(Ptr<CCanvas> pCanvas, CInt32Rect* pcRect, EDockSide 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The preview under the guides, then each guide: a square, an arrow on a
-// side guide and a small window on a centre guide.
+// The preview under the guides, then each guide.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockGuides::DrawGuides(Ptr<CCanvas> pCanvas)
 {
 	size		i;
-	SDockGuide*	psGuide;
-	ARGB32		sFace;
-	ARGB32		sBorder;
+	CInt32Rect*	pcRect;
+
+	if (mbPreview)
+	{
+		pcRect = &mcPreview;
+		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), true, mpManager->GetColour(DC_Preview));
+		DrawBoxClipped(pCanvas, pcRect->GetLeft(), pcRect->GetTop(), pcRect->GetLeft() + pcRect->GetWidth(), pcRect->GetTop() + pcRect->GetHeight(), false, mpManager->GetColour(DC_PreviewBorder));
+		DrawBoxClipped(pCanvas, pcRect->GetLeft() + 1, pcRect->GetTop() + 1, pcRect->GetLeft() + pcRect->GetWidth() - 1, pcRect->GetTop() + pcRect->GetHeight() - 1, false, mpManager->GetColour(DC_PreviewBorder));
+	}
+
+	for (i = 0; i < masGuides.NumElements(); i++)
+	{
+		DrawGuide(pCanvas, masGuides.Get(i), i == muiHover);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A guide: a square with a small window on a centre guide and an arrow on
+// a side guide.  A guide beside everything has a bar along the side its
+// arrow points to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGuides::DrawGuide(Ptr<CCanvas> pCanvas, SDockGuide* psGuide, bool bHover)
+{
 	ARGB32		sArrow;
 	CInt32Rect*	pcRect;
 	int			iLeft;
@@ -521,59 +543,40 @@ void CDockGuides::DrawGuides(Ptr<CCanvas> pCanvas)
 	int			iRight;
 	int			iBottom;
 
-	if (mbPreview)
+	sArrow = mpManager->GetColour(DC_GuideArrow);
+	pcRect = &psGuide->cRect;
+	iLeft = pcRect->GetLeft();
+	iTop = pcRect->GetTop();
+	iRight = iLeft + pcRect->GetWidth();
+	iBottom = iTop + pcRect->GetHeight();
+	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, true, mpManager->GetColour(bHover ? DC_GuideHover : DC_Guide));
+	DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, mpManager->GetColour(DC_GuideBorder));
+	if (psGuide->eSide == DS_Centre)
 	{
-		iLeft = mcPreview.GetLeft();
-		iTop = mcPreview.GetTop();
-		iRight = iLeft + mcPreview.GetWidth();
-		iBottom = iTop + mcPreview.GetHeight();
-		DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, true, mpManager->GetColour(DC_Preview));
-		DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, mpManager->GetColour(DC_PreviewBorder));
-		DrawBoxClipped(pCanvas, iLeft + 1, iTop + 1, iRight - 1, iBottom - 1, false, mpManager->GetColour(DC_PreviewBorder));
+		DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iBottom - DOCK_GUIDE_ICON_INSET, false, sArrow);
+		DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET + DOCK_GUIDE_ICON_TITLE, true, sArrow);
+		return;
 	}
 
-	sBorder = mpManager->GetColour(DC_GuideBorder);
-	sArrow = mpManager->GetColour(DC_GuideArrow);
-	for (i = 0; i < masGuides.NumElements(); i++)
+	if (psGuide->bOuter || (psGuide->eKind == DTK_AreaEdge))
 	{
-		psGuide = masGuides.Get(i);
-		pcRect = &psGuide->cRect;
-		sFace = mpManager->GetColour((i == muiHover) ? DC_GuideHover : DC_Guide);
-		iLeft = pcRect->GetLeft();
-		iTop = pcRect->GetTop();
-		iRight = iLeft + pcRect->GetWidth();
-		iBottom = iTop + pcRect->GetHeight();
-		DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, true, sFace);
-		DrawBoxClipped(pCanvas, iLeft, iTop, iRight, iBottom, false, sBorder);
-		if (psGuide->eSide == DS_Centre)
+		switch (psGuide->eSide)
 		{
-			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iBottom - DOCK_GUIDE_ICON_INSET, false, sArrow);
-			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET, iRight - DOCK_GUIDE_ICON_INSET, iTop + DOCK_GUIDE_ICON_INSET + DOCK_GUIDE_ICON_TITLE, true, sArrow);
-		}
-		else
-		{
-			if (psGuide->bOuter || (psGuide->eKind == DTK_AreaEdge))
-			{
-				//Beside everything: a bar along the side the arrow points to.
-				switch (psGuide->eSide)
-				{
-				case DS_Left:
-					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_INSET, iTop + DOCK_GUIDE_BAR_END, iLeft + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
-					break;
-				case DS_Right:
-					DrawBoxClipped(pCanvas, iRight - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iTop + DOCK_GUIDE_BAR_END, iRight - DOCK_GUIDE_BAR_INSET, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
-					break;
-				case DS_Top:
-					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET, iRight - DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, true, sArrow);
-					break;
-				default:
-					DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iRight - DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET, true, sArrow);
-					break;
-				}
-			}
-			DrawArrow(pCanvas, pcRect, psGuide->eSide, sArrow);
+		case DS_Left:
+			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_INSET, iTop + DOCK_GUIDE_BAR_END, iLeft + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
+			break;
+		case DS_Right:
+			DrawBoxClipped(pCanvas, iRight - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iTop + DOCK_GUIDE_BAR_END, iRight - DOCK_GUIDE_BAR_INSET, iBottom - DOCK_GUIDE_BAR_END, true, sArrow);
+			break;
+		case DS_Top:
+			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET, iRight - DOCK_GUIDE_BAR_END, iTop + DOCK_GUIDE_BAR_INSET + DOCK_GUIDE_BAR_WIDTH, true, sArrow);
+			break;
+		default:
+			DrawBoxClipped(pCanvas, iLeft + DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET - DOCK_GUIDE_BAR_WIDTH, iRight - DOCK_GUIDE_BAR_END, iBottom - DOCK_GUIDE_BAR_INSET, true, sArrow);
+			break;
 		}
 	}
+	DrawArrow(pCanvas, pcRect, psGuide->eSide, sArrow);
 }
 
 

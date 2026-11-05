@@ -77,6 +77,7 @@ public:
 
 protected:
 	void					PlaceChildren(void);
+	void					LayoutStrip(Ptr<CAutoHideStrip> pStrip, EDockSide eSide, int32* piLeft, int32* piTop, int32* piRight, int32* piBottom);
 };
 
 

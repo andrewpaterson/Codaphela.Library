@@ -183,7 +183,6 @@ void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int32		iTop;
 	int32		iRight;
 	int32		iBottom;
-	int32		iThickness;
 
 	SetActualBounds(sPosition, sAreaSize);
 	SetContainerBounds(sPosition, sAreaSize);
@@ -195,43 +194,10 @@ void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iBottom = sPosition.y + sAreaSize.y;
 	if (mbMain)
 	{
-		iThickness = AUTO_HIDE_STRIP_SIZE;
-		if (mpLeftStrip->HasTabs())
-		{
-			mpLeftStrip->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(iThickness, sAreaSize.y));
-			iLeft += iThickness;
-		}
-		else
-		{
-			mpLeftStrip->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(0, 0));
-		}
-		if (mpRightStrip->HasTabs())
-		{
-			mpRightStrip->Layout(SInt32Vec2(iRight - iThickness, iTop), SInt32Vec2(iThickness, sAreaSize.y));
-			iRight -= iThickness;
-		}
-		else
-		{
-			mpRightStrip->Layout(SInt32Vec2(iRight, iTop), SInt32Vec2(0, 0));
-		}
-		if (mpTopStrip->HasTabs())
-		{
-			mpTopStrip->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(iRight - iLeft, iThickness));
-			iTop += iThickness;
-		}
-		else
-		{
-			mpTopStrip->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(0, 0));
-		}
-		if (mpBottomStrip->HasTabs())
-		{
-			mpBottomStrip->Layout(SInt32Vec2(iLeft, iBottom - iThickness), SInt32Vec2(iRight - iLeft, iThickness));
-			iBottom -= iThickness;
-		}
-		else
-		{
-			mpBottomStrip->Layout(SInt32Vec2(iLeft, iBottom), SInt32Vec2(0, 0));
-		}
+		LayoutStrip(mpLeftStrip, DS_Left, &iLeft, &iTop, &iRight, &iBottom);
+		LayoutStrip(mpRightStrip, DS_Right, &iLeft, &iTop, &iRight, &iBottom);
+		LayoutStrip(mpTopStrip, DS_Top, &iLeft, &iTop, &iRight, &iBottom);
+		LayoutStrip(mpBottomStrip, DS_Bottom, &iLeft, &iTop, &iRight, &iBottom);
 	}
 
 	if (iRight < iLeft)
@@ -250,6 +216,45 @@ void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	if (mpGuides.IsNotNull())
 	{
 		mpGuides->Layout(sPosition, sAreaSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A strip with tabs takes its side's edge of what is left; one without
+// takes nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockArea::LayoutStrip(Ptr<CAutoHideStrip> pStrip, EDockSide eSide, int32* piLeft, int32* piTop, int32* piRight, int32* piBottom)
+{
+	int32		iThickness;
+
+	if (!pStrip->HasTabs())
+	{
+		pStrip->Layout(SInt32Vec2((eSide == DS_Right) ? *piRight : *piLeft, (eSide == DS_Bottom) ? *piBottom : *piTop), SInt32Vec2(0, 0));
+		return;
+	}
+
+	iThickness = AUTO_HIDE_STRIP_SIZE;
+	switch (eSide)
+	{
+	case DS_Left:
+		pStrip->Layout(SInt32Vec2(*piLeft, *piTop), SInt32Vec2(iThickness, *piBottom - *piTop));
+		*piLeft += iThickness;
+		break;
+	case DS_Right:
+		pStrip->Layout(SInt32Vec2(*piRight - iThickness, *piTop), SInt32Vec2(iThickness, *piBottom - *piTop));
+		*piRight -= iThickness;
+		break;
+	case DS_Top:
+		pStrip->Layout(SInt32Vec2(*piLeft, *piTop), SInt32Vec2(*piRight - *piLeft, iThickness));
+		*piTop += iThickness;
+		break;
+	default:
+		pStrip->Layout(SInt32Vec2(*piLeft, *piBottom - iThickness), SInt32Vec2(*piRight - *piLeft, iThickness));
+		*piBottom -= iThickness;
+		break;
 	}
 }
 

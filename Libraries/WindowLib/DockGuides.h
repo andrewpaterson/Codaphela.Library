@@ -109,6 +109,7 @@ protected:
 	void				AddCompassFor(CDockNode* pcNode, bool bInWell, bool bDocuments);
 	void				AddCompass(CInt32Rect* pcBounds, EDockTargetKind eSideKind, EDockTargetKind eCentreKind, CDockNode* pcNode, bool bSides, bool bCentre, int iRing, bool bOuter);
 	void				PreviewFor(SDockGuide* psGuide, SInt32Vec2 sDraggedSize, CInt32Rect* pcDest);
+	void				DrawGuide(Ptr<CCanvas> pCanvas, SDockGuide* psGuide, bool bHover);
 	void				DrawArrow(Ptr<CCanvas> pCanvas, CInt32Rect* pcRect, EDockSide eSide, ARGB32 sColour);
 	void				DrawBoxClipped(Ptr<CCanvas> pCanvas, int iLeft, int iTop, int iRight, int iBottom, bool bFilled, ARGB32 sColour);
 };
