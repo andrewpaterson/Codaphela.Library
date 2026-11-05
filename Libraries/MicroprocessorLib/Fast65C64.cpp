@@ -520,6 +520,18 @@ bool CFast65C64::IsAtBreakpoint(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bytes of the instruction whose first word is uiOpcode: it and its
+// operand words.  For a debugger decoding instructions.
+//
+//////////////////////////////////////////////////////////////////////////
+size CFast65C64::InstructionLength(uint16 uiOpcode)
+{
+	return 2 + 2 * (size)GetFast65C64Op(uiOpcode)->uiOperandWords;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bytes of the instruction whose first word is uiOpcode if it calls a
 // subroutine (jsr, brsr): it returns to the address after them.  0 if it
 // doesn't.  For a debugger stepping over calls.
