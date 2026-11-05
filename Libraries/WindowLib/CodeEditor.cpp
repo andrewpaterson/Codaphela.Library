@@ -45,6 +45,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 	mbChangeBarsChanged = false;
 	msBandNumberColour = JEWEL_LINE_NUMBER_ACTIVE;
 	mcGutterClicked.Init();
+	mcChangeBarClicked.Init();
 	mcChanged.Init();
 	CContainer::Init(pWindow);
 	SetSizedByContent(true);
@@ -86,6 +87,7 @@ void CCodeEditor::Free(void)
 {
 	mcChanged.Kill();
 	mcGutterClicked.Kill();
+	mcChangeBarClicked.Kill();
 	masChangeBars.Kill();
 	macMarks.Kill();
 	mauiLines.Kill();
@@ -116,6 +118,7 @@ void CCodeEditor::Class(void)
 	U_UInt32(msBandNumberColour);
 	U_Size(muiSeenChanges);
 	U_Data(CGutterClickEvent, mcGutterClicked);
+	U_Data(CGutterClickEvent, mcChangeBarClicked);
 	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
 }
 
@@ -748,6 +751,41 @@ void CCodeEditor::SetBandNumberColour(ARGB32 sColour)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a change bar (not a band) is beside line uiLine: it changed, or
+// lines were removed just above or below it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodeEditor::IsChangeBarAt(size uiLine)
+{
+	size					i;
+	SCodeEditorChangeBar*	psBar;
+
+	for (i = 0; i < masChangeBars.NumElements(); i++)
+	{
+		psBar = masChangeBars.Get(i);
+		if (psBar->bBand)
+		{
+			continue;
+		}
+		if (psBar->uiStartLine == psBar->uiEndLine)
+		{
+			if ((uiLine == psBar->uiStartLine) || (uiLine + 1 == psBar->uiStartLine))
+			{
+				return true;
+			}
+		}
+		else if ((uiLine >= psBar->uiStartLine) && (uiLine < psBar->uiEndLine))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+CGutterClickEvent* CCodeEditor::GetChangeBarClickEvent(void) { return &mcChangeBarClicked; }
 size CCodeEditor::NumChangeBars(void) { return masChangeBars.NumElements(); }
 SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChangeBars.SafeGet(uiIndex); }
 
@@ -762,6 +800,7 @@ SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChange
 void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 {
 	size	uiLine;
+	size	uiPosition;
 	int32	x;
 	int32	y;
 
@@ -775,8 +814,14 @@ void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 		return;
 	}
 
-	//The gutter's rows are the code's, and so are its lines.
-	uiLine = mpGutter->FindLine(mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y));
+	//The gutter's rows are the code's, and so are its lines.  The last column (after the number) is the change bars'.
+	uiPosition = mpGutter->FindPositionAt(x - mpGutter->GetPosition().x, y - mpGutter->GetPosition().y);
+	uiLine = mpGutter->FindLine(uiPosition);
+	if (((uiPosition - mpGutter->GetLineStart(uiLine)) >= 1 + CountDigits(mpTextArea->NumLines())) && IsChangeBarAt(uiLine))
+	{
+		mcChangeBarClicked.Call(this, uiLine);
+		return;
+	}
 	mcGutterClicked.Call(this, uiLine);
 }
 

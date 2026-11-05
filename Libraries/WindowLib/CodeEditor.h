@@ -67,7 +67,9 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //column beside lines that changed, or draw a line between rows where lines were removed; they are by line number too.
 //Change bands (AddChangeBand) colour the gutter's whole rows instead, with their numbers brighter so they can be read
 //(SetBandNumberColour).
-//Clicking the gutter calls the gutter click event
+//Clicking a change bar (in the gutter's last column, on a changed line or either side of removed ones) calls the change
+//bar click event with its line, as IntelliJ IDEA shows a change's old lines.  Clicking the rest of the gutter calls the
+//gutter click event
 //with the line it was next to, and an edit calls the change event.  The code editor is meant to be the content of a
 //CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
 //the gutter stays at the view's left, on its own background over the code, which goes under it; the caret is kept
@@ -92,6 +94,7 @@ protected:
 	ARGB32					msBandNumberColour;  //Line numbers on a change band.
 	size					muiSeenChanges;  //The text area's change count when the change event was last called.
 	CGutterClickEvent		mcGutterClicked;
+	CGutterClickEvent		mcChangeBarClicked;
 	CComponentEvent<CCodeEditor>	mcChanged;
 
 public:
@@ -126,6 +129,7 @@ public:
 	size				NumChangeBars(void);
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
 	CGutterClickEvent*	GetGutterClickEvent(void);
+	CGutterClickEvent*	GetChangeBarClickEvent(void);
 	CComponentEvent<CCodeEditor>*	GetChangeEvent(void);
 	void				ClickAction(SComponentInputEvent* psEvent);
 
@@ -143,6 +147,7 @@ protected:
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
 	void				DrawChangeBars(size uiDigits);
+	bool				IsChangeBarAt(size uiLine);
 	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour, bool bBand);
 	size				CountDigits(size uiNumber);
 };

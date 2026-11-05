@@ -673,6 +673,100 @@ void TestCodeEditorChangeBars(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A press in the gutter's last column beside a change bar calls the change
+// bar click event, not the gutter click event; beside removed lines both
+// rows next to them do.  A press on a number, or the last column of an
+// unchanged line, is a gutter click.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorChangeBarClicks(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pGutter;
+		CTestCodeEditorListener		cGutter;
+		CTestCodeEditorListener		cBars;
+		int32						iLine;
+		int32						iCell;
+		int32						iTop;
+		int32						iLeft;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pEditor->AddChangeBar(1, 2, TEST_CHANGE_MODIFIED);
+		pEditor->AddChangeBar(4, 4, TEST_CHANGE_REMOVED);
+		pTestWindow->Layout();
+		pGutter = pEditor->GetGutter();
+		iLine = pGutter->GetFont()->GetLineHeight();
+		iCell = (int32)pGutter->GetFont()->GetAverageWidth();
+		iTop = pEditor->GetPosition().y;
+		iLeft = pEditor->GetPosition().x;
+
+		cGutter.Init();
+		cBars.Init();
+		pEditor->GetGutterClickEvent()->Add(&cGutter, &CTestCodeEditorListener::GutterClicked);
+		pEditor->GetChangeBarClickEvent()->Add(&cBars, &CTestCodeEditorListener::GutterClicked);
+
+		//Rows are " 2 ": the bar is the third column.
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cBars.muiClicks);
+		AssertSize(1, cBars.muiLine);
+		AssertSize(0, cGutter.muiClicks);
+
+		//The number beside it.
+		pTestWindow->PointerMoved(iLeft + iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cGutter.muiClicks);
+		AssertSize(1, cGutter.muiLine);
+
+		//Lines 4 and 3 are either side of the removed lines; line 2 has no bar.
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + 4 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(2, cBars.muiClicks);
+		AssertSize(4, cBars.muiLine);
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + 3 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(3, cBars.muiClicks);
+		AssertSize(3, cBars.muiLine);
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(3, cBars.muiClicks);
+		AssertSize(2, cGutter.muiClicks);
+		AssertSize(2, cGutter.muiLine);
+
+		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cGutter));
+		AssertTrue(pEditor->GetChangeBarClickEvent()->Remove(&cBars));
+		pGutter = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Change bars drawn: modified and added lines' bars beside their numbers,
 // and lines removed at the top and after the last.
 //
@@ -740,6 +834,7 @@ void TestCodeEditor(void)
 	TestCodeEditorGutterMarks();
 	TestCodeEditorScrolledSideways();
 	TestCodeEditorChangeBars();
+	TestCodeEditorChangeBarClicks();
 	TestCodeEditorChangeBarsDrawn();
 
 	ObjectsFlush();
