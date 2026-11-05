@@ -973,6 +973,21 @@ void TestExternalObjectDeserialiserAssertBig(Ptr<CArrayObject> pArray, size uiNu
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Checking every object on every pointer change (in debug builds) makes
+// thousands of objects take minutes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestExternalObjectDeserialiserBigValidation(size uiNumObjects)
+{
+	if (uiNumObjects > 1000)
+	{
+		gcObjects.DisableValidation();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Thousands of objects, each pointed to by the array and by another
 // object: many pointers to remap and many objects to look up by their old
 // index.
@@ -1001,6 +1016,7 @@ void TestExternalObjectDeserialiserBig(bool bChunked, size uiNumObjects)
 	TestExternalObjectDeserialiserClean();
 
 	TestExternalObjectDeserialiserOpen(EXTERNAL_WRITE_DATABASE, &pcDatabase, &pcSequence);
+	TestExternalObjectDeserialiserBigValidation(uiNumObjects);
 	{
 		Ptr<CArrayObject>			pArray;
 		Ptr<CArrayObject>			pCreated;
@@ -1056,6 +1072,7 @@ void TestExternalObjectDeserialiserBig(bool bChunked, size uiNumObjects)
 	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
 
 	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	TestExternalObjectDeserialiserBigValidation(uiNumObjects);
 	{
 		Ptr<CArrayObject>	pArray;
 		Ptr<CString>		pString;
@@ -1121,6 +1138,7 @@ void TestExternalObjectDeserialiserBig(bool bChunked, size uiNumObjects)
 	TestExternalObjectDeserialiserClose(&pcDatabase, &pcSequence);
 
 	TestExternalObjectDeserialiserOpen(EXTERNAL_READ_DATABASE, &pcDatabase, &pcSequence);
+	TestExternalObjectDeserialiserBigValidation(uiNumObjects);
 	{
 		Ptr<CArrayObject>	pArray;
 
