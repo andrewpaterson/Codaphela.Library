@@ -14,7 +14,11 @@ struct STestObjectFreedNotifier
 	bool bDependsOnFreedFirst;  //Only set by CTestNesHolderObject if the Object it depends on was freed or cleared before it.
 	bool bObjectNullWhenFreed;  //Only set by CTestObject.
 	bool bTestNullWhenFreed;    //Only set by CTestObject.
+	uint32 uiFreedOrder;        //Only set by CTestObject: guiTestObjectsFreed after it was freed (1 for the first).
 };
+
+
+extern uint32	guiTestObjectsFreed;
 
 
 class CTestObject : public CObject

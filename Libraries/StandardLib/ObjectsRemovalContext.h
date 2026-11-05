@@ -25,6 +25,9 @@ public:
 	bool					IsBusy(void);
 
 	void					Clear(void);
+
+protected:
+	void					CopyNotKilled(CArrayBaseObjectPtr* papcNext);
 };
 
 

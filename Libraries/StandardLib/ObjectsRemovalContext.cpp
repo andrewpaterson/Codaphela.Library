@@ -1,4 +1,5 @@
 #include "BaseLib/Logger.h"
+#include "BaseLib/PointerFunctions.h"
 #include "ObjectsRemovalContext.h"
 
 
@@ -66,17 +67,41 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Done(void)
 		//Copy the next list of objects to kill into remaining to be killed.
 		//Remove all already killed object pointers from remaining.
 		pcContainer = maapcRemovedObjects.Get(0);
-		mapcRemainingObjects.ReInit();
-		mapcRemainingObjects.InsertArrayAfterEnd(pcContainer->GetKilled());
-		mapcRemainingObjects.Sort();
-		mapcRemainingObjects.RemoveArrayFromSorted(&mapcKilledObjects);
-
+		CopyNotKilled(pcContainer->GetKilled());
 		return &mapcRemainingObjects;
 	}
 	else
 	{
 		Clear();
 		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects in papcNext not killed already, in papcNext's order.  The
+// killed objects are found by address (they may be deallocated), so only
+// the record of them is sorted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectRemovalContext::CopyNotKilled(CArrayBaseObjectPtr* papcNext)
+{
+	size			i;
+	size			uiNumNext;
+	size			uiIndex;
+	CBaseObject*	pcObject;
+
+	mapcKilledObjects.Sort();
+	mapcRemainingObjects.ReInit();
+	uiNumNext = papcNext->NumElements();
+	for (i = 0; i < uiNumNext; i++)
+	{
+		pcObject = papcNext->GetPtr(i);
+		if (!mapcKilledObjects.FindInSorted(&pcObject, &ComparePtrPtr, &uiIndex))
+		{
+			mapcRemainingObjects.Add(pcObject);
+		}
 	}
 }
 

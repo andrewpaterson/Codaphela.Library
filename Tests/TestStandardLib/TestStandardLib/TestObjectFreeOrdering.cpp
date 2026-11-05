@@ -482,6 +482,49 @@ void TestObjectFreeOrderingObjectsKillNestedRemoval(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Objects freed together are freed in the order the walk finds them, not
+// by address: allocated last to first, a chain cut from the root is still
+// freed from its start.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingDiscoveryOrder(void)
+{
+	STestObjectFreedNotifier	sNotifierA;
+	STestObjectFreedNotifier	sNotifierB;
+	STestObjectFreedNotifier	sNotifierC;
+	uint32						uiBefore;
+
+	ObjectsInit();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CTestObject>	pA;
+		Ptr<CTestObject>	pB;
+		Ptr<CTestObject>	pC;
+
+		pRoot = ORoot();
+		pC = OMalloc<CTestObject>(&sNotifierC);
+		pB = OMalloc<CTestObject>(&sNotifierB);
+		pA = OMalloc<CTestObject>(&sNotifierA);
+		pA->mpTest = pB;
+		pB->mpTest = pC;
+		pRoot->Add(pA);
+		pB = NULL;
+		pC = NULL;
+
+		uiBefore = guiTestObjectsFreed;
+		pRoot->Remove(pA);
+		pA = NULL;
+		AssertInt(uiBefore + 1, sNotifierA.uiFreedOrder);
+		AssertInt(uiBefore + 2, sNotifierB.uiFreedOrder);
+		AssertInt(uiBefore + 3, sNotifierC.uiFreedOrder);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectFreeOrdering(void)
@@ -508,6 +551,7 @@ void TestObjectFreeOrdering(void)
 	TestObjectFreeOrderingEvictInMemory(false);
 	TestObjectFreeOrderingEvictInMemory(true);
 	TestObjectFreeOrderingObjectsKillNestedRemoval();
+	TestObjectFreeOrderingDiscoveryOrder();
 
 	DataIOKill();
 	TypesKill();

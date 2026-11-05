@@ -31,21 +31,27 @@ void CKillOrderCalculator::Kill(void)
 CArrayBaseObjectPtr* CKillOrderCalculator::Calculate(void)
 {
 	size			i;
-	size			iNumElements;
+	size			uiNumElements;
+	size			uiKept;
 	CBaseObject*	pcObject;
 
-	iNumElements = mpapcKilled->NumElements();
-	for (i = 0; i < iNumElements; i++)
+	//Both keep the order they were found in.
+	uiKept = 0;
+	uiNumElements = mpapcKilled->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = mpapcKilled->GetPtr(i);
 		if (pcObject->IsNesPointedTo())
 		{
 			mapcKilledNesObjects.Add(pcObject);
-			mpapcKilled->RemoveAt(i, false);
-			i--;
-			iNumElements--;
+		}
+		else
+		{
+			*mpapcKilled->Get(uiKept) = pcObject;
+			uiKept++;
 		}
 	}
+	mpapcKilled->FakeSetUsedElements(uiKept);
 
 	return &mapcKilledNesObjects;
 }

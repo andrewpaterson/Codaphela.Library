@@ -4,6 +4,9 @@
 #include "ObjectTestClasses.h"
 
 
+uint32	guiTestObjectsFreed = 0;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -39,6 +42,7 @@ void CTestObject::Init(STestObjectFreedNotifier* psKilledNotifier)
 	if (mpsFreedNotifier)
 	{
 		mpsFreedNotifier->bFreed = false;
+		mpsFreedNotifier->uiFreedOrder = 0;
 	}
 	PostInit();
 }
@@ -69,6 +73,8 @@ void CTestObject::Free(void)
 		mpsFreedNotifier->bFreed = true;
 		mpsFreedNotifier->bObjectNullWhenFreed = mpObject.IsNull();
 		mpsFreedNotifier->bTestNullWhenFreed = mpTest.IsNull();
+		guiTestObjectsFreed++;
+		mpsFreedNotifier->uiFreedOrder = guiTestObjectsFreed;
 	}
 }
 

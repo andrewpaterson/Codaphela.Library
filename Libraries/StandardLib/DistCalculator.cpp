@@ -39,8 +39,8 @@ CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool
 		papcObjects = CalculateStackFromChanged(pcFromChanged);
 	}
 
-	papcObjects->Sort();
-
+	//In the order the walk found them, not sorted by address: the order their Free()s are called in is then the same
+	//on every platform and run.
 	return papcObjects;
 }
 
