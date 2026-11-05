@@ -151,7 +151,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mpcFunction->CountUses(&mauiUses);
 	AdjustComparisons();
 	PreferSingleBranches();
-	mcBackendPasses.OrderBlocks(pcFunction);
+	mcBackendPasses.OrderBlocks(pcFunction, false);
 	mcBackendPasses.MoveLoopTests(pcFunction);
 	PairDivides();
 	mcBackendPasses.SinkLoads(pcFunction);

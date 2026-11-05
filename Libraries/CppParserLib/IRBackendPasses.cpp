@@ -29,6 +29,9 @@ void CIRBackendPasses::Init(void)
 {
 	mpcFunction = NULL;
 	mcDominators.Init();
+	mcLoops.Init();
+	masStack.Init();
+	maiVisited.Init();
 	mauiUses.Init();
 }
 
@@ -40,6 +43,9 @@ void CIRBackendPasses::Init(void)
 void CIRBackendPasses::Kill(void)
 {
 	mauiUses.Kill();
+	maiVisited.Kill();
+	masStack.Kill();
+	mcLoops.Kill();
 	mcDominators.Kill();
 	mpcFunction = NULL;
 }
@@ -49,24 +55,85 @@ void CIRBackendPasses::Kill(void)
 //
 // Puts the blocks in reverse post order, a brif's else visited first so its
 // then block comes straight after it (a loop's body after its test, which
-// MoveLoopTests then moves to the bottom).  Blocks nothing reaches go last.
+// MoveLoopTests then moves to the bottom).  With bLoopsTogether, of a
+// block's successors the search visits first those leaving the most loops it
+// is in, so they finish first and go after the loop: a loop's blocks stay
+// together (a latch found first would otherwise go last, after all the code
+// after the loop, and the W65C816 places the loop's values as if live over
+// all of it).  Blocks nothing reaches go last.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction)
+void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether)
 {
 	CArrayIRBlocks	apcOrder;
+	SIRSearch*		psTop;
+	SIRSearch*		psNew;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcSuccessor;
+	CIRBlock*		pcNext;
 	size			ui;
+	size			uiSuccessor;
+	int32			iDepth;
+	int32			iNextDepth;
 
 	mpcFunction = pcFunction;
-	mcDominators.Compute(mpcFunction, true);
-	apcOrder.Init();
-	for (ui = 0; ui < mcDominators.NumReachable(); ui++)
+	mcDominators.Compute(mpcFunction);
+	if (bLoopsTogether)
 	{
-		apcOrder.Add(mcDominators.GetReversePostOrder(ui));
+		mcLoops.Compute(mpcFunction, &mcDominators);
 	}
+	maiVisited.FakeSetUsedElements(0);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
-		if (!mcDominators.IsReachable(mpcFunction->GetBlock(ui)))
+		*maiVisited.Add() = 0;
+	}
+
+	apcOrder.Init();
+	masStack.FakeSetUsedElements(0);
+	psNew = masStack.Add();
+	psNew->iBlock = 0;
+	psNew->iNext = 0;
+	*maiVisited.Get(0) = 1;
+	while (masStack.NumElements() > 0)
+	{
+		psTop = masStack.Tail();
+		pcBlock = mpcFunction->GetBlock(psTop->iBlock);
+
+		//The successor not yet reached in the fewest of the block's loops, the last (a brif's else) of those.
+		pcNext = NULL;
+		iNextDepth = 0;
+		for (uiSuccessor = pcBlock->NumSuccessors(); uiSuccessor > 0; uiSuccessor--)
+		{
+			pcSuccessor = pcBlock->GetSuccessor(uiSuccessor - 1);
+			if (pcSuccessor && (*maiVisited.Get(pcSuccessor->muiIndex) == 0))
+			{
+				iDepth = bLoopsTogether ? SharedDepth(pcBlock, pcSuccessor) : 0;
+				if ((pcNext == NULL) || (iDepth < iNextDepth))
+				{
+					pcNext = pcSuccessor;
+					iNextDepth = iDepth;
+				}
+			}
+		}
+
+		if (pcNext)
+		{
+			*maiVisited.Get(pcNext->muiIndex) = 1;
+			psNew = masStack.Add();
+			psNew->iBlock = (int32)pcNext->muiIndex;
+			psNew->iNext = 0;
+		}
+		else
+		{
+			apcOrder.Add(pcBlock);
+			masStack.Pop();
+		}
+	}
+	apcOrder.Reverse();
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		if (*maiVisited.Get(ui) == 0)
 		{
 			apcOrder.Add(mpcFunction->GetBlock(ui));
 		}
@@ -74,6 +141,27 @@ void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction)
 	mpcFunction->SetBlockOrder(&apcOrder);
 	mpcFunction->ComputePredecessors();
 	apcOrder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The depth of the innermost loop both pcBlock and pcSuccessor are in, 0
+// when they share none.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRBackendPasses::SharedDepth(CIRBlock* pcBlock, CIRBlock* pcSuccessor)
+{
+	int32	iLoop;
+
+	for (iLoop = mcLoops.Innermost(pcBlock); iLoop >= 0; iLoop = mcLoops.GetLoop(iLoop)->iParent)
+	{
+		if (mcLoops.Contains(iLoop, pcSuccessor))
+		{
+			return mcLoops.GetLoop(iLoop)->iDepth;
+		}
+	}
+	return 0;
 }
 
 

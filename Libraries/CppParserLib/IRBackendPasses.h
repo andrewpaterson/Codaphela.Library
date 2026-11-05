@@ -23,30 +23,35 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "IRFunction.h"
 #include "IRDominators.h"
+#include "IRLoops.h"
 
 
 //Rewrites of a function's IR that a back end may make before writing it, for any target: the blocks in the order they
 //are written (OrderBlocks), loops' tests moved after their bodies (MoveLoopTests: block layout only, unlike
 //CIROptimiser's RotateLoops, which copies a loop's head), loads moved down to their only use (SinkLoads) and loop
 //steps moved past their phi's last reads (SinkSteps).  The 65C64 back end (CIR65Backend) uses them all, the W65C816's
-//(CIR816Backend) SinkSteps.
+//(CIR816Backend) OrderBlocks (with each loop's blocks together) and SinkSteps.
 class CIRBackendPasses
 {
 protected:
 	CIRFunction*			mpcFunction;
 	CIRDominators			mcDominators;
+	CIRLoops				mcLoops;
+	CArrayIRSearches		masStack;
+	CArrayIRBlockNumbers	maiVisited;			//Per block index: 1 once the search reached it.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 
 public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	OrderBlocks(CIRFunction* pcFunction);
+	void	OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether);
 	void	MoveLoopTests(CIRFunction* pcFunction);
 	void	SinkLoads(CIRFunction* pcFunction);
 	void	SinkSteps(CIRFunction* pcFunction);
 
 protected:
+	int32	SharedDepth(CIRBlock* pcBlock, CIRBlock* pcSuccessor);
 	void	SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRReference sPhi);
 };
 
