@@ -91,7 +91,7 @@ void CBaseObject::PreClass(void)
 {
 	CClasses*		pcClasses;
 
-	if (muiFlags & OBJECT_FLAGS_FREED)
+	if (GetFlags() & OBJECT_FLAGS_FREED)
 	{
 		FailCantInitFreedObject(__METHOD__);
 		return;
@@ -391,7 +391,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::IsKilled(void)
 {
-	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_KILL);
+	return FixBool(GetFlags() & OBJECT_FLAGS_CALLED_KILL);
 }
 
 
@@ -659,21 +659,35 @@ void CBaseObject::AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The container flags (OBJECT_FLAGS_CONTAINER) are set on the embedding
+// container, the life-cycle flags on this object.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
 {
-	::SetFlagShort(&muiFlags, iFlag, iFlagValue);
+	if (iFlag & OBJECT_FLAGS_CONTAINER)
+	{
+		::SetFlagShort(&GetEmbeddingContainer()->muiFlags, iFlag & OBJECT_FLAGS_CONTAINER, iFlagValue);
+	}
+	if (iFlag & ~OBJECT_FLAGS_CONTAINER)
+	{
+		::SetFlagShort(&muiFlags, iFlag & ~OBJECT_FLAGS_CONTAINER, iFlagValue);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// This object's life-cycle flags and its embedding container's flags.
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 CBaseObject::GetFlags(void)
 {
-	return muiFlags;
+	if (mpcEmbedded == NULL)
+	{
+		return muiFlags;
+	}
+	return (muiFlags & ~OBJECT_FLAGS_CONTAINER) | (GetEmbeddingContainer()->muiFlags & OBJECT_FLAGS_CONTAINER);
 }
 
 
@@ -718,9 +732,12 @@ bool CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SetDistToRoot(int iDistToRoot)
 {
-	if (miDistToRoot != iDistToRoot)
+	CBaseObject*	pcContainer;
+
+	pcContainer = (miDistToRoot == EMBEDDED_DIST_TO_ROOT) ? GetEmbeddingContainer() : this;
+	if (pcContainer->miDistToRoot != iDistToRoot)
 	{
-		miDistToRoot = iDistToRoot;
+		pcContainer->miDistToRoot = iDistToRoot;
 		return true;
 	}
 	return false;
@@ -819,7 +836,7 @@ bool CBaseObject::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::IsInvalidated(void)
 {
-	return FixBool(muiFlags & OBJECT_FLAGS_INVALIDATED);
+	return FixBool(GetFlags() & OBJECT_FLAGS_INVALIDATED);
 }
 
 
@@ -829,7 +846,7 @@ bool CBaseObject::IsInvalidated(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::IsDirty(void)
 {
-	return FixBool(muiFlags & OBJECT_FLAGS_DIRTY);
+	return FixBool(GetFlags() & OBJECT_FLAGS_DIRTY);
 }
 
 
@@ -839,7 +856,7 @@ bool CBaseObject::IsDirty(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::TestedForSanity(void)
 {
-	return FixBool(muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY);
+	return FixBool(GetFlags() & OBJECT_FLAGS_TESTED_FOR_SANITY);
 }
 
 
@@ -859,7 +876,25 @@ void CBaseObject::SetDirty(bool bDirty)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::GetDistToRoot(void)
 {
-	return miDistToRoot;
+	//Only an embedded object's own distance is read first: the common case touches nothing else.
+	if (miDistToRoot != EMBEDDED_DIST_TO_ROOT)
+	{
+		return miDistToRoot;
+	}
+	return GetEmbeddingContainer()->miDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This is a field of pcContainer: its distance and flags are now
+// pcContainer's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::EmbedIn(CBaseObject* pcContainer)
+{
+	SetEmbedding(pcContainer);
+	miDistToRoot = EMBEDDED_DIST_TO_ROOT;
 }
 
 
@@ -1578,7 +1613,7 @@ bool CBaseObject::HasClass(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::IsInitialised(void)
 {
-	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_INIT);
+	return FixBool(GetFlags() & OBJECT_FLAGS_CALLED_INIT);
 }
 
 
@@ -1779,17 +1814,20 @@ void CBaseObject::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::PrintState(CChars* psz)
 {
+	int		iDistToRoot;
+
+	iDistToRoot = GetDistToRoot();
 	PrintIdentifier(psz);
 	psz->Append(" R");
-	if (miDistToRoot >= 0)
+	if (iDistToRoot >= 0)
 	{
-		psz->Append(miDistToRoot);
+		psz->Append(iDistToRoot);
 	}
-	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
 		psz->Append("u");
 	}
-	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
+	else if (iDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
 		psz->Append("c");
 	}
@@ -1866,43 +1904,46 @@ void CBaseObject::PrintFlagsShorthand(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::PrintFlags(CChars* psz)
 {
-	if (muiFlags & OBJECT_FLAGS_INVALIDATED)
+	uint16	uiFlags;
+
+	uiFlags = GetFlags();
+	if (uiFlags & OBJECT_FLAGS_INVALIDATED)
 	{
 		psz->Append("INVALIDATED, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	if (uiFlags & OBJECT_FLAGS_CALLED_CONSTRUCTOR)
 	{
 		psz->Append("CALLED_CONSTRUCTOR, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_DIRTY)
+	if (uiFlags & OBJECT_FLAGS_DIRTY)
 	{
 		psz->Append("DIRTY, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_FREED)
+	if (uiFlags & OBJECT_FLAGS_FREED)
 	{
 		psz->Append("FREED, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_DUMPED)
+	if (uiFlags & OBJECT_FLAGS_DUMPED)
 	{
 		psz->Append("DUMPED, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
+	if (uiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
 	{
 		psz->Append("TESTED_FOR_SANITY, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE)
+	if (uiFlags & OBJECT_FLAGS_CALLED_ALLOCATE)
 	{
 		psz->Append("CALLED_ALLOCATE, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CALLED_INIT)
+	if (uiFlags & OBJECT_FLAGS_CALLED_INIT)
 	{
 		psz->Append("CALLED_INIT, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CALLED_KILL)
+	if (uiFlags & OBJECT_FLAGS_CALLED_KILL)
 	{
 		psz->Append("CALLED_KILL, ");
 	}
-	if (muiFlags & OBJECT_FLAGS_CALLED_CLASS)
+	if (uiFlags & OBJECT_FLAGS_CALLED_CLASS)
 	{
 		psz->Append("CALLED_CLASS, ");
 	}
@@ -1944,7 +1985,7 @@ void CBaseObject::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlagNotSet(uint16 iFlag, const char* szFlag)
 {
-	if (muiFlags & iFlag)
+	if (GetFlags() & iFlag)
 	{
 		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag [", szFlag,"] set.", NULL);
 	}
@@ -1957,7 +1998,7 @@ void CBaseObject::ValidateFlagNotSet(uint16 iFlag, const char* szFlag)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlagSet(uint16 iFlag, const char* szFlag)
 {
-	if (!(muiFlags & iFlag))
+	if (!(GetFlags() & iFlag))
 	{
 		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag,"] set (but it is not).", NULL);
 	}
@@ -2029,42 +2070,6 @@ void CBaseObject::ValidateCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateContainerFlag(void)
-{
-	CChars	sz;
-	uint16	iEmbeddedFlags;
-	uint16	iThisFlags;
-	uint16	iIgnoredFlags;
-	char*	szEmbeddedFlags;
-	char*	szFlags;
-	char*	szIgnoredFlags;
-
-	if (IsEmbedded())
-	{
-		iIgnoredFlags = OBJECT_FLAGS_CALLED_CLASS;
-		iEmbeddedFlags = mpcEmbedded->muiFlags & ~iIgnoredFlags;
-		iThisFlags = muiFlags & ~iIgnoredFlags;
-		if ((iEmbeddedFlags) != (iThisFlags))
-		{
-			sz.Init();
-			PrintObject(&sz);
-			szFlags = ShortToFlags(muiFlags);
-			szEmbeddedFlags = ShortToFlags(mpcEmbedded->muiFlags);
-			szIgnoredFlags = ShortToFlags(iIgnoredFlags);
-			ReplaceOneWithX(szFlags, szIgnoredFlags);
-			ReplaceOneWithX(szEmbeddedFlags, szIgnoredFlags);
-
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have the same flags [", szFlags ,"] as it's embedding container's flags [", szEmbeddedFlags, "].", NULL);
-			sz.Kill();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlags(void)
 {
 	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
@@ -2072,7 +2077,6 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_ALLOCATE, "OBJECT_FLAGS_CALLED_ALLOCATE");
 
-	ValidateContainerFlag();
 }
 
 
@@ -2085,7 +2089,7 @@ void CBaseObject::ValidateAllocation(void)
 	bool	bAllocateCalled;
 	bool	bInObjects;
 
-	bAllocateCalled = FixBool(muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE);
+	bAllocateCalled = FixBool(GetFlags() & OBJECT_FLAGS_CALLED_ALLOCATE);
 	bInObjects = IsAllocatedInObjects();
 	if (bAllocateCalled != bInObjects)
 	{
@@ -2100,20 +2104,12 @@ void CBaseObject::ValidateAllocation(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateDistToRoot(void)
 {
-	CBaseObject*	pcContainer;
+	int		iDistToRoot;
 
-	if (!((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT)))
+	iDistToRoot = GetDistToRoot();
+	if (!((iDistToRoot >= ROOT_DIST_TO_ROOT) || (iDistToRoot == UNATTACHED_DIST_TO_ROOT)))
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to root of [", IntToString(miDistToRoot), "].", NULL);
-	}
-
-	if (IsEmbedded())
-	{
-		pcContainer = GetEmbeddingContainer();
-		if (pcContainer->GetDistToRoot() != GetDistToRoot())
-		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have a dist to root [", IntToString(miDistToRoot), "] the same as it's embedding object [", IntToString(pcContainer->GetDistToRoot()),"].", NULL);
-		}
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to root of [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 
@@ -2303,7 +2299,7 @@ void CBaseObject::ValidateInitCalled(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateKillCalled(void)
 {
-	if (!(muiFlags & OBJECT_FLAGS_CALLED_KILL))
+	if (!(GetFlags() & OBJECT_FLAGS_CALLED_KILL))
 	{
 		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
 	}

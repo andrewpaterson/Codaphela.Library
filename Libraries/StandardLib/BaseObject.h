@@ -48,6 +48,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_CLASS				 0x800
 #define OBJECT_FLAGS_CALLED_KILL				 0x001
 
+//Every flag but CALLED_CONSTRUCTOR and CALLED_CLASS is the embedding container's: an embedded object reads and sets
+//those of the object it is embedded in (as it does its distance to root).  Constructing and classing are each object's own.
+#define OBJECT_FLAGS_CONTAINER	((uint16)~(OBJECT_FLAGS_CALLED_CONSTRUCTOR | OBJECT_FLAGS_CALLED_CLASS))
+
 //0x0002, 0x0040, 0x1000, 0x2000, 0x4000 and 0x8000 are free.  The distance calculations keep what they find in the
 //walk stamp (WALK_STATE_...), not in flags.
 
@@ -104,7 +108,7 @@ protected:
 	CCharsImmutable		mon;
 	CObjects*			mpcObjectsThisIn;
 	CClass*				mpcClass;
-	int					miDistToRoot;
+	int					miDistToRoot;	//EMBEDDED_DIST_TO_ROOT in an embedded object: its distance is its embedding container's.
 	uint32				muiWalkStamp;
 	uint16				muiFlags;
 	uint16				muiNumEmbedded;
@@ -176,7 +180,8 @@ public:
 			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);
 			size 					TestGetNumEmbeddedFromFlags(void);
 			void					ClearFlagNumEmbedded(void);
-	virtual void					SetFlag(uint16 iFlag, uint16 iFlagValue);
+			void					SetFlag(uint16 iFlag, uint16 iFlagValue);
+			void					EmbedIn(CBaseObject* pcContainer);
 			uint16					GetFlags(void);
 			bool					CanFindRoot(void);
 			CBaseObject*			GetClosestFromToRoot(void);
@@ -196,7 +201,6 @@ public:
 
 			void					ValidateFlagSet(uint16 iFlag, const char* szFlag);
 			void					ValidateFlagNotSet(uint16 iFlag, const char* szFlag);
-			void					ValidateContainerFlag(void);
 			void					ValidateFlags(void);
 			void					ValidateDistToRoot(void);
 			void					ValidateIndex(void);

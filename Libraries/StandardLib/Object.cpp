@@ -56,7 +56,8 @@ CObject::~CObject()
 		ValidateInitCalled();
 		ValidateKillCalled();
 
-		muiFlags = 0;
+		//Still killed: the objects embedded in this are destroyed after it, and are killed with it.
+		muiFlags = OBJECT_FLAGS_CALLED_KILL;
 	}
 	else
 	{
@@ -155,7 +156,7 @@ void CObject::EmbedEmbeddedObjectFields(void)
 	for (i = 0; i < uiNumFields; i++)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
-		pcEmbeddedObject->SetEmbedding(this);
+		pcEmbeddedObject->EmbedIn(this);
 		pcEmbeddedObject->PreClass();
 		mapEmbedded.AddPtr(pcEmbeddedObject);
 	}
@@ -344,30 +345,6 @@ void CObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObject::SetDistToRoot(int iDistToRoot)
-{
-	size			i;
-	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
-	bool			bAnyChange;
-
-	bAnyChange = CBaseObject::SetDistToRoot(iDistToRoot);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		bAnyChange |= pcEmbedded->SetDistToRoot(iDistToRoot);
-	}
-
-	return bAnyChange;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	size			i;
@@ -529,36 +506,6 @@ size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		}
 	}
 	return uiCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObject::IsDirty(void)
-{
-	size				i;
-	CBaseObject*	pcEmbedded;
-	size			uiNumEmbedded;
-
-	if (muiFlags & OBJECT_FLAGS_DIRTY)
-	{
-		return true;
-	}
-	else
-	{
-		uiNumEmbedded = mapEmbedded.NumElements();
-		for (i = 0; i < uiNumEmbedded; i++)
-		{
-			pcEmbedded = *mapEmbedded.Get(i);
-			if (pcEmbedded->IsDirty())
-			{
-				return true;
-			}
-		}
-		return false;
-	}
 }
 
 
@@ -942,27 +889,6 @@ size CObject::NumStackFroms(void)
 		uiCount += pcBaseObject->NumStackFroms();
 	}
 	return uiCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
-{
-	size			i;
-	CBaseObject*	pcBaseObject;
-	size			uiNumEmbedded;
-
-	::SetFlagShort(&muiFlags, iFlag, iFlagValue);
-
-	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		pcBaseObject = *mapEmbedded.Get(i);
-		pcBaseObject->SetFlag(iFlag, iFlagValue);
-	}
 }
 
 

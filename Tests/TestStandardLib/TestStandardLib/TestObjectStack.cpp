@@ -165,7 +165,7 @@ void TestObjectStackObjectReuse(void)
 	pcTestClass = (CTestClass*)alliStorage;
 	sz.Init();
 	pcTestClass->PrintFlags(&sz);
-	AssertString("", sz.Text());
+	AssertString("CALLED_KILL", sz.Text());  //Left killed for the objects embedded in it, which are destroyed after it.
 	sz.Kill();
 
 	ObjectsKill();

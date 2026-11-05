@@ -632,7 +632,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	pcBaseObject = (CBaseObject*)pcIncoming;
 
 	psz->Append(' ', iLevel * 3);
-	if ((pcBaseObject->muiFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
+	if ((pcBaseObject->GetFlags() & OBJECT_FLAGS_DUMPED) || (pcBaseObject->GetDistToRoot() < iLevel))
 	{
 		psz->Append('*');
 		pcBaseObject->PrintObject(psz, bEmbedded, bPointerMemory);

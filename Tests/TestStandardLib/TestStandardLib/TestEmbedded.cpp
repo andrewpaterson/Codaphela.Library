@@ -75,6 +75,48 @@ void TestEmbeddedFlags(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An embedded object's distance to root and flags (but for constructing
+// and classing) are its embedding container's: setting them on either sets
+// them for both, however deeply it is embedded.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedSharesContainerState(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CEmbeddedComplex>	pComplex;
+		CEmbeddedTest*			pcDeep;
+
+		pComplex = OMalloc<CEmbeddedComplex>();
+		ORoot()->Add(pComplex);
+		pcDeep = &pComplex->mcContainer.mcOne;
+		AssertInt(pComplex->GetDistToRoot(), pcDeep->GetDistToRoot());
+		AssertInt(pComplex->GetDistToRoot(), pComplex->mcSimple.GetDistToRoot());
+		AssertTrue(pComplex->GetDistToRoot() > ROOT_DIST_TO_ROOT);
+
+		pComplex->SetDirty(false);
+		AssertFalse(pComplex->IsDirty());
+		AssertFalse(pcDeep->IsDirty());
+		pcDeep->SetDirty(true);
+		AssertTrue(pComplex->IsDirty());
+		AssertTrue(pComplex->mcSimple.IsDirty());
+		pComplex->SetDirty(false);
+		AssertFalse(pcDeep->IsDirty());
+
+		AssertTrue(pcDeep->HasClass());
+		AssertTrue(pcDeep->IsInitialised());
+		AssertInt(pComplex->GetFlags() & OBJECT_FLAGS_CONTAINER, pcDeep->GetFlags() & OBJECT_FLAGS_CONTAINER);
+
+		ORoot()->Remove(pComplex);
+		AssertInt(UNATTACHED_DIST_TO_ROOT, pcDeep->GetDistToRoot());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbeddedObjectAddDistToRoot(void)
@@ -1053,6 +1095,7 @@ void TestEmbedded(void)
 
 	TestEmbeddedHeapFromIteration();
 	TestEmbeddedFlags();
+	TestEmbeddedSharesContainerState();
 	TestEmbeddedOjectIsAllocatedInObjects();
 	TestEmbeddedObjectAddDistToRoot();
 	TestEmbeddedObjectRemoveDistToRoot();

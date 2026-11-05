@@ -63,7 +63,6 @@ public:
 	bool				IsObject(void) override;
 	void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers) override;
 
-	bool				IsDirty(void);
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	size				NumEmbedded(void);
 	size				CountNumEmbedded(void);
@@ -71,7 +70,6 @@ public:
 	CBaseObject*		Dehollow(void);
 	size				NumHeapFroms(void);
 	size				NumStackFroms(void);
-	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
 	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	size				NumPointerTos(void);
 	size				BaseNumPointerTos(void);
@@ -96,7 +94,6 @@ protected:
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
-	bool				SetDistToRoot(int iDistToRoot) override;
 	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
 	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);

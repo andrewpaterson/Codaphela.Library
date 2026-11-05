@@ -13,6 +13,7 @@
 #define ROOT_DIST_TO_ROOT			 0
 #define UNATTACHED_DIST_TO_ROOT		-1
 #define CLEARED_DIST_TO_ROOT		-2
+#define EMBEDDED_DIST_TO_ROOT		-3  //An embedded object's own: its distance is its embedding container's.
 #define MAX_DIST_TO_ROOT			 MAX_INT
 
 

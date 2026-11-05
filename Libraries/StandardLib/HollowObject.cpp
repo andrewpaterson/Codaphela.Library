@@ -57,7 +57,8 @@ CHollowObject::~CHollowObject()
 		ValidateInitCalled();
 		ValidateKillCalled();
 
-		muiFlags = 0;
+		//Still killed: the objects embedded in this are destroyed after it, and are killed with it.
+		muiFlags = OBJECT_FLAGS_CALLED_KILL;
 	}
 	else
 	{
