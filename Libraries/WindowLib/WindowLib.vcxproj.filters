@@ -279,9 +279,6 @@
     <ClInclude Include="TextField.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
-    <ClInclude Include="TextFieldListener.h">
-      <Filter>Source\Component\Widgets\TextField</Filter>
-    </ClInclude>
     <ClInclude Include="ScrollBar.h">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClInclude>

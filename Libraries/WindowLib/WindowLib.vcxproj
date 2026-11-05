@@ -265,7 +265,6 @@
     <ClInclude Include="WindowTick.h" />
     <ClInclude Include="ImageBorderContainer.h" />
     <ClInclude Include="TextField.h" />
-    <ClInclude Include="TextFieldListener.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
     <ClInclude Include="CheckBox.h" />
     <ClInclude Include="CheckBoxImages.h" />

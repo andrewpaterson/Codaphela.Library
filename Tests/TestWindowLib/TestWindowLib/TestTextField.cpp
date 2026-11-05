@@ -27,9 +27,8 @@ void			Click(Ptr<CWindow> pWindow);
 // Logs "Changed:text;".
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestTextFieldListener : public CTextFieldListener
+class CTestTextFieldListener
 {
-CONSTRUCTABLE(CTestTextFieldListener);
 public:
 	CChars*		mpszLog;
 
@@ -38,10 +37,10 @@ public:
 		mpszLog = pszLog;
 	}
 
-	void TextChanged(CUnknown* pcSource, void* pvContext) override
+	void TextChanged(CTextField* pcField)
 	{
 		mpszLog->Append("Changed:");
-		mpszLog->Append(((CTextField*)pcSource)->GetText());
+		mpszLog->Append(pcField->GetText());
 		mpszLog->Append(";");
 	}
 };
@@ -97,7 +96,7 @@ void TestTextFieldEditing(void)
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pField = CreateTestTextField(pTestWindow, "");
-		AssertTrue(pField->AddListener(&cListener));
+		pField->GetChangeEvent()->Add(&cListener, &CTestTextFieldListener::TextChanged);
 		pTestWindow->Layout();
 
 		//The pointer over it lightens its border, pressing it gives it focus and its focus ring.
@@ -195,7 +194,7 @@ void TestTextFieldEditing(void)
 
 		ValidateLabelObjects();
 
-		pField->RemoveListener(&cListener);
+		AssertTrue(pField->GetChangeEvent()->Remove(&cListener));
 		pField = NULL;
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;

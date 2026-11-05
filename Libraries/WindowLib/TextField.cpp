@@ -40,8 +40,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mcEditor.mbMultiLine = false;
 	mcEditor.SetPosition(mcEditor.Length());
 	mpFont = pTheme->GetFont();
-	mcListeners.Init();
-	mcListeners.AddAllowedClass<CTextFieldListener>();
+	mcChanged.Init();
 	miColumns = 20;
 	miScroll = 0;
 	muiDragAnchor = 0;
@@ -168,7 +167,7 @@ void CTextField::Class(void)
 	M_Pointer(mpMarksDraw);
 	M_Pointer(mpMarks);
 	M_Pointer(mpText);
-	U_Data(CListenerCall, mcListeners);
+	U_Data(CComponentEvent<CTextField>, mcChanged);
 	U_Int32(miColumns);
 	U_Int32(miScroll);
 	U_Size(muiDragAnchor);
@@ -182,7 +181,7 @@ void CTextField::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::Free(void)
 {
-	mcListeners.Kill();
+	mcChanged.Kill();
 	mcEditor.Kill();
 	CImageBorderContainer::Free();
 }
@@ -404,8 +403,8 @@ void CTextField::LayoutText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The label shows the editor's text.  The listeners are only told if it
-// changed.
+// The label shows the editor's text.  The change event is only called if
+// it changed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::TextEdited(void)
@@ -413,7 +412,7 @@ void CTextField::TextEdited(void)
 	if (!mcEditor.mszText.Equals(mpText->GetText()))
 	{
 		mpText->SetText(mcEditor.Text());
-		mcListeners.CallListeners(&CTextFieldListener::TextChanged, this, NULL);
+		mcChanged.Call(this);
 	}
 }
 
@@ -514,21 +513,13 @@ void CTextField::SetCaretPosition(size uiPosition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called when the text changes, typed or set, with the text field:
+// pField->GetChangeEvent()->Add(this, &CMyContent::FilterChanged).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextField::AddListener(CTextFieldListener* pcListener)
+CComponentEvent<CTextField>* CTextField::GetChangeEvent(void)
 {
-	return mcListeners.AddListener(pcListener);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextField::RemoveListener(CTextFieldListener* pcListener)
-{
-	return mcListeners.RemoveListener(pcListener);
+	return &mcChanged;
 }
 
 

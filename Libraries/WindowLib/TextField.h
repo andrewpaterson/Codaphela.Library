@@ -21,13 +21,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TEXT_FIELD_H__
 #define __TEXT_FIELD_H__
 #include "BaseLib/PlainTextEditor.h"
-#include "StandardLib/ListenerCall.h"
 #include "SupportLib/Font.h"
 #include "ImageBorderContainer.h"
 #include "WindowTheme.h"
 #include "TextMarksCanvasDraw.h"
-#include "TextFieldListener.h"
 #include "Label.h"
+#include "ComponentEvent.h"
 
 
 //One line of editable text in a border, like IntelliJ's text field: the border is drawn from CButtonImages, in its
@@ -52,7 +51,7 @@ protected:
 	Ptr<CTextMarksCanvasDraw>	mpMarksDraw;
 	Ptr<CCanvas>				mpMarks;
 	Ptr<CLabel>					mpText;
-	CListenerCall				mcListeners;
+	CComponentEvent<CTextField>	mcChanged;
 	int32						miColumns;
 	int32						miScroll;  //How far the text is moved left to keep the caret in view.
 	size						muiDragAnchor;  //Where a drag's selection started.
@@ -80,8 +79,7 @@ public:
 	Ptr<CLabel>					GetTextLabel(void);
 	Ptr<CTextMarksCanvasDraw>	GetMarksDraw(void);
 
-	bool						AddListener(CTextFieldListener* pcListener);
-	bool						RemoveListener(CTextFieldListener* pcListener);
+	CComponentEvent<CTextField>*	GetChangeEvent(void);
 
 	void						Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool						WantsEnter(void) override;
