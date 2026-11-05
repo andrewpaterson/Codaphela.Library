@@ -374,10 +374,7 @@ void CIR65Backend::CallRuntime(const char* szName, int iBytes)
 	}
 	Line("jsr ")->Append(szLabel)->AppendNewLine();
 	szLabel.Kill();
-	if (iBytes > 0)
-	{
-		Line("add S, ")->Append(iBytes)->AppendNewLine();
-	}
+	RemoveArguments(iBytes);
 }
 
 

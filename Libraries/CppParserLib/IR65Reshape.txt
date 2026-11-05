@@ -83,7 +83,6 @@ Steps
    end can run.  The code written should be the same.  (Was "drop RotateLoops for
    CIROptimiser's": wrong, see above.)
 5. Call split into pushing the arguments, loading registers, the call and the clean up.
-   May change the code written: re-measure cycles.
 6. The shared code above (use counts, liveness hooks, loop weights) for the W65C816.
 
 
@@ -129,3 +128,10 @@ its instructions (cmp with a constant, braso, one div for both, add Y, 1, [8 + X
 identical to step 3's, TestCppParserLib 83262/83262.  Left for later, as they change the W65C816's
 code and need its cycles measured: the W65C816 running CIRBackendPasses, and one loop step pass for
 SinkToEnd and SinkSteps.
+
+Step 5: done 2026-11-05.  CIR65Backend::Call is CallArguments (the arg instructions before it),
+PushArguments, CalleeOperand (where it jumps to, or loaded into A), LoadRegisterArguments (a
+thiscall's this in X), jsr and CallerCleanUp (RemoveArguments, then the result kept), as
+CIR816Backend's Call, PushArguments, LoadRegisterArguments and CallerCleanUp; CallRuntime removes
+its arguments with RemoveArguments too.  Listings identical to step 4's (66k jsr), TestCppParserLib
+83262/83262.

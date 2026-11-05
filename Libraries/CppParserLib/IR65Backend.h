@@ -332,6 +332,12 @@ protected:
 	bool				Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExtend);
 	bool				Store(CIRBlock* pcBlock, size uiIndex);
 	bool				Call(CIRBlock* pcBlock, size uiIndex);
+	size				CallArguments(CIRBlock* pcBlock, size uiCall);
+	int32				PushArguments(CIRBlock* pcBlock, size uiFirst, size uiEnd);
+	void				CalleeOperand(SIRReference sCallee, bool bThisCall, CChars* pszCallee);
+	void				LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst);
+	void				CallerCleanUp(int32 iBytes, SIRInstruction* psCall);
+	void				RemoveArguments(int32 iBytes);
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	void				CompareOperands(SIRReference sFirst, SIRReference sSecond);
 	bool				IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
