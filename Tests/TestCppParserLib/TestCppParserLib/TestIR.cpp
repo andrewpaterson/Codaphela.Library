@@ -4099,10 +4099,12 @@ void TestIRLiveness(void)
 
 	AssertFalse(CIRLiveness::Intersect(cLiveness.GetRanges(sI), 1, cLiveness.GetRanges(sI2), 1));
 	AssertTrue(CIRLiveness::Intersect(cLiveness.GetRanges(sI), 1, cLiveness.GetRanges(sK), 1));
-	AssertInt(1, CIRLiveness::LoopWeight(0));
-	AssertInt(64, CIRLiveness::LoopWeight(2));
-	AssertInt(32768, CIRLiveness::LoopWeight(5));
-	AssertInt(32768, CIRLiveness::LoopWeight(9));
+	AssertInt(1, CIRLoops::Weight(0, IR_LOOP_WEIGHT_MAX_DEPTH));
+	AssertInt(64, CIRLoops::Weight(2, IR_LOOP_WEIGHT_MAX_DEPTH));
+	AssertInt(32768, CIRLoops::Weight(5, IR_LOOP_WEIGHT_MAX_DEPTH));
+	AssertInt(32768, CIRLoops::Weight(9, IR_LOOP_WEIGHT_MAX_DEPTH));
+	AssertInt(4096, CIRLoops::Weight(5, 4));
+	AssertInt(512, CIRLoops::Weight(7, 3));
 
 	cLiveness.Kill();
 	cDominators.Kill();

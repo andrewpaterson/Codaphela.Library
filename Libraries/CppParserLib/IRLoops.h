@@ -54,6 +54,12 @@ struct SIRLoopExit
 typedef CArrayTemplate<SIRLoopExit>	CArrayIRLoopExits;
 
 
+//How much more a use in a loop counts (Weight): 8 times for each loop it is in, up to a depth the caller picks (the
+//65C64's register allocation IR_LOOP_WEIGHT_MAX_DEPTH, the W65C816's X and aligned frame choices less).
+#define IR_LOOP_WEIGHT_BITS			3
+#define IR_LOOP_WEIGHT_MAX_DEPTH	5
+
+
 //The natural loops of a function's reachable blocks, numbered so a loop comes before the loops inside it.  The
 //function must be numbered, have its predecessors and its dominators (CIRDominators::Compute).
 class CIRLoops
@@ -77,6 +83,7 @@ public:
 	SIRLoop*	GetLoop(size uiLoop);
 	int32		Innermost(CIRBlock* pcBlock);
 	int32		Depth(CIRBlock* pcBlock);
+	static uint32	Weight(int32 iDepth, int32 iMaxDepth);
 	bool		Contains(size uiLoop, CIRBlock* pcBlock);
 	bool		IsHead(CIRBlock* pcBlock);
 

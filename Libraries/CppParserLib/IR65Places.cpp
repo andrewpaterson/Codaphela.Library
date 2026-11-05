@@ -454,7 +454,7 @@ void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
-		uiUse = CIRLiveness::LoopWeight(mcLiveness.LoopDepth(pcBlock));
+		uiUse = CIRLoops::Weight(mcLiveness.LoopDepth(pcBlock), IR_LOOP_WEIGHT_MAX_DEPTH);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);

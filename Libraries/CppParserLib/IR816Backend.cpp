@@ -737,12 +737,12 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		miFused = 0;
 
 		//The block's direct page accesses, weighted by its loops (AlignFrame's estimate).
-		iWeight = 1;
-		for (iDepth = mcLoops.Depth(pcBlock); iDepth > 0; iDepth--)
+		iDepth = mcLoops.Depth(pcBlock);
+		if (iDepth > 0)
 		{
 			msFrame.bLoops = true;
-			iWeight *= (iDepth <= IR816_ALIGN_MAX_DEPTH) ? IR816_ALIGN_LOOP_WEIGHT : 1;
 		}
+		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_ALIGN_MAX_DEPTH);
 		msFrame.iDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
 	}
 	miBlock = -1;

@@ -193,18 +193,7 @@ void CIRLiveness::AddWeight(SIRReference sValue, int32 iDepth)
 		return;
 	}
 	puiWeight = mauiWeights.Get(sValue.Index());
-	*puiWeight += LoopWeight(iDepth);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A use's weight at a loop depth: 8 times more per loop, up to five.
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CIRLiveness::LoopWeight(int32 iDepth)
-{
-	return 1u << (3 * ((iDepth > 5) ? 5 : iDepth));
+	*puiWeight += CIRLoops::Weight(iDepth, IR_LOOP_WEIGHT_MAX_DEPTH);
 }
 
 

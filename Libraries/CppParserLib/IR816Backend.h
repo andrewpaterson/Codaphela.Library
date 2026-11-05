@@ -53,12 +53,11 @@ class CIR816LiveRanges;
 //costing each call IR816_ALIGN_CYCLES, IR816_ALIGN_WORD_CYCLES for each argument word copied into the frame and
 //IR816_ALIGN_BIG_CYCLES more for a frame past the page, and up to 255 bytes of stack.  It never does if it may recurse.
 //By default the estimate decides (the user: only when really worth it): it has a loop, and its direct page accesses,
-//each weighted by IR816_ALIGN_LOOP_WEIGHT for each loop it is in (up to IR816_ALIGN_MAX_DEPTH), are more than
+//each weighted 8 times for each loop it is in (CIRLoops::Weight, up to IR816_ALIGN_MAX_DEPTH), are more than
 //IR816_ALIGN_GAIN times the cost.  With a profile (CAsm65816Profile, CCPP65Builder::SetFrameProfile) the measure
 //decides: it was never seen recursing, its accesses are more than IR816_ALIGN_GAIN times the cost of its calls and
 //they save at least one IR816_ALIGN_SHARE'th of the profiled cycles.
 #define IR816_ALIGN_GAIN		3
-#define IR816_ALIGN_LOOP_WEIGHT	8
 #define IR816_ALIGN_MAX_DEPTH	3
 #define IR816_ALIGN_SHARE		10000
 #define IR816_ALIGN_CYCLES		6

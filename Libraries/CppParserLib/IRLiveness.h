@@ -67,7 +67,6 @@ public:
 	size			NumRanges(SIRReference sTemporary);
 	SIRRange*		GetRanges(SIRReference sTemporary);
 	uint32			GetWeight(SIRReference sTemporary);
-	static uint32	LoopWeight(int32 iDepth);
 
 	static bool		Intersect(SIRRange* psRanges1, size uiNum1, SIRRange* psRanges2, size uiNum2);
 

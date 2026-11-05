@@ -1483,6 +1483,7 @@ int32 CIR816Backend::PackTemporaries(void)
 
 
 #define IR816_X_BAD		-100000		//A use X can't serve: the temporary isn't kept in X.
+#define IR816_X_MAX_DEPTH	4			//The loops a use's weight counts (CIRLoops::Weight): 8^4 times a use's saving stays under IR816_X_BAD's veto.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1682,7 +1683,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
 		iDepth = mcLoops.Depth(pcBlock);
-		iWeight = 1 << ((iDepth > 4) ? 12 : 3 * iDepth);
+		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_X_MAX_DEPTH);
 		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
 		{
 			*abCandidate.Get(pcBlock->masPhis.Get(uj)->sResult.Index()) = true;
