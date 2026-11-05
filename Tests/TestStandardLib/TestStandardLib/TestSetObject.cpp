@@ -1109,6 +1109,43 @@ void TestSetObjectEmbeddedInObjectsKill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The typed iteration gives each member as the type asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectTypedIteration(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CSetObject>		pSet;
+		Ptr<CTestObject>	pObject;
+		SSetIterator		sIter;
+		size				uiCount;
+
+		pSet = OMalloc<CSetObject>();
+		pObject = OMalloc<CTestObject>();
+		pObject->mi = 5;
+		pSet->Add(pObject);
+		pObject = OMalloc<CTestObject>();
+		pObject->mi = 5;
+		pSet->Add(pObject);
+
+		uiCount = 0;
+		pObject = pSet->StartIteration<CTestObject>(&sIter);
+		while (pObject.IsNotNull())
+		{
+			AssertInt((int32)5, pObject->mi);
+			uiCount++;
+			pObject = pSet->Iterate<CTestObject>(&sIter);
+		}
+		AssertSize(2, uiCount);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1124,6 +1161,7 @@ void TestSetObject(void)
 	TestSetObjectRemove();
 	TestSetObjectRemoveSortedWithNulls();
 	TestSetObjectOnStackKillContained();
+	TestSetObjectTypedIteration();
 	TestSetObjectKillContainedHeap();
 	TestSetObjectRemoveDuringIterationSorted();
 	TestSetObjectKillCyclic();

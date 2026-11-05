@@ -1108,6 +1108,46 @@ void TestIndexObjectEmbeddedInObjectsKill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The typed getters give the member as the type asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexObjectTypedGet(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CIndexObject>			pIndex;
+		Ptr<CTestObject>			pObject;
+		SIndexTreeMemoryIterator	sIter;
+		uint8						auiKey[MAX_KEY_SIZE];
+		size						uiKeySize;
+		size						uiCount;
+
+		pIndex = OMalloc<CIndexObject>();
+		pObject = OMalloc<CTestObject>();
+		pObject->mi = 7;
+		pIndex->Put("A", pObject);
+		pIndex->Put((uint8*)"B", 1, pObject);
+
+		AssertInt((int32)7, pIndex->Get<CTestObject>("A")->mi);
+		AssertInt((int32)7, pIndex->Get<CTestObject>((uint8*)"B", 1)->mi);
+
+		uiCount = 0;
+		pObject = pIndex->StartIteration<CTestObject>(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE);
+		while (pObject.IsNotNull())
+		{
+			AssertInt((int32)7, pObject->mi);
+			uiCount++;
+			pObject = pIndex->Iterate<CTestObject>(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE);
+		}
+		AssertSize(2, uiCount);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexObject(void)
@@ -1136,6 +1176,7 @@ void TestIndexObject(void)
 	TestIndexObjectSerialisation();
 	TestIndexObjectMorphInto();
 	TestIndexObjectEmbeddedOnHeapKill();
+	TestIndexObjectTypedGet();
 	TestIndexObjectEmbeddedOnStackKill();
 	TestIndexObjectEmbeddedInObjectsKill();
 

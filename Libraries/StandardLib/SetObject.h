@@ -59,7 +59,7 @@ Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 {
 	bool	bExists;
 
-	return (M*)StartIterationPointer(psIter, &bExists);
+	return StartIterationPointer(psIter, &bExists);
 }
 
 
@@ -72,7 +72,7 @@ Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
 {
 	bool	bExists;
 
-	return (M*)IteratePointer(psIter, &bExists);
+	return IteratePointer(psIter, &bExists);
 }
 
 

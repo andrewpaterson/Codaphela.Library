@@ -96,7 +96,7 @@ protected:
 template<class M>
 Ptr<M> CIndexObject::Get(const char* szKey)
 {
-	return (M*)Get(szKey);
+	return Get(szKey);
 }
 
 
@@ -107,7 +107,7 @@ Ptr<M> CIndexObject::Get(const char* szKey)
 template<class M>
 Ptr<M> CIndexObject::Get(uint8* pvKey, size iKeySize)
 {
-	return (M*)Get(pvKey, iKeySize);
+	return Get(pvKey, iKeySize);
 }
 
 
@@ -118,7 +118,7 @@ Ptr<M> CIndexObject::Get(uint8* pvKey, size iKeySize)
 template<class M>
 Ptr<M> CIndexObject::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists)
 {
-	return (M*)StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
+	return StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
 }
 
 
@@ -129,7 +129,7 @@ Ptr<M> CIndexObject::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8*
 template<class M>
 Ptr<M> CIndexObject::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists)
 {
-	return (M*)Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
+	return Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
 }
 
 
