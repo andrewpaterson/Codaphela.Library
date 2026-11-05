@@ -88,6 +88,10 @@ enum EComponentInputCommand
 	CIC_FlipHorizontally,  //Control+Shift+F, then H.
 	CIC_FlipVertically,  //Control+Shift+F, then V.
 
+	//Files
+	CIC_Save,  //Control+S.
+	CIC_SaveAll,  //Control+Shift+S.
+
 	//Code
 	CIC_GoToDefinition,  //F12.
 	CIC_FindReferences,  //Shift+F12.

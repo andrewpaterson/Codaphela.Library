@@ -55,6 +55,7 @@ public:
 		mpcKeyboard->AddSource("Insert");
 		mpcKeyboard->AddSource("A");
 		mpcKeyboard->AddSource("C");
+		mpcKeyboard->AddSource("S");
 		mpcKeyboard->AddSource("1");
 		mpcKeyboard->AddSource("8");
 		mpcKeyboard->AddSource("Space");
@@ -221,6 +222,15 @@ void TestComponentInputKeyboard(void)
 		cDevices.Tap("1");
 		cDevices.Release("Left Control");
 		AssertLog("B:SelectAll;B:Copy;B:WordLeft;B:LineUp;");
+
+		//Control+S saves; with shift too, saves all.
+		cDevices.Press("Left Control");
+		cDevices.Tap("S");
+		cDevices.Press("Left Shift");
+		cDevices.Tap("S");
+		cDevices.Release("Left Shift");
+		cDevices.Release("Left Control");
+		AssertLog("B:Save;B:SaveAll;");
 
 		//Nothing is mapped with alt.
 		cDevices.Press("Left Alt");
