@@ -90,6 +90,8 @@ void CFast65C816::Init(CFast65C816ReadByte fReadByte, CFast65C816WriteByte fWrit
 	SetBanks();
 
 	mcBreakpoints.Init();
+	mpcBreakpoints = &mcBreakpoints;
+	mbBreakpointsChanged = false;
 	mbAtBreakpoint = false;
 	mbMoving = false;
 }
@@ -220,7 +222,7 @@ void CFast65C816::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFast65C816::IsBreakpointNext(void)
 {
-	return mcBreakpoints.AnyEnabled() && !mbMoving && mcBreakpoints.IsEnabledNext(((uint32)muiPBR << 16) | muiPC);
+	return mpcBreakpoints->AnyEnabled() && !mbMoving && mpcBreakpoints->IsEnabledNext(((uint32)muiPBR << 16) | muiPC);
 }
 
 
@@ -331,7 +333,8 @@ FORCE_INLINE bool CFast65C816::NeedsDeciding(void)
 // is the end of the Step before (which, with nothing to decide, would leave muiNext as it is).  Without one
 // they run in a copy of the loop that doesn't look addresses up, so breakpoints cost nothing until one is
 // enabled.  Which loop is chosen each time something has been decided: a breakpoint enabled from a callback
-// counts from the next interrupt, wait or stop, or the next Run.
+// counts from the next interrupt, wait or stop, or the next Run.  Breakpoints chosen by UseBreakpoints (from a
+// callback, as a machine changing mode does) count from the next instruction.
 //
 //////////////////////////////////////////////////////////////////////////
 size CFast65C816::Run(size uiMaxInstructions)
@@ -341,6 +344,7 @@ size CFast65C816::Run(size uiMaxInstructions)
 	i = 0;
 	while (i < uiMaxInstructions)
 	{
+		mbBreakpointsChanged = false;
 		if (NeedsDeciding() || (muiNext != FAST_65C816_NEXT_INSTRUCTION) || mbAtBreakpoint)
 		{
 			if (!Step())
@@ -355,11 +359,11 @@ size CFast65C816::Run(size uiMaxInstructions)
 			continue;
 		}
 
-		if (mcBreakpoints.AnyEnabled())
+		if (mpcBreakpoints->AnyEnabled())
 		{
 			do
 			{
-				if (!mbMoving && mcBreakpoints.IsEnabledNext(((uint32)muiPBR << 16) | muiPC))
+				if (!mbMoving && mpcBreakpoints->IsEnabledNext(((uint32)muiPBR << 16) | muiPC))
 				{
 					mbAtBreakpoint = true;
 					return i;
@@ -371,7 +375,7 @@ size CFast65C816::Run(size uiMaxInstructions)
 				}
 				i++;
 			}
-			while ((i < uiMaxInstructions) && !NeedsDeciding());
+			while ((i < uiMaxInstructions) && !NeedsDeciding() && !mbBreakpointsChanged);
 		}
 		else
 		{
@@ -384,7 +388,7 @@ size CFast65C816::Run(size uiMaxInstructions)
 				}
 				i++;
 			}
-			while ((i < uiMaxInstructions) && !NeedsDeciding());
+			while ((i < uiMaxInstructions) && !NeedsDeciding() && !mbBreakpointsChanged);
 		}
 
 		//The end of the last instruction's Step.
@@ -438,6 +442,34 @@ void CFast65C816::SetNMI(bool bLow)
 CBreakpoints* CFast65C816::GetBreakpoints(void)
 {
 	return &mcBreakpoints;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The breakpoints the processor looks at from the next instruction:
+// pcBreakpoints (kept by the caller, as a machine with a set for each of
+// its modes does), or its own (GetBreakpoints) for NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C816::UseBreakpoints(CBreakpoints* pcBreakpoints)
+{
+	pcBreakpoints = pcBreakpoints ? pcBreakpoints : &mcBreakpoints;
+	if (pcBreakpoints != mpcBreakpoints)
+	{
+		mpcBreakpoints = pcBreakpoints;
+		mbBreakpointsChanged = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBreakpoints* CFast65C816::GetUsedBreakpoints(void)
+{
+	return mpcBreakpoints;
 }
 
 

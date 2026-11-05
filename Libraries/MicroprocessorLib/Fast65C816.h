@@ -98,6 +98,8 @@ protected:
 	CFast65C816Signal		mfSignal;	//NULL if no one is listening.
 
 	CBreakpoints			mcBreakpoints;
+	CBreakpoints*			mpcBreakpoints;		//The ones looked at: mcBreakpoints unless UseBreakpoints chose others.
+	bool					mbBreakpointsChanged;	//UseBreakpoints was called during Run: it chooses its loop again.
 	bool					mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool					mbMoving;			//The next instruction is the rest of a block move.
 
@@ -115,6 +117,8 @@ public:
 	void		SetNMI(bool bLow);
 
 	CBreakpoints*	GetBreakpoints(void);
+	void			UseBreakpoints(CBreakpoints* pcBreakpoints);
+	CBreakpoints*	GetUsedBreakpoints(void);
 	bool			IsAtBreakpoint(void);
 
 	uint16		GetC(void);
