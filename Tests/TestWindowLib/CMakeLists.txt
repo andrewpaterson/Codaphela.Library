@@ -115,6 +115,8 @@ target_compile_definitions(baselib_options INTERFACE
 )
 # -m32 -msse2 -mfpmath=sse: MSVC uses SSE2 for 32-bit code.  The x87 FPU keeps float
 # constants at long double precision, so float comparisons would differ.
+# -D_FILE_OFFSET_BITS=64: a 32-bit stat() fails (EOVERFLOW) on a file whose inode number needs 64 bits, as every
+# file on a Windows drive under WSL (/mnt/d) has, so files there would seem not to exist.
 # -fno-strict-aliasing: MSVC never optimises on the strict aliasing rule and the
 # code relies on that (e.g. (CUnknown**)&pcTyped), so optimised builds break without it.
 # -Wno-ignored-attributes: g++ drops ALIGN_64 when int64/uint64/float64 is a
@@ -130,7 +132,7 @@ target_compile_definitions(baselib_options INTERFACE
 if(BASELIB_64)
 	set(BASELIB_ARCH_OPTIONS -m64)
 else()
-	set(BASELIB_ARCH_OPTIONS -m32 -msse2 -mfpmath=sse)
+	set(BASELIB_ARCH_OPTIONS -m32 -msse2 -mfpmath=sse -D_FILE_OFFSET_BITS=64)
 endif()
 target_compile_options(baselib_options INTERFACE ${BASELIB_ARCH_OPTIONS} -fno-strict-aliasing -Wall -Wextra -Wno-ignored-attributes -Wno-write-strings -Wno-multichar -Wno-class-memaccess -Wno-overloaded-virtual -Wno-comment -Wno-unused-parameter)
 target_link_options(baselib_options INTERFACE $<IF:$<BOOL:${BASELIB_64}>,-m64,-m32>)
