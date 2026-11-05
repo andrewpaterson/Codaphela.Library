@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/EnumeratorVoid.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
@@ -32,6 +31,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshEditor.h"
 #include "MeshCornerBuilder.h"
 #include "OBJReader.h"
+
+
+//Indexed by EOBJParse.
+static const char* const gaszOBJTypes[] = { "v", "vt", "vn", "g", "f", "s", "usemtl", "mtllib" };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,7 +99,6 @@ bool CObjReader::Read(void)
 {
 	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
-	CEnumeratorVoid		cTypes;
 	size				iType;
 	CArrayChars			cLines;
 	CChars*				pszLine;
@@ -104,20 +106,9 @@ bool CObjReader::Read(void)
 	TRISTATE			tResult;
 	size				uiNumElements;
 
-	cTypes.Init();
-	cTypes.Add("v",			WOBJP_v);
-	cTypes.Add("vt",		WOBJP_vt);
-	cTypes.Add("vn",		WOBJP_vn);
-	cTypes.Add("g",			WOBJP_g);
-	cTypes.Add("f",			WOBJP_f);
-	cTypes.Add("s",			WOBJP_s);
-	cTypes.Add("usemtl",	WOBJP_usemtl);
-	cTypes.Add("mtllib",	WOBJP_mtllib);
-
 	cTextFile.Init();
 	if (!cTextFile.Read(mszFileName.Text()))
 	{
-		cTypes.Kill();
 		cTextFile.Kill();
 		return false;
 	}
@@ -136,7 +127,7 @@ bool CObjReader::Read(void)
 		pszLine = cLines.Get(i);
 		cTextParser.Init(pszLine->Text(), pszLine->Length());
 
-		tResult = cTextParser.GetEnumeratorIdentifier(&cTypes, &iType);
+		tResult = cTextParser.GetLongestIdentifier(gaszOBJTypes, sizeof(gaszOBJTypes) / sizeof(gaszOBJTypes[0]), &iType);
 
 		if (tResult == TRITRUE)
 		{
@@ -175,7 +166,6 @@ bool CObjReader::Read(void)
 	}
 	
 	cLines.Kill();
-	cTypes.Kill();
 	cTextFile.Kill();
 
 	return true;

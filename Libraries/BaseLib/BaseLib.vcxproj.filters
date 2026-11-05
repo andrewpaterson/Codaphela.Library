@@ -19,9 +19,6 @@
     <Filter Include="Source\Data\Array\Tree">
       <UniqueIdentifier>{8e1f12d3-fcd6-46c9-9ce9-aad10fa666ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Enumerator">
-      <UniqueIdentifier>{dc315a44-4b20-40c0-ab75-efeb24af625a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\String">
       <UniqueIdentifier>{bea213cd-2a49-448f-ade4-5d1eb3293042}</UniqueIdentifier>
     </Filter>
@@ -461,21 +458,6 @@
     </ClInclude>
     <ClInclude Include="TreeTemplate.h">
       <Filter>Source\Data\Types\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorBlock.h">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorEnumerator.h">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorPointer.h">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorTemplate.h">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorVoid.h">
-      <Filter>Source\Data\Enumerator</Filter>
     </ClInclude>
     <ClInclude Include="Chars.h">
       <Filter>Source\Data\String</Filter>
@@ -1064,9 +1046,6 @@
     </ClInclude>
     <ClInclude Include="LogToMemory.h">
       <Filter>Source\Error</Filter>
-    </ClInclude>
-    <ClInclude Include="EnumeratorNode.h">
-      <Filter>Source\Data\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="DatasIO.h">
       <Filter>Source\Data\Types\File</Filter>
@@ -1783,21 +1762,6 @@
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
       <Filter>Source\Data\Types\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumeratorBlock.cpp">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumeratorEnumerator.cpp">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumeratorPointer.cpp">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumeratorTemplate.cpp">
-      <Filter>Source\Data\Enumerator</Filter>
-    </ClCompile>
-    <ClCompile Include="EnumeratorVoid.cpp">
-      <Filter>Source\Data\Enumerator</Filter>
     </ClCompile>
     <ClCompile Include="Chars.cpp">
       <Filter>Source\Data\String</Filter>

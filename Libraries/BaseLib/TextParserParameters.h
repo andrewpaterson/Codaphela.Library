@@ -1,7 +1,7 @@
 #ifndef __TEXT_PARSER_PARAMETERS_H__
 #define __TEXT_PARSER_PARAMETERS_H__
 #include "TextPosition.h"
-#include "EnumeratorTemplate.h"
+#include "ArrayTemplate.h"
 
 
 typedef CArrayTemplate<STextPosition>	CArrayTextPosition;

@@ -830,7 +830,7 @@ TRISTATE CJavaTokenParser::ParseKeyword(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorIdentifier<CJavaTokenKeywordDefinition>(mpcDefinitions->GetKeywords(), &uiID, false);
+	tResult = mcParser.GetLongestIdentifier(mpcDefinitions->GetKeywords()->GetNames(), mpcDefinitions->GetKeywords()->NumElements(), &uiID, false);
 	if (tResult == TRITRUE)
 	{
 		eKeyword = (EJavaTokenKeyword)uiID;
@@ -862,7 +862,7 @@ TRISTATE CJavaTokenParser::ParseAmbiguous(CJavaToken** ppcCurrent)
 	STextPosition						sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CCJavaTokenAmbiguousDefinition>(mpcDefinitions->GetAmbiguous(), &uiID, false);
+	tResult = mcParser.GetLongestCharacterSequence(mpcDefinitions->GetAmbiguous()->GetNames(), mpcDefinitions->GetAmbiguous()->NumElements(), &uiID, false);
 	if (tResult == TRITRUE)
 	{
 		eAmbiguous = (ECJavaTokenAmbiguous)uiID;
@@ -894,7 +894,7 @@ TRISTATE CJavaTokenParser::ParseOperator(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenOperatorDefinition>(mpcDefinitions->GetOperators(), &uiID, false);
+	tResult = mcParser.GetLongestCharacterSequence(mpcDefinitions->GetOperators()->GetNames(), mpcDefinitions->GetOperators()->NumElements(), &uiID, false);
 	if (tResult == TRITRUE)
 	{
 		eOperator = (EJavaTokenOperator)uiID;
@@ -926,7 +926,7 @@ TRISTATE CJavaTokenParser::ParseSeparator(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenSeparatorDefinition>(mpcDefinitions->GetSeparators(), &uiID, false);
+	tResult = mcParser.GetLongestCharacterSequence(mpcDefinitions->GetSeparators()->GetNames(), mpcDefinitions->GetSeparators()->NumElements(), &uiID, false);
 	if (tResult == TRITRUE)
 	{
 		eSeparator = (EJavaTokenSeparator)uiID;
@@ -958,7 +958,7 @@ TRISTATE CJavaTokenParser::ParseScope(CJavaToken** ppcCurrent)
 	STextPosition				sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenScopeDefinition>(mpcDefinitions->GetScopes(), &uiID, false);
+	tResult = mcParser.GetLongestCharacterSequence(mpcDefinitions->GetScopes()->GetNames(), mpcDefinitions->GetScopes()->NumElements(), &uiID, false);
 	if (tResult == TRITRUE)
 	{
 		eScope = (EJavaTokenScope)uiID;

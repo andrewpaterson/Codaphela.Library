@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/EnumeratorVoid.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
@@ -60,7 +59,6 @@ bool CMTLReader::Read(void)
 {
 //	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
-	CEnumeratorVoid		cTypes;
 //	int					iType;
 //	int					iNumVerts;
 	CArrayChars		cLines;
@@ -68,30 +66,9 @@ bool CMTLReader::Read(void)
 //	int					i;
 //	TRISTATE			tResult;
 
-	cTypes.Init();
-	cTypes.Add("Ns",		WMTLP_Ns);
-	cTypes.Add("Ni",		WMTLP_Ni);
-	cTypes.Add("d",			WMTLP_d);
-	cTypes.Add("Tr",		WMTLP_Tr);
-	cTypes.Add("Tf",		WMTLP_Tf);
-	cTypes.Add("illum",		WMTLP_illum);
-	cTypes.Add("Ka",		WMTLP_Ka);
-	cTypes.Add("Kd",		WMTLP_Kd);
-	cTypes.Add("Ks",		WMTLP_Ks);
-	cTypes.Add("Ke",		WMTLP_Ke);
-	cTypes.Add("map_Ka",	WMTLP_map_Ka);
-	cTypes.Add("map_Kd",	WMTLP_map_Kd);
-	cTypes.Add("map_Ks",	WMTLP_map_Ks);
-	cTypes.Add("map_Ke",	WMTLP_map_Ke);
-	cTypes.Add("map_d",		WMTLP_map_d);
-	cTypes.Add("map_bump",	WMTLP_map_bump);
-	cTypes.Add("bump",		WMTLP_bump);
-	cTypes.Add("map_refl",	WMTLP_map_refl);
-
 	cTextFile.Init();
 	if (!cTextFile.Read(mszFileName.Text()))
 	{
-		cTypes.Kill();
 		cTextFile.Kill();
 		return false;
 	}

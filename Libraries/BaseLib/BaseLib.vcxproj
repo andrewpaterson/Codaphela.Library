@@ -240,7 +240,6 @@
     <ClInclude Include="Float64Vec3.h" />
     <ClInclude Include="Float64Vec4.h" />
     <ClInclude Include="Double4x4.h" />
-    <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="Float64Vec2.h" />
     <ClInclude Include="FloatPrinter.h" />
@@ -427,11 +426,6 @@
     <ClInclude Include="TrackingAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
-    <ClInclude Include="EnumeratorBlock.h" />
-    <ClInclude Include="EnumeratorEnumerator.h" />
-    <ClInclude Include="EnumeratorPointer.h" />
-    <ClInclude Include="EnumeratorTemplate.h" />
-    <ClInclude Include="EnumeratorVoid.h" />
     <ClInclude Include="Chars.h" />
     <ClInclude Include="CharsHelper.h" />
     <ClInclude Include="Newline.h" />
@@ -849,11 +843,6 @@
     <ClCompile Include="TimSort.cpp" />
     <ClCompile Include="TrackingAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
-    <ClCompile Include="EnumeratorBlock.cpp" />
-    <ClCompile Include="EnumeratorEnumerator.cpp" />
-    <ClCompile Include="EnumeratorPointer.cpp" />
-    <ClCompile Include="EnumeratorTemplate.cpp" />
-    <ClCompile Include="EnumeratorVoid.cpp" />
     <ClCompile Include="Chars.cpp" />
     <ClCompile Include="CharsHelper.cpp" />
     <ClCompile Include="Newline.cpp" />

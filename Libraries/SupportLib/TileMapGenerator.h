@@ -1,7 +1,7 @@
 #ifndef __TILE_MAP_GENERATOR_H__
 #define __TILE_MAP_GENERATOR_H__
 #include "BaseLib/StdRandom.h"
-#include "BaseLib/EnumeratorVoid.h"
+#include "BaseLib/ArrayChars.h"
 #include "TileCelBrush.h"
 #include "TileMapPattern.h"
 #include "TileCelType.h"
@@ -23,8 +23,8 @@ DESTRUCTABLE(CTileMapGenerator);
 protected:
 	CArrayTileMapPattern		macTileMapPatterns;
 	CArray<CTileCelBrush>		maTileCelBrushes;
-	CEnumeratorVoid				meszPatternNames;
-	CEnumeratorVoid				meszSourceNames;
+	CArrayChars					maszPatternNames;
+	CArrayChars					maszSourceNames;
 	CArrayTileCelType			macTileCelTypes;
 	CArray<CTileGridSource>		maTileGridSources;
 	CLinkedListBlock			mllcTileSources;

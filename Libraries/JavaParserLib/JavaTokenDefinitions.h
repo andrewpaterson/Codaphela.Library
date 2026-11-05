@@ -22,36 +22,57 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __JAVA_TOKEN_DEFINITIONS_H__
 #include "BaseLib/TextParser.h"
 #include "BaseLib/ArrayChars.h"
-#include "BaseLib/EnumeratorTemplate.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePrimitive.h"
+#include "BaseLib/Logger.h"
 #include "JavaTokenMemory.h"
 #include "JavaTokenKeyword.h"
 
 
-typedef CEnumeratorTemplate<CJavaTokenKeywordDefinition> CKeywordEnumerator;
-typedef CEnumeratorTemplate<CJavaTokenSeparatorDefinition> CSeparatorEnumerator;
-typedef CEnumeratorTemplate<CJavaTokenOperatorDefinition> COperatorEnumerator;
-typedef CEnumeratorTemplate<CCJavaTokenAmbiguousDefinition> CAmbiguousEnumerator;
-typedef CEnumeratorTemplate<CJavaTokenScopeDefinition> CScopeEnumerator;
+//Token definitions indexed by their token enum, with their names alongside for CTextParser::GetLongestIdentifier and GetLongestCharacterSequence.
+template<class M>
+class CJavaTokenDefinitionTable
+{
+protected:
+	CArrayTemplate<M>						macDefinitions;
+	CArrayTemplatePrimitive<const char*>	maszNames;
+
+public:
+	void				Init(void);
+	void				Kill(void);
+
+	M*					Add(size uiIndex, const char* szName);
+	M*					Get(size uiIndex);
+	const char* const*	GetNames(void);
+	size				NumElements(void);
+};
+
+
+typedef CJavaTokenDefinitionTable<CJavaTokenKeywordDefinition>		CKeywordDefinitions;
+typedef CJavaTokenDefinitionTable<CJavaTokenSeparatorDefinition>	CSeparatorDefinitions;
+typedef CJavaTokenDefinitionTable<CJavaTokenOperatorDefinition>		COperatorDefinitions;
+typedef CJavaTokenDefinitionTable<CCJavaTokenAmbiguousDefinition>	CAmbiguousDefinitions;
+typedef CJavaTokenDefinitionTable<CJavaTokenScopeDefinition>		CScopeDefinitions;
 
 
 class CJavaTokenDefinitions
 {
 protected:
-	CKeywordEnumerator		mcKeywords;
-	COperatorEnumerator		mcOperators;
-	CSeparatorEnumerator	mcSeparators;
-	CAmbiguousEnumerator	mcAmbiguous;
-	CScopeEnumerator		mcScopes;
+	CKeywordDefinitions		mcKeywords;
+	COperatorDefinitions	mcOperators;
+	CSeparatorDefinitions	mcSeparators;
+	CAmbiguousDefinitions	mcAmbiguous;
+	CScopeDefinitions		mcScopes;
 
 public:
 	void 						Init(void);
 	void 						Kill(void);
 
-	CKeywordEnumerator*			GetKeywords(void);
-	CSeparatorEnumerator*		GetSeparators(void);
-	COperatorEnumerator*		GetOperators(void);
-	CAmbiguousEnumerator*		GetAmbiguous(void);
-	CScopeEnumerator*			GetScopes(void);
+	CKeywordDefinitions*		GetKeywords(void);
+	CSeparatorDefinitions*		GetSeparators(void);
+	COperatorDefinitions*		GetOperators(void);
+	CAmbiguousDefinitions*		GetAmbiguous(void);
+	CScopeDefinitions*			GetScopes(void);
 
 	CJavaTokenKeywordDefinition*		GetKeyword(EJavaTokenKeyword eKeyword);
 	CJavaTokenOperatorDefinition*	GetOperator(EJavaTokenOperator eOperator);
@@ -72,12 +93,90 @@ protected:
 	void						AddAmbiguousDefinition(char* szAmbiguous, ECJavaTokenAmbiguous eAmbiguous);
 	void						AddGenericDefinition(char* szGeneric, EJavaTokenScope eGeneric);
 
-	void						KillKeywords(void);
-	void						KillOperators(void);
-	void						KillSeparators(void);
-	void						KillAmbiguous(void);
-	void						KillGenerics(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CJavaTokenDefinitionTable<M>::Init(void)
+{
+	macDefinitions.Init();
+	maszNames.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CJavaTokenDefinitionTable<M>::Kill(void)
+{
+	size	i;
+	size	uiNumElements;
+
+	uiNumElements = macDefinitions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		macDefinitions.Get(i)->Kill();
+	}
+	maszNames.Kill();
+	macDefinitions.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CJavaTokenDefinitionTable<M>::Add(size uiIndex, const char* szName)
+{
+	if (uiIndex != macDefinitions.NumElements())
+	{
+		gcLogger.Error2(__METHOD__, " Token definition [", szName, "] must be added in the order of its enum.", NULL);
+		return NULL;
+	}
+
+	maszNames.Add(szName);
+	return macDefinitions.Add();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CJavaTokenDefinitionTable<M>::Get(size uiIndex)
+{
+	return macDefinitions.SafeGet(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+const char* const* CJavaTokenDefinitionTable<M>::GetNames(void)
+{
+	return maszNames.GetData();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+size CJavaTokenDefinitionTable<M>::NumElements(void)
+{
+	return macDefinitions.NumElements();
+}
 
 
 #endif // !__JAVA_TOKEN_DEFINITIONS_H__

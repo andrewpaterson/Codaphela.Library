@@ -521,6 +521,90 @@ TRISTATE CTextParser::GetExactCharacterSequence(const char* szSequence, bool bSk
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetLongestIdentifier(const char* const* aszNames, size uiNumNames, size* puiIndex, bool bSkipWhitespace)
+{
+	return GetLongest(aszNames, uiNumNames, puiIndex, bSkipWhitespace, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetLongestCharacterSequence(const char* const* aszNames, size uiNumNames, size* puiIndex, bool bSkipWhitespace)
+{
+	return GetLongest(aszNames, uiNumNames, puiIndex, bSkipWhitespace, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetLongest(const char* const* aszNames, size uiNumNames, size* puiIndex, bool bSkipWhitespace, bool bIdentifier)
+{
+	size			i;
+	TRISTATE		tReturn;
+	size			uiLongestLength;
+	size			uiLength;
+	bool			bFound;
+	STextPosition	sStartPosition;
+	STextPosition	sFoundPosition;
+
+	GetPosition(&sStartPosition);
+	if (bSkipWhitespace)
+	{
+		SkipWhitespace();
+	}
+
+	uiLongestLength = 0;
+	bFound = false;
+	for (i = 0; i < uiNumNames; i++)
+	{
+		if (bIdentifier)
+		{
+			tReturn = GetExactIdentifier(aszNames[i], false);
+		}
+		else
+		{
+			tReturn = GetExactCharacterSequence(aszNames[i], false);
+		}
+
+		if (tReturn == TRITRUE)
+		{
+			uiLength = StrLen(aszNames[i]);
+			if (uiLength > uiLongestLength)
+			{
+				uiLongestLength = uiLength;
+				*puiIndex = i;
+				bFound = true;
+				GetPosition(&sFoundPosition);
+			}
+			SetPosition(&sStartPosition);
+		}
+		else if (tReturn == TRIERROR)
+		{
+			return TRIERROR;
+		}
+	}
+
+	if (bFound)
+	{
+		SetPosition(&sFoundPosition);
+		return TRITRUE;
+	}
+	else
+	{
+		SetPosition(&sStartPosition);
+		*puiIndex = ARRAY_ELEMENT_NOT_FOUND;
+		return TRIFALSE;
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

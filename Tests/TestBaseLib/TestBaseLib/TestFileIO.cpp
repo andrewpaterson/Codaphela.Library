@@ -1,7 +1,6 @@
 #include "BaseLib/FileIO.h"
 #include "BaseLib/MemoryFile.h"
-#include "BaseLib/EnumeratorTemplate.h"
-#include "BaseLib/EnumeratorBlock.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/LinkedListBlockAligned.h"
 #include "BaseLib/LinkedListBlock.h"
 #include "BaseLib/TreeTemplate.h"
@@ -285,39 +284,6 @@ void TestFileIOStringTruncated(void)
 
 	cFile.Kill();
 	cMemory.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void TestFileIOEnumerator(void)
-{
-	CMemoryFile							cMemory;
-	CFileBasic							cFile;
-	CEnumeratorTemplate<CFileIOTest>	cEnumerator;
-	CFileIOTest							cTest;
-	CFileIOTest*						pcTestIn;
-	CEnumeratorTemplate<CFileIOTest>	cEnumeratorIn;
-
-	TestFileIOBegin(&cMemory, &cFile);
-
-	cTest.Init(83);
-	cEnumerator.Init();
-	cEnumerator.Add("I Dunno", &cTest, 2);
-
-	AssertTrue(cEnumerator.WriteEnumeratorTemplate(&cFile));
-
-	cEnumerator.Kill();
-	TestFileIOMiddle(&cFile);
-
-	AssertTrue(cEnumeratorIn.ReadEnumeratorTemplate(&cFile));
-	AssertInt(2, cEnumeratorIn.Get("I Dunno", &pcTestIn));
-	AssertTrue(pcTestIn->IsOkay(83));
-
-	cEnumeratorIn.Kill();
-	TestFileIOEnd(&cMemory, &cFile);
 }
 
 
@@ -718,7 +684,6 @@ void TestFileIO(void)
 	TestFileIOArray();
 	TestFileIOString();
 	TestFileIOStringTruncated();
-	TestFileIOEnumerator();
 	TestFileIOTree();
 	TestFileIOLinkList();
 	TestFileIOLinkedListBlockAligned();

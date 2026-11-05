@@ -22,7 +22,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __JAVA_TOKEN_PARSER_H__
 #include "BaseLib/TextParser.h"
 #include "BaseLib/ArrayChars.h"
-#include "BaseLib/EnumeratorTemplate.h"
 #include "BaseLib/Logger.h"
 #include "JavaTokenMemory.h"
 #include "JavaTokenDefinitions.h"

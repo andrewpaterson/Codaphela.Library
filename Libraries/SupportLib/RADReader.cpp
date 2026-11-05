@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/EnumeratorVoid.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
@@ -31,16 +30,38 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "RADReader.h"
 
 
+static const char* const gaszRADChannels[] = { "Red", "Green", "Blue", "Grey", "Hue", "Saturation", "Value", "Oppacity", "SpecularIntensity", "NormalX", "NormalY", "NormalZ", "SelfIllumination", "AdjustU", "AdjustV" };
+static const size gaiRADChannels[] =
+{
+	IMAGE_DIFFUSE_RED,
+	IMAGE_DIFFUSE_GREEN,
+	IMAGE_DIFFUSE_BLUE,
+	IMAGE_DIFFUSE_GREY,
+	CHANNEL(IP_Diffuse, CT_Hue),
+	CHANNEL(IP_Diffuse, CT_Saturation),
+	CHANNEL(IP_Diffuse, CT_Value),
+	IMAGE_OPACITY,
+	IMAGE_SPECULAR,
+	CHANNEL(IP_Normal, CT_X),
+	CHANNEL(IP_Normal, CT_Y),
+	CHANNEL(IP_Normal, CT_Z),
+	CHANNEL(IP_Illumination, CT_Intensity),
+	CHANNEL(IP_UVAdjust, CT_U),
+	CHANNEL(IP_UVAdjust, CT_V),
+};
+
+static const char* const gaszRADTypes[] = { "Char", "UByte", "Short", "UShort", "Int", "UInt", "Float", "Bit", "Crumb", "Nybble", "Nickle" };
+static const EPrimitiveType gaeRADTypes[] = { PT_int8, PT_uint8, PT_int16, PT_uint16, PT_int32, PT_uint32, PT_float32, PT_bit, PT_crumb, PT_nybble, PT_nickle };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pImport)
 {
-	CEnumeratorVoid		cChannels;
-	CEnumeratorVoid		cTypes;
-	size				iType;
-	size				iChannel;
+	size				uiType;
+	size				uiChannel;
 	TRISTATE			tResult;
 
 	if (!pcTextParser->GetExactCharacter('{'))
@@ -48,64 +69,28 @@ bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pImport)
 		return false;
 	}
 
-	cChannels.Init();
-	cChannels.Add("Red",				IMAGE_DIFFUSE_RED);
-	cChannels.Add("Green",				IMAGE_DIFFUSE_GREEN);
-	cChannels.Add("Blue",				IMAGE_DIFFUSE_BLUE);
-	cChannels.Add("Grey",				IMAGE_DIFFUSE_GREY);
-	cChannels.Add("Hue",				CHANNEL(IP_Diffuse, CT_Hue));
-	cChannels.Add("Saturation",			CHANNEL(IP_Diffuse, CT_Saturation));
-	cChannels.Add("Value",				CHANNEL(IP_Diffuse, CT_Value));
-	cChannels.Add("Oppacity",			IMAGE_OPACITY);
-	cChannels.Add("SpecularIntensity",	IMAGE_SPECULAR);
-	cChannels.Add("NormalX",			CHANNEL(IP_Normal, CT_X));
-	cChannels.Add("NormalY",			CHANNEL(IP_Normal, CT_Y));
-	cChannels.Add("NormalZ",			CHANNEL(IP_Normal, CT_Z));
-	cChannels.Add("SelfIllumination",	CHANNEL(IP_Illumination, CT_Intensity));
-	cChannels.Add("AdjustU", 			CHANNEL(IP_UVAdjust, CT_U));
-	cChannels.Add("AdjustV", 			CHANNEL(IP_UVAdjust, CT_V));
-
-	cTypes.Init();
-	cTypes.Add("Char",		PT_int8);
-	cTypes.Add("UByte",		PT_uint8);
-	cTypes.Add("Short",		PT_int16);
-	cTypes.Add("UShort",	PT_uint16);
-	cTypes.Add("Int",		PT_int32);
-	cTypes.Add("UInt",		PT_uint32);
-	cTypes.Add("Float", 	PT_float32);
-	cTypes.Add("Bit",		PT_bit);
-	cTypes.Add("Crumb",		PT_crumb);
-	cTypes.Add("Nybble", 	PT_nybble);
-	cTypes.Add("Nickle", 	PT_nickle);
-
 	while (pcTextParser->GetExactCharacter('}') != TRITRUE)
 	{
 		//Get the type...
-		tResult = pcTextParser->GetEnumeratorIdentifier(&cTypes, &iType);
+		tResult = pcTextParser->GetLongestIdentifier(gaszRADTypes, sizeof(gaszRADTypes) / sizeof(gaszRADTypes[0]), &uiType);
 		if ((tResult == TRIERROR) || (tResult == TRIFALSE)) 
 		{
-			cTypes.Kill();
-			cChannels.Kill();
 			return false;
 		}
 
 		//Get the channel;
-		tResult = pcTextParser->GetEnumeratorIdentifier(&cChannels, &iChannel);
+		tResult = pcTextParser->GetLongestIdentifier(gaszRADChannels, sizeof(gaszRADChannels) / sizeof(gaszRADChannels[0]), &uiChannel);
 		if ((tResult == TRIERROR) || (tResult == TRIFALSE)) 
 		{
-			cTypes.Kill();
-			cChannels.Kill();
 			return false;
 		}
 
-		pImport->AddChannel(iChannel, (EPrimitiveType)iType);
+		pImport->AddChannel(gaiRADChannels[uiChannel], gaeRADTypes[uiType]);
 
 		//Optionally get a semicolon.
 		pcTextParser->GetExactCharacter(';');
 	}
 
-	cTypes.Kill();
-	cChannels.Kill();
 	return true;
 }
 

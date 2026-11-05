@@ -3,6 +3,20 @@
 #include "TileMapGenerator.h"
 
 
+//The names' text does not move when the array grows, so the returned pointers can be compared and kept.
+static char* FindName(CArrayChars* paszNames, const char* szName)
+{
+	size	uiIndex;
+
+	uiIndex = paszNames->GetIndex(szName);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return NULL;
+	}
+	return paszNames->GetText(uiIndex);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -22,8 +36,8 @@ void CTileMapGenerator::Init(CRandom* pcRandom)
 	PreInit();
 	macTileMapPatterns.Init();
 	maTileCelBrushes.Init();
-	meszPatternNames.Init();
-	meszSourceNames.Init();
+	maszPatternNames.Init();
+	maszSourceNames.Init();
 	macTileCelTypes.Init();
 	maTileGridSources.Init();
 	mllcTileSources.Init();
@@ -88,8 +102,8 @@ void CTileMapGenerator::Free(void)
 	}
 	mllcTileSources.Kill();
 	
-	meszPatternNames.Kill();
-	meszSourceNames.Kill();
+	maszPatternNames.Kill();
+	maszSourceNames.Kill();
 }
 
 
@@ -101,8 +115,8 @@ void CTileMapGenerator::Class(void)
 {
 	U_Data(CArrayTileMapPattern, macTileMapPatterns);
 	M_Embedded(maTileCelBrushes);
-	U_Data(CEnumeratorVoid, meszPatternNames);
-	U_Data(CEnumeratorVoid, meszSourceNames);
+	U_Data(CArrayChars, maszPatternNames);
+	U_Data(CArrayChars, maszSourceNames);
 	U_Data(CArrayTileCelType, macTileCelTypes);
 	M_Embedded(maTileGridSources);
 	U_Data(CLinkedListBlock, mllcTileSources);
@@ -253,11 +267,10 @@ char* CTileMapGenerator::AddPatternConstantName(char* szPatternName)
 {
 	char* szPatternConstantName;
 
-	szPatternConstantName = meszPatternNames.GetName(szPatternName);
+	szPatternConstantName = FindName(&maszPatternNames, szPatternName);
 	if (!szPatternConstantName)
 	{
-		meszPatternNames.Add(szPatternName);
-		szPatternConstantName = meszPatternNames.GetName(szPatternName);
+		szPatternConstantName = maszPatternNames.Add(szPatternName)->Text();
 	}
 	return szPatternConstantName;
 }
@@ -269,16 +282,11 @@ char* CTileMapGenerator::AddPatternConstantName(char* szPatternName)
 //////////////////////////////////////////////////////////////////////////
 char* CTileMapGenerator::AddSourceConstantName(char* szSourceName)
 {
-	char* szSourceConstantName;
-
-	szSourceConstantName = meszSourceNames.GetName(szSourceName);
-	if (!szSourceConstantName)
+	if (maszSourceNames.Contains(szSourceName))
 	{
-		meszSourceNames.Add(szSourceName);
-		szSourceConstantName = meszSourceNames.GetName(szSourceName);
-		return szSourceConstantName;
+		return NULL;
 	}
-	return NULL;
+	return maszSourceNames.Add(szSourceName)->Text();
 }
 
 
@@ -422,7 +430,7 @@ CTileMapPattern* CTileMapGenerator::GetPattern(int iCelType, char* szPatternName
 		return NULL;
 	}
 
-	szPatternConstantName = meszPatternNames.GetName(szPatternName);
+	szPatternConstantName = FindName(&maszPatternNames, szPatternName);
 	return GetPatternConstantName(iCelType, szPatternConstantName);
 }
 
@@ -440,7 +448,7 @@ Ptr<CTileGridSource> CTileMapGenerator::GetSource(char* szTileGridSource)
 		return NULL;
 	}
 
-	szSourceConstantName = meszSourceNames.GetName(szTileGridSource);
+	szSourceConstantName = FindName(&maszSourceNames, szTileGridSource);
 	return GetSourceConstantName(szSourceConstantName);
 }
 
@@ -716,7 +724,7 @@ Ptr<CTileCelBrush> CTileMapGenerator::GetTileBrush(int iCelType, char* szPattern
 	Ptr<CTileCelBrush>	pBrush;
 	char*				szConstantPatternName;
 
-	szConstantPatternName = meszPatternNames.GetName(szPatternName);
+	szConstantPatternName = FindName(&maszPatternNames, szPatternName);
 
 	iNumElements = maTileCelBrushes.NumElements();
 	for (i = 0; i < iNumElements; i++)
