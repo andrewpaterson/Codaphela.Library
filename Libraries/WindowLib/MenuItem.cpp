@@ -39,6 +39,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	SetSizedByContent(true);
 	mpStyle = pStyle;
 	mpSubMenu = pSubMenu;
+	miTag = -1;
 
 	//The label is a line of the font high, the icon column is as tall as that with the padding above and below it, so
 	//every item is the same height whether or not it has an icon.
@@ -75,6 +76,7 @@ void CMenuItem::Class(void)
 	M_Pointer(mpLabel);
 	M_Pointer(mpChevron);
 	M_Pointer(mpSubMenu);
+	U_Int32(miTag);
 }
 
 
@@ -136,4 +138,14 @@ bool CMenuItem::HasSubMenu(void) { return mpSubMenu.IsNotNull(); }
 Ptr<CIconComponent> CMenuItem::GetIconComponent(void) { return mpIcon; }
 Ptr<CLabel> CMenuItem::GetLabel(void) { return mpLabel; }
 Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) { return mpChevron; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number of the menu's maker's own, so a click is known by what the
+// item does rather than by its text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::SetTag(int32 iTag) { miTag = iTag; }
+int32 CMenuItem::GetTag(void) { return miTag; }
 

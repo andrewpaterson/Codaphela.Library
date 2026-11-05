@@ -43,6 +43,7 @@ protected:
 	Ptr<CLabel>				mpLabel;
 	Ptr<CIconComponent>		mpChevron;
 	Ptr<CMenuContainer>		mpSubMenu;  //NULL unless the item opens another menu.
+	int32					miTag;  //What the item means to whoever made it, -1 until set.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* szText, Ptr<CImageCel> pIcon, Ptr<CMenuContainer> pSubMenu);
@@ -55,6 +56,8 @@ public:
 	void					SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>			GetIcon(void);
 	Ptr<CMenuContainer>		GetSubMenu(void);
+	void					SetTag(int32 iTag);
+	int32					GetTag(void);
 	bool					HasSubMenu(void);
 	Ptr<CIconComponent>		GetIconComponent(void);
 	Ptr<CLabel>				GetLabel(void);

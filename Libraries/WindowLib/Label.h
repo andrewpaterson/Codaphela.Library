@@ -63,7 +63,7 @@ public:
 	SInt32Vec2		GetDesiredSize(void) override;
 
 protected:
-	void			LayoutText(void);
+	virtual void	LayoutText(void);
 };
 
 
