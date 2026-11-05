@@ -1400,6 +1400,114 @@ static void TestFast65C816BreakpointBlockMove(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A write to TEST_FAST_65C816_SWITCH (a hole in the flat memory, so it
+// reaches the callback) makes the processor use psContext's
+// breakpoints (non-zero) or its own (zero), as a machine changing mode does.
+//
+//////////////////////////////////////////////////////////////////////////
+#define TEST_FAST_65C816_SWITCH		0xFFF0
+
+struct STestFast65C816SwitchContext
+{
+	uint8*			puiMemory;
+	CFast65C816*	pcFast;
+	CBreakpoints*	pcOther;
+};
+
+
+static uint8 TestFast65C816SwitchRead(void* pvContext, uint32 uiAddress)
+{
+	STestFast65C816SwitchContext*	psContext;
+
+	psContext = (STestFast65C816SwitchContext*)pvContext;
+	return (uiAddress < TEST_FAST_65C816_FUZZ_SIZE) ? psContext->puiMemory[uiAddress] : 0xFF;
+}
+
+
+static void TestFast65C816SwitchWrite(void* pvContext, uint32 uiAddress, uint8 uiValue)
+{
+	STestFast65C816SwitchContext*	psContext;
+
+	psContext = (STestFast65C816SwitchContext*)pvContext;
+	if (uiAddress == TEST_FAST_65C816_SWITCH)
+	{
+		psContext->pcFast->UseBreakpoints((uiValue != 0) ? psContext->pcOther : NULL);
+	}
+	else if (uiAddress < TEST_FAST_65C816_FUZZ_SIZE)
+	{
+		psContext->puiMemory[uiAddress] = uiValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Breakpoints chosen by UseBreakpoints from a callback, during a Run,
+// count from the next instruction: from none (the loop that doesn't look
+// addresses up) to a set with one just after the switch, which stops it
+// there; and from a set with one to a set with none (no bank table), which
+// doesn't stop it at the first set's.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C816BreakpointSwitch(void)
+{
+	uint8*							puiMemory;
+	STestFast65C816SwitchContext	sContext;
+	CFast65C816						cFast;
+	CBreakpoints					cOther;
+	static uint8					auiSwitch[] = {
+		0xA9, 0x01,			//$1000 LDA #1
+		0x8D, 0xF0, 0xFF,	//$1002 STA $FFF0: the other breakpoints from here
+		0xEA,				//$1005 NOP
+		0xEA,				//$1006 NOP
+		0xDB };				//$1007 STP
+
+	puiMemory = (uint8*)malloc(TEST_FAST_65C816_FUZZ_SIZE);
+	sContext.puiMemory = puiMemory;
+	sContext.pcFast = &cFast;
+	sContext.pcOther = &cOther;
+	cFast.Init(TestFast65C816SwitchRead, TestFast65C816SwitchWrite, &sContext, puiMemory, TEST_FAST_65C816_FUZZ_SIZE);
+	cFast.SetHole(TEST_FAST_65C816_SWITCH, TEST_FAST_65C816_SWITCH + 1);
+	cOther.Init();
+
+	//From its own (none) to the other's, which has one at the instruction after the switch.
+	AssertTrue(cOther.Add(0x1005, true));
+	memset(puiMemory, 0xEA, TEST_FAST_65C816_FUZZ_SIZE);
+	memcpy(&puiMemory[0x1000], auiSwitch, sizeof(auiSwitch));
+	cFast.Reset();
+	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+	cFast.TestSetS(0x1F0);
+	cFast.TestSetProgramCounter(0, 0x1000);
+	AssertSize(2, cFast.Run(100));
+	AssertTrue(cFast.IsAtBreakpoint());
+	AssertInt(0x1005, cFast.GetProgramAddress());
+	AssertTrue(cFast.GetUsedBreakpoints() == &cOther);
+	AssertTrue(cFast.GetBreakpoints() != &cOther);
+	AssertSize(3, cFast.Run(100));
+	AssertTrue(cFast.IsStopped());
+
+	//From its own (one after the switch) to the other's, now empty: it runs on to the stop.
+	cOther.Clear();
+	cFast.UseBreakpoints(NULL);
+	AssertTrue(cFast.GetUsedBreakpoints() == cFast.GetBreakpoints());
+	AssertTrue(cFast.GetBreakpoints()->Add(0x1006, true));
+	cFast.Reset();
+	cFast.TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, true);
+	cFast.TestSetS(0x1F0);
+	cFast.TestSetProgramCounter(0, 0x1000);
+	AssertSize(5, cFast.Run(100));
+	AssertFalse(cFast.IsAtBreakpoint());
+	AssertTrue(cFast.IsStopped());
+	AssertTrue(cFast.GetUsedBreakpoints() == &cOther);
+
+	cOther.Kill();
+	cFast.Kill();
+	free(puiMemory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFast65C816(void)
@@ -1426,6 +1534,7 @@ void TestFast65C816(void)
 	TestFast65C816Breakpoints();
 	TestFast65C816BreakpointRun();
 	TestFast65C816BreakpointBlockMove();
+	TestFast65C816BreakpointSwitch();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 
