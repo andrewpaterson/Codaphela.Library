@@ -78,7 +78,6 @@ bool CFlowContainer::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::SetRequiredSize(void)
 {
-	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	size				i;
 	SInt32Vec2			sSize;
@@ -97,16 +96,7 @@ void CFlowContainer::SetRequiredSize(void)
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if (sSize.x < 0)
-		{
-			sSize.x = 0;
-		}
-		if (sSize.y < 0)
-		{
-			sSize.y = 0;
-		}
+		sSize = GetLineSize(maChildren.Get(i));
 
 		// Main-axis accumulation
 		iMainTotal = ContainerStyleMainAxis(&sTotalSize, bHorizontal);
@@ -235,12 +225,8 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 	for (i = iStart; i < iEnd; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
+		sSize = GetLineSize(pComponent);
 		iMainSize = ContainerStyleMainAxis(&sSize, bHorizontal);
-		if (iMainSize < 0)
-		{
-			iMainSize = 0;
-		}
 
 		// Main-axis offset (reversed or normal)
 		if (bReversed)
@@ -276,7 +262,6 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 //////////////////////////////////////////////////////////////////////////
 size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength, int* piLineThickness)
 {
-	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	size				i;
 	SInt32Vec2			sSize;
@@ -294,8 +279,7 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 
 	for (i = iFirst; i < uiSize; i++)
 	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
+		sSize = GetLineSize(maChildren.Get(i));
 
 		if (((iLineLength + ContainerStyleMainAxis(&sSize, bHorizontal)) > iMainLength) && (i > iFirst))
 		{
@@ -313,6 +297,30 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 	*piLineLength = iLineLength;
 	*piLineThickness = iLineThickness;
 	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size pComponent takes on a line: its desired size, with nothing
+// (0) on an axis it has none (-1).  The required size, line breaks and
+// line layout all measure it this way.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CFlowContainer::GetLineSize(Ptr<CComponent> pComponent)
+{
+	SInt32Vec2	sSize;
+
+	sSize = pComponent->GetDesiredSize();
+	if (sSize.x < 0)
+	{
+		sSize.x = 0;
+	}
+	if (sSize.y < 0)
+	{
+		sSize.y = 0;
+	}
+	return sSize;
 }
 
 

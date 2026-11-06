@@ -58,6 +58,7 @@ protected:
 	void		LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 	SInt32Vec2	CalculateWrappedArea(int iMainLength);
 	size		FindLineEnd(size iFirst, int iMainLength, int* piLineLength, int* piLineThickness);
+	SInt32Vec2	GetLineSize(Ptr<CComponent> pComponent);
 };
 
 

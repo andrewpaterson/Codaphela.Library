@@ -1535,6 +1535,77 @@ void TestFlowContainerDarkForestImagesRightTopContinuePastEdge(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A component without a desired size (-1) takes no length on a line, as
+// it takes none in the required size or the line's layout.  The fixed
+// components are a pixel longer than the line, so the last one wraps.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFlowContainerWrapIgnoresUnsizedComponent(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFlowContainer>		pFlow;
+		Ptr<CCanvas>			pFirst;
+		Ptr<CCanvas>			pUnsized;
+		Ptr<CCanvas>			pSecond;
+		Ptr<CCanvas>			pThird;
+		Ptr<CCanvas>			pLast;
+		SInt32Vec2				sVec;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 30, 30, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Unsized Component", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pFlow = OMalloc<CFlowContainer>(pTestWindow);
+		pFlow->SetFlowStyle(CSD_Right, CSW_Wrap, CSV_Top);
+		pTestWindow->SetContainer(pFlow);
+
+		pFirst = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
+		pUnsized = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
+		pSecond = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
+		pThird = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
+		pLast = OMalloc<CCanvas>(pTestWindow, (CPointer)NULL);
+		pFirst->SetDesiredSize(10, 10);
+		pUnsized->SetDesiredSize(-1, -1);
+		pSecond->SetDesiredSize(10, 10);
+		pThird->SetDesiredSize(10, 10);
+		pLast->SetDesiredSize(1, 10);
+		pFlow->AddComponent(pFirst);
+		pFlow->AddComponent(pUnsized);
+		pFlow->AddComponent(pSecond);
+		pFlow->AddComponent(pThird);
+		pFlow->AddComponent(pLast);
+
+		pTestWindow->Show();
+
+		sVec = pThird->GetPosition();
+		AssertInt32Vec2(20, 0, &sVec);
+		sVec = pLast->GetPosition();
+		AssertInt32Vec2(0, 10, &sVec);
+
+		pFirst = NULL;
+		pUnsized = NULL;
+		pSecond = NULL;
+		pThird = NULL;
+		pLast = NULL;
+		pFlow = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertFlowContainerObjectsRemoved();
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainer(void)
@@ -1574,6 +1645,7 @@ void TestFlowContainer(void)
 	TestFlowContainerDarkForestMixedRightBottomWrap();
 	TestFlowContainerDarkForestMixedLeftCenterContinue();
 	TestFlowContainerDarkForestImagesRightTopContinuePastEdge();
+	TestFlowContainerWrapIgnoresUnsizedComponent();
 
 	ObjectsFlush();
 	ObjectsKill();
