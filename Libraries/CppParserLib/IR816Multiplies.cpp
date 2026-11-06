@@ -131,12 +131,106 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 			iBytes += 4;
 		}
 	}
+	if (InlineMultiply16(psInstruction))
+	{
+		szName.Kill();
+		mpsDivided = NULL;
+		CallerCleanUp(0, psInstruction);
+		return true;
+	}
 	UseRuntime(szName.Text());
 	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
 	szName.Kill();
 	CallerCleanUp(iBytes, psInstruction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A byte product from Garth Wilson's table: A (16 bits wide) is the index
+// (x << 8) | y, the product x * y is left in A.  Bit 7 of x picks the bank.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::TableProduct(void)
+{
+	int32	iHigh;
+	int32	iGot;
+
+	iHigh = NewLabel();
+	iGot = NewLabel();
+	Line("asl A");
+	Line("tax");
+	Branch("bcs", iHigh);
+	Line("lda [MathMult + X]:24");
+	Branch("bra", iGot);
+	Label(iHigh);
+	Line("lda [MathMult + 0x10000 + X]:24");
+	Label(iGot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An i16 multiply in a loop, with the table (SetMathTables), as
+// R816_Mul16 in IR816Runtime-MathTables.asm is, in place instead of
+// called: its operands are in the scratch arguments already (RuntimeCall),
+// the product is left in A.  aL * bL, plus (aL * bH + aH * bL) << 8, each
+// skipped when its high byte is 0.  It saves the jsl and rtl (14 cycles);
+// outside loops the call is kept, as it is shorter.  False, with nothing
+// written, for any other multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::InlineMultiply16(SIRInstruction* psInstruction)
+{
+	int32	iNoHighB;
+	int32	iDone;
+
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I16) || !mbMathTables || (miBlock < 0) ||
+		(mcLoops.Depth(mpcFunction->GetBlock((size)miBlock)) == 0))
+	{
+		return false;
+	}
+	iNoHighB = NewLabel();
+	iDone = NewLabel();
+	Line("sep m");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Line("xba");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Line("rep m");
+	TableProduct();
+	Frame("sta", IR816_SCRATCH_RESULT);
+	Line("sep m");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_B + 1);
+	Branch("beq", iNoHighB);
+	Line("xba");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Line("rep m");
+	TableProduct();
+	Line("xba");
+	Line("and 0xFF00");
+	Line("clc");
+	Frame("adc", IR816_SCRATCH_RESULT);
+	Frame("sta", IR816_SCRATCH_RESULT);
+	Label(iNoHighB);
+	Line("rep m");
+	Line("sep m");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_A + 1);
+	Branch("beq", iDone);
+	Line("xba");
+	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Line("rep m");
+	TableProduct();
+	Line("xba");
+	Line("and 0xFF00");
+	Line("clc");
+	Frame("adc", IR816_SCRATCH_RESULT);
+	Frame("sta", IR816_SCRATCH_RESULT);
+	Label(iDone);
+	Line("rep m");
+	Frame("lda", IR816_SCRATCH_RESULT);
 	return true;
 }
 

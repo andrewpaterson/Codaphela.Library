@@ -270,6 +270,8 @@ protected:
 	void			SignExtendInA(int iSignBit);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	bool			RemainderLeft(SIRInstruction* psInstruction);
+	bool			InlineMultiply16(SIRInstruction* psInstruction);
+	void			TableProduct(void);
 	bool			WideMultiply(SIRInstruction* psInstruction);
 	bool			IsHighHalfZero(SIRReference sValue, int iDepth);
 	SIRInstruction*	FindDefinition(SIRReference sValue);

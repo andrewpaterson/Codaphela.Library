@@ -2273,6 +2273,68 @@ void TestIR816BackendBigFrame(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An i16 multiply in a loop is R816_Mul16 in place (InlineMultiply16)
+// with the tables, and still a call without them: 1024 products of
+// pseudo random values shifted right by every pair of amounts (so every
+// byte is 0 in some), hashed, against the host's.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* gszTestIR816InlineMultiply =
+	"function i32 @_main()\n{\n"
+	"entry:\n\tjmp loop\n"
+	"loop:\n\t%i = phi i16 [entry, 0], [body, %i2]\n\t%x = phi i16 [entry, 12345], [body, %x2]\n\t%y = phi i16 [entry, 6789], [body, %y2]\n\t%h = phi i16 [entry, 0], [body, %h2]\n"
+	"\t%done = eq i16 %i, 1024\n\tbrif %done, exit, body\n"
+	"body:\n"
+	"\t%xm = mul i16 %x, 25173\n\t%x2 = add i16 %xm, 13849\n\t%ym = mul i16 %y, 1103\n\t%y2 = add i16 %ym, 7919\n"
+	"\t%sa = and i16 %i, 15\n\t%ti = lshr i16 %i, 5\n\t%sb = and i16 %ti, 15\n"
+	"\t%a = lshr i16 %x2, %sa\n\t%b = lshr i16 %y2, %sb\n"
+	"\t%p = mul i16 %a, %b\n"
+	"\t%hs = shl i16 %h, 5\n\t%ha = add i16 %hs, %h\n\t%h2 = xor i16 %ha, %p\n"
+	"\t%i2 = add i16 %i, 1\n\tjmp loop\n"
+	"exit:\n\t%z = zext i16 %h to i32\n\tret i32 %z\n}\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendInlineMultiply(void)
+{
+	uint16	i;
+	uint16	x;
+	uint16	y;
+	uint16	h;
+	CChars	szAssembly;
+
+	x = 12345;
+	y = 6789;
+	h = 0;
+	for (i = 0; i < 1024; i++)
+	{
+		x = (uint16)(x * 25173 + 13849);
+		y = (uint16)(y * 1103 + 7919);
+		h = (uint16)((h * 33) ^ (uint16)((uint16)(x >> (i & 15)) * (uint16)(y >> ((i >> 5) & 15))));
+	}
+
+	szAssembly.Init();
+	AssertLong(h, TestIR816Run(gszTestIR816InlineMultiply, false, &szAssembly));
+	AssertFalse(szAssembly.Contains("jsl R816_Mul16"));
+	AssertTrue(szAssembly.Contains("MathMult"));
+	szAssembly.Kill();
+	AssertIR816(h, gszTestIR816InlineMultiply, true);
+
+	gbTestIR816MathSafe = true;
+	szAssembly.Init();
+	AssertLong(h, TestIR816Run(gszTestIR816InlineMultiply, false, &szAssembly));
+	AssertTrue(szAssembly.Contains("jsl R816_Mul16"));
+	AssertFalse(szAssembly.Contains("MathMult"));
+	szAssembly.Kill();
+	gbTestIR816MathSafe = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Without the maths tables (CCPP65Builder::SetMathTables(false)): the
 // runtime's multiplies are IR816Runtime-MathSafe.asm's and an i8 multiply
 // calls R816_Mul16 instead of reading MathMult.  The multiply and divide
@@ -2757,6 +2819,7 @@ void TestIR816Backend(void)
 	TestIR816BackendPeepholeTransfers();
 	TestIR816BackendBigFrame();
 	TestIR816BackendMathSafe();
+	TestIR816BackendInlineMultiply();
 	TestIR816BackendRuntimeRoutines();
 
 	SafeKill(gapcTestIR816Runtime[0]);

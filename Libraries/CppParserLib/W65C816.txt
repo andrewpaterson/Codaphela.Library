@@ -380,6 +380,25 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	TestIR816BackendRuntimeRoutines calls every multiply and divide routine straight, with
 	and without the tables, against the host (results, the remainder at D + 5, nothing
 	else of the caller's direct page written, S back).
+	2026-11-06, a profiled round (TestBaseLib65 816: R816_UDiv32 was 7.7% of the cycles):
+	- The divides take faster steps by the divisor: under 128, 8 bits wide a byte at a
+	  time (UDiv16's own path, picked first; UDiv32's narrow path); under $8000, UDiv32's
+	  narrow steps without the overflow guard; 65536 or more, UDiv32's steps unrolled and
+	  only 8 when the dividend >> 8 is below the divisor (the guarded loop is kept for
+	  divisors of 2^31 or more).  Cycles: 16 / 7 bits 309 -> 275, 32 / 7 bits 702 -> 515,
+	  32 / 15 bits 536 -> 487, 32 / 24 bits 931 -> 667, 32 / 32 892 -> 694; the dispatch
+	  costs 3 to 7 elsewhere (16 / 8 bits 248 -> 254, 32 / 16 bits 421 -> 428).
+	- An i16 multiply in a loop is R816_Mul16 in place with the tables
+	  (CIR816Backend::InlineMultiply16): 14 cycles less a call, about 100 bytes more a
+	  site, so only in loops.  Test: TestIR816BackendInlineMultiply.
+	- Not done: a 32 bit divide by a constant whose dividend isn't bounded as a multiply.
+	  The high word of the 32 x 32 product (R816_UMulWide32, about 566 cycles, 1210
+	  without the tables) costs more than the divide (about 450-480).
+	TestStandardLib65 816 31.340G -> 31.121G (-0.70%); TestBaseLib65 816 19.735G ->
+	19.503G (-1.18%, with one more program by then): R816_UDiv32 -11.5% / -25%,
+	R816_UDiv16 -8.5% / -9.5%, three quarters of the R816_Mul16 calls gone.
+	TEST_IR816_RUNTIME_CYCLES=1 prints each routine's cycles by operand class
+	(TestIR816BackendRuntimeRoutines).
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call
