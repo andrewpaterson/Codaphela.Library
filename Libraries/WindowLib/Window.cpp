@@ -126,6 +126,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	miTickDelay = -1;
 	mpOwner = NULL;
 	maOwned.Init();
+	masPosted.Init();
 	mcClosed.Init();
 
 	PostInit();
@@ -144,6 +145,7 @@ void CWindow::Free(void)
 
 	mszWindowTitle.Kill();
 	mcActivated.Kill();
+	masPosted.Kill();
 
 	CComponent::Free();
 }
@@ -186,6 +188,7 @@ void CWindow::Class(void)
 	U_Int64(miTickDelay);
 	M_Pointer(mpOwner);
 	M_Embedded(maOwned);
+	U_Unknown(CArrayMemberCalls, masPosted);
 	U_Data(CComponentEvent<CWindow>, mcClosed);
 }
 
@@ -272,6 +275,7 @@ bool CWindow::Show(void)
 		PaintOwned(bContinuous);
 		BlinkCaret(GetDebugTickCount());
 		miTickDelay = -1;
+		RunPosted();
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 	}
 	return bResult;
@@ -956,6 +960,51 @@ bool CWindow::ApproveClose(void)
 void CWindow::ClearCloseApprover(void)
 {
 	msCloseApprover.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The calls posted (see Post), in the order they were.  One may post
+// another: it is called at the tick after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::RunPosted(void)
+{
+	CArrayMemberCalls	asCalls;
+	size				i;
+
+	if (masPosted.NumElements() == 0)
+	{
+		return;
+	}
+	asCalls.Init();
+	asCalls.Copy(&masPosted);
+	masPosted.RemoveRange(0, masPosted.NumElements());
+	for (i = 0; i < asCalls.NumElements(); i++)
+	{
+		asCalls.Get(i)->Call(NULL);
+	}
+	asCalls.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The calls posted on pvObject aren't made: it is going.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CancelPosted(void* pvObject)
+{
+	size	i;
+
+	for (i = masPosted.NumElements(); i > 0; i--)
+	{
+		if (masPosted.Get(i - 1)->IsOn(pvObject))
+		{
+			masPosted.RemoveAt(i - 1);
+		}
+	}
 }
 
 

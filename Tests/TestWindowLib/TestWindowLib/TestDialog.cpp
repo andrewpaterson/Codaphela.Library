@@ -281,6 +281,75 @@ void TestWindowCloseApprover(void)
 	cNativeFactory.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A call posted to a window is made at its next tick, once however many
+// times it was posted; one cancelled isn't made; one made can post
+// another, made at the tick after.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestPosted
+{
+public:
+	int				miFirst;
+	int				miSecond;
+	CWindow*		mpcWindow;
+
+	void First(void)
+	{
+		miFirst++;
+		mpcWindow->Post(this, &CTestPosted::Second);
+	}
+
+	void Second(void)
+	{
+		miSecond++;
+	}
+};
+
+
+void TestWindowPost(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>	pTestWindow;
+		CPointer		pNull;
+		CTestPosted		cPosted;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
+		pTestWindow = OMalloc<CWindow>("Post Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		cPosted.miFirst = 0;
+		cPosted.miSecond = 0;
+		cPosted.mpcWindow = &pTestWindow;
+
+		pTestWindow->Post(&cPosted, &CTestPosted::First);
+		pTestWindow->Post(&cPosted, &CTestPosted::First);
+		AssertInt(0, cPosted.miFirst);
+		pTestWindow->RunPosted();
+		AssertInt(1, cPosted.miFirst);
+		AssertInt(0, cPosted.miSecond);
+		pTestWindow->RunPosted();
+		AssertInt(1, cPosted.miSecond);
+		pTestWindow->RunPosted();
+		AssertInt(1, cPosted.miFirst);
+		AssertInt(1, cPosted.miSecond);
+
+		pTestWindow->Post(&cPosted, &CTestPosted::First);
+		pTestWindow->CancelPosted(&cPosted);
+		pTestWindow->RunPosted();
+		AssertInt(1, cPosted.miFirst);
+
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -293,6 +362,7 @@ void TestDialog(void)
 
 	TestDialogModal();
 	TestWindowCloseApprover();
+	TestWindowPost();
 
 	ObjectsFlush();
 	ObjectsKill();

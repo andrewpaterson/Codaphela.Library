@@ -39,6 +39,11 @@ class CWindowTick;
 class CNativeSoundFactory;
 class CComponentInput;
 class CButton;
+
+
+typedef CArrayTemplate<SMemberCall>	CArrayMemberCalls;
+
+
 class CWindow : public CComponent
 {
 CONSTRUCTABLE(CWindow); 
@@ -70,6 +75,7 @@ protected:
 	CArray<CWindow>			maOwned;  //Tool windows shown over this one, run by its loop.
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
 	SMemberCall				msCloseApprover;  //Asked whether the close button may close the window, not set if it always may.
+	CArrayMemberCalls		masPosted;  //Called at the next tick, outside the input that posted them (see Post).
 	Ptr<CCanvas>			mpCaretBacking;  //What the caret covers, kept so hiding it needn't paint the window.
 	CInt32Rect				mcCaret;  //Where the focussed component's caret was drawn, window space, right and bottom exclusive.
 	ARGB32					msCaretColour;
@@ -120,6 +126,10 @@ public:
 	void					Stop(void);
 	template<class M, class O>
 	void					SetCloseApprover(O* pcObject, bool(M::*fApprove)(void));
+	template<class M, class O>
+	void					Post(O* pcObject, void(M::*fFunction)(void));
+	void					CancelPosted(void* pvObject);
+	void					RunPosted(void);
 	void					ClearCloseApprover(void);
 	bool					ApproveClose(void);
 	void					Layout(void);
@@ -195,6 +205,34 @@ template<class M, class O>
 void CWindow::SetCloseApprover(O* pcObject, bool(M::*fApprove)(void))
 {
 	msCloseApprover.Init(pcObject, fApprove);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// fFunction is called at the next tick, from the window's loop rather
+// than the input (a key, a menu click) that posts it: what can't be done
+// from an input action, like showing a dialog (see ShowModal), can be
+// done from it.  A call posted again before it's made is made once.  The
+// object isn't held; it calls CancelPosted before it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CWindow::Post(O* pcObject, void(M::*fFunction)(void))
+{
+	SMemberCall	sCall;
+	size		i;
+
+	sCall.Init(pcObject, fFunction);
+	for (i = 0; i < masPosted.NumElements(); i++)
+	{
+		if (masPosted.Get(i)->Equals(&sCall))
+		{
+			return;
+		}
+	}
+	memcpy(masPosted.Add(), &sCall, sizeof(SMemberCall));
+	RequestTick(0);
 }
 
 
