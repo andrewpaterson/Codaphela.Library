@@ -2313,6 +2313,275 @@ void TestIR816BackendMathSafe(void)
 }
 
 
+//The runtime routines called straight (TestIR816RuntimeRoutines): the start up calls the routine whose address is at
+//$80 with D at $100 (its scratch operands at $10F and $113), or for a 64 bit one pushes b and a from $200 and $208
+//and the result pointer $300 first, then stops.
+static const char* gszTestIR816RuntimeStartUp =
+	"\t\t.section rodata.Vectors, at 0xFFFC\n\t\t.word ResetStub\n"
+	"\t\t.section text.ResetStub, at 0xFF00\nResetStub:\n\t\tjml Start\n"
+	"\t\t.section text.Start\nStart:\n\t\tclc\n\t\txce\n\t\trep (m, x)\n\t\tlda 0xEFFF\n\t\ttcs\n\t\tlda 0x0100\n\t\ttcd\n"
+	"\t\tlda [0x00F0]:24\n\t\tbeq Scratch\n"
+	"\t\tlda [0x0206]:24\n\t\tpha\n\t\tlda [0x0204]:24\n\t\tpha\n\t\tlda [0x0202]:24\n\t\tpha\n\t\tlda [0x0200]:24\n\t\tpha\n"
+	"\t\tlda [0x020E]:24\n\t\tpha\n\t\tlda [0x020C]:24\n\t\tpha\n\t\tlda [0x020A]:24\n\t\tpha\n\t\tlda [0x0208]:24\n\t\tpha\n"
+	"\t\tpea 0\n\t\tpea 0x0300\n\t\tjsl Call\n\t\ttsc\n\t\tclc\n\t\tadc 20\n\t\ttcs\n\t\tstp\n"
+	"Scratch:\n\t\tjsl Call\n\t\tstp\n"
+	"Call:\n\t\tjml [0x0080]:24\n"
+	"\t\t.section rodata.Routines\n"
+	"\t\t.long R816_Mul16, R816_Mul32, R816_UMulWide32, R816_UDiv16, R816_URem16, R816_UDiv32, R816_URem32\n"
+	"\t\t.long R816_SDiv16, R816_SRem16, R816_SDiv32, R816_SRem32, R816_UDiv64, R816_URem64, R816_SDiv64, R816_SRem64\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 TestIR816RuntimeRandom(uint64* puiSeed)
+{
+	*puiSeed ^= *puiSeed << 13;
+	*puiSeed ^= *puiSeed >> 7;
+	*puiSeed ^= *puiSeed << 17;
+	return *puiSeed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A value of iBits with every size in turn: random bits shifted right by
+// 0 to iBits (so some are 0), sometimes all ones shifted, sometimes
+// negated.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint64 TestIR816RuntimeOperand(uint64* puiSeed, int iBits)
+{
+	uint64	uiMask;
+	uint64	uiValue;
+	int		iShift;
+
+	uiMask = (iBits == 64) ? (uint64)-1 : (((uint64)1 << iBits) - 1);
+	uiValue = TestIR816RuntimeRandom(puiSeed) & uiMask;
+	iShift = (int)(TestIR816RuntimeRandom(puiSeed) % (uint64)(iBits + 1));
+	uiValue = (iShift >= 64) ? 0 : (uiValue >> iShift);
+	switch (TestIR816RuntimeRandom(puiSeed) & 7)
+	{
+	case 0:
+		uiValue = uiMask >> (iShift % iBits);
+		break;
+	case 1:
+		uiValue = (0 - uiValue) & uiMask;
+		break;
+	}
+	return uiValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iBits of uiValue sign extended (bSigned) or not, as an int64.
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 TestIR816RuntimeExtend(uint64 uiValue, int iBits, bool bSigned)
+{
+	if (iBits == 64)
+	{
+		return (int64)uiValue;
+	}
+	uiValue &= ((uint64)1 << iBits) - 1;
+	if (bSigned && (uiValue & ((uint64)1 << (iBits - 1))))
+	{
+		uiValue |= (uint64)-1 << iBits;
+	}
+	return (int64)uiValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every multiply and divide routine of the runtime (with the tables or
+// without, bMathSafe) called straight with uiCalls pairs of operands of
+// every size (and the edge values): the result is the host's, a divide
+// leaves the remainder at D + 5 (a 64 bit one in its caller's scratch
+// bytes), nothing else of the caller's direct page page changes (a scratch
+// routine may use D + 5 to D + 22) and S is back where it was.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIR816RuntimeRoutines(bool bMathSafe, int iCalls)
+{
+	static const char*	aszRoutines[] = { "R816_Mul16", "R816_Mul32", "R816_UMulWide32", "R816_UDiv16", "R816_URem16", "R816_UDiv32", "R816_URem32",
+										  "R816_SDiv16", "R816_SRem16", "R816_SDiv32", "R816_SRem32", "R816_UDiv64", "R816_URem64", "R816_SDiv64", "R816_SRem64", NULL };
+	static const uint64	auiEdges[] = { 0, 1, 2, 3, 0x7F, 0x80, 0xFF, 0x100, 0x7FFF, 0x8000, 0xFFFF, 0x10000, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFF, 0x100000000ULL };
+	CAsm65Object		cStartUp;
+	CAsm65Linker		cLinker;
+	CAsm65Memory		cMemory;
+	CFast65C816			cFast;
+	uint8*				puiMemory;
+	int64				iAddress;
+	uint64				uiSeed;
+	uint64				a;
+	uint64				b;
+	uint64				uiExpected;
+	uint64				uiResult;
+	uint64				uiRemainder;
+	uint64				uiExpectedRemainder;
+	uint64				uiMask;
+	int64				sa;
+	int64				sb;
+	int					iRoutine;
+	int					iBits;
+	int					iCall;
+	int					iFailures;
+	int					k;
+	const char*			szName;
+	bool				bSigned;
+	bool				bDivide;
+	bool				bRemainder;
+	bool				bWide;
+	bool				bPushed;
+
+	AssertTrue(TestIR816Assemble(&cStartUp, "startup", gszTestIR816RuntimeStartUp));
+	cLinker.Init();
+	cLinker.SetBankSize(0x10000);
+	cLinker.SetAddress(ASK65_Text, 0x010000);
+	cLinker.AddObject(&cStartUp);
+	cLinker.AddLibrary(TestIR816Runtime(bMathSafe));
+	AssertTrue(cLinker.Link());
+	AssertString("", cLinker.GetErrors());
+	cMemory.Init(0x1000000);
+	cMemory.Load(cLinker.GetOutput());
+	cMemory.InitFast65816(&cFast);
+	puiMemory = cMemory.Byte(0);
+
+	uiSeed = 88172645463325252ULL;
+	iFailures = 0;
+	for (iRoutine = 0; aszRoutines[iRoutine]; iRoutine++)
+	{
+		szName = aszRoutines[iRoutine];
+		AssertTrue(cLinker.GetSymbol(szName, &iAddress));
+		iBits = atoi(&szName[strlen(szName) - 2]);
+		bSigned = szName[5] == 'S';
+		bDivide = strstr(szName, "Div") != NULL;
+		bRemainder = strstr(szName, "Rem") != NULL;
+		bWide = strstr(szName, "Wide") != NULL;
+		bPushed = iBits == 64;
+		uiMask = (iBits == 64) ? (uint64)-1 : (((uint64)1 << iBits) - 1);
+		for (iCall = 0; (iCall < iCalls) && (iFailures < 10); iCall++)
+		{
+			if (iCall < 256)
+			{
+				a = auiEdges[iCall & 15] & uiMask;
+				b = auiEdges[iCall >> 4] & uiMask;
+			}
+			else
+			{
+				a = TestIR816RuntimeOperand(&uiSeed, iBits);
+				b = TestIR816RuntimeOperand(&uiSeed, iBits);
+			}
+			sa = TestIR816RuntimeExtend(a, iBits, bSigned);
+			sb = TestIR816RuntimeExtend(b, iBits, bSigned);
+			if ((bDivide || bRemainder) && ((sb == 0) || (bSigned && (sb == -1) && (sa == TestIR816RuntimeExtend((uint64)1 << (iBits - 1), iBits, true)))))
+			{
+				//Divide by 0 and the most negative value by -1 have no answer in C.
+				continue;
+			}
+
+			puiMemory[0x80] = (uint8)iAddress;
+			puiMemory[0x81] = (uint8)(iAddress >> 8);
+			puiMemory[0x82] = (uint8)(iAddress >> 16);
+			puiMemory[0xF0] = bPushed ? 1 : 0;
+			puiMemory[0xF1] = 0;
+			for (k = 0x100; k < 0x200; k++)
+			{
+				puiMemory[k] = (uint8)(k * 7 + 3);
+			}
+			if (!bPushed)
+			{
+				memcpy(&puiMemory[0x10F], &a, 4);
+				memcpy(&puiMemory[0x113], &b, 4);
+			}
+			memcpy(&puiMemory[0x200], &b, 8);
+			memcpy(&puiMemory[0x208], &a, 8);
+			cFast.Reset();
+			cFast.Run(1000000);
+			AssertTrue(cFast.IsStopped());
+			AssertIntHex(0xEFFF, cFast.GetS());
+
+			if (bWide)
+			{
+				uiExpected = (a & 0xFFFFFFFF) * (b & 0xFFFFFFFF);
+				memcpy(&uiResult, &puiMemory[0x105], 8);
+			}
+			else
+			{
+				if (bPushed)
+				{
+					memcpy(&uiResult, &puiMemory[0x300], 8);
+				}
+				else
+				{
+					uiResult = cFast.GetC() | ((iBits == 32) ? ((uint64)cFast.GetX() << 16) : 0);
+				}
+				if (!bDivide && !bRemainder)
+				{
+					uiExpected = (a * b) & uiMask;
+				}
+				else if (bSigned)
+				{
+					uiExpected = (uint64)(bDivide ? (sa / sb) : (sa % sb)) & uiMask;
+				}
+				else
+				{
+					uiExpected = bDivide ? (a / b) : (a % b);
+				}
+			}
+			if (uiResult != uiExpected)
+			{
+				AssertLongLongIntHex(uiExpected, uiResult);
+				iFailures++;
+			}
+
+			//A divide leaves the remainder at D + 5.
+			if (bDivide)
+			{
+				uiRemainder = 0;
+				memcpy(&uiRemainder, &puiMemory[0x105], iBits / 8);
+				uiExpectedRemainder = (bSigned ? (uint64)(sa % sb) : (a % b)) & uiMask;
+				if (uiRemainder != uiExpectedRemainder)
+				{
+					AssertLongLongIntHex(uiExpectedRemainder, uiRemainder);
+					iFailures++;
+				}
+			}
+
+			//Only the scratch bytes changed (a pushed routine's remainder is at D + 5 to D + 12).
+			for (k = 0x100; k < 0x200; k++)
+			{
+				if (((k < 0x105) || (k > (bPushed ? 0x10C : 0x116))) && (puiMemory[k] != (uint8)(k * 7 + 3)))
+				{
+					AssertInt(0, k - 0x100);
+					iFailures++;
+					break;
+				}
+			}
+		}
+	}
+	AssertInt(0, iFailures);
+	cFast.Kill();
+	cMemory.Kill();
+	cLinker.Kill();
+	cStartUp.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendRuntimeRoutines(void)
+{
+	TestIR816RuntimeRoutines(false, 3000);
+	TestIR816RuntimeRoutines(true, 3000);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2361,6 +2630,7 @@ void TestIR816Backend(void)
 	TestIR816BackendPeepholeTransfers();
 	TestIR816BackendBigFrame();
 	TestIR816BackendMathSafe();
+	TestIR816BackendRuntimeRoutines();
 
 	SafeKill(gapcTestIR816Runtime[0]);
 	SafeKill(gapcTestIR816Runtime[1]);
