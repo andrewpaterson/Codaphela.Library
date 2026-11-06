@@ -870,6 +870,9 @@
     <ClInclude Include="TypeConverter.h">
       <Filter>Source\Data\Types\Converter</Filter>
     </ClInclude>
+    <ClInclude Include="NameMatcher.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
     <ClInclude Include="UndoLog.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
@@ -2143,6 +2146,9 @@
     </ClCompile>
     <ClCompile Include="TypeConverter.cpp">
       <Filter>Source\Data\Types\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="NameMatcher.cpp">
+      <Filter>Source\Text</Filter>
     </ClCompile>
     <ClCompile Include="UndoLog.cpp">
       <Filter>Source\Data</Filter>

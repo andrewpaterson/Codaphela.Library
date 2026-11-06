@@ -41,6 +41,7 @@ void TestArrayDenseTemplate(void);
 void TestArraySparseTemplate(void);
 void TestRedBlackTree(void);
 void TestUndoStack(void);
+void TestNameMatcher(void);
 void TestLine(void);
 void TestArrayBlockSorted(void);
 void TestChars(void);
@@ -272,6 +273,7 @@ int __cdecl main(void)
 	TestArraySparseTemplate();
 	TestRedBlackTree();
 	TestUndoStack();
+	TestNameMatcher();
 	TestLine();
 	TestMemoryFile();
 	TestDiskFile();
