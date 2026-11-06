@@ -511,6 +511,7 @@
     <ClInclude Include="NameMatcher.h" />
     <ClInclude Include="UndoLog.h" />
     <ClInclude Include="UndoStack.h" />
+    <ClInclude Include="TextUndo.h" />
     <ClInclude Include="TypeNames.h" />
     <ClInclude Include="TypeParser.h" />
     <ClInclude Include="Unicode.h" />
@@ -915,6 +916,7 @@
     <ClCompile Include="NameMatcher.cpp" />
     <ClCompile Include="UndoLog.cpp" />
     <ClCompile Include="UndoStack.cpp" />
+    <ClCompile Include="TextUndo.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />
     <ClCompile Include="MemCompare.cpp" />

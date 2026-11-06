@@ -331,6 +331,7 @@
     <ClCompile Include="TestSparseArrayTemplate.cpp" />
     <ClCompile Include="TestRedBlackTree.cpp" />
     <ClCompile Include="TestUndoStack.cpp" />
+    <ClCompile Include="TestTextUndo.cpp" />
     <ClCompile Include="TestNameMatcher.cpp" />
     <ClCompile Include="TestLine.cpp" />
     <ClCompile Include="TestStackMemory.cpp" />

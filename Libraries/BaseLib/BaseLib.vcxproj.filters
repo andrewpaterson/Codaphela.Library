@@ -879,6 +879,9 @@
     <ClInclude Include="UndoStack.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
+    <ClInclude Include="TextUndo.h">
+      <Filter>Source\Data</Filter>
+    </ClInclude>
     <ClInclude Include="TypeParser.h">
       <Filter>Source\Data\Types\Parser</Filter>
     </ClInclude>
@@ -2154,6 +2157,9 @@
       <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="UndoStack.cpp">
+      <Filter>Source\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="TextUndo.cpp">
       <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="TypeParser.cpp">
