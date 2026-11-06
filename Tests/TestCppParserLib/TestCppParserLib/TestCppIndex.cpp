@@ -366,6 +366,80 @@ void Use(char* sz, char* szOther)\n\
 	cFile.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A class whose name a macro makes, as BaseLib's ARRAY_BLOCK makes
+// CArrayBlock and, included again, CArrayLargeBlock, is defined where the
+// macro was used (flagged CPPIF_MACRO), so Go to Class and Go to
+// Definition find it.  Names a macro body only uses aren't references.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexMacroNames(void)
+{
+	CCPPIndex			cIndex;
+	CChars				sz;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+
+	cIndex.Init();
+	IndexText(&cIndex, "M.cpp", "\
+#define ARRAY_BLOCK CArrayBlock\n\
+#define MAKE_COUNT(n) int n(void)\n\
+class ARRAY_BLOCK\n\
+{\n\
+public:\n\
+	MAKE_COUNT(Count);\n\
+};\n\
+#undef ARRAY_BLOCK\n\
+#define ARRAY_BLOCK CArrayLargeBlock\n\
+class ARRAY_BLOCK\n\
+{\n\
+};\n\
+CArrayBlock gcBlock;\n");
+
+	sz.Init();
+	cIndex.Print(&sz);
+	AssertString("\
+CArrayBlock\n\
+  M.cpp:3:7 definition macro\n\
+  M.cpp:13:1 reference\n\
+CArrayBlock::Count()\n\
+  M.cpp:6:13 declaration\n\
+CArrayLargeBlock\n\
+  M.cpp:10:7 definition macro\n\
+gcBlock\n\
+  M.cpp:13:13 declaration\n\
+", sz.Text());
+	sz.Kill();
+
+	pcSymbol = cIndex.FindSymbol("CArrayBlock");
+	AssertNotNull(pcSymbol);
+	psLocation = pcSymbol ? pcSymbol->GetDefinition() : NULL;
+	AssertNotNull(psLocation);
+	if (psLocation)
+	{
+		AssertInt(2, psLocation->iLine);
+		AssertInt(6, psLocation->iColumn);
+		AssertInt(11, psLocation->iLength);
+		AssertInt(CPPIF_MACRO, psLocation->uiFlags);
+	}
+	pcSymbol = cIndex.FindSymbol("CArrayLargeBlock");
+	AssertNotNull(pcSymbol);
+	psLocation = pcSymbol ? pcSymbol->GetDefinition() : NULL;
+	AssertNotNull(psLocation);
+	if (psLocation)
+	{
+		AssertInt(9, psLocation->iLine);
+		AssertInt(6, psLocation->iColumn);
+		AssertInt(CPPIF_MACRO, psLocation->uiFlags);
+	}
+
+	//Go to Definition on the macro's name finds the class it made there.
+	AssertTrue(cIndex.FindSymbolAt(cIndex.GetFileName(0), 2, 8) == cIndex.FindSymbol("CArrayBlock"));
+
+	cIndex.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -379,6 +453,7 @@ void TestCppIndex(void)
 	TestCppIndexSignatures();
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassHost();
+	TestCppIndexMacroNames();
 
 	TestStatistics();
 }

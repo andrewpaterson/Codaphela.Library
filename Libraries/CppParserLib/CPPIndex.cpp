@@ -250,7 +250,9 @@ void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPP
 // Every name a parsed translation unit's files declare or use, put in
 // pcDest.  It touches no index so units can be gathered on several
 // threads at once.  Names from macro bodies are where the macro is
-// defined, not used, so they are left out.  With a semantic pass (NULL
+// defined, not used, so they are left out, but for what they declare: a
+// class named by a macro, class ARRAY_BLOCK, is declared where the macro
+// was used (CPPIF_MACRO).  With a semantic pass (NULL
 // for none) the names it resolved are what it says: the members o.Init()
 // and p->miCount name, and the overloads calls call.
 //
@@ -265,6 +267,8 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	SPreprocessedToken*		psSource;
 	SCPPTokenSymbol*		psSymbol;
 	SCPPResolvedName*		psResolved;
+	SPreprocessedToken		sMacroUse;
+	uint8					uiFlags;
 
 	uiNumTokens = pcTokeniser->NumTokens();
 	asTokens.Init();
@@ -289,9 +293,19 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 			continue;
 		}
 		psSource = pcTokeniser->GetSource(pcToken);
-		if ((psSource->pcFile == NULL) || (psSource->iExpansion != -1))
+		if (psSource->pcFile == NULL)
 		{
 			continue;
+		}
+		uiFlags = 0;
+		if (psSource->iExpansion != -1)
+		{
+			if (psResolved || (psSymbol == NULL) || (psSymbol->uiRole != CPPTR_Declaration) || !GetMacroUse(pcTokeniser, psSource, &sMacroUse))
+			{
+				continue;
+			}
+			psSource = &sMacroUse;
+			uiFlags = CPPIF_MACRO;
 		}
 		if (psResolved)
 		{
@@ -299,7 +313,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 		}
 		else
 		{
-			GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, pcDest);
+			GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, uiFlags, pcDest);
 		}
 	}
 	cKeys.Kill();
@@ -449,12 +463,50 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where the macro that made psSource was used in the source text, the
+// outermost if one macro's body used another: ArrayBlockClass.inl's
+// ARRAY_BLOCK for the CArrayBlock it made.  psDest is a token there, as
+// long as the macro's name.  False if it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPIndex::GetMacroUse(CCPPTokeniser* pcTokeniser, SPreprocessedToken* psSource, SPreprocessedToken* psDest)
+{
+	CPreprocessedTokens*	pcSource;
+	SMacroExpansion*		psExpansion;
+
+	pcSource = pcTokeniser->mpcSource;
+	if ((pcSource == NULL) || (psSource->iExpansion < 0) || ((size)psSource->iExpansion >= pcSource->NumExpansions()))
+	{
+		return false;
+	}
+	psExpansion = pcSource->GetExpansion((size)psSource->iExpansion);
+	while ((psExpansion->iParent >= 0) && ((size)psExpansion->iParent < pcSource->NumExpansions()))
+	{
+		psExpansion = pcSource->GetExpansion((size)psExpansion->iParent);
+	}
+	if (psExpansion->pcFile == NULL)
+	{
+		return false;
+	}
+	memcpy(psDest, psSource, sizeof(SPreprocessedToken));
+	psDest->szText = psExpansion->szName;
+	psDest->uiLength = psExpansion->uiNameLength;
+	psDest->pcFile = psExpansion->pcFile;
+	psDest->iLine = psExpansion->iLine;
+	psDest->iColumn = psExpansion->iColumn;
+	psDest->iExpansion = -1;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // One name token: its symbol's key and where it is.  A function's
 // declaration is keyed by the overload its declarator declares; a call
 // by the overloads its number of arguments fits.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
+void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, uint8 uiFlags, CCPPIndexUnit* pcDest)
 {
 	CCPPSymbol*		pcSymbol;
 	CChars			szKey;
@@ -487,7 +539,7 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 		{
 			eRole = psToken->bDefinition ? CPPIR_Definition : CPPIR_Declaration;
 		}
-		pcDest->Add(szKey.Text(), pcSymbol->meKind, psSource, eRole, 0);
+		pcDest->Add(szKey.Text(), pcSymbol->meKind, psSource, eRole, uiFlags);
 	}
 	szKey.Kill();
 }
@@ -743,6 +795,10 @@ char* CCPPIndex::Print(CChars* pszDest)
 			if (psLocation->uiFlags & CPPIF_AMBIGUOUS)
 			{
 				pszDest->Append(" ambiguous");
+			}
+			if (psLocation->uiFlags & CPPIF_MACRO)
+			{
+				pszDest->Append(" macro");
 			}
 			pszDest->AppendNewLine();
 			szFile.Kill();
