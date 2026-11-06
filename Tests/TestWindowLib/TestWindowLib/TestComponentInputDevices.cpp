@@ -242,12 +242,15 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Shift");
 		AssertLog("B:Rename;");
 
-		//F7 goes to the next difference; with shift, the previous.
+		//F7 goes to the next difference; with shift, the previous; with alt it finds usages.
 		cDevices.Tap("F7");
 		cDevices.Press("Left Shift");
 		cDevices.Tap("F7");
 		cDevices.Release("Left Shift");
-		AssertLog("B:NextDifference;B:PreviousDifference;");
+		cDevices.Press("Left Alt");
+		cDevices.Tap("F7");
+		cDevices.Release("Left Alt");
+		AssertLog("B:NextDifference;B:PreviousDifference;B:FindUsages;");
 
 		//Control+N goes to a class, with shift a file and with alt and shift a symbol, as IntelliJ's.  The modifiers can
 		//be pressed in any order, and either alt.
