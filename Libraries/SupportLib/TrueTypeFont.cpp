@@ -43,6 +43,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TRUE_TYPE_MORE_COMPONENTS		0x0020
 #define TRUE_TYPE_HAVE_AN_X_AND_Y_SCALE	0x0040
 #define TRUE_TYPE_HAVE_A_TWO_BY_TWO		0x0080
+#define TRUE_TYPE_USE_MY_METRICS		0x0200
 #define TRUE_TYPE_SCALED_OFFSET			0x0800
 #define TRUE_TYPE_UNSCALED_OFFSET		0x1000
 
@@ -51,6 +52,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Composite glyph scales are 2.14 fixed point; 1.0 is 16384.
 #define TRUE_TYPE_F2DOT14_ONE			16384
+
+//The phantom points that follow a glyph's points in gvar: left, right, top and bottom.
+#define TRUE_TYPE_NUM_PHANTOM_POINTS	4
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +98,7 @@ void CTrueTypeFont::Init(void)
 	miSubscriptYOffset = 0;
 	miSuperscriptYSize = 0;
 	miSuperscriptYOffset = 0;
+	mcVariations.Init(this);
 }
 
 
@@ -103,6 +108,7 @@ void CTrueTypeFont::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeFont::Kill(void)
 {
+	mcVariations.Kill();
 	if (mpuiData)
 	{
 		free(mpuiData);
@@ -383,7 +389,13 @@ bool CTrueTypeFont::Parse(void)
 		muiNameLength = 0;
 	}
 
-	return ChooseCmap(uiCmapOffset, uiCmapLength);
+	if (!ChooseCmap(uiCmapOffset, uiCmapLength))
+	{
+		return false;
+	}
+
+	mcVariations.Parse();
+	return true;
 }
 
 
@@ -496,7 +508,7 @@ int CTrueTypeFont::GetUnitsPerEm(void)
 //////////////////////////////////////////////////////////////////////////
 int CTrueTypeFont::GetAscender(void)
 {
-	return miAscender;
+	return miAscender + mcVariations.GetMetricDelta(TTM_HorizontalAscender);
 }
 
 
@@ -507,7 +519,7 @@ int CTrueTypeFont::GetAscender(void)
 //////////////////////////////////////////////////////////////////////////
 int CTrueTypeFont::GetDescender(void)
 {
-	return miDescender;
+	return miDescender + mcVariations.GetMetricDelta(TTM_HorizontalDescender);
 }
 
 
@@ -517,7 +529,7 @@ int CTrueTypeFont::GetDescender(void)
 //////////////////////////////////////////////////////////////////////////
 int CTrueTypeFont::GetLineGap(void)
 {
-	return miLineGap;
+	return miLineGap + mcVariations.GetMetricDelta(TTM_HorizontalLineGap);
 }
 
 
@@ -581,21 +593,22 @@ void CTrueTypeFont::ParseOS2(void)
 }
 
 
+//The post and OS/2 metrics, varied by MVAR in a variable font.
 bool CTrueTypeFont::HasPost(void) { return mbHasPost; }
-int CTrueTypeFont::GetUnderlinePosition(void) { return miUnderlinePosition; }
-int CTrueTypeFont::GetUnderlineThickness(void) { return miUnderlineThickness; }
+int CTrueTypeFont::GetUnderlinePosition(void) { return miUnderlinePosition + mcVariations.GetMetricDelta(TTM_UnderlineOffset); }
+int CTrueTypeFont::GetUnderlineThickness(void) { return miUnderlineThickness + mcVariations.GetMetricDelta(TTM_UnderlineSize); }
 bool CTrueTypeFont::HasOS2(void) { return mbHasOS2; }
-int CTrueTypeFont::GetStrikeoutPosition(void) { return miStrikeoutPosition; }
-int CTrueTypeFont::GetStrikeoutSize(void) { return miStrikeoutSize; }
-int CTrueTypeFont::GetSubscriptYSize(void) { return miSubscriptYSize; }
-int CTrueTypeFont::GetSubscriptYOffset(void) { return miSubscriptYOffset; }
-int CTrueTypeFont::GetSuperscriptYSize(void) { return miSuperscriptYSize; }
-int CTrueTypeFont::GetSuperscriptYOffset(void) { return miSuperscriptYOffset; }
+int CTrueTypeFont::GetStrikeoutPosition(void) { return miStrikeoutPosition + mcVariations.GetMetricDelta(TTM_StrikeoutOffset); }
+int CTrueTypeFont::GetStrikeoutSize(void) { return miStrikeoutSize + mcVariations.GetMetricDelta(TTM_StrikeoutSize); }
+int CTrueTypeFont::GetSubscriptYSize(void) { return miSubscriptYSize + mcVariations.GetMetricDelta(TTM_SubscriptYSize); }
+int CTrueTypeFont::GetSubscriptYOffset(void) { return miSubscriptYOffset + mcVariations.GetMetricDelta(TTM_SubscriptYOffset); }
+int CTrueTypeFont::GetSuperscriptYSize(void) { return miSuperscriptYSize + mcVariations.GetMetricDelta(TTM_SuperscriptYSize); }
+int CTrueTypeFont::GetSuperscriptYOffset(void) { return miSuperscriptYOffset + mcVariations.GetMetricDelta(TTM_SuperscriptYOffset); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bounds of every glyph.
+// The bounds of every glyph in the default instance (head isn't varied).
 //
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeFont::GetBounds(int* piXMin, int* piYMin, int* piXMax, int* piYMax)
@@ -901,19 +914,14 @@ int CTrueTypeFont::GetGlyphIndexFormat12(uint32 uiCodePoint)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Glyphs without contours (spaces) have an empty bounding box.
+// The advance width and left side bearing from hmtx (the default
+// instance).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics)
+bool CTrueTypeFont::ReadHorizontalMetrics(int iGlyph, int* piAdvanceWidth, int* piLeftSideBearing)
 {
 	uint16	uiAdvance;
 	int16	iLeftSideBearing;
-	lsize	uiOffset;
-	lsize	uiLength;
-	int16	iXMin;
-	int16	iYMin;
-	int16	iXMax;
-	int16	iYMax;
 	bool	bRead;
 
 	if ((iGlyph < 0) || (iGlyph >= miNumGlyphs))
@@ -936,29 +944,139 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 	{
 		return false;
 	}
-	psMetrics->iAdvanceWidth = uiAdvance;
-	psMetrics->iLeftSideBearing = iLeftSideBearing;
+	*piAdvanceWidth = uiAdvance;
+	*piLeftSideBearing = iLeftSideBearing;
+	return true;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Glyphs without contours (spaces) have an empty bounding box.  In a
+// varied font the bounding box and left side bearing come from the
+// varied outline.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics)
+{
+	lsize				uiOffset;
+	lsize				uiLength;
+	int16				iXMin;
+	int16				iYMin;
+	int16				iXMax;
+	int16				iYMax;
+	CTrueTypeOutline	cOutline;
+	STrueTypePhantoms	sPhantoms;
+	size				i;
+	size				uiNumPoints;
+	STrueTypePoint*		psPoint;
+
+	if (!ReadHorizontalMetrics(iGlyph, &psMetrics->iAdvanceWidth, &psMetrics->iLeftSideBearing))
+	{
+		return false;
+	}
 	if (!GetGlyphData(iGlyph, &uiOffset, &uiLength))
 	{
 		return false;
 	}
-	if (uiLength == 0)
+
+	if (!mcVariations.IsVaried())
 	{
-		psMetrics->iXMin = 0;
-		psMetrics->iYMin = 0;
-		psMetrics->iXMax = 0;
-		psMetrics->iYMax = 0;
+		if (uiLength == 0)
+		{
+			psMetrics->iXMin = 0;
+			psMetrics->iYMin = 0;
+			psMetrics->iXMax = 0;
+			psMetrics->iYMax = 0;
+			return true;
+		}
+		if ((uiLength < 10) || !ReadInt16(uiOffset + 2, &iXMin) || !ReadInt16(uiOffset + 4, &iYMin) || !ReadInt16(uiOffset + 6, &iXMax) || !ReadInt16(uiOffset + 8, &iYMax))
+		{
+			return false;
+		}
+		psMetrics->iXMin = iXMin;
+		psMetrics->iYMin = iYMin;
+		psMetrics->iXMax = iXMax;
+		psMetrics->iYMax = iYMax;
 		return true;
 	}
-	if ((uiLength < 10) || !ReadInt16(uiOffset + 2, &iXMin) || !ReadInt16(uiOffset + 4, &iYMin) || !ReadInt16(uiOffset + 6, &iXMax) || !ReadInt16(uiOffset + 8, &iYMax))
+
+	cOutline.Init();
+	if (!ReadGlyph(iGlyph, &cOutline, 0, &sPhantoms))
+	{
+		cOutline.Kill();
+		return false;
+	}
+
+	psMetrics->iXMin = 0;
+	psMetrics->iYMin = 0;
+	psMetrics->iXMax = 0;
+	psMetrics->iYMax = 0;
+	uiNumPoints = cOutline.NumPoints();
+	for (i = 0; i < uiNumPoints; i++)
+	{
+		psPoint = cOutline.GetPoint(i);
+		if ((i == 0) || (psPoint->x < psMetrics->iXMin))
+		{
+			psMetrics->iXMin = psPoint->x;
+		}
+		if ((i == 0) || (psPoint->x > psMetrics->iXMax))
+		{
+			psMetrics->iXMax = psPoint->x;
+		}
+		if ((i == 0) || (psPoint->y < psMetrics->iYMin))
+		{
+			psMetrics->iYMin = psPoint->y;
+		}
+		if ((i == 0) || (psPoint->y > psMetrics->iYMax))
+		{
+			psMetrics->iYMax = psPoint->y;
+		}
+	}
+	cOutline.Kill();
+
+	if (uiNumPoints > 0)
+	{
+		psMetrics->iLeftSideBearing = psMetrics->iXMin - sPhantoms.iLeft;
+	}
+	if (mcVariations.HasAdvanceDeltas())
+	{
+		psMetrics->iAdvanceWidth += mcVariations.GetAdvanceDelta(iGlyph);
+	}
+	else
+	{
+		psMetrics->iAdvanceWidth = sPhantoms.iRight - sPhantoms.iLeft;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Just the advance width, which a font with HVAR varies without reading
+// the outline.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::GetGlyphAdvanceWidth(int iGlyph, int* piAdvanceWidth)
+{
+	int						iLeftSideBearing;
+	STrueTypeGlyphMetrics	sMetrics;
+
+	if (!mcVariations.IsVaried() || mcVariations.HasAdvanceDeltas())
+	{
+		if (!ReadHorizontalMetrics(iGlyph, piAdvanceWidth, &iLeftSideBearing))
+		{
+			return false;
+		}
+		*piAdvanceWidth += mcVariations.GetAdvanceDelta(iGlyph);
+		return true;
+	}
+
+	if (!GetGlyphMetrics(iGlyph, &sMetrics))
 	{
 		return false;
 	}
-	psMetrics->iXMin = iXMin;
-	psMetrics->iYMin = iYMin;
-	psMetrics->iXMax = iXMax;
-	psMetrics->iYMax = iYMax;
+	*piAdvanceWidth = sMetrics.iAdvanceWidth;
 	return true;
 }
 
@@ -1017,7 +1135,7 @@ bool CTrueTypeFont::GetGlyphData(int iGlyph, lsize* puiOffset, lsize* puiLength)
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeFont::GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline)
 {
-	if (!ReadGlyph(iGlyph, pcOutline, 0))
+	if (!ReadGlyph(iGlyph, pcOutline, 0, NULL))
 	{
 		pcOutline->Clear();
 		return false;
@@ -1028,40 +1146,130 @@ bool CTrueTypeFont::GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Appends a glyph's contours, varied if the font is.  psPhantoms (if not
+// NULL) is given the glyph's varied origin and advance.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth)
+bool CTrueTypeFont::ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth, STrueTypePhantoms* psPhantoms)
 {
-	lsize	uiOffset;
-	lsize	uiLength;
-	int16	iNumContours;
+	lsize				uiOffset;
+	lsize				uiLength;
+	int16				iNumContours;
+	int16				iXMin;
+	int					iAdvanceWidth;
+	int					iLeftSideBearing;
+	size				uiFirstPoint;
+	size				uiFirstContour;
+	STrueTypePhantoms	sPhantoms;
 
 	if (iDepth > TRUE_TYPE_MAX_COMPOSITE_DEPTH)
 	{
 		return false;
 	}
-	if (!GetGlyphData(iGlyph, &uiOffset, &uiLength))
-	{
-		return false;
-	}
-	if (uiLength == 0)
-	{
-		return true;
-	}
-	if ((uiLength < 10) || !ReadInt16(uiOffset, &iNumContours))
+	if (!GetGlyphData(iGlyph, &uiOffset, &uiLength) || !ReadHorizontalMetrics(iGlyph, &iAdvanceWidth, &iLeftSideBearing))
 	{
 		return false;
 	}
 
 	//The glyph header is the number of contours (negative for a composite glyph) and the bounding box.
-	if (iNumContours >= 0)
+	iNumContours = 0;
+	iXMin = 0;
+	if (uiLength != 0)
 	{
-		return ReadSimpleGlyph(uiOffset + 10, uiLength - 10, iNumContours, pcOutline);
+		if ((uiLength < 10) || !ReadInt16(uiOffset, &iNumContours) || !ReadInt16(uiOffset + 2, &iXMin))
+		{
+			return false;
+		}
+	}
+	sPhantoms.iLeft = iXMin - iLeftSideBearing;
+	sPhantoms.iRight = sPhantoms.iLeft + iAdvanceWidth;
+
+	if (iNumContours < 0)
+	{
+		if (!ReadCompositeGlyph(iGlyph, uiOffset + 10, uiLength - 10, pcOutline, iDepth, &sPhantoms))
+		{
+			return false;
+		}
 	}
 	else
 	{
-		return ReadCompositeGlyph(uiOffset + 10, uiLength - 10, pcOutline, iDepth);
+		uiFirstPoint = pcOutline->NumPoints();
+		uiFirstContour = pcOutline->NumContours();
+		if ((uiLength != 0) && !ReadSimpleGlyph(uiOffset + 10, uiLength - 10, iNumContours, pcOutline))
+		{
+			return false;
+		}
+		if (mcVariations.IsVaried())
+		{
+			VarySimpleGlyph(iGlyph, pcOutline, uiFirstPoint, uiFirstContour, &sPhantoms);
+		}
 	}
+
+	if (psPhantoms)
+	{
+		*psPhantoms = sPhantoms;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the points a simple glyph just appended (from uiFirstPoint and
+// uiFirstContour) and its phantom points by their gvar deltas.  Corrupt
+// variation data leaves the glyph as it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFont::VarySimpleGlyph(int iGlyph, CTrueTypeOutline* pcOutline, size uiFirstPoint, size uiFirstContour, STrueTypePhantoms* psPhantoms)
+{
+	size			uiNumPoints;
+	size			uiNumContours;
+	size			uiTotal;
+	STrueTypePoint*	pasPoints;
+	int*			paiContourEnds;
+	int32*			paiDeltaX;
+	int32*			paiDeltaY;
+	size			i;
+	STrueTypePoint*	psPoint;
+
+	uiNumPoints = pcOutline->NumPoints() - uiFirstPoint;
+	uiNumContours = pcOutline->NumContours() - uiFirstContour;
+	uiTotal = uiNumPoints + TRUE_TYPE_NUM_PHANTOM_POINTS;
+
+	pasPoints = (STrueTypePoint*)malloc(uiTotal * sizeof(STrueTypePoint));
+	paiContourEnds = (int*)malloc((uiNumContours + 1) * sizeof(int));
+	paiDeltaX = (int32*)malloc(uiTotal * sizeof(int32));
+	paiDeltaY = (int32*)malloc(uiTotal * sizeof(int32));
+	if ((pasPoints != NULL) && (paiContourEnds != NULL) && (paiDeltaX != NULL) && (paiDeltaY != NULL))
+	{
+		for (i = 0; i < uiNumPoints; i++)
+		{
+			pasPoints[i] = *pcOutline->GetPoint(uiFirstPoint + i);
+		}
+		memset(&pasPoints[uiNumPoints], 0, TRUE_TYPE_NUM_PHANTOM_POINTS * sizeof(STrueTypePoint));
+		pasPoints[uiNumPoints].x = psPhantoms->iLeft;
+		pasPoints[uiNumPoints + 1].x = psPhantoms->iRight;
+		for (i = 0; i < uiNumContours; i++)
+		{
+			paiContourEnds[i] = pcOutline->maiContourEnds.GetValue(uiFirstContour + i) - (int)uiFirstPoint;
+		}
+
+		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, paiContourEnds, uiNumContours, paiDeltaX, paiDeltaY);
+
+		for (i = 0; i < uiNumPoints; i++)
+		{
+			psPoint = pcOutline->GetPoint(uiFirstPoint + i);
+			psPoint->x += TrueTypeRoundDelta(paiDeltaX[i]);
+			psPoint->y += TrueTypeRoundDelta(paiDeltaY[i]);
+		}
+		psPhantoms->iLeft += TrueTypeRoundDelta(paiDeltaX[uiNumPoints]);
+		psPhantoms->iRight += TrueTypeRoundDelta(paiDeltaX[uiNumPoints + 1]);
+	}
+
+	free(paiDeltaY);
+	free(paiDeltaX);
+	free(paiContourEnds);
+	free(pasPoints);
 }
 
 
@@ -1236,143 +1444,169 @@ bool CTrueTypeFont::ReadSimpleGlyph(lsize uiOffset, lsize uiLength, size iNumCon
 // A composite glyph is a list of other glyphs, each moved and possibly
 // scaled, rotated or skewed.  A component is either offset by x and y or
 // placed so that one of its points lies on a point already in the glyph.
+// In a varied font gvar moves the x and y offsets (a point per component)
+// and the phantom points; the components' own outlines are varied as
+// they are read.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueTypeOutline* pcOutline, int iDepth)
+bool CTrueTypeFont::ReadCompositeGlyph(int iGlyph, lsize uiOffset, lsize uiLength, CTrueTypeOutline* pcOutline, int iDepth, STrueTypePhantoms* psPhantoms)
 {
-	lsize				uiEnd;
-	lsize				uiPos;
-	lsize				uiFirstPoint;
-	uint16				uiFlags;
-	uint16				uiGlyph;
-	int					iArg1;
-	int					iArg2;
-	int16				iWord1;
-	int16				iWord2;
-	uint8				uiByte1;
-	uint8				uiByte2;
-	int16				iScale;
-	int32				iXX;
-	int32				iXY;
-	int32				iYX;
-	int32				iYY;
-	int32				iDX;
-	int32				iDY;
-	int32				x;
-	int32				y;
-	CTrueTypeOutline	cComponent;
-	lsize				i;
-	STrueTypePoint*		psSource;
-	STrueTypePoint*		psDest;
-	lsize				uiNumComponentPoints;
+	lsize					uiEnd;
+	lsize					uiPos;
+	lsize					uiFirstPoint;
+	uint16					uiFlags;
+	uint16					uiGlyph;
+	int16					iWord1;
+	int16					iWord2;
+	uint8					uiByte1;
+	uint8					uiByte2;
+	int16					iScale;
+	int32					iDX;
+	int32					iDY;
+	int32					x;
+	int32					y;
+	CTrueTypeOutline		cComponent;
+	lsize					i;
+	STrueTypePoint*			psSource;
+	STrueTypePoint*			psDest;
+	lsize					uiNumComponentPoints;
+	CArrayTrueTypeComponent	asComponents;
+	STrueTypeComponent*		psComponent;
+	size					uiComponent;
+	STrueTypePhantoms		sComponentPhantoms;
+	bool					bResult;
 
 	uiEnd = uiOffset + uiLength;
 	uiPos = uiOffset;
 	uiFirstPoint = pcOutline->NumPoints();
 
-	cComponent.Init();
+	//Read every component record first, so that their offsets can be varied before the components are placed.
+	asComponents.Init();
 	do
 	{
 		if ((uiPos + 4 > uiEnd) || !ReadUint16(uiPos, &uiFlags) || !ReadUint16(uiPos + 2, &uiGlyph))
 		{
-			cComponent.Kill();
+			asComponents.Kill();
 			return false;
 		}
 		uiPos += 4;
+		psComponent = asComponents.Add();
+		psComponent->uiFlags = uiFlags;
+		psComponent->uiGlyph = uiGlyph;
 
 		//The arguments are either x and y offsets, or a parent point and a component point to match.
 		if (uiFlags & TRUE_TYPE_ARGS_ARE_WORDS)
 		{
 			if ((uiPos + 4 > uiEnd) || !ReadInt16(uiPos, &iWord1) || !ReadInt16(uiPos + 2, &iWord2))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
 			uiPos += 4;
 			if (uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
 			{
-				iArg1 = iWord1;
-				iArg2 = iWord2;
+				psComponent->iArg1 = iWord1;
+				psComponent->iArg2 = iWord2;
 			}
 			else
 			{
-				iArg1 = (uint16)iWord1;
-				iArg2 = (uint16)iWord2;
+				psComponent->iArg1 = (uint16)iWord1;
+				psComponent->iArg2 = (uint16)iWord2;
 			}
 		}
 		else
 		{
 			if ((uiPos + 2 > uiEnd) || !ReadUint8(uiPos, &uiByte1) || !ReadUint8(uiPos + 1, &uiByte2))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
 			uiPos += 2;
 			if (uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
 			{
-				iArg1 = (int8)uiByte1;
-				iArg2 = (int8)uiByte2;
+				psComponent->iArg1 = (int8)uiByte1;
+				psComponent->iArg2 = (int8)uiByte2;
 			}
 			else
 			{
-				iArg1 = uiByte1;
-				iArg2 = uiByte2;
+				psComponent->iArg1 = uiByte1;
+				psComponent->iArg2 = uiByte2;
 			}
 		}
 
 		//x' = iXX * x + iYX * y,  y' = iXY * x + iYY * y in 2.14 fixed point.
-		iXX = TRUE_TYPE_F2DOT14_ONE;
-		iXY = 0;
-		iYX = 0;
-		iYY = TRUE_TYPE_F2DOT14_ONE;
+		psComponent->iXX = TRUE_TYPE_F2DOT14_ONE;
+		psComponent->iXY = 0;
+		psComponent->iYX = 0;
+		psComponent->iYY = TRUE_TYPE_F2DOT14_ONE;
 		if (uiFlags & TRUE_TYPE_HAVE_A_SCALE)
 		{
 			if ((uiPos + 2 > uiEnd) || !ReadInt16(uiPos, &iScale))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
 			uiPos += 2;
-			iXX = iScale;
-			iYY = iScale;
+			psComponent->iXX = iScale;
+			psComponent->iYY = iScale;
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_AN_X_AND_Y_SCALE)
 		{
 			if ((uiPos + 4 > uiEnd) || !ReadInt16(uiPos, &iWord1) || !ReadInt16(uiPos + 2, &iWord2))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
 			uiPos += 4;
-			iXX = iWord1;
-			iYY = iWord2;
+			psComponent->iXX = iWord1;
+			psComponent->iYY = iWord2;
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_A_TWO_BY_TWO)
 		{
 			if ((uiPos + 8 > uiEnd) || !ReadInt16(uiPos, &iWord1) || !ReadInt16(uiPos + 2, &iWord2))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
-			iXX = iWord1;
-			iXY = iWord2;
+			psComponent->iXX = iWord1;
+			psComponent->iXY = iWord2;
 			if (!ReadInt16(uiPos + 4, &iWord1) || !ReadInt16(uiPos + 6, &iWord2))
 			{
-				cComponent.Kill();
+				asComponents.Kill();
 				return false;
 			}
-			iYX = iWord1;
-			iYY = iWord2;
+			psComponent->iYX = iWord1;
+			psComponent->iYY = iWord2;
 			uiPos += 8;
 		}
+	}
+	while (uiFlags & TRUE_TYPE_MORE_COMPONENTS);
+
+	if (mcVariations.IsVaried())
+	{
+		VaryComponents(iGlyph, &asComponents, psPhantoms);
+	}
+
+	bResult = true;
+	cComponent.Init();
+	for (uiComponent = 0; uiComponent < asComponents.NumElements(); uiComponent++)
+	{
+		psComponent = asComponents.Get(uiComponent);
+		uiFlags = psComponent->uiFlags;
 
 		cComponent.Clear();
-		if (!ReadGlyph(uiGlyph, &cComponent, iDepth + 1))
+		if (!ReadGlyph(psComponent->uiGlyph, &cComponent, iDepth + 1, &sComponentPhantoms))
 		{
-			cComponent.Kill();
-			return false;
+			bResult = false;
+			break;
 		}
 		uiNumComponentPoints = cComponent.NumPoints();
+
+		//The composite takes this component's (varied) origin and advance.
+		if (uiFlags & TRUE_TYPE_USE_MY_METRICS)
+		{
+			*psPhantoms = sComponentPhantoms;
+		}
 
 		//Transform the component's points.
 		for (i = 0; i < uiNumComponentPoints; i++)
@@ -1380,31 +1614,31 @@ bool CTrueTypeFont::ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueType
 			psSource = cComponent.GetPoint(i);
 			x = psSource->x;
 			y = psSource->y;
-			psSource->x = (int32)DivideRound((int64)iXX * x + (int64)iYX * y, TRUE_TYPE_F2DOT14_ONE);
-			psSource->y = (int32)DivideRound((int64)iXY * x + (int64)iYY * y, TRUE_TYPE_F2DOT14_ONE);
+			psSource->x = (int32)DivideRound((int64)psComponent->iXX * x + (int64)psComponent->iYX * y, TRUE_TYPE_F2DOT14_ONE);
+			psSource->y = (int32)DivideRound((int64)psComponent->iXY * x + (int64)psComponent->iYY * y, TRUE_TYPE_F2DOT14_ONE);
 		}
 
 		if (uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
 		{
-			iDX = iArg1;
-			iDY = iArg2;
+			iDX = psComponent->iArg1;
+			iDY = psComponent->iArg2;
 			if ((uiFlags & TRUE_TYPE_SCALED_OFFSET) && !(uiFlags & TRUE_TYPE_UNSCALED_OFFSET))
 			{
 				x = iDX;
 				y = iDY;
-				iDX = (int32)DivideRound((int64)iXX * x + (int64)iYX * y, TRUE_TYPE_F2DOT14_ONE);
-				iDY = (int32)DivideRound((int64)iXY * x + (int64)iYY * y, TRUE_TYPE_F2DOT14_ONE);
+				iDX = (int32)DivideRound((int64)psComponent->iXX * x + (int64)psComponent->iYX * y, TRUE_TYPE_F2DOT14_ONE);
+				iDY = (int32)DivideRound((int64)psComponent->iXY * x + (int64)psComponent->iYY * y, TRUE_TYPE_F2DOT14_ONE);
 			}
 		}
 		else
 		{
-			if (((lsize)iArg1 >= pcOutline->NumPoints() - uiFirstPoint) || ((lsize)iArg2 >= uiNumComponentPoints))
+			if (((lsize)psComponent->iArg1 >= pcOutline->NumPoints() - uiFirstPoint) || ((lsize)psComponent->iArg2 >= uiNumComponentPoints))
 			{
-				cComponent.Kill();
-				return false;
+				bResult = false;
+				break;
 			}
-			psDest = pcOutline->GetPoint(uiFirstPoint + iArg1);
-			psSource = cComponent.GetPoint(iArg2);
+			psDest = pcOutline->GetPoint(uiFirstPoint + psComponent->iArg1);
+			psSource = cComponent.GetPoint(psComponent->iArg2);
 			iDX = psDest->x - psSource->x;
 			iDY = psDest->y - psSource->y;
 		}
@@ -1423,8 +1657,204 @@ bool CTrueTypeFont::ReadCompositeGlyph(lsize uiOffset, lsize uiLength, CTrueType
 			psDest->bOnCurve = psSource->bOnCurve;
 		}
 	}
-	while (uiFlags & TRUE_TYPE_MORE_COMPONENTS);
 
 	cComponent.Kill();
-	return true;
+	asComponents.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the x and y offsets of a composite glyph's components and its
+// phantom points by their gvar deltas.  Components placed by matching
+// points aren't moved.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFont::VaryComponents(int iGlyph, CArrayTrueTypeComponent* pasComponents, STrueTypePhantoms* psPhantoms)
+{
+	size				uiNumComponents;
+	size				uiTotal;
+	STrueTypePoint*		pasPoints;
+	int32*				paiDeltaX;
+	int32*				paiDeltaY;
+	size				i;
+	STrueTypeComponent*	psComponent;
+
+	uiNumComponents = pasComponents->NumElements();
+	uiTotal = uiNumComponents + TRUE_TYPE_NUM_PHANTOM_POINTS;
+	pasPoints = (STrueTypePoint*)malloc(uiTotal * sizeof(STrueTypePoint));
+	paiDeltaX = (int32*)malloc(uiTotal * sizeof(int32));
+	paiDeltaY = (int32*)malloc(uiTotal * sizeof(int32));
+	if ((pasPoints != NULL) && (paiDeltaX != NULL) && (paiDeltaY != NULL))
+	{
+		memset(pasPoints, 0, uiTotal * sizeof(STrueTypePoint));
+		for (i = 0; i < uiNumComponents; i++)
+		{
+			psComponent = pasComponents->Get(i);
+			if (psComponent->uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
+			{
+				pasPoints[i].x = psComponent->iArg1;
+				pasPoints[i].y = psComponent->iArg2;
+			}
+		}
+		pasPoints[uiNumComponents].x = psPhantoms->iLeft;
+		pasPoints[uiNumComponents + 1].x = psPhantoms->iRight;
+
+		mcVariations.GetGlyphDeltas(iGlyph, pasPoints, uiTotal, NULL, 0, paiDeltaX, paiDeltaY);
+
+		for (i = 0; i < uiNumComponents; i++)
+		{
+			psComponent = pasComponents->Get(i);
+			if (psComponent->uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
+			{
+				psComponent->iArg1 += TrueTypeRoundDelta(paiDeltaX[i]);
+				psComponent->iArg2 += TrueTypeRoundDelta(paiDeltaY[i]);
+			}
+		}
+		psPhantoms->iLeft += TrueTypeRoundDelta(paiDeltaX[uiNumComponents]);
+		psPhantoms->iRight += TrueTypeRoundDelta(paiDeltaX[uiNumComponents + 1]);
+	}
+
+	free(paiDeltaY);
+	free(paiDeltaX);
+	free(pasPoints);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the font has variation axes (fvar).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::IsVariable(void)
+{
+	return mcVariations.IsVariable();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTrueTypeFont::NumAxes(void)
+{
+	return mcVariations.NumAxes();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STrueTypeAxis* CTrueTypeFont::GetAxis(size uiAxis)
+{
+	return mcVariations.GetAxis(uiAxis);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sets a variation axis ("wght" 700 for bold) in the axis' units.  The
+// value is clamped to the axis' range and kept to 1/65536.  Returns false
+// if the font doesn't have the axis.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::SetAxis(const char* szTag, float32 fValue)
+{
+	return mcVariations.SetAxisValue(szTag, FixedFromFloat(fValue, TRUE_TYPE_FIXED_BITS));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sets a variation axis to a 16.16 value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::SetAxisFixed(const char* szTag, int32 iValue)
+{
+	return mcVariations.SetAxisValue(szTag, iValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 0 if the font doesn't have the axis.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CTrueTypeFont::GetAxisValue(const char* szTag)
+{
+	return FixedToFloat(mcVariations.GetAxisValue(szTag), TRUE_TYPE_FIXED_BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Back to the default instance.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFont::ResetAxes(void)
+{
+	mcVariations.ResetAxes();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTrueTypeFont::NumNamedInstances(void)
+{
+	return mcVariations.NumNamedInstances();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::GetNamedInstanceName(size uiInstance, CChars* psz)
+{
+	return mcVariations.GetNamedInstanceName(uiInstance, psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::SetNamedInstance(size uiInstance)
+{
+	return mcVariations.SetNamedInstance(uiInstance);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// By subfamily name: "Bold", "Light" ...
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueTypeFont::SetNamedInstance(const char* szName)
+{
+	return mcVariations.SetNamedInstance(szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTrueTypeVariations* CTrueTypeFont::GetVariations(void)
+{
+	return &mcVariations;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8* CTrueTypeFont::GetData(void)
+{
+	return mpuiData;
 }

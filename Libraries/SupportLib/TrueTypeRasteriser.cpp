@@ -160,13 +160,13 @@ int32 CTrueTypeRasteriser::GetDescentSubpixels(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CTrueTypeRasteriser::GetAdvanceSubpixels(int iGlyph)
 {
-	STrueTypeGlyphMetrics	sMetrics;
+	int		iAdvanceWidth;
 
-	if (!mpcFont->GetGlyphMetrics(iGlyph, &sMetrics))
+	if (!mpcFont->GetGlyphAdvanceWidth(iGlyph, &iAdvanceWidth))
 	{
 		return 0;
 	}
-	return Scale(sMetrics.iAdvanceWidth);
+	return Scale(iAdvanceWidth);
 }
 
 

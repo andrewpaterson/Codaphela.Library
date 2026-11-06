@@ -1585,6 +1585,358 @@ void TestTrueTypeFontDecorationLayout(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Asserts a glyph's outline points (x, y pairs).
+//
+//////////////////////////////////////////////////////////////////////////
+void AssertTrueTypePoints(int* paiXY, size uiNumPoints, CTrueTypeFont* pcFont, int iGlyph)
+{
+	CTrueTypeOutline	cOutline;
+	size				i;
+	STrueTypePoint*		psPoint;
+	size				uiWrong;
+
+	cOutline.Init();
+	AssertTrue(pcFont->GetGlyphOutline(iGlyph, &cOutline));
+	AssertSize(uiNumPoints, cOutline.NumPoints());
+	uiWrong = 0;
+	if (cOutline.NumPoints() == uiNumPoints)
+	{
+		for (i = 0; i < uiNumPoints; i++)
+		{
+			psPoint = cOutline.GetPoint(i);
+			if ((psPoint->x != paiXY[i * 2]) || (psPoint->y != paiXY[i * 2 + 1]))
+			{
+				uiWrong++;
+			}
+		}
+	}
+	AssertSize(0, uiWrong);
+	cOutline.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// InterVariable has an optical size and a weight axis and nine named
+// weights.  Static fonts have no axes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsAxes(void)
+{
+	CTrueTypeFont	cFont;
+	STrueTypeAxis*	psAxis;
+	CChars			sz;
+	size			i;
+	char*			aszNames[] = { "Thin", "ExtraLight", "Light", "Regular", "Medium", "SemiBold", "Bold", "ExtraBold", "Black" };
+
+	AssertTrue(LoadTrueTypeFont(&cFont, "LiberationSans-Regular.ttf"));
+	AssertFalse(cFont.IsVariable());
+	AssertSize(0, cFont.NumAxes());
+	AssertSize(0, cFont.NumNamedInstances());
+	AssertFalse(cFont.SetAxis("wght", 700.0f));
+	AssertFalse(cFont.GetVariations()->IsVaried());
+	cFont.Kill();
+
+	AssertTrue(LoadTrueTypeFont(&cFont, "InterVariable.ttf"));
+	AssertTrue(cFont.IsVariable());
+	AssertFalse(cFont.GetVariations()->IsVaried());
+	AssertSize(2, cFont.NumAxes());
+	psAxis = cFont.GetAxis(0);
+	AssertString("opsz", psAxis->szTag);
+	AssertInt(14 << 16, psAxis->iMinimum);
+	AssertInt(14 << 16, psAxis->iDefault);
+	AssertInt(32 << 16, psAxis->iMaximum);
+	AssertFalse(psAxis->bHidden);
+	psAxis = cFont.GetAxis(1);
+	AssertString("wght", psAxis->szTag);
+	AssertInt(100 << 16, psAxis->iMinimum);
+	AssertInt(400 << 16, psAxis->iDefault);
+	AssertInt(900 << 16, psAxis->iMaximum);
+	AssertNull(cFont.GetAxis(2));
+	AssertFloat(400.0f, cFont.GetAxisValue("wght"), 2);
+	AssertFloat(14.0f, cFont.GetAxisValue("opsz"), 2);
+	AssertFalse(cFont.SetAxis("wdth", 75.0f));
+
+	AssertSize(9, cFont.NumNamedInstances());
+	for (i = 0; i < 9; i++)
+	{
+		sz.Init();
+		AssertTrue(cFont.GetNamedInstanceName(i, &sz));
+		AssertString(aszNames[i], sz.Text());
+		sz.Kill();
+	}
+	AssertTrue(cFont.SetNamedInstance("SemiBold"));
+	AssertFloat(600.0f, cFont.GetAxisValue("wght"), 2);
+	AssertTrue(cFont.GetVariations()->IsVaried());
+	AssertTrue(cFont.SetNamedInstance((size)0));
+	AssertFloat(100.0f, cFont.GetAxisValue("wght"), 2);
+	AssertFalse(cFont.SetNamedInstance("Heavy"));
+	AssertFalse(cFont.SetNamedInstance(9));
+
+	//Clamped to the axis.
+	AssertTrue(cFont.SetAxis("wght", 2000.0f));
+	AssertFloat(900.0f, cFont.GetAxisValue("wght"), 2);
+	AssertTrue(cFont.SetAxis("opsz", 1.0f));
+	AssertFloat(14.0f, cFont.GetAxisValue("opsz"), 2);
+
+	cFont.ResetAxes();
+	AssertFalse(cFont.GetVariations()->IsVaried());
+	AssertFloat(400.0f, cFont.GetAxisValue("wght"), 2);
+	cFont.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Normalised coordinates (16.16) go through Inter's avar weight map.
+// The expected values are FreeType's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsNormalise(void)
+{
+	CTrueTypeFont			cFont;
+	CTrueTypeVariations*	pcVariations;
+
+	AssertTrue(LoadTrueTypeFont(&cFont, "InterVariable.ttf"));
+	pcVariations = cFont.GetVariations();
+
+	cFont.SetAxis("wght", 700.0f);
+	AssertInt(0, pcVariations->GetNormalisedCoordinate(0));
+	AssertInt(35390, pcVariations->GetNormalisedCoordinate(1));
+	cFont.SetAxis("wght", 250.0f);
+	AssertInt(-32768, pcVariations->GetNormalisedCoordinate(1));
+	cFont.SetAxis("wght", 100.0f);
+	AssertInt(-65536, pcVariations->GetNormalisedCoordinate(1));
+	cFont.SetAxis("wght", 900.0f);
+	cFont.SetAxis("opsz", 32.0f);
+	AssertInt(65536, pcVariations->GetNormalisedCoordinate(0));
+	AssertInt(65536, pcVariations->GetNormalisedCoordinate(1));
+	cFont.SetAxis("opsz", 23.0f);
+	AssertInt(32768, pcVariations->GetNormalisedCoordinate(0));
+	AssertInt(0, pcVariations->GetNormalisedCoordinate(2));
+
+	cFont.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Varied outlines and advances of a simple glyph (A) and a composite
+// glyph (A dieresis) match FreeType's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsOutline(void)
+{
+	CTrueTypeFont			cFont;
+	CTrueTypeOutline		cOutline;
+	STrueTypeGlyphMetrics	sMetrics;
+	int						iAdvance;
+	int						aiA400[] = { 52,0, 593,1490, 813,1490, 1361,0, 1161,0, 845,884, 816,966, 739,1211, 684,1401, 720,1401, 666,1209, 587,960, 561,884, 254,0, 324,416, 324,582, 1089,582, 1089,416 };
+	int						aiA700[] = { 49,0, 558,1490, 958,1490, 1480,0, 1141,0, 902,719, 859,858, 770,1189, 721,1385, 788,1385, 740,1188, 657,855, 616,719, 386,0, 367,346, 367,585, 1162,585, 1162,346 };
+	int						aiA100[] = { 66,0, 623,1490, 686,1490, 1244,0, 1195,0, 763,1154, 733,1234, 674,1394, 645,1474, 663,1474, 634,1394, 575,1234, 545,1154, 115,0, 285,496, 285,542, 1025,542, 1025,496 };
+	int						aiADieresis700[] = { 49,0, 558,1490, 958,1490, 1480,0, 1141,0, 902,719, 859,858, 770,1189, 721,1385, 788,1385, 740,1188, 657,855, 616,719, 386,0, 367,346, 367,585, 1162,585, 1162,346,
+												 984,1644, 922,1644, 834,1730, 834,1790, 834,1850, 922,1935, 984,1935, 1046,1935, 1134,1850, 1134,1790, 1134,1729, 1046,1644,
+												 541,1644, 479,1644, 391,1730, 391,1790, 391,1850, 479,1935, 541,1935, 603,1935, 690,1850, 690,1790, 690,1729, 603,1644 };
+	int						aiA900Opsz32[] = { 0,0, 500,1490, 1060,1490, 1565,0, 1097,0, 930,578, 876,766, 774,1133, 726,1331, 838,1331, 788,1133, 684,766, 628,578, 455,0, 373,245, 373,565, 1193,565, 1193,245 };
+
+	AssertTrue(LoadTrueTypeFont(&cFont, "InterVariable.ttf"));
+	AssertInt(2, cFont.GetGlyphIndex('A'));
+	AssertInt(3, cFont.GetGlyphIndex(0xC4));
+	AssertTrueTypePoints(aiA400, 18, &cFont, 2);
+
+	cFont.SetAxis("wght", 700.0f);
+	AssertTrueTypePoints(aiA700, 18, &cFont, 2);
+	AssertTrueTypePoints(aiADieresis700, 42, &cFont, 3);
+	AssertTrueTypeMetrics(1529, 49, 49, 0, 1480, 1490, &cFont, 2);
+	AssertTrueTypeMetrics(1529, 49, 49, 0, 1480, 1935, &cFont, 3);
+	AssertTrueTypeMetrics(485, 0, 0, 0, 0, 0, &cFont, 1777);
+	AssertTrue(cFont.GetGlyphAdvanceWidth(2, &iAdvance));
+	AssertInt(1529, iAdvance);
+	AssertTrue(cFont.GetGlyphAdvanceWidth(1777, &iAdvance));
+	AssertInt(485, iAdvance);
+
+	cFont.SetNamedInstance("Thin");
+	AssertTrueTypePoints(aiA100, 18, &cFont, 2);
+	AssertTrueTypeMetrics(1310, 66, 66, 0, 1244, 1490, &cFont, 2);
+	AssertTrueTypeMetrics(576, 0, 0, 0, 0, 0, &cFont, 1777);
+
+	cFont.SetAxis("wght", 900.0f);
+	cFont.SetAxis("opsz", 32.0f);
+	AssertTrueTypePoints(aiA900Opsz32, 18, &cFont, 2);
+	AssertTrueTypeMetrics(1565, 0, 0, 0, 1565, 1490, &cFont, 2);
+	AssertTrueTypeMetrics(376, 0, 0, 0, 0, 0, &cFont, 1777);
+
+	//Back to the default instance.
+	cFont.ResetAxes();
+	AssertTrueTypePoints(aiA400, 18, &cFont, 2);
+	AssertTrueTypeMetrics(1413, 52, 52, 0, 1361, 1490, &cFont, 2);
+
+	//Every glyph still reads at an extreme, and its points are inside its bounding box.
+	cFont.SetNamedInstance("Black");
+	cOutline.Init();
+	AssertFalse(cFont.GetGlyphOutline(cFont.NumGlyphs(), &cOutline));
+	cOutline.Clear();
+	AssertTrue(cFont.GetGlyphOutline(cFont.NumGlyphs() - 1, &cOutline));
+	cFont.GetGlyphMetrics(cFont.NumGlyphs() - 1, &sMetrics);
+	AssertTrue(TrueTypeOutlineMatchesBounds(&cOutline, &sMetrics));
+	cOutline.Kill();
+
+	cFont.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every glyph of both Inter fonts reads at the weight and optical size
+// extremes (and somewhere between), with points matching their varied
+// bounding boxes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsAllGlyphs(void)
+{
+	char*					aszFonts[] = { "InterVariable.ttf", "InterVariable-Italic.ttf" };
+	float32					afWeights[] = { 100.0f, 333.3f, 900.0f };
+	float32					afSizes[] = { 14.0f, 32.0f, 14.0f };
+	CTrueTypeFont			cFont;
+	CTrueTypeOutline		cOutline;
+	STrueTypeGlyphMetrics	sMetrics;
+	int						iFont;
+	int						iInstance;
+	int						iGlyph;
+	int						iBad;
+
+	cOutline.Init();
+	for (iFont = 0; iFont < 2; iFont++)
+	{
+		AssertTrue(LoadTrueTypeFont(&cFont, aszFonts[iFont]));
+		for (iInstance = 0; iInstance < 3; iInstance++)
+		{
+			AssertTrue(cFont.SetAxis("wght", afWeights[iInstance]));
+			AssertTrue(cFont.SetAxis("opsz", afSizes[iInstance]));
+			iBad = 0;
+			for (iGlyph = 0; iGlyph < cFont.NumGlyphs(); iGlyph++)
+			{
+				cOutline.Clear();
+				if (!cFont.GetGlyphOutline(iGlyph, &cOutline) || !cFont.GetGlyphMetrics(iGlyph, &sMetrics) || !TrueTypeOutlineMatchesBounds(&cOutline, &sMetrics))
+				{
+					iBad++;
+				}
+			}
+			AssertInt(0, iBad);
+		}
+		cFont.Kill();
+	}
+	cOutline.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// MVAR varies the underline and strikeout.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsMetrics(void)
+{
+	CTrueTypeFont	cFont;
+
+	AssertTrue(LoadTrueTypeFont(&cFont, "InterVariable.ttf"));
+	AssertInt(1984, cFont.GetAscender());
+	AssertInt(-494, cFont.GetDescender());
+	AssertInt(-348, cFont.GetUnderlinePosition());
+	AssertInt(140, cFont.GetUnderlineThickness());
+	AssertInt(671, cFont.GetStrikeoutPosition());
+	AssertInt(140, cFont.GetStrikeoutSize());
+
+	cFont.SetAxis("wght", 700.0f);
+	AssertInt(1984, cFont.GetAscender());
+	AssertInt(-494, cFont.GetDescender());
+	AssertInt(-323, cFont.GetUnderlinePosition());
+	AssertInt(190, cFont.GetUnderlineThickness());
+	AssertInt(671, cFont.GetStrikeoutPosition());
+	AssertInt(190, cFont.GetStrikeoutSize());
+
+	cFont.SetAxis("wght", 100.0f);
+	AssertInt(-395, cFont.GetUnderlinePosition());
+	AssertInt(46, cFont.GetUnderlineThickness());
+	AssertInt(46, cFont.GetStrikeoutSize());
+	cFont.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inter in every named weight, upright and italic, and at its largest
+// optical size.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueTypeVariationsDrawWeights(void)
+{
+	char		szDirectory[] = "Output" _FS_ "TrueTypeVariations";
+	CFileUtil	cFileUtil;
+
+	AssertTrue(cFileUtil.RemoveDir(szDirectory));
+	AssertTrue(cFileUtil.TouchDir(szDirectory));
+
+	ObjectsInit();
+	{
+		char*					aszFonts[] = { "InterVariable.ttf", "InterVariable-Italic.ttf" };
+		CTrueTypeFont			cFont;
+		CTrueTypeRasteriser		cRasteriser;
+		Ptr<CImage>				pcImage;
+		CImageColourRGB			cColour;
+		int						iFont;
+		size					uiInstance;
+		float32					fY;
+		CChars					szOutputFilename;
+		CChars					szInputFilename;
+
+		pcImage = OMalloc<CImage>(480, 640, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pcImage->White();
+		cColour.Init(0.0f, 0.0f, 0.0f);
+
+		fY = 8.0f;
+		for (iFont = 0; iFont < 2; iFont++)
+		{
+			AssertTrue(LoadTrueTypeFont(&cFont, aszFonts[iFont]));
+			for (uiInstance = 0; uiInstance < cFont.NumNamedInstances(); uiInstance++)
+			{
+				AssertTrue(cFont.SetNamedInstance(uiInstance));
+				cRasteriser.Init(&cFont, 24.0f);
+				fY += cRasteriser.GetAscent();
+				AssertTrue(cRasteriser.DrawText(pcImage, 6.0f, fY, "Hamburgefonstiv \xC3\x84 0123 &@", &cColour));
+				fY += cRasteriser.GetDescent();
+				cRasteriser.Kill();
+			}
+
+			AssertTrue(cFont.SetAxis("wght", 650.0f));
+			AssertTrue(cFont.SetAxis("opsz", 32.0f));
+			cRasteriser.Init(&cFont, 40.0f);
+			fY += cRasteriser.GetAscent();
+			AssertTrue(cRasteriser.DrawText(pcImage, 6.0f, fY, "Display 650", &cColour));
+			fY += cRasteriser.GetDescent();
+			cRasteriser.Kill();
+			cFont.Kill();
+		}
+
+		szOutputFilename.Init(szDirectory);
+		cFileUtil.AppendToPath(&szOutputFilename, "Weights.png");
+		AssertTrue(WriteImage(pcImage, szOutputFilename.Text()));
+		pcImage = NULL;
+
+		szInputFilename.Init(szOutputFilename);
+		szInputFilename.Replace("Output", "Input");
+		AssertFile(szInputFilename, szOutputFilename);
+
+		szOutputFilename.Kill();
+		szInputFilename.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTrueTypeFont(void)
@@ -1611,6 +1963,12 @@ void TestTrueTypeFont(void)
 	TestTrueTypeFontScriptAndLineMetrics();
 	TestTrueTypeFontScriptLayout();
 	TestTrueTypeFontDecorationLayout();
+	TestTrueTypeVariationsAxes();
+	TestTrueTypeVariationsNormalise();
+	TestTrueTypeVariationsOutline();
+	TestTrueTypeVariationsAllGlyphs();
+	TestTrueTypeVariationsMetrics();
+	TestTrueTypeVariationsDrawWeights();
 
 	DataIOKill();
 
