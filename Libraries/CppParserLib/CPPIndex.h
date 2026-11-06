@@ -31,6 +31,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSemanticPass.h"
 
 
+class CSourceFile;
+
+
 enum ECPPIndexRole
 {
 	CPPIR_Declaration,
@@ -105,6 +108,9 @@ public:
 	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
 	CArrayInt			maiBaseLinks;	//Pairs of keys: a class, then one of its base classes.
 	CArrayInt			maiVirtuals;	//The keys of member functions declared virtual, override or final.
+	CMapLongTemplate<int32>	mcCachedKeys;	//A symbol's (or a function declarator's) key, by its address: -1 if it has none.
+	CSourceFile*		mpcLastFile;	//The file the last name added was in,
+	int					miLastFile;		//and its index in maszFiles.
 
 	void	Init(void);
 	void	Kill(void);
@@ -112,6 +118,7 @@ public:
 	void	AddVirtual(const char* szFunction, ECPPSymbolKind eKind);
 
 	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
+	void	AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
 	void	SetContainer(const char* szKey, ECPPSymbolKind eKind);
 	int		AddKey(const char* szKey, ECPPSymbolKind eKind);
 };
@@ -177,6 +184,7 @@ protected:
 	static void			GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, uint8 uiFlags, CCPPIndexUnit* pcDest);
 	static bool			GetMacroUse(CCPPTokeniser* pcTokeniser, SPreprocessedToken* psSource, SPreprocessedToken* psDest);
 	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
+	static int			GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator, CCPPIndexUnit* pcDest);
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
 	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);

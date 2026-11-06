@@ -182,6 +182,9 @@ void CCPPIndexUnit::Init(void)
 	miContainer = -1;
 	maiBaseLinks.Init();
 	maiVirtuals.Init();
+	mcCachedKeys.Init(true);
+	mpcLastFile = NULL;
+	miLastFile = -1;
 }
 
 
@@ -191,6 +194,7 @@ void CCPPIndexUnit::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndexUnit::Kill(void)
 {
+	mcCachedKeys.Kill();
 	maiVirtuals.Kill();
 	maiBaseLinks.Kill();
 	mcFiles.Kill();
@@ -209,19 +213,38 @@ void CCPPIndexUnit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags)
 {
+	AddEntry(AddKey(szKey, eKind), psSource, eRole, uiFlags);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name of the unit's key iKey (from AddKey) at a token's place.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags)
+{
 	SCPPIndexEntry*	psEntry;
-	int				iKey;
 	int				iFile;
 	char*			szFileName;
 
-	iKey = AddKey(szKey, eKind);
-	szFileName = psSource->pcFile->FullName();
-	iFile = mcFiles.Get(szFileName, -1);
-	if (iFile < 0)
+	//Names come a file at a time: the last file's index is kept.
+	if (psSource->pcFile == mpcLastFile)
 	{
-		iFile = (int)maszFiles.NumElements();
-		maszFiles.Add(szFileName);
-		mcFiles.Put(szFileName, iFile);
+		iFile = miLastFile;
+	}
+	else
+	{
+		szFileName = psSource->pcFile->FullName();
+		iFile = mcFiles.Get(szFileName, -1);
+		if (iFile < 0)
+		{
+			iFile = (int)maszFiles.NumElements();
+			maszFiles.Add(szFileName);
+			mcFiles.Put(szFileName, iFile);
+		}
+		mpcLastFile = psSource->pcFile;
+		miLastFile = iFile;
 	}
 
 	psEntry = masEntries.Add();
@@ -870,9 +893,8 @@ bool CCPPIndex::GetMacroUse(CCPPTokeniser* pcTokeniser, SPreprocessedToken* psSo
 void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, uint8 uiFlags, CCPPIndexUnit* pcDest)
 {
 	CCPPSymbol*		pcSymbol;
-	CChars			szKey;
 	ECPPIndexRole	eRole;
-	bool			bKey;
+	int				iKey;
 
 	pcSymbol = psSymbol->pcSymbol;
 	if ((psSymbol->uiRole == CPPTR_Reference) && pcKeys->IsFunction(pcSymbol))
@@ -881,16 +903,8 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 		return;
 	}
 
-	szKey.Init();
-	if ((psSymbol->uiRole == CPPTR_Declaration) && pcKeys->IsFunction(pcSymbol) && psToken->pcDeclarator)
-	{
-		bKey = pcKeys->GetFunctionKey(pcSymbol, psToken->pcDeclarator, &szKey);
-	}
-	else
-	{
-		bKey = pcKeys->GetKey(pcSymbol, &szKey);
-	}
-	if (bKey)
+	iKey = GetUnitKey(pcKeys, pcSymbol, (psSymbol->uiRole == CPPTR_Declaration) ? psToken->pcDeclarator : NULL, pcDest);
+	if (iKey >= 0)
 	{
 		if (psSymbol->uiRole == CPPTR_Reference)
 		{
@@ -900,9 +914,50 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 		{
 			eRole = psToken->bDefinition ? CPPIR_Definition : CPPIR_Declaration;
 		}
-		pcDest->Add(szKey.Text(), pcSymbol->meKind, psSource, eRole, uiFlags);
+		pcDest->AddEntry(iKey, psSource, eRole, uiFlags);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit's key (AddKey) of pcSymbol, or of the function pcDeclarator
+// declares if it isn't NULL, worked out once per unit: a name is mostly
+// named many times.  -1 if it has no key.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPIndex::GetUnitKey(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator, CCPPIndexUnit* pcDest)
+{
+	int64	lliAddress;
+	int32*	piCached;
+	int32	iKey;
+	CChars	szKey;
+	bool	bKey;
+
+	if (pcDeclarator && !pcKeys->IsFunction(pcSymbol))
+	{
+		pcDeclarator = NULL;
+	}
+	lliAddress = pcDeclarator ? (int64)(size)pcDeclarator : (int64)(size)pcSymbol;
+	piCached = pcDest->mcCachedKeys.Get(lliAddress);
+	if (piCached)
+	{
+		return *piCached;
+	}
+
+	szKey.Init();
+	if (pcDeclarator)
+	{
+		bKey = pcKeys->GetFunctionKey(pcSymbol, pcDeclarator, &szKey);
+	}
+	else
+	{
+		bKey = pcKeys->GetKey(pcSymbol, &szKey);
+	}
+	iKey = bKey ? pcDest->AddKey(szKey.Text(), pcSymbol->meKind) : -1;
 	szKey.Kill();
+	pcDest->mcCachedKeys.Put(lliAddress, &iKey);
+	return iKey;
 }
 
 
@@ -914,23 +969,13 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
 {
-	CChars	szKey;
-	bool	bKey;
+	int	iKey;
 
-	szKey.Init();
-	if (psResolved->pcDeclarator && pcKeys->IsFunction(psResolved->pcSymbol))
+	iKey = GetUnitKey(pcKeys, psResolved->pcSymbol, psResolved->pcDeclarator, pcDest);
+	if (iKey >= 0)
 	{
-		bKey = pcKeys->GetFunctionKey(psResolved->pcSymbol, psResolved->pcDeclarator, &szKey);
+		pcDest->AddEntry(iKey, psSource, CPPIR_Reference, 0);
 	}
-	else
-	{
-		bKey = pcKeys->GetKey(psResolved->pcSymbol, &szKey);
-	}
-	if (bKey)
-	{
-		pcDest->Add(szKey.Text(), psResolved->pcSymbol->meKind, psSource, CPPIR_Reference, 0);
-	}
-	szKey.Kill();
 }
 
 
@@ -944,53 +989,50 @@ void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolv
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
 {
-	CArrayChars		aszCandidates;
-	CArrayChars		aszAll;
+	CArrayInt		aiCandidates;
+	CArrayInt		aiAll;
 	CCPPSymbol*		pcOverload;
-	CChars			szKey;
+	int				iKey;
 	int				iMinimum;
 	int				iMaximum;
 	bool			bFits;
-	CArrayChars*	paszChosen;
+	CArrayInt*		paiChosen;
 	size			i;
-	ECPPSymbolKind	eKind;
 
-	aszCandidates.Init();
-	aszAll.Init();
-	eKind = pcSymbol->meKind;
+	aiCandidates.Init();
+	aiAll.Init();
 	for (pcOverload = pcSymbol; pcOverload; pcOverload = pcOverload->mpcNext)
 	{
 		if (!pcKeys->IsFunction(pcOverload))
 		{
 			continue;
 		}
-		szKey.Init();
-		if (pcKeys->GetKey(pcOverload, &szKey))
+		iKey = GetUnitKey(pcKeys, pcOverload, NULL, pcDest);
+		if (iKey >= 0)
 		{
-			if (!aszAll.Contains(&szKey))
+			if (aiAll.Find(iKey) == ARRAY_ELEMENT_NOT_FOUND)
 			{
-				aszAll.Add(&szKey);
+				aiAll.Add(iKey);
 			}
 			bFits = true;
 			if ((iArguments >= 0) && pcKeys->GetParameterCounts(pcOverload, &iMinimum, &iMaximum))
 			{
 				bFits = (iArguments >= iMinimum) && ((iMaximum < 0) || (iArguments <= iMaximum));
 			}
-			if (bFits && !aszCandidates.Contains(&szKey))
+			if (bFits && (aiCandidates.Find(iKey) == ARRAY_ELEMENT_NOT_FOUND))
 			{
-				aszCandidates.Add(&szKey);
+				aiCandidates.Add(iKey);
 			}
 		}
-		szKey.Kill();
 	}
 
-	paszChosen = (aszCandidates.NumElements() > 0) ? &aszCandidates : &aszAll;
-	for (i = 0; i < paszChosen->NumElements(); i++)
+	paiChosen = (aiCandidates.NumElements() > 0) ? &aiCandidates : &aiAll;
+	for (i = 0; i < paiChosen->NumElements(); i++)
 	{
-		pcDest->Add(paszChosen->GetText(i), eKind, psSource, CPPIR_Reference, (paszChosen->NumElements() > 1) ? CPPIF_AMBIGUOUS : 0);
+		pcDest->AddEntry(paiChosen->GetValue(i), psSource, CPPIR_Reference, (paiChosen->NumElements() > 1) ? CPPIF_AMBIGUOUS : 0);
 	}
-	aszAll.Kill();
-	aszCandidates.Kill();
+	aiAll.Kill();
+	aiCandidates.Kill();
 }
 
 
