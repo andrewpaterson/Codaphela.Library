@@ -134,7 +134,9 @@ protected:
 	bool				mbSizeDirty;  //Reading the text again can change its size.
 	size				muiChangeCount;  //How many times the text has been edited (GetChangeCount).
 	Ptr<CText>			mpText;
+	bool				mbTextStale;  //Text was appended after mpText was read (AppendSprites): read it again before it is laid out whole.
 	Ptr<CTextLayout>	mpLayout;
+	Ptr<CTextLayout>	mpAppendLayout;  //Lays out text appended, from the start of its first line (AppendSprites).  NULL until then.
 	Ptr<CSpriteMap>		mpSpriteMap;
 	Ptr<CGeometryMap>	mpGeometryMap;  //The lines drawn along the text, over it.
 	Ptr<CMapFontDraw>	mpFontDraw;
@@ -322,8 +324,9 @@ public:
 
 protected:
 	void				ReadText(void);
-	STextStyle*			MakeStyles(void);
-	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift);
+	STextStyle*			MakeStyles(size uiFrom = 0);
+	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift, size uiFrom = 0);
+	bool				HasDecorations(void);
 	void				LayoutText(void);
 	void				UpdateText(void);
 	void				UpdateSize(void);
@@ -354,6 +357,9 @@ protected:
 	bool				UseTiles(void);
 	void				ReadTiles(void);
 	bool				CanAppendTiles(void);
+	bool				CanAppendSprites(void);
+	void				AppendSprites(size uiFrom);
+	Ptr<CText>			ReadTextFrom(size uiFrom);
 	void				AppendTiles(size uiFrom);
 	void				AppendStops(size uiFrom);
 	void				AppendLineStarts(size uiFrom);

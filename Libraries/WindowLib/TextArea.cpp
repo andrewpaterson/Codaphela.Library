@@ -76,6 +76,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mbTextDirty = false;
 	mbSizeDirty = false;
 	mpText = NULL;
+	mbTextStale = false;
 	mpLayout = OMalloc<CTextLayout>();
 	mpSpriteMap = OMalloc<CSpriteMap>();
 	mpGeometryMap = OMalloc<CGeometryMap>();
@@ -225,7 +226,9 @@ void CTextArea::Class(void)
 	U_Bool(mbSizeDirty);
 	U_Data(size, muiChangeCount);
 	M_Pointer(mpText);
+	U_Bool(mbTextStale);
 	M_Pointer(mpLayout);
+	M_Pointer(mpAppendLayout);
 	M_Pointer(mpSpriteMap);
 	M_Pointer(mpGeometryMap);
 	M_Pointer(mpFontDraw);
@@ -311,22 +314,24 @@ void CTextArea::SetText(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds szText (UTF8) to the end of the text in sColour.  Text shown as
-// tiles only reads and writes what was added (and the line it joins), so
-// appending to a long text, an output pane say, costs what is added, not
-// the whole text.  The text area is laid out again: it is bigger.
+// Adds szText (UTF8) to the end of the text in sColour.  Only what was
+// added (and the line it joins) is read and laid out, as tiles or as
+// sprites, so appending to a long text, an output pane say, costs what is
+// added, not the whole text.  The text area is laid out again: it is bigger.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 {
 	size	uiStart;
 	bool	bAppendTiles;
+	bool	bAppendSprites;
 
 	if ((szText == NULL) || (szText[0] == '\0'))
 	{
 		return;
 	}
 	bAppendTiles = CanAppendTiles();
+	bAppendSprites = !bAppendTiles && CanAppendSprites();
 	uiStart = mszText.Length();
 	mszText.Append(szText);
 	AppendLineStarts(uiStart);
@@ -336,6 +341,11 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 		AppendTiles(uiStart);
 		mbTextDirty = false;
 		LayoutTiles();
+	}
+	else if (bAppendSprites)
+	{
+		AppendSprites(uiStart);
+		mbTextDirty = false;
 	}
 	else
 	{
@@ -796,6 +806,7 @@ void CTextArea::ReadText(void)
 
 	mbTextDirty = false;
 	mbSizeDirty = false;
+	mbTextStale = false;
 	FindStopStarts();
 
 	mbTiled = UseTiles();
@@ -835,12 +846,13 @@ void CTextArea::ReadText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The style of each byte of the text: the text area's style with the
-// spans over it, applied in the order they were added.  NULL if there are
-// no spans, when every byte is in the text area's style.  Free it.
+// The style of each byte of the text from uiFrom on (the first is
+// uiFrom's): the text area's style with the spans over it, applied in the
+// order they were added.  NULL if there are no spans, when every byte is in
+// the text area's style.  Free it.
 //
 //////////////////////////////////////////////////////////////////////////
-STextStyle* CTextArea::MakeStyles(void)
+STextStyle* CTextArea::MakeStyles(size uiFrom)
 {
 	size			uiTextLength;
 	size			i;
@@ -850,23 +862,23 @@ STextStyle* CTextArea::MakeStyles(void)
 	STextAreaSpan*	psSpan;
 
 	uiTextLength = mszText.Length();
-	if ((masSpans.NumElements() == 0) || (uiTextLength == 0))
+	if ((masSpans.NumElements() == 0) || (uiTextLength <= uiFrom))
 	{
 		return NULL;
 	}
 
-	psStyles = (STextStyle*)malloc(uiTextLength * sizeof(STextStyle));
-	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
+	psStyles = (STextStyle*)malloc((uiTextLength - uiFrom) * sizeof(STextStyle));
+	for (uiPosition = uiFrom; uiPosition < uiTextLength; uiPosition++)
 	{
-		psStyles[uiPosition] = msStyle;
+		psStyles[uiPosition - uiFrom] = msStyle;
 	}
 	for (i = 0; i < masSpans.NumElements(); i++)
 	{
 		psSpan = masSpans.Get(i);
 		uiEnd = psSpan->uiStart + psSpan->uiLength;
-		for (uiPosition = psSpan->uiStart; (uiPosition < uiEnd) && (uiPosition < uiTextLength); uiPosition++)
+		for (uiPosition = (psSpan->uiStart > uiFrom) ? psSpan->uiStart : uiFrom; (uiPosition < uiEnd) && (uiPosition < uiTextLength); uiPosition++)
 		{
-			psSpan->sOverride.ApplyTo(&psStyles[uiPosition]);
+			psSpan->sOverride.ApplyTo(&psStyles[uiPosition - uiFrom]);
 		}
 	}
 	return psStyles;
@@ -875,13 +887,41 @@ STextStyle* CTextArea::MakeStyles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A font change is made wherever the style of the text (MakeStyles)
-// changes.  Text before the first change is in pDefaultFont.  A style the
-// family has no font for is drawn in pDefaultFont (the family logs an
-// error).
+// The text area's style, or a span, underlines, overlines or strikes
+// through some of the text.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift)
+bool CTextArea::HasDecorations(void)
+{
+	size		i;
+	STextStyle	sStyle;
+
+	if (msStyle.GetDecorations() != 0)
+	{
+		return true;
+	}
+	for (i = 0; i < masSpans.NumElements(); i++)
+	{
+		sStyle = msStyle;
+		masSpans.Get(i)->sOverride.ApplyTo(&sStyle);
+		if (sStyle.GetDecorations() != 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A font change is made wherever the style of the text from uiFrom on
+// (MakeStyles) changes, at its byte after uiFrom.  Text before the first
+// change is in pDefaultFont.  A style the family has no font for is drawn
+// in pDefaultFont (the family logs an error).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift, size uiFrom)
 {
 	size				uiTextLength;
 	size				uiPosition;
@@ -890,13 +930,13 @@ void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDe
 	Ptr<CFont>			pFont;
 	int16				iBaselineShift;
 
-	psStyles = MakeStyles();
+	psStyles = MakeStyles(uiFrom);
 	if (psStyles == NULL)
 	{
 		return;
 	}
 
-	uiTextLength = mszText.Length();
+	uiTextLength = mszText.Length() - uiFrom;
 	psCurrent = &msStyle;
 	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
 	{
@@ -927,6 +967,11 @@ void CTextArea::LayoutText(void)
 	Ptr<CFont>			pFont;
 	STextLayoutLine*	psLine;
 
+	if (mbTextStale)
+	{
+		//Text was appended since the whole was read: it is all laid out again, so it is all read again.
+		ReadText();
+	}
 	if (mbTiled)
 	{
 		LayoutTiles();
@@ -4179,6 +4224,7 @@ void CTextArea::ReadTiles(void)
 	psLine->iBaseline = pWhite->GetAscent();  //Below the top of the text, as CTextLayout's are.
 	psLine->uiFirstStop = 0;
 	psLine->uiNumStops = 0;
+	psLine->iWidth = 0;
 
 	uiColumn = 0;
 	uiColumns = 0;
@@ -4215,6 +4261,7 @@ void CTextArea::ReadTiles(void)
 				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
 				psLine->uiFirstStop = ui + 1;
 				psLine->uiNumStops = 0;
+				psLine->iWidth = 0;
 			}
 			else
 			{
@@ -4253,6 +4300,149 @@ void CTextArea::ReadTiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text from uiFrom on in the fonts of its styles, as ReadText reads
+// the whole text, its font changes from uiFrom.  NULL without a font for
+// the text area's style.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CText> CTextArea::ReadTextFrom(size uiFrom)
+{
+	CSimpleTextReader		cReader;
+	CUTF8					cUTF8;
+	CArrayTextFontChange	asChanges;
+	Ptr<CFont>				pFont;
+	Ptr<CText>				pText;
+	int16					iBaselineShift;
+
+	pFont = mpFamily->GetRunFont(&msStyle, &iBaselineShift);
+	if (pFont.IsNull())
+	{
+		return NULL;
+	}
+	asChanges.Init();
+	if ((iBaselineShift != 0) || (msStyle.GetDecorations() != 0))
+	{
+		asChanges.Add()->Init(0, &pFont, iBaselineShift, msStyle.GetDecorations(), msStyle.sColour);
+	}
+	MakeFontChanges(&asChanges, pFont, iBaselineShift, uiFrom);
+
+	cUTF8.Init(&mszText.Text()[uiFrom]);
+	cReader.Init(&pFont);
+	pText = cReader.Read(&cUTF8, true, &asChanges);
+	cReader.Kill();
+	cUTF8.Kill();
+	asChanges.Kill();
+	return pText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether text appended can be laid out from the start of the old last
+// line on rather than the whole text laid out again: it is laid out as
+// sprites, up to date, at the width it is laid out to now, and nothing is
+// decorated (decorations are drawn over the whole text).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::CanAppendSprites(void)
+{
+	if (mbTiled || mbTextDirty || mbSizeDirty || mpText.IsNull() || UseTiles())
+	{
+		return false;
+	}
+	if ((mpLayout->GetWidth() != GetWrapWidth()) || (mpLayout->NumLines() == 0) || (mpLayout->NumStops() != mauiStopStarts.NumElements()))
+	{
+		return false;
+	}
+	return !HasDecorations();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text from uiFrom (the old end) on laid out after the lines before
+// it: the old last line (from the line feed before it) and what was
+// appended are read and laid out by themselves, from the top of that
+// line, and replace its rows (CTextLayout::ReplaceLines) and their
+// sprites.  CanAppendSprites says when.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AppendSprites(size uiFrom)
+{
+	size				uiTextLine;
+	size				uiTailStart;
+	size				uiLayoutLine;
+	size				uiSprite;
+	size				i;
+	int32				iTop;
+	Ptr<CFont>			pFont;
+	Ptr<CText>			pText;
+	CArrayTextLayoutGap	asGaps;
+	STextLayoutGap*		psGap;
+
+	//The line the old end is on, and the row it starts.
+	uiTextLine = mauiLineStarts.NumElements() - 1;
+	while ((uiTextLine > 0) && (*mauiLineStarts.Get(uiTextLine) > uiFrom))
+	{
+		uiTextLine--;
+	}
+	uiTailStart = *mauiLineStarts.Get(uiTextLine);
+	uiLayoutLine = mpLayout->GetStop(FindStop(uiTailStart))->uiLine;
+	iTop = mpLayout->GetLine(uiLayoutLine)->iTop;
+	AppendStops(uiFrom);
+
+	//Its rows' sprites go: they were placed after those of the rows above, below their tops.
+	uiSprite = mpSpriteMap->NumSprites();
+	while ((uiSprite > 0) && (mpSpriteMap->GetSprite(uiSprite - 1)->sPosition.y >= iTop))
+	{
+		uiSprite--;
+	}
+	mpSpriteMap->RemoveSprites(uiSprite);
+
+	pText = ReadTextFrom(uiTailStart);
+	if (mpAppendLayout.IsNull())
+	{
+		mpAppendLayout = OMalloc<CTextLayout>();
+	}
+	asGaps.Init();
+	for (i = 0; i < masGaps.NumElements(); i++)
+	{
+		if (masGaps.Get(i)->uiLine >= uiTextLine)
+		{
+			psGap = asGaps.Add(masGaps.Get(i));
+			psGap->uiLine -= uiTextLine;
+		}
+	}
+	mpAppendLayout->SetWidth(mpLayout->GetWidth());
+	mpAppendLayout->SetLineGaps(&asGaps);
+	mpAppendLayout->SetTabWidth(GetTabPixels());
+	asGaps.Kill();
+
+	mpFontDraw->SetOffset(0, iTop);
+	mpFontDraw->BeginAppend();
+	if (pText.IsNotNull())
+	{
+		mpAppendLayout->Layout(mpFontDraw, pText);
+	}
+	mpFontDraw->End();
+	mpFontDraw->SetOffset(0, 0);
+	mpLayout->ReplaceLines(uiLayoutLine, &mpAppendLayout);
+	pText = NULL;
+	mbTextStale = true;
+
+	msTextSize = mpLayout->GetSize();
+	pFont = GetFont();
+	if (pFont.IsNotNull() && (msTextSize.y < pFont->GetLineHeight()))
+	{
+		msTextSize.y = pFont->GetLineHeight();
+	}
+	mbBackgroundsDirty = true;
+	UpdateMarks();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether text appended can be added to the tiles read before rather than
 // the whole text read again: they are up to date, and nothing is decorated
 // (decorations are drawn over the whole text).
@@ -4260,9 +4450,6 @@ void CTextArea::ReadTiles(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::CanAppendTiles(void)
 {
-	size		i;
-	STextStyle	sStyle;
-
 	if (!mbTiled || mbTextDirty || mbSizeDirty || mpText.IsNotNull() || !UseTiles())
 	{
 		return false;
@@ -4271,20 +4458,7 @@ bool CTextArea::CanAppendTiles(void)
 	{
 		return false;
 	}
-	if (msStyle.GetDecorations() != 0)
-	{
-		return false;
-	}
-	for (i = 0; i < masSpans.NumElements(); i++)
-	{
-		sStyle = msStyle;
-		masSpans.Get(i)->sOverride.ApplyTo(&sStyle);
-		if (sStyle.GetDecorations() != 0)
-		{
-			return false;
-		}
-	}
-	return true;
+	return !HasDecorations();
 }
 
 
@@ -4373,7 +4547,6 @@ void CTextArea::AppendTiles(size uiFrom)
 	STextLayoutLine*		psLine;
 	STextLayoutStop*		psStop;
 	STextStyle*				psStyles;
-	STextAreaSpan*			psSpan;
 	STileTextSpan*			psTileSpan;
 	CArrayTileTextSpan		asSpans;
 	ARGB32					sColour;
@@ -4421,6 +4594,7 @@ void CTextArea::AppendTiles(size uiFrom)
 				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
 				psLine->uiFirstStop = ui + 1;
 				psLine->uiNumStops = 0;
+				psLine->iWidth = 0;
 			}
 			else
 			{
@@ -4441,22 +4615,9 @@ void CTextArea::AppendTiles(size uiFrom)
 	uiLineStart = *mauiLineStarts.Get(uiFirstRow);
 	uiRange = uiLength - uiLineStart;
 	asSpans.Init();
-	if ((masSpans.NumElements() > 0) && (uiRange > 0))
+	psStyles = MakeStyles(uiLineStart);
+	if (psStyles)
 	{
-		psStyles = (STextStyle*)malloc(uiRange * sizeof(STextStyle));
-		for (uiPosition = 0; uiPosition < uiRange; uiPosition++)
-		{
-			psStyles[uiPosition] = msStyle;
-		}
-		for (ui = 0; ui < masSpans.NumElements(); ui++)
-		{
-			psSpan = masSpans.Get(ui);
-			uiEnd = psSpan->uiStart + psSpan->uiLength;
-			for (uiPosition = (psSpan->uiStart > uiLineStart) ? psSpan->uiStart : uiLineStart; (uiPosition < uiEnd) && (uiPosition < uiLength); uiPosition++)
-			{
-				psSpan->sOverride.ApplyTo(&psStyles[uiPosition - uiLineStart]);
-			}
-		}
 		uiPosition = 0;
 		while (uiPosition < uiRange)
 		{
