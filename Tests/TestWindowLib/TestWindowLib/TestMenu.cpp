@@ -13,6 +13,7 @@
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/MenuBar.h"
 #include "WindowLib/TextArea.h"
+#include "WindowLib/TreeContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -970,6 +971,110 @@ void TestMenuContextMenu(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tree with a context menu, as Solution Explorer's: the right button
+// selects the row under the pointer before the menu opens, so the menu
+// acts on it, as Windows does.  Below the rows the selection stays.  The
+// Menu key opens it under the selected row.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuTreeContextMenu(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CMenuStyle>			pStyle;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CTreeContainer>		pTree;
+		Ptr<CPopup>				pPopup;
+		CTestMenuListener		cListener;
+		CPointer				pNull;
+		CChars					szLog;
+		SInt32Vec2				sVec;
+		int32					iFirst;
+		int32					iSecond;
+		int32					iTop;
+		int32					iHeight;
+
+		szLog.Init();
+		cListener.Init(&szLog);
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Tree Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pMenu->AddItem("Set as Startup");
+		pMenu->AddItem("Remove");
+		pMenu->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
+		iFirst = pTree->AddNode(TREE_NO_NODE, "First");
+		iSecond = pTree->AddNode(TREE_NO_NODE, "Second");
+		pTree->SetContextMenu(pMenu);
+		pTestWindow->SetContainer(pTree);
+		pTree->SelectNode(iFirst);
+		pTestWindow->Layout();
+
+		//The right button on the second row selects it, then opens the menu at the pointer.
+		AssertTrue(pTree->GetTrackBounds(false, 1, &iTop, &iHeight));
+		MoveTo(pTestWindow, SInt32Vec2(20, iTop + 2));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertInt(iSecond, pTree->GetSelectedNode());
+		AssertTrue(pMenu->IsOpen());
+		pPopup = pTestWindow->GetPopup(pMenu);
+		sVec = pPopup->GetPosition();
+		AssertInt32Vec2(20, iTop + 2, &sVec);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Clicked:Remove;");
+		AssertFalse(pMenu->IsOpen());
+		AssertInt(iSecond, pTree->GetSelectedNode());
+
+		//Below the rows it opens with the selection kept.
+		MoveTo(pTestWindow, SInt32Vec2(20, 150));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		AssertInt(iSecond, pTree->GetSelectedNode());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pMenu->IsOpen());
+
+		//The Menu key opens it under the selected row, at the tree's left.
+		pTree->SelectNode(iFirst);
+		pTestWindow->Layout();
+		AssertTrue(pTree->GetTrackBounds(false, 0, &iTop, &iHeight));
+		pTestWindow->InputCommand(CIC_ContextMenuKey, true);
+		AssertTrue(pMenu->IsOpen());
+		pPopup = pTestWindow->GetPopup(pMenu);
+		sVec = pPopup->GetPosition();
+		AssertInt32Vec2(pTree->GetPosition().x, iTop + iHeight, &sVec);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pMenu->IsOpen());
+		AssertInt(iFirst, pTree->GetSelectedNode());
+		AssertLog("");
+
+		pMenu->GetItemClickEvent()->Remove(&cListener);
+		pPopup = NULL;
+		pTree = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -983,6 +1088,7 @@ void TestMenu(void)
 	TestMenuBarFrames();
 	TestPopupDraw();
 	TestMenuContextMenu();
+	TestMenuTreeContextMenu();
 
 	ObjectsFlush();
 	ObjectsKill();

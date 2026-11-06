@@ -46,6 +46,8 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 
 	meStopReason = DS_Start;
 	muiStopAddress = 0;
+	muiStopSpace = DEBUG_SPACE_ANY;
+	muiStopProcess = DEBUG_PROCESS_ANY;
 	memset(mauiValues, 0, sizeof(mauiValues));
 	muiNumStops = 0;
 	muiNumRegisterReplies = 0;
@@ -590,6 +592,8 @@ void CDebugClient::Stopped(uint32 uiRequest, void* pvData, size uiSize)
 	mbStepping = false;
 	meStopReason = (EDebugStop)psStopped->uiReason;
 	muiStopAddress = psStopped->uiAddress;
+	muiStopSpace = psStopped->uiSpace;
+	muiStopProcess = psStopped->uiProcess;
 	memcpy(mauiValues, &psStopped[1], uiNumRegisters * sizeof(uint64));
 	muiNumStops++;
 	Answered(uiRequest);
@@ -889,6 +893,8 @@ bool CDebugClient::FindProcess(const char* szName, uint32* puiProcess)
 size CDebugClient::NumRegisters(void)					{ return msWelcome.uiNumRegisters; }
 EDebugStop CDebugClient::GetStopReason(void)			{ return meStopReason; }
 uint32 CDebugClient::GetStopAddress(void)				{ return muiStopAddress; }
+uint32 CDebugClient::GetStopSpace(void)					{ return muiStopSpace; }
+uint32 CDebugClient::GetStopProcess(void)				{ return muiStopProcess; }
 size CDebugClient::NumStops(void)						{ return muiNumStops; }
 size CDebugClient::NumRegisterReplies(void)				{ return muiNumRegisterReplies; }
 uint8* CDebugClient::GetMemory(void)					{ return mpuiMemory; }

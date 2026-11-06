@@ -57,6 +57,7 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	AddHighlights();
 	AddInputAction(CIC_ActivateComponent, this, &CListContainer::ActivateComponent);
 	AddInputAction(CIC_ExecuteComponent, this, &CListContainer::ExecuteComponent);
+	AddInputAction(CIC_ContextMenu, this, &CListContainer::ContextMenuClick);
 	AddInputAction(CIC_Up, this, &CListContainer::Up);
 	AddInputAction(CIC_Down, this, &CListContainer::Down);
 	AddInputAction(CIC_Home, this, &CListContainer::Home);
@@ -502,6 +503,49 @@ void CListContainer::ActivateComponent(int x, int y)
 	{
 		Select(iRow);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The right button, as in Windows: the row under the pointer is selected,
+// so the context menu acts on it.  Below the rows the selection stays.
+// The press goes on to the context menu (the list's own, or a parent's).
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::ContextMenuClick(SComponentInputEvent* psEvent)
+{
+	SInt32Vec2	sPosition;
+	int32		iRow;
+
+	psEvent->bPass = true;
+	sPosition = GetPosition();
+	iRow = FindRowAt(psEvent->x + sPosition.x, psEvent->y + sPosition.y);
+	if (iRow >= 0)
+	{
+		Select(iRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A context menu opened from the keys opens under the selected row, at
+// the list's left, or at the list's top left if no row is selected.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CListContainer::GetContextMenuPosition(void)
+{
+	SInt32Vec2	sPosition;
+	int32		iTop;
+	int32		iHeight;
+
+	sPosition = GetPosition();
+	if ((miSelected >= 0) && GetTrackBounds(false, (size)miSelected, &iTop, &iHeight))
+	{
+		sPosition.y = iTop + iHeight;
+	}
+	return sPosition;
 }
 
 

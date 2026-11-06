@@ -162,6 +162,49 @@ bool CFileUtil::IsRootDirectory(const char* szPathName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The whole of szFilename read into memory (malloc'd: free it), its size
+// in puiSize.  NULL if it can't be read or is too big for a size; an
+// empty file is a buffer of no bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CFileUtil::ReadAll(const char* szFilename, size* puiSize)
+{
+	CDiskFile	cFile;
+	filePos		iSize;
+	void*		pvData;
+
+	*puiSize = 0;
+	cFile.Init(szFilename);
+	if (!cFile.Open(EFM_Read))
+	{
+		cFile.Kill();
+		return NULL;
+	}
+	iSize = cFile.Size();
+	if ((iSize < 0) || ((uint64)iSize >= (uint64)MAX_SIZE))
+	{
+		cFile.Close();
+		cFile.Kill();
+		return NULL;
+	}
+	pvData = malloc((size)iSize + 1);
+	if ((pvData != NULL) && (iSize > 0) && (cFile.Read(pvData, (lsize)iSize, 1) != 1))
+	{
+		free(pvData);
+		pvData = NULL;
+	}
+	cFile.Close();
+	cFile.Kill();
+	if (pvData != NULL)
+	{
+		*puiSize = (size)iSize;
+	}
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)

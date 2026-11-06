@@ -47,8 +47,9 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //An emulator whose computer runs processes (DEBUG_CAN_PROCESSES) tells the debugger of those running when it says
 //hello, and of each one started (DM_ProcessStarted) and ended (DM_ProcessEnded).  A process started while running
 //stops it (DS_Process) before the process's first instruction, so the debugger can give it its breakpoints first: a
-//breakpoint's uiProcess is the process it stops in, or DEBUG_PROCESS_ANY.
-#define DEBUG_PROTOCOL_VERSION		4
+//breakpoint's uiProcess is the process it stops in, or DEBUG_PROCESS_ANY.  A stop says the space and process it is
+//in, so a debugger with programs at the same addresses in different spaces knows whose code it is.
+#define DEBUG_PROTOCOL_VERSION		5
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
@@ -59,7 +60,6 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #define DEBUG_NO_ADDRESS			0xFFFFFFFF
 #define DEBUG_MAX_SPACES			4
 #define DEBUG_SPACE_NAME_SIZE		16
-#define DEBUG_SPACE_ANY				0
 
 
 enum EDebugMessage
@@ -242,6 +242,8 @@ struct SDebugStopped
 	uint32	uiReason;		//EDebugStop.
 	uint32	uiAddress;		//The program address.
 	uint32	uiNumRegisters;
+	uint32	uiSpace;		//The breakpoint space it is in (its index plus one), DEBUG_SPACE_ANY if the target has none.
+	uint32	uiProcess;		//The process it is in, DEBUG_PROCESS_ANY if none is kept apart there (a kernel's code).
 	uint32	uiPadding;
 };
 

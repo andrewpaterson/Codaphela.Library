@@ -1014,6 +1014,8 @@ void CDebugServer::Stop(EDebugStop eReason)
 	memset(psStopped, 0, sizeof(SDebugStopped));
 	psStopped->uiReason = eReason;
 	psStopped->uiAddress = mpcTarget->GetProgramAddress();
+	psStopped->uiSpace = mpcTarget->GetCurrentSpace();
+	psStopped->uiProcess = mpcTarget->GetCurrentProcess();
 	psStopped->uiNumRegisters = (uint32)AppendRegisters((uint64*)&psStopped[1]);
 	Send(DM_Stopped, muiMotionRequest, sizeof(SDebugStopped) + psStopped->uiNumRegisters * sizeof(uint64));
 }

@@ -1,9 +1,48 @@
 #include <stdlib.h>
+#include <string.h>
 #include "DiskFile.h"
+#include "FileUtil.h"
 #include "MemoryDrive.h"
 #include "FatVolume.h"
 #include "FatFile.h"
 #include "FatImageFile.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each folder szName (\Games\Mod\song.mod) is in is made if it isn't
+// there: \Games, then \Games\Mod.  False if one can't be (a file has
+// its name).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool FatMakeFolders(CFatVolume* pcVolume, const char* szName)
+{
+	char		szFolder[FAT_MAX_PATH + 1];
+	size		uiLength;
+	size		i;
+	EFatCode	eResult;
+
+	uiLength = strlen(szName);
+	if (uiLength > FAT_MAX_PATH)
+	{
+		return false;
+	}
+	for (i = 1; i < uiLength; i++)
+	{
+		if ((szName[i] != '\\') && (szName[i] != '/'))
+		{
+			continue;
+		}
+		memcpy(szFolder, szName, i);
+		szFolder[i] = '\0';
+		eResult = pcVolume->CreateDirectory(szFolder);
+		if ((eResult != FAT_SUCCESS) && (eResult != FAT_FILENAME_ALREADY_EXISTS))
+		{
+			return false;
+		}
+	}
+	return true;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +75,8 @@ bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, si
 	if (bResult)
 	{
 		cFile.Init(&cVolume);
-		bResult = cFile.Open(szName, FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_OVERWRITE | FAT_FILE_ACCESS_WRITE) == FAT_SUCCESS;
+		bResult = FatMakeFolders(&cVolume, szName);
+		bResult = bResult && cFile.Open(szName, FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_OVERWRITE | FAT_FILE_ACCESS_WRITE) == FAT_SUCCESS;
 		bResult = bResult && (cFile.Write((uint8*)pvData, uiSize) == FAT_SUCCESS);
 		bResult &= cFile.Close() == FAT_SUCCESS;
 		bResult &= cVolume.Unmount() == FAT_SUCCESS;
@@ -61,24 +101,17 @@ bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, si
 //////////////////////////////////////////////////////////////////////////
 bool FatPutDiskFileOnImage(const char* szImage, const char* szName, const char* szFile)
 {
-	CDiskFile	cFile;
-	filePos		iSize;
+	CFileUtil	cFileUtil;
+	size		uiSize;
 	void*		pvData;
 	bool		bResult;
 
-	cFile.Init(szFile);
-	if (!cFile.Open(EFM_Read))
+	pvData = cFileUtil.ReadAll(szFile, &uiSize);
+	if (pvData == NULL)
 	{
-		cFile.Kill();
 		return false;
 	}
-	iSize = cFile.Size();
-	pvData = malloc((size_t)iSize + 1);
-	bResult = (iSize == 0) || (cFile.Read(pvData, (lsize)iSize, 1) == 1);
-	cFile.Close();
-	cFile.Kill();
-
-	bResult = bResult && FatPutFileOnImage(szImage, szName, pvData, (size)iSize);
+	bResult = FatPutFileOnImage(szImage, szName, pvData, uiSize);
 	free(pvData);
 	return bResult;
 }

@@ -68,6 +68,8 @@ protected:
 
 	EDebugStop			meStopReason;
 	uint32				muiStopAddress;
+	uint32				muiStopSpace;		//DEBUG_SPACE_ANY or the space's index plus one.
+	uint32				muiStopProcess;
 	uint64				mauiValues[DEBUG_MAX_REGISTERS];	//At the last stop, or the last DM_Registers.
 	size				muiNumStops;
 	size				muiNumRegisterReplies;
@@ -146,6 +148,8 @@ public:
 
 	EDebugStop			GetStopReason(void);
 	uint32				GetStopAddress(void);
+	uint32				GetStopSpace(void);
+	uint32				GetStopProcess(void);
 	size				NumStops(void);
 	size				NumRegisterReplies(void);
 

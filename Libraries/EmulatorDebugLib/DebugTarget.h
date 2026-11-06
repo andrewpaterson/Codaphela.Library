@@ -102,6 +102,7 @@ public:
 //A process the target's operating system runs (a kernal's program), as the debugger is told of it.  Its ID is the
 //target's own; the name is what the system ran (its program's file, "\\boot.exe").
 #define DEBUG_PROCESS_ANY			0xFFFFFFFF
+#define DEBUG_SPACE_ANY				0			//A breakpoint space: every one; otherwise a space's index plus one.
 #define DEBUG_PROCESS_NAME_SIZE		64
 
 struct SDebugProcess
@@ -159,6 +160,8 @@ public:
 	virtual bool				GetProcess(size uiIndex, SDebugProcess* psDest);
 	virtual void				WatchProcesses(bool bWatch);
 	virtual bool				TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest);
+	virtual uint32				GetCurrentSpace(void);
+	virtual uint32				GetCurrentProcess(void);
 	virtual bool				IsAtBreakpoint(void) =0;
 	virtual bool				IsStopped(void) =0;
 

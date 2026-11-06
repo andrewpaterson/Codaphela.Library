@@ -110,6 +110,8 @@ public:
 	void			MovedOver(int x, int y) override;
 	virtual void	ActivateComponent(int x, int y);
 	void			ExecuteComponent(int x, int y);
+	void			ContextMenuClick(SComponentInputEvent* psEvent);
+	SInt32Vec2		GetContextMenuPosition(void) override;
 	void			Up(void);
 	void			Down(void);
 	void			Home(void);

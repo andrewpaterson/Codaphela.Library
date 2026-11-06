@@ -277,6 +277,10 @@ static void TestDebugServer65C816(ETestDebugTransport eTransport)
 	AssertTrue(pcClient->IsBusy());
 	TestDebugWaitForStop(psLink, DS_Start, 0);
 	AssertFalse(pcClient->IsBusy());
+
+	//A bare processor stops in no space or process of its own.
+	AssertIntHex(DEBUG_SPACE_ANY, pcClient->GetStopSpace());
+	AssertIntHex(DEBUG_PROCESS_ANY, pcClient->GetStopProcess());
 	AssertString("W65C816", pcClient->GetProcessorName());
 	AssertSize(24, pcClient->NumAddressBits());
 	AssertInt(DAF_Bank, pcClient->GetAddressFormat());

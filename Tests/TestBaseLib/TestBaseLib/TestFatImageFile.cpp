@@ -51,7 +51,7 @@ static void TestFatImageFileRead(const char* szName, uint8* puiExpected, uint32 
 //////////////////////////////////////////////////////////////////////////
 //
 // A file put on a formatted image is there when it is mounted again, and
-// putting it again replaces it.  An image that isn't there, or has no
+// putting it again replaces it; so is one in folders it makes.  An image that isn't there, or has no
 // volume, isn't changed.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +97,18 @@ void TestFatImageFilePut(void)
 	AssertTrue(FatPutDiskFileOnImage(TEST_FAT_IMAGE_FILE, "\\Song.mod", "Output" _FS_ "Song.mod"));
 	TestFatImageFileRead("\\Song.mod", auiFirst, sizeof(auiFirst));
 	AssertFalse(FatPutDiskFileOnImage(TEST_FAT_IMAGE_FILE, "\\Song.mod", "Output" _FS_ "Missing.mod"));
+
+	//In folders that aren't there yet: they are made.  Put again, the file is replaced and the folders are kept.  A
+	//"folder" that is a file can't be.
+	AssertTrue(FatPutFileOnImage(TEST_FAT_IMAGE_FILE, "\\Games\\Mod\\modplay.exe", auiFirst, sizeof(auiFirst)));
+	TestFatImageFileRead("\\Games\\Mod\\modplay.exe", auiFirst, sizeof(auiFirst));
+	AssertTrue(FatPutFileOnImage(TEST_FAT_IMAGE_FILE, "\\Games\\other.exe", auiSecond, sizeof(auiSecond)));
+	TestFatImageFileRead("\\Games\\other.exe", auiSecond, sizeof(auiSecond));
+	TestFatImageFileRead("\\Games\\Mod\\modplay.exe", auiFirst, sizeof(auiFirst));
+	AssertTrue(FatPutFileOnImage(TEST_FAT_IMAGE_FILE, "\\Games\\Mod\\modplay.exe", auiSecond, sizeof(auiSecond)));
+	TestFatImageFileRead("\\Games\\Mod\\modplay.exe", auiSecond, sizeof(auiSecond));
+	AssertFalse(FatPutFileOnImage(TEST_FAT_IMAGE_FILE, "\\boot.exe\\inside.exe", auiFirst, sizeof(auiFirst)));
+	TestFatImageFileRead("\\boot.exe", auiSecond, sizeof(auiSecond));
 
 	AssertFalse(FatPutFileOnImage("Output" _FS_ "Missing.img", "\\boot.exe", auiFirst, sizeof(auiFirst)));
 	cImage.Init("Output" _FS_ "NotFat.img");

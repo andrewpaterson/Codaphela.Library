@@ -531,6 +531,8 @@ void TestFileUtilTouchExisting(void)
 void TestFileUtilExistsAndSize(void)
 {
 	CFileUtil	cFileUtil;
+	void*		pvData;
+	size		uiSize;
 
 	cFileUtil.RemoveDir(FILE_UTIL_TEST_DIR);
 	AssertTrue(cFileUtil.TouchDir(FILE_UTIL_TEST_DIR, false));
@@ -547,6 +549,22 @@ void TestFileUtilExistsAndSize(void)
 
 	AssertTrue(cFileUtil.MakeDir(FILE_UTIL_TEST_DIR _FS_ "Made"));
 	AssertFalse(cFileUtil.MakeDir(FILE_UTIL_TEST_DIR _FS_ "Made"));
+
+	//The whole of a file read into memory; none from a file that isn't there or a directory; an empty file is no bytes.
+	pvData = cFileUtil.ReadAll(FILE_UTIL_TEST_DIR _FS_ "Six.txt", &uiSize);
+	AssertNotNull(pvData);
+	AssertSize(6, uiSize);
+	AssertMemory("123456", pvData, 6);
+	free(pvData);
+	uiSize = 7;
+	AssertNull(cFileUtil.ReadAll(FILE_UTIL_TEST_DIR _FS_ "Missing.txt", &uiSize));
+	AssertSize(0, uiSize);
+	AssertNull(cFileUtil.ReadAll(FILE_UTIL_TEST_DIR, &uiSize));
+	TestFileUtilWriteFile(FILE_UTIL_TEST_DIR _FS_ "Empty.txt", "");
+	pvData = cFileUtil.ReadAll(FILE_UTIL_TEST_DIR _FS_ "Empty.txt", &uiSize);
+	AssertNotNull(pvData);
+	AssertSize(0, uiSize);
+	free(pvData);
 
 #ifdef LINUX_GNU
 	//A file that cannot be read still exists.

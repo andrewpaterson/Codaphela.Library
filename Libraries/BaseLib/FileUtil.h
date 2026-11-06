@@ -55,6 +55,7 @@ public:
 
 	bool    Copy(const char* szSource, const char* szDest);
 	filePos Size(const char* szFilename);
+	void*	ReadAll(const char* szFilename, size* puiSize);
 	bool    MakeDirs(bool bRemoveFirst, const char* szPathName, ...);
 	bool    RemoveDirs(const char* szPathName, ...);
 

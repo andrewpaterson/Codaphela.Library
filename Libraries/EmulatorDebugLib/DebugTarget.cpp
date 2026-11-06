@@ -176,3 +176,13 @@ bool CDebugTarget::GetProcess(size uiIndex, SDebugProcess* psDest)	{ return fals
 void CDebugTarget::WatchProcesses(bool bWatch)					{ }
 bool CDebugTarget::TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest)	{ return false; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The breakpoint space the processor is in (DEBUG_SPACE_ANY or its index
+// plus one), and the process: a bare processor has neither.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CDebugTarget::GetCurrentSpace(void)						{ return DEBUG_SPACE_ANY; }
+uint32 CDebugTarget::GetCurrentProcess(void)					{ return DEBUG_PROCESS_ANY; }
+

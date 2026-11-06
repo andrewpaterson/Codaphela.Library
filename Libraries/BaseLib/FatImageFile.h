@@ -3,8 +3,9 @@
 #include "PrimitiveTypes.h"
 
 
-//Writes uiSize bytes as szName (a FAT path, \boot.exe) on the FAT volume in the disk image file szImage (an SD card's,
-//as an emulator uses it), replacing the file if it is there.  The image is read whole, changed and written back.
+//Writes uiSize bytes as szName (a FAT path, \boot.exe or \Games\modplay.exe) on the FAT volume in the disk image file
+//szImage (an SD card's, as an emulator uses it), replacing the file if it is there; the folders it is in are made if
+//they aren't.  The image is read whole, changed and written back.
 bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, size uiSize);
 
 //The same with the bytes of the file szFile (a program built on this computer, a song).
