@@ -32,6 +32,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define FILE_CHOOSER_WIDTH			620
 #define FILE_CHOOSER_HEIGHT			440
+#define FILE_CHOOSER_MINIMUM_WIDTH	420  //It can be resized, no smaller than this.
+#define FILE_CHOOSER_MINIMUM_HEIGHT	300
 #define FILE_CHOOSER_ROW_HEIGHT		24
 #define FILE_CHOOSER_ICON_WIDTH		30  //The column of the icons, a name starts after it.
 #define FILE_CHOOSER_GAP			8  //Between the rows of the dialog, and between the buttons along the top.
@@ -128,6 +130,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
+	mpDialog->SetResizable(FILE_CHOOSER_MINIMUM_WIDTH, FILE_CHOOSER_MINIMUM_HEIGHT);
 	mpDialog->SetApprover(this, &CFileChooser::Approve);
 	mpDialog->SetTicker(this, &CFileChooser::DialogTick);
 	pBody = CreateBody();
