@@ -79,6 +79,9 @@
     <Filter Include="Source\Component\Widgets\Label">
       <UniqueIdentifier>{8c7e5d17-bdd0-43da-9a95-99f16a742e8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Progress Bar">
+      <UniqueIdentifier>{57e217e9-6c65-4a1e-880d-adadf92c3cb4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Component\Widgets\TextArea">
       <UniqueIdentifier>{f0e0cfa8-90b2-4a70-bda7-5975a97308a8}</UniqueIdentifier>
     </Filter>
@@ -365,6 +368,12 @@
     </ClInclude>
     <ClInclude Include="Label.h">
       <Filter>Source\Component\Widgets\Label</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBar.h">
+      <Filter>Source\Component\Widgets\Progress Bar</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressBarDraw.h">
+      <Filter>Source\Component\Widgets\Progress Bar</Filter>
     </ClInclude>
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
@@ -658,6 +667,12 @@
     </ClCompile>
     <ClCompile Include="Label.cpp">
       <Filter>Source\Component\Widgets\Label</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBar.cpp">
+      <Filter>Source\Component\Widgets\Progress Bar</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressBarDraw.cpp">
+      <Filter>Source\Component\Widgets\Progress Bar</Filter>
     </ClCompile>
     <ClCompile Include="TextArea.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>

@@ -36,6 +36,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define JEWEL_BLUE				Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0)  //Focus rings, default buttons and ticked boxes.
 #define JEWEL_BLUE_HOVER		Set32BitColour((uint8)0x46, (uint8)0x82, (uint8)0xFA)
 #define JEWEL_BLUE_PUSHED		Set32BitColour((uint8)0x36, (uint8)0x6A, (uint8)0xCE)
+#define JEWEL_GREEN				Set32BitColour((uint8)0x4E, (uint8)0xA8, (uint8)0x5C)  //Success, as a build that succeeded.
+#define JEWEL_RED				Set32BitColour((uint8)0xDB, (uint8)0x4E, (uint8)0x4E)  //Failure, as a build that failed.
 #define JEWEL_ICON				Set32BitColour((uint8)0xCE, (uint8)0xD0, (uint8)0xD6)  //Icons, chevrons and the caret.
 #define JEWEL_TEXT				Set32BitColour((uint8)0xDF, (uint8)0xE1, (uint8)0xE5)
 #define JEWEL_WHITE				Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)  //A tick.

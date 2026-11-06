@@ -217,6 +217,8 @@
     <ClInclude Include="ScrollPane.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
+    <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="ProgressBarDraw.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
@@ -369,6 +371,8 @@
     <ClCompile Include="LineZone.cpp" />
     <ClCompile Include="LineZones.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="ProgressBarDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeClipboard.cpp" />
     <ClCompile Include="NativeComponent.cpp" />

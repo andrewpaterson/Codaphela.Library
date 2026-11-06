@@ -244,6 +244,7 @@
     <ClCompile Include="TestDiffView.cpp" />
     <ClCompile Include="TestLineZones.cpp" />
     <ClCompile Include="TestScrollPane.cpp" />
+    <ClCompile Include="TestProgressBar.cpp" />
     <ClCompile Include="TestButton.cpp" />
     <ClCompile Include="TestButtonBar.cpp" />
     <ClCompile Include="TestList.cpp" />

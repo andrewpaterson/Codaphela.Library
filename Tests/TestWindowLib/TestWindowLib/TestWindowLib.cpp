@@ -23,6 +23,7 @@ void TestCodeEditor(void);
 void TestDiffView(void);
 void TestLineZones(void);
 void TestScrollPane(void);
+void TestProgressBar(void);
 void TestComponentInput(void);
 void TestComponentInputDevices(void);
 void TestInputAction(void);
@@ -82,6 +83,7 @@ int __cdecl main(void)
 	TestDiffView();
 	TestLineZones();
 	TestScrollPane();
+	TestProgressBar();
 	TestComponentInput();
 	TestComponentInputDevices();
 	TestInputAction();

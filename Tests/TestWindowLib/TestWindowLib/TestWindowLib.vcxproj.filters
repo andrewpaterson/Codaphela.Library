@@ -94,6 +94,9 @@
     <ClCompile Include="TestScrollPane.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestProgressBar.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
     <ClCompile Include="TestGridContainer.cpp">
       <Filter>Source\Component\Container</Filter>
     </ClCompile>
