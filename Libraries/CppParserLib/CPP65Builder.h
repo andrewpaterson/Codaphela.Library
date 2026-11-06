@@ -111,6 +111,7 @@ struct SCPP65UnitCompile
 	bool					bResult;		//Preprocessed, tokenised and parsed.
 	bool					bGenerated;		//Its generation before its turn went well.
 	size					uiAttempts;		//Times it was generated again before its turn (stale).
+	bool					bFirst;			//Compiled for the first time, not again.
 };
 
 
@@ -139,6 +140,19 @@ struct SCPP65CompiledUnit
 
 
 typedef CArrayTemplatePtr<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
+
+
+//A unit that has finished compiling, with the errors and warnings it had, as soon as it has (SetUnitReports).
+struct SCPP65UnitReport
+{
+	CChars	szName;		//The unit's file name, without its directory.
+	CChars	szErrors;
+	CChars	szWarnings;
+	bool	bAgain;		//A W65C816 unit compiled a second time; it was reported the first time too.
+};
+
+
+typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
 
 
 //Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
@@ -201,6 +215,8 @@ protected:
 	size							muiUnitsFinished;		//Units that have finished compiling (NumUnitsFinished).
 	CArrayTemplatePtr<CCPP65UnitWorkspace>	mapcWorkspaces;	//Those no unit is being compiled with (TakeWorkspace).
 	size							muiCompiledAgain;		//W65C816 units compiled a second time.
+	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
+	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 
 public:
 	void			Init(void);
@@ -211,6 +227,9 @@ public:
 	bool			SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
 	void			SetLazyHeaders(bool bLazyHeaders);
 	void			SetJobs(CJobs* pcJobs);
+	void			SetUnitReports(bool bUnitReports);
+	void			TakeUnitReports(CArrayCPP65UnitReports* pasDest);
+	static void		KillUnitReports(CArrayCPP65UnitReports* pasReports);
 	size			NumLazySkipped(void);
 	size			NumLazyLoaded(void);
 	size			NumLazyRead(void);
@@ -287,6 +306,7 @@ protected:
 	static void		ResumeUnitJob(void* pvUnit);
 	static void		RestartUnitJob(void* pvUnit);
 	void			UnitFinished(void);
+	void			ReportUnit(SCPP65CompiledUnit* psUnit, bool bFirst);
 	CCPP65UnitWorkspace*	TakeWorkspace(void);
 	void			GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace);
 	void			KillWorkspaces(void);

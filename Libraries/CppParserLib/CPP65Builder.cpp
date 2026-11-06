@@ -89,6 +89,8 @@ void CCPP65Builder::Init(void)
 	muiUnitsFinished = 0;
 	muiCompiledAgain = 0;
 	mapcWorkspaces.Init();
+	mbUnitReports = false;
+	masUnitReports.Init();
 }
 
 
@@ -106,6 +108,7 @@ void CCPP65Builder::Kill(void)
 	}
 	KillWorkspaces();
 	mapcWorkspaces.Kill();
+	KillUnitReports(&masUnitReports);
 	mcCompiled.Kill();
 	mcCompilingMutex.Kill();
 	mcMemorySpillStore.Kill();
@@ -588,6 +591,94 @@ void CCPP65Builder::SetLazyHeaders(bool bLazyHeaders)
 void CCPP65Builder::SetJobs(CJobs* pcJobs)
 {
 	mpcJobs = pcJobs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each unit is reported as soon as it has finished compiling, with its
+// errors and warnings (TakeUnitReports), so they can be shown while the
+// others compile.  Its errors and warnings are then only in its report,
+// not in GetErrors and GetWarnings, which keep what isn't a unit's (the
+// link's, say).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetUnitReports(bool bUnitReports)
+{
+	mbUnitReports = bUnitReports;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The units reported since the last time, in the order they finished,
+// added to pasDest (KillUnitReports frees them).  Safe while Compile runs
+// on another thread.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::TakeUnitReports(CArrayCPP65UnitReports* pasDest)
+{
+	size	i;
+
+	mcCompilingMutex.Lock();
+	for (i = 0; i < masUnitReports.NumElements(); i++)
+	{
+		pasDest->Add(masUnitReports.Get(i));
+	}
+	masUnitReports.ReInit();
+	mcCompilingMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::KillUnitReports(CArrayCPP65UnitReports* pasReports)
+{
+	size				i;
+	SCPP65UnitReport*	psReport;
+
+	for (i = 0; i < pasReports->NumElements(); i++)
+	{
+		psReport = pasReports->Get(i);
+		psReport->szWarnings.Kill();
+		psReport->szErrors.Kill();
+		psReport->szName.Kill();
+	}
+	pasReports->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psUnit has finished compiling: with SetUnitReports it is reported, its
+// errors and warnings (only the first time it is compiled, as FinishUnit
+// adds them) given to the report rather than kept for FinishUnit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ReportUnit(SCPP65CompiledUnit* psUnit, bool bFirst)
+{
+	SCPP65UnitReport	sReport;
+
+	if (!mbUnitReports)
+	{
+		return;
+	}
+	sReport.szName.Init(psUnit->pcFile->ShortName());
+	sReport.szErrors.Init(psUnit->szErrors);
+	sReport.szWarnings.Init();
+	if (bFirst)
+	{
+		sReport.szWarnings.Append(psUnit->szWarnings);
+	}
+	sReport.bAgain = !bFirst;
+	psUnit->szErrors.ReInit();
+	psUnit->szWarnings.ReInit();
+
+	mcCompilingMutex.Lock();
+	masUnitReports.Add(&sReport);
+	mcCompilingMutex.Unlock();
 }
 
 
@@ -1923,6 +2014,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	psCompile = NewMalloc<SCPP65UnitCompile>();
 	psUnit->psCompile = psCompile;
 	psCompile->uiAttempts = 0;
+	psCompile->bFirst = bReport;
 	psCompile->pcWorkspace = TakeWorkspace();
 	psUnit->pcFile->GetTokens()->SetMallocators(psCompile->pcWorkspace->GetPreprocessedTokensMallocators());
 
@@ -2116,6 +2208,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psUnit->pcFile->GetTokens()->SetMallocators(NULL);
 	psUnit->pcFile->Unload();
 	GiveBackWorkspace(psCompile->pcWorkspace);
+	ReportUnit(psUnit, psCompile->bFirst);
 	free(psCompile);
 	psUnit->psCompile = NULL;
 	UnitFinished();

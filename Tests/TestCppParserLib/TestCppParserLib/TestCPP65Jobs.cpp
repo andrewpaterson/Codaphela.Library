@@ -186,6 +186,74 @@ void TestCPP65JobsBaseLib(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With unit reports each unit is reported once as it finishes, by name,
+// and on the W65C816 the three units compiled again are reported again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65JobsUnitReports(void)
+{
+	static const char*		aszUnits[] = { "Input/CPP65/JobsProject/First.cpp", "Input/CPP65/JobsProject/Middle.cpp", "Input/CPP65/JobsProject/Last.cpp", "Input/CPP65/JobsProject/Main.cpp", NULL };
+	CWorkerThreadJobs		cJobs;
+	CCPP65Builder			cBuilder;
+	CArrayCPP65UnitReports	asReports;
+	SCPP65UnitReport*		psReport;
+	ECPPTarget				eTarget;
+	int						i;
+	size					j;
+	size					uiFirst;
+	size					uiAgain;
+	CArrayChars				aszNames;
+
+	cJobs.Init(TEST_CPP65_JOBS_THREADS);
+	for (i = 0; i < 2; i++)
+	{
+		eTarget = (i == 0) ? CPPT_65C64 : CPPT_W65C816;
+		TestCPP65JobsBegin(&cBuilder, eTarget, &cJobs, aszUnits);
+		cBuilder.SetUnitReports(true);
+		AssertTrue(cBuilder.Link());
+		AssertString("", cBuilder.GetErrors());
+
+		asReports.Init();
+		cBuilder.TakeUnitReports(&asReports);
+		aszNames.Init();
+		uiFirst = 0;
+		uiAgain = 0;
+		for (j = 0; j < asReports.NumElements(); j++)
+		{
+			psReport = asReports.Get(j);
+			AssertString("", psReport->szErrors.Text());
+			if (psReport->bAgain)
+			{
+				uiAgain++;
+			}
+			else
+			{
+				uiFirst++;
+				aszNames.Add(psReport->szName.Text());
+			}
+		}
+		AssertSize(4, uiFirst);
+		AssertSize((eTarget == CPPT_W65C816) ? 3 : 0, uiAgain);
+		AssertTrue(aszNames.Contains("First.cpp"));
+		AssertTrue(aszNames.Contains("Middle.cpp"));
+		AssertTrue(aszNames.Contains("Last.cpp"));
+		AssertTrue(aszNames.Contains("Main.cpp"));
+		aszNames.Kill();
+		CCPP65Builder::KillUnitReports(&asReports);
+
+		//Taken: none are left.
+		asReports.Init();
+		cBuilder.TakeUnitReports(&asReports);
+		AssertSize(0, asReports.NumElements());
+		CCPP65Builder::KillUnitReports(&asReports);
+		cBuilder.Kill();
+	}
+	cJobs.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Jobs(void)
@@ -194,6 +262,7 @@ void TestCPP65Jobs(void)
 
 	TestCPP65JobsProject();
 	TestCPP65JobsBaseLib();
+	TestCPP65JobsUnitReports();
 
 	TestStatistics();
 }
