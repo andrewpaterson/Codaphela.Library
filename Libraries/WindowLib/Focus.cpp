@@ -397,7 +397,49 @@ bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
 	{
 		return Dispatch(mpMouseOverComponent, psEvent);
 	}
-	return Dispatch(mpFocussedComponent, psEvent);
+	if (Dispatch(mpFocussedComponent, psEvent))
+	{
+		return true;
+	}
+	if (psEvent->eType == CIET_Command)
+	{
+		return DispatchUnhandledCommand(psEvent);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A command nothing focussed took, Control+N say, goes to the window's
+// content (with nothing focussed, or from a popup, it wasn't asked), then
+// to the window a tool window floats over, so the application's commands
+// work wherever the keys are.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::DispatchUnhandledCommand(SComponentInputEvent* psEvent)
+{
+	Ptr<CComponent>	pContent;
+	Ptr<CWindow>	pOwner;
+
+	pContent = mpWindow->GetContainer();
+	if (pContent.IsNotNull() && (mpFocussedComponent.IsNull() || !mpFocussedComponent->IsWithin(pContent)))
+	{
+		if (Dispatch(pContent, psEvent))
+		{
+			return true;
+		}
+	}
+	pOwner = mpWindow->GetOwner();
+	if (pOwner.IsNotNull())
+	{
+		pContent = pOwner->GetContainer();
+		if (pContent.IsNotNull())
+		{
+			return pOwner->GetFocus()->Dispatch(pContent, psEvent);
+		}
+	}
+	return false;
 }
 
 

@@ -96,6 +96,7 @@ protected:
 	bool				DispatchEvent(SComponentInputEvent* psEvent);
 	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
 	bool				Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
+	bool				DispatchUnhandledCommand(SComponentInputEvent* psEvent);
 	bool				FocusClick(void);
 	void				InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert);
 	bool				IsClick(SComponentInputEvent* psEvent);

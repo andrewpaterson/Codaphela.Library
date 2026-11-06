@@ -653,6 +653,96 @@ void TestInputActionUndoChords(bool bRightModifiers)
 	cNativeFactory.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A command nothing focussed takes goes to the window's content, with
+// nothing focussed too, and from a tool window to the window it floats
+// over, so an application's commands (Control+N, Control+S) work
+// wherever the keys are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionUnhandledCommands(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>					pTestWindow;
+		Ptr<CWindow>					pTool;
+		Ptr<CTickTestRefWindow>			pTick;
+		SDataTestRefWindow				cData;
+		CPointer						pNull;
+		Ptr<CGridContainer>				pGrid;
+		Ptr<CGridContainer>				pToolGrid;
+		Ptr<CActionTestComponent>		pChild;
+		Ptr<CActionTestComponent>		pToolChild;
+		CChars							szLog;
+		CActionTestCounter				cSaves;
+		CInt32Rect						cRect;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Main Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pChild = OMalloc<CActionTestComponent>(pTestWindow, &szLog);
+		AssertTrue(pGrid->AddComponent(pChild, 0, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+		cSaves.miCalls = 0;
+		pGrid->AddInputAction(CIC_Save, &cSaves, &CActionTestCounter::Count);
+		pChild->AddInputAction(CIC_Copy, &pChild, &CActionTestComponent::Copy);
+
+		//Nothing focussed: the content takes it.
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent().IsNull());
+		pTestWindow->InputCommand(CIC_Save, true);
+		AssertInt(1, cSaves.miCalls);
+		pTestWindow->InputCommand(CIC_Copy, true);
+		AssertLog("");
+
+		//Focussed, it goes up to the content as before, once.
+		pTestWindow->GetFocus()->SetFocus(pChild);
+		pTestWindow->InputCommand(CIC_Save, true);
+		AssertInt(2, cSaves.miCalls);
+		pTestWindow->InputCommand(CIC_Copy, true);
+		AssertLog("Copy;");
+
+		//A tool window floating over it passes on what it doesn't take, focussed or not.
+		pTool = OMalloc<CWindow>("Tool Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTool);
+		pToolGrid = OMalloc<CGridContainer>(pTool);
+		pTool->SetContainer(pToolGrid);
+		pToolChild = OMalloc<CActionTestComponent>(pTool, &szLog);
+		AssertTrue(pToolGrid->AddComponent(pToolChild, 0, 0, 1, 1, 1, 1));
+		cRect.Init(0, 0, 31, 15);
+		AssertTrue(pTool->ShowOwned(pTestWindow, &cRect));
+		pTool->Layout();
+		pTool->InputCommand(CIC_Save, true);
+		AssertInt(3, cSaves.miCalls);
+		pTool->GetFocus()->SetFocus(pToolChild);
+		pTool->InputCommand(CIC_Save, true);
+		AssertInt(4, cSaves.miCalls);
+		pTool->InputCommand(CIC_Copy, true);
+		AssertLog("");
+
+		pToolChild = NULL;
+		pToolGrid = NULL;
+		ORoot()->Remove(pTool);
+		pTool = NULL;
+		pChild = NULL;
+		pGrid = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -666,6 +756,7 @@ void TestInputAction(void)
 	TestInputActionMatching();
 	TestInputActionShapes();
 	TestInputActionEnabled();
+	TestInputActionUnhandledCommands();
 	TestInputActionDispatch();
 	TestInputActionUndoChords(true);
 	TestInputActionUndoChords(false);
