@@ -29,6 +29,18 @@ void TestCharsSubStringEquals(void)
 	AssertFalse(sz.SubStringEquals(6, ""));
 	AssertFalse(sz.SubStringEquals(7, ""));
 	AssertFalse(sz.SubStringEquals(5, "y"));
+
+	//Longer than what's left of the text.
+	AssertFalse(sz.SubStringEquals(0, "Happy days"));
+	AssertFalse(sz.SubStringEquals(3, "pyx"));
+	AssertFalse(sz.StartsWith("Happy days"));
+	AssertTrue(sz.StartsWith("Happ"));
+	AssertTrue(sz.SubStringEqualsIgnoreCase(0, "hAPPY"));
+	AssertTrue(sz.SubStringEqualsIgnoreCase(2, "PPy"));
+	AssertFalse(sz.SubStringEqualsIgnoreCase(0, "happy days"));
+	AssertFalse(sz.SubStringEqualsIgnoreCase(4, "YY"));
+	AssertFalse(sz.SubStringEqualsIgnoreCase(7, "y"));
+	AssertFalse(sz.StartsWithIgnoreCase("HAPPY DAYS"));
 	sz.Kill();
 
 	sz.Init();

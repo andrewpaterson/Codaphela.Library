@@ -1889,7 +1889,9 @@ bool CHARS::SubStringEquals(ASIZE iStart, const char* szString)
 			break;
 		}
 	}
-	return true;
+
+	//The text ran out first: szString is longer than what's left of it.
+	return szString[j] == 0;
 }
 
 
@@ -1924,7 +1926,9 @@ bool CHARS::SubStringEqualsIgnoreCase(ASIZE iStart, const char* szString)
 			break;
 		}
 	}
-	return true;
+
+	//The text ran out first: szString is longer than what's left of it.
+	return szString[j] == 0;
 }
 
 
