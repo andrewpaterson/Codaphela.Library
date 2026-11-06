@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize)
+void CCircularMemoryList::Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize, bool bZeroMemory)
 {
 	miDescriptorSize = iDescriptorSize;
 
@@ -44,7 +44,7 @@ void CCircularMemoryList::Init(void* pvCache, lsize uiByteSize, lsize iDescripto
 		mpsDetail = (SCircularMemoryList*)pvCache;
 		mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvCache, sizeof(SCircularMemoryList));
 		mpsDetail->muiCacheSize = uiByteSize - sizeof(SCircularMemoryList);
-		Clear();
+		Clear(bZeroMemory);
 	}
 	else
 	{
@@ -250,16 +250,21 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Empties the list.  The cache's bytes are left as they are: nothing reads
-// them but through the descriptors Allocate writes (as a cache grown by
-// Remap isn't cleared).  Clearing them all was most of an object test's
-// time on the W65C816 (12% of TestStandardLib65 816).
+// Empties the list.  The cache's bytes are left as they are unless
+// bZeroMemory: nothing reads them but through the descriptors Allocate
+// writes (as a cache grown by Remap isn't cleared).  Clearing them all was
+// most of an object test's time on the W65C816 (12% of TestStandardLib65
+// 816).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::Clear(void)
+void CCircularMemoryList::Clear(bool bZeroMemory)
 {
 	mpsDetail->mpsTail = NULL;
 	mpsDetail->mpsHead = NULL;
+	if (bZeroMemory)
+	{
+		memset(mpvCache, 0, mpsDetail->muiCacheSize);
+	}
 }
 
 

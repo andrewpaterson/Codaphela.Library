@@ -31,11 +31,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
+void CMemoryCache::Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize, bool bZeroMemory)
 {
 	//A cache that can't be allocated has no memory (rather than clearing memory from address 0).
 	mpvCache = malloc(uiCacheSize + sizeof(SCircularMemoryList));
-	mcMemoryList.Init(mpvCache, mpvCache ? uiCacheSize + sizeof(SCircularMemoryList) : 0, iDescriptorSize);
+	mcMemoryList.Init(mpvCache, mpvCache ? uiCacheSize + sizeof(SCircularMemoryList) : 0, iDescriptorSize, bZeroMemory);
 	mpcEvictionCallback = pcEvictionCallback;
 }
 
@@ -275,11 +275,13 @@ void* CMemoryCache::GetPrev(void* psCurrent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Empties the cache; its memory is zeroed too only if bZeroMemory
+// (CCircularMemoryList::Clear).
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Clear(void)
+void CMemoryCache::Clear(bool bZeroMemory)
 {
-	mcMemoryList.Clear();
+	mcMemoryList.Clear(bZeroMemory);
 }
 
 

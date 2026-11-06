@@ -1,4 +1,6 @@
+#include <string.h>
 #include "BaseLib/MemoryCache.h"
+#include "BaseLib/CircularMemoryList.h"
 #include "BaseLib/MemoryCacheEvictedData.h"
 #include "TestLib/Assert.h"
 
@@ -654,6 +656,63 @@ void TestMemoryCacheReallocate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A circular memory list's cache is left as it is by Init and Clear, and
+// zeroed only when they are asked to (bZeroMemory); the list is empty
+// either way.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMemoryCacheClearZeroMemory(void)
+{
+	CCircularMemoryList	cList;
+	uint8				auiBuffer[sizeof(SCircularMemoryList) + 64];
+	uint8*				puiCache;
+	size				i;
+	size				uiZeros;
+	size				uiPattern;
+
+	puiCache = &auiBuffer[sizeof(SCircularMemoryList)];
+
+	memset(auiBuffer, 0xA5, sizeof(auiBuffer));
+	cList.Init(auiBuffer, sizeof(auiBuffer));
+	AssertTrue(cList.IsEmpty());
+	for (i = 0, uiPattern = 0; i < 64; i++)
+	{
+		uiPattern += (puiCache[i] == 0xA5) ? 1 : 0;
+	}
+	AssertSize(64, uiPattern);
+
+	memset(puiCache, 0x5A, 64);
+	cList.Clear();
+	AssertTrue(cList.IsEmpty());
+	for (i = 0, uiPattern = 0; i < 64; i++)
+	{
+		uiPattern += (puiCache[i] == 0x5A) ? 1 : 0;
+	}
+	AssertSize(64, uiPattern);
+
+	cList.Clear(true);
+	AssertTrue(cList.IsEmpty());
+	for (i = 0, uiZeros = 0; i < 64; i++)
+	{
+		uiZeros += (puiCache[i] == 0) ? 1 : 0;
+	}
+	AssertSize(64, uiZeros);
+	cList.Kill();
+
+	memset(auiBuffer, 0xA5, sizeof(auiBuffer));
+	cList.Init(auiBuffer, sizeof(auiBuffer), sizeof(SMemoryCacheDescriptor), true);
+	AssertTrue(cList.IsEmpty());
+	for (i = 0, uiZeros = 0; i < 64; i++)
+	{
+		uiZeros += (puiCache[i] == 0) ? 1 : 0;
+	}
+	AssertSize(64, uiZeros);
+	cList.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMemoryCache(void)
@@ -669,6 +728,7 @@ void TestMemoryCache(void)
 	TestMemoryCacheDeallocate();
 	TestMemoryCachePreallocate();
 	TestMemoryCacheReallocate();
+	TestMemoryCacheClearZeroMemory();
 
 	DataMemoryKill();
 	TestStatistics();

@@ -36,7 +36,7 @@ protected:
 	void*							mpvCache;
 
 public:
-	void	Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void	Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor), bool bZeroMemory = false);
 	void	Kill(void);
 	void	Resize(lsize uiNewCacheSize);
 
@@ -52,7 +52,7 @@ public:
 	void*	GetNext(void* psCurrent);
 	void*	GetPrev(void* psCurrent);
 
-	void	Clear(void);
+	void	Clear(bool bZeroMemory = false);
 	void	Deallocate(void* pvCache);
 	lsize	NumElements(void);
 	lsize	NumElements(lsize iSize);

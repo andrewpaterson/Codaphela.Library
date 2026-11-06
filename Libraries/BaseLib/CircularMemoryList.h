@@ -24,7 +24,7 @@ protected:
 	lsize						miDescriptorSize;
 
 public:
-	void						Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(void* pvCache, lsize uiByteSize, lsize iDescriptorSize = sizeof(SMemoryCacheDescriptor), bool bZeroMemory = false);
 	void						InitExisting(void* pvCache, lsize uiByteSize, lsize iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
@@ -32,7 +32,7 @@ public:
 	void						Remap(void* pvNewCache, lsize uiByteSize);
 	void						Remap(SCircularMemoryList* pvNewCache, lsize uiByteSize);
 
-	void						Clear(void);
+	void						Clear(bool bZeroMemory = false);
 
 	lsize						GetSize(void* pvData);
 	lsize						NumElements(void);
