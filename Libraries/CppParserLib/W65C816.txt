@@ -399,6 +399,16 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	R816_UDiv16 -8.5% / -9.5%, three quarters of the R816_Mul16 calls gone.
 	TEST_IR816_RUNTIME_CYCLES=1 prints each routine's cycles by operand class
 	(TestIR816BackendRuntimeRoutines).
+	2026-11-06, the allocator (CTrueMallocator was ~16% of TestBaseLib65/TestStandardLib65
+	816): its second level bitmaps are uint16 and its free lists one array indexed by
+	first * 16 + second (kept in Y); Mapping counts and shifts in 16 bits, from the
+	size's words above 65536 (no R816_LShr32, no 32 bit clz).  __builtin_clz/ctz of 16
+	and 32 bits are calls of the runtime's R816_Clz16/Clz32/Ctz16/Ctz32 (a byte table
+	read with long,X: about 30 cycles plus the call, against about 140-185 for the
+	inline narrowing and table of CountTable, kept for 64 bits).  The allocator's
+	functions -14.5% / -15.0%; TestBaseLib65 816 19.503G -> 18.930G (-2.94%),
+	TestStandardLib65 816 31.487G -> 30.675G (-2.58%).  Tests: TestTrueMallocatorMapping
+	(host and 816), TestCPP816CountZeros (every 16 bit value, random 32 and 64 bit).
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call

@@ -369,6 +369,111 @@ void TestTrueMallocatorLarge(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// CTrueMallocator's Mapping, which is protected.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestTrueMallocatorMapping : public CTrueMallocator
+{
+public:
+	void	Map(lsize uiSize, int* piFirst, int* piSecond) { Mapping(uiSize, piFirst, piSecond); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The free list Mapping should give a block of uiSize: its first level is
+// the size's highest bit (from TRUE_MALLOCATOR_FIRST_SHIFT, below that the
+// first level's list for each size) and its second the 4 bits below it,
+// worked out the plain way.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestTrueMallocatorReferenceMapping(lsize uiSize, int* piFirst, int* piSecond)
+{
+	int		iHighest;
+
+	if (uiSize < TRUE_MALLOCATOR_SMALL_BLOCK)
+	{
+		*piFirst = 0;
+		*piSecond = (int)(uiSize >> TRUE_MALLOCATOR_ALIGNMENT_LOG2);
+		return;
+	}
+	iHighest = 0;
+	while ((uiSize >> iHighest) > 1)
+	{
+		iHighest++;
+	}
+	*piFirst = iHighest - TRUE_MALLOCATOR_FIRST_SHIFT + 1;
+	*piSecond = (int)((uiSize >> (iHighest - TRUE_MALLOCATOR_SECOND_LOG2)) ^ TRUE_MALLOCATOR_SECOND_LEVELS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Mapping (which works in 16 bits, from the size's words) against the
+// plain way: around every power of two up to the biggest block, around
+// every sixteenth of each, and pseudo random sizes of every width.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueMallocatorMapping(void)
+{
+	CTestTrueMallocatorMapping	cMallocator;
+	lsize						uiSize;
+	lsize						uiPower;
+	uint32						uiRandom;
+	int							iFirst;
+	int							iSecond;
+	int							iExpectedFirst;
+	int							iExpectedSecond;
+	int							iBit;
+	int							iSixteenth;
+	int							iDelta;
+	int							iWrong;
+	int							i;
+
+	iWrong = 0;
+	for (iBit = 0; (lsize)1 << iBit < TRUE_MALLOCATOR_MAX_SIZE; iBit++)
+	{
+		uiPower = (lsize)1 << iBit;
+		for (iSixteenth = 0; iSixteenth < 16; iSixteenth++)
+		{
+			for (iDelta = -2; iDelta <= 2; iDelta++)
+			{
+				uiSize = uiPower + (uiPower / 16) * (lsize)iSixteenth + (lsize)iDelta;
+				if ((uiSize == 0) || (uiSize >= TRUE_MALLOCATOR_MAX_SIZE))
+				{
+					continue;
+				}
+				cMallocator.Map(uiSize, &iFirst, &iSecond);
+				TestTrueMallocatorReferenceMapping(uiSize, &iExpectedFirst, &iExpectedSecond);
+				if ((iFirst != iExpectedFirst) || (iSecond != iExpectedSecond))
+				{
+					iWrong++;
+				}
+			}
+		}
+	}
+	uiRandom = 12345;
+	for (i = 0; i < 4000; i++)
+	{
+		uiRandom = uiRandom * 1103515245u + 12345u;
+		uiSize = (lsize)((uiRandom >> 2) & 0x3FFFFFFF) >> ((uiRandom >> 27) & 31);
+		if (uiSize == 0)
+		{
+			continue;
+		}
+		cMallocator.Map(uiSize, &iFirst, &iSecond);
+		TestTrueMallocatorReferenceMapping(uiSize, &iExpectedFirst, &iExpectedSecond);
+		if ((iFirst != iExpectedFirst) || (iSecond != iExpectedSecond))
+		{
+			iWrong++;
+		}
+	}
+	AssertInt(0, iWrong);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTrueMallocator(void)
@@ -376,6 +481,7 @@ void TestTrueMallocator(void)
 	BeginTests();
 
 	TestTrueMallocatorInit();
+	TestTrueMallocatorMapping();
 	TestTrueMallocatorMallocFree();
 	TestTrueMallocatorFull();
 	TestTrueMallocatorRealloc();

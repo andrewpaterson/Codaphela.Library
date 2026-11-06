@@ -42,6 +42,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define TRUE_MALLOCATOR_FIRST_SHIFT			(TRUE_MALLOCATOR_SECOND_LOG2 + TRUE_MALLOCATOR_ALIGNMENT_LOG2)
 #define TRUE_MALLOCATOR_SMALL_BLOCK			((lsize)1 << TRUE_MALLOCATOR_FIRST_SHIFT)	//Smaller blocks are all in the first level, a list for each size.
 #define TRUE_MALLOCATOR_FIRST_LEVELS		(32 - TRUE_MALLOCATOR_FIRST_SHIFT + 1)
+#define TRUE_MALLOCATOR_LIST(FIRST, SECOND)	(((FIRST) << TRUE_MALLOCATOR_SECOND_LOG2) + (SECOND))	//One index for the free lists: on the W65C816 an index of 16 bits is kept in Y.
 #define TRUE_MALLOCATOR_MAX_SIZE			((lsize)0x40000000)		//The biggest block, so sizes and their rounding fit in 32 bits.
 
 //A block's flags, in the low bits of its size.
@@ -72,8 +73,8 @@ protected:
 	uint8*					mpuiStart;
 	STrueMallocatorBlock*	mpsEnd;				//A used block of no size after the last block.
 	uint32					muiFirstBitmap;		//A bit for each first level with a free block.
-	uint32					mauiSecondBitmaps[TRUE_MALLOCATOR_FIRST_LEVELS];
-	STrueMallocatorBlock*	mapsFree[TRUE_MALLOCATOR_FIRST_LEVELS][TRUE_MALLOCATOR_SECOND_LEVELS];
+	uint16					mauiSecondBitmaps[TRUE_MALLOCATOR_FIRST_LEVELS];	//A bit for each second level (16) with a free block.
+	STrueMallocatorBlock*	mapsFree[TRUE_MALLOCATOR_FIRST_LEVELS * TRUE_MALLOCATOR_SECOND_LEVELS];	//By TRUE_MALLOCATOR_LIST(first, second).
 	lsize					muiNumAllocations;
 	lsize					muiAllocatedBytes;	//The used blocks' sizes, with their headers.
 

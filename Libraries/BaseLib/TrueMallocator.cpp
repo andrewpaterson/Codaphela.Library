@@ -49,6 +49,23 @@ static int TrueMallocatorHighestBit(uint32 ui)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The highest set bit of the 16 bit ui, which must not be 0 (a second level
+// bitmap, or a size under 65536: on the W65C816 a 16 bit count is cheaper
+// than a 32 bit one).
+//
+//////////////////////////////////////////////////////////////////////////
+static int TrueMallocatorHighestBit16(uint16 ui)
+{
+#if defined(__W65C816__)
+	return 15 - __builtin_clz(ui);		//An int is 16 bits.
+#else
+	return TrueMallocatorHighestBit(ui);
+#endif // __W65C816__
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The lowest set bit of ui, which must not be 0.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -64,6 +81,38 @@ static int TrueMallocatorLowestBit(uint32 ui)
 #else
 	return __builtin_ctz(ui);
 #endif // _MSC_VER
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lowest set bit of the 16 bit ui, which must not be 0.
+//
+//////////////////////////////////////////////////////////////////////////
+static int TrueMallocatorLowestBit16(uint16 ui)
+{
+#if defined(__W65C816__)
+	return __builtin_ctz(ui);		//An int is 16 bits.
+#else
+	return TrueMallocatorLowestBit(ui);
+#endif // __W65C816__
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The highest set bit of a block's size, which must not be 0 (and is under
+// TRUE_MALLOCATOR_MAX_SIZE): counted in 16 bits, from its high word when it
+// is 65536 or more.
+//
+//////////////////////////////////////////////////////////////////////////
+static int TrueMallocatorSizeHighestBit(lsize uiSize)
+{
+	if (uiSize <= 0xFFFF)
+	{
+		return TrueMallocatorHighestBit16((uint16)uiSize);
+	}
+	return 16 + TrueMallocatorHighestBit16((uint16)(uiSize >> 16));
 }
 
 
@@ -88,7 +137,7 @@ bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 		mauiSecondBitmaps[i] = 0;
 		for (j = 0; j < TRUE_MALLOCATOR_SECOND_LEVELS; j++)
 		{
-			mapsFree[i][j] = NULL;
+			mapsFree[TRUE_MALLOCATOR_LIST(i, j)] = NULL;
 		}
 	}
 	muiNumAllocations = 0;
@@ -317,9 +366,9 @@ lsize CTrueMallocator::LargestFree(void)
 		return 0;
 	}
 	iFirst = TrueMallocatorHighestBit(muiFirstBitmap);
-	iSecond = TrueMallocatorHighestBit(mauiSecondBitmaps[iFirst]);
+	iSecond = TrueMallocatorHighestBit16(mauiSecondBitmaps[iFirst]);
 	uiLargest = 0;
-	for (psBlock = mapsFree[iFirst][iSecond]; psBlock; psBlock = psBlock->psNextFree)
+	for (psBlock = mapsFree[TRUE_MALLOCATOR_LIST(iFirst, iSecond)]; psBlock; psBlock = psBlock->psNextFree)
 	{
 		uiSize = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 		uiLargest = (uiSize > uiLargest) ? uiSize : uiLargest;
@@ -389,7 +438,7 @@ bool CTrueMallocator::IsValid(void)
 				return false;
 			}
 			Mapping(uiSize, &iFirst, &iSecond);
-			for (psListed = mapsFree[iFirst][iSecond]; psListed && (psListed != psBlock); psListed = psListed->psNextFree)
+			for (psListed = mapsFree[TRUE_MALLOCATOR_LIST(iFirst, iSecond)]; psListed && (psListed != psBlock); psListed = psListed->psNextFree)
 			{
 			}
 			if (!psListed)
@@ -424,11 +473,11 @@ bool CTrueMallocator::IsValid(void)
 		}
 		for (j = 0; j < TRUE_MALLOCATOR_SECOND_LEVELS; j++)
 		{
-			if (((mauiSecondBitmaps[i] >> j) & 1) != (uint32)(mapsFree[i][j] != NULL))
+			if (((mauiSecondBitmaps[i] >> j) & 1) != (uint32)(mapsFree[TRUE_MALLOCATOR_LIST(i, j)] != NULL))
 			{
 				return false;
 			}
-			for (psBlock = mapsFree[i][j]; psBlock; psBlock = psBlock->psNextFree)
+			for (psBlock = mapsFree[TRUE_MALLOCATOR_LIST(i, j)]; psBlock; psBlock = psBlock->psNextFree)
 			{
 				if (!(psBlock->uiSize & TRUE_MALLOCATOR_FREE) || (psBlock->psNextFree && (psBlock->psNextFree->psPreviousFree != psBlock)))
 				{
@@ -470,17 +519,35 @@ lsize CTrueMallocator::BlockSize(lsize uiBytes)
 void CTrueMallocator::Mapping(lsize uiSize, int* piFirst, int* piSecond)
 {
 	int		iHighest;
+	uint16	uiHigh;
 
 	if (uiSize < TRUE_MALLOCATOR_SMALL_BLOCK)
 	{
 		*piFirst = 0;
 		*piSecond = (int)(uiSize >> TRUE_MALLOCATOR_ALIGNMENT_LOG2);
 	}
+	else if (uiSize <= 0xFFFF)
+	{
+		//Shifted in 16 bits (a 32 bit shift by a count is a runtime call on the W65C816).
+		iHighest = TrueMallocatorHighestBit16((uint16)uiSize);
+		*piFirst = iHighest - TRUE_MALLOCATOR_FIRST_SHIFT + 1;
+		*piSecond = (int)((uint16)((uint16)uiSize >> (iHighest - TRUE_MALLOCATOR_SECOND_LOG2)) ^ TRUE_MALLOCATOR_SECOND_LEVELS);
+	}
 	else
 	{
-		iHighest = TrueMallocatorHighestBit((uint32)uiSize);
+		//Its 16 bit high word's highest bit, and the 4 bits below the size's highest bit shifted in 16 bits: from the
+		//high word when they are all in it (the highest bit 20 or more), else from the size >> 8 (which fits).
+		uiHigh = (uint16)(uiSize >> 16);
+		iHighest = 16 + TrueMallocatorHighestBit16(uiHigh);
 		*piFirst = iHighest - TRUE_MALLOCATOR_FIRST_SHIFT + 1;
-		*piSecond = (int)((uiSize >> (iHighest - TRUE_MALLOCATOR_SECOND_LOG2)) ^ TRUE_MALLOCATOR_SECOND_LEVELS);
+		if (iHighest >= 20)
+		{
+			*piSecond = (int)((uint16)(uiHigh >> (iHighest - 20)) ^ TRUE_MALLOCATOR_SECOND_LEVELS);
+		}
+		else
+		{
+			*piSecond = (int)((uint16)((uint16)(uiSize >> 8) >> (iHighest - 12)) ^ TRUE_MALLOCATOR_SECOND_LEVELS);
+		}
 	}
 }
 
@@ -496,6 +563,7 @@ STrueMallocatorBlock* CTrueMallocator::FindFree(lsize uiSize)
 {
 	STrueMallocatorBlock*	psBlock;
 	uint32					uiMap;
+	uint16					uiSecondMap;
 	lsize					uiRounded;
 	int						iFirst;
 	int						iSecond;
@@ -503,30 +571,30 @@ STrueMallocatorBlock* CTrueMallocator::FindFree(lsize uiSize)
 	uiRounded = uiSize;
 	if (uiSize >= TRUE_MALLOCATOR_SMALL_BLOCK)
 	{
-		uiRounded += ((lsize)1 << (TrueMallocatorHighestBit((uint32)uiSize) - TRUE_MALLOCATOR_SECOND_LOG2)) - 1;
+		uiRounded += ((lsize)1 << (TrueMallocatorSizeHighestBit(uiSize) - TRUE_MALLOCATOR_SECOND_LOG2)) - 1;
 	}
 	Mapping(uiRounded, &iFirst, &iSecond);
 	if (iFirst < TRUE_MALLOCATOR_FIRST_LEVELS)
 	{
-		uiMap = mauiSecondBitmaps[iFirst] & (~(uint32)0 << iSecond);
-		if (uiMap == 0)
+		uiSecondMap = (uint16)(mauiSecondBitmaps[iFirst] & (uint16)(0xFFFF << iSecond));
+		if (uiSecondMap == 0)
 		{
 			uiMap = muiFirstBitmap & (~(uint32)0 << (iFirst + 1));
 			if (uiMap != 0)
 			{
 				iFirst = TrueMallocatorLowestBit(uiMap);
-				uiMap = mauiSecondBitmaps[iFirst];
+				uiSecondMap = mauiSecondBitmaps[iFirst];
 			}
 		}
-		if (uiMap != 0)
+		if (uiSecondMap != 0)
 		{
-			iSecond = TrueMallocatorLowestBit(uiMap);
-			return mapsFree[iFirst][iSecond];
+			iSecond = TrueMallocatorLowestBit16(uiSecondMap);
+			return mapsFree[TRUE_MALLOCATOR_LIST(iFirst, iSecond)];
 		}
 	}
 
 	Mapping(uiSize, &iFirst, &iSecond);
-	for (psBlock = mapsFree[iFirst][iSecond]; psBlock; psBlock = psBlock->psNextFree)
+	for (psBlock = mapsFree[TRUE_MALLOCATOR_LIST(iFirst, iSecond)]; psBlock; psBlock = psBlock->psNextFree)
 	{
 		if ((psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) >= uiSize)
 		{
@@ -546,18 +614,20 @@ void CTrueMallocator::InsertFree(STrueMallocatorBlock* psBlock)
 	STrueMallocatorBlock*	psHead;
 	int						iFirst;
 	int						iSecond;
+	int						iList;
 
 	Mapping(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
-	psHead = mapsFree[iFirst][iSecond];
+	iList = TRUE_MALLOCATOR_LIST(iFirst, iSecond);
+	psHead = mapsFree[iList];
 	psBlock->psNextFree = psHead;
 	psBlock->psPreviousFree = NULL;
 	if (psHead)
 	{
 		psHead->psPreviousFree = psBlock;
 	}
-	mapsFree[iFirst][iSecond] = psBlock;
+	mapsFree[iList] = psBlock;
 	muiFirstBitmap |= (uint32)1 << iFirst;
-	mauiSecondBitmaps[iFirst] |= (uint32)1 << iSecond;
+	mauiSecondBitmaps[iFirst] |= (uint16)(1 << iSecond);
 }
 
 
@@ -569,6 +639,7 @@ void CTrueMallocator::RemoveFree(STrueMallocatorBlock* psBlock)
 {
 	int		iFirst;
 	int		iSecond;
+	uint16	uiSecondMap;
 
 	Mapping(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS, &iFirst, &iSecond);
 	if (psBlock->psNextFree)
@@ -581,11 +652,12 @@ void CTrueMallocator::RemoveFree(STrueMallocatorBlock* psBlock)
 	}
 	else
 	{
-		mapsFree[iFirst][iSecond] = psBlock->psNextFree;
+		mapsFree[TRUE_MALLOCATOR_LIST(iFirst, iSecond)] = psBlock->psNextFree;
 		if (!psBlock->psNextFree)
 		{
-			mauiSecondBitmaps[iFirst] &= ~((uint32)1 << iSecond);
-			if (mauiSecondBitmaps[iFirst] == 0)
+			uiSecondMap = (uint16)(mauiSecondBitmaps[iFirst] & ~(1 << iSecond));
+			mauiSecondBitmaps[iFirst] = uiSecondMap;
+			if (uiSecondMap == 0)
 			{
 				muiFirstBitmap &= ~((uint32)1 << iFirst);
 			}
