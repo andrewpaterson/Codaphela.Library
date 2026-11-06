@@ -1,5 +1,6 @@
 #include "IndexTreeHelper.h"
 #include "Logger.h"
+#include "LogString.h"
 #include "Sequence.h"
 
 
@@ -35,7 +36,18 @@ bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 		//Not FIRST_O_INDEX, that could hand out indices that are already used.
 		moiNext = INVALID_O_INDEX;
 		moiReserved = INVALID_O_INDEX;
+		moiEnd = INVALID_O_INDEX;
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
+	}
+
+	moiEnd = mpcConfig->GetEndIndex();
+	if ((moiNext < mpcConfig->GetFirstIndex()) || (moiNext > moiEnd))
+	{
+		gcLogger.Error2(__METHOD__, " Sequence next index [", LongToString(moiNext), "] is outside its range [", LongToString(mpcConfig->GetFirstIndex()), "] to [", LongToString(moiEnd), "].", NULL);
+		moiNext = INVALID_O_INDEX;
+		moiReserved = INVALID_O_INDEX;
+		moiEnd = INVALID_O_INDEX;
+		return false;
 	}
 
 	moiReserved = moiNext;
@@ -72,6 +84,13 @@ OIndex CSequence::GetNext(void)
 {
 	OIndex	uiNext;
 	bool	bResult;
+	OIndex	oiReserve;
+
+	if (moiNext >= moiEnd)
+	{
+		gcLogger.Error2(__METHOD__, " Sequence has no indices left before [", LongToString(moiEnd), "].", NULL);
+		return INVALID_O_INDEX;
+	}
 
 	uiNext = moiNext;
 
@@ -79,7 +98,12 @@ OIndex CSequence::GetNext(void)
 
 	if (moiNext > moiReserved)
 	{
-		bResult = Reserve(uiNext + mpcConfig->GetBlockSize());
+		oiReserve = uiNext + mpcConfig->GetBlockSize();
+		if ((oiReserve > moiEnd) || (oiReserve < uiNext))
+		{
+			oiReserve = moiEnd;
+		}
+		bResult = Reserve(oiReserve);
 		if (!bResult)
 		{
 			//Keep counting in memory.  Going back to the first index would hand out indices that are already used.
@@ -128,6 +152,69 @@ OIndex CSequence::PeekNext(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One past the last index this sequence may hand out.
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CSequence::GetEnd(void)
+{
+	return moiEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes iCount indices out of the sequence: GetNext never hands them out.
+// Returns the first; the range is first up to (not including) first +
+// iCount.  The range is written to the Sequence file before it is
+// returned, so it is never handed out again after a crash.
+// INVALID_O_INDEX if there is not room or the file could not be written.
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CSequence::ReserveRange(OIndex iCount)
+{
+	OIndex	oiFirst;
+
+	if ((iCount <= 0) || (moiNext == INVALID_O_INDEX) || (iCount > moiEnd - moiNext))
+	{
+		gcLogger.Error2(__METHOD__, " Cannot reserve [", LongToString(iCount), "] indices from [", LongToString(moiNext), "] before [", LongToString(moiEnd), "].", NULL);
+		return INVALID_O_INDEX;
+	}
+
+	oiFirst = moiNext;
+	if (!MoveNext(oiFirst + iCount))
+	{
+		return INVALID_O_INDEX;
+	}
+	return oiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the next index forward to oiNext, writing it to the Sequence file
+// first if it passes what is reserved there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSequence::MoveNext(OIndex oiNext)
+{
+	OIndex	oiOldNext;
+
+	oiOldNext = moiNext;
+	moiNext = oiNext;
+	if (moiNext > moiReserved)
+	{
+		if (!Reserve(moiNext))
+		{
+			moiNext = oiOldNext;
+			return gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CSequence::WriteIndex(OIndex oi)
@@ -159,7 +246,7 @@ OIndex CSequence::ReadIndex(void)
 	}
 	else
 	{
-		return FIRST_O_INDEX;
+		return mpcConfig->GetFirstIndex();
 	}
 }
 

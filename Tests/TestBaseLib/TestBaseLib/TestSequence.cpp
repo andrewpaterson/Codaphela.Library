@@ -3,6 +3,7 @@
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/Sequence.h"
 #include "BaseLib/ValueSequenceConfig.h"
+#include "BaseLib/SequenceFactory.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "TestLib/Assert.h"
@@ -182,6 +183,166 @@ void TestSequenceBlocks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A reserved range is never handed out by GetNext, before or after a
+// crash.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSequenceReserveRange(void)
+{
+	CSequence					cSequence;
+	CLifeInit<CSequenceConfig>	cConfig;
+	char						szDirectory[] = "Output" _FS_ "SequenceReserveRange";
+	CFileUtil					cFileUtil;
+	SLogConfig					sLogConfig;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	cConfig = CValueSequenceConfig::Create(szDirectory, DS_No, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(MAX_O_INDEX, cSequence.GetEnd());
+	AssertLong(1LL, cSequence.GetNext());
+	AssertLong(2LL, cSequence.GetNext());
+	AssertLong(3LL, cSequence.ReserveRange(10));
+	AssertLong(13LL, cSequence.PeekNext());
+
+	//Keep the files as they are just after the range 3..12 was reserved.
+	AssertTrue(cFileUtil.Copy("Output" _FS_ "SequenceReserveRange" _FS_ "Primary" _FS_ "Sequence.DAT", "Output" _FS_ "SequenceReserveRange" _FS_ "Primary.DAT"));
+	AssertTrue(cFileUtil.Copy("Output" _FS_ "SequenceReserveRange" _FS_ "Backup" _FS_ "_Sequence.DAT", "Output" _FS_ "SequenceReserveRange" _FS_ "Backup.DAT"));
+
+	AssertLong(13LL, cSequence.GetNext());
+	AssertLong(14LL, cSequence.ReserveRange(1));
+	AssertLong(15LL, cSequence.GetNext());
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertLong(INVALID_O_INDEX, cSequence.ReserveRange(0));
+	AssertLong(INVALID_O_INDEX, cSequence.ReserveRange(-1));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertLong(16LL, cSequence.PeekNext());
+	cSequence.Kill();
+
+	cConfig = CValueSequenceConfig::Create(szDirectory, DS_No, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(16LL, cSequence.GetNext());
+	cSequence.Kill();
+
+	//Dying just after the range was reserved still never hands it out.
+	AssertTrue(cFileUtil.Copy("Output" _FS_ "SequenceReserveRange" _FS_ "Primary.DAT", "Output" _FS_ "SequenceReserveRange" _FS_ "Primary" _FS_ "Sequence.DAT"));
+	AssertTrue(cFileUtil.Copy("Output" _FS_ "SequenceReserveRange" _FS_ "Backup.DAT", "Output" _FS_ "SequenceReserveRange" _FS_ "Backup" _FS_ "_Sequence.DAT"));
+	cConfig = CValueSequenceConfig::Create(szDirectory, DS_No, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(13LL, cSequence.GetNext());
+	cSequence.Kill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A range-limited sequence starts at its first index, keeps going after
+// it is reopened and stops at its end.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSequenceRange(void)
+{
+	CSequence					cSequence;
+	CLifeInit<CSequenceConfig>	cConfig;
+	char						szDirectory[] = "Output" _FS_ "SequenceRange";
+	CFileUtil					cFileUtil;
+	SLogConfig					sLogConfig;
+	OIndex						i;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	cConfig = CValueSequenceConfig::CreateRange(szDirectory, DS_No, 100, 110, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(110LL, cSequence.GetEnd());
+	AssertLong(100LL, cSequence.GetNext());
+	AssertLong(101LL, cSequence.GetNext());
+	cSequence.Kill();
+
+	cConfig = CValueSequenceConfig::CreateRange(szDirectory, DS_No, 100, 110, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(102LL, cSequence.ReserveRange(3));
+	for (i = 105; i < 110; i++)
+	{
+		AssertLong(i, cSequence.GetNext());
+	}
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertLong(INVALID_O_INDEX, cSequence.GetNext());
+	AssertLong(INVALID_O_INDEX, cSequence.ReserveRange(1));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertLong(110LL, cSequence.PeekNext());
+	cSequence.Kill();
+
+	//Still used up after it is reopened.
+	cConfig = CValueSequenceConfig::CreateRange(szDirectory, DS_No, 100, 110, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	sLogConfig = gcLogger.SetSilent();
+	AssertLong(INVALID_O_INDEX, cSequence.GetNext());
+	gcLogger.SetConfig(&sLogConfig);
+	cSequence.Kill();
+
+	//A sequence file whose next index is outside the range is refused.
+	cConfig = CValueSequenceConfig::CreateRange(szDirectory, DS_No, 200, 210, 4);
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cSequence.Init(cConfig));
+	gcLogger.SetConfig(&sLogConfig);
+	cSequence.Kill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A released level reserves a range for the game.  The game numbers its
+// objects (and its save games' objects) inside the range, and a later
+// update to the level numbers above it, so the two never collide.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSequenceLevelAndGame(void)
+{
+	CSequence*	pcLevel;
+	CSequence*	pcGame;
+	char		szLevel[] = "Output" _FS_ "SequenceLevel";
+	char		szGame[] = "Output" _FS_ "SequenceGame";
+	CFileUtil	cFileUtil;
+	OIndex		oiFirst;
+
+	cFileUtil.RemoveDir(szLevel);
+	cFileUtil.RemoveDir(szGame);
+
+	pcLevel = CSequenceFactory::Create(szLevel, DS_No);
+	AssertNotNull(pcLevel);
+	AssertLong(1LL, pcLevel->GetNext());
+	AssertLong(2LL, pcLevel->GetNext());
+	oiFirst = pcLevel->ReserveRange(1000);
+	AssertLong(3LL, oiFirst);
+	SafeKill(pcLevel);
+
+	pcGame = CSequenceFactory::CreateRange(szGame, DS_No, oiFirst, oiFirst + 1000);
+	AssertNotNull(pcGame);
+	AssertLong(3LL, pcGame->GetNext());
+	AssertLong(4LL, pcGame->GetNext());
+	SafeKill(pcGame);
+
+	pcLevel = CSequenceFactory::Create(szLevel, DS_No);
+	AssertLong(1003LL, pcLevel->GetNext());
+	SafeKill(pcLevel);
+
+	pcGame = CSequenceFactory::CreateRange(szGame, DS_No, oiFirst, oiFirst + 1000);
+	AssertLong(5LL, pcGame->GetNext());
+	SafeKill(pcGame);
+
+	cFileUtil.RemoveDir(szLevel);
+	cFileUtil.RemoveDir(szGame);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSequence(void)
@@ -195,6 +356,9 @@ void TestSequence(void)
 	TestSequenceCrashRecovery(false);
 	TestSequenceCrashRecovery(true);
 	TestSequenceBlocks();
+	TestSequenceReserveRange();
+	TestSequenceRange();
+	TestSequenceLevelAndGame();
 
 	TestStatistics();
 	DataMemoryKill();

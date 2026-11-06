@@ -7,6 +7,7 @@ class CSequenceFactory
 {
 public:
 	static CSequence*	Create(const char* szDirectory, EDurableSync eSync, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
+	static CSequence*	CreateRange(const char* szDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
 };
 
 

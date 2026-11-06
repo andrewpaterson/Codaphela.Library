@@ -7,9 +7,21 @@
 //////////////////////////////////////////////////////////////////////////
 void CValueSequenceConfig::Init(const char* szDirectory, EDurableSync eSync, size uiBlockSize)
 {
+	Init(szDirectory, eSync, FIRST_O_INDEX, MAX_O_INDEX, uiBlockSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CValueSequenceConfig::Init(const char* szDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize)
+{
 	mszDirectory = szDirectory;
 	meSync = eSync;
 	muiBlockSize = uiBlockSize;
+	moiFirst = oiFirst;
+	moiEnd = oiEnd;
 }
 
 
@@ -57,9 +69,40 @@ size CValueSequenceConfig::GetBlockSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CValueSequenceConfig::GetFirstIndex(void)
+{
+	return moiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CValueSequenceConfig::GetEndIndex(void)
+{
+	return moiEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CLifeInit<CSequenceConfig> CValueSequenceConfig::Create(const char* szDirectory, EDurableSync eSync, size uiBlockSize)
 {
 	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory, eSync, uiBlockSize);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CSequenceConfig> CValueSequenceConfig::CreateRange(const char* szDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize)
+{
+	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory, eSync, oiFirst, oiEnd, uiBlockSize);
 	return cLife;
 }
 
