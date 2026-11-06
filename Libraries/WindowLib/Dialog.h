@@ -33,6 +33,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowTheme.h"
 
 
+//The width of a dialog's buttons, unless a caption needs more.
+#define DIALOG_BUTTON_WIDTH		72
+
+
 //What every dialog is drawn with, made once by its owner.
 struct SDialogLook
 {

@@ -134,8 +134,8 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 
 	mpOK = OMalloc<CButton>(mpDialog, psLook->pcTheme, "OK");
 	mpCancel = OMalloc<CButton>(mpDialog, psLook->pcTheme, "Cancel");
-	mpOK->SetDesiredSize(72, -1);
-	mpCancel->SetDesiredSize(72, -1);
+	mpOK->SetDesiredSize(DIALOG_BUTTON_WIDTH, -1);
+	mpCancel->SetDesiredSize(DIALOG_BUTTON_WIDTH, -1);
 	mpOK->GetClickEvent()->Add(this, &CDialog::OKClicked);
 	mpCancel->GetClickEvent()->Add(this, &CDialog::CloseClicked);
 	mpDialog->SetDefaultButton(mpOK);
@@ -399,7 +399,13 @@ void CDialog::SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor)
 //////////////////////////////////////////////////////////////////////////
 void CDialog::SetOKCaption(const char* szCaption)
 {
+	int32	iWidth;
+
+	//As wide as the buttons are, or wider if the caption needs it, Refactor say.
 	mpOK->SetCaption(szCaption);
+	mpOK->SetDesiredSize(-1, -1);
+	iWidth = mpOK->GetDesiredSize().x;
+	mpOK->SetDesiredSize((iWidth > DIALOG_BUTTON_WIDTH) ? iWidth : DIALOG_BUTTON_WIDTH, -1);
 }
 
 
