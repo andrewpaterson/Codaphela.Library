@@ -82,6 +82,14 @@ void CX11Window::DestroyNativeWindow(void)
         pcFactory = (CX11WindowFactory*)mpcWindowFactory;
         psDisplay = pcFactory->GetDisplay();
 
+        //A main window remembers where it was, so it can be asked where it was after it is closed (its layout is
+        //saved then), and is made there again.
+        if (!mpcOwner)
+        {
+            GetScreenRectangle(&mcScreenRectangle);
+            mbScreenRectangle = true;
+        }
+
         //The keys go back to the owner, rather than to whatever the window manager chooses.
         if (mpcOwner && ((CX11Window*)mpcOwner)->mulWindow)
         {
@@ -245,6 +253,10 @@ bool CX11Window::CreateNativeWindow(void)
     {
         SetDialogHints(iWidth, iHeight);
     }
+    else
+    {
+        SetMainHints();
+    }
 
     pcFactory->AddWindow(this);
     XMapWindow(psDisplay, mulWindow);
@@ -315,6 +327,37 @@ void CX11Window::SetDialogHints(int iWidth, int iHeight)
             psHints->min_height = msMinimumSize.y;
         }
         XSetWMNormalHints(psDisplay, mulWindow, psHints);
+        XFree(psHints);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A main window's position is its client area's, not its frame's (static
+// gravity), so a position read from it (GetScreenRectangle) puts it back
+// in the same place.  Placed where it was asked if a position was set,
+// else where the window manager chooses.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::SetMainHints(void)
+{
+    CX11WindowFactory*      pcFactory;
+    XSizeHints*             psHints;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    psHints = XAllocSizeHints();
+    if (psHints)
+    {
+        psHints->flags = PWinGravity;
+        psHints->win_gravity = StaticGravity;
+        if (mbScreenRectangle)
+        {
+            psHints->flags |= USPosition | PPosition;
+            psHints->x = mcScreenRectangle.GetLeft();
+            psHints->y = mcScreenRectangle.GetTop();
+        }
+        XSetWMNormalHints(pcFactory->GetDisplay(), mulWindow, psHints);
         XFree(psHints);
     }
 }

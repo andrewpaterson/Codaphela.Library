@@ -72,6 +72,7 @@ public:
 protected:
 	void	SetDialogHints(int iWidth, int iHeight);
 	void	SetToolHints(void);
+	void	SetMainHints(void);
 	void	FreeCursors(void);
 	void	MouseMoved(int x, int y);
 	void	MouseButton(unsigned int uiButton, unsigned int uiState, int x, int y, bool bPressed);
