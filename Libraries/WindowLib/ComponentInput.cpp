@@ -25,12 +25,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPONENT_INPUT_PRESSED		0.5f	//A key or button's value at or above which it is pressed.
 
 
-//The keys that mean something with control, shift or both held.  Each is a chord named for its modifiers and key,
-//like "Control+C" or "Control+Shift+Cursor Left", made for every left and right modifier the keyboard has.
+//The keys that mean something with control, shift and alt held.  Each is a chord named for its modifiers and key,
+//like "Control+C" or "Control+Alt+Shift+N", made for every left and right modifier the keyboard has.
 struct SComponentInputChordRow
 {
 	bool					bControl;
 	bool					bShift;
+	bool					bAlt;
 	char*					szKey;
 	EComponentInputCommand	ePressed;
 	EComponentInputCommand	eReleased;  //When the chord's key is let go, CIC_Ignored for nothing.
@@ -39,57 +40,60 @@ struct SComponentInputChordRow
 
 static SComponentInputChordRow	gasKeyboardChordRows[] =
 {
-	{ true,  false, "Cursor Left",	CIC_WordLeft,					CIC_Ignored },
-	{ true,  false, "Cursor Right",	CIC_WordRight,					CIC_Ignored },
-	{ true,  false, "Home",			CIC_DocumentHome,				CIC_Ignored },
-	{ true,  false, "End",			CIC_DocumentEnd,				CIC_Ignored },
-	{ true,  false, "Cursor Up",	CIC_LineUp,						CIC_Ignored },
-	{ true,  false, "Cursor Down",	CIC_LineDown,					CIC_Ignored },
-	{ false, true,  "Cursor Up",	CIC_SelectUp,					CIC_Ignored },
-	{ false, true,  "Cursor Down",	CIC_SelectDown,					CIC_Ignored },
-	{ false, true,  "Cursor Left",	CIC_SelectLeft,					CIC_Ignored },
-	{ false, true,  "Cursor Right",	CIC_SelectRight,				CIC_Ignored },
-	{ true,  true,  "Cursor Left",	CIC_SelectWordLeft,				CIC_Ignored },
-	{ true,  true,  "Cursor Right",	CIC_SelectWordRight,			CIC_Ignored },
-	{ false, true,  "Home",			CIC_SelectHome,					CIC_Ignored },
-	{ false, true,  "End",			CIC_SelectEnd,					CIC_Ignored },
-	{ true,  true,  "Home",			CIC_SelectDocumentHome,			CIC_Ignored },
-	{ true,  true,  "End",			CIC_SelectDocumentEnd,			CIC_Ignored },
-	{ false, true,  "Page Up",		CIC_SelectPageUp,				CIC_Ignored },
-	{ false, true,  "Page Down",	CIC_SelectPageDown,				CIC_Ignored },
-	{ true,  false, "W",			CIC_SelectWholeWord,			CIC_Ignored },
-	{ true,  false, "A",			CIC_SelectAll,					CIC_Ignored },
-	{ false, true,  "Space",		CIC_Space,						CIC_Ignored },
-	{ false, true,  "Tab",			CIC_BackTab,					CIC_Ignored },
-	{ true,  true,  "Enter",		CIC_HomeEnter,					CIC_Ignored },
-	{ true,  true,  "Numpad Enter",	CIC_HomeEnter,					CIC_Ignored },
-	{ false, true,  "Enter",		CIC_EndEnter,					CIC_Ignored },
-	{ false, true,  "Numpad Enter",	CIC_EndEnter,					CIC_Ignored },
-	{ true,  false, "X",			CIC_Cut,						CIC_Ignored },
-	{ false, true,  "Delete",		CIC_Cut,						CIC_Ignored },
-	{ true,  false, "C",			CIC_Copy,						CIC_Ignored },
-	{ true,  false, "Insert",		CIC_Copy,						CIC_Ignored },
-	{ true,  false, "V",			CIC_Paste,						CIC_Ignored },
-	{ false, true,  "Insert",		CIC_Paste,						CIC_Ignored },
-	{ true,  false, "D",			CIC_Duplicate,					CIC_Ignored },
-	{ true,  false, "Backspace",	CIC_DeleteWordRemainingLeft,	CIC_Ignored },
-	{ true,  false, "Delete",		CIC_DeleteWordRemainingRight,	CIC_Ignored },
-	{ true,  false, "Z",			CIC_Undo,						CIC_Ignored },
-	{ true,  true,  "Z",			CIC_StepUndo,					CIC_Ignored },
-	{ true,  false, "Y",			CIC_Redo,						CIC_Ignored },
-	{ true,  true,  "Y",			CIC_StepRedo,					CIC_Ignored },
-	{ true,  false, "S",			CIC_Save,						CIC_Ignored },
-	{ true,  true,  "S",			CIC_SaveAll,					CIC_Ignored },
-	{ false, true,  "F12",			CIC_FindReferences,				CIC_Ignored },
-	{ false, true,  "F7",			CIC_PreviousDifference,			CIC_Ignored },
-	{ true,  true,  "B",			CIC_Build,						CIC_Ignored },
-	{ false, true,  "F5",			CIC_StopDebugging,				CIC_Ignored },
-	{ true,  true,  "F5",			CIC_RestartDebugging,			CIC_Ignored },
-	{ true,  false, "Pause",		CIC_BreakAll,					CIC_Ignored },
-	{ false, true,  "F11",			CIC_StepOut,					CIC_Ignored },
-	{ false, true,  "F10",			CIC_ContextMenuKey,				CIC_Ignored },
-	{ true,  false, "F4",			CIC_CloseDocument,				CIC_Ignored },
-	{ false, true,  "Escape",		CIC_HideToolWindow,				CIC_Ignored },
+	{ true,  false, false, "Cursor Left",	CIC_WordLeft,					CIC_Ignored },
+	{ true,  false, false, "Cursor Right",	CIC_WordRight,					CIC_Ignored },
+	{ true,  false, false, "Home",			CIC_DocumentHome,				CIC_Ignored },
+	{ true,  false, false, "End",			CIC_DocumentEnd,				CIC_Ignored },
+	{ true,  false, false, "Cursor Up",	CIC_LineUp,						CIC_Ignored },
+	{ true,  false, false, "Cursor Down",	CIC_LineDown,					CIC_Ignored },
+	{ false, true,  false, "Cursor Up",	CIC_SelectUp,					CIC_Ignored },
+	{ false, true,  false, "Cursor Down",	CIC_SelectDown,					CIC_Ignored },
+	{ false, true,  false, "Cursor Left",	CIC_SelectLeft,					CIC_Ignored },
+	{ false, true,  false, "Cursor Right",	CIC_SelectRight,				CIC_Ignored },
+	{ true,  true,  false, "Cursor Left",	CIC_SelectWordLeft,				CIC_Ignored },
+	{ true,  true,  false, "Cursor Right",	CIC_SelectWordRight,			CIC_Ignored },
+	{ false, true,  false, "Home",			CIC_SelectHome,					CIC_Ignored },
+	{ false, true,  false, "End",			CIC_SelectEnd,					CIC_Ignored },
+	{ true,  true,  false, "Home",			CIC_SelectDocumentHome,			CIC_Ignored },
+	{ true,  true,  false, "End",			CIC_SelectDocumentEnd,			CIC_Ignored },
+	{ false, true,  false, "Page Up",		CIC_SelectPageUp,				CIC_Ignored },
+	{ false, true,  false, "Page Down",	CIC_SelectPageDown,				CIC_Ignored },
+	{ true,  false, false, "W",			CIC_SelectWholeWord,			CIC_Ignored },
+	{ true,  false, false, "A",			CIC_SelectAll,					CIC_Ignored },
+	{ false, true,  false, "Space",		CIC_Space,						CIC_Ignored },
+	{ false, true,  false, "Tab",			CIC_BackTab,					CIC_Ignored },
+	{ true,  true,  false, "Enter",		CIC_HomeEnter,					CIC_Ignored },
+	{ true,  true,  false, "Numpad Enter",	CIC_HomeEnter,					CIC_Ignored },
+	{ false, true,  false, "Enter",		CIC_EndEnter,					CIC_Ignored },
+	{ false, true,  false, "Numpad Enter",	CIC_EndEnter,					CIC_Ignored },
+	{ true,  false, false, "X",			CIC_Cut,						CIC_Ignored },
+	{ false, true,  false, "Delete",		CIC_Cut,						CIC_Ignored },
+	{ true,  false, false, "C",			CIC_Copy,						CIC_Ignored },
+	{ true,  false, false, "Insert",		CIC_Copy,						CIC_Ignored },
+	{ true,  false, false, "V",			CIC_Paste,						CIC_Ignored },
+	{ false, true,  false, "Insert",		CIC_Paste,						CIC_Ignored },
+	{ true,  false, false, "D",			CIC_Duplicate,					CIC_Ignored },
+	{ true,  false, false, "Backspace",	CIC_DeleteWordRemainingLeft,	CIC_Ignored },
+	{ true,  false, false, "Delete",		CIC_DeleteWordRemainingRight,	CIC_Ignored },
+	{ true,  false, false, "Z",			CIC_Undo,						CIC_Ignored },
+	{ true,  true,  false, "Z",			CIC_StepUndo,					CIC_Ignored },
+	{ true,  false, false, "Y",			CIC_Redo,						CIC_Ignored },
+	{ true,  true,  false, "Y",			CIC_StepRedo,					CIC_Ignored },
+	{ true,  false, false, "S",			CIC_Save,						CIC_Ignored },
+	{ true,  true,  false, "S",			CIC_SaveAll,					CIC_Ignored },
+	{ false, true,  false, "F12",			CIC_FindReferences,				CIC_Ignored },
+	{ false, true,  false, "F7",			CIC_PreviousDifference,			CIC_Ignored },
+	{ true,  true,  false, "B",			CIC_Build,						CIC_Ignored },
+	{ true,  false, false, "N",			CIC_GoToClass,					CIC_Ignored },
+	{ true,  true,  false, "N",			CIC_GoToFile,					CIC_Ignored },
+	{ true,  true,  true,  "N",			CIC_GoToSymbol,					CIC_Ignored },
+	{ false, true,  false, "F5",			CIC_StopDebugging,				CIC_Ignored },
+	{ true,  true,  false, "F5",			CIC_RestartDebugging,			CIC_Ignored },
+	{ true,  false, false, "Pause",		CIC_BreakAll,					CIC_Ignored },
+	{ false, true,  false, "F11",			CIC_StepOut,					CIC_Ignored },
+	{ false, true,  false, "F10",			CIC_ContextMenuKey,				CIC_Ignored },
+	{ true,  false, false, "F4",			CIC_CloseDocument,				CIC_Ignored },
+	{ false, true,  false, "Escape",		CIC_HideToolWindow,				CIC_Ignored },
 };
 
 
@@ -115,11 +119,11 @@ static SComponentInputSequenceRow	gasKeyboardSequenceRows[] =
 //The keyboard's modifiers with the mouse's buttons.
 static SComponentInputChordRow	gasMouseChordRows[] =
 {
-	{ false, true,  "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
-	{ true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
-	{ true,  true,  "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
-	{ false, true,  "Wheel Forward",	CIC_WheelLeft,			CIC_Ignored },
-	{ false, true,  "Wheel Backward",	CIC_WheelRight,			CIC_Ignored },
+	{ false, true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ true,  false, false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ true,  true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ false, true,  false, "Wheel Forward",	CIC_WheelLeft,			CIC_Ignored },
+	{ false, true,  false, "Wheel Backward",	CIC_WheelRight,			CIC_Ignored },
 };
 
 
@@ -355,7 +359,7 @@ void CComponentInput::AddKeyboardChords(CComponentInputDevice* pcKeyboard)
 	for (i = 0; i < sizeof(gasKeyboardChordRows) / sizeof(SComponentInputChordRow); i++)
 	{
 		psRow = &gasKeyboardChordRows[i];
-		AddChordCommands(pcKeyboard, pcKeyboard, psRow->bControl, psRow->bShift, psRow->szKey, psRow->ePressed, psRow->eReleased);
+		AddChordCommands(pcKeyboard, pcKeyboard, psRow->bControl, psRow->bShift, psRow->bAlt, psRow->szKey, psRow->ePressed, psRow->eReleased);
 	}
 	for (i = 0; i < sizeof(gasKeyboardSequenceRows) / sizeof(SComponentInputSequenceRow); i++)
 	{
@@ -376,27 +380,29 @@ void CComponentInput::AddMouseChords(CComponentInputDevice* pcKeyboard, CCompone
 	for (i = 0; i < sizeof(gasMouseChordRows) / sizeof(SComponentInputChordRow); i++)
 	{
 		psRow = &gasMouseChordRows[i];
-		AddChordCommands(pcKeyboard, pcMouse, psRow->bControl, psRow->bShift, psRow->szKey, psRow->ePressed, psRow->eReleased);
+		AddChordCommands(pcKeyboard, pcMouse, psRow->bControl, psRow->bShift, psRow->bAlt, psRow->szKey, psRow->ePressed, psRow->eReleased);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chord for each of the keyboard's left and right controls and shifts
-// that the row wants, then szKey on pcKeyDevice.  They share one name and
-// command.  A modifier the keyboard doesn't have makes no chord; without
-// its shift a control and shift chord would be its control chord too.
+// A chord for each of the keyboard's left and right controls, shifts and
+// alts that the row wants, then szKey on pcKeyDevice.  They share one
+// name and command.  A modifier the keyboard doesn't have makes no
+// chord; without its shift a control and shift chord would be its
+// control chord too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
+void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
 {
-	CInputSourceDesc*				apcControls[2];
-	CInputSourceDesc*				apcShifts[2];
-	CInputSourceDesc*				pcKey;
-	CChars							szName;
-	size							i;
-	size							j;
+	CInputSourceDesc*	aapcModifiers[3][2];  //Left and right of each modifier the row wants.
+	CInputSourceDesc*	apcChord[3];
+	CInputSourceDesc*	pcKey;
+	CChars				szName;
+	size				uiNumModifiers;
+	size				uiSides;
+	size				i;
 
 	pcKey = pcKeyDevice->GetSource(szKey);
 	if (!pcKey)
@@ -404,41 +410,45 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 		return;
 	}
 
-	apcControls[0] = pcKeyboard->GetSource("Left Control");
-	apcControls[1] = pcKeyboard->GetSource("Right Control");
-	apcShifts[0] = pcKeyboard->GetSource("Left Shift");
-	apcShifts[1] = pcKeyboard->GetSource("Right Shift");
-
 	szName.Init();
+	uiNumModifiers = 0;
 	if (bControl)
 	{
 		szName.Append("Control+");
+		aapcModifiers[uiNumModifiers][0] = pcKeyboard->GetSource("Left Control");
+		aapcModifiers[uiNumModifiers][1] = pcKeyboard->GetSource("Right Control");
+		uiNumModifiers++;
+	}
+	if (bAlt)
+	{
+		szName.Append("Alt+");
+		aapcModifiers[uiNumModifiers][0] = pcKeyboard->GetSource("Left Alt");
+		aapcModifiers[uiNumModifiers][1] = pcKeyboard->GetSource("Right Alt");
+		uiNumModifiers++;
 	}
 	if (bShift)
 	{
 		szName.Append("Shift+");
+		aapcModifiers[uiNumModifiers][0] = pcKeyboard->GetSource("Left Shift");
+		aapcModifiers[uiNumModifiers][1] = pcKeyboard->GetSource("Right Shift");
+		uiNumModifiers++;
 	}
 	szName.Append(szKey);
 
-	for (i = 0; i < 2; i++)
+	//Every choice of left or right for each modifier: bit i of uiSides is the side of modifier i.
+	for (uiSides = 0; uiSides < ((size)1 << uiNumModifiers); uiSides++)
 	{
-		if (bControl && bShift)
+		for (i = 0; i < uiNumModifiers; i++)
 		{
-			for (j = 0; j < 2; j++)
+			apcChord[i] = aapcModifiers[i][(uiSides >> i) & 1];
+			if (!apcChord[i])
 			{
-				if (apcControls[i] && apcShifts[j])
-				{
-					mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcKeyDevice->GetDevice(), pcKey);
-				}
+				break;
 			}
 		}
-		else if (bControl)
+		if (i == uiNumModifiers)
 		{
-			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], NULL, pcKeyDevice->GetDevice(), pcKey);
-		}
-		else
-		{
-			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcShifts[i], NULL, pcKeyDevice->GetDevice(), pcKey);
+			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcChord, uiNumModifiers, pcKeyDevice->GetDevice(), pcKey);
 		}
 	}
 

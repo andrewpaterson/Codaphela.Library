@@ -105,7 +105,7 @@ protected:
 	size						AddDevices(char* szCategory, bool bKeyboard);
 	void						AddKeyboardChords(CComponentInputDevice* pcKeyboard);
 	void						AddMouseChords(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcMouse);
-	void						AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
+	void						AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	void						AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
 	void						AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	SComponentInputChordCommand*	GetChordCommand(char* szName);

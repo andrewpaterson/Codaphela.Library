@@ -100,6 +100,9 @@ enum EComponentInputCommand
 	CIC_GoToDefinition,  //F12.
 	CIC_FindReferences,  //Shift+F12.
 	CIC_Build,  //Control+Shift+B.
+	CIC_GoToClass,  //Control+N, as IntelliJ's.
+	CIC_GoToFile,  //Control+Shift+N.
+	CIC_GoToSymbol,  //Control+Alt+Shift+N.
 
 	//Debugging, with Visual Studio's keys.
 	CIC_StartDebugging,  //F5: start, or continue.

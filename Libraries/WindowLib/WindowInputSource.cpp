@@ -273,26 +273,46 @@ CInputChord* CWindowInputSource::AddChord(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
 {
+	CInputSourceDesc*	apcModifiers[2];
+
+	apcModifiers[0] = pcFirstModifier;
+	apcModifiers[1] = pcSecondModifier;
+	return AddKeyChord(szName, pcModifierDevice, apcModifiers, pcSecondModifier ? 2 : 1, pcKeyDevice, pcKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chord of uiNumModifiers modifiers held, in any order, then the key:
+// control, alt and shift and n say.  Returns false as the two modifier
+// AddKeyChord.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
+{
 	CInputChord*				pcChord;
 	COrderedInputChordCriteria*	pcOrdered;
 	CGroupInputChordCriteria*	pcGroup;
+	size						i;
 
-	if (!pcFirstModifier || !pcKey)
+	if ((uiNumModifiers == 0) || !apcModifiers[0] || !pcKey)
 	{
 		return false;
 	}
 
 	pcChord = AddChord(szName);
 	pcOrdered = pcChord->AsOrdered();
-	if (pcSecondModifier)
+	if (uiNumModifiers > 1)
 	{
 		pcGroup = pcOrdered->AddGroupAction();
-		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcFirstModifier, ICT_Toggle));
-		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcSecondModifier, ICT_Toggle));
+		for (i = 0; i < uiNumModifiers; i++)
+		{
+			pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, apcModifiers[i], ICT_Toggle));
+		}
 	}
 	else
 	{
-		pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcFirstModifier, ICT_Toggle));
+		pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, apcModifiers[0], ICT_Toggle));
 	}
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyDevice, pcKey, ICT_Toggle));
 	return pcChord->Done();

@@ -50,6 +50,8 @@ public:
 		mpcKeyboard->AddSource("Right Shift");
 		mpcKeyboard->AddSource("Left Control");
 		mpcKeyboard->AddSource("Left Alt");
+		mpcKeyboard->AddSource("Right Alt");
+		mpcKeyboard->AddSource("N");
 		mpcKeyboard->AddSource("Caps Lock");
 		mpcKeyboard->AddSource("Num Lock");
 		mpcKeyboard->AddSource("Insert");
@@ -240,7 +242,28 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Shift");
 		AssertLog("B:NextDifference;B:PreviousDifference;");
 
-		//Nothing is mapped with alt.
+		//Control+N goes to a class, with shift a file and with alt and shift a symbol, as IntelliJ's.  The modifiers can
+		//be pressed in any order, and either alt.
+		cDevices.Press("Left Control");
+		cDevices.Tap("N");
+		cDevices.Press("Left Shift");
+		cDevices.Tap("N");
+		cDevices.Press("Left Alt");
+		cDevices.Tap("N");
+		cDevices.Release("Left Alt");
+		cDevices.Release("Left Shift");
+		cDevices.Release("Left Control");
+		AssertLog("B:GoToClass;B:GoToFile;B:GoToSymbol;");
+		cDevices.Press("Right Alt");
+		cDevices.Press("Left Shift");
+		cDevices.Press("Left Control");
+		cDevices.Tap("N");
+		cDevices.Release("Left Control");
+		cDevices.Release("Left Shift");
+		cDevices.Release("Right Alt");
+		AssertLog("B:GoToSymbol;");
+
+		//Alt alone types nothing; nothing else is mapped with it.
 		cDevices.Press("Left Alt");
 		cDevices.Tap("A");
 		cDevices.Tap("Cursor Up");

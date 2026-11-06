@@ -86,6 +86,7 @@ public:
 	bool					IsDelta(CInputSourceDesc* pcSource);
 	CInputChord*			AddChord(char* szName);
 	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
+	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	bool					AddKeySequenceChord(char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds);
 	CInputVirtualDevice*	GetVirtualDevice(void);
 
