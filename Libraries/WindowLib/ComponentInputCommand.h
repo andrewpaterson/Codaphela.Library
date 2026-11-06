@@ -106,6 +106,8 @@ enum EComponentInputCommand
 	CIC_ShowProjectView,  //Alt+1, as IntelliJ's Project tool window: the active file selected in it.
 	CIC_Rename,  //Shift+F6, as IntelliJ's Rename.
 	CIC_FindUsages,  //Alt+F7, as IntelliJ's Find Usages.
+	CIC_GoToSource,  //Control+B, as IntelliJ's: the file an #include names, or what is at the caret's definition.
+	CIC_SwitchHeaderSource,  //Alt+O, as Visual Assist's: a .cpp's header, or a header's .cpp.
 
 	//Debugging, with Visual Studio's keys.
 	CIC_StartDebugging,  //F5: start, or continue.

@@ -52,6 +52,8 @@ public:
 		mpcKeyboard->AddSource("Left Alt");
 		mpcKeyboard->AddSource("Right Alt");
 		mpcKeyboard->AddSource("N");
+		mpcKeyboard->AddSource("B");
+		mpcKeyboard->AddSource("O");
 		mpcKeyboard->AddSource("Caps Lock");
 		mpcKeyboard->AddSource("Num Lock");
 		mpcKeyboard->AddSource("Insert");
@@ -272,6 +274,15 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Shift");
 		cDevices.Release("Right Alt");
 		AssertLog("B:GoToSymbol;");
+
+		//Control+B goes to the source, Alt+O switches between a header and its .cpp.
+		cDevices.Press("Left Control");
+		cDevices.Tap("B");
+		cDevices.Release("Left Control");
+		cDevices.Press("Left Alt");
+		cDevices.Tap("O");
+		cDevices.Release("Left Alt");
+		AssertLog("B:GoToSource;B:SwitchHeaderSource;");
 
 		//Alt+1 shows the project view, it doesn't type a 1.
 		cDevices.Press("Left Alt");
