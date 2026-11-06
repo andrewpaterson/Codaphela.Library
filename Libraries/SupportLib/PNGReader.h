@@ -25,7 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Reads grey, grey with alpha, RGB and RGBA PNGs of any bit depth, and palette PNGs (alpha from tRNS), interlaced or not.
 //1, 2 and 4 bit grey is read as 8 bit.  Palettes that are all grey are read as grey.  Opacity is the first channel.
-Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug = false);
+Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug = false, const char* szObjectName = NULL);
 
 
 #endif // __PNG_READER_H__

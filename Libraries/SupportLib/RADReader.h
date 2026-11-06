@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-Ptr<CImage> LoadRAD(char *szPathName, bool bAddDebug = false);
+Ptr<CImage> LoadRAD(char *szPathName, bool bAddDebug = false, const char* szObjectName = NULL);
 bool LoadRAW(char* szFilename, Ptr<CImage> pImage);
 
 

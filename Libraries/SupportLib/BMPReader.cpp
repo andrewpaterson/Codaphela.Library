@@ -26,6 +26,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "RLEBitmapDecoder.h"
 #include "ImageReaderCommon.h"
+#include "ImageReaderHelper.h"
 #include "BMPReader.h"
 
 
@@ -475,7 +476,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
+Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug, const char* szObjectName)
 {
 	lsize			uiFileSize;
 	CNaiveFile		cNaiveFile;
@@ -550,15 +551,15 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 
 	if (bGrey)
 	{
-		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_GREY, CHANNEL_STOP);
+		pImage = ImageMalloc(szObjectName, sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_GREY, CHANNEL_STOP);
 	}
 	else if (bAlpha)
 	{
-		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pImage = ImageMalloc(szObjectName, sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 	else
 	{
-		pImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pImage = ImageMalloc(szObjectName, sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 
 	if ((pImage->GetData() == NULL) || !CopyRGBAIntoImage(puiRGBA, bGrey, pImage))

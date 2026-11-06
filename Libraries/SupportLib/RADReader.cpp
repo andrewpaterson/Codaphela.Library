@@ -146,7 +146,7 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pImport, CChars* szRawFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
+Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug, const char* szObjectName)
 {
 	CTextParser 	cTextParser;
 	CTextFile		cTextFile;
@@ -176,7 +176,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	Ptr<CImage> pImage = OMalloc<CImage>();
+	Ptr<CImage> pImage = ImageMalloc(szObjectName);
 	pImage->BeginChange();
 
 	//Create an image from the text descriptor.

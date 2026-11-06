@@ -554,7 +554,7 @@ void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 // as opacity, the first channel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
+Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug, const char* szObjectName)
 {
 	uint8*			puiRGBA;
 	bool			bGrey;
@@ -583,7 +583,7 @@ Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddD
 	}
 	PNGExpandPalette(psInfo, puiPixels, puiRGBA);
 
-	pImage = OMalloc<CImage>();
+	pImage = ImageMalloc(szObjectName);
 	pImage->BeginChange();
 	if (bAlpha)
 	{
@@ -615,7 +615,7 @@ Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddD
 // and 4 bit grey are read as 8 bit).  Opacity is the first channel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
+Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug, const char* szObjectName)
 {
 	EPrimitiveType		eSourceType;
 	bool				bReverse;
@@ -648,7 +648,7 @@ Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
 		break;
 	}
 
-	pImage = OMalloc<CImage>();
+	pImage = ImageMalloc(szObjectName);
 	pImage->BeginChange();
 	cImageImport.Init();
 	cImageImport.BeginChange();
@@ -744,7 +744,7 @@ bool PNGDecodeImage(CArrayLargeUint8* pacCompressed, SPNGInfo* psInfo, uint8* pu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
+Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug, const char* szObjectName)
 {
 	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
@@ -797,11 +797,11 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 
 	if (sInfo.iColourType == PNG_COLOUR_PALETTE)
 	{
-		pImage = PNGCreatePaletteImage(&sInfo, puiPixels, bAddDebug);
+		pImage = PNGCreatePaletteImage(&sInfo, puiPixels, bAddDebug, szObjectName);
 	}
 	else
 	{
-		pImage = PNGCreateImage(&sInfo, puiPixels, bAddDebug);
+		pImage = PNGCreateImage(&sInfo, puiPixels, bAddDebug, szObjectName);
 	}
 	free(puiPixels);
 

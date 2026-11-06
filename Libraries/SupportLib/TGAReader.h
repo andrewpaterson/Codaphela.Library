@@ -25,7 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Reads colour mapped, true colour and grey Targa images, uncompressed or RLE compressed, in any orientation.
 //Colour maps that are all grey are read as grey.  Images with alpha are read with opacity as their first channel.
-Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug = false);
+Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug = false, const char* szObjectName = NULL);
 
 
 #endif // __TGA_READER_H__

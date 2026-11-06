@@ -39,7 +39,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
+Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug, const char* szObjectName)
 {
 	if (eType == IT_Unknown)
 	{
@@ -49,13 +49,13 @@ Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 	switch (eType)
 	{
 		case IT_BMP:
-			return (LoadBMP(szFilename, bAddDebug));
+			return (LoadBMP(szFilename, bAddDebug, szObjectName));
 		case IT_TGA:
-			return (LoadTGA(szFilename, bAddDebug));
+			return (LoadTGA(szFilename, bAddDebug, szObjectName));
 		case IT_PNG:
-			return (LoadPNG(szFilename, bAddDebug));
+			return (LoadPNG(szFilename, bAddDebug, szObjectName));
 		case IT_RAD:
-			return (LoadRAD(szFilename)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
+			return (LoadRAD(szFilename, bAddDebug, szObjectName)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
 		default:
 			break;
 	}

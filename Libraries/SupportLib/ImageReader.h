@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-Ptr<CImage> ReadImage(char* szFilename, EImageType eType = IT_Unknown, bool bAddDebug = false);
+Ptr<CImage> ReadImage(char* szFilename, EImageType eType = IT_Unknown, bool bAddDebug = false, const char* szObjectName = NULL);  //szObjectName names the image (NULL: unnamed).
 
 bool ReadRawImage(Ptr<CImage> pImage, char* szFilename);
 
