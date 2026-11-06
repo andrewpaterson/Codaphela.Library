@@ -104,6 +104,7 @@ enum EComponentInputCommand
 	CIC_GoToFile,  //Control+Shift+N.
 	CIC_GoToSymbol,  //Control+Alt+Shift+N.
 	CIC_ShowProjectView,  //Alt+1, as IntelliJ's Project tool window: the active file selected in it.
+	CIC_Rename,  //Shift+F6, as IntelliJ's Rename.
 
 	//Debugging, with Visual Studio's keys.
 	CIC_StartDebugging,  //F5: start, or continue.

@@ -71,6 +71,7 @@ public:
 		mpcKeyboard->AddSource("Numpad 8");
 		mpcKeyboard->AddSource("Numpad 0");
 		mpcKeyboard->AddSource("F1");
+		mpcKeyboard->AddSource("F6");
 		mpcKeyboard->AddSource("F7");
 
 		mpcMouse->AddSource("Button 1");
@@ -234,6 +235,12 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Shift");
 		cDevices.Release("Left Control");
 		AssertLog("B:Save;B:SaveAll;");
+
+		//Shift+F6 renames.
+		cDevices.Press("Left Shift");
+		cDevices.Tap("F6");
+		cDevices.Release("Left Shift");
+		AssertLog("B:Rename;");
 
 		//F7 goes to the next difference; with shift, the previous.
 		cDevices.Tap("F7");
