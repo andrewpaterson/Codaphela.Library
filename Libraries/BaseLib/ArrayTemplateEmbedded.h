@@ -903,7 +903,18 @@ bool CArrayTemplateEmbedded<M, I>::FindInSorted(M* pvData, DataCompare fCompare,
 template<class M, int8 I>
 void CArrayTemplateEmbedded<M, I>::Push(M* pvData)
 {
-	CArrayBlock::Push(pvData);
+	M*	pvDest;
+
+	if (IsEmbedded())
+	{
+		//Add moves the elements into the array when the embedded ones are full.
+		pvDest = Add();
+		memcpy(pvDest, pvData, sizeof(M));
+	}
+	else
+	{
+		mcArray.Push(pvData);
+	}
 }
 
 
@@ -931,7 +942,7 @@ M* CArrayTemplateEmbedded<M, I>::PushCopy(void)
 	if (NumElements() > 0)
 	{
 		pvDest = Add();
-		pvSource = Get(miUsedElements - 2);
+		pvSource = Get(NumElements() - 2);
 		memcpy(pvDest, pvSource, sizeof(M));
 		return pvDest;
 	}
@@ -986,7 +997,11 @@ bool CArrayTemplateEmbedded<M, I>::Pop(void)
 template<class M, int8 I>
 M* CArrayTemplateEmbedded<M, I>::Tail(void)
 {
-	return (M*)CArrayBlock::Tail();
+	if (IsEmbedded())
+	{
+		return (miUsedElements != 0) ? &mam[miUsedElements - 1] : NULL;
+	}
+	return mcArray.Tail();
 }
 
 

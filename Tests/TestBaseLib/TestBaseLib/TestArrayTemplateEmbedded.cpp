@@ -448,6 +448,54 @@ void TestArrayTemplateEmbeddedPrimitiveSorted(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Push, PushCopy and Tail use the embedded elements, then the array once
+// there are more than fit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayTemplateEmbeddedPushAndTail(void)
+{
+	CArrayTemplateEmbedded<int, 3>	cArray;
+	int								i;
+
+	cArray.Init();
+	AssertNull(cArray.Tail());
+
+	i = 7;
+	cArray.Push(&i);
+	i = 8;
+	cArray.Push(&i);
+	AssertTrue(cArray.IsEmbedded());
+	AssertInt(8, *cArray.Tail());
+	AssertInt(8, *cArray.PushCopy());
+	AssertTrue(cArray.IsEmbedded());
+	AssertSize(3, cArray.NumElements());
+	AssertInt(8, *cArray.Tail());
+
+	i = 9;
+	cArray.Push(&i);
+	AssertTrue(cArray.IsArray());
+	AssertSize(4, cArray.NumElements());
+	AssertInt(9, *cArray.Tail());
+
+	i = 10;
+	cArray.Push(&i);
+	AssertSize(5, cArray.NumElements());
+	AssertInt(10, *cArray.Tail());
+	AssertInt(10, *cArray.PushCopy());
+	AssertSize(6, cArray.NumElements());
+	AssertInt(7, *cArray.Get(0));
+	AssertInt(8, *cArray.Get(1));
+	AssertInt(8, *cArray.Get(2));
+	AssertInt(9, *cArray.Get(3));
+	AssertInt(10, *cArray.Get(4));
+	AssertInt(10, *cArray.Tail());
+
+	cArray.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayTemplateEmbedded(void)
@@ -461,6 +509,7 @@ void TestArrayTemplateEmbedded(void)
 	TestArrayTemplateEmbeddedAllocationWithVirtualClass();
 	TestArrayTemplateEmbeddedChangeChunkSize();
 	TestArrayTemplateEmbeddedPrimitiveSorted();
+	TestArrayTemplateEmbeddedPushAndTail();
 
 	TestStatistics();
 }
