@@ -2306,6 +2306,49 @@ void TestCPP816DynamicCastUnits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A member template overloaded with a plain member of the same name and
+// parameters (CObjects::Get<M>(const char*) and Get(const char*)) calls the
+// plain member from inside the template: a template's arguments that can't be
+// deduced take it out of the overloads.  Get<CString>("Door") returned null in
+// TestLayeredObjects on both targets.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816MemberTemplateCallsPlainOverload(void)
+{
+	AssertInt(12, TestCPP816Run(
+		"struct CPointer { int m; };\n"
+		"template<class M> struct Ptr\n"
+		"{\n"
+		"\tint m;\n"
+		"\tPtr() { m = 0; }\n"
+		"\tPtr(const CPointer& c) { m = c.m; }\n"
+		"};\n"
+		"typedef long long OIndex;\n"
+		"class CObjects\n"
+		"{\n"
+		"public:\n"
+		"\t\t\t\t\t\tCPointer\tGet(OIndex oi) { CPointer c; c.m = 1; return c; }\n"
+		"\t\t\t\t\t\tCPointer\tGet(const char* szName) { CPointer c; c.m = (szName[0] == 'D') ? 2 : 3; return c; }\n"
+		"\ttemplate<class M>\tPtr<M>\t\tGet(OIndex oi);\n"
+		"\ttemplate<class M>\tPtr<M>\t\tGet(const char* szName);\n"
+		"};\n"
+		"template<class M> Ptr<M> CObjects::Get(OIndex oi) { return Get(oi); }\n"
+		"template<class M> Ptr<M> CObjects::Get(const char* szName) { return Get(szName); }\n"
+		"struct CString { int m; };\n"
+		"int main()\n"
+		"{\n"
+		"\tCObjects\t\tcObjects;\n"
+		"\tPtr<CString>\tpByIndex;\n"
+		"\tPtr<CString>\tpByName;\n"
+		"\tpByIndex = cObjects.Get<CString>(5);\n"
+		"\tpByName = cObjects.Get<CString>(\"Door\");\n"
+		"\treturn pByIndex.m * 10 + pByName.m;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An overloaded function's name for a pointer to a function is the overload
 // of the pointer's type: in global and local initialisers, an assignment, an
 // argument, a return and casts, whichever overload is declared first.  The
@@ -5384,6 +5427,7 @@ void TestCPP816(void)
 	TestCPP816DynamicCast();
 	TestCPP816DynamicCastUnits();
 	TestCPP816OverloadedFunctionPointers();
+	TestCPP816MemberTemplateCallsPlainOverload();
 	TestCPP816VariadicObjectParameters();
 	TestCPP816ProfileGuidedInlining();
 	TestCPP816ProfileRegisterEntries();

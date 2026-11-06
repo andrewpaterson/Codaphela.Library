@@ -2327,29 +2327,67 @@ SCPP65Template* CCPP65Generator::GetCallTemplate(CCPPSymbol* pcSymbol, CCPPSynta
 // Of papsCandidates, the templates that take a call's number of arguments in the
 // order they were found, the one the call uses.  When there are several, the ones
 // the call can use (TemplateTakes) are chosen from, if there are any, as
-// SMemberCall::Init's overloads differ only in their function's type.  Then the
-// first whose const matches the object's (iConstObject 1 for a const object, 0
-// for one that is not, -1 for none) is chosen, or else the first.  pcCall is NULL
-// to choose by the number of arguments alone.
+// SMemberCall::Init's overloads differ only in their function's type; of those,
+// the ones whose arguments convert best (as plain overloads are ranked), as
+// CObjects::Get<M>(OIndex) and Get<M>(const char*) differ only in their
+// parameter's type.  Then the first whose const matches the object's
+// (iConstObject 1 for a const object, 0 for one that is not, -1 for none) is
+// chosen, or else the first.  pcCall is NULL to choose by the number of
+// arguments alone.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Template* CCPP65Generator::ChooseTemplate(CArrayCPP65Templates* papsCandidates, int iConstObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall)
 {
 	CArrayCPP65Templates	apsTaken;
+	CArrayCPP65Templates	apsBest;
 	CArrayCPP65Templates*	papsChosen;
 	SCPP65Template*			psTemplate;
+	CArrayInt				aiRanks;
+	size					uiArguments;
+	size					uiBest;
 	size					i;
 
 	apsTaken.Init();
+	apsBest.Init();
+	aiRanks.Init();
+	uiArguments = pcCall ? pcCall->macpArguments.NumElements() : 0;
 	for (i = 0; pcCall && (papsCandidates->NumElements() > 1) && (i < papsCandidates->NumElements()); i++)
 	{
 		psTemplate = papsCandidates->GetPtr(i);
-		if (TemplateTakes(psTemplate, papcExplicit, &pcCall->macpArguments, pcCall))
+		aiRanks.Resize(aiRanks.NumElements() + uiArguments);
+		if (TemplateTakes(psTemplate, papcExplicit, &pcCall->macpArguments, pcCall, (uiArguments > 0) ? aiRanks.Get(aiRanks.NumElements() - uiArguments) : NULL))
 		{
 			apsTaken.Add(psTemplate);
 		}
+		else
+		{
+			aiRanks.Resize(aiRanks.NumElements() - uiArguments);
+		}
 	}
-	papsChosen = (apsTaken.NumElements() > 0) ? &apsTaken : papsCandidates;
+
+	//Only the templates whose arguments no other's convert better.
+	for (i = 0; (uiArguments > 0) && (i < apsTaken.NumElements()); i++)
+	{
+		for (uiBest = 0; uiBest < apsTaken.NumElements(); uiBest++)
+		{
+			if (CompareRanks(aiRanks.Get(uiBest * uiArguments), aiRanks.Get(i * uiArguments), uiArguments) > 0)
+			{
+				break;
+			}
+		}
+		if (uiBest == apsTaken.NumElements())
+		{
+			apsBest.Add(apsTaken.GetPtr(i));
+		}
+	}
+	if (apsBest.NumElements() > 0)
+	{
+		papsChosen = &apsBest;
+	}
+	else
+	{
+		papsChosen = (apsTaken.NumElements() > 0) ? &apsTaken : papsCandidates;
+	}
 
 	psTemplate = (papsChosen->NumElements() > 0) ? papsChosen->GetPtr(0) : NULL;
 	for (i = 0; (iConstObject >= 0) && (i < papsChosen->NumElements()); i++)
@@ -2360,6 +2398,8 @@ SCPP65Template* CCPP65Generator::ChooseTemplate(CArrayCPP65Templates* papsCandid
 			break;
 		}
 	}
+	aiRanks.Kill();
+	apsBest.Kill();
 	apsTaken.Kill();
 	return psTemplate;
 }
@@ -2368,13 +2408,14 @@ SCPP65Template* CCPP65Generator::ChooseTemplate(CArrayCPP65Templates* papsCandid
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a call with papcArguments (and the explicit template arguments
-// papcExplicit) can use psTemplate: its parameters can be deduced and bound, and
-// each parameter whose argument is a pointer to a member function is of that
-// argument's type.  Nothing is reported; a template the call can't use is passed
-// over.
+// papcExplicit) can use psTemplate: its parameters can be deduced and bound, each
+// parameter whose argument is a pointer to a member function is of that
+// argument's type, and every other argument converts to its parameter.  aiRanks
+// (one per argument, may be NULL) gets each conversion's rank (ConversionRank).
+// Nothing is reported; a template the call can't use is passed over.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode, int* aiRanks)
 {
 	CArrayCPP65Types			apsArguments;
 	CArrayCPP65Types			apsDeduced;
@@ -2388,7 +2429,14 @@ bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* pa
 	SCPP65Type*					psParameter;
 	bool						bQuietFailed;
 	bool						bTakes;
+	bool						bPack;
+	int							iRank;
 	size						i;
+
+	for (i = 0; aiRanks && (i < papcArguments->NumElements()); i++)
+	{
+		aiRanks[i] = CPP65CR_Exact;
+	}
 
 	//A failure here is not one of the quiet code around it.
 	bQuietFailed = mbQuietFailed;
@@ -2427,17 +2475,31 @@ bool CCPP65Generator::TemplateTakes(SCPP65Template* psTemplate, CArraySyntax* pa
 		}
 		mpsBindings = psBindings;
 		pcSuffix = ((CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition)->mpcDeclarator->GetFunctionSuffix();
-		for (i = 0; bTakes && pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < apsArguments.NumElements()); i++)
+		bPack = false;
+		for (i = 0; bTakes && !bPack && pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < apsArguments.NumElements()); i++)
 		{
+			pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+			bPack = pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack;
 			psArgument = apsArguments.GetPtr(i);
-			psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-			if (!psArgument || !psArgument->IsMemberPointer() || !psArgument->psBase || !psArgument->psBase->IsFunction())
+			if (bPack || !psArgument)
 			{
 				continue;
 			}
-			pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
 			psParameter = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
-			bTakes = psParameter && psParameter->Equals(psArgument);
+			psArgument = psArgument->IsReference() ? psArgument->psBase : psArgument;
+			if (psArgument->IsMemberPointer() && psArgument->psBase && psArgument->psBase->IsFunction())
+			{
+				bTakes = psParameter && psParameter->Equals(psArgument);
+			}
+			else if (psParameter)
+			{
+				iRank = ConversionRank(psParameter, apsArguments.GetPtr(i), papcArguments->GetPtr(i));
+				bTakes = iRank != CPP65CR_None;
+				if (aiRanks)
+				{
+					aiRanks[i] = iRank;
+				}
+			}
 		}
 		mpsBindings = psSaved;
 		if (!psTemplate->psClass)

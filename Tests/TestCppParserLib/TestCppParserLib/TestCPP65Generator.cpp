@@ -2455,6 +2455,49 @@ void TestCPP65GeneratorVariadicTemplates(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A member template overloaded with a plain member of the same name and
+// parameters (CObjects::Get<M>(const char*) and Get(const char*)) calls the
+// plain member from inside the template: a template's arguments that can't be
+// deduced take it out of the overloads.  Get<CString>("Door") returned null in
+// TestLayeredObjects on both targets.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorMemberTemplateCallsPlainOverload(void)
+{
+	AssertInt(12, TestCPP65Main(
+		"struct CPointer { int m; };\n"
+		"template<class M> struct Ptr\n"
+		"{\n"
+		"\tint m;\n"
+		"\tPtr() { m = 0; }\n"
+		"\tPtr(const CPointer& c) { m = c.m; }\n"
+		"};\n"
+		"typedef long long OIndex;\n"
+		"class CObjects\n"
+		"{\n"
+		"public:\n"
+		"\t\t\t\t\t\tCPointer\tGet(OIndex oi) { CPointer c; c.m = 1; return c; }\n"
+		"\t\t\t\t\t\tCPointer\tGet(const char* szName) { CPointer c; c.m = (szName[0] == 'D') ? 2 : 3; return c; }\n"
+		"\ttemplate<class M>\tPtr<M>\t\tGet(OIndex oi);\n"
+		"\ttemplate<class M>\tPtr<M>\t\tGet(const char* szName);\n"
+		"};\n"
+		"template<class M> Ptr<M> CObjects::Get(OIndex oi) { return Get(oi); }\n"
+		"template<class M> Ptr<M> CObjects::Get(const char* szName) { return Get(szName); }\n"
+		"struct CString { int m; };\n"
+		"int main()\n"
+		"{\n"
+		"\tCObjects\t\tcObjects;\n"
+		"\tPtr<CString>\tpByIndex;\n"
+		"\tPtr<CString>\tpByName;\n"
+		"\tpByIndex = cObjects.Get<CString>(5);\n"
+		"\tpByName = cObjects.Get<CString>(\"Door\");\n"
+		"\treturn pByIndex.m * 10 + pByName.m;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Overloads are chosen by the best conversion of each argument: exact, then
 // promotion (char and short to int, an enum to int), then conversion.  An enum is a
 // type of its own.  A cast to a pointer to a function chooses an overloaded
@@ -3254,6 +3297,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorTemplateOverloads();
 	TestCPP65GeneratorVariadicTemplates();
 	TestCPP65GeneratorOverloadRanking();
+	TestCPP65GeneratorMemberTemplateCallsPlainOverload();
 	TestCPP65GeneratorBaseLibConstructs();
 	TestCPP65GeneratorStandardLibConstructs();
 	TestCPP65GeneratorArrayTemplate();
