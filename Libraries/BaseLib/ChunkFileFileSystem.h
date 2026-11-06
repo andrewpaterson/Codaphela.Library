@@ -1,16 +1,16 @@
 #ifndef __CHUNK_FILE_FILE_SYSTEM_H__
 #define __CHUNK_FILE_FILE_SYSTEM_H__
 #include "ArrayChars.h"
-#include "ArrayUint.h"
+#include "ArrayTemplatePrimitive.h"
 #include "ChunkFile.h"
 
 
 struct SChunkFilenameIterator
 {
-	CChars		szFullName;
-	CArrayUint	aiIndex;
-	bool		bDone;
-	CChars		szValue;
+	CChars							szFullName;
+	CArrayTemplatePrimitive<lsize>	aiIndex;  //Chunk numbers, one per open chunk.
+	bool							bDone;
+	CChars							szValue;
 
 	void Init(void);
 	void Kill(void);

@@ -101,8 +101,8 @@ int CompareChunkNamePosition(const void* pvLeft, const void* pvRight)
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::SortNames(void)
 {
-	size				i;
-	size				uiNumChunks;
+	lsize				i;
+	lsize				uiNumChunks;
 	SChunkNamePosition*	psName;
 
 	uiNumChunks = mcChunkIndices.NumElements();
@@ -127,11 +127,11 @@ void CChunkIndex::SortNames(void)
 // Where in macNames the first chunk named iName is, or would be.
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkIndex::FindFirstName(chunkName iName)
+lsize CChunkIndex::FindFirstName(chunkName iName)
 {
-	size	uiLow;
-	size	uiHigh;
-	size	uiMiddle;
+	lsize	uiLow;
+	lsize	uiHigh;
+	lsize	uiMiddle;
 
 	SortNames();
 	uiLow = 0;
@@ -154,11 +154,11 @@ size CChunkIndex::FindFirstName(chunkName iName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The position of the first chunk named iName (ARRAY_ELEMENT_NOT_FOUND if
+// The position of the first chunk named iName (CHUNK_FILE_NOT_FOUND if
 // there isn't one).  FindNextChunkWithName gives the others, in order.
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkIndex::FindFirstChunkWithName(chunkName iName)
+lsize CChunkIndex::FindFirstChunkWithName(chunkName iName)
 {
 	miSearchName = iName;
 	muiNextName = FindFirstName(iName);
@@ -170,14 +170,14 @@ size CChunkIndex::FindFirstChunkWithName(chunkName iName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkIndex::FindNextChunkWithName(void)
+lsize CChunkIndex::FindNextChunkWithName(void)
 {
 	SChunkNamePosition*	psName;
 
 	psName = macNames.SafeGet(muiNextName);
 	if ((psName == NULL) || (psName->miName != miSearchName))
 	{
-		return ARRAY_ELEMENT_NOT_FOUND;
+		return CHUNK_FILE_NOT_FOUND;
 	}
 	muiNextName++;
 	return psName->muiPosition;
@@ -188,11 +188,11 @@ size CChunkIndex::FindNextChunkWithName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkIndex::GetNumChunksWithName(chunkName iName)
+lsize CChunkIndex::GetNumChunksWithName(chunkName iName)
 {
-	size	uiFirst;
-	size	i;
-	size	uiNumNames;
+	lsize	uiFirst;
+	lsize	i;
+	lsize	uiNumNames;
 
 	uiFirst = FindFirstName(iName);
 	uiNumNames = macNames.NumElements();

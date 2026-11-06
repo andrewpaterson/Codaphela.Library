@@ -61,13 +61,13 @@ public:
 	bool		WriteOpen(chunkName iUserID);
 	bool		WriteClose(void);
 
-	size		FindFirstChunkWithName(const char* szName);
-	size		FindNextChunkWithName(void);
-	size		GetNumChunks(void);
+	lsize		FindFirstChunkWithName(const char* szName);
+	lsize		FindNextChunkWithName(void);
+	lsize		GetNumChunks(void);
 	void*		GetMD5Hash(void);
 	bool		ContainsChunks(void);
 
-	bool		ReadChunkBegin(size iChunkIndex);
+	bool		ReadChunkBegin(lsize iChunkIndex);
 	bool		ReadChunkBegin(const char* szName);
 	bool		ReadChunkEnd(void);
 	bool		ReadChunkEnd(size iNumChunksToEnd);
@@ -81,17 +81,17 @@ public:
 	filePos		ChunkSize(void);
 	filePos		ChunkStart(void);
 	
-	char*		GetTailChunkNameForIndex(size iIndex);
+	char*		GetTailChunkNameForIndex(lsize iIndex);
 	bool		SeekStart(void);
 
 protected:
-	size		FindFirstChunkWithID(chunkName iName);
-	size		GetNumChunksWithID(chunkName iName);
+	lsize		FindFirstChunkWithID(chunkName iName);
+	lsize		GetNumChunksWithID(chunkName iName);
 	bool		ReadChunkNames(void);
 	bool		WriteChunkNames(void);
 	bool		WriteChunkEnd(chunkName iChunkName);
-	bool		WriteBasic(const void* pvSource, size uiSize);
-	chunkName	GetTailChunkNameIndex(size iChunkNum);
+	bool		WriteBasic(const void* pvSource, lsize uiSize);
+	chunkName	GetTailChunkNameIndex(lsize iChunkNum);
 };
 
 

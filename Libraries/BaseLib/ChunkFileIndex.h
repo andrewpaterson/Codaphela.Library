@@ -39,17 +39,17 @@ struct SChunkIndex
 };
 
 
-typedef CArrayTemplate<SChunkIndex>	CChunkIndexArray;
+typedef CArrayLargeTemplate<SChunkIndex>	CChunkIndexArray;  //Large: on the W65C816 a natural array holds at most 64KB (about 2700 indices).
 
 
 struct SChunkNamePosition
 {
 	chunkName	miName;
-	size		muiPosition;  //In mcChunkIndices.
+	lsize		muiPosition;  //In mcChunkIndices.
 };
 
 
-typedef CArrayTemplate<SChunkNamePosition>	CChunkNamePositionArray;
+typedef CArrayLargeTemplate<SChunkNamePosition>	CChunkNamePositionArray;
 
 
 //A chunk's index of the chunks in it.  Finding chunks by name searches a copy of the names sorted by name and position,
@@ -59,7 +59,7 @@ class CChunkIndex
 protected:
 	CChunkNamePositionArray	macNames;		//Sorted by name, then position.
 	chunkName				miSearchName;
-	size					muiNextName;	//Where in macNames FindNextChunkWithName looks next.
+	lsize					muiNextName;	//Where in macNames FindNextChunkWithName looks next.
 
 public:
 	CChunkIndexArray		mcChunkIndices;
@@ -67,13 +67,13 @@ public:
 	void	ReadInit(void);
 	void	WriteInit(void);
 	void	Kill(void);
-	size	FindFirstChunkWithName(chunkName iName);
-	size	FindNextChunkWithName(void);
-	size	GetNumChunksWithName(chunkName iName);
+	lsize	FindFirstChunkWithName(chunkName iName);
+	lsize	FindNextChunkWithName(void);
+	lsize	GetNumChunksWithName(chunkName iName);
 
 protected:
 	void	SortNames(void);
-	size	FindFirstName(chunkName iName);
+	lsize	FindFirstName(chunkName iName);
 };
 
 

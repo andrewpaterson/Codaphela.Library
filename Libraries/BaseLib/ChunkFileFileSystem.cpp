@@ -350,7 +350,7 @@ bool CChunkFileFileSystem::ReadChunkBeginFrom(CArrayChars* paszChunkNames, size 
 {
 	size		uiFrom;
 	size		uiLength;
-	size		uiIndex;
+	lsize		uiIndex;
 	CChars*		pszName;
 	bool*		abFoundFirst;
 
@@ -372,7 +372,7 @@ bool CChunkFileFileSystem::ReadChunkBeginFrom(CArrayChars* paszChunkNames, size 
 			uiIndex = mpcChunkFile->FindNextChunkWithName();
 		}
 
-		if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+		if (uiIndex == CHUNK_FILE_NOT_FOUND)
 		{
 			abFoundFirst[uiDepth] = false;
 			if (uiDepth == uiFrom)
@@ -432,9 +432,9 @@ char* CChunkFileFileSystem::StartNameIteration(SChunkFilenameIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 {
-	size		iNumChunks;
+	lsize		iNumChunks;
 	char*		szName;
-	uint*		piIndex;
+	lsize*		piIndex;
 	size		iLength;
 
 	if (psIter->bDone)

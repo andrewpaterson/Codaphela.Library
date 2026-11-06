@@ -17,7 +17,7 @@ void TestChunkFileSimple(void)
 {
 	CChunkFile	cChunkFile;
 	CFileUtil	cFileUtil;
-	size		iChunkNum;
+	lsize	iChunkNum;
 	
 	cFileUtil.MakeDir("Output");
 	cFileUtil.Delete("Output/ChunkFile.bin");
@@ -37,7 +37,7 @@ void TestChunkFileSimple(void)
 	Pass();
 	AssertTrue(cChunkFile.IsOpen());
 	iChunkNum = cChunkFile.FindFirstChunkWithName("ThisChunk");
-	AssertSize(0, iChunkNum);
+	AssertLSize(0, iChunkNum);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunkNum));
 	Pass();
 	AssertTrue(cChunkFile.ReadClose());
@@ -74,7 +74,7 @@ void TestChunkFileMD5ing(void)
 
 	AssertTrue(cChunkFile.ReadOpen());
 	AssertMD5(ucLoremMD5, (uint8 *)cChunkFile.GetMD5Hash());
-	AssertTrue(cChunkFile.ReadChunkBegin((size)0));
+	AssertTrue(cChunkFile.ReadChunkBegin((lsize)0));
 	AssertMD5(ucFoxMD5, (uint8 *)cChunkFile.GetMD5Hash());
 	AssertTrue(cChunkFile.ReadChunkEnd());
 	AssertTrue(cChunkFile.ReadClose());
@@ -90,7 +90,7 @@ void TestChunkFileMD5ing(void)
 void TestChunkFilenameing(void)
 {
 	CChunkFile		cChunkFile;
-	size			iChunkNum;
+	lsize		iChunkNum;
 	char			acTwentyOne[] =   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
 	char			acTwentyTwo[] =   {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
 	char			acTwentyThree[] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29};
@@ -111,20 +111,20 @@ void TestChunkFilenameing(void)
 
 	AssertTrue(cChunkFile.ReadOpen());
 	iChunkNum = cChunkFile.FindFirstChunkWithName("Rise");
-	AssertSize(0, iChunkNum);
+	AssertLSize(0, iChunkNum);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunkNum));
 	AssertLong(1, cChunkFile.Read(acActual, 10, 1));
 	AssertMemory(acTwentyOne, acActual, 10);
 
 	iChunkNum = cChunkFile.FindFirstChunkWithName("Floopy");
-	AssertSize(0, iChunkNum);
+	AssertLSize(0, iChunkNum);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunkNum));
 	AssertLong(1, cChunkFile.Read(acActual, 10, 1));
 	AssertMemory(acTwentyTwo, acActual, 10);
 	AssertTrue(cChunkFile.ReadChunkEnd());
 
 	iChunkNum = cChunkFile.FindNextChunkWithName();
-	AssertSize(1, iChunkNum);
+	AssertLSize(1, iChunkNum);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunkNum));
 	AssertLong(1, cChunkFile.Read(acActual, 10, 1));
 	AssertMemory(acTwentyThree, acActual, 10);
@@ -277,7 +277,7 @@ static void TestChunkFileReadHashing(bool bHashed, CArrayChar* pacFile, bool bZe
 {
 	CChunkFile	cChunkFile;
 	char		szText[32];
-	size		iChunk;
+	lsize	iChunk;
 
 	if (bHashed)
 	{
@@ -291,7 +291,7 @@ static void TestChunkFileReadHashing(bool bHashed, CArrayChar* pacFile, bool bZe
 	AssertBool(bZeroHashes, TestChunkFileHashIsZero(cChunkFile.GetMD5Hash()));
 
 	iChunk = cChunkFile.FindFirstChunkWithName("Outer");
-	AssertSize(0, iChunk);
+	AssertLSize(0, iChunk);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunk));
 	AssertBool(bZeroHashes, TestChunkFileHashIsZero(cChunkFile.GetMD5Hash()));
 	memset(szText, 0, sizeof(szText));
@@ -299,7 +299,7 @@ static void TestChunkFileReadHashing(bool bHashed, CArrayChar* pacFile, bool bZe
 	AssertString("The quick brown fox", szText);
 
 	iChunk = cChunkFile.FindFirstChunkWithName("Inner");
-	AssertSize(0, iChunk);
+	AssertLSize(0, iChunk);
 	AssertTrue(cChunkFile.ReadChunkBegin(iChunk));
 	memset(szText, 0, sizeof(szText));
 	AssertTrue(cChunkFile.Read(szText, 23, 1) == 1);
@@ -366,8 +366,8 @@ void TestChunkFileIndexNames(void)
 	CChunkIndex	cIndex;
 
 	cIndex.ReadInit();
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(5));
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindFirstChunkWithName(5));
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
 
 	TestChunkFileIndexAdd(&cIndex, 5);
 	TestChunkFileIndexAdd(&cIndex, 3);
@@ -376,34 +376,34 @@ void TestChunkFileIndexNames(void)
 	TestChunkFileIndexAdd(&cIndex, 3);
 	TestChunkFileIndexAdd(&cIndex, 5);
 
-	AssertSize(0, cIndex.FindFirstChunkWithName(5));
-	AssertSize(2, cIndex.FindNextChunkWithName());
-	AssertSize(5, cIndex.FindNextChunkWithName());
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(0, cIndex.FindFirstChunkWithName(5));
+	AssertLSize(2, cIndex.FindNextChunkWithName());
+	AssertLSize(5, cIndex.FindNextChunkWithName());
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
 
-	AssertSize(1, cIndex.FindFirstChunkWithName(3));
-	AssertSize(4, cIndex.FindNextChunkWithName());
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(1, cIndex.FindFirstChunkWithName(3));
+	AssertLSize(4, cIndex.FindNextChunkWithName());
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
 
-	AssertSize(3, cIndex.FindFirstChunkWithName(9));
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(3, cIndex.FindFirstChunkWithName(9));
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
 
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(1));
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(4));
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindFirstChunkWithName(10));
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindFirstChunkWithName(1));
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindFirstChunkWithName(4));
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindFirstChunkWithName(10));
 
-	AssertSize(3, cIndex.GetNumChunksWithName(5));
-	AssertSize(2, cIndex.GetNumChunksWithName(3));
-	AssertSize(1, cIndex.GetNumChunksWithName(9));
-	AssertSize(0, cIndex.GetNumChunksWithName(4));
+	AssertLSize(3, cIndex.GetNumChunksWithName(5));
+	AssertLSize(2, cIndex.GetNumChunksWithName(3));
+	AssertLSize(1, cIndex.GetNumChunksWithName(9));
+	AssertLSize(0, cIndex.GetNumChunksWithName(4));
 
 	TestChunkFileIndexAdd(&cIndex, 3);
-	AssertSize(1, cIndex.FindFirstChunkWithName(3));
-	AssertSize(4, cIndex.FindNextChunkWithName());
-	AssertSize(6, cIndex.FindNextChunkWithName());
-	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cIndex.FindNextChunkWithName());
-	AssertSize(3, cIndex.GetNumChunksWithName(3));
+	AssertLSize(1, cIndex.FindFirstChunkWithName(3));
+	AssertLSize(4, cIndex.FindNextChunkWithName());
+	AssertLSize(6, cIndex.FindNextChunkWithName());
+	AssertLSize(CHUNK_FILE_NOT_FOUND, cIndex.FindNextChunkWithName());
+	AssertLSize(3, cIndex.GetNumChunksWithName(3));
 
 	cIndex.Kill();
 }

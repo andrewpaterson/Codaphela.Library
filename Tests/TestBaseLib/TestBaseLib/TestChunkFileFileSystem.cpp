@@ -15,7 +15,7 @@ void TestChunkFileFileSystemWriting(void)
 	CChunkFileFileSystem	cChunkFileFileSystem;
 	CDiskFile*				pcDiskFile;
 	CChunkFile				cTestFile;
-	size						iIndex;
+	lsize					iIndex;
 	CChars					szText;
 	CFileUtil				cFileUtil;
 
@@ -93,27 +93,27 @@ void TestChunkFileFileSystemWriting(void)
 	cTestFile.Init(pcDiskFile);
 	AssertTrue(cTestFile.ReadOpen());
 
-	AssertSize(5, cTestFile.GetNumChunks());
+	AssertLSize(5, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("new");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("age");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(3, cTestFile.GetNumChunks());
+	AssertLSize(3, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("violet");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("Tempest");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("No man, Mr. President, thinks more highly than I do of the patriotism", szText.Text());
 	szText.Kill();
@@ -121,90 +121,90 @@ void TestChunkFileFileSystemWriting(void)
 	AssertTrue(cTestFile.ReadChunkEnd(2));
 
 	iIndex = cTestFile.FindFirstChunkWithName("shrinking");
-	AssertSize(1, iIndex);
+	AssertLSize(1, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("daisy");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(2, cTestFile.GetNumChunks());
+	AssertLSize(2, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("Sunlight");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	cTestFile.ReadChunkBegin(iIndex);
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("The question before the House is one of awful moment to this country.", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd());
 
 	iIndex = cTestFile.FindFirstChunkWithName("Pusher");
-	AssertSize(1, iIndex);
+	AssertLSize(1, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("We are apt to shut our eyes against a painful truth", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd(3));
 
 	iIndex = cTestFile.FindFirstChunkWithName("violet");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	iIndex = cTestFile.FindNextChunkWithName();
-	AssertSize(2, iIndex);
+	AssertLSize(2, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("Forensics");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("Shall we try argument?", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd(4));
 
 	iIndex = cTestFile.FindFirstChunkWithName("Unknown");
-	AssertSize(1, iIndex);
+	AssertLSize(1, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("Sir, we have been trying that for the last ten years.", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd());
-	AssertSize(5, cTestFile.GetNumChunks());
+	AssertLSize(5, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("Final");
-	AssertSize(3, iIndex);
+	AssertLSize(3, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("Countdown", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd());
-	AssertSize(5, cTestFile.GetNumChunks());
+	AssertLSize(5, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("new");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	iIndex = cTestFile.FindNextChunkWithName();
-	AssertSize(4, iIndex);
+	AssertLSize(4, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 
 	iIndex = cTestFile.FindFirstChunkWithName("really");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(1, cTestFile.GetNumChunks());
+	AssertLSize(1, cTestFile.GetNumChunks());
 	
 	iIndex = cTestFile.FindFirstChunkWithName("Final");
-	AssertSize(0, iIndex);
+	AssertLSize(0, iIndex);
 	AssertTrue(cTestFile.ReadChunkBegin(iIndex));
-	AssertSize(0, cTestFile.GetNumChunks());
+	AssertLSize(0, cTestFile.GetNumChunks());
 	AssertTrue(szText.ReadChars(&cTestFile));
 	AssertString("Seriously, how is it not possible to find text on the internet.", szText.Text());
 	szText.Kill();
 	AssertTrue(cTestFile.ReadChunkEnd(3));
-	AssertSize(5, cTestFile.GetNumChunks());
+	AssertLSize(5, cTestFile.GetNumChunks());
 
 	cTestFile.ReadClose();
 	cTestFile.Kill();

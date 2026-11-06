@@ -113,9 +113,9 @@ bool CChunkFile::WriteOpen(chunkName iUserID)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::WriteBasic(const void* pvSource, size uiSize)
+bool CChunkFile::WriteBasic(const void* pvSource, lsize uiSize)
 {
-	size		iFilePos;
+	lsize		iFilePos;
 
 	iFilePos = CFileBasic::Write(pvSource, uiSize, 1);
 	return iFilePos == 1;
@@ -418,7 +418,7 @@ bool CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::FindFirstChunkWithID(chunkName iName)
+lsize CChunkFile::FindFirstChunkWithID(chunkName iName)
 {
 	CChunkStackElement*		psElement;
 
@@ -438,7 +438,7 @@ size CChunkFile::FindFirstChunkWithID(chunkName iName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::FindFirstChunkWithName(const char* szName)
+lsize CChunkFile::FindFirstChunkWithName(const char* szName)
 {
 	chunkName*	piName;
 
@@ -458,7 +458,7 @@ size CChunkFile::FindFirstChunkWithName(const char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::FindNextChunkWithName(void)
+lsize CChunkFile::FindNextChunkWithName(void)
 {
 	CChunkStackElement*		psElement;
 
@@ -470,7 +470,7 @@ size CChunkFile::FindNextChunkWithName(void)
 			return psElement->cChunkIndex.FindNextChunkWithName();
 		}
 	}
-	return ARRAY_ELEMENT_NOT_FOUND;
+	return CHUNK_FILE_NOT_FOUND;
 }
 
 
@@ -478,7 +478,7 @@ size CChunkFile::FindNextChunkWithName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::GetNumChunksWithID(chunkName iName)
+lsize CChunkFile::GetNumChunksWithID(chunkName iName)
 {
 	CChunkStackElement*		psElement;
 
@@ -498,7 +498,7 @@ size CChunkFile::GetNumChunksWithID(chunkName iName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::GetNumChunks(void)
+lsize CChunkFile::GetNumChunks(void)
 {
 	CChunkStackElement*		psElement;
 
@@ -518,7 +518,7 @@ size CChunkFile::GetNumChunks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-chunkName CChunkFile::GetTailChunkNameIndex(size iChunkNum)
+chunkName CChunkFile::GetTailChunkNameIndex(lsize iChunkNum)
 {
 	SChunkIndex*			psIndex;
 	CChunkStackElement*		psElement;
@@ -545,7 +545,7 @@ chunkName CChunkFile::GetTailChunkNameIndex(size iChunkNum)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkBegin(const char* szName)
 {
-	size				iChunkNum;
+	lsize					iChunkNum;
 	CChunkStackElement*		psElement;
 	SChunkIndex*			psIndex;
 
@@ -568,7 +568,7 @@ bool CChunkFile::ReadChunkBegin(const char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::ReadChunkBegin(size iChunkIndex)
+bool CChunkFile::ReadChunkBegin(lsize iChunkIndex)
 {
 	CChunkStackElement*		psElement;
 	SChunkIndex*			psIndex;
@@ -763,7 +763,7 @@ filePos CChunkFile::ChunkStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChunkFile::GetTailChunkNameForIndex(size iIndex)
+char* CChunkFile::GetTailChunkNameForIndex(lsize iIndex)
 {
 	chunkName	iName;
 
