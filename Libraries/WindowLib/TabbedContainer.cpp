@@ -49,6 +49,7 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mcSelected.Init();
 	mcRemoved.Init();
 	mcDoubleClicked.Init();
+	mcClicked.Init();
 	mcDragged.Init();
 	mcCloseRequested.Init();
 	msDoubleClick.Init();
@@ -102,6 +103,7 @@ void CTabbedContainer::Class(void)
 	U_Data(CComponentEvent<CTabComponent>, mcSelected);
 	U_Data(CTabRemovedEvent, mcRemoved);
 	U_Data(CComponentEvent<CTabComponent>, mcDoubleClicked);
+	U_Data(CComponentEvent<CTabComponent>, mcClicked);
 	U_Data(CComponentEvent<CTabComponent>, mcDragged);
 	U_Data(CComponentEvent<CTabComponent>, mcCloseRequested);
 	U_Data(SDoubleClick, msDoubleClick);
@@ -120,6 +122,7 @@ void CTabbedContainer::Free(void)
 	}
 	mcCloseRequested.Kill();
 	mcDragged.Kill();
+	mcClicked.Kill();
 	mcDoubleClicked.Kill();
 	mcRemoved.Kill();
 	mcSelected.Kill();
@@ -738,6 +741,19 @@ CComponentEvent<CTabComponent>* CTabbedContainer::GetDoubleClickEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tab pressed and let go without being dragged, whether or not it was
+// selected already: a document's tab gives its editor the keys.  The tab
+// keeps them while it's pressed, so it can be dragged.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentEvent<CTabComponent>* CTabbedContainer::GetClickEvent(void)
+{
+	return &mcClicked;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Called with the tab when it is pulled along while pressed.  Tabs can
 // only be dragged while something listens.
 //
@@ -808,6 +824,7 @@ void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool b
 		return;
 	}
 
+	mcClicked.Call(&pTab);
 	if (msDoubleClick.Released((int32)uiIndex, x, y))
 	{
 		mcDoubleClicked.Call(&pTab);

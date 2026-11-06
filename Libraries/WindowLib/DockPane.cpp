@@ -171,6 +171,7 @@ void CDockPane::Init(const char* szID, const char* szTitle, Ptr<CImageCel> pIcon
 	mpIcon = pIcon;
 	mpTabFont = NULL;
 	mpContent = pContent;
+	mpFocusTarget = NULL;
 	meKind = eKind;
 	mbClosable = true;
 	meState = DPS_Removed;
@@ -221,6 +222,7 @@ void CDockPane::Class(void)
 	M_Pointer(mpIcon);
 	M_Pointer(mpTabFont);
 	M_Pointer(mpContent);
+	M_Pointer(mpFocusTarget);
 	U_Enum(meKind);
 	U_Bool(mbClosable);
 	U_Enum(meState);
@@ -381,6 +383,20 @@ const char*			CDockPane::GetID(void) { return mszID.Text(); }
 const char*			CDockPane::GetTitle(void) { return mszTitle.Text(); }
 Ptr<CImageCel>		CDockPane::GetIcon(void) { return mpIcon; }
 Ptr<CComponent>		CDockPane::GetContent(void) { return mpContent; }
+Ptr<CComponent>		CDockPane::GetFocusTarget(void) { return mpFocusTarget; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component in the content that has the keys when the pane is
+// activated or its tab clicked, an editor say, rather than the first one
+// that can (a document's toolbar).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockPane::SetFocusTarget(Ptr<CComponent> pTarget)
+{
+	mpFocusTarget = pTarget;
+}
 EDockPaneKind		CDockPane::GetKind(void) { return meKind; }
 bool				CDockPane::IsDocument(void) { return meKind == DPK_Document; }
 bool				CDockPane::IsTool(void) { return meKind == DPK_Tool; }

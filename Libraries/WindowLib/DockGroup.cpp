@@ -70,6 +70,7 @@ void CDockGroup::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iI
 	mpTabs->GetSelectionEvent()->Add(this, &CDockGroup::TabSelected);
 	mpTabs->GetDragEvent()->Add(this, &CDockGroup::TabDragged);
 	mpTabs->GetDoubleClickEvent()->Add(this, &CDockGroup::TabDoubleClicked);
+	mpTabs->GetClickEvent()->Add(this, &CDockGroup::TabClicked);
 	mpTabs->GetCloseRequestEvent()->Add(this, &CDockGroup::TabCloseRequested);
 
 	PostInit();
@@ -115,6 +116,7 @@ void CDockGroup::Free(void)
 		mpTabs->GetSelectionEvent()->Remove(this);
 		mpTabs->GetDragEvent()->Remove(this);
 		mpTabs->GetDoubleClickEvent()->Remove(this);
+		mpTabs->GetClickEvent()->Remove(this);
 		mpTabs->GetCloseRequestEvent()->Remove(this);
 	}
 	if (mpTitleBar.IsNotNull())
@@ -573,6 +575,24 @@ void CDockGroup::TabSelected(CTabComponent* pcTab)
 	if (uiIndex < NumPanes())
 	{
 		mpManager->PaneSelected(GetPane(uiIndex));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tab clicked activates its pane: its content (its focus target) gets
+// the keys, as IntelliJ's editor does when its tab is clicked.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGroup::TabClicked(CTabComponent* pcTab)
+{
+	size	uiIndex;
+
+	uiIndex = FindTab(pcTab);
+	if (uiIndex < NumPanes())
+	{
+		mpManager->Activate(GetPane(uiIndex));
 	}
 }
 

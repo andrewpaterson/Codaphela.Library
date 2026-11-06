@@ -97,6 +97,7 @@ protected:
 	Ptr<CImageCel>		mpIcon;
 	Ptr<CFont>			mpTabFont;  //Its tab's text, NULL for the theme's.
 	Ptr<CComponent>		mpContent;
+	Ptr<CComponent>		mpFocusTarget;  //What has the keys when the pane is activated, NULL for its first focusable component.
 	EDockPaneKind		meKind;
 	bool				mbClosable;
 	EDockPaneState		meState;
@@ -133,6 +134,8 @@ public:
 	Ptr<CFont>			GetTabFont(void);
 	void				SetTabFont(Ptr<CFont> pFont);
 	Ptr<CComponent>		GetContent(void);
+	void				SetFocusTarget(Ptr<CComponent> pTarget);
+	Ptr<CComponent>		GetFocusTarget(void);
 	EDockPaneKind		GetKind(void);
 	bool				IsDocument(void);
 	bool				IsTool(void);

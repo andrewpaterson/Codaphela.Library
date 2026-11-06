@@ -1227,6 +1227,7 @@ void TestDockingKeys(void)
 	{
 		SDockTest				sTest;
 		CInt32Rect				cBounds;
+		Ptr<CComponent>			pTarget;
 
 		sTest.Init(&cNativeFactory);
 
@@ -1253,6 +1254,23 @@ void TestDockingKeys(void)
 		sTest.pManager->Activate(sTest.pFirstDoc);
 		sTest.pWindow->InputCommand(CIC_HideToolWindow, true);
 		AssertInt(DPS_Docked, sTest.pFirstDoc->GetState());
+
+		//A document's focus target, its editor say, has the keys when it's activated, and when its tab is clicked,
+		//selected already or not.  The tab only has them while it's pressed, so it can be dragged.
+		pTarget = sTest.pFirstDoc->GetContent();
+		pTarget->SetCanGetFocus(true);
+		sTest.pFirstDoc->SetFocusTarget(pTarget);
+		sTest.pWindow->GetFocus()->SetFocus(NULL);
+		sTest.pManager->Activate(sTest.pFirstDoc);
+		AssertTrue(sTest.pWindow->GetFocus()->GetFocussedComponent() == pTarget);
+		sTest.pWindow->GetFocus()->SetFocus(NULL);
+		sTest.pWindow->Layout();
+		sTest.pFirstDoc->GetGroup()->GetTab(sTest.pFirstDoc)->GetActualBounds(&cBounds);
+		DockPress(sTest.pWindow, cBounds.GetLeft() + 5, cBounds.GetTop() + 5);
+		AssertTrue(sTest.pWindow->GetFocus()->GetFocussedComponent() == sTest.pFirstDoc->GetGroup()->GetTab(sTest.pFirstDoc));
+		DockRelease(sTest.pWindow);
+		AssertTrue(sTest.pWindow->GetFocus()->GetFocussedComponent() == pTarget);
+		pTarget = NULL;
 
 		sTest.Kill();
 	}

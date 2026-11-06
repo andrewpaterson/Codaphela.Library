@@ -270,7 +270,11 @@ void CDockFocus::FocusPane(Ptr<CDockPane> pPane)
 	{
 		return;
 	}
-	pFocusable = FindFocusable(pPane->GetContent());
+	pFocusable = pPane->GetFocusTarget();
+	if (pFocusable.IsNull() || !pFocusable->IsWithin(pPane->GetContent()))
+	{
+		pFocusable = FindFocusable(pPane->GetContent());
+	}
 	pWindow = pPane->GetContent()->GetWindow();
 	if (pFocusable.IsNotNull())
 	{

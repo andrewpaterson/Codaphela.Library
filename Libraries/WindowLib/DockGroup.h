@@ -97,6 +97,7 @@ public:
 	Ptr<CTabComponent>		GetTab(Ptr<CDockPane> pPane);
 
 	void					TabSelected(CTabComponent* pcTab);
+	void					TabClicked(CTabComponent* pcTab);
 	void					TabDragged(CTabComponent* pcTab);
 	void					TabDoubleClicked(CTabComponent* pcTab);
 	void					TabCloseRequested(CTabComponent* pcTab);

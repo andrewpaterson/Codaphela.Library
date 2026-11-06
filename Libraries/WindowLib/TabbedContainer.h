@@ -83,6 +83,7 @@ protected:
 	CComponentEvent<CTabComponent>	mcSelected;
 	CTabRemovedEvent		mcRemoved;
 	CComponentEvent<CTabComponent>	mcDoubleClicked;
+	CComponentEvent<CTabComponent>	mcClicked;  //Pressed and let go without being dragged, selected or not.
 	CComponentEvent<CTabComponent>	mcDragged;
 	CComponentEvent<CTabComponent>	mcCloseRequested;
 	SDoubleClick			msDoubleClick;  //Keyed by tab index, positions relative to the tab.
@@ -122,6 +123,7 @@ public:
 	CComponentEvent<CTabComponent>*	GetSelectionEvent(void);
 	CTabRemovedEvent*		GetRemovalEvent(void);
 	CComponentEvent<CTabComponent>*	GetDoubleClickEvent(void);
+	CComponentEvent<CTabComponent>*	GetClickEvent(void);
 	CComponentEvent<CTabComponent>*	GetDragEvent(void);
 	CComponentEvent<CTabComponent>*	GetCloseRequestEvent(void);
 	void					TabClosePressed(Ptr<CTabComponent> pTab);
