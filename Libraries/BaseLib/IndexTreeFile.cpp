@@ -1746,7 +1746,9 @@ bool CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 			uiLastIndex = pcNode->GetLastIndex();
 			for (i = uiFirstIndex; i <= uiLastIndex; i++)
 			{
-				pcChild = ReadNode(pcNode, i);
+				//Only children in memory can be dirty.  ReadNode would load every child on file, and leave each in memory
+				//with no data and only file children: nothing evicts those.
+				pcChild = ReadMemoryNode(pcNode, i);
 				pcCursor->Push(pcChild, (uint8)i);
 				bResult = RecurseFlushDirty(pcCursor);
 				if (!bResult)

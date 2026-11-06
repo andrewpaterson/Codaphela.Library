@@ -3084,6 +3084,70 @@ void TestIndexTreeFileRemoveComplex(EIndexWriteThrough eWriteThrough, EIndexKeyR
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Flushing writes the dirty nodes without loading their children that
+// are on file: each would stay in memory with no data and only file
+// children, which nothing evicts.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexTreeFileFlushLoadsNoFileNodes(void)
+{
+	CIndexTreeHelper			cHelper;
+	CDurableFileController		cController;
+	CTestIndexTreeFile			cIndexTree;
+	CMemoryAllocator			cAllocator;
+	CIndexTreeFileAccess		cAccess;
+	char						szKey[] = "AA0BB";
+	char						szNew[] = "AAXBB";
+	char						szDest[16];
+	char						c;
+
+	cAllocator.Init();
+	cHelper.Init("Output" _FS_"IndexTreeFlushLoads", "primary", "backup", true);
+	cController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	cController.SetSync(DS_No);
+
+	//Ten keys under AA, written out.
+	cController.Begin();
+	cIndexTree.Init(&cController, NULL, LifeLocal<CMallocator>(&cAllocator), IWT_Yes, IKR_No);
+	cAccess.Init(&cIndexTree);
+	for (c = '0'; c <= '9'; c++)
+	{
+		szKey[2] = c;
+		AssertTrue(cAccess.PutStringString(szKey, szKey));
+	}
+	cController.End();
+	cAccess.Kill();
+	cIndexTree.Kill();
+
+	//Only the new key's path is in memory after it is flushed.
+	cController.Begin();
+	cIndexTree.Init(&cController, NULL, LifeLocal<CMallocator>(&cAllocator), IWT_No, IKR_No);
+	cAccess.Init(&cIndexTree);
+	AssertLSize(1, cIndexTree.NumMemoryNodes());
+	AssertTrue(cAccess.PutStringString(szNew, szNew));
+	AssertLSize(6, cIndexTree.NumMemoryNodes());
+	AssertTrue(cAccess.Flush());
+	AssertLSize(1, cIndexTree.NumMemoryElements());
+	AssertLSize(6, cIndexTree.NumMemoryNodes());
+	AssertInt((uint32)11, cIndexTree.NumElements());
+	AssertNotNull(cAccess.GetStringString(szNew, szDest));
+	AssertString(szNew, szDest);
+	szKey[2] = '5';
+	AssertNotNull(cAccess.GetStringString(szKey, szDest));
+	AssertString(szKey, szDest);
+	AssertTrue(cIndexTree.ValidateIndexTree());
+	cController.End();
+
+	cAccess.Kill();
+	cIndexTree.Kill();
+	cController.Kill();
+	cAllocator.Kill();
+	cHelper.Kill(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexTreeFile(void)
@@ -3124,6 +3188,7 @@ void TestIndexTreeFile(void)
 	TestIndexTreeFileRemoveFurthestFirst(IWT_Yes);
 	TestIndexTreeFileRemoveFurthestFirst(IWT_No);
 	TestIndexTreeFileRemoveAndFlush();
+	TestIndexTreeFileFlushLoadsNoFileNodes();
 	TestIndexTreeFileNoCacheEviction();
 	TestIndexTreeFileDeleteInMemory();
 	TestIndexTreeFileDirty();

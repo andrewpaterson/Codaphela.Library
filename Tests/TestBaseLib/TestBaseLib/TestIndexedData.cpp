@@ -1044,10 +1044,10 @@ void TestIndexedDataIndexEviction(void)
 	cKeyDataEvictedList.Clear();
 	AssertTrue(cIndexedData.Flush(true));
 	AssertSize(0, cIndexEvictedList.NumElements());
-	AssertLong(3, cIndexedData.NumIndicesCached());
+	AssertLong(2, cIndexedData.NumIndicesCached());  //Flushing doesn't load the evicted index 4 back in.
 	AssertLSize(0, cIndexedData.NumDataCached());
 	uiSize = cIndexedData.Size(1LL);
-	AssertSize(1, cIndexEvictedList.NumElements());
+	AssertSize(0, cIndexEvictedList.NumElements());  //Still within the cache: nothing is evicted.
 	AssertLSize(6, uiSize);
 	AssertLong(2, cIndexedData.NumIndicesCached());
 	AssertLSize(0, cIndexedData.NumDataCached());
