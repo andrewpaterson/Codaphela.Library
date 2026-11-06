@@ -1210,6 +1210,7 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 	pcOptimiser->SetIndexedAddresses(!bW65C816);
 	pcOptimiser->SetNarrowMultiplies(bW65C816);
 	pcOptimiser->SetConstantDivisions(bW65C816);
+	pcOptimiser->SetDivideRemainders(bW65C816);
 	pcOptimiser->SetNarrowCounters(bW65C816);
 	pcOptimiser->SetBiasedIndices(bW65C816);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));

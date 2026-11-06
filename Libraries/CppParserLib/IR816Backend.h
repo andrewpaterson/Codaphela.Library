@@ -41,6 +41,7 @@ class CIR816Groups;
 #define IR816_SCRATCH_VALUE		15
 #define IR816_SCRATCH_ARGUMENT_A	15		//A scratch runtime routine's (IR816ScratchRoutine) operands: a, then b.
 #define IR816_SCRATCH_ARGUMENT_B	19
+#define IR816_SCRATCH_REMAINDER		5		//Where R816_UDiv16 and R816_UDiv32 leave the remainder (RemainderLeft).
 #define IR816_MAX_FUSED			4
 #define IR816_FIRST_TEMPORARY	23
 
@@ -163,6 +164,8 @@ protected:
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
+	SIRInstruction*			mpsDivided;			//The last udiv that called R816_UDiv16 or R816_UDiv32 (RemainderLeft).
+	SIRInstruction*			mpsWritten;			//The instruction GenerateBody wrote last in the block, NULL at its start or after a fused one.
 	bool					mbMathTables;		//An i8 multiply reads MathMult in place (SetMathTables), else it calls R816_Mul16.
 
 public:
@@ -266,6 +269,7 @@ protected:
 	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
 	void			SignExtendInA(int iSignBit);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
+	bool			RemainderLeft(SIRInstruction* psInstruction);
 	bool			WideMultiply(SIRInstruction* psInstruction);
 	bool			IsHighHalfZero(SIRReference sValue, int iDepth);
 	SIRInstruction*	FindDefinition(SIRReference sValue);

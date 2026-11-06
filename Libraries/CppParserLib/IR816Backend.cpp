@@ -57,6 +57,8 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	masArguments.Init(CIR816Backend::GetScratch());
 	msFrame.Init(0, false);
 	miFused = 0;
+	mpsWritten = NULL;
+	mpsDivided = NULL;
 	mbMathTables = true;
 }
 
@@ -712,6 +714,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		Label(*maiBlockLabels.Get(ui));
 		mauiPendingArguments.FakeSetUsedElements(0);
 		miFused = 0;
+		mpsWritten = NULL;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			//Folded instructions write nothing: what is fused goes on past them.
@@ -723,10 +726,12 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 			{
 				mapsFused[miFused] = pcBlock->masInstructions.Get(uiInstruction);
 				miFused++;
+				mpsWritten = NULL;
 				continue;
 			}
 			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
 			Instruction(pcBlock, uiInstruction);
+			mpsWritten = pcBlock->masInstructions.Get(uiInstruction);
 			miFused = 0;
 		}
 		Source(pcBlock->msJump.uiSource);

@@ -285,6 +285,7 @@ protected:
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
+	bool					mbDivideRemainders;		//An unsigned 16 or 32 bit divide leaves its remainder for a urem right after it (SetDivideRemainders).
 	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
 	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
@@ -317,6 +318,7 @@ public:
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetConstantDivisions(bool bConstantDivisions);
+	void			SetDivideRemainders(bool bDivideRemainders);
 	void			SetNarrowCounters(bool bNarrowCounters);
 	void			SetBiasedIndices(bool bBiasedIndices);
 	void			SetWarnings(CChars* pszWarnings);
@@ -482,6 +484,7 @@ protected:
 	uint64			EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
 	SIRInstruction*	EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther);
 	SIRReference	InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
+	void			MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo);
 	SIRReference	Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth);
 };
 

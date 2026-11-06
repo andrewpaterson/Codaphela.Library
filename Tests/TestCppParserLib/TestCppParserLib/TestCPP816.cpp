@@ -499,6 +499,9 @@ void TestCPP816NarrowSubscripts(void)
 }
 
 
+int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults, bool bReturns);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // x / d and x % d of a d that isn't a constant share one divide (the
@@ -508,6 +511,9 @@ void TestCPP816NarrowSubscripts(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816SharedDivisions(void)
 {
+	static const char*	aszNoUnits[] = { NULL };
+	CChars				szListing;
+
 	AssertInt(1, TestCPP816Run(
 		"int Check(long x, long d) { long q = x / d; long r = x % d; return (q * d + r == x) && ((r < 0 ? -r : r) < (d < 0 ? -d : d)) && ((r == 0) || ((r < 0) == (x < 0))) ? 1 : 0; }\n"
 		"int CheckU(unsigned long x, unsigned long d) { unsigned long r = x % d; unsigned long q = x / d; return (q * d + r == x) && (r < d) ? 1 : 0; }\n"
@@ -521,6 +527,34 @@ void TestCPP816SharedDivisions(void)
 		"\tiOk &= ((-7L / 2L) == -3L) & ((-7L % 2L) == -1L) & ((7UL / 2UL) == 3UL);\n"
 		"\treturn iOk;\n"
 		"}\n"));
+
+	//Unsigned 16 and 32 bits, either way round: the urem takes the remainder R816_UDiv16 or R816_UDiv32 left at D + 5
+	//(CIROptimiser::SetDivideRemainders, CIR816Backend::RemainderLeft), with no call and no multiply.
+	szListing.Init();
+	AssertInt(1, TestCPP816RunListed(
+		"unsigned int gauiX[] = { 50000, 7, 65535, 3, 1234 };\n"
+		"unsigned int gauiD[] = { 37, 9, 1, 65535, 300 };\n"
+		"unsigned long gaulX[] = { 4000000000UL, 70000UL, 0xFFFFFFFFUL, 5UL, 123456789UL };\n"
+		"unsigned long gaulD[] = { 3UL, 70000UL, 0x10001UL, 9UL, 1000UL };\n"
+		"int Check16(unsigned int x, unsigned int d) { unsigned int q = x / d; unsigned int r = x % d; return (q * d + r == x) && (r < d); }\n"
+		"int Check16R(unsigned int x, unsigned int d) { unsigned int r = x % d; unsigned int q = x / d; return (q * d + r == x) && (r < d); }\n"
+		"int Check32(unsigned long x, unsigned long d) { unsigned long q = x / d; unsigned long r = x % d; return (q * d + r == x) && (r < d); }\n"
+		"int Check32R(unsigned long x, unsigned long d) { unsigned long r = x % d; unsigned long q = x / d; return (q * d + r == x) && (r < d); }\n"
+		"int main(void)\n"
+		"{\n"
+		"\tint\tiOk;\n"
+		"\tint\ti;\n"
+		"\tiOk = 1;\n"
+		"\tfor (i = 0; i < 5; i++)\n"
+		"\t{\n"
+		"\t\tiOk &= Check16(gauiX[i], gauiD[i]) & Check16R(gauiX[i], gauiD[i]) & Check32(gaulX[i], gaulD[i]) & Check32R(gaulX[i], gaulD[i]);\n"
+		"\t}\n"
+		"\treturn iOk;\n"
+		"}\n", aszNoUnits, &szListing, NULL, 0, true));
+	AssertFalse(szListing.Contains("R816_URem"));
+	AssertTrue(szListing.Contains("jsl R816_UDiv16"));
+	AssertTrue(szListing.Contains("jsl R816_UDiv32"));
+	szListing.Kill();
 }
 
 
@@ -601,7 +635,6 @@ void TestCPP816BitTables(void)
 // count, against doubling; nothing calls R816_Shl64.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* pszListing, uint32* puiResults, size uiResults, bool bReturns);
 void TestCPP816BitTable64(void)
 {
 	static const char*	aszNoUnits[] = { NULL };

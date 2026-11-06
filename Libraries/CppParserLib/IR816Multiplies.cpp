@@ -73,6 +73,16 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		return true;
 	}
 
+	if (RemainderLeft(psInstruction))
+	{
+		for (i = 0; i < Words(sType); i++)
+		{
+			Frame("lda", IR816_SCRATCH_REMAINDER + 2 * i);
+			Store(psInstruction->sResult, i);
+		}
+		return true;
+	}
+
 	RuntimeName(&szName, psInstruction);
 
 	iBytes = 0;
@@ -106,11 +116,38 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		}
 	}
 	UseRuntime(szName.Text());
+	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) && IR816ScratchRoutine(szName.Text())) ? psInstruction : NULL;
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
 	szName.Kill();
 	CallerCleanUp(iBytes, psInstruction);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psInstruction is a urem of 16 or 32 bits written straight after
+// the udiv of the same operands (CIROptimiser::SetDivideRemainders puts it
+// there): R816_UDiv16 and R816_UDiv32 left its result at
+// IR816_SCRATCH_REMAINDER, which nothing has written since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psDivide;
+
+	psDivide = mpsWritten;
+	if ((psInstruction->uiOpcode != IRO_URem) || !psDivide || (psDivide != mpsDivided) || (miFused != 0))
+	{
+		return false;
+	}
+	if (!psInstruction->sType.Is(IRTK_I16) && !psInstruction->sType.Is(IRTK_I32))
+	{
+		return false;
+	}
+	return psDivide->sType.Equals(psInstruction->sType) && psDivide->asArguments[0].Equals(psInstruction->asArguments[0]) && psDivide->asArguments[1].Equals(psInstruction->asArguments[1]) &&
+		   !psInstruction->asArguments[1].IsConstant();
 }
 
 

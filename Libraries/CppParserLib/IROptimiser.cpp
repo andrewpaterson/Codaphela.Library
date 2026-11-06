@@ -33,6 +33,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
 	mbConstantDivisions = false;
+	mbDivideRemainders = false;
 	mbNarrowCounters = false;
 	mbBiasedIndices = false;
 	mbBranchRanges = false;
@@ -145,6 +146,20 @@ void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
 void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 {
 	mbConstantDivisions = bConstantDivisions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the target's unsigned 16 and 32 bit divide leaves the remainder
+// where a urem straight after it with the same operands can take it (the
+// W65C816's R816_UDiv16 and R816_UDiv32: D + 5).  ShareDivisions then puts
+// such a urem right after its udiv instead of making it a multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetDivideRemainders(bool bDivideRemainders)
+{
+	mbDivideRemainders = bDivideRemainders;
 }
 
 
@@ -644,6 +659,22 @@ void CIROptimiser::ComputeLoops(void)
 	mcDominators.Compute(mpcFunction);
 	FindDefinitions();
 	mcLoops.Compute(mpcFunction, &mcDominators);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves pcBlock's instruction at uiFrom to uiTo (an index in the
+// instructions without it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo)
+{
+	SIRInstruction	sMoved;
+
+	sMoved = *pcBlock->masInstructions.Get(uiFrom);
+	pcBlock->masInstructions.RemoveAt(uiFrom, true);
+	pcBlock->masInstructions.InsertAt(&sMoved, uiTo);
 }
 
 

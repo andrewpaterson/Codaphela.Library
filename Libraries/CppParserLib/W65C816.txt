@@ -356,6 +356,14 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	UMulWide32 1210 / 566.  GenerateRuntime now writes only the signed divides (IR) and the
 	divide and bit tables.  Tests: TestIR816BackendMathSafe runs the arithmetic tests
 	linked with MathSafe and no table.
+	2026-11-06, x / d then x % d (d not a constant, unsigned, 16 or 32 bits): R816_UDiv16
+	and R816_UDiv32 leave the remainder at D + 5 (and D + 7), and ShareDivisions
+	(CIROptimiser::SetDivideRemainders) puts the urem straight after its udiv instead of
+	making it x - q * d; the back end (CIR816Backend::RemainderLeft) reads it there when
+	the instruction it wrote last was that udiv's call.  The remainder costs two loads
+	and stores instead of a multiply (137 cycles with the table, 245 without) and a
+	subtract.  Signed pairs and 64 bits keep the multiply.  Test:
+	TestCPP816SharedDivisions.
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call
