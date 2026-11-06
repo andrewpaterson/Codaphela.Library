@@ -865,6 +865,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
 		cBackend816.SetSourceMarkers(mpcGenerator->mbListing || mpcGenerator->mbLineTable);
+		cBackend816.SetMathTables(mpcGenerator->mbMathTables);
 		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
 		cBackend816.GetFrame(psFrame);
 		if (!bResult)

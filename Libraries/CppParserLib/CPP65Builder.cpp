@@ -72,6 +72,8 @@ void CCPP65Builder::Init(void)
 	maszOutsideLibraries.Init();
 	mbLineTable = false;
 	mbNoFloats = false;
+	mbMathTables = true;
+	mbRuntime816 = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -241,9 +243,12 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816's maths tables (Libc65/MathTbls, Garth Wilson's): MathMult for
-// the runtime's multiply and MathInvert for its divide.  Each is linked only
-// when it is used.  The other targets need none.
+// The W65C816's runtime (AddRuntime816) and maths tables (Libc65/MathTbls,
+// Garth Wilson's): MathMult for the runtime's multiply (SetMathTables) and
+// the soft float's, MathInvert for the soft float's divide.  Each is linked
+// only when it is used.  The other targets need none.  A program whose
+// tables are in memory already (an HCP65 program: UserLib's
+// UserMathTables.asm gives their addresses) adds Libc65 alone.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
@@ -255,11 +260,34 @@ void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
 	{
 		return;
 	}
+	AddRuntime816(szLibc65Directory);
 	szDirectory.Init(szLibc65Directory);
 	cFileUtil.AppendToPath(&szDirectory, "MathTbls");
 	AddUnit("MathTables", szDirectory.Text(), "MathMult.asm", true);
 	AddUnit("MathTables", szDirectory.Text(), "MathInvert.asm");
 	szDirectory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816 back end's runtime routines (R816_Mul16 ...: multiply,
+// divide, shifts and BCD, in Libc65's IR816Runtime-*.asm), linked as a
+// library so only those used are kept: IR816Runtime-Common.asm and either
+// IR816Runtime-MathTables.asm (multiplies that read MathMult) or
+// IR816Runtime-MathSafe.asm (SetMathTables(false)).  Added once, by
+// AddMathTables or AddLibc65.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddRuntime816(const char* szLibc65Directory)
+{
+	if ((meTarget != CPPT_W65C816) || mbRuntime816)
+	{
+		return;
+	}
+	mbRuntime816 = true;
+	AddUnit("Runtime816", szLibc65Directory, "IR816Runtime-Common.asm", true);
+	AddUnit("Runtime816", szLibc65Directory, mbMathTables ? "IR816Runtime-MathTables.asm" : "IR816Runtime-MathSafe.asm");
 }
 
 
@@ -280,6 +308,7 @@ void CCPP65Builder::AddLibc65(const char* szLibc65Directory)
 	{
 		return;
 	}
+	AddRuntime816(szLibc65Directory);
 	for (i = 0; aszUnits[i]; i++)
 	{
 		AddUnit("Libc65", szLibc65Directory, aszUnits[i], true);
@@ -857,6 +886,27 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether Garth Wilson's product table (MathMult) is in memory when the
+// W65C816 program runs (true unless set).  Without it the runtime's
+// multiplies are IR816Runtime-MathSafe.asm's and an i8 multiply calls
+// R816_Mul16 instead of reading the table in place: for a program that
+// runs before the tables are loaded (the HCP65's kernal and operating
+// system).  The divides read no table either way.  Call before
+// AddMathTables and AddLibc65, which add the runtime.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetMathTables(bool bMathTables)
+{
+	if (mbRuntime816 && (mbMathTables != bMathTables))
+	{
+		mszErrors.Append("CCPP65Builder::SetMathTables must be called before AddMathTables and AddLibc65.\n");
+	}
+	mbMathTables = bMathTables;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::ForbidFloats(void)
@@ -964,7 +1014,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mbMathTables);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -1111,6 +1161,16 @@ bool CCPP65Builder::LinkObjects(void)
 	}
 	bResult = mcLinker.Link();
 	mszErrors.Append(mcLinker.GetErrors());
+
+	//A runtime routine isn't stubbed: its program would stop at the first multiply.
+	for (i = 0; i < mcLinker.NumMissing(); i++)
+	{
+		if (strncmp(mcLinker.GetMissing(i), "R816_", 5) == 0)
+		{
+			mszErrors.Append("The W65C816 runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
+			bResult = false;
+		}
+	}
 	return bResult;
 }
 
@@ -1254,10 +1314,10 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
 // pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
 // C++ source lines it is for (CCPP65Generator::SetListing), bLineTable .line and .fingerprint directives
-// (CCPP65Generator::SetLineTable).
+// (CCPP65Generator::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables)
 {
 	CTranslationUnit				cFile;
 	CPreprocessor					cPreprocessor;
@@ -1319,6 +1379,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.SetListing(bListing);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
 	cGenerator.SetNoFloats(bNoFloats);
+	cGenerator.SetMathTables(bMathTables);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -2074,6 +2135,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cGenerator.SetListing(!mszListings.Empty());
 	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
+	psCompile->cGenerator.SetMathTables(mbMathTables);
 }
 
 

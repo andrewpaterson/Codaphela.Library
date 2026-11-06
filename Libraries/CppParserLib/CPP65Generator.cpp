@@ -201,6 +201,18 @@ void CCPP65Generator::SetNoFloats(bool bNoFloats)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the W65C816 code may read Garth Wilson's product table
+// (MathMult) in place.  See CCPP65Builder::SetMathTables.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetMathTables(bool bMathTables)
+{
+	mbMathTables = bMathTables;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -244,6 +256,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbListing = false;
 	mbLineTable = false;
 	mbNoFloats = false;
+	mbMathTables = true;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;

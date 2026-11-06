@@ -411,6 +411,7 @@ protected:
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
+	bool					mbMathTables;		//The W65C816's MathMult is in memory (SetMathTables).
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore).
 	CMemorySpillStore		mcMemorySpillStore;	//The spill store when none is set.
@@ -446,6 +447,7 @@ public:
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
+	void					SetMathTables(bool bMathTables);
 	void					SetSpillStore(CSpillStore* pcStore);
 	CSpillStore*			GetSpillStore(void);
 	CScratchPadAllocator*	GetBackendScratch(void);

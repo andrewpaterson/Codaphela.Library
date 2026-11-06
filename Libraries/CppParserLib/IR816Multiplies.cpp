@@ -267,7 +267,8 @@ bool CIR816Backend::TableDivide(SIRInstruction* psInstruction, bool bSigned)
 //
 // An i8 multiply: the low byte of the product in MathMult (the word at
 // (a * 256 + b) * 2 is a * b, as R816_Mul16 reads it), looked up in place.
-// False, with nothing written, for any other multiply.
+// False, with nothing written, for any other multiply, and without the
+// table (SetMathTables): R816_Mul16 is called instead.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
@@ -275,7 +276,7 @@ bool CIR816Backend::ByteMultiply(SIRInstruction* psInstruction)
 	int32	iHigh;
 	int32	iGot;
 
-	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8))
+	if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sType.Is(IRTK_I8) || !mbMathTables)
 	{
 		return false;
 	}

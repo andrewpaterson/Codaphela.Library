@@ -301,7 +301,8 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	and TestIR816Backend links it itself.  Cycles per call, old loop -> table: 16 bit
 	174-259 (was 128-848), 32 bit 252-745 (was 312-2803).  R816_UDiv16 and R816_URem16 use the
 	reciprocal slice MathInvert (Libc65/MathTbls/MathInvert.asm, linked by AddMathTables
-	too); R816_UDiv32/URem32 jump to them when both operands are under 65536.
+	too); R816_UDiv32/URem32 jump to them when both operands are under 65536.  (2026-11-06: replaced
+	by shift and subtract, see below.)
 	2026-10-29, the runtime's calling convention (user chose operands in scratch):
 	R816_Mul16/32 and R816_UDiv/URem16/32 take a at D + 15 and b at D + 19 in the
 	caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A/_B) and run on the caller's D,
@@ -329,6 +330,32 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  bits: a loop counted in Y; 32 bits: a jump into 7 unrolled steps).  A 64 bit shift
 	  routine may read and write any of the caller's frame (SIR816Routine::bIndexed),
 	  which IR816FindReads knows.  16 bit variable shifts stay inline.
+	2026-11-06, the runtime split (user: the HCP65's tables move out of ROM to main memory,
+	loaded from the SD card, so the kernal and boot.exe run before they are there): the
+	assembly routines are no longer text in IR816Runtime.cpp but Libc65 files, linked as a
+	library by CCPP65Builder::AddRuntime816 (from AddMathTables or AddLibc65; a link that
+	misses an R816_ routine is an error, not a stp stub):
+	- IR816Runtime-Common.asm: UDiv16/URem16, UDiv32/URem32, UDiv64/URem64, Mul64, the 32
+	  and 64 bit shifts, BcdAdd/BcdSubtract.  No table.
+	- IR816Runtime-MathTables.asm: Mul16, Mul32, UMulWide32 with MathMult.
+	- IR816Runtime-MathSafe.asm: the same without it (CCPP65Builder::SetMathTables(false),
+	  .hcp65build MathTables="false"): Mul16 shift and add from the top bit (a byte
+	  multiplier 8 steps; aH * bL's low byte in 8 bit mode starts A), and a 16 x 16 -> 32
+	  helper R816_UMul16 (shift and add through A down into the multiplier's word, 8 steps
+	  for a byte) for Mul32 and UMulWide32, zero high halves skipped.  An i8 multiply calls
+	  R816_Mul16 instead of reading MathMult in place (CIR816Backend::SetMathTables).
+	The divides read no table: an unrolled shift and subtract (quotient bits rotated into
+	the dividend's word, 8 steps when the quotient is a byte) beat the reciprocal from the
+	INVERT slice in every case measured (cycles, table -> loop: 16/16 177 -> 110, 16/8
+	358 -> 274, 16/12 414 -> 210), and a reciprocal from the full table with only byte
+	products doesn't beat it either (estimated ~320 against ~334 for 16/8, ~250 against
+	~190 when the quotient is a byte).  R816_UDiv32/URem32's stage on the dividend's high
+	word is 8 steps when its quotient is a byte too (32/16 532 -> 470 cycles on average).
+	MathSafe against MathTables, cycles: Mul16 245 /
+	137 (16 x 16), 144 / 99 (16 x 8); Mul32 308 / 230 (16 x 16), 886 / 517 (32 x 32);
+	UMulWide32 1210 / 566.  GenerateRuntime now writes only the signed divides (IR) and the
+	divide and bit tables.  Tests: TestIR816BackendMathSafe runs the arithmetic tests
+	linked with MathSafe and no table.
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call

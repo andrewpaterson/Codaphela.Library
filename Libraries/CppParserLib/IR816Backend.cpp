@@ -57,6 +57,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	masArguments.Init(CIR816Backend::GetScratch());
 	msFrame.Init(0, false);
 	miFused = 0;
+	mbMathTables = true;
 }
 
 
@@ -461,6 +462,20 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	}
 	pszDest->AppendNewLine();
 	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether Garth Wilson's product table (MathMult) is in memory: an i8
+// multiply is then a lookup in place (ByteMultiply).  Without it the
+// program is linked with IR816Runtime-MathSafe.asm, which doesn't read it
+// (CCPP65Builder::SetMathTables).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SetMathTables(bool bMathTables)
+{
+	mbMathTables = bMathTables;
 }
 
 

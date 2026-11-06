@@ -197,6 +197,8 @@ protected:
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
 	bool							mbNoFloats;			//No floating point (SetNoFloats).
+	bool							mbMathTables;		//The W65C816's runtime reads MathMult (SetMathTables).
+	bool							mbRuntime816;		//The W65C816's runtime units have been added (AddRuntime816).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
 	CMemorySpillStore				mcMemorySpillStore;
@@ -241,11 +243,13 @@ public:
 	void			SetForceImportsMissed(bool bForce);
 	void			SetLineTable(bool bLineTable);
 	void			SetNoFloats(bool bNoFloats);
+	void			SetMathTables(bool bMathTables);
 	CAsm65LineTable*	GetLineTable(void);
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			AddMathTables(const char* szLibc65Directory);
+	void			AddRuntime816(const char* szLibc65Directory);
 	void			AddLibc65(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
 	bool			AddDefine(const char* szLibrary, const char* szDefine);
@@ -277,7 +281,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

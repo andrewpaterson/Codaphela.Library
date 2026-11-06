@@ -30,7 +30,8 @@
 #define TEST_IR816_STEPS		50000000		//The most steps a test program may take.
 #define TEST_IR816_MEMORY		0x100000
 #define TEST_IR816_STACK_TOP	0xEFFF
-#define TEST_IR816_MATH_TABLES	".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65" _FS_ "MathTbls"
+#define TEST_IR816_LIBC65		".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65"
+#define TEST_IR816_MATH_TABLES	TEST_IR816_LIBC65 _FS_ "MathTbls"
 
 
 int64 TestIR65Run(const char* szIR, bool bFloat, CChars* pszAssembly);
@@ -80,44 +81,66 @@ static bool TestIR816Assemble(CAsm65Object* pcObject, const char* szName, const 
 }
 
 
-//The maths tables the runtime uses (MathMult for multiply, MathInvert for divide), assembled once and linked when used.
-static CAsm65Library*	gpcTestIR816MathTables = NULL;
+//The runtime (Libc65's IR816Runtime-*.asm) and the maths tables, assembled once and linked when used: [0] with the
+//tables (IR816Runtime-MathTables.asm, MathMult and MathInvert), [1] without them (IR816Runtime-MathSafe.asm).
+static CAsm65Library*	gapcTestIR816Runtime[2] = { NULL, NULL };
+static bool				gbTestIR816MathSafe = false;	//TestIR816Run links [1] and the back end reads no table.
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static CAsm65Library* TestIR816MathTables(void)
+static void TestIR816AssembleFile(CAsm65Library* pcLibrary, const char* szDirectory, const char* szFile)
 {
-	static const char*	aszTables[] = { "MathMult.asm", "MathInvert.asm", NULL };
 	CTextFile			cFile;
 	CChars				szPath;
 	CAsm65816Assembler	cAssembler;
-	size				i;
 
-	if (gpcTestIR816MathTables)
+	szPath.Init(szDirectory);
+	szPath.Append(_FS_);
+	szPath.Append(szFile);
+	cFile.Init();
+	AssertTrue(cFile.Read(szPath.Text()));
+	cFile.PassifyNewlines();
+	cAssembler.Init();
+	cAssembler.SetDirectory(szDirectory);
+	AssertTrue(cAssembler.AssembleObject(cFile.Text(), pcLibrary->AddObject(szFile)));
+	AssertString("", cAssembler.GetErrors());
+	cAssembler.Kill();
+	cFile.Kill();
+	szPath.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static CAsm65Library* TestIR816Runtime(bool bMathSafe)
+{
+	CAsm65Library*	pcLibrary;
+
+	pcLibrary = gapcTestIR816Runtime[bMathSafe ? 1 : 0];
+	if (pcLibrary)
 	{
-		return gpcTestIR816MathTables;
+		return pcLibrary;
 	}
-	gpcTestIR816MathTables = NewMalloc<CAsm65Library>();
-	gpcTestIR816MathTables->Init("MathTables");
-	for (i = 0; aszTables[i]; i++)
+	pcLibrary = NewMalloc<CAsm65Library>();
+	pcLibrary->Init("Runtime816");
+	TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-Common.asm");
+	if (bMathSafe)
 	{
-		szPath.Init(TEST_IR816_MATH_TABLES _FS_);
-		szPath.Append(aszTables[i]);
-		cFile.Init();
-		AssertTrue(cFile.Read(szPath.Text()));
-		cFile.PassifyNewlines();
-		cAssembler.Init();
-		cAssembler.SetDirectory(TEST_IR816_MATH_TABLES);
-		AssertTrue(cAssembler.AssembleObject(cFile.Text(), gpcTestIR816MathTables->AddObject(aszTables[i])));
-		AssertString("", cAssembler.GetErrors());
-		cAssembler.Kill();
-		cFile.Kill();
-		szPath.Kill();
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-MathSafe.asm");
 	}
-	return gpcTestIR816MathTables;
+	else
+	{
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_LIBC65, "IR816Runtime-MathTables.asm");
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_MATH_TABLES, "MathMult.asm");
+		TestIR816AssembleFile(pcLibrary, TEST_IR816_MATH_TABLES, "MathInvert.asm");
+	}
+	gapcTestIR816Runtime[bMathSafe ? 1 : 0] = pcLibrary;
+	return pcLibrary;
 }
 
 
@@ -220,6 +243,7 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 	szRuntime.Init();
 	iLabels = 0;
 	cBackend.Init(&cModule, &iLabels);
+	cBackend.SetMathTables(!gbTestIR816MathSafe);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
 	AssertTrue(CIR816Backend::GenerateRuntime(cBackend.GetRuntime(), &iLabels, &szRuntime, &cErrors));
 	AssertString("", cErrors.Text());
@@ -244,7 +268,7 @@ int64 TestIR816Run(const char* szIR, bool bLockstep, CChars* pszAssembly = NULL)
 		{
 			cLinker.AddObject(&acObjects[i]);
 		}
-		cLinker.AddLibrary(TestIR816MathTables());
+		cLinker.AddLibrary(TestIR816Runtime(gbTestIR816MathSafe));
 		AssertTrue(cLinker.Link());
 		AssertString("", cLinker.GetErrors());
 		AssertTrue(cLinker.GetSymbol("Result", &iResult));
@@ -2237,6 +2261,50 @@ void TestIR816BackendBigFrame(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Without the maths tables (CCPP65Builder::SetMathTables(false)): the
+// runtime's multiplies are IR816Runtime-MathSafe.asm's and an i8 multiply
+// calls R816_Mul16 instead of reading MathMult.  The multiply and divide
+// tests again, linked with no table (a read of one is a link error).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR816BackendMathSafe(void)
+{
+	CChars	szAssembly;
+	int32	i;
+	int32	iExpected;
+
+	gbTestIR816MathSafe = true;
+
+	szAssembly.Init();
+	AssertLong(-117, TestIR816Run("function i8 @_M__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%m = mul i8 %a, %b\n\tret i8 %m\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_M__Fcc(i8 13, i8 -9)\n\t%z = sext i8 %r to i32\n\tret i32 %z\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("jsl R816_Mul16"));
+	AssertFalse(szAssembly.Contains("MathMult"));
+	szAssembly.Kill();
+
+	iExpected = 0;
+	for (i = 0; i < 200; i++)
+	{
+		iExpected = (int8)(iExpected * 31 + (int8)(i * 7));
+	}
+	AssertIR816(iExpected, "function i32 @_main()\n{\nentry:\n\tjmp loop\n"
+		"loop:\n\t%i = phi i32 [entry, 0], [body, %i2]\n\t%h = phi i8 [entry, 0], [body, %h2]\n\t%done = eq i32 %i, 200\n\tbrif %done, exit, body\n"
+		"body:\n\t%t = trunc i32 %i to i8\n\t%m = mul i8 %t, 7\n\t%hm = mul i8 %h, 31\n\t%h2 = add i8 %hm, %m\n\t%i2 = add i32 %i, 1\n\tjmp loop\n"
+		"exit:\n\t%z = sext i8 %h to i32\n\tret i32 %z\n}\n");
+
+	TestIR816BackendNarrow();
+	TestIR816BackendDivide();
+	TestIR816BackendDividePaths();
+	TestIR816BackendMultiply();
+	TestIR816BackendDivide16();
+	TestIR816BackendMultiply64();
+
+	gbTestIR816MathSafe = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR816Backend(void)
@@ -2282,8 +2350,10 @@ void TestIR816Backend(void)
 	TestIR816BackendPeepholeStores();
 	TestIR816BackendPeepholeTransfers();
 	TestIR816BackendBigFrame();
+	TestIR816BackendMathSafe();
 
-	SafeKill(gpcTestIR816MathTables);
+	SafeKill(gapcTestIR816Runtime[0]);
+	SafeKill(gapcTestIR816Runtime[1]);
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

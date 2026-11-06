@@ -246,7 +246,7 @@ bool		IR816DeadStore(CIR816Code* pcCode, size uiFrom, const char* szWord, size u
 bool		IR816MovesS(CIR816Code* pcCode, size uiLine);
 bool		IR816FindReads(CIR816Code* pcCode, size uiFrom, uint8* abRead);
 
-//IR816Runtime.cpp: how a runtime routine takes its operands.
+//IR816Runtime.cpp: how a runtime routine (in Libc65's IR816Runtime-*.asm) takes its operands.
 bool		IR816IndexedRoutine(const char* szOperand, size uiOperand);
 bool		IR816ScratchRoutine(const char* szName);
 

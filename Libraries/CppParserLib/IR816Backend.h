@@ -124,9 +124,10 @@ struct SIR816Frame
 //the caller removes them.  A result of up to 16 bits is in A, of 32 bits in A (low) and X (high); a 64 bit result
 //is written through a hidden pointer the caller pushes after the arguments (the function's first parameter).  A
 //call through a pointer pushes the return address and the target then rtl's.  Multiply, divide and remainder are
-//calls to runtime routines (R816_Mul16 ...), which GenerateRuntime generates.  The 16 and 32 bit multiply and unsigned
-//divide and remainder take their operands in the caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A and _B) and run on
-//the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
+//calls to runtime routines (R816_Mul16 ...): Libc65's IR816Runtime-*.asm, linked as a library
+//(CCPP65Builder::AddRuntime816), and the signed divides, which GenerateRuntime generates from IR.  The 16 and 32 bit
+//multiply and unsigned divide and remainder take their operands in the caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A
+//and _B) and run on the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
 //in a call; D and the widths are kept.
 //
@@ -162,6 +163,7 @@ protected:
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
+	bool					mbMathTables;		//An i8 multiply reads MathMult in place (SetMathTables), else it calls R816_Mul16.
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
@@ -172,6 +174,7 @@ public:
 	static CMallocator*	SetScratch(CMallocator* pcScratch);
 	static CMallocator*	GetScratch(void);
 	static void		SetSoftFloatInFrame(bool bInFrame);
+	void			SetMathTables(bool bMathTables);
 	void			GetFrame(SIR816Frame* psFrame);
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIR816Frame* psFrame, bool bRecursive, CAsm65816Profile* pcProfile);
 	void			Kill(void);
