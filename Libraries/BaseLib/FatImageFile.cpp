@@ -71,14 +71,19 @@ bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, si
 	bResult = bResult && (cImage.Read(cDrive.GetMemory(), (lsize)iSize, 1) == 1);
 	cImage.Close();
 
-	bResult = bResult && (cVolume.Mount(&cDrive) == FAT_SUCCESS);
 	if (bResult)
 	{
-		cFile.Init(&cVolume);
-		bResult = FatMakeFolders(&cVolume, szName);
-		bResult = bResult && cFile.Open(szName, FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_OVERWRITE | FAT_FILE_ACCESS_WRITE) == FAT_SUCCESS;
-		bResult = bResult && (cFile.Write((uint8*)pvData, uiSize) == FAT_SUCCESS);
-		bResult &= cFile.Close() == FAT_SUCCESS;
+		bResult = cVolume.Mount(&cDrive) == FAT_SUCCESS;
+		if (bResult)
+		{
+			cFile.Init(&cVolume);
+			bResult = FatMakeFolders(&cVolume, szName);
+			bResult = bResult && cFile.Open(szName, FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_OVERWRITE | FAT_FILE_ACCESS_WRITE) == FAT_SUCCESS;
+			bResult = bResult && (cFile.Write((uint8*)pvData, uiSize) == FAT_SUCCESS);
+			bResult &= cFile.Close() == FAT_SUCCESS;
+		}
+
+		//Even after a mount that failed: Unmount frees the sector cache Mount made (and writes nothing then).
 		bResult &= cVolume.Unmount() == FAT_SUCCESS;
 	}
 
