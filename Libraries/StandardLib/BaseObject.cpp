@@ -285,7 +285,17 @@ void CBaseObject::Kill(void)
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);
 
 	bHeapFromChanged = HasHeapFroms();
-	KillInternal(bHeapFromChanged, true);
+
+	//Kill frees from memory.  A stored object is still in the database, so its holders keep it: their pointers go to a
+	//hollow that loads it again.  It is saved first if it is dirty.  Destroy deletes it from the database.
+	if (bHeapFromChanged && IsStored() && IsAllocatedInObjects())
+	{
+		GetObjectsThisIn()->ReplaceWithHollow(this);
+	}
+	else
+	{
+		KillInternal(bHeapFromChanged, true);
+	}
 
 #ifdef _DEBUG
 	if (pcObjectsThisIn)

@@ -267,6 +267,91 @@ void TestStoredObjectsKillChecksDirty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Kill frees from memory.  A stored object's holders keep it: their
+// pointers go to a hollow that loads it again, and they are not changed.
+// An object that was never stored has its pointers cleared, as before.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStoredObjectsKillLeavesHollow(void)
+{
+	CFileUtil				cFileUtil;
+	STestStoredObjects		sStore;
+	Ptr<CString>			pDoor;
+	Ptr<CString>			pWindow;
+	Ptr<CString>			pTransient;
+	Ptr<CTestNamedString>	pHolder;
+	Ptr<CRoot>				pRoot;
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	pDoor = ONMalloc<CString>("Door", "closed");
+	pWindow = ONMalloc<CString>("Window", "open");
+	pHolder = ONMalloc<CTestNamedString>("Holder", pWindow, Null(), "holder");
+	pRoot->Add(pDoor);
+	pRoot->Add(pHolder);
+	pDoor = NULL;
+	pWindow = NULL;
+	pHolder = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(2, pRoot->NumObjects());
+
+	//A changed stored object is saved, and its holder points to a hollow of it.
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	pWindow = pHolder->mszString;
+	pWindow->Set("shut");
+	pWindow->Kill();
+	pWindow = NULL;
+	AssertTrue(pHolder->mszString.IsNotNull());
+	AssertTrue(pHolder->mszString.IsHollow());
+	AssertFalse(pHolder->IsDirty());
+	AssertString("shut", pHolder->mszString->Text());
+
+	//The root's collection keeps Door.
+	pDoor = gcObjects.Get<CString>("Door");
+	pDoor->Kill();
+	pDoor = NULL;
+	AssertLong(2, pRoot->NumObjects());
+	pDoor = gcObjects.Get<CString>("Door");
+	AssertString("closed", pDoor->Text());
+
+	//An object that was never stored is freed and the pointers to it cleared.
+	pTransient = OMalloc<CString>("transient");
+	pHolder->mszString = pTransient;
+	pTransient->Kill();
+	AssertTrue(pHolder->mszString.IsNull());
+
+	ObjectsDiscard();
+	pDoor = NULL;
+	pHolder = NULL;
+	pRoot = NULL;
+	sStore.Kill();
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(2, pRoot->NumObjects());
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	AssertString("shut", pHolder->mszString->Text());
+	pHolder = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Destroy deletes an object from the database.  Its holders are loaded
 // (here none is in memory), their pointers to it cleared and saved.  The
 // objects it held are left in the database.  A pointer to an object that
@@ -386,6 +471,7 @@ void TestStoredObjects(void)
 	TestStoredObjectsWithoutPathToRoot();
 	TestStoredObjectsEvict();
 	TestStoredObjectsKillChecksDirty();
+	TestStoredObjectsKillLeavesHollow();
 	TestStoredObjectsDestroy();
 
 	DataIOKill();

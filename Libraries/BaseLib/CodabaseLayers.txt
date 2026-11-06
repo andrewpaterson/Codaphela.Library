@@ -25,6 +25,11 @@ Only real garbage (objects nothing in the store can reach any more) may be dropp
 
 Stored objects (decided 2026-11-06, implemented): an object read from or written to the database is marked stored (OBJECT_FLAGS_STORED).  An object loaded by name alone has no path to the root (its holders are only in the database), so Flush saves a dirty stored object whether or not it can find the root, and CObjects::RemoveBatch saves dirty stored objects before freeing them.  Objects that never reached the database are freed without saving, as before.  CObjects::EvictInMemory saves every dirty object that is stored or can find the root before it frees them (decided 2026-11-06).  ObjectsKill does not save: ObjectsFlush or ObjectsDiscard (marks everything clean) must come first, and Kill reports any object Flush would save that is still dirty (CObjects::ValidateNoDirty, decided 2026-11-06).
 
+Kill and Destroy (decided 2026-11-06, implemented):
+  - Kill frees an object from memory.  A stored object stays in the database: its holders' pointers go to a hollow that loads it again, and the holders are not changed.  It is saved first if it is dirty.  An object that was never stored is freed with the pointers to it cleared.
+  - Destroy deletes an object from the database as well.  Everything that points to it (its stored holders, read from its record) and everything it points to is loaded; the pointers to it are cleared and those objects are saved; then its record and name are removed.  The objects it held are left in the database for the database's garbage collection (objects that are not loaded may still hold them): no cascade.  The root cannot be destroyed.
+  - A pointer to an object the database does not have is a programming error: gcLogger.Error2, and the pointer does not load.
+
 A database can be opened read-only (the document store as the game sees it).  A read-only database refuses writes.  What happens to a refused write is still open; the options were:
   1. Fail when the object is marked dirty (earliest, points at the code making the change).
   2. Fail at flush or free and discard the change.

@@ -103,16 +103,21 @@ void TestObjectGraphWritingStackIsNotWritten(void)
 	AssertTrue(pObj3.IsDirty());
 
 
-	pcDatabase->Close();
-	SafeKill(pcDatabase);
-	SafeKill(pcSequence);
+	//Kill frees from memory: the stored objects (1 and 2) are left as hollows, so the pointers are cleared too.
 	pObj0.Kill();
 	pObj1.Kill();
 	pObj2.Kill();
 	pObj3.Kill();
+	pObj0 = NULL;
+	pObj1 = NULL;
+	pObj2 = NULL;
+	pObj3 = NULL;
 	pRoot = NULL;
 
 	ObjectsKill();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
 
 	AssertNull(&pObj0);
 	AssertNull(&pObj1);
