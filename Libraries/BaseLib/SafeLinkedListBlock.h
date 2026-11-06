@@ -8,21 +8,21 @@
 class CSafeLinkedListBlock
 {
 private:
-	CMutex			m;
-	CLinkedListBlock	c;
+	CMutex				mcMutex;
+	CLinkedListBlock	mcList;
 
 public:
 	void		Init(void);
 	void		Init(CMallocator* pcMalloc);
 	void		Kill(void);
 
-	void*		InsertAfterTail(unsigned int uiDataSize);
-	void*		InsertBeforeHead(unsigned int uiDataSize);
-	void*		InsertBeforeNode(unsigned int uiDataSize, void* psPos);
-	void*		InsertAfterNode(unsigned int uiDataSize, void* psPos); 
-	void*		Add(unsigned int uiDataSize);
+	void*		InsertAfterTail(lsize uiDataSize);
+	void*		InsertBeforeHead(lsize uiDataSize);
+	void*		InsertBeforeNode(lsize uiDataSize, void* psPos);
+	void*		InsertAfterNode(lsize uiDataSize, void* psPos); 
+	void*		Add(lsize uiDataSize);
 
-	int			ByteSize(void);
+	lsize		ByteSize(void);
 
 	bool		Write(CFileWriter* pcFileWriter);
 	bool		Read(CFileReader* pcFileReader);
@@ -44,16 +44,16 @@ public:
 	void		MoveToTTail(void* pvData);
 
 
-	int			NumElements(void);
+	size		NumElements(void);
 
 	void		FreeDetached(void* pvData);
 
-	void*		Get(int iNum);
-	int			IndexOf(void* pvData);
+	void*		Get(size iNum);
+	size		IndexOf(void* pvData);
 	bool		IsInList(void* pvData);
 
-	void		BubbleSort(int(*fCompare)(const void*, const void*));
-	void		InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData);
+	void		BubbleSort(DataCompare fCompare);
+	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);
 };
 
 

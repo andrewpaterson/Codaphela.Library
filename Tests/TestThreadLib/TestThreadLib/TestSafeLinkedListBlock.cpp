@@ -64,7 +64,7 @@ void TestSafeLinkedListBlockThreads(void)
 	cPool.Stop(true);
 	cPool.Kill();
 
-	AssertInt(SAFE_LIST_THREADS * SAFE_LIST_ADDS_PER_THREAD, cList.NumElements());
+	AssertSize(SAFE_LIST_THREADS * SAFE_LIST_ADDS_PER_THREAD, cList.NumElements());
 
 	memset(aiCount, 0, sizeof(aiCount));
 	bValid = true;

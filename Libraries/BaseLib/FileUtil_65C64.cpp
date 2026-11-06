@@ -97,7 +97,7 @@ bool CFileUtil::RecurseCopyDir(const char* szSource, const char* szDest)
 	CChars			szSourceDirectory;
 	CChars			szDestDirectory;
 	char			szName[MAX_PATH];
-	unsigned int	uiIndex;
+	uint32			uiIndex;
 	int				iKind;
 	bool			bResult;
 
@@ -247,7 +247,7 @@ bool CFileUtil::FindFiles(const char* szInDirectory, bool bDirs, const char* szI
 	CChars			szTemp;
 	CChars			szDirectory;
 	char			szName[MAX_PATH];
-	unsigned int	uiIndex;
+	uint32			uiIndex;
 	int				iKind;
 	bool			bValid;
 
