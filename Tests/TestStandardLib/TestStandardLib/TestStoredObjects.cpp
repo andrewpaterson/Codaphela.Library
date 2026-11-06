@@ -2,6 +2,7 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/Codabase.h"
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
@@ -207,6 +208,64 @@ void TestStoredObjectsEvict(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// ObjectsFlush or ObjectsDiscard comes before ObjectsKill: a dirty object
+// that Flush would save (stored, or able to find the root) is reported.
+// Discarding throws the changes away.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStoredObjectsKillChecksDirty(void)
+{
+	CFileUtil			cFileUtil;
+	STestStoredObjects	sStore;
+	Ptr<CString>		pDoor;
+	Ptr<CString>		pLamp;
+	Ptr<CString>		pTransient;
+	Ptr<CRoot>			pRoot;
+	SLogConfig			sLogConfig;
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+	TestStoredObjectsWriteDoor();
+
+	//A dirty stored object with no path to the root, discarded.
+	sStore.Init();
+	AssertTrue(gcObjects.ValidateNoDirty());
+	pDoor = gcObjects.Get<CString>("Door");
+	pDoor->Set("discarded");
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(gcObjects.ValidateNoDirty());
+	gcLogger.SetConfig(&sLogConfig);
+	ObjectsDiscard();
+	AssertFalse(pDoor->IsDirty());
+	AssertTrue(gcObjects.ValidateNoDirty());
+	pDoor = NULL;
+
+	//A dirty object held only on the stack, that never reached the database, is not one Flush would save.
+	pTransient = OMalloc<CString>("transient");
+	AssertTrue(pTransient->IsDirty());
+	AssertTrue(gcObjects.ValidateNoDirty());
+	pTransient = NULL;
+
+	//A dirty rooted object, flushed.
+	pRoot = ORoot();
+	pLamp = ONMalloc<CString>("Lamp", "on");
+	pRoot->Add(pLamp);
+	pLamp = NULL;
+	pRoot = NULL;
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(gcObjects.ValidateNoDirty());
+	gcLogger.SetConfig(&sLogConfig);
+	AssertTrue(ObjectsFlush());
+	AssertTrue(gcObjects.ValidateNoDirty());
+	sStore.Kill();
+
+	AssertStoredDoor("closed");
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStoredObjects(void)
@@ -218,6 +277,7 @@ void TestStoredObjects(void)
 
 	TestStoredObjectsWithoutPathToRoot();
 	TestStoredObjectsEvict();
+	TestStoredObjectsKillChecksDirty();
 
 	DataIOKill();
 	TypesKill();

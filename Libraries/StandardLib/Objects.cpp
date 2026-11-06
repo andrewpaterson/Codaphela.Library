@@ -170,7 +170,7 @@ void CObjects::Kill(void)
 {
 	mbInitialised = false;
 
-	mcMemory.ValidateNoDirty();
+	ValidateNoDirty();
 	FreeAllInKillOrder(false);
 
 	mcRemovalContext.Kill();
@@ -373,6 +373,37 @@ bool CObjects::Flush(void)
 		}
 
 		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::ValidateNoDirty(void)
+{
+	//ObjectsFlush or ObjectsDiscard must be called before Objects is killed.
+	return mcMemory.ValidateNoDirty();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Throws away every change in memory: each object is marked clean, so
+// nothing is saved and Kill finds nothing dirty.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Discard(void)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+
+	oi = StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		GetFromMemory(oi)->SetDirty(false);
+		oi = IterateMemory(&sIter);
 	}
 }
 
@@ -2005,6 +2036,21 @@ bool ObjectsValidate(void)
 	{
 		return true;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsDiscard(void)
+{
+	if (!ObjectsValidate())
+	{
+		return;
+	}
+
+	gcObjects.Discard();
 }
 
 

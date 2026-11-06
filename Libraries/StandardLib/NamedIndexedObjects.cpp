@@ -318,7 +318,9 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 		pcObject = Get(oi);
 		bDirty = pcObject->IsDirty();
 		bCanFindRoot = pcObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
-		if (bDirty && bCanFindRoot)
+
+		//The objects Flush would save: they must be flushed (or discarded) before Objects is killed.
+		if (bDirty && (bCanFindRoot || pcObject->IsStored()))
 		{
 			szIdentifier.Init();
 			pcObject->PrintIdentifier(&szIdentifier);

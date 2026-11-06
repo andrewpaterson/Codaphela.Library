@@ -92,6 +92,8 @@ public:
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, const char* szFilename);
 
 						bool					Flush(void);
+						void					Discard(void);
+						bool					ValidateNoDirty(void);
 						bool					ForceSave(CBaseObject* pcObject);
 
 						CPointer				Get(OIndex oi);
@@ -240,6 +242,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 void ObjectsKill(bool bValidate = true);
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);
+void ObjectsDiscard(void);  //Marks every object in memory clean, throwing its changes away.  ObjectsFlush or ObjectsDiscard comes before ObjectsKill.
 void ObjectsDump(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, const char* szMethod);
