@@ -311,7 +311,8 @@ void CTextArea::SetText(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds szText (UTF8) to the end of the text in sColour.
+// Adds szText (UTF8) to the end of the text in sColour.  The text area is
+// laid out again: it is bigger.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::AppendText(const char* szText, ARGB32 sColour)
@@ -324,6 +325,9 @@ void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 	AddSpan(uiStart, mszText.Length() - uiStart, sColour);
 	ReadText();
 	LayoutText();
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
 }
 
 
