@@ -84,30 +84,3 @@ bool CDependentReadObject::ExistsInObjects(void)
 	return miFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CompareDependentReadObject(const void* ps1, const void* ps2)
-{
-	CDependentReadObject*	psObj1;
-	CDependentReadObject*	psObj2;
-
-	psObj1 = (CDependentReadObject*)ps1;
-	psObj2 = (CDependentReadObject*)ps2;
-
-	if (psObj1->moi < psObj2->moi)
-	{
-		return -1;
-	}
-	else if (psObj1->moi > psObj2->moi)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-

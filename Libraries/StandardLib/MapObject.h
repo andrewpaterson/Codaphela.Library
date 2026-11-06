@@ -75,7 +75,6 @@ public:
 	CMapUnknownUnknown*	GetUnknownMap(void);
 
 	bool				IsSorted(void);
-	CEmbeddedObject*	Dereference(CEmbeddedObject** ppcObject);
 	void				ValidateInternalConsistency(void);
 
 protected:

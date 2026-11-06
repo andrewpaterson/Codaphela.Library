@@ -27,7 +27,6 @@ public:
 };
 
 
-int CompareDependentReadObject(const void* ps1, const void* ps2);
 
 
 typedef CArrayTemplate<CDependentReadObject> CArrayDependentReadObject;

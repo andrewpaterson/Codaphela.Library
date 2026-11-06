@@ -471,33 +471,6 @@ void CMapObject::Sort(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CMapObject::Dereference(CEmbeddedObject** ppcObject)
-{
-	CEmbeddedObject*	pcLoaded;
-
-	if (*ppcObject)
-	{
-		//If it can't be loaded it's left as the hollow, to try again.
-		pcLoaded = (*ppcObject)->Dehollow();
-		if (pcLoaded == NULL)
-		{
-			return NULL;
-		}
-		*ppcObject = pcLoaded;
-		mbSorted = false;
-		return pcLoaded;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMapObject::TouchAll(void)
 {
 	CPointer		pKey;
