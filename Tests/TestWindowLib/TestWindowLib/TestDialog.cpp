@@ -226,6 +226,61 @@ void TestDialogModal(void)
 	cFileUtil.RemoveDir(szDirectory);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The close button only closes a window its close approver lets close,
+// as an editor that asks to save its changes first.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestCloseApprover
+{
+public:
+	bool	mbAllow;
+	int		miAsked;
+
+	bool Approve(void)
+	{
+		miAsked++;
+		return mbAllow;
+	}
+};
+
+
+void TestWindowCloseApprover(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>		pTestWindow;
+		CPointer			pNull;
+		CTestCloseApprover	cApprover;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
+		pTestWindow = OMalloc<CWindow>("Close Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		AssertTrue(pTestWindow->ApproveClose());
+		cApprover.mbAllow = false;
+		cApprover.miAsked = 0;
+		pTestWindow->SetCloseApprover(&cApprover, &CTestCloseApprover::Approve);
+		AssertFalse(pTestWindow->ApproveClose());
+		cApprover.mbAllow = true;
+		AssertTrue(pTestWindow->ApproveClose());
+		AssertInt(2, cApprover.miAsked);
+		pTestWindow->ClearCloseApprover();
+		cApprover.mbAllow = false;
+		AssertTrue(pTestWindow->ApproveClose());
+		AssertInt(2, cApprover.miAsked);
+
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -237,6 +292,7 @@ void TestDialog(void)
 	ObjectsInit();
 
 	TestDialogModal();
+	TestWindowCloseApprover();
 
 	ObjectsFlush();
 	ObjectsKill();

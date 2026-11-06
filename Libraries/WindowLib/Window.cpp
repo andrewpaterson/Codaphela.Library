@@ -116,6 +116,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mbLayoutDirty = true;
 	mbCheckLayoutCache = WINDOW_CHECK_LAYOUT_CACHE;
 	mpCaretBacking = NULL;
+	msCloseApprover.Clear();
 	mcCaret.Init();
 	msCaretColour = 0;
 	mbCaretPainted = false;
@@ -161,6 +162,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
 	M_Pointer(mpCaretBacking);
+	U_Data(SMemberCall, msCloseApprover);
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
 	U_Bool(mbCaretPainted);
@@ -932,6 +934,28 @@ void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds
 void CWindow::Stop(void)
 {
 	mbTicking = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the platform's close button may close the window: what the
+// close approver answers, true without one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ApproveClose(void)
+{
+	return !msCloseApprover.IsSet() || msCloseApprover.Ask();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::ClearCloseApprover(void)
+{
+	msCloseApprover.Clear();
 }
 
 

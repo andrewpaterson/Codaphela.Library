@@ -584,7 +584,8 @@ void CX11Window::HandleEvent(XEvent* puEvent)
         }
         case ClientMessage:
         {
-            if ((puEvent->xclient.message_type == pcFactory->GetProtocolsAtom()) && ((Atom)puEvent->xclient.data.l[0] == pcFactory->GetDeleteWindowAtom()))
+            //The application can keep the window open, to ask to save its changes say.
+            if ((puEvent->xclient.message_type == pcFactory->GetProtocolsAtom()) && ((Atom)puEvent->xclient.data.l[0] == pcFactory->GetDeleteWindowAtom()) && ApproveClose())
             {
                 Stop();
                 DestroyNativeWindow();

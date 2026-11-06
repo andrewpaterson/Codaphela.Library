@@ -75,6 +75,7 @@ public:
 	virtual	bool			IsCreated(void);
 	virtual	void			Raise(void);
 	virtual	void			TitleChanged(void);
+			bool			ApproveClose(void);
 
 protected:
 			bool	BeginPresent(void);

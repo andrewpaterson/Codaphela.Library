@@ -351,3 +351,15 @@ void CNativeWindow::SignalPresentArea(CInt32Rect* pcArea)
 {
 	SignalPresent();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The close button was pressed: whether the window's application lets it
+// close (see CWindow::SetCloseApprover).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::ApproveClose(void)
+{
+	return mpcWindow->ApproveClose();
+}

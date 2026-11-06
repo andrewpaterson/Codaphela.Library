@@ -29,6 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SoundMixer.h"
 #include "Clipboard.h"
 #include "ComponentEvent.h"
+#include "StandardLib/MemberCall.h"
 
 
 #define WINDOW_DEFAULT_FRAMES_PER_SECOND	30
@@ -68,6 +69,7 @@ protected:
 	Ptr<CWindow>			mpOwner;  //The window a tool window floats over, see ShowOwned.  NULL for the others.
 	CArray<CWindow>			maOwned;  //Tool windows shown over this one, run by its loop.
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
+	SMemberCall				msCloseApprover;  //Asked whether the close button may close the window, not set if it always may.
 	Ptr<CCanvas>			mpCaretBacking;  //What the caret covers, kept so hiding it needn't paint the window.
 	CInt32Rect				mcCaret;  //Where the focussed component's caret was drawn, window space, right and bottom exclusive.
 	ARGB32					msCaretColour;
@@ -116,6 +118,10 @@ public:
 	void					SetCheckLayoutCache(bool bCheckLayoutCache);
 	void					Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
 	void					Stop(void);
+	template<class M, class O>
+	void					SetCloseApprover(O* pcObject, bool(M::*fApprove)(void));
+	void					ClearCloseApprover(void);
+	bool					ApproveClose(void);
 	void					Layout(void);
 	void					LayoutAgain(void);
 
@@ -173,6 +179,23 @@ protected:
 	void					CreateOwned(void);
 	void					SetOwnedEnabled(bool bEnabled);
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The platform's close button (or Alt+F4) only closes the window if
+// fApprove answers true, so an application can ask to save its changes
+// first.  The object isn't held; it calls ClearCloseApprover before it
+// goes.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CWindow::SetCloseApprover(O* pcObject, bool(M::*fApprove)(void))
+{
+	msCloseApprover.Init(pcObject, fApprove);
+}
 
 
 #endif // __WINDOW_H__

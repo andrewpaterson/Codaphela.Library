@@ -173,6 +173,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
                 pcWindow->Stop();
                 return 0;
             }
+            //The application can keep the main window open, to ask to save its changes say.
+            if (pcWindow && !pcWindow->ApproveClose())
+            {
+                return 0;
+            }
             break;
         }
         case WM_DESTROY:
