@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/UndoStack.h"
+#include "BaseLib/UndoLog.h"
 #include "BaseLib/ArrayElementNotFound.h"
 #include "BaseLib/ArrayChars.h"
 #include "TestLib/Assert.h"
@@ -159,6 +160,98 @@ void TestUndoStackMaximum(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The edits of two documents, a and b, undone and redone across both in
+// the order they were made, and a group of edits to both undone as one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoLogAcrossDocuments(void)
+{
+	CUndoLog	cLog;
+	size		uiGroup;
+
+	cLog.Init();
+	AssertSize(MAX_SIZE, cLog.FindUndoGroup());
+	AssertSize(MAX_SIZE, cLog.FindRedoGroup());
+
+	//a 0->1, b 0->1, a 1->2 merged into a 1->3, then a and b reloaded together: a 3->4, b 1->2.
+	cLog.Kept("a", 0, 1);
+	cLog.Kept("b", 0, 1);
+	cLog.Kept("a", 1, 2);
+	cLog.Merged("a", 2, 3);
+	cLog.BeginGroup();
+	cLog.Kept("a", 3, 4);
+	cLog.BeginGroup();
+	cLog.Kept("b", 1, 2);
+	cLog.EndGroup();
+	cLog.EndGroup();
+	AssertSize(5, cLog.NumSteps());
+	AssertSize(3, cLog.Get(2)->uiIdAfter);
+	AssertSize(cLog.Get(3)->uiGroup, cLog.Get(4)->uiGroup);
+	AssertTrue(cLog.Get(2)->uiGroup != cLog.Get(3)->uiGroup);
+
+	//The newest group is the reload: both its steps.
+	uiGroup = cLog.FindUndoGroup();
+	AssertSize(cLog.Get(4)->uiGroup, uiGroup);
+	cLog.MarkUndone(4);
+	cLog.MarkUndone(3);
+	AssertTrue(cLog.IsUndone(3));
+	AssertSize(uiGroup, cLog.FindRedoGroup());
+	AssertSize(cLog.Get(2)->uiGroup, cLog.FindUndoGroup());
+
+	//b's own undo of its first edit: the log is told, then redo across both finds it first.
+	AssertSize(cLog.Get(1)->uiGroup, cLog.Undone("b", 1, 0));
+	AssertTrue(cLog.IsUndone(1));
+	AssertSize(cLog.Get(1)->uiGroup, cLog.FindRedoGroup());
+	AssertSize(MAX_SIZE, cLog.Undone("b", 1, 0));
+	AssertSize(cLog.Get(1)->uiGroup, cLog.Redone("b", 0, 1));
+	AssertFalse(cLog.IsUndone(1));
+	AssertSize(uiGroup, cLog.FindRedoGroup());
+
+	//A new edit of a drops a's undone step; b's undone step of the group is still there.
+	cLog.Kept("a", 3, 5);
+	AssertSize(5, cLog.NumSteps());
+	AssertString("b", cLog.Get(3)->szDocument.Text());
+	AssertTrue(cLog.IsUndone(3));
+	AssertString("a", cLog.Get(4)->szDocument.Text());
+	AssertSize(5, cLog.Get(4)->uiIdAfter);
+	AssertFalse(cLog.IsUndone(4));
+
+	//Closing b forgets its steps.
+	cLog.RemoveDocument("b");
+	AssertSize(3, cLog.NumSteps());
+	AssertSize(MAX_SIZE, cLog.FindRedoGroup());
+	AssertSize(cLog.Get(2)->uiGroup, cLog.FindUndoGroup());
+
+	cLog.Clear();
+	AssertSize(0, cLog.NumSteps());
+	cLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Past the maximum the oldest steps are dropped.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoLogMaximum(void)
+{
+	CUndoLog	cLog;
+	size		i;
+
+	cLog.Init(3);
+	for (i = 0; i < 5; i++)
+	{
+		cLog.Kept("a", i, i + 1);
+	}
+	AssertSize(3, cLog.NumSteps());
+	AssertSize(2, cLog.Get(0)->uiIdBefore);
+	AssertSize(5, cLog.Get(2)->uiIdAfter);
+	cLog.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestUndoStack(void)
@@ -167,6 +260,8 @@ void TestUndoStack(void)
 
 	TestUndoStackStates();
 	TestUndoStackMaximum();
+	TestUndoLogAcrossDocuments();
+	TestUndoLogMaximum();
 
 	TestStatistics();
 }

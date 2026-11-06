@@ -870,6 +870,9 @@
     <ClInclude Include="TypeConverter.h">
       <Filter>Source\Data\Types\Converter</Filter>
     </ClInclude>
+    <ClInclude Include="UndoLog.h">
+      <Filter>Source\Data</Filter>
+    </ClInclude>
     <ClInclude Include="UndoStack.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
@@ -2140,6 +2143,9 @@
     </ClCompile>
     <ClCompile Include="TypeConverter.cpp">
       <Filter>Source\Data\Types\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="UndoLog.cpp">
+      <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="UndoStack.cpp">
       <Filter>Source\Data</Filter>
