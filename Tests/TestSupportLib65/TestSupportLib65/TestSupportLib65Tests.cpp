@@ -18,7 +18,9 @@ static const char* gaszTestSupportLib65Excluded[] =
 {
 	//More than the 4G instructions each program gets here.  They pass when given longer: TestTrueTypeFont in 5.1G
 	//65C64 instructions, TestModPlayer in 9.8G, TestFont in 16.6G, TestSoundResampler in 16.8G, TestImageResampler
-	//in 24.0G, TestImageOpacity in 24.6G and TestNormalGeneration in 35.2G.
+	//in 24.0G, TestImageOpacity in 24.6G and TestNormalGeneration in 35.2G.  TestModPlayer passes on the W65C816 too
+	//(TEST_PROJECT65_STEPS=60000), in 76.3G cycles, since CModPlayer::RenderSong renders into the sound a block at a
+	//time (it kept the whole song as float64s, about 30MB, more than the W65C816's 16MB).
 	"TestTrueTypeFont",
 	"TestModPlayer",
 	"TestFont",
