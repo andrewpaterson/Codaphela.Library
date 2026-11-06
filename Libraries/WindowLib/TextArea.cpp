@@ -2027,6 +2027,42 @@ void CTextArea::Paste(char* szSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each of the ranges, uiStart to uiEnd (exclusive), in order and not
+// overlapping, becomes szText, as one edit: one undo puts them all back.
+// A rename's places in a file, say.  False if the text area can't be
+// edited or a range is out of order or past the end.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, const char* szText)
+{
+	size	i;
+
+	if (!mbEditable || (uiNumRanges == 0))
+	{
+		return false;
+	}
+	for (i = 0; i < uiNumRanges; i++)
+	{
+		if ((auiStarts[i] > auiEnds[i]) || (auiEnds[i] > mszText.Length()) || ((i > 0) && (auiStarts[i] < auiEnds[i - 1])))
+		{
+			return false;
+		}
+	}
+
+	//From the last so each range's place is still where it was.
+	BeginEdit();
+	for (i = uiNumRanges; i > 0; i--)
+	{
+		RemoveText(auiStarts[i - 1], auiEnds[i - 1]);
+		InsertText(auiStarts[i - 1], szText);
+	}
+	TextChanged();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The caret's line, with its line feed, is appended to pszDest and
 // deleted.  The caret stays as far along the line that moves up into its
 // place.  With a selection only the selection is cut.

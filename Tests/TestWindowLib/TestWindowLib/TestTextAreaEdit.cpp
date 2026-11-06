@@ -1621,6 +1621,67 @@ void TestTextAreaEditUndoEvent(void)
 	cNativeFactory.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A rename's places in a file replaced as one edit: one undo puts them
+// all back.  Ranges out of order, or in a text area that isn't editable,
+// change nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditReplaceRanges(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		size						auiStarts[3] = { 4, 17, 23 };
+		size						auiEnds[3] = { 7, 20, 26 };
+		size						auiBad[2] = { 17, 4 };
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "int foo;\nint x = foo + foo;");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		pTextArea->SetEditable(false);
+		AssertFalse(pTextArea->ReplaceRanges(auiStarts, auiEnds, 3, "count"));
+		pTextArea->SetEditable(true);
+		AssertFalse(pTextArea->ReplaceRanges(auiBad, auiEnds, 2, "count"));
+		AssertString("int foo;\nint x = foo + foo;", pTextArea->GetText());
+
+		pTextArea->SetCaretPosition(27);
+		AssertTrue(pTextArea->ReplaceRanges(auiStarts, auiEnds, 3, "count"));
+		AssertString("int count;\nint x = count + count;", pTextArea->GetText());
+		AssertSize(33, pTextArea->GetCaretPosition());
+		AssertTrue(pTextArea->Undo());
+		AssertString("int foo;\nint x = foo + foo;", pTextArea->GetText());
+		AssertFalse(pTextArea->CanUndo());
+		AssertTrue(pTextArea->Redo());
+		AssertString("int count;\nint x = count + count;", pTextArea->GetText());
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1637,6 +1698,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditModification();
 	TestTextAreaEditUndo();
 	TestTextAreaEditUndoEvent();
+	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();
