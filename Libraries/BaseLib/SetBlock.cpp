@@ -327,7 +327,7 @@ size CSetBlock::GetHoldingSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSetBlock::StartIteration(SSetIterator* psIterator, void** ppvData, size* piDataSize)
+bool CSetBlock::StartIteration(SSetBlockIterator* psIterator, void** ppvData, size* piDataSize)
 {
 	SSNode**	ppsNode;
 	void*		pvData;
@@ -352,7 +352,7 @@ bool CSetBlock::StartIteration(SSetIterator* psIterator, void** ppvData, size* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSetBlock::Iterate(SSetIterator* psIterator, void** ppvData, size* piDataSize)
+bool CSetBlock::Iterate(SSetBlockIterator* psIterator, void** ppvData, size* piDataSize)
 {
 	void*		pvData;
 	SSNode*		psNode;
@@ -377,7 +377,7 @@ bool CSetBlock::Iterate(SSetIterator* psIterator, void** ppvData, size* piDataSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSNode* CSetBlock::GetNode(SSetIterator* psIterator)
+SSNode* CSetBlock::GetNode(SSetBlockIterator* psIterator)
 {
 	SSNode** ppsNode;
 
@@ -818,7 +818,7 @@ void* CSetBlock::GetData(SSNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 lsize CSetBlock::ByteSize(void)
 {
-	SSetIterator	sIter;
+	SSetBlockIterator	sIter;
 	size			iDataSize;
 	bool			bExists;
 	lsize			uiByteSize;

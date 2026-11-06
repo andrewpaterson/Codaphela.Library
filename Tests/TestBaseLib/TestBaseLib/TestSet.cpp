@@ -42,7 +42,7 @@ void TestSetInt2(void)
 	CSetInt			cSetInt;
 	int*			px;
 	int*			pz;
-	SSetIterator	sIter;
+	SSetBlockIterator	sIter;
 	bool			bResult;
 	int				x;
 

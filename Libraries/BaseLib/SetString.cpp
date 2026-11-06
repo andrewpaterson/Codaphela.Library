@@ -230,7 +230,7 @@ DataCompare CSetString::CalculateCompareFunc(bool bCaseSensitive)
 //////////////////////////////////////////////////////////////////////////
 void CSetString::GetKeysAsString(CChars* pszDest, char* szSeparator)
 {
-	SSetIterator	sIter;
+	SSetBlockIterator	sIter;
 	char*			szKey;
 	size			iStrLen;
 	bool			bHasNext;

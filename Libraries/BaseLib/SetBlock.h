@@ -8,7 +8,7 @@
 #include "ArrayBlockSorted.h"
 
 
-struct SSetIterator : SArraySortedIterator
+struct SSetBlockIterator : SArraySortedIterator
 {
 };
 
@@ -36,7 +36,7 @@ public:
 
 	void*				Get(const void* pvData, size iDataSize);
 	SSNode*				GetNode(const void* pvData, size iDataSize);
-	SSNode*				GetNode(SSetIterator* psIterator);
+	SSNode*				GetNode(SSetBlockIterator* psIterator);
 
 	void*				Put(const void* pvData, size iDataSize);
 
@@ -52,8 +52,8 @@ public:
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
 	void				SetDataIOCallback(CDataIO* pcDataIO);
 
-	bool				StartIteration(SSetIterator* psIterator, void** ppvData, size* piDataSize);
-	bool				Iterate(SSetIterator* psIterator, void** ppvData, size* piDataSize);
+	bool				StartIteration(SSetBlockIterator* psIterator, void** ppvData, size* piDataSize);
+	bool				Iterate(SSetBlockIterator* psIterator, void** ppvData, size* piDataSize);
 
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
