@@ -337,22 +337,16 @@ static bool IsExcluded(CArrayChars* paszExcluded, const char* szFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every C++ source of a Visual Studio project as a unit of the library szLibrary (AddUnit), except those named in
-// szExcluded (space separated).  A source outside the project's directory (..\Other\File.cpp) is a unit of a library
-// of its own directory, szLibrary.Other, linked as szLibrary is and given szLibrary's defines (AddDefine): a library's
-// units are found, and their listings named, from the library's directory.  Returns false if the project can't be read.
+// Every C++ source of a Visual Studio project as a unit of the library szLibrary (AddProjectSources), except those
+// named in szExcluded (space separated).  Returns false if the project can't be read.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded)
 {
 	CVisualStudioProject	cProject;
 	CArrayChars				aszExcluded;
+	CArrayChars				aszSources;
 	CChars					szExclude;
-	CChars					szDirectory;
-	CChars					szFile;
-	CChars					szPath;
-	CChars					szUnitLibrary;
-	CFileUtil				cFileUtil;
 	size					i;
 	bool					bResult;
 
@@ -370,28 +364,60 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 	{
 		mszErrors.Append("Could not read ")->Append(szProjectFile)->Append(".\n");
 	}
+	aszSources.Init();
 	for (i = 0; i < cProject.NumSources(); i++)
 	{
-		if (IsExcluded(&aszExcluded, cProject.GetSource(i)))
+		if (!IsExcluded(&aszExcluded, cProject.GetSource(i)))
 		{
-			continue;
+			aszSources.Add(cProject.GetSource(i));
 		}
-		szDirectory.Init(cProject.GetDirectory());
-		szFile.Init(cProject.GetSource(i));
+	}
+	AddProjectSources(szLibrary, cProject.GetDirectory(), &aszSources, bLinkAsLibrary);
+	aszSources.Kill();
+	cProject.Kill();
+	aszExcluded.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A project's sources (paths relative to its directory, szDirectory, a full path) as units of the library szLibrary
+// (AddUnit), with their W65C816 assembly.  A source outside the project's directory (..\Other\File.cpp) is a unit of
+// a library of its own directory, szLibrary.Other, linked as szLibrary is and given szLibrary's defines (AddDefine):
+// a library's units are found, and their listings named, from the library's directory.  A Visual Studio project's
+// sources are added this way (AddVisualStudioProject), and a project described some other way (hcp65build's plain
+// command line) gets exactly the same units.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddProjectSources(const char* szLibrary, const char* szDirectory, CArrayChars* paszSources, bool bLinkAsLibrary)
+{
+	CChars		szUnitDirectory;
+	CChars		szFile;
+	CChars		szPath;
+	CChars		szUnitLibrary;
+	CFileUtil	cFileUtil;
+	size		i;
+
+	for (i = 0; i < paszSources->NumElements(); i++)
+	{
+		szUnitDirectory.Init(szDirectory);
+		szFile.Init(paszSources->GetText(i));
+		szFile.Replace('\\', FILE_SEPARATOR[0]);
 		szUnitLibrary.Init(szLibrary);
 		if (strstr(szFile.Text(), "..") != NULL)
 		{
-			szPath.Init(szDirectory);
+			szPath.Init(szUnitDirectory);
 			cFileUtil.AppendToPath(&szPath, szFile.Text());
 			cFileUtil.CollapsePath(&szPath);
 			szFile.Kill();
-			szDirectory.Kill();
+			szUnitDirectory.Kill();
 			szFile.Init();
-			szDirectory.Init();
-			cFileUtil.SplitPath(szPath.Text(), &szFile, &szDirectory);
+			szUnitDirectory.Init();
+			cFileUtil.SplitPath(szPath.Text(), &szFile, &szUnitDirectory);
 			szPath.Kill();
 
-			szPath.Init(szDirectory);
+			szPath.Init(szUnitDirectory);
 			cFileUtil.RemovePath(&szPath);
 			szUnitLibrary.Append('.');
 			szUnitLibrary.Append(szPath);
@@ -402,18 +428,15 @@ bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* sz
 				maszOutsideLibraries.Add(szUnitLibrary.Text());
 			}
 		}
-		AddUnit(szUnitLibrary.Text(), szDirectory.Text(), szFile.Text(), bLinkAsLibrary);
+		AddUnit(szUnitLibrary.Text(), szUnitDirectory.Text(), szFile.Text(), bLinkAsLibrary);
 		if (meTarget == CPPT_W65C816)
 		{
-			AddW65C816Assembly(szUnitLibrary.Text(), szDirectory.Text(), szFile.Text(), bLinkAsLibrary);
+			AddW65C816Assembly(szUnitLibrary.Text(), szUnitDirectory.Text(), szFile.Text(), bLinkAsLibrary);
 		}
 		szUnitLibrary.Kill();
 		szFile.Kill();
-		szDirectory.Kill();
+		szUnitDirectory.Kill();
 	}
-	cProject.Kill();
-	aszExcluded.Kill();
-	return bResult;
 }
 
 

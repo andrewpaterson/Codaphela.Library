@@ -252,6 +252,7 @@ public:
 	void			AddRuntime816(const char* szLibc65Directory);
 	void			AddLibc65(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
+	void			AddProjectSources(const char* szLibrary, const char* szDirectory, CArrayChars* paszSources, bool bLinkAsLibrary);
 	bool			AddDefine(const char* szLibrary, const char* szDefine);
 	void			SetStubMissing(bool bStubMissing);
 	void			SetRemoveUnused(bool bRemoveUnused);
