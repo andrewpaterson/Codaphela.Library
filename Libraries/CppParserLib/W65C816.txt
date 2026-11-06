@@ -417,6 +417,15 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	of TestStandardLib65 816; ~2MB a time at 7 cycles a byte), which nothing needed: it is
 	gone.  TestStandardLib65 816 30.791G -> 27.025G (-12.2%), TestBaseLib65 816 18.933G ->
 	18.861G.
+	2026-11-06, CArrayBlock::FindInSorted (8.2% of TestStandardLib65 816): call sites showed
+	4.8M of its 6.6M compares were CompareFreeListParam, from CMemoryFreeListParams::
+	BuildSizeIndices doing a binary search for each of its 2048 sizes every time a memory was
+	set up (~570 times).  It now fills the table a params range at a time (the per size search
+	is kept for params that overlap or are out of order).  BinarySearch holds the array and
+	element size in locals (fCompare could change them as far as the compiler knows).  Tried
+	and dropped: stepping byte offsets instead of multiplying (the inline Mul16 with byte
+	fast paths costs about the same, and the two set-up multiplies made it 24% slower).
+	TestStandardLib65 816 27.112G -> 25.047G (-7.6%), TestBaseLib65 816 18.861G -> 18.618G.
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call
