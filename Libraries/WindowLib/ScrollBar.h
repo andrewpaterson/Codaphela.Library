@@ -30,6 +30,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //scrolled, with no track or arrows.  The thumb is three canvases: a half circle at each end and a bar stretched
 //between them.  The thumb's length shows how much of the content is in view and its place how far it is scrolled.
 //
+//The thumb is fainter until the pointer is over the scroll bar or it is dragged (CScrollBarImages' hover colour).
+//
 //The scroll bar is laid out to its track, the strip along the side of the scroll pane the thumb moves in.  The whole
 //track is hit, even though only the thumb is drawn.  Pressing the thumb and dragging it scrolls the scroll pane.
 //Pressing the track elsewhere jumps the thumb's middle to the pointer and drags it from there.  A scroll bar is only
@@ -53,6 +55,8 @@ protected:
 	int32					miThumbLength;
 	bool					mbDragging;
 	int32					miGrab;  //Where along the thumb it was pressed.
+	bool					mbMouseOver;
+	bool					mbHoverShown;  //The thumb's pieces are in the hover colour.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CScrollBarImages> pImages, EScrollBarOrientation eOrientation);
@@ -66,6 +70,7 @@ public:
 	void			GetThumbBounds(CInt32Rect* pcDest);
 	EScrollBarOrientation	GetOrientation(void);
 	bool			IsDragging(void);
+	bool			IsHoverShown(void);
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
@@ -73,6 +78,8 @@ public:
 	Ptr<CComponent>	FindComponentAt(int x, int y) override;
 
 	void			FocusLost(void) override;
+	void			MovedInto(void) override;
+	void			MovedOutof(void) override;
 	void			ActivateComponent(int x, int y);
 	void			ExecuteComponent(int x, int y);
 	void			StartDragScroll(int x, int y);
@@ -87,6 +94,8 @@ protected:
 	bool			IsInThumb(int x, int y);
 	void			MoveThumb(int32 iThumbStart);
 	void			LayoutPiece(Ptr<CCanvas> pPiece, int32 iStart, int32 iLength);
+	void			ShowHover(void);
+	void			SetPieceCel(Ptr<CCanvas> pPiece, EScrollBarPiece ePiece, bool bHover);
 };
 
 

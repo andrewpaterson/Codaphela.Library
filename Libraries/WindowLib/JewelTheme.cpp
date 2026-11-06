@@ -50,7 +50,7 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	pComboStyle->SetIconWidth(13);
 	pTheme->SetComboBoxLook(pComboStyle, CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
 
-	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
+	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)64), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	pTheme->SetTextColours(JEWEL_SELECTION, JEWEL_ICON);
 	pTheme->SetListColours(JEWEL_SELECTION, JEWEL_HOVER);
 

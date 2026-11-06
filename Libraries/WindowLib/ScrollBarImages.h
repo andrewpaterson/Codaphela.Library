@@ -51,7 +51,8 @@ class CImageDraw;
 
 //The pieces of a scroll bar's thumb in both orientations, drawn in one colour with CImageDraw rather than loaded.
 //Scroll bars can share them.  The colour's opacity makes the thumb translucent; the pieces are drawn over what is
-//being scrolled.  The ends are half circles as wide as the thumb is thick so the thumb has round ends.  The pieces
+//being scrolled.  There is a second set in the hover colour, for a scroll bar the pointer is over or that is being
+//dragged (the same colour unless one is given).  The ends are half circles as wide as the thumb is thick so the thumb has round ends.  The pieces
 //are made in the colour order of the format given, RGB if there is none, as they are blitted onto the window's canvases.
 class CScrollBarImages : public CObject
 {
@@ -59,29 +60,34 @@ CONSTRUCTABLE(CScrollBarImages);
 DESTRUCTABLE(CScrollBarImages);
 protected:
 	CArray<CImageCel>	maCels;  //NUM_SCROLL_BAR_PIECES for each orientation in turn.
+	CArray<CImageCel>	maHoverCels;  //The same in the hover colour.
 	int32				miThickness;
 	ARGB32				msColour;
+	ARGB32				msHoverColour;
 	EColourOrder		meOrder;
 
 public:
 	void			Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat = NULL);
+	void			Init(int32 iThickness, ARGB32 sColour, ARGB32 sHoverColour, CColourFormatHelper* pcFormat = NULL);
 	void			Class(void) override;
 	void 			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	Ptr<CImageCel>	GetCel(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece);
+	Ptr<CImageCel>	GetCel(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece, bool bHover = false);
 	int32			GetThickness(void);
 	int32			GetCapLength(void);
 	ARGB32			GetColour(void);
+	ARGB32			GetHoverColour(void);
 
 protected:
-	Ptr<CImageCel>	CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece);
-	Ptr<CImageCel>	CreateMiddle(EScrollBarOrientation eOrientation);
+	void			CreateCels(CArray<CImageCel>* paDest, ARGB32 sColour);
+	Ptr<CImageCel>	CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece, ARGB32 sColour);
+	Ptr<CImageCel>	CreateMiddle(EScrollBarOrientation eOrientation, ARGB32 sColour);
 	Ptr<CImage>		CreateImage(int32 iWidth, int32 iHeight);
 	Ptr<CImageCel>	CreateCel(Ptr<CImage> pImage);
-	void			SetColour(CImageDraw* pcDraw);
+	void			SetColour(CImageDraw* pcDraw, ARGB32 sColour);
 };
 
 

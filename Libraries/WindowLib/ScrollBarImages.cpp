@@ -28,28 +28,56 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // iThickness is across the thumb.  sColour's alpha is the thumb's
-// opacity.  pcFormat may be NULL.
+// opacity, hovered or not.  pcFormat may be NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
-	uint	iOrientation;
+	Init(iThickness, sColour, sColour, pcFormat);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sColour is the thumb's colour, and sHoverColour its colour while the
+// pointer is over the scroll bar or it is being dragged.  Their alphas are
+// the thumb's opacity.  pcFormat may be NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour, ARGB32 sHoverColour, CColourFormatHelper* pcFormat)
+{
 	PreInit();
 
 	maCels.Init();
+	maHoverCels.Init();
 	miThickness = iThickness;
 	msColour = sColour;
+	msHoverColour = sHoverColour;
 	meOrder = pcFormat ? pcFormat->meOrder : CCO_RGB;
+
+	CreateCels(&maCels, msColour);
+	CreateCels(&maHoverCels, msHoverColour);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pieces in sColour, NUM_SCROLL_BAR_PIECES for each orientation in
+// turn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBarImages::CreateCels(CArray<CImageCel>* paDest, ARGB32 sColour)
+{
+	uint	iOrientation;
 
 	for (iOrientation = 0; iOrientation < NUM_SCROLL_BAR_ORIENTATIONS; iOrientation++)
 	{
-		maCels.Add(CreateCap((EScrollBarOrientation)iOrientation, SBP_Start));
-		maCels.Add(CreateMiddle((EScrollBarOrientation)iOrientation));
-		maCels.Add(CreateCap((EScrollBarOrientation)iOrientation, SBP_End));
+		paDest->Add(CreateCap((EScrollBarOrientation)iOrientation, SBP_Start, sColour));
+		paDest->Add(CreateMiddle((EScrollBarOrientation)iOrientation, sColour));
+		paDest->Add(CreateCap((EScrollBarOrientation)iOrientation, SBP_End, sColour));
 	}
-
-	PostInit();
 }
 
 
@@ -60,8 +88,10 @@ void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour, CColourFormatHelpe
 void CScrollBarImages::Class(void)
 {
 	M_Embedded(maCels);
+	M_Embedded(maHoverCels);
 	U_Int32(miThickness);
 	U_UInt32(msColour);
+	U_UInt32(msHoverColour);
 	U_Enum(meOrder);
 }
 
@@ -115,11 +145,11 @@ Ptr<CImage> CScrollBarImages::CreateImage(int32 iWidth, int32 iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CScrollBarImages::SetColour(CImageDraw* pcDraw)
+void CScrollBarImages::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
 {
 	CImageColourARGB	cColour;
 
-	cColour.Init(Get8BitAlphaColour(msColour) / 255.0f, Get8BitRedColour(msColour) / 255.0f, Get8BitGreenColour(msColour) / 255.0f, Get8BitBlueColour(msColour) / 255.0f);
+	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
 	pcDraw->SetColour(&cColour);
 	cColour.Kill();
 }
@@ -134,7 +164,7 @@ void CScrollBarImages::SetColour(CImageDraw* pcDraw)
 // in the cap and meets the middle without a seam.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece)
+Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece, ARGB32 sColour)
 {
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
@@ -145,14 +175,14 @@ Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, E
 	{
 		pImage = CreateImage(GetCapLength(), miThickness);
 		cDraw.Init(&pImage);
-		SetColour(&cDraw);
+		SetColour(&cDraw, sColour);
 		cDraw.DrawSemicircle(iOffset, 0, miThickness, 0, 360, true);
 	}
 	else
 	{
 		pImage = CreateImage(miThickness, GetCapLength());
 		cDraw.Init(&pImage);
-		SetColour(&cDraw);
+		SetColour(&cDraw, sColour);
 		cDraw.DrawSemicircle(0, iOffset, miThickness, 0, 360, true);
 	}
 	cDraw.Kill();
@@ -167,7 +197,7 @@ Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, E
 // thumb's length between its ends.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CScrollBarImages::CreateMiddle(EScrollBarOrientation eOrientation)
+Ptr<CImageCel> CScrollBarImages::CreateMiddle(EScrollBarOrientation eOrientation, ARGB32 sColour)
 {
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
@@ -182,7 +212,7 @@ Ptr<CImageCel> CScrollBarImages::CreateMiddle(EScrollBarOrientation eOrientation
 	}
 
 	cDraw.Init(&pImage);
-	SetColour(&cDraw);
+	SetColour(&cDraw, sColour);
 	cDraw.DrawBox(0, 0, pImage->GetWidth() - 1, pImage->GetHeight() - 1, true);
 	cDraw.Kill();
 
@@ -209,9 +239,9 @@ Ptr<CImageCel> CScrollBarImages::CreateCel(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CScrollBarImages::GetCel(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece)
+Ptr<CImageCel> CScrollBarImages::GetCel(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece, bool bHover)
 {
-	return maCels.Get(eOrientation * NUM_SCROLL_BAR_PIECES + ePiece);
+	return (bHover ? &maHoverCels : &maCels)->Get(eOrientation * NUM_SCROLL_BAR_PIECES + ePiece);
 }
 
 
@@ -228,4 +258,5 @@ int32 CScrollBarImages::GetCapLength(void)
 
 int32 CScrollBarImages::GetThickness(void) { return miThickness; }
 ARGB32 CScrollBarImages::GetColour(void) { return msColour; }
+ARGB32 CScrollBarImages::GetHoverColour(void) { return msHoverColour; }
 

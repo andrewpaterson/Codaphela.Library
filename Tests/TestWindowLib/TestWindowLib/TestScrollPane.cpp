@@ -110,6 +110,15 @@ void TestScrollBarImages(void)
 
 		AssertInt(CCO_RGB, pCel->GetSourceImage()->GetColourOrder());
 
+		//Without a hover colour the thumb is the same hovered or not; with one the hover pieces are their own.
+		AssertInt(pImages->GetColour(), pImages->GetHoverColour());
+		pImages = OMalloc<CScrollBarImages>(7, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)64), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128));
+		AssertInt(Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), pImages->GetHoverColour());
+		AssertFalse(pImages->GetCel(SBO_Vertical, SBP_Middle) == pImages->GetCel(SBO_Vertical, SBP_Middle, true));
+		pcSubImage = pImages->GetCel(SBO_Vertical, SBP_End, true)->GetSubImage();
+		AssertInt(7, pcSubImage->GetFullWidth());
+		AssertInt(4, pcSubImage->GetFullHeight());
+
 		//The pieces are blitted onto the window's canvases so they are made in the window's colour order.
 		cFormat.Init(CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
 		pImages = OMalloc<CScrollBarImages>(7, Set32BitColour((uint8)200, (uint8)100, (uint8)50, (uint8)128), &cFormat);
@@ -326,9 +335,16 @@ void TestScrollPaneDrag(void)
 		pHorizontal = pScrollPane->GetScrollBar(SBO_Horizontal);
 		pTestWindow->Layout();
 
+		//The thumbs are faint until the pointer is over their scroll bar.
+		pTestWindow->PointerMoved(50, 50);
+		AssertFalse(pVertical->IsHoverShown());
+		AssertFalse(pHorizontal->IsHoverShown());
+
 		//The vertical thumb is at 190, 2 to 198, 30.  Pressing it 8 down from its top grabs it there.
 		pTestWindow->PointerMoved(194, 10);
 		AssertTrue(pTestWindow->GetFocus()->GetMouseOverComponent() == pVertical);
+		AssertTrue(pVertical->IsHoverShown());
+		AssertFalse(pHorizontal->IsHoverShown());
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pVertical);
 		AssertTrue(pVertical->IsDragging());
@@ -342,10 +358,12 @@ void TestScrollPaneDrag(void)
 		sVec = pContent->GetPosition();
 		AssertInt32Vec2(0, -100, &sVec);
 
-		//The drag goes on wherever the pointer goes, and the thumb stops at the ends of its track.
+		//The drag goes on wherever the pointer goes, and the thumb stops at the ends of its track.  It is hovered while
+		//it is dragged.
 		pTestWindow->PointerMoved(20, 500);
 		sVec = pScrollPane->GetScrollPosition();
 		AssertInt32Vec2(0, 200, &sVec);
+		AssertTrue(pVertical->IsHoverShown());
 		pTestWindow->PointerMoved(20, -500);
 		sVec = pScrollPane->GetScrollPosition();
 		AssertInt32Vec2(0, 0, &sVec);
@@ -365,6 +383,8 @@ void TestScrollPaneDrag(void)
 		//The horizontal thumb is 2, 90 to 95, 98.  Dragged half its travel it scrolls half the content's.
 		pTestWindow->Layout();
 		pTestWindow->PointerMoved(10, 94);
+		AssertFalse(pVertical->IsHoverShown());
+		AssertTrue(pHorizontal->IsHoverShown());
 		pTestWindow->InputCommand(CIC_ActivateComponent, true);
 		AssertTrue(pHorizontal->IsDragging());
 		pTestWindow->PointerMoved(10 + 46, 94);

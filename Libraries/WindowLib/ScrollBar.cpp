@@ -44,6 +44,8 @@ void CScrollBar::Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CS
 	miThumbLength = 0;
 	mbDragging = false;
 	miGrab = 0;
+	mbMouseOver = false;
+	mbHoverShown = false;
 
 	//The thumb is pressed and dragged so it takes focus, which is how the drag reaches it.
 	SetCanGetFocus(true);
@@ -83,6 +85,8 @@ void CScrollBar::Class(void)
 	U_Int32(miThumbLength);
 	U_Bool(mbDragging);
 	U_Int32(miGrab);
+	U_Bool(mbMouseOver);
+	U_Bool(mbHoverShown);
 }
 
 
@@ -434,6 +438,7 @@ void CScrollBar::StartDragScroll(int x, int y)
 	{
 		mbDragging = true;
 		miGrab = Along(x, y) - miThumbStart;
+		ShowHover();
 	}
 }
 
@@ -459,6 +464,75 @@ void CScrollBar::ContDragScroll(int x, int y)
 void CScrollBar::StopDragScroll(int x, int y)
 {
 	mbDragging = false;
+	ShowHover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer moved over the scroll bar's track: the thumb is shown in
+// the hover colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::MovedInto(void)
+{
+	CContainer::MovedInto();
+	mbMouseOver = true;
+	ShowHover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer left the track: the thumb fades again, unless it is being
+// dragged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::MovedOutof(void)
+{
+	CContainer::MovedOutof();
+	mbMouseOver = false;
+	ShowHover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The thumb's pieces in the hover colour while the pointer is over the
+// scroll bar or it is dragged, else in the plain one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::ShowHover(void)
+{
+	bool	bHover;
+
+	bHover = mbMouseOver || mbDragging;
+	if (bHover == mbHoverShown)
+	{
+		return;
+	}
+	mbHoverShown = bHover;
+	SetPieceCel(mpStart, SBP_Start, bHover);
+	SetPieceCel(mpMiddle, SBP_Middle, bHover);
+	SetPieceCel(mpEnd, SBP_End, bHover);
+	Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::SetPieceCel(Ptr<CCanvas> pPiece, EScrollBarPiece ePiece, bool bHover)
+{
+	Ptr<CImageCanvasDraw>	pDraw;
+
+	pDraw = Ptr<CImageCanvasDraw>(dynamic_cast<CImageCanvasDraw*>(&pPiece->GetCanvasDraw()));
+	if (pDraw.IsNotNull())
+	{
+		pDraw->SetCel(mpImages->GetCel(meOrientation, ePiece, bHover));
+		pPiece->Invalidate();
+	}
 }
 
 
@@ -479,4 +553,5 @@ void CScrollBar::FocusLost(void)
 
 EScrollBarOrientation CScrollBar::GetOrientation(void) { return meOrientation; }
 bool CScrollBar::IsDragging(void) { return mbDragging; }
+bool CScrollBar::IsHoverShown(void) { return mbHoverShown; }
 
