@@ -312,6 +312,7 @@ void TestStoredObjectsKillLeavesHollow(void)
 	pWindow = NULL;
 	AssertTrue(pHolder->mszString.IsNotNull());
 	AssertTrue(pHolder->mszString.IsHollow());
+	AssertFalse(pHolder->mszString.IsDirty());
 	AssertFalse(pHolder->IsDirty());
 	AssertString("shut", pHolder->mszString->Text());
 

@@ -240,6 +240,12 @@ void CBaseObject::ContainerPostInit(void)
 	muiPostInits++;
 	if (muiPreInits == muiPostInits)
 	{
+		//A new object has never been saved: it is dirty whether or not Init changed what was in its memory (a primitive
+		//is only dirtied by an assignment that changes it).  A hollow stands for an object in the database: it is not.
+		if (!IsHollow())
+		{
+			SetDirty(true);
+		}
 		Initialised();
 	}		
 }

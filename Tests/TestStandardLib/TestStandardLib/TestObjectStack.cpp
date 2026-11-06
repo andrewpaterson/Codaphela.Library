@@ -153,6 +153,36 @@ void ObjectReuseOutOfFrame(void* pvStorage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// A new object is dirty after Init whatever was in its memory.  Init's
+// assignments only dirty an object when they change a value, and the
+// second object here is made where the first was, so none of them do.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectStackNewObjectIsDirty(void)
+{
+	int64			alliStorage[(sizeof(CTestClass) + sizeof(int64) - 1) / sizeof(int64)];  //int64s to align it.
+	CTestClass*		pcTestClass;
+	size			i;
+
+	ObjectsInit();
+
+	memset(alliStorage, 0xFF, sizeof(alliStorage));
+	for (i = 0; i < 2; i++)
+	{
+		pcTestClass = new(alliStorage) CTestClass;
+		AssertFalse(pcTestClass->IsDirty());
+		pcTestClass->Init();
+		AssertTrue(pcTestClass->IsDirty());
+		pcTestClass->Kill();
+		pcTestClass->~CTestClass();
+	}
+
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void TestObjectStackObjectReuse(void)
 {
 	int64			alliStorage[(sizeof(CTestClass) + sizeof(int64) - 1) / sizeof(int64)];  //int64s to align it.
@@ -274,6 +304,7 @@ void TestObjectStack(void)
 	TestObjectStackDestructor();
 	TestObjectStackPointedTo();
 	TestObjectStackObjectReuse();
+	TestObjectStackNewObjectIsDirty();
 
 	DataIOKill();
 	TypesKill();
