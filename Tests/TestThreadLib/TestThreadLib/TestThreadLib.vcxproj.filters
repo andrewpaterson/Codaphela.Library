@@ -122,5 +122,8 @@
     <ClInclude Include="TestTimeout.h">
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
+    <ClInclude Include="TestThreadLibName.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

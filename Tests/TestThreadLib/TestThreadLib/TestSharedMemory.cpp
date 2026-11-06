@@ -9,6 +9,7 @@
 #include "ThreadLib/Thread.h"
 #include "ThreadLib/ThreadsDone.h"
 #include "TestLib/Assert.h"
+#include "TestThreadLibName.h"
 #include "SharedMemoryThread.h"
 #include "TestTimeout.h"
 
@@ -64,8 +65,12 @@ void TestSharedMemoryOneProcess(void)
 	char*			pcOwner;
 	char*			pcClient;
 	int				i;
+	char			szName[TEST_THREAD_LIB_NAME_SIZE];
+	char			szMappedName[TEST_THREAD_LIB_NAME_SIZE + 2];
 
-	cSharedOwner.Init("Local\\TestSharedMemoryOneProcess");
+	TestThreadLibName(szName, "Local\\TestSharedMemoryOneProcess");
+	snprintf(szMappedName, TEST_THREAD_LIB_NAME_SIZE + 2, "%s:0", szName);
+	cSharedOwner.Init(szName);
 	bResult = cSharedOwner.Create(256);
 	AssertTrue(bResult);
 
@@ -77,7 +82,7 @@ void TestSharedMemoryOneProcess(void)
 		pcOwner[i] = (char)i;
 	}
 
-	cSharedClient.Init("Local\\TestSharedMemoryOneProcess");
+	cSharedClient.Init(szName);
 	bResult = cSharedClient.Connect();
 	AssertTrue(bResult);
 
@@ -88,15 +93,15 @@ void TestSharedMemoryOneProcess(void)
 	{
 		AssertChar((char)i, pcClient[i]);
 	}
-	AssertMappedFile("Local\\TestSharedMemoryOneProcess:0", 2);
+	AssertMappedFile(szMappedName, 2);
 
 	cSharedOwner.Close();
 	cSharedOwner.Kill();
-	AssertMappedFile("Local\\TestSharedMemoryOneProcess:0", 1);
+	AssertMappedFile(szMappedName, 1);
 
 	cSharedClient.Close();
 	cSharedClient.Kill();
-	AssertMappedFile("Local\\TestSharedMemoryOneProcess:0", 0);
+	AssertMappedFile(szMappedName, 0);
 }
 
 
@@ -115,8 +120,10 @@ void TestSharedMemoryResizeOneProcess(void)
 	int				i;
 	int				iStillMapped;
 	SLogConfig		sLogConfig;
+	char			szName[TEST_THREAD_LIB_NAME_SIZE];
 
-	cSharedOwner.Init("Local\\TestSharedMemoryResizeOneProcess");
+	TestThreadLibName(szName, "Local\\TestSharedMemoryResizeOneProcess");
+	cSharedOwner.Init(szName);
 	bResult = cSharedOwner.Create(3940);
 	AssertTrue(bResult);
 
@@ -128,7 +135,7 @@ void TestSharedMemoryResizeOneProcess(void)
 		pcOwner[i] = (char)i;
 	}
 
-	cSharedClient.Init("Local\\TestSharedMemoryResizeOneProcess");
+	cSharedClient.Init(szName);
 	pcClient = (char*)cSharedClient.Touch().pvMemory;
 	AssertNotNull(pcClient);
 
@@ -140,7 +147,7 @@ void TestSharedMemoryResizeOneProcess(void)
 
 	cSharedOwner.Close();
 
-	cSharedNewOwner.Init("Local\\TestSharedMemoryResizeOneProcess");
+	cSharedNewOwner.Init(szName);
 	gcLogger.GetConfig(&sLogConfig);
 	gcLogger.SetBreakOnError(false);
 	bResult = cSharedNewOwner.Create(3940 + 16);
@@ -167,7 +174,7 @@ void TestSharedMemoryResizeOneProcess(void)
 	iStillMapped = cSharedClient.Close();
 	AssertInt(0, iStillMapped);
 
-	cSharedNewOwner.Init("Local\\TestSharedMemoryResizeOneProcess");
+	cSharedNewOwner.Init(szName);
 	bResult = cSharedNewOwner.Connect();
 	AssertTrue(bResult);
 	cSharedNewOwner.Close();
@@ -188,9 +195,10 @@ void TestSharedMemoryTwoProcesses(void)
 	bool			bResult;
 	unsigned char*	pcOwner;
 	int				i, j;
-	char			szSharedMemoryName[] = {"Local\\TestSharedMemoryTwoProcesses"};
+	char			szSharedMemoryName[TEST_THREAD_LIB_NAME_SIZE];
 	bool			bAllMatch;
 
+	TestThreadLibName(szSharedMemoryName, "Local\\TestSharedMemoryTwoProcesses");
 	cSharedOwner.Init(szSharedMemoryName);
 	bResult = cSharedOwner.Create(256);
 	AssertTrue(bResult);
@@ -297,12 +305,13 @@ void TestSharedMemoryResizeOneProcessFill(void)
 	int						i;
 	int						iChunkSize;
 	unsigned int*			puiPosition;
-	char					szMemoryName[] = { "Local\\TestSharedMemoryResizeOneProcessFill" };
+	char					szMemoryName[TEST_THREAD_LIB_NAME_SIZE];
 	CRandom					cRandom;
 	unsigned int			uiStop;
 	char					cFillChar;
 	void*					pvDest;
 
+	TestThreadLibName(szMemoryName, "Local\\TestSharedMemoryResizeOneProcessFill");
 	iChunkSize = 128;
 	uiStop = 16000 + sizeof(int);
 
@@ -379,8 +388,9 @@ void TestSharedMemoryResizeOneProcessResizeAndRelease(void)
 	CResizableSharedMemory	cSharedClient[4];
 	bool					bResult;
 	int						i;
-	char					szMemoryName[] = { "Local\\TestSharedMemoryResizeOneProcessResizeAndRelease" };
+	char					szMemoryName[TEST_THREAD_LIB_NAME_SIZE];
 
+	TestThreadLibName(szMemoryName, "Local\\TestSharedMemoryResizeOneProcessResizeAndRelease");
 	cSharedOwner.Init(szMemoryName);
 	bResult = cSharedOwner.Create(3000);
 	AssertTrue(bResult);
@@ -423,8 +433,8 @@ void TestSharedMemoryResizeMultiThread(void)
 	CResizableSharedMemory	cSharedOwner;
 	CInterProcessMutex		cMutex;
 	bool					bResult;
-	char					szSharedMemoryName[] = { "Local\\TestSharedMemoryResizeMultiThread" };
-	char					szMutexName[] = { "Local\\TestMutexResizeMultiThread" };
+	char					szSharedMemoryName[TEST_THREAD_LIB_NAME_SIZE];
+	char					szMutexName[TEST_THREAD_LIB_NAME_SIZE];
 	unsigned int*			puiPosition;
 	unsigned int			uiPosition;
 	CSharedMemoryThread		cThreadA;
@@ -436,6 +446,8 @@ void TestSharedMemoryResizeMultiThread(void)
 	CInterProcessDone		cDone;
 	char*					pcMemory;
 
+	TestThreadLibName(szSharedMemoryName, "Local\\TestSharedMemoryResizeMultiThread");
+	TestThreadLibName(szMutexName, "Local\\TestMutexResizeMultiThread");
 	cMutex.Init(szMutexName);
 	bResult = cMutex.Create();
 	AssertTrue(bResult);
@@ -533,8 +545,8 @@ void TestSharedMemoryResizeMultiProcess(void)
 	CResizableSharedMemory		cSharedOwner;
 	CInterProcessMutex			cMutex;
 	bool						bResult;
-	char						szSharedMemoryName[] = { "Local\\TestSharedMemoryResizeMultiProcess" };
-	char						szMutexName[] = { "Local\\TestMutexResizeMultiProcess" };
+	char						szSharedMemoryName[TEST_THREAD_LIB_NAME_SIZE];
+	char						szMutexName[TEST_THREAD_LIB_NAME_SIZE];
 	unsigned int*				puiPosition;
 	unsigned int				uiPosition;
 	int							iChunkSize;
@@ -543,6 +555,8 @@ void TestSharedMemoryResizeMultiProcess(void)
 	CInterProcessDone			cDone;
 	char*						pcMemory;
 
+	TestThreadLibName(szSharedMemoryName, "Local\\TestSharedMemoryResizeMultiProcess");
+	TestThreadLibName(szMutexName, "Local\\TestMutexResizeMultiProcess");
 	cMutex.Init(szMutexName);
 	bResult = cMutex.Create();
 	AssertTrue(bResult);

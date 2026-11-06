@@ -261,6 +261,7 @@
     <ClInclude Include="TestSharedMemoryQueue.h" />
     <ClInclude Include="TestProcessChannel.h" />
     <ClInclude Include="TestTimeout.h" />
+    <ClInclude Include="TestThreadLibName.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

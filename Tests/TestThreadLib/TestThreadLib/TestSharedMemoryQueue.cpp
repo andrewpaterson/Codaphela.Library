@@ -11,6 +11,7 @@
 #include "ThreadLib/InterProcessDone.h"
 #include "ThreadLib/InterProcessName.h"
 #include "TestLib/Assert.h"
+#include "TestThreadLibName.h"
 #include "SharedMemoryQueueProducerThread.h"
 #include "SharedMemoryQueueConsumerThread.h"
 #include "TestSharedMemoryQueue.h"
@@ -30,6 +31,7 @@ void TestSharedMemoryQueueBasic(void)
 	size					uiDataSize;
 	size					uiOneElementCacheSize;
 	size					uiTwoElementCacheSize;
+	char					szName[TEST_THREAD_LIB_NAME_SIZE];
 
 #ifdef BUILD_64
 	uiOneElementCacheSize = 44;
@@ -39,7 +41,8 @@ void TestSharedMemoryQueueBasic(void)
 	uiTwoElementCacheSize = 84;
 #endif // BUILD_64
 
-	bResult = cQueue.Init("TestSharedMemoryQueueBasic", 20 + sizeof(SMemoryCacheDescriptor));
+	TestThreadLibName(szName, "TestSharedMemoryQueueBasic");
+	bResult = cQueue.Init(szName, 20 + sizeof(SMemoryCacheDescriptor));
 	AssertTrue(bResult);
 	AssertTrue(cQueue.IsEmpty());
 	AssertSize(uiOneElementCacheSize, cQueue.GetCacheSize());
@@ -209,11 +212,13 @@ void TestSharedMemoryQueueOne(void)
 	int					iTaken;
 	CChars				szExpected;
 	CChars				szActual;
+	char				szName[TEST_THREAD_LIB_NAME_SIZE];
 
-	cQueueProducer.Init("TestSharedMemoryQueueOne", 0);
+	TestThreadLibName(szName, "TestSharedMemoryQueueOne");
+	cQueueProducer.Init(szName, 0);
 	for (i = 0; i < 4; i++)
 	{
-		acQueueConsumer[i].Init("TestSharedMemoryQueueOne");
+		acQueueConsumer[i].Init(szName);
 	}
 
 	sSequence.Init();
@@ -300,9 +305,10 @@ void TestSharedMemoryQueueMultiThread(void)
 	CThreadsDone						cProducersDone;
 	CThreadsDone						cConsumersDone;
 	SThreadedSharedQueueResult*			psResult;
-	char								szSharedMemoryName[] = { "TestSharedMemoryQueueMultiThread" };
+	char								szSharedMemoryName[TEST_THREAD_LIB_NAME_SIZE];
 	CSharedMemoryQueue					cQueue;
 
+	TestThreadLibName(szSharedMemoryName, "TestSharedMemoryQueueMultiThread");
 	psResult = (SThreadedSharedQueueResult*)malloc(sizeof(SThreadedSharedQueueResult));
 	memset(psResult, 0, sizeof(SThreadedSharedQueueResult));
 
@@ -362,8 +368,9 @@ void TestSharedMemoryQueueMultiThreadThisProducer(void)
 	SQueueTestSequence						sSequence;
 	int									iProduce;
 	SSharedMemoryQueueElement			sProducerData;
-	char								szQueueName[] = "TestMultiThreadThisProducer";
+	char								szQueueName[TEST_THREAD_LIB_NAME_SIZE];
 
+	TestThreadLibName(szQueueName, "TestMultiThreadThisProducer");
 	psResult = (SThreadedSharedQueueResult*)malloc(sizeof(SThreadedSharedQueueResult));
 	memset(psResult, 0, sizeof(SThreadedSharedQueueResult));
 
@@ -410,9 +417,9 @@ void TestSharedMemoryQueueMultiThreadThisProducer(void)
 void TestSharedMemoryQueueMultiProcessForkDuring(void)
 {
 	CSharedMemoryQueue				cQueue;
-	char							szQueueName[] = "TestSharedMemoryQueueMultiProcess";
-	char							szSharedResultName[] = "TestSharedMemoryQueueMultiProcessResult";
-	char							szDoneName[] = "TestSharedMemoryQueueMultiProcessDone";
+	char							szQueueName[TEST_THREAD_LIB_NAME_SIZE];
+	char							szSharedResultName[TEST_THREAD_LIB_NAME_SIZE];
+	char							szDoneName[TEST_THREAD_LIB_NAME_SIZE];
 	int								iProduce;
 	SSharedMemoryQueueElement		sProducerData;
 	SQueueTestSequence					sSequence;
@@ -422,6 +429,9 @@ void TestSharedMemoryQueueMultiProcessForkDuring(void)
 	int								iProcess;
 	char							szProcess[16];
 
+	TestThreadLibName(szQueueName, "TestSharedMemoryQueueMultiProcess");
+	TestThreadLibName(szSharedResultName, "TestSharedMemoryQueueMultiProcessResult");
+	TestThreadLibName(szDoneName, "TestSharedMemoryQueueMultiProcessDone");
 	cResult.Init(szSharedResultName);
 	psResult = (SProcessSharedQueueResult*)cResult.Create(sizeof(SProcessSharedQueueResult));
 	memset(psResult, 0, sizeof(SProcessSharedQueueResult));
@@ -465,9 +475,9 @@ void TestSharedMemoryQueueMultiProcessForkDuring(void)
 void TestSharedMemoryQueueMultiProcessForkEarly(void)
 {
 	CSharedMemoryQueue				cQueue;
-	char							szQueueName[] = "TestSharedMemoryQueueMultiProcess";
-	char							szSharedResultName[] = "TestSharedMemoryQueueMultiProcessResult";
-	char							szDoneName[] = "TestSharedMemoryQueueMultiProcessDone";
+	char							szQueueName[TEST_THREAD_LIB_NAME_SIZE];
+	char							szSharedResultName[TEST_THREAD_LIB_NAME_SIZE];
+	char							szDoneName[TEST_THREAD_LIB_NAME_SIZE];
 	int								iProduce;
 	SSharedMemoryQueueElement		sProducerData;
 	SQueueTestSequence					sSequence;
@@ -475,6 +485,9 @@ void TestSharedMemoryQueueMultiProcessForkEarly(void)
 	SProcessSharedQueueResult* psResult;
 	CInterProcessDone				cProcessesDone;
 
+	TestThreadLibName(szQueueName, "TestSharedMemoryQueueMultiProcess");
+	TestThreadLibName(szSharedResultName, "TestSharedMemoryQueueMultiProcessResult");
+	TestThreadLibName(szDoneName, "TestSharedMemoryQueueMultiProcessDone");
 	cResult.Init(szSharedResultName);
 	psResult = (SProcessSharedQueueResult*)cResult.Create(sizeof(SProcessSharedQueueResult));
 	memset(psResult, 0, sizeof(SProcessSharedQueueResult));
@@ -524,6 +537,7 @@ void TestSharedMemoryQueueLongNames(void)
 	char*				pcData;
 	size					uiSize;
 	size					uiDataSize;
+	char					szBaseName[TEST_THREAD_LIB_NAME_SIZE];
 
 	//A name that fits is not changed.  A longer one keeps its start and ends
 	//with a hash of all of it; the Java client shortens names the same way.
@@ -541,7 +555,7 @@ void TestSharedMemoryQueueLongNames(void)
 	//share their memory, however many times it grows.
 	for (i = 0; i < 2; i++)
 	{
-		szName.Init("TestSharedMemoryQueueLongNames");
+		szName.Init(TestThreadLibName(szBaseName, "TestSharedMemoryQueueLongNames"));
 		szName.Append('x', 50);
 		szName.Append(i == 0 ? ":A" : ":B");
 		bResult = acQueue[i].Init(szName.Text(), 0);

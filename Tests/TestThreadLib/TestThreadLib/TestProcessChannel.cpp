@@ -12,6 +12,7 @@
 #include "ThreadLib/ProcessFork.h"
 #include "ThreadLib/WorkerThreadPool.h"
 #include "TestLib/Assert.h"
+#include "TestThreadLibName.h"
 #include "SharedMemoryQueueTheadElement.h"
 #include "TestSharedMemoryQueue.h"
 #include "TestProcessChannel.h"
@@ -113,6 +114,7 @@ bool CTestChannels::Fork(int i, char* szTest, char* szParameter1, char* szParame
 	char*	szTransport;
 	char*	szAddress;
 	CChars	sz;
+	char	szName[TEST_THREAD_LIB_NAME_SIZE];
 
 	if (meTransport == TT_Network)
 	{
@@ -124,7 +126,7 @@ bool CTestChannels::Fork(int i, char* szTest, char* szParameter1, char* szParame
 		//A new name each time so a process from an earlier test still closing it does not matter.
 		sz.Init("TestChannel")->Append(giTestChannelNames);
 		giTestChannelNames++;
-		StrCpySafe(maszNames[i], sz.Text(), 32);
+		StrCpySafe(maszNames[i], TestThreadLibName(szName, sz.Text()), 32);
 		sz.Kill();
 		if (!macSharedMemory[i].Create(maszNames[i]))
 		{
@@ -707,16 +709,18 @@ void TestChannelExists(void)
 {
 	CSharedMemoryChannel	cCreator;
 	CSharedMemoryChannel	cConnector;
+	char					szName[TEST_THREAD_LIB_NAME_SIZE];
 
-	AssertFalse(CSharedMemoryChannel::Exists("TestChannelExists"));
+	TestThreadLibName(szName, "TestChannelExists");
+	AssertFalse(CSharedMemoryChannel::Exists(szName));
 	cCreator.Init();
-	AssertTrue(cCreator.Create("TestChannelExists"));
-	AssertTrue(CSharedMemoryChannel::Exists("TestChannelExists"));
+	AssertTrue(cCreator.Create(szName));
+	AssertTrue(CSharedMemoryChannel::Exists(szName));
 	cConnector.Init();
-	AssertTrue(cConnector.Connect("TestChannelExists"));
+	AssertTrue(cConnector.Connect(szName));
 	cConnector.Kill();
 	cCreator.Kill();
-	AssertFalse(CSharedMemoryChannel::Exists("TestChannelExists"));
+	AssertFalse(CSharedMemoryChannel::Exists(szName));
 }
 
 
