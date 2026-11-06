@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_P_P_65_TYPE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/Chars.h"
 #include "CppTokens.h"
 
@@ -63,6 +64,7 @@ struct SCPP65Type
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
 	SCPP65Type*		psUnqualified;	//The type without volatile (itself when it isn't volatile).
+	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -88,10 +90,19 @@ typedef CArrayTemplatePtr<SCPP65Type>	CArrayCPP65Types;
 
 
 //Makes and owns the types.  The built in types are shared.
+//The first and last types made of a kind and base, linked by their psNextSameBase.
+struct SCPP65TypeChain
+{
+	SCPP65Type*	psFirst;
+	SCPP65Type*	psLast;
+};
+
+
 class CCPP65Types
 {
 protected:
 	CArrayCPP65Types	mapsTypes;
+	CMapLongTemplate<SCPP65TypeChain>	mcByBase;	//The types made of a kind and base, in the order they were made (Add finds them).
 	int					miPointerBytes;		//The target's pointers, references and pointers to members.
 
 public:
@@ -138,6 +149,8 @@ public:
 protected:
 	void				InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iBytes, bool bSigned);
 	SCPP65Type*			NewType(ECPP65TypeKind eKind, int iBytes);
+	void				AddType(SCPP65Type* psType);
+	static int64		GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase);
 	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount);
 };
 

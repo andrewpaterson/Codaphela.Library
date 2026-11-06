@@ -311,6 +311,7 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 {
 	miPointerBytes = iPointerBytes;
 	mapsTypes.Init();
+	mcByBase.Init(true);
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
 	InitBuiltin(&msChar, CPP65TK_Integer, 1, true);
@@ -351,6 +352,7 @@ void CCPP65Types::Kill(void)
 		SafeFree(psType);
 	}
 	mapsTypes.Kill();
+	mcByBase.Kill();
 }
 
 
@@ -372,6 +374,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->pcEnum = NULL;
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;
+	psType->psNextSameBase = NULL;
 }
 
 
@@ -393,16 +396,59 @@ SCPP65Type* CCPP65Types::NewType(ECPP65TypeKind eKind, int iBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// psType (made with NewType, its kind and base set) is one of the types:
+// it is freed with them, and found by Add after those made before it of
+// its kind and base.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Types::AddType(SCPP65Type* psType)
+{
+	SCPP65TypeChain*	psChain;
+	SCPP65TypeChain		sChain;
+	int64				lliKey;
+
+	mapsTypes.Add(psType);
+	psType->psNextSameBase = NULL;
+	lliKey = GetBaseKey(psType->eKind, psType->psBase);
+	psChain = mcByBase.Get(lliKey);
+	if (psChain)
+	{
+		psChain->psLast->psNextSameBase = psType;
+		psChain->psLast = psType;
+	}
+	else
+	{
+		sChain.psFirst = psType;
+		sChain.psLast = psType;
+		mcByBase.Put(lliKey, &sChain);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key of the types of eKind made from psBase.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPP65Types::GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase)
+{
+	return ((int64)(size)psBase << 4) | (int64)eKind;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount)
 {
-	SCPP65Type*	psType;
-	size		i;
+	SCPP65Type*			psType;
+	SCPP65TypeChain*	psChain;
 
-	for (i = 0; i < mapsTypes.NumElements(); i++)
+	//The types of this kind and base, in the order they were made: the first that fits, as a search of them all.
+	psChain = mcByBase.Get(GetBaseKey(eKind, psBase));
+	for (psType = psChain ? psChain->psFirst : NULL; psType; psType = psType->psNextSameBase)
 	{
-		psType = mapsTypes.GetPtr(i);
 		if ((psType->eKind == eKind) && (psType->psBase == psBase) && (psType->iCount == iCount) && (psType->iBytes == iBytes))
 		{
 			return psType;
@@ -412,7 +458,7 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psType = NewType(eKind, iBytes);
 	psType->psBase = psBase;
 	psType->iCount = iCount;
-	mapsTypes.Add(psType);
+	AddType(psType);
 	return psType;
 }
 
@@ -492,7 +538,7 @@ SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
 	psVolatile->papsParameters = NULL;
 	psVolatile->bVolatile = true;
 	psVolatile->psUnqualified = psType;
-	mapsTypes.Add(psVolatile);
+	AddType(psVolatile);
 	return psVolatile;
 }
 
@@ -550,7 +596,7 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 			return psOther;
 		}
 	}
-	mapsTypes.Add(psType);
+	AddType(psType);
 	return psType;
 }
 
@@ -681,7 +727,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 
 	psType = NewType(CPP65TK_Class, 0);
 	psType->psClass = psClass;
-	mapsTypes.Add(psType);
+	AddType(psType);
 	return psType;
 }
 
