@@ -250,13 +250,16 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Empties the list.  The cache's bytes are left as they are: nothing reads
+// them but through the descriptors Allocate writes (as a cache grown by
+// Remap isn't cleared).  Clearing them all was most of an object test's
+// time on the W65C816 (12% of TestStandardLib65 816).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::Clear(void)
 {
 	mpsDetail->mpsTail = NULL;
 	mpsDetail->mpsHead = NULL;
-	memset(mpvCache, 0, mpsDetail->muiCacheSize);
 }
 
 

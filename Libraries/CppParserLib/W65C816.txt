@@ -409,6 +409,14 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	functions -14.5% / -15.0%; TestBaseLib65 816 19.503G -> 18.930G (-2.94%),
 	TestStandardLib65 816 31.487G -> 30.675G (-2.58%).  Tests: TestTrueMallocatorMapping
 	(host and 816), TestCPP816CountZeros (every 16 bit value, random 32 and 64 bit).
+	2026-11-06, MemMove816 (13.8% of TestStandardLib65 816): the profiler now has call sites
+	(CAsm65816Profile::GetCallSite, the report's "Call sites": the cycles inside the calls
+	of a function from each line, with all they called; any global label in a function is
+	a call of it, so Libc65's _memcpy and _memmove count as MemMove816's).  They showed
+	CCircularMemoryList::Clear's memset of the whole cache (258 calls, 3.77G cycles, 12.2%
+	of TestStandardLib65 816; ~2MB a time at 7 cycles a byte), which nothing needed: it is
+	gone.  TestStandardLib65 816 30.791G -> 27.025G (-12.2%), TestBaseLib65 816 18.933G ->
+	18.861G.
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call
