@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockGroup.h"
 
 
-static const char* gaszDockMenuItems[DMI_NumItems] = { "Float", "Dock", "Dock as Tabbed Document", "Auto Hide", "Hide", "Close" };
+static const char* gaszDockMenuItems[DMI_NumItems] = { "Float", "Dock", "Dock as Tabbed Document", "Auto Hide", "Hide", "Close", "Close Multiple", "Close All", "Close Others", "Close Unmodified", "Close to the Left", "Close to the Right" };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -463,13 +463,16 @@ void CDockGroup::SetPinned(bool bPinned)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The pane's window position menu.  A document's has Float, Dock and
-// Close; a tool's the rest.
+// The pane's window position menu.  A document's has Float, Dock, Close
+// and Close Multiple, with Close All, Close Others, Close Unmodified and
+// Close to the Left and Right of it, as IntelliJ's tabs; a tool's the
+// rest.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 {
 	Ptr<CMenuContainer>	pMenu;
+	Ptr<CMenuContainer>	pClose;
 
 	pMenu = OMalloc<CMenuContainer>(mpWindow, mpManager->GetTheme());
 	AddMenuItem(pMenu, DMI_Float);
@@ -478,6 +481,14 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 	{
 		pMenu->AddSeparator();
 		AddMenuItem(pMenu, DMI_Close);
+		pClose = OMalloc<CMenuContainer>(mpWindow, mpManager->GetTheme());
+		AddMenuItem(pClose, DMI_CloseAll);
+		AddMenuItem(pClose, DMI_CloseOthers);
+		AddMenuItem(pClose, DMI_CloseUnmodified);
+		AddMenuItem(pClose, DMI_CloseLeft);
+		AddMenuItem(pClose, DMI_CloseRight);
+		pClose->GetOpeningEvent()->Add(this, &CDockGroup::CloseMenuOpening);
+		pMenu->AddItem(gaszDockMenuItems[DMI_CloseMultiple], NULL, pClose)->SetTag(DMI_CloseMultiple);
 	}
 	else
 	{
@@ -732,7 +743,7 @@ void CDockGroup::MenuItemClicked(CMenuItem* pcItem)
 	int32				iItem;
 
 	iItem = pcItem->GetTag();
-	if ((iItem < 0) || (iItem >= DMI_NumItems))
+	if ((iItem < 0) || (iItem >= DMI_NumItems) || (iItem == DMI_CloseMultiple))
 	{
 		return;
 	}
@@ -740,12 +751,107 @@ void CDockGroup::MenuItemClicked(CMenuItem* pcItem)
 	{
 		pPane = GetPane(i);
 		pMenu = GetMenu(pPane);
-		if (pMenu.IsNotNull() && pcItem->IsWithin(pMenu))
+		if (pMenu.IsNotNull() && (pcItem->IsWithin(pMenu) || IsInSubMenu(pcItem, pMenu)))
 		{
 			mpManager->MenuChosen(pPane, (EDockMenuItem)iItem);
 			return;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcItem is in one of pMenu's sub menus, Close Multiple's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockGroup::IsInSubMenu(CMenuItem* pcItem, Ptr<CMenuContainer> pMenu)
+{
+	size			i;
+	Ptr<CMenuItem>	pItem;
+
+	for (i = 0; i < pMenu->NumItems(); i++)
+	{
+		pItem = pMenu->GetItem(i);
+		if (pItem->HasSubMenu() && pcItem->IsWithin(pItem->GetSubMenu()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pane whose Close Multiple sub menu pcMenu is, NULL if none's is.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockPane> CDockGroup::FindMenuPane(CMenuContainer* pcMenu)
+{
+	size				i;
+	size				j;
+	Ptr<CMenuContainer>	pMenu;
+	Ptr<CMenuItem>		pItem;
+
+	if (pcMenu == NULL)
+	{
+		return NULL;
+	}
+	for (i = 0; i < NumPanes(); i++)
+	{
+		pMenu = GetMenu(GetPane(i));
+		if (pMenu.IsNull())
+		{
+			continue;
+		}
+		for (j = 0; j < pMenu->NumItems(); j++)
+		{
+			pItem = pMenu->GetItem(j);
+			if (pItem->HasSubMenu() && (&pItem->GetSubMenu() == pcMenu))
+			{
+				return GetPane(i);
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Close Multiple's items that would close nothing are disabled as it
+// opens: Close Others with one tab, to the left of the first tab, to the
+// right of the last, Unmodified when every tab is modified.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGroup::CloseMenuOpening(CMenuContainer* pcMenu)
+{
+	Ptr<CDockPane>	pPane;
+	size			uiIndex;
+	size			uiPanes;
+	size			i;
+	bool			bUnmodified;
+
+	pPane = FindMenuPane(pcMenu);
+	if (pPane.IsNull())
+	{
+		return;
+	}
+	uiIndex = IndexOfPane(pPane);
+	uiPanes = NumPanes();
+	bUnmodified = false;
+	for (i = 0; i < uiPanes; i++)
+	{
+		if (!mpManager->IsPaneModified(GetPane(i)))
+		{
+			bUnmodified = true;
+		}
+	}
+	pcMenu->GetItem(DMI_CloseOthers - DMI_CloseAll)->SetEnabled(uiPanes > 1);
+	pcMenu->GetItem(DMI_CloseUnmodified - DMI_CloseAll)->SetEnabled(bUnmodified);
+	pcMenu->GetItem(DMI_CloseLeft - DMI_CloseAll)->SetEnabled(uiIndex > 0);
+	pcMenu->GetItem(DMI_CloseRight - DMI_CloseAll)->SetEnabled(uiIndex + 1 < uiPanes);
 }
 
 

@@ -29,8 +29,8 @@ class CMenuContainer;
 class CMenuItem;
 
 
-//The items of a pane's window position menu, in order.  A tool's menu has every item but Close; a document's has
-//Float, Dock and Close.
+//The items of a pane's window position menu, in order.  A tool's menu has every item but the Closes; a document's
+//has Float, Dock, Close and Close Multiple, IntelliJ's ways of closing the group's tabs.
 enum EDockMenuItem
 {
 	DMI_Float,
@@ -39,6 +39,12 @@ enum EDockMenuItem
 	DMI_AutoHide,
 	DMI_Hide,
 	DMI_Close,
+	DMI_CloseMultiple,  //The sub menu of the ones after it.
+	DMI_CloseAll,
+	DMI_CloseOthers,
+	DMI_CloseUnmodified,
+	DMI_CloseLeft,
+	DMI_CloseRight,
 	DMI_NumItems,
 };
 
@@ -107,9 +113,12 @@ public:
 	void					PinButtonPressed(CDockTitleBar* pcTitleBar);
 	void					CloseButtonPressed(CDockTitleBar* pcTitleBar);
 	void					MenuItemClicked(CMenuItem* pcItem);
+	void					CloseMenuOpening(CMenuContainer* pcMenu);
 
 protected:
 	Ptr<CMenuContainer>		CreateMenu(Ptr<CDockPane> pPane);
+	Ptr<CDockPane>			FindMenuPane(CMenuContainer* pcMenu);
+	bool					IsInSubMenu(CMenuItem* pcItem, Ptr<CMenuContainer> pMenu);
 	void					AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem);
 	size					SlotOf(Ptr<CDockPane> pPane);
 	size					FindTab(CTabComponent* pcTab);

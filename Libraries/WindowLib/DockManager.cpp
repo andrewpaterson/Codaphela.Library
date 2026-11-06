@@ -70,6 +70,7 @@ void			CDockManagerListener::ActivePaneChanged(CDockPane* pcPane) {}
 void			CDockManagerListener::DocumentSelected(CDockPane* pcPane) {}
 Ptr<CDockPane>	CDockManagerListener::CreatePane(const char* szID) { return NULL; }
 void			CDockManagerListener::LayoutChanged(void) {}
+bool			CDockManagerListener::IsPaneModified(CDockPane* pcPane) { return false; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -593,6 +594,85 @@ bool CDockManager::Close(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Closes documents in pPane's group, as eItem says: all of them, all but
+// pPane, those the listener says aren't modified, or those to the left or
+// right of pPane's tab.  Each is closed as Close does (the listener can
+// keep it).  Returns how many closed.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDockManager::CloseMultiple(Ptr<CDockPane> pPane, EDockMenuItem eItem)
+{
+	Ptr<CDockGroup>	pGroup;
+	CArrayChars		aszIDs;
+	size			uiIndex;
+	size			i;
+	size			uiClosed;
+	bool			bClose;
+
+	pGroup = pPane->GetGroup();
+	if (pGroup.IsNull())
+	{
+		return 0;
+	}
+
+	//The panes' IDs, as closing one changes the group.
+	uiIndex = pGroup->IndexOfPane(pPane);
+	aszIDs.Init();
+	for (i = 0; i < pGroup->NumPanes(); i++)
+	{
+		switch (eItem)
+		{
+		case DMI_CloseAll:
+			bClose = true;
+			break;
+		case DMI_CloseOthers:
+			bClose = (i != uiIndex);
+			break;
+		case DMI_CloseUnmodified:
+			bClose = !IsPaneModified(pGroup->GetPane(i));
+			break;
+		case DMI_CloseLeft:
+			bClose = (i < uiIndex);
+			break;
+		case DMI_CloseRight:
+			bClose = (i > uiIndex);
+			break;
+		default:
+			bClose = false;
+			break;
+		}
+		if (bClose && pGroup->GetPane(i)->IsDocument())
+		{
+			aszIDs.Add((char*)pGroup->GetPane(i)->GetID());
+		}
+	}
+
+	uiClosed = 0;
+	for (i = 0; i < aszIDs.NumElements(); i++)
+	{
+		if (Close(GetPane(aszIDs.GetText(i))))
+		{
+			uiClosed++;
+		}
+	}
+	aszIDs.Kill();
+	return uiClosed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the application says the document has changes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockManager::IsPaneModified(Ptr<CDockPane> pPane)
+{
+	return mpcListener ? mpcListener->IsPaneModified(&pPane) : false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The pane floats in a window of its own, at pcScreenRectangle or where it
 // last floated.
 //
@@ -787,6 +867,13 @@ void CDockManager::MenuChosen(Ptr<CDockPane> pPane, EDockMenuItem eItem)
 		break;
 	case DMI_Close:
 		Close(pPane);
+		break;
+	case DMI_CloseAll:
+	case DMI_CloseOthers:
+	case DMI_CloseUnmodified:
+	case DMI_CloseLeft:
+	case DMI_CloseRight:
+		CloseMultiple(pPane, eItem);
 		break;
 	default:
 		break;

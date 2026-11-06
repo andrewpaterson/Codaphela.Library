@@ -38,6 +38,7 @@ class CTestDockListener : public CDockManagerListener
 {
 public:
 	char			mszKeep[64];
+	char			mszModified[64];  //A document the listener says is modified.
 	int				miClosing;
 	int				miClosed;
 	int				miActiveChanges;
@@ -50,6 +51,7 @@ public:
 	void Init(CDockManager* pcManager)
 	{
 		mszKeep[0] = '\0';
+		mszModified[0] = '\0';
 		miClosing = 0;
 		miClosed = 0;
 		miActiveChanges = 0;
@@ -57,6 +59,10 @@ public:
 		mpcActive = NULL;
 		mpcDocument = NULL;
 		mpcManager = pcManager;
+	}
+	bool IsPaneModified(CDockPane* pcPane) override
+	{
+		return strcmp(pcPane->GetID(), mszModified) == 0;
 	}
 	bool PaneClosing(CDockPane* pcPane) override
 	{
@@ -1800,6 +1806,120 @@ void TestDockingFloatingInput(void)
 	cNativeFactory.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A document tab's Close Multiple: Close All, Others, Unmodified and to
+// the Left and Right of the tab, in its group.  What would close nothing
+// is disabled as the sub menu opens; a document the listener keeps stays.
+//
+//////////////////////////////////////////////////////////////////////////
+static char* PrintDocTabs(Ptr<CDockGroup> pGroup, CChars* pszDest)
+{
+	size	i;
+
+	pszDest->Clear();
+	for (i = 0; i < pGroup->NumPanes(); i++)
+	{
+		if (i > 0)
+		{
+			pszDest->Append(",");
+		}
+		pszDest->Append(pGroup->GetPane(i)->GetTitle());
+	}
+	return pszDest->Text();
+}
+
+
+static Ptr<CDockPane> AddTestDoc(SDockTest* psTest, const char* szID)
+{
+	return psTest->pManager->AddPane(szID, szID + 4, NULL, CreateTabbedPage(psTest->pWindow), DPK_Document);
+}
+
+
+void TestDockingCloseMultiple(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		Ptr<CDockGroup>			pGroup;
+		Ptr<CDockPane>			pThird;
+		Ptr<CDockPane>			pFourth;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CMenuContainer>		pClose;
+		size					i;
+		CChars					szTabs;
+
+		szTabs.Init();
+		sTest.Init(&cNativeFactory);
+		pThird = AddTestDoc(&sTest, "Doc:Third.cpp");
+		pFourth = AddTestDoc(&sTest, "Doc:Fourth.cpp");
+		pGroup = sTest.pFirstDoc->GetGroup();
+		AssertString("First.cpp,Second.cpp,Third.cpp,Fourth.cpp", PrintDocTabs(pGroup, &szTabs));
+
+		//Close Multiple is under Close, a sub menu.
+		pMenu = pGroup->GetMenu(sTest.pFirstDoc);
+		pClose = NULL;
+		for (i = 0; i < pMenu->NumItems(); i++)
+		{
+			if (pMenu->GetItem(i)->HasSubMenu())
+			{
+				AssertString("Close Multiple", pMenu->GetItem(i)->GetText());
+				AssertString("Close", pMenu->GetItem(i - 1)->GetText());
+				pClose = pMenu->GetItem(i)->GetSubMenu();
+			}
+		}
+		AssertTrue(pClose.IsNotNull());
+		AssertSize(5, pClose->NumItems());
+		AssertString("Close All", pClose->GetItem(0)->GetText());
+		AssertString("Close Others", pClose->GetItem(1)->GetText());
+		AssertString("Close Unmodified", pClose->GetItem(2)->GetText());
+		AssertString("Close to the Left", pClose->GetItem(3)->GetText());
+		AssertString("Close to the Right", pClose->GetItem(4)->GetText());
+
+		//The first tab has nothing to its left.
+		pClose->Open(SInt32Vec2(10, 10), NULL, false);
+		AssertTrue(pClose->GetItem(0)->IsEnabled());
+		AssertTrue(pClose->GetItem(1)->IsEnabled());
+		AssertTrue(pClose->GetItem(2)->IsEnabled());
+		AssertFalse(pClose->GetItem(3)->IsEnabled());
+		AssertTrue(pClose->GetItem(4)->IsEnabled());
+		pClose->Close();
+
+		sTest.pManager->MenuChosen(pThird, DMI_CloseRight);
+		AssertString("First.cpp,Second.cpp,Third.cpp", PrintDocTabs(pGroup, &szTabs));
+		sTest.pManager->MenuChosen(sTest.pSecondDoc, DMI_CloseLeft);
+		AssertString("Second.cpp,Third.cpp", PrintDocTabs(pGroup, &szTabs));
+
+		//Unmodified keeps the modified one.
+		strcpy(sTest.cListener.mszModified, "Doc:Second.cpp");
+		sTest.pManager->MenuChosen(pThird, DMI_CloseUnmodified);
+		AssertString("Second.cpp", PrintDocTabs(pGroup, &szTabs));
+
+		//Others keeps the one chosen; All keeps only what the listener won't let close.
+		pThird = AddTestDoc(&sTest, "Doc:Third.cpp");
+		pFourth = AddTestDoc(&sTest, "Doc:Fourth.cpp");
+		sTest.pManager->MenuChosen(pThird, DMI_CloseOthers);
+		AssertString("Third.cpp", PrintDocTabs(pThird->GetGroup(), &szTabs));
+		pFourth = AddTestDoc(&sTest, "Doc:Fourth.cpp");
+		strcpy(sTest.cListener.mszKeep, "Doc:Fourth.cpp");
+		sTest.pManager->MenuChosen(pThird, DMI_CloseAll);
+		AssertString("Fourth.cpp", PrintDocTabs(pFourth->GetGroup(), &szTabs));
+
+		pClose = NULL;
+		pMenu = NULL;
+		pGroup = NULL;
+		pThird = NULL;
+		pFourth = NULL;
+		sTest.Kill();
+		szTabs.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1818,6 +1938,7 @@ void TestDocking(void)
 	TestDockingSplitsMerged();
 	TestDockingTitlesAndColours();
 	TestDockingKeys();
+	TestDockingCloseMultiple();
 	TestDockingMenus();
 	TestDockingBehaviour();
 	TestDockingScreen();

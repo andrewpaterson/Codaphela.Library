@@ -96,6 +96,7 @@ public:
 	virtual void			DocumentSelected(CDockPane* pcPane);  //The document shown in front changed.
 	virtual Ptr<CDockPane>	CreatePane(const char* szID);  //A layout names a pane that isn't added; NULL drops it.
 	virtual void			LayoutChanged(void);
+	virtual bool			IsPaneModified(CDockPane* pcPane);  //A document with changes, kept by Close Unmodified.
 };
 
 
@@ -172,6 +173,8 @@ public:
 	void						Activate(Ptr<CDockPane> pPane);
 	void						Hide(Ptr<CDockPane> pPane);
 	bool						Close(Ptr<CDockPane> pPane);
+	size						CloseMultiple(Ptr<CDockPane> pPane, EDockMenuItem eItem);
+	bool						IsPaneModified(Ptr<CDockPane> pPane);
 	void						Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle = NULL);
 	void						FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectangle = NULL);
 	void						Dock(Ptr<CDockPane> pPane);
