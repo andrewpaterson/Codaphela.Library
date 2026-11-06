@@ -93,19 +93,16 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 	maPanes.Init();
 	maFloating.Init();
 	miNextGroupID = 1;
-	mpActivePane = NULL;
-	mpActiveDocument = NULL;
 	mpDocumentGroup = NULL;
 	mpcListener = NULL;
-	mpFlyout = NULL;
 	mcLayoutWindow.Init(0, 0, 0, 0);
 	mbLayoutWindow = false;
 
 	mpDrag = OMalloc<CDockDrag>(Ptr<CDockManager>(this));
+	mpFocus = OMalloc<CDockFocus>(Ptr<CDockManager>(this));
 	mcTree.Init(this);
 	mcRestorer.Init(this);
 	mcMover.Init(this);
-	mcFocus.Init(this);
 	mpArea = OMalloc<CDockArea>(pWindow, Ptr<CDockManager>(this), true);
 	mpWell = OMalloc<CDocumentWell>(pWindow, Ptr<CDockManager>(this), GetColour(DC_Background));
 	mpArea->SetRoot(mpWell);
@@ -148,16 +145,13 @@ void CDockManager::Class(void)
 	M_Embedded(maPanes);
 	M_Embedded(maFloating);
 	U_Int32(miNextGroupID);
-	M_Pointer(mpActivePane);
-	M_Pointer(mpActiveDocument);
 	M_Pointer(mpDocumentGroup);
 	U_Pointer(mpcListener);
 	M_Pointer(mpDrag);
+	M_Pointer(mpFocus);
 	U_Data(CDockTree, mcTree);
 	U_Data(CDockRestorer, mcRestorer);
 	U_Data(CDockMover, mcMover);
-	U_Data(CDockFocus, mcFocus);
-	M_Pointer(mpFlyout);
 	U_Data(CInt32Rect, mcLayoutWindow);
 	U_Bool(mbLayoutWindow);
 }
@@ -180,7 +174,6 @@ void CDockManager::Free(void)
 	{
 		UnwatchFocus(mpWindow);
 	}
-	mcFocus.Kill();
 	mcMover.Kill();
 	mcRestorer.Kill();
 	mcTree.Kill();
@@ -210,11 +203,12 @@ bool CDockManager::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The active pane follows the focus in pWindow.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::WatchFocus(Ptr<CWindow> pWindow)
 {
-	mcFocus.Watch(pWindow);
+	mpFocus->Watch(pWindow);
 }
 
 
@@ -224,7 +218,7 @@ void CDockManager::WatchFocus(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::UnwatchFocus(Ptr<CWindow> pWindow)
 {
-	mcFocus.Unwatch(pWindow);
+	mpFocus->Unwatch(pWindow);
 }
 
 
@@ -317,14 +311,7 @@ bool CDockManager::RemovePane(Ptr<CDockPane> pPane)
 		return false;
 	}
 	TakeOut(pPane, false);
-	if (mpActivePane == pPane)
-	{
-		mcFocus.SetActivePane(NULL);
-	}
-	if (mpActiveDocument == pPane)
-	{
-		mpActiveDocument = NULL;
-	}
+	mpFocus->Forget(pPane);
 	pPane->SetState(DPS_Removed);
 	pPane->SetManager(NULL);
 	maPanes.Remove(pPane);
@@ -398,7 +385,7 @@ void CDockManager::TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore)
 	{
 		mcRestorer.Record(pPane);
 	}
-	if (mpFlyout.IsNotNull() && (mpFlyout->GetPane() == pPane))
+	if (mpFocus->IsInFlyout(pPane))
 	{
 		CloseFlyout();
 	}
@@ -533,18 +520,20 @@ void CDockManager::Show(Ptr<CDockPane> pPane)
 void CDockManager::Activate(Ptr<CDockPane> pPane)
 {
 	Show(pPane);
-	mcFocus.FocusPane(pPane);
-	mcFocus.SetActivePane(pPane);
+	mpFocus->FocusPane(pPane);
+	mpFocus->SetActivePane(pPane);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keys go back to the active pane in pWindow, after a sash or edge
+// took them to be dragged.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::RestoreFocus(Ptr<CWindow> pWindow)
 {
-	mcFocus.RestoreFocus(pWindow);
+	mpFocus->RestoreFocus(pWindow);
 }
 
 
@@ -560,9 +549,9 @@ void CDockManager::Hide(Ptr<CDockPane> pPane)
 		return;
 	}
 	TakeOut(pPane, true);
-	if (mpActivePane == pPane)
+	if (mpFocus->GetActivePane() == pPane)
 	{
-		mcFocus.SetActivePane(NULL);
+		mpFocus->SetActivePane(NULL);
 	}
 	LayoutChanged();
 }
@@ -685,7 +674,6 @@ void CDockManager::ToggleFloat(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Everything in the floating window docks back where it was.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
@@ -696,8 +684,7 @@ void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The floating window's close cross: its tools are hidden and its
-// documents closed, if the listener lets them.
+// Everything in the floating window docks back where it was.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::DockFloating(Ptr<CDockFloatingWindow> pFloating)
@@ -708,6 +695,8 @@ void CDockManager::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The floating window's close cross: its tools are hidden and its
+// documents closed, if the listener lets them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
@@ -818,7 +807,7 @@ void CDockManager::PaneSelected(Ptr<CDockPane> pPane)
 	pGroup = pPane->GetGroup();
 	if (pGroup.IsNotNull() && pGroup->IsActive())
 	{
-		mcFocus.SetActivePane(pPane);
+		mpFocus->SetActivePane(pPane);
 	}
 	if (pPane->IsDocument() || (pGroup.IsNotNull() && pGroup->IsDocumentGroup()))
 	{
@@ -826,7 +815,7 @@ void CDockManager::PaneSelected(Ptr<CDockPane> pPane)
 		{
 			mpDocumentGroup = pGroup;
 		}
-		mcFocus.SetActiveDocument(pPane);
+		mpFocus->SetActiveDocument(pPane);
 	}
 	pFloating = FindFloating(pPane);
 	if (pFloating.IsNotNull())
@@ -861,9 +850,9 @@ void CDockManager::PaneChanged(Ptr<CDockPane> pPane)
 			pTab->TitleChanged();
 		}
 	}
-	if (mpFlyout.IsNotNull() && (mpFlyout->GetPane() == pPane))
+	if (mpFocus->IsInFlyout(pPane))
 	{
-		mpFlyout->GetTitleBar()->SetTitle(pPane->GetTitle());
+		GetFlyout()->GetTitleBar()->SetTitle(pPane->GetTitle());
 	}
 	pFloating = FindFloating(pPane);
 	if (pFloating.IsNotNull())
@@ -881,9 +870,12 @@ void CDockManager::PaneChanged(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::CloseActiveDocument(void)
 {
-	if (mpActiveDocument.IsNotNull())
+	Ptr<CDockPane>	pDocument;
+
+	pDocument = mpFocus->GetActiveDocument();
+	if (pDocument.IsNotNull())
 	{
-		Close(mpActiveDocument);
+		Close(pDocument);
 	}
 }
 
@@ -895,40 +887,46 @@ void CDockManager::CloseActiveDocument(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::HideActiveTool(void)
 {
-	if (mpActivePane.IsNotNull() && mpActivePane->IsTool())
+	Ptr<CDockPane>	pPane;
+
+	pPane = mpFocus->GetActivePane();
+	if (pPane.IsNotNull() && pPane->IsTool())
 	{
-		Hide(mpActivePane);
+		Hide(pPane);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Slides an auto hidden pane out over the main window.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ShowFlyout(Ptr<CDockPane> pPane)
 {
-	mcFocus.ShowFlyout(pPane);
+	mpFocus->ShowFlyout(pPane);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Slides the pane back.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::CloseFlyout(void)
 {
-	mcFocus.CloseFlyout();
+	mpFocus->CloseFlyout();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The flyout's popup closed, by a press outside it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::FlyoutClosed(void)
 {
-	mcFocus.FlyoutClosed();
+	mpFocus->FlyoutClosed();
 }
 
 
@@ -1009,8 +1007,7 @@ void CDockManager::ClearLayout(void)
 	mpArea->SetRoot(mpWell);
 	mpWell->SetDockSize(0);
 	mpDocumentGroup = NULL;
-	mcFocus.SetActivePane(NULL);
-	mpActiveDocument = NULL;
+	mpFocus->Clear();
 }
 
 
@@ -1030,11 +1027,11 @@ void						CDockManager::SetColour(EDockColour eColour, ARGB32 sColour) { mpTheme
 Ptr<CImageCel>				CDockManager::GetImage(EDockImage eImage) { return maImages.Get(eImage); }
 size						CDockManager::NumPanes(void) { return maPanes.Size(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }
-Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpActivePane; }
-Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpActiveDocument; }
+Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpFocus->GetActivePane(); }
+Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpFocus->GetActiveDocument(); }
 size						CDockManager::NumFloating(void) { return maFloating.Size(); }
 Ptr<CDockFloatingWindow>	CDockManager::GetFloating(size uiIndex) { return maFloating.Get(uiIndex); }
-Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpFlyout; }
+Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpFocus->GetFlyout(); }
 SDockTarget*				CDockManager::GetTarget(void) { return mpDrag->GetTarget(); }
 Ptr<CDockDrag>				CDockManager::GetDrag(void) { return mpDrag; }
 bool						CDockManager::IsDragging(void) { return mpDrag->IsDragging(); }

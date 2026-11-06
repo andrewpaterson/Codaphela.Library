@@ -132,7 +132,7 @@ void CDockMover::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectangl
 		FloatRectangleFor(pGroup, NULL, &cRect);
 	}
 
-	mpcManager->mcFocus.CloseFlyout();
+	mpcManager->mpFocus->CloseFlyout();
 	if (pGroup->IsWithin(mpcManager->mpArea))
 	{
 		mpcManager->mcRestorer.GiveToGroup(pGroup);
@@ -218,9 +218,9 @@ void CDockMover::AutoHide(Ptr<CDockPane> pPane)
 	pStrip->AddPane(pPane);
 	pPane->SetState(DPS_AutoHidden);
 	mpcManager->mpArea->StripsChanged();
-	if (mpcManager->mpActivePane == pPane)
+	if (mpcManager->mpFocus->GetActivePane() == pPane)
 	{
-		mpcManager->mcFocus.SetActivePane(NULL);
+		mpcManager->mpFocus->SetActivePane(NULL);
 	}
 	mpcManager->LayoutChanged();
 }
@@ -259,9 +259,9 @@ void CDockMover::AutoHideGroup(Ptr<CDockGroup> pGroup)
 		pPane->SetAutoHide(eSide, (iSize > DOCK_MINIMUM_SIZE) ? iSize : DOCK_DEFAULT_SIZE);
 		pStrip->AddPane(pPane);
 		pPane->SetState(DPS_AutoHidden);
-		if (mpcManager->mpActivePane == pPane)
+		if (mpcManager->mpFocus->GetActivePane() == pPane)
 		{
-			mpcManager->mcFocus.SetActivePane(NULL);
+			mpcManager->mpFocus->SetActivePane(NULL);
 		}
 	}
 	aPanes.Kill();

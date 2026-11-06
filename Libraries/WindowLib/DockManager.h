@@ -129,19 +129,14 @@ protected:
 	CArray<CDockPane>			maPanes;
 	CArray<CDockFloatingWindow>	maFloating;
 	int32						miNextGroupID;
-	Ptr<CDockPane>				mpActivePane;
-	Ptr<CDockPane>				mpActiveDocument;
 	Ptr<CDockGroup>				mpDocumentGroup;  //The well's group documents are added to.
 	CDockManagerListener*		mpcListener;
 
 	Ptr<CDockDrag>				mpDrag;
+	Ptr<CDockFocus>				mpFocus;  //The active pane and document, and the flyout.
 	CDockTree					mcTree;  //The trees' edits.
 	CDockRestorer				mcRestorer;  //Where panes go back to.
 	CDockMover					mcMover;  //Floating, docking and auto hiding.
-	CDockFocus					mcFocus;  //The active pane and the flyout.
-
-	//Auto hide.
-	Ptr<CAutoHideFlyout>		mpFlyout;
 
 	CInt32Rect					mcLayoutWindow;  //The main window's client area on the screen, from the last layout read.
 	bool						mbLayoutWindow;
