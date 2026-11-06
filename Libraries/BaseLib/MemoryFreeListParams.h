@@ -59,6 +59,7 @@ private:
 	void					InitFreeListParams(void);
 	size					FindFreeListParamsIndex(size uiElementSize);
 	void					BuildSizeIndices(void);
+	bool					AreParamsOrdered(void);
 };
 
 

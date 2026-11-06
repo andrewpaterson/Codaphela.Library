@@ -439,6 +439,144 @@ void TestGeneralMemoryIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void AddTestFreeListParams(CMemoryFreeListParams* pcParams, size iMinElementSize, size iMaxElementSize)
+{
+	SMemoryFreeListParams	sParam;
+
+	sParam.iMinElementSize = iMinElementSize;
+	sParam.iMaxElementSize = iMaxElementSize;
+	sParam.iMaxListSize = iMaxElementSize;
+	sParam.iChunkSize = 4;
+	pcParams->AddParamBlock(&sParam);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGeneralMemoryFreeListSizeIndices(void)
+{
+	CMemoryFreeListParams	cParams;
+	size					uiSize;
+	size					iIndex;
+	SMemoryFreeListParams*	psParams;
+	size					iExpected;
+
+	//Default params: every size maps to the params holding it, or past the last params when none does.
+	cParams.Init(sizeof(SGeneralMemoryAllocation));
+	for (uiSize = 1; uiSize <= cParams.GetFreeListSizeLimit(); uiSize++)
+	{
+		iIndex = cParams.GetFreeListParamsIndexForSize(uiSize);
+		if (iIndex < cParams.NumParams())
+		{
+			psParams = cParams.GetFreeListParams(iIndex);
+			AssertTrue(uiSize >= psParams->iMinElementSize);
+			AssertTrue(uiSize <= psParams->iMaxElementSize);
+		}
+		else
+		{
+			AssertSize(cParams.NumParams(), iIndex);
+			AssertTrue(uiSize > cParams.GetFreeListParams(cParams.NumParams() - 1)->iMaxElementSize);
+		}
+	}
+	cParams.Kill();
+
+	//Params with gaps between them: a size in a gap maps to the next params.
+	cParams.Init(0, false);
+	AddTestFreeListParams(&cParams, 1, 8);
+	AddTestFreeListParams(&cParams, 13, 20);
+	AddTestFreeListParams(&cParams, 30, 40);
+	cParams.SetFreeListSizeLimit(50);
+	for (uiSize = 1; uiSize <= 50; uiSize++)
+	{
+		if (uiSize <= 8)
+		{
+			iExpected = 0;
+		}
+		else if (uiSize <= 20)
+		{
+			iExpected = 1;
+		}
+		else if (uiSize <= 40)
+		{
+			iExpected = 2;
+		}
+		else
+		{
+			iExpected = 3;
+		}
+		AssertSize(iExpected, cParams.GetFreeListParamsIndexForSize(uiSize));
+	}
+	cParams.Kill();
+
+	//Params larger than the size limit only fill the table up to it, and adding params rebuilds the table.
+	cParams.Init(0, false);
+	AddTestFreeListParams(&cParams, 1, 8);
+	AddTestFreeListParams(&cParams, 9, 100);
+	cParams.SetFreeListSizeLimit(50);
+	AssertSize(0, cParams.GetFreeListParamsIndexForSize(8));
+	AssertSize(1, cParams.GetFreeListParamsIndexForSize(9));
+	AssertSize(1, cParams.GetFreeListParamsIndexForSize(50));
+	AssertTrue(cParams.GetFreeListParamsForSize(50) == cParams.GetFreeListParams(1));
+	AssertNull(cParams.GetFreeListParamsForSize(51));
+	AddTestFreeListParams(&cParams, 101, 120);
+	cParams.SetFreeListSizeLimit(130);
+	AssertSize(1, cParams.GetFreeListParamsIndexForSize(100));
+	AssertSize(2, cParams.GetFreeListParamsIndexForSize(101));
+	AssertSize(2, cParams.GetFreeListParamsIndexForSize(120));
+	AssertSize(3, cParams.GetFreeListParamsIndexForSize(121));
+	AssertSize(3, cParams.GetFreeListParamsIndexForSize(130));
+	cParams.Kill();
+
+	//Params out of order are searched for each size, as before the table was filled by ranges.
+	cParams.Init(0, false);
+	AddTestFreeListParams(&cParams, 20, 30);
+	AddTestFreeListParams(&cParams, 1, 10);
+	cParams.SetFreeListSizeLimit(40);
+	for (uiSize = 1; uiSize <= 40; uiSize++)
+	{
+		if (uiSize <= 30)
+		{
+			iExpected = 0;
+		}
+		else
+		{
+			iExpected = 2;
+		}
+		AssertSize(iExpected, cParams.GetFreeListParamsIndexForSize(uiSize));
+	}
+	cParams.Kill();
+
+	//Overlapping params are searched for each size.
+	cParams.Init(0, false);
+	AddTestFreeListParams(&cParams, 1, 10);
+	AddTestFreeListParams(&cParams, 5, 15);
+	cParams.SetFreeListSizeLimit(20);
+	for (uiSize = 1; uiSize <= 20; uiSize++)
+	{
+		if (uiSize <= 10)
+		{
+			iExpected = 0;
+		}
+		else if (uiSize <= 15)
+		{
+			iExpected = 1;
+		}
+		else
+		{
+			iExpected = 2;
+		}
+		AssertSize(iExpected, cParams.GetFreeListParamsIndexForSize(uiSize));
+	}
+	cParams.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestGeneralMemory(void)
 {
 	BeginTests();
@@ -451,6 +589,7 @@ void TestGeneralMemory(void)
 	TestGeneralMemoryRemoveHalfByArray();
 	TestGeneralMemoryRemoveNoneByArray();
 	TestGeneralMemoryIteration();
+	TestGeneralMemoryFreeListSizeIndices();
 
 	TestStatistics();
 }

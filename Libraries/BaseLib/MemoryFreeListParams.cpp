@@ -245,17 +245,80 @@ size CMemoryFreeListParams::FindFreeListParamsIndex(size uiElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFreeListParams::BuildSizeIndices(void)
 {
-	size	uiElementSize;
-	uint16*	puiIndices;
+	size					uiElementSize;
+	uint16*					puiIndices;
+	uint16*					puiIndex;
+	uint16*					puiEnd;
+	size					iIndex;
+	size					iNumParams;
+	size					uiLast;
+	SMemoryFreeListParams*	psParams;
 
 	mcSizeIndices.ReInit();
 	mcSizeIndices.GrowToAtLeastNumElements(muiFreeListSizeLimit + 1, true, 0);
 	puiIndices = mcSizeIndices.GetData();
-	for (uiElementSize = 1; uiElementSize <= muiFreeListSizeLimit; uiElementSize++)
+	if (AreParamsOrdered())
 	{
-		puiIndices[uiElementSize] = (uint16)FindFreeListParamsIndex(uiElementSize);
+		//Each size's index is the first params whose largest element is at least as big: the same index
+		//FindFreeListParamsIndex would find, filled in a range at a time instead of a binary search for every size.
+		psParams = mcParams.GetData();
+		iNumParams = mcParams.NumElements();
+		puiIndex = &puiIndices[1];
+		puiEnd = &puiIndices[muiFreeListSizeLimit + 1];
+		for (iIndex = 0; iIndex < iNumParams; iIndex++)
+		{
+			uiLast = psParams[iIndex].iMaxElementSize;
+			if (uiLast > muiFreeListSizeLimit)
+			{
+				uiLast = muiFreeListSizeLimit;
+			}
+			while (puiIndex <= &puiIndices[uiLast])
+			{
+				*puiIndex = (uint16)iIndex;
+				puiIndex++;
+			}
+		}
+		while (puiIndex < puiEnd)
+		{
+			*puiIndex = (uint16)iNumParams;
+			puiIndex++;
+		}
+	}
+	else
+	{
+		for (uiElementSize = 1; uiElementSize <= muiFreeListSizeLimit; uiElementSize++)
+		{
+			puiIndices[uiElementSize] = (uint16)FindFreeListParamsIndex(uiElementSize);
+		}
 	}
 	mbSizeIndicesValid = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMemoryFreeListParams::AreParamsOrdered(void)
+{
+	size					i;
+	size					iNumParams;
+	SMemoryFreeListParams*	psParams;
+
+	psParams = mcParams.GetData();
+	iNumParams = mcParams.NumElements();
+	for (i = 0; i < iNumParams; i++)
+	{
+		if (psParams[i].iMinElementSize > psParams[i].iMaxElementSize)
+		{
+			return false;
+		}
+		if ((i > 0) && (psParams[i].iMinElementSize <= psParams[i - 1].iMaxElementSize))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
