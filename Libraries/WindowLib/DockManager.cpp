@@ -1089,8 +1089,8 @@ bool CDockManager::DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
 //////////////////////////////////////////////////////////////////////////
 //
 // The main window's client area on the screen in the last layout read.
-// Returns false if there wasn't one.  ReadLayout applies it if the main
-// window isn't shown yet.
+// Returns false if there wasn't one.  ReadLayout applies it to the main
+// window.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::GetLayoutWindowRectangle(CInt32Rect* pcDest)

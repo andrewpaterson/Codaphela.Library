@@ -616,10 +616,10 @@ Ptr<CDockNode> CDockLayoutReader::ReadMainWindow(CMarkupTag* pcMain, CArray<CDoc
 		return NULL;
 	}
 	mpcManager->mbLayoutWindow = ReadRectangle(pcMain, &mpcManager->mcLayoutWindow, "");
-	if (mpcManager->mbLayoutWindow && !mpcManager->mpWindow->IsShown())
+	if (mpcManager->mbLayoutWindow)
 	{
-		//Read as the application starts, before its window is shown: the window goes where it was.  A layout read
-		//later, another solution's say, leaves the window where the user has it.
+		//The window goes where it was: read as the application starts, before its window is shown, or later, as a
+		//solution is opened in a window already shown.
 		cRect.Init(&mpcManager->mcLayoutWindow);
 		mpcManager->mcMover.KeepOnScreen(&cRect);
 		mpcManager->mpWindow->SetScreenRectangle(&cRect);
