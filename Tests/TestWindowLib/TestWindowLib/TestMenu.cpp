@@ -1103,8 +1103,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 //
 // As IntelliJ's Edit menu: shortcuts on the right in the dim font and
-// items disabled, as the menu opens, when they can't be done.  Clicking a
-// disabled item does nothing.
+// items disabled, as the menu opens, when they can't be done.  The keys
+// skip a disabled item and clicking it does nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenuEnabledAndShortcuts(void)
@@ -1148,19 +1148,21 @@ void TestMenuEnabledAndShortcuts(void)
 		pMenu->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
 		pMenu->GetOpeningEvent()->Add(&cOpening, &CTestMenuOpeningListener::MenuOpening);
 
-		//Opening disables Redo, its label in the dim font.  Enter on it does nothing and the menu stays open.
+		//Opening disables Redo, its label in the dim font and its row not selectable.  Down stops on Undo, and clicking
+		//Redo does nothing.
 		AssertTrue(pRedo->IsEnabled());
 		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
 		AssertSize(1, cOpening.muiOpenings);
 		AssertFalse(pRedo->IsEnabled());
+		AssertFalse(pMenu->IsRowEnabled(pMenu->GetItemRow(pRedo)));
 		AssertTrue(pRedo->GetLabel()->GetFont() == pDim);
 		AssertTrue(pUndo->GetLabel()->GetFont() == pStyle->GetFont());
 		pTestWindow->InputCommand(CIC_Down, true);
 		pTestWindow->InputCommand(CIC_Down, true);
-		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertInt(pMenu->GetItemRow(pUndo), pMenu->GetSelected());
+		pMenu->Click(pRedo);
 		AssertLog("");
 		AssertTrue(pMenu->IsOpen());
-		pTestWindow->InputCommand(CIC_Up, true);
 		pTestWindow->InputCommand(CIC_Enter, true);
 		AssertLog("Clicked:Undo;");
 		AssertFalse(pMenu->IsOpen());
@@ -1191,6 +1193,80 @@ void TestMenuEnabledAndShortcuts(void)
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
 		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Disabling an item and disabling its row are the same: either way the
+// item is drawn in the dim font, reports itself disabled and its row
+// can't be selected.  Disabling the selected item clears the selection.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuItemAndRowEnabledAgree(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>		pTestWindow;
+		Ptr<CWindowTheme>	pTheme;
+		Ptr<CMenuStyle>		pStyle;
+		Ptr<CMenuContainer>	pMenu;
+		Ptr<CMenuItem>		pCut;
+		Ptr<CMenuItem>		pCopy;
+		Ptr<CMenuItem>		pPaste;
+		Ptr<CFont>			pDim;
+		CPointer			pNull;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pDim = GenerateMenuFont(pTestWindow);
+		pStyle->SetDimFont(pDim);
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pCut = pMenu->AddItem("Cut");
+		pCopy = pMenu->AddItem("Copy");
+		pPaste = pMenu->AddItem("Paste");
+
+		//Through the item.
+		pCopy->SetEnabled(false);
+		AssertFalse(pCopy->IsEnabled());
+		AssertFalse(pMenu->IsRowEnabled(pMenu->GetItemRow(pCopy)));
+		AssertTrue(pCopy->GetLabel()->GetFont() == pDim);
+		AssertFalse(pMenu->Select(pMenu->GetItemRow(pCopy)));
+
+		//Through the row.
+		pMenu->SetRowEnabled(pMenu->GetItemRow(pCopy), true);
+		AssertTrue(pCopy->IsEnabled());
+		AssertTrue(pCopy->GetLabel()->GetFont() == pStyle->GetFont());
+		pMenu->SetRowEnabled(pMenu->GetItemRow(pPaste), false);
+		AssertFalse(pPaste->IsEnabled());
+		AssertTrue(pPaste->GetLabel()->GetFont() == pDim);
+
+		//The selected item disabled.
+		AssertTrue(pMenu->Select(pMenu->GetItemRow(pCut)));
+		pCut->SetEnabled(false);
+		AssertInt(-1, pMenu->GetSelected());
+
+		pCut = NULL;
+		pCopy = NULL;
+		pPaste = NULL;
+		pDim = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
 	}
 
 	AssertSize(0, gcObjects.NumFreeObjects());
@@ -1310,6 +1386,7 @@ void TestMenu(void)
 	TestMenuContextMenu();
 	TestMenuTreeContextMenu();
 	TestMenuEnabledAndShortcuts();
+	TestMenuItemAndRowEnabledAgree();
 	TestMenuItemClickEvent();
 
 	ObjectsFlush();

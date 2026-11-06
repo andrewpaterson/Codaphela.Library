@@ -81,7 +81,7 @@ public:
 	int32			AddItem(Ptr<CComponent> pItem, bool bEnabled = true);
 	bool			RemoveAllComponents(void) override;  //Removes every row.
 	int32			NumRows(void);
-	void			SetRowEnabled(int32 iRow, bool bEnabled);
+	virtual void	SetRowEnabled(int32 iRow, bool bEnabled);
 	bool			IsRowEnabled(int32 iRow);
 
 	bool			Select(int32 iRow);

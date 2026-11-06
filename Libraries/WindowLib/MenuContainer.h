@@ -36,7 +36,7 @@ class CMenuBar;
 //closes a menu opened from another and goes back to that one.  On a menu from a menu bar left and right open the
 //bar's neighbouring menus.
 //
-//A disabled item can't be clicked.  The opening event is called as the menu opens, before it is laid out, so its
+//A disabled item can't be selected or clicked; the keys skip it.  The opening event is called as the menu opens, before it is laid out, so its
 //items can be enabled or disabled for what can be done then.
 //
 //Clicking an item closes every menu it was opened from and calls the item's own click event, then the item click event
@@ -86,6 +86,7 @@ public:
 	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
 	void				Click(Ptr<CMenuItem> pItem);
+	void				SetRowEnabled(int32 iRow, bool bEnabled) override;
 
 	void				MovedOver(int x, int y) override;
 	void				Left(void);

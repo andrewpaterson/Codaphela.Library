@@ -142,10 +142,30 @@ Ptr<CMenuItem> CMenuContainer::AddItem(const char* szText, Ptr<CImageCel> pIcon,
 	{
 		pSubMenu->mpParentMenu = this;
 	}
+	pItem->mpMenu = this;
 	iRow = CListContainer::AddItem(pItem);
 	maItems.Add(pItem);
 	maiItemRows.Add(iRow);
 	return pItem;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The item in a disabled row is drawn in the dim font, and the row can't
+// be selected, as any list row.  CMenuItem::SetEnabled comes here.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuContainer::SetRowEnabled(int32 iRow, bool bEnabled)
+{
+	Ptr<CMenuItem>	pItem;
+
+	CListContainer::SetRowEnabled(iRow, bEnabled);
+	pItem = GetItemInRow(iRow);
+	if (pItem.IsNotNull())
+	{
+		pItem->ShowEnabled(bEnabled);
+	}
 }
 
 
@@ -490,10 +510,6 @@ void CMenuContainer::RowActivated(int32 iRow)
 		return;
 	}
 
-	if (!pItem->IsEnabled())
-	{
-		return;
-	}
 	if (pItem->HasSubMenu())
 	{
 		OpenSubMenu(iRow, true);

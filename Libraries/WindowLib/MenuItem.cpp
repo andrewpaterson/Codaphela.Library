@@ -40,6 +40,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	SetSizedByContent(true);
 	mpStyle = pStyle;
 	mpSubMenu = pSubMenu;
+	mpMenu = NULL;
 	miTag = -1;
 	mbEnabled = true;
 
@@ -83,6 +84,7 @@ void CMenuItem::Class(void)
 	M_Pointer(mpShortcut);
 	M_Pointer(mpChevron);
 	M_Pointer(mpSubMenu);
+	M_Pointer(mpMenu);
 	U_Int32(miTag);
 	U_Bool(mbEnabled);
 	U_Data(CComponentEvent<CMenuItem>, mcClicked);
@@ -206,11 +208,31 @@ char* CMenuItem::GetShortcut(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A disabled item's text is drawn in the style's dim font and clicking it
-// does nothing.
+// A disabled item's text is drawn in the style's dim font and, in its
+// menu, its row can't be selected, moved over or clicked: it is the
+// menu's SetRowEnabled for the item's row.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMenuItem::SetEnabled(bool bEnabled)
+{
+	if (mpMenu.IsNotNull())
+	{
+		mpMenu->SetRowEnabled(mpMenu->GetItemRow(this), bEnabled);
+	}
+	else
+	{
+		ShowEnabled(bEnabled);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The item is drawn enabled or, in the dim font, disabled.  Its menu
+// calls this as its row is enabled or disabled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::ShowEnabled(bool bEnabled)
 {
 	if (mbEnabled != bEnabled)
 	{

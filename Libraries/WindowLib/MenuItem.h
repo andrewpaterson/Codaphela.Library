@@ -43,6 +43,7 @@ class CMenuItem : public CGridContainer
 {
 CONSTRUCTABLE(CMenuItem);
 DESTRUCTABLE(CMenuItem);
+friend class CMenuContainer;
 protected:
 	Ptr<CMenuStyle>			mpStyle;
 	Ptr<CIconComponent>		mpIcon;
@@ -50,8 +51,9 @@ protected:
 	Ptr<CLabel>				mpShortcut;
 	Ptr<CIconComponent>		mpChevron;
 	Ptr<CMenuContainer>		mpSubMenu;  //NULL unless the item opens another menu.
+	Ptr<CMenuContainer>		mpMenu;  //The menu the item is in.
 	int32					miTag;  //What the item means to whoever made it, -1 until set.
-	bool					mbEnabled;  //A disabled item is drawn in the dim font and clicking it does nothing.
+	bool					mbEnabled;  //A disabled item is drawn in the dim font and its row in the menu can't be selected.
 	CComponentEvent<CMenuItem>	mcClicked;  //Called when the item is clicked, before its menus' item click events.
 
 public:
@@ -79,6 +81,8 @@ public:
 	Ptr<CIconComponent>		GetChevronComponent(void);
 	CComponentEvent<CMenuItem>*	GetClickEvent(void);
 
+protected:
+	void					ShowEnabled(bool bEnabled);
 };
 
 #endif // __MENU_ITEM_H__
