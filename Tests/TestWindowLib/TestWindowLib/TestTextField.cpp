@@ -210,6 +210,133 @@ void TestTextFieldEditing(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Undo and redo as IntelliJ's: typing is one edit up to a space after a
+// word or a pause, the caret and selection go back to how they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextFieldUndo(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTextField>			pField;
+		CTestTextFieldListener	cListener;
+		CPointer				pNull;
+		CChars					szLog;
+		size					uiStart;
+		size					uiEnd;
+
+		szLog.Init();
+		cListener.Init(&szLog);
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Undo Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pField = CreateTestTextField(pTestWindow, "");
+		pField->SetTypingPause(1000000);
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, ComponentCentre(pField));
+		Click(pTestWindow);
+
+		//Nothing to undo yet.
+		AssertFalse(pField->CanUndo());
+		AssertFalse(pField->CanRedo());
+		AssertFalse(pField->Undo());
+
+		//"ab" is one edit, the space after it starts the next.
+		pTestWindow->InputPrintable('a', true);
+		pTestWindow->InputPrintable('b', true);
+		pTestWindow->InputCommand(CIC_Space, true);
+		pTestWindow->InputPrintable('c', true);
+		AssertString("ab c", pField->GetText());
+		AssertTrue(pField->CanUndo());
+		pField->GetChangeEvent()->Add(&cListener, &CTestTextFieldListener::TextChanged);
+
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("ab", pField->GetText());
+		AssertSize(2, pField->GetCaretPosition());
+		AssertLog("Changed:ab;");
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("", pField->GetText());
+		AssertSize(0, pField->GetCaretPosition());
+		AssertFalse(pField->CanUndo());
+		AssertTrue(pField->CanRedo());
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("", pField->GetText());
+		AssertLog("Changed:;");
+
+		//Control Shift Z redoes, as does Control Y.
+		pTestWindow->InputCommand(CIC_StepUndo, true);
+		AssertString("ab", pField->GetText());
+		AssertSize(2, pField->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_Redo, true);
+		AssertString("ab c", pField->GetText());
+		AssertSize(4, pField->GetCaretPosition());
+		AssertFalse(pField->CanRedo());
+		AssertLog("Changed:ab;Changed:ab c;");
+
+		//Deleting a selection and undoing it gives the selection back.
+		pField->Select(1, 2);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertString("a c", pField->GetText());
+		AssertFalse(pField->GetSelection(&uiStart, &uiEnd));
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("ab c", pField->GetText());
+		AssertTrue(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, uiStart);
+		AssertSize(2, uiEnd);
+		AssertSize(2, pField->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_Redo, true);
+		AssertString("a c", pField->GetText());
+		AssertFalse(pField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, pField->GetCaretPosition());
+		AssertLog("Changed:a c;Changed:ab c;Changed:a c;");
+
+		//An edit after an undo forgets what could be redone.
+		pTestWindow->InputCommand(CIC_Undo, true);
+		pTestWindow->InputCommand(CIC_End, true);
+		pTestWindow->InputPrintable('d', true);
+		AssertString("ab cd", pField->GetText());
+		AssertFalse(pField->CanRedo());
+		AssertLog("Changed:ab c;Changed:ab cd;");
+
+		//Setting the text is an edit: the old text comes back with undo.
+		pField->SetText("hello");
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("ab cd", pField->GetText());
+		AssertSize(5, pField->GetCaretPosition());
+		AssertLog("Changed:hello;Changed:ab cd;");
+
+		//Typing after a pause is a new edit.
+		pField->SetTypingPause(0);
+		pTestWindow->InputPrintable('e', true);
+		pTestWindow->InputPrintable('f', true);
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("ab cde", pField->GetText());
+		AssertLog("Changed:ab cde;Changed:ab cdef;Changed:ab cde;");
+
+		//Clearing the history keeps the text.
+		pField->ClearUndo();
+		AssertString("ab cde", pField->GetText());
+		AssertFalse(pField->CanUndo());
+		AssertFalse(pField->CanRedo());
+
+		AssertTrue(pField->GetChangeEvent()->Remove(&cListener));
+		pField = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Pressing puts the caret in the nearest gap, dragging selects and the
 // text scrolls to keep the caret in view.
 //
@@ -402,6 +529,7 @@ void TestTextField(void)
 	ObjectsInit();
 
 	TestTextFieldEditing();
+	TestTextFieldUndo();
 	TestTextFieldPointer();
 	TestTextFieldFrames();
 
