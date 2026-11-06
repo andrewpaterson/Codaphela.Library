@@ -1382,6 +1382,129 @@ void TestTextAreaEditLineGapsTiles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Undo and redo: a word typed is one edit (with the space before it),
+// moving the caret starts another, every other edit is one, and the caret
+// goes after what changed.  A new edit drops what could be redone.  The
+// undo id comes back to the text's when it is undone back to it.  Control
+// Z and Y undo and redo.  A text area that isn't editable has no undo.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditUndo(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		size						uiLoaded;
+		size						uiTyped;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+
+		uiLoaded = pTextArea->GetUndoId();
+		AssertFalse(pTextArea->CanUndo());
+		AssertFalse(pTextArea->CanRedo());
+
+		//A word typed, with its space, is one edit; the next word another.
+		pTextArea->DocumentEnd();
+		pTextArea->Printable(' ', true);
+		pTextArea->Printable('d', true);
+		pTextArea->Printable('e', true);
+		pTextArea->Printable('f', true);
+		uiTyped = pTextArea->GetUndoId();
+		AssertFalse(uiTyped == uiLoaded);
+		pTextArea->Printable(' ', true);
+		pTextArea->Printable('g', true);
+		AssertString("abc def g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def", pTextArea->GetText());
+		AssertSize(7, pTextArea->GetCaretPosition());
+		AssertSize(uiTyped, pTextArea->GetUndoId());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc", pTextArea->GetText());
+		AssertSize(3, pTextArea->GetCaretPosition());
+		AssertSize(uiLoaded, pTextArea->GetUndoId());
+		AssertFalse(pTextArea->CanUndo());
+		AssertFalse(pTextArea->Undo());
+
+		//Redone, the caret after what came back.
+		AssertTrue(pTextArea->Redo());
+		AssertString("abc def", pTextArea->GetText());
+		AssertSize(7, pTextArea->GetCaretPosition());
+		AssertTrue(pTextArea->Redo());
+		AssertString("abc def g", pTextArea->GetText());
+		AssertFalse(pTextArea->CanRedo());
+
+		//Moving the caret starts another edit; the change is in the middle.
+		pTextArea->Left();
+		pTextArea->Left();
+		pTextArea->Printable('X', true);
+		pTextArea->Printable('Y', true);
+		AssertString("abc defXY g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def g", pTextArea->GetText());
+		AssertSize(7, pTextArea->GetCaretPosition());
+
+		//An edit after an undo drops the redo.  Pasting and deleting are each an edit.
+		AssertTrue(pTextArea->CanRedo());
+		pTextArea->Paste((char*)"Z");
+		AssertFalse(pTextArea->CanRedo());
+		pTextArea->Backspace();
+		pTextArea->Backspace();
+		AssertString("abc de g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc defZ g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def g", pTextArea->GetText());
+
+		//Control Z and Y.
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		pTestWindow->InputCommand(CIC_Undo, true);
+		AssertString("abc def", pTextArea->GetText());
+		pTestWindow->InputCommand(CIC_Redo, true);
+		AssertString("abc def g", pTextArea->GetText());
+
+		//Setting the text starts the history again.
+		pTextArea->SetText("new");
+		AssertFalse(pTextArea->CanUndo());
+		AssertFalse(pTextArea->CanRedo());
+
+		//Not editable: no undo.
+		pTextArea->SetEditable(false);
+		AssertFalse(pTextArea->CanUndo());
+		AssertFalse(pTextArea->Undo());
+		AssertSize(0, pTextArea->GetUndoId());
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -1393,6 +1516,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditNavigation();
 	TestTextAreaEditWrapped();
 	TestTextAreaEditModification();
+	TestTextAreaEditUndo();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArrayElementNotFound.h"
 #include "BaseLib/UTF8.h"
 #include "StandardLib/ClassDefines.h"
 #include "MapsCanvasDraw.h"
@@ -113,6 +114,14 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	muiNextGapId = 1;
 	FindLineStarts();
 	muiChangeCount = 0;
+	mcUndo.Init();
+	mbUndoing = false;
+	mbTyping = false;
+	mbLastTyping = false;
+	mcTyped = '\0';
+	mcLastTyped = '\0';
+	muiTypedAt = 0;
+	muiTypedEnd = 0;
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -177,6 +186,10 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	AddInputAction(CIC_EndEnter, this, &CTextArea::EndEnter);
 	AddInputAction(CIC_Delete, this, &CTextArea::Delete);
 	AddInputAction(CIC_Backspace, this, &CTextArea::Backspace);
+	AddInputAction(CIC_Undo, this, &CTextArea::UndoAction);
+	AddInputAction(CIC_StepUndo, this, &CTextArea::UndoAction);
+	AddInputAction(CIC_Redo, this, &CTextArea::RedoAction);
+	AddInputAction(CIC_StepRedo, this, &CTextArea::RedoAction);
 	AddInputAction(CIC_Duplicate, this, &CTextArea::Duplicate);
 	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextArea::DeleteWordRemainingLeft);
 	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextArea::DeleteWordRemainingRight);
@@ -187,6 +200,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	AddInputAction(CIC_CutLine, this, &CTextArea::CutLineToClipboard);
 	AddInputAction(CIC_Paste, this, &CTextArea::PasteFromClipboard);
 	AddInputAction(IAF_Printable, NULL, this, &CTextArea::PrintableAction);
+
+	//The undo history starts with the text it was made with.
+	ClearUndo();
 
 	PostInit();
 }
@@ -205,6 +221,7 @@ void CTextArea::Free(void)
 	mauiStopStarts.Kill();
 	masBackgrounds.Kill();
 	masSpans.Kill();
+	mcUndo.Kill();
 	mszText.Kill();
 	CCanvas::Free();
 }
@@ -225,6 +242,14 @@ void CTextArea::Class(void)
 	U_Bool(mbTextDirty);
 	U_Bool(mbSizeDirty);
 	U_Data(size, muiChangeCount);
+	U_Unknown(CUndoStack, mcUndo);
+	U_Bool(mbUndoing);
+	U_Bool(mbTyping);
+	U_Bool(mbLastTyping);
+	U_Char(mcTyped);
+	U_Char(mcLastTyped);
+	U_Size(muiTypedAt);
+	U_Size(muiTypedEnd);
 	M_Pointer(mpText);
 	U_Bool(mbTextStale);
 	M_Pointer(mpLayout);
@@ -306,6 +331,7 @@ void CTextArea::SetText(const char* szText)
 	miUpDownX = -1;
 	ReadText();
 	LayoutText();
+	ClearUndo();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -1142,6 +1168,7 @@ size CTextArea::NumSpans(void) { return masSpans.NumElements(); }
 void CTextArea::SetEditable(bool bEditable)
 {
 	mbEditable = bEditable;
+	ClearUndo();
 }
 
 
@@ -1719,6 +1746,9 @@ void CTextArea::Printable(char c, bool bInsert)
 
 	sz[0] = c;
 	sz[1] = '\0';
+	mbTyping = true;
+	mcTyped = c;
+	muiTypedAt = IsSelected() ? MAX_SIZE : muiCaret;
 	szText = mszText.Text();
 	if (!IsSelected() && !bInsert && (muiCaret < mszText.Length()) && (szText[muiCaret] != '\n') && (szText[muiCaret] != '\r'))
 	{
@@ -3686,6 +3716,187 @@ void CTextArea::OutdentLines(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An edit of an editable text area is kept for undo: its text pushed onto
+// the undo stack.  Typing goes on the snapshot of the typing before it,
+// as one edit, while each character is typed where the last left the
+// caret, up to the space after a word or a new line.  An undo or redo
+// isn't an edit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::KeepEdit(void)
+{
+	bool	bMerge;
+
+	if (!mbEditable || mbUndoing)
+	{
+		mbTyping = false;
+		return;
+	}
+	if (mcUndo.NumSnapshots() == 0)
+	{
+		//Its text before the first edit isn't known any more; the history starts here.
+		mcUndo.Push(mszText.Text(), false);
+	}
+	else
+	{
+		bMerge = mbTyping && mbLastTyping && (muiTypedAt == muiTypedEnd) && (mcTyped != '\n') && (mcTyped != '\r') && !((mcTyped == ' ') && (mcLastTyped != ' '));
+		if (bMerge)
+		{
+			mcUndo.ReplaceCurrent(mszText.Text());
+		}
+		else
+		{
+			mcUndo.Push(mszText.Text(), false);
+		}
+	}
+	mbLastTyping = mbTyping;
+	mcLastTyped = mcTyped;
+	muiTypedEnd = muiCaret;
+	mbTyping = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text goes back to how it was before the last edit kept (Undo), or
+// forward to after the next (Redo).  Only the part that differs changes,
+// so the spans, backgrounds and gaps of the rest stay, and the caret goes
+// after it.  False if there is nothing to undo or redo.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::Undo(void)
+{
+	return LoadUndo(mcUndo.FindUndo(false));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::Redo(void)
+{
+	return LoadUndo(mcUndo.FindRedo(false));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::LoadUndo(size uiIndex)
+{
+	char*	szTarget;
+	char*	szText;
+	size	uiTargetLength;
+	size	uiLength;
+	size	uiPrefix;
+	size	uiSuffix;
+	CChars	szMiddle;
+
+	if (!mbEditable || (uiIndex == ARRAY_ELEMENT_NOT_FOUND))
+	{
+		return false;
+	}
+
+	szTarget = mcUndo.Get(uiIndex);
+	szText = mszText.Text();
+	uiTargetLength = StrLen(szTarget);
+	uiLength = mszText.Length();
+	uiPrefix = 0;
+	while ((uiPrefix < uiLength) && (uiPrefix < uiTargetLength) && (szText[uiPrefix] == szTarget[uiPrefix]))
+	{
+		uiPrefix++;
+	}
+	uiSuffix = 0;
+	while ((uiSuffix < uiLength - uiPrefix) && (uiSuffix < uiTargetLength - uiPrefix) && (szText[uiLength - 1 - uiSuffix] == szTarget[uiTargetLength - 1 - uiSuffix]))
+	{
+		uiSuffix++;
+	}
+
+	//Whole characters: a difference inside one starts at its first byte and ends after its last.
+	while ((uiPrefix > 0) && ((szTarget[uiPrefix] & 0xC0) == 0x80))
+	{
+		uiPrefix--;
+	}
+	while ((uiSuffix > 0) && ((szTarget[uiTargetLength - uiSuffix] & 0xC0) == 0x80))
+	{
+		uiSuffix--;
+	}
+
+	szMiddle.Init(szTarget, uiPrefix, uiTargetLength - uiSuffix);
+	mbUndoing = true;
+	RemoveText(uiPrefix, uiLength - uiSuffix);
+	InsertText(uiPrefix, szMiddle.Text());
+	muiCaret = uiPrefix + szMiddle.Length();
+	muiAnchor = MAX_SIZE;
+	mcUndo.MoveTo(uiIndex);
+	TextChanged();
+	mbUndoing = false;
+	mbLastTyping = false;
+	muiTypedEnd = muiCaret;
+	szMiddle.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::CanUndo(void)
+{
+	return mbEditable && (mcUndo.FindUndo(false) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::CanRedo(void)
+{
+	return mbEditable && (mcUndo.FindRedo(false) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Which state of the undo history the text is in: the same id again after
+// undo or redo comes back to it, so whoever saved the text can tell it is
+// as it was saved.  0 for a text area that isn't editable.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::GetUndoId(void)
+{
+	return mcUndo.GetCurrentId();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The undo history is forgotten; an editable text area's starts again
+// with the text it has.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::ClearUndo(void)
+{
+	mcUndo.Clear();
+	mbLastTyping = false;
+	mbTyping = false;
+	if (mbEditable)
+	{
+		mcUndo.Push(mszText.Text(), false);
+	}
+}
+
+
+void CTextArea::UndoAction(void) { Undo(); }
+void CTextArea::RedoAction(void) { Redo(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The text is read and laid out again, the caret is kept in view and the
 // window lays out again if the text's size changed.
 //
@@ -3695,6 +3906,7 @@ void CTextArea::TextChanged(void)
 	SInt32Vec2	sTextSize;
 
 	muiChangeCount++;
+	KeepEdit();
 	sTextSize = msTextSize;
 	mbCaretAtRowEnd = false;
 	miUpDownX = -1;

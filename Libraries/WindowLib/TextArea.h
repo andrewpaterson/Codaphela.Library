@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_AREA_H__
 #define __TEXT_AREA_H__
+#include "BaseLib/UndoStack.h"
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
@@ -175,6 +176,17 @@ protected:
 	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool				mbDragging;
 
+	//Undo, as Logicim's: the text after each edit of an editable text area (CUndoStack), consecutive typing kept as one
+	//edit.  Undoing or redoing changes only the part of the text that differs from the snapshot.
+	CUndoStack			mcUndo;
+	bool				mbUndoing;  //An undo or redo is changing the text: it isn't an edit to keep.
+	bool				mbTyping;  //The edit being made is a character typed (Printable).
+	bool				mbLastTyping;  //So was the last edit kept.
+	char				mcTyped;  //The character typed.
+	char				mcLastTyped;
+	size				muiTypedAt;  //Where the caret was when it was typed.
+	size				muiTypedEnd;  //Where the caret was after the last edit kept.
+
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText);
@@ -189,6 +201,12 @@ public:
 	void				AppendText(const char* szText, ARGB32 sColour);
 	char*				GetText(void);
 	size				GetChangeCount(void);
+	bool				Undo(void);
+	bool				Redo(void);
+	bool				CanUndo(void);
+	bool				CanRedo(void);
+	size				GetUndoId(void);
+	void				ClearUndo(void);
 	void				SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>			GetFont(void);
 	int32				GetTabPixels(void);
@@ -283,6 +301,8 @@ public:
 	void				EndEnter(void);
 	void				Delete(void);
 	void				Backspace(void);
+	void				UndoAction(void);
+	void				RedoAction(void);
 	void				Cut(CChars* pszDest);
 	void				Copy(CChars* pszDest);
 	void				Paste(char* szSource);
@@ -422,6 +442,8 @@ protected:
 	void				IndentLines(size uiStart, size uiEnd);
 	void				OutdentLines(size uiStart, size uiEnd);
 	void				TextChanged(void);
+	void				KeepEdit(void);
+	bool				LoadUndo(size uiIndex);
 	void				ToClipboard(void (CTextArea::*fTake)(CChars* pszDest));
 
 	void				ShowCaret(void);
