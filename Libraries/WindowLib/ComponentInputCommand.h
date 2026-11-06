@@ -109,6 +109,9 @@ enum EComponentInputCommand
 	CIC_GoToSource,  //Control+B, as IntelliJ's: the file an #include names, or what is at the caret's definition.
 	CIC_SwitchHeaderSource,  //Alt+O, as Visual Assist's: a .cpp's header, or a header's .cpp.
 
+	//Schematics
+	CIC_LeaveSheet,  //Alt+Backspace, as KiCad's Leave Sheet: back out of the subcircuit entered.
+
 	//Debugging, with Visual Studio's keys.
 	CIC_StartDebugging,  //F5: start, or continue.
 	CIC_StopDebugging,  //Shift+F5.

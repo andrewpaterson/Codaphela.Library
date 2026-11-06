@@ -75,6 +75,7 @@ public:
 		mpcKeyboard->AddSource("F1");
 		mpcKeyboard->AddSource("F6");
 		mpcKeyboard->AddSource("F7");
+		mpcKeyboard->AddSource("Backspace");
 
 		mpcMouse->AddSource("Button 1");
 		mpcMouse->AddSource("Button 2");
@@ -289,6 +290,15 @@ void TestComponentInputKeyboard(void)
 		cDevices.Tap("1");
 		cDevices.Release("Left Alt");
 		AssertLog("B:ShowProjectView;");
+
+		//Alt+Backspace leaves a sheet, as KiCad's; with either alt.
+		cDevices.Press("Left Alt");
+		cDevices.Tap("Backspace");
+		cDevices.Release("Left Alt");
+		cDevices.Press("Right Alt");
+		cDevices.Tap("Backspace");
+		cDevices.Release("Right Alt");
+		AssertLog("B:LeaveSheet;B:LeaveSheet;");
 
 		//Alt alone types nothing; nothing else is mapped with it.
 		cDevices.Press("Left Alt");
