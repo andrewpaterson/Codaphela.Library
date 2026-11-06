@@ -210,6 +210,9 @@
     <ClCompile Include="TestObjectsSimple.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
+    <ClCompile Include="TestLayeredObjects.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
     <ClCompile Include="TestNamedObject.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>

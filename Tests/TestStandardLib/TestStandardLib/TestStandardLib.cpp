@@ -30,6 +30,7 @@ void TestReplaceAndRemap(void);
 void TestHollowObject(void);
 void TestNamedObject(void);
 void TestObjectsSimple(void);
+void TestLayeredObjects(void);
 void TestRoot(void);
 void TestDistToRoot(void);
 void TestDistToRootUpdate(void);
@@ -103,6 +104,7 @@ int __cdecl main(void)
 	TestDistToRootUpdate();
 	TestDistToStack();
 	TestObjectsSimple();
+	TestLayeredObjects();
 	TestRoot();
 	TestObjectGraphWriting();
 	TestObject();

@@ -274,6 +274,7 @@
     <ClCompile Include="TestObjects.cpp" />
     <ClCompile Include="TestObjectsEvictVsKill.cpp" />
     <ClCompile Include="TestObjectsSimple.cpp" />
+    <ClCompile Include="TestLayeredObjects.cpp" />
     <ClCompile Include="TestObjectStack.cpp" />
     <ClCompile Include="TestObjectStackPointers.cpp" />
     <ClCompile Include="TestObjectWriterChunked.cpp" />
