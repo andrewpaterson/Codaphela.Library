@@ -159,6 +159,7 @@ public:
 	void				AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPSemanticPass* pcPass = NULL);
 	static void			Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass = NULL);
 	void				Merge(CCPPIndexUnit* pcUnit);
+	void				RemoveFile(const char* szFileName);
 
 	size				NumSymbols(void);
 	CCPPIndexSymbol*	GetSymbol(size uiIndex);

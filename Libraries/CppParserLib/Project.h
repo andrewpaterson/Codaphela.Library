@@ -57,6 +57,7 @@ public:
 	bool				Process(char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	bool				ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
+	CHeaderFile*		GetIncludeFile(char* szAbsoluteFileName);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);

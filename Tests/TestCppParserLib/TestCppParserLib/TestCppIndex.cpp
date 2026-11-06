@@ -591,6 +591,61 @@ void CLeaf::Run(int i)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A file that changed is forgotten and indexed again: its old places go,
+// the other files' stay, and its new ones are found.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexRemoveFile(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcSymbol;
+
+	cIndex.Init();
+	IndexText(&cIndex, "A.cpp", "\
+int giCount;\n\
+int Get(void)\n\
+{\n\
+	return giCount;\n\
+}\n");
+	IndexText(&cIndex, "B.cpp", "\
+extern int giCount;\n\
+int Twice(void)\n\
+{\n\
+	return giCount + giCount;\n\
+}\n");
+	pcSymbol = cIndex.FindSymbol("giCount");
+	AssertNotNull(pcSymbol);
+	if (pcSymbol == NULL)
+	{
+		cIndex.Kill();
+		return;
+	}
+	AssertSize(5, pcSymbol->NumLocations());
+	AssertNotNull(cIndex.FindSymbolAt("A.cpp", 3, 8));
+
+	cIndex.RemoveFile("A.cpp");
+	AssertSize(3, pcSymbol->NumLocations());
+	AssertNull(cIndex.FindSymbolAt("A.cpp", 3, 8));
+	AssertNotNull(cIndex.FindSymbolAt("B.cpp", 3, 8));
+	AssertSize(0, cIndex.FindSymbol("Get()")->NumLocations());
+
+	IndexText(&cIndex, "A.cpp", "\
+int giCount;\n\
+\n\
+int Get(void)\n\
+{\n\
+	return giCount;\n\
+}\n");
+	AssertSize(5, pcSymbol->NumLocations());
+	AssertNull(cIndex.FindSymbolAt("A.cpp", 3, 8));
+	AssertNotNull(cIndex.FindSymbolAt("A.cpp", 4, 8));
+	AssertSize(1, cIndex.FindSymbol("Get()")->NumLocations());
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppIndex(void)
@@ -604,6 +659,7 @@ void TestCppIndex(void)
 	TestCppIndexMacroNames();
 	TestCppIndexContainers();
 	TestCppIndexOverrides();
+	TestCppIndexRemoveFile();
 
 	TestStatistics();
 }

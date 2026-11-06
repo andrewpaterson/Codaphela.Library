@@ -514,6 +514,42 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every place a name is in szFileName is forgotten, before the file is
+// indexed again after it has changed.  Its symbols are kept, with their
+// places in other files; one named only there is left with none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::RemoveFile(const char* szFileName)
+{
+	int					iFile;
+	size				i;
+	size				j;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+
+	iFile = mcFiles.Get(szFileName, -1);
+	if (iFile < 0)
+	{
+		return;
+	}
+	for (i = 0; i < mapcSymbols.NumElements(); i++)
+	{
+		pcSymbol = mapcSymbols.GetPtr(i);
+		for (j = pcSymbol->masLocations.NumElements(); j > 0; j--)
+		{
+			psLocation = pcSymbol->masLocations.Get(j - 1);
+			if (psLocation->uiFile == (uint32)iFile)
+			{
+				mcLocations.Remove(GetCPPIndexLocationKey(psLocation->uiFile, psLocation->iLine, psLocation->iColumn));
+				pcSymbol->masLocations.RemoveAt(j - 1, true);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The base classes of the classes pcNode defines, and the member
 // functions it declares virtual, override or final.
 //
