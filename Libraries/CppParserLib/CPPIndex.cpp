@@ -344,7 +344,7 @@ void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPP
 // and p->miCount name, and the overloads calls call.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass)
+void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass, CCPPIndexedFiles* pcIndexed)
 {
 	CCPPSymbolKey			cKeys;
 	CArrayIndexTokens		asTokens;
@@ -359,8 +359,12 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	CCPPSyntax*				pcContainer;
 	CChars					szContainer;
 	ECPPSymbolKind			eContainerKind;
+	CSourceFile*			pcLastFile;
+	bool					bLastIndexed;
 
 	uiNumTokens = pcTokeniser->NumTokens();
+	pcLastFile = NULL;
+	bLastIndexed = false;
 	asTokens.Init();
 	asTokens.GrowToAtLeastNumElements(uiNumTokens, true, 0);
 	if (pcTree->GetRoot())
@@ -404,6 +408,22 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 			}
 			psSource = &sMacroUse;
 			uiFlags = CPPIF_MACRO;
+		}
+
+		//A file another unit indexed (a header) has the same names here; tokens come a file at a time.  But the names the
+		//semantic pass resolved are kept: a template's code is only typed where it is instantiated, which may not be in
+		//the unit that indexed its header.
+		if (pcIndexed && !psResolved)
+		{
+			if (psSource->pcFile != pcLastFile)
+			{
+				pcLastFile = psSource->pcFile;
+				bLastIndexed = pcIndexed->IsIndexed(pcLastFile);
+			}
+			if (bLastIndexed)
+			{
+				continue;
+			}
 		}
 
 		//Each name is in its innermost class or function, the same as the name before it most often.

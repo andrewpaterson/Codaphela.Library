@@ -124,6 +124,15 @@ public:
 };
 
 
+//Says which files another unit has already indexed, so a unit gathering names skips theirs (CCPPIndex::Gather): a
+//header's names are the same in every unit that includes it, and an index keeps them once.
+class CCPPIndexedFiles
+{
+public:
+	virtual bool	IsIndexed(CSourceFile* pcFile) =0;
+};
+
+
 //A symbol of the whole solution: the same in every translation unit that declares or uses it.
 class CCPPIndexSymbol
 {
@@ -167,7 +176,7 @@ public:
 	void				Kill(void);
 
 	void				AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPSemanticPass* pcPass = NULL);
-	static void			Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass = NULL);
+	static void			Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass = NULL, CCPPIndexedFiles* pcIndexed = NULL);
 	void				Merge(CCPPIndexUnit* pcUnit);
 	void				RemoveFile(const char* szFileName);
 
