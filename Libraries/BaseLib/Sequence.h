@@ -26,6 +26,7 @@ public:
 	OIndex	PeekNext(void);
 	OIndex	GetEnd(void);
 	OIndex	ReserveRange(OIndex iCount);
+	bool	AdvanceTo(OIndex oiNext);
 
 protected:
 	OIndex	ReadIndex(void);

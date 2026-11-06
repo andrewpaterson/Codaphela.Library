@@ -297,6 +297,54 @@ void TestSequenceRange(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSequenceAdvanceTo(void)
+{
+	CSequence					cSequence;
+	CLifeInit<CSequenceConfig>	cConfig;
+	char						szDirectory[] = "Output" _FS_ "SequenceAdvanceTo";
+	CFileUtil					cFileUtil;
+	SLogConfig					sLogConfig;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	cConfig = CValueSequenceConfig::Create(szDirectory, DS_No, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(1LL, cSequence.GetNext());
+	AssertTrue(cSequence.AdvanceTo(100));
+	AssertLong(100LL, cSequence.GetNext());
+
+	//Never moves back.
+	AssertTrue(cSequence.AdvanceTo(50));
+	AssertLong(101LL, cSequence.GetNext());
+	cSequence.Kill();
+
+	cConfig = CValueSequenceConfig::Create(szDirectory, DS_No, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	AssertLong(102LL, cSequence.GetNext());
+	cSequence.Kill();
+	cFileUtil.RemoveDir(szDirectory);
+
+	cConfig = CValueSequenceConfig::CreateRange(szDirectory, DS_No, 10, 20, 4);
+	AssertTrue(cSequence.Init(cConfig));
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(cSequence.AdvanceTo(21));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertTrue(cSequence.AdvanceTo(19));
+	AssertLong(19LL, cSequence.GetNext());
+	AssertTrue(cSequence.AdvanceTo(20));
+	sLogConfig = gcLogger.SetSilent();
+	AssertLong(INVALID_O_INDEX, cSequence.GetNext());
+	gcLogger.SetConfig(&sLogConfig);
+	cSequence.Kill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A released level reserves a range for the game.  The game numbers its
 // objects (and its save games' objects) inside the range, and a later
 // update to the level numbers above it, so the two never collide.
@@ -358,6 +406,7 @@ void TestSequence(void)
 	TestSequenceBlocks();
 	TestSequenceReserveRange();
 	TestSequenceRange();
+	TestSequenceAdvanceTo();
 	TestSequenceLevelAndGame();
 
 	TestStatistics();

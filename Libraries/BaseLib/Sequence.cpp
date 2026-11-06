@@ -191,6 +191,26 @@ OIndex CSequence::ReserveRange(OIndex iCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Makes the next index handed out at least oiNext (a sequence opened over
+// layers starts above their indices).  Never moves the sequence back.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSequence::AdvanceTo(OIndex oiNext)
+{
+	if ((moiNext == INVALID_O_INDEX) || (oiNext > moiEnd))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot advance sequence to [", LongToString(oiNext), "], its end is [", LongToString(moiEnd), "].", NULL);
+	}
+	if (oiNext <= moiNext)
+	{
+		return true;
+	}
+	return MoveNext(oiNext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Moves the next index forward to oiNext, writing it to the Sequence file
 // first if it passes what is reserved there.
 //
