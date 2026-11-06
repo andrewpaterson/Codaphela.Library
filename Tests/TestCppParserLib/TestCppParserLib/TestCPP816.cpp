@@ -1667,6 +1667,87 @@ void TestCPP816Floats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A builder for TestCPP816NoFloats: the W65C816, the start up and the math
+// tables, and no floats if bNoFloats.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816NoFloatsBuilder(CCPP65Builder* pcBuilder, bool bNoFloats)
+{
+	CFileUtil	cFileUtil;
+	CChars		szLibc65;
+
+	pcBuilder->Init();
+	pcBuilder->SetTarget(CPPT_W65C816);
+	pcBuilder->SetNoFloats(bNoFloats);
+	TestCPP65AddIncludeDirectories(pcBuilder);
+	AssertTrue(pcBuilder->AddStartUp());
+	szLibc65.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
+	cFileUtil.FullPath(&szLibc65);
+	pcBuilder->AddMathTables(szLibc65.Text());
+	szLibc65.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A build with no floats (CCPP65Builder::SetNoFloats, the HCP65's kernal):
+// floating point in the program's own code is an error at its statement;
+// a header's float declarations that aren't used are not; and a library
+// function that uses the soft float inside (Half.cpp, no float in its
+// signature) is a link error naming the function.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NoFloats(void)
+{
+	CCPP65Builder	cBuilder;
+	CFileUtil		cFileUtil;
+	CChars			szDirectory;
+	CChars			szLibc65;
+	bool			bLinked;
+
+	TestCPP816NoFloatsBuilder(&cBuilder, true);
+	AssertFalse(cBuilder.AddSource("Test.cpp", "int main()\n{\n\tint i = 3;\n\tfloat f = (float)i;\n\treturn (int)(f * 2.0f);\n}\n"));
+	AssertTrue(strstr(cBuilder.GetErrors(), "Floating point is used here") != NULL);
+	AssertTrue(strstr(cBuilder.GetErrors(), "Test.cpp") != NULL);
+	AssertTrue(strstr(cBuilder.GetErrors(), "(4") != NULL);
+	cBuilder.Kill();
+
+	TestCPP816NoFloatsBuilder(&cBuilder, true);
+	AssertTrue(cBuilder.AddSource("Test.cpp", "#include <math.h>\nfloat Scale(float f);\nint main() { return 1; }\n"));
+	AssertTrue(cBuilder.Link());
+	AssertString("", cBuilder.GetErrors());
+	cBuilder.Kill();
+
+	szDirectory.Init("Input" _FS_ "CPP65" _FS_ "NoFloats");
+	cFileUtil.FullPath(&szDirectory);
+	szLibc65.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
+	cFileUtil.FullPath(&szLibc65);
+
+	TestCPP816NoFloatsBuilder(&cBuilder, false);
+	AssertTrue(cBuilder.AddSource("Test.cpp", "int Half(int i);\nint main() { return Half(8); }\n"));
+	cBuilder.AddUnit("NoFloats", szDirectory.Text(), "Half.cpp", true);
+	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloat816.asm", true);
+	AssertTrue(cBuilder.Link());
+	cBuilder.Kill();
+
+	TestCPP816NoFloatsBuilder(&cBuilder, true);
+	AssertTrue(cBuilder.AddSource("Test.cpp", "int Half(int i);\nint main() { return Half(8); }\n"));
+	cBuilder.AddUnit("NoFloats", szDirectory.Text(), "Half.cpp", true);
+	cBuilder.AddUnit("Libc65", szLibc65.Text(), "softfloat816.asm", true);
+	bLinked = cBuilder.Link();
+	AssertFalse(bLinked);
+	AssertTrue(strstr(cBuilder.GetErrors(), "Floating point is used, and this build has none") != NULL);
+	AssertTrue(strstr(cBuilder.GetErrors(), "Half") != NULL);
+	AssertTrue(strstr(cBuilder.GetErrors(), "_SoftFloat") != NULL);
+	cBuilder.Kill();
+
+	szLibc65.Kill();
+	szDirectory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // new and delete over Libc65's operator new, operator delete and malloc, as TestCPP65GeneratorNewDelete.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -5231,6 +5312,7 @@ void TestCPP816(void)
 	TestCPP816CompileBaseLibUnits();
 	TestCPP816NewDelete();
 	TestCPP816Floats();
+	TestCPP816NoFloats();
 	TestCPP816TestBaseLibBugs();
 	TestCPP816ConstantShifts();
 	TestCPP816VariableShifts();

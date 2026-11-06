@@ -187,6 +187,20 @@ void CCPP65Generator::SetLineTable(bool bLineTable, int64 lliCompileTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Floating point in any code the unit writes (a float or double value,
+// variable, literal or conversion) is an error at its statement.  Only
+// what is written: a declaration that is never used (a header's float
+// function) is not.  See CCPP65Builder::SetNoFloats.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetNoFloats(bool bNoFloats)
+{
+	mbNoFloats = bNoFloats;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -229,6 +243,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcFrameProfile = NULL;
 	mbListing = false;
 	mbLineTable = false;
+	mbNoFloats = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -1306,6 +1321,26 @@ bool CCPP65Generator::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 	bQuietFailed = mbQuietFailed;
 	miQuiet = 0;
 	Error(pcNode, szMessage);
+	miQuiet = iQuiet;
+	mbQuietFailed = bQuietFailed;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ReportError at a token.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ReportErrorAt(int iToken, const char* szMessage)
+{
+	int		iQuiet;
+	bool	bQuietFailed;
+
+	iQuiet = miQuiet;
+	bQuietFailed = mbQuietFailed;
+	miQuiet = 0;
+	ErrorAt(iToken, szMessage);
 	miQuiet = iQuiet;
 	mbQuietFailed = bQuietFailed;
 	return false;

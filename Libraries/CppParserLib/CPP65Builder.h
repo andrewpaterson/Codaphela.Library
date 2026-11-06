@@ -182,6 +182,7 @@ protected:
 	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
+	bool							mbNoFloats;			//No floating point (SetNoFloats).
 	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
 	CMemorySpillStore				mcMemorySpillStore;
@@ -220,6 +221,7 @@ public:
 	size			NumImportsStale(void);
 	void			SetForceImportsMissed(bool bForce);
 	void			SetLineTable(bool bLineTable);
+	void			SetNoFloats(bool bNoFloats);
 	CAsm65LineTable*	GetLineTable(void);
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
@@ -256,7 +258,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65816Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
@@ -295,6 +297,7 @@ protected:
 	bool			WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors);
 	bool			ListingName(const char* szUnit, CChars* pszPath);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
+	void			ForbidFloats(void);
 	bool			LinkObjects(void);
 	void			ResetLinker(void);
 };

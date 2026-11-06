@@ -165,6 +165,7 @@ protected:
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
 	bool					mbUnsupported;		//Something the front end can't write yet: the function is an error.
+	bool					mbFloatReported;	//The function's floating point (CCPP65Generator::SetNoFloats) has been reported.
 	int						miUnsupportedLine;	//The line of CPP65IRFrontEnd.cpp that last left a function to the generator.
 	char					mszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
 
@@ -217,6 +218,7 @@ protected:
 	bool			IsRecursive(CIRFunction* pcFunction);
 	bool			Unsupported(int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
+	void			NoFloats(void);
 	SIRType			ReturnIRType(SCPP65Type* psType);
 	bool			IsSupportedType(SCPP65Type* psType);
 	SCPP65Type*		ElementType(SCPP65Type* psType);

@@ -82,6 +82,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mauiStringLengths.Init();
 	muiFirstString = 0;
 	mbUnsupported = false;
+	mbFloatReported = false;
 	miUnsupportedLine = 0;
 	mszUnsupported[0] = '\0';
 }
@@ -191,6 +192,7 @@ void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLa
 	mcModule.muiSource = (psFunction && psFunction->pcDefinition && (psFunction->pcDefinition->miFirstToken >= 0)) ? (uint32)psFunction->pcDefinition->miFirstToken + 1 : 0;
 	mpsFunction = psFunction;
 	mbUnsupported = false;
+	mbFloatReported = false;
 	masJumps.ReInit();
 	masCases.ReInit();
 	masLabels.ReInit();
@@ -426,12 +428,38 @@ SIRType CCPP65IRFrontEnd::IRTypeOf(SCPP65Type* psType)
 	case CPP65TK_Integer:
 		return IRIntegerType(psType->iBytes);
 	case CPP65TK_Float:
+		NoFloats();
 		return IRType((psType->iBytes == 8) ? IRTK_F64 : IRTK_F32);
 	case CPP65TK_MemberPointer:
 		return IRType(IRTK_I32);
 	default:
 		return IRType(IRTK_Pointer);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A floating point value is in the code being written: with SetNoFloats an
+// error at the statement (once a function), as every float or double the
+// code uses comes through IRTypeOf.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::NoFloats(void)
+{
+	int		iToken;
+
+	if (!mpcGenerator->mbNoFloats || mbFloatReported)
+	{
+		return;
+	}
+	mbFloatReported = true;
+	iToken = (mcModule.muiSource > 0) ? (int)mcModule.muiSource - 1 : -1;
+	if ((iToken < 0) && mpsFunction && mpsFunction->pcDefinition)
+	{
+		iToken = mpsFunction->pcDefinition->miFirstToken;
+	}
+	mpcGenerator->ReportErrorAt(iToken, "Floating point is used here, and this build has none (CCPP65Builder::SetNoFloats: the kernal has no floats)");
 }
 
 

@@ -71,6 +71,7 @@ void CCPP65Builder::Init(void)
 	maszOutsideProjects.Init();
 	maszOutsideLibraries.Init();
 	mbLineTable = false;
+	mbNoFloats = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -746,6 +747,41 @@ void CCPP65Builder::SetLineTable(bool bLineTable)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A program with no floating point (the HCP65's kernal): floating point
+// in the code of a unit not linked as a library is an error at its
+// statement (CCPP65Generator::SetNoFloats), and a used function of any
+// unit (a library's too) that uses the soft float or math.h is an error
+// naming the function (CAsm65Linker::ForbidObject).  Call before Link.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetNoFloats(bool bNoFloats)
+{
+	mbNoFloats = bNoFloats;
+	if (bNoFloats)
+	{
+		ForbidFloats();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ForbidFloats(void)
+{
+	static const char*	aszFloatUnits[] = { "softfloat816.asm", "softfloat.asm", "softfloat.cpp", "math.cpp", NULL };
+	size				i;
+
+	for (i = 0; aszFloatUnits[i]; i++)
+	{
+		mcLinker.ForbidObject(aszFloatUnits[i], "Floating point is used, and this build has none (CCPP65Builder::SetNoFloats: the kernal has no floats)");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The linked program's source lines and fingerprints (SetLineTable).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -837,7 +873,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -938,6 +974,10 @@ void CCPP65Builder::ResetLinker(void)
 	mcLinker.Init();
 	mcLinker.SetStubMissing(mbStubMissing);
 	mcLinker.SetRemoveUnused(mbRemoveUnused);
+	if (mbNoFloats)
+	{
+		ForbidFloats();
+	}
 	if (mbLazy)
 	{
 		mcLinker.SetLazy(CPP65_HEAP_ADDRESS, muiLazySectorSize, muiLazyFirstSector);
@@ -1126,7 +1166,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // (CCPP65Generator::SetLineTable).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65816Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats)
 {
 	CTranslationUnit				cFile;
 	CPreprocessor					cPreprocessor;
@@ -1187,6 +1227,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.SetFrameProfile(pcFrameProfile);
 	cGenerator.SetListing(bListing);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
+	cGenerator.SetNoFloats(bNoFloats);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -1940,6 +1981,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	}
 	psCompile->cGenerator.SetListing(!mszListings.Empty());
 	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
+	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
 }
 
 
