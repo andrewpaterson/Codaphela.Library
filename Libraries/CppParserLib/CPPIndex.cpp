@@ -25,6 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxKind.h"
 #include "CPPSyntaxDeclarator.h"
 #include "CPPSyntaxFunctionDefinition.h"
+#include "CPPSyntaxFunctionSuffix.h"
+#include "CPPSyntaxSimpleDeclaration.h"
+#include "CPPSyntaxInitDeclarator.h"
+#include "CPPSyntaxDeclSpecifiers.h"
 #include "CPPSyntaxClassSpecifier.h"
 #include "CPPSyntaxEnumSpecifier.h"
 #include "CPPSyntaxCallExpression.h"
@@ -62,6 +66,9 @@ void CCPPIndexSymbol::Init(const char* szKey, ECPPSymbolKind eKind)
 	mszKey.Init(szKey);
 	meKind = eKind;
 	masLocations.Init();
+	maiBases.Init();
+	maiDerived.Init();
+	mbVirtual = false;
 }
 
 
@@ -71,6 +78,8 @@ void CCPPIndexSymbol::Init(const char* szKey, ECPPSymbolKind eKind)
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndexSymbol::Kill(void)
 {
+	maiDerived.Kill();
+	maiBases.Kill();
 	masLocations.Kill();
 	mszKey.Kill();
 }
@@ -171,6 +180,8 @@ void CCPPIndexUnit::Init(void)
 	maszFiles.Init();
 	mcFiles.Init();
 	miContainer = -1;
+	maiBaseLinks.Init();
+	maiVirtuals.Init();
 }
 
 
@@ -180,6 +191,8 @@ void CCPPIndexUnit::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndexUnit::Kill(void)
 {
+	maiVirtuals.Kill();
+	maiBaseLinks.Kill();
 	mcFiles.Kill();
 	maszFiles.Kill();
 	maiKinds.Kill();
@@ -258,6 +271,29 @@ void CCPPIndexUnit::SetContainer(const char* szKey, ECPPSymbolKind eKind)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class szClass has szBase as a base class.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndexUnit::AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind)
+{
+	maiBaseLinks.Add(AddKey(szClass, eClassKind));
+	maiBaseLinks.Add(AddKey(szBase, eBaseKind));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member function szFunction is declared virtual, override or final.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndexUnit::AddVirtual(const char* szFunction, ECPPSymbolKind eKind)
+{
+	maiVirtuals.Add(AddKey(szFunction, eKind));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every name a parsed translation unit's files declare or use, gathered
 // and merged.
 //
@@ -311,6 +347,10 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	}
 
 	cKeys.Init(pcTokeniser, pcTree);
+	if (pcTree->GetRoot())
+	{
+		FindHierarchy(&cKeys, pcTree, pcTree->GetRoot(), pcDest);
+	}
 	pcContainer = NULL;
 	szContainer.Init();
 	pcDest->SetContainer(NULL, CPPSK_Class);
@@ -388,6 +428,8 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 	size				i;
 	SCPPIndexEntry*		psEntry;
 	SCPPIndexLocation	sLocation;
+	int					iClass;
+	int					iBase;
 
 	aiSymbols.Init();
 	for (i = 0; i < pcUnit->maszKeys.NumElements(); i++)
@@ -411,6 +453,22 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 		sLocation.uiFlags = psEntry->uiFlags;
 		sLocation.iContainer = (psEntry->iContainer >= 0) ? aiSymbols.GetValue((size)psEntry->iContainer) : -1;
 		AddLocation(aiSymbols.GetValue(psEntry->uiKey), &sLocation);
+	}
+
+	//The classes' bases and the virtual functions, for the overrides of a function (FindOverrides).
+	for (i = 0; i + 1 < pcUnit->maiBaseLinks.NumElements(); i += 2)
+	{
+		iClass = aiSymbols.GetValue((size)pcUnit->maiBaseLinks.GetValue(i));
+		iBase = aiSymbols.GetValue((size)pcUnit->maiBaseLinks.GetValue(i + 1));
+		if ((iClass != iBase) && (mapcSymbols.GetPtr((size)iClass)->maiBases.Find(iBase) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			mapcSymbols.GetPtr((size)iClass)->maiBases.Add(iBase);
+			mapcSymbols.GetPtr((size)iBase)->maiDerived.Add(iClass);
+		}
+	}
+	for (i = 0; i < pcUnit->maiVirtuals.NumElements(); i++)
+	{
+		mapcSymbols.GetPtr((size)aiSymbols.GetValue((size)pcUnit->maiVirtuals.GetValue(i)))->mbVirtual = true;
 	}
 	aiFiles.Kill();
 	aiSymbols.Kill();
@@ -451,6 +509,133 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 			FindContainers(pcChild, pasTokens);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The base classes of the classes pcNode defines, and the member
+// functions it declares virtual, override or final.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest)
+{
+	CCPPSyntaxClassSpecifier*	pcClass;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntax*					pcDeclarator;
+	CCPPScope*					pcBase;
+	CChars						szClass;
+	CChars						szBase;
+	ECPPSymbolKind				eKind;
+	bool						bVirtual;
+	size						i;
+	size						uiChildren;
+	CCPPSyntax*					pcChild;
+
+	switch (pcNode->GetKind())
+	{
+	case CPPS_ClassSpecifier:
+		pcClass = (CCPPSyntaxClassSpecifier*)pcNode;
+		if (pcClass->mpcName && pcClass->mpcScope && (pcClass->mpcScope->mapcBases.NumElements() > 0))
+		{
+			szClass.Init();
+			if (GetContainerKey(pcKeys, pcTree, pcNode, &szClass, &eKind))
+			{
+				szBase.Init();
+				for (i = 0; i < pcClass->mpcScope->mapcBases.NumElements(); i++)
+				{
+					pcBase = pcClass->mpcScope->mapcBases.GetPtr(i);
+					szBase.Clear();
+					if (pcBase && pcBase->mpcOwner && pcKeys->GetKey(pcBase->mpcOwner, &szBase))
+					{
+						pcDest->AddBase(szClass.Text(), eKind, szBase.Text(), pcBase->mpcOwner->meKind);
+					}
+				}
+				szBase.Kill();
+			}
+			szClass.Kill();
+		}
+		break;
+	case CPPS_SimpleDeclaration:
+		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcNode;
+		bVirtual = pcSimple->mpcSpecifiers && (pcSimple->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL);
+		for (i = 0; i < pcSimple->macpDeclarators.NumElements(); i++)
+		{
+			pcDeclarator = pcSimple->macpDeclarators.GetPtr(i);
+			if (pcDeclarator && (pcDeclarator->GetKind() == CPPS_InitDeclarator))
+			{
+				pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclarator)->mpcDeclarator;
+			}
+			if (pcDeclarator && (pcDeclarator->GetKind() == CPPS_Declarator))
+			{
+				GatherVirtual(pcKeys, pcTree, (CCPPSyntaxDeclarator*)pcDeclarator, bVirtual, pcDest);
+			}
+		}
+		break;
+	case CPPS_FunctionDefinition:
+		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcNode;
+		bVirtual = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL);
+		GatherVirtual(pcKeys, pcTree, pcDefinition->mpcDeclarator, bVirtual, pcDest);
+		break;
+	default:
+		break;
+	}
+
+	uiChildren = pcNode->NumChildren();
+	for (i = 0; i < uiChildren; i++)
+	{
+		pcChild = pcNode->GetChild(i);
+		if (pcChild)
+		{
+			FindHierarchy(pcKeys, pcTree, pcChild, pcDest);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function pcDeclarator declares is virtual if bVirtual (it has the
+// virtual specifier) or it is declared override or final.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::GatherVirtual(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxName*				pcName;
+	SCPPTokenSymbol*			psSymbol;
+	CChars						szKey;
+
+	if ((pcDeclarator == NULL) || !pcDeclarator->IsFunction())
+	{
+		return;
+	}
+	if (!bVirtual)
+	{
+		pcSuffix = pcDeclarator->GetFunctionSuffix();
+		bVirtual = pcSuffix && (pcSuffix->macpVirtSpecifiers.NumElements() > 0);
+	}
+	if (!bVirtual)
+	{
+		return;
+	}
+	pcName = pcDeclarator->GetName();
+	if ((pcName == NULL) || (pcName->GetLast() == NULL) || (pcName->GetLast()->miName < 0))
+	{
+		return;
+	}
+	psSymbol = pcTree->GetTokenSymbol(pcName->GetLast()->miName);
+	if ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL) || !pcKeys->IsFunction(psSymbol->pcSymbol))
+	{
+		return;
+	}
+	szKey.Init();
+	if (pcKeys->GetFunctionKey(psSymbol->pcSymbol, pcDeclarator, &szKey))
+	{
+		pcDest->AddVirtual(szKey.Text(), psSymbol->pcSymbol->meKind);
+	}
+	szKey.Kill();
 }
 
 
@@ -847,6 +1032,171 @@ bool CCPPIndex::AddLocation(int iSymbol, SCPPIndexLocation* psLocation)
 		mcLocations.Put(lliKey, &iSymbol);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member functions that override, or are overridden by, the member
+// function pcFunction, with it: those with its name and parameters in its
+// class's base classes, and in the classes derived from those and from
+// its class.  Only if one of them is virtual.  The symbols' indices are
+// added to paiDest.  False (nothing added) if it overrides nothing and
+// nothing overrides it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPIndex::FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest)
+{
+	const char*			szKey;
+	size				uiLength;
+	size				uiOpen;
+	size				uiName;
+	int					iDepth;
+	int					iClass;
+	int					iMember;
+	CChars				szScope;
+	CChars				szMember;
+	CArrayInt			aiAncestors;
+	CArrayInt			aiTops;
+	CArrayInt			aiFamily;
+	CArrayInt			aiFound;
+	bool				bVirtual;
+	size				i;
+	CCPPIndexSymbol*	pcClass;
+
+	//The key is the class's, then ::, then the name and parameters.
+	szKey = pcFunction->mszKey.Text();
+	uiLength = pcFunction->mszKey.Length();
+	iDepth = 0;
+	for (uiOpen = 0; uiOpen < uiLength; uiOpen++)
+	{
+		if (szKey[uiOpen] == '<')
+		{
+			iDepth++;
+		}
+		else if (szKey[uiOpen] == '>')
+		{
+			iDepth--;
+		}
+		else if ((szKey[uiOpen] == '(') && (iDepth == 0))
+		{
+			break;
+		}
+	}
+	iDepth = 0;
+	for (uiName = uiOpen; uiName >= 2; uiName--)
+	{
+		if (szKey[uiName - 1] == '>')
+		{
+			iDepth++;
+		}
+		else if (szKey[uiName - 1] == '<')
+		{
+			iDepth--;
+		}
+		else if ((iDepth == 0) && (szKey[uiName - 1] == ':') && (szKey[uiName - 2] == ':'))
+		{
+			break;
+		}
+	}
+	if ((uiOpen == uiLength) || (uiName < 2))
+	{
+		return false;
+	}
+	szScope.Init();
+	szScope.AppendSubString(szKey, 0, uiName - 2);
+	iClass = mcKeys.Get(szScope.Text(), -1);
+	szScope.Kill();
+	if (iClass < 0)
+	{
+		return false;
+	}
+
+	//The topmost classes with the function: its class and its bases that have it.  Then their derived classes.
+	aiAncestors.Init();
+	AddClosure(&mapcSymbols, iClass, true, &aiAncestors);
+	aiTops.Init();
+	szMember.Init();
+	for (i = 0; i < aiAncestors.NumElements(); i++)
+	{
+		pcClass = mapcSymbols.GetPtr((size)aiAncestors.GetValue(i));
+		szMember.Init(pcClass->mszKey);
+		szMember.Append(&szKey[uiName - 2]);
+		if (mcKeys.Get(szMember.Text(), -1) >= 0)
+		{
+			aiTops.Add(aiAncestors.GetValue(i));
+		}
+		szMember.Kill();
+	}
+	aiFamily.Init();
+	for (i = 0; i < aiTops.NumElements(); i++)
+	{
+		AddClosure(&mapcSymbols, aiTops.GetValue(i), false, &aiFamily);
+	}
+
+	aiFound.Init();
+	bVirtual = false;
+	for (i = 0; i < aiFamily.NumElements(); i++)
+	{
+		pcClass = mapcSymbols.GetPtr((size)aiFamily.GetValue(i));
+		szMember.Init(pcClass->mszKey);
+		szMember.Append(&szKey[uiName - 2]);
+		iMember = mcKeys.Get(szMember.Text(), -1);
+		if (iMember >= 0)
+		{
+			aiFound.Add(iMember);
+			bVirtual = bVirtual || mapcSymbols.GetPtr((size)iMember)->mbVirtual;
+		}
+		szMember.Kill();
+	}
+	if (bVirtual && (aiFound.NumElements() > 1))
+	{
+		for (i = 0; i < aiFound.NumElements(); i++)
+		{
+			paiDest->Add(aiFound.GetValue(i));
+		}
+	}
+	else
+	{
+		bVirtual = false;
+	}
+	aiFound.Kill();
+	aiFamily.Kill();
+	aiTops.Kill();
+	aiAncestors.Kill();
+	return bVirtual;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iSymbol and, with bBases, every class it derives from, else every class
+// derived from it, each added to paiDest once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::AddClosure(CArrayIndexSymbols* papcSymbols, int iSymbol, bool bBases, CArrayInt* paiDest)
+{
+	size		uiStart;
+	size		i;
+	CArrayInt*	paiNext;
+
+	if (paiDest->Find(iSymbol) != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return;
+	}
+	uiStart = paiDest->NumElements();
+	paiDest->Add(iSymbol);
+	for (; uiStart < paiDest->NumElements(); uiStart++)
+	{
+		paiNext = bBases ? &papcSymbols->GetPtr((size)paiDest->GetValue(uiStart))->maiBases : &papcSymbols->GetPtr((size)paiDest->GetValue(uiStart))->maiDerived;
+		for (i = 0; i < paiNext->NumElements(); i++)
+		{
+			if (paiDest->Find(paiNext->GetValue(i)) == ARRAY_ELEMENT_NOT_FOUND)
+			{
+				paiDest->Add(paiNext->GetValue(i));
+			}
+		}
+	}
 }
 
 

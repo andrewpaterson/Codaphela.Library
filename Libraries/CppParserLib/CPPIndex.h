@@ -103,9 +103,13 @@ public:
 	CArrayChars			maszFiles;
 	CMapStringInt		mcFiles;		//File name to index in maszFiles.
 	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
+	CArrayInt			maiBaseLinks;	//Pairs of keys: a class, then one of its base classes.
+	CArrayInt			maiVirtuals;	//The keys of member functions declared virtual, override or final.
 
 	void	Init(void);
 	void	Kill(void);
+	void	AddBase(const char* szClass, ECPPSymbolKind eClassKind, const char* szBase, ECPPSymbolKind eBaseKind);
+	void	AddVirtual(const char* szFunction, ECPPSymbolKind eKind);
 
 	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
 	void	SetContainer(const char* szKey, ECPPSymbolKind eKind);
@@ -120,6 +124,9 @@ public:
 	CChars					mszKey;
 	ECPPSymbolKind			meKind;
 	CArrayIndexLocations	masLocations;
+	CArrayInt				maiBases;		//A class's base classes, by symbol index.
+	CArrayInt				maiDerived;		//The classes that have it as a base, by symbol index.
+	bool					mbVirtual;		//A member function some unit declares virtual, override or final.
 
 	void	Init(const char* szKey, ECPPSymbolKind eKind);
 	void	Kill(void);
@@ -157,6 +164,7 @@ public:
 	CCPPIndexSymbol*	GetSymbol(size uiIndex);
 	CCPPIndexSymbol*	FindSymbol(const char* szKey);
 	CCPPIndexSymbol*	FindSymbolAt(const char* szFileName, int iLine, int iColumn);
+	bool				FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest);
 	size				NumFiles(void);
 	char*				GetFileName(size uiFile);
 	char*				Print(CChars* pszDest);
@@ -168,6 +176,9 @@ protected:
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
 	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);
+	static void			FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcNode, CCPPIndexUnit* pcDest);
+	static void			GatherVirtual(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest);
+	static void			AddClosure(CArrayIndexSymbols* papcSymbols, int iSymbol, bool bBases, CArrayInt* paiDest);
 	static bool			GetContainerKey(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcContainer, CChars* pszDest, ECPPSymbolKind* peKind);
 	int					GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind);
 	uint32				GetFileIndex(const char* szFileName);

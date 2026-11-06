@@ -501,6 +501,96 @@ int giTotal;\n", true);
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The overrides of a virtual member function are the functions with its
+// name and parameters up and down its class's hierarchy, siblings too,
+// whichever unit (and whichever class of them) said virtual or override.
+// A function no class made virtual has none, and neither has one in an
+// unrelated class.
+//
+//////////////////////////////////////////////////////////////////////////
+static size CountCppIndexOverrides(CCPPIndex* pcIndex, const char* szKey)
+{
+	CArrayInt			aiOverrides;
+	CCPPIndexSymbol*	pcSymbol;
+	size				uiCount;
+
+	pcSymbol = pcIndex->FindSymbol(szKey);
+	AssertNotNull(pcSymbol);
+	if (pcSymbol == NULL)
+	{
+		return 0;
+	}
+	aiOverrides.Init();
+	uiCount = pcIndex->FindOverrides(pcSymbol, &aiOverrides) ? aiOverrides.NumElements() : 0;
+	aiOverrides.Kill();
+	return uiCount;
+}
+
+
+void TestCppIndexOverrides(void)
+{
+	CCPPIndex	cIndex;
+
+	cIndex.Init();
+	IndexText(&cIndex, "Base.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+	void			Run(char c);\n\
+	void			Plain(void);\n\
+};\n\
+class CMiddle : public CBase\n\
+{\n\
+public:\n\
+	void	Run(int i) override;\n\
+	void	Plain(void);\n\
+};\n\
+class CSibling : public CBase\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n\
+class COther\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+};\n");
+	IndexText(&cIndex, "Leaf.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual void	Run(int i);\n\
+	void			Run(char c);\n\
+	void			Plain(void);\n\
+};\n\
+class CMiddle : public CBase\n\
+{\n\
+public:\n\
+	void	Run(int i) override;\n\
+	void	Plain(void);\n\
+};\n\
+class CLeaf : public CMiddle\n\
+{\n\
+public:\n\
+	void	Run(int i);\n\
+};\n\
+void CLeaf::Run(int i)\n\
+{\n\
+}\n");
+
+	AssertSize(4, CountCppIndexOverrides(&cIndex, "CLeaf::Run(int)"));
+	AssertSize(4, CountCppIndexOverrides(&cIndex, "CBase::Run(int)"));
+	AssertSize(4, CountCppIndexOverrides(&cIndex, "CSibling::Run(int)"));
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CBase::Run(char)"));
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CMiddle::Plain()"));
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "COther::Run(int)"));
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppIndex(void)
@@ -513,6 +603,7 @@ void TestCppIndex(void)
 	TestCppSemanticPassHost();
 	TestCppIndexMacroNames();
 	TestCppIndexContainers();
+	TestCppIndexOverrides();
 
 	TestStatistics();
 }
