@@ -28,7 +28,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The highlights are the Jewel dark selection and hover colours.  Page up
-// and page down move ten rows.
+// and page down move ten rows unless a scroll pane shows the list (see
+// GetPageRows).
 //
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
@@ -44,6 +45,7 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	miSelected = -1;
 	miHover = -1;
 	miPageRows = 10;
+	mbWrapAround = false;
 	mbPressed = false;
 	mbSelectOnHover = false;
 	mbDoubleClickActivates = false;
@@ -94,6 +96,7 @@ void CListContainer::Class(void)
 	U_Bool(mbPressed);
 	U_Bool(mbSelectOnHover);
 	U_Bool(mbDoubleClickActivates);
+	U_Bool(mbWrapAround);
 	U_Data(SDoubleClick, msDoubleClick);
 }
 
@@ -585,7 +588,14 @@ void CListContainer::ExecuteComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Up(void)
 {
-	SelectEnabled(FindEnabled(miSelected < 0 ? NumRows() - 1 : miSelected - 1, -1));
+	int32	iRow;
+
+	iRow = FindEnabled(miSelected < 0 ? NumRows() - 1 : miSelected - 1, -1);
+	if ((iRow < 0) && mbWrapAround)
+	{
+		iRow = FindEnabled(NumRows() - 1, -1);
+	}
+	SelectEnabled(iRow);
 }
 
 
@@ -595,7 +605,14 @@ void CListContainer::Up(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Down(void)
 {
-	SelectEnabled(FindEnabled(miSelected + 1, 1));
+	int32	iRow;
+
+	iRow = FindEnabled(miSelected + 1, 1);
+	if ((iRow < 0) && mbWrapAround)
+	{
+		iRow = FindEnabled(0, 1);
+	}
+	SelectEnabled(iRow);
 }
 
 
@@ -650,7 +667,7 @@ void CListContainer::PageUp(void)
 	int32	iTarget;
 	int32	iRow;
 
-	iTarget = (miSelected < 0 ? NumRows() - 1 : miSelected) - miPageRows;
+	iTarget = (miSelected < 0 ? NumRows() - 1 : miSelected) - GetPageRows();
 	if (iTarget < 0)
 	{
 		iTarget = 0;
@@ -676,7 +693,7 @@ void CListContainer::PageDown(void)
 	int32	iTarget;
 	int32	iRow;
 
-	iTarget = (miSelected < 0 ? 0 : miSelected) + miPageRows;
+	iTarget = (miSelected < 0 ? 0 : miSelected) + GetPageRows();
 	if (iTarget > NumRows() - 1)
 	{
 		iTarget = NumRows() - 1;
@@ -727,7 +744,7 @@ void CListContainer::ShowRow(int32 iRow)
 
 	if ((iRow >= 0) && GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
 	{
-		cRow.Init(GetPosition().x, iTop, GetPosition().x + GetActualSize().x - 1, iTop + iHeight - 1);
+		cRow.Init(GetPosition().x, iTop, GetPosition().x + GetActualSize().x, iTop + iHeight);
 		ScrollToShow(&cRow);
 	}
 }
@@ -793,7 +810,31 @@ void CListContainer::SelectEnabled(int32 iRow)
 	if (iRow >= 0)
 	{
 		Select(iRow);
+		ShowRow(iRow);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many rows page up and page down move.  Shown by a scroll pane, a
+// page is the rows its view shows, less one so the row the selection
+// moved from is still in sight; otherwise it is SetPageRows' (ten).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CListContainer::GetPageRows(void)
+{
+	CInt32Rect	cView;
+	int32		iTop;
+	int32		iHeight;
+	int32		iPage;
+
+	if (GetScrollView(&cView) && GetTrackBounds(false, (miSelected < 0) ? 0 : (size)miSelected, &iTop, &iHeight) && (iHeight > 0))
+	{
+		iPage = cView.GetHeight() / iHeight - 1;
+		return (iPage > 1) ? iPage : 1;
+	}
+	return miPageRows;
 }
 
 
@@ -830,7 +871,8 @@ void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = b
 bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
 void CListContainer::SetDoubleClickActivates(bool bDoubleClickActivates) { mbDoubleClickActivates = bDoubleClickActivates; msDoubleClick.Forget(); }
 bool CListContainer::IsDoubleClickActivates(void) { return mbDoubleClickActivates; }
-void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; InvalidateLayout(); }
+void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; InvalidateLayout(); }  //A page when no scroll pane shows the list.
+void CListContainer::SetWrapAround(bool bWrapAround) { mbWrapAround = bWrapAround; }  //Up from the first row goes to the last, and down from the last to the first.
 Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
 Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }
 

@@ -5,6 +5,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/ListContainer.h"
+#include "WindowLib/ScrollPane.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TickTestRefWindow.h"
@@ -12,6 +13,10 @@
 
 
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
+
+
+Ptr<CScrollBarImages> CreateScrollBarImages(void);
+Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -422,6 +427,97 @@ void TestListDraw(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Twenty rows ten high in a scroll pane that shows five.  The keys keep
+// the selected row in view, a page is the rows shown less one, and with
+// wrap around up from the first row goes to the last.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestListKeysScroll(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CListContainer>		pList;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		SInt32Vec2				sVec;
+		int32					i;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("List Keys Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->SetContainer(pScrollPane);
+		pList = OMalloc<CListContainer>(pTestWindow, OMalloc<CWindowTheme>(Ptr<CFont>()));
+		pList->SetAlignment(CSH_Stretch, CSV_Top);
+		pScrollPane->SetContent(pList);
+		for (i = 0; i < 20; i++)
+		{
+			pList->AddItem(CreateListItem(pTestWindow, 40, 10, Set32BitColour((uint8)0x10, (uint8)0x20, (uint8)0x30)));
+		}
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 0, &sVec);
+
+		//Down past the view's bottom scrolls just far enough to show the row.
+		for (i = 0; i < 6; i++)
+		{
+			pList->Down();
+		}
+		AssertInt(5, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 10, &sVec);
+
+		//The view shows five rows, so a page is four.
+		pList->PageDown();
+		AssertInt(9, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 50, &sVec);
+		pList->PageUp();
+		AssertInt(5, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 50, &sVec);
+
+		//Without wrap around the ends stop the selection.
+		pList->Home();
+		pList->Up();
+		AssertInt(0, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 0, &sVec);
+
+		pList->SetWrapAround(true);
+		pList->Up();
+		AssertInt(19, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 150, &sVec);
+		pList->Down();
+		AssertInt(0, pList->GetSelected());
+		pTestWindow->Layout();
+		sVec = pScrollPane->GetScrollPosition();
+		AssertInt32Vec2(0, 0, &sVec);
+
+		pList = NULL;
+		pScrollPane = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestList(void)
@@ -431,6 +527,7 @@ void TestList(void)
 
 	TestListInput();
 	TestListDraw();
+	TestListKeysScroll();
 
 	ObjectsFlush();
 	ObjectsKill();

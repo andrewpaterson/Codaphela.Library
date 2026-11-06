@@ -148,7 +148,6 @@ protected:
 	void			FillList(void);
 	void			AddRow(SGoToItem* psItem);
 	Ptr<CComponent>	CreateName(SGoToItem* psItem);
-	void			SelectResult(int32 iRow);
 	void			SplitLine(CChars* pszPattern);
 };
 

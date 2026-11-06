@@ -39,10 +39,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //disabled, over the hover highlight.  Each highlight covers its row across the whole width of the list.
 //
 //Pressing a row selects it and releasing over the selected row activates it.  Up, down, home, end, page up and page
-//down move the selection over the enabled rows, and enter or space activates the selected row.  When the selection
-//follows the pointer, as in a menu, moving over a row selects it so pressing, dragging to a row and releasing activates
-//that row.  A list can instead be activated by a double click, pressing and releasing the same row twice quickly, as
-//a file chooser's is; enter and space still activate the selected row.
+//down move the selection over the enabled rows, and a scroll pane the list is in scrolls to show it; enter or space
+//activates the selected row.  When the selection follows the pointer, as in a menu, moving over a row selects it so
+//pressing, dragging to a row and releasing activates that row.  A list can instead be activated by a double click,
+//pressing and releasing the same row twice quickly, as a file chooser's is; enter and space still activate the selected
+//row.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
@@ -60,10 +61,11 @@ protected:
 	CComponentEvent<CListContainer>	mcActivated;
 	int32					miSelected;  //-1 if no row is selected.
 	int32					miHover;  //The row under the pointer, -1 if the pointer isn't over a row.
-	int32					miPageRows;  //How far page up and page down move the selection.
+	int32					miPageRows;  //How far page up and page down move the selection when no scroll pane shows the list.
 	bool					mbPressed;  //Pressed on a row and not yet released.
 	bool					mbSelectOnHover;
 	bool					mbDoubleClickActivates;
+	bool					mbWrapAround;
 	SDoubleClick			msDoubleClick;  //Keyed by row, positions relative to the list.
 
 public:
@@ -94,6 +96,7 @@ public:
 	void			SetDoubleClickActivates(bool bDoubleClickActivates);
 	bool			IsDoubleClickActivates(void);
 	void			SetPageRows(int32 iPageRows);
+	void			SetWrapAround(bool bWrapAround);
 	void			SetHighlightColours(ARGB32 sSelected, ARGB32 sHover);
 	void			SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDraw> pHover);
 	Ptr<CCanvas>	GetSelectedHighlight(void);
@@ -133,6 +136,7 @@ protected:
 	void			LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow);
 	int32			FindEnabled(int32 iFrom, int32 iStep);
 	void			SelectEnabled(int32 iRow);
+	int32			GetPageRows(void);
 	void			SetHover(int32 iRow);
 };
 

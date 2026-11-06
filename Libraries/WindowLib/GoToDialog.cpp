@@ -285,6 +285,7 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 	mpList->SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListSelectedColour(), 4, &sInsets), OMalloc<CRoundedBoxCanvasDraw>(psLook->pcTheme->GetListHoverColour(), 4, &sInsets));
 	mpList->SetAlignment(CSH_Stretch, CSV_Top);
 	mpList->SetDoubleClickActivates(true);
+	mpList->SetWrapAround(true);
 	mpScrollPane = OMalloc<CScrollPane>(pWindow, psLook->pcTheme);
 	mpScrollPane->SetContent(mpList);
 	mpScrollPane->SetAlignment(CSH_Stretch, CSV_Stretch);
@@ -608,75 +609,16 @@ void CGoToDialog::TabSelected(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The selection moves and is kept in view.
+// The keys typed into the search field move the results' selection: the
+// list keeps it in view, and up from the first result goes to the last
+// and down from the last to the first, as IntelliJ's.  A page is what
+// the results pane shows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CGoToDialog::SelectResult(int32 iRow)
-{
-	if (mpList->NumRows() == 0)
-	{
-		return;
-	}
-	if (iRow < 0)
-	{
-		iRow = 0;
-	}
-	if (iRow >= mpList->NumRows())
-	{
-		iRow = mpList->NumRows() - 1;
-	}
-	mpList->Select(iRow);
-	mpList->ShowRow(iRow);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Up from the first result goes to the last, and down from the last to
-// the first, as IntelliJ's.
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToDialog::Up(void)
-{
-	SelectResult(mpList->GetSelected() <= 0 ? mpList->NumRows() - 1 : mpList->GetSelected() - 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToDialog::Down(void)
-{
-	SelectResult(mpList->GetSelected() >= mpList->NumRows() - 1 ? 0 : mpList->GetSelected() + 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A page is what the results pane shows.
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToDialog::PageUp(void)
-{
-	int32	iPage;
-
-	iPage = mpScrollPane->GetActualSize().y / GO_TO_DIALOG_ROW_HEIGHT;
-	SelectResult(mpList->GetSelected() - (iPage > 1 ? iPage - 1 : 1));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToDialog::PageDown(void)
-{
-	int32	iPage;
-
-	iPage = mpScrollPane->GetActualSize().y / GO_TO_DIALOG_ROW_HEIGHT;
-	SelectResult(mpList->GetSelected() + (iPage > 1 ? iPage - 1 : 1));
-}
+void CGoToDialog::Up(void) { mpList->Up(); }
+void CGoToDialog::Down(void) { mpList->Down(); }
+void CGoToDialog::PageUp(void) { mpList->PageUp(); }
+void CGoToDialog::PageDown(void) { mpList->PageDown(); }
 
 
 //////////////////////////////////////////////////////////////////////////
