@@ -92,7 +92,7 @@ SGoToItem* CGoToItems::Add(const char* szName, const char* szLocation, int32 iIc
 // The best score first, then by name, then by where it is.
 //
 //////////////////////////////////////////////////////////////////////////
-static int CompareGoToItems(const void* pv1, const void* pv2)
+static int __cdecl CompareGoToItems(const void* pv1, const void* pv2)
 {
 	SGoToItem*	ps1;
 	SGoToItem*	ps2;
