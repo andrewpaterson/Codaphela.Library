@@ -260,14 +260,12 @@ int CModPlayer::GetArpeggioPeriod(int iPeriod, int iFineTune, int iSemitones)
 //////////////////////////////////////////////////////////////////////////
 void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolation eInterpolation, float64 fStereoSeparation)
 {
-	size			uiChannel;
 	size			uiNumChannels;
 	Ptr<CSound>		pBank;
 	lsize			uiBankFrames;
 	lsize			uiFrame;
 	float64			fSample;
 	CChannel*		pcChannel;
-	SModChannel*	psChannel;
 
 	mpcSong = &pSong;
 	muiSampleRate = uiSampleRate;
@@ -304,6 +302,20 @@ void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolatio
 	mpsMix = (SModMix*)malloc(sizeof(SModMix));
 	mpsGainTables = (SModGainTable*)malloc((lsize)sizeof(SModGainTable) * 2 * (uiNumChannels > 0 ? uiNumChannels : 1));
 	muiStepNumerator = (uint32)(MOD_PAULA_CLOCK_PAL / 2.0 * 65536.0 / (float64)muiSampleRate + 0.5);
+	mpuiPlayedRows = (uint8*)malloc(MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
+	Restart();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Back to the start of the song, every channel silent.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModPlayer::Restart(void)
+{
+	size			uiChannel;
+	SModChannel*	psChannel;
 
 	memset(masChannels, 0, sizeof(masChannels));
 	for (uiChannel = 0; uiChannel < MOD_MAX_CHANNELS; uiChannel++)
@@ -329,9 +341,8 @@ void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolatio
 	muiJumpOrder = 0;
 	mbLoopJump = false;
 	muiLoopRow = 0;
-	mbFinished = pSong->GetSongLength() == 0;
+	mbFinished = mpcSong->GetSongLength() == 0;
 	mbStarted = false;
-	mpuiPlayedRows = (uint8*)malloc(MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
 	memset(mpuiPlayedRows, 0, MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
 
 	mfFramesPerTick = (float64)muiSampleRate * 2.5 / (float64)muiTempo;
@@ -488,19 +499,24 @@ lsize CModPlayer::Render8(SModUnsigned8* psOut, lsize uiNumFrames)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Plays the whole song (or uiMaxFrames, zero for up to 30 minutes) into a
-// stereo sound.
+// The whole song (from its start, at most uiMaxFrames, or
+// MOD_MAX_SONG_MINUTES if 0) as a sound of eType samples.  The song is
+// played through once without mixing (SkipTick) to find its length, so the
+// sound is made once and rendered into a block at a time: nothing but the
+// sound is the song's length (a W65C816's memory holds the sound but not
+// the song as float64s).  NULL if there isn't the memory.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 {
 	float64*	pfStereo;
-	lsize		uiAllocated;
-	lsize		uiFrames;
-	lsize		uiCount;
-	size		uiRequest;
 	float64*	pfChannel;
-	lsize		i;
+	lsize		uiFrames;
+	lsize		uiRendered;
+	lsize		uiCount;
+	bool		bEnded;
+	size		uiRequest;
+	size		i;
 	size		c;
 	Ptr<CSound>	pSound;
 
@@ -509,34 +525,58 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 		uiMaxFrames = (lsize)muiSampleRate * 60 * MOD_MAX_SONG_MINUTES;
 	}
 
-	uiAllocated = MOD_RENDER_BLOCK;
-	pfStereo = (float64*)malloc((lsize)sizeof(float64) * 2 * uiAllocated);
+	Restart();
 	uiFrames = 0;
-	while ((uiFrames < uiMaxFrames) && !mbFinished)
+	bEnded = false;
+	while (uiFrames < uiMaxFrames)
 	{
-		if (uiFrames + MOD_RENDER_BLOCK > uiAllocated)
+		uiCount = SkipTick();
+		if (uiCount == 0)
 		{
-			uiAllocated *= 2;
-			pfStereo = (float64*)realloc(pfStereo, (lsize)sizeof(float64) * 2 * uiAllocated);
+			bEnded = true;
+			break;
 		}
-		uiRequest = uiMaxFrames - uiFrames < MOD_RENDER_BLOCK ? (size)(uiMaxFrames - uiFrames) : MOD_RENDER_BLOCK;
-		uiCount = Render(&pfStereo[uiFrames * 2], uiRequest);
 		uiFrames += uiCount;
+	}
+	if (uiFrames > uiMaxFrames)
+	{
+		uiFrames = uiMaxFrames;
+	}
+	Restart();
+
+	pSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
+	pfStereo = (float64*)malloc((lsize)sizeof(float64) * 2 * MOD_RENDER_BLOCK);
+	pfChannel = (float64*)malloc((lsize)sizeof(float64) * MOD_RENDER_BLOCK);
+	if ((pfStereo == NULL) || (pfChannel == NULL) || ((uiFrames > 0) && (pSound->GetData() == NULL)))
+	{
+		SafeFree(pfStereo);
+		SafeFree(pfChannel);
+		return NULL;
+	}
+
+	uiRendered = 0;
+	while (uiRendered < uiFrames)
+	{
+		uiRequest = (uiFrames - uiRendered < MOD_RENDER_BLOCK) ? (size)(uiFrames - uiRendered) : MOD_RENDER_BLOCK;
+		uiCount = Render(pfStereo, uiRequest);
+		for (c = 0; c < 2; c++)
+		{
+			for (i = 0; i < (size)uiCount; i++)
+			{
+				pfChannel[i] = pfStereo[i * 2 + c];
+			}
+			pSound->SetSamples(c, uiRendered, uiCount, pfChannel);
+		}
+		uiRendered += uiCount;
 		if (uiCount < uiRequest)
 		{
 			break;
 		}
 	}
-
-	pSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
-	pfChannel = (float64*)malloc((lsize)sizeof(float64) * (uiFrames + 1));
-	for (c = 0; c < 2; c++)
+	if (bEnded)
 	{
-		for (i = 0; i < uiFrames; i++)
-		{
-			pfChannel[i] = pfStereo[i * 2 + c];
-		}
-		pSound->SetSamples(c, 0, uiFrames, pfChannel);
+		//The song's last tick is mixed; it ends at the next (IsFinished).
+		SkipTick();
 	}
 	free(pfChannel);
 	free(pfStereo);
