@@ -484,6 +484,7 @@ protected:
 	bool					Function(CCPPSyntaxFunctionDefinition* pcFunction, SCPP65Class* psClass);
 	void					GenerateFunction(SCPP65Function* psFunction);
 	bool					GenerateDefinition(SCPP65Function* psFunction);
+	void					AddParameters(SCPP65Function* psFunction);
 	void					BeginFunction(SCPP65Function* psFunction);
 	void					EndFunction(SCPP65Function* psFunction);
 	void					AppendUnsupported(CChars* psz);

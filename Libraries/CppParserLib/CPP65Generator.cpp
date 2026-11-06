@@ -2786,6 +2786,60 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 {
 	CCPPSyntaxFunctionDefinition*	pcFunction;
+	size							uiErrors;
+	CChars							szMessage;
+
+	pcFunction = psFunction->pcDefinition;
+	if ((pcFunction->macpMemberInitializers.NumElements() != 0) && (psFunction->eKind != CPP65FK_Constructor))
+	{
+		return Error(pcFunction, "Only constructors have member initialisers");
+	}
+
+	BeginFunction(psFunction);
+	AddParameters(psFunction);
+	if (!AllocateLocals(pcFunction->mpcBody))
+	{
+		EndFunction(psFunction);
+		return false;
+	}
+
+	//The IR front end writes the whole function.  An error it reported (ReportTypeOf: C++ that is wrong) is the reason
+	//when it can't; else it is C++ the front end doesn't do yet.
+	uiErrors = mcErrors.NumErrors();
+	if (mpcIRFrontEnd->Body(psFunction))
+	{
+		return true;
+	}
+	if (mcErrors.NumErrors() > uiErrors)
+	{
+		mpcIRFrontEnd->ClearUnsupported();
+	}
+	else
+	{
+		szMessage.Init("This function uses C++ the ");
+		szMessage.Append(mpsTarget->szName);
+		szMessage.Append(" compiler doesn't support yet");
+		AppendUnsupported(&szMessage);
+		Error(pcFunction, szMessage.Text());
+		szMessage.Kill();
+	}
+	EndFunction(psFunction);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameters of the function BeginFunction started are its first
+// locals.  Arguments take their own size on the stack, the first lowest,
+// after the hidden result address of a function that returns an object.
+// Object arguments are the function's to destroy.  A function parameter
+// pack is a parameter for each of its types, each with its own symbol (see
+// ExpandPackCall).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddParameters(SCPP65Function* psFunction)
+{
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxParameter*			pcParameter;
 	SCPP65Type*						psType;
@@ -2796,24 +2850,9 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	size							j;
 	size							k;
 	size							uiPack;
-	size							uiErrors;
 	int								iOffset;
-	CChars							szMessage;
 
-	pcFunction = psFunction->pcDefinition;
-	if ((pcFunction->macpMemberInitializers.NumElements() != 0) && (psFunction->eKind != CPP65FK_Constructor))
-	{
-		return Error(pcFunction, "Only constructors have member initialisers");
-	}
-
-	BeginFunction(psFunction);
-
-	//Arguments take their own size on the stack, the first lowest, after the hidden
-	//result address of a function that returns an object.  Object arguments are the
-	//function's to destroy.
-	//A function parameter pack is a parameter for each of its types, each with its own
-	//symbol (see ExpandPackCall).
-	pcSuffix = pcFunction->mpcDeclarator->GetFunctionSuffix();
+	pcSuffix = psFunction->pcDefinition->mpcDeclarator->GetFunctionSuffix();
 	iOffset = psFunction->psReturn->IsClass() ? 4 : 0;
 	j = 0;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
@@ -2843,34 +2882,6 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 			j++;
 		}
 	}
-	if (!AllocateLocals(pcFunction->mpcBody))
-	{
-		EndFunction(psFunction);
-		return false;
-	}
-
-	//The IR front end writes the whole function.  An error it reported (ReportTypeOf: C++ that is wrong) is the reason
-	//when it can't; else it is C++ the front end doesn't do yet.
-	uiErrors = mcErrors.NumErrors();
-	if (mpcIRFrontEnd->Body(psFunction))
-	{
-		return true;
-	}
-	if (mcErrors.NumErrors() > uiErrors)
-	{
-		mpcIRFrontEnd->ClearUnsupported();
-	}
-	else
-	{
-		szMessage.Init("This function uses C++ the ");
-		szMessage.Append(mpsTarget->szName);
-		szMessage.Append(" compiler doesn't support yet");
-		AppendUnsupported(&szMessage);
-		Error(pcFunction, szMessage.Text());
-		szMessage.Kill();
-	}
-	EndFunction(psFunction);
-	return false;
 }
 
 
