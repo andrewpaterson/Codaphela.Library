@@ -263,6 +263,12 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Right Alt");
 		AssertLog("B:GoToSymbol;");
 
+		//Alt+1 shows the project view, it doesn't type a 1.
+		cDevices.Press("Left Alt");
+		cDevices.Tap("1");
+		cDevices.Release("Left Alt");
+		AssertLog("B:ShowProjectView;");
+
 		//Alt alone types nothing; nothing else is mapped with it.
 		cDevices.Press("Left Alt");
 		cDevices.Tap("A");

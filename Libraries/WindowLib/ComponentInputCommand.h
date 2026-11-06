@@ -103,6 +103,7 @@ enum EComponentInputCommand
 	CIC_GoToClass,  //Control+N, as IntelliJ's.
 	CIC_GoToFile,  //Control+Shift+N.
 	CIC_GoToSymbol,  //Control+Alt+Shift+N.
+	CIC_ShowProjectView,  //Alt+1, as IntelliJ's Project tool window: the active file selected in it.
 
 	//Debugging, with Visual Studio's keys.
 	CIC_StartDebugging,  //F5: start, or continue.
