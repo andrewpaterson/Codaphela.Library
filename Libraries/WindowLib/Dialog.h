@@ -111,6 +111,7 @@ public:
 	void				SetBody(Ptr<CComponent> pBody, Ptr<CComponent> pFirstEditor);
 	void				SetOKCaption(const char* szCaption);
 	void				SetResizable(int32 iMinimumWidth, int32 iMinimumHeight);
+	void				RemoveButtons(void);
 	template<class M, class O>
 	void				SetApprover(O* pcObject, bool(M::*fApprove)(void));
 	void				ClearApprover(void);

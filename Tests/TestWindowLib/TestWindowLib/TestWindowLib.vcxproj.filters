@@ -163,6 +163,9 @@
     <ClCompile Include="TestFileChooser.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestGoToDialog.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataTestRefWindow.h">

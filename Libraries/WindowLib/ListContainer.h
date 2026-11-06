@@ -87,6 +87,7 @@ public:
 	int32			GetHover(void);
 	void			Activate(void);
 	int32			FindRowAt(int x, int y);
+	void			ShowRow(int32 iRow);
 
 	void			SetSelectOnHover(bool bSelectOnHover);
 	bool			IsSelectOnHover(void);

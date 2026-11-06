@@ -405,6 +405,24 @@ void CDialog::SetOKCaption(const char* szCaption)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The buttons aren't shown, the body has all the dialog, as IntelliJ's
+// Go to popups.  Enter still clicks OK and escape Cancel.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDialog::RemoveButtons(void)
+{
+	Ptr<CComponent>	pParent;
+
+	pParent = mpButtons->GetParent();
+	if (pParent.IsNotNull())
+	{
+		pParent->RemoveComponent(mpButtons);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The dialog can be resized, no smaller than iMinimumWidth by
 // iMinimumHeight.  A dialog can't be resized unless this is called.
 //

@@ -716,6 +716,25 @@ void CListContainer::UpdateHighlights(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A scroll pane the list is in scrolls to show iRow, as laid out last.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::ShowRow(int32 iRow)
+{
+	int32		iTop;
+	int32		iHeight;
+	CInt32Rect	cRow;
+
+	if ((iRow >= 0) && GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
+	{
+		cRow.Init(GetPosition().x, iTop, GetPosition().x + GetActualSize().x - 1, iTop + iHeight - 1);
+		ScrollToShow(&cRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The highlight covers the row from the left to the right of the list.
 // A highlight that marks no row (iRow -1, or the list hasn't been laid
 // out yet) has no size at the list's top left, wherever it was.  Laying

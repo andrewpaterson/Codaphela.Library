@@ -288,6 +288,9 @@
     <ClInclude Include="FileChooser.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="GoToDialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="TextField.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
@@ -591,6 +594,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="FileChooser.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="GoToDialog.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="TextField.cpp">
