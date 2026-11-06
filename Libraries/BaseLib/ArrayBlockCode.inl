@@ -1132,13 +1132,19 @@ bool ARRAY_BLOCK::BinarySearch(void* pvData, ASIZE iLeft, ASIZE iRight, DataComp
 	ASIZE	iMiddle;
 	int		iResultMiddle;
 	void*	pvMiddle;
+	char*	pcArray;
+	ASIZE	iElementSize;
+
+	//Held in locals because fCompare could change the array as far as the compiler knows.
+	pcArray = (char*)mpvArray;
+	iElementSize = miElementSize;
 
 	iResultMiddle = 0;
 	iMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
-		pvMiddle = Get(iMiddle);
+		pvMiddle = &pcArray[(ASIZE)(iElementSize * iMiddle)];
 		iResultMiddle = fCompare(pvData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
