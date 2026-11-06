@@ -140,6 +140,32 @@ bool CFontFamily::SetFace(EFontStyle eStyle, const char* szTrueTypeFilename)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A face that is one weight of a variable TrueType font: InterVariable.ttf
+// at 700 for bold, for example.  Returns false (and logs an error) if the
+// font can't be loaded or has no weight axis.  The weight is clamped to
+// the axis' range.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFontFamily::SetFace(EFontStyle eStyle, const char* szTrueTypeFilename, float32 fWeight)
+{
+	CPointer	pNull;
+
+	if (!SetFace(eStyle, szTrueTypeFilename))
+	{
+		return false;
+	}
+	if (!mapFaces.Get(eStyle)->GetFont()->SetAxis("wght", fWeight))
+	{
+		mapFaces.Set(eStyle, pNull);
+		gcLogger.Error2(__METHOD__, " Font family [", mszName.Text(), "] ", FontStyleToString(eStyle), " face [", szTrueTypeFilename, "] has no weight axis.", NULL);
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFontFamily::HasFace(EFontStyle eStyle)

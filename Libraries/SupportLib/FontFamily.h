@@ -70,6 +70,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	bool				SetFace(EFontStyle eStyle, const char* szTrueTypeFilename);
+	bool				SetFace(EFontStyle eStyle, const char* szTrueTypeFilename, float32 fWeight);
 	bool				HasFace(EFontStyle eStyle);
 	void				AddFont(EFontStyle eStyle, float32 fPixelSize, Ptr<CFontColours> pColours);
 

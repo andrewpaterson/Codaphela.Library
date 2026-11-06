@@ -596,6 +596,61 @@ void TestFontFamilyClockwise(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Faces that are weights of a variable font.  A font without a weight
+// axis can't be given a weight.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFontFamilyVariableWeights(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CFontFamily>	pFamily;
+		Ptr<CFontColours>	pRegular;
+		Ptr<CFontColours>	pBold;
+		Ptr<CFontColours>	pLightItalic;
+		SLogConfig			sLogConfig;
+		size				uiRegularWidth;
+		size				uiBoldWidth;
+
+		pFamily = OMalloc<CFontFamily>("Inter", "AB ab", 20.0f, CCO_Unknown);
+		ORoot()->Add(pFamily);
+		AssertTrue(pFamily->SetFace(FS_Regular, FAMILY_FONTS "InterVariable.ttf"));
+		AssertTrue(pFamily->SetFace(FS_Bold, FAMILY_FONTS "InterVariable.ttf", 700.0f));
+		AssertTrue(pFamily->SetFace(FS_Italic, FAMILY_FONTS "InterVariable-Italic.ttf", 300.0f));
+
+		sLogConfig = gcLogger.SetSilent();
+		AssertFalse(pFamily->SetFace(FS_BoldItalic, FAMILY_FONTS "LiberationSans-BoldItalic.ttf", 700.0f));
+		gcLogger.SetConfig(&sLogConfig);
+		AssertFalse(pFamily->HasFace(FS_BoldItalic));
+
+		pRegular = pFamily->GetColours(FS_Regular, 0.0f);
+		pBold = pFamily->GetColours(FS_Bold, 0.0f);
+		pLightItalic = pFamily->GetColours(FS_Italic, 0.0f);
+		AssertTrue(pRegular.IsNotNull());
+		AssertTrue(pBold.IsNotNull());
+		AssertTrue(pLightItalic.IsNotNull());
+
+		//Bold Inter is wider.  The widths are the rounded advances of A (1413 and 1529 units of 2048 at 20 pixels).
+		uiRegularWidth = pRegular->GetWhite()->CalculateWidth((char*)"A");
+		uiBoldWidth = pBold->GetWhite()->CalculateWidth((char*)"A");
+		AssertSize(14, uiRegularWidth);
+		AssertSize(15, uiBoldWidth);
+		AssertTrue(pBold->GetWhite()->CalculateWidth((char*)"AB ab") > pRegular->GetWhite()->CalculateWidth((char*)"AB ab"));
+		AssertInt(pRegular->GetWhite()->GetAscent(), pBold->GetWhite()->GetAscent());
+
+		pLightItalic = NULL;
+		pBold = NULL;
+		pRegular = NULL;
+		pFamily = NULL;
+		ORoot()->RemoveAll();
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFontFamily(void)
@@ -612,6 +667,7 @@ void TestFontFamily(void)
 	TestFontFamilyLazyGlyphs();
 	TestFontFamilyLazyMatchesRasterise();
 	TestFontFamilyClockwise();
+	TestFontFamilyVariableWeights();
 
 	DataIOKill();
 
