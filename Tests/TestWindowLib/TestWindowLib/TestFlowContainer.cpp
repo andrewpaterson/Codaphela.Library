@@ -1543,6 +1543,11 @@ void TestFlowContainerDarkForestImagesRightTopContinuePastEdge(void)
 void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 {
 	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "FlowContainerWrapIgnoresUnsizedComponent";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -1556,7 +1561,7 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 		Ptr<CCanvas>			pLast;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 30, 30, NULL);
+		cNativeFactory.Init(&gcMemoryAllocator, 30, 30, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Unsized Component", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
@@ -1601,6 +1606,7 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 
 	AssertFlowContainerObjectsRemoved();
 	cNativeFactory.Kill();
+	cFileUtil.RemoveDir(szDirectory);
 }
 
 

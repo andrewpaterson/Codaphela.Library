@@ -1028,6 +1028,11 @@ void TestCanvasWindowColourFormat(void)
 void TestCanvasOutlivesKilledWindow(void)
 {
 	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasOutlivesKilledWindow";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
 	{
@@ -1038,7 +1043,7 @@ void TestCanvasOutlivesKilledWindow(void)
 		Ptr<CTickTestRefWindow>	pTick;
 		SDataTestRefWindow		cData;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Killed Window", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
@@ -1068,6 +1073,8 @@ void TestCanvasOutlivesKilledWindow(void)
 	cNativeFactory.Kill();
 	ObjectsFlush();
 	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
 }
 
 
@@ -1082,6 +1089,11 @@ void TestCanvasOutlivesKilledWindow(void)
 void TestCanvasImageDrawFollowsTransparency(void)
 {
 	CNoImageRefWindowFactory	cNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasImageDrawFollowsTransparency";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
 	{
@@ -1094,7 +1106,7 @@ void TestCanvasImageDrawFollowsTransparency(void)
 		SDataTestRefWindow		cData;
 		uint8*					puiPixels;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pTestWindow = OMalloc<CWindow>("Image Draw Transparency", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
@@ -1132,6 +1144,8 @@ void TestCanvasImageDrawFollowsTransparency(void)
 	cNativeFactory.Kill();
 	ObjectsFlush();
 	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
 }
 
 
