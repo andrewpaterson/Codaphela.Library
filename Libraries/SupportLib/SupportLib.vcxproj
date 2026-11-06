@@ -287,6 +287,8 @@
     <ClInclude Include="ImageWriter.h" />
     <ClInclude Include="RADWriter.h" />
     <ClInclude Include="ImageReader.h" />
+    <ClInclude Include="ObjectConverterImage.h" />
+    <ClInclude Include="ObjectSourceImage.h" />
     <ClInclude Include="PNGReader.h" />
     <ClInclude Include="RADReader.h" />
     <ClInclude Include="TGAReader.h" />
@@ -526,6 +528,8 @@
     <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="RADWriter.cpp" />
     <ClCompile Include="ImageReader.cpp" />
+    <ClCompile Include="ObjectConverterImage.cpp" />
+    <ClCompile Include="ObjectSourceImage.cpp" />
     <ClCompile Include="PNGReader.cpp" />
     <ClCompile Include="RADReader.cpp" />
     <ClCompile Include="Text.cpp" />

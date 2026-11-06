@@ -18,6 +18,7 @@ void TestImageWriter(void);
 void TestImageBMP(void);
 void TestImageTGA(void);
 void TestImagePNG(void);
+void TestObjectConverterImage(void);
 void TestCompressionRLE(void);
 void TestImageColour(void);
 void TestImageCombiner(void);
@@ -93,6 +94,7 @@ int __cdecl main(void)
 	TestImageBMP();
 	TestImageTGA();
 	TestImagePNG();
+	TestObjectConverterImage();
 	TestCompressionRLE();
 	TestImageGreyToRGB();
 	TestImageRGBToGrey();

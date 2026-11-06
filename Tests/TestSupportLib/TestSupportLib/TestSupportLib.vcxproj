@@ -268,6 +268,7 @@
     <ClCompile Include="TestModPlayer.cpp" />
     <ClCompile Include="TestImageTGA.cpp" />
     <ClCompile Include="TestImagePNG.cpp" />
+    <ClCompile Include="TestObjectConverterImage.cpp" />
     <ClCompile Include="TestCompressionRLE.cpp" />
     <ClCompile Include="TestRectangle.cpp" />
     <ClCompile Include="TestRectangleBestPacker.cpp" />
