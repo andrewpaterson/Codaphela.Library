@@ -114,18 +114,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	FindLineStarts();
 	muiChangeCount = 0;
 	mcUndo.Init();
-	mbUndoing = false;
-	mbTyping = false;
-	mbLastTyping = false;
-	mcTyped = '\0';
-	mcLastTyped = '\0';
-	muiTypedAt = 0;
-	muiTypedEnd = 0;
-	miTypedTime = 0;
-	miTypingPause = TEXT_AREA_TYPING_PAUSE;
-	mbEditStarted = false;
-	muiEditCaret = 0;
-	muiEditAnchor = MAX_SIZE;
 	mcUndoEvent.Init();
 	mcChanged.Init();
 	muiCaret = 0;
@@ -250,19 +238,7 @@ void CTextArea::Class(void)
 	U_Bool(mbTextDirty);
 	U_Bool(mbSizeDirty);
 	U_Data(size, muiChangeCount);
-	U_Unknown(CUndoStack, mcUndo);
-	U_Bool(mbUndoing);
-	U_Bool(mbTyping);
-	U_Bool(mbLastTyping);
-	U_Char(mcTyped);
-	U_Char(mcLastTyped);
-	U_Size(muiTypedAt);
-	U_Size(muiTypedEnd);
-	U_Int64(miTypedTime);
-	U_Int32(miTypingPause);
-	U_Bool(mbEditStarted);
-	U_Size(muiEditCaret);
-	U_Size(muiEditAnchor);
+	U_Unknown(CTextUndo, mcUndo);
 	U_Data(CTextAreaUndoEvent, mcUndoEvent);
 	U_Data(CComponentEvent<CTextArea>, mcChanged);
 	M_Pointer(mpText);
@@ -1761,9 +1737,7 @@ void CTextArea::Printable(char c, bool bInsert)
 
 	sz[0] = c;
 	sz[1] = '\0';
-	mbTyping = true;
-	mcTyped = c;
-	muiTypedAt = IsSelected() ? MAX_SIZE : muiCaret;
+	mcUndo.Typed(c, IsSelected() ? MAX_SIZE : muiCaret);
 	szText = mszText.Text();
 	if (!IsSelected() && !bInsert && (muiCaret < mszText.Length()) && (szText[muiCaret] != '\n') && (szText[muiCaret] != '\r'))
 	{
@@ -3789,7 +3763,7 @@ void CTextArea::OutdentLines(size uiStart, size uiEnd)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::StartEdit(void)
 {
-	if (!mbEditStarted)
+	if (!mcUndo.IsEditStarted())
 	{
 		BeginEdit();
 	}
@@ -3805,12 +3779,7 @@ void CTextArea::StartEdit(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::BeginEdit(void)
 {
-	if (!mbUndoing)
-	{
-		mbEditStarted = true;
-		muiEditCaret = muiCaret;
-		muiEditAnchor = muiAnchor;
-	}
+	mcUndo.BeginEdit(muiCaret, muiAnchor);
 }
 
 
@@ -3826,59 +3795,24 @@ void CTextArea::BeginEdit(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::KeepEdit(void)
 {
-	bool	bMerge;
-	int64	iNow;
-	size	auiMarks[UNDO_STACK_MARKS];
-	size	uiIdBefore;
+	ETextUndoKeep	eKeep;
+	size			uiIdBefore;
 
-	if (!mbEditable || mbUndoing)
+	if (!mbEditable)
 	{
-		mbTyping = false;
-		mbEditStarted = false;
+		mcUndo.DropEdit();
 		return;
 	}
-	if (!mbEditStarted)
-	{
-		muiEditCaret = muiCaret;
-		muiEditAnchor = muiAnchor;
-	}
-	auiMarks[0] = muiEditCaret;
-	auiMarks[1] = muiEditAnchor;
-	auiMarks[2] = muiCaret;
-	auiMarks[3] = muiAnchor;
-	iNow = GetDebugTickCount();
 	uiIdBefore = mcUndo.GetCurrentId();
-	if (mcUndo.NumSnapshots() == 0)
+	eKeep = mcUndo.Keep(mszText.Text(), muiCaret, muiAnchor);
+	if (eKeep == TUK_Merged)
 	{
-		//Its text before the first edit isn't known any more; the history starts here.
-		mcUndo.Push(mszText.Text(), false, auiMarks);
+		UndoChanged(TAU_Merged, uiIdBefore, mcUndo.GetCurrentId());
 	}
-	else
+	else if (eKeep == TUK_Pushed)
 	{
-		bMerge = mbTyping && mbLastTyping && (muiTypedAt == muiTypedEnd) && ((iNow - miTypedTime) < miTypingPause) && (mcTyped != '\n') && (mcTyped != '\r') && !((mcTyped == ' ') && (mcLastTyped != ' '));
-		if (bMerge)
-		{
-			//The merged edit's caret before is the first typing's.
-			auiMarks[0] = mcUndo.GetMarks(mcUndo.GetCurrent())[0];
-			auiMarks[1] = mcUndo.GetMarks(mcUndo.GetCurrent())[1];
-			mcUndo.ReplaceCurrent(mszText.Text(), auiMarks);
-			UndoChanged(TAU_Merged, uiIdBefore, mcUndo.GetCurrentId());
-		}
-		else
-		{
-			mcUndo.Push(mszText.Text(), false, auiMarks);
-			UndoChanged(TAU_Kept, uiIdBefore, mcUndo.GetCurrentId());
-		}
+		UndoChanged(TAU_Kept, uiIdBefore, mcUndo.GetCurrentId());
 	}
-	mbLastTyping = mbTyping;
-	mcLastTyped = mcTyped;
-	muiTypedEnd = muiCaret;
-	if (mbTyping)
-	{
-		miTypedTime = iNow;
-	}
-	mbTyping = false;
-	mbEditStarted = false;
 }
 
 
@@ -3907,7 +3841,7 @@ void CTextArea::UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAft
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::Undo(void)
 {
-	return LoadUndo(mcUndo.FindUndo(false));
+	return LoadUndo(mcUndo.FindUndo());
 }
 
 
@@ -3917,7 +3851,7 @@ bool CTextArea::Undo(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::Redo(void)
 {
-	return LoadUndo(mcUndo.FindRedo(false));
+	return LoadUndo(mcUndo.FindRedo());
 }
 
 
@@ -3931,77 +3865,36 @@ bool CTextArea::Redo(void)
 bool CTextArea::LoadUndo(size uiIndex)
 {
 	char*	szTarget;
-	char*	szText;
 	size	uiTargetLength;
-	size	uiLength;
 	size	uiPrefix;
 	size	uiSuffix;
-	size	uiCurrent;
 	size	uiIdBefore;
-	size*	pauiMarks;
+	size	uiCaret;
+	size	uiAnchor;
 	bool	bUndo;
 	CChars	szMiddle;
 
-	if (!mbEditable || (uiIndex == ARRAY_ELEMENT_NOT_FOUND) || (uiIndex >= mcUndo.NumSnapshots()))
+	if (!mbEditable || !mcUndo.CanLoad(uiIndex))
 	{
 		return false;
 	}
-	uiCurrent = mcUndo.GetCurrent();
-	if (uiIndex == uiCurrent)
-	{
-		return false;
-	}
-	bUndo = uiIndex < uiCurrent;
+	bUndo = mcUndo.IsUndo(uiIndex);
 	uiIdBefore = mcUndo.GetCurrentId();
 
-	szTarget = mcUndo.Get(uiIndex);
-	szText = mszText.Text();
+	szTarget = mcUndo.GetLoadText(uiIndex, &uiCaret, &uiAnchor);
 	uiTargetLength = StrLen(szTarget);
-	uiLength = mszText.Length();
-	uiPrefix = 0;
-	while ((uiPrefix < uiLength) && (uiPrefix < uiTargetLength) && (szText[uiPrefix] == szTarget[uiPrefix]))
-	{
-		uiPrefix++;
-	}
-	uiSuffix = 0;
-	while ((uiSuffix < uiLength - uiPrefix) && (uiSuffix < uiTargetLength - uiPrefix) && (szText[uiLength - 1 - uiSuffix] == szTarget[uiTargetLength - 1 - uiSuffix]))
-	{
-		uiSuffix++;
-	}
-
-	//Whole characters: a difference inside one starts at its first byte and ends after its last.
-	while ((uiPrefix > 0) && ((szTarget[uiPrefix] & 0xC0) == 0x80))
-	{
-		uiPrefix--;
-	}
-	while ((uiSuffix > 0) && ((szTarget[uiTargetLength - uiSuffix] & 0xC0) == 0x80))
-	{
-		uiSuffix--;
-	}
-
+	mcUndo.FindDifference(mszText.Text(), mszText.Length(), szTarget, uiTargetLength, &uiPrefix, &uiSuffix);
 	szMiddle.Init(szTarget, uiPrefix, uiTargetLength - uiSuffix);
-	mbUndoing = true;
-	RemoveText(uiPrefix, uiLength - uiSuffix);
+	mcUndo.Loading(uiIndex);
+	RemoveText(uiPrefix, mszText.Length() - uiSuffix);
 	InsertText(uiPrefix, szMiddle.Text());
+	szMiddle.Kill();
 
 	//Undone, as before the first edit undone; redone, as after the last edit redone.
-	pauiMarks = bUndo ? mcUndo.GetMarks(uiIndex + 1) : mcUndo.GetMarks(uiIndex);
-	muiCaret = bUndo ? pauiMarks[0] : pauiMarks[2];
-	muiAnchor = bUndo ? pauiMarks[1] : pauiMarks[3];
-	if (muiCaret > mszText.Length())
-	{
-		muiCaret = mszText.Length();
-	}
-	if ((muiAnchor != MAX_SIZE) && ((muiAnchor > mszText.Length()) || (muiAnchor == muiCaret)))
-	{
-		muiAnchor = MAX_SIZE;
-	}
-	mcUndo.MoveTo(uiIndex);
+	muiCaret = uiCaret;
+	muiAnchor = uiAnchor;
 	TextChanged();
-	mbUndoing = false;
-	mbLastTyping = false;
-	muiTypedEnd = muiCaret;
-	szMiddle.Kill();
+	mcUndo.Loaded(muiCaret);
 	UndoChanged(bUndo ? TAU_Undone : TAU_Redone, uiIdBefore, mcUndo.GetCurrentId());
 	return true;
 }
@@ -4027,7 +3920,7 @@ bool CTextArea::UndoTo(size uiId)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetTypingPause(int32 iMilliseconds)
 {
-	miTypingPause = iMilliseconds;
+	mcUndo.SetTypingPause(iMilliseconds);
 }
 
 
@@ -4041,7 +3934,7 @@ CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged;
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::CanUndo(void)
 {
-	return mbEditable && (mcUndo.FindUndo(false) != ARRAY_ELEMENT_NOT_FOUND);
+	return mbEditable && (mcUndo.FindUndo() != ARRAY_ELEMENT_NOT_FOUND);
 }
 
 
@@ -4051,7 +3944,7 @@ bool CTextArea::CanUndo(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::CanRedo(void)
 {
-	return mbEditable && (mcUndo.FindRedo(false) != ARRAY_ELEMENT_NOT_FOUND);
+	return mbEditable && (mcUndo.FindRedo() != ARRAY_ELEMENT_NOT_FOUND);
 }
 
 
@@ -4076,13 +3969,7 @@ size CTextArea::GetUndoId(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearUndo(void)
 {
-	mcUndo.Clear();
-	mbLastTyping = false;
-	mbTyping = false;
-	if (mbEditable)
-	{
-		mcUndo.Push(mszText.Text(), false);
-	}
+	mcUndo.Clear(mbEditable ? mszText.Text() : NULL, muiCaret, muiAnchor);
 }
 
 

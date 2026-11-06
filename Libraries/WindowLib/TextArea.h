@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_AREA_H__
 #define __TEXT_AREA_H__
-#include "BaseLib/UndoStack.h"
+#include "BaseLib/TextUndo.h"
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
@@ -38,10 +38,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
-
-
-//How long typing can stop for and the next character still be part of the same edit (see CTextArea::KeepEdit).
-#define TEXT_AREA_TYPING_PAUSE	1000
 
 
 //What happened to a text area's undo history (CTextArea::GetUndoEvent).
@@ -202,21 +198,9 @@ protected:
 	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	bool				mbDragging;
 
-	//Undo, as Logicim's: the text after each edit of an editable text area (CUndoStack), consecutive typing kept as one
-	//edit.  Undoing or redoing changes only the part of the text that differs from the snapshot.
-	CUndoStack			mcUndo;
-	bool				mbUndoing;  //An undo or redo is changing the text: it isn't an edit to keep.
-	bool				mbTyping;  //The edit being made is a character typed (Printable).
-	bool				mbLastTyping;  //So was the last edit kept.
-	char				mcTyped;  //The character typed.
-	char				mcLastTyped;
-	size				muiTypedAt;  //Where the caret was when it was typed.
-	size				muiTypedEnd;  //Where the caret was after the last edit kept.
-	int64				miTypedTime;  //When the last character was typed (GetDebugTickCount).
-	int32				miTypingPause;  //Typing that stops this long (milliseconds) starts a new edit.
-	bool				mbEditStarted;  //The edit being made has changed the text: muiEditCaret and muiEditAnchor are from before it.
-	size				muiEditCaret;
-	size				muiEditAnchor;
+	//Undo, as Logicim's: the text after each edit of an editable text area, consecutive typing kept as one edit (see
+	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot.
+	CTextUndo			mcUndo;
 	CTextAreaUndoEvent	mcUndoEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 

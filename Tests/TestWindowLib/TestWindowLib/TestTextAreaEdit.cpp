@@ -1489,7 +1489,7 @@ void TestTextAreaEditUndo(void)
 		AssertString("abc def gh", pTextArea->GetText());
 		AssertTrue(pTextArea->Undo());
 		AssertString("abc def g", pTextArea->GetText());
-		pTextArea->SetTypingPause(TEXT_AREA_TYPING_PAUSE);
+		pTextArea->SetTypingPause(TEXT_UNDO_TYPING_PAUSE);
 
 		//The selection a paste replaced comes back selected; redone, the caret is after the paste.
 		pTextArea->Select(4, 7);
