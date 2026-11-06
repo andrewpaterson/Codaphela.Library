@@ -1392,6 +1392,9 @@
     <ClInclude Include="Codabase.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
+    <ClInclude Include="LayeredConnection.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
     <ClInclude Include="WriteTransaction.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
@@ -2574,6 +2577,9 @@
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
     <ClCompile Include="Codabase.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="LayeredConnection.cpp">
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="WriteTransaction.cpp">

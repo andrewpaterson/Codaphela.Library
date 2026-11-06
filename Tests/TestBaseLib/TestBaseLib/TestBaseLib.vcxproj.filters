@@ -660,6 +660,9 @@
     <ClCompile Include="TestCodabase.cpp">
       <Filter>Source\Database</Filter>
     </ClCompile>
+    <ClCompile Include="TestLayeredConnection.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
     <ClCompile Include="TestWriteTransaction.cpp">
       <Filter>Source\Database</Filter>
     </ClCompile>

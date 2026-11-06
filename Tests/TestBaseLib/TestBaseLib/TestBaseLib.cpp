@@ -167,6 +167,7 @@ void TestNamedIndexes(void);
 void TestNamedIndexedData(void);
 void TestIndexTreeFileKeyDiagnosticCallback(void);
 void TestCodabase(void);
+void TestLayeredConnection(void);
 void TestWriteTransaction(void);
 void TestReadTransaction(void);
 void TestTransactionConcurrency(void);
@@ -360,6 +361,7 @@ int __cdecl main(void)
 	TestIndexTreeFileKeyDiagnosticCallback();
 	TestIndexTreeAccess();
 	TestCodabase();
+	TestLayeredConnection();
 	TestWriteTransaction();
 	TestReadTransaction();
 	TestTransactionConcurrency();

@@ -535,6 +535,7 @@
     <ClInclude Include="CodabaseVersions.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
+    <ClInclude Include="LayeredConnection.h" />
     <ClInclude Include="DataReader.h" />
     <ClInclude Include="Fat32.h" />
     <ClInclude Include="FatCommon.h" />
@@ -929,6 +930,7 @@
     <ClCompile Include="TransactionIteration.cpp" />
     <ClCompile Include="CodabaseVersions.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
+    <ClCompile Include="LayeredConnection.cpp" />
     <ClCompile Include="FatCommon.cpp" />
     <ClCompile Include="FatDebug.cpp" />
     <ClCompile Include="FatAbstractFile.cpp" />

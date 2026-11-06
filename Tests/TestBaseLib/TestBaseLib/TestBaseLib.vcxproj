@@ -369,6 +369,7 @@
     <ClCompile Include="NamedIndexedDataObject.cpp" />
     <ClCompile Include="TestCalculator.cpp" />
     <ClCompile Include="TestCodabase.cpp" />
+    <ClCompile Include="TestLayeredConnection.cpp" />
     <ClCompile Include="TestWriteTransaction.cpp" />
     <ClCompile Include="TestReadTransaction.cpp" />
     <ClCompile Include="TestTransactionConcurrency.cpp" />
