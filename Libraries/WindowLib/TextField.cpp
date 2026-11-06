@@ -50,18 +50,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 
 	//The history starts with the text the field is made with.
 	mcUndo.Init();
-	mbUndoing = false;
-	mbTyping = false;
-	mbLastTyping = false;
-	mcTyped = '\0';
-	mcLastTyped = '\0';
-	muiTypedAt = 0;
-	muiTypedEnd = 0;
-	miTypedTime = 0;
-	miTypingPause = TEXT_FIELD_TYPING_PAUSE;
-	muiEditCaret = mcEditor.miEditPos;
-	muiEditAnchor = MAX_SIZE;
-	KeepEdit();
+	mcUndo.Clear(mcEditor.Text(), mcEditor.miEditPos, MAX_SIZE);
 
 
 	mpMarksDraw = OMalloc<CTextMarksCanvasDraw>(pTheme->GetTextSelectionColour(), pTheme->GetCaretColour());
@@ -192,18 +181,7 @@ void CTextField::Class(void)
 	U_Int32(miScroll);
 	U_Size(muiDragAnchor);
 	U_Bool(mbDragging);
-	U_Unknown(CUndoStack, mcUndo);
-	U_Bool(mbUndoing);
-	U_Bool(mbTyping);
-	U_Bool(mbLastTyping);
-	U_Char(mcTyped);
-	U_Char(mcLastTyped);
-	U_Size(muiTypedAt);
-	U_Size(muiTypedEnd);
-	U_Int64(miTypedTime);
-	U_Int32(miTypingPause);
-	U_Size(muiEditCaret);
-	U_Size(muiEditAnchor);
+	U_Unknown(CTextUndo, mcUndo);
 }
 
 
@@ -446,10 +424,7 @@ void CTextField::TextEdited(void)
 {
 	if (!mcEditor.mszText.Equals(mpText->GetText()))
 	{
-		if (!mbUndoing)
-		{
-			KeepEdit();
-		}
+		KeepEdit();
 		mpText->SetText(mcEditor.Text());
 		mcChanged.Call(this);
 		if (HasFocus())
@@ -457,7 +432,7 @@ void CTextField::TextEdited(void)
 			mpWindow->GetFocus()->ResetCaretBlink();
 		}
 	}
-	mbTyping = false;
+	mcUndo.DropEdit();
 }
 
 
@@ -488,50 +463,20 @@ size CTextField::GetSelectionAnchor(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::BeginEdit(void)
 {
-	muiEditCaret = mcEditor.miEditPos;
-	muiEditAnchor = GetSelectionAnchor();
-	mbTyping = false;
+	mcUndo.BeginEdit(mcEditor.miEditPos, GetSelectionAnchor());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text changed: it's pushed onto the undo stack with the caret and
-// selection from before the edit and after it.  Typing goes on the
-// snapshot of the typing before it while each character is typed where
-// the last left the caret, without a pause, up to the space after a word.
+// The text changed: it is kept for undo with the caret and selection
+// from before the edit and after it.  Typing is kept as one edit (see
+// CTextUndo).
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextField::KeepEdit(void)
 {
-	bool	bMerge;
-	int64	iNow;
-	size	auiMarks[UNDO_STACK_MARKS];
-
-	auiMarks[0] = muiEditCaret;
-	auiMarks[1] = muiEditAnchor;
-	auiMarks[2] = mcEditor.miEditPos;
-	auiMarks[3] = GetSelectionAnchor();
-	iNow = GetDebugTickCount();
-	bMerge = (mcUndo.NumSnapshots() > 1) && (mcUndo.GetCurrent() == mcUndo.NumSnapshots() - 1) && mbTyping && mbLastTyping && (muiTypedAt == muiTypedEnd) && ((iNow - miTypedTime) < miTypingPause) && !((mcTyped == ' ') && (mcLastTyped != ' '));
-	if (bMerge)
-	{
-		//The merged edit's caret before is the first typing's.
-		auiMarks[0] = mcUndo.GetMarks(mcUndo.GetCurrent())[0];
-		auiMarks[1] = mcUndo.GetMarks(mcUndo.GetCurrent())[1];
-		mcUndo.ReplaceCurrent(mcEditor.Text(), auiMarks);
-	}
-	else
-	{
-		mcUndo.Push(mcEditor.Text(), false, auiMarks);
-	}
-	mbLastTyping = mbTyping;
-	mcLastTyped = mcTyped;
-	muiTypedEnd = mcEditor.miEditPos;
-	if (mbTyping)
-	{
-		miTypedTime = iNow;
-	}
+	mcUndo.Keep(mcEditor.Text(), mcEditor.miEditPos, GetSelectionAnchor());
 }
 
 
@@ -542,10 +487,10 @@ void CTextField::KeepEdit(void)
 // redo.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextField::Undo(void) { return LoadUndo(mcUndo.FindUndo(false)); }
-bool CTextField::Redo(void) { return LoadUndo(mcUndo.FindRedo(false)); }
-bool CTextField::CanUndo(void) { return mcUndo.FindUndo(false) != ARRAY_ELEMENT_NOT_FOUND; }
-bool CTextField::CanRedo(void) { return mcUndo.FindRedo(false) != ARRAY_ELEMENT_NOT_FOUND; }
+bool CTextField::Undo(void) { return LoadUndo(mcUndo.FindUndo()); }
+bool CTextField::Redo(void) { return LoadUndo(mcUndo.FindRedo()); }
+bool CTextField::CanUndo(void) { return mcUndo.FindUndo() != ARRAY_ELEMENT_NOT_FOUND; }
+bool CTextField::CanRedo(void) { return mcUndo.FindRedo() != ARRAY_ELEMENT_NOT_FOUND; }
 void CTextField::UndoAction(void) { Undo(); }
 void CTextField::RedoAction(void) { Redo(); }
 
@@ -557,7 +502,7 @@ void CTextField::RedoAction(void) { Redo(); }
 //////////////////////////////////////////////////////////////////////////
 void CTextField::SetTypingPause(int32 iMilliseconds)
 {
-	miTypingPause = iMilliseconds;
+	mcUndo.SetTypingPause(iMilliseconds);
 }
 
 
@@ -568,11 +513,7 @@ void CTextField::SetTypingPause(int32 iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::ClearUndo(void)
 {
-	mcUndo.Clear();
-	mbLastTyping = false;
-	muiEditCaret = mcEditor.miEditPos;
-	muiEditAnchor = GetSelectionAnchor();
-	KeepEdit();
+	mcUndo.Clear(mcEditor.Text(), mcEditor.miEditPos, GetSelectionAnchor());
 }
 
 
@@ -585,34 +526,20 @@ void CTextField::ClearUndo(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextField::LoadUndo(size uiIndex)
 {
-	size*	pauiMarks;
-	bool	bUndo;
+	char*	szText;
 	size	uiCaret;
 	size	uiAnchor;
-	size	uiLength;
 
-	if ((uiIndex == ARRAY_ELEMENT_NOT_FOUND) || (uiIndex >= mcUndo.NumSnapshots()) || (uiIndex == mcUndo.GetCurrent()))
+	if (!mcUndo.CanLoad(uiIndex))
 	{
 		return false;
 	}
-	bUndo = uiIndex < mcUndo.GetCurrent();
-	pauiMarks = bUndo ? mcUndo.GetMarks(uiIndex + 1) : mcUndo.GetMarks(uiIndex);
-	uiCaret = bUndo ? pauiMarks[0] : pauiMarks[2];
-	uiAnchor = bUndo ? pauiMarks[1] : pauiMarks[3];
 
+	szText = mcUndo.GetLoadText(uiIndex, &uiCaret, &uiAnchor);
 	mcEditor.mszText.Kill();
-	mcEditor.mszText.Init(mcUndo.Get(uiIndex));
-	mcUndo.MoveTo(uiIndex);
+	mcEditor.mszText.Init(szText);
+	mcUndo.Loading(uiIndex);
 
-	uiLength = mcEditor.Length();
-	if (uiCaret > uiLength)
-	{
-		uiCaret = uiLength;
-	}
-	if ((uiAnchor != MAX_SIZE) && ((uiAnchor > uiLength) || (uiAnchor == uiCaret)))
-	{
-		uiAnchor = MAX_SIZE;
-	}
 	mcEditor.SetPosition(uiCaret);
 	if (uiAnchor != MAX_SIZE)
 	{
@@ -622,10 +549,8 @@ bool CTextField::LoadUndo(size uiIndex)
 	}
 	muiDragAnchor = uiCaret;
 
-	mbUndoing = true;
 	TextEdited();
-	mbUndoing = false;
-	mbLastTyping = false;
+	mcUndo.Loaded(uiCaret);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -916,9 +841,7 @@ void CTextField::Copy(CChars* pszDest) { mcEditor.Copy(pszDest); }
 void CTextField::Printable(char c, bool bInsert)
 {
 	BeginEdit();
-	mbTyping = true;
-	mcTyped = c;
-	muiTypedAt = (GetSelectionAnchor() == MAX_SIZE) ? mcEditor.miEditPos : MAX_SIZE;
+	mcUndo.Typed(c, (GetSelectionAnchor() == MAX_SIZE) ? mcEditor.miEditPos : MAX_SIZE);
 	mcEditor.Printable(c, bInsert);
 	TextEdited();
 }

@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TEXT_FIELD_H__
 #define __TEXT_FIELD_H__
 #include "BaseLib/PlainTextEditor.h"
-#include "BaseLib/UndoStack.h"
+#include "BaseLib/TextUndo.h"
 #include "SupportLib/Font.h"
 #include "ImageBorderContainer.h"
 #include "WindowTheme.h"
@@ -41,12 +41,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //clipboard, and select all.  Pressing places the caret at the nearest gap between characters, dragging selects from
 //there and shift pressing selects from the caret.  Enter isn't wanted, so it clicks the window's default button.
 //
-//How long typing can stop for and the next character still be part of the same edit, as a CTextArea's.
-#define TEXT_FIELD_TYPING_PAUSE	1000
-
-
 //Edits can be undone (Control Z) and redone (Control Shift Z or Control Y) as a CTextArea's: the text after each edit
-//is kept on a CUndoStack, consecutive typing as one edit until a pause, and the caret and selection go back to how
+//is kept in a CTextUndo, consecutive typing as one edit until a pause, and the caret and selection go back to how
 //they were before the edit undone or after the edit redone.
 //
 //Its width is a number of the font's average characters, not its text, unless a desired width is set.
@@ -66,19 +62,7 @@ protected:
 	size						muiDragAnchor;  //Where a drag's selection started.
 	bool						mbDragging;
 
-	//Undo, as CTextArea's: the text after each edit, typing kept as one edit until a pause.
-	CUndoStack					mcUndo;
-	bool						mbUndoing;  //An undo or redo is changing the text: it isn't an edit to keep.
-	bool						mbTyping;  //The edit being made is a character typed (Printable).
-	bool						mbLastTyping;  //So was the last edit kept.
-	char						mcTyped;
-	char						mcLastTyped;
-	size						muiTypedAt;  //Where the caret was when it was typed, MAX_SIZE over a selection.
-	size						muiTypedEnd;  //Where the caret was after the last edit kept.
-	int64						miTypedTime;  //When the last character was typed (GetDebugTickCount).
-	int32						miTypingPause;  //Typing that stops this long (milliseconds) starts a new edit.
-	size						muiEditCaret;  //The caret and selection anchor before the edit being made.
-	size						muiEditAnchor;
+	CTextUndo					mcUndo;
 
 public:
 	void						Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szText);
