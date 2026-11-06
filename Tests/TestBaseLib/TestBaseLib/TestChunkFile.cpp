@@ -411,6 +411,69 @@ void TestChunkFileIndexNames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// More chunks in one container than a natural array holds on the W65C816
+// (64KB of 24 byte indices is about 2700).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileManyChunks(void)
+{
+	CChunkFile	cChunkFile;
+	CFileUtil	cFileUtil;
+	lsize		uiNumChunks;
+	lsize		i;
+	lsize		uiChunkNum;
+	lsize		uiNumOdd;
+	uint32		uiValue;
+
+	uiNumChunks = 3000;
+
+	cFileUtil.MakeDir("Output");
+	cFileUtil.Delete("Output/ChunkFileManyChunks.bin");
+	cChunkFile.Init(DiskFile("Output/ChunkFileManyChunks.bin"));
+	AssertTrue(cChunkFile.WriteOpen());
+	for (i = 0; i < uiNumChunks; i++)
+	{
+		uiValue = (uint32)i;
+		AssertTrue(cChunkFile.WriteChunkBegin());
+		AssertTrue(cChunkFile.WriteInt32(uiValue));
+		AssertTrue(cChunkFile.WriteChunkEnd(((i % 2) == 0) ? "Even" : "Odd"));
+	}
+	AssertTrue(cChunkFile.WriteClose());
+	cChunkFile.Kill();
+
+	cChunkFile.Init(DiskFile("Output/ChunkFileManyChunks.bin"));
+	AssertTrue(cChunkFile.ReadOpen());
+	AssertLSize(uiNumChunks, cChunkFile.GetNumChunks());
+
+	AssertTrue(cChunkFile.ReadChunkBegin(uiNumChunks - 1));
+	AssertTrue(cChunkFile.ReadInt32(&uiValue));
+	AssertInt((int)(uiNumChunks - 1), (int)uiValue);
+	AssertTrue(cChunkFile.ReadChunkEnd());
+	AssertString("Odd", cChunkFile.GetTailChunkNameForIndex(uiNumChunks - 1));
+
+	uiNumOdd = 0;
+	uiChunkNum = cChunkFile.FindFirstChunkWithName("Odd");
+	AssertLSize(1, uiChunkNum);
+	while (uiChunkNum != CHUNK_FILE_NOT_FOUND)
+	{
+		AssertLSize(uiNumOdd * 2 + 1, uiChunkNum);
+		uiNumOdd++;
+		uiChunkNum = cChunkFile.FindNextChunkWithName();
+	}
+	AssertLSize(uiNumChunks / 2, uiNumOdd);
+
+	AssertTrue(cChunkFile.ReadChunkBegin("Odd"));
+	AssertTrue(cChunkFile.ReadInt32(&uiValue));
+	AssertInt(1, (int)uiValue);
+	AssertTrue(cChunkFile.ReadChunkEnd());
+
+	AssertTrue(cChunkFile.ReadClose());
+	cChunkFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChunkFile(void)
@@ -424,6 +487,7 @@ void TestChunkFile(void)
 	TestChunkFileFileBasic();
 	TestChunkFileHashing();
 	TestChunkFileIndexNames();
+	TestChunkFileManyChunks();
 
 	MemoryKill();
 	TestStatistics();
