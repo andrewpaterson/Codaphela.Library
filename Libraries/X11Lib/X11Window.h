@@ -36,6 +36,8 @@ protected:
 	int				miWidth;
 	int				miHeight;
 	bool			mbPresentPending;  //Painted since the last present, or exposed.
+	bool			mbPresentArea;  //Only mcPresentArea of the pending present changed.
+	CInt32Rect		mcPresentArea;
 	bool			mbPointerKnown;  //miPointerX and miPointerY hold where the pointer last moved to.
 	int				miPointerX;
 	int				miPointerY;
@@ -55,6 +57,7 @@ public:
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
+	void	SignalPresentArea(CInt32Rect* pcArea) override;
 	void	DestroyNativeWindow(void) override;
 	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
 	bool	GetScreenRectangle(CInt32Rect* pcDest) override;
@@ -70,6 +73,7 @@ public:
 	X11ID	GetXWindow(void);
 
 protected:
+	void	PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void	SetDialogHints(int iWidth, int iHeight);
 	void	SetToolHints(void);
 	void	SetMainHints(void);

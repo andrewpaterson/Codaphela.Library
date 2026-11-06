@@ -340,3 +340,14 @@ void CNativeWindow::TitleChanged(void)
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only pcArea of the canvas changed (a blinking caret), so only it need
+// be shown.  A window that can't show part of its canvas shows it all.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SignalPresentArea(CInt32Rect* pcArea)
+{
+	SignalPresent();
+}

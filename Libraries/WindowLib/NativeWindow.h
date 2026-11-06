@@ -86,6 +86,7 @@ protected:
 	virtual void	DestroyNativeWindow(void) =0;  //Takes the window off the screen, as when a dialog closes.  It can be created again.
 	virtual bool	ExecuteNativeWindow(void) =0;
 	virtual void	SignalPresent(void) =0;
+	virtual void	SignalPresentArea(CInt32Rect* pcArea);
 	virtual void	GetRectangle(CInt32Rect* pcDest) =0;
 };
 

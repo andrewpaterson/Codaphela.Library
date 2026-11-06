@@ -50,6 +50,7 @@ void CX11Window::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
     miWidth = 0;
     miHeight = 0;
     mbPresentPending = false;
+    mbPresentArea = false;
     mbPointerKnown = false;
     miPointerX = 0;
     miPointerY = 0;
@@ -105,6 +106,7 @@ void CX11Window::DestroyNativeWindow(void)
         mulWindow = 0;
         mbPointerKnown = false;
         mbPresentPending = false;
+    mbPresentArea = false;
     }
 }
 
@@ -118,6 +120,18 @@ void CX11Window::DestroyNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
+    PresentPixels(pcNativeCanvas, 0, 0, iWidth, iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The canvas' pixels from iLeft, iTop to iRight, iBottom (exclusive) put
+// in the same place in the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
+{
     CX11WindowFactory*  pcFactory;
     CX11Canvas*         pcX11Canvas;
     Display*            psDisplay;
@@ -126,6 +140,7 @@ void CX11Window::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHei
     uint8*              puiPixelData;
 
     mbPresentPending = false;
+    mbPresentArea = false;
     if (mulWindow == 0)
     {
         return;
@@ -139,15 +154,23 @@ void CX11Window::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHei
     }
 
     sSize = pcX11Canvas->GetSize();
-    if (iWidth > sSize.x)
+    if (iLeft < 0)
     {
-        iWidth = sSize.x;
+        iLeft = 0;
     }
-    if (iHeight > sSize.y)
+    if (iTop < 0)
     {
-        iHeight = sSize.y;
+        iTop = 0;
     }
-    if ((iWidth <= 0) || (iHeight <= 0))
+    if (iRight > sSize.x)
+    {
+        iRight = sSize.x;
+    }
+    if (iBottom > sSize.y)
+    {
+        iBottom = sSize.y;
+    }
+    if ((iRight <= iLeft) || (iBottom <= iTop))
     {
         return;
     }
@@ -159,7 +182,7 @@ void CX11Window::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHei
     psImage = XCreateImage(psDisplay, DefaultVisual(psDisplay, pcFactory->GetScreen()), DefaultDepth(psDisplay, pcFactory->GetScreen()), ZPixmap, 0, (char*)puiPixelData, sSize.x, sSize.y, 32, sSize.x * 4);
     if (psImage)
     {
-        XPutImage(psDisplay, mulWindow, mpsGC, psImage, 0, 0, 0, 0, iWidth, iHeight);
+        XPutImage(psDisplay, mulWindow, mpsGC, psImage, iLeft, iTop, iLeft, iTop, iRight - iLeft, iBottom - iTop);
         psImage->data = NULL;
         XDestroyImage(psImage);
 
@@ -468,10 +491,30 @@ void CX11Window::WaitForEvents(int64 iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::PresentIfPending(void)
 {
-    if (mbPresentPending)
+    CNativeCanvas*  pcNativeCanvas;
+
+    if (!mbPresentPending)
+    {
+        return;
+    }
+    if (!mbPresentArea)
     {
         CNativeWindow::Present();
+        return;
     }
+
+    //Only the area that changed.
+    if (BeginPresent())
+    {
+        pcNativeCanvas = mpcWindow->GetCanvas()->GetNativeCanvas();
+        if (pcNativeCanvas)
+        {
+            PresentPixels(pcNativeCanvas, mcPresentArea.GetLeft(), mcPresentArea.GetTop(), mcPresentArea.GetRight(), mcPresentArea.GetBottom());
+        }
+        EndPresent();
+    }
+    mbPresentPending = false;
+    mbPresentArea = false;
 }
 
 
@@ -527,6 +570,7 @@ void CX11Window::HandleEvent(XEvent* puEvent)
             if (puEvent->xexpose.count == 0)
             {
                 mbPresentPending = true;
+                mbPresentArea = false;
             }
             break;
         }
@@ -617,6 +661,32 @@ void CX11Window::HandleEvent(XEvent* puEvent)
 void CX11Window::SignalPresent(void)
 {
     mbPresentPending = true;
+    mbPresentArea = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only pcArea is put to the server, unless the whole canvas is pending
+// already.  Areas signalled before a present are presented together.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::SignalPresentArea(CInt32Rect* pcArea)
+{
+    if (!mbPresentPending)
+    {
+        mbPresentPending = true;
+        mbPresentArea = true;
+        mcPresentArea.Init(pcArea);
+    }
+    else if (mbPresentArea)
+    {
+        mcPresentArea.Init(
+            (pcArea->GetLeft() < mcPresentArea.GetLeft()) ? pcArea->GetLeft() : mcPresentArea.GetLeft(),
+            (pcArea->GetTop() < mcPresentArea.GetTop()) ? pcArea->GetTop() : mcPresentArea.GetTop(),
+            (pcArea->GetRight() > mcPresentArea.GetRight()) ? pcArea->GetRight() : mcPresentArea.GetRight(),
+            (pcArea->GetBottom() > mcPresentArea.GetBottom()) ? pcArea->GetBottom() : mcPresentArea.GetBottom());
+    }
 }
 
 
