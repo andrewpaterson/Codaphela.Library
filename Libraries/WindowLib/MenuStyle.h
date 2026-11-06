@@ -42,6 +42,7 @@ CONSTRUCTABLE(CMenuStyle);
 DESTRUCTABLE(CMenuStyle);
 protected:
 	Ptr<CFont>			mpFont;
+	Ptr<CFont>			mpDimFont;  //Of disabled items and shortcuts, the font until set.
 	Ptr<CButtonImages>	mpBarButtonImages;
 	Ptr<CImageCel>		mpChevron;
 	ARGB32				msBarBackground;
@@ -68,6 +69,8 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CFont>			GetFont(void);
+	Ptr<CFont>			GetDimFont(void);
+	void				SetDimFont(Ptr<CFont> pDimFont);
 	Ptr<CButtonImages>	GetBarButtonImages(void);
 	Ptr<CImageCel>		GetChevron(void);
 	ARGB32				GetBarBackground(void);

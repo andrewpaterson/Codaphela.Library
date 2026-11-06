@@ -36,6 +36,9 @@ class CMenuBar;
 //closes a menu opened from another and goes back to that one.  On a menu from a menu bar left and right open the
 //bar's neighbouring menus.
 //
+//A disabled item can't be clicked.  The opening event is called as the menu opens, before it is laid out, so its
+//items can be enabled or disabled for what can be done then.
+//
 //Clicking an item closes every menu it was opened from and calls the item click event of the first of them, and of its
 //menu bar if it has one, with the item.
 class CMenuContainer : public CListContainer
@@ -44,6 +47,7 @@ CONSTRUCTABLE(CMenuContainer);
 DESTRUCTABLE(CMenuContainer);
 protected:
 	CComponentEvent<CMenuItem>	mcItemClicked;
+	CComponentEvent<CMenuContainer>	mcOpening;
 	Ptr<CMenuStyle>		mpStyle;
 	CArray<CMenuItem>	maItems;
 	CArrayInt			maiItemRows;  //The row of each item in maItems.
@@ -80,6 +84,7 @@ public:
 	Ptr<CMenuStyle>		GetStyle(void);
 
 	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
+	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
 
 	void				MovedOver(int x, int y) override;
 	void				Left(void);

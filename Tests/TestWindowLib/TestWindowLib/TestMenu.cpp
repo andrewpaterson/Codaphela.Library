@@ -1075,6 +1075,131 @@ void TestMenuTreeContextMenu(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Disables the menu's second item as the menu opens, if it should.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestMenuOpeningListener
+{
+public:
+	bool	mbCanRedo;
+	size	muiOpenings;
+
+	void Init(void)
+	{
+		mbCanRedo = false;
+		muiOpenings = 0;
+	}
+
+	void MenuOpening(CMenuContainer* pcMenu)
+	{
+		muiOpenings++;
+		pcMenu->GetItem(1)->SetEnabled(mbCanRedo);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As IntelliJ's Edit menu: shortcuts on the right in the dim font and
+// items disabled, as the menu opens, when they can't be done.  Clicking a
+// disabled item does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuEnabledAndShortcuts(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CMenuStyle>				pStyle;
+		Ptr<CMenuContainer>			pMenu;
+		Ptr<CMenuItem>				pUndo;
+		Ptr<CMenuItem>				pRedo;
+		Ptr<CFont>					pDim;
+		CTestMenuListener			cListener;
+		CTestMenuOpeningListener	cOpening;
+		CPointer					pNull;
+		CChars						szLog;
+
+		szLog.Init();
+		cListener.Init(&szLog);
+		cOpening.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		AssertTrue(pStyle->GetDimFont() == pStyle->GetFont());
+		pDim = GenerateMenuFont(pTestWindow);
+		pStyle->SetDimFont(pDim);
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pUndo = pMenu->AddItem("Undo");
+		pRedo = pMenu->AddItem("Redo");
+		pUndo->SetShortcut("Ctrl+Z");
+		pRedo->SetShortcut("Ctrl+Shift+Z");
+		AssertString("Ctrl+Z", pUndo->GetShortcut());
+		AssertString("Ctrl+Shift+Z", pRedo->GetShortcut());
+		AssertTrue(pUndo->GetShortcutLabel()->GetFont() == pDim);
+		pMenu->GetItemClickEvent()->Add(&cListener, &CTestMenuListener::MenuItemClicked);
+		pMenu->GetOpeningEvent()->Add(&cOpening, &CTestMenuOpeningListener::MenuOpening);
+
+		//Opening disables Redo, its label in the dim font.  Enter on it does nothing and the menu stays open.
+		AssertTrue(pRedo->IsEnabled());
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertSize(1, cOpening.muiOpenings);
+		AssertFalse(pRedo->IsEnabled());
+		AssertTrue(pRedo->GetLabel()->GetFont() == pDim);
+		AssertTrue(pUndo->GetLabel()->GetFont() == pStyle->GetFont());
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("");
+		AssertTrue(pMenu->IsOpen());
+		pTestWindow->InputCommand(CIC_Up, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Clicked:Undo;");
+		AssertFalse(pMenu->IsOpen());
+
+		//Opened again it can be redone.
+		cOpening.mbCanRedo = true;
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertSize(2, cOpening.muiOpenings);
+		AssertTrue(pRedo->IsEnabled());
+		AssertTrue(pRedo->GetLabel()->GetFont() == pStyle->GetFont());
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Clicked:Redo;");
+
+		//No shortcut.
+		pUndo->SetShortcut(NULL);
+		AssertString("", pUndo->GetShortcut());
+
+		pMenu->GetItemClickEvent()->Remove(&cListener);
+		pMenu->GetOpeningEvent()->Remove(&cOpening);
+		pUndo = NULL;
+		pRedo = NULL;
+		pDim = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -1089,6 +1214,7 @@ void TestMenu(void)
 	TestPopupDraw();
 	TestMenuContextMenu();
 	TestMenuTreeContextMenu();
+	TestMenuEnabledAndShortcuts();
 
 	ObjectsFlush();
 	ObjectsKill();

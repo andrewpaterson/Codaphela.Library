@@ -54,6 +54,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 
 	CListContainer::Init(pWindow, pTheme);
 	mcItemClicked.Init();
+	mcOpening.Init();
 	mpStyle = pStyle;
 	maItems.Init();
 	maiItemRows.Init();
@@ -82,6 +83,7 @@ void CMenuContainer::Class(void)
 	CListContainer::Class();
 
 	U_Data(CComponentEvent<CMenuItem>, mcItemClicked);
+	U_Data(CComponentEvent<CMenuContainer>, mcOpening);
 	M_Pointer(mpStyle);
 	M_Embedded(maItems);
 	U_Data(CArrayInt, maiItemRows);
@@ -98,6 +100,7 @@ void CMenuContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::Free(void)
 {
+	mcOpening.Kill();
 	mcItemClicked.Kill();
 	maiItemRows.Kill();
 	CListContainer::Free();
@@ -246,6 +249,7 @@ Ptr<CPopup> CMenuContainer::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, b
 
 	Close();
 	Reset();
+	mcOpening.Call(this);
 	pPopup = mpWindow->OpenPopup(this, sPosition, pOwner);
 	pPopup->SetLook(mpStyle->GetMenuBackground(), mpStyle->GetMenuBorder(), mpStyle->GetMenuInsets());
 	pPopup->Layout(mpWindow->GetPosition(), mpWindow->GetActualSize());
@@ -486,6 +490,10 @@ void CMenuContainer::RowActivated(int32 iRow)
 		return;
 	}
 
+	if (!pItem->IsEnabled())
+	{
+		return;
+	}
 	if (pItem->HasSubMenu())
 	{
 		OpenSubMenu(iRow, true);
@@ -561,6 +569,7 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 size CMenuContainer::NumItems(void) { return maItems.Size(); }
 Ptr<CMenuItem> CMenuContainer::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
 Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) { return mpOpenSubMenu; }
+CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return &mcOpening; }
 Ptr<CMenuContainer> CMenuContainer::GetParentMenu(void) { return mpParentMenu; }
 Ptr<CMenuBar> CMenuContainer::GetMenuBar(void) { return mpMenuBar; }
 Ptr<CMenuStyle> CMenuContainer::GetStyle(void) { return mpStyle; }

@@ -42,6 +42,7 @@ void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
 	pWindow->GetColourFormat(&cFormat);
 
 	mpFont = pFont;
+	mpDimFont = pFont;
 	msBarBackground = JEWEL_BAR_BACKGROUND;
 	msMenuBackground = JEWEL_PANEL;
 	msMenuBorder = JEWEL_SEPARATOR;
@@ -72,6 +73,7 @@ void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
 void CMenuStyle::Class(void)
 {
 	M_Pointer(mpFont);
+	M_Pointer(mpDimFont);
 	M_Pointer(mpBarButtonImages);
 	M_Pointer(mpChevron);
 	U_UInt32(msBarBackground);
@@ -123,6 +125,18 @@ bool CMenuStyle::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The font of disabled items' text and of shortcuts, greyer than the
+// font, as IntelliJ's.  Only items made after it is changed use it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuStyle::SetDimFont(Ptr<CFont> pDimFont)
+{
+	mpDimFont = pDimFont;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Only items made after it is changed use the new width.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -137,6 +151,7 @@ void CMenuStyle::SetIconWidth(int32 iIconWidth)
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFont> CMenuStyle::GetFont(void) { return mpFont; }
+Ptr<CFont> CMenuStyle::GetDimFont(void) { return mpDimFont; }
 Ptr<CButtonImages> CMenuStyle::GetBarButtonImages(void) { return mpBarButtonImages; }
 Ptr<CImageCel> CMenuStyle::GetChevron(void) { return mpChevron; }
 ARGB32 CMenuStyle::GetBarBackground(void) { return msBarBackground; }

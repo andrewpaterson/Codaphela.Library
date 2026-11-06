@@ -29,8 +29,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMenuContainer;
 
 
-//One row of a menu: an icon on the left, a label in the middle and, if the item opens another menu, a chevron on the
-//right.  They are three columns of a grid; the icon and chevron columns are the style's fixed widths, so the labels of
+//Between an item's label and its shortcut, in the shortcut's label.
+#define MENU_ITEM_SHORTCUT_GAP	"      "
+
+
+//One row of a menu: an icon on the left, a label in the middle, the shortcut of what it does, Ctrl+Z say, right aligned
+//in the style's dim font as IntelliJ's and, if the item opens another menu, a chevron on the right.  They are four
+//columns of a grid; the icon and chevron columns are the style's fixed widths, so the labels of
 //every item in a menu line up, and the label's column takes whatever width the menu has spare.  An item with no icon
 //leaves its icon column empty.
 class CMenuItem : public CGridContainer
@@ -41,9 +46,11 @@ protected:
 	Ptr<CMenuStyle>			mpStyle;
 	Ptr<CIconComponent>		mpIcon;
 	Ptr<CLabel>				mpLabel;
+	Ptr<CLabel>				mpShortcut;
 	Ptr<CIconComponent>		mpChevron;
 	Ptr<CMenuContainer>		mpSubMenu;  //NULL unless the item opens another menu.
 	int32					miTag;  //What the item means to whoever made it, -1 until set.
+	bool					mbEnabled;  //A disabled item is drawn in the dim font and clicking it does nothing.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* szText, Ptr<CImageCel> pIcon, Ptr<CMenuContainer> pSubMenu);
@@ -56,11 +63,16 @@ public:
 	void					SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>			GetIcon(void);
 	Ptr<CMenuContainer>		GetSubMenu(void);
+	void					SetShortcut(const char* szShortcut);
+	char*					GetShortcut(void);
+	void					SetEnabled(bool bEnabled);
+	bool					IsEnabled(void);
 	void					SetTag(int32 iTag);
 	int32					GetTag(void);
 	bool					HasSubMenu(void);
 	Ptr<CIconComponent>		GetIconComponent(void);
 	Ptr<CLabel>				GetLabel(void);
+	Ptr<CLabel>				GetShortcutLabel(void);
 	Ptr<CIconComponent>		GetChevronComponent(void);
 
 };
