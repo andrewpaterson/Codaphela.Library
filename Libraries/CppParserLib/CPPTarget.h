@@ -27,6 +27,7 @@ enum ECPPTarget
 {
 	CPPT_65C64,
 	CPPT_W65C816,
+	CPPT_Host,			//Code that runs on the PC (MSVC's x64 sizes), only checked (CCPPSemanticPass): never generated.
 	CPPT_NumTargets
 };
 
@@ -37,9 +38,9 @@ struct SCPPTarget
 {
 	ECPPTarget		eTarget;
 	const char*		szName;				//The project configuration's name.
-	const char*		szDefine;			//The predefined macro: __65C64__ or __W65C816__.
+	const char*		szDefine;			//The predefined macro: __65C64__ or __W65C816__ (NULL for the host: its project defines its own).
 	int				iIntBytes;			//int and unsigned int: 4 on the 65C64, 2 on the W65C816.  long is 4 on both.
-	int				iPointerBytes;		//A pointer's size in memory (a W65C816 pointer is 24 bits and a zero byte).
+	int				iPointerBytes;		//A pointer's (and a reference's) size in memory (a W65C816 pointer is 24 bits and a zero byte).
 	bool			bWidenResults;		//Results narrower than 32 bits are returned as i32 (the 65C64's 32 bit A).
 	uint32			uiBankSize;			//The linker keeps sections inside banks of this size (0 for none).
 	uint32			uiStackTop;			//S as the start up sets it.

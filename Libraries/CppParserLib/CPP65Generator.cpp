@@ -216,7 +216,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcTree = pcTree;
 	mpcTokeniser = pcTree->GetTokeniser();
 	mpsTarget = GetCPPTarget(eTarget);
-	mcTypes.Init(mpsTarget->iIntBytes);
+	mcTypes.Init(mpsTarget->iIntBytes, mpsTarget->iPointerBytes);
 
 	mszCode.Init();
 	mszData.Init();
@@ -1130,6 +1130,11 @@ bool CCPP65Generator::IsW65C816Assembly(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 {
+	if (eTarget == CPPT_Host)
+	{
+		//The host's project defines its own macros.
+		return;
+	}
 	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
 	pcConfig->AddDefine("__LIBC65__=1");
 	if ((eTarget == CPPT_W65C816) && gbW65C816Assembly)

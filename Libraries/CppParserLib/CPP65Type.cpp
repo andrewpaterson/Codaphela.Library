@@ -307,8 +307,9 @@ int SCPP65Type::GetElementBytes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Types::Init(int iIntBytes)
+void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 {
+	miPointerBytes = iPointerBytes;
 	mapsTypes.Init();
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
@@ -453,6 +454,18 @@ SCPP65Type* CCPP65Types::Long(bool bSigned)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// sizeof's type: unsigned int, or unsigned long long where pointers are 8
+// bytes (the host's size_t).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Size(void)
+{
+	return (miPointerBytes == 8) ? &msUnsignedLongLong : &msUnsignedInt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // volatile psType: a copy of it, kept with the types, whose loads and
 // stores are volatile.  Functions and references can't be volatile.
 //
@@ -490,7 +503,7 @@ SCPP65Type* CCPP65Types::Volatile(SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Pointer(SCPP65Type* psBase)
 {
-	return Add(CPP65TK_Pointer, 4, psBase, 0);
+	return Add(CPP65TK_Pointer, miPointerBytes, psBase, 0);
 }
 
 
@@ -548,7 +561,7 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
 {
-	return Add(CPP65TK_Reference, 4, psBase, 0);
+	return Add(CPP65TK_Reference, miPointerBytes, psBase, 0);
 }
 
 
@@ -571,7 +584,7 @@ SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMembe
 		}
 	}
 	//A count of -1 makes Add make a new type rather than find one for another class.
-	psType = Add(CPP65TK_MemberPointer, 4, psMember, -1);
+	psType = Add(CPP65TK_MemberPointer, miPointerBytes, psMember, -1);
 	psType->iCount = 0;
 	psType->psClass = psClass;
 	return psType;

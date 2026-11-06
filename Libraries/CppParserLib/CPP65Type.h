@@ -92,6 +92,7 @@ class CCPP65Types
 {
 protected:
 	CArrayCPP65Types	mapsTypes;
+	int					miPointerBytes;		//The target's pointers, references and pointers to members.
 
 public:
 	SCPP65Type			msVoid;
@@ -110,11 +111,12 @@ public:
 	SCPP65Type			msDouble;
 	SCPP65Type			msLongDouble;
 
-	void				Init(int iIntBytes = 4);
+	void				Init(int iIntBytes = 4, int iPointerBytes = 4);
 	void				Kill(void);
 
 	SCPP65Type*			Integer(int iBytes, bool bSigned);
 	SCPP65Type*			Long(bool bSigned);
+	SCPP65Type*			Size(void);
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
