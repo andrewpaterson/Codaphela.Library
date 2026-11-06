@@ -1734,11 +1734,11 @@ bool CBaseObject::IsNamed(const char* szName)
 {
 	if (StrEmpty(szName))
 	{
-		return mon.Equals(szName);
+		return false;
 	}
 	else
 	{
-		return false;
+		return mon.Equals(szName);
 	}
 }
 
