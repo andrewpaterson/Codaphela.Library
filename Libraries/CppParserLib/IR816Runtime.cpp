@@ -21,12 +21,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "IRParser.h"
 #include "IR816BackendInternal.h"
 
 
-//The W65C816 back end's runtime routines (R816_...): which are in assembly and how calls find them, and those
-//generated from IR (GenerateRuntime) with the tables they use.
+//The W65C816 back end's runtime routines (R816_...): they are all in assembly, this says how calls find them and
+//take their operands; the small tables the compiled code reads are written here (GenerateRuntime).
 
 
 //The runtime routines in assembly are Libc65's IR816Runtime-Common.asm (divides, shifts, the 64 bit multiply and
@@ -48,6 +47,8 @@ static const SIR816Routine gasIR816Routines[] =
 {
 	{ "R816_UDiv64", false, false },
 	{ "R816_URem64", false, false },
+	{ "R816_SDiv64", false, false },
+	{ "R816_SRem64", false, false },
 	{ "R816_UDiv32", true, false },
 	{ "R816_URem32", true, false },
 	{ "R816_UDiv16", true, false },
@@ -70,26 +71,6 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_BcdSubtract", false, false },
 	{ NULL, false, false }
 };
-
-
-//The 64 bit signed divide and remainder, as IR (R816_$NAME): they work on the magnitudes and call the unsigned ones
-//in assembly ($UOP), the 32 bit one when both magnitudes fit in 32 bits (file positions and sizes nearly always do),
-//much faster than the 64 bit loop.
-static const char* gszIR816Signed64 =
-	"function i64 @R816_$NAME(i64 %a, i64 %b)\n{\n"
-	"entry:\n\t%an = slt i64 %a, 0\n\tbrif %an, negA, posA\n"
-	"negA:\n\t%na = sub i64 0, %a\n\tjmp gotA\n"
-	"posA:\n\tjmp gotA\n"
-	"gotA:\n\t%ua = phi i64 [negA, %na], [posA, %a]\n\t%bn = slt i64 %b, 0\n\tbrif %bn, negB, posB\n"
-	"negB:\n\t%nb = sub i64 0, %b\n\tjmp gotB\n"
-	"posB:\n\tjmp gotB\n"
-	"gotB:\n\t%ub = phi i64 [negB, %nb], [posB, %b]\n\t%w = or i64 %ua, %ub\n\t%hi = lshr i64 %w, 32\n\t%narrow = eq i64 %hi, 0\n\tbrif %narrow, short, long\n"
-	"short:\n\t%sa = trunc i64 %ua to i32\n\t%sb = trunc i64 %ub to i32\n\t%su = $UOP i32 %sa, %sb\n\t%sw = zext i32 %su to i64\n\tjmp got\n"
-	"long:\n\t%lu = $UOP i64 %ua, %ub\n\tjmp got\n"
-	"got:\n\t%u = phi i64 [short, %sw], [long, %lu]\n"
-	"\t%s = $SIGN\n\tbrif %s, neg, pos\n"
-	"neg:\n\t%nu = sub i64 0, %u\n\tret i64 %nu\n"
-	"pos:\n\tret i64 %u\n}\n\n";
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -267,87 +248,41 @@ void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Generates the runtime routines named in paszRuntime that aren't in assembly (IR816FindRoutine): the 64 bit
-// signed divides from their IR, and the tables TableDivide and the shifts read.  Any other name is an error.
+// Writes the tables named in paszRuntime that TableDivide and the shifts
+// read (R816_STable<c>, R816_UTable<c>, R816_Bits<n>).  Every other R816_
+// routine is in assembly, linked from Libc65 (CCPP65Builder::AddRuntime816;
+// IR816FindRoutine); any other name is an error.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors)
+bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors)
 {
-	CArrayChars		aszNames;
-	CChars			szIR;
-	CChars			szText;
-	CIRModule		cModule;
-	CIRParser		cParser;
-	CIR816Backend			cBackend;
-	size					i;
-	char*					szName;
-	const char*				szOperation;
-	bool					bResult;
-	bool					bDivide;
+	size	i;
+	char*	szName;
+	bool	bResult;
 
-	//Only the R816_ routines are made here (the soft float functions are Libc65's).
-	aszNames.Init();
+	//Only the R816_ names are the back end's (the soft float functions are Libc65's).
+	bResult = true;
 	for (i = 0; i < paszRuntime->NumElements(); i++)
 	{
-		if (IR816StartsWith(paszRuntime->GetText(i), IR816_RUNTIME_PREFIX))
-		{
-			aszNames.Add(paszRuntime->GetText(i));
-		}
-	}
-	szIR.Init();
-	for (i = 0; i < aszNames.NumElements(); i++)
-	{
-		szName = aszNames.GetText(i);
-
-		//The routines in assembly are linked from Libc65 (CCPP65Builder::AddRuntime816); the divide and bit tables are
-		//written here.
-		if (IR816FindRoutine(szName))
+		szName = paszRuntime->GetText(i);
+		if (!IR816StartsWith(szName, IR816_RUNTIME_PREFIX) || IR816FindRoutine(szName))
 		{
 			continue;
 		}
 		if (IR816StartsWith(szName, IR816_SIGNED_TABLE) || IR816StartsWith(szName, IR816_UNSIGNED_TABLE))
 		{
 			AppendDivideTable(pszDest, szName);
-			continue;
 		}
-		if (IR816StartsWith(szName, IR816_BITS_TABLE))
+		else if (IR816StartsWith(szName, IR816_BITS_TABLE))
 		{
 			AppendBitsTable(pszDest, szName);
-			continue;
 		}
-
-		//The 64 bit signed divides from IR: szOperation is SDiv64 or SRem64.  Every other routine is in assembly.
-		szOperation = &szName[IR816_RUNTIME_PREFIX_LENGTH];
-		if ((StringCompare(szOperation, "SDiv64") != 0) && (StringCompare(szOperation, "SRem64") != 0))
+		else
 		{
 			pcErrors->Add("runtime", -1, -1, -1, "No such W65C816 runtime routine", szName);
-			continue;
+			bResult = false;
 		}
-		bDivide = szOperation[1] == 'D';
-		szText.Init(gszIR816Signed64);
-		szText.Replace("$UOP", bDivide ? "udiv" : "urem");
-		szText.Replace("$SIGN", bDivide ? "ne i1 %an, %bn" : "copy i1 %an");
-		szText.Replace("$NAME", szOperation);
-		szIR.Append(szText);
-		szText.Kill();
 	}
-	aszNames.Kill();
-
-	cModule.Init();
-	cModule.AddSpace("default", 4);
-	cParser.Init(&cModule, pcErrors, "runtime");
-	bResult = cParser.Parse(szIR.Text());
-	cParser.Kill();
-	szIR.Kill();
-	if (bResult)
-	{
-		//Each unit that uses a routine writes it, so it is COMDAT.
-		cBackend.Init(&cModule, piLabels);
-		cBackend.mszSectionOptions = ", comdat";
-		bResult = cBackend.GenerateModule(pszDest, pcErrors);
-		cBackend.Kill();
-	}
-	cModule.Kill();
 	return bResult;
 }
 

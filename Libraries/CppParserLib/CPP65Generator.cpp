@@ -3344,8 +3344,8 @@ void CCPP65Generator::AppendRuntime(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816's runtime: R_Pure, and the routines the W65C816 back end called (R816_Mul16 ..., generated from
-// their IR), each a COMDAT section so only one copy is linked.
+// The W65C816's runtime: R_Pure, and the tables the W65C816 back end's code reads (R816_STable7 ...), each a
+// COMDAT section so only one copy is linked.  The R816_ routines it calls are Libc65's (CCPP65Builder::AddRuntime816).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendRuntime816(void)
@@ -3375,7 +3375,7 @@ void CCPP65Generator::AppendRuntime816(void)
 	if (aszRoutines.NumElements() != 0)
 	{
 		cErrors.Init();
-		if (!CIR816Backend::GenerateRuntime(&aszRoutines, &miLabels, &mszCode, &cErrors))
+		if (!CIR816Backend::GenerateRuntime(&aszRoutines, &mszCode, &cErrors))
 		{
 			ErrorAt(-1, cErrors.Text());
 		}

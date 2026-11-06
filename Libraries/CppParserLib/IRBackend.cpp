@@ -39,7 +39,6 @@ void CIRBackend::Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMalloca
 	mpcErrors = NULL;
 	mbResult = true;
 	maiBlockLabels.Init();
-	mszSectionOptions = "";
 	maszRuntime.Init(pcMallocator);
 }
 
@@ -217,9 +216,8 @@ bool CIRBackend::ParallelCopy(CArrayIRCopies* pasCopies, CArrayIRCopySteps* pasS
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every function (each a text section of its own, its name followed by
-// mszSectionOptions) and global (a data section) of the module, for the
-// target's assembler (AssembleObject).
+// Every function (each a text section of its own) and global (a data
+// section) of the module, for the target's assembler (AssembleObject).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRBackend::GenerateModule(CChars* pszDest, CCPPErrors* pcErrors)
@@ -236,7 +234,6 @@ bool CIRBackend::GenerateModule(CChars* pszDest, CCPPErrors* pcErrors)
 		szName = mpcModule->GetSymbolName(pcFunction->muiSymbol);
 		pszDest->Append("\t\t.section text.");
 		pszDest->Append(szName);
-		pszDest->Append(mszSectionOptions);
 		pszDest->AppendNewLine();
 		Binding(szName, pcFunction->muiAttributes, pszDest);
 		bResult &= GenerateFunction(pcFunction, szName, pszDest, pcErrors);

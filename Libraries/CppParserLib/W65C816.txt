@@ -362,14 +362,24 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	making it x - q * d; the back end (CIR816Backend::RemainderLeft) reads it there when
 	the instruction it wrote last was that udiv's call.  The remainder costs two loads
 	and stores instead of a multiply (137 cycles with the table, 245 without) and a
-	subtract.  64 bits keeps the multiply.  Test: TestCPP816SharedDivisions.
+	subtract.  Test: TestCPP816SharedDivisions.
 	2026-11-06, the signed divides R816_SDiv16/SRem16/SDiv32/SRem32 are assembly scratch
 	routines in IR816Runtime-Common.asm instead of IR wrappers with pushed operands: the
 	magnitudes in place, R816_UDiv16/32 on the same D, then the signs (the remainder
 	takes the dividend's).  They leave the signed remainder at D + 5 too, so a signed
 	pair shares one divide as an unsigned one does.  An i8 sdiv/srem is sign extended
 	into the scratch operands.  Cycles, old -> new: s16 / s8 475 -> 373, s16 / s16 314
-	-> 232, s32 / s16 772 -> 607.  Only R816_SDiv64/SRem64 are still made from IR.
+	-> 232, s32 / s16 772 -> 607.
+	2026-11-06, the 64 bit divides: R816_UDiv64, URem64, SDiv64 and SRem64 are one assembly
+	body (four entries, the pushed convention as before), signs handled in place, R816_UDiv32
+	on a scratch frame below when both magnitudes fit in 32 bits (as the IR wrapper did).
+	The remainder is left in the caller's scratch bytes (D + 5 to D + 12) after pld, so a
+	64 bit pair shares one divide too (the "64 bits keeps the multiply" above is gone).
+	GenerateRuntime makes no routine from IR any more, only the divide and bit tables.
+	SDiv64 4526 -> 4230 cycles on average (887 -> 833 when both fit in 32 bits).
+	TestIR816BackendRuntimeRoutines calls every multiply and divide routine straight, with
+	and without the tables, against the host (results, the remainder at D + 5, nothing
+	else of the caller's direct page written, S back).
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call

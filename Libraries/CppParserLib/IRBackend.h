@@ -67,7 +67,6 @@ protected:
 	CCPPErrors*				mpcErrors;
 	bool					mbResult;
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
-	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the W65C816's runtime.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the code calls (UseRuntime), once each.
 
 public:

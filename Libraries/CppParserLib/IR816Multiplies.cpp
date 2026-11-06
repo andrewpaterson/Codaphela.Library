@@ -132,7 +132,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		}
 	}
 	UseRuntime(szName.Text());
-	mpsDivided = (((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) && IR816ScratchRoutine(szName.Text())) ? psInstruction : NULL;
+	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
 	szName.Kill();
@@ -143,11 +143,11 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psInstruction is a urem (srem) of 16 or 32 bits written straight
-// after the udiv (sdiv) of the same operands (CIROptimiser::
-// SetDivideRemainders puts it there): R816_UDiv16, R816_UDiv32,
-// R816_SDiv16 and R816_SDiv32 leave the remainder at
-// IR816_SCRATCH_REMAINDER, which nothing has written since.
+// Whether psInstruction is a urem (srem) of 16, 32 or 64 bits written
+// straight after the runtime call for the udiv (sdiv) of the same operands
+// (CIROptimiser::SetDivideRemainders puts it there): every divide routine
+// leaves the remainder at IR816_SCRATCH_REMAINDER (the 64 bit ones in the
+// caller's scratch bytes), which nothing has written since.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
@@ -163,7 +163,7 @@ bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	if (!psInstruction->sType.Is(IRTK_I16) && !psInstruction->sType.Is(IRTK_I32))
+	if (!psInstruction->sType.Is(IRTK_I16) && !psInstruction->sType.Is(IRTK_I32) && !psInstruction->sType.Is(IRTK_I64))
 	{
 		return false;
 	}

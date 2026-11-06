@@ -41,7 +41,7 @@ class CIR816Groups;
 #define IR816_SCRATCH_VALUE		15
 #define IR816_SCRATCH_ARGUMENT_A	15		//A scratch runtime routine's (IR816ScratchRoutine) operands: a, then b.
 #define IR816_SCRATCH_ARGUMENT_B	19
-#define IR816_SCRATCH_REMAINDER		5		//Where the 16 and 32 bit divides leave the remainder (RemainderLeft).
+#define IR816_SCRATCH_REMAINDER		5		//Where the divide routines leave the remainder (RemainderLeft).
 #define IR816_MAX_FUSED			4
 #define IR816_FIRST_TEMPORARY	23
 
@@ -126,7 +126,7 @@ struct SIR816Frame
 //is written through a hidden pointer the caller pushes after the arguments (the function's first parameter).  A
 //call through a pointer pushes the return address and the target then rtl's.  Multiply, divide and remainder are
 //calls to runtime routines (R816_Mul16 ...): Libc65's IR816Runtime-*.asm, linked as a library
-//(CCPP65Builder::AddRuntime816), and the signed divides, which GenerateRuntime generates from IR.  The 16 and 32 bit
+//(CCPP65Builder::AddRuntime816).  The 16 and 32 bit
 //multiply and unsigned divide and remainder take their operands in the caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A
 //and _B) and run on the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
@@ -164,7 +164,7 @@ protected:
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
-	SIRInstruction*			mpsDivided;			//The last udiv or sdiv that called a 16 or 32 bit divide (RemainderLeft).
+	SIRInstruction*			mpsDivided;			//The last udiv or sdiv that called a divide routine (RemainderLeft).
 	SIRInstruction*			mpsWritten;			//The instruction GenerateBody wrote last in the block, NULL at its start or after a fused one.
 	bool					mbMathTables;		//An i8 multiply reads MathMult in place (SetMathTables), else it calls R816_Mul16.
 
@@ -188,7 +188,7 @@ public:
 	void			ExpandMultiplies(void);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 
-	static bool		GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors);
+	static bool		GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors);
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);
 	static void		AppendBitsTable(CChars* pszDest, const char* szName);
 	static void		Peephole(CChars* pszDest, size uiStart);
