@@ -193,6 +193,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="MapsCanvasDraw.h" />
+    <ClInclude Include="BlitCanvasDraw.h" />
     <ClInclude Include="ImageCanvasDraw.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonBar.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="DoubleClick.cpp" />
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
+    <ClCompile Include="BlitCanvasDraw.cpp" />
     <ClCompile Include="ImageCanvasDraw.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonBar.cpp" />

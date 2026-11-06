@@ -21,16 +21,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MAPS_CANVAS_DRAW_H__
 #define __MAPS_CANVAS_DRAW_H__
 #include "SupportLib/Maps.h"
-#include "CanvasDraw.h"
+#include "BlitCanvasDraw.h"
 
 
-class CMapsCanvasDraw : public CCanvasDraw
+class CMapsCanvasDraw : public CBlitCanvasDraw
 {
 CONSTRUCTABLE(CMapsCanvasDraw);
 DESTRUCTABLE(CMapsCanvasDraw);
 protected:
-	Ptr<CMaps>					mpMaps;
-	Ptr<CImage>                 mpDestImage;
+	Ptr<CMaps>		mpMaps;
 
 public:
 	void	Init(Ptr<CMaps> pMaps);

@@ -222,6 +222,9 @@
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
+    <ClInclude Include="BlitCanvasDraw.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
     <ClInclude Include="ImageCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
@@ -528,6 +531,9 @@
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
     <ClCompile Include="MapsCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="BlitCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="ImageCanvasDraw.cpp">

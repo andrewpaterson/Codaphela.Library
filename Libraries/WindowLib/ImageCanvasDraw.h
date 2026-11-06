@@ -21,19 +21,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __IMAGE_CANVAS_DRAW_H__
 #define __IMAGE_CANVAS_DRAW_H__
 #include "SupportLib/ImageCelBlitterCache.h"
-#include "CanvasDraw.h"
+#include "BlitCanvasDraw.h"
 #include "ContainerStyle.h"
 
 
 //Draws its cel at the top left of the canvas, or where its alignment puts it, or stretched (or shrunk) to the whole
 //canvas.
-class CImageCanvasDraw : public CCanvasDraw
+class CImageCanvasDraw : public CBlitCanvasDraw
 {
 CONSTRUCTABLE(CImageCanvasDraw);
 DESTRUCTABLE(CImageCanvasDraw);
 protected:
 	Ptr<CImageCel>				mpCel;
-	Ptr<CImage>					mpDestImage;
 	bool						mbStretch;
 	EContainerStyleHorizontal	meHorizontal;  //Where the cel sits across the canvas when it isn't stretched.
 	EContainerStyleVertical		meVertical;

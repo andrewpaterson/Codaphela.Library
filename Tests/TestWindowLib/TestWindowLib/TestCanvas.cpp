@@ -1073,6 +1073,70 @@ void TestCanvasOutlivesKilledWindow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// An image draw onto a canvas without an image of its own blits into	//
+// one of the canvas's format.  Made transparent, the canvas has an		//
+// opacity channel, and so must that image: around the cel the canvas	//
+// stays clear, not opaque black.										//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasImageDrawFollowsTransparency(void)
+{
+	CNoImageRefWindowFactory	cNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pWindowFill;
+		Ptr<CImage>				pImage;
+		Ptr<CImageCanvasDraw>	pDraw;
+		Ptr<CCanvas>			pCanvas;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		uint8*					puiPixels;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Image Draw Transparency", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pWindowFill);
+
+		pImage = OMalloc<CImage>(2, 2, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pImage->Black();
+		pDraw = OMalloc<CImageCanvasDraw>(OMalloc<CImageCel>(pImage));
+		pCanvas = OMalloc<CCanvas>(pTestWindow, pDraw);
+		pCanvas->SetDesiredSize(4, 4);
+		pCanvas->SetAlignment(CSH_Left, CSV_Top);
+		pWindowFill->AddComponent(pCanvas);
+
+		pTestWindow->Show();
+		AssertTrue(pCanvas->GetImageOrNull().IsNull());
+
+		AssertTrue(pCanvas->SetTransparent(true));
+		pTestWindow->Paint();
+
+		puiPixels = pCanvas->GetPixelData();
+		AssertInt(255, puiPixels[(0 + 0 * 4) * 4 + 3]);
+		AssertInt(0, puiPixels[(3 + 3 * 4) * 4 + 3]);
+
+		pCanvas = NULL;
+		pDraw = NULL;
+		pImage = NULL;
+		pWindowFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -1091,6 +1155,7 @@ void TestCanvas(void)
 	TestCanvasResizeReleasesOldCels();
 	TestCanvasWindowColourFormat();
 	TestCanvasOutlivesKilledWindow();
+	TestCanvasImageDrawFollowsTransparency();
 
 	TestStatistics();
 }

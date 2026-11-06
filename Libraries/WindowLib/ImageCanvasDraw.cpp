@@ -30,9 +30,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CImageCanvasDraw::Init(Ptr<CImageCel> pCel, bool bStretch)
 {
 	PreInit();
-	CCanvasDraw::Init();
+	CBlitCanvasDraw::Init();
 	mpCel = pCel;
-	mpDestImage = NULL;
 	mbStretch = bStretch;
 	meHorizontal = CSH_Left;
 	meVertical = CSV_Top;
@@ -46,9 +45,8 @@ void CImageCanvasDraw::Init(Ptr<CImageCel> pCel, bool bStretch)
 //////////////////////////////////////////////////////////////////////////
 void CImageCanvasDraw::Class(void)
 {
-	CCanvasDraw::Class();
+	CBlitCanvasDraw::Class();
 	M_Pointer(mpCel);
-	M_Pointer(mpDestImage);
 	U_Bool(mbStretch);
 	U_Enum(meHorizontal);
 	U_Enum(meVertical);
@@ -61,7 +59,7 @@ void CImageCanvasDraw::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCanvasDraw::Save(CObjectWriter* pcFile)
 {
-	CCanvasDraw::Save(pcFile);
+	CBlitCanvasDraw::Save(pcFile);
 	return false;
 }
 
@@ -72,7 +70,7 @@ bool CImageCanvasDraw::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCanvasDraw::Load(CObjectReader* pcFile)
 {
-	CCanvasDraw::Load(pcFile);
+	CBlitCanvasDraw::Load(pcFile);
 	return false;
 }
 
@@ -83,42 +81,20 @@ bool CImageCanvasDraw::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-	SInt32Vec2		sSize;
-	SInt32Vec2		sCelSize;
-	bool			bResult;
-	Ptr<CImage>		pImage;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sCelSize;
+	bool				bResult;
+	Ptr<CImage>			pImage;
 	Ptr<CImageBlitter>	pBlitter;
 
 	if (!pCanvas->IsValid() || mpCel.IsNull())
 	{
 		return true;
 	}
-
-	sSize = pCanvas->GetActualSize();
-	if ((sSize.x <= 0) || (sSize.y <= 0))
-	{
-		return true;
-	}
-
-	//Blit straight into the canvas's image if it has one, otherwise into a temporary image the size of the canvas.
-	pImage = pCanvas->GetImageOrNull();
+	pImage = StartBlit(pCanvas);
 	if (pImage.IsNull())
 	{
-		if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != (uint32)sSize.x) || (mpDestImage->GetHeight() != (uint32)sSize.y))
-		{
-			mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
-			mpDestImage->Black();  //A native canvas starts black so this image must too.
-		}
-		else if (pCanvas->IsTransparent())
-		{
-			//The whole image is copied onto the canvas, so what an earlier cel left outside this one must go.
-			mpDestImage->Black();
-		}
-		pImage = mpDestImage;
-	}
-	else
-	{
-		mpDestImage = NULL;
+		return true;
 	}
 
 	//The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.
@@ -135,6 +111,7 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 		return false;
 	}
 
+	sSize = pCanvas->GetActualSize();
 	if (mbStretch)
 	{
 		bResult = pBlitter->Blit(0, 0, sSize.x, sSize.y);
@@ -145,10 +122,7 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 		bResult = pBlitter->Blit(AlignComponentHorizontal(meHorizontal, sCelSize.x, sSize.x), AlignComponentVertical(meVertical, sCelSize.y, sSize.y));
 	}
 
-	if (mpDestImage.IsNotNull())
-	{
-		pCanvas->DrawImage(0, 0, mpDestImage);
-	}
+	FinishBlit(pCanvas);
 	return bResult;
 }
 
