@@ -50,8 +50,8 @@ struct SRedBlackNode
 
 struct SRedBlackTreeIterator
 {
-	SRedBlackNode*	psCurrent;
-	SRedBlackNode*	psStop;  //The last node to iterate, NULL when there is nothing left.
+	SRedBlackNode*	psCurrent;  //NULL when there is nothing left.
+	void*			pvEndKey;   //The caller's key the iteration stops after, NULL to run to the last element.
 };
 
 
@@ -60,7 +60,8 @@ struct SRedBlackTreeIterator
 //
 //Elements are copied into the tree and stay at the same address until they are removed; rebalancing relinks nodes
 //rather than moving element data between them.  Removing an element other than the one being iterated doesn't
-//disturb an iteration.
+//disturb an iteration, and elements added after the current one are iterated if they are in range.  An iteration
+//with an end key keeps a pointer to it, so the key must outlive the iteration.
 class CRedBlackTree
 {
 protected:
@@ -105,6 +106,7 @@ protected:
 	SRedBlackNode*	FindNode(void* pvKey);
 	SRedBlackNode*	FindNodeOnOrBefore(void* pvKey);
 	SRedBlackNode*	FindNodeOnOrAfter(void* pvKey);
+	SRedBlackNode*	InRange(SRedBlackTreeIterator* psIter, SRedBlackNode* psNode);
 	void*			GetKey(SRedBlackNode* psNode);
 	void*			GetData(SRedBlackNode* psNode);
 	SRedBlackNode*	GetNode(void* pvElement);

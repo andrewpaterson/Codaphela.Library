@@ -382,15 +382,14 @@ bool CRedBlackTree::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 void* CRedBlackTree::StartIteration(SRedBlackTreeIterator* psIter)
 {
+	psIter->pvEndKey = NULL;
 	if (mpsRoot)
 	{
 		psIter->psCurrent = mpsRoot->GetLeftmost();
-		psIter->psStop = mpsRoot->GetRightmost();
 	}
 	else
 	{
 		psIter->psCurrent = NULL;
-		psIter->psStop = NULL;
 	}
 	return GetData(psIter->psCurrent);
 }
@@ -399,18 +398,18 @@ void* CRedBlackTree::StartIteration(SRedBlackTreeIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 //
 // Iterates the elements with keys from pvStartKey to pvEndKey inclusive.  A NULL key leaves that end open, like
-// Logicim's iteratorFrom and iteratorTo.
+// Logicim's iteratorFrom and iteratorTo.  The end is checked by key rather than by its node so that removing the last
+// element in range doesn't let the iteration run past the end.
 //
 //////////////////////////////////////////////////////////////////////////
 void* CRedBlackTree::StartIteration(SRedBlackTreeIterator* psIter, void* pvStartKey, void* pvEndKey)
 {
 	SRedBlackNode*	psFirst;
-	SRedBlackNode*	psLast;
 
-	psIter->psCurrent = NULL;
-	psIter->psStop = NULL;
+	psIter->pvEndKey = pvEndKey;
 	if (mpsRoot == NULL)
 	{
+		psIter->psCurrent = NULL;
 		return NULL;
 	}
 
@@ -423,20 +422,7 @@ void* CRedBlackTree::StartIteration(SRedBlackTreeIterator* psIter, void* pvStart
 		psFirst = mpsRoot->GetLeftmost();
 	}
 
-	if (pvEndKey)
-	{
-		psLast = FindNodeOnOrBefore(pvEndKey);
-	}
-	else
-	{
-		psLast = mpsRoot->GetRightmost();
-	}
-
-	if (psFirst && psLast && (mfCompare(GetKey(psFirst), GetKey(psLast)) <= 0))
-	{
-		psIter->psCurrent = psFirst;
-		psIter->psStop = psLast;
-	}
+	psIter->psCurrent = InRange(psIter, psFirst);
 	return GetData(psIter->psCurrent);
 }
 
@@ -447,15 +433,28 @@ void* CRedBlackTree::StartIteration(SRedBlackTreeIterator* psIter, void* pvStart
 //////////////////////////////////////////////////////////////////////////
 void* CRedBlackTree::Iterate(SRedBlackTreeIterator* psIter)
 {
-	if ((psIter->psCurrent == NULL) || (psIter->psCurrent == psIter->psStop))
+	if (psIter->psCurrent == NULL)
 	{
-		psIter->psCurrent = NULL;
-		psIter->psStop = NULL;
 		return NULL;
 	}
 
-	psIter->psCurrent = psIter->psCurrent->GetNext();
+	psIter->psCurrent = InRange(psIter, psIter->psCurrent->GetNext());
 	return GetData(psIter->psCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns psNode, or NULL if it is after the iteration's end key.
+//
+//////////////////////////////////////////////////////////////////////////
+SRedBlackNode* CRedBlackTree::InRange(SRedBlackTreeIterator* psIter, SRedBlackNode* psNode)
+{
+	if (psNode && psIter->pvEndKey && (mfCompare(GetKey(psNode), psIter->pvEndKey) > 0))
+	{
+		return NULL;
+	}
+	return psNode;
 }
 
 
