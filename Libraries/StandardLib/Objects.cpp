@@ -937,11 +937,23 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 {
 	CObjectSource*	pcSource;
 	CBaseObject*	pcObject;
+	CChars			szName;
 
 	pcSource = mcSource.GetSource(szObjectName);
 	if (pcSource)
 	{
-		pcObject = pcSource->Convert(szObjectName);
+		//szObjectName can be a hollow's name, freed when the hollow is replaced during the conversion.
+		szName.Init(szObjectName);
+		pcObject = pcSource->Convert(szName.Text());
+
+		//Every converted object must be named what it was asked for: objects in the Codabase reference it by that name.
+		if ((pcObject != NULL) && !pcObject->IsNamed(szName.Text()))
+		{
+			gcLogger.Error2(__METHOD__, " Object converted from source [", szName.Text(), "] is not named [", szName.Text(), "].", NULL);
+			pcObject->Kill();
+			pcObject = NULL;
+		}
+		szName.Kill();
 		return pcObject;
 	}
 	else

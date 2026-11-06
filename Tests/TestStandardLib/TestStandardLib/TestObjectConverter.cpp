@@ -254,6 +254,11 @@ void TestObjectConverterText(void)
 		pcString = pcObjectSource->Convert("TextFile");
 		AssertTrue(pcString.IsNotNull());
 		AssertString(szTextInFile, pcString->Text());
+		AssertTrue(pcString->IsNamed("TextFile"));
+		AssertFalse(pcString->IsNamed("AnythingElse"));
+		AssertFalse(pcString->IsNamed(""));
+		AssertFalse(pcString->IsNamed(NULL));
+		AssertString("TextFile", pcString->GetName());
 		pcString->CBaseObject::Kill();
 
 		pcString = pcObjectSource->Convert("");
@@ -262,6 +267,63 @@ void TestObjectConverterText(void)
 		cMemoryFile.Kill();
 		pcObjectSource->Kill();
 		cTextConverter.Kill();
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A converter that breaks the rule: its objects are not named.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestObjectConverterUnnamed : public CObjectConverterText
+{
+CONSTRUCTABLE(CTestObjectConverterUnnamed)
+public:
+	CBaseObject* Convert(CObjectSource* pcSource, const char* szObjectName)
+	{
+		Ptr<CString>	pString;
+
+		pString = OMalloc<CString>("Not named");
+		return (CBaseObject*)pString.Return();
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects got from sources are named the name they were asked for, and
+// objects that aren't are refused.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectConverterNamesObjects(void)
+{
+	ObjectsInit();
+	{
+		char			szText[] = { "Text" };
+		CMemoryFile		cTextFile;
+		CMemoryFile		cUnnamedFile;
+		Ptr<CString>	pString;
+
+		cTextFile.Init(szText, (size)strlen(szText));
+		cUnnamedFile.Init(szText, (size)strlen(szText));
+		AssertNotNull(gcObjects.AddSource<CObjectConverterText>(&cTextFile, "Input/Text.txt"));
+		AssertNotNull(gcObjects.AddSource<CTestObjectConverterUnnamed>(&cUnnamedFile, "Input/Unnamed.txt"));
+
+		pString = gcObjects.Get<CString>("Input/Text.txt");
+		AssertTrue(pString.IsNotNull());
+		AssertString("Text", pString->Text());
+		AssertString("Input/Text.txt", pString->GetName());
+		AssertPointer(pString.Object(), gcObjects.Get<CString>("Input/Text.txt").Object());
+
+		pString = gcObjects.Get<CString>("Input/Unnamed.txt");
+		AssertTrue(pString.IsNull());
+
+		pString = NULL;
+		cTextFile.Kill();
+		cUnnamedFile.Kill();
 	}
 	ObjectsFlush();
 	ObjectsKill();
@@ -429,6 +491,7 @@ void TestObjectConverter(void)
 	DataIOInit();
 
 	TestObjectConverterText();
+	TestObjectConverterNamesObjects();
 	TestObjectConverterDragonExistingHollows();
 	TestObjectConverterDragonRootDistance();
 

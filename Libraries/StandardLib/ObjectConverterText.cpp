@@ -83,13 +83,13 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* 
 		return NULL;
 	}
 
-	pString = OMalloc<CString>(cTextFile.Text());
+	//Converted objects are named: it is how objects in the Codabase reference them.
+	pString = ONMalloc<CString>(szObjectName, cTextFile.Text());
+	cTextFile.Kill();
 	if (!pString)
 	{
 		return NULL;
 	}
-
-	cTextFile.Kill();
 	return (CBaseObject*)pString.Return();
 }
 
