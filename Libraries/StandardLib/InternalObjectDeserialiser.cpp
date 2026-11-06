@@ -115,6 +115,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 		return NULL;
 	}
 
+	pcBaseObject->SetStored(true);
 	return pcBaseObject;
 }
 

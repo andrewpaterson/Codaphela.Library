@@ -38,6 +38,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Debug flag marking whether or not an object has had it's graph dumped yet.
 #define OBJECT_FLAGS_DUMPED						  0x20
 
+//Set when an object was read from or written to the database.  A dirty stored object is saved by Flush and before it
+//is freed even when it has no path to the root (it was loaded by name, its holders are only in the database).  Objects
+//that never reach the database are freed without saving.
+#define OBJECT_FLAGS_STORED						  0x40
+
 // Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
 
@@ -52,7 +57,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //those of the object it is embedded in (as it does its distance to root).  Constructing and classing are each object's own.
 #define OBJECT_FLAGS_CONTAINER	((uint16)~(OBJECT_FLAGS_CALLED_CONSTRUCTOR | OBJECT_FLAGS_CALLED_CLASS))
 
-//0x0002, 0x0040, 0x1000, 0x2000, 0x4000 and 0x8000 are free.  The distance calculations keep what they find in the
+//0x0002, 0x1000, 0x2000, 0x4000 and 0x8000 are free.  The distance calculations keep what they find in the
 //walk stamp (WALK_STATE_...), not in flags.
 
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
@@ -143,6 +148,7 @@ public:
 			bool					IsNamed(void) override;
 			bool					IsInvalidated(void);
 			bool					IsDirty(void);
+			bool					IsStored(void);
 			bool					IsInitialised(void);
 			bool					HasClass(void);
 			CClass*					GetClass(void);
@@ -160,6 +166,7 @@ public:
 			size					NumEmbedded(void);
 
 			void					SetDirty(bool bDirty);
+			void					SetStored(bool bStored);
 			int						GetDistToRoot(void);
 			bool					IsKnownHeldFromStack(void);
 			void					SetKnownHeldFromStack(void);

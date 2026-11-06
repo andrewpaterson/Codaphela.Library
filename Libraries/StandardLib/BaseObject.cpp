@@ -434,9 +434,10 @@ bool CBaseObject::Flush(void)
 	bCanFindRoot = GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
 	bDirty = IsDirty();
 
+	//A stored object's holders may only be in the database: it is saved without a path to the root.
 	if (bDirty)
 	{
-		if (bCanFindRoot)
+		if (bCanFindRoot || IsStored())
 		{
 			bResult = GetObjectsThisIn()->ForceSave(this);
 			SetDirty(false);
@@ -830,6 +831,17 @@ bool CBaseObject::IsDirty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Read from or written to the database (OBJECT_FLAGS_STORED).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::IsStored(void)
+{
+	return FixBool(GetFlags() & OBJECT_FLAGS_STORED);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::TestedForSanity(void)
@@ -845,6 +857,16 @@ bool CBaseObject::TestedForSanity(void)
 void CBaseObject::SetDirty(bool bDirty)
 {
 	SetFlag(OBJECT_FLAGS_DIRTY, bDirty);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetStored(bool bStored)
+{
+	SetFlag(OBJECT_FLAGS_STORED, bStored);
 }
 
 

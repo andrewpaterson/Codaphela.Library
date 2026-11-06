@@ -321,6 +321,10 @@ void CBaseObject::PrintFlags(CChars* psz)
 	{
 		psz->Append("DUMPED, ");
 	}
+	if (uiFlags & OBJECT_FLAGS_STORED)
+	{
+		psz->Append("STORED, ");
+	}
 	if (uiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
 	{
 		psz->Append("TESTED_FOR_SANITY, ");

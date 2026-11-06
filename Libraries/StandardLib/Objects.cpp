@@ -578,10 +578,46 @@ void CObjects::KillObjects(CArrayBaseObjectPtr* papcObjectPts)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Flush before free: a dirty stored object is saved before it is freed,
+// so freeing never loses a change the database can still reach (its
+// holders may be in the database only).  Objects that never reached the
+// database are freed without saving.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts)
+{
+	size			i;
+	size			iNumElements;
+	CBaseObject*	pcBaseObject;
+
+	if (!mpcDataConnection)
+	{
+		return;
+	}
+
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcBaseObject = *papcObjectPts->Get(i);
+		if (pcBaseObject->IsDirty() && pcBaseObject->IsStored())
+		{
+			if (!ForceSave(pcBaseObject))
+			{
+				gcLogger.Error2(__METHOD__, " Could not save object [", pcBaseObject->GetName(), "] before freeing it.", NULL);
+			}
+			pcBaseObject->SetDirty(false);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 {
+	SaveStoredDirty(papcObjectPts);
 	DoneKill(papcObjectPts);
 	FreeInternal(papcObjectPts);
 	RemoveAllPointerTos(papcObjectPts);
@@ -621,6 +657,10 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 	bResult = cSerialiser.Write(pcEmbeddingContainer);
 	cSerialiser.Kill();
 
+	if (bResult)
+	{
+		pcEmbeddingContainer->SetStored(true);
+	}
 	return bResult;
 }
 

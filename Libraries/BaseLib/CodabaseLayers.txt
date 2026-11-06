@@ -23,6 +23,8 @@ A dirty object is flushed before it is freed.  Freeing never discards changes to
 
 Only real garbage (objects nothing in the store can reach any more) may be dropped without saving.  Whether garbage is ever deleted from the database is still to be checked.
 
+Stored objects (decided 2026-11-06, implemented): an object read from or written to the database is marked stored (OBJECT_FLAGS_STORED).  An object loaded by name alone has no path to the root (its holders are only in the database), so Flush saves a dirty stored object whether or not it can find the root, and CObjects::RemoveBatch saves dirty stored objects before freeing them.  Objects that never reached the database are freed without saving, as before.  Not covered yet: CObjects::EvictInMemory and ObjectsKill free everything without saving.
+
 A database can be opened read-only (the document store as the game sees it).  A read-only database refuses writes.  What happens to a refused write is still open; the options were:
   1. Fail when the object is marked dirty (earliest, points at the code making the change).
   2. Fail at flush or free and discard the change.
