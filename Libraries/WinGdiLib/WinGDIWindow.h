@@ -72,6 +72,7 @@ public:
 	void	Activated(void);
 	void	Deactivated(void);
 	void	Resized(void);
+	void	GetMinimumTrackSize(POINT* psDest);
 	HWND	GetHWnd(void);
 };
 

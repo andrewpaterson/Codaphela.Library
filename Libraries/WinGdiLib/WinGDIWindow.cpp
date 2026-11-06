@@ -221,6 +221,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
             }
             break;
         }
+        case WM_GETMINMAXINFO:
+        {
+            //A resizable dialog is no smaller than its minimum client size plus its frame.
+            if (pcWindow && pcWindow->GetOwner() && !pcWindow->IsTool() && pcWindow->IsResizable())
+            {
+                pcWindow->GetMinimumTrackSize(&((MINMAXINFO*)lParam)->ptMinTrackSize);
+                return 0;
+            }
+            break;
+        }
         case WM_INPUT:
         {
             //DefWindowProc must still be called to clean up after the raw input.
@@ -335,6 +345,11 @@ bool CWinGDIWindow::CreateNativeWindow(void)
     else
     {
         dwStyle = mpcOwner ? (WS_POPUP | WS_CAPTION | WS_SYSMENU) : WS_OVERLAPPEDWINDOW;
+        if (mpcOwner && IsResizable())
+        {
+            //A dialog with a minimum size has a frame to resize it by (WM_GETMINMAXINFO keeps it from going smaller).
+            dwStyle |= WS_THICKFRAME;
+        }
     }
     sRect.left = 0;
     sRect.top = 0;
@@ -662,6 +677,26 @@ void CWinGDIWindow::Activated(void)
 void CWinGDIWindow::Deactivated(void)
 {
     mpcWindow->Deactivate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The smallest a resizable dialog's window can be dragged to: its minimum
+// client size with its frame around it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::GetMinimumTrackSize(POINT* psDest)
+{
+    RECT    sRect;
+
+    sRect.left = 0;
+    sRect.top = 0;
+    sRect.right = msMinimumSize.x;
+    sRect.bottom = msMinimumSize.y;
+    AdjustWindowRectEx(&sRect, (DWORD)GetWindowLongPtrA(mhWnd, GWL_STYLE), FALSE, (DWORD)GetWindowLongPtrA(mhWnd, GWL_EXSTYLE));
+    psDest->x = sRect.right - sRect.left;
+    psDest->y = sRect.bottom - sRect.top;
 }
 
 

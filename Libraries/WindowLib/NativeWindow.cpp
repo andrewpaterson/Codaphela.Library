@@ -36,6 +36,7 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 	mpcOwner = NULL;
 	mcLastRectangle.Init(-1, -1, -1, -1);
 	msRequestedSize.Init(-1, -1);
+	msMinimumSize.Init(-1, -1);
 	mbPainting = false;
 	mbEnabled = true;
 	mbTool = false;
@@ -147,6 +148,30 @@ void CNativeWindow::SetRequestedSize(int32 iWidth, int32 iHeight)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Set before the window is created.  A dialog is shown at its requested
+// size and can't be resized, unless it has a minimum size: then it can be,
+// no smaller than that.  -1, -1 for none.  A main window can always be.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetMinimumSize(int32 iWidth, int32 iHeight)
+{
+	msMinimumSize.Init(iWidth, iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A main window, or a dialog with a minimum size.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindow::IsResizable(void)
+{
+	return !mpcOwner || ((msMinimumSize.x >= 0) && (msMinimumSize.y >= 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A native window that can stop its keyboard and pointer reaching the
 // window overrides this too.
 //
@@ -188,6 +213,7 @@ void CNativeWindow::WaitForEvents(int64 iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 CNativeWindow* CNativeWindow::GetOwner(void) { return mpcOwner; }
 SInt32Vec2 CNativeWindow::GetRequestedSize(void) { return msRequestedSize; }
+SInt32Vec2 CNativeWindow::GetMinimumSize(void) { return msMinimumSize; }
 bool CNativeWindow::IsEnabled(void) { return mbEnabled; }
 
 

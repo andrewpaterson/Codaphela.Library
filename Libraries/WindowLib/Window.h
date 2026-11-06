@@ -98,6 +98,7 @@ public:
 	void					UpdateCursor(void);
 	void					Raise(void);
 	void					SetWindowSize(int32 iWidth, int32 iHeight);
+	void					SetMinimumWindowSize(int32 iWidth, int32 iHeight);
 	CNativeWindow*			GetNativeWindow(void);
 	void					Paint(void);
 	void					Invalidate(void) override;

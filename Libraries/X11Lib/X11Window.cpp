@@ -256,8 +256,9 @@ bool CX11Window::CreateNativeWindow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A dialog stays over its owner, centred on it, can't be resized and is
-// modal; the window manager is asked for all of this.
+// A dialog stays over its owner, centred on it, can't be resized (unless
+// it has a minimum size) and is modal; the window manager is asked for all
+// of this.
 //
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::SetDialogHints(int iWidth, int iHeight)
@@ -307,6 +308,12 @@ void CX11Window::SetDialogHints(int iWidth, int iHeight)
         psHints->max_width = iWidth;
         psHints->min_height = iHeight;
         psHints->max_height = iHeight;
+        if (IsResizable())
+        {
+            psHints->flags = PPosition | PMinSize;
+            psHints->min_width = msMinimumSize.x;
+            psHints->min_height = msMinimumSize.y;
+        }
         XSetWMNormalHints(psDisplay, mulWindow, psHints);
         XFree(psHints);
     }

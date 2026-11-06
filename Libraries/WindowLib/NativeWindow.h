@@ -38,6 +38,7 @@ protected:
 	CNativeWindow*	mpcOwner;  //The window a dialog is shown over, NULL for a main window.
 	CInt32Rect		mcLastRectangle;
 	SInt32Vec2		msRequestedSize;  //The client size to create the window with, -1 for the native default.
+	SInt32Vec2		msMinimumSize;  //The smallest client size a dialog can be resized to, -1 for a dialog that can't be.
 	bool			mbPainting;
 	bool			mbEnabled;  //A disabled window, the owner of a modal dialog, ignores the keyboard and pointer.
 	bool			mbTool;  //Owned but not modal: a floating tool window with no frame, drawn by WindowLib, see SetTool.
@@ -56,6 +57,9 @@ public:
 			CNativeWindow*	GetOwner(void);
 			void			SetRequestedSize(int32 iWidth, int32 iHeight);
 			SInt32Vec2		GetRequestedSize(void);
+			void			SetMinimumSize(int32 iWidth, int32 iHeight);
+			SInt32Vec2		GetMinimumSize(void);
+			bool			IsResizable(void);
 	virtual	void			SetEnabled(bool bEnabled);
 	virtual	bool			CanWaitForEvents(void);
 	virtual	void			WaitForEvents(int64 iMilliseconds);
