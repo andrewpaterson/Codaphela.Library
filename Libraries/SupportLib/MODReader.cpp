@@ -112,38 +112,49 @@ bool MODReadSampleHeader(CFileBasic* pcFile, SMODSampleHeader* psHeader)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads the patterns into pcSong.  A note is 4 bytes: sample high
-// nibble and period high nibble, period low byte, sample low nibble and
-// effect, parameter.
+// Reads the patterns into pcSong, a pattern at a time: the file has its
+// notes in the order CModSong keeps them (row by row, channel by channel).
+// A note is 4 bytes: sample high nibble and period high nibble, period low
+// byte, sample low nibble and effect, parameter.
 //
 //////////////////////////////////////////////////////////////////////////
 bool MODReadPatterns(CFileBasic* pcFile, Ptr<CModSong> pSong)
 {
 	size		uiPattern;
-	size		uiRow;
-	size		uiChannel;
-	uint8		auiNote[MOD_NOTE_SIZE];
+	size		uiNumPatterns;
+	size		uiNote;
+	size		uiNumNotes;
+	uint8*		puiPattern;
+	uint8*		puiNote;
 	SModNote*	psNote;
+	bool		bResult;
 
-	for (uiPattern = 0; uiPattern < pSong->NumPatterns(); uiPattern++)
+	uiNumPatterns = pSong->NumPatterns();
+	uiNumNotes = MOD_ROWS_PER_PATTERN * pSong->NumChannels();
+	puiPattern = (uint8*)malloc(uiNumNotes * MOD_NOTE_SIZE);
+	if (puiPattern == NULL)
 	{
-		for (uiRow = 0; uiRow < MOD_ROWS_PER_PATTERN; uiRow++)
+		return false;
+	}
+
+	bResult = true;
+	for (uiPattern = 0; (uiPattern < uiNumPatterns) && bResult; uiPattern++)
+	{
+		bResult = pcFile->ReadData(puiPattern, uiNumNotes * MOD_NOTE_SIZE);
+		psNote = pSong->GetNote(uiPattern, 0, 0);
+		puiNote = puiPattern;
+		for (uiNote = 0; (uiNote < uiNumNotes) && bResult; uiNote++)
 		{
-			for (uiChannel = 0; uiChannel < pSong->NumChannels(); uiChannel++)
-			{
-				if (!pcFile->ReadData(auiNote, MOD_NOTE_SIZE))
-				{
-					return false;
-				}
-				psNote = pSong->GetNote(uiPattern, uiRow, uiChannel);
-				psNote->uiSample = (uint8)((auiNote[0] & 0xF0) | (auiNote[2] >> 4));
-				psNote->uiPeriod = (uint16)(((auiNote[0] & 0x0F) << 8) | auiNote[1]);
-				psNote->uiEffect = (uint8)(auiNote[2] & 0x0F);
-				psNote->uiParam = auiNote[3];
-			}
+			psNote->uiSample = (uint8)((puiNote[0] & 0xF0) | (puiNote[2] >> 4));
+			psNote->uiPeriod = (uint16)(((puiNote[0] & 0x0F) << 8) | puiNote[1]);
+			psNote->uiEffect = (uint8)(puiNote[2] & 0x0F);
+			psNote->uiParam = puiNote[3];
+			psNote++;
+			puiNote += MOD_NOTE_SIZE;
 		}
 	}
-	return true;
+	free(puiPattern);
+	return bResult;
 }
 
 
