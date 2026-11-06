@@ -39,8 +39,8 @@ class CMenuBar;
 //A disabled item can't be clicked.  The opening event is called as the menu opens, before it is laid out, so its
 //items can be enabled or disabled for what can be done then.
 //
-//Clicking an item closes every menu it was opened from and calls the item click event of the first of them, and of its
-//menu bar if it has one, with the item.
+//Clicking an item closes every menu it was opened from and calls the item's own click event, then the item click event
+//of the first of the menus, and of its menu bar if it has one, with the item.
 class CMenuContainer : public CListContainer
 {
 CONSTRUCTABLE(CMenuContainer);
@@ -85,6 +85,7 @@ public:
 
 	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
+	void				Click(Ptr<CMenuItem> pItem);
 
 	void				MovedOver(int x, int y) override;
 	void				Left(void);

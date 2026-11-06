@@ -35,15 +35,17 @@ class CTestMenuListener
 {
 public:
 	CChars*		mpszLog;
+	const char*	mszPrefix;
 
 	void Init(CChars* pszLog)
 	{
 		mpszLog = pszLog;
+		mszPrefix = "Clicked:";
 	}
 
 	void MenuItemClicked(CMenuItem* pcItem)
 	{
-		mpszLog->Append("Clicked:");
+		mpszLog->Append(mszPrefix);
 		mpszLog->Append(pcItem->GetText());
 		mpszLog->Append(";");
 	}
@@ -1200,6 +1202,99 @@ void TestMenuEnabledAndShortcuts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An item's own click event is called before its menu's (and its
+// sub menu's root's), for the item clicked only.  Click clicks as Enter
+// does: not a disabled item, nor one that opens a sub menu.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuItemClickEvent(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CMenuStyle>				pStyle;
+		Ptr<CMenuContainer>			pMenu;
+		Ptr<CMenuContainer>			pSub;
+		Ptr<CMenuItem>				pOpen;
+		Ptr<CMenuItem>				pSave;
+		Ptr<CMenuItem>				pRecent;
+		Ptr<CMenuItem>				pFirst;
+		CTestMenuListener			cMenuListener;
+		CTestMenuListener			cItemListener;
+		CPointer					pNull;
+		CChars						szLog;
+
+		szLog.Init();
+		cMenuListener.Init(&szLog);
+		cItemListener.Init(&szLog);
+		cItemListener.mszPrefix = "Item:";
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pSub = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pFirst = pSub->AddItem("First");
+		pOpen = pMenu->AddItem("Open");
+		pSave = pMenu->AddItem("Save");
+		pRecent = pMenu->AddItem("Recent", NULL, pSub);
+		pMenu->GetItemClickEvent()->Add(&cMenuListener, &CTestMenuListener::MenuItemClicked);
+		pSave->GetClickEvent()->Add(&cItemListener, &CTestMenuListener::MenuItemClicked);
+		pFirst->GetClickEvent()->Add(&cItemListener, &CTestMenuListener::MenuItemClicked);
+
+		//Enter on Save: its own event first, then the menu's.  Open has no listener of its own.
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Down, true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertLog("Item:Save;Clicked:Save;");
+		pMenu->Click(pOpen);
+		AssertLog("Clicked:Open;");
+
+		//An item of a sub menu: its own, then the menu it was reached from.
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		pTestWindow->Layout();
+		pMenu->OpenSubMenu(pMenu->GetItemRow(pRecent), true);
+		pSub->Click(pFirst);
+		AssertLog("Item:First;Clicked:First;");
+		AssertFalse(pMenu->IsOpen());
+
+		//Disabled or with a sub menu, Click does nothing.
+		pSave->SetEnabled(false);
+		pMenu->Click(pSave);
+		pMenu->Click(pRecent);
+		AssertLog("");
+
+		pSave->GetClickEvent()->Remove(&cItemListener);
+		pFirst->GetClickEvent()->Remove(&cItemListener);
+		pMenu->GetItemClickEvent()->Remove(&cMenuListener);
+		pOpen = NULL;
+		pSave = NULL;
+		pRecent = NULL;
+		pFirst = NULL;
+		pSub = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -1215,6 +1310,7 @@ void TestMenu(void)
 	TestMenuContextMenu();
 	TestMenuTreeContextMenu();
 	TestMenuEnabledAndShortcuts();
+	TestMenuItemClickEvent();
 
 	ObjectsFlush();
 	ObjectsKill();

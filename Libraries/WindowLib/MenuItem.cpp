@@ -36,6 +36,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	PreInit();
 
 	CGridContainer::Init(pWindow);
+	mcClicked.Init();
 	SetSizedByContent(true);
 	mpStyle = pStyle;
 	mpSubMenu = pSubMenu;
@@ -84,6 +85,18 @@ void CMenuItem::Class(void)
 	M_Pointer(mpSubMenu);
 	U_Int32(miTag);
 	U_Bool(mbEnabled);
+	U_Data(CComponentEvent<CMenuItem>, mcClicked);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::Free(void)
+{
+	mcClicked.Kill();
+	CGridContainer::Free();
 }
 
 
@@ -217,3 +230,12 @@ Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) { return mpChevron; }
 void CMenuItem::SetTag(int32 iTag) { miTag = iTag; }
 int32 CMenuItem::GetTag(void) { return miTag; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called with the item when it is clicked, before the item click events
+// of the menus it was reached from: whoever added the item can handle it
+// without a menu wide event, in a menu others add items to too.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentEvent<CMenuItem>* CMenuItem::GetClickEvent(void) { return &mcClicked; }

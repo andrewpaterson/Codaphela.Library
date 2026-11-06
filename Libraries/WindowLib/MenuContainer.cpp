@@ -550,6 +550,7 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 	pPopup = NULL;
 
 	pRoot->Close();
+	pItem->GetClickEvent()->Call(&pItem);
 	pRoot->mcItemClicked.Call(&pItem);
 	if (pRoot->mpMenuBar.IsNotNull())
 	{
@@ -570,6 +571,22 @@ size CMenuContainer::NumItems(void) { return maItems.Size(); }
 Ptr<CMenuItem> CMenuContainer::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
 Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) { return mpOpenSubMenu; }
 CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return &mcOpening; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pItem (one of this menu's) clicked, as the pointer or Enter clicks it:
+// for scripts and checks.  A disabled item or one with a sub menu does
+// nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuContainer::Click(Ptr<CMenuItem> pItem)
+{
+	if (pItem.IsNotNull() && pItem->IsEnabled() && !pItem->HasSubMenu())
+	{
+		ItemClicked(pItem);
+	}
+}
 Ptr<CMenuContainer> CMenuContainer::GetParentMenu(void) { return mpParentMenu; }
 Ptr<CMenuBar> CMenuContainer::GetMenuBar(void) { return mpMenuBar; }
 Ptr<CMenuStyle> CMenuContainer::GetStyle(void) { return mpStyle; }

@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MENU_ITEM_H__
 #define __MENU_ITEM_H__
 #include "GridContainer.h"
+#include "ComponentEvent.h"
 #include "IconComponent.h"
 #include "Label.h"
 #include "MenuStyle.h"
@@ -51,10 +52,12 @@ protected:
 	Ptr<CMenuContainer>		mpSubMenu;  //NULL unless the item opens another menu.
 	int32					miTag;  //What the item means to whoever made it, -1 until set.
 	bool					mbEnabled;  //A disabled item is drawn in the dim font and clicking it does nothing.
+	CComponentEvent<CMenuItem>	mcClicked;  //Called when the item is clicked, before its menus' item click events.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* szText, Ptr<CImageCel> pIcon, Ptr<CMenuContainer> pSubMenu);
 	void					Class(void) override;
+	void					Free(void) override;
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
@@ -74,6 +77,7 @@ public:
 	Ptr<CLabel>				GetLabel(void);
 	Ptr<CLabel>				GetShortcutLabel(void);
 	Ptr<CIconComponent>		GetChevronComponent(void);
+	CComponentEvent<CMenuItem>*	GetClickEvent(void);
 
 };
 
