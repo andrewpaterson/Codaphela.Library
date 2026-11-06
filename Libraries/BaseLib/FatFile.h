@@ -53,7 +53,6 @@ protected:
 	bool		IsFat32Volume(void);
 	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination);
 	EFatCode	StepToClusterOfPosition(void);
-	bool		HasCluster(uint32 uiClusterIndex);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 

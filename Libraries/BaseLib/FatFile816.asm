@@ -15,7 +15,7 @@ F_CLUSTER		= 13			; IsEOF's and NextCluster's cluster.
 F_NEXT			= 17			; Where NextCluster puts the next cluster (through F_ADDRESS).
 F_FIRST			= 21			; FirstCluster's result.
 F_COUNT			= 25			; Clusters in the file, a cluster index.
-F_INDEX			= 29			; HasCluster's count down.
+F_INDEX			= 29			; SeekTo's end of a full last cluster flag.
 F_PREVIOUS		= 33
 F_NEW			= 37			; The volume's AllocateClusters' first new cluster.
 F_BYTES			= 41			; AllocateFileClusters' bytes.
@@ -857,7 +857,11 @@ SeekPosition:
 		jmp Leave
 
 
-; Seek to F_POSITION (not past the end): the position's cluster found from the first.  A the result.
+; Seek to F_POSITION (not past the end).  A FAT chain only goes forward: the new position's cluster is walked to from
+; the old position's cluster if that is known and not past it, else from the first.  The old position's cluster is at
+; the old position's index, except at the end of a file that fills its last cluster (the last or the one after it).
+; F_COUNT the new index, F_PREVIOUS the index walked from, F_WORK the old index, F_INDEX not 0 at the end of a file
+; that fills its last cluster.  A the result.
 SeekTo:
 		.width (A, X), 16
 		ldy SFatFile_uiFileSize + 2
@@ -879,38 +883,91 @@ SeekToInside:
 		jsr Copy32
 		ldx F_COUNT
 		jsr ShiftCluster
-		; The end of a file that fills its last cluster has no cluster after it (until a write adds one): stay on the last.
+		; The end of a file that fills its last cluster: its cluster is the last one, unless a write has added one after
+		; it.  The last is found first, then the one after it is looked for.
+		stz [D + F_INDEX]
 		lda [D + F_COUNT]
 		ora [D + F_COUNT + 2]
-		beq SeekToFirst
+		beq SeekToStart
 		ldy SFatFile_uiFileSize
 		lda [[D + F_THIS]:24 + Y]
 		cmp [D + F_POSITION]
-		bne SeekToFirst
+		bne SeekToStart
 		iny
 		iny
 		lda [[D + F_THIS]:24 + Y]
 		cmp [D + F_POSITION + 2]
-		bne SeekToFirst
+		bne SeekToStart
 		ldx F_POSITION
 		jsr OffsetInCluster
-		bne SeekToFirst
-		jsr HasCluster
-		bcs SeekToFirst
+		bne SeekToStart
+		inc [D + F_INDEX]
 		lda [D + F_COUNT]
 		bne SeekToLast
 		dec [D + F_COUNT + 2]
 SeekToLast:
 		dec [D + F_COUNT]
-SeekToFirst:
+SeekToStart:
+		; From the first cluster (index 0), or from the old position's cluster.
 		jsr FirstCluster
+		stz [D + F_PREVIOUS]
+		stz [D + F_PREVIOUS + 2]
+		ldy SFatFile_uiFilePositionCluster
+		lda [[D + F_THIS]:24 + Y]
+		iny
+		iny
+		ora [[D + F_THIS]:24 + Y]
+		beq SeekToWalk
+		ldy SFatFile_uiFilePosition
+		ldx F_WORK
+		jsr GetMember32
+		ldx F_WORK
+		jsr OffsetInCluster
+		bne SeekToKnown
+		lda [D + F_WORK]
+		ora [D + F_WORK + 2]
+		beq SeekToKnown
+		ldy SFatFile_uiFileSize
+		lda [[D + F_THIS]:24 + Y]
+		cmp [D + F_WORK]
+		bne SeekToKnown
+		iny
+		iny
+		lda [[D + F_THIS]:24 + Y]
+		cmp [D + F_WORK + 2]
+		beq SeekToWalk
+SeekToKnown:
+		ldx F_WORK
+		jsr ShiftCluster
+		; Not past the new index: F_WORK <= F_COUNT.
+		lda [D + F_COUNT + 2]
+		cmp [D + F_WORK + 2]
+		bcc SeekToWalk
+		bne SeekToFromPosition
+		lda [D + F_COUNT]
+		cmp [D + F_WORK]
+		bcc SeekToWalk
+SeekToFromPosition:
+		ldy SFatFile_uiFilePositionCluster
+		ldx F_FIRST
+		jsr GetMember32
+		lda F_WORK
+		ldx F_PREVIOUS
+		jsr Copy32
+SeekToWalk:
 		ldy SFatFile_uiFilePositionCluster
 		ldx F_FIRST
 		jsr SetMember32
 		lda [D + F_COUNT]
-		ora [D + F_COUNT + 2]
-		beq SeekToDone
-		; SeekByClusterCount(uiFilePositionCluster, (uint16)uiClusterIndex, &msFile.uiFilePositionCluster)
+		sec
+		sbc [D + F_PREVIOUS]
+		sta [D + F_COUNT]
+		lda [D + F_COUNT + 2]
+		sbc [D + F_PREVIOUS + 2]
+		sta [D + F_COUNT + 2]
+		ora [D + F_COUNT]
+		beq SeekToEnd
+		; SeekByClusterCount(uiFilePositionCluster, (uint16)uiClusterCount, &msFile.uiFilePositionCluster)
 		lda SFatFile_uiFilePositionCluster
 		jsr ThisAddress
 		pei [D + F_ADDRESS + 2]
@@ -924,59 +981,41 @@ SeekToFirst:
 		ldx 14
 		jsr Drop
 		cmp FAT_SUCCESS
-		beq SeekToDone
+		beq SeekToEnd
 		lda FAT_CORRUPTED_FILE
 		rts
+SeekToEnd:
+		; At the end of a file that fills its last cluster: the cluster after the last, if the chain has one.
+		lda [D + F_INDEX]
+		beq SeekToDone
+		ldy SFatFile_uiFilePositionCluster
+		ldx F_CLUSTER
+		jsr GetMember32
+		lda [D + F_CLUSTER]
+		ora [D + F_CLUSTER + 2]
+		beq SeekToDone
+		jsr IsEOF
+		bne SeekToDone
+		lda F_NEXT
+		jsr FrameAddress
+		jsr NextCluster
+		bne SeekToDone
+		lda F_NEXT
+		ldx F_CLUSTER
+		jsr Copy32
+		lda [D + F_CLUSTER]
+		ora [D + F_CLUSTER + 2]
+		beq SeekToDone
+		jsr IsEOF
+		bne SeekToDone
+		ldy SFatFile_uiFilePositionCluster
+		ldx F_CLUSTER
+		jsr SetMember32
 SeekToDone:
 		ldy SFatFile_uiFilePosition
 		ldx F_POSITION
 		jsr SetMember32
 		lda FAT_SUCCESS
-		rts
-
-
-; HasCluster(F_COUNT): carry set if the file's chain has a cluster at index F_COUNT (counting from 0).
-HasCluster:
-		.width (A, X), 16
-		jsr FirstCluster
-		lda F_FIRST
-		ldx F_CLUSTER
-		jsr Copy32
-		lda F_COUNT
-		ldx F_INDEX
-		jsr Copy32
-HasClusterStep:
-		lda [D + F_INDEX]
-		ora [D + F_INDEX + 2]
-		beq HasClusterLast
-		lda [D + F_CLUSTER]
-		ora [D + F_CLUSTER + 2]
-		beq HasClusterNot
-		jsr IsEOF
-		bne HasClusterNot
-		lda F_NEXT
-		jsr FrameAddress
-		jsr NextCluster
-		bne HasClusterNot
-		lda F_NEXT
-		ldx F_CLUSTER
-		jsr Copy32
-		lda [D + F_INDEX]
-		bne HasClusterCount
-		dec [D + F_INDEX + 2]
-HasClusterCount:
-		dec [D + F_INDEX]
-		bra HasClusterStep
-HasClusterLast:
-		lda [D + F_CLUSTER]
-		ora [D + F_CLUSTER + 2]
-		beq HasClusterNot
-		jsr IsEOF
-		bne HasClusterNot
-		sec
-		rts
-HasClusterNot:
-		clc
 		rts
 
 

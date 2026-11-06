@@ -379,8 +379,12 @@ EFatCode CFatFile::CalculateSeekPosition(uint32 offset, EFatSeek eSeekMode, uint
 EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode)
 {
 	uint32		uiBytePositionInFile;
-	uint32		uiSectorIndexInFile;
 	uint32		uiClusterIndex;
+	uint32		uiStartIndex;
+	uint32		uiPositionIndex;
+	fatEntry	uiStartCluster;
+	fatEntry	uiNext;
+	bool		bEndOfFullCluster;
 	EFatCode	eResult;
 
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -404,24 +408,47 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode)
 		return FAT_SEEK_FAILED;
 	}
 	
-	uiSectorIndexInFile = mpcVolume->BytesToSectors(uiBytePositionInFile);
-	uiClusterIndex = mpcVolume->SectorsToClusters(uiSectorIndexInFile);
+	uiClusterIndex = mpcVolume->BytesToClusters(uiBytePositionInFile);
 
-	//The end of a file that fills its last cluster has no cluster after it (until a write adds one): stay on the last.
-	if ((uiBytePositionInFile == msFile.uiFileSize) && (uiClusterIndex > 0) && (mpcVolume->OffsetInCluster(uiBytePositionInFile) == 0) && !HasCluster(uiClusterIndex))
+	//The end of a file that fills its last cluster: its cluster is the last one, unless a write has added one after it.
+	//The last is found first, then the one after it is looked for.
+	bEndOfFullCluster = (uiBytePositionInFile == msFile.uiFileSize) && (uiClusterIndex > 0) && (mpcVolume->OffsetInCluster(uiBytePositionInFile) == 0);
+	if (bEndOfFullCluster)
 	{
 		uiClusterIndex--;
 	}
 
-	msFile.uiFilePositionCluster = CalculateFirstCluster();
-
-	if (uiClusterIndex > 0)
+	//A FAT chain only goes forward: walk on from the position's cluster if it isn't past the new one, else from the first.
+	//The position's cluster is at the position's index, except at the end of a file that fills its last cluster (the last
+	//or the one after it, which isn't known).
+	uiStartCluster = CalculateFirstCluster();
+	uiStartIndex = 0;
+	if ((msFile.uiFilePositionCluster != 0) && !((msFile.uiFilePosition == msFile.uiFileSize) && (msFile.uiFilePosition > 0) && (mpcVolume->OffsetInCluster(msFile.uiFilePosition) == 0)))
 	{
-		eResult = mpcVolume->SeekByClusterCount(msFile.uiFilePositionCluster, uiClusterIndex, &msFile.uiFilePositionCluster);
+		uiPositionIndex = mpcVolume->BytesToClusters(msFile.uiFilePosition);
+		if (uiPositionIndex <= uiClusterIndex)
+		{
+			uiStartCluster = msFile.uiFilePositionCluster;
+			uiStartIndex = uiPositionIndex;
+		}
+	}
+
+	msFile.uiFilePositionCluster = uiStartCluster;
+	if (uiClusterIndex > uiStartIndex)
+	{
+		eResult = mpcVolume->SeekByClusterCount(msFile.uiFilePositionCluster, (uint16)(uiClusterIndex - uiStartIndex), &msFile.uiFilePositionCluster);
 		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = false;
 			return FAT_CORRUPTED_FILE;
+		}
+	}
+
+	if (bEndOfFullCluster && (msFile.uiFilePositionCluster != 0) && !mpcVolume->FatIsEOFEntry(msFile.uiFilePositionCluster))
+	{
+		if ((mpcVolume->GetNextClusterEntry(msFile.uiFilePositionCluster, &uiNext) == FAT_SUCCESS) && (uiNext != 0) && !mpcVolume->FatIsEOFEntry(uiNext))
+		{
+			msFile.uiFilePositionCluster = uiNext;
 		}
 	}
 
@@ -680,30 +707,6 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead
 			return eResult;
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the file's chain has a cluster at uiClusterIndex (counting from 0).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CFatFile::HasCluster(uint32 uiClusterIndex)
-{
-	uint32		uiCluster;
-	fatEntry	uiNext;
-	uint32		i;
-
-	uiCluster = CalculateFirstCluster();
-	for (i = 0; i < uiClusterIndex; i++)
-	{
-		if ((uiCluster == 0) || mpcVolume->FatIsEOFEntry(uiCluster) || (mpcVolume->GetNextClusterEntry(uiCluster, &uiNext) != FAT_SUCCESS))
-		{
-			return false;
-		}
-		uiCluster = uiNext;
-	}
-	return (uiCluster != 0) && !mpcVolume->FatIsEOFEntry(uiCluster);
 }
 
 
