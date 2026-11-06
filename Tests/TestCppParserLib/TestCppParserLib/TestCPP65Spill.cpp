@@ -18,6 +18,8 @@
 static bool TestCPP65SpillBuild(CCPP65Builder* pcBuilder, ECPPTarget eTarget, bool bSpill, const char* szListings)
 {
 	static const char*	aszUnits[] = { "BaseLib/Chars.cpp", "BaseLib/TimSort.cpp", "BaseLib/MD5.cpp", "BaseLib/RedBlackTree.cpp", "Libc65/string.cpp", NULL };
+	CChars				szLibc65;
+	CFileUtil			cFileUtil;
 
 	pcBuilder->Init();
 	pcBuilder->SetTarget(eTarget);
@@ -29,6 +31,14 @@ static bool TestCPP65SpillBuild(CCPP65Builder* pcBuilder, ECPPTarget eTarget, bo
 	pcBuilder->SetListingDirectory(szListings);
 	pcBuilder->SetRemoveUnused(false);
 	pcBuilder->AddStartUp();
+	if (eTarget == CPPT_W65C816)
+	{
+		szLibc65.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
+		cFileUtil.FullPath(&szLibc65);
+		pcBuilder->SetMathTables(false);  //The runtime without the maths tables: they don't fit with all the code kept.
+		pcBuilder->AddRuntime816(szLibc65.Text());
+		szLibc65.Kill();
+	}
 	pcBuilder->AddSource("Main.cpp", "int main() { return 0; }\n");
 	TestCPP65AddUnits(pcBuilder, aszUnits, false);
 	return pcBuilder->Link();
