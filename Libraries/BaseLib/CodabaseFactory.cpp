@@ -24,6 +24,28 @@
 //////////////////////////////////////////////////////////////////////////
 CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough eWriteThrough, EDurableSync eSync)
 {
+	return Create(szDirectory, eWriteThrough, eSync, CODABASE_DATA_CACHE_SIZE, CODABASE_INDEX_CACHE_SIZE, CODABASE_NAMES_CACHE_SIZE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Codabase that holds little: small caches, so several fit in a small
+// machine's memory (a 65C64 Codabase's caches are 25MB).
+//
+//////////////////////////////////////////////////////////////////////////
+CCodabase* CCodabaseFactory::CreateSmall(const char* szDirectory, EIndexWriteThrough eWriteThrough, EDurableSync eSync)
+{
+	return Create(szDirectory, eWriteThrough, eSync, CODABASE_SMALL_DATA_CACHE_SIZE, CODABASE_SMALL_INDEX_CACHE_SIZE, CODABASE_SMALL_NAMES_CACHE_SIZE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough eWriteThrough, EDurableSync eSync, lsize uiDataCacheSize, lsize uiIndexCacheSize, lsize uiNamesCacheSize)
+{
 	CCodabase*								pcDatabase;
 	CLifeInit<CIndexedDataConfig>			cIndexConfig;
 	CLifeInit<CNamedIndexesConfig>			cNamedConfig;
@@ -32,11 +54,10 @@ CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough 
 
 	cIndexEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);
 
-	//TODO: Shouldn't these parameter be configurable?
-	cIndexConfig = CValueIndexedDataConfig::Create("Index", CODABASE_DATA_CACHE_SIZE, CODABASE_INDEX_CACHE_SIZE, eWriteThrough, cIndexEvictionStrategy, NULL, NULL);
+	cIndexConfig = CValueIndexedDataConfig::Create("Index", uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cIndexEvictionStrategy, NULL, NULL);
 
 	cNamedEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);
-	cNamedConfig = CValueNamedIndexesConfig::Create("Names", CODABASE_NAMES_CACHE_SIZE, cNamedEvictionStrategy, eWriteThrough, NULL);
+	cNamedConfig = CValueNamedIndexesConfig::Create("Names", uiNamesCacheSize, cNamedEvictionStrategy, eWriteThrough, NULL);
 
 	pcDatabase = NewMalloc<CCodabase>();
 	pcDatabase->Init(szDirectory, eSync, cIndexConfig, cNamedConfig);
