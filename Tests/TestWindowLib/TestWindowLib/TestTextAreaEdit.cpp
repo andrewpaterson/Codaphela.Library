@@ -1479,6 +1479,38 @@ void TestTextAreaEditUndo(void)
 		pTestWindow->InputCommand(CIC_Redo, true);
 		AssertString("abc def g", pTextArea->GetText());
 
+		//A pause between characters starts another edit.
+		pTextArea->SetTypingPause(0);
+		pTextArea->DocumentEnd();
+		pTextArea->Printable('h', true);
+		pTextArea->Printable('i', true);
+		AssertString("abc def ghi", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def gh", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def g", pTextArea->GetText());
+		pTextArea->SetTypingPause(TEXT_AREA_TYPING_PAUSE);
+
+		//The selection a paste replaced comes back selected; redone, the caret is after the paste.
+		pTextArea->Select(4, 7);
+		pTextArea->Paste((char*)"XYZW");
+		AssertString("abc XYZW g", pTextArea->GetText());
+		AssertTrue(pTextArea->Undo());
+		AssertString("abc def g", pTextArea->GetText());
+		AssertTextAreaSelection(4, 7, pTextArea);
+		AssertTrue(pTextArea->Redo());
+		AssertString("abc XYZW g", pTextArea->GetText());
+		AssertTextAreaNoSelection(pTextArea);
+		AssertSize(8, pTextArea->GetCaretPosition());
+
+		//Back to a state by its id, past several edits, and forward again.
+		uiTyped = pTextArea->GetUndoId();
+		AssertTrue(pTextArea->UndoTo(uiLoaded));
+		AssertString("abc", pTextArea->GetText());
+		AssertTrue(pTextArea->UndoTo(uiTyped));
+		AssertString("abc XYZW g", pTextArea->GetText());
+		AssertFalse(pTextArea->UndoTo(uiTyped));
+
 		//Setting the text starts the history again.
 		pTextArea->SetText("new");
 		AssertFalse(pTextArea->CanUndo());
@@ -1490,6 +1522,93 @@ void TestTextAreaEditUndo(void)
 		AssertFalse(pTextArea->Undo());
 		AssertSize(0, pTextArea->GetUndoId());
 
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Records a text area's undo event.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestUndoListener
+{
+public:
+	CArrayInt	maiChanges;
+	CArrayInt	maiBefore;
+	CArrayInt	maiAfter;
+
+	void Init(void) { maiChanges.Init(); maiBefore.Init(); maiAfter.Init(); }
+	void Kill(void) { maiAfter.Kill(); maiBefore.Kill(); maiChanges.Kill(); }
+	void UndoChanged(CTextArea* pcTextArea, STextAreaUndo* psUndo)
+	{
+		maiChanges.Add((int)psUndo->eChange);
+		maiBefore.Add((int)psUndo->uiIdBefore);
+		maiAfter.Add((int)psUndo->uiIdAfter);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The undo event says each edit kept, merged into the one before, undone
+// and redone, with the states it went between.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditUndoEvent(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		CTestUndoListener			cListener;
+		size						uiLoaded;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, ReadLabelFont(), "abc");
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+		cListener.Init();
+		pTextArea->GetUndoEvent()->Add(&cListener, &CTestUndoListener::UndoChanged);
+		uiLoaded = pTextArea->GetUndoId();
+
+		pTextArea->DocumentEnd();
+		pTextArea->Printable('d', true);
+		pTextArea->Printable('e', true);
+		pTextArea->Undo();
+		pTextArea->Redo();
+		AssertInt(4, (int)cListener.maiChanges.NumElements());
+		AssertInt(TAU_Kept, cListener.maiChanges.GetValue(0));
+		AssertInt((int)uiLoaded, cListener.maiBefore.GetValue(0));
+		AssertInt(TAU_Merged, cListener.maiChanges.GetValue(1));
+		AssertInt(cListener.maiAfter.GetValue(0), cListener.maiBefore.GetValue(1));
+		AssertInt(TAU_Undone, cListener.maiChanges.GetValue(2));
+		AssertInt(cListener.maiAfter.GetValue(1), cListener.maiBefore.GetValue(2));
+		AssertInt((int)uiLoaded, cListener.maiAfter.GetValue(2));
+		AssertInt(TAU_Redone, cListener.maiChanges.GetValue(3));
+		AssertInt(cListener.maiAfter.GetValue(1), cListener.maiAfter.GetValue(3));
+
+		pTextArea->GetUndoEvent()->Remove(&cListener);
+		cListener.Kill();
 		pTextArea = NULL;
 		pFill = NULL;
 		ORoot()->Remove(pTestWindow);
@@ -1517,6 +1636,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditWrapped();
 	TestTextAreaEditModification();
 	TestTextAreaEditUndo();
+	TestTextAreaEditUndoEvent();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();
 	TestTextAreaEditTiles();

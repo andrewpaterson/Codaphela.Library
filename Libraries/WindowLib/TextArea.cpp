@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayElementNotFound.h"
+#include "BaseLib/Timer.h"
 #include "BaseLib/UTF8.h"
 #include "StandardLib/ClassDefines.h"
 #include "MapsCanvasDraw.h"
@@ -122,6 +123,12 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mcLastTyped = '\0';
 	muiTypedAt = 0;
 	muiTypedEnd = 0;
+	miTypedTime = 0;
+	miTypingPause = TEXT_AREA_TYPING_PAUSE;
+	mbEditStarted = false;
+	muiEditCaret = 0;
+	muiEditAnchor = MAX_SIZE;
+	mcUndoEvent.Init();
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -187,7 +194,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	AddInputAction(CIC_Delete, this, &CTextArea::Delete);
 	AddInputAction(CIC_Backspace, this, &CTextArea::Backspace);
 	AddInputAction(CIC_Undo, this, &CTextArea::UndoAction);
-	AddInputAction(CIC_StepUndo, this, &CTextArea::UndoAction);
+	AddInputAction(CIC_StepUndo, this, &CTextArea::RedoAction);  //Control Shift Z, IntelliJ's redo.
 	AddInputAction(CIC_Redo, this, &CTextArea::RedoAction);
 	AddInputAction(CIC_StepRedo, this, &CTextArea::RedoAction);
 	AddInputAction(CIC_Duplicate, this, &CTextArea::Duplicate);
@@ -221,6 +228,7 @@ void CTextArea::Free(void)
 	mauiStopStarts.Kill();
 	masBackgrounds.Kill();
 	masSpans.Kill();
+	mcUndoEvent.Kill();
 	mcUndo.Kill();
 	mszText.Kill();
 	CCanvas::Free();
@@ -250,6 +258,12 @@ void CTextArea::Class(void)
 	U_Char(mcLastTyped);
 	U_Size(muiTypedAt);
 	U_Size(muiTypedEnd);
+	U_Int64(miTypedTime);
+	U_Int32(miTypingPause);
+	U_Bool(mbEditStarted);
+	U_Size(muiEditCaret);
+	U_Size(muiEditAnchor);
+	U_Data(CTextAreaUndoEvent, mcUndoEvent);
 	M_Pointer(mpText);
 	U_Bool(mbTextStale);
 	M_Pointer(mpLayout);
@@ -1739,6 +1753,7 @@ void CTextArea::Printable(char c, bool bInsert)
 	char	sz[2];
 	char*	szText;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1793,6 +1808,7 @@ void CTextArea::Tab(bool bInsert)
 	size	uiColumns;
 	CChars	szSpaces;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1826,6 +1842,7 @@ void CTextArea::BackTab(void)
 	size	uiStart;
 	size	uiEnd;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1844,6 +1861,7 @@ void CTextArea::BackTab(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Enter(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1863,6 +1881,7 @@ void CTextArea::HomeEnter(void)
 {
 	size	uiLineStart;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1883,6 +1902,7 @@ void CTextArea::HomeEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::EndEnter(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1902,6 +1922,7 @@ void CTextArea::EndEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Delete(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1922,6 +1943,7 @@ void CTextArea::Delete(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Backspace(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -1960,6 +1982,7 @@ void CTextArea::Copy(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Cut(CChars* pszDest)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		Copy(pszDest);
@@ -1990,6 +2013,7 @@ void CTextArea::Paste(char* szSource)
 {
 	CChars	szText;
 
+	BeginEdit();
 	if (!mbEditable || (szSource == NULL) || (szSource[0] == '\0'))
 	{
 		return;
@@ -2017,6 +2041,7 @@ void CTextArea::CutLine(CChars* pszDest)
 	size	uiEnd;
 	size	uiColumn;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -2050,6 +2075,7 @@ void CTextArea::Duplicate(void)
 	size	uiEnd;
 	CChars	szCopy;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -2081,6 +2107,7 @@ void CTextArea::Duplicate(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::DeleteWordRemainingRight(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -2102,6 +2129,7 @@ void CTextArea::DeleteWordRemainingRight(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::DeleteWordRemainingLeft(void)
 {
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -2129,6 +2157,7 @@ void CTextArea::DeleteLine(void)
 	size	uiColumn;
 	bool	bSelected;
 
+	BeginEdit();
 	if (!mbEditable)
 	{
 		return;
@@ -3472,6 +3501,7 @@ void CTextArea::InsertText(size uiPosition, const char* szText)
 	{
 		return;
 	}
+	StartEdit();
 
 	LinesInserted(uiPosition, szText, uiLength);
 	mszText.Insert(uiPosition, szText);
@@ -3517,6 +3547,7 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 	{
 		return;
 	}
+	StartEdit();
 
 	uiLength = uiEnd - uiStart;
 	LinesRemoved(uiStart, uiEnd);
@@ -3716,43 +3747,117 @@ void CTextArea::OutdentLines(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text is about to change: unless the edit action noted them as it
+// began (BeginEdit), the caret and selection are noted as they are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::StartEdit(void)
+{
+	if (!mbEditStarted)
+	{
+		BeginEdit();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An edit action begins (typing, deleting, pasting ...): the caret and
+// selection are noted as they are, before it moves them or changes the
+// text, for undo to put back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BeginEdit(void)
+{
+	if (!mbUndoing)
+	{
+		mbEditStarted = true;
+		muiEditCaret = muiCaret;
+		muiEditAnchor = muiAnchor;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An edit of an editable text area is kept for undo: its text pushed onto
-// the undo stack.  Typing goes on the snapshot of the typing before it,
-// as one edit, while each character is typed where the last left the
-// caret, up to the space after a word or a new line.  An undo or redo
-// isn't an edit.
+// the undo stack with the caret and selection from before it and after
+// it.  Typing goes on the snapshot of the typing before it, as one edit,
+// while each character is typed where the last left the caret, without a
+// pause (SetTypingPause), up to the space after a word or a new line.  An
+// undo or redo isn't an edit.  The undo event says what was kept.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::KeepEdit(void)
 {
 	bool	bMerge;
+	int64	iNow;
+	size	auiMarks[UNDO_STACK_MARKS];
+	size	uiIdBefore;
 
 	if (!mbEditable || mbUndoing)
 	{
 		mbTyping = false;
+		mbEditStarted = false;
 		return;
 	}
+	if (!mbEditStarted)
+	{
+		muiEditCaret = muiCaret;
+		muiEditAnchor = muiAnchor;
+	}
+	auiMarks[0] = muiEditCaret;
+	auiMarks[1] = muiEditAnchor;
+	auiMarks[2] = muiCaret;
+	auiMarks[3] = muiAnchor;
+	iNow = GetDebugTickCount();
+	uiIdBefore = mcUndo.GetCurrentId();
 	if (mcUndo.NumSnapshots() == 0)
 	{
 		//Its text before the first edit isn't known any more; the history starts here.
-		mcUndo.Push(mszText.Text(), false);
+		mcUndo.Push(mszText.Text(), false, auiMarks);
 	}
 	else
 	{
-		bMerge = mbTyping && mbLastTyping && (muiTypedAt == muiTypedEnd) && (mcTyped != '\n') && (mcTyped != '\r') && !((mcTyped == ' ') && (mcLastTyped != ' '));
+		bMerge = mbTyping && mbLastTyping && (muiTypedAt == muiTypedEnd) && ((iNow - miTypedTime) < miTypingPause) && (mcTyped != '\n') && (mcTyped != '\r') && !((mcTyped == ' ') && (mcLastTyped != ' '));
 		if (bMerge)
 		{
-			mcUndo.ReplaceCurrent(mszText.Text());
+			//The merged edit's caret before is the first typing's.
+			auiMarks[0] = mcUndo.GetMarks(mcUndo.GetCurrent())[0];
+			auiMarks[1] = mcUndo.GetMarks(mcUndo.GetCurrent())[1];
+			mcUndo.ReplaceCurrent(mszText.Text(), auiMarks);
+			UndoChanged(TAU_Merged, uiIdBefore, mcUndo.GetCurrentId());
 		}
 		else
 		{
-			mcUndo.Push(mszText.Text(), false);
+			mcUndo.Push(mszText.Text(), false, auiMarks);
+			UndoChanged(TAU_Kept, uiIdBefore, mcUndo.GetCurrentId());
 		}
 	}
 	mbLastTyping = mbTyping;
 	mcLastTyped = mcTyped;
 	muiTypedEnd = muiCaret;
+	if (mbTyping)
+	{
+		miTypedTime = iNow;
+	}
 	mbTyping = false;
+	mbEditStarted = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAfter)
+{
+	STextAreaUndo	sUndo;
+
+	sUndo.eChange = eChange;
+	sUndo.uiIdBefore = uiIdBefore;
+	sUndo.uiIdAfter = uiIdAfter;
+	mcUndoEvent.Call(this, &sUndo);
 }
 
 
@@ -3782,6 +3887,9 @@ bool CTextArea::Redo(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text becomes the state of snapshot uiIndex, back (undo) or forward
+// (redo) from the current one.  The caret and selection are as they were
+// before the first edit undone, or after the last redone.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::LoadUndo(size uiIndex)
@@ -3792,12 +3900,23 @@ bool CTextArea::LoadUndo(size uiIndex)
 	size	uiLength;
 	size	uiPrefix;
 	size	uiSuffix;
+	size	uiCurrent;
+	size	uiIdBefore;
+	size*	pauiMarks;
+	bool	bUndo;
 	CChars	szMiddle;
 
-	if (!mbEditable || (uiIndex == ARRAY_ELEMENT_NOT_FOUND))
+	if (!mbEditable || (uiIndex == ARRAY_ELEMENT_NOT_FOUND) || (uiIndex >= mcUndo.NumSnapshots()))
 	{
 		return false;
 	}
+	uiCurrent = mcUndo.GetCurrent();
+	if (uiIndex == uiCurrent)
+	{
+		return false;
+	}
+	bUndo = uiIndex < uiCurrent;
+	uiIdBefore = mcUndo.GetCurrentId();
 
 	szTarget = mcUndo.Get(uiIndex);
 	szText = mszText.Text();
@@ -3828,16 +3947,55 @@ bool CTextArea::LoadUndo(size uiIndex)
 	mbUndoing = true;
 	RemoveText(uiPrefix, uiLength - uiSuffix);
 	InsertText(uiPrefix, szMiddle.Text());
-	muiCaret = uiPrefix + szMiddle.Length();
-	muiAnchor = MAX_SIZE;
+
+	//Undone, as before the first edit undone; redone, as after the last edit redone.
+	pauiMarks = bUndo ? mcUndo.GetMarks(uiIndex + 1) : mcUndo.GetMarks(uiIndex);
+	muiCaret = bUndo ? pauiMarks[0] : pauiMarks[2];
+	muiAnchor = bUndo ? pauiMarks[1] : pauiMarks[3];
+	if (muiCaret > mszText.Length())
+	{
+		muiCaret = mszText.Length();
+	}
+	if ((muiAnchor != MAX_SIZE) && ((muiAnchor > mszText.Length()) || (muiAnchor == muiCaret)))
+	{
+		muiAnchor = MAX_SIZE;
+	}
 	mcUndo.MoveTo(uiIndex);
 	TextChanged();
 	mbUndoing = false;
 	mbLastTyping = false;
 	muiTypedEnd = muiCaret;
 	szMiddle.Kill();
+	UndoChanged(bUndo ? TAU_Undone : TAU_Redone, uiIdBefore, mcUndo.GetCurrentId());
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text goes back, or forward, to the state with id uiId (undoing or
+// redoing every edit between).  False if it isn't in the history (any
+// more), or the text is in it already.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::UndoTo(size uiId)
+{
+	return LoadUndo(mcUndo.FindId(uiId));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Typing that stops for iMilliseconds starts a new edit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetTypingPause(int32 iMilliseconds)
+{
+	miTypingPause = iMilliseconds;
+}
+
+
+CTextAreaUndoEvent* CTextArea::GetUndoEvent(void) { return &mcUndoEvent; }
 
 
 //////////////////////////////////////////////////////////////////////////

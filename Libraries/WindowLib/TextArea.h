@@ -37,6 +37,33 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/TileTextWriter.h"
 #include "Canvas.h"
 #include "ComponentInputEvent.h"
+#include "ComponentEvent.h"
+
+
+//How long typing can stop for and the next character still be part of the same edit (see CTextArea::KeepEdit).
+#define TEXT_AREA_TYPING_PAUSE	1000
+
+
+//What happened to a text area's undo history (CTextArea::GetUndoEvent).
+enum ETextAreaUndo
+{
+	TAU_Kept,	//An edit was kept: the text went from state uiIdBefore to the new state uiIdAfter.
+	TAU_Merged,	//An edit was kept as part of the one before (typing a word): state uiIdBefore became uiIdAfter.
+	TAU_Undone,	//The text went back from state uiIdBefore to uiIdAfter.
+	TAU_Redone,	//The text went forward from state uiIdBefore to uiIdAfter.
+};
+
+
+struct STextAreaUndo
+{
+	ETextAreaUndo	eChange;
+	size			uiIdBefore;
+	size			uiIdAfter;
+};
+
+
+class CTextArea;
+typedef CComponentValueEvent<CTextArea, STextAreaUndo*>	CTextAreaUndoEvent;
 
 
 //A range of the text in a style.  uiStart and uiLength are in bytes of the UTF8 text.
@@ -186,6 +213,12 @@ protected:
 	char				mcLastTyped;
 	size				muiTypedAt;  //Where the caret was when it was typed.
 	size				muiTypedEnd;  //Where the caret was after the last edit kept.
+	int64				miTypedTime;  //When the last character was typed (GetDebugTickCount).
+	int32				miTypingPause;  //Typing that stops this long (milliseconds) starts a new edit.
+	bool				mbEditStarted;  //The edit being made has changed the text: muiEditCaret and muiEditAnchor are from before it.
+	size				muiEditCaret;
+	size				muiEditAnchor;
+	CTextAreaUndoEvent	mcUndoEvent;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
@@ -207,6 +240,9 @@ public:
 	bool				CanRedo(void);
 	size				GetUndoId(void);
 	void				ClearUndo(void);
+	bool				UndoTo(size uiId);
+	void				SetTypingPause(int32 iMilliseconds);
+	CTextAreaUndoEvent*	GetUndoEvent(void);
 	void				SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>			GetFont(void);
 	int32				GetTabPixels(void);
@@ -443,6 +479,9 @@ protected:
 	void				OutdentLines(size uiStart, size uiEnd);
 	void				TextChanged(void);
 	void				KeepEdit(void);
+	void				StartEdit(void);
+	void				BeginEdit(void);
+	void				UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAfter);
 	bool				LoadUndo(size uiIndex);
 	void				ToClipboard(void (CTextArea::*fTake)(CChars* pszDest));
 
