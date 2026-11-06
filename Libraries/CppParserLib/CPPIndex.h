@@ -54,6 +54,7 @@ struct SCPPIndexLocation
 	int32	iLength;
 	uint8	uiRole;
 	uint8	uiFlags;
+	int32	iContainer;	//The symbol of the class or function definition the name is in, -1 if it is in neither.
 };
 
 
@@ -66,6 +67,7 @@ struct SCPPIndexToken
 	CCPPSyntaxDeclarator*	pcDeclarator;	//The function declarator the token names.
 	int32					iArguments;		//The callee of a call: its number of arguments plus one.
 	bool					bDefinition;	//It names what a definition defines.
+	CCPPSyntax*				pcContainer;	//The innermost class or function definition the token is in, NULL if none.
 };
 
 
@@ -82,6 +84,7 @@ struct SCPPIndexEntry
 	int32			iLength;
 	uint8			uiRole;
 	uint8			uiFlags;
+	int32			iContainer;	//Index of the key of the class or function it is in, -1 if neither.
 };
 
 
@@ -99,11 +102,14 @@ public:
 	CArrayInt			maiKinds;		//Each key's ECPPSymbolKind.
 	CArrayChars			maszFiles;
 	CMapStringInt		mcFiles;		//File name to index in maszFiles.
+	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
 
 	void	Init(void);
 	void	Kill(void);
 
 	void	Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedToken* psSource, ECPPIndexRole eRole, uint8 uiFlags);
+	void	SetContainer(const char* szKey, ECPPSymbolKind eKind);
+	int		AddKey(const char* szKey, ECPPSymbolKind eKind);
 };
 
 
@@ -161,6 +167,8 @@ protected:
 	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
+	static void			FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens);
+	static bool			GetContainerKey(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcContainer, CChars* pszDest, ECPPSymbolKind* peKind);
 	int					GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind);
 	uint32				GetFileIndex(const char* szFileName);
 	bool				AddLocation(int iSymbol, SCPPIndexLocation* psLocation);

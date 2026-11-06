@@ -170,6 +170,7 @@ void CCPPIndexUnit::Init(void)
 	maiKinds.Init();
 	maszFiles.Init();
 	mcFiles.Init();
+	miContainer = -1;
 }
 
 
@@ -200,14 +201,7 @@ void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedTo
 	int				iFile;
 	char*			szFileName;
 
-	iKey = mcKeys.Get(szKey, -1);
-	if (iKey < 0)
-	{
-		iKey = (int)maszKeys.NumElements();
-		maszKeys.Add(szKey);
-		maiKinds.Add((int)eKind);
-		mcKeys.Put(szKey, iKey);
-	}
+	iKey = AddKey(szKey, eKind);
 	szFileName = psSource->pcFile->FullName();
 	iFile = mcFiles.Get(szFileName, -1);
 	if (iFile < 0)
@@ -225,6 +219,40 @@ void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedTo
 	psEntry->iLength = (int32)psSource->uiLength;
 	psEntry->uiRole = (uint8)eRole;
 	psEntry->uiFlags = uiFlags;
+	psEntry->iContainer = miContainer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of szKey in the unit's keys, added if it isn't there.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPIndexUnit::AddKey(const char* szKey, ECPPSymbolKind eKind)
+{
+	int	iKey;
+
+	iKey = mcKeys.Get(szKey, -1);
+	if (iKey < 0)
+	{
+		iKey = (int)maszKeys.NumElements();
+		maszKeys.Add(szKey);
+		maiKinds.Add((int)eKind);
+		mcKeys.Put(szKey, iKey);
+	}
+	return iKey;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The names added next are in the class or function with szKey, NULL for
+// neither: where Find Usages groups them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndexUnit::SetContainer(const char* szKey, ECPPSymbolKind eKind)
+{
+	miContainer = szKey ? AddKey(szKey, eKind) : -1;
 }
 
 
@@ -269,6 +297,9 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	SCPPResolvedName*		psResolved;
 	SPreprocessedToken		sMacroUse;
 	uint8					uiFlags;
+	CCPPSyntax*				pcContainer;
+	CChars					szContainer;
+	ECPPSymbolKind			eContainerKind;
 
 	uiNumTokens = pcTokeniser->NumTokens();
 	asTokens.Init();
@@ -276,9 +307,13 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	if (pcTree->GetRoot())
 	{
 		FindNames(pcTree->GetRoot(), &asTokens, false);
+		FindContainers(pcTree->GetRoot(), &asTokens);
 	}
 
 	cKeys.Init(pcTokeniser, pcTree);
+	pcContainer = NULL;
+	szContainer.Init();
+	pcDest->SetContainer(NULL, CPPSK_Class);
 	for (i = 0; i < uiNumTokens; i++)
 	{
 		pcToken = pcTokeniser->Get(i);
@@ -307,6 +342,22 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 			psSource = &sMacroUse;
 			uiFlags = CPPIF_MACRO;
 		}
+
+		//Each name is in its innermost class or function, the same as the name before it most often.
+		if (asTokens.Get(i)->pcContainer != pcContainer)
+		{
+			pcContainer = asTokens.Get(i)->pcContainer;
+			szContainer.Clear();
+			if (pcContainer && GetContainerKey(&cKeys, pcTree, pcContainer, &szContainer, &eContainerKind))
+			{
+				pcDest->SetContainer(szContainer.Text(), eContainerKind);
+			}
+			else
+			{
+				pcDest->SetContainer(NULL, CPPSK_Class);
+			}
+		}
+
 		if (psResolved)
 		{
 			GatherResolved(&cKeys, psResolved, psSource, pcDest);
@@ -316,6 +367,8 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 			GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, uiFlags, pcDest);
 		}
 	}
+	pcDest->SetContainer(NULL, CPPSK_Class);
+	szContainer.Kill();
 	cKeys.Kill();
 	asTokens.Kill();
 }
@@ -356,10 +409,88 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 		sLocation.iLength = psEntry->iLength;
 		sLocation.uiRole = psEntry->uiRole;
 		sLocation.uiFlags = psEntry->uiFlags;
+		sLocation.iContainer = (psEntry->iContainer >= 0) ? aiSymbols.GetValue((size)psEntry->iContainer) : -1;
 		AddLocation(aiSymbols.GetValue(psEntry->uiKey), &sLocation);
 	}
 	aiFiles.Kill();
 	aiSymbols.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each token's innermost class or function definition: its node is set
+// on every token it spans, then its children's on theirs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
+{
+	int32			iToken;
+	SCPPIndexToken*	psToken;
+	size			i;
+	size			uiChildren;
+	CCPPSyntax*		pcChild;
+
+	if ((pcNode->GetKind() == CPPS_FunctionDefinition) || ((pcNode->GetKind() == CPPS_ClassSpecifier) && ((CCPPSyntaxClassSpecifier*)pcNode)->mpcName))
+	{
+		for (iToken = pcNode->miFirstToken; (iToken >= 0) && (iToken <= pcNode->miLastToken); iToken++)
+		{
+			psToken = pasTokens->SafeGet((size)iToken);
+			if (psToken)
+			{
+				psToken->pcContainer = pcNode;
+			}
+		}
+	}
+	uiChildren = pcNode->NumChildren();
+	for (i = 0; i < uiChildren; i++)
+	{
+		pcChild = pcNode->GetChild(i);
+		if (pcChild)
+		{
+			FindContainers(pcChild, pasTokens);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key and kind of the class or function pcContainer defines.  False
+// if its name isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPIndex::GetContainerKey(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntax* pcContainer, CChars* pszDest, ECPPSymbolKind* peKind)
+{
+	CCPPSyntaxName*			pcName;
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	SCPPTokenSymbol*		psSymbol;
+
+	pcDeclarator = NULL;
+	if (pcContainer->GetKind() == CPPS_FunctionDefinition)
+	{
+		pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcContainer)->mpcDeclarator;
+		pcName = pcDeclarator ? pcDeclarator->GetName() : NULL;
+	}
+	else
+	{
+		pcName = ((CCPPSyntaxClassSpecifier*)pcContainer)->mpcName;
+	}
+	if ((pcName == NULL) || (pcName->GetLast() == NULL) || (pcName->GetLast()->miName < 0))
+	{
+		return false;
+	}
+	psSymbol = pcTree->GetTokenSymbol(pcName->GetLast()->miName);
+	if ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL))
+	{
+		return false;
+	}
+	*peKind = psSymbol->pcSymbol->meKind;
+	if (pcDeclarator && pcKeys->IsFunction(psSymbol->pcSymbol))
+	{
+		return pcKeys->GetFunctionKey(psSymbol->pcSymbol, pcDeclarator, pszDest);
+	}
+	return pcKeys->GetKey(psSymbol->pcSymbol, pszDest);
 }
 
 

@@ -440,6 +440,64 @@ gcBlock\n\
 	cIndex.Kill();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Each place records the class or function definition it is in, where
+// Find Usages groups it: a member declared in its class, used in a member
+// function and in a free function.
+//
+//////////////////////////////////////////////////////////////////////////
+static char* GetCppIndexContainer(CCPPIndex* pcIndex, SCPPIndexLocation* psLocation)
+{
+	if (psLocation->iContainer < 0)
+	{
+		return (char*)"";
+	}
+	return pcIndex->GetSymbol((size)psLocation->iContainer)->mszKey.Text();
+}
+
+
+void TestCppIndexContainers(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcSymbol;
+
+	cIndex.Init();
+	IndexText(&cIndex, "C.cpp", "\
+class CFoo\n\
+{\n\
+public:\n\
+	int		miCount;\n\
+	void	Init(void);\n\
+};\n\
+void CFoo::Init(void)\n\
+{\n\
+	miCount = 0;\n\
+}\n\
+int Use(CFoo* pc)\n\
+{\n\
+	return pc->miCount;\n\
+}\n\
+int giTotal;\n", true);
+
+	pcSymbol = cIndex.FindSymbol("CFoo::miCount");
+	AssertNotNull(pcSymbol);
+	if (pcSymbol)
+	{
+		AssertSize(3, pcSymbol->NumLocations());
+		AssertString("CFoo", GetCppIndexContainer(&cIndex, pcSymbol->GetLocation(0)));
+		AssertString("CFoo::Init()", GetCppIndexContainer(&cIndex, pcSymbol->GetLocation(1)));
+		AssertString("Use(CFoo*)", GetCppIndexContainer(&cIndex, pcSymbol->GetLocation(2)));
+	}
+	pcSymbol = cIndex.FindSymbol("giTotal");
+	AssertNotNull(pcSymbol);
+	if (pcSymbol)
+	{
+		AssertString("", GetCppIndexContainer(&cIndex, pcSymbol->GetLocation(0)));
+	}
+	cIndex.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -454,6 +512,7 @@ void TestCppIndex(void)
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassHost();
 	TestCppIndexMacroNames();
+	TestCppIndexContainers();
 
 	TestStatistics();
 }
