@@ -508,6 +508,7 @@
     <ClInclude Include="PointerRemapper.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="TypeConverter.h" />
+    <ClInclude Include="UndoStack.h" />
     <ClInclude Include="TypeNames.h" />
     <ClInclude Include="TypeParser.h" />
     <ClInclude Include="Unicode.h" />
@@ -909,6 +910,7 @@
     <ClCompile Include="ScratchPad.cpp" />
     <ClCompile Include="PointerFunctions.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
+    <ClCompile Include="UndoStack.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />
     <ClCompile Include="MemCompare.cpp" />
