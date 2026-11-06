@@ -272,6 +272,61 @@ void TestPreprocessorHeaderCacheReplayed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A header whose text changes is forgotten with those that depend on it
+// (NestedIf.h included Config.h); one that doesn't (Guard.h) is kept and
+// replayed.  The unit preprocessed again sees the new text, as it does
+// with no cache.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorHeaderCacheForget(void)
+{
+	static const char*			aszDirectories[] = { "", NULL };
+	static const char*			aszNames[] = { "Unit1.cpp", NULL };
+	static const char*			aszUnits[] = { "#include \"Guard.h\"\n#include \"NestedIf.h\"\n", NULL };
+	STestPPHeaderCacheHeaders	sHeaders;
+	CPPHeaderCache				cCache;
+	CHeaderFile*				pcConfig;
+	CArrayChars					aszDumps;
+	CArrayChars					aszTexts;
+	CArrayChars					aszDumpsWithout;
+	CArrayChars					aszTextsWithout;
+
+	TestPPHeaderCacheBegin(&sHeaders, aszDirectories);
+	cCache.Init();
+	TestPPHeaderCacheUnits(&sHeaders, aszNames, aszUnits, &cCache, &aszDumps, &aszTexts);
+	AssertSize(3, cCache.NumHeaders());
+	AssertTrue(strstr(aszTexts.GetText(0), "FeatureOn") != NULL);
+	aszDumps.Kill();
+	aszTexts.Kill();
+
+	pcConfig = sHeaders.acDirectories[0].GetFile((char*)"Config.h");
+	AssertNotNull(pcConfig);
+	cCache.Forget(pcConfig);
+	AssertSize(1, cCache.NumHeaders());
+	pcConfig->Unload();
+	pcConfig->SetContents("#define FEATURE 0\n");
+
+	TestPPHeaderCacheUnits(&sHeaders, aszNames, aszUnits, &cCache, &aszDumps, &aszTexts);
+	AssertSize(1, cCache.NumHits());
+	AssertSize(3, cCache.NumHeaders());
+	AssertTrue(strstr(aszTexts.GetText(0), "FeatureOff") != NULL);
+	AssertTrue(strstr(aszTexts.GetText(0), "Guarded = 7") != NULL);
+
+	TestPPHeaderCacheUnits(&sHeaders, aszNames, aszUnits, NULL, &aszDumpsWithout, &aszTextsWithout);
+	AssertString(aszDumpsWithout.GetText(0), aszDumps.GetText(0));
+	AssertString(aszTextsWithout.GetText(0), aszTexts.GetText(0));
+
+	aszTextsWithout.Kill();
+	aszDumpsWithout.Kill();
+	aszTexts.Kill();
+	aszDumps.Kill();
+	cCache.Kill();
+	TestPPHeaderCacheEnd(&sHeaders);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Headers never kept: one using __COUNTER__, and one ending in a function-
 // like macro's name whose arguments are in the unit after it.
 //
@@ -378,6 +433,7 @@ void TestPreprocessorHeaderCache(void)
 	TestPreprocessorHeaderCacheNotKept();
 	TestPreprocessorHeaderCacheIncludeNext();
 	TestPreprocessorHeaderCacheIncludersDirectories();
+	TestPreprocessorHeaderCacheForget();
 
 	TestStatistics();
 }

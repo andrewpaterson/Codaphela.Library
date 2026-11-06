@@ -144,10 +144,15 @@ struct SPPCachedHeader
 	CMemoryStackExtended			mcStrings;
 
 	SPPCachedHeader*				psNext;					//Another with the same file and context.
+	CArrayPPHeaderFiles				apcFiles;				//The files its own records refer to, each once (NoteFiles).
+	bool							bForget;				//Depends on the file being forgotten (CPPHeaderCache::Forget).
 
 	void	Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
 	void	Kill(void);
 	char*	AddString(const char* szText, size uiLength);
+	void	NoteFiles(void);
+	bool	Refers(CArrayPPHeaderFiles* papcFiles);
+	void	AddFile(CSourceFile* pcFile);
 };
 
 
@@ -175,6 +180,8 @@ public:
 	void				Publish(SPPCachedHeader* psHeader);
 	void				Discard(SPPCachedHeader* psHeader);
 	void				Count(size uiHits, size uiMisses, size uiReplayedTokens);
+	void				Forget(CSourceFile* pcFile);
+	void				Forget(CArrayPPHeaderFiles* papcFiles);
 
 	size				NumHeaders(void);
 	size				NumHits(void);
@@ -183,6 +190,7 @@ public:
 
 protected:
 	static int64		Key(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
+	void				Unlink(SPPCachedHeader* psHeader);
 };
 
 

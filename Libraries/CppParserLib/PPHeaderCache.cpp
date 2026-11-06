@@ -72,6 +72,8 @@ void SPPCachedHeader::Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, u
 	uiTotalTokens = 0;
 	mcStrings.Init(PP_HEADER_CACHE_STRINGS);
 	psNext = NULL;
+	apcFiles.Init();
+	bForget = false;
 }
 
 
@@ -82,6 +84,7 @@ void SPPCachedHeader::Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, u
 void SPPCachedHeader::Kill(void)
 {
 	mcStrings.Kill();
+	apcFiles.Kill();
 	asEvents.Kill();
 	asDirectiveLines.Kill();
 	asInactiveRegions.Kill();
@@ -109,6 +112,106 @@ char* SPPCachedHeader::AddString(const char* szText, size uiLength)
 	memcpy(sz, szText, uiLength);
 	sz[uiLength] = '\0';
 	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The files anything the header kept of its own (not its children's)
+// came from or points into, noted once it is recorded: the header itself,
+// its tokens (their text is the file's when it is a header), expansions,
+// skipped lines and directives, the #defines and #undefs it replays, the
+// macros it looked up and the #pragma once files.
+//
+//////////////////////////////////////////////////////////////////////////
+void SPPCachedHeader::NoteFiles(void)
+{
+	size	i;
+
+	apcFiles.ReInit();
+	AddFile(pcFile);
+	for (i = 0; i < asTokens.NumElements(); i++)
+	{
+		AddFile(asTokens.Get(i)->pcFile);
+	}
+	for (i = 0; i < asExpansions.NumElements(); i++)
+	{
+		AddFile(asExpansions.Get(i)->pcFile);
+	}
+	for (i = 0; i < asInactiveRegions.NumElements(); i++)
+	{
+		AddFile(asInactiveRegions.Get(i)->pcFile);
+	}
+	for (i = 0; i < asDirectiveLines.NumElements(); i++)
+	{
+		AddFile(asDirectiveLines.Get(i)->pcFile);
+	}
+	for (i = 0; i < asEvents.NumElements(); i++)
+	{
+		AddFile(asEvents.Get(i)->pcFile);
+	}
+	for (i = 0; i < asQueries.NumElements(); i++)
+	{
+		AddFile(asQueries.Get(i)->sIdentity.pcFile);
+	}
+	for (i = 0; i < asPragmaQueries.NumElements(); i++)
+	{
+		AddFile(asPragmaQueries.Get(i)->pcFile);
+	}
+	for (i = 0; i < apcPragmaOnced.NumElements(); i++)
+	{
+		AddFile(*apcPragmaOnced.Get(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcFile added to the files noted, unless it is NULL or noted already
+// (they are few, and runs of records share a file).
+//
+//////////////////////////////////////////////////////////////////////////
+void SPPCachedHeader::AddFile(CSourceFile* pcFile)
+{
+	size	i;
+
+	if (pcFile == NULL)
+	{
+		return;
+	}
+	for (i = apcFiles.NumElements(); i > 0; i--)
+	{
+		if (*apcFiles.Get(i - 1) == pcFile)
+		{
+			return;
+		}
+	}
+	apcFiles.Add(&pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether anything the header kept of its own came from or points into
+// any of papcFiles (NoteFiles).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SPPCachedHeader::Refers(CArrayPPHeaderFiles* papcFiles)
+{
+	size	i;
+	size	j;
+
+	for (i = 0; i < apcFiles.NumElements(); i++)
+	{
+		for (j = 0; j < papcFiles->NumElements(); j++)
+		{
+			if (*apcFiles.Get(i) == *papcFiles->Get(j))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -224,6 +327,7 @@ void CPPHeaderCache::Publish(SPPCachedHeader* psHeader)
 	int64	lliKey;
 
 	lliKey = Key(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
+	psHeader->NoteFiles();
 	mcMutex.Lock();
 	psHeader->psNext = Get(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
 	mcHeaders.Put(lliKey, &psHeader);
@@ -257,6 +361,128 @@ void CPPHeaderCache::Count(size uiHits, size uiMisses, size uiReplayedTokens)
 	muiMisses += uiMisses;
 	muiReplayedTokens += uiReplayedTokens;
 	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every header kept that depends on pcFile is forgotten, before pcFile's
+// text changes (or it is unloaded).
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPHeaderCache::Forget(CSourceFile* pcFile)
+{
+	CArrayPPHeaderFiles	apcFiles;
+
+	apcFiles.Init();
+	apcFiles.Add(&pcFile);
+	Forget(&apcFiles);
+	apcFiles.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every header kept that depends on any of papcFiles is forgotten, before
+// their text changes (or they are unloaded): one that refers to one of
+// them (Refers), and one that included a header forgotten.  The others
+// are kept.  Not while units are being preprocessed with the cache.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPHeaderCache::Forget(CArrayPPHeaderFiles* papcFiles)
+{
+	size								i;
+	size								j;
+	SPPCachedHeader*					psHeader;
+	SPPHeaderSegment*					psSegment;
+	bool								bChanged;
+	CArrayTemplatePtr<SPPCachedHeader>	apsKept;
+
+	mcMutex.Lock();
+	for (i = 0; i < mapsHeaders.NumElements(); i++)
+	{
+		psHeader = mapsHeaders.GetPtr(i);
+		psHeader->bForget = psHeader->Refers(papcFiles);
+	}
+
+	//A child is usually kept before its includers, but replaying needn't keep that order.
+	do
+	{
+		bChanged = false;
+		for (i = 0; i < mapsHeaders.NumElements(); i++)
+		{
+			psHeader = mapsHeaders.GetPtr(i);
+			for (j = 0; !psHeader->bForget && (j < psHeader->asSegments.NumElements()); j++)
+			{
+				psSegment = psHeader->asSegments.Get(j);
+				if (psSegment->psChild && psSegment->psChild->bForget)
+				{
+					psHeader->bForget = true;
+					bChanged = true;
+				}
+			}
+		}
+	}
+	while (bChanged);
+
+	apsKept.Init();
+	for (i = 0; i < mapsHeaders.NumElements(); i++)
+	{
+		psHeader = mapsHeaders.GetPtr(i);
+		if (psHeader->bForget)
+		{
+			Unlink(psHeader);
+			Discard(psHeader);
+		}
+		else
+		{
+			apsKept.Add(psHeader);
+		}
+	}
+	mapsHeaders.Kill();
+	memcpy(&mapsHeaders, &apsKept, sizeof(mapsHeaders));
+	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psHeader taken out of the headers kept with its key (newest first, by
+// psNext).
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPHeaderCache::Unlink(SPPCachedHeader* psHeader)
+{
+	int64				lliKey;
+	SPPCachedHeader**	ppsFirst;
+	SPPCachedHeader*	psPrevious;
+
+	lliKey = Key(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
+	ppsFirst = mcHeaders.Get(lliKey);
+	if (ppsFirst == NULL)
+	{
+		return;
+	}
+	if (*ppsFirst == psHeader)
+	{
+		if (psHeader->psNext)
+		{
+			*ppsFirst = psHeader->psNext;
+		}
+		else
+		{
+			mcHeaders.Remove(lliKey);
+		}
+		return;
+	}
+	for (psPrevious = *ppsFirst; psPrevious->psNext; psPrevious = psPrevious->psNext)
+	{
+		if (psPrevious->psNext == psHeader)
+		{
+			psPrevious->psNext = psHeader->psNext;
+			return;
+		}
+	}
 }
 
 
