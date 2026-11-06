@@ -29,9 +29,6 @@ class CDockPane;
 class CDockGroup;
 class CDockFloatingWindow;
 class CComponent;
-class CWindow;
-class CFocus;
-struct SDockRestore;
 
 
 //Moving panes and groups between docked, floating and auto hidden, and making and placing the floating windows they

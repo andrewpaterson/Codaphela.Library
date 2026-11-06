@@ -604,6 +604,8 @@ bool CDockManager::Close(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pane floats in a window of its own, at pcScreenRectangle or where it
+// last floated.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle)
@@ -614,6 +616,7 @@ void CDockManager::Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The whole group floats.  Its panes remember where it was docked.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectangle)
@@ -624,6 +627,8 @@ void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectan
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pane goes back to where it was docked, from floating, auto hidden or
+// hidden.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Dock(Ptr<CDockPane> pPane)
@@ -634,6 +639,8 @@ void CDockManager::Dock(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tool goes into the document well as a tab, as Visual Studio's Dock as
+// Tabbed Document puts it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::DockAsDocument(Ptr<CDockPane> pPane)
@@ -644,6 +651,7 @@ void CDockManager::DockAsDocument(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A docked tool goes to a tab on the main window's edge nearest it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::AutoHide(Ptr<CDockPane> pPane)
@@ -654,6 +662,8 @@ void CDockManager::AutoHide(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every pane in the group auto hides on the same edge, remembering the
+// group, so docking one back brings the group back.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
@@ -664,6 +674,7 @@ void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A docked pane floats; a floating one docks back.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ToggleFloat(Ptr<CDockPane> pPane)
@@ -674,6 +685,7 @@ void CDockManager::ToggleFloat(Ptr<CDockPane> pPane)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Everything in the floating window docks back where it was.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
@@ -684,6 +696,8 @@ void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The floating window's close cross: its tools are hidden and its
+// documents closed, if the listener lets them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::DockFloating(Ptr<CDockFloatingWindow> pFloating)

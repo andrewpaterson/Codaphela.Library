@@ -172,6 +172,7 @@ public:
 	Ptr<CDockPane>				GetPane(size uiIndex);
 	Ptr<CDockPane>				FindPane(Ptr<CComponent> pComponent);
 
+	//Moving panes: shown, hidden, floated, docked and auto hidden.
 	void						Show(Ptr<CDockPane> pPane);
 	void						Activate(Ptr<CDockPane> pPane);
 	void						Hide(Ptr<CDockPane> pPane);
@@ -188,19 +189,36 @@ public:
 	void						CloseFloating(Ptr<CDockFloatingWindow> pFloating);
 	bool						DockPaneAt(Ptr<CDockPane> pPane, SDockTarget* psTarget);
 	bool						DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget);
+
+	//The active pane and document, and the commands on them.
 	Ptr<CDockPane>				GetActivePane(void);
 	Ptr<CDockPane>				GetActiveDocument(void);
+	void						CloseActiveDocument(void);
+	void						HideActiveTool(void);
+
+	//Floating windows.
 	size						NumFloating(void);
 	Ptr<CDockFloatingWindow>	GetFloating(size uiIndex);
 	Ptr<CDockFloatingWindow>	FindFloating(Ptr<CDockPane> pPane);
+	void						RemoveFloating(Ptr<CDockFloatingWindow> pFloating);
+	void						FloatingWindowClosed(CWindow* pcWindow);
+
+	//Groups and the document well, for the layout file and tests.
 	Ptr<CDockGroup>				FindGroup(int32 iID);
 	Ptr<CDockGroup>				CreateGroup(bool bDocuments, int32 iID = 0);
 	void						PlaceInGroup(Ptr<CDockGroup> pGroup, Ptr<CDockPane> pPane, size uiIndex = MAX_SIZE);
+	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
 	bool						IsInWell(Ptr<CDockNode> pNode);
+	void						SetNextGroupID(int32 iID);
+	int32						GetNextGroupID(void);
 
-	//Called by the groups, title bars, flyouts and the drag tracker.
+	//Called by the groups, title bars and tabs as the user acts on them.
 	void						PaneSelected(Ptr<CDockPane> pPane);
+	void						PaneChanged(Ptr<CDockPane> pPane);
 	void						MenuChosen(Ptr<CDockPane> pPane, EDockMenuItem eItem);
+	void						LayoutChanged(void);
+
+	//Dragging, called by the title bars, tabs and the drag tracker.
 	void						BeginPaneDrag(Ptr<CDockPane> pPane);
 	void						BeginGroupDrag(Ptr<CDockGroup> pGroup);
 	void						BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating);
@@ -208,12 +226,11 @@ public:
 	bool						IsDragging(void);
 	SDockTarget*				GetTarget(void);
 	Ptr<CDockDrag>				GetDrag(void);
+
+	//Focus and the auto hide flyout.
+	void						WatchFocus(Ptr<CWindow> pWindow);
+	void						UnwatchFocus(Ptr<CWindow> pWindow);
 	void						RestoreFocus(Ptr<CWindow> pWindow);
-	void						LayoutChanged(void);
-	void						PaneChanged(Ptr<CDockPane> pPane);
-	void						CloseActiveDocument(void);
-	void						HideActiveTool(void);
-	void						FloatingWindowClosed(CWindow* pcWindow);
 	void						ShowFlyout(Ptr<CDockPane> pPane);
 	void						CloseFlyout(void);
 	void						FlyoutClosed(void);
@@ -226,14 +243,6 @@ public:
 	bool						ReadLayout(CMarkupTag* pcRoot);
 	void						ResetLayout(void);
 	bool						GetLayoutWindowRectangle(CInt32Rect* pcDest);
-
-	//The tree, for the layout file and tests.
-	void						RemoveFloating(Ptr<CDockFloatingWindow> pFloating);
-	void						AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup = NULL);
-	void						WatchFocus(Ptr<CWindow> pWindow);
-	void						UnwatchFocus(Ptr<CWindow> pWindow);
-	void						SetNextGroupID(int32 iID);
-	int32						GetNextGroupID(void);
 
 protected:
 	void						CreateImages(void);
