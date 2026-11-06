@@ -1188,7 +1188,7 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 		cIdentifier.Kill();
 		AssertFalse(bResult);
 		AssertTrue(pFrom->mpObject.IsNull());
-		AssertTrue(strstr(szLog, "Hollow object {") != NULL);
+		AssertTrue(strstr(szLog, ":CHollowObject(") != NULL);
 		AssertTrue(strstr(szLog, "} has no embedded object [1].") != NULL);
 
 		//In memory, but it has no embedded object 3.

@@ -95,7 +95,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadObjectAndDependents(const char* sz
 		return NULL;
 	}
 
-	pvObject = ReadSerialsed(pcSerialised);
+	pvObject = ReadSerialised(pcSerialised);
 	SafeFree(pcSerialised);
 	if (pvObject == NULL)
 	{
@@ -113,51 +113,26 @@ CBaseObject* CExternalObjectDeserialiser::ReadObjectAndDependents(const char* sz
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads what the objects read point to, and what those point to, until
+// there's nothing left.  With named hollows named objects aren't read.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CExternalObjectDeserialiser::ReadDependentObjects(void)
 {
-	bool					bResult;
 	CDependentReadObject*	pcDependent;
-	int						iCount;  //Just for debugging.
 
-	for (iCount = 0;; iCount++)
+	for (pcDependent = GetUnread(); pcDependent != NULL; pcDependent = GetUnread())
 	{
-		pcDependent = GetUnread();
-		if (pcDependent)
+		if (mbNamedHollows && !pcDependent->IsIndexed())
 		{
-			if (mbNamedHollows)
-			{
-				if (pcDependent->IsIndexed())
-				{
-					bResult = ReadUnread(pcDependent);
-					if (!bResult)
-					{
-						return false;
-					}
-				}
-				else
-				{
-					MarkRead(pcDependent->GetOldIndex());
-				}
-			}
-			else
-			{
-				bResult = ReadUnread(pcDependent);
-				if (!bResult)
-				{
-					return false;
-				}
-			}
+			Mark(pcDependent->GetOldIndex());
 		}
-		else
+		else if (!ReadUnread(pcDependent))
 		{
-			break;
+			return false;
 		}
 	}
-
-	bResult = AddHeapFromPointersAndCreateHollowObjects();
-	return bResult;
+	return AddHeapFromPointersAndCreateHollowObjects();
 }
 
 
@@ -199,7 +174,7 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 		return false;
 	}
 
-	pvObject = ReadSerialsed(pcSerialised);
+	pvObject = ReadSerialised(pcSerialised);
 	SafeFree(pcSerialised);
 
 	return pvObject != NULL;
@@ -210,7 +185,7 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
+CBaseObject* CExternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
 	CObjectReader	cReader;
 	CBaseObject*	pvObject;
@@ -236,23 +211,13 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 	{
 		//Read objects are new to the database (the object reader marks them clean, as if loaded from it).
 		pvObject->SetDirty(true);
-		MarkRead(oiOld);
+		Mark(oiOld);
 
 		oiNew = pvObject->GetIndex();
 		AddIndexRemap(oiNew, oiOld);
 	}
 
 	return pvObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CExternalObjectDeserialiser::MarkRead(OIndex oi)
-{
-	Mark(oi);
 }
 
 
@@ -404,7 +369,6 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	OIndex					oiNew;
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CEmbeddedObject*		pcEmbeddedObject;
 
 	oiOld = pcDependentReadPointer->moiPointedTo;
 	oiNew = GetNewIndexFromOld(oiOld);
@@ -433,55 +397,32 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		AddIndexRemap(pcBaseObject->GetIndex(), oiOld);
 	}
 
-	//The pointer may be to one of the object's embedded objects (or, if it is hollow, its embedded hollow).
-	pcEmbeddedObject = pcBaseObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
-	if (pcEmbeddedObject == NULL)
-	{
-		return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcBaseObject), "} has no embedded object [", IntToString(pcDependentReadPointer->miEmbeddedIndex), "].", NULL);
-	}
-	*pcDependentReadPointer->mppcPointedFrom = pcEmbeddedObject;
-	AddHeapFrom(pcEmbeddedObject, pcDependentReadPointer->mpcContaining);
-	return true;
+	return PointTo(pcBaseObject, pcDependentReadPointer->miEmbeddedIndex, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 }
 
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A named object replaces the one with its name (in memory or the
+// database), keeping its index.  An unnamed one gets a new index.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
-	char*	szName;
 	char*	szClassName;
 
 	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
-	else
-	{
-		szClassName = pcHeader->mszClassName.Text();
-		if (pcHeader->meType == OBJECT_POINTER_ID)
-		{
-			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName, "");
-		}
-		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
-		{
-			szName = pcHeader->mszObjectName.Text();
-			if (!StrEmpty(szName))
-			{
-				return mpcObjects->AllocateReplacingNamed(szClassName, szName);
-			}
-			else
-			{
-				return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName, "");
-			}
-		}
-	}
 
-	gcLogger.Error("Cant allocate object for unknown header type.");
-	return NULL;
+	szClassName = pcHeader->mszClassName.Text();
+	if (pcHeader->IsNamed())
+	{
+		return mpcObjects->AllocateReplacingNamed(szClassName, pcHeader->GetName());
+	}
+	return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName, "");
 }
 
 
@@ -494,18 +435,6 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	CDependentReadObject	cDependent;
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
-
-	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
-	{
-		if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
-		{
-			return true;
-		}
-		else
-		{
-			return gcLogger.Error2(__METHOD__, " Cannot add depenent with unknown type [", IntToString(pcObjectIdentifier->meType, 16), "].", NULL);
-		}
-	}
 
 	cDependent.Init(pcObjectIdentifier);
 

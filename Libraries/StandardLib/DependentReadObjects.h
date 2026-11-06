@@ -23,7 +23,7 @@ public:
 	virtual CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) =0;
 
 protected:
-			void					AddHeapFrom(CEmbeddedObject* pcBaseObject, CBaseObject* pcContaining);
+			bool					PointTo(CBaseObject* pcObject, uint16 iEmbeddedIndex, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcContaining);
 };
 
 

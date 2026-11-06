@@ -40,34 +40,25 @@ void CInternalObjectDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
-	CSerialisedObject*		pcSerialised;
-	lsize					uiDataSize;
-	CStackMemory<2 KB>			cTemp;
-	bool					bExists;
-	CBaseObject*			pcBaseObject;
+	CSerialisedObject*	pcSerialised;
+	lsize				uiDataSize;
+	CStackMemory<2 KB>	cTemp;
+	CBaseObject*		pcBaseObject;
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
-
-	bExists = mpcDataConnection->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize());
-	if (bExists)
-	{
-		if (uiDataSize <= cTemp.GetStackSize())
-		{
-			return ReadSerialised(pcSerialised, uiDataSize);
-		}
-		else
-		{
-			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
-			mpcDataConnection->Get(oi, pcSerialised);
-			pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
-			cTemp.Kill();
-			return pcBaseObject;
-		}
-	}
-	else
+	if (!mpcDataConnection->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize()))
 	{
 		return NULL;
 	}
+	if (uiDataSize > cTemp.GetStackSize())
+	{
+		pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
+		mpcDataConnection->Get(oi, pcSerialised);
+	}
+
+	pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
+	cTemp.Kill();
+	return pcBaseObject;
 }
 
 
@@ -77,34 +68,14 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::Read(const char* szObjectName)
 {
-	CSerialisedObject*	pcSerialised;
-	lsize				uiDataSize;
-	CStackMemory<2 KB>	cTemp;
-	bool				bExists;
-	CBaseObject*		pcBaseObject;
+	OIndex	oi;
 
-	pcSerialised = (CSerialisedObject*)cTemp.Init();
-
-	bExists = mpcDataConnection->Get(szObjectName, &uiDataSize, pcSerialised, cTemp.GetStackSize());
-	if (bExists)
-	{
-		if (uiDataSize <= cTemp.GetStackSize())
-		{
-			return ReadSerialised(pcSerialised, uiDataSize);
-		}
-		else
-		{
-			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
-			mpcDataConnection->Get(szObjectName, pcSerialised);
-			pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
-			cTemp.Kill();
-			return pcBaseObject;
-		}
-	}
-	else
+	oi = mpcDataConnection->GetIndex(szObjectName);
+	if (oi == INVALID_O_INDEX)
 	{
 		return NULL;
 	}
+	return Read(oi);
 }
 
 
@@ -154,29 +125,11 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
-	char*	szName;
-	char*	szClassName;
-
 	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
-	else
-	{
-		szClassName = pcHeader->mszClassName.Text();
-		if (pcHeader->meType == OBJECT_POINTER_ID)
-		{
-			return mpcObjects->AllocateForInternalDeserialisation(szClassName, "", pcHeader->moi);
-		}
-		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
-		{
-			szName = pcHeader->mszObjectName.Text();
-			return mpcObjects->AllocateForInternalDeserialisation(szClassName, szName, pcHeader->moi);
-		}
-	}
-
-	gcLogger.Error("Cant allocate object for unknown header type.");
-	return NULL;
+	return mpcObjects->AllocateForInternalDeserialisation(pcHeader->mszClassName.Text(), pcHeader->IsNamed() ? pcHeader->GetName() : "", pcHeader->moi);
 }
 
 
@@ -207,56 +160,36 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object already in memory (perhaps hollow), or else a hollow for it.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CInternalObjectDeserialiser::GetFromMemoryOrAllocateHollow(CObjectIdentifier* pcIdentifier, uint16 iNumEmbedded)
+{
+	CBaseObject*	pcObject;
+
+	pcObject = GetFromMemory(pcIdentifier);
+	if (pcObject)
+	{
+		return pcObject;
+	}
+	return mpcObjects->AllocateInternalHollow(pcIdentifier->IsNamed() ? pcIdentifier->GetName() : "", pcIdentifier->moi, iNumEmbedded, pcIdentifier->GetFatSize());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
-	CEmbeddedObject*	pcEmbeddedObject;
-	CBaseObject*		pcHollowObject;
-	CBaseObject*		pcExistingObject;
+	CBaseObject*	pcObject;
 
-	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
-	{
-		if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
-		{
-			return true;
-		}
-		else
-		{
-			return gcLogger.Error2(__METHOD__, " Cannot add depenent with unknown type [", IntToString(pcObjectIdentifier->meType, 16), "].", NULL);
-		}
-	}
-
-	pcExistingObject = GetFromMemory(pcObjectIdentifier);
-
-	if (pcExistingObject)
-	{
-		//The pointer may be to one of the object's embedded objects (or, if it is hollow, its embedded hollow).
-		pcEmbeddedObject = pcExistingObject->GetEmbeddedObject(iEmbeddedIndex);
-		if (pcEmbeddedObject == NULL)
-		{
-			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcExistingObject), "} has no embedded object [", IntToString(iEmbeddedIndex), "].", NULL);
-		}
-		*ppcPtrToBeUpdated = pcEmbeddedObject;
-		AddHeapFrom(pcEmbeddedObject, pcObjectContainingPtrToBeUpdated);
-		return true;
-	}
-
-	pcHollowObject = mpcObjects->AllocateInternalHollow(pcObjectIdentifier->IsNamed() ? pcObjectIdentifier->GetName() : "", pcObjectIdentifier->moi, iNumEmbedded, pcObjectIdentifier->GetFatSize());
-
-	if (!pcHollowObject)
+	pcObject = GetFromMemoryOrAllocateHollow(pcObjectIdentifier, iNumEmbedded);
+	if (pcObject == NULL)
 	{
 		return false;
 	}
-
-	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
-	if (pcEmbeddedObject == NULL)
-	{
-		return gcLogger.Error2(__METHOD__, " Hollow object {", ObjectToString(pcHollowObject), "} has no embedded object [", IntToString(iEmbeddedIndex), "].", NULL);
-	}
-	*ppcPtrToBeUpdated = pcEmbeddedObject;
-	AddHeapFrom(pcEmbeddedObject, pcObjectContainingPtrToBeUpdated);
-	return true;
+	return PointTo(pcObject, iEmbeddedIndex, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
 }
 
 
@@ -266,32 +199,14 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
-	CPointer		pExisitingInDatabase;
-	CBaseObject*	pcExistingObject;
-	CBaseObject*	pcHollowObject;
+	CBaseObject*	pcObject;
 
-	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
-	{
-		return (pcObjectIdentifier->meType == OBJECT_POINTER_NULL);
-	}
-
-	pcExistingObject = GetFromMemory(pcObjectIdentifier);
-
-	if (pcExistingObject)
-	{
-		SafeAssign(ppcPtrToBeUpdated, pcExistingObject);
-		return true;
-	}
-
-	pcHollowObject = mpcObjects->AllocateInternalHollow(pcObjectIdentifier->IsNamed() ? pcObjectIdentifier->GetName() : "", pcObjectIdentifier->moi, iNumEmbedded, pcObjectIdentifier->GetFatSize());
-
-	if (!pcHollowObject)
+	pcObject = GetFromMemoryOrAllocateHollow(pcObjectIdentifier, iNumEmbedded);
+	if (pcObject == NULL)
 	{
 		return false;
 	}
-
-	SafeAssign(ppcPtrToBeUpdated, pcHollowObject);
-
+	SafeAssign(ppcPtrToBeUpdated, pcObject);
 	return true;
 }
 

@@ -9,13 +9,12 @@
 #include "NamedIndexedObjects.h"
 
 
-//The External Object Deserialiser works with chunk files and simple files.  
-//  It does not deserialise objects out of the database.
-//  It does not create hollow objects.
-//  It does not load objects by id.
+//Reads an object and everything it points to out of an external format (chunk files, simple files, a converter's
+//source) into memory, giving each read object a new index.  Named objects replace the ones in memory or the database
+//with their names (and keep their indices).  With named hollows the named objects pointed to aren't read but left
+//hollow, to be loaded from the database.  Read objects are dirty: they're saved into the database once rooted.
 
 
-class CIndexGenerator;
 class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
@@ -41,16 +40,15 @@ public:
 	//Used by CObjectReader
 	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 
-	//I don't know what these are
-	OIndex					GetNewIndexFromOld(OIndex oiOld);  //Is this used?
+	//The new index each read object was given, by the index it had in the external format.
+	OIndex					GetNewIndexFromOld(OIndex oiOld);
 	CArrayIndexNewOld*		GetArrayIndexNewOld(void);
 
 protected:
 	CBaseObject*			ReadObjectAndDependents(const char* szObjectName);
-	CBaseObject*			ReadSerialsed(CSerialisedObject* pcSerialised);
+	CBaseObject*			ReadSerialised(CSerialisedObject* pcSerialised);
 	bool					ReadDependentObjects(void);
 	bool					ReadUnread(CDependentReadObject* pcDependent);
-	void					MarkRead(OIndex oi);
 	bool					AddHeapFromPointersAndCreateHollowObjects(void);
 	bool					AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 	bool					AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
