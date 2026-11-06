@@ -2502,7 +2502,9 @@ int32 TestCPP816RunProfiled(const char* szSource, CAsm65816Profile* pcProfile, C
 //////////////////////////////////////////////////////////////////////////
 //
 // A profile by line: a call's line counts how often it ran, in the
-// function it is in.  With the profile the hot call (in the loop) of a
+// function it is in, and its call sites how often each line called Mix and
+// the cycles inside the calls (Mix's own and the runtime routines' it
+// called, as nothing else calls it).  With the profile the hot call (in the loop) of a
 // function too big to inline without one is inlined; the cold one isn't.
 // A function compiled from other code since (another fingerprint) starts
 // its profile again.
@@ -2544,7 +2546,11 @@ void TestCPP816ProfileGuidedInlining(void)
 	CAsm65816Profile			cProfile;
 	CAsm65816Profile			cGuided;
 	CAsm65816Profile			cAgain;
+	CAsm65816Profile			cRead;
 	CChars					szChanged;
+	SAsm65816CallSiteProfile*	psCallSite;
+	SAsm65816CallSiteProfile*	psOnce;
+	SAsm65816CallSiteProfile*	psRead;
 	SAsm65816FunctionProfile*	psMix;
 	SAsm65816FunctionProfile*	psMain;
 	int32					iResult;
@@ -2561,6 +2567,21 @@ void TestCPP816ProfileGuidedInlining(void)
 	AssertLong(2000, (int64)cProfile.LineEntries("Test.cpp", 26));
 	psMain = cProfile.Get("_main");
 	AssertTrue(psMain && (psMain->uiHash != 0) && (psMain->iTime != 0));
+
+	//Its call sites: each line's calls of Mix, with the cycles inside them; written and read back.
+	psCallSite = cProfile.GetCallSite("_Mix__Fss", "Test.cpp", 26);
+	AssertNotNull((void*)psCallSite);
+	AssertLong(2000, psCallSite ? (int64)psCallSite->ulliCalls : 0);
+	psOnce = cProfile.GetCallSite("_Mix__Fss", "Test.cpp", 28);
+	AssertNotNull((void*)psOnce);
+	AssertLong(1, psOnce ? (int64)psOnce->ulliCalls : 0);
+	AssertTrue(psCallSite && psOnce && psMix && (psCallSite->ulliCycles + psOnce->ulliCycles >= psMix->ulliCycles) && (psOnce->ulliCycles > 0));
+	cRead.Init();
+	AssertTrue(cProfile.Write("Output" _FS_ "CallSites.profile"));
+	AssertTrue(cRead.Read("Output" _FS_ "CallSites.profile"));
+	psRead = cRead.GetCallSite("_Mix__Fss", "Test.cpp", 26);
+	AssertTrue(psCallSite && psRead && (psRead->ulliCalls == psCallSite->ulliCalls) && (psRead->ulliCycles == psCallSite->ulliCycles));
+	cRead.Kill();
 
 	//Guided: only the call in main's loop is inlined.
 	cGuided.Init();
