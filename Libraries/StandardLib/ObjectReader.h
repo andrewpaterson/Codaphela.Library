@@ -44,6 +44,7 @@ public:
 	CBaseObject*	Read(void);
 
 	bool			ReadHeapFroms(CBaseObject* pcThis);
+	bool			ReadStoredHeapFroms(CBaseObject* pcThis);
 
 	bool			ReadPointer(CPointer* pObject);
 	bool			ReadIdentifier(CObjectIdentifier* pcPointerHeader);

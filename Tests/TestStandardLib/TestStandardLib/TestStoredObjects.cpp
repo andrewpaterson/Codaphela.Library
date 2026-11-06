@@ -10,6 +10,7 @@
 #include "StandardLib/String.h"
 #include "StandardLib/Root.h"
 #include "TestLib/Assert.h"
+#include "ChunkFileObjectWriterTestClasses.h"
 
 
 #define STORED_OBJECTS_DIRECTORY	"Output" _FS_ "StoredObjects"
@@ -266,6 +267,113 @@ void TestStoredObjectsKillChecksDirty(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Destroy deletes an object from the database.  Its holders are loaded
+// (here none is in memory), their pointers to it cleared and saved.  The
+// objects it held are left in the database.  A pointer to an object that
+// is not in the database is a programming error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStoredObjectsDestroy(void)
+{
+	CFileUtil				cFileUtil;
+	STestStoredObjects		sStore;
+	Ptr<CString>			pDoor;
+	Ptr<CString>			pLamp;
+	Ptr<CString>			pGhost;
+	Ptr<CTestNamedString>	pHolder;
+	Ptr<CTestNamedString>	pLampHolder;
+	Ptr<CTestNamedString>	pGhostHolder;
+	Ptr<CRoot>				pRoot;
+	OIndex					oiDoor;
+	OIndex					oiGhost;
+	SLogConfig				sLogConfig;
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+
+	//The root holds Door, a Holder of Door, a LampHolder of Lamp and a GhostHolder of Ghost.
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	pDoor = ONMalloc<CString>("Door", "closed");
+	pLamp = ONMalloc<CString>("Lamp", "on");
+	pGhost = ONMalloc<CString>("Ghost", "boo");
+	pHolder = ONMalloc<CTestNamedString>("Holder", pDoor, Null(), "holder");
+	pLampHolder = ONMalloc<CTestNamedString>("LampHolder", pLamp, Null(), "lamp holder");
+	pGhostHolder = ONMalloc<CTestNamedString>("GhostHolder", pGhost, Null(), "ghost holder");
+	pRoot->Add(pDoor);
+	pRoot->Add(pHolder);
+	pRoot->Add(pLampHolder);
+	pRoot->Add(pGhostHolder);
+	oiDoor = pDoor->GetIndex();
+	oiGhost = pGhost->GetIndex();
+	pDoor = NULL;
+	pLamp = NULL;
+	pGhost = NULL;
+	pHolder = NULL;
+	pLampHolder = NULL;
+	pGhostHolder = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	//Door is loaded by name alone: none of its holders is in memory.
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pDoor = gcObjects.Get<CString>("Door");
+	AssertTrue(pDoor.IsNotNull());
+	AssertTrue(pDoor->Destroy());
+	AssertFalse(sStore.pcDatabase->Contains(oiDoor));
+	AssertFalse(sStore.pcDatabase->Contains("Door"));
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	AssertTrue(pHolder->mszString.IsNull());
+	AssertFalse(pHolder->IsDirty());
+	pRoot = ORoot();
+	AssertLong(3, pRoot->NumObjects());
+
+	//Destroying LampHolder leaves Lamp in the database.
+	pLampHolder = gcObjects.Get<CTestNamedString>("LampHolder");
+	AssertTrue(pLampHolder->Destroy());
+	AssertLong(2, pRoot->NumObjects());
+	AssertTrue(sStore.pcDatabase->Contains("Lamp"));
+	AssertFalse(sStore.pcDatabase->Contains("LampHolder"));
+	pDoor = NULL;
+	pHolder = NULL;
+	pLampHolder = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(2, pRoot->NumObjects());
+	pDoor = gcObjects.Get<CString>("Door");
+	AssertTrue(pDoor.IsNull());
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	AssertTrue(pHolder->mszString.IsNull());
+	pLamp = gcObjects.Get<CString>("Lamp");
+	AssertString("on", pLamp->Text());
+
+	//Ghost removed from the database by hand: GhostHolder's pointer to it is an error.
+	AssertTrue(sStore.pcDatabase->Remove(oiGhost));
+	pGhostHolder = gcObjects.Get<CTestNamedString>("GhostHolder");
+	sLogConfig = gcLogger.SetSilent();
+	AssertNull(pGhostHolder->mszString.Dereference());
+	gcLogger.SetConfig(&sLogConfig);
+
+	pHolder = NULL;
+	pLamp = NULL;
+	pGhostHolder = NULL;
+	pRoot = NULL;
+	ObjectsDiscard();
+	sStore.Kill();
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStoredObjects(void)
@@ -278,6 +386,7 @@ void TestStoredObjects(void)
 	TestStoredObjectsWithoutPathToRoot();
 	TestStoredObjectsEvict();
 	TestStoredObjectsKillChecksDirty();
+	TestStoredObjectsDestroy();
 
 	DataIOKill();
 	TypesKill();

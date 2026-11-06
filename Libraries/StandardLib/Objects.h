@@ -93,6 +93,7 @@ public:
 
 						bool					Flush(void);
 						void					Discard(void);
+						bool					Destroy(CBaseObject* pcObject);
 						bool					ValidateNoDirty(void);
 						bool					ForceSave(CBaseObject* pcObject);
 
@@ -200,6 +201,8 @@ protected:
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
+						bool					GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders);
+						bool					LoadForDestroy(OIndex oi);
 						bool					SaveDirtyInMemory(void);
 						void					FreeAllInKillOrder(bool bDeallocate);
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);

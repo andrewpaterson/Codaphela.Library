@@ -214,7 +214,7 @@ void TestKillBestPractice(void)
 	OIndex oiMissile3 = pMissile3->GetIndex();
 	AssertLong(12LL, oiMissile3);
 
-	pMissile3->Kill();  //<-- This is what is being tested -----------------------------------.
+	pMissile3->Destroy();  //<-- This is what is being tested -----------------------------------.
 	pMissile3 = gcObjects.TestGetFromMemory(oiMissile3);
 	AssertTrue(pMissile3.IsNull());
 
@@ -237,7 +237,7 @@ void TestKillBestPractice(void)
 	AssertString("Kill not called", sGooseBefore.cPicture.mszPretenedImAPicture);
 	AssertString("Kill not called", sGooseAfter.cPicture.mszPretenedImAPicture);
 
-	pRedJetGoose->Kill();
+	pRedJetGoose->Destroy();
 	AssertString("012345678901234", sGooseBefore.cPicture.mszPretenedImAPicture);
 	AssertString("Alas I am Dead!", sGooseAfter.cPicture.mszPretenedImAPicture);
 	AssertSize(1, pMissile1->NumPointerTos());
@@ -248,8 +248,8 @@ void TestKillBestPractice(void)
 	AssertTrue(pTarget2.IsNull());
 	AssertLong(10, gcObjects.NumMemoryIndexes());
 	AssertLong(4, gcObjects.NumMemoryNames());
-	AssertLong(11, pcDatabase->NumIndices());
-	AssertLong(5, pcDatabase->NumNames());
+	AssertLong(10, pcDatabase->NumIndices());  //Goose is destroyed: its record and name are deleted.
+	AssertLong(4, pcDatabase->NumNames());
 	AssertInt(2, pWorld.GetDistToRoot());
 	AssertInt(3, pHarrier.GetDistToRoot());
 	AssertInt(3, pJeep.GetDistToRoot());
@@ -257,8 +257,8 @@ void TestKillBestPractice(void)
 	AssertInt(4, pMissile1.GetDistToRoot());
 	AssertInt(4, pMissile2.GetDistToRoot());
 
-	pMissile1->Kill();
-	pMissile2->Kill();
+	pMissile1->Destroy();
+	pMissile2->Destroy();
 	AssertSize(0, pHarrier->GetMissiles()->NumElements());
 	AssertTrue(pMissile1.IsNull());
 	AssertTrue(pMissile2.IsNull());
@@ -283,8 +283,8 @@ void TestKillBestPractice(void)
 
 	AssertLong(2, gcObjects.NumMemoryIndexes());
 	AssertLong(1, gcObjects.NumMemoryNames());
-	AssertLong(11, pcDatabase->NumIndices());
-	AssertLong(5, pcDatabase->NumNames());
+	AssertLong(8, pcDatabase->NumIndices());  //Missiles 1 and 2 are destroyed too.
+	AssertLong(4, pcDatabase->NumNames());
 
 	AssertInt('X', sHarrierBefore.sPoint.x);
 	AssertInt('Y', sHarrierBefore.sPoint.y);

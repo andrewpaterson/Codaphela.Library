@@ -27,6 +27,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"
+#include "ObjectReader.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/StackMemory.h"
 #include "HollowObject.h"
 #include "HollowEmbeddedObject.h"
 #include "FreeObjects.h"
@@ -405,6 +408,215 @@ void CObjects::Discard(void)
 		GetFromMemory(oi)->SetDirty(false);
 		oi = IterateMemory(&sIter);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Collects the holders a serialised object was saved with (their
+// OIndexes) instead of allocating anything.
+//
+//////////////////////////////////////////////////////////////////////////
+class CStoredHeapFromsCollector : public CDependentReadObjects
+{
+public:
+	CArrayOIndex*		mpaoiHolders;
+	CDataConnection*	mpcDataConnection;
+
+	bool AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override
+	{
+		return true;
+	}
+
+	bool AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override
+	{
+		OIndex	oi;
+
+		oi = pcHeader->moi;
+		if ((oi == INVALID_O_INDEX) && pcHeader->IsNamed())
+		{
+			oi = mpcDataConnection->GetIndex(pcHeader->mszObjectName.Text());
+		}
+		if ((oi != INVALID_O_INDEX) && (oi != NULL_O_INDEX))
+		{
+			mpaoiHolders->Add(oi);
+		}
+		return true;
+	}
+
+	CBaseObject* AllocateForDeserialisation(CObjectHeader* pcHeader) override
+	{
+		return NULL;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The holders pcObject's record in the database was saved with.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders)
+{
+	CStoredHeapFromsCollector	cCollector;
+	CObjectReader				cReader;
+	CMemoryFile					cMemoryFile;
+	CStackMemory<2 KB>			cTemp;
+	void*						pvSerialised;
+	lsize						uiDataSize;
+	bool						bResult;
+
+	pvSerialised = cTemp.Init();
+	if (!mpcDataConnection->Get(pcObject->GetIndex(), &uiDataSize, pvSerialised, cTemp.GetStackSize()))
+	{
+		cTemp.Kill();
+		return gcLogger.Error2(__METHOD__, " Object [", IndexToString(pcObject->GetIndex()), "] is not in the database.", NULL);
+	}
+	if (uiDataSize > cTemp.GetStackSize())
+	{
+		pvSerialised = cTemp.Init(uiDataSize);
+		mpcDataConnection->Get(pcObject->GetIndex(), pvSerialised);
+	}
+
+	cCollector.Init();
+	cCollector.mpaoiHolders = paoiHolders;
+	cCollector.mpcDataConnection = mpcDataConnection;
+	cMemoryFile.Init(pvSerialised, uiDataSize);
+	cMemoryFile.Open(EFM_Read);
+	cReader.Init(&cMemoryFile, &cCollector);
+	bResult = cReader.ReadStoredHeapFroms(pcObject);
+	cMemoryFile.Close();
+	cReader.Kill();
+	cMemoryFile.Kill();
+	cCollector.Kill();
+	cTemp.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object oi in memory, loaded if it is not or is a hollow.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::LoadForDestroy(OIndex oi)
+{
+	CBaseObject*	pcObject;
+
+	pcObject = GetFromMemory(oi);
+	if ((pcObject != NULL) && !pcObject->IsHollow())
+	{
+		return true;
+	}
+	if (pcObject != NULL)
+	{
+		return pcObject->Dehollow() != NULL;
+	}
+	return Dehollow(oi) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Deletes pcObject from the database as well as from memory.  Everything
+// that points to it or that it points to is loaded, so each of their
+// pointers to it is cleared and they are saved without it.  The objects
+// it held are left in the database for the database's garbage collection
+// (they may be held by objects that are not loaded).  An object that was
+// never stored is freed with the pointers to it cleared.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::Destroy(CBaseObject* pcObject)
+{
+	CArrayOIndex				aoiHolders;
+	CArrayOIndex				aoiChanged;
+	CArrayEmbeddedObjectPtr		apcTos;
+	CEmbeddedObject*			pcEmbedded;
+	CBaseObject*				pcChanged;
+	OIndex						oi;
+	size						i;
+	size						j;
+	bool						bStored;
+	bool						bResult;
+
+	if (pcObject == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot destroy object [NULL].", NULL);
+	}
+	if (pcObject->IsEmbedded())
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot destroy an embedded object.  Destroy the object it is embedded in.", NULL);
+	}
+	if (pcObject->IsNamed(ROOT_NAME))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot destroy the root.", NULL);
+	}
+
+	oi = pcObject->GetIndex();
+	bStored = pcObject->IsStored() && (mpcDataConnection != NULL);
+	bResult = true;
+	if (bStored)
+	{
+		//Everything that points to it, as the database has it, and everything it points to, in memory.
+		aoiHolders.Init();
+		bResult = GetStoredHeapFroms(pcObject, &aoiHolders);
+		for (i = 0; bResult && (i < aoiHolders.NumElements()); i++)
+		{
+			bResult = LoadForDestroy(aoiHolders.GetValue(i));
+		}
+		aoiHolders.Kill();
+
+		apcTos.Init();
+		pcObject->GetPointerTos(&apcTos);
+		for (i = 0; bResult && (i < apcTos.NumElements()); i++)
+		{
+			bResult = LoadForDestroy(apcTos.GetPtr(i)->GetEmbeddingContainer()->GetIndex());
+		}
+		apcTos.Kill();
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " Could not load the objects pointing to or from [", IndexToString(oi), "].", NULL);
+		}
+
+		//Their pointers to it are cleared (and its to them): they are saved without it.
+		aoiChanged.Init();
+		for (i = 0; i < pcObject->NumEmbedded(); i++)
+		{
+			pcEmbedded = pcObject->GetEmbeddedObject(i);
+			for (j = 0; j < pcEmbedded->NumHeapFroms(); j++)
+			{
+				aoiChanged.Add(pcEmbedded->GetHeapFrom(j)->GetEmbeddingContainer()->GetIndex());
+			}
+		}
+		apcTos.Init();
+		pcObject->GetPointerTos(&apcTos);
+		for (i = 0; i < apcTos.NumElements(); i++)
+		{
+			aoiChanged.Add(apcTos.GetPtr(i)->GetEmbeddingContainer()->GetIndex());
+		}
+		apcTos.Kill();
+
+		pcObject->SetDirty(false);
+		pcObject->SetStored(false);
+	}
+
+	pcObject->Kill();
+
+	if (bStored)
+	{
+		for (i = 0; i < aoiChanged.NumElements(); i++)
+		{
+			pcChanged = GetFromMemory(aoiChanged.GetValue(i));
+			if ((pcChanged != NULL) && !pcChanged->IsHollow())
+			{
+				bResult &= ForceSave(pcChanged);
+				pcChanged->SetDirty(false);
+			}
+		}
+		aoiChanged.Kill();
+		bResult &= mpcDataConnection->Remove(oi);
+	}
+	return bResult;
 }
 
 

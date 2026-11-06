@@ -153,6 +153,31 @@ if (!result) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CObjectReader::ReadStoredHeapFroms(CBaseObject* pcThis)
+{
+	//The holders a serialised object was saved with, without loading its fields: they are skipped.  pcThis (the object in
+	//memory) gives the layout of its embedded objects.  The holders go to the dependents' AddReverseDependent.
+	filePos	iStart;
+	lsize	iLength;
+	int32	iMagic;
+
+	iStart = mcFile.GetFilePos();
+	if (!ReadSize(&iLength) || !mcFile.Seek(iStart + (filePos)iLength))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not skip a serialised object's fields.", NULL);
+	}
+	if (!ReadSize(&iLength) || !mcFile.ReadInt32(&iMagic) || (iMagic != OBJECT_FROM_HEAP))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not read a serialised object's froms header.", NULL);
+	}
+	return pcThis->LoadHeapFroms(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;

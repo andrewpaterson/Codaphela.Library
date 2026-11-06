@@ -167,6 +167,7 @@ public:
 
 			void					SetDirty(bool bDirty);
 			void					SetStored(bool bStored);
+			bool					Destroy(void);
 			int						GetDistToRoot(void);
 			bool					IsKnownHeldFromStack(void);
 			void					SetKnownHeldFromStack(void);
