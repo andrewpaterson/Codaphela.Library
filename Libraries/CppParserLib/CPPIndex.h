@@ -145,6 +145,9 @@ typedef CArrayTemplatePtr<CCPPIndexSymbol>	CArrayIndexSymbols;
 //References and the refactorings built on them.  A header seen by many units is only indexed once.
 class CCPPIndex
 {
+friend class CCPPIndexNameChildren;
+friend class CCPPIndexContainerChildren;
+friend class CCPPIndexHierarchyChildren;
 protected:
 	CArrayChars				maszFiles;
 	CMapStringInt			mcFiles;		//File name to index in maszFiles.

@@ -65,6 +65,37 @@ public:
 };
 
 
+//Given each of a node's children that isn't NULL, in order (pcNode->VisitFields(this)): a walk over every child visits
+//the fields once, where GetChild(i) for each child visits them from the start each time.
+class CCPPSyntaxChildVisitor : public CCPPSyntaxFields
+{
+public:
+	virtual void	Visit(CCPPSyntax* pcChild) =0;
+
+	void	NodeField(CCPPSyntax** ppcNode) override
+	{
+		if (*ppcNode)
+		{
+			Visit(*ppcNode);
+		}
+	}
+	void	NodesField(CArraySyntax* papcNodes) override
+	{
+		size		i;
+		CCPPSyntax*	pcChild;
+
+		for (i = 0; i < papcNodes->NumElements(); i++)
+		{
+			pcChild = papcNodes->GetPtr(i);
+			if (pcChild)
+			{
+				Visit(pcChild);
+			}
+		}
+	}
+};
+
+
 //A node of the abstract syntax tree.  Nodes know the tokens they were parsed from, so they can be found in the source.
 //Each kind of node gives its fields to a CCPPSyntaxFields (VisitFields); its children are found from them.
 class CCPPSyntax

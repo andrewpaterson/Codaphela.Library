@@ -475,6 +475,38 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 }
 
 
+//The index's walks go on to each child: names (FindNames), containers (FindContainers) and classes' bases and
+//virtual functions (FindHierarchy).
+class CCPPIndexNameChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CArrayIndexTokens*	mpasTokens;
+	bool				mbInDefinition;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindNames(pcChild, mpasTokens, mbInDefinition); }
+};
+
+
+class CCPPIndexContainerChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CArrayIndexTokens*	mpasTokens;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindContainers(pcChild, mpasTokens); }
+};
+
+
+class CCPPIndexHierarchyChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPSymbolKey*	mpcKeys;
+	CCPPSyntaxTree*	mpcTree;
+	CCPPIndexUnit*	mpcDest;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ CCPPIndex::FindHierarchy(mpcKeys, mpcTree, pcChild, mpcDest); }
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Each token's innermost class or function definition: its node is set
@@ -485,9 +517,7 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 {
 	int32			iToken;
 	SCPPIndexToken*	psToken;
-	size			i;
-	size			uiChildren;
-	CCPPSyntax*		pcChild;
+	CCPPIndexContainerChildren	cChildren;
 
 	if ((pcNode->GetKind() == CPPS_FunctionDefinition) || ((pcNode->GetKind() == CPPS_ClassSpecifier) && ((CCPPSyntaxClassSpecifier*)pcNode)->mpcName))
 	{
@@ -500,15 +530,8 @@ void CCPPIndex::FindContainers(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens)
 			}
 		}
 	}
-	uiChildren = pcNode->NumChildren();
-	for (i = 0; i < uiChildren; i++)
-	{
-		pcChild = pcNode->GetChild(i);
-		if (pcChild)
-		{
-			FindContainers(pcChild, pasTokens);
-		}
-	}
+	cChildren.mpasTokens = pasTokens;
+	pcNode->VisitFields(&cChildren);
 }
 
 
@@ -566,8 +589,7 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 	ECPPSymbolKind				eKind;
 	bool						bVirtual;
 	size						i;
-	size						uiChildren;
-	CCPPSyntax*					pcChild;
+	CCPPIndexHierarchyChildren	cChildren;
 
 	switch (pcNode->GetKind())
 	{
@@ -618,15 +640,10 @@ void CCPPIndex::FindHierarchy(CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCP
 		break;
 	}
 
-	uiChildren = pcNode->NumChildren();
-	for (i = 0; i < uiChildren; i++)
-	{
-		pcChild = pcNode->GetChild(i);
-		if (pcChild)
-		{
-			FindHierarchy(pcKeys, pcTree, pcChild, pcDest);
-		}
-	}
+	cChildren.mpcKeys = pcKeys;
+	cChildren.mpcTree = pcTree;
+	cChildren.mpcDest = pcDest;
+	pcNode->VisitFields(&cChildren);
 }
 
 
@@ -728,9 +745,7 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 	CCPPSyntaxDeclarator*	pcDeclarator;
 	CCPPSyntaxExpression*	pcCallee;
 	SCPPIndexToken*			psToken;
-	size					i;
-	size					uiChildren;
-	CCPPSyntax*				pcChild;
+	CCPPIndexNameChildren	cChildren;
 	int						iArguments;
 
 	pcName = NULL;
@@ -801,15 +816,9 @@ void CCPPIndex::FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool
 	{
 		bInDefinition = false;
 	}
-	uiChildren = pcNode->NumChildren();
-	for (i = 0; i < uiChildren; i++)
-	{
-		pcChild = pcNode->GetChild(i);
-		if (pcChild)
-		{
-			FindNames(pcChild, pasTokens, (pcNode->GetKind() == CPPS_ClassSpecifier) || (pcNode->GetKind() == CPPS_EnumSpecifier) ? false : bInDefinition);
-		}
-	}
+	cChildren.mpasTokens = pasTokens;
+	cChildren.mbInDefinition = (pcNode->GetKind() == CPPS_ClassSpecifier) || (pcNode->GetKind() == CPPS_EnumSpecifier) ? false : bInDefinition;
+	pcNode->VisitFields(&cChildren);
 }
 
 

@@ -400,6 +400,24 @@ CCPPSyntaxDeclarator* CCPPSymbolKey::GetDeclarator(CCPPSymbol* pcSymbol)
 }
 
 
+//Looks for a symbol's declarator in each of a node's children until it is found (CCPPSymbolKey::FindDeclarator).
+class CCPPSymbolKeyDeclaratorFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPSymbolKey*			mpcKeys;
+	CCPPSymbol*				mpcSymbol;
+	CCPPSyntaxDeclarator*	mpcFound;
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		if (mpcFound == NULL)
+		{
+			mpcFound = mpcKeys->FindDeclarator(pcChild, mpcSymbol);
+		}
+	}
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The declarator under pcNode whose name declares pcSymbol.  Function
@@ -411,9 +429,7 @@ CCPPSyntaxDeclarator* CCPPSymbolKey::FindDeclarator(CCPPSyntax* pcNode, CCPPSymb
 	CCPPSyntaxDeclarator*	pcDeclarator;
 	CCPPSyntaxName*			pcName;
 	SCPPTokenSymbol*		psSymbol;
-	size					i;
-	size					uiChildren;
-	CCPPSyntax*				pcChild;
+	CCPPSymbolKeyDeclaratorFinder	cChildren;
 
 	if (pcNode->GetKind() == CPPS_Declarator)
 	{
@@ -433,20 +449,11 @@ CCPPSyntaxDeclarator* CCPPSymbolKey::FindDeclarator(CCPPSyntax* pcNode, CCPPSymb
 		return NULL;
 	}
 
-	uiChildren = pcNode->NumChildren();
-	for (i = 0; i < uiChildren; i++)
-	{
-		pcChild = pcNode->GetChild(i);
-		if (pcChild)
-		{
-			pcDeclarator = FindDeclarator(pcChild, pcSymbol);
-			if (pcDeclarator)
-			{
-				return pcDeclarator;
-			}
-		}
-	}
-	return NULL;
+	cChildren.mpcKeys = this;
+	cChildren.mpcSymbol = pcSymbol;
+	cChildren.mpcFound = NULL;
+	pcNode->VisitFields(&cChildren);
+	return cChildren.mpcFound;
 }
 
 

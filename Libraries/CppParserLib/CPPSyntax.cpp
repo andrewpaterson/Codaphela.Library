@@ -173,6 +173,17 @@ public:
 };
 
 
+//Type prints a node's children (CCPPSyntax::TypePrint).
+class CCPPSyntaxTypePrinter : public CCPPSyntaxChildVisitor
+{
+public:
+	CChars*	mpszDest;
+	int		miDepth;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ pcChild->TypePrint(mpszDest, miDepth); }
+};
+
+
 //Finds a node's child by index (CCPPSyntax::GetChild), counting as CCPPSyntaxChildCounter does.
 class CCPPSyntaxChildFinder : public CCPPSyntaxFields
 {
@@ -266,9 +277,7 @@ CCPPSyntax* CCPPSyntax::GetChild(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntax::TypePrint(CChars* pszDest, int iDepth)
 {
-	size		i;
-	size		uiNumChildren;
-	CCPPSyntax*	pcChild;
+	CCPPSyntaxTypePrinter	cChildren;
 
 	pszDest->Append(' ', iDepth * 2);
 	pszDest->Append(GetType());
@@ -278,15 +287,9 @@ void CCPPSyntax::TypePrint(CChars* pszDest, int iDepth)
 	pszDest->Append(miLastToken);
 	pszDest->Append("]\n");
 
-	uiNumChildren = NumChildren();
-	for (i = 0; i < uiNumChildren; i++)
-	{
-		pcChild = GetChild(i);
-		if (pcChild)
-		{
-			pcChild->TypePrint(pszDest, iDepth + 1);
-		}
-	}
+	cChildren.mpszDest = pszDest;
+	cChildren.miDepth = iDepth + 1;
+	VisitFields(&cChildren);
 }
 
 

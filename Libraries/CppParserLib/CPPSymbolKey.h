@@ -35,6 +35,7 @@ class CCPPSyntaxParameter;
 //declared (@File.cpp:12:5).
 class CCPPSymbolKey
 {
+friend class CCPPSymbolKeyDeclaratorFinder;
 protected:
 	CCPPTokeniser*	mpcTokeniser;
 	CCPPSyntaxTree*	mpcTree;

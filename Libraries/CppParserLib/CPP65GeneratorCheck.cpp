@@ -218,20 +218,26 @@ void CCPP65Generator::CheckNode(CCPPSyntax* pcNode)
 }
 
 
+//Checks each of a node's children (CCPP65Generator::CheckChildren).
+class CCPP65CheckChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPP65Generator*	mpcGenerator;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ mpcGenerator->CheckNode(pcChild); }
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::CheckChildren(CCPPSyntax* pcNode)
 {
-	size	i;
-	size	uiChildren;
+	CCPP65CheckChildren	cChildren;
 
-	uiChildren = pcNode->NumChildren();
-	for (i = 0; i < uiChildren; i++)
-	{
-		CheckNode(pcNode->GetChild(i));
-	}
+	cChildren.mpcGenerator = this;
+	pcNode->VisitFields(&cChildren);
 }
 
 

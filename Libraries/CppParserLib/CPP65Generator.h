@@ -354,6 +354,7 @@ class CCPPSemanticPass;
 //going past what it can't type (CPP65GeneratorCheck.cpp).
 class CCPP65Generator
 {
+friend class CCPP65CheckChildren;
 friend class CCPP65IRFrontEnd;
 friend class CCPP65TypeChecker;
 protected:
