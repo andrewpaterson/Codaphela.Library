@@ -150,6 +150,63 @@ void TestStoredObjectsWithoutPathToRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Evicting saves the dirty objects that are stored or can find the root
+// first, and drops unreachable objects that never reached the database.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStoredObjectsEvict(void)
+{
+	CFileUtil			cFileUtil;
+	STestStoredObjects	sStore;
+	Ptr<CString>		pDoor;
+	Ptr<CString>		pWindow;
+	Ptr<CString>		pTransient;
+	Ptr<CRoot>			pRoot;
+	int64				iNumIndices;
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+	TestStoredObjectsWriteDoor();
+
+	sStore.Init();
+	iNumIndices = sStore.pcDatabase->NumIndices();
+
+	//Stored, with no path to the root.
+	pDoor = gcObjects.Get<CString>("Door");
+	pDoor->Set("ajar");
+
+	//Rooted, never saved.
+	pRoot = ORoot();
+	pWindow = ONMalloc<CString>("Window", "open");
+	pRoot->Add(pWindow);
+
+	//Unreachable, never saved.
+	pTransient = OMalloc<CString>("transient");
+
+	pDoor = NULL;
+	pWindow = NULL;
+	pRoot = NULL;
+	AssertTrue(gcObjects.EvictInMemory());
+	pTransient = NULL;
+	AssertLong(0, gcObjects.NumMemoryIndexes());
+	AssertLong(iNumIndices + 1, sStore.pcDatabase->NumIndices());
+
+	pWindow = gcObjects.Get<CString>("Window");
+	AssertTrue(pWindow.IsNotNull());
+	AssertString("open", pWindow->Text());
+	pRoot = ORoot();
+	AssertLong(2, pRoot->NumObjects());
+	pWindow = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+	AssertStoredDoor("ajar");
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStoredObjects(void)
@@ -160,6 +217,7 @@ void TestStoredObjects(void)
 	DataIOInit();
 
 	TestStoredObjectsWithoutPathToRoot();
+	TestStoredObjectsEvict();
 
 	DataIOKill();
 	TypesKill();

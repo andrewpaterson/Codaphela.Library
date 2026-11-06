@@ -383,10 +383,47 @@ bool CObjects::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::EvictInMemory(void)
 {
+	bool	bResult;
+
+	bResult = SaveDirtyInMemory();
 	FreeAllInKillOrder(true);
 
 	mcMemory.ReInit();
-	return true;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Flush before free, for everything in memory: every dirty object that can
+// find the root or is stored is saved.  Unreachable objects that never
+// reached the database are left to be freed without saving.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::SaveDirtyInMemory(void)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+	CBaseObject*		pcBaseObject;
+	bool				bResult;
+
+	if (!mpcDataConnection)
+	{
+		return true;
+	}
+
+	bResult = true;
+	oi = StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		pcBaseObject = GetFromMemory(oi);
+		if (pcBaseObject->IsDirty() && (pcBaseObject->IsStored() || (pcBaseObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT)))
+		{
+			bResult &= pcBaseObject->Flush();
+		}
+		oi = IterateMemory(&sIter);
+	}
+	return bResult;
 }
 
 

@@ -198,6 +198,7 @@ protected:
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
+						bool					SaveDirtyInMemory(void);
 						void					FreeAllInKillOrder(bool bDeallocate);
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);
 
