@@ -291,6 +291,7 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue)
 {
 	CChars			szName;
+	char*			szLabel;
 	char*			szIdentifier;
 	int				iLength;
 	double			dValue;
@@ -377,8 +378,19 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 
 		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
 		//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
-		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 they are narrowed to a
-		//byte instead, whose count is looked up (CountTable).
+		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 those of 16 and 32 bits
+		//are the runtime's R816_Clz16 ... (a byte table read with long,X), of 64 bits narrowed to a byte whose count
+		//is looked up (CountTable).
+		if (!szName.Equals("popcount") && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (psType->iBytes <= 4))
+		{
+			szLabel = (char*)(szName.Equals("clz") ? ((psType->iBytes == 4) ? "R816_Clz32" : "R816_Clz16") : ((psType->iBytes == 4) ? "R816_Ctz32" : "R816_Ctz16"));
+			maszRuntime.AddIfUnique(szLabel);
+			mpcFunction->Argument(mpcBlock, IRTypeOf(psType), sArgument.sValue);
+			psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msInt), mcModule.Symbol(szLabel));
+			psValue->psType = &mpcTypes->msInt;
+			szName.Kill();
+			return true;
+		}
 		if (!szName.Equals("popcount") && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
 		{
 			bResult = CountTable(szName.Equals("clz"), &sArgument, psType, psValue);

@@ -69,6 +69,10 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_AShr32", true, false },
 	{ "R816_BcdAdd", false, false },
 	{ "R816_BcdSubtract", false, false },
+	{ "R816_Clz16", false, false },
+	{ "R816_Clz32", false, false },
+	{ "R816_Ctz16", false, false },
+	{ "R816_Ctz32", false, false },
 	{ NULL, false, false }
 };
 

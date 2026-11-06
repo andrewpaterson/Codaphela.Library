@@ -611,8 +611,8 @@ void TestCPP816Divide64(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // 1 << n looked up in R816_Bits16 and R816_Bits32 (CIR816Backend::
-// BitShift), and __builtin_clz and ctz narrowed to a byte and looked up
-// (CCPP65IRFrontEnd::CountTable), against loops, for every count and bit.
+// BitShift), and __builtin_clz and ctz (the runtime's R816_Clz16 ...),
+// against loops, for every count and bit.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816BitTables(void)
@@ -622,6 +622,7 @@ void TestCPP816BitTables(void)
 		"int Clz32(unsigned long x) { int n = 0; if (x == 0) { return 32; } while (!(x & 0x80000000UL)) { x <<= 1; n++; } return n; }\n"
 		"int Ctz32(unsigned long x) { int n = 0; if (x == 0) { return 32; } while (!(x & 1)) { x >>= 1; n++; } return n; }\n"
 		"int Clz16(unsigned int x) { int n = 0; if (x == 0) { return 16; } while (!(x & 0x8000)) { x <<= 1; n++; } return n; }\n"
+		"int Ctz16(unsigned int x) { int n = 0; if (x == 0) { return 16; } while (!(x & 1)) { x >>= 1; n++; } return n; }\n"
 		"int main(void)\n"
 		"{\n"
 		"\tint\t\t\ti;\n"
@@ -646,9 +647,55 @@ void TestCPP816BitTables(void)
 		"\t\t\tif (__builtin_clzl(ulX) != Clz32(ulX)) { return 300 + i; }\n"
 		"\t\t\tif (__builtin_ctzl(ulX) != Ctz32(ulX)) { return 400 + i; }\n"
 		"\t\t\tif (__builtin_clz((unsigned int)ulX) != Clz16((unsigned int)ulX)) { return 500 + i; }\n"
+		"\t\t\tif (__builtin_ctz((unsigned int)ulX) != Ctz16((unsigned int)ulX)) { return 600 + i; }\n"
 		"\t\t}\n"
 		"\t}\n"
 		"\tif ((__builtin_clzl(0) != 32) || (__builtin_ctzl(0) != 32) || (__builtin_clz(0) != 16) || (__builtin_ctz(0) != 16)) { return 2; }\n"
+		"\treturn 1;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __builtin_clz and ctz (R816_Clz16, R816_Ctz16) of every 16 bit value,
+// and of 4000 pseudo random 32 bit (R816_Clz32, R816_Ctz32) and 64 bit
+// (CountTable) values of every width, against loops.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816CountZeros(void)
+{
+	AssertInt(1, TestCPP816Run(
+		"int Clz64(unsigned long long x) { int n = 0; if (x == 0) { return 64; } while (!(x & 0x8000000000000000ULL)) { x <<= 1; n++; } return n; }\n"
+		"int Ctz64(unsigned long long x) { int n = 0; if (x == 0) { return 64; } while (!(x & 1)) { x >>= 1; n++; } return n; }\n"
+		"int Clz16(unsigned int x) { int n = 0; if (x == 0) { return 16; } while (!(x & 0x8000)) { x <<= 1; n++; } return n; }\n"
+		"int Ctz16(unsigned int x) { int n = 0; if (x == 0) { return 16; } while (!(x & 1)) { x >>= 1; n++; } return n; }\n"
+		"int main(void)\n"
+		"{\n"
+		"\tunsigned int\t\tu;\n"
+		"\tunsigned long\t\tul;\n"
+		"\tunsigned long long\tull;\n"
+		"\tunsigned long\t\tulRandom;\n"
+		"\tint\t\t\t\ti;\n"
+		"\tu = 0;\n"
+		"\tdo\n"
+		"\t{\n"
+		"\t\tif (__builtin_clz(u) != Clz16(u)) { return 100; }\n"
+		"\t\tif (__builtin_ctz(u) != Ctz16(u)) { return 200; }\n"
+		"\t\tu++;\n"
+		"\t} while (u != 0);\n"
+		"\tulRandom = 12345;\n"
+		"\tfor (i = 0; i < 4000; i++)\n"
+		"\t{\n"
+		"\t\tulRandom = ulRandom * 1103515245UL + 12345UL;\n"
+		"\t\tul = ulRandom >> ((ulRandom >> 27) & 31);\n"
+		"\t\tif ((ulRandom & 0x300) == 0) { ul <<= (ulRandom >> 10) & 31; }\n"
+		"\t\tif (__builtin_clzl(ul) != ((ul == 0) ? 32 : Clz64(ul) - 32)) { return 300; }\n"
+		"\t\tif (__builtin_ctzl(ul) != ((ul == 0) ? 32 : Ctz64(ul))) { return 400; }\n"
+		"\t\tull = ((unsigned long long)ul << ((ulRandom >> 4) & 31)) ^ ((unsigned long long)ulRandom << 32);\n"
+		"\t\tif (__builtin_clzll(ull) != Clz64(ull)) { return 500; }\n"
+		"\t\tif (__builtin_ctzll(ull) != Ctz64(ull)) { return 600; }\n"
+		"\t}\n"
 		"\treturn 1;\n"
 		"}\n"));
 }
@@ -5392,6 +5439,7 @@ void TestCPP816(void)
 	TestCPP816SharedDivisions();
 	TestCPP816Divide64();
 	TestCPP816BitTables();
+	TestCPP816CountZeros();
 	TestCPP816BitTable64();
 	TestCPP816ShiftCounts();
 	TestCPP816IndexedWords();
