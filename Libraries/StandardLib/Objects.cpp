@@ -518,26 +518,15 @@ bool CObjects::LoadForDestroy(OIndex oi)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Deletes pcObject from the database as well as from memory.  Everything
-// that points to it or that it points to is loaded, so each of their
-// pointers to it is cleared and they are saved without it.  The objects
-// it held are left in the database for the database's garbage collection
-// (they may be held by objects that are not loaded).  An object that was
-// never stored is freed with the pointers to it cleared.
+// Deletes pcObject from the database as well as from memory (see
+// Destroy(CArrayOIndex*)).  An object that was never stored is freed with
+// the pointers to it cleared.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Destroy(CBaseObject* pcObject)
 {
-	CArrayOIndex				aoiHolders;
-	CArrayOIndex				aoiChanged;
-	CArrayEmbeddedObjectPtr		apcTos;
-	CEmbeddedObject*			pcEmbedded;
-	CBaseObject*				pcChanged;
-	OIndex						oi;
-	size						i;
-	size						j;
-	bool						bStored;
-	bool						bResult;
+	CArrayOIndex	aoiDestroyed;
+	bool			bResult;
 
 	if (pcObject == NULL)
 	{
@@ -547,88 +536,262 @@ bool CObjects::Destroy(CBaseObject* pcObject)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot destroy an embedded object.  Destroy the object it is embedded in.", NULL);
 	}
-	if (pcObject->IsNamed(ROOT_NAME))
+	if (!pcObject->IsStored() || (mpcDataConnection == NULL))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot destroy the root.", NULL);
+		if (pcObject->IsNamed(ROOT_NAME))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot destroy the root.", NULL);
+		}
+		pcObject->Kill();
+		return true;
 	}
 
-	oi = pcObject->GetIndex();
-	bStored = pcObject->IsStored() && (mpcDataConnection != NULL);
-	bResult = true;
-	if (bStored)
-	{
-		//Everything that points to it, as the database has it, and everything it points to, in memory.
-		aoiHolders.Init();
-		bResult = GetStoredHeapFroms(pcObject, &aoiHolders);
-		for (i = 0; bResult && (i < aoiHolders.NumElements()); i++)
-		{
-			bResult = LoadForDestroy(aoiHolders.GetValue(i));
-		}
-		aoiHolders.Kill();
+	aoiDestroyed.Init();
+	aoiDestroyed.Add(pcObject->GetIndex());
+	bResult = Destroy(&aoiDestroyed);
+	aoiDestroyed.Kill();
+	return bResult;
+}
 
-		apcTos.Init();
-		pcObject->GetPointerTos(&apcTos);
-		for (i = 0; bResult && (i < apcTos.NumElements()); i++)
-		{
-			bResult = LoadForDestroy(apcTos.GetPtr(i)->GetEmbeddingContainer()->GetIndex());
-		}
-		apcTos.Kill();
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds oi to paoi if it is not there.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddUniqueIndex(CArrayOIndex* paoi, OIndex oi)
+{
+	if (paoi->Find(oi) == ARRAY_LARGE_ELEMENT_NOT_FOUND)
+	{
+		paoi->Add(oi);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Deletes the objects paoiDestroyed lists from the database as well as
+// from memory.  Everything that points to them (their stored holders,
+// read from their records) and everything they point to is loaded; the
+// pointers from outside the set to them are cleared and those objects are
+// saved without them; then their records and names are removed.
+// Pointers between the objects destroyed are not saved: they all go.  The
+// objects they held that are not destroyed are left in the database for
+// the database's garbage collection (objects that are not loaded may
+// still hold them).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
+{
+	CArrayOIndex				aoiHolders;
+	CArrayOIndex				aoiChanged;
+	CArrayEmbeddedObjectPtr		apcTos;
+	CEmbeddedObject*			pcEmbedded;
+	CBaseObject*				pcObject;
+	CBaseObject*				pcChanged;
+	OIndex						oi;
+	OIndex						oiOther;
+	size						i;
+	size						j;
+	size						k;
+	bool						bResult;
+
+	if (mpcDataConnection == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot destroy objects without a database.", NULL);
+	}
+
+	//The objects destroyed, everything that points to them, as the database has it, and everything they point to, in memory.
+	bResult = true;
+	for (i = 0; bResult && (i < paoiDestroyed->NumElements()); i++)
+	{
+		oi = paoiDestroyed->GetValue(i);
+		bResult = LoadForDestroy(oi);
 		if (!bResult)
 		{
-			return gcLogger.Error2(__METHOD__, " Could not load the objects pointing to or from [", IndexToString(oi), "].", NULL);
+			return gcLogger.Error2(__METHOD__, " Could not load object [", IndexToString(oi), "] to destroy it.", NULL);
+		}
+		pcObject = GetFromMemory(oi);
+		if (pcObject->IsNamed(ROOT_NAME))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot destroy the root.", NULL);
+		}
+	}
+	for (i = 0; bResult && (i < paoiDestroyed->NumElements()); i++)
+	{
+		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
+		if (pcObject->IsStored())
+		{
+			aoiHolders.Init();
+			bResult = GetStoredHeapFroms(pcObject, &aoiHolders);
+			for (j = 0; bResult && (j < aoiHolders.NumElements()); j++)
+			{
+				bResult = LoadForDestroy(aoiHolders.GetValue(j));
+			}
+			aoiHolders.Kill();
 		}
 
-		//Their pointers to it are cleared (and its to them): they are saved without it.
-		aoiChanged.Init();
-		for (i = 0; i < pcObject->NumEmbedded(); i++)
+		apcTos.Init();
+		pcObject->GetPointerTos(&apcTos);
+		for (j = 0; bResult && (j < apcTos.NumElements()); j++)
 		{
-			pcEmbedded = pcObject->GetEmbeddedObject(i);
-			for (j = 0; j < pcEmbedded->NumHeapFroms(); j++)
+			bResult = LoadForDestroy(apcTos.GetPtr(j)->GetEmbeddingContainer()->GetIndex());
+		}
+		apcTos.Kill();
+	}
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not load the objects pointing to or from the objects destroyed.", NULL);
+	}
+
+	//The objects outside the set whose pointers to them, or holders, change.
+	aoiChanged.Init();
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
+	{
+		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
+		for (j = 0; j < pcObject->NumEmbedded(); j++)
+		{
+			pcEmbedded = pcObject->GetEmbeddedObject(j);
+			for (k = 0; k < pcEmbedded->NumHeapFroms(); k++)
 			{
-				aoiChanged.Add(pcEmbedded->GetHeapFrom(j)->GetEmbeddingContainer()->GetIndex());
+				oiOther = pcEmbedded->GetHeapFrom(k)->GetEmbeddingContainer()->GetIndex();
+				if (paoiDestroyed->Find(oiOther) == ARRAY_LARGE_ELEMENT_NOT_FOUND)
+				{
+					AddUniqueIndex(&aoiChanged, oiOther);
+				}
 			}
 		}
 		apcTos.Init();
 		pcObject->GetPointerTos(&apcTos);
-		for (i = 0; i < apcTos.NumElements(); i++)
+		for (j = 0; j < apcTos.NumElements(); j++)
 		{
-			aoiChanged.Add(apcTos.GetPtr(i)->GetEmbeddingContainer()->GetIndex());
-		}
-		apcTos.Kill();
-
-		//They are all changed.  Its own pointers are cleared first, so what it points to is saved without it as a holder
-		//(an object it alone held is freed here, and saved first as it is dirty).
-		for (i = 0; i < aoiChanged.NumElements(); i++)
-		{
-			pcChanged = GetFromMemory(aoiChanged.GetValue(i));
-			if (pcChanged != NULL)
+			oiOther = apcTos.GetPtr(j)->GetEmbeddingContainer()->GetIndex();
+			if (paoiDestroyed->Find(oiOther) == ARRAY_LARGE_ELEMENT_NOT_FOUND)
 			{
-				pcChanged->SetDirty(true);
+				AddUniqueIndex(&aoiChanged, oiOther);
 			}
 		}
-		pcObject->ClearPointerTos(true);
+		apcTos.Kill();
+	}
+	for (i = 0; i < aoiChanged.NumElements(); i++)
+	{
+		pcChanged = GetFromMemory(aoiChanged.GetValue(i));
+		if (pcChanged != NULL)
+		{
+			pcChanged->SetDirty(true);
+		}
+	}
 
+	//The objects destroyed are not saved again.  Their own pointers are cleared first, so what they point to is saved
+	//without them as holders.  Nothing is freed while they are cleared: the objects loaded here may have no path to the
+	//root (they were loaded for this) and a free could take ones still being worked on.
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
+	{
+		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
 		pcObject->SetDirty(false);
 		pcObject->SetStored(false);
 	}
-
-	pcObject->Kill();
-
-	if (bStored)
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
 	{
-		for (i = 0; i < aoiChanged.NumElements(); i++)
+		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
+		pcObject->ClearPointerTos(false);
+	}
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
+	{
+		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
+		if (pcObject != NULL)
 		{
-			pcChanged = GetFromMemory(aoiChanged.GetValue(i));
-			if ((pcChanged != NULL) && !pcChanged->IsHollow())
-			{
-				bResult &= ForceSave(pcChanged);
-				pcChanged->SetDirty(false);
-			}
+			pcObject->SetDirty(false);
+			pcObject->Kill();
 		}
-		aoiChanged.Kill();
-		bResult &= mpcDataConnection->Remove(oi);
+	}
+
+	for (i = 0; i < aoiChanged.NumElements(); i++)
+	{
+		pcChanged = GetFromMemory(aoiChanged.GetValue(i));
+		if ((pcChanged != NULL) && !pcChanged->IsHollow() && pcChanged->IsDirty())
+		{
+			bResult &= ForceSave(pcChanged);
+			pcChanged->SetDirty(false);
+		}
+	}
+
+	//Saved, they are freed if nothing reaches them any more (the objects only the destroyed ones held).
+	for (i = 0; i < aoiChanged.NumElements(); i++)
+	{
+		pcChanged = GetFromMemory(aoiChanged.GetValue(i));
+		if (pcChanged != NULL)
+		{
+			FromRemoved(pcChanged, true);
+		}
+	}
+	aoiChanged.Kill();
+
+	for (i = 0; i < paoiDestroyed->NumElements(); i++)
+	{
+		oi = paoiDestroyed->GetValue(i);
+		if (mpcDataConnection->Contains(oi))
+		{
+			bResult &= mpcDataConnection->Remove(oi);
+		}
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads everything pcStart reaches through its pointers, following the
+// pointers of what it loads in turn, and adds each object's OIndex
+// (pcStart's first) to paoiLoaded.  The walk stops with an error if it
+// would load more than uiMaxObjects objects: it could pull in the whole
+// database.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::LoadForward(CBaseObject* pcStart, CArrayOIndex* paoiLoaded, size uiMaxObjects)
+{
+	CArrayEmbeddedObjectPtr		apcTos;
+	CBaseObject*				pcObject;
+	OIndex						oi;
+	OIndex						oiTo;
+	lsize						uiNext;
+	size						j;
+
+	if (pcStart == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot load forward from object [NULL].", NULL);
+	}
+
+	uiNext = paoiLoaded->NumElements();
+	AddUniqueIndex(paoiLoaded, pcStart->GetEmbeddingContainer()->GetIndex());
+	while (uiNext < paoiLoaded->NumElements())
+	{
+		oi = paoiLoaded->GetValue(uiNext);
+		uiNext++;
+		if (!LoadForDestroy(oi))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not load object [", IndexToString(oi), "].", NULL);
+		}
+		pcObject = GetFromMemory(oi);
+
+		apcTos.Init();
+		pcObject->GetPointerTos(&apcTos);
+		for (j = 0; j < apcTos.NumElements(); j++)
+		{
+			oiTo = apcTos.GetPtr(j)->GetEmbeddingContainer()->GetIndex();
+			if (paoiLoaded->Find(oiTo) == ARRAY_LARGE_ELEMENT_NOT_FOUND)
+			{
+				if (paoiLoaded->NumElements() >= uiMaxObjects)
+				{
+					apcTos.Kill();
+					return gcLogger.Error2(__METHOD__, " Loading forward from object [", IndexToString(pcStart->GetIndex()), "] reaches more than [", SizeToString(uiMaxObjects), "] objects.", NULL);
+				}
+				paoiLoaded->Add(oiTo);
+			}
+		}
+		apcTos.Kill();
+	}
+	return true;
 }
 
 

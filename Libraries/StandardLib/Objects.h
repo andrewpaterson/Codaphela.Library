@@ -94,6 +94,8 @@ public:
 						bool					Flush(void);
 						void					Discard(void);
 						bool					Destroy(CBaseObject* pcObject);
+						bool					Destroy(CArrayOIndex* paoiDestroyed);
+						bool					LoadForward(CBaseObject* pcStart, CArrayOIndex* paoiLoaded, size uiMaxObjects);
 						bool					GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders);  //The holders its record in the database was saved with.
 						bool					ValidateNoDirty(void);
 						bool					ForceSave(CBaseObject* pcObject);

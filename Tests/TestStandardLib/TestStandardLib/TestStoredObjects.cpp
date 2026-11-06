@@ -475,6 +475,124 @@ void TestStoredObjectsDestroy(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tiny garbage collection: B, held by A from the root, holds a Leaf and
+// a cycle C -> D -> E -> C that nothing else holds.  Loading forward from
+// B finds all of them, and destroying them together deletes them all and
+// leaves A pointing to nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestStoredObjectsDestroyForward(void)
+{
+	CFileUtil				cFileUtil;
+	STestStoredObjects		sStore;
+	Ptr<CRoot>				pRoot;
+	Ptr<CString>			pLeaf;
+	Ptr<CTestNamedString>	pA;
+	Ptr<CTestNamedString>	pB;
+	Ptr<CTestNamedString>	pC;
+	Ptr<CTestNamedString>	pD;
+	Ptr<CTestNamedString>	pE;
+	CArrayOIndex			aoiForward;
+	OIndex					aoiExpected[5];
+	int64					iNumIndices;
+	SLogConfig				sLogConfig;
+	size					i;
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+
+	//root -> A -> B -> C -> D -> E -> C, and B -> Leaf.
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	pLeaf = ONMalloc<CString>("Leaf", "leaf");
+	pE = ONMalloc<CTestNamedString>("E", Null(), Null(), "e");
+	pD = ONMalloc<CTestNamedString>("D", Null(), pE, "d");
+	pC = ONMalloc<CTestNamedString>("C", Null(), pD, "c");
+	pE->mpAnother = pC;
+	pB = ONMalloc<CTestNamedString>("B", pLeaf, pC, "b");
+	pA = ONMalloc<CTestNamedString>("A", Null(), pB, "a");
+	pRoot->Add(pA);
+	aoiExpected[0] = pB->GetIndex();
+	aoiExpected[1] = pC->GetIndex();
+	aoiExpected[2] = pD->GetIndex();
+	aoiExpected[3] = pE->GetIndex();
+	aoiExpected[4] = pLeaf->GetIndex();
+	pLeaf = NULL;
+	pA = NULL;
+	pB = NULL;
+	pC = NULL;
+	pD = NULL;
+	pE = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	iNumIndices = sStore.pcDatabase->NumIndices();
+
+	//B is loaded by name alone: A, its holder, is not in memory.
+	pB = gcObjects.Get<CTestNamedString>("B");
+	AssertTrue(pB.IsNotNull());
+
+	//The walk is limited.
+	aoiForward.Init();
+	sLogConfig = gcLogger.SetSilent();
+	AssertFalse(gcObjects.LoadForward((CBaseObject*)pB.Object(), &aoiForward, 3));
+	gcLogger.SetConfig(&sLogConfig);
+	aoiForward.Kill();
+
+	aoiForward.Init();
+	AssertTrue(gcObjects.LoadForward((CBaseObject*)pB.Object(), &aoiForward, 100));
+	AssertLong(5, aoiForward.NumElements());
+	AssertLong(aoiExpected[0], aoiForward.GetValue(0));
+	for (i = 0; i < 5; i++)
+	{
+		AssertTrue(aoiForward.Find(aoiExpected[i]) != ARRAY_LARGE_ELEMENT_NOT_FOUND);
+	}
+
+	pB = NULL;
+	AssertTrue(gcObjects.Destroy(&aoiForward));
+	aoiForward.Kill();
+
+	for (i = 0; i < 5; i++)
+	{
+		AssertFalse(sStore.pcDatabase->Contains(aoiExpected[i]));
+	}
+	AssertFalse(sStore.pcDatabase->Contains("B"));
+	AssertFalse(sStore.pcDatabase->Contains("C"));
+	AssertFalse(sStore.pcDatabase->Contains("Leaf"));
+	AssertLong(iNumIndices - 5, sStore.pcDatabase->NumIndices());
+	for (i = 0; i < 5; i++)
+	{
+		AssertTrue(gcObjects.TestGetFromMemory(aoiExpected[i]).IsNull());
+	}
+	pA = gcObjects.Get<CTestNamedString>("A");
+	AssertTrue(pA->mpAnother.IsNull());
+	AssertFalse(pA->IsDirty());
+	pA = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	sStore.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(1, pRoot->NumObjects());
+	pA = gcObjects.Get<CTestNamedString>("A");
+	AssertTrue(pA->mpAnother.IsNull());
+	AssertTrue(gcObjects.Get<CTestNamedString>("C").IsNull());
+	AssertTrue(gcObjects.Get<CString>("Leaf").IsNull());
+	pA = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	sStore.Kill();
+
+	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStoredObjects(void)
@@ -489,6 +607,7 @@ void TestStoredObjects(void)
 	TestStoredObjectsKillChecksDirty();
 	TestStoredObjectsKillLeavesHollow();
 	TestStoredObjectsDestroy();
+	TestStoredObjectsDestroyForward();
 
 	DataIOKill();
 	TypesKill();
