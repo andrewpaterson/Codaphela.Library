@@ -673,7 +673,9 @@ void CX11Window::MouseButton(unsigned int uiButton, unsigned int uiState, int x,
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     pcInput = pcFactory->GetInput();
 
-    if (!mbPointerKnown || (x != miPointerX) || (y != miPointerY))
+    //A press always says where it is: the window forgets the pointer is over it while it isn't active, so a click
+    //that activates it (or comes after a dialog closes) without the pointer moving would be over nothing.
+    if (bPressed || !mbPointerKnown || (x != miPointerX) || (y != miPointerY))
     {
         MouseMoved(x, y);
     }
