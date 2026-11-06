@@ -39,17 +39,21 @@ The three stores in the game case
   - Save game database.  Its own database (decided 2026-11-05), written by serialisation; see "Save games" below.
 
 
-Layered connection (proposed)
------------------------------
+Layered connection (decided 2026-11-06)
+---------------------------------------
 
-A stack of layers that CObjects sees as one CDataConnection.  The layering lives below CObjects (BaseLib / Codabase) so that "flush before free" stays "write to the connection".
+A stack of layers that CObjects sees as one CDataConnection (chosen over CObjects holding a list of connections).  Existing code to build on: CWriteTransaction already reads its own records first and falls through to its CCodabase, with removals as tombstones (bRemoved).  The external object sources (CObjectsSource) cannot hold the databases: they are found by name only (dehollowing by OIndex never looks in them), the native converter gives what it reads new OIndexes, and nothing is written to them.  The layering lives below CObjects (BaseLib / Codabase) so that "flush before free" stays "write to the connection".
 
   - Reads go to the top layer first and fall through to lower layers.
   - Writes (including flush before free) go to the top writable layer.
+  - The writable layer is a separate second CCodabase, not a spilling write set.
+  - The same OIndex in two layers: the first (top) layer wins.
+  - The layered connection owns one writable sequence (CObjects already takes one CSequenceConnection, separate from its CDataConnection; a CCodabase has none).  When the layers open, it starts above every lower layer's highest OIndex, so a new object never hides a lower layer's object.  Needs: a way to raise a CSequence's next index, and each read-only layer reporting its highest OIndex.
+  - Sub-sequences (decided 2026-11-06): a CSequence can reserve a block of indices (written to its file at once, never handed out by GetNext).  A sub-sequence hands out indices only from one reserved block and fails when it runs out.  When a level is released its sequence reserves a block for the game; the game's writable sequence is a sub-sequence of that block, so the virtual memory layer and save games number inside it.  A later update to the level continues the level's own sequence above the block and cannot collide with anything a save game created.  Saves of the same level can share the block: only one save is ever layered over a level.  The level records its reserved block(s).
   - Deletes in a top layer are tombstones ("did not exist"), so a deleted lower-layer object does not reappear.  CodabaseVersions chain entries already have a "did not exist" entry.
   - Names resolve top down, with tombstones for removed names.
 
-The virtual memory layer needs no durability (no Begin/End brackets, no fsync).  It is the same component as a spillable transaction write set (deferred in CodabaseTransactions.txt).
+The virtual memory layer needs no durability (no Begin/End brackets, no fsync).
 
   Use                     Layers (top first)                                  Top layer at the end
   Game                    virtual memory (writable, not durable) -> level     discarded at shutdown
@@ -57,20 +61,24 @@ The virtual memory layer needs no durability (no Begin/End brackets, no fsync). 
   Transaction             write set (spillable) -> base                       commit merges into base; abort drops it
 
 
-Database ID in the OIndex (decided)
------------------------------------
+Lookup order (decided 2026-11-06)
+---------------------------------
 
-The top 8 bits of an OIndex hold the ID of the database that created the object.
+An object is looked for in:
+  1. Memory.
+  2. The writable database.  A changed object is written here and keeps its OIndex.
+  3. The read-only database(s).
+  4. The external object sources (CObjects::GetFromSources).
 
-  - IDs are 0x00 to 0x7F.  OIndex stays a signed int64, so the value is never negative.  0xFF is never used as an ID (INVALID_O_INDEX is -1).
-  - ID 0 is existing databases: current files and test data need no format change.
-  - Database k starts its sequence at (k << 56) + 1.  (k << 56) itself is never handed out, so NULL_O_INDEX (0) stays unambiguous.
-  - Nothing else is encoded in an OIndex today.  It is a plain CSequence counter.  The class is stored as a name string in the object header, and embedded objects have no OIndex of their own (container OIndex + embedded index).
+An object keeps its OIndex wherever its changed copy is written: references to it held in a read-only database cannot be updated.
 
-The ID says which database created an object, not where its newest version is.  A level object changed by the game keeps its ID 0 OIndex but its current copy lives in the virtual memory layer, so lookups by OIndex still try the top layer first.  The ID gives shortcuts:
-  - An object created in the virtual memory layer never needs a lookup in the level database.
-  - Anything not found in the layer that owns its ID does not exist.
-  - A replayed save game already says which database each OIndex belongs to.
+
+Database ID in the OIndex (dropped 2026-11-06)
+----------------------------------------------
+
+Decided 2026-11-05 and dropped 2026-11-06 as not worth it: the top 8 bits of an OIndex would have held the ID of the database that created the object.  Because an object keeps its OIndex when its changed copy is written to the writable database, the ID could only ever say where an object was created, and the lookup order above finds objects without it.  An OIndex stays a plain CSequence counter.
+
+What the ID also gave: new objects created in different databases (the virtual memory layer, a save game, a level updated after release) had OIndexes that could not collide.  Now the first layer wins when two layers hold the same OIndex.
 
 
 Save games (decided)
@@ -78,8 +86,8 @@ Save games (decided)
 
 A save game is a serialisation into its own database.  Decided 2026-11-05:
   - What is saved comes from reachability, not from marking objects.  The game keeps a list of named roots (for example one per player or per world region); saving walks the object graph from each of them.
-  - References to unchanged level objects are acceptable, even desirable.  An unchanged object from a read-only database is written as a reference (its OIndex, whose top byte says which database it lives in), not copied.
-  - Changed and new objects are copied in full: objects in the virtual memory layer, objects dirty in memory, and anything whose OIndex has the virtual memory database's ID.  A level object the player changed (an opened door) is a changed ID 0 object and is copied.
+  - References to unchanged level objects are acceptable, even desirable.  An unchanged object from a read-only database is written as a reference (its OIndex), not copied.
+  - Changed and new objects are copied in full: objects in the virtual memory layer and objects dirty in memory.  A level object the player changed (an opened door) is in the virtual memory layer and is copied.
   - Only reachable objects are saved, so garbage never reaches a save.
 
 Proposed with it (not yet decided):
