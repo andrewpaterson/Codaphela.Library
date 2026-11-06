@@ -1681,6 +1681,71 @@ void TestDockingLayoutFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A group docked along the whole bottom of the area (under Explorer and
+// the well) is there again after the layout is saved and loaded.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingLayoutFileAreaEdge(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+
+	cFileUtil.MakeDir("Output" _FS_ "Docking");
+	{
+		SDockTest				sTest;
+		CXMLWriter				cFirst;
+		CXMLWriter				cSecond;
+		SDockTarget				sTarget;
+		Ptr<CDockNode>			pGroup;
+		Ptr<CDockFloatingWindow>	pFloating;
+
+		//Dragged as a drop does it: the group floats, then its floating window's root is docked.
+		sTest.Init(&cNativeFactory);
+		sTest.pManager->FloatGroup(sTest.pOutput->GetGroup());
+		AssertSize(1, sTest.pManager->NumFloating());
+		pFloating = sTest.pManager->GetFloating(0);
+		pGroup = pFloating->TakeRoot();
+		sTest.pManager->RemoveFloating(pFloating);
+		pFloating = NULL;
+		sTarget.Init();
+		sTarget.eKind = DTK_AreaEdge;
+		sTarget.eSide = DS_Bottom;
+		sTarget.pcArea = &sTest.pManager->GetArea();
+		sTarget.cPreview.Init(0, 480, 800, 120);
+		AssertTrue(sTest.pManager->DockNodeAt(pGroup, &sTarget));
+		sTest.pWindow->Layout();
+
+		cFirst.Init();
+		sTest.pManager->WriteLayout(&cFirst);
+		AssertFalse(GetRootSplit(sTest.pManager)->IsHorizontal());
+		AssertTrue(sTest.pManager->SaveLayout("Output" _FS_ "Docking" _FS_ "LayoutAreaEdge.xml"));
+
+		sTest.pManager->ResetLayout();
+		sTest.pWindow->Layout();
+		AssertTrue(GetRootSplit(sTest.pManager)->IsHorizontal());
+
+		AssertTrue(sTest.pManager->LoadLayout("Output" _FS_ "Docking" _FS_ "LayoutAreaEdge.xml"));
+		sTest.pWindow->Layout();
+		AssertFalse(GetRootSplit(sTest.pManager)->IsHorizontal());
+
+		cSecond.Init();
+		sTest.pManager->WriteLayout(&cSecond);
+		AssertString(cFirst.GetText(), cSecond.GetText());
+
+		cSecond.Kill();
+		cFirst.Kill();
+		pGroup = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDocking(void)
@@ -1702,6 +1767,7 @@ void TestDocking(void)
 	TestDockingDialogOverFloating();
 	TestDockingMoveToWindow();
 	TestDockingLayoutFile();
+	TestDockingLayoutFileAreaEdge();
 	ValidateLabelObjects();
 
 	ObjectsFlush();
