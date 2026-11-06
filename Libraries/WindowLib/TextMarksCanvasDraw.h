@@ -25,8 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CanvasDraw.h"
 
 
-//Draws the marks an edited line of text has under it: the selection's block and the caret.  The text field that owns
-//it places them, in the canvas' space, each time it is laid out.  Either can be hidden.
+//Draws the marks an edited line of text has under it: the selection's block.  The caret is placed here too, in the
+//canvas' space, but the window draws it, blinking, over what it paints (see CTextField::GetCaretRect).  The text field
+//that owns it places them each time it is laid out.  Either can be hidden.
 class CTextMarksCanvasDraw : public CCanvasDraw
 {
 CONSTRUCTABLE(CTextMarksCanvasDraw);
@@ -53,6 +54,7 @@ public:
 	bool	IsCaretShown(void);
 	void	GetSelection(CInt32Rect* pcDest);
 	void	GetCaret(CInt32Rect* pcDest);
+	ARGB32	GetCaretColour(void);
 };
 
 

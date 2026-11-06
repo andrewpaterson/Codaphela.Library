@@ -276,6 +276,7 @@
     <ClCompile Include="TestDialog.cpp" />
     <ClCompile Include="TestFileChooser.cpp" />
     <ClCompile Include="TestGoToDialog.cpp" />
+    <ClCompile Include="TestCaretBlink.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\InputLib\InputLib.vcxproj">

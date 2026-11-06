@@ -213,6 +213,25 @@ void CCanvas::DestroyNativeCanvas(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For a canvas that isn't drawn into the window, but drawn on and from,
+// as the window's caret keeps what is under it: it is sSize, with a
+// native canvas.  False if it can't have one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::PrepareNativeCanvas(SInt32Vec2 sSize)
+{
+	SetActualSize(sSize);
+	if (HasNativeChanged())
+	{
+		DestroyNativeCanvas();
+		CreateNativeCanvas();
+	}
+	return mpcNativeCanvas != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::HasNativeChanged(void)

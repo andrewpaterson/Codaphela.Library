@@ -42,6 +42,7 @@ void TestComboBox(void);
 void TestDialog(void);
 void TestFileChooser(void);
 void TestGoToDialog(void);
+void TestCaretBlink(void);
 void TestSoundMixer(void);
 void TestWindowRedraw(void);
 #ifdef _WIN32
@@ -103,6 +104,7 @@ int __cdecl main(void)
 	TestDialog();
 	TestFileChooser();
 	TestGoToDialog();
+	TestCaretBlink();
 	TestSoundMixer();
 	TestWindowRedraw();
 #ifdef _WIN32

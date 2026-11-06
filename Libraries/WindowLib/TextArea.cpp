@@ -88,7 +88,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mbBackgroundsDirty = false;
 	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
-	mpCaretMap = OMalloc<CGeometryMap>();
 	mpMaps = OMalloc<CMaps>();
 	mbTiledText = false;
 	mbTiled = false;
@@ -103,7 +102,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpMaps->AddMap(mpSpriteMap);
 	mpMaps->AddMap(mpTileMap);
 	mpMaps->AddMap(mpGeometryMap);
-	mpMaps->AddMap(mpCaretMap);
 	mpMaps->SetViewportPosition(0, 0);
 	mbWordWrap = false;
 	msTextSize.Init(0, 0);
@@ -286,7 +284,6 @@ void CTextArea::Class(void)
 	U_Bool(mbBackgroundsDirty);
 	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
-	M_Pointer(mpCaretMap);
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
 	U_Data(CArrayTextAreaStopStart, mauiStopStarts);
@@ -4075,6 +4072,12 @@ void CTextArea::TextChanged(void)
 		mpWindow->LayoutAgain();
 	}
 	ShowCaret();
+
+	//An edit shows the caret, even one that doesn't move it.
+	if (HasFocus())
+	{
+		mpWindow->GetFocus()->ResetCaretBlink();
+	}
 }
 
 
@@ -4103,18 +4106,43 @@ void CTextArea::ShowCaret(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// While it has focus: the caret in the window, cut to what of the text
+// area shows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
+{
+	CInt32Rect	cCaret;
+	CInt32Rect	cClip;
+
+	if (!HasFocus() || !HasStops())
+	{
+		return false;
+	}
+	GetCaretBounds(&cCaret);
+	pcDest->Init(mcActualBounds.GetLeft() + cCaret.GetLeft(), mcActualBounds.GetTop() + cCaret.GetTop(), mcActualBounds.GetLeft() + cCaret.GetRight(), mcActualBounds.GetTop() + cCaret.GetBottom());
+	pcDest->ClipTo(&mcActualBounds);
+	if (GetClip(&cClip))
+	{
+		pcDest->ClipTo(&cClip);
+	}
+	*psColour = msCaretColour;
+	return (pcDest->GetWidth() > 0) && (pcDest->GetHeight() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The selection is drawn as a range (AddRangeRectangles).  The caret is
-// only drawn while the text area has focus.
+// drawn by the window, blinking, over what it paints (GetCaretRect).
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateMarks(void)
 {
 	size		uiStart;
 	size		uiEnd;
-	CInt32Rect	cCaret;
 
 	mpSelectionMap->Clear();
-	mpCaretMap->Clear();
 	if (!HasStops())
 	{
 		return;
@@ -4125,11 +4153,6 @@ void CTextArea::UpdateMarks(void)
 		AddRangeRectangles(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
 
-	if (HasFocus())
-	{
-		GetCaretBounds(&cCaret);
-		mpCaretMap->AddRectangle(cCaret.GetLeft(), cCaret.GetTop(), cCaret.GetWidth(), cCaret.GetHeight(), msCaretColour);
-	}
 }
 
 

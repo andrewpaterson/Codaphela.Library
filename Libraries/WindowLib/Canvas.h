@@ -69,6 +69,7 @@ public:
 	Ptr<CCanvasDraw>	GetCanvasDraw(void);
 	void				SetCanvasDraw(Ptr<CCanvasDraw> pDraw);
 	bool				HasNativeChanged(void);
+	bool				PrepareNativeCanvas(SInt32Vec2 sSize);
 
 	bool				SetContainer(Ptr<CContainer> pContainer);
 	Ptr<CContainer>		GetContainer(void);

@@ -68,6 +68,10 @@ protected:
 	Ptr<CWindow>			mpOwner;  //The window a tool window floats over, see ShowOwned.  NULL for the others.
 	CArray<CWindow>			maOwned;  //Tool windows shown over this one, run by its loop.
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
+	Ptr<CCanvas>			mpCaretBacking;  //What the caret covers, kept so hiding it needn't paint the window.
+	CInt32Rect				mcCaret;  //Where the focussed component's caret was drawn, window space, right and bottom exclusive.
+	ARGB32					msCaretColour;
+	bool					mbCaretPainted;  //The caret's place was kept by the last paint: blinking only changes it.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -101,6 +105,8 @@ public:
 	void					SetMinimumWindowSize(int32 iWidth, int32 iHeight);
 	CNativeWindow*			GetNativeWindow(void);
 	void					Paint(void);
+	bool					BlinkCaret(int64 iNow);
+	bool					GetPaintedCaret(CInt32Rect* pcDest);
 	void					Invalidate(void) override;
 	void					InvalidateLayout(void) override;
 	void					RequestTick(uint32 uiMilliseconds);
@@ -162,6 +168,8 @@ protected:
 	int64					GetWaitMilliseconds(void);
 	bool					IsFrameDue(void);
 	void					PaintOwned(bool bContinuous);
+	void					PaintCaret(void);
+	void					DrawCaret(bool bOn);
 	void					CreateOwned(void);
 	void					SetOwnedEnabled(bool bEnabled);
 };

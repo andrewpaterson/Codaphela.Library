@@ -452,6 +452,10 @@ void CTextField::TextEdited(void)
 		}
 		mpText->SetText(mcEditor.Text());
 		mcChanged.Call(this);
+		if (HasFocus())
+		{
+			mpWindow->GetFocus()->ResetCaretBlink();
+		}
 	}
 	mbTyping = false;
 }
@@ -747,6 +751,39 @@ void CTextField::FocusOrMouseOverChanged(void)
 		mbDragging = false;
 	}
 	UpdateLook();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While it has focus: the caret the marks were given, in the window, cut
+// to what of the field shows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextField::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
+{
+	CInt32Rect	cCaret;
+	CInt32Rect	cBounds;
+	CInt32Rect	cClip;
+	SInt32Vec2	sPosition;
+
+	if (!HasFocus() || !mpMarksDraw->IsCaretShown())
+	{
+		return false;
+	}
+	mpMarksDraw->GetCaret(&cCaret);
+	sPosition = mpMarks->GetPosition();
+
+	//The marks' rectangles include their right and bottom edges.
+	pcDest->Init(sPosition.x + cCaret.GetLeft(), sPosition.y + cCaret.GetTop(), sPosition.x + cCaret.GetRight() + 1, sPosition.y + cCaret.GetBottom() + 1);
+	cBounds.Init(sPosition.x, sPosition.y, sPosition.x + mpMarks->GetActualSize().x, sPosition.y + mpMarks->GetActualSize().y);
+	pcDest->ClipTo(&cBounds);
+	if (mpMarks->GetClip(&cClip))
+	{
+		pcDest->ClipTo(&cClip);
+	}
+	*psColour = mpMarksDraw->GetCaretColour();
+	return (pcDest->GetWidth() > 0) && (pcDest->GetHeight() > 0);
 }
 
 

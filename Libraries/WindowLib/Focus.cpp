@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
+#include "BaseLib/Timer.h"
 #include "Focus.h"
 #include "NativeWindowFactory.h"
 #include "Window.h"
@@ -70,6 +71,9 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 	mbActive = true;
 	meDrag = FD_None;
 	mcFocusChanged.Init();
+	miCaretBlinkPeriod = FOCUS_CARET_BLINK_PERIOD;
+	miCaretBlinkTime = 0;
+	mbCaretOn = true;
 }
 
 
@@ -98,6 +102,9 @@ void CFocus::Class(void)
 	U_Bool(mbActive);
 	U_Enum(meDrag);
 	U_Data(CComponentEvent<CFocus>, mcFocusChanged);
+	U_Int32(miCaretBlinkPeriod);
+	U_Int64(miCaretBlinkTime);
+	U_Bool(mbCaretOn);
 }
 
 
@@ -252,6 +259,7 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 		{
 			mpFocussedComponent->FocusGained();
 		}
+		ResetCaretBlink();
 		mcFocusChanged.Call(this);
 	}
 }
@@ -672,6 +680,7 @@ void CFocus::Activate(void)
 	if (!mbActive)
 	{
 		mbActive = true;
+		ResetCaretBlink();
 		if (mpFocussedComponent)
 		{
 			mpFocussedComponent->FocusGained();
@@ -760,3 +769,94 @@ SInt32Vec2		CFocus::GetPointer(void) { return msPointer; }
 bool			CFocus::IsPointerIn(void) { return mbPointerIn; }
 bool			CFocus::IsActive(void) { return mbActive; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the focussed component's caret is (window space, what of it
+// shows) and its colour.  False if it has none, or the window isn't
+// active.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::GetCaret(CInt32Rect* pcDest, ARGB32* psColour)
+{
+	if (!mbActive || mpFocussedComponent.IsNull())
+	{
+		return false;
+	}
+	return mpFocussedComponent->GetCaretRect(pcDest, psColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 0 keeps the caret shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::SetCaretBlinkPeriod(int32 iMilliseconds)
+{
+	miCaretBlinkPeriod = (iMilliseconds > 0) ? iMilliseconds : 0;
+	ResetCaretBlink();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret is shown from now: it moved, its text was edited or the
+// focus changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::ResetCaretBlink(void)
+{
+	if (!mbCaretOn && mpWindow.IsNotNull())
+	{
+		mpWindow->Invalidate();
+	}
+	mbCaretOn = true;
+	miCaretBlinkTime = GetDebugTickCount();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long until the caret is next shown or hidden, -1 if it isn't
+// blinking (none, an inactive window, or a period of 0).
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CFocus::GetCaretBlinkWait(int64 iNow)
+{
+	CInt32Rect	cCaret;
+	ARGB32		sColour;
+	int64		iWait;
+
+	if ((miCaretBlinkPeriod == 0) || !GetCaret(&cCaret, &sColour))
+	{
+		return -1;
+	}
+	iWait = miCaretBlinkTime + miCaretBlinkPeriod - iNow;
+	return (iWait > 0) ? iWait : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows or hides the caret if its period is up.  True if it did.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::BlinkCaret(int64 iNow)
+{
+	if (GetCaretBlinkWait(iNow) != 0)
+	{
+		return false;
+	}
+	mbCaretOn = !mbCaretOn;
+	miCaretBlinkTime = iNow;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CFocus::GetCaretBlinkPeriod(void) { return miCaretBlinkPeriod; }
+bool CFocus::IsCaretOn(void) { return mbCaretOn || (miCaretBlinkPeriod == 0); }

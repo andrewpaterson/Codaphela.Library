@@ -70,10 +70,6 @@ bool CTextMarksCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 		{
 			pCanvas->DrawBox(&mcSelection, true, msSelectionColour);
 		}
-		if (mbCaret)
-		{
-			pCanvas->DrawBox(&mcCaret, true, msCaretColour);
-		}
 	}
 	return true;
 }
@@ -113,4 +109,5 @@ bool CTextMarksCanvasDraw::IsSelectionShown(void) { return mbSelection; }
 bool CTextMarksCanvasDraw::IsCaretShown(void) { return mbCaret; }
 void CTextMarksCanvasDraw::GetSelection(CInt32Rect* pcDest) { *pcDest = mcSelection; }
 void CTextMarksCanvasDraw::GetCaret(CInt32Rect* pcDest) { *pcDest = mcCaret; }
+ARGB32 CTextMarksCanvasDraw::GetCaretColour(void) { return msCaretColour; }
 

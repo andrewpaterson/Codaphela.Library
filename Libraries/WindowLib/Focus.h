@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __FOCUS_H__
 #define __FOCUS_H__
 #include "SupportLib/Int32Rect.h"
+#include "SupportLib/ColourARGB32.h"
 #include "ComponentInputCommand.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
@@ -40,6 +41,10 @@ class CWindow;
 class CComponent;
 struct SWindowInputEvent;
 class CComponentInput;
+//How long a caret is shown, then hidden, for (IntelliJ's default), see CFocus::SetCaretBlinkPeriod.
+#define FOCUS_CARET_BLINK_PERIOD	500
+
+
 class CFocus : public CObject
 {
 CONSTRUCTABLE(CFocus);
@@ -54,6 +59,9 @@ protected:
 	bool				mbActive;  //An inactive window remembers its focussed component but sends it no commands.
 	EFocusDrag			meDrag;
 	CComponentEvent<CFocus>	mcFocusChanged;  //The focussed component changed, see GetFocusChangeEvent.
+	int32				miCaretBlinkPeriod;  //Milliseconds the caret is shown, then hidden, for; 0 for always shown.
+	int64				miCaretBlinkTime;  //When the caret was last shown or hidden (GetDebugTickCount).
+	bool				mbCaretOn;  //The focussed component's caret is shown.
 
 public:
 	void 				Init(Ptr<CWindow> pWindow);
@@ -89,6 +97,16 @@ public:
 	Ptr<CComponent>		GetDragComponent(void);
 	EFocusDrag			GetDrag(void);
 	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
+
+	//The focussed component's caret blinks, as IntelliJ's: shown and hidden every period, shown again whenever it
+	//moves, its text is edited or the focus changes (ResetCaretBlink).  The window draws it over what it paints.
+	bool				GetCaret(CInt32Rect* pcDest, ARGB32* psColour);
+	void				SetCaretBlinkPeriod(int32 iMilliseconds);
+	int32				GetCaretBlinkPeriod(void);
+	void				ResetCaretBlink(void);
+	bool				IsCaretOn(void);
+	int64				GetCaretBlinkWait(int64 iNow);
+	bool				BlinkCaret(int64 iNow);
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);

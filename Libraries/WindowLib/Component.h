@@ -92,6 +92,7 @@ public:
 			bool				IsMouseOver(void);
 	virtual	void				FocusGained(void);
 	virtual	void				FocusLost(void);
+	virtual	bool				GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour);
 	virtual	void				MovedInto(void);
 	virtual	void				MovedOutof(void);
 	virtual	void				MovedOver(int x, int y);

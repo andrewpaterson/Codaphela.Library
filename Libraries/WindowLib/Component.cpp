@@ -549,6 +549,20 @@ bool CComponent::IsFocussed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A component with a caret, a text area say, says where it is in the
+// window, cut to what of it shows (see GetClip), right and bottom
+// exclusive, and its colour.  The window draws it, blinking, over what it
+// paints (see CWindow::PaintCaret).  False for none, as here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Focussed in the active window, so it gets the keys.  A component keeps
 // focus while its window is inactive, but it doesn't have it.
 //

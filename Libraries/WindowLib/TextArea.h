@@ -187,7 +187,6 @@ protected:
 	bool				mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
 	int32				miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>	mpSelectionMap;  //Under the text.
-	Ptr<CGeometryMap>	mpCaretMap;  //Over the text.
 	ARGB32				msSelectionColour;
 	ARGB32				msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
@@ -285,6 +284,7 @@ public:
 	void				Select(size uiStart, size uiEnd);
 	size				FindPositionAt(int x, int y);
 	void				GetCaretBounds(CInt32Rect* pcDest);
+	bool				GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 
 	//Lines and the gaps below them.
 	size				NumLines(void);

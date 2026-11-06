@@ -115,6 +115,10 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mbRedraw = true;
 	mbLayoutDirty = true;
 	mbCheckLayoutCache = WINDOW_CHECK_LAYOUT_CACHE;
+	mpCaretBacking = NULL;
+	mcCaret.Init();
+	msCaretColour = 0;
+	mbCaretPainted = false;
 	mcActivated.Init();
 	SetMaxFramesPerSecond(WINDOW_DEFAULT_FRAMES_PER_SECOND);
 	miLastPaintTime = 0;
@@ -156,6 +160,10 @@ void CWindow::Class(void)
 
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
+	M_Pointer(mpCaretBacking);
+	U_Data(CInt32Rect, mcCaret);
+	U_UInt32(msCaretColour);
+	U_Bool(mbCaretPainted);
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
 	M_Embedded(mFocus);
@@ -260,6 +268,7 @@ bool CWindow::Show(void)
 			Paint();
 		}
 		PaintOwned(bContinuous);
+		BlinkCaret(GetDebugTickCount());
 		miTickDelay = -1;
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 	}
@@ -307,6 +316,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 		iWait = (iFrameWait > 0) ? iFrameWait : 0;
 	}
 	iWait = ShorterWait(iWait, miTickDelay);
+	iWait = ShorterWait(iWait, mFocus.GetCaretBlinkWait(GetDebugTickCount()));
 	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
@@ -323,6 +333,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 			iFrameWait = pOwned->miLastPaintTime + pOwned->muiFrameMilliseconds - GetDebugTickCount();
 			iWait = ShorterWait(iWait, (iFrameWait > 0) ? iFrameWait : 0);
 		}
+		iWait = ShorterWait(iWait, pOwned->mFocus.GetCaretBlinkWait(GetDebugTickCount()));
 	}
 	return iWait;
 }
@@ -516,6 +527,7 @@ void CWindow::Paint(void)
 {
 	LayoutIfChanged();
 	Draw();
+	PaintCaret();
 	mpcNativeWindow->SignalPresent();
 
 	//Anything changed while painting was painted.
@@ -1067,6 +1079,122 @@ void CWindow::CreateOwned(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// After the window is drawn: what the focussed component's caret covers
+// is kept, then the caret is drawn over it if it is shown.  It isn't
+// drawn under an open popup, a menu over the text say.  A caret that has
+// moved is shown again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PaintCaret(void)
+{
+	CInt32Rect		cCaret;
+	ARGB32			sColour;
+	CInt32Rect		cPopup;
+	size			i;
+	bool			bMoved;
+	CColourFormatHelper	cFormat;
+
+	mbCaretPainted = false;
+	if (!mFocus.GetCaret(&cCaret, &sColour) || (cCaret.GetWidth() <= 0) || (cCaret.GetHeight() <= 0))
+	{
+		return;
+	}
+	for (i = 0; i < maPopups.Size(); i++)
+	{
+		cPopup.Init(maPopups.Get(i)->GetPosition().x, maPopups.Get(i)->GetPosition().y, maPopups.Get(i)->GetPosition().x + maPopups.Get(i)->GetActualSize().x, maPopups.Get(i)->GetPosition().y + maPopups.Get(i)->GetActualSize().y);
+		if (cPopup.Intersect(&cCaret))
+		{
+			return;
+		}
+	}
+
+	bMoved = !cCaret.Equals(&mcCaret);
+	mcCaret.Init(&cCaret);
+	msCaretColour = sColour;
+	if (mpCaretBacking.IsNull())
+	{
+		//Made the first time a caret is drawn, in the window's colour format.
+		mpCanvas->GetColourFormat(&cFormat);
+		mpCaretBacking = OMalloc<CCanvas>(this, Ptr<CCanvasDraw>(), &cFormat);
+	}
+	if (!mpCaretBacking->PrepareNativeCanvas(SInt32Vec2(cCaret.GetWidth(), cCaret.GetHeight())))
+	{
+		return;
+	}
+	mpCaretBacking->DrawCanvas(-cCaret.GetLeft(), -cCaret.GetTop(), mpCanvas);
+	mbCaretPainted = true;
+	if (bMoved)
+	{
+		mFocus.ResetCaretBlink();
+	}
+	DrawCaret(mFocus.IsCaretOn());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret, or what it covers, onto the window's canvas.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::DrawCaret(bool bOn)
+{
+	CInt32Rect	cBox;
+
+	if (bOn)
+	{
+		//A box includes its right and bottom edges.
+		cBox.Init(mcCaret.GetLeft(), mcCaret.GetTop(), mcCaret.GetRight() - 1, mcCaret.GetBottom() - 1);
+		mpCanvas->DrawBox(&cBox, true, msCaretColour);
+	}
+	else
+	{
+		mpCanvas->DrawCanvas(mcCaret.GetLeft(), mcCaret.GetTop(), mpCaretBacking);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows or hides the caret when its period is up (see CFocus::
+// BlinkCaret) by changing only its pixels, without painting the window:
+// a paint is ~20 ms of a big window, this is a few pixels.  A paint due
+// draws it anyway.  True if it blinked.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::BlinkCaret(int64 iNow)
+{
+	if (!mFocus.BlinkCaret(iNow))
+	{
+		return false;
+	}
+	if (mbCaretPainted && !mbRedraw)
+	{
+		DrawCaret(mFocus.IsCaretOn());
+		mpcNativeWindow->SignalPresentArea(&mcCaret);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the last paint drew the caret, or would have while it is hidden.
+// False if it didn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::GetPaintedCaret(CInt32Rect* pcDest)
+{
+	if (!mbCaretPainted)
+	{
+		return false;
+	}
+	pcDest->Init(&mcCaret);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Lays out and paints the tool windows that have changed.  One the
 // platform closed is taken off and its closed event called.
 //
@@ -1089,6 +1217,7 @@ void CWindow::PaintOwned(bool bContinuous)
 		{
 			pOwned->Paint();
 		}
+		pOwned->BlinkCaret(GetDebugTickCount());
 		i++;
 	}
 }
