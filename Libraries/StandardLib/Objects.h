@@ -94,6 +94,7 @@ public:
 						bool					Flush(void);
 						void					Discard(void);
 						bool					Destroy(CBaseObject* pcObject);
+						bool					GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders);  //The holders its record in the database was saved with.
 						bool					ValidateNoDirty(void);
 						bool					ForceSave(CBaseObject* pcObject);
 
@@ -201,7 +202,6 @@ protected:
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
-						bool					GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders);
 						bool					LoadForDestroy(OIndex oi);
 						bool					SaveDirtyInMemory(void);
 						void					FreeAllInKillOrder(bool bDeallocate);

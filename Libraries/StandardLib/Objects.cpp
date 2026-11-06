@@ -596,6 +596,18 @@ bool CObjects::Destroy(CBaseObject* pcObject)
 		}
 		apcTos.Kill();
 
+		//They are all changed.  Its own pointers are cleared first, so what it points to is saved without it as a holder
+		//(an object it alone held is freed here, and saved first as it is dirty).
+		for (i = 0; i < aoiChanged.NumElements(); i++)
+		{
+			pcChanged = GetFromMemory(aoiChanged.GetValue(i));
+			if (pcChanged != NULL)
+			{
+				pcChanged->SetDirty(true);
+			}
+		}
+		pcObject->ClearPointerTos(true);
+
 		pcObject->SetDirty(false);
 		pcObject->SetStored(false);
 	}

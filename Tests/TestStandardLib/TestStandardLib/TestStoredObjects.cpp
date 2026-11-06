@@ -371,6 +371,8 @@ void TestStoredObjectsDestroy(void)
 	Ptr<CRoot>				pRoot;
 	OIndex					oiDoor;
 	OIndex					oiGhost;
+	OIndex					oiLampHolder;
+	CArrayOIndex			aoiHolders;
 	SLogConfig				sLogConfig;
 
 	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
@@ -415,12 +417,26 @@ void TestStoredObjectsDestroy(void)
 	pRoot = ORoot();
 	AssertLong(3, pRoot->NumObjects());
 
-	//Destroying LampHolder leaves Lamp in the database.
+	//Destroying LampHolder leaves Lamp in the database, saved without LampHolder as a holder.
 	pLampHolder = gcObjects.Get<CTestNamedString>("LampHolder");
+	oiLampHolder = pLampHolder->GetIndex();
+	pLamp = gcObjects.Get<CString>("Lamp");
+	aoiHolders.Init();
+	AssertTrue(gcObjects.GetStoredHeapFroms((CBaseObject*)pLamp.Object(), &aoiHolders));
+	AssertSize(1, aoiHolders.NumElements());
+	AssertLong(oiLampHolder, aoiHolders.GetValue(0));
+	aoiHolders.Kill();
+	pLamp = NULL;
 	AssertTrue(pLampHolder->Destroy());
 	AssertLong(2, pRoot->NumObjects());
 	AssertTrue(sStore.pcDatabase->Contains("Lamp"));
 	AssertFalse(sStore.pcDatabase->Contains("LampHolder"));
+	pLamp = gcObjects.Get<CString>("Lamp");
+	aoiHolders.Init();
+	AssertTrue(gcObjects.GetStoredHeapFroms((CBaseObject*)pLamp.Object(), &aoiHolders));
+	AssertSize(0, aoiHolders.NumElements());
+	aoiHolders.Kill();
+	pLamp = NULL;
 	pDoor = NULL;
 	pHolder = NULL;
 	pLampHolder = NULL;
