@@ -10,6 +10,7 @@
 #include "StandardLib/String.h"
 #include "StandardLib/Root.h"
 #include "TestLib/Assert.h"
+#include "ChunkFileObjectWriterTestClasses.h"
 
 
 #define LAYERED_OBJECTS_DIRECTORY	"Output" _FS_ "LayeredObjects"
@@ -202,6 +203,146 @@ void TestLayeredObjectsGame(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A level whose root holds a Door, a Holder of the Door, a Window and a
+// WindowHolder of the Window.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestLayeredObjectsWriteDestroyLevel(void)
+{
+	CCodabase*				pcLevel;
+	CSequence*				pcSequence;
+	Ptr<CRoot>				pRoot;
+	Ptr<CString>			pDoor;
+	Ptr<CString>			pWindow;
+	Ptr<CTestNamedString>	pHolder;
+	Ptr<CTestNamedString>	pWindowHolder;
+
+	pcSequence = CSequenceFactory::Create(LAYERED_LEVEL_SEQUENCE, DS_No);
+	pcLevel = CCodabaseFactory::Create(LAYERED_LEVEL, IWT_No, DS_No);
+	AssertTrue(pcLevel->Open());
+	ObjectsInit(pcLevel, pcSequence);
+	gcObjects.AddConstructor<CTestNamedString>();
+
+	pRoot = ORoot();
+	pDoor = ONMalloc<CString>("Door", "closed");
+	pWindow = ONMalloc<CString>("Window", "open");
+	pHolder = ONMalloc<CTestNamedString>("Holder", pDoor, Null(), "holder");
+	pWindowHolder = ONMalloc<CTestNamedString>("WindowHolder", pWindow, Null(), "window holder");
+	pRoot->Add(pDoor);
+	pRoot->Add(pHolder);
+	pRoot->Add(pWindow);
+	pRoot->Add(pWindowHolder);
+	pDoor = NULL;
+	pWindow = NULL;
+	pHolder = NULL;
+	pWindowHolder = NULL;
+	pRoot = NULL;
+
+	AssertTrue(ObjectsFlush());
+	ObjectsKill(false);
+	AssertTrue(pcLevel->Close());
+	SafeKill(pcLevel);
+	SafeKill(pcSequence);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Destroying a level object through the layered connection leaves a
+// tombstone in the Removed Codabase; the level is unchanged.  Its holders
+// are copied up without it, so they load with a NULL pointer afterwards.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestLayeredObjectsDestroy(void)
+{
+	CFileUtil				cFileUtil;
+	STestLayeredGame		sGame;
+	Ptr<CString>			pDoor;
+	Ptr<CString>			pWindow;
+	Ptr<CTestNamedString>	pHolder;
+	Ptr<CTestNamedString>	pWindowHolder;
+	Ptr<CRoot>				pRoot;
+	OIndex					oiDoor;
+	OIndex					oiHolder;
+	OIndex					oiWindow;
+
+	cFileUtil.RemoveDir(LAYERED_OBJECTS_DIRECTORY);
+	TestLayeredObjectsWriteDestroyLevel();
+
+	//Door is loaded by name alone (none of its holders is in memory) and destroyed.
+	sGame.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pDoor = gcObjects.Get<CString>("Door");
+	AssertTrue(pDoor.IsNotNull());
+	oiDoor = pDoor->GetIndex();
+	oiHolder = sGame.pcLevel->GetIndex("Holder");
+	AssertTrue(pDoor->Destroy());
+	pDoor = NULL;
+
+	//The tombstone: the layers no longer have Door; the level, read-only, still does.
+	AssertTrue(sGame.pcRemoved->Contains(oiDoor));
+	AssertFalse(sGame.cLayered.Contains(oiDoor));
+	AssertFalse(sGame.cLayered.Contains("Door"));
+	AssertTrue(sGame.pcLevel->Contains(oiDoor));
+	AssertTrue(sGame.pcLevel->Contains("Door"));
+	AssertFalse(sGame.pcWritable->Contains(oiDoor));
+
+	//Its holders were copied up into the writable layer without it.
+	AssertTrue(sGame.pcWritable->Contains(oiHolder));
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	AssertTrue(pHolder->mszString.IsNull());
+	pRoot = ORoot();
+	AssertLong(3, pRoot->NumObjects());
+	pHolder = NULL;
+	pRoot = NULL;
+	sGame.Kill();
+
+	//Loaded again, the pointers to it are NULL and it cannot be got.
+	sGame.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(3, pRoot->NumObjects());
+	pHolder = gcObjects.Get<CTestNamedString>("Holder");
+	AssertTrue(pHolder.IsNotNull());
+	AssertTrue(pHolder->mszString.IsNull());
+	pDoor = gcObjects.Get<CString>("Door");
+	AssertTrue(pDoor.IsNull());
+	pDoor = gcObjects.Get<CString>(oiDoor);
+	AssertTrue(pDoor.IsNull());
+
+	//Window, reached through its holder's pointer, is destroyed with the holder in memory.
+	pWindowHolder = gcObjects.Get<CTestNamedString>("WindowHolder");
+	pWindow = pWindowHolder->mszString;
+	AssertString("open", pWindow->Text());
+	oiWindow = pWindow->GetIndex();
+	AssertTrue(pWindow->Destroy());
+	pWindow = NULL;
+	AssertTrue(pWindowHolder->mszString.IsNull());
+	AssertTrue(sGame.pcRemoved->Contains(oiWindow));
+	AssertTrue(sGame.pcLevel->Contains(oiWindow));
+	AssertLong(2, pRoot->NumObjects());
+	pHolder = NULL;
+	pWindowHolder = NULL;
+	pRoot = NULL;
+	sGame.Kill();
+
+	sGame.Init();
+	gcObjects.AddConstructor<CTestNamedString>();
+	pRoot = ORoot();
+	AssertLong(2, pRoot->NumObjects());
+	pWindowHolder = gcObjects.Get<CTestNamedString>("WindowHolder");
+	AssertTrue(pWindowHolder->mszString.IsNull());
+	AssertTrue(gcObjects.Get<CString>("Window").IsNull());
+	pWindowHolder = NULL;
+	pRoot = NULL;
+	sGame.Kill();
+
+	cFileUtil.RemoveDir(LAYERED_OBJECTS_DIRECTORY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestLayeredObjects(void)
@@ -212,6 +353,7 @@ void TestLayeredObjects(void)
 	DataIOInit();
 
 	TestLayeredObjectsGame();
+	TestLayeredObjectsDestroy();
 
 	DataIOKill();
 	TypesKill();
