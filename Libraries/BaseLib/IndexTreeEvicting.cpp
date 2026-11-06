@@ -247,6 +247,11 @@ size CIndexTreeEvicting::PotentiallyEvict(uint8* pvKey, size iKeySize)
 				sz.Init();
 				sz.AppendData2((const char*)pvKey, iKeySize);
 				gcLogger.Error2(__METHOD__, " Could not evict anything while touching key [", sz.Text(), "].  Tree size [", LongToString((uint64)uiSize), "] could not be reduced below cache size [", LongToString((uint64)muiCutoff), "].", NULL);
+				{
+					CIndexTreeDataOrderer* pcProbeOrderer = GetDataOrderer();
+					CIndexTreeNode* pcProbeLast = pcProbeOrderer ? pcProbeOrderer->GetLastTreeNode() : NULL;
+					gcLogger.Error2(__METHOD__, " PROBE orderer [", pcProbeOrderer ? "yes" : "no", "] last [", pcProbeLast == NULL ? "NULL" : (pcProbeLast == (CIndexTreeNode*)pcDontEvict ? "touched" : "other"), "].", NULL);
+				}
 				sz.Kill();
 				return iEvicted;
 			}
