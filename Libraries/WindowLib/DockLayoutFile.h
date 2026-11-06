@@ -43,7 +43,15 @@ public:
 	void	Write(CXMLWriter* pcWriter);
 
 protected:
+	void	WriteMainWindow(CXMLWriter* pcWriter);
+	void	WriteAutoHide(CXMLWriter* pcWriter, Ptr<CAutoHideStrip> pStrip, EDockSide eSide);
+	void	WriteFloatingWindows(CXMLWriter* pcWriter);
 	void	WriteNode(CXMLWriter* pcWriter, Ptr<CDockNode> pNode);
+	void	WriteSplit(CXMLWriter* pcWriter, Ptr<CDockSplit> pSplit);
+	void	WriteGroup(CXMLWriter* pcWriter, Ptr<CDockGroup> pGroup);
+	void	WriteWell(CXMLWriter* pcWriter, Ptr<CDocumentWell> pWell);
+	void	WriteSize(CXMLWriter* pcWriter, Ptr<CDockNode> pNode);
+	void	WritePaneID(CXMLWriter* pcWriter, Ptr<CDockPane> pPane);
 	void	WriteRestore(CXMLWriter* pcWriter, Ptr<CDockPane> pPane);
 };
 
@@ -73,6 +81,7 @@ protected:
 	Ptr<CDockNode>	ReadNode(CMarkupTag* pcTag, Ptr<CWindow> pWindow, bool bInWell);
 	Ptr<CDockNode>	ReadSplit(CMarkupTag* pcTag, Ptr<CWindow> pWindow, bool bInWell);
 	Ptr<CDockNode>	ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWindow, bool bInWell);
+	Ptr<CDockPane>	ReadGroupPanes(CMarkupTag* pcTag, Ptr<CDockGroup> pGroup, Ptr<CWindow> pWindow);
 	Ptr<CDockNode>	ReadWell(CMarkupTag* pcTag);
 	Ptr<CDockPane>	ReadPane(CMarkupTag* pcTag);
 	void			ReadRestore(CMarkupTag* pcTag, Ptr<CDockPane> pPane);

@@ -433,38 +433,46 @@ void CDockFloatingWindow::EdgeDragged(CDockEdge* pcEdge, SInt32Vec2 sScreen)
 	iBottom = iTop + mcResizeStart.GetHeight();
 	if (uiEdges & DOCK_EDGE_LEFT)
 	{
-		iLeft += dx;
-		if (iRight - iLeft < DOCK_FLOATING_MINIMUM)
-		{
-			iLeft = iRight - DOCK_FLOATING_MINIMUM;
-		}
+		iLeft = MoveLowEdge(iLeft + dx, iRight);
 	}
 	if (uiEdges & DOCK_EDGE_RIGHT)
 	{
-		iRight += dx;
-		if (iRight - iLeft < DOCK_FLOATING_MINIMUM)
-		{
-			iRight = iLeft + DOCK_FLOATING_MINIMUM;
-		}
+		iRight = MoveHighEdge(iRight + dx, iLeft);
 	}
 	if (uiEdges & DOCK_EDGE_TOP)
 	{
-		iTop += dy;
-		if (iBottom - iTop < DOCK_FLOATING_MINIMUM)
-		{
-			iTop = iBottom - DOCK_FLOATING_MINIMUM;
-		}
+		iTop = MoveLowEdge(iTop + dy, iBottom);
 	}
 	if (uiEdges & DOCK_EDGE_BOTTOM)
 	{
-		iBottom += dy;
-		if (iBottom - iTop < DOCK_FLOATING_MINIMUM)
-		{
-			iBottom = iTop + DOCK_FLOATING_MINIMUM;
-		}
+		iBottom = MoveHighEdge(iBottom + dy, iTop);
 	}
 	cRect.Init(iLeft, iTop, iRight, iBottom);
 	Move(&cRect);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A left or top edge moved to iEdge, kept the minimum size before the
+// opposite edge, iHigh.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CDockFloatingWindow::MoveLowEdge(int32 iEdge, int32 iHigh)
+{
+	return (iHigh - iEdge < DOCK_FLOATING_MINIMUM) ? iHigh - DOCK_FLOATING_MINIMUM : iEdge;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A right or bottom edge moved to iEdge, kept the minimum size after
+// the opposite edge, iLow.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CDockFloatingWindow::MoveHighEdge(int32 iEdge, int32 iLow)
+{
+	return (iEdge - iLow < DOCK_FLOATING_MINIMUM) ? iLow + DOCK_FLOATING_MINIMUM : iEdge;
 }
 
 

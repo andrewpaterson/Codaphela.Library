@@ -42,14 +42,15 @@ public:
 	void						Kill(void);
 
 	void						Record(Ptr<CDockPane> pPane);
-	bool						GetForGroup(Ptr<CDockGroup> pGroup, SDockRestore* psDest);
 	void						GiveToGroup(Ptr<CDockGroup> pGroup);
 	void						Restore(Ptr<CDockPane> pPane);
-	void						RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int iDepth);
 	void						DockDefault(Ptr<CDockPane> pPane);
 
 protected:
+	bool						GetForGroup(Ptr<CDockGroup> pGroup, SDockRestore* psDest);
 	void						SetNeighbour(SDockRestore* psDest, Ptr<CDockNode> pSibling);
+	void						RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int iDepth);
+	bool						RestoreByNeighbour(Ptr<CDockPane> pPane, Ptr<CDockPane> pNeighbour, SDockRestore* psFrom);
 	void						DockBeside(Ptr<CDockPane> pPane, Ptr<CDockNode> pNear, SDockRestore* psFrom);
 };
 

@@ -220,8 +220,6 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 {
 	Ptr<CDockGroup>	pGroup;
 	Ptr<CDockPane>	pNeighbour;
-	Ptr<CDockGroup>	pNeighbourGroup;
-	EDockSide		eSide;
 	SDockRestore*	psFrom;
 
 	psFrom = pFrom->GetRestore();
@@ -232,7 +230,6 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 		return;
 	}
 
-	eSide = psFrom->eSide;
 	if (psFrom->IsBesideWell())
 	{
 		DockBeside(pPane, mpcManager->mpWell, psFrom);
@@ -241,18 +238,8 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 	pNeighbour = mpcManager->GetPane(psFrom->szNeighbour.Text());
 	if (pNeighbour.IsNotNull() && (pNeighbour != pPane) && (pNeighbour->GetState() == DPS_Docked))
 	{
-		pNeighbourGroup = pNeighbour->GetGroup();
-		if ((eSide == DS_Centre) || (eSide == DS_None))
+		if (RestoreByNeighbour(pPane, pNeighbour, psFrom))
 		{
-			if (pNeighbourGroup->IsDocumentGroup() || !pPane->IsDocument())
-			{
-				mpcManager->PlaceInGroup(pNeighbourGroup, pPane, (size)pPane->GetRestore()->iIndex);
-				return;
-			}
-		}
-		else
-		{
-			DockBeside(pPane, pNeighbourGroup, psFrom);
 			return;
 		}
 	}
@@ -267,6 +254,31 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 		return;
 	}
 	DockDefault(pPane);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pPane goes with or beside its docked neighbour, as psFrom says.
+// Returns false if it can't: a document doesn't go into a tool group.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockRestorer::RestoreByNeighbour(Ptr<CDockPane> pPane, Ptr<CDockPane> pNeighbour, SDockRestore* psFrom)
+{
+	Ptr<CDockGroup>	pNeighbourGroup;
+
+	pNeighbourGroup = pNeighbour->GetGroup();
+	if ((psFrom->eSide != DS_Centre) && (psFrom->eSide != DS_None))
+	{
+		DockBeside(pPane, pNeighbourGroup, psFrom);
+		return true;
+	}
+	if (pNeighbourGroup->IsDocumentGroup() || !pPane->IsDocument())
+	{
+		mpcManager->PlaceInGroup(pNeighbourGroup, pPane, (size)pPane->GetRestore()->iIndex);
+		return true;
+	}
+	return false;
 }
 
 

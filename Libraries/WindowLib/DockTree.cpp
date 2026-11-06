@@ -89,25 +89,7 @@ bool CDockTree::DockAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
 	}
 	iSize = IsHorizontalDockSide(psTarget->eSide) ? psTarget->cPreview.GetWidth() : psTarget->cPreview.GetHeight();
 
-	switch (psTarget->eKind)
-	{
-	case DTK_AreaEdge:
-		bResult = DockAtAreaEdge(pNode, pArea, psTarget->eSide, iSize);
-		break;
-	case DTK_Group:
-		bResult = DockAtGroup(pNode, psTarget->pcNode->AsGroup(), psTarget->eSide, iSize);
-		break;
-	case DTK_WellOuter:
-		bResult = DockBesideWell(pNode, psTarget->eSide, iSize);
-		break;
-	case DTK_WellCentre:
-		bResult = DockInWell(pNode);
-		break;
-	default:
-		bResult = false;
-		break;
-	}
-
+	bResult = DockAtKind(pNode, psTarget, iSize);
 	if (bResult)
 	{
 		SetStates(&aPanes, pArea->IsMain() ? DPS_Docked : DPS_Floating);
@@ -119,6 +101,29 @@ bool CDockTree::DockAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
 	}
 	aPanes.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Docks pNode at the target by the target's kind.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDockTree::DockAtKind(Ptr<CDockNode> pNode, SDockTarget* psTarget, int32 iSize)
+{
+	switch (psTarget->eKind)
+	{
+	case DTK_AreaEdge:
+		return DockAtAreaEdge(pNode, Ptr<CDockArea>(psTarget->pcArea), psTarget->eSide, iSize);
+	case DTK_Group:
+		return DockAtGroup(pNode, psTarget->pcNode->AsGroup(), psTarget->eSide, iSize);
+	case DTK_WellOuter:
+		return DockBesideWell(pNode, psTarget->eSide, iSize);
+	case DTK_WellCentre:
+		return DockInWell(pNode);
+	default:
+		return false;
+	}
 }
 
 
@@ -309,22 +314,39 @@ void CDockTree::DockBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSi
 	}
 	else
 	{
-		pSplit = OMalloc<CDockSplit>(pTarget->GetWindow(), Ptr<CDockManager>(mpcManager), IsHorizontalDockSide(eSide), mpcManager->GetColour(DC_Sash));
-		ReplaceInParent(pTarget, pSplit);
-		pTarget->SetDockSize((iTarget > iSize) ? iTarget - iSize - DOCK_SASH_SIZE : 0);
-		if (bAfter)
-		{
-			pSplit->AddNode(pTarget);
-			pSplit->AddNode(pNode);
-		}
-		else
-		{
-			pSplit->AddNode(pNode);
-			pSplit->AddNode(pTarget);
-		}
-		Flatten(pSplit);
+		SplitBeside(pTarget, pNode, eSide, iTarget);
 	}
 	mpcManager->LayoutChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pTarget is replaced by a new split of eSide's direction holding it
+// and pNode on eSide.  iTarget was pTarget's size; it keeps what pNode
+// doesn't take.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockTree::SplitBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSide eSide, int32 iTarget)
+{
+	Ptr<CDockSplit>	pSplit;
+	int32			iSize;
+
+	iSize = pNode->GetDockSize();
+	pSplit = OMalloc<CDockSplit>(pTarget->GetWindow(), Ptr<CDockManager>(mpcManager), IsHorizontalDockSide(eSide), mpcManager->GetColour(DC_Sash));
+	ReplaceInParent(pTarget, pSplit);
+	pTarget->SetDockSize((iTarget > iSize) ? iTarget - iSize - DOCK_SASH_SIZE : 0);
+	if (IsAfterDockSide(eSide))
+	{
+		pSplit->AddNode(pTarget);
+		pSplit->AddNode(pNode);
+	}
+	else
+	{
+		pSplit->AddNode(pNode);
+		pSplit->AddNode(pTarget);
+	}
+	Flatten(pSplit);
 }
 
 

@@ -51,6 +51,8 @@ public:
 	Ptr<CDockGroup>		GatherInto(Ptr<CDockNode> pNode, bool bDocuments);
 
 protected:
+	bool				DockAtKind(Ptr<CDockNode> pNode, SDockTarget* psTarget, int32 iSize);
+	void				SplitBeside(Ptr<CDockNode> pTarget, Ptr<CDockNode> pNode, EDockSide eSide, int32 iTarget);
 	bool				DockAtAreaEdge(Ptr<CDockNode> pNode, Ptr<CDockArea> pArea, EDockSide eSide, int32 iSize);
 	bool				DockAtGroup(Ptr<CDockNode> pNode, Ptr<CDockGroup> pGroup, EDockSide eSide, int32 iSize);
 	bool				DockBesideWell(Ptr<CDockNode> pNode, EDockSide eSide, int32 iSize);

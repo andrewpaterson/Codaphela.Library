@@ -173,55 +173,14 @@ bool CDockLayoutWriter::Save(const char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 void CDockLayoutWriter::Write(CXMLWriter* pcWriter)
 {
-	CInt32Rect					cRect;
-	size						i;
-	size						j;
-	Ptr<CDockFloatingWindow>	pFloating;
-	Ptr<CAutoHideStrip>			pStrip;
-	EDockSide					eSide;
+	size	i;
 
 	pcWriter->Begin("DockLayout");
 	pcWriter->Attribute("Version", (int32)DOCK_LAYOUT_VERSION);
 	pcWriter->Attribute("NextGroup", (int32)mpcManager->miNextGroupID);
 
-	pcWriter->Begin("MainWindow");
-	mpcManager->mpWindow->GetScreenRectangle(&cRect);
-	WriteRectangle(pcWriter, &cRect, "");
-	if (mpcManager->mpArea->GetRoot().IsNotNull())
-	{
-		WriteNode(pcWriter, mpcManager->mpArea->GetRoot());
-	}
-	for (eSide = DS_Left; eSide <= DS_Bottom; eSide = (EDockSide)(eSide + 1))
-	{
-		pStrip = mpcManager->mpArea->GetStrip(eSide);
-		if (pStrip->HasTabs())
-		{
-			pcWriter->Begin("AutoHide");
-			pcWriter->Attribute("Side", DockSideToString(eSide));
-			for (j = 0; j < pStrip->NumTabs(); j++)
-			{
-				pcWriter->Begin("Pane");
-				pcWriter->Attribute("ID", pStrip->GetTab(j)->GetPane()->GetID());
-				pcWriter->End();
-			}
-			pcWriter->End();
-		}
-	}
-	pcWriter->End();
-
-	for (i = 0; i < mpcManager->maFloating.Size(); i++)
-	{
-		pFloating = mpcManager->maFloating.Get(i);
-		if (pFloating->GetRoot().IsNull())
-		{
-			continue;
-		}
-		pcWriter->Begin("FloatingWindow");
-		pFloating->GetRectangle(&cRect);
-		WriteRectangle(pcWriter, &cRect, "");
-		WriteNode(pcWriter, pFloating->GetRoot());
-		pcWriter->End();
-	}
+	WriteMainWindow(pcWriter);
+	WriteFloatingWindows(pcWriter);
 
 	pcWriter->Begin("Panes");
 	for (i = 0; i < mpcManager->maPanes.Size(); i++)
@@ -236,70 +195,186 @@ void CDockLayoutWriter::Write(CXMLWriter* pcWriter)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// <MainWindow>: its rectangle, its tree and its auto hide strips.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteMainWindow(CXMLWriter* pcWriter)
+{
+	CInt32Rect	cRect;
+	EDockSide	eSide;
+
+	pcWriter->Begin("MainWindow");
+	mpcManager->mpWindow->GetScreenRectangle(&cRect);
+	WriteRectangle(pcWriter, &cRect, "");
+	if (mpcManager->mpArea->GetRoot().IsNotNull())
+	{
+		WriteNode(pcWriter, mpcManager->mpArea->GetRoot());
+	}
+	for (eSide = DS_Left; eSide <= DS_Bottom; eSide = (EDockSide)(eSide + 1))
+	{
+		WriteAutoHide(pcWriter, mpcManager->mpArea->GetStrip(eSide), eSide);
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// <AutoHide>: the panes on a strip, in order, if it has any.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteAutoHide(CXMLWriter* pcWriter, Ptr<CAutoHideStrip> pStrip, EDockSide eSide)
+{
+	size	i;
+
+	if (!pStrip->HasTabs())
+	{
+		return;
+	}
+	pcWriter->Begin("AutoHide");
+	pcWriter->Attribute("Side", DockSideToString(eSide));
+	for (i = 0; i < pStrip->NumTabs(); i++)
+	{
+		WritePaneID(pcWriter, pStrip->GetTab(i)->GetPane());
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// <FloatingWindow>: each floating window with something in it, with
+// its rectangle and its tree.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteFloatingWindows(CXMLWriter* pcWriter)
+{
+	size						i;
+	Ptr<CDockFloatingWindow>	pFloating;
+	CInt32Rect					cRect;
+
+	for (i = 0; i < mpcManager->maFloating.Size(); i++)
+	{
+		pFloating = mpcManager->maFloating.Get(i);
+		if (pFloating->GetRoot().IsNull())
+		{
+			continue;
+		}
+		pcWriter->Begin("FloatingWindow");
+		pFloating->GetRectangle(&cRect);
+		WriteRectangle(pcWriter, &cRect, "");
+		WriteNode(pcWriter, pFloating->GetRoot());
+		pcWriter->End();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockLayoutWriter::WriteNode(CXMLWriter* pcWriter, Ptr<CDockNode> pNode)
 {
-	Ptr<CDockSplit>		pSplit;
-	Ptr<CDockGroup>		pGroup;
-	Ptr<CDocumentWell>	pWell;
-	Ptr<CDockPane>		pSelected;
-	size				i;
-
 	switch (pNode->GetKind())
 	{
 	case DNK_Split:
-		pSplit = pNode->AsSplit();
-		pcWriter->Begin("Split");
-		pcWriter->Attribute("Direction", pSplit->IsHorizontal() ? "Horizontal" : "Vertical");
-		if (pNode->GetDockSize() > 0)
-		{
-			pcWriter->Attribute("Size", (int32)pNode->GetDockSize());
-		}
-		for (i = 0; i < pSplit->NumNodes(); i++)
-		{
-			WriteNode(pcWriter, pSplit->GetNode(i));
-		}
-		pcWriter->End();
+		WriteSplit(pcWriter, pNode->AsSplit());
 		break;
-
 	case DNK_Group:
-		pGroup = pNode->AsGroup();
-		pcWriter->Begin("Group");
-		pcWriter->Attribute("ID", (int32)pGroup->GetID());
-		pcWriter->Attribute("Kind", pGroup->IsDocumentGroup() ? "Document" : "Tool");
-		if (pNode->GetDockSize() > 0)
-		{
-			pcWriter->Attribute("Size", (int32)pNode->GetDockSize());
-		}
-		pSelected = pGroup->GetSelectedPane();
-		if (pSelected.IsNotNull())
-		{
-			pcWriter->Attribute("Selected", pSelected->GetID());
-		}
-		for (i = 0; i < pGroup->NumPanes(); i++)
-		{
-			pcWriter->Begin("Pane");
-			pcWriter->Attribute("ID", pGroup->GetPane(i)->GetID());
-			pcWriter->End();
-		}
-		pcWriter->End();
+		WriteGroup(pcWriter, pNode->AsGroup());
 		break;
-
 	case DNK_DocumentWell:
-		pWell = pNode->AsWell();
-		pcWriter->Begin("DocumentWell");
-		if (pNode->GetDockSize() > 0)
-		{
-			pcWriter->Attribute("Size", (int32)pNode->GetDockSize());
-		}
-		if (pWell->GetRoot().IsNotNull())
-		{
-			WriteNode(pcWriter, pWell->GetRoot());
-		}
-		pcWriter->End();
+		WriteWell(pcWriter, pNode->AsWell());
 		break;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteSplit(CXMLWriter* pcWriter, Ptr<CDockSplit> pSplit)
+{
+	size	i;
+
+	pcWriter->Begin("Split");
+	pcWriter->Attribute("Direction", pSplit->IsHorizontal() ? "Horizontal" : "Vertical");
+	WriteSize(pcWriter, pSplit);
+	for (i = 0; i < pSplit->NumNodes(); i++)
+	{
+		WriteNode(pcWriter, pSplit->GetNode(i));
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteGroup(CXMLWriter* pcWriter, Ptr<CDockGroup> pGroup)
+{
+	Ptr<CDockPane>	pSelected;
+	size			i;
+
+	pcWriter->Begin("Group");
+	pcWriter->Attribute("ID", (int32)pGroup->GetID());
+	pcWriter->Attribute("Kind", pGroup->IsDocumentGroup() ? "Document" : "Tool");
+	WriteSize(pcWriter, pGroup);
+	pSelected = pGroup->GetSelectedPane();
+	if (pSelected.IsNotNull())
+	{
+		pcWriter->Attribute("Selected", pSelected->GetID());
+	}
+	for (i = 0; i < pGroup->NumPanes(); i++)
+	{
+		WritePaneID(pcWriter, pGroup->GetPane(i));
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteWell(CXMLWriter* pcWriter, Ptr<CDocumentWell> pWell)
+{
+	pcWriter->Begin("DocumentWell");
+	WriteSize(pcWriter, pWell);
+	if (pWell->GetRoot().IsNotNull())
+	{
+		WriteNode(pcWriter, pWell->GetRoot());
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A node's size along its split, if it has one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WriteSize(CXMLWriter* pcWriter, Ptr<CDockNode> pNode)
+{
+	if (pNode->GetDockSize() > 0)
+	{
+		pcWriter->Attribute("Size", (int32)pNode->GetDockSize());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// <Pane ID="..."/>, a pane named in a group or an auto hide strip.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockLayoutWriter::WritePaneID(CXMLWriter* pcWriter, Ptr<CDockPane> pPane)
+{
+	pcWriter->Begin("Pane");
+	pcWriter->Attribute("ID", pPane->GetID());
+	pcWriter->End();
 }
 
 
@@ -794,13 +869,9 @@ Ptr<CDockNode> CDockLayoutReader::ReadSplit(CMarkupTag* pcTag, Ptr<CWindow> pWin
 //////////////////////////////////////////////////////////////////////////
 Ptr<CDockNode> CDockLayoutReader::ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWindow, bool bInWell)
 {
-	STagIterator	sIter;
-	CMarkupTag*		pcChild;
 	Ptr<CDockGroup>	pGroup;
-	Ptr<CDockPane>	pPane;
 	Ptr<CDockPane>	pSelected;
 	int32			iID;
-	char*			szSelected;
 	bool			bDocuments;
 
 	iID = 0;
@@ -811,6 +882,37 @@ Ptr<CDockNode> CDockLayoutReader::ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWin
 	{
 		pGroup->MoveToWindow(pWindow);
 	}
+	pSelected = ReadGroupPanes(pcTag, pGroup, pWindow);
+	if (pGroup->NumPanes() == 0)
+	{
+		return NULL;
+	}
+	if (pSelected.IsNotNull())
+	{
+		pGroup->SelectPane(pSelected);
+	}
+	if (bInWell && mpcManager->mpDocumentGroup.IsNull())
+	{
+		mpcManager->mpDocumentGroup = pGroup;
+	}
+	return pGroup;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The group's <Pane>s that aren't placed yet go into it, in pWindow.
+// Returns the one the group says is selected, if it is among them.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CDockPane> CDockLayoutReader::ReadGroupPanes(CMarkupTag* pcTag, Ptr<CDockGroup> pGroup, Ptr<CWindow> pWindow)
+{
+	STagIterator	sIter;
+	CMarkupTag*		pcChild;
+	Ptr<CDockPane>	pPane;
+	Ptr<CDockPane>	pSelected;
+	char*			szSelected;
+
 	szSelected = pcTag->GetStringAttribute("Selected");
 	pcChild = pcTag->GetTag("Pane", &sIter);
 	while (pcChild)
@@ -830,19 +932,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWin
 		}
 		pcChild = pcTag->GetNextTag(&sIter);
 	}
-	if (pGroup->NumPanes() == 0)
-	{
-		return NULL;
-	}
-	if (pSelected.IsNotNull())
-	{
-		pGroup->SelectPane(pSelected);
-	}
-	if (bInWell && mpcManager->mpDocumentGroup.IsNull())
-	{
-		mpcManager->mpDocumentGroup = pGroup;
-	}
-	return pGroup;
+	return pSelected;
 }
 
 

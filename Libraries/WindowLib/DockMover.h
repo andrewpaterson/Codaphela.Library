@@ -52,10 +52,13 @@ public:
 	void						ToggleFloatGroup(Ptr<CDockGroup> pGroup);
 	void						DockFloating(Ptr<CDockFloatingWindow> pFloating);
 	void						CloseFloating(Ptr<CDockFloatingWindow> pFloating);
-	EDockSide					NearestEdge(Ptr<CDockGroup> pGroup);
 	void						FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pPane, CInt32Rect* pcDest);
 	void						KeepOnScreen(CInt32Rect* pcRect);
 	Ptr<CDockFloatingWindow>	CreateFloating(CInt32Rect* pcScreenRectangle);
+
+protected:
+	EDockSide					NearestEdge(Ptr<CDockGroup> pGroup);
+	int32						DistanceToEdge(CInt32Rect* pcGroup, CInt32Rect* pcRoot, EDockSide eSide);
 };
 
 

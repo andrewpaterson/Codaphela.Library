@@ -105,6 +105,7 @@ public:
 protected:
 	void				PlaceChildren(void);
 	void				WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes);
+	void				LayoutAlong(Ptr<CComponent> pComponent, SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, int32 iAlong, int32 iSize);
 	size				StartSizes(int32 iAvailable, CArrayInt* paiSizes);
 	void				FillSize(int32 iAvailable, size uiFill, CArrayInt* paiSizes);
 	void				ScaleSizes(int32 iAvailable, CArrayInt* paiSizes);

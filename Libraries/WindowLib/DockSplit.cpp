@@ -679,9 +679,6 @@ void CDockSplit::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int32			iAvailable;
 	int32			iAlong;
 	int32			iSize;
-	SInt32Vec2		sNodePosition;
-	SInt32Vec2		sNodeSize;
-	Ptr<CDockSash>	pSash;
 
 	SetActualBounds(sPosition, sAreaSize);
 	SetContainerBounds(sPosition, sAreaSize);
@@ -698,33 +695,31 @@ void CDockSplit::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	{
 		if (i > 0)
 		{
-			pSash = maSashes.Get(i - 1);
-			if (mbHorizontal)
-			{
-				sNodePosition.Init(sPosition.x + iAlong, sPosition.y);
-				sNodeSize.Init(DOCK_SASH_SIZE, sAreaSize.y);
-			}
-			else
-			{
-				sNodePosition.Init(sPosition.x, sPosition.y + iAlong);
-				sNodeSize.Init(sAreaSize.x, DOCK_SASH_SIZE);
-			}
-			pSash->Layout(sNodePosition, sNodeSize);
+			LayoutAlong(maSashes.Get(i - 1), sPosition, sAreaSize, iAlong, DOCK_SASH_SIZE);
 			iAlong += DOCK_SASH_SIZE;
 		}
 		iSize = maiSizes.GetValue(i);
-		if (mbHorizontal)
-		{
-			sNodePosition.Init(sPosition.x + iAlong, sPosition.y);
-			sNodeSize.Init(iSize, sAreaSize.y);
-		}
-		else
-		{
-			sNodePosition.Init(sPosition.x, sPosition.y + iAlong);
-			sNodeSize.Init(sAreaSize.x, iSize);
-		}
-		maNodes.Get(i)->Layout(sNodePosition, sNodeSize);
+		LayoutAlong(maNodes.Get(i), sPosition, sAreaSize, iAlong, iSize);
 		iAlong += iSize;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lays a node or sash out iAlong pixels into the split, iSize along
+// and the split's full size across.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockSplit::LayoutAlong(Ptr<CComponent> pComponent, SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, int32 iAlong, int32 iSize)
+{
+	if (mbHorizontal)
+	{
+		pComponent->Layout(SInt32Vec2(sPosition.x + iAlong, sPosition.y), SInt32Vec2(iSize, sAreaSize.y));
+	}
+	else
+	{
+		pComponent->Layout(SInt32Vec2(sPosition.x, sPosition.y + iAlong), SInt32Vec2(sAreaSize.x, iSize));
 	}
 }
 

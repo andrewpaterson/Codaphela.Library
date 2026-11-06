@@ -87,6 +87,8 @@ public:
 
 protected:
 	void					AddEdge(uint8 uiEdges, int iColumn, int iRow, int iWidthWeight, int iHeightWeight);
+	int32					MoveLowEdge(int32 iEdge, int32 iHigh);
+	int32					MoveHighEdge(int32 iEdge, int32 iLow);
 };
 
 

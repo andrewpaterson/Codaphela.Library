@@ -373,19 +373,22 @@ void CDockMover::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The edge of the main area nearest the group.
+// The edge of the main area nearest the group.  A group touching two
+// edges goes to the one it runs along: a wide group to the bottom or top,
+// a tall one to the left or right.
 //
 //////////////////////////////////////////////////////////////////////////
 EDockSide CDockMover::NearestEdge(Ptr<CDockGroup> pGroup)
 {
-	CInt32Rect	cRoot;
-	CInt32Rect	cGroup;
-	int32		iLeft;
-	int32		iRight;
-	int32		iTop;
-	int32		iBottom;
-	int32		iBest;
-	EDockSide	eSide;
+	static const EDockSide	aeWide[4] = { DS_Bottom, DS_Top, DS_Left, DS_Right };
+	static const EDockSide	aeTall[4] = { DS_Left, DS_Right, DS_Bottom, DS_Top };
+	const EDockSide*		aeOrder;
+	CInt32Rect				cRoot;
+	CInt32Rect				cGroup;
+	EDockSide				eBest;
+	int32					iBest;
+	int32					iDistance;
+	int						i;
 
 	mpcManager->mpArea->GetRootBounds(&cRoot);
 	pGroup->GetActualBounds(&cGroup);
@@ -394,40 +397,41 @@ EDockSide CDockMover::NearestEdge(Ptr<CDockGroup> pGroup)
 		//Not laid out yet: the side of the well it is on.
 		return mpcManager->mcTree.SideOfWell(pGroup);
 	}
-	iLeft = cGroup.GetLeft() - cRoot.GetLeft();
-	iRight = (cRoot.GetLeft() + cRoot.GetWidth()) - (cGroup.GetLeft() + cGroup.GetWidth());
-	iTop = cGroup.GetTop() - cRoot.GetTop();
-	iBottom = (cRoot.GetTop() + cRoot.GetHeight()) - (cGroup.GetTop() + cGroup.GetHeight());
-	//A group touching two edges goes to the one it runs along: a wide group to the top or bottom.
-	if (cGroup.GetWidth() > cGroup.GetHeight())
+
+	aeOrder = (cGroup.GetWidth() > cGroup.GetHeight()) ? aeWide : aeTall;
+	eBest = aeOrder[0];
+	iBest = DistanceToEdge(&cGroup, &cRoot, eBest);
+	for (i = 1; i < 4; i++)
 	{
-		eSide = (iBottom <= iTop) ? DS_Bottom : DS_Top;
-		iBest = (iBottom <= iTop) ? iBottom : iTop;
-		if (iLeft < iBest)
+		iDistance = DistanceToEdge(&cGroup, &cRoot, aeOrder[i]);
+		if (iDistance < iBest)
 		{
-			iBest = iLeft;
-			eSide = DS_Left;
-		}
-		if (iRight < iBest)
-		{
-			eSide = DS_Right;
+			iBest = iDistance;
+			eBest = aeOrder[i];
 		}
 	}
-	else
+	return eBest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How far pcGroup is from pcRoot's eSide edge.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CDockMover::DistanceToEdge(CInt32Rect* pcGroup, CInt32Rect* pcRoot, EDockSide eSide)
+{
+	switch (eSide)
 	{
-		eSide = (iLeft <= iRight) ? DS_Left : DS_Right;
-		iBest = (iLeft <= iRight) ? iLeft : iRight;
-		if (iBottom < iBest)
-		{
-			iBest = iBottom;
-			eSide = DS_Bottom;
-		}
-		if (iTop < iBest)
-		{
-			eSide = DS_Top;
-		}
+	case DS_Left:
+		return pcGroup->GetLeft() - pcRoot->GetLeft();
+	case DS_Right:
+		return (pcRoot->GetLeft() + pcRoot->GetWidth()) - (pcGroup->GetLeft() + pcGroup->GetWidth());
+	case DS_Top:
+		return pcGroup->GetTop() - pcRoot->GetTop();
+	default:
+		return (pcRoot->GetTop() + pcRoot->GetHeight()) - (pcGroup->GetTop() + pcGroup->GetHeight());
 	}
-	return eSide;
 }
 
 
