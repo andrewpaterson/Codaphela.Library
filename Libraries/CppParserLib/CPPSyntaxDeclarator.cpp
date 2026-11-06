@@ -172,6 +172,55 @@ CCPPSyntaxName* CCPPSyntaxDeclarator::GetName(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pointer operators (*, &, &&, Class::*) in the prefix, without the
+// calling conventions and attributes, as in void* __cdecl f(void).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntaxDeclarator::NumPointers(void)
+{
+	size	i;
+	size	uiPointers;
+
+	uiPointers = 0;
+	for (i = 0; i < macpPrefix.NumElements(); i++)
+	{
+		if (macpPrefix.GetPtr(i)->GetKind() == CPPS_PointerOperator)
+		{
+			uiPointers++;
+		}
+	}
+	return uiPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uiIndex'th pointer operator in the prefix (NumPointers), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxPointerOperator* CCPPSyntaxDeclarator::GetPointer(size uiIndex)
+{
+	size		i;
+	CCPPSyntax*	pcPrefix;
+
+	for (i = 0; i < macpPrefix.NumElements(); i++)
+	{
+		pcPrefix = macpPrefix.GetPtr(i);
+		if (pcPrefix->GetKind() == CPPS_PointerOperator)
+		{
+			if (uiIndex == 0)
+			{
+				return (CCPPSyntaxPointerOperator*)pcPrefix;
+			}
+			uiIndex--;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxDeclarator::VisitFields(CCPPSyntaxFields* pcFields)

@@ -896,11 +896,11 @@ bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 	ECppTokens					eKeyword;
 	size						i;
 
-	if (pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0) || (pcDeclarator->macpPrefix.NumElements() == 0))
+	if (pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0) || (pcDeclarator->NumPointers() == 0))
 	{
 		return false;
 	}
-	pcPointer = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(pcDeclarator->macpPrefix.NumElements() - 1);
+	pcPointer = pcDeclarator->GetPointer(pcDeclarator->NumPointers() - 1);
 	if (pcPointer->meKind != CPPP_Pointer)
 	{
 		return false;
@@ -1544,9 +1544,9 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	else if (eKind == CPP65FK_Function)
 	{
 		psReturn = GetBaseType(pcSpecifiers, pcDeclarator);
-		for (i = 0; psReturn && (i < pcDeclarator->macpPrefix.NumElements()); i++)
+		for (i = 0; psReturn && (i < pcDeclarator->NumPointers()); i++)
 		{
-			switch (((CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i))->meKind)
+			switch (pcDeclarator->GetPointer(i)->meKind)
 			{
 			case CPPP_Pointer:
 				psReturn = mcTypes.Pointer(psReturn);
@@ -2285,9 +2285,9 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 	size						i;
 	int64						lliCount;
 
-	for (i = 0; i < pcDeclarator->macpPrefix.NumElements(); i++)
+	for (i = 0; i < pcDeclarator->NumPointers(); i++)
 	{
-		pcPointer = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i);
+		pcPointer = pcDeclarator->GetPointer(i);
 		switch (pcPointer->meKind)
 		{
 		case CPPP_Pointer:

@@ -25,12 +25,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CCPPSyntaxFunctionSuffix;
 class CCPPSyntaxName;
+class CCPPSyntaxPointerOperator;
 
 
 class CCPPSyntaxDeclarator : public CCPPSyntax
 {
 public:
-	CArraySyntax			macpPrefix;
+	CArraySyntax			macpPrefix;		//Pointer operators, and the calling conventions and attributes among them.
 	bool					mbPack;
 	CCPPSyntaxName*			mpcName;
 	CCPPSyntaxDeclarator*	mpcNested;
@@ -46,6 +47,8 @@ public:
 	bool					IsFunction(void);
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);
 	CCPPSyntaxName*			GetName(void);
+	size					NumPointers(void);
+	CCPPSyntaxPointerOperator*	GetPointer(size uiIndex);
 };
 
 

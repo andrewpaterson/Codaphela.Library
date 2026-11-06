@@ -588,7 +588,7 @@ SCPP65Template* CCPP65Generator::OutsideMemberOwner(SCPP65Template* psPrimary, C
 		if (pcArgument->GetKind() == CPPS_TypeId)
 		{
 			pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
-			if (pcTypeId->mpcSpecifiers && pcTypeId->mpcSpecifiers->mpcType && (pcTypeId->mpcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier) && !(pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || ((pcTypeId->mpcDeclarator->macpPrefix.NumElements() == 0) && (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() == 0))))
+			if (pcTypeId->mpcSpecifiers && pcTypeId->mpcSpecifiers->mpcType && (pcTypeId->mpcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier) && !(pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || ((pcTypeId->mpcDeclarator->NumPointers() == 0) && (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() == 0))))
 			{
 				pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcTypeId->mpcSpecifiers->mpcType)->mpcName->mpcSymbol;
 			}
@@ -831,7 +831,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				//const int is a different argument to int; const char* is not const itself.
 				pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
 				psBinding->psType = GetTypeIdType(pcTypeId);
-				psBinding->bConst = pcTypeId->mpcSpecifiers && (pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || (pcTypeId->mpcDeclarator->macpPrefix.NumElements() == 0));
+				psBinding->bConst = pcTypeId->mpcSpecifiers && (pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || (pcTypeId->mpcDeclarator->NumPointers() == 0));
 			}
 			else if (!pcArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -1219,9 +1219,9 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 
 	psType = psArgument->psType;
 	bConst = psArgument->bConst;
-	for (i = pcDeclarator ? pcDeclarator->macpPrefix.NumElements() : 0; i > 0; i--)
+	for (i = pcDeclarator ? pcDeclarator->NumPointers() : 0; i > 0; i--)
 	{
-		pcOperator = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i - 1);
+		pcOperator = pcDeclarator->GetPointer(i - 1);
 		if ((pcOperator->meKind == CPPP_Pointer) && psType->IsPointer())
 		{
 			psType = psType->psBase;
@@ -1237,7 +1237,7 @@ bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxType
 		bConst = false;
 		(*piScore)++;
 	}
-	if ((pcSpecifiers->muiFlags & CPPDS_CONST) && (!pcDeclarator || (pcDeclarator->macpPrefix.NumElements() == 0)))
+	if ((pcSpecifiers->muiFlags & CPPDS_CONST) && (!pcDeclarator || (pcDeclarator->NumPointers() == 0)))
 	{
 		if (!bConst)
 		{
@@ -1535,7 +1535,7 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 	{
 		psArgument = papsArguments->GetPtr(i);
 		psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
-		if (psArgument && psArgument->IsPointer() && pcParameter->mpcDeclarator && (pcParameter->mpcDeclarator->macpPrefix.NumElements() == 1) && (((CCPPSyntaxPointerOperator*)pcParameter->mpcDeclarator->macpPrefix.GetPtr(0))->meKind == CPPP_Pointer))
+		if (psArgument && psArgument->IsPointer() && pcParameter->mpcDeclarator && (pcParameter->mpcDeclarator->NumPointers() == 1) && (pcParameter->mpcDeclarator->GetPointer(0)->meKind == CPPP_Pointer))
 		{
 			psArgument = psArgument->psBase;
 		}
@@ -1568,8 +1568,8 @@ bool CCPP65Generator::DeduceParameter(SCPP65Template* psTemplate, CCPPSyntaxPara
 			return false;
 		}
 		psArgument = papsArguments->GetPtr(i);
-		uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->macpPrefix.NumElements() : 0;
-		if (uiPointers && (((CCPPSyntaxPointerOperator*)pcParameter->mpcDeclarator->macpPrefix.GetPtr(0))->meKind != CPPP_Pointer))
+		uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
+		if (uiPointers && (pcParameter->mpcDeclarator->GetPointer(0)->meKind != CPPP_Pointer))
 		{
 			uiPointers = 0;
 		}
@@ -1611,9 +1611,9 @@ void CCPP65Generator::DeduceMemberPointer(SCPP65Template* psTemplate, CCPPSyntax
 	}
 	for (pcOuter = NULL; pcDeclarator; pcOuter = pcDeclarator, pcDeclarator = pcDeclarator->mpcNested)
 	{
-		for (i = 0; i < pcDeclarator->macpPrefix.NumElements(); i++)
+		for (i = 0; i < pcDeclarator->NumPointers(); i++)
 		{
-			pcPointer = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i);
+			pcPointer = pcDeclarator->GetPointer(i);
 			if (pcPointer->meKind != CPPP_MemberPointer)
 			{
 				continue;
@@ -1738,7 +1738,7 @@ CCPPSymbol* CCPP65Generator::GetArgumentSymbol(CCPPSyntax* pcArgument)
 		return NULL;
 	}
 	pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
-	if (pcTypeId->mpcDeclarator && ((pcTypeId->mpcDeclarator->macpPrefix.NumElements() > 0) || (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() > 0)))
+	if (pcTypeId->mpcDeclarator && ((pcTypeId->mpcDeclarator->NumPointers() > 0) || (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() > 0)))
 	{
 		return NULL;
 	}
@@ -2471,7 +2471,7 @@ size CCPP65Generator::NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
 		//(void), but not void (M::*f)(...) or void (*f)(...).
-		if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || ((pcParameter->mpcDeclarator->macpPrefix.NumElements() == 0) && !pcParameter->mpcDeclarator->mpcNested && (pcParameter->mpcDeclarator->macpSuffixes.NumElements() == 0))))
+		if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || ((pcParameter->mpcDeclarator->NumPointers() == 0) && !pcParameter->mpcDeclarator->mpcNested && (pcParameter->mpcDeclarator->macpSuffixes.NumElements() == 0))))
 		{
 			uiParameters = 0;
 		}
@@ -4104,8 +4104,8 @@ bool CCPP65Generator::IsConstDeclared(CCPPSymbol* pcSymbol, bool bPointer)
 	{
 		return false;
 	}
-	uiPrefix = pcDeclarator ? pcDeclarator->macpPrefix.NumElements() : 0;
-	eKind = (uiPrefix == 1) ? ((CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(0))->meKind : CPPP_Pointer;
+	uiPrefix = pcDeclarator ? pcDeclarator->NumPointers() : 0;
+	eKind = (uiPrefix == 1) ? pcDeclarator->GetPointer(0)->meKind : CPPP_Pointer;
 	if (bPointer)
 	{
 		return (uiPrefix == 1) && (eKind == CPPP_Pointer);
