@@ -935,6 +935,84 @@ void TestCodeEditorChangeBarsDrawn(void)
 	cFileUtil.RemoveDir(szDirectory);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A code editor stretched over its scroll pane's view, as the IDE's: a
+// press right of a line's text puts the caret at the line's end, and
+// below the last line at the end of the last line, focussing it.  Laid
+// out its text's size, left and top, the press would be on the scroll
+// pane.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorClickBeyondText(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CScrollPane>			pScroll;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pTextArea;
+		int32						iLine;
+		int32						iTop;
+		int32						iRight;
+		int32						iBottom;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
+		pTestWindow->SetContainer(pScroll);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "ab\ncdef\ngh");
+		pEditor->SetAlignment(CSH_Left, CSV_Top);
+		pScroll->SetContent(pEditor);
+		pTextArea = pEditor->GetTextArea();
+		pTestWindow->Layout();
+		iLine = pTextArea->GetFont()->GetLineHeight();
+		iTop = pEditor->GetPosition().y;
+		iRight = pScroll->GetPosition().x + pScroll->GetActualSize().x - 20;
+
+		//Left and top, right of the text is the scroll pane.
+		AssertTrue(pTestWindow->FindComponentAt(iRight, iTop + iLine / 2) == pScroll);
+
+		//Stretched, it's the text area.
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pTestWindow->Layout();
+		AssertTrue(pTestWindow->FindComponentAt(iRight, iTop + iLine / 2) == pTextArea);
+
+		//Right of line 2's text: its end.
+		pTestWindow->PointerMoved(iRight, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pTextArea);
+		AssertSize(7, pTextArea->GetCaretPosition());
+
+		//Below the last line: the end of the last line.
+		iBottom = pScroll->GetPosition().y + pScroll->GetActualSize().y - 5;
+		AssertTrue(iBottom > iTop + 4 * iLine);
+		AssertTrue(pTestWindow->FindComponentAt(iRight, iBottom) == pTextArea);
+		pTestWindow->PointerMoved(iRight, iBottom);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertSize(10, pTextArea->GetCaretPosition());
+
+		pTextArea = NULL;
+		pEditor = NULL;
+		pScroll = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -951,6 +1029,7 @@ void TestCodeEditor(void)
 	TestCodeEditorScrollPane();
 	TestCodeEditorGutterMarks();
 	TestCodeEditorScrolledSideways();
+	TestCodeEditorClickBeyondText();
 	TestCodeEditorChangeBars();
 	TestCodeEditorChangeBarClicks();
 	TestCodeEditorGlyphs();
