@@ -270,6 +270,9 @@
     <ClCompile Include="TestRedBlackTree.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="TestUndoStack.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
     <ClCompile Include="TestLine.cpp">
       <Filter>Source\Data\Geometric\Vec2</Filter>
     </ClCompile>

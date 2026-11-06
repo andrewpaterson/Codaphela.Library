@@ -330,6 +330,7 @@
     <ClCompile Include="TestDenseArrayTemplate.cpp" />
     <ClCompile Include="TestSparseArrayTemplate.cpp" />
     <ClCompile Include="TestRedBlackTree.cpp" />
+    <ClCompile Include="TestUndoStack.cpp" />
     <ClCompile Include="TestLine.cpp" />
     <ClCompile Include="TestStackMemory.cpp" />
     <ClCompile Include="TestStringHelper.cpp" />
