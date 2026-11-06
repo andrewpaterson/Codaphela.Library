@@ -199,7 +199,6 @@
     <ClInclude Include="AccessDataOrderer.h" />
     <ClInclude Include="ArrayElementNotFound.h" />
     <ClInclude Include="ArrayEmbeddedInt.h" />
-    <ClInclude Include="ArrayInt16.h" />
     <ClInclude Include="ArrayInt32.h" />
     <ClInclude Include="ArrayNameIntAndPointer.h" />
     <ClInclude Include="ArraySize.h" />
@@ -209,7 +208,6 @@
     <ClInclude Include="ArrayUint.h" />
     <ClInclude Include="ArrayUint16.h" />
     <ClInclude Include="ArrayUint32.h" />
-    <ClInclude Include="ArrayUint64.h" />
     <ClInclude Include="ArrayUint8.h" />
     <ClInclude Include="BaseParser.h" />
     <ClInclude Include="BinarySearch.h" />
@@ -268,14 +266,12 @@
     <ClInclude Include="MemCompare.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="RedirectPrintf.h" />
-    <ClInclude Include="IndexLongString.h" />
     <ClInclude Include="IndexPrimitiveTemplate.h" />
     <ClInclude Include="IndexMapAccess.h" />
     <ClInclude Include="IndexMapIterator.h" />
     <ClInclude Include="IndexPrimitiveBlock.h" />
     <ClInclude Include="IndexStringBlock.h" />
     <ClInclude Include="IndexStringInt.h" />
-    <ClInclude Include="IndexStringLong.h" />
     <ClInclude Include="IndexStringPrimitive.h" />
     <ClInclude Include="IndexStringTemplate.h" />
     <ClInclude Include="IndexTemplateTemplate.h" />
@@ -464,7 +460,6 @@
     <ClInclude Include="IntegerHelper.h" />
     <ClInclude Include="FixedPoint.h" />
     <ClInclude Include="Numbers.h" />
-    <ClInclude Include="PackedFloat.h" />
     <ClInclude Include="Number.h" />
     <ClInclude Include="NumberControl.h" />
     <ClInclude Include="ChunkFile.h" />
@@ -473,7 +468,6 @@
     <ClInclude Include="CSVFile.h" />
     <ClInclude Include="CSVFileEditable.h" />
     <ClInclude Include="CSVFileImutable.h" />
-    <ClInclude Include="CSVHelper.h" />
     <ClInclude Include="IntelHex.h" />
     <ClInclude Include="TextFile.h" />
     <ClInclude Include="NaiveFile.h" />
@@ -650,14 +644,12 @@
     <ClCompile Include="ArrayEmbeddedInt.cpp" />
     <ClCompile Include="ArrayFloat64.cpp" />
     <ClCompile Include="ArrayFloat32.cpp" />
-    <ClCompile Include="ArrayInt16.cpp" />
     <ClCompile Include="ArrayInt32.cpp" />
     <ClCompile Include="ArrayNameIntAndPointer.cpp" />
     <ClCompile Include="ArraySize.cpp" />
     <ClCompile Include="ArrayUint.cpp" />
     <ClCompile Include="ArrayUint16.cpp" />
     <ClCompile Include="ArrayUint32.cpp" />
-    <ClCompile Include="ArrayUint64.cpp" />
     <ClCompile Include="ArrayUint8.cpp" />
     <ClCompile Include="BaseParser.cpp" />
     <ClCompile Include="BinarySearch.cpp" />
@@ -690,7 +682,6 @@
     <ClCompile Include="FloatPrinter.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
     <ClCompile Include="HexString.cpp" />
-    <ClCompile Include="IndexLongString.cpp" />
     <ClCompile Include="IndexMapAccess.cpp" />
     <ClCompile Include="IndexMapIterator.cpp" />
     <ClCompile Include="IndexPtr.cpp" />
@@ -874,7 +865,6 @@
     <ClCompile Include="FloatHelper.cpp" />
     <ClCompile Include="IntegerHelper.cpp" />
     <ClCompile Include="FixedPoint.cpp" />
-    <ClCompile Include="PackedFloat.cpp" />
     <ClCompile Include="Number.cpp" />
     <ClCompile Include="NumberControl.cpp" />
     <ClCompile Include="ChunkFile.cpp" />
@@ -882,7 +872,6 @@
     <ClCompile Include="CSVFile.cpp" />
     <ClCompile Include="CSVFileEditable.cpp" />
     <ClCompile Include="CSVFileImutable.cpp" />
-    <ClCompile Include="CSVHelper.cpp" />
     <ClCompile Include="IntelHex.cpp" />
     <ClCompile Include="TextFile.cpp" />
     <ClCompile Include="NaiveFile.cpp" />
