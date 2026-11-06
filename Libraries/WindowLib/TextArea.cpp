@@ -127,6 +127,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	muiEditCaret = 0;
 	muiEditAnchor = MAX_SIZE;
 	mcUndoEvent.Init();
+	mcChanged.Init();
 	muiCaret = 0;
 	muiAnchor = MAX_SIZE;
 	mbCaretAtRowEnd = false;
@@ -226,6 +227,7 @@ void CTextArea::Free(void)
 	mauiStopStarts.Kill();
 	masBackgrounds.Kill();
 	masSpans.Kill();
+	mcChanged.Kill();
 	mcUndoEvent.Kill();
 	mcUndo.Kill();
 	mszText.Kill();
@@ -262,6 +264,7 @@ void CTextArea::Class(void)
 	U_Size(muiEditCaret);
 	U_Size(muiEditAnchor);
 	U_Data(CTextAreaUndoEvent, mcUndoEvent);
+	U_Data(CComponentEvent<CTextArea>, mcChanged);
 	M_Pointer(mpText);
 	U_Bool(mbTextStale);
 	M_Pointer(mpLayout);
@@ -4029,6 +4032,7 @@ void CTextArea::SetTypingPause(int32 iMilliseconds)
 
 
 CTextAreaUndoEvent* CTextArea::GetUndoEvent(void) { return &mcUndoEvent; }
+CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -4089,7 +4093,8 @@ void CTextArea::RedoAction(void) { Redo(); }
 //////////////////////////////////////////////////////////////////////////
 //
 // The text is read and laid out again, the caret is kept in view and the
-// window lays out again if the text's size changed.
+// window lays out again if the text's size changed.  Then the change
+// event is called.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::TextChanged(void)
@@ -4114,6 +4119,7 @@ void CTextArea::TextChanged(void)
 	{
 		mpWindow->GetFocus()->ResetCaretBlink();
 	}
+	mcChanged.Call(this);
 }
 
 

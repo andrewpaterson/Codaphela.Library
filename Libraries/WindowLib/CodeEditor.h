@@ -113,7 +113,6 @@ protected:
 	CArrayCodeEditorGlyphs	masGlyphs;  //By line, as the marks are.
 	CGutterClickEvent		mcGlyphClicked;
 	ARGB32					msBandNumberColour;  //Line numbers on a change band.
-	size					muiSeenChanges;  //The text area's change count when the change event was last called.
 	CGutterClickEvent		mcGutterClicked;
 	CGutterClickEvent		mcChangeBarClicked;
 	CComponentEvent<CCodeEditor>	mcChanged;
@@ -173,6 +172,7 @@ protected:
 	void				RemoveLineComponentAt(size uiIndex);
 	int32				GetGapHeight(Ptr<CComponent> pComponent);
 	void				Update(void);
+	void				CodeChanged(void);
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
 	void				DrawChangeBars(size uiDigits);

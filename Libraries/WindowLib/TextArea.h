@@ -218,6 +218,7 @@ protected:
 	size				muiEditCaret;
 	size				muiEditAnchor;
 	CTextAreaUndoEvent	mcUndoEvent;
+	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
@@ -242,6 +243,7 @@ public:
 	bool				UndoTo(size uiId);
 	void				SetTypingPause(int32 iMilliseconds);
 	CTextAreaUndoEvent*	GetUndoEvent(void);
+	CComponentEvent<CTextArea>*	GetChangeEvent(void);
 	void				SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>			GetFont(void);
 	int32				GetTabPixels(void);

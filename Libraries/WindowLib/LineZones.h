@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __LINE_ZONES_H__
 #define __LINE_ZONES_H__
 #include "StandardLib/Object.h"
-#include "StandardLib/Array.h"
 #include "CodeEditor.h"
 #include "LineZone.h"
 #include "LineZoneSource.h"
@@ -35,7 +34,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //in the gutter, and clicking a mark shows the line's pages under it (a CLineZone), clicking again hides them.  Editing
 //the code puts the source out of date, as its lines may not be the code's now, until a source is set again: the marks
 //go and the zones are greyed.  Setting the source again brings each zone up to date with its line's pages, or closes
-//it if the line has none now; a zone whose line is deleted goes with it.
+//it if the line has none now; a zone whose line is deleted goes with it.  The zones are the code editor's line
+//components that are CLineZones: it keeps them, and drops them with their lines.
 class CLineZones : public CObject
 {
 CONSTRUCTABLE(CLineZones);
@@ -49,7 +49,6 @@ protected:
 	ARGB32				msText;
 	CLineZoneSource*	mpcSource;		//NULL for none; whatever set it keeps it.
 	bool				mbOutOfDate;	//The code was edited since the source was set.
-	CArray<CLineZone>	maZones;
 
 public:
 	void				Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTitleFont, Ptr<CFontFamily> pTextFamily, ARGB32 sBackground, ARGB32 sText);
@@ -70,6 +69,7 @@ public:
 	bool				IsOutOfDate(void);
 
 protected:
+	Ptr<CLineZone>		GetZoneComponent(size uiComponent);
 	void				RemoveZone(Ptr<CLineZone> pZone);
 	void				MarkLine(size uiLine);
 	bool				HasPages(size uiLine);

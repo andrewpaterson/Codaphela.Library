@@ -55,7 +55,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 
 	mpTextArea = OMalloc<CTextArea>(pWindow, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
-	muiSeenChanges = mpTextArea->GetChangeCount();
+	mpTextArea->GetChangeEvent()->Add(this, &CCodeEditor::CodeChanged);
 
 	//The gutter is only to read: a press in it passes to the code editor.
 	mpGutter = OMalloc<CTextArea>(pWindow, pFamily, "");
@@ -88,6 +88,10 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const cha
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Free(void)
 {
+	if (mpTextArea.IsNotNull())
+	{
+		mpTextArea->GetChangeEvent()->Remove(this);
+	}
 	mcChanged.Kill();
 	mcGutterClicked.Kill();
 	mcChangeBarClicked.Kill();
@@ -124,7 +128,6 @@ void CCodeEditor::Class(void)
 	U_Data(CArrayCodeEditorGlyphs, masGlyphs);
 	U_Data(CGutterClickEvent, mcGlyphClicked);
 	U_UInt32(msBandNumberColour);
-	U_Size(muiSeenChanges);
 	U_Data(CGutterClickEvent, mcGutterClicked);
 	U_Data(CGutterClickEvent, mcChangeBarClicked);
 	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
@@ -406,23 +409,29 @@ int32 CCodeEditor::GetGapHeight(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Catches up with edits to the code: the change event is called,
-// line components whose lines went are removed, the others' gaps are as
-// high as they want, and the gutter is numbered and gapped like the code.
+// Before the code editor is measured or laid out: line components whose
+// lines went are removed, the others' gaps are as high as they want, and
+// the gutter is numbered and gapped like the code.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::Update(void)
 {
-	size	uiChanges;
-
-	uiChanges = mpTextArea->GetChangeCount();
-	if (uiChanges != muiSeenChanges)
-	{
-		muiSeenChanges = uiChanges;
-		mcChanged.Call(this);
-	}
 	UpdateLineComponents();
 	UpdateGutter();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code was edited (the text area's change event).  Line components
+// whose lines went are removed before the change event is called, so its
+// listeners see the code editor as the code is now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::CodeChanged(void)
+{
+	UpdateLineComponents();
+	mcChanged.Call(this);
 }
 
 

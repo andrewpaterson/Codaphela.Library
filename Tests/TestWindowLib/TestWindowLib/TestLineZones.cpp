@@ -340,6 +340,76 @@ void TestLineZonesOutOfDate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An edit reaches the zones as it is made, not when the code is laid out
+// again: they are out of date at once, and a zone whose line is deleted
+// is gone from them at once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestLineZonesFollowEditsAtOnce(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pTextArea;
+		Ptr<CLineZones>				pZones;
+		CTestLineZoneSource			cSource;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 400, 400, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Line Zones Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pTextArea = pEditor->GetTextArea();
+		pZones = OMalloc<CLineZones>(pEditor, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()), ReadLabelFont(), CreateMonoTextAreaFamily(15.0f), JEWEL_PANEL, JEWEL_TEXT);
+		pTestWindow->Layout();
+
+		cSource.Init();
+		cSource.mauiPages[1] = 1;
+		cSource.mauiPages[3] = 1;
+		pZones->SetSource(&cSource);
+		AssertTrue(pZones->Toggle(1));
+		AssertTrue(pZones->Toggle(3));
+		AssertSize(2, pZones->NumZones());
+
+		pTextArea->SetCaretPosition(0);
+		pTextArea->Enter();
+		AssertTrue(pZones->IsOutOfDate());
+
+		//The zone that was under line 2 is under line 3 now.
+		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2));
+		pTextArea->DeleteLine();
+		AssertSize(1, pZones->NumZones());
+		AssertTrue(pZones->FindZone(2).IsNull());
+		AssertTrue(pZones->FindZone(3).IsNotNull());
+		AssertTrue(pZones->GetZone(0) == pZones->FindZone(3));
+
+		pZones = NULL;
+		pTextArea = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestLineZones(void)
@@ -349,6 +419,7 @@ void TestLineZones(void)
 
 	TestLineZonesShow();
 	TestLineZonesOutOfDate();
+	TestLineZonesFollowEditsAtOnce();
 
 	ObjectsFlush();
 	ObjectsKill();

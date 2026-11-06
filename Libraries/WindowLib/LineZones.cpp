@@ -41,7 +41,6 @@ void CLineZones::Init(Ptr<CCodeEditor> pCodeEditor, Ptr<CWindowTheme> pTheme, Pt
 	msText = sText;
 	mpcSource = NULL;
 	mbOutOfDate = false;
-	maZones.Init();
 	mpCodeEditor->GetGutterClickEvent()->Add(this, &CLineZones::GutterClicked);
 	mpCodeEditor->GetChangeEvent()->Add(this, &CLineZones::CodeChanged);
 
@@ -63,7 +62,6 @@ void CLineZones::Class(void)
 	U_UInt32(msText);
 	U_Pointer(mpcSource);
 	U_Bool(mbOutOfDate);
-	M_Embedded(maZones);
 }
 
 
@@ -131,11 +129,15 @@ void CLineZones::SetSource(CLineZoneSource* pcSource)
 	mbOutOfDate = false;
 	mpCodeEditor->ClearLineMarks();
 
-	i = maZones.Size();
+	i = mpCodeEditor->NumLineComponents();
 	while (i > 0)
 	{
 		i--;
-		pZone = maZones.Get(i);
+		pZone = GetZoneComponent(i);
+		if (pZone.IsNull())
+		{
+			continue;
+		}
 		uiLine = mpCodeEditor->GetLineOf(pZone);
 		if (HasPages(uiLine))
 		{
@@ -185,7 +187,6 @@ bool CLineZones::Toggle(size uiLine)
 
 	pZone = OMalloc<CLineZone>(mpCodeEditor->GetWindow(), mpTheme, mpTitleFont, mpTextFamily, msBackground, msText);
 	pZone->SetSource(mpcSource, uiLine);
-	maZones.Add(pZone);
 	mpCodeEditor->AddLineComponent(uiLine, pZone);
 	MarkLine(uiLine);
 	return true;
@@ -208,9 +209,9 @@ void CLineZones::CodeChanged(void)
 	}
 	mbOutOfDate = true;
 	mpCodeEditor->ClearLineMarks();
-	for (i = 0; i < maZones.Size(); i++)
+	for (i = 0; i < NumZones(); i++)
 	{
-		maZones.Get(i)->SetOutOfDate(true);
+		GetZone(i)->SetOutOfDate(true);
 	}
 }
 
@@ -222,16 +223,81 @@ void CLineZones::CodeChanged(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CLineZone> CLineZones::FindZone(size uiLine)
 {
-	size	i;
+	size			i;
+	Ptr<CLineZone>	pZone;
 
-	for (i = 0; i < maZones.Size(); i++)
+	for (i = 0; i < mpCodeEditor->NumLineComponents(); i++)
 	{
-		if (mpCodeEditor->GetLineOf(maZones.Get(i)) == uiLine)
+		pZone = GetZoneComponent(i);
+		if (pZone.IsNotNull() && (mpCodeEditor->GetLineOf(pZone) == uiLine))
 		{
-			return maZones.Get(i);
+			return pZone;
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many zones are shown, in the order they were opened.
+//
+//////////////////////////////////////////////////////////////////////////
+size CLineZones::NumZones(void)
+{
+	size	i;
+	size	uiZones;
+
+	uiZones = 0;
+	for (i = 0; i < mpCodeEditor->NumLineComponents(); i++)
+	{
+		if (GetZoneComponent(i).IsNotNull())
+		{
+			uiZones++;
+		}
+	}
+	return uiZones;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL past the last zone.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CLineZone> CLineZones::GetZone(size uiIndex)
+{
+	size			i;
+	Ptr<CLineZone>	pZone;
+
+	for (i = 0; i < mpCodeEditor->NumLineComponents(); i++)
+	{
+		pZone = GetZoneComponent(i);
+		if (pZone.IsNotNull())
+		{
+			if (uiIndex == 0)
+			{
+				return pZone;
+			}
+			uiIndex--;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code editor's line component uiComponent if it is a zone, else
+// NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CLineZone> CLineZones::GetZoneComponent(size uiComponent)
+{
+	Ptr<CComponent>	pComponent;
+
+	pComponent = mpCodeEditor->GetLineComponent(uiComponent);
+	return Ptr<CLineZone>(dynamic_cast<CLineZone*>(&pComponent));
 }
 
 
@@ -242,7 +308,6 @@ Ptr<CLineZone> CLineZones::FindZone(size uiLine)
 void CLineZones::RemoveZone(Ptr<CLineZone> pZone)
 {
 	mpCodeEditor->RemoveLineComponent(pZone);
-	maZones.Remove(pZone);
 }
 
 
@@ -279,7 +344,5 @@ bool CLineZones::HasPages(size uiLine)
 }
 
 
-size CLineZones::NumZones(void) { return maZones.Size(); }
-Ptr<CLineZone> CLineZones::GetZone(size uiIndex) { return maZones.Get(uiIndex); }
 bool CLineZones::IsOutOfDate(void) { return mbOutOfDate; }
 
