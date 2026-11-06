@@ -196,6 +196,8 @@ void CCanvas::CreateNativeCanvas(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The native canvas goes back to the factory that made it.  It is asked
+// for that, not the window: the window can be killed before the canvas.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::DestroyNativeCanvas(void)
@@ -204,7 +206,7 @@ void CCanvas::DestroyNativeCanvas(void)
 
 	if (mpcNativeCanvas)
 	{
-		pcFactory = mpWindow->GetFactory();
+		pcFactory = mpcNativeCanvas->GetFactory();
 		pcFactory->DestroyNativeCanvas(mpcNativeCanvas);
 		mpcNativeCanvas = NULL;
 	}

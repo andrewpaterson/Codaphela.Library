@@ -1021,6 +1021,58 @@ void TestCanvasWindowColourFormat(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// A canvas still held after its window is killed frees its native		//
+// canvas through the factory that made it, not through the window.		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasOutlivesKilledWindow(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pWindowFill;
+		Ptr<CClearCanvasDraw>	pBlueDraw;
+		Ptr<CCanvas>			pCanvas;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Killed Window", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pWindowFill);
+
+		pBlueDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, 0, 255));
+		pCanvas = OMalloc<CCanvas>(pTestWindow, pBlueDraw);
+		pCanvas->SetDesiredSize(4, 4);
+		pWindowFill->AddComponent(pCanvas);
+
+		pTestWindow->Show();
+		AssertTrue(pCanvas->GetImageOrNull().IsNotNull());
+
+		pWindowFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow->Kill();
+		AssertTrue(pTestWindow.IsNull());
+		AssertTrue(pCanvas.IsNotNull());
+
+		pCanvas = NULL;
+		pBlueDraw = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -1038,6 +1090,7 @@ void TestCanvas(void)
 	TestCanvasTransparent();
 	TestCanvasResizeReleasesOldCels();
 	TestCanvasWindowColourFormat();
+	TestCanvasOutlivesKilledWindow();
 
 	TestStatistics();
 }
