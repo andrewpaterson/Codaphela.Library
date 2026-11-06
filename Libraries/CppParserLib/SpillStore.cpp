@@ -174,22 +174,15 @@ bool CIndexTreeSpillStore::Put(const void* pvKey, size uiKeySize, const void* pv
 		uiRecordSize = MAX_DATA_SIZE;
 	}
 	memset(&mauiRecord[uiDataSize + 2], 0, uiRecordSize - (uiDataSize + 2));
-
-	//Uncommitted records can't be evicted, so they are committed before they fill half the cache: the other half holds
-	//the tree's nodes and keys, and committed records eviction can write out.  Waiting for the whole cache left the tree
-	//over its cache with nothing it could evict.
-	if ((muiUncommitted > 0) && (muiUncommitted + uiRecordSize > muiCacheSize / 2))
-	{
-		if (!Commit())
-		{
-			return false;
-		}
-	}
 	if (!mcTree.Put((uint8*)pvKey, uiKeySize, mauiRecord, uiRecordSize))
 	{
 		return false;
 	}
 	muiUncommitted += uiRecordSize;
+	if (muiUncommitted > muiCacheSize)
+	{
+		return Commit();
+	}
 	return true;
 }
 
