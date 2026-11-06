@@ -37,6 +37,7 @@ DESTRUCTABLE(CMapFontDraw);
 protected:
 	Ptr<CSpriteMap>		mpMap;
 	Ptr<CGeometryMap>	mpGeometryMap;  //For the lines drawn with the text.  NULL if they aren't drawn.
+	SInt32Vec2			msOffset;  //Added to where glyphs and lines are put (SetOffset).
 
 public:
 	void	Init(Ptr<CSpriteMap> pMap);
@@ -51,6 +52,9 @@ public:
 	void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) override;
 	void	Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour) override;
 	void	End(void) override;
+
+	void	BeginAppend(void);
+	void	SetOffset(int32 x, int32 y);
 };
 
 

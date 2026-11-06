@@ -26,6 +26,7 @@ void CMapFontDraw::Init(Ptr<CSpriteMap> pMap, Ptr<CGeometryMap> pGeometryMap)
 	CBaseFontDraw::Init();
 	mpMap = pMap;
 	mpGeometryMap = pGeometryMap;
+	msOffset.Init(0, 0);
 
 	PostInit();
 }
@@ -39,6 +40,7 @@ void CMapFontDraw::Class(void)
 {
 	M_Pointer(mpMap);
 	M_Pointer(mpGeometryMap);
+	U_2Int32(msOffset);
 }
 
 
@@ -95,7 +97,7 @@ void CMapFontDraw::Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB
 {
 	if (mpGeometryMap.IsNotNull())
 	{
-		mpGeometryMap->AddRectangle(x, y, iWidth, iHeight, sColour);
+		mpGeometryMap->AddRectangle(x + msOffset.x, y + msOffset.y, iWidth, iHeight, sColour);
 	}
 }
 
@@ -106,7 +108,7 @@ void CMapFontDraw::Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB
 //////////////////////////////////////////////////////////////////////////
 void CMapFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 {
-	mpMap->AddSprite(pGlyph->GetCel(), x, y);
+	mpMap->AddSprite(pGlyph->GetCel(), x + msOffset.x, y + msOffset.y);
 }
 
 
@@ -117,5 +119,29 @@ void CMapFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 void CMapFontDraw::End(void)
 {
 	mpMap->EndChange();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Begin, but what was placed before stays: glyphs placed now are added
+// to them (text laid out again from a line on, after the sprites of the
+// lines it replaces are removed).
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapFontDraw::BeginAppend(void)
+{
+	mpMap->BeginChange();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Glyphs and lines are put x right and y down of where they are placed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapFontDraw::SetOffset(int32 x, int32 y)
+{
+	msOffset.Init(x, y);
 }
 

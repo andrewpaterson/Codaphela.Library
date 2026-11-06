@@ -116,6 +116,21 @@ bool CSpriteMap::AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The sprites from uiFirst on are taken out (the last added, as text laid
+// out again from a line on).  The cels they drew are kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteMap::RemoveSprites(size uiFirst)
+{
+	if (uiFirst < masSprites.NumElements())
+	{
+		masSprites.RemoveRange(uiFirst, masSprites.NumElements());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 // The index of the cel in maCels, adding it if it isn't there yet.		//
 //																		//

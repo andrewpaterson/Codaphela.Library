@@ -31,6 +31,7 @@ void CTextLayout::Init(int32 iWidth)
 	masGaps.Init();
 	muiTextLine = 0;
 	muiNextGap = 0;
+	miLineWidth = 0;
 
 	PostInit();
 }
@@ -62,6 +63,7 @@ void CTextLayout::Class(void)
 	U_Data(CArrayTextLayoutGap, masGaps);
 	U_Size(muiTextLine);
 	U_Size(muiNextGap);
+	U_Int32(miLineWidth);
 }
 
 
@@ -132,6 +134,7 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	muiTextLine = 0;
 	muiNextGap = 0;
 	miWordWidth = 0;
+	miLineWidth = 0;
 	pcFont = NULL;
 	msRunStyle.pcFont = NULL;
 	msRunStyle.iBaselineShift = 0;
@@ -183,6 +186,66 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	masLine.Kill();
 	masWord.Kill();
 	mcUTF16.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines from uiLine on (and their stops) are replaced by pcTail's,
+// laid out from the top of line uiLine (as text appended to the text from
+// the start of that line on is laid out by itself): its lines go below
+// those kept, its stops after theirs.  The size is the widest line's and
+// to the bottom of pcTail's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::ReplaceLines(size uiLine, CTextLayout* pcTail)
+{
+	size				uiFirstStop;
+	int32				iTop;
+	int32				iWidth;
+	size				i;
+	STextLayoutLine*	psLine;
+	STextLayoutStop*	psStop;
+
+	if (uiLine < masLines.NumElements())
+	{
+		psLine = masLines.Get(uiLine);
+		uiFirstStop = psLine->uiFirstStop;
+		iTop = psLine->iTop;
+		masLines.RemoveRange(uiLine, masLines.NumElements());
+	}
+	else
+	{
+		uiLine = masLines.NumElements();
+		uiFirstStop = masStops.NumElements();
+		iTop = msSize.y;
+	}
+	if (uiFirstStop < masStops.NumElements())
+	{
+		masStops.RemoveRange(uiFirstStop, masStops.NumElements());
+	}
+
+	iWidth = pcTail->msSize.x;
+	for (i = 0; i < masLines.NumElements(); i++)
+	{
+		if (masLines.Get(i)->iWidth > iWidth)
+		{
+			iWidth = masLines.Get(i)->iWidth;
+		}
+	}
+	for (i = 0; i < pcTail->masStops.NumElements(); i++)
+	{
+		psStop = masStops.Add(pcTail->masStops.Get(i));
+		psStop->uiLine += uiLine;
+	}
+	for (i = 0; i < pcTail->masLines.NumElements(); i++)
+	{
+		psLine = masLines.Add(pcTail->masLines.Get(i));
+		psLine->iTop += iTop;
+		psLine->iBaseline += iTop;
+		psLine->uiFirstStop += uiFirstStop;
+	}
+	msSize.Init(iWidth, iTop + pcTail->msSize.y);
 }
 
 
@@ -422,6 +485,10 @@ void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, 
 	{
 		msSize.x = msPosition.x;
 	}
+	if (bSize && (msPosition.x > miLineWidth))
+	{
+		miLineWidth = msPosition.x;
+	}
 	if (iAscent > miRowAscent)
 	{
 		miRowAscent = iAscent;
@@ -460,7 +527,9 @@ void CTextLayout::EndLine(void)
 	psLine->iBaseline = msPosition.y + miRowAscent;
 	psLine->uiFirstStop = muiLineFirstStop;
 	psLine->uiNumStops = masStops.NumElements() - muiLineFirstStop;
+	psLine->iWidth = miLineWidth;
 	muiLineFirstStop = masStops.NumElements();
+	miLineWidth = 0;
 
 	iBaseline = msPosition.y + miRowAscent;
 	for (ui = 0; ui < masLine.NumElements(); ui++)
@@ -702,6 +771,10 @@ void CTextLayout::Tab(void)
 	if ((miWidth < 0) && (msPosition.x > msSize.x))
 	{
 		msSize.x = msPosition.x;
+	}
+	if ((miWidth < 0) && (msPosition.x > miLineWidth))
+	{
+		miLineWidth = msPosition.x;
 	}
 }
 

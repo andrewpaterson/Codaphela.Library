@@ -77,6 +77,7 @@ public:
 	void						Clear(void);
 
 	bool						AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
+	void						RemoveSprites(size uiFirst);
 	size						NumSprites(void);
 	SSprite*					GetSprite(size uiIndex);
 	size						NumCels(void);

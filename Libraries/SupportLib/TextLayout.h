@@ -89,6 +89,7 @@ struct STextLayoutLine
 	int32		iBaseline;  //Below the top of the text, not the line.
 	size		uiFirstStop;
 	size		uiNumStops;
+	int32		iWidth;  //How far right its glyphs (and tabs, without wrapping) reach.
 };
 
 
@@ -134,6 +135,7 @@ protected:
 	CArrayTextLayoutGap		masGaps;  //Sorted by line, at most one a line (SetLineGaps).
 	size			muiTextLine;  //The line feeds laid out so far.
 	size			muiNextGap;  //The first of masGaps not yet passed.
+	int32			miLineWidth;  //How far right the line being laid out reaches.
 
 public:
 	void			Init(void);
@@ -146,6 +148,7 @@ public:
 
 	void			Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText);
 	SInt32Vec2		GetSize(void);
+	void			ReplaceLines(size uiLine, CTextLayout* pcTail);
 	void			SetWidth(int32 iWidth);
 	int32			GetWidth(void);
 	void			SetTabWidth(int32 iTabWidth);
