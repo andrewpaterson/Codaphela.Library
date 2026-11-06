@@ -94,6 +94,7 @@ int __cdecl main(void)
 	TestGroupIntegratedCircuits();
 	TestProcessorChips();
 
+	ObjectsDiscard();
 	ObjectsKill();
 	DataIOKill();
 	MemoryKill();

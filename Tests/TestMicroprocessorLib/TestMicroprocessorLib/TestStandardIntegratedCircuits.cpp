@@ -1227,6 +1227,7 @@ void TestStandardSimulationFreedInObjectsKill(void)
 	//Only the root holds the simulation now.
 	cBoard.mpSimulation = NULL;
 	AssertSize(1, CountStandardObjects("CCircuitSimulation"));
+	ObjectsDiscard();
 	ObjectsKill(false);
 	ObjectsInit();
 	AssertSize(0, CountStandardObjects("CCircuitSimulation"));
