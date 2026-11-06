@@ -30,6 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectHeader;
 class CObjectIdentifier;
+class CPointerHeader;
 class CObjectReader : public CFileReader
 {
 protected:
@@ -46,6 +47,7 @@ public:
 
 	bool			ReadPointer(CPointer* pObject);
 	bool			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
+	bool			ReadPointerHeader(CPointerHeader* pcHeader);
 	bool			ReadObjectHeader(CObjectHeader* pcObjectHeader);
 	bool			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 	bool			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);

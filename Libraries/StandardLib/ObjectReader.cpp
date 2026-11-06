@@ -259,51 +259,42 @@ lsize CObjectReader::Read(void* pvDest, lsize iSize, lsize iCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer's identifier and, unless it's NULL, which of the object's
+// embedded objects it points to.  ReadIdentifier refuses unknown types.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectReader::ReadPointer(CPointer* pObject)
+bool CObjectReader::ReadPointerHeader(CPointerHeader* pcHeader)
 {
-	CPointerHeader		cHeader;
-	bool				bResult;
-	CEmbeddedObject**	ppcObjectPtr;
-	CObject*			pcEmbedding;
+	bool	bResult;
 
-	pObject->UnsafeClearObject();
-
-	bResult = ReadIdentifier(&cHeader);
-	if (!bResult)
-	{
-		cHeader.Kill();
-		return false;
-	}
-
-	if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
-	{
-		bResult = ReadInt16(&cHeader.miNumEmbedded);
-		bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
-		if (!bResult)
-		{
-			cHeader.Kill();
-			return false;
-		}
-		ppcObjectPtr = pObject->ObjectPtr();
-		pcEmbedding = pObject->Embedding();
-
-		bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
-		cHeader.Kill();
-		return bResult;
-	}
-	else
+	ReturnOnFalse(ReadIdentifier(pcHeader));
+	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{
 		return true;
 	}
 
-	//cHeader is killed by mpcDependents.
+	bResult = ReadInt16(&pcHeader->miNumEmbedded);
+	bResult &= ReadInt16(&pcHeader->miEmbeddedIndex);
+	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjectReader::ReadPointer(CPointer* pObject)
+{
+	pObject->UnsafeClearObject();
+	return ReadDependent(pObject->ObjectPtr(), (CBaseObject*)pObject->Embedding());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer in pcContaining: *ppcObjectPtr is pointed at what it points to
+// once that's known.  A NULL pointer is read as NULL: the place it's read
+// into (an array's element) needn't be cleared already.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
@@ -311,38 +302,20 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 	CPointerHeader	cHeader;
 	bool			bResult;
 
-	//A NULL pointer is read as NULL too: the place it's read into (an array's element) needn't be cleared already.
 	*ppcObjectPtr = NULL;
-	bResult = ReadIdentifier(&cHeader);
-	if (bResult)
+	bResult = ReadPointerHeader(&cHeader);
+	if (bResult && (cHeader.meType != OBJECT_POINTER_NULL))
 	{
-		if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
-		{
-			bResult = ReadInt16(&cHeader.miNumEmbedded);
-			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
-
-			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
-			cHeader.Kill();
-			return bResult;
-		}
-		else
-		{
-			cHeader.Kill();
-			return true;
-		}
+		bResult = mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
 	}
-	else
-	{
-		cHeader.Kill();
-		return false;
-	}
-
-	//cHeader is killed by mpcDependents.
+	cHeader.Kill();
+	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object that points to pcContaining.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
@@ -350,34 +323,13 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 	CPointerHeader	cHeader;
 	bool			bResult;
 
-	bResult = ReadIdentifier(&cHeader);
-	if (bResult)
+	SafeAssign(ppcObjectPtr, NULL);
+	bResult = ReadPointerHeader(&cHeader);
+	if (bResult && (cHeader.meType != OBJECT_POINTER_NULL))
 	{
-		if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
-		{
-			bResult = ReadInt16(&cHeader.miNumEmbedded);
-			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
-
-			SafeAssign(ppcObjectPtr, NULL);
-			
-			bResult &= mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
-			cHeader.Kill();
-			return bResult;
-		}
-		else if (cHeader.meType == OBJECT_POINTER_NULL)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		bResult = mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
 	}
-	else
-	{
-		return false;
-	}
-
-	//cHeader is killed by mpcDependents.
+	cHeader.Kill();
+	return bResult;
 }
 
