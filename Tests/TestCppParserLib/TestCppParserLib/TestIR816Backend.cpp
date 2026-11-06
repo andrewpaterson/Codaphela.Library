@@ -493,6 +493,16 @@ void TestIR816BackendDivide(void)
 	AssertIR816(1, "function i32 @_main()\n{\nb:\n\t%a = urem i32 -7, 2\n\tret i32 %a\n}\n");
 	AssertIR816(-14, "function i32 @_main()\n{\nb:\n\t%a = sdiv i8 -100, 7\n\t%s = sext i8 %a to i32\n\tret i32 %s\n}\n");
 	AssertIR816(-2, "function i32 @_main()\n{\nb:\n\t%a = srem i8 -100, 7\n\t%s = sext i8 %a to i32\n\tret i32 %s\n}\n");
+	AssertIR816(-14, "function i8 @_D__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%q = sdiv i8 %a, %b\n\tret i8 %q\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_D__Fcc(i8 -100, i8 7)\n\t%s = sext i8 %r to i32\n\tret i32 %s\n}\n");
+	AssertIR816(-2, "function i8 @_D__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%q = srem i8 %a, %b\n\tret i8 %q\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_D__Fcc(i8 -100, i8 7)\n\t%s = sext i8 %r to i32\n\tret i32 %s\n}\n");
+	AssertIR816(14, "function i8 @_D__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%q = sdiv i8 %a, %b\n\tret i8 %q\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_D__Fcc(i8 -100, i8 -7)\n\t%s = sext i8 %r to i32\n\tret i32 %s\n}\n");
+	AssertIR816(2, "function i8 @_D__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%q = srem i8 %a, %b\n\tret i8 %q\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_D__Fcc(i8 100, i8 -7)\n\t%s = sext i8 %r to i32\n\tret i32 %s\n}\n");
+	AssertIR816(-127, "function i8 @_D__Fcc(i8 %a, i8 %b), local\n{\nb:\n\t%q = sdiv i8 %a, %b\n\tret i8 %q\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i8 @_D__Fcc(i8 127, i8 -1)\n\t%s = sext i8 %r to i32\n\tret i32 %s\n}\n");
 	AssertIR816(-4681, "function i32 @_main()\n{\nb:\n\t%a = sdiv i16 -32768, 7\n\t%s = sext i16 %a to i32\n\tret i32 %s\n}\n");
 	AssertIR816(65535 / 3, "function i32 @_main()\n{\nb:\n\t%a = udiv i16 -1, 3\n\t%s = zext i16 %a to i32\n\tret i32 %s\n}\n");
 	AssertIR816(4000000000U % 3000000000U, "function i32 @_main()\n{\nb:\n\t%a = urem i32 4000000000, 3000000000\n\tret i32 %a\n}\n");

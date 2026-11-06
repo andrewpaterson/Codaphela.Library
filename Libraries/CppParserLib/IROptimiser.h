@@ -285,7 +285,7 @@ protected:
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
-	bool					mbDivideRemainders;		//An unsigned 16 or 32 bit divide leaves its remainder for a urem right after it (SetDivideRemainders).
+	bool					mbDivideRemainders;		//A 16 or 32 bit divide leaves its remainder for a urem or srem right after it (SetDivideRemainders).
 	bool					mbNarrowCounters;	//32 bit loop counters that fit count in 16 bits (SetNarrowCounters).
 	bool					mbBiasedIndices;	//Signed i16 indices are biased unsigned ones (SetBiasedIndices).
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).

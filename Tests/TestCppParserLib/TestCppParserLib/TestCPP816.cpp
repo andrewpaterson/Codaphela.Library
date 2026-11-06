@@ -528,8 +528,8 @@ void TestCPP816SharedDivisions(void)
 		"\treturn iOk;\n"
 		"}\n"));
 
-	//Unsigned 16 and 32 bits, either way round: the urem takes the remainder R816_UDiv16 or R816_UDiv32 left at D + 5
-	//(CIROptimiser::SetDivideRemainders, CIR816Backend::RemainderLeft), with no call and no multiply.
+	//16 and 32 bits, unsigned and signed, either way round: the urem or srem takes the remainder the divide left at
+	//D + 5 (CIROptimiser::SetDivideRemainders, CIR816Backend::RemainderLeft), with no call and no multiply.
 	szListing.Init();
 	AssertInt(1, TestCPP816RunListed(
 		"unsigned int gauiX[] = { 50000, 7, 65535, 3, 1234 };\n"
@@ -540,6 +540,16 @@ void TestCPP816SharedDivisions(void)
 		"int Check16R(unsigned int x, unsigned int d) { unsigned int r = x % d; unsigned int q = x / d; return (q * d + r == x) && (r < d); }\n"
 		"int Check32(unsigned long x, unsigned long d) { unsigned long q = x / d; unsigned long r = x % d; return (q * d + r == x) && (r < d); }\n"
 		"int Check32R(unsigned long x, unsigned long d) { unsigned long r = x % d; unsigned long q = x / d; return (q * d + r == x) && (r < d); }\n"
+		"int gaiX[] = { -30000, 7, 32767, -3, 1234 };\n"
+		"int gaiD[] = { 37, -9, -1, 30000, -300 };\n"
+		"long galX[] = { -2000000000L, 70000L, 2147483647L, -5L, 123456789L };\n"
+		"long galD[] = { 3L, -70000L, 65537L, -9L, -1000L };\n"
+		"int CheckS(int x, int d, int q, int r) { return (q * d + r == x) && ((r == 0) || ((r < 0) == (x < 0))) && ((r < 0 ? -r : r) < (d < 0 ? -d : d)); }\n"
+		"int CheckSL(long x, long d, long q, long r) { return (q * d + r == x) && ((r == 0) || ((r < 0) == (x < 0))) && ((r < 0 ? -r : r) < (d < 0 ? -d : d)); }\n"
+		"int Check16S(int x, int d) { int q = x / d; int r = x % d; return CheckS(x, d, q, r); }\n"
+		"int Check16SR(int x, int d) { int r = x % d; int q = x / d; return CheckS(x, d, q, r); }\n"
+		"int Check32S(long x, long d) { long q = x / d; long r = x % d; return CheckSL(x, d, q, r); }\n"
+		"int Check32SR(long x, long d) { long r = x % d; long q = x / d; return CheckSL(x, d, q, r); }\n"
 		"int main(void)\n"
 		"{\n"
 		"\tint\tiOk;\n"
@@ -548,10 +558,14 @@ void TestCPP816SharedDivisions(void)
 		"\tfor (i = 0; i < 5; i++)\n"
 		"\t{\n"
 		"\t\tiOk &= Check16(gauiX[i], gauiD[i]) & Check16R(gauiX[i], gauiD[i]) & Check32(gaulX[i], gaulD[i]) & Check32R(gaulX[i], gaulD[i]);\n"
+		"\t\tiOk &= Check16S(gaiX[i], gaiD[i]) & Check16SR(gaiX[i], gaiD[i]) & Check32S(galX[i], galD[i]) & Check32SR(galX[i], galD[i]);\n"
 		"\t}\n"
 		"\treturn iOk;\n"
 		"}\n", aszNoUnits, &szListing, NULL, 0, true));
 	AssertFalse(szListing.Contains("R816_URem"));
+	AssertFalse(szListing.Contains("R816_SRem"));
+	AssertTrue(szListing.Contains("jsl R816_SDiv16"));
+	AssertTrue(szListing.Contains("jsl R816_SDiv32"));
 	AssertTrue(szListing.Contains("jsl R816_UDiv16"));
 	AssertTrue(szListing.Contains("jsl R816_UDiv32"));
 	szListing.Kill();
@@ -3166,7 +3180,8 @@ void TestCPP816WideDivisors(void)
 	AssertInt((int16)uiHash, TestCPP816RunProfiled(szSource.Text(), NULL, NULL, &uiCycles));
 	szSource.Kill();
 
-	AssertInt(2, TestCPP816CountInAssembly(szFunctions, "pea 675"));
+	AssertInt(2, TestCPP816CountInAssembly(szFunctions, "lda 675"));
+	AssertInt(2, TestCPP816CountInAssembly(szFunctions, "jsl R816_SDiv32"));
 	AssertInt(0, TestCPP816CountInAssembly(szFunctions, "jsl R816_URem32"));
 	AssertInt(0, TestCPP816CountInAssembly(szFunctions, "jsl R816_UDiv32"));
 }

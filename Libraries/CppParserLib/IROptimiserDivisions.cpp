@@ -700,9 +700,9 @@ bool CIROptimiser::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int
 // instead of two, for a target whose divides are runtime calls (a multiply
 // is much cheaper).  When the remainder comes first a divide is put before
 // it, which common subexpressions make the later one.  C's division rounds
-// towards 0, so it holds signed too.  With SetDivideRemainders an unsigned
-// 16 or 32 bit urem is instead moved to right after its udiv (which leaves
-// the remainder), or the udiv is put right before it.
+// towards 0, so it holds signed too.  With SetDivideRemainders a 16 or 32
+// bit urem or srem is instead moved to right after its udiv or sdiv (which
+// leaves the remainder), or the divide is put right before it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ShareDivisions(void)
@@ -749,7 +749,7 @@ bool CIROptimiser::ShareDivisions(void)
 			{
 				continue;
 			}
-			if (mbDivideRemainders && (psRemainder->uiOpcode == IRO_URem) && (sType.Is(IRTK_I16) || sType.Is(IRTK_I32)))
+			if (mbDivideRemainders && (sType.Is(IRTK_I16) || sType.Is(IRTK_I32)))
 			{
 				if (uiDivide + 1 == uiRemainder)
 				{

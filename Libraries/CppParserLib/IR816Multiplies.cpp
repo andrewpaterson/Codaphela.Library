@@ -88,8 +88,24 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 	iBytes = 0;
 	if (IR816ScratchRoutine(szName.Text()))
 	{
-		CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], Words(sType));
-		CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], Words(sType));
+		if (bSigned && sType.Is(IRTK_I8))
+		{
+			//R816_SDiv16 and R816_SRem16 take the bytes sign extended.
+			for (i = 0; i < 2; i++)
+			{
+				Operand("lda", psInstruction->asArguments[i], 0);
+				Line("and 0xFF");
+				Line("eor 0x80");
+				Line("sec");
+				Line("sbc 0x80");
+				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
+			}
+		}
+		else
+		{
+			CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], Words(sType));
+			CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], Words(sType));
+		}
 	}
 	else
 	{
@@ -116,7 +132,7 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 		}
 	}
 	UseRuntime(szName.Text());
-	mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) && IR816ScratchRoutine(szName.Text())) ? psInstruction : NULL;
+	mpsDivided = (((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) && IR816ScratchRoutine(szName.Text())) ? psInstruction : NULL;
 	szName.Insert(0, "jsl ");
 	Line(szName.Text());
 	szName.Kill();
@@ -127,9 +143,10 @@ bool CIR816Backend::RuntimeCall(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psInstruction is a urem of 16 or 32 bits written straight after
-// the udiv of the same operands (CIROptimiser::SetDivideRemainders puts it
-// there): R816_UDiv16 and R816_UDiv32 left its result at
+// Whether psInstruction is a urem (srem) of 16 or 32 bits written straight
+// after the udiv (sdiv) of the same operands (CIROptimiser::
+// SetDivideRemainders puts it there): R816_UDiv16, R816_UDiv32,
+// R816_SDiv16 and R816_SDiv32 leave the remainder at
 // IR816_SCRATCH_REMAINDER, which nothing has written since.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -138,7 +155,11 @@ bool CIR816Backend::RemainderLeft(SIRInstruction* psInstruction)
 	SIRInstruction*	psDivide;
 
 	psDivide = mpsWritten;
-	if ((psInstruction->uiOpcode != IRO_URem) || !psDivide || (psDivide != mpsDivided) || (miFused != 0))
+	if (!psDivide || (psDivide != mpsDivided) || (miFused != 0))
+	{
+		return false;
+	}
+	if (!((psInstruction->uiOpcode == IRO_URem) && (psDivide->uiOpcode == IRO_UDiv)) && !((psInstruction->uiOpcode == IRO_SRem) && (psDivide->uiOpcode == IRO_SDiv)))
 	{
 		return false;
 	}

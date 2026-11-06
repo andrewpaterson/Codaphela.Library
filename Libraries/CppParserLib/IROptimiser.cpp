@@ -151,9 +151,9 @@ void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the target's unsigned 16 and 32 bit divide leaves the remainder
-// where a urem straight after it with the same operands can take it (the
-// W65C816's R816_UDiv16 and R816_UDiv32: D + 5).  ShareDivisions then puts
+// Whether the target's 16 and 32 bit divides leave the remainder where a
+// urem or srem straight after them with the same operands can take it (the
+// W65C816's R816_UDiv16, R816_SDiv32 ...: D + 5).  ShareDivisions then puts
 // such a urem right after its udiv instead of making it a multiply.
 //
 //////////////////////////////////////////////////////////////////////////

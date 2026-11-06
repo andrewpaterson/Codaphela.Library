@@ -52,6 +52,10 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_URem32", true, false },
 	{ "R816_UDiv16", true, false },
 	{ "R816_URem16", true, false },
+	{ "R816_SDiv32", true, false },
+	{ "R816_SRem32", true, false },
+	{ "R816_SDiv16", true, false },
+	{ "R816_SRem16", true, false },
 	{ "R816_Mul16", true, false },
 	{ "R816_Mul32", true, false },
 	{ "R816_Mul64", false, false },
@@ -68,24 +72,9 @@ static const SIR816Routine gasIR816Routines[] =
 };
 
 
-//The signed divide and remainder, as IR for each width ($T the type, $NAME the routine, R816_$NAME): they work on
-//the magnitudes and call the unsigned ones in assembly ($UOP).
-static const char* gszIR816Signed =
-	"function $T @R816_$NAME($T %a, $T %b)\n{\n"
-	"entry:\n\t%an = slt $T %a, 0\n\tbrif %an, negA, posA\n"
-	"negA:\n\t%na = sub $T 0, %a\n\tjmp gotA\n"
-	"posA:\n\tjmp gotA\n"
-	"gotA:\n\t%ua = phi $T [negA, %na], [posA, %a]\n\t%bn = slt $T %b, 0\n\tbrif %bn, negB, posB\n"
-	"negB:\n\t%nb = sub $T 0, %b\n\tjmp gotB\n"
-	"posB:\n\tjmp gotB\n"
-	"gotB:\n\t%ub = phi $T [negB, %nb], [posB, %b]\n\t%u = $UOP $T %ua, %ub\n"
-	"\t%s = $SIGN\n\tbrif %s, neg, pos\n"
-	"neg:\n\t%nu = sub $T 0, %u\n\tret $T %nu\n"
-	"pos:\n\tret $T %u\n}\n\n";
-
-
-//The 64 bit signed divide and remainder: as gszIR816Signed, but when both magnitudes fit in 32 bits (file positions
-//and sizes nearly always do) the 32 bit unsigned routine works it out, much faster than the 64 bit loop.
+//The 64 bit signed divide and remainder, as IR (R816_$NAME): they work on the magnitudes and call the unsigned ones
+//in assembly ($UOP), the 32 bit one when both magnitudes fit in 32 bits (file positions and sizes nearly always do),
+//much faster than the 64 bit loop.
 static const char* gszIR816Signed64 =
 	"function i64 @R816_$NAME(i64 %a, i64 %b)\n{\n"
 	"entry:\n\t%an = slt i64 %a, 0\n\tbrif %an, negA, posA\n"
@@ -278,8 +267,8 @@ void CIR816Backend::AppendDivideTable(CChars* pszDest, const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Generates the runtime routines named in paszRuntime that aren't in assembly (IR816FindRoutine): the signed
-// divides from their IR, and the tables TableDivide and the shifts read.  Any other name is an error.
+// Generates the runtime routines named in paszRuntime that aren't in assembly (IR816FindRoutine): the 64 bit
+// signed divides from their IR, and the tables TableDivide and the shifts read.  Any other name is an error.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CChars* pszDest, CCPPErrors* pcErrors)
@@ -287,14 +276,12 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	CArrayChars		aszNames;
 	CChars			szIR;
 	CChars			szText;
-	CChars			szType;
 	CIRModule		cModule;
 	CIRParser		cParser;
 	CIR816Backend			cBackend;
 	size					i;
 	char*					szName;
 	const char*				szOperation;
-	int						iBits;
 	bool					bResult;
 	bool					bDivide;
 
@@ -329,25 +316,20 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 			continue;
 		}
 
-		//The signed divides from IR: szOperation is SDiv or SRem, then the bits.  Every other routine is in assembly.
+		//The 64 bit signed divides from IR: szOperation is SDiv64 or SRem64.  Every other routine is in assembly.
 		szOperation = &szName[IR816_RUNTIME_PREFIX_LENGTH];
-		if (!IR816StartsWith(szOperation, "SDiv") && !IR816StartsWith(szOperation, "SRem"))
+		if ((StringCompare(szOperation, "SDiv64") != 0) && (StringCompare(szOperation, "SRem64") != 0))
 		{
 			pcErrors->Add("runtime", -1, -1, -1, "No such W65C816 runtime routine", szName);
 			continue;
 		}
 		bDivide = szOperation[1] == 'D';
-		iBits = atoi(&szName[StrLen(szName) - 2]);
-		szType.Init("i");
-		szType.Append(iBits);
-		szText.Init((iBits == 64) ? gszIR816Signed64 : gszIR816Signed);
+		szText.Init(gszIR816Signed64);
 		szText.Replace("$UOP", bDivide ? "udiv" : "urem");
 		szText.Replace("$SIGN", bDivide ? "ne i1 %an, %bn" : "copy i1 %an");
 		szText.Replace("$NAME", szOperation);
-		szText.Replace("$T", szType.Text());
 		szIR.Append(szText);
 		szText.Kill();
-		szType.Kill();
 	}
 	aszNames.Kill();
 
