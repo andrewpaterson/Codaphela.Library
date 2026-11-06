@@ -5,6 +5,7 @@
 #include "BaseLib/TextFile.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
+#include "WindowLib/ComponentInput.h"
 #include "WindowLib/Canvas.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/JewelTheme.h"
@@ -1746,6 +1747,44 @@ void TestDockingLayoutFileAreaEdge(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A floating window shown before the main window has its input (a layout
+// read as the application starts) gets the input when the main window
+// does, and goes on sharing it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingFloatingInput(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		SDockTest				sTest;
+		CComponentInput			cInput;
+		Ptr<CWindow>			pFloatingWindow;
+
+		sTest.Init(&cNativeFactory);
+		AssertNull(sTest.pWindow->GetComponentInput());
+		sTest.pManager->Float(sTest.pProperties);
+		AssertSize(1, sTest.pManager->NumFloating());
+		pFloatingWindow = sTest.pManager->GetFloating(0)->GetWindow();
+		AssertNull(pFloatingWindow->GetComponentInput());
+
+		sTest.pWindow->SetComponentInput(&cInput);
+		AssertTrue(pFloatingWindow->GetComponentInput() == &cInput);
+		sTest.pWindow->SetComponentInput(NULL);
+		AssertNull(pFloatingWindow->GetComponentInput());
+
+		pFloatingWindow = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDocking(void)
@@ -1768,6 +1807,7 @@ void TestDocking(void)
 	TestDockingMoveToWindow();
 	TestDockingLayoutFile();
 	TestDockingLayoutFileAreaEdge();
+	TestDockingFloatingInput();
 	ValidateLabelObjects();
 
 	ObjectsFlush();

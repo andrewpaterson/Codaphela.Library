@@ -680,12 +680,27 @@ void CWindow::Deactivate(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The window doesn't own the component input.  Kill it after the window
-// stops showing.
+// stops showing.  The tool windows it owns that share its input get the
+// new one too: one shown before the window had its input, as a layout is
+// read before the application makes its input, takes it now.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::SetComponentInput(CComponentInput* pcComponentInput)
 {
+	CComponentInput*	pcOld;
+	size				i;
+	Ptr<CWindow>		pOwned;
+
+	pcOld = mpcComponentInput;
 	mpcComponentInput = pcComponentInput;
+	for (i = 0; i < maOwned.Size(); i++)
+	{
+		pOwned = maOwned.Get(i);
+		if (pOwned->mpcComponentInput == pcOld)
+		{
+			pOwned->SetComponentInput(pcComponentInput);
+		}
+	}
 }
 
 
