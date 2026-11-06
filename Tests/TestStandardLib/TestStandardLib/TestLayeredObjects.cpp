@@ -75,7 +75,7 @@ struct STestLayeredGame
 		pcLevelSequence = CSequenceFactory::Create(LAYERED_LEVEL_SEQUENCE, DS_No);
 		pcLevel = CCodabaseFactory::Create(LAYERED_LEVEL, IWT_No, DS_No);
 		pcWritable = CCodabaseFactory::Create(LAYERED_WRITABLE, IWT_No, DS_No);
-		pcRemoved = CCodabaseFactory::Create(LAYERED_REMOVED, IWT_No, DS_No);
+		pcRemoved = CCodabaseFactory::CreateSmall(LAYERED_REMOVED, IWT_No, DS_No);
 		pcGameSequence = CSequenceFactory::Create(LAYERED_GAME_SEQUENCE, DS_No);
 		AssertTrue(pcWritable->Open());
 		AssertTrue(pcRemoved->Open());

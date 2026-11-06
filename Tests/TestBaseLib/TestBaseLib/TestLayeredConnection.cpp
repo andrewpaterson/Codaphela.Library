@@ -153,7 +153,7 @@ void TestLayeredConnectionReadsAndWrites(void)
 	pcLevelSequence = CSequenceFactory::Create(LEVEL_SEQUENCE, DS_No);
 	pcLevel = CCodabaseFactory::Create(LEVEL_DIRECTORY, IWT_No, DS_No);
 	pcWritable = CCodabaseFactory::Create(WRITABLE_DIRECTORY, IWT_No, DS_No);
-	pcRemoved = CCodabaseFactory::Create(REMOVED_DIRECTORY, IWT_No, DS_No);
+	pcRemoved = CCodabaseFactory::CreateSmall(REMOVED_DIRECTORY, IWT_No, DS_No);
 	pcGameSequence = CSequenceFactory::Create(GAME_SEQUENCE, DS_No);
 	AssertTrue(pcWritable->Open());
 	AssertTrue(pcRemoved->Open());
@@ -252,7 +252,7 @@ void TestLayeredConnectionReadsAndWrites(void)
 
 	//The layers are as they were left when they are opened again.
 	pcWritable = CCodabaseFactory::Create(WRITABLE_DIRECTORY, IWT_No, DS_No);
-	pcRemoved = CCodabaseFactory::Create(REMOVED_DIRECTORY, IWT_No, DS_No);
+	pcRemoved = CCodabaseFactory::CreateSmall(REMOVED_DIRECTORY, IWT_No, DS_No);
 	pcGameSequence = CSequenceFactory::Create(GAME_SEQUENCE, DS_No);
 	AssertTrue(pcWritable->Open());
 	AssertTrue(pcRemoved->Open());

@@ -17,7 +17,7 @@
 //  - The writable sequence starts above every read-only layer's own sequence.
 //
 //The Codabases and sequences are owned by the caller.  The writable and Removed Codabases must be open (writes need
-//their sessions).  Only one index iteration and one name iteration may be in progress at a time.
+//their sessions).  The Removed Codabase holds a byte per removed object: CCodabaseFactory::CreateSmall makes one.  Only one index iteration and one name iteration may be in progress at a time.
 class CLayeredConnection : public CDataConnection
 {
 protected:
