@@ -885,6 +885,17 @@ void TestFileUtilRemoveDir(void)
 	AssertTrue(cFileUtil.RemoveDir(FILE_UTIL_TEST_DIR _FS_ "Tree"));
 	AssertFalse(cFileUtil.Exists(FILE_UTIL_TEST_DIR _FS_ "Tree"));
 
+	//A read-only file (as git's objects are) is removed with its directory.
+	AssertTrue(cFileUtil.TouchDir(FILE_UTIL_TEST_DIR _FS_ "ReadOnly" _FS_ "Sub", false));
+	TestFileUtilWriteFile(FILE_UTIL_TEST_DIR _FS_ "ReadOnly" _FS_ "Sub" _FS_ "Object", "x");
+#ifdef _WIN32
+	AssertTrue(SetFileAttributes(FILE_UTIL_TEST_DIR _FS_ "ReadOnly" _FS_ "Sub" _FS_ "Object", FILE_ATTRIBUTE_READONLY) != 0);
+#elif defined(LINUX_GNU)
+	AssertInt(0, chmod(FILE_UTIL_TEST_DIR _FS_ "ReadOnly" _FS_ "Sub" _FS_ "Object", 0444));
+#endif // _WIN32
+	AssertTrue(cFileUtil.RemoveDir(FILE_UTIL_TEST_DIR _FS_ "ReadOnly"));
+	AssertFalse(cFileUtil.Exists(FILE_UTIL_TEST_DIR _FS_ "ReadOnly"));
+
 #ifdef LINUX_GNU
 	//A symbolic link to a directory is removed, not followed into.
 	AssertTrue(cFileUtil.TouchDir(FILE_UTIL_TEST_DIR _FS_ "Target", false));

@@ -85,6 +85,11 @@ bool CFileUtil::RemoveDir(const char* szPathName)
 		{
 			szTemp.Init(szPathName);
 			AppendToPath(&szTemp, sFindData.cFileName);
+			if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+			{
+				//Read-only files are removed too (git makes its objects read-only), as Linux removes them.
+				SetFileAttributes(szTemp.Text(), sFindData.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY);
+			}
 			bDeleted &= (bool)DeleteFile(szTemp.Text());
 			szTemp.Kill();
 		}
