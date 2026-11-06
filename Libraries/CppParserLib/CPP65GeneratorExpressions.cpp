@@ -318,6 +318,26 @@ SCPP65Function* CCPP65Generator::FindStaticFunction(SCPP65Class* psClass, int64 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A name reserved for the compiler (__debugbreak): the host compiler's
+// intrinsics, which no header declares.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsIntrinsic(int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+
+	if (lliName < 0)
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	return szName && (iLength > 2) && (szName[0] == '_') && (szName[1] == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True for the names of GCC's builtin functions, which are not declared.
 //
 //////////////////////////////////////////////////////////////////////////

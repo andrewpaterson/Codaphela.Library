@@ -234,12 +234,12 @@ void CCPPIndexUnit::Add(const char* szKey, ECPPSymbolKind eKind, SPreprocessedTo
 // and merged.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
+void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPSemanticPass* pcPass)
 {
 	CCPPIndexUnit	cUnit;
 
 	cUnit.Init();
-	Gather(pcTokeniser, pcTree, &cUnit);
+	Gather(pcTokeniser, pcTree, &cUnit, pcPass);
 	Merge(&cUnit);
 	cUnit.Kill();
 }
@@ -250,10 +250,12 @@ void CCPPIndex::AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 // Every name a parsed translation unit's files declare or use, put in
 // pcDest.  It touches no index so units can be gathered on several
 // threads at once.  Names from macro bodies are where the macro is
-// defined, not used, so they are left out.
+// defined, not used, so they are left out.  With a semantic pass (NULL
+// for none) the names it resolved are what it says: the members o.Init()
+// and p->miCount name, and the overloads calls call.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest)
+void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass)
 {
 	CCPPSymbolKey			cKeys;
 	CArrayIndexTokens		asTokens;
@@ -262,6 +264,7 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 	CCPPToken*				pcToken;
 	SPreprocessedToken*		psSource;
 	SCPPTokenSymbol*		psSymbol;
+	SCPPResolvedName*		psResolved;
 
 	uiNumTokens = pcTokeniser->NumTokens();
 	asTokens.Init();
@@ -280,7 +283,8 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 			continue;
 		}
 		psSymbol = pcTree->GetTokenSymbol((int)i);
-		if ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL) || ((psSymbol->uiRole != CPPTR_Declaration) && (psSymbol->uiRole != CPPTR_Reference)))
+		psResolved = pcPass ? pcPass->GetResolved((int)i) : NULL;
+		if (!psResolved && ((psSymbol == NULL) || (psSymbol->pcSymbol == NULL) || ((psSymbol->uiRole != CPPTR_Declaration) && (psSymbol->uiRole != CPPTR_Reference))))
 		{
 			continue;
 		}
@@ -289,7 +293,14 @@ void CCPPIndex::Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPI
 		{
 			continue;
 		}
-		GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, pcDest);
+		if (psResolved)
+		{
+			GatherResolved(&cKeys, psResolved, psSource, pcDest);
+		}
+		else
+		{
+			GatherToken(&cKeys, psSymbol, asTokens.Get(i), psSource, pcDest);
+		}
 	}
 	cKeys.Kill();
 	asTokens.Kill();
@@ -477,6 +488,34 @@ void CCPPIndex::GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SC
 			eRole = psToken->bDefinition ? CPPIR_Definition : CPPIR_Declaration;
 		}
 		pcDest->Add(szKey.Text(), pcSymbol->meKind, psSource, eRole, 0);
+	}
+	szKey.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name the semantic pass resolved: a reference to the member it names,
+// or to the one overload a call calls.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPIndex::GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest)
+{
+	CChars	szKey;
+	bool	bKey;
+
+	szKey.Init();
+	if (psResolved->pcDeclarator && pcKeys->IsFunction(psResolved->pcSymbol))
+	{
+		bKey = pcKeys->GetFunctionKey(psResolved->pcSymbol, psResolved->pcDeclarator, &szKey);
+	}
+	else
+	{
+		bKey = pcKeys->GetKey(psResolved->pcSymbol, &szKey);
+	}
+	if (bKey)
+	{
+		pcDest->Add(szKey.Text(), psResolved->pcSymbol->meKind, psSource, CPPIR_Reference, 0);
 	}
 	szKey.Kill();
 }

@@ -189,6 +189,7 @@
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPPSymbolKey.cpp" />
     <ClCompile Include="CPPIndex.cpp" />
+    <ClCompile Include="CPPSemanticPass.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
     <ClCompile Include="CPP65IRFrontEndUnit.cpp" />
     <ClCompile Include="CPP65IRFrontEndStatements.cpp" />
@@ -272,6 +273,7 @@
     <ClCompile Include="CPP65GeneratorExpressions.cpp" />
     <ClCompile Include="CPP65GeneratorFloat.cpp" />
     <ClCompile Include="CPP65GeneratorObjects.cpp" />
+    <ClCompile Include="CPP65GeneratorCheck.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPP65TypeChecker.cpp" />
     <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp" />
@@ -449,6 +451,7 @@
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPPSymbolKey.h" />
     <ClInclude Include="CPPIndex.h" />
+    <ClInclude Include="CPPSemanticPass.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
     <ClInclude Include="CPPSyntaxLazyDeclaration.h" />
     <ClInclude Include="IRBackend.h" />

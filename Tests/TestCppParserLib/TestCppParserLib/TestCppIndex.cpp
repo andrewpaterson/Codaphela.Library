@@ -7,11 +7,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Preprocesses and parses szSource as szFileName and adds it to pcIndex.
+// Preprocesses and parses szSource as szFileName and adds it to pcIndex,
+// with what the semantic pass resolves when bSemantic.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IndexText(CCPPIndex* pcIndex, char* szFileName, char* szSource)
+static void IndexText(CCPPIndex* pcIndex, char* szFileName, char* szSource, bool bSemantic = false)
 {
+	CCPPSemanticPass	cPass;
 	CTranslationUnit	cFile;
 	CPreprocessor		cPreprocessor;
 	CCPPTokeniser		cTokeniser;
@@ -30,7 +32,13 @@ static void IndexText(CCPPIndex* pcIndex, char* szFileName, char* szSource)
 	cParser.Parse();
 	cParser.Kill();
 
-	pcIndex->AddUnit(&cTokeniser, &cTree);
+	cPass.Init();
+	if (bSemantic)
+	{
+		cPass.Check(&cTree);
+	}
+	pcIndex->AddUnit(&cTokeniser, &cTree, &cPass);
+	cPass.Kill();
 
 	cTree.Kill();
 	cTokeniser.Kill();
@@ -225,6 +233,142 @@ void Reset()\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With the semantic pass, members named through objects (pc->Init(1),
+// c.miCount) are references, and a call is the one overload the
+// argument types pick.  A statement it can't type doesn't stop the
+// others, and the names in it are still resolved where they can be.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexSemanticPass(void)
+{
+	CCPPIndex			cIndex;
+	CCPPIndexSymbol*	pcSymbol;
+	SCPPIndexLocation*	psLocation;
+
+	cIndex.Init();
+	IndexText(&cIndex, "B.cpp", TEST_INDEX_CLASS "\
+void Pick(int a);\n\
+void Pick(char c);\n\
+int Use(CFoo* pc, CFoo& c)\n\
+{\n\
+	char	x;\n\
+\n\
+	pc->Init(1);\n\
+	c.Init();\n\
+	Pick(x);\n\
+	Pick(c.miCount);\n\
+	Unknown(pc->Get());\n\
+	return pc->Get() + c.miCount;\n\
+}\n", true);
+
+	//pc->Init(1) is Init(int, char const*); c.Init() is Init().
+	pcSymbol = cIndex.FindSymbol("CFoo::Init(int, char const*)");
+	AssertNotNull(pcSymbol);
+	AssertSize(2, pcSymbol->NumLocations());
+	psLocation = pcSymbol->GetLocation(1);
+	AssertInt(CPPIR_Reference, psLocation->uiRole);
+	AssertInt(14, psLocation->iLine);
+	AssertInt(5, psLocation->iColumn);
+	AssertInt(0, psLocation->uiFlags);
+
+	pcSymbol = cIndex.FindSymbol("CFoo::Init()");
+	AssertNotNull(pcSymbol);
+	AssertSize(2, pcSymbol->NumLocations());
+	AssertInt(15, pcSymbol->GetLocation(1)->iLine);
+
+	//Pick(x) is Pick(char), Pick(c.miCount) Pick(int): neither ambiguous.
+	pcSymbol = cIndex.FindSymbol("Pick(char)");
+	AssertNotNull(pcSymbol);
+	AssertSize(2, pcSymbol->NumLocations());
+	AssertInt(16, pcSymbol->GetLocation(1)->iLine);
+	AssertInt(0, pcSymbol->GetLocation(1)->uiFlags);
+	pcSymbol = cIndex.FindSymbol("Pick(int)");
+	AssertNotNull(pcSymbol);
+	AssertSize(2, pcSymbol->NumLocations());
+	AssertInt(17, pcSymbol->GetLocation(1)->iLine);
+	AssertInt(0, pcSymbol->GetLocation(1)->uiFlags);
+
+	//pc->Get() inside Unknown(...) is still found, as is the one after it.
+	pcSymbol = cIndex.FindSymbol("CFoo::Get() const");
+	AssertNotNull(pcSymbol);
+	AssertSize(3, pcSymbol->NumLocations());
+	AssertInt(18, pcSymbol->GetLocation(1)->iLine);
+	AssertInt(19, pcSymbol->GetLocation(2)->iLine);
+
+	//c.miCount twice.
+	pcSymbol = cIndex.FindSymbol("CFoo::miCount");
+	AssertNotNull(pcSymbol);
+	AssertSize(3, pcSymbol->NumLocations());
+
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The host's C++ checks without errors: calling conventions in
+// declarators (void* __cdecl f()), its compiler's builtins and intrinsics
+// (__builtin_va_arg(ap, T) is a T), and its 8 byte pointers and size_t.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassHost(void)
+{
+	CTranslationUnit	cFile;
+	CPreprocessor		cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+
+	cFile.Init("Host.cpp", NULL, false);
+	cFile.SetContents("\
+typedef __builtin_va_list va_list;\n\
+void* __cdecl Copy(void* pvDest, const void* pvSource, unsigned long long uiSize);\n\
+int __stdcall Sum(int iCount, ...)\n\
+{\n\
+	va_list	ap;\n\
+	int		iTotal;\n\
+\n\
+	iTotal = 0;\n\
+	__builtin_va_start(ap, iCount);\n\
+	iTotal += __builtin_va_arg(ap, int);\n\
+	__builtin_va_end(ap);\n\
+	return iTotal;\n\
+}\n\
+void Use(char* sz, char* szOther)\n\
+{\n\
+	static_assert(sizeof(sz) == 8, \"8 byte pointers\");\n\
+	unsigned long long	uiSize;\n\
+\n\
+	uiSize = sizeof(sz);\n\
+	Copy(sz, szOther, uiSize);\n\
+	__debugbreak();\n\
+	Sum(2, 1, 2);\n\
+}\n");
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	AssertTrue(cPass.Check(&cTree));
+	AssertString("", cPass.GetErrors()->Text());
+	AssertTrue(cPass.NumResolved() >= 2);
+	cPass.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppIndex(void)
@@ -233,6 +377,8 @@ void TestCppIndex(void)
 
 	TestCppIndexUnits();
 	TestCppIndexSignatures();
+	TestCppIndexSemanticPass();
+	TestCppSemanticPassHost();
 
 	TestStatistics();
 }

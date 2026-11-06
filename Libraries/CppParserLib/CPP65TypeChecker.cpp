@@ -1100,6 +1100,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return NULL;
 		}
+		mpcGenerator->Resolved(pcName, psFunction);
 		return Call(psFunction, &pcCall->macpArguments, pcCall);
 	}
 
@@ -1119,6 +1120,11 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return Builtin(pcCall, lliName);
 	}
 
+	if (!pcSymbol && mpcGenerator->mpcSemanticPass && mpcGenerator->IsIntrinsic(lliName))
+	{
+		//Only checking: an intrinsic of the host's compiler (__debugbreak()), declared by no header.
+		return UncheckedCall(&pcCall->macpArguments);
+	}
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
 		psType = mpcGenerator->TypeOf(pcCallee);
@@ -1141,6 +1147,8 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		}
 		return NULL;
 	}
+
+	mpcGenerator->Resolved(pcName, psFunction);
 
 	//memcpy of a few bytes, a constant count, is copied where it is called.
 	if (psFunction->bCLinkage && mpcGenerator->IsInlineMemcpy(lliName, &pcCall->macpArguments))
@@ -1172,6 +1180,26 @@ SCPP65Type* CCPP65TypeChecker::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
 	psType = CallExpression(pcCall);
 	mpcGenerator->RestoreArguments(pcCall, &apcArguments);
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call to a function the checker knows nothing of (the host compiler's
+// intrinsics): its arguments are typed, and it gives nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::UncheckedCall(CArraySyntax* papcArguments)
+{
+	size	i;
+	bool	bResult;
+
+	bResult = true;
+	for (i = 0; i < papcArguments->NumElements(); i++)
+	{
+		bResult &= Value(papcArguments->GetPtr(i)) != NULL;
+	}
+	return bResult ? &mpcTypes->msVoid : NULL;
 }
 
 
@@ -1408,7 +1436,12 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 			szName.SetLength(szName.Length() - 1);
 			psType = mpcTypes->Long(false);
 		}
-		if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount"))
+		if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount") && mpcGenerator->mpcSemanticPass)
+		{
+			//Only checking: the host compiler's other builtins (__builtin_va_start ...).
+			psResult = UncheckedCall(&pcCall->macpArguments);
+		}
+		else if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount"))
 		{
 			Error(pcCall, "This builtin is not supported by the compiler yet");
 		}
@@ -1527,6 +1560,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		{
 			return &mpcTypes->msVoid;
 		}
+		mpcGenerator->Resolved(pcName, psClass->psDestructor);
 		return MemberFunctionCall(pcCall, pcCallee, pcObject, psClass->psDestructor);
 	}
 
@@ -1590,6 +1624,7 @@ SCPP65Type* CCPP65TypeChecker::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPP
 		Error(pcCallee, "A member function needs an object");
 		return NULL;
 	}
+	mpcGenerator->Resolved(pcName, psFunction);
 	return MemberFunctionCall(pcCall, pcCallee, pcObject, psFunction);
 }
 
@@ -1801,11 +1836,13 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 	psField = mpcGenerator->FindField(psClass, lliName, &iOffset);
 	if (psField)
 	{
+		mpcGenerator->Resolved(pcMember->mpcName, psField->pcSymbol);
 		return psField->psType->IsReference() ? psField->psType->psBase : psField->psType;
 	}
 	psVariable = mpcGenerator->FindStatic(psClass, lliName);
 	if (psVariable)
 	{
+		mpcGenerator->Resolved(pcMember->mpcName, psVariable->pcSymbol);
 		return psVariable->psType;
 	}
 	Error(pcMember, "The class has no member of that name");
@@ -2188,12 +2225,55 @@ SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 {
 	int64	lliBytes;
 
+	if (mpcGenerator->mpcSemanticPass)
+	{
+		//Only checking: the value isn't needed, only the type (__builtin_va_arg(ap, T) is a T).
+		return CheckedSizeofType(pcSizeof);
+	}
 	if (!mpcGenerator->Constant(pcSizeof, &lliBytes))
 	{
 		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
 		return NULL;
 	}
-	return (pcSizeof->GetKind() == CPPS_SizeofExpression) ? &mpcTypes->msUnsignedInt : &mpcTypes->msBool;
+	return (pcSizeof->GetKind() == CPPS_SizeofExpression) ? mpcTypes->Size() : &mpcTypes->msBool;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a sizeof or type trait when only checking: __builtin_va_arg
+// (ap, T) is a T, __builtin_offsetof a size, and the other traits bools.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
+{
+	CCPPSyntaxTypeTraitExpression*	pcTrait;
+	CChars							szTrait;
+	SCPP65Type*						psType;
+
+	if (pcSizeof->GetKind() == CPPS_SizeofExpression)
+	{
+		return mpcTypes->Size();
+	}
+	pcTrait = (CCPPSyntaxTypeTraitExpression*)pcSizeof;
+	szTrait.Init();
+	mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
+	psType = &mpcTypes->msBool;
+	if (szTrait.Equals("__builtin_va_arg"))
+	{
+		psType = NULL;
+		if ((pcTrait->macpArguments.NumElements() == 2) && (pcTrait->macpArguments.GetPtr(1)->GetKind() == CPPS_TypeId))
+		{
+			Value(pcTrait->macpArguments.GetPtr(0));
+			psType = mpcGenerator->GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(1));
+		}
+	}
+	else if (szTrait.Equals("__builtin_offsetof"))
+	{
+		psType = mpcTypes->Size();
+	}
+	szTrait.Kill();
+	return psType;
 }
 
 
@@ -2554,6 +2634,77 @@ SCPP65Type* CCPP65TypeChecker::ObjectType(CCPPSyntax* pcExpression)
 		psType = psType->psBase;
 	}
 	return (psType && psType->IsClass()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a variable of psType can be initialised with pcInitialiser
+// (NULL for none), as the IR front end initialises a local: an object (or
+// an array of them) is constructed, a reference is bound to its place (or
+// to a temporary of its value), anything else takes the converted value
+// of = value, (value) or {value}.  An array's list (or string) has each
+// element's value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+{
+	CArraySyntax*	papcElements;
+	SCPP65Type*		psElement;
+	SCPP65Type*		psValue;
+	size			i;
+	bool			bResult;
+
+	psElement = psType;
+	while (psElement->IsArray())
+	{
+		psElement = psElement->psBase;
+	}
+	if (psElement->IsClass())
+	{
+		return Construct(psType, NULL, pcInitialiser, pcNode);
+	}
+	if (!pcInitialiser)
+	{
+		return true;
+	}
+
+	papcElements = NULL;
+	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
+	{
+		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+	}
+	else if (pcInitialiser->GetKind() == CPPS_InitializerList)
+	{
+		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+	}
+	if (papcElements && (papcElements->NumElements() == 1) && !psType->IsArray())
+	{
+		pcInitialiser = papcElements->GetPtr(0);
+		papcElements = NULL;
+	}
+	if (papcElements || psType->IsArray())
+	{
+		if (!papcElements)
+		{
+			return Value(pcInitialiser) != NULL;
+		}
+		bResult = true;
+		for (i = 0; i < papcElements->NumElements(); i++)
+		{
+			bResult &= Initialise(psType->IsArray() ? psType->psBase : psType, papcElements->GetPtr(i), pcNode);
+		}
+		return bResult;
+	}
+
+	if (psType->IsReference())
+	{
+		mpcGenerator->BeginQuiet();
+		psValue = Place(pcInitialiser);
+		mpcGenerator->EndQuiet();
+		return psValue || Value(pcInitialiser);
+	}
+	return Convert(ValueFor(pcInitialiser, psType, false), psType, pcNode);
 }
 
 

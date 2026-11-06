@@ -129,6 +129,9 @@
     <ClCompile Include="CPP65GeneratorObjects.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65GeneratorCheck.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65Type.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -145,6 +148,9 @@
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
     <ClCompile Include="CPPIndex.cpp">
+      <Filter>Source\Highlighter</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSemanticPass.cpp">
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
     <ClCompile Include="CPP65IRFrontEnd.cpp">
@@ -909,6 +915,9 @@
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPPIndex.h">
+      <Filter>Source\Highlighter</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSemanticPass.h">
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
     <ClInclude Include="CPP65IRFrontEnd.h">

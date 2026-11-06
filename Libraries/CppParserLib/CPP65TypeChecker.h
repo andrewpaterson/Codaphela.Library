@@ -49,6 +49,7 @@ public:
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);
 	bool			Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
@@ -78,6 +79,7 @@ protected:
 
 	SCPP65Type*		CallExpression(CCPPSyntaxCallExpression* pcCall);
 	SCPP65Type*		ExpandPackCall(CCPPSyntaxCallExpression* pcCall);
+	SCPP65Type*		UncheckedCall(CArraySyntax* papcArguments);
 	SCPP65Type*		CallThroughPointer(CCPPSyntaxCallExpression* pcCall, SCPP65Type* psFunctionType);
 	SCPP65Type*		Call(SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool			Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn);
@@ -100,6 +102,7 @@ protected:
 	SCPP65Type*		CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*		ConstructExpression(CCPPSyntaxConstructExpression* pcConstruct);
 	SCPP65Type*		SizeofExpression(CCPPSyntax* pcSizeof);
+	SCPP65Type*		CheckedSizeofType(CCPPSyntax* pcSizeof);
 	SCPP65Type*		NewExpression(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
 	SCPP65Type*		DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);

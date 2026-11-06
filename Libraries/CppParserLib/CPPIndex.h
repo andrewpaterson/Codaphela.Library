@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MapStringInt.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "CPPSymbolKey.h"
+#include "CPPSemanticPass.h"
 
 
 enum ECPPIndexRole
@@ -140,8 +141,8 @@ public:
 	void				Init(void);
 	void				Kill(void);
 
-	void				AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
-	static void			Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest);
+	void				AddUnit(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPSemanticPass* pcPass = NULL);
+	static void			Gather(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree, CCPPIndexUnit* pcDest, CCPPSemanticPass* pcPass = NULL);
 	void				Merge(CCPPIndexUnit* pcUnit);
 
 	size				NumSymbols(void);
@@ -154,6 +155,7 @@ public:
 
 protected:
 	static void			GatherToken(CCPPSymbolKey* pcKeys, SCPPTokenSymbol* psSymbol, SCPPIndexToken* psToken, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
+	static void			GatherResolved(CCPPSymbolKey* pcKeys, SCPPResolvedName* psResolved, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcSymbol, int iArguments, SPreprocessedToken* psSource, CCPPIndexUnit* pcDest);
 	static void			FindNames(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens, bool bInDefinition);
 	int					GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind);
