@@ -311,20 +311,37 @@ void CTextArea::SetText(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds szText (UTF8) to the end of the text in sColour.  The text area is
-// laid out again: it is bigger.
+// Adds szText (UTF8) to the end of the text in sColour.  Text shown as
+// tiles only reads and writes what was added (and the line it joins), so
+// appending to a long text, an output pane say, costs what is added, not
+// the whole text.  The text area is laid out again: it is bigger.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 {
 	size	uiStart;
+	bool	bAppendTiles;
 
+	if ((szText == NULL) || (szText[0] == '\0'))
+	{
+		return;
+	}
+	bAppendTiles = CanAppendTiles();
 	uiStart = mszText.Length();
 	mszText.Append(szText);
-	FindLineStarts();
+	AppendLineStarts(uiStart);
 	AddSpan(uiStart, mszText.Length() - uiStart, sColour);
-	ReadText();
-	LayoutText();
+	if (bAppendTiles)
+	{
+		AppendTiles(uiStart);
+		mbTextDirty = false;
+		LayoutTiles();
+	}
+	else
+	{
+		ReadText();
+		LayoutText();
+	}
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -4231,6 +4248,245 @@ void CTextArea::ReadTiles(void)
 	DecorateTiles(psStyles);
 	mpFontDraw->End();
 	SafeFree(psStyles);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether text appended can be added to the tiles read before rather than
+// the whole text read again: they are up to date, and nothing is decorated
+// (decorations are drawn over the whole text).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::CanAppendTiles(void)
+{
+	size		i;
+	STextStyle	sStyle;
+
+	if (!mbTiled || mbTextDirty || mbSizeDirty || mpText.IsNotNull() || !UseTiles())
+	{
+		return false;
+	}
+	if ((masTileStops.NumElements() == 0) || (masTileStops.NumElements() != mauiStopStarts.NumElements()))
+	{
+		return false;
+	}
+	if (msStyle.GetDecorations() != 0)
+	{
+		return false;
+	}
+	for (i = 0; i < masSpans.NumElements(); i++)
+	{
+		sStyle = msStyle;
+		masSpans.Get(i)->sOverride.ApplyTo(&sStyle);
+		if (sStyle.GetDecorations() != 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line starts of the text from uiFrom (the old end) on, after those
+// found before.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AppendLineStarts(size uiFrom)
+{
+	size	uiPosition;
+	size	uiLength;
+	char*	szText;
+
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	for (uiPosition = uiFrom; uiPosition < uiLength; uiPosition++)
+	{
+		if (szText[uiPosition] == '\n')
+		{
+			*mauiLineStarts.Add() = uiPosition + 1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stops of the text from uiFrom (the old end) on: the old end stop is
+// replaced by the new characters' and a new end stop.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AppendStops(size uiFrom)
+{
+	size	uiPosition;
+	size	uiLength;
+	char*	szText;
+
+	mauiStopStarts.RemoveTail();
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+	uiPosition = uiFrom;
+	while (uiPosition < uiLength)
+	{
+		if (szText[uiPosition] != '\r')
+		{
+			*mauiStopStarts.Add() = uiPosition;
+		}
+		uiPosition += CharacterLength(uiPosition);
+	}
+	*mauiStopStarts.Add() = uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text from uiFrom (the old end) on added to the tiles, as ReadTiles
+// would read it: its stops and lines after those before, the layer made
+// big enough, and only the rows of its lines written (the first of them
+// the old last line, which it may go on).  CanAppendTiles says when.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::AppendTiles(size uiFrom)
+{
+	Ptr<CFontColours>		pColours;
+	Ptr<CFont>				pWhite;
+	size					uiCellWidth;
+	size					uiCellHeight;
+	size					uiNumStops;
+	size					ui;
+	size					uiStart;
+	size					uiEnd;
+	size					uiColumn;
+	size					uiNextColumn;
+	size					uiColumns;
+	size					uiRow;
+	size					uiFirstRow;
+	size					uiTileRow;
+	size					uiLength;
+	size					uiLineStart;
+	size					uiLineEnd;
+	size					uiPosition;
+	size					uiRange;
+	char*					szText;
+	STextLayoutLine*		psLine;
+	STextLayoutStop*		psStop;
+	STextStyle*				psStyles;
+	STextAreaSpan*			psSpan;
+	STileTextSpan*			psTileSpan;
+	CArrayTileTextSpan		asSpans;
+	ARGB32					sColour;
+
+	pColours = GetFontColours();
+	pWhite = pColours->GetWhite();
+	uiCellWidth = pWhite->GetAverageWidth();
+	uiCellHeight = (size)pWhite->GetLineHeight();
+	szText = mszText.Text();
+	uiLength = mszText.Length();
+
+	//The old end stop goes: the text goes on from where it was.
+	psStop = masTileStops.Tail();
+	uiColumn = (uiCellWidth > 0) ? (size)psStop->x / uiCellWidth : 0;
+	uiRow = psStop->uiLine;
+	uiFirstRow = uiRow;
+	masTileLines.Get(uiRow)->uiNumStops--;
+	masTileStops.RemoveTail();
+	uiColumns = (uiCellWidth > 0) ? (size)msTextSize.x / uiCellWidth : 0;
+	uiTileRow = (size)masTileLines.Get(uiRow)->iTop / uiCellHeight;
+
+	AppendStops(uiFrom);
+	uiNumStops = mauiStopStarts.NumElements();
+	for (ui = masTileStops.NumElements(); ui < uiNumStops; ui++)
+	{
+		uiStart = *mauiStopStarts.Get(ui);
+		uiEnd = (ui + 1 < uiNumStops) ? *mauiStopStarts.Get(ui + 1) : uiLength;
+
+		psStop = masTileStops.Add();
+		psStop->x = (int32)(uiColumn * uiCellWidth);
+		psStop->iWidth = 0;
+		psStop->uiLine = uiRow;
+		masTileLines.Get(uiRow)->uiNumStops++;
+
+		if (uiStart < uiLength)
+		{
+			if (szText[uiStart] == '\n')
+			{
+				uiTileRow += 1 + ((size)GetLineGap(uiRow) + uiCellHeight - 1) / uiCellHeight;
+				uiRow++;
+				uiColumn = 0;
+				psLine = masTileLines.Add();
+				psLine->iTop = (int32)(uiTileRow * uiCellHeight);
+				psLine->iHeight = (int32)uiCellHeight;
+				psLine->iBaseline = (int32)(uiTileRow * uiCellHeight) + pWhite->GetAscent();
+				psLine->uiFirstStop = ui + 1;
+				psLine->uiNumStops = 0;
+			}
+			else
+			{
+				uiNextColumn = TileTextColumns(&szText[uiStart], uiEnd - uiStart, uiColumn, (size)miTabWidth);
+				psStop->iWidth = (int32)((uiNextColumn - uiColumn) * uiCellWidth);
+				uiColumn = uiNextColumn;
+			}
+		}
+		if (uiColumn > uiColumns)
+		{
+			uiColumns = uiColumn;
+		}
+	}
+	msTextSize.Init((int32)(uiColumns * uiCellWidth), (int32)((uiTileRow + 1 + ((size)GetLineGap(uiRow) + uiCellHeight - 1) / uiCellHeight) * uiCellHeight));
+	mpTileLayer->SetMapSize(SSizeVec2((uiColumns > 0) ? uiColumns : 1, (size)msTextSize.y / uiCellHeight));
+
+	//The colours of the text from the start of the first line written, as MakeStyles and MakeTileSpans make them.
+	uiLineStart = *mauiLineStarts.Get(uiFirstRow);
+	uiRange = uiLength - uiLineStart;
+	asSpans.Init();
+	if ((masSpans.NumElements() > 0) && (uiRange > 0))
+	{
+		psStyles = (STextStyle*)malloc(uiRange * sizeof(STextStyle));
+		for (uiPosition = 0; uiPosition < uiRange; uiPosition++)
+		{
+			psStyles[uiPosition] = msStyle;
+		}
+		for (ui = 0; ui < masSpans.NumElements(); ui++)
+		{
+			psSpan = masSpans.Get(ui);
+			uiEnd = psSpan->uiStart + psSpan->uiLength;
+			for (uiPosition = (psSpan->uiStart > uiLineStart) ? psSpan->uiStart : uiLineStart; (uiPosition < uiEnd) && (uiPosition < uiLength); uiPosition++)
+			{
+				psSpan->sOverride.ApplyTo(&psStyles[uiPosition - uiLineStart]);
+			}
+		}
+		uiPosition = 0;
+		while (uiPosition < uiRange)
+		{
+			sColour = psStyles[uiPosition].sColour;
+			if (sColour == msStyle.sColour)
+			{
+				uiPosition++;
+				continue;
+			}
+			uiStart = uiPosition;
+			while ((uiPosition < uiRange) && (psStyles[uiPosition].sColour == sColour))
+			{
+				uiPosition++;
+			}
+			psTileSpan = asSpans.Add();
+			psTileSpan->uiStart = uiLineStart + uiStart;
+			psTileSpan->uiLength = uiPosition - uiStart;
+			psTileSpan->sColour = sColour;
+		}
+		SafeFree(psStyles);
+	}
+
+	//Each line from the old last one written on its row.
+	for (uiRow = uiFirstRow; uiRow < mauiLineStarts.NumElements(); uiRow++)
+	{
+		uiLineStart = *mauiLineStarts.Get(uiRow);
+		uiLineEnd = (uiRow + 1 < mauiLineStarts.NumElements()) ? *mauiLineStarts.Get(uiRow + 1) - 1 : uiLength;
+		mpTileWriter->WriteRow((size)masTileLines.Get(uiRow)->iTop / uiCellHeight, &szText[uiLineStart], uiLineEnd - uiLineStart, uiLineStart, &asSpans);
+	}
+	asSpans.Kill();
 }
 
 

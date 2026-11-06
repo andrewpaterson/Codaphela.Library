@@ -1518,6 +1518,112 @@ void TestTextAreaTilesMatchSprites(int32 iGapRows)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A fixed width text area as tiles, its text appended in pieces (which
+// only reads and writes the tiles of what was added) or set whole with
+// the same colours, drawn into szDirectory.
+//
+//////////////////////////////////////////////////////////////////////////
+void DrawAppendedTextArea(char* szDirectory, bool bAppend)
+{
+	static const char*		aszPieces[] = { "int Sum(int* aiValues,", " int iCount)\n{", "\n\tint iTotal = 0;\r\n", "    return", " iTotal;\n}\n", "Main.cpp (2/400)" };
+	static uint8			auiGreens[] = { 0xBC, 0x9C, 0xBC, 0x86, 0xBC, 0xCE };
+	CWinRefWindowFactory	cNativeFactory;
+	CFileUtil				cFileUtil;
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFontFamily>		pFamily;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CClearCanvasDraw>	pBackground;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CChars					szWhole;
+		size					i;
+		size					uiStart;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 320, 140, szDirectory);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		pFamily = CreateMonoTextAreaFamily(15.0f);
+		szWhole.Init();
+		for (i = 0; i < sizeof(aszPieces) / sizeof(const char*); i++)
+		{
+			szWhole.Append(aszPieces[i]);
+		}
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pFamily, bAppend ? "" : szWhole.Text());
+		pTextArea->SetTiledText(true);
+		pTextArea->SetAlignment(CSH_Left, CSV_Top);
+		pTextArea->SetColour(Set32BitColour((uint8)0xBC, (uint8)0xBE, (uint8)0xC4));
+		uiStart = 0;
+		for (i = 0; i < sizeof(aszPieces) / sizeof(const char*); i++)
+		{
+			if (bAppend)
+			{
+				pTextArea->AppendText(aszPieces[i], Set32BitColour((uint8)0x56, auiGreens[i], (uint8)0xD6));
+			}
+			else
+			{
+				AssertTrue(pTextArea->AddSpan(uiStart, strlen(aszPieces[i]), Set32BitColour((uint8)0x56, auiGreens[i], (uint8)0xD6)));
+			}
+			uiStart += strlen(aszPieces[i]);
+		}
+		AssertString(szWhole.Text(), pTextArea->GetText());
+		szWhole.Kill();
+		pFill->AddComponent(pTextArea);
+
+		pTestWindow->Show();
+		AssertTrue(pTextArea->IsDrawnAsTiles());
+
+		pTextArea = NULL;
+		pFamily = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pBackground = NULL;
+	}
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Text appended a piece at a time (pieces that go on a line, tabs, line
+// feeds after carriage returns, each piece its own colour) draws the same
+// as the whole text set at once with the same colours.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaAppendTiles(void)
+{
+	char		szAppended[] = "Output" _FS_ "TextAreaAppended";
+	char		szWhole[] = "Output" _FS_ "TextAreaWhole";
+	CFileUtil	cFileUtil;
+	CArrayChars	aszFrames;
+
+	DrawAppendedTextArea(szAppended, true);
+	DrawAppendedTextArea(szWhole, false);
+
+	aszFrames.Init();
+	AssertTrue(cFileUtil.FindAllFiles(szAppended, &aszFrames));
+	AssertTrue(aszFrames.NumElements() > 0);
+	aszFrames.Kill();
+	AssertDirectory(szWhole, szAppended);
+
+	cFileUtil.RemoveDir(szAppended);
+	cFileUtil.RemoveDir(szWhole);
+}
+
+
 void TestTextArea(void)
 {
 	BeginTests();
@@ -1537,6 +1643,7 @@ void TestTextArea(void)
 	TestTextAreaUnderlineOverlineFillContainer();
 	TestTextAreaTilesMatchSprites(0);
 	TestTextAreaTilesMatchSprites(2);
+	TestTextAreaAppendTiles();
 
 	ObjectsFlush();
 	ObjectsKill();

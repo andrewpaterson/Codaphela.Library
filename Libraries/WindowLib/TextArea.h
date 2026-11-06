@@ -353,6 +353,10 @@ protected:
 	//The text as tiles.
 	bool				UseTiles(void);
 	void				ReadTiles(void);
+	bool				CanAppendTiles(void);
+	void				AppendTiles(size uiFrom);
+	void				AppendStops(size uiFrom);
+	void				AppendLineStarts(size uiFrom);
 	void				LayoutTiles(void);
 	void				MakeTileSpans(STextStyle* psStyles, CArrayTileTextSpan* pasSpans);
 	void				DecorateTiles(STextStyle* psStyles);
