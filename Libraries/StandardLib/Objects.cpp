@@ -1120,7 +1120,15 @@ CPointer CObjects::TestGetFromMemory(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Dehollow(OIndex oi)
 {
-	return GetFromDatabase(oi);
+	CBaseObject*	pcObject;
+
+	pcObject = GetFromDatabase(oi);
+	if ((pcObject == NULL) && (mpcDataConnection != NULL) && !mpcDataConnection->Contains(oi))
+	{
+		//A pointer refers to it, so it should be there: a programming error somewhere (say an object destroyed by hand).
+		gcLogger.Error2(__METHOD__, " Object [", IndexToString(oi), "] a pointer refers to is not in the database.", NULL);
+	}
+	return pcObject;
 }
 
 
@@ -1131,21 +1139,23 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 CBaseObject* CObjects::Dehollow(char* szObjectName)
 {
 	CBaseObject*	pcObject;
-	CPointer		pObject;
+	CChars			szName;
 
-	pcObject = GetFromDatabase(szObjectName);
-	if (pcObject)
+	//szObjectName is the hollow's name: the hollow is freed when it is replaced by the loaded object.
+	szName.Init(szObjectName);
+	pcObject = GetFromDatabase(szName.Text());
+	if (pcObject == NULL)
 	{
-		return pcObject;
+		pcObject = GetFromSources(szName.Text());
 	}
 
-	pcObject = GetFromSources(szObjectName);
-	if (pcObject)
+	if ((pcObject == NULL) && (mpcDataConnection != NULL) && !mpcDataConnection->Contains(szName.Text()))
 	{
-		return pcObject;
+		//A pointer refers to it, so it should be there: a programming error somewhere (say an object destroyed by hand).
+		gcLogger.Error2(__METHOD__, " Object [", szName.Text(), "] a pointer refers to is not in the database or a source.", NULL);
 	}
-
-	return NULL;
+	szName.Kill();
+	return pcObject;
 }
 
 
