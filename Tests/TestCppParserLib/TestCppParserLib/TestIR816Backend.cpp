@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
@@ -2326,6 +2328,7 @@ static const char* gszTestIR816RuntimeStartUp =
 	"\t\tpea 0\n\t\tpea 0x0300\n\t\tjsl Call\n\t\ttsc\n\t\tclc\n\t\tadc 20\n\t\ttcs\n\t\tstp\n"
 	"Scratch:\n\t\tjsl Call\n\t\tstp\n"
 	"Call:\n\t\tjml [0x0080]:24\n"
+	"\t\t.section text.Nothing\n\t\t.global Nothing\nNothing:\n\t\trtl\n"
 	"\t\t.section rodata.Routines\n"
 	"\t\t.long R816_Mul16, R816_Mul32, R816_UMulWide32, R816_UDiv16, R816_URem16, R816_UDiv32, R816_URem32\n"
 	"\t\t.long R816_SDiv16, R816_SRem16, R816_SDiv32, R816_SRem32, R816_UDiv64, R816_URem64, R816_SDiv64, R816_SRem64\n";
@@ -2573,12 +2576,136 @@ static void TestIR816RuntimeRoutines(bool bMathSafe, int iCalls)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With TEST_IR816_RUNTIME_CYCLES set: each runtime routine's average cycles
+// (less a call to an rtl) over 4000 pairs of operands drawn evenly from
+// each class's ranges, with the tables or without (bMathSafe), printed.
+//
+//////////////////////////////////////////////////////////////////////////
+struct STestIR816CycleClass
+{
+	const char*	szRoutine;
+	const char*	szClass;
+	uint64		uiALow;
+	uint64		uiAHigh;
+	uint64		uiBLow;
+	uint64		uiBHigh;
+};
+
+
+static void TestIR816RuntimeCycles(bool bMathSafe)
+{
+	static const STestIR816CycleClass	asClasses[] =
+	{
+		{ "R816_Mul16", "16 x 16", 0, 0xFFFF, 0x100, 0xFFFF },
+		{ "R816_Mul16", "16 x 8", 0, 0xFFFF, 0, 0xFF },
+		{ "R816_Mul32", "16 x 16", 0x100, 0xFFFF, 0x100, 0xFFFF },
+		{ "R816_Mul32", "32 x 16", 0x10000, 0xFFFFFFFF, 0x100, 0xFFFF },
+		{ "R816_Mul32", "32 x 32", 0x10000, 0xFFFFFFFF, 0x10000, 0xFFFFFFFF },
+		{ "R816_UMulWide32", "32 x 32", 0x10000, 0xFFFFFFFF, 0x10000, 0xFFFFFFFF },
+		{ "R816_UDiv16", "16 / 7", 0x100, 0xFFFF, 1, 0x7F },
+		{ "R816_UDiv16", "16 / 8", 0x100, 0xFFFF, 0x80, 0xFF },
+		{ "R816_UDiv16", "16 / 12", 0x1000, 0xFFFF, 0x100, 0xFFF },
+		{ "R816_UDiv16", "16 / 16", 0x100, 0xFFFF, 0x100, 0xFFFF },
+		{ "R816_UDiv32", "32 / 7", 0x10000, 0xFFFFFFFF, 1, 0x7F },
+		{ "R816_UDiv32", "32 / 15", 0x10000, 0xFFFFFFFF, 0x80, 0x7FFF },
+		{ "R816_UDiv32", "32 / 16", 0x10000, 0xFFFFFFFF, 0x8000, 0xFFFF },
+		{ "R816_UDiv32", "32 / 24", 0x1000000, 0xFFFFFFFF, 0x10000, 0xFFFFFF },
+		{ "R816_UDiv32", "32 / 32", 0x10000, 0xFFFFFFFF, 0x10000, 0xFFFFFFFF },
+		{ "R816_SDiv32", "s32 / s16", 0x10000, 0xFFFFFFFF, 1, 0x7FFF },
+		{ "R816_UDiv64", "64 / 32", 0x100000000ULL, 0xFFFFFFFFFFFFFFFFULL, 1, 0xFFFFFFFF },
+		{ "R816_UDiv64", "32 / 16", 0x10000, 0xFFFFFFFF, 1, 0xFFFF },
+		{ NULL, NULL, 0, 0, 0, 0 }
+	};
+	CAsm65Object		cStartUp;
+	CAsm65Linker		cLinker;
+	CAsm65Memory		cMemory;
+	CFast65C816			cFast;
+	uint8*				puiMemory;
+	int64				iAddress;
+	int64				iNothing;
+	uint64				uiSeed;
+	uint64				a;
+	uint64				b;
+	uint64				uiCycles;
+	uint64				uiTotal;
+	uint64				uiBase;
+	int					iClass;
+	int					iCall;
+	int					iPass;
+	bool				bPushed;
+
+	AssertTrue(TestIR816Assemble(&cStartUp, "startup", gszTestIR816RuntimeStartUp));
+	cLinker.Init();
+	cLinker.SetBankSize(0x10000);
+	cLinker.SetAddress(ASK65_Text, 0x010000);
+	cLinker.AddObject(&cStartUp);
+	cLinker.AddLibrary(TestIR816Runtime(bMathSafe));
+	AssertTrue(cLinker.Link());
+	cMemory.Init(0x1000000);
+	cMemory.Load(cLinker.GetOutput());
+	cMemory.InitFast65816(&cFast);
+	puiMemory = cMemory.Byte(0);
+	AssertTrue(cLinker.GetSymbol("Nothing", &iNothing));
+
+	printf("Runtime cycles (%s):\n", bMathSafe ? "MathSafe" : "MathTables");
+	uiSeed = 88172645463325252ULL;
+	for (iClass = 0; asClasses[iClass].szRoutine; iClass++)
+	{
+		AssertTrue(cLinker.GetSymbol(asClasses[iClass].szRoutine, &iAddress));
+		bPushed = strstr(asClasses[iClass].szRoutine, "64") != NULL;
+		uiTotal = 0;
+		uiBase = 0;
+		for (iCall = 0; iCall < 4000; iCall++)
+		{
+			a = asClasses[iClass].uiALow + TestIR816RuntimeRandom(&uiSeed) % (asClasses[iClass].uiAHigh - asClasses[iClass].uiALow + 1);
+			b = asClasses[iClass].uiBLow + TestIR816RuntimeRandom(&uiSeed) % (asClasses[iClass].uiBHigh - asClasses[iClass].uiBLow + 1);
+			for (iPass = 0; iPass < 2; iPass++)
+			{
+				puiMemory[0x80] = (uint8)((iPass == 0) ? iNothing : iAddress);
+				puiMemory[0x81] = (uint8)(((iPass == 0) ? iNothing : iAddress) >> 8);
+				puiMemory[0x82] = (uint8)(((iPass == 0) ? iNothing : iAddress) >> 16);
+				puiMemory[0xF0] = bPushed ? 1 : 0;
+				puiMemory[0xF1] = 0;
+				memcpy(&puiMemory[0x10F], &a, 4);
+				memcpy(&puiMemory[0x113], &b, 4);
+				memcpy(&puiMemory[0x200], &b, 8);
+				memcpy(&puiMemory[0x208], &a, 8);
+				cFast.Reset();
+				uiCycles = cFast.NumCycles();
+				cFast.Run(1000000);
+				uiCycles = cFast.NumCycles() - uiCycles;
+				if (iPass == 0)
+				{
+					uiBase += uiCycles;
+				}
+				else
+				{
+					uiTotal += uiCycles;
+				}
+			}
+		}
+		printf("  %-16s %-10s %8.1f\n", asClasses[iClass].szRoutine, asClasses[iClass].szClass, (double)(uiTotal - uiBase) / 4000.0);
+	}
+	cFast.Kill();
+	cMemory.Kill();
+	cLinker.Kill();
+	cStartUp.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR816BackendRuntimeRoutines(void)
 {
 	TestIR816RuntimeRoutines(false, 3000);
 	TestIR816RuntimeRoutines(true, 3000);
+	if (getenv("TEST_IR816_RUNTIME_CYCLES"))
+	{
+		TestIR816RuntimeCycles(false);
+		TestIR816RuntimeCycles(true);
+	}
 }
 
 
