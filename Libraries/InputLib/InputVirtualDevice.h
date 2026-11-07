@@ -49,7 +49,7 @@ protected:
 	bool							mbUnstoppable;
 
 public:
-	void 						Init(char* szName);
+	void 						Init(const char* szName);
 	void 						Kill(void);
 
 	void 						UpdateEvents(void);
@@ -60,8 +60,8 @@ public:
 	void						ToStringEvents(CChars* psz);
 
 	bool 						AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
-	bool						AddSource(CInputDevice* pcDevice, char* szFriendlyName);
-	bool						AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...);
+	bool						AddSource(CInputDevice* pcDevice, const char* szFriendlyName);
+	bool						AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...);
 	void 						DoneAddingSources(void);
 	void 						ClearSources(void);
 
@@ -80,19 +80,19 @@ public:
 
 	CInputDevices*				GetInputDevices(void);
 	CInputDevice*				GetDefaultDevice(void);
-	CInputVirtualDeviceSource*	GetSource(char* szFriendlyName);
+	CInputVirtualDeviceSource*	GetSource(const char* szFriendlyName);
 	CInputChords*				GetChords(void);
 
-	void						AddActiveAction(CAction* pcAction, char* szFriendlyName);
-	void						AddInactiveAction(CAction* pcAction, char* szFriendlyName);
+	void						AddActiveAction(CAction* pcAction, const char* szFriendlyName);
+	void						AddInactiveAction(CAction* pcAction, const char* szFriendlyName);
 	void						AddActiveAction(CAction* pcAction, CInputCategoryGeneric* pcGeneric);
 	void						AddInactiveAction(CAction* pcAction, CInputCategoryGeneric* pcGeneric);
 	void						AddActiveAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
 	void						AddInactiveAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
 	void						AddSingleAction(CAction* pcAction, CInputSourceEvaluator* pcEvaluator, bool bActive);
-	void						AddOrderedAction(CAction* pcAction, char* szFriendlyName, ...);
+	void						AddOrderedAction(CAction* pcAction, const char* szFriendlyName, ...);
 	CInputChord*				AddChordAction(CAction* pcAction, CInputChordDesc* pcChordDesc = NULL);
-	void						AddRangeAction(CAction* pcAction, char* szFriendlyName);
+	void						AddRangeAction(CAction* pcAction, const char* szFriendlyName);
 	void						AddRangeAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
 
 	CChars*						GetName(void);

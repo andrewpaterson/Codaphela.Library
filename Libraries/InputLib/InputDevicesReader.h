@@ -37,7 +37,7 @@ public:
 	CChars			mszDirectory;
 	CInputDevices*	mpcInputDevices;
 
-	void 				Init(CInputDevices* pcInputDevices, char* szDirectory);
+	void 				Init(CInputDevices* pcInputDevices, const char* szDirectory);
 	void 				Kill(void);
 
 	bool				ReadInputDevicesXML(void);

@@ -37,7 +37,7 @@ public:
 	void 				Init(void);
 	void 				Kill(void);
 
-	CInputChordDesc*	AddChordDesc(char* szActionName);
+	CInputChordDesc*	AddChordDesc(const char* szActionName);
 	void				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	void				CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCopyContext* pcContext);
 	bool				StartChordDescsIteration(SSetIterator* psIter, CInputChordDesc** pcChordDesc);

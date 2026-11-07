@@ -50,7 +50,7 @@ void CInputChordDescs::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordDesc* CInputChordDescs::AddChordDesc(char* szActionName)
+CInputChordDesc* CInputChordDescs::AddChordDesc(const char* szActionName)
 {
 	CInputChordDesc*	pcChord;
 

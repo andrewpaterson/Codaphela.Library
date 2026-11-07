@@ -34,10 +34,10 @@ protected:
 	CChars	mszName;
 
 public:
-	void Init(char* szName);
+	void Init(const char* szName);
 	void Kill(void);
 
-	bool Is(char* szName);
+	bool Is(const char* szName);
 };
 
 

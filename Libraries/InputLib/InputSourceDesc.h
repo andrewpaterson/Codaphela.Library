@@ -49,7 +49,7 @@ protected:
 	CArrayInputCategoryGenericPtr	mapcGenerics;
 
 public:
-	void							Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, char* szFriendlyName, size iStateIndex);
+	void							Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, const char* szFriendlyName, size iStateIndex);
 	void							Kill(void);
 	void							Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, uint32 uiSequence);
 	CInputSourceValue*				AddValue(size iValueChannel);
@@ -57,7 +57,7 @@ public:
 	void							CopyValues(CInputSourceDesc* pcInputSourceDesc);
 	void							CopyActions(CInputSourceDesc* pcInputSourceDesc);
 	void							SetRest(float fRestValue, bool bEmitRestEvent, bool bHasRestValue);
-	bool							Is(char* szFriendlyName);
+	bool							Is(const char* szFriendlyName);
 	bool							StartValuesIteration(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
 	bool							IterateValues(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
 	float							GetRestValue(void);
@@ -67,7 +67,7 @@ public:
 	EInputSourceType				GetType(void);
 	size							GetStateIndex(void);
 	char*							GetFriendlyName(void);
-	void							SetFriendlyName(char* szFriendlyName);
+	void							SetFriendlyName(const char* szFriendlyName);
 	bool							GetEmitRestEvent(void);
 	void							ToString(CChars* psz);
 };

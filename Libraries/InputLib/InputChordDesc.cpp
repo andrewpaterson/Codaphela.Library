@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordDesc::Init(char* szActionName)
+void CInputChordDesc::Init(const char* szActionName)
 {
 	mszActionName.Init(szActionName);
 	mpcRootCriteriaDesc = NULL;

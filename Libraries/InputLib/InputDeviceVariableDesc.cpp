@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceVariableDesc::Init(char* szName, CInputDeviceDesc* pcDeviceDesc)
+void CInputDeviceVariableDesc::Init(const char* szName, CInputDeviceDesc* pcDeviceDesc)
 {
 	mpcDeviceDesc = pcDeviceDesc;
 	mszName.Init(szName);
@@ -53,7 +53,7 @@ void CInputDeviceVariableDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableDesc::Equals(char* szName)
+bool CInputDeviceVariableDesc::Equals(const char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -63,7 +63,7 @@ bool CInputDeviceVariableDesc::Equals(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::AddValue(char* szName)
+CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::AddValue(const char* szName)
 {
 	CInputDeviceVariableValueDesc*	pcValue;
 
@@ -77,7 +77,7 @@ CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::AddValue(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::GetValue(char* szName)
+CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::GetValue(const char* szName)
 {
 	CInputDeviceVariableValueDesc*	pcValue;
 	SSetIterator					sIter;

@@ -37,7 +37,7 @@ public:
 	void 					Kill(void);
 	void					AddFormat(CInputDevices* pcDevices);
 	void					AddCategory(CInputDevices* pcDevices);
-	CProgramDeviceDetail*	AddDetail(char* szID, char* szFriendlyName);
+	CProgramDeviceDetail*	AddDetail(const char* szID, const char* szFriendlyName);
 	void 					AddDevicesTo(CInputDevices* pcDevices);
 	void 					Update(CInputDevices* pcDevices, uint32 uiSequence);
 	CInputDeviceDesc*		CreateStandardDesc(CInputDevices* pcDevices, CProgramDeviceDetail* pcDetail);

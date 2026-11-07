@@ -55,33 +55,33 @@ public:
 	bool						Save(CObjectWriter* pcFile) override;
 	bool						Load(CObjectReader* pcFile) override;
 
-	bool						Read(char* szDirectory);
+	bool						Read(const char* szDirectory);
 
 	CInputDeviceDesc*			CreateDeviceDescription(void);
 
-	CInputDataFormat*			AddFormat(char* szName);
+	CInputDataFormat*			AddFormat(const char* szName);
 	CInputDevice*				CreateDevice(CInputDeviceDesc* pcDesc);
-	CInputCategory*				AddCategory(char* szName);
-	CInputCategory*				GetCategory(char* szName);
+	CInputCategory*				AddCategory(const char* szName);
+	CInputCategory*				GetCategory(const char* szName);
 
-	CInputDeviceDesc*			CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
-	CInputDeviceDesc*			GetDescription(char* szID);
+	CInputDeviceDesc*			CreateDescription(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
+	CInputDeviceDesc*			GetDescription(const char* szID);
 	CInputDeviceDesc*			GetDescriptionForVirtualDesc(CInputVirtualDeviceDesc* pcVirtualDesc);
 
 	CInputDevice*				GetDevice(int iDeviceID);
-	void						GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, char* szCategory);
+	void						GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, const char* szCategory);
 	void						GetDevicesForDeviceDesc(CArrayInputDevicePtr* pcDevices, CInputDeviceDesc* pcDesc);
 	CInputDevice*				GetDeviceForVirtualSourceDesc(CInputVirtualSourceDesc* pcVirtualSourceDesc);
 	CInputDevice*				GetDeviceForSourceDesc(CInputSourceDesc* pcSourceDesc, int iDescID);
 	void						GetDevices(CArrayInputDevicePtr* pcDevices);
 
-	CInputVirtualDevice*		CreateVirtualDevice(char* szName);
+	CInputVirtualDevice*		CreateVirtualDevice(const char* szName);
 	CInputVirtualDevice*		CreateVirtualDevice(CInputVirtualDeviceDesc* pcVirtualDesc);  //pcVirtualDesc may not be device agnostic.
 	bool						CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCreatedVirtualVevices, CInputVirtualDeviceDesc* pcVirtualDesc);  //pcVirtualDesc must be device agnostic.
 	bool						AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDeviceDesc* pcVirtualDesc, CInputDevice* pcDevice);
 	bool						AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* pcChordDescs, CInputDevice* pcDevice);
 
-	CInputVirtualDeviceDesc*	CreateVirtualDeviceDescription(char* szName, bool bDeviceAgnostic);
+	CInputVirtualDeviceDesc*	CreateVirtualDeviceDescription(const char* szName, bool bDeviceAgnostic);
 
 	void						UpdateCommonality(void);
 	void						DirtyCommonality(void);
@@ -90,7 +90,7 @@ public:
 	void						UpdateVirtualDevicesEvents(void);
 
 	CInputVirtualDevice*		GetFirstKeyboard(void);
-	CInputVirtualDevice*		GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, bool bPhysical = true);
+	CInputVirtualDevice*		GetFirstVirtualDeviceInCategoryKeyboard(const char* szCategory, bool bPhysical = true);
 
 private:
 	bool RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputChords* pcChords, CInputDevice* pcDevice);

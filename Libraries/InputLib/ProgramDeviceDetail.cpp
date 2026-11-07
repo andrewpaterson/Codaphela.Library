@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramDeviceSourceValue::Init(char* szName, int iName)
+void CProgramDeviceSourceValue::Init(const char* szName, int iName)
 {
 	mszName.Init(szName);
 	miName = iName;
@@ -48,7 +48,7 @@ void CProgramDeviceSourceValue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramDeviceDetail::Init(char* szID, char* szFriendlyName)
+void CProgramDeviceDetail::Init(const char* szID, const char* szFriendlyName)
 {
 	mszID.Init(szID);
 	mszFriendlyName.Init(szFriendlyName);
@@ -85,7 +85,7 @@ void CProgramDeviceDetail::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramDeviceDetail::AddSource(char* szName)
+void CProgramDeviceDetail::AddSource(const char* szName)
 {
 	CProgramDeviceSourceValue*	pcSource;
 
@@ -98,7 +98,7 @@ void CProgramDeviceDetail::AddSource(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramDeviceDetail::AddEvent(char* szName, float fValue)
+void CProgramDeviceDetail::AddEvent(const char* szName, float fValue)
 {
 	SProgramDeviceValue*	psValue;
 
@@ -112,7 +112,7 @@ void CProgramDeviceDetail::AddEvent(char* szName, float fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CProgramDeviceDetail::GetSourceID(char* szName)
+int CProgramDeviceDetail::GetSourceID(const char* szName)
 {
 	size						i;
 	CProgramDeviceSourceValue*	pcSource;

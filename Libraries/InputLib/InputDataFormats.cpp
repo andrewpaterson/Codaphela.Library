@@ -79,7 +79,7 @@ bool CInputDataFormats::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDataFormat* CInputDataFormats::Add(char* szName)
+CInputDataFormat* CInputDataFormats::Add(const char* szName)
 {
 	Ptr<CInputDataFormat>	pInputDataFormat;
 
@@ -109,7 +109,7 @@ CInputDataFormat* CInputDataFormats::Add(void)
 // before the others, are looked at.
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDataFormat* CInputDataFormats::Get(char* szName)
+CInputDataFormat* CInputDataFormats::Get(const char* szName)
 {
 	CInputDataFormat*	pcDataFormat;
 	size				i;

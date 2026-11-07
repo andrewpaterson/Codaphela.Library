@@ -73,7 +73,7 @@ void CInputDeviceVariableValue::SetChordCondition(CInputChord* pcChord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValue::Equals(char* szName)
+bool CInputDeviceVariableValue::Equals(const char* szName)
 {
 	return mpcDesc->Equals(szName);
 }

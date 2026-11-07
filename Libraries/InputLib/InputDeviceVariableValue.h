@@ -43,7 +43,7 @@ public:
 	void 							Kill(void);
 	void 							AddValueCondition(CInputDeviceVariableValue* pcValue);
 	void 							SetChordCondition(CInputChord* pcChord);
-	bool 							Equals(char* szName);
+	bool 							Equals(const char* szName);
 	bool 							ContainsChord(CInputChord* pcChord);
 	bool 							MakeCurrent(void);
 	void 							ToString(CChars* psz);

@@ -46,7 +46,7 @@ void CInputDataFormat::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormat::Init(char* szCommonName)
+void CInputDataFormat::Init(const char* szCommonName)
 {
 	PreInit();
 	mcExternalChannels.Init();
@@ -107,7 +107,7 @@ bool CInputDataFormat::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormat::Add(EPrimitiveType eType, char* szName)
+void CInputDataFormat::Add(EPrimitiveType eType, const char* szName)
 {
 	mcExternalChannels.AddChannel(mcChannelNames.NumElements(), eType);
 	mcChannelNames.Add(szName);
@@ -133,7 +133,7 @@ void CInputDataFormat::Done(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CInputDataFormat::GetIndex(char* szName)
+size CInputDataFormat::GetIndex(const char* szName)
 {
 	size		i;
 	CChars*		psz;
@@ -209,7 +209,7 @@ void CInputDataFormat::GetAsNative(void* pvDest, size iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDataFormat::IsCommonName(char* szName)
+bool CInputDataFormat::IsCommonName(const char* szName)
 {
 	if (mbCommon)
 	{

@@ -35,8 +35,8 @@ public:
 	void 		Init(void);
 	void 		Kill(void);
 
-	CAction*	AddAction(char* szName);
-	CAction*	GetAction(char* szName);
+	CAction*	AddAction(const char* szName);
+	CAction*	GetAction(const char* szName);
 };
 
 

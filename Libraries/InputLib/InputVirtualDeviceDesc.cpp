@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDeviceDesc::Init(char* szName, bool bDeviceAgnostic)
+void CInputVirtualDeviceDesc::Init(const char* szName, bool bDeviceAgnostic)
 {
 	mlcInputSourceDescs.Init(false);
 	mcChordDescs.Init();
@@ -82,7 +82,7 @@ bool CInputVirtualDeviceDesc::AddSource(CInputSourceDesc* pcSourceDesc, int iDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, char* szFriendlyName)
+bool CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, const char* szFriendlyName)
 {
 	CInputSourceDesc*			pcSourceDesc;
 	bool						bResult;
@@ -101,10 +101,10 @@ bool CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
+bool CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...)
 {
 	va_list				vaMarker;
-	char*				pc;
+	const char*			pc;
 	int					iCount;
 	bool				bResult;
 	CInputDeviceDesc*	pcDeviceDesc;
@@ -124,7 +124,7 @@ bool CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendl
 		}
 
 		iCount++;
-		pc = va_arg(vaMarker, char*);
+		pc = va_arg(vaMarker, const char*);
 	}
 	va_end(vaMarker);
 	return true;
@@ -135,7 +135,7 @@ bool CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(char* szFriendlyName, int iDescID)
+CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(const char* szFriendlyName, int iDescID)
 {
 	CInputVirtualSourceDesc*	pcSource;
 	SSetIterator				sIter;
@@ -192,7 +192,7 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(CInputSourceDesc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* szFriendlyName)
+bool CInputVirtualDeviceDesc::AddChord(const char* szActionName, int iDescID, const char* szFriendlyName)
 {
 	CInputVirtualSourceDesc*	pcSource;
 	CInputChordDesc*			pcChord;
@@ -213,10 +213,10 @@ bool CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...)
+bool CInputVirtualDeviceDesc::AddOrderedAction(const char* szActionName, int iDescID, const char* szFriendlyName, ...)
 {
 	va_list						vaMarker;
-	char*						pc;
+	const char*					pc;
 	int							iCount;
 	CInputChordDesc*			pcChord;
 	CInputVirtualSourceDesc*	pcSource;
@@ -240,7 +240,7 @@ bool CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 		pcOrdered->AddInactive(pcSource->GetSourceDesc(), pcSource->GetDescriptionID());
 
 		iCount++;
-		pc = va_arg(vaMarker, char*);
+		pc = va_arg(vaMarker, const char*);
 	}
 
 	pcOrdered->RemoveLast();

@@ -53,23 +53,23 @@ protected:
 	CInputChordDescs					mcVariableChordDescs;
 
 public:
-	void 						Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
+	void 						Init(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
 	void 						Kill(void);
 	CInputDevices*				GetInputDevices(void);
 	void						Copy(CInputDeviceDesc* pcSourceDesc);
-	bool 						Is(char* szID);
-	bool						HasTag(char* szTagName);
-	CInputSourceDesc*			AddStateInput(char* szFriendlyName);
-	CInputSourceDesc*			AddDeltaInput(char* szFriendlyName);
-	CInputSourceDesc*			AddInput(EInputSourceType eType, char* szFriendlyName);
+	bool 						Is(const char* szID);
+	bool						HasTag(const char* szTagName);
+	CInputSourceDesc*			AddStateInput(const char* szFriendlyName);
+	CInputSourceDesc*			AddDeltaInput(const char* szFriendlyName);
+	CInputSourceDesc*			AddInput(EInputSourceType eType, const char* szFriendlyName);
 	void						CopySources(CInputDeviceCopyContext* pcContext);
 	void						CopyVariables(CInputDeviceCopyContext* pcContext);
 	void						SetDataFormat(CInputDataFormat* pcDataFormat);
-	void						SetComment(char* szComment);
-	bool						RenameSource(char* szOldName, char* szNewName);
-	CInputDeviceVariableDesc*	GetVariable(char* szName);
-	CInputDeviceVariableDesc*	AddVariable(char* szName);
-	CInputSourceDesc*			GetSource(char* szFriendlyName);
+	void						SetComment(const char* szComment);
+	bool						RenameSource(const char* szOldName, const char* szNewName);
+	CInputDeviceVariableDesc*	GetVariable(const char* szName);
+	CInputDeviceVariableDesc*	AddVariable(const char* szName);
+	CInputSourceDesc*			GetSource(const char* szFriendlyName);
 	void						GetSources(CArrayIntAndPointer* apcDest, CInputCategoryGeneric* pcGeneric);
 	void						GetSources(CArrayIntAndPointer* apcDest);
 	CInputCategory*				GetCategory(void);

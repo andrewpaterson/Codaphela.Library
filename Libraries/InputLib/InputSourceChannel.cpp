@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSouceChannel::Init(CInputSourceValue* pcSourceValue, int iChannel, EInputSourceChannelComparator eCompare, char* pTest)
+void CInputSouceChannel::Init(CInputSourceValue* pcSourceValue, int iChannel, EInputSourceChannelComparator eCompare, const char* pTest)
 {
 	mpcSourceValue = pcSourceValue;
 	miChannel = iChannel;

@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceVariableValueDesc::Init(char* szName, CInputDeviceVariableDesc* pcVariableDesc)
+void CInputDeviceVariableValueDesc::Init(const char* szName, CInputDeviceVariableDesc* pcVariableDesc)
 {
 	mszName.Init(szName);
 	mpcVariableDesc = pcVariableDesc;
@@ -84,7 +84,7 @@ void CInputDeviceVariableValueDesc::Copy(CInputDeviceVariableValueDesc* pcSource
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueDesc::Equals(char* szName)
+bool CInputDeviceVariableValueDesc::Equals(const char* szName)
 {
 	return mszName.Equals(szName);
 }

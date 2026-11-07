@@ -54,7 +54,7 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	bool 				Read(char* szDirectory = NULL);
+	bool 				Read(const char* szDirectory = NULL);
 	void 				AddProgramInput(void);
 	bool				AddNativeInput(CNativeInput* pcNativeInput);
 
@@ -68,7 +68,7 @@ public:
 	void 				SortEvents(void);
 	void 				UpdateVirtualDevicesEvents(void);
 	void 				DumpEvents(void);
-	CInputCategory*		GetCategory(char* szName);
+	CInputCategory*		GetCategory(const char* szName);
 
 	CProgramInput*		GetProgramInput(void);
 	CInputDevices*		GetDevices(void);

@@ -49,7 +49,7 @@ protected:
 	CInputSourceValue*				mpcSourceValue;
 
 public:
-	void 							Init(CInputSourceValue* pcSourceValue, int iChannel, EInputSourceChannelComparator eCompare, char* pTest);
+	void 							Init(CInputSourceValue* pcSourceValue, int iChannel, EInputSourceChannelComparator eCompare, const char* pTest);
 	void 							Kill(void);
 	bool 							Compare(void* pvData);
 	void 							ToString(CChars* psz);

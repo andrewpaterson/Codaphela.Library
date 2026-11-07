@@ -42,23 +42,23 @@ protected:
 
 public:
 	void 		Init(void);
-	void 		Init(char* szCommonName);
+	void 		Init(const char* szCommonName);
 	void		Class(void) override;
 	void		Free(void) override;
 
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;
 
-	void		Add(EPrimitiveType eType, char* szName);
+	void		Add(EPrimitiveType eType, const char* szName);
 	void		Done(void);
-	size		GetIndex(char* szName);
+	size		GetIndex(const char* szName);
 	CChannel*	Get(size iIndex);
 	float		GetConvertToFloat(size iIndex, void* pvData);
 	float		GetCastToFloat(size iIndex, void* pvData);
 	void		GetAsNative(void* pvDest, size iIndex, void* pvData);
 
 	bool		IsCommon(void);
-	bool		IsCommonName(char* szName);
+	bool		IsCommonName(const char* szName);
 	char*		GetCommonName(void);
 };
 

@@ -90,7 +90,7 @@ bool CInputDevices::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDevices::Read(char* szDirectory)
+bool CInputDevices::Read(const char* szDirectory)
 {
 	CInputDevicesReader	cReader;
 	bool				bResult;
@@ -124,7 +124,7 @@ void CInputDevices::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDataFormat* CInputDevices::AddFormat(char* szName)
+CInputDataFormat* CInputDevices::AddFormat(const char* szName)
 {
 	return mcDataFormats.Add(szName);
 }
@@ -133,7 +133,7 @@ CInputDataFormat* CInputDevices::AddFormat(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInputDevices::AddCategory(char* szName)
+CInputCategory* CInputDevices::AddCategory(const char* szName)
 {
 	return mcCategories.AddCategory(szName);
 }
@@ -143,7 +143,7 @@ CInputCategory* CInputDevices::AddCategory(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInputDevices::GetCategory(char* szName)
+CInputCategory* CInputDevices::GetCategory(const char* szName)
 {
 	return mcCategories.GetCategory(szName);
 }
@@ -171,7 +171,7 @@ CInputDevice* CInputDevices::CreateDevice(CInputDeviceDesc* pcDesc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDevice* CInputDevices::CreateVirtualDevice(char* szName)
+CInputVirtualDevice* CInputDevices::CreateVirtualDevice(const char* szName)
 {
 	CInputVirtualDevice*	pcVirtual;
 
@@ -481,7 +481,7 @@ bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceDesc* CInputDevices::CreateVirtualDeviceDescription(char* szName, bool bDeviceAgnostic)
+CInputVirtualDeviceDesc* CInputDevices::CreateVirtualDeviceDescription(const char* szName, bool bDeviceAgnostic)
 {
 	CInputVirtualDeviceDesc*	pcVirtualDesc;
 
@@ -518,7 +518,7 @@ CInputDevice* CInputDevices::GetDevice(int iDeviceID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDevices::GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, char* szCategory)
+void CInputDevices::GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, const char* szCategory)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
@@ -664,7 +664,7 @@ CInputDevice* CInputDevices::GetDeviceForSourceDesc(CInputSourceDesc* pcSourceDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CInputDevices::CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
+CInputDeviceDesc* CInputDevices::CreateDescription(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
 {
 	CInputDeviceDesc*	pcDesc;
 
@@ -686,7 +686,7 @@ CInputDeviceDesc* CInputDevices::CreateDescription(char* szID, char* szFriendlyN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CInputDevices::GetDescription(char* szID)
+CInputDeviceDesc* CInputDevices::GetDescription(const char* szID)
 {
 	CInputDeviceDesc*	pcDeviceDesc;
 	SSetIterator		sIter;
@@ -803,7 +803,7 @@ CInputVirtualDevice* CInputDevices::GetFirstKeyboard(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDevice* CInputDevices::GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, bool bPhysical)
+CInputVirtualDevice* CInputDevices::GetFirstVirtualDeviceInCategoryKeyboard(const char* szCategory, bool bPhysical)
 {
 	//This method only exists to show how to get a usuable device.
 

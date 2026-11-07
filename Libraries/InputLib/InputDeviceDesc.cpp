@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceDesc::Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
+void CInputDeviceDesc::Init(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
 {
 	mszID.Init(szID);
 	mszFriendlyName.Init(szFriendlyName);
@@ -82,7 +82,7 @@ CInputDevices* CInputDeviceDesc::GetInputDevices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceDesc::Is(char* szID)
+bool CInputDeviceDesc::Is(const char* szID)
 {
 	return mszID.Equals(szID);
 }
@@ -92,7 +92,7 @@ bool CInputDeviceDesc::Is(char* szID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceDesc::HasTag(char* szTagName)
+bool CInputDeviceDesc::HasTag(const char* szTagName)
 {
 	return false;
 }
@@ -102,7 +102,7 @@ bool CInputDeviceDesc::HasTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputDeviceDesc::AddStateInput(char* szFriendlyName)
+CInputSourceDesc* CInputDeviceDesc::AddStateInput(const char* szFriendlyName)
 {
 	return AddInput(ISET_State, szFriendlyName);
 }
@@ -112,7 +112,7 @@ CInputSourceDesc* CInputDeviceDesc::AddStateInput(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputDeviceDesc::AddDeltaInput(char* szFriendlyName)
+CInputSourceDesc* CInputDeviceDesc::AddDeltaInput(const char* szFriendlyName)
 {
 	return AddInput(ISET_Delta, szFriendlyName);
 }
@@ -122,7 +122,7 @@ CInputSourceDesc* CInputDeviceDesc::AddDeltaInput(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputDeviceDesc::AddInput(EInputSourceType eType, char* szFriendlyName)
+CInputSourceDesc* CInputDeviceDesc::AddInput(EInputSourceType eType, const char* szFriendlyName)
 {
 	CInputSourceDesc*	pcSource;
 
@@ -146,7 +146,7 @@ void CInputDeviceDesc::SetDataFormat(CInputDataFormat* pcDataFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceDesc::SetComment(char* szComment)
+void CInputDeviceDesc::SetComment(const char* szComment)
 {
 	mszComment.Set(szComment);
 }
@@ -156,7 +156,7 @@ void CInputDeviceDesc::SetComment(char* szComment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceDesc::RenameSource(char* szOldName, char* szNewName)
+bool CInputDeviceDesc::RenameSource(const char* szOldName, const char* szNewName)
 {
 	CInputSourceDesc*	pcSource;
 	SSetIterator		sIter;
@@ -180,7 +180,7 @@ bool CInputDeviceDesc::RenameSource(char* szOldName, char* szNewName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableDesc* CInputDeviceDesc::GetVariable(char* szName)
+CInputDeviceVariableDesc* CInputDeviceDesc::GetVariable(const char* szName)
 {
 	CInputDeviceVariableDesc*	pcVariableDesc;
 	SSetIterator				sIter;
@@ -203,7 +203,7 @@ CInputDeviceVariableDesc* CInputDeviceDesc::GetVariable(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableDesc* CInputDeviceDesc::AddVariable(char* szName)
+CInputDeviceVariableDesc* CInputDeviceDesc::AddVariable(const char* szName)
 {
 	CInputDeviceVariableDesc*	pcVariableDesc;
 
@@ -217,7 +217,7 @@ CInputDeviceVariableDesc* CInputDeviceDesc::AddVariable(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputDeviceDesc::GetSource(char* szFriendlyName)
+CInputSourceDesc* CInputDeviceDesc::GetSource(const char* szFriendlyName)
 {
 	CInputSourceDesc*	pcSource;
 	SSetIterator		sIter;

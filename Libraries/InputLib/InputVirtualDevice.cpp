@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::Init(char* szName)
+void CInputVirtualDevice::Init(const char* szName)
 {
 	mszName.Init(szName);
 	mlcHistorySources.Init(false);
@@ -261,7 +261,7 @@ bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, CInputSourceDesc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, char* szFriendlyName)
+bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, const char* szFriendlyName)
 {
 	return AddSource(pcDevice, pcDevice->GetSource(szFriendlyName));
 }
@@ -271,10 +271,10 @@ bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, char* szFriendlyName
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
+bool CInputVirtualDevice::AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...)
 {
 	va_list						vaMarker;
-	char*						pc;
+	const char*					pc;
 	size						iCount;
 	bool						bResult;
 
@@ -291,7 +291,7 @@ bool CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyNam
 		}
 
 		iCount++;
-		pc = va_arg(vaMarker, char*);
+		pc = va_arg(vaMarker, const char*);
 	}
 	DoneAddingSources();
 	GetInputDevices()->UpdateCommonality();
@@ -417,7 +417,7 @@ void CInputVirtualDevice::ToStringEvents(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CInputVirtualDevice::GetSource(char* szFriendlyName)
+CInputVirtualDeviceSource* CInputVirtualDevice::GetSource(const char* szFriendlyName)
 {
 	CInputVirtualDeviceSource*	pcSource;
 	SSetIterator				sIter;
@@ -492,7 +492,7 @@ void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, CInputVirtualDevi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::AddActiveAction(CAction* pcAction, char* szFriendlyName)
+void CInputVirtualDevice::AddActiveAction(CAction* pcAction, const char* szFriendlyName)
 {
 	CInputVirtualDeviceSource*	pcSource;
 
@@ -506,7 +506,7 @@ void CInputVirtualDevice::AddActiveAction(CAction* pcAction, char* szFriendlyNam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, char* szFriendlyName)
+void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, const char* szFriendlyName)
 {
 	CInputVirtualDeviceSource*	pcSource;
 
@@ -568,10 +568,10 @@ void CInputVirtualDevice::AddSingleAction(CAction* pcAction, CInputSourceEvaluat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::AddOrderedAction(CAction* pcAction, char* szFriendlyName, ...)
+void CInputVirtualDevice::AddOrderedAction(CAction* pcAction, const char* szFriendlyName, ...)
 {
 	va_list						vaMarker;
-	char*						pc;
+	const char*					pc;
 	size						iCount;
 	CInputChord*				pcChord;
 	CInputVirtualDeviceSource*	pcSource;
@@ -590,7 +590,7 @@ void CInputVirtualDevice::AddOrderedAction(CAction* pcAction, char* szFriendlyNa
 		pcOrdered->AddInactiveAction(pcChord->AddEvaluatorSpecificSource(pcSource, ICT_Toggle));
 
 		iCount++;
-		pc = va_arg(vaMarker, char*);
+		pc = va_arg(vaMarker, const char*);
 	}
 
 	pcOrdered->RemoveLastAction();
@@ -616,7 +616,7 @@ CInputChord* CInputVirtualDevice::AddChordAction(CAction* pcAction, CInputChordD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::AddRangeAction(CAction* pcAction, char* szFriendlyName)
+void CInputVirtualDevice::AddRangeAction(CAction* pcAction, const char* szFriendlyName)
 {
 	CInputVirtualDeviceSource*	pcSource;
 

@@ -52,7 +52,7 @@ void CInputActions::Kill(void)
 // Add functions to the action for it to call.
 //
 //////////////////////////////////////////////////////////////////////////
-CAction* CInputActions::AddAction(char* szName)
+CAction* CInputActions::AddAction(const char* szName)
 {
 	return mcActions.AddAction(szName);
 }
@@ -62,7 +62,7 @@ CAction* CInputActions::AddAction(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAction* CInputActions::GetAction(char* szName)
+CAction* CInputActions::GetAction(const char* szName)
 {
 	return mcActions.GetAction(szName);
 }

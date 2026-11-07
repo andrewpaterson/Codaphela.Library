@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordReader::Init(CMarkupTag* pcParentTag, CInputChordDescs* pcInputChordDescs, char* szActionName, CInputDeviceDesc* pcDeviceDesc)
+void CInputChordReader::Init(CMarkupTag* pcParentTag, CInputChordDescs* pcInputChordDescs, const char* szActionName, CInputDeviceDesc* pcDeviceDesc)
 {
 	mpcInputChordDescs = pcInputChordDescs;
 	mpcParentTag = pcParentTag;

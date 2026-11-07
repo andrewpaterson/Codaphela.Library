@@ -40,7 +40,7 @@ protected:
 	CChars						mszActionName;
 
 public:
-	void 						Init(char* szActionName);
+	void 						Init(const char* szActionName);
 	void 						Kill(void);
 
 	CInputChordActiveDesc*		AsActiveOrInactive(void);

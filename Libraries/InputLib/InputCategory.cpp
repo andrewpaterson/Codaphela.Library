@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputCategory::Init(char* szCategory, CInputDevices* pcInputDevices)
+void CInputCategory::Init(const char* szCategory, CInputDevices* pcInputDevices)
 {
 	mlcGenerics.Init(false);
 	mszCategory.Init(szCategory);
@@ -52,7 +52,7 @@ void CInputCategory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategoryGeneric* CInputCategory::AddGeneric(char* szAction)
+CInputCategoryGeneric* CInputCategory::AddGeneric(const char* szAction)
 {
 	CInputCategoryGeneric*	pcGeneric;
 
@@ -76,7 +76,7 @@ bool CInputCategory::ContainsGeneric(CInputCategoryGeneric* pcGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputCategory::ContainsGeneric(char* szGeneric)
+bool CInputCategory::ContainsGeneric(const char* szGeneric)
 {
 	CInputCategoryGeneric*	pcGeneric;
 
@@ -89,7 +89,7 @@ bool CInputCategory::ContainsGeneric(char* szGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategoryGeneric* CInputCategory::GetGeneric(char* szGeneric)
+CInputCategoryGeneric* CInputCategory::GetGeneric(const char* szGeneric)
 {
 	SSetIterator			sIter;
 	CInputCategoryGeneric*	pcCurrent;
@@ -183,7 +183,7 @@ CInputDevices* CInputCategory::GetInputDevices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputCategory::Is(char* szName)
+bool CInputCategory::Is(const char* szName)
 {
 	return mszCategory.Equals(szName);
 }

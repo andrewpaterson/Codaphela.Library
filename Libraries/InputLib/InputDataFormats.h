@@ -42,9 +42,9 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	CInputDataFormat*	Add(char* szName);
+	CInputDataFormat*	Add(const char* szName);
 	CInputDataFormat*	Add(void);
-	CInputDataFormat*	Get(char* szName);
+	CInputDataFormat*	Get(const char* szName);
 };
 
 

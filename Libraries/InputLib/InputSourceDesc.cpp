@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, char* szFriendlyName, size iStateIndex)
+void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, const char* szFriendlyName, size iStateIndex)
 {
 	meType = eType;
 	mszFriendlyName.Init(szFriendlyName);
@@ -180,7 +180,7 @@ void CInputSourceDesc::SetRest(float fRestValue, bool bEmitRestEvent, bool bHasR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputSourceDesc::Is(char* szFriendlyName)
+bool CInputSourceDesc::Is(const char* szFriendlyName)
 {
 	return mszFriendlyName.Equals(szFriendlyName);
 }
@@ -199,7 +199,7 @@ EInputSourceType CInputSourceDesc::GetType(void) { return meType; }
 size CInputSourceDesc::GetStateIndex(void) { return miStateIndex; }
 char* CInputSourceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
 bool CInputSourceDesc::GetEmitRestEvent(void) { return mbEmitRestEvent; }
-void CInputSourceDesc::SetFriendlyName(char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
+void CInputSourceDesc::SetFriendlyName(const char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
 
 //////////////////////////////////////////////////////////////////////////
 //

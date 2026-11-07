@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDevicesReader::Init(CInputDevices* pcInputDevices, char* szDirectory)
+void CInputDevicesReader::Init(CInputDevices* pcInputDevices, const char* szDirectory)
 {
 	mszDirectory.Init(szDirectory);
 	mpcInputDevices = pcInputDevices;

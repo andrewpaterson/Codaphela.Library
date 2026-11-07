@@ -41,17 +41,17 @@ protected:
 	CInputDevices*				mpcInputDevices;
 
 public:
-	void 					Init(char* szCategory, CInputDevices* pcInputDevices);
+	void 					Init(const char* szCategory, CInputDevices* pcInputDevices);
 	void 					Kill(void);
-	CInputCategoryGeneric*	AddGeneric(char* szGeneric);
+	CInputCategoryGeneric*	AddGeneric(const char* szGeneric);
 	bool 					ContainsGeneric(CInputCategoryGeneric* pcGeneric);
-	bool					ContainsGeneric(char* szGeneric);
+	bool					ContainsGeneric(const char* szGeneric);
 	CInputDevice*			GetFirstDevice(bool bPhysical = true);
 	void					GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical = true);
-	CInputCategoryGeneric*	GetGeneric(char* szGeneric);
+	CInputCategoryGeneric*	GetGeneric(const char* szGeneric);
 	char*					GetCategoryName(void);
 	CInputDevices*			GetInputDevices(void);
-	bool					Is(char* szName);
+	bool					Is(const char* szName);
 };
 
 

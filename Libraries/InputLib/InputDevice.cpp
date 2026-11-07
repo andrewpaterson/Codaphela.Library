@@ -185,7 +185,7 @@ CInputVirtualDevice* CInputDevice::GetDefaultVirtualDevice(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDevice* CInputDevice::CreateDefaultVirtualDeviceFromThis(char* szName)
+CInputVirtualDevice* CInputDevice::CreateDefaultVirtualDeviceFromThis(const char* szName)
 {
 	CInputVirtualDevice*	pcVirtual;
 	SSetIterator			sIter;
@@ -314,7 +314,7 @@ bool CInputDevice::GetValue(CInputSourceDesc* pcSource, float* pfValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputDevice::GetSource(char* szFriendlyName)
+CInputSourceDesc* CInputDevice::GetSource(const char* szFriendlyName)
 {
 	return mpcDesc->GetSource(szFriendlyName);
 }
@@ -342,7 +342,7 @@ bool CInputDevice::SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategoryGeneric* CInputDevice::GetCategoryGeneric(char* szGeneric)
+CInputCategoryGeneric* CInputDevice::GetCategoryGeneric(const char* szGeneric)
 {
 	return mpcDesc->GetCategory()->GetGeneric(szGeneric);
 }

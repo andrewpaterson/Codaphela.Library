@@ -50,7 +50,7 @@ void CInputCategories::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInputCategories::AddCategory(char* szName)
+CInputCategory* CInputCategories::AddCategory(const char* szName)
 {
 	CInputCategory*		pcInputCategory;
 
@@ -64,7 +64,7 @@ CInputCategory* CInputCategories::AddCategory(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInputCategories::GetCategory(char* szName)
+CInputCategory* CInputCategories::GetCategory(const char* szName)
 {
 	CInputCategory*		pcInputCategory;
 	SSetIterator		sIter;

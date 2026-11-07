@@ -38,7 +38,7 @@ public:
 	CInputChordDesc*	mpcReadChordDesc;
 	CChars				mszActionName;
 
-	void Init(CMarkupTag* pcParentTag, CInputChordDescs* pcInputChords, char* szActionName, CInputDeviceDesc* pcDeviceDesc);
+	void Init(CMarkupTag* pcParentTag, CInputChordDescs* pcInputChords, const char* szActionName, CInputDeviceDesc* pcDeviceDesc);
 	void Kill(void);
 	bool Read(void);
 	bool ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChord, bool bActive);

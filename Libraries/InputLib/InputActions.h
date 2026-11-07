@@ -38,11 +38,11 @@ public:
 
 	void 		Init(CInputDevices* pcInputDevices);
 	void 		Kill(void);
-	CAction*	GetAction(char* szName);
+	CAction*	GetAction(const char* szName);
 
-	CAction*	AddAction(char* szName);
+	CAction*	AddAction(const char* szName);
 	template<class M, class O>
-	CAction*	AddAction(char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
+	CAction*	AddAction(const char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
 
 	void		VariableAction(CAction* pcAction, void* pvContext);
 };
@@ -54,7 +54,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M, class O>
-CAction* CInputActions::AddAction(char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
+CAction* CInputActions::AddAction(const char* szName, O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext))
 {
 	CAction*	pcAction;
 

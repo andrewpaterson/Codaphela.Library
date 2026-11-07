@@ -100,7 +100,7 @@ void CInput::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInput::Read(char* szDirectory)
+bool CInput::Read(const char* szDirectory)
 {
 	if (!szDirectory)
 	{
@@ -309,7 +309,7 @@ void CInput::UpdateChords(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInput::GetCategory(char* szName)
+CInputCategory* CInput::GetCategory(const char* szName)
 {
 	return mpDevices->GetCategory(szName);
 }

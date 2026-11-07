@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputCategoryGeneric::Init(char* szName)
+void CInputCategoryGeneric::Init(const char* szName)
 {
 	mszName.Init(szName);
 }
@@ -48,7 +48,7 @@ void CInputCategoryGeneric::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputCategoryGeneric::Is(char* szName)
+bool CInputCategoryGeneric::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }

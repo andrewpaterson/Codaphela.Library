@@ -32,7 +32,7 @@ public:
 	CChars	mszName;
 	int		miName;
 
-	void Init(char* szName, int iName);
+	void Init(const char* szName, int iName);
 	void Kill(void);
 };
 
@@ -57,11 +57,11 @@ public:
 	CArrayProgramDeviceSourceValue	macSources;
 	CArrayProgramDeviceValue		macValues;
 
-	void 							Init(char* szID, char* szFriendlyName);
+	void 							Init(const char* szID, const char* szFriendlyName);
 	void 							Kill(void);
-	void 							AddSource(char* szName);
-	void 							AddEvent(char* szName, float fValue);
-	int  							GetSourceID(char* szName);
+	void 							AddSource(const char* szName);
+	void 							AddEvent(const char* szName, float fValue);
+	int  							GetSourceID(const char* szName);
 	void 							ClearEvents(void);
 	char*							GetFriendlyName(void);
 	char*							GetID(void);

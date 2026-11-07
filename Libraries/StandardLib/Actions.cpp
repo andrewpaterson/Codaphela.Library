@@ -46,7 +46,7 @@ void CActions::Kill(void)
 // Add functions to the action for it to call.
 //
 //////////////////////////////////////////////////////////////////////////
-CAction* CActions::AddAction(char* szName)
+CAction* CActions::AddAction(const char* szName)
 {
 	CAction*	pcAction;
 
@@ -60,7 +60,7 @@ CAction* CActions::AddAction(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAction* CActions::GetAction(char* szName)
+CAction* CActions::GetAction(const char* szName)
 {
 	SSetIterator	sIter;
 	CAction*		pcAction;

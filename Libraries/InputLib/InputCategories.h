@@ -35,8 +35,8 @@ public:
 	void 					Init(CInputDevices* pcDevices);
 	void 					Kill(void);
 
-	CInputCategory*			AddCategory(char* szName);
-	CInputCategory*			GetCategory(char* szName);
+	CInputCategory*			AddCategory(const char* szName);
+	CInputCategory*			GetCategory(const char* szName);
 };
 
 

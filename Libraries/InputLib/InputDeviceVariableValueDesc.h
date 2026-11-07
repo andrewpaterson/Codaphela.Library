@@ -40,10 +40,10 @@ protected:
 	bool											mbInitial;
 
 public:
-	void 											Init(char* szName, CInputDeviceVariableDesc* pcVariableDesc);
+	void 											Init(const char* szName, CInputDeviceVariableDesc* pcVariableDesc);
 	void 											Kill(void);
 	void 											Copy(CInputDeviceVariableValueDesc* pcSource, CInputDeviceCopyContext* pcContext);
-	bool 											Equals(char* szName);
+	bool 											Equals(const char* szName);
 	void 											AddCondition(CInputChordDesc* pcChordDesc);
 	void 											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
 	char*											GetName(void);

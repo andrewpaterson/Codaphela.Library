@@ -168,7 +168,7 @@ void CProgramInput::AddCategory(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CProgramDeviceDetail* CProgramInput::AddDetail(char* szID, char* szFriendlyName)
+CProgramDeviceDetail* CProgramInput::AddDetail(const char* szID, const char* szFriendlyName)
 {
 	CProgramDeviceDetail*	pcDetail;
 
