@@ -1598,6 +1598,46 @@ static bool PreprocessFile(char* szFileName, char* szSource, CConfig* pcConfig, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// #pragma pack(...) is __pragma(pack(...)) for the parser: its numbers are
+// whole (0x10 is one), and its tokens are on the directive's line.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorPragmaPack(void)
+{
+	CTranslationUnit		cFile;
+	CPreprocessor			cPreprocessor;
+	CConfig					cConfig;
+	CPreprocessedTokens*	pcTokens;
+	CChars					szDest;
+	size					i;
+
+	cFile.Init("Pack.cpp", NULL, false);
+	cFile.SetContents("int a;\n#pragma pack(push, 0x10)\nint b;\n");
+	cConfig.Init("");
+	cConfig.mbKeepPragmaPack = true;
+	cPreprocessor.Init(&cConfig);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	szDest.Init();
+	cFile.Print(&szDest);
+	AssertString("int a;\n__pragma(pack(push, 0x10))\nint b;\n", szDest.Text());
+	szDest.Kill();
+
+	pcTokens = cFile.GetTokens();
+	AssertTrue(pcTokens->Get(3)->Is("__pragma"));
+	AssertTrue(pcTokens->Get(9)->Is("0x10"));
+	AssertInt(PTK_Number, pcTokens->Get(9)->uiKind);
+	for (i = 3; i <= 11; i++)
+	{
+		AssertInt(1, pcTokens->Get(i)->iLine);
+	}
+	cPreprocessor.Kill();
+	cConfig.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // #line N makes the next line N for __LINE__, and #line N "name" makes the
 // name __FILE__ too.  A line that isn't a positive number is an error.
 // [cpp.line]
@@ -2082,6 +2122,7 @@ void TestPreprocessor(void)
 	TestPreprocessorErrors();
 	TestPreprocessorUnreadableFile();
 	TestPreprocessorLine();
+	TestPreprocessorPragmaPack();
 	TestPreprocessorLineContinuation();
 	TestPreprocessorDirectiveMap();
 	TestPreprocessorParentheses();

@@ -1562,7 +1562,7 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 		pcParser->PopPosition();
 	}
 	bResult = pcParser->GetExactIdentifier("once", true, true);
-	if (bResult == TRITRUE)
+	if (bResult)
 	{
 		if (mpcCurrentFile && mpcCurrentFile->IsHeader())
 		{
@@ -1579,35 +1579,90 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool IsIdentifierStart(char c)
+{
+	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_') || (c == '$');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool IsIdentifierCharacter(char c)
+{
+	return IsIdentifierStart(c) || ((c >= '0') && (c <= '9'));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The length of the pp-number starting at sz (a digit, or . and a digit),
+// at most uiLength: digits, letters, _, ., ' and a sign after e, E, p or
+// P.  [lex.ppnumber]
+//
+//////////////////////////////////////////////////////////////////////////
+static size PPNumberLength(const char* sz, size uiLength)
+{
+	size	i;
+	char	c;
+
+	for (i = 1; i < uiLength; i++)
+	{
+		c = sz[i];
+		if (!IsIdentifierCharacter(c) && (c != '.') && (c != '\'') &&
+			!(((c == '+') || (c == '-')) && ((sz[i - 1] == 'e') || (sz[i - 1] == 'E') || (sz[i - 1] == 'p') || (sz[i - 1] == 'P'))))
+		{
+			break;
+		}
+	}
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 // #pragma pack(...) is output as __pragma(pack(...)), which the parser	//
 // takes as the packing of the classes defined after it.					//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
 {
-	CChars				szArguments;
-	SPreprocessedToken	sToken;
-	char*				sz;
-	size				i;
-	size				uiStart;
+	CChars					szArguments;
+	SPreprocessedToken		sToken;
+	char*					sz;
+	size					i;
+	size					uiStart;
 	EPreprocessedTokenKind	eKind;
+	int						iLine;
+	int						iColumn;
+	bool					bSpace;
 
+	//Each token is at where the arguments start (the pragma's line), with the spaces between them kept; __pragma starts
+	//the line, as the directive did.
+	pcParser->SkipWhitespace();
+	iLine = pcParser->Line();
+	iColumn = pcParser->Column();
 	szArguments.Init("__pragma(pack");
 	pcParser->AppendRemaining(&szArguments);
 	szArguments.Append(")");
 	sz = szArguments.Text();
+	bSpace = false;
 	for (i = 0; sz[i];)
 	{
 		if ((sz[i] == ' ') || (sz[i] == '\t') || (sz[i] == '\n') || (sz[i] == '\r'))
 		{
+			bSpace = true;
 			i++;
 			continue;
 		}
 		uiStart = i;
-		if (((sz[i] >= 'a') && (sz[i] <= 'z')) || ((sz[i] >= 'A') && (sz[i] <= 'Z')) || (sz[i] == '_'))
+		if (IsIdentifierStart(sz[i]))
 		{
 			eKind = PTK_Identifier;
-			while (((sz[i] >= 'a') && (sz[i] <= 'z')) || ((sz[i] >= 'A') && (sz[i] <= 'Z')) || (sz[i] == '_') || ((sz[i] >= '0') && (sz[i] <= '9')))
+			while (IsIdentifierCharacter(sz[i]))
 			{
 				i++;
 			}
@@ -1615,18 +1670,16 @@ void CPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
 		else if ((sz[i] >= '0') && (sz[i] <= '9'))
 		{
 			eKind = PTK_Number;
-			while ((sz[i] >= '0') && (sz[i] <= '9'))
-			{
-				i++;
-			}
+			i += PPNumberLength(&sz[i], StrLen(&sz[i]));
 		}
 		else
 		{
 			eKind = PTK_Punctuator;
 			i++;
 		}
-		sToken.Init(eKind, mpcOutput->AddString(&sz[uiStart], i - uiStart), i - uiStart, mpcCurrentFile, pcParser->Line(), pcParser->Column());
-		sToken.uiFlags |= PTF_OUTPUT_TEXT;
+		sToken.Init(eKind, mpcOutput->AddString(&sz[uiStart], i - uiStart), i - uiStart, mpcCurrentFile, iLine, iColumn);
+		sToken.uiFlags |= PTF_OUTPUT_TEXT | (bSpace ? PTF_LEADING_SPACE : 0) | ((uiStart == 0) ? PTF_START_OF_LINE : 0);
+		bSpace = false;
 		EmitToken(&sToken);
 	}
 	szArguments.Kill();
@@ -2337,26 +2390,6 @@ void CPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocess
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-static bool IsIdentifierStart(char c)
-{
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_') || (c == '$');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-static bool IsIdentifierCharacter(char c)
-{
-	return IsIdentifierStart(c) || ((c >= '0') && (c <= '9'));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 static size QuotedLength(const char* sz, size uiLength)
 {
 	size	i;
@@ -2416,20 +2449,7 @@ static int LexSingleToken(const char* sz, size uiLength)
 
 	if (((c >= '0') && (c <= '9')) || ((c == '.') && (uiLength > 1) && (sz[1] >= '0') && (sz[1] <= '9')))
 	{
-		for (i = 1; i < uiLength; i++)
-		{
-			c = sz[i];
-			if (IsIdentifierCharacter(c) || (c == '.') || (c == '\''))
-			{
-				continue;
-			}
-			if (((c == '+') || (c == '-')) && ((sz[i - 1] == 'e') || (sz[i - 1] == 'E') || (sz[i - 1] == 'p') || (sz[i - 1] == 'P')))
-			{
-				continue;
-			}
-			return -1;
-		}
-		return PTK_Number;
+		return (PPNumberLength(sz, uiLength) == uiLength) ? PTK_Number : -1;
 	}
 
 	if ((c == '"') || (c == '\''))
