@@ -43,8 +43,10 @@ bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDest
 	uint8*					puiDestData;
 	uint8*					puiSourcePixel;
 	uint8*					puiDestPixel;
+	size					uiAlpha;
 	size					uiInverseAlpha;
-	size					uiColour;
+	uint8*					puiSourceColour;
+	uint8*					puiDestColour;
 
 	if ((pSource->GetColourBits() != CRGB_24bit) || (pDest->GetColourBits() != CRGB_24bit) ||
 		(pSource->GetAlphaBits() != ARGB_8bit) || !pSource->HasChannel(IMAGE_OPACITY) ||
@@ -110,14 +112,31 @@ bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDest
 		puiDestPixel = &puiDestData[((int32)y + iDestY) * cContext.miDestRowStride + (iLeft + iDestX) * cContext.miDestPixelStride];
 		for (x = (size)iLeft; x < (size)iRight; x++)
 		{
-			uiInverseAlpha = 255 - puiSourcePixel[cContext.muiSourceAlphaOffset];
-			for (uiColour = 0; uiColour < 3; uiColour++)
+			//An opaque pixel is copied and an empty one (no colour and no opacity) leaves the destination as it is, which
+			//is what blending them gives.  A transparent pixel with colour still adds its colour.
+			uiAlpha = puiSourcePixel[cContext.muiSourceAlphaOffset];
+			puiSourceColour = &puiSourcePixel[cContext.muiSourceColourOffset];
+			puiDestColour = &puiDestPixel[cContext.muiDestColourOffset];
+			if (uiAlpha == 255)
 			{
-				puiDestPixel[cContext.muiDestColourOffset + uiColour] = BlendPremultipliedByte(puiSourcePixel[cContext.muiSourceColourOffset + uiColour], puiDestPixel[cContext.muiDestColourOffset + uiColour], uiInverseAlpha);
+				puiDestColour[0] = puiSourceColour[0];
+				puiDestColour[1] = puiSourceColour[1];
+				puiDestColour[2] = puiSourceColour[2];
+				if (bDestOpacity)
+				{
+					puiDestPixel[cContext.muiDestAlphaOffset] = 255;
+				}
 			}
-			if (bDestOpacity)
+			else if ((uiAlpha != 0) || (puiSourceColour[0] != 0) || (puiSourceColour[1] != 0) || (puiSourceColour[2] != 0))
 			{
-				puiDestPixel[cContext.muiDestAlphaOffset] = BlendPremultipliedByte(puiSourcePixel[cContext.muiSourceAlphaOffset], puiDestPixel[cContext.muiDestAlphaOffset], uiInverseAlpha);
+				uiInverseAlpha = 255 - uiAlpha;
+				puiDestColour[0] = BlendPremultipliedByte(puiSourceColour[0], puiDestColour[0], uiInverseAlpha);
+				puiDestColour[1] = BlendPremultipliedByte(puiSourceColour[1], puiDestColour[1], uiInverseAlpha);
+				puiDestColour[2] = BlendPremultipliedByte(puiSourceColour[2], puiDestColour[2], uiInverseAlpha);
+				if (bDestOpacity)
+				{
+					puiDestPixel[cContext.muiDestAlphaOffset] = BlendPremultipliedByte(uiAlpha, puiDestPixel[cContext.muiDestAlphaOffset], uiInverseAlpha);
+				}
 			}
 
 			puiSourcePixel += cContext.miSourcePixelStride;

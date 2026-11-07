@@ -405,6 +405,128 @@ void TestImageOpacityPremultipliedBlend(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A byte the way blending a premultiplied pixel gives it, written out
+// from the formula: uiSource + uiDest * (255 - uiAlpha) / 255, rounded,
+// no more than 255.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 ExpectedPremultipliedByte(size uiSource, size uiDest, size uiAlpha)
+{
+	size	uiResult;
+
+	uiResult = uiSource + (uiDest * (255 - uiAlpha) + 127) / 255;
+	return (uint8)((uiResult > 255) ? 255 : uiResult);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every kind of source pixel (empty, transparent with colour, opaque and
+// in between) over a destination with and without opacity, as the
+// window's blue, green, red, opacity canvases are, and clipped: each byte
+// is what the formula gives.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestImageOpacityPremultipliedBlendEveryPixel(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CImage>		pSource;
+		Ptr<CImage>		pDest;
+		uint8			auiBefore[16 * 8 * 4];
+		uint8*			puiSource;
+		uint8*			puiDest;
+		uint32			uiRandom;
+		size			i;
+		size			uiPixel;
+		size			uiChannel;
+		size			uiAlpha;
+		size			uiWrong;
+		int32			x;
+		int32			y;
+		bool			bDestOpacity;
+		bool			bInside;
+		CInt32Rect		cClip;
+		uint8			uiExpected;
+
+		pSource = OMalloc<CImage>(16, 8, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
+		puiSource = (uint8*)pSource->GetData();
+		uiRandom = 12345;
+		for (uiPixel = 0; uiPixel < 16 * 8; uiPixel++)
+		{
+			for (uiChannel = 0; uiChannel < 4; uiChannel++)
+			{
+				uiRandom = uiRandom * 1103515245 + 12345;
+				puiSource[uiPixel * 4 + uiChannel] = (uint8)(uiRandom >> 16);
+			}
+			//A quarter each: empty, opaque, transparent with colour, and in between (premultiplied, so no colour above it).
+			uiAlpha = puiSource[uiPixel * 4 + 3];
+			switch (uiPixel % 4)
+			{
+			case 0:
+				memset(&puiSource[uiPixel * 4], 0, 4);
+				break;
+			case 1:
+				puiSource[uiPixel * 4 + 3] = 255;
+				break;
+			case 2:
+				puiSource[uiPixel * 4 + 3] = 0;
+				break;
+			default:
+				for (uiChannel = 0; uiChannel < 3; uiChannel++)
+				{
+					puiSource[uiPixel * 4 + uiChannel] = (uint8)(puiSource[uiPixel * 4 + uiChannel] * uiAlpha / 255);
+				}
+				break;
+			}
+		}
+
+		for (i = 0; i < 2; i++)
+		{
+			bDestOpacity = (i == 0);
+			pDest = OMalloc<CImage>(16, 8, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, bDestOpacity ? IMAGE_OPACITY : IMAGE_IGNORED, CHANNEL_STOP);
+			puiDest = (uint8*)pDest->GetData();
+			for (uiChannel = 0; uiChannel < 16 * 8 * 4; uiChannel++)
+			{
+				uiRandom = uiRandom * 1103515245 + 12345;
+				auiBefore[uiChannel] = (uint8)(uiRandom >> 16);
+			}
+			memcpy(puiDest, auiBefore, 16 * 8 * 4);
+
+			//Half the source, moved one right and one down, and cut by the clip.
+			cClip.Init(2, 2, 13, 7);
+			AssertTrue(BlendPremultipliedImage(pSource, pDest, 1, 1, &cClip));
+
+			uiWrong = 0;
+			for (y = 0; y < 8; y++)
+			{
+				for (x = 0; x < 16; x++)
+				{
+					bInside = (x >= 2) && (x < 13) && (y >= 2) && (y < 7);
+					uiPixel = (size)((y - 1) * 16 + (x - 1));
+					for (uiChannel = 0; uiChannel < 4; uiChannel++)
+					{
+						uiExpected = auiBefore[(y * 16 + x) * 4 + uiChannel];
+						if (bInside && ((uiChannel < 3) || bDestOpacity))
+						{
+							uiExpected = ExpectedPremultipliedByte(puiSource[uiPixel * 4 + uiChannel], uiExpected, puiSource[uiPixel * 4 + 3]);
+						}
+						if (puiDest[(y * 16 + x) * 4 + uiChannel] != uiExpected)
+						{
+							uiWrong++;
+						}
+					}
+				}
+			}
+			AssertSize(0, uiWrong);
+		}
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestImageOpacity(void)
@@ -418,6 +540,7 @@ void TestImageOpacity(void)
 	TestImageOpacityOpaqueSizingBlitter();
 	TestImageOpacityTranslucentSizingBlitter();
 	TestImageOpacityPremultipliedBlend();
+	TestImageOpacityPremultipliedBlendEveryPixel();
 
 	DataIOKill();
 

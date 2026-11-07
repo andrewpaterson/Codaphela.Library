@@ -28,8 +28,21 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 uint8	BlendOverByte(size uiDest, size uiSource);
 uint8	BlendEraseByte(size uiDest, size uiCoverage);
 uint8	BlendLerpByte(size uiDest, size uiSource, size uiCoverage);
-uint8	BlendPremultipliedByte(size uiSource, size uiDest, size uiInverseAlpha);
 void	BlendStraightOverPixel(uint8* puiDest, uint8* puiSource, size uiCoverage);
+
+
+//uiSource + uiDest * (255 - uiAlpha) / 255, rounded and never more than 255.  Inline as whole images are blended with it.
+inline uint8 BlendPremultipliedByte(size uiSource, size uiDest, size uiInverseAlpha)
+{
+	size	uiResult;
+
+	uiResult = uiSource + (uiDest * uiInverseAlpha + 127) / 255;
+	if (uiResult > 255)
+	{
+		uiResult = 255;
+	}
+	return (uint8)uiResult;
+}
 
 
 #endif // __COLOUR_BLEND_H__

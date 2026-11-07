@@ -67,25 +67,6 @@ uint8 BlendLerpByte(size uiDest, size uiSource, size uiCoverage)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// uiSource + uiDest * (255 - uiAlpha) / 255, rounded and never more than
-// 255.
-//
-//////////////////////////////////////////////////////////////////////////
-uint8 BlendPremultipliedByte(size uiSource, size uiDest, size uiInverseAlpha)
-{
-	size	uiResult;
-
-	uiResult = uiSource + (uiDest * uiInverseAlpha + 127) / 255;
-	if (uiResult > 255)
-	{
-		uiResult = 255;
-	}
-	return (uint8)uiResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Blends the source colour, uiCoverage 255ths of it, over the destination.
 // Both are opacity, red, green then blue and neither is multiplied by its
 // opacity.  The destination's colour counts by the opacity of it the
