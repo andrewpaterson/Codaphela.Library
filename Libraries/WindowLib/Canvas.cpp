@@ -140,6 +140,10 @@ bool CCanvas::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 uint8* CCanvas::GetPixelData(void)
 {
+	if (mpcNativeCanvas == NULL)
+	{
+		return NULL;
+	}
 	return mpcNativeCanvas->GetPixelData();
 }
 
@@ -781,9 +785,10 @@ bool CCanvas::SetTransparent(bool bTransparent)
 
 	if (mbTransparent != bTransparent)
 	{
-		//The native canvas has a different format so it is made again when next drawn.
+		//The native canvas has a different format so it is made again and drawn when next painted.
 		mbTransparent = bTransparent;
 		DestroyNativeCanvas();
+		Invalidate();
 	}
 	return true;
 }

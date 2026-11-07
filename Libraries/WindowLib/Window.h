@@ -126,6 +126,8 @@ public:
 	void						AddDamage(CInt32Rect* pcArea);
 	void						RequestPaint(void);
 	CDamageArea*				GetPaintedDamage(void);
+	static void					SetDefaultRedraw(bool bPartialRedraw, bool bVerifyRedraw);
+	static size					GetTotalRedrawMismatches(void);
 	void						SetPartialRedraw(bool bPartialRedraw);
 	bool						IsPartialRedraw(void);
 	void						SetVerifyRedraw(bool bVerifyRedraw);

@@ -5,6 +5,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "StandardLib/Objects.h"
+#include "WindowLib/Window.h"
 #include "TestLib/Assert.h"
 
 
@@ -55,24 +56,11 @@ void TestWinGDICanvas(void);
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every test that uses windows.
 //
 //////////////////////////////////////////////////////////////////////////
-int __cdecl main(void)
+void RunWindowTests(void)
 {
-	CFileUtil	cFileUtil;
-	int			iResult;
-
-	BreakOnAllocation(0);
-	InitTotalStatistics();
-
-	TypesInit();
-	TypeConverterInit();
-	MemoryInit();
-	DataIOInit();
-
-	cFileUtil.RemoveDir("Output");
-	cFileUtil.MakeDir("Output");
-
 	TestRefWindow();
 	TestFlowContainer();
 	TestFillContainer();
@@ -112,7 +100,54 @@ int __cdecl main(void)
 	TestCaretBlink();
 	TestSoundMixer();
 	TestWindowRedraw();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No window's partial paint differed from drawing all of it while every
+// window drew only what changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawEverywhere(size uiMismatchesBefore)
+{
+	BeginTests();
+	AssertSize(uiMismatchesBefore, CWindow::GetTotalRedrawMismatches());
+	TestStatistics();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int __cdecl main(void)
+{
+	CFileUtil	cFileUtil;
+	int			iResult;
+	size		uiMismatches;
+
+	BreakOnAllocation(0);
+	InitTotalStatistics();
+
+	TypesInit();
+	TypeConverterInit();
+	MemoryInit();
+	DataIOInit();
+
+	cFileUtil.RemoveDir("Output");
+	cFileUtil.MakeDir("Output");
+
+	RunWindowTests();
 	TestPartialRedraw();
+
+	//Again with every window drawing only what changed, each partial paint checked against drawing all of it.
+	uiMismatches = CWindow::GetTotalRedrawMismatches();
+	CWindow::SetDefaultRedraw(true, true);
+	RunWindowTests();
+	CWindow::SetDefaultRedraw(false, false);
+	TestPartialRedrawEverywhere(uiMismatches);
+
 #ifdef _WIN32
 	TestWinGDICanvas();
 #endif // _WIN32

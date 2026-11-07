@@ -418,7 +418,7 @@ void CComponent::MarkContentChanged(void)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::AddComponent(Ptr<CComponent> pComponent)
 {
-	InvalidateLayout();
+	ChildrenChanged();
 	maChildren.Add(pComponent);
 	pComponent->mpParent = this;
 	return true;
@@ -437,7 +437,7 @@ bool CComponent::RemoveComponent(Ptr<CComponent> pComponent)
 	}
 
 	LetGo(pComponent);
-	InvalidateLayout();
+	ChildrenChanged();
 	return true;
 }
 
@@ -458,7 +458,7 @@ bool CComponent::RemoveAllComponents(void)
 		pComponent = maChildren.Get(i);
 		LetGo(pComponent);
 	}
-	InvalidateLayout();
+	ChildrenChanged();
 	return maChildren.RemoveAll();
 }
 
@@ -781,14 +781,31 @@ void CComponent::Invalidate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The window is laid out again before it is next painted, and painted.
-// The window keeps its layout between paints, so call it whenever a
-// component changes something its layout depends on without input: its
-// text, its size, its children...  Key, button and wheel input already
-// do this; pointer movement doesn't.
+// The window is laid out again before it is next painted, and the
+// component draws again (see Invalidate).  The window keeps its layout
+// between paints, so call it whenever a component changes something its
+// layout depends on: its text, its size...  Children added or taken out
+// see to this themselves (ChildrenChanged).
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::InvalidateLayout(void)
+{
+	ContentChanged();
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->InvalidateLayout();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Children were added or taken out: the window is laid out again, but
+// nothing already drawn changed how it looks.  What appears or goes is
+// found when the window is next painted (see PrepareDraw, ForgetDrawn).
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::ChildrenChanged(void)
 {
 	if (mpWindow.IsNotNull())
 	{

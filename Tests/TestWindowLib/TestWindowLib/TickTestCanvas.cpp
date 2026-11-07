@@ -47,6 +47,9 @@ void CTickTestCanvas::Tick(Ptr<CWindow> pWindow, int64 iUpdateTimeInMillieconds,
     sPos.y += 9;
     mpMaps->SetViewportPosition(sPos);
 
+    //What the window shows moved; a window drawing only what changed wouldn't otherwise draw it again.
+    pWindow->Invalidate();
+
     mpcData->iTick++;
     if (mpcData->iTick == mpcData->iStop)
     {

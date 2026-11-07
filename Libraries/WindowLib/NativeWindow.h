@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NativeCursor.h"
 
 
+class CDamageArea;
 class CNativeWindowFactory;
 class CNativeCanvas;
 class CWindow;
@@ -87,6 +88,7 @@ protected:
 	virtual bool	ExecuteNativeWindow(void) =0;
 	virtual void	SignalPresent(void) =0;
 	virtual void	SignalPresentArea(CInt32Rect* pcArea);
+	virtual void	SignalPresentDamage(CDamageArea* pcDamage);
 	virtual void	GetRectangle(CInt32Rect* pcDest) =0;
 };
 

@@ -149,6 +149,28 @@ void CWinRefWindow::SignalPresentArea(CInt32Rect* pcArea)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A paint's damage, however many areas or none, is saved as one frame, as
+// when all of the window is shown, so tests see a frame per paint.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::SignalPresentDamage(CDamageArea* pcDamage)
+{
+    size    i;
+
+    if (pcDamage->IsAll())
+    {
+        mcPresented.AddAll();
+    }
+    for (i = 0; i < pcDamage->NumRectangles(); i++)
+    {
+        mcPresented.Add(pcDamage->GetRectangle(i));
+    }
+    CNativeWindow::Present();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CDamageArea* CWinRefWindow::GetPresented(void)

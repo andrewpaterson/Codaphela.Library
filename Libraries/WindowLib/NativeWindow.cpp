@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NativeWindowFactory.h"
 #include "NativeCanvas.h"
 #include "NativeWindow.h"
+#include "DamageArea.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -349,6 +350,27 @@ void CNativeWindow::TitleChanged(void)
 void CNativeWindow::SignalPresentArea(CInt32Rect* pcArea)
 {
 	SignalPresent();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a paint drew: all of the canvas, some areas of it, or nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SignalPresentDamage(CDamageArea* pcDamage)
+{
+	size	i;
+
+	if (pcDamage->IsAll())
+	{
+		SignalPresent();
+		return;
+	}
+	for (i = 0; i < pcDamage->NumRectangles(); i++)
+	{
+		SignalPresentArea(pcDamage->GetRectangle(i));
+	}
 }
 
 

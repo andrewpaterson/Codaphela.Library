@@ -32,6 +32,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Window.h"
 
 
+//What windows are made with, see CWindow::SetDefaultRedraw.
+static bool	gbDefaultPartialRedraw = false;
+static bool	gbDefaultVerifyRedraw = false;
+static size	guiTotalRedrawMismatches = 0;
+
+
 //Debug builds lay out every paint and log components that moved without their layout being invalidated, unless a
 //window is told not to (see SetCheckLayoutCache).
 #ifdef _DEBUG
@@ -89,8 +95,8 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mszWindowTitle.Init(szTitle);
 	mcDamage.Init();
 	mcPaintedDamage.Init();
-	mbPartialRedraw = false;
-	mbVerifyRedraw = false;
+	mbPartialRedraw = gbDefaultPartialRedraw;
+	mbVerifyRedraw = gbDefaultVerifyRedraw;
 	muiRedrawMismatches = 0;
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
@@ -373,7 +379,8 @@ bool CWindow::IsFrameDue(void)
 // Whether this paint can draw only what was damaged: the window redraws
 // partially, its canvas still fits it (it wasn't resized or shown for
 // the first time) and its background is one colour that can be drawn in
-// any part of it.
+// any part of it.  Without a background nothing would clear a damaged
+// part before what is over it is drawn there again.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::CanPaintPartially(void)
@@ -386,7 +393,7 @@ bool CWindow::CanPaintPartially(void)
 		return false;
 	}
 	pDraw = mpCanvas->GetCanvasDraw();
-	return pDraw.IsNull() || pDraw->GetSolidColour(&sColour);
+	return pDraw.IsNotNull() && pDraw->GetSolidColour(&sColour);
 }
 
 
@@ -509,6 +516,7 @@ void CWindow::VerifyRedraw(void)
 	if (uiPixels > 0)
 	{
 		muiRedrawMismatches++;
+		guiTotalRedrawMismatches++;
 		sz.Init(" A partial paint of [");
 		sz.Append(mszWindowTitle.Text());
 		sz.Append("] differs from drawing all of it in ");
@@ -542,21 +550,14 @@ void CWindow::VerifyRedraw(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::PresentDamage(void)
 {
-	size	i;
+	CDamageArea	cShown;
 
-	if (mcDamage.IsAll())
-	{
-		mpcNativeWindow->SignalPresent();
-		return;
-	}
-	for (i = 0; i < mcDamage.NumRectangles(); i++)
-	{
-		mpcNativeWindow->SignalPresentArea(mcDamage.GetRectangle(i));
-	}
+	cShown = mcDamage;
 	if (mbCaretPainted)
 	{
-		mpcNativeWindow->SignalPresentArea(&mcCaret);
+		cShown.Add(&mcCaret);
 	}
+	mpcNativeWindow->SignalPresentDamage(&cShown);
 }
 
 
@@ -571,6 +572,31 @@ void CWindow::SetPartialRedraw(bool bPartialRedraw)
 {
 	mbPartialRedraw = bPartialRedraw;
 	Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether windows made from now on redraw partially and verify their
+// partial paints, as SetPartialRedraw and SetVerifyRedraw; so a test
+// suite can run with every window redrawing partially.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetDefaultRedraw(bool bPartialRedraw, bool bVerifyRedraw)
+{
+	gbDefaultPartialRedraw = bPartialRedraw;
+	gbDefaultVerifyRedraw = bVerifyRedraw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Partial paints of every window that differed from drawing all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+size CWindow::GetTotalRedrawMismatches(void)
+{
+	return guiTotalRedrawMismatches;
 }
 
 
@@ -936,8 +962,8 @@ void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 //Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
 //the window looks like, so it is laid out again too.  The pointer moving only changes what it is over; a component
 //that moves things as it is dragged invalidates the layout itself.
-void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); Invalidate(); }
-void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); Invalidate(); }
+void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); RequestPaint(); }
+void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); RequestPaint(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mcFocus.Command(eCommand, bInsert); InvalidateLayout(); }
 void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); InvalidateLayout(); }
 
