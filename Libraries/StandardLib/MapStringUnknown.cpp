@@ -164,21 +164,31 @@ size CMapStringUnknown::GetHoldingSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The entry an iteration step found (bExists): its key and value, which
+// the map holds a pointer to.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool MapStringUnknownEntry(bool bExists, char* szKey, CUnknown** ppcValue, char** pszKey, CUnknown** ppcData)
+{
+	if (bExists)
+	{
+		*pszKey = szKey;
+		*ppcData = *ppcValue;
+	}
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
 {
-	char*		ppcK;
-	CUnknown**	ppcV;
-	bool		bResult;
+	char*		szKey;
+	CUnknown**	ppcValue;
 
-	bResult = mcMap.StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
-	if (bResult)
-	{
-		*ppcKey = ppcK;
-		*ppcData = *ppcV;
-	}
-	return bResult;
+	return MapStringUnknownEntry(mcMap.StartIteration(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL), szKey, ppcValue, ppcKey, ppcData);
 }
 
 
@@ -188,17 +198,10 @@ bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, 
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
 {
-	char*		ppcK;
-	CUnknown**	ppcV;
-	bool		bResult;
+	char*		szKey;
+	CUnknown**	ppcValue;
 
-	bResult = mcMap.Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
-	if (bResult)
-	{
-		*ppcKey = ppcK;
-		*ppcData = *ppcV;
-	}
-	return bResult;
+	return MapStringUnknownEntry(mcMap.Iterate(psIterator, (void**)&szKey, NULL, (void**)&ppcValue, NULL), szKey, ppcValue, ppcKey, ppcData);
 }
 
 
