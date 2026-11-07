@@ -49,9 +49,52 @@ public:
 	bool				SetText(const char* szText);
 	bool				GetText(CChars* pszDest);
 
+	template<class C>
+	void				CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest));
+	template<class C>
+	void				PasteInto(C* pcInto, void (C::*fPaste)(char* szSource));
+
 	Ptr<CWindow>		GetWindow(void);
 	CNativeClipboard*	GetNativeClipboard(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What fTake (a text's cut or copy) takes from pcFrom put on the
+// clipboard, if it takes anything.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class C>
+void CClipboard::CopyFrom(C* pcFrom, void (C::*fTake)(CChars* pszDest))
+{
+	CChars	szText;
+
+	szText.Init();
+	(pcFrom->*fTake)(&szText);
+	if (!szText.Empty())
+	{
+		SetText(szText.Text());
+	}
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The clipboard's text given to pcInto's fPaste.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class C>
+void CClipboard::PasteInto(C* pcInto, void (C::*fPaste)(char* szSource))
+{
+	CChars	szText;
+
+	szText.Init();
+	GetText(&szText);
+	(pcInto->*fPaste)(szText.Text());
+	szText.Kill();
+}
 
 
 #endif // __CLIPBOARD_H__

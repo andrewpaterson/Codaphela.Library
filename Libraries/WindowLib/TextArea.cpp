@@ -1585,8 +1585,7 @@ void CTextArea::Printable(char c, bool bInsert)
 	char	sz[2];
 	char*	szText;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1638,8 +1637,7 @@ void CTextArea::Tab(bool bInsert)
 	size	uiColumns;
 	CChars	szSpaces;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1672,8 +1670,7 @@ void CTextArea::BackTab(void)
 	size	uiStart;
 	size	uiEnd;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1691,8 +1688,7 @@ void CTextArea::BackTab(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Enter(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1711,8 +1707,7 @@ void CTextArea::HomeEnter(void)
 {
 	size	uiLineStart;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1732,8 +1727,7 @@ void CTextArea::HomeEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::EndEnter(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1752,8 +1746,7 @@ void CTextArea::EndEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Delete(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1773,8 +1766,7 @@ void CTextArea::Delete(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Backspace(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1807,27 +1799,24 @@ void CTextArea::Copy(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 //
 // The selection is appended to pszDest and deleted.  Without one the
-// caret's line is cut.  A text area that isn't editable only copies.
+// caret's line is cut.  A text area that isn't editable only copies what
+// would be cut.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Cut(CChars* pszDest)
 {
 	BeginEdit();
-	if (!mbEditable)
+	if (!IsSelected())
 	{
-		Copy(pszDest);
+		CutLine(pszDest);
 		return;
 	}
 
-	if (IsSelected())
+	Copy(pszDest);
+	if (mbEditable)
 	{
-		Copy(pszDest);
 		DeleteSelection();
 		TextChanged();
-	}
-	else
-	{
-		CutLine(pszDest);
 	}
 }
 
@@ -1843,8 +1832,7 @@ void CTextArea::Paste(char* szSource)
 {
 	CChars	szText;
 
-	BeginEdit();
-	if (!mbEditable || (szSource == NULL) || (szSource[0] == '\0'))
+	if (!BeginEditIfEditable() || (szSource == NULL) || (szSource[0] == '\0'))
 	{
 		return;
 	}
@@ -1898,7 +1886,8 @@ bool CTextArea::ReplaceRanges(size* auiStarts, size* auiEnds, size uiNumRanges, 
 //
 // The caret's line, with its line feed, is appended to pszDest and
 // deleted.  The caret stays as far along the line that moves up into its
-// place.  With a selection only the selection is cut.
+// place.  With a selection only the selection is cut.  A text area that
+// isn't editable only copies what would be cut.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::CutLine(CChars* pszDest)
@@ -1908,10 +1897,6 @@ void CTextArea::CutLine(CChars* pszDest)
 	size	uiColumn;
 
 	BeginEdit();
-	if (!mbEditable)
-	{
-		return;
-	}
 	if (IsSelected())
 	{
 		Cut(pszDest);
@@ -1922,6 +1907,10 @@ void CTextArea::CutLine(CChars* pszDest)
 	uiColumn = mcNavigation.CountColumns(uiLineStart, muiCaret);
 	uiEnd = mcNavigation.NextPosition(mcNavigation.FindLineEnd(muiCaret));
 	pszDest->AppendSubString(mszText, uiLineStart, uiEnd);
+	if (!mbEditable)
+	{
+		return;
+	}
 	RemoveText(uiLineStart, uiEnd);
 	muiCaret = mcNavigation.FindColumn(uiLineStart, uiColumn);
 	TextChanged();
@@ -1941,8 +1930,7 @@ void CTextArea::Duplicate(void)
 	size	uiEnd;
 	CChars	szCopy;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1973,8 +1961,7 @@ void CTextArea::Duplicate(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::DeleteWordRemainingRight(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -1995,8 +1982,7 @@ void CTextArea::DeleteWordRemainingRight(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::DeleteWordRemainingLeft(void)
 {
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -2023,8 +2009,7 @@ void CTextArea::DeleteLine(void)
 	size	uiColumn;
 	bool	bSelected;
 
-	BeginEdit();
-	if (!mbEditable)
+	if (!BeginEditIfEditable())
 	{
 		return;
 	}
@@ -2159,43 +2144,10 @@ void CTextArea::FocusLost(void)
 // nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::CutToClipboard(void) { ToClipboard(&CTextArea::Cut); }
-void CTextArea::CopyToClipboard(void) { ToClipboard(&CTextArea::Copy); }
-void CTextArea::CutLineToClipboard(void) { ToClipboard(&CTextArea::CutLine); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// fTake is Cut, Copy or CutLine.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ToClipboard(void (CTextArea::*fTake)(CChars* pszDest))
-{
-	CChars	szText;
-
-	szText.Init();
-	(this->*fTake)(&szText);
-	if (!szText.Empty())
-	{
-		mpWindow->GetClipboard()->SetText(szText.Text());
-	}
-	szText.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::PasteFromClipboard(void)
-{
-	CChars	szText;
-
-	szText.Init();
-	mpWindow->GetClipboard()->GetText(&szText);
-	Paste(szText.Text());
-	szText.Kill();
-}
+void CTextArea::CutToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Cut); }
+void CTextArea::CopyToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Copy); }
+void CTextArea::CutLineToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::CutLine); }
+void CTextArea::PasteFromClipboard(void) { mpWindow->GetClipboard()->PasteInto(this, &CTextArea::Paste); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3279,6 +3231,19 @@ void CTextArea::StartEdit(void)
 void CTextArea::BeginEdit(void)
 {
 	mcUndo.BeginEdit(muiCaret, muiAnchor);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An edit begins (BeginEdit), and true if the text area is editable;
+// false if it isn't, and the edit does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::BeginEditIfEditable(void)
+{
+	BeginEdit();
+	return mbEditable;
 }
 
 

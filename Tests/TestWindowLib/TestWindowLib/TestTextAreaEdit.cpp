@@ -528,6 +528,22 @@ void TestTextAreaEditModification(void)
 		sz.Kill();
 		AssertFalse(pTextArea->WantsEnter());
 
+		//Cut and cut line copy what they would cut: the selection, or without one the caret's line.
+		pTextArea->SetText("one\ntwo\n");
+		pTextArea->SetCaretPosition(5);
+		sz.Init();
+		pTextArea->Cut(&sz);
+		AssertString("two\n", sz.Text());
+		sz.Clear();
+		pTextArea->CutLine(&sz);
+		AssertString("two\n", sz.Text());
+		sz.Clear();
+		pTextArea->Select(0, 2);
+		pTextArea->CutLine(&sz);
+		AssertString("on", sz.Text());
+		AssertString("one\ntwo\n", pTextArea->GetText());
+		sz.Kill();
+
 		pTextArea = NULL;
 		pFill = NULL;
 		ORoot()->Remove(pTestWindow);

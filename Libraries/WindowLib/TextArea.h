@@ -418,9 +418,9 @@ protected:
 	void				KeepEdit(void);
 	void				StartEdit(void);
 	void				BeginEdit(void);
+	bool				BeginEditIfEditable(void);
 	void				UndoChanged(ETextAreaUndo eChange, size uiIdBefore, size uiIdAfter);
 	bool				LoadUndo(size uiIndex);
-	void				ToClipboard(void (CTextArea::*fTake)(CChars* pszDest));
 
 	void				ShowCaret(void);
 	void				UpdateMarks(void);

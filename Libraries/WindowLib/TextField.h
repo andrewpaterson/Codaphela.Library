@@ -132,7 +132,6 @@ protected:
 	void						UpdateLook(void);
 	void						SelectTo(size uiPosition);
 	void						LayoutText(void);
-	void						ToClipboard(void (CTextField::*fTake)(CChars* pszDest));
 };
 
 

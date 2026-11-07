@@ -115,42 +115,9 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 // nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::CutToClipboard(void) { ToClipboard(&CTextField::Cut); }
-void CTextField::CopyToClipboard(void) { ToClipboard(&CTextField::Copy); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// fTake is Cut or Copy.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::ToClipboard(void (CTextField::*fTake)(CChars* pszDest))
-{
-	CChars	szText;
-
-	szText.Init();
-	(this->*fTake)(&szText);
-	if (!szText.Empty())
-	{
-		mpWindow->GetClipboard()->SetText(szText.Text());
-	}
-	szText.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextField::PasteFromClipboard(void)
-{
-	CChars	szText;
-
-	szText.Init();
-	mpWindow->GetClipboard()->GetText(&szText);
-	Paste(szText.Text());
-	szText.Kill();
-}
+void CTextField::CutToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextField::Cut); }
+void CTextField::CopyToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextField::Copy); }
+void CTextField::PasteFromClipboard(void) { mpWindow->GetClipboard()->PasteInto(this, &CTextField::Paste); }
 
 
 //////////////////////////////////////////////////////////////////////////
