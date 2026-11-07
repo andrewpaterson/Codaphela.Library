@@ -248,6 +248,7 @@ protected:
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);
+	void				MarkNextPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	CDefine*			LookUpDefine(const char* szName, size uiLength);
 
 	//The header cache.  PreprocessorHeaderCache.cpp

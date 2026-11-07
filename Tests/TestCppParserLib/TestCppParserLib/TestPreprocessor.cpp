@@ -1480,6 +1480,24 @@ void TestPreprocessorErrors(void)
 	PreprocessErrors("#if 0\n#else\n#elif 1\n#endif\n", &szErrors);
 	AssertString("Errors.cpp (3, 6): #elif or #else after #else.\n", szErrors.Text());
 	szErrors.Kill();
+
+	//A function-like macro's parameters are identifiers separated by commas, "..." last.
+	szErrors.Init();
+	AssertTrue(PreprocessErrors("#define F(a, b, ...) a\n#define G() 1\n#define H(a...) a\n", &szErrors));
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+	szErrors.Init();
+	PreprocessErrors("#define F(a,\n", &szErrors);
+	AssertString("Errors.cpp (1, 12): Expected identifier.\n", szErrors.Text());
+	szErrors.Kill();
+	szErrors.Init();
+	PreprocessErrors("#define F(a b) a\n", &szErrors);
+	AssertString("Errors.cpp (1, 13): Expected ',' or ')'.\n", szErrors.Text());
+	szErrors.Kill();
+	szErrors.Init();
+	PreprocessErrors("#define F(..., a) a\n", &szErrors);
+	AssertString("Errors.cpp (1, 14): Expected ')' after \"...\".\n", szErrors.Text());
+	szErrors.Kill();
 }
 
 

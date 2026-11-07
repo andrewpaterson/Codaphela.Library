@@ -1144,59 +1144,55 @@ bool CPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTo
 bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine)
 {
 	CExternalString			cArgument;
-	bool					bResult;
 	bool					bVariadicFound;
 	SPreprocessorPosition	sPos;
 
 	bVariadicFound = false;
 	pcDefine->SetBracketed(true);
+	MarkPositionForError(pcParser, &sPos);
+	if (pcParser->GetExactDecorator(')'))
+	{
+		return true;
+	}
 	for (;;)
 	{
-		bResult = pcParser->GetExactDecorator(')');
-		if (bResult)
-		{
-			break;
-		}
-
-		if (bVariadicFound)
-		{
-			return Error(&sPos, "Expected ')' after \"...\".");
-		}
-
-		bResult = pcParser->GetExactDecorator("...");
-		if (bResult)
+		MarkNextPositionForError(pcParser, &sPos);
+		if (pcParser->GetExactDecorator("..."))
 		{
 			cArgument.Init(mszVaArgs.Text(), mszVaArgs.Length());
 			pcDefine->AddArgument(&cArgument);
 			pcDefine->SetVariadic();
 			bVariadicFound = true;
 		}
-		else
+		else if (pcParser->GetIdentifier(&cArgument))
 		{
-			bResult = pcParser->GetIdentifier(&cArgument);
-			if (bResult)
+			pcDefine->AddArgument(&cArgument);
+			if (pcParser->GetExactDecorator("..."))
 			{
-				pcDefine->AddArgument(&cArgument);
-
-				bResult = pcParser->GetExactDecorator("...");
-				if (bResult)
-				{
-					pcDefine->SetVariadic();
-					bVariadicFound = true;
-				}
-				else
-				{
-					pcParser->GetExactDecorator(',');
-				}
-			}
-			else
-			{
-				return Error(&sPos, "Expected identifier.");
+				pcDefine->SetVariadic();
+				bVariadicFound = true;
 			}
 		}
-	}
+		else
+		{
+			return Error(&sPos, "Expected identifier.");
+		}
 
-	return true;
+		//Parameters are separated by commas, and "..." is the last.  [cpp.replace] 1
+		MarkNextPositionForError(pcParser, &sPos);
+		if (pcParser->GetExactDecorator(')'))
+		{
+			return true;
+		}
+		if (bVariadicFound)
+		{
+			return Error(&sPos, "Expected ')' after \"...\".");
+		}
+		if (!pcParser->GetExactDecorator(','))
+		{
+			return Error(&sPos, "Expected ',' or ')'.");
+		}
+	}
 }
 
 
@@ -1653,6 +1649,22 @@ void CPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPr
 
 	szShortFileName = GetFileName();
 	psPos->Init(pcParser, szShortFileName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves psPos to the parser's next token, or leaves it where it was at the
+// end of the line (an error there is reported at the last token seen).
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::MarkNextPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
+{
+	pcParser->SkipWhitespace();
+	if (pcParser->HasToken())
+	{
+		MarkPositionForError(pcParser, psPos);
+	}
 }
 
 
