@@ -603,6 +603,44 @@ void TestCPP65IROverloadedFunctionPointers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Functions that differ only by ..., and classes and enums of the same name
+// in different classes, have different labels.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRMangledNames(void)
+{
+	const char*	szSource;
+	CChars		szAssembly;
+	CChars		szErrors;
+
+	szSource =
+		"int F(int a) { return a; }\n"
+		"int F(int a, ...) { return a * 2; }\n"
+		"struct CA { struct CIn { int Get() { return 1; } }; };\n"
+		"struct CB { struct CIn { int Get() { return 2; } }; };\n"
+		"struct CX { enum EKind { KIND }; }; struct CY { enum EKind { KIND }; };\n"
+		"int G(CX::EKind e) { return 3; }\n"
+		"int G(CY::EKind e) { return 4; }\n"
+		"int main() { int (*pf)(int) = F; CA::CIn a; CB::CIn b; return pf(3) + F(4, 5) * 10 + a.Get() * 100 + b.Get() * 1000 + G(CX::KIND) * 10000 + G(CY::KIND) * 100000; }\n";
+	AssertInt(3 + 80 + 100 + 2000 + 30000 + 400000, TestCPP65IRMain(szSource, 7));
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource, true));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains("\n_F__Fi:"));
+	AssertTrue(szAssembly.Contains("\n_F__Fiz:"));
+	AssertTrue(szAssembly.Contains("\n_CA__CIn__Get:"));
+	AssertTrue(szAssembly.Contains("\n_CB__CIn__Get:"));
+	AssertTrue(szAssembly.Contains("\n_G__FN9CX__EKind:"));
+	AssertTrue(szAssembly.Contains("\n_G__FN9CY__EKind:"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -628,6 +666,7 @@ void TestCPP65IR(void)
 	TestCPP65IRDynamicCast();
 	TestCPP65IRDynamicCastUnits();
 	TestCPP65IROverloadedFunctionPointers();
+	TestCPP65IRMangledNames();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();

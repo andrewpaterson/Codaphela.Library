@@ -623,6 +623,7 @@ protected:
 	void					AppendFunctionLabel(CChars* psz, SCPP65Function* psFunction);
 	void					AppendClassLabel(CChars* psz, SCPP65Class* psClass, const char* szPart);
 	void					AppendClassName(CChars* psz, SCPP65Class* psClass);
+	void					AppendScopeNames(CChars* psz, CCPPScope* pcScope);
 	void					AppendFunctionName(CChars* psz, int64 lliName);
 	void					AppendMangledType(CChars* psz, SCPP65Type* psType);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);

@@ -1682,7 +1682,8 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
 	for (psOther = FirstFunctionOfName(lliName); psOther; psOther = psOther->psNextOfName)
 	{
-		if ((psOther->psClass != psClass) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate))
+		if ((psOther->psClass != psClass) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (psOther->psTemplate != psTemplate) ||
+			(psOther->bVariadic != pcSuffix->mbVariadic))
 		{
 			continue;
 		}
@@ -1873,7 +1874,7 @@ bool CCPP65Generator::SameParameters(SCPP65Function* psFunction, SCPP65Function*
 {
 	size	i;
 
-	if (psFunction->mapsParameters.NumElements() != psOther->mapsParameters.NumElements())
+	if ((psFunction->mapsParameters.NumElements() != psOther->mapsParameters.NumElements()) || (psFunction->bVariadic != psOther->bVariadic))
 	{
 		return false;
 	}

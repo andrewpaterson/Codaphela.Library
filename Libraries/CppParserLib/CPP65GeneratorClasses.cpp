@@ -4360,7 +4360,7 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 		{
 			psz->Append("__K");
 		}
-		if (psFunction->mapsParameters.NumElements() > 0)
+		if ((psFunction->mapsParameters.NumElements() > 0) || psFunction->bVariadic)
 		{
 			psz->Append("__F");
 			for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
@@ -4371,6 +4371,11 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 					psz->Append('K');
 				}
 				AppendMangledType(psz, psFunction->mapsParameters.GetPtr(i));
+			}
+			if (psFunction->bVariadic)
+			{
+				//f(int) and f(int, ...) are different overloads.
+				psz->Append('z');
 			}
 		}
 	}
@@ -4414,8 +4419,9 @@ void CCPP65Generator::AppendClassLabel(CChars* psz, SCPP65Class* psClass, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Class, or Class__T and the template arguments.  A class without a name is the
-// unit, Unnamed and its number.
+// Class, or Class__T and the template arguments, after the classes and
+// namespaces it is in (Outer__Class).  A class without a name is the unit,
+// Unnamed and its number.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
@@ -4430,12 +4436,44 @@ void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
 		psz->Append((int)mapsClasses.Find(psClass));
 		return;
 	}
+	if (psClass->pcSymbol)
+	{
+		AppendScopeNames(psz, psClass->pcSymbol->mpcScope);
+	}
 	szName = mpcTokeniser->GetIdentifier(psClass->lliName, &iLength);
 	psz->Append(szName, iLength);
 	if (psClass->mszArguments.Length() > 0)
 	{
 		psz->Append("__T");
 		psz->Append(&psClass->mszArguments);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The named classes and namespaces pcScope is in, outermost first, each
+// followed by __, so N::Outer::Inner's class is N__Outer__Inner and two
+// Inners (of different classes) have different labels.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendScopeNames(CChars* psz, CCPPScope* pcScope)
+{
+	char*		szName;
+	int			iLength;
+	CCPPSymbol*	pcOwner;
+
+	if (!pcScope || ((pcScope->meKind != CPPSC_Class) && (pcScope->meKind != CPPSC_Namespace)))
+	{
+		return;
+	}
+	pcOwner = pcScope->mpcOwner;
+	AppendScopeNames(psz, pcScope->mpcParent);
+	if (pcOwner && (pcOwner->mlliName >= 0))
+	{
+		szName = mpcTokeniser->GetIdentifier(pcOwner->mlliName, &iLength);
+		psz->Append(szName, iLength);
+		psz->Append("__");
 	}
 }
 
@@ -4492,10 +4530,14 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 	case CPP65TK_Integer:
 		if (psType->pcEnum)
 		{
+			szClass.Init();
+			AppendScopeNames(&szClass, psType->pcEnum->mpcScope);
 			szIdentifier = mpcTokeniser->GetIdentifier(psType->pcEnum->mlliName, &iLength);
+			szClass.Append(szIdentifier, iLength);
 			psz->Append('N');
-			psz->Append(iLength);
-			psz->Append(szIdentifier, iLength);
+			psz->Append((int)szClass.Length());
+			psz->Append(&szClass);
+			szClass.Kill();
 			break;
 		}
 		switch (psType->iBytes)
@@ -4529,6 +4571,10 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		for (i = 0; i < psType->papsParameters->NumElements(); i++)
 		{
 			AppendMangledType(psz, psType->papsParameters->GetPtr(i));
+		}
+		if (psType->bVariadic)
+		{
+			psz->Append('z');
 		}
 		psz->Append('E');
 		break;
