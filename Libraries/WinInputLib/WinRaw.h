@@ -22,8 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __WIN_RAW_H__
 #define __WIN_RAW_H__
-#include <WinReg.h>
-#include <Mmsystem.h>
+#include <winreg.h>
+#include <mmsystem.h>
 #include "BaseLib/Define.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"

@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/GuidClass.h"
 #include "WinDirectInput.h"
 #define XINPUT_USE_9_1_0
-#include <XInput.h>
+#include <xinput.h>
 #include "WinInput.h"
 
 

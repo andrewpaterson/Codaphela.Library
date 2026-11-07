@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __WIN_X_INPUT_H__
 #include <windows.h>
 //#undef XINPUT_USE_9_1_0
-#include <XInput.h>
+#include <xinput.h>
 #include "BaseLib/Define.h"
 #include "InputLib/InputDevices.h"
 #include "InputLib/InputDeviceValue.h"

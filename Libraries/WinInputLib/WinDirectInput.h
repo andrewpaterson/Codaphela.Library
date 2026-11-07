@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __WIN_DIRECT_INPUT_H__
 #include "BaseLib/Define.h"
 #define DIRECTINPUT_VERSION 0x0800
-#include <DInput.h>
+#include <dinput.h>
 #include "BaseLib/ArrayTemplate.h"
 #include "InputLib/InputDevices.h"
 #include "InputLib/InputDeviceValue.h"
