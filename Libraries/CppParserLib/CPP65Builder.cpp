@@ -2147,9 +2147,9 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	SCPP65UnitCompile*	psCompile;
 
 	psCompile = psUnit->psCompile;
-	psCompile->cAssembly.Init(psUnit->pcSpillStore);
+	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	psCompile->cGenerator.Init(&psCompile->cTree, meTarget);
-	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore);
+	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	if (meTarget == CPPT_W65C816)
 	{
 		psCompile->cGenerator.SetImports(&mcImports, psUnit->uiTurn);
@@ -2202,7 +2202,8 @@ void CCPP65Builder::StartGenerating(SCPP65CompiledUnit* psUnit)
 //////////////////////////////////////////////////////////////////////////
 //
 // psUnit missed a function exported while it was generated: it is
-// generated again (its code in the spill store is replaced, by index).
+// generated again (killing its generator takes its code out of the spill
+// store).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::RestartGenerating(SCPP65CompiledUnit* psUnit)

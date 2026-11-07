@@ -151,22 +151,15 @@ CScratchPadAllocator* CCPP65Generator::GetBackendScratch(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Where each function's code waits (in pieces) until the unit is assembled,
-// NULL for the generator's own memory.  Set it before generating.
+// NULL for the generator's own memory, and the unit's number in its keys
+// (units sharing a store have different numbers).  Set it before
+// generating; the unit's assembly is initialised with the same.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::SetSpillStore(CSpillStore* pcStore)
+void CCPP65Generator::SetSpillStore(CSpillStore* pcStore, uint32 uiUnit)
 {
 	mpcSpillStore = pcStore ? pcStore : &mcMemorySpillStore;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSpillStore* CCPP65Generator::GetSpillStore(void)
-{
-	return mpcSpillStore;
+	muiSpillUnit = uiUnit;
 }
 
 
@@ -260,6 +253,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
+	muiSpillUnit = 0;
 	mauiCodePieces.Init();
 	mpcSemanticPass = NULL;
 
@@ -417,7 +411,7 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 	CCPP65Assembly	cAssembly;
 	bool			bResult;
 
-	cAssembly.Init(mpcSpillStore);
+	cAssembly.Init(mpcSpillStore, muiSpillUnit);
 	bResult = Generate(&cAssembly);
 	cAssembly.Text(pszDest);
 	cAssembly.Kill();
@@ -428,7 +422,7 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 //
 // As Generate(CChars*), leaving each function's code in the spill store: pcDest
-// (initialised with GetSpillStore) has the rest, with markers where the
+// (initialised with SetSpillStore's store and unit) has the rest, with markers where the
 // functions' code goes, and is read a line at a time by the assembler.
 //
 //////////////////////////////////////////////////////////////////////////

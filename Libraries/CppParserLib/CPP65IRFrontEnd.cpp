@@ -86,6 +86,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mbFloatReported = false;
 	mszUnsupportedFile = "";
 	miUnsupportedLine = 0;
+	mbCodeGiven = false;
 	mszUnsupported[0] = '\0';
 }
 
@@ -96,7 +97,8 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Kill(void)
 {
-	size	ui;
+	size				ui;
+	SCPP65IRWritten*	psWritten;
 
 	mauiStringLengths.Kill();
 	mauiStringBytes.Kill();
@@ -105,7 +107,14 @@ void CCPP65IRFrontEnd::Kill(void)
 	maszRuntime.Kill();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
-		masWritten.Get(ui)->szLabel.Kill();
+		psWritten = masWritten.Get(ui);
+		psWritten->szLabel.Kill();
+
+		//Code not given to the unit's assembly (a unit generated again, or one that failed) leaves the store.
+		if (!mbCodeGiven)
+		{
+			CCPP65Assembly::RemoveCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, 0, psWritten->uiPieces);
+		}
 	}
 	masWritten.Kill();
 	mcModule.Kill();
@@ -319,7 +328,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
 			psWritten->uiPieces = 0;
-			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->sFrame = sFrame;
 			psWritten->uiFingerprint = uiFingerprint;
 			mpcGenerator->mszCode.Append(IR65_FRONT_END_MARKER);

@@ -42,6 +42,7 @@ class CCPP65Assembly : public CAsm65Source
 protected:
 	CLargeChars						mszText;
 	CSpillStore*					mpcStore;
+	uint32							muiUnit;		//The unit's number in the store's keys (units can share a store).
 	CArrayLargeTemplate<uint16>		mauiPieces;		//Per function: how many pieces its code is in.
 
 	lsize							muiPos;			//Reading: where in mszText,
@@ -56,7 +57,7 @@ protected:
 	CReuseAllocator					mcLineMalloc;	//the next.
 
 public:
-	void			Init(CSpillStore* pcStore);
+	void			Init(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void			Kill(void);
 
 	CLargeChars*	GetText(void);
@@ -69,12 +70,12 @@ public:
 	void			Text(CChars* pszDest);
 	bool			Write(const char* szFilename);
 
-	static bool		PutCode(CSpillStore* pcStore, lsize uiFunction, const char* szCode, lsize uiLength, uint16* puiPieces);
-	static bool		GetCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiPieces, CChars* pszDest);
-	static void		RemoveCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiFrom, uint16 uiTo);
+	static bool		PutCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, const char* szCode, lsize uiLength, uint16* puiPieces);
+	static bool		GetCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, uint16 uiPieces, CChars* pszDest);
+	static void		RemoveCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, uint16 uiFrom, uint16 uiTo);
 
 protected:
-	static size		Key(uint8* puiKey, lsize uiFunction, uint16 uiPiece);
+	static size		Key(uint8* puiKey, uint32 uiUnit, lsize uiFunction, uint16 uiPiece);
 	bool			LoadPiece(void);
 };
 

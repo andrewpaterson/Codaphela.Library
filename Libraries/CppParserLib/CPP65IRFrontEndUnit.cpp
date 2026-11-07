@@ -205,7 +205,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		}
 		if (bResult)
 		{
-			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 		}
 		else
 		{
@@ -341,7 +341,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	{
 		psWritten = masWritten.Get(ui);
 		szCode.Init();
-		CCPP65Assembly::GetCode(mpcGenerator->mpcSpillStore, ui, psWritten->uiPieces, &szCode);
+		CCPP65Assembly::GetCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, psWritten->uiPieces, &szCode);
 		if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 		{
 			cMarkers.Take(&szCode, 0);
@@ -363,11 +363,12 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			fprintf(stderr, "%s\n", szCode.Text());
 		}
-		CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, ui, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
+		CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, ui, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 		mpcGenerator->mauiCodePieces.Add(&psWritten->uiPieces);
 		szCode.Kill();
 	}
 	cMarkers.Kill();
+	mbCodeGiven = true;
 
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
@@ -991,7 +992,7 @@ bool CCPP65IRFrontEnd::SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTe
 		{
 			mcModule.RemoveFunction(psWritten->pcFunction);
 			psWritten->pcFunction = NULL;
-			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, uiCallee, "", 0, &psWritten->uiPieces);
+			CCPP65Assembly::PutCode(mpcGenerator->mpcSpillStore, mpcGenerator->muiSpillUnit, uiCallee, "", 0, &psWritten->uiPieces);
 			*pabChanged->Get(uiCallee) = false;
 		}
 		szSection.Kill();

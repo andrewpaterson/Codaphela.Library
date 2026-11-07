@@ -1,11 +1,22 @@
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/TextFile.h"
 #include "CppParserLib/CPP65Builder.h"
+#include "CppParserLib/CPP65Assembly.h"
+#include "CppParserLib/Preprocessor.h"
+#include "CppParserLib/CppParser.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
 
 #define TEST_CPP65_SPILL_DIRECTORY		"Output" _FS_ "CPP65Spill"
+
+
+//A spill store in memory that says how many keys it holds.
+class CTestCountedSpillStore : public CMemorySpillStore
+{
+public:
+	size	NumKeys(void) { return mcMap.NumElements(); }
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,12 +139,101 @@ static void TestCPP65SpillSame(ECPPTarget eTarget)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Units sharing a store each have their own functions' code: the same
+// function index of two units is two keys.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65SpillUnits(void)
+{
+	CTestCountedSpillStore	cStore;
+	uint16					uiFirst;
+	uint16					uiSecond;
+	CChars					sz;
+
+	cStore.Init();
+	uiFirst = 0;
+	uiSecond = 0;
+	AssertTrue(CCPP65Assembly::PutCode(&cStore, 1, 0, "\t\tnop\n", 6, &uiFirst));
+	AssertTrue(CCPP65Assembly::PutCode(&cStore, 2, 0, "\t\trtl\n", 6, &uiSecond));
+	AssertSize(2, cStore.NumKeys());
+	sz.Init();
+	AssertTrue(CCPP65Assembly::GetCode(&cStore, 1, 0, uiFirst, &sz));
+	AssertTrue(CCPP65Assembly::GetCode(&cStore, 2, 0, uiSecond, &sz));
+	AssertString("\t\tnop\n\t\trtl\n", sz.Text());
+	sz.Kill();
+	CCPP65Assembly::RemoveCode(&cStore, 1, 0, 0, uiFirst);
+	CCPP65Assembly::RemoveCode(&cStore, 2, 0, 0, uiSecond);
+	AssertSize(0, cStore.NumKeys());
+	cStore.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A generator killed before its unit's assembly has its functions' code (a
+// unit generated again, CCPP65Builder::RestartGenerating) takes that code
+// out of the store; generated whole, the assembly takes it out.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65SpillRestart(bool bWhole)
+{
+	CTranslationUnit		cFile;
+	CPreprocessor			cPreprocessor;
+	CCPPTokeniser			cTokeniser;
+	CCPPSyntaxTree			cTree;
+	CCPPParser				cParser;
+	CCPP65Generator			cGenerator;
+	CTestCountedSpillStore	cStore;
+	CChars					szAssembly;
+
+	cFile.Init("Restart.cpp", NULL, false);
+	cFile.SetContents("int Add(int a, int b) { return a + b; }\nint Twice(int a) { return Add(a, a); }\n");
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	AssertTrue(cParser.Parse());
+	cParser.Kill();
+
+	cStore.Init();
+	cGenerator.Init(&cTree, CPPT_65C64);
+	cGenerator.SetSpillStore(&cStore, 3);
+	if (bWhole)
+	{
+		szAssembly.Init();
+		AssertTrue(cGenerator.Generate(&szAssembly));
+		AssertTrue(szAssembly.Contains("_Add__Fii:"));
+		szAssembly.Kill();
+	}
+	else
+	{
+		AssertTrue(cGenerator.GenerateBeforeTurn());
+		AssertTrue(cStore.NumKeys() > 0);
+	}
+	cGenerator.Kill();
+	AssertSize(0, cStore.NumKeys());
+	cStore.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Spill(void)
 {
 	BeginTests();
 
+	TestCPP65SpillUnits();
+	TestCPP65SpillRestart(false);
+	TestCPP65SpillRestart(true);
 	TestCPP65SpillSame(CPPT_65C64);
 	TestCPP65SpillSame(CPPT_W65C816);
 

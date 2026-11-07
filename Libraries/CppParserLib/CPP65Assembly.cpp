@@ -26,17 +26,18 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define CPP65_CODE_KEY			'C'
-#define CPP65_CODE_KEY_SIZE		7
+#define CPP65_CODE_KEY_SIZE		11
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Assembly::Init(CSpillStore* pcStore)
+void CCPP65Assembly::Init(CSpillStore* pcStore, uint32 uiUnit)
 {
 	mszText.Init();
 	mpcStore = pcStore;
+	muiUnit = uiUnit;
 	mauiPieces.Init();
 	//A piece is at most the store's MaxDataSize, so its memory is always kept.
 	mcPieceMalloc.Init(0);
@@ -57,7 +58,7 @@ void CCPP65Assembly::Kill(void)
 
 	for (ui = 0; ui < mauiPieces.NumElements(); ui++)
 	{
-		RemoveCode(mpcStore, ui, 0, *mauiPieces.Get(ui));
+		RemoveCode(mpcStore, muiUnit, ui, 0, *mauiPieces.Get(ui));
 	}
 	mszLine.Kill();
 	mszPiece.Kill();
@@ -210,7 +211,7 @@ bool CCPP65Assembly::LoadPiece(void)
 	{
 		return false;
 	}
-	uiKeySize = Key(auiKey, muiFunction, muiPiece);
+	uiKeySize = Key(auiKey, muiUnit, muiFunction, muiPiece);
 	uiMax = mpcStore->MaxDataSize();
 	mszPiece.Clear();
 	mszPiece.Append(' ', uiMax);
@@ -288,7 +289,7 @@ bool CCPP65Assembly::Write(const char* szFilename)
 // the function (*puiPieces) are taken out.  *puiPieces is how many there are.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Assembly::PutCode(CSpillStore* pcStore, lsize uiFunction, const char* szCode, lsize uiLength, uint16* puiPieces)
+bool CCPP65Assembly::PutCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, const char* szCode, lsize uiLength, uint16* puiPieces)
 {
 	uint8		auiKey[CPP65_CODE_KEY_SIZE];
 	size		uiKeySize;
@@ -316,11 +317,11 @@ bool CCPP65Assembly::PutCode(CSpillStore* pcStore, lsize uiFunction, const char*
 				uiPieceLength = (lsize)(szLast + 1 - (szCode + uiStart));
 			}
 		}
-		uiKeySize = Key(auiKey, uiFunction, uiPiece);
+		uiKeySize = Key(auiKey, uiUnit, uiFunction, uiPiece);
 		bResult &= pcStore->Put(auiKey, uiKeySize, szCode + uiStart, (size)uiPieceLength);
 		uiPiece++;
 	}
-	RemoveCode(pcStore, uiFunction, uiPiece, *puiPieces);
+	RemoveCode(pcStore, uiUnit, uiFunction, uiPiece, *puiPieces);
 	*puiPieces = uiPiece;
 	return bResult;
 }
@@ -331,7 +332,7 @@ bool CCPP65Assembly::PutCode(CSpillStore* pcStore, lsize uiFunction, const char*
 // Appends a function's code (in uiPieces pieces) to pszDest.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Assembly::GetCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiPieces, CChars* pszDest)
+bool CCPP65Assembly::GetCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, uint16 uiPieces, CChars* pszDest)
 {
 	uint8	auiKey[CPP65_CODE_KEY_SIZE];
 	size	uiKeySize;
@@ -345,7 +346,7 @@ bool CCPP65Assembly::GetCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiPi
 	bResult = true;
 	for (uiPiece = 0; uiPiece < uiPieces; uiPiece++)
 	{
-		uiKeySize = Key(auiKey, uiFunction, uiPiece);
+		uiKeySize = Key(auiKey, uiUnit, uiFunction, uiPiece);
 		uiStart = pszDest->Length();
 		pszDest->Append(' ', uiMax);
 		uiLength = 0;
@@ -361,7 +362,7 @@ bool CCPP65Assembly::GetCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiPi
 // Takes pieces uiFrom up to (not including) uiTo of a function's code out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Assembly::RemoveCode(CSpillStore* pcStore, lsize uiFunction, uint16 uiFrom, uint16 uiTo)
+void CCPP65Assembly::RemoveCode(CSpillStore* pcStore, uint32 uiUnit, lsize uiFunction, uint16 uiFrom, uint16 uiTo)
 {
 	uint8	auiKey[CPP65_CODE_KEY_SIZE];
 	size	uiKeySize;
@@ -369,7 +370,7 @@ void CCPP65Assembly::RemoveCode(CSpillStore* pcStore, lsize uiFunction, uint16 u
 
 	for (uiPiece = uiFrom; uiPiece < uiTo; uiPiece++)
 	{
-		uiKeySize = Key(auiKey, uiFunction, uiPiece);
+		uiKeySize = Key(auiKey, uiUnit, uiFunction, uiPiece);
 		pcStore->Remove(auiKey, uiKeySize);
 	}
 }
@@ -377,18 +378,23 @@ void CCPP65Assembly::RemoveCode(CSpillStore* pcStore, lsize uiFunction, uint16 u
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A piece's key: the kind, then the function's index and the piece's number,
-// most significant byte first (so a function's pieces are together).
+// A piece's key: the kind, then the unit's number, the function's index and
+// the piece's number, most significant byte first (so a function's pieces
+// are together, and units sharing a store don't meet).
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Assembly::Key(uint8* puiKey, lsize uiFunction, uint16 uiPiece)
+size CCPP65Assembly::Key(uint8* puiKey, uint32 uiUnit, lsize uiFunction, uint16 uiPiece)
 {
 	puiKey[0] = CPP65_CODE_KEY;
-	puiKey[1] = (uint8)(uiFunction >> 24);
-	puiKey[2] = (uint8)(uiFunction >> 16);
-	puiKey[3] = (uint8)(uiFunction >> 8);
-	puiKey[4] = (uint8)uiFunction;
-	puiKey[5] = (uint8)(uiPiece >> 8);
-	puiKey[6] = (uint8)uiPiece;
+	puiKey[1] = (uint8)(uiUnit >> 24);
+	puiKey[2] = (uint8)(uiUnit >> 16);
+	puiKey[3] = (uint8)(uiUnit >> 8);
+	puiKey[4] = (uint8)uiUnit;
+	puiKey[5] = (uint8)(uiFunction >> 24);
+	puiKey[6] = (uint8)(uiFunction >> 16);
+	puiKey[7] = (uint8)(uiFunction >> 8);
+	puiKey[8] = (uint8)uiFunction;
+	puiKey[9] = (uint8)(uiPiece >> 8);
+	puiKey[10] = (uint8)uiPiece;
 	return CPP65_CODE_KEY_SIZE;
 }

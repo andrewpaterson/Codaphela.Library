@@ -417,7 +417,8 @@ protected:
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
 	bool					mbMathTables;		//The W65C816's MathMult is in memory (SetMathTables).
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
-	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore).
+	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore),
+	uint32					muiSpillUnit;		//by the unit's number.
 	CMemorySpillStore		mcMemorySpillStore;	//The spill store when none is set.
 	CScratchPadAllocator	mcBackendScratch;	//The W65C816 back end's working arrays and strings, for one function at a time (CIR816Backend::SetScratch).
 	CArrayLargeTemplate<uint16>	mauiCodePieces;	//Per function written by the IR front end: how many pieces its code is in.
@@ -452,8 +453,7 @@ public:
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
 	void					SetMathTables(bool bMathTables);
-	void					SetSpillStore(CSpillStore* pcStore);
-	CSpillStore*			GetSpillStore(void);
+	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass);

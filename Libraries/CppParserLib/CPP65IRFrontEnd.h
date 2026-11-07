@@ -141,6 +141,7 @@ protected:
 
 	CIRModule				mcModule;			//The unit's functions written as IR.
 	CArrayCPP65IRWritten	masWritten;			//The same, in the order written.
+	bool					mbCodeGiven;		//The written functions' code is the unit's assembly's (FinishUnit), which takes it out of the store.
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
 	SCPP65Function*			mpsFunction;
