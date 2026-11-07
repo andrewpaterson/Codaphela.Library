@@ -1017,39 +1017,13 @@ CPPToken* CPreprocessorTokenParser::GetToken(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The current token is pcToken, at iTokenIndex in the current holder.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::AssignCurrent(CPPToken* pcToken, int iTokenIndex)
 {
 	mpsCurrent->pcCurrentToken = pcToken;
 	mpsCurrent->iTokenIndex = iTokenIndex;
-
-	int						iIndex;
-	CPPToken*				pcTest;
-	int						i;
-	CPPTokenListHolder*		pcHolder;
-
-	if ((pcToken != NULL) && (pcToken->IsTokenListHolder()))
-	{
-		return;
-	}
-
-	pcHolder = mpsCurrent->pcHolder;
-	iIndex = -1;
-	for (i = 0; i < pcHolder->TokenLength(); i++)
-	{
-		pcTest = pcHolder->Get(i);
-		if (pcTest == pcToken)
-		{
-			iIndex = i;
-			break;
-		}
-	}
-
-	if (iIndex != iTokenIndex)
-	{
-		CChars::Dump("Oh fuck.\n");
-	}
 }
 
 
