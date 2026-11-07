@@ -83,3 +83,16 @@ SInt32Vec2 CCanvasDraw::GetDesiredSize(void)
 	sSize.Init(-1, -1);
 	return sSize;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the draw only fills the canvas with one colour, psColour.  An
+// opaque canvas drawn so fills its part of the window itself, without a
+// native canvas of its own to draw into and copy (see CCanvas::Draw).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvasDraw::GetSolidColour(ARGB32* psColour)
+{
+	return false;
+}

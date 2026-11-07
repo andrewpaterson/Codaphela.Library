@@ -33,6 +33,45 @@
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// Fills its canvas with one colour as CClearCanvasDraw does, but doesn't	//
+// say so, so its canvas is drawn into a native canvas and copied.		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+class CBoxFillCanvasDraw : public CCanvasDraw
+{
+CONSTRUCTABLE(CBoxFillCanvasDraw);
+DESTRUCTABLE(CBoxFillCanvasDraw);
+protected:
+	ARGB32	msColour;
+
+public:
+	void Init(ARGB32 sColour)
+	{
+		PreInit();
+		CCanvasDraw::Init();
+		msColour = sColour;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CCanvasDraw::Class();
+		U_UInt32(msColour);
+	}
+
+	bool Draw(Ptr<CCanvas> pCanvas) override
+	{
+		CInt32Rect	cRect;
+
+		cRect.Init(0, 0, pCanvas->GetActualSize().x - 1, pCanvas->GetActualSize().y - 1);
+		pCanvas->DrawBox(&cRect, true, msColour);
+		return true;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasWriteImageRGB(void)
@@ -1044,7 +1083,7 @@ void TestCanvasOutlivesKilledWindow(void)
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CFillContainer>		pWindowFill;
-		Ptr<CClearCanvasDraw>	pBlueDraw;
+		Ptr<CBoxFillCanvasDraw>	pBlueDraw;
 		Ptr<CCanvas>			pCanvas;
 		Ptr<CTickTestRefWindow>	pTick;
 		SDataTestRefWindow		cData;
@@ -1057,7 +1096,7 @@ void TestCanvasOutlivesKilledWindow(void)
 		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pWindowFill);
 
-		pBlueDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, 0, 255));
+		pBlueDraw = OMalloc<CBoxFillCanvasDraw>(Set32BitColour((uint8)0, 0, 255));
 		pCanvas = OMalloc<CCanvas>(pTestWindow, pBlueDraw);
 		pCanvas->SetDesiredSize(4, 4);
 		pWindowFill->AddComponent(pCanvas);
@@ -1212,7 +1251,7 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
-		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
 		pCanvas->SetDesiredSize(0, 0);
 		pCanvas->SetAlignment(CSH_Left, CSV_Top);
 		pFill->AddComponent(pCanvas);
@@ -1291,7 +1330,7 @@ void TestCanvasDrawBoxCutToCanvas(void)
 
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
-		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)));
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0.0f, 0, 0)));
 		pCanvas->SetDesiredSize(8, 8);
 		pCanvas->SetAlignment(CSH_Left, CSV_Top);
 		pFill->AddComponent(pCanvas);
@@ -1355,7 +1394,8 @@ Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
 
 enum EClippedContent
 {
-	CC_Clear,
+	CC_Fill,
+	CC_Solid,
 	CC_Border,
 	CC_Pixels,
 	CC_Image,
@@ -1381,7 +1421,10 @@ Ptr<CCanvas> CreateClippedContent(Ptr<CWindow> pWindow, EClippedContent eContent
 	pWindow->GetColourFormat(&cHelper);
 	switch (eContent)
 	{
-	case CC_Clear:
+	case CC_Fill:
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0.25f, 0.5f, 0.75f)));
+		break;
+	case CC_Solid:
 		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0.25f, 0.5f, 0.75f)));
 		break;
 	case CC_Border:
@@ -1498,13 +1541,20 @@ void TestCanvasClippedContent(EClippedContent eContent)
 			AssertInt(asScrolls[uiScroll].x, sScroll.x);
 			AssertInt(asScrolls[uiScroll].y, sScroll.y);
 
-			//Only the view's worth of the content has a native canvas.
+			//Only the view's worth of the content shows.  A solid colour fills it in the window without a native canvas.
 			sVec = pContent->GetNativeOrigin();
 			AssertInt32Vec2(sScroll.x, sScroll.y, &sVec);
 			sVec = pContent->GetNativeSize();
 			AssertInt32Vec2(CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, &sVec);
-			AssertInt(CLIPPED_VIEW_WIDTH, pContent->GetImageOrNull()->GetWidth());
-			AssertInt(CLIPPED_VIEW_HEIGHT, pContent->GetImageOrNull()->GetHeight());
+			if (eContent == CC_Solid)
+			{
+				AssertNull(pContent->GetNativeCanvas());
+			}
+			else
+			{
+				AssertInt(CLIPPED_VIEW_WIDTH, pContent->GetImageOrNull()->GetWidth());
+				AssertInt(CLIPPED_VIEW_HEIGHT, pContent->GetImageOrNull()->GetHeight());
+			}
 
 			//The scroll bars are drawn over the content, so what is under them isn't compared.
 			uiBars = 0;
@@ -1609,9 +1659,9 @@ void TestCanvasScrolledOutOfSight(void)
 		pFill->AddComponent(pScrollPane);
 
 		pGrid = OMalloc<CGridContainer>(pWindow);
-		pTop = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pTop = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
 		pTop->SetDesiredSize(CLIPPED_VIEW_WIDTH, 20);
-		pBottom = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0, 0, 1.0f)));
+		pBottom = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0, 0, 1.0f)));
 		pBottom->SetDesiredSize(CLIPPED_VIEW_WIDTH, 20);
 		pGrid->AddComponent(pTop, 0, 0);
 		pGrid->AddComponent(pBottom, 0, 1);
@@ -1662,6 +1712,150 @@ void TestCanvasScrolledOutOfSight(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+Ptr<CCanvas> CreateFillCanvas(Ptr<CWindow> pWindow, ARGB32 sColour, bool bSolid)
+{
+	if (bSolid)
+	{
+		return OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(sColour));
+	}
+	else
+	{
+		return OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(sColour));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// A scroll pane over a grid of fills (one holding a smaller fill of its	//
+// own), a transparent rounded box and a border, drawn at each of		//
+// asScrolls into auiWindows.  With bSolid the fills are CClearCanvasDraw	//
+// canvases and have no native canvas.									//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+#define SOLID_WINDOW_WIDTH	32
+#define SOLID_WINDOW_HEIGHT	24
+#define SOLID_SCROLLS		3
+
+void DrawSolidFills(bool bSolid, uint8 auiWindows[SOLID_SCROLLS][SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3])
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasSolidFills";
+	SInt32Vec2				asScrolls[SOLID_SCROLLS] = { { 0, 0 }, { 8, 16 }, { 3, 5 } };
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, SOLID_WINDOW_WIDTH, SOLID_WINDOW_HEIGHT, szDirectory);
+	{
+		Ptr<CWindow>				pWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CScrollPane>			pScrollPane;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CCanvas>				pRed;
+		Ptr<CCanvas>				pGreen;
+		Ptr<CCanvas>				pBlue;
+		Ptr<CCanvas>				pRounded;
+		Ptr<CCanvas>				pBorder;
+		Ptr<CFillContainer>			pRedFill;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SInsets						sInsets;
+		size						uiScroll;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Solid Fills", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pScrollPane = OMalloc<CScrollPane>(pWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pFill->AddComponent(pScrollPane);
+
+		pGrid = OMalloc<CGridContainer>(pWindow);
+		pGrid->SetDesiredSize(40, 40);
+		pRed = CreateFillCanvas(pWindow, Set32BitColour(1.0f, 0, 0), bSolid);
+		pRed->SetDesiredSize(20, 20);
+		pRedFill = OMalloc<CFillContainer>(pWindow);
+		pRed->SetContainer(pRedFill);
+		pBlue = CreateFillCanvas(pWindow, Set32BitColour(0, 0, 1.0f), bSolid);
+		pBlue->SetDesiredSize(6, 6);
+		pRedFill->AddComponent(pBlue);
+		pGreen = CreateFillCanvas(pWindow, Set32BitColour(0, 1.0f, 0), bSolid);
+		pGreen->SetDesiredSize(20, 20);
+		sInsets.Init(2, 2);
+		pRounded = OMalloc<CCanvas>(pWindow, OMalloc<CRoundedBoxCanvasDraw>(Set32BitColour(1.0f, 1.0f, 0), 5, &sInsets));
+		pRounded->SetTransparent(true);
+		pRounded->SetDesiredSize(20, 20);
+		pBorder = OMalloc<CCanvas>(pWindow, OMalloc<CBorderCanvasDraw>(Set32BitColour(0, 1.0f, 1.0f)));
+		pBorder->SetDesiredSize(20, 20);
+		pGrid->AddComponent(pRed, 0, 0);
+		pGrid->AddComponent(pGreen, 1, 0);
+		pGrid->AddComponent(pRounded, 0, 1);
+		pGrid->AddComponent(pBorder, 1, 1);
+		pScrollPane->SetContent(pGrid);
+
+		for (uiScroll = 0; uiScroll < SOLID_SCROLLS; uiScroll++)
+		{
+			pScrollPane->SetScrollPosition(asScrolls[uiScroll].x, asScrolls[uiScroll].y);
+			pWindow->Paint();
+			memcpy(auiWindows[uiScroll], pWindow->GetCanvas()->GetImageOrNull()->GetData(), SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3);
+
+			//A fill copied from a native canvas has one while it shows.
+			AssertBool(!bSolid && pRed->HasArea(), pRed->GetNativeCanvas() != NULL);
+			AssertBool(!bSolid && pBlue->HasArea(), pBlue->GetNativeCanvas() != NULL);
+			AssertNotNull(pBorder->GetNativeCanvas());
+		}
+
+		pRedFill = NULL;
+		pBorder = NULL;
+		pRounded = NULL;
+		pBlue = NULL;
+		pGreen = NULL;
+		pRed = NULL;
+		pGrid = NULL;
+		pScrollPane = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// A canvas of one opaque colour fills its part of the window itself,		//
+// and the window is the same as when it is drawn into its own canvas	//
+// and copied.															//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasSolidFillsDrawnIntoWindow(void)
+{
+	uint8	auiSolid[SOLID_SCROLLS][SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3];
+	uint8	auiCopied[SOLID_SCROLLS][SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3];
+	size	uiScroll;
+
+	DrawSolidFills(true, auiSolid);
+	DrawSolidFills(false, auiCopied);
+	for (uiScroll = 0; uiScroll < SOLID_SCROLLS; uiScroll++)
+	{
+		AssertMemory(auiCopied[uiScroll], auiSolid[uiScroll], SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
 {
 	BeginTests();
@@ -1681,7 +1875,8 @@ void TestCanvas(void)
 	TestCanvasImageDrawFollowsTransparency();
 	TestCanvasZeroAreaHasNoNativeCanvas();
 	TestCanvasDrawBoxCutToCanvas();
-	TestCanvasClippedContent(CC_Clear);
+	TestCanvasClippedContent(CC_Fill);
+	TestCanvasClippedContent(CC_Solid);
 	TestCanvasClippedContent(CC_Border);
 	TestCanvasClippedContent(CC_Pixels);
 	TestCanvasClippedContent(CC_Image);
@@ -1690,6 +1885,7 @@ void TestCanvas(void)
 	TestCanvasClippedContent(CC_ProgressBar);
 	TestCanvasClippedContent(CC_TextArea);
 	TestCanvasScrolledOutOfSight();
+	TestCanvasSolidFillsDrawnIntoWindow();
 
 	TestStatistics();
 }

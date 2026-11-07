@@ -72,6 +72,7 @@ public:
 	void				SetCanvasDraw(Ptr<CCanvasDraw> pDraw);
 	bool				HasNativeChanged(void);
 	bool				HasArea(void);
+	bool				IsSolidInWindow(Ptr<CCanvas> pWindowCanvas, ARGB32* psColour);
 	void				UpdateNativeArea(void);
 	SInt32Vec2			GetNativeOrigin(void);
 	SInt32Vec2			GetNativeSize(void);

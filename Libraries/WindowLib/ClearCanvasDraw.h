@@ -38,6 +38,7 @@ public:
 	void	Class(void) override;
 
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
+	bool	GetSolidColour(ARGB32* psColour) override;
 
 	void	SetColour(ARGB32 sColour);
 	ARGB32	GetColour(void);

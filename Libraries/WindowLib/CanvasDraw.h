@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
 #include "BaseLib/Int32Vec2.h"
+#include "SupportLib/ColourARGB32.h"
 
 
 class CCanvas;
@@ -45,6 +46,7 @@ public:
 
 	virtual bool		Draw(Ptr<CCanvas> pCanvas) =0;
 	virtual SInt32Vec2	GetDesiredSize(void);
+	virtual bool		GetSolidColour(ARGB32* psColour);
 };
 
 

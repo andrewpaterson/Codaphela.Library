@@ -140,9 +140,27 @@ bool CCanvas::Draw(void)
 {
 	Ptr<CCanvas>			pWindowCanvas;
 	SInt32Vec2				sPreviousOrigin;
+	ARGB32					sColour;
+	CInt32Rect				cVisible;
 
 	sPreviousOrigin = msNativeOrigin;
 	UpdateNativeArea();
+
+	//A canvas of one opaque colour fills the part of the window it shows in: it needs no native canvas to fill and copy.
+	pWindowCanvas = mpWindow->GetCanvas();
+	if (IsSolidInWindow(pWindowCanvas, &sColour))
+	{
+		DestroyNativeCanvas();
+		if (HasArea())
+		{
+			cVisible.Init(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y,
+						  mcActualBounds.GetLeft() + msNativeOrigin.x + msNativeSize.x - 1, mcActualBounds.GetTop() + msNativeOrigin.y + msNativeSize.y - 1);
+			pWindowCanvas->DrawBox(&cVisible, true, sColour);
+		}
+		CComponent::Draw();
+		return true;
+	}
+
 	if (HasNativeChanged())
 	{
 		DestroyNativeCanvas();
@@ -174,7 +192,6 @@ bool CCanvas::Draw(void)
 	}
 
 	//The native canvas holds only the part of the canvas that shows, so all of it is copied.
-	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)
 	{
 		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this);
@@ -305,6 +322,28 @@ Ptr<CImage> CCanvas::GetImageOrNull(void)
 		return NULL;
 	}
 	return mpcNativeCanvas->GetImageOrNull();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the canvas is drawn as one opaque colour, psColour, straight
+// into pWindowCanvas.  Not the window's own canvas, nor a canvas in
+// another format than the window's, which can't be drawn onto it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::IsSolidInWindow(Ptr<CCanvas> pWindowCanvas, ARGB32* psColour)
+{
+	if (mbTransparent || mpCanvasDraw.IsNull() || (&pWindowCanvas == this) || pWindowCanvas.IsNull())
+	{
+		return false;
+	}
+	if ((GetColourFormat() != pWindowCanvas->GetColourFormat()) || (GetColourOrder() != pWindowCanvas->GetColourOrder()) ||
+		(GetColourBits() != pWindowCanvas->GetColourBits()) || (GetAlphaBits() != pWindowCanvas->GetAlphaBits()))
+	{
+		return false;
+	}
+	return mpCanvasDraw->GetSolidColour(psColour);
 }
 
 
