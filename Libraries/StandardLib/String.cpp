@@ -40,11 +40,7 @@ void CString::Class(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(void)
 {
-	PreInit();
-	msz.Init();
-	PostInit();
-
-	return this;
+	return InitText((CChars*)NULL);
 }
 
 
@@ -54,12 +50,9 @@ Ptr<CString> CString::Init(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(const char* sz)
 {
-	PreInit();
-	msz.Init(sz);
-	PostInit();
-
-	return this;
+	return InitText(sz);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -67,11 +60,7 @@ Ptr<CString> CString::Init(const char* sz)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(CChars* psz)
 {
-	PreInit();
-	msz.Init(psz);
-	PostInit();
-
-	return this;
+	return InitText(psz);
 }
 
 
@@ -81,22 +70,32 @@ Ptr<CString> CString::Init(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(CChars sz)
 {
-	PreInit();
-	msz.Init(sz);
-	PostInit();
-
-	return this;
+	return InitText(&sz);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A copy of pString's text; empty if pString is NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(Ptr<CString> pString)
 {
+	return InitText(pString.IsNull() ? (CChars*)NULL : &pString->msz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every Init: msz Init'd from tText (a NULL CChars* is empty), between
+// PreInit and PostInit.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TText>
+Ptr<CString> CString::InitText(TText tText)
+{
 	PreInit();
-	msz.Init(pString->Text());
+	msz.Init(tText);
 	PostInit();
 
 	return this;

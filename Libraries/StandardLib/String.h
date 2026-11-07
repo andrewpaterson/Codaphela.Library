@@ -38,6 +38,9 @@ DESTRUCTABLE(CString)
 protected:
 	CChars	msz;
 
+	template<class TText>
+	Ptr<CString>	InitText(TText tText);
+
 public:
 	Ptr<CString>	Init(void);
 	Ptr<CString>	Init(const char* sz);
@@ -48,6 +51,8 @@ public:
 	void			Free(void) override;
 
 	void			D(void);  //Set dirty.
+	template<class TChanged>
+	TChanged		DirtyIf(TChanged tChanged) { if (tChanged) { D(); } return tChanged; }  //Set dirty if anything changed (a count or a bool).
 
 	Ptr<CString>	AddOperator(Ptr<CString> pString);
 	Ptr<CString>	AddOperator(const char* sz);
@@ -102,7 +107,7 @@ public:
 	Ptr<CString>	AppendData(const char* szData, size iDataLength, size iMaxLength) { msz.AppendData(szData, iDataLength, iMaxLength); D(); return this; }
 	Ptr<CString>	AppendData2(const char* szData, size iDataLength) { msz.AppendData2(szData, iDataLength); D(); return this; }
 	Ptr<CString>	AppendPointer(void* pv) { msz.AppendPointer(pv); D(); return this; }
-	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
+	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false) { return DirtyIf(msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma)); }
 	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, Ptr<CString> pFlagName, bool bAppendComma = false);
 	Ptr<CString>	LeftAlign(CChars sz, char cPadCharacter, size iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	LeftAlign(const char* sz, char cPadCharacter, size iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
@@ -183,8 +188,8 @@ public:
 	int				CompareIgnoreCase(CChars* szOther) { return msz.CompareIgnoreCase(szOther); }
 	int				CompareIgnoreCase(const char* szOther) { return msz.CompareIgnoreCase(szOther); }
 	int				CompareIgnoreCase(Ptr<CString> pOther) { return CompareIgnoreCase(pOther->Text()); }
-	size			Replace(char cFind, char cReplace) { D();  return msz.Replace(cFind, cReplace); }
-	size			Replace(const char* szFind, const char* szReplace) { D();  return msz.Replace(szFind, szReplace); }
+	size			Replace(char cFind, char cReplace) { return DirtyIf(msz.Replace(cFind, cReplace)); }
+	size			Replace(const char* szFind, const char* szReplace) { return DirtyIf(msz.Replace(szFind, szReplace)); }
 	size			Replace(Ptr<CString> pFind, Ptr<CString> pReplace) { return Replace(pFind->Text(), pReplace->Text()); }
 	void			Overwrite(size iPos, const char* szReplace) { msz.Overwrite(iPos, szReplace); D(); }
 	void			Overwrite(size iPos, Ptr<CString> pReplace) { return Overwrite(iPos, pReplace->Text()); }

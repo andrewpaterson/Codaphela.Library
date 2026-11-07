@@ -67,6 +67,32 @@ void TestStringDirty(void)
 		ObjectsFlush();
 		AssertFalse(pString1.IsDirty());
 
+		//What changes nothing doesn't make it dirty.
+		AssertSize(0, pString1->Replace('z', 'y'));
+		AssertSize(0, pString1->Replace("zz", "yy"));
+		AssertFalse(pString1->AppendFlag(0, 1, "None"));
+		AssertFalse(pString1.IsDirty());
+		AssertSize(2, pString1->Replace('l', 'L'));
+		AssertTrue(pString1.IsDirty());
+		AssertSize(2, pString1->Replace("L", "l"));
+		AssertTrue(pString1->AppendFlag(1, 1, "One"));
+		AssertString("HelloTrueOne", pString1->Text());
+		AssertSize(1, pString1->Replace("One", ""));
+		AssertString("HelloTrue", pString1->Text());
+		ObjectsFlush();
+		AssertFalse(pString1.IsDirty());
+
+		//A copy of another string, or (of NULL) an empty one.
+		{
+			Ptr<CString>	pCopy;
+			Ptr<CString>	pNull;
+
+			pCopy = OMalloc<CString>(pString1);
+			AssertString("HelloTrue", pCopy->Text());
+			pCopy = OMalloc<CString>(pNull);
+			AssertString("", pCopy->Text());
+		}
+
 		pcDatabase->Close();
 		SafeKill(pcDatabase);
 		SafeKill(pcSequence);
