@@ -127,8 +127,6 @@ bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 
 	ReturnOnFalse(mcArray.WriteArrayHeader(pcFile));
 
-	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
-
 	bFatHollow = mcArray.IsMustSort();
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -153,8 +151,6 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 
 	KillMemberLocations();
 	ReturnOnFalse(mcArray.ReadArrayHeader(pcFile, &iFlags, &uiNumElements));
-
-	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
 	for (i = 0; i < uiNumElements; i++)
 	{

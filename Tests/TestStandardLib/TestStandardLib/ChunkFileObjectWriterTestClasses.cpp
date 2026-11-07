@@ -35,22 +35,6 @@ void CTestWithArray::Add(CPointer& pcObject)
 }
 
 
-bool CTestWithArray::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(mszString.WriteString(pcFile));
-	ReturnOnFalse(pcFile->WriteInt32(mx));
-	return true;
-}
-
-
-bool CTestWithArray::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(mszString.ReadString(pcFile));
-	ReturnOnFalse(pcFile->ReadInt32(&mx));
-	return true;
-}
-
-
 void CTestInteger::Init(int32 x, int16 y, int8 z)
 {
 	PreInit();
@@ -71,24 +55,6 @@ void CTestInteger::Class(void)
 
 void CTestInteger::Free(void)
 {
-}
-
-
-bool CTestInteger::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteInt32(mx));
-	ReturnOnFalse(pcFile->WriteInt16(my));
-	ReturnOnFalse(pcFile->WriteInt8(mz));
-	return true;
-}
-
-
-bool CTestInteger::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(pcFile->ReadInt32(&mx));
-	ReturnOnFalse(pcFile->ReadInt16(&my));
-	ReturnOnFalse(pcFile->ReadInt8(&mz));
-	return true;
 }
 
 
@@ -129,20 +95,6 @@ void CTestNamedString::Class(void)
 void CTestNamedString::Free(void)
 {
 	mszEmbedded.Kill();
-}
-
-
-bool CTestNamedString::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(mszEmbedded.WriteString(pcFile));
-	return true;
-}
-
-
-bool CTestNamedString::Load(CObjectReader* pcFile)
-{
-	ReturnOnFalse(mszEmbedded.ReadString(pcFile));
-	return true;
 }
 
 

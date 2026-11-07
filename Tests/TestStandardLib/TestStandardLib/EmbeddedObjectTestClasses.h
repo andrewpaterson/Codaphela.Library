@@ -20,9 +20,6 @@ public:
 	void	Class(void) override;
 	void	Init(void);
 	void	Free(void) override;
-
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
 };
 
 
@@ -42,8 +39,6 @@ public:
 	void				Init(void);
 	void				Free(void) override;
 
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
 	Ptr<CEmbeddedTest>	GetOne(void);
 	Ptr<CEmbeddedTest>	GetTwo(void);
 };
@@ -65,9 +60,6 @@ public:
 	void	Free(void) override;
 
 	void	Add(Ptr<> pObject);
-
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
 };
 
 

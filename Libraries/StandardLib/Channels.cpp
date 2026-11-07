@@ -157,11 +157,7 @@ void CChannels::Init(CChannels* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Class(void)
 {
-	U_LSize(miSize);
-	U_Size(miByteStride);
-	U_Size(miBitStride);
-	U_Bool(mbOnlyBasicTypes);
-
+	//Save and Load write the sizes and channels (WriteSize keeps 32 and 64 bit files the same); the pointers load as NULL.
 	U_Unknown(CArrayChannelOffset, masChannelOffsets);
 	U_Unknown(CArrayLargeChar, mabData);
 	U_Pointer(mpvUserData);
@@ -209,8 +205,6 @@ void CChannels::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannels::Load(CObjectReader* pcFile)
 {
-	mpsChangingDesc = NULL;
-	mpvUserData = NULL;
 	ReturnOnFalse(masChannelOffsets.Read(pcFile));
 	ReturnOnFalse(pcFile->ReadSize(&miSize));
 	ReturnOnFalse(pcFile->ReadSize(&miByteStride));

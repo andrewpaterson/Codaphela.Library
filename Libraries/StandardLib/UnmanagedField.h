@@ -8,8 +8,9 @@ class CUnmanagedField : public CField
 {
 CONSTRUCTABLE(CUnmanagedField)
 protected:
-	size		muiLength;
-	size		muiElementSize;
+	size			muiLength;
+	size			muiElementSize;
+	EPrimitiveType	meType;
 
 public:
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
@@ -22,6 +23,7 @@ public:
 	bool		IsUnmanaged(void);
 	void*		GetData(CBaseObject* pcFieldContainer);
 	size		GetSizeOf(void);
+	EPrimitiveType	GetType(void);
 	size		GetNameOffset(void);
 };
 

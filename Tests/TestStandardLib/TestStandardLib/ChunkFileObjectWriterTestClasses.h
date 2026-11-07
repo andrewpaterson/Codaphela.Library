@@ -22,9 +22,6 @@ public:
 	void	Free(void) override;
 
 	void	Add(CPointer& pcObject);
-
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
 };
 
 
@@ -40,9 +37,6 @@ public:
 	void	Init(int32 x, int16 y, int8 z);
 	void	Class(void) override;
 	void	Free(void) override;
-
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
 };
 
 
@@ -61,9 +55,6 @@ public:
 	void	Free(void) override;
 
 	void	Set(Ptr<CString> szString, Ptr<CTestNamedString> pAnother, const char* szEmbedded);
-
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
 };
 
 

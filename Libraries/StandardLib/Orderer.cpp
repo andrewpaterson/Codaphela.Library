@@ -54,7 +54,7 @@ void COrderer::Free(void)
 void COrderer::Class(void)
 {
 	M_Pointer(mpHolders);
-	U_Data(CMapLongSize, mcHolderIndices);
+	U_Unknown(CMapLongSize, mcHolderIndices);
 }
 
 

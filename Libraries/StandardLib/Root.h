@@ -34,7 +34,6 @@ CONSTRUCTABLE(CRoot)
 DESTRUCTABLE(CRoot)
 protected:
 	Ptr<CSetObject>		mpObjects;
-	CObjects*			mpcObjectsAllocatingFrom;
 
 public:
 						CRoot();
@@ -49,8 +48,6 @@ public:
 						bool			RemoveAll(void);
 						bool			IsRoot(void);
 						bool			IsSubRoot(void);
-
-						bool			Load(CObjectReader* pcFile) override;
 
 						CPointer		UnsafeGet(int iIndex);
 	template<class M>	Ptr<M>			UnsafeGet(int iIndex);

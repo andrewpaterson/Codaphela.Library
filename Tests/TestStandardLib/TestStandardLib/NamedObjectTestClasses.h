@@ -16,9 +16,6 @@ public:
 	void Init(int iNum);
 	void Class(void) override;
 	void Free(void) override;
-
-	bool Save(CObjectWriter* pcFile) override;
-	bool Load(CObjectReader* pcFile) override;
 };
 
 
@@ -32,9 +29,6 @@ public:
 	void Init(const char* sz);
 	void Class(void) override;
 	void Free(void) override;
-
-	bool Save(CObjectWriter* pcFile) override;
-	bool Load(CObjectReader* pcFile) override;
 };
 
 
@@ -56,7 +50,6 @@ public:
 	void Class(void) override;
 	void Free(void) override;
 
-	bool Save(CObjectWriter* pcFile) override;
 	bool Load(CObjectReader* pcFile) override;
 };
 

@@ -429,7 +429,6 @@ bool CIndexObject::Save(CObjectWriter* pcFile)
 	size						uiKeySize;
 
 	ReturnOnFalse(mcIndex.WriteIndexUnknownHeader(pcFile));
-	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
 	bExists = mcIndex.StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
 	while (bExists)
@@ -461,7 +460,6 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 	{
 		return false;
 	}
-	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 	
 	for (i = 0; i < iCount; i++)
 	{

@@ -19,7 +19,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
-#include "BaseLib/Logger.h"
 #include "BaseLib/Float32Vec2.h"
 #include "BaseLib/Float32Vec3.h"
 #include "BaseLib/Float32Vec4.h"
@@ -1395,34 +1394,61 @@ bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 {
-	size				uiNumFields;
-	CArrayVoidPtr*		papv;
-	size				i;
-	CUnmanagedField*	pcUnmanagedField;
-	bool				bResult;
-	size				uiCount;
-	size				uiSize;
-	void*				pvUnmanaged;
+	CArrayVoidPtr*	papv;
+	size			uiNumFields;
+	size			i;
 
 	papv = mpcClass->GetUnmanagedFields();
 	uiNumFields = papv->NumElements();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcUnmanagedField = (CUnmanagedField*)papv->GetPtr(i);
-		pvUnmanaged = pcUnmanagedField->GetData(this);
-		uiCount = pcUnmanagedField->GetLength();
-		uiSize = pcUnmanagedField->GetSizeOf();
-		bResult = pcFile->WriteData(pvUnmanaged, (lsize)uiCount * uiSize);
-
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(SaveUnmanagedField(pcFile, (CUnmanagedField*)papv->GetPtr(i)));
 	}
-
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An unmanaged field is saved by what it is: a string as its text, plain
+// data (U_Data, numbers, vectors, enums) as its bytes.  A pointer and an
+// unknown (U_Pointer, U_Unknown) can't be and aren't: a pointer loads as
+// NULL, and an unknown is left for the class's Save and Load.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::SaveUnmanagedField(CObjectWriter* pcFile, CUnmanagedField* pcField)
+{
+	void*	pvData;
+	size	uiLength;
+	size	i;
+
+	pvData = pcField->GetData(this);
+	uiLength = pcField->GetLength();
+	switch (pcField->GetType())
+	{
+	case PT_String:
+		for (i = 0; i < uiLength; i++)
+		{
+			ReturnOnFalse(((CChars*)pvData)[i].WriteString(pcFile));
+		}
+		return true;
+
+	case PT_StringImmutable:
+		for (i = 0; i < uiLength; i++)
+		{
+			ReturnOnFalse(((CCharsImmutable*)pvData)[i].WriteString(pcFile));
+		}
+		return true;
+
+	case PT_Pointer:
+	case PT_Undefined:
+	case PT_void:
+		return true;
+
+	default:
+		return pcFile->WriteData(pvData, (lsize)uiLength * pcField->GetSizeOf());
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1572,34 +1598,61 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 {
-	size					uiNumFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CUnmanagedField*		pcUnmanagedField;
-	bool					bResult;
-	size					uiCount;
-	size					uiSize;
-	void*					pvUnmanaged;
+	CArrayVoidPtr*	papv;
+	size			uiNumFields;
+	size			i;
 
 	papv = mpcClass->GetUnmanagedFields();
 	uiNumFields = papv->NumElements();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcUnmanagedField = (CUnmanagedField*)papv->GetPtr(i);
-		pvUnmanaged = pcUnmanagedField->GetData(this);
-		uiCount = pcUnmanagedField->GetLength();
-		uiSize = pcUnmanagedField->GetSizeOf();
-		bResult = pcFile->ReadData(pvUnmanaged, (lsize)uiCount * uiSize);
-
-		if (!bResult)
-		{
-			return false;
-		}
+		ReturnOnFalse(LoadUnmanagedField(pcFile, (CUnmanagedField*)papv->GetPtr(i)));
 	}
-
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The reverse of SaveUnmanagedField.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::LoadUnmanagedField(CObjectReader* pcFile, CUnmanagedField* pcField)
+{
+	void*	pvData;
+	size	uiLength;
+	size	i;
+
+	pvData = pcField->GetData(this);
+	uiLength = pcField->GetLength();
+	switch (pcField->GetType())
+	{
+	case PT_String:
+		for (i = 0; i < uiLength; i++)
+		{
+			ReturnOnFalse(((CChars*)pvData)[i].ReadString(pcFile));
+		}
+		return true;
+
+	case PT_StringImmutable:
+		for (i = 0; i < uiLength; i++)
+		{
+			ReturnOnFalse(((CCharsImmutable*)pvData)[i].ReadString(pcFile));
+		}
+		return true;
+
+	case PT_Pointer:
+		memset(pvData, 0, (size_t)uiLength * pcField->GetSizeOf());
+		return true;
+
+	case PT_Undefined:
+	case PT_void:
+		return true;
+
+	default:
+		return pcFile->ReadData(pvData, (lsize)uiLength * pcField->GetSizeOf());
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -66,8 +66,8 @@ void COrdererHolder::Free(void)
 void COrdererHolder::Class(void)
 {
 	M_Pointer(mpObject);
-	U_Data(CArrayChars, maszFulfilments);
-	U_Data(CArrayChars, maszRequirements);
+	U_Unknown(CArrayChars, maszFulfilments);
+	U_Unknown(CArrayChars, maszRequirements);
 }
 
 

@@ -30,7 +30,7 @@ void TestObjectSize(void)
 	AssertLayoutSize(EMBEDDED_OBJECT_SIZE, sizeof(CEmbeddedObject));
 	AssertLayoutSize(BASE_OBJECT_SIZE, sizeof(CBaseObject));  //Check your struct alignement.  This is too large.
 	AssertLayoutSize(OBJECT_SIZE, sizeof(CObject));
-	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE + 8, sizeof(CRoot));
+	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE, sizeof(CRoot));
 	AssertLayoutSize(COLLECTION_OBJECT_SIZE, sizeof(CSetObject));
 	AssertLayoutSize(COLLECTION_OBJECT_SIZE, sizeof(CArrayObject));
 	AssertLayoutSize(POINTER_SIZE, sizeof(CPointer));

@@ -19,9 +19,6 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
-
 	void				AllocateTest(void);
 	Ptr<CTestObject>	Get(size uiIndex);
 };

@@ -41,7 +41,6 @@ CRoot::CRoot()
 void CRoot::Init(void)
 {
 	PreInit();
-	mpcObjectsAllocatingFrom = mpcObjectsThisIn;
 	CreateSet();
 	PostInit();
 }
@@ -74,7 +73,6 @@ void CRoot::Free(void)
 void CRoot::Class(void)
 {
 	M_Pointer(mpObjects);
-	U_Pointer(mpcObjectsAllocatingFrom);
 }
 
 
@@ -84,7 +82,7 @@ void CRoot::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::CreateSet(void)
 {
-	mpObjects = mpcObjectsAllocatingFrom->Malloc<CSetObject>();
+	mpObjects = GetObjectsThisIn()->Malloc<CSetObject>();
 	mpObjects->Init(false);
 	mpObjects->MakeSubRoot();
 }
@@ -187,18 +185,6 @@ bool CRoot::IsRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CRoot::IsSubRoot(void)
 {
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CRoot::Load(CObjectReader* pcFile)
-{
-	//This smells.
-	mpcObjectsAllocatingFrom = &gcObjects;
 	return true;
 }
 

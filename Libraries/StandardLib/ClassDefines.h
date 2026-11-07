@@ -21,6 +21,13 @@
 #define M_Char16(name)		Primitive(&name, #name)
 
 
+//Unmanaged fields are saved and loaded by CBaseObject::SaveUnmanaged, by what they are:
+//  numbers, bools, chars, enums, vectors and U_Data as their bytes, so U_Data is only for plain data (no pointers, no
+//  memory of its own, no virtual functions);
+//  U_String as its text;
+//  U_Pointer and U_Unknown not at all: a pointer loads as NULL, and an unknown (a container, or anything else that
+//  isn't plain data) is the class's to Save and Load if it is to be kept.
+//Describe a field one way: a field the class saves itself in Save is U_Unknown (or U_Pointer), not U_Data.
 #define U_Int8(name)					UnmanagedInt8(&name, #name)
 #define U_Int8Array(name, length)		UnmanagedInt8(name, length, #name)
 #define U_Int16(name)					UnmanagedInt16(&name, #name)
@@ -66,7 +73,7 @@
 #define U_String(name)					UnmanagedString(&name, #name)  /* CChars or CCharsImmutable */
 #define U_Number(name)					UnmanagedNumber(&name, #name)
 #define U_Date(name)					UnmanagedDate(&name, #name)
-				
+
 #define U_Data(type, name)				UnmanagedData(&name, sizeof(type), #name)
 #define U_Unknown(type, name)			UnmanagedUnknown(&name, sizeof(type), #name)
 #define U_Pointer(name)					UnmanagedPointer((void**)&name, #name)

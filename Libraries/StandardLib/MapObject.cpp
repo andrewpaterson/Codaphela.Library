@@ -385,7 +385,6 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 	EnsureSorted();
 
 	ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
-	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
 	uiNumElements = pcMapPtrPtr->GetSortedSize();
@@ -415,7 +414,6 @@ bool CMapObject::Load(CObjectReader* pcFile)
 
 	KillMemberLocations();
 	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
-	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
 	uiNumElements = pcMapPtrPtr->GetSortedSize();

@@ -265,11 +265,13 @@ protected:
 			bool					SavePointers(CObjectWriter* pcFile);
 			bool					SavePrimitives(CObjectWriter* pcFile);
 			bool					SaveUnmanaged(CObjectWriter* pcFile);
+			bool					SaveUnmanagedField(CObjectWriter* pcFile, CUnmanagedField* pcField);
 			bool					SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
 			bool					LoadEmbeddedObjectsManaged(CObjectReader* pcFile);
 			bool					LoadPointers(CObjectReader* pcFile);
 			bool					LoadPrimitives(CObjectReader* pcFile);
 			bool					LoadUnmanaged(CObjectReader* pcFile);
+			bool					LoadUnmanagedField(CObjectReader* pcFile, CUnmanagedField* pcField);
 			bool					LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
 

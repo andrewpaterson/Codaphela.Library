@@ -17,7 +17,7 @@
 
 
 #ifdef BUILD_64
-#define GRAPH_ROOT_SIZE					"376"
+#define GRAPH_ROOT_SIZE					"368"
 #define GRAPH_SET_OBJECT_SIZE			"368"
 #define GRAPH_OBJECT_SIZE				"352"
 #define GRAPH_TEST_OBJECT_SIZE			"400"
@@ -29,13 +29,13 @@
 #define GRAPH_TEST_OBJECT_SIZE			"192"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"176"
 #elif defined(__W65C816__)
-#define GRAPH_ROOT_SIZE					"184"
+#define GRAPH_ROOT_SIZE					"176"
 #define GRAPH_SET_OBJECT_SIZE			"176"
 #define GRAPH_OBJECT_SIZE				"168"
 #define GRAPH_TEST_OBJECT_SIZE			"192"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"176"
 #else
-#define GRAPH_ROOT_SIZE					"208"
+#define GRAPH_ROOT_SIZE					"200"
 #define GRAPH_SET_OBJECT_SIZE			"200"
 #define GRAPH_OBJECT_SIZE				"192"
 #define GRAPH_TEST_OBJECT_SIZE			"216"

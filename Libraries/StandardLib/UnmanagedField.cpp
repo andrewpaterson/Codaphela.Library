@@ -25,14 +25,19 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 
 	pcClasses = pcContainingClass->GetClasses();
 	pcFieldClass = pcClasses->GetValid(eType);
-	if (!pcFieldClass)
-	{
-		return;
-	}
-
 	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
-	muiElementSize = pcFieldClass->GetSizeOf();
-	muiLength = uiLength;
+	meType = eType;
+	if (pcFieldClass != NULL)
+	{
+		muiElementSize = pcFieldClass->GetSizeOf();
+		muiLength = uiLength;
+	}
+	else
+	{
+		//GetValid has reported it.  The field is kept, named, but has nothing to save.
+		muiElementSize = 0;
+		muiLength = 0;
+	}
 }
 
 
@@ -48,6 +53,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 	pcClasses = pcContainingClass->GetClasses();
 	pcFieldClass = pcClasses->Get(eType);
 	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
+	meType = eType;
 	muiElementSize = uiElementSize;
 	muiLength = uiLength;
 }
@@ -90,6 +96,18 @@ size CUnmanagedField::GetLength(void)
 size CUnmanagedField::GetSizeOf(void)
 {
 	return muiElementSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the field was registered as, which decides how it is saved (see
+// CBaseObject::SaveUnmanagedField).  U_Data has no class of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+EPrimitiveType CUnmanagedField::GetType(void)
+{
+	return meType;
 }
 
 
