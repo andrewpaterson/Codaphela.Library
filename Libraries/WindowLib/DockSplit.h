@@ -60,7 +60,7 @@ public:
 //is made smaller than DOCK_MINIMUM_SIZE while there is room.
 //
 //A split left with one node is replaced by that node, and a node that is a split of the same direction is merged into
-//its parent; the dock manager keeps them so (see CDockManager::Tidy).
+//its parent; the dock manager keeps them so (see CDockTree::Tidy).
 class CDockSplit : public CDockNode, public CDockNodeHolder
 {
 CONSTRUCTABLE(CDockSplit);

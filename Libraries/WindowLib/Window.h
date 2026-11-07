@@ -55,7 +55,7 @@ protected:
 	Ptr<CCanvas>				mpCanvas;
 	Ptr<CWindowTick>			mpWindowTick;
 	bool						mbTicking;
-	CFocus						mFocus;
+	CFocus						mcFocus;
 	CComponentInput*			mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CButton>				mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 	Ptr<CButton>				mpCancelButton;  //Clicked by escape when no popup is open.
@@ -135,7 +135,7 @@ public:
 	void					Layout(void);
 	void					LayoutAgain(void);
 
-	//Input in window client space.  Native windows, and later CComponentInput, call these.
+	//Input in window client space.  Native windows call these.
 	void						PointerMoved(int x, int y);
 	void						PointerLeft(void);
 	void						Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);

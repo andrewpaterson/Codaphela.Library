@@ -109,7 +109,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 		mpSoundMixer = NULL;
 	}
 
-	mFocus.Init(this);
+	mcFocus.Init(this);
 	mpClipboard = OMalloc<CClipboard>(this);
 	mbContinuous = false;
 	mbRedraw = true;
@@ -170,7 +170,7 @@ void CWindow::Class(void)
 	U_Bool(mbCaretPainted);
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
-	M_Embedded(mFocus);
+	M_Embedded(mcFocus);
 	U_Pointer(mpcComponentInput);
 	M_Pointer(mpDefaultButton);
 	M_Pointer(mpCancelButton);
@@ -322,7 +322,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 		iWait = (iFrameWait > 0) ? iFrameWait : 0;
 	}
 	iWait = ShorterWait(iWait, miTickDelay);
-	iWait = ShorterWait(iWait, mFocus.GetCaretBlinkWait(GetDebugTickCount()));
+	iWait = ShorterWait(iWait, mcFocus.GetCaretBlinkWait(GetDebugTickCount()));
 	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
@@ -339,7 +339,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 			iFrameWait = pOwned->miLastPaintTime + pOwned->muiFrameMilliseconds - GetDebugTickCount();
 			iWait = ShorterWait(iWait, (iFrameWait > 0) ? iFrameWait : 0);
 		}
-		iWait = ShorterWait(iWait, pOwned->mFocus.GetCaretBlinkWait(GetDebugTickCount()));
+		iWait = ShorterWait(iWait, pOwned->mcFocus.GetCaretBlinkWait(GetDebugTickCount()));
 	}
 	return iWait;
 }
@@ -481,7 +481,7 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	mpcNativeWindow->SetOwner(pcOwnerNative);
 	Activate();
 	bResult = Show();
-	mFocus.Deactivate();
+	mcFocus.Deactivate();
 
 	//The owner is enabled before the dialog goes so that the owner is the window activated.
 	pRoot->GetNativeWindow()->SetEnabled(true);
@@ -576,7 +576,7 @@ void CWindow::Layout(void)
 	mbLayoutDirty = false;
 
 	//Components may have moved under the pointer.
-	mFocus.Refresh();
+	mcFocus.Refresh();
 }
 
 
@@ -635,10 +635,10 @@ void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 //Input can change anything, so the window is painted again after it.  Keys, buttons and the wheel can change what
 //the window looks like, so it is laid out again too.  The pointer moving only changes what it is over; a component
 //that moves things as it is dragged invalidates the layout itself.
-void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); Invalidate(); }
-void CWindow::PointerLeft(void) { mFocus.PointerLeft(); Invalidate(); }
-void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); InvalidateLayout(); }
-void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); InvalidateLayout(); }
+void CWindow::PointerMoved(int x, int y) { mcFocus.PointerMoved(x, y); Invalidate(); }
+void CWindow::PointerLeft(void) { mcFocus.PointerLeft(); Invalidate(); }
+void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mcFocus.Command(eCommand, bInsert); InvalidateLayout(); }
+void CWindow::InputPrintable(char c, bool bInsert) { mcFocus.Printable(c, bInsert); InvalidateLayout(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -651,7 +651,7 @@ void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert
 void CWindow::Activate(void)
 {
 	ClaimInput();
-	mFocus.Activate();
+	mcFocus.Activate();
 	InvalidateLayout();
 	mcActivated.Call(this);
 }
@@ -666,7 +666,7 @@ CComponentEvent<CWindow>* CWindow::GetActivationEvent(void) { return &mcActivate
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
-	mFocus.Input(psWindowEvent, pcComponentInput);
+	mcFocus.Input(psWindowEvent, pcComponentInput);
 	if (psWindowEvent->eType == WIET_Delta)
 	{
 		Invalidate();
@@ -686,7 +686,7 @@ void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcCompone
 void CWindow::Deactivate(void)
 {
 	InvalidateLayout();
-	mFocus.Deactivate();
+	mcFocus.Deactivate();
 	//A tool window of the same owner that took the input, by being pressed, keeps what is held.
 	if (mpcComponentInput && (mpcComponentInput->GetWindow() == this))
 	{
@@ -1046,7 +1046,7 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcDest)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 CNativeWindow*			CWindow::GetNativeWindow(void) { return mpcNativeWindow; }
-Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
+Ptr<CFocus>				CWindow::GetFocus(void) { return &mcFocus; }
 Ptr<CSoundMixer>		CWindow::GetSoundMixer(void) { return mpSoundMixer; }
 Ptr<CClipboard>			CWindow::GetClipboard(void) { return mpClipboard; }
 Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
@@ -1111,7 +1111,7 @@ void CWindow::CloseOwned(void)
 	}
 	pOwner = mpOwner;
 	CloseAllPopups();
-	mFocus.Deactivate();
+	mcFocus.Deactivate();
 	if (mpcComponentInput && (mpcComponentInput->GetWindow() == this))
 	{
 		mpcComponentInput->SetWindow(&pOwner);
@@ -1168,7 +1168,7 @@ void CWindow::PaintCaret(void)
 	CColourFormatHelper	cFormat;
 
 	mbCaretPainted = false;
-	if (!mFocus.GetCaret(&cCaret, &sColour) || (cCaret.GetWidth() <= 0) || (cCaret.GetHeight() <= 0))
+	if (!mcFocus.GetCaret(&cCaret, &sColour) || (cCaret.GetWidth() <= 0) || (cCaret.GetHeight() <= 0))
 	{
 		return;
 	}
@@ -1198,9 +1198,9 @@ void CWindow::PaintCaret(void)
 	mbCaretPainted = true;
 	if (bMoved)
 	{
-		mFocus.ResetCaretBlink();
+		mcFocus.ResetCaretBlink();
 	}
-	DrawCaret(mFocus.IsCaretOn());
+	DrawCaret(mcFocus.IsCaretOn());
 }
 
 
@@ -1236,13 +1236,13 @@ void CWindow::DrawCaret(bool bOn)
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::BlinkCaret(int64 iNow)
 {
-	if (!mFocus.BlinkCaret(iNow))
+	if (!mcFocus.BlinkCaret(iNow))
 	{
 		return false;
 	}
 	if (mbCaretPainted && !mbRedraw)
 	{
-		DrawCaret(mFocus.IsCaretOn());
+		DrawCaret(mcFocus.IsCaretOn());
 		mpcNativeWindow->SignalPresentArea(&mcCaret);
 	}
 	return true;
@@ -1373,7 +1373,7 @@ void CWindow::GetPointerScreenPosition(SInt32Vec2* psDest)
 		return;
 	}
 	mpcNativeWindow->GetScreenRectangle(&cScreen);
-	sPointer = mFocus.GetPointer();
+	sPointer = mcFocus.GetPointer();
 	psDest->Init(cScreen.GetLeft() + sPointer.x, cScreen.GetTop() + sPointer.y);
 }
 
@@ -1400,10 +1400,10 @@ void CWindow::UpdateCursor(void)
 	ENativeCursor	eCursor;
 
 	eCursor = NC_Arrow;
-	pComponent = mFocus.GetDragComponent();
+	pComponent = mcFocus.GetDragComponent();
 	if (pComponent.IsNull() || (pComponent->GetCursor() == NC_Arrow))
 	{
-		pComponent = mFocus.GetMouseOverComponent();
+		pComponent = mcFocus.GetMouseOverComponent();
 	}
 	while (pComponent.IsNotNull())
 	{

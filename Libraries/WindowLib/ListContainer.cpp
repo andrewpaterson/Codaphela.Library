@@ -27,7 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The highlights are the Jewel dark selection and hover colours.  Page up
+// The highlights are the theme's list selected and hover colours.  Page up
 // and page down move ten rows unless a scroll pane shows the list (see
 // GetPageRows).
 //

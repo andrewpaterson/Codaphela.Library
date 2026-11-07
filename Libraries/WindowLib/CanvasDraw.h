@@ -25,14 +25,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Int32Vec2.h"
 
 
-/* The only import method in this class is
-
-Draw()
-
-Everything else just exists as a useful template to copy/paste objects from.  */
-
-
 class CCanvas;
+
+
+//What a canvas draws: Draw is called with the canvas each time it is drawn.  A draw with a size of its own (a cel, say)
+//gives it as its desired size, which a canvas with none of its own takes.
 class CCanvasDraw : public CObject
 {
 CONSTRUCTABLE(CCanvasDraw);

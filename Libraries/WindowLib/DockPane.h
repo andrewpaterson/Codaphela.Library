@@ -86,7 +86,7 @@ struct SDockRestore
 //One dockable thing: a component (its content), an ID unique in its manager, a title and an icon.  A tool pane or a
 //document pane.  The content is shown by whichever group, flyout or floating window it is in; it is never in two
 //places.  When a docked pane leaves its group, to float, to auto hide or to be hidden, it remembers where it was so
-//Dock and Show put it back (see CDockManager::Restore).
+//Dock and Show put it back (see CDockRestorer::Restore).
 class CDockPane : public CObject
 {
 CONSTRUCTABLE(CDockPane);

@@ -26,8 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MenuContainer.h"
 
 
-//As well as the list's.
-
 
 //////////////////////////////////////////////////////////////////////////
 //

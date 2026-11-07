@@ -24,16 +24,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Pointer.h"
 
 
-/* The only import method in this class is
-
-Tick()
-
-Everything else just exists as a useful template to copy/paste objects from.
-
-*/
-
-
 class CWindow;
+
+
+//What a window does each frame: Tick is called with the window, the time since the last tick and the time since the
+//first.
 class CWindowTick : public CObject
 {
 CONSTRUCTABLE(CWindowTick);

@@ -26,7 +26,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The scroll bars' thumbs are drawn with pImages, which can be shared.
+// The scroll bars' thumbs are drawn with the theme's scroll bar images,
+// which can be shared.
 //
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)

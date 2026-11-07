@@ -33,7 +33,6 @@ class CClipboard;
 class CNativeWindowFactory : public CConstructable
 {
 CONSTRUCTABLE(CNativeWindowFactory);
-friend class CWindowFactory;
 protected:
 	CMallocator*	mpcMallocator;
 

@@ -34,8 +34,9 @@ class CWindow;
 //new UI in its dark theme: flat bar buttons, rounded highlights inset from the menu's sides and separators that stop
 //short of them.  The font, Inter 13 in IntelliJ, is given.
 //
-//A menu item is a row of three columns: the icon column, the label and the chevron column.  The icon and chevron
-//columns are a fixed width, whether or not an item has an icon or a chevron, so the labels line up down the menu.
+//A menu item is a row of four columns: the icon column, the label, the shortcut and the chevron column.  The icon and
+//chevron columns are a fixed width, whether or not an item has an icon or a chevron, so the labels line up down the
+//menu.
 class CMenuStyle : public CObject
 {
 CONSTRUCTABLE(CMenuStyle);

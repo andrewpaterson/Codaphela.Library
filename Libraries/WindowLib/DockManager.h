@@ -60,13 +60,10 @@ enum EDockTargetKind
 class CDockArea;
 class CDocumentWell;
 class CDockFloatingWindow;
-class CDockDragTracker;
 class CDockDrag;
-class CDockGuides;
 class CAutoHideFlyout;
 class CMarkupTag;
 class CXMLWriter;
-class CFocus;
 
 
 //Where something would be docked and the preview of it, in the target window's client space.  Plain pointers: it is

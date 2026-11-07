@@ -47,7 +47,7 @@ protected:
 	SInsets				msInsets;
 	ARGB32				msBackground;
 	ARGB32				msBorder;
-	bool				mbBackground;  //False until a look is set, then nothing is drawn behind the content.
+	bool				mbBackground;  //The background is drawn behind the content; false, and nothing is, until a look is set.
 	bool				mbBorder;
 	bool				mbOwnerPressKeepsOpen;
 

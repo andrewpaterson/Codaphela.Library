@@ -78,7 +78,7 @@ public:
 	bool				Draw(void) override;
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
-	Ptr<CImage>			GetImageOrNull(void);  //This should be GetPixelData or something with the goal being to get chunk of memory that an image can be backed with to avoid a double image copy.
+	Ptr<CImage>			GetImageOrNull(void);  //The native canvas's pixels as an image, NULL if it has none (a canvas draw then blits into an image of its own).
 
 	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip = NULL);
 	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);
