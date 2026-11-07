@@ -9,12 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIO::Unnamed(CSerialisedObject* pcSerialised, CChars* pszDestName)
+char* CObjectIO::Unnamed(OIndex oi, CChars* pszDestName)
 {
-	OIndex	oi;
-
 	pszDestName->Init(OBJECT_UNNAMED_FILE"/");
-	oi = pcSerialised->GetIndex();
 	pszDestName->AppendHexHiLo(&oi, sizeof(OIndex));
 	return pszDestName->Text();
 }
@@ -24,7 +21,17 @@ char* CObjectIO::Unnamed(CSerialisedObject* pcSerialised, CChars* pszDestName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIO::Filename(const char* szSerialisedName, char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFilename)
+char* CObjectIO::Unnamed(CSerialisedObject* pcSerialised, CChars* pszDestName)
+{
+	return Unnamed(pcSerialised->GetIndex(), pszDestName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CObjectIO::Filename(const char* szSerialisedName, const char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFilename)
 {
 	CFileUtil	cFileUtil;
 	CChars		szShortFilename;

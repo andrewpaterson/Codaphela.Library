@@ -34,49 +34,20 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(const char* szObjectName)
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
 	CChars				szFilename;
-	char				szExtension[4];
-	bool				bResult;
-	int32				iFileType;
 
 	Filename(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFilename);
-
 	mcFile.Init(DiskFile(szFilename.Text()));
 	szFilename.Kill();
 	szDirectory.Kill();
 
-	bResult = mcFile.Open(EFM_Read);
-	if (!bResult)
+	if (!mcFile.Open(EFM_Read))
 	{
 		gcLogger.Error2(__METHOD__, " Could not open file [", mcFile.GetFilename(), "] for reading.", NULL);
 		mcFile.Kill();
 		return NULL;
 	}
 
-	//Read file type identifier.
-	bResult = mcFile.ReadData(szExtension, 4);
-	if ((!bResult) || (strcmp(szExtension, OBJECT_FILE_EXTENSION) != 0))
-	{
-		mcFile.Close();
-		mcFile.Kill();
-		return NULL;
-	}
-
-	bResult = mcFile.ReadInt32(&iFileType);
-	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
-	{
-		mcFile.Close();
-		mcFile.Kill();
-		return NULL;
-	}
-
-	pcSerialised = ReadSerialised(&mcFile);
-	if (!pcSerialised)
-	{
-		mcFile.Close();
-		mcFile.Kill();
-		return NULL;
-	}
-
+	pcSerialised = ReadOpenedFile(&mcFile);
 	mcFile.Close();
 	mcFile.Kill();
 	return pcSerialised;

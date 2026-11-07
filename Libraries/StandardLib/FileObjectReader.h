@@ -16,6 +16,9 @@ public:
 
 	CSerialisedObject*  Read(const char* szObjectName);
 	CSerialisedObject*	Read(OIndex oi);
+
+protected:
+	CSerialisedObject*	ReadOpenedFile(CFileBasic* pcFile);
 };
 
 
