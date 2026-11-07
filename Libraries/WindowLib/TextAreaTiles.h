@@ -51,8 +51,8 @@ struct STextTileCursor
 //A text area's text laid out in a fixed width font as tiles, as CTextLayout lays text out as sprites: each character
 //written into a cell of a tile layer, in the colours of its styles, and the rows and stops worked out from the columns
 //of the characters (a tab to the next tab stop, every other character a column).  A line's gap is the fewest empty rows
-//of tiles at least as high as it.  It reads the text area's document (its text and line starts), stop starts, gaps and
-//style, which it doesn't hold.
+//of tiles at least as high as it.  It reads its CTextAreaLayout's document (the text and line starts), stop starts, gaps
+//and style, which it doesn't hold.
 class CTextAreaTiles : public CObject
 {
 CONSTRUCTABLE(CTextAreaTiles);

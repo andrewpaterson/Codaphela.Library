@@ -67,17 +67,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	PreInit();
 
 	mcDocument.Init(szText);
-	mpFamily = pFamily;
-	msStyle.Init();
-	mcSpans.Init();
-	mbTextDirty = false;
-	mbSizeDirty = false;
-	mpText = NULL;
-	mbTextStale = false;
-	mpLayout = OMalloc<CTextLayout>();
-	mpSpriteMap = OMalloc<CSpriteMap>();
-	mpGeometryMap = OMalloc<CGeometryMap>();
-	mpFontDraw = OMalloc<CMapFontDraw>(mpSpriteMap, mpGeometryMap);
+	mpLayout = OMalloc<CTextAreaLayout>(&mcDocument, pFamily);
 	mpBackgroundMap = OMalloc<CGeometryMap>();
 	mcBackgrounds.Init();
 	mbBackgroundsDirty = false;
@@ -85,24 +75,15 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mpSelectionMap = OMalloc<CGeometryMap>();
 	mbMarksDirty = false;
 	mpMaps = OMalloc<CMaps>();
-	mbTiledText = false;
-	mbTiled = false;
-	mpTiles = OMalloc<CTextAreaTiles>(&mcDocument, &mauiStopStarts, &mcGaps, &msStyle);
 	mpMaps->AddMap(mpBackgroundMap);
 	mpMaps->AddMap(mpSelectionMap);
-	mpMaps->AddMap(mpSpriteMap);
-	mpMaps->AddMap(mpTiles->GetMap());
-	mpMaps->AddMap(mpGeometryMap);
+	mpMaps->AddMap(mpLayout->GetSpriteMap());
+	mpMaps->AddMap(mpLayout->GetTileMap());
+	mpMaps->AddMap(mpLayout->GetGeometryMap());
 	mpMaps->SetViewportPosition(0, 0);
-	mbWordWrap = false;
-	msTextSize.Init(0, 0);
 	msSelectionColour = pTheme->GetColour(TC_TextSelection);
 	msCaretColour = pTheme->GetColour(TC_Caret);
-	mauiStopStarts.Init();
-	mcGaps.Init();
-	mcDocument.AddListener(&mcSpans);
 	mcDocument.AddListener(&mcBackgrounds);
-	mcDocument.AddListener(&mcGaps);
 	mcEditing.Init(&mcDocument, this);
 	mcUndoEvent.Init();
 	mcChanged.Init();
@@ -114,8 +95,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	SetTransparent(true);
 	SetCanGetFocus(true);
 
-	ReadText();
-	LayoutText();
+	Relayout();
 
 	mcInput.Init(this, &mcEditing, true);
 	AddInputAction(CIC_LineUp, this, &CTextArea::LineUp);
@@ -134,10 +114,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Free(void)
 {
-	mcGaps.Kill();
-	mauiStopStarts.Kill();
 	mcBackgrounds.Kill();
-	mcSpans.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
 	mcInput.Kill();
@@ -156,26 +133,10 @@ void CTextArea::Class(void)
 	CCanvas::Class();
 
 	U_Unknown(CTextDocument, mcDocument);
-	M_Pointer(mpFamily);
-	U_Data(STextStyle, msStyle);
-	U_Unknown(CTextSpans, mcSpans);
-	U_Bool(mbTextDirty);
-	U_Bool(mbSizeDirty);
 	U_Unknown(CTextAreaUndoEvent, mcUndoEvent);
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
-	M_Pointer(mpText);
-	U_Bool(mbTextStale);
 	M_Pointer(mpLayout);
-	M_Pointer(mpAppendLayout);
-	M_Pointer(mpSpriteMap);
-	M_Pointer(mpGeometryMap);
-	M_Pointer(mpFontDraw);
 	M_Pointer(mpMaps);
-	U_Bool(mbWordWrap);
-	U_2Int32(msTextSize);
-	U_Bool(mbTiledText);
-	U_Bool(mbTiled);
-	M_Pointer(mpTiles);
 	M_Pointer(mpBackgroundMap);
 	U_Unknown(CTextBackgrounds, mcBackgrounds);
 	U_Bool(mbBackgroundsDirty);
@@ -184,8 +145,6 @@ void CTextArea::Class(void)
 	U_Bool(mbMarksDirty);
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
-	U_Unknown(CArrayTextAreaStopStart, mauiStopStarts);
-	U_Unknown(CTextLineGaps, mcGaps);
 	U_Unknown(CTextEditing, mcEditing);
 	U_Bool(mbSelectable);
 	U_Unknown(CTextEditingInput, mcInput);
@@ -221,13 +180,10 @@ bool CTextArea::Load(CObjectReader* pcFile)
 void CTextArea::SetText(const char* szText)
 {
 	mcDocument.SetText(szText);
-	mcSpans.Clear();
 	mcBackgrounds.Clear();
-	mbBackgroundsDirty = true;
-	mcGaps.Clear();
 	mcEditing.Reset();
-	ReadText();
-	LayoutText();
+	mpLayout->TextSet();
+	LaidOut();
 	ClearUndo();
 
 	//What it is laid out from has changed.
@@ -245,35 +201,12 @@ void CTextArea::SetText(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::AppendText(const char* szText, ARGB32 sColour)
 {
-	size	uiStart;
-	bool	bAppendTiles;
-	bool	bAppendSprites;
-
 	if ((szText == NULL) || (szText[0] == '\0'))
 	{
 		return;
 	}
-	bAppendTiles = CanAppendTiles();
-	bAppendSprites = !bAppendTiles && CanAppendSprites();
-	uiStart = mcDocument.Length();
-	mcDocument.Append(szText);
-	AddSpan(uiStart, mcDocument.Length() - uiStart, sColour);
-	if (bAppendTiles)
-	{
-		AppendTiles(uiStart);
-		mbTextDirty = false;
-		LayoutTiles();
-	}
-	else if (bAppendSprites)
-	{
-		AppendSprites(uiStart);
-		mbTextDirty = false;
-	}
-	else
-	{
-		ReadText();
-		LayoutText();
-	}
+	mpLayout->Append(szText, sColour);
+	LaidOut();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -311,9 +244,8 @@ void CTextArea::SetFontColours(Ptr<CFontColours> pColours)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetFontFamily(Ptr<CFontFamily> pFamily)
 {
-	mpFamily = pFamily;
-	ReadText();
-	LayoutText();
+	mpLayout->SetFontFamily(pFamily);
+	Relayout();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -326,11 +258,9 @@ void CTextArea::SetFontFamily(Ptr<CFontFamily> pFamily)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetWordWrap(bool bWordWrap)
 {
-	if (mbWordWrap != bWordWrap)
+	if (mpLayout->SetWordWrap(bWordWrap))
 	{
-		mbWordWrap = bWordWrap;
-		ReadText();
-		LayoutText();
+		Relayout();
 	}
 
 	//What it is laid out from has changed.
@@ -346,12 +276,7 @@ void CTextArea::SetWordWrap(bool bWordWrap)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetStyle(STextStyle* psStyle)
 {
-	if (!msStyle.EqualsFont(psStyle))
-	{
-		mbSizeDirty = true;
-	}
-	msStyle = *psStyle;
-	mbTextDirty = true;
+	mpLayout->SetStyle(psStyle);
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -362,10 +287,7 @@ void CTextArea::SetStyle(STextStyle* psStyle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::GetStyle(STextStyle* psStyle)
-{
-	*psStyle = msStyle;
-}
+void CTextArea::GetStyle(STextStyle* psStyle) { *psStyle = *mpLayout->GetStyle(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -373,14 +295,7 @@ void CTextArea::GetStyle(STextStyle* psStyle)
 // The colour of text that isn't in a span that sets a colour.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::SetColour(ARGB32 sColour)
-{
-	if (msStyle.sColour != sColour)
-	{
-		msStyle.sColour = sColour;
-		mbTextDirty = true;
-	}
-}
+void CTextArea::SetColour(ARGB32 sColour) { mpLayout->SetColour(sColour); }  //Of text that isn't in a span that sets a colour.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,46 +320,14 @@ bool CTextArea::AddSpan(size uiStart, size uiLength, ARGB32 sColour)
 // Returns false if the span goes past the end of the text.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride)
-{
-	size	uiTextLength;
-
-	uiTextLength = mcDocument.Length();
-	if ((uiStart > uiTextLength) || (uiLength > uiTextLength - uiStart))
-	{
-		return false;
-	}
-	if ((uiLength == 0) || (psOverride->uiSet == 0))
-	{
-		return true;
-	}
-
-	mcSpans.Add(uiStart, uiLength, psOverride);
-	mbTextDirty = true;
-	if (psOverride->ChangesFont())
-	{
-		mbSizeDirty = true;
-	}
-	return true;
-}
+bool CTextArea::AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride) { return mpLayout->AddSpan(uiStart, uiLength, psOverride); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::ClearSpans(void)
-{
-	if (mcSpans.ChangesFont())
-	{
-		mbSizeDirty = true;
-	}
-	if (mcSpans.NumSpans() > 0)
-	{
-		mcSpans.Clear();
-		mbTextDirty = true;
-	}
-}
+void CTextArea::ClearSpans(void) { mpLayout->ClearSpans(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -551,20 +434,6 @@ STextAreaBackground* CTextArea::GetBackground(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The style of the byte at uiPosition of the UTF8 text: the text area's
-// style with every span that covers it applied in the order they were
-// added.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::GetStyleAt(size uiPosition, STextStyle* psStyle)
-{
-	*psStyle = msStyle;
-	mcSpans.ApplyAt(uiPosition, psStyle);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 ARGB32 CTextArea::GetColourAt(size uiPosition)
@@ -588,17 +457,19 @@ void CTextArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	CCanvas::Layout(sPosition, sAreaSize);
 
-	if (mbTextDirty || (!mbTiled && (mpLayout->GetWidth() != GetWrapWidth())))
+	mpLayout->SetWidth(mcActualBounds.GetWidth());
+	if (mpLayout->IsTextDirty() || mpLayout->IsWrapWidthChanged())
 	{
 		//Wrapped to a new width, or in new styles, the text can be a different size so the window must lay its
 		//components out again.
-		sTextSize = msTextSize;
-		if (mbTextDirty)
+		sTextSize = mpLayout->GetTextSize();
+		if (mpLayout->IsTextDirty())
 		{
-			ReadText();
+			mpLayout->ReadText();
 		}
-		LayoutText();
-		if ((msTextSize.x != sTextSize.x) || (msTextSize.y != sTextSize.y))
+		mpLayout->LayoutText();
+		LaidOut();
+		if (sTextSize != mpLayout->GetTextSize())
 		{
 			mpWindow->LayoutAgain();
 		}
@@ -634,231 +505,11 @@ bool CTextArea::Draw(void)
 void CTextArea::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
 {
 	CCanvas::PrepareArea(bDrawn, bClipped, pcClip, pcArea);
-	if (mbTextDirty || mbBackgroundsDirty || mbMarksDirty || (miBackgroundWidth != GetFullWidth()))
+	if (mpLayout->IsTextDirty() || mbBackgroundsDirty || mbMarksDirty || (miBackgroundWidth != GetFullWidth()))
 	{
 		MarkContentChanged();
 		mpWindow->AddDamage(pcArea);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::UpdateText(void)
-{
-	if (mbTextDirty)
-	{
-		ReadText();
-		LayoutText();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Before the size is asked for, spans or a style that can change it are
-// applied.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::UpdateSize(void)
-{
-	if (mbSizeDirty)
-	{
-		UpdateText();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The width lines are wrapped to, -1 if they aren't.  A text area that
-// hasn't been laid out yet has no width so its lines aren't wrapped.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetWrapWidth(void)
-{
-	int32	iWidth;
-
-	iWidth = mcActualBounds.GetWidth();
-	if (mbWordWrap && (iWidth > 0))
-	{
-		return iWidth;
-	}
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Makes the text from the UTF8 in the fonts of its styles.  Without a font
-// for the text area's style there is no text (the family logs why).
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ReadText(void)
-{
-	mbTextDirty = false;
-	mbSizeDirty = false;
-	mbTextStale = false;
-	FindStopStarts(0);
-
-	mbTiled = UseTiles();
-	if (mbTiled)
-	{
-		ReadTiles();
-		return;
-	}
-	mpTiles->ClearTiles();
-
-	mpText = ReadTextFrom(0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The style of each byte of the text from uiFrom on (the first is
-// uiFrom's): the text area's style with the spans over it, applied in the
-// order they were added.  NULL if there are no spans, when every byte is in
-// the text area's style.  Free it.
-//
-//////////////////////////////////////////////////////////////////////////
-STextStyle* CTextArea::MakeStyles(size uiFrom)
-{
-	size		uiTextLength;
-	size		uiPosition;
-	STextStyle*	psStyles;
-
-	uiTextLength = mcDocument.Length();
-	if ((mcSpans.NumSpans() == 0) || (uiTextLength <= uiFrom))
-	{
-		return NULL;
-	}
-
-	psStyles = (STextStyle*)malloc((uiTextLength - uiFrom) * sizeof(STextStyle));
-	for (uiPosition = uiFrom; uiPosition < uiTextLength; uiPosition++)
-	{
-		psStyles[uiPosition - uiFrom] = msStyle;
-	}
-	mcSpans.Apply(psStyles, uiFrom, uiTextLength);
-	return psStyles;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text area's style, or a span, underlines, overlines or strikes
-// through some of the text.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::HasDecorations(void)
-{
-	if (msStyle.GetDecorations() != 0)
-	{
-		return true;
-	}
-	return mcSpans.HasDecorations(&msStyle);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A font change is made wherever the style of the text from uiFrom on
-// (MakeStyles) changes, at its byte after uiFrom.  Text before the first
-// change is in pDefaultFont.  A style the family has no font for is drawn
-// in pDefaultFont (the family logs an error).
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift, size uiFrom)
-{
-	size				uiTextLength;
-	size				uiPosition;
-	STextStyle*			psStyles;
-	STextStyle*			psCurrent;
-	Ptr<CFont>			pFont;
-	int16				iBaselineShift;
-
-	psStyles = MakeStyles(uiFrom);
-	if (psStyles == NULL)
-	{
-		return;
-	}
-
-	uiTextLength = mcDocument.Length() - uiFrom;
-	psCurrent = &msStyle;
-	for (uiPosition = 0; uiPosition < uiTextLength; uiPosition++)
-	{
-		if (!psStyles[uiPosition].Equals(psCurrent))
-		{
-			pFont = mpFamily->GetRunFont(&psStyles[uiPosition], &iBaselineShift);
-			if (pFont.IsNull())
-			{
-				pFont = pDefaultFont;
-				iBaselineShift = iDefaultBaselineShift;
-			}
-			pasChanges->Add()->Init(uiPosition, &pFont, iBaselineShift, psStyles[uiPosition].GetDecorations(), psStyles[uiPosition].sColour);
-			psCurrent = &psStyles[uiPosition];
-		}
-	}
-	SafeFree(psStyles);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Places a sprite for each glyph, wrapped to the actual width if word wrap
-// is on, and works out the size they need.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::LayoutText(void)
-{
-	Ptr<CFont>			pFont;
-	STextLayoutLine*	psLine;
-
-	if (mbTextStale)
-	{
-		//Text was appended since the whole was read: it is all laid out again, so it is all read again.
-		ReadText();
-	}
-	if (mbTiled)
-	{
-		LayoutTiles();
-		return;
-	}
-
-	mpLayout->SetWidth(GetWrapWidth());
-	mpLayout->SetLineGaps(mcGaps.GetGaps());
-	mpLayout->SetTabWidth(GetTabPixels());
-
-	mpFontDraw->Begin();
-	if (mpText.IsNotNull())
-	{
-		mpLayout->Layout(mpFontDraw, mpText);
-		msTextSize = mpLayout->GetSize();
-	}
-	else
-	{
-		msTextSize.Init(0, 0);
-	}
-	mpFontDraw->End();
-
-	//Even a text area with no text is a line high, above its gap.  With no characters the layout had no font to make
-	//its line high.
-	pFont = GetFont();
-	if (pFont.IsNotNull() && (mcDocument.Length() == 0) && mpText.IsNotNull() && (mpLayout->NumLines() == 1))
-	{
-		psLine = mpLayout->GetLine(0);
-		psLine->iHeight = pFont->GetLineHeight();
-		psLine->iBaseline = pFont->GetAscent();
-		msTextSize.y = psLine->iHeight + GetLineGap(0);
-	}
-	if (pFont.IsNotNull() && (msTextSize.y < pFont->GetLineHeight()))
-	{
-		msTextSize.y = pFont->GetLineHeight();
-	}
-
-	mbBackgroundsDirty = true;
-	UpdateMarks();
 }
 
 
@@ -874,8 +525,8 @@ SInt32Vec2 CTextArea::GetRequiredSize(void)
 	SInt32Vec2	sSize;
 
 	UpdateSize();
-	sSize = msTextSize;
-	if (mbWordWrap)
+	sSize = mpLayout->GetTextSize();
+	if (mpLayout->IsWordWrap())
 	{
 		sSize.x = -1;
 	}
@@ -914,71 +565,20 @@ SInt32Vec2 CTextArea::GetDesiredSize(void)
 SInt32Vec2 CTextArea::GetTextSize(void)
 {
 	UpdateSize();
-	return msTextSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Pixels between tab stops when the text is laid out as sprites: the tab
-// width's spaces of the font.  0 (tabs have no width) without a font or a
-// space in it.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetTabPixels(void)
-{
-	Ptr<CFont>		pFont;
-	Ptr<CGlyph>		pSpace;
-
-	pFont = GetFont();
-	if (pFont.IsNull())
-	{
-		return 0;
-	}
-	pSpace = pFont->GetGlyph((uint16)' ', 1);
-	if (pSpace.IsNull())
-	{
-		return 0;
-	}
-	return (int32)mcEditing.GetTabWidth() * pSpace->GetFullWidth();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The colours of the text area's style's face and size.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CFontColours> CTextArea::GetFontColours(void)
-{
-	return mpFamily->GetColours(msStyle.GetFontStyle(), msStyle.fPixelSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The white font of the text area's style's face and size.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CTextArea::GetFont(void)
-{
-	Ptr<CFontColours>	pColours;
-
-	pColours = GetFontColours();
-	if (pColours.IsNull())
-	{
-		return NULL;
-	}
-	return pColours->GetWhite();
+	return mpLayout->GetTextSize();
 }
 
 
 char* CTextArea::GetText(void) { return mcDocument.Text(); }
 size CTextArea::GetChangeCount(void) { return mcDocument.GetChangeCount(); }  //Each edit counts one more, so the text's owner can tell it changed since it last looked.
-Ptr<CFontFamily> CTextArea::GetFontFamily(void) { return mpFamily; }
-bool CTextArea::IsWordWrap(void) { return mbWordWrap; }
-ARGB32 CTextArea::GetColour(void) { return msStyle.sColour; }
-size CTextArea::NumSpans(void) { return mcSpans.NumSpans(); }
+Ptr<CFontFamily> CTextArea::GetFontFamily(void) { return mpLayout->GetFontFamily(); }
+bool CTextArea::IsWordWrap(void) { return mpLayout->IsWordWrap(); }
+ARGB32 CTextArea::GetColour(void) { return mpLayout->GetStyle()->sColour; }
+Ptr<CFontColours> CTextArea::GetFontColours(void) { return mpLayout->GetFontColours(); }  //The colours of the text area's style's face and size.
+Ptr<CFont> CTextArea::GetFont(void) { return mpLayout->GetFont(); }  //The white font of the text area's style's face and size.
+int32 CTextArea::GetTabPixels(void) { return mpLayout->GetTabPixels(); }
+void CTextArea::GetStyleAt(size uiPosition, STextStyle* psStyle) { mpLayout->GetStyleAt(uiPosition, psStyle); }
+size CTextArea::NumSpans(void) { return mpLayout->NumSpans(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1015,13 +615,15 @@ void CTextArea::SetSelectable(bool bSelectable)
 void CTextArea::SetTabWidth(int32 iTabWidth)
 {
 	mcEditing.SetTabWidth(iTabWidth < 1 ? 1 : (size)iTabWidth);
+	mpLayout->SetTabWidth(mcEditing.GetTabWidth());
 
 	//Tabs go to tab stops, as tiles or as sprites, so the text is laid out again.
-	if (mbTiled)
+	if (mpLayout->IsTiled())
 	{
-		ReadText();
+		mpLayout->ReadText();
 	}
-	LayoutText();
+	mpLayout->LayoutText();
+	LaidOut();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -1113,11 +715,11 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 	UpdateText();
 	if (!HasRows())
 	{
-		pcDest->Init(0, 0, 1, msTextSize.y);
+		pcDest->Init(0, 0, 1, mpLayout->GetTextSize().y);
 		return;
 	}
 
-	psLine = GetLayoutLine(mcEditing.GetCaretRow());
+	psLine = mpLayout->GetLayoutLine(mcEditing.GetCaretRow());
 	x = mcEditing.GetCaretX();
 	if ((mcActualBounds.GetWidth() > 0) && (x > mcActualBounds.GetWidth() - 1))
 	{
@@ -1171,8 +773,8 @@ bool CTextArea::GetLineBounds(size uiLine, CInt32Rect* pcDest)
 		return false;
 	}
 
-	psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
-	psLast = GetLayoutLine(FindLastRow(uiLine));
+	psFirst = mpLayout->GetLayoutLine(mpLayout->GetLayoutStop(mpLayout->FindStop(GetLineStart(uiLine)))->uiLine);
+	psLast = mpLayout->GetLayoutLine(mpLayout->FindLastRow(uiLine));
 	iWidth = GetFullWidth();
 	pcDest->Init(0, psFirst->iTop, iWidth, psLast->iTop + psLast->iHeight);
 	return true;
@@ -1192,7 +794,7 @@ bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
 	{
 		return false;
 	}
-	if (mcGaps.Set(uiLine, iHeight))
+	if (mpLayout->GetGaps()->Set(uiLine, iHeight))
 	{
 		GapsChanged();
 	}
@@ -1207,7 +809,7 @@ bool CTextArea::SetLineGap(size uiLine, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 uint32 CTextArea::GetLineGapId(size uiLine)
 {
-	return mcGaps.GetId(uiLine);
+	return mpLayout->GetGaps()->GetId(uiLine);
 }
 
 
@@ -1219,7 +821,7 @@ uint32 CTextArea::GetLineGapId(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::FindLineGap(uint32 uiId)
 {
-	return mcGaps.FindLine(uiId);
+	return mpLayout->GetGaps()->FindLine(uiId);
 }
 
 
@@ -1230,7 +832,7 @@ size CTextArea::FindLineGap(uint32 uiId)
 //////////////////////////////////////////////////////////////////////////
 CArrayTextLayoutGap* CTextArea::GetLineGaps(void)
 {
-	return mcGaps.GetGaps();
+	return mpLayout->GetGaps()->GetGaps();
 }
 
 
@@ -1244,7 +846,7 @@ CArrayTextLayoutGap* CTextArea::GetLineGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetLineGaps(CArrayTextLayoutGap* pasGaps)
 {
-	if (mcGaps.Copy(pasGaps, NumLines()))
+	if (mpLayout->GetGaps()->Copy(pasGaps, NumLines()))
 	{
 		GapsChanged();
 	}
@@ -1258,7 +860,7 @@ void CTextArea::SetLineGaps(CArrayTextLayoutGap* pasGaps)
 //////////////////////////////////////////////////////////////////////////
 int32 CTextArea::GetLineGap(size uiLine)
 {
-	return mcGaps.GetHeight(uiLine);
+	return mpLayout->GetGaps()->GetHeight(uiLine);
 }
 
 
@@ -1268,7 +870,7 @@ int32 CTextArea::GetLineGap(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::NumLineGaps(void)
 {
-	return mcGaps.NumGaps();
+	return mpLayout->GetGaps()->NumGaps();
 }
 
 
@@ -1278,7 +880,7 @@ size CTextArea::NumLineGaps(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearLineGaps(void)
 {
-	if (mcGaps.Clear())
+	if (mpLayout->GetGaps()->Clear())
 	{
 		GapsChanged();
 	}
@@ -1306,11 +908,11 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 		return false;
 	}
 
-	uiRow = FindLastRow(uiLine);
-	psLine = GetLayoutLine(uiRow);
+	uiRow = mpLayout->FindLastRow(uiLine);
+	psLine = mpLayout->GetLayoutLine(uiRow);
 	iTop = psLine->iTop + psLine->iHeight;
-	iBottom = (uiRow + 1 < NumLayoutLines()) ? GetLayoutLine(uiRow + 1)->iTop : msTextSize.y;
-	iWidth = (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+	iBottom = (uiRow + 1 < mpLayout->NumLayoutLines()) ? mpLayout->GetLayoutLine(uiRow + 1)->iTop : mpLayout->GetTextSize().y;
+	iWidth = GetFullWidth();
 	pcDest->Init(0, iTop, iWidth, iBottom);
 	return true;
 }
@@ -1516,54 +1118,6 @@ void CTextArea::PasteFromClipboard(void) { mcInput.PasteFromClipboard(); }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The byte each of the layout's stops is before, found the way the text
-// is read from uiFrom on (0 for all of it; else the old end, when text
-// was appended): a stop for each character but carriage returns, then one
-// at the end of the text.  Stops found before at or after uiFrom go.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::FindStopStarts(size uiFrom)
-{
-	size	uiPosition;
-	size	uiLength;
-	char*	szText;
-
-	while ((mauiStopStarts.NumElements() > 0) && (*mauiStopStarts.Tail() >= uiFrom))
-	{
-		mauiStopStarts.RemoveTail();
-	}
-	szText = mcDocument.Text();
-	uiLength = mcDocument.Length();
-	uiPosition = uiFrom;
-	while (uiPosition < uiLength)
-	{
-		if (szText[uiPosition] != '\r')
-		{
-			*mauiStopStarts.Add() = uiPosition;
-		}
-		uiPosition += mcDocument.GetNavigation()->CharacterLength(uiPosition);
-	}
-	*mauiStopStarts.Add() = uiLength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The row line uiLine ends on: the row of its line feed, or the last row.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindLastRow(size uiLine)
-{
-	if (uiLine + 1 < NumLines())
-	{
-		return GetLayoutStop(FindStop(GetLineStart(uiLine + 1) - 1))->uiLine;
-	}
-	return NumLayoutLines() - 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Like spans, the gaps are laid out when the text area is next laid out,
 // drawn, asked its size or asked where something is, so changing many is
 // laid out once.
@@ -1571,235 +1125,10 @@ size CTextArea::FindLastRow(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::GapsChanged(void)
 {
-	mbTextDirty = true;
-	mbSizeDirty = true;
+	mpLayout->GapsChanged();
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the layout is of the text as it is.  Without a font there is no
-// layout, and the caret and selection aren't drawn.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::HasRows(void)
-{
-	return (mbTiled || mpText.IsNotNull()) && (NumLayoutLines() > 0) && (NumLayoutStops() == mauiStopStarts.NumElements());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The first stop at or after uiPosition.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindStop(size uiPosition)
-{
-	size	uiLow;
-	size	uiHigh;
-	size	uiMiddle;
-
-	uiLow = 0;
-	uiHigh = mauiStopStarts.NumElements() - 1;
-	while (uiLow < uiHigh)
-	{
-		uiMiddle = (uiLow + uiHigh) / 2;
-		if (*mauiStopStarts.Get(uiMiddle) < uiPosition)
-		{
-			uiLow = uiMiddle + 1;
-		}
-		else
-		{
-			uiHigh = uiMiddle;
-		}
-	}
-	return uiLow;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A row ends where a word didn't fit on it, not at a line feed or the end
-// of the text.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsRowWrapped(size uiRow)
-{
-	STextLayoutLine*	psLine;
-	size				uiLast;
-
-	if (uiRow + 1 >= NumLayoutLines())
-	{
-		return false;
-	}
-	psLine = GetLayoutLine(uiRow);
-	uiLast = psLine->uiFirstStop + psLine->uiNumStops - 1;
-	return mcDocument.Text()[*mauiStopStarts.Get(uiLast)] != '\n';
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The row uiPosition is on.  At the start of a wrapped row and bRowEnd it
-// is the end of the row above.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindRow(size uiPosition, bool bRowEnd)
-{
-	size	uiRow;
-
-	uiRow = GetLayoutStop(FindStop(uiPosition))->uiLine;
-	if (bRowEnd && (uiRow > 0) && (GetRowStart(uiRow) == uiPosition) && IsRowWrapped(uiRow - 1))
-	{
-		uiRow--;
-	}
-	return uiRow;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::GetRowStart(size uiRow)
-{
-	return *mauiStopStarts.Get(GetLayoutLine(uiRow)->uiFirstStop);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The last position on the row: before its line feed, at the end of the
-// text, or for a wrapped row the start of the next row with pbRowEnd true.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::GetRowEnd(size uiRow, bool* pbRowEnd)
-{
-	STextLayoutLine*	psLine;
-
-	*pbRowEnd = false;
-	if (uiRow + 1 >= NumLayoutLines())
-	{
-		return mcDocument.Length();
-	}
-
-	psLine = GetLayoutLine(uiRow);
-	if (IsRowWrapped(uiRow))
-	{
-		*pbRowEnd = true;
-		return *mauiStopStarts.Get(psLine->uiFirstStop + psLine->uiNumStops);
-	}
-	return mcDocument.GetNavigation()->FindLineEnd(*mauiStopStarts.Get(psLine->uiFirstStop + psLine->uiNumStops - 1));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The x of the row's last position.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetRowRight(size uiRow)
-{
-	STextLayoutLine*	psLine;
-	STextLayoutStop*	psStop;
-
-	psLine = GetLayoutLine(uiRow);
-	psStop = GetLayoutStop(psLine->uiFirstStop + psLine->uiNumStops - 1);
-	if (IsRowWrapped(uiRow))
-	{
-		return psStop->x + psStop->iWidth;
-	}
-	return psStop->x;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The row y (relative to the text area's top) is in.  Above the text it
-// is the first, below it the last.  In a line's gap it is the row above.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindRowAt(int32 y)
-{
-	size				uiRow;
-	size				uiNumRows;
-
-	uiNumRows = NumLayoutLines();
-	for (uiRow = 0; uiRow < uiNumRows - 1; uiRow++)
-	{
-		if (y < GetLayoutLine(uiRow + 1)->iTop)
-		{
-			break;
-		}
-	}
-	return uiRow;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The position on the row nearest x.  The end of a wrapped row is the
-// start of the next with pbRowEnd true.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd)
-{
-	STextLayoutLine*	psLine;
-	size				uiStop;
-	size				uiEnd;
-	size				uiBest;
-	int32				iBestDistance;
-	int32				iDistance;
-	bool				bRowEnd;
-
-	psLine = GetLayoutLine(uiRow);
-	uiEnd = psLine->uiFirstStop + psLine->uiNumStops;
-	uiBest = psLine->uiFirstStop;
-	iBestDistance = abs(GetLayoutStop(uiBest)->x - x);
-	for (uiStop = uiBest + 1; uiStop < uiEnd; uiStop++)
-	{
-		iDistance = abs(GetLayoutStop(uiStop)->x - x);
-		if (iDistance < iBestDistance)
-		{
-			uiBest = uiStop;
-			iBestDistance = iDistance;
-		}
-	}
-
-	*pbRowEnd = false;
-	if (IsRowWrapped(uiRow) && (abs(GetRowRight(uiRow) - x) < iBestDistance))
-	{
-		return GetRowEnd(uiRow, pbRowEnd);
-	}
-	if (!IsRowWrapped(uiRow) && (uiBest == uiEnd - 1))
-	{
-		//The last stop of a row that isn't wrapped is its line feed or the end of the text.
-		return GetRowEnd(uiRow, &bRowEnd);
-	}
-	return *mauiStopStarts.Get(uiBest);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The x of the caret at uiPosition, relative to the text area's left.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetPositionX(size uiPosition, bool bRowEnd)
-{
-	size	uiStop;
-	size	uiRow;
-
-	uiStop = FindStop(uiPosition);
-	uiRow = FindRow(uiPosition, bRowEnd);
-	if (uiRow != GetLayoutStop(uiStop)->uiLine)
-	{
-		return GetRowRight(uiRow);
-	}
-	return GetLayoutStop(uiStop)->x;
 }
 
 
@@ -1835,24 +1164,6 @@ int32 CTextArea::GetPageHeight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The width of a space, to show a line feed is selected.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CTextArea::GetNewLineWidth(void)
-{
-	Ptr<CFont>	pFont;
-
-	pFont = GetFont();
-	if (pFont.IsNull())
-	{
-		return 0;
-	}
-	return (int32)pFont->CalculateWidth((char*)" ");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The row a page of the view below or above uiRow.  The view scrolls as
 // far as that row is from uiRow, so the caret moved there stays where it
 // was in the view.
@@ -1866,13 +1177,13 @@ size CTextArea::ScrollPage(size uiRow, bool bDown)
 	int32				iPage;
 	size				uiPageRow;
 
-	psLine = GetLayoutLine(uiRow);
+	psLine = mpLayout->GetLayoutLine(uiRow);
 	iTop = psLine->iTop;
 	iMiddle = psLine->iTop + psLine->iHeight / 2;
 	iPage = bDown ? GetPageHeight() : -GetPageHeight();
 
 	uiPageRow = FindRowAt(iMiddle + iPage);
-	ScrollBy(GetLayoutLine(uiPageRow)->iTop - iTop);
+	ScrollBy(mpLayout->GetLayoutLine(uiPageRow)->iTop - iTop);
 	return uiPageRow;
 }
 
@@ -1990,10 +1301,9 @@ void CTextArea::TextEdited(void)
 {
 	SInt32Vec2	sTextSize;
 
-	sTextSize = msTextSize;
-	ReadText();
-	LayoutText();
-	if (((msTextSize.x != sTextSize.x) || (msTextSize.y != sTextSize.y)) && mpWindow.IsNotNull())
+	sTextSize = mpLayout->GetTextSize();
+	Relayout();
+	if ((sTextSize != mpLayout->GetTextSize()) && mpWindow.IsNotNull())
 	{
 		mpWindow->LayoutAgain();
 	}
@@ -2163,7 +1473,7 @@ void CTextArea::AddLineBackgroundRectangles(STextAreaBackground* psBackground)
 	iRunBottom = -1;
 	for (uiLine = psBackground->uiStart; uiLine < psBackground->uiEnd; uiLine++)
 	{
-		if (!GetLineRows(uiLine, &iTop, &iBottom))
+		if (!mpLayout->GetLineRows(uiLine, &iTop, &iBottom))
 		{
 			break;
 		}
@@ -2201,7 +1511,7 @@ void CTextArea::AddBoundaryRectangle(STextAreaBackground* psBackground)
 	y = 0;
 	if (psBackground->uiStart < NumLines())
 	{
-		if (GetLineRows(psBackground->uiStart, &iTop, &iBottom))
+		if (mpLayout->GetLineRows(psBackground->uiStart, &iTop, &iBottom))
 		{
 			y = iTop;
 		}
@@ -2209,16 +1519,16 @@ void CTextArea::AddBoundaryRectangle(STextAreaBackground* psBackground)
 	else
 	{
 		uiLast = NumLines() - 1;
-		if (GetLineRows(uiLast, &iTop, &iBottom))
+		if (mpLayout->GetLineRows(uiLast, &iTop, &iBottom))
 		{
 			y = iBottom + GetLineGap(uiLast);
 		}
 	}
 
 	y -= psBackground->iThickness / 2;
-	if (y + psBackground->iThickness > msTextSize.y)
+	if (y + psBackground->iThickness > mpLayout->GetTextSize().y)
 	{
-		y = msTextSize.y - psBackground->iThickness;
+		y = mpLayout->GetTextSize().y - psBackground->iThickness;
 	}
 	if (y < 0)
 	{
@@ -2248,7 +1558,7 @@ void CTextArea::AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size ui
 	uiEndRow = FindRow(uiEnd, true);
 	for (uiRow = uiStartRow; uiRow <= uiEndRow; uiRow++)
 	{
-		psLine = GetLayoutLine(uiRow);
+		psLine = mpLayout->GetLayoutLine(uiRow);
 		iLeft = (uiRow == uiStartRow) ? GetPositionX(uiStart, false) : 0;
 		if (uiRow == uiEndRow)
 		{
@@ -2256,10 +1566,10 @@ void CTextArea::AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size ui
 		}
 		else
 		{
-			iRight = GetRowRight(uiRow);
-			if (!IsRowWrapped(uiRow))
+			iRight = mpLayout->GetRowRight(uiRow);
+			if (!mpLayout->IsRowWrapped(uiRow))
 			{
-				iRight += GetNewLineWidth();
+				iRight += mpLayout->GetNewLineWidth();
 			}
 		}
 		if (iRight > iLeft)
@@ -2272,49 +1582,15 @@ void CTextArea::AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size ui
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The top of line uiLine's first row and the bottom of its last, above
-// its gap.  Text with no characters has its one line laid out without
-// stops.  False if the line isn't laid out.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::GetLineRows(size uiLine, int32* piTop, int32* piBottom)
-{
-	STextLayoutLine*	psFirst;
-	STextLayoutLine*	psLast;
-
-	if (uiLine >= NumLines())
-	{
-		return false;
-	}
-	if (HasRows())
-	{
-		psFirst = GetLayoutLine(GetLayoutStop(FindStop(GetLineStart(uiLine)))->uiLine);
-		psLast = GetLayoutLine(FindLastRow(uiLine));
-	}
-	else if ((uiLine == 0) && (NumLayoutLines() > 0))
-	{
-		psFirst = GetLayoutLine(0);
-		psLast = psFirst;
-	}
-	else
-	{
-		return false;
-	}
-
-	*piTop = psFirst->iTop;
-	*piBottom = psLast->iTop + psLast->iHeight;
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The width of the laid out text, or of the text area if that is wider.
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CTextArea::GetFullWidth(void)
 {
-	return (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
+	int32	iTextWidth;
+
+	iTextWidth = mpLayout->GetTextSize().x;
+	return (mcActualBounds.GetWidth() > iTextWidth) ? mcActualBounds.GetWidth() : iTextWidth;
 }
 
 
@@ -2331,11 +1607,9 @@ size CTextArea::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetTiledText(bool bTiledText)
 {
-	if (mbTiledText != bTiledText)
+	if (mpLayout->SetTiledText(bTiledText))
 	{
-		mbTiledText = bTiledText;
-		ReadText();
-		LayoutText();
+		Relayout();
 
 		//What it is laid out from has changed.
 		InvalidateLayout();
@@ -2347,10 +1621,7 @@ void CTextArea::SetTiledText(bool bTiledText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsTiledText(void)
-{
-	return mbTiledText;
-}
+bool CTextArea::IsTiledText(void) { return mpLayout->IsTiledText(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2358,295 +1629,78 @@ bool CTextArea::IsTiledText(void)
 // Tiles were asked for and the font and word wrap allow them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::IsDrawnAsTiles(void)
+bool CTextArea::IsDrawnAsTiles(void) { return mpLayout->IsTiled(); }  //Tiles were asked for and the font and word wrap allow them.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The editing's view: the rows the layout has the text in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::HasRows(void) { return mpLayout->HasRows(); }
+size CTextArea::NumRows(void) { return mpLayout->NumLayoutLines(); }
+size CTextArea::FindRow(size uiPosition, bool bRowEnd) { return mpLayout->FindRow(uiPosition, bRowEnd); }
+size CTextArea::GetRowStart(size uiRow) { return mpLayout->GetRowStart(uiRow); }
+size CTextArea::GetRowEnd(size uiRow, bool* pbRowEnd) { return mpLayout->GetRowEnd(uiRow, pbRowEnd); }
+size CTextArea::FindRowAt(int32 y) { return mpLayout->FindRowAt(y); }
+size CTextArea::FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) { return mpLayout->FindPositionInRow(uiRow, x, pbRowEnd); }
+int32 CTextArea::GetPositionX(size uiPosition, bool bRowEnd) { return mpLayout->GetPositionX(uiPosition, bRowEnd); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text is read and laid out again (as when what it is laid out from
+// changed), then the marks drawn over it again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::Relayout(void)
 {
-	return mbTiled;
+	mpLayout->ReadText();
+	mpLayout->LayoutText();
+	LaidOut();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Spans, a style or gaps set since the text was last laid out are laid
+// out (see CTextAreaLayout::UpdateText).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::UseTiles(void)
+void CTextArea::UpdateText(void)
 {
-	Ptr<CFont>	pFont;
-
-	if (!mbTiledText || mbWordWrap || mpFamily.IsNull())
+	if (mpLayout->UpdateText())
 	{
-		return false;
+		LaidOut();
 	}
-	pFont = GetFont();
-	return pFont.IsNotNull() && pFont->IsFixedWidth();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text read as tiles (CTextAreaTiles) in the colours of the spans,
-// and its underlines, overlines and strike throughs drawn over them.
+// Before the size is asked for, spans or a style that can change it are
+// applied.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::ReadTiles(void)
+void CTextArea::UpdateSize(void)
 {
-	STextStyle*	psStyles;
-
-	//The sprites of the text read before are gone.
-	mpText = NULL;
-
-	psStyles = MakeStyles();
-	mpTiles->Read(GetFontColours(), (int32)mcEditing.GetTabWidth(), psStyles, &msTextSize);
-
-	//The lines along the text are drawn over the tiles, so they can go past a cell into the ones next to it.
-	mpFontDraw->Begin();
-	mpTiles->Decorate(mpFontDraw, GetFont()->GetDescription(), psStyles);
-	mpFontDraw->End();
-	SafeFree(psStyles);
+	if (mpLayout->UpdateSize())
+	{
+		LaidOut();
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text from uiFrom on (0 for all of it) in the fonts of its styles,
-// its font changes from uiFrom.  NULL without a font for the text area's
-// style.
+// The text was laid out again: the backgrounds and selection are drawn
+// on its rows again.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CText> CTextArea::ReadTextFrom(size uiFrom)
+void CTextArea::LaidOut(void)
 {
-	CSimpleTextReader		cReader;
-	CUTF8					cUTF8;
-	CArrayTextFontChange	asChanges;
-	Ptr<CFont>				pFont;
-	Ptr<CText>				pText;
-	int16					iBaselineShift;
-
-	pFont = mpFamily->GetRunFont(&msStyle, &iBaselineShift);
-	if (pFont.IsNull())
-	{
-		return NULL;
-	}
-
-	//The reader's font has no baseline shift or decorations so a style with them needs a change at the start.
-	asChanges.Init();
-	if ((iBaselineShift != 0) || (msStyle.GetDecorations() != 0))
-	{
-		asChanges.Add()->Init(0, &pFont, iBaselineShift, msStyle.GetDecorations(), msStyle.sColour);
-	}
-	MakeFontChanges(&asChanges, pFont, iBaselineShift, uiFrom);
-
-	cUTF8.Init(&mcDocument.Text()[uiFrom]);
-	cReader.Init(&pFont);
-	pText = cReader.Read(&cUTF8, true, &asChanges);
-	cReader.Kill();
-	cUTF8.Kill();
-	asChanges.Kill();
-	return pText;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether text appended can be laid out from the start of the old last
-// line on rather than the whole text laid out again: it is laid out as
-// sprites, up to date, at the width it is laid out to now, and nothing is
-// decorated (decorations are drawn over the whole text).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::CanAppendSprites(void)
-{
-	if (mbTiled || mbTextDirty || mbSizeDirty || mpText.IsNull() || UseTiles())
-	{
-		return false;
-	}
-	if ((mpLayout->GetWidth() != GetWrapWidth()) || (mpLayout->NumLines() == 0) || (mpLayout->NumStops() != mauiStopStarts.NumElements()))
-	{
-		return false;
-	}
-	return !HasDecorations();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text from uiFrom (the old end) on laid out after the lines before
-// it: the old last line (from the line feed before it) and what was
-// appended are read and laid out by themselves, from the top of that
-// line, and replace its rows (CTextLayout::ReplaceLines) and their
-// sprites.  CanAppendSprites says when.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AppendSprites(size uiFrom)
-{
-	size				uiTextLine;
-	size				uiTailStart;
-	size				uiLayoutLine;
-	size				uiSprite;
-	int32				iTop;
-	Ptr<CFont>			pFont;
-	Ptr<CText>			pText;
-	CArrayTextLayoutGap	asGaps;
-
-	//The line the old end is on, and the row it starts.
-	uiTextLine = mcDocument.NumLines() - 1;
-	while ((uiTextLine > 0) && (mcDocument.GetLineStart(uiTextLine) > uiFrom))
-	{
-		uiTextLine--;
-	}
-	uiTailStart = mcDocument.GetLineStart(uiTextLine);
-	uiLayoutLine = mpLayout->GetStop(FindStop(uiTailStart))->uiLine;
-	iTop = mpLayout->GetLine(uiLayoutLine)->iTop;
-	FindStopStarts(uiFrom);
-
-	//Its rows' sprites go: they were placed after those of the rows above, below their tops.
-	uiSprite = mpSpriteMap->NumSprites();
-	while ((uiSprite > 0) && (mpSpriteMap->GetSprite(uiSprite - 1)->sPosition.y >= iTop))
-	{
-		uiSprite--;
-	}
-	mpSpriteMap->RemoveSprites(uiSprite);
-
-	pText = ReadTextFrom(uiTailStart);
-	if (mpAppendLayout.IsNull())
-	{
-		mpAppendLayout = OMalloc<CTextLayout>();
-	}
-	asGaps.Init();
-	mcGaps.GetGapsFrom(uiTextLine, &asGaps);
-	mpAppendLayout->SetWidth(mpLayout->GetWidth());
-	mpAppendLayout->SetLineGaps(&asGaps);
-	mpAppendLayout->SetTabWidth(GetTabPixels());
-	asGaps.Kill();
-
-	mpFontDraw->SetOffset(0, iTop);
-	mpFontDraw->BeginAppend();
-	if (pText.IsNotNull())
-	{
-		mpAppendLayout->Layout(mpFontDraw, pText);
-	}
-	mpFontDraw->End();
-	mpFontDraw->SetOffset(0, 0);
-	mpLayout->ReplaceLines(uiLayoutLine, &mpAppendLayout);
-	pText = NULL;
-	mbTextStale = true;
-
-	msTextSize = mpLayout->GetSize();
-	pFont = GetFont();
-	if (pFont.IsNotNull() && (msTextSize.y < pFont->GetLineHeight()))
-	{
-		msTextSize.y = pFont->GetLineHeight();
-	}
 	mbBackgroundsDirty = true;
 	UpdateMarks();
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether text appended can be added to the tiles read before rather than
-// the whole text read again: they are up to date, and nothing is decorated
-// (decorations are drawn over the whole text).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextArea::CanAppendTiles(void)
-{
-	if (!mbTiled || mbTextDirty || mbSizeDirty || mpText.IsNotNull() || !UseTiles())
-	{
-		return false;
-	}
-	if ((mpTiles->NumStops() == 0) || (mpTiles->NumStops() != mauiStopStarts.NumElements()))
-	{
-		return false;
-	}
-	return !HasDecorations();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The text from uiFrom (the old end) on added to the tiles, as ReadTiles
-// would read it: its stops and lines after those before, the layer made
-// big enough, and only the rows of its lines written (the first of them
-// the old last line, which it may go on).  CanAppendTiles says when.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AppendTiles(size uiFrom)
-{
-	STextStyle*	psStyles;
-
-	FindStopStarts(uiFrom);
-	psStyles = MakeStyles(mcDocument.GetLineStart(mpTiles->GetAppendLine()));
-	mpTiles->Append(GetFontColours(), (int32)mcEditing.GetTabWidth(), psStyles, &msTextSize);
-	SafeFree(psStyles);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The tiles were laid out when they were read.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::LayoutTiles(void)
-{
-	Ptr<CFont>	pFont;
-
-	pFont = GetFont();
-	if (pFont.IsNotNull() && (msTextSize.y < pFont->GetLineHeight()))
-	{
-		msTextSize.y = pFont->GetLineHeight();
-	}
-	mbBackgroundsDirty = true;
-	UpdateMarks();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The lines and stops of the text as it was last laid out: by mpLayout,
-// or from the columns when it is tiles.
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::NumLayoutLines(void)
-{
-	return mbTiled ? mpTiles->NumLines() : mpLayout->NumLines();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::NumRows(void)
-{
-	return NumLayoutLines();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CTextArea::NumLayoutStops(void)
-{
-	return mbTiled ? mpTiles->NumStops() : mpLayout->NumStops();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-STextLayoutLine* CTextArea::GetLayoutLine(size uiLine)
-{
-	return mbTiled ? mpTiles->GetLine(uiLine) : mpLayout->GetLine(uiLine);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-STextLayoutStop* CTextArea::GetLayoutStop(size uiStop)
-{
-	return mbTiled ? mpTiles->GetStop(uiStop) : mpLayout->GetStop(uiStop);
-}

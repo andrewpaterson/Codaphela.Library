@@ -25,18 +25,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/FontColours.h"
 #include "SupportLib/FontFamily.h"
 #include "SupportLib/TextStyle.h"
-#include "SupportLib/Text.h"
-#include "SupportLib/TextLayout.h"
-#include "SupportLib/SimpleTextReader.h"
-#include "SupportLib/SpriteMap.h"
 #include "SupportLib/GeometryMap.h"
-#include "SupportLib/MapFontDraw.h"
 #include "SupportLib/Maps.h"
 #include "Canvas.h"
-#include "TextLineGaps.h"
 #include "TextBackgrounds.h"
-#include "TextSpans.h"
-#include "TextAreaTiles.h"
+#include "TextAreaLayout.h"
 #include "TextEditingInput.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
@@ -84,29 +77,9 @@ class CTextArea : public CCanvas, public CTextEditingView
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
 protected:
-	CTextDocument		mcDocument;  //The text, its lines and its undo history.
-	Ptr<CFontFamily>	mpFamily;
-	STextStyle			msStyle;
-	CTextSpans			mcSpans;
-	bool				mbTextDirty;  //The spans or style changed since the text was last read.
-	bool				mbSizeDirty;  //Reading the text again can change its size.
-	Ptr<CText>			mpText;
-	bool				mbTextStale;  //Text was appended after mpText was read (AppendSprites): read it again before it is laid out whole.
-	Ptr<CTextLayout>	mpLayout;
-	Ptr<CTextLayout>	mpAppendLayout;  //Lays out text appended, from the start of its first line (AppendSprites).  NULL until then.
-	Ptr<CSpriteMap>		mpSpriteMap;
-	Ptr<CGeometryMap>	mpGeometryMap;  //The lines drawn along the text, over it.
-	Ptr<CMapFontDraw>	mpFontDraw;
-	Ptr<CMaps>			mpMaps;
-	bool				mbWordWrap;
-	SInt32Vec2			msTextSize;
-
-	//A fixed width font can be drawn as tiles instead of sprites: each character in a cell of a tile layer, the lines
-	//and stops worked out from the columns instead of by mpLayout.
-	bool					mbTiledText;  //Tiles were asked for; they are only used with a fixed width font and no word wrap.
-	bool					mbTiled;  //The text was last read as tiles.
-	Ptr<CTextAreaTiles>		mpTiles;  //The text laid out as tiles.
-
+	CTextDocument			mcDocument;  //The text, its lines and its undo history.
+	Ptr<CTextAreaLayout>	mpLayout;  //The text in rows, as sprites or tiles, in its styles and with the gaps below its lines.
+	Ptr<CMaps>				mpMaps;  //The backgrounds, selection, text and the lines along it, in that order.
 	Ptr<CGeometryMap>		mpBackgroundMap;  //Under the selection.
 	CTextBackgrounds		mcBackgrounds;  //The colours under the text (AddBackground).
 	bool					mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
@@ -115,8 +88,6 @@ protected:
 	bool					mbMarksDirty;  //The selection changed since the text area was drawn.
 	ARGB32					msSelectionColour;
 	ARGB32					msCaretColour;
-	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
-	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
 	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
 	CTextEditingInput		mcInput;  //The input actions that reach mcEditing.
@@ -294,16 +265,10 @@ public:
 
 protected:
 	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
-	void				ReadText(void);
-	STextStyle*			MakeStyles(size uiFrom = 0);
-	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift, size uiFrom = 0);
-	bool				HasDecorations(void);
-	void				LayoutText(void);
+	void				Relayout(void);
 	void				UpdateText(void);
 	void				UpdateSize(void);
-	int32				GetWrapWidth(void);
-	void				FindStopStarts(size uiFrom);
-	size				FindLastRow(size uiLine);
+	void				LaidOut(void);
 	void				GapsChanged(void);
 
 	//The colours under the text.
@@ -311,31 +276,9 @@ protected:
 	void				AddLineBackgroundRectangles(STextAreaBackground* psBackground);
 	void				AddBoundaryRectangle(STextAreaBackground* psBackground);
 	void				AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour);
-	bool				GetLineRows(size uiLine, int32* piTop, int32* piBottom);
 	int32				GetFullWidth(void);
 
-	//The text as tiles.
-	bool				UseTiles(void);
-	void				ReadTiles(void);
-	bool				CanAppendTiles(void);
-	bool				CanAppendSprites(void);
-	void				AppendSprites(size uiFrom);
-	Ptr<CText>			ReadTextFrom(size uiFrom);
-	void				AppendTiles(size uiFrom);
-	void				LayoutTiles(void);
-
-	//The lines and stops the text is laid out in, by mpLayout or as tiles.
-	size				NumLayoutLines(void);
-	size				NumLayoutStops(void);
-	STextLayoutLine*	GetLayoutLine(size uiLine);
-	STextLayoutStop*	GetLayoutStop(size uiStop);
-
-	//The rows the text is laid out in.
-	size				FindStop(size uiPosition);
-	bool				IsRowWrapped(size uiRow);
-	int32				GetRowRight(size uiRow);
 	int32				GetPageHeight(void);
-	int32				GetNewLineWidth(void);
 	void				ScrollBy(int32 iDown);
 
 	void				UpdateMarks(void);
