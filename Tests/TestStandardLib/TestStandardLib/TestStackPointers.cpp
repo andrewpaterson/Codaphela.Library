@@ -29,8 +29,9 @@ void TestStackPointersAdd(void)
 	pcStackPointer11 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer11);
 
-	pcStackPointer12 = cStackPointes.Add(cPointer1.This(), pcStackPointer11);
+	pcStackPointer12 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer12);
+	cStackPointes.SetLastNext(pcStackPointer12, pcStackPointer11);
 	AssertPointer(pcStackPointer11->GetNext(), pcStackPointer12);
 
 	AssertInt(2, pcStackPointer11->NumPointers());
@@ -38,24 +39,27 @@ void TestStackPointersAdd(void)
 	pcStackPointer21 = cStackPointes.Add(cPointer2.This());
 	AssertNotNull(pcStackPointer21);
 
-	pcStackPointer22 = cStackPointes.Add(cPointer2.This(), pcStackPointer21);
+	pcStackPointer22 = cStackPointes.Add(cPointer2.This());
 	AssertNotNull(pcStackPointer22);
+	cStackPointes.SetLastNext(pcStackPointer22, pcStackPointer21);
 	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
 
 	AssertInt(2, pcStackPointer21->NumPointers());
 
 	AssertSize(4, cStackPointes.NumElements());
 
-	pcStackPointer13 = cStackPointes.Add(cPointer1.This(), pcStackPointer11);
+	pcStackPointer13 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer13);
+	cStackPointes.SetLastNext(pcStackPointer13, pcStackPointer11);
 	AssertPointer(pcStackPointer11->GetNext(), pcStackPointer12);
 	AssertPointer(pcStackPointer12->GetNext(), pcStackPointer13);
 	AssertNull(pcStackPointer13->GetNext());
 
 	AssertInt(3, pcStackPointer11->NumPointers());
 
-	pcStackPointer23 = cStackPointes.Add(cPointer1.This(), pcStackPointer21);
+	pcStackPointer23 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer23);
+	cStackPointes.SetLastNext(pcStackPointer23, pcStackPointer21);
 	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
 	AssertPointer(pcStackPointer22->GetNext(), pcStackPointer23);
 	AssertNull(pcStackPointer23->GetNext());
@@ -71,14 +75,16 @@ void TestStackPointersAdd(void)
 	pcStackPointer21 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer21);
 
-	pcStackPointer22 = cStackPointes.Add(cPointer2.This(), pcStackPointer21);
+	pcStackPointer22 = cStackPointes.Add(cPointer2.This());
 	AssertNotNull(pcStackPointer22);
+	cStackPointes.SetLastNext(pcStackPointer22, pcStackPointer21);
 	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
 
 	AssertInt(2, pcStackPointer21->NumPointers());
 
-	pcStackPointer23 = cStackPointes.Add(cPointer1.This(), pcStackPointer21);
+	pcStackPointer23 = cStackPointes.Add(cPointer1.This());
 	AssertNotNull(pcStackPointer23);
+	cStackPointes.SetLastNext(pcStackPointer23, pcStackPointer21);
 	AssertPointer(pcStackPointer21->GetNext(), pcStackPointer22);
 	AssertPointer(pcStackPointer22->GetNext(), pcStackPointer23);
 	AssertNull(pcStackPointer23->GetNext());

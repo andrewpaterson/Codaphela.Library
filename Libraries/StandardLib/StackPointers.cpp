@@ -60,27 +60,6 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcPointer);
-		return pcStackPointer;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
-{
-	CStackPointer*	pcStackPointer;
-
-	pcStackPointer = Add(pcPointer);
-	if (pcStackPointer)
-	{
-		SetLastNext(pcStackPointer, pcFirst);
 	}
 	return pcStackPointer;
 }
@@ -92,33 +71,12 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Add(CCollection* pcCollection)
 {
-	CStackPointer* pcStackPointer;
+	CStackPointer*	pcStackPointer;
 
 	pcStackPointer = (CStackPointer*)mcFreeList.Add();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcCollection);
-		return pcStackPointer;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcFirst)
-{
-	CStackPointer*	pcStackPointer;
-
-	pcStackPointer = Add(pcCollection);
-	if (pcStackPointer)
-	{
-		SetLastNext(pcStackPointer, pcFirst);
 	}
 	return pcStackPointer;
 }
@@ -128,13 +86,9 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CStackPointers::SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
+void CStackPointers::SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
 {
-	CStackPointer*	pcLast;
-
-	pcLast = pcFirst->FindLast();
-	pcLast->SetNext(pcStackPointer);
-	return true;
+	pcFirst->FindLast()->SetNext(pcStackPointer);
 }
 
 

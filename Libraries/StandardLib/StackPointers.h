@@ -34,10 +34,8 @@ public:
 	void			Kill(void);
 
 	CStackPointer*	Add(CPointer* pcPointer);
-	CStackPointer*	Add(CPointer* pcPointer, CStackPointer* pcFirst);
 	CStackPointer*	Add(CCollection* pcCollection);
-	CStackPointer*	Add(CCollection* pcCollection, CStackPointer* pcFirst);
-	bool			SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
+	void			SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
 
 	void			RemoveAll(CStackPointer* pcFirst);
 	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved);

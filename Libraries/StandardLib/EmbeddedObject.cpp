@@ -856,22 +856,7 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
-	bool	bAdded;
-
-	bAdded = LinkStackFrom(GetStackPointers()->Add(pcPointer));
-	if (bAdded)
-	{
-		GetEmbeddingContainer()->StackFromAdded();
-	}
-
-#ifdef _DEBUG
-	if (bAdded)
-	{
-		ValidateObjectsConsistency(bValidate);
-	}
-#endif // _DEBUG
-
-	return bAdded;
+	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcPointer)), bValidate);
 }
 
 
@@ -881,21 +866,25 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 {
-	bool	bAdded;
+	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcCollection)), bValidate);
+}
 
-	bAdded = LinkStackFrom(GetStackPointers()->Add(pcCollection));
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After a stack from was (bAdded) linked to this: the container is told,
+// and (in a debug build) the objects validated.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::StackFromLinked(bool bAdded, bool bValidate)
+{
 	if (bAdded)
 	{
 		GetEmbeddingContainer()->StackFromAdded();
-	}
-
 #ifdef _DEBUG
-	if (bAdded)
-	{
 		ValidateObjectsConsistency(bValidate);
-	}
 #endif // _DEBUG
-
+	}
 	return bAdded;
 }
 
@@ -925,13 +914,13 @@ bool CEmbeddedObject::LinkStackFrom(CStackPointer* pcStackPointer)
 
 	if (mpcStackFroms)
 	{
-		return GetStackPointers()->SetLastNext(pcStackPointer, mpcStackFroms);
+		GetStackPointers()->SetLastNext(pcStackPointer, mpcStackFroms);
 	}
 	else
 	{
 		mpcStackFroms = pcStackPointer;
-		return true;
 	}
+	return true;
 }
 
 
@@ -956,19 +945,31 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes pcFrom (a CPointer or a CCollection) out of the stack froms that
+// start at *ppcStackFroms.  False if it isn't one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TFrom>
+static bool UnlinkStackFromList(CStackPointers* pcStackPointers, CStackPointer** ppcStackFroms, TFrom* pcFrom)
+{
+	bool	bRemoved;
+
+	if (*ppcStackFroms == NULL)
+	{
+		return false;
+	}
+	*ppcStackFroms = pcStackPointers->Remove(*ppcStackFroms, pcFrom, &bRemoved);
+	return bRemoved;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 {
-	bool	bRemoved;
-
-	if (mpcStackFroms == NULL)
-	{
-		return false;
-	}
-
-	mpcStackFroms = GetStackPointers()->Remove(mpcStackFroms, pcPointer, &bRemoved);
-	return bRemoved;
+	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
 }
 
 
@@ -978,15 +979,7 @@ bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkStackFrom(CCollection* pcCollection)
 {
-	bool	bRemoved;
-
-	if (mpcStackFroms == NULL)
-	{
-		return false;
-	}
-
-	mpcStackFroms = GetStackPointers()->Remove(mpcStackFroms, pcCollection, &bRemoved);
-	return bRemoved;
+	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcCollection);
 }
 
 
