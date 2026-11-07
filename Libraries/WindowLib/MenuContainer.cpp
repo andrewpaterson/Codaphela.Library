@@ -177,11 +177,11 @@ void CMenuContainer::SetRowEnabled(int32 iRow, bool bEnabled)
 //////////////////////////////////////////////////////////////////////////
 int32 CMenuContainer::AddSeparator(void)
 {
-	int32					iRow;
-	Ptr<CIconComponent>		pSpace;
+	int32						iRow;
+	Ptr<CIconComponent>			pSpace;
 	Ptr<CRoundedBoxCanvasDraw>	pDraw;
-	Ptr<CCanvas>			pLine;
-	SInsets					sInsets;
+	Ptr<CCanvas>				pLine;
+	SInsets						sInsets;
 
 	iRow = AddRow(false);
 

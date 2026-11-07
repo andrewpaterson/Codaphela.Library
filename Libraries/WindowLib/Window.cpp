@@ -90,7 +90,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
-	
+
 	mpWindowTick = pTick;
 	mpCanvas = OMalloc<CCanvas>(this, pDraw, pcFormat);
 	AddComponent(mpCanvas);
@@ -1160,11 +1160,11 @@ void CWindow::CreateOwned(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::PaintCaret(void)
 {
-	CInt32Rect		cCaret;
-	ARGB32			sColour;
-	CInt32Rect		cPopup;
-	size			i;
-	bool			bMoved;
+	CInt32Rect			cCaret;
+	ARGB32				sColour;
+	CInt32Rect			cPopup;
+	size				i;
+	bool				bMoved;
 	CColourFormatHelper	cFormat;
 
 	mbCaretPainted = false;

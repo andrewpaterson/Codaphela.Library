@@ -36,7 +36,7 @@ protected:
 public:
 	void		Init(Ptr<CWindow> pWindow, ARGB32 sTrack, ARGB32 sBar, int32 iHeight);
 	void		Class(void) override;
-	void 		Free(void) override;
+	void		Free(void) override;
 
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;

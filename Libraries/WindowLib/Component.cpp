@@ -214,8 +214,8 @@ bool CComponent::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::DrawChildren(void)
 {
-	size						i;
-	Ptr<CComponent>	pComponent;
+	size					i;
+	Ptr<CComponent>			pComponent;
 	bool					bResult;
 	size					uiSize;
 
@@ -419,7 +419,7 @@ bool CComponent::IsPointIn(int x, int y)
 Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 {
 	size					i;
-	Ptr<CComponent>	pComponent;
+	Ptr<CComponent>			pComponent;
 	size					uiSize;
 	CInt32Rect				cBounds;
 
@@ -501,7 +501,7 @@ void CComponent::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	size					i;
-	Ptr<CComponent>	pComponent;
+	Ptr<CComponent>			pComponent;
 	size					uiSize;
 
 	uiSize = maChildren.Size();
@@ -520,7 +520,7 @@ void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 size CComponent::GetDepth(void)
 {
 	size					iDepth;
-	Ptr<CComponent>	pComponent;
+	Ptr<CComponent>			pComponent;
 
 	iDepth = 0;
 	pComponent = mpParent;
@@ -845,12 +845,12 @@ static bool IsInWindowTree(CComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::MoveToWindow(Ptr<CWindow> pWindow)
 {
-	Ptr<CWindow>				pOld;
+	Ptr<CWindow>					pOld;
 	CArrayTemplatePtr<CComponent>	apcToMove;
-	CArrayEmbeddedObjectPtr		apcTos;
-	CComponent*					pcComponent;
-	CComponent*					pcTo;
-	size						i;
+	CArrayEmbeddedObjectPtr			apcTos;
+	CComponent*						pcComponent;
+	CComponent*						pcTo;
+	size							i;
 
 	pOld = mpWindow;
 	if (pOld == pWindow)

@@ -60,11 +60,11 @@ class CWindowInputSource : public CObject
 CONSTRUCTABLE(CWindowInputSource);
 DESTRUCTABLE(CWindowInputSource);
 protected:
-	Ptr<CInput>				mpInput;  //Nes: the virtual device is the input's, so the input goes after the source.
-	CInputVirtualDevice*	mpcVirtual;
-	CArrayInputDevicePtr	mapcDevices;  //Whose sources are in the virtual device.
-	CTimer					mcTimer;
-	CArrayWindowInputEvent	masEvents;
+	Ptr<CInput>								mpInput;  //Nes: the virtual device is the input's, so the input goes after the source.
+	CInputVirtualDevice*					mpcVirtual;
+	CArrayInputDevicePtr					mapcDevices;  //Whose sources are in the virtual device.
+	CTimer									mcTimer;
+	CArrayWindowInputEvent					masEvents;
 	CArrayTemplate<SInputDeviceValueSource>	masForgotten;  //Down when ForgetDown was called, not down to IsDown until let go.
 
 public:

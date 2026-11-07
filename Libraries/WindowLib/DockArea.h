@@ -40,17 +40,17 @@ class CDockArea : public CContainer, public CDockNodeHolder
 CONSTRUCTABLE(CDockArea);
 DESTRUCTABLE(CDockArea);
 protected:
-	Ptr<CDockManager>		mpManager;
-	Ptr<CDockNode>			mpRoot;
-	bool					mbMain;
-	Ptr<CCanvas>			mpBackground;
-	Ptr<CAutoHideStrip>		mpLeftStrip;
-	Ptr<CAutoHideStrip>		mpRightStrip;
-	Ptr<CAutoHideStrip>		mpTopStrip;
-	Ptr<CAutoHideStrip>		mpBottomStrip;
-	Ptr<CDockGuides>		mpGuides;  //Over everything while a drag is over the area, otherwise NULL.
+	Ptr<CDockManager>			mpManager;
+	Ptr<CDockNode>				mpRoot;
+	bool						mbMain;
+	Ptr<CCanvas>				mpBackground;
+	Ptr<CAutoHideStrip>			mpLeftStrip;
+	Ptr<CAutoHideStrip>			mpRightStrip;
+	Ptr<CAutoHideStrip>			mpTopStrip;
+	Ptr<CAutoHideStrip>			mpBottomStrip;
+	Ptr<CDockGuides>			mpGuides;  //Over everything while a drag is over the area, otherwise NULL.
 	Ptr<CDockFloatingWindow>	mpFloating;  //The floating window the area fills, NULL for the main window's.
-	CInt32Rect				mcRootBounds;  //Where the root was last laid out, in window client space.
+	CInt32Rect					mcRootBounds;  //Where the root was last laid out, in window client space.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, bool bMain);
@@ -60,20 +60,20 @@ public:
 	void					SetRequiredSize(void) override;
 	void					Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
-	void					SetRoot(Ptr<CDockNode> pRoot);
-	bool					ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
-	bool					RemoveNode(Ptr<CDockNode> pNode) override;
-	void					SetFloating(Ptr<CDockFloatingWindow> pFloating);
+	void						SetRoot(Ptr<CDockNode> pRoot);
+	bool						ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
+	bool						RemoveNode(Ptr<CDockNode> pNode) override;
+	void						SetFloating(Ptr<CDockFloatingWindow> pFloating);
 	Ptr<CDockFloatingWindow>	GetFloating(void);
-	Ptr<CDockNode>			GetRoot(void);
-	bool					IsMain(void);
-	Ptr<CAutoHideStrip>		GetStrip(EDockSide eSide);
-	void					GetRootBounds(CInt32Rect* pcDest);
-	Ptr<CDockGroup>			FindGroupAt(int x, int y);
-	void					ShowGuides(Ptr<CDockGuides> pGuides);
-	void					HideGuides(void);
-	Ptr<CDockGuides>		GetGuides(void);
-	void					StripsChanged(void);
+	Ptr<CDockNode>				GetRoot(void);
+	bool						IsMain(void);
+	Ptr<CAutoHideStrip>			GetStrip(EDockSide eSide);
+	void						GetRootBounds(CInt32Rect* pcDest);
+	Ptr<CDockGroup>				FindGroupAt(int x, int y);
+	void						ShowGuides(Ptr<CDockGuides> pGuides);
+	void						HideGuides(void);
+	Ptr<CDockGuides>			GetGuides(void);
+	void						StripsChanged(void);
 
 protected:
 	void					PlaceChildren(void);

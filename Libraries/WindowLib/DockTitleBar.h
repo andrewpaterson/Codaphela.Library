@@ -54,17 +54,17 @@ class CDockTitleBar : public CGridContainer
 CONSTRUCTABLE(CDockTitleBar);
 DESTRUCTABLE(CDockTitleBar);
 protected:
-	Ptr<CDockManager>		mpManager;
-	Ptr<CClearCanvasDraw>	mpBackgroundDraw;
-	Ptr<CLabel>				mpTitle;
-	Ptr<CIconComponent>		mapButtons[DTB_NumButtons];
-	bool					mabShown[DTB_NumButtons];
-	bool					mbActive;
-	bool					mbPinned;
-	bool					mbPressed;  //Pressed off the buttons, and not dragged yet.
-	SInt32Vec2				msPressed;  //Where, relative to the bar.
-	EDockTitleButton		mePressedButton;
-	SDoubleClick			msDoubleClick;
+	Ptr<CDockManager>				mpManager;
+	Ptr<CClearCanvasDraw>			mpBackgroundDraw;
+	Ptr<CLabel>						mpTitle;
+	Ptr<CIconComponent>				mapButtons[DTB_NumButtons];
+	bool							mabShown[DTB_NumButtons];
+	bool							mbActive;
+	bool							mbPinned;
+	bool							mbPressed;  //Pressed off the buttons, and not dragged yet.
+	SInt32Vec2						msPressed;  //Where, relative to the bar.
+	EDockTitleButton				mePressedButton;
+	SDoubleClick					msDoubleClick;
 	CComponentEvent<CDockTitleBar>	mcDragged;
 	CComponentEvent<CDockTitleBar>	mcDoubleClicked;
 	CComponentEvent<CDockTitleBar>	macButtonPressed[DTB_NumButtons];
@@ -94,7 +94,7 @@ public:
 	CComponentEvent<CDockTitleBar>*	GetDragEvent(void);
 	CComponentEvent<CDockTitleBar>*	GetDoubleClickEvent(void);
 	CComponentEvent<CDockTitleBar>*	GetButtonEvent(EDockTitleButton eButton);
-	void				RemoveListener(void* pvListener);
+	void							RemoveListener(void* pvListener);
 
 protected:
 	void				PlaceButtons(void);

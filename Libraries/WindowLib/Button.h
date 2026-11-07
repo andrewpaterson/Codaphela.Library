@@ -61,7 +61,7 @@ public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CImageCel> pIcon, const char* szCaption);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, EButtonLook eLook, Ptr<CImageCel> pIcon, const char* szCaption);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -75,7 +75,7 @@ public:
 	Ptr<CLabel>			GetCaptionLabel(void);
 
 	CComponentEvent<CButton>*	GetClickEvent(void);
-	void				Click(void);
+	void						Click(void);
 
 	EButtonState		GetState(void);
 	bool				IsPressed(void);
@@ -97,7 +97,7 @@ protected:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
 	void				UpdateState(void);
 	void				UpdateLook(void);
-	SInt32Vec2				GetContentSize(void) override;
+	SInt32Vec2			GetContentSize(void) override;
 	void				UpdateContent(void);
 	bool				HasCaption(void);
 };

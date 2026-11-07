@@ -84,7 +84,7 @@ class CDialog : public CObject
 CONSTRUCTABLE(CDialog);
 DESTRUCTABLE(CDialog);
 protected:
-	SDialogLook*		mpsLook;
+	SDialogLook*			mpsLook;
 	Ptr<CWindow>			mpOwner;
 	Ptr<CWindow>			mpDialog;
 	Ptr<CDialogTick>		mpTick;
@@ -128,7 +128,7 @@ public:
 	void				Close(const char* szClicked);
 	char*				GetClicked(void);
 	Ptr<CWindow>		GetWindow(void);
-	SDialogLook*	GetLook(void);
+	SDialogLook*		GetLook(void);
 
 	void				OKClicked(void);
 	void				CloseClicked(CButton* pcButton);

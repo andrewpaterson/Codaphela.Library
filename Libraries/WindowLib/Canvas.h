@@ -48,7 +48,7 @@ public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;

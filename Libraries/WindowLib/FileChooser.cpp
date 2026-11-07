@@ -268,7 +268,7 @@ void CFileChooser::Free(void)
 Ptr<CComponent> CFileChooser::CreateBody(void)
 {
 	Ptr<CWindow>			pWindow;
-	SDialogLook*		psLook;
+	SDialogLook*			psLook;
 	Ptr<CGridContainer>		pBody;
 	Ptr<CGridContainer>		pTop;
 	Ptr<CFillContainer>		pGap;

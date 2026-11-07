@@ -50,7 +50,7 @@ struct SInsets
 	int	GetTopAndBottom(void);
 
 	void Inset(SInt32Vec2* psPosition, SInt32Vec2* psSize);
-}; 
+};
 
 
 #endif // __INSETS_H__

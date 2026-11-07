@@ -38,18 +38,18 @@ class CMenuBar : public CGridContainer
 CONSTRUCTABLE(CMenuBar);
 DESTRUCTABLE(CMenuBar);
 protected:
-	Ptr<CMenuStyle>			mpStyle;
-	Ptr<CClearCanvasDraw>	mpBackgroundDraw;
-	Ptr<CCanvas>			mpBackground;
-	Ptr<CIconComponent>		mpFiller;  //Takes the spare width to the right of the buttons.
-	CArray<CMenuBarItem>	maItems;
-	Ptr<CMenuBarItem>		mpOpenItem;
+	Ptr<CMenuStyle>				mpStyle;
+	Ptr<CClearCanvasDraw>		mpBackgroundDraw;
+	Ptr<CCanvas>				mpBackground;
+	Ptr<CIconComponent>			mpFiller;  //Takes the spare width to the right of the buttons.
+	CArray<CMenuBarItem>		maItems;
+	Ptr<CMenuBarItem>			mpOpenItem;
 	CComponentEvent<CMenuItem>	mcItemClicked;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 

@@ -46,19 +46,19 @@ class CComboBox : public CImageBorderContainer
 CONSTRUCTABLE(CComboBox);
 DESTRUCTABLE(CComboBox);
 protected:
-	Ptr<CMenuStyle>			mpStyle;
-	Ptr<CFont>				mpFont;
-	Ptr<CGridContainer>		mpContent;  //The text and the chevron.
-	Ptr<CLabel>				mpText;
-	Ptr<CIconComponent>		mpChevron;
-	Ptr<CMenuContainer>		mpMenu;
+	Ptr<CMenuStyle>				mpStyle;
+	Ptr<CFont>					mpFont;
+	Ptr<CGridContainer>			mpContent;  //The text and the chevron.
+	Ptr<CLabel>					mpText;
+	Ptr<CIconComponent>			mpChevron;
+	Ptr<CMenuContainer>			mpMenu;
 	CComponentEvent<CComboBox>	mcSelectionChanged;
-	int32					miSelected;  //-1 if no item is chosen.
+	int32						miSelected;  //-1 if no item is chosen.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -91,7 +91,7 @@ public:
 protected:
 	void				Choose(int32 iIndex);
 	void				UpdateLook(void);
-	SInt32Vec2				GetContentSize(void) override;
+	SInt32Vec2			GetContentSize(void) override;
 };
 
 

@@ -90,10 +90,10 @@ void CNativeWindow::EndPresent(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindow::Present(void)
 {
-	bool            bPresented;
-	CNativeCanvas*  pcNativeCanvas;
-	Ptr<CCanvas>    pCanvas;
-	SInt32Vec2      sSize;
+	bool			bPresented;
+	CNativeCanvas*	pcNativeCanvas;
+	Ptr<CCanvas>	pCanvas;
+	SInt32Vec2		sSize;
 
 	if (!BeginPresent())
 	{

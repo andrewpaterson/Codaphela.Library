@@ -379,10 +379,10 @@ bool CWindowInputSource::AddKeySequenceChord(char* szName, CInputDevice* pcKeybo
 //////////////////////////////////////////////////////////////////////////
 bool CWindowInputSource::IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource)
 {
-	float					fValue;
+	float						fValue;
 	SInputDeviceValueSource*	psForgotten;
-	size					i;
-	size					uiNumElements;
+	size						i;
+	size						uiNumElements;
 
 	if (!pcDevice || !pcSource)
 	{

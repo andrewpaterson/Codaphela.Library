@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __JEWEL_BUTTON_IMAGES_H__
-#define __JEWEL_BUTTON_IMAGES_H__
+#ifndef __JEWEL_IMAGE_GENERATOR_H__
+#define __JEWEL_IMAGE_GENERATOR_H__
 #include "BaseLib/Float64Vec2.h"
 #include "SupportLib/ColourFormat.h"
 #include "ButtonImages.h"
@@ -60,5 +60,5 @@ protected:
 };
 
 
-#endif // __JEWEL_BUTTON_IMAGES_H__
+#endif // __JEWEL_IMAGE_GENERATOR_H__
 

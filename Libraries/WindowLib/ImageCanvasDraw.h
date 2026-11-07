@@ -44,11 +44,11 @@ public:
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;
 
-	bool		Draw(Ptr<CCanvas> pCanvas) override;
-	void		SetCel(Ptr<CImageCel> pCel);
+	bool			Draw(Ptr<CCanvas> pCanvas) override;
+	void			SetCel(Ptr<CImageCel> pCel);
 	Ptr<CImageCel>	GetCel(void);
-	void		SetCelAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
-	SInt32Vec2	GetDesiredSize(void) override;
+	void			SetCelAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
+	SInt32Vec2		GetDesiredSize(void) override;
 };
 
 

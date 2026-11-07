@@ -572,10 +572,10 @@ void CTabbedContainer::OverflowPressed(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::OpenOverflowMenu(void)
 {
-	size			i;
-	SInt32Vec2		sPosition;
+	size				i;
+	SInt32Vec2			sPosition;
 	Ptr<CIconComponent>	pIcon;
-	Ptr<CImageCel>	pCel;
+	Ptr<CImageCel>		pCel;
 
 	if (mpOverflowMenu.IsNull() || (maTabs.Size() == 0))
 	{

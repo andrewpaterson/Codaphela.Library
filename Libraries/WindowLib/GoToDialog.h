@@ -119,18 +119,18 @@ public:
 	void			Start(size uiTab, const char* szText);
 	bool			Show(void);
 
-	void			SetText(const char* szText);
-	void			SelectTab(size uiTab);
-	size			GetTab(void);
-	size			NumResults(void);
-	SGoToItem*		GetResult(size uiIndex);
-	int32			GetSelected(void);
-	SGoToItem*		GetChosen(void);
-	int32			GetLine(void);
-	char*			GetPattern(void);
-	Ptr<CTextField>	GetField(void);
+	void				SetText(const char* szText);
+	void				SelectTab(size uiTab);
+	size				GetTab(void);
+	size				NumResults(void);
+	SGoToItem*			GetResult(size uiIndex);
+	int32				GetSelected(void);
+	SGoToItem*			GetChosen(void);
+	int32				GetLine(void);
+	char*				GetPattern(void);
+	Ptr<CTextField>		GetField(void);
 	Ptr<CListContainer>	GetList(void);
-	Ptr<CDialog>	GetDialog(void);
+	Ptr<CDialog>		GetDialog(void);
 
 	void			Search(void);
 	bool			Approve(void);

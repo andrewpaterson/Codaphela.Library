@@ -104,10 +104,10 @@ static void WriteRectangle(CXMLWriter* pcWriter, CInt32Rect* pcRect, const char*
 //////////////////////////////////////////////////////////////////////////
 static bool ReadRectangle(CMarkupTag* pcTag, CInt32Rect* pcRect, const char* szPrefix)
 {
-	CChars	sz;
-	int32	aiValues[4];
-	int		i;
-	bool	bResult;
+	CChars				sz;
+	int32				aiValues[4];
+	int					i;
+	bool				bResult;
 	static const char*	aszNames[4] = { "X", "Y", "Width", "Height" };
 
 	bResult = true;

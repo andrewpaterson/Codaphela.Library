@@ -48,7 +48,7 @@ public:
 			bool			DestroyNativeCanvas(CNativeCanvas* pcCanvas);
 
 	virtual CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) =0;  //NULL if there is no clipboard.
-			bool			DestroyNativeClipboard(CNativeClipboard* pcClipboard);
+			bool				DestroyNativeClipboard(CNativeClipboard* pcClipboard);
 
 protected:
 	template<class Class>

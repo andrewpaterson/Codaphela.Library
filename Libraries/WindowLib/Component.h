@@ -45,23 +45,23 @@ class CComponent : public CObject
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
-	CInt32Rect			mcActualBounds;
-	SInt32Vec2			msDesiredSize;
+	CInt32Rect					mcActualBounds;
+	SInt32Vec2					msDesiredSize;
 	EContainerStyleHorizontal	meHorizontalAlignment;  //Where a fixed size component sits in spare space.  Stretch makes it fill the space.
 	EContainerStyleVertical		meVerticalAlignment;
-	bool				mbCanGetFocus;
-	bool				mbHitAsWhole;  //Found by FindComponentAt itself, never its children; see SetHitAsWhole.
-	Ptr<CComponent>		mpParent;
-	CArray<CComponent>	maChildren;
-	Ptr<CWindow>		mpWindow;
-	CArray<CInputAction>	maInputActions;
-	Ptr<CContextMenu>	mpContextMenu;  //NULL for none.
-	ENativeCursor		meCursor;  //The pointer's shape over the component, NC_Arrow for its parent's.
+	bool						mbCanGetFocus;
+	bool						mbHitAsWhole;  //Found by FindComponentAt itself, never its children; see SetHitAsWhole.
+	Ptr<CComponent>				mpParent;
+	CArray<CComponent>			maChildren;
+	Ptr<CWindow>				mpWindow;
+	CArray<CInputAction>		maInputActions;
+	Ptr<CContextMenu>			mpContextMenu;  //NULL for none.
+	ENativeCursor				meCursor;  //The pointer's shape over the component, NC_Arrow for its parent's.
 
 public:
 			void				Init(Ptr<CWindow> pWindow);
 			void				Class(void) override;
-			void 				Free(void) override;
+			void				Free(void) override;
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;
@@ -124,7 +124,7 @@ public:
 			SInt32Vec2			GetActualSize(void);
 			void				GetActualBounds(CInt32Rect* pcDest);
 
-			void				SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
+			void						SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
 			EContainerStyleHorizontal	GetHorizontalAlignment(void);
 			EContainerStyleVertical		GetVerticalAlignment(void);
 

@@ -97,24 +97,24 @@ class CCodeEditor : public CContainer
 CONSTRUCTABLE(CCodeEditor);
 DESTRUCTABLE(CCodeEditor);
 protected:
-	Ptr<CTextArea>			mpGutter;
-	Ptr<CCanvas>			mpGutterBackground;
-	Ptr<CClearCanvasDraw>	mpGutterDraw;
-	Ptr<CTextArea>			mpTextArea;
-	CArray<CComponent>		maLineComponents;
-	CArrayCodeEditorGapIds	mauiGapIds;  //Of each line component's gap in the text area.  Ascending: a new gap's id is the largest.
-	CArrayCodeEditorLines	mauiLines;  //Each line component's line, as of the last update.
-	size					muiGutterLines;  //The lines the gutter was last numbered for.
-	CArrayCodeEditorMarks	macMarks;  //By line; lines past its end, and '\0's, have none.
-	bool					mbMarksChanged;  //Since the gutter was last numbered.
-	CArrayCodeEditorChangeBars	masChangeBars;
-	bool					mbChangeBarsChanged;  //Since they were last drawn on the gutter.
-	bool					mbGlyphColumn;  //The gutter's first column is the glyphs'.
-	CArrayCodeEditorGlyphs	masGlyphs;  //By line, as the marks are.
-	CGutterClickEvent		mcGlyphClicked;
-	ARGB32					msBandNumberColour;  //Line numbers on a change band.
-	CGutterClickEvent		mcGutterClicked;
-	CGutterClickEvent		mcChangeBarClicked;
+	Ptr<CTextArea>					mpGutter;
+	Ptr<CCanvas>					mpGutterBackground;
+	Ptr<CClearCanvasDraw>			mpGutterDraw;
+	Ptr<CTextArea>					mpTextArea;
+	CArray<CComponent>				maLineComponents;
+	CArrayCodeEditorGapIds			mauiGapIds;  //Of each line component's gap in the text area.  Ascending: a new gap's id is the largest.
+	CArrayCodeEditorLines			mauiLines;  //Each line component's line, as of the last update.
+	size							muiGutterLines;  //The lines the gutter was last numbered for.
+	CArrayCodeEditorMarks			macMarks;  //By line; lines past its end, and '\0's, have none.
+	bool							mbMarksChanged;  //Since the gutter was last numbered.
+	CArrayCodeEditorChangeBars		masChangeBars;
+	bool							mbChangeBarsChanged;  //Since they were last drawn on the gutter.
+	bool							mbGlyphColumn;  //The gutter's first column is the glyphs'.
+	CArrayCodeEditorGlyphs			masGlyphs;  //By line, as the marks are.
+	CGutterClickEvent				mcGlyphClicked;
+	ARGB32							msBandNumberColour;  //Line numbers on a change band.
+	CGutterClickEvent				mcGutterClicked;
+	CGutterClickEvent				mcChangeBarClicked;
 	CComponentEvent<CCodeEditor>	mcChanged;
 
 public:
@@ -139,27 +139,27 @@ public:
 	size				GetLineOf(Ptr<CComponent> pComponent);
 	Ptr<CComponent>		GetComponentOn(size uiLine);
 
-	void				SetLineMark(size uiLine, char cMark);
-	char				GetLineMark(size uiLine);
-	void				ClearLineMarks(void);
-	void				AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour);
-	void				AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour);
-	void				ClearChangeBars(void);
-	void				SetBandNumberColour(ARGB32 sColour);
-	size				NumChangeBars(void);
+	void					SetLineMark(size uiLine, char cMark);
+	char					GetLineMark(size uiLine);
+	void					ClearLineMarks(void);
+	void					AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	void					AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	void					ClearChangeBars(void);
+	void					SetBandNumberColour(ARGB32 sColour);
+	size					NumChangeBars(void);
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
-	void				SetGlyphColumn(bool bGlyphColumn);
-	bool				HasGlyphColumn(void);
-	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour);
-	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground);
-	SCodeEditorGlyph*	GetLineGlyph(size uiLine);
-	void				ClearLineGlyphs(void);
+	void					SetGlyphColumn(bool bGlyphColumn);
+	bool					HasGlyphColumn(void);
+	void					SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour);
+	void					SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground);
+	SCodeEditorGlyph*		GetLineGlyph(size uiLine);
+	void					ClearLineGlyphs(void);
 
-	CGutterClickEvent*	GetGutterClickEvent(void);
-	CGutterClickEvent*	GetChangeBarClickEvent(void);
-	CGutterClickEvent*	GetGlyphClickEvent(void);
+	CGutterClickEvent*				GetGutterClickEvent(void);
+	CGutterClickEvent*				GetChangeBarClickEvent(void);
+	CGutterClickEvent*				GetGlyphClickEvent(void);
 	CComponentEvent<CCodeEditor>*	GetChangeEvent(void);
-	void				ClickAction(SComponentInputEvent* psEvent);
+	void							ClickAction(SComponentInputEvent* psEvent);
 
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

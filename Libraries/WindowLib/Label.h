@@ -49,7 +49,7 @@ protected:
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont, const char* szText);
 	void			Class(void) override;
-	void 			Free(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

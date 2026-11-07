@@ -46,21 +46,21 @@ class CMenuContainer : public CListContainer
 CONSTRUCTABLE(CMenuContainer);
 DESTRUCTABLE(CMenuContainer);
 protected:
-	CComponentEvent<CMenuItem>	mcItemClicked;
+	CComponentEvent<CMenuItem>		mcItemClicked;
 	CComponentEvent<CMenuContainer>	mcOpening;
-	Ptr<CMenuStyle>		mpStyle;
-	CArray<CMenuItem>	maItems;
-	CArrayInt			maiItemRows;  //The row of each item in maItems.
-	Ptr<CMenuContainer>	mpParentMenu;  //The menu this one opens from, NULL for a menu that opens on its own.
-	Ptr<CMenuBar>		mpMenuBar;  //The bar this menu hangs from, NULL if it doesn't.
-	Ptr<CMenuContainer>	mpOpenSubMenu;
-	int32				miOpenSubMenuRow;
+	Ptr<CMenuStyle>					mpStyle;
+	CArray<CMenuItem>				maItems;
+	CArrayInt						maiItemRows;  //The row of each item in maItems.
+	Ptr<CMenuContainer>				mpParentMenu;  //The menu this one opens from, NULL for a menu that opens on its own.
+	Ptr<CMenuBar>					mpMenuBar;  //The bar this menu hangs from, NULL if it doesn't.
+	Ptr<CMenuContainer>				mpOpenSubMenu;
+	int32							miOpenSubMenuRow;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CMenuStyle> pStyle);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
@@ -83,10 +83,10 @@ public:
 	Ptr<CMenuBar>		GetMenuBar(void);
 	Ptr<CMenuStyle>		GetStyle(void);
 
-	CComponentEvent<CMenuItem>*	GetItemClickEvent(void);
+	CComponentEvent<CMenuItem>*			GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
-	void				Click(Ptr<CMenuItem> pItem);
-	void				SetRowEnabled(int32 iRow, bool bEnabled) override;
+	void								Click(Ptr<CMenuItem> pItem);
+	void								SetRowEnabled(int32 iRow, bool bEnabled) override;
 
 	void				MovedOver(int x, int y) override;
 	void				Left(void);

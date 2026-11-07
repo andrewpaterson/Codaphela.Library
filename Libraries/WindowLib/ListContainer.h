@@ -52,26 +52,26 @@ class CListContainer : public CGridContainer
 CONSTRUCTABLE(CListContainer);
 DESTRUCTABLE(CListContainer);
 protected:
-	Ptr<CClearCanvasDraw>	mpSelectedDraw;
-	Ptr<CCanvas>			mpSelectedHighlight;
-	Ptr<CClearCanvasDraw>	mpHoverDraw;
-	Ptr<CCanvas>			mpHoverHighlight;
-	CArrayBit				mabEnabled;  //One for each row.
+	Ptr<CClearCanvasDraw>			mpSelectedDraw;
+	Ptr<CCanvas>					mpSelectedHighlight;
+	Ptr<CClearCanvasDraw>			mpHoverDraw;
+	Ptr<CCanvas>					mpHoverHighlight;
+	CArrayBit						mabEnabled;  //One for each row.
 	CComponentEvent<CListContainer>	mcSelectionChanged;
 	CComponentEvent<CListContainer>	mcActivated;
-	int32					miSelected;  //-1 if no row is selected.
-	int32					miHover;  //The row under the pointer, -1 if the pointer isn't over a row.
-	int32					miPageRows;  //How far page up and page down move the selection when no scroll pane shows the list.
-	bool					mbPressed;  //Pressed on a row and not yet released.
-	bool					mbSelectOnHover;
-	bool					mbDoubleClickActivates;
-	bool					mbWrapAround;
-	SDoubleClick			msDoubleClick;  //Keyed by row, positions relative to the list.
+	int32							miSelected;  //-1 if no row is selected.
+	int32							miHover;  //The row under the pointer, -1 if the pointer isn't over a row.
+	int32							miPageRows;  //How far page up and page down move the selection when no scroll pane shows the list.
+	bool							mbPressed;  //Pressed on a row and not yet released.
+	bool							mbSelectOnHover;
+	bool							mbDoubleClickActivates;
+	bool							mbWrapAround;
+	SDoubleClick					msDoubleClick;  //Keyed by row, positions relative to the list.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void			Class(void) override;
-	void 			Free(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

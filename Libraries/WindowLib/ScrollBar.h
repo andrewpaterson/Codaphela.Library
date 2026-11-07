@@ -65,12 +65,12 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	void			SetRange(int32 iContentLength, int32 iViewLength, int32 iPosition);
-	bool			IsShown(void);
-	void			GetThumbBounds(CInt32Rect* pcDest);
+	void					SetRange(int32 iContentLength, int32 iViewLength, int32 iPosition);
+	bool					IsShown(void);
+	void					GetThumbBounds(CInt32Rect* pcDest);
 	EScrollBarOrientation	GetOrientation(void);
-	bool			IsDragging(void);
-	bool			IsHoverShown(void);
+	bool					IsDragging(void);
+	bool					IsHoverShown(void);
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

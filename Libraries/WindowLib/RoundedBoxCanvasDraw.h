@@ -35,10 +35,10 @@ CONSTRUCTABLE(CRoundedBoxCanvasDraw);
 DESTRUCTABLE(CRoundedBoxCanvasDraw);
 protected:
 	Ptr<CImageCanvasDraw>	mpCelDraw;
-	ARGB32		msColour;
-	int32		miRadius;
-	SInsets		msInsets;
-	SInt32Vec2	msCelSize;  //The canvas size the cel was made for, -1, -1 for none yet.
+	ARGB32					msColour;
+	int32					miRadius;
+	SInsets					msInsets;
+	SInt32Vec2				msCelSize;  //The canvas size the cel was made for, -1, -1 for none yet.
 
 public:
 	void		Init(ARGB32 sColour, int32 iRadius, SInsets* psInsets);

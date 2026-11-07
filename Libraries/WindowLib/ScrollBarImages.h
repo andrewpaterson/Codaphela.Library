@@ -70,7 +70,7 @@ public:
 	void			Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat = NULL);
 	void			Init(int32 iThickness, ARGB32 sColour, ARGB32 sHoverColour, CColourFormatHelper* pcFormat = NULL);
 	void			Class(void) override;
-	void 			Free(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

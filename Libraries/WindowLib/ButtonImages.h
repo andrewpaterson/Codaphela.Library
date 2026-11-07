@@ -76,7 +76,7 @@ public:
 	void			Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sFaceColour);
 	void			Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sNormalFace, ARGB32 sMouseOverFace, ARGB32 sSelectedFace, ARGB32 sPushedFace);
 	void			Class(void) override;
-	void 			Free(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

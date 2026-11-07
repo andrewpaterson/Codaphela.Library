@@ -50,23 +50,23 @@ class CFocus : public CObject
 CONSTRUCTABLE(CFocus);
 DESTRUCTABLE(CFocus);
 protected:
-	Ptr<CComponent>		mpMouseOverComponent;
-	Ptr<CComponent>		mpFocussedComponent;
-	Ptr<CComponent>		mpDragComponent;  //Gets ContDrag* until the drag stops, even once the pointer has left it.
-	Ptr<CWindow>		mpWindow;
-	SInt32Vec2			msPointer;  //In window client space.
-	bool				mbPointerIn;
-	bool				mbActive;  //An inactive window remembers its focussed component but sends it no commands.
-	EFocusDrag			meDrag;
+	Ptr<CComponent>			mpMouseOverComponent;
+	Ptr<CComponent>			mpFocussedComponent;
+	Ptr<CComponent>			mpDragComponent;  //Gets ContDrag* until the drag stops, even once the pointer has left it.
+	Ptr<CWindow>			mpWindow;
+	SInt32Vec2				msPointer;  //In window client space.
+	bool					mbPointerIn;
+	bool					mbActive;  //An inactive window remembers its focussed component but sends it no commands.
+	EFocusDrag				meDrag;
 	CComponentEvent<CFocus>	mcFocusChanged;  //The focussed component changed, see GetFocusChangeEvent.
-	int32				miCaretBlinkPeriod;  //Milliseconds the caret is shown, then hidden, for; 0 for always shown.
-	int64				miCaretBlinkTime;  //When the caret was last shown or hidden (GetDebugTickCount).
-	bool				mbCaretOn;  //The focussed component's caret is shown.
+	int32					miCaretBlinkPeriod;  //Milliseconds the caret is shown, then hidden, for; 0 for always shown.
+	int64					miCaretBlinkTime;  //When the caret was last shown or hidden (GetDebugTickCount).
+	bool					mbCaretOn;  //The focussed component's caret is shown.
 
 public:
-	void 				Init(Ptr<CWindow> pWindow);
+	void				Init(Ptr<CWindow> pWindow);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -74,13 +74,13 @@ public:
 	void				PointerMoved(int x, int y);
 	void				PointerLeft(void);
 	void				Refresh(void);
-	void 				Request(void);
+	void				Request(void);
 	void				SetFocus(Ptr<CComponent> pComponent);
 	void				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	void				Command(EComponentInputCommand eCommand, bool bInsert);
 	void				Printable(char c, bool bInsert);
-	void 				Activate(void);
-	void 				Deactivate(void);
+	void				Activate(void);
+	void				Deactivate(void);
 	void				Forget(Ptr<CComponent> pComponent);
 
 	Ptr<CComponent>		GetFocussedComponent(void);
@@ -91,11 +91,11 @@ public:
 
 	//A focussed component can start a drag itself, as a scroll bar does when its thumb is pressed, so it gets the
 	//pointer's moves until it stops the drag.
-	void				StartDrag(EFocusDrag eDrag, int x, int y);
-	void				StopDrag(EFocusDrag eDrag);
-	void				HandOverDrag(Ptr<CComponent> pComponent);
-	Ptr<CComponent>		GetDragComponent(void);
-	EFocusDrag			GetDrag(void);
+	void						StartDrag(EFocusDrag eDrag, int x, int y);
+	void						StopDrag(EFocusDrag eDrag);
+	void						HandOverDrag(Ptr<CComponent> pComponent);
+	Ptr<CComponent>				GetDragComponent(void);
+	EFocusDrag					GetDrag(void);
 	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
 
 	//The focussed component's caret blinks, as IntelliJ's: shown and hidden every period, shown again whenever it

@@ -42,19 +42,19 @@ class CCheckBox : public CGridContainer
 CONSTRUCTABLE(CCheckBox);
 DESTRUCTABLE(CCheckBox);
 protected:
-	Ptr<CCheckBoxImages>	mpImages;
-	Ptr<CIconComponent>		mpBox;
-	Ptr<CLabel>				mpCaption;
+	Ptr<CCheckBoxImages>		mpImages;
+	Ptr<CIconComponent>			mpBox;
+	Ptr<CLabel>					mpCaption;
 	CComponentEvent<CCheckBox>	mcChanged;
-	ECheckBoxState			meState;
-	int32					miGap;
-	bool					mbTicked;
-	bool					mbPressed;
+	ECheckBoxState				meState;
+	int32						miGap;
+	bool						mbTicked;
+	bool						mbPressed;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption, bool bTicked = false);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
