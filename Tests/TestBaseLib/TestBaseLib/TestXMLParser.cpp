@@ -425,6 +425,22 @@ void TestXMLParserSpaceBeforeTagEnd(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The prolog's encoding can be left out (the document is UTF-8); one that
+// isn't known is an error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestXMLParserEncoding(void)
+{
+	AssertTritrue(ParseXMLParserText("<?xml version=\"1.0\"?>\n<A/>"));
+	AssertTritrue(ParseXMLParserText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<A/>"));
+	AssertTritrue(ParseXMLParserText("<?xml version=\"1.0\" standalone=\"yes\"?>\n<A/>"));
+	AssertTristate(TRIERROR, ParseXMLParserText("<?xml version=\"1.0\" encoding=\"EBCDIC\"?>\n<A/>"));
+	AssertTristate(TRIERROR, ParseXMLParserText("<?xml version=\"1.0\" standalone=\"maybe\"?>\n<A/>"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestXMLParser(void)
@@ -440,6 +456,7 @@ void TestXMLParser(void)
 	TestXMLParserErrors();
 	TestXMLParserLogisimFile();
 	TestXMLParserSpaceBeforeTagEnd();
+	TestXMLParserEncoding();
 
 	DataMemoryKill();
 	TestStatistics();

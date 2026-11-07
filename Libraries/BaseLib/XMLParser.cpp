@@ -258,6 +258,7 @@ TRISTATE CXMLParser::ParseVersion(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The prolog's encoding.  Without one the document is UTF-8, as XML says.
 //
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseEncoding(void)
@@ -267,10 +268,12 @@ TRISTATE CXMLParser::ParseEncoding(void)
 	ECharEncoding	eEncoding;
 
 	tResult = mcParser.GetExactIdentifier("encoding");
-	if (tResult != TRITRUE)
+	if (tResult == TRIFALSE)
 	{
-		return TRIERROR;
+		mcProlog.SetEncoding(CE_UTF_8);
+		return TRITRUE;
 	}
+	ReturnOnError(tResult);
 
 	szEncoding.Init();
 	tResult = ParseValue(&szEncoding);
@@ -335,6 +338,7 @@ TRISTATE CXMLParser::ParseStandalone(void)
 	}
 	else
 	{
+		szStandalone.Kill();
 		return TRIERROR;
 	}
 }
