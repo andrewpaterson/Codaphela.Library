@@ -143,18 +143,18 @@ void TestButtonInput(void)
 		AssertTrue(pGrid->AddComponent(pOK, 0, 0, 1, 1, 1, 1));
 		AssertTrue(pGrid->AddComponent(pCancel, 1, 0, 1, 1, 1, 1));
 
-		//A button is its caption, 8 pixels of padding each side and 2 above and below, inside an 8 pixel border.
+		//A button is its caption, 8 pixels of padding each side and none above and below, inside an 8 pixel border.
 		iCaptionWidth = (int32)pFont->CalculateWidth("OK");
 		sSize = pOK->GetDesiredSize();
-		AssertInt32Vec2(iCaptionWidth + 32, 44, &sSize);
+		AssertInt32Vec2(iCaptionWidth + 32, 40, &sSize);
 
 		//Each column is its button's width plus half the spare width.  The button is centred in it.
 		pTestWindow->Layout();
 		sSize = pOK->GetActualSize();
-		AssertInt32Vec2(iCaptionWidth + 32, 44, &sSize);
+		AssertInt32Vec2(iCaptionWidth + 32, 40, &sSize);
 		iSpare = 200 - sSize.x - pCancel->GetActualSize().x;
 		sPosition = pOK->GetPosition();
-		AssertInt32Vec2((iSpare / 2) / 2, 8, &sPosition);
+		AssertInt32Vec2((iSpare / 2) / 2, 10, &sPosition);
 		AssertInt(BS_Normal, pOK->GetState());
 
 		//The button is hit as a whole, its border and face included.
@@ -247,9 +247,9 @@ void TestButtonInput(void)
 		pOK->SetCaption("Okay");
 		AssertString("Okay", pOK->GetCaption());
 		sSize = pOK->GetDesiredSize();
-		AssertInt32Vec2((int32)pFont->CalculateWidth("Okay") + 32, 44, &sSize);
+		AssertInt32Vec2((int32)pFont->CalculateWidth("Okay") + 32, 40, &sSize);
 		sSize = pOK->GetPadding();
-		AssertInt32Vec2(8, 2, &sSize);
+		AssertInt32Vec2(8, 0, &sSize);
 		pOK->SetPadding(0, 0);
 		sSize = pOK->GetDesiredSize();
 		AssertInt32Vec2((int32)pFont->CalculateWidth("Okay") + 16, 40, &sSize);
@@ -660,9 +660,9 @@ void TestButtonIcons(void)
 		//The caption decides the height of a button with one, the icon of one without.
 		iCaptionWidth = pBoth->GetCaptionLabel()->GetDesiredSize().x;
 		sVec = pBoth->GetDesiredSize();
-		AssertInt32Vec2(100, 24 + 2 * 2 + 8 * 2, &sVec);
+		AssertInt32Vec2(100, 24 + 8 * 2, &sVec);
 		sVec = pIconOnly->GetDesiredSize();
-		AssertInt32Vec2(100, pMoon->GetSubImage()->GetFullHeight() + 2 * 2 + 8 * 2, &sVec);
+		AssertInt32Vec2(100, pMoon->GetSubImage()->GetFullHeight() + 8 * 2, &sVec);
 
 		pTestWindow->Show();
 
@@ -676,7 +676,7 @@ void TestButtonIcons(void)
 		AssertInt(iWolfWidth + 4, sVec.x);
 		sVec = pBoth->GetCaptionLabel()->GetPosition();
 		AssertInt(sFace.x + 8 + iWolfWidth + 4, sVec.x);
-		AssertInt(sFace.y + 2, sVec.y);
+		AssertInt(sFace.y, sVec.y);
 
 		//An icon alone is centred.
 		sFace = pIconOnly->GetPosition();

@@ -29,10 +29,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
 {
 	8,		//TM_ButtonPaddingX
-	2,		//TM_ButtonPaddingY
+	0,		//TM_ButtonPaddingY, so buttons, fields and combo boxes are 29 high, Jewel's are 28.
 	4,		//TM_ButtonIconGap
 	6,		//TM_FieldPaddingX
-	2,		//TM_FieldPaddingY
+	0,		//TM_FieldPaddingY
 	6,		//TM_CheckBoxGap
 	16,		//TM_ComboChevronWidth
 	8,		//TM_ComboChevronGap
