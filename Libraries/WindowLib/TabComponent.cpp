@@ -321,6 +321,9 @@ void CTabComponent::UpdateLook(void)
 	{
 		mpClose->SetCel(mpTheme->GetImage(mbOverClose ? TI_TabCloseHover : TI_TabClose));
 	}
+
+	//The background's and underline's draws changed, which their canvases can't see.
+	Invalidate();
 }
 
 

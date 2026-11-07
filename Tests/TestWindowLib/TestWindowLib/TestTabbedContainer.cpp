@@ -4,6 +4,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/Canvas.h"
 #include "WindowLib/ClearCanvasDraw.h"
+#include "WindowLib/DamageArea.h"
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/TabbedContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
@@ -268,6 +269,70 @@ void TestTabbedContainerTabs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Drawing only what changed, a tab the pointer moves over draws again in
+// its hover look, and selecting a tab draws both tabs' underlines again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTabbedContainerLookRedrawn(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CTabbedContainer>		pTabbed;
+		Ptr<CTabComponent>			pInputTab;
+		Ptr<CTabComponent>			pEditorTab;
+		CDamageArea*				pcDamage;
+		CInt32Rect					cInputTab;
+		CInt32Rect					cEditorTab;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 240, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Tabbed Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0.0f, 0.0f)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow->SetPartialRedraw(true);
+		ORoot()->Add(pTestWindow);
+
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
+		pTabbed = OMalloc<CTabbedContainer>(pTestWindow, pTheme);
+		pTestWindow->SetContainer(pTabbed);
+		pInputTab = pTabbed->AddTab("Input", CreateTabbedPage(pTestWindow));
+		pEditorTab = pTabbed->AddTab("Editor", CreateTabbedPage(pTestWindow));
+		pTestWindow->Paint();
+		pTestWindow->Paint();
+		pcDamage = pTestWindow->GetPaintedDamage();
+		AssertTrue(pcDamage->IsEmpty());
+		pInputTab->GetActualBounds(&cInputTab);
+		pEditorTab->GetActualBounds(&cEditorTab);
+
+		pEditorTab->MovedInto();
+		pTestWindow->Paint();
+		AssertTrue(pcDamage->Intersects(&cEditorTab));
+		AssertFalse(pcDamage->Intersects(&cInputTab));
+
+		pTabbed->Select(pEditorTab);
+		pTestWindow->Paint();
+		AssertTrue(pcDamage->Intersects(&cEditorTab));
+		AssertTrue(pcDamage->Intersects(&cInputTab));
+
+		pEditorTab = NULL;
+		pInputTab = NULL;
+		pTabbed = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTabbedContainer(void)
@@ -276,6 +341,7 @@ void TestTabbedContainer(void)
 	ObjectsInit();
 
 	TestTabbedContainerTabs();
+	TestTabbedContainerLookRedrawn();
 
 	ObjectsFlush();
 	ObjectsKill();
