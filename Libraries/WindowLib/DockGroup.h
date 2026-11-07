@@ -53,9 +53,10 @@ enum EDockMenuItem
 //pane's title, with the window position menu, the pin and the close cross, and its tabs along the bottom (none while
 //it holds one pane).  A document group has its tabs along the top, each with a close cross, and no title bar.
 //
-//Pulling a tab off calls the manager to drag that pane; pulling the title bar drags the whole group.  Each tab has the
-//pane's window position menu as its context menu, as does the title bar's chevron.  The group's ID is unique in its
-//manager and is how panes find their way back to it (see CDockPane::SetRestore).
+//Pulling a tab off calls the manager to drag that pane; pulling the title bar drags the whole group.  Each tab has its
+//pane's window position menu as its context menu, as does the title bar's chevron: one menu for the documents' tabs and
+//one for the tools', each acting on the pane it was opened for.  The group's ID is unique in its manager and is how
+//panes find their way back to it (see CDockPane::SetRestore).
 class CDockGroup : public CDockNode
 {
 CONSTRUCTABLE(CDockGroup);
@@ -67,6 +68,9 @@ protected:
 	Ptr<CDockTitleBar>		mpTitleBar;  //NULL for a document group.
 	Ptr<CTabbedContainer>	mpTabs;
 	CArray<CDockPane>		maPanes;  //Not in tab order: the tabbed container moves tabs itself.  GetPane is by tab.
+	Ptr<CMenuContainer>		mpDocumentMenu;  //The window position menu of the documents' tabs, NULL until one is added.
+	Ptr<CMenuContainer>		mpToolMenu;  //And of the tools'.
+	Ptr<CDockPane>			mpMenuPane;  //The pane a menu was last opened for.
 
 public:
 	void					Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iID, bool bDocuments);
@@ -110,13 +114,13 @@ public:
 	void					MenuButtonPressed(CDockTitleBar* pcTitleBar);
 	void					PinButtonPressed(CDockTitleBar* pcTitleBar);
 	void					CloseButtonPressed(CDockTitleBar* pcTitleBar);
+	void					MenuOpening(CMenuContainer* pcMenu);
 	void					MenuItemClicked(CMenuItem* pcItem);
 	void					CloseMenuOpening(CMenuContainer* pcMenu);
 
 protected:
-	Ptr<CMenuContainer>		CreateMenu(Ptr<CDockPane> pPane);
-	Ptr<CDockPane>			FindMenuPane(CMenuContainer* pcMenu);
-	bool					IsInSubMenu(CMenuItem* pcItem, Ptr<CMenuContainer> pMenu);
+	Ptr<CMenuContainer>		CreateMenu(bool bDocuments);
+	void					StopListening(Ptr<CMenuContainer> pMenu);
 	void					AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem);
 	size					SlotOf(Ptr<CDockPane> pPane);
 	size					FindTab(CTabComponent* pcTab);

@@ -56,6 +56,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 	mpStyle = pStyle;
 	maItems.Init();
 	maiItemRows.Init();
+	mpOpener = NULL;
 	mpParentMenu = NULL;
 	mpMenuBar = NULL;
 	mpOpenSubMenu = NULL;
@@ -89,6 +90,7 @@ void CMenuContainer::Class(void)
 	M_Pointer(mpMenuBar);
 	M_Pointer(mpOpenSubMenu);
 	U_Int32(miOpenSubMenuRow);
+	M_Pointer(mpOpener);
 }
 
 
@@ -256,7 +258,8 @@ int32 CMenuContainer::GetItemRow(Ptr<CMenuItem> pItem)
 //////////////////////////////////////////////////////////////////////////
 //
 // Opens the menu in a popup with its top left at sPosition, in window
-// client space.  pOwner is told when it closes.  With bFocus the menu
+// client space.  pOwner is told when it closes, and is the menu's opener
+// (GetOpener) while its opening event is called.  With bFocus the menu
 // takes the keys.  Nothing is selected until the pointer or a key picks
 // a row.
 //
@@ -267,7 +270,9 @@ Ptr<CPopup> CMenuContainer::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, b
 
 	Close();
 	Reset();
+	mpOpener = pOwner;
 	mcOpening.Call(this);
+	mpOpener = NULL;
 	pPopup = mpWindow->OpenPopup(this, sPosition, pOwner);
 	pPopup->SetLook(mpStyle->GetMenuBackground(), mpStyle->GetMenuBorder(), mpStyle->GetMenuInsets());
 	pPopup->Layout(mpWindow->GetPosition(), mpWindow->GetActualSize());
@@ -585,6 +590,19 @@ size CMenuContainer::NumItems(void) { return maItems.Size(); }
 Ptr<CMenuItem> CMenuContainer::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
 Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) { return mpOpenSubMenu; }
 CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return &mcOpening; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the menu is opening for, the owner given to Open: a component's
+// context menu is opened for the component.  Only while the opening event
+// is called; NULL otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CMenuContainer::GetOpener(void)
+{
+	return mpOpener;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

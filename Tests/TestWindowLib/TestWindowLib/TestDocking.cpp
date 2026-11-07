@@ -1152,7 +1152,9 @@ void TestDockingTitlesAndColours(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A tab's window position menu does what its items are tagged with,
-// whatever their text says; each pane's menu acts on that pane.
+// whatever their text says.  A group's tools share one menu and its
+// documents another, and the menu acts on the pane it was opened for:
+// from the group, or as a tab's context menu.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDockingMenus(void)
@@ -1173,8 +1175,10 @@ void TestDockingMenus(void)
 		pMenu = pGroup->GetMenu(sTest.pErrors);
 		pOtherMenu = pGroup->GetMenu(sTest.pOutput);
 		AssertTrue(pMenu.IsNotNull());
-		AssertTrue(pMenu != pOtherMenu);
+		AssertTrue(pMenu == pOtherMenu);
 		AssertTrue(pGroup->GetTab(sTest.pErrors)->GetContextMenu() == pMenu);
+		AssertTrue(pGroup->GetTab(sTest.pOutput)->GetContextMenu() == pMenu);
+		AssertTrue(sTest.pFirstDoc->GetGroup()->GetMenu(sTest.pFirstDoc) != pMenu);
 
 		//The Hide item, renamed, still hides Errors and only Errors.
 		pItem = NULL;
@@ -1195,17 +1199,18 @@ void TestDockingMenus(void)
 		AssertInt(DPS_Hidden, sTest.pErrors->GetState());
 		AssertInt(DPS_Docked, sTest.pOutput->GetState());
 
-		//A document's menu floats it.
+		//A document's menu, opened as the second tab's context menu, floats the second document.
 		pGroup = sTest.pFirstDoc->GetGroup();
 		pMenu = pGroup->GetMenu(sTest.pFirstDoc);
+		AssertTrue(pGroup->GetMenu(sTest.pSecondDoc) == pMenu);
 		AssertInt(DMI_Float, pMenu->GetItem(0)->GetTag());
-		pGroup->OpenMenu(sTest.pFirstDoc, SInt32Vec2(300, 200));
+		AssertTrue(pGroup->GetTab(sTest.pSecondDoc)->OpenContextMenu(SInt32Vec2(300, 200)));
 		sTest.pWindow->Layout();
 		pMenu->GetItem(0)->GetActualBounds(&cBounds);
 		DockPress(sTest.pWindow, cBounds.GetLeft() + 10, cBounds.GetTop() + cBounds.GetHeight() / 2);
 		DockRelease(sTest.pWindow);
-		AssertInt(DPS_Floating, sTest.pFirstDoc->GetState());
-		AssertInt(DPS_Docked, sTest.pSecondDoc->GetState());
+		AssertInt(DPS_Floating, sTest.pSecondDoc->GetState());
+		AssertInt(DPS_Docked, sTest.pFirstDoc->GetState());
 
 		pGroup = NULL;
 		pMenu = NULL;
@@ -1877,7 +1882,9 @@ void TestDockingCloseMultiple(void)
 		AssertString("Close to the Left", pClose->GetItem(3)->GetText());
 		AssertString("Close to the Right", pClose->GetItem(4)->GetText());
 
-		//The first tab has nothing to its left.
+		//The first tab has nothing to its left: its menu is opened for it.
+		AssertTrue(pGroup->GetTab(sTest.pFirstDoc)->OpenContextMenu(SInt32Vec2(10, 10)));
+		pMenu->Close();
 		pClose->Open(SInt32Vec2(10, 10), NULL, false);
 		AssertTrue(pClose->GetItem(0)->IsEnabled());
 		AssertTrue(pClose->GetItem(1)->IsEnabled());

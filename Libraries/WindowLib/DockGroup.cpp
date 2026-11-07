@@ -45,6 +45,9 @@ void CDockGroup::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iI
 	mbDocuments = bDocuments;
 	mbActive = false;
 	maPanes.Init();
+	mpDocumentMenu = NULL;
+	mpToolMenu = NULL;
+	mpMenuPane = NULL;
 
 	mpTabs = OMalloc<CTabbedContainer>(pWindow, pManager->GetTheme());
 	mpTabs->SetAlignment(CSH_Stretch, CSV_Stretch);
@@ -91,6 +94,9 @@ void CDockGroup::Class(void)
 	M_Pointer(mpTitleBar);
 	M_Pointer(mpTabs);
 	M_Embedded(maPanes);
+	M_Pointer(mpDocumentMenu);
+	M_Pointer(mpToolMenu);
+	M_Pointer(mpMenuPane);
 }
 
 
@@ -100,17 +106,8 @@ void CDockGroup::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::Free(void)
 {
-	size				i;
-	Ptr<CMenuContainer>	pMenu;
-
-	for (i = 0; i < maPanes.Size(); i++)
-	{
-		pMenu = GetMenu(maPanes.Get(i));
-		if (pMenu.IsNotNull())
-		{
-			pMenu->GetItemClickEvent()->Remove(this);
-		}
-	}
+	StopListening(mpDocumentMenu);
+	StopListening(mpToolMenu);
 	if (mpTabs.IsNotNull())
 	{
 		mpTabs->GetSelectionEvent()->Remove(this);
@@ -220,7 +217,6 @@ void CDockGroup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 {
 	Ptr<CTabComponent>	pTab;
-	Ptr<CMenuContainer>	pMenu;
 	bool				bClosable;
 
 	if (uiIndex > maPanes.Size())
@@ -229,10 +225,9 @@ void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 	}
 	bClosable = mbDocuments && pPane->IsClosable();
 	maPanes.Add(pPane);
-	pMenu = CreateMenu(pPane);
 	pPane->SetGroup(this);
 	pTab = mpTabs->InsertTab(uiIndex, pPane->GetTitle(), pPane->GetContent(), pPane->GetIcon(), bClosable);
-	pTab->SetContextMenu(pMenu);
+	pTab->SetContextMenu(GetMenu(pPane));
 	if (pPane->GetTabFont().IsNotNull())
 	{
 		pTab->SetTextFont(pPane->GetTabFont());
@@ -260,8 +255,11 @@ bool CDockGroup::TakePane(Ptr<CDockPane> pPane)
 	{
 		return false;
 	}
-	pTab->GetContextMenu()->GetItemClickEvent()->Remove(this);
 	pTab->SetContextMenu(NULL);
+	if (mpMenuPane == pPane)
+	{
+		mpMenuPane = NULL;
+	}
 	maPanes.RemoveAt(uiSlot);
 	mpTabs->TakeTab(pTab);
 	if (pPane->GetGroup() == this)
@@ -433,13 +431,13 @@ void CDockGroup::SetActive(bool bActive)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The pane's window position menu.  A document's has Float, Dock, Close
-// and Close Multiple, with Close All, Close Others, Close Unmodified and
-// Close to the Left and Right of it, as IntelliJ's tabs; a tool's the
-// rest.
+// The window position menu of the group's documents (bDocuments) or
+// tools, shared by their tabs.  A document's has Float, Dock, Close and
+// Close Multiple, with Close All, Close Others, Close Unmodified and Close
+// to the Left and Right, as IntelliJ's tabs; a tool's the rest.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
+Ptr<CMenuContainer> CDockGroup::CreateMenu(bool bDocuments)
 {
 	Ptr<CMenuContainer>	pMenu;
 	Ptr<CMenuContainer>	pClose;
@@ -447,7 +445,7 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 	pMenu = OMalloc<CMenuContainer>(mpWindow, mpManager->GetTheme());
 	AddMenuItem(pMenu, DMI_Float);
 	AddMenuItem(pMenu, DMI_Dock);
-	if (pPane->IsDocument())
+	if (bDocuments)
 	{
 		pMenu->AddSeparator();
 		AddMenuItem(pMenu, DMI_Close);
@@ -466,8 +464,35 @@ Ptr<CMenuContainer> CDockGroup::CreateMenu(Ptr<CDockPane> pPane)
 		AddMenuItem(pMenu, DMI_AutoHide);
 		AddMenuItem(pMenu, DMI_Hide);
 	}
+	pMenu->GetOpeningEvent()->Add(this, &CDockGroup::MenuOpening);
 	pMenu->GetItemClickEvent()->Add(this, &CDockGroup::MenuItemClicked);
 	return pMenu;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The group stops listening to pMenu and its Close Multiple, if it was
+// made.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGroup::StopListening(Ptr<CMenuContainer> pMenu)
+{
+	size	i;
+
+	if (pMenu.IsNull())
+	{
+		return;
+	}
+	pMenu->GetOpeningEvent()->Remove(this);
+	pMenu->GetItemClickEvent()->Remove(this);
+	for (i = 0; i < pMenu->NumItems(); i++)
+	{
+		if (pMenu->GetItem(i)->HasSubMenu())
+		{
+			pMenu->GetItem(i)->GetSubMenu()->GetOpeningEvent()->Remove(this);
+		}
+	}
 }
 
 
@@ -484,34 +509,58 @@ void CDockGroup::AddMenuItem(Ptr<CMenuContainer> pMenu, EDockMenuItem eItem)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window position menu pPane's tab has: the group's document menu or
+// its tool menu, made the first time a pane needs it.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMenuContainer> CDockGroup::GetMenu(Ptr<CDockPane> pPane)
 {
-	Ptr<CTabComponent>	pTab;
-
-	pTab = GetTab(pPane);
-	if (pTab.IsNull())
+	if (pPane->IsDocument())
 	{
-		return NULL;
+		if (mpDocumentMenu.IsNull())
+		{
+			mpDocumentMenu = CreateMenu(true);
+		}
+		return mpDocumentMenu;
 	}
-	return pTab->GetContextMenu();
+	if (mpToolMenu.IsNull())
+	{
+		mpToolMenu = CreateMenu(false);
+	}
+	return mpToolMenu;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// sPosition is in window client space.
+// pPane's menu opens at sPosition, for pPane, as from the title bar's menu
+// button.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::OpenMenu(Ptr<CDockPane> pPane, SInt32Vec2 sPosition)
 {
-	Ptr<CMenuContainer>	pMenu;
+	mpMenuPane = pPane;
+	GetMenu(pPane)->Open(sPosition, this, true);
+}
 
-	pMenu = GetMenu(pPane);
-	if (pMenu.IsNotNull())
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A menu opening from a tab is for the tab's pane; from the group (see
+// OpenMenu) it is for the pane already chosen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockGroup::MenuOpening(CMenuContainer* pcMenu)
+{
+	size	i;
+
+	for (i = 0; i < NumPanes(); i++)
 	{
-		pMenu->Open(sPosition, this, true);
+		if ((CComponent*)&GetTab(GetPane(i)) == &pcMenu->GetOpener())
+		{
+			mpMenuPane = GetPane(i);
+			return;
+		}
 	}
 }
 
@@ -725,84 +774,14 @@ void CDockGroup::CloseButtonPressed(CDockTitleBar* pcTitleBar)
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::MenuItemClicked(CMenuItem* pcItem)
 {
-	size				i;
-	Ptr<CDockPane>		pPane;
-	Ptr<CMenuContainer>	pMenu;
-	int32				iItem;
+	int32	iItem;
 
 	iItem = pcItem->GetTag();
-	if ((iItem < 0) || (iItem >= DMI_NumItems) || (iItem == DMI_CloseMultiple))
+	if ((iItem < 0) || (iItem >= DMI_NumItems) || (iItem == DMI_CloseMultiple) || mpMenuPane.IsNull())
 	{
 		return;
 	}
-	for (i = 0; i < NumPanes(); i++)
-	{
-		pPane = GetPane(i);
-		pMenu = GetMenu(pPane);
-		if (pMenu.IsNotNull() && (pcItem->IsWithin(pMenu) || IsInSubMenu(pcItem, pMenu)))
-		{
-			mpManager->MenuChosen(pPane, (EDockMenuItem)iItem);
-			return;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether pcItem is in one of pMenu's sub menus, Close Multiple's.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockGroup::IsInSubMenu(CMenuItem* pcItem, Ptr<CMenuContainer> pMenu)
-{
-	size			i;
-	Ptr<CMenuItem>	pItem;
-
-	for (i = 0; i < pMenu->NumItems(); i++)
-	{
-		pItem = pMenu->GetItem(i);
-		if (pItem->HasSubMenu() && pcItem->IsWithin(pItem->GetSubMenu()))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The pane whose Close Multiple sub menu pcMenu is, NULL if none's is.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CDockPane> CDockGroup::FindMenuPane(CMenuContainer* pcMenu)
-{
-	size				i;
-	size				j;
-	Ptr<CMenuContainer>	pMenu;
-	Ptr<CMenuItem>		pItem;
-
-	if (pcMenu == NULL)
-	{
-		return NULL;
-	}
-	for (i = 0; i < NumPanes(); i++)
-	{
-		pMenu = GetMenu(GetPane(i));
-		if (pMenu.IsNull())
-		{
-			continue;
-		}
-		for (j = 0; j < pMenu->NumItems(); j++)
-		{
-			pItem = pMenu->GetItem(j);
-			if (pItem->HasSubMenu() && (&pItem->GetSubMenu() == pcMenu))
-			{
-				return GetPane(i);
-			}
-		}
-	}
-	return NULL;
+	mpManager->MenuChosen(mpMenuPane, (EDockMenuItem)iItem);
 }
 
 
@@ -821,7 +800,7 @@ void CDockGroup::CloseMenuOpening(CMenuContainer* pcMenu)
 	size			i;
 	bool			bUnmodified;
 
-	pPane = FindMenuPane(pcMenu);
+	pPane = mpMenuPane;
 	if (pPane.IsNull())
 	{
 		return;

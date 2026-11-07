@@ -55,6 +55,7 @@ protected:
 	Ptr<CMenuBar>					mpMenuBar;  //The bar this menu hangs from, NULL if it doesn't.
 	Ptr<CMenuContainer>				mpOpenSubMenu;
 	int32							miOpenSubMenuRow;
+	Ptr<CComponent>					mpOpener;  //What the menu is opening for (Open's owner), while its opening event is called.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -84,6 +85,7 @@ public:
 
 	CComponentEvent<CMenuItem>*			GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
+	Ptr<CComponent>		GetOpener(void);
 	void								Click(Ptr<CMenuItem> pItem);
 	void								SetRowEnabled(int32 iRow, bool bEnabled) override;
 

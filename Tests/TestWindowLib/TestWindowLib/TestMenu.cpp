@@ -1101,6 +1101,24 @@ public:
 };
 
 
+//Remembers what a menu was opening for.
+class CTestMenuOpenerListener
+{
+public:
+	CComponent*	mpcOpener;
+
+	void Init(void)
+	{
+		mpcOpener = NULL;
+	}
+
+	void MenuOpening(CMenuContainer* pcMenu)
+	{
+		mpcOpener = &pcMenu->GetOpener();
+	}
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // As IntelliJ's Edit menu: shortcuts on the right in the dim font and
@@ -1453,6 +1471,70 @@ void TestMenuItemClickEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// While a menu's opening event is called its opener is the owner it was
+// opened with: a component's context menu is opened for the component.
+// After, and without an owner, it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuOpener(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CMenuStyle>				pStyle;
+		Ptr<CMenuContainer>			pMenu;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CLabel>					pLabel;
+		CTestMenuOpenerListener		cOpener;
+		CPointer					pNull;
+
+		cOpener.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pStyle = OMalloc<CMenuStyle>(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme = OMalloc<CWindowTheme>(pStyle->GetFont());
+		pTheme->SetMenuStyle(pStyle);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pLabel = OMalloc<CLabel>(pTestWindow, pStyle->GetFont(), "Label");
+		pGrid->AddComponent(pLabel, 0, 0);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pMenu->AddItem("Item");
+		pMenu->GetOpeningEvent()->Add(&cOpener, &CTestMenuOpenerListener::MenuOpening);
+		pLabel->SetContextMenu(pMenu);
+
+		AssertTrue(pLabel->OpenContextMenu(SInt32Vec2(10, 10)));
+		AssertTrue(cOpener.mpcOpener == &pLabel);
+		AssertTrue(pMenu->GetOpener().IsNull());
+		pMenu->Close();
+
+		pMenu->Open(SInt32Vec2(10, 10), NULL, false);
+		AssertNull(cOpener.mpcOpener);
+		pMenu->Close();
+
+		pMenu->GetOpeningEvent()->Remove(&cOpener);
+		pLabel->SetContextMenu(NULL);
+		pMenu = NULL;
+		pLabel = NULL;
+		pGrid = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -1471,6 +1553,7 @@ void TestMenu(void)
 	TestMenuItemAndRowEnabledAgree();
 	TestMenuItemClickEvent();
 	TestMenuItemShortcutFromCommand();
+	TestMenuOpener();
 
 	ObjectsFlush();
 	ObjectsKill();
