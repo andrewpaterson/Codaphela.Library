@@ -46,12 +46,9 @@ public:
 			bool			RemoveAll(void);
 
 	virtual size			NumElements(void) =0;
-			size			Length(void);
-			size			Size(void);
 	virtual size			NonNullElements(void) =0;
 	virtual bool			IsEmpty(void) =0;
 
-			bool			Clear(void);
 			void			MakeSubRoot(void);
 			bool			IsSubRoot(void) override;
 

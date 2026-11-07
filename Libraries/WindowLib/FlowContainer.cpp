@@ -91,7 +91,7 @@ void CFlowContainer::SetRequiredSize(void)
 	bHorizontal = IsHorizontal();
 	sTotalSize.Init(0, 0);
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		sSize = GetLineSize(maChildren.Get(i));
@@ -137,7 +137,7 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		}
 		else
 		{
-			LayoutLine(sOrigin, sArea, 0, maChildren.Size());
+			LayoutLine(sOrigin, sArea, 0, maChildren.NumElements());
 		}
 	}
 
@@ -257,7 +257,7 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 	bHorizontal = IsHorizontal();
 	iLineLength = 0;
 	iLineThickness = 0;
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 
 	for (i = iFirst; i < uiSize; i++)
 	{
@@ -326,7 +326,7 @@ SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 	bHorizontal = IsHorizontal();
 	iLongestLine = 0;
 	iCrossPos = 0;
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	iFirst = 0;
 
 	while (iFirst < uiSize)
@@ -377,7 +377,7 @@ void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iMainLen = ContainerStyleMainAxis(&sAreaSize, bHorizontal);
 	ContainerStyleSetMainAxis(&sLineSize, bHorizontal, iMainLen);
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	iFirst = 0;
 
 	while (iFirst < uiSize)

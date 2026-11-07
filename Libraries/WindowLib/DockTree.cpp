@@ -239,7 +239,7 @@ void CDockTree::MovePanesInto(Ptr<CDockNode> pNode, Ptr<CDockGroup> pGroup)
 
 	aPanes.Init();
 	pNode->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		pPane = aPanes.Get(i);
 		pPane->GetGroup()->TakePane(pPane);
@@ -257,7 +257,7 @@ void CDockTree::SetStates(CArray<CDockPane>* paPanes, EDockPaneState eState)
 {
 	size	i;
 
-	for (i = 0; i < paPanes->Size(); i++)
+	for (i = 0; i < paPanes->NumElements(); i++)
 	{
 		paPanes->Get(i)->SetState(eState);
 	}
@@ -624,7 +624,7 @@ Ptr<CDockGroup> CDockTree::GatherInto(Ptr<CDockNode> pNode, bool bDocuments)
 	}
 	aPanes.Init();
 	pNode->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		pPane = aPanes.Get(i);
 		pPane->GetGroup()->TakePane(pPane);

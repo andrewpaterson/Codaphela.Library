@@ -610,8 +610,8 @@ void CTileLayerCel::Clear(void)
 	STileLayerRow*	psRow;
 
 	mauiTiles.ReInit();
-	maCels.Clear();
-	maBlitters.Clear();
+	maCels.RemoveAll();
+	maBlitters.RemoveAll();
 	mcCelIndices.ReInit();
 	muiCelVersion++;
 	for (y = 0; y < msMapSize.y; y++)

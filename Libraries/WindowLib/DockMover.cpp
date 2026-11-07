@@ -258,7 +258,7 @@ void CDockMover::AutoHideGroup(Ptr<CDockGroup> pGroup)
 	aPanes.Init();
 	pGroup->GetPanes(&aPanes);
 	pStrip = mpcState->GetArea()->GetStrip(eSide);
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		pPane = aPanes.Get(i);
 		TakeOut(pPane, false);
@@ -342,7 +342,7 @@ void CDockMover::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 	}
 	aPanes.Init();
 	pRoot->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		pPane = aPanes.Get(i);
 		Dock(pPane);
@@ -369,7 +369,7 @@ void CDockMover::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
 	}
 	aPanes.Init();
 	pRoot->GetPanes(&aPanes);
-	for (i = 0; i < aPanes.Size(); i++)
+	for (i = 0; i < aPanes.NumElements(); i++)
 	{
 		mpcManager->Close(aPanes.Get(i));
 	}
@@ -615,7 +615,7 @@ void CDockMover::ClearLayout(void)
 	Ptr<CDockPane>	pPane;
 
 	mpcManager->CloseFlyout();
-	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpcState->GetPanes()->NumElements(); i++)
 	{
 		pPane = mpcState->GetPanes()->Get(i);
 		if (pPane->IsShown())
@@ -623,9 +623,9 @@ void CDockMover::ClearLayout(void)
 			TakeOut(pPane, false);
 		}
 	}
-	while (mpcState->GetFloating()->Size() > 0)
+	while (mpcState->GetFloating()->NumElements() > 0)
 	{
-		mpcManager->RemoveFloating(mpcState->GetFloating()->Get(mpcState->GetFloating()->Size() - 1));
+		mpcManager->RemoveFloating(mpcState->GetFloating()->Get(mpcState->GetFloating()->NumElements() - 1));
 	}
 	mpcState->GetWell()->SetRoot(NULL);
 	mpcState->GetArea()->SetRoot(mpcState->GetWell());

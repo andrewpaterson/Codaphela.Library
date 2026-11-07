@@ -359,7 +359,7 @@ bool CGridContainer::RemoveComponent(Ptr<CComponent> pComponent)
 	size	i;
 
 	//The cells are kept at the same indices as the components so the component's cell goes with it.
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		if (maChildren.Get(i) == pComponent)
 		{
@@ -405,7 +405,7 @@ size CGridContainer::NumTracks(bool bColumns)
 	CGridCell*	pcCell;
 
 	uiNumTracks = 0;
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		pcCell = GetCell(i);
 		uiEnd = (size)(ContainerStyleMainAxis(&pcCell->msPosition, bColumns) + ContainerStyleMainAxis(&pcCell->msSpan, bColumns));
@@ -466,7 +466,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 
 	//Components sitting in a single track first.
 	uiMaxSpan = 1;
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		pcCell = GetCell(i);
 		uiSpan = (size)ContainerStyleMainAxis(&pcCell->msSpan, bColumns);
@@ -495,7 +495,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 	//Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
 	for (uiSpan = 2; uiSpan <= uiMaxSpan; uiSpan++)
 	{
-		for (i = 0; i < maChildren.Size(); i++)
+		for (i = 0; i < maChildren.NumElements(); i++)
 		{
 			pcCell = GetCell(i);
 			uiMainAxisSpan = (size)ContainerStyleMainAxis(&pcCell->msSpan, bColumns);
@@ -617,7 +617,7 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	LayoutTracks(true, sOrigin.x, sArea.x, &maiColumnStarts, &maiColumnSizes);
 	LayoutTracks(false, sOrigin.y, sArea.y, &maiRowStarts, &maiRowSizes);
 
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		pComponent = maChildren.Get(i);
 		pcCell = GetCell(i);

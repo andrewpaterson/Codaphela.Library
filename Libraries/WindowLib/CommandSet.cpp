@@ -90,7 +90,7 @@ Ptr<CCommand> CCommandSet::Find(const char* szName)
 {
 	size	i;
 
-	for (i = 0; i < maCommands.Size(); i++)
+	for (i = 0; i < maCommands.NumElements(); i++)
 	{
 		if (StringCompare(maCommands.Get(i)->GetName(), szName) == 0)
 		{
@@ -115,7 +115,7 @@ Ptr<CCommand> CCommandSet::FindKeys(const char* szKeys)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maCommands.Size(); i++)
+	for (i = 0; i < maCommands.NumElements(); i++)
 	{
 		if (StringCompare(maCommands.Get(i)->GetKeys(), szKeys) == 0)
 		{
@@ -138,7 +138,7 @@ bool CCommandSet::BindKeys(CComponentInput* pcInput)
 	bool	bResult;
 
 	bResult = true;
-	for (i = 0; i < maCommands.Size(); i++)
+	for (i = 0; i < maCommands.NumElements(); i++)
 	{
 		if (!StrEmpty(maCommands.Get(i)->GetKeys()))
 		{
@@ -179,6 +179,6 @@ bool CCommandSet::RunKeys(const char* szKeys)
 }
 
 
-size CCommandSet::NumCommands(void) { return maCommands.Size(); }
+size CCommandSet::NumCommands(void) { return maCommands.NumElements(); }
 Ptr<CCommand> CCommandSet::GetCommand(size uiIndex) { return maCommands.Get(uiIndex); }
 

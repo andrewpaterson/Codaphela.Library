@@ -361,7 +361,7 @@ void CDockDrag::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 	SInt32Vec2					sClient;
 
 	psTarget->Init();
-	for (i = mpcState->GetFloating()->Size(); i > 0; i--)
+	for (i = mpcState->GetFloating()->NumElements(); i > 0; i--)
 	{
 		pFloating = mpcState->GetFloating()->Get(i - 1);
 		if ((pFloating == mpFloating) || !pFloating->IsShown())

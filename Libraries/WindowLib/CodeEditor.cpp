@@ -257,9 +257,9 @@ void CCodeEditor::RemoveLineComponentAt(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::RemoveAllLineComponents(void)
 {
-	while (maLineComponents.Size() > 0)
+	while (maLineComponents.NumElements() > 0)
 	{
-		RemoveLineComponent(maLineComponents.Get(maLineComponents.Size() - 1));
+		RemoveLineComponent(maLineComponents.Get(maLineComponents.NumElements() - 1));
 	}
 }
 
@@ -291,7 +291,7 @@ Ptr<CComponent> CCodeEditor::GetComponentOn(size uiLine)
 {
 	size	i;
 
-	for (i = 0; i < maLineComponents.Size(); i++)
+	for (i = 0; i < maLineComponents.NumElements(); i++)
 	{
 		if (mpTextArea->FindLineGap(*mauiGapIds.Get(i)) == uiLine)
 		{
@@ -358,7 +358,7 @@ void CCodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	mpGutter->Layout(sGutterPosition, SInt32Vec2(iGutter, sSize.y));
 	mpTextArea->Layout(sTextPosition, sSize);
 
-	for (i = 0; i < maLineComponents.Size(); i++)
+	for (i = 0; i < maLineComponents.NumElements(); i++)
 	{
 		pComponent = maLineComponents.Get(i);
 		uiLine = *mauiLines.Get(i);
@@ -380,7 +380,7 @@ size CCodeEditor::FindLineComponent(Ptr<CComponent> pComponent)
 {
 	size	i;
 
-	for (i = 0; i < maLineComponents.Size(); i++)
+	for (i = 0; i < maLineComponents.NumElements(); i++)
 	{
 		if (&maLineComponents.Get(i) == &pComponent)
 		{
@@ -464,7 +464,7 @@ void CCodeEditor::UpdateLineComponents(void)
 	}
 
 	//Changing a gap's height doesn't move the gaps; removing a component only changes the arrays after it.
-	i = maLineComponents.Size();
+	i = maLineComponents.NumElements();
 	while (i > 0)
 	{
 		i--;
@@ -1104,6 +1104,6 @@ CComponentEvent<CCodeEditor>* CCodeEditor::GetChangeEvent(void)
 
 Ptr<CTextArea> CCodeEditor::GetTextArea(void) { return mpTextArea; }
 Ptr<CTextArea> CCodeEditor::GetGutter(void) { return mpGutter; }
-size CCodeEditor::NumLineComponents(void) { return maLineComponents.Size(); }
+size CCodeEditor::NumLineComponents(void) { return maLineComponents.NumElements(); }
 Ptr<CComponent> CCodeEditor::GetLineComponent(size uiIndex) { return maLineComponents.Get(uiIndex); }
 

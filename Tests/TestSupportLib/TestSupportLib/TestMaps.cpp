@@ -64,7 +64,7 @@ void TestMapsTinySpriteMap(void)
 
 		pCels = TestReadCels("MapsSpriteMap", "TinySprites.png", 2, 2);
 
-		AssertSize(4, pCels->Size());
+		AssertSize(4, pCels->NumElements());
 		for (uiSprite = 0; uiSprite < 4; uiSprite++)
 		{
 			pCel1 = pCels->Get(uiSprite);

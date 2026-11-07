@@ -118,7 +118,7 @@ void CButtonBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sButtonPosition.x = sOrigin.x + AlignComponentHorizontal(meButtonAlignment, sRow.x, sArea.x);
 	sButtonPosition.y = sOrigin.y;
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -149,7 +149,7 @@ SInt32Vec2 CButtonBar::GetRowSize(CArrayInt* paiWidths)
 	SInt32Vec2			sRow;
 
 	sRow.Init(0, 0);
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);

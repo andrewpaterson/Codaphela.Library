@@ -349,7 +349,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 	{
 		iWait = ShorterWait(iWait, uiDelay);
 	}
-	for (i = 0; i < maOwned.Size(); i++)
+	for (i = 0; i < maOwned.NumElements(); i++)
 	{
 		pOwned = maOwned.Get(i);
 		if (pOwned->mbRedraw)
@@ -1067,7 +1067,7 @@ void CWindow::SetComponentInput(CComponentInput* pcComponentInput)
 
 	pcOld = mpcComponentInput;
 	mpcComponentInput = pcComponentInput;
-	for (i = 0; i < maOwned.Size(); i++)
+	for (i = 0; i < maOwned.NumElements(); i++)
 	{
 		pOwned = maOwned.Get(i);
 		if (pOwned->mpcComponentInput == pcOld)
@@ -1159,14 +1159,14 @@ bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 	InvalidateLayout();
 
 	//An owner told its popup has closed may close others, so the popups are counted again each time.
-	while (maPopups.Size() > uiIndex)
+	while (maPopups.NumElements() > uiIndex)
 	{
-		pPopup = maPopups.Get(maPopups.Size() - 1);
+		pPopup = maPopups.Get(maPopups.NumElements() - 1);
 		pClosedContent = pPopup->GetContent();
 		pOwner = pPopup->GetOwner();
 		mpCanvas->RemoveComponent(pPopup);
 		pPopup->RemoveAllComponents();
-		maPopups.RemoveAt(maPopups.Size() - 1);
+		maPopups.RemoveAt(maPopups.NumElements() - 1);
 		pPopup = NULL;
 		if (pOwner.IsNotNull())
 		{
@@ -1183,7 +1183,7 @@ bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::CloseAllPopups(void)
 {
-	if (maPopups.Size() > 0)
+	if (maPopups.NumElements() > 0)
 	{
 		ClosePopup(maPopups.Get(0)->GetContent());
 	}
@@ -1204,7 +1204,7 @@ void CWindow::ClosePopupsOutside(Ptr<CComponent> pComponent)
 
 	if (pComponent.IsNotNull())
 	{
-		for (i = 0; i < maPopups.Size(); i++)
+		for (i = 0; i < maPopups.NumElements(); i++)
 		{
 			pPopup = maPopups.Get(i);
 			if (pComponent->IsWithin(pPopup) || (pPopup->IsOwnerPressKeepsOpen() && pComponent->IsWithin(pPopup->GetOwner())))
@@ -1243,7 +1243,7 @@ bool CWindow::FindPopup(Ptr<CComponent> pContent, size* puiIndex)
 {
 	size	i;
 
-	for (i = 0; i < maPopups.Size(); i++)
+	for (i = 0; i < maPopups.NumElements(); i++)
 	{
 		if (maPopups.Get(i)->GetContent() == pContent)
 		{
@@ -1260,7 +1260,7 @@ bool CWindow::FindPopup(Ptr<CComponent> pContent, size* puiIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::IsPopupOpen(Ptr<CComponent> pContent) { return GetPopup(pContent).IsNotNull(); }
-size CWindow::NumPopups(void) { return maPopups.Size(); }
+size CWindow::NumPopups(void) { return maPopups.NumElements(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1495,7 +1495,7 @@ void CWindow::CreateOwned(void)
 	size			i;
 	Ptr<CWindow>	pOwned;
 
-	for (i = 0; i < maOwned.Size(); i++)
+	for (i = 0; i < maOwned.NumElements(); i++)
 	{
 		pOwned = maOwned.Get(i);
 		if (!pOwned->mpcNativeWindow->IsCreated())
@@ -1530,7 +1530,7 @@ void CWindow::PaintCaret(void)
 	{
 		return;
 	}
-	for (i = 0; i < maPopups.Size(); i++)
+	for (i = 0; i < maPopups.NumElements(); i++)
 	{
 		cPopup.Init(maPopups.Get(i)->GetPosition().x, maPopups.Get(i)->GetPosition().y, maPopups.Get(i)->GetPosition().x + maPopups.Get(i)->GetActualSize().x, maPopups.Get(i)->GetPosition().y + maPopups.Get(i)->GetActualSize().y);
 		if (cPopup.Intersect(&cCaret))
@@ -1635,7 +1635,7 @@ void CWindow::PaintOwned(bool bContinuous)
 	size			i;
 	Ptr<CWindow>	pOwned;
 
-	for (i = 0; i < maOwned.Size();)
+	for (i = 0; i < maOwned.NumElements();)
 	{
 		pOwned = maOwned.Get(i);
 		if (!pOwned->mpcNativeWindow->IsCreated())
@@ -1664,7 +1664,7 @@ void CWindow::SetOwnedEnabled(bool bEnabled)
 	size			i;
 	Ptr<CWindow>	pOwned;
 
-	for (i = 0; i < maOwned.Size(); i++)
+	for (i = 0; i < maOwned.NumElements(); i++)
 	{
 		pOwned = maOwned.Get(i);
 		if (!bEnabled)
@@ -1788,7 +1788,7 @@ void CWindow::Raise(void)
 
 bool CWindow::IsShown(void) { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
 Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
-size CWindow::NumOwned(void) { return maOwned.Size(); }
+size CWindow::NumOwned(void) { return maOwned.NumElements(); }
 CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }
 
 

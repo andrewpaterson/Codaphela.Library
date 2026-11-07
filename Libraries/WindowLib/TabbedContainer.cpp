@@ -165,7 +165,7 @@ void CTabbedContainer::PlaceRows(void)
 	int		iSeparatorRow;
 	int		iPageRow;
 
-	bShowBar = !mbHideSingleTab || (maTabs.Size() > 1);
+	bShowBar = !mbHideSingleTab || (maTabs.NumElements() > 1);
 	if ((NumComponents() > 0) && (bShowBar == mbBarShown))
 	{
 		return;
@@ -218,8 +218,8 @@ void CTabbedContainer::PlaceTabs(void)
 
 	mpBar->RemoveAllComponents();
 	iHeight = 0;
-	uiShown = (muiShownTabs < maTabs.Size()) ? muiShownTabs : maTabs.Size();
-	for (i = 0; i < maTabs.Size(); i++)
+	uiShown = (muiShownTabs < maTabs.NumElements()) ? muiShownTabs : maTabs.NumElements();
+	for (i = 0; i < maTabs.NumElements(); i++)
 	{
 		if (i < uiShown)
 		{
@@ -253,7 +253,7 @@ void CTabbedContainer::PlaceTabs(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CTabComponent> CTabbedContainer::AddTab(const char* szName, Ptr<CComponent> pPage, Ptr<CImageCel> pIcon, bool bClosable)
 {
-	return InsertTab(maTabs.Size(), szName, pPage, pIcon, bClosable);
+	return InsertTab(maTabs.NumElements(), szName, pPage, pIcon, bClosable);
 }
 
 
@@ -268,9 +268,9 @@ Ptr<CTabComponent> CTabbedContainer::InsertTab(size uiIndex, const char* szName,
 	Ptr<CTabComponent>	pTab;
 
 	pTab = OMalloc<CTabComponent>(mpWindow, mpTheme, Ptr<CTabbedContainer>(this), szName, pIcon, bClosable);
-	if (uiIndex > maTabs.Size())
+	if (uiIndex > maTabs.NumElements())
 	{
-		uiIndex = maTabs.Size();
+		uiIndex = maTabs.NumElements();
 	}
 	//The tabs after it move up an index.
 	msDoubleClick.Forget();
@@ -340,9 +340,9 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 
 	//The page is held while the removal event is called.
 	mcRemoved.Call(&pTab, &pPage);
-	if (bWasSelected && (maTabs.Size() > 0) && mpSelected.IsNull())
+	if (bWasSelected && (maTabs.NumElements() > 0) && mpSelected.IsNull())
 	{
-		Select(uiIndex < maTabs.Size() ? uiIndex : maTabs.Size() - 1);
+		Select(uiIndex < maTabs.NumElements() ? uiIndex : maTabs.NumElements() - 1);
 	}
 	return true;
 }
@@ -368,9 +368,9 @@ Ptr<CComponent> CTabbedContainer::TakeTab(Ptr<CTabComponent> pTab)
 		return NULL;
 	}
 	pPage = RemoveTabOnly(uiIndex, &bWasSelected);
-	if (bWasSelected && (maTabs.Size() > 0))
+	if (bWasSelected && (maTabs.NumElements() > 0))
 	{
-		Select(uiIndex < maTabs.Size() ? uiIndex : maTabs.Size() - 1);
+		Select(uiIndex < maTabs.NumElements() ? uiIndex : maTabs.NumElements() - 1);
 	}
 	return pPage;
 }
@@ -391,9 +391,9 @@ bool CTabbedContainer::MoveTab(Ptr<CTabComponent> pTab, size uiIndex)
 	{
 		return false;
 	}
-	if (uiIndex >= maTabs.Size())
+	if (uiIndex >= maTabs.NumElements())
 	{
-		uiIndex = maTabs.Size() - 1;
+		uiIndex = maTabs.NumElements() - 1;
 	}
 	if (uiIndex == uiOld)
 	{
@@ -441,7 +441,7 @@ void CTabbedContainer::Select(size uiIndex)
 {
 	Ptr<CTabComponent>	pTab;
 
-	if (uiIndex >= maTabs.Size())
+	if (uiIndex >= maTabs.NumElements())
 	{
 		return;
 	}
@@ -578,12 +578,12 @@ void CTabbedContainer::OpenOverflowMenu(void)
 	Ptr<CIconComponent>	pIcon;
 	Ptr<CImageCel>		pCel;
 
-	if (mpOverflowMenu.IsNull() || (maTabs.Size() == 0))
+	if (mpOverflowMenu.IsNull() || (maTabs.NumElements() == 0))
 	{
 		return;
 	}
 	mpOverflowMenu->RemoveAllItems();
-	for (i = 0; i < maTabs.Size(); i++)
+	for (i = 0; i < maTabs.NumElements(); i++)
 	{
 		pIcon = maTabs.Get(i)->GetIcon();
 		pCel = pIcon.IsNotNull() ? pIcon->GetCel() : Ptr<CImageCel>();
@@ -610,7 +610,7 @@ void CTabbedContainer::OverflowItemClicked(CMenuItem* pcItem)
 	{
 		if (&mpOverflowMenu->GetItem(i) == pcItem)
 		{
-			if (i < maTabs.Size())
+			if (i < maTabs.NumElements())
 			{
 				pTab = maTabs.Get(i);
 				MoveTab(pTab, 0);
@@ -637,7 +637,7 @@ Ptr<CTabComponent> CTabbedContainer::FindTabAt(int x, int y)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maTabs.Size(); i++)
+	for (i = 0; i < maTabs.NumElements(); i++)
 	{
 		pTab = maTabs.Get(i);
 		if ((i < NumShownTabs()) && pTab->IsPointIn(x, y))
@@ -658,7 +658,7 @@ size CTabbedContainer::IndexOf(Ptr<CTabComponent> pTab)
 	size	i;
 	size	uiNumTabs;
 
-	uiNumTabs = maTabs.Size();
+	uiNumTabs = maTabs.NumElements();
 	for (i = 0; i < uiNumTabs; i++)
 	{
 		if (maTabs.Get(i) == pTab)
@@ -679,7 +679,7 @@ size CTabbedContainer::IndexOfPage(Ptr<CComponent> pPage)
 	size	i;
 	size	uiNumTabs;
 
-	uiNumTabs = maPages.Size();
+	uiNumTabs = maPages.NumElements();
 	for (i = 0; i < uiNumTabs; i++)
 	{
 		if (maPages.Get(i) == pPage)
@@ -696,7 +696,7 @@ size CTabbedContainer::IndexOfPage(Ptr<CComponent> pPage)
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CTabComponent> CTabbedContainer::GetSelected(void) { return mpSelected; }
-size CTabbedContainer::NumTabs(void) { return maTabs.Size(); }
+size CTabbedContainer::NumTabs(void) { return maTabs.NumElements(); }
 Ptr<CTabComponent> CTabbedContainer::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
 Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiIndex); }
 ETabSide CTabbedContainer::GetTabSide(void) { return meTabSide; }
@@ -864,7 +864,7 @@ void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		iAvailable = sAreaSize.x - mpOverflow->GetDesiredSize().x;
 		uiShown = 0;
 		iUsed = 0;
-		for (i = 0; i < maTabs.Size(); i++)
+		for (i = 0; i < maTabs.NumElements(); i++)
 		{
 			iUsed += maTabs.Get(i)->GetDesiredSize().x;
 			if (iUsed > iAvailable)
@@ -873,7 +873,7 @@ void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 			}
 			uiShown++;
 		}
-		if ((uiShown == 0) && (maTabs.Size() > 0))
+		if ((uiShown == 0) && (maTabs.NumElements() > 0))
 		{
 			uiShown = 1;
 		}
@@ -928,5 +928,5 @@ bool CTabbedContainer::IsTabShown(Ptr<CTabComponent> pTab)
 }
 
 
-size CTabbedContainer::NumShownTabs(void) { return (muiShownTabs < maTabs.Size()) ? muiShownTabs : maTabs.Size(); }
+size CTabbedContainer::NumShownTabs(void) { return (muiShownTabs < maTabs.NumElements()) ? muiShownTabs : maTabs.NumElements(); }
 

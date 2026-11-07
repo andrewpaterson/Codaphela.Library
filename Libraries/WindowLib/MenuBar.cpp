@@ -119,7 +119,7 @@ Ptr<CMenuBarItem> CMenuBar::AddMenu(const char* szText, Ptr<CMenuContainer> pMen
 	pMenu->SetMenuBar(this);
 
 	//The filler always takes the column after the last button.
-	iColumn = (int)maItems.Size();
+	iColumn = (int)maItems.NumElements();
 	CGridContainer::RemoveComponent(mpFiller);
 	CGridContainer::AddComponent(pItem, iColumn, 0);
 	CGridContainer::AddComponent(mpFiller, iColumn + 1, 0, 1, 1, 1, 0);
@@ -189,7 +189,7 @@ void CMenuBar::OpenAdjacentMenu(int32 iStep)
 	int32	iNumItems;
 
 	iIndex = IndexOf(mpOpenItem);
-	iNumItems = (int32)maItems.Size();
+	iNumItems = (int32)maItems.NumElements();
 	if ((iIndex < 0) || (iNumItems == 0))
 	{
 		return;
@@ -210,7 +210,7 @@ void CMenuBar::FocusAdjacentItem(Ptr<CMenuBarItem> pItem, int32 iStep)
 	int32	iNumItems;
 
 	iIndex = IndexOf(pItem);
-	iNumItems = (int32)maItems.Size();
+	iNumItems = (int32)maItems.NumElements();
 	if ((iIndex < 0) || (iNumItems == 0))
 	{
 		return;
@@ -279,7 +279,7 @@ int32 CMenuBar::IndexOf(Ptr<CMenuBarItem> pItem)
 {
 	size	i;
 
-	for (i = 0; i < maItems.Size(); i++)
+	for (i = 0; i < maItems.NumElements(); i++)
 	{
 		if (maItems.Get(i) == pItem)
 		{
@@ -294,7 +294,7 @@ int32 CMenuBar::IndexOf(Ptr<CMenuBarItem> pItem)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMenuBar::NumMenus(void) { return maItems.Size(); }
+size CMenuBar::NumMenus(void) { return maItems.NumElements(); }
 Ptr<CMenuBarItem> CMenuBar::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
 Ptr<CMenuBarItem> CMenuBar::GetOpenItem(void) { return mpOpenItem; }
 Ptr<CMenuStyle> CMenuBar::GetStyle(void) { return mpStyle; }

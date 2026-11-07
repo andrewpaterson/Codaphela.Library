@@ -235,7 +235,7 @@ bool CDockSplit::ContainsDocumentWell(void)
 {
 	size	i;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		if (maNodes.Get(i)->ContainsDocumentWell())
 		{
@@ -255,7 +255,7 @@ void CDockSplit::GetPanes(CArray<CDockPane>* paPanes)
 {
 	size	i;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		maNodes.Get(i)->GetPanes(paPanes);
 	}
@@ -271,7 +271,7 @@ Ptr<CDockGroup> CDockSplit::FindGroupAt(int x, int y)
 	size			i;
 	Ptr<CDockNode>	pNode;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		pNode = maNodes.Get(i);
 		if (pNode->IsPointIn(x, y))
@@ -292,7 +292,7 @@ Ptr<CDockGroup> CDockSplit::GetFirstGroup(void)
 	size			i;
 	Ptr<CDockGroup>	pGroup;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		pGroup = maNodes.Get(i)->GetFirstGroup();
 		if (pGroup.IsNotNull())
@@ -311,9 +311,9 @@ Ptr<CDockGroup> CDockSplit::GetFirstGroup(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockSplit::InsertNode(Ptr<CDockNode> pNode, size uiIndex)
 {
-	if (uiIndex > maNodes.Size())
+	if (uiIndex > maNodes.NumElements())
 	{
-		uiIndex = maNodes.Size();
+		uiIndex = maNodes.NumElements();
 	}
 	maNodes.Insert(uiIndex, pNode);
 	PlaceChildren();
@@ -326,7 +326,7 @@ void CDockSplit::InsertNode(Ptr<CDockNode> pNode, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDockSplit::AddNode(Ptr<CDockNode> pNode)
 {
-	InsertNode(pNode, maNodes.Size());
+	InsertNode(pNode, maNodes.NumElements());
 }
 
 
@@ -385,16 +385,16 @@ void CDockSplit::PlaceChildren(void)
 	Ptr<CWindow>	pWindow;
 
 	RemoveAllComponents();
-	while (maSashes.Size() + 1 < maNodes.Size())
+	while (maSashes.NumElements() + 1 < maNodes.NumElements())
 	{
 		pSash = OMalloc<CDockSash>(mpWindow, Ptr<CDockSplit>(this), mbHorizontal, msSashColour);
 		maSashes.Add(pSash);
 	}
-	while ((maSashes.Size() > 0) && (maSashes.Size() + 1 > maNodes.Size()))
+	while ((maSashes.NumElements() > 0) && (maSashes.NumElements() + 1 > maNodes.NumElements()))
 	{
-		maSashes.RemoveAt(maSashes.Size() - 1);
+		maSashes.RemoveAt(maSashes.NumElements() - 1);
 	}
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		if (i > 0)
 		{
@@ -414,7 +414,7 @@ size CDockSplit::IndexOf(Ptr<CDockNode> pNode)
 {
 	size	i;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		if (maNodes.Get(i) == pNode)
 		{
@@ -445,10 +445,10 @@ void CDockSplit::SetRequiredSize(void)
 {
 	int32	iAlong;
 
-	iAlong = (int32)maNodes.Size() * DOCK_MINIMUM_SIZE;
-	if (maNodes.Size() > 1)
+	iAlong = (int32)maNodes.NumElements() * DOCK_MINIMUM_SIZE;
+	if (maNodes.NumElements() > 1)
 	{
-		iAlong += (int32)(maNodes.Size() - 1) * mpManager->GetMetric(TM_DockSashSize);
+		iAlong += (int32)(maNodes.NumElements() - 1) * mpManager->GetMetric(TM_DockSashSize);
 	}
 	if (mbHorizontal)
 	{
@@ -475,7 +475,7 @@ void CDockSplit::WorkOutSizes(int32 iAvailable, CArrayInt* paiSizes)
 
 	paiSizes->Kill();
 	paiSizes->Init();
-	if (maNodes.Size() == 0)
+	if (maNodes.NumElements() == 0)
 	{
 		return;
 	}
@@ -509,9 +509,9 @@ size CDockSplit::StartSizes(int32 iAvailable, CArrayInt* paiSizes)
 	int32	iSize;
 	int32	iShare;
 
-	iShare = iAvailable / (int32)maNodes.Size();
+	iShare = iAvailable / (int32)maNodes.NumElements();
 	uiFill = ARRAY_ELEMENT_NOT_FOUND;
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		iSize = maNodes.Get(i)->GetDockSize();
 		paiSizes->Add((iSize > 0) ? iSize : iShare);
@@ -667,14 +667,14 @@ void CDockSplit::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetContainerBounds(sPosition, sAreaSize);
 
 	iAvailable = GetAlong(sAreaSize);
-	if (maNodes.Size() > 1)
+	if (maNodes.NumElements() > 1)
 	{
-		iAvailable -= (int32)(maNodes.Size() - 1) * mpManager->GetMetric(TM_DockSashSize);
+		iAvailable -= (int32)(maNodes.NumElements() - 1) * mpManager->GetMetric(TM_DockSashSize);
 	}
 	WorkOutSizes(iAvailable, &maiSizes);
 
 	iAlong = 0;
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		if (i > 0)
 		{
@@ -722,14 +722,14 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 	int32	iBefore;
 	int32	iAfter;
 
-	for (uiSash = 0; uiSash < maSashes.Size(); uiSash++)
+	for (uiSash = 0; uiSash < maSashes.NumElements(); uiSash++)
 	{
 		if (maSashes.Get(uiSash) == pSash)
 		{
 			break;
 		}
 	}
-	if ((uiSash >= maSashes.Size()) || (maiSizes.NumElements() != maNodes.Size()))
+	if ((uiSash >= maSashes.NumElements()) || (maiSizes.NumElements() != maNodes.NumElements()))
 	{
 		return;
 	}
@@ -749,7 +749,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 		return;
 	}
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		maNodes.Get(i)->SetDockSize(maiSizes.GetValue(i));
 	}
@@ -766,7 +766,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size				CDockSplit::NumNodes(void) { return maNodes.Size(); }
+size				CDockSplit::NumNodes(void) { return maNodes.NumElements(); }
 Ptr<CDockNode>		CDockSplit::GetNode(size uiIndex) { return maNodes.Get(uiIndex); }
 bool				CDockSplit::IsHorizontal(void) { return mbHorizontal; }
 Ptr<CDockSash>		CDockSplit::GetSash(size uiIndex) { return maSashes.Get(uiIndex); }
@@ -783,7 +783,7 @@ size CDockSplit::CountPanes(void)
 	size	uiCount;
 
 	uiCount = 0;
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		uiCount += maNodes.Get(i)->CountPanes();
 	}
@@ -802,7 +802,7 @@ Ptr<CDockPane> CDockSplit::GetTreePane(size uiIndex)
 	size			uiCount;
 	Ptr<CDockNode>	pNode;
 
-	for (i = 0; i < maNodes.Size(); i++)
+	for (i = 0; i < maNodes.NumElements(); i++)
 	{
 		pNode = maNodes.Get(i);
 		uiCount = pNode->CountPanes();

@@ -219,9 +219,9 @@ void CDockGroup::AddPane(Ptr<CDockPane> pPane, size uiIndex)
 	Ptr<CTabComponent>	pTab;
 	bool				bClosable;
 
-	if (uiIndex > maPanes.Size())
+	if (uiIndex > maPanes.NumElements())
 	{
-		uiIndex = maPanes.Size();
+		uiIndex = maPanes.NumElements();
 	}
 	bClosable = mbDocuments && pPane->IsClosable();
 	maPanes.Add(pPane);
@@ -330,7 +330,7 @@ size CDockGroup::SlotOf(Ptr<CDockPane> pPane)
 {
 	size	i;
 
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < maPanes.NumElements(); i++)
 	{
 		if (maPanes.Get(i) == pPane)
 		{
@@ -357,7 +357,7 @@ Ptr<CDockPane> CDockGroup::GetPane(size uiIndex)
 		return NULL;
 	}
 	pPage = mpTabs->GetPage(uiIndex);
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < maPanes.NumElements(); i++)
 	{
 		if (maPanes.Get(i)->GetContent() == pPage)
 		{
@@ -826,7 +826,7 @@ void CDockGroup::CloseMenuOpening(CMenuContainer* pcMenu)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size					CDockGroup::NumPanes(void) { return maPanes.Size(); }
+size					CDockGroup::NumPanes(void) { return maPanes.NumElements(); }
 bool					CDockGroup::IsActive(void) { return mbActive; }
 int32					CDockGroup::GetID(void) { return miID; }
 void					CDockGroup::SetID(int32 iID) { miID = iID; }

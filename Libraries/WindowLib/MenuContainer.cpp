@@ -260,7 +260,7 @@ int32 CMenuContainer::GetItemRow(Ptr<CMenuItem> pItem)
 {
 	size	i;
 
-	for (i = 0; i < maItems.Size(); i++)
+	for (i = 0; i < maItems.NumElements(); i++)
 	{
 		if (maItems.Get(i) == pItem)
 		{
@@ -606,7 +606,7 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMenuContainer::NumItems(void) { return maItems.Size(); }
+size CMenuContainer::NumItems(void) { return maItems.NumElements(); }
 Ptr<CMenuItem> CMenuContainer::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
 Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) { return mpOpenSubMenu; }
 CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return &mcOpening; }

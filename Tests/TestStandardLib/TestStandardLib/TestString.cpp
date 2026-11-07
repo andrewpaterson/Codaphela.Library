@@ -499,7 +499,7 @@ void TestStringSplit(void)
 		AssertLong(1LL, gcObjects.NumMemoryIndexes());
 
 		paDest = pString->Split(',');
-		AssertSize(10, paDest->Length());
+		AssertSize(10, paDest->NumElements());
 		AssertLong(12LL, gcObjects.NumMemoryIndexes());
 
 		AssertString("And", paDest->Get(0)->Text());
@@ -520,7 +520,7 @@ void TestStringSplit(void)
 
 		pString = NULL;
 		AssertLong(11LL, gcObjects.NumMemoryIndexes());
-		paDest->Clear();
+		paDest->RemoveAll();
 		AssertLong(1LL, gcObjects.NumMemoryIndexes());
 		paDest = NULL;
 		AssertLong(0LL, gcObjects.NumMemoryIndexes());
@@ -529,7 +529,7 @@ void TestStringSplit(void)
 		AssertLong(1LL, gcObjects.NumMemoryIndexes());
 
 		paDest = pString->Split(',');
-		AssertSize(10, paDest->Length());
+		AssertSize(10, paDest->NumElements());
 		AssertLong(12LL, gcObjects.NumMemoryIndexes());
 
 		paDest = NULL;

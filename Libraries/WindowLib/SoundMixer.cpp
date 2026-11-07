@@ -138,7 +138,7 @@ bool CSoundMixer::RemoveVoice(Ptr<CSoundVoice> pVoice)
 {
 	size	i;
 
-	for (i = 0; i < maVoices.Size(); i++)
+	for (i = 0; i < maVoices.NumElements(); i++)
 	{
 		if (maVoices.Get(i) == pVoice)
 		{
@@ -156,9 +156,9 @@ bool CSoundMixer::RemoveVoice(Ptr<CSoundVoice> pVoice)
 //////////////////////////////////////////////////////////////////////////
 void CSoundMixer::RemoveAllVoices(void)
 {
-	while (maVoices.Size() > 0)
+	while (maVoices.NumElements() > 0)
 	{
-		maVoices.RemoveAt(maVoices.Size() - 1);
+		maVoices.RemoveAt(maVoices.NumElements() - 1);
 	}
 }
 
@@ -197,7 +197,7 @@ void CSoundMixer::Mix(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSoundMixer::GetMixDelay(uint32* puiMilliseconds)
 {
-	if (!IsOpen() || (maVoices.Size() == 0))
+	if (!IsOpen() || (maVoices.NumElements() == 0))
 	{
 		return false;
 	}
@@ -229,7 +229,7 @@ void CSoundMixer::Mix(lsize uiFrames)
 	pfRight = &mpfMix[uiFrames];
 	memset(mpfMix, 0, (size)(uiFrames * 2 * sizeof(float64)));
 
-	for (i = 0; i < maVoices.Size(); i++)
+	for (i = 0; i < maVoices.NumElements(); i++)
 	{
 		maVoices.Get(i)->Play(pfLeft, pfRight, uiFrames, muiSampleRate);
 	}
@@ -255,7 +255,7 @@ void CSoundMixer::RemoveFinishedVoices(void)
 {
 	size	i;
 
-	i = maVoices.Size();
+	i = maVoices.NumElements();
 	while (i > 0)
 	{
 		i--;
@@ -335,7 +335,7 @@ bool CSoundMixer::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSoundMixer::NumVoices(void) { return maVoices.Size(); }
+size CSoundMixer::NumVoices(void) { return maVoices.NumElements(); }
 Ptr<CSoundVoice> CSoundMixer::GetVoice(size uiIndex) { return maVoices.Get(uiIndex); }
 uint32 CSoundMixer::GetSampleRate(void) { return muiSampleRate; }
 void CSoundMixer::SetLead(uint32 uiLeadMs) { muiLeadMs = uiLeadMs; }

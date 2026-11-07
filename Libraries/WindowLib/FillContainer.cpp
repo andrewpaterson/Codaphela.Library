@@ -78,7 +78,7 @@ void CFillContainer::SetRequiredSize(void)
 	//without a desired size needs what its own components need.
 	sLargest.Init(0, 0);
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -110,7 +110,7 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetContainerBounds(sOrigin, sArea);
 
 	//Every component is laid out into the same area.
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);

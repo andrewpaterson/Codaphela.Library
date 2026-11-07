@@ -203,8 +203,8 @@ Ptr<CImageCel> CSpriteMap::GetCel(size uiCel)
 void CSpriteMap::Clear(void)
 {
 	masSprites.ReInit();
-	maCels.Clear();
-	maBlitters.Clear();
+	maCels.RemoveAll();
+	maBlitters.RemoveAll();
 	mcCelIndices.ReInit();
 }
 

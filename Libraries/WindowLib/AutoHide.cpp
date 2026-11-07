@@ -477,7 +477,7 @@ void CAutoHideStrip::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	mpBackground->Layout(sPosition, sAreaSize);
 	bVertical = IsHorizontalDockSide(meSide);
 	iAlong = mpManager->GetMetric(TM_AutoHideTabSpacing);
-	for (i = 0; i < maTabs.Size(); i++)
+	for (i = 0; i < maTabs.NumElements(); i++)
 	{
 		pTab = maTabs.Get(i);
 		iLength = pTab->GetLength();
@@ -538,7 +538,7 @@ Ptr<CAutoHideTab> CAutoHideStrip::FindTab(Ptr<CDockPane> pPane)
 {
 	size	i;
 
-	for (i = 0; i < maTabs.Size(); i++)
+	for (i = 0; i < maTabs.NumElements(); i++)
 	{
 		if (maTabs.Get(i)->GetPane() == pPane)
 		{
@@ -549,8 +549,8 @@ Ptr<CAutoHideTab> CAutoHideStrip::FindTab(Ptr<CDockPane> pPane)
 }
 
 
-bool				CAutoHideStrip::HasTabs(void) { return maTabs.Size() > 0; }
-size				CAutoHideStrip::NumTabs(void) { return maTabs.Size(); }
+bool				CAutoHideStrip::HasTabs(void) { return maTabs.NumElements() > 0; }
+size				CAutoHideStrip::NumTabs(void) { return maTabs.NumElements(); }
 Ptr<CAutoHideTab>	CAutoHideStrip::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
 EDockSide			CAutoHideStrip::GetSide(void) { return meSide; }
 

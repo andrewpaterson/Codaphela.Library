@@ -319,7 +319,7 @@ size CGoToDialog::AddTab(const char* szName)
 int32 CGoToDialog::AddIcon(Ptr<CImageCel> pIcon)
 {
 	maIcons.Add(pIcon);
-	return (int32)maIcons.Size() - 1;
+	return (int32)maIcons.NumElements() - 1;
 }
 
 
@@ -488,7 +488,7 @@ void CGoToDialog::AddRow(SGoToItem* psItem)
 
 	pWindow = mpDialog->GetWindow();
 	iRow = mpList->AddRow(true);
-	if ((psItem->iIcon >= 0) && ((size)psItem->iIcon < maIcons.Size()))
+	if ((psItem->iIcon >= 0) && ((size)psItem->iIcon < maIcons.NumElements()))
 	{
 		pCel = maIcons.Get((size)psItem->iIcon);
 	}

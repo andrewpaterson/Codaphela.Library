@@ -187,7 +187,7 @@ void CDockLayoutWriter::Write(CXMLWriter* pcWriter)
 	WriteFloatingWindows(pcWriter);
 
 	pcWriter->Begin("Panes");
-	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpcState->GetPanes()->NumElements(); i++)
 	{
 		WriteRestore(pcWriter, mpcState->GetPanes()->Get(i));
 	}
@@ -257,7 +257,7 @@ void CDockLayoutWriter::WriteFloatingWindows(CXMLWriter* pcWriter)
 	Ptr<CDockFloatingWindow>	pFloating;
 	CInt32Rect					cRect;
 
-	for (i = 0; i < mpcState->GetFloating()->Size(); i++)
+	for (i = 0; i < mpcState->GetFloating()->NumElements(); i++)
 	{
 		pFloating = mpcState->GetFloating()->Get(i);
 		if (pFloating->GetRoot().IsNull())
@@ -770,7 +770,7 @@ void CDockLayoutReader::PlaceTheRest(CArray<CDockPane>* paMentioned, CArray<CDoc
 	size			i;
 	Ptr<CDockPane>	pPane;
 
-	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpcState->GetPanes()->NumElements(); i++)
 	{
 		pPane = mpcState->GetPanes()->Get(i);
 		if (pPane->IsShown() || paHidden->Contains(pPane))

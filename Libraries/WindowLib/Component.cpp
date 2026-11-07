@@ -130,7 +130,7 @@ bool CComponent::RemoveInputAction(Ptr<CInputAction> pAction)
 //////////////////////////////////////////////////////////////////////////
 size CComponent::NumInputActions(void)
 {
-	return maInputActions.Size();
+	return maInputActions.NumElements();
 }
 
 
@@ -146,7 +146,7 @@ void CComponent::SetInputActionsEnabled(EComponentInputCommand eCommand, bool bE
 	size				i;
 	Ptr<CInputAction>	pAction;
 
-	for (i = 0; i < maInputActions.Size(); i++)
+	for (i = 0; i < maInputActions.NumElements(); i++)
 	{
 		pAction = maInputActions.Get(i);
 		if ((pAction->GetFilter() == IAF_Command) && (pAction->GetCommand() == eCommand))
@@ -169,7 +169,7 @@ bool CComponent::CanDoCommand(EComponentInputCommand eCommand)
 	size				i;
 	Ptr<CInputAction>	pAction;
 
-	for (i = 0; i < maInputActions.Size(); i++)
+	for (i = 0; i < maInputActions.NumElements(); i++)
 	{
 		pAction = maInputActions.Get(i);
 		if (pAction->IsEnabled() && (pAction->GetFilter() == IAF_Command) && (pAction->GetCommand() == eCommand))
@@ -196,7 +196,7 @@ bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
 	bool				bTaken;
 
 	bTaken = false;
-	for (i = 0; i < maInputActions.Size(); i++)
+	for (i = 0; i < maInputActions.NumElements(); i++)
 	{
 		pAction = maInputActions.Get(i);
 		if (pAction.IsNotNull() && pAction->Matches(psEvent))
@@ -245,7 +245,7 @@ bool CComponent::DrawChildren(void)
 	bool					bResult;
 	size					uiSize;
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -330,7 +330,7 @@ void CComponent::PrepareDraw(bool bDrawn, bool bClipped, CInt32Rect* pcClip)
 		bChildClipped = true;
 	}
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -369,7 +369,7 @@ void CComponent::ForgetDrawn(void)
 	}
 	mcDrawnArea.Init(0, 0, 0, 0);
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		maChildren.Get(i)->ForgetDrawn();
@@ -394,7 +394,7 @@ void CComponent::ContentChanged(void)
 		mpWindow->AddDamage(&mcDrawnArea);
 	}
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		maChildren.Get(i)->ContentChanged();
@@ -452,7 +452,7 @@ bool CComponent::RemoveAllComponents(void)
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -623,7 +623,7 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	}
 
 	//Children drawn later are drawn over earlier ones so they are searched first.
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = uiSize; i > 0; i--)
 	{
 		pComponent = maChildren.Get(i - 1);
@@ -662,7 +662,7 @@ void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	Ptr<CComponent>			pComponent;
 	size					uiSize;
 
-	uiSize = maChildren.Size();
+	uiSize = maChildren.NumElements();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
@@ -844,7 +844,7 @@ void CComponent::SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds)
 	sSize = GetActualSize();
 	pasBounds->Add(&sPosition);
 	pasBounds->Add(&sSize);
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		maChildren.Get(i)->SaveLayout(pasBounds);
 	}
@@ -883,7 +883,7 @@ size CComponent::CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex
 	}
 
 	uiIndex += 2;
-	for (i = 0; i < maChildren.Size(); i++)
+	for (i = 0; i < maChildren.NumElements(); i++)
 	{
 		uiIndex = maChildren.Get(i)->CheckLayout(pasBounds, uiIndex, puiNumLogged);
 	}

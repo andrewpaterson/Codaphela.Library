@@ -119,7 +119,7 @@ void CDockManager::Free(void)
 	{
 		return;
 	}
-	for (i = 0; i < mpState->GetFloating()->Size(); i++)
+	for (i = 0; i < mpState->GetFloating()->NumElements(); i++)
 	{
 		mpState->GetFloating()->Get(i)->Close();
 	}
@@ -201,7 +201,7 @@ Ptr<CDockGroup> CDockManager::FindGroup(int32 iID)
 	{
 		return NULL;
 	}
-	for (i = 0; i < mpState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->NumElements(); i++)
 	{
 		pGroup = mpState->GetPanes()->Get(i)->GetGroup();
 		if (pGroup.IsNotNull() && (pGroup->GetID() == iID))
@@ -276,7 +276,7 @@ Ptr<CDockPane> CDockManager::GetPane(const char* szID)
 	{
 		return NULL;
 	}
-	for (i = 0; i < mpState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->NumElements(); i++)
 	{
 		if (StringCompare(mpState->GetPanes()->Get(i)->GetID(), szID) == 0)
 		{
@@ -300,7 +300,7 @@ Ptr<CDockPane> CDockManager::FindPane(Ptr<CComponent> pComponent)
 	{
 		return NULL;
 	}
-	for (i = 0; i < mpState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->NumElements(); i++)
 	{
 		if (pComponent->IsWithin(mpState->GetPanes()->Get(i)->GetContent()))
 		{
@@ -674,7 +674,7 @@ void CDockManager::FloatingWindowClosed(CWindow* pcWindow)
 	size						i;
 	Ptr<CDockFloatingWindow>	pFloating;
 
-	for (i = 0; i < mpState->GetFloating()->Size(); i++)
+	for (i = 0; i < mpState->GetFloating()->NumElements(); i++)
 	{
 		pFloating = mpState->GetFloating()->Get(i);
 		if (&pFloating->GetWindow() == pcWindow)
@@ -706,7 +706,7 @@ Ptr<CDockFloatingWindow> CDockManager::FindFloating(Ptr<CDockPane> pPane)
 	{
 		return NULL;
 	}
-	for (i = 0; i < mpState->GetFloating()->Size(); i++)
+	for (i = 0; i < mpState->GetFloating()->NumElements(); i++)
 	{
 		pFloating = mpState->GetFloating()->Get(i);
 		if (pGroup->IsWithin(pFloating->GetArea()))
@@ -921,7 +921,7 @@ void CDockManager::ResetLayout(void)
 	Ptr<CDockPane>	pPane;
 
 	mpState->GetMover()->ClearLayout();
-	for (i = 0; i < mpState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->NumElements(); i++)
 	{
 		pPane = mpState->GetPanes()->Get(i);
 		pPane->ClearRestore();
@@ -930,7 +930,7 @@ void CDockManager::ResetLayout(void)
 			mpState->GetRestorer()->DockDefault(pPane);
 		}
 	}
-	for (i = 0; i < mpState->GetPanes()->Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->NumElements(); i++)
 	{
 		pPane = mpState->GetPanes()->Get(i);
 		if (pPane->IsDocument())
@@ -957,11 +957,11 @@ Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
 int32						CDockManager::GetMetric(EThemeMetric eMetric) { return mpTheme->GetMetric(eMetric); }
 void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }
-size						CDockManager::NumPanes(void) { return mpState->GetPanes()->Size(); }
+size						CDockManager::NumPanes(void) { return mpState->GetPanes()->NumElements(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return mpState->GetPanes()->Get(uiIndex); }
 Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpState->GetFocus()->GetActivePane(); }
 Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpState->GetFocus()->GetActiveDocument(); }
-size						CDockManager::NumFloating(void) { return mpState->GetFloating()->Size(); }
+size						CDockManager::NumFloating(void) { return mpState->GetFloating()->NumElements(); }
 Ptr<CDockFloatingWindow>	CDockManager::GetFloating(size uiIndex) { return mpState->GetFloating()->Get(uiIndex); }
 Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpState->GetFocus()->GetFlyout(); }
 SDockTarget*				CDockManager::GetTarget(void) { return mpState->GetDrag()->GetTarget(); }
