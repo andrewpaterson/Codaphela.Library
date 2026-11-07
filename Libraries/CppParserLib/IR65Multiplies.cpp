@@ -236,21 +236,12 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 	Line("cpy B, 0")->AppendNewLine();
 	Multiply("div");
 	msAvailable = IRNone();
-	if (psNext && DividePartner(psInstruction, psNext) && !PlaceOf(psInstruction->sResult)->bInA)
+	if (psNext && PairsWithDivide(psInstruction, psNext))
 	{
-		//The result from Y goes first, as the other may be kept in Y; one kept in A goes last.
-		if (!bRemainder)
-		{
-			StoreResult(psInstruction->sResult, "Y");
-			StoreResult(psNext->sResult, "B");
-			return true;
-		}
-		if (!PlaceOf(psNext->sResult)->bInA)
-		{
-			StoreResult(psNext->sResult, "Y");
-			StoreResult(psInstruction->sResult, "B");
-			return true;
-		}
+		//The result from Y goes first, as the other may be kept in Y.
+		StoreResult(bRemainder ? psNext->sResult : psInstruction->sResult, "Y");
+		StoreResult(bRemainder ? psInstruction->sResult : psNext->sResult, "B");
+		return true;
 	}
 	StoreResult(psInstruction->sResult, bRemainder ? "B" : "Y");
 	return true;
@@ -266,18 +257,26 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 //////////////////////////////////////////////////////////////////////////
 SIRInstruction* CIR65Backend::PairedDivide(CIRBlock* pcBlock, size uiIndex)
 {
-	SIRInstruction*	psInstruction;
 	SIRInstruction*	psPartner;
 
-	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	psPartner = pcBlock->masInstructions.SafeGet(uiIndex + 1);
-	if ((psPartner == NULL) || !DividePartner(psInstruction, psPartner) || PlaceOf(psInstruction->sResult)->bInA)
+	return (psPartner && PairsWithDivide(pcBlock->masInstructions.Get(uiIndex), psPartner)) ? psPartner : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the udiv or urem psInstruction's div gives psPartner's result too
+// (DividePartner): Divide writes both, the one from Y first, so it isn't
+// kept in A (a udiv's quotient, a urem's partner's).  Divide and CanFuse
+// (through PairedDivide) both ask this, so they agree.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner)
+{
+	if (!DividePartner(psInstruction, psPartner) || PlaceOf(psInstruction->sResult)->bInA)
 	{
-		return NULL;
+		return false;
 	}
-	if ((psInstruction->uiOpcode == IRO_URem) && PlaceOf(psPartner->sResult)->bInA)
-	{
-		return NULL;
-	}
-	return psPartner;
+	return (psInstruction->uiOpcode != IRO_URem) || !PlaceOf(psPartner->sResult)->bInA;
 }

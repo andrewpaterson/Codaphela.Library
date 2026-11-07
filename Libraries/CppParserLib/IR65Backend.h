@@ -290,6 +290,7 @@ protected:
 	bool				CanFuse(CIRBlock* pcBlock, size uiIndex);
 	SIRInstruction*		ExtendOf(CIRBlock* pcBlock, size uiLoad);
 	SIRInstruction*		PairedDivide(CIRBlock* pcBlock, size uiIndex);
+	bool				PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner);
 	SIRReference		InAAfterFused(void);
 	void				Fuse(CIRBlock* pcBlock, size uiIndex, uint8 uiKind);
 	bool				WriteInstruction(CIRBlock* pcBlock, size uiIndex);
