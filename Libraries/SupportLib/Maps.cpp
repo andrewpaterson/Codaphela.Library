@@ -196,20 +196,42 @@ SInt32Vec2 CMaps::GetViewportPosition(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMaps::Blit(bool bEnsureBlitters)
 {
+	return Blit(bEnsureBlitters, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The maps blitted onto the viewport in the order they were added, the
+// viewport position of each at the viewport's top left.  Only pcClip of
+// the viewport (its pixels, right and bottom exclusive) is drawn, if it
+// isn't NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMaps::Blit(bool bEnsureBlitters, CInt32Rect* pcClip)
+{
 	size			uiNumElements;
 	size			ui;
 	Ptr<CBaseMap>	pMap;
 	CInt32Rect		cRect;
+	CInt32Rect		cMapClip;
+	CInt32Rect*		pcMapClip;
 	SInt32Vec2		sBottomRight;
 	bool			bResult;
 
 	sBottomRight.Init(mpViewport->GetWidth() + msViewportPosition.x, mpViewport->GetHeight() + msViewportPosition.y);
 	cRect.Init(msViewportPosition, sBottomRight);
+	pcMapClip = NULL;
+	if (pcClip)
+	{
+		cMapClip.Init(pcClip->msTopLeft.x + msViewportPosition.x, pcClip->msTopLeft.y + msViewportPosition.y, pcClip->msBottomRight.x + msViewportPosition.x, pcClip->msBottomRight.y + msViewportPosition.y);
+		pcMapClip = &cMapClip;
+	}
 	uiNumElements = maMaps.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		bResult = pMap->Blit(&cRect, bEnsureBlitters);
+		bResult = pMap->BlitClipped(&cRect, pcMapClip, bEnsureBlitters);
 		if (!bResult)
 		{
 			return false;

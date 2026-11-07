@@ -859,20 +859,28 @@ bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int3
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// The tiles in pcViewportRect (map pixels, right and bottom exclusive)	//
+// blitted with its top left at the viewport's, cut to pcClip (map		//
+// pixels, NULL for none).												//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
+bool CTileLayerCel::BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters)
 {
-	uint32 				x, y;
-	int32 				xStop, yStop;
-	int32 				xStart, yStart;
-	int32 				xSize, ySize;
+	uint32 				x;
+	uint32 				y;
+	CInt32Rect			cDraw;
+	CInt32Rect			cBlitterClip;
+	CInt32Rect*			pcBlitterClip;
+	int32 				xStart;
+	int32 				yStart;
+	int32 				xStop;
+	int32 				yStop;
+	int32				iCelWidth;
+	int32				iCelHeight;
 	uint32				xRowStart;
 	uint32				xRowStop;
 	CImageBlitter*		pcBlitter;
 	bool				bResult;
-	int32				xOffset;
-	int32				yOffset;
 	STileLayerRow*		psRow;
 	uint32				uiTile;
 
@@ -881,39 +889,35 @@ bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		mpCache = CreateBlitterCache();
 	}
 
-	xSize = pcViewportRect->GetWidth() + 1;
-	xStart = pcViewportRect->msTopLeft.x / (int32)msCelSize.x;
-	xStop = xStart + xSize / (int32)msCelSize.x;
-	if (xSize % (int32)msCelSize.x != 0)
+	cDraw.Init(pcViewportRect);
+	pcBlitterClip = NULL;
+	if (pcClip)
 	{
-		xStop++;
+		//The blitters clip in the viewport's pixels.
+		cDraw.ClipTo(pcClip);
+		cBlitterClip.Init(cDraw.msTopLeft.x - pcViewportRect->msTopLeft.x, cDraw.msTopLeft.y - pcViewportRect->msTopLeft.y, cDraw.msBottomRight.x - pcViewportRect->msTopLeft.x, cDraw.msBottomRight.y - pcViewportRect->msTopLeft.y);
+		pcBlitterClip = &cBlitterClip;
 	}
-	if (xStart < 0)
+	if ((cDraw.GetWidth() <= 0) || (cDraw.GetHeight() <= 0))
 	{
-		xStart = 0;
+		return true;
 	}
+
+	//The cells any of whose pixels are in the drawn part.
+	iCelWidth = (int32)msCelSize.x;
+	iCelHeight = (int32)msCelSize.y;
+	xStart = (cDraw.msTopLeft.x < 0) ? 0 : cDraw.msTopLeft.x / iCelWidth;
+	yStart = (cDraw.msTopLeft.y < 0) ? 0 : cDraw.msTopLeft.y / iCelHeight;
+	xStop = (cDraw.msBottomRight.x <= 0) ? 0 : (cDraw.msBottomRight.x + iCelWidth - 1) / iCelWidth;
+	yStop = (cDraw.msBottomRight.y <= 0) ? 0 : (cDraw.msBottomRight.y + iCelHeight - 1) / iCelHeight;
 	if (xStop > (int32)msMapSize.x)
 	{
 		xStop = (int32)msMapSize.x;
-	}
-
-	ySize = pcViewportRect->GetHeight();
-	yStart = pcViewportRect->msTopLeft.y / (int32)msCelSize.y;
-	yStop = yStart + ySize / (int32)msCelSize.y;
-	yStop++;
-	if (ySize % (int32)msCelSize.y != 0)
-	{
-		yStop++;
-	}
-	if (yStart < 0)
-	{
-		yStart = 0;
 	}
 	if (yStop > (int32)msMapSize.y)
 	{
 		yStop = (int32)msMapSize.y;
 	}
-
 	if ((xStart >= xStop) || (yStart >= yStop))
 	{
 		return true;
@@ -941,9 +945,7 @@ bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 				pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(uiTile - 1);
 				if (pcBlitter != NULL)
 				{
-					xOffset = (int32)x * (int32)msCelSize.x;
-					yOffset = (int32)y * (int32)msCelSize.y;
-					bResult = pcBlitter->Blit(xOffset - pcViewportRect->msTopLeft.x, yOffset - pcViewportRect->msTopLeft.y);
+					bResult = pcBlitter->Blit((int32)x * iCelWidth - pcViewportRect->msTopLeft.x, (int32)y * iCelHeight - pcViewportRect->msTopLeft.y, pcBlitterClip);
 					if (!bResult)
 					{
 						return false;

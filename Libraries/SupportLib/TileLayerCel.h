@@ -86,7 +86,7 @@ public:
 	void						Clear(void);
 	void						SetMapSize(SSizeVec2 sMapSize);
 
-	bool						Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
+	bool						BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) override;
 
 	bool						GetImageDestBounds(CInt32Rect* pcRect);
 	bool						GetFullDestBounds(CInt32Rect* pcRect);

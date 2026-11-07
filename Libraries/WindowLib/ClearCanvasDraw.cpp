@@ -84,7 +84,7 @@ bool CClearCanvasDraw::GetSolidColour(ARGB32* psColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClearCanvasDraw::CanDrawPart(void) { return true; }  //It only fills with DrawBox.
+bool CClearCanvasDraw::CanDrawPart(Ptr<CCanvas> pCanvas) { return true; }  //It only fills with DrawBox.
 void CClearCanvasDraw::SetColour(ARGB32 sColour) { msColour = sColour; }
 ARGB32 CClearCanvasDraw::GetColour(void) { return msColour; }
 

@@ -9,6 +9,7 @@
 #include "SupportLib/TextLayout.h"
 #include "SupportLib/MapFontDraw.h"
 #include "SupportLib/SpriteMap.h"
+#include "SupportLib/GeometryMap.h"
 #include "BaseLib/UTF8.h"
 #include "SupportLib/FontColours.h"
 #include "SupportLib/ColourARGB32.h"
@@ -1553,6 +1554,134 @@ void TestMapsTileLayerResize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Maps blitted with a clip draw what they would without one inside it,
+// and nothing outside it: tiles and sprites cut at its edges, shapes,
+// lines and rectangles cut too, the viewport scrolled.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapsClippedBlit(void)
+{
+	ObjectsInit();
+	{
+		CMaps						cMaps;
+		Ptr<CArrayImageCel>			pacTiles;
+		Ptr<CArrayImageCel>			pacSprites;
+		Ptr<CImage>					pViewport;
+		Ptr<CImageCelBlitterCache>	pCache;
+		Ptr<CTileMap>				pTileMap;
+		Ptr<CTileLayerCel>			pLayer;
+		Ptr<CSpriteMap>				pSpriteMap;
+		Ptr<CGeometryMap>			pGeometryMap;
+		uint8*						puiFull;
+		uint8*						puiData;
+		size						uiBytes;
+		size						uiPixelBytes;
+		CInt32Rect					acClips[2];
+		CInt32Rect					cClip;
+		int32						x;
+		int32						y;
+		size						i;
+		size						uiInside;
+		size						uiWrongInside;
+		size						uiDrawnOutside;
+		bool						bInside;
+
+		ImageChannelDescriptorInit();
+
+		pacTiles = TestMapsReadSpaceCrusadeCels("Tiles.png", 10, 3);
+		pacSprites = TestMapsReadSpaceCrusadeCels("Gretchin.png", 8, 1);
+		pViewport = OMalloc<CImage>(160, 96, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pCache = OMalloc<CImageCelBlitterCache>(pViewport);
+		cMaps.Init(pCache, pViewport);
+
+		pTileMap = OMalloc<CTileMap>();
+		pLayer = OMalloc<CTileLayerCel>(pTileMap, "Cel", SSizeVec2(10, 6), SSizeVec2(16, 16), 0, SInt32Vec2(0, 0));
+		pTileMap->AddLayer(pLayer);
+		TestMapsSetSparseTiles(pLayer, pacTiles);
+		cMaps.AddMap(pTileMap);
+
+		pSpriteMap = OMalloc<CSpriteMap>();
+		AssertTrue(pSpriteMap->AddSprite(pacSprites->Get(0), 30, 15));
+		AssertTrue(pSpriteMap->AddSprite(pacSprites->Get(3), 95, 50));
+		cMaps.AddMap(pSpriteMap);
+
+		pGeometryMap = OMalloc<CGeometryMap>();
+		pGeometryMap->AddRectangle(20, 40, 120, 8, Set32BitColour(1.0f, 0, 0, 0.5f));
+		pGeometryMap->AddFilledCircle(80.5, 45.5, 22, Set32BitColour(0, 1.0f, 0));
+		pGeometryMap->AddLine(0, 0, 150, 90, 3, Set32BitColour(1.0f, 1.0f, 0));
+		cMaps.AddMap(pGeometryMap);
+
+		//All of it, scrolled, as it is drawn without a clip.
+		cMaps.SetViewportPosition(5, 3);
+		pViewport->Black();
+		AssertTrue(cMaps.Blit(true));
+		uiBytes = (size)pViewport->GetByteSize();
+		uiPixelBytes = uiBytes / (160 * 96);
+		puiFull = (uint8*)malloc(uiBytes);
+		memcpy(puiFull, pViewport->GetData(), uiBytes);
+
+		//Two parts, neither on the tiles' edges, drawn one after the other.
+		acClips[0].Init(37, 21, 101, 52);
+		acClips[1].Init(3, 60, 49, 95);
+		pViewport->Black();
+		for (i = 0; i < 2; i++)
+		{
+			AssertTrue(cMaps.Blit(false, &acClips[i]));
+		}
+
+		puiData = (uint8*)pViewport->GetData();
+		uiInside = 0;
+		uiWrongInside = 0;
+		uiDrawnOutside = 0;
+		for (y = 0; y < 96; y++)
+		{
+			for (x = 0; x < 160; x++)
+			{
+				bInside = acClips[0].ContainsPoint(x, y) || acClips[1].ContainsPoint(x, y);
+				i = ((size)y * 160 + (size)x) * uiPixelBytes;
+				if (bInside)
+				{
+					uiInside++;
+					if (memcmp(&puiData[i], &puiFull[i], uiPixelBytes) != 0)
+					{
+						uiWrongInside++;
+					}
+				}
+				else if ((puiData[i] != 0) || (puiData[i + 1] != 0) || (puiData[i + 2] != 0))
+				{
+					uiDrawnOutside++;
+				}
+			}
+		}
+		AssertSize(64 * 31 + 46 * 35, uiInside);
+		AssertSize(0, uiWrongInside);
+		AssertSize(0, uiDrawnOutside);
+
+		//The clip is in the viewport's pixels, wherever the viewport is.
+		cClip.Init(0, 0, 160, 96);
+		pViewport->Black();
+		AssertTrue(cMaps.Blit(false, &cClip));
+		AssertInt(0, memcmp(pViewport->GetData(), puiFull, uiBytes));
+
+		free(puiFull);
+		cMaps.Kill();
+		pGeometryMap = NULL;
+		pSpriteMap = NULL;
+		pLayer = NULL;
+		pTileMap = NULL;
+		pCache = NULL;
+		pViewport = NULL;
+		pacSprites = NULL;
+		pacTiles = NULL;
+
+		ImageChannelDescriptorKill();
+	}
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMaps(void)
@@ -1569,6 +1698,7 @@ void TestMaps(void)
 	TestMapsTileTextWriter();
 	TestMapsTileLayerBlitAfterEdits();
 	TestMapsTileLayerBlitScrolled();
+	TestMapsClippedBlit();
 	TestMapsTileTextMatchesSpriteText();
 	TestMapsTileTextWriterCharacters();
 	TestMapsTileLayerImageBounds();

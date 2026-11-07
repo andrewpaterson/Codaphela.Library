@@ -46,7 +46,7 @@ public:
 
 	void				AddLayer(Ptr<CTileLayer> pLayer);
 
-	bool				Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
+	bool				BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) override;
 	bool				CreateCelBlitters(void) override;
 	bool				HasCelBlitters(void) override;
 	bool				UsesCelBlitters(void) override;

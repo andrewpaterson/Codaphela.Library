@@ -367,7 +367,7 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 	mpCache = CreateBlitterCache();
 	ClearCelBlitters();
 
-	bResult = BlitSprites(cBoundingRect.msTopLeft.x, cBoundingRect.msTopLeft.y, true);
+	bResult = BlitSprites(cBoundingRect.msTopLeft.x, cBoundingRect.msTopLeft.y, NULL, true);
 
 	ClearCelBlitters();
 	mpViewport = pOldViewport;
@@ -553,19 +553,28 @@ Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
+bool CSpriteMap::BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters)
 {
-	return BlitSprites(pcViewportRect->msTopLeft.x, pcViewportRect->msTopLeft.y, bEnsureBlitters);
+	CInt32Rect	cClip;
+
+	if (pcClip == NULL)
+	{
+		return BlitSprites(pcViewportRect->msTopLeft.x, pcViewportRect->msTopLeft.y, NULL, bEnsureBlitters);
+	}
+
+	//The blitters clip in the viewport's pixels.
+	cClip.Init(pcClip->msTopLeft.x - pcViewportRect->msTopLeft.x, pcClip->msTopLeft.y - pcViewportRect->msTopLeft.y, pcClip->msBottomRight.x - pcViewportRect->msTopLeft.x, pcClip->msBottomRight.y - pcViewportRect->msTopLeft.y);
+	return BlitSprites(pcViewportRect->msTopLeft.x, pcViewportRect->msTopLeft.y, &cClip, bEnsureBlitters);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 // Blits every sprite with iLeft, iTop of the map at the viewport's		//
-// top left.															//
+// top left, cut to pcClip (viewport pixels, NULL for none).			//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::BlitSprites(int32 iLeft, int32 iTop, bool bEnsureBlitters)
+bool CSpriteMap::BlitSprites(int32 iLeft, int32 iTop, CInt32Rect* pcClip, bool bEnsureBlitters)
 {
 	size			ui;
 	size			uiNumElements;
@@ -592,7 +601,7 @@ bool CSpriteMap::BlitSprites(int32 iLeft, int32 iTop, bool bEnsureBlitters)
 			pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(psSprite->uiCel);
 		}
 
-		bResult = pcBlitter->Blit(psSprite->sPosition.x - iLeft, psSprite->sPosition.y - iTop);
+		bResult = pcBlitter->Blit(psSprite->sPosition.x - iLeft, psSprite->sPosition.y - iTop, pcClip);
 		if (!bResult)
 		{
 			return false;

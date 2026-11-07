@@ -634,11 +634,11 @@ SGeometryCommand* CGeometryMap::AddShape(EGeometryCommand eType, float64 fLeft, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Draws the part of each shape inside pcViewportRect (in map pixels, right
-// and bottom exclusive) onto the viewport, the viewport rectangle's top
-// left at the viewport's top left.
+// and bottom exclusive), and pcClip if it isn't NULL, onto the viewport,
+// the viewport rectangle's top left at the viewport's top left.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
+bool CGeometryMap::BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters)
 {
 	SGeometryPixels			sPixels;
 	CVectorRasteriser		cRasteriser;
@@ -649,8 +649,8 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	int32					iTop;
 	int32					iRight;
 	int32					iBottom;
-	int32					iViewportRight;
-	int32					iViewportBottom;
+	CInt32Rect				cDraw;
+	CInt32Rect				cBounds;
 	size					uiNumElements;
 
 	if (mpViewport.IsNull() || (masCommands.NumElements() == 0))
@@ -658,17 +658,18 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		return true;
 	}
 
-	//The viewport image clips too.
-	iViewportRight = pcViewportRect->msTopLeft.x + (int32)mpViewport->GetWidth();
-	if (pcViewportRect->msBottomRight.x < iViewportRight)
+	//The viewport image clips too.  cDraw is in map pixels, cBounds the same in the viewport's.
+	cDraw.Init(pcViewportRect->msTopLeft.x, pcViewportRect->msTopLeft.y, pcViewportRect->msTopLeft.x + (int32)mpViewport->GetWidth(), pcViewportRect->msTopLeft.y + (int32)mpViewport->GetHeight());
+	cDraw.ClipTo(pcViewportRect);
+	if (pcClip)
 	{
-		iViewportRight = pcViewportRect->msBottomRight.x;
+		cDraw.ClipTo(pcClip);
 	}
-	iViewportBottom = pcViewportRect->msTopLeft.y + (int32)mpViewport->GetHeight();
-	if (pcViewportRect->msBottomRight.y < iViewportBottom)
+	if ((cDraw.GetWidth() <= 0) || (cDraw.GetHeight() <= 0))
 	{
-		iViewportBottom = pcViewportRect->msBottomRight.y;
+		return true;
 	}
+	cBounds.Init(cDraw.msTopLeft.x - pcViewportRect->msTopLeft.x, cDraw.msTopLeft.y - pcViewportRect->msTopLeft.y, cDraw.msBottomRight.x - pcViewportRect->msTopLeft.x, cDraw.msBottomRight.y - pcViewportRect->msTopLeft.y);
 
 	InitPixels(&sPixels);
 	cRasteriser.Init();
@@ -678,10 +679,10 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psCommand = masCommands.Get(i);
-		iLeft = (psCommand->cBounds.msTopLeft.x > pcViewportRect->msTopLeft.x) ? psCommand->cBounds.msTopLeft.x : pcViewportRect->msTopLeft.x;
-		iTop = (psCommand->cBounds.msTopLeft.y > pcViewportRect->msTopLeft.y) ? psCommand->cBounds.msTopLeft.y : pcViewportRect->msTopLeft.y;
-		iRight = (psCommand->cBounds.msBottomRight.x < iViewportRight) ? psCommand->cBounds.msBottomRight.x : iViewportRight;
-		iBottom = (psCommand->cBounds.msBottomRight.y < iViewportBottom) ? psCommand->cBounds.msBottomRight.y : iViewportBottom;
+		iLeft = (psCommand->cBounds.msTopLeft.x > cDraw.msTopLeft.x) ? psCommand->cBounds.msTopLeft.x : cDraw.msTopLeft.x;
+		iTop = (psCommand->cBounds.msTopLeft.y > cDraw.msTopLeft.y) ? psCommand->cBounds.msTopLeft.y : cDraw.msTopLeft.y;
+		iRight = (psCommand->cBounds.msBottomRight.x < cDraw.msBottomRight.x) ? psCommand->cBounds.msBottomRight.x : cDraw.msBottomRight.x;
+		iBottom = (psCommand->cBounds.msBottomRight.y < cDraw.msBottomRight.y) ? psCommand->cBounds.msBottomRight.y : cDraw.msBottomRight.y;
 		if ((iLeft < iRight) && (iTop < iBottom))
 		{
 			if (psCommand->eType == GC_Sprite)
@@ -701,8 +702,7 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 			}
 			else
 			{
-				bResult &= FillShape(&sPixels, &cRasteriser, psCommand, pcViewportRect,
-									 iViewportRight - pcViewportRect->msTopLeft.x, iViewportBottom - pcViewportRect->msTopLeft.y);
+				bResult &= FillShape(&sPixels, &cRasteriser, psCommand, pcViewportRect, &cBounds);
 			}
 		}
 	}
@@ -818,7 +818,7 @@ void CGeometryMap::KillPixels(SGeometryPixels* psPixels)
 // the viewport, clipped to iClipWidth by iClipHeight viewport pixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight)
+bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, CInt32Rect* pcBounds)
 {
 	CVectorPath		cPath;
 	SFloat64Vec2	sOrigin;
@@ -844,10 +844,10 @@ bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRas
 		cPath.Kill();
 		return true;
 	}
-	iLeft = (iLeft < 0) ? 0 : iLeft;
-	iTop = (iTop < 0) ? 0 : iTop;
-	iRight = (iRight > iClipWidth) ? iClipWidth : iRight;
-	iBottom = (iBottom > iClipHeight) ? iClipHeight : iBottom;
+	iLeft = (iLeft < pcBounds->msTopLeft.x) ? pcBounds->msTopLeft.x : iLeft;
+	iTop = (iTop < pcBounds->msTopLeft.y) ? pcBounds->msTopLeft.y : iTop;
+	iRight = (iRight > pcBounds->msBottomRight.x) ? pcBounds->msBottomRight.x : iRight;
+	iBottom = (iBottom > pcBounds->msBottomRight.y) ? pcBounds->msBottomRight.y : iBottom;
 	if ((iRight <= iLeft) || (iBottom <= iTop))
 	{
 		cPath.Kill();

@@ -55,6 +55,7 @@ public:
 	void		AddMap(Ptr<CBaseMap> pMap);
 
 	bool		Blit(bool bEnsureBlitters);
+	bool		Blit(bool bEnsureBlitters, CInt32Rect* pcClip);
 	bool		CreateCelBlitters(void);
 	bool		HasCelBlitters(void);
 

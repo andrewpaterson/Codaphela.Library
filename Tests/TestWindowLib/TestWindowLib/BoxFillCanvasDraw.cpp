@@ -58,7 +58,7 @@ void CBoxFillCanvasDraw::SetColour(ARGB32 sColour)
 // It only fills with DrawBox, which keeps to the paint clip.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBoxFillCanvasDraw::CanDrawPart(void)
+bool CBoxFillCanvasDraw::CanDrawPart(Ptr<CCanvas> pCanvas)
 {
 	return mbCanDrawPart;
 }

@@ -149,3 +149,14 @@ int CTileLayer::GetIdentifier(void)
 	return miIdentifier;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As CBaseMap::Blit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayer::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
+{
+	return BlitClipped(pcViewportRect, NULL, bEnsureBlitters);
+}
+

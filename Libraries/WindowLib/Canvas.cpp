@@ -312,7 +312,7 @@ void CCanvas::DrawParts(void)
 	CInt32Rect	cClear;
 	size		i;
 
-	if (mpCanvasDraw.IsNull() || !mpCanvasDraw->CanDrawPart())
+	if (mpCanvasDraw.IsNull() || !mpCanvasDraw->CanDrawPart(this))
 	{
 		DrawAll();
 		return;

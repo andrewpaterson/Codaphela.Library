@@ -49,7 +49,8 @@ public:
 	virtual			void		Activate(void);
 	virtual			void		Deactivate(void);
 
-	virtual 		bool		Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) =0;
+					bool		Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters);
+	virtual 		bool		BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) =0;
 	virtual			void		SetViewport(Ptr<CImage> pViewport) =0;
 
 	virtual			CBlockMap*	GetBlockMap(void);

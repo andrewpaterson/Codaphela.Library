@@ -39,6 +39,7 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
+	bool	CanDrawPart(Ptr<CCanvas> pCanvas) override;
 };
 
 

@@ -91,7 +91,7 @@ public:
 	bool						GetImageDestBounds(CInt32Rect* pcRect);
 	bool						GetFullDestBounds(CInt32Rect* pcRect);
 
-	bool						Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
+	bool						BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) override;
 
 	Ptr<CImage>					WriteToImage(void);
 	Ptr<CImage>					CreateViewportImage(void);
@@ -108,7 +108,7 @@ public:
 protected:
 	size						AddCel(Ptr<CImageCel> pCel);
 	bool						CreateCelBlitter(size uiCel);
-	bool						BlitSprites(int32 iLeft, int32 iTop, bool bEnsureBlitters);
+	bool						BlitSprites(int32 iLeft, int32 iTop, CInt32Rect* pcClip, bool bEnsureBlitters);
 };
 
 

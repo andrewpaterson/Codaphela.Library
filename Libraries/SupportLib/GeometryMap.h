@@ -137,7 +137,7 @@ public:
 	size				NumCommands(void);
 	SGeometryCommand*	GetCommand(size uiIndex);
 
-	bool				Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
+	bool				BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) override;
 	void				SetViewport(Ptr<CImage> pViewport) override;
 	Ptr<CImage>			GetViewport(void);
 
@@ -146,7 +146,7 @@ protected:
 	void				InitPixels(SGeometryPixels* psPixels);
 	void				KillPixels(SGeometryPixels* psPixels);
 	void				FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour);
-	bool				FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight);
+	bool				FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, CInt32Rect* pcBounds);
 	void				AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	void				AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);

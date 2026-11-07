@@ -106,7 +106,7 @@ bool CCanvasDraw::GetSolidColour(ARGB32* psColour)
 // itself.  A draw that can't is drawn whole.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCanvasDraw::CanDrawPart(void)
+bool CCanvasDraw::CanDrawPart(Ptr<CCanvas> pCanvas)
 {
 	return false;
 }

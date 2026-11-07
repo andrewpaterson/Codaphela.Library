@@ -79,6 +79,8 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	Ptr<CImage>		pImage;
 	SInt32Vec2		sViewport;
 	SInt32Vec2		sOrigin;
+	CInt32Rect		cClip;
+	bool			bClipped;
 
 	if (!pCanvas->IsValid())
 	{
@@ -99,15 +101,31 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	}
 	if (bResult)
 	{
-		//The image holds the part of the canvas from its native origin, so the maps are seen that much further on.
+		//The image holds the part of the canvas from its native origin, so the maps are seen that much further on, and a
+		//part of the canvas being drawn (its paint clip) is that much nearer the image's top left.
 		sViewport = mpMaps->GetViewportPosition();
 		sOrigin = pCanvas->GetNativeOrigin();
 		mpMaps->SetViewportPosition(sViewport.x + sOrigin.x, sViewport.y + sOrigin.y);
-		bResult = mpMaps->Blit(false);
+		bClipped = pCanvas->GetPaintClip(&cClip);
+		cClip.Init(cClip.GetLeft() - sOrigin.x, cClip.GetTop() - sOrigin.y, cClip.GetRight() - sOrigin.x, cClip.GetBottom() - sOrigin.y);
+		bResult = mpMaps->Blit(false, bClipped ? &cClip : NULL);
 		mpMaps->SetViewportPosition(sViewport);
 	}
 
 	FinishBlit(pCanvas);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The maps are blitted cut to the canvas's paint clip, straight onto a
+// canvas with an image.  Onto one without, all of the image they are
+// blitted onto is copied (CBlitCanvasDraw).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapsCanvasDraw::CanDrawPart(Ptr<CCanvas> pCanvas)
+{
+	return pCanvas->GetImageOrNull().IsNotNull();
 }
 

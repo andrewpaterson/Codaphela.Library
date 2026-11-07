@@ -20,7 +20,7 @@ public:
 	void	Class(void) override;
 
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
-	bool	CanDrawPart(void) override;
+	bool	CanDrawPart(Ptr<CCanvas> pCanvas) override;
 
 	void	SetColour(ARGB32 sColour);
 	void	SetCanDrawPart(bool bCanDrawPart);

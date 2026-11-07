@@ -104,3 +104,17 @@ CBlockMap* CBaseMap::GetBlockMap(void)
 	return NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blits the part of the map in pcViewportRect (map pixels, right and
+// bottom exclusive) onto the viewport, the rectangle's top left at the
+// viewport's top left.  BlitClipped blits only the part of that in
+// pcClip (map pixels, NULL for all of it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
+{
+	return BlitClipped(pcViewportRect, NULL, bEnsureBlitters);
+}
+
