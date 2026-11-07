@@ -1328,6 +1328,38 @@ void TestIR65BackendSoftFloatNames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Two comparisons of the same operands, in either order (FlagsKnown, both
+// back ends).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendSameOperands(void)
+{
+	SIRInstruction	sFirst;
+	SIRInstruction	sSecond;
+
+	memset(&sFirst, 0, sizeof(sFirst));
+	memset(&sSecond, 0, sizeof(sSecond));
+	sFirst.asArguments[0] = IRReference(IRRK_Temporary, 1);
+	sFirst.asArguments[1] = IRReference(IRRK_Constant, 2);
+	sSecond.asArguments[0] = IRReference(IRRK_Temporary, 1);
+	sSecond.asArguments[1] = IRReference(IRRK_Constant, 2);
+	AssertTrue(CIRBackend::SameOperands(&sFirst, &sSecond));
+
+	sSecond.asArguments[0] = IRReference(IRRK_Constant, 2);
+	sSecond.asArguments[1] = IRReference(IRRK_Temporary, 1);
+	AssertTrue(CIRBackend::SameOperands(&sFirst, &sSecond));
+
+	sSecond.asArguments[1] = IRReference(IRRK_Temporary, 3);
+	AssertFalse(CIRBackend::SameOperands(&sFirst, &sSecond));
+
+	sSecond.asArguments[0] = IRReference(IRRK_Temporary, 1);
+	sSecond.asArguments[1] = IRReference(IRRK_Temporary, 1);
+	AssertFalse(CIRBackend::SameOperands(&sFirst, &sSecond));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The back end's peephole: a store to a pseudo register read straight back
 // is a cpy when both registers are known to be 32 bits.  They are at the
 // function's label and a block's; at a label in an instruction's code (not
@@ -1740,6 +1772,7 @@ void TestIR65Backend(void)
 	TestIR65BackendPeepholeWidths();
 	TestIR65BackendPeepholeBranchesToNext();
 	TestIR65BackendSoftFloatNames();
+	TestIR65BackendSameOperands();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIRSourceMarkers();

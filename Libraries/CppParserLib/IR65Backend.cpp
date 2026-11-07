@@ -676,8 +676,7 @@ bool CIR65Backend::FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused)
 	{
 		return false;
 	}
-	return (psFused->asArguments[0].Equals(mpsFlags->asArguments[0]) && psFused->asArguments[1].Equals(mpsFlags->asArguments[1])) ||
-		   (psFused->asArguments[0].Equals(mpsFlags->asArguments[1]) && psFused->asArguments[1].Equals(mpsFlags->asArguments[0]));
+	return SameOperands(psFused, mpsFlags);
 }
 
 

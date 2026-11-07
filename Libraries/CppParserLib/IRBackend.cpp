@@ -497,3 +497,17 @@ int CIRBackend::FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot)
 	default:			aiValues[0] = 2;							return 1;	//fordered and funordered: a NaN.
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two comparisons have the same two operands, in either order (eq
+// and ne give the same either way round).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackend::SameOperands(SIRInstruction* psFirst, SIRInstruction* psSecond)
+{
+	return (psFirst->asArguments[0].Equals(psSecond->asArguments[0]) && psFirst->asArguments[1].Equals(psSecond->asArguments[1])) ||
+		   (psFirst->asArguments[0].Equals(psSecond->asArguments[1]) && psFirst->asArguments[1].Equals(psSecond->asArguments[0]));
+}
+

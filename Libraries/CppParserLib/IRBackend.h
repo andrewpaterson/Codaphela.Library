@@ -79,6 +79,7 @@ public:
 
 	static void		AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom);
 	static int		FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot);
+	static bool		SameOperands(SIRInstruction* psFirst, SIRInstruction* psSecond);
 
 protected:
 	void			Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator = NULL);

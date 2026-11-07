@@ -136,12 +136,7 @@ bool CIR816Backend::FlagsKnown(CIRBlock* pcBlock)
 		return false;
 	}
 	psBefore = pcPredecessor->masInstructions.Tail();
-	if (!psBefore->sType.Equals(psCompare->sType) || !LeavesEqualityInZ(psBefore))
-	{
-		return false;
-	}
-	return (psBefore->asArguments[0].Equals(psCompare->asArguments[0]) && psBefore->asArguments[1].Equals(psCompare->asArguments[1])) ||
-		   (psBefore->asArguments[0].Equals(psCompare->asArguments[1]) && psBefore->asArguments[1].Equals(psCompare->asArguments[0]));
+	return psBefore->sType.Equals(psCompare->sType) && LeavesEqualityInZ(psBefore) && SameOperands(psBefore, psCompare);
 }
 
 
