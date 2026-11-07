@@ -35,8 +35,10 @@ void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting, EIndexKeyR
 void CIndexUnknown::Kill(void)
 {
 	mcIndex.Kill();
-	CUnknown::Kill();
 	muiFlags = 0;
+
+	//Last: it frees this when this is in Unknowns.
+	CUnknown::Kill();
 }
 
 
