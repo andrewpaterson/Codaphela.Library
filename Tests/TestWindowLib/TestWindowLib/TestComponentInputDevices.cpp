@@ -59,6 +59,19 @@ void TestComponentInputKeyboard(void)
 		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
 		AssertFalse(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
 
+		//An application's keys (the HCP65 IDE's).
+		AssertTrue(cComponentInput.BindKeys("Control+S", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+S", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Shift+F6", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Alt+F7", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+N", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+N", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+Alt+Shift+N", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+B", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Alt+O", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Alt+1", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Alt+Backspace", CIC_Command));
+
 		//Nothing has focus so nothing hears the keyboard.
 		cDevices.Tap("A");
 		AssertLog("");
@@ -122,22 +135,22 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Control");
 		AssertLog("B:SelectAll;B:Copy;B:WordLeft;B:LineUp;");
 
-		//Control+S saves; with shift too, saves all.
+		//Control+S; with shift too, another.
 		cDevices.Press("Left Control");
 		cDevices.Tap("S");
 		cDevices.Press("Left Shift");
 		cDevices.Tap("S");
 		cDevices.Release("Left Shift");
 		cDevices.Release("Left Control");
-		AssertLog("B:Save;B:SaveAll;");
+		AssertLog("B:Command(Control+S);B:Command(Control+Shift+S);");
 
-		//Shift+F6 renames.
+		//Shift and a function key.
 		cDevices.Press("Left Shift");
 		cDevices.Tap("F6");
 		cDevices.Release("Left Shift");
-		AssertLog("B:Rename;");
+		AssertLog("B:Command(Shift+F6);");
 
-		//F7 goes to the next difference; with shift, the previous; with alt it finds usages.
+		//F7 goes to the next difference; with shift, the previous; with alt it is bound.
 		cDevices.Tap("F7");
 		cDevices.Press("Left Shift");
 		cDevices.Tap("F7");
@@ -145,10 +158,9 @@ void TestComponentInputKeyboard(void)
 		cDevices.Press("Left Alt");
 		cDevices.Tap("F7");
 		cDevices.Release("Left Alt");
-		AssertLog("B:NextDifference;B:PreviousDifference;B:FindUsages;");
+		AssertLog("B:NextDifference;B:PreviousDifference;B:Command(Alt+F7);");
 
-		//Control+N goes to a class, with shift a file and with alt and shift a symbol, as IntelliJ's.  The modifiers can
-		//be pressed in any order, and either alt.
+		//Control+N, with shift and with alt and shift.  The modifiers can be pressed in any order, and either alt.
 		cDevices.Press("Left Control");
 		cDevices.Tap("N");
 		cDevices.Press("Left Shift");
@@ -158,7 +170,7 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Alt");
 		cDevices.Release("Left Shift");
 		cDevices.Release("Left Control");
-		AssertLog("B:GoToClass;B:GoToFile;B:GoToSymbol;");
+		AssertLog("B:Command(Control+N);B:Command(Control+Shift+N);B:Command(Control+Alt+Shift+N);");
 		cDevices.Press("Right Alt");
 		cDevices.Press("Left Shift");
 		cDevices.Press("Left Control");
@@ -166,31 +178,31 @@ void TestComponentInputKeyboard(void)
 		cDevices.Release("Left Control");
 		cDevices.Release("Left Shift");
 		cDevices.Release("Right Alt");
-		AssertLog("B:GoToSymbol;");
+		AssertLog("B:Command(Control+Alt+Shift+N);");
 
-		//Control+B goes to the source, Alt+O switches between a header and its .cpp.
+		//Control and alt with a letter.
 		cDevices.Press("Left Control");
 		cDevices.Tap("B");
 		cDevices.Release("Left Control");
 		cDevices.Press("Left Alt");
 		cDevices.Tap("O");
 		cDevices.Release("Left Alt");
-		AssertLog("B:GoToSource;B:SwitchHeaderSource;");
+		AssertLog("B:Command(Control+B);B:Command(Alt+O);");
 
-		//Alt+1 shows the project view, it doesn't type a 1.
+		//Alt+1 doesn't type a 1.
 		cDevices.Press("Left Alt");
 		cDevices.Tap("1");
 		cDevices.Release("Left Alt");
-		AssertLog("B:ShowProjectView;");
+		AssertLog("B:Command(Alt+1);");
 
-		//Alt+Backspace leaves a sheet, as KiCad's; with either alt.
+		//Alt+Backspace, with either alt.
 		cDevices.Press("Left Alt");
 		cDevices.Tap("Backspace");
 		cDevices.Release("Left Alt");
 		cDevices.Press("Right Alt");
 		cDevices.Tap("Backspace");
 		cDevices.Release("Right Alt");
-		AssertLog("B:LeaveSheet;B:LeaveSheet;");
+		AssertLog("B:Command(Alt+Backspace);B:Command(Alt+Backspace);");
 
 		//Alt alone types nothing; nothing else is mapped with it.
 		cDevices.Press("Left Alt");
@@ -443,8 +455,8 @@ void TestComponentInputShortcutText(void)
 		AssertTrue(cComponentInput.GetShortcutText(CIC_SelectLeft, &szKeys));
 		AssertString("Shift+Left", szKeys.Text());
 		szKeys.Clear();
-		AssertTrue(cComponentInput.GetShortcutText(CIC_BreakAll, &szKeys));
-		AssertString("Ctrl+Pause/Break", szKeys.Text());
+		AssertTrue(cComponentInput.GetShortcutText(CIC_PreviousDifference, &szKeys));
+		AssertString("Shift+F7", szKeys.Text());
 
 		//Appended to what is there.
 		szKeys.Set("Keys ");

@@ -62,7 +62,7 @@ enum EComponentInputCommand
 	CIC_SelectAll,
 	CIC_ClearSelection,
 
-	//Modification
+	//Typing
 	CIC_Space,
 	CIC_Tab,
 	CIC_BackTab,
@@ -76,51 +76,16 @@ enum EComponentInputCommand
 	CIC_Cut,
 	CIC_Copy,
 	CIC_Paste,
-	CIC_CutLine,
 	CIC_Duplicate,
 	CIC_DeleteWordRemainingLeft,
 	CIC_DeleteWordRemainingRight,
-	CIC_DeleteLine,
+	CIC_DeleteLine,  //Control+Y, as IntelliJ's.
 	CIC_Undo,
-	CIC_StepUndo,
-	CIC_Redo,
-	CIC_StepRedo,
-	CIC_FlipHorizontally,  //Control+Shift+F, then H.
-	CIC_FlipVertically,  //Control+Shift+F, then V.
-
-	//Files
-	CIC_Save,  //Control+S.
-	CIC_SaveAll,  //Control+Shift+S.
+	CIC_Redo,  //Control+Shift+Z, as IntelliJ's.
 
 	//Differences
 	CIC_NextDifference,  //F7.
 	CIC_PreviousDifference,  //Shift+F7.
-
-	//Code
-	CIC_GoToDefinition,  //F12.
-	CIC_FindReferences,  //Shift+F12.
-	CIC_Build,  //Control+Shift+B.
-	CIC_GoToClass,  //Control+N, as IntelliJ's.
-	CIC_GoToFile,  //Control+Shift+N.
-	CIC_GoToSymbol,  //Control+Alt+Shift+N.
-	CIC_ShowProjectView,  //Alt+1, as IntelliJ's Project tool window: the active file selected in it.
-	CIC_Rename,  //Shift+F6, as IntelliJ's Rename.
-	CIC_FindUsages,  //Alt+F7, as IntelliJ's Find Usages.
-	CIC_GoToSource,  //Control+B, as IntelliJ's: the file an #include names, or what is at the caret's definition.
-	CIC_SwitchHeaderSource,  //Alt+O, as Visual Assist's: a .cpp's header, or a header's .cpp.
-
-	//Schematics
-	CIC_LeaveSheet,  //Alt+Backspace, as KiCad's Leave Sheet: back out of the subcircuit entered.
-
-	//Debugging, with Visual Studio's keys.
-	CIC_StartDebugging,  //F5: start, or continue.
-	CIC_StopDebugging,  //Shift+F5.
-	CIC_RestartDebugging,  //Control+Shift+F5.
-	CIC_BreakAll,  //Control+Pause (Control+Break).
-	CIC_ToggleBreakpoint,  //F9.
-	CIC_StepOver,  //F10.
-	CIC_StepInto,  //F11.
-	CIC_StepOut,  //Shift+F11.
 
 	//Components
 	CIC_Command,  //Keys bound to an application's command (CCommand); the event's szName is the keys.

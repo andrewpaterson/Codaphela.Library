@@ -77,49 +77,12 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ true,  false, false, "Backspace",	CIC_DeleteWordRemainingLeft,	CIC_Ignored },
 	{ true,  false, false, "Delete",		CIC_DeleteWordRemainingRight,	CIC_Ignored },
 	{ true,  false, false, "Z",			CIC_Undo,						CIC_Ignored },
-	{ true,  true,  false, "Z",			CIC_StepUndo,					CIC_Ignored },
-	{ true,  false, false, "Y",			CIC_Redo,						CIC_Ignored },
-	{ true,  true,  false, "Y",			CIC_StepRedo,					CIC_Ignored },
-	{ true,  false, false, "S",			CIC_Save,						CIC_Ignored },
-	{ true,  true,  false, "S",			CIC_SaveAll,					CIC_Ignored },
-	{ false, true,  false, "F12",			CIC_FindReferences,				CIC_Ignored },
-	{ false, true,  false, "F6",			CIC_Rename,						CIC_Ignored },
-	{ false, false, true,  "F7",			CIC_FindUsages,					CIC_Ignored },
-	{ true,  false, false, "B",			CIC_GoToSource,					CIC_Ignored },
-	{ false, false, true,  "O",			CIC_SwitchHeaderSource,			CIC_Ignored },
+	{ true,  true,  false, "Z",			CIC_Redo,						CIC_Ignored },
+	{ true,  false, false, "Y",			CIC_DeleteLine,					CIC_Ignored },
 	{ false, true,  false, "F7",			CIC_PreviousDifference,			CIC_Ignored },
-	{ true,  true,  false, "B",			CIC_Build,						CIC_Ignored },
-	{ true,  false, false, "N",			CIC_GoToClass,					CIC_Ignored },
-	{ true,  true,  false, "N",			CIC_GoToFile,					CIC_Ignored },
-	{ true,  true,  true,  "N",			CIC_GoToSymbol,					CIC_Ignored },
-	{ false, false, true,  "1",			CIC_ShowProjectView,			CIC_Ignored },
-	{ false, false, true,  "Backspace",	CIC_LeaveSheet,					CIC_Ignored },
-	{ false, true,  false, "F5",			CIC_StopDebugging,				CIC_Ignored },
-	{ true,  true,  false, "F5",			CIC_RestartDebugging,			CIC_Ignored },
-	{ true,  false, false, "Pause/Break",	CIC_BreakAll,					CIC_Ignored },
-	{ false, true,  false, "F11",			CIC_StepOut,					CIC_Ignored },
 	{ false, true,  false, "F10",			CIC_ContextMenuKey,				CIC_Ignored },
 	{ true,  false, false, "F4",			CIC_CloseDocument,				CIC_Ignored },
 	{ false, true,  false, "Escape",		CIC_HideToolWindow,				CIC_Ignored },
-};
-
-
-//Two keys one after the other with control and shift held for the first, like "Control+Shift+F, H".  The first key is
-//let go before the second is pressed; control and shift can be held for the second or let go.  Once everything is let
-//go the second key must come within the row's milliseconds.
-struct SComponentInputSequenceRow
-{
-	const char*				szFirstKey;
-	const char*				szSecondKey;
-	EComponentInputCommand	eCommand;
-	uint32					uiEvictionMilliseconds;
-};
-
-
-static SComponentInputSequenceRow	gasKeyboardSequenceRows[] =
-{
-	{ "F",	"H",	CIC_FlipHorizontally,	500 },
-	{ "F",	"V",	CIC_FlipVertically,		500 },
 };
 
 
@@ -381,10 +344,6 @@ void CComponentInput::AddKeyboardChords(CComponentInputDevice* pcKeyboard)
 	{
 		psRow = &gasKeyboardChordRows[i];
 		AddChordCommands(pcKeyboard, pcKeyboard, psRow->bControl, psRow->bShift, psRow->bAlt, psRow->szKey, psRow->ePressed, psRow->eReleased);
-	}
-	for (i = 0; i < sizeof(gasKeyboardSequenceRows) / sizeof(SComponentInputSequenceRow); i++)
-	{
-		AddSequenceChordCommands(pcKeyboard, gasKeyboardSequenceRows[i].szFirstKey, gasKeyboardSequenceRows[i].szSecondKey, gasKeyboardSequenceRows[i].eCommand, gasKeyboardSequenceRows[i].uiEvictionMilliseconds);
 	}
 }
 
@@ -836,8 +795,8 @@ void CComponentInput::AppendShortcutText(CChars* pszDest, const char* szKeys)
 //////////////////////////////////////////////////////////////////////////
 //
 // The keys that give eCommand, as a menu shows them ("Ctrl+Alt+Shift+N",
-// "F5", "Left"), appended to pszDest: a key that gives it on its own, else
-// the first chord that does.  They are whatever keys the window was given,
+// "F5", "Left"), appended to pszDest: the keys bound to it (BindKeys),
+// else a key that gives it on its own, else the first chord that does.  They are whatever keys the window was given,
 // so a menu can't say other keys than those that work.  False, and
 // nothing appended, if no key gives it.
 //
@@ -847,6 +806,15 @@ bool CComponentInput::GetShortcutText(EComponentInputCommand eCommand, CChars* p
 	size				i;
 	CInputSourceDesc*	pcSource;
 
+	//An application's keys first, as they may be a standard command's other keys.
+	for (i = 0; i < masBindings.NumElements(); i++)
+	{
+		if (masBindings.Get(i)->eCommand == eCommand)
+		{
+			AppendShortcutText(pszDest, masBindings.Get(i)->szKeys.Text());
+			return true;
+		}
+	}
 	for (i = 0; i < macDevices.NumElements(); i++)
 	{
 		if (!macDevices.Get(i)->IsMouse())

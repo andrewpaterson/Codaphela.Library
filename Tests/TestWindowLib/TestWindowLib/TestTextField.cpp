@@ -294,8 +294,8 @@ void TestTextFieldUndo(void)
 		AssertString("", pField->GetText());
 		AssertLog("Changed:;");
 
-		//Control Shift Z redoes, as does Control Y.
-		pTestWindow->InputCommand(CIC_StepUndo, true);
+		//Control Shift Z redoes.
+		pTestWindow->InputCommand(CIC_Redo, true);
 		AssertString("ab", pField->GetText());
 		AssertSize(2, pField->GetCaretPosition());
 		pTestWindow->InputCommand(CIC_Redo, true);

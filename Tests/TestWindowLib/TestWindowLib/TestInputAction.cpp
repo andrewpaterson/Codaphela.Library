@@ -56,12 +56,10 @@ public:
 	void Movement(SComponentInputEvent* psEvent)	{ mpszLog->Append("Move("); mpszLog->Append(psEvent->iRight); mpszLog->Append(","); mpszLog->Append(psEvent->iDown); mpszLog->Append(");"); }
 	void Wheel(SComponentInputEvent* psEvent)		{ mpszLog->Append("Wheel("); mpszLog->Append(psEvent->iDown); mpszLog->Append(");"); }
 	void Undo(SComponentInputEvent* psEvent)		{ mpszLog->Append("Undo;"); }
-	void StepUndo(SComponentInputEvent* psEvent)	{ mpszLog->Append("StepUndo;"); }
 	void Redo(SComponentInputEvent* psEvent)		{ mpszLog->Append("Redo;"); }
-	void StepRedo(SComponentInputEvent* psEvent)	{ mpszLog->Append("StepRedo;"); }
+	void DeleteLine(SComponentInputEvent* psEvent)	{ mpszLog->Append("DeleteLine;"); }
 	void HomeEnter(SComponentInputEvent* psEvent)	{ mpszLog->Append("HomeEnter;"); }
-	void FlipH(SComponentInputEvent* psEvent)		{ mpszLog->Append("FlipH;"); }
-	void FlipV(SComponentInputEvent* psEvent)		{ mpszLog->Append("FlipV;"); }
+	void Command(SComponentInputEvent* psEvent)		{ mpszLog->Append("Command("); mpszLog->Append(psEvent->szName); mpszLog->Append(");"); }
 };
 
 
@@ -576,12 +574,12 @@ void TestInputActionUndoChords(bool bRightModifiers)
 		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
 
 		pA->AddInputAction(CIC_Undo, &pA, &CActionTestComponent::Undo);
-		pA->AddInputAction(CIC_StepUndo, &pA, &CActionTestComponent::StepUndo);
 		pA->AddInputAction(CIC_Redo, &pA, &CActionTestComponent::Redo);
-		pA->AddInputAction(CIC_StepRedo, &pA, &CActionTestComponent::StepRedo);
+		pA->AddInputAction(CIC_DeleteLine, &pA, &CActionTestComponent::DeleteLine);
 		pA->AddInputAction(CIC_HomeEnter, &pA, &CActionTestComponent::HomeEnter);
-		pA->AddInputAction(CIC_FlipHorizontally, &pA, &CActionTestComponent::FlipH);
-		pA->AddInputAction(CIC_FlipVertically, &pA, &CActionTestComponent::FlipV);
+		pA->AddInputAction(CIC_Command, &pA, &CActionTestComponent::Command);
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+F, H", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+F, V", CIC_Command));
 		pA->AddInputAction(IAF_AnyKeyDown, NULL, &pA, &CActionTestComponent::AnyKeyDown);
 
 		pTestWindow->PointerMoved(10, 10);
@@ -593,34 +591,34 @@ void TestInputActionUndoChords(bool bRightModifiers)
 		AssertLog("Undo;");
 
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
-		AssertLog("StepUndo;");
+		AssertLog("Redo;");
 
 		cDevices.Press("Left Shift"); cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Release("Left Control"); cDevices.Release("Left Shift");
-		AssertLog("StepUndo;");
+		AssertLog("Redo;");
 
 		cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Tap("Z"); cDevices.Tap("Z"); cDevices.Release("Left Control");
 		AssertLog("Undo;Undo;Undo;");
 
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Tap("Z"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
-		AssertLog("StepUndo;StepUndo;StepUndo;");
+		AssertLog("Redo;Redo;Redo;");
 
 		cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Control");
-		AssertLog("Undo;StepUndo;Undo;");
+		AssertLog("Undo;Redo;Undo;");
 
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Control");
-		AssertLog("StepUndo;Undo;");
+		AssertLog("Redo;Undo;");
 
 		if (bRightModifiers)
 		{
 			cDevices.Press("Right Control"); cDevices.Press("Right Shift"); cDevices.Tap("Z"); cDevices.Release("Right Shift"); cDevices.Release("Right Control");
-			AssertLog("StepUndo;");
+			AssertLog("Redo;");
 		}
 
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Press("Z"); cDevices.Release("Left Shift"); cDevices.Release("Z"); cDevices.Release("Left Control");
-		AssertLog("StepUndo;");
+		AssertLog("Redo;");
 
-		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Y"); cDevices.Release("Left Shift"); cDevices.Tap("Y"); cDevices.Release("Left Control");
-		AssertLog("StepRedo;Redo;");
+		cDevices.Press("Left Control"); cDevices.Tap("Y"); cDevices.Release("Left Control");
+		AssertLog("DeleteLine;");
 
 		cDevices.Tap("Z");
 		AssertLog("AnyDown(Z);");
@@ -632,21 +630,21 @@ void TestInputActionUndoChords(bool bRightModifiers)
 		cDevices.Press("Left Control"); cDevices.Tap("Enter"); cDevices.Release("Left Control");
 		AssertLog("AnyDown(Left Control);AnyDown(Enter);");
 
-		//Control+Shift+F then H or V, with control and shift held or let go of first.
+		//Control+Shift+F then H or V (bound, as LogiCim's flips), with control and shift held or let go of first.
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Tap("H"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
-		AssertLog("FlipH;");
+		AssertLog("Command(Control+Shift+F, H);");
 		cDevices.Press("Left Shift"); cDevices.Press("Left Control"); cDevices.Tap("F"); cDevices.Release("Left Control"); cDevices.Release("Left Shift"); cDevices.Tap("V");
-		AssertLog("FlipV;");
+		AssertLog("Command(Control+Shift+F, V);");
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Tap("H"); cDevices.Release("Left Control");
-		AssertLog("FlipH;");
+		AssertLog("Command(Control+Shift+F, H);");
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Control"); cDevices.Tap("V"); cDevices.Release("Left Shift");
-		AssertLog("FlipV;");
+		AssertLog("Command(Control+Shift+F, V);");
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Press("F"); cDevices.Release("Left Control"); cDevices.Release("F"); cDevices.Release("Left Shift"); cDevices.Tap("H");
-		AssertLog("FlipH;");
+		AssertLog("Command(Control+Shift+F, H);");
 
 		//Held, they carry on to the next.
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Tap("H"); cDevices.Tap("F"); cDevices.Tap("V"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
-		AssertLog("FlipH;FlipV;");
+		AssertLog("Command(Control+Shift+F, H);Command(Control+Shift+F, V);");
 
 		//H and V alone are keys.
 		cDevices.Tap("H");
@@ -694,7 +692,7 @@ void TestInputActionUnhandledCommands(void)
 		Ptr<CActionTestComponent>		pChild;
 		Ptr<CActionTestComponent>		pToolChild;
 		CChars							szLog;
-		CActionTestCounter				cSaves;
+		CActionTestCounter				cDuplicates;
 		CInt32Rect						cRect;
 
 		szLog.Init();
@@ -707,21 +705,21 @@ void TestInputActionUnhandledCommands(void)
 		pChild = OMalloc<CActionTestComponent>(pTestWindow, &szLog);
 		AssertTrue(pGrid->AddComponent(pChild, 0, 0, 1, 1, 1, 1));
 		pTestWindow->Layout();
-		cSaves.miCalls = 0;
-		pGrid->AddInputAction(CIC_Save, &cSaves, &CActionTestCounter::Count);
+		cDuplicates.miCalls = 0;
+		pGrid->AddInputAction(CIC_Duplicate, &cDuplicates, &CActionTestCounter::Count);
 		pChild->AddInputAction(CIC_Copy, &pChild, &CActionTestComponent::Copy);
 
 		//Nothing focussed: the content takes it.
 		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent().IsNull());
-		pTestWindow->InputCommand(CIC_Save, true);
-		AssertInt(1, cSaves.miCalls);
+		pTestWindow->InputCommand(CIC_Duplicate, true);
+		AssertInt(1, cDuplicates.miCalls);
 		pTestWindow->InputCommand(CIC_Copy, true);
 		AssertLog("");
 
 		//Focussed, it goes up to the content as before, once.
 		pTestWindow->GetFocus()->SetFocus(pChild);
-		pTestWindow->InputCommand(CIC_Save, true);
-		AssertInt(2, cSaves.miCalls);
+		pTestWindow->InputCommand(CIC_Duplicate, true);
+		AssertInt(2, cDuplicates.miCalls);
 		pTestWindow->InputCommand(CIC_Copy, true);
 		AssertLog("Copy;");
 
@@ -735,11 +733,11 @@ void TestInputActionUnhandledCommands(void)
 		cRect.Init(0, 0, 31, 15);
 		AssertTrue(pTool->ShowOwned(pTestWindow, &cRect));
 		pTool->Layout();
-		pTool->InputCommand(CIC_Save, true);
-		AssertInt(3, cSaves.miCalls);
+		pTool->InputCommand(CIC_Duplicate, true);
+		AssertInt(3, cDuplicates.miCalls);
 		pTool->GetFocus()->SetFocus(pToolChild);
-		pTool->InputCommand(CIC_Save, true);
-		AssertInt(4, cSaves.miCalls);
+		pTool->InputCommand(CIC_Duplicate, true);
+		AssertInt(4, cDuplicates.miCalls);
 		pTool->InputCommand(CIC_Copy, true);
 		AssertLog("");
 
@@ -804,22 +802,21 @@ void TestInputActionBindKeys(void)
 		cDevices.mpcComponentInput = &cComponentInput;
 
 		//Before the keyboard: its keys come with it.
-		AssertTrue(cComponentInput.BindKeys("Alt+Control+Z", CIC_StepUndo));
+		AssertTrue(cComponentInput.BindKeys("Alt+Control+Z", CIC_DeleteLine));
 		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
 		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
 
 		pA->AddInputAction(CIC_Undo, &pA, &CActionTestComponent::Undo);
-		pA->AddInputAction(CIC_StepUndo, &pA, &CActionTestComponent::StepUndo);
+		pA->AddInputAction(CIC_DeleteLine, &pA, &CActionTestComponent::DeleteLine);
 		pA->AddInputAction(CIC_Redo, &pA, &CActionTestComponent::Redo);
 		pA->AddInputAction(CIC_Copy, &pA, &CActionTestComponent::Copy);
-		pA->AddInputAction(CIC_FlipHorizontally, &pA, &CActionTestComponent::FlipH);
 		pTestWindow->PointerMoved(10, 10);
 		cDevices.Click("Button 1");
 		AssertTrue(pA->IsFocussed());
 		szLog.Clear();
 
 		cDevices.Press("Left Control"); cDevices.Press("Left Alt"); cDevices.Tap("Z"); cDevices.Release("Left Alt"); cDevices.Release("Left Control");
-		AssertLog("StepUndo;");
+		AssertLog("DeleteLine;");
 		cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Release("Left Control");
 		AssertLog("Undo;");
 
@@ -827,25 +824,28 @@ void TestInputActionBindKeys(void)
 		AssertTrue(cComponentInput.BindKeys("F5", CIC_Copy));
 		cDevices.Tap("F5");
 		AssertLog("Copy;");
-		AssertTrue(cComponentInput.BindKeys("Control+Shift+Z", CIC_Redo));
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
 		AssertLog("Redo;");
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+Z", CIC_Copy));
+		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
+		AssertLog("Copy;");
 		cDevices.Press("Right Control"); cDevices.Press("Right Shift"); cDevices.Tap("Z"); cDevices.Release("Right Shift"); cDevices.Release("Right Control");
-		AssertLog("Redo;");
+		AssertLog("Copy;");
 
-		//A sequence, the standard flip's keys given undo.
-		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
-		AssertLog("FlipH;");
+		//A sequence, then given another command.
 		AssertTrue(cComponentInput.BindKeys("Control+Shift+F, H", CIC_Undo));
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
 		AssertLog("Undo;");
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+F, H", CIC_Redo));
+		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
+		AssertLog("Redo;");
 
 		//The shortcut a menu shows is the bound keys.
 		szShortcut.Init();
 		AssertTrue(cComponentInput.GetShortcutText(CIC_Copy, &szShortcut));
 		AssertString("F5", szShortcut.Text());
 		szShortcut.Clear();
-		AssertTrue(cComponentInput.GetShortcutText(CIC_StepUndo, &szShortcut));
+		AssertTrue(cComponentInput.GetShortcutText(CIC_DeleteLine, &szShortcut));
 		AssertString("Ctrl+Alt+Z", szShortcut.Text());
 		szShortcut.Kill();
 

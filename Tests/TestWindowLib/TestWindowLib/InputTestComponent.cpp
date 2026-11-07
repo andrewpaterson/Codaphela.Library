@@ -8,7 +8,7 @@
 static EComponentInputCommand	gaeInputTestCommands[] =
 {
 	CIC_Up, CIC_Left, CIC_WordLeft, CIC_End, CIC_LineUp, CIC_LineDown, CIC_SelectUp, CIC_SelectAll,
-	CIC_Space, CIC_Tab, CIC_BackTab, CIC_Enter, CIC_EndEnter, CIC_Copy, CIC_Paste, CIC_Save, CIC_SaveAll, CIC_GoToClass, CIC_GoToFile, CIC_GoToSymbol, CIC_ShowProjectView, CIC_Rename, CIC_FindUsages, CIC_GoToSource, CIC_SwitchHeaderSource, CIC_LeaveSheet, CIC_NextDifference, CIC_PreviousDifference,
+	CIC_Space, CIC_Tab, CIC_BackTab, CIC_Enter, CIC_EndEnter, CIC_Copy, CIC_Paste, CIC_Command, CIC_NextDifference, CIC_PreviousDifference,
 	CIC_ActivateComponent, CIC_ExecuteComponent, CIC_ContextMenu,
 	CIC_StartDragScroll, CIC_ContDragScroll, CIC_StopDragScroll, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect,
 	CIC_Hover,
@@ -74,6 +74,20 @@ void CInputTestComponent::Log(const char* szCall)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Keys bound to an application's command, by their name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputTestComponent::LogCommand(const char* szKeys)
+{
+	mpszLog->Append(&mszName);
+	mpszLog->Append(":Command(");
+	mpszLog->Append(szKeys);
+	mpszLog->Append(");");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CInputTestComponent::Log(const char* szCall, int x, int y)
@@ -119,17 +133,7 @@ void CInputTestComponent::CommandAction(SComponentInputEvent* psEvent)
 	case CIC_Enter:				Log("Enter");							break;
 	case CIC_EndEnter:			Log("EndEnter");						break;
 	case CIC_Copy:				Log("Copy");							break;
-	case CIC_Save:				Log("Save");							break;
-	case CIC_SaveAll:			Log("SaveAll");						break;
-	case CIC_GoToClass:			Log("GoToClass");					break;
-	case CIC_GoToFile:			Log("GoToFile");					break;
-	case CIC_GoToSymbol:		Log("GoToSymbol");					break;
-	case CIC_ShowProjectView:	Log("ShowProjectView");				break;
-	case CIC_Rename:			Log("Rename");						break;
-	case CIC_FindUsages:		Log("FindUsages");					break;
-	case CIC_GoToSource:		Log("GoToSource");					break;
-	case CIC_SwitchHeaderSource:	Log("SwitchHeaderSource");		break;
-	case CIC_LeaveSheet:		Log("LeaveSheet");					break;
+	case CIC_Command:			LogCommand(psEvent->szName);			break;
 	case CIC_NextDifference:	Log("NextDifference");				break;
 	case CIC_PreviousDifference:	Log("PreviousDifference");		break;
 	case CIC_ActivateComponent:	Log("Activate", x, y);					break;

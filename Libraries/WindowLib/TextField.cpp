@@ -99,9 +99,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	AddInputAction(CIC_Copy, this, &CTextField::CopyToClipboard);
 	AddInputAction(CIC_Paste, this, &CTextField::PasteFromClipboard);
 	AddInputAction(CIC_Undo, this, &CTextField::UndoAction);
-	AddInputAction(CIC_StepUndo, this, &CTextField::RedoAction);  //Control Shift Z, IntelliJ's redo.
 	AddInputAction(CIC_Redo, this, &CTextField::RedoAction);
-	AddInputAction(CIC_StepRedo, this, &CTextField::RedoAction);
 	AddInputAction(IAF_Printable, NULL, this, &CTextField::PrintableAction);
 
 	PostInit();

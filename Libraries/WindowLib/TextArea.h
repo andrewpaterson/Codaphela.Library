@@ -316,7 +316,6 @@ public:
 	//Cut, copy and paste with the window's clipboard.
 	void				CutToClipboard(void);
 	void				CopyToClipboard(void);
-	void				CutLineToClipboard(void);
 	void				PasteFromClipboard(void);
 
 	SInt32Vec2			GetTextSize(void);

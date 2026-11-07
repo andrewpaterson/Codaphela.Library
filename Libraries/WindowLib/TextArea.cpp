@@ -176,9 +176,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	AddInputAction(CIC_Delete, this, &CTextArea::Delete);
 	AddInputAction(CIC_Backspace, this, &CTextArea::Backspace);
 	AddInputAction(CIC_Undo, this, &CTextArea::UndoAction);
-	AddInputAction(CIC_StepUndo, this, &CTextArea::RedoAction);  //Control Shift Z, IntelliJ's redo.
 	AddInputAction(CIC_Redo, this, &CTextArea::RedoAction);
-	AddInputAction(CIC_StepRedo, this, &CTextArea::RedoAction);
 	AddInputAction(CIC_Duplicate, this, &CTextArea::Duplicate);
 	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextArea::DeleteWordRemainingLeft);
 	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextArea::DeleteWordRemainingRight);
@@ -186,7 +184,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 
 	AddInputAction(CIC_Cut, this, &CTextArea::CutToClipboard);
 	AddInputAction(CIC_Copy, this, &CTextArea::CopyToClipboard);
-	AddInputAction(CIC_CutLine, this, &CTextArea::CutLineToClipboard);
 	AddInputAction(CIC_Paste, this, &CTextArea::PasteFromClipboard);
 	AddInputAction(IAF_Printable, NULL, this, &CTextArea::PrintableAction);
 
@@ -2169,7 +2166,6 @@ void CTextArea::FocusLost(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::CutToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Cut); }
 void CTextArea::CopyToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Copy); }
-void CTextArea::CutLineToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::CutLine); }
 void CTextArea::PasteFromClipboard(void) { mpWindow->GetClipboard()->PasteInto(this, &CTextArea::Paste); }
 
 

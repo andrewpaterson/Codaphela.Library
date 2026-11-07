@@ -30,6 +30,7 @@ public:
 
 protected:
 	void	Log(const char* szCall);
+	void	LogCommand(const char* szKeys);
 	void	Log(const char* szCall, int x, int y);
 };
 
