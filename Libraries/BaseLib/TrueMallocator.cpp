@@ -142,6 +142,7 @@ bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 	}
 	muiNumAllocations = 0;
 	muiAllocatedBytes = 0;
+	muiPeakBytes = 0;
 	mpuiStart = NULL;
 	mpsEnd = NULL;
 
@@ -182,6 +183,7 @@ void CTrueMallocator::Kill(void)
 	muiFirstBitmap = 0;
 	muiNumAllocations = 0;
 	muiAllocatedBytes = 0;
+	muiPeakBytes = 0;
 }
 
 
@@ -213,7 +215,7 @@ void* CTrueMallocator::Malloc(lsize uiBytes)
 	Split(psBlock, uiSize);
 
 	muiNumAllocations++;
-	muiAllocatedBytes += psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
+	Allocated(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS);
 	return (uint8*)psBlock + TRUE_MALLOCATOR_HEADER;
 }
 
@@ -259,7 +261,7 @@ void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 		psBlock->uiSize += psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
 		Next(psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE;
 		Split(psBlock, uiSize);
-		muiAllocatedBytes += (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - uiCurrent;
+		Allocated((psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - uiCurrent);
 		return pv;
 	}
 
@@ -345,6 +347,33 @@ lsize CTrueMallocator::NumAllocations(void)
 lsize CTrueMallocator::AllocatedBytes(void)
 {
 	return muiAllocatedBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The most AllocatedBytes has been since Init: how much memory the heap
+// needed.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTrueMallocator::PeakBytes(void)
+{
+	return muiPeakBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiBytes more are used.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueMallocator::Allocated(lsize uiBytes)
+{
+	muiAllocatedBytes += uiBytes;
+	if (muiAllocatedBytes > muiPeakBytes)
+	{
+		muiPeakBytes = muiAllocatedBytes;
+	}
 }
 
 

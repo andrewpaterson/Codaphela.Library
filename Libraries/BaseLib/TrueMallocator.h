@@ -77,6 +77,7 @@ protected:
 	STrueMallocatorBlock*	mapsFree[TRUE_MALLOCATOR_FIRST_LEVELS * TRUE_MALLOCATOR_SECOND_LEVELS];	//By TRUE_MALLOCATOR_LIST(first, second).
 	lsize					muiNumAllocations;
 	lsize					muiAllocatedBytes;	//The used blocks' sizes, with their headers.
+	lsize					muiPeakBytes;		//The most muiAllocatedBytes has been.
 
 public:
 	bool					Init(void* pvMemory, lsize uiBytes);
@@ -89,6 +90,7 @@ public:
 
 	lsize					NumAllocations(void);
 	lsize					AllocatedBytes(void);
+	lsize					PeakBytes(void);
 	lsize					LargestFree(void);
 	bool					Contains(void* pv);
 	bool					IsValid(void);
@@ -102,6 +104,7 @@ protected:
 	STrueMallocatorBlock*	Next(STrueMallocatorBlock* psBlock);
 	void					MarkFree(STrueMallocatorBlock* psBlock, lsize uiSize);
 	void					Split(STrueMallocatorBlock* psBlock, lsize uiSize);
+	void					Allocated(lsize uiBytes);
 };
 
 

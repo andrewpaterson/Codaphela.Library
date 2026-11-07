@@ -93,6 +93,7 @@ void TestTrueMallocatorMallocFree(void)
 	cMallocator.Free(NULL);
 	AssertSize(0, cMallocator.NumAllocations());
 	AssertSize(0, cMallocator.AllocatedBytes());
+	AssertTrue(cMallocator.PeakBytes() >= 10 * TRUE_MALLOCATOR_MIN_BLOCK);
 	AssertSize(uiLargest, cMallocator.LargestFree());
 
 	cMallocator.Kill();
@@ -362,6 +363,7 @@ void TestTrueMallocatorLarge(void)
 	cMallocator.Free(pui2);
 	AssertLSize(0, cMallocator.NumAllocations());
 	AssertLSize(0, cMallocator.AllocatedBytes());
+	AssertTrue(cMallocator.PeakBytes() >= 170000);
 	AssertLSize(uiLargest, cMallocator.LargestFree());
 	cMallocator.Kill();
 }
