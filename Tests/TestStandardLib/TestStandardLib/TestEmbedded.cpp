@@ -1148,6 +1148,54 @@ void TestEmbeddedHeapFromIteration(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Replacing a named object with one of a class with fewer embedded objects:
+// a pointer to an embedded object the new one doesn't have is cleared, and
+// nothing points to the freed object.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedReplaceWithFewerEmbedded(void)
+{
+	char	szErrors[1024];
+
+	ObjectsInit();
+	SetupEmbeddedObjectConstructors();
+	gcObjects.AddConstructor<CTestObject>();
+	{
+		Ptr<CEmbeddedContainer>		pContainer;
+		Ptr<CTestObject>			pHolder;
+		Ptr<CEmbeddedTest>			pTwo;
+		Ptr<CTestObject>			pReplacement;
+		Ptr<CTestObject>			pHeld;
+
+		pContainer = ONMalloc<CEmbeddedContainer>("Thing");
+		pHolder = OMalloc<CTestObject>();
+		ORoot()->Add(pHolder);
+		ORoot()->Add(pContainer);
+		pHolder->mpObject = pContainer->GetTwo();
+		pTwo = pContainer->GetTwo();
+		pHeld = OMalloc<CTestObject>();
+		pContainer->mcTwo.mpTest = pHeld;
+		AssertSize(3, pContainer->NumEmbedded());
+
+		pContainer = NULL;
+		pReplacement = gcObjects.AllocateReplacingNamed("CTestObject", "Thing");
+		AssertTrue(pReplacement.IsNotNull());
+		pReplacement->Init();
+		AssertSize(1, pReplacement->NumEmbedded());
+
+		AssertTrue(pHolder->mpObject.IsNull());
+		AssertTrue(pTwo.IsNull());
+
+		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));
+		AssertString("", szErrors);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbedded(void)
@@ -1177,6 +1225,7 @@ void TestEmbedded(void)
 	TestEmbeddedNestedCollectionHeldFromStack();
 	TestEmbeddedPointerTosListing();
 	TestEmbeddedNestedPointerValidated();
+	TestEmbeddedReplaceWithFewerEmbedded();
 
 	DataIOKill();
 	TypesKill();

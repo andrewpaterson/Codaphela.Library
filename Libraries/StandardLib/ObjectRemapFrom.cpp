@@ -27,6 +27,8 @@ size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
 
+	//An embedded object pcNew doesn't have (it is of a class with fewer) keeps its froms until pcOld is killed, which
+	//clears the pointers to it.
 	pcOld->KillInternal(bHeapFromChanged, true);
 
 	return iCount;
