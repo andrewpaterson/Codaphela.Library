@@ -256,7 +256,7 @@ void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 	muiFlags = iFlags;
 
 	//If the array was saved sorted it must be sorted after it is loaded.
-	//Which might not be the case as pointer position will depened on allocation,
+	//Which might not be the case as pointer position will depend on allocation,
 	//not load order.
 	if (muiFlags & ARRAY_COMMOM_IS_PTR_SORTED)
 	{

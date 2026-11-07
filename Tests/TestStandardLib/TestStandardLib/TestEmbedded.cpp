@@ -635,6 +635,39 @@ void TestEmbeddedObjectKillSanity(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A stack pointer to an embedded object prints the embedded object (with
+// no index of its own).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestEmbeddedStackPointerPrint(void)
+{
+	ObjectsInit();
+
+	{
+		Ptr<CEmbeddedContainer>		pContainer;
+		Ptr<CEmbeddedTest>			pFieldOne;
+		CChars						sz;
+
+		pContainer = OMalloc<CEmbeddedContainer>();
+		pFieldOne = pContainer->GetOne();
+
+		sz.Init();
+		gcObjects.PrintStackPointers(&sz, false);
+		AssertString("\
+0: Pointer [CEmbeddedContainer:1 Ru Su (CC, D, CA, CI, CC)]\n\
+1: Pointer [CEmbeddedTest:-1 Ru Su (CC, D, CA, CI, CC)]\n", sz.Text());
+		sz.Kill();
+
+		pContainer->Kill();
+	}
+	AssertSize(0, gcObjects.NumMemoryIndexes());
+
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestEmbeddedObjectKillFreesEmbedded(void)
@@ -1106,6 +1139,7 @@ void TestEmbedded(void)
 	TestEmbeddedGetEmbeddedObject();
 	TestEmbeddedObjectPointTo();
 	TestEmbeddedObjectKillSanity();
+	TestEmbeddedStackPointerPrint();
 	TestEmbeddedObjectKillFreesEmbedded();
 	TestEmbeddedObjectPointedToNoRemove();
 	TestEmbeddedNestedCollectionHeldFromStack();

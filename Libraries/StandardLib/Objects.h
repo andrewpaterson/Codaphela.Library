@@ -410,15 +410,13 @@ Ptr<SpecificClass> CObjects::Get(const char* szObjectName)
 template<class SpecificClass>
 void CObjects::AddConstructor(void)
 {
-	SpecificClass*	pcClass;
-
 	if (mpcUnknownsAllocatingFrom == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " UnknownsAllocatingFrom is NULL.  Probably Objects has not been initialsed.", NULL);
+		gcLogger.Error2(__METHOD__, " UnknownsAllocatingFrom is NULL.  Probably Objects has not been initialised.", NULL);
+		return;
 	}
 
-	pcClass = mpcUnknownsAllocatingFrom->GetConstructor<SpecificClass>();
-	if (!pcClass)
+	if (!mpcUnknownsAllocatingFrom->GetConstructor<SpecificClass>())
 	{
 		mpcUnknownsAllocatingFrom->AddConstructor<SpecificClass>();
 	}

@@ -175,6 +175,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 	SStackPointer*		psPointer;
 	SFreeListIterator	sIter;
 	size				ui;
+	CBaseObject*		pcBaseObject;
 
 	ui = 0;
 	pcPointer = GetStackPointers()->StartIteration(&sIter);
@@ -196,7 +197,19 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 			}
 			psz->Append(ui);
 			psz->Append(": Pointer [");
-			psPointer->u.pcPointer->BaseObject()->PrintState(psz);
+			pcBaseObject = psPointer->u.pcPointer->BaseObject();
+			if (pcBaseObject)
+			{
+				pcBaseObject->PrintState(psz);
+			}
+			else if (psPointer->u.pcPointer->Object())
+			{
+				psPointer->u.pcPointer->Object()->PrintObject(psz);
+			}
+			else
+			{
+				psz->Append("NULL");
+			}
 			psz->Append("]");
 			psz->AppendNewLine();
 		}
@@ -208,9 +221,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 				psz->Append(" ");
 			}
 			psz->Append(ui);
-			psz->Append(": Collection [");
-//			psPointer->u.pcCollection->GetBase()->PrintState(psz);  //It's somewhere in the collection.  How do the hell do we know which object?
-			psz->Append("]");
+			psz->Append(": Collection []");  //The collection holding the pointer isn't known.
 			psz->AppendNewLine();
 		}
 		else

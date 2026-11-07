@@ -397,7 +397,7 @@ void CBaseObject::ValidateInternalConsistency(void)
 			}
 			if ((pvPointer >= pvStart) && (pvPointer <= pvEnd))
 			{
-				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Esnure it is set up in Class().", NULL);
+				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Ensure it is set up in Class().", NULL);
 			}
 			pcStackPointer = gcStackPointers.Iterate(&sIter);
 		}
