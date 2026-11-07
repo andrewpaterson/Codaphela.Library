@@ -18,5 +18,20 @@
 #define OBJECT_UNNAMED_FILE		"Unnamed"
 
 
+//Returns false from the reading or writing function, logging the error, if result is false.  sz holds the object's
+//identifier for the message.
+#define ObjectFileErrorCheck(result, object, ...) \
+if (!result) \
+{ \
+	CChars			sz; \
+\
+	sz.Init(); \
+	object->PrintIdentifier(&sz); \
+	gcLogger.Error2(__VA_ARGS__); \
+	sz.Kill(); \
+	return false; \
+}
+
+
 #endif // __OBJECT_FILE_GENERAL__
 

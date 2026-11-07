@@ -95,25 +95,7 @@ void CEmbeddedObject::DumpHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 char* ObjectToString(CEmbeddedObject* pcObject)
 {
-	CChars	szChars;
-	size	uiCount;
-	char*	sz;
-
-	szChars.Init();
-	if (pcObject)
-	{
-		pcObject->PrintObject(&szChars);
-	}
-	else
-	{
-		szChars.Append("NULL");
-	}
-
-	uiCount = IncrementLogToStringCount();
-	sz = gaszLogToStringScratchPad[uiCount];
-	StrCpySafe(sz, szChars.Text(), LOG_TO_STRING_MAX_LENGTH);
-	szChars.Kill();
-	return sz;
+	return ObjectToString(pcObject, (pcObject != NULL) && pcObject->IsEmbedded());
 }
 
 
@@ -125,12 +107,11 @@ char* ObjectToString(CEmbeddedObject* pcObject, bool bEmbedded)
 {
 	CChars	szChars;
 	size	uiCount;
-	char* sz;
+	char*	sz;
 
 	szChars.Init();
 	if (pcObject)
 	{
-		//This should be PrintState?
 		pcObject->PrintObject(&szChars, bEmbedded);
 	}
 	else

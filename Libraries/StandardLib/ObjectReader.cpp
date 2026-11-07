@@ -135,19 +135,6 @@ CBaseObject* CObjectReader::Read(void)
 }
 
 
-#define ObjectReaderErrorCheck(result, object, ...) \
-if (!result) \
-{ \
-	CChars			sz; \
-\
-	sz.Init(); \
-	object->PrintIdentifier(&sz); \
-	gcLogger.Error2(__VA_ARGS__); \
-	sz.Kill(); \
-	return false; \
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -188,7 +175,7 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	iStart = mcFile.GetFilePos();
 	bResult = ReadSize(&iExpectedLength);
 	
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object stream size loading object [", sz.Text(), "] 'froms'.", NULL);
+	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not read object stream size loading object [", sz.Text(), "] 'froms'.", NULL);
 
 	iMagic = OBJECT_FROM_HEAP;
 	bResult = mcFile.ReadInt32(&iMagic);
@@ -197,14 +184,14 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 		bResult = iMagic == OBJECT_FROM_HEAP;
 	}
 
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object froms magic loading object [", sz.Text(), "] 'froms'.", NULL);
+	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not read object froms magic loading object [", sz.Text(), "] 'froms'.", NULL);
 
 	bResult = pcThis->LoadHeapFroms(this);
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not LoadHeadFroms() object [", sz.Text(), "] 'froms'.", NULL);
+	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Could not LoadHeadFroms() object [", sz.Text(), "] 'froms'.", NULL);
 
 	iLength = mcFile.GetFilePos();
 	bResult = (lsize)(iLength - iStart) == iExpectedLength;
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongToString((uint64)iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
+	ObjectFileErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongToString((uint64)iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
 
 	return true;
 }
