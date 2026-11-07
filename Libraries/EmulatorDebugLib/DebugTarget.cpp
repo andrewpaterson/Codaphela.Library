@@ -173,8 +173,19 @@ void CDebugTarget::EnableAllBreakpoints(bool bEnabled)
 bool CDebugTarget::HasProcesses(void)							{ return false; }
 size CDebugTarget::NumProcesses(void)							{ return 0; }
 bool CDebugTarget::GetProcess(size uiIndex, SDebugProcess* psDest)	{ return false; }
-void CDebugTarget::WatchProcesses(bool bWatch)					{ }
+void CDebugTarget::WatchEvents(bool bWatch)						{ }
 bool CDebugTarget::TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest)	{ return false; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nor loads modules.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugTarget::HasModules(void)								{ return false; }
+size CDebugTarget::NumModules(void)								{ return 0; }
+bool CDebugTarget::GetModule(size uiIndex, SDebugModule* psDest)	{ return false; }
+bool CDebugTarget::TakeModuleEvent(EDebugModuleEvent* peEvent, SDebugModule* psDest)	{ return false; }
 
 
 //////////////////////////////////////////////////////////////////////////

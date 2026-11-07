@@ -49,7 +49,12 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //stops it (DS_Process) before the process's first instruction, so the debugger can give it its breakpoints first: a
 //breakpoint's uiProcess is the process it stops in, or DEBUG_PROCESS_ANY.  A stop says the space and process it is
 //in, so a debugger with programs at the same addresses in different spaces knows whose code it is.
-#define DEBUG_PROTOCOL_VERSION		5
+//
+//An emulator whose operating system loads modules into memory (DEBUG_CAN_MODULES: a kernal's drivers) tells the
+//debugger of those loaded when it says hello, and of each one loaded (DM_ModuleLoaded: its file, where it is and how
+//big).  A module loaded while running stops it (DS_Module) before the module's code runs, so the debugger can put
+//breakpoints in it first.  When the computer resets they are gone (DM_ModulesCleared): it loads them again.
+#define DEBUG_PROTOCOL_VERSION		6
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
@@ -98,6 +103,8 @@ enum EDebugMessage
 	DM_Disassembly,				//SDebugDisassembly then SDebugInstruction[uiCount].
 	DM_ProcessStarted,			//SDebugProcess.
 	DM_ProcessEnded,			//SDebugProcess, with its exit code.
+	DM_ModuleLoaded,			//SDebugModule.
+	DM_ModulesCleared,			//Nothing: the computer reset.
 };
 
 
@@ -111,12 +118,14 @@ enum EDebugStop
 	DS_Stopped,		//The processor stopped itself (STP).
 	DS_Reset,
 	DS_Process,		//A process was started (DM_ProcessStarted): it hasn't run yet.
+	DS_Module,		//A module was loaded (DM_ModuleLoaded): it hasn't run yet.
 };
 
 
 //What a welcome says the emulator can do.
 #define DEBUG_CAN_DECODE			0x0001		//It decodes instructions: DM_Disassemble, and calls are stepped over.
 #define DEBUG_CAN_PROCESSES			0x0002		//It runs processes: DM_ProcessStarted, DM_ProcessEnded, and breakpoints in one.
+#define DEBUG_CAN_MODULES			0x0004		//It loads modules: DM_ModuleLoaded, DM_ModulesCleared.
 
 
 //Before every message's struct.

@@ -96,7 +96,7 @@ void CDebugServer::Tick(uint64 uiBudget)
 	{
 		StepRange(DEBUG_STEPS_PER_TICK);
 	}
-	SendProcessEvents();
+	SendEvents();
 }
 
 
@@ -294,6 +294,7 @@ void CDebugServer::Hello(void* pvData, size uiSize)
 {
 	SDebugHello*	psHello;
 	SDebugProcess	sProcess;
+	SDebugModule	sModule;
 	size			i;
 
 	if (uiSize < sizeof(SDebugHello))
@@ -312,7 +313,7 @@ void CDebugServer::Hello(void* pvData, size uiSize)
 	muiMotionRequest = muiRequest;
 	SendWelcome();
 
-	//The processes running now, then each one started or ended from here.
+	//The processes running and the modules loaded now, then each one started, ended or loaded from here.
 	for (i = 0; i < mpcTarget->NumProcesses(); i++)
 	{
 		if (mpcTarget->GetProcess(i, &sProcess))
@@ -320,7 +321,14 @@ void CDebugServer::Hello(void* pvData, size uiSize)
 			SendProcess(DM_ProcessStarted, &sProcess);
 		}
 	}
-	mpcTarget->WatchProcesses(true);
+	for (i = 0; i < mpcTarget->NumModules(); i++)
+	{
+		if (mpcTarget->GetModule(i, &sModule))
+		{
+			SendModule(&sModule);
+		}
+	}
+	mpcTarget->WatchEvents(true);
 	SendState();
 }
 
@@ -427,28 +435,63 @@ void CDebugServer::SendProcess(uint32 uiType, SDebugProcess* psProcess)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The processes started and ended since the last tick, to the debugger.
-// One started while running stops it before it runs, so the debugger can
-// give it its breakpoints.
+// DM_ModuleLoaded, with no request.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDebugServer::SendProcessEvents(void)
+void CDebugServer::SendModule(SDebugModule* psModule)
 {
-	EDebugProcessEvent	eEvent;
-	SDebugProcess		sProcess;
-	bool				bStarted;
+	memcpy(GetBody(), psModule, sizeof(SDebugModule));
+	((SDebugModule*)GetBody())->szName[DEBUG_MODULE_NAME_SIZE - 1] = '\0';
+	Send(DM_ModuleLoaded, 0, sizeof(SDebugModule));
+}
 
-	bStarted = false;
-	while (mbConnected && mpcTarget->TakeProcessEvent(&eEvent, &sProcess))
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The processes started and ended and the modules loaded since the last
+// tick, to the debugger.  One started or loaded while running stops it
+// before it runs, so the debugger can give it its breakpoints.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::SendEvents(void)
+{
+	EDebugProcessEvent	eProcessEvent;
+	SDebugProcess		sProcess;
+	EDebugModuleEvent	eModuleEvent;
+	SDebugModule		sModule;
+	EDebugStop			eStop;
+	bool				bStop;
+
+	bStop = false;
+	eStop = DS_Process;
+	while (mbConnected && mpcTarget->TakeProcessEvent(&eProcessEvent, &sProcess))
 	{
-		SendProcess((eEvent == DPE_Started) ? DM_ProcessStarted : DM_ProcessEnded, &sProcess);
-		bStarted |= eEvent == DPE_Started;
+		SendProcess((eProcessEvent == DPE_Started) ? DM_ProcessStarted : DM_ProcessEnded, &sProcess);
+		bStop |= eProcessEvent == DPE_Started;
 	}
-	if (bStarted && (meState == DSS_Running))
+	while (mbConnected && mpcTarget->TakeModuleEvent(&eModuleEvent, &sModule))
 	{
-		Stop(DS_Process);
+		if (eModuleEvent == DME_Loaded)
+		{
+			SendModule(&sModule);
+			if (!bStop)
+			{
+				eStop = DS_Module;
+			}
+			bStop = true;
+		}
+		else
+		{
+			Send(DM_ModulesCleared, 0, 0);
+		}
+	}
+	if (bStop && (meState == DSS_Running))
+	{
+		Stop(eStop);
 	}
 }
+
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -931,7 +974,7 @@ void CDebugServer::Disassemble(void* pvData, size uiSize)
 void CDebugServer::Detach(void)
 {
 	mpcTarget->ClearBreakpoints();
-	mpcTarget->WatchProcesses(false);
+	mpcTarget->WatchEvents(false);
 	mbClosed = true;
 	mbConnected = false;
 	if (!mpcTarget->IsStopped())
@@ -1061,7 +1104,8 @@ void CDebugServer::SendWelcome(void)
 	psWelcome->uiVersion = DEBUG_PROTOCOL_VERSION;
 	psWelcome->uiAddressBits = (uint32)mpcTarget->NumAddressBits();
 	psWelcome->uiAddressFormat = (uint32)mpcTarget->GetAddressFormat();
-	psWelcome->uiCapabilities = ((mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0) | (mpcTarget->HasProcesses() ? DEBUG_CAN_PROCESSES : 0);
+	psWelcome->uiCapabilities = ((mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0) | (mpcTarget->HasProcesses() ? DEBUG_CAN_PROCESSES : 0) |
+								 (mpcTarget->HasModules() ? DEBUG_CAN_MODULES : 0);
 	psWelcome->uiNumRegisters = (uint32)uiNumRegisters;
 	strncpy(psWelcome->szProcessor, mpcTarget->GetProcessorName(), DEBUG_PROCESSOR_NAME_SIZE - 1);
 	psWelcome->uiNumSpaces = (uint32)mpcTarget->NumBreakpointSpaces();

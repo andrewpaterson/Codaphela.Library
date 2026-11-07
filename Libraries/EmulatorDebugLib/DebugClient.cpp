@@ -36,6 +36,8 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 	meState = DCS_Connecting;
 	masProcesses.Init();
 	masProcessEvents.Init();
+	masModules.Init();
+	muiModuleChanges = 0;
 	mbStepping = false;
 	muiNextRequest = 1;
 	muiMotionSent = 0;
@@ -76,6 +78,7 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CDebugClient::Kill(void)
 {
+	masModules.Kill();
 	masProcessEvents.Kill();
 	masProcesses.Kill();
 	mszError.Kill();
@@ -492,6 +495,12 @@ void CDebugClient::Handle(uint32 uiType, uint8* puiData, size uiSize)
 	case DM_ProcessEnded:
 		Process(false, pvBody, uiSize);
 		break;
+	case DM_ModuleLoaded:
+		Module(pvBody, uiSize);
+		break;
+	case DM_ModulesCleared:
+		ModulesCleared();
+		break;
 	}
 }
 
@@ -528,6 +537,41 @@ void CDebugClient::Process(bool bStarted, void* pvData, size uiSize)
 	psEvent = masProcessEvents.Add();
 	psEvent->bStarted = bStarted;
 	memcpy(&psEvent->sProcess, psProcess, sizeof(SDebugProcess));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A module the emulator loaded.  One loaded where one of the same name was
+// (loaded again) replaces it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugClient::Module(void* pvData, size uiSize)
+{
+	SDebugModule*	psModule;
+	SDebugModule*	psOld;
+
+	if (uiSize < sizeof(SDebugModule))
+	{
+		return;
+	}
+	psModule = (SDebugModule*)pvData;
+	psModule->szName[DEBUG_MODULE_NAME_SIZE - 1] = '\0';
+	psOld = FindModule(psModule->szName);
+	memcpy(psOld ? psOld : masModules.Add(), psModule, sizeof(SDebugModule));
+	muiModuleChanges++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The computer reset: its modules are gone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugClient::ModulesCleared(void)
+{
+	masModules.ReInit();
+	muiModuleChanges++;
 }
 
 
@@ -867,6 +911,10 @@ bool CDebugClient::HasProcesses(void)					{ return (msWelcome.uiCapabilities & D
 size CDebugClient::NumProcesses(void)					{ return masProcesses.NumElements(); }
 SDebugProcess* CDebugClient::GetProcess(size uiIndex)	{ return masProcesses.SafeGet(uiIndex); }
 size CDebugClient::NumProcessEvents(void)				{ return masProcessEvents.NumElements(); }
+bool CDebugClient::HasModules(void)						{ return (msWelcome.uiCapabilities & DEBUG_CAN_MODULES) != 0; }
+size CDebugClient::NumModules(void)						{ return masModules.NumElements(); }
+SDebugModule* CDebugClient::GetModule(size uiIndex)		{ return masModules.SafeGet(uiIndex); }
+size CDebugClient::NumModuleChanges(void)				{ return muiModuleChanges; }
 SDebugProcessEvent* CDebugClient::GetProcessEvent(size uiIndex)	{ return masProcessEvents.SafeGet(uiIndex); }
 
 
@@ -889,6 +937,26 @@ bool CDebugClient::FindProcess(const char* szName, uint32* puiProcess)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The module loaded from the file szName (any case), NULL if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+SDebugModule* CDebugClient::FindModule(const char* szName)
+{
+	size	i;
+
+	for (i = 0; i < masModules.NumElements(); i++)
+	{
+		if (StringInsensitiveCompare(masModules.Get(i)->szName, szName) == 0)
+		{
+			return masModules.Get(i);
+		}
+	}
+	return NULL;
 }
 size CDebugClient::NumRegisters(void)					{ return msWelcome.uiNumRegisters; }
 EDebugStop CDebugClient::GetStopReason(void)			{ return meStopReason; }

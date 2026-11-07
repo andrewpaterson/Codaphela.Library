@@ -120,6 +120,24 @@ enum EDebugProcessEvent
 };
 
 
+//A module the target's operating system loaded (a kernal's driver): its file, where it is and how big.
+#define DEBUG_MODULE_NAME_SIZE		64
+
+struct SDebugModule
+{
+	uint32	uiAddress;
+	uint32	uiSize;
+	char	szName[DEBUG_MODULE_NAME_SIZE];
+};
+
+
+enum EDebugModuleEvent
+{
+	DME_Loaded,
+	DME_Cleared,		//Every module is gone (the computer reset).
+};
+
+
 //A processor (and the computer around it) that CDebugServer controls.  The server only uses this, so it works
 //the same for a W65C816, a 65C64 or anything else.  Addresses are the processor's, at most 32 bits.
 //
@@ -129,9 +147,10 @@ enum EDebugProcessEvent
 //A target with more than one breakpoint space (a computer whose modes see different memory at the same address)
 //keeps a CBreakpoints for each and stops only at those of the mode it is in.  GetBreakpoints is the first space's.
 //
-//A target that runs processes (HasProcesses) tells of each one started and ended while they are watched, and can
-//keep breakpoints of a space for one process (GetProcessBreakpoints): they stop only while that process runs.  Its
-//processes' breakpoints go when the process ends (its ID may be given to another).
+//A target that runs processes (HasProcesses) tells of each one started and ended while events are watched
+//(WatchEvents), and can keep breakpoints of a space for one process (GetProcessBreakpoints): they stop only while that
+//process runs.  Its processes' breakpoints go when the process ends (its ID may be given to another).  A target that
+//loads modules (HasModules) tells of each one loaded, and of them all going, while events are watched.
 class CDebugTarget
 {
 public:
@@ -158,8 +177,12 @@ public:
 	virtual bool				HasProcesses(void);
 	virtual size				NumProcesses(void);
 	virtual bool				GetProcess(size uiIndex, SDebugProcess* psDest);
-	virtual void				WatchProcesses(bool bWatch);
+	virtual void				WatchEvents(bool bWatch);
 	virtual bool				TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest);
+	virtual bool				HasModules(void);
+	virtual size				NumModules(void);
+	virtual bool				GetModule(size uiIndex, SDebugModule* psDest);
+	virtual bool				TakeModuleEvent(EDebugModuleEvent* peEvent, SDebugModule* psDest);
 	virtual uint32				GetCurrentSpace(void);
 	virtual uint32				GetCurrentProcess(void);
 	virtual bool				IsAtBreakpoint(void) =0;

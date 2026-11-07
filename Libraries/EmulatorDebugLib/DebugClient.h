@@ -87,6 +87,8 @@ protected:
 
 	CArrayTemplate<SDebugProcess>		masProcesses;		//Running, as the emulator has told (DM_ProcessStarted, DM_ProcessEnded).
 	CArrayTemplate<SDebugProcessEvent>	masProcessEvents;	//Every start and end told, in order.
+	CArrayTemplate<SDebugModule>		masModules;			//Loaded, as the emulator has told (DM_ModuleLoaded, DM_ModulesCleared).
+	size								muiModuleChanges;	//Each module loaded and each clearing counts one.
 
 	uint32				muiErrorType;
 	uint32				muiErrorRequest;
@@ -141,6 +143,11 @@ public:
 	bool				FindProcess(const char* szName, uint32* puiProcess);
 	size				NumProcessEvents(void);
 	SDebugProcessEvent*	GetProcessEvent(size uiIndex);
+	bool				HasModules(void);
+	size				NumModules(void);
+	SDebugModule*		GetModule(size uiIndex);
+	SDebugModule*		FindModule(const char* szName);
+	size				NumModuleChanges(void);
 	size				NumRegisters(void);
 	SDebugRegister*		GetRegister(size uiRegister);
 	uint64				GetRegisterValue(size uiRegister);
@@ -179,6 +186,8 @@ protected:
 	void				Disassembly(uint32 uiRequest, void* pvData, size uiSize);
 	void				Error(uint32 uiRequest, void* pvData, size uiSize);
 	void				Process(bool bStarted, void* pvData, size uiSize);
+	void				Module(void* pvData, size uiSize);
+	void				ModulesCleared(void);
 	void				Answered(uint32 uiRequest);
 	uint32				SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, size uiSize);
 	uint32				SendMotion(uint32 uiType, void* pvData, size uiSize);
