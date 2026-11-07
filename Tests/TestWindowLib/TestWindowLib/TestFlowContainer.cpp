@@ -4,6 +4,7 @@
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/FlowContainer.h"
+#include "WindowLib/GridContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -12,6 +13,7 @@
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
 #include "DarkForest.h"
+#include "BoxFillCanvasDraw.h"
 
 
 bool gbAssertFile = true;
@@ -1612,6 +1614,84 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A grid in a flow, with no desired size of its own, takes the length its
+// components need on the line: it took none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFlowContainerNestedGrid(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFlowContainer>		pFlow;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CCanvas>			pBefore;
+		Ptr<CCanvas>			pShort;
+		Ptr<CCanvas>			pTall;
+		Ptr<CCanvas>			pAfter;
+		SInt32Vec2				sVec;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Flow Container", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pFlow = OMalloc<CFlowContainer>(pTestWindow);
+		pFlow->SetFlowStyle(CSD_Right, CSW_Continue, CSV_Top);
+		pTestWindow->SetContainer(pFlow);
+
+		pBefore = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pBefore->SetDesiredSize(30, 10);
+		pBefore->SetAlignment(CSH_Left, CSV_Top);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pGrid->SetAlignment(CSH_Left, CSV_Top);
+		pShort = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0, 1.0f, 0)));
+		pShort->SetDesiredSize(20, 12);
+		pTall = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0, 0, 1.0f)));
+		pTall->SetDesiredSize(25, 18);
+		pGrid->AddComponent(pShort, 0, 0);
+		pGrid->AddComponent(pTall, 1, 0);
+		pAfter = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(1.0f, 1.0f, 0)));
+		pAfter->SetDesiredSize(10, 10);
+		pAfter->SetAlignment(CSH_Left, CSV_Top);
+		pFlow->AddComponent(pBefore);
+		pFlow->AddComponent(pGrid);
+		pFlow->AddComponent(pAfter);
+
+		//The grid is as long as its components need along the line and, being a container without a desired size, fills
+		//the line's thickness: a continued line is the whole area.
+		pTestWindow->Layout();
+		sVec = pGrid->GetActualSize();
+		AssertInt32Vec2(45, 100, &sVec);
+		sVec = pGrid->GetPosition();
+		AssertInt32Vec2(30, 0, &sVec);
+		sVec = pAfter->GetPosition();
+		AssertInt32Vec2(75, 0, &sVec);
+		pFlow->SetRequiredSize();
+		sVec = pFlow->GetRequiredSize();
+		AssertInt32Vec2(85, 18, &sVec);
+
+		pAfter = NULL;
+		pTall = NULL;
+		pShort = NULL;
+		pGrid = NULL;
+		pBefore = NULL;
+		pFlow = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertFlowContainerObjectsRemoved();
+
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainer(void)
@@ -1645,6 +1725,7 @@ void TestFlowContainer(void)
 	TestFlowContainerInsets();
 	TestFlowContainerRightTopWrapInsets();
 	TestFlowContainerLeftBottomWrapInsets();
+	TestFlowContainerNestedGrid();
 	TestFlowContainerNested();
 	TestFlowContainerDarkForestImagesRightTopWrap();
 	TestFlowContainerDarkForestImagesDownCenterWrap();

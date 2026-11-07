@@ -74,14 +74,15 @@ void CFillContainer::SetRequiredSize(void)
 	SInt32Vec2			sSize;
 	SInt32Vec2			sLargest;
 
-	//The components are on top of each other so the largest of them on each axis decides the size.
+	//The components are on top of each other so the largest of them on each axis decides the size.  A container in it
+	//without a desired size needs what its own components need.
 	sLargest.Init(0, 0);
 
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
+		sSize = CContainer::GetMeasuredSize(pComponent);
 		sLargest.Maximise(sSize);
 	}
 

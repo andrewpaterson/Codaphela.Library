@@ -3,6 +3,7 @@
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
+#include "WindowLib/GridContainer.h"
 #include "WindowLib/ImageCanvasDraw.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
@@ -12,6 +13,7 @@
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
 #include "DarkForest.h"
+#include "BoxFillCanvasDraw.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -921,6 +923,61 @@ void TestFillContainerInsetsInit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A fill container needs what a grid in it, with no desired size of its
+// own, needs: it counted the grid as nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFillContainerNestedGrid(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CCanvas>			pWide;
+		Ptr<CCanvas>			pTall;
+		SInt32Vec2				sVec;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Fill Container", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pFill->SetInsets(1, 2, 3, 4);
+		pTestWindow->SetContainer(pFill);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pWide = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pWide->SetDesiredSize(40, 10);
+		pTall = OMalloc<CCanvas>(pTestWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0, 1.0f, 0)));
+		pTall->SetDesiredSize(15, 22);
+		pGrid->AddComponent(pWide, 0, 0);
+		pGrid->AddComponent(pTall, 0, 1);
+		pFill->AddComponent(pGrid);
+
+		pFill->SetRequiredSize();
+		sVec = pFill->GetRequiredSize();
+		AssertInt32Vec2(40 + 2 + 4, 32 + 1 + 3, &sVec);
+
+		pTall = NULL;
+		pWide = NULL;
+		pGrid = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertFillContainerObjectsRemoved();
+
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainer(void)
@@ -936,6 +993,7 @@ void TestFillContainer(void)
 	TestFillContainerOverlayComponentAlignments();
 	TestFillContainerOverlayAlignmentsInsets();
 	TestFillContainerRequiredSize();
+	TestFillContainerNestedGrid();
 	TestFillContainerImageCanvasDesiredSize();
 	TestFillContainerDarkForestImagesCorners();
 	TestFillContainerDarkForestImagesInsets();

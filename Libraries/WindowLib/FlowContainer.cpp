@@ -284,16 +284,18 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The size pComponent takes on a line: its desired size, with nothing
-// (0) on an axis it has none (-1).  The required size, line breaks and
-// line layout all measure it this way.
+// The size pComponent takes on a line: its desired size or, for a
+// container without one, what its own components need (see
+// CContainer::GetMeasuredSize), with nothing (0) on an axis it has
+// neither.  The required size, line breaks and line layout all measure it
+// this way.
 //
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CFlowContainer::GetLineSize(Ptr<CComponent> pComponent)
 {
 	SInt32Vec2	sSize;
 
-	sSize = pComponent->GetDesiredSize();
+	sSize = CContainer::GetMeasuredSize(pComponent);
 	if (sSize.x < 0)
 	{
 		sSize.x = 0;
