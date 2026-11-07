@@ -372,6 +372,30 @@ void CIRPrinter::PrintResult(CIRFunction* pcFunction, SIRReference sResult)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An operand of kind uiKind: a pointer constant in a space other than the
+// default has its type (ptr.near 16), as the parser reads any other as the
+// default space's (CIRParser::ParsePointerOperand).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPrinter::PrintOperand(CIRFunction* pcFunction, uint8 uiKind, SIRReference sReference)
+{
+	SIRType	sType;
+
+	if ((uiKind == IROK_Pointer) && sReference.IsConstant())
+	{
+		sType = pcFunction->GetConstant(sReference)->sType;
+		if (sType.IsPointer() && (sType.uiSpace != 0))
+		{
+			PrintTyped(pcFunction, sType, sReference);
+			return;
+		}
+	}
+	PrintReference(pcFunction, sReference);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPrinter::PrintTyped(CIRFunction* pcFunction, SIRType sType, SIRReference sReference)
@@ -641,11 +665,13 @@ size CIRPrinter::PrintInstruction(CIRFunction* pcFunction, CIRBlock* pcBlock, si
 	}
 	else
 	{
-		PrintTyped(pcFunction, psInstruction->sType, psInstruction->asArguments[0]);
+		PrintType(psInstruction->sType);
+		mpszDest->Append(' ');
+		PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[0] : IROK_Same, psInstruction->asArguments[0]);
 		if (!psInstruction->asArguments[1].IsNone())
 		{
 			mpszDest->Append(", ");
-			PrintReference(pcFunction, psInstruction->asArguments[1]);
+			PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[1] : IROK_Same, psInstruction->asArguments[1]);
 		}
 	}
 	mpszDest->AppendNewLine();
@@ -669,7 +695,7 @@ void CIRPrinter::PrintCall(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFi
 	mpszDest->Append((psCall->uiFlags & IRF_ThisCall) ? "call thiscall " : "call ");
 	PrintType(psCall->sType);
 	mpszDest->Append(' ');
-	PrintReference(pcFunction, psCall->asArguments[0]);
+	PrintOperand(pcFunction, IROK_Pointer, psCall->asArguments[0]);
 	mpszDest->Append('(');
 	for (ui = uiFirstArg; ui < uiCall; ui++)
 	{

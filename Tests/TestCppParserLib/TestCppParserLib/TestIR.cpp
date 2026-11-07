@@ -253,7 +253,8 @@ void TestIRRoundTripEverything(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// W65C816 spaces: far by default, near and zero.
+// W65C816 spaces: far by default, near and zero.  A pointer constant in
+// another space keeps its type as a load's or store's address and a callee.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIRRoundTripSpaces(void)
@@ -273,6 +274,10 @@ void TestIRRoundTripSpaces(void)
 		"\t%f = spacecast ptr.near %r to ptr\n"
 		"\t%g = spacecast ptr.zero %l to ptr\n"
 		"\t%c = ult ptr %f, %g\n"
+		"\tstore i16 7, ptr.near 16\n"
+		"\t%v = load i16 ptr.zero 2\n"
+		"\tstore i16 %v, 32\n"
+		"\tcall void ptr.near 64()\n"
 		"\tbrif %c, yes, no\n"
 		"yes:\n"
 		"\tret ptr %f\n"

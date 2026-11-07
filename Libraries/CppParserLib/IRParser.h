@@ -95,6 +95,7 @@ protected:
 
 	SIRType	OperandType(uint8 uiKind, SIRType sType);
 	bool	ParseValue(SIRType sType, SIRReference* psReference);
+	bool	ParsePointerOperand(SIRReference* psReference);
 	bool	ParseBlockName(CIRBlock** ppcBlock);
 	SIRReference	Temporary(const char* szName, size uiPosition);
 	CIRBlock*	Block(const char* szName, size uiPosition);

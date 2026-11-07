@@ -59,6 +59,7 @@ protected:
 	size	PrintInstruction(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiIndex);
 	void	PrintCall(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFirstArg, size uiCall);
 	void	PrintJump(CIRFunction* pcFunction, SIRJump* psJump);
+	void	PrintOperand(CIRFunction* pcFunction, uint8 uiKind, SIRReference sReference);
 	void	PrintTyped(CIRFunction* pcFunction, SIRType sType, SIRReference sReference);
 	void	PrintString(uint8* pucBytes, size uiLength);
 	void	NumberTemporary(CIRFunction* pcFunction, SIRReference sTemporary, uint32* puiNext);

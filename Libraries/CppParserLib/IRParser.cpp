@@ -1091,6 +1091,28 @@ bool CIRParser::ParseStatement(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An operand that is any pointer (an address, a callee): a constant is the
+// default space's unless its type is given first (ptr.near 16).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParsePointerOperand(SIRReference* psReference)
+{
+	SIRType	sType;
+	size	uiStart;
+
+	SkipSpace();
+	uiStart = muiPosition;
+	if (!GetName() || !MatchType(mszName.Text(), &sType, false) || !sType.IsPointer())
+	{
+		muiPosition = uiStart;
+		sType = IRType(IRTK_Pointer);
+	}
+	return ParseValue(sType, psReference);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type a constant operand of kind uiKind has.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1160,7 +1182,14 @@ bool CIRParser::ParseOperation(uint16 uiOpcode, SIROpcode* psOpcode, bool bResul
 			{
 				return false;
 			}
-			if (!ParseValue(OperandType(psOpcode->auiOperands[iOperand], sType), &asArguments[iOperand]))
+			if (psOpcode->auiOperands[iOperand] == IROK_Pointer)
+			{
+				if (!ParsePointerOperand(&asArguments[iOperand]))
+				{
+					return false;
+				}
+			}
+			else if (!ParseValue(OperandType(psOpcode->auiOperands[iOperand], sType), &asArguments[iOperand]))
 			{
 				return false;
 			}
@@ -1230,7 +1259,7 @@ bool CIRParser::ParseCall(bool bResult)
 	bool			bThisCall;
 
 	bThisCall = GetKeyword("thiscall");
-	if (!ParseType(&sType, true) || !ParseValue(IRType(IRTK_Pointer), &sCallee) || !ExpectChar('('))
+	if (!ParseType(&sType, true) || !ParsePointerOperand(&sCallee) || !ExpectChar('('))
 	{
 		return false;
 	}
