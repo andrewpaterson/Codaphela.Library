@@ -665,7 +665,10 @@ SIRReference CIRFunction::Load(CIRBlock* pcBlock, SIRType sType, SIRReference sA
 
 	sResult = AddTemporary(sType, szName);
 	psInstruction = pcBlock->AddInstruction(IRO_Load, sType, sResult, sAddress, IRNone());
-	psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+	if (psInstruction)
+	{
+		psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+	}
 	return sResult;
 }
 
@@ -679,7 +682,10 @@ void CIRFunction::Store(CIRBlock* pcBlock, SIRType sType, SIRReference sValue, S
 	SIRInstruction*	psInstruction;
 
 	psInstruction = pcBlock->AddInstruction(IRO_Store, sType, IRNone(), sValue, sAddress);
-	psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+	if (psInstruction)
+	{
+		psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+	}
 }
 
 
@@ -730,6 +736,10 @@ SIRInstruction* CIRFunction::AddCall(CIRBlock* pcBlock, SIRType sType, SIRRefere
 	SIRInstruction*	psInstruction;
 
 	psInstruction = pcBlock->AddInstruction(IRO_Call, sType, sResult, sCallee, IRNone());
+	if (!psInstruction)
+	{
+		return NULL;
+	}
 	if (iNamed >= 0)
 	{
 		psInstruction->uiFlags = IRF_Variadic;

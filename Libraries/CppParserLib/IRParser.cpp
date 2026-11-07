@@ -1202,6 +1202,10 @@ bool CIRParser::ParseOperation(uint16 uiOpcode, SIROpcode* psOpcode, bool bResul
 		return false;
 	}
 	psInstruction = mpcBlock->AddInstruction(uiOpcode, sType, sResult, asArguments[0], asArguments[1]);
+	if (!psInstruction)
+	{
+		return Error("Too many instructions in the block.");
+	}
 	psInstruction->uiFlags = uiFlags;
 	return true;
 }

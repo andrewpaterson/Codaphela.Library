@@ -81,7 +81,12 @@ SIRInstruction* CIRBlock::AddInstruction(uint16 uiOpcode, SIRType sType, SIRRefe
 {
 	SIRInstruction*	psInstruction;
 
+	//NULL if the block can't hold another (its array would pass its size, which it reports).
 	psInstruction = masInstructions.Add();
+	if (!psInstruction)
+	{
+		return NULL;
+	}
 	memset(psInstruction, 0, sizeof(SIRInstruction));
 	psInstruction->uiOpcode = uiOpcode;
 	psInstruction->sType = sType;

@@ -56,7 +56,12 @@ SIRDataItem* CIRGlobal::AddItem(EIRDataKind eKind)
 {
 	SIRDataItem*	psItem;
 
+	//NULL if the global can't hold another (its array would pass its size, which it reports).
 	psItem = masItems.Add();
+	if (!psItem)
+	{
+		return NULL;
+	}
 	memset(psItem, 0, sizeof(SIRDataItem));
 	psItem->uiKind = (uint8)eKind;
 	return psItem;
@@ -72,6 +77,10 @@ void CIRGlobal::AddValue(SIRType sType, uint64 ulliBits)
 	SIRDataItem*	psItem;
 
 	psItem = AddItem(IRDK_Value);
+	if (!psItem)
+	{
+		return;
+	}
 	psItem->sType = sType;
 	psItem->ulliValue = IRTruncate(sType, ulliBits);
 }
@@ -86,6 +95,10 @@ void CIRGlobal::AddSymbol(SIRType sType, uint32 uiSymbol, int64 lliOffset)
 	SIRDataItem*	psItem;
 
 	psItem = AddItem(IRDK_Symbol);
+	if (!psItem)
+	{
+		return;
+	}
 	psItem->sType = sType;
 	psItem->ulliValue = uiSymbol;
 	psItem->lliOffset = lliOffset;
@@ -101,6 +114,10 @@ void CIRGlobal::AddBytes(const uint8* pucBytes, size uiLength)
 	SIRDataItem*	psItem;
 
 	psItem = AddItem(IRDK_Bytes);
+	if (!psItem)
+	{
+		return;
+	}
 	psItem->uiStart = macBytes.NumElements();
 	psItem->uiLength = uiLength;
 	if (uiLength > 0)
@@ -116,7 +133,13 @@ void CIRGlobal::AddBytes(const uint8* pucBytes, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 void CIRGlobal::AddZero(size uiBytes)
 {
-	AddItem(IRDK_Zero)->ulliValue = uiBytes;
+	SIRDataItem*	psItem;
+
+	psItem = AddItem(IRDK_Zero);
+	if (psItem)
+	{
+		psItem->ulliValue = uiBytes;
+	}
 }
 
 

@@ -432,6 +432,10 @@ static bool IR816BuildFlowLabelled(CIR816Code* pcCode, bool bStores, CArrayTempl
 		szLine = pcCode->Text(uiLine);
 		szEnd = szLine + pcCode->GetText(uiLine)->Length();
 		psLine = pasLines->Add();
+		if (!psLine)
+		{
+			return false;
+		}
 		memset(psLine, 0, sizeof(SIR816FlowLine));
 		psLine->szLine = szLine;
 		psLine->szEnd = szEnd;
