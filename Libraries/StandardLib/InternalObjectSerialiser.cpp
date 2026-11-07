@@ -32,31 +32,20 @@ bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CObjectWriter		cWriter;
 	bool				bResult;
-	CSerialisedObject*	pcSerialised;
 	CMemoryFile			cMemory;
-	lsize				iSize;
 
 	cMemory.Init();
 	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
 
 	bResult = cWriter.Write(pcObject);
-	ReturnOnFalse(bResult);
-
-	bResult = cWriter.WriteHeapFroms(pcObject);
-	ReturnOnFalse(bResult);
-
-	pcSerialised = (CSerialisedObject*)cMemory.GetBufferPointer();
-	iSize = cMemory.GetBufferSize();
-
-	bResult = Put(pcSerialised, iSize);
-	ReturnOnFalse(bResult);
+	bResult = bResult && cWriter.WriteHeapFroms(pcObject);
+	bResult = bResult && Put((CSerialisedObject*)cMemory.GetBufferPointer(), cMemory.GetBufferSize());
 
 	cMemory.Close();
 	cWriter.Kill();
 	cMemory.Kill();
-
-	return true;
+	return bResult;
 }
 
 
@@ -66,25 +55,16 @@ bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, lsize iSize)
 {
-	OIndex	oi;
-	bool	bResult;
-	char*	szName;
-
 	if (pcSerialised->IsNamed())
 	{
-		oi = pcSerialised->GetIndex();
-		szName = pcSerialised->GetName();
-		bResult = mpcDataConnection->Put(oi, szName, pcSerialised, iSize);
+		return mpcDataConnection->Put(pcSerialised->GetIndex(), pcSerialised->GetName(), pcSerialised, iSize);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		oi = pcSerialised->GetIndex();
-		bResult = mpcDataConnection->Put(oi, pcSerialised, iSize);
+		return mpcDataConnection->Put(pcSerialised->GetIndex(), pcSerialised, iSize);
 	}
 	else
 	{
-		bResult = false;
+		return false;
 	}
-
-	return bResult;
 }
