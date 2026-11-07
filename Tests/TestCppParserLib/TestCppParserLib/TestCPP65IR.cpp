@@ -497,6 +497,30 @@ void TestCPP65IRUnsupportedReason(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A string literal's escapes are the tokeniser's (DecodeEscape): \x and
+// octal are a byte each, \u and \U the character's UTF-8.  An unknown
+// escape, or a \x too big for a char, is an error.  [lex.string]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRStringEscapes(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	AssertInt(1, TestCPP65IRMain(
+		"int main() { const char* s = \"\\x41\\u00e9\\101\\?\\x7e\"; return (s[0] == 65) && ((unsigned char)s[1] == 0xC3) && ((unsigned char)s[2] == 0xA9) && (s[3] == 65) && (s[4] == '?') && (s[5] == '~') && (s[6] == 0); }", 1));
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "const char* gsz = \"\\x141\";"));
+	AssertString("Generated.cpp (1, 19): The escape sequence's value is too large for a char [\"\\x141\"]\n", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib's StringCompare.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -771,6 +795,7 @@ void TestCPP65IR(void)
 	TestCPP65IRObjectsByValue();
 	TestCPP65IRMemcpy();
 	TestCPP65IRUnsupportedReason();
+	TestCPP65IRStringEscapes();
 	TestCPP65IRStringCompare();
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();

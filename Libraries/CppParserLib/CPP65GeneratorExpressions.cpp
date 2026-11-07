@@ -29,6 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPP65Generator.h"
+#include "LiteralHelper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2055,7 +2056,40 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bytes of one narrow string literal token.
+// Appends the UTF-8 bytes of the character uiCharacter.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendUTF8(CArrayUint8* pauiBytes, uint32 uiCharacter)
+{
+	if (uiCharacter < 0x80)
+	{
+		pauiBytes->Add((uint8)uiCharacter);
+	}
+	else if (uiCharacter < 0x800)
+	{
+		pauiBytes->Add((uint8)(0xC0 | (uiCharacter >> 6)));
+		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
+	}
+	else if (uiCharacter < 0x10000)
+	{
+		pauiBytes->Add((uint8)(0xE0 | (uiCharacter >> 12)));
+		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 6) & 0x3F)));
+		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
+	}
+	else
+	{
+		pauiBytes->Add((uint8)(0xF0 | (uiCharacter >> 18)));
+		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 12) & 0x3F)));
+		pauiBytes->Add((uint8)(0x80 | ((uiCharacter >> 6) & 0x3F)));
+		pauiBytes->Add((uint8)(0x80 | (uiCharacter & 0x3F)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes of one narrow string literal token (its escapes decoded as
+// the tokeniser decodes them, DecodeEscape).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, CArrayUint8* pauiBytes)
@@ -2063,7 +2097,7 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 	const char*		sz;
 	const char*		szEnd;
 	uint32			uiValue;
-	int				iDigits;
+	char			cEscape;
 
 	if ((pcToken->meEncoding != CTE_Narrow) && (pcToken->meEncoding != CTE_UTF8))
 	{
@@ -2091,47 +2125,25 @@ bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken
 			continue;
 		}
 
+		//An escape, as the tokeniser decodes it: \u and \U are the character's UTF-8, the others one byte.
 		sz++;
-		switch (*sz)
+		cEscape = *sz;
+		if (!DecodeEscape(&sz, szEnd, &uiValue))
 		{
-		case 'n':	uiValue = '\n';		sz++;	break;
-		case 't':	uiValue = '\t';		sz++;	break;
-		case 'r':	uiValue = '\r';		sz++;	break;
-		case 'a':	uiValue = '\a';		sz++;	break;
-		case 'b':	uiValue = '\b';		sz++;	break;
-		case 'f':	uiValue = '\f';		sz++;	break;
-		case 'v':	uiValue = '\v';		sz++;	break;
-		case 'x':
-			sz++;
-			uiValue = 0;
-			while (sz < szEnd)
-			{
-				if ((*sz >= '0') && (*sz <= '9'))			uiValue = uiValue * 16 + (*sz - '0');
-				else if ((*sz >= 'a') && (*sz <= 'f'))		uiValue = uiValue * 16 + (*sz - 'a' + 10);
-				else if ((*sz >= 'A') && (*sz <= 'F'))		uiValue = uiValue * 16 + (*sz - 'A' + 10);
-				else										break;
-				sz++;
-			}
-			break;
-		default:
-			if ((*sz >= '0') && (*sz <= '7'))
-			{
-				uiValue = 0;
-				for (iDigits = 0; (iDigits < 3) && (sz < szEnd) && (*sz >= '0') && (*sz <= '7'); iDigits++)
-				{
-					uiValue = uiValue * 8 + (*sz - '0');
-					sz++;
-				}
-			}
-			else
-			{
-				//\\ \' \" \? and anything else stand for themselves.
-				uiValue = (uint8)*sz;
-				sz++;
-			}
-			break;
+			return Error(pcString, "Invalid escape sequence in a string literal");
 		}
-		pauiBytes->Add((uint8)uiValue);
+		if ((cEscape == 'u') || (cEscape == 'U'))
+		{
+			AppendUTF8(pauiBytes, uiValue);
+		}
+		else if (uiValue > 0xFF)
+		{
+			return Error(pcString, "The escape sequence's value is too large for a char");
+		}
+		else
+		{
+			pauiBytes->Add((uint8)uiValue);
+		}
 	}
 	return true;
 }
