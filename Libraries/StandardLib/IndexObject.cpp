@@ -522,7 +522,8 @@ void CIndexObject::TouchAll(void)
 	{
 		if (pcObject)
 		{
-			pObject.AssignObject(pcObject);
+			//Assigned, not AssignObject: the stack from given to the previous object must go with it.
+			pObject = pcObject;
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcObject);
 	}

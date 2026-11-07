@@ -671,8 +671,9 @@ void CArrayCommonObject::TouchAll(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
+		//Assigned, not AssignObject: the stack from given to the previous object must go with it.
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
-		pObject.AssignObject(pcObject);
+		pObject = pcObject;
 	}
 }
 
