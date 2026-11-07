@@ -668,6 +668,23 @@ Ptr<CFont> CTextAreaLayout::GetFont(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The length of the character at uiPosition in szText, as pcNavigation
+// finds it, without asking it when the character is plainly one byte: an
+// ASCII byte not followed by one that could join it to the next.
+//
+//////////////////////////////////////////////////////////////////////////
+static size StopCharacterLength(CTextNavigation* pcNavigation, const char* szText, size uiLength, size uiPosition)
+{
+	if (((uint8)szText[uiPosition] < 0x80) && ((uiPosition + 1 >= uiLength) || ((uint8)szText[uiPosition + 1] < 0x80)))
+	{
+		return 1;
+	}
+	return pcNavigation->CharacterLength(uiPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The byte each of the layout's stops is before, found the way the text
 // is read from uiFrom on (0 for all of it; else the old end, when text
 // was appended): a stop for each character but carriage returns, then one
@@ -676,26 +693,62 @@ Ptr<CFont> CTextAreaLayout::GetFont(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextAreaLayout::FindStopStarts(size uiFrom)
 {
-	size	uiPosition;
-	size	uiLength;
-	char*	szText;
+	size				uiKeep;
+	size				uiLow;
+	size				uiHigh;
+	size				uiMiddle;
+	size				uiLength;
+	size				uiCount;
+	size				uiPosition;
+	size*				puiStart;
+	char*				szText;
+	CTextNavigation*	pcNavigation;
 
-	while ((mauiStopStarts.NumElements() > 0) && (*mauiStopStarts.Tail() >= uiFrom))
+	//The first stop start at or after uiFrom, and all after it, go at once.
+	uiLow = 0;
+	uiHigh = mauiStopStarts.NumElements();
+	while (uiLow < uiHigh)
 	{
-		mauiStopStarts.RemoveTail();
+		uiMiddle = uiLow + (uiHigh - uiLow) / 2;
+		if (*mauiStopStarts.Get(uiMiddle) < uiFrom)
+		{
+			uiLow = uiMiddle + 1;
+		}
+		else
+		{
+			uiHigh = uiMiddle;
+		}
 	}
+	uiKeep = uiLow;
+	if (uiKeep < mauiStopStarts.NumElements())
+	{
+		mauiStopStarts.RemoveRange(uiKeep, mauiStopStarts.NumElements());
+	}
+
+	//Counted first, so that they are added at once.
 	szText = mpcDocument->Text();
 	uiLength = mpcDocument->Length();
-	uiPosition = uiFrom;
-	while (uiPosition < uiLength)
+	pcNavigation = mpcDocument->GetNavigation();
+	uiCount = 1;
+	for (uiPosition = uiFrom; uiPosition < uiLength; uiPosition += StopCharacterLength(pcNavigation, szText, uiLength, uiPosition))
 	{
 		if (szText[uiPosition] != '\r')
 		{
-			*mauiStopStarts.Add() = uiPosition;
+			uiCount++;
 		}
-		uiPosition += mpcDocument->GetNavigation()->CharacterLength(uiPosition);
 	}
-	*mauiStopStarts.Add() = uiLength;
+
+	mauiStopStarts.AddNum(uiCount);
+	puiStart = mauiStopStarts.Get(uiKeep);
+	for (uiPosition = uiFrom; uiPosition < uiLength; uiPosition += StopCharacterLength(pcNavigation, szText, uiLength, uiPosition))
+	{
+		if (szText[uiPosition] != '\r')
+		{
+			*puiStart = uiPosition;
+			puiStart++;
+		}
+	}
+	*puiStart = uiLength;
 }
 
 

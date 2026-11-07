@@ -200,6 +200,56 @@ void TestTextAreaRowsAppendAndSet(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A stop for each character, however many bytes it is (characters joined
+// by a zero width joiner are one), none for a carriage return, and one at
+// the end; appended text's stops go on from the old end.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaRowsStops(void)
+{
+	CTextDocument			cDocument;
+	Ptr<CTextAreaLayout>	pLayout;
+
+	ObjectsInit();
+	cDocument.Init("a\xC3\xA9" "b\r\nc");
+	pLayout = CreateRowsLayout(&cDocument);
+	pLayout->ReadText();
+	pLayout->LayoutText();
+	AssertTrue(pLayout->HasRows());
+	AssertSize(6, pLayout->NumLayoutStops());
+	AssertSize(1, pLayout->FindStop(1));
+	AssertSize(2, pLayout->FindStop(2));
+	AssertSize(2, pLayout->FindStop(3));
+	AssertSize(3, pLayout->FindStop(4));
+	AssertSize(4, pLayout->FindStop(6));
+	AssertSize(5, pLayout->FindStop(7));
+
+	//Appended: the old end's stop goes, the new characters' follow.
+	pLayout->Append("d\xE2\x82\xAC", Set32BitColour(1.0f, 0, 0));
+	AssertTrue(pLayout->HasRows());
+	AssertSize(8, pLayout->NumLayoutStops());
+	AssertSize(5, pLayout->FindStop(7));
+	AssertSize(6, pLayout->FindStop(8));
+	AssertSize(7, pLayout->FindStop(11));
+
+	//An ASCII character joined to the next is one stop with it.
+	cDocument.SetText("a\xE2\x80\x8D" "bc");
+	pLayout->TextSet();
+	AssertTrue(pLayout->HasRows());
+	AssertSize(3, pLayout->NumLayoutStops());
+	AssertSize(1, pLayout->FindStop(1));
+	AssertSize(1, pLayout->FindStop(5));
+	AssertSize(2, pLayout->FindStop(6));
+
+	pLayout = NULL;
+	cDocument.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaRows(void)
@@ -210,6 +260,7 @@ void TestTextAreaRows(void)
 	TestTextAreaRowsDirty();
 	TestTextAreaRowsWordWrap();
 	TestTextAreaRowsAppendAndSet();
+	TestTextAreaRowsStops();
 
 	TestStatistics();
 }
