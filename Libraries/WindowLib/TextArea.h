@@ -38,6 +38,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/TileTextWriter.h"
 #include "Canvas.h"
 #include "TextLineGaps.h"
+#include "TextBackgrounds.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
 
@@ -76,26 +77,6 @@ struct STextAreaSpan
 typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
 
 
-enum ETextAreaBackground
-{
-	TAB_Range,  //Bytes [uiStart, uiEnd) of the UTF8 text, on each row as the selection is.
-	TAB_Lines,  //Lines [uiStart, uiEnd), across the text area's whole width.
-	TAB_Boundary  //A line iThickness high across the whole width, centred on the top of line uiStart (or the bottom of the last line, for NumLines), kept inside the text.
-};
-
-
-//A colour drawn under the text (see AddBackground, AddLineBackground and AddLineBoundary).
-struct STextAreaBackground
-{
-	ETextAreaBackground	eType;
-	size				uiStart;
-	size				uiEnd;
-	int32				iThickness;
-	ARGB32				sColour;
-};
-
-
-typedef CArrayTemplate<STextAreaBackground>	CArrayTextAreaBackground;
 typedef CArrayTemplate<size>			CArrayTextAreaStopStart;
 typedef CArrayTemplate<size>			CArrayTextAreaLineStart;
 
@@ -181,7 +162,7 @@ protected:
 	CArrayTextLayoutStop	masTileStops;
 
 	Ptr<CGeometryMap>	mpBackgroundMap;  //Under the selection.
-	CArrayTextAreaBackground	masBackgrounds;
+	CTextBackgrounds	mcBackgrounds;  //The colours under the text (AddBackground).
 	bool				mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
 	int32				miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>	mpSelectionMap;  //Under the text.
@@ -390,10 +371,6 @@ protected:
 	void				AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour);
 	bool				GetLineRows(size uiLine, int32* piTop, int32* piBottom);
 	int32				GetFullWidth(void);
-	void				BackgroundsInserted(size uiPosition, size uiLength);
-	void				BackgroundsRemoved(size uiStart, size uiEnd);
-	void				BackgroundLinesInserted(size uiLine, bool bLineStart, size uiNewLines);
-	void				BackgroundLinesRemoved(size uiFirst, size uiLast, bool bWhole);
 
 	//The text as tiles.
 	bool				UseTiles(void);

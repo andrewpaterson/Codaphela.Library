@@ -249,6 +249,9 @@
     <ClInclude Include="ImageBorderContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="TextBackgrounds.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="TextLineGaps.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
@@ -562,6 +565,9 @@
     </ClCompile>
     <ClCompile Include="ImageBorderContainer.cpp">
       <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBackgrounds.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextLineGaps.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>

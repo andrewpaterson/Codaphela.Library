@@ -84,7 +84,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpGeometryMap = OMalloc<CGeometryMap>();
 	mpFontDraw = OMalloc<CMapFontDraw>(mpSpriteMap, mpGeometryMap);
 	mpBackgroundMap = OMalloc<CGeometryMap>();
-	masBackgrounds.Init();
+	mcBackgrounds.Init();
 	mbBackgroundsDirty = false;
 	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
@@ -213,7 +213,7 @@ void CTextArea::Free(void)
 	mcGaps.Kill();
 	mauiLineStarts.Kill();
 	mauiStopStarts.Kill();
-	masBackgrounds.Kill();
+	mcBackgrounds.Kill();
 	masSpans.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
@@ -260,7 +260,7 @@ void CTextArea::Class(void)
 	U_Data(CArrayTextLayoutLine, masTileLines);
 	U_Data(CArrayTextLayoutStop, masTileStops);
 	M_Pointer(mpBackgroundMap);
-	U_Data(CArrayTextAreaBackground, masBackgrounds);
+	U_Unknown(CTextBackgrounds, mcBackgrounds);
 	U_Bool(mbBackgroundsDirty);
 	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
@@ -312,7 +312,7 @@ void CTextArea::SetText(const char* szText)
 	mszText.Init(szText);
 	FindLineStarts();
 	masSpans.ReInit();
-	masBackgrounds.ReInit();
+	mcBackgrounds.Clear();
 	mbBackgroundsDirty = true;
 	mcGaps.Clear();
 	muiCaret = 0;
@@ -558,8 +558,6 @@ void CTextArea::ClearSpans(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::AddBackground(size uiStart, size uiEnd, ARGB32 sColour)
 {
-	STextAreaBackground*	psBackground;
-
 	if ((uiStart > uiEnd) || (uiEnd > mszText.Length()))
 	{
 		return false;
@@ -569,12 +567,7 @@ bool CTextArea::AddBackground(size uiStart, size uiEnd, ARGB32 sColour)
 		return true;
 	}
 
-	psBackground = masBackgrounds.Add();
-	psBackground->eType = TAB_Range;
-	psBackground->uiStart = uiStart;
-	psBackground->uiEnd = uiEnd;
-	psBackground->iThickness = 0;
-	psBackground->sColour = sColour;
+	mcBackgrounds.Add(TAB_Range, uiStart, uiEnd, 0, sColour);
 	mbBackgroundsDirty = true;
 	return true;
 }
@@ -589,8 +582,6 @@ bool CTextArea::AddBackground(size uiStart, size uiEnd, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour)
 {
-	STextAreaBackground*	psBackground;
-
 	if ((uiStartLine > uiEndLine) || (uiEndLine > NumLines()))
 	{
 		return false;
@@ -600,12 +591,7 @@ bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColo
 		return true;
 	}
 
-	psBackground = masBackgrounds.Add();
-	psBackground->eType = TAB_Lines;
-	psBackground->uiStart = uiStartLine;
-	psBackground->uiEnd = uiEndLine;
-	psBackground->iThickness = 0;
-	psBackground->sColour = sColour;
+	mcBackgrounds.Add(TAB_Lines, uiStartLine, uiEndLine, 0, sColour);
 	mbBackgroundsDirty = true;
 	return true;
 }
@@ -621,19 +607,12 @@ bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColo
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour)
 {
-	STextAreaBackground*	psBackground;
-
 	if ((uiLine > NumLines()) || (iThickness <= 0))
 	{
 		return false;
 	}
 
-	psBackground = masBackgrounds.Add();
-	psBackground->eType = TAB_Boundary;
-	psBackground->uiStart = uiLine;
-	psBackground->uiEnd = uiLine;
-	psBackground->iThickness = iThickness;
-	psBackground->sColour = sColour;
+	mcBackgrounds.Add(TAB_Boundary, uiLine, uiLine, iThickness, sColour);
 	mbBackgroundsDirty = true;
 	return true;
 }
@@ -645,9 +624,8 @@ bool CTextArea::AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearBackgrounds(void)
 {
-	if (masBackgrounds.NumElements() > 0)
+	if (mcBackgrounds.Clear())
 	{
-		masBackgrounds.ReInit();
 		mbBackgroundsDirty = true;
 	}
 }
@@ -659,7 +637,7 @@ void CTextArea::ClearBackgrounds(void)
 //////////////////////////////////////////////////////////////////////////
 size CTextArea::NumBackgrounds(void)
 {
-	return masBackgrounds.NumElements();
+	return mcBackgrounds.NumBackgrounds();
 }
 
 
@@ -670,7 +648,7 @@ size CTextArea::NumBackgrounds(void)
 //////////////////////////////////////////////////////////////////////////
 STextAreaBackground* CTextArea::GetBackground(size uiIndex)
 {
-	return masBackgrounds.SafeGet(uiIndex);
+	return mcBackgrounds.Get(uiIndex);
 }
 
 
@@ -2501,7 +2479,10 @@ void CTextArea::LinesInserted(size uiPosition, const char* szText, size uiLength
 		return;
 	}
 	mcGaps.LinesInserted(uiLine, bLineStart, uiNewLines);
-	BackgroundLinesInserted(uiLine, bLineStart, uiNewLines);
+	if (mcBackgrounds.LinesInserted(uiLine, bLineStart, uiNewLines))
+	{
+		mbBackgroundsDirty = true;
+	}
 }
 
 
@@ -2542,7 +2523,10 @@ void CTextArea::LinesRemoved(size uiStart, size uiEnd)
 		return;
 	}
 	mcGaps.LinesRemoved(uiFirst, uiLast, bWhole);
-	BackgroundLinesRemoved(uiFirst, uiLast, bWhole);
+	if (mcBackgrounds.LinesRemoved(uiFirst, uiLast, bWhole))
+	{
+		mbBackgroundsDirty = true;
+	}
 }
 
 
@@ -3065,7 +3049,10 @@ void CTextArea::InsertText(size uiPosition, const char* szText)
 			psSpan->uiLength += uiLength;
 		}
 	}
-	BackgroundsInserted(uiPosition, uiLength);
+	if (mcBackgrounds.TextInserted(uiPosition, uiLength))
+	{
+		mbBackgroundsDirty = true;
+	}
 	if (muiCaret >= uiPosition)
 	{
 		muiCaret += uiLength;
@@ -3119,7 +3106,10 @@ void CTextArea::RemoveText(size uiStart, size uiEnd)
 			psSpan->uiLength = uiSpanEnd - uiSpanStart;
 		}
 	}
-	BackgroundsRemoved(uiStart, uiEnd);
+	if (mcBackgrounds.TextRemoved(uiStart, uiEnd))
+	{
+		mbBackgroundsDirty = true;
+	}
 
 	if (muiCaret >= uiEnd)
 	{
@@ -3637,9 +3627,9 @@ void CTextArea::UpdateBackgrounds(void)
 	miBackgroundWidth = GetFullWidth();
 	mbBackgroundsDirty = false;
 
-	for (i = 0; i < masBackgrounds.NumElements(); i++)
+	for (i = 0; i < mcBackgrounds.NumBackgrounds(); i++)
 	{
-		psBackground = masBackgrounds.Get(i);
+		psBackground = mcBackgrounds.Get(i);
 		if (psBackground->eType == TAB_Range)
 		{
 			if (HasStops())
@@ -3828,144 +3818,6 @@ bool CTextArea::GetLineRows(size uiLine, int32* piTop, int32* piBottom)
 int32 CTextArea::GetFullWidth(void)
 {
 	return (mcActualBounds.GetWidth() > msTextSize.x) ? mcActualBounds.GetWidth() : msTextSize.x;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Ranges move with the text after uiPosition and grow with text put
-// strictly inside them.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BackgroundsInserted(size uiPosition, size uiLength)
-{
-	size					i;
-	STextAreaBackground*	psBackground;
-
-	for (i = 0; i < masBackgrounds.NumElements(); i++)
-	{
-		psBackground = masBackgrounds.Get(i);
-		if (psBackground->eType == TAB_Range)
-		{
-			if (uiPosition <= psBackground->uiStart)
-			{
-				psBackground->uiStart += uiLength;
-				psBackground->uiEnd += uiLength;
-				mbBackgroundsDirty = true;
-			}
-			else if (uiPosition < psBackground->uiEnd)
-			{
-				psBackground->uiEnd += uiLength;
-				mbBackgroundsDirty = true;
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Ranges shrink by what is removed from them and go if nothing is left.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BackgroundsRemoved(size uiStart, size uiEnd)
-{
-	size					i;
-	size					uiLength;
-	STextAreaBackground*	psBackground;
-
-	uiLength = uiEnd - uiStart;
-	i = masBackgrounds.NumElements();
-	while (i > 0)
-	{
-		i--;
-		psBackground = masBackgrounds.Get(i);
-		if (psBackground->eType == TAB_Range)
-		{
-			psBackground->uiStart = (psBackground->uiStart <= uiStart) ? psBackground->uiStart : ((psBackground->uiStart >= uiEnd) ? psBackground->uiStart - uiLength : uiStart);
-			psBackground->uiEnd = (psBackground->uiEnd <= uiStart) ? psBackground->uiEnd : ((psBackground->uiEnd >= uiEnd) ? psBackground->uiEnd - uiLength : uiStart);
-			if (psBackground->uiStart == psBackground->uiEnd)
-			{
-				masBackgrounds.RemoveAt(i, true);
-			}
-			mbBackgroundsDirty = true;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// uiNewLines lines were put in after line uiLine's start (at it, if
-// bLineStart).  Line backgrounds and boundaries move down with their
-// lines; a line background grows when lines are put in inside it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BackgroundLinesInserted(size uiLine, bool bLineStart, size uiNewLines)
-{
-	size					i;
-	STextAreaBackground*	psBackground;
-
-	for (i = 0; i < masBackgrounds.NumElements(); i++)
-	{
-		psBackground = masBackgrounds.Get(i);
-		if (psBackground->eType != TAB_Range)
-		{
-			if ((psBackground->uiStart > uiLine) || ((psBackground->uiStart == uiLine) && bLineStart))
-			{
-				psBackground->uiStart += uiNewLines;
-			}
-			if (psBackground->uiEnd > uiLine)
-			{
-				psBackground->uiEnd += uiNewLines;
-			}
-			if (psBackground->eType == TAB_Boundary)
-			{
-				psBackground->uiEnd = psBackground->uiStart;
-			}
-			mbBackgroundsDirty = true;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The lines after uiFirst up to uiLast were joined onto uiFirst, or if
-// bWhole lines uiFirst up to before uiLast were removed and uiLast took
-// uiFirst's place.  Line backgrounds and boundaries move up with their
-// lines; one on lines that are gone is gone with them.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::BackgroundLinesRemoved(size uiFirst, size uiLast, bool bWhole)
-{
-	size					i;
-	size					uiRemoved;
-	size					uiJoined;
-	STextAreaBackground*	psBackground;
-
-	uiRemoved = uiLast - uiFirst;
-	uiJoined = bWhole ? uiFirst : uiFirst + 1;
-	i = masBackgrounds.NumElements();
-	while (i > 0)
-	{
-		i--;
-		psBackground = masBackgrounds.Get(i);
-		if (psBackground->eType != TAB_Range)
-		{
-			psBackground->uiStart = (psBackground->uiStart <= uiFirst) ? psBackground->uiStart : ((psBackground->uiStart > uiLast) ? psBackground->uiStart - uiRemoved : uiJoined);
-			psBackground->uiEnd = (psBackground->uiEnd <= uiFirst) ? psBackground->uiEnd : ((psBackground->uiEnd > uiLast) ? psBackground->uiEnd - uiRemoved : uiJoined);
-			if (psBackground->eType == TAB_Boundary)
-			{
-				psBackground->uiEnd = psBackground->uiStart;
-			}
-			else if (psBackground->uiStart == psBackground->uiEnd)
-			{
-				masBackgrounds.RemoveAt(i, true);
-			}
-			mbBackgroundsDirty = true;
-		}
-	}
 }
 
 
