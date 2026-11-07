@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCommand::Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun)
+void CCommand::Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun, bool bRunAsks)
 {
 	PreInit();
 	mszName.Init(szName);
@@ -40,6 +40,7 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	}
 	mpIcon = pIcon;
 	msRun = *psRun;
+	mbRunAsks = bRunAsks;
 	msEnabled.Clear();
 	meStandard = CIC_Ignored;
 	PostInit();
@@ -59,6 +60,7 @@ void CCommand::Class(void)
 	U_Data(SMemberCall, msRun);
 	U_Data(SMemberCall, msEnabled);
 	U_Enum(meStandard);
+	U_Bool(mbRunAsks);
 }
 
 
@@ -104,7 +106,14 @@ bool CCommand::Run(void)
 	{
 		return false;
 	}
-	msRun.Call(NULL);
+	if (mbRunAsks)
+	{
+		msRun.Ask();
+	}
+	else
+	{
+		msRun.Call(NULL);
+	}
 	return true;
 }
 

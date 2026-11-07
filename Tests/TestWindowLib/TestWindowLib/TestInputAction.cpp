@@ -84,6 +84,7 @@ public:
 
 	void Start(void) { mpszLog->Append("Start;"); }
 	void StepUndo(void) { mpszLog->Append("StepUndo;"); }
+	bool ToggleBreakpoint(void) { mpszLog->Append("Toggle;"); return true; }
 	bool CanStart(void) { return mbCanStart; }
 };
 
@@ -929,7 +930,8 @@ void TestInputActionCommands(void)
 		gcLogger.SetBreakOnError(false);
 		AssertTrue(pCommands->Add("Start", "Again", NULL, Ptr<CImageCel>(), &cCommands, &CActionTestCommands::Start).IsNull());
 		gcLogger.SetConfig(&sLogConfig);
-		AssertSize(2, pCommands->NumCommands());
+		AssertTrue(pCommands->Add("Toggle", "Toggle Breakpoint", "F9", Ptr<CImageCel>(), &cCommands, &CActionTestCommands::ToggleBreakpoint).IsNotNull());
+		AssertSize(3, pCommands->NumCommands());
 		pTestWindow->SetCommands(pCommands);
 
 		cDevices.Init();
@@ -960,6 +962,10 @@ void TestInputActionCommands(void)
 		cCommands.mbCanStart = true;
 		AssertTrue(pCommands->Run("Start"));
 		AssertLog("Start;");
+
+		//A command's function can say whether it did anything; that isn't needed.
+		AssertTrue(pCommands->Run("Toggle"));
+		AssertLog("Toggle;");
 
 		//From a tool window floating over the window, which has no commands of its own.
 		pToolWindow = OMalloc<CWindow>("Tool Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);

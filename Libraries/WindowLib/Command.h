@@ -44,10 +44,13 @@ protected:
 	SMemberCall				msRun;
 	SMemberCall				msEnabled;  //Not set: the command can always run.
 	EComponentInputCommand	meStandard;  //The component command it stands for (an Edit menu's copy), whose keys it shows; CIC_Ignored if none.
+	bool					mbRunAsks;  //msRun returns whether it did anything, which isn\'t needed.
 
 public:
 	template<class M, class O>
 	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(void));
+	template<class M, class O>
+	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, bool(M::*fRun)(void));
 	void				Class(void) override;
 	void				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;
@@ -66,7 +69,7 @@ public:
 	Ptr<CImageCel>		GetIcon(void);
 
 protected:
-	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun);
+	void				Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, SMemberCall* psRun, bool bRunAsks);
 };
 
 
@@ -81,7 +84,23 @@ void CCommand::Init(const char* szName, const char* szCaption, const char* szKey
 	SMemberCall	sRun;
 
 	sRun.Init(pcObject, fRun);
-	Init(szName, szCaption, szKeys, pIcon, &sRun);
+	Init(szName, szCaption, szKeys, pIcon, &sRun, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A command whose function says whether it did anything, as many of an
+// application's do; what it says isn't needed.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+void CCommand::Init(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, bool(M::*fRun)(void))
+{
+	SMemberCall	sRun;
+
+	sRun.Init(pcObject, fRun);
+	Init(szName, szCaption, szKeys, pIcon, &sRun, true);
 }
 
 

@@ -44,6 +44,8 @@ public:
 
 	template<class M, class O>
 	Ptr<CCommand>		Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(void));
+	template<class M, class O>
+	Ptr<CCommand>		Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, bool(M::*fRun)(void));
 	Ptr<CCommand>		Add(Ptr<CCommand> pCommand);
 	Ptr<CCommand>		Find(const char* szName);
 	Ptr<CCommand>		FindKeys(const char* szKeys);
@@ -64,6 +66,21 @@ public:
 //////////////////////////////////////////////////////////////////////////
 template<class M, class O>
 Ptr<CCommand> CCommandSet::Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, void(M::*fRun)(void))
+{
+	Ptr<CCommand>	pCommand;
+
+	pCommand = OMalloc<CCommand>(szName, szCaption, szKeys, pIcon, pcObject, fRun);
+	return Add(pCommand);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new command running a function that says whether it did anything.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class O>
+Ptr<CCommand> CCommandSet::Add(const char* szName, const char* szCaption, const char* szKeys, Ptr<CImageCel> pIcon, O* pcObject, bool(M::*fRun)(void))
 {
 	Ptr<CCommand>	pCommand;
 
