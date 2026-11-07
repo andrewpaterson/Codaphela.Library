@@ -67,28 +67,14 @@ protected:
 template<class M>
 M* CMapStringUnknown::Put(const char* szKey)
 {
-	M*		pv;
-	bool	bResult;
+	M*	pv;
 
-	if (!StrEmpty(szKey))
-	{
-		pv = gcUnknowns.Add<M>();
-		bResult = Put(szKey, pv);
-		if (bResult)
-		{
-			return pv;
-		}
-		else
-		{
-			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
-			gcUnknowns.RemoveInKill(pv);
-			return NULL;
-		}
-	}
-	else
+	if (StrEmpty(szKey))
 	{
 		return NULL;
 	}
+	pv = gcUnknowns.Add<M>();
+	return gcUnknowns.KeptOrFreed(pv, Put(szKey, pv));
 }
 
 

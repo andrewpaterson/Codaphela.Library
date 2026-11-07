@@ -63,6 +63,7 @@ public:
 						bool			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						bool			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 	template<class M>	bool			LoadKnownType(CFileReader* pcFile, CUnknown** ppcUnknown);
+	template<class M>	M*				KeptOrFreed(M* pcUnknown, bool bKept);
 						bool			SaveKnownType(CFileWriter* pcFile, CUnknown* pcUnknown);
 
 						//Iterable stuff.
@@ -105,6 +106,23 @@ template<class M>
 M* CUnknowns::Add(void)
 {
 	return Add<M>(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CUnknowns::KeptOrFreed(M* pcUnknown, bool bKept)
+{
+	//pcUnknown was allocated (not initialised) for a container to keep: if it didn't, it is freed but not killed.
+	if (bKept)
+	{
+		return pcUnknown;
+	}
+	RemoveInKill(pcUnknown);
+	return NULL;
 }
 
 

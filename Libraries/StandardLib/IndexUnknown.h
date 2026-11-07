@@ -92,28 +92,14 @@ protected:
 template<class M>
 M* CIndexUnknown::Put(uint8* pvKey, size iKeySize)
 {
-	M*		pv;
-	bool	bResult;
+	M*	pv;
 
-	if (iKeySize > 0)
-	{
-		pv = gcUnknowns.Add<M>();
-		bResult = Put(pvKey, iKeySize, pv);
-		if (bResult)
-		{
-			return pv;
-		}
-		else
-		{
-			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
-			gcUnknowns.RemoveInKill(pv);
-			return NULL;
-		}
-	}
-	else
+	if (iKeySize == 0)
 	{
 		return NULL;
 	}
+	pv = gcUnknowns.Add<M>();
+	return gcUnknowns.KeptOrFreed(pv, Put(pvKey, iKeySize, pv));
 }
 
 
@@ -124,30 +110,7 @@ M* CIndexUnknown::Put(uint8* pvKey, size iKeySize)
 template<class M>
 M* CIndexUnknown::Put(const char* szKey)
 {
-	M*		pv;
-	bool	bResult;
-	size	iKeySize;
-
-	iKeySize = strlen(szKey);
-	if (iKeySize > 0)
-	{
-		pv = gcUnknowns.Add<M>();
-		bResult = Put((uint8*)szKey, iKeySize, pv);
-		if (bResult)
-		{
-			return pv;
-		}
-		else
-		{
-			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
-			gcUnknowns.RemoveInKill(pv);
-			return NULL;
-		}
-	}
-	else
-	{
-		return NULL;
-	}
+	return Put<M>((uint8*)szKey, strlen(szKey));
 }
 
 

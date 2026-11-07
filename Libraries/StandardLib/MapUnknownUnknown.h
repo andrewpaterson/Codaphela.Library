@@ -69,28 +69,14 @@ protected:
 template<class M, class N>
 N* CMapUnknownUnknown::Put(M* pcKey)
 {
-	N*		pv;
-	bool	bResult;
+	N*	pv;
 
-	if (pcKey)
-	{
-		pv = gcUnknowns.Add<N>();
-		bResult = Put(pcKey, pv);
-		if (bResult)
-		{
-			return pv;
-		}
-		else
-		{
-			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
-			gcUnknowns.RemoveInKill(pv);
-			return NULL;
-		}
-	}
-	else
+	if (pcKey == NULL)
 	{
 		return NULL;
 	}
+	pv = gcUnknowns.Add<N>();
+	return gcUnknowns.KeptOrFreed(pv, Put(pcKey, pv));
 }
 
 

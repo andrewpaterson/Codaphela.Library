@@ -7,7 +7,6 @@
 #include "BaseLib/DataOrderers.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/IndexUnknown.h"
-#include "StandardLib/IndexUnknown.h"
 #include "TestLib/Assert.h"
 #include "UnknownTestClasses.h"
 
@@ -543,8 +542,46 @@ void TestIndexUnknownReplaceValues(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//                                                                      //
-//                                                                      //
+//
+// A Put that allocates its value frees it when the index refuses it: a key
+// already there (in an index that doesn't overwrite) or an empty one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIndexUnknownPutRefused(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CIndexUnknown	cIndex;
+	CTestUnknown*	pcTest;
+	SLogConfig		sLogConfig;
+
+	cIndex.Init(true, false);
+	pcTest = cIndex.Put<CTestUnknown>("Key");
+	AssertNotNull(pcTest);
+	pcTest->Init(1);
+	AssertSize(1, gcUnknowns.NumElements());
+
+	sLogConfig = gcLogger.SetSilent();
+	AssertNull(cIndex.Put<CTestUnknown>("Key"));
+	gcLogger.SetConfig(&sLogConfig);
+	AssertSize(1, gcUnknowns.NumElements());
+
+	AssertNull(cIndex.Put<CTestUnknown>(""));
+	AssertSize(1, gcUnknowns.NumElements());
+	AssertSize(1, cIndex.NumElements());
+
+	cIndex.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void TestIndexUnknown(void)
 {
@@ -558,6 +595,7 @@ void TestIndexUnknown(void)
 	TestIndexUnknownRemoveDuplicateValue();
 	TestIndexUnknownLoadNull();
 	TestIndexUnknownReplaceValues();
+	TestIndexUnknownPutRefused();
 
 	TestStatistics();
 }

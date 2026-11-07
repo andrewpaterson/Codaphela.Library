@@ -57,8 +57,7 @@ M* CArrayUnknown::Add(void)
 	M*	pv;
 
 	pv = gcUnknowns.Add<M>();
-	CArrayCommonUnknown::Add(pv);
-	return pv;
+	return gcUnknowns.KeptOrFreed(pv, CArrayCommonUnknown::Add(pv));
 }
 
 
@@ -72,8 +71,7 @@ M* CArrayUnknown::Insert(size iIndex)
 	M*	pv;
 
 	pv = gcUnknowns.Add<M>();
-	CArrayCommonUnknown::Insert(iIndex, pv);
-	return pv;
+	return gcUnknowns.KeptOrFreed(pv, CArrayCommonUnknown::Insert(iIndex, pv));
 }
 
 
