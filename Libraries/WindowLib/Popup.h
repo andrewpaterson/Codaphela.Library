@@ -22,7 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __POPUP_H__
 #include "SupportLib/ColourARGB32.h"
 #include "Container.h"
-#include "Insets.h"
 
 
 //Holds one component, like a menu, over everything else in the window.  CWindow::OpenPopup makes them; the window's
@@ -44,7 +43,6 @@ protected:
 	Ptr<CComponent>		mpContent;
 	Ptr<CComponent>		mpOwner;
 	SInt32Vec2			msOpenPosition;  //In window client space.
-	SInsets				msInsets;
 	ARGB32				msBackground;
 	ARGB32				msBorder;
 	bool				mbBackground;  //The background is drawn behind the content; false, and nothing is, until a look is set.

@@ -49,7 +49,6 @@ void CButtonBar::Class(void)
 {
 	CContainer::Class();
 
-	U_Data(SInsets, msInsets);
 	U_Int32(miGap);
 	U_Enum(meButtonAlignment);
 }
@@ -77,35 +76,6 @@ bool CButtonBar::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CButtonBar::SetInsets(SInsets* psInsets)
-{
-	memcpy(&msInsets, psInsets, sizeof(SInsets));
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CButtonBar::SetInsets(int iTop, int iRight, int iBottom, int iLeft)
-{
-	msInsets.aiWidths[BEI_Top] = iTop;
-	msInsets.aiWidths[BEI_Right] = iRight;
-	msInsets.aiWidths[BEI_Bottom] = iBottom;
-	msInsets.aiWidths[BEI_Left] = iLeft;
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The row of buttons and the gaps between them, plus the insets.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -114,8 +84,8 @@ void CButtonBar::SetRequiredSize(void)
 	SInt32Vec2	sRow;
 
 	sRow = GetRowSize(NULL);
-	msRequiredSize.x = sRow.x + msInsets.GetLeftAndRight();
-	msRequiredSize.y = sRow.y + msInsets.GetTopAndBottom();
+	msRequiredSize = sRow;
+	AddInsets(&msRequiredSize);
 }
 
 
@@ -139,7 +109,7 @@ void CButtonBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	msInsets.Inset(&sOrigin, &sArea);
+	InsetArea(&sOrigin, &sArea);
 
 	SetContainerBounds(sOrigin, sArea);
 

@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CONTAINER_H__
 #define __CONTAINER_H__
 #include "Component.h"
+#include "Insets.h"
 #include "SupportLib/Int32Rect.h"
 
 
@@ -31,6 +32,7 @@ DESTRUCTABLE(CContainer);
 protected:
 	CInt32Rect	mcContainerBounds;
 	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
+	SInsets		msInsets;  //Between the container's area and its components'.
 	bool		mbClipsChildren;  //Children are only drawn inside the container bounds.  True unless turned off, for an overlay say.
 	bool		mbSizedByContent;  //The desired size is the required size on an axis without one set, see SetSizedByContent.
 
@@ -43,6 +45,8 @@ public:
 			bool		ClipsChildren(void) override;
 			void		SetClipsChildren(bool bClipsChildren);
 			void		SetSizedByContent(bool bSizedByContent);
+			void		SetInsets(SInsets* psInsets);
+			void		SetInsets(int32 iTop, int32 iRight, int32 iBottom, int32 iLeft);
 			SInt32Vec2	GetDesiredSize(void) override;
 
 			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override =0;  //A container lays its components out itself, it doesn't pass its area on as a component does.
@@ -53,6 +57,8 @@ public:
 	static	SInt32Vec2	GetMeasuredSize(Ptr<CComponent> pComponent);
 
 protected:
+	void		InsetArea(SInt32Vec2* psPosition, SInt32Vec2* psSize);
+	void		AddInsets(SInt32Vec2* psSize);
 	void		LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize);
 	void		SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 };

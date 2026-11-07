@@ -33,6 +33,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	CComponent::Init(pWindow);
 	mcContainerBounds.Init(-1, -1, -1, -1);
 	msRequiredSize.Init(-1, -1);
+	msInsets.Init();
 	mbClipsChildren = true;
 	mbSizedByContent = false;
 
@@ -49,6 +50,7 @@ void CContainer::Class(void)
 	CComponent::Class();
 	U_Data(CInt32Rect, mcContainerBounds);
 	U_2Int32(msRequiredSize);
+	U_Data(SInsets, msInsets);
 	U_Bool(mbClipsChildren);
 	U_Bool(mbSizedByContent);
 }
@@ -120,6 +122,61 @@ void CContainer::SetSizedByContent(bool bSizedByContent)
 {
 	mbSizedByContent = bSizedByContent;
 	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The components are laid out inside the insets, and the container needs
+// them as well as what its components need.
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::SetInsets(SInsets* psInsets)
+{
+	msInsets = *psInsets;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::SetInsets(int32 iTop, int32 iRight, int32 iBottom, int32 iLeft)
+{
+	msInsets.aiWidths[BEI_Top] = iTop;
+	msInsets.aiWidths[BEI_Right] = iRight;
+	msInsets.aiWidths[BEI_Bottom] = iBottom;
+	msInsets.aiWidths[BEI_Left] = iLeft;
+
+	//What it is laid out from has changed.
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The area the components are laid out in: the container's inside the
+// insets.
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::InsetArea(SInt32Vec2* psPosition, SInt32Vec2* psSize)
+{
+	msInsets.Inset(psPosition, psSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the components need, as the container needs it: with the insets.
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::AddInsets(SInt32Vec2* psSize)
+{
+	psSize->x += msInsets.GetLeftAndRight();
+	psSize->y += msInsets.GetTopAndBottom();
 }
 
 

@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __BUTTON_BAR_H__
 #define __BUTTON_BAR_H__
 #include "BaseLib/ArrayInt.h"
-#include "Insets.h"
 #include "Container.h"
 
 
@@ -36,7 +35,6 @@ class CButtonBar : public CContainer
 CONSTRUCTABLE(CButtonBar);
 DESTRUCTABLE(CButtonBar);
 protected:
-	SInsets						msInsets;
 	int32						miGap;  //Between neighbouring buttons.
 	EContainerStyleHorizontal	meButtonAlignment;  //Where the row of buttons sits; stretch is treated as left.
 
@@ -47,8 +45,6 @@ public:
 	bool						Save(CObjectWriter* pcFile) override;
 	bool						Load(CObjectReader* pcFile) override;
 
-	void						SetInsets(SInsets* psInsets);
-	void						SetInsets(int iTop, int iRight, int iBottom, int iLeft);
 	void						SetGap(int32 iGap);
 	int32						GetGap(void);
 	void						SetButtonAlignment(EContainerStyleHorizontal eAlignment);

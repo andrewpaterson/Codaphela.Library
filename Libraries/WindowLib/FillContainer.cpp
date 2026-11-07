@@ -29,7 +29,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CFillContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
-	msInsets.Init();
 }
 
 
@@ -40,7 +39,6 @@ void CFillContainer::Init(Ptr<CWindow> pWindow)
 void CFillContainer::Class(void)
 {
 	CContainer::Class();
-	U_Data(SInsets, msInsets);
 }
 
 
@@ -87,8 +85,7 @@ void CFillContainer::SetRequiredSize(void)
 		sLargest.Maximise(sSize);
 	}
 
-	sLargest.x += msInsets.GetLeftAndRight();
-	sLargest.y += msInsets.GetTopAndBottom();
+	AddInsets(&sLargest);
 	msRequiredSize = sLargest;
 }
 
@@ -107,7 +104,7 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	msInsets.Inset(&sOrigin, &sArea);
+	InsetArea(&sOrigin, &sArea);
 
 	SetContainerBounds(sOrigin, sArea);
 
@@ -122,16 +119,4 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SetActualBounds(sPosition, sAreaSize);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFillContainer::SetInsets(SInsets* psInsets)
-{
-	memcpy(&msInsets, psInsets, sizeof(SInsets));
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
 

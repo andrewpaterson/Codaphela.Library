@@ -585,6 +585,8 @@ void CGridContainer::SetRequiredSize(void)
 	msRequiredSize.y = SumTracks(&aiSizes, 0, aiSizes.NumElements());
 	aiSizes.Kill();
 	aiWeights.Kill();
+
+	AddInsets(&msRequiredSize);
 }
 
 
@@ -599,16 +601,21 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	Ptr<CComponent>	pComponent;
 	SInt32Vec2		sCellPosition;
 	SInt32Vec2		sCellSize;
+	SInt32Vec2		sOrigin;
+	SInt32Vec2		sArea;
 
-	SetContainerBounds(sPosition, sAreaSize);
+	sOrigin = sPosition;
+	sArea = sAreaSize;
+	InsetArea(&sOrigin, &sArea);
+	SetContainerBounds(sOrigin, sArea);
 
 	//The tracks are kept so that what is in a column or row can be found later.
 	maiColumnStarts.ReInit();
 	maiColumnSizes.ReInit();
 	maiRowStarts.ReInit();
 	maiRowSizes.ReInit();
-	LayoutTracks(true, sPosition.x, sAreaSize.x, &maiColumnStarts, &maiColumnSizes);
-	LayoutTracks(false, sPosition.y, sAreaSize.y, &maiRowStarts, &maiRowSizes);
+	LayoutTracks(true, sOrigin.x, sArea.x, &maiColumnStarts, &maiColumnSizes);
+	LayoutTracks(false, sOrigin.y, sArea.y, &maiRowStarts, &maiRowSizes);
 
 	for (i = 0; i < maChildren.Size(); i++)
 	{

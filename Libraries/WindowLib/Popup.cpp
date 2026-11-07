@@ -39,7 +39,6 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	mpContent = pContent;
 	mpOwner = pOwner;
 	msOpenPosition = sPosition;
-	msInsets.Init();
 	msBackground = 0;
 	msBorder = 0;
 	mbBackground = false;
@@ -62,7 +61,6 @@ void CPopup::Class(void)
 	M_Pointer(mpContent);
 	M_Pointer(mpOwner);
 	U_2Int32(msOpenPosition);
-	U_Data(SInsets, msInsets);
 	U_UInt32(msBackground);
 	U_UInt32(msBorder);
 	U_Bool(mbBackground);
@@ -103,7 +101,7 @@ void CPopup::SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets)
 	msBorder = sBorder;
 	mbBackground = true;
 	mbBorder = true;
-	memcpy(&msInsets, psInsets, sizeof(SInsets));
+	msInsets = *psInsets;
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -119,7 +117,7 @@ void CPopup::SetLook(ARGB32 sBackground, SInsets* psInsets)
 	msBackground = sBackground;
 	mbBackground = true;
 	mbBorder = false;
-	memcpy(&msInsets, psInsets, sizeof(SInsets));
+	msInsets = *psInsets;
 
 	//What it is laid out from has changed.
 	InvalidateLayout();
@@ -143,8 +141,7 @@ void CPopup::SetRequiredSize(void)
 	{
 		sSize.y = 0;
 	}
-	sSize.x += msInsets.GetLeftAndRight();
-	sSize.y += msInsets.GetTopAndBottom();
+	AddInsets(&sSize);
 	msRequiredSize = sSize;
 }
 
@@ -183,7 +180,7 @@ void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	sContentPosition = sPopupPosition;
 	sContentSize = sSize;
-	msInsets.Inset(&sContentPosition, &sContentSize);
+	InsetArea(&sContentPosition, &sContentSize);
 	SetContainerBounds(sContentPosition, sContentSize);
 
 	mpContent->Layout(sContentPosition, sContentSize);

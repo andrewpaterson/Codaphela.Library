@@ -22,7 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __FILL_CONTAINER_H__
 #include "ContainerStyle.h"
 #include "Container.h"
-#include "Insets.h"
 
 
 //Lays every component into the whole area inside its insets, drawn on top of each other in the order they were added
@@ -33,7 +32,6 @@ class CFillContainer : public CContainer
 CONSTRUCTABLE(CFillContainer);
 DESTRUCTABLE(CFillContainer);
 protected:
-	SInsets		msInsets;
 
 public:
 	void			Init(Ptr<CWindow> pWindow);
@@ -44,7 +42,6 @@ public:
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
-	void			SetInsets(SInsets* psInsets);
 };
 
 

@@ -985,6 +985,71 @@ void TestGridContainerNestedGridHeight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A grid with insets lays its cells out inside them and needs them as
+// well as its cells: top 2, right 3, bottom 4 and left 5.  The fixed
+// cell sits at the insets' top left and the weighted one takes the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGridContainerInsets(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CCanvas>			pFixed;
+		Ptr<CCanvas>			pWeighted;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		SInt32Vec2				sVec;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 40, 30, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Grid Insets", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pGrid->SetInsets(2, 3, 4, 5);
+		pTestWindow->SetContainer(pGrid);
+		pFixed = OMalloc<CCanvas>(pTestWindow, pNull);
+		pFixed->SetDesiredSize(10, 10);
+		pFixed->SetAlignment(CSH_Left, CSV_Top);
+		pGrid->AddComponent(pFixed, 0, 0);
+		pWeighted = OMalloc<CCanvas>(pTestWindow, pNull);
+		pWeighted->SetDesiredSize(-1, -1);
+		pWeighted->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pGrid->AddComponent(pWeighted, 1, 0, 1, 1, 1, 1);
+
+		pGrid->SetRequiredSize();
+		sVec = pGrid->GetRequiredSize();
+		AssertInt32Vec2(10 + 5 + 3, 10 + 2 + 4, &sVec);
+
+		pTestWindow->Layout();
+		sVec = pFixed->GetPosition();
+		AssertInt32Vec2(5, 2, &sVec);
+		sVec = pWeighted->GetPosition();
+		AssertInt32Vec2(15, 2, &sVec);
+		sVec = pWeighted->GetActualSize();
+		AssertInt32Vec2(40 - 3 - 15, 30 - 2 - 4, &sVec);
+
+		pFixed = NULL;
+		pWeighted = NULL;
+		pGrid = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainer(void)
@@ -992,6 +1057,7 @@ void TestGridContainer(void)
 	BeginTests();
 
 	TestGridContainerNoWeights();
+	TestGridContainerInsets();
 	TestGridContainerColumnWeights();
 	TestGridContainerRowWeights();
 	TestGridContainerSpanWithoutWeights();

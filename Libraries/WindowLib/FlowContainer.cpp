@@ -33,7 +33,6 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 	meDirection = CSD_Right;
 	meHorizontal = CSH_Left;
 	meVertical = CSV_Top;
-	msInsets.Init();
 }
 
 
@@ -48,7 +47,6 @@ void CFlowContainer::Class(void)
 	U_Enum(meDirection);
 	U_Enum(meHorizontal);
 	U_Enum(meVertical);
-	U_Data(SInsets, msInsets);
 }
 
 
@@ -125,8 +123,7 @@ void CFlowContainer::SetRequiredSize(void)
 			}
 		}
 	}
-	sTotalSize.x += msInsets.GetLeftAndRight();
-	sTotalSize.y += msInsets.GetTopAndBottom();
+	AddInsets(&sTotalSize);
 	msRequiredSize = sTotalSize;
 }
 
@@ -142,7 +139,7 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	msInsets.Inset(&sOrigin, &sArea);
+	InsetArea(&sOrigin, &sArea);
 
 	SetContainerBounds(sOrigin, sArea);
 
@@ -481,16 +478,4 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	InvalidateLayout();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFlowContainer::SetInsets(SInsets* psInsets)
-{
-	memcpy(&msInsets, psInsets, sizeof(SInsets));
-
-	//What it is laid out from has changed.
-	InvalidateLayout();
-}
 
