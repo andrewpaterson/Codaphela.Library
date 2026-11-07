@@ -321,22 +321,52 @@ bool CCPPParser::ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPParser::ParseTemplateArgument(CCPPSyntax* pcParent)
 {
+	CCPPSyntax*	pcArgument;
+
+	//The arguments nested in this one are decided once (when this one is decided), not again when it is parsed.
+	miTemplateArguments++;
+	pcArgument = IsTypeIdArgument() ? (CCPPSyntax*)ParseTypeId(pcParent) : ParseConditionalExpression(pcParent);
+	miTemplateArguments--;
+	if (miTemplateArguments == 0)
+	{
+		mcTypeIdArguments.Kill();
+		mcTypeIdArguments.Init(true);
+	}
+	return pcArgument;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the template argument next is a type-id: one that could be is.
+// [temp.arg] 2  The decision is kept for the argument's first token while
+// template arguments are being parsed (ParseTemplateArgument).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsTypeIdArgument(void)
+{
 	SCPPTentative		sTentative;
 	CCPPSyntaxTypeId*	pcType;
+	int64				lliToken;
+	bool*				pbKept;
 	bool				bType;
 
-	//A template argument that could be a type-id is a type-id.  [temp.arg] 2
+	//Kept before IsTypeIdStart, which looks the name up by parsing it (and the arguments nested in it).
+	lliToken = CurrentToken();
+	pbKept = mcTypeIdArguments.Get(lliToken);
+	if (pbKept)
+	{
+		return *pbKept;
+	}
+	bType = false;
 	if (IsTypeIdStart())
 	{
 		BeginTentative(&sTentative);
-		pcType = ParseTypeId(pcParent);
+		pcType = ParseTypeId(NULL);
 		bType = EndTentative(&sTentative, pcType && (Is(CT_Comma) || IsCloseAngle() || Is(CT_Elipsis)));
-		if (bType)
-		{
-			return ParseTypeId(pcParent);
-		}
 	}
-	return ParseConditionalExpression(pcParent);
+	mcTypeIdArguments.Put(lliToken, &bType);
+	return bType;
 }
 
 

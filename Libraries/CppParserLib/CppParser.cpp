@@ -45,6 +45,9 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 
 	miTentative = 0;
 	mbFailed = false;
+	muiTentativeParses = 0;
+	miTemplateArguments = 0;
+	mcTypeIdArguments.Init(true);
 	mbNoGreater = false;
 	mbMemberName = false;
 	miClassDepth = 0;
@@ -74,6 +77,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CCPPParser::Kill(void)
 {
+	mcTypeIdArguments.Kill();
 	maiPacks.Kill();
 	macDeferred.Kill();
 	mpcScope = NULL;
@@ -109,6 +113,17 @@ bool CCPPParser::Parse(void)
 int CCPPParser::NumErrors(void)
 {
 	return miErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times the parser has looked ahead tentatively (BeginTentative).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPParser::NumTentativeParses(void)
+{
+	return muiTentativeParses;
 }
 
 
@@ -485,6 +500,7 @@ void CCPPParser::BeginTentative(SCPPTentative* psTentative)
 	psTentative->bSavedFailed = mbFailed;
 	mbFailed = false;
 	miTentative++;
+	muiTentativeParses++;
 }
 
 

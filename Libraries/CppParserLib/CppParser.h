@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_PARSER_H__
 #define __C_P_P_PARSER_H__
+#include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayInt.h"
 #include "CppTokeniser.h"
 #include "CTReservedWord.h"
@@ -95,6 +96,9 @@ protected:
 
 	int						miTentative;			//Parsing to see if something is a declaration; nothing is recorded.
 	bool					mbFailed;				//The tentative parse failed.
+	size					muiTentativeParses;		//How many tentative parses there have been (for tests).
+	int						miTemplateArguments;	//Template arguments being parsed, nested; while above 0 each one's
+	CMapLongTemplate<bool>	mcTypeIdArguments;		//decision (type-id or not) is kept by its first token.
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
 	int						miClassDepth;
@@ -128,6 +132,7 @@ public:
 	size							NumLazySkipped(void);
 	size							NumLazyLoaded(void);
 	size							NumLazyRead(void);
+	size							NumTentativeParses(void);
 
 protected:
 	//Lazy header declarations.  CppParserLazy.cpp
@@ -238,6 +243,7 @@ protected:
 	CCPPSyntaxNameComponent*		ParseOperatorName(CCPPSyntax* pcParent);
 	bool							ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent);
 	CCPPSyntax*						ParseTemplateArgument(CCPPSyntax* pcParent);
+	bool							IsTypeIdArgument(void);
 	bool							IsNameStart(void);
 	CCPPSymbol*						LookupNameAhead(int* piLength);
 	bool							IsTypeNameAhead(void);

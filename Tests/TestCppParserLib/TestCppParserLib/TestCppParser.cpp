@@ -17,6 +17,7 @@ struct SParsedText
 	CCPPTokeniser		cTokeniser;
 	CCPPSyntaxTree		cTree;
 	int					iErrors;
+	size				uiTentativeParses;
 
 	bool	Init(char* szSource, CCPP65UnitWorkspace* pcWorkspace = NULL);
 	void	Kill(void);
@@ -57,6 +58,7 @@ bool SParsedText::Init(char* szSource, CCPP65UnitWorkspace* pcWorkspace)
 	cParser.Init(&cTokeniser, &cTree);
 	bResult &= cParser.Parse();
 	iErrors = cParser.NumErrors();
+	uiTentativeParses = cParser.NumTentativeParses();
 	cParser.Kill();
 	return bResult;
 }
@@ -1599,6 +1601,28 @@ void TestCppParserTentativeClassDefinition(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Template arguments nested ten deep are each decided (type-id or
+// expression) once: the lookahead doesn't decide the nested ones again when
+// it parses its argument for real (which took 2^depth lookaheads).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserNestedTemplateArguments(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("template<class T> struct A { };\nA<A<A<A<A<A<A<A<A<A<int>>>>>>>>>> a;\nint n = sizeof(A<A<int>>);\n"));
+	AssertTrue(sParsed.uiTentativeParses < 40);
+	sz.Init();
+	sParsed.Print(&sz);
+	AssertTrue(sz.Contains("A<A<A<A<A<A<A<A<A<A<int>>>>>>>>>> a;"));
+	sz.Kill();
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParser(void)
@@ -1634,6 +1658,7 @@ void TestCppParser(void)
 	TestCppParserDeclarationsWithoutDeclarators();
 	TestCppParserWorkspace();
 	TestCppParserTentativeClassDefinition();
+	TestCppParserNestedTemplateArguments();
 
 	NumberKill();
 	TypeConverterKill();
