@@ -1261,6 +1261,7 @@ void TestDehollowficationLoadIndexMembers(void)
 	char			szKey[32];
 	char			szErrors[1024];
 	size			i;
+	uint8			auiLongKey[MAX_KEY_SIZE];
 
 	cFileUtil.RemoveDir(szDirectory);
 	DataOrderersInit();
@@ -1283,6 +1284,12 @@ void TestDehollowficationLoadIndexMembers(void)
 			pIndex->Put(szKey, pString);
 		}
 		pIndex->Put("Again", pString);
+
+		//The longest key an index holds is saved and loaded.
+		memset(auiLongKey, 'L', MAX_KEY_SIZE);
+		pString = OMalloc<CString>();
+		pString->Set("Long");
+		AssertTrue(pIndex->Put(auiLongKey, MAX_KEY_SIZE, pString));
 	}
 	ObjectsFlush();
 	pcDatabase->Close();
@@ -1299,7 +1306,7 @@ void TestDehollowficationLoadIndexMembers(void)
 		Ptr<CString>		pString;
 
 		pIndex = gcObjects.Get("Index");
-		AssertSize(101, pIndex->NumElements());
+		AssertSize(102, pIndex->NumElements());
 		for (i = 0; i < 100; i++)
 		{
 			sprintf(szKey, "k%i", (int)i);
@@ -1307,6 +1314,9 @@ void TestDehollowficationLoadIndexMembers(void)
 			AssertString(szKey, pString->Text());
 		}
 		AssertPointer(pString.Object(), pIndex->Get("Again").Object());
+		memset(auiLongKey, 'L', MAX_KEY_SIZE);
+		pString = pIndex->Get<CString>(auiLongKey, MAX_KEY_SIZE);
+		AssertString("Long", pString->Text());
 		pString = NULL;
 
 		ValidateObjectsCapturingErrors(szErrors, sizeof(szErrors));

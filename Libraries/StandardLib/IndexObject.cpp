@@ -463,9 +463,11 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 	
 	for (i = 0; i < iCount; i++)
 	{
+		//The index refuses keys longer than MAX_KEY_SIZE, so Save never writes one.
 		ReturnOnFalse(pcFile->ReadSize(&uiKeySize));
-		if (uiKeySize >= MAX_KEY_SIZE)
+		if (uiKeySize > MAX_KEY_SIZE)
 		{
+			gcLogger.Error2(__METHOD__, " Key size [", SizeToString(uiKeySize), "] is longer than [", SizeToString(MAX_KEY_SIZE), "].", NULL);
 			return false;
 		}
 		ReturnOnFalse(pcFile->ReadData(auiKey, uiKeySize));
