@@ -31,16 +31,18 @@ Ptr<CFont> ReadLabelFont(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A theme with no images, coloured as Jewel's: a theme has no colours of
-// its own, so a test's theme is given every colour its widgets read.
+// A theme with no images, coloured and sized as Jewel's: a theme has no
+// looks of its own, so a test's theme is given every colour and size its
+// widgets read.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont)
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont)
 {
 	Ptr<CWindowTheme>	pTheme;
 
 	pTheme = OMalloc<CWindowTheme>(pFont);
 	CJewelTheme::SetColours(pTheme);
+	CJewelTheme::SetMetrics(pTheme);
 	return pTheme;
 }
 

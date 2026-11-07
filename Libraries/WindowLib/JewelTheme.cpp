@@ -25,6 +25,30 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "JewelTheme.h"
 
 
+//In EThemeMetric's order.
+static int32	gaiJewelThemeMetrics[TM_NumMetrics] =
+{
+	8,		//TM_ButtonPaddingX
+	2,		//TM_ButtonPaddingY
+	4,		//TM_ButtonIconGap
+	6,		//TM_FieldPaddingX
+	2,		//TM_FieldPaddingY
+	6,		//TM_CheckBoxGap
+	16,		//TM_ComboChevronWidth
+	8,		//TM_ComboChevronGap
+	16,		//TM_TreeChevronWidth
+	20,		//TM_TreeIconWidth
+	16,		//TM_TreeIndent
+	4,		//TM_TreeRowPadding
+	10,		//TM_TabSideGap
+	6,		//TM_TabGap
+	7,		//TM_TabTopGap
+	4,		//TM_TabBottomGap
+	3,		//TM_TabUnderline
+	16,		//TM_TabIconSize
+};
+
+
 //In EThemeColour's order.
 static ARGB32	gasJewelThemeColours[TC_NumColours] =
 {
@@ -81,8 +105,25 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)32), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	SetColours(pTheme);
+	SetMetrics(pTheme);
 	SetImages(pTheme, pWindow);
 	return pTheme;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every size of the theme, in pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+void CJewelTheme::SetMetrics(Ptr<CWindowTheme> pTheme)
+{
+	size	i;
+
+	for (i = 0; i < TM_NumMetrics; i++)
+	{
+		pTheme->SetMetric((EThemeMetric)i, gaiJewelThemeMetrics[i]);
+	}
 }
 
 

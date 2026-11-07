@@ -56,6 +56,8 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CImageCel
 void CButton::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, EButtonLook eLook, Ptr<CImageCel> pIcon, const char* szCaption)
 {
 	Init(pWindow, pTheme->GetButtonImages(eLook), pTheme->GetDefaultButtonImages(eLook), pIcon, pTheme->GetFont(), szCaption);
+	SetPadding(pTheme->GetMetric(TM_ButtonPaddingX), pTheme->GetMetric(TM_ButtonPaddingY));
+	SetIconGap(pTheme->GetMetric(TM_ButtonIconGap));
 }
 
 

@@ -22,6 +22,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowTheme.h"
 
 
+//In EThemeMetric's order, for the error reading one that wasn't set.
+static const char*	gaszThemeMetricNames[TM_NumMetrics] =
+{
+	"ButtonPaddingX", "ButtonPaddingY", "ButtonIconGap", "FieldPaddingX", "FieldPaddingY", "CheckBoxGap",
+	"ComboChevronWidth", "ComboChevronGap", "TreeChevronWidth", "TreeIconWidth", "TreeIndent", "TreeRowPadding",
+	"TabSideGap", "TabGap", "TabTopGap", "TabBottomGap", "TabUnderline", "TabIconSize",
+};
+
+
 //In EThemeImage's order, for the error reading one that wasn't set.
 static const char*	gaszThemeImageNames[TI_NumImages] =
 {
@@ -66,6 +75,8 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	}
 	memset(masColours, 0, sizeof(masColours));
 	memset(mabColoursSet, 0, sizeof(mabColoursSet));
+	memset(maiMetrics, 0, sizeof(maiMetrics));
+	memset(mabMetricsSet, 0, sizeof(mabMetricsSet));
 	mcChangeEvent.Init();
 	PostInit();
 }
@@ -89,6 +100,8 @@ void CWindowTheme::Class(void)
 	M_Embedded(maImages);
 	U_UInt32Array(masColours, TC_NumColours);
 	U_BoolArray(mabColoursSet, TC_NumColours);
+	U_Int32Array(maiMetrics, TM_NumMetrics);
+	U_BoolArray(mabMetricsSet, TM_NumMetrics);
 	U_Data(CComponentEvent<CWindowTheme>, mcChangeEvent);
 }
 
@@ -208,6 +221,33 @@ Ptr<CImageCel> CWindowTheme::GetImage(EThemeImage eImage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// As SetColour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowTheme::SetMetric(EThemeMetric eMetric, int32 iPixels)
+{
+	maiMetrics[eMetric] = iPixels;
+	mabMetricsSet[eMetric] = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A size that wasn't set is an error, as a colour is.  Zero.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CWindowTheme::GetMetric(EThemeMetric eMetric)
+{
+	if (!mabMetricsSet[eMetric])
+	{
+		gcLogger.Error2(__METHOD__, " Theme metric [", gaszThemeMetricNames[eMetric], "] isn't set.", NULL);
+	}
+	return maiMetrics[eMetric];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Tells the theme's users (its change event) that its colours, sizes or
 // images changed, so they lay out and draw again.
 //
@@ -270,5 +310,6 @@ Ptr<CMenuStyle> CWindowTheme::GetComboMenuStyle(void) { return mpComboMenuStyle;
 Ptr<CScrollBarImages> CWindowTheme::GetScrollBarImages(void) { return mpScrollBarImages; }
 bool CWindowTheme::IsColourSet(EThemeColour eColour) { return mabColoursSet[eColour]; }
 bool CWindowTheme::IsImageSet(EThemeImage eImage) { return maImages.Get(eImage).IsNotNull(); }
+bool CWindowTheme::IsMetricSet(EThemeMetric eMetric) { return mabMetricsSet[eMetric]; }
 CComponentEvent<CWindowTheme>* CWindowTheme::GetChangeEvent(void) { return &mcChangeEvent; }
 

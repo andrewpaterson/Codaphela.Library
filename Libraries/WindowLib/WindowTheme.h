@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MenuStyle.h"
 #include "ThemeColour.h"
 #include "ThemeImage.h"
+#include "ThemeMetric.h"
 #include "ComponentEvent.h"
 
 
@@ -47,27 +48,29 @@ enum EButtonLook
 //draws.  CJewelTheme makes IntelliJ IDEA's dark theme; a theme can be put together from other images instead, as the
 //tests do.
 //
-//A theme has no looks of its own: whoever makes it sets every colour its widgets use, and reading one that wasn't set
-//is an error, as is an icon.  The other images and styles start NULL and only the widgets that use them need them: a
+//A theme has no looks of its own: whoever makes it sets every colour, size and icon its widgets use, and reading one
+//that wasn't set is an error.  The other images and styles start NULL and only the widgets that use them need them: a
 //theme without check box images can't make check boxes.  Changed tells the theme's users that it changed.
 class CWindowTheme : public CObject
 {
 CONSTRUCTABLE(CWindowTheme);
 DESTRUCTABLE(CWindowTheme);
 protected:
-	Ptr<CFont>				mpFont;  //Of captions, text fields and combo boxes.
-	Ptr<CButtonImages>		mpButtonImages;
-	Ptr<CButtonImages>		mpDefaultButtonImages;  //Drawn instead while a button is its window's default.  Optional.
-	Ptr<CButtonImages>		mpSmallButtonImages;  //Optional, small buttons are normal without them.
-	Ptr<CButtonImages>		mpToolButtonImages;
-	Ptr<CCheckBoxImages>	mpCheckBoxImages;
-	Ptr<CMenuStyle>			mpMenuStyle;  //The menu bar and its menus.
-	Ptr<CMenuStyle>			mpComboMenuStyle;  //A combo box's list.
-	Ptr<CScrollBarImages>	mpScrollBarImages;
-	ARGB32					masColours[TC_NumColours];  //By EThemeColour.
-	bool					mabColoursSet[TC_NumColours];
+	Ptr<CFont>						mpFont;  //Of captions, text fields and combo boxes.
+	Ptr<CButtonImages>				mpButtonImages;
+	Ptr<CButtonImages>				mpDefaultButtonImages;  //Drawn instead while a button is its window's default.  Optional.
+	Ptr<CButtonImages>				mpSmallButtonImages;  //Optional, small buttons are normal without them.
+	Ptr<CButtonImages>				mpToolButtonImages;
+	Ptr<CCheckBoxImages>			mpCheckBoxImages;
+	Ptr<CMenuStyle>					mpMenuStyle;  //The menu bar and its menus.
+	Ptr<CMenuStyle>					mpComboMenuStyle;  //A combo box's list.
+	Ptr<CScrollBarImages>			mpScrollBarImages;
+	ARGB32							masColours[TC_NumColours];  //By EThemeColour.
+	bool							mabColoursSet[TC_NumColours];
+	int32							maiMetrics[TM_NumMetrics];  //By EThemeMetric.
+	bool							mabMetricsSet[TM_NumMetrics];
 	CComponentEvent<CWindowTheme>	mcChangeEvent;
-	CArray<CImageCel>		maImages;  //By EThemeImage, NULL for one not set.
+	CArray<CImageCel>				maImages;  //By EThemeImage, NULL for one not set.
 
 public:
 	void					Init(Ptr<CFont> pFont);
@@ -88,18 +91,21 @@ public:
 	void					SetColour(EThemeColour eColour, ARGB32 sColour);
 	bool					IsColourSet(EThemeColour eColour);
 	void					SetImage(EThemeImage eImage, Ptr<CImageCel> pImage);
+	void					SetMetric(EThemeMetric eMetric, int32 iPixels);
+	bool					IsMetricSet(EThemeMetric eMetric);
 	bool					IsImageSet(EThemeImage eImage);
 	void					Changed(void);
 
-	Ptr<CFont>				GetFont(void);
-	Ptr<CButtonImages>		GetButtonImages(EButtonLook eLook);
-	Ptr<CButtonImages>		GetDefaultButtonImages(EButtonLook eLook);
-	Ptr<CCheckBoxImages>	GetCheckBoxImages(void);
-	Ptr<CMenuStyle>			GetMenuStyle(void);
-	Ptr<CMenuStyle>			GetComboMenuStyle(void);
-	Ptr<CScrollBarImages>	GetScrollBarImages(void);
-	ARGB32					GetColour(EThemeColour eColour);
-	Ptr<CImageCel>			GetImage(EThemeImage eImage);
+	Ptr<CFont>						GetFont(void);
+	Ptr<CButtonImages>				GetButtonImages(EButtonLook eLook);
+	Ptr<CButtonImages>				GetDefaultButtonImages(EButtonLook eLook);
+	Ptr<CCheckBoxImages>			GetCheckBoxImages(void);
+	Ptr<CMenuStyle>					GetMenuStyle(void);
+	Ptr<CMenuStyle>					GetComboMenuStyle(void);
+	Ptr<CScrollBarImages>			GetScrollBarImages(void);
+	ARGB32							GetColour(EThemeColour eColour);
+	Ptr<CImageCel>					GetImage(EThemeImage eImage);
+	int32							GetMetric(EThemeMetric eMetric);
 	CComponentEvent<CWindowTheme>*	GetChangeEvent(void);
 };
 

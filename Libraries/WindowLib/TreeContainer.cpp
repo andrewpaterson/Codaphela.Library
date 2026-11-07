@@ -29,10 +29,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TreeContainer.h"
 
 
-#define TREE_CHEVRON_WIDTH	16
-#define TREE_ICON_WIDTH		20
-#define TREE_INDENT			16
-#define TREE_ROW_PADDING	4
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,9 +49,9 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
-	miIndent = TREE_INDENT;
+	miIndent = pTheme->GetMetric(TM_TreeIndent);
 	pFont = pTheme->GetFont();
-	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + TREE_ROW_PADDING;
+	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + pTheme->GetMetric(TM_TreeRowPadding);
 	mbRowsDirty = false;
 	SetDoubleClickActivates(true);
 	AddInputAction(CIC_Left, this, &CTreeContainer::Left);
@@ -565,7 +561,7 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 	pRow = OMalloc<CGridContainer>(mpWindow);
 	pRow->SetAlignment(CSH_Stretch, CSV_Center);
 	iColumn = 0;
-	iWidth = psNode->iDepth * miIndent + TREE_CHEVRON_WIDTH;
+	iWidth = psNode->iDepth * miIndent + mpTheme->GetMetric(TM_TreeChevronWidth);
 
 	pGap = OMalloc<CFillContainer>(mpWindow);
 	pGap->SetDesiredSize(psNode->iDepth * miIndent, miRowHeight);
@@ -573,24 +569,24 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 
 	if (psNode->iFirstChild != TREE_NO_NODE)
 	{
-		pIcon = OMalloc<CIconComponent>(mpWindow, mpTheme->GetImage(psNode->bExpanded ? TI_DownChevron : TI_Chevron), TREE_CHEVRON_WIDTH, miRowHeight);
+		pIcon = OMalloc<CIconComponent>(mpWindow, mpTheme->GetImage(psNode->bExpanded ? TI_DownChevron : TI_Chevron), mpTheme->GetMetric(TM_TreeChevronWidth), miRowHeight);
 		pIcon->SetCelAlignment(CSH_Center, CSV_Center);
 		pRow->AddComponent(pIcon, iColumn++, 0);
 	}
 	else
 	{
 		pGap = OMalloc<CFillContainer>(mpWindow);
-		pGap->SetDesiredSize(TREE_CHEVRON_WIDTH, miRowHeight);
+		pGap->SetDesiredSize(mpTheme->GetMetric(TM_TreeChevronWidth), miRowHeight);
 		pRow->AddComponent(pGap, iColumn++, 0);
 	}
 
 	pCel = maIcons.Get(iNode);
 	if (pCel.IsNotNull())
 	{
-		pIcon = OMalloc<CIconComponent>(mpWindow, pCel, TREE_ICON_WIDTH, miRowHeight);
+		pIcon = OMalloc<CIconComponent>(mpWindow, pCel, mpTheme->GetMetric(TM_TreeIconWidth), miRowHeight);
 		pIcon->SetCelAlignment(CSH_Left, CSV_Center);
 		pRow->AddComponent(pIcon, iColumn++, 0);
-		iWidth += TREE_ICON_WIDTH;
+		iWidth += mpTheme->GetMetric(TM_TreeIconWidth);
 	}
 
 	pFont = maFonts.Get(iNode);
@@ -637,7 +633,7 @@ bool CTreeContainer::IsOverChevron(int32 iRow, int x)
 		return false;
 	}
 	iLeft = psNode->iDepth * miIndent;
-	return (x >= iLeft) && (x < iLeft + TREE_CHEVRON_WIDTH);
+	return (x >= iLeft) && (x < iLeft + mpTheme->GetMetric(TM_TreeChevronWidth));
 }
 
 

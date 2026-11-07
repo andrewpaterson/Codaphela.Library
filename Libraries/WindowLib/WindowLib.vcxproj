@@ -237,6 +237,7 @@
     <ClInclude Include="DockArea.h" />
     <ClInclude Include="ThemeColour.h" />
     <ClInclude Include="ThemeImage.h" />
+    <ClInclude Include="ThemeMetric.h" />
     <ClInclude Include="DockDrag.h" />
     <ClInclude Include="DockEdge.h" />
     <ClInclude Include="DockFloatingWindow.h" />

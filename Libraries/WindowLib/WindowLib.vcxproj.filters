@@ -342,6 +342,9 @@
     <ClInclude Include="ThemeImage.h">
       <Filter>Source\Component\Theme</Filter>
     </ClInclude>
+    <ClInclude Include="ThemeMetric.h">
+      <Filter>Source\Component\Theme</Filter>
+    </ClInclude>
     <ClInclude Include="DockDrag.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>

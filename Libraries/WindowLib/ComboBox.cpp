@@ -24,7 +24,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComboBox.h"
 
 
-#define COMBO_BOX_CHEVRON_GAP	8  //The least space between the widest item's text and the chevron.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,11 +36,12 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
 	PreInit();
 
-	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), 6, 2);
+	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), pTheme->GetMetric(TM_FieldPaddingX), pTheme->GetMetric(TM_FieldPaddingY));
 	mpStyle = pTheme->GetComboMenuStyle();
 	mpFont = pTheme->GetFont();
 	mcSelectionChanged.Init();
 	miSelected = -1;
+	miChevronGap = pTheme->GetMetric(TM_ComboChevronGap);
 	SetCanGetFocus(true);
 
 	mpContent = OMalloc<CGridContainer>(pWindow);
@@ -51,7 +51,7 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpText = OMalloc<CLabel>(pWindow, mpFont, "");
 	mpText->SetAlignment(CSH_Left, CSV_Center);
 	mpContent->AddComponent(mpText, 0, 0, 1, 1, 1, 0);
-	mpChevron = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_DownChevron), 16);
+	mpChevron = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_DownChevron), pTheme->GetMetric(TM_ComboChevronWidth));
 	mpChevron->SetCelAlignment(CSH_Right, CSV_Center);
 	mpChevron->SetAlignment(CSH_Right, CSV_Center);
 	mpContent->AddComponent(mpChevron, 1, 0);
@@ -84,6 +84,7 @@ void CComboBox::Class(void)
 	M_Pointer(mpMenu);
 	U_Unknown(CComponentEvent<CComboBox>, mcSelectionChanged);
 	U_Int32(miSelected);
+	U_Int32(miChevronGap);
 }
 
 
@@ -242,7 +243,7 @@ SInt32Vec2 CComboBox::GetContentSize(void)
 			iMaxWidth = iWidth;
 		}
 	}
-	return SInt32Vec2(iMaxWidth + COMBO_BOX_CHEVRON_GAP + mpChevron->GetDesiredSize().x, mpFont->GetLineHeight());
+	return SInt32Vec2(iMaxWidth + miChevronGap + mpChevron->GetDesiredSize().x, mpFont->GetLineHeight());
 }
 
 

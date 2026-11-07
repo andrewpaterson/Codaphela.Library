@@ -35,7 +35,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 {
 	PreInit();
 
-	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), 6, 2);
+	CImageBorderContainer::Init(pWindow, pTheme->GetButtonImages(BL_Normal), pTheme->GetMetric(TM_FieldPaddingX), pTheme->GetMetric(TM_FieldPaddingY));
 	mcEditor.Init(szText == NULL ? "" : szText);
 	mcEditor.mbMultiLine = false;
 	mcEditor.SetPosition(mcEditor.Length());

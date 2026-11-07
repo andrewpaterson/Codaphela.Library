@@ -39,7 +39,7 @@ void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char*
 	mpImages = pTheme->GetCheckBoxImages();
 	mcChanged.Init();
 	meState = CBS_Normal;
-	miGap = 6;
+	miGap = pTheme->GetMetric(TM_CheckBoxGap);
 	mbTicked = bTicked;
 	mbPressed = false;
 	SetCanGetFocus(true);

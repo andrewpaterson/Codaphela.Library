@@ -54,6 +54,7 @@ protected:
 	Ptr<CMenuContainer>			mpMenu;
 	CComponentEvent<CComboBox>	mcSelectionChanged;
 	int32						miSelected;  //-1 if no item is chosen.
+	int32						miChevronGap;  //The least space between the widest item and the chevron.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);

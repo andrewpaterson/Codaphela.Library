@@ -10,7 +10,7 @@
 #include "DataTestRefWindow.h"
 
 
-Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont);
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
 Ptr<CFont> ReadLabelFont(void);
@@ -105,7 +105,7 @@ void TestTreeNodes(void)
 		pTestWindow = OMalloc<CWindow>("Tree Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
-		pTheme = CreateColouredTheme(ReadLabelFont());
+		pTheme = CreateTestTheme(ReadLabelFont());
 		CJewelTheme::SetImages(pTheme, pTestWindow);  //Its chevrons.
 		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
 		pTree->GetSelectionEvent()->Add(&cListener, &CTestTreeListener::SelectionChanged);

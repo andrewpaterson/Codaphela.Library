@@ -19,7 +19,7 @@
 #include "DarkForest.h"
 
 
-Ptr<CWindowTheme> CreateColouredTheme(Ptr<CFont> pFont);
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
 Ptr<CFont> ReadLabelFont(void);
@@ -80,7 +80,7 @@ Ptr<CWindowTheme> CreateButtonTheme(Ptr<CFont> pFont, Ptr<CButtonImages> pImages
 {
 	Ptr<CWindowTheme>	pTheme;
 
-	pTheme = CreateColouredTheme(pFont);
+	pTheme = CreateTestTheme(pFont);
 	pTheme->SetButtonImages(pImages, pDefaultImages);
 	return pTheme;
 }

@@ -26,12 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TabComponent.h"
 
 
-#define TAB_SIDE_GAP		10	//Pixels from the tab's sides to its icon, name or cross.
-#define TAB_GAP				6	//Between the icon, the name and the cross.
-#define TAB_TOP_GAP			7
-#define TAB_BOTTOM_GAP		4	//Above the underline.
-#define TAB_UNDERLINE		3
-#define TAB_ICON_SIZE		16
 #define TAB_DRAG_DISTANCE	6	//Pixels a pressed tab is pulled before it is dragged.
 
 
@@ -78,15 +72,15 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pBackground, 0, 0, TT_NumColumns, 4);
 
-	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), TAB_SIDE_GAP, TAB_TOP_GAP), TT_LeftGap, 0);
-	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), TAB_SIDE_GAP, TAB_BOTTOM_GAP), TT_RightGap, 2);
+	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), pTheme->GetMetric(TM_TabSideGap), pTheme->GetMetric(TM_TabTopGap)), TT_LeftGap, 0);
+	AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), pTheme->GetMetric(TM_TabSideGap), pTheme->GetMetric(TM_TabBottomGap)), TT_RightGap, 2);
 
 	mpIcon = NULL;
 	if (pIcon)
 	{
-		mpIcon = OMalloc<CIconComponent>(pWindow, pIcon, TAB_ICON_SIZE, TAB_ICON_SIZE);
+		mpIcon = OMalloc<CIconComponent>(pWindow, pIcon, pTheme->GetMetric(TM_TabIconSize), pTheme->GetMetric(TM_TabIconSize));
 		AddComponent(mpIcon, TT_Icon, 1);
-		AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), TAB_GAP, 1), TT_IconGap, 1);
+		AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), pTheme->GetMetric(TM_TabGap), 1), TT_IconGap, 1);
 	}
 
 	mpName = OMalloc<CLabel>(pWindow, pTheme->GetFont(), szName);
@@ -95,14 +89,14 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	mpClose = NULL;
 	if (bClosable && pTheme->IsImageSet(TI_TabClose))
 	{
-		mpClose = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_TabClose), TAB_ICON_SIZE, TAB_ICON_SIZE);
-		AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), TAB_GAP, 1), TT_CloseGap, 1);
+		mpClose = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_TabClose), pTheme->GetMetric(TM_TabIconSize), pTheme->GetMetric(TM_TabIconSize));
+		AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), pTheme->GetMetric(TM_TabGap), 1), TT_CloseGap, 1);
 		AddComponent(mpClose, TT_Close, 1);
 	}
 
 	mpUnderlineDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_TabBar));
 	pUnderline = OMalloc<CCanvas>(pWindow, mpUnderlineDraw);
-	pUnderline->SetDesiredSize(-1, TAB_UNDERLINE);
+	pUnderline->SetDesiredSize(-1, pTheme->GetMetric(TM_TabUnderline));
 	pUnderline->SetAlignment(CSH_Stretch, CSV_Stretch);
 	AddComponent(pUnderline, 0, 3, TT_NumColumns, 1);
 
