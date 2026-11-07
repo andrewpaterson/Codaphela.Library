@@ -695,18 +695,7 @@ bool CTextField::WantsEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::UpdateLook(void)
 {
-	if (HasFocus())
-	{
-		SetBorderState(BS_Focussed);
-	}
-	else if (IsMouseOver())
-	{
-		SetBorderState(BS_MouseOver);
-	}
-	else
-	{
-		SetBorderState(BS_Normal);
-	}
+	UpdateBorderState(HasFocus());
 }
 
 

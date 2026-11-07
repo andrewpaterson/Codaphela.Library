@@ -379,18 +379,7 @@ bool CComboBox::WantsEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CComboBox::UpdateLook(void)
 {
-	if (HasFocus() || IsOpen())
-	{
-		SetBorderState(BS_Focussed);
-	}
-	else if (IsMouseOver())
-	{
-		SetBorderState(BS_MouseOver);
-	}
-	else
-	{
-		SetBorderState(BS_Normal);
-	}
+	UpdateBorderState(HasFocus() || IsOpen());
 }
 
 

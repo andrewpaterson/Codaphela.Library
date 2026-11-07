@@ -146,6 +146,30 @@ void CImageBorderContainer::SetBorderState(EButtonState eState)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The border as a field's (a text field's, a combo box's): the focus ring
+// while focussed, the mouse over look while the pointer is over it, and
+// normal otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBorderContainer::UpdateBorderState(bool bFocussed)
+{
+	if (bFocussed)
+	{
+		SetBorderState(BS_Focussed);
+	}
+	else if (IsMouseOver())
+	{
+		SetBorderState(BS_MouseOver);
+	}
+	else
+	{
+		SetBorderState(BS_Normal);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Draws the border with other images, like a button that has become the
 // default.  They must have the same tile size.
 //

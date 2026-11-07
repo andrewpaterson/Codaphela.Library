@@ -64,6 +64,7 @@ public:
 	void				SetImages(Ptr<CButtonImages> pImages);
 	Ptr<CButtonImages>	GetImages(void);
 	void				SetBorderState(EButtonState eState);
+	void				UpdateBorderState(bool bFocussed);
 	EButtonState		GetBorderState(void);
 
 
