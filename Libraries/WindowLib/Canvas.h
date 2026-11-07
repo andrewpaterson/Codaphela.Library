@@ -47,6 +47,8 @@ protected:
 	SInt32Vec2			msNativeSize;  //The size the native canvas should be.
 	bool				mbContentDirty;  //The canvas draws itself again at the next paint; until then its native canvas holds what it last drew.
 	bool				mbClearBeforeDraw;  //The native canvas holds what was drawn for another part of the canvas, see PrepareArea.
+	bool				mbPaintClipped;  //Only the window's canvas, while a partial paint draws mcPaintClip of it.
+	CInt32Rect			mcPaintClip;  //In the canvas's space, right and bottom exclusive.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
@@ -95,6 +97,9 @@ public:
 	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);  //These three are in the canvas's space and cut to its native canvas.
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
+	void				SetPaintClip(CInt32Rect* pcClip);
+	void				ClearPaintClip(void);
+	bool				GetPaintClip(CInt32Rect* pcDest);
 
 	SInt32Vec2			GetDesiredSize(void) override;
 
@@ -106,6 +111,7 @@ protected:
 	void				MarkContentChanged(void) override;
 	EColourFormat		GetTransparentColourFormat(void);
 	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
+	void				GetDrawableBounds(CInt32Rect* pcDest);
 };
 
 

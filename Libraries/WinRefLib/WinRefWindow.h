@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Int32Rect.h"
 #include "WindowLib/NativeWindow.h"
 #include "WinRefCanvas.h"
+#include "WindowLib/DamageArea.h"
 
 
 class CWinRefWindow : public CNativeWindow
@@ -33,22 +34,26 @@ protected:
 	bool		mbCreated;
 	char*		mszImagePath;
 	uint64		muiFrame;
+	CDamageArea	mcPresented;  //What was asked to be shown since ClearPresented, for tests.
 
 public:
-	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CInt32Rect* pcBounds, char* szImagePath);
-	void	Kill(void);
+	void			Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CInt32Rect* pcBounds, char* szImagePath);
+	void			Kill(void);
 
-	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
+	void			Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
 
-	bool	CreateNativeWindow(void) override;
-	bool	ExecuteNativeWindow(void) override;
-	void	DestroyNativeWindow(void) override;
+	bool			CreateNativeWindow(void) override;
+	bool			ExecuteNativeWindow(void) override;
+	void			DestroyNativeWindow(void) override;
 
-	void	GetRectangle(CInt32Rect* pcDest) override;
-	void	SignalPresent(void) override;
-	void	SetScreenRectangle(CInt32Rect* pcRectangle) override;
-	bool	IsCreated(void) override;
-	bool	GetScreenArea(CInt32Rect* pcDest) override;
+	void			GetRectangle(CInt32Rect* pcDest) override;
+	void			SignalPresent(void) override;
+	void			SignalPresentArea(CInt32Rect* pcArea) override;
+	CDamageArea*	GetPresented(void);
+	void			ClearPresented(void);
+	void			SetScreenRectangle(CInt32Rect* pcRectangle) override;
+	bool			IsCreated(void) override;
+	bool			GetScreenArea(CInt32Rect* pcDest) override;
 };
 
 

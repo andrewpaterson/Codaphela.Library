@@ -41,6 +41,7 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
     mcWindowBounds.Init(pcBounds);
     mszImagePath = szImagePath;
     muiFrame = 0;
+    mcPresented.Init();
 }
 
 
@@ -128,7 +129,41 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::SignalPresent(void)
 {
+    mcPresented.AddAll();
     CNativeWindow::Present();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only pcArea changed.  The reference window still saves all of it, but
+// notes what it was asked to show.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::SignalPresentArea(CInt32Rect* pcArea)
+{
+    mcPresented.Add(pcArea);
+    CNativeWindow::Present();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDamageArea* CWinRefWindow::GetPresented(void)
+{
+    return &mcPresented;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::ClearPresented(void)
+{
+    mcPresented.Clear();
 }
 
 

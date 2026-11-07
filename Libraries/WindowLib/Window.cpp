@@ -89,6 +89,9 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mszWindowTitle.Init(szTitle);
 	mcDamage.Init();
 	mcPaintedDamage.Init();
+	mbPartialRedraw = false;
+	mbVerifyRedraw = false;
+	muiRedrawMismatches = 0;
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
@@ -174,6 +177,9 @@ void CWindow::Class(void)
 	U_Bool(mbCaretPainted);
 	U_Data(CDamageArea, mcDamage);
 	U_Data(CDamageArea, mcPaintedDamage);
+	U_Bool(mbPartialRedraw);
+	U_Bool(mbVerifyRedraw);
+	U_Size(muiRedrawMismatches);
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
 	M_Embedded(mcFocus);
@@ -360,6 +366,233 @@ bool CWindow::IsFrameDue(void)
 {
 	return (GetDebugTickCount() - miLastPaintTime) >= muiFrameMilliseconds;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this paint can draw only what was damaged: the window redraws
+// partially, its canvas still fits it (it wasn't resized or shown for
+// the first time) and its background is one colour that can be drawn in
+// any part of it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::CanPaintPartially(void)
+{
+	ARGB32				sColour;
+	Ptr<CCanvasDraw>	pDraw;
+
+	if (!mbPartialRedraw || (mpCanvas->GetNativeCanvas() == NULL) || mpCanvas->HasNativeChanged())
+	{
+		return false;
+	}
+	pDraw = mpCanvas->GetCanvasDraw();
+	return pDraw.IsNull() || pDraw->GetSolidColour(&sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws the damaged parts of the window, each in turn with nothing drawn
+// outside it: its background and, in order, everything over it.
+// Canvases that didn't change copy what they last drew.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Composite(void)
+{
+	size	i;
+
+	if (mcDamage.IsAll())
+	{
+		mpCanvas->ClearPaintClip();
+		Draw();
+		return;
+	}
+
+	for (i = 0; i < mcDamage.NumRectangles(); i++)
+	{
+		mpCanvas->SetPaintClip(mcDamage.GetRectangle(i));
+		Draw();
+	}
+	mpCanvas->ClearPaintClip();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The canvases a partial paint left wrong under pcArea.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendDrawnAt(Ptr<CComponent> pComponent, CInt32Rect* pcArea, CChars* psz)
+{
+	CInt32Rect	cDrawn;
+	size		i;
+
+	pComponent->GetDrawnArea(&cDrawn);
+	if (cDrawn.Intersect(pcArea))
+	{
+		psz->Append(" ");
+		psz->Append(pComponent->ClassName());
+	}
+	for (i = 0; i < pComponent->NumComponents(); i++)
+	{
+		AppendDrawnAt(pComponent->GetComponent(i), pcArea, psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws all of the window again over what the partial paint drew and
+// logs where they differ: a canvas that changed without being
+// invalidated, or something that moved without its area being damaged.
+// The window is then all of it drawn, so it shows correctly, and all of
+// it is shown if they differed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::VerifyRedraw(void)
+{
+	Ptr<CImage>	pImage;
+	size		uiBytes;
+	size		uiPixelBytes;
+	uint8*		puiPartial;
+	uint8*		puiFull;
+	int32		x;
+	int32		y;
+	int32		iWidth;
+	int32		iHeight;
+	CInt32Rect	cDiffers;
+	size		uiPixels;
+	CChars		sz;
+	CDamageArea	cPartial;
+
+	pImage = mpCanvas->GetImageOrNull();
+	if (pImage.IsNull())
+	{
+		return;
+	}
+	iWidth = (int32)pImage->GetWidth();
+	iHeight = (int32)pImage->GetHeight();
+	uiBytes = pImage->GetByteSize();
+	if ((iWidth <= 0) || (iHeight <= 0))
+	{
+		return;
+	}
+	uiPixelBytes = uiBytes / ((size)iWidth * (size)iHeight);
+	puiPartial = (uint8*)malloc(uiBytes);
+	memcpy(puiPartial, pImage->GetData(), uiBytes);
+
+	cPartial = mcDamage;
+	ContentChanged();
+	mcDamage.AddAll();
+	Composite();
+
+	puiFull = (uint8*)pImage->GetData();
+	uiPixels = 0;
+	cDiffers.Init(iWidth, iHeight, 0, 0);
+	for (y = 0; y < iHeight; y++)
+	{
+		if (memcmp(&puiPartial[(size)y * iWidth * uiPixelBytes], &puiFull[(size)y * iWidth * uiPixelBytes], iWidth * uiPixelBytes) == 0)
+		{
+			continue;
+		}
+		for (x = 0; x < iWidth; x++)
+		{
+			if (memcmp(&puiPartial[((size)y * iWidth + x) * uiPixelBytes], &puiFull[((size)y * iWidth + x) * uiPixelBytes], uiPixelBytes) != 0)
+			{
+				uiPixels++;
+				cDiffers.GrowToContain(x, y);
+			}
+		}
+	}
+	SafeFree(puiPartial);
+
+	if (uiPixels > 0)
+	{
+		muiRedrawMismatches++;
+		sz.Init(" A partial paint of [");
+		sz.Append(mszWindowTitle.Text());
+		sz.Append("] differs from drawing all of it in ");
+		sz.Append((uint64)uiPixels);
+		sz.Append(" pixels from [");
+		sz.Append(cDiffers.GetLeft());
+		sz.Append(", ");
+		sz.Append(cDiffers.GetTop());
+		sz.Append("] to [");
+		sz.Append(cDiffers.GetRight());
+		sz.Append(", ");
+		sz.Append(cDiffers.GetBottom());
+		sz.Append("], drawn by:");
+		AppendDrawnAt(mpCanvas, &cDiffers, &sz);
+		gcLogger.Error2(__METHOD__, sz.Text(), NULL);
+		sz.Kill();
+	}
+	else
+	{
+		//They match, so only what the partial paint drew need be shown.
+		mcDamage = cPartial;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows what this paint drew: all of the window, or its damaged parts and
+// the caret drawn over them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PresentDamage(void)
+{
+	size	i;
+
+	if (mcDamage.IsAll())
+	{
+		mpcNativeWindow->SignalPresent();
+		return;
+	}
+	for (i = 0; i < mcDamage.NumRectangles(); i++)
+	{
+		mpcNativeWindow->SignalPresentArea(mcDamage.GetRectangle(i));
+	}
+	if (mbCaretPainted)
+	{
+		mpcNativeWindow->SignalPresentArea(&mcCaret);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Paints draw only what changed: components that were invalidated, moved,
+// appeared or went, and what is over and under them.  Everything else
+// keeps what it last drew.  Off, every paint draws all of the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetPartialRedraw(bool bPartialRedraw)
+{
+	mbPartialRedraw = bPartialRedraw;
+	Invalidate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each partial paint also draws all of the window and logs where the two
+// differ, finding what changed without being invalidated.  Slow; for
+// tests and while making a window redraw partially.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetVerifyRedraw(bool bVerifyRedraw)
+{
+	mbVerifyRedraw = bVerifyRedraw;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsPartialRedraw(void) { return mbPartialRedraw; }
+size CWindow::GetRedrawMismatches(void) { return muiRedrawMismatches; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -580,14 +813,29 @@ void CWindow::Paint(void)
 	PrepareDraw(true, false, NULL);
 	mcPaintedDamage = mcDamage;
 
-	//Everything is drawn again.
-	ContentChanged();
-	mcDamage.AddAll();
-	Draw();
-	mcDamage.Clear();
+	//The caret was drawn into the window: what it covered is drawn again.
+	if (mbCaretPainted)
+	{
+		AddDamage(&mcCaret);
+	}
+
+	if (!CanPaintPartially())
+	{
+		ContentChanged();
+		mcDamage.AddAll();
+	}
+	if (!mcDamage.IsEmpty())
+	{
+		Composite();
+		if (mbVerifyRedraw && !mcDamage.IsAll())
+		{
+			VerifyRedraw();
+		}
+	}
 
 	PaintCaret();
-	mpcNativeWindow->SignalPresent();
+	PresentDamage();
+	mcDamage.Clear();
 
 	//Anything changed while painting was painted.
 	mbRedraw = false;

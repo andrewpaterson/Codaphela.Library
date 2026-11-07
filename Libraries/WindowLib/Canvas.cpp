@@ -44,6 +44,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHe
 	msNativeSize.Zero();
 	mbContentDirty = true;
 	mbClearBeforeDraw = false;
+	mbPaintClipped = false;
+	mcPaintClip.Init(0, 0, 0, 0);
 
 	PostInit();
 }
@@ -68,6 +70,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	msNativeSize.Zero();
 	mbContentDirty = true;
 	mbClearBeforeDraw = false;
+	mbPaintClipped = false;
+	mcPaintClip.Init(0, 0, 0, 0);
 
 	PostInit();
 }
@@ -105,6 +109,8 @@ void CCanvas::Class(void)
 	U_2Int32(msNativeSize);
 	U_Bool(mbContentDirty);
 	U_Bool(mbClearBeforeDraw);
+	U_Bool(mbPaintClipped);
+	U_Data(CInt32Rect, mcPaintClip);
 }
 
 
@@ -147,6 +153,7 @@ bool CCanvas::Draw(void)
 	Ptr<CCanvas>			pWindowCanvas;
 	ARGB32					sColour;
 	CInt32Rect				cArea;
+	CInt32Rect				cClip;
 
 	//The window's own canvas draws its background into itself.
 	pWindowCanvas = mpWindow->GetCanvas();
@@ -165,9 +172,13 @@ bool CCanvas::Draw(void)
 		return CComponent::Draw();
 	}
 
-	//A canvas that shows nowhere, like a label with no text or one scrolled out of sight, draws nothing.  Its children
-	//might still show.
+	//A canvas that shows nowhere, like a label with no text or one scrolled out of sight, draws nothing, nor does one
+	//outside what a partial paint draws.  Its children might still show.
 	if ((mcDrawnArea.GetWidth() <= 0) || (mcDrawnArea.GetHeight() <= 0))
+	{
+		return CComponent::Draw();
+	}
+	if (pWindowCanvas->GetPaintClip(&cClip) && !mcDrawnArea.Intersect(&cClip))
 	{
 		return CComponent::Draw();
 	}
@@ -483,9 +494,29 @@ void CCanvas::UpdateNativeArea(bool bClipped, CInt32Rect* pcClip)
 void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
+	CInt32Rect		cClip;
 
+	if (mpcNativeCanvas == NULL)
+	{
+		return;
+	}
 	pcSourceNativeCanvas = pSourceCanvas->GetNativeCanvas();
-	mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas, pcClip);
+	if (!mbPaintClipped)
+	{
+		mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas, pcClip);
+		return;
+	}
+
+	//A partial paint only draws inside its clip.
+	cClip.Init(&mcPaintClip);
+	if (pcClip)
+	{
+		cClip.ClipTo(pcClip);
+	}
+	if ((cClip.GetWidth() > 0) && (cClip.GetHeight() > 0))
+	{
+		mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas, &cClip);
+	}
 }
 
 
@@ -498,7 +529,8 @@ void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 	int		iLeft;
 	int		iTop;
 	int		iRight;
-	int		iBottom;
+	int			iBottom;
+	CInt32Rect	cDrawable;
 
 	if (mpcNativeCanvas == NULL)
 	{
@@ -510,11 +542,12 @@ void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 	iTop = pcRect->msTopLeft.y - msNativeOrigin.y;
 	iRight = pcRect->msBottomRight.x - msNativeOrigin.x;
 	iBottom = pcRect->msBottomRight.y - msNativeOrigin.y;
+	GetDrawableBounds(&cDrawable);
 	if (bFilled)
 	{
 		DrawFilledBoxClipped(iLeft, iTop, iRight, iBottom, sColour);
 	}
-	else if ((iLeft >= 0) && (iTop >= 0) && (iRight < msNativeSize.x) && (iBottom < msNativeSize.y))
+	else if ((iLeft >= cDrawable.GetLeft()) && (iTop >= cDrawable.GetTop()) && (iRight < cDrawable.GetRight()) && (iBottom < cDrawable.GetBottom()))
 	{
 		CInt32Rect	cRect;
 
@@ -539,22 +572,24 @@ void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 void CCanvas::DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour)
 {
 	CInt32Rect	cRect;
+	CInt32Rect	cDrawable;
 
-	if (iLeft < 0)
+	GetDrawableBounds(&cDrawable);
+	if (iLeft < cDrawable.GetLeft())
 	{
-		iLeft = 0;
+		iLeft = cDrawable.GetLeft();
 	}
-	if (iTop < 0)
+	if (iTop < cDrawable.GetTop())
 	{
-		iTop = 0;
+		iTop = cDrawable.GetTop();
 	}
-	if (iRight >= msNativeSize.x)
+	if (iRight >= cDrawable.GetRight())
 	{
-		iRight = msNativeSize.x - 1;
+		iRight = cDrawable.GetRight() - 1;
 	}
-	if (iBottom >= msNativeSize.y)
+	if (iBottom >= cDrawable.GetBottom())
 	{
-		iBottom = msNativeSize.y - 1;
+		iBottom = cDrawable.GetBottom() - 1;
 	}
 	if ((iLeft > iRight) || (iTop > iBottom))
 	{
@@ -571,16 +606,75 @@ void CCanvas::DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom,
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 {
+	CInt32Rect	cDrawable;
+
 	if (mpcNativeCanvas == NULL)
 	{
 		return;
 	}
 	iX -= msNativeOrigin.x;
 	iY -= msNativeOrigin.y;
-	if ((iX >= 0) && (iY >= 0) && (iX < msNativeSize.x) && (iY < msNativeSize.y))
+	GetDrawableBounds(&cDrawable);
+	if (cDrawable.ContainsPoint(iX, iY))
 	{
 		mpcNativeCanvas->DrawPixel(iX, iY, sColour);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What of the native canvas may be drawn on, in its space, right and
+// bottom exclusive: all of it, or what a partial paint's clip leaves.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::GetDrawableBounds(CInt32Rect* pcDest)
+{
+	CInt32Rect	cClip;
+
+	pcDest->Init(0, 0, msNativeSize.x, msNativeSize.y);
+	if (mbPaintClipped)
+	{
+		cClip.Init(mcPaintClip.GetLeft() - msNativeOrigin.x, mcPaintClip.GetTop() - msNativeOrigin.y, mcPaintClip.GetRight() - msNativeOrigin.x, mcPaintClip.GetBottom() - msNativeOrigin.y);
+		pcDest->ClipTo(&cClip);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window's canvas, while a partial paint draws only pcClip of it (in
+// the canvas's space): nothing drawn on it touches anything outside.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::SetPaintClip(CInt32Rect* pcClip)
+{
+	mbPaintClipped = true;
+	mcPaintClip.Init(pcClip);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::ClearPaintClip(void)
+{
+	mbPaintClipped = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::GetPaintClip(CInt32Rect* pcDest)
+{
+	if (mbPaintClipped)
+	{
+		pcDest->Init(&mcPaintClip);
+	}
+	return mbPaintClipped;
 }
 
 

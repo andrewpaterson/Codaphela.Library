@@ -9,6 +9,8 @@
 #include "WindowLib/WindowTheme.h"
 #include "WindowLib/DamageArea.h"
 #include "WinRefLib/WinRefWindowFactory.h"
+#include "WinRefLib/WinRefWindow.h"
+#include "WindowLib/RoundedBoxCanvasDraw.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertGeometric.h"
 #include "BoxFillCanvasDraw.h"
@@ -110,6 +112,8 @@ struct SDamageWindow
 	Ptr<CCanvas>				pFixed;
 	Ptr<CScrollPane>			pScrollPane;
 	Ptr<CCanvas>				pScrolled;
+	Ptr<CCanvas>				pSolid;  //Only made by CreatePartialWindow.
+	Ptr<CCanvas>				pRounded;
 	SDataTestRefWindow			cData;
 };
 
@@ -151,6 +155,8 @@ static void CreateDamageWindow(SDamageWindow* psWindow, CWinRefWindowFactory* pc
 
 static void KillDamageWindow(SDamageWindow* psWindow)
 {
+	psWindow->pRounded = NULL;
+	psWindow->pSolid = NULL;
 	psWindow->pScrolled = NULL;
 	psWindow->pScrollPane = NULL;
 	psWindow->pFixed = NULL;
@@ -301,6 +307,177 @@ void TestPartialRedrawDamage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The damage window redrawing partially and checked against drawing all
+// of it, with a solid fill and a transparent rounded box over the grid's
+// background too.
+//
+//////////////////////////////////////////////////////////////////////////
+static void CreatePartialWindow(SDamageWindow* psWindow, CWinRefWindowFactory* pcFactory)
+{
+	SInsets		sInsets;
+
+	CreateDamageWindow(psWindow, pcFactory);
+	psWindow->pSolid = OMalloc<CCanvas>(psWindow->pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(0.5f, 0.5f, 0.5f)));
+	psWindow->pSolid->SetDesiredSize(12, 12);
+	psWindow->pSolid->SetAlignment(CSH_Left, CSV_Top);
+	sInsets.Init(1, 1);
+	psWindow->pRounded = OMalloc<CCanvas>(psWindow->pWindow, OMalloc<CRoundedBoxCanvasDraw>(Set32BitColour(0, 1.0f, 1.0f), 4, &sInsets));
+	psWindow->pRounded->SetTransparent(true);
+	psWindow->pRounded->SetDesiredSize(14, 14);
+	psWindow->pRounded->SetAlignment(CSH_Left, CSV_Top);
+	psWindow->pGrid->AddComponent(psWindow->pSolid, 1, 1);
+	psWindow->pGrid->AddComponent(psWindow->pRounded, 2, 1);
+	psWindow->pWindow->SetPartialRedraw(true);
+	psWindow->pWindow->SetVerifyRedraw(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window drawing only what changed shows exactly what drawing all of it
+// would, through invalidations, a canvas growing and moving another, one
+// taken out, scrolling and a popup; and only shows what changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawMatchesFull(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "PartialRedrawMatches";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	{
+		SDamageWindow			sWindow;
+		Ptr<CCanvas>			pPopupContent;
+		CWinRefWindow*			pcNative;
+		CDamageArea*			pcPresented;
+		CInt32Rect				cArea;
+		CPointer				pNull;
+
+		CreatePartialWindow(&sWindow, &cFactory);
+		pcNative = (CWinRefWindow*)sWindow.pWindow->GetNativeWindow();
+		pcPresented = pcNative->GetPresented();
+
+		//The first paint draws all of it.
+		sWindow.pWindow->Paint();
+		AssertTrue(pcPresented->IsAll());
+
+		//Nothing changed: nothing is drawn or shown.
+		pcNative->ClearPresented();
+		sWindow.pWindow->Paint();
+		AssertTrue(pcPresented->IsEmpty());
+
+		//A canvas changes colour and says so.
+		pcNative->ClearPresented();
+		((CBoxFillCanvasDraw*)&sWindow.pFirst->GetCanvasDraw())->SetColour(Set32BitColour(1.0f, 0.5f, 0));
+		sWindow.pFirst->Invalidate();
+		sWindow.pWindow->Paint();
+		sWindow.pFirst->GetDrawnArea(&cArea);
+		AssertFalse(pcPresented->IsAll());
+		AssertTrue(pcPresented->Intersects(&cArea));
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//The transparent box over the background and a solid fill.
+		sWindow.pRounded->Invalidate();
+		sWindow.pSolid->Invalidate();
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//Growing moves the second canvas.
+		sWindow.pFirst->SetDesiredSize(20, 30);
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//Taken out, the background shows where it was.
+		AssertTrue(sWindow.pGrid->RemoveComponent(sWindow.pSecond));
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//Scrolled.
+		sWindow.pScrollPane->SetScrollPosition(0, 15);
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+		sWindow.pScrollPane->SetScrollPosition(0, 3);
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//A popup over the canvases, opened and closed.
+		pPopupContent = CreateBoxFill(sWindow.pWindow, Set32BitColour(1.0f, 0, 1.0f), 30, 20);
+		sWindow.pWindow->OpenPopup(pPopupContent, SInt32Vec2(10, 5), pNull);
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+		AssertTrue(sWindow.pWindow->ClosePopup(pPopupContent));
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		pPopupContent = NULL;
+		KillDamageWindow(&sWindow);
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A canvas that changes without being invalidated keeps showing what it
+// last drew in a partial paint; checking against drawing all of the
+// window finds it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawVerifyFindsStale(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "PartialRedrawStale";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	{
+		SDamageWindow			sWindow;
+		SLogConfig				sLogConfig;
+
+		CreatePartialWindow(&sWindow, &cFactory);
+		sWindow.pWindow->Paint();
+		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
+
+		//The first changes colour without saying so; something else changing makes the window paint.
+		((CBoxFillCanvasDraw*)&sWindow.pFirst->GetCanvasDraw())->SetColour(Set32BitColour(1.0f, 0.5f, 0));
+		sWindow.pFixed->Invalidate();
+		sLogConfig = gcLogger.SetSilent();
+		sWindow.pWindow->Paint();
+		gcLogger.SetConfig(&sLogConfig);
+		AssertSize(1, sWindow.pWindow->GetRedrawMismatches());
+
+		//Checking drew all of the window, so it is right again.
+		sWindow.pFixed->Invalidate();
+		sWindow.pWindow->Paint();
+		AssertSize(1, sWindow.pWindow->GetRedrawMismatches());
+
+		KillDamageWindow(&sWindow);
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedraw(void)
@@ -309,6 +486,8 @@ void TestPartialRedraw(void)
 
 	TestDamageArea();
 	TestPartialRedrawDamage();
+	TestPartialRedrawMatchesFull();
+	TestPartialRedrawVerifyFindsStale();
 
 	TestStatistics();
 }

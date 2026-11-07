@@ -85,6 +85,9 @@ protected:
 	bool						mbCaretPainted;  //The caret's place was kept by the last paint: blinking only changes it.
 	CDamageArea					mcDamage;  //What must be drawn again at the next paint, see AddDamage.
 	CDamageArea					mcPaintedDamage;  //What changed for the last paint, whether or not all of the window was drawn.
+	bool						mbPartialRedraw;  //Paints draw only what was damaged, see SetPartialRedraw.
+	bool						mbVerifyRedraw;  //Each partial paint is checked against drawing all of the window, see SetVerifyRedraw.
+	size						muiRedrawMismatches;  //Partial paints that differed from drawing all of the window.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -123,6 +126,10 @@ public:
 	void						AddDamage(CInt32Rect* pcArea);
 	void						RequestPaint(void);
 	CDamageArea*				GetPaintedDamage(void);
+	void						SetPartialRedraw(bool bPartialRedraw);
+	bool						IsPartialRedraw(void);
+	void						SetVerifyRedraw(bool bVerifyRedraw);
+	size						GetRedrawMismatches(void);
 	void						RequestTick(uint32 uiMilliseconds);
 	void						SetContinuous(bool bContinuous);
 	bool						IsContinuous(void);
@@ -193,6 +200,10 @@ protected:
 	bool					IsFrameDue(void);
 	void					PaintOwned(bool bContinuous);
 	void					PaintCaret(void);
+	bool					CanPaintPartially(void);
+	void					Composite(void);
+	void					VerifyRedraw(void);
+	void					PresentDamage(void);
 	void					DrawCaret(bool bOn);
 	void					CreateOwned(void);
 	void					SetOwnedEnabled(bool bEnabled);
