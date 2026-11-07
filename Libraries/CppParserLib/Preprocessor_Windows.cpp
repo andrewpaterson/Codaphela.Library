@@ -25,8 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // The Microsoft compiler's own macros, as the compiler building this
-// defines them (__COUNTER__ is every platform's: Init adds it).  The
-// Windows version macros are 0 when the build doesn't set them.
+// defines them (__COUNTER__ is every platform's: Init adds it).  Those it
+// only defines, such as _WIN32 and _DEBUG, are 1 as the compiler's are, so
+// #if _WIN32 works.  The Windows version macros are 0 when the build
+// doesn't set them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::InitPlatformSpecific(void)
@@ -50,7 +52,7 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _CHAR_UNSIGNED
-	AddDefine("_CHAR_UNSIGNED");
+	AddNumberDefine("_CHAR_UNSIGNED", 1);
 #endif
 
 #ifdef __CLR_VER
@@ -58,11 +60,11 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _DEBUG
-	AddDefine("_DEBUG");
+	AddNumberDefine("_DEBUG", 1);
 #endif
 
 #ifdef _DLL
-	AddDefine("_DLL");
+	AddNumberDefine("_DLL", 1);
 #endif
 
 #ifdef _INTEGRAL_MAX_BITS
@@ -70,7 +72,7 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _MANAGED
-	AddDefine("_MANAGED");
+	AddNumberDefine("_MANAGED", 1);
 #endif
 
 #ifdef _MFC_VER
@@ -86,23 +88,23 @@ void CPreprocessor::InitPlatformSpecific(void)
 #endif
 
 #ifdef _MT
-	AddDefine("_MT");
+	AddNumberDefine("_MT", 1);
 #endif
 
 #ifdef _NATIVE_WCHAR_T_DEFINED
-	AddDefine("_NATIVE_WCHAR_T_DEFINED");
+	AddNumberDefine("_NATIVE_WCHAR_T_DEFINED", 1);
 #endif
 
 #ifdef _WCHAR_T_DEFINED
-	AddDefine("_WCHAR_T_DEFINED");
+	AddNumberDefine("_WCHAR_T_DEFINED", 1);
 #endif
 
 #ifdef _WIN32
-	AddDefine("_WIN32");
+	AddNumberDefine("_WIN32", 1);
 #endif
 
 #ifdef _WIN64
-	AddDefine("_WIN64");
+	AddNumberDefine("_WIN64", 1);
 #endif
 
 #ifdef _MSC_FULL_VER
