@@ -222,7 +222,6 @@
     <ClInclude Include="PrimitiveClasses.h" />
     <ClInclude Include="RemovalPointerContainer.h" />
     <ClInclude Include="SetIterator.h" />
-    <ClInclude Include="SortPointersHelper.h" />
     <ClInclude Include="UnmanagedClasses.h" />
     <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentReadObject.h" />
@@ -359,7 +358,6 @@
     <ClCompile Include="Pointer.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />
     <ClCompile Include="RemovalPointerContainer.cpp" />
-    <ClCompile Include="SortPointersHelper.cpp" />
     <ClCompile Include="UnmanagedClasses.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />

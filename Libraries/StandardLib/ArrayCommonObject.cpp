@@ -21,7 +21,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
-#include "SortPointersHelper.h"
 #include "ArrayCommonObject.h"
 
 
@@ -45,8 +44,7 @@ void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrde
 	PreInit();
 	CCollection::Init();
 
-	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPointers(bSortPointers));
-	mbSorted = true;
+	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
 	PostInit();
 }
 
@@ -59,7 +57,6 @@ void CArrayCommonObject::Class(void)
 {
 	CCollection::Class();
 	U_Unknown(CArrayCommonUnknown, mcArray);
-	U_Bool(mbSorted);
 }
 
 
@@ -71,7 +68,6 @@ void CArrayCommonObject::PreFields(void)
 {
 	CCollection::PreFields();
 	mcArray._Init();
-	mbSorted = true;
 }
 
 
@@ -158,7 +154,7 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
 	}
 
-	mbSorted = false;
+	mcArray.PostLoadPointers(iFlags);
 	return true;
 }
 
@@ -170,7 +166,6 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 void CArrayCommonObject::Sort(void)
 {
 	mcArray.Sort();
-	mbSorted = true;
 }
 
 
@@ -182,7 +177,7 @@ void CArrayCommonObject::Sort(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::EnsureSorted(void)
 {
-	if (!mbSorted && IsMustSort())
+	if (mcArray.IsMustSort() && !mcArray.IsSorted())
 	{
 		Sort();
 	}
@@ -195,7 +190,7 @@ void CArrayCommonObject::EnsureSorted(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::IsSorted(void)
 {
-	return mbSorted;
+	return mcArray.IsSorted();
 }
 
 
@@ -345,7 +340,7 @@ CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
 		*ppcObject = pcLoaded;
 		if (pcLoaded != pcOldObject)
 		{
-			mbSorted = false;
+			mcArray.PointersChanged();
 		}
 		return pcLoaded;
 	}
@@ -586,7 +581,7 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 
 	if (iCount > 0)
 	{
-		mbSorted = false;
+		mcArray.PointersChanged();
 	}
 	return iCount;
 }

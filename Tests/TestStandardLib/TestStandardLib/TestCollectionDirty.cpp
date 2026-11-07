@@ -383,7 +383,7 @@ void TestCollectionDirtyAssertSaved(ECollectionChange eChange, Ptr<CRoot> pRoot,
 		szExpected = "A,C";
 		break;
 	case CC_ArrayRemoveAt:
-		szExpected = "C,B";  //Arrays don't keep their order by default: the last fills the gap.
+		szExpected = "B,C";  //An array keeps its order, loaded or not.
 		break;
 	case CC_ArrayRemoveEnd:
 		szExpected = "A";

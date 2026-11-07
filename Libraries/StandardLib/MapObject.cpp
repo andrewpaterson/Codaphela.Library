@@ -58,7 +58,6 @@ void CMapObject::Class(void)
 	CCollection::Class();
 
 	U_Unknown(CMapUnknownUnknown, mcMap);
-	U_Bool(mbSorted);
 }
 
 
@@ -424,9 +423,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::Sort(void)
 {
-
 	mcMap.Sort();
-
 	mbSorted = true;
 }
 

@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/Codabase.h"
@@ -7,6 +8,7 @@
 #include "BaseLib/DebugOutput.h"
 #include "StandardLib/HollowObject.h"
 #include "StandardLib/Set.h"
+#include "StandardLib/ArrayObject.h"
 #include "TestLib/Assert.h"
 #include "NamedObjectTestClasses.h"
 #include "TestSetObject.h"
@@ -1418,6 +1420,99 @@ void TestSetObjectAddAllWithHoles(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A loaded array and set are what they were saved as: the set is still
+// sorted by pointer and refuses NULLs, and the array keeps its order when
+// one is removed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectLoadKeepsFlags(void)
+{
+	CFileUtil		cFileUtil;
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	char			szDirectory[] = "Output" _FS_ "SetObjectFlags";
+	char			szName[2];
+	size			i;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CSetObject>		pSet;
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pObject;
+
+		pSet = ONMalloc<CSetObject>("Set");
+		pArray = ONMalloc<CArrayObject>("Array");
+		ORoot()->Add(pSet);
+		ORoot()->Add(pArray);
+		szName[1] = '\0';
+		for (i = 0; i < 4; i++)
+		{
+			szName[0] = (char)('A' + i);
+			pObject = ONMalloc<CTestObject>(szName);
+			pSet->Add(pObject);
+			pArray->Add(pObject);
+		}
+		AssertTrue(pSet->IsMustSort());
+		AssertTrue(pSet->IsSorted());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CSetObject>		pSet;
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pB;
+		CPointer			pNull;
+
+		pSet = gcObjects.Get("Set");
+		pArray = gcObjects.Get("Array");
+		AssertSize(4, pSet->NumElements());
+		AssertSize(4, pArray->NumElements());
+
+		AssertTrue(pSet->IsMustSort());
+		AssertFalse(pSet->Add(pNull));
+		AssertSize(4, pSet->NumElements());
+
+		pB = gcObjects.Get("B");
+		AssertTrue(pArray->Remove(pB));
+		AssertSize(3, pArray->NumElements());
+		AssertString("A", pArray->Get(0).GetName());
+		AssertString("C", pArray->Get(1).GetName());
+		AssertString("D", pArray->Get(2).GetName());
+
+		//Every member is loaded now, so the set is in pointer order again.
+		for (i = 0; i < 4; i++)
+		{
+			szName[0] = (char)('A' + i);
+			AssertTrue(gcObjects.Get(szName).IsNotNull());
+		}
+		AssertTrue(pSet->Contains(pB));
+		AssertTrue(pSet->CalculateIsSorted());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetObject(void)
@@ -1451,6 +1546,7 @@ void TestSetObject(void)
 	TestSetObjectMemberLocations(true);
 	TestSetObjectMemberLocations(false);
 	TestSetObjectSortedInsertMovesMembers();
+	TestSetObjectLoadKeepsFlags();
 
 	DataIOKill();
 	TypesKill();

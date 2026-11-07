@@ -30,7 +30,6 @@ class CArrayCommonObject : public CCollection
 CONSTRUCTABLE(CArrayCommonObject)
 protected:
 	CArrayCommonUnknown		mcArray;
-	bool					mbSorted;
 
 public:
 							~CArrayCommonObject();

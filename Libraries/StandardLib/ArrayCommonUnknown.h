@@ -32,8 +32,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMOM_PRESERVE_ORDER	0x0010
 #define ARRAY_COMMOM_TYPE_KNOWN		0x0020
 #define ARRAY_COMMOM_SLOTS_MOVED	0x0040
+#define ARRAY_COMMOM_SORT_POINTERS	0x0080
 
 // ARRAY_COMMOM_IS_PTR_SORTED  indicates if the array is sorted, not if it must be sorted.
+// ARRAY_COMMOM_SORT_POINTERS  the array is kept sorted by its elements' addresses (a set made to sort them).  Each
+//                             change that could leave it out of order clears ARRAY_COMMOM_IS_PTR_SORTED.
 // ARRAY_COMMOM_IGNORE_NULL    determines if iterate skips NULL elements.  Will also cause NULL additions to fail.
 // ARRAY_COMMOM_SLOTS_MOVED    an element is at a different index than when ClearSlotsMoved was called (it is never saved).
 
@@ -51,7 +54,6 @@ class CArrayCommonUnknown : public CUnknown
 CONSTRUCTABLE(CArrayCommonUnknown)
 protected:
 	uint16				muiFlags;
-	DataCompare			mfCompare;  //If the array is sorted.
 
 private:
 	CArrayUnknownPtr	mcArray;  //CArrayTemplatePtr<CUnknown>
@@ -59,13 +61,14 @@ private:
 
 	bool				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
 	void				PrivateKill(void);
+	void				InitFlags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
 
 public:
 			void				_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
-			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare);
-			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare, size iChunkSize);
+			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
+			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers, size iChunkSize);
 			void 				Kill(void) override;
-	virtual void 				ReInit(void);  //This should be virtual.
+	virtual void 				ReInit(void);
 
 			bool				Save(CFileWriter* pcFile) override;
 			bool				Load(CFileReader* pcFile) override;
@@ -78,6 +81,7 @@ public:
 			bool				IsSorted(void);
 			bool				CalculateIsSorted(void);
 			bool				IsMustSort(void);
+			void				PointersChanged(void);
 
 			bool				Contains(CUnknown* pcUnknown);
 			size				Find(CUnknown* pcUnknown);
@@ -92,7 +96,7 @@ public:
 			bool				AddAll(CArrayCommonUnknown* pcSource);
 			bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 			bool				Insert(size iIndex, CUnknown* pcUnknown);
-			size				InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnknown, bool bOverwriteExisting);
+			size				InsertIntoSorted(CUnknown* pcUnknown, bool bOverwriteExisting);
 
 			bool				RemoveEnd(size iIndexInclusive);
 	virtual size				Remove(CUnknown* pcUnknown);
@@ -126,6 +130,7 @@ public:
 			bool				ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
 			bool				WriteArrayHeader(CFileWriter* pcFile);
 			void				PostLoad(uint16 iFlags);
+			void				PostLoadPointers(uint16 iFlags);
 
 			void				SetChunkSize(size iChunkSize);
 			void				GrowTo(size iNumElements);

@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PrimitiveTypes.h"
 #include "SetIterator.h"
 #include "Unknowns.h"
-#include "SortPointersHelper.h"
 #include "ArrayUnknown.h"
 
 
@@ -35,7 +34,6 @@ void CArrayCommonUnknown::_Init(void)
 	mcArray.Init(&gcSystemAllocator);  //Should probably be gcNullAllocator.
 	muiFlags = 0;
 	miNonNullElements = 0;
-	mfCompare = NULL;
 }
 
 
@@ -43,17 +41,10 @@ void CArrayCommonUnknown::_Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare)
+void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
 {
 	mcArray.Init(&gcSystemAllocator);
-	muiFlags = 0;
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
-	miNonNullElements = 0;
-	mfCompare = fCompare;
+	InitFlags(bTypeKnown, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
 }
 
 
@@ -61,17 +52,29 @@ void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare, size iChunkSize)
+void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers, size iChunkSize)
 {
 	mcArray.Init(&gcSystemAllocator, iChunkSize);
+	InitFlags(bTypeKnown, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An empty array is sorted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::InitFlags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
+{
 	muiFlags = 0;
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
+	SetFlagShort(&muiFlags, ARRAY_COMMOM_SORT_POINTERS, bSortPointers);
+	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, bSortPointers);
 	miNonNullElements = 0;
-	mfCompare = fCompare;
 }
 
 
@@ -141,16 +144,10 @@ void CArrayCommonUnknown::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::WriteArrayHeader(CFileWriter* pcFile)
 {
-	bool		bMustSort;
-
-	bMustSort = mfCompare != NULL;
-
 	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
 	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
-	ReturnOnFalse(pcFile->WriteInt16((uint16)(muiFlags & ~ARRAY_COMMOM_SLOTS_MOVED)));
-	ReturnOnFalse(pcFile->WriteBool(bMustSort));
-	return true;
+	return pcFile->WriteInt16((uint16)(muiFlags & ~ARRAY_COMMOM_SLOTS_MOVED));
 }
 
 
@@ -163,18 +160,16 @@ bool CArrayCommonUnknown::ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, 
 	bool	bTypeKnown;
 	size	iChunkSize;
 	size	iNonNullElements;
-	bool	bMustSort;
 
 	ReturnOnFalse(pcFile->ReadSize(piNumElements));
 	ReturnOnFalse(pcFile->ReadSize(&iNonNullElements));
 	ReturnOnFalse(pcFile->ReadSize(&iChunkSize));
 	ReturnOnFalse(pcFile->ReadInt16(piFlags));
-	ReturnOnFalse(pcFile->ReadBool(&bMustSort));
 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
 
-	//These are all set to false because the flags will be fixed later.
-	Init(bTypeKnown, false, false, false, false, CalculateDataCompareForSortPointers(bMustSort));
+	//The other flags are set from *piFlags once the elements are read (PostLoad or PostLoadPointers).
+	Init(bTypeKnown, false, false, false, false, false);
 	mcArray.SetAllocateSize(iChunkSize);
 	miNonNullElements = iNonNullElements;
 
@@ -262,6 +257,19 @@ void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 	{
 		Sort();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The flags of an array whose elements were read as pointers to objects
+// (hollows, or objects already in memory): their addresses aren't those
+// saved, so it isn't sorted until it is sorted again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::PostLoadPointers(uint16 iFlags)
+{
+	muiFlags = iFlags & ~ARRAY_COMMOM_IS_PTR_SORTED;
 }
 
 
@@ -452,10 +460,10 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 		}
 	}
 
-	if (((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (mfCompare != NULL))
+	if (((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (muiFlags & ARRAY_COMMOM_SORT_POINTERS))
 	{
 		CleanNullsBeforeBinarySearch();
-		uiIndex = mcArray.InsertIntoSorted(mfCompare, &pcUnknown, false);
+		uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
 		if (uiIndex + 1 != mcArray.NumElements())
 		{
 			SlotsMoved();
@@ -603,12 +611,12 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inserts pcUnknown where fCompare sorts it, or with bOverwriteExisting
-// in place of an element that compares equal (which is killed if the
-// array kills its elements).  Returns its index.
+// Inserts pcUnknown where its address sorts it, or with bOverwriteExisting
+// in place of the same element (which is killed if the array kills its
+// elements).  Returns its index.
 //
 //////////////////////////////////////////////////////////////////////////
-size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnknown, bool bOverwriteExisting)
+size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown, bool bOverwriteExisting)
 {
 	size		uiIndex;
 	size		uiNumElements;
@@ -626,13 +634,13 @@ size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnk
 	CleanNullsBeforeBinarySearch();
 
 	pcReplaced = NULL;
-	if (bOverwriteExisting && mcArray.FindInSorted(&pcUnknown, fCompare, &uiIndex))
+	if (bOverwriteExisting && mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &uiIndex))
 	{
 		pcReplaced = *mcArray.Get(uiIndex);
 	}
 
 	uiNumElements = mcArray.NumElements();
-	uiIndex = mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
+	uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, bOverwriteExisting);
 	if (mcArray.NumElements() != uiNumElements)
 	{
 		if (uiIndex + 1 != mcArray.NumElements())
@@ -1219,7 +1227,7 @@ bool CArrayCommonUnknown::IsKillElements(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::IsSorted(void)
 {
-	return muiFlags & ARRAY_COMMOM_IS_PTR_SORTED;
+	return FixBool(muiFlags & ARRAY_COMMOM_IS_PTR_SORTED);
 }
 
 
@@ -1246,7 +1254,7 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 		pcLeft = UnsafeGet(ui);
 		pcRight = UnsafeGet(ui + 1);
 
-		iResult = mfCompare(&pcLeft, &pcRight);
+		iResult = ComparePtrPtr(&pcLeft, &pcRight);
 		if (iResult > 0)
 		{
 			return false;
@@ -1262,7 +1270,19 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::IsMustSort(void)
 {
-	return mfCompare != NULL;
+	return FixBool(muiFlags & ARRAY_COMMOM_SORT_POINTERS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An element was changed where it is (a hollow loaded, or remapped): the
+// array may no longer be in pointer order.
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::PointersChanged(void)
+{
+	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 }
 
 
