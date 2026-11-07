@@ -83,11 +83,11 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //(SetBandNumberColour).
 //Clicking a change bar (in the gutter's last column, on a changed line or either side of removed ones) calls the change
 //bar click event with its line, as IntelliJ IDEA shows a change's old lines.  Clicking the rest of the gutter calls the
-//gutter click event
-//with the line it was next to, and an edit calls the change event.  The code editor is meant to be the content of a
-//CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.  Scrolled sideways
-//the gutter stays at the view's left, on its own background over the code, which goes under it; the caret is kept
-//in view right of it.
+//gutter click event with the line it was next to, and an edit calls the change event.  The code editor is meant to be
+//the content of a CScrollPane: it is as big as the gutter and code need, and the text area keeps its caret in view.
+//Scrolled sideways the gutter stays at the view's left, on its own background over the code, which goes under it; the
+//caret is kept in view right of it.  Changing marks, glyphs, bars or line components lays the editor out again without
+//drawing all of it (LayoutChanged): its text areas draw again only the rows that changed.
 //
 //With a glyph column (SetGlyphColumn) the gutter's first column is a glyph for each line (SetLineGlyph), as Visual
 //Studio's margin shows breakpoints and the current line, and the marks are the second.  Glyphs are by line number too.

@@ -198,7 +198,7 @@ bool CCodeEditor::AddLineComponent(size uiLine, Ptr<CComponent> pComponent)
 	BringGutterToFront();
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 	return true;
 }
 
@@ -228,7 +228,7 @@ bool CCodeEditor::RemoveLineComponent(Ptr<CComponent> pComponent)
 	RemoveLineComponentAt(uiIndex);
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 	return true;
 }
 
@@ -665,7 +665,7 @@ void CCodeEditor::SetLineMark(size uiLine, char cMark)
 	mbMarksChanged = true;
 
 	//What it is laid out from has changed.
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -690,7 +690,7 @@ void CCodeEditor::ClearLineMarks(void)
 	{
 		macMarks.ReInit();
 		mbMarksChanged = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -706,7 +706,7 @@ void CCodeEditor::SetGlyphColumn(bool bGlyphColumn)
 	{
 		mbGlyphColumn = bGlyphColumn;
 		mbMarksChanged = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -758,7 +758,7 @@ void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 
 	psGlyph->sBackground = sBackground;
 	psGlyph->bBackground = bBackground;
 	mbMarksChanged = true;
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -786,7 +786,7 @@ void CCodeEditor::ClearLineGlyphs(void)
 	{
 		masGlyphs.ReInit();
 		mbMarksChanged = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -875,7 +875,7 @@ void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour,
 	psBar->sColour = sColour;
 	psBar->bBand = bBand;
 	mbChangeBarsChanged = true;
-	InvalidateLayout();
+	LayoutChanged();
 }
 
 
@@ -889,7 +889,7 @@ void CCodeEditor::ClearChangeBars(void)
 	{
 		masChangeBars.ReInit();
 		mbChangeBarsChanged = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
@@ -906,7 +906,7 @@ void CCodeEditor::SetBandNumberColour(ARGB32 sColour)
 	{
 		msBandNumberColour = sColour;
 		mbChangeBarsChanged = true;
-		InvalidateLayout();
+		LayoutChanged();
 	}
 }
 
