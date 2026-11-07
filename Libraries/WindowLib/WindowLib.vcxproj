@@ -274,6 +274,7 @@
     <ClInclude Include="NativeClipboard.h" />
     <ClInclude Include="NativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
+    <ClInclude Include="NativeFactory.h" />
     <ClInclude Include="NativeWindowFactory.h" />
     <ClInclude Include="NativeSoundFactory.h" />
     <ClInclude Include="NativeSoundMixer.h" />
@@ -383,6 +384,7 @@
     <ClCompile Include="NativeClipboard.cpp" />
     <ClCompile Include="NativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
+    <ClCompile Include="NativeFactory.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="NativeSoundFactory.cpp" />
     <ClCompile Include="NativeSoundMixer.cpp" />

@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NATIVE_WINDOW_FACTORY_H__
 #define __NATIVE_WINDOW_FACTORY_H__
-#include "BaseLib/Constructable.h"
+#include "NativeFactory.h"
 #include "BaseLib/Chars.h"
 #include "NativeWindow.h"
 #include "NativeCanvas.h"
@@ -30,16 +30,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWindow;
 class CCanvas;
 class CClipboard;
-class CNativeWindowFactory : public CConstructable
+class CNativeWindowFactory : public CNativeFactory
 {
 CONSTRUCTABLE(CNativeWindowFactory);
-protected:
-	CMallocator*	mpcMallocator;
-
 public:
-			void			Init(CMallocator* pcMallocator);
-			void			Kill(void);
-
 	virtual CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) =0;
 			bool			DestroyNativeWindow(CNativeWindow* pcWindow);
 
@@ -48,20 +42,7 @@ public:
 
 	virtual CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) =0;  //NULL if there is no clipboard.
 			bool				DestroyNativeClipboard(CNativeClipboard* pcClipboard);
-
-protected:
-	template<class Class>
-	Class* NativeMalloc(void)
-	{
-		Class* pcInstance;
-
-		pcInstance = (Class*)mpcMallocator->Malloc(sizeof(Class));
-		New<Class>(pcInstance);
-
-		return pcInstance;
-	}
 };
-
 
 
 #endif // __NATIVE_WINDOW_FACTORY_H__

@@ -25,30 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindowFactory::Init(CMallocator* pcMallocator)
-{
-	mpcMallocator = pcMallocator;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CNativeWindowFactory::Kill(void)
-{
-	mpcMallocator = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CNativeWindowFactory::DestroyNativeWindow(CNativeWindow* pcWindow)
 {
-	pcWindow->Kill();
-	return mpcMallocator->Free(pcWindow);
+	return NativeFree(pcWindow);
 }
 
 
@@ -58,8 +37,7 @@ bool CNativeWindowFactory::DestroyNativeWindow(CNativeWindow* pcWindow)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindowFactory::DestroyNativeCanvas(CNativeCanvas* pcCanvas)
 {
-	pcCanvas->Kill();
-	return mpcMallocator->Free(pcCanvas);
+	return NativeFree(pcCanvas);
 }
 
 
@@ -69,6 +47,5 @@ bool CNativeWindowFactory::DestroyNativeCanvas(CNativeCanvas* pcCanvas)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindowFactory::DestroyNativeClipboard(CNativeClipboard* pcClipboard)
 {
-	pcClipboard->Kill();
-	return mpcMallocator->Free(pcClipboard);
+	return NativeFree(pcClipboard);
 }

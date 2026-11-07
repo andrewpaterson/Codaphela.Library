@@ -22,36 +22,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __NATIVE_SOUND_FACTORY_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/ConstructorCall.h"
-#include "BaseLib/Mallocator.h"
+#include "NativeFactory.h"
 #include "NativeSoundMixer.h"
 
 
 //Makes the host's sound output.  It is separate from the native window factory so a window library doesn't depend on
 //a sound library: the application makes one of each and gives both to its window.
-class CNativeSoundFactory : public CConstructable
+class CNativeSoundFactory : public CNativeFactory
 {
 CONSTRUCTABLE(CNativeSoundFactory);
-protected:
-	CMallocator*	mpcMallocator;
-
 public:
-			void				Init(CMallocator* pcMallocator);
-			void				Kill(void);
-
 	virtual CNativeSoundMixer*	CreateNativeSoundMixer(CSoundMixer* pcMixer) =0;
 			bool				DestroyNativeSoundMixer(CNativeSoundMixer* pcNativeMixer);
-
-protected:
-	template<class Class>
-	Class* NativeMalloc(void)
-	{
-		Class* pcInstance;
-
-		pcInstance = (Class*)mpcMallocator->Malloc(sizeof(Class));
-		New<Class>(pcInstance);
-
-		return pcInstance;
-	}
 };
 
 
