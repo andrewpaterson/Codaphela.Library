@@ -405,37 +405,15 @@ void CListContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 // mark a row.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListContainer::Draw(void)
+bool CListContainer::IsChildDrawn(Ptr<CComponent> pChild)
 {
-	size			i;
-	size			uiSize;
-	Ptr<CComponent>	pComponent;
-	bool			bShown;
-
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	if (pChild == mpSelectedHighlight)
 	{
-		pComponent = maChildren.Get(i);
-		if (pComponent == mpSelectedHighlight)
-		{
-			bShown = miSelected >= 0;
-		}
-		else if (pComponent == mpHoverHighlight)
-		{
-			bShown = IsHoverShown();
-		}
-		else
-		{
-			bShown = true;
-		}
-
-		if (bShown)
-		{
-			if (!pComponent->Draw())
-			{
-				return false;
-			}
-		}
+		return miSelected >= 0;
+	}
+	if (pChild == mpHoverHighlight)
+	{
+		return IsHoverShown();
 	}
 	return true;
 }

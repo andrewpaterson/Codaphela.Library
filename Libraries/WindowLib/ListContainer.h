@@ -106,7 +106,7 @@ public:
 	CComponentEvent<CListContainer>*	GetActivationEvent(void);
 
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	bool			Draw(void) override;
+	bool			IsChildDrawn(Ptr<CComponent> pChild) override;
 	bool			WantsEnter(void) override;
 
 	void			FocusLost(void) override;

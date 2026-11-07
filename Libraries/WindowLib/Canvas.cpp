@@ -42,6 +42,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHe
 	mbTransparent = false;
 	msNativeOrigin.Zero();
 	msNativeSize.Zero();
+	mbContentDirty = true;
+	mbClearBeforeDraw = false;
 
 	PostInit();
 }
@@ -64,6 +66,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	mbTransparent = false;
 	msNativeOrigin.Zero();
 	msNativeSize.Zero();
+	mbContentDirty = true;
+	mbClearBeforeDraw = false;
 
 	PostInit();
 }
@@ -99,6 +103,8 @@ void CCanvas::Class(void)
 	U_Bool(mbTransparent);
 	U_2Int32(msNativeOrigin);
 	U_2Int32(msNativeSize);
+	U_Bool(mbContentDirty);
+	U_Bool(mbClearBeforeDraw);
 }
 
 
@@ -139,66 +145,131 @@ uint8* CCanvas::GetPixelData(void)
 bool CCanvas::Draw(void)
 {
 	Ptr<CCanvas>			pWindowCanvas;
-	SInt32Vec2				sPreviousOrigin;
 	ARGB32					sColour;
-	CInt32Rect				cVisible;
+	CInt32Rect				cArea;
 
-	sPreviousOrigin = msNativeOrigin;
-	UpdateNativeArea();
+	//The window's own canvas draws its background into itself.
+	pWindowCanvas = mpWindow->GetCanvas();
+	if (&pWindowCanvas == this)
+	{
+		if (HasNativeChanged())
+		{
+			DestroyNativeCanvas();
+			CreateNativeCanvas();
+		}
+		if ((mpcNativeCanvas != NULL) && mpCanvasDraw)
+		{
+			mpCanvasDraw->Draw(this);
+		}
+		mbContentDirty = false;
+		return CComponent::Draw();
+	}
+
+	//A canvas that shows nowhere, like a label with no text or one scrolled out of sight, draws nothing.  Its children
+	//might still show.
+	if ((mcDrawnArea.GetWidth() <= 0) || (mcDrawnArea.GetHeight() <= 0))
+	{
+		return CComponent::Draw();
+	}
 
 	//A canvas of one opaque colour fills the part of the window it shows in: it needs no native canvas to fill and copy.
-	pWindowCanvas = mpWindow->GetCanvas();
 	if (IsSolidInWindow(pWindowCanvas, &sColour))
 	{
-		DestroyNativeCanvas();
-		if (HasArea())
-		{
-			cVisible.Init(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y,
-						  mcActualBounds.GetLeft() + msNativeOrigin.x + msNativeSize.x - 1, mcActualBounds.GetTop() + msNativeOrigin.y + msNativeSize.y - 1);
-			pWindowCanvas->DrawBox(&cVisible, true, sColour);
-		}
-		CComponent::Draw();
-		return true;
+		cArea.Init(mcDrawnArea.GetLeft(), mcDrawnArea.GetTop(), mcDrawnArea.GetRight() - 1, mcDrawnArea.GetBottom() - 1);
+		pWindowCanvas->DrawBox(&cArea, true, sColour);
+		mbContentDirty = false;
+		return CComponent::Draw();
 	}
 
 	if (HasNativeChanged())
 	{
 		DestroyNativeCanvas();
 		CreateNativeCanvas();
+		mbContentDirty = true;
+		mbClearBeforeDraw = false;
 	}
-	else if ((mpcNativeCanvas != NULL) && !mbTransparent && ((sPreviousOrigin.x != msNativeOrigin.x) || (sPreviousOrigin.y != msNativeOrigin.y)))
-	{
-		//What the native canvas holds was drawn for another part of the canvas.  It starts black, as a new one would.
-		mpcNativeCanvas->Clear();
-	}
-
-	//A canvas with no area, like a label with no text, may have no native canvas.  Only its children are drawn.
 	if (mpcNativeCanvas == NULL)
 	{
-		CComponent::Draw();
-		return true;
+		return CComponent::Draw();
 	}
 
-	//A transparent canvas starts each draw empty so that only what is drawn this time shows over what is behind it.
-	if (mbTransparent)
+	//The native canvas keeps what the canvas last drew, so it is only drawn again when that changed.  A transparent canvas
+	//starts each draw empty so that only what is drawn this time shows over what is behind it.
+	if (mbContentDirty)
 	{
-		mpcNativeCanvas->Clear();
+		if (mbTransparent || mbClearBeforeDraw)
+		{
+			mpcNativeCanvas->Clear();
+		}
+		if (mpCanvasDraw)
+		{
+			mpCanvasDraw->Draw(this);
+		}
+		mbContentDirty = false;
+		mbClearBeforeDraw = false;
 	}
 
-	//The canvas draws itself and is copied onto the window before its children so that they are drawn over it.
-	if (mpCanvasDraw)
+	//The canvas is copied onto the window before its children so that they are drawn over it.
+	pWindowCanvas->DrawCanvas(mcDrawnArea.GetLeft(), mcDrawnArea.GetTop(), this);
+	return CComponent::Draw();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The part of the canvas that will show this paint, given what clips it,
+// becomes its native area, and where in the window that is its drawn
+// area.  A native canvas showing another part of the canvas than it did,
+// scrolled say, draws again; an opaque one first starts black, as a new
+// one would.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
+{
+	SInt32Vec2		sPreviousOrigin;
+	SInt32Vec2		sPreviousSize;
+	ARGB32			sColour;
+
+	sPreviousOrigin = msNativeOrigin;
+	sPreviousSize = msNativeSize;
+	UpdateNativeArea(bClipped, pcClip);
+	if (!HasArea())
 	{
-		mpCanvasDraw->Draw(this);
+		DestroyNativeCanvas();
 	}
-
-	//The native canvas holds only the part of the canvas that shows, so all of it is copied.
-	if (&pWindowCanvas != this)
+	if (!bDrawn || !HasArea())
 	{
-		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y, this);
+		pcArea->Init(0, 0, 0, 0);
+		return;
 	}
+	pcArea->Init(mcActualBounds.GetLeft() + msNativeOrigin.x, mcActualBounds.GetTop() + msNativeOrigin.y,
+				 mcActualBounds.GetLeft() + msNativeOrigin.x + msNativeSize.x, mcActualBounds.GetTop() + msNativeOrigin.y + msNativeSize.y);
 
-	CComponent::Draw();
-	return true;
+	if (IsSolidInWindow(mpWindow->GetCanvas(), &sColour))
+	{
+		DestroyNativeCanvas();
+		return;
+	}
+	if ((sPreviousOrigin.x != msNativeOrigin.x) || (sPreviousOrigin.y != msNativeOrigin.y) || (sPreviousSize.x != msNativeSize.x) || (sPreviousSize.y != msNativeSize.y))
+	{
+		//Scrolled, it shows another part of itself in the same place.
+		mbContentDirty = true;
+		mpWindow->AddDamage(pcArea);
+		if (!mbTransparent && (sPreviousSize.x == msNativeSize.x) && (sPreviousSize.y == msNativeSize.y))
+		{
+			mbClearBeforeDraw = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::MarkContentChanged(void)
+{
+	mbContentDirty = true;
 }
 
 
@@ -368,13 +439,28 @@ bool CCanvas::HasArea(void)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::UpdateNativeArea(void)
 {
-	CInt32Rect	cVisible;
 	CInt32Rect	cClip;
+	bool		bClipped;
+
+	bClipped = GetClip(&cClip);
+	UpdateNativeArea(bClipped, &cClip);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As UpdateNativeArea, with what clips the canvas given (pcClip in window
+// space, when bClipped) rather than found from its ancestors.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::UpdateNativeArea(bool bClipped, CInt32Rect* pcClip)
+{
+	CInt32Rect	cVisible;
 
 	cVisible.Init(&mcActualBounds);
-	if (GetClip(&cClip))
+	if (bClipped)
 	{
-		cVisible.ClipTo(&cClip);
+		cVisible.ClipTo(pcClip);
 	}
 
 	msNativeSize.Init(cVisible.GetWidth(), cVisible.GetHeight());
@@ -673,6 +759,7 @@ CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 SInt32Vec2 CCanvas::GetNativeOrigin(void) { return msNativeOrigin; }
 SInt32Vec2 CCanvas::GetNativeSize(void) { return msNativeSize; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
-void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; InvalidateLayout(); }
+void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; Invalidate(); InvalidateLayout(); }
+bool CCanvas::IsContentDirty(void) { return mbContentDirty; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
 

@@ -121,6 +121,12 @@
     <ClCompile Include="BorderCanvasDraw.cpp">
       <Filter>Source\TestCommon</Filter>
     </ClCompile>
+    <ClCompile Include="BoxFillCanvasDraw.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="TestPartialRedraw.cpp">
+      <Filter>Source\TestCommon</Filter>
+    </ClCompile>
     <ClCompile Include="TestRefWindowCanvasDraw.cpp">
       <Filter>Source\TestCommon</Filter>
     </ClCompile>
@@ -181,6 +187,9 @@
       <Filter>Source\TestCommon</Filter>
     </ClInclude>
     <ClInclude Include="BorderCanvasDraw.h">
+      <Filter>Source\TestCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxFillCanvasDraw.h">
       <Filter>Source\TestCommon</Filter>
     </ClInclude>
     <ClInclude Include="TestRefWindowCanvasDraw.h">

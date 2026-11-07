@@ -74,7 +74,7 @@ public:
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	bool			Draw(void) override;
+	bool			IsDrawn(void) override;
 	Ptr<CComponent>	FindComponentAt(int x, int y) override;
 
 	void			FocusLost(void) override;

@@ -37,6 +37,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	maChildren.Init();
 	maInputActions.Init();
 	mcActualBounds.Init();
+	mcDrawnArea.Init(0, 0, 0, 0);
 	msDesiredSize.Init(-1, -1);
 	meHorizontalAlignment = CSH_Center;
 	meVerticalAlignment = CSV_Center;
@@ -66,18 +67,19 @@ void CComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Class(void)
 {
-		U_Data(CInt32Rect, mcActualBounds);
-		U_2Int32(msDesiredSize);
-		U_Enum(meHorizontalAlignment);
-		U_Enum(meVerticalAlignment);
-		U_Bool(mbCanGetFocus);
-		U_Bool(mbHitAsWhole);
-		M_Pointer(mpParent);
-		M_Embedded(maChildren);
+	U_Data(CInt32Rect, mcActualBounds);
+	U_Data(CInt32Rect, mcDrawnArea);
+	U_2Int32(msDesiredSize);
+	U_Enum(meHorizontalAlignment);
+	U_Enum(meVerticalAlignment);
+	U_Bool(mbCanGetFocus);
+	U_Bool(mbHitAsWhole);
+	M_Pointer(mpParent);
+	M_Embedded(maChildren);
 	Nes(M_Pointer(mpWindow));
-		M_Embedded(maInputActions);
-		M_Pointer(mpContextMenu);
-		U_Enum(meCursor);
+	M_Embedded(maInputActions);
+	M_Pointer(mpContextMenu);
+	U_Enum(meCursor);
 }
 
 
@@ -247,13 +249,166 @@ bool CComponent::DrawChildren(void)
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		bResult = pComponent->Draw();
-		if (!bResult)
+		if (IsChildDrawn(pComponent) && pComponent->IsDrawn())
 		{
-			return false;
+			bResult = pComponent->Draw();
+			if (!bResult)
+			{
+				return false;
+			}
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the component, and so its children, is drawn at all.  A
+// scroll bar that isn't needed isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::IsDrawn(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pChild, one of the component's children, is drawn.  A list's
+// highlight isn't while nothing is highlighted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::IsChildDrawn(Ptr<CComponent> pChild)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Works out where the component and its children will draw this paint,
+// before anything is drawn.  pcClip is what the components clipping it
+// leave, in window space, when bClipped.  Wherever the component drew
+// last time and will draw now is damaged in the window if they differ:
+// it moved, changed size, appeared or went.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::PrepareDraw(bool bDrawn, bool bClipped, CInt32Rect* pcClip)
+{
+	CInt32Rect			cArea;
+	CInt32Rect			cChildClip;
+	bool				bChildClipped;
+	size				i;
+	size				uiSize;
+	Ptr<CComponent>		pComponent;
+
+	bDrawn = bDrawn && IsDrawn();
+	PrepareArea(bDrawn, bClipped, pcClip, &cArea);
+	if (!cArea.Equals(&mcDrawnArea))
+	{
+		if (mpWindow.IsNotNull())
+		{
+			mpWindow->AddDamage(&mcDrawnArea);
+			mpWindow->AddDamage(&cArea);
+		}
+		mcDrawnArea.Init(&cArea);
+	}
+
+	bChildClipped = bClipped;
+	if (bClipped)
+	{
+		cChildClip.Init(pcClip);
+	}
+	if (ClipsChildren() && GetContainerBounds(&cChildClip))
+	{
+		if (bClipped)
+		{
+			cChildClip.ClipTo(pcClip);
+		}
+		bChildClipped = true;
+	}
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		pComponent->PrepareDraw(bDrawn && IsChildDrawn(pComponent), bChildClipped, &cChildClip);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where in the window the component draws this paint, given it is drawn
+// (bDrawn) and what clips it.  Most components draw nothing themselves,
+// only their children do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
+{
+	pcArea->Init(0, 0, 0, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component and its children are no longer drawn, they were taken
+// out of the window: where they drew is damaged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::ForgetDrawn(void)
+{
+	size	i;
+	size	uiSize;
+
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->AddDamage(&mcDrawnArea);
+	}
+	mcDrawnArea.Init(0, 0, 0, 0);
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		maChildren.Get(i)->ForgetDrawn();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the component and its children show must be drawn again: each
+// draws again at the next paint and where it drew is damaged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::ContentChanged(void)
+{
+	size	i;
+	size	uiSize;
+
+	MarkContentChanged();
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->AddDamage(&mcDrawnArea);
+	}
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		maChildren.Get(i)->ContentChanged();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A canvas notes that it must draw itself again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::MarkContentChanged(void)
+{
 }
 
 
@@ -316,6 +471,7 @@ bool CComponent::RemoveAllComponents(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::LetGo(Ptr<CComponent> pComponent)
 {
+	pComponent->ForgetDrawn();
 	if (mpWindow)
 	{
 		mpWindow->GetFocus()->Forget(pComponent);
@@ -607,16 +763,18 @@ Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The window is painted again soon.  Input already does this; call it
-// when what a component shows changes without input, a simulation
-// running say.
+// What the component shows has changed: it and its children draw again
+// at the next paint, which is soon.  Call it whenever a component's look
+// changes; a window that redraws only what changed (see
+// CWindow::SetPartialRedraw) draws nothing else.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Invalidate(void)
 {
+	ContentChanged();
 	if (mpWindow.IsNotNull())
 	{
-		mpWindow->Invalidate();
+		mpWindow->RequestPaint();
 	}
 }
 
@@ -899,6 +1057,18 @@ ENativeCursor CComponent::GetCursor(void) { return meCursor; }
 void CComponent::GetActualBounds(CInt32Rect* pcDest)
 {
 	pcDest->Init(&mcActualBounds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the component drew itself at the last paint, in window client
+// space; empty if it drew nothing itself.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::GetDrawnArea(CInt32Rect* pcDest)
+{
+	pcDest->Init(&mcDrawnArea);
 }
 
 

@@ -87,6 +87,8 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	PreInit();
 
 	mszWindowTitle.Init(szTitle);
+	mcDamage.Init();
+	mcPaintedDamage.Init();
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
@@ -170,6 +172,8 @@ void CWindow::Class(void)
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
 	U_Bool(mbCaretPainted);
+	U_Data(CDamageArea, mcDamage);
+	U_Data(CDamageArea, mcPaintedDamage);
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
 	M_Embedded(mcFocus);
@@ -360,12 +364,49 @@ bool CWindow::IsFrameDue(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The window will be painted again, as soon as its frame rate allows.
+// All of the window is drawn again, as soon as its frame rate allows.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Invalidate(void)
 {
+	ContentChanged();
+	mcDamage.AddAll();
 	mbRedraw = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcArea of the window, in client space, must be drawn again at the next
+// paint.  An empty area adds nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::AddDamage(CInt32Rect* pcArea)
+{
+	mcDamage.Add(pcArea);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is painted soon, drawing what has been damaged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::RequestPaint(void)
+{
+	mbRedraw = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What had changed when the window was last painted: what components
+// were invalidated, moved, appeared or went.  For tests.
+//
+//////////////////////////////////////////////////////////////////////////
+CDamageArea* CWindow::GetPaintedDamage(void)
+{
+	return &mcPaintedDamage;
 }
 
 
@@ -534,7 +575,17 @@ void CWindow::SetMinimumWindowSize(int32 iWidth, int32 iHeight)
 void CWindow::Paint(void)
 {
 	LayoutIfChanged();
+
+	//Where each component draws this paint, and so what moved, appeared or went since the last one.
+	PrepareDraw(true, false, NULL);
+	mcPaintedDamage = mcDamage;
+
+	//Everything is drawn again.
+	ContentChanged();
+	mcDamage.AddAll();
 	Draw();
+	mcDamage.Clear();
+
 	PaintCaret();
 	mpcNativeWindow->SignalPresent();
 

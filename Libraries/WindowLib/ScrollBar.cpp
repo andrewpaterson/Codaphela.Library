@@ -272,15 +272,12 @@ void CScrollBar::LayoutPiece(Ptr<CCanvas> pPiece, int32 iStart, int32 iLength)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bar is only drawn while its content overflows and it has a thumb.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CScrollBar::Draw(void)
+bool CScrollBar::IsDrawn(void)
 {
-	if (!IsShown() || (miThumbLength <= 0))
-	{
-		return true;
-	}
-	return CContainer::Draw();
+	return IsShown() && (miThumbLength > 0);
 }
 
 

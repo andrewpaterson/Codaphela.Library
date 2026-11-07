@@ -216,6 +216,9 @@
     <ClInclude Include="Popup.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="DamageArea.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="ContextMenu.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -543,6 +546,9 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Popup.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DamageArea.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="ContextMenu.cpp">

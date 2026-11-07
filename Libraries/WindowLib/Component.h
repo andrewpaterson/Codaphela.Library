@@ -46,6 +46,7 @@ CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
 	CInt32Rect					mcActualBounds;
+	CInt32Rect					mcDrawnArea;  //Where in the window the component drew at the last paint, empty if nowhere (see PrepareDraw).
 	SInt32Vec2					msDesiredSize;
 	EContainerStyleHorizontal	meHorizontalAlignment;  //Where a fixed size component sits in spare space.  Stretch makes it fill the space.
 	EContainerStyleVertical		meVerticalAlignment;
@@ -68,6 +69,12 @@ public:
 
 	virtual	bool				Draw(void);
 			bool				DrawChildren(void);
+	virtual	bool				IsDrawn(void);
+	virtual	bool				IsChildDrawn(Ptr<CComponent> pChild);
+			void				PrepareDraw(bool bDrawn, bool bClipped, CInt32Rect* pcClip);
+			void				GetDrawnArea(CInt32Rect* pcDest);
+			void				ForgetDrawn(void);
+			void				ContentChanged(void);
 	virtual bool				GetContainerBounds(CInt32Rect* pcDest);
 	virtual	bool				ClipsChildren(void);
 			bool				GetClip(CInt32Rect* pcClip);
@@ -143,6 +150,8 @@ public:
 	virtual	SInt32Vec2			GetContextMenuPosition(void);
 
 protected:
+	virtual	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea);
+	virtual	void				MarkContentChanged(void);
 			void				SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds);
 			size				CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex, size* puiNumLogged);
 			void				LetGo(Ptr<CComponent> pComponent);

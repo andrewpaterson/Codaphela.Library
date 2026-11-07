@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CanvasDraw.h"
 #include "ComponentInputCommand.h"
 #include "Popup.h"
+#include "DamageArea.h"
 #include "SoundMixer.h"
 #include "Clipboard.h"
 #include "CommandSet.h"
@@ -82,6 +83,8 @@ protected:
 	CInt32Rect					mcCaret;  //Where the focussed component's caret was drawn, window space, right and bottom exclusive.
 	ARGB32						msCaretColour;
 	bool						mbCaretPainted;  //The caret's place was kept by the last paint: blinking only changes it.
+	CDamageArea					mcDamage;  //What must be drawn again at the next paint, see AddDamage.
+	CDamageArea					mcPaintedDamage;  //What changed for the last paint, whether or not all of the window was drawn.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -117,6 +120,9 @@ public:
 	bool						GetPaintedCaret(CInt32Rect* pcDest);
 	void						Invalidate(void) override;
 	void						InvalidateLayout(void) override;
+	void						AddDamage(CInt32Rect* pcArea);
+	void						RequestPaint(void);
+	CDamageArea*				GetPaintedDamage(void);
 	void						RequestTick(uint32 uiMilliseconds);
 	void						SetContinuous(bool bContinuous);
 	bool						IsContinuous(void);

@@ -45,6 +45,8 @@ protected:
 	bool				mbTransparent;  //What is behind the canvas shows through wherever it hasn't been drawn opaquely.
 	SInt32Vec2			msNativeOrigin;  //Where the native canvas's top left is in the canvas.  The native canvas only holds the part that shows, see UpdateNativeArea.
 	SInt32Vec2			msNativeSize;  //The size the native canvas should be.
+	bool				mbContentDirty;  //The canvas draws itself again at the next paint; until then its native canvas holds what it last drew.
+	bool				mbClearBeforeDraw;  //The native canvas holds what was drawn for another part of the canvas, see PrepareArea.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, CColourFormatHelper* pcFormat);
@@ -74,6 +76,8 @@ public:
 	bool				HasArea(void);
 	bool				IsSolidInWindow(Ptr<CCanvas> pWindowCanvas, ARGB32* psColour);
 	void				UpdateNativeArea(void);
+	void				UpdateNativeArea(bool bClipped, CInt32Rect* pcClip);
+	bool				IsContentDirty(void);
 	SInt32Vec2			GetNativeOrigin(void);
 	SInt32Vec2			GetNativeSize(void);
 	bool				PrepareNativeCanvas(SInt32Vec2 sSize);
@@ -98,6 +102,8 @@ public:
 	void				DestroyNativeCanvas(void);
 
 protected:
+	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
+	void				MarkContentChanged(void) override;
 	EColourFormat		GetTransparentColourFormat(void);
 	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
 };

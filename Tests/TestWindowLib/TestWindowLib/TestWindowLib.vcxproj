@@ -230,6 +230,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BorderCanvasDraw.cpp" />
+    <ClCompile Include="BoxFillCanvasDraw.cpp" />
+    <ClCompile Include="TestPartialRedraw.cpp" />
     <ClCompile Include="DarkForest.cpp" />
     <ClCompile Include="NoImageRefWindowFactory.cpp" />
     <ClCompile Include="SpaceCrusade.cpp" />
@@ -314,6 +316,7 @@
   <ItemGroup>
     <ClInclude Include="DataTestRefWindow.h" />
     <ClInclude Include="BorderCanvasDraw.h" />
+    <ClInclude Include="BoxFillCanvasDraw.h" />
     <ClInclude Include="DarkForest.h" />
     <ClInclude Include="NoImageRefWindowFactory.h" />
     <ClInclude Include="WaitTestRefWindow.h" />

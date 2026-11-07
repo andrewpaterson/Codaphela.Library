@@ -47,6 +47,7 @@ void TestGoToDialog(void);
 void TestCaretBlink(void);
 void TestSoundMixer(void);
 void TestWindowRedraw(void);
+void TestPartialRedraw(void);
 #ifdef _WIN32
 void TestWinGDICanvas(void);
 #endif // _WIN32
@@ -111,6 +112,7 @@ int __cdecl main(void)
 	TestCaretBlink();
 	TestSoundMixer();
 	TestWindowRedraw();
+	TestPartialRedraw();
 #ifdef _WIN32
 	TestWinGDICanvas();
 #endif // _WIN32

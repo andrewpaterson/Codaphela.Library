@@ -23,6 +23,7 @@
 #include "TestLib/AssertGeometric.h"
 #include "TestRefWindowCanvasDraw.h"
 #include "BorderCanvasDraw.h"
+#include "BoxFillCanvasDraw.h"
 #include "TickTestRefWindow.h"
 #include "NoImageRefWindowFactory.h"
 #include "DarkForest.h"
@@ -34,43 +35,6 @@
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-// Fills its canvas with one colour as CClearCanvasDraw does, but doesn't	//
-// say so, so its canvas is drawn into a native canvas and copied.		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-class CBoxFillCanvasDraw : public CCanvasDraw
-{
-CONSTRUCTABLE(CBoxFillCanvasDraw);
-DESTRUCTABLE(CBoxFillCanvasDraw);
-protected:
-	ARGB32	msColour;
-
-public:
-	void Init(ARGB32 sColour)
-	{
-		PreInit();
-		CCanvasDraw::Init();
-		msColour = sColour;
-		PostInit();
-	}
-
-	void Class(void) override
-	{
-		CCanvasDraw::Class();
-		U_UInt32(msColour);
-	}
-
-	bool Draw(Ptr<CCanvas> pCanvas) override
-	{
-		CInt32Rect	cRect;
-
-		cRect.Init(0, 0, pCanvas->GetActualSize().x - 1, pCanvas->GetActualSize().y - 1);
-		pCanvas->DrawBox(&cRect, true, msColour);
-		return true;
-	}
-};
 
 
 //////////////////////////////////////////////////////////////////////////
