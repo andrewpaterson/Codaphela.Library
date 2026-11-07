@@ -31,7 +31,7 @@ protected:
 	CChunkFileFileSystem*	mpcChunkFile;
 
 public:
-	void				Init(CChunkFileFileSystem* mpcChunkFile);
+	void				Init(CChunkFileFileSystem* pcChunkFile);
 	void				Kill(void);
 
 	CSerialisedObject*	Read(OIndex oi);

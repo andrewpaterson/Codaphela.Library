@@ -48,7 +48,7 @@ void CChunkFileSystemObjectReader::Kill(void)
 {
 	mszFullDirectory.Kill();
 	mszFilename.Kill();
-	CExternalObjectReader::Kill();
+	CChunkFileObjectReader::Kill();
 }
 
 
@@ -89,40 +89,5 @@ bool CChunkFileSystemObjectReader::End(void)
 	mcChunkFileFileSystem.Kill();
 	mcChunkFile.Kill();
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CChunkFileSystemObjectReader::Read(const char* szChunkName)
-{
-	CSerialisedObject*	pcSerialised;
-	CChunkFileFile		cChunkFile;
-	CFileBasic			cFileBasic;
-	bool				bEnded;
-
-	if (!mcChunkFileFileSystem.ReadChunkBegin(szChunkName))
-	{
-		return NULL;
-	}
-
-	cChunkFile.Init(mcChunkFileFileSystem.GetChunkFile());
-	cFileBasic.Init(&cChunkFile);
-	cFileBasic.Open(EFM_Read);
-
-	pcSerialised = ReadSerialised(&cFileBasic);
-
-	cFileBasic.Close();
-	cFileBasic.Kill();
-	cChunkFile.Kill();
-
-	bEnded = mcChunkFileFileSystem.ReadChunkEnd();
-	if (!bEnded)
-	{
-		SafeFree(pcSerialised);
-	}
-	return pcSerialised;
 }
 

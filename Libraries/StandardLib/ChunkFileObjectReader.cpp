@@ -20,10 +20,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
+#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/ChunkFileFile.h"
 #include "BaseLib/ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
+#include "ObjectIO.h"
 #include "ChunkFileObjectReader.h"
 
 
@@ -43,9 +45,9 @@ void CChunkFileObjectReader::Init(CChunkFileFileSystem* pcChunkFile)
 //////////////////////////////////////////////////////////////////////////
 void CChunkFileObjectReader::Kill(void)
 {
+	mpcChunkFile = NULL;
 	CExternalObjectReader::Kill();
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -56,15 +58,10 @@ CSerialisedObject* CChunkFileObjectReader::Read(OIndex oi)
 	CChars				szUnnamed;
 	CSerialisedObject*	pcSerialised;
 
-	szUnnamed.Init(OBJECT_UNNAMED_FILE"/");
-	szUnnamed.AppendHexHiLo(&oi, sizeof(OIndex));
-
-	pcSerialised = Read(szUnnamed.Text());
-
+	pcSerialised = Read(CObjectIO::Unnamed(oi, &szUnnamed));
 	szUnnamed.Kill();
 	return pcSerialised;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -84,22 +81,15 @@ CSerialisedObject* CChunkFileObjectReader::Read(const char* szChunkName)
 	cChunkFile.Init(mpcChunkFile->GetChunkFile());
 	cFileBasic.Init(&cChunkFile);
 	cFileBasic.Open(EFM_Read);
-
 	pcSerialised = ReadSerialised(&cFileBasic);
-
 	cFileBasic.Close();
 	cFileBasic.Kill();
 	cChunkFile.Kill();
 
-	if (!pcSerialised)
-	{
-		return NULL;
-	}
-
+	//The chunk is ended whether or not it could be read.
 	if (!mpcChunkFile->ReadChunkEnd())
 	{
-		free(pcSerialised);
-		return NULL;
+		SafeFree(pcSerialised);
 	}
 	return pcSerialised;
 }

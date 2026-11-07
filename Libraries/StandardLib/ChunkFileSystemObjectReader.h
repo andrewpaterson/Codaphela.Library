@@ -37,7 +37,6 @@ public:
 	void				Kill(void);
 
 	bool				Begin(void);
-	CSerialisedObject*  Read(const char* szObjectName);
 	bool				End(void);
 };
 
