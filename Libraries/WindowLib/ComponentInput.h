@@ -49,7 +49,26 @@ struct SComponentInputChordCommand
 typedef CArrayTemplate<SComponentInputChordCommand>	CArrayComponentInputChordCommand;
 
 
+//Keys bound to a command (CComponentInput::BindKeys): one key ("F5"), a chord ("Control+Shift+B") or two keys one
+//after the other with control and shift held for the first ("Control+Shift+F, H").  szKeys is the binding's name, its
+//modifiers in the order Control, Alt, Shift.
+struct SComponentInputBinding
+{
+	CChars					szKeys;
+	EComponentInputCommand	eCommand;
+	bool					bControl;
+	bool					bAlt;
+	bool					bShift;
+	CChars					szKey;
+	CChars					szSecondKey;  //Empty unless it is two keys one after the other.
+};
+
+
+typedef CArrayTemplate<SComponentInputBinding>	CArrayComponentInputBinding;
+
+
 #define COMPONENT_INPUT_MAX_EVENTS	2	//Translate's most events for one queued event.
+#define COMPONENT_INPUT_SEQUENCE_MILLISECONDS	500	//How long after the chord a bound sequence's second key may come.
 
 
 //Pumps the events a CWindowInputSource queues to the window, whose focus has them translated here and dispatches
@@ -66,6 +85,7 @@ protected:
 	CArrayComponentInputDevice			macDevices;
 	CArrayComponentInputPressed			masPressed;
 	CArrayComponentInputChordCommand	masChordCommands;
+	CArrayComponentInputBinding			masBindings;  //An application's keys, given every keyboard after the standard ones.
 	CWindowInputSource*					mpcSource;
 	CWindow*							mpcWindow;
 
@@ -99,6 +119,7 @@ public:
 	bool				IsSourceDown(const char* szFriendlyName);
 	CWindowInputSource*	GetSource(void);
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
+	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand);
 
 protected:
 	CComponentInputDevice*			AddDevice(CInputDevice* pcDevice);
@@ -109,6 +130,10 @@ protected:
 	void							AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, char* szFirstKey, char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
 	void							AddChordCommand(char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
+	void							SetChordCommand(char* szName, EComponentInputCommand ePressed);
+	bool							ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);
+	SComponentInputBinding*			GetBinding(char* szKeys);
+	void							ApplyBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding);
 	SComponentInputChordCommand*	GetChordCommand(char* szName);
 	bool							IsKeyDown(EComponentInputKey eKey);
 	void							InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent);

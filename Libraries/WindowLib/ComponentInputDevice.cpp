@@ -35,6 +35,7 @@ void CComponentInputDevice::Init(CInputDevice* pcDevice, CComponentInput* pcComp
 	masReleasedCommands.Init();
 	masNumKeys.Init();
 	masKeys.Init();
+	maszChords.Init();
 	mbMouse = false;
 }
 
@@ -45,6 +46,7 @@ void CComponentInputDevice::Init(CInputDevice* pcDevice, CComponentInput* pcComp
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputDevice::Kill(void)
 {
+	maszChords.Kill();
 	masKeys.Kill();
 	masNumKeys.Kill();
 	masReleasedCommands.Kill();
@@ -219,6 +221,59 @@ CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, ECompo
 		psCommand->Init(eCommand, pcSource);
 	}
 	return pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pressing the key gives eCommand, instead of whatever it gave before.
+// NULL if the keyboard has no such key.
+//
+//////////////////////////////////////////////////////////////////////////
+CInputSourceDesc* CComponentInputDevice::SetCommand(char* szFriendlyName, EComponentInputCommand eCommand)
+{
+	CInputSourceDesc*			pcSource;
+	CComponentInputCommand*		psCommand;
+
+	pcSource = GetSource(szFriendlyName);
+	if (pcSource)
+	{
+		psCommand = GetPressedCommand(pcSource);
+		if (psCommand)
+		{
+			psCommand->Init(eCommand, pcSource);
+		}
+		else
+		{
+			masPressedCommands.Add()->Init(eCommand, pcSource);
+		}
+	}
+	return pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chord named szName has been made with this keyboard's modifiers
+// (CComponentInput::AddChordCommands), so it isn't made again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInputDevice::AddChord(char* szName)
+{
+	if (!HasChord(szName))
+	{
+		maszChords.Add(szName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInputDevice::HasChord(char* szName)
+{
+	return maszChords.Contains(szName);
 }
 
 

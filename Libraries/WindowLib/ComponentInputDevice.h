@@ -41,6 +41,7 @@ protected:
 	CArrayComponentInputCommand			masReleasedCommands;
 	CArrayComponentInputNumKey			masNumKeys;
 	CArrayComponentInputKey				masKeys;
+	CArrayChars							maszChords;  //The chords made with this keyboard's modifiers, by name.
 	bool								mbMouse;
 
 public:
@@ -61,6 +62,9 @@ public:
 	CInputDevice*				GetDevice(void);
 
 	CInputSourceDesc*			AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
+	CInputSourceDesc*			SetCommand(char* szFriendlyName, EComponentInputCommand eCommand);
+	void						AddChord(char* szName);
+	bool						HasChord(char* szName);
 	CInputSourceDesc*			AddPrintable(char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
 	CInputSourceDesc*			AddNumKeyRemap(char* szFriendlyName, char* szYesNumLockRemap, char* szNoNumLockRemap);
 	CInputSourceDesc*			AddKey(char* szFriendlyName, EComponentInputKey eKey);

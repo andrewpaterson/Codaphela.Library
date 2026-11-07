@@ -147,6 +147,7 @@ void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 	macDevices.Init();
 	masPressed.Init();
 	masChordCommands.Init();
+	masBindings.Init();
 
 	mbCapsLock = false;
 	mbNumLock = false;
@@ -170,6 +171,15 @@ void CComponentInput::Kill(void)
 		masChordCommands.Get(i)->szName.Kill();
 	}
 	masChordCommands.Kill();
+
+	uiNumElements = masBindings.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		masBindings.Get(i)->szKeys.Kill();
+		masBindings.Get(i)->szKey.Kill();
+		masBindings.Get(i)->szSecondKey.Kill();
+	}
+	masBindings.Kill();
 
 	uiNumElements = macDevices.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -256,6 +266,10 @@ bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 
 	pcInputDevice->InitKeyboard();
 	AddKeyboardChords(pcInputDevice);
+	for (i = 0; i < masBindings.NumElements(); i++)
+	{
+		ApplyBinding(pcInputDevice, masBindings.Get(i));
+	}
 
 	//The keyboard was added last, the array may have moved.
 	uiNumElements = macDevices.NumElements();
@@ -442,8 +456,9 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 	}
 	szName.Append(szKey);
 
-	//Every choice of left or right for each modifier: bit i of uiSides is the side of modifier i.
-	for (uiSides = 0; uiSides < ((size)1 << uiNumModifiers); uiSides++)
+	//Every choice of left or right for each modifier: bit i of uiSides is the side of modifier i.  A keyboard has each
+	//chord once: an application's binding on a standard chord only changes its command.
+	for (uiSides = 0; (uiSides < ((size)1 << uiNumModifiers)) && !pcKeyboard->HasChord(szName.Text()); uiSides++)
 	{
 		for (i = 0; i < uiNumModifiers; i++)
 		{
@@ -458,6 +473,7 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcChord, uiNumModifiers, pcKeyDevice->GetDevice(), pcKey);
 		}
 	}
+	pcKeyboard->AddChord(szName.Text());
 
 	AddChordCommand(szName.Text(), ePressed, eReleased);
 	szName.Kill();
@@ -499,7 +515,7 @@ void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard
 	szName.Append(", ");
 	szName.Append(szSecondKey);
 
-	for (i = 0; i < 2; i++)
+	for (i = 0; (i < 2) && !pcKeyboard->HasChord(szName.Text()); i++)
 	{
 		for (j = 0; j < 2; j++)
 		{
@@ -513,6 +529,7 @@ void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard
 		}
 	}
 
+	pcKeyboard->AddChord(szName.Text());
 	AddChordCommand(szName.Text(), eCommand, CIC_Ignored);
 	szName.Kill();
 }
@@ -534,6 +551,213 @@ void CComponentInput::AddChordCommand(char* szName, EComponentInputCommand ePres
 		psCommand->ePressed = ePressed;
 		psCommand->eReleased = eReleased;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chord gives ePressed, instead of whatever it gave before.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::SetChordCommand(char* szName, EComponentInputCommand ePressed)
+{
+	SComponentInputChordCommand*	psCommand;
+
+	psCommand = GetChordCommand(szName);
+	if (psCommand)
+	{
+		psCommand->ePressed = ePressed;
+	}
+	else
+	{
+		AddChordCommand(szName, ePressed, CIC_Ignored);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The application's keys for eCommand, instead of any standard command on
+// the same keys: one key ("F5"), a chord of control, alt and shift with a
+// key ("Control+Shift+B", "Alt+Backspace"), or a key after a control and
+// shift chord ("Control+Shift+F, H").  Every keyboard has them, those
+// added later too.  False, logged, if szKeys can't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::BindKeys(const char* szKeys, EComponentInputCommand eCommand)
+{
+	SComponentInputBinding	sParsed;
+	SComponentInputBinding*	psBinding;
+	CComponentInputDevice*	pcDevice;
+	size					i;
+
+	sParsed.szKeys.Init();
+	sParsed.szKey.Init();
+	sParsed.szSecondKey.Init();
+	if (!ParseKeys(szKeys, &sParsed))
+	{
+		sParsed.szKeys.Kill();
+		sParsed.szKey.Kill();
+		sParsed.szSecondKey.Kill();
+		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or Control+Shift+F, H.", NULL);
+	}
+
+	psBinding = GetBinding(sParsed.szKeys.Text());
+	if (psBinding)
+	{
+		psBinding->eCommand = eCommand;
+		sParsed.szKeys.Kill();
+		sParsed.szKey.Kill();
+		sParsed.szSecondKey.Kill();
+	}
+	else
+	{
+		sParsed.eCommand = eCommand;
+		psBinding = masBindings.Add();
+		*psBinding = sParsed;
+	}
+
+	for (i = 0; i < macDevices.NumElements(); i++)
+	{
+		pcDevice = macDevices.Get(i);
+		if (!pcDevice->IsMouse())
+		{
+			ApplyBinding(pcDevice, psBinding);
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads "Control+Alt+Shift+Key" (the modifiers in any order, each at most
+// once) or "Control+Shift+First, Second" into psBinding, whose szKeys is
+// then the keys' name with its modifiers in the order Control, Alt, Shift.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBinding)
+{
+	const char*	szRest;
+	const char*	szComma;
+	bool		bModifier;
+	CChars		szLook;
+
+	psBinding->bControl = false;
+	psBinding->bAlt = false;
+	psBinding->bShift = false;
+	if (StrEmpty(szKeys))
+	{
+		return false;
+	}
+
+	szRest = szKeys;
+	do
+	{
+		bModifier = false;
+		szLook.Fake((char*)szRest);
+		if (!psBinding->bControl && szLook.StartsWith("Control+"))
+		{
+			psBinding->bControl = true;
+			szRest += 8;
+			bModifier = true;
+		}
+		else if (!psBinding->bAlt && szLook.StartsWith("Alt+"))
+		{
+			psBinding->bAlt = true;
+			szRest += 4;
+			bModifier = true;
+		}
+		else if (!psBinding->bShift && szLook.StartsWith("Shift+"))
+		{
+			psBinding->bShift = true;
+			szRest += 6;
+			bModifier = true;
+		}
+	}
+	while (bModifier);
+
+	szComma = strstr(szRest, ", ");
+	if (szComma)
+	{
+		if (!psBinding->bControl || !psBinding->bShift || psBinding->bAlt || (szComma == szRest) || StrEmpty(szComma + 2))
+		{
+			return false;
+		}
+		psBinding->szKey.Init(szRest, 0, (size)(szComma - szRest));
+		psBinding->szSecondKey.Init(szComma + 2);
+	}
+	else
+	{
+		if (StrEmpty(szRest))
+		{
+			return false;
+		}
+		psBinding->szKey.Init(szRest);
+		psBinding->szSecondKey.Init();
+	}
+
+	psBinding->szKeys.Init(psBinding->bControl ? "Control+" : "");
+	psBinding->szKeys.Append(psBinding->bAlt ? "Alt+" : "");
+	psBinding->szKeys.Append(psBinding->bShift ? "Shift+" : "");
+	psBinding->szKeys.Append(psBinding->szKey);
+	if (!psBinding->szSecondKey.Empty())
+	{
+		psBinding->szKeys.Append(", ");
+		psBinding->szKeys.Append(psBinding->szSecondKey);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The application's binding of szKeys (a name as ParseKeys makes), NULL
+// if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentInputBinding* CComponentInput::GetBinding(char* szKeys)
+{
+	size	i;
+
+	for (i = 0; i < masBindings.NumElements(); i++)
+	{
+		if (masBindings.Get(i)->szKeys.Equals(szKeys))
+		{
+			return masBindings.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives pcKeyboard psBinding's keys.  A chord is only made once on each
+// keyboard: one the keyboard already has just gives the binding's command
+// now.  A keyboard without the key doesn't get it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::ApplyBinding(CComponentInputDevice* pcKeyboard, SComponentInputBinding* psBinding)
+{
+	if (!psBinding->bControl && !psBinding->bAlt && !psBinding->bShift)
+	{
+		pcKeyboard->SetCommand(psBinding->szKey.Text(), psBinding->eCommand);
+		return;
+	}
+
+	if (!pcKeyboard->HasChord(psBinding->szKeys.Text()))
+	{
+		if (psBinding->szSecondKey.Empty())
+		{
+			AddChordCommands(pcKeyboard, pcKeyboard, psBinding->bControl, psBinding->bShift, psBinding->bAlt, psBinding->szKey.Text(), psBinding->eCommand, CIC_Ignored);
+		}
+		else
+		{
+			AddSequenceChordCommands(pcKeyboard, psBinding->szKey.Text(), psBinding->szSecondKey.Text(), psBinding->eCommand, COMPONENT_INPUT_SEQUENCE_MILLISECONDS);
+		}
+	}
+	SetChordCommand(psBinding->szKeys.Text(), psBinding->eCommand);
 }
 
 

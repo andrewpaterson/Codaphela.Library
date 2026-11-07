@@ -384,6 +384,8 @@ public:
 		mpcKeyboard->AddSource("H");
 		mpcKeyboard->AddSource("V");
 		mpcKeyboard->AddSource("Tab");
+		mpcKeyboard->AddSource("Left Alt");
+		mpcKeyboard->AddSource("F5");
 		mpcMouse->AddSource("Button 1");
 		mpcMouse->AddSource("Wheel Forward");
 		mpcInput->AddProgramInput();
@@ -746,6 +748,121 @@ void TestInputActionUnhandledCommands(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An application's keys: bound before the keyboard is added or after, a
+// key, a new chord, a standard chord given another command (once, not as
+// well as its own) and a sequence.  Keys that can't be read aren't bound.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionBindKeys(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CActionTestComponent>	pA;
+		CChars						szLog;
+		CChars						szShortcut;
+		CActionTestDevices			cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		SLogConfig					sLogConfig;
+
+		szLog.Init();
+		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Bind Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pA = OMalloc<CActionTestComponent>(pTestWindow, &szLog);
+		AssertTrue(pGrid->AddComponent(pA, 0, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+
+		//Before the keyboard: its keys come with it.
+		AssertTrue(cComponentInput.BindKeys("Alt+Control+Z", CIC_StepUndo));
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
+
+		pA->AddInputAction(CIC_Undo, &pA, &CActionTestComponent::Undo);
+		pA->AddInputAction(CIC_StepUndo, &pA, &CActionTestComponent::StepUndo);
+		pA->AddInputAction(CIC_Redo, &pA, &CActionTestComponent::Redo);
+		pA->AddInputAction(CIC_Copy, &pA, &CActionTestComponent::Copy);
+		pA->AddInputAction(CIC_FlipHorizontally, &pA, &CActionTestComponent::FlipH);
+		pTestWindow->PointerMoved(10, 10);
+		cDevices.Click("Button 1");
+		AssertTrue(pA->IsFocussed());
+		szLog.Clear();
+
+		cDevices.Press("Left Control"); cDevices.Press("Left Alt"); cDevices.Tap("Z"); cDevices.Release("Left Alt"); cDevices.Release("Left Control");
+		AssertLog("StepUndo;");
+		cDevices.Press("Left Control"); cDevices.Tap("Z"); cDevices.Release("Left Control");
+		AssertLog("Undo;");
+
+		//After it: a key, and a standard chord's command replaced.
+		AssertTrue(cComponentInput.BindKeys("F5", CIC_Copy));
+		cDevices.Tap("F5");
+		AssertLog("Copy;");
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+Z", CIC_Redo));
+		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("Z"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
+		AssertLog("Redo;");
+		cDevices.Press("Right Control"); cDevices.Press("Right Shift"); cDevices.Tap("Z"); cDevices.Release("Right Shift"); cDevices.Release("Right Control");
+		AssertLog("Redo;");
+
+		//A sequence, the standard flip's keys given undo.
+		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
+		AssertLog("FlipH;");
+		AssertTrue(cComponentInput.BindKeys("Control+Shift+F, H", CIC_Undo));
+		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Release("Left Shift"); cDevices.Release("Left Control"); cDevices.Tap("H");
+		AssertLog("Undo;");
+
+		//The shortcut a menu shows is the bound keys.
+		szShortcut.Init();
+		AssertTrue(cComponentInput.GetShortcutText(CIC_Copy, &szShortcut));
+		AssertString("F5", szShortcut.Text());
+		szShortcut.Clear();
+		AssertTrue(cComponentInput.GetShortcutText(CIC_StepUndo, &szShortcut));
+		AssertString("Ctrl+Alt+Z", szShortcut.Text());
+		szShortcut.Kill();
+
+		//Keys that can't be read.
+		gcLogger.GetConfig(&sLogConfig);
+		gcLogger.SetBreakOnError(false);
+		AssertFalse(cComponentInput.BindKeys("", CIC_Copy));
+		AssertFalse(cComponentInput.BindKeys("Control+", CIC_Copy));
+		AssertFalse(cComponentInput.BindKeys("Control+F, H", CIC_Copy));
+		AssertFalse(cComponentInput.BindKeys("Control+Shift+F, ", CIC_Copy));
+		gcLogger.SetConfig(&sLogConfig);
+
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pGrid = NULL;
+		pA = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestInputAction(void)
@@ -760,6 +877,7 @@ void TestInputAction(void)
 	TestInputActionDispatch();
 	TestInputActionUndoChords(true);
 	TestInputActionUndoChords(false);
+	TestInputActionBindKeys();
 
 	ObjectsFlush();
 	ObjectsKill();
