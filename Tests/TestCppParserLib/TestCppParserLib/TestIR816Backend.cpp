@@ -2168,8 +2168,8 @@ void TestIR816BackendPeepholeMasks(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // PeepholeStores: sta w / dec w / lda w is dec A / sta w (inc the same);
-// sta w / ldy w is sta w / tay (ldx: tax); sta w ... ldy w with neither Y
-// nor a byte near w used between (IR816LoadYLater) and no N or Z read after
+// sta w / ldy w is sta w / tay (ldx: tax); sta w ... ldy w with neither Y,
+// a width change nor a byte near w between (IR816LoadYLater) and no N or Z read after
 // either is sta w / tay ...; and the sta goes too when w is written again
 // before it is read (IR816DeadStore).
 //
@@ -2197,6 +2197,10 @@ void TestIR816BackendPeepholeStores(void)
 	//sta w ... ldy w with only A's work between: tay at once.
 	AssertIR816Pass("\t\tsta [D + 5]\n\t\ttay\n\t\tlda [D + 9]\n\t\tclc\n\t\tadc 2\n\t\tsta [[D + 11]:24 + Y]\n\t\trtl\n",
 		"\t\tsta [D + 5]\n\t\tlda [D + 9]\n\t\tclc\n\t\tadc 2\n\t\tldy [D + 5]\n\t\tsta [[D + 11]:24 + Y]\n\t\trtl\n", fPass);
+
+	//Kept: a width change between (the sta may have stored one byte, as a rep after it says, and tay copies two).
+	AssertIR816Pass("\t\tsta [D + 5]\n\t\trep m\n\t\tldy [D + 5]\n\t\tsta [[D + 11]:24 + Y]\n\t\trtl\n",
+		"\t\tsta [D + 5]\n\t\trep m\n\t\tldy [D + 5]\n\t\tsta [[D + 11]:24 + Y]\n\t\trtl\n", fPass);
 
 	//Kept: iny, a Y indexed load, or a mention of [D + 4] or [D + 6] between; or beq reads the ldy's Z.
 	AssertIR816Pass("\t\tsta [D + 5]\n\t\tlda [D + 9]\n\t\tiny\n\t\tldy [D + 5]\n\t\tsta [[D + 11]:24 + Y]\n\t\trtl\n",

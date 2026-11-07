@@ -302,8 +302,9 @@ static bool IR816IndexedBy(const char* szOperand, size uiOperand, char c)
 //////////////////////////////////////////////////////////////////////////
 //
 // The line "ldy w" after line uiFrom (not uiFrom itself), when the lines from
-// uiFrom to it are straight line code that neither uses Y nor names a byte
-// near w; else IR816_NO_LINE.
+// uiFrom to it are straight line code that neither uses Y, changes a width
+// (the sta before may have stored one byte, and tay copies two) nor names a
+// byte near w; else IR816_NO_LINE.
 //
 //////////////////////////////////////////////////////////////////////////
 static size IR816LoadYLater(CIR816Code* pcCode, size uiFrom, const char* szWord, size uiWord)
@@ -321,7 +322,7 @@ static size IR816LoadYLater(CIR816Code* pcCode, size uiFrom, const char* szWord,
 		{
 			return (ui == uiFrom) ? IR816_NO_LINE : ui;
 		}
-		if ((sLine.uiFlags & (IR816MF_LEAVES | IR816MF_INTERRUPT | IR816MF_SETS_D | IR816MF_USES_Y)) || IR816IndexedBy(sLine.szOperand, sLine.uiOperand, 'Y') ||
+		if ((sLine.uiFlags & (IR816MF_LEAVES | IR816MF_INTERRUPT | IR816MF_SETS_D | IR816MF_USES_Y | IR816MF_WIDTH)) || IR816IndexedBy(sLine.szOperand, sLine.uiOperand, 'Y') ||
 			IR816MentionsNear(sLine.szOperand, sLine.uiOperand, atoi(szWord + 5)))
 		{
 			return IR816_NO_LINE;
