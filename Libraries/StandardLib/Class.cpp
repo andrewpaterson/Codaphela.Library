@@ -28,6 +28,35 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The offset of a field (pvField) in the object pcThis.
+//
+//////////////////////////////////////////////////////////////////////////
+static ptrdiff_t FieldOffset(CBaseObject* pcThis, void* pvField)
+{
+	return (ptrdiff_t)((ptr)pvField - (ptr)pcThis);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new field (constructed, not Init'd) at the end of the class's fields,
+// named szName, and listed in papcFields with the others of its kind.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TField>
+TField* CClass::NewField(CArrayVoidPtr* papcFields, const char* szName)
+{
+	TField*	pcField;
+
+	pcField = (TField*)AddField(sizeof(TField), szName);
+	PostMalloc<TField>(pcField);
+	papcFields->Add(pcField);
+	return pcField;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CClass::Init(const char* szClassName, size uiSize, EPrimitiveType eType, CClasses* pcClasses)
@@ -216,10 +245,8 @@ CPointerField* CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, const c
 	CPointerField*	pcPointerField;
 	ptrdiff_t		iOffset;
 
-	iOffset = (size)((ptr)pcPointer - (ptr)pcThis);
-	pcPointerField = (CPointerField*)AddField(sizeof(CPointerField), szFieldName);
-	PostMalloc<CPointerField>(pcPointerField);
-	mapcPointers.Add(pcPointerField);
+	iOffset = FieldOffset(pcThis, pcPointer);
+	pcPointerField = NewField<CPointerField>(&mapcPointers, szFieldName);
 	pcPointerField->Init(iOffset, this, szFieldName);
 	return pcPointerField;
 }
@@ -239,11 +266,9 @@ CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrim
 
 	pcPrimitive->SetEmbedding((CObject*)pcThis);
 
-	iObjectOffset = (size)((ptr)pcPrimitive - (ptr)pcThis);
-	iValueOffset = (size)((ptr)pvPrimitive - (ptr)pcThis);
-	pcDataField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szFieldName);
-	PostMalloc<CPrimitiveField>(pcDataField);
-	mapcPrimitives.Add(pcDataField);
+	iObjectOffset = FieldOffset(pcThis, pcPrimitive);
+	iValueOffset = FieldOffset(pcThis, pvPrimitive);
+	pcDataField = AddPrimitive(szFieldName);
 	pcClass = GetClass(pcPrimitive->GetClassType());
 	psIO = gcDataTypesIO.GetIO(pcClass->GetName());
 	pcDataField->Init(pcClass, iObjectOffset, iValueOffset, this, psIO, szFieldName);
@@ -260,10 +285,8 @@ CEmbeddedObjectField* CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObjec
 	CEmbeddedObjectField*	pcEmbeddedObjectField;
 	ptrdiff_t				iOffset;
 
-	iOffset = (size)((ptr)pcObject - (ptr)pcThis);
-	pcEmbeddedObjectField = (CEmbeddedObjectField*)AddField(sizeof(CEmbeddedObjectField), szFieldName);
-	PostMalloc<CEmbeddedObjectField>(pcEmbeddedObjectField);
-	mapcEmbeddedObjects.Add(pcEmbeddedObjectField);
+	iOffset = FieldOffset(pcThis, pcObject);
+	pcEmbeddedObjectField = NewField<CEmbeddedObjectField>(&mapcEmbeddedObjects, szFieldName);
 	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szFieldName);
 	return pcEmbeddedObjectField;
 }
@@ -360,7 +383,7 @@ void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, const c
 	CUnmanagedField*	pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Data, (size)((ptr)pv - (ptr)pcThis), this, uiSizeof, 1, szFieldName);
+	pcUnmanagedField->Init(PT_Data, FieldOffset(pcThis, pv), this, uiSizeof, 1, szFieldName);
 }
 
 
@@ -373,7 +396,7 @@ void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, const char* szFieldNam
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_void, (size)((ptr)pv - (ptr)pcThis), this, 0, szFieldName);
+	pcUnmanagedField->Init(PT_void, FieldOffset(pcThis, pv), this, 0, szFieldName);
 }
 
 
@@ -386,7 +409,7 @@ void CClass::UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, cons
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Undefined, (size)((ptr)pv - (ptr)pcThis), this, 0, szFieldName);
+	pcUnmanagedField->Init(PT_Undefined, FieldOffset(pcThis, pv), this, 0, szFieldName);
 }
 
 
@@ -399,7 +422,7 @@ void CClass::UnmanagedPointer(CBaseObject* pcThis, void** pv, const char* szFiel
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Pointer, (size)((ptr)pv - (ptr)pcThis), this, 1, szFieldName);
+	pcUnmanagedField->Init(PT_Pointer, FieldOffset(pcThis, pv), this, 1, szFieldName);
 }
 
 
@@ -412,7 +435,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, cons
 	CUnmanagedField*	pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, (size)((ptr)pv - (ptr)pcThis), this, szFieldName);
+	pcUnmanagedField->Init(eType, FieldOffset(pcThis, pv), this, szFieldName);
 }
 
 
@@ -425,7 +448,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size
 	CUnmanagedField*	pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, (size)((ptr)pv - (ptr)pcThis), this, uiLength, szFieldName);
+	pcUnmanagedField->Init(eType, FieldOffset(pcThis, pv), this, uiLength, szFieldName);
 }
 
 
@@ -500,12 +523,7 @@ CField* CClass::AddField(size uiFieldSize, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 CUnmanagedField* CClass::AddUnmanaged(const char* szFieldName)
 {
-	CUnmanagedField* pcUnmanagedField;
-
-	pcUnmanagedField = (CUnmanagedField*)AddField(sizeof(CUnmanagedField), szFieldName);
-	PostMalloc<CUnmanagedField>(pcUnmanagedField);
-	mapcUnmanaged.Add(pcUnmanagedField);
-	return pcUnmanagedField;
+	return NewField<CUnmanagedField>(&mapcUnmanaged, szFieldName);
 }
 
 
@@ -515,12 +533,7 @@ CUnmanagedField* CClass::AddUnmanaged(const char* szFieldName)
 //////////////////////////////////////////////////////////////////////////
 CPrimitiveField* CClass::AddPrimitive(const char* szFieldName)
 {
-	CPrimitiveField* pcPrimitiveField;
-
-	pcPrimitiveField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szFieldName);
-	PostMalloc<CPrimitiveField>(pcPrimitiveField);
-	mapcPrimitives.Add(pcPrimitiveField);
-	return pcPrimitiveField;
+	return NewField<CPrimitiveField>(&mapcPrimitives, szFieldName);
 }
 
 

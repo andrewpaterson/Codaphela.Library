@@ -189,6 +189,8 @@ public:
 
 protected:
 	CField*					AddField(size uiFieldSize, const char* szName);
+	template<class TField>
+	TField*					NewField(CArrayVoidPtr* papcFields, const char* szName);
 	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, const char* szFieldName);
 	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, const char* szFieldName);
 	size					ComputeSize(void);
