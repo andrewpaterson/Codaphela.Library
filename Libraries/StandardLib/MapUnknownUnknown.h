@@ -42,7 +42,6 @@ public:
 
 	bool		WriteMapUnknownHeader(CFileWriter* pcFileWriter);
 	bool		ReadMapUnknownHeader(CFileReader* pcFileReader);
-	bool		ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
 	template<class M, class N>
 	N*			Put(M* pcKey);  //Note this allocates N and returns a pointer to it.  Not a pointer to the pointer in the map.

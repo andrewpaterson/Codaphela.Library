@@ -271,12 +271,8 @@ bool CIndexUnknown::WriteIndexUnknownHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 size CIndexUnknown::ReadIndexUnknownHeader(CFileReader* pcFileReader)
 {
-	if (!pcFileReader->ReadInt16(&muiFlags))
-	{
-		return ARRAY_ELEMENT_NOT_FOUND;
-	}
-
-	return mcIndex.ReadIndexTreeHeader(pcFileReader);
+	//The tree reads and frees its data itself, as CIndexTreeMemory::ReadIndexTreeHeader(pcFileReader) has it.
+	return ReadIndexUnknownHeader(pcFileReader, &mcIndex, &mcIndex, NULL);
 }
 
 

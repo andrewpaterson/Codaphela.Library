@@ -123,17 +123,6 @@ bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree)
-{
-	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
-	return mcMap.ReadMapBlockHeader(pcFileReader, &ComparePtrPtr, pcDataIO, pcDataFree);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::Put(CUnknown* pcKey, CUnknown* pcValue)
 {
 	SMNode*		psNode;
