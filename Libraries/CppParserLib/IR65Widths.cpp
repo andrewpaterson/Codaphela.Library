@@ -24,18 +24,23 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the line is "szMnemonic R, value" with R one of A, B, X and Y;
-// the register's index and the value.
+// True if line uiLine, not removed, is "szMnemonic R, value" with R one of
+// A, B, X and Y; the register's index and the value.  (A removed line keeps
+// its text.)
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR65WidthsImmediate(CChars* pszLine, const char* szMnemonic, int* piRegister, int64* plliValue)
+static bool IR65WidthsImmediate(CIR65Code* pcCode, size uiLine, const char* szMnemonic, int* piRegister, int64* plliValue)
 {
 	const char*	sz;
 	size		uiLength;
 	int			i;
 	char*		szEnd;
 
-	sz = pszLine->Text();
+	if (pcCode->IsRemoved(uiLine))
+	{
+		return false;
+	}
+	sz = pcCode->GetText(uiLine)->Text();
 	while (*sz == '\t')
 	{
 		sz++;
@@ -60,7 +65,8 @@ static bool IR65WidthsImmediate(CChars* pszLine, const char* szMnemonic, int* pi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the line is "cpy R1, R2" with R1 and R2 two of A, B, X and Y.
+// True if line uiLine, not removed, is "cpy R1, R2" with R1 and R2 two of
+// A, B, X and Y.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR65WidthsCopy(CIR65Code* pcCode, size uiLine, int iDestination, int* piSource)
@@ -68,6 +74,10 @@ static bool IR65WidthsCopy(CIR65Code* pcCode, size uiLine, int iDestination, int
 	SIR65CodeLine*	psLine;
 	const char*		sz;
 
+	if (pcCode->IsRemoved(uiLine))
+	{
+		return false;
+	}
 	psLine = pcCode->GetLine(uiLine);
 	sz = pcCode->GetText(uiLine)->Text();
 	while (*sz == '\t')
@@ -255,7 +265,7 @@ void CIR65Widths::NarrowExtensions(void)
 		{
 			continue;
 		}
-		if (IR65WidthsImmediate(mcCode.GetText(ui), "and", &iRegister, &lliValue) && ((lliValue == 0xFF) || (lliValue == 0xFFFF)) && (mcCode.GetWidths(ui)->auiRegisters[iRegister] == 32))
+		if (IR65WidthsImmediate(&mcCode, ui, "and", &iRegister, &lliValue) && ((lliValue == 0xFF) || (lliValue == 0xFFFF)) && (mcCode.GetWidths(ui)->auiRegisters[iRegister] == 32))
 		{
 			uiBits = (lliValue == 0xFF) ? 8 : 16;
 			if ((ui > 0) && mcCode.IsReached(ui - 1) && IR65WidthsCopy(&mcCode, ui - 1, iRegister, &iSource) && (mcCode.GetWidths(ui - 1)->auiRegisters[iSource] == 32))
@@ -266,11 +276,11 @@ void CIR65Widths::NarrowExtensions(void)
 			}
 			continue;
 		}
-		if (!IR65WidthsImmediate(mcCode.GetText(ui), "xor", &iRegister, &lliValue) || ((lliValue != 0x80) && (lliValue != 0x8000)) || (mcCode.GetWidths(ui)->auiRegisters[iRegister] != 32))
+		if (!IR65WidthsImmediate(&mcCode, ui, "xor", &iRegister, &lliValue) || ((lliValue != 0x80) && (lliValue != 0x8000)) || (mcCode.GetWidths(ui)->auiRegisters[iRegister] != 32))
 		{
 			continue;
 		}
-		if ((ui + 1 >= uiNum) || !IR65WidthsImmediate(mcCode.GetText(ui + 1), "sub", &iSub, &lliSub) || (iSub != iRegister) || (lliSub != lliValue))
+		if ((ui + 1 >= uiNum) || !IR65WidthsImmediate(&mcCode, ui + 1, "sub", &iSub, &lliSub) || (iSub != iRegister) || (lliSub != lliValue))
 		{
 			continue;
 		}
