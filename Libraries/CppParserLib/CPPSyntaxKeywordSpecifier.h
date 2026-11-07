@@ -29,7 +29,7 @@ public:
 	ECppTokens				meKeyword;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
-	ECPPSyntax				GetKind(void) override;
+	CPP_SYNTAX_GET_KIND(KeywordSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };

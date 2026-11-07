@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCPPSyntaxSkippedDeclaration : public CCPPSyntaxDeclaration
 {
 public:
-	ECPPSyntax				GetKind(void) override;
+	CPP_SYNTAX_GET_KIND(SkippedDeclaration)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 };
 

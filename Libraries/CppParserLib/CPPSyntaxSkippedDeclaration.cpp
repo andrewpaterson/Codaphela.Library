@@ -25,16 +25,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntax CCPPSyntaxSkippedDeclaration::GetKind(void)
-{
-	return CPPS_SkippedDeclaration;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxSkippedDeclaration::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	//Declarations that were skimmed (in system headers) or could not be parsed print as their tokens.

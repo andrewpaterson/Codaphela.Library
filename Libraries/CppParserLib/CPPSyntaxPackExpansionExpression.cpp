@@ -36,16 +36,6 @@ void CCPPSyntaxPackExpansionExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntax CCPPSyntaxPackExpansionExpression::GetKind(void)
-{
-	return CPPS_PackExpansionExpression;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxPackExpansionExpression::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	PrintNode(pszDest, mpcPattern, iDepth);

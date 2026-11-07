@@ -43,7 +43,7 @@ public:
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;
-	ECPPSyntax				GetKind(void) override;
+	CPP_SYNTAX_GET_KIND(EnumSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 	void					PrintEnumerators(CChars* pszDest, int iDepth);

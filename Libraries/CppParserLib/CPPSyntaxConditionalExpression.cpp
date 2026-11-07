@@ -38,16 +38,6 @@ void CCPPSyntaxConditionalExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntax CCPPSyntaxConditionalExpression::GetKind(void)
-{
-	return CPPS_ConditionalExpression;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxConditionalExpression::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	PrintNode(pszDest, mpcCondition, iDepth);

@@ -37,16 +37,6 @@ void CCPPSyntaxConstructExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntax CCPPSyntaxConstructExpression::GetKind(void)
-{
-	return CPPS_ConstructExpression;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxConstructExpression::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	//T(x), T{x} and typename X::Y(x).  [expr.type.conv]

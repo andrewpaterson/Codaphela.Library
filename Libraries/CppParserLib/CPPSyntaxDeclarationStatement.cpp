@@ -36,16 +36,6 @@ void CCPPSyntaxDeclarationStatement::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPSyntax CCPPSyntaxDeclarationStatement::GetKind(void)
-{
-	return CPPS_DeclarationStatement;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxDeclarationStatement::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	PrintNode(pszDest, mpcDeclaration, iDepth);
