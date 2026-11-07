@@ -306,6 +306,7 @@ void TestObjectConverterNamesObjects(void)
 		CMemoryFile		cTextFile;
 		CMemoryFile		cUnnamedFile;
 		Ptr<CString>	pString;
+		SLogConfig		sLogConfig;
 
 		cTextFile.Init(szText, (size)strlen(szText));
 		cUnnamedFile.Init(szText, (size)strlen(szText));
@@ -318,7 +319,10 @@ void TestObjectConverterNamesObjects(void)
 		AssertString("Input/Text.txt", pString->GetName());
 		AssertPointer(pString.Object(), gcObjects.Get<CString>("Input/Text.txt").Object());
 
+		//Refusing it is an error, which mustn't break into the debugger.
+		sLogConfig = gcLogger.SetSilent();
 		pString = gcObjects.Get<CString>("Input/Unnamed.txt");
+		gcLogger.SetConfig(&sLogConfig);
 		AssertTrue(pString.IsNull());
 
 		pString = NULL;
