@@ -26,8 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GridContainer.h"
 #include "IconComponent.h"
 #include "Label.h"
-#include "JewelColours.h"
-#include "JewelImageGenerator.h"
 #include "TreeContainer.h"
 
 
@@ -43,7 +41,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
-	CColourFormatHelper	cFormat;
 	Ptr<CFont>			pFont;
 
 	PreInit();
@@ -56,9 +53,6 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
-	pWindow->GetColourFormat(&cFormat);
-	mpCollapsedChevron = CJewelImageGenerator::CreateChevron(JEWEL_ICON, &cFormat);
-	mpExpandedChevron = CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat);
 	miIndent = TREE_INDENT;
 	pFont = pTheme->GetFont();
 	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + TREE_ROW_PADDING;
@@ -85,8 +79,6 @@ void CTreeContainer::Class(void)
 	M_Embedded(maFonts);
 	U_Unknown(CArrayInt, maiRowNodes);
 	U_Unknown(CArrayInt, maiTopNodes);
-	M_Pointer(mpCollapsedChevron);
-	M_Pointer(mpExpandedChevron);
 	U_Int32(miIndent);
 	U_Int32(miRowHeight);
 	U_Bool(mbRowsDirty);
@@ -581,7 +573,7 @@ void CTreeContainer::AddNodeRow(int32 iNode)
 
 	if (psNode->iFirstChild != TREE_NO_NODE)
 	{
-		pIcon = OMalloc<CIconComponent>(mpWindow, psNode->bExpanded ? mpExpandedChevron : mpCollapsedChevron, TREE_CHEVRON_WIDTH, miRowHeight);
+		pIcon = OMalloc<CIconComponent>(mpWindow, mpTheme->GetImage(psNode->bExpanded ? TI_DownChevron : TI_Chevron), TREE_CHEVRON_WIDTH, miRowHeight);
 		pIcon->SetCelAlignment(CSH_Center, CSV_Center);
 		pRow->AddComponent(pIcon, iColumn++, 0);
 	}

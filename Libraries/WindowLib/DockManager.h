@@ -35,16 +35,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockFocus.h"
 
 
-enum EDockImage
-{
-	DI_Menu,		//The window position menu's chevron.
-	DI_Pinned,
-	DI_Unpinned,
-	DI_Close,
-	DI_NumImages,
-};
-
-
 //What a drop would do: dock at the edge of a dock area, beside a group or tab into it, beside the document well, or
 //into the empty document well.
 enum EDockTargetKind
@@ -121,7 +111,6 @@ protected:
 	Ptr<CWindowTheme>			mpTheme;
 	Ptr<CFont>					mpFont;
 	Ptr<CFont>					mpTurnedFont;  //For the left and right auto hide strips, NULL for upright text.
-	CArray<CImageCel>			maImages;  //By EDockImage.
 	Ptr<CDockArea>				mpArea;
 	Ptr<CDocumentWell>			mpWell;
 	CArray<CDockPane>			maPanes;
@@ -155,7 +144,6 @@ public:
 	Ptr<CFont>					GetTurnedFont(void);
 	ARGB32						GetColour(EThemeColour eColour);
 	void						SetColour(EThemeColour eColour, ARGB32 sColour);
-	Ptr<CImageCel>				GetImage(EDockImage eImage);
 
 	//Panes.
 	Ptr<CDockPane>				AddPane(const char* szID, const char* szTitle, Ptr<CImageCel> pIcon, Ptr<CComponent> pContent, EDockPaneKind eKind, SDockPlace* psDefault = NULL, bool bShow = true);
@@ -238,7 +226,6 @@ public:
 	bool						GetLayoutWindowRectangle(CInt32Rect* pcDest);
 
 protected:
-	void						CreateImages(void);
 	void						TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore);
 	void						SetStates(Ptr<CDockNode> pNode, EDockPaneState eState);
 	void						ClearLayout(void);

@@ -71,9 +71,9 @@ void CDockTitleBar::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, const
 	mpTitle->SetAlignment(CSH_Left, CSV_Center);
 	AddComponent(mpTitle, 1, 0, 1, 1, 1, 0);
 
-	mapButtons[DTB_Menu] = OMalloc<CIconComponent>(pWindow, pManager->GetImage(DI_Menu), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
-	mapButtons[DTB_Pin] = OMalloc<CIconComponent>(pWindow, pManager->GetImage(DI_Pinned), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
-	mapButtons[DTB_Close] = OMalloc<CIconComponent>(pWindow, pManager->GetImage(DI_Close), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
+	mapButtons[DTB_Menu] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_DownChevron), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
+	mapButtons[DTB_Pin] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Pin), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
+	mapButtons[DTB_Close] = OMalloc<CIconComponent>(pWindow, pManager->GetTheme()->GetImage(TI_Close), DOCK_TITLE_BUTTON_WIDTH, DOCK_TITLE_BAR_HEIGHT);
 	mabShown[DTB_Menu] = bMenu;
 	mabShown[DTB_Pin] = bPin;
 	mabShown[DTB_Close] = bClose;
@@ -242,7 +242,7 @@ void CDockTitleBar::SetPinned(bool bPinned)
 void CDockTitleBar::UpdateLook(void)
 {
 	mpBackgroundDraw->SetColour(mpManager->GetColour(mbActive ? TC_DockActiveTitleBar : TC_DockTitleBar));
-	mapButtons[DTB_Pin]->SetCel(mpManager->GetImage(mbPinned ? DI_Pinned : DI_Unpinned));
+	mapButtons[DTB_Pin]->SetCel(mpManager->GetTheme()->GetImage(mbPinned ? TI_Pin : TI_Unpin));
 	Invalidate();
 }
 

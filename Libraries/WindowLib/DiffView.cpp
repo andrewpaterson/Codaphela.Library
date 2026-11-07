@@ -25,8 +25,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/ColourFormat.h"
 #include "Window.h"
 #include "FillContainer.h"
-#include "JewelColours.h"
-#include "JewelImageGenerator.h"
 #include "DiffView.h"
 
 
@@ -728,17 +726,15 @@ Ptr<CGridContainer> CDiffView::CreateToolbar(Ptr<CWindow> pWindow, Ptr<CWindowTh
 	Ptr<CGridContainer>		pToolbar;
 	Ptr<CFillContainer>		pGap;
 	Ptr<CFillContainer>		pSpace;
-	CColourFormatHelper		cFormat;
 
-	pWindow->GetColourFormat(&cFormat);
 	pToolbar = OMalloc<CGridContainer>(pWindow);
 	pToolbar->SetDesiredSize(-1, DIFF_VIEW_TOOLBAR_HEIGHT);
 	pToolbar->SetAlignment(CSH_Stretch, CSV_Stretch);
 
-	mpPreviousButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, CJewelImageGenerator::CreateArrow(JEWEL_ICON, true, &cFormat), "");
+	mpPreviousButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, pTheme->GetImage(TI_PreviousArrow), "");
 	mpPreviousButton->SetAlignment(CSH_Left, CSV_Center);
 	mpPreviousButton->GetClickEvent()->Add(this, &CDiffView::PreviousClicked);
-	mpNextButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, CJewelImageGenerator::CreateArrow(JEWEL_ICON, false, &cFormat), "");
+	mpNextButton = OMalloc<CButton>(pWindow, pTheme, BL_Flat, pTheme->GetImage(TI_NextArrow), "");
 	mpNextButton->SetAlignment(CSH_Left, CSV_Center);
 	mpNextButton->GetClickEvent()->Add(this, &CDiffView::NextClicked);
 

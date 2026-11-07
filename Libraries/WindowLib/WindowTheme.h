@@ -29,6 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScrollBarImages.h"
 #include "MenuStyle.h"
 #include "ThemeColour.h"
+#include "ThemeImage.h"
 #include "ComponentEvent.h"
 
 
@@ -47,8 +48,8 @@ enum EButtonLook
 //tests do.
 //
 //A theme has no looks of its own: whoever makes it sets every colour its widgets use, and reading one that wasn't set
-//is an error.  The images and styles start NULL and only the widgets that use them need them: a theme without check
-//box images can't make check boxes.  Changed tells the theme's users that it changed.
+//is an error, as is an icon.  The other images and styles start NULL and only the widgets that use them need them: a
+//theme without check box images can't make check boxes.  Changed tells the theme's users that it changed.
 class CWindowTheme : public CObject
 {
 CONSTRUCTABLE(CWindowTheme);
@@ -62,13 +63,11 @@ protected:
 	Ptr<CCheckBoxImages>	mpCheckBoxImages;
 	Ptr<CMenuStyle>			mpMenuStyle;  //The menu bar and its menus.
 	Ptr<CMenuStyle>			mpComboMenuStyle;  //A combo box's list.
-	Ptr<CImageCel>			mpComboChevron;
 	Ptr<CScrollBarImages>	mpScrollBarImages;
 	ARGB32					masColours[TC_NumColours];  //By EThemeColour.
 	bool					mabColoursSet[TC_NumColours];
 	CComponentEvent<CWindowTheme>	mcChangeEvent;
-	Ptr<CImageCel>			mpTabClose;  //A tab's close cross, NULL for none.
-	Ptr<CImageCel>			mpTabCloseHover;  //The cross under the pointer.
+	CArray<CImageCel>		maImages;  //By EThemeImage, NULL for one not set.
 
 public:
 	void					Init(Ptr<CFont> pFont);
@@ -84,11 +83,12 @@ public:
 	void					SetToolButtonImages(Ptr<CButtonImages> pImages);
 	void					SetCheckBoxImages(Ptr<CCheckBoxImages> pImages);
 	void					SetMenuStyle(Ptr<CMenuStyle> pStyle);
-	void					SetComboBoxLook(Ptr<CMenuStyle> pStyle, Ptr<CImageCel> pChevron);
+	void					SetComboMenuStyle(Ptr<CMenuStyle> pStyle);
 	void					SetScrollBarImages(Ptr<CScrollBarImages> pImages);
-	void					SetTabCloseImages(Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover);
 	void					SetColour(EThemeColour eColour, ARGB32 sColour);
 	bool					IsColourSet(EThemeColour eColour);
+	void					SetImage(EThemeImage eImage, Ptr<CImageCel> pImage);
+	bool					IsImageSet(EThemeImage eImage);
 	void					Changed(void);
 
 	Ptr<CFont>				GetFont(void);
@@ -97,12 +97,10 @@ public:
 	Ptr<CCheckBoxImages>	GetCheckBoxImages(void);
 	Ptr<CMenuStyle>			GetMenuStyle(void);
 	Ptr<CMenuStyle>			GetComboMenuStyle(void);
-	Ptr<CImageCel>			GetComboChevron(void);
 	Ptr<CScrollBarImages>	GetScrollBarImages(void);
 	ARGB32					GetColour(EThemeColour eColour);
+	Ptr<CImageCel>			GetImage(EThemeImage eImage);
 	CComponentEvent<CWindowTheme>*	GetChangeEvent(void);
-	Ptr<CImageCel>			GetTabClose(void);
-	Ptr<CImageCel>			GetTabCloseHover(void);
 };
 
 

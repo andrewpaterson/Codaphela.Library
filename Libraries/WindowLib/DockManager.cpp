@@ -21,8 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
-#include "JewelColours.h"
-#include "JewelImageGenerator.h"
 #include "DockArea.h"
 #include "DockSplit.h"
 #include "DocumentWell.h"
@@ -88,8 +86,6 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 	mpTheme = pTheme;
 	mpFont = pTheme->GetFont();
 	mpTurnedFont = pTurnedFont;
-	maImages.Init();
-	CreateImages();
 
 	maPanes.Init();
 	maFloating.Init();
@@ -117,30 +113,12 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::CreateImages(void)
-{
-	CColourFormatHelper	cFormat;
-
-	mpWindow->GetColourFormat(&cFormat);
-	maImages.RemoveAll();
-	maImages.Add(CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
-	maImages.Add(CJewelImageGenerator::CreatePin(JEWEL_ICON, true, &cFormat));
-	maImages.Add(CJewelImageGenerator::CreatePin(JEWEL_ICON, false, &cFormat));
-	maImages.Add(CJewelImageGenerator::CreateCross(JEWEL_ICON, &cFormat));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDockManager::Class(void)
 {
 	M_Pointer(mpWindow);
 	M_Pointer(mpTheme);
 	M_Pointer(mpFont);
 	M_Pointer(mpTurnedFont);
-	M_Embedded(maImages);
 	M_Pointer(mpArea);
 	M_Pointer(mpWell);
 	M_Embedded(maPanes);
@@ -1111,7 +1089,6 @@ Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
 void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }
-Ptr<CImageCel>				CDockManager::GetImage(EDockImage eImage) { return maImages.Get(eImage); }
 size						CDockManager::NumPanes(void) { return maPanes.Size(); }
 Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }
 Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpFocus->GetActivePane(); }

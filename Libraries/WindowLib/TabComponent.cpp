@@ -93,9 +93,9 @@ void CTabComponent::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CTa
 	AddComponent(mpName, TT_Name, 1);
 
 	mpClose = NULL;
-	if (bClosable && pTheme->GetTabClose())
+	if (bClosable && pTheme->IsImageSet(TI_TabClose))
 	{
-		mpClose = OMalloc<CIconComponent>(pWindow, pTheme->GetTabClose(), TAB_ICON_SIZE, TAB_ICON_SIZE);
+		mpClose = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_TabClose), TAB_ICON_SIZE, TAB_ICON_SIZE);
 		AddComponent(OMalloc<CIconComponent>(pWindow, Ptr<CImageCel>(), TAB_GAP, 1), TT_CloseGap, 1);
 		AddComponent(mpClose, TT_Close, 1);
 	}
@@ -325,7 +325,7 @@ void CTabComponent::UpdateLook(void)
 	mpUnderlineDraw->SetColour(mbSelected ? mpTheme->GetColour(TC_TabUnderline) : (IsMouseOver() ? mpTheme->GetColour(TC_TabHover) : mpTheme->GetColour(TC_TabBar)));
 	if (mpClose)
 	{
-		mpClose->SetCel(mbOverClose ? mpTheme->GetTabCloseHover() : mpTheme->GetTabClose());
+		mpClose->SetCel(mpTheme->GetImage(mbOverClose ? TI_TabCloseHover : TI_TabClose));
 	}
 }
 

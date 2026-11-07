@@ -337,7 +337,10 @@
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
     <ClInclude Include="ThemeColour.h">
-      <Filter>Source\Component\Docking</Filter>
+      <Filter>Source\Component\Theme</Filter>
+    </ClInclude>
+    <ClInclude Include="ThemeImage.h">
+      <Filter>Source\Component\Theme</Filter>
     </ClInclude>
     <ClInclude Include="DockDrag.h">
       <Filter>Source\Component\Docking</Filter>

@@ -3,6 +3,7 @@
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/TreeContainer.h"
+#include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -94,6 +95,7 @@ void TestTreeNodes(void)
 		int32					iTop;
 		int32					iHeight;
 		SInt32Vec2				sPosition;
+		Ptr<CWindowTheme>		pTheme;
 
 		szLog.Init();
 		sz.Init();
@@ -103,7 +105,9 @@ void TestTreeNodes(void)
 		pTestWindow = OMalloc<CWindow>("Tree Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
-		pTree = OMalloc<CTreeContainer>(pTestWindow, CreateColouredTheme(ReadLabelFont()));
+		pTheme = CreateColouredTheme(ReadLabelFont());
+		CJewelTheme::SetImages(pTheme, pTestWindow);  //Its chevrons.
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
 		pTree->GetSelectionEvent()->Add(&cListener, &CTestTreeListener::SelectionChanged);
 		pTree->GetActivationEvent()->Add(&cListener, &CTestTreeListener::ItemActivated);
 		pTestWindow->SetContainer(pTree);
@@ -223,6 +227,7 @@ void TestTreeNodes(void)
 		pTree->GetSelectionEvent()->Remove(&cListener);
 		pTree->GetActivationEvent()->Remove(&cListener);
 		pTree = NULL;
+		pTheme = NULL;
 		ORoot()->Remove(pTestWindow);
 		pTestWindow = NULL;
 		pTick = NULL;

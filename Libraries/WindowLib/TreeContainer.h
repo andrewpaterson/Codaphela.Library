@@ -64,8 +64,6 @@ protected:
 	CArray<CFont>		maFonts;		//One for each node, NULL for the theme's.
 	CArrayInt			maiRowNodes;	//The node of each row.
 	CArrayInt			maiTopNodes;	//The nodes at the top, in order.
-	Ptr<CImageCel>		mpCollapsedChevron;
-	Ptr<CImageCel>		mpExpandedChevron;
 	int32				miIndent;		//How far each depth is in.
 	int32				miRowHeight;
 	bool				mbRowsDirty;	//Nodes changed since the rows were made.

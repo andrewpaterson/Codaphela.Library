@@ -51,7 +51,7 @@ void CComboBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpText = OMalloc<CLabel>(pWindow, mpFont, "");
 	mpText->SetAlignment(CSH_Left, CSV_Center);
 	mpContent->AddComponent(mpText, 0, 0, 1, 1, 1, 0);
-	mpChevron = OMalloc<CIconComponent>(pWindow, pTheme->GetComboChevron(), 16);
+	mpChevron = OMalloc<CIconComponent>(pWindow, pTheme->GetImage(TI_DownChevron), 16);
 	mpChevron->SetCelAlignment(CSH_Right, CSV_Center);
 	mpChevron->SetAlignment(CSH_Right, CSV_Center);
 	mpContent->AddComponent(mpChevron, 1, 0);

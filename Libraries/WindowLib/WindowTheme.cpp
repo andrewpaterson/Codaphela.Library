@@ -22,6 +22,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowTheme.h"
 
 
+//In EThemeImage's order, for the error reading one that wasn't set.
+static const char*	gaszThemeImageNames[TI_NumImages] =
+{
+	"Chevron", "DownChevron", "Pin", "Unpin", "Close", "TabClose", "TabCloseHover", "PreviousArrow", "NextArrow",
+};
+
+
 //In EThemeColour's order, for the error reading one that wasn't set.
 static const char*	gaszThemeColourNames[TC_NumColours] =
 {
@@ -39,6 +46,8 @@ static const char*	gaszThemeColourNames[TC_NumColours] =
 //////////////////////////////////////////////////////////////////////////
 void CWindowTheme::Init(Ptr<CFont> pFont)
 {
+	size	i;
+
 	PreInit();
 
 	mpFont = pFont;
@@ -49,10 +58,12 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	mpCheckBoxImages = NULL;
 	mpMenuStyle = NULL;
 	mpComboMenuStyle = NULL;
-	mpComboChevron = NULL;
 	mpScrollBarImages = NULL;
-	mpTabClose = NULL;
-	mpTabCloseHover = NULL;
+	maImages.Init();
+	for (i = 0; i < TI_NumImages; i++)
+	{
+		maImages.Add(NULL);
+	}
 	memset(masColours, 0, sizeof(masColours));
 	memset(mabColoursSet, 0, sizeof(mabColoursSet));
 	mcChangeEvent.Init();
@@ -74,10 +85,8 @@ void CWindowTheme::Class(void)
 	M_Pointer(mpCheckBoxImages);
 	M_Pointer(mpMenuStyle);
 	M_Pointer(mpComboMenuStyle);
-	M_Pointer(mpComboChevron);
 	M_Pointer(mpScrollBarImages);
-	M_Pointer(mpTabClose);
-	M_Pointer(mpTabCloseHover);
+	M_Embedded(maImages);
 	U_UInt32Array(masColours, TC_NumColours);
 	U_BoolArray(mabColoursSet, TC_NumColours);
 	U_Data(CComponentEvent<CWindowTheme>, mcChangeEvent);
@@ -133,23 +142,9 @@ void CWindowTheme::SetButtonImages(Ptr<CButtonImages> pImages, Ptr<CButtonImages
 // a narrower icon column than the main menus.
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindowTheme::SetComboBoxLook(Ptr<CMenuStyle> pStyle, Ptr<CImageCel> pChevron)
+void CWindowTheme::SetComboMenuStyle(Ptr<CMenuStyle> pStyle)
 {
 	mpComboMenuStyle = pStyle;
-	mpComboChevron = pChevron;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A tabbed container's close crosses.  Without them a tab can't show its
-// cross so it can't be closed from its tab.
-//
-//////////////////////////////////////////////////////////////////////////
-void CWindowTheme::SetTabCloseImages(Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover)
-{
-	mpTabClose = pClose;
-	mpTabCloseHover = pCloseHover;
 }
 
 
@@ -179,6 +174,35 @@ ARGB32 CWindowTheme::GetColour(EThemeColour eColour)
 		gcLogger.Error2(__METHOD__, " Theme colour [", gaszThemeColourNames[eColour], "] isn't set.", NULL);
 	}
 	return masColours[eColour];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As SetColour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowTheme::SetImage(EThemeImage eImage, Ptr<CImageCel> pImage)
+{
+	maImages.Set(eImage, pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An icon that wasn't set is an error, as a colour is.  NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CWindowTheme::GetImage(EThemeImage eImage)
+{
+	Ptr<CImageCel>	pImage;
+
+	pImage = maImages.Get(eImage);
+	if (pImage.IsNull())
+	{
+		gcLogger.Error2(__METHOD__, " Theme image [", gaszThemeImageNames[eImage], "] isn't set.", NULL);
+	}
+	return pImage;
 }
 
 
@@ -243,10 +267,8 @@ Ptr<CFont> CWindowTheme::GetFont(void) { return mpFont; }
 Ptr<CCheckBoxImages> CWindowTheme::GetCheckBoxImages(void) { return mpCheckBoxImages; }
 Ptr<CMenuStyle> CWindowTheme::GetMenuStyle(void) { return mpMenuStyle; }
 Ptr<CMenuStyle> CWindowTheme::GetComboMenuStyle(void) { return mpComboMenuStyle; }
-Ptr<CImageCel> CWindowTheme::GetComboChevron(void) { return mpComboChevron; }
 Ptr<CScrollBarImages> CWindowTheme::GetScrollBarImages(void) { return mpScrollBarImages; }
 bool CWindowTheme::IsColourSet(EThemeColour eColour) { return mabColoursSet[eColour]; }
+bool CWindowTheme::IsImageSet(EThemeImage eImage) { return maImages.Get(eImage).IsNotNull(); }
 CComponentEvent<CWindowTheme>* CWindowTheme::GetChangeEvent(void) { return &mcChangeEvent; }
-Ptr<CImageCel> CWindowTheme::GetTabClose(void) { return mpTabClose; }
-Ptr<CImageCel> CWindowTheme::GetTabCloseHover(void) { return mpTabCloseHover; }
 

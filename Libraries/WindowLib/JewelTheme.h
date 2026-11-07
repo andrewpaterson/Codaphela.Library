@@ -28,13 +28,14 @@ class CWindow;
 
 //Makes the theme of IntelliJ IDEA's new UI in its dark (Jewel) colours, drawn at runtime by CJewelImageGenerator: outlined
 //buttons with a blue default button, flat tool buttons, check boxes, the main menu's style, a combo box's narrower menu
-//style and chevron, translucent scroll bar thumbs and every colour (SetColours, which can colour a theme made otherwise).  The font, Inter 13 in IntelliJ, is given
+//style and chevron, translucent scroll bar thumbs and every colour and icon (SetColours and SetImages, which can give them to a theme made otherwise).  The font, Inter 13 in IntelliJ, is given
 //in the colour the text is drawn in.
 class CJewelTheme
 {
 public:
 	static Ptr<CWindowTheme>	CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> pFont);
 	static void					SetColours(Ptr<CWindowTheme> pTheme);
+	static void					SetImages(Ptr<CWindowTheme> pTheme, Ptr<CWindow> pWindow);
 };
 
 

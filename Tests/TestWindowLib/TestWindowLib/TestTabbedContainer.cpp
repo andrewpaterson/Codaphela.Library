@@ -124,7 +124,7 @@ void TestTabbedContainerTabs(void)
 		pFile = CreateTabbedPage(pTestWindow);
 		pInputTab = pTabbed->AddTab("Input", pInput);
 		pEditorTab = pTabbed->AddTab("Editor", pEditor);
-		pFileTab = pTabbed->AddTab("File", pFile, pTheme->GetTabClose(), true);
+		pFileTab = pTabbed->AddTab("File", pFile, pTheme->GetImage(TI_TabClose), true);
 		AssertSize(3, pTabbed->NumTabs());
 		AssertFalse(pInputTab->IsClosable());
 		AssertTrue(pInputTab->GetIcon().IsNull());

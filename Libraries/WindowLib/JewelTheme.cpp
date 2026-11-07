@@ -77,14 +77,35 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	//The combo box's items have no icons, so their text lines up with the combo box's.
 	pComboStyle = OMalloc<CMenuStyle>(pWindow, pFont);
 	pComboStyle->SetIconWidth(13);
-	pTheme->SetComboBoxLook(pComboStyle, CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
+	pTheme->SetComboMenuStyle(pComboStyle);
 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)32), Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	SetColours(pTheme);
-
-	//IDEA's editor tabs: a grey cross that whitens.
-	pTheme->SetTabCloseImages(CJewelImageGenerator::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
+	SetImages(pTheme, pWindow);
 	return pTheme;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every icon of the theme, drawn in the window's colour format.  IDEA's
+// editor tabs have a grey cross that whitens under the pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+void CJewelTheme::SetImages(Ptr<CWindowTheme> pTheme, Ptr<CWindow> pWindow)
+{
+	CColourFormatHelper		cFormat;
+
+	pWindow->GetColourFormat(&cFormat);
+	pTheme->SetImage(TI_Chevron, CJewelImageGenerator::CreateChevron(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_DownChevron, CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_Pin, CJewelImageGenerator::CreatePin(JEWEL_ICON, true, &cFormat));
+	pTheme->SetImage(TI_Unpin, CJewelImageGenerator::CreatePin(JEWEL_ICON, false, &cFormat));
+	pTheme->SetImage(TI_Close, CJewelImageGenerator::CreateCross(JEWEL_ICON, &cFormat));
+	pTheme->SetImage(TI_TabClose, CJewelImageGenerator::CreateCross(JEWEL_BORDER_PUSHED, &cFormat));
+	pTheme->SetImage(TI_TabCloseHover, CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
+	pTheme->SetImage(TI_PreviousArrow, CJewelImageGenerator::CreateArrow(JEWEL_ICON, true, &cFormat));
+	pTheme->SetImage(TI_NextArrow, CJewelImageGenerator::CreateArrow(JEWEL_ICON, false, &cFormat));
 }
 
 
