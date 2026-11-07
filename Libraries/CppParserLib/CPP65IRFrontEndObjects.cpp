@@ -1524,8 +1524,8 @@ bool CCPP65IRFrontEnd::CopyPart(SCPP65Class* psClass, SIRReference sDestination,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// object = source, as the generator's CopyObject: the bytes (whatever the
-// class), keeping the destination's vtable pointers.
+// object = source: the bytes (whatever the class), keeping the
+// destination's vtable pointers.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)

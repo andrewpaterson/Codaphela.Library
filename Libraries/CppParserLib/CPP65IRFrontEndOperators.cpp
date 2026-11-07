@@ -264,7 +264,8 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		{
 			return Unsupported(__LINE__);
 		}
-		if (!Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass() || !CopyObject(&sPlace, pcBinary->mpcRight))
+		//The right before the left, as for a scalar.  [expr.ass] 1
+		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass() || !CopyBytes(&sPlace, &sRight))
 		{
 			return false;
 		}

@@ -685,12 +685,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_SubscriptExpression:
 		pcSubscript = (CCPPSyntaxSubscriptExpression*)pcExpression;
-		psType = mpcGenerator->TypeOf(pcSubscript->mpcArray);
-		if (psType && psType->IsReference())
-		{
-			psType = psType->psBase;
-		}
-		if (psType && psType->IsClass())
+		if (IsObjectSubscript(pcSubscript))
 		{
 			//object[index] is a call to the object's operator[], which must return a reference here.
 			if (!OperatorCall(pcSubscript->mpcArray, CT_OpenSquareBracket, pcSubscript->mpcIndex, &sAddress))
@@ -705,11 +700,12 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psPlace->psType = sAddress.psType->psBase;
 			return true;
 		}
-		if (!psType)
+		if (!mpcGenerator->TypeOf(pcSubscript->mpcArray))
 		{
 			return Unsupported(__LINE__);
 		}
-		if (!Value(pcSubscript->mpcIndex, &sIndex) || !ArrayValue(pcSubscript->mpcArray, &sPointer, &psArray))
+		//The array before the index.  [expr.sub] 1
+		if (!ArrayValue(pcSubscript->mpcArray, &sPointer, &psArray) || !Value(pcSubscript->mpcIndex, &sIndex))
 		{
 			return false;
 		}

@@ -129,6 +129,20 @@ void TestCPP65IRMemory(void)
 	AssertInt(2 * 3 * 4, TestCPP65IRMain(
 		"int m[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };\n"
 		"int main() { int* p = &m[1][0]; return m[0][1] * m[0][2] * p[0]; }", 1));
+
+	//In a[i] the array is worked out before the index.  [expr.sub] 1
+	AssertInt(12, TestCPP65IRMain(
+		"int gaiTable[3] = { 7, 8, 9 }; int giOrder = 0;\n"
+		"int* Table() { giOrder = giOrder * 10 + 1; return gaiTable; }\n"
+		"int Index() { giOrder = giOrder * 10 + 2; return 1; }\n"
+		"int main() { Table()[Index()] = 0; return giOrder; }", 3));
+
+	//In a = b the right is worked out before the left, an object's too.  [expr.ass] 1
+	AssertInt(21, TestCPP65IRMain(
+		"struct SPair { int a; int b; }; SPair gsLeft; SPair gsRight; int giOrder = 0;\n"
+		"SPair& Left() { giOrder = giOrder * 10 + 1; return gsLeft; }\n"
+		"SPair& Right() { giOrder = giOrder * 10 + 2; return gsRight; }\n"
+		"int main() { Left() = Right(); return giOrder; }", 5));
 }
 
 
