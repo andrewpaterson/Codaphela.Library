@@ -130,25 +130,29 @@ void CSourceFile::Unload(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Reads the file's contents (once; contents given by SetContents are kept).
+// False, with no contents, if the file can't be read; it is tried again
+// next time.
+//
 //////////////////////////////////////////////////////////////////////////
-void CSourceFile::Load(void)
+bool CSourceFile::Load(void)
 {
 	CTextFile	cFile;
+	bool		bRead;
 
-	if (!mbLoaded)
+	if (mbLoaded)
 	{
-		mbLoaded = true;
-
-		cFile.Init();
-		cFile.Read(mszFullName.Text());
-
-		mszContents.Kill();
-		mszContents.Init(cFile.Text());
-
-		cFile.Kill();
+		return true;
 	}
+
+	cFile.Init();
+	bRead = cFile.Read(mszFullName.Text());
+	mszContents.Kill();
+	mszContents.Init(bRead ? cFile.Text() : "");
+	cFile.Kill();
+	mbLoaded = bRead;
+	return bRead;
 }
 
 

@@ -50,7 +50,7 @@ public:
 			void				KillBlockSets(void);
 			void				Lock(void);
 			void				Unlock(void);
-			void				Load(void);
+			bool				Load(void);
 			void				Unload(void);
 			void				ClearContents(void);
 			void				SetContents(const char* sz);

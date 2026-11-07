@@ -1503,6 +1503,25 @@ void TestPreprocessorErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A unit whose file can't be read is an error, not an empty unit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorUnreadableFile(void)
+{
+	CTranslationUnit	cFile;
+	CPreprocessor		cPreprocessor;
+
+	cFile.Init("NoSuchFile.cpp", NULL, false);
+	cPreprocessor.Init(NULL);
+	AssertFalse(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	AssertString("NoSuchFile.cpp: Could not read the file.\n", cPreprocessor.GetErrors()->Text());
+	cPreprocessor.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A directive removed from the map is gone; the others are still there.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1950,6 +1969,7 @@ void TestPreprocessor(void)
 	TestPreprocessorMultiLineArguments();
 	TestPreprocessorLocations();
 	TestPreprocessorErrors();
+	TestPreprocessorUnreadableFile();
 	TestPreprocessorLineContinuation();
 	TestPreprocessorDirectiveMap();
 	TestPreprocessorParentheses();

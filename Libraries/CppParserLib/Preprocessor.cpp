@@ -195,7 +195,12 @@ bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	//(CCPP65Builder::SetJobs) include the same headers, so it is locked while it is.
 	bResult = true;
 	pcFile->Lock();
-	pcFile->Load();
+	if (!pcFile->Load())
+	{
+		pcFile->Unlock();
+		mcErrors.Add(pcFile->ShortName(), -1, -1, -1, "Could not read the file.");
+		return false;
+	}
 	pacBlockSets = pcFile->GetBlockSets();
 	if (!pacBlockSets->IsRawProcessed())
 	{
