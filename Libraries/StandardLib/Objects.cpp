@@ -1373,32 +1373,22 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	CInternalObjectDeserialiser		cDeserialiser;
 	CBaseObject*					pcBaseObject;
 
-	if (!mpcDataConnection)
-	{
-		return NULL;
-	}
-
-	if (!mpcDataConnection->Contains(oi))
+	if ((mpcDataConnection == NULL) || !mpcDataConnection->Contains(oi))
 	{
 		return NULL;
 	}
 
 	cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
-
 	pcBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
-	if (!pcBaseObject)
+	if ((pcBaseObject != NULL) && (pcBaseObject->GetIndex() != oi))
 	{
-		return NULL;
-	}
-
-	if (pcBaseObject->GetIndex() != oi)
-	{
+		//The record is corrupt.  What was read is in memory under its own index: it goes again.
 		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pcBaseObject->GetIndex()), "].", NULL);
+		pcBaseObject->Kill();
 		return NULL;
 	}
-
 	return pcBaseObject;
 }
 
