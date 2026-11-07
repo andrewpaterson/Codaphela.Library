@@ -209,7 +209,6 @@ bool CMapObject::Contains(const CPointer& pKey)
 //////////////////////////////////////////////////////////////////////////
 CMapEntry CMapObject::StartIteration(SMapIterator* psIterator)
 {
-	CMapEntry		cEntry;
 	bool			bExists;
 	CBaseObject*	pcKey;
 	CBaseObject*	pcValue;
@@ -217,15 +216,7 @@ CMapEntry CMapObject::StartIteration(SMapIterator* psIterator)
 	EnsureSorted();
 
 	bExists = mcMap.StartIteration(psIterator, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
-	if (bExists)
-	{
-		cEntry.Init(pcKey, pcValue);
-	}
-	else
-	{
-		cEntry.Init();
-	}
-	return cEntry;
+	return Entry(bExists, pcKey, pcValue);
 }
 
 
@@ -235,12 +226,25 @@ CMapEntry CMapObject::StartIteration(SMapIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 CMapEntry CMapObject::Iterate(SMapIterator* psIterator)
 {
-	CMapEntry		cEntry;
 	bool			bExists;
 	CBaseObject*	pcKey;
 	CBaseObject*	pcValue;
 
 	bExists = mcMap.Iterate(psIterator, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	return Entry(bExists, pcKey, pcValue);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entry an iteration step found (if bExists), or an empty one.  It is
+// returned by value: a CMapEntry is a stack object holding Ptrs to the key
+// and value, which keeps them while the caller looks at them.
+//
+//////////////////////////////////////////////////////////////////////////
+CMapEntry CMapObject::Entry(bool bExists, CBaseObject* pcKey, CBaseObject* pcValue)
+{
+	CMapEntry	cEntry;
+
 	if (bExists)
 	{
 		cEntry.Init(pcKey, pcValue);

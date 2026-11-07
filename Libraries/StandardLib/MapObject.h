@@ -94,6 +94,7 @@ protected:
 
 
 	void				EnsureSorted(void);
+	CMapEntry			Entry(bool bExists, CBaseObject* pcKey, CBaseObject* pcValue);
 };
 
 
