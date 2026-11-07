@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
 #include "Window.h"
 #include "ComponentInput.h"
 
@@ -722,19 +723,19 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 
 		InitEvent(&asDest[0], CIET_Movement, psWindowEvent);
 		szName = mpcSource->GetName(psWindowEvent->pcSource);
-		if (strcmp(szName, "Left") == 0)
+		if (StringCompare(szName, "Left") == 0)
 		{
 			asDest[0].iRight = -(int)psWindowEvent->fValue;
 		}
-		else if (strcmp(szName, "Right") == 0)
+		else if (StringCompare(szName, "Right") == 0)
 		{
 			asDest[0].iRight = (int)psWindowEvent->fValue;
 		}
-		else if (strcmp(szName, "Up") == 0)
+		else if (StringCompare(szName, "Up") == 0)
 		{
 			asDest[0].iDown = -(int)psWindowEvent->fValue;
 		}
-		else if (strcmp(szName, "Down") == 0)
+		else if (StringCompare(szName, "Down") == 0)
 		{
 			asDest[0].iDown = (int)psWindowEvent->fValue;
 		}

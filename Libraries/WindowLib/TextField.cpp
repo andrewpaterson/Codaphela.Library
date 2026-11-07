@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
-#include "NativeWindowFactory.h"
 #include "BaseLib/Timer.h"
 #include "TextField.h"
 

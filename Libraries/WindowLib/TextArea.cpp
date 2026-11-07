@@ -906,7 +906,7 @@ void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDe
 			psCurrent = &psStyles[uiPosition];
 		}
 	}
-	free(psStyles);
+	SafeFree(psStyles);
 }
 
 
