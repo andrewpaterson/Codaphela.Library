@@ -41,10 +41,11 @@ public:
 	CBaseObject*		Get(const char* szName);
 	CBaseObject*		Get(const char* szObjectName, OIndex oi);
 	bool				Has(OIndex oi);
-	bool				Has(char* szName);
-	bool				Add(CBaseObject* pcObject);
+	bool				Has(const char* szName);
+	bool				CanAdd(CBaseObject* pcObject);
+		bool				Add(CBaseObject* pcObject);
 	bool				RemoveIndex(OIndex oi);
-	bool				RemoveName(char* szName);
+	bool				RemoveName(const char* szName);
 	size				NumIndexed(void);
 	size				NumNames(void);
 

@@ -142,7 +142,7 @@ bool CNamedIndexedObjects::Has(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::Has(char* szName)
+bool CNamedIndexedObjects::Has(const char* szName)
 {
 	CIndexTreeMemoryAccess	cAccess;
 	bool					bHasObject;
@@ -176,7 +176,7 @@ bool CNamedIndexedObjects::RemoveIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::RemoveName(char* szName)
+bool CNamedIndexedObjects::RemoveName(const char* szName)
 {
 	CIndexTreeMemoryAccess	cAccess;
 	bool					bResult;
@@ -195,22 +195,18 @@ bool CNamedIndexedObjects::RemoveName(char* szName)
 // or the name is taken.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
+bool CNamedIndexedObjects::CanAdd(CBaseObject* pcObject)
 {
-	OIndex					oi;
-	char*					szName;
-	bool					bNamed;
-	bool					bResult;
-	CIndexTreeMemoryAccess	cAccess;
+	OIndex	oi;
+	char*	szName;
 
 	oi = pcObject->GetIndex();
 	szName = pcObject->GetName();
-	bNamed = !StrEmpty(szName);
 	if (!IsValidIndex(oi))
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] with an invalid index [", IndexToString(oi), "].", NULL);
 	}
-	if (bNamed && Has(szName))
+	if (!StrEmpty(szName) && Has(szName))
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 	}
@@ -218,12 +214,34 @@ bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot add object with index [", IndexToString(oi), "].  It already exists.", NULL);
 	}
+	return true;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
+{
+	OIndex					oi;
+	char*					szName;
+	bool					bResult;
+	CIndexTreeMemoryAccess	cAccess;
+
+	if (!CanAdd(pcObject))
+	{
+		return false;
+	}
+
+	oi = pcObject->GetIndex();
 	if (!mcMemoryIndexedObjects.Add(oi, pcObject))
 	{
 		return false;
 	}
-	if (!bNamed)
+
+	szName = pcObject->GetName();
+	if (StrEmpty(szName))
 	{
 		return true;
 	}

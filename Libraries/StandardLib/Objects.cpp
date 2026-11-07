@@ -2177,8 +2177,13 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 	}
 
 	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
+	if (pcObject == NULL)
+	{
+		return NULL;
+	}
 	if (!ReplaceBaseObject(pcHollowObject, pcObject))
 	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 		return NULL;
 	}
 	return pcObject;
@@ -2187,28 +2192,36 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject takes pcExisting's place: what points to pcExisting (or the
+// objects embedded in it) points to pcObject instead, pcObject is put in
+// memory and pcExisting is freed.  Returns false, with nothing changed,
+// when pcObject can't take its place.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
+bool CObjects::ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject)
 {
 	CObjectRemapFrom	cRemapper;
 
-	if (pvExisting && pcObject)
-	{
-		if (pcObject->HasHeapFroms())
-		{
-			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has heap froms already.", NULL);
-		}
-		mcMemory.RemoveIdentifiers(pvExisting);
-
-		cRemapper.Remap(pvExisting, pcObject);
-
-		return AddIntoMemory(pcObject);
-	}
-	else
+	if ((pcExisting == NULL) || (pcObject == NULL))
 	{
 		return false;
 	}
+	if (pcObject->HasHeapFroms())
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has heap froms already.", NULL);
+	}
+
+	//pcObject usually has pcExisting's identifiers, so they are taken out of memory before asking whether it can go in.
+	//Remap frees pcExisting, so it is the last thing that can't be undone.
+	mcMemory.RemoveIdentifiers(pcExisting);
+	if (!mcMemory.CanAdd(pcObject))
+	{
+		mcMemory.Add(pcExisting);
+		return false;
+	}
+
+	cRemapper.Remap(pcExisting, pcObject);
+	return AddIntoMemory(pcObject);
 }
 
 
@@ -2299,43 +2312,34 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(char* szObjectName, size uiNumEm
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An object that couldn't be read: what points to it (or its embedded
-// objects) points to a hollow with its index and name instead, so using
-// it tries to read it again, and the object is freed.  If nothing else
-// points to it the hollow is freed too.
+// Frees pcObject from memory but not from the database (Kill of a stored
+// object, or one that couldn't be read): what points to it (or its
+// embedded objects) points to a hollow with its index and name instead,
+// so using it reads it again.  If nothing points to it the hollow is
+// freed too.
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ReplaceWithHollow(CBaseObject* pcObject)
 {
 	CHollowObject*	pcHollow;
-	size			i;
-	size			uiNumEmbedded;
-	bool			bPointedTo;
 
-	uiNumEmbedded = pcObject->NumEmbedded();
-	pcHollow = AllocateHollow(uiNumEmbedded, pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
-	if (pcHollow == NULL)
-	{
-		pcObject->Kill();
-		return;
-	}
-	if (!ReplaceBaseObject(pcObject, pcHollow))
+	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	if ((pcHollow != NULL) && !ReplaceBaseObject(pcObject, pcHollow))
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
-		pcObject->Kill();
+		pcHollow = NULL;
+	}
+
+	if (pcHollow == NULL)
+	{
+		//Nothing stands in for it, so it is freed as an object not in the database is.  Not by Kill: this is reached from
+		//Kill, which has already marked it killed.
+		pcObject->KillInternal(pcObject->HasHeapFroms(), true);
 		return;
 	}
 
-	bPointedTo = false;
-	for (i = 0; i < uiNumEmbedded; i++)
-	{
-		if (pcHollow->GetEmbeddedObject(i)->HasHeapFroms() || pcHollow->GetEmbeddedObject(i)->HasStackFroms())
-		{
-			bPointedTo = true;
-			break;
-		}
-	}
-	if (!bPointedTo)
+	//Both ask about the hollow and the hollows embedded in it.
+	if (!pcHollow->HasHeapFroms() && !pcHollow->HasStackFroms())
 	{
 		pcHollow->Kill();
 	}

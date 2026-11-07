@@ -135,7 +135,7 @@ public:
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
-						bool					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
+						bool					ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject);
 						bool					TestRemoveMemoryIdentifiers(CBaseObject* pvObject);
 
 						uint32					StartWalk(void);
