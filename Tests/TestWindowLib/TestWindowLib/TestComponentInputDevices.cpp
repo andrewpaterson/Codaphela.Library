@@ -442,6 +442,9 @@ void TestComponentInputShortcutText(void)
 		szKeys.Clear();
 		AssertTrue(cComponentInput.GetShortcutText(CIC_SelectLeft, &szKeys));
 		AssertString("Shift+Left", szKeys.Text());
+		szKeys.Clear();
+		AssertTrue(cComponentInput.GetShortcutText(CIC_BreakAll, &szKeys));
+		AssertString("Ctrl+Pause/Break", szKeys.Text());
 
 		//Appended to what is there.
 		szKeys.Set("Keys ");

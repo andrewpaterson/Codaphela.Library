@@ -67,6 +67,7 @@ public:
 		mpcKeyboard->AddSource("F6");
 		mpcKeyboard->AddSource("F7");
 		mpcKeyboard->AddSource("Backspace");
+		mpcKeyboard->AddSource("Pause/Break");
 
 		mpcMouse->AddSource("Button 1");
 		mpcMouse->AddSource("Button 2");
