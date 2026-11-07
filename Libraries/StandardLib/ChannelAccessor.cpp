@@ -59,12 +59,17 @@ void CChannelAccessor::GetNative(void* pvBase, void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 {
+	uint8	auc[16];
+
+	//A reversed channel's bytes are put in order before they are converted, as SetFrom reverses them after.
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
-	gcTypeConverter.Do(eType, pvDest, meChannelType, pvBase);
-	if (mbChannelReverse)
+	if (mbChannelReverse && (miChannelByteSize <= sizeof(auc)))
 	{
-		ReverseEndianness(pvDest, miChannelByteSize);
+		memcpy(auc, pvBase, miChannelByteSize);
+		ReverseEndianness(auc, miChannelByteSize);
+		pvBase = auc;
 	}
+	gcTypeConverter.Do(eType, pvDest, meChannelType, pvBase);
 }
 
 

@@ -210,6 +210,48 @@ void TestChannelsAccessorTypeConvert(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A reversed channel read as another type is put in order before it is
+// converted.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChannelsAccessorTypeConvertReversed(void)
+{
+	CChannels*					pcChannels;
+	CChannelsAccessor*			pcAccessor;
+	CChannelsAccessorCreator	cCreator;
+	float*						pfData;
+	float						afData[2];
+
+	pcChannels = UMalloc(CChannels);
+	pcChannels->Init();
+	pcChannels->BeginChange();
+	pcChannels->SetSize(2);
+	pcChannels->AddChannel(CHANNEL_NAME_JACK, PT_uint16, true);
+	pcChannels->AddChannel(CHANNEL_NAME_ALICE, PT_uint16);
+	pcChannels->EndChange();
+	pcChannels->Black();
+
+	cCreator.Init(pcChannels);
+	cCreator.AddAccess(CHANNEL_NAME_JACK, PT_float32);
+	cCreator.AddAccess(CHANNEL_NAME_ALICE, PT_float32);
+	pcAccessor = cCreator.CreateAndKill();
+	AssertString("CChannelsAccessorTypeConverter", pcAccessor->ClassName());
+	afData[0] = 0.34f;
+	afData[1] = 0.34f;
+	pcAccessor->Set(1, afData);
+	AssertShortHex((uint16)0x0957, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 4 + 0));
+	AssertShortHex((uint16)0x5709, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 4 + 2));
+	pfData = (float*)pcAccessor->Get(1);
+	AssertFloat(0.34f, pfData[0], 2);
+	AssertFloat(0.34f, pfData[1], 2);
+	pcAccessor->Kill();
+
+	pcChannels->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChannelsAccessorChannelBitty(void)
@@ -437,6 +479,7 @@ void TestChannelsAccessor(void)
 	TestChannelsAccessorContiguous();
 	TestChannelsAccessorByteAligned();
 	TestChannelsAccessorTypeConvert();
+	TestChannelsAccessorTypeConvertReversed();
 	TestChannelsAccessorChannelBitty();
 	TestChannelsAccessorAccessBitty();
 	TestChannelsAccessorWorstCase();
