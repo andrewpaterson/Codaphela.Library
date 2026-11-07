@@ -39,7 +39,7 @@ class CKicadSchemLabel
 protected:
 	EKicadSchemLabelType	meType;
 	CChars					mszText;
-	SKicadSchemPoint		msPosition;
+	SFloat64Vec2			msPosition;
 	float64					mfAngle;
 	EKicadSchemLabelShape	meShape;
 
@@ -47,12 +47,12 @@ public:
 	void					Init(EKicadSchemLabelType eType, char* szText);
 	void					Kill(void);
 
-	void					SetPosition(SKicadSchemPoint* psPosition, float64 fAngle);
+	void					SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void					SetShape(EKicadSchemLabelShape eShape);
 
 	EKicadSchemLabelType	GetType(void);
 	char*					GetText(void);
-	SKicadSchemPoint*		GetPosition(void);
+	SFloat64Vec2*			GetPosition(void);
 	float64					GetAngle(void);
 	EKicadSchemLabelShape	GetShape(void);
 };

@@ -35,7 +35,7 @@ protected:
 	CChars				mszGraphicStyle;
 	CChars				mszName;
 	CChars				mszNumber;
-	SKicadSchemPoint	msPosition;
+	SFloat64Vec2		msPosition;
 	float64				mfAngle;
 	float64				mfLength;
 	bool				mbHidden;
@@ -48,7 +48,7 @@ public:
 
 	void				SetName(char* szName);
 	void				SetNumber(char* szNumber);
-	void				SetPosition(SKicadSchemPoint* psPosition, float64 fAngle);
+	void				SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void				SetLength(float64 fLength);
 	void				SetHidden(bool bHidden);
 
@@ -56,7 +56,7 @@ public:
 	char*				GetGraphicStyle(void);
 	char*				GetName(void);
 	char*				GetNumber(void);
-	SKicadSchemPoint*	GetPosition(void);
+	SFloat64Vec2*		GetPosition(void);
 	float64				GetAngle(void);
 	float64				GetLength(void);
 	bool				IsHidden(void);

@@ -203,7 +203,6 @@
     <ClCompile Include="KicadSchemNoConnect.cpp" />
     <ClCompile Include="KicadSchemParser.cpp" />
     <ClCompile Include="KicadSchemPinType.cpp" />
-    <ClCompile Include="KicadSchemPoint.cpp" />
     <ClCompile Include="KicadSchemProperties.cpp" />
     <ClCompile Include="KicadSchemProperty.cpp" />
     <ClCompile Include="KicadSchemSheet.cpp" />

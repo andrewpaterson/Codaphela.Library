@@ -27,13 +27,13 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 class CKicadSchemNoConnect
 {
 protected:
-	SKicadSchemPoint	msPosition;
+	SFloat64Vec2		msPosition;
 
 public:
-	void				Init(SKicadSchemPoint* psPosition);
+	void				Init(SFloat64Vec2* psPosition);
 	void				Kill(void);
 
-	SKicadSchemPoint*	GetPosition(void);
+	SFloat64Vec2*		GetPosition(void);
 };
 
 

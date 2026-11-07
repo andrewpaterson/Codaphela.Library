@@ -29,21 +29,21 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 class CKicadSchemSheet
 {
 protected:
-	SKicadSchemPoint		msPosition;
-	SKicadSchemPoint		msSize;
+	SFloat64Vec2			msPosition;
+	SFloat64Vec2			msSize;
 	CChars					mszUuid;
 	CKicadSchemProperties	mcProperties;
 	CListVariable			macPins;
 
 public:
-	void					Init(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize);
+	void					Init(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 	void					Kill(void);
 
 	void					SetUuid(char* szUuid);
 	CKicadSchemSheetPin*	AddPin(char* szName, EKicadSchemLabelShape eShape);
 
-	SKicadSchemPoint*		GetPosition(void);
-	SKicadSchemPoint*		GetSize(void);
+	SFloat64Vec2*			GetPosition(void);
+	SFloat64Vec2*			GetSize(void);
 	char*					GetUuid(void);
 	CKicadSchemProperties*	GetProperties(void);
 	char*					GetSheetName(void);

@@ -282,7 +282,7 @@ CKicadSchemSymbol* CKicadSchemFile::AddSymbol(char* szLibId)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemWire* CKicadSchemFile::AddWire(SKicadSchemPoint* psStart, SKicadSchemPoint* psEnd, bool bBus)
+CKicadSchemWire* CKicadSchemFile::AddWire(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus)
 {
 	CKicadSchemWire*	pcWire;
 
@@ -296,7 +296,7 @@ CKicadSchemWire* CKicadSchemFile::AddWire(SKicadSchemPoint* psStart, SKicadSchem
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemJunction* CKicadSchemFile::AddJunction(SKicadSchemPoint* psPosition, float64 fDiameter)
+CKicadSchemJunction* CKicadSchemFile::AddJunction(SFloat64Vec2* psPosition, float64 fDiameter)
 {
 	CKicadSchemJunction*	pcJunction;
 
@@ -310,7 +310,7 @@ CKicadSchemJunction* CKicadSchemFile::AddJunction(SKicadSchemPoint* psPosition, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemNoConnect* CKicadSchemFile::AddNoConnect(SKicadSchemPoint* psPosition)
+CKicadSchemNoConnect* CKicadSchemFile::AddNoConnect(SFloat64Vec2* psPosition)
 {
 	CKicadSchemNoConnect*	pcNoConnect;
 
@@ -324,7 +324,7 @@ CKicadSchemNoConnect* CKicadSchemFile::AddNoConnect(SKicadSchemPoint* psPosition
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemBusEntry* CKicadSchemFile::AddBusEntry(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+CKicadSchemBusEntry* CKicadSchemFile::AddBusEntry(SFloat64Vec2* psPosition, SFloat64Vec2* psSize)
 {
 	CKicadSchemBusEntry*	pcBusEntry;
 
@@ -352,7 +352,7 @@ CKicadSchemLabel* CKicadSchemFile::AddLabel(EKicadSchemLabelType eType, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSheet* CKicadSchemFile::AddSheet(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+CKicadSchemSheet* CKicadSchemFile::AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize)
 {
 	CKicadSchemSheet*	pcSheet;
 
@@ -707,7 +707,7 @@ CKicadSchemSheet* CKicadSchemFile::GetSheet(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemFile::GetPinPosition(SKicadSchemPoint* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin)
+bool CKicadSchemFile::GetPinPosition(SFloat64Vec2* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin)
 {
 	return pcSymbol->GetSheetPosition(psDest, pcPin->GetPosition());
 }

@@ -32,18 +32,18 @@ class CKicadSchemSheetPin
 protected:
 	CChars					mszName;
 	EKicadSchemLabelShape	meShape;
-	SKicadSchemPoint		msPosition;
+	SFloat64Vec2			msPosition;
 	float64					mfAngle;
 
 public:
 	void					Init(char* szName, EKicadSchemLabelShape eShape);
 	void					Kill(void);
 
-	void					SetPosition(SKicadSchemPoint* psPosition, float64 fAngle);
+	void					SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 
 	char*					GetName(void);
 	EKicadSchemLabelShape	GetShape(void);
-	SKicadSchemPoint*		GetPosition(void);
+	SFloat64Vec2*			GetPosition(void);
 	float64					GetAngle(void);
 };
 

@@ -30,7 +30,7 @@ class CKicadSchemProperty
 protected:
 	CChars				mszName;
 	CChars				mszValue;
-	SKicadSchemPoint	msPosition;
+	SFloat64Vec2		msPosition;
 	float64				mfAngle;
 	bool				mbHidden;
 
@@ -38,12 +38,12 @@ public:
 	void				Init(char* szName, char* szValue);
 	void				Kill(void);
 
-	void				SetPosition(SKicadSchemPoint* psPosition, float64 fAngle);
+	void				SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void				SetHidden(bool bHidden);
 
 	char*				GetName(void);
 	char*				GetValue(void);
-	SKicadSchemPoint*	GetPosition(void);
+	SFloat64Vec2*		GetPosition(void);
 	float64				GetAngle(void);
 	bool				IsHidden(void);
 };

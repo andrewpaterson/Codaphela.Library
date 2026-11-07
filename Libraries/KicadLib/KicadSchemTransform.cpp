@@ -102,13 +102,13 @@ void CKicadSchemTransform::Multiply(int32 iX1, int32 iY1, int32 iX2, int32 iY2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemTransform::Transform(SKicadSchemPoint* psDest, SKicadSchemPoint* psLibrary)
+void CKicadSchemTransform::Transform(SFloat64Vec2* psDest, SFloat64Vec2* psLibrary)
 {
 	float64	fX;
 	float64	fY;
 
-	fX = miX1 * psLibrary->fX + miY1 * psLibrary->fY;
-	fY = miX2 * psLibrary->fX + miY2 * psLibrary->fY;
+	fX = miX1 * psLibrary->x + miY1 * psLibrary->y;
+	fY = miX2 * psLibrary->x + miY2 * psLibrary->y;
 	psDest->Init(fX, fY);
 }
 

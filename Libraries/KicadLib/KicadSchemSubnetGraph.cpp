@@ -54,7 +54,7 @@ void CKicadSchemSubnetGraph::Kill(void)
 // found before Build.
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSubnetGraph::AddPoint(SKicadSchemPoint* psPoint)
+size CKicadSchemSubnetGraph::AddPoint(SFloat64Vec2* psPoint)
 {
 	size	uiIndex;
 
@@ -72,13 +72,13 @@ size CKicadSchemSubnetGraph::AddPoint(SKicadSchemPoint* psPoint)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSubnetGraph::FindPoint(SKicadSchemPoint* psPoint)
+size CKicadSchemSubnetGraph::FindPoint(SFloat64Vec2* psPoint)
 {
 	size	i;
 
 	for (i = 0; i < masPoints.NumElements(); i++)
 	{
-		if (masPoints.Get(i)->Equals(psPoint))
+		if (masPoints.Get(i)->CloselyEqual(psPoint, KICAD_SCHEM_POINT_TOLERANCE))
 		{
 			return i;
 		}
@@ -124,8 +124,8 @@ void CKicadSchemSubnetGraph::AddWireEdges(CKicadSchemWire* pcWire)
 	CArrayInt			aiOn;
 	size				i;
 	size				j;
-	SKicadSchemPoint*	psStart;
-	SKicadSchemPoint*	psPoint;
+	SFloat64Vec2*		psStart;
+	SFloat64Vec2*		psPoint;
 	float64				fDistance;
 	float64				fOther;
 
@@ -138,11 +138,11 @@ void CKicadSchemSubnetGraph::AddWireEdges(CKicadSchemWire* pcWire)
 		{
 			continue;
 		}
-		fDistance = fabs(psPoint->fX - psStart->fX) + fabs(psPoint->fY - psStart->fY);
+		fDistance = fabs(psPoint->x - psStart->x) + fabs(psPoint->y - psStart->y);
 		for (j = 0; j < aiOn.NumElements(); j++)
 		{
 			psPoint = masPoints.Get(aiOn.GetValue(j));
-			fOther = fabs(psPoint->fX - psStart->fX) + fabs(psPoint->fY - psStart->fY);
+			fOther = fabs(psPoint->x - psStart->x) + fabs(psPoint->y - psStart->y);
 			if (fDistance < fOther)
 			{
 				break;
@@ -241,14 +241,14 @@ bool CKicadSchemSubnetGraph::FindPath(size uiFrom, CArrayInt* paiTargets, CArray
 // it starts) gives a half.  pbHorizontal is whether it starts across.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayKicadSchemPoint* pasPath, bool* pbHorizontal)
+float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayFloat64Vec2* pasPath, bool* pbHorizontal)
 {
 	size				i;
-	SKicadSchemPoint*	psStart;
-	SKicadSchemPoint*	psEnd;
-	SKicadSchemPoint*	psFrom;
-	SKicadSchemPoint*	psTo;
-	SKicadSchemPoint*	psBend;
+	SFloat64Vec2*		psStart;
+	SFloat64Vec2*		psEnd;
+	SFloat64Vec2*		psFrom;
+	SFloat64Vec2*		psTo;
+	SFloat64Vec2*		psBend;
 	float64				fDX;
 	float64				fDY;
 	bool				bStarted;
@@ -272,8 +272,8 @@ float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayKicadSchemPoint* pasPath, 
 	{
 		psFrom = pasPath->Get(i - 1);
 		psTo = pasPath->Get(i);
-		fDX = fabs(psTo->fX - psFrom->fX);
-		fDY = fabs(psTo->fY - psFrom->fY);
+		fDX = fabs(psTo->x - psFrom->x);
+		fDY = fabs(psTo->y - psFrom->y);
 		if ((fDX < KICAD_SCHEM_POINT_TOLERANCE) && (fDY < KICAD_SCHEM_POINT_TOLERANCE))
 		{
 			continue;
@@ -298,13 +298,13 @@ float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayKicadSchemPoint* pasPath, 
 	}
 	if (bHorizontal)
 	{
-		fSpan = psEnd->fX - psStart->fX;
-		fFraction = (psBend->fX - psStart->fX);
+		fSpan = psEnd->x - psStart->x;
+		fFraction = (psBend->x - psStart->x);
 	}
 	else
 	{
-		fSpan = psEnd->fY - psStart->fY;
-		fFraction = (psBend->fY - psStart->fY);
+		fSpan = psEnd->y - psStart->y;
+		fFraction = (psBend->y - psStart->y);
 	}
 	if (fabs(fSpan) < KICAD_SCHEM_POINT_TOLERANCE)
 	{
@@ -328,6 +328,6 @@ float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayKicadSchemPoint* pasPath, 
 //
 //////////////////////////////////////////////////////////////////////////
 size CKicadSchemSubnetGraph::NumPoints(void) { return masPoints.NumElements(); }
-SKicadSchemPoint* CKicadSchemSubnetGraph::GetPoint(size uiIndex) { return masPoints.SafeGet(uiIndex); }
+SFloat64Vec2* CKicadSchemSubnetGraph::GetPoint(size uiIndex) { return masPoints.SafeGet(uiIndex); }
 size CKicadSchemSubnetGraph::NumEdges(void) { return maiEdgeStarts.NumElements(); }
 

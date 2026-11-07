@@ -27,16 +27,16 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 class CKicadSchemBusEntry
 {
 protected:
-	SKicadSchemPoint	msPosition;
-	SKicadSchemPoint	msSize;
+	SFloat64Vec2		msPosition;
+	SFloat64Vec2		msSize;
 
 public:
-	void				Init(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize);
+	void				Init(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 	void				Kill(void);
 
-	SKicadSchemPoint*	GetPosition(void);
-	SKicadSchemPoint*	GetSize(void);
-	void				GetEnd(SKicadSchemPoint* psEnd);
+	SFloat64Vec2*		GetPosition(void);
+	SFloat64Vec2*		GetSize(void);
+	void				GetEnd(SFloat64Vec2* psEnd);
 };
 
 

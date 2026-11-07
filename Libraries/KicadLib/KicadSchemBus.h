@@ -30,8 +30,8 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 struct SKicadSchemBusTap
 {
 	CKicadSchemBusEntry*	pcEntry;
-	SKicadSchemPoint		sBusPoint;
-	SKicadSchemPoint		sWirePoint;
+	SFloat64Vec2			sBusPoint;
+	SFloat64Vec2			sWirePoint;
 	CKicadSchemSubnet*		pcMember;
 	bool					bVertical;
 };
@@ -60,7 +60,7 @@ public:
 	void					AddWire(CKicadSchemWire* pcWire);
 	void					AddJunction(CKicadSchemJunction* pcJunction);
 	void					AddLabel(CKicadSchemLabel* pcLabel);
-	void					AddTap(CKicadSchemBusEntry* pcEntry, SKicadSchemPoint* psBusPoint, SKicadSchemPoint* psWirePoint, CKicadSchemSubnet* pcMember, bool bVertical);
+	void					AddTap(CKicadSchemBusEntry* pcEntry, SFloat64Vec2* psBusPoint, SFloat64Vec2* psWirePoint, CKicadSchemSubnet* pcMember, bool bVertical);
 	void					AddMember(char* szMember);
 
 	CKicadSchemSubnet*		GetSubnet(void);
@@ -72,7 +72,7 @@ public:
 	size					NumMembers(void);
 	char*					GetMember(size uiIndex);
 	size					GetMemberIndex(char* szMember);
-	bool					Contains(SKicadSchemPoint* psPoint, bool* pbVertical);
+	bool					Contains(SFloat64Vec2* psPoint, bool* pbVertical);
 };
 
 

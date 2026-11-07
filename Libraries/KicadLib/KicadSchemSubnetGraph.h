@@ -25,9 +25,6 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "KicadSchemSubnet.h"
 
 
-typedef CArrayTemplate<SKicadSchemPoint>	CArrayKicadSchemPoint;
-
-
 //The way a subnet's wires are drawn, as points joined along its wires: the ends of its wires, its junctions and any
 //points added (the pins and labels that are connected).  A wire is split at every point on it.  FindPath goes along
 //the wires from a point to the nearest of a set of points, so the route KiCad drew between two of a subnet's pins
@@ -36,7 +33,7 @@ class CKicadSchemSubnetGraph
 {
 protected:
 	CKicadSchemSubnet*		mpcSubnet;
-	CArrayKicadSchemPoint	masPoints;
+	CArrayFloat64Vec2		masPoints;
 	CArrayInt				maiEdgeStarts;
 	CArrayInt				maiEdgeEnds;
 
@@ -44,18 +41,18 @@ public:
 	void				Init(CKicadSchemSubnet* pcSubnet);
 	void				Kill(void);
 
-	size				AddPoint(SKicadSchemPoint* psPoint);
+	size				AddPoint(SFloat64Vec2* psPoint);
 	void				Build(void);
 
 	size				NumPoints(void);
-	SKicadSchemPoint*	GetPoint(size uiIndex);
+	SFloat64Vec2*		GetPoint(size uiIndex);
 	size				NumEdges(void);
 	bool				FindPath(size uiFrom, CArrayInt* paiTargets, CArrayInt* paiPath);
 
-	static float64		GetBendFraction(CArrayKicadSchemPoint* pasPath, bool* pbHorizontal);
+	static float64		GetBendFraction(CArrayFloat64Vec2* pasPath, bool* pbHorizontal);
 
 protected:
-	size				FindPoint(SKicadSchemPoint* psPoint);
+	size				FindPoint(SFloat64Vec2* psPoint);
 	void				AddWireEdges(CKicadSchemWire* pcWire);
 };
 

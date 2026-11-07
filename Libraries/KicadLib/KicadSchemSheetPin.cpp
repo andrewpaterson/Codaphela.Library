@@ -29,7 +29,7 @@ void CKicadSchemSheetPin::Init(char* szName, EKicadSchemLabelShape eShape)
 {
 	mszName.Init(szName);
 	meShape = eShape;
-	msPosition.Init();
+	msPosition.Zero();
 	mfAngle = 0.0;
 }
 
@@ -48,7 +48,7 @@ void CKicadSchemSheetPin::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSheetPin::SetPosition(SKicadSchemPoint* psPosition, float64 fAngle)
+void CKicadSchemSheetPin::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 {
 	msPosition = *psPosition;
 	mfAngle = fAngle;
@@ -79,7 +79,7 @@ EKicadSchemLabelShape CKicadSchemSheetPin::GetShape(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemSheetPin::GetPosition(void)
+SFloat64Vec2* CKicadSchemSheetPin::GetPosition(void)
 {
 	return &msPosition;
 }

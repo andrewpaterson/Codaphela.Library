@@ -29,7 +29,7 @@ void CKicadSchemLabel::Init(EKicadSchemLabelType eType, char* szText)
 {
 	meType = eType;
 	mszText.Init(szText);
-	msPosition.Init();
+	msPosition.Zero();
 	mfAngle = 0.0;
 	meShape = KSLS_None;
 }
@@ -49,7 +49,7 @@ void CKicadSchemLabel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLabel::SetPosition(SKicadSchemPoint* psPosition, float64 fAngle)
+void CKicadSchemLabel::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 {
 	msPosition = *psPosition;
 	mfAngle = fAngle;
@@ -90,7 +90,7 @@ char* CKicadSchemLabel::GetText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemLabel::GetPosition(void)
+SFloat64Vec2* CKicadSchemLabel::GetPosition(void)
 {
 	return &msPosition;
 }

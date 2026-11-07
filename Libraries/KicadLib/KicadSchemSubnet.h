@@ -38,9 +38,9 @@ struct SKicadSchemNetPin
 {
 	CKicadSchemSymbol*	pcSymbol;
 	CKicadSchemLibPin*	pcPin;
-	SKicadSchemPoint	sPosition;
+	SFloat64Vec2		sPosition;
 
-	void	Init(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SKicadSchemPoint* psPosition);
+	void	Init(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SFloat64Vec2* psPosition);
 };
 
 
@@ -81,7 +81,7 @@ public:
 	void					Kill(void);
 
 	void					AddWire(CKicadSchemWire* pcWire);
-	void					AddPin(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SKicadSchemPoint* psPosition);
+	void					AddPin(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SFloat64Vec2* psPosition);
 	void					AddLabel(CKicadSchemLabel* pcLabel);
 	void					AddSheetPin(CKicadSchemSheet* pcSheet, CKicadSchemSheetPin* pcPin);
 	void					AddJunction(CKicadSchemJunction* pcJunction);

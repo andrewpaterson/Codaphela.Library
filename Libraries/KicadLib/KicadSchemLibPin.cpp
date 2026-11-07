@@ -31,7 +31,7 @@ void CKicadSchemLibPin::Init(EKicadSchemPinType eType, char* szGraphicStyle, int
 	mszGraphicStyle.Init(szGraphicStyle);
 	mszName.Init();
 	mszNumber.Init();
-	msPosition.Init();
+	msPosition.Zero();
 	mfAngle = 0.0;
 	mfLength = 0.0;
 	mbHidden = false;
@@ -76,7 +76,7 @@ void CKicadSchemLibPin::SetNumber(char* szNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLibPin::SetPosition(SKicadSchemPoint* psPosition, float64 fAngle)
+void CKicadSchemLibPin::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 {
 	msPosition = *psPosition;
 	mfAngle = fAngle;
@@ -147,7 +147,7 @@ char* CKicadSchemLibPin::GetNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemLibPin::GetPosition(void)
+SFloat64Vec2* CKicadSchemLibPin::GetPosition(void)
 {
 	return &msPosition;
 }

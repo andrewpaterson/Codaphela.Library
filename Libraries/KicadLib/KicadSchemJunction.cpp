@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemJunction::Init(SKicadSchemPoint* psPosition, float64 fDiameter)
+void CKicadSchemJunction::Init(SFloat64Vec2* psPosition, float64 fDiameter)
 {
 	msPosition = *psPosition;
 	mfDiameter = fDiameter;
@@ -45,7 +45,7 @@ void CKicadSchemJunction::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemJunction::GetPosition(void)
+SFloat64Vec2* CKicadSchemJunction::GetPosition(void)
 {
 	return &msPosition;
 }

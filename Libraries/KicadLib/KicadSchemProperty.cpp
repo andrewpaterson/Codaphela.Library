@@ -29,7 +29,7 @@ void CKicadSchemProperty::Init(char* szName, char* szValue)
 {
 	mszName.Init(szName);
 	mszValue.Init(szValue);
-	msPosition.Init();
+	msPosition.Zero();
 	mfAngle = 0.0;
 	mbHidden = false;
 }
@@ -50,7 +50,7 @@ void CKicadSchemProperty::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemProperty::SetPosition(SKicadSchemPoint* psPosition, float64 fAngle)
+void CKicadSchemProperty::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 {
 	msPosition = *psPosition;
 	mfAngle = fAngle;
@@ -91,7 +91,7 @@ char* CKicadSchemProperty::GetValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemProperty::GetPosition(void)
+SFloat64Vec2* CKicadSchemProperty::GetPosition(void)
 {
 	return &msPosition;
 }

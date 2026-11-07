@@ -46,7 +46,7 @@ struct SKicadSchemNetNode
 	EKicadSchemNetNodeType	eType;
 	void*					pvItem;
 	void*					pvOwner;
-	SKicadSchemPoint		sPosition;
+	SFloat64Vec2			sPosition;
 };
 
 
@@ -98,7 +98,7 @@ public:
 	size				NumBusNets(void);
 	CKicadSchemNet*		GetBusNet(size uiIndex);
 	bool				IsBusLabel(CKicadSchemLabel* pcLabel);
-	CKicadSchemSubnet*	GetSubnetAt(SKicadSchemPoint* psPoint);
+	CKicadSchemSubnet*	GetSubnetAt(SFloat64Vec2* psPoint);
 
 	static bool			IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 	static bool			IsSharedPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
@@ -106,7 +106,7 @@ public:
 
 protected:
 	bool				AddNodes(void);
-	SKicadSchemNetNode*	AddNode(EKicadSchemNetNodeType eType, void* pvItem, void* pvOwner, SKicadSchemPoint* psPosition);
+	SKicadSchemNetNode*	AddNode(EKicadSchemNetNodeType eType, void* pvItem, void* pvOwner, SFloat64Vec2* psPosition);
 	void				JoinNodes(void);
 	void				CreateSubnets(void);
 	void				CreateNets(void);

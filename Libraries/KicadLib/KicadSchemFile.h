@@ -71,12 +71,12 @@ public:
 
 	CKicadSchemLibSymbol*	AddLibSymbol(char* szName);
 	CKicadSchemSymbol*		AddSymbol(char* szLibId);
-	CKicadSchemWire*		AddWire(SKicadSchemPoint* psStart, SKicadSchemPoint* psEnd, bool bBus);
-	CKicadSchemJunction*	AddJunction(SKicadSchemPoint* psPosition, float64 fDiameter);
-	CKicadSchemNoConnect*	AddNoConnect(SKicadSchemPoint* psPosition);
-	CKicadSchemBusEntry*	AddBusEntry(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize);
+	CKicadSchemWire*		AddWire(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus);
+	CKicadSchemJunction*	AddJunction(SFloat64Vec2* psPosition, float64 fDiameter);
+	CKicadSchemNoConnect*	AddNoConnect(SFloat64Vec2* psPosition);
+	CKicadSchemBusEntry*	AddBusEntry(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 	CKicadSchemLabel*		AddLabel(EKicadSchemLabelType eType, char* szText);
-	CKicadSchemSheet*		AddSheet(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize);
+	CKicadSchemSheet*		AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 
 	char*					GetFileName(void);
 	int32					GetVersion(void);
@@ -112,7 +112,7 @@ public:
 	size					NumSheets(void);
 	CKicadSchemSheet*		GetSheet(size uiIndex);
 
-	bool					GetPinPosition(SKicadSchemPoint* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
+	bool					GetPinPosition(SFloat64Vec2* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
 };
 
 

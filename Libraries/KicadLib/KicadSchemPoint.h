@@ -20,23 +20,13 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __KICAD_SCHEM_POINT_H__
 #define __KICAD_SCHEM_POINT_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/Float64Vec2.h"
 
 
-//KiCad's schematic coordinates are millimetres.  On a sheet Y increases downwards; inside a library symbol Y
-//increases upwards (see CKicadSchemTransform).  Items are normally on a 1.27mm (50 mil) grid.
+//KiCad's schematic coordinates are millimetres, held as SFloat64Vec2.  On a sheet Y increases downwards; inside a
+//library symbol Y increases upwards (see CKicadSchemTransform).  Items are normally on a 1.27mm (50 mil) grid.  Two
+//points closer than the tolerance are the same point (see SFloat64Vec2::CloselyEqual).
 #define KICAD_SCHEM_POINT_TOLERANCE		0.0005
-
-
-struct SKicadSchemPoint
-{
-	float64		fX;
-	float64		fY;
-
-	void	Init(void);
-	void	Init(float64 fX, float64 fY);
-	bool	Equals(SKicadSchemPoint* psOther);
-};
 
 
 #endif // __KICAD_SCHEM_POINT_H__

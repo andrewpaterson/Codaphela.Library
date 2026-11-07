@@ -293,7 +293,7 @@ TRISTATE CKicadSchemImporter::ImportLibPin(CKicadSchemExpression* pcExpression, 
 	char*					szGraphicStyle;
 	EKicadSchemPinType		eType;
 	CKicadSchemLibPin*		pcPin;
-	SKicadSchemPoint		sPosition;
+	SFloat64Vec2			sPosition;
 	float64					fAngle;
 	float64					fLength;
 
@@ -339,7 +339,7 @@ TRISTATE CKicadSchemImporter::ImportSymbol(CKicadSchemExpression* pcExpression)
 	char*					szLibId;
 	char*					szMirror;
 	CKicadSchemSymbol*		pcSymbol;
-	SKicadSchemPoint		sPosition;
+	SFloat64Vec2			sPosition;
 	float64					fAngle;
 	int32					iValue;
 	bool					bValue;
@@ -530,7 +530,7 @@ TRISTATE CKicadSchemImporter::ImportProperties(CKicadSchemExpression* pcExpressi
 	CKicadSchemProperty*	pcProperty;
 	char*					szName;
 	char*					szValue;
-	SKicadSchemPoint		sPosition;
+	SFloat64Vec2			sPosition;
 	float64					fAngle;
 	bool					bHidden;
 
@@ -577,8 +577,8 @@ TRISTATE CKicadSchemImporter::ImportProperties(CKicadSchemExpression* pcExpressi
 TRISTATE CKicadSchemImporter::ImportWire(CKicadSchemExpression* pcExpression, bool bBus)
 {
 	CKicadSchemExpression*	pcPoints;
-	SKicadSchemPoint		sStart;
-	SKicadSchemPoint		sEnd;
+	SFloat64Vec2			sStart;
+	SFloat64Vec2			sEnd;
 	CKicadSchemWire*		pcWire;
 
 	//(wire (pts (xy 101.6 50.8) (xy 114.3 50.8)) (stroke (width 0) (type default)) (uuid "..."))
@@ -600,7 +600,7 @@ TRISTATE CKicadSchemImporter::ImportWire(CKicadSchemExpression* pcExpression, bo
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CKicadSchemImporter::ImportJunction(CKicadSchemExpression* pcExpression)
 {
-	SKicadSchemPoint	sPosition;
+	SFloat64Vec2		sPosition;
 	float64				fAngle;
 	float64				fDiameter;
 
@@ -624,7 +624,7 @@ TRISTATE CKicadSchemImporter::ImportJunction(CKicadSchemExpression* pcExpression
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CKicadSchemImporter::ImportNoConnect(CKicadSchemExpression* pcExpression)
 {
-	SKicadSchemPoint	sPosition;
+	SFloat64Vec2		sPosition;
 	float64				fAngle;
 
 	if (!GetAt(pcExpression, &sPosition, &fAngle))
@@ -643,13 +643,13 @@ TRISTATE CKicadSchemImporter::ImportNoConnect(CKicadSchemExpression* pcExpressio
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CKicadSchemImporter::ImportBusEntry(CKicadSchemExpression* pcExpression)
 {
-	SKicadSchemPoint		sPosition;
-	SKicadSchemPoint		sSize;
+	SFloat64Vec2			sPosition;
+	SFloat64Vec2			sSize;
 	float64					fAngle;
 	CKicadSchemExpression*	pcSize;
 
 	pcSize = pcExpression->FindChild("size");
-	if (!GetAt(pcExpression, &sPosition, &fAngle) || (pcSize == NULL) || !pcSize->GetDouble(0, &sSize.fX) || !pcSize->GetDouble(1, &sSize.fY))
+	if (!GetAt(pcExpression, &sPosition, &fAngle) || (pcSize == NULL) || !pcSize->GetDouble(0, &sSize.x) || !pcSize->GetDouble(1, &sSize.y))
 	{
 		return Error(pcExpression, "Expected (at x y) and (size dx dy) in (bus_entry.");
 	}
@@ -667,7 +667,7 @@ TRISTATE CKicadSchemImporter::ImportLabel(CKicadSchemExpression* pcExpression, E
 {
 	char*				szText;
 	char*				szShape;
-	SKicadSchemPoint	sPosition;
+	SFloat64Vec2		sPosition;
 	float64				fAngle;
 	CKicadSchemLabel*	pcLabel;
 
@@ -702,8 +702,8 @@ TRISTATE CKicadSchemImporter::ImportLabel(CKicadSchemExpression* pcExpression, E
 TRISTATE CKicadSchemImporter::ImportSheet(CKicadSchemExpression* pcExpression)
 {
 	TRISTATE				tResult;
-	SKicadSchemPoint		sPosition;
-	SKicadSchemPoint		sSize;
+	SFloat64Vec2			sPosition;
+	SFloat64Vec2			sSize;
 	float64					fAngle;
 	CKicadSchemExpression*	pcSize;
 	CKicadSchemExpression*	pcChild;
@@ -716,7 +716,7 @@ TRISTATE CKicadSchemImporter::ImportSheet(CKicadSchemExpression* pcExpression)
 	//(sheet (at 100 50) (size 30 20) ... (property "Sheetname" "LED Display" ...) (property "Sheetfile" "LED Display.kicad_sch" ...)
 	//  (pin "D0" input (at 100 55 180) ...))
 	pcSize = pcExpression->FindChild("size");
-	if (!GetAt(pcExpression, &sPosition, &fAngle) || (pcSize == NULL) || !pcSize->GetDouble(0, &sSize.fX) || !pcSize->GetDouble(1, &sSize.fY))
+	if (!GetAt(pcExpression, &sPosition, &fAngle) || (pcSize == NULL) || !pcSize->GetDouble(0, &sSize.x) || !pcSize->GetDouble(1, &sSize.y))
 	{
 		return Error(pcExpression, "Expected (at x y) and (size width height) in (sheet.");
 	}
@@ -758,13 +758,13 @@ TRISTATE CKicadSchemImporter::ImportSheet(CKicadSchemExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemImporter::GetAt(CKicadSchemExpression* pcExpression, SKicadSchemPoint* psPosition, float64* pfAngle)
+bool CKicadSchemImporter::GetAt(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPosition, float64* pfAngle)
 {
 	CKicadSchemExpression*	pcAt;
 
 	//(at x y) or (at x y angle).
 	pcAt = pcExpression->FindChild("at");
-	if ((pcAt == NULL) || !pcAt->GetDouble(0, &psPosition->fX) || !pcAt->GetDouble(1, &psPosition->fY))
+	if ((pcAt == NULL) || !pcAt->GetDouble(0, &psPosition->x) || !pcAt->GetDouble(1, &psPosition->y))
 	{
 		return false;
 	}
@@ -782,13 +782,13 @@ bool CKicadSchemImporter::GetAt(CKicadSchemExpression* pcExpression, SKicadSchem
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemImporter::GetXY(CKicadSchemExpression* pcExpression, SKicadSchemPoint* psPoint)
+bool CKicadSchemImporter::GetXY(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPoint)
 {
 	if ((pcExpression == NULL) || !pcExpression->Is("xy"))
 	{
 		return false;
 	}
-	return pcExpression->GetDouble(0, &psPoint->fX) && pcExpression->GetDouble(1, &psPoint->fY);
+	return pcExpression->GetDouble(0, &psPoint->x) && pcExpression->GetDouble(1, &psPoint->y);
 }
 
 

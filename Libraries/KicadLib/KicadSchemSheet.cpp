@@ -26,7 +26,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSheet::Init(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+void CKicadSchemSheet::Init(SFloat64Vec2* psPosition, SFloat64Vec2* psSize)
 {
 	msPosition = *psPosition;
 	msSize = *psSize;
@@ -84,7 +84,7 @@ CKicadSchemSheetPin* CKicadSchemSheet::AddPin(char* szName, EKicadSchemLabelShap
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemSheet::GetPosition(void)
+SFloat64Vec2* CKicadSchemSheet::GetPosition(void)
 {
 	return &msPosition;
 }
@@ -94,7 +94,7 @@ SKicadSchemPoint* CKicadSchemSheet::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemSheet::GetSize(void)
+SFloat64Vec2* CKicadSchemSheet::GetSize(void)
 {
 	return &msSize;
 }

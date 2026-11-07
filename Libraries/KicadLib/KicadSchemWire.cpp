@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemWire::Init(SKicadSchemPoint* psStart, SKicadSchemPoint* psEnd, bool bBus)
+void CKicadSchemWire::Init(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus)
 {
 	msStart = *psStart;
 	msEnd = *psEnd;
@@ -58,7 +58,7 @@ void CKicadSchemWire::SetUuid(char* szUuid)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemWire::GetStart(void)
+SFloat64Vec2* CKicadSchemWire::GetStart(void)
 {
 	return &msStart;
 }
@@ -68,7 +68,7 @@ SKicadSchemPoint* CKicadSchemWire::GetStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemWire::GetEnd(void)
+SFloat64Vec2* CKicadSchemWire::GetEnd(void)
 {
 	return &msEnd;
 }
@@ -98,9 +98,9 @@ char* CKicadSchemWire::GetUuid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemWire::IsEnd(SKicadSchemPoint* psPoint)
+bool CKicadSchemWire::IsEnd(SFloat64Vec2* psPoint)
 {
-	return msStart.Equals(psPoint) || msEnd.Equals(psPoint);
+	return msStart.CloselyEqual(psPoint, KICAD_SCHEM_POINT_TOLERANCE) || msEnd.CloselyEqual(psPoint, KICAD_SCHEM_POINT_TOLERANCE);
 }
 
 
@@ -108,7 +108,7 @@ bool CKicadSchemWire::IsEnd(SKicadSchemPoint* psPoint)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemWire::Contains(SKicadSchemPoint* psPoint)
+bool CKicadSchemWire::Contains(SFloat64Vec2* psPoint)
 {
 	float64	fDX;
 	float64	fDY;
@@ -119,14 +119,14 @@ bool CKicadSchemWire::Contains(SKicadSchemPoint* psPoint)
 	float64	fLengthSquared;
 
 	//True if the point is on the segment, ends included.
-	fDX = msEnd.fX - msStart.fX;
-	fDY = msEnd.fY - msStart.fY;
-	fPX = psPoint->fX - msStart.fX;
-	fPY = psPoint->fY - msStart.fY;
+	fDX = msEnd.x - msStart.x;
+	fDY = msEnd.y - msStart.y;
+	fPX = psPoint->x - msStart.x;
+	fPY = psPoint->y - msStart.y;
 	fLengthSquared = fDX * fDX + fDY * fDY;
 	if (fLengthSquared == 0.0)
 	{
-		return msStart.Equals(psPoint);
+		return msStart.CloselyEqual(psPoint, KICAD_SCHEM_POINT_TOLERANCE);
 	}
 
 	fCross = fDX * fPY - fDY * fPX;

@@ -118,7 +118,7 @@ bool CKicadSchemNetlist::AddNodes(void)
 	CKicadSchemSymbol*		pcSymbol;
 	CKicadSchemLibSymbol*	pcLibSymbol;
 	CKicadSchemLibPin*		pcPin;
-	SKicadSchemPoint		sPosition;
+	SFloat64Vec2			sPosition;
 	CKicadSchemLabel*		pcLabel;
 	CKicadSchemSheet*		pcSheet;
 	CKicadSchemSheetPin*	pcSheetPin;
@@ -189,7 +189,7 @@ bool CKicadSchemNetlist::AddNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemNetNode* CKicadSchemNetlist::AddNode(EKicadSchemNetNodeType eType, void* pvItem, void* pvOwner, SKicadSchemPoint* psPosition)
+SKicadSchemNetNode* CKicadSchemNetlist::AddNode(EKicadSchemNetNodeType eType, void* pvItem, void* pvOwner, SFloat64Vec2* psPosition)
 {
 	SKicadSchemNetNode*	psNode;
 
@@ -249,7 +249,7 @@ void CKicadSchemNetlist::JoinNodes(void)
 					JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
 				}
 			}
-			else if (psNode->sPosition.Equals(&psOther->sPosition))
+			else if (psNode->sPosition.CloselyEqual(&psOther->sPosition, KICAD_SCHEM_POINT_TOLERANCE))
 			{
 				JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
 			}
@@ -722,8 +722,8 @@ void CKicadSchemNetlist::AddBusTaps(void)
 	size					i;
 	size					j;
 	CKicadSchemBusEntry*	pcEntry;
-	SKicadSchemPoint		sStart;
-	SKicadSchemPoint		sEnd;
+	SFloat64Vec2			sStart;
+	SFloat64Vec2			sEnd;
 	CKicadSchemBus*			pcBus;
 	CKicadSchemSubnet*		pcMember;
 	bool					bVertical;
@@ -857,7 +857,7 @@ void CKicadSchemNetlist::AddBusMembers(void)
 // NULL if there's no net of the name., or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSubnet* CKicadSchemNetlist::GetSubnetAt(SKicadSchemPoint* psPoint)
+CKicadSchemSubnet* CKicadSchemNetlist::GetSubnetAt(SFloat64Vec2* psPoint)
 {
 	size				i;
 	size				j;
@@ -875,7 +875,7 @@ CKicadSchemSubnet* CKicadSchemNetlist::GetSubnetAt(SKicadSchemPoint* psPoint)
 		}
 		for (j = 0; j < pcSubnet->NumPins(); j++)
 		{
-			if (pcSubnet->GetPin(j)->sPosition.Equals(psPoint))
+			if (pcSubnet->GetPin(j)->sPosition.CloselyEqual(psPoint, KICAD_SCHEM_POINT_TOLERANCE))
 			{
 				return pcSubnet;
 			}

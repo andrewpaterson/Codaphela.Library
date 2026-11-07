@@ -30,7 +30,7 @@ void CKicadSchemSymbol::Init(char* szLibId)
 	mszLibId.Init(szLibId);
 	mszLibName.Init();
 	mszUuid.Init();
-	msPosition.Init();
+	msPosition.Zero();
 	mfAngle = 0.0;
 	meMirror = KSM_None;
 	miUnit = 1;
@@ -89,7 +89,7 @@ void CKicadSchemSymbol::SetUuid(char* szUuid)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSymbol::SetPosition(SKicadSchemPoint* psPosition, float64 fAngle)
+void CKicadSchemSymbol::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 {
 	msPosition = *psPosition;
 	mfAngle = fAngle;
@@ -218,7 +218,7 @@ char* CKicadSchemSymbol::GetUuid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemSymbol::GetPosition(void)
+SFloat64Vec2* CKicadSchemSymbol::GetPosition(void)
 {
 	return &msPosition;
 }
@@ -348,10 +348,10 @@ CKicadSchemSymbolInstance* CKicadSchemSymbol::GetInstance(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemSymbol::GetSheetPosition(SKicadSchemPoint* psDest, SKicadSchemPoint* psLibrary)
+bool CKicadSchemSymbol::GetSheetPosition(SFloat64Vec2* psDest, SFloat64Vec2* psLibrary)
 {
 	CKicadSchemTransform	cTransform;
-	SKicadSchemPoint		sOffset;
+	SFloat64Vec2			sOffset;
 
 	//Converts a point in the library symbol, normally a pin, to where it is on the sheet.
 	if (!cTransform.Init(mfAngle, meMirror))
@@ -360,7 +360,7 @@ bool CKicadSchemSymbol::GetSheetPosition(SKicadSchemPoint* psDest, SKicadSchemPo
 	}
 
 	cTransform.Transform(&sOffset, psLibrary);
-	psDest->Init(msPosition.fX + sOffset.fX, msPosition.fY + sOffset.fY);
+	*psDest = msPosition + sOffset;
 	return true;
 }
 

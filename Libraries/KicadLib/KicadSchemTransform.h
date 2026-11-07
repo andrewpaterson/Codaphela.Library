@@ -45,7 +45,7 @@ protected:
 public:
 	bool	Init(float64 fAngle, EKicadSchemMirror eMirror);
 
-	void	Transform(SKicadSchemPoint* psDest, SKicadSchemPoint* psLibrary);
+	void	Transform(SFloat64Vec2* psDest, SFloat64Vec2* psLibrary);
 
 protected:
 	void	Multiply(int32 iX1, int32 iY1, int32 iX2, int32 iY2);

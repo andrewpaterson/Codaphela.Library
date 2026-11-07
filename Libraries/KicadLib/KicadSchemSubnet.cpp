@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SKicadSchemNetPin::Init(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SKicadSchemPoint* psPosition)
+void SKicadSchemNetPin::Init(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SFloat64Vec2* psPosition)
 {
 	this->pcSymbol = pcSymbol;
 	this->pcPin = pcPin;
@@ -89,7 +89,7 @@ void CKicadSchemSubnet::AddWire(CKicadSchemWire* pcWire)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSubnet::AddPin(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SKicadSchemPoint* psPosition)
+void CKicadSchemSubnet::AddPin(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, SFloat64Vec2* psPosition)
 {
 	SKicadSchemNetPin*	psPin;
 

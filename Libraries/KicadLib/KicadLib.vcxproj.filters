@@ -57,9 +57,6 @@
     <ClCompile Include="KicadSchemPinType.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="KicadSchemPoint.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="KicadSchemProperties.cpp">
       <Filter>Source</Filter>
     </ClCompile>

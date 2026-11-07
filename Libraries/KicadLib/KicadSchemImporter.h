@@ -56,8 +56,8 @@ protected:
 	TRISTATE	ImportLabel(CKicadSchemExpression* pcExpression, EKicadSchemLabelType eType);
 	TRISTATE	ImportSheet(CKicadSchemExpression* pcExpression);
 
-	bool		GetAt(CKicadSchemExpression* pcExpression, SKicadSchemPoint* psPosition, float64* pfAngle);
-	bool		GetXY(CKicadSchemExpression* pcExpression, SKicadSchemPoint* psPoint);
+	bool		GetAt(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPosition, float64* pfAngle);
+	bool		GetXY(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPoint);
 	bool		IsHidden(CKicadSchemExpression* pcExpression);
 	bool		GetUnitAndBodyStyle(char* szSubSymbolName, int32* piUnit, int32* piBodyStyle);
 

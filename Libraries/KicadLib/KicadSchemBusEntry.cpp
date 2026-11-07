@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemBusEntry::Init(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+void CKicadSchemBusEntry::Init(SFloat64Vec2* psPosition, SFloat64Vec2* psSize)
 {
 	msPosition = *psPosition;
 	msSize = *psSize;
@@ -45,7 +45,7 @@ void CKicadSchemBusEntry::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemBusEntry::GetPosition(void)
+SFloat64Vec2* CKicadSchemBusEntry::GetPosition(void)
 {
 	return &msPosition;
 }
@@ -55,7 +55,7 @@ SKicadSchemPoint* CKicadSchemBusEntry::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemBusEntry::GetSize(void)
+SFloat64Vec2* CKicadSchemBusEntry::GetSize(void)
 {
 	return &msSize;
 }
@@ -65,8 +65,8 @@ SKicadSchemPoint* CKicadSchemBusEntry::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemBusEntry::GetEnd(SKicadSchemPoint* psEnd)
+void CKicadSchemBusEntry::GetEnd(SFloat64Vec2* psEnd)
 {
-	psEnd->Init(msPosition.fX + msSize.fX, msPosition.fY + msSize.fY);
+	*psEnd = msPosition + msSize;
 }
 

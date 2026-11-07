@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemNoConnect::Init(SKicadSchemPoint* psPosition)
+void CKicadSchemNoConnect::Init(SFloat64Vec2* psPosition)
 {
 	msPosition = *psPosition;
 }
@@ -44,7 +44,7 @@ void CKicadSchemNoConnect::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SKicadSchemPoint* CKicadSchemNoConnect::GetPosition(void)
+SFloat64Vec2* CKicadSchemNoConnect::GetPosition(void)
 {
 	return &msPosition;
 }

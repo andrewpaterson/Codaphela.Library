@@ -83,7 +83,7 @@ void CKicadSchemBus::AddLabel(CKicadSchemLabel* pcLabel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemBus::AddTap(CKicadSchemBusEntry* pcEntry, SKicadSchemPoint* psBusPoint, SKicadSchemPoint* psWirePoint, CKicadSchemSubnet* pcMember, bool bVertical)
+void CKicadSchemBus::AddTap(CKicadSchemBusEntry* pcEntry, SFloat64Vec2* psBusPoint, SFloat64Vec2* psWirePoint, CKicadSchemSubnet* pcMember, bool bVertical)
 {
 	SKicadSchemBusTap*	psTap;
 
@@ -141,7 +141,7 @@ size CKicadSchemBus::GetMemberIndex(char* szMember)
 // that wire runs up and down.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemBus::Contains(SKicadSchemPoint* psPoint, bool* pbVertical)
+bool CKicadSchemBus::Contains(SFloat64Vec2* psPoint, bool* pbVertical)
 {
 	size				i;
 	CKicadSchemWire*	pcWire;
@@ -151,7 +151,7 @@ bool CKicadSchemBus::Contains(SKicadSchemPoint* psPoint, bool* pbVertical)
 		pcWire = mcSubnet.GetWire(i);
 		if (pcWire->Contains(psPoint))
 		{
-			*pbVertical = fabs(pcWire->GetEnd()->fY - pcWire->GetStart()->fY) > fabs(pcWire->GetEnd()->fX - pcWire->GetStart()->fX);
+			*pbVertical = fabs(pcWire->GetEnd()->y - pcWire->GetStart()->y) > fabs(pcWire->GetEnd()->x - pcWire->GetStart()->x);
 			return true;
 		}
 	}

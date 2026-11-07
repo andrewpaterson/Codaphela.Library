@@ -35,7 +35,7 @@ protected:
 	CChars					mszLibId;
 	CChars					mszLibName;
 	CChars					mszUuid;
-	SKicadSchemPoint		msPosition;
+	SFloat64Vec2			msPosition;
 	float64					mfAngle;
 	EKicadSchemMirror		meMirror;
 	int32					miUnit;
@@ -52,7 +52,7 @@ public:
 
 	void						SetLibName(char* szLibName);
 	void						SetUuid(char* szUuid);
-	void						SetPosition(SKicadSchemPoint* psPosition, float64 fAngle);
+	void						SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void						SetMirror(EKicadSchemMirror eMirror);
 	void						SetUnit(int32 iUnit);
 	void						SetBodyStyle(int32 iBodyStyle);
@@ -65,7 +65,7 @@ public:
 	char*						GetLibName(void);
 	char*						GetLibSymbolName(void);
 	char*						GetUuid(void);
-	SKicadSchemPoint*			GetPosition(void);
+	SFloat64Vec2*				GetPosition(void);
 	float64						GetAngle(void);
 	EKicadSchemMirror			GetMirror(void);
 	int32						GetUnit(void);
@@ -80,7 +80,7 @@ public:
 	size						NumInstances(void);
 	CKicadSchemSymbolInstance*	GetInstance(size uiIndex);
 
-	bool						GetSheetPosition(SKicadSchemPoint* psDest, SKicadSchemPoint* psLibrary);
+	bool						GetSheetPosition(SFloat64Vec2* psDest, SFloat64Vec2* psLibrary);
 };
 
 

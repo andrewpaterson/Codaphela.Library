@@ -27,14 +27,14 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 class CKicadSchemJunction
 {
 protected:
-	SKicadSchemPoint	msPosition;
+	SFloat64Vec2		msPosition;
 	float64				mfDiameter;
 
 public:
-	void				Init(SKicadSchemPoint* psPosition, float64 fDiameter);
+	void				Init(SFloat64Vec2* psPosition, float64 fDiameter);
 	void				Kill(void);
 
-	SKicadSchemPoint*	GetPosition(void);
+	SFloat64Vec2*		GetPosition(void);
 	float64				GetDiameter(void);
 };
 

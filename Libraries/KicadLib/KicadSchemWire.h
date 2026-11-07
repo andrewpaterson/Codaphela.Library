@@ -30,23 +30,23 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 class CKicadSchemWire
 {
 protected:
-	SKicadSchemPoint	msStart;
-	SKicadSchemPoint	msEnd;
+	SFloat64Vec2		msStart;
+	SFloat64Vec2		msEnd;
 	bool				mbBus;
 	CChars				mszUuid;
 
 public:
-	void				Init(SKicadSchemPoint* psStart, SKicadSchemPoint* psEnd, bool bBus);
+	void				Init(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus);
 	void				Kill(void);
 
 	void				SetUuid(char* szUuid);
 
-	SKicadSchemPoint*	GetStart(void);
-	SKicadSchemPoint*	GetEnd(void);
+	SFloat64Vec2*		GetStart(void);
+	SFloat64Vec2*		GetEnd(void);
 	bool				IsBus(void);
 	char*				GetUuid(void);
-	bool				IsEnd(SKicadSchemPoint* psPoint);
-	bool				Contains(SKicadSchemPoint* psPoint);
+	bool				IsEnd(SFloat64Vec2* psPoint);
+	bool				Contains(SFloat64Vec2* psPoint);
 };
 
 
