@@ -653,8 +653,8 @@ void CTextArea::SetCaretPosition(size uiPosition)
 {
 	mcEditing.SetCaretPosition(uiPosition);
 
-	//What it is laid out from has changed.
-	InvalidateLayout();
+	//The caret is shown where the window lays the text area out; the marks redraw what of it they change.
+	LayoutChanged();
 }
 
 
@@ -677,8 +677,8 @@ void CTextArea::Select(size uiStart, size uiEnd)
 {
 	mcEditing.Select(uiStart, uiEnd);
 
-	//What it is laid out from has changed.
-	InvalidateLayout();
+	//The caret is shown where the window lays the text area out; the marks redraw what of it they change.
+	LayoutChanged();
 }
 
 
@@ -978,8 +978,8 @@ void CTextArea::SelectWholeWord(void)
 {
 	mcEditing.SelectWholeWord();
 
-	//What it is laid out from has changed.
-	InvalidateLayout();
+	//The caret is shown where the window lays the text area out; the marks redraw what of it they change.
+	LayoutChanged();
 }
 
 
@@ -1127,8 +1127,8 @@ void CTextArea::GapsChanged(void)
 {
 	mpLayout->GapsChanged();
 
-	//What it is laid out from has changed.
-	InvalidateLayout();
+	//The rows below the gaps move: what of the text area that changes is found when it is next drawn.
+	LayoutChanged();
 }
 
 
@@ -1307,7 +1307,7 @@ void CTextArea::TextEdited(void)
 	Relayout();
 	if (sTextSize != mpLayout->GetTextSize())
 	{
-		InvalidateLayout();
+		LayoutChanged();
 	}
 	ShowCaret();
 

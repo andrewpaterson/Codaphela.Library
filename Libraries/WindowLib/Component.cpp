@@ -785,7 +785,8 @@ void CComponent::Invalidate(void)
 // component draws again (see Invalidate).  The window keeps its layout
 // between paints, so call it whenever a component changes something its
 // layout depends on: its text, its size...  Children added or taken out
-// see to this themselves (ChildrenChanged).
+// see to this themselves (ChildrenChanged).  A component that redraws
+// only what of it changed calls LayoutChanged.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::InvalidateLayout(void)
@@ -806,6 +807,19 @@ void CComponent::InvalidateLayout(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::ChildrenChanged(void)
+{
+	LayoutChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window is laid out again before it is next painted, but the
+// component doesn't draw all of itself again: it invalidates what of it
+// changed itself (as a text area does its rows, CCanvas::InvalidateArea).
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::LayoutChanged(void)
 {
 	if (mpWindow.IsNotNull())
 	{

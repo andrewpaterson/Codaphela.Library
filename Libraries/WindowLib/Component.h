@@ -153,6 +153,7 @@ protected:
 	virtual	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea);
 	virtual	void				MarkContentChanged(void);
 			void				ChildrenChanged(void);
+			void				LayoutChanged(void);
 			void				SaveLayout(CArrayTemplate<SInt32Vec2>* pasBounds);
 			size				CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex, size* puiNumLogged);
 			void				LetGo(Ptr<CComponent> pComponent);
