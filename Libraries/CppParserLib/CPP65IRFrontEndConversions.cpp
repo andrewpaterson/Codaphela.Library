@@ -419,8 +419,9 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
 // Conversions to and from pointers to members, as the generator's (an
 // address or an offset, 4 bytes): an integer (0, null) is one as it is, one
 // is a bool when it isn't 0, a pointer to a field of a base is one to the
-// derived class's field (the base's offset added), and other pointers to
-// members (to members of unrelated classes, by a cast) keep the value.
+// derived class's field (the base's offset added) and back again by a cast
+// (taken off), and other pointers to members (to members of unrelated
+// classes, by a cast) keep the value.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* psTo)
@@ -444,8 +445,9 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 	}
 	else if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && !psFrom->Equals(psTo))
 	{
-		//Otherwise (a cast between unrelated classes, say) it is the same value.
-		iOffset = BaseOffset(psTo->psClass, psFrom->psClass);
+		//Base to derived adds the base's offset, derived to base takes it off.  Otherwise (a cast between unrelated
+		//classes, say) it is the same value.
+		iOffset = BaseOffset(psTo->psClass, psFrom->psClass) - BaseOffset(psFrom->psClass, psTo->psClass);
 		if ((iOffset != 0) && psFrom->psBase->IsFunction())
 		{
 			return Unsupported(__LINE__);

@@ -445,6 +445,19 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether psFrom and psTo are pointers to different classes, psFrom's
+// derived from psTo's (so psFrom converts to psTo, moved to the base).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsClassPointerTo(SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	return psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() &&
+		   (psFrom->psBase->psClass != psTo->psBase->psClass) && mpcGenerator->IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An i1: the comparison of left and right.  Pointers compare unsigned;
 // integers after the usual arithmetic conversions; floats as floats.
 //
@@ -473,12 +486,22 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	}
 	else if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
 	{
+		//A pointer to a derived class and one to its base compare as the base's (the derived one moved to it).
 		psType = sLeft.psType->IsPointer() ? sLeft.psType : sRight.psType;
+		if (IsClassPointerTo(sLeft.psType, sRight.psType))
+		{
+			psType = sRight.psType;
+		}
 	}
 	else if ((sLeft.psType->IsMemberPointer() || sRight.psType->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
 	{
-		//Pointers to members (an address or an offset, 0 for none) are equal or not.
+		//Pointers to members (an address or an offset, 0 for none) are equal or not, a base's as the derived class's.
 		psType = sLeft.psType->IsMemberPointer() ? sLeft.psType : sRight.psType;
+		if (sLeft.psType->IsMemberPointer() && sRight.psType->IsMemberPointer() && (sLeft.psType->psClass != sRight.psType->psClass) &&
+			mpcGenerator->IsDerived(sRight.psType->psClass, sLeft.psType->psClass, NULL))
+		{
+			psType = sRight.psType;
+		}
 	}
 	else if (sLeft.psType->IsInteger() && sRight.psType->IsInteger())
 	{

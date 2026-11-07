@@ -301,6 +301,21 @@ void TestCPP65IRConstructors(void)
 		"int main() { int (CBoth::*h)() = 0; if (h) return -1; h = &CBoth::Get; if (!(h == &CBoth::Get) || (h != &CBoth::Get) || !h) return -2;\n"
 		"int CBase::*b = &CBase::miBase; int CBoth::*d = b; CBoth o; o.miBase = 20; o.miValue = 1; int CBoth::*v = &CBoth::miValue; return (o.*v) + (o.*d) + (o.*h)(); }", 2));
 
+	//A static_cast of a pointer to a derived class's field back to the base's takes the base's offset off again.
+	AssertInt(2 * 10 + 2, TestCPP65IRMain(
+		"struct CBase { int miPad; int miBase; };\n"
+		"struct CMore { int miMore; };\n"
+		"struct CBoth : CMore, CBase { int miValue; };\n"
+		"int main() { int CBoth::*d = &CBoth::miBase; int CBase::*b = static_cast<int CBase::*>(d); CBase c; c.miPad = 1; c.miBase = 2;\n"
+		"CBoth o; o.miBase = 2; return (c.*b) * 10 + (o.*d); }", 1));
+
+	//A pointer to a derived object compared with one to its base (not the first) is compared as the base's.
+	AssertInt(1 * 100 + 1 * 10 + 0, TestCPP65IRMain(
+		"struct CBase { int miBase; };\n"
+		"struct CMore { int miMore; };\n"
+		"struct CBoth : CMore, CBase { int miValue; };\n"
+		"int main() { CBoth o; CBoth p; CBoth* po = &o; CBase* pb = &o; CBase* pq = &p; return (po == pb) * 100 + (pb == po) * 10 + (po == pq); }", 1));
+
 	//A function's name, &f and a static member's name are its address; a cast picks one of an overload.
 	AssertInt(3 + 20 + 100 + 7, TestCPP65IRMain(
 		"int Three() { return 3; }\n"
