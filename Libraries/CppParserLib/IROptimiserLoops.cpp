@@ -29,27 +29,29 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //
 // True if an instruction may be moved out of a loop when its operands are
-// worked out outside it: integer operations (not division), conversions,
-// comparisons and loads that aren't volatile.
+// worked out outside it: integer operations, conversions, comparisons and
+// loads that aren't volatile.  One that may trap (IsIRMayTrap: division)
+// only by a constant that can't: not 0, and not -1 for a signed one (the
+// most negative value divided by it overflows).
 //
 //////////////////////////////////////////////////////////////////////////
 bool IROptimiserHoistable(CIRFunction* pcFunction, SIRInstruction* psInstruction)
 {
 	uint64	ulliDivisor;
+	bool	bSigned;
 
-	switch (psInstruction->uiOpcode)
+	if (IsIRMayTrap(psInstruction->uiOpcode))
 	{
-	case IRO_UDiv:
-	case IRO_URem:
-	case IRO_SDiv:
-	case IRO_SRem:
-		//Only by a constant that can't trap or overflow.
 		if (!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary())
 		{
 			return false;
 		}
+		bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
 		ulliDivisor = IRTruncate(psInstruction->sType, pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		return (ulliDivisor != 0) && (ulliDivisor != IRTruncate(psInstruction->sType, (uint64)-1));
+		return (ulliDivisor != 0) && (!bSigned || (ulliDivisor != IRTruncate(psInstruction->sType, (uint64)-1)));
+	}
+	switch (psInstruction->uiOpcode)
+	{
 	case IRO_Add:
 	case IRO_Sub:
 	case IRO_Mul:

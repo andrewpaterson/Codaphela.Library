@@ -176,6 +176,7 @@ uint16		IRInvertedComparison(uint16 uiOpcode);
 uint16		IRSwappedComparison(uint16 uiOpcode);
 bool		IsIRIntegerConversion(uint16 uiOpcode);
 bool		IsIRPure(uint16 uiOpcode);
+bool		IsIRMayTrap(uint16 uiOpcode);
 bool		IsIRCommutative(uint16 uiOpcode);
 
 

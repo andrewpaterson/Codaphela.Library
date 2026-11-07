@@ -1,6 +1,7 @@
 #include "CppParserLib/IRParser.h"
 #include "CppParserLib/IRPrinter.h"
 #include "CppParserLib/IRVerifier.h"
+#include "CppParserLib/IROptimiserInternal.h"
 #include "CppParserLib/IROptimiser.h"
 #include "CppParserLib/IRLoops.h"
 #include "CppParserLib/IRImports.h"
@@ -964,6 +965,47 @@ void TestIRComparisonOpcodes(void)
 	AssertInt(IRO_None, IRInvertedComparison(IRO_Xor));
 	AssertInt(IRO_None, IRInvertedComparison(IRO_And));
 	AssertInt(IRO_None, IRInvertedComparison(IRO_None));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A division is hoisted out of a loop only by a constant that can't trap:
+// not 0, and not -1 when it is signed (an unsigned divide by all ones is
+// fine).  The divides are the opcodes that may trap (IsIRMayTrap).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserHoistableDivisions(void)
+{
+	static const char*	aszDivides[] = { "udiv i32 %a, 4294967295", "urem i32 %a, 4294967295", "udiv i32 %a, 7", "sdiv i32 %a, 7",
+										 "sdiv i32 %a, -1", "srem i32 %a, -1", "udiv i32 %a, 0", "udiv i32 %a, %a", NULL };
+	static const bool	abHoistable[] = { true, true, true, true, false, false, false, false };
+	CIRModule			cModule;
+	CCPPErrors			cErrors;
+	CIRParser			cParser;
+	CChars				szText;
+	CIRFunction*		pcFunction;
+	size				i;
+
+	for (i = 0; aszDivides[i]; i++)
+	{
+		cModule.Init();
+		cErrors.Init();
+		cParser.Init(&cModule, &cErrors);
+		szText.Init("function i32 @f(i32 %a)\n{\nb:\n\t%d = ");
+		szText.Append(aszDivides[i]);
+		szText.Append("\n\tret i32 %d\n}\n");
+		AssertTrue(cParser.Parse(szText.Text()));
+		cParser.Kill();
+		pcFunction = cModule.GetFunction(0);
+		AssertBool(abHoistable[i], IROptimiserHoistable(pcFunction, pcFunction->GetBlock(0)->masInstructions.Get(0)));
+		szText.Kill();
+		cErrors.Kill();
+		cModule.Kill();
+	}
+	AssertTrue(IsIRMayTrap(IRO_UDiv));
+	AssertTrue(IsIRMayTrap(IRO_SRem));
+	AssertFalse(IsIRMayTrap(IRO_Mul));
 }
 
 
@@ -4324,6 +4366,7 @@ void TestIR(void)
 	TestIRLoops();
 	TestIRComparisonOpcodes();
 	TestIROptimiserPointerConstantWidth();
+	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();
 	TestIROptimiserConstantsRight();
 	TestIROptimiserFoldedInlinedPhis();
