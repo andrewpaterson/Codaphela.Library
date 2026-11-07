@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "ObjectFileGeneral.h"
@@ -85,9 +86,9 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	CChars			szDirectory;
 	CChars			szFilename;
 	CFileBasic		cFile;
-	const char*		szExtension;
 	CChars			szUnnamed;
 	char*			szName;
+	bool			bResult;
 
 	if (pcSerialised->IsNamed())
 	{
@@ -110,18 +111,21 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	szFilename.Kill();
 	szDirectory.Kill();
 
-	cFile.Open(EFM_Write_Create);
+	if (!cFile.Open(EFM_Write_Create))
+	{
+		gcLogger.Error2(__METHOD__, " Could not open file [", cFile.GetFilename(), "] for writing.", NULL);
+		cFile.Kill();
+		return false;
+	}
 
-	//Write file type identifier.
-	szExtension = OBJECT_FILE_EXTENSION;
-	ReturnOnFalse(cFile.WriteData(szExtension, 4));
-	ReturnOnFalse(cFile.WriteInt32(BASIC_OBJECT_FILE));
-
-	ReturnOnFalse(cFile.WriteData(pcSerialised, pcSerialised->GetLength()));
+	//The file type identifier, then the object.
+	bResult = cFile.WriteData(OBJECT_FILE_EXTENSION, 4);
+	bResult = bResult && cFile.WriteInt32(BASIC_OBJECT_FILE);
+	bResult = bResult && cFile.WriteData(pcSerialised, pcSerialised->GetLength());
 
 	cFile.Close();
 	cFile.Kill();
-	return true;
+	return bResult;
 }
 
 
@@ -135,20 +139,5 @@ bool CMultiFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
 
 	szRemainingName.Fake(szObjectName);
 	return szRemainingName.StartsWith(mszObjectBaseName.Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMultiFileObjectWriter::RemainingName(CChars* pszRemainingName, char* szObjectName)
-{
-	pszRemainingName->Init(szObjectName);
-	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());
-	if (pszRemainingName->StartsWith("/"))
-	{
-		pszRemainingName->RemoveCharacter(0);
-	}
 }
 

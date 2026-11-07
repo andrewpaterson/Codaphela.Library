@@ -42,7 +42,6 @@ public:
 
 protected:
 	bool	ObjectStartsWithBaseName(char* szObjectName);
-	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
 
