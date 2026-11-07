@@ -460,6 +460,11 @@ void TestCPP65IRMemcpy(void)
 		"int main() { unsigned char ac[8] = { 4, 5, 6, 7, 2, 3, 1, 9 }; unsigned char ad[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; void* p = memcpy(ad, ac, 7);\n"
 		"return *(int*)ad + ad[4] + ad[5] * 256 + ad[6] + ad[7] + (p == ad); }", 1));
 
+	//Each width of ctz, clz and popcount, and expect, from the one builtin table.
+	AssertInt(3 + 31 * 10 + 3 * 1000 + 63 * 10000, TestCPP65IRMain(
+		"int main() { unsigned long long ull = 8ULL; unsigned long ul = 1UL; unsigned long ulp = 7UL; unsigned long long ullc = 1ULL;\n"
+		"return __builtin_ctzll(ull) + __builtin_clzl(ul) * 10 + __builtin_popcountl(ulp) * 1000 + __builtin_expect(__builtin_clzll(ullc), 0) * 10000; }", 1));
+
 	//__builtin_memcpy needs no declaration; a count that isn't a small constant calls Libc65's memcpy.
 	AssertInt(3 + 69 + 10 + 1 + 79, TestCPP65IRMain(
 		"int main() { unsigned char ac[80]; unsigned char ad[80]; int n = 70; for (int i = 0; i < 80; i++) { ac[i] = (unsigned char)i; ad[i] = 0; }\n"

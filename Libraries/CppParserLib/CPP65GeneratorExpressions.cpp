@@ -377,6 +377,78 @@ bool CCPP65Generator::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
 }
 
 
+#define CPP65_BCD_ONLY	"__builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract"
+
+
+//The builtins the compiler does: the type checker and the IR front end both look them up here.
+static const SCPP65Builtin gasCPP65Builtins[] =
+{
+	{ "unreachable",	CPP65B_Unreachable,	0, CPP65BO_None,				NULL },
+	{ "trap",			CPP65B_Unreachable,	0, CPP65BO_None,				NULL },
+	{ "ia32_pause",		CPP65B_Pause,		0, CPP65BO_None,				NULL },
+	{ "expect",			CPP65B_Expect,		2, CPP65BO_None,				NULL },
+	{ "memcpy",			CPP65B_Memcpy,		3, CPP65BO_None,				NULL },
+	{ "alloca",			CPP65B_Alloca,		1, CPP65BO_None,				NULL },
+	{ "bcd_add",		CPP65B_BCDAdd,		4, CPP65BO_None,				CPP65_BCD_ONLY },
+	{ "bcd_subtract",	CPP65B_BCDSubtract,	4, CPP65BO_None,				CPP65_BCD_ONLY },
+	{ "ctz",			CPP65B_Ctz,			1, CPP65BO_UnsignedInt,			NULL },
+	{ "ctzl",			CPP65B_Ctz,			1, CPP65BO_UnsignedLong,		NULL },
+	{ "ctzll",			CPP65B_Ctz,			1, CPP65BO_UnsignedLongLong,	NULL },
+	{ "clz",			CPP65B_Clz,			1, CPP65BO_UnsignedInt,			NULL },
+	{ "clzl",			CPP65B_Clz,			1, CPP65BO_UnsignedLong,		NULL },
+	{ "clzll",			CPP65B_Clz,			1, CPP65BO_UnsignedLongLong,	NULL },
+	{ "popcount",		CPP65B_Popcount,	1, CPP65BO_UnsignedInt,			NULL },
+	{ "popcountl",		CPP65B_Popcount,	1, CPP65BO_UnsignedLong,		NULL },
+	{ "popcountll",		CPP65B_Popcount,	1, CPP65BO_UnsignedLongLong,	NULL },
+	{ NULL,				CPP65B_Unreachable,	0, CPP65BO_None,				NULL },
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The builtin lliName names (__builtin_ and an entry of gasCPP65Builtins),
+// NULL for one the compiler doesn't do (or a name that isn't a builtin's).
+//
+//////////////////////////////////////////////////////////////////////////
+const SCPP65Builtin* CCPP65Generator::FindBuiltin(int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+	size	i;
+
+	if (!IsBuiltin(lliName))
+	{
+		return NULL;
+	}
+	szName = BuiltinName(lliName, &iLength);
+	for (i = 0; gasCPP65Builtins[i].szName; i++)
+	{
+		if ((StrLen(gasCPP65Builtins[i].szName) == (size)iLength) && (memcmp(gasCPP65Builtins[i].szName, szName, iLength) == 0))
+		{
+			return &gasCPP65Builtins[i];
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type ctz, clz or popcount counts the bits of (NULL for the others).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::BuiltinOperandType(const SCPP65Builtin* psBuiltin)
+{
+	switch (psBuiltin->eOperand)
+	{
+	case CPP65BO_UnsignedInt:		return &mcTypes.msUnsignedInt;
+	case CPP65BO_UnsignedLong:		return mcTypes.Long(false);
+	case CPP65BO_UnsignedLongLong:	return &mcTypes.msUnsignedLongLong;
+	default:						return NULL;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A builtin's name without "__builtin_" (IsBuiltin) and its length.

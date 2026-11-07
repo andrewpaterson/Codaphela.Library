@@ -3229,6 +3229,12 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");
+
+	//A builtin's arguments are counted as its table entry says (CCPP65Generator::FindBuiltin); one the compiler doesn't
+	//do is an error.
+	AssertCPP65Error("Generated.cpp (1, 28): The builtin takes one argument [__builtin_ctz]\n", "int f(unsigned u) { return __builtin_ctz(u, 1); }");
+	AssertCPP65Error("Generated.cpp (1, 28): The builtin takes two arguments [__builtin_expect]\n", "int f(unsigned u) { return __builtin_expect(u); }");
+	AssertCPP65Error("Generated.cpp (1, 28): This builtin is not supported by the compiler yet [__builtin_frobnicate]\n", "int f(unsigned u) { return __builtin_frobnicate(u); }");
 }
 
 

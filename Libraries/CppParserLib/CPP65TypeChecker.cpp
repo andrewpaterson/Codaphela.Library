@@ -1348,129 +1348,78 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 
 //////////////////////////////////////////////////////////////////////////
 //
-// GCC's builtin functions (see CCPP65IRFrontEnd::Builtin): their argument counts,
-// their arguments' types and their results.
+// GCC's builtin functions the compiler does (CCPP65Generator::FindBuiltin):
+// their argument counts, their arguments' types and their results.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName)
 {
-	CChars			szName;
-	char*			szIdentifier;
-	int				iLength;
-	SCPP65Type*		psType;
-	SCPP65Type*		psResult;
-	int				iArguments;
-	double			dValue;
+	static const char*		aszArguments[] = { "no arguments", "one argument", "two arguments", "three arguments", "four arguments" };
+	const SCPP65Builtin*	psBuiltin;
+	SCPP65Type*				psType;
+	SCPP65Type*				psVoidPointer;
+	CArraySyntax*			papcArguments;
+	CChars					szError;
+	double					dValue;
 
 	if (mpcGenerator->FloatBuiltin(pcCall, &dValue, &psType))
 	{
 		return psType;
 	}
 
-	szIdentifier = mpcGenerator->BuiltinName(lliName, &iLength);
-	szName.Init();
-	szName.Append(szIdentifier, iLength);
-	iArguments = (int)pcCall->macpArguments.NumElements();
-	psResult = NULL;
-
-	if (szName.Equals("unreachable") || szName.Equals("trap") || szName.Equals("ia32_pause"))
+	papcArguments = &pcCall->macpArguments;
+	psBuiltin = mpcGenerator->FindBuiltin(lliName);
+	if (!psBuiltin)
 	{
-		if (iArguments != 0)
-		{
-			Error(pcCall, "The builtin takes no arguments");
-		}
-		else
-		{
-			psResult = &mpcTypes->msVoid;
-		}
-	}
-	else if (szName.Equals("bcd_add") || szName.Equals("bcd_subtract"))
-	{
-		if (mpcGenerator->mpsTarget->eTarget != CPPT_W65C816)
-		{
-			Error(pcCall, "__builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract");
-		}
-		else if (iArguments != 4)
-		{
-			Error(pcCall, "The builtin takes four arguments");
-		}
-		else
-		{
-			psResult = &mpcTypes->msUnsignedInt;
-		}
-	}
-	else if (szName.Equals("expect"))
-	{
-		if (iArguments != 2)
-		{
-			Error(pcCall, "__builtin_expect takes two arguments");
-		}
-		else
-		{
-			psType = Value(pcCall->macpArguments.GetPtr(0));
-			psResult = psType ? mpcTypes->Promote(psType) : NULL;
-		}
-	}
-	else if (szName.Equals("memcpy"))
-	{
-		//Libc65's memcpy (a small constant count is InlineMemcpy, before this).
-		psType = mpcTypes->Pointer(&mpcTypes->msVoid);
-		if (iArguments != 3)
-		{
-			Error(pcCall, "The builtin takes three arguments");
-		}
-		else if (Convert(Value(pcCall->macpArguments.GetPtr(0)), psType, pcCall->macpArguments.GetPtr(0)) &&
-				 Convert(Value(pcCall->macpArguments.GetPtr(1)), psType, pcCall->macpArguments.GetPtr(1)) &&
-				 Convert(Value(pcCall->macpArguments.GetPtr(2)), mpcTypes->Long(false), pcCall->macpArguments.GetPtr(2)))
-		{
-			psResult = psType;
-		}
-	}
-	else if (szName.Equals("alloca"))
-	{
-		if (iArguments != 1)
-		{
-			Error(pcCall, "The builtin takes one argument");
-		}
-		else if (Convert(Value(pcCall->macpArguments.GetPtr(0)), &mpcTypes->msUnsignedInt, pcCall))
-		{
-			psResult = mpcTypes->Pointer(&mpcTypes->msVoid);
-		}
-	}
-	else
-	{
-		//ctz, clz and popcount of unsigned int; l: unsigned long; ll: unsigned long long.
-		psType = &mpcTypes->msUnsignedInt;
-		if (szName.EndsWith("ll"))
-		{
-			szName.SetLength(szName.Length() - 2);
-			psType = &mpcTypes->msUnsignedLongLong;
-		}
-		else if (szName.EndsWith('l'))
-		{
-			szName.SetLength(szName.Length() - 1);
-			psType = mpcTypes->Long(false);
-		}
-		if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount") && mpcGenerator->mpcSemanticPass)
+		if (mpcGenerator->mpcSemanticPass)
 		{
 			//Only checking: the host compiler's other builtins (__builtin_va_start ...).
-			psResult = UncheckedCall(&pcCall->macpArguments);
+			return UncheckedCall(papcArguments);
 		}
-		else if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount"))
-		{
-			Error(pcCall, "This builtin is not supported by the compiler yet");
-		}
-		else if (iArguments != 1)
-		{
-			Error(pcCall, "The builtin takes one argument");
-		}
-		else if (Convert(Value(pcCall->macpArguments.GetPtr(0)), psType, pcCall))
-		{
-			psResult = &mpcTypes->msInt;
-		}
+		Error(pcCall, "This builtin is not supported by the compiler yet");
+		return NULL;
 	}
-	szName.Kill();
-	return psResult;
+	if (psBuiltin->szW65C816Only && (mpcGenerator->mpsTarget->eTarget != CPPT_W65C816))
+	{
+		Error(pcCall, (char*)psBuiltin->szW65C816Only);
+		return NULL;
+	}
+	if ((int)papcArguments->NumElements() != psBuiltin->iArguments)
+	{
+		szError.Init("The builtin takes ");
+		szError.Append(aszArguments[psBuiltin->iArguments]);
+		Error(pcCall, szError.Text());
+		szError.Kill();
+		return NULL;
+	}
+
+	psVoidPointer = mpcTypes->Pointer(&mpcTypes->msVoid);
+	switch (psBuiltin->eBuiltin)
+	{
+	case CPP65B_Unreachable:
+	case CPP65B_Pause:
+		return &mpcTypes->msVoid;
+	case CPP65B_BCDAdd:
+	case CPP65B_BCDSubtract:
+		return &mpcTypes->msUnsignedInt;
+	case CPP65B_Expect:
+		psType = Value(papcArguments->GetPtr(0));
+		return psType ? mpcTypes->Promote(psType) : NULL;
+	case CPP65B_Memcpy:
+		//Libc65's memcpy (a small constant count is InlineMemcpy, before this).
+		if (Convert(Value(papcArguments->GetPtr(0)), psVoidPointer, papcArguments->GetPtr(0)) &&
+			Convert(Value(papcArguments->GetPtr(1)), psVoidPointer, papcArguments->GetPtr(1)) &&
+			Convert(Value(papcArguments->GetPtr(2)), mpcTypes->Long(false), papcArguments->GetPtr(2)))
+		{
+			return psVoidPointer;
+		}
+		return NULL;
+	case CPP65B_Alloca:
+		return Convert(Value(papcArguments->GetPtr(0)), &mpcTypes->msUnsignedInt, pcCall) ? psVoidPointer : NULL;
+	default:
+		//ctz, clz and popcount count the bits of their operand type.
+		return Convert(Value(papcArguments->GetPtr(0)), mpcGenerator->BuiltinOperandType(psBuiltin), pcCall) ? &mpcTypes->msInt : NULL;
+	}
 }
 
 

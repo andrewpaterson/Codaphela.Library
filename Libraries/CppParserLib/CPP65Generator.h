@@ -267,6 +267,41 @@ struct SCPP65VtableEntry
 typedef CArrayTemplate<SCPP65VtableEntry>	CArrayCPP65VtableEntries;
 
 
+//GCC's builtin functions the compiler does (CCPP65Generator::FindBuiltin), for the type checker and the IR front end.
+enum ECPP65Builtin
+{
+	CPP65B_Unreachable,		//unreachable and trap.
+	CPP65B_Pause,			//ia32_pause: nothing.
+	CPP65B_Expect,
+	CPP65B_Memcpy,
+	CPP65B_Alloca,			//An error: frames are fixed in size.
+	CPP65B_BCDAdd,			//The W65C816's decimal mode.
+	CPP65B_BCDSubtract,
+	CPP65B_Ctz,
+	CPP65B_Clz,
+	CPP65B_Popcount,
+};
+
+
+//What ctz, clz and popcount count the bits of: unsigned int, unsigned long (l) or unsigned long long (ll).
+enum ECPP65BuiltinOperand
+{
+	CPP65BO_None,
+	CPP65BO_UnsignedInt,
+	CPP65BO_UnsignedLong,
+	CPP65BO_UnsignedLongLong,
+};
+
+
+struct SCPP65Builtin
+{
+	const char*				szName;			//Without __builtin_.
+	ECPP65Builtin			eBuiltin;
+	int						iArguments;
+	ECPP65BuiltinOperand	eOperand;
+	const char*				szW65C816Only;	//The error on another target, NULL if the builtin is every target's.
+};
+
 
 //A class's layout: the bases in order (an empty base takes no space), then the vtable pointer if no base has
 //one, then the fields.  A class is laid out when it is first needed whole.  psBase is the first base.
@@ -687,6 +722,8 @@ protected:
 	void					RestoreArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments);
 
 	bool					IsBuiltin(int64 lliName);
+	const SCPP65Builtin*	FindBuiltin(int64 lliName);
+	SCPP65Type*				BuiltinOperandType(const SCPP65Builtin* psBuiltin);
 	bool					IsIntrinsic(int64 lliName);
 	char*					BuiltinName(int64 lliName, int* piLength);
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);

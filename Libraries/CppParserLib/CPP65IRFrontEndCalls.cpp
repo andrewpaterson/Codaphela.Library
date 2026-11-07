@@ -290,10 +290,8 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue)
 {
-	CChars			szName;
+	const SCPP65Builtin*	psBuiltin;
 	char*			szLabel;
-	char*			szIdentifier;
-	int				iLength;
 	double			dValue;
 	SCPP65Type*		psType;
 	SCPP65IRValue	sArgument;
@@ -313,8 +311,8 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	SIRReference	sCount;
 	SIRReference	sTest;
 	int				iBits;
-	int				iArguments;
-	bool			bResult;
+	bool			bPopcount;
+	bool			bClz;
 
 	if (mpcGenerator->FloatBuiltin(pcCall, &dValue, &psType))
 	{
@@ -323,167 +321,146 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		return true;
 	}
 
-	szIdentifier = mpcGenerator->BuiltinName(lliName, &iLength);
-	szName.Init();
-	szName.Append(szIdentifier, iLength);
-	iArguments = (int)pcCall->macpArguments.NumElements();
-	bResult = true;
+	psBuiltin = mpcGenerator->FindBuiltin(lliName);
+	if (!psBuiltin || ((int)pcCall->macpArguments.NumElements() != psBuiltin->iArguments) ||
+		(psBuiltin->szW65C816Only && (mpcGenerator->mpsTarget->eTarget != CPPT_W65C816)))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
 	psValue->sValue = IRNone();
 	psValue->psType = &mpcTypes->msVoid;
-	if ((szName.Equals("unreachable") || szName.Equals("trap")) && (iArguments == 0))
+	switch (psBuiltin->eBuiltin)
 	{
+	case CPP65B_Unreachable:
 		mpcBlock->Unreachable();
 		StartBlock(NewBlock());
-	}
-	else if (szName.Equals("ia32_pause") && (iArguments == 0))
-	{
-	}
-	else if (szName.Equals("expect") && (iArguments == 2))
-	{
-		bResult = Value(pcCall->macpArguments.GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
-	}
-	else if (szName.Equals("memcpy") && (iArguments == 3))
-	{
+		return true;
+	case CPP65B_Pause:
+		return true;
+	case CPP65B_Expect:
+		return Value(pcCall->macpArguments.GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
+	case CPP65B_Memcpy:
 		//Copied in place for a small constant count, as memcpy is.
 		if (mpcGenerator->IsInlineMemcpy(lliName, &pcCall->macpArguments))
 		{
-			bResult = InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
+			return InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
 		}
-		else
-		{
-			bResult = BuiltinMemcpy(pcCall, psValue);
-		}
-	}
-	else if ((szName.Equals("bcd_add") || szName.Equals("bcd_subtract")) && (iArguments == 4) && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
-	{
-		bResult = BuiltinBCD(pcCall, szName.Equals("bcd_subtract"), psValue);
-	}
-	else if (szName.Equals("alloca"))
-	{
+		return BuiltinMemcpy(pcCall, psValue);
+	case CPP65B_BCDAdd:
+	case CPP65B_BCDSubtract:
+		return BuiltinBCD(pcCall, psBuiltin->eBuiltin == CPP65B_BCDSubtract, psValue);
+	case CPP65B_Alloca:
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
 		mpcGenerator->ReportError(pcCall, "__builtin_alloca is not supported");
-		bResult = Unsupported(__FILE__, __LINE__);
+		return Unsupported(__FILE__, __LINE__);
+	default:
+		break;
+	}
+
+	//ctz, clz and popcount.
+	bPopcount = psBuiltin->eBuiltin == CPP65B_Popcount;
+	bClz = psBuiltin->eBuiltin == CPP65B_Clz;
+	psType = mpcGenerator->BuiltinOperandType(psBuiltin);
+	if (!Value(pcCall->macpArguments.GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
+	//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
+	//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 those of 16 and 32 bits
+	//are the runtime's R816_Clz16 ... (a byte table read with long,X), of 64 bits narrowed to a byte whose count
+	//is looked up (CountTable).
+	if (!bPopcount && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (psType->iBytes <= 4))
+	{
+		szLabel = (char*)(bClz ? ((psType->iBytes == 4) ? "R816_Clz32" : "R816_Clz16") : ((psType->iBytes == 4) ? "R816_Ctz32" : "R816_Ctz16"));
+		maszRuntime.AddIfUnique(szLabel);
+		mpcFunction->Argument(mpcBlock, IRTypeOf(psType), sArgument.sValue);
+		psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msInt), mcModule.Symbol(szLabel));
+		psValue->psType = &mpcTypes->msInt;
+		return true;
+	}
+	if (!bPopcount && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
+	{
+		return CountTable(bClz, &sArgument, psType, psValue) || Unsupported(__FILE__, __LINE__);
+	}
+	sType = IRTypeOf(psType);
+	sInt = IRTypeOf(&mpcTypes->msInt);
+	iBits = psType->iBytes * 8;
+	pcLoop = NewBlock();
+	pcBody = NewBlock();
+	pcZero = bPopcount ? NULL : NewBlock();
+	pcDone = NewBlock();
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sArgument.sValue, mpcFunction->AddInteger(sType, 0));
+	sCount = mpcFunction->AddInteger(sInt, 0);
+	if (pcZero && (iBits > 16))
+	{
+		pcNarrow = NewBlock();
+		mpcBlock->Branch(sTest, pcZero, pcNarrow);
+		StartBlock(pcNarrow);
+		while (iBits > 16)
+		{
+			NarrowCount(bClz, &sArgument.sValue, &sCount, &iBits, sInt);
+		}
+		sType = IRType(IRTK_I16);
+		mpcBlock->Jump(pcLoop);
 	}
 	else
 	{
-		psType = &mpcTypes->msUnsignedInt;
-		if (szName.EndsWith("ll"))
-		{
-			psType = &mpcTypes->msUnsignedLongLong;
-			szName.SetLength(szName.Length() - 2);
-		}
-		else if (szName.EndsWith('l'))
-		{
-			psType = mpcTypes->Long(false);
-			szName.SetLength(szName.Length() - 1);
-		}
-		if ((!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount")) || (iArguments != 1) ||
-			!Value(pcCall->macpArguments.GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
-		{
-			szName.Kill();
-			return Unsupported(__FILE__, __LINE__);
-		}
-
-		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
-		//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
-		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.  On the W65C816 those of 16 and 32 bits
-		//are the runtime's R816_Clz16 ... (a byte table read with long,X), of 64 bits narrowed to a byte whose count
-		//is looked up (CountTable).
-		if (!szName.Equals("popcount") && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816) && (psType->iBytes <= 4))
-		{
-			szLabel = (char*)(szName.Equals("clz") ? ((psType->iBytes == 4) ? "R816_Clz32" : "R816_Clz16") : ((psType->iBytes == 4) ? "R816_Ctz32" : "R816_Ctz16"));
-			maszRuntime.AddIfUnique(szLabel);
-			mpcFunction->Argument(mpcBlock, IRTypeOf(psType), sArgument.sValue);
-			psValue->sValue = mpcFunction->Call(mpcBlock, IRTypeOf(&mpcTypes->msInt), mcModule.Symbol(szLabel));
-			psValue->psType = &mpcTypes->msInt;
-			szName.Kill();
-			return true;
-		}
-		if (!szName.Equals("popcount") && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
-		{
-			bResult = CountTable(szName.Equals("clz"), &sArgument, psType, psValue);
-			szName.Kill();
-			return bResult || Unsupported(__FILE__, __LINE__);
-		}
-		sType = IRTypeOf(psType);
-		sInt = IRTypeOf(&mpcTypes->msInt);
-		iBits = psType->iBytes * 8;
-		pcLoop = NewBlock();
-		pcBody = NewBlock();
-		pcZero = szName.Equals("popcount") ? NULL : NewBlock();
-		pcDone = NewBlock();
-		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sArgument.sValue, mpcFunction->AddInteger(sType, 0));
-		sCount = mpcFunction->AddInteger(sInt, 0);
-		if (pcZero && (iBits > 16))
-		{
-			pcNarrow = NewBlock();
-			mpcBlock->Branch(sTest, pcZero, pcNarrow);
-			StartBlock(pcNarrow);
-			while (iBits > 16)
-			{
-				NarrowCount(szName.Equals("clz"), &sArgument.sValue, &sCount, &iBits, sInt);
-			}
-			sType = IRType(IRTK_I16);
-			mpcBlock->Jump(pcLoop);
-		}
-		else
-		{
-			mpcBlock->Branch(sTest, szName.Equals("popcount") ? pcDone : pcZero, pcLoop);
-		}
-		pcEntry = mpcBlock;
-		StartBlock(pcLoop);
-		//Adding a phi can move the block's others: both are found again after.
-		mpcBlock->AddPhi(sType, mpcFunction->AddTemporary(sType));
-		mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-		psX = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
-		psCount = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
-		if (szName.Equals("popcount"))
-		{
-			sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, psX->sResult, mpcFunction->AddInteger(sType, 0));
-		}
-		else
-		{
-			sTest = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, mpcFunction->AddConstant(sType, szName.Equals("ctz") ? 1 : ((uint64)1 << (iBits - 1))));
-			sTest = mpcFunction->Add(mpcBlock, IRO_Ne, sType, sTest, mpcFunction->AddInteger(sType, 0));
-		}
-		mpcBlock->Branch(sTest, pcDone, pcBody);
-		StartBlock(pcBody);
-		if (szName.Equals("popcount"))
-		{
-			sX2 = mpcFunction->Add(mpcBlock, IRO_Sub, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
-			sX2 = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, sX2);
-		}
-		else
-		{
-			sX2 = mpcFunction->Add(mpcBlock, szName.Equals("ctz") ? IRO_LShr : IRO_Shl, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
-		}
-		sCount2 = mpcFunction->Add(mpcBlock, IRO_Add, sInt, psCount->sResult, mpcFunction->AddInteger(sInt, 1));
-		mpcBlock->Jump(pcLoop);
-		pcLoop->AddPhiArgument(psX, pcEntry, sArgument.sValue);
-		pcLoop->AddPhiArgument(psX, pcBody, sX2);
-		pcLoop->AddPhiArgument(psCount, pcEntry, sCount);
-		pcLoop->AddPhiArgument(psCount, pcBody, sCount2);
-		if (pcZero)
-		{
-			StartBlock(pcZero);
-			mpcBlock->Jump(pcDone);
-		}
-		StartBlock(pcDone);
-		psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-		mpcBlock->AddPhiArgument(psResult, pcLoop, psCount->sResult);
-		if (szName.Equals("popcount"))
-		{
-			mpcBlock->AddPhiArgument(psResult, pcEntry, mpcFunction->AddInteger(sInt, 0));
-		}
-		else
-		{
-			mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
-		}
-		psValue->sValue = psResult->sResult;
-		psValue->psType = &mpcTypes->msInt;
+		mpcBlock->Branch(sTest, bPopcount ? pcDone : pcZero, pcLoop);
 	}
-	szName.Kill();
-	return bResult || Unsupported(__FILE__, __LINE__);
+	pcEntry = mpcBlock;
+	StartBlock(pcLoop);
+	//Adding a phi can move the block's others: both are found again after.
+	mpcBlock->AddPhi(sType, mpcFunction->AddTemporary(sType));
+	mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+	psX = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
+	psCount = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
+	if (bPopcount)
+	{
+		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, psX->sResult, mpcFunction->AddInteger(sType, 0));
+	}
+	else
+	{
+		sTest = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, mpcFunction->AddConstant(sType, !bClz ? 1 : ((uint64)1 << (iBits - 1))));
+		sTest = mpcFunction->Add(mpcBlock, IRO_Ne, sType, sTest, mpcFunction->AddInteger(sType, 0));
+	}
+	mpcBlock->Branch(sTest, pcDone, pcBody);
+	StartBlock(pcBody);
+	if (bPopcount)
+	{
+		sX2 = mpcFunction->Add(mpcBlock, IRO_Sub, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
+		sX2 = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, sX2);
+	}
+	else
+	{
+		sX2 = mpcFunction->Add(mpcBlock, !bClz ? IRO_LShr : IRO_Shl, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
+	}
+	sCount2 = mpcFunction->Add(mpcBlock, IRO_Add, sInt, psCount->sResult, mpcFunction->AddInteger(sInt, 1));
+	mpcBlock->Jump(pcLoop);
+	pcLoop->AddPhiArgument(psX, pcEntry, sArgument.sValue);
+	pcLoop->AddPhiArgument(psX, pcBody, sX2);
+	pcLoop->AddPhiArgument(psCount, pcEntry, sCount);
+	pcLoop->AddPhiArgument(psCount, pcBody, sCount2);
+	if (pcZero)
+	{
+		StartBlock(pcZero);
+		mpcBlock->Jump(pcDone);
+	}
+	StartBlock(pcDone);
+	psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+	mpcBlock->AddPhiArgument(psResult, pcLoop, psCount->sResult);
+	if (bPopcount)
+	{
+		mpcBlock->AddPhiArgument(psResult, pcEntry, mpcFunction->AddInteger(sInt, 0));
+	}
+	else
+	{
+		mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
+	}
+	psValue->sValue = psResult->sResult;
+	psValue->psType = &mpcTypes->msInt;
+	return true;
 }
 
 
