@@ -80,10 +80,16 @@ bool CTextMarksCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 // The rectangle includes its right and bottom edges.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextMarksCanvasDraw::SetSelection(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
+bool CTextMarksCanvasDraw::SetSelection(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
-	mcSelection.Init(iLeft, iTop, iRight, iBottom);
+	CInt32Rect	cSelection;
+	bool		bChanged;
+
+	cSelection.Init(iLeft, iTop, iRight, iBottom);
+	bChanged = !mbSelection || !cSelection.Equals(&mcSelection);
+	mcSelection.Init(&cSelection);
 	mbSelection = true;
+	return bChanged;
 }
 
 
@@ -103,7 +109,7 @@ void CTextMarksCanvasDraw::SetCaret(int32 iLeft, int32 iTop, int32 iRight, int32
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextMarksCanvasDraw::HideSelection(void) { mbSelection = false; }
+bool CTextMarksCanvasDraw::HideSelection(void) { bool bChanged = mbSelection; mbSelection = false; return bChanged; }
 void CTextMarksCanvasDraw::HideCaret(void) { mbCaret = false; }
 bool CTextMarksCanvasDraw::IsSelectionShown(void) { return mbSelection; }
 bool CTextMarksCanvasDraw::IsCaretShown(void) { return mbCaret; }

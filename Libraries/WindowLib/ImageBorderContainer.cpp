@@ -140,6 +140,9 @@ void CImageBorderContainer::SetBorderState(EButtonState eState)
 	{
 		meBorderState = eState;
 		UpdateBorder();
+
+		//The border's draws changed, which their canvases can't see.
+		Invalidate();
 	}
 }
 

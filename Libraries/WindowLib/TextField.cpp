@@ -316,6 +316,7 @@ void CTextField::LayoutText(void)
 	size		uiStart;
 	size		uiEnd;
 	SInt32Vec2	sMarksPosition;
+	bool		bSelectionChanged;
 
 	mpPadded->GetContainerBounds(&cText);
 	iWidth = cText.GetWidth();
@@ -355,11 +356,15 @@ void CTextField::LayoutText(void)
 	//Like IntelliJ's, a field without focus doesn't show its selection.
 	if (HasFocus() && GetSelection(&uiStart, &uiEnd))
 	{
-		mpMarksDraw->SetSelection(GetCharacterX(uiStart) - miScroll, iTop, GetCharacterX(uiEnd) - miScroll - 1, iBottom);
+		bSelectionChanged = mpMarksDraw->SetSelection(GetCharacterX(uiStart) - miScroll, iTop, GetCharacterX(uiEnd) - miScroll - 1, iBottom);
 	}
 	else
 	{
-		mpMarksDraw->HideSelection();
+		bSelectionChanged = mpMarksDraw->HideSelection();
+	}
+	if (bSelectionChanged)
+	{
+		mpMarks->Invalidate();
 	}
 
 	if (HasFocus())

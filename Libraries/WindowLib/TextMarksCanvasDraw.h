@@ -46,8 +46,8 @@ public:
 
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
 
-	void	SetSelection(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
-	void	HideSelection(void);
+	bool	SetSelection(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	bool	HideSelection(void);
 	void	SetCaret(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void	HideCaret(void);
 	bool	IsSelectionShown(void);
