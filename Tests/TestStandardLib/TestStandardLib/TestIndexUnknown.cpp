@@ -544,7 +544,8 @@ void TestIndexUnknownReplaceValues(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A Put that allocates its value frees it when the index refuses it: a key
-// already there (in an index that doesn't overwrite) or an empty one.
+// already there (in an index that doesn't overwrite) or an empty one.  A
+// NULL key allocates nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIndexUnknownPutRefused(void)
@@ -568,6 +569,8 @@ void TestIndexUnknownPutRefused(void)
 	AssertSize(1, gcUnknowns.NumElements());
 
 	AssertNull(cIndex.Put<CTestUnknown>(""));
+	AssertSize(1, gcUnknowns.NumElements());
+	AssertNull(cIndex.Put<CTestUnknown>((const char*)NULL));
 	AssertSize(1, gcUnknowns.NumElements());
 	AssertSize(1, cIndex.NumElements());
 

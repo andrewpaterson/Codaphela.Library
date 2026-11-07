@@ -109,7 +109,11 @@ M* CIndexUnknown::Put(uint8* pvKey, size iKeySize)
 template<class M>
 M* CIndexUnknown::Put(const char* szKey)
 {
-	return Put<M>((uint8*)szKey, strlen(szKey));
+	if (StrEmpty(szKey))
+	{
+		return NULL;
+	}
+	return Put<M>((uint8*)szKey, StrLen(szKey));
 }
 
 
