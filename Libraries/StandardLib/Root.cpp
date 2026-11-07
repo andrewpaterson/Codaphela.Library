@@ -193,7 +193,7 @@ bool CRoot::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CRoot::UnsafeGet(int iIndex)
+CPointer CRoot::UnsafeGet(size iIndex)
 {
 	mpObjects.Dereference();
 	CPointer pObject = mpObjects->UnsafeGet(iIndex);

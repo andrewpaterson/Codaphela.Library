@@ -49,8 +49,8 @@ public:
 						bool			IsRoot(void);
 						bool			IsSubRoot(void);
 
-						CPointer		UnsafeGet(int iIndex);
-	template<class M>	Ptr<M>			UnsafeGet(int iIndex);
+						CPointer		UnsafeGet(size iIndex);
+	template<class M>	Ptr<M>			UnsafeGet(size iIndex);
 						CPointer		Get(const char* szObjectName);
 	template<class M>	Ptr<M>			Get(const char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
@@ -77,7 +77,7 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CRoot::UnsafeGet(int iIndex)
+Ptr<M> CRoot::UnsafeGet(size iIndex)
 {
 	Ptr<M> pM = UnsafeGet(iIndex);
 	return pM;

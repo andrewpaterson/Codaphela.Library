@@ -49,8 +49,9 @@ void TestArrayTypeInstantiation(void)
 	pcTest = cArray.Get(3);
 	AssertPointer(pcTest2, pcTest);
 
-	cArray.Remove(0);
-	cArray.Remove(pcTest2);
+	AssertTrue(cArray.Remove((size)0));
+	AssertTrue(cArray.Remove(pcTest2));
+	AssertFalse(cArray.Remove((size)5));
 
 	pcTest = cArray.Get(0);
 	AssertPointer(pcTest3, pcTest);

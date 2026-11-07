@@ -34,7 +34,7 @@ public:
 
 	bool			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pSet);
-	Ptr<M>			UnsafeGet(int iIndex);
+	Ptr<M>			UnsafeGet(size iIndex);
 	bool			Remove(Ptr<M> pObject);
 
 	//Do not Add, Remove or call Contains while iterating over a sorted set.  They can remove the NULLs left by RemoveDuringIteration which moves the Objects not yet iterated.
@@ -84,7 +84,7 @@ void CSet<M>::AddAll(Ptr<CArrayCommonObject> pSet)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet<M>::UnsafeGet(int iIndex)
+Ptr<M> CSet<M>::UnsafeGet(size iIndex)
 {
 	return CSetObject::UnsafeGet(iIndex);
 }

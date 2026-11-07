@@ -35,13 +35,13 @@ public:
 	void	Add(M* pcUnknown);
 	M*		Add(void);
 
-	void	Insert(int iIndex, M* pcUnknown);
-	M*		Insert(int iIndex);
+	bool	Insert(size iIndex, M* pcUnknown);
+	M*		Insert(size iIndex);
 
-	void	Remove(int iIndex);
+	bool	Remove(size iIndex);
 	bool	Remove(M* pcUnknown);
 
-	M*		Get(int iIndex);
+	M*		Get(size iIndex);
 
 	M*		Last(void);
 	bool	StartIteration(SSetIterator* psIter, M** ppcUnknown);
@@ -103,9 +103,9 @@ M* CArrayUnknownTemplate<M>::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayUnknownTemplate<M>::Insert(int iIndex, M* pcUnknown)
+bool CArrayUnknownTemplate<M>::Insert(size iIndex, M* pcUnknown)
 {
-	CArrayUnknown::Insert(iIndex, pcUnknown);
+	return CArrayUnknown::Insert(iIndex, pcUnknown);
 }
 
 
@@ -114,7 +114,7 @@ void CArrayUnknownTemplate<M>::Insert(int iIndex, M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayUnknownTemplate<M>::Insert(int iIndex)
+M* CArrayUnknownTemplate<M>::Insert(size iIndex)
 {
 	return (M*)CArrayUnknown::Insert<M>(iIndex);
 }
@@ -125,9 +125,9 @@ M* CArrayUnknownTemplate<M>::Insert(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayUnknownTemplate<M>::Remove(int iIndex)
+bool CArrayUnknownTemplate<M>::Remove(size iIndex)
 {
-	CArrayUnknown::Remove(iIndex);
+	return CArrayUnknown::Remove(iIndex);
 }
 
 
@@ -147,7 +147,7 @@ bool CArrayUnknownTemplate<M>::Remove(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayUnknownTemplate<M>::Get(int iIndex)
+M* CArrayUnknownTemplate<M>::Get(size iIndex)
 {
 	return (M*)CArrayUnknown::Get(iIndex);
 }
