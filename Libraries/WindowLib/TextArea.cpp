@@ -87,6 +87,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mbBackgroundsDirty = false;
 	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
+	mbMarksDirty = false;
 	mpMaps = OMalloc<CMaps>();
 	mbTiledText = false;
 	mbTiled = false;
@@ -238,6 +239,7 @@ void CTextArea::Class(void)
 	U_Bool(mbBackgroundsDirty);
 	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
+	U_Bool(mbMarksDirty);
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
 	U_Unknown(CArrayTextAreaStopStart, mauiStopStarts);
@@ -675,21 +677,22 @@ bool CTextArea::Draw(void)
 	{
 		UpdateBackgrounds();
 	}
+	mbMarksDirty = false;
 	return CCanvas::Draw();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text area's setters only note that its text, spans or backgrounds
-// changed (Draw brings them up to date), so it draws again here when any
-// did.
+// The text area's setters only note that its text, spans, backgrounds or
+// selection changed (Draw brings them up to date), so it draws again here
+// when any did.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
 {
 	CCanvas::PrepareArea(bDrawn, bClipped, pcClip, pcArea);
-	if (mbTextDirty || mbBackgroundsDirty || (miBackgroundWidth != GetFullWidth()))
+	if (mbTextDirty || mbBackgroundsDirty || mbMarksDirty || (miBackgroundWidth != GetFullWidth()))
 	{
 		MarkContentChanged();
 		mpWindow->AddDamage(pcArea);
@@ -2278,6 +2281,13 @@ void CTextArea::UpdateMarks(void)
 	size		uiStart;
 	size		uiEnd;
 
+	//The selection is drawn with the text, so the text area draws again.
+	mbMarksDirty = true;
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->RequestPaint();
+	}
+
 	mpSelectionMap->Clear();
 	if (!HasRows())
 	{
@@ -2288,7 +2298,6 @@ void CTextArea::UpdateMarks(void)
 	{
 		AddRangeRectangles(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
-
 }
 
 

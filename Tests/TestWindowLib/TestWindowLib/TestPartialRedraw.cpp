@@ -13,11 +13,16 @@
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "WinRefLib/WinRefWindow.h"
 #include "WindowLib/RoundedBoxCanvasDraw.h"
+#include "WindowLib/TextArea.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertGeometric.h"
 #include "BoxFillCanvasDraw.h"
 #include "TickTestRefWindow.h"
 #include "DataTestRefWindow.h"
+
+
+Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+Ptr<CFont> ReadLabelFont(void);
 
 
 Ptr<CScrollBarImages> CreateScrollBarImages(void);
@@ -532,6 +537,108 @@ void TestPartialRedrawDialogLikeOwner(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window's pixel at x, y as its bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 GetWindowPixel(Ptr<CWindow> pWindow, int32 x, int32 y)
+{
+	Ptr<CImage>	pImage;
+	uint8*		puiData;
+	size		uiPixelBytes;
+	size		uiOffset;
+	uint32		uiPixel;
+
+	pImage = pWindow->GetCanvas()->GetImageOrNull();
+	puiData = (uint8*)pImage->GetData();
+	uiPixelBytes = pImage->GetByteSize() / ((size)pImage->GetWidth() * (size)pImage->GetHeight());
+	uiOffset = ((size)y * (size)pImage->GetWidth() + (size)x) * uiPixelBytes;
+	uiPixel = 0;
+	memcpy(&uiPixel, &puiData[uiOffset], uiPixelBytes < sizeof(uint32) ? uiPixelBytes : sizeof(uint32));
+	return uiPixel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text area's selection moved from the keys is drawn by the next
+// partial paint (it wasn't drawn until something else was), as are its
+// edits, each as drawing all of the window would.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawTextArea(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "PartialRedrawTextArea";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 96, 32, szDirectory);
+	{
+		Ptr<CWindow>			pWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CTextArea>			pTextArea;
+		SInt32Vec2				sPosition;
+		uint32					uiUnselected;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Text", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abc def");
+		pTextArea->SetMarkColours(Set32BitColour(1.0f, 0, 0), Set32BitColour(1.0f, 1.0f, 1.0f));
+		pFill->AddComponent(pTextArea);
+		pWindow->SetPartialRedraw(true);
+		pWindow->SetVerifyRedraw(true);
+		pWindow->Paint();
+
+		//Above the glyphs of the first character, in the selection when it is selected.
+		sPosition = pTextArea->GetPosition();
+		uiUnselected = GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1);
+
+		pTextArea->SelectRight();
+		pTextArea->SelectRight();
+		pWindow->Paint();
+		AssertTrue(uiUnselected != GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
+		AssertSize(0, pWindow->GetRedrawMismatches());
+
+		pTextArea->ClearSelection();
+		pWindow->Paint();
+		AssertInt(uiUnselected, GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
+		AssertSize(0, pWindow->GetRedrawMismatches());
+
+		pTextArea->SelectDocumentHome();
+		pWindow->Paint();
+		AssertTrue(uiUnselected != GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
+		AssertSize(0, pWindow->GetRedrawMismatches());
+
+		pTextArea->Printable('x', true);
+		pWindow->Paint();
+		AssertInt(uiUnselected, GetWindowPixel(pWindow, sPosition.x + 1, sPosition.y + 1));
+		AssertSize(0, pWindow->GetRedrawMismatches());
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedraw(void)
@@ -543,6 +650,7 @@ void TestPartialRedraw(void)
 	TestPartialRedrawMatchesFull();
 	TestPartialRedrawVerifyFindsStale();
 	TestPartialRedrawDialogLikeOwner();
+	TestPartialRedrawTextArea();
 
 	TestStatistics();
 }

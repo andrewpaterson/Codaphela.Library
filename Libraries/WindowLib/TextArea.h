@@ -111,6 +111,7 @@ protected:
 	bool					mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
 	int32					miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>		mpSelectionMap;  //Under the text.
+	bool					mbMarksDirty;  //The selection changed since the text area was drawn.
 	ARGB32					msSelectionColour;
 	ARGB32					msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
