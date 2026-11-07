@@ -102,6 +102,16 @@ struct SCPP65IRWritten
 };
 
 
+//A loop round an index (BeginCountedLoop to EndCountedLoop): its test's block, which holds the index's phi, and the
+//block after it.
+struct SCPP65IRCountedLoop
+{
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcDone;
+	SIRReference	sIndex;
+};
+
+
 #define IR65_FRONT_END_MARKER			"\x01"	//Around a written function's index in the generator's code.
 #define IR65_INLINE_INSTRUCTIONS		16		//The most instructions a function inlined may have...
 #define IR65_INLINE_LOOP_INSTRUCTIONS	32		//...or where the call is in a loop...
@@ -350,6 +360,10 @@ protected:
 	bool			ConstructClass(SCPP65IRPlace* psPlace, SCPP65Class* psClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);
 	SIRReference	Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* pcFrom1, SIRReference sValue1, CIRBlock* pcFrom2, SIRReference sValue2);
+	SIRReference	LoopPhi(CIRBlock* pcLoop, SIRType sType, CIRBlock* pcEntry, SIRReference sStart);
+	void			ClosePhi(CIRBlock* pcLoop, SIRReference sPhi, CIRBlock* pcLatch, SIRReference sNext);
+	SIRReference	BeginCountedLoop(SCPP65IRCountedLoop* psLoop, SIRType sType, SIRReference sStart, uint16 uiTest, SIRReference sLimit);
+	void			EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference sNext);
 	SIRReference	FunctionSymbol(SCPP65Function* psFunction);
 	void			MarkFunctionSymbol(SCPP65Function* psFunction, uint32 uiSymbol);
 	bool			FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);

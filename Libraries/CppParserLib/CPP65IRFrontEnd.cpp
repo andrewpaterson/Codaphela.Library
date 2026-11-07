@@ -1207,6 +1207,76 @@ SIRReference CCPP65IRFrontEnd::Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A phi at the top of loop pcLoop, sStart from pcEntry; its value round the
+// loop is given when the loop's end is written (ClosePhi).  The phi is
+// known by its result: adding a phi can move the block's others.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::LoopPhi(CIRBlock* pcLoop, SIRType sType, CIRBlock* pcEntry, SIRReference sStart)
+{
+	SIRReference	sResult;
+
+	sResult = mpcFunction->AddTemporary(sType);
+	pcLoop->AddPhiArgument(pcLoop->AddPhi(sType, sResult), pcEntry, sStart);
+	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value LoopPhi's sPhi has round the loop: sNext from pcLatch.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ClosePhi(CIRBlock* pcLoop, SIRReference sPhi, CIRBlock* pcLatch, SIRReference sNext)
+{
+	pcLoop->AddPhiArgument(pcLoop->FindPhi(sPhi), pcLatch, sNext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts a loop round an index of sType from sStart: the loop's block tests
+// uiTest(index, sLimit), going on to the loop's body (started here) or
+// out.  Returns the index.  The body ends with EndCountedLoop.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::BeginCountedLoop(SCPP65IRCountedLoop* psLoop, SIRType sType, SIRReference sStart, uint16 uiTest, SIRReference sLimit)
+{
+	CIRBlock*	pcEntry;
+	CIRBlock*	pcBody;
+
+	pcEntry = mpcBlock;
+	psLoop->pcLoop = NewBlock();
+	pcBody = NewBlock();
+	psLoop->pcDone = NewBlock();
+	JumpTo(psLoop->pcLoop);
+	StartBlock(psLoop->pcLoop);
+	psLoop->sIndex = LoopPhi(psLoop->pcLoop, sType, pcEntry, sStart);
+	mpcBlock->Branch(mpcFunction->Add(mpcBlock, uiTest, sType, psLoop->sIndex, sLimit), pcBody, psLoop->pcDone);
+	StartBlock(pcBody);
+	return psLoop->sIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ends BeginCountedLoop's body: the index is sNext going round again, and
+// the code goes on after the loop.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::EndCountedLoop(SCPP65IRCountedLoop* psLoop, SIRReference sNext)
+{
+	CIRBlock*	pcLatch;
+
+	pcLatch = mpcBlock;
+	JumpTo(psLoop->pcLoop);
+	ClosePhi(psLoop->pcLoop, psLoop->sIndex, pcLatch, sNext);
+	StartBlock(psLoop->pcDone);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Inits pcOptimiser with the target's passes: the W65C816 has no indexed
 // addresses, narrows multiplies and counters, divides by constants with
 // multiplies and biases signed indices; and the profile when there is one.

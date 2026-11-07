@@ -172,7 +172,6 @@ bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP
 	CIRBlock*		pcNarrow;
 	CIRBlock*		pcCounted;
 	CIRBlock*		pcDone;
-	SIRPhi*			psResult;
 	char			acZeros[256];
 	int				iBits;
 	int				i;
@@ -216,10 +215,7 @@ bool CCPP65IRFrontEnd::CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP
 	mpcBlock->Jump(pcDone);
 
 	StartBlock(pcDone);
-	psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-	mpcBlock->AddPhiArgument(psResult, pcCounted, sCount);
-	mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
-	psValue->sValue = psResult->sResult;
+	psValue->sValue = Phi(pcDone, sInt, pcCounted, sCount, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
 	psValue->psType = &mpcTypes->msInt;
 	return true;
 }
@@ -246,8 +242,6 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 	CIRBlock*		pcFrom;
 	CIRBlock*		pcOther;
 	CIRBlock*		pcJoin;
-	SIRPhi*			psValuePhi;
-	SIRPhi*			psCountPhi;
 	int				iHalf;
 
 	iHalf = *piBits / 2;
@@ -267,16 +261,8 @@ void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRRefe
 	sCounted = mpcFunction->Add(mpcBlock, IRO_Add, sInt, *psCount, mpcFunction->AddInteger(sInt, iHalf));
 	mpcBlock->Jump(pcJoin);
 	StartBlock(pcJoin);
-	mpcBlock->AddPhi(sHalf, mpcFunction->AddTemporary(sHalf));
-	mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-	psValuePhi = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
-	psCountPhi = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
-	mpcBlock->AddPhiArgument(psValuePhi, pcFrom, sFirst);
-	mpcBlock->AddPhiArgument(psValuePhi, pcOther, sOther);
-	mpcBlock->AddPhiArgument(psCountPhi, pcFrom, *psCount);
-	mpcBlock->AddPhiArgument(psCountPhi, pcOther, sCounted);
-	*psValue = psValuePhi->sResult;
-	*psCount = psCountPhi->sResult;
+	*psValue = Phi(pcJoin, sHalf, pcFrom, sFirst, pcOther, sOther);
+	*psCount = Phi(pcJoin, sInt, pcFrom, *psCount, pcOther, sCounted);
 	*piBits = iHalf;
 }
 
@@ -303,9 +289,8 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	CIRBlock*		pcZero;
 	CIRBlock*		pcNarrow;
 	CIRBlock*		pcDone;
-	SIRPhi*			psX;
-	SIRPhi*			psCount;
-	SIRPhi*			psResult;
+	SIRReference	sX;
+	SIRReference	sCounted;
 	SIRReference	sX2;
 	SIRReference	sCount2;
 	SIRReference	sCount;
@@ -411,54 +396,39 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	}
 	pcEntry = mpcBlock;
 	StartBlock(pcLoop);
-	//Adding a phi can move the block's others: both are found again after.
-	mpcBlock->AddPhi(sType, mpcFunction->AddTemporary(sType));
-	mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-	psX = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
-	psCount = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
+	sX = LoopPhi(pcLoop, sType, pcEntry, sArgument.sValue);
+	sCounted = LoopPhi(pcLoop, sInt, pcEntry, sCount);
 	if (bPopcount)
 	{
-		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, psX->sResult, mpcFunction->AddInteger(sType, 0));
+		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sX, mpcFunction->AddInteger(sType, 0));
 	}
 	else
 	{
-		sTest = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, mpcFunction->AddConstant(sType, !bClz ? 1 : ((uint64)1 << (iBits - 1))));
+		sTest = mpcFunction->Add(mpcBlock, IRO_And, sType, sX, mpcFunction->AddConstant(sType, !bClz ? 1 : ((uint64)1 << (iBits - 1))));
 		sTest = mpcFunction->Add(mpcBlock, IRO_Ne, sType, sTest, mpcFunction->AddInteger(sType, 0));
 	}
 	mpcBlock->Branch(sTest, pcDone, pcBody);
 	StartBlock(pcBody);
 	if (bPopcount)
 	{
-		sX2 = mpcFunction->Add(mpcBlock, IRO_Sub, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
-		sX2 = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, sX2);
+		sX2 = mpcFunction->Add(mpcBlock, IRO_Sub, sType, sX, mpcFunction->AddInteger(sType, 1));
+		sX2 = mpcFunction->Add(mpcBlock, IRO_And, sType, sX, sX2);
 	}
 	else
 	{
-		sX2 = mpcFunction->Add(mpcBlock, !bClz ? IRO_LShr : IRO_Shl, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
+		sX2 = mpcFunction->Add(mpcBlock, !bClz ? IRO_LShr : IRO_Shl, sType, sX, mpcFunction->AddInteger(sType, 1));
 	}
-	sCount2 = mpcFunction->Add(mpcBlock, IRO_Add, sInt, psCount->sResult, mpcFunction->AddInteger(sInt, 1));
+	sCount2 = mpcFunction->Add(mpcBlock, IRO_Add, sInt, sCounted, mpcFunction->AddInteger(sInt, 1));
 	mpcBlock->Jump(pcLoop);
-	pcLoop->AddPhiArgument(psX, pcEntry, sArgument.sValue);
-	pcLoop->AddPhiArgument(psX, pcBody, sX2);
-	pcLoop->AddPhiArgument(psCount, pcEntry, sCount);
-	pcLoop->AddPhiArgument(psCount, pcBody, sCount2);
+	ClosePhi(pcLoop, sX, pcBody, sX2);
+	ClosePhi(pcLoop, sCounted, pcBody, sCount2);
 	if (pcZero)
 	{
 		StartBlock(pcZero);
 		mpcBlock->Jump(pcDone);
 	}
 	StartBlock(pcDone);
-	psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
-	mpcBlock->AddPhiArgument(psResult, pcLoop, psCount->sResult);
-	if (bPopcount)
-	{
-		mpcBlock->AddPhiArgument(psResult, pcEntry, mpcFunction->AddInteger(sInt, 0));
-	}
-	else
-	{
-		mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
-	}
-	psValue->sValue = psResult->sResult;
+	psValue->sValue = Phi(pcDone, sInt, pcLoop, sCounted, bPopcount ? pcEntry : pcZero, mpcFunction->AddInteger(sInt, bPopcount ? 0 : psType->iBytes * 8));
 	psValue->psType = &mpcTypes->msInt;
 	return true;
 }

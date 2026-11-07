@@ -175,8 +175,6 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 	SIRReference	sNextFound;
 	SIRReference	sResult;
 	SIRPhi*			psPhi;
-	size			uiEntryPhi;
-	size			uiFoundPhi;
 	CChars			szLabel;
 
 	sPointer = IRType(IRTK_Pointer);
@@ -222,13 +220,8 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 	JumpTo(pcLoop);
 
 	StartBlock(pcLoop);
-	//Adding a phi can move the block's others, so they are found again by index.
-	sEntry = mpcFunction->AddTemporary(sPointer);
-	uiEntryPhi = pcLoop->masPhis.NumElements();
-	pcLoop->AddPhiArgument(pcLoop->AddPhi(sPointer, sEntry), pcLook, sInfo);
-	sFound = mpcFunction->AddTemporary(sPointer);
-	uiFoundPhi = pcLoop->masPhis.NumElements();
-	pcLoop->AddPhiArgument(pcLoop->AddPhi(sPointer, sFound), pcLook, sNullPointer);
+	sEntry = LoopPhi(pcLoop, sPointer, pcLook, sInfo);
+	sFound = LoopPhi(pcLoop, sPointer, pcLook, sNullPointer);
 	sClass = mpcFunction->Load(mpcBlock, sPointer, sEntry);
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sNullPointer);
 	mpcBlock->Branch(sCondition, pcEnd, pcCheck);
@@ -251,8 +244,8 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 	sNextFound = Phi(pcNext, sPointer, pcCheck, sFound, pcFirst, sCandidate);
 	sNextEntry = AddressAt(sEntry, CPP65_TYPE_INFO_ENTRY_BYTES);
 	JumpTo(pcLoop);
-	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiEntryPhi), pcNext, sNextEntry);
-	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiFoundPhi), pcNext, sNextFound);
+	ClosePhi(pcLoop, sEntry, pcNext, sNextEntry);
+	ClosePhi(pcLoop, sFound, pcNext, sNextFound);
 
 	StartBlock(pcEnd);
 	sResult = mpcFunction->AddTemporary(sPointer);

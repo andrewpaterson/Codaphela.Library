@@ -886,20 +886,14 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue)
 {
-	SCPP65IRValue	sCount;
-	SCPP65IRPlace	sElement;
-	SIRType			sSize;
-	SIRReference	sBytes;
-	SIRReference	sMemory;
-	SIRReference	sIndex;
-	SIRReference	sNext;
-	CIRBlock*		pcEntry;
-	CIRBlock*		pcLoop;
-	CIRBlock*		pcBody;
-	CIRBlock*		pcLatch;
-	CIRBlock*		pcDone;
-	size			uiPhi;
-	bool			bCookie;
+	SCPP65IRValue		sCount;
+	SCPP65IRPlace		sElement;
+	SIRType				sSize;
+	SIRReference		sBytes;
+	SIRReference		sMemory;
+	SIRReference		sIndex;
+	SCPP65IRCountedLoop	sLoop;
+	bool				bCookie;
 
 	//Only new Type[count] and new Class[count]().
 	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer &&
@@ -934,28 +928,14 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	if (psType->IsClass() && mpcGenerator->NeedsConstructor(psType->psClass))
 	{
 		//loop: the index counts up to the count.
-		pcEntry = mpcBlock;
-		pcLoop = NewBlock();
-		pcBody = NewBlock();
-		pcDone = NewBlock();
-		JumpTo(pcLoop);
-		StartBlock(pcLoop);
-		uiPhi = pcLoop->masPhis.NumElements();
-		sIndex = pcLoop->AddPhi(sSize, mpcFunction->AddTemporary(sSize))->sResult;
-		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_ULt, sSize, sIndex, sCount.sValue), pcBody, pcDone);
-		StartBlock(pcBody);
+		sIndex = BeginCountedLoop(&sLoop, sSize, mpcFunction->AddInteger(sSize, 0), IRO_ULt, sCount.sValue);
 		sElement.psType = psType;
 		sElement.sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sMemory, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sIndex, mpcFunction->AddInteger(sSize, psType->iBytes)));
 		if (!Construct(&sElement, NULL, NULL))
 		{
 			return false;
 		}
-		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
-		pcLatch = mpcBlock;
-		JumpTo(pcLoop);
-		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, mpcFunction->AddInteger(sSize, 0));
-		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
-		StartBlock(pcDone);
+		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1)));
 	}
 	psValue->sValue = sMemory;
 	psValue->psType = mpcTypes->Pointer(psType);
@@ -972,45 +952,27 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, SCPP65Class* psClass)
 {
-	SIRType			sSize;
-	SIRReference	sBase;
-	SIRReference	sCount;
-	SIRReference	sIndex;
-	SIRReference	sNext;
-	SIRReference	sElement;
-	CIRBlock*		pcEntry;
-	CIRBlock*		pcLoop;
-	CIRBlock*		pcBody;
-	CIRBlock*		pcLatch;
-	CIRBlock*		pcDone;
-	size			uiPhi;
+	SIRType				sSize;
+	SIRReference		sBase;
+	SIRReference		sCount;
+	SIRReference		sIndex;
+	SIRReference		sNext;
+	SIRReference		sElement;
+	SCPP65IRCountedLoop	sLoop;
 
 	sSize = IRIntegerType(mcModule.GetPointerSize(0));
 	sBase = AddressAt(psPointer->sValue, -4);
 	sCount = mpcFunction->Load(mpcBlock, sSize, sBase);
 
 	//loop: the index counts down from the count.
-	pcEntry = mpcBlock;
-	pcLoop = NewBlock();
-	pcBody = NewBlock();
-	pcDone = NewBlock();
-	JumpTo(pcLoop);
-	StartBlock(pcLoop);
-	uiPhi = pcLoop->masPhis.NumElements();
-	sIndex = pcLoop->AddPhi(sSize, mpcFunction->AddTemporary(sSize))->sResult;
-	mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_Ne, sSize, sIndex, mpcFunction->AddInteger(sSize, 0)), pcBody, pcDone);
-	StartBlock(pcBody);
+	sIndex = BeginCountedLoop(&sLoop, sSize, sCount, IRO_Ne, mpcFunction->AddInteger(sSize, 0));
 	sNext = mpcFunction->Add(mpcBlock, IRO_Sub, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
 	sElement = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sNext, mpcFunction->AddInteger(sSize, psClass->psType->iBytes)));
 	if (!CallObject(psClass->psDestructor, sElement, psClass, NULL, false))
 	{
 		return false;
 	}
-	pcLatch = mpcBlock;
-	JumpTo(pcLoop);
-	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, sCount);
-	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
-	StartBlock(pcDone);
+	EndCountedLoop(&sLoop, sNext);
 	CallRuntime("opDeleteArray", IRType(IRTK_None), IRType(IRTK_Pointer), sBase);
 	return true;
 }
@@ -1276,40 +1238,20 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::ZeroBytes(SIRReference sAddress, int iBytes)
 {
-	SIRType			sOffset;
-	SIRReference	sIndex;
-	SIRReference	sNext;
-	CIRBlock*		pcEntry;
-	CIRBlock*		pcLoop;
-	CIRBlock*		pcBody;
-	CIRBlock*		pcLatch;
-	CIRBlock*		pcDone;
-	size			uiPhi;
-	int				iLongs;
-	int				i;
+	SIRType				sOffset;
+	SIRReference		sIndex;
+	SCPP65IRCountedLoop	sLoop;
+	int					iLongs;
+	int					i;
 
 	iLongs = iBytes / 4;
 	if (iLongs > 4)
 	{
 		//loop: the offset counts up in longs.
 		sOffset = IRIntegerType(mcModule.GetPointerSize(0));
-		pcEntry = mpcBlock;
-		pcLoop = NewBlock();
-		pcBody = NewBlock();
-		pcDone = NewBlock();
-		JumpTo(pcLoop);
-		StartBlock(pcLoop);
-		uiPhi = pcLoop->masPhis.NumElements();
-		sIndex = pcLoop->AddPhi(sOffset, mpcFunction->AddTemporary(sOffset))->sResult;
-		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_ULt, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4 * iLongs)), pcBody, pcDone);
-		StartBlock(pcBody);
+		sIndex = BeginCountedLoop(&sLoop, sOffset, mpcFunction->AddInteger(sOffset, 0), IRO_ULt, mpcFunction->AddInteger(sOffset, 4 * iLongs));
 		mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sAddress, sIndex));
-		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4));
-		pcLatch = mpcBlock;
-		JumpTo(pcLoop);
-		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, mpcFunction->AddInteger(sOffset, 0));
-		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
-		StartBlock(pcDone);
+		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4)));
 	}
 	else
 	{
