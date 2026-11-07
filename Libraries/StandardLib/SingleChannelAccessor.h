@@ -31,10 +31,14 @@ public:
 
 	void	Init(CChannels* pcChannels);
 
-	float	GetConvertToFloat(int iChannel, int iPos = 0);
-	float	GetCastToFloat(int iChannel, int iPos = 0);
-	void	GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos = 0);
-	void	GetNative(int iChannel, void* pvDest, int iPos = 0);
+	float	GetConvertToFloat(size iChannel, lsize iPos = 0);
+	float	GetCastToFloat(size iChannel, lsize iPos = 0);
+	void	GetConvertTo(size iChannel, EPrimitiveType eType, void* pvDest, lsize iPos = 0);
+	void	GetNative(size iChannel, void* pvDest, lsize iPos = 0);
+
+protected:
+	bool	IsByteAligned(void);
+	void*	GetElement(lsize iPos);
 };
 
 

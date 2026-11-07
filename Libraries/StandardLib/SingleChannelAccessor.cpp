@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
+#include "BaseLib/PointerRemapper.h"
 #include "BaseLib/TypeNames.h"
 #include "SingleChannelAccessor.h"
 
@@ -37,10 +38,11 @@ void CSingleChannelAccessor::Init(CChannels* pcChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CSingleChannelAccessor::GetConvertToFloat(int iChannel, int iPos)
+float CSingleChannelAccessor::GetConvertToFloat(size iChannel, lsize iPos)
 {
-	float				f;
+	float	f;
 
+	f = 0.0f;
 	GetConvertTo(iChannel, PT_float32, &f, iPos);
 	return f;
 }
@@ -48,9 +50,10 @@ float CSingleChannelAccessor::GetConvertToFloat(int iChannel, int iPos)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The channel's value cast (not scaled) to a float.
 //
 //////////////////////////////////////////////////////////////////////////
-float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
+float CSingleChannelAccessor::GetCastToFloat(size iChannel, lsize iPos)
 {
 	CChannel*	pcChannel;
 	uint8		auc[16];
@@ -64,9 +67,9 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 	CChannelAccessor::Init(pcChannel->miByteSize, pcChannel->miBitSize, pcChannel->eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
 	memset(auc, 0, sizeof(auc));
-	if ((miChannelByteOffset != MAX_SIZE) && (miChannelByteSize != MAX_SIZE))
+	if (IsByteAligned())
 	{
-		CChannelAccessor::GetNative(mpcChannels->GetData(), auc);
+		CChannelAccessor::GetNative(GetElement(iPos), auc);
 		if (mbChannelReverse)
 		{
 			ReverseEndianness(auc, miChannelByteSize);
@@ -74,7 +77,7 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 	}
 	else
 	{
-		CChannelAccessor::GetBits(mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetBitStride(), miChannelBitSize, auc);
+		CChannelAccessor::GetBits(mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), miChannelBitSize, auc);
 	}
 
 	switch (meChannelType)
@@ -103,51 +106,37 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The channel's value converted to eType (PT_Undefined is the channel's
+// own type).
 //
 //////////////////////////////////////////////////////////////////////////
-void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
+void CSingleChannelAccessor::GetConvertTo(size iChannel, EPrimitiveType eType, void* pvDest, lsize iPos)
 {
 	CChannel*	pcChannel;
 	size		iByteSize;
 	size		iBitSize;
-	bool		bSub;
 
-	//Fix the mess that are this function and the one below it.
 	pcChannel = mpcChannels->GetChannel(iChannel);
-	if (pcChannel)
+	if (!pcChannel)
 	{
-		pcChannel = mpcChannels->GetChannel(iChannel);
+		return;
+	}
 
-		if (eType == PT_Undefined)
-		{
-			eType = pcChannel->eType;
-		}
+	if (eType == PT_Undefined)
+	{
+		eType = pcChannel->eType;
+	}
+	iByteSize = gcTypeNames.GetByteSize(eType);
+	iBitSize = gcTypeNames.GetBitSize(eType);
 
-		iByteSize = gcTypeNames.GetByteSize(eType);
-		iBitSize = gcTypeNames.GetBitSize(eType);
-		if (iByteSize == 0)
-		{
-			iByteSize = MAX_SIZE;
-			bSub = true;
-		}
-		else
-		{
-			bSub = false;
-		}
-
-		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
-
-		bSub |= miChannelByteOffset == MAX_SIZE;
-		bSub |= miChannelByteSize == MAX_SIZE;
-
-		if (!bSub)
-		{
-			CChannelAccessor::GetAs(eType, mpcChannels->GetData(), pvDest);
-		}
-		else
-		{
-			CChannelAccessor::GetAsSub(eType, mpcChannels->GetData(), (lsize)iPos * mpcChannels->GetBitStride(), pvDest);
-		}
+	CChannelAccessor::Init((iByteSize != 0) ? iByteSize : MAX_SIZE, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+	if ((iByteSize != 0) && IsByteAligned())
+	{
+		CChannelAccessor::GetAs(eType, GetElement(iPos), pvDest);
+	}
+	else
+	{
+		CChannelAccessor::GetAsSub(eType, mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), pvDest);
 	}
 }
 
@@ -156,8 +145,29 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSingleChannelAccessor::GetNative(int iChannel, void* pvDest, int iPos)
+void CSingleChannelAccessor::GetNative(size iChannel, void* pvDest, lsize iPos)
 {
 	GetConvertTo(iChannel, PT_Undefined, pvDest, iPos);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSingleChannelAccessor::IsByteAligned(void)
+{
+	return (miChannelByteOffset != CHANNEL_NON_ALIGNED_BYTES) && (miChannelByteSize != CHANNEL_NON_ALIGNED_BYTES);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The start of element iPos: the channel's byte offset is added by the
+// accessor.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CSingleChannelAccessor::GetElement(lsize iPos)
+{
+	return RemapSinglePointer(mpcChannels->GetData(), (ptrdiff)(iPos * mpcChannels->GetByteStride()));
+}

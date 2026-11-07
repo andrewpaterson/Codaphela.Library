@@ -56,6 +56,48 @@ void TestSingleChannelAccessorCastSigned(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reading an element other than the first.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSingleChannelAccessorPosition(void)
+{
+	CChannels					cChannels;
+	uint8						auiData[9];
+	int16						i16;
+	int							i;
+	CSingleChannelAccessor		cSingle;
+	uint8						ui8;
+
+	for (i = 0; i < 3; i++)
+	{
+		i16 = (int16)(-100 * (i + 1));
+		memcpy(&auiData[i * 3], &i16, 2);
+		auiData[i * 3 + 2] = (uint8)(10 + i);
+	}
+
+	cChannels.Init();
+	cChannels.BeginChange();
+	cChannels.SetData(auiData);
+	cChannels.AddChannel(0, PT_int16);
+	cChannels.AddChannel(1, PT_uint8);
+	cChannels.SetSize(3);
+	cChannels.EndChange();
+	cSingle.Init(&cChannels);
+
+	AssertFloat(-100.0f, cSingle.GetCastToFloat(0, 0), 1);
+	AssertFloat(-300.0f, cSingle.GetCastToFloat(0, 2), 1);
+	AssertFloat(11.0f, cSingle.GetCastToFloat(1, 1), 1);
+	cSingle.GetNative(1, &ui8, 2);
+	AssertInt(12, ui8);
+	cSingle.GetNative(0, &i16, 1);
+	AssertShort((int16)-200, i16);
+
+	cChannels.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSingleChannelAccessor(void)
@@ -123,7 +165,7 @@ void TestSingleChannelAccessor(void)
 	cChannels.Kill();
 
 	TestSingleChannelAccessorCastSigned();
-
+	TestSingleChannelAccessorPosition();
 
 	ObjectsKill();
 	DataIOKill();
