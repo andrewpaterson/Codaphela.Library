@@ -2067,8 +2067,6 @@ CEmbeddedObjectField* CBaseObject::Embedded(CBaseObject* pcObject, const char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPrimitiveField* CBaseObject::Primitive(SInt* pcPrimitive, const char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-CPrimitiveField* CBaseObject::Primitive(SSize* pcPrimitive, const char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 CPrimitiveField* CBaseObject::Primitive(Int8* pcPrimitive, const char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 CPrimitiveField* CBaseObject::Primitive(UInt8* pcPrimitive, const char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 CPrimitiveField* CBaseObject::Primitive(Int16* pcPrimitive, const char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }

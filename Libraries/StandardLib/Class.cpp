@@ -253,8 +253,6 @@ CEmbeddedObjectField* CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, SInt* pcPrimitive, const char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, SSize* pcPrimitive, const char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int8* pcPrimitive, const char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, const char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int16* pcPrimitive, const char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }

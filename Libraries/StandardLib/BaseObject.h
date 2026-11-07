@@ -280,8 +280,6 @@ protected:
 			CPointerField*			Pointer(CPointer* pcPointer, const char* szFieldName);
 			CEmbeddedObjectField*	Embedded(CBaseObject* pcObject, const char* szFieldName);
 
-			CPrimitiveField*		Primitive(SInt* pcPrimitive, const char* szFieldName);
-			CPrimitiveField*		Primitive(SSize* pcPrimitive, const char* szFieldName);
 			CPrimitiveField*		Primitive(Int8* pcPrimitive, const char* szFieldName);
 			CPrimitiveField*		Primitive(UInt8* pcPrimitive, const char* szFieldName);
 			CPrimitiveField*		Primitive(Int16* pcPrimitive, const char* szFieldName);

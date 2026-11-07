@@ -15,8 +15,7 @@
 template<class Class>
 CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
 {
-	Class			c;
-	CClass*			pcClass;
+	CClass*	pcClass;
 
 	pcClass = AddClass<Class>(eFieldType);
 
@@ -42,11 +41,11 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 	mpcUInt16 = AddClassWithConstructorAndIO<UInt16>(PT_uint16);
 	mpcUInt32 = AddClassWithConstructorAndIO<UInt32>(PT_uint32);
 	mpcUInt64 = AddClassWithConstructorAndIO<UInt64>(PT_uint64);
-	mpcFloat32 = AddClassWithConstructorAndIO<Char8>(PT_char8);
-	mpcFloat64 = AddClassWithConstructorAndIO<Char16>(PT_char16);
+	mpcFloat32 = AddClassWithConstructorAndIO<Float32>(PT_float32);
+	mpcFloat64 = AddClassWithConstructorAndIO<Float64>(PT_float64);
 	mpcBool = AddClassWithConstructorAndIO<Bool>(PT_bool);
-	mpcChar8 = AddClassWithConstructorAndIO<Float32>(PT_float32);
-	mpcChar16 = AddClassWithConstructorAndIO<Float64>(PT_float64);
+	mpcChar8 = AddClassWithConstructorAndIO<Char8>(PT_char8);
+	mpcChar16 = AddClassWithConstructorAndIO<Char16>(PT_char16);
 
 	mpcVoid = AddVoid();
 }

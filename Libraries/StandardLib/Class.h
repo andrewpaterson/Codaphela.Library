@@ -90,8 +90,6 @@ public:
 	CPrimitiveField*		AddPrimitive(const char* szFieldName);
 
 public:
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, SInt* pcPrimitive, const char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, SSize* pcPrimitive, const char* szFieldName);
 	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int8* pcPrimitive, const char* szFieldName);
 	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, const char* szFieldName);
 	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int16* pcPrimitive, const char* szFieldName);

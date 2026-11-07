@@ -357,6 +357,41 @@ void TestClassUnmanagedVectorClasses(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each primitive class is the primitive its getter names.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestClassPrimitiveClasses(void)
+{
+	CPrimitiveClasses*	pcPrimitive;
+
+	DataIOInit();
+	ObjectsInit();
+
+	pcPrimitive = gcObjects.GetClasses()->GetPrimitiveClasses();
+	AssertString("Int8", pcPrimitive->GetByte()->GetName());
+	AssertString("Int16", pcPrimitive->GetShort()->GetName());
+	AssertString("Int32", pcPrimitive->GetInt()->GetName());
+	AssertString("Int64", pcPrimitive->GetLong()->GetName());
+	AssertString("UInt8", pcPrimitive->GetUByte()->GetName());
+	AssertString("UInt16", pcPrimitive->GetUShort()->GetName());
+	AssertString("UInt32", pcPrimitive->GetUInt()->GetName());
+	AssertString("UInt64", pcPrimitive->GetULong()->GetName());
+	AssertString("Float32", pcPrimitive->GetFloat()->GetName());
+	AssertString("Float64", pcPrimitive->GetDouble()->GetName());
+	AssertString("Bool", pcPrimitive->GetBool()->GetName());
+	AssertString("Char8", pcPrimitive->GetChar()->GetName());
+	AssertString("Char16", pcPrimitive->GetWidechar()->GetName());
+
+	AssertInt(PT_int8, Int8().GetClassType());
+	AssertInt(PT_char8, Char8().GetClassType());
+
+	ObjectsKill();
+	DataIOKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestClassUnmanagedMatrixSerialisation(void)
@@ -490,6 +525,7 @@ void TestClass(void)
 	TestClassName();
 	TestClassSerialisation();
 	TestClassUnmanagedVectorClasses();
+	TestClassPrimitiveClasses();
 	TestClassUnmanagedMatrixSerialisation();
 	TestClassHeapObjectEmbeddedPointers();
 
