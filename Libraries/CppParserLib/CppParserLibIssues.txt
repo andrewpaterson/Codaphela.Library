@@ -1,0 +1,100 @@
+CppParserLib: issues left from the quality sweep
+================================================
+
+What is left of the sweep of CppParserLib for code smells, duplication and anything wrong
+or inelegant (2026-11).  Items 1 to 43 and 53 are done; the numbers are kept as they were.
+Written 2026-11-07.
+
+
+Duplication
+-----------
+
+44. CopyMembers and CopyBytes share most of their code.
+45. "Strip a reference" is written out about 30 times.
+46. Call() repeats its clean up about 13 times.
+47. The parser's state is saved and restored by hand five times.
+48. The parser's error recovery block is written three times.
+49. The decl-specifier keywords are listed three times, and the lists have drifted.
+50. The identifier character tests are still written in several files (Preprocessor.cpp
+    shares its own).
+51. The punctuators are in two tables.
+52. There are four FNV hash tables.
+54. The W65C816's byte sign extension (eor 0x80; sec; sbc 0x80) is still written out in
+    about six places (the sign word was shared in item 24).
+55. ByteMultiply repeats TableProduct.
+56. GuardedBy and LoopGuarded do the same walk.
+57. Integer comparisons of constants are worked out in two places.
+58. SinkLoads works out "has an effect" again.
+59. CPP65GeneratorClasses.cpp:2171 counts the required parameters by hand instead of
+    calling RequiredParameters.
+92. Both back ends pair a divide with its remainder.  The 65C64's PairDivides (with
+    DividePartner, unsigned 32 bits only) moves a urem next to its udiv; the W65C816's
+    RemainderLeft (signed and unsigned, 16, 32 and 64 bits) shares the result only when the
+    two are already next to each other.  One CIRBackendPasses::PairDivides, with a hook for
+    the opcodes and widths each target pairs, would catch the W65C816's pairs with code
+    between them too.  It changes the W65C816's code: measure its cycles.
+93. Both back ends' text passes have the same four branch peepholes: jumps threaded, a
+    branch to the label after it, a branch inverted round a bra, and code nothing reaches
+    (CIR65Peephole: ThreadJumps, RemoveBranchesToNext, InvertBranches, RemoveUnreached;
+    IR816Branches.cpp: PeepholeBranches, IR816Unreachable).  Both now decode their lines
+    (CIR65Code, CIR816Code), so a CIRCode base with a line's kind, branch target and label
+    could hold the four passes once.  A sizeable refactor: the largest copy left.
+
+
+Dead code
+---------
+
+60. GetFloat, GetInteger and those with them, about 380 lines
+    (PreprocessorTokenParser.cpp:448-830).
+61. The CPPToken::Equals hierarchy, which only calls itself.
+62. Functions nothing calls: IsRegisterArguments, SetWarnNarrowing,
+    GetDefaultWarnNarrowing, Is64, DumpPost, IsPunctuator(const char*, size) and one
+    PeepholeFlowRegisters overload.
+63. Four empty CPPSyntax*.cpp files, and 25 forward declarations nothing needs.
+64. What the old generator left: ECPP65PlaceKind, VariablePlace's local and parameter
+    branches, the frame layout, miThisOffset, and if (mpcIRFrontEnd) checks that can't fail.
+65. CDefineMap::Get's bExact = false path, and mszBaseDirectoryName (written, never read).
+
+
+Design and elegance
+-------------------
+
+66. The IR comparisons' properties should be columns of gasIROpcodes.
+67. The W65C816's X register scoring is three switches; one table would keep them in step.
+68. The type traits are an if chain that should be a table.
+69. GetOperatorLabel's default quietly covers ->* and .*.
+70. The 65C64 back end has three opcode to mnemonic switches.
+71. The pointer size 4 comes from about six places.
+72. The W65C816's direct page limits 255 and 253 are written about 15 times.
+73. The 65C64's magic numbers: 128 + 4 * iUnit and the register bits.
+74. Vtable sizes and thunk frame offsets are bare numbers.
+75. CPP65GeneratorClasses.cpp is 4.9k lines: split it by concern.
+76. Long functions: Call, IR816BuildFlowLabelled, PackTemporaries, ParseDeclSpecifiers,
+    ExpandMacro.
+77. The interprocedural passes in CPP65IRFrontEndUnit.cpp belong in the IR layer.
+78. CopyFunction clones by printing and parsing the IR again, and throws the errors away.
+79. Quadratic scans: HasConvertingConstructor, GetCopyConstructor, LayoutVirtuals, the
+    65C64's AddValue.
+80. mapsQueue.RemoveAt(0) is used to pop a queue.
+81. char buf[256] = "x" writes 255 byte stores.
+82. Each clz and ctz call writes its own 256 byte table.
+83. Comments out of date: the "as the generator's X" ones, IR65Reshape.txt, W65C816.txt
+    ("nothing here is built yet"), AppendBitsTable's header, IR.txt (utof for uitof), and
+    the comments above the wrong functions in IROptimiserCounters.cpp.
+
+
+Limits and findings
+-------------------
+
+84. The generator doesn't do namespaces.
+85. A constant the type checker folds while finding a type is still worked out in 64 bits.
+86. The parser can't parse a function returning a function pointer (int (*Pick())(int)):
+    it needs a typedef.
+87. Parsing a function definition leaves one node out of the tree.
+88. Preprocessor errors with a position ("Could not include file", #define parameter
+    errors, #line errors) don't make preprocessing fail.
+89. #line changes __LINE__ and __FILE__ but not where errors are reported.
+90. CPreprocessorTokeniser::TokeniseDirective returns NULL for a directive its switch
+    doesn't list (which is how #line was lost).
+91. Narrow string \u escapes are UTF-8 now, but the generator still doesn't do wide or
+    UTF-16/32 string literals.
