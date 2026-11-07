@@ -595,6 +595,7 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 	size						j;
 	size						k;
 	bool						bResult;
+	bool						bValidateConsistency;
 
 	if (mpcDataConnection == NULL)
 	{
@@ -684,7 +685,11 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 
 	//The objects destroyed are not saved again.  Their own pointers are cleared first, so what they point to is saved
 	//without them as holders.  Nothing is freed while they are cleared: the objects loaded here may have no path to the
-	//root (they were loaded for this) and a free could take ones still being worked on.
+	//root (they were loaded for this) and a free could take ones still being worked on.  So until FromRemoved has been
+	//asked of each changed object the graph isn't consistent (an object that lost its only holder still has its old
+	//distance to the root), and it isn't validated: Kill would otherwise do so after each destroyed object.
+	bValidateConsistency = mbValidateConsistency;
+	mbValidateConsistency = false;
 	for (i = 0; i < paoiDestroyed->NumElements(); i++)
 	{
 		pcObject = GetFromMemory(paoiDestroyed->GetValue(i));
@@ -726,6 +731,11 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 		}
 	}
 	aoiChanged.Kill();
+
+	mbValidateConsistency = bValidateConsistency;
+#ifdef _DEBUG
+	ValidateObjectsConsistency();
+#endif // _DEBUG
 
 	for (i = 0; i < paoiDestroyed->NumElements(); i++)
 	{
