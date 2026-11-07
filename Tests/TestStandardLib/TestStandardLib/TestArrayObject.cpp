@@ -4,6 +4,7 @@
 #include "BaseLib/Codabase.h"
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
+#include "BaseLib/FileUtil.h"
 #include "TestLib/Assert.h"
 #include "NamedObjectTestClasses.h"
 #include "TestArrayObject.h"
@@ -1467,6 +1468,51 @@ void TestArrayObjectRemoveEndFrees(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With a write-through Codabase an array is written as its members change
+// (CCollection::MembersChanged): it isn't left dirty until a stack pointer
+// happens to be pointed at it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayObjectWriteThroughMembersChanged(void)
+{
+	CCodabase*	pcDatabase;
+	CSequence*	pcSequence;
+	CFileUtil	cFileUtil;
+
+	cFileUtil.RemoveDir("Output" _FS_ "ArrayObjectWriteThrough");
+	cFileUtil.TouchDir("Output" _FS_ "ArrayObjectWriteThrough");
+	pcSequence = CSequenceFactory::Create("Output" _FS_ "ArrayObjectWriteThrough", DS_No);
+	pcDatabase = CCodabaseFactory::Create("Output" _FS_ "ArrayObjectWriteThrough", IWT_Yes, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pObject;
+
+		pArray = OMalloc<CArrayObject>();
+		ORoot()->Add(pArray);
+		pObject = OMalloc<CTestObject>();
+		ObjectsFlush();
+		AssertFalse(pArray->IsDirty());
+
+		pArray->Add(pObject);
+		AssertSize(1, pArray->NumElements());
+		AssertFalse(pArray->IsDirty());
+
+		AssertTrue(pArray->Remove(pObject));
+		AssertSize(0, pArray->NumElements());
+		AssertFalse(pArray->IsDirty());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayObject(void)
@@ -1504,6 +1550,7 @@ void TestArrayObject(void)
 	TestArrayObjectRemoveAllOfAnother();
 	TestArrayObjectMemberLocations();
 	TestArrayObjectRemoveEndFrees();
+	TestArrayObjectWriteThroughMembersChanged();
 
 	DataIOKill();
 	TypesKill();

@@ -198,7 +198,7 @@ void TestKillBestPractice(void)
 	AssertString("Kill not called", sMaverickAfter.cPicture.mszPretenedImAPicture);
 	AssertLong(12, gcObjects.NumMemoryIndexes());
 	AssertLong(5, gcObjects.NumMemoryNames());
-	AssertLong(10, pcDatabase->NumIndices());
+	AssertLong(12, pcDatabase->NumIndices());  //Write-through: the arrays are written as their members change (CCollection::MembersChanged).
 	AssertLong(5, pcDatabase->NumNames());
 	AssertInt(2, pWorld.GetDistToRoot());
 	AssertInt(3, pHarrier.GetDistToRoot());

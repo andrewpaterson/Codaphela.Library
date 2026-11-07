@@ -208,8 +208,10 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 //
 // A member (or an empty place) was added or taken out: what's saved has
-// changed.  Every change goes through AddObjectFrom or
-// RemoveObjectTryFree; loading doesn't.
+// changed, and the change is done (LogicalDirty: a write-through Codabase
+// writes it now, not when a stack pointer happens to be pointed at it
+// next).  Every change goes through AddObjectFrom or RemoveObjectTryFree;
+// loading doesn't.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCollection::MembersChanged(void)
@@ -217,6 +219,7 @@ void CCollection::MembersChanged(void)
 	if (IsEmbeddingContainerAllocatedInObjects())
 	{
 		GetEmbeddingContainer()->SetDirty(true);
+		LogicalDirty();
 	}
 }
 
