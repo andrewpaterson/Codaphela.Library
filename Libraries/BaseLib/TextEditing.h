@@ -54,8 +54,9 @@ enum ETextEditingMove
 
 
 //What shows a text being edited (a CTextEditing): the rows its text is laid out in, and what it does when the caret
-//moves or the text is edited.  Rows are numbered from 0.  A position at the start of a wrapped row can be drawn at the
-//end of the row above (bRowEnd).  A view with no rows (HasRows false, no text laid out yet) is asked nothing about them.
+//moves or the text is edited.  Rows are numbered from 0, and x and y are the view's.  A position at the start of a
+//wrapped row can be drawn at the end of the row above (bRowEnd).  A view with no rows (HasRows false, no text laid out
+//yet) is asked nothing about them.
 class CTextEditingView
 {
 public:
@@ -64,6 +65,7 @@ public:
 	virtual size	FindRow(size uiPosition, bool bRowEnd) = 0;
 	virtual size	GetRowStart(size uiRow) = 0;
 	virtual size	GetRowEnd(size uiRow, bool* pbRowEnd) = 0;
+	virtual size	FindRowAt(int32 y) = 0;
 	virtual size	FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) = 0;
 	virtual int32	GetPositionX(size uiPosition, bool bRowEnd) = 0;
 	virtual size	ScrollPage(size uiRow, bool bDown) = 0;
@@ -119,6 +121,7 @@ public:
 	bool		GetSelection(size* puiStart, size* puiEnd);
 	void		AnchorSelection(void);
 	void		Select(size uiStart, size uiEnd);
+	bool		FindPositionAt(int32 x, int32 y, size* puiPosition, bool* pbRowEnd);
 
 	void		Up(void);
 	void		Down(void);

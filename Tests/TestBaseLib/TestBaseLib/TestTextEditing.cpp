@@ -8,8 +8,8 @@
 #define TEST_TEXT_EDITING_PAGE_ROWS		3
 
 
-//A view with a row for each line of the text, a column of x for each character (tabs to tab stops), and a page of
-//three rows.  It counts what it is told.
+//A view with a row for each line of the text, a y for each row, a column of x for each character (tabs to tab stops),
+//and a page of three rows.  It counts what it is told.
 class CTestTextEditingView : public CTextEditingView
 {
 public:
@@ -41,6 +41,15 @@ public:
 	{
 		*pbRowEnd = false;
 		return mpcDocument->GetNavigation()->FindLineEnd(mpcDocument->GetLineStart(uiRow));
+	}
+
+	size	FindRowAt(int32 y) override
+	{
+		if (y < 0)
+		{
+			return 0;
+		}
+		return ((size)y < NumRows()) ? (size)y : NumRows() - 1;
 	}
 
 	size	FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) override
@@ -161,6 +170,8 @@ void TestTextEditingMoving(void)
 {
 	STestTextEditing	s;
 	int					iMarks;
+	size				uiPosition;
+	bool				bRowEnd;
 
 	s.Init("one two\n    three");
 
@@ -191,6 +202,17 @@ void TestTextEditingMoving(void)
 	s.cEditing.SetCaretPosition(100);
 	AssertSize(17, s.Caret());
 	AssertInt(0, s.cView.miTextEdited);
+
+	//Where a pointer puts the caret: the row y is in or nearest, the column nearest x.
+	AssertTrue(s.cEditing.FindPositionAt(2, 0, &uiPosition, &bRowEnd));
+	AssertSize(2, uiPosition);
+	AssertFalse(bRowEnd);
+	s.cEditing.FindPositionAt(100, 1, &uiPosition, &bRowEnd);
+	AssertSize(17, uiPosition);
+	s.cEditing.FindPositionAt(5, -3, &uiPosition, &bRowEnd);
+	AssertSize(5, uiPosition);
+	s.cEditing.FindPositionAt(1, 9, &uiPosition, &bRowEnd);
+	AssertSize(9, uiPosition);
 
 	s.Kill();
 }

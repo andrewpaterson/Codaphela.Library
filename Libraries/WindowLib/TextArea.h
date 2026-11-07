@@ -37,6 +37,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextBackgrounds.h"
 #include "TextSpans.h"
 #include "TextAreaTiles.h"
+#include "TextEditingInput.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
 #include "WindowTheme.h"
@@ -118,7 +119,7 @@ protected:
 	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
 	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
 	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
-	bool					mbDragging;
+	CTextEditingInput		mcInput;  //The input actions that reach mcEditing.
 
 	//Undo, as Logicim's: the text after each edit of an editable text area, consecutive typing kept as one edit (see
 	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot (see
@@ -245,8 +246,6 @@ public:
 	void				EndEnter(void);
 	void				Delete(void);
 	void				Backspace(void);
-	void				UndoAction(void);
-	void				RedoAction(void);
 	void				Cut(CChars* pszDest);
 	void				Copy(CChars* pszDest);
 	void				Paste(char* szSource);
@@ -277,15 +276,6 @@ public:
 
 	void				FocusGained(void) override;
 	void				FocusLost(void) override;
-	void				PrintableAction(SComponentInputEvent* psEvent);
-	void				SpaceAction(SComponentInputEvent* psEvent);
-	void				TabAction(SComponentInputEvent* psEvent);
-	void				ActivateComponent(int x, int y);
-	void				ContextMenuClick(SComponentInputEvent* psEvent);
-	void				ExecuteComponent(int x, int y);
-	void				StartDragSelect(int x, int y);
-	void				ContDragSelect(int x, int y);
-	void				StopDragSelect(int x, int y);
 
 	//The editing's view (CTextEditingView): the rows the text is laid out in.
 	bool				HasRows(void) override;
@@ -293,6 +283,7 @@ public:
 	size				FindRow(size uiPosition, bool bRowEnd) override;
 	size				GetRowStart(size uiRow) override;
 	size				GetRowEnd(size uiRow, bool* pbRowEnd) override;
+	size				FindRowAt(int32 y) override;
 	size				FindPositionInRow(size uiRow, int32 x, bool* pbRowEnd) override;
 	int32				GetPositionX(size uiPosition, bool bRowEnd) override;
 	size				ScrollPage(size uiRow, bool bDown) override;
@@ -343,7 +334,6 @@ protected:
 	size				FindStop(size uiPosition);
 	bool				IsRowWrapped(size uiRow);
 	int32				GetRowRight(size uiRow);
-	size				FindRowAt(int32 y);
 	int32				GetPageHeight(void);
 	int32				GetNewLineWidth(void);
 	void				ScrollBy(int32 iDown);

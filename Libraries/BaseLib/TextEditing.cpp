@@ -220,6 +220,26 @@ void CTextEditing::Select(size uiStart, size uiEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The position nearest x, y in the view, as a pointer puts the caret:
+// on the row y is in, or the nearest row, the gap between characters
+// nearest x.  False, and the start of the text, if the view has no rows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::FindPositionAt(int32 x, int32 y, size* puiPosition, bool* pbRowEnd)
+{
+	*pbRowEnd = false;
+	if (!mpcView->HasRows())
+	{
+		*puiPosition = 0;
+		return false;
+	}
+	*puiPosition = mpcView->FindPositionInRow(mpcView->FindRowAt(y), x, pbRowEnd);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Moving the caret.
 //
 //////////////////////////////////////////////////////////////////////////

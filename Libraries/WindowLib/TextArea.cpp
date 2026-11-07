@@ -28,10 +28,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextArea.h"
 
 
-//The pointer's commands: presses, releases and dragging to select.
-static EComponentInputCommand	gaeTextAreaPointerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // szText is UTF8.  Line feeds start new lines.  pWhiteFont's image must
@@ -111,7 +107,6 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcUndoEvent.Init();
 	mcChanged.Init();
 	mbSelectable = true;
-	mbDragging = false;
 
 	//The text is drawn over whatever is behind the text area.
 	pDraw = OMalloc<CMapsCanvasDraw>(mpMaps);
@@ -122,63 +117,9 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	ReadText();
 	LayoutText();
 
-	AddInputAction(CIC_ActivateComponent, this, &CTextArea::ActivateComponent);
-	AddInputAction(CIC_ExecuteComponent, this, &CTextArea::ExecuteComponent);
-	AddInputAction(CIC_ContextMenu, this, &CTextArea::ContextMenuClick);
-	AddInputAction(CIC_StartDragSelect, this, &CTextArea::StartDragSelect);
-	AddInputAction(CIC_ContDragSelect, this, &CTextArea::ContDragSelect);
-	AddInputAction(CIC_StopDragSelect, this, &CTextArea::StopDragSelect);
-
-	AddInputAction(CIC_Up, this, &CTextArea::Up);
-	AddInputAction(CIC_Down, this, &CTextArea::Down);
-	AddInputAction(CIC_Left, this, &CTextArea::Left);
-	AddInputAction(CIC_Right, this, &CTextArea::Right);
-	AddInputAction(CIC_WordLeft, this, &CTextArea::WordLeft);
-	AddInputAction(CIC_WordRight, this, &CTextArea::WordRight);
-	AddInputAction(CIC_Home, this, &CTextArea::Home);
-	AddInputAction(CIC_End, this, &CTextArea::End);
-	AddInputAction(CIC_DocumentHome, this, &CTextArea::DocumentHome);
-	AddInputAction(CIC_DocumentEnd, this, &CTextArea::DocumentEnd);
-	AddInputAction(CIC_PageUp, this, &CTextArea::PageUp);
-	AddInputAction(CIC_PageDown, this, &CTextArea::PageDown);
+	mcInput.Init(this, &mcEditing, true);
 	AddInputAction(CIC_LineUp, this, &CTextArea::LineUp);
 	AddInputAction(CIC_LineDown, this, &CTextArea::LineDown);
-
-	AddInputAction(CIC_SelectUp, this, &CTextArea::SelectUp);
-	AddInputAction(CIC_SelectDown, this, &CTextArea::SelectDown);
-	AddInputAction(CIC_SelectLeft, this, &CTextArea::SelectLeft);
-	AddInputAction(CIC_SelectRight, this, &CTextArea::SelectRight);
-	AddInputAction(CIC_SelectWordLeft, this, &CTextArea::SelectWordLeft);
-	AddInputAction(CIC_SelectWordRight, this, &CTextArea::SelectWordRight);
-	AddInputAction(CIC_SelectHome, this, &CTextArea::SelectHome);
-	AddInputAction(CIC_SelectEnd, this, &CTextArea::SelectEnd);
-	AddInputAction(CIC_SelectDocumentHome, this, &CTextArea::SelectDocumentHome);
-	AddInputAction(CIC_SelectDocumentEnd, this, &CTextArea::SelectDocumentEnd);
-	AddInputAction(CIC_SelectPageUp, this, &CTextArea::SelectPageUp);
-	AddInputAction(CIC_SelectPageDown, this, &CTextArea::SelectPageDown);
-	AddInputAction(CIC_SelectWholeWord, this, &CTextArea::SelectWholeWord);
-	AddInputAction(CIC_SelectAll, this, &CTextArea::SelectAll);
-	AddInputAction(CIC_ClearSelection, this, &CTextArea::ClearSelection);
-
-	AddInputAction(CIC_Space, this, &CTextArea::SpaceAction);
-	AddInputAction(CIC_Tab, this, &CTextArea::TabAction);
-	AddInputAction(CIC_BackTab, this, &CTextArea::BackTab);
-	AddInputAction(CIC_Enter, this, &CTextArea::Enter);
-	AddInputAction(CIC_HomeEnter, this, &CTextArea::HomeEnter);
-	AddInputAction(CIC_EndEnter, this, &CTextArea::EndEnter);
-	AddInputAction(CIC_Delete, this, &CTextArea::Delete);
-	AddInputAction(CIC_Backspace, this, &CTextArea::Backspace);
-	AddInputAction(CIC_Undo, this, &CTextArea::UndoAction);
-	AddInputAction(CIC_Redo, this, &CTextArea::RedoAction);
-	AddInputAction(CIC_Duplicate, this, &CTextArea::Duplicate);
-	AddInputAction(CIC_DeleteWordRemainingLeft, this, &CTextArea::DeleteWordRemainingLeft);
-	AddInputAction(CIC_DeleteWordRemainingRight, this, &CTextArea::DeleteWordRemainingRight);
-	AddInputAction(CIC_DeleteLine, this, &CTextArea::DeleteLine);
-
-	AddInputAction(CIC_Cut, this, &CTextArea::CutToClipboard);
-	AddInputAction(CIC_Copy, this, &CTextArea::CopyToClipboard);
-	AddInputAction(CIC_Paste, this, &CTextArea::PasteFromClipboard);
-	AddInputAction(IAF_Printable, NULL, this, &CTextArea::PrintableAction);
 
 	//The undo history starts with the text it was made with.
 	ClearUndo();
@@ -199,6 +140,7 @@ void CTextArea::Free(void)
 	mcSpans.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
+	mcInput.Kill();
 	mcEditing.Kill();
 	mcDocument.Kill();
 	CCanvas::Free();
@@ -246,7 +188,7 @@ void CTextArea::Class(void)
 	U_Unknown(CTextLineGaps, mcGaps);
 	U_Unknown(CTextEditing, mcEditing);
 	U_Bool(mbSelectable);
-	U_Bool(mbDragging);
+	U_Unknown(CTextEditingInput, mcInput);
 }
 
 
@@ -1060,13 +1002,8 @@ void CTextArea::SetEditable(bool bEditable)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetSelectable(bool bSelectable)
 {
-	size	i;
-
 	mbSelectable = bSelectable;
-	for (i = 0; i < sizeof(gaeTextAreaPointerCommands) / sizeof(EComponentInputCommand); i++)
-	{
-		SetInputActionsEnabled(gaeTextAreaPointerCommands[i], bSelectable);
-	}
+	mcInput.SetPointerEnabled(bSelectable);
 }
 
 
@@ -1446,15 +1383,6 @@ void CTextArea::SelectWholeWord(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A space is typed as a printable character; tab never overwrites.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::SpaceAction(SComponentInputEvent* psEvent) { Printable(' ', psEvent->bInsert); }
-void CTextArea::TabAction(SComponentInputEvent* psEvent) { Tab(psEvent->bInsert); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Scrolls a line without moving the caret.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1570,7 +1498,7 @@ void CTextArea::FocusGained(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::FocusLost(void)
 {
-	mbDragging = false;
+	mcInput.FocusLost();
 	UpdateMarks();
 }
 
@@ -1581,124 +1509,9 @@ void CTextArea::FocusLost(void)
 // nothing leaves it as it was.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::CutToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Cut); }
-void CTextArea::CopyToClipboard(void) { mpWindow->GetClipboard()->CopyFrom(this, &CTextArea::Copy); }
-void CTextArea::PasteFromClipboard(void) { mpWindow->GetClipboard()->PasteInto(this, &CTextArea::Paste); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::PrintableAction(SComponentInputEvent* psEvent)
-{
-	Printable(psEvent->cPrintable, psEvent->bInsert);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The press has already given the text area focus.  The caret goes to the
-// gap nearest the pointer and dragging selects from there.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ActivateComponent(int x, int y)
-{
-	size	uiPosition;
-	bool	bRowEnd;
-
-	bRowEnd = false;
-	uiPosition = 0;
-	if (HasRows())
-	{
-		uiPosition = FindPositionInRow(FindRowAt(y), x, &bRowEnd);
-	}
-	mcEditing.MoveCaret(uiPosition, false, bRowEnd);
-	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The right button, as in Visual Studio: pressed in the selection it is
-// kept, so the context menu acts on it; anywhere else the caret moves
-// there and nothing is selected.  The press goes on up to the component
-// with the context menu.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ContextMenuClick(SComponentInputEvent* psEvent)
-{
-	size	uiPosition;
-	size	uiStart;
-	size	uiEnd;
-	bool	bRowEnd;
-
-	psEvent->bPass = true;
-
-	bRowEnd = false;
-	uiPosition = 0;
-	if (HasRows())
-	{
-		uiPosition = FindPositionInRow(FindRowAt(psEvent->y), psEvent->x, &bRowEnd);
-	}
-	if (GetSelection(&uiStart, &uiEnd) && (uiPosition >= uiStart) && (uiPosition < uiEnd))
-	{
-		return;
-	}
-	mcEditing.MoveCaret(uiPosition, false, bRowEnd);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ExecuteComponent(int x, int y)
-{
-	mpWindow->GetFocus()->StopDrag(FD_Select);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A shift press extends the selection from where it started, or from the
-// caret.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::StartDragSelect(int x, int y)
-{
-	mcEditing.AnchorSelection();
-	mbDragging = true;
-	ContDragSelect(x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::ContDragSelect(int x, int y)
-{
-	size	uiPosition;
-	bool	bRowEnd;
-
-	if (mbDragging && HasRows())
-	{
-		uiPosition = FindPositionInRow(FindRowAt(y), x, &bRowEnd);
-		mcEditing.MoveCaret(uiPosition, true, bRowEnd);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::StopDragSelect(int x, int y)
-{
-	ContDragSelect(x, y);
-	mbDragging = false;
-}
+void CTextArea::CutToClipboard(void) { mcInput.CutToClipboard(); }
+void CTextArea::CopyToClipboard(void) { mcInput.CopyToClipboard(); }
+void CTextArea::PasteFromClipboard(void) { mcInput.PasteFromClipboard(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2164,10 +1977,6 @@ size CTextArea::GetUndoId(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::ClearUndo(void) { mcEditing.ClearUndo(); }
-
-
-void CTextArea::UndoAction(void) { Undo(); }
-void CTextArea::RedoAction(void) { Redo(); }
 
 
 //////////////////////////////////////////////////////////////////////////
