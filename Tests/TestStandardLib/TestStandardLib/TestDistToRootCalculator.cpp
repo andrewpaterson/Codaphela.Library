@@ -166,7 +166,7 @@ void TestClearDistToRootToValidDistComplex(void)
 		AssertSize(2, pTest1b->NumHeapFroms());
 
 		//Recalculated as removing the from would, then every distance checked against a search from the root.
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 		AssertDistToRoot();
@@ -230,7 +230,7 @@ void TestClearDistToRootToValidDistSimpleLeft(void)
 		pTest2->TestRemoveHeapFrom(pTest1.BaseObject());
 		AssertSize(0, pTest2->NumHeapFroms());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 
 		cDistCalculator.CalculateDistToRoot(&pTest2);
 
@@ -298,7 +298,7 @@ void TestClearDistToRootToValidDistSimpleRight(void)
 		AssertSize(1, pTest3->NumHeapFroms());
 
 		//Recalculated as removing the from would, then every distance checked against a search from the root.
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest3.BaseObject());
 		cDistCalculator.Kill();
 		AssertDistToRoot();
@@ -399,7 +399,7 @@ void TestUpdateAttachedTosDistToRootComplex(void)
 		p3b->mp.UnsafeClearObject();
 		pTest1b->TestRemoveHeapFrom(p3b.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 
@@ -494,7 +494,7 @@ void TestUpdateAttachedTosDistToRootSimpleLeft(void)
 		//    Root(0)
 		//
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest2.BaseObject());
 		cDistCalculator.Kill();
 
@@ -579,7 +579,7 @@ void TestUpdateAttachedTosDistToRootSimpleRight(void)
 		//        Root(0)
 		//
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest3.BaseObject());
 		cDistCalculator.Kill();
 
@@ -661,7 +661,7 @@ void TestUpdateAttachedTosDistToRootSimpleRightBroken(void)
 		//
 
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest3.BaseObject());
 
 		AssertInt(3, pTest1->GetDistToRoot());
@@ -815,7 +815,7 @@ void TestUpdateAttachedTosDistToRootChildTriangleKindaBalanced(void)
 		p6c->mp.UnsafeClearObject();
 		pTest1b->TestRemoveHeapFrom(p6c.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 
@@ -940,7 +940,7 @@ void TestUpdateAttachedTosDistToRootChildTriangleShortLeft(void)
 		p6c->mp.UnsafeClearObject();
 		pTest1b->TestRemoveHeapFrom(p6c.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 
@@ -1167,7 +1167,7 @@ void TestUpdateEmbeddedObjectTosDetachedScenarioA(void)
 		pLTest2->TestRemoveHeapFrom(pTest1.BaseObject());
 
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pLTest2.BaseObject());
 
 		//                             
@@ -1293,7 +1293,7 @@ void TestUpdateEmbeddedObjectTosDetachedScenarioB(void)
 		pRTest2->TestRemoveHeapFrom(pTest1.BaseObject());
 
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pRTest2.BaseObject());
 
 		//                             
@@ -1429,7 +1429,7 @@ void TestUpdateEmbeddedObjectTosDetachedScenarioC(void)
 		pRTest3l->TestRemoveHeapFrom(pRTest2.BaseObject());
 
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pRTest3l.BaseObject());
 
 		//                             
@@ -1555,7 +1555,7 @@ void TestUpdateEmbeddedObjectTosDetachedScenarioD(void)
 		pRTest3r->TestRemoveHeapFrom(pRTest2.BaseObject());
 
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pRTest3r.BaseObject());
 
 		//                             
@@ -1677,7 +1677,7 @@ void TestUpdateAttachedTosDistToRootBroken(void)
 		p6c->mp.UnsafeClearObject();
 		pTest1b->TestRemoveHeapFrom(p6c.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 
@@ -1794,7 +1794,7 @@ void TestClearDistToRootToValidDistBroken(void)
 		pTest1b->TestRemoveHeapFrom(p6c.BaseObject());
 
 		//Recalculated as removing the from would, then every distance checked against a search from the root.
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pTest1b.BaseObject());
 		cDistCalculator.Kill();
 		AssertDistToRoot();
@@ -1843,7 +1843,7 @@ void TestDistToRootLinear(void)
 		p0->mp.UnsafeClearObject();
 		p1->TestRemoveHeapFrom(p0.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(p1.BaseObject());
 
 		AssertInt(2, p0->GetDistToRoot());
@@ -1903,7 +1903,7 @@ void TestDistToRootCyclic(void)
 		p0->mp.UnsafeClearObject();
 		p1->TestRemoveHeapFrom(p0.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(p1.BaseObject());
 
 		AssertInt(UNATTACHED_DIST_TO_ROOT, p1->GetDistToRoot());
@@ -2004,7 +2004,7 @@ void TestDistToRootLinearToStackScenarioA(void)
 		pc0->mp.UnsafeClearObject();
 		pc1->TestRemoveHeapFrom(pc0);
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 
 		cDistCalculator.CalculateDistToRoot(pc1);
 
@@ -2089,7 +2089,7 @@ void TestDistToRootLinearToStackScenarioB(void)
 		pc0->mp.UnsafeClearObject();
 		pc1->TestRemoveHeapFrom(pc0);
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pc1);
 
 		//
@@ -2200,7 +2200,7 @@ void TestDistToRootToUpdated(void)
 		AssertSize(1, pcTest1->NumHeapFroms()); //pointed to from pTest2
 		AssertSize(1, pcTest1->NumStackFroms());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 
 
 		cDistCalculator.CalculateDistToRoot(pcTest1);
@@ -2502,7 +2502,7 @@ void TestDistToRootComplex(void)
 	pcTest3->mpObject.UnsafeClearObject();
 	pcTest14->TestRemoveHeapFrom(pcTest3);
 
-	cDistCalculator.Init();
+	cDistCalculator.Init(&gcObjects);
 
 	cDistCalculator.CalculateDistToRoot(pcTest14);
 
@@ -2856,7 +2856,7 @@ void TestDistToRootCloserFromOnEmbeddedObject(void)
 		pFar->mp.UnsafeClearObject();
 		pContainer->TestRemoveHeapFrom(pFar.BaseObject());
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(&gcObjects);
 		cDistCalculator.CalculateDistToRoot(pContainer.BaseObject());
 		AssertInt(3, pContainer->GetDistToRoot());
 		AssertSize(0, cDistCalculator.NumTouched());

@@ -440,7 +440,7 @@ void CEmbeddedObject::GetHeapFromPointers(CArrayHeapFromPointer* pacPointers)
 	uint32			uiAdded;
 
 	//An Object with more than one pointer to this is in the heap froms more than once; it is stamped the first time.
-	uiAdded = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	uiAdded = GetObjectsOrDefault()->StartWalk() | WALK_STATE_TOUCHED;
 	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
@@ -485,7 +485,7 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject)
 		return FR_Error;
 	}
 
-	eResult = gcObjects.FromRemoved(this, true);
+	eResult = GetObjectsOrDefault()->FromRemoved(this, true);
 
 #ifdef _DEBUG
 	if (pcObjectsThisIn)
@@ -730,7 +730,7 @@ void CEmbeddedObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CEmbeddedObject::GetStackPointers(void)
 {
-	return &gcStackPointers;
+	return GetObjectsOrDefault()->GetStackPointers();
 }
 
 
@@ -930,7 +930,7 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 		return FR_Error;
 	}
 
-	return gcObjects.FromRemoved(this, false);
+	return GetObjectsOrDefault()->FromRemoved(this, false);
 }
 
 
@@ -1004,6 +1004,26 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 bool CEmbeddedObject::IsAllocatedInObjects(void)
 {
 	return GetObjectsThisIn() != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects this is in, or gcObjects for an object on the stack (which
+// is in none).  Unlike GetObjects it doesn't check gcObjects is
+// initialised: an object on the stack can outlive it.
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CEmbeddedObject::GetObjectsOrDefault(void)
+{
+	CObjects* pcObjects;
+
+	pcObjects = GetObjectsThisIn();
+	if (pcObjects)
+	{
+		return pcObjects;
+	}
+	return &gcObjects;
 }
 
 

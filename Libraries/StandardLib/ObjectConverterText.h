@@ -8,7 +8,7 @@ class CObjectConverterText : public CObjectConverter
 {
 CONSTRUCTABLE(CObjectConverterText)
 public:
-	void			Init(void);
+	void			Init(CObjects* pcObjects);
 	void			Kill(void);
 
 	const char*			GetFileExtension(void);

@@ -10,8 +10,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterText::Init(void)
+void CObjectConverterText::Init(CObjects* pcObjects)
 {
+	CObjectConverter::Init(pcObjects);
 }
 
 
@@ -84,12 +85,14 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* 
 	}
 
 	//Converted objects are named: it is how objects in the Codabase reference them.
-	pString = ONMalloc<CString>(szObjectName, cTextFile.Text());
-	cTextFile.Kill();
-	if (!pString)
+	pString = mpcObjects->Malloc<CString>(szObjectName);
+	if (pString.IsNull())
 	{
+		cTextFile.Kill();
 		return NULL;
 	}
+	pString->Init(cTextFile.Text());
+	cTextFile.Kill();
 	return (CBaseObject*)pString.Return();
 }
 

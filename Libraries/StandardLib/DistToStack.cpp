@@ -197,7 +197,7 @@ bool CDistCalculator::RecalculateKnownHeldFromStack(CBaseObject* pcFromRemoved)
 	}
 
 	//Clear what relied on it.
-	uiCleared = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	uiCleared = mpcObjects->StartWalk() | WALK_STATE_TOUCHED;
 	apcCandidates.Init();
 	apcCleared.Init();
 	apcCandidates.Add(pcFromRemoved);
@@ -331,7 +331,7 @@ bool CDistCalculator::IsHeldFromStackOrRoot(CBaseObject* pcObject)
 	uint32					uiTested;
 	bool					bUseKnownHeld;
 
-	uiTested = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	uiTested = pcObject->GetObjectsOrDefault()->StartWalk() | WALK_STATE_TOUCHED;
 	bUseKnownHeld = !pcObject->HasStackFroms();
 
 	bHeld = false;

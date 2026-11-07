@@ -12,8 +12,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterNative::Init(void)
+void CObjectConverterNative::Init(CObjects* pcObjects)
 {
+	CObjectConverter::Init(pcObjects);
 	mcIndexRemap.Init();
 }
 
@@ -140,7 +141,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, const char
 		return NULL;
 	}
 
-	cGraphDeserialiser.Init(pcReader, true, &gcObjects);
+	cGraphDeserialiser.Init(pcReader, true, mpcObjects);
 	pcObject = cGraphDeserialiser.Read(szObjectName);
 	mcIndexRemap.InsertArrayAfterEnd(cGraphDeserialiser.GetArrayIndexNewOld());
 	cGraphDeserialiser.Kill();

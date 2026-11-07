@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CObjectSource;
+class CObjects;
 class CObjectsSource : public CUnknown
 {
 CONSTRUCTABLE(CObjectsSource)
@@ -35,9 +36,10 @@ protected:
 	CFiles				mcFiles;
 	CArrayUnknown		macSources;
 	CMapStringUnknown	mmszpcConverters;
+	CObjects*			mpcObjects;
 
 public:
-								void			Init(void);
+								void			Init(CObjects* pcObjects);
 								void			Kill(void);
 	template<class TConverter>	TConverter*		AddConverter(void);
 	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, const char* szFilename);
@@ -86,7 +88,7 @@ TConverter* CObjectsSource::AddConverter(void)
 	if (!pcExistingConverter)
 	{
 		pcConveter = gcUnknowns.Add<TConverter>();
-		pcConveter->Init();
+		pcConveter->Init(mpcObjects);
 
 		mmszpcConverters.Put((char*)szClassName, pcConveter);
 		return pcConveter;

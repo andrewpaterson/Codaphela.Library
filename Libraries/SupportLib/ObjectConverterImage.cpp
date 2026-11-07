@@ -28,8 +28,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterImage::Init(void)
+void CObjectConverterImage::Init(CObjects* pcObjects)
 {
+	CObjectConverter::Init(pcObjects);
 }
 
 

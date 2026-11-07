@@ -5,10 +5,15 @@
 #include "HollowObject.h"
 
 
+class CObjects;
 class CObjectConverter : public CUnknown
 {
 CONSTRUCTABLE(CObjectConverter)
+protected:
+	CObjects*	mpcObjects;		//The objects converted objects are put in.
+
 public:
+			void			Init(CObjects* pcObjects);
 			void			Kill(void) override;
 
 	virtual const char*		GetFileExtension(void) =0;

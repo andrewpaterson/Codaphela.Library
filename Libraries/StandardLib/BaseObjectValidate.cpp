@@ -379,7 +379,7 @@ void CBaseObject::ValidateInternalConsistency(void)
 		pvStart = this;
 		pvEnd = RemapSinglePointer(pvStart, ClassSize());
 
-		pcStackPointer = gcStackPointers.StartIteration(&sIter);
+		pcStackPointer = GetStackPointers()->StartIteration(&sIter);
 		while (pcStackPointer)
 		{
 			psStackPointer = pcStackPointer->Get();
@@ -399,7 +399,7 @@ void CBaseObject::ValidateInternalConsistency(void)
 			{
 				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Ensure it is set up in Class().", NULL);
 			}
-			pcStackPointer = gcStackPointers.Iterate(&sIter);
+			pcStackPointer = GetStackPointers()->Iterate(&sIter);
 		}
 	}
 }

@@ -15,7 +15,7 @@ protected:
 	CArrayIndexNewOld			mcIndexRemap;  //For testing.
 
 public:
-	void			Init(void);
+	void			Init(CObjects* pcObjects);
 	void			Kill(void) override;
 
 	const char*		GetFileExtension(void) override;

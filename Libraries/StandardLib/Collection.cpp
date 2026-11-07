@@ -285,7 +285,7 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 	pcObjectsThisIn = GetObjectsThisIn();
 #endif // _DEBUG
 	bHeapFrom = IsEmbeddingContainerAllocatedInObjects();
-	bResult = gcObjects.FromRemoved(pcObject, bHeapFrom) != FR_Error;
+	bResult = GetObjectsOrDefault()->FromRemoved(pcObject, bHeapFrom) != FR_Error;
 
 #ifdef _DEBUG
 	if (bValidate && bHeapFrom && pcObjectsThisIn)

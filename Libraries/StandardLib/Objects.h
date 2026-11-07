@@ -69,6 +69,7 @@ protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
+	CStackPointers*			mpcStackPointers;	//The pointers on the stack to this's objects.
 	CObjectsSource			mcSource;			//An object found on disk will be deserialised and then placed in memory.
 	CClasses				mcClasses;
 
@@ -85,7 +86,7 @@ protected:
 
 public:
 												CObjects();
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);

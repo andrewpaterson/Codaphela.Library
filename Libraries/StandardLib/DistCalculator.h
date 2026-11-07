@@ -5,6 +5,8 @@
 #include "DistToRootExpectedDists.h"
 
 
+class CObjects;
+
 //An object to check while clearing distances to the root, and the distance the cleared object that points to it had.
 struct SDistToRootClearCandidate
 {
@@ -23,6 +25,7 @@ typedef CArrayLargeTemplate<SDistToRootClearCandidate>	CArrayDistToRootClearCand
 class CDistCalculator
 {
 private:
+	CObjects*					mpcObjects;  //The objects whose walk stamps this uses.
 	uint32						muiWalk;  //This calculation's walk stamp base.
 	CArrayBaseObjectPtrE32		mapcTouched;
 	CArrayEmbeddedObjectPtr		mapcTos;  //One object's pointer tos at a time, its memory kept between them.
@@ -30,7 +33,7 @@ private:
 	CArrayBaseObjectPtr			mapcCompletelyDetached;
 
 public:
-			void					Init(void);
+			void					Init(CObjects* pcObjects);
 			void					Kill(void);
 
 			CArrayBaseObjectPtr*	Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged);

@@ -156,6 +156,7 @@ public:
 			CEmbeddedObject*	GetNesPointerFrom(size* piStart);
 
 			CObjects*			GetObjects(void);
+			CObjects*			GetObjectsOrDefault(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
 			char*				PrintObject(CChars* psz);
 			char*				PrintObject(CChars* psz, bool bEmbedded, bool bPointerMemory = true);

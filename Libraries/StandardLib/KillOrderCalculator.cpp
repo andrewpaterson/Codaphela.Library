@@ -8,8 +8,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CKillOrderCalculator::Init(CArrayBaseObjectPtr* papcKilled)
+void CKillOrderCalculator::Init(CObjects* pcObjects, CArrayBaseObjectPtr* papcKilled)
 {
+	mpcObjects = pcObjects;
 	mpapcKilled = papcKilled;
 	mapcKilledNesObjects.Init();
 }
@@ -85,7 +86,7 @@ void CKillOrderCalculator::OrderNesObjects(void)
 	}
 
 	//The objects not ordered yet are stamped.
-	uiWaiting = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	uiWaiting = mpcObjects->StartWalk() | WALK_STATE_TOUCHED;
 	apcWaiting.Init();
 	apcWaiting.InsertArrayAfterEnd(&mapcKilledNesObjects);
 	for (i = 0; i < uiNumWaiting; i++)

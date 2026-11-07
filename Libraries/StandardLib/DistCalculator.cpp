@@ -8,9 +8,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculator::Init(void)
+void CDistCalculator::Init(CObjects* pcObjects)
 {
-	muiWalk = gcObjects.StartWalk();
+	mpcObjects = pcObjects;
+	muiWalk = mpcObjects->StartWalk();
 	mapcTouched.Init();
 	mapcTos.Init();
 	mapcDetachedFromRoot.Init();

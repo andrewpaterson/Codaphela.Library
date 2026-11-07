@@ -349,11 +349,11 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 
 		RemoveAllHeapFroms();
 
-		cDistCalculator.Init();
+		cDistCalculator.Init(GetObjectsOrDefault());
 		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
 		//The objects killed with this are stamped, so whether a pointer's object is one of them is one comparison.
-		uiKilled = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+		uiKilled = GetObjectsOrDefault()->StartWalk() | WALK_STATE_TOUCHED;
 		uiNumKilled = papcKilled->NumElements();
 		for (i = 0; i < uiNumKilled; i++)
 		{
@@ -726,7 +726,7 @@ bool CBaseObject::CanFindRoot(void)
 		return false;
 	}
 
-	uiTested = gcObjects.StartWalk() | WALK_STATE_TOUCHED;
+	uiTested = GetObjectsOrDefault()->StartWalk() | WALK_STATE_TOUCHED;
 	pcObject = this;
 	while (!pcObject->IsRoot())
 	{

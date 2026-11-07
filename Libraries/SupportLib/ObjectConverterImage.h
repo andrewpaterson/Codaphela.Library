@@ -29,7 +29,7 @@ class CObjectConverterImage : public CObjectConverter
 {
 CONSTRUCTABLE(CObjectConverterImage)
 public:
-	void			Init(void);
+	void			Init(CObjects* pcObjects);
 	void			Kill(void);
 
 	const char*		GetFileExtension(void);

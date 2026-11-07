@@ -3,14 +3,17 @@
 #include "ObjectPointerArrays.h"
 
 
+class CObjects;
+
 class CKillOrderCalculator
 {
 protected:
+	CObjects*				mpcObjects;
 	CArrayBaseObjectPtr*	mpapcKilled;
 	CArrayBaseObjectPtr		mapcKilledNesObjects;
 
 public:
-	void					Init(CArrayBaseObjectPtr* papcKilled);
+	void					Init(CObjects* pcObjects, CArrayBaseObjectPtr* papcKilled);
 	void					Kill(void);
 
 	CArrayBaseObjectPtr*	Calculate(void);

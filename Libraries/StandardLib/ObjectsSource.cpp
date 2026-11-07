@@ -26,8 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectsSource::Init(void)
+void CObjectsSource::Init(CObjects* pcObjects)
 {
+	mpcObjects = pcObjects;
 	macSources.Init();
 	mmszpcConverters.Init();
 }

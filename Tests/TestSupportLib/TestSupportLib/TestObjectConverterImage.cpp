@@ -43,7 +43,7 @@ void TestObjectConverterImageSources(void)
 	CObjectSource*			pcSource;
 	Ptr<CImage>				pImage;
 
-	cConverter.Init();
+	cConverter.Init(&gcObjects);
 	pcSource = cConverter.CreateSource(NULL, "Input/Tiny.png");
 	AssertNotNull(pcSource);
 	AssertTrue(pcSource->Contains("Input/Tiny.png"));

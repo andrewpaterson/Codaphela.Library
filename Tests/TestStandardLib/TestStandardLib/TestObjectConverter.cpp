@@ -131,7 +131,7 @@ void TestObjectConverterDragonExistingHollows(void)
 		SetupObjectConverterConstructors();
 
 		pcDiskFile = DiskFile("Output" _FS_ "ObjectConverter" _FS_ "Double.DRG");
-		cChunkedConverter.Init();
+		cChunkedConverter.Init(&gcObjects);
 		pcObjectSource = cChunkedConverter.CreateSource(pcDiskFile, "Double");
 		AssertNotNull(pcObjectSource);
 		AssertTrue(pcObjectSource->IsNative());
@@ -246,7 +246,7 @@ void TestObjectConverterText(void)
 		iTextLen = strlen(szTextInFile);
 		cMemoryFile.Init(szTextInFile, iTextLen);
 
-		cTextConverter.Init();
+		cTextConverter.Init(&gcObjects);
 		pcObjectSource = cTextConverter.CreateSource(&cMemoryFile, "TextFile");
 		AssertTrue(pcObjectSource->Contains("TextFile"));
 		AssertFalse(pcObjectSource->Contains("AnythingElse"));
@@ -432,7 +432,7 @@ void TestObjectConverterDragonRootDistance(void)
 		SetupObjectConverterConstructors();
 
 		pcDiskFile = DiskFile("Output" _FS_ "ObjectConverter" _FS_ "Trouble.DRG");
-		cChunkedConverter.Init();
+		cChunkedConverter.Init(&gcObjects);
 		pcObjectSource = cChunkedConverter.CreateSource(pcDiskFile, "Trouble");
 
 		pDouble = pcObjectSource->Convert("Double");
@@ -510,7 +510,7 @@ void TestObjectConverterDragonSimple(void)
 
 		SetupObjectConverterConstructors();
 
-		cConverter.Init();
+		cConverter.Init(&gcObjects);
 		pcSource = cConverter.CreateSource(DiskFile("Output" _FS_ "ObjectConverter" _FS_ "Simple.DRG"), "Simple");
 		AssertNotNull(pcSource);
 		AssertTrue(pcSource->IsNative());

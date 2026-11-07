@@ -144,9 +144,10 @@ CObjects::CObjects()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
+	mpcStackPointers = pcStackPointers;
 
 	mpcDataConnection = pcDataConnection;
 	mpcSequenceConnection = pcSequenceConnection;
@@ -156,7 +157,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcData
 	mDestructionCallback = &ObjectCallbackNotSet;
 
 	mcMemory.Init();
-	mcSource.Init();
+	mcSource.Init(this);
 	mcClasses.Init(this);
 
 	mbInitialised = true;
@@ -222,7 +223,7 @@ EFreeResult CObjects::FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom)
 		return FR_NotFreed;
 	}
 
-	cDistCalculator.Init();
+	cDistCalculator.Init(this);
 	papcKilled = cDistCalculator.Calculate(pcObject, bHeapFrom);
 
 	//Only objects allocated in Objects are ever detached: an object on the stack is killed when it goes out of scope.
@@ -254,7 +255,7 @@ void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
 	CArrayBaseObjectPtr*	papcKilledNesObjects;
 
 	//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
-	cKillOrder.Init(papcKilled);
+	cKillOrder.Init(this, papcKilled);
 	papcKilledNesObjects = cKillOrder.Calculate();
 	Remove(papcKilled, papcKilledNesObjects);
 	cKillOrder.Kill();
@@ -900,7 +901,7 @@ void CObjects::FreeAllInKillOrder(bool bDeallocate)
 	//The kill order must be calculated before anything is freed; freeing clears the Nes pointers it looks for.
 	apcDependents.Init();
 	apcDependents.InsertArrayAfterEnd(&apcAll);
-	cKillOrder.Init(&apcDependents);
+	cKillOrder.Init(this, &apcDependents);
 	papcNes = cKillOrder.Calculate();
 
 	FreeInternal(&apcDependents);
@@ -2000,7 +2001,7 @@ void CObjects::AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbe
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CObjects::GetStackPointers(void)
 {
-	return &gcStackPointers;
+	return mpcStackPointers;
 }
 
 
@@ -2370,7 +2371,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init();
-	gcObjects.Init(&gcUnknowns, pcDataConnection, pcSequenceConnection);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
 
@@ -2389,7 +2390,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init();
-	gcObjects.Init(pcUnknowns, pcDataConnection, pcSequenceConnection);
+	gcObjects.Init(pcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
 
