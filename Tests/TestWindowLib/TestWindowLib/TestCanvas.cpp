@@ -1151,6 +1151,103 @@ void TestCanvasImageDrawFollowsTransparency(void)
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
+// Counts the native canvases asked for one canvas.						//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+class CCountingCanvasFactory : public CWinRefWindowFactory
+{
+CONSTRUCTABLE(CCountingCanvasFactory);
+public:
+	CCanvas*	mpcCounted;
+	int			miCreates;
+
+	CNativeCanvas* CreateNativeCanvas(CCanvas* pcCanvas) override
+	{
+		if (pcCanvas == mpcCounted)
+		{
+			miCreates++;
+		}
+		return CWinRefWindowFactory::CreateNativeCanvas(pcCanvas);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// A canvas with no area has no native canvas, and the factory isn't	//
+// asked for one on every paint.  It gets one when it has an area and	//
+// loses it again when it hasn't.										//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void TestCanvasZeroAreaHasNoNativeCanvas(void)
+{
+	CCountingCanvasFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "CanvasZeroArea";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 16, 16, szDirectory);
+	cFactory.mpcCounted = NULL;
+	cFactory.miCreates = 0;
+	{
+		Ptr<CWindow>				pWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCanvas>				pCanvas;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Zero Area", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(Set32BitColour(1.0f, 0, 0)));
+		pCanvas->SetDesiredSize(0, 0);
+		pCanvas->SetAlignment(CSH_Left, CSV_Top);
+		pFill->AddComponent(pCanvas);
+		cFactory.mpcCounted = &pCanvas;
+
+		pWindow->Paint();
+		pWindow->Paint();
+		pWindow->Paint();
+		AssertInt(0, cFactory.miCreates);
+		AssertNull(pCanvas->GetNativeCanvas());
+		AssertTrue(pCanvas->GetImageOrNull().IsNull());
+
+		pCanvas->SetDesiredSize(4, 3);
+		pWindow->Paint();
+		pWindow->Paint();
+		AssertInt(1, cFactory.miCreates);
+		AssertNotNull(pCanvas->GetNativeCanvas());
+
+		pCanvas->SetDesiredSize(0, 3);
+		pWindow->Paint();
+		pWindow->Paint();
+		AssertInt(1, cFactory.miCreates);
+		AssertNull(pCanvas->GetNativeCanvas());
+
+		pCanvas = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void TestCanvas(void)
@@ -1170,6 +1267,7 @@ void TestCanvas(void)
 	TestCanvasWindowColourFormat();
 	TestCanvasOutlivesKilledWindow();
 	TestCanvasImageDrawFollowsTransparency();
+	TestCanvasZeroAreaHasNoNativeCanvas();
 
 	TestStatistics();
 }

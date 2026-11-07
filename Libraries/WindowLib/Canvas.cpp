@@ -183,11 +183,19 @@ bool CCanvas::Draw(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A canvas with no area has no native canvas.  The factory isn't asked
+// for one it could only fail to make.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::CreateNativeCanvas(void)
 {
 	CNativeWindowFactory* pcFactory;
+
+	if (!HasArea())
+	{
+		mpcNativeCanvas = NULL;
+		return;
+	}
 
 	pcFactory = mpWindow->GetFactory();
 	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
@@ -234,6 +242,8 @@ bool CCanvas::PrepareNativeCanvas(SInt32Vec2 sSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the native canvas must be made again.  A canvas with no area and
+// no native canvas is unchanged, so it isn't made again on every draw.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::HasNativeChanged(void)
@@ -242,7 +252,7 @@ bool CCanvas::HasNativeChanged(void)
 
 	if (mpcNativeCanvas == NULL)
 	{
-		return true;
+		return HasArea();
 	}
 
 	sSize = mpcNativeCanvas->GetSize();
@@ -285,7 +295,21 @@ void CCanvas::CopyCanvas(Ptr<CCanvas> pSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CCanvas::GetImageOrNull(void)
 {
+	if (mpcNativeCanvas == NULL)
+	{
+		return NULL;
+	}
 	return mpcNativeCanvas->GetImageOrNull();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::HasArea(void)
+{
+	return (mcActualBounds.GetWidth() > 0) && (mcActualBounds.GetHeight() > 0);
 }
 
 
