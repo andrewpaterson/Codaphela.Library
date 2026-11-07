@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScrollPane.h"
 #include "Label.h"
 #include "Dialog.h"
+#include "MessageDialog.h"
 
 
 //A Files of Type choice.
@@ -53,6 +54,7 @@ DESTRUCTABLE(CFileChooser);
 protected:
 	Ptr<CDialog>				mpDialog;
 	Ptr<CDialog>				mpNewFolderDialog;  //While New Folder's dialog is shown.
+	Ptr<CMessageDialog>			mpReplaceDialog;  //While the question whether to replace a file is shown.
 	Ptr<CComboBox>				mpLookIn;
 	Ptr<CButton>				mpUp;
 	Ptr<CButton>				mpHome;
@@ -70,6 +72,7 @@ protected:
 	CChars						mszChosen;
 	bool						mbSave;
 	bool						mbNewFolderPending;  //New Folder was clicked; its dialog is shown on the next tick.
+	bool						mbReplacePending;  //The file chosen to save exists; whether to replace it is asked on the next tick.
 	SFileChooserType*			masTypes;
 	size						muiNumTypes;
 
@@ -105,6 +108,7 @@ protected:
 	bool			IsShownFile(const char* szPath);
 	const char*		GetTypeExtension(void);
 	void			NewFolder(void);
+	void			AskReplace(void);
 	void			GoHome(void);
 	void			RemoveFromButton(Ptr<CButton> pButton);
 };

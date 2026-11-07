@@ -87,6 +87,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 
 	mbSave = bSave;
 	mbNewFolderPending = false;
+	mbReplacePending = false;
 	masTypes = asTypes;
 	muiNumTypes = uiNumTypes;
 	mpFolderIcon = pFolderIcon;
@@ -148,6 +149,7 @@ void CFileChooser::Class(void)
 {
 	M_Pointer(mpDialog);
 	M_Pointer(mpNewFolderDialog);
+	M_Pointer(mpReplaceDialog);
 	M_Pointer(mpLookIn);
 	M_Pointer(mpUp);
 	M_Pointer(mpHome);
@@ -165,6 +167,7 @@ void CFileChooser::Class(void)
 	U_String(mszChosen);
 	U_Bool(mbSave);
 	U_Bool(mbNewFolderPending);
+	U_Bool(mbReplacePending);
 	U_Pointer(masTypes);
 	U_Data(size, muiNumTypes);
 }
@@ -567,7 +570,8 @@ char* CFileChooser::GetChosen(void)
 //
 // Open (or Save, or enter) chooses the file File Name names.  A folder is
 // opened instead, and with File Name empty the selected folder is.  A
-// file being opened must exist.
+// file being opened must exist; one being saved over is chosen once the
+// user says to replace it, on the chooser's next tick (AskReplace).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFileChooser::Approve(void)
@@ -625,6 +629,11 @@ bool CFileChooser::Approve(void)
 
 	mszChosen.Set(szPath);
 	szPath.Kill();
+	if (mbSave && cFileUtil.Exists(mszChosen.Text()))
+	{
+		mbReplacePending = true;
+		return false;
+	}
 	return true;
 }
 
@@ -754,7 +763,8 @@ void CFileChooser::RemoveFromButton(Ptr<CButton> pButton)
 //////////////////////////////////////////////////////////////////////////
 //
 // Called by the chooser's tick, outside of its input.  Shows the New
-// Folder dialog if New Folder was clicked.
+// Folder dialog if New Folder was clicked, or asks whether to replace the
+// file chosen to save.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFileChooser::DialogTick(void)
@@ -763,6 +773,11 @@ void CFileChooser::DialogTick(void)
 	{
 		mbNewFolderPending = false;
 		NewFolder();
+	}
+	if (mbReplacePending)
+	{
+		mbReplacePending = false;
+		AskReplace();
 	}
 }
 
@@ -817,6 +832,37 @@ void CFileChooser::NewFolder(void)
 	}
 
 	mpNewFolderDialog = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The file chosen to save exists: replacing it closes the chooser with
+// it; otherwise the chooser stays open.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::AskReplace(void)
+{
+	CFileUtil	cFileUtil;
+	CChars		szName;
+	CChars		szMessage;
+
+	szName.Init();
+	cFileUtil.GetFileName(&szName, mszChosen.Text());
+	szMessage.Init(szName);
+	szMessage.Append(" already exists.\nDo you want to replace it?");
+
+	//The chooser holds the question while it's shown.
+	mpReplaceDialog = OMalloc<CMessageDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), "Confirm Save", szMessage.Text());
+	mpReplaceDialog->GetDialog()->SetOKCaption("Replace");
+	if (mpReplaceDialog->Show())
+	{
+		mpDialog->Close("OK");
+	}
+	mpReplaceDialog = NULL;
+
+	szMessage.Kill();
+	szName.Kill();
 }
 
 

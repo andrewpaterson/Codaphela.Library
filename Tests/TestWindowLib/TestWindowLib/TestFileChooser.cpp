@@ -42,6 +42,7 @@ public:
 	Ptr<CButton>		GetUp(void) { return mpUp; }
 	Ptr<CButton>		GetNewFolder(void) { return mpNewFolder; }
 	bool				IsNewFolderPending(void) { return mbNewFolderPending; }
+	bool				IsReplacePending(void) { return mbReplacePending; }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
 	char*				GetClicked(void) { return mpDialog->GetClicked(); }
 };
@@ -208,6 +209,13 @@ void TestFileChooserBrowse(void)
 		pChooser->GetFileName()->SetText("other.txt");
 		AssertTrue(pChooser->Approve());
 		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "other.txt"));
+		AssertFalse(pChooser->IsReplacePending());
+
+		//Saving over a file that exists asks first, on the chooser's next tick.
+		pChooser->GetFileName()->SetText("a");
+		AssertFalse(pChooser->Approve());
+		AssertTrue(pChooser->IsReplacePending());
+		AssertTrue(IsPathIn(pChooser->GetChosen(), szDirectory, "a.txt"));
 		ORoot()->Remove(pChooser);
 		pChooser = NULL;
 
