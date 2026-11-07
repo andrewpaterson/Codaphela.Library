@@ -156,6 +156,22 @@ void TestCPP65IRMemory(void)
 		"int Order() { int i = giOrder; giOrder = 0; return i; }\n"
 		"int main() { Left() = Right(); int a = Order(); Left() += Right(); int b = Order(); Left().Set(Right()); int c = Order(); Left() << Right(); int d = Order();\n"
 		"return a * 1000000 + b * 10000 + c * 100 + d; }", 9));
+
+	//A call through a pointer to a function or to a member function works out the callee (its object then the
+	//pointer) before the arguments.  [expr.call] 8
+	AssertInt(13 * 1000 + 123, TestCPP65IRMain(
+		"int giOrder = 0;\n"
+		"struct CValue { int mi; int Add(int i) { return mi + i; } };\n"
+		"typedef int (*FTwice)(int);\n"
+		"typedef int (CValue::*FAdd)(int);\n"
+		"CValue gcValue;\n"
+		"int Twice(int i) { return i * 2; }\n"
+		"FTwice Pick() { giOrder = giOrder * 10 + 1; return Twice; }\n"
+		"CValue& Object() { giOrder = giOrder * 10 + 1; return gcValue; }\n"
+		"FAdd Member() { giOrder = giOrder * 10 + 2; return &CValue::Add; }\n"
+		"int Argument() { giOrder = giOrder * 10 + 3; return 1; }\n"
+		"int Order() { int i = giOrder; giOrder = 0; return i; }\n"
+		"int main() { Pick()(Argument()); int a = Order(); (Object().*Member())(Argument()); int b = Order(); return a * 1000 + b; }", 9));
 }
 
 

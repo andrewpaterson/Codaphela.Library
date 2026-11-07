@@ -539,8 +539,8 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 //////////////////////////////////////////////////////////////////////////
 //
 // (object.*function)(...) and (pointer->*function)(...): the object is
-// this.  The object and the pointer are worked out before the arguments
-// (the generator works out the arguments first).
+// this.  The object and the pointer are worked out before the arguments,
+// as the callee is.  [expr.call] 8
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue)

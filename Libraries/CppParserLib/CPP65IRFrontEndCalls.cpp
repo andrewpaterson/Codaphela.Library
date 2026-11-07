@@ -495,9 +495,14 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPP
 	psType = mpcGenerator->TypeOf(pcCallee);
 	sElide = msElide;
 	msElide = IRNone();
-	if (!psType || !psType->IsPointer() || !psType->psBase->IsFunction() || !Value(pcCallee, &sCallee))
+	if (!psType || !psType->IsPointer() || !psType->psBase->IsFunction())
 	{
 		return Unsupported(__LINE__);
+	}
+	//The pointer before the arguments.  [expr.call] 8
+	if (!Value(pcCallee, &sCallee))
+	{
+		return false;
 	}
 	msElide = sElide;
 	return Call(NULL, sCallee.sValue, psType->psBase, &pcCall->macpArguments, psValue);
