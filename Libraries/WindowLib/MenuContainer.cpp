@@ -152,6 +152,22 @@ Ptr<CMenuItem> CMenuContainer::AddItem(const char* szText, Ptr<CImageCel> pIcon,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An item that runs pCommand, with its caption and icon, showing its keys
+// and enabled as it can run (see CMenuItem::SetCommand).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMenuItem> CMenuContainer::AddItem(Ptr<CCommand> pCommand)
+{
+	Ptr<CMenuItem>	pItem;
+
+	pItem = AddItem(pCommand->GetCaption(), pCommand->GetIcon());
+	pItem->SetCommand(pCommand);
+	return pItem;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The item in a disabled row is drawn in the dim font, and the row can't
 // be selected, as any list row.  CMenuItem::SetEnabled comes here.
 //
@@ -569,6 +585,10 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 	pPopup = NULL;
 
 	pRoot->Close();
+	if (pItem->GetCommand().IsNotNull())
+	{
+		pItem->GetCommand()->Run();
+	}
 	pItem->GetClickEvent()->Call(&pItem);
 	pRoot->mcItemClicked.Call(&pItem);
 	if (pRoot->mpMenuBar.IsNotNull())

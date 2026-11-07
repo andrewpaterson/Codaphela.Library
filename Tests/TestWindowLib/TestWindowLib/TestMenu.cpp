@@ -12,6 +12,9 @@
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/GridContainer.h"
 #include "WindowLib/MenuBar.h"
+#include "WindowLib/Button.h"
+#include "WindowLib/CommandSet.h"
+#include "WindowLib/JewelTheme.h"
 #include "WindowLib/TextArea.h"
 #include "WindowLib/TreeContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
@@ -1376,6 +1379,100 @@ void TestMenuItemAndRowEnabledAgree(void)
 }
 
 
+//An application's command for the menu tests: logs when it runs, and can be turned off.
+class CTestMenuCommand
+{
+public:
+	CChars*		mpszLog;
+	bool		mbCanBuild;
+
+	void Build(void) { mpszLog->Append("Build;"); }
+	bool CanBuild(void) { return mbCanBuild; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A menu item made from an application command has its caption, shows its
+// keys, is enabled as the menu opens only while the command can run, and
+// runs it when clicked.  A tool button for the command runs it too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuCommandItems(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>		pTestWindow;
+		Ptr<CWindowTheme>	pTheme;
+		Ptr<CMenuContainer>	pMenu;
+		Ptr<CMenuItem>		pItem;
+		Ptr<CButton>		pButton;
+		Ptr<CCommandSet>	pCommands;
+		Ptr<CCommand>		pBuild;
+		CTestMenuCommand	cCommand;
+		CPointer			pNull;
+		CChars				szLog;
+
+		szLog.Init();
+		cCommand.mpszLog = &szLog;
+		cCommand.mbCanBuild = true;
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+
+		pCommands = OMalloc<CCommandSet>();
+		pBuild = pCommands->Add("Build", "Build Solution", "Shift+Control+B", Ptr<CImageCel>(), &cCommand, &CTestMenuCommand::Build);
+		pBuild->SetEnabledCheck(&cCommand, &CTestMenuCommand::CanBuild);
+
+		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pItem = pMenu->AddItem(pBuild);
+		AssertString("Build Solution", pItem->GetText());
+		AssertString("Ctrl+Shift+B", pItem->GetShortcut());
+		AssertTrue(pItem->GetCommand() == pBuild);
+
+		//Clicking runs it.
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertTrue(pItem->IsEnabled());
+		pMenu->Click(pItem);
+		AssertLog("Build;");
+
+		//While it can't run its item is disabled as the menu opens, and clicking it does nothing.
+		cCommand.mbCanBuild = false;
+		pMenu->Open(SInt32Vec2(10, 10), NULL, true);
+		AssertFalse(pItem->IsEnabled());
+		pMenu->Click(pItem);
+		AssertLog("");
+		pMenu->Close();
+
+		//A tool button runs it, if it can run.
+		pButton = OMalloc<CButton>(pTestWindow, pTheme, "Build");
+		pButton->SetCommand(pBuild);
+		pButton->Click();
+		AssertLog("");
+		cCommand.mbCanBuild = true;
+		pButton->Click();
+		AssertLog("Build;");
+
+		pButton = NULL;
+		pItem = NULL;
+		pBuild = NULL;
+		pCommands = NULL;
+		pMenu = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		szLog.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+	cNativeFactory.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // An item's own click event is called before its menu's (and its
@@ -1551,6 +1648,7 @@ void TestMenu(void)
 	TestMenuTreeContextMenu();
 	TestMenuEnabledAndShortcuts();
 	TestMenuItemAndRowEnabledAgree();
+	TestMenuCommandItems();
 	TestMenuItemClickEvent();
 	TestMenuItemShortcutFromCommand();
 	TestMenuOpener();

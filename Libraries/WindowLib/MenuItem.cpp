@@ -46,6 +46,7 @@ void CMenuItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle, const char* s
 	miTag = -1;
 	mbEnabled = true;
 	meShortcut = CIC_Ignored;
+	mpCommand = NULL;
 
 	//The label is a line of the font high, the icon column is as tall as that with the padding above and below it, so
 	//every item is the same height whether or not it has an icon.
@@ -91,6 +92,7 @@ void CMenuItem::Class(void)
 	U_Int32(miTag);
 	U_Bool(mbEnabled);
 	U_Enum(meShortcut);
+	M_Pointer(mpCommand);
 	U_Unknown(CComponentEvent<CMenuItem>, mcClicked);
 }
 
@@ -210,14 +212,41 @@ void CMenuItem::SetShortcut(EComponentInputCommand eCommand)
 void CMenuItem::SetShortcutCommand(EComponentInputCommand eCommand)
 {
 	meShortcut = eCommand;
+	UpdateOpeningListener();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The item is brought up to date as its menu opens when it shows a
+// command's keys or runs an application command.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::UpdateOpeningListener(void)
+{
 	if (mpMenu.IsNotNull())
 	{
 		mpMenu->GetOpeningEvent()->Remove(this);
-		if (eCommand != CIC_Ignored)
+		if ((meShortcut != CIC_Ignored) || mpCommand.IsNotNull())
 		{
 			mpMenu->GetOpeningEvent()->Add(this, &CMenuItem::MenuOpening);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The item runs pCommand when it is clicked, and as its menu opens shows
+// the command's keys and is enabled as the command can run.  NULL for
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuItem::SetCommand(Ptr<CCommand> pCommand)
+{
+	mpCommand = pCommand;
+	UpdateOpeningListener();
+	MenuOpening();
 }
 
 
@@ -232,10 +261,18 @@ void CMenuItem::MenuOpening(void)
 	CComponentInput*	pcInput;
 
 	szKeys.Init();
-	pcInput = mpWindow->GetComponentInput();
-	if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
+	if (mpCommand.IsNotNull())
 	{
-		pcInput->GetShortcutText(meShortcut, &szKeys);
+		CComponentInput::AppendShortcutText(&szKeys, mpCommand->GetKeys());
+		SetEnabled(mpCommand->IsEnabled());
+	}
+	else
+	{
+		pcInput = mpWindow->GetComponentInput();
+		if ((meShortcut != CIC_Ignored) && (pcInput != NULL))
+		{
+			pcInput->GetShortcutText(meShortcut, &szKeys);
+		}
 	}
 	ShowShortcut(szKeys.Text());
 	szKeys.Kill();
@@ -329,6 +366,7 @@ Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) { return mpChevron; }
 //////////////////////////////////////////////////////////////////////////
 void CMenuItem::SetTag(int32 iTag) { miTag = iTag; }
 int32 CMenuItem::GetTag(void) { return miTag; }
+Ptr<CCommand> CMenuItem::GetCommand(void) { return mpCommand; }
 
 
 //////////////////////////////////////////////////////////////////////////

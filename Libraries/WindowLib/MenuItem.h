@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Label.h"
 #include "MenuStyle.h"
 #include "ComponentInputCommand.h"
+#include "Command.h"
 
 
 class CMenuContainer;
@@ -56,6 +57,7 @@ protected:
 	int32						miTag;  //What the item means to whoever made it, -1 until set.
 	bool						mbEnabled;  //A disabled item is drawn in the dim font and its row in the menu can't be selected.
 	EComponentInputCommand		meShortcut;  //The command whose keys are shown (SetShortcut), CIC_Ignored if none.
+	Ptr<CCommand>				mpCommand;  //The application command the item runs and shows (SetCommand), NULL if none.
 	CComponentEvent<CMenuItem>	mcClicked;  //Called when the item is clicked, before its menus' item click events.
 
 public:
@@ -83,10 +85,13 @@ public:
 	Ptr<CLabel>					GetShortcutLabel(void);
 	Ptr<CIconComponent>			GetChevronComponent(void);
 	CComponentEvent<CMenuItem>*	GetClickEvent(void);
+	void						SetCommand(Ptr<CCommand> pCommand);
+	Ptr<CCommand>				GetCommand(void);
 
 protected:
 	void					ShowEnabled(bool bEnabled);
 	void					SetShortcutCommand(EComponentInputCommand eCommand);
+	void					UpdateOpeningListener(void);
 	void					ShowShortcut(const char* szShortcut);
 	void					MenuOpening(void);
 };

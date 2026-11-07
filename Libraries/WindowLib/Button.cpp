@@ -75,6 +75,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpDefaultImages = pDefaultImages;
 	miIconGap = 4;
 	mcClicked.Init();
+	mpCommand = NULL;
 	meState = BS_Normal;
 	mbPressed = false;
 	mbDefault = false;
@@ -112,6 +113,7 @@ void CButton::Class(void)
 	M_Pointer(mpCaption);
 	U_Int32(miIconGap);
 	U_Unknown(CComponentEvent<CButton>, mcClicked);
+	M_Pointer(mpCommand);
 	U_Enum(meState);
 	U_Bool(mbPressed);
 	U_Bool(mbDefault);
@@ -283,8 +285,22 @@ CComponentEvent<CButton>* CButton::GetClickEvent(void)
 //////////////////////////////////////////////////////////////////////////
 void CButton::Click(void)
 {
+	if (mpCommand.IsNotNull())
+	{
+		mpCommand->Run();
+	}
 	mcClicked.Call(this);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tool button for an application command: clicking it runs pCommand
+// (if it can run now).  NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::SetCommand(Ptr<CCommand> pCommand) { mpCommand = pCommand; }
+Ptr<CCommand> CButton::GetCommand(void) { return mpCommand; }
 
 
 //////////////////////////////////////////////////////////////////////////

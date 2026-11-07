@@ -121,6 +121,7 @@ public:
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 	bool				BindKeys(const char* szKeys, EComponentInputCommand eCommand);
 	static bool			NameKeys(const char* szKeys, CChars* pszDest);
+	static void			AppendShortcutText(CChars* pszDest, const char* szKeys);
 
 protected:
 	CComponentInputDevice*			AddDevice(CInputDevice* pcDevice);

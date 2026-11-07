@@ -66,6 +66,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CMenuItem>		AddItem(const char* szText, Ptr<CImageCel> pIcon = NULL, Ptr<CMenuContainer> pSubMenu = NULL);
+	Ptr<CMenuItem>		AddItem(Ptr<CCommand> pCommand);
 	int32				AddSeparator(void);
 	void				RemoveAllItems(void);  //And the separators.
 	size				NumItems(void);
@@ -85,7 +86,7 @@ public:
 
 	CComponentEvent<CMenuItem>*			GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
-	Ptr<CComponent>		GetOpener(void);
+	Ptr<CComponent>						GetOpener(void);
 	void								Click(Ptr<CMenuItem> pItem);
 	void								SetRowEnabled(int32 iRow, bool bEnabled) override;
 

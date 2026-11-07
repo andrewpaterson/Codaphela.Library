@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageBorderContainer.h"
 #include "WindowTheme.h"
 #include "Label.h"
+#include "Command.h"
 #include "IconComponent.h"
 #include "ButtonImages.h"
 #include "ComponentEvent.h"
@@ -50,6 +51,7 @@ protected:
 	Ptr<CLabel>					mpCaption;
 	int32						miIconGap;  //Between the icon and the caption.
 	CComponentEvent<CButton>	mcClicked;
+	Ptr<CCommand>				mpCommand;  //Run when the button is clicked, NULL for none.
 	EButtonState				meState;
 	bool						mbPressed;  //Pressed on and not yet released.
 	bool						mbDefault;
@@ -76,6 +78,8 @@ public:
 
 	CComponentEvent<CButton>*	GetClickEvent(void);
 	void						Click(void);
+	void						SetCommand(Ptr<CCommand> pCommand);
+	Ptr<CCommand>				GetCommand(void);
 
 	EButtonState		GetState(void);
 	bool				IsPressed(void);

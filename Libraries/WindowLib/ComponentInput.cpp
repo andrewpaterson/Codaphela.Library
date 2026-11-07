@@ -808,23 +808,26 @@ SComponentInputChordCommand* CComponentInput::GetChordCommand(const char* szName
 // "Control+Shift+Cursor Left" is "Ctrl+Shift+Left".
 //
 //////////////////////////////////////////////////////////////////////////
-static void AppendShortcutName(CChars* pszDest, const char* szName)
+void CComponentInput::AppendShortcutText(CChars* pszDest, const char* szKeys)
 {
-	while (*szName != '\0')
+	CChars	szLook;
+
+	while (*szKeys != '\0')
 	{
-		if (strncmp(szName, "Control", 7) == 0)
+		szLook.Fake((char*)szKeys);
+		if (szLook.StartsWith("Control"))
 		{
 			pszDest->Append("Ctrl");
-			szName += 7;
+			szKeys += 7;
 		}
-		else if (strncmp(szName, "Cursor ", 7) == 0)
+		else if (szLook.StartsWith("Cursor "))
 		{
-			szName += 7;
+			szKeys += 7;
 		}
 		else
 		{
-			pszDest->Append(*szName);
-			szName++;
+			pszDest->Append(*szKeys);
+			szKeys++;
 		}
 	}
 }
@@ -851,7 +854,7 @@ bool CComponentInput::GetShortcutText(EComponentInputCommand eCommand, CChars* p
 			pcSource = macDevices.Get(i)->FindPressedSource(eCommand);
 			if (pcSource)
 			{
-				AppendShortcutName(pszDest, pcSource->GetFriendlyName());
+				AppendShortcutText(pszDest, pcSource->GetFriendlyName());
 				return true;
 			}
 		}
@@ -860,7 +863,7 @@ bool CComponentInput::GetShortcutText(EComponentInputCommand eCommand, CChars* p
 	{
 		if (masChordCommands.Get(i)->ePressed == eCommand)
 		{
-			AppendShortcutName(pszDest, masChordCommands.Get(i)->szName.Text());
+			AppendShortcutText(pszDest, masChordCommands.Get(i)->szName.Text());
 			return true;
 		}
 	}
