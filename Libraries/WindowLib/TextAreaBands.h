@@ -22,6 +22,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TEXT_AREA_BANDS_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Int32Vec2.h"
+#include "BaseLib/TextDocument.h"
+#include "SupportLib/GeometryMap.h"
+#include "SupportLib/TextStyle.h"
+
+
+class CTextAreaLayout;
 
 
 //A band of a text area across its width, iTop to iBottom (exclusive), and a hash of everything drawn in it.
@@ -63,8 +69,12 @@ public:
 	void			Compare(CTextAreaBands* pcBefore, CArrayInt32Vec2* pasChanged);
 	void			Take(CTextAreaBands* pcOther);
 
+	void			AddRows(CTextAreaLayout* pcLayout, CTextDocument* pcDocument, int32 iTop, int32 iBottom, int32 iEnd);
+	void			MixShapes(Ptr<CGeometryMap> pMap, int32 iTop, int32 iBottom);
+
 protected:
 	void			AddChanged(CArrayInt32Vec2* pasChanged, int32 iTop, int32 iBottom);
+	void			MixStyle(size uiBand, size uiOffset, STextStyle* psStyle);
 };
 
 

@@ -282,6 +282,9 @@
     <ClInclude Include="TextAreaBands.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="TextAreaShapes.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
     <ClInclude Include="TextLineGaps.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
@@ -639,6 +642,9 @@
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextAreaBands.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="TextAreaShapes.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
     <ClCompile Include="TextLineGaps.cpp">

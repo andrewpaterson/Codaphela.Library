@@ -70,6 +70,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mpLayout = OMalloc<CTextAreaLayout>(&mcDocument, pFamily);
 	mpBackgroundMap = OMalloc<CGeometryMap>();
 	mcBackgrounds.Init();
+	mcShapes.Init(&mpLayout, &mcDocument);
 	mbBackgroundsDirty = false;
 	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
@@ -116,6 +117,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 void CTextArea::Free(void)
 {
 	mcBands.Kill();
+	mcShapes.Kill();
 	mcBackgrounds.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
@@ -141,6 +143,7 @@ void CTextArea::Class(void)
 	M_Pointer(mpMaps);
 	M_Pointer(mpBackgroundMap);
 	U_Unknown(CTextBackgrounds, mcBackgrounds);
+	U_Unknown(CTextAreaShapes, mcShapes);
 	U_Bool(mbBackgroundsDirty);
 	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
@@ -595,25 +598,10 @@ void CTextArea::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt
 //////////////////////////////////////////////////////////////////////////
 bool CTextArea::SummariseBands(CTextAreaBands* pcBands)
 {
-	SInt32Vec2			sOrigin;
-	int32				iTop;
-	int32				iBottom;
-	int32				iEnd;
-	size				uiNumRows;
-	size				uiFirstRow;
-	size				uiRow;
-	size				uiBand;
-	size				uiFirstByte;
-	size				uiLastByte;
-	size				uiStart;
-	size				uiEnd;
-	size				uiPosition;
-	STextLayoutLine*	psLine;
-	STextLayoutLine*	psNext;
-	STextStyle*			psStyles;
-	STextStyle*			psStyle;
-	STextStyle*			psLast;
-	char*				szText;
+	SInt32Vec2	sOrigin;
+	int32		iTop;
+	int32		iBottom;
+	int32		iEnd;
 
 	if (!HasRows())
 	{
@@ -624,115 +612,14 @@ bool CTextArea::SummariseBands(CTextAreaBands* pcBands)
 	iTop = sOrigin.y;
 	iBottom = sOrigin.y + GetNativeSize().y;
 	iEnd = (mcActualBounds.GetHeight() > mpLayout->GetTextSize().y) ? mcActualBounds.GetHeight() : mpLayout->GetTextSize().y;
-	uiNumRows = mpLayout->NumLayoutLines();
-	uiFirstRow = mpLayout->FindRowAt(iTop);
-	for (uiRow = uiFirstRow; uiRow < uiNumRows; uiRow++)
-	{
-		psLine = mpLayout->GetLayoutLine(uiRow);
-		if (psLine->iTop >= iBottom)
-		{
-			break;
-		}
-		psNext = (uiRow + 1 < uiNumRows) ? mpLayout->GetLayoutLine(uiRow + 1) : NULL;
-		pcBands->Add(psLine->iTop, psNext ? psNext->iTop : iEnd);
-	}
-
-	//Each row's height, text and the styles its text changes to.
-	uiFirstByte = GetRowStart(uiFirstRow);
-	uiLastByte = (uiFirstRow + pcBands->NumBands() < uiNumRows) ? GetRowStart(uiFirstRow + pcBands->NumBands()) : mcDocument.Length();
-	psStyles = mpLayout->MakeStyles(uiFirstByte, uiLastByte);
-	szText = mcDocument.Text();
-	uiRow = uiFirstRow;
-	for (uiBand = 0; uiBand < pcBands->NumBands(); uiBand++)
-	{
-		psLine = mpLayout->GetLayoutLine(uiRow);
-		pcBands->Mix(uiBand, &psLine->iHeight, sizeof(int32));
-		pcBands->Mix(uiBand, &psLine->iBaseline, sizeof(int32));
-		uiStart = GetRowStart(uiRow);
-		uiEnd = (uiRow + 1 < uiNumRows) ? GetRowStart(uiRow + 1) : mcDocument.Length();
-		pcBands->Mix(uiBand, &szText[uiStart], uiEnd - uiStart);
-		psLast = NULL;
-		for (uiPosition = uiStart; uiPosition < uiEnd; uiPosition++)
-		{
-			psStyle = psStyles ? &psStyles[uiPosition - uiFirstByte] : mpLayout->GetStyle();
-			if ((psLast == NULL) || !psStyle->Equals(psLast))
-			{
-				MixStyle(pcBands, uiBand, uiPosition - uiStart, psStyle);
-				psLast = psStyle;
-			}
-		}
-		uiRow++;
-	}
+	pcBands->AddRows(&mpLayout, &mcDocument, iTop, iBottom, iEnd);
 
 	//The shapes drawn under and over the text, in the order they are drawn.
-	MixShapes(pcBands, mpBackgroundMap, iTop, iBottom);
-	MixShapes(pcBands, mpSelectionMap, iTop, iBottom);
-	MixShapes(pcBands, mpLayout->GetGeometryMap(), iTop, iBottom);
+	pcBands->MixShapes(mpBackgroundMap, iTop, iBottom);
+	pcBands->MixShapes(mpSelectionMap, iTop, iBottom);
+	pcBands->MixShapes(mpLayout->GetGeometryMap(), iTop, iBottom);
 	pcBands->Complete();
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The style the row of band uiBand is in from uiOffset, as it is drawn.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MixStyle(CTextAreaBands* pcBands, size uiBand, size uiOffset, STextStyle* psStyle)
-{
-	uint8	auiStyle[16];
-	uint32	uiOffset32;
-
-	uiOffset32 = (uint32)uiOffset;
-	memcpy(&auiStyle[0], &uiOffset32, 4);
-	memcpy(&auiStyle[4], &psStyle->fPixelSize, 4);
-	memcpy(&auiStyle[8], &psStyle->sColour, 4);
-	auiStyle[12] = (uint8)((psStyle->bBold ? 1 : 0) | (psStyle->bItalic ? 2 : 0));
-	auiStyle[13] = psStyle->GetDecorations();
-	auiStyle[14] = (uint8)psStyle->ePosition;
-	auiStyle[15] = 0;
-	pcBands->Mix(uiBand, auiStyle, sizeof(auiStyle));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Each of the map's shapes that shows, iTop to iBottom, into the bands it
-// crosses: what it is, where and in what colour.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::MixShapes(CTextAreaBands* pcBands, Ptr<CGeometryMap> pMap, int32 iTop, int32 iBottom)
-{
-	size				i;
-	SGeometryCommand*	psCommand;
-	int32				aiShape[8];
-	float64				afShape[6];
-
-	for (i = 0; i < pMap->NumCommands(); i++)
-	{
-		psCommand = pMap->GetCommand(i);
-		if ((psCommand->cBounds.GetBottom() <= iTop) || (psCommand->cBounds.GetTop() >= iBottom))
-		{
-			continue;
-		}
-		aiShape[0] = (int32)psCommand->eType;
-		aiShape[1] = psCommand->cBounds.GetLeft();
-		aiShape[2] = psCommand->cBounds.GetTop();
-		aiShape[3] = psCommand->cBounds.GetRight();
-		aiShape[4] = psCommand->cBounds.GetBottom();
-		aiShape[5] = (int32)psCommand->sColour;
-		aiShape[6] = (int32)psCommand->uiNumPoints;
-		aiShape[7] = (int32)psCommand->eCap;
-		afShape[0] = psCommand->sStart.x;
-		afShape[1] = psCommand->sStart.y;
-		afShape[2] = psCommand->sEnd.x;
-		afShape[3] = psCommand->sEnd.y;
-		afShape[4] = psCommand->fRadius;
-		afShape[5] = psCommand->fThickness;
-		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), aiShape, sizeof(aiShape));
-		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), afShape, sizeof(afShape));
-		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), &psCommand->pcSprite, sizeof(CImageCel*));
-	}
 }
 
 
@@ -1616,7 +1503,7 @@ bool CTextArea::GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The selection is drawn as a range (AddRangeRectangles).  The caret is
+// The selection is drawn as a range (CTextAreaShapes::AddRange).  The caret is
 // drawn by the window, blinking, over what it paints (GetCaretRect).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1636,7 +1523,7 @@ void CTextArea::UpdateMarks(void)
 
 	if (GetSelection(&uiStart, &uiEnd))
 	{
-		AddRangeRectangles(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
+		mcShapes.AddRange(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
 }
 
@@ -1671,161 +1558,16 @@ void CTextArea::BackgroundsChanged(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Draws the backgrounds into their map, each over the ones before it.
+// Draws the backgrounds into their map, each over the ones before it,
+// across the text area or the text if that is wider.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateBackgrounds(void)
 {
-	size					i;
-	STextAreaBackground*	psBackground;
-
 	mpBackgroundMap->Clear();
 	miBackgroundWidth = GetFullWidth();
 	mbBackgroundsDirty = false;
-
-	for (i = 0; i < mcBackgrounds.NumBackgrounds(); i++)
-	{
-		psBackground = mcBackgrounds.Get(i);
-		if (psBackground->eType == TAB_Range)
-		{
-			if (HasRows())
-			{
-				AddRangeRectangles(mpBackgroundMap, psBackground->uiStart, psBackground->uiEnd, psBackground->sColour);
-			}
-		}
-		else if (psBackground->eType == TAB_Lines)
-		{
-			AddLineBackgroundRectangles(psBackground);
-		}
-		else
-		{
-			AddBoundaryRectangle(psBackground);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// One rectangle for each run of lines without gaps between them.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AddLineBackgroundRectangles(STextAreaBackground* psBackground)
-{
-	size	uiLine;
-	int32	iTop;
-	int32	iBottom;
-	int32	iRunTop;
-	int32	iRunBottom;
-
-	iRunTop = 0;
-	iRunBottom = -1;
-	for (uiLine = psBackground->uiStart; uiLine < psBackground->uiEnd; uiLine++)
-	{
-		if (!mpLayout->GetLineRows(uiLine, &iTop, &iBottom))
-		{
-			break;
-		}
-		if (iTop != iRunBottom)
-		{
-			if (iRunBottom > iRunTop)
-			{
-				mpBackgroundMap->AddRectangle(0, iRunTop, miBackgroundWidth, iRunBottom - iRunTop, psBackground->sColour);
-			}
-			iRunTop = iTop;
-		}
-		iRunBottom = iBottom;
-	}
-	if (iRunBottom > iRunTop)
-	{
-		mpBackgroundMap->AddRectangle(0, iRunTop, miBackgroundWidth, iRunBottom - iRunTop, psBackground->sColour);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Centred on the line's top, but kept inside the text, so boundaries
-// above the first line and below the last are whole.  A boundary with no
-// line laid out is at the top.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AddBoundaryRectangle(STextAreaBackground* psBackground)
-{
-	int32	iTop;
-	int32	iBottom;
-	int32	y;
-	size	uiLast;
-
-	y = 0;
-	if (psBackground->uiStart < NumLines())
-	{
-		if (mpLayout->GetLineRows(psBackground->uiStart, &iTop, &iBottom))
-		{
-			y = iTop;
-		}
-	}
-	else
-	{
-		uiLast = NumLines() - 1;
-		if (mpLayout->GetLineRows(uiLast, &iTop, &iBottom))
-		{
-			y = iBottom + GetLineGap(uiLast);
-		}
-	}
-
-	y -= psBackground->iThickness / 2;
-	if (y + psBackground->iThickness > mpLayout->GetTextSize().y)
-	{
-		y = mpLayout->GetTextSize().y - psBackground->iThickness;
-	}
-	if (y < 0)
-	{
-		y = 0;
-	}
-	mpBackgroundMap->AddRectangle(0, y, miBackgroundWidth, psBackground->iThickness, psBackground->sColour);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A block on each row uiStart to uiEnd is on, to the end of rows it goes
-// past and a space further where they end at a line feed.  The text must
-// have stops.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextArea::AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour)
-{
-	size				uiRow;
-	size				uiStartRow;
-	size				uiEndRow;
-	int32				iLeft;
-	int32				iRight;
-	STextLayoutLine*	psLine;
-
-	uiStartRow = FindRow(uiStart, false);
-	uiEndRow = FindRow(uiEnd, true);
-	for (uiRow = uiStartRow; uiRow <= uiEndRow; uiRow++)
-	{
-		psLine = mpLayout->GetLayoutLine(uiRow);
-		iLeft = (uiRow == uiStartRow) ? GetPositionX(uiStart, false) : 0;
-		if (uiRow == uiEndRow)
-		{
-			iRight = GetPositionX(uiEnd, true);
-		}
-		else
-		{
-			iRight = mpLayout->GetRowRight(uiRow);
-			if (!mpLayout->IsRowWrapped(uiRow))
-			{
-				iRight += mpLayout->GetNewLineWidth();
-			}
-		}
-		if (iRight > iLeft)
-		{
-			pMap->AddRectangle(iLeft, psLine->iTop, iRight - iLeft, psLine->iHeight, sColour);
-		}
-	}
+	mcShapes.AddBackgrounds(mpBackgroundMap, &mcBackgrounds, miBackgroundWidth);
 }
 
 

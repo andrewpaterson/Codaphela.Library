@@ -1,4 +1,8 @@
 #include "BaseLib/GlobalMemory.h"
+#include "StandardLib/Objects.h"
+#include "SupportLib/FontColours.h"
+#include "SupportLib/FontFamily.h"
+#include "WindowLib/TextAreaLayout.h"
 #include "WindowLib/TextAreaBands.h"
 #include "TestLib/Assert.h"
 
@@ -126,6 +130,66 @@ void TestTextAreaBandsMixAll(void)
 }
 
 
+Ptr<CFont> ReadLabelFont(void);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A band for each row that shows, the last to the end given; a row whose
+// text changed is the only band that did.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaBandsAddRows(void)
+{
+	CTextDocument			cDocument;
+	Ptr<CTextAreaLayout>	pLayout;
+	CTextAreaBands			cBefore;
+	CTextAreaBands			cNow;
+	CArrayInt32Vec2			asChanged;
+	STextLayoutLine*		psSecond;
+
+	ObjectsInit();
+	cDocument.Init("ab\ncd");
+	pLayout = OMalloc<CTextAreaLayout>(&cDocument, OMalloc<CFontFamily>(OMalloc<CFontColours>(ReadLabelFont())));
+	pLayout->ReadText();
+	pLayout->LayoutText();
+	psSecond = pLayout->GetLayoutLine(1);
+
+	cBefore.Init();
+	cBefore.AddRows(&pLayout, &cDocument, 0, 1000, 500);
+	cBefore.Complete();
+	AssertSize(2, cBefore.NumBands());
+	AssertInt(pLayout->GetLayoutLine(0)->iTop, cBefore.Get(0)->iTop);
+	AssertInt(psSecond->iTop, cBefore.Get(0)->iBottom);
+	AssertInt(500, cBefore.Get(1)->iBottom);
+
+	//Only the rows from iTop to iBottom.
+	cNow.Init();
+	cNow.AddRows(&pLayout, &cDocument, psSecond->iTop, 1000, 500);
+	AssertSize(1, cNow.NumBands());
+	cNow.Kill();
+
+	cDocument.SetText("ab\ncX");
+	pLayout->TextSet();
+	cNow.Init();
+	cNow.AddRows(&pLayout, &cDocument, 0, 1000, 500);
+	cNow.Complete();
+	asChanged.Init();
+	cNow.Compare(&cBefore, &asChanged);
+	AssertSize(1, asChanged.NumElements());
+	AssertInt(psSecond->iTop, asChanged.Get(0)->x);
+	AssertInt(500, asChanged.Get(0)->y);
+
+	asChanged.Kill();
+	cNow.Kill();
+	cBefore.Kill();
+	pLayout = NULL;
+	cDocument.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -136,6 +200,7 @@ void TestTextAreaBands(void)
 
 	TestTextAreaBandsCompare();
 	TestTextAreaBandsMixAll();
+	TestTextAreaBandsAddRows();
 
 	TestStatistics();
 }

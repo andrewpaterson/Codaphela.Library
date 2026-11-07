@@ -31,6 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextBackgrounds.h"
 #include "TextAreaLayout.h"
 #include "TextAreaBands.h"
+#include "TextAreaShapes.h"
 #include "TextEditingInput.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
@@ -86,6 +87,7 @@ protected:
 	bool					mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
 	int32					miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>		mpSelectionMap;  //Under the text.
+	CTextAreaShapes			mcShapes;  //Draws the backgrounds and the selection into their maps.
 	bool					mbRowsChanged;  //Something drawn on the rows may have changed since the text area was drawn.
 	CTextAreaBands			mcBands;  //What was drawn, row by row, to find what changed (PrepareArea).
 	ARGB32					msSelectionColour;
@@ -275,9 +277,6 @@ protected:
 
 	//The colours under the text.
 	void				UpdateBackgrounds(void);
-	void				AddLineBackgroundRectangles(STextAreaBackground* psBackground);
-	void				AddBoundaryRectangle(STextAreaBackground* psBackground);
-	void				AddRangeRectangles(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour);
 	int32				GetFullWidth(void);
 
 	int32				GetPageHeight(void);
@@ -287,8 +286,6 @@ protected:
 	void				RowsChanged(void);
 	void				BackgroundsChanged(void);
 	bool				SummariseBands(CTextAreaBands* pcBands);
-	void				MixStyle(CTextAreaBands* pcBands, size uiBand, size uiOffset, STextStyle* psStyle);
-	void				MixShapes(CTextAreaBands* pcBands, Ptr<CGeometryMap> pMap, int32 iTop, int32 iBottom);
 };
 
 
