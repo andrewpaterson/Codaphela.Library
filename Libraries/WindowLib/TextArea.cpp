@@ -723,6 +723,24 @@ bool CTextArea::Draw(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The text area's setters only note that its text, spans or backgrounds
+// changed (Draw brings them up to date), so it draws again here when any
+// did.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
+{
+	CCanvas::PrepareArea(bDrawn, bClipped, pcClip, pcArea);
+	if (mbTextDirty || mbBackgroundsDirty || (miBackgroundWidth != GetFullWidth()))
+	{
+		MarkContentChanged();
+		mpWindow->AddDamage(pcArea);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateText(void)

@@ -342,6 +342,7 @@ public:
 	void				StopDragSelect(int x, int y);
 
 protected:
+	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
 	void				ReadText(void);
 	STextStyle*			MakeStyles(size uiFrom = 0);
 	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift, size uiFrom = 0);
