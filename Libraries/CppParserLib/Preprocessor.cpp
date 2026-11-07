@@ -2503,6 +2503,7 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 	char*			szName;
 	char*			szFileName;
 	time_t			tNow;
+	struct tm		sTime;
 	struct tm*		psTime;
 	char			szTime[64];
 	size			i;
@@ -2566,7 +2567,13 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 		InvalidateRecordings();
 		eKind = PTK_String;
 		tNow = time(NULL);
-		psTime = localtime(&tNow);
+		//The thread's own copy: units are preprocessed at the same time (CCPP65Builder::SetJobs), and localtime's is shared.
+#ifdef _WIN32
+		localtime_s(&sTime, &tNow);
+#else
+		localtime_r(&tNow, &sTime);
+#endif
+		psTime = &sTime;
 		if (strcmp(szName, "__DATE__") == 0)
 		{
 			snprintf(szTime, 64, "\"%s %2d %d\"", aszMonths[psTime->tm_mon], psTime->tm_mday, psTime->tm_year + 1900);
