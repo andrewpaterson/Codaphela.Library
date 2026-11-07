@@ -21,15 +21,15 @@ void CObjectRemovalContext::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectRemovalContext::Kill(void)
 {
-	mapcKilledObjects.Kill();
-	mapcRemainingObjects.Kill();
-	if (IsBusy() || (maapcRemovedObjects.NumElements() != 0))
+	if (IsBusy())
 	{
-		gcLogger.Error2(__METHOD__, " Killing ObjectRemovalContext whist still performing a removal.", NULL);
+		gcLogger.Error2(__METHOD__, " Killing ObjectRemovalContext whilst still performing a removal.", NULL);
 	}
+	Clear();
 	maapcRemovedObjects.Kill();
+	mapcRemainingObjects.Kill();
+	mapcKilledObjects.Kill();
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -135,8 +135,16 @@ bool CObjectRemovalContext::IsBusy(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectRemovalContext::Clear(void)
 {
+	size	i;
+	size	uiNumRemoved;
+
+	//Pushed batches are copies, which their containers free.
+	uiNumRemoved = maapcRemovedObjects.NumElements();
+	for (i = 0; i < uiNumRemoved; i++)
+	{
+		maapcRemovedObjects.Get(i)->Kill();
+	}
 	maapcRemovedObjects.ReInit();
 	mapcRemainingObjects.ReInit();
 	mapcKilledObjects.ReInit();
 }
-
