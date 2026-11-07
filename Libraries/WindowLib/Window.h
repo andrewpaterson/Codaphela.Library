@@ -33,7 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/MemberCall.h"
 
 
-#define WINDOW_DEFAULT_FRAMES_PER_SECOND	30
+#define WINDOW_DEFAULT_FRAMES_PER_SECOND	60  //At most one paint every 17 ms; at 30 a key typed soon after a paint waited up to 34 ms for the next.
 
 
 class CWindowTick;
