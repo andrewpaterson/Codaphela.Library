@@ -1598,6 +1598,48 @@ static bool PreprocessFile(char* szFileName, char* szSource, CConfig* pcConfig, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// #line N makes the next line N for __LINE__, and #line N "name" makes the
+// name __FILE__ too.  A line that isn't a positive number is an error.
+// [cpp.line]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorLine(void)
+{
+	CChars	szDest;
+	CChars	szErrors;
+
+	szDest.Init();
+	AssertTrue(PreprocessFile("Line.cpp", "\
+int a = __LINE__;\n\
+#line 100\n\
+int b = __LINE__;\n\
+int c = __LINE__;\n\
+#line 7 \"Other.cpp\"\n\
+char* f = __FILE__; int d = __LINE__;\n", NULL, NULL, NULL, &szDest, NULL));
+	AssertString("\
+int a = 1;\n\
+int b = 100;\n\
+int c = 101;\n\
+char* f = \"Other.cpp\"; int d = 7;\n", szDest.Text());
+	szDest.Kill();
+
+	szErrors.Init();
+	PreprocessErrors("#line x\n", &szErrors);
+	AssertString("Errors.cpp (1, 6): Expected a line number after #line.\n", szErrors.Text());
+	szErrors.Kill();
+	szErrors.Init();
+	PreprocessErrors("#line 0\n", &szErrors);
+	AssertString("Errors.cpp (1, 6): The #line number must be from 1 to 2147483647.\n", szErrors.Text());
+	szErrors.Kill();
+	szErrors.Init();
+	PreprocessErrors("#line 5 Name\n", &szErrors);
+	AssertString("Errors.cpp (1, 6): Expected a file name in quotes after the #line number.\n", szErrors.Text());
+	szErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __LINE__ is the line of the outermost macro name written in the source,
 // __FILE__ the translation unit's name and __COUNTER__ counts up from 0.
 // __cplusplus is C++14.  [cpp.predefined]
@@ -2039,6 +2081,7 @@ void TestPreprocessor(void)
 	TestPreprocessorLocations();
 	TestPreprocessorErrors();
 	TestPreprocessorUnreadableFile();
+	TestPreprocessorLine();
 	TestPreprocessorLineContinuation();
 	TestPreprocessorDirectiveMap();
 	TestPreprocessorParentheses();

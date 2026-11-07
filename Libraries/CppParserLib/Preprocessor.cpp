@@ -57,6 +57,8 @@ void SPPSource::Init(EPPSourceType eType)
 	iConditionalDepth = 0;
 	bHeaderDirectory = false;
 	iCurrentLine = 0;
+	iLineOffset = 0;
+	szLineFile.Init();
 	uiDirectory = 0;
 	uiDirectories = 0;
 	bRecorded = false;
@@ -70,6 +72,7 @@ void SPPSource::Init(EPPSourceType eType)
 //////////////////////////////////////////////////////////////////////////
 void SPPSource::Kill(void)
 {
+	szLineFile.Kill();
 	acTokens.Kill();
 }
 
@@ -1199,6 +1202,67 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 			return Error(&sPos, "Expected ',' or ')'.");
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// #line N or #line N "name": the next line of the current file is line N
+// for __LINE__, and __FILE__ is name.  N is a digit sequence, 1 to
+// 2147483647.  A header with one is preprocessed each time it is included
+// (its lines depend on it).  [cpp.line]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
+{
+	SPreprocessorPosition	sPos;
+	CExternalString			cNumber;
+	CChars					szRest;
+	SPPSource*				psSource;
+	int64					lliLine;
+	int						i;
+
+	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+	pcParser->SkipWhitespace();
+	lliLine = 0;
+	if (!pcParser->GetNumber(&cNumber) || (cNumber.miLen > 10))
+	{
+		return Error(&sPos, "Expected a line number after #line.");
+	}
+	for (i = 0; i < cNumber.miLen; i++)
+	{
+		if ((cNumber.msz[i] < '0') || (cNumber.msz[i] > '9'))
+		{
+			return Error(&sPos, "Expected a line number after #line.");
+		}
+		lliLine = lliLine * 10 + (cNumber.msz[i] - '0');
+	}
+	if ((lliLine < 1) || (lliLine > 2147483647))
+	{
+		return Error(&sPos, "The #line number must be from 1 to 2147483647.");
+	}
+
+	szRest.Init();
+	pcParser->AppendRemaining(&szRest);
+	szRest.StripWhitespace();
+	if (!szRest.Empty() && ((szRest.Length() < 2) || (szRest.GetChar(0) != '"') || (szRest.GetChar(szRest.Length() - 1) != '"')))
+	{
+		szRest.Kill();
+		return Error(&sPos, "Expected a file name in quotes after the #line number.");
+	}
+
+	psSource = GetCurrentFileSource();
+	if (psSource)
+	{
+		InvalidateRecordings();
+		psSource->iLineOffset = (int)(lliLine - (pcDirective->Line() + 2));
+		if (!szRest.Empty())
+		{
+			psSource->szLineFile.Set(szRest.Text());
+		}
+	}
+	szRest.Kill();
+	return true;
 }
 
 
@@ -2462,12 +2526,12 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 			iLine = psExpansion->iLine;
 			psExpansion = mpcOutput->GetExpansion(psExpansion->iParent);
 		}
+		psSource = GetCurrentFileSource();
 		if (iLine < 0)
 		{
-			psSource = GetCurrentFileSource();
 			iLine = psSource ? psSource->iCurrentLine : 0;
 		}
-		sz.Append(iLine + 1);
+		sz.Append(iLine + 1 + (psSource ? psSource->iLineOffset : 0));
 	}
 	else if (strcmp(szName, "__COUNTER__") == 0)
 	{
@@ -2475,6 +2539,12 @@ void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken
 		InvalidateRecordings();
 		sz.Append(miCounter);
 		miCounter++;
+	}
+	else if ((strcmp(szName, "__FILE__") == 0) && GetCurrentFileSource() && !GetCurrentFileSource()->szLineFile.Empty())
+	{
+		//The name given by #line, as it was written.
+		eKind = PTK_String;
+		sz.Append(GetCurrentFileSource()->szLineFile);
 	}
 	else if (strcmp(szName, "__FILE__") == 0)
 	{
@@ -2834,6 +2904,10 @@ bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
 	else if (pcDirective->Is(PPD_pragma))
 	{
 		bResult = ProcessHashPragma(&cParser);
+	}
+	else if (pcDirective->Is(PPD_line))
+	{
+		bResult = ProcessHashLine(pcDirective, &cParser);
 	}
 	else if (pcDirective->Is(PPD_unknown))
 	{

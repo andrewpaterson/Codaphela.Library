@@ -112,6 +112,9 @@ char* CPPDirective::Print(CChars* psz)
 	case PPD_warning:
 		psz->Append("warning");
 		break;
+	case PPD_line:
+		psz->Append("line");
+		break;
 	default:
 		break;
 	}

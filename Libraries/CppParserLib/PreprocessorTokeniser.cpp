@@ -49,6 +49,7 @@ void CPreprocessorTokeniser::Init(char* szFileName)
 	mcDirectives.AddDirective("pragma", PPD_pragma);
 	mcDirectives.AddDirective("warning", PPD_warning);
 	mcDirectives.AddDirective("include_next", PPD_include_next);
+	mcDirectives.AddDirective("line", PPD_line);
 }
 
 
@@ -259,6 +260,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens
 	case PPD_error:
 	case PPD_pragma:
 	case PPD_warning:
+	case PPD_line:
 	case PPD_null:
 	case PPD_unknown:
 		return TokeniseHashPlain(pcTokens, eDirective);

@@ -40,6 +40,7 @@ enum EPreprocessorDirective
 	PPD_pragma,
 	PPD_include_next,
 	PPD_warning,
+	PPD_line,
 	PPD_null,
 	PPD_unknown,
 	PPD_nomore,

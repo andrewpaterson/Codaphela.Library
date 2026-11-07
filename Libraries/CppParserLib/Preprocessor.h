@@ -73,6 +73,8 @@ struct SPPSource
 	size						iConditionalDepth;		//Conditionals open when the file was entered.
 	bool						bHeaderDirectory;		//A directory was pushed onto the header stack for it.
 	int							iCurrentLine;			//Source line of the tokens in acTokens.
+	int							iLineOffset;			//#line's: the presumed line (__LINE__) less the source line.
+	CChars						szLineFile;				//#line's file name, as its string literal (__FILE__), or empty.
 	uint64						uiDirectory;			//The file's directory, hashed.
 	uint64						uiDirectories;			//The directories of the file and the files including it, hashed (a quoted #include looks in them).
 	bool						bRecorded;				//The file's output is being kept (CPreprocessor's BeginRecording).
@@ -214,6 +216,7 @@ protected:
 	bool				IsDisabled(int64 lliDefineID);
 	bool				IsDefined(SPreprocessedToken* psToken);
 	SPPSource*			GetCurrentFileSource(void);
+	bool				ProcessHashLine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
 
 	//Converting tokenised lines.
 	void				ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest);
