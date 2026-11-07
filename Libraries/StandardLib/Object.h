@@ -80,7 +80,6 @@ public:
 	size				GetNumFieldPointerTos(void);
 	CPointer*			GetFieldPointerTo(size iIndex);
 
-	void				CopyFields(CEmbeddedObject* pcOther) override;
 
 	void				ValidateConsistency(void);
 

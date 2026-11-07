@@ -1031,6 +1031,8 @@ CObjects* CEmbeddedObject::GetObjects(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes pcOther's froms (and their hub): pcOther, a copy of a fat hollow
+// this has overwritten in place, is dropped without being killed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)

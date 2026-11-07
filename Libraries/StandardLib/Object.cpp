@@ -767,17 +767,6 @@ void CObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CopyFields(CEmbeddedObject* pcOther)
-{
-
-	CBaseObject::CopyFields(pcOther);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::ValidateEmbeddedConsistency(void)
 {
 	size	i;
@@ -819,4 +808,3 @@ void CObject::ClassNotImplemented(void)
 {
 	gcLogger.Error2(__METHOD__, " Class [", ClassName(), "] not yet implemented.", NULL);
 }
-
