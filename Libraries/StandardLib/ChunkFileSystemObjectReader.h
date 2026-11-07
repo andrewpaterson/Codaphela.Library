@@ -34,10 +34,10 @@ protected:
 
 public:
 	void				Init(const char* szDirectory, const char* szChunkFilename);
-	void				Kill(void);
+	void				Kill(void) override;
 
-	bool				Begin(void);
-	bool				End(void);
+	bool				Begin(void) override;
+	bool				End(void) override;
 };
 
 

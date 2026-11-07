@@ -47,23 +47,23 @@ public:
 			bool				IsObject(void) override;
 
 
-			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
-			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-			size				NumEmbedded(void);
+			CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
+			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;
+			size				NumEmbedded(void) override;
 
-			size				NumHeapFroms(void);
-			size				NumStackFroms(void);
+			size				NumHeapFroms(void) override;
+			size				NumStackFroms(void) override;
 			void				GetStackFroms(CArrayStackPointerE32* papcFroms) override;
-			void				ValidateConsistency(void);
+			void				ValidateConsistency(void) override;
 
 			bool				HasNes(void) override;
 			bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 
 protected:
-			void				EmbedFields(void);
+			void				EmbedFields(void) override;
 			void				Class(void) override;
-			CBaseObject*		Dehollow(void);
+			CBaseObject*		Dehollow(void) override;
 
 			void				FreePointers(void) override;
 			void				Free(void) override;

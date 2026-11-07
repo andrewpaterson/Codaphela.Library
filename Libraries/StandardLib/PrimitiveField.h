@@ -34,12 +34,12 @@ protected:
 
 public:
 	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, const char* szName);
-	void				Kill(void);
+	void				Kill(void) override;
 
-	bool				IsPrimitive(void);
-	size				GetSizeOf(void);
-	size				GetNameOffset(void);
-	SDataIO*			GetDataIO(void);
+	bool				IsPrimitive(void) override;
+	size				GetSizeOf(void) override;
+	size				GetNameOffset(void) override;
+	SDataIO*			GetDataIO(void) override;
 	CPrimitiveObject*	GetPrimitiveObject(CBaseObject* pcFieldContainer);
 	void*				GetValue(CBaseObject* pcFieldContainer);
 };

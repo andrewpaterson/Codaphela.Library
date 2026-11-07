@@ -29,11 +29,11 @@ class CEmbeddedObjectField : public CField
 CONSTRUCTABLE(CEmbeddedObjectField)
 public:
 	void			Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	bool			IsEmbeddedObject(void);
-	size			GetSizeOf(void);
-	size			GetNameOffset(void);
+	bool			IsEmbeddedObject(void) override;
+	size			GetSizeOf(void) override;
+	size			GetNameOffset(void) override;
 
 	CBaseObject*	GetEmbeddedObject(CBaseObject* pcFieldContainer);
 };

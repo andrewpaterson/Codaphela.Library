@@ -30,7 +30,7 @@ class CSetType : public CSetUnknown
 CONSTRUCTABLE(CSetType)
 public:
 	void 	Init(bool bSortPointers = true);
-	void 	Kill(void);
+	void 	Kill(void) override;
 
 	void	Add(M* pcUnknown);
 	M*		Add(void);

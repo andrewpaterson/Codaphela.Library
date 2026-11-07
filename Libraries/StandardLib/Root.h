@@ -46,8 +46,8 @@ public:
 						bool			Remove(CPointer& pObject);
 						bool			Remove(CBaseObject* pcObject);
 						bool			RemoveAll(void);
-						bool			IsRoot(void);
-						bool			IsSubRoot(void);
+						bool			IsRoot(void) override;
+						bool			IsSubRoot(void) override;
 
 						CPointer		UnsafeGet(size iIndex);
 	template<class M>	Ptr<M>			UnsafeGet(size iIndex);

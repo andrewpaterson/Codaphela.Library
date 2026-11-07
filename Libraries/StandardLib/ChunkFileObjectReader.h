@@ -32,10 +32,10 @@ protected:
 
 public:
 	void				Init(CChunkFileFileSystem* pcChunkFile);
-	void				Kill(void);
+	void				Kill(void) override;
 
-	CSerialisedObject*	Read(OIndex oi);
-	CSerialisedObject*  Read(const char* szObjectName);
+	CSerialisedObject*	Read(OIndex oi) override;
+	CSerialisedObject*  Read(const char* szObjectName) override;
 };
 
 

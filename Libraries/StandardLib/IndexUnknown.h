@@ -39,11 +39,11 @@ private:
 public:
 	void		_Init(void);
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true, EIndexKeyReverse eKeyReverse = IKR_No);
-	void		Kill(void);
+	void		Kill(void) override;
 	void		ReInit(void);
 
-	bool		Save(CFileWriter* pcFileWriter);
-	bool		Load(CFileReader* pcFileReader);
+	bool		Save(CFileWriter* pcFileWriter) override;
+	bool		Load(CFileReader* pcFileReader) override;
 
 	template<class M>
 	M*			Put(uint8* pvKey, size iKeySize);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
@@ -77,10 +77,10 @@ public:
 	size		ReadIndexUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 
 protected:
-	void		FreeData(void* pvData);
-	bool		WriteData(CFileWriter* pcFileWriter, void* pvData);
-	bool		ReadData(CFileReader* pcFileReader, void* pvData);
-	size		AdjustDataSize(void* pvValue, size iValueSize);
+	void		FreeData(void* pvData) override;
+	bool		WriteData(CFileWriter* pcFileWriter, void* pvData) override;
+	bool		ReadData(CFileReader* pcFileReader, void* pvData) override;
+	size		AdjustDataSize(void* pvValue, size iValueSize) override;
 };
 
 

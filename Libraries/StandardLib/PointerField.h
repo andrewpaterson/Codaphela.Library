@@ -33,11 +33,11 @@ protected:
 
 public:
 	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	bool		IsPointer(void);
-	size		GetSizeOf(void);
-	size		GetNameOffset(void);
+	bool		IsPointer(void) override;
+	size		GetSizeOf(void) override;
+	size		GetNameOffset(void) override;
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
 	void		DoNotFreePointedTo(bool bValue);
 	bool		IsDoNotFreePointedTo(void);

@@ -37,11 +37,11 @@ protected:
 
 public:
 	void	Init(const char* szDirectory, const char* szBaseName, const char* szChunkFilename);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	Begin(void);
-	bool	Write(CSerialisedObject* pcSerialised);
-	bool	End(void);
+	bool	Begin(void) override;
+	bool	Write(CSerialisedObject* pcSerialised) override;
+	bool	End(void) override;
 
 protected:
 	bool	ObjectStartsWithBaseName(const char* szObjectName);

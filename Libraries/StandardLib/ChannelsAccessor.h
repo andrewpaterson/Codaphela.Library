@@ -38,7 +38,7 @@ protected:
 
 public:
 			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
-	virtual void					Kill(void);
+			void					Kill(void) override;
 
 	virtual void*					Get(lsize iPos) =0;
 	virtual void					Set(lsize iPos, void* pvData) =0;

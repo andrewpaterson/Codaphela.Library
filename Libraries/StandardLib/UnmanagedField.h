@@ -36,15 +36,15 @@ public:
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, const char* szName);
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiElementSize, size uiLength, const char* szName);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	bool		IsArray(void);
+	bool		IsArray(void) override;
 	size		GetLength(void);
-	bool		IsUnmanaged(void);
+	bool		IsUnmanaged(void) override;
 	void*		GetData(CBaseObject* pcFieldContainer);
-	size		GetSizeOf(void);
+	size		GetSizeOf(void) override;
 	EPrimitiveType	GetType(void);
-	size		GetNameOffset(void);
+	size		GetNameOffset(void) override;
 };
 
 

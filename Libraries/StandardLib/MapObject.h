@@ -75,7 +75,7 @@ public:
 	CMapUnknownUnknown*	GetUnknownMap(void);
 
 	bool				IsSorted(void);
-	void				ValidateInternalConsistency(void);
+	void				ValidateInternalConsistency(void) override;
 
 protected:
 	void				PreFields(void) override;

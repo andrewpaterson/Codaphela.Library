@@ -40,7 +40,7 @@ protected:
 
 public:
 								void			Init(CObjects* pcObjects);
-								void			Kill(void);
+								void			Kill(void) override;
 	template<class TConverter>	TConverter*		AddConverter(void);
 	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, const char* szFilename);
 								CObjectSource*	GetSource(const char* szObjectName);

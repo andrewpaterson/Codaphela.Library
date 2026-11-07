@@ -39,7 +39,7 @@ protected:
 
 public:
 			void		Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName);
-			void		Kill(void);
+			void		Kill(void) override;
 
 			CClasses*	GetClasses(void);
 			char*		GetName(void);

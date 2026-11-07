@@ -29,12 +29,12 @@ class CObjectConverterText : public CObjectConverter
 CONSTRUCTABLE(CObjectConverterText)
 public:
 	void			Init(CObjects* pcObjects);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	const char*			GetFileExtension(void);
-	bool			IsFor(CAbstractFile* pcFile);
-	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename);
-	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName);
+	const char*			GetFileExtension(void) override;
+	bool			IsFor(CAbstractFile* pcFile) override;
+	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) override;
+	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) override;
 };
 
 

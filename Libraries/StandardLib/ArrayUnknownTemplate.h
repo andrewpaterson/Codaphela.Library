@@ -30,7 +30,7 @@ class CArrayUnknownTemplate : public CArrayUnknown
 CONSTRUCTABLE(CArrayUnknownTemplate)
 public:
 	void 	Init(void);
-	void 	Kill(void);
+	void 	Kill(void) override;
 
 	void	Add(M* pcUnknown);
 	M*		Add(void);

@@ -32,10 +32,10 @@ protected:
 
 public:
 	void				Init(CFileBasic* pcFile);
-	void				Kill(void);
+	void				Kill(void) override;
 
-	CSerialisedObject*  Read(const char* szObjectName);
-	CSerialisedObject*	Read(OIndex oi);
+	CSerialisedObject*  Read(const char* szObjectName) override;
+	CSerialisedObject*	Read(OIndex oi) override;
 
 protected:
 	CSerialisedObject*	ReadOpenedFile(CFileBasic* pcFile);

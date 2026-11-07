@@ -140,18 +140,18 @@ public:
 			OIndex					GetIndex(void) override;
 			void					FreeIdentifiers(void) override;
 
-			bool					IsRoot(void);
+			bool					IsRoot(void) override;
 	virtual bool					IsSubRoot(void);
-			bool					IsHollow(void);
+			bool					IsHollow(void) override;
 	virtual bool					IsCollection(void) =0;
 	virtual bool					IsObject(void) =0;
 			bool					IsNamed(void) override;
 			bool					IsInvalidated(void);
-			bool					IsDirty(void);
+			bool					IsDirty(void) override;
 			bool					IsStored(void);
-			bool					IsInitialised(void);
+			bool					IsInitialised(void) override;
 			bool					HasClass(void);
-			CClass*					GetClass(void);
+			CClass*					GetClass(void) override;
 			bool					IsKilled(void);
 			bool					IsNamed(const char* szName);
 
@@ -163,12 +163,12 @@ public:
 			void					PrintFlags(CChars* psz);
 			void					Print(CChars* psz) override;
 
-			size					NumEmbedded(void);
+			size					NumEmbedded(void) override;
 
-			void					SetDirty(bool bDirty);
+			void					SetDirty(bool bDirty) override;
 			void					SetStored(bool bStored);
 			bool					Destroy(void);
-			int						GetDistToRoot(void);
+			int						GetDistToRoot(void) override;
 			bool					IsKnownHeldFromStack(void);
 			void					SetKnownHeldFromStack(void);
 			void					StackFromAdded(void);
@@ -184,7 +184,7 @@ public:
 
 
 			bool					TestedForSanity(void);
-			CObjects*				GetObjectsThisIn(void);
+			CObjects*				GetObjectsThisIn(void) override;
 			CClasses*				GetClasses(void);
 			CClass*					CompleteClass(CClasses* pcClasses);
 			void					CopyFields(CEmbeddedObject* pcOther) override;
@@ -254,7 +254,7 @@ protected:
 			bool					SaveHeapFroms(CObjectWriter* pcFile);
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
-			bool					IsBaseObject(void);
+			bool					IsBaseObject(void) override;
 			size					NumHeapFromHolders(void);
 			uint16					GetNumEmbeddedFromFlags(void);
 			void					SetFlagNumEmbedded(size iNumEmbedded);

@@ -33,7 +33,7 @@ protected:
 
 public:
 	void Init(CChannels* pcSource, CChannels* pcDest);
-	void Kill(void);
+	void Kill(void) override;
 
 	void Copy(lsize uiSourcePos, lsize uiDestPos, lsize uiLength);
 };

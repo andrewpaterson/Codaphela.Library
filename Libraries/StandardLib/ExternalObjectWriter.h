@@ -30,7 +30,7 @@ class CExternalObjectWriter : public CUnknown
 CONSTRUCTABLE(CExternalObjectWriter)
 public:
 			void Init(const char* szBaseName);
-			void Kill(void);
+			void Kill(void) override;
 
 	virtual bool Begin(void);
 	virtual bool Write(CSerialisedObject* pcSerialised) =0;

@@ -32,9 +32,9 @@ protected:
 
 public:
 	void				Init(const char* szDirectory);
-	void				Kill(void);
+	void				Kill(void) override;
 
-	CSerialisedObject*  Read(const char* szObjectName);
+	CSerialisedObject*  Read(const char* szObjectName) override;
 };
 
 

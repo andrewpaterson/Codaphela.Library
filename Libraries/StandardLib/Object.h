@@ -57,44 +57,44 @@ public:
 						CObject();
 						~CObject();
 
-	void				Allocate(CObjects* pcObjects);
+	void				Allocate(CObjects* pcObjects) override;
 	void				Kill(void) final override;
 	bool				IsCollection(void) override;
 	bool				IsObject(void) override;
 	void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers) override;
 
-	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	size				NumEmbedded(void);
+	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;
+	size				NumEmbedded(void) override;
 	size				CountNumEmbedded(void);
-	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
-	CBaseObject*		Dehollow(void);
-	size				NumHeapFroms(void);
-	size				NumStackFroms(void);
+	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
+	CBaseObject*		Dehollow(void) override;
+	size				NumHeapFroms(void) override;
+	size				NumStackFroms(void) override;
 	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
-	size				NumPointerTos(void);
+	size				NumPointerTos(void) override;
 	size				BaseNumPointerTos(void) override;
-	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
+	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 
 	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
 	size				GetNumFieldPointerTos(void);
 	CPointer*			GetFieldPointerTo(size iIndex);
 
 
-	void				ValidateConsistency(void);
+	void				ValidateConsistency(void) override;
 
 protected:
 	void				EmbedFields(void) override;
 	void				FreeInternal(void) override;
 	void				DoneKill(bool bAllocatedInObjects) override;
 	void				FreePointers(void) override;
-	void				RemovePointerTo(CEmbeddedObject* pcTo);
+	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	bool				ClearPointerTos(bool bFree) override;
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
-	void				ValidateEmbeddedConsistency(void);
+	void				ValidateEmbeddedConsistency(void) override;
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 	void				ClassNotImplemented(void);

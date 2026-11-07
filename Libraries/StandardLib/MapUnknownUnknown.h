@@ -34,11 +34,11 @@ private:
 public:	
 	void		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
-	void		Kill(void);
+	void		Kill(void) override;
 	void		ReInit(void);
 
-	bool		Save(CFileWriter* pcFile);
-	bool		Load(CFileReader* pcFile);
+	bool		Save(CFileWriter* pcFile) override;
+	bool		Load(CFileReader* pcFile) override;
 
 	bool		WriteMapUnknownHeader(CFileWriter* pcFileWriter);
 	bool		ReadMapUnknownHeader(CFileReader* pcFileReader);
@@ -57,9 +57,9 @@ public:
 	void		SetKey(SMapIterator* psIter, CUnknown* pcNewKey);
 	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);
 
-	size		NumElements(void);
-	size		GetSortedSize(void);
-	size		GetHoldingSize(void);
+	size		NumElements(void) override;
+	size		GetSortedSize(void) override;
+	size		GetHoldingSize(void) override;
 	size		NonNullElements(void);
 
 	bool		Remove(CUnknown* pcKey);
@@ -68,7 +68,7 @@ public:
 	bool		Iterate(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvValue);
 
 	void		Pack(void);
-	void		Print(CChars* psz);
+	void		Print(CChars* psz) override;
 	void		Dump(void);
 	size		Sort(void);
 	bool		IsSorted(void);

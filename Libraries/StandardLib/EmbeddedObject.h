@@ -96,7 +96,7 @@ public:
 								CEmbeddedObject();
 								~CEmbeddedObject();
 
-			void				Kill(void);
+			void				Kill(void) override;
 	virtual void				KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded);
 
 	virtual void				Evict(void);

@@ -29,7 +29,7 @@ class CExternalObjectReader : public CUnknown
 {
 CONSTRUCTABLE(CExternalObjectReader)
 public:
-			void				Kill(void);
+			void				Kill(void) override;
 
 	virtual bool				Begin(void);
 	virtual CSerialisedObject*  Read(const char* szObjectName) =0;

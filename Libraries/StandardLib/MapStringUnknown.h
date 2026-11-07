@@ -33,19 +33,19 @@ private:
 
 public:
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	bool		Save(CFileWriter* pcFile);
-	bool		Load(CFileReader* pcFile);
+	bool		Save(CFileWriter* pcFile) override;
+	bool		Load(CFileReader* pcFile) override;
 
 	template<class M>
 	M*			Put(const char* szKey);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
 	bool		Put(const char* szKey, CUnknown* pcValue);
 	CUnknown*	Get(const char* szKey);
 
-	size		NumElements(void);
-	size		GetSortedSize(void);
-	size		GetHoldingSize(void);
+	size		NumElements(void) override;
+	size		GetSortedSize(void) override;
+	size		GetHoldingSize(void) override;
 
 	bool		StartIteration(SMapIterator* psIterator, char** ppvKey, CUnknown** ppvData);
 	bool		Iterate(SMapIterator* psIterator, char** ppvKey, CUnknown** ppvData);

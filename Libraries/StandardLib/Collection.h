@@ -40,7 +40,7 @@ public:
 			void			Kill(void) final;
 			bool			IsCollection(void) override;
 			bool			IsObject(void) override;
-			CBaseObject*	Dehollow(void);
+			CBaseObject*	Dehollow(void) override;
 	virtual void			TouchAll(void) =0;
 	virtual void			KillAll(void) =0;
 			bool			RemoveAll(void);
@@ -53,15 +53,15 @@ public:
 
 			bool			Clear(void);
 			void			MakeSubRoot(void);
-			bool			IsSubRoot(void);
+			bool			IsSubRoot(void) override;
 
-			void			ValidateConsistency(void);
+			void			ValidateConsistency(void) override;
 			void			ValidateMemberLocations(void);
 
 protected:
 			void			Class(void) override;
 			void			PreFields(void) override;
-			void			EmbedFields(void);
+			void			EmbedFields(void) override;
 
 			bool			UnlinkFrom(CEmbeddedObject* pcObject);
 			bool			UnlinkFromUnlessFreed(CEmbeddedObject* pcObject);

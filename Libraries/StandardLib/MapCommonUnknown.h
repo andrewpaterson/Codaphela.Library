@@ -37,10 +37,10 @@ protected:
 public:
 			void 		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 			void 		Init(bool bKillElements = true, bool bOverwriteExisting = true);
-			void 		Kill(void);
+			void 		Kill(void) override;
 
-	virtual bool		Save(CFileWriter* pcFile) =0;
-	virtual bool		Load(CFileReader* pcFile) =0;
+			bool		Save(CFileWriter* pcFile) override =0;
+			bool		Load(CFileReader* pcFile) override =0;
 
 	virtual size		NumElements(void) =0;
 	virtual size		GetSortedSize(void) =0;
