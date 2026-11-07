@@ -246,22 +246,10 @@
     <ClInclude Include="ChannelsAccessor.h">
       <Filter>Source\Channels\Accessor</Filter>
     </ClInclude>
-    <ClInclude Include="ChannelsAccessorAccessBitty.h">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelsAccessorByteAligned.h">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelsAccessorChannelBitty.h">
+    <ClInclude Include="ChannelsAccessorShapes.h">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClInclude>
     <ClInclude Include="ChannelsAccessorContiguous.h">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelsAccessorTypeConverter.h">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="ChannelsAccessorWorstCase.h">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClInclude>
     <ClInclude Include="ChannelsAccessorCreator.h">
@@ -671,22 +659,7 @@
     <ClCompile Include="ChannelsAccessor.cpp">
       <Filter>Source\Channels\Accessor</Filter>
     </ClCompile>
-    <ClCompile Include="ChannelsAccessorAccessBitty.cpp">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ChannelsAccessorByteAligned.cpp">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ChannelsAccessorChannelBitty.cpp">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClCompile>
     <ClCompile Include="ChannelsAccessorContiguous.cpp">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ChannelsAccessorTypeConverter.cpp">
-      <Filter>Source\Channels\Accessor\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ChannelsAccessorWorstCase.cpp">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClCompile>
     <ClCompile Include="ChannelsAccessorCreator.cpp">

@@ -38,7 +38,7 @@ protected:
 	CStackMemory<8>			msBuffer;  //Where the gotten data is stored.
 
 public:
-			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
+	virtual void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
 			void					Kill(void) override;
 
 	virtual void*					Get(lsize iPos) =0;

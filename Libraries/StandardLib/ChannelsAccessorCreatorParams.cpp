@@ -20,12 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TypeNames.h"
 #include "Unknowns.h"
-#include "ChannelsAccessorContiguous.h"
-#include "ChannelsAccessorByteAligned.h"
-#include "ChannelsAccessorTypeConverter.h"
-#include "ChannelsAccessorAccessBitty.h"
-#include "ChannelsAccessorChannelBitty.h"
-#include "ChannelsAccessorWorstCase.h"
 #include "ChannelsAccessorCreatorParams.h"
 
 

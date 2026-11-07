@@ -29,12 +29,12 @@ CONSTRUCTABLE(CChannelsAccessorContiguous)
 public:
 	size	miByteOffset;
 
-	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
+	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize) override;
 
 	void*	Get(lsize iPos) override;
 	void	Set(lsize iPos, void* pvData) override;
 
-	bool	IsContiguous(void);
+	bool	IsContiguous(void) override;
 };
 
 

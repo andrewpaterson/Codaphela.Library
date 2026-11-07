@@ -44,6 +44,9 @@ public:
 	void	AddAccess(CChannels* pcChannels);
 	void	AddAccess(CChannelAccessor* pcChannel);
 	void	AddAccess(CChannelsAccessor* pcChannels);
+
+protected:
+	static CChannelsAccessor*	Allocate(bool bContiguous, bool bSourceTypesSame, bool bChannelByteAligned, bool bAccessByteAligned);
 };
 
 

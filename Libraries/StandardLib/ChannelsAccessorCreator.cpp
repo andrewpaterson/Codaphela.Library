@@ -21,11 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TypeNames.h"
 #include "Unknowns.h"
 #include "ChannelsAccessorContiguous.h"
-#include "ChannelsAccessorByteAligned.h"
-#include "ChannelsAccessorTypeConverter.h"
-#include "ChannelsAccessorAccessBitty.h"
-#include "ChannelsAccessorChannelBitty.h"
-#include "ChannelsAccessorWorstCase.h"
+#include "ChannelsAccessorShapes.h"
 #include "ChannelsAccessorCreator.h"
 
 
@@ -55,84 +51,55 @@ void CChannelsAccessorCreator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 {
-	bool					bContiguous;
-	bool					bSourceTypesSame;
-	bool					bChannelByteAligned;
-	bool					bAccessByteAligned;
-	size					iBitSize;
-	size					iByteSize;
-	CArrayChannelAccessor*  pacAccessors;
-	CChannels*				pcChannels;
-
 	CChannelsAccessor*	pcAccessor;
-	bool				bResult;
 
 	//Must be called before calculations
-	bResult = mcParams.CreateAccessorParams();
-
-	if (bResult)
+	if (!mcParams.CreateAccessorParams())
 	{
-		bContiguous = mcParams.IsContiguous();
-		bSourceTypesSame = mcParams.IsSourceTypesSame();
-		bChannelByteAligned = mcParams.IsChannelByteAligned();
-		bAccessByteAligned = mcParams.IsAccessByteAligned();
-		iBitSize = mcParams.GetBitSize();
-		iByteSize = mcParams.GetByteSize();
-		pcChannels = mcParams.GetChannels();
-		pacAccessors = mcParams.GetAccessors();
-		pcAccessor = NULL;
-
-		if (bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorContiguous);
-			((CChannelsAccessorContiguous*)pcAccessor)->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (!bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorByteAligned);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (!bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (bChannelByteAligned && !bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorAccessBitty);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (!bChannelByteAligned && bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorChannelBitty);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
-
-		if (!bChannelByteAligned && !bAccessByteAligned)
-		{
-			pcAccessor = UMalloc(CChannelsAccessorWorstCase);
-			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
-			return pcAccessor;
-		}
+		return NULL;
 	}
 
-	return NULL;
+	pcAccessor = Allocate(mcParams.IsContiguous(), mcParams.IsSourceTypesSame(), mcParams.IsChannelByteAligned(), mcParams.IsAccessByteAligned());
+	pcAccessor->Init(mcParams.GetChannels(), mcParams.GetAccessors(), mcParams.GetByteSize(), mcParams.GetBitSize());
+	return pcAccessor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The fastest accessor for the channels and the accesses: bitty
+// channels or accesses need bit copies, different types conversions.
+//
+//////////////////////////////////////////////////////////////////////////
+CChannelsAccessor* CChannelsAccessorCreator::Allocate(bool bContiguous, bool bSourceTypesSame, bool bChannelByteAligned, bool bAccessByteAligned)
+{
+	if (bChannelByteAligned && bAccessByteAligned)
+	{
+		if (!bSourceTypesSame)
+		{
+			return UMalloc(CChannelsAccessorTypeConverter);
+		}
+		else if (bContiguous)
+		{
+			return UMalloc(CChannelsAccessorContiguous);
+		}
+		else
+		{
+			return UMalloc(CChannelsAccessorByteAligned);
+		}
+	}
+	else if (bChannelByteAligned)
+	{
+		return UMalloc(CChannelsAccessorAccessBitty);
+	}
+	else if (bAccessByteAligned)
+	{
+		return UMalloc(CChannelsAccessorChannelBitty);
+	}
+	else
+	{
+		return UMalloc(CChannelsAccessorWorstCase);
+	}
 }
 
 

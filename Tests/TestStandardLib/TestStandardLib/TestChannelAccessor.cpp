@@ -385,6 +385,55 @@ void TestChannelsAccessorAccessBitty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestChannelsAccessorAccessBittySecondElement(void)
+{
+	CChannels*					pcChannels;
+	CChannelsAccessor*			pcAccessor;
+	CChannelsAccessorCreator	cCreator;
+	uint8*						pucData;
+	uint8						aucData[2];
+
+	pcChannels = UMalloc(CChannels);
+	pcChannels->Init();
+	pcChannels->BeginChange();
+	pcChannels->SetSize(2);
+	pcChannels->AddChannel(CHANNEL_NAME_JACK, PT_uint16);
+	pcChannels->AddChannel(CHANNEL_NAME_BOB, PT_uint16);
+	pcChannels->AddChannel(CHANNEL_NAME_ALICE, PT_uint16);
+	pcChannels->EndChange();
+	pcChannels->Black();
+
+	cCreator.Init(pcChannels);
+	cCreator.AddAccess(CHANNEL_NAME_JACK, PT_sixbits);
+	cCreator.AddAccess(CHANNEL_NAME_BOB, PT_sixbits);
+	cCreator.AddAccess(CHANNEL_NAME_ALICE, PT_nybble);
+	pcAccessor = cCreator.CreateAndKill();
+	AssertString("CChannelsAccessorAccessBitty", pcAccessor->ClassName());
+
+	//The second element is six bytes on; the first is left black.
+	aucData[0] = 0xa3;
+	aucData[1] = 0x2c;
+	pcAccessor->Set(1, aucData);
+	AssertShortHex((uint16)0x0000, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 0 + 0));
+	AssertShortHex((uint16)0x0000, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 0 + 2));
+	AssertShortHex((uint16)0x0000, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 0 + 4));
+	AssertShortHex((uint16)0x8e38, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 6 + 0));
+	AssertShortHex((uint16)0xcb2c, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 6 + 2));
+	AssertShortHex((uint16)0x2222, *(uint16*)RemapSinglePointer(pcChannels->GetData(), 6 + 4));
+	pucData = (uint8*)pcAccessor->Get(1);
+	AssertShortHex((uint16)0x2ca3, *(uint16*)pucData);
+	pucData = (uint8*)pcAccessor->Get(0);
+	AssertShortHex((uint16)0x0000, *(uint16*)pucData);
+	pcAccessor->Kill();
+
+	pcChannels->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestChannelsAccessorWorstCase(void)
 {
 	CChannels*					pcChannels;
@@ -482,6 +531,7 @@ void TestChannelsAccessor(void)
 	TestChannelsAccessorTypeConvertReversed();
 	TestChannelsAccessorChannelBitty();
 	TestChannelsAccessorAccessBitty();
+	TestChannelsAccessorAccessBittySecondElement();
 	TestChannelsAccessorWorstCase();
 
 	ObjectsKill();
