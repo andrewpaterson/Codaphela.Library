@@ -22,90 +22,102 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_P_P_SYNTAX_KIND_H__
 
 
+//Each kind of syntax node: N is its ECPPSyntax CPPS_N, its class CCPPSyntaxN and its name "N" (gaszSyntaxKindNames).
+#define CPP_SYNTAX_KINDS(X) \
+	X(TranslationUnit) \
+	X(Namespace) \
+	X(LinkageSpecification) \
+	X(SimpleDeclaration) \
+	X(FunctionDefinition) \
+	X(InitDeclarator) \
+	X(TemplateDeclaration) \
+	X(TypeParameter) \
+	X(Parameter) \
+	X(UsingDirective) \
+	X(UsingDeclaration) \
+	X(AliasDeclaration) \
+	X(StaticAssert) \
+	X(ExtensionDeclaration) \
+	X(EmptyDeclaration) \
+	X(AccessSpecifier) \
+	X(SkippedDeclaration) \
+	X(Enumerator) \
+	X(BaseSpecifier) \
+	X(MemberInitializer) \
+	X(Attribute) \
+	X(DeclSpecifiers) \
+	X(KeywordSpecifier) \
+	X(AlignasSpecifier) \
+	X(NamedTypeSpecifier) \
+	X(ClassSpecifier) \
+	X(EnumSpecifier) \
+	X(ElaboratedTypeSpecifier) \
+	X(DecltypeSpecifier) \
+	X(Declarator) \
+	X(PointerOperator) \
+	X(FunctionSuffix) \
+	X(ArraySuffix) \
+	X(ExceptionSpecification) \
+	X(TypeId) \
+	X(Name) \
+	X(NameComponent) \
+	X(CompoundStatement) \
+	X(DeclarationStatement) \
+	X(ExpressionStatement) \
+	X(IfStatement) \
+	X(SwitchStatement) \
+	X(CaseStatement) \
+	X(LabelStatement) \
+	X(AttributedStatement) \
+	X(WhileStatement) \
+	X(DoStatement) \
+	X(ForStatement) \
+	X(RangeForStatement) \
+	X(BreakStatement) \
+	X(ContinueStatement) \
+	X(ReturnStatement) \
+	X(GotoStatement) \
+	X(TryStatement) \
+	X(CatchHandler) \
+	X(SkippedStatement) \
+	X(LiteralExpression) \
+	X(StringExpression) \
+	X(IdExpression) \
+	X(ThisExpression) \
+	X(ParenthesisedExpression) \
+	X(UnaryExpression) \
+	X(BinaryExpression) \
+	X(ConditionalExpression) \
+	X(CallExpression) \
+	X(SubscriptExpression) \
+	X(MemberExpression) \
+	X(CastExpression) \
+	X(ConstructExpression) \
+	X(NamedCastExpression) \
+	X(SizeofExpression) \
+	X(TypeidExpression) \
+	X(NewExpression) \
+	X(DeleteExpression) \
+	X(ThrowExpression) \
+	X(InitializerList) \
+	X(ParenthesisedInitializer) \
+	X(TypeTraitExpression) \
+	X(PackExpansionExpression) \
+	X(NoexceptExpression) \
+	X(LazyDeclaration)
+
+
+#define CPP_SYNTAX_ENUM(N)	CPPS_##N,
 enum ECPPSyntax
 {
-	CPPS_TranslationUnit,
-	CPPS_Namespace,
-	CPPS_LinkageSpecification,
-	CPPS_SimpleDeclaration,
-	CPPS_FunctionDefinition,
-	CPPS_InitDeclarator,
-	CPPS_TemplateDeclaration,
-	CPPS_TypeParameter,
-	CPPS_Parameter,
-	CPPS_UsingDirective,
-	CPPS_UsingDeclaration,
-	CPPS_AliasDeclaration,
-	CPPS_StaticAssert,
-	CPPS_ExtensionDeclaration,
-	CPPS_EmptyDeclaration,
-	CPPS_AccessSpecifier,
-	CPPS_SkippedDeclaration,
-	CPPS_Enumerator,
-	CPPS_BaseSpecifier,
-	CPPS_MemberInitializer,
-	CPPS_Attribute,
-	CPPS_DeclSpecifiers,
-	CPPS_KeywordSpecifier,
-	CPPS_AlignasSpecifier,
-	CPPS_NamedTypeSpecifier,
-	CPPS_ClassSpecifier,
-	CPPS_EnumSpecifier,
-	CPPS_ElaboratedTypeSpecifier,
-	CPPS_DecltypeSpecifier,
-	CPPS_Declarator,
-	CPPS_PointerOperator,
-	CPPS_FunctionSuffix,
-	CPPS_ArraySuffix,
-	CPPS_ExceptionSpecification,
-	CPPS_TypeId,
-	CPPS_Name,
-	CPPS_NameComponent,
-	CPPS_CompoundStatement,
-	CPPS_DeclarationStatement,
-	CPPS_ExpressionStatement,
-	CPPS_IfStatement,
-	CPPS_SwitchStatement,
-	CPPS_CaseStatement,
-	CPPS_LabelStatement,
-	CPPS_AttributedStatement,
-	CPPS_WhileStatement,
-	CPPS_DoStatement,
-	CPPS_ForStatement,
-	CPPS_RangeForStatement,
-	CPPS_BreakStatement,
-	CPPS_ContinueStatement,
-	CPPS_ReturnStatement,
-	CPPS_GotoStatement,
-	CPPS_TryStatement,
-	CPPS_CatchHandler,
-	CPPS_SkippedStatement,
-	CPPS_LiteralExpression,
-	CPPS_StringExpression,
-	CPPS_IdExpression,
-	CPPS_ThisExpression,
-	CPPS_ParenthesisedExpression,
-	CPPS_UnaryExpression,
-	CPPS_BinaryExpression,
-	CPPS_ConditionalExpression,
-	CPPS_CallExpression,
-	CPPS_SubscriptExpression,
-	CPPS_MemberExpression,
-	CPPS_CastExpression,
-	CPPS_ConstructExpression,
-	CPPS_NamedCastExpression,
-	CPPS_SizeofExpression,
-	CPPS_TypeidExpression,
-	CPPS_NewExpression,
-	CPPS_DeleteExpression,
-	CPPS_ThrowExpression,
-	CPPS_InitializerList,
-	CPPS_ParenthesisedInitializer,
-	CPPS_TypeTraitExpression,
-	CPPS_PackExpansionExpression,
-	CPPS_NoexceptExpression,
-	CPPS_LazyDeclaration,
+	CPP_SYNTAX_KINDS(CPP_SYNTAX_ENUM)
+	CPPS_NumKinds
 };
+#undef CPP_SYNTAX_ENUM
+
+
+//A node class's kind (CCPPSyntax::GetKind), in its declaration: CPP_SYNTAX_GET_KIND(N) in class CCPPSyntaxN.
+#define CPP_SYNTAX_GET_KIND(N)	ECPPSyntax GetKind(void) override { return CPPS_##N; }
 
 
 #endif // __C_P_P_SYNTAX_KIND_H__
