@@ -90,3 +90,24 @@ void DeflateFixedDistanceLengths(uint8* puiLengths)
 		puiLengths[i] = 5;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The low uiLength bits of uiCode in the opposite order.  A Huffman code
+// is written first bit first, and the bit reader and writer hold the
+// first bit in the least significant place.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 DeflateReverseBits(uint32 uiCode, uint uiLength)
+{
+	uint32	uiReversed;
+	uint	i;
+
+	uiReversed = 0;
+	for (i = 0; i < uiLength; i++)
+	{
+		uiReversed = (uiReversed << 1) | ((uiCode >> i) & 1);
+	}
+	return uiReversed;
+}

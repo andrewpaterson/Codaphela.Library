@@ -188,10 +188,8 @@ void CHuffmanEncoder::BuildCodes(void)
 	uint16	auiCount[DEFLATE_MAX_BITS + 1];
 	uint16	auiNextCode[DEFLATE_MAX_BITS + 1];
 	uint16	uiCode;
-	uint16	uiReversed;
 	uint	iLength;
 	size	iSymbol;
-	uint	i;
 
 	memset(auiCount, 0, sizeof(auiCount));
 	for (iSymbol = 0; iSymbol < miNumSymbols; iSymbol++)
@@ -215,12 +213,7 @@ void CHuffmanEncoder::BuildCodes(void)
 			uiCode = auiNextCode[iLength];
 			auiNextCode[iLength]++;
 
-			uiReversed = 0;
-			for (i = 0; i < iLength; i++)
-			{
-				uiReversed = (uint16)((uiReversed << 1) | ((uiCode >> i) & 1));
-			}
-			mauiCodes[iSymbol] = uiReversed;
+			mauiCodes[iSymbol] = (uint16)DeflateReverseBits(uiCode, iLength);
 		}
 		else
 		{

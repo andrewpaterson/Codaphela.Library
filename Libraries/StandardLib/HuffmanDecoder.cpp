@@ -96,7 +96,6 @@ void CHuffmanDecoder::InitFast(uint8* puiLengths, size iNumSymbols)
 	uint16	uiEntry;
 	uint	iLength;
 	size	iSymbol;
-	uint	i;
 
 	memset(mauiFast, 0, sizeof(mauiFast));
 
@@ -118,11 +117,7 @@ void CHuffmanDecoder::InitFast(uint8* puiLengths, size iNumSymbols)
 			auiNextCode[iLength]++;
 			if (iLength <= HUFFMAN_FAST_BITS)
 			{
-				uiReversed = 0;
-				for (i = 0; i < iLength; i++)
-				{
-					uiReversed = (uiReversed << 1) | ((uiCode >> i) & 1);
-				}
+				uiReversed = DeflateReverseBits(uiCode, iLength);
 				uiEntry = (uint16)((iSymbol << HUFFMAN_FAST_LENGTH_BITS) | iLength);
 				for (uiIndex = uiReversed; uiIndex < HUFFMAN_FAST_SIZE; uiIndex += 1 << iLength)
 				{

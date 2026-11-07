@@ -58,6 +58,7 @@ extern const uint8	gauiDeflateCodeLengthOrder[DEFLATE_NUM_CODE_LENGTHS];
 
 void	DeflateFixedLiteralLengths(uint8* puiLengths);
 void	DeflateFixedDistanceLengths(uint8* puiLengths);
+uint32	DeflateReverseBits(uint32 uiCode, uint uiLength);
 
 
 #endif // __DEFLATE_COMMON_H__

@@ -9,6 +9,7 @@
 #include "StandardLib/BitWriter.h"
 #include "StandardLib/Inflater.h"
 #include "StandardLib/Deflater.h"
+#include "StandardLib/DeflateCommon.h"
 #include "TestLib/Assert.h"
 
 
@@ -542,6 +543,24 @@ void TestCompressionInflateCodes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// DeflateReverseBits reverses only the low bits asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCompressionReverseBits(void)
+{
+	AssertInt(0, DeflateReverseBits(0, 0));
+	AssertInt(1, DeflateReverseBits(1, 1));
+	AssertInt(0x4, DeflateReverseBits(0x1, 3));
+	AssertInt(0x6, DeflateReverseBits(0x3, 3));
+	AssertInt(0x0D, DeflateReverseBits(0x16, 5));
+	AssertInt(0x5555, DeflateReverseBits(0xAAAA, 16));
+	AssertInt(0x1, DeflateReverseBits(0xFFFF8000, 16));
+	AssertInt(0x0, DeflateReverseBits(0xF0, 4));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCompressionZLib(void)
@@ -550,6 +569,7 @@ void TestCompressionZLib(void)
 	MemoryInit();
 
 	TestCompressionChecksums();
+	TestCompressionReverseBits();
 	TestCompressionBits();
 	TestCompressionInflateZLib();
 	TestCompressionInflateRaw();
