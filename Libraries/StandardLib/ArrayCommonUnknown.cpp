@@ -478,39 +478,64 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Puts pcUnknown at iIndex in place of what is there, which is killed if
+// the array kills its elements.  False if iIndex is out of range or
+// pcUnknown can't go in (a NULL where NULLs are ignored, or an element
+// already in a unique array).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 {
+	CUnknown*	pcOld;
+	size		i;
+	size		uiNumElements;
 
-	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
+	uiNumElements = mcArray.NumElements();
+	if (iIndex >= uiNumElements)
 	{
-		CleanNullsIfNecessary(bCleanNullsIfNecessary);
 		return false;
 	}
 
+	pcOld = *mcArray.Get(iIndex);
+	if (pcOld == pcUnknown)
+	{
+		return true;
+	}
+	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
+	{
+		return false;
+	}
 	if (muiFlags & ARRAY_COMMOM_UNIQUE_ONLY)
 	{
-		if (Contains(pcUnknown))
+		//Searched without Contains: a binary search can clean the NULLs, moving the element at iIndex.
+		for (i = 0; i < uiNumElements; i++)
 		{
-			CleanNullsIfNecessary(bCleanNullsIfNecessary);
-			return false;
+			if (*mcArray.Get(i) == pcUnknown)
+			{
+				return false;
+			}
 		}
 	}
 
-	Unset(iIndex);
-	CleanNullsIfNecessary(bCleanNullsIfNecessary);
-
 	mcArray.Set(iIndex, &pcUnknown);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
-
+	if (pcOld != NULL)
+	{
+		miNonNullElements--;
+	}
 	if (pcUnknown != NULL)
 	{
 		miNonNullElements++;
 	}
+
+	//Once it is out of the array, and before the NULLs are cleaned (which moves the elements).
+	if ((pcOld != NULL) && (muiFlags & ARRAY_COMMOM_KILL_ELEMENT))
+	{
+		pcOld->Kill();
+	}
+	CleanNullsIfNecessary(bCleanNullsIfNecessary);
 	return true;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -578,32 +603,64 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Inserts pcUnknown where fCompare sorts it, or with bOverwriteExisting
+// in place of an element that compares equal (which is killed if the
+// array kills its elements).  Returns its index.
 //
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnknown, bool bOverwriteExisting)
 {
-	size	uiIndex;
+	size		uiIndex;
+	size		uiNumElements;
+	CUnknown*	pcReplaced;
+
+	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
 
 	if (!(muiFlags & ARRAY_COMMOM_IS_PTR_SORTED))
 	{
 		Sort();
 	}
-
 	CleanNullsBeforeBinarySearch();
+
+	pcReplaced = NULL;
+	if (bOverwriteExisting && mcArray.FindInSorted(&pcUnknown, fCompare, &uiIndex))
+	{
+		pcReplaced = *mcArray.Get(uiIndex);
+	}
+
+	uiNumElements = mcArray.NumElements();
 	uiIndex = mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
-	if (uiIndex + 1 != mcArray.NumElements())
+	if (mcArray.NumElements() != uiNumElements)
 	{
-		SlotsMoved();
+		if (uiIndex + 1 != mcArray.NumElements())
+		{
+			SlotsMoved();
+		}
+		if (pcUnknown != NULL)
+		{
+			miNonNullElements++;
+		}
 	}
-
-	if (pcUnknown != NULL)
+	else if (pcReplaced != pcUnknown)
 	{
-		miNonNullElements++;
+		if (pcReplaced != NULL)
+		{
+			miNonNullElements--;
+		}
+		if (pcUnknown != NULL)
+		{
+			miNonNullElements++;
+		}
+		if ((pcReplaced != NULL) && (muiFlags & ARRAY_COMMOM_KILL_ELEMENT))
+		{
+			pcReplaced->Kill();
+		}
 	}
-
 	return uiIndex;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

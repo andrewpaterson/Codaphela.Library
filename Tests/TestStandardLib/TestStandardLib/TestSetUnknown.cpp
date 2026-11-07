@@ -519,6 +519,84 @@ void TestSetUnknownAddAllWithNulls(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Set replaces the element at its index even when replacing it leaves
+// enough NULLs that they are cleaned, moving the elements.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetUnknownSetCleansNulls(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CTestUnknown*	apcTests[32];
+	CTestUnknown*	pcNew;
+	size			i;
+
+	cSet.Init(4, false);
+	for (i = 0; i < 32; i++)
+	{
+		apcTests[i] = cSet.Add<CTestUnknown>();
+		apcTests[i]->Init((int)i);
+	}
+
+	//The array's chunk grows with it; twelve NULLs (three chunks) are cleaned.  Eleven are one short.
+	cSet.SetChunkSize(4);
+	for (i = 0; i < 11; i++)
+	{
+		AssertTrue(cSet.CArrayCommonUnknown::Remove(i, false));
+	}
+	AssertSize(21, cSet.NumElements());
+	AssertSize(32, cSet.UnsafeNumElements());
+
+	pcNew = UMalloc(CTestUnknown);
+	pcNew->Init(100);
+	AssertTrue(cSet.Set(20, pcNew));
+	AssertSize(21, cSet.NumElements());
+	AssertTrue(cSet.Contains(pcNew));
+	AssertFalse(cSet.Contains(NULL));
+	//The eleven removed and the one replaced were killed.
+	AssertSize(21, gcUnknowns.NumElements());
+
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A unique sorted set given the same element twice holds it once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetUnknownSortedUniqueAddTwice(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CSetUnknown		cSet;
+	CTestUnknown*	pcTest;
+
+	cSet.Init(true, true, true, false, 4, true);
+	pcTest = cSet.Add<CTestUnknown>();
+	pcTest->Init(1);
+	cSet.Add(pcTest);
+	AssertSize(1, cSet.NumElements());
+	AssertSize(1, cSet.UnsafeNumElements());
+	AssertSize(1, gcUnknowns.NumElements());
+
+	cSet.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSetUnknown(void)
@@ -530,6 +608,8 @@ void TestSetUnknown(void)
 	TestSetUnknownCleanNulls();
 	TestSetUnknownLoadAfterRemove();
 	TestSetUnknownAddAllWithNulls();
+	TestSetUnknownSetCleansNulls();
+	TestSetUnknownSortedUniqueAddTwice();
 	TestSetUnknownSorted(4);
 	TestSetUnknownSorted(10000);
 
