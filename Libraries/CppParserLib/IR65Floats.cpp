@@ -35,7 +35,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 {
 	bool		bDouble;
-	const char*	szOperation;
 	CChars		szName;
 
 	bDouble = psInstruction->sType.Is(IRTK_F64);
@@ -57,17 +56,10 @@ bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 		return true;
 	}
 
-	switch (psInstruction->uiOpcode)
-	{
-	case IRO_FAdd:	szOperation = "Add";		break;
-	case IRO_FSub:	szOperation = "Subtract";	break;
-	case IRO_FMul:	szOperation = "Multiply";	break;
-	default:		szOperation = "Divide";		break;
-	}
 	Push(psInstruction->asArguments[1], psInstruction->sType);
 	Push(psInstruction->asArguments[0], psInstruction->sType);
-	szName.Init(bDouble ? "SoftDouble" : "SoftFloat");
-	szName.Append(szOperation);
+	szName.Init();
+	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
 	CallRuntime(szName.Text(), 2 * ValueBytes(psInstruction->sType));
 	szName.Kill();
 	msAvailable = IRNone();
@@ -85,32 +77,23 @@ bool CIR65Backend::FloatOperation(SIRInstruction* psInstruction)
 bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 {
 	SIRType	sFrom;
-	SIRType	sTo;
 	bool	bSigned;
 	CChars	szName;
 
 	sFrom = mpcFunction->TypeOf(psInstruction->asArguments[0]);
-	sTo = psInstruction->sType;
+	szName.Init();
+	AppendSoftFloatName(&szName, psInstruction, sFrom);
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_FExt:
 	case IRO_FTrunc:
 		Push(psInstruction->asArguments[0], sFrom);
-		CallRuntime(sTo.Is(IRTK_F64) ? "SoftFloatToDouble" : "SoftDoubleToFloat", ValueBytes(sFrom));
+		CallRuntime(szName.Text(), ValueBytes(sFrom));
 		break;
 
 	case IRO_SIToF:
 	case IRO_UIToF:
 		bSigned = psInstruction->uiOpcode == IRO_SIToF;
-		szName.Init(sTo.Is(IRTK_F64) ? "SoftDoubleFrom" : "SoftFloatFrom");
-		if (IsWide(sFrom))
-		{
-			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-		}
-		else
-		{
-			szName.Append((bSigned || (sFrom.IntegerBits() < 32)) ? "Int" : "Unsigned");
-		}
 		if (IsWide(sFrom))
 		{
 			Push(psInstruction->asArguments[0], sFrom);
@@ -122,25 +105,14 @@ bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 			Line("psh A")->AppendNewLine();
 		}
 		CallRuntime(szName.Text(), IsWide(sFrom) ? 8 : 4);
-		szName.Kill();
 		break;
 
 	default:
-		bSigned = psInstruction->uiOpcode == IRO_FToSI;
-		szName.Init(sFrom.Is(IRTK_F64) ? "SoftDoubleTo" : "SoftFloatTo");
-		if (IsWide(sTo))
-		{
-			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-		}
-		else
-		{
-			szName.Append((bSigned || (sTo.IntegerBits() < 32)) ? "Int" : "Unsigned");
-		}
 		Push(psInstruction->asArguments[0], sFrom);
 		CallRuntime(szName.Text(), ValueBytes(sFrom));
-		szName.Kill();
 		break;
 	}
+	szName.Kill();
 	msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
 	return true;
@@ -150,58 +122,44 @@ bool CIR65Backend::FloatConversion(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 //
 // The runtime's compare gives -1, 0 or 1, or 2 when either is a NaN (so
-// every comparison but fne and funordered is false then).
+// every comparison but fne and funordered is false then): the values that
+// make each true are FloatCompareValues'.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
 {
 	const char*	szTrue;
 	const char*	szFalse;
+	CChars		szName;
+	int			aiValues[2];
+	int			iValues;
+	bool		bNot;
 
 	Push(psInstruction->asArguments[1], psInstruction->sType);
 	Push(psInstruction->asArguments[0], psInstruction->sType);
-	CallRuntime(psInstruction->sType.Is(IRTK_F64) ? "SoftDoubleCompare" : "SoftFloatCompare", 2 * ValueBytes(psInstruction->sType));
+	szName.Init();
+	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
+	CallRuntime(szName.Text(), 2 * ValueBytes(psInstruction->sType));
+	szName.Kill();
 	msAvailable = IRNone();
 
-	szTrue = "bras z, ";
-	szFalse = "brac z, ";
-	switch (psInstruction->uiOpcode)
+	//One value is cmp A, v; two (v, v + 1) are A - v below 2, unsigned.
+	iValues = FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
+	if (iValues == 1)
 	{
-	case IRO_FEq:
-		Line("cmp A, 0")->AppendNewLine();
-		break;
-	case IRO_FNe:
-		Line("cmp A, 0")->AppendNewLine();
-		szTrue = "brac z, ";
-		szFalse = "bras z, ";
-		break;
-	case IRO_FLt:
-		Line("cmp A, -1")->AppendNewLine();
-		break;
-	case IRO_FGt:
-		Line("cmp A, 1")->AppendNewLine();
-		break;
-	case IRO_FLe:
-		//-1 or 0: A + 1 is below 2, unsigned.
-		Line("add A, 1")->AppendNewLine();
+		Line("cmp A, ")->Append(aiValues[0])->AppendNewLine();
+		szTrue = bNot ? "brac z, " : "bras z, ";
+		szFalse = bNot ? "bras z, " : "brac z, ";
+	}
+	else
+	{
+		if (aiValues[0] != 0)
+		{
+			Line("add A, ")->Append(-aiValues[0])->AppendNewLine();
+		}
 		Line("cmp A, 2")->AppendNewLine();
 		szTrue = "brac c, ";
 		szFalse = "bras c, ";
-		break;
-	case IRO_FGe:
-		//0 or 1.
-		Line("cmp A, 2")->AppendNewLine();
-		szTrue = "brac c, ";
-		szFalse = "bras c, ";
-		break;
-	case IRO_FOrdered:
-		Line("cmp A, 2")->AppendNewLine();
-		szTrue = "brac z, ";
-		szFalse = "bras z, ";
-		break;
-	default:
-		Line("cmp A, 2")->AppendNewLine();
-		break;
 	}
 	Branch(bJumpIf ? szTrue : szFalse, iLabel);
 	return true;

@@ -420,3 +420,80 @@ void CIRBackend::Label(int32 iLabel)
 	mpszOut->AppendNewLine();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The soft float runtime's routine (Libc65's softfloat.cpp) for a float
+// operation, conversion or compare, without the label's "_": SoftFloat or
+// SoftDouble (the float's type), then Add, Subtract, Multiply, Divide,
+// Compare, ToDouble or ToFloat, or From or To an Int, Unsigned, LongLong or
+// UnsignedLongLong (an integer narrower than 32 bits is an Int).  sFrom is
+// the operand's type.  Both back ends call these.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom)
+{
+	SIRType	sTo;
+	SIRType	sInteger;
+	bool	bSigned;
+
+	sTo = psInstruction->sType;
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_FAdd:	psz->Append(sTo.Is(IRTK_F64) ? "SoftDoubleAdd" : "SoftFloatAdd");				return;
+	case IRO_FSub:	psz->Append(sTo.Is(IRTK_F64) ? "SoftDoubleSubtract" : "SoftFloatSubtract");	return;
+	case IRO_FMul:	psz->Append(sTo.Is(IRTK_F64) ? "SoftDoubleMultiply" : "SoftFloatMultiply");	return;
+	case IRO_FDiv:	psz->Append(sTo.Is(IRTK_F64) ? "SoftDoubleDivide" : "SoftFloatDivide");		return;
+	case IRO_FExt:
+	case IRO_FTrunc:
+		psz->Append(sTo.Is(IRTK_F64) ? "SoftFloatToDouble" : "SoftDoubleToFloat");
+		return;
+	case IRO_SIToF:
+	case IRO_UIToF:
+		bSigned = psInstruction->uiOpcode == IRO_SIToF;
+		sInteger = sFrom;
+		psz->Append(sTo.Is(IRTK_F64) ? "SoftDoubleFrom" : "SoftFloatFrom");
+		break;
+	case IRO_FToSI:
+	case IRO_FToUI:
+		bSigned = psInstruction->uiOpcode == IRO_FToSI;
+		sInteger = sTo;
+		psz->Append(sFrom.Is(IRTK_F64) ? "SoftDoubleTo" : "SoftFloatTo");
+		break;
+	default:
+		//A compare: of the operands' type.
+		psz->Append(sFrom.Is(IRTK_F64) ? "SoftDoubleCompare" : "SoftFloatCompare");
+		return;
+	}
+	if (sInteger.Is(IRTK_I64))
+	{
+		psz->Append(bSigned ? "LongLong" : "UnsignedLongLong");
+	}
+	else
+	{
+		psz->Append((bSigned || (sInteger.IntegerBits() < 32)) ? "Int" : "Unsigned");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The soft float compare's results (-1, 0 or 1, or 2 when either is a NaN)
+// that make the comparison uiOpcode true, in aiValues (one, or two in a
+// row), or false when *pbNot (fne and fordered).  Returns how many.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRBackend::FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot)
+{
+	*pbNot = (uiOpcode == IRO_FNe) || (uiOpcode == IRO_FOrdered);
+	switch (uiOpcode)
+	{
+	case IRO_FEq:
+	case IRO_FNe:		aiValues[0] = 0;							return 1;
+	case IRO_FLt:		aiValues[0] = -1;							return 1;
+	case IRO_FGt:		aiValues[0] = 1;							return 1;
+	case IRO_FLe:		aiValues[0] = -1;	aiValues[1] = 0;		return 2;
+	case IRO_FGe:		aiValues[0] = 0;	aiValues[1] = 1;		return 2;
+	default:			aiValues[0] = 2;							return 1;	//fordered and funordered: a NaN.
+	}
+}

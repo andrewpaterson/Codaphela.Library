@@ -41,14 +41,8 @@ void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
 	SIRType			asTypes[2];
 	bool			bHidden;
 
-	szName.Init(psInstruction->sType.Is(IRTK_F64) ? "_SoftDouble" : "_SoftFloat");
-	switch (psInstruction->uiOpcode)
-	{
-	case IRO_FAdd:	szName.Append("Add");		break;
-	case IRO_FSub:	szName.Append("Subtract");	break;
-	case IRO_FMul:	szName.Append("Multiply");	break;
-	default:		szName.Append("Divide");	break;
-	}
+	szName.Init("_");
+	AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
 	if (gbIR816SoftFloatInFrame)
 	{
 		iFirst = FrameOperand(psInstruction->asArguments[0], psInstruction->sType, IR816_SCRATCH_RESULT);
@@ -260,15 +254,21 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	int32				iEnd;
 	int					i;
 	CChars				sz;
+	CChars				szName;
 	SIRType				sType;
 
 	sType = psInstruction->sType;
+	szName.Init(CIR816Backend::GetScratch());
+	szName.Append('_');
+	AppendSoftFloatName(&szName, psInstruction, sType);
 	if (gbIR816SoftFloatInFrame)
 	{
 		Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
 		Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
-		UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" IR816_FRAME_OPERANDS : "_SoftFloatCompare" IR816_FRAME_OPERANDS);
-		Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" IR816_FRAME_OPERANDS : "jsl _SoftFloatCompare" IR816_FRAME_OPERANDS);
+		szName.Append(IR816_FRAME_OPERANDS);
+		UseRuntime(szName.Text());
+		szName.Insert(0, "jsl ");
+		Line(szName.Text());
 		Frame("sta", IR816_SCRATCH_RESULT);
 	}
 	else
@@ -277,7 +277,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 		asValues[1] = psInstruction->asArguments[1];
 		asTypes[0] = sType;
 		asTypes[1] = sType;
-		iBytes = SoftFloatCall(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare", asValues, asTypes, 2, -1, false, false, -1);
+		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, false, -1);
 		Frame("sta", IR816_SCRATCH_RESULT);
 		if (iBytes > 0)
 		{
@@ -289,19 +289,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	}
 
 	//The compare's results that make it true (or false, for fne and fordered).
-	bNot = false;
-	iValues = 1;
-	switch (psInstruction->uiOpcode)
-	{
-	case IRO_FEq:		aiValues[0] = 0;	break;
-	case IRO_FNe:		aiValues[0] = 0;	bNot = true;	break;
-	case IRO_FLt:		aiValues[0] = -1;	break;
-	case IRO_FGt:		aiValues[0] = 1;	break;
-	case IRO_FLe:		aiValues[0] = -1;	aiValues[1] = 0;	iValues = 2;	break;
-	case IRO_FGe:		aiValues[0] = 0;	aiValues[1] = 1;	iValues = 2;	break;
-	case IRO_FOrdered:	aiValues[0] = 2;	bNot = true;	break;
-	default:			aiValues[0] = 2;	break;
-	}
+	iValues = FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
 
 	iTrue = NewLabel();
 	iFalse = NewLabel();
@@ -330,6 +318,7 @@ void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
 	Line("lda 0");
 	Label(iEnd);
 	Store(psInstruction->sResult, 0);
+	szName.Kill();
 	sz.Kill();
 }
 
@@ -358,38 +347,15 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 	sFrom = mpcFunction->TypeOf(sValue);
 	sTo = psInstruction->sType;
 	szName.Init(CIR816Backend::GetScratch());
-	switch (psInstruction->uiOpcode)
+	szName.Append('_');
+	AppendSoftFloatName(&szName, psInstruction, sFrom);
+	if ((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF))
 	{
-	case IRO_FExt:
-	case IRO_FTrunc:
-		szName.Append(sTo.Is(IRTK_F64) ? "_SoftFloatToDouble" : "_SoftDoubleToFloat");
-		break;
-	case IRO_SIToF:
-	case IRO_UIToF:
 		bSigned = psInstruction->uiOpcode == IRO_SIToF;
-		szName.Append(sTo.Is(IRTK_F64) ? "_SoftDoubleFrom" : "_SoftFloatFrom");
-		if (sFrom.Is(IRTK_I64))
+		if (!sFrom.Is(IRTK_I64))
 		{
-			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-		}
-		else
-		{
-			szName.Append((bSigned || (sFrom.IntegerBits() < 32)) ? "Int" : "Unsigned");
 			iExtended = 0;
 		}
-		break;
-	default:
-		bSigned = psInstruction->uiOpcode == IRO_FToSI;
-		szName.Append(sFrom.Is(IRTK_F64) ? "_SoftDoubleTo" : "_SoftFloatTo");
-		if (sTo.Is(IRTK_I64))
-		{
-			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
-		}
-		else
-		{
-			szName.Append((bSigned || (sTo.IntegerBits() < 32)) ? "Int" : "Unsigned");
-		}
-		break;
 	}
 	if (gbIR816SoftFloatInFrame)
 	{

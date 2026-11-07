@@ -1273,6 +1273,61 @@ void TestIR65BackendFlags(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The soft float routines both back ends call, and the compare results that
+// make each comparison true (CIRBackend, shared by the 65C64's and the
+// W65C816's).
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertSoftFloatName(const char* szExpected, uint16 uiOpcode, EIRTypeKind eTo, EIRTypeKind eFrom)
+{
+	SIRInstruction	sInstruction;
+	CChars			sz;
+
+	memset(&sInstruction, 0, sizeof(sInstruction));
+	sInstruction.uiOpcode = uiOpcode;
+	sInstruction.sType = IRType(eTo);
+	sz.Init();
+	CIRBackend::AppendSoftFloatName(&sz, &sInstruction, IRType(eFrom));
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendSoftFloatNames(void)
+{
+	int		aiValues[2];
+	bool	bNot;
+
+	AssertSoftFloatName("SoftFloatAdd", IRO_FAdd, IRTK_F32, IRTK_F32);
+	AssertSoftFloatName("SoftDoubleDivide", IRO_FDiv, IRTK_F64, IRTK_F64);
+	AssertSoftFloatName("SoftFloatToDouble", IRO_FExt, IRTK_F64, IRTK_F32);
+	AssertSoftFloatName("SoftDoubleToFloat", IRO_FTrunc, IRTK_F32, IRTK_F64);
+	AssertSoftFloatName("SoftDoubleFromInt", IRO_UIToF, IRTK_F64, IRTK_I16);
+	AssertSoftFloatName("SoftFloatFromUnsigned", IRO_UIToF, IRTK_F32, IRTK_I32);
+	AssertSoftFloatName("SoftFloatFromLongLong", IRO_SIToF, IRTK_F32, IRTK_I64);
+	AssertSoftFloatName("SoftDoubleToUnsignedLongLong", IRO_FToUI, IRTK_I64, IRTK_F64);
+	AssertSoftFloatName("SoftFloatToInt", IRO_FToSI, IRTK_I32, IRTK_F32);
+	AssertSoftFloatName("SoftDoubleCompare", IRO_FLt, IRTK_F64, IRTK_F64);
+
+	AssertInt(1, CIRBackend::FloatCompareValues(IRO_FNe, aiValues, &bNot));
+	AssertInt(0, aiValues[0]);
+	AssertTrue(bNot);
+	AssertInt(2, CIRBackend::FloatCompareValues(IRO_FLe, aiValues, &bNot));
+	AssertInt(-1, aiValues[0]);
+	AssertInt(0, aiValues[1]);
+	AssertFalse(bNot);
+	AssertInt(1, CIRBackend::FloatCompareValues(IRO_FOrdered, aiValues, &bNot));
+	AssertInt(2, aiValues[0]);
+	AssertTrue(bNot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The back end's peephole: a store to a pseudo register read straight back
 // is a cpy when both registers are known to be 32 bits.  They are at the
 // function's label and a block's; at a label in an instruction's code (not
@@ -1651,6 +1706,7 @@ void TestIR65Backend(void)
 	TestIR65BackendWidths();
 	TestIR65BackendFlags();
 	TestIR65BackendPeepholeWidths();
+	TestIR65BackendSoftFloatNames();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIRSourceMarkers();

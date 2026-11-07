@@ -77,6 +77,9 @@ public:
 	void			SetSourceMarkers(bool bSourceMarkers);
 	CArrayChars*	GetRuntime(void);
 
+	static void		AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom);
+	static int		FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot);
+
 protected:
 	void			Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator = NULL);
 	void			Kill(void);
