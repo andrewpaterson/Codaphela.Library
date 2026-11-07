@@ -39,7 +39,7 @@ bool SCPP65Type::IsInteger(void)
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsScalar(void)
 {
-	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool) || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer);
+	return IsInteger() || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer);
 }
 
 
@@ -263,7 +263,11 @@ void SCPP65Type::Append(CChars* psz)
 			}
 			papsParameters->GetPtr(i)->Append(psz);
 		}
-		psz->Append(bVariadic ? ", ...)" : ")");
+		if (bVariadic)
+		{
+			psz->Append((papsParameters->NumElements() != 0) ? ", ..." : "...");
+		}
+		psz->Append(")");
 		break;
 	case CPP65TK_Class:
 		psz->Append("class");

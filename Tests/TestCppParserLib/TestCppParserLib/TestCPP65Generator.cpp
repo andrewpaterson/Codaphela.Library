@@ -492,6 +492,8 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	CArrayTemplatePtr<SCPP65Type>	apsVolatileParameters;
 	CArrayTemplatePtr<SCPP65Type>	apsPointers;
 	CArrayTemplatePtr<SCPP65Type>	apsVolatilePointers;
+	CArrayTemplatePtr<SCPP65Type>	apsNone;
+	CChars							szType;
 
 	psFirstClass = (SCPP65Class*)&acKeys[0];
 	psSecondClass = (SCPP65Class*)&acKeys[1];
@@ -550,6 +552,17 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	AssertPointer(psFunction, cTypes.Function(&cTypes.msVoid, &apsVolatilePointers, false));
 	apsPointers.Add(&cTypes.msInt);
 	AssertTrue(cTypes.Function(&cTypes.msVoid, &apsPointers, false) != psFunction);
+
+	//A variadic function's parameters as C++.
+	szType.Init();
+	cTypes.Function(&cTypes.msVoid, &apsPointers, true)->Append(&szType);
+	AssertString("void(long*, long, ...)", szType.Text());
+	szType.Clear();
+	apsNone.Init();
+	cTypes.Function(&cTypes.msShort, &apsNone, true)->Append(&szType);
+	AssertString("short(...)", szType.Text());
+	apsNone.Kill();
+	szType.Kill();
 
 	apsVolatilePointers.Kill();
 	apsPointers.Kill();
