@@ -149,6 +149,8 @@ struct SCPP65Function
 	SCPP65Template*					psTemplate;		//The function template this is an instance of.
 	CChars							mszArguments;	//The instance's template arguments, mangled for its label.
 	SCPP65Function*					psNextOfName;	//The next function added with the same lliName (see FirstFunctionOfName).
+
+	size	RequiredParameters(void);
 };
 
 

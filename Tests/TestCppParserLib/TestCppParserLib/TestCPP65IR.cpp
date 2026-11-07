@@ -371,6 +371,13 @@ void TestCPP65IRObjectsByValue(void)
 		"struct SA { int x; };\n"
 		"int K(int n, SA a) { return a.x; }\n"
 		"int main() { CD d; SA a; a.x = 3; return H(d) * 100 + K(a.x = 5, a); }", 9));
+
+	//A copy constructor may have more parameters, all with defaults: a class copying its field copies it with that
+	//constructor, the defaults given.
+	AssertInt(1 + 5 + 10 * 2, TestCPP65IRMain(
+		"struct CPart { int mi; CPart(int i) : mi(i) { } CPart(const CPart& c, int k = 5) : mi(c.mi + k) { } };\n"
+		"struct CWhole { CPart mcPart; int mj; CWhole() : mcPart(1), mj(2) { } };\n"
+		"int main() { CWhole a; CWhole b = a; return b.mcPart.mi + b.mj * 10; }", 4));
 }
 
 

@@ -3772,16 +3772,10 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 bool CCPP65Generator::RankArguments(SCPP65Function* psFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks)
 {
 	size	uiArguments;
-	size	uiRequired;
 	size	i;
 
 	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
-	uiRequired = psFunction->mapsParameters.NumElements();
-	while ((uiRequired > 0) && psFunction->mapcDefaults.GetPtr(uiRequired - 1))
-	{
-		uiRequired--;
-	}
-	if ((uiArguments < uiRequired) || ((uiArguments > psFunction->mapsParameters.NumElements()) && !psFunction->bVariadic))
+	if ((uiArguments < psFunction->RequiredParameters()) || ((uiArguments > psFunction->mapsParameters.NumElements()) && !psFunction->bVariadic))
 	{
 		return false;
 	}
@@ -3921,7 +3915,7 @@ bool CCPP65Generator::HasConvertingConstructor(SCPP65Class* psClass, SCPP65Type*
 		{
 			continue;
 		}
-		if ((psFunction->mapsParameters.NumElements() > 1) && !psFunction->mapcDefaults.GetPtr(1))
+		if (psFunction->RequiredParameters() > 1)
 		{
 			continue;
 		}

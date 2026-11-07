@@ -1382,8 +1382,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 	{
 		return false;
 	}
-	CopyParts(psPlace->psType->psClass, psPlace->sAddress, sAddress);
-	return true;
+	return CopyParts(psPlace->psType->psClass, psPlace->sAddress, sAddress);
 }
 
 
@@ -1393,7 +1392,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 // sSource) that have copy constructors with them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
+bool CCPP65IRFrontEnd::CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
 {
 	SCPP65Base*		psBase;
 	SCPP65Field*	psField;
@@ -1406,7 +1405,10 @@ void CCPP65IRFrontEnd::CopyParts(SCPP65Class* psClass, SIRReference sDestination
 	for (i = 0; i < psClass->macBases.NumElements(); i++)
 	{
 		psBase = psClass->macBases.Get(i);
-		CopyPart(psBase->psClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset));
+		if (!CopyPart(psBase->psClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset)))
+		{
+			return false;
+		}
 	}
 	for (i = 0; i < psClass->macFields.NumElements(); i++)
 	{
@@ -1425,9 +1427,13 @@ void CCPP65IRFrontEnd::CopyParts(SCPP65Class* psClass, SIRReference sDestination
 		for (j = 0; j < iCount; j++)
 		{
 			iOffset = psField->iOffset + j * psType->iBytes;
-			CopyPart(psType->psClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset));
+			if (!CopyPart(psType->psClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset)))
+			{
+				return false;
+			}
 		}
 	}
+	return true;
 }
 
 
@@ -1467,25 +1473,52 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A part (base or field) of a class: copied with its copy constructor, or
-// its own parts, or left as its bytes.
+// A part (base or field) of a class: copied with its copy constructor (its
+// parameters after the first given their defaults, scalars only), or its
+// own parts, or left as its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
+bool CCPP65IRFrontEnd::CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
 {
-	SCPP65Function*	psConstructor;
+	SCPP65Function*					psConstructor;
+	SCPP65Type*						psParameter;
+	CArrayTemplate<SCPP65IRValue>	asDefaults;
+	SCPP65IRValue*					psDefault;
+	size							ui;
 
 	psConstructor = mpcGenerator->GetCopyConstructor(psClass);
-	if (psConstructor)
+	if (!psConstructor)
 	{
-		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
-		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
-		mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(psConstructor), -1, true);
+		return mpcGenerator->IsTriviallyCopyable(psClass) || CopyParts(psClass, sDestination, sSource);
 	}
-	else if (!mpcGenerator->IsTriviallyCopyable(psClass))
+
+	//The defaults are worked out before the arguments are given: one may be a call.
+	asDefaults.Init();
+	for (ui = 1; ui < psConstructor->mapsParameters.NumElements(); ui++)
 	{
-		CopyParts(psClass, sDestination, sSource);
+		psParameter = psConstructor->mapsParameters.GetPtr(ui);
+		psDefault = asDefaults.Add();
+		if (psParameter->IsClass() || psParameter->IsArray() || !IsSupportedType(psParameter))
+		{
+			asDefaults.Kill();
+			return Unsupported(__LINE__);
+		}
+		if (!Value(psConstructor->mapcDefaults.GetPtr(ui), psDefault) || !Convert(psDefault, psParameter))
+		{
+			asDefaults.Kill();
+			return false;
+		}
 	}
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
+	for (ui = 0; ui < asDefaults.NumElements(); ui++)
+	{
+		psDefault = asDefaults.Get(ui);
+		mpcFunction->Argument(mpcBlock, IRTypeOf(psDefault->psType), psDefault->sValue);
+	}
+	asDefaults.Kill();
+	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(psConstructor), -1, true);
+	return true;
 }
 
 

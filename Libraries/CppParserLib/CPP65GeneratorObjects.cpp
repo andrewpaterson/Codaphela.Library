@@ -35,6 +35,25 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The number of parameters a call must give: those before the trailing ones
+// with defaults.
+//
+//////////////////////////////////////////////////////////////////////////
+size SCPP65Function::RequiredParameters(void)
+{
+	size	uiRequired;
+
+	uiRequired = mapsParameters.NumElements();
+	while ((uiRequired > 0) && mapcDefaults.GetPtr(uiRequired - 1))
+	{
+		uiRequired--;
+	}
+	return uiRequired;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the class declares a constructor that takes one of its objects (a copy
 // constructor).
 //
@@ -65,7 +84,7 @@ SCPP65Function* CCPP65Generator::GetCopyConstructor(SCPP65Class* psClass)
 			continue;
 		}
 		psParameter = psFunction->mapsParameters.GetPtr(0);
-		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psClass) && (psFunction->mapsParameters.NumElements() == 1))
+		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psClass) && (psFunction->RequiredParameters() == 1))
 		{
 			return psFunction;
 		}

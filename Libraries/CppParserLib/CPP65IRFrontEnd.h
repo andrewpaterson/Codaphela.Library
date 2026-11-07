@@ -360,8 +360,8 @@ protected:
 	bool			CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
-	void			CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
-	void			CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
+	bool			CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
+	bool			CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource);
 	SCPP65Type*		FunctionType(SCPP65Function* psFunction);
 	int				BaseOffset(SCPP65Class* psDerived, SCPP65Class* psBase);
 	void			CopyPieces(SIRReference sDest, SIRReference sSource, int iBytes);
