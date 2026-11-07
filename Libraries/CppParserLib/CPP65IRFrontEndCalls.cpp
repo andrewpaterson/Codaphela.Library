@@ -344,7 +344,15 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	}
 	else if (szName.Equals("memcpy") && (iArguments == 3))
 	{
-		bResult = BuiltinMemcpy(pcCall, psValue);
+		//Copied in place for a small constant count, as memcpy is.
+		if (mpcGenerator->IsInlineMemcpy(lliName, &pcCall->macpArguments))
+		{
+			bResult = InlineMemcpy(&pcCall->macpArguments, mpcGenerator->TypeOf(pcCall), psValue);
+		}
+		else
+		{
+			bResult = BuiltinMemcpy(pcCall, psValue);
+		}
 	}
 	else if ((szName.Equals("bcd_add") || szName.Equals("bcd_subtract")) && (iArguments == 4) && (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816))
 	{

@@ -371,12 +371,6 @@ void TestCPP65IRConstructors(void)
 		"struct CHolder { int (*mpf)(int); int Use() { return mpf(6); } };\n"
 		"int main() { CHolder h; h.mpf = Twice; return Forward(1, 2, 3) + h.mpf(4) + h.Use(); }", 5));
 
-	//memcpy of a small constant count is loads and stores (7 bytes: 4, 2 and 1); it returns Dest.
-	AssertInt(0x07060504 + 0x0302 + 0x01 + 1, TestCPP65IRMain(
-		"void* memcpy(void* pvDest, const void* pvSource, unsigned int uiCount);\n"
-		"int main() { unsigned char ac[8] = { 4, 5, 6, 7, 2, 3, 1, 9 }; unsigned char ad[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; void* p = memcpy(ad, ac, 7);\n"
-		"return *(int*)ad + ad[4] + ad[5] * 256 + ad[6] + ad[7] + (p == ad); }", 1));
-
 	//An object's operator-> gives the pointer for a call and for a field.
 	AssertInt(42 + 7, TestCPP65IRMain(
 		"struct CThing { int miValue; int Twice() { return miValue * 2; } };\n"
@@ -436,6 +430,38 @@ void TestCPP65IRObjectsByValue(void)
 		"struct CPart { int mi; CPart(int i) : mi(i) { } CPart(const CPart& c, int k = 5) : mi(c.mi + k) { } };\n"
 		"struct CWhole { CPart mcPart; int mj; CWhole() : mcPart(1), mj(2) { } };\n"
 		"int main() { CWhole a; CWhole b = a; return b.mcPart.mi + b.mj * 10; }", 4));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// memcpy and __builtin_memcpy: loads and stores for a small constant count,
+// Libc65's memcpy otherwise.  Both return Dest.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRMemcpy(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	//memcpy of a small constant count is loads and stores (7 bytes: 4, 2 and 1); it returns Dest.
+	AssertInt(0x07060504 + 0x0302 + 0x01 + 1, TestCPP65IRMain(
+		"void* memcpy(void* pvDest, const void* pvSource, unsigned int uiCount);\n"
+		"int main() { unsigned char ac[8] = { 4, 5, 6, 7, 2, 3, 1, 9 }; unsigned char ad[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; void* p = memcpy(ad, ac, 7);\n"
+		"return *(int*)ad + ad[4] + ad[5] * 256 + ad[6] + ad[7] + (p == ad); }", 1));
+
+	//__builtin_memcpy needs no declaration; a count that isn't a small constant calls Libc65's memcpy.
+	AssertInt(3 + 69 + 10 + 1 + 79, TestCPP65IRMain(
+		"int main() { unsigned char ac[80]; unsigned char ad[80]; int n = 70; for (int i = 0; i < 80; i++) { ac[i] = (unsigned char)i; ad[i] = 0; }\n"
+		"__builtin_memcpy(ad, ac, 4); void* p = __builtin_memcpy(&ad[10], &ac[10], n);\n"
+		"return ad[3] + ad[69] + ad[10] + (p == &ad[10]) + ad[80 - 1]; }", 1));
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "void Copy(int* pi, int* pj) { __builtin_memcpy(pi, pj, 4); }"));
+	AssertString("", szErrors.Text());
+	AssertFalse(szAssembly.Contains("_memcpy"));
+	szErrors.Kill();
+	szAssembly.Kill();
 }
 
 
@@ -713,6 +739,7 @@ void TestCPP65IR(void)
 	TestCPP65IRObjectPlaces();
 	TestCPP65IRConstructors();
 	TestCPP65IRObjectsByValue();
+	TestCPP65IRMemcpy();
 	TestCPP65IRStringCompare();
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();

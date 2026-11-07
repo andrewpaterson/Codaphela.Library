@@ -1411,6 +1411,21 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, int64 l
 			psResult = psType ? mpcTypes->Promote(psType) : NULL;
 		}
 	}
+	else if (szName.Equals("memcpy"))
+	{
+		//Libc65's memcpy (a small constant count is InlineMemcpy, before this).
+		psType = mpcTypes->Pointer(&mpcTypes->msVoid);
+		if (iArguments != 3)
+		{
+			Error(pcCall, "The builtin takes three arguments");
+		}
+		else if (Convert(Value(pcCall->macpArguments.GetPtr(0)), psType, pcCall->macpArguments.GetPtr(0)) &&
+				 Convert(Value(pcCall->macpArguments.GetPtr(1)), psType, pcCall->macpArguments.GetPtr(1)) &&
+				 Convert(Value(pcCall->macpArguments.GetPtr(2)), mpcTypes->Long(false), pcCall->macpArguments.GetPtr(2)))
+		{
+			psResult = psType;
+		}
+	}
 	else if (szName.Equals("alloca"))
 	{
 		if (iArguments != 1)

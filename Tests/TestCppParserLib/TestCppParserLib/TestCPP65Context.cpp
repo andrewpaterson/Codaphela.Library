@@ -119,6 +119,10 @@ bool TestCPP65BeginBuilt(STestCPP65Run* psRun, CCPP65Builder* pcBuilder)
 }
 
 
+//Libc65's string routines, which programs call (the optimiser makes loops calls of them).
+static const char*	gaszTestCPP65String[] = { "Libc65/string.asm", NULL };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Assembles a program (one object with its start up), with Libc65's string.asm if it calls a string routine it
@@ -127,8 +131,7 @@ bool TestCPP65BeginBuilt(STestCPP65Run* psRun, CCPP65Builder* pcBuilder)
 //////////////////////////////////////////////////////////////////////////
 bool TestCPP65BeginAssembly(STestCPP65Run* psRun, const char* szAssembly)
 {
-	static const char*	aszString[] = { "Libc65/string.asm", NULL };
-	static const char*	aszCalls[] = { "_memset", "_memmove", "_memcmp", "_strlen", "_memchr", "_strchr", NULL };
+	static const char*	aszCalls[] = { "_memcpy", "_memset", "_memmove", "_memcmp", "_strlen", "_memchr", "_strchr", NULL };
 	CCPP65Builder		cBuilder;
 	bool				bResult;
 	bool				bString;
@@ -150,7 +153,7 @@ bool TestCPP65BeginAssembly(STestCPP65Run* psRun, const char* szAssembly)
 	}
 	if (bString)
 	{
-		TestCPP65AddUnits(&cBuilder, aszString, true);
+		TestCPP65AddUnits(&cBuilder, gaszTestCPP65String, true);
 	}
 	bResult &= cBuilder.Link();
 	AssertString("", cBuilder.GetErrors());
@@ -420,7 +423,6 @@ void TestCPP65AddUnits(CCPP65Builder* pcBuilder, const char** aszUnits, bool bAs
 //////////////////////////////////////////////////////////////////////////
 bool TestCPP65BeginProject(STestCPP65Run* psRun, const char** aszUnits, const char* szStubs, const char* szSource, CChars* pszMap, bool bLazy)
 {
-	static const char*	aszString[] = { "Libc65/string.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CChars				szMissing;
 	size				i;
@@ -446,7 +448,7 @@ bool TestCPP65BeginProject(STestCPP65Run* psRun, const char** aszUnits, const ch
 	}
 	if (!aszUnits || !aszUnits[i])
 	{
-		TestCPP65AddUnits(&cBuilder, aszString, true);
+		TestCPP65AddUnits(&cBuilder, gaszTestCPP65String, true);
 	}
 
 	//A program that doesn't build isn't loaded.
