@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CDockManager;
+class CDockState;
 class CXMLWriter;
 class CMarkupTag;
 
@@ -35,6 +36,7 @@ class CDockLayoutWriter
 {
 protected:
 	CDockManager*	mpcManager;
+	CDockState*		mpcState;  //The manager's.
 
 public:
 	void	Init(CDockManager* pcManager);
@@ -62,6 +64,7 @@ class CDockLayoutReader
 {
 protected:
 	CDockManager*	mpcManager;
+	CDockState*		mpcState;  //The manager's.
 
 public:
 	void			Init(CDockManager* pcManager);

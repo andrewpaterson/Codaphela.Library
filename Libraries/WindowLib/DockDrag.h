@@ -24,6 +24,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockManager.h"
 
 
+class CDockState;
+
+
 class CDockDragTracker;
 
 
@@ -38,6 +41,7 @@ CONSTRUCTABLE(CDockDrag);
 DESTRUCTABLE(CDockDrag);
 protected:
 	Ptr<CDockManager>			mpManager;
+	CDockState*					mpcState;  //The manager's, shared with its other parts.
 	Ptr<CDockFloatingWindow>	mpFloating;  //What is dragged.
 	Ptr<CWindow>				mpSource;  //The window the drag started in; it has the pointer.
 	Ptr<CDockDragTracker>		mpTracker;
@@ -50,7 +54,7 @@ protected:
 	Ptr<CDockArea>				mpGuidesArea;  //The area showing the guides.
 
 public:
-	void						Init(Ptr<CDockManager> pManager);
+	void						Init(Ptr<CDockManager> pManager, CDockState* pcState);
 	void						Class(void) override;
 	void						Free(void) override;
 	bool						Save(CObjectWriter* pcFile) override;

@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CDockManager;
+class CDockState;
 class CAutoHideFlyout;
 class CDockPane;
 class CComponent;
@@ -34,19 +35,20 @@ class CFocus;
 
 
 //The active pane and document, following the focus in the manager's windows, and the auto hide flyout opening and
-//closing.  Part of its manager, which holds it.
+//closing.  One of its manager's parts, held by the manager's state (CDockState).
 class CDockFocus : public CObject
 {
 CONSTRUCTABLE(CDockFocus);
 DESTRUCTABLE(CDockFocus);
 protected:
 	Ptr<CDockManager>			mpManager;
+	CDockState*					mpcState;  //The manager's, shared with its other parts.
 	Ptr<CDockPane>				mpActivePane;
 	Ptr<CDockPane>				mpActiveDocument;
 	Ptr<CAutoHideFlyout>		mpFlyout;
 
 public:
-	void						Init(Ptr<CDockManager> pManager);
+	void						Init(Ptr<CDockManager> pManager, CDockState* pcState);
 	void						Class(void) override;
 	void						Free(void) override;
 	bool						Save(CObjectWriter* pcFile) override;

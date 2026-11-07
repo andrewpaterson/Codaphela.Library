@@ -33,9 +33,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // pcManager holds the panes, groups and windows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockRestorer::Init(CDockManager* pcManager)
+void CDockRestorer::Init(CDockManager* pcManager, CDockState* pcState)
 {
 	mpcManager = pcManager;
+	mpcState = pcState;
 }
 
 
@@ -113,7 +114,7 @@ bool CDockRestorer::GetForGroup(Ptr<CDockGroup> pGroup, SDockRestore* psDest)
 	pSplit = pGroup->GetParentSplit();
 	if (pSplit.IsNull())
 	{
-		return pGroup->IsWithin(mpcManager->mpArea);
+		return pGroup->IsWithin(mpcState->GetArea());
 	}
 	uiIndex = pSplit->IndexOf(pGroup);
 	if (uiIndex + 1 < pSplit->NumNodes())
@@ -224,7 +225,7 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 
 	psFrom = pFrom->GetRestore();
 	pGroup = mpcManager->FindGroup(psFrom->iGroup);
-	if (pGroup.IsNotNull() && pGroup->IsWithin(mpcManager->mpArea) && (pGroup->IsDocumentGroup() || !pPane->IsDocument()))
+	if (pGroup.IsNotNull() && pGroup->IsWithin(mpcState->GetArea()) && (pGroup->IsDocumentGroup() || !pPane->IsDocument()))
 	{
 		mpcManager->PlaceInGroup(pGroup, pPane, (size)pPane->GetRestore()->iIndex);
 		return;
@@ -232,7 +233,7 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 
 	if (psFrom->IsBesideWell())
 	{
-		DockBeside(pPane, mpcManager->mpWell, psFrom);
+		DockBeside(pPane, mpcState->GetWell(), psFrom);
 		return;
 	}
 	pNeighbour = mpcManager->GetPane(psFrom->szNeighbour.Text());
@@ -294,10 +295,10 @@ void CDockRestorer::DockBeside(Ptr<CDockPane> pPane, Ptr<CDockNode> pNear, SDock
 	Ptr<CDockNode>	pBeside;
 	Ptr<CDockGroup>	pNew;
 
-	pBeside = mpcManager->mcTree.ClimbToSplit(pNear, psFrom->eSide);
+	pBeside = mpcState->GetTree()->ClimbToSplit(pNear, psFrom->eSide);
 	pNew = mpcManager->CreateGroup(mpcManager->IsInWell(pBeside), psFrom->iGroup);
 	mpcManager->PlaceInGroup(pNew, pPane);
-	mpcManager->mcTree.DockBeside(pBeside, pNew, psFrom->eSide, psFrom->iSize);
+	mpcState->GetTree()->DockBeside(pBeside, pNew, psFrom->eSide, psFrom->iSize);
 }
 
 
@@ -326,7 +327,7 @@ void CDockRestorer::DockDefault(Ptr<CDockPane> pPane)
 			pGroup = mpcManager->CreateGroup(false);
 			mpcManager->PlaceInGroup(pGroup, pPane);
 			iSize = pWith->GetDefaultSize();
-			mpcManager->mcTree.DockBeside(mpcManager->mpWell, pGroup, pWith->GetDefaultSide(), (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
+			mpcState->GetTree()->DockBeside(mpcState->GetWell(), pGroup, pWith->GetDefaultSide(), (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
 			return;
 		}
 		break;
@@ -347,6 +348,6 @@ void CDockRestorer::DockDefault(Ptr<CDockPane> pPane)
 	pGroup = mpcManager->CreateGroup(false);
 	mpcManager->PlaceInGroup(pGroup, pPane);
 	iSize = pPane->GetDefaultSize();
-	mpcManager->mcTree.DockBeside(mpcManager->mpWell, pGroup, (pPane->GetDefaultKind() == DPL_BesideWell) ? pPane->GetDefaultSide() : DS_Left, (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
+	mpcState->GetTree()->DockBeside(mpcState->GetWell(), pGroup, (pPane->GetDefaultKind() == DPL_BesideWell) ? pPane->GetDefaultSide() : DS_Left, (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
 }
 

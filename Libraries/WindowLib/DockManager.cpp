@@ -82,27 +82,11 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 {
 	PreInit();
 
-	mpWindow = pWindow;
 	mpTheme = pTheme;
 	mpFont = pTheme->GetFont();
 	mpTurnedFont = pTurnedFont;
-
-	maPanes.Init();
-	maFloating.Init();
-	miNextGroupID = 1;
-	mpDocumentGroup = NULL;
-	mpcListener = NULL;
-	mcLayoutWindow.Init(0, 0, 0, 0);
-	mbLayoutWindow = false;
-
-	mpDrag = OMalloc<CDockDrag>(Ptr<CDockManager>(this));
-	mpFocus = OMalloc<CDockFocus>(Ptr<CDockManager>(this));
-	mcTree.Init(this);
-	mcRestorer.Init(this);
-	mcMover.Init(this);
-	mpArea = OMalloc<CDockArea>(pWindow, Ptr<CDockManager>(this), true);
-	mpWell = OMalloc<CDocumentWell>(pWindow, Ptr<CDockManager>(this), GetColour(TC_DockBackground));
-	mpArea->SetRoot(mpWell);
+	mpState = OMalloc<CDockState>(pWindow);
+	mpState->MakeParts(this);
 	WatchFocus(pWindow);
 
 	PostInit();
@@ -115,24 +99,10 @@ void CDockManager::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFon
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Class(void)
 {
-	M_Pointer(mpWindow);
 	M_Pointer(mpTheme);
 	M_Pointer(mpFont);
 	M_Pointer(mpTurnedFont);
-	M_Pointer(mpArea);
-	M_Pointer(mpWell);
-	M_Embedded(maPanes);
-	M_Embedded(maFloating);
-	U_Int32(miNextGroupID);
-	M_Pointer(mpDocumentGroup);
-	U_Pointer(mpcListener);
-	M_Pointer(mpDrag);
-	M_Pointer(mpFocus);
-	U_Unknown(CDockTree, mcTree);
-	U_Unknown(CDockRestorer, mcRestorer);
-	U_Unknown(CDockMover, mcMover);
-	U_Data(CInt32Rect, mcLayoutWindow);
-	U_Bool(mbLayoutWindow);
+	M_Pointer(mpState);
 }
 
 
@@ -145,17 +115,18 @@ void CDockManager::Free(void)
 {
 	size	i;
 
-	for (i = 0; i < maFloating.Size(); i++)
+	if (mpState.IsNull())
 	{
-		maFloating.Get(i)->Close();
+		return;
 	}
-	if (mpWindow.IsNotNull())
+	for (i = 0; i < mpState->GetFloating()->Size(); i++)
 	{
-		UnwatchFocus(mpWindow);
+		mpState->GetFloating()->Get(i)->Close();
 	}
-	mcMover.Kill();
-	mcRestorer.Kill();
-	mcTree.Kill();
+	if (mpState->GetWindow().IsNotNull())
+	{
+		UnwatchFocus(mpState->GetWindow());
+	}
 }
 
 
@@ -187,7 +158,7 @@ bool CDockManager::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::WatchFocus(Ptr<CWindow> pWindow)
 {
-	mpFocus->Watch(pWindow);
+	mpState->GetFocus()->Watch(pWindow);
 }
 
 
@@ -197,7 +168,7 @@ void CDockManager::WatchFocus(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::UnwatchFocus(Ptr<CWindow> pWindow)
 {
-	mpFocus->Unwatch(pWindow);
+	mpState->GetFocus()->Unwatch(pWindow);
 }
 
 
@@ -210,15 +181,8 @@ Ptr<CDockGroup> CDockManager::CreateGroup(bool bDocuments, int32 iID)
 {
 	Ptr<CDockGroup>	pGroup;
 
-	if ((iID <= 0) || FindGroup(iID).IsNotNull())
-	{
-		iID = miNextGroupID;
-	}
-	if (iID >= miNextGroupID)
-	{
-		miNextGroupID = iID + 1;
-	}
-	pGroup = OMalloc<CDockGroup>(mpWindow, Ptr<CDockManager>(this), iID, bDocuments);
+	iID = mpState->TakeGroupID(FindGroup(iID).IsNotNull() ? 0 : iID);
+	pGroup = OMalloc<CDockGroup>(mpState->GetWindow(), Ptr<CDockManager>(this), iID, bDocuments);
 	return pGroup;
 }
 
@@ -237,9 +201,9 @@ Ptr<CDockGroup> CDockManager::FindGroup(int32 iID)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->Size(); i++)
 	{
-		pGroup = maPanes.Get(i)->GetGroup();
+		pGroup = mpState->GetPanes()->Get(i)->GetGroup();
 		if (pGroup.IsNotNull() && (pGroup->GetID() == iID))
 		{
 			return pGroup;
@@ -268,10 +232,10 @@ Ptr<CDockPane> CDockManager::AddPane(const char* szID, const char* szTitle, Ptr<
 	pPane = OMalloc<CDockPane>(szID, szTitle, pIcon, pContent, eKind, psDefault);
 	pPane->SetState(DPS_Hidden);
 	pPane->SetManager(this);
-	maPanes.Add(pPane);
+	mpState->GetPanes()->Add(pPane);
 	if (bShow && (pPane->GetDefaultKind() != DPL_Hidden))
 	{
-		mcRestorer.DockDefault(pPane);
+		mpState->GetRestorer()->DockDefault(pPane);
 	}
 	return pPane;
 }
@@ -285,15 +249,15 @@ Ptr<CDockPane> CDockManager::AddPane(const char* szID, const char* szTitle, Ptr<
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::RemovePane(Ptr<CDockPane> pPane)
 {
-	if (pPane.IsNull() || !maPanes.Contains(pPane))
+	if (pPane.IsNull() || !mpState->GetPanes()->Contains(pPane))
 	{
 		return false;
 	}
-	TakeOut(pPane, false);
-	mpFocus->Forget(pPane);
+	mpState->GetMover()->TakeOut(pPane, false);
+	mpState->GetFocus()->Forget(pPane);
 	pPane->SetState(DPS_Removed);
 	pPane->SetManager(NULL);
-	maPanes.Remove(pPane);
+	mpState->GetPanes()->Remove(pPane);
 	LayoutChanged();
 	return true;
 }
@@ -312,11 +276,11 @@ Ptr<CDockPane> CDockManager::GetPane(const char* szID)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->Size(); i++)
 	{
-		if (StringCompare(maPanes.Get(i)->GetID(), szID) == 0)
+		if (StringCompare(mpState->GetPanes()->Get(i)->GetID(), szID) == 0)
 		{
-			return maPanes.Get(i);
+			return mpState->GetPanes()->Get(i);
 		}
 	}
 	return NULL;
@@ -336,67 +300,14 @@ Ptr<CDockPane> CDockManager::FindPane(Ptr<CComponent> pComponent)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->Size(); i++)
 	{
-		if (pComponent->IsWithin(maPanes.Get(i)->GetContent()))
+		if (pComponent->IsWithin(mpState->GetPanes()->Get(i)->GetContent()))
 		{
-			return maPanes.Get(i);
+			return mpState->GetPanes()->Get(i);
 		}
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes the pane out of wherever it is shown: its group, its auto hide
-// strip and flyout.  An empty group comes out of its tree and an empty
-// floating window closes.  A docked pane remembers where it was if
-// bRecordRestore.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore)
-{
-	Ptr<CDockGroup>			pGroup;
-	Ptr<CAutoHideStrip>		pStrip;
-
-	if ((pPane->GetState() == DPS_Docked) && bRecordRestore)
-	{
-		mcRestorer.Record(pPane);
-	}
-	if (mpFocus->IsInFlyout(pPane))
-	{
-		CloseFlyout();
-	}
-	if (pPane->GetState() == DPS_AutoHidden)
-	{
-		pStrip = mpArea->GetStrip(pPane->GetAutoHideSide());
-		if (pStrip.IsNotNull())
-		{
-			pStrip->RemovePane(pPane);
-			mpArea->StripsChanged();
-		}
-	}
-	pGroup = pPane->GetGroup();
-	if (pGroup.IsNotNull())
-	{
-		pPane->GetContent()->GetWindow()->GetFocus()->Forget(pPane->GetContent());
-		pGroup->TakePane(pPane);
-		if (pGroup->NumPanes() == 0)
-		{
-			if (mpDocumentGroup == pGroup)
-			{
-				mpDocumentGroup = NULL;
-			}
-			mcTree.RemoveNode(pGroup);
-		}
-	}
-	pPane->SetGroup(NULL);
-	pPane->SetState(DPS_Hidden);
-	if (pPane->GetContent()->GetWindow() != mpWindow)
-	{
-		pPane->GetContent()->MoveToWindow(mpWindow);
-	}
 }
 
 
@@ -410,19 +321,19 @@ void CDockManager::AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup)
 {
 	if (pGroup.IsNull() || !IsInWell(pGroup))
 	{
-		pGroup = mpDocumentGroup;
+		pGroup = mpState->GetDocumentGroup();
 	}
 	if (pGroup.IsNull() || !IsInWell(pGroup))
 	{
-		pGroup = mpWell->GetFirstGroup();
+		pGroup = mpState->GetWell()->GetFirstGroup();
 	}
 	if (pGroup.IsNull())
 	{
 		pGroup = CreateGroup(true);
-		mpWell->SetRoot(pGroup);
+		mpState->GetWell()->SetRoot(pGroup);
 	}
 	PlaceInGroup(pGroup, pPane);
-	mpDocumentGroup = pGroup;
+	mpState->SetDocumentGroup(pGroup);
 	LayoutChanged();
 }
 
@@ -435,19 +346,7 @@ void CDockManager::AddToWell(Ptr<CDockPane> pPane, Ptr<CDockGroup> pGroup)
 void CDockManager::RemoveFloating(Ptr<CDockFloatingWindow> pFloating)
 {
 	pFloating->Close();
-	maFloating.Remove(pFloating);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Every pane in the node takes the state, of a node docked in the main
-// area or floating.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockManager::SetStates(Ptr<CDockNode> pNode, EDockPaneState eState)
-{
-	pNode->SetPaneStates(eState);
+	mpState->GetFloating()->Remove(pFloating);
 }
 
 
@@ -468,7 +367,7 @@ void CDockManager::Show(Ptr<CDockPane> pPane)
 	switch (pPane->GetState())
 	{
 	case DPS_Hidden:
-		mcRestorer.Restore(pPane);
+		mpState->GetRestorer()->Restore(pPane);
 		LayoutChanged();
 		break;
 	case DPS_AutoHidden:
@@ -499,8 +398,8 @@ void CDockManager::Show(Ptr<CDockPane> pPane)
 void CDockManager::Activate(Ptr<CDockPane> pPane)
 {
 	Show(pPane);
-	mpFocus->FocusPane(pPane);
-	mpFocus->SetActivePane(pPane);
+	mpState->GetFocus()->FocusPane(pPane);
+	mpState->GetFocus()->SetActivePane(pPane);
 }
 
 
@@ -512,7 +411,7 @@ void CDockManager::Activate(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::RestoreFocus(Ptr<CWindow> pWindow)
 {
-	mpFocus->RestoreFocus(pWindow);
+	mpState->GetFocus()->RestoreFocus(pWindow);
 }
 
 
@@ -527,10 +426,10 @@ void CDockManager::Hide(Ptr<CDockPane> pPane)
 	{
 		return;
 	}
-	TakeOut(pPane, true);
-	if (mpFocus->GetActivePane() == pPane)
+	mpState->GetMover()->TakeOut(pPane, true);
+	if (mpState->GetFocus()->GetActivePane() == pPane)
 	{
-		mpFocus->SetActivePane(NULL);
+		mpState->GetFocus()->SetActivePane(NULL);
 	}
 	LayoutChanged();
 }
@@ -551,20 +450,20 @@ bool CDockManager::Close(Ptr<CDockPane> pPane)
 	if (pPane->IsTool())
 	{
 		Hide(pPane);
-		if (mpcListener)
+		if (mpState->GetListener())
 		{
-			mpcListener->PaneClosed(&pPane);
+			mpState->GetListener()->PaneClosed(&pPane);
 		}
 		return true;
 	}
-	if (mpcListener && !mpcListener->PaneClosing(&pPane))
+	if (mpState->GetListener() && !mpState->GetListener()->PaneClosing(&pPane))
 	{
 		return false;
 	}
 	RemovePane(pPane);
-	if (mpcListener)
+	if (mpState->GetListener())
 	{
-		mpcListener->PaneClosed(&pPane);
+		mpState->GetListener()->PaneClosed(&pPane);
 	}
 	return true;
 }
@@ -645,7 +544,7 @@ size CDockManager::CloseMultiple(Ptr<CDockPane> pPane, EDockMenuItem eItem)
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::IsPaneModified(Ptr<CDockPane> pPane)
 {
-	return mpcListener ? mpcListener->IsPaneModified(&pPane) : false;
+	return mpState->GetListener() ? mpState->GetListener()->IsPaneModified(&pPane) : false;
 }
 
 
@@ -657,7 +556,7 @@ bool CDockManager::IsPaneModified(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle)
 {
-	mcMover.Float(pPane, pcScreenRectangle);
+	mpState->GetMover()->Float(pPane, pcScreenRectangle);
 }
 
 
@@ -668,7 +567,7 @@ void CDockManager::Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectangle)
 {
-	mcMover.FloatGroup(pGroup, pcScreenRectangle);
+	mpState->GetMover()->FloatGroup(pGroup, pcScreenRectangle);
 }
 
 
@@ -680,7 +579,7 @@ void CDockManager::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectan
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::Dock(Ptr<CDockPane> pPane)
 {
-	mcMover.Dock(pPane);
+	mpState->GetMover()->Dock(pPane);
 }
 
 
@@ -692,7 +591,7 @@ void CDockManager::Dock(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::DockAsDocument(Ptr<CDockPane> pPane)
 {
-	mcMover.DockAsDocument(pPane);
+	mpState->GetMover()->DockAsDocument(pPane);
 }
 
 
@@ -703,7 +602,7 @@ void CDockManager::DockAsDocument(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::AutoHide(Ptr<CDockPane> pPane)
 {
-	mcMover.AutoHide(pPane);
+	mpState->GetMover()->AutoHide(pPane);
 }
 
 
@@ -715,7 +614,7 @@ void CDockManager::AutoHide(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 {
-	mcMover.AutoHideGroup(pGroup);
+	mpState->GetMover()->AutoHideGroup(pGroup);
 }
 
 
@@ -726,7 +625,7 @@ void CDockManager::AutoHideGroup(Ptr<CDockGroup> pGroup)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ToggleFloat(Ptr<CDockPane> pPane)
 {
-	mcMover.ToggleFloat(pPane);
+	mpState->GetMover()->ToggleFloat(pPane);
 }
 
 
@@ -736,7 +635,7 @@ void CDockManager::ToggleFloat(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
 {
-	mcMover.ToggleFloatGroup(pGroup);
+	mpState->GetMover()->ToggleFloatGroup(pGroup);
 }
 
 
@@ -747,7 +646,7 @@ void CDockManager::ToggleFloatGroup(Ptr<CDockGroup> pGroup)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 {
-	mcMover.DockFloating(pFloating);
+	mpState->GetMover()->DockFloating(pFloating);
 }
 
 
@@ -759,7 +658,7 @@ void CDockManager::DockFloating(Ptr<CDockFloatingWindow> pFloating)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::CloseFloating(Ptr<CDockFloatingWindow> pFloating)
 {
-	mcMover.CloseFloating(pFloating);
+	mpState->GetMover()->CloseFloating(pFloating);
 }
 
 
@@ -775,13 +674,13 @@ void CDockManager::FloatingWindowClosed(CWindow* pcWindow)
 	size						i;
 	Ptr<CDockFloatingWindow>	pFloating;
 
-	for (i = 0; i < maFloating.Size(); i++)
+	for (i = 0; i < mpState->GetFloating()->Size(); i++)
 	{
-		pFloating = maFloating.Get(i);
+		pFloating = mpState->GetFloating()->Get(i);
 		if (&pFloating->GetWindow() == pcWindow)
 		{
 			CloseFloating(pFloating);
-			if (maFloating.Contains(pFloating))
+			if (mpState->GetFloating()->Contains(pFloating))
 			{
 				DockFloating(pFloating);
 			}
@@ -807,9 +706,9 @@ Ptr<CDockFloatingWindow> CDockManager::FindFloating(Ptr<CDockPane> pPane)
 	{
 		return NULL;
 	}
-	for (i = 0; i < maFloating.Size(); i++)
+	for (i = 0; i < mpState->GetFloating()->Size(); i++)
 	{
-		pFloating = maFloating.Get(i);
+		pFloating = mpState->GetFloating()->Get(i);
 		if (pGroup->IsWithin(pFloating->GetArea()))
 		{
 			return pFloating;
@@ -872,15 +771,15 @@ void CDockManager::PaneSelected(Ptr<CDockPane> pPane)
 	pGroup = pPane->GetGroup();
 	if (pGroup.IsNotNull() && pGroup->IsActive())
 	{
-		mpFocus->SetActivePane(pPane);
+		mpState->GetFocus()->SetActivePane(pPane);
 	}
 	if (pPane->IsDocument() || (pGroup.IsNotNull() && pGroup->IsDocumentGroup()))
 	{
 		if (pGroup.IsNotNull() && IsInWell(pGroup))
 		{
-			mpDocumentGroup = pGroup;
+			mpState->SetDocumentGroup(pGroup);
 		}
-		mpFocus->SetActiveDocument(pPane);
+		mpState->GetFocus()->SetActiveDocument(pPane);
 	}
 	pFloating = FindFloating(pPane);
 	if (pFloating.IsNotNull())
@@ -908,14 +807,14 @@ void CDockManager::PaneChanged(Ptr<CDockPane> pPane)
 	}
 	if (pPane->GetState() == DPS_AutoHidden)
 	{
-		pStrip = mpArea->GetStrip(pPane->GetAutoHideSide());
+		pStrip = mpState->GetArea()->GetStrip(pPane->GetAutoHideSide());
 		pTab = pStrip.IsNotNull() ? pStrip->FindTab(pPane) : Ptr<CAutoHideTab>();
 		if (pTab.IsNotNull())
 		{
 			pTab->TitleChanged();
 		}
 	}
-	if (mpFocus->IsInFlyout(pPane))
+	if (mpState->GetFocus()->IsInFlyout(pPane))
 	{
 		GetFlyout()->GetTitleBar()->SetTitle(pPane->GetTitle());
 	}
@@ -924,7 +823,7 @@ void CDockManager::PaneChanged(Ptr<CDockPane> pPane)
 	{
 		pFloating->UpdateTitle();
 	}
-	mpWindow->InvalidateLayout();
+	mpState->GetWindow()->InvalidateLayout();
 }
 
 
@@ -937,7 +836,7 @@ void CDockManager::CloseActiveDocument(void)
 {
 	Ptr<CDockPane>	pDocument;
 
-	pDocument = mpFocus->GetActiveDocument();
+	pDocument = mpState->GetFocus()->GetActiveDocument();
 	if (pDocument.IsNotNull())
 	{
 		Close(pDocument);
@@ -954,7 +853,7 @@ void CDockManager::HideActiveTool(void)
 {
 	Ptr<CDockPane>	pPane;
 
-	pPane = mpFocus->GetActivePane();
+	pPane = mpState->GetFocus()->GetActivePane();
 	if (pPane.IsNotNull() && pPane->IsTool())
 	{
 		Hide(pPane);
@@ -969,7 +868,7 @@ void CDockManager::HideActiveTool(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::ShowFlyout(Ptr<CDockPane> pPane)
 {
-	mpFocus->ShowFlyout(pPane);
+	mpState->GetFocus()->ShowFlyout(pPane);
 }
 
 
@@ -980,7 +879,7 @@ void CDockManager::ShowFlyout(Ptr<CDockPane> pPane)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::CloseFlyout(void)
 {
-	mpFocus->CloseFlyout();
+	mpState->GetFocus()->CloseFlyout();
 }
 
 
@@ -991,7 +890,7 @@ void CDockManager::CloseFlyout(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::FlyoutClosed(void)
 {
-	mpFocus->FlyoutClosed();
+	mpState->GetFocus()->FlyoutClosed();
 }
 
 
@@ -1002,10 +901,10 @@ void CDockManager::FlyoutClosed(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockManager::LayoutChanged(void)
 {
-	mpWindow->InvalidateLayout();
-	if (mpcListener)
+	mpState->GetWindow()->InvalidateLayout();
+	if (mpState->GetListener())
 	{
-		mpcListener->LayoutChanged();
+		mpState->GetListener()->LayoutChanged();
 	}
 }
 
@@ -1021,19 +920,19 @@ void CDockManager::ResetLayout(void)
 	size			i;
 	Ptr<CDockPane>	pPane;
 
-	ClearLayout();
-	for (i = 0; i < maPanes.Size(); i++)
+	mpState->GetMover()->ClearLayout();
+	for (i = 0; i < mpState->GetPanes()->Size(); i++)
 	{
-		pPane = maPanes.Get(i);
+		pPane = mpState->GetPanes()->Get(i);
 		pPane->ClearRestore();
 		if (pPane->IsTool() && (pPane->GetDefaultKind() != DPL_Hidden))
 		{
-			mcRestorer.DockDefault(pPane);
+			mpState->GetRestorer()->DockDefault(pPane);
 		}
 	}
-	for (i = 0; i < maPanes.Size(); i++)
+	for (i = 0; i < mpState->GetPanes()->Size(); i++)
 	{
-		pPane = maPanes.Get(i);
+		pPane = mpState->GetPanes()->Get(i);
 		if (pPane->IsDocument())
 		{
 			AddToWell(pPane);
@@ -1045,65 +944,33 @@ void CDockManager::ResetLayout(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every pane is taken out, the floating windows closed and the main area
-// left with the empty document well.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockManager::ClearLayout(void)
-{
-	size						i;
-	Ptr<CDockPane>				pPane;
-	Ptr<CDockFloatingWindow>	pFloating;
-
-	CloseFlyout();
-	for (i = 0; i < maPanes.Size(); i++)
-	{
-		pPane = maPanes.Get(i);
-		if (pPane->IsShown())
-		{
-			TakeOut(pPane, false);
-		}
-	}
-	while (maFloating.Size() > 0)
-	{
-		RemoveFloating(maFloating.Get(maFloating.Size() - 1));
-	}
-	mpWell->SetRoot(NULL);
-	mpArea->SetRoot(mpWell);
-	mpWell->SetDockSize(0);
-	mpDocumentGroup = NULL;
-	mpFocus->Clear();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CDockArea>				CDockManager::GetArea(void) { return mpArea; }
-Ptr<CDocumentWell>			CDockManager::GetWell(void) { return mpWell; }
-Ptr<CWindow>				CDockManager::GetWindow(void) { return mpWindow; }
-void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpcListener = pcListener; }
+Ptr<CDockArea>				CDockManager::GetArea(void) { return mpState->GetArea(); }
+Ptr<CDocumentWell>			CDockManager::GetWell(void) { return mpState->GetWell(); }
+Ptr<CWindow>				CDockManager::GetWindow(void) { return mpState->GetWindow(); }
+void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpState->SetListener(pcListener); }
 Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
+Ptr<CDockState>				CDockManager::GetState(void) { return mpState; }
 Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
 Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
 int32						CDockManager::GetMetric(EThemeMetric eMetric) { return mpTheme->GetMetric(eMetric); }
 void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }
-size						CDockManager::NumPanes(void) { return maPanes.Size(); }
-Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return maPanes.Get(uiIndex); }
-Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpFocus->GetActivePane(); }
-Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpFocus->GetActiveDocument(); }
-size						CDockManager::NumFloating(void) { return maFloating.Size(); }
-Ptr<CDockFloatingWindow>	CDockManager::GetFloating(size uiIndex) { return maFloating.Get(uiIndex); }
-Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpFocus->GetFlyout(); }
-SDockTarget*				CDockManager::GetTarget(void) { return mpDrag->GetTarget(); }
-Ptr<CDockDrag>				CDockManager::GetDrag(void) { return mpDrag; }
-bool						CDockManager::IsDragging(void) { return mpDrag->IsDragging(); }
-void						CDockManager::SetDragNoDock(bool bNoDock) { mpDrag->SetNoDock(bNoDock); }
-void						CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane) { mpDrag->BeginPane(pPane); }
-void						CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup) { mpDrag->BeginGroup(pGroup); }
-void						CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating) { mpDrag->BeginFloating(pFloating); }
+size						CDockManager::NumPanes(void) { return mpState->GetPanes()->Size(); }
+Ptr<CDockPane>				CDockManager::GetPane(size uiIndex) { return mpState->GetPanes()->Get(uiIndex); }
+Ptr<CDockPane>				CDockManager::GetActivePane(void) { return mpState->GetFocus()->GetActivePane(); }
+Ptr<CDockPane>				CDockManager::GetActiveDocument(void) { return mpState->GetFocus()->GetActiveDocument(); }
+size						CDockManager::NumFloating(void) { return mpState->GetFloating()->Size(); }
+Ptr<CDockFloatingWindow>	CDockManager::GetFloating(size uiIndex) { return mpState->GetFloating()->Get(uiIndex); }
+Ptr<CAutoHideFlyout>		CDockManager::GetFlyout(void) { return mpState->GetFocus()->GetFlyout(); }
+SDockTarget*				CDockManager::GetTarget(void) { return mpState->GetDrag()->GetTarget(); }
+Ptr<CDockDrag>				CDockManager::GetDrag(void) { return mpState->GetDrag(); }
+bool						CDockManager::IsDragging(void) { return mpState->GetDrag()->IsDragging(); }
+void						CDockManager::SetDragNoDock(bool bNoDock) { mpState->GetDrag()->SetNoDock(bNoDock); }
+void						CDockManager::BeginPaneDrag(Ptr<CDockPane> pPane) { mpState->GetDrag()->BeginPane(pPane); }
+void						CDockManager::BeginGroupDrag(Ptr<CDockGroup> pGroup) { mpState->GetDrag()->BeginGroup(pGroup); }
+void						CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating) { mpState->GetDrag()->BeginFloating(pFloating); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1113,7 +980,7 @@ void						CDockManager::BeginFloatingDrag(Ptr<CDockFloatingWindow> pFloating) { 
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::IsInWell(Ptr<CDockNode> pNode)
 {
-	return pNode.IsNotNull() && (pNode != mpWell) && pNode->IsWithin(mpWell);
+	return pNode.IsNotNull() && (pNode != mpState->GetWell()) && pNode->IsWithin(mpState->GetWell());
 }
 
 
@@ -1131,7 +998,7 @@ bool CDockManager::DockPaneAt(Ptr<CDockPane> pPane, SDockTarget* psTarget)
 	{
 		return false;
 	}
-	TakeOut(pPane, true);
+	mpState->GetMover()->TakeOut(pPane, true);
 	pGroup = CreateGroup(pPane->IsDocument());
 	pGroup->AddPane(pPane);
 	return DockNodeAt(pGroup, psTarget);
@@ -1145,7 +1012,7 @@ bool CDockManager::DockPaneAt(Ptr<CDockPane> pPane, SDockTarget* psTarget)
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
 {
-	return mcTree.DockAt(pNode, psTarget);
+	return mpState->GetTree()->DockAt(pNode, psTarget);
 }
 
 
@@ -1158,8 +1025,7 @@ bool CDockManager::DockNodeAt(Ptr<CDockNode> pNode, SDockTarget* psTarget)
 //////////////////////////////////////////////////////////////////////////
 bool CDockManager::GetLayoutWindowRectangle(CInt32Rect* pcDest)
 {
-	pcDest->Init(&mcLayoutWindow);
-	return mbLayoutWindow;
+	return mpState->GetLayoutWindow(pcDest);
 }
 
 
@@ -1238,6 +1104,6 @@ bool CDockManager::ReadLayout(CMarkupTag* pcRoot)
 void CDockManager::PlaceInGroup(Ptr<CDockGroup> pGroup, Ptr<CDockPane> pPane, size uiIndex)
 {
 	pGroup->AddPane(pPane, uiIndex);
-	pPane->SetState((pGroup->GetWindow() == mpWindow) ? DPS_Docked : DPS_Floating);
+	pPane->SetState((pGroup->GetWindow() == mpState->GetWindow()) ? DPS_Docked : DPS_Floating);
 }
 

@@ -36,11 +36,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // pManager holds the panes, groups and windows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockFocus::Init(Ptr<CDockManager> pManager)
+void CDockFocus::Init(Ptr<CDockManager> pManager, CDockState* pcState)
 {
 	PreInit();
 
 	mpManager = pManager;
+	mpcState = pcState;
 	mpActivePane = NULL;
 	mpActiveDocument = NULL;
 	mpFlyout = NULL;
@@ -56,6 +57,7 @@ void CDockFocus::Init(Ptr<CDockManager> pManager)
 void CDockFocus::Class(void)
 {
 	M_Pointer(mpManager);
+	U_Pointer(mpcState);
 	M_Pointer(mpActivePane);
 	M_Pointer(mpActiveDocument);
 	M_Pointer(mpFlyout);
@@ -206,9 +208,9 @@ void CDockFocus::SetActivePane(Ptr<CDockPane> pPane)
 		pNew->SetActive(true);
 	}
 	mpActivePane = pPane;
-	if (mpManager->mpcListener)
+	if (mpcState->GetListener())
 	{
-		mpManager->mpcListener->ActivePaneChanged(&pPane);
+		mpcState->GetListener()->ActivePaneChanged(&pPane);
 	}
 }
 
@@ -224,9 +226,9 @@ void CDockFocus::SetActiveDocument(Ptr<CDockPane> pPane)
 		return;
 	}
 	mpActiveDocument = pPane;
-	if (mpManager->mpcListener)
+	if (mpcState->GetListener())
 	{
-		mpManager->mpcListener->DocumentSelected(&pPane);
+		mpcState->GetListener()->DocumentSelected(&pPane);
 	}
 }
 
@@ -316,16 +318,16 @@ void CDockFocus::ShowFlyout(Ptr<CDockPane> pPane)
 		return;
 	}
 	CloseFlyout();
-	pStrip = mpManager->mpArea->GetStrip(pPane->GetAutoHideSide());
+	pStrip = mpcState->GetArea()->GetStrip(pPane->GetAutoHideSide());
 	pTab = pStrip->FindTab(pPane);
 	if (pTab.IsNull())
 	{
 		return;
 	}
-	mpFlyout = OMalloc<CAutoHideFlyout>(mpManager->mpWindow, mpManager, pPane);
-	mpManager->mpArea->GetRootBounds(&cRoot);
+	mpFlyout = OMalloc<CAutoHideFlyout>(mpcState->GetWindow(), mpManager, pPane);
+	mpcState->GetArea()->GetRootBounds(&cRoot);
 	mpFlyout->Place(&cRoot, &sPosition);
-	mpManager->mpWindow->OpenPopup(mpFlyout, sPosition, pTab);
+	mpcState->GetWindow()->OpenPopup(mpFlyout, sPosition, pTab);
 	FocusPane(pPane);
 	SetActivePane(pPane);
 }
@@ -345,7 +347,7 @@ void CDockFocus::CloseFlyout(void)
 	}
 	pFlyout = mpFlyout;
 	mpFlyout = NULL;
-	mpManager->mpWindow->ClosePopup(pFlyout);
+	mpcState->GetWindow()->ClosePopup(pFlyout);
 	pFlyout->Detach();
 }
 

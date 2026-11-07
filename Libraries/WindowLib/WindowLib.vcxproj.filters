@@ -384,6 +384,9 @@
     <ClInclude Include="DockRestorer.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
+    <ClInclude Include="DockState.h">
+      <Filter>Source\Component\Docking</Filter>
+    </ClInclude>
     <ClInclude Include="DockMover.h">
       <Filter>Source\Component\Docking</Filter>
     </ClInclude>
@@ -717,6 +720,9 @@
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockRestorer.cpp">
+      <Filter>Source\Component\Docking</Filter>
+    </ClCompile>
+    <ClCompile Include="DockState.cpp">
       <Filter>Source\Component\Docking</Filter>
     </ClCompile>
     <ClCompile Include="DockMover.cpp">

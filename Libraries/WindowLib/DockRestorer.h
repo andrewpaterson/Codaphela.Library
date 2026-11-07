@@ -25,20 +25,23 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CDockManager;
+class CDockState;
 class CDockPane;
 class CDockGroup;
 struct SDockRestore;
 
 
-//Where a pane goes back to: recording a docked pane's place as it leaves (SDockRestore), and putting a pane back
-//there, or beside or with its neighbour, or in its default place.  Part of its manager.
+//Where a pane goes back to: recording a docked pane's place as it leaves (SDockRestore), and putting a pane back there,
+//or beside or with its neighbour, or in its default place.  One of its manager's parts, held by the manager's state
+//(CDockState).
 class CDockRestorer
 {
 protected:
 	CDockManager*	mpcManager;
+	CDockState*		mpcState;  //The manager's, shared with its other parts.
 
 public:
-	void						Init(CDockManager* pcManager);
+	void						Init(CDockManager* pcManager, CDockState* pcState);
 	void						Kill(void);
 
 	void						Record(Ptr<CDockPane> pPane);

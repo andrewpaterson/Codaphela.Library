@@ -29,10 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockNode.h"
 #include "DockPane.h"
 #include "DockGroup.h"
-#include "DockTree.h"
-#include "DockRestorer.h"
-#include "DockMover.h"
-#include "DockFocus.h"
+#include "DockState.h"
 
 
 //What a drop would do: dock at the edge of a dock area, beside a group or tab into it, beside the document well, or
@@ -94,39 +91,17 @@ public:
 //
 //The application puts the manager's dock area (GetArea) in its window, adds its panes (AddPane) and listens for what
 //happens to them (SetListener).  Everything that moves panes goes through the manager: the panes' menus, their title
-//bars and tabs, dragging, the layout file, and the application calling the API.
+//bars and tabs, dragging, the layout file, and the application calling the API.  The manager's parts share its state
+//(GetState, see CDockState).
 class CDockManager : public CObject
 {
 CONSTRUCTABLE(CDockManager);
 DESTRUCTABLE(CDockManager);
-friend class CDockDrag;
-friend class CDockTree;
-friend class CDockRestorer;
-friend class CDockMover;
-friend class CDockFocus;
-friend class CDockLayoutWriter;
-friend class CDockLayoutReader;
 protected:
-	Ptr<CWindow>				mpWindow;  //The main window.
 	Ptr<CWindowTheme>			mpTheme;
 	Ptr<CFont>					mpFont;
 	Ptr<CFont>					mpTurnedFont;  //For the left and right auto hide strips, NULL for upright text.
-	Ptr<CDockArea>				mpArea;
-	Ptr<CDocumentWell>			mpWell;
-	CArray<CDockPane>			maPanes;
-	CArray<CDockFloatingWindow>	maFloating;
-	int32						miNextGroupID;
-	Ptr<CDockGroup>				mpDocumentGroup;  //The well's group documents are added to.
-	CDockManagerListener*		mpcListener;
-
-	Ptr<CDockDrag>				mpDrag;
-	Ptr<CDockFocus>				mpFocus;  //The active pane and document, and the flyout.
-	CDockTree					mcTree;  //The trees' edits.
-	CDockRestorer				mcRestorer;  //Where panes go back to.
-	CDockMover					mcMover;  //Floating, docking and auto hiding.
-
-	CInt32Rect					mcLayoutWindow;  //The main window's client area on the screen, from the last layout read.
-	bool						mbLayoutWindow;
+	Ptr<CDockState>				mpState;  //What the manager shares with its parts.
 
 public:
 	void						Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pTurnedFont = NULL);
@@ -140,6 +115,7 @@ public:
 	Ptr<CWindow>				GetWindow(void);
 	void						SetListener(CDockManagerListener* pcListener);
 	Ptr<CWindowTheme>			GetTheme(void);
+	Ptr<CDockState>				GetState(void);
 	Ptr<CFont>					GetFont(void);
 	Ptr<CFont>					GetTurnedFont(void);
 	ARGB32						GetColour(EThemeColour eColour);
@@ -226,10 +202,6 @@ public:
 	void						ResetLayout(void);
 	bool						GetLayoutWindowRectangle(CInt32Rect* pcDest);
 
-protected:
-	void						TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore);
-	void						SetStates(Ptr<CDockNode> pNode, EDockPaneState eState);
-	void						ClearLayout(void);
 };
 
 

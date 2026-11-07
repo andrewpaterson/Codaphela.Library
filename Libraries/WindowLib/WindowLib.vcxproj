@@ -252,6 +252,7 @@
     <ClInclude Include="DockTitleBar.h" />
     <ClInclude Include="DockTree.h" />
     <ClInclude Include="DockRestorer.h" />
+    <ClInclude Include="DockState.h" />
     <ClInclude Include="DockMover.h" />
     <ClInclude Include="DockFocus.h" />
     <ClInclude Include="DocumentWell.h" />
@@ -333,6 +334,7 @@
     <ClCompile Include="DockTitleBar.cpp" />
     <ClCompile Include="DockTree.cpp" />
     <ClCompile Include="DockRestorer.cpp" />
+    <ClCompile Include="DockState.cpp" />
     <ClCompile Include="DockMover.cpp" />
     <ClCompile Include="DockFocus.cpp" />
     <ClCompile Include="DocumentWell.cpp" />

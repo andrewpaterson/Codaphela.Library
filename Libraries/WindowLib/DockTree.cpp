@@ -35,9 +35,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // pcManager holds the tree: its area, its well and its groups.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockTree::Init(CDockManager* pcManager)
+void CDockTree::Init(CDockManager* pcManager, CDockState* pcState)
 {
 	mpcManager = pcManager;
+	mpcState = pcState;
 }
 
 
@@ -166,7 +167,7 @@ bool CDockTree::DockAtGroup(Ptr<CDockNode> pNode, Ptr<CDockGroup> pGroup, EDockS
 		MovePanesInto(pNode, pGroup);
 		if (bInWell)
 		{
-			mpcManager->mpDocumentGroup = pGroup;
+			mpcState->SetDocumentGroup(pGroup);
 		}
 		return true;
 	}
@@ -195,7 +196,7 @@ bool CDockTree::DockBesideWell(Ptr<CDockNode> pNode, EDockSide eSide, int32 iSiz
 	{
 		return false;
 	}
-	DockBeside(mpcManager->mpWell, pNode, eSide, iSize);
+	DockBeside(mpcState->GetWell(), pNode, eSide, iSize);
 	return true;
 }
 
@@ -209,17 +210,17 @@ bool CDockTree::DockInWell(Ptr<CDockNode> pNode)
 {
 	Ptr<CDockGroup>	pGroup;
 
-	if (mpcManager->mpWell->GetRoot().IsNull())
+	if (mpcState->GetWell()->GetRoot().IsNull())
 	{
 		pGroup = GatherInto(pNode, true);
-		mpcManager->mpWell->SetRoot(pGroup);
+		mpcState->GetWell()->SetRoot(pGroup);
 	}
 	else
 	{
-		pGroup = mpcManager->mpWell->GetFirstGroup();
+		pGroup = mpcState->GetWell()->GetFirstGroup();
 		MovePanesInto(pNode, pGroup);
 	}
-	mpcManager->mpDocumentGroup = pGroup;
+	mpcState->SetDocumentGroup(pGroup);
 	return true;
 }
 
@@ -392,7 +393,7 @@ void CDockTree::RemoveNode(Ptr<CDockNode> pNode)
 	{
 		Tidy(pSplit);
 	}
-	else if (pArea.IsNotNull() && pArea->GetFloating().IsNotNull() && (pArea->GetFloating() != mpcManager->mpDrag->GetFloating()))
+	else if (pArea.IsNotNull() && pArea->GetFloating().IsNotNull() && (pArea->GetFloating() != mpcState->GetDrag()->GetFloating()))
 	{
 		mpcManager->RemoveFloating(pArea->GetFloating());
 	}
@@ -617,7 +618,7 @@ Ptr<CDockGroup> CDockTree::GatherInto(Ptr<CDockNode> pNode, bool bDocuments)
 		pSelected = pGroup->GetSelectedPane();
 	}
 	pGroup = mpcManager->CreateGroup(bDocuments);
-	if (pNode->GetWindow() != mpcManager->mpWindow)
+	if (pNode->GetWindow() != mpcState->GetWindow())
 	{
 		pGroup->MoveToWindow(pNode->GetWindow());
 	}

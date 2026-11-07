@@ -36,11 +36,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockDrag::Init(Ptr<CDockManager> pManager)
+void CDockDrag::Init(Ptr<CDockManager> pManager, CDockState* pcState)
 {
 	PreInit();
 
 	mpManager = pManager;
+	mpcState = pcState;
 	mpFloating = NULL;
 	mpSource = NULL;
 	mpTracker = NULL;
@@ -63,6 +64,7 @@ void CDockDrag::Init(Ptr<CDockManager> pManager)
 void CDockDrag::Class(void)
 {
 	M_Pointer(mpManager);
+	U_Pointer(mpcState);
 	M_Pointer(mpFloating);
 	M_Pointer(mpSource);
 	M_Pointer(mpTracker);
@@ -165,7 +167,7 @@ void CDockDrag::BeginPane(Ptr<CDockPane> pPane)
 	}
 
 	pSource->GetPointerScreenPosition(&sPointer);
-	mpManager->mcMover.FloatRectangleFor(pPane->GetGroup(), NULL, &cRect);
+	mpcState->GetMover()->FloatRectangleFor(pPane->GetGroup(), NULL, &cRect);
 	iWidth = cRect.GetWidth();
 	iHeight = cRect.GetHeight();
 	sGrab.Init((iWidth > 2 * DOCK_GRAB_LEFT) ? DOCK_GRAB_LEFT : iWidth / 2, mpManager->GetMetric(TM_DockFrameBorder) + mpManager->GetMetric(TM_DockTitleBarHeight) / 2);
@@ -207,7 +209,7 @@ void CDockDrag::BeginGroup(Ptr<CDockGroup> pGroup)
 	}
 
 	pSource->GetPointerScreenPosition(&sPointer);
-	mpManager->mcMover.FloatRectangleFor(pGroup, NULL, &cRect);
+	mpcState->GetMover()->FloatRectangleFor(pGroup, NULL, &cRect);
 	sGrab.Init(sPointer.x - cRect.GetLeft(), sPointer.y - cRect.GetTop());
 	mpManager->FloatGroup(pGroup, &cRect);
 	Start(mpManager->FindFloating(pGroup->GetPane(0)), sGrab, pSource, true);
@@ -359,9 +361,9 @@ void CDockDrag::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 	SInt32Vec2					sClient;
 
 	psTarget->Init();
-	for (i = mpManager->maFloating.Size(); i > 0; i--)
+	for (i = mpcState->GetFloating()->Size(); i > 0; i--)
 	{
-		pFloating = mpManager->maFloating.Get(i - 1);
+		pFloating = mpcState->GetFloating()->Get(i - 1);
 		if ((pFloating == mpFloating) || !pFloating->IsShown())
 		{
 			continue;
@@ -374,13 +376,13 @@ void CDockDrag::FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget)
 			return;
 		}
 	}
-	mpManager->mpWindow->GetScreenRectangle(&cScreen);
+	mpcState->GetWindow()->GetScreenRectangle(&cScreen);
 	if (cScreen.ContainsPoint(sScreen.x, sScreen.y))
 	{
 		sClient.Init(sScreen.x - cScreen.GetLeft(), sScreen.y - cScreen.GetTop());
-		if (mpManager->mpArea->IsPointIn(sClient.x, sClient.y))
+		if (mpcState->GetArea()->IsPointIn(sClient.x, sClient.y))
 		{
-			ShowGuides(psTarget, mpManager->mpArea, sClient);
+			ShowGuides(psTarget, mpcState->GetArea(), sClient);
 			return;
 		}
 	}

@@ -38,9 +38,10 @@ static const EDockSide gaeTallGroupEdges[4] = { DS_Left, DS_Right, DS_Bottom, DS
 // pcManager holds the panes, groups and windows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockMover::Init(CDockManager* pcManager)
+void CDockMover::Init(CDockManager* pcManager, CDockState* pcState)
 {
 	mpcManager = pcManager;
+	mpcState = pcState;
 }
 
 
@@ -90,7 +91,7 @@ void CDockMover::Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle)
 	{
 		FloatRectangleFor(pFrom, pPane, &cRect);
 	}
-	mpcManager->TakeOut(pPane, true);
+	TakeOut(pPane, true);
 
 	pFloating = CreateFloating(&cRect);
 	pGroup = mpcManager->CreateGroup(pPane->IsDocument());
@@ -137,21 +138,21 @@ void CDockMover::FloatGroup(Ptr<CDockGroup> pGroup, CInt32Rect* pcScreenRectangl
 		FloatRectangleFor(pGroup, NULL, &cRect);
 	}
 
-	mpcManager->mpFocus->CloseFlyout();
-	if (pGroup->IsWithin(mpcManager->mpArea))
+	mpcState->GetFocus()->CloseFlyout();
+	if (pGroup->IsWithin(mpcState->GetArea()))
 	{
-		mpcManager->mcRestorer.GiveToGroup(pGroup);
+		mpcState->GetRestorer()->GiveToGroup(pGroup);
 	}
-	if (mpcManager->mpDocumentGroup == pGroup)
+	if (mpcState->GetDocumentGroup() == pGroup)
 	{
-		mpcManager->mpDocumentGroup = NULL;
+		mpcState->SetDocumentGroup(NULL);
 	}
-	mpcManager->mcTree.RemoveNode(pGroup);
+	mpcState->GetTree()->RemoveNode(pGroup);
 
 	pFloating = CreateFloating(&cRect);
 	pGroup->MoveToWindow(pFloating->GetWindow());
 	pFloating->SetRoot(pGroup);
-	mpcManager->SetStates(pGroup, DPS_Floating);
+	pGroup->SetPaneStates(DPS_Floating);
 	for (i = 0; i < pGroup->NumPanes(); i++)
 	{
 		pGroup->GetPane(i)->SetFloatRectangle(&cRect);
@@ -171,8 +172,8 @@ void CDockMover::Dock(Ptr<CDockPane> pPane)
 	{
 		return;
 	}
-	mpcManager->TakeOut(pPane, false);
-	mpcManager->mcRestorer.Restore(pPane);
+	TakeOut(pPane, false);
+	mpcState->GetRestorer()->Restore(pPane);
 	pPane->GetGroup()->SelectPane(pPane);
 	mpcManager->LayoutChanged();
 }
@@ -188,7 +189,7 @@ void CDockMover::DockAsDocument(Ptr<CDockPane> pPane)
 	{
 		return;
 	}
-	mpcManager->TakeOut(pPane, true);
+	TakeOut(pPane, true);
 	mpcManager->AddToWell(pPane);
 }
 
@@ -217,15 +218,15 @@ void CDockMover::AutoHide(Ptr<CDockPane> pPane)
 	eSide = NearestEdge(pGroup);
 	sSize = pGroup->GetActualSize();
 	iSize = IsHorizontalDockSide(eSide) ? sSize.x : sSize.y;
-	mpcManager->TakeOut(pPane, true);
+	TakeOut(pPane, true);
 	pPane->SetAutoHide(eSide, (iSize > DOCK_MINIMUM_SIZE) ? iSize : DOCK_DEFAULT_SIZE);
-	pStrip = mpcManager->mpArea->GetStrip(eSide);
+	pStrip = mpcState->GetArea()->GetStrip(eSide);
 	pStrip->AddPane(pPane);
 	pPane->SetState(DPS_AutoHidden);
-	mpcManager->mpArea->StripsChanged();
-	if (mpcManager->mpFocus->GetActivePane() == pPane)
+	mpcState->GetArea()->StripsChanged();
+	if (mpcState->GetFocus()->GetActivePane() == pPane)
 	{
-		mpcManager->mpFocus->SetActivePane(NULL);
+		mpcState->GetFocus()->SetActivePane(NULL);
 	}
 	mpcManager->LayoutChanged();
 }
@@ -245,32 +246,32 @@ void CDockMover::AutoHideGroup(Ptr<CDockGroup> pGroup)
 	SInt32Vec2				sSize;
 	Ptr<CAutoHideStrip>		pStrip;
 
-	if (pGroup.IsNull() || pGroup->IsDocumentGroup() || !pGroup->IsWithin(mpcManager->mpArea) || mpcManager->IsInWell(pGroup))
+	if (pGroup.IsNull() || pGroup->IsDocumentGroup() || !pGroup->IsWithin(mpcState->GetArea()) || mpcManager->IsInWell(pGroup))
 	{
 		return;
 	}
 	eSide = NearestEdge(pGroup);
 	sSize = pGroup->GetActualSize();
 	iSize = IsHorizontalDockSide(eSide) ? sSize.x : sSize.y;
-	mpcManager->mcRestorer.GiveToGroup(pGroup);
+	mpcState->GetRestorer()->GiveToGroup(pGroup);
 
 	aPanes.Init();
 	pGroup->GetPanes(&aPanes);
-	pStrip = mpcManager->mpArea->GetStrip(eSide);
+	pStrip = mpcState->GetArea()->GetStrip(eSide);
 	for (i = 0; i < aPanes.Size(); i++)
 	{
 		pPane = aPanes.Get(i);
-		mpcManager->TakeOut(pPane, false);
+		TakeOut(pPane, false);
 		pPane->SetAutoHide(eSide, (iSize > DOCK_MINIMUM_SIZE) ? iSize : DOCK_DEFAULT_SIZE);
 		pStrip->AddPane(pPane);
 		pPane->SetState(DPS_AutoHidden);
-		if (mpcManager->mpFocus->GetActivePane() == pPane)
+		if (mpcState->GetFocus()->GetActivePane() == pPane)
 		{
-			mpcManager->mpFocus->SetActivePane(NULL);
+			mpcState->GetFocus()->SetActivePane(NULL);
 		}
 	}
 	aPanes.Kill();
-	mpcManager->mpArea->StripsChanged();
+	mpcState->GetArea()->StripsChanged();
 	mpcManager->LayoutChanged();
 }
 
@@ -393,12 +394,12 @@ EDockSide CDockMover::NearestEdge(Ptr<CDockGroup> pGroup)
 	int32				iDistance;
 	int					i;
 
-	mpcManager->mpArea->GetRootBounds(&cRoot);
+	mpcState->GetArea()->GetRootBounds(&cRoot);
 	pGroup->GetActualBounds(&cGroup);
 	if ((cGroup.GetWidth() <= 0) || (cGroup.GetHeight() <= 0))
 	{
 		//Not laid out yet: the side of the well it is on.
-		return mpcManager->mcTree.SideOfWell(pGroup);
+		return mpcState->GetTree()->SideOfWell(pGroup);
 	}
 
 	aeOrder = (cGroup.GetWidth() > cGroup.GetHeight()) ? gaeWideGroupEdges : gaeTallGroupEdges;
@@ -471,7 +472,7 @@ void CDockMover::FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pP
 		pcDest->Init(cWindow.GetLeft() + cBounds.GetLeft(), cWindow.GetTop() + cBounds.GetTop(), cWindow.GetLeft() + cBounds.GetLeft() + iWidth, cWindow.GetTop() + cBounds.GetTop() + iHeight);
 		return;
 	}
-	mpcManager->mpWindow->GetScreenRectangle(&cScreen);
+	mpcState->GetWindow()->GetScreenRectangle(&cScreen);
 	pcDest->Init(cScreen.GetLeft() + DOCK_FLOAT_OFFSET, cScreen.GetTop() + DOCK_FLOAT_OFFSET, cScreen.GetLeft() + DOCK_FLOAT_OFFSET + iWidth, cScreen.GetTop() + DOCK_FLOAT_OFFSET + iHeight);
 }
 
@@ -492,7 +493,7 @@ void CDockMover::KeepOnScreen(CInt32Rect* pcRect)
 	int32		iScreenRight;
 	int32		iScreenBottom;
 
-	if (!mpcManager->mpWindow->GetScreenArea(&cScreen))
+	if (!mpcState->GetWindow()->GetScreenArea(&cScreen))
 	{
 		return;
 	}
@@ -544,7 +545,91 @@ Ptr<CDockFloatingWindow> CDockMover::CreateFloating(CInt32Rect* pcScreenRectangl
 	cRect.Init(pcScreenRectangle);
 	KeepOnScreen(&cRect);
 	pFloating = OMalloc<CDockFloatingWindow>(Ptr<CDockManager>(mpcManager), &cRect);
-	mpcManager->maFloating.Add(pFloating);
+	mpcState->GetFloating()->Add(pFloating);
 	return pFloating;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the pane out of wherever it is shown: its group, its auto hide
+// strip and flyout.  An empty group comes out of its tree and an empty
+// floating window closes.  A docked pane remembers where it was if
+// bRecordRestore.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockMover::TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore)
+{
+	Ptr<CDockGroup>			pGroup;
+	Ptr<CAutoHideStrip>		pStrip;
+
+	if ((pPane->GetState() == DPS_Docked) && bRecordRestore)
+	{
+		mpcState->GetRestorer()->Record(pPane);
+	}
+	if (mpcState->GetFocus()->IsInFlyout(pPane))
+	{
+		mpcManager->CloseFlyout();
+	}
+	if (pPane->GetState() == DPS_AutoHidden)
+	{
+		pStrip = mpcState->GetArea()->GetStrip(pPane->GetAutoHideSide());
+		if (pStrip.IsNotNull())
+		{
+			pStrip->RemovePane(pPane);
+			mpcState->GetArea()->StripsChanged();
+		}
+	}
+	pGroup = pPane->GetGroup();
+	if (pGroup.IsNotNull())
+	{
+		pPane->GetContent()->GetWindow()->GetFocus()->Forget(pPane->GetContent());
+		pGroup->TakePane(pPane);
+		if (pGroup->NumPanes() == 0)
+		{
+			if (mpcState->GetDocumentGroup() == pGroup)
+			{
+				mpcState->SetDocumentGroup(NULL);
+			}
+			mpcState->GetTree()->RemoveNode(pGroup);
+		}
+	}
+	pPane->SetGroup(NULL);
+	pPane->SetState(DPS_Hidden);
+	if (pPane->GetContent()->GetWindow() != mpcState->GetWindow())
+	{
+		pPane->GetContent()->MoveToWindow(mpcState->GetWindow());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every pane is taken out, the floating windows closed and the main area
+// left with the empty document well.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockMover::ClearLayout(void)
+{
+	size			i;
+	Ptr<CDockPane>	pPane;
+
+	mpcManager->CloseFlyout();
+	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
+	{
+		pPane = mpcState->GetPanes()->Get(i);
+		if (pPane->IsShown())
+		{
+			TakeOut(pPane, false);
+		}
+	}
+	while (mpcState->GetFloating()->Size() > 0)
+	{
+		mpcManager->RemoveFloating(mpcState->GetFloating()->Get(mpcState->GetFloating()->Size() - 1));
+	}
+	mpcState->GetWell()->SetRoot(NULL);
+	mpcState->GetArea()->SetRoot(mpcState->GetWell());
+	mpcState->GetWell()->SetDockSize(0);
+	mpcState->SetDocumentGroup(NULL);
+	mpcState->GetFocus()->Clear();
+}

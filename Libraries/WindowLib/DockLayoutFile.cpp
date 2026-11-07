@@ -134,6 +134,7 @@ static bool ReadRectangle(CMarkupTag* pcTag, CInt32Rect* pcRect, const char* szP
 void CDockLayoutWriter::Init(CDockManager* pcManager)
 {
 	mpcManager = pcManager;
+	mpcState = &pcManager->GetState();
 }
 
 
@@ -180,15 +181,15 @@ void CDockLayoutWriter::Write(CXMLWriter* pcWriter)
 
 	pcWriter->Begin("DockLayout");
 	pcWriter->Attribute("Version", (int32)DOCK_LAYOUT_VERSION);
-	pcWriter->Attribute("NextGroup", (int32)mpcManager->miNextGroupID);
+	pcWriter->Attribute("NextGroup", mpcState->GetNextGroupID());
 
 	WriteMainWindow(pcWriter);
 	WriteFloatingWindows(pcWriter);
 
 	pcWriter->Begin("Panes");
-	for (i = 0; i < mpcManager->maPanes.Size(); i++)
+	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
 	{
-		WriteRestore(pcWriter, mpcManager->maPanes.Get(i));
+		WriteRestore(pcWriter, mpcState->GetPanes()->Get(i));
 	}
 	pcWriter->End();
 
@@ -207,15 +208,15 @@ void CDockLayoutWriter::WriteMainWindow(CXMLWriter* pcWriter)
 	EDockSide	eSide;
 
 	pcWriter->Begin("MainWindow");
-	mpcManager->mpWindow->GetScreenRectangle(&cRect);
+	mpcState->GetWindow()->GetScreenRectangle(&cRect);
 	WriteRectangle(pcWriter, &cRect, "");
-	if (mpcManager->mpArea->GetRoot().IsNotNull())
+	if (mpcState->GetArea()->GetRoot().IsNotNull())
 	{
-		WriteNode(pcWriter, mpcManager->mpArea->GetRoot());
+		WriteNode(pcWriter, mpcState->GetArea()->GetRoot());
 	}
 	for (eSide = DS_Left; eSide <= DS_Bottom; eSide = (EDockSide)(eSide + 1))
 	{
-		WriteAutoHide(pcWriter, mpcManager->mpArea->GetStrip(eSide), eSide);
+		WriteAutoHide(pcWriter, mpcState->GetArea()->GetStrip(eSide), eSide);
 	}
 	pcWriter->End();
 }
@@ -256,9 +257,9 @@ void CDockLayoutWriter::WriteFloatingWindows(CXMLWriter* pcWriter)
 	Ptr<CDockFloatingWindow>	pFloating;
 	CInt32Rect					cRect;
 
-	for (i = 0; i < mpcManager->maFloating.Size(); i++)
+	for (i = 0; i < mpcState->GetFloating()->Size(); i++)
 	{
-		pFloating = mpcManager->maFloating.Get(i);
+		pFloating = mpcState->GetFloating()->Get(i);
 		if (pFloating->GetRoot().IsNull())
 		{
 			continue;
@@ -437,6 +438,7 @@ void CDockLayoutWriter::WriteRestore(CXMLWriter* pcWriter, Ptr<CDockPane> pPane)
 void CDockLayoutReader::Init(CDockManager* pcManager)
 {
 	mpcManager = pcManager;
+	mpcState = &pcManager->GetState();
 }
 
 
@@ -519,12 +521,12 @@ bool CDockLayoutReader::Read(CMarkupTag* pcRoot)
 	{
 		return false;
 	}
-	mpcManager->ClearLayout();
+	mpcState->GetMover()->ClearLayout();
 	iNextGroup = 1;
 	pcRoot->GetInt32Attribute("NextGroup", &iNextGroup);
 	//No group is left after clearing: the layout's own IDs are used.
-	mpcManager->miNextGroupID = (iNextGroup > 0) ? iNextGroup : 1;
-	mpcManager->mpArea->SetRoot(NULL);
+	mpcState->SetNextGroupID((iNextGroup > 0) ? iNextGroup : 1);
+	mpcState->GetArea()->SetRoot(NULL);
 
 	aMentioned.Init();
 	aHidden.Init();
@@ -613,19 +615,18 @@ Ptr<CDockNode> CDockLayoutReader::ReadMainWindow(CMarkupTag* pcMain, CArray<CDoc
 	CMarkupTag*		pcTag;
 	CInt32Rect		cRect;
 
-	mpcManager->mbLayoutWindow = false;
+	mpcState->SetLayoutWindow(NULL);
 	if (pcMain == NULL)
 	{
 		return NULL;
 	}
-	mpcManager->mbLayoutWindow = ReadRectangle(pcMain, &mpcManager->mcLayoutWindow, "");
-	if (mpcManager->mbLayoutWindow)
+	if (ReadRectangle(pcMain, &cRect, ""))
 	{
 		//The window goes where it was: read as the application starts, before its window is shown, or later, as a
 		//solution is opened in a window already shown.
-		cRect.Init(&mpcManager->mcLayoutWindow);
-		mpcManager->mcMover.KeepOnScreen(&cRect);
-		mpcManager->mpWindow->SetScreenRectangle(&cRect);
+		mpcState->SetLayoutWindow(&cRect);
+		mpcState->GetMover()->KeepOnScreen(&cRect);
+		mpcState->GetWindow()->SetScreenRectangle(&cRect);
 	}
 
 	pcTag = pcMain->GetTag("AutoHide", &sIter);
@@ -634,9 +635,9 @@ Ptr<CDockNode> CDockLayoutReader::ReadMainWindow(CMarkupTag* pcMain, CArray<CDoc
 		ReadAutoHide(pcTag, paMentioned);
 		pcTag = pcMain->GetNextTag(&sIter);
 	}
-	mpcManager->mpArea->StripsChanged();
+	mpcState->GetArea()->StripsChanged();
 
-	return ReadFirstNode(pcMain, mpcManager->mpWindow, true);
+	return ReadFirstNode(pcMain, mpcState->GetWindow(), true);
 }
 
 
@@ -654,7 +655,7 @@ void CDockLayoutReader::ReadAutoHide(CMarkupTag* pcAutoHide, CArray<CDockPane>* 
 	Ptr<CAutoHideStrip>	pStrip;
 
 	eSide = StringToDockSide(pcAutoHide->GetStringAttribute("Side"));
-	pStrip = mpcManager->mpArea->GetStrip(eSide);
+	pStrip = mpcState->GetArea()->GetStrip(eSide);
 	if (pStrip.IsNull())
 	{
 		return;
@@ -710,14 +711,14 @@ Ptr<CDockNode> CDockLayoutReader::ReadFirstNode(CMarkupTag* pcTag, Ptr<CWindow> 
 //////////////////////////////////////////////////////////////////////////
 void CDockLayoutReader::PlaceMainRoot(Ptr<CDockNode> pRoot)
 {
-	mpcManager->mpArea->SetRoot(pRoot);
+	mpcState->GetArea()->SetRoot(pRoot);
 	if (pRoot.IsNull())
 	{
-		mpcManager->mpArea->SetRoot(mpcManager->mpWell);
+		mpcState->GetArea()->SetRoot(mpcState->GetWell());
 	}
-	else if (mpcManager->mpWell->GetParent().IsNull())
+	else if (mpcState->GetWell()->GetParent().IsNull())
 	{
-		mpcManager->mcTree.DockBeside(pRoot, mpcManager->mpWell, DS_Right, 0);
+		mpcState->GetTree()->DockBeside(pRoot, mpcState->GetWell(), DS_Right, 0);
 	}
 }
 
@@ -741,7 +742,7 @@ void CDockLayoutReader::ReadFloatingWindows(CMarkupTag* pcRoot)
 	{
 		if (ReadRectangle(pcTag, &cRect, ""))
 		{
-			pFloating = mpcManager->mcMover.CreateFloating(&cRect);
+			pFloating = mpcState->GetMover()->CreateFloating(&cRect);
 			pRoot = ReadFirstNode(pcTag, pFloating->GetWindow(), false);
 			if (pRoot.IsNotNull())
 			{
@@ -769,20 +770,20 @@ void CDockLayoutReader::PlaceTheRest(CArray<CDockPane>* paMentioned, CArray<CDoc
 	size			i;
 	Ptr<CDockPane>	pPane;
 
-	for (i = 0; i < mpcManager->maPanes.Size(); i++)
+	for (i = 0; i < mpcState->GetPanes()->Size(); i++)
 	{
-		pPane = mpcManager->maPanes.Get(i);
+		pPane = mpcState->GetPanes()->Get(i);
 		if (pPane->IsShown() || paHidden->Contains(pPane))
 		{
 			continue;
 		}
 		if (paMentioned->Contains(pPane) && pPane->HasRestore())
 		{
-			mpcManager->mcRestorer.Restore(pPane);
+			mpcState->GetRestorer()->Restore(pPane);
 		}
 		else if (pPane->GetDefaultKind() != DPL_Hidden)
 		{
-			mpcManager->mcRestorer.DockDefault(pPane);
+			mpcState->GetRestorer()->DockDefault(pPane);
 		}
 	}
 }
@@ -808,7 +809,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadNode(CMarkupTag* pcTag, Ptr<CWindow> pWind
 	{
 		pNode = ReadGroup(pcTag, pWindow, bInWell);
 	}
-	else if (pcTag->Is("DocumentWell") && (pWindow == mpcManager->mpWindow) && mpcManager->mpWell->GetParent().IsNull())
+	else if (pcTag->Is("DocumentWell") && (pWindow == mpcState->GetWindow()) && mpcState->GetWell()->GetParent().IsNull())
 	{
 		pNode = ReadWell(pcTag);
 	}
@@ -859,7 +860,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadSplit(CMarkupTag* pcTag, Ptr<CWindow> pWin
 		pSplit->RemoveNode(pOnly);
 		return pOnly;
 	}
-	mpcManager->mcTree.Flatten(pSplit);
+	mpcState->GetTree()->Flatten(pSplit);
 	return pSplit;
 }
 
@@ -881,7 +882,7 @@ Ptr<CDockNode> CDockLayoutReader::ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWin
 	pcTag->GetInt32Attribute("ID", &iID);
 	bDocuments = bInWell || (StringCompare(pcTag->GetStringAttribute("Kind"), "Document") == 0);
 	pGroup = mpcManager->CreateGroup(bDocuments, iID);
-	if (pWindow != mpcManager->mpWindow)
+	if (pWindow != mpcState->GetWindow())
 	{
 		pGroup->MoveToWindow(pWindow);
 	}
@@ -894,9 +895,9 @@ Ptr<CDockNode> CDockLayoutReader::ReadGroup(CMarkupTag* pcTag, Ptr<CWindow> pWin
 	{
 		pGroup->SelectPane(pSelected);
 	}
-	if (bInWell && mpcManager->mpDocumentGroup.IsNull())
+	if (bInWell && mpcState->GetDocumentGroup().IsNull())
 	{
-		mpcManager->mpDocumentGroup = pGroup;
+		mpcState->SetDocumentGroup(pGroup);
 	}
 	return pGroup;
 }
@@ -951,12 +952,12 @@ Ptr<CDockNode> CDockLayoutReader::ReadWell(CMarkupTag* pcTag)
 	CMarkupTag*			pcChild;
 	Ptr<CDockNode>		pNode;
 
-	pWell = mpcManager->mpWell;
+	pWell = mpcState->GetWell();
 	pWell->SetRoot(NULL);
 	pcChild = pcTag->GetTag(&sIter);
 	while (pcChild)
 	{
-		pNode = ReadNode(pcChild, mpcManager->mpWindow, true);
+		pNode = ReadNode(pcChild, mpcState->GetWindow(), true);
 		if (pNode.IsNotNull())
 		{
 			pWell->SetRoot(pNode);
@@ -985,10 +986,10 @@ Ptr<CDockPane> CDockLayoutReader::ReadPane(CMarkupTag* pcTag)
 		return NULL;
 	}
 	pPane = mpcManager->GetPane(szID);
-	if (pPane.IsNull() && mpcManager->mpcListener)
+	if (pPane.IsNull() && mpcState->GetListener())
 	{
-		pPane = mpcManager->mpcListener->CreatePane(szID);
-		if (pPane.IsNotNull() && !mpcManager->maPanes.Contains(pPane))
+		pPane = mpcState->GetListener()->CreatePane(szID);
+		if (pPane.IsNotNull() && !mpcState->GetPanes()->Contains(pPane))
 		{
 			pPane = NULL;
 		}

@@ -25,19 +25,21 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CDockManager;
+class CDockState;
 struct SDockTarget;
 
 
 //The edits of a dock manager's trees of splits, groups and the document well: docking a node at a target or beside
 //another, taking one out, and keeping the trees tidy (a split never holds one node, nor a split of its own direction).
-//Part of its manager, which holds the trees.
+//One of its manager's parts, held by the manager's state (CDockState), which holds the trees.
 class CDockTree
 {
 protected:
 	CDockManager*	mpcManager;
+	CDockState*		mpcState;  //The manager's, shared with its other parts.
 
 public:
-	void				Init(CDockManager* pcManager);
+	void				Init(CDockManager* pcManager, CDockState* pcState);
 	void				Kill(void);
 
 	bool				DockAt(Ptr<CDockNode> pNode, SDockTarget* psTarget);

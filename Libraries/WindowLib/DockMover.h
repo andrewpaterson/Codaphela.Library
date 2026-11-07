@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CDockManager;
+class CDockState;
 class CDockPane;
 class CDockGroup;
 class CDockFloatingWindow;
@@ -32,14 +33,15 @@ class CComponent;
 
 
 //Moving panes and groups between docked, floating and auto hidden, and making and placing the floating windows they
-//float in.  Part of its manager.
+//float in.  One of its manager's parts, held by the manager's state (CDockState).
 class CDockMover
 {
 protected:
 	CDockManager*	mpcManager;
+	CDockState*		mpcState;  //The manager's, shared with its other parts.
 
 public:
-	void						Init(CDockManager* pcManager);
+	void						Init(CDockManager* pcManager, CDockState* pcState);
 	void						Kill(void);
 
 	void						Float(Ptr<CDockPane> pPane, CInt32Rect* pcScreenRectangle = NULL);
@@ -55,6 +57,8 @@ public:
 	void						FloatRectangleFor(Ptr<CComponent> pComponent, Ptr<CDockPane> pPane, CInt32Rect* pcDest);
 	void						KeepOnScreen(CInt32Rect* pcRect);
 	Ptr<CDockFloatingWindow>	CreateFloating(CInt32Rect* pcScreenRectangle);
+	void						TakeOut(Ptr<CDockPane> pPane, bool bRecordRestore);
+	void						ClearLayout(void);
 
 protected:
 	EDockSide					NearestEdge(Ptr<CDockGroup> pGroup);
