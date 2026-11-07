@@ -362,7 +362,7 @@ bool SaveWAV(Ptr<CSound> pSound, char* szPathName, EWAVSampleFormat eFormat)
 
 	uiPad = 0;
 	cFile.Init(DiskFile(szPathName));
-	bResult = cFile.Open(EFM_Write_Create);
+	bResult = cFile.Open(EFM_Write_Replace);
 	if (bResult)
 	{
 		bResult = WAVWriteHeaders(&cFile, pSound, uiNumChannels, uiMask, eFormat, uiBitsPerSample, uiDataSize) && cFile.WriteData(puiData, uiDataSize);

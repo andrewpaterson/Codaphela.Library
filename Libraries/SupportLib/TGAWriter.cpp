@@ -191,7 +191,7 @@ bool SaveTGA(Ptr<CImage> pImage, char* szPathName, bool bRLE)
 	uiDataSize = puiDest - pvData;
 
 	cFile.Init(DiskFile(szPathName));
-	bResult = cFile.Open(EFM_Write_Create);
+	bResult = cFile.Open(EFM_Write_Replace);
 	if (bResult)
 	{
 		bResult =	TGAWriteHeader(&cFile, (bGrey ? TGA_GREY : TGA_TRUE_COLOUR) | (bRLE ? TGA_RLE : 0), iWidth, iHeight, iPixelBytes, bAlpha) &&

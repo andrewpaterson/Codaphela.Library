@@ -89,7 +89,7 @@ bool FatPutFileOnImage(const char* szImage, const char* szName, void* pvData, si
 
 	if (bResult)
 	{
-		bResult = cImage.Open(EFM_Write_Create);
+		bResult = cImage.Open(EFM_Write_Replace);
 		bResult = bResult && (cImage.Write(cDrive.GetMemory(), (lsize)iSize, 1) == 1);
 		bResult &= cImage.Close();
 	}

@@ -157,7 +157,7 @@ bool CNaiveFile::Write(const char* szFilename)
 	{
 		mszFilename.Kill();
 		mszFilename.Init(szFilename);
-		if (cFile.Open(EFM_Write_Create))
+		if (cFile.Open(EFM_Write_Replace))
 		{
 			cFile.WriteData(mpvMem, (int)miSize);
 			cFile.Close();

@@ -49,6 +49,51 @@ void TestChunkFileSimple(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A chunk file written over a bigger one is its own size: nothing of the
+// old one is left at its end.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChunkFileRewrite(void)
+{
+	CChunkFile	cChunkFile;
+	CFileUtil	cFileUtil;
+	char		auiData[1000];
+	filePos		iBig;
+	filePos		iSmall;
+
+	cFileUtil.MakeDir("Output");
+	memset(auiData, 0x5A, sizeof(auiData));
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "Rewrite.bin"));
+	AssertTrue(cChunkFile.WriteOpen());
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	AssertTrue(cChunkFile.WriteData(auiData, sizeof(auiData)));
+	AssertTrue(cChunkFile.WriteChunkEnd("Data"));
+	AssertTrue(cChunkFile.WriteClose());
+	cChunkFile.Kill();
+	iBig = cFileUtil.Size("Output" _FS_ "Rewrite.bin");
+
+	cChunkFile.Init(DiskFile("Output" _FS_ "Rewrite.bin"));
+	AssertTrue(cChunkFile.WriteOpen());
+	AssertTrue(cChunkFile.WriteChunkBegin());
+	AssertTrue(cChunkFile.WriteData(auiData, 10));
+	AssertTrue(cChunkFile.WriteChunkEnd("Data"));
+	AssertTrue(cChunkFile.WriteClose());
+	cChunkFile.Kill();
+	iSmall = cFileUtil.Size("Output" _FS_ "Rewrite.bin");
+
+	AssertLong(iBig - 990, iSmall);
+	cChunkFile.Init(DiskFile("Output" _FS_ "Rewrite.bin"));
+	AssertTrue(cChunkFile.ReadOpen());
+	AssertLSize(0, cChunkFile.FindFirstChunkWithName("Data"));
+	AssertTrue(cChunkFile.ReadClose());
+	cChunkFile.Kill();
+	cFileUtil.Delete("Output" _FS_ "Rewrite.bin");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChunkFileMD5ing(void)
@@ -482,6 +527,7 @@ void TestChunkFile(void)
 	MemoryInit();
 	
 	TestChunkFileSimple();
+	TestChunkFileRewrite();
 	TestChunkFileMD5ing();
 	TestChunkFilenameing();
 	TestChunkFileFileBasic();

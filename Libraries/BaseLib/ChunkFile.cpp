@@ -95,7 +95,7 @@ bool CChunkFile::WriteOpen(chunkName iUserID)
 	msHeader.WriteInit(iUserID);
 	miLastName = CFN_Error;
 
-	if (!CFileBasic::Open(EFM_Write_Create))
+	if (!CFileBasic::Open(EFM_Write_Replace))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not create chunk file [", GetFilename(), "].", NULL);
 	}

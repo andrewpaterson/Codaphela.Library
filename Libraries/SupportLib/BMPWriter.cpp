@@ -236,7 +236,7 @@ bool SaveBMP(Ptr<CImage> pImage, char* szPathName)
 	free(pvPixels);
 
 	cFile.Init(DiskFile(szPathName));
-	bResult = cFile.Open(EFM_Write_Create);
+	bResult = cFile.Open(EFM_Write_Replace);
 	if (bResult)
 	{
 		bResult = BMPWriteHeaders(&cFile, iWidth, iHeight, iBitsPerPixel, uiHeaderSize, uiPaletteSize, uiImageSize) && cFile.WriteData(pvRows, uiImageSize);

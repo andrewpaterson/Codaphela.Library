@@ -539,7 +539,7 @@ bool SavePNG(Ptr<CImage> pImage, char* szPathName)
 	if (bResult)
 	{
 		cFile.Init(DiskFile(szPathName));
-		bResult = cFile.Open(EFM_Write_Create);
+		bResult = cFile.Open(EFM_Write_Replace);
 		if (bResult)
 		{
 			bResult = PNGWriteFile(&cFile, iWidth, iHeight, (int)uiBytesPerSample * 8, iColourType, (uint8*)cCompressedMemory.GetBufferPointer(), cCompressedMemory.GetBufferSize());

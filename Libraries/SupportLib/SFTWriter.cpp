@@ -110,7 +110,7 @@ bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
 	}
 
 	cFile.Init(DiskFile(szFilename));
-	if (cFile.Open(EFM_Write_Create))
+	if (cFile.Open(EFM_Write_Replace))
 	{
 		if (HasTransparency(pImage, 0, 0, pImage->GetWidth(), pImage->GetHeight()) || bForceTransparent)
 		{
@@ -331,7 +331,7 @@ bool SaveSFTCelArray(Ptr<CArrayImageCel> pImageCels, char* szFilename)
 	}
 
 	cDiskBasic.Init(DiskFile(szFilename));
-	if (cDiskBasic.Open(EFM_Write_Create))
+	if (cDiskBasic.Open(EFM_Write_Replace))
 	{
 		bResult = SaveSFTContainer(pImageCels, &cDiskBasic);
 

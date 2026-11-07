@@ -126,11 +126,9 @@ bool CTextFile::Write(const char* szFilename)
 		mszFilename.Kill();
 		mszFilename.Init(szFilename);
 		cFile.Init(DiskFile(szFilename));
-		if (cFile.Open(EFM_Write_Create))
+		if (cFile.Open(EFM_Write_Replace))
 		{
-			//Opening does not empty an existing file, so cut off anything longer than the new text.
 			bResult = cFile.WriteData(mcText.Text(), mcText.Length());
-			bResult &= cFile.Truncate(mcText.Length());
 			bResult &= cFile.Close();
 			cFile.Kill();
 			return bResult;

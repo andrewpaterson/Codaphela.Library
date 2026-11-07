@@ -111,7 +111,7 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	szFilename.Kill();
 	szDirectory.Kill();
 
-	if (!cFile.Open(EFM_Write_Create))
+	if (!cFile.Open(EFM_Write_Replace))
 	{
 		gcLogger.Error2(__METHOD__, " Could not open file [", cFile.GetFilename(), "] for writing.", NULL);
 		cFile.Kill();

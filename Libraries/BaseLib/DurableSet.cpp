@@ -415,9 +415,8 @@ bool CDurableSet::Mark(const char* szMarkFile, CChars* pszContents)
 	}
 	else
 	{
-		cFileUtil.Delete(szMarkFile);
 		cFile.Init(DiskFile(szMarkFile));
-		bResult = cFile.Open(EFM_Write_Create);
+		bResult = cFile.Open(EFM_Write_Replace);
 		if (bResult)
 		{
 			bResult = cFile.WriteData(pszContents->Text(), pszContents->Length());

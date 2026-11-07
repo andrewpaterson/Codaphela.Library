@@ -255,7 +255,7 @@ bool CCPP65Assembly::Write(const char* szFilename)
 	bool		bResult;
 
 	cFile.Init(DiskFile(szFilename));
-	if (!cFile.Open(EFM_Write_Create))
+	if (!cFile.Open(EFM_Write_Replace))
 	{
 		cFile.Kill();
 		return false;
