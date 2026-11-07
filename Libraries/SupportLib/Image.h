@@ -80,9 +80,6 @@ public:
 	void					ReInit(void);
 	void					ReInit(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChannel eFirst, ...);
 
-	bool					Save(CObjectWriter* pcFile) override;
-	bool					Load(CObjectReader* pcFile) override;
-
 	void					BeginChange(void);
 	void					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);

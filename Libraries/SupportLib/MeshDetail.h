@@ -49,9 +49,6 @@ public:
 	bool	InUse(void);
 	void	Class(void) override;
 	void	Free(void) override;
-
-	bool	Load(CObjectReader* pcFile) override;
-	bool	Save(CObjectWriter* pcFile) override;
 };
 
 

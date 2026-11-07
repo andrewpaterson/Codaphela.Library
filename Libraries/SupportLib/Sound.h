@@ -61,9 +61,6 @@ public:
 
 	void					ReInit(void);
 
-	bool					Save(CObjectWriter* pcFile) override;
-	bool					Load(CObjectReader* pcFile) override;
-
 	void					BeginChange(void);
 	void					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);

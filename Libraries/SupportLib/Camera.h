@@ -45,9 +45,6 @@ public:
 	void 			Free(void) override;
 	void			Class(void) override;
 
-	bool			Load(CObjectReader* pcFile) override;
-	bool			Save(CObjectWriter* pcFile) override;
-
 	void			Copy(CCamera* pcCamera);
 };
 

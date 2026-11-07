@@ -136,7 +136,6 @@ CAnimKeyFrame* CConnectionAnimation::Add(SQuaternion* psRotation, float32 fTime)
 //////////////////////////////////////////////////////////////////////////
 bool CConnectionAnimation::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadSInt(&miConnectionIndex));
 	ReturnOnFalse(masKeyFrames.Read(pcFile));
 	return true;
 }
@@ -148,7 +147,6 @@ bool CConnectionAnimation::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CConnectionAnimation::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteSInt(miConnectionIndex));
 	ReturnOnFalse(masKeyFrames.Write(pcFile));
 	return true;
 }
