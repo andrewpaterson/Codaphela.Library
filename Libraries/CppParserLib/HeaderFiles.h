@@ -25,6 +25,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HeaderFile.h"
 
 
+//The extensions of an include directory's headers, besides files with none (<new>).
+#define CPP_HEADER_EXTENSIONS	"h", "hh", "hpp", "hxx", "inl", "rh"
+
+//Include names match a file's whatever their case only where file names do (Windows).
+#ifdef _WIN32
+#define CPP_HEADER_NAMES_CASE_SENSITIVE	false
+#else
+#define CPP_HEADER_NAMES_CASE_SENSITIVE	true
+#endif
+
+
 typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
 
 

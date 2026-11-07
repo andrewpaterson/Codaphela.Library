@@ -2,6 +2,7 @@
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/TextFile.h"
 #include "CppParserLib/DirectiveMap.h"
 #include "CppParserLib/Preprocessor.h"
 #include "CppParserLib/HeaderFileMap.h"
@@ -1881,6 +1882,74 @@ int x;\n", szDest.Text());
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes szText to the file szName in szDirectory.
+//
+//////////////////////////////////////////////////////////////////////////
+static void WriteHeader(CChars* pszDirectory, const char* szName, const char* szText)
+{
+	CFileUtil	cFileUtil;
+	CTextFile	cFile;
+	CChars		szPath;
+
+	szPath.Init(*pszDirectory);
+	cFileUtil.AppendToPath(&szPath, szName);
+	cFile.Init(szText);
+	AssertTrue(cFile.Write(szPath.Text()));
+	cFile.Kill();
+	szPath.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An include directory's headers are its files with no extension (<new>,
+// <vector>) and those ending .h, .hh, .hpp, .hxx, .inl or .rh.  Their names
+// ignore case only on Windows.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorHeaderNames(void)
+{
+	CFileUtil		cFileUtil;
+	CHeaderFileMap	cHeaderFiles;
+	CHeaderFiles	cDirectory;
+	CChars			szDirectory;
+	CChars			szDest;
+	CChars			szLog;
+
+	szDirectory.Init();
+	cFileUtil.CurrentDirectory(&szDirectory);
+	cFileUtil.AppendToPath(&szDirectory, "Output" _FS_ "HeaderNames");
+	cFileUtil.RemoveDir(szDirectory.Text());
+	AssertTrue(cFileUtil.TouchDir(szDirectory.Text()));
+	WriteHeader(&szDirectory, "vector", "int giVector;\n");
+	WriteHeader(&szDirectory, "List.hh", "int giList;\n");
+	WriteHeader(&szDirectory, "Mixed.h", "int giMixed;\n");
+	WriteHeader(&szDirectory, "Notes.txt", "int giNotes;\n");
+
+	cHeaderFiles.Init();
+	AssertTrue(cDirectory.Init(szDirectory.Text(), &cHeaderFiles, false, true));
+	szDest.Init();
+	szLog.Init();
+	AssertTrue(PreprocessFile("Names.cpp", "#include <vector>\n#include <List.hh>\n#include <Mixed.h>\n", NULL, &cDirectory, NULL, &szDest, &szLog));
+	AssertString("int giVector;\nint giList;\nint giMixed;\n", szDest.Text());
+	szLog.Kill();
+	szDest.Kill();
+	AssertNull(cDirectory.GetFile("Notes.txt"));
+#ifdef _WIN32
+	AssertNotNull(cDirectory.GetFile("mixed.h"));
+#else
+	AssertNull(cDirectory.GetFile("mixed.h"));
+#endif
+
+	cDirectory.Kill();
+	cHeaderFiles.Kill();
+	cFileUtil.RemoveDir(szDirectory.Text());
+	szDirectory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // #include_next and __has_include_next search the include directories
 // after the one the current header was found in.  In the source file
 // they search them all, like #include.
@@ -1979,6 +2048,7 @@ void TestPreprocessor(void)
 	TestPreprocessorConfigDefineWithoutValue();
 	TestPreprocessorPragmaOnce();
 	TestPreprocessorIncludeNext();
+	TestPreprocessorHeaderNames();
 
 	NumberKill();
 	TypeConverterKill();

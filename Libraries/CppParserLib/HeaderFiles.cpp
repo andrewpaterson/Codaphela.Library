@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "BaseLib/FileUtil.h"
 #include "HeaderFiles.h"
 #include "HeaderFileMap.h"
@@ -35,8 +36,8 @@ bool CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool b
 
 	//Initialised even for a directory that doesn't exist: it is searched and killed like any other, and has no files.
 	mszBaseDirectory.Init(szBaseDirectory);
-	//Include names are not case sensitive on Windows.
-	mcFileNames.Init(false, false);
+	//Include names are not case sensitive on Windows (CPP_HEADER_NAMES_CASE_SENSITIVE).
+	mcFileNames.Init(CPP_HEADER_NAMES_CASE_SENSITIVE, false);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
@@ -69,55 +70,62 @@ void CHeaderFiles::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The name after the last directory separator.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* FileNamePart(const char* szPath)
+{
+	const char*	szName;
+
+	for (szName = szPath; *szPath != '\0'; szPath++)
+	{
+		if ((*szPath == '/') || (*szPath == '\\'))
+		{
+			szName = szPath + 1;
+		}
+	}
+	return szName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The directory's headers: files with no extension (as C++'s own, <new>)
+// and those with a header's (CPP_HEADER_EXTENSIONS).
 //
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFiles::AddFiles(bool bIncludeSubDirectories)
 {
-	CChars					szTemp;
-	CArrayChars				aszHeaderExtensions;
-	size					i;
-	size					j;
-	char*					szFile;
-	char*					szExtension;
-	size					iBaseDirLen;
-	CArrayChars				aszFileNames;
-	CFileUtil				cFileUtil;
-	bool					bIsExtension;
-	size					iNumFileNames;
-	size					iNumExtensions;
+	static const char*	aszExtensions[] = { CPP_HEADER_EXTENSIONS, NULL };
+	CArrayChars			aszFileNames;
+	CFileUtil			cFileUtil;
+	char*				szFile;
+	const char*			szName;
+	size				iBaseDirLen;
+	size				i;
+	size				j;
+	bool				bHeader;
 
-	szTemp.Init("h;inl;hpp;rh;");
-
-	aszHeaderExtensions.Init();
-	szTemp.Split(&aszHeaderExtensions, ';'); 
-	szTemp.Kill();
 	iBaseDirLen = mszBaseDirectory.Length();
-
-
 	aszFileNames.Init();
 	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, bIncludeSubDirectories, false);
-
-	iNumExtensions = aszHeaderExtensions.NumElements();
-	iNumFileNames = aszFileNames.NumElements();
-	for (j = 0; j < iNumFileNames; j++)
+	for (j = 0; j < aszFileNames.NumElements(); j++)
 	{
 		szFile = aszFileNames.Get(j)->Text();
-
-		for (i = 0; i < iNumExtensions; i++)
+		szName = &szFile[iBaseDirLen + 1];
+		bHeader = strchr(FileNamePart(szName), '.') == NULL;
+		for (i = 0; !bHeader && aszExtensions[i]; i++)
 		{
-			szExtension = aszHeaderExtensions.Get(i)->Text();
-			bIsExtension = cFileUtil.IsExtension(szFile, szExtension);
-			if (bIsExtension)
-			{
-				AddFile(&szFile[iBaseDirLen + 1]);
-				break;
-			}
+			bHeader = cFileUtil.IsExtension(szFile, aszExtensions[i]);
+		}
+		if (bHeader)
+		{
+			AddFile((char*)szName);
 		}
 	}
-
 	aszFileNames.Kill();
-	aszHeaderExtensions.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////

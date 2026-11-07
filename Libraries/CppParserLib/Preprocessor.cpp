@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include <string.h>
 #include "BaseLib/Numbers.h"
+#include "BaseLib/StringHelper.h"
 #include "PreprocessorExpression.h"
 #include "Punctuators.h"
 #include "Project.h"
@@ -1236,7 +1237,7 @@ static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
 	char	c1;
 	char	c2;
 
-	//Windows paths: case is ignored and either separator matches.
+	//Either separator matches; case is ignored only where file names ignore it (CPP_HEADER_NAMES_CASE_SENSITIVE).
 	for (i = 0; i < iBaseLength; i++)
 	{
 		c1 = szPath[i];
@@ -1249,13 +1250,10 @@ static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
 		{
 			c2 = '/';
 		}
-		if ((c1 >= 'A') && (c1 <= 'Z'))
+		if (!CPP_HEADER_NAMES_CASE_SENSITIVE)
 		{
-			c1 += 'a' - 'A';
-		}
-		if ((c2 >= 'A') && (c2 <= 'Z'))
-		{
-			c2 += 'a' - 'A';
+			c1 = ToLower(c1);
+			c2 = ToLower(c2);
 		}
 		if (c1 != c2)
 		{
