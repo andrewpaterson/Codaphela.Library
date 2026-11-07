@@ -1,3 +1,4 @@
+#include "BaseLib/MemoryFile.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
@@ -11,6 +12,10 @@
 #include "StandardLib/Root.h"
 #include "TestLib/Assert.h"
 #include "ChunkFileObjectWriterTestClasses.h"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 #define STORED_OBJECTS_DIRECTORY	"Output" _FS_ "StoredObjects"
@@ -375,6 +380,8 @@ void TestStoredObjectsDestroy(void)
 	OIndex					oiLampHolder;
 	CArrayOIndex			aoiHolders;
 	SLogConfig				sLogConfig;
+	CMemoryFile				cLog;
+	char					szLog[1024];
 
 	cFileUtil.RemoveDir(STORED_OBJECTS_DIRECTORY);
 
@@ -459,9 +466,10 @@ void TestStoredObjectsDestroy(void)
 	//Ghost removed from the database by hand: GhostHolder's pointer to it is an error.
 	AssertTrue(sStore.pcDatabase->Remove(oiGhost));
 	pGhostHolder = gcObjects.Get<CTestNamedString>("GhostHolder");
-	sLogConfig = gcLogger.SetSilent();
+	StartCapturingLog(&cLog, &sLogConfig);
 	AssertNull(pGhostHolder->mszString.Dereference());
-	gcLogger.SetConfig(&sLogConfig);
+	StopCapturingLog(&cLog, &sLogConfig, szLog, 1024);
+	AssertTrue(strstr(szLog, " Object [Ghost] a pointer refers to is not in the database or a source.") != NULL);
 
 	pHolder = NULL;
 	pLamp = NULL;

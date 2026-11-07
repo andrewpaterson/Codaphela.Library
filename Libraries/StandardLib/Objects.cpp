@@ -472,7 +472,6 @@ bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolde
 		return gcLogger.Error2(__METHOD__, " Object [", IndexToString(pcObject->GetIndex()), "] is not in the database.", NULL);
 	}
 
-	cCollector.Init();
 	cCollector.mpaoiHolders = paoiHolders;
 	cCollector.mpcDataConnection = mpcDataConnection;
 	cMemoryFile.Init(pvSerialised, uiDataSize);
@@ -482,7 +481,6 @@ bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolde
 	cMemoryFile.Close();
 	cReader.Kill();
 	cMemoryFile.Kill();
-	cCollector.Kill();
 	cTemp.Kill();
 	return bResult;
 }
@@ -1497,6 +1495,19 @@ CPointer CObjects::TestGetFromMemory(OIndex oi)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The object (szObject: its index or name) a pointer refers to isn't in
+// szWhere.  It should be: a programming error somewhere, say an object
+// destroyed by hand.
+//
+//////////////////////////////////////////////////////////////////////////
+static void LogPointedToMissing(const char* szMethod, const char* szObject, const char* szWhere)
+{
+	gcLogger.Error2(szMethod, " Object [", szObject, "] a pointer refers to is not in ", szWhere, ".", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Dehollow(OIndex oi)
@@ -1506,8 +1517,7 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 	pcObject = GetFromDatabase(oi);
 	if ((pcObject == NULL) && (mpcDataConnection != NULL) && !mpcDataConnection->Contains(oi))
 	{
-		//A pointer refers to it, so it should be there: a programming error somewhere (say an object destroyed by hand).
-		gcLogger.Error2(__METHOD__, " Object [", IndexToString(oi), "] a pointer refers to is not in the database.", NULL);
+		LogPointedToMissing(__METHOD__, IndexToString(oi), "the database");
 	}
 	return pcObject;
 }
@@ -1534,8 +1544,7 @@ CBaseObject* CObjects::Dehollow(const char* szObjectName)
 
 	if ((pcObject == NULL) && (mpcDataConnection != NULL) && !mpcDataConnection->Contains(szName.Text()))
 	{
-		//A pointer refers to it, so it should be there: a programming error somewhere (say an object destroyed by hand).
-		gcLogger.Error2(__METHOD__, " Object [", szName.Text(), "] a pointer refers to is not in the database or a source.", NULL);
+		LogPointedToMissing(__METHOD__, szName.Text(), "the database or a source");
 	}
 	szName.Kill();
 	return pcObject;
@@ -2354,25 +2363,19 @@ void ObjectsInit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The global objects, allocating from the global unknowns.
 //
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
-	if (gbObjects)
-	{
-		gcLogger.Error("Objects has already been initialised.");
-	}
-
-	UnknownsInit();
-	TransientSequenceInit();
-	gcStackPointers.Init();
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
-	gbObjects = true;
+	ObjectsInit(&gcUnknowns, pcDataConnection, pcSequenceConnection);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The global objects, allocating from pcUnknowns.  The global unknowns are
+// Init'd either way: ObjectsKill Kills them.
 //
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
