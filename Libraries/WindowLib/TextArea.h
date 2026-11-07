@@ -151,32 +151,32 @@ protected:
 	//and stops worked out from the columns instead of by mpLayout.
 	bool					mbTiledText;  //Tiles were asked for; they are only used with a fixed width font and no word wrap.
 	bool					mbTiled;  //The text was last read as tiles.
-	Ptr<CTextAreaTiles>	mpTiles;  //The text laid out as tiles.
+	Ptr<CTextAreaTiles>		mpTiles;  //The text laid out as tiles.
 
-	Ptr<CGeometryMap>	mpBackgroundMap;  //Under the selection.
-	CTextBackgrounds	mcBackgrounds;  //The colours under the text (AddBackground).
-	bool				mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
-	int32				miBackgroundWidth;  //The width the map was drawn across.
-	Ptr<CGeometryMap>	mpSelectionMap;  //Under the text.
-	ARGB32				msSelectionColour;
-	ARGB32				msCaretColour;
+	Ptr<CGeometryMap>		mpBackgroundMap;  //Under the selection.
+	CTextBackgrounds		mcBackgrounds;  //The colours under the text (AddBackground).
+	bool					mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
+	int32					miBackgroundWidth;  //The width the map was drawn across.
+	Ptr<CGeometryMap>		mpSelectionMap;  //Under the text.
+	ARGB32					msSelectionColour;
+	ARGB32					msCaretColour;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
 	CArrayTextAreaLineStart	mauiLineStarts;  //The first byte of each line, kept as the text is edited.
-	CTextLineGaps		mcGaps;  //The empty gaps below lines (SetLineGap).
-	size				muiCaret;
-	size				muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
-	bool				mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
-	int32				miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
-	int32				miTabWidth;  //In spaces.
-	bool				mbEditable;
-	bool				mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
-	bool				mbDragging;
-	CTextNavigation	mcNavigation;  //Characters, lines and words of mszText.
+	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
+	size					muiCaret;
+	size					muiAnchor;  //Where the selection started, MAX_SIZE for no selection.
+	bool					mbCaretAtRowEnd;  //A caret at the start of a wrapped row is drawn at the end of the row above.
+	int32					miUpDownX;  //Where up and down try to keep the caret, -1 until they are used.
+	int32					miTabWidth;  //In spaces.
+	bool					mbEditable;
+	bool					mbSelectable;  //The pointer puts the caret and selects; otherwise its presses pass to the parent.
+	bool					mbDragging;
+	CTextNavigation			mcNavigation;  //Characters, lines and words of mszText.
 
 	//Undo, as Logicim's: the text after each edit of an editable text area, consecutive typing kept as one edit (see
 	//CTextUndo).  Undoing or redoing changes only the part of the text that differs from the snapshot.
-	CTextUndo			mcUndo;
-	CTextAreaUndoEvent	mcUndoEvent;
+	CTextUndo					mcUndo;
+	CTextAreaUndoEvent			mcUndoEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 
 public:
@@ -184,54 +184,54 @@ public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	void				SetText(const char* szText);
-	void				AppendText(const char* szText, ARGB32 sColour);
-	char*				GetText(void);
-	size				GetChangeCount(void);
-	bool				Undo(void);
-	bool				Redo(void);
-	bool				CanUndo(void);
-	bool				CanRedo(void);
-	size				GetUndoId(void);
-	void				ClearUndo(void);
-	bool				UndoTo(size uiId);
-	void				SetTypingPause(int32 iMilliseconds);
-	CTextAreaUndoEvent*	GetUndoEvent(void);
+	void						SetText(const char* szText);
+	void						AppendText(const char* szText, ARGB32 sColour);
+	char*						GetText(void);
+	size						GetChangeCount(void);
+	bool						Undo(void);
+	bool						Redo(void);
+	bool						CanUndo(void);
+	bool						CanRedo(void);
+	size						GetUndoId(void);
+	void						ClearUndo(void);
+	bool						UndoTo(size uiId);
+	void						SetTypingPause(int32 iMilliseconds);
+	CTextAreaUndoEvent*			GetUndoEvent(void);
 	CComponentEvent<CTextArea>*	GetChangeEvent(void);
-	void				SetFont(Ptr<CFont> pWhiteFont);
-	Ptr<CFont>			GetFont(void);
-	int32				GetTabPixels(void);
-	void				SetFontColours(Ptr<CFontColours> pColours);
-	Ptr<CFontColours>	GetFontColours(void);
-	void				SetFontFamily(Ptr<CFontFamily> pFamily);
-	Ptr<CFontFamily>	GetFontFamily(void);
-	void				SetWordWrap(bool bWordWrap);
-	bool				IsWordWrap(void);
-	void				SetTiledText(bool bTiledText);
-	bool				IsTiledText(void);
-	bool				IsDrawnAsTiles(void);
+	void						SetFont(Ptr<CFont> pWhiteFont);
+	Ptr<CFont>					GetFont(void);
+	int32						GetTabPixels(void);
+	void						SetFontColours(Ptr<CFontColours> pColours);
+	Ptr<CFontColours>			GetFontColours(void);
+	void						SetFontFamily(Ptr<CFontFamily> pFamily);
+	Ptr<CFontFamily>			GetFontFamily(void);
+	void						SetWordWrap(bool bWordWrap);
+	bool						IsWordWrap(void);
+	void						SetTiledText(bool bTiledText);
+	bool						IsTiledText(void);
+	bool						IsDrawnAsTiles(void);
 
-	void				SetStyle(STextStyle* psStyle);
-	void				GetStyle(STextStyle* psStyle);
-	void				SetColour(ARGB32 sColour);
-	ARGB32				GetColour(void);
-	bool				AddSpan(size uiStart, size uiLength, ARGB32 sColour);
-	bool				AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride);
-	void				ClearSpans(void);
-	size				NumSpans(void);
-	bool				AddBackground(size uiStart, size uiEnd, ARGB32 sColour);
-	bool				AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour);
-	bool				AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour);
-	void				ClearBackgrounds(void);
-	size				NumBackgrounds(void);
+	void					SetStyle(STextStyle* psStyle);
+	void					GetStyle(STextStyle* psStyle);
+	void					SetColour(ARGB32 sColour);
+	ARGB32					GetColour(void);
+	bool					AddSpan(size uiStart, size uiLength, ARGB32 sColour);
+	bool					AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride);
+	void					ClearSpans(void);
+	size					NumSpans(void);
+	bool					AddBackground(size uiStart, size uiEnd, ARGB32 sColour);
+	bool					AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColour);
+	bool					AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour);
+	void					ClearBackgrounds(void);
+	size					NumBackgrounds(void);
 	STextAreaBackground*	GetBackground(size uiIndex);
-	void				GetStyleAt(size uiPosition, STextStyle* psStyle);
-	ARGB32				GetColourAt(size uiPosition);
+	void					GetStyleAt(size uiPosition, STextStyle* psStyle);
+	ARGB32					GetColourAt(size uiPosition);
 
 	void				SetEditable(bool bEditable);
 	bool				IsEditable(void);
@@ -248,19 +248,19 @@ public:
 	bool				GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 
 	//Lines and the gaps below them.
-	size				NumLines(void);
-	size				GetLineStart(size uiLine);
-	size				FindLine(size uiPosition);
-	bool				GetLineBounds(size uiLine, CInt32Rect* pcDest);
-	bool				SetLineGap(size uiLine, int32 iHeight);
-	int32				GetLineGap(size uiLine);
-	size				NumLineGaps(void);
-	void				ClearLineGaps(void);
-	bool				GetLineGapBounds(size uiLine, CInt32Rect* pcDest);
-	uint32				GetLineGapId(size uiLine);
-	size				FindLineGap(uint32 uiId);
+	size					NumLines(void);
+	size					GetLineStart(size uiLine);
+	size					FindLine(size uiPosition);
+	bool					GetLineBounds(size uiLine, CInt32Rect* pcDest);
+	bool					SetLineGap(size uiLine, int32 iHeight);
+	int32					GetLineGap(size uiLine);
+	size					NumLineGaps(void);
+	void					ClearLineGaps(void);
+	bool					GetLineGapBounds(size uiLine, CInt32Rect* pcDest);
+	uint32					GetLineGapId(size uiLine);
+	size					FindLineGap(uint32 uiId);
 	CArrayTextLayoutGap*	GetLineGaps(void);
-	void				SetLineGaps(CArrayTextLayoutGap* pasGaps);
+	void					SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
 	//The functions of a CTextEditor.
 	void				Up(void);

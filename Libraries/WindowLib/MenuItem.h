@@ -46,16 +46,16 @@ CONSTRUCTABLE(CMenuItem);
 DESTRUCTABLE(CMenuItem);
 friend class CMenuContainer;
 protected:
-	Ptr<CMenuStyle>			mpStyle;
-	Ptr<CIconComponent>		mpIcon;
-	Ptr<CLabel>				mpLabel;
-	Ptr<CLabel>				mpShortcut;
-	Ptr<CIconComponent>		mpChevron;
-	Ptr<CMenuContainer>		mpSubMenu;  //NULL unless the item opens another menu.
-	Ptr<CMenuContainer>		mpMenu;  //The menu the item is in.
-	int32					miTag;  //What the item means to whoever made it, -1 until set.
-	bool					mbEnabled;  //A disabled item is drawn in the dim font and its row in the menu can't be selected.
-	EComponentInputCommand	meShortcut;  //The command whose keys are shown (SetShortcut), CIC_Ignored if none.
+	Ptr<CMenuStyle>				mpStyle;
+	Ptr<CIconComponent>			mpIcon;
+	Ptr<CLabel>					mpLabel;
+	Ptr<CLabel>					mpShortcut;
+	Ptr<CIconComponent>			mpChevron;
+	Ptr<CMenuContainer>			mpSubMenu;  //NULL unless the item opens another menu.
+	Ptr<CMenuContainer>			mpMenu;  //The menu the item is in.
+	int32						miTag;  //What the item means to whoever made it, -1 until set.
+	bool						mbEnabled;  //A disabled item is drawn in the dim font and its row in the menu can't be selected.
+	EComponentInputCommand		meShortcut;  //The command whose keys are shown (SetShortcut), CIC_Ignored if none.
 	CComponentEvent<CMenuItem>	mcClicked;  //Called when the item is clicked, before its menus' item click events.
 
 public:
@@ -65,23 +65,23 @@ public:
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void					SetText(const char* szText);
-	char*					GetText(void);
-	void					SetIcon(Ptr<CImageCel> pIcon);
-	Ptr<CImageCel>			GetIcon(void);
-	Ptr<CMenuContainer>		GetSubMenu(void);
-	void					SetShortcut(const char* szShortcut);
-	void					SetShortcut(EComponentInputCommand eCommand);
-	char*					GetShortcut(void);
-	void					SetEnabled(bool bEnabled);
-	bool					IsEnabled(void);
-	void					SetTag(int32 iTag);
-	int32					GetTag(void);
-	bool					HasSubMenu(void);
-	Ptr<CIconComponent>		GetIconComponent(void);
-	Ptr<CLabel>				GetLabel(void);
-	Ptr<CLabel>				GetShortcutLabel(void);
-	Ptr<CIconComponent>		GetChevronComponent(void);
+	void						SetText(const char* szText);
+	char*						GetText(void);
+	void						SetIcon(Ptr<CImageCel> pIcon);
+	Ptr<CImageCel>				GetIcon(void);
+	Ptr<CMenuContainer>			GetSubMenu(void);
+	void						SetShortcut(const char* szShortcut);
+	void						SetShortcut(EComponentInputCommand eCommand);
+	char*						GetShortcut(void);
+	void						SetEnabled(bool bEnabled);
+	bool						IsEnabled(void);
+	void						SetTag(int32 iTag);
+	int32						GetTag(void);
+	bool						HasSubMenu(void);
+	Ptr<CIconComponent>			GetIconComponent(void);
+	Ptr<CLabel>					GetLabel(void);
+	Ptr<CLabel>					GetShortcutLabel(void);
+	Ptr<CIconComponent>			GetChevronComponent(void);
 	CComponentEvent<CMenuItem>*	GetClickEvent(void);
 
 protected:

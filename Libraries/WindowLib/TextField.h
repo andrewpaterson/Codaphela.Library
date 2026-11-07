@@ -67,7 +67,7 @@ protected:
 public:
 	void						Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szText);
 	void						Class(void) override;
-	void 						Free(void) override;
+	void						Free(void) override;
 
 	bool						Save(CObjectWriter* pcFile) override;
 	bool						Load(CObjectReader* pcFile) override;
@@ -128,7 +128,7 @@ protected:
 	void						KeepEdit(void);
 	bool						LoadUndo(size uiIndex);
 	size						GetSelectionAnchor(void);
-	SInt32Vec2						GetContentSize(void) override;
+	SInt32Vec2					GetContentSize(void) override;
 	void						UpdateLook(void);
 	void						SelectTo(size uiPosition);
 	void						LayoutText(void);
