@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Timer.h"
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
@@ -813,8 +814,8 @@ static void AssertPresentedLines(Ptr<CWindow> pWindow, Ptr<CTextArea> pTextArea,
 // selection, a span or a background on a line draws that line (the last
 // line's band goes on to the bottom of the text area); the spans cleared
 // and added again as they were draw nothing; a line feed draws the rows
-// below it, which moved.  Each partial paint is as drawing all of the
-// window.
+// below it, which moved; typing while the caret blinks off draws only
+// the row too.  Each partial paint is as drawing all of the window.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawTextAreaRows(void)
@@ -836,6 +837,8 @@ void TestPartialRedrawTextAreaRows(void)
 		Ptr<CTextArea>			pTextArea;
 		CWinRefWindow*			pcNative;
 		ARGB32					sRed;
+		CInt32Rect				cCaret;
+		CInt32Rect				cPresented;
 
 		sRed = Set32BitColour(1.0f, 0, 0);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -882,14 +885,29 @@ void TestPartialRedrawTextAreaRows(void)
 		pWindow->Paint();
 		AssertPresentedLines(pWindow, pTextArea, 2, 2);
 
+		//Typed while the caret blinks off: the caret is shown again, nothing else (all of the window was drawn again).
+		pTextArea->SetCaretPosition(pTextArea->GetLineStart(2) + 1);
+		pWindow->GetFocus()->SetFocus(pTextArea);
+		pWindow->Paint();
+		pcNative->ClearPresented();
+		AssertTrue(pWindow->BlinkCaret(GetDebugTickCount() + 10000));
+		AssertFalse(pWindow->GetFocus()->IsCaretOn());
+		pTextArea->Printable('y', true);
+		pWindow->Paint();
+		AssertTrue(pWindow->GetFocus()->IsCaretOn());
+		AssertPresentedLines(pWindow, pTextArea, 2, 2);
+
 		//A line feed in line 0: it and everything below it moved, to the bottom of the text area.
 		pTextArea->SetCaretPosition(3);
 		pTextArea->Enter();
 		pWindow->Paint();
 		AssertPresentedLines(pWindow, pTextArea, 0, MAX_SIZE);
 
+		//Nothing changed: only the caret, which a window with one shows each paint.
 		pWindow->Paint();
-		AssertTrue(pcNative->GetPresented()->IsEmpty());
+		AssertTrue(pWindow->GetPaintedCaret(&cCaret));
+		pcNative->GetPresented()->GetBounds(&cPresented);
+		AssertTrue(cPresented.Equals(&cCaret));
 
 		pTextArea = NULL;
 		pFill = NULL;

@@ -832,14 +832,16 @@ void CFocus::SetCaretBlinkPeriod(int32 iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 //
 // The caret is shown from now: it moved, its text was edited or the
-// focus changed.
+// focus changed.  A hidden caret is drawn by the next paint (the window
+// draws it over what it paints), so only a paint is asked for: nothing
+// else changed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::ResetCaretBlink(void)
 {
 	if (!mbCaretOn && mpWindow.IsNotNull())
 	{
-		mpWindow->Invalidate();
+		mpWindow->RequestPaint();
 	}
 	mbCaretOn = true;
 	miCaretBlinkTime = GetDebugTickCount();
