@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "X11Canvas.h"
 #include "X11WindowFactory.h"
 #include <X11/Xlib.h>
+#include <X11/extensions/XShm.h>
 #include <X11/XKBlib.h>
 #include <poll.h>
 
@@ -69,6 +70,8 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
     mulDeleteWindowAtom = 0;
     mulProtocolsAtom = 0;
     miScreen = 0;
+    mbSharedMemoryAvailable = false;
+    mbSharedMemory = true;
 
     mpsDisplay = XOpenDisplay(szDisplayName);
     mcSelection.Init(mpsDisplay, mpsDisplay ? DefaultScreen(mpsDisplay) : 0);
@@ -80,6 +83,7 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
 
     XSetErrorHandler(X11ErrorHandler);
     miScreen = DefaultScreen(mpsDisplay);
+    mbSharedMemoryAvailable = XShmQueryExtension(mpsDisplay);
     mulDeleteWindowAtom = XInternAtom(mpsDisplay, "WM_DELETE_WINDOW", False);
     mulProtocolsAtom = XInternAtom(mpsDisplay, "WM_PROTOCOLS", False);
 
@@ -180,6 +184,17 @@ X11ID CX11WindowFactory::GetProtocolsAtom(void) { return mulProtocolsAtom; }
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::SetInput(CX11Input* pcInput) { mpcInput = pcInput; }
 CX11Input* CX11WindowFactory::GetInput(void) { return mpcInput; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Windows present from memory the X server shares when it has MIT-SHM
+// (a remote display doesn't), else their pixels go through the
+// connection.  bSharedMemory false always sends them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11WindowFactory::SetSharedMemory(bool bSharedMemory) { mbSharedMemory = bSharedMemory; }
+bool CX11WindowFactory::UsesSharedMemory(void) { return mbSharedMemory && mbSharedMemoryAvailable; }
 
 
 //////////////////////////////////////////////////////////////////////////

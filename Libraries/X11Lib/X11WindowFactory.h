@@ -50,6 +50,8 @@ protected:
 	CX11Input*		mpcInput;
 	CArrayX11WindowPtr	mapcWindows;  //The windows that are on the screen.
 	CX11Selection	mcSelection;  //The clipboard every window shares; it must outlive any one of them.
+	bool			mbSharedMemoryAvailable;  //The X server has MIT-SHM, so windows can present from memory it shares.
+	bool			mbSharedMemory;  //Windows present from shared memory when it is available, see SetSharedMemory.
 
 public:
 	bool			Init(CMallocator* pcMallocator, const char* szDisplayName);
@@ -67,6 +69,8 @@ public:
 
 	void			SetInput(CX11Input* pcInput);
 	CX11Input*		GetInput(void);
+	void			SetSharedMemory(bool bSharedMemory);
+	bool			UsesSharedMemory(void);
 
 	void			AddWindow(CX11Window* pcWindow);
 	void			RemoveWindow(CX11Window* pcWindow);

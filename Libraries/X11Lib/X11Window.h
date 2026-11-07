@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 struct _XGC;
+struct _XImage;
 union _XEvent;
 class CX11Window : public CNativeWindow
 {
@@ -42,6 +43,9 @@ protected:
 	int				miPointerX;
 	int				miPointerY;
 	X11ID			maulCursors[NC_NumCursors];  //Made when first shown, 0 until then.
+	_XImage*		mpsSharedImage;  //The window's pixels in memory the X server shares (MIT-SHM), NULL if not made yet.
+	X11ID			mulSharedSegment;  //mpsSharedImage's memory as the X server knows it.
+	bool			mbSharedFailed;  //The X server couldn't share memory with the window, so its pixels are sent instead.
 
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
@@ -74,6 +78,8 @@ public:
 
 protected:
 	void	PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	bool	PrepareSharedImage(int32 iWidth, int32 iHeight);
+	void	FreeSharedImage(void);
 	void	SetDialogHints(int iWidth, int iHeight);
 	void	SetToolHints(void);
 	void	SetMainHints(void);
