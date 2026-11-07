@@ -76,9 +76,10 @@ CUnknown* CArrayUnknown::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayUnknown::Set(size iIndex, CUnknown* pcUnknown)
+bool CArrayUnknown::Set(size iIndex, CUnknown* pcUnknown)
 {
-	CArrayCommonUnknown::UnsafeSet(iIndex, pcUnknown);
+	//Kills what was at iIndex: the array kills its elements.
+	return CArrayCommonUnknown::Set(iIndex, pcUnknown);
 }
 
 
@@ -86,9 +87,9 @@ void CArrayUnknown::Set(size iIndex, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayUnknown::Remove(size iIndex)
+bool CArrayUnknown::Remove(size iIndex)
 {
-	CArrayCommonUnknown::Remove(iIndex);
+	return CArrayCommonUnknown::Remove(iIndex);
 }
 
 

@@ -40,9 +40,9 @@ public:
 	bool		Insert(size iIndex, CUnknown* pcUnknown);
 
 	CUnknown*	Get(size iIndex);
-	void		Set(size iIndex, CUnknown* pcUnknown);
+	bool		Set(size iIndex, CUnknown* pcUnknown);
 
-	void		Remove(size iIndex);
+	bool		Remove(size iIndex);
 	size		Remove(CUnknown* pcUnknown) override;
 };
 

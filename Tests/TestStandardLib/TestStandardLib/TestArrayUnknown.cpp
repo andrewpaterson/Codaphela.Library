@@ -390,6 +390,40 @@ void TestArrayUnknownLoadNull(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The array kills its elements, so the one Set replaces is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayUnknownSetKillsReplaced(void)
+{
+	MemoryInit();
+	UnknownsInit();
+
+	CArrayUnknown			cArray;
+	CTestNamedUnknown*		pcOne;
+	CTestNamedUnknown*		pcTwo;
+
+	cArray.Init();
+	pcOne = cArray.Add<CTestNamedUnknown>();
+	pcOne->Init("One");
+	pcTwo = UMalloc(CTestNamedUnknown);
+	pcTwo->Init("Two");
+	AssertSize(2, gcUnknowns.NumElements());
+
+	AssertTrue(cArray.Set(0, pcTwo));
+	AssertSize(1, gcUnknowns.NumElements());
+	AssertSize(1, cArray.NumElements());
+	AssertPointer(pcTwo, cArray.Get(0));
+
+	cArray.Kill();
+	AssertSize(0, gcUnknowns.NumElements());
+
+	UnknownsKill();
+	MemoryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestArrayUnknown(void)
@@ -401,6 +435,7 @@ void TestArrayUnknown(void)
 	TestRemoval();
 	TestArrayUnknownLoad();
 	TestArrayUnknownLoadNull();
+	TestArrayUnknownSetKillsReplaced();
 
 	TestStatistics();
 }
