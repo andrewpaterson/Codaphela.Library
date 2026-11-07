@@ -511,3 +511,141 @@ bool CIRBackend::SameOperands(SIRInstruction* psFirst, SIRInstruction* psSecond)
 		   (psFirst->asArguments[0].Equals(psSecond->asArguments[1]) && psFirst->asArguments[1].Equals(psSecond->asArguments[0]));
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signed digits of ulliMultiplier (iBits wide): its non-adjacent form,
+// digits of +1 and -1 never two next to each other, lowest first, their
+// places in aiPlaces and signs in aiSigns.  Digits past the top bit are 0.
+// Returns how many, or -1 for more than IR_MAX_MULTIPLY_DIGITS.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRBackend::SignedDigits(uint64 ulliMultiplier, int iBits, int* aiPlaces, int* aiSigns)
+{
+	int		iDigits;
+	int		iPlace;
+
+	iDigits = 0;
+	for (iPlace = 0; (ulliMultiplier != 0) && (iPlace < iBits); iPlace++)
+	{
+		if (ulliMultiplier & 1)
+		{
+			if (iDigits == IR_MAX_MULTIPLY_DIGITS)
+			{
+				return -1;
+			}
+			aiPlaces[iDigits] = iPlace;
+			aiSigns[iDigits] = ((ulliMultiplier & 3) == 3) ? -1 : 1;
+			ulliMultiplier = (aiSigns[iDigits] < 0) ? ulliMultiplier + 1 : ulliMultiplier - 1;
+			iDigits++;
+		}
+		ulliMultiplier >>= 1;
+	}
+	return iDigits;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mul by a constant (either side) is written as shifts and adds when the
+// target says they cost less (ShiftAddCost against MultiplyCost): x times
+// the constant's signed digits (SignedDigits, top first) Horner's way:
+// acc = x (or -x), then for each digit acc = (acc << the gap) + x (or - x),
+// and the last acc << the lowest digit's place.  Multiplies by powers of 2,
+// 0 and 1 were already made shifts by the optimiser (FoldConstants).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::ExpandMultiplies(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sValue;
+	SIRReference	sAcc;
+	SIRType			sType;
+	uint64			ulliConstant;
+	int				aiPlaces[IR_MAX_MULTIPLY_DIGITS];
+	int				aiSigns[IR_MAX_MULTIPLY_DIGITS];
+	int				iDigits;
+	int				i;
+	size			ui;
+	size			uiIndex;
+	bool			bDone;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiIndex);
+			sType = psInstruction->sType;
+			if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sResult.IsTemporary() || !sType.IsInteger() || sType.Is(IRTK_I1) ||
+				(psInstruction->asArguments[0].IsConstant() == psInstruction->asArguments[1].IsConstant()))
+			{
+				continue;
+			}
+			i = psInstruction->asArguments[0].IsConstant() ? 0 : 1;
+			ulliConstant = IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[i])->ulliBits);
+			sValue = psInstruction->asArguments[1 - i];
+
+			iDigits = SignedDigits(ulliConstant, sType.IntegerBits(), aiPlaces, aiSigns);
+			if ((iDigits < 2) || (ShiftAddCost(sType, aiPlaces, aiSigns, iDigits) >= MultiplyCost(sType, ulliConstant)))
+			{
+				continue;
+			}
+
+			//The new instructions go before the mul, which becomes the last of them (keeping its result).
+			sAcc = sValue;
+			if (aiSigns[iDigits - 1] < 0)
+			{
+				sAcc = InsertBefore(pcBlock, &uiIndex, IRO_Neg, sType, sAcc, IRNone());
+			}
+			bDone = false;
+			for (i = iDigits - 1; i > 0; i--)
+			{
+				sAcc = InsertBefore(pcBlock, &uiIndex, IRO_Shl, sType, sAcc, mpcFunction->AddInteger(sType, aiPlaces[i] - aiPlaces[i - 1]));
+				if ((i == 1) && (aiPlaces[0] == 0))
+				{
+					//The last digit is at bit 0: its add is the mul's place.
+					psInstruction = pcBlock->masInstructions.Get(uiIndex);
+					psInstruction->uiOpcode = (aiSigns[0] > 0) ? IRO_Add : IRO_Sub;
+					psInstruction->asArguments[0] = sAcc;
+					psInstruction->asArguments[1] = sValue;
+					bDone = true;
+					break;
+				}
+				sAcc = InsertBefore(pcBlock, &uiIndex, (aiSigns[i - 1] > 0) ? IRO_Add : IRO_Sub, sType, sAcc, sValue);
+			}
+			if (!bDone)
+			{
+				//acc << the lowest digit's place is the mul's place.
+				psInstruction = pcBlock->masInstructions.Get(uiIndex);
+				psInstruction->uiOpcode = IRO_Shl;
+				psInstruction->asArguments[0] = sAcc;
+				psInstruction->asArguments[1] = mpcFunction->AddInteger(sType, aiPlaces[0]);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new instruction before pcBlock's instruction *puiIndex, which moves up
+// one (*puiIndex follows it).  Returns its result.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIRBackend::InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond)
+{
+	SIRInstruction	sMoved;
+	SIRReference	sResult;
+	size			uiLast;
+
+	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
+	uiLast = pcBlock->masInstructions.NumElements() - 1;
+	sMoved = *pcBlock->masInstructions.Get(uiLast);
+	pcBlock->masInstructions.RemoveAt(uiLast, true);
+	pcBlock->masInstructions.InsertAt(&sMoved, *puiIndex);
+	(*puiIndex)++;
+	return sResult;
+}
+

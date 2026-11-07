@@ -50,9 +50,15 @@ struct SIRCopyStep
 typedef CArrayTemplate<SIRCopyStep>	CArrayIRCopySteps;
 
 
+//The most signed digits (a multiplier's non-adjacent form, SignedDigits) a multiply by a constant is written with
+//as shifts and adds (ExpandMultiplies).
+#define IR_MAX_MULTIPLY_DIGITS	8
+
+
 //What the 65C64 (CIR65Backend) and W65C816 (CIR816Backend) back ends share: the module and the label counter, the
 //function being written and the text it goes to, its source markers, errors and block labels, the runtime routines
-//its code calls, the order of the phis' copies on a jump (ParallelCopy), and writing a module as sections (each function and global a section of its own), its globals'
+//its code calls, the order of the phis' copies on a jump (ParallelCopy), multiplies by constants as shifts and adds
+//when the target says they cost less (ExpandMultiplies), and writing a module as sections (each function and global a section of its own), its globals'
 //data, labels and errors.
 class CIRBackend
 {
@@ -80,6 +86,7 @@ public:
 	static void		AppendSoftFloatName(CChars* psz, SIRInstruction* psInstruction, SIRType sFrom);
 	static int		FloatCompareValues(uint16 uiOpcode, int* aiValues, bool* pbNot);
 	static bool		SameOperands(SIRInstruction* psFirst, SIRInstruction* psSecond);
+	static int		SignedDigits(uint64 ulliMultiplier, int iBits, int* aiPlaces, int* aiSigns);
 
 protected:
 	void			Init(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator = NULL);
@@ -92,6 +99,11 @@ protected:
 	void			UseRuntime(const char* szName);
 	SIRInstruction*	BranchComparison(CIRBlock* pcBlock);
 	bool			ParallelCopy(CArrayIRCopies* pasCopies, CArrayIRCopySteps* pasSteps);
+	void			ExpandMultiplies(void);
+	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
+
+	virtual int		MultiplyCost(SIRType sType, uint64 ulliMultiplier) = 0;
+	virtual int		ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) = 0;
 
 	virtual bool	CopyOverlaps(SIRReference sSource, SIRReference sDestination) = 0;
 	virtual bool	CopySamePlace(SIRReference sValue1, SIRReference sValue2) = 0;

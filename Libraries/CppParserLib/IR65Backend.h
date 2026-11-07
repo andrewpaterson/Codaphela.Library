@@ -312,7 +312,8 @@ protected:
 	bool				Integer(SIRInstruction* psInstruction);
 	bool				IntegerWide(SIRInstruction* psInstruction);
 	bool				MultiplyInstruction(SIRInstruction* psInstruction);
-	bool				MultiplyByShifts(SIRInstruction* psInstruction);
+	int					MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
+	int					ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) override;
 	bool				ShiftSigned(SIRInstruction* psInstruction);
 	bool				Divide(SIRInstruction* psInstruction, SIRInstruction* psNext);
 	bool				Conversion(SIRInstruction* psInstruction);

@@ -185,8 +185,8 @@ public:
 	void			GenerateBody(const char* szLabel, size uiStart);
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
-	void			ExpandMultiplies(void);
-	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
+	int				MultiplyCost(SIRType sType, uint64 ulliMultiplier) override;
+	int				ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits) override;
 
 	static bool		GenerateRuntime(CArrayChars* paszRuntime, CChars* pszDest, CCPPErrors* pcErrors);
 	static void		AppendDivideTable(CChars* pszDest, const char* szName);

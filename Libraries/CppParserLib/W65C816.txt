@@ -429,7 +429,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 
 	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
 	- A mul by a constant is shifts and adds when they cost less than the call
-	  (CIR816Backend::ExpandMultiplies, the constant's signed digits Horner's way);
+	  (CIRBackend::ExpandMultiplies, the constant's signed digits Horner's way);
 	  constant shifts move a byte at a time a word along (ShiftConstant).
 	- An itoptr of ptrtoi p plus an offset is ptradd p, offset, and an itoptr of
 	  ptrtoi p is p (CIROptimiser, both targets): no top byte mask after casts.

@@ -50,10 +50,6 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 	bool	bByte;
 
 	bWide = IsWide(psInstruction->sType);
-	if (!bWide && MultiplyByShifts(psInstruction))
-	{
-		return true;
-	}
 	if (!bWide && IsInA(psInstruction->asArguments[1]) && !IsInA(psInstruction->asArguments[0]))
 	{
 		LoadValue(psInstruction->asArguments[0], "B", IR65E_Zero);
@@ -96,60 +92,49 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x * (2^a + 2^b) is ((x << (a - b)) + x) << b and x * (2^a - 2^b) is
-// ((x << (a - b)) - x) << b, which beat mul (a step a byte of B, with W
-// saved round it).  Returns false for other multipliers.
+// Roughly the cycles of a mul by a constant (MultiplyInstruction, for
+// ExpandMultiplies): the constant into B (narrowed to 8 bits round the mul
+// when it fits), a step a byte of B, and W cleared after.  A 64 bit mul
+// stays one: its shifts and adds are no cheaper.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::MultiplyByShifts(SIRInstruction* psInstruction)
+int CIR65Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
 {
-	uint32		uiMultiplier;
-	uint32		uiLow;
-	uint32		uiRest;
-	int			iLow;
-	int			iHigh;
-	const char*	szCombine;
+	if (ulliMultiplier < 256)
+	{
+		return 2 + 2 + 1 + 1;
+	}
+	return 2 + 4 + 1;
+}
 
-	if (!psInstruction->asArguments[1].IsConstant())
-	{
-		return false;
-	}
-	uiMultiplier = (uint32)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-	if (uiMultiplier == 0)
-	{
-		return false;
-	}
-	uiLow = uiMultiplier & (0 - uiMultiplier);
-	uiRest = uiMultiplier - uiLow;
-	szCombine = "add A, B";
-	if ((uiRest == 0) || ((uiRest & (uiRest - 1)) != 0))
-	{
-		//Not two bits: maybe a run of them, 2^a - 2^b.
-		uiRest = uiMultiplier + uiLow;
-		if ((uiRest == 0) || ((uiRest & (uiRest - 1)) != 0))
-		{
-			return false;
-		}
-		szCombine = "sub A, B";
-	}
-	iLow = (int)FindFirstSetBit(uiLow);
-	iHigh = (int)FindFirstSetBit(uiRest);
-	if ((iHigh - iLow > 8) || (iLow > 8))
-	{
-		return false;
-	}
 
-	LoadValue(psInstruction->asArguments[0], "A", IR65E_Zero);
-	Line("cpy B, A")->AppendNewLine();
-	Line("shl A, ")->Append(iHigh - iLow)->AppendNewLine();
-	Line(szCombine)->AppendNewLine();
-	if (iLow > 0)
+//////////////////////////////////////////////////////////////////////////
+//
+// Roughly the cycles of ExpandMultiplies' shifts and adds: a copy keeping
+// x, a neg for a top digit of -1, a shift (a cycle when it is 1 to 8 bits,
+// embedded, else two) and an add or sub for each digit after the top, and
+// the last shift.  Not for 64 bits (MultiplyCost).
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits)
+{
+	int	iCost;
+	int	i;
+
+	if (IsWide(sType))
 	{
-		Line("shl A, ")->Append(iLow)->AppendNewLine();
+		return MAX_INT;
 	}
-	msAvailable = IRNone();
-	StoreResult(psInstruction->sResult, "A");
-	return true;
+	iCost = 1 + ((aiSigns[iDigits - 1] < 0) ? 1 : 0);
+	for (i = iDigits - 1; i > 0; i--)
+	{
+		iCost += ((aiPlaces[i] - aiPlaces[i - 1] <= 8) ? 1 : 2) + 1;
+	}
+	if (aiPlaces[0] > 0)
+	{
+		iCost += (aiPlaces[0] <= 8) ? 1 : 2;
+	}
+	return iCost;
 }
 
 

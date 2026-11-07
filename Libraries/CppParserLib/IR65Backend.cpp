@@ -123,6 +123,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	uiStart = pszDest->Length();
 	muiSource = 0;
 
+	ExpandMultiplies();
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
 	mpcFunction->CountUses(&mauiUses);

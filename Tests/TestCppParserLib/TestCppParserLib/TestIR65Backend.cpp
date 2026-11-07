@@ -397,25 +397,37 @@ void TestIR65BackendNarrow(void)
 //////////////////////////////////////////////////////////////////////////
 void TestIR65BackendDivide(void)
 {
+	CChars	szAssembly;
+
 	AssertInt(-3, TestIR65Main("function i32 @_main()\n{\nb:\n\t%a = sdiv i32 -7, 2\n\tret i32 %a\n}\n"));
 	AssertInt(-1, TestIR65Main("function i32 @_main()\n{\nb:\n\t%a = srem i32 -7, 2\n\tret i32 %a\n}\n"));
 	AssertInt(2147483644, TestIR65Main("function i32 @_main()\n{\nb:\n\t%a = udiv i32 -7, 2\n\tret i32 %a\n}\n"));
 	AssertInt(1, TestIR65Main("function i32 @_main()\n{\nb:\n\t%a = urem i32 -7, 2\n\tret i32 %a\n}\n"));
-	//Multipliers of two bits or a run of bits are shifts: 13 * 10 + 13 * 7 + 13 * 24 + -3 * 3 + 13 * 1536 + 13 * 3 (i8, wraps to 39).
-	AssertInt(13 * 10 + 13 * 7 + 13 * 24 - 3 * 3 + 13 * 1536 + 39, TestIR65Main(
+	//Multipliers of a few signed digits are shifts and adds, cheaper than mul (ExpandMultiplies): 13 * 10 + 13 * 7 +
+	//13 * 24 + -3 * 3 + 13 * 1536 + 13 * 3 (i8, wraps to 39) + 13 * 11 + 13 * 255 + 13 * -3 (i8, wraps to 217).
+	szAssembly.Init();
+	AssertInt(13 * 10 + 13 * 7 + 13 * 24 - 3 * 3 + 13 * 1536 + 39 + 13 * 11 + 13 * 255 + 217, (int32)TestIR65Run(
 		"function i32 @_M__Fiic(i32 %a, i32 %b, i8 %c), local\n{\nb:\n"
 		"\t%1 = mul i32 %a, 10\n\t%2 = mul i32 %a, 7\n\t%3 = mul i32 %a, 24\n\t%4 = mul i32 %b, 3\n\t%5 = mul i32 %a, 1536\n\t%6 = mul i8 %c, 3\n"
-		"\t%z = zext i8 %6 to i32\n"
+		"\t%7 = mul i32 %a, 11\n\t%8 = mul i32 %a, 255\n\t%9 = mul i8 %c, -3\n"
+		"\t%z = zext i8 %6 to i32\n\t%y = zext i8 %9 to i32\n"
 		"\t%s1 = add i32 %1, %2\n\t%s2 = add i32 %s1, %3\n\t%s3 = add i32 %s2, %4\n\t%s4 = add i32 %s3, %5\n\t%s5 = add i32 %s4, %z\n"
-		"\tret i32 %s5\n}\n\n"
-		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_M__Fiic(i32 13, i32 -3, i8 13)\n\tret i32 %r\n}\n"));
+		"\t%s6 = add i32 %s5, %7\n\t%s7 = add i32 %s6, %8\n\t%s8 = add i32 %s7, %y\n"
+		"\tret i32 %s8\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_M__Fiic(i32 13, i32 -3, i8 13)\n\tret i32 %r\n}\n", false, &szAssembly));
+	AssertFalse(szAssembly.Contains("\t\tmul\n"));
+	szAssembly.Kill();
 
-	//A multiplier below 256 that shifts can't do is one mul step (B 8 bits wide): 1234567 * 11 + 1234567 * 255 + (13 * -3 as i8).
-	AssertInt(1234567 * 11 + 1234567 * 255 + 217, TestIR65Main(
-		"function i32 @_B__Fic(i32 %a, i8 %c), local\n{\nb:\n"
-		"\t%1 = mul i32 %a, 11\n\t%2 = mul i32 %a, 255\n\t%3 = mul i8 %c, -3\n\t%z = zext i8 %3 to i32\n"
-		"\t%s1 = add i32 %1, %2\n\t%s2 = add i32 %s1, %z\n\tret i32 %s2\n}\n\n"
-		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_B__Fic(i32 1234567, i8 13)\n\tret i32 %r\n}\n"));
+	//Too many signed digits: a multiplier below 256 is one mul step (B 8 bits wide), a bigger one a step a byte:
+	//1234567 * 85 + 1234567 * 171 + 13 * 85 (i8, wraps to 81) + 13 * 0x12345.
+	szAssembly.Init();
+	AssertInt(1234567 * 85 + 1234567 * 171 + 81 + 13 * 0x12345, (int32)TestIR65Run(
+		"function i32 @_B__Fic(i32 %a, i8 %c, i32 %d), local\n{\nb:\n"
+		"\t%1 = mul i32 %a, 85\n\t%2 = mul i32 %a, 171\n\t%3 = mul i8 %c, 85\n\t%z = zext i8 %3 to i32\n\t%4 = mul i32 %d, 74565\n"
+		"\t%s1 = add i32 %1, %2\n\t%s2 = add i32 %s1, %z\n\t%s3 = add i32 %s2, %4\n\tret i32 %s3\n}\n\n"
+		"function i32 @_main()\n{\nb:\n\t%r = call i32 @_B__Fic(i32 1234567, i8 13, i32 13)\n\tret i32 %r\n}\n", false, &szAssembly));
+	AssertTrue(szAssembly.Contains("\t\tmul\n") && szAssembly.Contains("wth B, 8"));
+	szAssembly.Kill();
 
 	//A narrow load only a sext uses is sign extended as it is read: -2 (i8) and -300 (i16), and an i8 sext to i16 (kept zero extended).
 	AssertInt(-2 - 300 + 65534, TestIR65Main(
@@ -1360,6 +1372,52 @@ void TestIR65BackendSameOperands(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A multiplier's signed digits (ExpandMultiplies, both back ends): its
+// non-adjacent form, lowest first, none past the top bit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendSignedDigits(void)
+{
+	int		aiPlaces[IR_MAX_MULTIPLY_DIGITS];
+	int		aiSigns[IR_MAX_MULTIPLY_DIGITS];
+
+	//3 is 4 - 1.
+	AssertInt(2, CIRBackend::SignedDigits(3, 32, aiPlaces, aiSigns));
+	AssertInt(0, aiPlaces[0]);
+	AssertInt(-1, aiSigns[0]);
+	AssertInt(2, aiPlaces[1]);
+	AssertInt(1, aiSigns[1]);
+
+	//10 is 8 + 2.
+	AssertInt(2, CIRBackend::SignedDigits(10, 32, aiPlaces, aiSigns));
+	AssertInt(1, aiPlaces[0]);
+	AssertInt(1, aiSigns[0]);
+	AssertInt(3, aiPlaces[1]);
+	AssertInt(1, aiSigns[1]);
+
+	//11 is 16 - 4 - 1.
+	AssertInt(3, CIRBackend::SignedDigits(11, 32, aiPlaces, aiSigns));
+	AssertInt(0, aiPlaces[0]);
+	AssertInt(-1, aiSigns[0]);
+	AssertInt(2, aiPlaces[1]);
+	AssertInt(-1, aiSigns[1]);
+	AssertInt(4, aiPlaces[2]);
+	AssertInt(1, aiSigns[2]);
+
+	//0xFFFF on 16 bits is -1: the 2^16 digit is past the top.
+	AssertInt(1, CIRBackend::SignedDigits(0xFFFF, 16, aiPlaces, aiSigns));
+	AssertInt(0, aiPlaces[0]);
+	AssertInt(-1, aiSigns[0]);
+
+	//0x5555 (8 digits) fits; 0x15555 (9) doesn't.
+	AssertInt(8, CIRBackend::SignedDigits(0x5555, 32, aiPlaces, aiSigns));
+	AssertInt(14, aiPlaces[7]);
+	AssertInt(-1, CIRBackend::SignedDigits(0x15555, 32, aiPlaces, aiSigns));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The back end's peephole: a store to a pseudo register read straight back
 // is a cpy when both registers are known to be 32 bits.  They are at the
 // function's label and a block's; at a label in an instruction's code (not
@@ -1773,6 +1831,7 @@ void TestIR65Backend(void)
 	TestIR65BackendPeepholeBranchesToNext();
 	TestIR65BackendSoftFloatNames();
 	TestIR65BackendSameOperands();
+	TestIR65BackendSignedDigits();
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIRSourceMarkers();

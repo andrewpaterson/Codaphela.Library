@@ -14,9 +14,10 @@ The same jobs in the two back ends
 
 Job                         W65C816 (the model)                     65C64 (to be reshaped)
 --------------------------  --------------------------------------  -------------------------------------------
-IR rewrites before code     ExpandMultiplies, SinkSteps             AdjustComparisons, PreferSingleBranches,
-                                                                    OrderBlocks, RotateLoops, PairDivides,
-                                                                    SinkLoads, CopyAddresses, FindNarrowOnly
+IR rewrites before code     ExpandMultiplies, SinkSteps             ExpandMultiplies, AdjustComparisons,
+                                                                    PreferSingleBranches, OrderBlocks,
+                                                                    RotateLoops, PairDivides, SinkLoads,
+                                                                    CopyAddresses, FindNarrowOnly
 Frame layout                SIR816Frame (Add, Link, Arguments,      miFrameBytes, miArguments, miThisOffset,
                             Top), filled by Layout                  mbFrameless, mcFrame; AddFrame,
                                                                     ParameterOffset, ArrivalPlace
