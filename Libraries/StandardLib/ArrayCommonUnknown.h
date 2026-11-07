@@ -34,6 +34,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMON_SLOTS_MOVED	0x0040
 #define ARRAY_COMMON_SORT_POINTERS	0x0080
 
+#define ARRAY_COMMON_INIT_FLAGS			(ARRAY_COMMON_KILL_ELEMENT | ARRAY_COMMON_UNIQUE_ONLY | ARRAY_COMMON_IGNORE_NULL | ARRAY_COMMON_PRESERVE_ORDER | ARRAY_COMMON_TYPE_KNOWN | ARRAY_COMMON_SORT_POINTERS)
+#define ARRAY_COMMON_DEFAULT_CHUNK_SIZE	1
+
 // ARRAY_COMMON_IS_PTR_SORTED  indicates if the array is sorted, not if it must be sorted.
 // ARRAY_COMMON_SORT_POINTERS  the array is kept sorted by its elements' addresses (a set made to sort them).  Each
 //                             change that could leave it out of order clears ARRAY_COMMON_IS_PTR_SORTED.
@@ -61,12 +64,11 @@ private:
 
 	bool				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
 	void				PrivateKill(void);
-	void				InitFlags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
 
 public:
 			void				_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
-			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
-			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers, size iChunkSize);
+			void 				Init(uint16 uiFlags, size iChunkSize = ARRAY_COMMON_DEFAULT_CHUNK_SIZE);
+	static	uint16				Flags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
 			void 				Kill(void) override;
 	virtual void 				ReInit(void);
 

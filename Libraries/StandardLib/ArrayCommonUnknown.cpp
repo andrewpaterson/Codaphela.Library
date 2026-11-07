@@ -39,42 +39,37 @@ void CArrayCommonUnknown::_Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// uiFlags are ARRAY_COMMON_KILL_ELEMENT, _UNIQUE_ONLY, _IGNORE_NULL,
+// _PRESERVE_ORDER, _TYPE_KNOWN and _SORT_POINTERS (Flags makes them from
+// bools).  An empty array is sorted.
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
-{
-	mcArray.Init(&gcSystemAllocator);
-	InitFlags(bTypeKnown, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers, size iChunkSize)
+void CArrayCommonUnknown::Init(uint16 uiFlags, size iChunkSize)
 {
 	mcArray.Init(&gcSystemAllocator, iChunkSize);
-	InitFlags(bTypeKnown, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
+	muiFlags = uiFlags & ARRAY_COMMON_INIT_FLAGS;
+	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, FixBool(uiFlags & ARRAY_COMMON_SORT_POINTERS));
+	miNonNullElements = 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An empty array is sorted.
+// Init's flags, for a caller that has them as bools.
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::InitFlags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
+uint16 CArrayCommonUnknown::Flags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
 {
-	muiFlags = 0;
-	SetFlagShort(&muiFlags, ARRAY_COMMON_KILL_ELEMENT, bKillElements);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_UNIQUE_ONLY, bUnique);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_IGNORE_NULL, bIgnoreNull);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_PRESERVE_ORDER, bPreserveOrder);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_TYPE_KNOWN, bTypeKnown);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_SORT_POINTERS, bSortPointers);
-	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, bSortPointers);
-	miNonNullElements = 0;
+	uint16	uiFlags;
+
+	uiFlags = 0;
+	SetFlagShort(&uiFlags, ARRAY_COMMON_TYPE_KNOWN, bTypeKnown);
+	SetFlagShort(&uiFlags, ARRAY_COMMON_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&uiFlags, ARRAY_COMMON_UNIQUE_ONLY, bUnique);
+	SetFlagShort(&uiFlags, ARRAY_COMMON_IGNORE_NULL, bIgnoreNull);
+	SetFlagShort(&uiFlags, ARRAY_COMMON_PRESERVE_ORDER, bPreserveOrder);
+	SetFlagShort(&uiFlags, ARRAY_COMMON_SORT_POINTERS, bSortPointers);
+	return uiFlags;
 }
 
 
@@ -169,7 +164,7 @@ bool CArrayCommonUnknown::ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMON_TYPE_KNOWN);
 
 	//The other flags are set from *piFlags once the elements are read (PostLoad or PostLoadPointers).
-	Init(bTypeKnown, false, false, false, false, false);
+	Init(bTypeKnown ? ARRAY_COMMON_TYPE_KNOWN : 0);
 	mcArray.SetAllocateSize(iChunkSize);
 	miNonNullElements = iNonNullElements;
 

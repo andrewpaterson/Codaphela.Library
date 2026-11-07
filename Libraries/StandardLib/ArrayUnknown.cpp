@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CArrayUnknown::Init(void)
 {
-	CArrayCommonUnknown::Init(false, true, false, false, true, false);
+	CArrayCommonUnknown::Init(ARRAY_COMMON_KILL_ELEMENT | ARRAY_COMMON_PRESERVE_ORDER);
 }
 
 

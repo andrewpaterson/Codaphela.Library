@@ -438,7 +438,7 @@ void TestArrayUnknownRemoveKeepsSorted(void)
 	CTestUnknown*		apcTests[5];
 	size				i;
 
-	cArray.Init(false, true, false, false, false, &ComparePtrPtr);
+	cArray.Init(ARRAY_COMMON_KILL_ELEMENT | ARRAY_COMMON_SORT_POINTERS);
 	for (i = 0; i < 5; i++)
 	{
 		apcTests[i] = UMalloc(CTestUnknown);

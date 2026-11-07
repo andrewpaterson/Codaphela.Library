@@ -44,7 +44,7 @@ void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrde
 	PreInit();
 	CCollection::Init();
 
-	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers);
+	mcArray.Init(CArrayCommonUnknown::Flags(false, false, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers));
 	PostInit();
 }
 

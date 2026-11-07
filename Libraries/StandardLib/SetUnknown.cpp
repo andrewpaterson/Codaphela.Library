@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CSetUnknown::Init(bool bSortPointers)
 {
 
-	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, bSortPointers);
+	CArrayCommonUnknown::Init(Flags(false, true, false, true, bSortPointers, bSortPointers));
 }
 
 
@@ -39,7 +39,7 @@ void CSetUnknown::Init(bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, bSortPointers, iChunkSize);
+	CArrayCommonUnknown::Init(Flags(false, true, false, true, bSortPointers, bSortPointers), iChunkSize);
 }
 
 
@@ -49,7 +49,7 @@ void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers, iChunkSize);
+	CArrayCommonUnknown::Init(Flags(false, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers), iChunkSize);
 }
 
 
