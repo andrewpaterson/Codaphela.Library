@@ -268,6 +268,7 @@ protected:
 	void			ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount);
 	void			ShiftWordInA(uint16 uiOpcode, int iAmount);
 	void			SignExtendInA(int iSignBit);
+	void			SignWordInA(void);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	bool			RemainderLeft(SIRInstruction* psInstruction);
 	bool			InlineMultiply16(SIRInstruction* psInstruction);

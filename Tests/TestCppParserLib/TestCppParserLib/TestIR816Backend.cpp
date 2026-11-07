@@ -826,6 +826,7 @@ void TestIR816BackendShiftConstants(void)
 	uint64				ulliMask;
 	uint64				ulliExpected;
 	int64				lliSigned;
+	CChars				szAssembly;
 
 	for (iType = 0; iType < 3; iType++)
 	{
@@ -870,6 +871,14 @@ void TestIR816BackendShiftConstants(void)
 			}
 		}
 	}
+
+	//An arithmetic shift's sign word has no hand counted branch (bcc C + 1), which kept the flow passes
+	//(IR816BuildFlowLabelled) off the whole function.
+	szAssembly.Init();
+	AssertLong(-1, TestIR816Run("function i32 @_S__F(i32 %a), local\n{\nb:\n\t%s = ashr i32 %a, 16\n\t%t = ashr i32 %s, 8\n\tret i32 %t\n}\n\n"
+								"function i32 @_main()\n{\nb:\n\t%r = call i32 @_S__F(i32 -65536)\n\tret i32 %r\n}\n", false, &szAssembly));
+	AssertFalse(szAssembly.Contains("C +"));
+	szAssembly.Kill();
 }
 
 

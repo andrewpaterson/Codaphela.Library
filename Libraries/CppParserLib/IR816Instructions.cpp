@@ -259,10 +259,7 @@ void CIR816Backend::FillSign(int32 iDestination, int iFirst, int iWords)
 		return;
 	}
 	Frame("lda", iDestination + 2 * (iFirst - 1));
-	Line("asl A");
-	Line("lda 0");
-	Line("adc 0xFFFF");
-	Line("eor 0xFFFF");
+	SignWordInA();
 	for (i = 0; i < iWords; i++)
 	{
 		Frame("sta", iDestination + 2 * (iFirst + i));

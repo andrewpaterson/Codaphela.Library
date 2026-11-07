@@ -444,10 +444,7 @@ void CIR816Backend::ShiftWordInA(uint16 uiOpcode, int iAmount)
 
 	if ((uiOpcode == IRO_AShr) && (iAmount >= 15))
 	{
-		Line("asl A");
-		Line("lda 0");
-		Line("adc 0xFFFF");
-		Line("eor 0xFFFF");
+		SignWordInA();
 		return;
 	}
 	if (iAmount >= 16)
@@ -498,6 +495,22 @@ void CIR816Backend::SignExtendInA(int iSignBit)
 	Line("sec");
 	snprintf(szLine, sizeof(szLine), "sbc 0x%X", 1u << iSignBit);
 	Line(szLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A becomes the sign word of A (0xFFFF if its top bit is set, else 0), with
+// no branch (so no label: a hand counted branch hides the code from the
+// flow passes).  Carry and the flags are changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::SignWordInA(void)
+{
+	Line("asl A");
+	Line("lda 0");
+	Line("adc 0xFFFF");
+	Line("eor 0xFFFF");
 }
 
 
@@ -648,10 +661,7 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 			{
 				//The sign word: $FFFF when the top bit is set.
 				Frame("lda", iResult + 2 * (iWords - 1));
-				Line("cmp 0x8000");
-				Line("lda 0");
-				Line("bcc C + 1");
-				Line("dec A");
+				SignWordInA();
 				Frame("sta", IR816_SCRATCH_COUNT);
 			}
 			for (i = 0; i < iWords - iWordShift; i++)
@@ -701,9 +711,7 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 					Line("and 0xFF");
 					if (uiOpcode == IRO_AShr)
 					{
-						Line("cmp 0x80");
-						Line("bcc C + 3");
-						Line("ora 0xFF00");
+						SignExtendInA(7);
 					}
 				}
 				Frame("sta", iResult + 2 * i);

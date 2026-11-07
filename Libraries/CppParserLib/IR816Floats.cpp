@@ -408,10 +408,7 @@ void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
 			Frame("sta", IR816_SCRATCH_RESULT);
 			if (bSigned)
 			{
-				Line("cmp 0x8000");
-				Line("lda 0");
-				Line("bcc C + 1");
-				Line("dec A");
+				SignWordInA();
 			}
 			else
 			{
@@ -458,10 +455,7 @@ void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 	Frame("sta", IR816_SCRATCH_VALUE);
 	if (bSigned && !sType.Is(IRTK_I1))
 	{
-		Line("asl A");
-		Line("lda 0");
-		Line("adc 0xFFFF");
-		Line("eor 0xFFFF");
+		SignWordInA();
 	}
 	else
 	{

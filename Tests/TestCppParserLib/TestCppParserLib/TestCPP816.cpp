@@ -505,6 +505,28 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A signed int converted to float (extended to 32 bits in the frame) has no
+// hand counted branch for its sign word (bcc C + 1 kept the flow passes off
+// the function).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816SignedToFloat(void)
+{
+	static const char*	aszFloats[] = { "Libc65/softfloat.cpp", "Libc65/softfloat816.asm", NULL };
+	CChars				szListing;
+
+	szListing.Init();
+	AssertInt(-500, TestCPP816RunListed(
+		"int Convert(int x) { float f = (float)x; return (int)(f / 2.0f); }\n"
+		"int main(void) { return Convert(-1000); }\n", aszFloats, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("_Convert__Fs:"));
+	AssertFalse(szListing.Contains("C +"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // x / d and x % d of a d that isn't a constant share one divide (the
 // remainder is x - q * d, CIROptimiser::ShareDivisions), either way round,
 // signed and unsigned, 16 and 32 bits.
@@ -5454,6 +5476,7 @@ void TestCPP816(void)
 	CW65C816InstructionFactory::GetInstance()->Init();
 
 	TestCPP816Basics();
+	TestCPP816SignedToFloat();
 	TestCPP816Functions();
 	TestCPP816Classes();
 	TestCPP816Statements();
