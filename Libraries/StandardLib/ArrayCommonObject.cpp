@@ -512,7 +512,7 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 	uiNumElements = NonNullElements();
 	if (iCount != NonNullElements())
 	{
-		gcLogger.Error2(__METHOD__, " NumPointerTos [", SizeToString(iCount), "] should equal NonNullElements [", SizeToString(uiNumElements), "].");
+		gcLogger.Error2(__METHOD__, " NumPointerTos [", SizeToString(iCount), "] should equal NonNullElements [", SizeToString(uiNumElements), "].", NULL);
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 	return iCount;
