@@ -104,15 +104,19 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 
     pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
 
-    //A dialog's frames are kept apart from its owner's.
-    szFileName.Init(mszImagePath);
-    cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
-    szFileName.Append(muiFrame);
-    szFileName.Append(".png");
+    //No image path means the frames are not wanted; don't write them into the working directory.
+    if ((mszImagePath != NULL) && (mszImagePath[0] != '\0'))
+    {
+        //A dialog's frames are kept apart from its owner's.
+        szFileName.Init(mszImagePath);
+        cFileUtil.AppendToPath(&szFileName, mpcOwner ? (mbTool ? "ToolFrame" : "DialogFrame") : "Frame");
+        szFileName.Append(muiFrame);
+        szFileName.Append(".png");
 
-    //You should create a new image here and size to iWidth and iHeight before calling Save.
-    SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
-    szFileName.Kill();
+        //You should create a new image here and size to iWidth and iHeight before calling Save.
+        SavePNG(pcRefCanvas->GetNativeImage(), szFileName.Text());
+        szFileName.Kill();
+    }
 
     muiFrame++;
 }
