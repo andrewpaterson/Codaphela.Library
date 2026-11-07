@@ -30,6 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 #include "TextBackgrounds.h"
 #include "TextAreaLayout.h"
+#include "TextAreaBands.h"
 #include "TextEditingInput.h"
 #include "ComponentInputEvent.h"
 #include "ComponentEvent.h"
@@ -85,7 +86,8 @@ protected:
 	bool					mbBackgroundsDirty;  //The backgrounds or the layout changed since the map was drawn.
 	int32					miBackgroundWidth;  //The width the map was drawn across.
 	Ptr<CGeometryMap>		mpSelectionMap;  //Under the text.
-	bool					mbMarksDirty;  //The selection changed since the text area was drawn.
+	bool					mbRowsChanged;  //Something drawn on the rows may have changed since the text area was drawn.
+	CTextAreaBands			mcBands;  //What was drawn, row by row, to find what changed (PrepareArea).
 	ARGB32					msSelectionColour;
 	ARGB32					msCaretColour;
 	CTextEditing			mcEditing;  //The caret, the selection and the edits of mcDocument.
@@ -282,6 +284,11 @@ protected:
 	void				ScrollBy(int32 iDown);
 
 	void				UpdateMarks(void);
+	void				RowsChanged(void);
+	void				BackgroundsChanged(void);
+	bool				SummariseBands(CTextAreaBands* pcBands);
+	void				MixStyle(CTextAreaBands* pcBands, size uiBand, size uiOffset, STextStyle* psStyle);
+	void				MixShapes(CTextAreaBands* pcBands, Ptr<CGeometryMap> pMap, int32 iTop, int32 iBottom);
 };
 
 

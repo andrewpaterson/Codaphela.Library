@@ -762,6 +762,152 @@ void TestPartialRedrawTextArea(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The rows of pTextArea's line uiLine, in the window.
+//
+//////////////////////////////////////////////////////////////////////////
+static void GetWindowLineBounds(Ptr<CTextArea> pTextArea, size uiLine, CInt32Rect* pcDest)
+{
+	SInt32Vec2	sPosition;
+
+	AssertTrue(pTextArea->GetLineBounds(uiLine, pcDest));
+	sPosition = pTextArea->GetPosition();
+	pcDest->Init(pcDest->GetLeft() + sPosition.x, pcDest->GetTop() + sPosition.y, pcDest->GetRight() + sPosition.x, pcDest->GetBottom() + sPosition.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What was shown at the last paint is the rows of lines uiFirst to uiLast
+// of pTextArea, across its width, and nothing else; MAX_SIZE for uiLast
+// is the rest of the text area that shows.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertPresentedLines(Ptr<CWindow> pWindow, Ptr<CTextArea> pTextArea, size uiFirst, size uiLast)
+{
+	CWinRefWindow*	pcNative;
+	CInt32Rect		cPresented;
+	CInt32Rect		cFirst;
+	CInt32Rect		cLast;
+
+	pcNative = (CWinRefWindow*)pWindow->GetNativeWindow();
+	GetWindowLineBounds(pTextArea, uiFirst, &cFirst);
+	if (uiLast == MAX_SIZE)
+	{
+		pTextArea->GetDrawnArea(&cLast);
+	}
+	else
+	{
+		GetWindowLineBounds(pTextArea, uiLast, &cLast);
+	}
+	pcNative->GetPresented()->GetBounds(&cPresented);
+	AssertInt(cFirst.GetTop(), cPresented.GetTop());
+	AssertInt(cLast.GetBottom(), cPresented.GetBottom());
+	AssertSize(0, pWindow->GetRedrawMismatches());
+	pcNative->ClearPresented();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text area draws again only the rows that changed: an edit, a
+// selection, a span or a background on a line draws that line (the last
+// line's band goes on to the bottom of the text area); the spans cleared
+// and added again as they were draw nothing; a line feed draws the rows
+// below it, which moved.  Each partial paint is as drawing all of the
+// window.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPartialRedrawTextAreaRows(void)
+{
+	CWinRefWindowFactory	cFactory;
+	CFileUtil				cFileUtil;
+	char					szDirectory[] = "Output" _FS_ "PartialRedrawTextAreaRows";
+
+	cFileUtil.RemoveDir(szDirectory);
+	cFileUtil.MakeDir(szDirectory);
+
+	ObjectsInit();
+	cFactory.Init(&gcMemoryAllocator, 160, 140, szDirectory);
+	{
+		Ptr<CWindow>			pWindow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CTextArea>			pTextArea;
+		CWinRefWindow*			pcNative;
+		ARGB32					sRed;
+
+		sRed = Set32BitColour(1.0f, 0, 0);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pWindow = OMalloc<CWindow>("Rows", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pWindow);
+		pFill = OMalloc<CFillContainer>(pWindow);
+		pWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "line0\nline1\nline2\nline3\nline4");
+		pTextArea->SetMarkColours(sRed, Set32BitColour(1.0f, 1.0f, 1.0f));
+		pTextArea->SetDesiredSize(150, 130);
+		pTextArea->SetAlignment(CSH_Left, CSV_Top);
+		pFill->AddComponent(pTextArea);
+		pWindow->SetPartialRedraw(true);
+		pWindow->SetVerifyRedraw(true);
+		pWindow->SetCheckLayoutCache(false);
+		pWindow->Paint();
+		pcNative = (CWinRefWindow*)pWindow->GetNativeWindow();
+		pcNative->ClearPresented();
+
+		//Nothing changed.
+		pWindow->Paint();
+		AssertTrue(pcNative->GetPresented()->IsEmpty());
+
+		pTextArea->SetCaretPosition(pTextArea->GetLineStart(1) + 2);
+		pTextArea->Printable('x', true);
+		pWindow->Paint();
+		AssertPresentedLines(pWindow, pTextArea, 1, 1);
+
+		pTextArea->Select(pTextArea->GetLineStart(3), pTextArea->GetLineStart(3) + 3);
+		pWindow->Paint();
+		AssertPresentedLines(pWindow, pTextArea, 3, 3);
+
+		pTextArea->AddSpan(pTextArea->GetLineStart(0), 2, sRed);
+		pWindow->Paint();
+		AssertPresentedLines(pWindow, pTextArea, 0, 0);
+
+		//Recoloured as it was, as a highlighter does all of it.
+		pTextArea->ClearSpans();
+		pTextArea->AddSpan(pTextArea->GetLineStart(0), 2, sRed);
+		pWindow->Paint();
+		AssertTrue(pcNative->GetPresented()->IsEmpty());
+
+		pTextArea->AddLineBackground(2, 3, Set32BitColour(0, 0, 1.0f));
+		pWindow->Paint();
+		AssertPresentedLines(pWindow, pTextArea, 2, 2);
+
+		//A line feed in line 0: it and everything below it moved, to the bottom of the text area.
+		pTextArea->SetCaretPosition(3);
+		pTextArea->Enter();
+		pWindow->Paint();
+		AssertPresentedLines(pWindow, pTextArea, 0, MAX_SIZE);
+
+		pWindow->Paint();
+		AssertTrue(pcNative->GetPresented()->IsEmpty());
+
+		pTextArea = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pWindow);
+		pWindow = NULL;
+		pTick = NULL;
+	}
+	AssertTrue(ORoot()->RemoveAll());
+	cFactory.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedraw(void)
@@ -775,6 +921,7 @@ void TestPartialRedraw(void)
 	TestPartialRedrawDialogLikeOwner();
 	TestPartialRedrawCanvasPart();
 	TestPartialRedrawTextArea();
+	TestPartialRedrawTextAreaRows();
 
 	TestStatistics();
 }

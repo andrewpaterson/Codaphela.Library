@@ -73,7 +73,8 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mbBackgroundsDirty = false;
 	miBackgroundWidth = 0;
 	mpSelectionMap = OMalloc<CGeometryMap>();
-	mbMarksDirty = false;
+	mbRowsChanged = false;
+	mcBands.Init();
 	mpMaps = OMalloc<CMaps>();
 	mpMaps->AddMap(mpBackgroundMap);
 	mpMaps->AddMap(mpSelectionMap);
@@ -114,6 +115,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::Free(void)
 {
+	mcBands.Kill();
 	mcBackgrounds.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
@@ -142,7 +144,8 @@ void CTextArea::Class(void)
 	U_Bool(mbBackgroundsDirty);
 	U_Int32(miBackgroundWidth);
 	M_Pointer(mpSelectionMap);
-	U_Bool(mbMarksDirty);
+	U_Bool(mbRowsChanged);
+	U_Unknown(CTextAreaBands, mcBands);
 	U_UInt32(msSelectionColour);
 	U_UInt32(msCaretColour);
 	U_Unknown(CTextEditing, mcEditing);
@@ -295,7 +298,11 @@ void CTextArea::GetStyle(STextStyle* psStyle) { *psStyle = *mpLayout->GetStyle()
 // The colour of text that isn't in a span that sets a colour.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::SetColour(ARGB32 sColour) { mpLayout->SetColour(sColour); }  //Of text that isn't in a span that sets a colour.
+void CTextArea::SetColour(ARGB32 sColour)
+{
+	RowsChanged();
+	mpLayout->SetColour(sColour);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -320,14 +327,22 @@ bool CTextArea::AddSpan(size uiStart, size uiLength, ARGB32 sColour)
 // Returns false if the span goes past the end of the text.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextArea::AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride) { return mpLayout->AddSpan(uiStart, uiLength, psOverride); }
+bool CTextArea::AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride)
+{
+	RowsChanged();
+	return mpLayout->AddSpan(uiStart, uiLength, psOverride);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextArea::ClearSpans(void) { mpLayout->ClearSpans(); }
+void CTextArea::ClearSpans(void)
+{
+	RowsChanged();
+	mpLayout->ClearSpans();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -348,7 +363,7 @@ bool CTextArea::AddBackground(size uiStart, size uiEnd, ARGB32 sColour)
 	}
 
 	mcBackgrounds.Add(TAB_Range, uiStart, uiEnd, 0, sColour);
-	mbBackgroundsDirty = true;
+	BackgroundsChanged();
 	return true;
 }
 
@@ -372,7 +387,7 @@ bool CTextArea::AddLineBackground(size uiStartLine, size uiEndLine, ARGB32 sColo
 	}
 
 	mcBackgrounds.Add(TAB_Lines, uiStartLine, uiEndLine, 0, sColour);
-	mbBackgroundsDirty = true;
+	BackgroundsChanged();
 	return true;
 }
 
@@ -393,7 +408,7 @@ bool CTextArea::AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour)
 	}
 
 	mcBackgrounds.Add(TAB_Boundary, uiLine, uiLine, iThickness, sColour);
-	mbBackgroundsDirty = true;
+	BackgroundsChanged();
 	return true;
 }
 
@@ -406,7 +421,7 @@ void CTextArea::ClearBackgrounds(void)
 {
 	if (mcBackgrounds.Clear())
 	{
-		mbBackgroundsDirty = true;
+		BackgroundsChanged();
 	}
 }
 
@@ -490,7 +505,6 @@ bool CTextArea::Draw(void)
 	{
 		UpdateBackgrounds();
 	}
-	mbMarksDirty = false;
 	return CCanvas::Draw();
 }
 
@@ -498,17 +512,227 @@ bool CTextArea::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The text area's setters only note that its text, spans, backgrounds or
-// selection changed (Draw brings them up to date), so it draws again here
-// when any did.
+// selection changed.  Here, as the window is painted, they are brought up
+// to date and the bands of what will be drawn compared with those of what
+// was (CTextAreaBands): only the rows that changed are drawn again.  All of
+// it is drawn when there are no bands to compare (no rows, nothing drawn
+// yet), when it scrolled, moved or was invalidated, or when what is drawn
+// across its width changed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
 {
+	CTextAreaBands	cBands;
+	CArrayInt32Vec2	asChanged;
+	CInt32Rect		cPart;
+	SInt32Vec2		sTextSize;
+	SInt32Vec2*		psChanged;
+	int32			iWidth;
+	bool			bAll;
+	size			i;
+
 	CCanvas::PrepareArea(bDrawn, bClipped, pcClip, pcArea);
-	if (mpLayout->IsTextDirty() || mbBackgroundsDirty || mbMarksDirty || (miBackgroundWidth != GetFullWidth()))
+	if ((pcArea->GetWidth() <= 0) || (pcArea->GetHeight() <= 0))
+	{
+		mcBands.Clear();
+		return;
+	}
+	if (!mbRowsChanged && !mpLayout->IsTextDirty() && !mbBackgroundsDirty && (miBackgroundWidth == GetFullWidth()) && !IsContentDirty())
+	{
+		return;
+	}
+
+	sTextSize = mpLayout->GetTextSize();
+	UpdateText();
+	bAll = IsContentDirty() || !mcBands.IsComplete() || (miBackgroundWidth != GetFullWidth());
+	if (sTextSize != mpLayout->GetTextSize())
+	{
+		//Its new size is laid out at the next paint.
+		LayoutChanged();
+	}
+	if (mbBackgroundsDirty || (miBackgroundWidth != GetFullWidth()))
+	{
+		UpdateBackgrounds();
+	}
+	mbRowsChanged = false;
+
+	cBands.Init();
+	if (!SummariseBands(&cBands))
+	{
+		bAll = true;
+	}
+	if (bAll)
 	{
 		MarkContentChanged();
 		mpWindow->AddDamage(pcArea);
+	}
+	else
+	{
+		asChanged.Init();
+		cBands.Compare(&mcBands, &asChanged);
+		iWidth = GetFullWidth();
+		for (i = 0; i < asChanged.NumElements(); i++)
+		{
+			psChanged = asChanged.Get(i);
+			cPart.Init(0, psChanged->x, iWidth, psChanged->y);
+			DamagePart(&cPart);
+		}
+		asChanged.Kill();
+	}
+	mcBands.Take(&cBands);
+	cBands.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bands (CTextAreaBands) of the part of the text area that shows, as
+// it will be drawn: one for each row from its top to the next's (the last
+// to the bottom of the text area), each a hash of the row's text, its
+// styles and the shapes crossing the band (backgrounds, selection, lines
+// along the text).  False without rows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextArea::SummariseBands(CTextAreaBands* pcBands)
+{
+	SInt32Vec2			sOrigin;
+	int32				iTop;
+	int32				iBottom;
+	int32				iEnd;
+	size				uiNumRows;
+	size				uiFirstRow;
+	size				uiRow;
+	size				uiBand;
+	size				uiFirstByte;
+	size				uiLastByte;
+	size				uiStart;
+	size				uiEnd;
+	size				uiPosition;
+	STextLayoutLine*	psLine;
+	STextLayoutLine*	psNext;
+	STextStyle*			psStyles;
+	STextStyle*			psStyle;
+	STextStyle*			psLast;
+	char*				szText;
+
+	if (!HasRows())
+	{
+		return false;
+	}
+
+	sOrigin = GetNativeOrigin();
+	iTop = sOrigin.y;
+	iBottom = sOrigin.y + GetNativeSize().y;
+	iEnd = (mcActualBounds.GetHeight() > mpLayout->GetTextSize().y) ? mcActualBounds.GetHeight() : mpLayout->GetTextSize().y;
+	uiNumRows = mpLayout->NumLayoutLines();
+	uiFirstRow = mpLayout->FindRowAt(iTop);
+	for (uiRow = uiFirstRow; uiRow < uiNumRows; uiRow++)
+	{
+		psLine = mpLayout->GetLayoutLine(uiRow);
+		if (psLine->iTop >= iBottom)
+		{
+			break;
+		}
+		psNext = (uiRow + 1 < uiNumRows) ? mpLayout->GetLayoutLine(uiRow + 1) : NULL;
+		pcBands->Add(psLine->iTop, psNext ? psNext->iTop : iEnd);
+	}
+
+	//Each row's height, text and the styles its text changes to.
+	uiFirstByte = GetRowStart(uiFirstRow);
+	uiLastByte = (uiFirstRow + pcBands->NumBands() < uiNumRows) ? GetRowStart(uiFirstRow + pcBands->NumBands()) : mcDocument.Length();
+	psStyles = mpLayout->MakeStyles(uiFirstByte, uiLastByte);
+	szText = mcDocument.Text();
+	uiRow = uiFirstRow;
+	for (uiBand = 0; uiBand < pcBands->NumBands(); uiBand++)
+	{
+		psLine = mpLayout->GetLayoutLine(uiRow);
+		pcBands->Mix(uiBand, &psLine->iHeight, sizeof(int32));
+		pcBands->Mix(uiBand, &psLine->iBaseline, sizeof(int32));
+		uiStart = GetRowStart(uiRow);
+		uiEnd = (uiRow + 1 < uiNumRows) ? GetRowStart(uiRow + 1) : mcDocument.Length();
+		pcBands->Mix(uiBand, &szText[uiStart], uiEnd - uiStart);
+		psLast = NULL;
+		for (uiPosition = uiStart; uiPosition < uiEnd; uiPosition++)
+		{
+			psStyle = psStyles ? &psStyles[uiPosition - uiFirstByte] : mpLayout->GetStyle();
+			if ((psLast == NULL) || !psStyle->Equals(psLast))
+			{
+				MixStyle(pcBands, uiBand, uiPosition - uiStart, psStyle);
+				psLast = psStyle;
+			}
+		}
+		uiRow++;
+	}
+	SafeFree(psStyles);
+
+	//The shapes drawn under and over the text, in the order they are drawn.
+	MixShapes(pcBands, mpBackgroundMap, iTop, iBottom);
+	MixShapes(pcBands, mpSelectionMap, iTop, iBottom);
+	MixShapes(pcBands, mpLayout->GetGeometryMap(), iTop, iBottom);
+	pcBands->Complete();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The style the row of band uiBand is in from uiOffset, as it is drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MixStyle(CTextAreaBands* pcBands, size uiBand, size uiOffset, STextStyle* psStyle)
+{
+	uint8	auiStyle[16];
+	uint32	uiOffset32;
+
+	uiOffset32 = (uint32)uiOffset;
+	memcpy(&auiStyle[0], &uiOffset32, 4);
+	memcpy(&auiStyle[4], &psStyle->fPixelSize, 4);
+	memcpy(&auiStyle[8], &psStyle->sColour, 4);
+	auiStyle[12] = (uint8)((psStyle->bBold ? 1 : 0) | (psStyle->bItalic ? 2 : 0));
+	auiStyle[13] = psStyle->GetDecorations();
+	auiStyle[14] = (uint8)psStyle->ePosition;
+	auiStyle[15] = 0;
+	pcBands->Mix(uiBand, auiStyle, sizeof(auiStyle));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of the map's shapes that shows, iTop to iBottom, into the bands it
+// crosses: what it is, where and in what colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::MixShapes(CTextAreaBands* pcBands, Ptr<CGeometryMap> pMap, int32 iTop, int32 iBottom)
+{
+	size				i;
+	SGeometryCommand*	psCommand;
+	int32				aiShape[8];
+	float64				afShape[6];
+
+	for (i = 0; i < pMap->NumCommands(); i++)
+	{
+		psCommand = pMap->GetCommand(i);
+		if ((psCommand->cBounds.GetBottom() <= iTop) || (psCommand->cBounds.GetTop() >= iBottom))
+		{
+			continue;
+		}
+		aiShape[0] = (int32)psCommand->eType;
+		aiShape[1] = psCommand->cBounds.GetLeft();
+		aiShape[2] = psCommand->cBounds.GetTop();
+		aiShape[3] = psCommand->cBounds.GetRight();
+		aiShape[4] = psCommand->cBounds.GetBottom();
+		aiShape[5] = (int32)psCommand->sColour;
+		aiShape[6] = (int32)psCommand->uiNumPoints;
+		aiShape[7] = (int32)psCommand->eCap;
+		afShape[0] = psCommand->sStart.x;
+		afShape[1] = psCommand->sStart.y;
+		afShape[2] = psCommand->sEnd.x;
+		afShape[3] = psCommand->sEnd.y;
+		afShape[4] = psCommand->fRadius;
+		afShape[5] = psCommand->fThickness;
+		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), aiShape, sizeof(aiShape));
+		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), afShape, sizeof(afShape));
+		pcBands->MixAll(psCommand->cBounds.GetTop(), psCommand->cBounds.GetBottom(), &psCommand->pcSprite, sizeof(CImageCel*));
 	}
 }
 
@@ -1402,12 +1626,8 @@ void CTextArea::UpdateMarks(void)
 	size		uiStart;
 	size		uiEnd;
 
-	//The selection is drawn with the text, so the text area draws again.
-	mbMarksDirty = true;
-	if (mpWindow.IsNotNull())
-	{
-		mpWindow->RequestPaint();
-	}
+	//The selection is drawn with the text: the rows it changed are drawn again.
+	RowsChanged();
 
 	mpSelectionMap->Clear();
 	if (!HasRows())
@@ -1419,6 +1639,34 @@ void CTextArea::UpdateMarks(void)
 	{
 		AddRangeRectangles(mpSelectionMap, uiStart, uiEnd, msSelectionColour);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Something drawn on the rows may have changed: the window is painted, and
+// what changed found as it is (PrepareArea).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::RowsChanged(void)
+{
+	mbRowsChanged = true;
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->RequestPaint();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The backgrounds' map is drawn again before it is next drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::BackgroundsChanged(void)
+{
+	mbBackgroundsDirty = true;
+	RowsChanged();
 }
 
 

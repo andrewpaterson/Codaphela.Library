@@ -405,31 +405,45 @@ void CTextAreaLayout::ReadText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The style of each byte of the text from uiFrom on (the first is
-// uiFrom's): the text area's style with the spans over it, applied in the
-// order they were added.  NULL if there are no spans, when every byte is in
-// the text area's style.  Free it.
+// The style of each byte of the text from uiFrom to uiTo (exclusive, the
+// first is uiFrom's): the text area's style with the spans over it,
+// applied in the order they were added.  NULL if there are no spans, when
+// every byte is in the text area's style.  Free it.
 //
 //////////////////////////////////////////////////////////////////////////
-STextStyle* CTextAreaLayout::MakeStyles(size uiFrom)
+STextStyle* CTextAreaLayout::MakeStyles(size uiFrom, size uiTo)
 {
-	size		uiTextLength;
 	size		uiPosition;
 	STextStyle*	psStyles;
 
-	uiTextLength = mpcDocument->Length();
-	if ((mcSpans.NumSpans() == 0) || (uiTextLength <= uiFrom))
+	if (uiTo > mpcDocument->Length())
+	{
+		uiTo = mpcDocument->Length();
+	}
+	if ((mcSpans.NumSpans() == 0) || (uiTo <= uiFrom))
 	{
 		return NULL;
 	}
 
-	psStyles = (STextStyle*)malloc((uiTextLength - uiFrom) * sizeof(STextStyle));
-	for (uiPosition = uiFrom; uiPosition < uiTextLength; uiPosition++)
+	psStyles = (STextStyle*)malloc((uiTo - uiFrom) * sizeof(STextStyle));
+	for (uiPosition = uiFrom; uiPosition < uiTo; uiPosition++)
 	{
 		psStyles[uiPosition - uiFrom] = msStyle;
 	}
-	mcSpans.Apply(psStyles, uiFrom, uiTextLength);
+	mcSpans.Apply(psStyles, uiFrom, uiTo);
 	return psStyles;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The styles of the text from uiFrom to its end (see MakeStyles(uiFrom,
+// uiTo)).
+//
+//////////////////////////////////////////////////////////////////////////
+STextStyle* CTextAreaLayout::MakeStyles(size uiFrom)
+{
+	return MakeStyles(uiFrom, mpcDocument->Length());
 }
 
 

@@ -25,6 +25,7 @@ void TestTextLineGaps(void);
 void TestTextBackgrounds(void);
 void TestTextSpans(void);
 void TestTextAreaRows(void);
+void TestTextAreaBands(void);
 void TestTextEditingInput(void);
 void TestCodeEditor(void);
 void TestDiffView(void);
@@ -82,6 +83,7 @@ void RunWindowTests(void)
 	TestTextBackgrounds();
 	TestTextSpans();
 	TestTextAreaRows();
+	TestTextAreaBands();
 	TestTextEditingInput();
 	TestCodeEditor();
 	TestDiffView();

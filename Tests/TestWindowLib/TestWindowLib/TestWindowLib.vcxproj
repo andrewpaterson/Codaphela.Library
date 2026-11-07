@@ -247,6 +247,7 @@
     <ClCompile Include="TestTextBackgrounds.cpp" />
     <ClCompile Include="TestTextSpans.cpp" />
     <ClCompile Include="TestTextAreaRows.cpp" />
+    <ClCompile Include="TestTextAreaBands.cpp" />
     <ClCompile Include="TestTextEditingInput.cpp" />
     <ClCompile Include="TestCodeEditor.cpp" />
     <ClCompile Include="TestDiffView.cpp" />

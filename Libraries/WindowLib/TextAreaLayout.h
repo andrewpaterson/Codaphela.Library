@@ -137,6 +137,7 @@ public:
 	size					FindLastRow(size uiLine);
 	bool					GetLineRows(size uiLine, int32* piTop, int32* piBottom);
 	int32					GetNewLineWidth(void);
+	STextStyle*				MakeStyles(size uiFrom, size uiTo);
 
 protected:
 	STextStyle*				MakeStyles(size uiFrom = 0);

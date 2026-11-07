@@ -350,6 +350,22 @@ void CCanvas::DrawParts(void)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::InvalidateArea(CInt32Rect* pcRect)
 {
+	DamagePart(pcRect);
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->RequestPaint();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As InvalidateArea, without asking for a paint: for a canvas that finds
+// what of it changed while the window is painted (PrepareArea).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DamagePart(CInt32Rect* pcRect)
+{
 	CInt32Rect	cWindow;
 
 	if ((pcRect->GetWidth() <= 0) || (pcRect->GetHeight() <= 0))
@@ -368,7 +384,6 @@ void CCanvas::InvalidateArea(CInt32Rect* pcRect)
 		{
 			mpWindow->AddDamage(&cWindow);
 		}
-		mpWindow->RequestPaint();
 	}
 }
 

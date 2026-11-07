@@ -301,6 +301,7 @@
     <ClInclude Include="TextEditingInput.h" />
     <ClInclude Include="TextAreaTiles.h" />
     <ClInclude Include="TextAreaLayout.h" />
+    <ClInclude Include="TextAreaBands.h" />
     <ClInclude Include="TextLineGaps.h" />
     <ClInclude Include="TextMarksCanvasDraw.h" />
     <ClInclude Include="CheckBox.h" />
@@ -416,6 +417,7 @@
     <ClCompile Include="TextEditingInput.cpp" />
     <ClCompile Include="TextAreaTiles.cpp" />
     <ClCompile Include="TextAreaLayout.cpp" />
+    <ClCompile Include="TextAreaBands.cpp" />
     <ClCompile Include="TextLineGaps.cpp" />
     <ClCompile Include="TextMarksCanvasDraw.cpp" />
     <ClCompile Include="CheckBox.cpp" />

@@ -114,6 +114,7 @@ protected:
 	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
 	void				DrawAll(void);
 	void				DrawParts(void);
+	void				DamagePart(CInt32Rect* pcRect);
 	void				MarkContentChanged(void) override;
 	EColourFormat		GetTransparentColourFormat(void);
 	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
