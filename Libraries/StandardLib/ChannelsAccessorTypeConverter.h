@@ -1,5 +1,3 @@
-#ifndef __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
-#define __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
+#define __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
 #include "ChannelsAccessor.h"
 
 
