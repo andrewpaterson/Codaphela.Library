@@ -24,6 +24,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DockManager.h"
 
 
+class CDockDragTracker;
+
+
 //Dragging panes, as Visual Studio drags them.  A tab or title bar pulled off floats what it pulls (BeginPane,
 //BeginGroup) and every drag is then of a floating window (BeginFloating): a drag tracker takes the drag from the
 //component that started it (Take), the window follows the pointer held where it was grabbed, the window under the
