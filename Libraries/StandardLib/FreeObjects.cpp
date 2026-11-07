@@ -8,8 +8,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CFreeObjects::Init(void)
 {
+	PreInit();
 	mpFreeObjects = OMalloc<CSetObject>();
 	mpFreeObjects->MakeSubRoot();
+	PostInit();
 }
 
 
@@ -34,26 +36,6 @@ void CFreeObjects::Free(void)
 void CFreeObjects::Class(void)
 {
 	Nes(M_Pointer(mpFreeObjects));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CFreeObjects::Save(CObjectWriter* pcFile)
-{
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CFreeObjects::Load(CObjectReader* pcFile)
-{
-	return true;
 }
 
 
@@ -129,4 +111,3 @@ CBaseObject* CFreeObjects::UnsafeGetObject(size iIndex)
 {
 	return mpFreeObjects->UnsafeGetObject(iIndex);
 }
-

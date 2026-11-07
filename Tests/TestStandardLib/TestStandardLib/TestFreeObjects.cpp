@@ -1,6 +1,8 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/DataOrderers.h"
 #include "BaseLib/Codabase.h"
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
@@ -9,6 +11,7 @@
 #include "BaseLib/NamedIndexedHeader.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/FreeObjects.h"
+#include "StandardLib/String.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
 #include "ObjectTestClasses.h"
@@ -19,25 +22,25 @@
 #ifdef BUILD_64
 #define GRAPH_ROOT_SIZE					"368"
 #define GRAPH_SET_OBJECT_SIZE			"368"
-#define GRAPH_OBJECT_SIZE				"352"
+#define GRAPH_FREE_OBJECTS_SIZE			"368"
 #define GRAPH_TEST_OBJECT_SIZE			"400"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"368"
 #elif defined(BASELIB_SIZE16)
 #define GRAPH_ROOT_SIZE					"176"
 #define GRAPH_SET_OBJECT_SIZE			"176"
-#define GRAPH_OBJECT_SIZE				"168"
+#define GRAPH_FREE_OBJECTS_SIZE			"176"
 #define GRAPH_TEST_OBJECT_SIZE			"192"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"176"
 #elif defined(__W65C816__)
 #define GRAPH_ROOT_SIZE					"176"
 #define GRAPH_SET_OBJECT_SIZE			"176"
-#define GRAPH_OBJECT_SIZE				"168"
+#define GRAPH_FREE_OBJECTS_SIZE			"176"
 #define GRAPH_TEST_OBJECT_SIZE			"192"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"176"
 #else
 #define GRAPH_ROOT_SIZE					"200"
 #define GRAPH_SET_OBJECT_SIZE			"200"
-#define GRAPH_OBJECT_SIZE				"192"
+#define GRAPH_FREE_OBJECTS_SIZE			"200"
 #define GRAPH_TEST_OBJECT_SIZE			"216"
 #define GRAPH_OBJECT_WITH_UNKNOWN_SIZE	"200"
 #endif // BUILD_64
@@ -65,7 +68,7 @@ void TestObjectsFreeUnknownOnly(void)
 -------------------------- Graph --------------------------- \n\
  [ 0]:CRoot(" GRAPH_ROOT_SIZE ") Index:1 Name:GraphRoot Froms:0,1\n\
     [ 1]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:2 Froms:1,0\n\
-       [ 2]:CObject(" GRAPH_OBJECT_SIZE ") Index:4 Name:GraphFreeObjects Froms:1,0\n\
+       [ 2]:CFreeObjects(" GRAPH_FREE_OBJECTS_SIZE ") Index:4 Name:GraphFreeObjects Froms:1,0\n\
           [ 3]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:5 Froms:1,0\n\
              [ 4]:CTestObject(" GRAPH_TEST_OBJECT_SIZE ") Index:3 Froms:1,0\n\
 ------------------------------------------------------------ \n", sz.Text());
@@ -79,7 +82,7 @@ void TestObjectsFreeUnknownOnly(void)
 -------------------------- Graph --------------------------- \n\
  [ 0]:CRoot(" GRAPH_ROOT_SIZE ") Index:1 Name:GraphRoot Froms:0,1\n\
     [ 1]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:2 Froms:1,0\n\
-       [ 2]:CObject(" GRAPH_OBJECT_SIZE ") Index:4 Name:GraphFreeObjects Froms:1,0\n\
+       [ 2]:CFreeObjects(" GRAPH_FREE_OBJECTS_SIZE ") Index:4 Name:GraphFreeObjects Froms:1,0\n\
           [ 3]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:5 Froms:1,0\n\
 ------------------------------------------------------------ \n", sz.Text());
 		sz.Kill();	
@@ -167,7 +170,7 @@ void TestObjectsFreeUnknownInObjectAssignNull(void)
  [ 0]:CRoot(" GRAPH_ROOT_SIZE ") Index:1 Name:GraphRoot Froms:0,2\n\
     [ 1]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:2 Froms:1,0\n\
        [ 2]:CObjectWithUnknown(" GRAPH_OBJECT_WITH_UNKNOWN_SIZE ") Index:3 Froms:1,1\n\
-       [ 2]:CObject(" GRAPH_OBJECT_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
+       [ 2]:CFreeObjects(" GRAPH_FREE_OBJECTS_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
           [ 3]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:6 Froms:1,0\n\
              [ 4]:CTestObject(" GRAPH_TEST_OBJECT_SIZE ") Index:4 Froms:1,0\n\
 ------------------------------------------------------------ \n", sz.Text());
@@ -183,7 +186,7 @@ void TestObjectsFreeUnknownInObjectAssignNull(void)
 -------------------------- Graph --------------------------- \n\
  [ 0]:CRoot(" GRAPH_ROOT_SIZE ") Index:1 Name:GraphRoot Froms:0,2\n\
     [ 1]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:2 Froms:1,0\n\
-       [ 2]:CObject(" GRAPH_OBJECT_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
+       [ 2]:CFreeObjects(" GRAPH_FREE_OBJECTS_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
           [ 3]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:6 Froms:1,0\n\
              [ 4]:CTestObject(" GRAPH_TEST_OBJECT_SIZE ") Index:4 Froms:1,0\n\
 ------------------------------------------------------------ \n", sz.Text());
@@ -238,7 +241,7 @@ void TestObjectsFreeUnknownInObjectPointerDestructor(void)
  [ 0]:CRoot(" GRAPH_ROOT_SIZE ") Index:1 Name:GraphRoot Froms:0,2\n\
     [ 1]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:2 Froms:1,0\n\
        [ 2]:CObjectWithUnknown(" GRAPH_OBJECT_WITH_UNKNOWN_SIZE ") Index:3 Froms:1,1\n\
-       [ 2]:CObject(" GRAPH_OBJECT_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
+       [ 2]:CFreeObjects(" GRAPH_FREE_OBJECTS_SIZE ") Index:5 Name:GraphFreeObjects Froms:1,0\n\
           [ 3]:CSetObject(" GRAPH_SET_OBJECT_SIZE ") Index:6 Froms:1,0\n\
              [ 4]:CTestObject(" GRAPH_TEST_OBJECT_SIZE ") Index:4 Froms:1,0\n\
 ------------------------------------------------------------ \n", sz.Text());
@@ -309,6 +312,66 @@ void TestObjectsFreeRootRemoveAll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The free objects are saved and loaded back as CFreeObjects.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsFreeSavedAndLoaded(void)
+{
+	CFileUtil		cFileUtil;
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	char			szDirectory[] = "Output" _FS_ "FreeObjects" _FS_ "Saved";
+
+	cFileUtil.RemoveDir(szDirectory);
+	DataOrderersInit();
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		Ptr<CString>	pString;
+
+		pString = ONMalloc<CString>("Free", "I'm free");
+		gcObjects.AddFreeObject(pString);
+		AssertSize(1, gcObjects.NumFreeObjects());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	{
+		CPointer		pFree;
+		Ptr<CString>	pString;
+
+		pFree = gcObjects.Get(FREE_OBJECTS_NAME);
+		AssertTrue(pFree.IsNotNull());
+		AssertString("CFreeObjects", pFree.ClassName());
+		AssertSize(1, gcObjects.NumFreeObjects());
+		pString = gcObjects.Get("Free");
+		AssertString("I'm free", pString->Text());
+		AssertTrue(gcObjects.RemoveFreeObject(&pString));
+		AssertSize(0, gcObjects.NumFreeObjects());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	DataOrderersKill();
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFreeObjects(void)
@@ -323,6 +386,7 @@ void TestFreeObjects(void)
 	TestObjectsFreeUnknownInObjectAssignNull();
 	TestObjectsFreeUnknownInObjectPointerDestructor();
 	TestObjectsFreeRootRemoveAll();
+	TestObjectsFreeSavedAndLoaded();
 
 	DataIOKill();
 	TypesKill();

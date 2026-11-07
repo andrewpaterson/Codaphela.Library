@@ -4,8 +4,11 @@
 #include "SetObject.h"
 
 
+//Objects that must be freed explicitly: held from the root until they are removed.
 class CFreeObjects : public CObject
 {
+CONSTRUCTABLE(CFreeObjects)
+DESTRUCTABLE(CFreeObjects)
 protected:
 	Ptr<CSetObject>		mpFreeObjects;
 
@@ -13,9 +16,6 @@ public:
 						void			Init(void);
 						void			Free(void) override;
 						void			Class(void) override;
-
-						bool			Save(CObjectWriter* pcFile) override;
-						bool			Load(CObjectReader* pcFile) override;
 
 	template<class M>	M*				Add(Ptr<M>& p);
 						CBaseObject*	Add(CPointer &p);
