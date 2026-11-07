@@ -202,7 +202,8 @@ bool IsIRSwappedComparison(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The integer comparison that is true when uiOpcode's is false.
+// The integer comparison that is true when uiOpcode's is false, IRO_None
+// if uiOpcode isn't an integer comparison.
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 IRInvertedComparison(uint16 uiOpcode)
@@ -218,7 +219,8 @@ uint16 IRInvertedComparison(uint16 uiOpcode)
 	case IRO_ULt:	return IRO_UGe;
 	case IRO_ULe:	return IRO_UGt;
 	case IRO_UGt:	return IRO_ULe;
-	default:		return IRO_ULt;
+	case IRO_UGe:	return IRO_ULt;
+	default:		return IRO_None;
 	}
 }
 

@@ -362,10 +362,9 @@ uint64 CIROptimiser::UpperBound(SIRReference sValue, int iDepth)
 // The instruction pcFrom's branch to pcTo is on, when it reads sValue, and
 // what it says of sValue that way: *puiOpcode the compare with sValue on
 // the left (n > v is v < n; inverted on the way the branch takes when it is
-// false) and *psOther the other operand.  The instruction need not be a
-// comparison (IRSwappedComparison and IRInvertedComparison are applied as
-// they are): the caller checks *puiOpcode.  NULL when pcFrom doesn't branch
-// two ways to pcTo on something reading sValue.
+// false) and *psOther the other operand.  NULL when pcFrom doesn't branch
+// two ways to pcTo on an integer comparison reading sValue (a branch on
+// anything else, such as xor i1 %x, 1, says nothing this way).
 //
 //////////////////////////////////////////////////////////////////////////
 SIRInstruction* CIROptimiser::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther)
@@ -377,7 +376,7 @@ SIRInstruction* CIROptimiser::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, S
 		return NULL;
 	}
 	psCompare = mcDefinitions.Instruction(pcFrom->msJump.sArgument);
-	if (!psCompare)
+	if (!psCompare || !IsIRIntegerComparison(psCompare->uiOpcode))
 	{
 		return NULL;
 	}
@@ -915,53 +914,39 @@ void CIROptimiser::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64
 //////////////////////////////////////////////////////////////////////////
 //
 // Narrows the signed range [*plliMin, *plliMax] of sValue by pcFrom's
-// branch to pcTo, when it is on a compare of sValue with a constant.
+// branch to pcTo, when it is on a compare of sValue with a constant
+// (EdgeComparison).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
 {
-	SIRInstruction*	psCompare;
 	SIRReference	sConstant;
 	uint16			uiOpcode;
 	int64			lliConstant;
 
-	psCompare = ((pcFrom->msJump.uiKind == IRJ_Branch) && (pcFrom->msJump.pcThen != pcFrom->msJump.pcElse)) ? mcDefinitions.Instruction(pcFrom->msJump.sArgument) : NULL;
-	if (psCompare && (psCompare->asArguments[0].Equals(sValue) || psCompare->asArguments[1].Equals(sValue)))
+	if (!EdgeComparison(pcFrom, pcTo, sValue, &uiOpcode, &sConstant) || !sConstant.IsConstant())
 	{
-		uiOpcode = psCompare->uiOpcode;
-		sConstant = psCompare->asArguments[1];
-		if (psCompare->asArguments[1].Equals(sValue))
+		return;
+	}
+	lliConstant = mpcFunction->GetSigned(sConstant);
+	switch (uiOpcode)
+	{
+	case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
+	case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
+	case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
+	case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
+	case IRO_ULt:
+	case IRO_ULe:
+		//Below a constant that is positive as signed: 0 up to it.
+		if (lliConstant > 0)
 		{
-			sConstant = psCompare->asArguments[0];
-			uiOpcode = IRSwappedComparison(uiOpcode);
+			*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+			lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
+			*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
 		}
-		if (sConstant.IsConstant())
-		{
-			if (pcFrom->msJump.pcElse == pcTo)
-			{
-				uiOpcode = IRInvertedComparison(uiOpcode);
-			}
-			lliConstant = mpcFunction->GetSigned(sConstant);
-			switch (uiOpcode)
-			{
-			case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
-			case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
-			case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
-			case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
-			case IRO_ULt:
-			case IRO_ULe:
-				//Below a constant that is positive as signed: 0 up to it.
-				if (lliConstant > 0)
-				{
-					*plliMin = (*plliMin < 0) ? 0 : *plliMin;
-					lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
-					*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
-				}
-				break;
-			default:
-				break;
-			}
-		}
+		break;
+	default:
+		break;
 	}
 }
 

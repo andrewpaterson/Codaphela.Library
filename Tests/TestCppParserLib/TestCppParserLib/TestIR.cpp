@@ -904,6 +904,32 @@ void AssertIROptimised(const char* szExpected, const char* szText, bool bIndexed
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each integer comparison has an inverse and a swapped form that are
+// comparisons again (inverted twice is itself); anything else has neither.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRComparisonOpcodes(void)
+{
+	uint16	uiOpcode;
+
+	for (uiOpcode = IRO_Eq; uiOpcode <= IRO_UGe; uiOpcode++)
+	{
+		AssertTrue(IsIRIntegerComparison(IRInvertedComparison(uiOpcode)));
+		AssertInt(uiOpcode, IRInvertedComparison(IRInvertedComparison(uiOpcode)));
+		AssertTrue(IsIRIntegerComparison(IRSwappedComparison(uiOpcode)));
+		AssertInt(uiOpcode, IRSwappedComparison(IRSwappedComparison(uiOpcode)));
+	}
+	AssertInt(IRO_ULt, IRInvertedComparison(IRO_UGe));
+	AssertInt(IRO_SGe, IRInvertedComparison(IRO_SLt));
+	AssertInt(IRO_ULe, IRSwappedComparison(IRO_UGe));
+	AssertInt(IRO_None, IRInvertedComparison(IRO_Xor));
+	AssertInt(IRO_None, IRInvertedComparison(IRO_And));
+	AssertInt(IRO_None, IRInvertedComparison(IRO_None));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A constant goes to the right of a commutative operation (256 * a is a shift like a * 256); a mul of a value the
 // branches before it keep from 0 to 199 by 320 fits 16 bits (NarrowMultiplies, the W65C816's), and one that may be
 // negative or too big doesn't; a sext of a value the branches keep 0 or more is a zext.
@@ -950,6 +976,7 @@ void TestIROptimiserConstantsRight(void)
 		"function i32 @_P__Fs(i16 %y)\n{\nentry:\n\t%b = sge i16 %y, 200\n\tbrif %b, out, in\n"
 		"in:\n\t%w = sext i16 %y to i32\n\t%m = mul i32 %w, 320\n\tret i32 %m\n"
 		"out:\n\tret i32 0\n}\n", true, false, true);
+
 }
 
 
@@ -4240,6 +4267,7 @@ void TestIR(void)
 	TestIRVerifierErrors();
 	TestIRDominators();
 	TestIRLoops();
+	TestIRComparisonOpcodes();
 	TestIROptimiser();
 	TestIROptimiserConstantsRight();
 	TestIROptimiserFoldedInlinedPhis();
