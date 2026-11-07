@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/PointerFunctions.h"
@@ -89,7 +90,8 @@ CSerialisedObject* CChunkFileObjectReader::Read(const char* szChunkName)
 	//The chunk is ended whether or not it could be read.
 	if (!mpcChunkFile->ReadChunkEnd())
 	{
-		SafeFree(pcSerialised);
+		gcSystemAllocator.Free(pcSerialised);
+		pcSerialised = NULL;
 	}
 	return pcSerialised;
 }

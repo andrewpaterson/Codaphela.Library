@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/IntegerHelper.h"
@@ -119,10 +120,10 @@ bool CDeflater::Init(CFileWriter* pcOutput, bool bZLib)
 	mpuiData = NULL;
 	muiDataSize = 0;
 
-	maiHead = (int32*)malloc(DEFLATER_HASH_SIZE * sizeof(int32));
-	maiPrevious = (int32*)malloc(DEFLATE_WINDOW_SIZE * sizeof(int32));
-	mauiSymbolLengths = (uint16*)malloc(DEFLATER_BLOCK_SYMBOLS * sizeof(uint16));
-	mauiSymbolValues = (uint16*)malloc(DEFLATER_BLOCK_SYMBOLS * sizeof(uint16));
+	maiHead = (int32*)gcSystemAllocator.Malloc(DEFLATER_HASH_SIZE * sizeof(int32));
+	maiPrevious = (int32*)gcSystemAllocator.Malloc(DEFLATE_WINDOW_SIZE * sizeof(int32));
+	mauiSymbolLengths = (uint16*)gcSystemAllocator.Malloc(DEFLATER_BLOCK_SYMBOLS * sizeof(uint16));
+	mauiSymbolValues = (uint16*)gcSystemAllocator.Malloc(DEFLATER_BLOCK_SYMBOLS * sizeof(uint16));
 	if ((maiHead == NULL) || (maiPrevious == NULL) || (mauiSymbolLengths == NULL) || (mauiSymbolValues == NULL))
 	{
 		Kill();
@@ -138,10 +139,10 @@ bool CDeflater::Init(CFileWriter* pcOutput, bool bZLib)
 //////////////////////////////////////////////////////////////////////////
 void CDeflater::Kill(void)
 {
-	free(maiHead);
-	free(maiPrevious);
-	free(mauiSymbolLengths);
-	free(mauiSymbolValues);
+	gcSystemAllocator.Free(maiHead);
+	gcSystemAllocator.Free(maiPrevious);
+	gcSystemAllocator.Free(mauiSymbolLengths);
+	gcSystemAllocator.Free(mauiSymbolValues);
 	maiHead = NULL;
 	maiPrevious = NULL;
 	mauiSymbolLengths = NULL;

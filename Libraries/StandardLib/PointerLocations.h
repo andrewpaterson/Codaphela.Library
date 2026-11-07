@@ -49,7 +49,7 @@ public:
 private:
 	size	HomeSlot(void* pvPointer);
 	size	NextSlot(size uiSlot);
-	void	Grow(void);
+	bool	Grow(void);
 	void	RemoveSlot(size uiSlot);
 };
 

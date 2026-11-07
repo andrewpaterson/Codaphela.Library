@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "Objects.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
@@ -40,7 +41,12 @@ static SIndexMemberKey* NewIndexMemberKey(uint8* pvKey, size uiKeySize)
 {
 	SIndexMemberKey*	psKey;
 
-	psKey = (SIndexMemberKey*)malloc(sizeof(SIndexMemberKey) + uiKeySize);
+	psKey = (SIndexMemberKey*)gcSystemAllocator.Malloc(sizeof(SIndexMemberKey) + uiKeySize);
+	if (psKey == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Could not allocate a member's key.", NULL);
+		return NULL;
+	}
 	psKey->uiKeySize = uiKeySize;
 	memcpy(psKey->auiKey, pvKey, uiKeySize);
 	return psKey;
@@ -681,13 +687,18 @@ void CIndexObject::AddMemberLocations(CPointerLocations* pcLocations)
 	uint8						auiKey[MAX_KEY_SIZE];
 	size						uiKeySize;
 	bool						bExists;
+	SIndexMemberKey*			psKey;
 
 	bExists = mcIndex.StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcMember);
 	while (bExists)
 	{
 		if (pcMember != NULL)
 		{
-			pcLocations->Add(pcMember, (ptr)NewIndexMemberKey(auiKey, uiKeySize));
+			psKey = NewIndexMemberKey(auiKey, uiKeySize);
+			if (psKey != NULL)
+			{
+				pcLocations->Add(pcMember, (ptr)psKey);
+			}
 		}
 		bExists = mcIndex.Iterate(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcMember);
 	}
@@ -700,7 +711,7 @@ void CIndexObject::AddMemberLocations(CPointerLocations* pcLocations)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::FreeMemberLocation(ptr uiLocation)
 {
-	free((SIndexMemberKey*)uiLocation);
+	gcSystemAllocator.Free((SIndexMemberKey*)uiLocation);
 }
 
 
@@ -725,9 +736,15 @@ bool CIndexObject::IsMemberAt(CEmbeddedObject* pcMember, ptr uiLocation)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::AddMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size uiKeySize)
 {
+	SIndexMemberKey*	psKey;
+
 	if ((mpcMemberLocations != NULL) && (pcMember != NULL))
 	{
-		mpcMemberLocations->Add(pcMember, (ptr)NewIndexMemberKey(pvKey, uiKeySize));
+		psKey = NewIndexMemberKey(pvKey, uiKeySize);
+		if (psKey != NULL)
+		{
+			mpcMemberLocations->Add(pcMember, (ptr)psKey);
+		}
 	}
 }
 
@@ -756,7 +773,7 @@ void CIndexObject::RemoveMemberKey(CEmbeddedObject* pcMember, uint8* pvKey, size
 		if (IsIndexMemberKey(psKey, pvKey, uiKeySize))
 		{
 			mpcMemberLocations->Remove(pcMember, uiLocation);
-			free(psKey);
+			gcSystemAllocator.Free(psKey);
 			return;
 		}
 		bExists = mpcMemberLocations->Iterate(&sIter, &uiLocation);

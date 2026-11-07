@@ -1,3 +1,4 @@
+#include "BaseLib/SystemAllocator.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
@@ -97,7 +98,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadObjectAndDependents(const char* sz
 	}
 
 	pvObject = ReadSerialised(pcSerialised);
-	SafeFree(pcSerialised);
+	gcSystemAllocator.Free(pcSerialised);
 	if (pvObject == NULL)
 	{
 		return NULL;
@@ -170,12 +171,12 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	if (oiOld != pcSerialised->GetIndex())
 	{
 		gcLogger.Error2(__METHOD__, " Object read for index [", IndexToString(oiOld), "] has index [", IndexToString(pcSerialised->GetIndex()), "].", NULL);
-		SafeFree(pcSerialised);
+		gcSystemAllocator.Free(pcSerialised);
 		return false;
 	}
 
 	pcObject = ReadSerialised(pcSerialised);
-	SafeFree(pcSerialised);
+	gcSystemAllocator.Free(pcSerialised);
 	return pcObject != NULL;
 }
 

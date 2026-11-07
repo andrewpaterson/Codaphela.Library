@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "BaseLib/ArrayVoidPtr.h"
 #include "BaseLib/MemoryAllocator.h"
 #include "BaseLib/GlobalMemory.h"
@@ -159,17 +160,21 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 	}
 	else
 	{
-		psz = (char*)malloc(iLength + 1);
+		psz = (char*)gcSystemAllocator.Malloc(iLength + 1);
+		if (psz == NULL)
+		{
+			return NULL;
+		}
 		bResult = pcFile->ReadStringChars(psz, iLength);
 		if (bResult != true)
 		{
-			free(psz);
+			gcSystemAllocator.Free(psz);
 			return NULL;
 		}
 		else
 		{
 			pcUnknown = Add(psz);
-			free(psz);
+			gcSystemAllocator.Free(psz);
 			return pcUnknown;
 		}
 	}

@@ -181,7 +181,7 @@ void CChannels::Free(void)
 	mpvUserData = NULL;
 	mpvDataCache = NULL;
 
-	SafeKill(mpsChangingDesc);
+	FreeChangingDesc();
 	SafeKill(mpmicChannelDebugs);
 }
 
@@ -245,10 +245,30 @@ void CChannels::BeginChange(void)
 		return;
 	}
 
-	mpsChangingDesc = (SChannelsChangingDesc*)malloc(sizeof(SChannelsChangingDesc));
+	mpsChangingDesc = (SChannelsChangingDesc*)gcSystemAllocator.Malloc(sizeof(SChannelsChangingDesc));
+	if (mpsChangingDesc == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Could not allocate the change.", NULL);
+		return;
+	}
 	mpsChangingDesc->Init();
 	mpsChangingDesc->iSize = miSize;
 	mpsChangingDesc->pvUserData = mpvUserData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::FreeChangingDesc(void)
+{
+	if (mpsChangingDesc)
+	{
+		mpsChangingDesc->Kill();
+		gcSystemAllocator.Free(mpsChangingDesc);
+		mpsChangingDesc = NULL;
+	}
 }
 
 
@@ -621,9 +641,7 @@ bool CChannels::EndChange(void)
 			Recalculate();
 		}
 
-		mpsChangingDesc->Kill();
-		free(mpsChangingDesc);
-		mpsChangingDesc = NULL;
+		FreeChangingDesc();
 	}
 
 	if (IsUserAllocated())

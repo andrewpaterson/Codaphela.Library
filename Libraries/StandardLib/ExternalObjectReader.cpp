@@ -1,3 +1,4 @@
+#include "BaseLib/SystemAllocator.h"
 #include "ObjectIO.h"
 #include "ExternalObjectReader.h"
 
@@ -52,7 +53,7 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 		return NULL;
 	}
 
-	pcSerialised = (CSerialisedObject*)malloc(iLength);
+	pcSerialised = (CSerialisedObject*)gcSystemAllocator.Malloc(iLength);
 	if (!pcSerialised)
 	{
 		return NULL;
@@ -65,7 +66,7 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	bResult = pcReader->ReadData(pvOffset, iLength);
 	if (!bResult)
 	{
-		free(pcSerialised);
+		gcSystemAllocator.Free(pcSerialised);
 		return NULL;
 	}
 	return pcSerialised;

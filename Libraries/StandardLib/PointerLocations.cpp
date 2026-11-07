@@ -1,7 +1,9 @@
+#include "BaseLib/SystemAllocator.h"
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Logger.h"
 #include "PointerLocations.h"
 
 
@@ -26,7 +28,8 @@ void CPointerLocations::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointerLocations::Kill(void)
 {
-	SafeFree(masSlots);
+	gcSystemAllocator.Free(masSlots);
+	masSlots = NULL;
 	muiNumSlots = 0;
 	muiNumLocations = 0;
 }
@@ -43,7 +46,11 @@ void CPointerLocations::Add(void* pvPointer, ptr uiLocation)
 
 	if ((muiNumLocations + 1) * 2 > muiNumSlots)
 	{
-		Grow();
+		if (!Grow())
+		{
+			gcLogger.Error2(__METHOD__, " Could not allocate a location.", NULL);
+			return;
+		}
 	}
 
 	uiSlot = HomeSlot(pvPointer);
@@ -313,18 +320,27 @@ size CPointerLocations::NextSlot(size uiSlot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerLocations::Grow(void)
+bool CPointerLocations::Grow(void)
 {
 	SPointerLocation*	asOldSlots;
+	SPointerLocation*	asNewSlots;
 	size				uiOldNumSlots;
+	size				uiNumSlots;
 	size				i;
+
+	uiNumSlots = (muiNumSlots == 0) ? POINTER_LOCATIONS_MIN_SLOTS : muiNumSlots * 2;
+	asNewSlots = (SPointerLocation*)gcSystemAllocator.Malloc((lsize)uiNumSlots * sizeof(SPointerLocation));
+	if (asNewSlots == NULL)
+	{
+		//Grow is called while the slots are at most half full, so they still have room, just slower.
+		return muiNumSlots != 0;
+	}
+	memset(asNewSlots, 0, (lsize)uiNumSlots * sizeof(SPointerLocation));
 
 	asOldSlots = masSlots;
 	uiOldNumSlots = muiNumSlots;
-
-	muiNumSlots = (muiNumSlots == 0) ? POINTER_LOCATIONS_MIN_SLOTS : muiNumSlots * 2;
-	masSlots = (SPointerLocation*)malloc((lsize)muiNumSlots * sizeof(SPointerLocation));
-	memset(masSlots, 0, (lsize)muiNumSlots * sizeof(SPointerLocation));
+	masSlots = asNewSlots;
+	muiNumSlots = uiNumSlots;
 	muiNumLocations = 0;
 
 	for (i = 0; i < uiOldNumSlots; i++)
@@ -334,7 +350,8 @@ void CPointerLocations::Grow(void)
 			Add(asOldSlots[i].pvPointer, asOldSlots[i].uiLocation);
 		}
 	}
-	SafeFree(asOldSlots);
+	gcSystemAllocator.Free(asOldSlots);
+	return true;
 }
 
 
