@@ -527,14 +527,59 @@ bool CCPP65IRFrontEnd::ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The arguments are worked out last first (as the generator does), each
+// The address a member function is called with in *psObject: pcObject's
+// (. or ->), sGivenObject, or this; moved to the function's class if that
+// is a base.  A virtual call's *psCallee is the object's vtable's entry.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee)
+{
+	SIRReference	sVtable;
+
+	if (pcObject)
+	{
+		if (!ObjectAddress(pcObject, bArrow, psObject))
+		{
+			return false;
+		}
+	}
+	else if (!sGivenObject.IsNone())
+	{
+		*psObject = sGivenObject;
+	}
+	else
+	{
+		if (msThis.IsNone())
+		{
+			return Unsupported(__LINE__);
+		}
+		*psObject = msThis;
+		psObjectClass = mpsFunction->psClass;
+	}
+	if (psFunction)
+	{
+		*psObject = AddressAt(*psObject, BaseOffset(psObjectClass, psFunction->psClass));
+	}
+	if (bVirtual && psFunction && psFunction->bVirtual)
+	{
+		sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(*psObject, psFunction->psClass->iVtableOffset));
+		*psCallee = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sVtable, 4 * psFunction->iSlot));
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member function's object is worked out first (ThisObject; last if
+// bObjectLast, for a = b's operator), then the arguments last first, each
 // converted to its parameter's type; missing ones are the defaults.  A
 // variadic function's extra arguments are promoted.  A reference gets the
 // argument's address.  The result comes back as the IR return type and is
 // narrowed to the C++ type.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject)
+bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject, bool bArrow, SCPP65Class* psObjectClass, bool bVirtual, SIRReference sGivenObject, bool bObjectLast)
 {
 	CArrayCPP65Types*				papsParameters;
 	CArraySyntax*					papcDefaults;
@@ -551,7 +596,6 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	SIRType							sResultType;
 	SIRReference					sResult;
 	SIRReference					sObject;
-	SIRReference					sVtable;
 	bool							bThisCall;
 	int								iOffset;
 	int								iPiece;
@@ -590,6 +634,14 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	if ((uiArguments > uiParameters) && !bVariadic)
 	{
 		return Unsupported(__LINE__);
+	}
+
+	//A member function's object before its arguments (after them for an assignment operator's).  [expr.call] 8
+	bThisCall = psFunction ? (psFunction->psClass && !psFunction->bStatic) : !sGivenObject.IsNone();
+	sObject = IRNone();
+	if (bThisCall && !bObjectLast && !ThisObject(psFunction, pcObject, bArrow, psObjectClass, bVirtual, sGivenObject, &sObject, &sCallee))
+	{
+		return false;
 	}
 
 	asArguments.Init();
@@ -775,43 +827,13 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	asLoaded.Kill();
 	asArguments.Kill();
 
-	//A member function's object, after the arguments as the generator does: a base's function gets the base's
-	//address, and a virtual one is called through the object's vtable.
-	bThisCall = psFunction ? (psFunction->psClass && !psFunction->bStatic) : !sGivenObject.IsNone();
-	sObject = IRNone();
+	if (bThisCall && bObjectLast && !ThisObject(psFunction, pcObject, bArrow, psObjectClass, bVirtual, sGivenObject, &sObject, &sCallee))
+	{
+		asPieces.Kill();
+		return false;
+	}
 	if (bThisCall)
 	{
-		if (pcObject)
-		{
-			if (!ObjectAddress(pcObject, bArrow, &sObject))
-			{
-				asPieces.Kill();
-				return false;
-			}
-		}
-		else if (!sGivenObject.IsNone())
-		{
-			sObject = sGivenObject;
-		}
-		else
-		{
-			if (msThis.IsNone())
-			{
-				asPieces.Kill();
-				return Unsupported(__LINE__);
-			}
-			sObject = msThis;
-			psObjectClass = mpsFunction->psClass;
-		}
-		if (psFunction)
-		{
-			sObject = AddressAt(sObject, BaseOffset(psObjectClass, psFunction->psClass));
-		}
-		if (bVirtual && psFunction && psFunction->bVirtual)
-		{
-			sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sObject, psFunction->psClass->iVtableOffset));
-			sCallee = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sVtable, 4 * psFunction->iSlot));
-		}
 		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sObject);
 	}
 
@@ -1046,7 +1068,9 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 		apcArguments.Kill();
 		return Unsupported(__LINE__);
 	}
-	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue, pcObject, false, psType->psClass, mpcGenerator->SkipParentheses(pcObject)->GetKind() != CPPS_IdExpression);
+	//a = b and a op= b work out b first, other operators their left first, as the built in ones do.  [over.match.oper] 2
+	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue, pcObject, false, psType->psClass, mpcGenerator->SkipParentheses(pcObject)->GetKind() != CPPS_IdExpression,
+				   IRNone(), mpcGenerator->IsAssignmentOperator(eOperator));
 	apcArguments.Kill();
 	return bResult;
 }

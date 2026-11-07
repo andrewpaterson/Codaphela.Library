@@ -143,6 +143,19 @@ void TestCPP65IRMemory(void)
 		"SPair& Left() { giOrder = giOrder * 10 + 1; return gsLeft; }\n"
 		"SPair& Right() { giOrder = giOrder * 10 + 2; return gsRight; }\n"
 		"int main() { Left() = Right(); return giOrder; }", 5));
+
+	//The right before the left for an object's operator= and op= too; the object before the arguments in a call of
+	//its member function, and the left before the right for <<.  [expr.call] 8, [over.match.oper] 2
+	AssertInt(21 * 1000000 + 21 * 10000 + 12 * 100 + 12, TestCPP65IRMain(
+		"int giOrder = 0;\n"
+		"struct CValue { int mi; CValue& operator=(int i) { mi = i; return *this; } CValue& operator+=(int i) { mi += i; return *this; }\n"
+		"int Set(int i) { mi = i; return i; } int operator<<(int i) { return mi << i; } };\n"
+		"CValue gcValue;\n"
+		"CValue& Left() { giOrder = giOrder * 10 + 1; return gcValue; }\n"
+		"int Right() { giOrder = giOrder * 10 + 2; return 1; }\n"
+		"int Order() { int i = giOrder; giOrder = 0; return i; }\n"
+		"int main() { Left() = Right(); int a = Order(); Left() += Right(); int b = Order(); Left().Set(Right()); int c = Order(); Left() << Right(); int d = Order();\n"
+		"return a * 1000000 + b * 10000 + c * 100 + d; }", 9));
 }
 
 
