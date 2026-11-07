@@ -157,7 +157,7 @@ bool CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
+bool CChunkFileObjectWriter::ObjectStartsWithBaseName(const char* szObjectName)
 {
 	CChars	szRemainingName;
 
@@ -170,7 +170,7 @@ bool CChunkFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileObjectWriter::RemainingName(CChars* pszRemainingName, char* szObjectName)
+void CChunkFileObjectWriter::RemainingName(CChars* pszRemainingName, const char* szObjectName)
 {
 	pszRemainingName->Init(szObjectName);
 	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());

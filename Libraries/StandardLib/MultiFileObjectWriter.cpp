@@ -133,7 +133,7 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMultiFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
+bool CMultiFileObjectWriter::ObjectStartsWithBaseName(const char* szObjectName)
 {
 	CChars	szRemainingName;
 

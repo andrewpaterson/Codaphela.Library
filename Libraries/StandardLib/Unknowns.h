@@ -68,7 +68,7 @@ public:
 						//Iterable stuff.
 	template<class M>	M*				StartIteration(SIteratorTemplate<M>* psIter);
 	template<class M>	M*				Iterate(SIteratorTemplate<M>* psIter);
-						CUnknown*		StartIteration(char* szClassName, SIteratorUnknown* psIter);
+						CUnknown*		StartIteration(const char* szClassName, SIteratorUnknown* psIter);
 						CUnknown*		Iterate(SIteratorUnknown* psIter);
 	template<class M>	void			RemoveDuringIteration(SIteratorTemplate<M>* psIter);
 

@@ -1522,9 +1522,11 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loads the object a hollow named szObjectName stands for, from the
+// database or a source.  An object already in memory isn't looked for.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Dehollow(char* szObjectName)
+CBaseObject* CObjects::Dehollow(const char* szObjectName)
 {
 	CBaseObject*	pcObject;
 	CChars			szName;
@@ -2275,7 +2277,7 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 // next index) to be loaded later.
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
+CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;

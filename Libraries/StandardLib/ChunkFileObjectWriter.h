@@ -44,8 +44,8 @@ public:
 	bool	End(void);
 
 protected:
-	bool	ObjectStartsWithBaseName(char* szObjectName);
-	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
+	bool	ObjectStartsWithBaseName(const char* szObjectName);
+	void	RemainingName(CChars* pszRemainingName, const char* szObjectName);
 };
 
 

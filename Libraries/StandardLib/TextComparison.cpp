@@ -310,7 +310,7 @@ void CTextComparison::AddBlockTokens(CTextContent* pcContent, lsize uiStartLine,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextComparison::TrimLine(char* szText, lsize* puiStart, lsize* puiEnd)
+void CTextComparison::TrimLine(const char* szText, lsize* puiStart, lsize* puiEnd)
 {
 	while ((*puiStart < *puiEnd) && IsTextDiffWhitespace(szText[*puiStart]))
 	{
@@ -329,7 +329,7 @@ void CTextComparison::TrimLine(char* szText, lsize* puiStart, lsize* puiEnd)
 // punctuation characters.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextComparison::AddWordTokens(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
+void CTextComparison::AddWordTokens(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
 {
 	lsize	ui;
 	lsize	uiTokenStart;
@@ -371,7 +371,7 @@ void CTextComparison::AddWordTokens(char* szText, lsize uiStart, lsize uiEnd, CA
 // Single characters, except whitespace if it is ignored.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextComparison::AddCharTokens(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
+void CTextComparison::AddCharTokens(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
 {
 	lsize	ui;
 
@@ -389,7 +389,7 @@ void CTextComparison::AddCharTokens(char* szText, lsize uiStart, lsize uiEnd, CA
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextComparison::AddTextToken(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
+void CTextComparison::AddTextToken(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens)
 {
 	pacTokens->Add()->Init(&szText[uiStart], uiEnd - uiStart, uiStart, uiEnd, false, false);
 }
@@ -576,7 +576,7 @@ void CTextComparison::RefineGaps(CTextContent* pcContent1, CTextContent* pcConte
 // Non-empty text without words or line breaks.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextComparison::IsGap(char* szText, lsize uiStart, lsize uiEnd)
+bool CTextComparison::IsGap(const char* szText, lsize uiStart, lsize uiEnd)
 {
 	lsize	ui;
 	char	c;
@@ -636,7 +636,7 @@ void CTextComparison::Squash(CTextContent* pcContent1, CTextContent* pcContent2,
 // Only whitespace, or nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextComparison::IsWhitespace(char* szText, lsize uiStart, lsize uiEnd)
+bool CTextComparison::IsWhitespace(const char* szText, lsize uiStart, lsize uiEnd)
 {
 	lsize	ui;
 

@@ -1611,7 +1611,7 @@ void CChannels::Dump(lsize iLineLength)
 	size		i;
 	lsize		uiLine;
 	CChannel*	psChannel;
-	char*		szTypeName;
+	const char*	szTypeName;
 	CChars		c;
 	lsize		iRemain;
 	lsize		uiData;
@@ -1625,7 +1625,7 @@ void CChannels::Dump(lsize iLineLength)
 	for (i = 0; i < uiOffsets; i++)
 	{
 		psChannel = masChannelOffsets.Get(i);
-		szTypeName = (char*)gcTypeNames.GetPrettyName(psChannel->eType);
+		szTypeName = gcTypeNames.GetPrettyName(psChannel->eType);
 		c.Append("Channel[");
 		c.Append(psChannel->iChannel);
 		c.Append("]: Type[");

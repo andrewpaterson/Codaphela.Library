@@ -164,7 +164,7 @@ bool CUnknown::IsUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknown::NotImplemented(char* szMethod)
+void CUnknown::NotImplemented(const char* szMethod)
 {
 	gcLogger.Error2(szMethod, " is not implemented and should not be called.", NULL);
 }

@@ -1184,7 +1184,7 @@ bool CEmbeddedObject::IsEmbeddingContainerAllocatedInObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::FailNotExpectedToBeEmbedded(char* szMethod)
+bool CEmbeddedObject::FailNotExpectedToBeEmbedded(const char* szMethod)
 {
 	// Ensure that an Object embedded in another Object as a field of that object is not being addressed directly.  (nothing to do with pointers on the stack)
 
@@ -1203,7 +1203,7 @@ bool CEmbeddedObject::FailNotExpectedToBeEmbedded(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::FailExpectedToBeEmbedded(char* szMethod)
+bool CEmbeddedObject::FailExpectedToBeEmbedded(const char* szMethod)
 {
 	CChars	sz;
 
@@ -1219,7 +1219,7 @@ bool CEmbeddedObject::FailExpectedToBeEmbedded(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
+bool CEmbeddedObject::FailCantInitFreedObject(const char* szMethod)
 {
 
 	return gcLogger.Error2(szMethod, " Cannot be called on a freed object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
@@ -1230,7 +1230,7 @@ bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::FailExpectedToBeInitialised(char* szMethod)
+bool CEmbeddedObject::FailExpectedToBeInitialised(const char* szMethod)
 {
 
 	return gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
@@ -1241,7 +1241,7 @@ bool CEmbeddedObject::FailExpectedToBeInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::FailExpectedToNotBeInitialised(char* szMethod)
+bool CEmbeddedObject::FailExpectedToNotBeInitialised(const char* szMethod)
 {
 
 	return gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);

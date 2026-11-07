@@ -81,10 +81,10 @@ public:
 protected:
 	void		AddLineTokens(CTextContent* pcContent, CArrayTextToken* pacTokens);
 	void		AddBlockTokens(CTextContent* pcContent, lsize uiStartLine, lsize uiEndLine, CArrayTextToken* pacTokens);
-	void		AddWordTokens(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
-	void		AddCharTokens(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
-	void		AddTextToken(char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
-	void		TrimLine(char* szText, lsize* puiStart, lsize* puiEnd);
+	void		AddWordTokens(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
+	void		AddCharTokens(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
+	void		AddTextToken(const char* szText, lsize uiStart, lsize uiEnd, CArrayTextToken* pacTokens);
+	void		TrimLine(const char* szText, lsize* puiStart, lsize* puiEnd);
 	bool		IsRefinable(CTextContent* pcContent, lsize uiStartLine, lsize uiEndLine);
 
 	void		DiffTokens(lsize uiStart1, lsize uiStart2, CArrayDiffRange* pacFragments);
@@ -93,9 +93,9 @@ protected:
 	void		GetFragmentSide(CArrayTextToken* pacTokens, lsize uiStart, lsize uiEnd, lsize uiEmptyStart, lsize* puiStart, lsize* puiEnd);
 
 	void		RefineGaps(CTextContent* pcContent1, CTextContent* pcContent2, CArrayDiffRange* pacFragments);
-	bool		IsGap(char* szText, lsize uiStart, lsize uiEnd);
+	bool		IsGap(const char* szText, lsize uiStart, lsize uiEnd);
 	void		Squash(CTextContent* pcContent1, CTextContent* pcContent2, CArrayDiffRange* pacFragments);
-	bool		IsWhitespace(char* szText, lsize uiStart, lsize uiEnd);
+	bool		IsWhitespace(const char* szText, lsize uiStart, lsize uiEnd);
 };
 
 

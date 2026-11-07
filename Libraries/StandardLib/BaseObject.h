@@ -224,8 +224,8 @@ public:
 	virtual void					ValidateObjectIdentifiers(void);
 			void					ValidateBaseObjectDetail(void);
 			void					ValidateAllocation(void);
-			bool					FailHasClassFlag(char* szMethod);
-			bool					FailHasClassField(char* szMethod);
+			bool					FailHasClassFlag(const char* szMethod);
+			bool					FailHasClassField(const char* szMethod);
 			void					ValidateInitCalled(void);
 			void					ValidateKillCalled(void);
 	virtual void					ValidateInternalConsistency(void);
@@ -246,7 +246,7 @@ protected:
 			void					KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
 
 	virtual bool					ClearPointerTos(bool bFree);
-			bool					DestructOnStack(char* szMethod, bool bKill);
+			bool					DestructOnStack(const char* szMethod, bool bKill);
 
 			bool					SaveManaged(CObjectWriter* pcFile);
 			bool					LoadManaged(CObjectReader* pcFile);

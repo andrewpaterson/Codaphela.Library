@@ -317,7 +317,7 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CUnknowns::StartIteration(char* szClassName, SIteratorUnknown* psIter)
+CUnknown* CUnknowns::StartIteration(const char* szClassName, SIteratorUnknown* psIter)
 {
 	return mcIterables.StartIteration(szClassName, psIter);
 }

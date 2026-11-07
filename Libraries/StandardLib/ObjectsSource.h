@@ -54,11 +54,11 @@ public:
 template<class TConverter>
 CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, const char* szFilename)
 {
-	TConverter*		pcConveter;
+	TConverter*		pcConverter;
 	CObjectSource*	pcSource;
 
-	pcConveter = AddConverter<TConverter>();
-	pcSource = pcConveter->CreateSource(pcFile, szFilename);
+	pcConverter = AddConverter<TConverter>();
+	pcSource = pcConverter->CreateSource(pcFile, szFilename);
 	if (pcSource)
 	{
 		macSources.Add(pcSource);
@@ -78,20 +78,20 @@ CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, const char* szFi
 template<class TConverter>
 TConverter* CObjectsSource::AddConverter(void)
 {
-	TConverter*	pcConveter;
+	TConverter*	pcConverter;
 	TConverter	t;
 	const char*	szClassName;
 	CUnknown*	pcExistingConverter;
 
 	szClassName = t.ClassName();
-	pcExistingConverter = mmszpcConverters.Get((char*)szClassName);
+	pcExistingConverter = mmszpcConverters.Get(szClassName);
 	if (!pcExistingConverter)
 	{
-		pcConveter = gcUnknowns.Add<TConverter>();
-		pcConveter->Init(mpcObjects);
+		pcConverter = gcUnknowns.Add<TConverter>();
+		pcConverter->Init(mpcObjects);
 
-		mmszpcConverters.Put((char*)szClassName, pcConveter);
-		return pcConveter;
+		mmszpcConverters.Put(szClassName, pcConverter);
+		return pcConverter;
 	}
 	else
 	{

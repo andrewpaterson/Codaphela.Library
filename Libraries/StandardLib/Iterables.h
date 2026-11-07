@@ -79,7 +79,7 @@ public:
 	M*			StartIteration(SIteratorTemplate<M>* psIter);
 	template<class M>
 	M*			Iterate(SIteratorTemplate<M>* psIter);
-	CUnknown*	StartIteration(char* szName, SIteratorUnknown* psIter);
+	CUnknown*	StartIteration(const char* szName, SIteratorUnknown* psIter);
 	CUnknown*	Iterate(SIteratorUnknown* psIter);
 	void		Add(CUnknown* pcUnknown);
 	bool		Remove(CUnknown* pcUnknown);

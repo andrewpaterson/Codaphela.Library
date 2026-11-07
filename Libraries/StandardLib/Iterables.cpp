@@ -210,7 +210,7 @@ bool CIterables::Remove(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CIterables::StartIteration(char* szName, SIteratorUnknown* psIter)
+CUnknown* CIterables::StartIteration(const char* szName, SIteratorUnknown* psIter)
 {
 	CIterableList*	pcList;
 

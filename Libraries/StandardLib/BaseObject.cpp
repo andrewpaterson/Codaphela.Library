@@ -783,7 +783,7 @@ void CBaseObject::StopDestructor(void)
 // DESTRUCTABLE), and returns true.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::DestructOnStack(char* szMethod, bool bKill)
+bool CBaseObject::DestructOnStack(const char* szMethod, bool bKill)
 {
 	if (muiFlags == OBJECT_FLAGS_CALLED_CONSTRUCTOR)
 	{
@@ -1851,7 +1851,7 @@ CClass* CBaseObject::GetClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::FailHasClassFlag(char* szMethod)
+bool CBaseObject::FailHasClassFlag(const char* szMethod)
 {
 	return gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
 }
@@ -1861,7 +1861,7 @@ bool CBaseObject::FailHasClassFlag(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::FailHasClassField(char* szMethod)
+bool CBaseObject::FailHasClassField(const char* szMethod)
 {
 	return gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class field set.", NULL);
 }

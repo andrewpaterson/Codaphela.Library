@@ -134,7 +134,7 @@ public:
 						bool					EvictInMemory(void);
 
 						CBaseObject*			Dehollow(OIndex oi);
-						CBaseObject*			Dehollow(char* szObjectName);
+						CBaseObject*			Dehollow(const char* szObjectName);
 
 						bool					ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject);
 						bool					TestRemoveMemoryIdentifiers(CBaseObject* pvObject);
@@ -229,7 +229,7 @@ public:
 						CHollowObject*			AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
 
 						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
-						CBaseObject*			GetNamedOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
+						CBaseObject*			GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded);
 						void					ReplaceWithHollow(CBaseObject* pcObject);
 
 protected:
@@ -496,22 +496,10 @@ Ptr<SpecificClass> OMallocNoI()
 //
 //////////////////////////////////////////////////////////////////////////
 template <class SpecificClass>
-Ptr<SpecificClass> ONMallocNoI(char* szObjectName)
+Ptr<SpecificClass> ONMallocNoI(const char* szObjectName)
 {
 	//Does not call .Init on the allocated instance.
 	return gcObjects.Malloc<SpecificClass>(szObjectName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMallocNoI(const char* szObjectName, Args ... args)
-{
-	//Does not call .Init on the allocated instance.
-	return gcObjects.Malloc<SpecificClass>((char*)szObjectName);
 }
 
 

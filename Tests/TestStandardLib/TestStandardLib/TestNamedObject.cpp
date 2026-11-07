@@ -249,6 +249,37 @@ void TestNamedOjectReuse(EIndexWriteThrough eWriteThrough)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// ONMallocNoI names the object it allocates and leaves it to be Init'd.
+// Names are const: a literal is passed as is.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestNamedObjectAllocateNotInitialised(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CTestNamedObject>	pLate;
+		CPointer				pFound;
+
+		pLate = ONMallocNoI<CTestNamedObject>("Late");
+		AssertTrue(pLate.IsNotNull());
+		AssertString("Late", pLate.GetName());
+		AssertFalse(pLate->IsInitialised());
+
+		pLate->Init(7);
+		AssertTrue(pLate->IsInitialised());
+		AssertInt(7, pLate->miNum);
+
+		pFound = gcObjects.Get("Late");
+		AssertPointer(pLate.Object(), pFound.Object());
+		ORoot()->Add(pLate);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestNamedObject(void)
@@ -260,6 +291,7 @@ void TestNamedObject(void)
 
 	TestNamedObjectSize();
 	TestNamedObjectName();
+	TestNamedObjectAllocateNotInitialised();
 	TestNamedOjectKill();
 	TestNamedOjectReuse(IWT_No);
 	TestNamedOjectReuse(IWT_Yes);
