@@ -69,6 +69,7 @@ protected:
 	void	ComputeStates(void);
 	void	Transfer(size uiLine, SIR65FlagState* psState);
 	bool	RemoveCompares(void);
+	bool	MovesCompareBase(size uiLine, CChars* pszCompare);
 	bool	IsCompareWithZero(size uiLine);
 	bool	SameCompare(size uiLine1, size uiLine2);
 };

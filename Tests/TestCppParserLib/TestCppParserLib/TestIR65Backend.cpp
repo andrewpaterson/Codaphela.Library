@@ -1187,6 +1187,36 @@ void TestIR65BackendFlags(void)
 		"L2:\n"
 		"\t\tret\n");
 
+	//A cmp of [2 + S] after a psh or pul is of another slot (S moved), and one of [2 + V] after pul V of another value:
+	//they stay.
+	TestIR65FlagsOptimise(
+		"_F:\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tpsh A\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tpul A\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tcmp X, [2 + V]\n"
+		"\t\tpul V\n"
+		"\t\tcmp X, [2 + V]\n"
+		"\t\tbras z, L1\n"
+		"\t\tret\n"
+		"L1:\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tpsh A\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tpul A\n"
+		"\t\tcmp X, [2 + S]\n"
+		"\t\tcmp X, [2 + V]\n"
+		"\t\tpul V\n"
+		"\t\tcmp X, [2 + V]\n"
+		"\t\tbras z, L1\n"
+		"\t\tret\n"
+		"L1:\n"
+		"\t\tret\n");
+
 	//cpy A, 1 sets the flags, X changes, [4 + W] is written, and c is read after a cmp A, 0: all stay.
 	TestIR65FlagsOptimise(
 		"_F:\n"

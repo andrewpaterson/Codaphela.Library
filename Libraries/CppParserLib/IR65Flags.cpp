@@ -291,7 +291,45 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 		{
 			psState->uiKind = IR65FK_None;
 		}
+		else if (((psLine->uiKind == IR65CK_Push) || (psLine->uiKind == IR65CK_Pull)) && MovesCompareBase(uiLine, mcCode.GetText(psState->iCompare)))
+		{
+			//The same text then names another slot: psh and pul move S, and pul V (or W) changes V.
+			psState->uiKind = IR65FK_None;
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the push or pull at uiLine changes a base register the compare
+// pszCompare addresses memory by: S for both, and the pseudo register a
+// pul names (pul V reads into V, so [n + V] is somewhere else after it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Flags::MovesCompareBase(size uiLine, CChars* pszCompare)
+{
+	CChars	szBase;
+	CChars*	pszLine;
+	size	uiLength;
+	bool	bMoves;
+
+	if (pszCompare->Contains("+ S]"))
+	{
+		return true;
+	}
+	pszLine = mcCode.GetText(uiLine);
+	uiLength = pszLine->Length();
+	if ((mcCode.GetLine(uiLine)->uiKind != IR65CK_Pull) || (uiLength < 2) || (pszLine->GetChar(uiLength - 2) != ' '))
+	{
+		return false;
+	}
+	szBase.Init("+ ");
+	szBase.Append(pszLine->GetChar(uiLength - 1));
+	szBase.Append(']');
+	bMoves = pszCompare->Contains(szBase.Text());
+	szBase.Kill();
+	return bMoves;
 }
 
 
