@@ -676,6 +676,83 @@ void TestCodeEditorChangeBars(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Change bars only colour the gutter: setting them doesn't lay the window
+// out again, they are drawn on the gutter as the window is painted.  New
+// lines, which the gutter must number, still lay it out.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCodeEditorChangeBarsPainted(void)
+{
+	CWinRefWindowFactory	cNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CCodeEditor>			pEditor;
+		Ptr<CTextArea>				pGutter;
+
+		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pEditor = OMalloc<CCodeEditor>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "a\nb\nc\nd\ne\nf");
+		pEditor->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pEditor);
+		pGutter = pEditor->GetGutter();
+
+		//Painting doesn't lay the window out anyway, to check the layout cache, so what a paint does alone is seen.
+		pTestWindow->SetCheckLayoutCache(false);
+		pTestWindow->Show();
+		AssertFalse(pTestWindow->IsLayoutDirty());
+
+		//Rows are " 1 \n", four characters each: the bar's column is the third.
+		pEditor->AddChangeBar(1, 3, TEST_CHANGE_MODIFIED);
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		AssertSize(0, pGutter->NumBackgrounds());
+		pTestWindow->Paint();
+		AssertSize(2, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Range, 6, 7, pGutter->GetBackground(0));
+		AssertTextAreaBackground(TAB_Range, 10, 11, pGutter->GetBackground(1));
+
+		pEditor->ClearChangeBars();
+		pEditor->AddChangeBand(2, 3, TEST_CHANGE_ADDED);
+		pEditor->SetBandNumberColour(TEST_CHANGE_REMOVED);
+		AssertFalse(pTestWindow->IsLayoutDirty());
+		pTestWindow->Paint();
+		AssertSize(1, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Lines, 2, 3, pGutter->GetBackground(0));
+		AssertSize(1, pGutter->NumSpans());
+
+		//A seventh line is numbered before its bar is drawn on it.
+		pEditor->GetTextArea()->SetText("a\nb\nc\nd\ne\nf\ng");
+		pEditor->ClearChangeBars();
+		pEditor->AddChangeBar(6, 7, TEST_CHANGE_ADDED);
+		pTestWindow->Paint();
+		AssertString(" 1 \n 2 \n 3 \n 4 \n 5 \n 6 \n 7 ", pGutter->GetText());
+		AssertSize(1, pGutter->NumBackgrounds());
+		AssertTextAreaBackground(TAB_Range, 26, 27, pGutter->GetBackground(0));
+
+		pGutter = NULL;
+		pEditor = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	cNativeFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A press in the gutter's last column beside a change bar calls the change
 // bar click event, not the gutter click event; beside removed lines both
 // rows next to them do.  A press on a number, or the last column of an
@@ -1034,6 +1111,7 @@ void TestCodeEditor(void)
 	TestCodeEditorScrolledSideways();
 	TestCodeEditorClickBeyondText();
 	TestCodeEditorChangeBars();
+	TestCodeEditorChangeBarsPainted();
 	TestCodeEditorChangeBarClicks();
 	TestCodeEditorGlyphs();
 	TestCodeEditorChangeBarsDrawn();

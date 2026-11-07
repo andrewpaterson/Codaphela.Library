@@ -123,6 +123,7 @@ public:
 	bool						GetPaintedCaret(CInt32Rect* pcDest);
 	void						Invalidate(void) override;
 	void						InvalidateLayout(void) override;
+	bool						IsLayoutDirty(void);
 	void						AddDamage(CInt32Rect* pcArea);
 	void						RequestPaint(void);
 	CDamageArea*				GetPaintedDamage(void);

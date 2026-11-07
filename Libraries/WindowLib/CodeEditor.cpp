@@ -631,6 +631,50 @@ void CCodeEditor::DrawChangeBars(size uiDigits)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The change bars are drawn on the gutter again before the next paint
+// (PrepareArea): they colour it, but don't change its size, so the window
+// isn't laid out again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ChangeBarsChanged(void)
+{
+	mbChangeBarsChanged = true;
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->RequestPaint();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before the code editor's children are prepared for the paint: change
+// bars set since the gutter was last updated are drawn on it, and the
+// gutter draws again only the rows they changed.  If the gutter's lines
+// or marks are out of date it is updated when the window is next laid
+// out instead.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea)
+{
+	CContainer::PrepareArea(bDrawn, bClipped, pcClip, pcArea);
+	if (!mbChangeBarsChanged)
+	{
+		return;
+	}
+
+	if ((muiGutterLines != mpTextArea->NumLines()) || mbMarksChanged)
+	{
+		LayoutChanged();
+		return;
+	}
+	DrawChangeBars(CountDigits(muiGutterLines));
+	mbChangeBarsChanged = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The digits uiNumber is written in.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -874,8 +918,7 @@ void CCodeEditor::AddChangeBar(size uiStartLine, size uiEndLine, ARGB32 sColour,
 	psBar->uiEndLine = uiEndLine;
 	psBar->sColour = sColour;
 	psBar->bBand = bBand;
-	mbChangeBarsChanged = true;
-	LayoutChanged();
+	ChangeBarsChanged();
 }
 
 
@@ -888,8 +931,7 @@ void CCodeEditor::ClearChangeBars(void)
 	if (masChangeBars.NumElements() > 0)
 	{
 		masChangeBars.ReInit();
-		mbChangeBarsChanged = true;
-		LayoutChanged();
+		ChangeBarsChanged();
 	}
 }
 
@@ -905,8 +947,7 @@ void CCodeEditor::SetBandNumberColour(ARGB32 sColour)
 	if (msBandNumberColour != sColour)
 	{
 		msBandNumberColour = sColour;
-		mbChangeBarsChanged = true;
-		LayoutChanged();
+		ChangeBarsChanged();
 	}
 }
 

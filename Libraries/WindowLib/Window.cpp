@@ -697,6 +697,17 @@ void CWindow::InvalidateLayout(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window will be laid out again before it is next painted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsLayoutDirty(void)
+{
+	return mbLayoutDirty;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Ticks the window again within uiMilliseconds even if nothing else
 // happens; a running simulation asks every tick.  Only the next tick is
 // promised, so ask again each tick to keep ticking.

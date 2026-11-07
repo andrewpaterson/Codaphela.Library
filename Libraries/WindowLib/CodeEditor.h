@@ -164,6 +164,7 @@ public:
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void				ScrollToShow(CInt32Rect* pcRect) override;
+	void				PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32Rect* pcArea) override;
 
 protected:
 	void				BringGutterToFront(void);
@@ -176,6 +177,7 @@ protected:
 	void				UpdateLineComponents(void);
 	void				UpdateGutter(void);
 	void				DrawChangeBars(size uiDigits);
+	void				ChangeBarsChanged(void);
 	void				DrawGlyphs(void);
 	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
 	size				GetMarkColumn(void);
