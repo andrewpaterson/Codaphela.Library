@@ -50,6 +50,8 @@ public:
 	ASIZE 	AddIfUnique(M iValue);
 	void	Swap(ASIZE iIndex1, ASIZE iIndex2);
 	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
+	template<class F>
+	void	InsertInOrder(M iElement, F* psOrder, ASIZE iFirst = 0);
 	bool	RemoveFromSorted(M iElement);
 	bool	RemoveDuplicatesFromSorted(void);
 	void	MakeUnique(void);
@@ -309,6 +311,31 @@ void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertIntoSorted(M iElement, bool bOverwriteEx
 	{
 		Add(iElement);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Inserts iElement before the first element from iFirst on that it		//
+// goes before (psOrder->IsBefore(iElement, iOther) is true), or at the	//
+// end.  It goes after the elements it isn't before, its equals among	//
+// them, so elements inserted one by one keep their order.				//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+template<class F>
+void ARRAY_TEMPLATE_PRIMITIVE<M>::InsertInOrder(M iElement, F* psOrder, ASIZE iFirst)
+{
+	ASIZE	i;
+
+	for (i = iFirst; i < miUsedElements; i++)
+	{
+		if (psOrder->IsBefore(iElement, GetValue(i)))
+		{
+			break;
+		}
+	}
+	InsertAt(iElement, i);
 }
 
 

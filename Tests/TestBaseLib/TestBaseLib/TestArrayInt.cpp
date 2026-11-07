@@ -428,6 +428,58 @@ void TestArrayIntFindFinalContiguousInSorted(void)
 }
 
 
+//Orders by tens, so numbers in the same ten are equal.
+struct STestArrayIntTensOrder
+{
+	bool	IsBefore(int iValue, int iOther);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool STestArrayIntTensOrder::IsBefore(int iValue, int iOther)
+{
+	return (iValue / 10) < (iOther / 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Equal elements stay in the order they're inserted, and elements before
+// iFirst aren't looked at.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestArrayIntInsertInOrder(void)
+{
+	CArrayInt				cArray;
+	STestArrayIntTensOrder	sOrder;
+
+	cArray.Init();
+	cArray.InsertInOrder(31, &sOrder);
+	cArray.InsertInOrder(12, &sOrder);
+	cArray.InsertInOrder(35, &sOrder);
+	cArray.InsertInOrder(17, &sOrder);
+	cArray.InsertInOrder(20, &sOrder);
+	cArray.InsertInOrder(5, &sOrder);
+	AssertSize(6, cArray.NumElements());
+	AssertInt(5, cArray[0]);
+	AssertInt(12, cArray[1]);
+	AssertInt(17, cArray[2]);
+	AssertInt(20, cArray[3]);
+	AssertInt(31, cArray[4]);
+	AssertInt(35, cArray[5]);
+
+	cArray.InsertInOrder(1, &sOrder, 2);
+	AssertSize(7, cArray.NumElements());
+	AssertInt(12, cArray[1]);
+	AssertInt(1, cArray[2]);
+	AssertInt(17, cArray[3]);
+	cArray.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -442,6 +494,7 @@ void TestArrayInt(void)
 	TestArrayIntRemoveDuplicates();
 	TestArrayIntRemoveAt();
 	TestArrayIntFindFinalContiguousInSorted();
+	TestArrayIntInsertInOrder();
 
 	TestStatistics();
 }
