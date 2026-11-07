@@ -656,6 +656,49 @@ void TestCPP65IRDynamicCast(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A vtable as CPP65Generator.h lays it out: a header (the distance to the
+// object's start, the type info) before each part, the label after the
+// first header, a secondary part's entries through a thunk that adjusts
+// this.  Virtual calls through either part's pointer, and dynamic_cast
+// from it, read it so.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRVtableLayout(void)
+{
+	const char*	szSource;
+	CChars		szAssembly;
+	CChars		szErrors;
+
+	szSource =
+		"struct CA { int ma; virtual int F() { return 1; } };\n"
+		"struct CB { int mb; virtual int G() { return 2; } };\n"
+		"struct CC : CA, CB { int mc; virtual int F() { return 10; } virtual int G() { return 20 + mc; } };\n"
+		"int main() { CC c; c.mc = 3; CA* pa = &c; CB* pb = &c; return pa->F() + pb->G() * 100 + (dynamic_cast<CC*>(pb) == &c) * 10000; }\n";
+	AssertInt(10 + 23 * 100 + 10000, TestCPP65IRMain(szSource, 8));
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource, true));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains(
+		"\t\t.section rodata._CC__2, comdat\n"
+		"\t\t.global _CC__2\n"
+		"\t\t.align 4\n"
+		"\t\t.long 0\n"
+		"\t\t.long _CC__3\n"
+		"_CC__2:\n"
+		"\t\t.long _CC__F\n"
+		"\t\t.long _CC__G\n"
+		"\t\t.long -8\n"
+		"\t\t.long _CC__3\n"
+		"\t\t.long _CC__G__t8\n"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // dynamic_cast across units: both write CSquare's vtable and type info and the
 // linker keeps one of each, so the type info compared against is the object's.
 //
@@ -800,6 +843,7 @@ void TestCPP65IR(void)
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();
 	TestCPP65IRDynamicCast();
+	TestCPP65IRVtableLayout();
 	TestCPP65IRDynamicCastUnits();
 	TestCPP65IROverloadedFunctionPointers();
 	TestCPP65IRMangledNames();

@@ -36,6 +36,7 @@ class CIROptimiser;
 class CCPP65Generator;
 struct SCPP65Function;
 struct SCPP65Variable;
+struct SCPP65VtableEntry;
 
 
 //A C++ value: an IR value and its C++ type (never a reference).
@@ -344,9 +345,7 @@ protected:
 	bool			ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool			DestructorEnd(void);
 	bool			StoreVtables(SIRReference sObject, SCPP65Class* psClass);
-	void			DescribeVtable(SCPP65Class* psClass, uint32 uiSymbol);
-	void			AddVtableEntry(CIRGlobal* pcVtable, SCPP65Function* psFunction, int iAdjust);
-	void			AddVtableHeader(CIRGlobal* pcVtable, SCPP65Class* psClass, int iVtablePointer);
+	void			DescribeVtable(CArrayTemplate<SCPP65VtableEntry>* pasEntries, SCPP65Class* psClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
 	bool			ConstructClass(SCPP65IRPlace* psPlace, SCPP65Class* psClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);

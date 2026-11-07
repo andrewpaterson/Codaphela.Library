@@ -234,6 +234,40 @@ struct SCPP65Vtable
 typedef CArrayTemplate<SCPP65Vtable>	CArrayCPP65Vtables;
 
 
+//A vtable (CCPP65Generator::VtableEntries): before each part (the class's own, then each secondary vtable) a header of
+//two words, the distance from the part's vtable pointer to the object's start and the class's type info, then the
+//part's functions.  A vtable pointer points at its part's first function, and the label (_Class__2) at the first part's.
+//The type info (_Class__3) is an entry per subobject, its class's type info and its offset, and a zero.
+#define CPP65_VTABLE_ENTRY_BYTES		4
+#define CPP65_VTABLE_HEADER_ENTRIES		2
+#define CPP65_VTABLE_TOP_OFFSET			(-2 * CPP65_VTABLE_ENTRY_BYTES)		//From a vtable pointer: the distance to the object's start.
+#define CPP65_VTABLE_TYPE_INFO_OFFSET	(-CPP65_VTABLE_ENTRY_BYTES)			//From a vtable pointer: the class's type info.
+#define CPP65_TYPE_INFO_ENTRY_BYTES		(2 * CPP65_VTABLE_ENTRY_BYTES)
+#define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//In a type info entry: the subobject's offset.
+#define CPP65_VTABLE_LABEL				"2"
+#define CPP65_TYPE_INFO_LABEL			"3"
+
+
+enum ECPP65VtableEntry
+{
+	CPP65VE_Header,		//A part's header: iVtablePointer is where the part's vtable pointer is in the object.
+	CPP65VE_Function,	//psFunction, through a thunk that adds iAdjust to this if it isn't 0.
+};
+
+
+struct SCPP65VtableEntry
+{
+	ECPP65VtableEntry	eKind;
+	int					iVtablePointer;
+	SCPP65Function*		psFunction;
+	int					iAdjust;
+};
+
+
+typedef CArrayTemplate<SCPP65VtableEntry>	CArrayCPP65VtableEntries;
+
+
+
 //A class's layout: the bases in order (an empty base takes no space), then the vtable pointer if no base has
 //one, then the fields.  A class is laid out when it is first needed whole.  psBase is the first base.
 struct SCPP65Class
@@ -602,6 +636,8 @@ protected:
 	int						VtablePointerOffset(SCPP65Class* psClass);
 	void					AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunction);
 	void					AppendVtableEntry(SCPP65Function* psFunction, int iAdjust);
+	void					VtableEntries(SCPP65Class* psClass, CArrayCPP65VtableEntries* pasEntries);
+	void					AppendVtableEntryLabel(CChars* psz, SCPP65Function* psFunction, int iAdjust);
 	SCPP65Field*			FindField(SCPP65Class* psClass, int64 lliName, int* piOffset);
 	SCPP65Field*			FindFieldSymbol(SCPP65Class* psClass, CCPPSymbol* pcSymbol, int* piOffset);
 	SCPP65Variable*			FindStatic(SCPP65Class* psClass, int64 lliName);
@@ -623,6 +659,8 @@ protected:
 	bool					NeedsDestructor(SCPP65Class* psClass);
 	void					AppendFunctionLabel(CChars* psz, SCPP65Function* psFunction);
 	void					AppendClassLabel(CChars* psz, SCPP65Class* psClass, const char* szPart);
+	void					AppendVtableLabel(CChars* psz, SCPP65Class* psClass);
+	void					AppendTypeInfoLabel(CChars* psz, SCPP65Class* psClass);
 	void					AppendClassName(CChars* psz, SCPP65Class* psClass);
 	void					AppendScopeNames(CChars* psz, CCPPScope* pcScope);
 	void					AppendFunctionName(CChars* psz, int64 lliName);

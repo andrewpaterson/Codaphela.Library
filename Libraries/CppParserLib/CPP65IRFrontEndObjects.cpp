@@ -470,17 +470,19 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A polymorphic class's vtable pointers in the object at sObject, as the
-// generator's StoreVtables: its own, and each base vtable it extends.
+// A polymorphic class's vtable pointers in the object at sObject: each
+// part of its vtable (CCPP65Generator::VtableEntries) is pointed at by the
+// vtable pointer its header says.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 {
-	SCPP65Vtable*	psVtable;
-	CChars			szLabel;
-	SIRReference	sLabel;
-	size			ui;
-	int				iEntry;
+	CArrayCPP65VtableEntries	asEntries;
+	SCPP65VtableEntry*			psEntry;
+	CChars						szLabel;
+	SIRReference				sLabel;
+	size						ui;
+	int							iWord;
 
 	if (!mpcGenerator->IsPolymorphic(psClass))
 	{
@@ -492,109 +494,77 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 	}
 	mpcGenerator->EnsureVtable(psClass);
 	szLabel.Init();
-	mpcGenerator->AppendClassLabel(&szLabel, psClass, "2");
+	mpcGenerator->AppendVtableLabel(&szLabel, psClass);
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (psClass->lliName < 0)
 	{
 		mcModule.SetLocal(sLabel.Index());
 	}
-	DescribeVtable(psClass, sLabel.Index());
+	asEntries.Init();
+	mpcGenerator->VtableEntries(psClass, &asEntries);
+	DescribeVtable(&asEntries, psClass, sLabel.Index());
+
+	//The words from the label: the first part's header is before it (its pointer only when the class has its own).
 	if (psClass->iVtableOffset != -1)
 	{
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sLabel, AddressAt(sObject, psClass->iVtableOffset));
 	}
-	iEntry = (int)psClass->mapsVirtuals.NumElements();
-	for (ui = 0; ui < psClass->macVtables.NumElements(); ui++)
+	iWord = 0;
+	for (ui = 1; ui < asEntries.NumElements(); ui++)
 	{
-		psVtable = psClass->macVtables.Get(ui);
-		iEntry += 2;  //The secondary vtable's header (CCPP65Generator::AppendVtableHeader).
-		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), AddressAt(sLabel, 4 * iEntry), AddressAt(sObject, psVtable->iOffset + psVtable->psOwner->iVtableOffset));
-		iEntry += (int)psVtable->mapsFunctions.NumElements();
+		psEntry = asEntries.Get(ui);
+		if (psEntry->eKind == CPP65VE_Header)
+		{
+			iWord += CPP65_VTABLE_HEADER_ENTRIES;
+			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), AddressAt(sLabel, CPP65_VTABLE_ENTRY_BYTES * iWord), AddressAt(sObject, psEntry->iVtablePointer));
+		}
+		else
+		{
+			iWord++;
+		}
 	}
+	asEntries.Kill();
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The module's known data for a class's vtable, as the generator's
-// EnsureVtable writes it, so a virtual call through a vtable pointer the
-// optimiser can see stored becomes a call of the function (and may be
-// inlined).
+// The module's known data for a class's vtable from its label, the entries
+// the generator writes (pasEntries, CCPP65Generator::VtableEntries), so a
+// virtual call through a vtable pointer the optimiser can see stored
+// becomes a call of the function (and may be inlined).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::DescribeVtable(SCPP65Class* psClass, uint32 uiSymbol)
+void CCPP65IRFrontEnd::DescribeVtable(CArrayCPP65VtableEntries* pasEntries, SCPP65Class* psClass, uint32 uiSymbol)
 {
-	CIRGlobal*		pcVtable;
-	SCPP65Vtable*	psVtable;
-	size			i;
-	size			j;
+	CIRGlobal*			pcVtable;
+	SCPP65VtableEntry*	psEntry;
+	CChars				szLabel;
+	size				ui;
 
 	if (mcModule.FindConstantData(uiSymbol))
 	{
 		return;
 	}
-	pcVtable = mcModule.AddKnownData(mcModule.GetSymbolName(uiSymbol), 4);
-	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
+	pcVtable = mcModule.AddKnownData(mcModule.GetSymbolName(uiSymbol), CPP65_VTABLE_ENTRY_BYTES);
+	for (ui = 1; ui < pasEntries->NumElements(); ui++)
 	{
-		AddVtableEntry(pcVtable, psClass->mapsVirtuals.GetPtr(i), 0);
-	}
-	for (i = 0; i < psClass->macVtables.NumElements(); i++)
-	{
-		psVtable = psClass->macVtables.Get(i);
-		AddVtableHeader(pcVtable, psClass, psVtable->iOffset + psVtable->psOwner->iVtableOffset);
-		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		psEntry = pasEntries->Get(ui);
+		szLabel.Init();
+		if (psEntry->eKind == CPP65VE_Header)
 		{
-			AddVtableEntry(pcVtable, psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
+			pcVtable->AddValue(IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), (uint64)(int64)(-psEntry->iVtablePointer));
+			mpcGenerator->AppendTypeInfoLabel(&szLabel, psClass);
 		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A secondary vtable's header, as CCPP65Generator::AppendVtableHeader writes it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::AddVtableHeader(CIRGlobal* pcVtable, SCPP65Class* psClass, int iVtablePointer)
-{
-	CChars	szLabel;
-
-	pcVtable->AddValue(IRIntegerType(4), (uint64)(int64)(-iVtablePointer));
-	szLabel.Init();
-	mpcGenerator->AppendClassLabel(&szLabel, psClass, "3");
-	pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
-	szLabel.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A vtable entry, as the generator's AppendVtableEntry: the function, the
-// thunk that adjusts this by iAdjust, or R_Pure.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::AddVtableEntry(CIRGlobal* pcVtable, SCPP65Function* psFunction, int iAdjust)
-{
-	CChars	szLabel;
-
-	szLabel.Init();
-	if (psFunction->bPure)
-	{
-		szLabel.Append("R_Pure");
-	}
-	else
-	{
-		mpcGenerator->AppendFunctionLabel(&szLabel, psFunction);
-		if (iAdjust != 0)
+		else
 		{
-			szLabel.Append("__t");
-			szLabel.Append(-iAdjust);
+			mpcGenerator->AppendVtableEntryLabel(&szLabel, psEntry->psFunction, psEntry->iAdjust);
 		}
+		pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
+		szLabel.Kill();
 	}
-	pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
-	szLabel.Kill();
 }
 
 

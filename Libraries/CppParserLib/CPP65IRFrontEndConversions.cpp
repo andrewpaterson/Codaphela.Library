@@ -145,7 +145,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 // The object sAddress (a psFrom, NULL stays NULL) as a psTo, NULL if it isn't
 // one, or ambiguously one.  A NULL psTo gives the start of the whole object
 // (dynamic_cast<void*>).  The vtable pointer finds the start and the type info
-// (see CCPP65Generator::AppendVtableHeader); the type info lists every subobject.
+// (its part's header, CPP65_VTABLE_TOP_OFFSET); the type info lists every subobject.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* psFrom, SCPP65Class* psTo)
@@ -193,7 +193,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 	StartBlock(pcLook);
 	sVtablePointer = AddressAt(sAddress, mpcGenerator->VtablePointerOffset(psFrom));
 	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
-	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(4), AddressAt(sVtable, -8)), IRIntegerType(4), sOffset, true);
+	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
 	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
 	if (!psTo)
 	{
@@ -204,14 +204,14 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 
 	mpcGenerator->EnsureTypeInfo(psTo);
 	szLabel.Init();
-	mpcGenerator->AppendClassLabel(&szLabel, psTo, "3");
+	mpcGenerator->AppendTypeInfoLabel(&szLabel, psTo);
 	sTarget = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	if (psTo->lliName < 0)
 	{
 		mcModule.SetLocal(sTarget.Index());
 	}
-	sInfo = mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, -4));
+	sInfo = mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET));
 
 	//Each entry is a subobject's class's type info then its offset; a zero ends them.  sFound is the match so far.
 	pcLoop = NewBlock();
@@ -243,13 +243,13 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, SCPP65Class* p
 	mpcBlock->Branch(sCondition, pcEnd, pcFirst);
 
 	StartBlock(pcFirst);
-	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(4), AddressAt(sEntry, 4)), IRIntegerType(4), sOffset, true);
+	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sEntry, CPP65_TYPE_INFO_OFFSET_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
 	sCandidate = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sCandidate);
 	JumpTo(pcNext);
 
 	StartBlock(pcNext);
 	sNextFound = Phi(pcNext, sPointer, pcCheck, sFound, pcFirst, sCandidate);
-	sNextEntry = AddressAt(sEntry, 8);
+	sNextEntry = AddressAt(sEntry, CPP65_TYPE_INFO_ENTRY_BYTES);
 	JumpTo(pcLoop);
 	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiEntryPhi), pcNext, sNextEntry);
 	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiFoundPhi), pcNext, sNextFound);

@@ -3234,10 +3234,10 @@ bool CCPP65Generator::IsAbstract(SCPP65Class* psClass)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 {
-	SCPP65Vtable*	psVtable;
-	size			i;
-	size			j;
-	CChars			szLabel;
+	CArrayCPP65VtableEntries	asEntries;
+	SCPP65VtableEntry*			psEntry;
+	size						i;
+	CChars						szLabel;
 
 	if (psClass->bVtable)
 	{
@@ -3248,7 +3248,7 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
 	//(the linker keeps one); a class without a name has its own.
 	szLabel.Init();
-	AppendClassLabel(&szLabel, psClass, "2");
+	AppendVtableLabel(&szLabel, psClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
@@ -3263,28 +3263,83 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 		AppendSection(&mszData, "rodata", &szLabel, ", comdat");
 		AppendGlobal(&mszData, &szLabel);
 	}
+	mszData.Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mszData.AppendNewLine();
+
+	//The label is after the first part's header.
+	asEntries.Init();
+	VtableEntries(psClass, &asEntries);
+	for (i = 0; i < asEntries.NumElements(); i++)
+	{
+		psEntry = asEntries.Get(i);
+		if (psEntry->eKind == CPP65VE_Header)
+		{
+			AppendVtableHeader(psClass, psEntry->iVtablePointer);
+		}
+		else
+		{
+			AppendVtableEntry(psEntry->psFunction, psEntry->iAdjust);
+		}
+		if (i == 0)
+		{
+			mszData.Append(szLabel);
+			mszData.Append(':');
+			mszData.AppendNewLine();
+		}
+	}
+	asEntries.Kill();
 	szLabel.Kill();
-	mszData.Append("\t\t.align 4");
-	mszData.AppendNewLine();
-	AppendVtableHeader(psClass, psClass->iVtableOffset == -1 ? 0 : psClass->iVtableOffset);
-	AppendClassLabel(&mszData, psClass, "2");
-	mszData.Append(':');
-	mszData.AppendNewLine();
+
+	EnsureTypeInfo(psClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's vtable, in order (see CPP65_VTABLE_ENTRY_BYTES): its own
+// part's header (before the label) and functions, then each secondary
+// vtable's header and functions.  The generator writes it (EnsureVtable)
+// and the IR front end describes it and stores its parts' addresses from
+// the same list.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::VtableEntries(SCPP65Class* psClass, CArrayCPP65VtableEntries* pasEntries)
+{
+	SCPP65VtableEntry*	psEntry;
+	SCPP65Vtable*		psVtable;
+	size				i;
+	size				j;
+
+	psEntry = pasEntries->Add();
+	psEntry->eKind = CPP65VE_Header;
+	psEntry->iVtablePointer = (psClass->iVtableOffset == -1) ? 0 : psClass->iVtableOffset;
+	psEntry->psFunction = NULL;
+	psEntry->iAdjust = 0;
 	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
 	{
-		AppendVtableEntry(psClass->mapsVirtuals.GetPtr(i), 0);
+		psEntry = pasEntries->Add();
+		psEntry->eKind = CPP65VE_Function;
+		psEntry->iVtablePointer = 0;
+		psEntry->psFunction = psClass->mapsVirtuals.GetPtr(i);
+		psEntry->iAdjust = 0;
 	}
 	for (i = 0; i < psClass->macVtables.NumElements(); i++)
 	{
 		psVtable = psClass->macVtables.Get(i);
-		AppendVtableHeader(psClass, psVtable->iOffset + psVtable->psOwner->iVtableOffset);
+		psEntry = pasEntries->Add();
+		psEntry->eKind = CPP65VE_Header;
+		psEntry->iVtablePointer = psVtable->iOffset + psVtable->psOwner->iVtableOffset;
+		psEntry->psFunction = NULL;
+		psEntry->iAdjust = 0;
 		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
 		{
-			AppendVtableEntry(psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
+			psEntry = pasEntries->Add();
+			psEntry->eKind = CPP65VE_Function;
+			psEntry->iVtablePointer = 0;
+			psEntry->psFunction = psVtable->mapsFunctions.GetPtr(j);
+			psEntry->iAdjust = psVtable->maiAdjust.GetValue(j);
 		}
 	}
-
-	EnsureTypeInfo(psClass);
 }
 
 
@@ -3301,7 +3356,7 @@ void CCPP65Generator::AppendVtableHeader(SCPP65Class* psClass, int iVtablePointe
 	mszData.Append(-iVtablePointer);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
-	AppendClassLabel(&mszData, psClass, "3");
+	AppendTypeInfoLabel(&mszData, psClass);
 	mszData.AppendNewLine();
 }
 
@@ -3327,7 +3382,7 @@ void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
 	psClass->bTypeInfo = true;
 
 	szLabel.Init();
-	AppendClassLabel(&szLabel, psClass, "3");
+	AppendTypeInfoLabel(&szLabel, psClass);
 	if (!Emit(&szLabel))
 	{
 		szLabel.Kill();
@@ -3345,7 +3400,7 @@ void CCPP65Generator::EnsureTypeInfo(SCPP65Class* psClass)
 	szLabel.Kill();
 	mszData.Append("\t\t.align 4");
 	mszData.AppendNewLine();
-	AppendClassLabel(&mszData, psClass, "3");
+	AppendTypeInfoLabel(&mszData, psClass);
 	mszData.Append(':');
 	mszData.AppendNewLine();
 	AppendTypeInfoBases(psClass, 0);
@@ -3370,7 +3425,7 @@ void CCPP65Generator::AppendTypeInfoBases(SCPP65Class* psClass, int iOffset)
 	size		i;
 
 	mszData.Append("\t\t.long ");
-	AppendClassLabel(&mszData, psClass, "3");
+	AppendTypeInfoLabel(&mszData, psClass);
 	mszData.AppendNewLine();
 	mszData.Append("\t\t.long ");
 	mszData.Append(iOffset);
@@ -3415,7 +3470,7 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 	mszData.Append("\t\t.long ");
 	if (psFunction->bPure)
 	{
-		mszData.Append("R_Pure");
+		AppendVtableEntryLabel(&mszData, psFunction, iAdjust);
 		mbPureVirtual = true;
 		mszData.AppendNewLine();
 		return;
@@ -3423,11 +3478,9 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 
 	RequireFunction(psFunction);
 	szLabel.Init();
-	AppendFunctionLabel(&szLabel, psFunction);
+	AppendVtableEntryLabel(&szLabel, psFunction, iAdjust);
 	if (iAdjust != 0)
 	{
-		szLabel.Append("__t");
-		szLabel.Append(-iAdjust);
 		if (Emit(&szLabel))
 		{
 			if (IsUnitFunction(psFunction))
@@ -3462,6 +3515,29 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 	mszData.Append(szLabel);
 	mszData.AppendNewLine();
 	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A vtable entry's label: R_Pure for a pure virtual function, else the
+// function's, or its thunk's (__t and the adjustment's negation) when this
+// is adjusted by iAdjust first.  AppendVtableEntry writes the thunk.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendVtableEntryLabel(CChars* psz, SCPP65Function* psFunction, int iAdjust)
+{
+	if (psFunction->bPure)
+	{
+		psz->Append("R_Pure");
+		return;
+	}
+	AppendFunctionLabel(psz, psFunction);
+	if (iAdjust != 0)
+	{
+		psz->Append("__t");
+		psz->Append(-iAdjust);
+	}
 }
 
 
@@ -4419,6 +4495,28 @@ void CCPP65Generator::AppendClassLabel(CChars* psz, SCPP65Class* psClass, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// _Class__2, the class's vtable (CPP65_VTABLE_LABEL).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendVtableLabel(CChars* psz, SCPP65Class* psClass)
+{
+	AppendClassLabel(psz, psClass, CPP65_VTABLE_LABEL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _Class__3, the class's type info (CPP65_TYPE_INFO_LABEL).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendTypeInfoLabel(CChars* psz, SCPP65Class* psClass)
+{
+	AppendClassLabel(psz, psClass, CPP65_TYPE_INFO_LABEL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Class, or Class__T and the template arguments, after the classes and
 // namespaces it is in (Outer__Class).  A class without a name is the unit,
 // Unnamed and its number.
@@ -4770,7 +4868,7 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunc
 		mszThunks.Append(" + X]");
 		mszThunks.AppendNewLine();
 		mszThunks.Append("\t\tjmp [");
-		mszThunks.Append(4 * psFunction->iSlot);
+		mszThunks.Append(CPP65_VTABLE_ENTRY_BYTES * psFunction->iSlot);
 		mszThunks.Append(" + A]");
 		mszThunks.AppendNewLine();
 		mszThunks.AppendNewLine();
@@ -4823,10 +4921,10 @@ void CCPP65Generator::AppendVirtualCallThunk816(SCPP65Function* psFunction)
 	mszThunks.Append("\t\tldy ")->Append(psFunction->psClass->iVtableOffset + 2)->AppendNewLine();
 	mszThunks.Append("\t\tlda [[D + 10]:24 + Y]\n");
 	mszThunks.Append("\t\tsta [D + 3]\n");
-	mszThunks.Append("\t\tldy ")->Append(4 * psFunction->iSlot + 2)->AppendNewLine();
+	mszThunks.Append("\t\tldy ")->Append(CPP65_VTABLE_ENTRY_BYTES * psFunction->iSlot + 2)->AppendNewLine();
 	mszThunks.Append("\t\tlda [[D + 1]:24 + Y]\n");
 	mszThunks.Append("\t\ttax\n");
-	mszThunks.Append("\t\tldy ")->Append(4 * psFunction->iSlot)->AppendNewLine();
+	mszThunks.Append("\t\tldy ")->Append(CPP65_VTABLE_ENTRY_BYTES * psFunction->iSlot)->AppendNewLine();
 	mszThunks.Append("\t\tlda [[D + 1]:24 + Y]\n");
 	mszThunks.Append("\t\tdec A\n");
 	mszThunks.Append("\t\tsta [D + 1]\n");

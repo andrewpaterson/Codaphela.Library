@@ -576,7 +576,7 @@ bool CCPP65IRFrontEnd::ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObje
 	if (bVirtual && psFunction && psFunction->bVirtual)
 	{
 		sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(*psObject, psFunction->psClass->iVtableOffset));
-		*psCallee = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sVtable, 4 * psFunction->iSlot));
+		*psCallee = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sVtable, CPP65_VTABLE_ENTRY_BYTES * psFunction->iSlot));
 	}
 	return true;
 }
