@@ -104,11 +104,11 @@ void CImageCombiner::Class(void)
 	U_2Int32(msSize);
 	M_Pointer(mpDestImage);
 	M_Embedded(mcSourceCels);
-	U_Data(CArrayChars, maszSourceFileNames);
+	U_Unknown(CArrayChars, maszSourceFileNames);
 	M_Embedded(mcDestCels);
 	U_SInt(miOutsideEdgeWidth);
 	U_SInt(miInnerEdgeWidth);
-	U_Data(CArrayChannel, masChannels);
+	U_Unknown(CArrayChannel, masChannels);
 	U_Bool(mbNameCels);
 }
 

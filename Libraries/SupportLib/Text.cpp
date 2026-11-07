@@ -69,7 +69,7 @@ void CText::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CText::Class(void)
 {
-	U_Data(CArrayTextRun, macText);
+	U_Unknown(CArrayTextRun, macText);
 	U_Pointer(mpcMalloc);
 }
 

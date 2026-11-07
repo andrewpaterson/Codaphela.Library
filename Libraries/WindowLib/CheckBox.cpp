@@ -72,7 +72,7 @@ void CCheckBox::Class(void)
 	M_Pointer(mpImages);
 	M_Pointer(mpBox);
 	M_Pointer(mpCaption);
-	U_Data(CComponentEvent<CCheckBox>, mcChanged);
+	U_Unknown(CComponentEvent<CCheckBox>, mcChanged);
 	U_Enum(meState);
 	U_Int32(miGap);
 	U_Bool(mbTicked);

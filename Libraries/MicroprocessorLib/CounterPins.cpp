@@ -88,10 +88,10 @@ void CCounterPins::Class(void)
 	U_Pointer(mpcClock);
 	U_Pointer(mpcReset);
 	U_Pointer(mpcLoad);
-	U_Data(CArrayLogicPortPtr, mapcData);
+	U_Unknown(CArrayLogicPortPtr, mapcData);
 	U_Pointer(mpcCountEnable);
 	U_Pointer(mpcCountEnableTerminal);
-	U_Data(CArrayLogicPortPtr, mapcOutput);
+	U_Unknown(CArrayLogicPortPtr, mapcOutput);
 	U_Pointer(mpcTerminalOutput);
 }
 

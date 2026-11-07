@@ -41,7 +41,7 @@ void CTileGridStringSource::Free(void)
 void CTileGridStringSource::Class(void)
 {
 	CTileGridSource::Class();
-	U_Data(CArrayChars, maszStrings);
+	U_Unknown(CArrayChars, maszStrings);
 	U_Data(SSizeVec2, msSize);
 }
 

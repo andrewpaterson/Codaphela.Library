@@ -56,11 +56,11 @@ void CInput::Init(CNativeInput* pcNativeInput)
 void CInput::Class(void)
 {
 	Nes(M_Pointer(mpDevices));
-	U_Data(CInputActions, mcActions);
+	U_Unknown(CInputActions, mcActions);
 	U_UInt32(muiSequence);
 	U_UInt32(muiTime);
 	U_Pointer(mpcNativeInput);
-	U_Data(CProgramInput, mcProgramInput);
+	U_Unknown(CProgramInput, mcProgramInput);
 }
 
 

@@ -109,9 +109,9 @@ void CDockTitleBar::Class(void)
 	U_2Int32(msPressed);
 	U_Enum(mePressedButton);
 	U_Data(SDoubleClick, msDoubleClick);
-	U_Data(CComponentEvent<CDockTitleBar>, mcDragged);
-	U_Data(CComponentEvent<CDockTitleBar>, mcDoubleClicked);
-	U_Data(CComponentEvent<CDockTitleBar>[DTB_NumButtons], macButtonPressed);
+	U_Unknown(CComponentEvent<CDockTitleBar>, mcDragged);
+	U_Unknown(CComponentEvent<CDockTitleBar>, mcDoubleClicked);
+	U_Unknown(CComponentEvent<CDockTitleBar>[DTB_NumButtons], macButtonPressed);
 }
 
 

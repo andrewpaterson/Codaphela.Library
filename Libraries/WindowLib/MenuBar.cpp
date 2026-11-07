@@ -69,7 +69,7 @@ void CMenuBar::Class(void)
 	M_Pointer(mpFiller);
 	M_Embedded(maItems);
 	M_Pointer(mpOpenItem);
-	U_Data(CComponentEvent<CMenuItem>, mcItemClicked);
+	U_Unknown(CComponentEvent<CMenuItem>, mcItemClicked);
 }
 
 

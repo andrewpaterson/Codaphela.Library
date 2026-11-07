@@ -55,7 +55,7 @@ void CInputDevices::Class(void)
 {
 	U_Unknown(CSetInputDevice, mlcDevices);
 	U_Unknown(CSetInputDeviceDesc, mlcDeviceDescs);
-	U_Data(CInputCategories, mcCategories);
+	U_Unknown(CInputCategories, mcCategories);
 	M_Embedded(mcDataFormats);
 	U_String(mszXMLError);
 	U_String(mszDirectory);

@@ -91,7 +91,7 @@ void CMenuItem::Class(void)
 	U_Int32(miTag);
 	U_Bool(mbEnabled);
 	U_Enum(meShortcut);
-	U_Data(CComponentEvent<CMenuItem>, mcClicked);
+	U_Unknown(CComponentEvent<CMenuItem>, mcClicked);
 }
 
 

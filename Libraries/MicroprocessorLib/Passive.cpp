@@ -48,7 +48,7 @@ void CPassive::Class(void)
 {
 	CCircuitComponent::Class();
 
-	U_Data(CArrayPortPtr, mapcPorts);
+	U_Unknown(CArrayPortPtr, mapcPorts);
 }
 
 

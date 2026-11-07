@@ -71,7 +71,7 @@ void CSubcircuitInstance::Class(void)
 {
 	CPassive::Class();
 
-	U_Data(CArraySubcircuitNamedPinPtr, mapsNamedPins);
+	U_Unknown(CArraySubcircuitNamedPinPtr, mapsNamedPins);
 	U_Pointer(mpcSubcircuitInstanceSimulation);
 }
 

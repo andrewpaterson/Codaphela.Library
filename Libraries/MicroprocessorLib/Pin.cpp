@@ -64,7 +64,7 @@ void CPin::Class(void)
 {
 	CPassive::Class();
 
-	U_Data(CArrayTracePortPtr, mapcTracePorts);
+	U_Unknown(CArrayTracePortPtr, mapcTracePorts);
 	U_Pointer(mpcVCC);
 	U_Pointer(mpcGND);
 }

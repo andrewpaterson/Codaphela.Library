@@ -46,7 +46,7 @@ void CTrueTypeFace::Init(void)
 void CTrueTypeFace::Class(void)
 {
 	U_String(mszFilename);
-	U_Data(CTrueTypeFont, mcFont);
+	U_Unknown(CTrueTypeFont, mcFont);
 	U_Bool(mbLoaded);
 }
 

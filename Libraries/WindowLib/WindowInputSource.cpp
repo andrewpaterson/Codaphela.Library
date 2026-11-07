@@ -63,10 +63,10 @@ void CWindowInputSource::Class(void)
 {
 	Nes(M_Pointer(mpInput));
 	U_Pointer(mpcVirtual);
-	U_Data(CArrayInputDevicePtr, mapcDevices);
+	U_Unknown(CArrayInputDevicePtr, mapcDevices);
 	U_Data(CTimer, mcTimer);
-	U_Data(CArrayWindowInputEvent, masEvents);
-	U_Data(CArrayTemplate<SInputDeviceValueSource>, masForgotten);
+	U_Unknown(CArrayWindowInputEvent, masEvents);
+	U_Unknown(CArrayTemplate<SInputDeviceValueSource>, masForgotten);
 }
 
 

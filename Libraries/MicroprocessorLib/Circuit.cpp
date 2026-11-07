@@ -51,7 +51,7 @@ void CCircuit::Class(void)
 {
 	M_Embedded(maIntegratedCircuits);
 	M_Embedded(maPassives);
-	U_Data(CArrayTracePtr, mapcTraces);
+	U_Unknown(CArrayTracePtr, mapcTraces);
 	Nes(M_Pointer(mpSimulation));
 }
 

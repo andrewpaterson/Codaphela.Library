@@ -67,7 +67,7 @@ void CFont::Class(void)
 	M_Pointer(mpImage);
 	M_Embedded(mapGlyphs);
 	U_Bool(mbLazy);
-	U_Data(CArrayBit, mabHasPixels);
+	U_Unknown(CArrayBit, mabHasPixels);
 	M_Pointer(mpWhite);
 	U_UInt32(msColour);
 }

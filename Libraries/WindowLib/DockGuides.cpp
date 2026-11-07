@@ -99,7 +99,7 @@ void CDockGuides::Class(void)
 
 	M_Pointer(mpManager);
 	M_Pointer(mpArea);
-	U_Data(CArrayDockGuide, masGuides);
+	U_Unknown(CArrayDockGuide, masGuides);
 	U_Size(muiHover);
 	U_Data(CInt32Rect, mcPreview);
 	U_Bool(mbPreview);

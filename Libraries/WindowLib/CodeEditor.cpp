@@ -117,20 +117,20 @@ void CCodeEditor::Class(void)
 	M_Pointer(mpGutterDraw);
 	M_Pointer(mpTextArea);
 	M_Embedded(maLineComponents);
-	U_Data(CArrayCodeEditorGapIds, mauiGapIds);
-	U_Data(CArrayCodeEditorLines, mauiLines);
+	U_Unknown(CArrayCodeEditorGapIds, mauiGapIds);
+	U_Unknown(CArrayCodeEditorLines, mauiLines);
 	U_Size(muiGutterLines);
-	U_Data(CArrayCodeEditorMarks, macMarks);
+	U_Unknown(CArrayCodeEditorMarks, macMarks);
 	U_Bool(mbMarksChanged);
-	U_Data(CArrayCodeEditorChangeBars, masChangeBars);
+	U_Unknown(CArrayCodeEditorChangeBars, masChangeBars);
 	U_Bool(mbChangeBarsChanged);
 	U_Bool(mbGlyphColumn);
-	U_Data(CArrayCodeEditorGlyphs, masGlyphs);
-	U_Data(CGutterClickEvent, mcGlyphClicked);
+	U_Unknown(CArrayCodeEditorGlyphs, masGlyphs);
+	U_Unknown(CGutterClickEvent, mcGlyphClicked);
 	U_UInt32(msBandNumberColour);
-	U_Data(CGutterClickEvent, mcGutterClicked);
-	U_Data(CGutterClickEvent, mcChangeBarClicked);
-	U_Data(CComponentEvent<CCodeEditor>, mcChanged);
+	U_Unknown(CGutterClickEvent, mcGutterClicked);
+	U_Unknown(CGutterClickEvent, mcChangeBarClicked);
+	U_Unknown(CComponentEvent<CCodeEditor>, mcChanged);
 }
 
 

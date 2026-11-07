@@ -66,7 +66,7 @@ void CInputDataFormat::Init(char* szCommonName)
 void CInputDataFormat::Class(void)
 {
 	M_Embedded(mcExternalChannels);
-	U_Data(CArrayChars, mcChannelNames);
+	U_Unknown(CArrayChars, mcChannelNames);
 	U_Bool(mbCommon);
 	U_String(mszCommonName);
 }

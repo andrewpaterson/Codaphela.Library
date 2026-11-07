@@ -25,7 +25,7 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 void CImageCelBlitterCache::Class(void)
 {
 	M_Embedded(maBlitters);
-	U_Data(CArrayImageCelPtr, mapcCels);
+	U_Unknown(CArrayImageCelPtr, mapcCels);
 	M_Pointer(mpDestImage);
 }
 

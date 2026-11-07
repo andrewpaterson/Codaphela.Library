@@ -58,8 +58,8 @@ void CW65C816Chip::Class(void)
 {
 	CIntegratedCircuit::Class();
 
-	U_Data(CW65C816, mcMPU);
-	U_Data(CW65C816Pins, mcSignals);
+	U_Unknown(CW65C816, mcMPU);
+	U_Unknown(CW65C816Pins, mcSignals);
 }
 
 

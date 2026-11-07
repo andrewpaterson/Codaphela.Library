@@ -63,8 +63,8 @@ void CGeometryMap::Free(void)
 void CGeometryMap::Class(void)
 {
 	CBaseMap::Class();
-	U_Data(CArrayGeometryCommand, masCommands);
-	U_Data(CArrayGeometryPoint, masPoints);
+	U_Unknown(CArrayGeometryCommand, masCommands);
+	U_Unknown(CArrayGeometryPoint, masPoints);
 	M_Pointer(mpViewport);
 }
 

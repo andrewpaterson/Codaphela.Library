@@ -201,7 +201,7 @@ void CDockSplit::Class(void)
 	U_Bool(mbHorizontal);
 	M_Embedded(maNodes);
 	M_Embedded(maSashes);
-	U_Data(CArrayInt, maiSizes);
+	U_Unknown(CArrayInt, maiSizes);
 	U_Data(ARGB32, msSashColour);
 }
 

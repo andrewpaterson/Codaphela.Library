@@ -101,7 +101,7 @@ void CFocus::Class(void)
 	U_Bool(mbPointerIn);
 	U_Bool(mbActive);
 	U_Enum(meDrag);
-	U_Data(CComponentEvent<CFocus>, mcFocusChanged);
+	U_Unknown(CComponentEvent<CFocus>, mcFocusChanged);
 	U_Int32(miCaretBlinkPeriod);
 	U_Int64(miCaretBlinkTime);
 	U_Bool(mbCaretOn);

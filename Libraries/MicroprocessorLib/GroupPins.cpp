@@ -82,8 +82,8 @@ void CGroupPins::Class(void)
 	CPins::Class();
 
 	U_Size(muiGroups);
-	U_Data(CArrayGroupPinRoleStore, masRoles);
-	U_Data(CArrayLogicPortPtr, mapcPorts);
+	U_Unknown(CArrayGroupPinRoleStore, masRoles);
+	U_Unknown(CArrayLogicPortPtr, mapcPorts);
 }
 
 

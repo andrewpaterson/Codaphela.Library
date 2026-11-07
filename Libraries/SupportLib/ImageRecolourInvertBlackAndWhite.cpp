@@ -51,9 +51,9 @@ void CImageRecolourInvertBlackAndWhite::Init(CInt32Rect* pcRectangle)
 void CImageRecolourInvertBlackAndWhite::Class(void)
 {
 	CImageRecolour::Class();
-	U_Data(CImageColourARGB, mcARGB0000);
-	U_Data(CImageColourARGB, mcARGB1111);
-	U_Data(CImageColourARGB, mcARGB0111);
+	U_Unknown(CImageColourARGB, mcARGB0000);
+	U_Unknown(CImageColourARGB, mcARGB1111);
+	U_Unknown(CImageColourARGB, mcARGB0111);
 }
 
 

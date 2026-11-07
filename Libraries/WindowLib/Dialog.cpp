@@ -66,7 +66,7 @@ void CDialogTick::Init(void)
 void CDialogTick::Class(void)
 {
 	CWindowTick::Class();
-	U_Data(SMemberCall, msTicker);
+	U_Unknown(SMemberCall, msTicker);
 }
 
 
@@ -169,7 +169,7 @@ void CDialog::Class(void)
 	M_Pointer(mpCancel);
 	M_Pointer(mpExtra);
 	M_Pointer(mpFirstEditor);
-	U_Data(SMemberCall, msApprover);
+	U_Unknown(SMemberCall, msApprover);
 	U_String(mszClicked);
 	U_Int32(miRows);
 	U_Bool(mbCancel);

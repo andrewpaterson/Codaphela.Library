@@ -89,7 +89,7 @@ void CScrollPane::Class(void)
 	U_2Int32(msLaidOutScroll);
 	U_Int32(miMargin);
 	U_Int32(miWheelStep);
-	U_Data(CScrollEvent, mcScrolled);
+	U_Unknown(CScrollEvent, mcScrolled);
 }
 
 

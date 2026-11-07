@@ -150,9 +150,9 @@ void CDockManager::Class(void)
 	U_Pointer(mpcListener);
 	M_Pointer(mpDrag);
 	M_Pointer(mpFocus);
-	U_Data(CDockTree, mcTree);
-	U_Data(CDockRestorer, mcRestorer);
-	U_Data(CDockMover, mcMover);
+	U_Unknown(CDockTree, mcTree);
+	U_Unknown(CDockRestorer, mcRestorer);
+	U_Unknown(CDockMover, mcMover);
 	U_Data(CInt32Rect, mcLayoutWindow);
 	U_Bool(mbLayoutWindow);
 }

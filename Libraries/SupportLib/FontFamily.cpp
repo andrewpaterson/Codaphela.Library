@@ -79,7 +79,7 @@ void CFontFamily::Class(void)
 	U_Int32(miImageWidth);
 	M_Embedded(mapFaces);
 	M_Embedded(mapColours);
-	U_Data(CArrayFontFamilySize, masSizes);
+	U_Unknown(CArrayFontFamilySize, masSizes);
 }
 
 

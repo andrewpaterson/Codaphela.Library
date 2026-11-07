@@ -81,11 +81,11 @@ void CTileLayerCel::Free(void)
 void CTileLayerCel::Class(void)
 {
 	CTileLayer::Class();
-	U_Data(CArrayTileLayerRow, masRows);
-	U_Data(CArrayTileLayerTile, mauiTiles);
+	U_Unknown(CArrayTileLayerRow, masRows);
+	U_Unknown(CArrayTileLayerTile, mauiTiles);
 	M_Embedded(maCels);
 	M_Embedded(maBlitters);
-	U_Data(CMapTileLayerCelIndex, mcCelIndices);
+	U_Unknown(CMapTileLayerCelIndex, mcCelIndices);
 	M_Pointer(mpCache);
 	M_Pointer(mpViewport);
 }

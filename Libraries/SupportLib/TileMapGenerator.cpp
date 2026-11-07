@@ -113,13 +113,13 @@ void CTileMapGenerator::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileMapGenerator::Class(void)
 {
-	U_Data(CArrayTileMapPattern, macTileMapPatterns);
+	U_Unknown(CArrayTileMapPattern, macTileMapPatterns);
 	M_Embedded(maTileCelBrushes);
-	U_Data(CArrayChars, maszPatternNames);
-	U_Data(CArrayChars, maszSourceNames);
-	U_Data(CArrayTileCelType, macTileCelTypes);
+	U_Unknown(CArrayChars, maszPatternNames);
+	U_Unknown(CArrayChars, maszSourceNames);
+	U_Unknown(CArrayTileCelType, macTileCelTypes);
 	M_Embedded(maTileGridSources);
-	U_Data(CLinkedListBlock, mllcTileSources);
+	U_Unknown(CLinkedListBlock, mllcTileSources);
 	M_Embedded(maTileCelGenerators);
 	M_Pointer(mpMap);
 	U_Data(SSizeVec2, msCelSize);

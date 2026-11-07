@@ -61,8 +61,8 @@ void C65C64Chip::Class(void)
 {
 	CIntegratedCircuit::Class();
 
-	U_Data(C65C64, mcMPU);
-	U_Data(C65C64Pins, mcSignals);
+	U_Unknown(C65C64, mcMPU);
+	U_Unknown(C65C64Pins, mcSignals);
 }
 
 

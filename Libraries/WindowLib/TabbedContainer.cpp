@@ -101,12 +101,12 @@ void CTabbedContainer::Class(void)
 	U_Bool(mbHideSingleTab);
 	U_Bool(mbBarShown);
 	U_Size(muiShownTabs);
-	U_Data(CComponentEvent<CTabComponent>, mcSelected);
-	U_Data(CTabRemovedEvent, mcRemoved);
-	U_Data(CComponentEvent<CTabComponent>, mcDoubleClicked);
-	U_Data(CComponentEvent<CTabComponent>, mcClicked);
-	U_Data(CComponentEvent<CTabComponent>, mcDragged);
-	U_Data(CComponentEvent<CTabComponent>, mcCloseRequested);
+	U_Unknown(CComponentEvent<CTabComponent>, mcSelected);
+	U_Unknown(CTabRemovedEvent, mcRemoved);
+	U_Unknown(CComponentEvent<CTabComponent>, mcDoubleClicked);
+	U_Unknown(CComponentEvent<CTabComponent>, mcClicked);
+	U_Unknown(CComponentEvent<CTabComponent>, mcDragged);
+	U_Unknown(CComponentEvent<CTabComponent>, mcCloseRequested);
 	U_Data(SDoubleClick, msDoubleClick);
 }
 

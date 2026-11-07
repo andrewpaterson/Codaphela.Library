@@ -82,7 +82,7 @@ void CComboBox::Class(void)
 	M_Pointer(mpText);
 	M_Pointer(mpChevron);
 	M_Pointer(mpMenu);
-	U_Data(CComponentEvent<CComboBox>, mcSelectionChanged);
+	U_Unknown(CComponentEvent<CComboBox>, mcSelectionChanged);
 	U_Int32(miSelected);
 }
 

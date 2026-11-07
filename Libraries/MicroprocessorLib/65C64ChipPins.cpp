@@ -95,8 +95,8 @@ void C65C64ChipPins::Class(void)
 {
 	CPins::Class();
 
-	U_Data(CLogicPortBus, mcAddress);
-	U_Data(CLogicPortBus, mcData);
+	U_Unknown(CLogicPortBus, mcAddress);
+	U_Unknown(CLogicPortBus, mcData);
 	U_Pointer(mpcPHI2);
 	U_Pointer(mpcRESB);
 	U_Pointer(mpcRWB);
@@ -106,7 +106,7 @@ void C65C64ChipPins::Class(void)
 	U_Pointer(mpcVPA);
 	U_Pointer(mpcVDA);
 	U_Pointer(mpcVPB);
-	U_Data(CLogicPort*[NUM_65C64_EDGE_INTERRUPTS], mapcEIRQB);
+	U_Unknown(CLogicPort*[NUM_65C64_EDGE_INTERRUPTS], mapcEIRQB);
 	U_Pointer(mpcLIRQB);
 }
 

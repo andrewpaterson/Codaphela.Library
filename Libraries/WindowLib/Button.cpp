@@ -111,7 +111,7 @@ void CButton::Class(void)
 	M_Pointer(mpIcon);
 	M_Pointer(mpCaption);
 	U_Int32(miIconGap);
-	U_Data(CComponentEvent<CButton>, mcClicked);
+	U_Unknown(CComponentEvent<CButton>, mcClicked);
 	U_Enum(meState);
 	U_Bool(mbPressed);
 	U_Bool(mbDefault);

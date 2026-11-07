@@ -536,12 +536,12 @@ void CImageBlitter::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Class(void)
 {
-	U_Data(CArrayOffsetImageRowBlitter, macRowBlitters);
+	U_Unknown(CArrayOffsetImageRowBlitter, macRowBlitters);
 	U_Pointer(mpcSourceCel);
 	M_Pointer(mpDestImage);
 	U_Data(CImageBlitterFormat, mcFormat);
-	U_Data(CImageBlitterContext, mcContext);
-	U_Data(CArrayInt32, maiRowStarts);
+	U_Unknown(CImageBlitterContext, mcContext);
+	U_Unknown(CArrayInt32, maiRowStarts);
 	U_Pointer(mpcSizing);
 }
 

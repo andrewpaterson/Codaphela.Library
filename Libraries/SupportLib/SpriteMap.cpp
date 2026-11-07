@@ -66,10 +66,10 @@ void CSpriteMap::Free(void)
 void CSpriteMap::Class(void)
 {
 	CBlockMap::Class();
-	U_Data(CArraySprite, masSprites);
+	U_Unknown(CArraySprite, masSprites);
 	M_Embedded(maCels);
 	M_Embedded(maBlitters);
-	U_Data(CMapImageCelIndex, mcCelIndices);
+	U_Unknown(CMapImageCelIndex, mcCelIndices);
 	M_Pointer(mpCache);
 	M_Pointer(mpViewport);
 }

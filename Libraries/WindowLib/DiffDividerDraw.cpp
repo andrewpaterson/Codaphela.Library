@@ -54,7 +54,7 @@ void CDiffDividerDraw::Class(void)
 	CCanvasDraw::Class();
 	M_Pointer(mpCelDraw);
 	U_UInt32(msBackground);
-	U_Data(CArrayDiffDividerShape, masShapes);
+	U_Unknown(CArrayDiffDividerShape, masShapes);
 	U_2Int32(msCelSize);
 }
 

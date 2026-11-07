@@ -164,7 +164,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
 	M_Pointer(mpCaretBacking);
-	U_Data(SMemberCall, msCloseApprover);
+	U_Unknown(SMemberCall, msCloseApprover);
 	U_Data(CInt32Rect, mcCaret);
 	U_UInt32(msCaretColour);
 	U_Bool(mbCaretPainted);
@@ -182,14 +182,14 @@ void CWindow::Class(void)
 	U_Bool(mbRedraw);
 	U_Bool(mbLayoutDirty);
 	U_Bool(mbCheckLayoutCache);
-	U_Data(CComponentEvent<CWindow>, mcActivated);
+	U_Unknown(CComponentEvent<CWindow>, mcActivated);
 	U_UInt32(muiFrameMilliseconds);
 	U_Int64(miLastPaintTime);
 	U_Int64(miTickDelay);
 	M_Pointer(mpOwner);
 	M_Embedded(maOwned);
 	U_Unknown(CArrayMemberCalls, masPosted);
-	U_Data(CComponentEvent<CWindow>, mcClosed);
+	U_Unknown(CComponentEvent<CWindow>, mcClosed);
 }
 
 

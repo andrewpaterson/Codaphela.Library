@@ -48,7 +48,7 @@ void CFontColours::Class(void)
 {
 	M_Pointer(mpWhite);
 	M_Embedded(mapFonts);
-	U_Data(CArrayARGB32, masColours);
+	U_Unknown(CArrayARGB32, masColours);
 }
 
 

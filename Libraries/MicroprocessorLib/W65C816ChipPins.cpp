@@ -92,8 +92,8 @@ void CW65C816ChipPins::Class(void)
 {
 	CPins::Class();
 
-	U_Data(CLogicPortBus, mcAddress);
-	U_Data(CLogicPortBus, mcData);
+	U_Unknown(CLogicPortBus, mcAddress);
+	U_Unknown(CLogicPortBus, mcData);
 	U_Pointer(mpcVPB);
 	U_Pointer(mpcRDY);
 	U_Pointer(mpcABORTB);

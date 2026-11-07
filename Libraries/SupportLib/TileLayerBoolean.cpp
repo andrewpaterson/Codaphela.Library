@@ -58,7 +58,7 @@ void CTileLayerBoolean::Free(void)
 void CTileLayerBoolean::Class(void)
 {
 	CTileLayer::Class();
-	U_Data(CArrayBit, macBools);
+	U_Unknown(CArrayBit, macBools);
 }
 
 

@@ -61,7 +61,7 @@ void COrGatePins::Class(void)
 {
 	CPins::Class();
 
-	U_Data(CArrayLogicPortPtr, mapcInputs);
+	U_Unknown(CArrayLogicPortPtr, mapcInputs);
 	U_Pointer(mpcOutput);
 }
 

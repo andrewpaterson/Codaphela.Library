@@ -50,7 +50,7 @@ void CImageChannelAdd::Class(void)
 {
 	CImageModifier::Class();
 	U_Enum(meType);
-	U_Data(CArrayInt, maiChannels);
+	U_Unknown(CArrayInt, maiChannels);
 	U_Int32(miGroup);
 }
 

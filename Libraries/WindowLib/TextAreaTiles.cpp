@@ -65,8 +65,8 @@ void CTextAreaTiles::Class(void)
 	M_Pointer(mpTileMap);
 	M_Pointer(mpTileLayer);
 	M_Pointer(mpTileWriter);
-	U_Data(CArrayTextLayoutLine, masLines);
-	U_Data(CArrayTextLayoutStop, masStops);
+	U_Unknown(CArrayTextLayoutLine, masLines);
+	U_Unknown(CArrayTextLayoutStop, masStops);
 }
 
 

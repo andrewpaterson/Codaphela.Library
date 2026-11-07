@@ -109,7 +109,7 @@ void CImageCel::Class(void)
 {
 	U_Data(CSubImage, mcSubImage);
 	M_Pointer(mpSourceImage);
-	U_Data(CArrayImageCelBlitterCachePtr, mapcBlitterCaches);
+	U_Unknown(CArrayImageCelBlitterCachePtr, mapcBlitterCaches);
 }
 
 

@@ -79,12 +79,12 @@ void CTreeContainer::Class(void)
 {
 	CListContainer::Class();
 	M_Pointer(mpTheme);
-	U_Data(CArrayTreeNode, masNodes);
+	U_Unknown(CArrayTreeNode, masNodes);
 	U_String(mszTexts);
 	M_Embedded(maIcons);
 	M_Embedded(maFonts);
-	U_Data(CArrayInt, maiRowNodes);
-	U_Data(CArrayInt, maiTopNodes);
+	U_Unknown(CArrayInt, maiRowNodes);
+	U_Unknown(CArrayInt, maiTopNodes);
 	M_Pointer(mpCollapsedChevron);
 	M_Pointer(mpExpandedChevron);
 	U_Int32(miIndent);

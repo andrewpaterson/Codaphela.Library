@@ -58,7 +58,7 @@ void CConstantPins::Class(void)
 {
 	CPins::Class();
 
-	U_Data(CArrayLogicPortPtr, mapcOutputs);
+	U_Unknown(CArrayLogicPortPtr, mapcOutputs);
 }
 
 

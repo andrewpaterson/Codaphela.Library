@@ -81,11 +81,11 @@ void CMenuContainer::Class(void)
 {
 	CListContainer::Class();
 
-	U_Data(CComponentEvent<CMenuItem>, mcItemClicked);
-	U_Data(CComponentEvent<CMenuContainer>, mcOpening);
+	U_Unknown(CComponentEvent<CMenuItem>, mcItemClicked);
+	U_Unknown(CComponentEvent<CMenuContainer>, mcOpening);
 	M_Pointer(mpStyle);
 	M_Embedded(maItems);
-	U_Data(CArrayInt, maiItemRows);
+	U_Unknown(CArrayInt, maiItemRows);
 	M_Pointer(mpParentMenu);
 	M_Pointer(mpMenuBar);
 	M_Pointer(mpOpenSubMenu);

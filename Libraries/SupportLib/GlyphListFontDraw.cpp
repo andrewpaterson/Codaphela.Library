@@ -25,8 +25,8 @@ void CGlyphListFontDraw::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CGlyphListFontDraw::Class(void)
 {
-	U_Data(CArrayGlyphPosition, masGlyphs);
-	U_Data(CArrayTextDrawRectangle, masRectangles);
+	U_Unknown(CArrayGlyphPosition, masGlyphs);
+	U_Unknown(CArrayTextDrawRectangle, masRectangles);
 }
 
 

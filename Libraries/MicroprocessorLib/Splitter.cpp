@@ -48,8 +48,8 @@ void CSplitter::Class(void)
 {
 	CPassive::Class();
 
-	U_Data(CArrayTracePortPtr, mapcStartPorts);
-	U_Data(CArrayTracePortPtr, mapcEndPorts);
+	U_Unknown(CArrayTracePortPtr, mapcStartPorts);
+	U_Unknown(CArrayTracePortPtr, mapcEndPorts);
 }
 
 

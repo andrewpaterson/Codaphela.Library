@@ -54,7 +54,7 @@ void CPins::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPins::Class(void)
 {
-	U_Data(CArrayPortPtr, mapcPorts);
+	U_Unknown(CArrayPortPtr, mapcPorts);
 	U_Pointer(mpcIntegratedCircuit);
 	U_Pointer(mpcVCC);
 	U_Pointer(mpcGND);

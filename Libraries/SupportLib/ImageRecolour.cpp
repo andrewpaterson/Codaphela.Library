@@ -63,8 +63,8 @@ void CImageRecolour::Class(void)
 	CImageModifier::Class();
 	U_Data(CInt32Rect, mcRectangle);
 	U_Bool(mbWholeImage);
-	U_Data(CArrayUnknown, macOldColour);
-	U_Data(CArrayUnknown, macNewColour);
+	U_Unknown(CArrayUnknown, macOldColour);
+	U_Unknown(CArrayUnknown, macNewColour);
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -296,11 +296,11 @@ void CGridContainer::Free(void)
 void CGridContainer::Class(void)
 {
 	CContainer::Class();
-	U_Data(CArrayGridCells, macCells);
-	U_Data(CArrayInt, maiColumnStarts);
-	U_Data(CArrayInt, maiColumnSizes);
-	U_Data(CArrayInt, maiRowStarts);
-	U_Data(CArrayInt, maiRowSizes);
+	U_Unknown(CArrayGridCells, macCells);
+	U_Unknown(CArrayInt, maiColumnStarts);
+	U_Unknown(CArrayInt, maiColumnSizes);
+	U_Unknown(CArrayInt, maiRowStarts);
+	U_Unknown(CArrayInt, maiRowSizes);
 }
 
 

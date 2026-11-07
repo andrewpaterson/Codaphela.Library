@@ -61,7 +61,7 @@ void CFontDescription::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int1
 void CFontDescription::Class(void)
 {
 	U_String(mszName);
-	U_Data(CIndexGlyphDescription, macGlyphs);
+	U_Unknown(CIndexGlyphDescription, macGlyphs);
 	M_Pointer(mpRasteriser);
 	U_Int32(miImageWidth);
 	U_Int32(miImageHeight);

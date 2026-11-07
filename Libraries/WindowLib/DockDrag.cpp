@@ -71,7 +71,7 @@ void CDockDrag::Class(void)
 	U_Bool(mbTornOff);
 	U_Bool(mbCancelled);
 	U_Bool(mbNoDock);
-	U_Data(SDockTarget, msTarget);
+	U_Unknown(SDockTarget, msTarget);
 	M_Pointer(mpGuidesArea);
 }
 

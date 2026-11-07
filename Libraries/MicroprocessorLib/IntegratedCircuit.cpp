@@ -59,7 +59,7 @@ void CIntegratedCircuit::Class(void)
 	CCircuitComponent::Class();
 
 	M_Pointer(mpPins);
-	U_Data(CArrayEventPtr, mapcEvents);
+	U_Unknown(CArrayEventPtr, mapcEvents);
 }
 
 

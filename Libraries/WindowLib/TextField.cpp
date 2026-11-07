@@ -137,12 +137,12 @@ void CTextField::Class(void)
 {
 	CImageBorderContainer::Class();
 
-	U_Data(CPlainTextEditor, mcEditor);
+	U_Unknown(CPlainTextEditor, mcEditor);
 	M_Pointer(mpFont);
 	M_Pointer(mpMarksDraw);
 	M_Pointer(mpMarks);
 	M_Pointer(mpText);
-	U_Data(CComponentEvent<CTextField>, mcChanged);
+	U_Unknown(CComponentEvent<CTextField>, mcChanged);
 	U_Int32(miColumns);
 	U_Int32(miScroll);
 	U_Size(muiDragAnchor);

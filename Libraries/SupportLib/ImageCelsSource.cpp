@@ -135,9 +135,9 @@ void CImageCelsSource::Class(void)
 	U_Bool(mbPackOnLoad);
 	M_Embedded(maImageSources);
 	M_Embedded(mcModifiers);
-	U_Data(CArrayUnknown, macCelSources);
+	U_Unknown(CArrayUnknown, macCelSources);
 	M_Embedded(maImageCels);
-	U_Data(CArrayChars, maszCelFileNames);
+	U_Unknown(CArrayChars, maszCelFileNames);
 	M_Embedded(maFillMasks);
 	M_Embedded(maImages);
 }

@@ -49,7 +49,7 @@ void CInputAction::Class(void)
 	U_Enum(meFilter);
 	U_String(mszName);
 	U_Enum(meCommand);
-	U_Data(SMemberCall, msCall);
+	U_Unknown(SMemberCall, msCall);
 	U_Bool(mbEnabled);
 }
 

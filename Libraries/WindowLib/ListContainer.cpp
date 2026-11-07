@@ -87,9 +87,9 @@ void CListContainer::Class(void)
 	M_Pointer(mpSelectedHighlight);
 	M_Pointer(mpHoverDraw);
 	M_Pointer(mpHoverHighlight);
-	U_Data(CArrayBit, mabEnabled);
-	U_Data(CComponentEvent<CListContainer>, mcSelectionChanged);
-	U_Data(CComponentEvent<CListContainer>, mcActivated);
+	U_Unknown(CArrayBit, mabEnabled);
+	U_Unknown(CComponentEvent<CListContainer>, mcSelectionChanged);
+	U_Unknown(CComponentEvent<CListContainer>, mcActivated);
 	U_Int32(miSelected);
 	U_Int32(miHover);
 	U_Int32(miPageRows);
