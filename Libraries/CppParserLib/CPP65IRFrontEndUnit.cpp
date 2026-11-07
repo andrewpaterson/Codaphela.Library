@@ -197,7 +197,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 			PrintIR(psWritten->pcFunction);
 		}
 		//IR that stops verifying once inlined keeps the code written before (a pass's mistake, recorded for finding it).
-		bResult = VerifyIR(psWritten->pcFunction, __LINE__);
+		bResult = VerifyIR(psWritten->pcFunction, __FILE__, __LINE__);
 		szCode.Init();
 		if (bResult)
 		{

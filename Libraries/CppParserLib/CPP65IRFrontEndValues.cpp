@@ -78,7 +78,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
 	if (!pcExpression || mbUnsupported)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	mpcValue = pcExpression;
 	psType = mpcGenerator->TypeOf(pcExpression);
@@ -86,11 +86,11 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	{
 		//Usually C++ that is wrong (a call no function matches, or more than one): the generator says what.
 		mpcGenerator->ReportTypeOf(pcExpression);
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psType->IsClass())
 	{
@@ -102,7 +102,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_LiteralExpression:
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
-		return ConstantValue(pcExpression, psValue) || Unsupported(__LINE__);
+		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);
 	case CPPS_IdExpression:
@@ -122,7 +122,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		//A name without a symbol (a member in a template the parser could not resolve) is a place.
 		if (pcSymbol && ((pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_ValueParameter)))
 		{
-			return ConstantValue(pcExpression, psValue) || Unsupported(__LINE__);
+			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 		}
 		break;
 	case CPPS_UnaryExpression:
@@ -155,7 +155,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ThisExpression:
 		if (msThis.IsNone())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psValue->sValue = msThis;
 		psValue->psType = mpcTypes->Pointer(mpsFunction->psClass->psType);
@@ -174,7 +174,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		}
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
 	default:
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	if (!Place(pcExpression, &sPlace))
@@ -207,7 +207,7 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 	}
 	if (!psPlace->psType->IsScalar())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psPlace->psType), psPlace->sAddress, psPlace->psType->bVolatile);
 	psValue->psType = psPlace->psType->Unqualified();
@@ -281,7 +281,7 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	if (!mpcGenerator->DecodeString(pcString, &auiBytes))
 	{
 		auiBytes.Kill();
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
 	auiBytes.Kill();
@@ -303,7 +303,7 @@ bool CCPP65IRFrontEnd::FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue*
 	if (!mpcGenerator->FunctionNameText(mpcGenerator->GetComponentName(pcId->mpcName->GetLast()), &szName))
 	{
 		szName.Kill();
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	StringData(szName.Text(), szName.Length(), psValue);
 	szName.Kill();
@@ -364,7 +364,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 	}
 	if (bOverloaded || !psFound)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(psFound);
 	psValue->psType = mpcTypes->Pointer(FunctionType(psFound));
@@ -407,7 +407,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 	if (!MemberFunction(psClass, lliName, &psFound, &psFoundClass))
 	{
 		*pbMember = true;
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psFound)
 	{
@@ -503,7 +503,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 	*ppsMember = mpcGenerator->TypeOf(pcBinary->mpcRight);
 	if (!*ppsMember || !(*ppsMember)->IsMemberPointer())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (pcBinary->meOperator == CT_MemberByPointerFunctionPointerIndirection)
 	{
@@ -513,7 +513,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 		}
 		if (!sPointer.psType->IsPointer() || !sPointer.psType->psBase->IsClass())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		*psObject = sPointer.sValue;
 		psClass = sPointer.psType->psBase->psClass;
@@ -526,7 +526,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 		}
 		if (!sPlace.psType->IsClass())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		*psObject = sPlace.sAddress;
 		psClass = sPlace.psType->psClass;
@@ -555,7 +555,7 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPS
 	}
 	if (!psMember->psBase->IsFunction())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcBinary->mpcRight, &sFunction))
 	{
@@ -583,7 +583,7 @@ bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, 
 	}
 	if (psMember->psBase->IsFunction() || !IsPlaceType(psMember->psBase))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcBinary->mpcRight, &sOffset))
 	{
@@ -650,7 +650,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		//A member of this (a name in a template the parser could not resolve too).
 		if (msThis.IsNone() || (pcId->mpcName->macpComponents.NumElements() != 1) || (pcId->mpcName->mpcSymbol && (pcId->mpcName->mpcSymbol->meKind != CPPSK_Field)))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		return FieldPlace(msThis, mpsFunction->psClass, mpcGenerator->GetComponentName(pcId->mpcName->GetLast()), pcId->mpcName->mpcSymbol, psPlace);
 
@@ -665,7 +665,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psType = mpcGenerator->TypeOf(pcExpression);
 			if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			psPlace->sAddress = sAddress.sValue;
 			psPlace->psType = sAddress.psType;
@@ -677,7 +677,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 		if (!sPointer.psType->IsPointer() || sPointer.psType->psBase->IsVoid() || !IsPlaceType(sPointer.psType->psBase))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = sPointer.sValue;
 		psPlace->psType = sPointer.psType->psBase;
@@ -694,7 +694,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			}
 			if (!sAddress.psType->IsReference())
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			psPlace->sAddress = sAddress.sValue;
 			psPlace->psType = sAddress.psType->psBase;
@@ -702,7 +702,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 		if (!mpcGenerator->TypeOf(pcSubscript->mpcArray))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		//The array before the index.  [expr.sub] 1
 		if (!ArrayValue(pcSubscript->mpcArray, &sPointer, &psArray) || !Value(pcSubscript->mpcIndex, &sIndex))
@@ -715,7 +715,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 		if (!sAddress.psType->IsPointer() || sAddress.psType->psBase->IsVoid() || !IsPlaceType(sAddress.psType->psBase))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = sAddress.sValue;
 		psPlace->psType = sAddress.psType->psBase;
@@ -726,7 +726,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psType = mpcGenerator->TypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!CallExpression((CCPPSyntaxCallExpression*)pcExpression, &sAddress))
 		{
@@ -744,7 +744,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 		else
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		return true;
 
@@ -775,11 +775,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psType = mpcGenerator->TypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || !Value(pcExpression, &sAddress))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = sAddress.sValue;
 		psPlace->psType = sAddress.psType->IsReference() ? sAddress.psType->psBase : sAddress.psType;
-		return psPlace->psType->IsClass() || Unsupported(__LINE__);
+		return psPlace->psType->IsClass() || Unsupported(__FILE__, __LINE__);
 
 	case CPPS_CastExpression:
 	case CPPS_NamedCastExpression:
@@ -787,14 +787,14 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psType = mpcGenerator->TypeOf(pcExpression);
 		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = sAddress.sValue;
 		psPlace->psType = sAddress.psType;
 		return true;
 
 	default:
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 }
 
@@ -813,14 +813,14 @@ bool CCPP65IRFrontEnd::VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* 
 
 	if (!IsPlaceType(psVariable->psType))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if ((psVariable->eStorage == CPP65S_Local) || (psVariable->eStorage == CPP65S_Parameter))
 	{
 		psAddress = mcAddresses.Get((int64)(size)psVariable);
 		if (!psAddress)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psPlace->sAddress = *psAddress;
 	}
@@ -883,7 +883,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	psType = mpcGenerator->TypeOf(pcMember->mpcObject);
 	if (!psType)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (pcMember->mbArrow)
 	{
@@ -895,7 +895,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 	}
 	if (!psType || !psType->IsClass() || !ObjectAddress(pcMember->mpcObject, pcMember->mbArrow, &sObject))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!FieldPlace(sObject, psType->psClass, mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()), NULL, psPlace))
 	{
@@ -926,7 +926,7 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, SCPP65Class* psClass, in
 
 	if (!psClass || !mpcGenerator->CompleteClass(psClass, NULL))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psField = pcSymbol ? mpcGenerator->FindFieldSymbol(psClass, pcSymbol, &iOffset) : mpcGenerator->FindField(psClass, lliName, &iOffset);
 	if (!psField)
@@ -934,13 +934,13 @@ bool CCPP65IRFrontEnd::FieldPlace(SIRReference sObject, SCPP65Class* psClass, in
 		psVariable = mpcGenerator->FindStatic(psClass, lliName);
 		if (!psVariable)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		return VariablePlace(psVariable, psPlace);
 	}
 	if (!IsSupportedType(psField->psType) && !ElementType(psField->psType)->IsClass())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psPlace->sAddress = AddressAt(sObject, iOffset);
 	psPlace->psType = psField->psType;
@@ -1076,12 +1076,12 @@ bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCP
 	psTemplate = mpcGenerator->GetTemplate(pcId->mpcName->mpcSymbol);
 	if (!psTemplate || !pcComponent->mbTemplateArguments)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psFunction = mpcGenerator->InstantiateFunction(psTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
 	if (!psFunction)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(psFunction);
 	psValue->psType = mpcTypes->Pointer(FunctionType(psFunction));

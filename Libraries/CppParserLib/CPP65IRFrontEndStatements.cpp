@@ -50,7 +50,7 @@ bool CCPP65IRFrontEnd::Statement(CCPPSyntax* pcStatement)
 	//Expression, declaration and return statements destroy their temporaries; one left (made in a condition, say) isn't
 	//supported.
 	uiTemporaries = masTemporaries.NumElements();
-	bResult = StatementOf(pcStatement) && ((masTemporaries.NumElements() <= uiTemporaries) || Unsupported(__LINE__));
+	bResult = StatementOf(pcStatement) && ((masTemporaries.NumElements() <= uiTemporaries) || Unsupported(__FILE__, __LINE__));
 	mcModule.muiSource = uiSource;
 	return bResult;
 }
@@ -112,7 +112,7 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		//[[fallthrough]], [[likely]] and the like change nothing.
 		return StatementOf(((CCPPSyntaxAttributedStatement*)pcStatement)->mpcStatement);
 	default:
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 }
 
@@ -321,11 +321,11 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
 	{
 		//Checked when it is compiled; nothing is written.
-		return mpcGenerator->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__LINE__);
+		return mpcGenerator->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__FILE__, __LINE__);
 	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	return Declaration((CCPPSyntaxSimpleDeclaration*)pcStatement->mpcDeclaration, NULL);
 }
@@ -354,12 +354,12 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(ui);
 		if (pcInit->mpcDeclarator->IsFunction())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psVariable = pcInit->mpcSymbol ? mpcGenerator->GetVariable(pcInit->mpcSymbol) : NULL;
 		if (!psVariable)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (psVariable->eStorage == CPP65S_Static)
 		{
@@ -367,7 +367,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 		}
 		if (psVariable->eStorage != CPP65S_Local)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (ppsLast)
 		{
@@ -393,7 +393,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, S
 		//Each initialiser is a full expression.  A reference to a temporary would keep it alive (not supported).
 		if (psVariable->psType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!DestroyTemporaries(uiTemporaries))
 		{
@@ -421,7 +421,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
 		if (papcElements->NumElements() != 1)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 	}
@@ -429,7 +429,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	if (!IsSupportedType(psPlace->psType))
 	{
 		//A class (or array of them) is initialised by the generator.
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psPlace->psType->IsArray())
 	{
@@ -447,7 +447,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		}
 		if (papcElements->NumElements() != 1)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 	}
@@ -496,7 +496,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (!mpcGenerator->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() > (size)psPlace->psType->iCount))
 		{
 			auiBytes.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		for (ui = 0; ui < auiBytes.NumElements(); ui++)
 		{
@@ -512,7 +512,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	}
 	if (pcInitialiser->GetKind() != CPPS_InitializerList)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
 	uiNext = 0;
@@ -520,7 +520,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return false;
 	}
-	return (uiNext >= papcElements->NumElements()) || Unsupported(__LINE__);
+	return (uiNext >= papcElements->NumElements()) || Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -543,7 +543,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 	psElement = psPlace->psType->psBase;
 	if (!psElement->IsScalar() && !psElement->IsArray())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	for (i = 0; i < psPlace->psType->iCount; i++)
 	{
@@ -577,7 +577,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			papcOne = &((CCPPSyntaxInitializerList*)pcElement)->macpElements;
 			if (papcOne->NumElements() != 1)
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			pcElement = papcOne->GetPtr(0);
 		}
@@ -796,7 +796,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 
 	if (!pcSwitch->mpcCondition || (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcSwitch->mpcCondition, &sValue))
 	{
@@ -804,7 +804,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	}
 	if (!sValue.psType->IsInteger())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Convert(&sValue, mpcTypes->Promote(sValue.psType)))
 	{
@@ -827,7 +827,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		}
 		if (!mpcGenerator->Constant(psCase->pcCase->mpcValue, &lliValue))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		pcNext = NewBlock();
 		sEqual = mpcFunction->Add(mpcBlock, IRO_Eq, IRTypeOf(sValue.psType), sValue.sValue, Integer(sValue.psType, lliValue));
@@ -872,7 +872,7 @@ bool CCPP65IRFrontEnd::FindCases(CCPPSyntax* pcNode, CIRBlock** ppcDefault)
 		{
 			if (*ppcDefault)
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			*ppcDefault = psCase->pcBlock;
 		}
@@ -906,7 +906,7 @@ bool CCPP65IRFrontEnd::CaseStatement(CCPPSyntaxCaseStatement* pcCase)
 			return Statement(pcCase->mpcStatement);
 		}
 	}
-	return Unsupported(__LINE__);
+	return Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -934,7 +934,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	{
 		if (!pcReturn->mpcValue)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		sPlace.sAddress = msResult;
 		sPlace.psType = psReturn;
@@ -967,7 +967,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	}
 	if (!pcReturn->mpcValue)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psReturn->IsReference())
 	{
@@ -1017,7 +1017,7 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 		}
 	}
 	mpcGenerator->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
-	return Unsupported(__LINE__);
+	return Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -1033,7 +1033,7 @@ bool CCPP65IRFrontEnd::GotoStatement(CCPPSyntaxGotoStatement* pcGoto)
 	if (!pcBlock || (masLiving.NumElements() > 0))
 	{
 		//Which objects a goto leaves the scope of isn't worked out.
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	JumpTo(pcBlock);
 	return Terminated();
@@ -1051,7 +1051,7 @@ bool CCPP65IRFrontEnd::LabelStatement(CCPPSyntaxLabelStatement* pcLabel)
 	pcBlock = GotoBlock(pcLabel->miName);
 	if (!pcBlock)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	JumpTo(pcBlock);
 	StartBlock(pcBlock);

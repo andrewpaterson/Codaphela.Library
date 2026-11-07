@@ -79,7 +79,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!Place(pcOperand, &sPlace))
 		{
@@ -93,7 +93,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_BitwiseNot:
 		break;
 	default:
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	//Operators on constants are worked out by the IR (the generator's Constant does its arithmetic in signed 64
@@ -113,7 +113,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	}
 	if (!sOperand.psType->IsInteger())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = mpcTypes->Promote(sOperand.psType);
 	if (!Convert(&sOperand, psType))
@@ -159,7 +159,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	psType = sPlace.psType;
 	if (!psType->IsScalar() || (psType->eKind == CPP65TK_Bool))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psType->IsFloat())
 	{
@@ -262,7 +262,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		}
 		if (pcBinary->meOperator != CT_Assignment)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		//The right before the left, as for a scalar.  [expr.ass] 1
 		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass() || !CopyBytes(&sPlace, &sRight))
@@ -280,7 +280,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	}
 	if (!sPlace.psType->IsScalar() || (sPlace.psType->IsMemberPointer() && (pcBinary->meOperator != CT_Assignment)))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psStored)
 	{
@@ -348,7 +348,7 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		psType = mpcTypes->Operation(eOperator, sLeft.psType, sRight.psType);
 		if (!psType)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		switch (eOperator)
 		{
@@ -373,13 +373,13 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		{
 			if ((eOperator == CT_Subtract) && !sLeft.psType->IsPointer())
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			sPointer = sLeft.psType->IsPointer() ? sLeft : sRight;
 			sIndex = sLeft.psType->IsPointer() ? sRight : sLeft;
 			if (!sIndex.psType->IsInteger() || sPointer.psType->psBase->IsVoid() || sPointer.psType->psBase->IsFunction())
 			{
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			//The index widens to the pointer's size (an int is narrower on the W65C816).
 			if (!Convert(&sIndex, mpcTypes->Integer(mcModule.GetPointerSize(0), sIndex.psType->bSigned)))
@@ -410,13 +410,13 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 			psResult->psType = mpcTypes->PointerDifference();
 			return true;
 		}
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	psType = mpcTypes->Operation(eOperator, sLeft.psType, sRight.psType);
 	if (!psType)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 	{
@@ -434,7 +434,7 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	case CT_BitwiseXor:		uiOpcode = IRO_Xor;									break;
 	case CT_LeftShift:		uiOpcode = IRO_Shl;									break;
 	case CT_RightShift:		uiOpcode = psType->bSigned ? IRO_AShr : IRO_LShr;	break;
-	default:				return Unsupported(__LINE__);
+	default:				return Unsupported(__FILE__, __LINE__);
 	}
 	sType = IRTypeOf(psType);
 	psResult->sValue = mpcFunction->Add(mpcBlock, uiOpcode, sType, sLeft.sValue, sRight.sValue);
@@ -479,7 +479,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	{
 		if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psType = mpcTypes->FloatArithmetic(sLeft.psType, sRight.psType);
 		bFloat = true;
@@ -510,7 +510,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	}
 	else
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 	{
@@ -525,7 +525,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	case CT_LessThanEqualTo:		uiOpcode = bFloat ? IRO_FLe : (bSigned ? IRO_SLe : IRO_ULe);			break;
 	case CT_GreaterThan:			uiOpcode = bFloat ? IRO_FGt : (bSigned ? IRO_SGt : IRO_UGt);			break;
 	case CT_GreaterThanEqualTo:		uiOpcode = bFloat ? IRO_FGe : (bSigned ? IRO_SGe : IRO_UGe);			break;
-	default:						return Unsupported(__LINE__);
+	default:						return Unsupported(__FILE__, __LINE__);
 	}
 	*psCondition = mpcFunction->Add(mpcBlock, uiOpcode, IRTypeOf(psType), sLeft.sValue, sRight.sValue);
 	return true;
@@ -553,12 +553,12 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	psFalse = mpcGenerator->TypeOf(pcConditional->mpcFalse);
 	if (!psTrue || !psFalse || psTrue->IsReference() || psFalse->IsReference() || psTrue->IsClass() || psFalse->IsClass())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = mpcTypes->Conditional(psTrue, psFalse);
 	if (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray()))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	pcTrue = NewBlock();
@@ -685,7 +685,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	pcExpression = mpcGenerator->SkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (pcExpression->GetKind() == CPPS_UnaryExpression)
 	{
@@ -733,7 +733,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				//An operator function's result.
 				if (!OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, &sValue) || !sValue.psType->IsScalar() || !Truth(&sValue, &sCondition))
 				{
-					return Unsupported(__LINE__);
+					return Unsupported(__FILE__, __LINE__);
 				}
 				mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 				return true;
@@ -759,7 +759,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		}
 		if (!psVariable || !psVariable->psType->IsScalar() || !VariablePlace(psVariable, &sPlace) || !Load(&sPlace, &sValue) || !Truth(&sValue, &sCondition))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 		return true;
@@ -790,7 +790,7 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 	}
 	if (!psValue->psType->IsScalar())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	sType = IRTypeOf(psValue->psType);
 	if (psValue->psType->IsFloat())
@@ -852,7 +852,7 @@ bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLe
 	if (!psFunction)
 	{
 		apcArguments.Kill();
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue);
 	apcArguments.Kill();

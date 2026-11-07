@@ -39,7 +39,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	psTo = mpcGenerator->GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	pcFunction = mpcGenerator->FunctionNameFor(pcOperand, psTo);
 	if (pcFunction)
@@ -48,7 +48,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 		//converted below, (void*)&f the function's address.
 		if (!FunctionAddress((CCPPSyntaxIdExpression*)pcFunction, psTo->psBase, psValue))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psValue->psType = psTo;
 		return true;
@@ -68,7 +68,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	{
 		mpcGenerator->WideningArithmetic(pcOperand, psValue->psType, psTo);
 	}
-	return psTo->IsScalar() ? Convert(psValue, psTo) : Unsupported(__LINE__);
+	return psTo->IsScalar() ? Convert(psValue, psTo) : Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -88,17 +88,17 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	psTo = mpcGenerator->GetTypeIdType(pcCast->mpcType);
 	if (!psTo)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (psTo->IsReference())
 	{
 		mpcGenerator->ReportError(pcCast, "dynamic_cast to a reference is not supported");
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
 	{
 		mpcGenerator->ReportError(pcCast, "dynamic_cast needs a pointer to a class or to void");
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcCast->mpcOperand, psValue))
 	{
@@ -107,13 +107,13 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	if (!psValue->psType->IsPointer() || !psValue->psType->psBase->IsClass())
 	{
 		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	psFrom = psValue->psType->psBase->psClass;
 	if (!mpcGenerator->CompleteClass(psFrom, pcCast))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psTarget = NULL;
 	if (psTo->psBase->IsClass())
@@ -121,7 +121,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 		psTarget = psTo->psBase->psClass;
 		if (!mpcGenerator->CompleteClass(psTarget, pcCast))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (mpcGenerator->IsDerived(psFrom, psTarget, NULL))
 		{
@@ -131,7 +131,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	if (!mpcGenerator->IsPolymorphic(psFrom))
 	{
 		mpcGenerator->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	psValue->sValue = DynamicCast(psValue->sValue, psFrom, psTarget);
@@ -293,7 +293,7 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	}
 	if (psFrom->IsVoid() || !psFrom->IsScalar() || !psTo->IsScalar())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	//A pointer to a derived class points at its base, which may be further on (a null pointer stays null).  The
 	//derived class is laid out to know where its base is, even if nothing else has needed it whole yet.
@@ -323,7 +323,7 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	{
 		if (psFrom->IsPointer() || psTo->IsPointer())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (psFrom->IsFloat() && psTo->IsFloat())
 		{
@@ -450,7 +450,7 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 		iOffset = BaseOffset(psTo->psClass, psFrom->psClass) - BaseOffset(psFrom->psClass, psTo->psClass);
 		if ((iOffset != 0) && psFrom->psBase->IsFunction())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (iOffset != 0)
 		{
@@ -459,7 +459,7 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 	}
 	else if (!psFrom->Equals(psTo))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->psType = psTo;
 	return true;

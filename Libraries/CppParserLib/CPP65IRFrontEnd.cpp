@@ -38,6 +38,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 size	CCPP65IRFrontEnd::suiWritten = 0;
+const char*	CCPP65IRFrontEnd::sszLastUnsupportedFile = "";
 int		CCPP65IRFrontEnd::siLastUnsupportedLine = 0;
 char	CCPP65IRFrontEnd::sszLastUnsupported[1024] = "";
 bool	CCPP65IRFrontEnd::sbPrint = false;
@@ -83,6 +84,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	muiFirstString = 0;
 	mbUnsupported = false;
 	mbFloatReported = false;
+	mszUnsupportedFile = "";
 	miUnsupportedLine = 0;
 	mszUnsupported[0] = '\0';
 }
@@ -141,7 +143,7 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 		(psFunction->psReturn->IsClass() && !mpcGenerator->CompleteClass(psFunction->psReturn->psClass, NULL)))
 	{
 		mbUnsupported = false;
-		Unsupported(__LINE__);
+		Unsupported(__FILE__, __LINE__);
 		return false;
 	}
 
@@ -157,7 +159,7 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 	if (bResult && (psFunction->eKind == CPP65FK_Constructor))
 	{
 		//A member initialiser's temporaries would need destroying after it (not supported).
-		bResult = ConstructorStart(psFunction->pcDefinition) && ((masTemporaries.NumElements() == 0) || Unsupported(__LINE__));
+		bResult = ConstructorStart(psFunction->pcDefinition) && ((masTemporaries.NumElements() == 0) || Unsupported(__FILE__, __LINE__));
 	}
 	else if (bResult && (psFunction->eKind == CPP65FK_Destructor))
 	{
@@ -298,7 +300,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			OptimiserWarnings(&szWarnings);
 			szWarnings.Kill();
 		}
-		bResult = VerifyIR(mpcFunction, __LINE__);
+		bResult = VerifyIR(mpcFunction, __FILE__, __LINE__);
 		if (sbPrint)
 		{
 			fprintf(stderr, "Function %d\n", (int)suiAttempts);
@@ -400,11 +402,11 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 // this file that found it (for finding what to support next).  Always false.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Unsupported(int iLine)
+bool CCPP65IRFrontEnd::Unsupported(const char* szFile, int iLine)
 {
 	if (!mbUnsupported)
 	{
-		SetUnsupported(iLine, NULL);
+		SetUnsupported(szFile, iLine, NULL);
 	}
 	mbUnsupported = true;
 	return false;
@@ -701,7 +703,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 			{
 				aiFirst.Kill();
 				asByAddress.Kill();
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			if (IsPassedByAddress(psType))
 			{
@@ -719,7 +721,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		{
 			aiFirst.Kill();
 			asByAddress.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		mpcFunction->AddParameter(IRTypeOf(psType));
 	}
@@ -746,7 +748,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		{
 			aiFirst.Kill();
 			asByAddress.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (psVariable->bRestrict)
 		{
@@ -870,7 +872,7 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 		cBackend816.GetFrame(psFrame);
 		if (!bResult)
 		{
-			SetUnsupported(__LINE__, cErrors.Text());
+			SetUnsupported(__FILE__, __LINE__, cErrors.Text());
 		}
 		cErrors.Kill();
 		paszRuntime = cBackend816.GetRuntime();
@@ -1085,7 +1087,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 		}
 		if (!IsLocalType(psVariable->psType) || psVariable->psType->IsVoid())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (psVariable->psAnonymous)
 		{
@@ -1223,18 +1225,30 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Why a function was left to the generator: the line of this file that found it and, when there is one, the
-// reason (szReason, or NULL to keep the last).  The generator tells it with the function's error
-// (CCPP65Generator::AppendUnsupported).
+// Why a function was left to the generator: the front end's file (__FILE__,
+// kept without its directory) and line that found it and, when there is
+// one, the reason (szReason, or NULL to keep the last).  The generator tells
+// it with the function's error (CCPP65Generator::AppendUnsupported).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::SetUnsupported(int iLine, const char* szReason)
+void CCPP65IRFrontEnd::SetUnsupported(const char* szFile, int iLine, const char* szReason)
 {
+	const char*	szName;
+
+	for (szName = szFile; *szFile != '\0'; szFile++)
+	{
+		if ((*szFile == '/') || (*szFile == '\\'))
+		{
+			szName = szFile + 1;
+		}
+	}
+	mszUnsupportedFile = szName;
 	miUnsupportedLine = iLine;
 	if (szReason)
 	{
 		StrCpySafe(mszUnsupported, szReason, sizeof(mszUnsupported));
 	}
+	sszLastUnsupportedFile = mszUnsupportedFile;
 	siLastUnsupportedLine = miUnsupportedLine;
 	StrCpySafe(sszLastUnsupported, mszUnsupported, sizeof(sszLastUnsupported));
 }
@@ -1242,13 +1256,15 @@ void CCPP65IRFrontEnd::SetUnsupported(int iLine, const char* szReason)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Why a function was left to the generator: " (CPP65IRFrontEnd.cpp line N)"
-// and its reason (forgotten once told).
+// Why a function was left to the generator: " (CPP65IRFrontEndCalls.cpp
+// line N)" and its reason (forgotten once told).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::AppendUnsupported(CChars* psz)
 {
-	psz->Append(" (CPP65IRFrontEnd.cpp line ");
+	psz->Append(" (");
+	psz->Append(mszUnsupportedFile);
+	psz->Append(" line ");
 	psz->Append(miUnsupportedLine);
 	psz->Append(")");
 	if (mszUnsupported[0] != '\0')
@@ -1274,11 +1290,10 @@ void CCPP65IRFrontEnd::ClearUnsupported(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcFunction's IR is valid.  When it isn't, the verifier's errors
-// and iLine (the caller's line) are kept as the reason
-// (SetUnsupported).
+// and the caller's file and line are kept as the reason (SetUnsupported).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, int iLine)
+bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine)
 {
 	CCPPErrors	cErrors;
 	CIRVerifier	cVerifier;
@@ -1289,7 +1304,7 @@ bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, int iLine)
 	bResult = cVerifier.VerifyFunction(pcFunction);
 	if (!bResult)
 	{
-		SetUnsupported(iLine, cErrors.Text());
+		SetUnsupported(szFile, iLine, cErrors.Text());
 	}
 	cVerifier.Kill();
 	cErrors.Kill();

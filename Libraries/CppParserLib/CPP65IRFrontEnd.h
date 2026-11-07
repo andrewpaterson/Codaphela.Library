@@ -166,14 +166,16 @@ protected:
 	size					muiFirstString;		//The generator's number for the first of them.
 	bool					mbUnsupported;		//Something the front end can't write yet: the function is an error.
 	bool					mbFloatReported;	//The function's floating point (CCPP65Generator::SetNoFloats) has been reported.
-	int						miUnsupportedLine;	//The line of CPP65IRFrontEnd.cpp that last left a function to the generator.
+	const char*				mszUnsupportedFile;	//The front end's file (no directory) and line that last left a function to the generator.
+	int						miUnsupportedLine;
 	char					mszUnsupported[1024];	//The verifier's errors when that was IR that didn't verify.
 
 public:
 	//For tests and debugging.  The counters are only exact when the units are compiled one at a time
 	//(CCPP65Builder::SetJobs).
 	static size		suiWritten;				//Functions written as IR by every front end.
-	static int		siLastUnsupportedLine;	//The last front end's miUnsupportedLine and mszUnsupported.
+	static const char*	sszLastUnsupportedFile;	//The last front end's mszUnsupportedFile, miUnsupportedLine and mszUnsupported.
+	static int		siLastUnsupportedLine;
 	static char		sszLastUnsupported[1024];
 	static bool		sbPrint;				//Print each function's IR to stderr, for debugging.
 	static bool		sbOptimise;				//Run the mid level passes (CIROptimiser).
@@ -198,7 +200,7 @@ public:
 	bool			SpecialiseCallee(size uiCallee, uint32 uiStrong, CArrayTemplate<bool>* pabChanged);
 	CIRFunction*	CopyFunction(CIRFunction* pcFunction, const char* szName);
 	void			OptimiseSpecialised(CIRFunction* pcFunction);
-	void			SetUnsupported(int iLine, const char* szReason);
+	void			SetUnsupported(const char* szFile, int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
@@ -216,7 +218,7 @@ protected:
 	void			OptimiserWarnings(CChars* pszWarnings);
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, SIR816Frame* psFrame);
 	bool			IsRecursive(CIRFunction* pcFunction);
-	bool			Unsupported(int iLine);
+	bool			Unsupported(const char* szFile, int iLine);
 	SIRType			IRTypeOf(SCPP65Type* psType);
 	void			NoFloats(void);
 	SIRType			ReturnIRType(SCPP65Type* psType);
@@ -318,7 +320,7 @@ protected:
 	bool			BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			BuiltinBCD(CCPPSyntaxCallExpression* pcCall, bool bSubtract, SCPP65IRValue* psValue);
 	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
-	bool			VerifyIR(CIRFunction* pcFunction, int iLine);
+	bool			VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine);
 	void			InitOptimiser(CIROptimiser* pcOptimiser);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);

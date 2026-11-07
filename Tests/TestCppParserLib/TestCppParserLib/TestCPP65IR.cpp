@@ -28,7 +28,7 @@ int32 TestCPP65IRMain(const char* szSource, size uiWritten, bool bFloat = false)
 	{
 		if (uiWritten != CCPP65IRFrontEnd::suiWritten - uiBefore)
 		{
-			fprintf(stderr, "Left at CPP65IRFrontEnd.cpp line %d %s in %.80s\n", CCPP65IRFrontEnd::siLastUnsupportedLine, CCPP65IRFrontEnd::sszLastUnsupported, szSource);
+			fprintf(stderr, "Left at %s line %d %s in %.80s\n", CCPP65IRFrontEnd::sszLastUnsupportedFile, CCPP65IRFrontEnd::siLastUnsupportedLine, CCPP65IRFrontEnd::sszLastUnsupported, szSource);
 		}
 		AssertSize(uiWritten, CCPP65IRFrontEnd::suiWritten - uiBefore);
 	}
@@ -467,6 +467,26 @@ void TestCPP65IRMemcpy(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function the front end can't write yet is an error that says which of
+// its files (and line) found it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65IRUnsupportedReason(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "int Pick(int a) { switch (int x = a) { default: return x; } }"));
+	AssertTrue(szErrors.Contains("doesn't support yet (CPP65IRFrontEndStatements.cpp line "));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib's StringCompare.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -740,6 +760,7 @@ void TestCPP65IR(void)
 	TestCPP65IRConstructors();
 	TestCPP65IRObjectsByValue();
 	TestCPP65IRMemcpy();
+	TestCPP65IRUnsupportedReason();
 	TestCPP65IRStringCompare();
 	TestCPP65IRDevirtualise();
 	TestCPP65IRInlineConstants();

@@ -122,7 +122,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		psTemplate = mpcGenerator->GetCallTemplate(pcSymbol, pcCall, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL);
 		if (!psTemplate)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psFunction = mpcGenerator->InstantiateFunction(psTemplate, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
 	}
@@ -141,7 +141,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	}
 	if (!psFunction || (psFunction->psClass && !psFunction->bStatic))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	sSymbol = FunctionSymbol(psFunction);
@@ -362,7 +362,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	{
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
 		mpcGenerator->ReportError(pcCall, "__builtin_alloca is not supported");
-		bResult = Unsupported(__LINE__);
+		bResult = Unsupported(__FILE__, __LINE__);
 	}
 	else
 	{
@@ -381,7 +381,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 			!Value(pcCall->macpArguments.GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
 		{
 			szName.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 
 		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
@@ -403,7 +403,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		{
 			bResult = CountTable(szName.Equals("clz"), &sArgument, psType, psValue);
 			szName.Kill();
-			return bResult || Unsupported(__LINE__);
+			return bResult || Unsupported(__FILE__, __LINE__);
 		}
 		sType = IRTypeOf(psType);
 		sInt = IRTypeOf(&mpcTypes->msInt);
@@ -483,7 +483,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		psValue->psType = &mpcTypes->msInt;
 	}
 	szName.Kill();
-	return bResult || Unsupported(__LINE__);
+	return bResult || Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -505,7 +505,7 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CCPP
 	msElide = IRNone();
 	if (!psType || !psType->IsPointer() || !psType->psBase->IsFunction())
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	//The pointer before the arguments.  [expr.call] 8
 	if (!Value(pcCallee, &sCallee))
@@ -530,7 +530,7 @@ bool CCPP65IRFrontEnd::ExpandPackCall(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 
 	if (mpcGenerator->ExpandPackArguments(pcCall, &apcArguments))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	bResult = CallExpression(pcCall, psValue);
 	mpcGenerator->RestoreArguments(pcCall, &apcArguments);
@@ -564,7 +564,7 @@ bool CCPP65IRFrontEnd::ThisObject(SCPP65Function* psFunction, CCPPSyntax* pcObje
 	{
 		if (msThis.IsNone())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		*psObject = msThis;
 		psObjectClass = mpsFunction->psClass;
@@ -640,13 +640,13 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	msElide = IRNone();
 	if ((!IsSupportedType(psReturn) && !psReturn->IsClass()) || psReturn->IsArray() || (psReturn->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psReturn->psClass, NULL))))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	uiArguments = papcArguments->NumElements();
 	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
 	if ((uiArguments > uiParameters) && !bVariadic)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	//A member function's object before its arguments (after them for an assignment operator's).  [expr.call] 8
@@ -693,7 +693,7 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 			asArguments.Kill();
 			asLoaded.Kill();
 			aiLoaded.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!Convert(&sArgument, psParameter))
 		{
@@ -730,7 +730,7 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 			asArguments.Kill();
 			asLoaded.Kill();
 			aiLoaded.Kill();
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		mpcGenerator->ConversionOverflow(pcArgument, psParameter);
 		if (psParameter->IsClass())
@@ -764,7 +764,7 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 				asArguments.Kill();
 				asLoaded.Kill();
 				aiLoaded.Kill();
-				return Unsupported(__LINE__);
+				return Unsupported(__FILE__, __LINE__);
 			}
 			sArgument.psType = psParameter;
 
@@ -917,7 +917,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 		psType = mpcGenerator->TypeOf(pcMember->mpcObject);
 		if (!psType)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		bArrow = pcMember->mbArrow;
 		if (bArrow)
@@ -930,7 +930,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 		}
 		if (!psType || !psType->IsClass() || !mpcGenerator->CompleteClass(psType->psClass, pcCallee))
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		psClass = psType->psClass;
 		pcObject = pcMember->mpcObject;
@@ -963,7 +963,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 	lliName = mpcGenerator->GetFunctionName(pcName->GetLast());
 	if (!psClass || (lliName == -1) || (pcName->macpComponents.NumElements() > 2))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psLookup = psClass;
 	if (pcObject && (pcName->macpComponents.NumElements() == 2))
@@ -971,7 +971,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 		psLookup = mpcGenerator->QualifierClass(psClass, (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), pcCallee);
 		if (!psLookup)
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		bVirtual = false;
 	}
@@ -995,11 +995,11 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 	}
 	if (!psFunction)
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	if (bThis && !psFunction->bStatic && (!mpsFunction->psClass || msThis.IsNone() || !mpcGenerator->IsDerived(mpsFunction->psClass, psFunction->psClass, NULL)))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 
 	sSymbol = FunctionSymbol(psFunction);
@@ -1020,7 +1020,7 @@ bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, SCPP65Cl
 
 	if (!psClass || (pcCall->macpArguments.NumElements() != 0))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->psType = &mpcTypes->msVoid;
 	psValue->sValue = IRNone();
@@ -1040,7 +1040,7 @@ bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, SCPP65Cl
 	{
 		if (msThis.IsNone())
 		{
-			return Unsupported(__LINE__);
+			return Unsupported(__FILE__, __LINE__);
 		}
 		sObject = msThis;
 	}
@@ -1068,7 +1068,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	}
 	if (!psType || !psType->IsClass() || !mpcGenerator->CompleteClass(psType->psClass, pcObject))
 	{
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	apcArguments.Init();
 	if (pcArgument)
@@ -1079,7 +1079,7 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 	if (!psFunction || psFunction->bStatic)
 	{
 		apcArguments.Kill();
-		return Unsupported(__LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	//a = b and a op= b work out b first, other operators their left first, as the built in ones do.  [over.match.oper] 2
 	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue, pcObject, false, psType->psClass, mpcGenerator->SkipParentheses(pcObject)->GetKind() != CPPS_IdExpression,
