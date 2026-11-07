@@ -107,7 +107,7 @@ void CWindowTheme::Class(void)
 	U_BoolArray(mabColoursSet, TC_NumColours);
 	U_Int32Array(maiMetrics, TM_NumMetrics);
 	U_BoolArray(mabMetricsSet, TM_NumMetrics);
-	U_Data(CComponentEvent<CWindowTheme>, mcChangeEvent);
+	U_Unknown(CComponentEvent<CWindowTheme>, mcChangeEvent);
 }
 
 

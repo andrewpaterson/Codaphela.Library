@@ -57,8 +57,8 @@ void CCommand::Class(void)
 	U_String(mszCaption);
 	U_String(mszKeys);
 	M_Pointer(mpIcon);
-	U_Data(SMemberCall, msRun);
-	U_Data(SMemberCall, msEnabled);
+	U_Unknown(SMemberCall, msRun);
+	U_Unknown(SMemberCall, msEnabled);
 	U_Enum(meStandard);
 	U_Bool(mbRunAsks);
 }
