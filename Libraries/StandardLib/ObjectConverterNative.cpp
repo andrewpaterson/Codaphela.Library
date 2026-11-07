@@ -3,7 +3,6 @@
 #include "Unknowns.h"
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
-#include "IndexGenerator.h"
 #include "ObjectReader.h"
 #include "ExternalObjectDeserialiser.h"
 #include "ObjectConverterNative.h"
@@ -60,37 +59,37 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const
 	CObjectSourceSimple*	pcSourceSimple;
 	bool					bResult;
 	CFileBasic				cFile;
-	int32					c;
+	int32					iFileType;
 
-	if ((!pcFile) || (!szFilename))
+	if ((pcFile == NULL) || (szFilename == NULL))
 	{
 		return NULL;
 	}
 
+	//The file type decides the source.  cFile is closed but not killed: killing it can free pcFile, which the source keeps.
 	cFile.Init(pcFile);
-	bResult = cFile.Open(EFM_Read);
+	if (!cFile.Open(EFM_Read))
+	{
+		return NULL;
+	}
+	bResult = cFile.ReadInt32(&iFileType);
+	cFile.Close();
 	if (!bResult)
 	{
 		return NULL;
 	}
 
-	bResult = cFile.ReadInt32(&c);
-	if (!bResult)
-	{
-		return NULL;
-	}
-
-	if (c == CHUNKED_OBJECT_FILE)
+	if (iFileType == CHUNKED_OBJECT_FILE)
 	{
 		pcSourceChunked = UMalloc(CObjectSourceChunked);
-		bResult = pcSourceChunked->Init(this, pcFile, szFilename);
-		if (!bResult)
+		if (!pcSourceChunked->Init(this, pcFile, szFilename))
 		{
+			pcSourceChunked->Kill();
 			return NULL;
 		}
 		return pcSourceChunked;
 	}
-	else if (c == BASIC_OBJECT_FILE)
+	else if (iFileType == BASIC_OBJECT_FILE)
 	{
 		pcSourceSimple = UMalloc(CObjectSourceSimple);
 		pcSourceSimple->Init(this, pcFile, szFilename);
@@ -102,36 +101,28 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const
 	}
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, const char* szObjectName)
 {
-	CChunkFileFile					cFile;
-	CBaseObject*					pvObject;
-	CFileBasic						cFileBasic;
+	CBaseObject*					pcObject;
 	CExternalObjectDeserialiser		cGraphDeserialiser;
 	CExternalObjectReader*			pcReader;
 
-	//This if statement should be calling a virtual method instead.
 	pcReader = pcSource->GetReader();
-	if (!pcReader)
+	if (pcReader == NULL)
 	{
 		return NULL;
 	}
 
 	cGraphDeserialiser.Init(pcReader, true, &gcObjects);
-	pvObject = cGraphDeserialiser.Read(szObjectName);
-
+	pcObject = cGraphDeserialiser.Read(szObjectName);
 	mcIndexRemap.InsertArrayAfterEnd(cGraphDeserialiser.GetArrayIndexNewOld());
-
 	cGraphDeserialiser.Kill();
-
-	return pvObject;
+	return pcObject;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

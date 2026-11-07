@@ -7,7 +7,6 @@
 #include "IndexNewOld.h"
 
 
-class CIndexGenerator;
 class CObjectSource;
 class CObjectConverterNative : public CObjectConverter
 {
@@ -25,7 +24,7 @@ public:
 	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName);
 	bool			IsNative(void);
 
-	OIndex			TestGetNewIndexFromOld(OIndex oiNew);
+	OIndex			TestGetNewIndexFromOld(OIndex oiOld);
 };
 
 
