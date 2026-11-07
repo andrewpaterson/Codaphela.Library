@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArraySize : public CArrayTemplatePrimitive<int>
+class CArraySize : public CArrayTemplatePrimitive<size>
 {
 public:
 	size	FindUnusedInSorted(void);

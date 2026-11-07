@@ -245,7 +245,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	psCorners = pcMesh->GetCorner(0);
 	psFaces = pcMesh->GetFace(0);
 
-	piSmoothing = (int*)mcSmoothingGroups.Get(0);
+	piSmoothing = mcSmoothingGroups.Get(0);
 
 	pcNormals = &pcMesh->mcNormals;
 
@@ -431,7 +431,7 @@ void CMeshSmoothGroups::RemoveFace(size iFace)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::RemoveFaces(CArraySize* paiFaces)
 {
-	mcSmoothingGroups.RemoveAt((size*)paiFaces->GetData(), paiFaces->NumElements());
+	mcSmoothingGroups.RemoveAt(paiFaces->GetData(), paiFaces->NumElements());
 }
 
 

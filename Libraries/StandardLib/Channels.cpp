@@ -1417,7 +1417,7 @@ void CChannels::GetAllChannels(CArraySize* paiChannels)
 	for (j = 0; j < uiOffsets; j++)
 	{
 		psChannel = masChannelOffsets.Get(j);
-		paiChannels->Add((int)psChannel->iChannel);
+		paiChannels->Add(psChannel->iChannel);
 	}
 }
 
@@ -1529,7 +1529,7 @@ void CChannels::GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels
 		psChannel = masChannelOffsets.Get(j);
 		if (psChannel->eType == eType)
 		{
-			paiChannels->Add((int)psChannel->iChannel);
+			paiChannels->Add(psChannel->iChannel);
 		}
 	}
 }

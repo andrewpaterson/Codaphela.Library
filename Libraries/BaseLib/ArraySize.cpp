@@ -32,17 +32,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 size CArraySize::FindUnusedInSorted(void)
 {
 	size	iIndex;
-	int	iValue;
-
-	if (miUsedElements == 0)
-	{
-		return 0;
-	}
 
 	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
 	{
-		iValue = *Get(iIndex);
-		if (iValue != (int)iIndex)
+		if (GetValue(iIndex) != iIndex)
 		{
 			return iIndex;
 		}
@@ -58,14 +51,12 @@ size CArraySize::FindUnusedInSorted(void)
 void CArraySize::Dump(void)
 {
 	size	iIndex;
-	int	iValue;
 	char	sz[32];
 
 	EngineOutput("[");
 	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
 	{
-		iValue = GetValue(iIndex);
-		SizeToString(sz, 32, iValue, 10);
+		SizeToString(sz, 32, GetValue(iIndex), 10);
 		EngineOutput(sz);
 		EngineOutput(" ");
 	}

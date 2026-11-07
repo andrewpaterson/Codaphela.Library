@@ -234,7 +234,7 @@ void FlattenCriteria(UInputChordCriteria* puCriteria, CArrayTemplate<CActionInpu
 				pasInputs->Add(&puChild->cInactive);
 			}
 		}
-		paiBlockSizes->Add((int)uiNumElements);
+		paiBlockSizes->Add(uiNumElements);
 		break;
 	case BAA_Ordered:
 		uiNumElements = puCriteria->cOrdered.mausBasicActionCriteria.NumElements();
@@ -344,8 +344,8 @@ bool BlocksOverlap(SChordOverlapSide* psA, size uiBlockA, size uiBlockStartA, ui
 		return false;
 	}
 
-	uiSizeA = (size)psA->aiBlockSizes.GetValue(uiBlockA);
-	uiSizeB = (size)psB->aiBlockSizes.GetValue(uiBlockB);
+	uiSizeA = psA->aiBlockSizes.GetValue(uiBlockA);
+	uiSizeB = psB->aiBlockSizes.GetValue(uiBlockB);
 	for (i = 0; i < uiSizeA; i++)
 	{
 		if (uiUsedA & (1 << i))
