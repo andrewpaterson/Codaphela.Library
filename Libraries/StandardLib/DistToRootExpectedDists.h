@@ -2,6 +2,7 @@
 #define __DIST_TO_ROOT_EXPECTED_DISTS_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "PointerLocations.h"
 
 
 class CBaseObject;
@@ -34,8 +35,8 @@ class CDistToRootExpectedDists
 private:
 	CArrayDistToRoot		macDists;  //In the order the objects were added; removed ones stay, marked.
 	CArrayDistToRootHeap	macHeap;  //Lowest first; stale nodes are skipped.
-	size*					mpuiTable;  //Open addressing, object -> index + 1.  Only once there are many.
-	size					muiTableSize;
+	CPointerLocations		mcIndices;  //Each object's indices in macDists, once there are many (mbIndexed).
+	bool					mbIndexed;
 
 public:
 	void			Init(void);
@@ -49,10 +50,7 @@ public:
 
 private:
 	size			FindIndex(CBaseObject* pcObject);
-	size			TableSlot(CBaseObject* pcObject);
-	void			InsertTable(size uiIndex);
-	void			PutTable(size uiIndex);
-	void			GrowTable(void);
+	void			AddIndex(size uiIndex);
 	void			PushHeap(int iExpectedDist, size uiIndex);
 	void			PopHeap(void);
 	bool			IsHeapNodeStale(SDistToRootHeapNode* psNode);

@@ -14,8 +14,8 @@ void CDistToRootExpectedDists::Init(void)
 {
 	macDists.Init();
 	macHeap.Init();
-	mpuiTable = NULL;
-	muiTableSize = 0;
+	mcIndices.Init();
+	mbIndexed = false;
 }
 
 
@@ -25,8 +25,8 @@ void CDistToRootExpectedDists::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootExpectedDists::Kill(void)
 {
-	SafeFree(mpuiTable);
-	muiTableSize = 0;
+	mcIndices.Kill();
+	mbIndexed = false;
 	macHeap.Kill();
 	macDists.Kill();
 }
@@ -63,7 +63,7 @@ void CDistToRootExpectedDists::Add(CBaseObject* pcObject, int iExpectedDist)
 	psDistToRoot->pcObject = pcObject;
 	psDistToRoot->bRemoved = false;
 	PushHeap(iExpectedDist, uiIndex);
-	PutTable(uiIndex);
+	AddIndex(uiIndex);
 }
 
 
@@ -74,13 +74,15 @@ void CDistToRootExpectedDists::Add(CBaseObject* pcObject, int iExpectedDist)
 //////////////////////////////////////////////////////////////////////////
 size CDistToRootExpectedDists::FindIndex(CBaseObject* pcObject)
 {
-	size			i;
-	size			uiDists;
-	size			uiSlot;
-	size			uiEntry;
-	SDistToRoot*	psDistToRoot;
+	size						i;
+	size						uiDists;
+	SDistToRoot*				psDistToRoot;
+	SPointerLocationsIterator	sIter;
+	ptr							uiIndex;
+	bool						bExists;
 
-	if (mpuiTable == NULL)
+	//An object removed and added again has more than one index: the one not removed is it.
+	if (!mbIndexed)
 	{
 		uiDists = macDists.NumElements();
 		for (i = 0; i < uiDists; i++)
@@ -94,109 +96,45 @@ size CDistToRootExpectedDists::FindIndex(CBaseObject* pcObject)
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	uiSlot = TableSlot(pcObject);
-	for (;;)
+	bExists = mcIndices.StartIteration(&sIter, pcObject, &uiIndex);
+	while (bExists)
 	{
-		uiEntry = mpuiTable[uiSlot];
-		if (uiEntry == 0)
+		if (!macDists.Get((size)uiIndex)->bRemoved)
 		{
-			return ARRAY_ELEMENT_NOT_FOUND;
+			return (size)uiIndex;
 		}
-		psDistToRoot = macDists.Get(uiEntry - 1);
-		if ((psDistToRoot->pcObject == pcObject) && !psDistToRoot->bRemoved)
-		{
-			return uiEntry - 1;
-		}
-		uiSlot = (uiSlot + 1) & (muiTableSize - 1);
+		bExists = mcIndices.Iterate(&sIter, &uiIndex);
 	}
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where the object's entries start in the table.
+// Few objects are found by looking through them.  Once there are more than
+// EXPECTED_DISTS_LINEAR_SEARCH each index is kept by its object, removed
+// ones too (an object removed and added again has two).
 //
 //////////////////////////////////////////////////////////////////////////
-size CDistToRootExpectedDists::TableSlot(CBaseObject* pcObject)
+void CDistToRootExpectedDists::AddIndex(size uiIndex)
 {
-	return (size)((((ptr)pcObject) >> 4) & (muiTableSize - 1));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Puts the expected dist at uiIndex in the first free slot from its
-// object's.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootExpectedDists::InsertTable(size uiIndex)
-{
-	size	uiSlot;
-
-	uiSlot = TableSlot(macDists.Get(uiIndex)->pcObject);
-	while (mpuiTable[uiSlot] != 0)
-	{
-		uiSlot = (uiSlot + 1) & (muiTableSize - 1);
-	}
-	mpuiTable[uiSlot] = uiIndex + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Removed entries stay in the table (an object removed and added again is
-// in it twice); the table is only built once a linear search gets slow.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootExpectedDists::PutTable(size uiIndex)
-{
-	size	uiDists;
-
-	uiDists = macDists.NumElements();
-	if (mpuiTable == NULL)
-	{
-		if (uiDists > EXPECTED_DISTS_LINEAR_SEARCH)
-		{
-			GrowTable();
-		}
-	}
-	else if ((uiDists * 2) > muiTableSize)
-	{
-		GrowTable();
-	}
-	else
-	{
-		InsertTable(uiIndex);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Rebuilds the table, at least four times the number of expected dists.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootExpectedDists::GrowTable(void)
-{
-	size	uiSize;
-	size	uiDists;
 	size	i;
+	size	uiDists;
 
-	uiDists = macDists.NumElements();
-	uiSize = 64;
-	while (uiSize < (uiDists * 4))
+	if (mbIndexed)
 	{
-		uiSize *= 2;
+		mcIndices.Add(macDists.Get(uiIndex)->pcObject, uiIndex);
+		return;
 	}
 
-	SafeFree(mpuiTable);
-	mpuiTable = (size*)malloc((lsize)uiSize * sizeof(size));
-	memset(mpuiTable, 0, (lsize)uiSize * sizeof(size));
-	muiTableSize = uiSize;
-
-	for (i = 0; i < uiDists; i++)
+	uiDists = macDists.NumElements();
+	if (uiDists > EXPECTED_DISTS_LINEAR_SEARCH)
 	{
-		InsertTable(i);
+		for (i = 0; i < uiDists; i++)
+		{
+			mcIndices.Add(macDists.Get(i)->pcObject, i);
+		}
+		mbIndexed = true;
 	}
 }
 
