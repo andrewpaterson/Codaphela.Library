@@ -144,17 +144,15 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 {
 	CSerialisedObject*	pcSerialised;
 	char*				szObjectName;
-	CObjectReader		cDeserialiser;
-	CBaseObject*		pvObject;
+	CBaseObject*		pcObject;
 	OIndex				oiOld;
 
-	pcSerialised = NULL;
 	oiOld = pcDependent->GetOldIndex();
 	if (pcDependent->IsNamed())
 	{
 		szObjectName = pcDependent->GetName();
 		pcSerialised = mpcReader->Read(szObjectName);
-		if (!pcSerialised)
+		if (pcSerialised == NULL)
 		{
 			return gcLogger.Error2(__METHOD__, " Could not read object named [", szObjectName, "] that another object points to.", NULL);
 		}
@@ -162,7 +160,7 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	else
 	{
 		pcSerialised = mpcReader->Read(oiOld);
-		if (!pcSerialised)
+		if (pcSerialised == NULL)
 		{
 			return gcLogger.Error2(__METHOD__, " Could not read object with index [", IndexToString(oiOld), "] that another object points to.", NULL);
 		}
@@ -170,14 +168,14 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 
 	if (oiOld != pcSerialised->GetIndex())
 	{
-		gcLogger.Error2(__METHOD__, " pcDependent->GetOldIndex [", IndexToString(oiOld), "] != pcSerialised->GetIndex [", IndexToString(pcSerialised->GetIndex()), "]", NULL);
+		gcLogger.Error2(__METHOD__, " Object read for index [", IndexToString(oiOld), "] has index [", IndexToString(pcSerialised->GetIndex()), "].", NULL);
+		SafeFree(pcSerialised);
 		return false;
 	}
 
-	pvObject = ReadSerialised(pcSerialised);
+	pcObject = ReadSerialised(pcSerialised);
 	SafeFree(pcSerialised);
-
-	return pvObject != NULL;
+	return pcObject != NULL;
 }
 
 
