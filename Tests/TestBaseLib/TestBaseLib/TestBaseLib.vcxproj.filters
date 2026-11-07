@@ -276,6 +276,9 @@
     <ClCompile Include="TestTextUndo.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="TestTextDocument.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
     <ClCompile Include="TestTextNavigation.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>

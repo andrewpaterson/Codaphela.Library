@@ -332,6 +332,7 @@
     <ClCompile Include="TestRedBlackTree.cpp" />
     <ClCompile Include="TestUndoStack.cpp" />
     <ClCompile Include="TestTextUndo.cpp" />
+    <ClCompile Include="TestTextDocument.cpp" />
     <ClCompile Include="TestTextNavigation.cpp" />
     <ClCompile Include="TestNameMatcher.cpp" />
     <ClCompile Include="TestLine.cpp" />

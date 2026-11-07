@@ -879,6 +879,9 @@
     <ClInclude Include="UndoStack.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
+    <ClInclude Include="TextDocument.h">
+      <Filter>Source\Data</Filter>
+    </ClInclude>
     <ClInclude Include="TextNavigation.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
@@ -2160,6 +2163,9 @@
       <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="UndoStack.cpp">
+      <Filter>Source\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDocument.cpp">
       <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="TextNavigation.cpp">

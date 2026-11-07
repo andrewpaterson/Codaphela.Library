@@ -42,6 +42,7 @@ void TestArraySparseTemplate(void);
 void TestRedBlackTree(void);
 void TestUndoStack(void);
 void TestTextUndo(void);
+void TestTextDocument(void);
 void TestTextNavigation(void);
 void TestNameMatcher(void);
 void TestLine(void);
@@ -276,6 +277,7 @@ int __cdecl main(void)
 	TestRedBlackTree();
 	TestUndoStack();
 	TestTextUndo();
+	TestTextDocument();
 	TestTextNavigation();
 	TestNameMatcher();
 	TestLine();
