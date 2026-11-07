@@ -86,8 +86,6 @@ void CProject::Kill(void)
 
 	mcHeaderNames.Kill();
 
-
-
 	pcLibrary = mcLibraries.GetHead();
 	while (pcLibrary)
 	{
@@ -97,7 +95,6 @@ void CProject::Kill(void)
 	mcLibraries.Kill();
 
 	mcIncludeFiles.Kill();
-
 }
 
 
@@ -118,11 +115,13 @@ CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDi
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False if szBaseDir doesn't exist (gcUserError says so); it is still
+// added, with no files.
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem)
+bool CProject::AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem)
 {
-	AddHeaderFiles(szBaseDir, bIncludeSubDirectories, bSystem);
+	return AddHeaderFiles(szBaseDir, bIncludeSubDirectories, bSystem);
 }
 
 
@@ -369,11 +368,11 @@ void CProject::DumpPost(CTranslationUnit* pcTU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem)
+bool CProject::AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem)
 {
 	CHeaderFiles* pcHeaderNameMap;
 
 	pcHeaderNameMap = mcHeaderNames.Add();
-	pcHeaderNameMap->Init(szDirectoryName, &mcIncludeFiles, bIncludeSubDirectories, bSystem);
+	return pcHeaderNameMap->Init(szDirectoryName, &mcIncludeFiles, bIncludeSubDirectories, bSystem);
 }
 

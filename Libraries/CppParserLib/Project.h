@@ -52,7 +52,7 @@ public:
 	void				Init(bool bDumpLogs = false, bool bWritePostFile = false);
 	void				Kill(void);
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
-	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
+	bool				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
 	bool				Process(char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	bool				ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
@@ -65,7 +65,7 @@ public:
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
 
-	void				AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem);
+	bool				AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem);
 
 protected:
 	CTranslationUnit*	StartLibrary(SProcessIter* psIter);

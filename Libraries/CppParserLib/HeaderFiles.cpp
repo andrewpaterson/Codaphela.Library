@@ -30,26 +30,25 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 bool CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool bIncludeSubDirectories, bool bSystem)
 {
-	CFileUtil cFileUtil;
+	CFileUtil	cFileUtil;
+	CChars		sz;
+
+	//Initialised even for a directory that doesn't exist: it is searched and killed like any other, and has no files.
+	mszBaseDirectory.Init(szBaseDirectory);
+	//Include names are not case sensitive on Windows.
+	mcFileNames.Init(false, false);
+	mpcFileMap = pcFileMap;
+	mbSystem = bSystem;
 
 	if (!cFileUtil.Exists(szBaseDirectory))
 	{
-		CChars	sz;
-
-		sz.Init();
-		sz.Append("Directory [");
+		sz.Init("Directory [");
 		sz.Append(szBaseDirectory);
 		sz.Append("] does not exist.");
 		gcUserError.Set(sz.Text());
 		sz.Kill();
 		return false;
 	}
-
-	mszBaseDirectory.Init(szBaseDirectory);
-	//Include names are not case sensitive on Windows.
-	mcFileNames.Init(false, false);
-	mpcFileMap = pcFileMap;
-	mbSystem = bSystem;
 
 	AddFiles(bIncludeSubDirectories);
 	return true;

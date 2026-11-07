@@ -228,6 +228,45 @@ void TestNoPostFile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An include directory that doesn't exist is reported, has no files, and
+// is searched and killed like the others.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMissingIncludeDirectory(void)
+{
+	TypesInit();
+	TypeConverterInit();
+	NumberInit();
+
+	CProject			cProject;
+	CLibrary*			pcLibrary;
+	CConfig*			pcConfig;
+	CTranslationUnit*	pcTU1;
+
+	cProject.Init(true);
+
+	AssertFalse(cProject.AddIncludeDirectory("NoSuchDirectory", false, false));
+	pcLibrary = cProject.AddLibrary("Test", ".", false);
+	pcLibrary->AddHeaderFile("TestHeader2.h");
+	pcTU1 = pcLibrary->AddTranslationUnit("TestUnit4.cpp", true);
+	pcConfig = pcLibrary->AddConfiguration("Debug");
+	pcConfig->AddDefines("_WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE");
+
+	AssertTrue(cProject.Process("Debug"));
+	AssertString("\
+     TestUnit4.cpp (Included)\n\
+         TestHeader2.h (Included)\n", pcTU1->GetLogs()->szIncludesLog.Text());
+
+	cProject.Kill();
+
+	NumberKill();
+	TypeConverterKill();
+	TypesKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestProject(void)
@@ -239,6 +278,7 @@ void TestProject(void)
 	TestReinclude();
 	TestWritePostFile();
 	TestNoPostFile();
+	TestMissingIncludeDirectory();
 
 	TestStatistics();
 }

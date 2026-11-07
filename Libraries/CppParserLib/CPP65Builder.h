@@ -246,7 +246,7 @@ public:
 	void			SetMathTables(bool bMathTables);
 	CAsm65LineTable*	GetLineTable(void);
 
-	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
+	bool			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			AddMathTables(const char* szLibc65Directory);
 	void			AddRuntime816(const char* szLibc65Directory);

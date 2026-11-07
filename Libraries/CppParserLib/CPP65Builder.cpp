@@ -143,10 +143,10 @@ void CCPP65Builder::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A directory searched for #include files: by sources, and by the project's units.  A system directory is
-// searched for <file>, the others for "file".
+// searched for <file>, the others for "file".  False if szDirectory doesn't exist.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem)
+bool CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem)
 {
 	SCPP65IncludeDirectory*	psInclude;
 
@@ -154,7 +154,7 @@ void CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSu
 	psInclude->szDirectory.Init(szDirectory);
 	psInclude->bIncludeSubDirectories = bIncludeSubDirectories;
 	psInclude->bSystem = bSystem;
-	mcProject.AddIncludeDirectory((char*)szDirectory, bIncludeSubDirectories, bSystem);
+	return mcProject.AddIncludeDirectory((char*)szDirectory, bIncludeSubDirectories, bSystem);
 }
 
 
