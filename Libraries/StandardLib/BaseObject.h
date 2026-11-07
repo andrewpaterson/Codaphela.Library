@@ -25,17 +25,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Class.h"
 
 
-//Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
+//Invalidated: the object in the database has changed and the one in memory must be reloaded.  Nothing sets it yet.
 #define OBJECT_FLAGS_INVALIDATED				  0x04
 
-//Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
+//Dirty: the object in memory has changed since it was saved (a new object is dirty until it is saved).  Flush saves
+//it (NeedsSaving).
 #define OBJECT_FLAGS_DIRTY						  0x08
 
 //Set when an object's Free has been called: it is in the batch being freed.  The distance walks pass over it and
 //TryFree leaves it.  An object that is killed should be removed from Memory, so one still there with this set is broken.
 #define OBJECT_FLAGS_FREED						  0x10
 
-//Debug flag marking whether or not an object has had it's graph dumped yet.
+//Marks an object whose graph PrintGraph has printed already (UnsetDumpFlags clears it after).  A container flag: the
+//objects embedded in it share it, which the dump relies on.  It isn't a walk stamp only because nothing needs the bit.
 #define OBJECT_FLAGS_DUMPED						  0x20
 
 //Set when an object was read from or written to the database.  A dirty stored object is saved by Flush and before it
@@ -43,7 +45,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //that never reach the database are freed without saving.
 #define OBJECT_FLAGS_STORED						  0x40
 
-// Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
+//Set on the objects ValidateConsistency has checked, while it walks the graph, so none is checked twice.  It can't be
+//a walk stamp: checking an object starts walks of its own (CanFindRoot), which would restamp what was checked.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
 
 //Object initialisation life-cycle
