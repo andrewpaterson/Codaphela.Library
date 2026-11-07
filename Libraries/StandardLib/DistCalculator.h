@@ -110,8 +110,6 @@ private:
 	static	void					ClearKnownHeldFromStack(CBaseObject* pcObject, uint32 uiCleared, CArrayBaseObjectPtr* papcCandidates, CArrayBaseObjectPtr* papcCleared);
 	static	void					AddNewerTos(CBaseObject* pcObject, CArrayBaseObjectPtr* papcObjects);
 
-			void					PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate);
-			void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate);
 };
 
 

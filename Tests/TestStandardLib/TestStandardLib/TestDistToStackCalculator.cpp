@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/TypeNames.h"
@@ -225,6 +226,48 @@ void TestDistToStackSimpleHeap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pszPrinted (CDistCalculator::Print's text) without what changes from run
+// to run and platform to platform: each object's address and class size.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDistToStackNormalisePrint(CChars* pszDest, const char* szPrinted)
+{
+	size	i;
+	size	j;
+
+	pszDest->Init();
+	for (i = 0; szPrinted[i] != '\0'; i++)
+	{
+		//An address: a run of hex digits followed by " [".
+		for (j = i; isxdigit((unsigned char)szPrinted[j]); j++)
+		{
+		}
+		if ((j - i >= 8) && (szPrinted[j] == ' ') && (szPrinted[j + 1] == '['))
+		{
+			i = j;
+			continue;
+		}
+
+		//A class size: "(digits)".
+		if (szPrinted[i] == '(')
+		{
+			for (j = i + 1; isdigit((unsigned char)szPrinted[j]); j++)
+			{
+			}
+			if ((j > i + 1) && (szPrinted[j] == ')'))
+			{
+				pszDest->Append("()");
+				i = j;
+				continue;
+			}
+		}
+		pszDest->Append(szPrinted[i]);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToStackRootCyclicWithStackPointerA(void)
@@ -232,6 +275,8 @@ void TestDistToStackRootCyclicWithStackPointerA(void)
 	ObjectsInit();
 
 	CDistCalculator	cDistCalculator;
+	CChars			szPrinted;
+	CChars			szNormalised;
 	CPointerContainer*			pc1;
 	CPointerContainer*			pc2;
 	CPointerContainer*			pc3;
@@ -280,6 +325,37 @@ void TestDistToStackRootCyclicWithStackPointerA(void)
 
 	AssertSize(3, cDistCalculator.NumDetachedFromRoot());
 	AssertSize(0, cDistCalculator.NumCompletelyDetached());
+
+	//What it found, both ways it prints.
+	szPrinted.Init();
+	cDistCalculator.Print(&szPrinted, true);
+	TestDistToStackNormalisePrint(&szNormalised, szPrinted.Text());
+	AssertString("------------- DistCalculator ---------------\n"
+				 "      Touched [3]:  [-1]:CPointerContainer() Index:1 Name:Pointer A Froms:1,1, [-1]:CPointerContainer() Index:2 Name:Pointer B Froms:1,0, [-1]:CPointerContainer() Index:3 Name:Pointer C Froms:1,0\n"
+				 "     Detached [3]:  [-1]:CPointerContainer() Index:1 Name:Pointer A Froms:1,1, [-1]:CPointerContainer() Index:3 Name:Pointer C Froms:1,0, [-1]:CPointerContainer() Index:2 Name:Pointer B Froms:1,0\n"
+				 "  C. Detached [0]:  \n"
+				 "--------------------------------------------\n", szNormalised.Text());
+	szNormalised.Kill();
+	szPrinted.Kill();
+	szPrinted.Init();
+	cDistCalculator.Print(&szPrinted, false);
+	TestDistToStackNormalisePrint(&szNormalised, szPrinted.Text());
+	AssertString("------------- DistCalculator ---------------\n"
+				 "Touched [3]:  \n"
+				 "  [-1]:CPointerContainer() Index:1 Name:Pointer A Froms:1,1\n"
+				 "  [-1]:CPointerContainer() Index:2 Name:Pointer B Froms:1,0\n"
+				 "  [-1]:CPointerContainer() Index:3 Name:Pointer C Froms:1,0\n"
+				 "\n"
+				 "Detached [3]:  \n"
+				 "  [-1]:CPointerContainer() Index:1 Name:Pointer A Froms:1,1\n"
+				 "  [-1]:CPointerContainer() Index:3 Name:Pointer C Froms:1,0\n"
+				 "  [-1]:CPointerContainer() Index:2 Name:Pointer B Froms:1,0\n"
+				 "\n"
+				 "C. Detached [0]:  \n"
+				 "\n"
+				 "--------------------------------------------\n", szNormalised.Text());
+	szNormalised.Kill();
+	szPrinted.Kill();
 
 	cDistCalculator.Kill();
 

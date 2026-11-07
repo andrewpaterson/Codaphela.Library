@@ -24,6 +24,72 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DistCalculator.h"
 
 
+#define DIST_CALCULATOR_PRINT_TITLE_WIDTH	13	//Print's section titles are right aligned to this, on their objects' line.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Prints each object in pcArray (any of the object pointer arrays):
+// separated by commas, or each on its own indented line.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TArray>
+static void PrintObjects(CChars* psz, TArray* pcArray, bool bCommaSeparate)
+{
+	size	i;
+	size	uiNum;
+
+	uiNum = pcArray->NumElements();
+	for (i = 0; i < uiNum; i++)
+	{
+		if (!bCommaSeparate)
+		{
+			psz->Append("  ");
+		}
+
+		(*pcArray->Get(i))->PrintObject(psz, false);
+
+		if (!bCommaSeparate)
+		{
+			psz->AppendNewLine();
+		}
+		else if (i + 1 != uiNum)
+		{
+			psz->Append(", ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One of Print's sections: its title and count, then its objects (on the
+// same line, the titles right aligned, when bCommaSeparate).
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TArray>
+static void PrintSection(CChars* psz, const char* szTitle, TArray* pcArray, bool bCommaSeparate)
+{
+	if (bCommaSeparate)
+	{
+		psz->RightAlign(szTitle, ' ', DIST_CALCULATOR_PRINT_TITLE_WIDTH);
+	}
+	else
+	{
+		psz->Append(szTitle);
+	}
+	psz->Append(" [");
+	psz->Append(pcArray->NumElements());
+	psz->Append("]:  ");
+	if (!bCommaSeparate)
+	{
+		psz->AppendNewLine();
+	}
+	PrintObjects(psz, pcArray, bCommaSeparate);
+	psz->AppendNewLine();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -220,78 +286,6 @@ CBaseObject* CDistCalculator::GetTouched(size iIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistCalculator::PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate)
-{
-	size			i;
-	size			iNum;
-	CBaseObject*	pcBaseObject;
-
-	iNum = pcArray->NumElements();
-	for (i = 0; i < iNum; i++)
-	{
-		if (!bCommaSeparate)
-		{
-			psz->Append("  ");
-		}
-
-		pcBaseObject = *pcArray->Get(i);
-		pcBaseObject->PrintObject(psz, false);
-		
-		if (bCommaSeparate)
-		{
-			if (i != iNum - 1)
-			{
-				psz->Append(", ");
-			}
-		}
-		else
-		{
-			psz->AppendNewLine();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistCalculator::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate)
-{
-	size			i;
-	size			iNum;
-	CBaseObject*	pcBaseObject;
-
-	iNum = pcArray->NumElements();
-	for (i = 0; i < iNum; i++)
-	{
-		if (!bCommaSeparate)
-		{
-			psz->Append("  ");
-		}
-
-		pcBaseObject = *pcArray->Get(i);
-		pcBaseObject->PrintObject(psz, false);
-
-		if (bCommaSeparate)
-		{
-			if (i != iNum - 1)
-			{
-				psz->Append(", ");
-			}
-		}
-		else
-		{
-			psz->AppendNewLine();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // What this calculation found the object to be (a WALK_STATE_...), or 0
 // if it hasn't reached it.
 //
@@ -350,50 +344,9 @@ void CDistCalculator::Print(CChars* psz, bool bCommaSeparate)
 {
 	psz->Append("------------- DistCalculator ---------------");
 	psz->AppendNewLine();
-
-	if (bCommaSeparate)
-	{
-		psz->Append("      ");
-	}
-	psz->Append("Touched [");
-	psz->Append(mapcTouched.NumElements());
-	psz->Append("]:  ");
-	if (!bCommaSeparate)
-	{
-		psz->AppendNewLine();
-	}
-	PrintArray(psz, &mapcTouched, bCommaSeparate);
-
-	psz->AppendNewLine();
-
-	if (bCommaSeparate)
-	{
-		psz->Append("     ");
-	}
-	psz->Append("Detached [");
-	psz->Append(mapcDetachedFromRoot.NumElements());
-	psz->Append("]:  ");
-	if (!bCommaSeparate)
-	{
-		psz->AppendNewLine();
-	}
-	PrintArray(psz, &mapcDetachedFromRoot, bCommaSeparate);
-	psz->AppendNewLine();
-
-	if (bCommaSeparate)
-	{
-		psz->Append("  ");
-	}
-	psz->Append("C. Detached [");
-	psz->Append(mapcCompletelyDetached.NumElements());
-	psz->Append("]:  ");
-	if (!bCommaSeparate)
-	{
-		psz->AppendNewLine();
-	}
-	PrintArray(psz, &mapcCompletelyDetached, bCommaSeparate);
-	psz->AppendNewLine();
-
+	PrintSection(psz, "Touched", &mapcTouched, bCommaSeparate);
+	PrintSection(psz, "Detached", &mapcDetachedFromRoot, bCommaSeparate);
+	PrintSection(psz, "C. Detached", &mapcCompletelyDetached, bCommaSeparate);
 	psz->Append("--------------------------------------------");
 	psz->AppendNewLine();
 }
