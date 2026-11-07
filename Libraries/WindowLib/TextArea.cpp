@@ -663,7 +663,6 @@ bool CTextArea::SummariseBands(CTextAreaBands* pcBands)
 		}
 		uiRow++;
 	}
-	SafeFree(psStyles);
 
 	//The shapes drawn under and over the text, in the order they are drawn.
 	MixShapes(pcBands, mpBackgroundMap, iTop, iBottom);

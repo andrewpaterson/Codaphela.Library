@@ -35,6 +35,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextAreaTiles.h"
 
 
+typedef CArrayTemplate<STextStyle>	CArrayTextAreaStyle;
+
+
 //A text area's text laid out in rows: read in the fonts of a font family, in its style with its spans over it, as
 //sprites (a CTextLayout, wrapped to a width when word wrap is on) or, for a fixed width font, as tiles (CTextAreaTiles),
 //with the gaps asked for below its lines.  Its sprites, tiles and the lines drawn along the text are in maps for the
@@ -58,6 +61,7 @@ protected:
 	size					muiTabWidth;  //In spaces.
 	SInt32Vec2				msTextSize;
 	CArrayTextAreaStopStart	mauiStopStarts;  //The byte each of the layout's stops is before.  Carriage returns have none.
+	CArrayTextAreaStyle		masStyles;  //What MakeStyles last made; it only grows, so its memory is kept.
 
 	Ptr<CText>				mpText;
 	bool					mbTextStale;  //Text was appended after mpText was read (AppendSprites): read it again before it is laid out whole.

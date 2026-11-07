@@ -250,6 +250,54 @@ void TestTextAreaRowsStops(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each byte's style, the text area's with the spans over it, in the
+// layout's own buffer, made again in it each time: none without spans.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaRowsStyles(void)
+{
+	CTextDocument			cDocument;
+	Ptr<CTextAreaLayout>	pLayout;
+	STextStyleOverride		sRed;
+	STextStyle*				psStyles;
+	STextStyle*				psAgain;
+	ARGB32					sDefault;
+
+	ObjectsInit();
+	cDocument.Init("abcdef");
+	pLayout = CreateRowsLayout(&cDocument);
+	sDefault = pLayout->GetStyle()->sColour;
+	AssertNull(pLayout->MakeStyles(0, 6));
+
+	sRed.Init();
+	sRed.SetColour(Set32BitColour(1.0f, 0, 0));
+	AssertTrue(pLayout->AddSpan(1, 2, &sRed));
+	psStyles = pLayout->MakeStyles(0, 6);
+	AssertNotNull(psStyles);
+	AssertInt(sDefault, psStyles[0].sColour);
+	AssertInt(Set32BitColour(1.0f, 0, 0), psStyles[1].sColour);
+	AssertInt(Set32BitColour(1.0f, 0, 0), psStyles[2].sColour);
+	AssertInt(sDefault, psStyles[3].sColour);
+
+	//From byte 2, in the same buffer; past the end is cut to it.
+	psAgain = pLayout->MakeStyles(2, 100);
+	AssertTrue(psAgain == psStyles);
+	AssertInt(Set32BitColour(1.0f, 0, 0), psAgain[0].sColour);
+	AssertInt(sDefault, psAgain[1].sColour);
+	AssertNull(pLayout->MakeStyles(4, 4));
+
+	pLayout->ClearSpans();
+	AssertNull(pLayout->MakeStyles(0, 6));
+
+	pLayout = NULL;
+	cDocument.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaRows(void)
@@ -261,6 +309,7 @@ void TestTextAreaRows(void)
 	TestTextAreaRowsWordWrap();
 	TestTextAreaRowsAppendAndSet();
 	TestTextAreaRowsStops();
+	TestTextAreaRowsStyles();
 
 	TestStatistics();
 }

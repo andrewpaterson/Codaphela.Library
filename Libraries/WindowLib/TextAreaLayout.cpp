@@ -48,6 +48,7 @@ void CTextAreaLayout::Init(CTextDocument* pcDocument, Ptr<CFontFamily> pFamily)
 	muiTabWidth = 4;
 	msTextSize.Init(0, 0);
 	mauiStopStarts.Init();
+	masStyles.Init();
 
 	mpText = NULL;
 	mbTextStale = false;
@@ -81,6 +82,7 @@ void CTextAreaLayout::Class(void)
 	U_Size(muiTabWidth);
 	U_2Int32(msTextSize);
 	U_Unknown(CArrayTextAreaStopStart, mauiStopStarts);
+	U_Unknown(CArrayTextAreaStyle, masStyles);
 	M_Pointer(mpText);
 	U_Bool(mbTextStale);
 	M_Pointer(mpTextLayout);
@@ -101,6 +103,7 @@ void CTextAreaLayout::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextAreaLayout::Free(void)
 {
+	masStyles.Kill();
 	mauiStopStarts.Kill();
 	mcGaps.Kill();
 	mcSpans.Kill();
@@ -408,12 +411,14 @@ void CTextAreaLayout::ReadText(void)
 // The style of each byte of the text from uiFrom to uiTo (exclusive, the
 // first is uiFrom's): the text area's style with the spans over it,
 // applied in the order they were added.  NULL if there are no spans, when
-// every byte is in the text area's style.  Free it.
+// every byte is in the text area's style.  The styles are the layout's:
+// they are good until MakeStyles is called again, and aren't freed.
 //
 //////////////////////////////////////////////////////////////////////////
 STextStyle* CTextAreaLayout::MakeStyles(size uiFrom, size uiTo)
 {
-	size		uiPosition;
+	size		uiLength;
+	size		i;
 	STextStyle*	psStyles;
 
 	if (uiTo > mpcDocument->Length())
@@ -425,10 +430,15 @@ STextStyle* CTextAreaLayout::MakeStyles(size uiFrom, size uiTo)
 		return NULL;
 	}
 
-	psStyles = (STextStyle*)malloc((uiTo - uiFrom) * sizeof(STextStyle));
-	for (uiPosition = uiFrom; uiPosition < uiTo; uiPosition++)
+	uiLength = uiTo - uiFrom;
+	if (masStyles.NumElements() < uiLength)
 	{
-		psStyles[uiPosition - uiFrom] = msStyle;
+		masStyles.GrowToAtLeastNumElements(uiLength);
+	}
+	psStyles = masStyles.GetData();
+	for (i = 0; i < uiLength; i++)
+	{
+		psStyles[i] = msStyle;
 	}
 	mcSpans.Apply(psStyles, uiFrom, uiTo);
 	return psStyles;
@@ -502,7 +512,6 @@ void CTextAreaLayout::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFon
 			psCurrent = &psStyles[uiPosition];
 		}
 	}
-	SafeFree(psStyles);
 }
 
 
@@ -1083,7 +1092,6 @@ void CTextAreaLayout::ReadTiles(void)
 	mpFontDraw->Begin();
 	mpTiles->Decorate(mpFontDraw, GetFont()->GetDescription(), psStyles);
 	mpFontDraw->End();
-	SafeFree(psStyles);
 }
 
 
@@ -1257,7 +1265,6 @@ void CTextAreaLayout::AppendTiles(size uiFrom)
 	FindStopStarts(uiFrom);
 	psStyles = MakeStyles(mpcDocument->GetLineStart(mpTiles->GetAppendLine()));
 	mpTiles->Append(GetFontColours(), (int32)muiTabWidth, psStyles, &msTextSize);
-	SafeFree(psStyles);
 }
 
 
