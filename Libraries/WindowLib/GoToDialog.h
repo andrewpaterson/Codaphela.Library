@@ -30,12 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Dialog.h"
 
 
-#define GO_TO_DIALOG_WIDTH		720
-#define GO_TO_DIALOG_HEIGHT		480
 #define GO_TO_DIALOG_ROWS		100		//The most results shown; IntelliJ shows a page and "more".
-#define GO_TO_DIALOG_ICON_WIDTH	22
-#define GO_TO_DIALOG_ROW_HEIGHT	22
-#define GO_TO_DIALOG_GAP		8
 
 
 //A result: the name the pattern matched, where it is (a class's file, a file's folder), the dialog's icon for it (see
@@ -144,6 +139,7 @@ public:
 	void			PreviousTab(void);
 
 protected:
+	int32			GetMetric(EThemeMetric eMetric);
 	Ptr<CComponent>	CreateBody(void);
 	void			FillList(void);
 	void			AddRow(SGoToItem* psItem);

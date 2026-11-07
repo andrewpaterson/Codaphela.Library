@@ -155,7 +155,7 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->RemoveButtons();
-	mpDialog->SetResizable(GO_TO_DIALOG_WIDTH / 2, GO_TO_DIALOG_HEIGHT / 2);
+	mpDialog->SetResizable(GetMetric(TM_GoToWidth) / 2, GetMetric(TM_GoToHeight) / 2);
 	mpDialog->SetApprover(this, &CGoToDialog::Approve);
 	mpDialog->SetBody(CreateBody(), mpField);
 
@@ -268,7 +268,7 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 	pBody->AddComponent(mpTabs, 0, 0, 1, 1, 1, 0);
 
 	pGap = OMalloc<CFillContainer>(pWindow);
-	pGap->SetDesiredSize(GO_TO_DIALOG_GAP, GO_TO_DIALOG_GAP);
+	pGap->SetDesiredSize(GetMetric(TM_GoToGap), GetMetric(TM_GoToGap));
 	pBody->AddComponent(pGap, 0, 1);
 
 	mpField = OMalloc<CTextField>(pWindow, psLook->pcTheme, "");
@@ -277,7 +277,7 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 	pBody->AddComponent(mpField, 0, 2, 1, 1, 1, 0);
 
 	pGap = OMalloc<CFillContainer>(pWindow);
-	pGap->SetDesiredSize(GO_TO_DIALOG_GAP, GO_TO_DIALOG_GAP);
+	pGap->SetDesiredSize(GetMetric(TM_GoToGap), GetMetric(TM_GoToGap));
 	pBody->AddComponent(pGap, 0, 3);
 
 	sInsets.Init(4, 0);
@@ -352,7 +352,7 @@ void CGoToDialog::Start(size uiTab, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CGoToDialog::Show(void)
 {
-	return mpDialog->Show(GO_TO_DIALOG_WIDTH, GO_TO_DIALOG_HEIGHT) && (miChosen >= 0);
+	return mpDialog->Show(GetMetric(TM_GoToWidth), GetMetric(TM_GoToHeight)) && (miChosen >= 0);
 }
 
 
@@ -464,6 +464,17 @@ void CGoToDialog::FillList(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One of the theme's sizes.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CGoToDialog::GetMetric(EThemeMetric eMetric)
+{
+	return mpDialog->GetLook()->pcTheme->GetMetric(eMetric);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The icon, the name and where it is.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -481,7 +492,7 @@ void CGoToDialog::AddRow(SGoToItem* psItem)
 	{
 		pCel = maIcons.Get((size)psItem->iIcon);
 	}
-	pIcon = OMalloc<CIconComponent>(pWindow, pCel, GO_TO_DIALOG_ICON_WIDTH, GO_TO_DIALOG_ROW_HEIGHT);
+	pIcon = OMalloc<CIconComponent>(pWindow, pCel, GetMetric(TM_GoToIconWidth), GetMetric(TM_GoToRowHeight));
 	pIcon->SetCelAlignment(CSH_Center, CSV_Center);
 	mpList->AddToRow(iRow, pIcon, 0);
 	mpList->AddToRow(iRow, CreateName(psItem), 1);
@@ -558,7 +569,7 @@ Ptr<CComponent> CGoToDialog::CreateName(SGoToItem* psItem)
 	}
 
 	//A grid in a grid is the size it's given, not the size its parts need.  A gap keeps where it is apart.
-	pName->SetDesiredSize(iWidth + GO_TO_DIALOG_GAP, iHeight);
+	pName->SetDesiredSize(iWidth + GetMetric(TM_GoToGap), iHeight);
 	return pName;
 }
 

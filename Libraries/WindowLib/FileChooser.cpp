@@ -29,15 +29,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "FileChooser.h"
 
 
-#define FILE_CHOOSER_WIDTH			620
-#define FILE_CHOOSER_HEIGHT			440
-#define FILE_CHOOSER_MINIMUM_WIDTH	420  //It can be resized, no smaller than this.
-#define FILE_CHOOSER_MINIMUM_HEIGHT	300
-#define FILE_CHOOSER_ROW_HEIGHT		24
-#define FILE_CHOOSER_ICON_WIDTH		30  //The column of the icons, a name starts after it.
-#define FILE_CHOOSER_GAP			8  //Between the rows of the dialog, and between the buttons along the top.
-#define FILE_CHOOSER_LABEL_GAP		12  //Between a label and what it labels.
-#define NEW_FOLDER_DIALOG_WIDTH		360
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,7 +91,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->SetOKCaption(bSave ? "Save" : "Open");
-	mpDialog->SetResizable(FILE_CHOOSER_MINIMUM_WIDTH, FILE_CHOOSER_MINIMUM_HEIGHT);
+	mpDialog->SetResizable(GetMetric(TM_FileChooserMinWidth), GetMetric(TM_FileChooserMinHeight));
 	mpDialog->SetApprover(this, &CFileChooser::Approve);
 	mpDialog->SetTicker(this, &CFileChooser::DialogTick);
 	pBody = CreateBody();
@@ -255,7 +246,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 
 	//Every label is as wide as the widest.
 	pLabel = OMalloc<CLabel>(pWindow, psLook->pcTheme->GetFont(), "Files of Type:");
-	iLabelWidth = pLabel->GetRequiredSize().x + FILE_CHOOSER_LABEL_GAP;
+	iLabelWidth = pLabel->GetRequiredSize().x + GetMetric(TM_DialogLabelGap);
 
 	//Look In and its buttons are a row of their own, so the buttons don't widen the labels' column.
 	iRow = 0;
@@ -271,16 +262,16 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	mpUp->GetClickEvent()->Add(this, &CFileChooser::GoUp);
 	mpHome->GetClickEvent()->Add(this, &CFileChooser::GoHome);
 	mpNewFolder->GetClickEvent()->Add(this, &CFileChooser::NewFolderClicked);
-	AddButton(pTop, mpUp, 2, FILE_CHOOSER_GAP);
-	AddButton(pTop, mpHome, 4, FILE_CHOOSER_GAP / 2);
-	AddButton(pTop, mpNewFolder, 6, FILE_CHOOSER_GAP / 2);
+	AddButton(pTop, mpUp, 2, GetMetric(TM_FileChooserGap));
+	AddButton(pTop, mpHome, 4, GetMetric(TM_FileChooserGap) / 2);
+	AddButton(pTop, mpNewFolder, 6, GetMetric(TM_FileChooserGap) / 2);
 	//A grid in a grid is the size it's given, not the size its parts need.
 	pTop->SetDesiredSize(-1, (mpLookIn->GetDesiredSize().y > mpUp->GetDesiredSize().y) ? mpLookIn->GetDesiredSize().y : mpUp->GetDesiredSize().y);
 	pBody->AddComponent(pTop, 0, iRow, 3, 1, 1, 0);
 	iRow++;
 
 	pGap = OMalloc<CFillContainer>(pWindow);
-	pGap->SetDesiredSize(FILE_CHOOSER_GAP, FILE_CHOOSER_GAP);
+	pGap->SetDesiredSize(GetMetric(TM_FileChooserGap), GetMetric(TM_FileChooserGap));
 	pBody->AddComponent(pGap, 0, iRow);
 	iRow++;
 
@@ -296,7 +287,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	iRow++;
 
 	pGap = OMalloc<CFillContainer>(pWindow);
-	pGap->SetDesiredSize(FILE_CHOOSER_GAP, FILE_CHOOSER_GAP);
+	pGap->SetDesiredSize(GetMetric(TM_FileChooserGap), GetMetric(TM_FileChooserGap));
 	pBody->AddComponent(pGap, 0, iRow);
 	iRow++;
 
@@ -308,7 +299,7 @@ Ptr<CComponent> CFileChooser::CreateBody(void)
 	iRow++;
 
 	pGap = OMalloc<CFillContainer>(pWindow);
-	pGap->SetDesiredSize(FILE_CHOOSER_GAP, FILE_CHOOSER_GAP / 2);
+	pGap->SetDesiredSize(GetMetric(TM_FileChooserGap), GetMetric(TM_FileChooserGap) / 2);
 	pBody->AddComponent(pGap, 0, iRow);
 	iRow++;
 
@@ -498,6 +489,17 @@ void CFileChooser::FillList(const char* szSelect)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// One of the theme's sizes.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CFileChooser::GetMetric(EThemeMetric eMetric)
+{
+	return mpDialog->GetLook()->pcTheme->GetMetric(eMetric);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An icon and the folder's or file's name.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -512,7 +514,7 @@ void CFileChooser::AddRow(const char* szPath, bool bFolder)
 
 	pWindow = mpDialog->GetWindow();
 	iRow = mpList->AddRow(true);
-	pIcon = OMalloc<CIconComponent>(pWindow, bFolder ? mpFolderIcon : mpFileIcon, FILE_CHOOSER_ICON_WIDTH, FILE_CHOOSER_ROW_HEIGHT);
+	pIcon = OMalloc<CIconComponent>(pWindow, bFolder ? mpFolderIcon : mpFileIcon, GetMetric(TM_FileChooserIconWidth), GetMetric(TM_FileChooserRowHeight));
 	pIcon->SetCelAlignment(CSH_Center, CSV_Center);
 	szName.Init();
 	cFileUtil.GetFileName(&szName, (char*)szPath);
@@ -551,7 +553,7 @@ bool CFileChooser::IsShownFile(const char* szPath)
 //////////////////////////////////////////////////////////////////////////
 bool CFileChooser::Show(void)
 {
-	return mpDialog->Show(FILE_CHOOSER_WIDTH, FILE_CHOOSER_HEIGHT);
+	return mpDialog->Show(GetMetric(TM_FileChooserWidth), GetMetric(TM_FileChooserHeight));
 }
 
 
@@ -818,7 +820,7 @@ void CFileChooser::NewFolder(void)
 	mpNewFolderDialog = OMalloc<CDialog>(mpDialog->GetWindow(), mpDialog->GetLook(), "New Folder");
 	pcName = &mpNewFolderDialog->AddTextField("Name", "New Folder");
 
-	if (mpNewFolderDialog->Show(NEW_FOLDER_DIALOG_WIDTH) && !StrEmpty(pcName->GetText()))
+	if (mpNewFolderDialog->Show(GetMetric(TM_DialogMinWidth)) && !StrEmpty(pcName->GetText()))
 	{
 		szPath.Init(mszDirectory);
 		cFileUtil.AppendToPath(&szPath, pcName->GetText());

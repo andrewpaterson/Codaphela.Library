@@ -97,6 +97,7 @@ public:
 	void			NewFolderClicked(void);
 
 protected:
+	int32			GetMetric(EThemeMetric eMetric);
 	Ptr<CComponent>	CreateBody(void);
 	Ptr<CLabel>		CreateLabel(const char* szText, int32 iWidth);
 	Ptr<CButton>	CreateButton(const char* szCaption);

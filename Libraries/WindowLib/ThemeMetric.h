@@ -64,6 +64,18 @@ enum EThemeMetric
 	TM_DialogMinWidth,			//The narrowest a dialog sized to what it holds is.
 	TM_MessageItemsGap,			//Between a message dialog's message and its items.
 	TM_MessageItemIndent,		//Of each of a message dialog's items.
+	TM_FileChooserWidth,		//A file chooser as it opens.
+	TM_FileChooserHeight,
+	TM_FileChooserMinWidth,		//The smallest a file chooser can be resized to.
+	TM_FileChooserMinHeight,
+	TM_FileChooserRowHeight,	//A file chooser's list rows.
+	TM_FileChooserIconWidth,	//The column of a file chooser's icons; a name starts after it.
+	TM_FileChooserGap,			//Between a file chooser's rows, and between its buttons along the top.
+	TM_GoToWidth,				//A Go To dialog as it opens; it can be resized to half this.
+	TM_GoToHeight,
+	TM_GoToRowHeight,			//A Go To dialog's result rows.
+	TM_GoToIconWidth,			//The column of a Go To dialog's icons.
+	TM_GoToGap,					//Between a Go To dialog's field and results, and after a result's name.
 
 	TM_NumMetrics,
 };

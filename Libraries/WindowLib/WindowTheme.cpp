@@ -31,7 +31,9 @@ static const char*	gaszThemeMetricNames[TM_NumMetrics] =
 	"MenuIconWidth", "ComboMenuIconWidth", "MenuChevronWidth", "MenuItemPadding", "MenuSeparatorHeight",
 	"MenuBarPaddingX", "MenuBarPaddingY", "MenuSelectionRadius", "MenuSelectionInset", "MenuSeparatorInset",
 	"DialogInset", "DialogLabelGap", "DialogRowGap", "DialogDividerGap", "DialogButtonGap", "DialogButtonWidth",
-	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent",
+	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent", "FileChooserWidth", "FileChooserHeight",
+	"FileChooserMinWidth", "FileChooserMinHeight", "FileChooserRowHeight", "FileChooserIconWidth", "FileChooserGap",
+	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
 };
 
 
