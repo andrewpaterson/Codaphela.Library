@@ -2,6 +2,7 @@
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
 #include "ObjectReader.h"
+#include "BinaryHeap.h"
 #include "ExternalObjectDeserialiser.h"
 
 
@@ -499,26 +500,19 @@ CDependentReadObject* CExternalObjectDeserialiser::GetUnread(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static bool OIndexLess(OIndex* poiLeft, OIndex* poiRight)
+{
+	return *poiLeft < *poiRight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::PushUnread(OIndex oi)
 {
-	size	i;
-	size	uiParent;
-	OIndex*	paoi;
-
-	maoiUnread.Push(&oi);
-	paoi = maoiUnread.GetData();
-	i = maoiUnread.NumElements() - 1;
-	while (i > 0)
-	{
-		uiParent = (i - 1) / 2;
-		if (paoi[uiParent] <= oi)
-		{
-			break;
-		}
-		paoi[i] = paoi[uiParent];
-		i = uiParent;
-	}
-	paoi[i] = oi;
+	BinaryHeapPush(&maoiUnread, &oi, OIndexLess);
 }
 
 
@@ -529,42 +523,9 @@ void CExternalObjectDeserialiser::PushUnread(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 OIndex CExternalObjectDeserialiser::PopUnread(void)
 {
-	size	i;
-	size	uiChild;
-	size	uiNum;
-	OIndex*	paoi;
 	OIndex	oiSmallest;
-	OIndex	oiLast;
 
-	oiSmallest = *maoiUnread.Get(0);
-	maoiUnread.Pop(&oiLast);
-	uiNum = maoiUnread.NumElements();
-	paoi = maoiUnread.GetData();  //After the pop: it can move the array.
-
-	//The last goes where the smallest was and moves down past smaller children.
-	i = 0;
-	for (;;)
-	{
-		uiChild = i * 2 + 1;
-		if (uiChild >= uiNum)
-		{
-			break;
-		}
-		if ((uiChild + 1 < uiNum) && (paoi[uiChild + 1] < paoi[uiChild]))
-		{
-			uiChild++;
-		}
-		if (oiLast <= paoi[uiChild])
-		{
-			break;
-		}
-		paoi[i] = paoi[uiChild];
-		i = uiChild;
-	}
-	if (uiNum > 0)
-	{
-		paoi[i] = oiLast;
-	}
+	BinaryHeapPop(&maoiUnread, &oiSmallest, OIndexLess);
 	return oiSmallest;
 }
 

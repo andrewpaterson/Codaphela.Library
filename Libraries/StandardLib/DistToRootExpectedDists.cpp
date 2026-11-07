@@ -1,4 +1,5 @@
 #include "BaseObject.h"
+#include "BinaryHeap.h"
 #include "DistToRootExpectedDists.h"
 
 
@@ -220,28 +221,11 @@ static bool HeapNodeLess(SDistToRootHeapNode* psLeft, SDistToRootHeapNode* psRig
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootExpectedDists::PushHeap(int iExpectedDist, size uiIndex)
 {
-	SDistToRootHeapNode*	psNode;
 	SDistToRootHeapNode		sNode;
-	size					uiChild;
-	size					uiParent;
 
 	sNode.iExpectedDist = iExpectedDist;
 	sNode.uiIndex = uiIndex;
-
-	uiChild = macHeap.NumElements();
-	macHeap.Add();
-	while (uiChild > 0)
-	{
-		uiParent = (size)((uiChild - 1) / 2);
-		psNode = macHeap.Get(uiParent);
-		if (!HeapNodeLess(&sNode, psNode))
-		{
-			break;
-		}
-		*macHeap.Get(uiChild) = *psNode;
-		uiChild = uiParent;
-	}
-	*macHeap.Get(uiChild) = sNode;
+	BinaryHeapPush(&macHeap, &sNode, HeapNodeLess);
 }
 
 
@@ -251,42 +235,9 @@ void CDistToRootExpectedDists::PushHeap(int iExpectedDist, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootExpectedDists::PopHeap(void)
 {
-	SDistToRootHeapNode		sLast;
-	SDistToRootHeapNode*	psChild;
-	size					uiNum;
-	size					uiParent;
-	size					uiChild;
+	SDistToRootHeapNode		sNode;
 
-	uiNum = macHeap.NumElements() - 1;
-	sLast = *macHeap.Get(uiNum);
-	macHeap.RemoveTail();
-	if (uiNum == 0)
-	{
-		return;
-	}
-
-	uiParent = 0;
-	for (;;)
-	{
-		uiChild = (size)((uiParent * 2) + 1);
-		if (uiChild >= uiNum)
-		{
-			break;
-		}
-		psChild = macHeap.Get(uiChild);
-		if ((uiChild + 1 < uiNum) && HeapNodeLess(macHeap.Get(uiChild + 1), psChild))
-		{
-			uiChild++;
-			psChild = macHeap.Get(uiChild);
-		}
-		if (!HeapNodeLess(psChild, &sLast))
-		{
-			break;
-		}
-		*macHeap.Get(uiParent) = *psChild;
-		uiParent = uiChild;
-	}
-	*macHeap.Get(uiParent) = sLast;
+	BinaryHeapPop(&macHeap, &sNode, HeapNodeLess);
 }
 
 

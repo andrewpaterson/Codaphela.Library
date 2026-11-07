@@ -228,6 +228,7 @@
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="DistCalculator.h" />
+    <ClInclude Include="BinaryHeap.h" />
     <ClInclude Include="DistToRootExpectedDists.h" />
     <ClInclude Include="PointerLocations.h" />
     <ClInclude Include="EmbeddedObject.h" />

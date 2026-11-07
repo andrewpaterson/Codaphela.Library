@@ -306,6 +306,7 @@
     <ClCompile Include="UnknownTestClasses.cpp" />
     <ClCompile Include="TestArrayType.cpp" />
     <ClCompile Include="TestArrayUnknown.cpp" />
+    <ClCompile Include="TestBinaryHeap.cpp" />
     <ClCompile Include="TestSetType.cpp" />
     <ClCompile Include="TestSetUnknown.cpp" />
     <ClCompile Include="TestMapStringUnknown.cpp" />
