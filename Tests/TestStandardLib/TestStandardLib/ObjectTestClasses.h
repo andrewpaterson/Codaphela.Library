@@ -6,6 +6,7 @@
 #include "StandardLib/Float.h"
 #include "StandardLib/Character.h"
 #include "StandardLib/String.h"
+#include "StandardLib/ArrayObject.h"
 
 
 struct STestObjectFreedNotifier
@@ -39,6 +40,25 @@ public:
 
 	void	SomeMethod(void);
 	void	AllocateTest(void);
+};
+
+
+extern void** gppvTestFreeRemoverAllocated;
+
+
+//Removes the first member of mpFrom when it is freed, and allocates (and drops) a CTestObject if it has a notifier for it.
+class CTestFreeRemover : public CObject
+{
+CONSTRUCTABLE(CTestFreeRemover)
+DESTRUCTABLE(CTestFreeRemover)
+public:
+	Ptr<CArrayObject>			mpFrom;
+	STestObjectFreedNotifier*	mpsAllocatedNotifier;
+	void*						mpvAllocated;
+
+	void	Init(Ptr<CArrayObject> pFrom, STestObjectFreedNotifier* psAllocatedNotifier);
+	void	Class(void) override;
+	void	Free(void) override;
 };
 
 

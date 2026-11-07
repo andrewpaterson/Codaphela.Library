@@ -4,6 +4,9 @@
 #include "ObjectTestClasses.h"
 
 
+void** gppvTestFreeRemoverAllocated = NULL;
+
+
 uint32	guiTestObjectsFreed = 0;
 
 
@@ -96,6 +99,59 @@ void CTestObject::SomeMethod(void)
 void CTestObject::AllocateTest(void)
 {
 	mpTest = OMalloc<CTestObject>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestFreeRemover::Init(Ptr<CArrayObject> pFrom, STestObjectFreedNotifier* psAllocatedNotifier)
+{
+	PreInit();
+	mpFrom = pFrom;
+	mpsAllocatedNotifier = psAllocatedNotifier;
+	mpvAllocated = NULL;
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestFreeRemover::Class(void)
+{
+	M_Pointer(mpFrom);
+	U_Pointer(mpsAllocatedNotifier);
+	U_Pointer(mpvAllocated);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestFreeRemover::Free(void)
+{
+	Ptr<CTestObject>	pAllocated;
+	CPointer			pFirst;
+
+	if (mpFrom.IsNotNull() && !mpFrom->IsEmpty())
+	{
+		pFirst = mpFrom->Get(0);
+		mpFrom->Remove(pFirst);
+		pFirst = NULL;
+	}
+	if (mpsAllocatedNotifier)
+	{
+		pAllocated = OMalloc<CTestObject>(mpsAllocatedNotifier);
+		mpvAllocated = pAllocated.Object();
+		if (gppvTestFreeRemoverAllocated)
+		{
+			*gppvTestFreeRemoverAllocated = mpvAllocated;
+		}
+	}
 }
 
 

@@ -11,7 +11,7 @@ class CObjectRemovalContext
 protected:
 	CArrayRemovalPointerContainerE4		maapcRemovedObjects;
 	CArrayBaseObjectPtr					mapcRemainingObjects;
-	CArrayBaseObjectPtr					mapcKilledObjects;
+	CArrayBaseObjectPtr					mapcKilledObjects;		//The batch just freed, sorted, while Done takes it out of the rest.
 
 public:
 	void					Init(void);
@@ -27,7 +27,7 @@ public:
 	void					Clear(void);
 
 protected:
-	void					CopyNotKilled(CArrayBaseObjectPtr* papcNext);
+	void					RemoveKilled(CArrayBaseObjectPtr* papcWaiting);
 };
 
 

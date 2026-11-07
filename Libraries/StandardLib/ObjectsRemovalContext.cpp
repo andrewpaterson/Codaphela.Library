@@ -51,23 +51,31 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Start(CArrayBaseObjectPtr* papcKille
 //////////////////////////////////////////////////////////////////////////
 CArrayBaseObjectPtr* CObjectRemovalContext::Done(void)
 {
-	CArrayBaseObjectPtr*		apcPreviouslyKilled;
 	CRemovalPointerContainer*	pcContainer;
+	size						i;
+	size						uiNumRemoved;
 
-	//Insert the objects that have just been killed into the list of all killed pointers.
-	//This may leave duplicates but that's probably fine.
+	//The batch just freed has been deallocated, and nothing has been allocated since.  Its objects are taken out of the
+	//batches still waiting now: once anything is allocated an object could be made where one of them was, and a
+	//batch it is in must not take it for the freed one.
 	pcContainer = maapcRemovedObjects.Get(0);
-	apcPreviouslyKilled = pcContainer->GetKilled();
-	mapcKilledObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
+	mapcKilledObjects.ReInit();
+	mapcKilledObjects.InsertArrayAfterEnd(pcContainer->GetKilled());
+	mapcKilledObjects.Sort();
+	uiNumRemoved = maapcRemovedObjects.NumElements();
+	for (i = 1; i < uiNumRemoved; i++)
+	{
+		RemoveKilled(maapcRemovedObjects.Get(i)->GetKilled());
+	}
+	mapcKilledObjects.ReInit();
 
 	pcContainer->Kill();
 	maapcRemovedObjects.RemoveAt(0);
 	if (IsBusy())
 	{
-		//Copy the next list of objects to kill into remaining to be killed.
-		//Remove all already killed object pointers from remaining.
 		pcContainer = maapcRemovedObjects.Get(0);
-		CopyNotKilled(pcContainer->GetKilled());
+		mapcRemainingObjects.ReInit();
+		mapcRemainingObjects.InsertArrayAfterEnd(pcContainer->GetKilled());
 		return &mapcRemainingObjects;
 	}
 	else
@@ -85,22 +93,21 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Done(void)
 // the record of them is sorted.
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectRemovalContext::CopyNotKilled(CArrayBaseObjectPtr* papcNext)
+void CObjectRemovalContext::RemoveKilled(CArrayBaseObjectPtr* papcWaiting)
 {
 	size			i;
-	size			uiNumNext;
 	size			uiIndex;
 	CBaseObject*	pcObject;
 
-	mapcKilledObjects.Sort();
-	mapcRemainingObjects.ReInit();
-	uiNumNext = papcNext->NumElements();
-	for (i = 0; i < uiNumNext; i++)
+	//Backwards, so removing doesn't move the ones still to look at.
+	i = papcWaiting->NumElements();
+	while (i > 0)
 	{
-		pcObject = papcNext->GetPtr(i);
-		if (!mapcKilledObjects.FindInSorted(&pcObject, &ComparePtrPtr, &uiIndex))
+		i--;
+		pcObject = papcWaiting->GetPtr(i);
+		if (mapcKilledObjects.FindInSorted(&pcObject, &ComparePtrPtr, &uiIndex))
 		{
-			mapcRemainingObjects.Add(pcObject);
+			papcWaiting->RemoveAt(i, true);
 		}
 	}
 }

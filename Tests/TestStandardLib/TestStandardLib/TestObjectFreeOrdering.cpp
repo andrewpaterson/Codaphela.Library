@@ -713,6 +713,100 @@ void TestObjectFreeOrderingNesToItself(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object allocated and dropped in a Free is freed too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingAllocateInFree(void)
+{
+	STestObjectFreedNotifier	sAllocated;
+	void*						pvAllocated;
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>		pFrom;
+		Ptr<CTestFreeRemover>	pAllocator;
+		CPointer				pFirst;
+
+		pFrom = OMalloc<CArrayObject>();
+		ORoot()->Add(pFrom);
+		pAllocator = OMalloc<CTestFreeRemover>(Null<CArrayObject>(), &sAllocated);
+		pFrom->Add(pAllocator);
+		pAllocator = NULL;
+		pvAllocated = NULL;
+		gppvTestFreeRemoverAllocated = &pvAllocated;
+		pFirst = pFrom->Get(0);
+		pFrom->Remove(pFirst);
+		pFirst = NULL;
+		gppvTestFreeRemoverAllocated = NULL;
+		AssertNotNull(pvAllocated);
+		AssertSize(3, gcObjects.NumMemoryIndexes());
+		AssertTrue(sAllocated.bFreed);
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Free that starts another removal: freeing pRemover takes pAllocator out
+// of an array, so it is freed in a later batch, after the first batch
+// (pHolder, pFreed and pRemover) has been deallocated.  pAllocator's Free
+// allocates an object and drops it.  The object can land where one of the
+// first batch was (pHolder, in a 64 bit build); it is freed all the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectFreeOrderingNestedRemovalReusedAddress(void)
+{
+	STestObjectFreedNotifier	sFreed;
+	STestObjectFreedNotifier	sAllocated;
+	void*						pvAllocated;
+
+	ObjectsInit();
+	{
+		Ptr<CArrayObject>		pHolder;
+		Ptr<CArrayObject>		pFrom;
+		Ptr<CTestObject>		pFreed;
+		Ptr<CTestFreeRemover>	pRemover;
+		Ptr<CTestFreeRemover>	pAllocator;
+		size					uiIndexes;
+
+		pFrom = OMalloc<CArrayObject>();
+		ORoot()->Add(pFrom);
+		pAllocator = OMalloc<CTestFreeRemover>(Null<CArrayObject>(), &sAllocated);
+		pFrom->Add(pAllocator);
+
+		pHolder = OMalloc<CArrayObject>();
+		ORoot()->Add(pHolder);
+		pFreed = OMalloc<CTestObject>(&sFreed);
+		pHolder->Add(pFreed);
+		pRemover = OMalloc<CTestFreeRemover>(pFrom, (STestObjectFreedNotifier*)NULL);
+		pHolder->Add(pRemover);
+
+		pvAllocated = NULL;
+		gppvTestFreeRemoverAllocated = &pvAllocated;
+		pFreed = NULL;
+		pRemover = NULL;
+		pAllocator = NULL;
+		uiIndexes = gcObjects.NumMemoryIndexes();
+
+		AssertTrue(ORoot()->Remove(pHolder));
+		pHolder = NULL;
+		gppvTestFreeRemoverAllocated = NULL;
+
+		AssertTrue(sFreed.bFreed);
+		AssertNotNull(pvAllocated);
+		AssertSize(uiIndexes - 4, gcObjects.NumMemoryIndexes());
+		AssertTrue(sAllocated.bFreed);
+		AssertTrue(pFrom->IsEmpty());
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectFreeOrdering(void)
@@ -734,6 +828,8 @@ void TestObjectFreeOrdering(void)
 	TestObjectFreeOrderingExplicitKillEmbeddedPointer();
 	TestObjectFreeOrderingExplicitKillSurvivor();
 	TestObjectFreeOrderingNestedRemoval();
+	TestObjectFreeOrderingAllocateInFree();
+	TestObjectFreeOrderingNestedRemovalReusedAddress();
 	TestObjectFreeOrderingObjectsKill(false);
 	TestObjectFreeOrderingObjectsKill(true);
 	TestObjectFreeOrderingEvictInMemory(false);
